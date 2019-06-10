@@ -1,188 +1,76 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v16 02/16] arm64: untag user pointers in access_ok and
- __uaccess_mask_ptr
-Date: Mon, 10 Jun 2019 18:53:27 +0100
-Message-ID: <20190610175326.GC25803@arrakis.emea.arm.com>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <4327b260fb17c4776a1e3c844f388e4948cfb747.1559580831.git.andreyknvl@google.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] RDMA/mlx4: Spread completion vectors for proxy CQs
+Date: Mon, 10 Jun 2019 14:53:36 -0300
+Message-ID: <20190610175336.GA4890@ziepe.ca>
+References: <20190218183302.1242676-1-haakon.bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4327b260fb17c4776a1e3c844f388e4948cfb747.1559580831.git.andreyknvl@google.com>
+In-Reply-To: <20190218183302.1242676-1-haakon.bugge@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
+To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
+Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, jackm@dev.mellanox.co.il, majd@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 03, 2019 at 06:55:04PM +0200, Andrey Konovalov wrote:
-> diff --git a/arch/arm64/include/asm/uaccess.h b/arch/arm64/include/asm/uaccess.h
-> index e5d5f31c6d36..9164ecb5feca 100644
-> --- a/arch/arm64/include/asm/uaccess.h
-> +++ b/arch/arm64/include/asm/uaccess.h
-> @@ -94,7 +94,7 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
->  	return ret;
->  }
->  
-> -#define access_ok(addr, size)	__range_ok(addr, size)
-> +#define access_ok(addr, size)	__range_ok(untagged_addr(addr), size)
+On Mon, Feb 18, 2019 at 07:33:02PM +0100, Håkon Bugge wrote:
+> MAD packet sending/receiving is not properly virtualized in
+> CX-3. Hence, these are proxied through the PF driver. The proxying
+> uses UD QPs. The associated CQs are created with completion vector
+> zero.
+> 
+> This leads to great imbalance in CPU processing, in particular during
+> heavy RDMA CM traffic.
+> 
+> Solved by selecting the completion vector on a round-robin base.
+> 
+> The imbalance can be demonstrated in a bare-metal environment, where
+> two nodes have instantiated 8 VFs each. This using dual ported HCAs,
+> so we have 16 vPorts per physical server.
+> 
+> 64 processes are associated with each vPort and creates and destroys
+> one QP for each of the remote 64 processes. That is, 1024 QPs per
+> vPort, all in all 16K QPs. The QPs are created/destroyed using the
+> CM.
+> 
+> Before this commit, we have (excluding all completion IRQs with zero
+> interrupts):
+> 
+> 396: mlx4-1@0000:94:00.0 199126
+> 397: mlx4-2@0000:94:00.0 1
+> 
+> With this commit:
+> 
+> 396: mlx4-1@0000:94:00.0 12568
+> 397: mlx4-2@0000:94:00.0 50772
+> 398: mlx4-3@0000:94:00.0 10063
+> 399: mlx4-4@0000:94:00.0 50753
+> 400: mlx4-5@0000:94:00.0 6127
+> 401: mlx4-6@0000:94:00.0 6114
+> []
+> 414: mlx4-19@0000:94:00.0 6122
+> 415: mlx4-20@0000:94:00.0 6117
+> 
+> The added pr_info shows:
+> 
+> create_pv_resources: slave:0 port:1, vector:0, num_comp_vectors:62
+> create_pv_resources: slave:0 port:1, vector:1, num_comp_vectors:62
+> create_pv_resources: slave:0 port:2, vector:2, num_comp_vectors:62
+> create_pv_resources: slave:0 port:2, vector:3, num_comp_vectors:62
+> create_pv_resources: slave:1 port:1, vector:4, num_comp_vectors:62
+> create_pv_resources: slave:1 port:2, vector:5, num_comp_vectors:62
+> []
+> create_pv_resources: slave:8 port:2, vector:18, num_comp_vectors:62
+> create_pv_resources: slave:8 port:1, vector:19, num_comp_vectors:62
+> 
+> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+> ---
+>  drivers/infiniband/hw/mlx4/mad.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 
-I'm going to propose an opt-in method here (RFC for now). We can't have
-a check in untagged_addr() since this is already used throughout the
-kernel for both user and kernel addresses (khwasan) but we can add one
-in __range_ok(). The same prctl() option will be used for controlling
-the precise/imprecise mode of MTE later on. We can use a TIF_ flag here
-assuming that this will be called early on and any cloned thread will
-inherit this.
+This has been on patchworks for too long. Is it still relevant, or
+were you going to respin this with Chuck's 'least loaded' idea?
 
-Anyway, it's easier to paste some diff than explain but Vincenzo can
-fold them into his ABI patches that should really go together with
-these. I added a couple of MTE definitions for prctl() as an example,
-not used currently:
-
-------------------8<---------------------------------------------
-diff --git a/arch/arm64/include/asm/processor.h b/arch/arm64/include/asm/processor.h
-index fcd0e691b1ea..2d4cb7e4edab 100644
---- a/arch/arm64/include/asm/processor.h
-+++ b/arch/arm64/include/asm/processor.h
-@@ -307,6 +307,10 @@ extern void __init minsigstksz_setup(void);
- /* PR_PAC_RESET_KEYS prctl */
- #define PAC_RESET_KEYS(tsk, arg)	ptrauth_prctl_reset_keys(tsk, arg)
- 
-+/* PR_UNTAGGED_UADDR prctl */
-+int untagged_uaddr_set_mode(unsigned long arg);
-+#define SET_UNTAGGED_UADDR_MODE(arg)	untagged_uaddr_set_mode(arg)
-+
- /*
-  * For CONFIG_GCC_PLUGIN_STACKLEAK
-  *
-diff --git a/arch/arm64/include/asm/thread_info.h b/arch/arm64/include/asm/thread_info.h
-index c285d1ce7186..89ce77773c49 100644
---- a/arch/arm64/include/asm/thread_info.h
-+++ b/arch/arm64/include/asm/thread_info.h
-@@ -101,6 +101,7 @@ void arch_release_task_struct(struct task_struct *tsk);
- #define TIF_SVE			23	/* Scalable Vector Extension in use */
- #define TIF_SVE_VL_INHERIT	24	/* Inherit sve_vl_onexec across exec */
- #define TIF_SSBD		25	/* Wants SSB mitigation */
-+#define TIF_UNTAGGED_UADDR	26
- 
- #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
- #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)
-@@ -116,6 +117,7 @@ void arch_release_task_struct(struct task_struct *tsk);
- #define _TIF_FSCHECK		(1 << TIF_FSCHECK)
- #define _TIF_32BIT		(1 << TIF_32BIT)
- #define _TIF_SVE		(1 << TIF_SVE)
-+#define _TIF_UNTAGGED_UADDR	(1 << TIF_UNTAGGED_UADDR)
- 
- #define _TIF_WORK_MASK		(_TIF_NEED_RESCHED | _TIF_SIGPENDING | \
- 				 _TIF_NOTIFY_RESUME | _TIF_FOREIGN_FPSTATE | \
-diff --git a/arch/arm64/include/asm/uaccess.h b/arch/arm64/include/asm/uaccess.h
-index 9164ecb5feca..54f5bbaebbc4 100644
---- a/arch/arm64/include/asm/uaccess.h
-+++ b/arch/arm64/include/asm/uaccess.h
-@@ -73,6 +73,9 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
- {
- 	unsigned long ret, limit = current_thread_info()->addr_limit;
- 
-+	if (test_thread_flag(TIF_UNTAGGED_UADDR))
-+		addr = untagged_addr(addr);
-+
- 	__chk_user_ptr(addr);
- 	asm volatile(
- 	// A + B <= C + 1 for all A,B,C, in four easy steps:
-@@ -94,7 +97,7 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
- 	return ret;
- }
- 
--#define access_ok(addr, size)	__range_ok(untagged_addr(addr), size)
-+#define access_ok(addr, size)	__range_ok(addr, size)
- #define user_addr_max			get_fs
- 
- #define _ASM_EXTABLE(from, to)						\
-diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index 3767fb21a5b8..fd191c5b92aa 100644
---- a/arch/arm64/kernel/process.c
-+++ b/arch/arm64/kernel/process.c
-@@ -552,3 +552,18 @@ void arch_setup_new_exec(void)
- 
- 	ptrauth_thread_init_user(current);
- }
-+
-+/*
-+ * Enable the relaxed ABI allowing tagged user addresses into the kernel.
-+ */
-+int untagged_uaddr_set_mode(unsigned long arg)
-+{
-+	if (is_compat_task())
-+		return -ENOTSUPP;
-+	if (arg)
-+		return -EINVAL;
-+
-+	set_thread_flag(TIF_UNTAGGED_UADDR);
-+
-+	return 0;
-+}
-diff --git a/include/uapi/linux/prctl.h b/include/uapi/linux/prctl.h
-index 094bb03b9cc2..4afd5e2980ee 100644
---- a/include/uapi/linux/prctl.h
-+++ b/include/uapi/linux/prctl.h
-@@ -229,4 +229,9 @@ struct prctl_mm_map {
- # define PR_PAC_APDBKEY			(1UL << 3)
- # define PR_PAC_APGAKEY			(1UL << 4)
- 
-+/* Untagged user addresses for arm64 */
-+#define PR_UNTAGGED_UADDR		55
-+# define PR_MTE_IMPRECISE_CHECK		0
-+# define PR_MTE_PRECISE_CHECK		1
-+
- #endif /* _LINUX_PRCTL_H */
-diff --git a/kernel/sys.c b/kernel/sys.c
-index 2969304c29fe..b1f67a8cffc4 100644
---- a/kernel/sys.c
-+++ b/kernel/sys.c
-@@ -124,6 +124,9 @@
- #ifndef PAC_RESET_KEYS
- # define PAC_RESET_KEYS(a, b)	(-EINVAL)
- #endif
-+#ifndef SET_UNTAGGED_UADDR_MODE
-+# define SET_UNTAGGED_UADDR_MODE	(-EINVAL)
-+#endif
- 
- /*
-  * this is where the system-wide overflow UID and GID are defined, for
-@@ -2492,6 +2495,11 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
- 			return -EINVAL;
- 		error = PAC_RESET_KEYS(me, arg2);
- 		break;
-+	case PR_UNTAGGED_UADDR:
-+		if (arg3 || arg4 || arg5)
-+			return -EINVAL;
-+		error = SET_UNTAGGED_UADDR_MODE(arg2);
-+		break;
- 	default:
- 		error = -EINVAL;
- 		break;
-------------------8<---------------------------------------------
-
-The tag_ptr() function in the test library would become:
-
-static void *tag_ptr(void *ptr)
-{
-	static int tbi_enabled = 0;
-	unsigned long tag = 0;
-
-	if (!tbi_enabled) {
-		if (prctl(PR_UNTAGGED_UADDR, 0, 0, 0, 0) == 0)
-			tbi_enabled = 1;
-	}
-
-	if (!ptr)
-		return ptr;
-	if (tbi_enabled)
-		tag = rand() & 0xff;
-
-	return (void *)((unsigned long)ptr | (tag << TAG_SHIFT));
-}
-
--- 
-Catalin
+Thanks,
+Jason
