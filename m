@@ -1,46 +1,37 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] IB/mlx4: prevent undefined shift in set_user_sq_size()
-Date: Mon, 10 Jun 2019 17:08:58 +0300
-Message-ID: <20190610140858.GA6369@mtr-leonro.mtl.com>
-References: <20190608092231.GA28890@mwanda>
- <20190610132849.GD18468@ziepe.ca>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v16 05/16] arm64: untag user pointers passed to memory
+ syscalls
+Date: Mon, 10 Jun 2019 15:28:25 +0100
+Message-ID: <20190610142824.GB10165@c02tf0j2hf1t.cambridge.arm.com>
+References: <cover.1559580831.git.andreyknvl@google.com>
+ <045a94326401693e015bf80c444a4d946a5c68ed.1559580831.git.andreyknvl@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190610132849.GD18468@ziepe.ca>
+In-Reply-To: <045a94326401693e015bf80c444a4d946a5c68ed.1559580831.git.andreyknvl@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 10, 2019 at 10:28:49AM -0300, Jason Gunthorpe wrote:
-> On Sat, Jun 08, 2019 at 12:22:31PM +0300, Dan Carpenter wrote:
-> > The ucmd->log_sq_bb_count is a u8 that comes from the user.  If it's
-> > larger than the number of bits in an int then that's undefined behavior.
-> > It turns out this doesn't really cause an issue at runtime but it's
-> > still nice to clean it up.
-> >
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> >  drivers/infiniband/hw/mlx4/qp.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-> > index 5221c0794d1d..9f6eb23e8044 100644
-> > --- a/drivers/infiniband/hw/mlx4/qp.c
-> > +++ b/drivers/infiniband/hw/mlx4/qp.c
-> > @@ -439,7 +439,8 @@ static int set_user_sq_size(struct mlx4_ib_dev *dev,
-> >  			    struct mlx4_ib_create_qp *ucmd)
-> >  {
-> >  	/* Sanity check SQ size before proceeding */
-> > -	if ((1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
-> > +	if (ucmd->log_sq_bb_count > 31					 ||
-> > +	    (1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
->
-> Surely this should use check_shl_overflow() ?
+On Mon, Jun 03, 2019 at 06:55:07PM +0200, Andrey Konovalov wrote:
+> This patch is a part of a series that extends arm64 kernel ABI to allow to
+> pass tagged user pointers (with the top byte set to something else other
+> than 0x00) as syscall arguments.
+> 
+> This patch allows tagged pointers to be passed to the following memory
+> syscalls: get_mempolicy, madvise, mbind, mincore, mlock, mlock2, mprotect,
+> mremap, msync, munlock.
+> 
+> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 
-Yes
+I would add in the commit log (and possibly in the code with a comment)
+that mremap() and mmap() do not currently accept tagged hint addresses.
+Architectures may interpret the hint tag as a background colour for the
+corresponding vma. With this:
 
->
-> Jason
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+
+-- 
+Catalin
