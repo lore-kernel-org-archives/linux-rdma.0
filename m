@@ -1,37 +1,62 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH] [v4.14.y] infiniband: fix race condition between
- infiniband mlx4, mlx5  driver and core dumping
-Date: Mon, 10 Jun 2019 16:05:27 +0000
-Message-ID: <20190610160521.GJ18446@mellanox.com>
-References: <1560199937-23476-1-git-send-email-akaher@vmware.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 hmm 11/11] mm/hmm: Remove confusing comment and logic
+ from hmm_release
+Date: Mon, 10 Jun 2019 16:02:56 +0000
+Message-ID: <20190610160252.GH18446@mellanox.com>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
+ <20190606184438.31646-12-jgg@ziepe.ca>
+ <61ea869d-43d2-d1e5-dc00-cf5e3e139169@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1560199937-23476-1-git-send-email-akaher@vmware.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <61ea869d-43d2-d1e5-dc00-cf5e3e139169-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-Content-ID: <ACA6821CDC8397409049C57892C1C405@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ajay Kaher <akaher@vmware.com>
-Cc: "aarcange@redhat.com" <aarcange@redhat.com>, "jannh@google.com" <jannh@google.com>, "oleg@redhat.com" <oleg@redhat.com>, "peterx@redhat.com" <peterx@redhat.com>, "rppt@linux.ibm.com" <rppt@linux.ibm.com>, "mhocko@suse.com" <mhocko@suse.com>, Yishai Hadas <yishaih@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "srivatsab@vmware.com" <srivatsab@vmware.com>, "amakhalov@vmware.com" <amakhalov@vmware.com>
+Content-ID: <8C3BE8F336B51E4C8608A9C4C971BE76-wNKe6lTLrGecE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 11, 2019 at 02:22:17AM +0530, Ajay Kaher wrote:
-> This patch is the extension of following upstream commit to fix
-> the race condition between get_task_mm() and core dumping
-> for IB->mlx4 and IB->mlx5 drivers:
->=20
-> commit 04f5866e41fb ("coredump: fix race condition between
-> mmget_not_zero()/get_task_mm() and core dumping")'
->=20
-> Thanks to Jason for pointing this.
->=20
-> Signed-off-by: Ajay Kaher <akaher@vmware.com>
-> ---
->  drivers/infiniband/hw/mlx4/main.c | 4 +++-
->  drivers/infiniband/hw/mlx5/main.c | 3 +++
->  2 files changed, 6 insertions(+), 1 deletion(-)
-
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
-
-Jason
+T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDI6Mzc6MDdQTSAtMDcwMCwgUmFscGggQ2FtcGJlbGwg
+d3JvdGU6Cj4gCj4gT24gNi82LzE5IDExOjQ0IEFNLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4g
+PiBGcm9tOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+Cj4gPiAKPiA+IGhtbV9y
+ZWxlYXNlKCkgaXMgY2FsbGVkIGV4YWN0bHkgb25jZSBwZXIgaG1tLiBvcHMtPnJlbGVhc2UoKSBj
+YW5ub3QKPiA+IGFjY2lkZW50YWxseSB0cmlnZ2VyIGFueSBhY3Rpb24gdGhhdCB3b3VsZCByZWN1
+cnNlIGJhY2sgb250bwo+ID4gaG1tLT5taXJyb3JzX3NlbS4KPiA+IAo+ID4gVGhpcyBmaXhlcyBh
+IHVzZSBhZnRlci1mcmVlIHJhY2Ugb2YgdGhlIGZvcm06Cj4gPiAKPiA+ICAgICAgICAgQ1BVMCAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQ1BVMQo+ID4gICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBobW1fcmVsZWFzZSgpCj4gPiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdXBfd3JpdGUoJmhtbS0+bWlycm9y
+c19zZW0pOwo+ID4gICBobW1fbWlycm9yX3VucmVnaXN0ZXIobWlycm9yKQo+ID4gICAgZG93bl93
+cml0ZSgmaG1tLT5taXJyb3JzX3NlbSk7Cj4gPiAgICB1cF93cml0ZSgmaG1tLT5taXJyb3JzX3Nl
+bSk7Cj4gPiAgICBrZnJlZShtaXJyb3IpCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgbWlycm9yLT5vcHMtPnJlbGVhc2UobWlycm9yKQo+ID4gCj4gPiBU
+aGUgb25seSB1c2VyIHdlIGhhdmUgdG9kYXkgZm9yIG9wcy0+cmVsZWFzZSBpcyBhbiBlbXB0eSBm
+dW5jdGlvbiwgc28gdGhpcwo+ID4gaXMgdW5hbWJpZ3VvdXNseSBzYWZlLgo+ID4gCj4gPiBBcyBh
+IGNvbnNlcXVlbmNlIG9mIHBsdWdnaW5nIHRoaXMgcmFjZSBkcml2ZXJzIGFyZSBub3QgYWxsb3dl
+ZCB0bwo+ID4gcmVnaXN0ZXIvdW5yZWdpc3RlciBtaXJyb3JzIGZyb20gd2l0aGluIGEgcmVsZWFz
+ZSBvcC4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFu
+b3guY29tPgo+IAo+IEkgYWdyZWUgd2l0aCB0aGUgYW5hbHlzaXMgYWJvdmUgYnV0IEknbSBub3Qg
+c3VyZSB0aGF0IHJlbGVhc2UoKSB3aWxsCj4gYWx3YXlzIGJlIGFuIGVtcHR5IGZ1bmN0aW9uLiBJ
+dCBtaWdodCBiZSBtb3JlIGVmZmljaWVudCB0byB3cml0ZSBiYWNrCj4gYWxsIGRhdGEgbWlncmF0
+ZWQgdG8gYSBkZXZpY2UgImluIG9uZSBwYXNzIiBpbnN0ZWFkIG9mIHJlbHlpbmcKPiBvbiB1bm1h
+cF92bWFzKCkgY2FsbGluZyBobW1fc3RhcnRfcmFuZ2VfaW52YWxpZGF0ZSgpIHBlciBWTUEuCgpJ
+IHRoaW5rIHdlIGhhdmUgdG8gZm9jdXMgb24gdGhlICpjdXJyZW50KiBrZXJuZWwgLSBhbmQgd2Ug
+aGF2ZSB0d28KdXNlcnMgb2YgcmVsZWFzZSwgbm91dmVhdV9zdm0uYyBpcyBlbXB0eSBhbmQgYW1k
+Z3B1X21uLmMgZG9lcwpzY2hlZHVsZV93b3JrKCkgLSBzbyBJIGJlbGlldmUgd2Ugc2hvdWxkIGdv
+IGFoZWFkIHdpdGggdGhpcyBzaW1wbGUKc29sdXRpb24gdG8gdGhlIGFjdHVhbCByYWNlIHRvZGF5
+IHRoYXQgYm90aCBvZiB0aG9zZSB3aWxsIHN1ZmZlciBmcm9tLgoKSWYgd2UgZmluZCBhIG5lZWQg
+Zm9yIGEgbW9yZSBjb21wbGV4IHZlcnNpb24gdGhlbiBpdCBjYW4gYmUgZGViYXRlZAphbmQganVz
+dGlmaWVkIHdpdGggcHJvcGVyIGNvbnRleHQuLi4KCk9rPwoKSmFzb24KX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBtYWlsaW5nIGxpc3QKYW1k
+LWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
