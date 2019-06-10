@@ -1,8 +1,8 @@
-From: Leon Romanovsky <leon@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH for-rc 3/3] IB/hfi1: Correct tid qp rcd to match verbs
  context
-Date: Mon, 10 Jun 2019 16:10:07 +0300
-Message-ID: <20190610131007.GW6369@mtr-leonro.mtl.com>
+Date: Mon, 10 Jun 2019 10:25:11 -0300
+Message-ID: <20190610132511.GB18468@ziepe.ca>
 References: <20190607113807.157915.48581.stgit@awfm-01.aw.intel.com>
  <20190607122538.158478.62945.stgit@awfm-01.aw.intel.com>
  <20190608081533.GO5261@mtr-leonro.mtl.com>
@@ -14,14 +14,13 @@ Content-Disposition: inline
 In-Reply-To: <32E1700B9017364D9B60AED9960492BC70DA2848@fmsmsx120.amr.corp.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Cc: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "Wan, Kaike" <kaike.wan@intel.com>
+Cc: Leon Romanovsky <leon@kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "Wan, Kaike" <kaike.wan@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
 On Mon, Jun 10, 2019 at 01:03:54PM +0000, Marciniszyn, Mike wrote:
 > > > diff --git a/drivers/infiniband/hw/hfi1/tid_rdma.c
 > > b/drivers/infiniband/hw/hfi1/tid_rdma.c
 > > > index 6fb9303..d77276d 100644
-> > > --- a/drivers/infiniband/hw/hfi1/tid_rdma.c
 > > > +++ b/drivers/infiniband/hw/hfi1/tid_rdma.c
 > > > @@ -312,9 +312,8 @@ static struct hfi1_ctxtdata *qp_to_rcd(struct
 > > rvt_dev_info *rdi,
@@ -34,16 +33,15 @@ On Mon, Jun 10, 2019 at 01:03:54PM +0000, Marciniszyn, Mike wrote:
 > > > +		ctxt = hfi1_get_qp_map(dd,
 > > > +				       (u8)(qp->ibqp.qp_num >> dd-
 > > >qos_shift));
-> >
+> > 
 > > It is one time use functions, why don't you handle this (u8) casting
 > > inside of hfi1_get_qp_map()?
-> >
->
+> > 
+> 
 > I assume the suggestion is to remove the u8 cast at the call site?
-
-Yes, sorry for not being clear.
-
->
+> 
 > The function return value already is a u8 and there is a cast of the 64 bit CSR read result.
->
-> Mike
+
+Why do you need an explicit cast at all?
+
+Jason
