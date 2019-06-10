@@ -1,122 +1,72 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [RFC] mm/hmm: pass mmu_notifier_range to
- sync_cpu_device_pagetables
-Date: Sun, 9 Jun 2019 12:46:32 -0700
-Message-ID: <20190609194632.GB19825@iweiny-DESK2.sc.intel.com>
-References: <20190608001452.7922-1-rcampbell@nvidia.com>
+From: Ajay Kaher <akaher@vmware.com>
+Subject: [PATCH] [v4.14.y] infiniband: fix race condition between infiniband mlx4, mlx5  driver and core dumping
+Date: Tue, 11 Jun 2019 02:22:17 +0530
+Message-ID: <1560199937-23476-1-git-send-email-akaher@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190608001452.7922-1-rcampbell@nvidia.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, amd-gfx@lists.freedesktop.org
+Content-Type: text/plain
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: aarcange@redhat.com, jannh@google.com, oleg@redhat.com, peterx@redhat.com, rppt@linux.ibm.com, jgg@mellanox.com, mhocko@suse.com
+Cc: yishaih@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, matanb@mellanox.com, leonro@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, akaher@vmware.com, srivatsab@vmware.com, amakhalov@vmware.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDU6MTQ6NTJQTSAtMDcwMCwgUmFscGggQ2FtcGJlbGwg
-d3JvdGU6Cj4gSE1NIGRlZmluZXMgaXRzIG93biBzdHJ1Y3QgaG1tX3VwZGF0ZSB3aGljaCBpcyBw
-YXNzZWQgdG8gdGhlCj4gc3luY19jcHVfZGV2aWNlX3BhZ2V0YWJsZXMoKSBjYWxsYmFjayBmdW5j
-dGlvbi4gVGhpcyBpcwo+IHN1ZmZpY2llbnQgd2hlbiB0aGUgb25seSBhY3Rpb24gaXMgdG8gaW52
-YWxpZGF0ZS4gSG93ZXZlciwKPiBhIGRldmljZSBtYXkgd2FudCB0byBrbm93IHRoZSByZWFzb24g
-Zm9yIHRoZSBpbnZhbGlkYXRpb24gYW5kCj4gYmUgYWJsZSB0byBzZWUgdGhlIG5ldyBwZXJtaXNz
-aW9ucyBvbiBhIHJhbmdlLCB1cGRhdGUgZGV2aWNlIGFjY2Vzcwo+IHJpZ2h0cyBvciByYW5nZSBz
-dGF0aXN0aWNzLiBTaW5jZSBzeW5jX2NwdV9kZXZpY2VfcGFnZXRhYmxlcygpCj4gY2FuIGJlIGNh
-bGxlZCBmcm9tIHRyeV90b191bm1hcCgpLCB0aGUgbW1hcF9zZW0gbWF5IG5vdCBiZSBoZWxkCj4g
-YW5kIGZpbmRfdm1hKCkgaXMgbm90IHNhZmUgdG8gYmUgY2FsbGVkLgo+IFBhc3MgdGhlIHN0cnVj
-dCBtbXVfbm90aWZpZXJfcmFuZ2UgdG8gc3luY19jcHVfZGV2aWNlX3BhZ2V0YWJsZXMoKQo+IHRv
-IGFsbG93IHRoZSBmdWxsIGludmFsaWRhdGlvbiBpbmZvcm1hdGlvbiB0byBiZSB1c2VkLgo+IAo+
-IFNpZ25lZC1vZmYtYnk6IFJhbHBoIENhbXBiZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KCkkg
-ZG9uJ3QgZGlzYWdyZWUgd2l0aCBDaHJpc3RvcGggb3IgSmFzb24gYnV0IHNpbmNlIEkndmUgYmVl
-biB0cnlpbmcgdG8gc29ydCBvdXQKd2hlcmUgaG1tIGRvZXMgYW5kIGRvZXMgbm90IGZpdCBhbnkg
-Y2hhbmNlIHRvIHJlbW92ZSBhIGN1c3RvbSBzdHJ1Y3R1cmUgaXMgYQpnb29kIHNpbXBsaWZpY2F0
-aW9uIElNTy4gIFNvLi4uCgpSZXZpZXdlZC1ieTogSXJhIFdlaW55IDxpcmEud2VpbnlAaW50ZWwu
-Y29tPgoKPiAtLS0KPiAKPiBJJ20gc2VuZGluZyB0aGlzIG91dCBub3cgc2luY2Ugd2UgYXJlIHVw
-ZGF0aW5nIG1hbnkgb2YgdGhlIEhNTSBBUElzCj4gYW5kIEkgdGhpbmsgaXQgd2lsbCBiZSB1c2Vm
-dWwuCj4gCj4gCj4gIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfc3ZtLmMgfCAgNCAr
-Ky0tCj4gIGluY2x1ZGUvbGludXgvaG1tLmggICAgICAgICAgICAgICAgICAgfCAyNyArKy0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0KPiAgbW0vaG1tLmMgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8IDEzICsrKystLS0tLS0tLS0KPiAgMyBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMo
-KyksIDM2IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vbm91
-dmVhdS9ub3V2ZWF1X3N2bS5jIGIvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9zdm0u
-Ywo+IGluZGV4IDhjOTIzNzRhZmNmMi4uYzM0Yjk4ZmFmZTJmIDEwMDY0NAo+IC0tLSBhL2RyaXZl
-cnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfc3ZtLmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0v
-bm91dmVhdS9ub3V2ZWF1X3N2bS5jCj4gQEAgLTI1MiwxMyArMjUyLDEzIEBAIG5vdXZlYXVfc3Zt
-bV9pbnZhbGlkYXRlKHN0cnVjdCBub3V2ZWF1X3N2bW0gKnN2bW0sIHU2NCBzdGFydCwgdTY0IGxp
-bWl0KQo+ICAKPiAgc3RhdGljIGludAo+ICBub3V2ZWF1X3N2bW1fc3luY19jcHVfZGV2aWNlX3Bh
-Z2V0YWJsZXMoc3RydWN0IGhtbV9taXJyb3IgKm1pcnJvciwKPiAtCQkJCQljb25zdCBzdHJ1Y3Qg
-aG1tX3VwZGF0ZSAqdXBkYXRlKQo+ICsJCQkJCWNvbnN0IHN0cnVjdCBtbXVfbm90aWZpZXJfcmFu
-Z2UgKnVwZGF0ZSkKPiAgewo+ICAJc3RydWN0IG5vdXZlYXVfc3ZtbSAqc3ZtbSA9IGNvbnRhaW5l
-cl9vZihtaXJyb3IsIHR5cGVvZigqc3ZtbSksIG1pcnJvcik7Cj4gIAl1bnNpZ25lZCBsb25nIHN0
-YXJ0ID0gdXBkYXRlLT5zdGFydDsKPiAgCXVuc2lnbmVkIGxvbmcgbGltaXQgPSB1cGRhdGUtPmVu
-ZDsKPiAgCj4gLQlpZiAoIXVwZGF0ZS0+YmxvY2thYmxlKQo+ICsJaWYgKCFtbXVfbm90aWZpZXJf
-cmFuZ2VfYmxvY2thYmxlKHVwZGF0ZSkpCj4gIAkJcmV0dXJuIC1FQUdBSU47Cj4gIAo+ICAJU1ZN
-TV9EQkcoc3ZtbSwgImludmFsaWRhdGUgJTAxNmx4LSUwMTZseCIsIHN0YXJ0LCBsaW1pdCk7Cj4g
-ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvaG1tLmggYi9pbmNsdWRlL2xpbnV4L2htbS5oCj4g
-aW5kZXggMGZhOGVhMzRjY2VmLi4wN2EyZDM4ZmRlMzQgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9s
-aW51eC9obW0uaAo+ICsrKyBiL2luY2x1ZGUvbGludXgvaG1tLmgKPiBAQCAtMzc3LDI5ICszNzcs
-NiBAQCBzdGF0aWMgaW5saW5lIHVpbnQ2NF90IGhtbV9wZm5fZnJvbV9wZm4oY29uc3Qgc3RydWN0
-IGhtbV9yYW5nZSAqcmFuZ2UsCj4gIAo+ICBzdHJ1Y3QgaG1tX21pcnJvcjsKPiAgCj4gLS8qCj4g
-LSAqIGVudW0gaG1tX3VwZGF0ZV9ldmVudCAtIHR5cGUgb2YgdXBkYXRlCj4gLSAqIEBITU1fVVBE
-QVRFX0lOVkFMSURBVEU6IGludmFsaWRhdGUgcmFuZ2UgKG5vIGluZGljYXRpb24gYXMgdG8gd2h5
-KQo+IC0gKi8KPiAtZW51bSBobW1fdXBkYXRlX2V2ZW50IHsKPiAtCUhNTV9VUERBVEVfSU5WQUxJ
-REFURSwKPiAtfTsKPiAtCj4gLS8qCj4gLSAqIHN0cnVjdCBobW1fdXBkYXRlIC0gSE1NIHVwZGF0
-ZSBpbmZvcm1hdGlvbiBmb3IgY2FsbGJhY2sKPiAtICoKPiAtICogQHN0YXJ0OiB2aXJ0dWFsIHN0
-YXJ0IGFkZHJlc3Mgb2YgdGhlIHJhbmdlIHRvIHVwZGF0ZQo+IC0gKiBAZW5kOiB2aXJ0dWFsIGVu
-ZCBhZGRyZXNzIG9mIHRoZSByYW5nZSB0byB1cGRhdGUKPiAtICogQGV2ZW50OiBldmVudCB0cmln
-Z2VyaW5nIHRoZSB1cGRhdGUgKHdoYXQgaXMgaGFwcGVuaW5nKQo+IC0gKiBAYmxvY2thYmxlOiBj
-YW4gdGhlIGNhbGxiYWNrIGJsb2NrL3NsZWVwID8KPiAtICovCj4gLXN0cnVjdCBobW1fdXBkYXRl
-IHsKPiAtCXVuc2lnbmVkIGxvbmcgc3RhcnQ7Cj4gLQl1bnNpZ25lZCBsb25nIGVuZDsKPiAtCWVu
-dW0gaG1tX3VwZGF0ZV9ldmVudCBldmVudDsKPiAtCWJvb2wgYmxvY2thYmxlOwo+IC19Owo+IC0K
-PiAgLyoKPiAgICogc3RydWN0IGhtbV9taXJyb3Jfb3BzIC0gSE1NIG1pcnJvciBkZXZpY2Ugb3Bl
-cmF0aW9ucyBjYWxsYmFjawo+ICAgKgo+IEBAIC00MjAsNyArMzk3LDcgQEAgc3RydWN0IGhtbV9t
-aXJyb3Jfb3BzIHsKPiAgCS8qIHN5bmNfY3B1X2RldmljZV9wYWdldGFibGVzKCkgLSBzeW5jaHJv
-bml6ZSBwYWdlIHRhYmxlcwo+ICAJICoKPiAgCSAqIEBtaXJyb3I6IHBvaW50ZXIgdG8gc3RydWN0
-IGhtbV9taXJyb3IKPiAtCSAqIEB1cGRhdGU6IHVwZGF0ZSBpbmZvcm1hdGlvbiAoc2VlIHN0cnVj
-dCBobW1fdXBkYXRlKQo+ICsJICogQHVwZGF0ZTogdXBkYXRlIGluZm9ybWF0aW9uIChzZWUgc3Ry
-dWN0IG1tdV9ub3RpZmllcl9yYW5nZSkKPiAgCSAqIFJldHVybjogLUVBR0FJTiBpZiB1cGRhdGUu
-YmxvY2thYmxlIGZhbHNlIGFuZCBjYWxsYmFjayBuZWVkIHRvCj4gIAkgKiAgICAgICAgICBibG9j
-aywgMCBvdGhlcndpc2UuCj4gIAkgKgo+IEBAIC00MzQsNyArNDExLDcgQEAgc3RydWN0IGhtbV9t
-aXJyb3Jfb3BzIHsKPiAgCSAqIHN5bmNocm9ub3VzIGNhbGwuCj4gIAkgKi8KPiAgCWludCAoKnN5
-bmNfY3B1X2RldmljZV9wYWdldGFibGVzKShzdHJ1Y3QgaG1tX21pcnJvciAqbWlycm9yLAo+IC0J
-CQkJCSAgY29uc3Qgc3RydWN0IGhtbV91cGRhdGUgKnVwZGF0ZSk7Cj4gKwkJCQljb25zdCBzdHJ1
-Y3QgbW11X25vdGlmaWVyX3JhbmdlICp1cGRhdGUpOwo+ICB9Owo+ICAKPiAgLyoKPiBkaWZmIC0t
-Z2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwo+IGluZGV4IDlhYWQzNTUwZjJiYi4uYjQ5YTQzNzEy
-NTU0IDEwMDY0NAo+IC0tLSBhL21tL2htbS5jCj4gKysrIGIvbW0vaG1tLmMKPiBAQCAtMTY0LDcg
-KzE2NCw2IEBAIHN0YXRpYyBpbnQgaG1tX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoc3RydWN0IG1t
-dV9ub3RpZmllciAqbW4sCj4gIHsKPiAgCXN0cnVjdCBobW0gKmhtbSA9IGNvbnRhaW5lcl9vZiht
-biwgc3RydWN0IGhtbSwgbW11X25vdGlmaWVyKTsKPiAgCXN0cnVjdCBobW1fbWlycm9yICptaXJy
-b3I7Cj4gLQlzdHJ1Y3QgaG1tX3VwZGF0ZSB1cGRhdGU7Cj4gIAlzdHJ1Y3QgaG1tX3JhbmdlICpy
-YW5nZTsKPiAgCXVuc2lnbmVkIGxvbmcgZmxhZ3M7Cj4gIAlpbnQgcmV0ID0gMDsKPiBAQCAtMTcz
-LDE1ICsxNzIsMTAgQEAgc3RhdGljIGludCBobW1faW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1
-Y3QgbW11X25vdGlmaWVyICptbiwKPiAgCWlmICgha3JlZl9nZXRfdW5sZXNzX3plcm8oJmhtbS0+
-a3JlZikpCj4gIAkJcmV0dXJuIDA7Cj4gIAo+IC0JdXBkYXRlLnN0YXJ0ID0gbnJhbmdlLT5zdGFy
-dDsKPiAtCXVwZGF0ZS5lbmQgPSBucmFuZ2UtPmVuZDsKPiAtCXVwZGF0ZS5ldmVudCA9IEhNTV9V
-UERBVEVfSU5WQUxJREFURTsKPiAtCXVwZGF0ZS5ibG9ja2FibGUgPSBtbXVfbm90aWZpZXJfcmFu
-Z2VfYmxvY2thYmxlKG5yYW5nZSk7Cj4gLQo+ICAJc3Bpbl9sb2NrX2lycXNhdmUoJmhtbS0+cmFu
-Z2VzX2xvY2ssIGZsYWdzKTsKPiAgCWhtbS0+bm90aWZpZXJzKys7Cj4gIAlsaXN0X2Zvcl9lYWNo
-X2VudHJ5KHJhbmdlLCAmaG1tLT5yYW5nZXMsIGxpc3QpIHsKPiAtCQlpZiAodXBkYXRlLmVuZCA8
-IHJhbmdlLT5zdGFydCB8fCB1cGRhdGUuc3RhcnQgPj0gcmFuZ2UtPmVuZCkKPiArCQlpZiAobnJh
-bmdlLT5lbmQgPCByYW5nZS0+c3RhcnQgfHwgbnJhbmdlLT5zdGFydCA+PSByYW5nZS0+ZW5kKQo+
-ICAJCQljb250aW51ZTsKPiAgCj4gIAkJcmFuZ2UtPnZhbGlkID0gZmFsc2U7Cj4gQEAgLTE5OCw5
-ICsxOTIsMTAgQEAgc3RhdGljIGludCBobW1faW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3Qg
-bW11X25vdGlmaWVyICptbiwKPiAgCWxpc3RfZm9yX2VhY2hfZW50cnkobWlycm9yLCAmaG1tLT5t
-aXJyb3JzLCBsaXN0KSB7Cj4gIAkJaW50IHJjOwo+ICAKPiAtCQlyYyA9IG1pcnJvci0+b3BzLT5z
-eW5jX2NwdV9kZXZpY2VfcGFnZXRhYmxlcyhtaXJyb3IsICZ1cGRhdGUpOwo+ICsJCXJjID0gbWly
-cm9yLT5vcHMtPnN5bmNfY3B1X2RldmljZV9wYWdldGFibGVzKG1pcnJvciwgbnJhbmdlKTsKPiAg
-CQlpZiAocmMpIHsKPiAtCQkJaWYgKFdBUk5fT04odXBkYXRlLmJsb2NrYWJsZSB8fCByYyAhPSAt
-RUFHQUlOKSkKPiArCQkJaWYgKFdBUk5fT04obW11X25vdGlmaWVyX3JhbmdlX2Jsb2NrYWJsZShu
-cmFuZ2UpIHx8Cj4gKwkJCQkgICAgcmMgIT0gLUVBR0FJTikpCj4gIAkJCQljb250aW51ZTsKPiAg
-CQkJcmV0ID0gLUVBR0FJTjsKPiAgCQkJYnJlYWs7Cj4gLS0gCj4gMi4yMC4xCj4gCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
-IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
-ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+This patch is the extension of following upstream commit to fix
+the race condition between get_task_mm() and core dumping
+for IB->mlx4 and IB->mlx5 drivers:
+
+commit 04f5866e41fb ("coredump: fix race condition between
+mmget_not_zero()/get_task_mm() and core dumping")'
+
+Thanks to Jason for pointing this.
+
+Signed-off-by: Ajay Kaher <akaher@vmware.com>
+---
+ drivers/infiniband/hw/mlx4/main.c | 4 +++-
+ drivers/infiniband/hw/mlx5/main.c | 3 +++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index e2beb18..0299c06 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1197,6 +1197,8 @@ static void mlx4_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 	 * mlx4_ib_vma_close().
+ 	 */
+ 	down_write(&owning_mm->mmap_sem);
++	if (!mmget_still_valid(owning_mm))
++		goto skip_mm;
+ 	for (i = 0; i < HW_BAR_COUNT; i++) {
+ 		vma = context->hw_bar_info[i].vma;
+ 		if (!vma)
+@@ -1215,7 +1217,7 @@ static void mlx4_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 		/* context going to be destroyed, should not access ops any more */
+ 		context->hw_bar_info[i].vma->vm_ops = NULL;
+ 	}
+-
++skip_mm:
+ 	up_write(&owning_mm->mmap_sem);
+ 	mmput(owning_mm);
+ 	put_task_struct(owning_process);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 13a9206..3fbe396 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1646,6 +1646,8 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 	 * mlx5_ib_vma_close.
+ 	 */
+ 	down_write(&owning_mm->mmap_sem);
++	if (!mmget_still_valid(owning_mm))
++		goto skip_mm;
+ 	mutex_lock(&context->vma_private_list_mutex);
+ 	list_for_each_entry_safe(vma_private, n, &context->vma_private_list,
+ 				 list) {
+@@ -1662,6 +1664,7 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 		kfree(vma_private);
+ 	}
+ 	mutex_unlock(&context->vma_private_list_mutex);
++skip_mm:
+ 	up_write(&owning_mm->mmap_sem);
+ 	mmput(owning_mm);
+ 	put_task_struct(owning_process);
+-- 
+2.7.4
