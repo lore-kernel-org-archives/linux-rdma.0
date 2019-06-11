@@ -1,54 +1,66 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Subject: Re: [PATCH v16 04/16] mm: untag user pointers in do_pages_move
-Date: Tue, 11 Jun 2019 14:18:18 -0600
-Message-ID: <d0dffcf8-d7bf-a7b4-5766-3a6f87437851@oracle.com>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <e410843d00a4ecd7e525a7a949e605ffc6c394c4.1559580831.git.andreyknvl@google.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH v2 hmm 00/11] Various revisions from a locking/code review
+Date: Tue, 11 Jun 2019 16:48:58 -0300
+Message-ID: <20190611194858.GA27792@ziepe.ca>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <e410843d00a4ecd7e525a7a949e605ffc6c394c4.1559580831.git.andreyknvl@google.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Kostya Serebryany <kcc@google.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>J
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20190606184438.31646-1-jgg-uk2M96/98Pc@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/3/19 10:55 AM, Andrey Konovalov wrote:
-> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> pass tagged user pointers (with the top byte set to something else other
-> than 0x00) as syscall arguments.
-> 
-> do_pages_move() is used in the implementation of the move_pages syscall.
-> 
-> Untag user pointers in this function.
-> 
-> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> ---
->  mm/migrate.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/mm/migrate.c b/mm/migrate.c
-> index f2ecc2855a12..3930bb6fa656 100644
-> --- a/mm/migrate.c
-> +++ b/mm/migrate.c
-> @@ -1617,6 +1617,7 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
->  		if (get_user(node, nodes + i))
->  			goto out_flush;
->  		addr = (unsigned long)p;
-> +		addr = untagged_addr(addr);
-
-Why not just "addr = (unsigned long)untagged_addr(p);"
-
---
-Khalid
+T24gVGh1LCBKdW4gMDYsIDIwMTkgYXQgMDM6NDQ6MjdQTSAtMDMwMCwgSmFzb24gR3VudGhvcnBl
+IHdyb3RlOgo+IEZyb206IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPiAKPiBG
+b3IgaG1tLmdpdDoKPiAKPiBUaGlzIHBhdGNoIHNlcmllcyBhcmlzZWQgb3V0IG9mIGRpc2N1c3Np
+b25zIHdpdGggSmVyb21lIHdoZW4gbG9va2luZyBhdCB0aGUKPiBPRFAgY2hhbmdlcywgcGFydGlj
+dWxhcmx5IGluZm9ybWVkIGJ5IHVzZSBhZnRlciBmcmVlIHJhY2VzIHdlIGhhdmUgYWxyZWFkeQo+
+IGZvdW5kIGFuZCBmaXhlZCBpbiB0aGUgT0RQIGNvZGUgKHRoYW5rcyB0byBzeXprYWxsZXIpIHdv
+cmtpbmcgd2l0aCBtbXUKPiBub3RpZmllcnMsIGFuZCB0aGUgZGlzY3Vzc2lvbiB3aXRoIFJhbHBo
+IG9uIGhvdyB0byByZXNvbHZlIHRoZSBsaWZldGltZSBtb2RlbC4KPiAKPiBPdmVyYWxsIHRoaXMg
+YnJpbmdzIGluIGEgc2ltcGxpZmllZCBsb2NraW5nIHNjaGVtZSBhbmQgZWFzeSB0byBleHBsYWlu
+Cj4gbGlmZXRpbWUgbW9kZWw6Cj4gCj4gIElmIGEgaG1tX3JhbmdlIGlzIHZhbGlkLCB0aGVuIHRo
+ZSBobW0gaXMgdmFsaWQsIGlmIGEgaG1tIGlzIHZhbGlkIHRoZW4gdGhlIG1tCj4gIGlzIGFsbG9j
+YXRlZCBtZW1vcnkuCj4gCj4gIElmIHRoZSBtbSBuZWVkcyB0byBzdGlsbCBiZSBhbGl2ZSAoaWUg
+dG8gbG9jayB0aGUgbW1hcF9zZW0sIGZpbmQgYSB2bWEsIGV0YykKPiAgdGhlbiB0aGUgbW1nZXQg
+bXVzdCBiZSBvYnRhaW5lZCB2aWEgbW1nZXRfbm90X3plcm8oKS4KPiAKPiBMb2NraW5nIG9mIG1t
+LT5obW0gaXMgc2hpZnRlZCB0byB1c2UgdGhlIG1tYXBfc2VtIGNvbnNpc3RlbnRseSBmb3IgYWxs
+Cj4gcmVhZC93cml0ZSBhbmQgdW5sb2NrZWQgYWNjZXNzZXMgYXJlIHJlbW92ZWQuCj4gCj4gVGhl
+IHVzZSB1bmxvY2tlZCByZWFkcyBvbiAnaG1tLT5kZWFkJyBhcmUgYWxzbyBlbGltaW5hdGVkIGlu
+IGZhdm91ciBvZiB1c2luZwo+IHN0YW5kYXJkIG1tZ2V0KCkgbG9ja2luZyB0byBwcmV2ZW50IHRo
+ZSBtbSBmcm9tIGJlaW5nIHJlbGVhc2VkLiBNYW55IG9mIHRoZQo+IGRlYnVnZ2luZyBjaGVja3Mg
+b2YgIXJhbmdlLT5obW0gYW5kICFobW0tPm1tIGFyZSBkcm9wcGVkIGluIGZhdm91ciBvZiBwb2lz
+b24gLQo+IHdoaWNoIGlzIG11Y2ggY2xlYXJlciBhcyB0byB0aGUgbGlmZXRpbWUgaW50ZW50Lgo+
+IAo+IFRoZSB0cmFpbGluZyBwYXRjaGVzIGFyZSBqdXN0IHNvbWUgcmFuZG9tIGNsZWFudXBzIEkg
+bm90aWNlZCB3aGVuIHJldmlld2luZwo+IHRoaXMgY29kZS4KPiAKPiBUaGlzIHYyIGluY29ycG9y
+YXRlcyBhbG90IG9mIHRoZSBnb29kIG9mZiBsaXN0IGNoYW5nZXMgJiBmZWVkYmFjayBKZXJvbWUg
+aGFkLAo+IGFuZCBhbGwgdGhlIG9uLWxpc3QgY29tbWVudHMgdG9vLiBIb3dldmVyLCBub3cgdGhh
+dCB3ZSBoYXZlIHRoZSBzaGFyZWQgZ2l0IEkKPiBoYXZlIGtlcHQgdGhlIG9uZSBsaW5lIGNoYW5n
+ZSB0byBub3V2ZWF1X3N2bS5jIHJhdGhlciB0aGFuIHRoZSBjb21wYXQKPiBmdW50aW9ucy4KPiAK
+PiBJIGJlbGlldmUgd2UgY2FuIHJlc29sdmUgdGhpcyBtZXJnZSBpbiB0aGUgRFJNIHRyZWUgbm93
+IGFuZCBrZWVwIHRoZSBjb3JlCj4gbW0vaG1tLmMgY2xlYW4uIERSTSBtYWludGFpbmVycywgcGxl
+YXNlIGNvcnJlY3QgbWUgaWYgSSdtIHdyb25nLgo+IAo+IEl0IGlzIG9uIHRvcCBvZiBobW0uZ2l0
+LCBhbmQgSSBoYXZlIGEgZ2l0IHRyZWUgb2YgdGhpcyBzZXJpZXMgdG8gZWFzZSB0ZXN0aW5nCj4g
+aGVyZToKPiAKPiBodHRwczovL2dpdGh1Yi5jb20vamd1bnRob3JwZS9saW51eC90cmVlL2htbQo+
+IAo+IFRoZXJlIGFyZSBzdGlsbCBzb21lIG9wZW4gbG9ja2luZyBpc3N1ZXMsIGFzIEkgdGhpbmsg
+dGhpcyByZW1haW5zIHVuYWRkcmVzc2VkOgo+IAo+IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2xp
+bnV4LW1tLzIwMTkwNTI3MTk1ODI5LkdCMTgwMTlAbWVsbGFub3guY29tLwo+IAo+IEknbSBsb29r
+aW5nIGZvciBzb21lIG1vcmUgYWNrcywgcmV2aWV3cyBhbmQgdGVzdHMgc28gdGhpcyBjYW4gbW92
+ZSBhaGVhZCB0bwo+IGhtbS5naXQuCgpBTUQgRm9sa3MsIHRoaXMgaXMgbG9va2luZyBwcmV0dHkg
+Z29vZCBub3csIGNhbiB5b3UgcGxlYXNlIGdpdmUgYXQKbGVhc3QgYSBUZXN0ZWQtYnkgZm9yIHRo
+ZSBuZXcgZHJpdmVyIGNvZGUgdXNpbmcgdGhpcyB0aGF0IEkgc2VlIGluCmxpbnV4LW5leHQ/CgpU
+aGFua3MsCkphc29uCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeA==
