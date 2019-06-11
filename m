@@ -1,64 +1,47 @@
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: Re: [PATCH v2 hmm 11/11] mm/hmm: Remove confusing comment and logic
- from hmm_release
-Date: Mon, 10 Jun 2019 15:03:41 -0700
-Message-ID: <fc1487f0-f11d-8cfa-b843-f2463f3856cb@nvidia.com>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190606184438.31646-12-jgg@ziepe.ca>
- <61ea869d-43d2-d1e5-dc00-cf5e3e139169@nvidia.com>
- <20190610160252.GH18446@mellanox.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH] IB/mlx4: prevent undefined shift in set_user_sq_size()
+Date: Tue, 11 Jun 2019 13:07:24 +0300
+Message-ID: <20190611100724.GB1915@kadam>
+References: <20190608092231.GA28890@mwanda>
+ <20190610132849.GD18468@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190610160252.GH18446@mellanox.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, "Felix.Kuehling@amd.com" <Felix.Kuehling@amd.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Jerome Glisse <jglisse@redhat.com>, "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190610132849.GD18468@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ck9uIDYvMTAvMTkgOTowMiBBTSwgSmFzb24gR3VudGhvcnBlIHdyb3RlOgo+IE9uIEZyaSwgSnVu
-IDA3LCAyMDE5IGF0IDAyOjM3OjA3UE0gLTA3MDAsIFJhbHBoIENhbXBiZWxsIHdyb3RlOgo+Pgo+
-PiBPbiA2LzYvMTkgMTE6NDQgQU0sIEphc29uIEd1bnRob3JwZSB3cm90ZToKPj4+IEZyb206IEph
-c29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPj4+Cj4+PiBobW1fcmVsZWFzZSgpIGlz
-IGNhbGxlZCBleGFjdGx5IG9uY2UgcGVyIGhtbS4gb3BzLT5yZWxlYXNlKCkgY2Fubm90Cj4+PiBh
-Y2NpZGVudGFsbHkgdHJpZ2dlciBhbnkgYWN0aW9uIHRoYXQgd291bGQgcmVjdXJzZSBiYWNrIG9u
-dG8KPj4+IGhtbS0+bWlycm9yc19zZW0uCj4+Pgo+Pj4gVGhpcyBmaXhlcyBhIHVzZSBhZnRlci1m
-cmVlIHJhY2Ugb2YgdGhlIGZvcm06Cj4+Pgo+Pj4gICAgICAgICAgQ1BVMCAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgQ1BVMQo+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgaG1tX3JlbGVhc2UoKQo+Pj4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB1cF93cml0ZSgmaG1tLT5taXJyb3JzX3NlbSk7Cj4+
-PiAgICBobW1fbWlycm9yX3VucmVnaXN0ZXIobWlycm9yKQo+Pj4gICAgIGRvd25fd3JpdGUoJmht
-bS0+bWlycm9yc19zZW0pOwo+Pj4gICAgIHVwX3dyaXRlKCZobW0tPm1pcnJvcnNfc2VtKTsKPj4+
-ICAgICBrZnJlZShtaXJyb3IpCj4+PiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIG1pcnJvci0+b3BzLT5yZWxlYXNlKG1pcnJvcikKPj4+Cj4+PiBUaGUgb25s
-eSB1c2VyIHdlIGhhdmUgdG9kYXkgZm9yIG9wcy0+cmVsZWFzZSBpcyBhbiBlbXB0eSBmdW5jdGlv
-biwgc28gdGhpcwo+Pj4gaXMgdW5hbWJpZ3VvdXNseSBzYWZlLgo+Pj4KPj4+IEFzIGEgY29uc2Vx
-dWVuY2Ugb2YgcGx1Z2dpbmcgdGhpcyByYWNlIGRyaXZlcnMgYXJlIG5vdCBhbGxvd2VkIHRvCj4+
-PiByZWdpc3Rlci91bnJlZ2lzdGVyIG1pcnJvcnMgZnJvbSB3aXRoaW4gYSByZWxlYXNlIG9wLgo+
-Pj4KPj4+IFNpZ25lZC1vZmYtYnk6IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4K
-Pj4KPj4gSSBhZ3JlZSB3aXRoIHRoZSBhbmFseXNpcyBhYm92ZSBidXQgSSdtIG5vdCBzdXJlIHRo
-YXQgcmVsZWFzZSgpIHdpbGwKPj4gYWx3YXlzIGJlIGFuIGVtcHR5IGZ1bmN0aW9uLiBJdCBtaWdo
-dCBiZSBtb3JlIGVmZmljaWVudCB0byB3cml0ZSBiYWNrCj4+IGFsbCBkYXRhIG1pZ3JhdGVkIHRv
-IGEgZGV2aWNlICJpbiBvbmUgcGFzcyIgaW5zdGVhZCBvZiByZWx5aW5nCj4+IG9uIHVubWFwX3Zt
-YXMoKSBjYWxsaW5nIGhtbV9zdGFydF9yYW5nZV9pbnZhbGlkYXRlKCkgcGVyIFZNQS4KPiAKPiBJ
-IHRoaW5rIHdlIGhhdmUgdG8gZm9jdXMgb24gdGhlICpjdXJyZW50KiBrZXJuZWwgLSBhbmQgd2Ug
-aGF2ZSB0d28KPiB1c2VycyBvZiByZWxlYXNlLCBub3V2ZWF1X3N2bS5jIGlzIGVtcHR5IGFuZCBh
-bWRncHVfbW4uYyBkb2VzCj4gc2NoZWR1bGVfd29yaygpIC0gc28gSSBiZWxpZXZlIHdlIHNob3Vs
-ZCBnbyBhaGVhZCB3aXRoIHRoaXMgc2ltcGxlCj4gc29sdXRpb24gdG8gdGhlIGFjdHVhbCByYWNl
-IHRvZGF5IHRoYXQgYm90aCBvZiB0aG9zZSB3aWxsIHN1ZmZlciBmcm9tLgo+IAo+IElmIHdlIGZp
-bmQgYSBuZWVkIGZvciBhIG1vcmUgY29tcGxleCB2ZXJzaW9uIHRoZW4gaXQgY2FuIGJlIGRlYmF0
-ZWQKPiBhbmQganVzdGlmaWVkIHdpdGggcHJvcGVyIGNvbnRleHQuLi4KPiAKPiBPaz8KPiAKPiBK
-YXNvbgoKT0suCkkgZ3Vlc3Mgd2UgaGF2ZSBlbm91Z2ggb24gdGhlIHBsYXRlIGFscmVhZHkgOi0p
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
-bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
-c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+On Mon, Jun 10, 2019 at 10:28:49AM -0300, Jason Gunthorpe wrote:
+> On Sat, Jun 08, 2019 at 12:22:31PM +0300, Dan Carpenter wrote:
+> > The ucmd->log_sq_bb_count is a u8 that comes from the user.  If it's
+> > larger than the number of bits in an int then that's undefined behavior.
+> > It turns out this doesn't really cause an issue at runtime but it's
+> > still nice to clean it up.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> >  drivers/infiniband/hw/mlx4/qp.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> > index 5221c0794d1d..9f6eb23e8044 100644
+> > --- a/drivers/infiniband/hw/mlx4/qp.c
+> > +++ b/drivers/infiniband/hw/mlx4/qp.c
+> > @@ -439,7 +439,8 @@ static int set_user_sq_size(struct mlx4_ib_dev *dev,
+> >  			    struct mlx4_ib_create_qp *ucmd)
+> >  {
+> >  	/* Sanity check SQ size before proceeding */
+> > -	if ((1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
+> > +	if (ucmd->log_sq_bb_count > 31					 ||
+> > +	    (1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
+> 
+> Surely this should use check_shl_overflow() ?
+> 
+
+Same for the other one I sent.  I'll resend in a couple days.  No rush.
+
+regards,
+dan carpenter
