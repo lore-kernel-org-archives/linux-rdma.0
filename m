@@ -1,42 +1,35 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v16 16/16] selftests, arm64: add a selftest for passing
- tagged pointers to kernel
-Date: Tue, 11 Jun 2019 18:50:37 +0100
-Message-ID: <20190611175037.pflr6q6ob67zjj25@mbp>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <9e1b5998a28f82b16076fc85ab4f88af5381cf74.1559580831.git.andreyknvl@google.com>
- <20190611150122.GB63588@arrakis.emea.arm.com>
- <CAAeHK+wZrVXxAnDXBjoUy8JK9iG553G2Bp8uPWQ0u1u5gts0vQ@mail.gmail.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: WARNING: bad unlock balance in ucma_event_handler
+Date: Tue, 11 Jun 2019 14:57:49 -0300
+Message-ID: <20190611175749.GA29375@ziepe.ca>
+References: <000000000000af6530056e863794@google.com>
+ <20180613170543.GB30019@ziepe.ca>
+ <20190610184853.GG63833@gmail.com>
+ <20190610194732.GH18468@ziepe.ca>
+ <20190610204523.GK63833@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAeHK+wZrVXxAnDXBjoUy8JK9iG553G2Bp8uPWQ0u1u5gts0vQ@mail.gmail.com>
+In-Reply-To: <20190610204523.GK63833@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: syzbot <syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com>, dasaratharaman.chandramouli@intel.com, dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@purestorage.com, sean.hefty@intel.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 11, 2019 at 07:18:04PM +0200, Andrey Konovalov wrote:
-> On Tue, Jun 11, 2019 at 5:01 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > static void *tag_ptr(void *ptr)
-> > {
-> >         static int tagged_addr_err = 1;
-> >         unsigned long tag = 0;
-> >
-> >         if (tagged_addr_err == 1)
-> >                 tagged_addr_err = prctl(PR_SET_TAGGED_ADDR_CTRL,
-> >                                         PR_TAGGED_ADDR_ENABLE, 0, 0, 0);
+On Mon, Jun 10, 2019 at 01:45:24PM -0700, Eric Biggers wrote:
+> On Mon, Jun 10, 2019 at 04:47:32PM -0300, Jason Gunthorpe wrote:
+> > 
+> > There are many unfixed syzkaller bugs in rdma_cm, so I'm not surprised
+> > it is still happening..
+> > 
+> > Nobody has stepped forward to work on this code, and it is not a
+> > simple mess to understand, let alone try to fix.
+> > 
 > 
-> I think this requires atomics. malloc() can be called from multiple threads.
+> But people still use it, right?  Do they not care that it's spewing syzbot
+> reports?  Are they depending on the kernel to provide any security properties?
 
-It's slightly racy but I assume in a real libc it can be initialised
-earlier than the hook calls while still in single-threaded mode (I had
-a quick attempt with __attribute__((constructor)) but didn't get far).
+Yes, it should be fixed.
 
-Even with the race, under normal circumstances calling the prctl() twice
-is not a problem. I think the risk here is that someone disables the ABI
-via sysctl and the ABI is enabled for some of the threads only.
-
--- 
-Catalin
+Jason
