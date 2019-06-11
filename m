@@ -1,43 +1,58 @@
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: Re: [PATCH v16 05/16] arm64: untag user pointers passed to memory syscalls
-Date: Tue, 11 Jun 2019 17:35:31 +0200
-Message-ID: <CAAeHK+zBDB6i+iEw+TJY14gZeccvWeOBEaU+otn1F+jzDLaRpA@mail.gmail.com>
-References: <cover.1559580831.git.andreyknvl@google.com> <045a94326401693e015bf80c444a4d946a5c68ed.1559580831.git.andreyknvl@google.com>
- <20190610142824.GB10165@c02tf0j2hf1t.cambridge.arm.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: [PATCH] RDMA/odp: Fix missed unlock in non-blocking invalidate_start
+Date: Tue, 11 Jun 2019 13:09:51 -0300
+Message-ID: <20190611160951.23135-1-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190610142824.GB10165@c02tf0j2hf1t.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@>
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, Moni Shoua <monis@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 10, 2019 at 4:28 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
->
-> On Mon, Jun 03, 2019 at 06:55:07PM +0200, Andrey Konovalov wrote:
-> > This patch is a part of a series that extends arm64 kernel ABI to allow to
-> > pass tagged user pointers (with the top byte set to something else other
-> > than 0x00) as syscall arguments.
-> >
-> > This patch allows tagged pointers to be passed to the following memory
-> > syscalls: get_mempolicy, madvise, mbind, mincore, mlock, mlock2, mprotect,
-> > mremap, msync, munlock.
-> >
-> > Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
->
-> I would add in the commit log (and possibly in the code with a comment)
-> that mremap() and mmap() do not currently accept tagged hint addresses.
-> Architectures may interpret the hint tag as a background colour for the
-> corresponding vma. With this:
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-I'll change the commit log. Where do you you think I should put this
-comment? Before mmap and mremap definitions in mm/?
+If invalidate_start returns with EAGAIN then the umem_rwsem needs to be
+unlocked as no invalidate_end will be called.
 
-Thanks!
+Cc: <stable@vger.kernel.org>
+Fixes: ca748c39ea3f ("RDMA/umem: Get rid of per_mm->notifier_count")
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/core/umem_odp.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
->
-> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
->
-> --
-> Catalin
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index f962b5bbfa40e4..e4b13a32692a97 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -151,6 +151,7 @@ static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+ {
+ 	struct ib_ucontext_per_mm *per_mm =
+ 		container_of(mn, struct ib_ucontext_per_mm, mn);
++	int rc;
+ 
+ 	if (mmu_notifier_range_blockable(range))
+ 		down_read(&per_mm->umem_rwsem);
+@@ -167,11 +168,14 @@ static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+ 		return 0;
+ 	}
+ 
+-	return rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
+-					     range->end,
+-					     invalidate_range_start_trampoline,
+-					     mmu_notifier_range_blockable(range),
+-					     NULL);
++	rc = rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
++					   range->end,
++					   invalidate_range_start_trampoline,
++					   mmu_notifier_range_blockable(range),
++					   NULL);
++	if (rc)
++		up_read(&per_mm->umem_rwsem);
++	return rc;
+ }
+ 
+ static int invalidate_range_end_trampoline(struct ib_umem_odp *item, u64 start,
+-- 
+2.21.0
