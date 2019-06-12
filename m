@@ -1,45 +1,81 @@
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: Re: [PATCH v16 16/16] selftests, arm64: add a selftest for passing
- tagged pointers to kernel
-Date: Wed, 12 Jun 2019 13:14:30 +0200
-Message-ID: <CAAeHK+x4sHKfQx31uQ9zSO48oRs3XLATfymY=vgEHQ1FLNmeig@mail.gmail.com>
-References: <cover.1559580831.git.andreyknvl@google.com> <9e1b5998a28f82b16076fc85ab4f88af5381cf74.1559580831.git.andreyknvl@google.com>
- <20190611150122.GB63588@arrakis.emea.arm.com> <CAAeHK+wZrVXxAnDXBjoUy8JK9iG553G2Bp8uPWQ0u1u5gts0vQ@mail.gmail.com>
- <20190611175037.pflr6q6ob67zjj25@mbp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190611175037.pflr6q6ob67zjj25@mbp>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@>
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: [PATCH 1/2] ipoib: correcly show a VF hardware address
+Date: Wed, 12 Jun 2019 13:33:45 +0200
+Message-ID: <20190612113348.59858-1-dkirjanov@suse.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, dledford@redhat.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Denis Kirjanov <kda@linux-powerpc.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 11, 2019 at 7:50 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
->
-> On Tue, Jun 11, 2019 at 07:18:04PM +0200, Andrey Konovalov wrote:
-> > On Tue, Jun 11, 2019 at 5:01 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > > static void *tag_ptr(void *ptr)
-> > > {
-> > >         static int tagged_addr_err = 1;
-> > >         unsigned long tag = 0;
-> > >
-> > >         if (tagged_addr_err == 1)
-> > >                 tagged_addr_err = prctl(PR_SET_TAGGED_ADDR_CTRL,
-> > >                                         PR_TAGGED_ADDR_ENABLE, 0, 0, 0);
-> >
-> > I think this requires atomics. malloc() can be called from multiple threads.
->
-> It's slightly racy but I assume in a real libc it can be initialised
-> earlier than the hook calls while still in single-threaded mode (I had
-> a quick attempt with __attribute__((constructor)) but didn't get far).
->
-> Even with the race, under normal circumstances calling the prctl() twice
-> is not a problem. I think the risk here is that someone disables the ABI
-> via sysctl and the ABI is enabled for some of the threads only.
+in the case of IPoIB with SRIOV enabled hardware
+ip link show command incorrecly prints
+0 instead of a VF hardware address. To correcly print the address
+add a new field to specify an address length.
 
-OK, I'll keep the code racy, but add a comment pointing it out. Thanks!
+Before:
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+    link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+    vf 0 MAC 00:00:00:00:00:00, spoof checking off, link-state disable,
+trust off, query_rss off
+...
+After:
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+    link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+    vf 0     link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+checking off, link-state disable, trust off, query_rss off
+...
 
->
-> --
-> Catalin
+Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 +
+ include/uapi/linux/if_link.h              | 1 +
+ net/core/rtnetlink.c                      | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 9b5e11d3fb85..04ea7db08e87 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1998,6 +1998,7 @@ static int ipoib_get_vf_config(struct net_device *dev, int vf,
+ 		return err;
+ 
+ 	ivf->vf = vf;
++	memcpy(ivf->mac, dev->dev_addr, dev->addr_len);
+ 
+ 	return 0;
+ }
+diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
+index 5b225ff63b48..904ee1a7330b 100644
+--- a/include/uapi/linux/if_link.h
++++ b/include/uapi/linux/if_link.h
+@@ -702,6 +702,7 @@ enum {
+ struct ifla_vf_mac {
+ 	__u32 vf;
+ 	__u8 mac[32]; /* MAX_ADDR_LEN */
++	__u8 addr_len;
+ };
+ 
+ struct ifla_vf_vlan {
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index cec60583931f..2e1b9ffbe602 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -1230,6 +1230,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
+ 		vf_rss_query_en.vf =
+ 		vf_trust.vf = ivi.vf;
+ 
++	vf_mac.addr_len = dev->addr_len;
+ 	memcpy(vf_mac.mac, ivi.mac, sizeof(ivi.mac));
+ 	vf_vlan.vlan = ivi.vlan;
+ 	vf_vlan.qos = ivi.qos;
+-- 
+2.12.3
