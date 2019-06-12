@@ -1,70 +1,86 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v2 hmm 02/11] mm/hmm: Use hmm_mirror not mm as an
- argument for hmm_range_register
-Date: Wed, 12 Jun 2019 08:41:25 -0300
-Message-ID: <20190612114125.GA3876@ziepe.ca>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190606184438.31646-3-jgg@ziepe.ca>
- <20190608085425.GB32185@infradead.org>
- <20190611194431.GC29375@ziepe.ca>
- <20190612071234.GA20306@infradead.org>
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: Re: [PATCH v17 01/15] arm64: untag user pointers in access_ok and
+ __uaccess_mask_ptr
+Date: Wed, 12 Jun 2019 15:26:58 +0100
+Message-ID: <52e93b24-3302-e890-5799-6502042ea5c9@arm.com>
+References: <cover.1560339705.git.andreyknvl@google.com>
+ <9ed583c1a3acf014987e3aef12249506c1c69146.1560339705.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20190612071234.GA20306-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9ed583c1a3acf014987e3aef12249506c1c69146.1560339705.git.andreyknvl@google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>, Alex Williamson <alex.williamson@redhat.com>, Leon Romanovsky <leon@kernel.org>, Luc Van Oostenryck <luc.vanoostenryck@gmail.com>, Dave Martin <Dave.Martin@arm.com>, Khalid Aziz <khalid.aziz@oracle.com>, enh <enh@google.com>, Jason Gunthorpe <jgg@ziepe.ca>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBKdW4gMTIsIDIwMTkgYXQgMTI6MTI6MzRBTSAtMDcwMCwgQ2hyaXN0b3BoIEhlbGx3
-aWcgd3JvdGU6Cj4gT24gVHVlLCBKdW4gMTEsIDIwMTkgYXQgMDQ6NDQ6MzFQTSAtMDMwMCwgSmFz
-b24gR3VudGhvcnBlIHdyb3RlOgo+ID4gT24gU2F0LCBKdW4gMDgsIDIwMTkgYXQgMDE6NTQ6MjVB
-TSAtMDcwMCwgQ2hyaXN0b3BoIEhlbGx3aWcgd3JvdGU6Cj4gPiA+IEZZSSwgSSB2ZXJ5IG11Y2gg
-ZGlzYWdyZWUgd2l0aCB0aGUgZGlyZWN0aW9uIHRoaXMgaXMgbW92aW5nLgo+ID4gPiAKPiA+ID4g
-c3RydWN0IGhtbV9taXJyb3IgbGl0ZXJhbGx5IGlzIGEgdHJpdmlhbCBkdXBsaWNhdGlvbiBvZiB0
-aGUKPiA+ID4gbW11X25vdGlmaWVycy4gIEFsbCB0aGVzZSBkcml2ZXJzIHNob3VsZCBqdXN0IHVz
-ZSB0aGUgbW11X25vdGlmaWVycwo+ID4gPiBkaXJlY3RseSBmb3IgdGhlIG1pcnJvcmluZyBwYXJ0
-IGluc3RlYWQgb2YgYnVpbGRpbmcgYSB0aGluZyB3cmFwcGVyCj4gPiA+IHRoYXQgYWRkcyBub3Ro
-aW5nIGJ1dCBoZWxwaW5nIHRvIG1hbmFnZSB0aGUgbGlmZXRpbWUgb2Ygc3RydWN0IGhtbSwKPiA+
-ID4gd2hpY2ggc2hvdWxkbid0IGV4aXN0IHRvIHN0YXJ0IHdpdGguCj4gPiAKPiA+IENocmlzdG9w
-aDogV2hhdCBkbyB5b3UgdGhpbmsgYWJvdXQgdGhpcyBza2V0Y2ggYmVsb3c/Cj4gPiAKPiA+IEl0
-IHdvdWxkIHJlcGxhY2UgdGhlIGhtbV9yYW5nZS9taXJyb3IvZXRjIHdpdGggYSBkaWZmZXJlbnQg
-d2F5IHRvCj4gPiBidWlsZCB0aGUgc2FtZSBsb2NraW5nIHNjaGVtZSB1c2luZyBzb21lIG9wdGlv
-bmFsIGhlbHBlcnMgbGlua2VkIHRvCj4gPiB0aGUgbW11IG5vdGlmaWVyPwo+ID4gCj4gPiAoanVz
-dCBhIHNrZXRjaCwgc3RpbGwgbmVlZHMgYSBsb3QgbW9yZSB0aGlua2luZykKPiAKPiBJIGxpa2Ug
-dGhlIGlkZWEuICBBIGZldyBuaXRwaWNrczogQ2FuIHdlIGF2b2lkIGhhdmluZyB0byBzdG9yZSB0
-aGUKPiBtbSBpbiBzdHJ1Y3QgbW11X25vdGlmaWVyPyBJIHRoaW5rIHdlIGNvdWxkIGp1c3QgZWFz
-aWx5IHBhc3MgaXQgYXMgYQo+IHBhcmFtZXRlciB0byB0aGUgaGVscGVycy4KClllcywgYnV0IEkg
-dGhpbmsgYW55IGRyaXZlciB0aGF0IG5lZWRzIHRvIHVzZSB0aGlzIEFQSSB3aWxsIGhhdmUgdG8K
-aG9sZCB0aGUgJ3N0cnVjdCBtbV9zdHJ1Y3QnIGFuZCB0aGUgJ3N0cnVjdCBtbXVfbm90aWZpZXIn
-IHRvZ2V0aGVyIChpZQpPRFAgZG9lcyB0aGlzIGluIGliX3Vjb250ZXh0X3Blcl9tbSksIHNvIGlm
-IHdlIHB1dCBpdCBpbiB0aGUgbm90aWZpZXIKdGhlbiBpdCBpcyB0cml2aWFsbHkgYXZhaWxhYmxl
-IGV2ZXJ3aGVyZSBpdCBpcyBuZWVkZWQsIGFuZCB0aGUKbW11X25vdGlmaWVyIGNvZGUgdGFrZXMg
-Y2FyZSBvZiB0aGUgbGlmZXRpbWUgZm9yIHRoZSBkcml2ZXIuCgo+IFRoZSB3cml0ZSBsb2NrIGNh
-c2Ugb2YgbW1faW52bG9ja19zdGFydF93cml0ZV9hbmRfbG9jayBpcyBwcm9iYWJseQo+IHdvcnRo
-IGZhY3RvcmluZyBpbnRvIHNlcGFyYXRlIGhlbHBlcj8gSSBjYW4gc2VlIGNhc2VzIHdoZXJlIGRy
-aXZlcnMKPiB3YW50IHRvIGp1c3QgdXNlIGl0IGRpcmVjdGx5IGlmIHRoZXkgbmVlZCB0byBmb3Jj
-ZSBnZXR0aW5nIHRoZSBsb2NrCj4gd2l0aG91dCB0aGUgY2hhbmNlIG9mIGEgbG9uZyB3YWl0LgoK
-VGhlIGVudGlyZSBwdXJwb3NlIG9mIHRoZSBpbnZsb2NrIGlzIHRvIGF2b2lkIGdldHRpbmcgdGhl
-IHdyaXRlIGxvY2sKb24gbW1hcF9zZW0gYXMgYSBmYXN0IHBhdGggLSBpZiB0aGUgZHJpdmVyIHdp
-c2hlcyB0byB1c2UgbW1hcF9zZW0KbG9ja2luZyBvbmx5IHRoZW4gaXQgc2hvdWxkIGp1c3QgZG8g
-c28gZGlyZWN0bHkgYW5kIGZvcmdldCBhYm91dCB0aGUKaW52bG9jay4KCk5vdGUgdGhhdCB0aGlz
-IHBhdGNoIGlzIGp1c3QgYW4gQVBJIHNrZXRjaCwgSSBoYXZlbid0IGZ1bGx5IGNoZWNrZWQKdGhh
-dCB0aGUgcmFuZ2Vfc3RhcnQvZW5kIGFyZSBhY3R1YWxseSBhbHdheXMgY2FsbGVkIHVuZGVyIG1t
-YXBfc2VtLAphbmQgSSBhbHJlYWR5IGZvdW5kIHRoYXQgcmVsZWFzZSBpcyBub3QuIFNvIHRoZXJl
-IHdpbGwgbmVlZCB0byBiZSBzb21lCnByZXBlcmF0b3J5IGFkanVzdG1lbnRzIGJlZm9yZSB3ZSBj
-YW4gdXNlIGRvd25fd3JpdGUobW1hcF9zZW0pIGFzIGEKbG9ja2luZyBzdHJhdGVneSBoZXJlLgoK
-VGhhbmtzLApKYXNvbgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwphbWQtZ2Z4IG1haWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
-dHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
+On 12/06/2019 12:43, Andrey Konovalov wrote:
+> This patch is a part of a series that extends arm64 kernel ABI to allow to
+> pass tagged user pointers (with the top byte set to something else other
+> than 0x00) as syscall arguments.
+> 
+> copy_from_user (and a few other similar functions) are used to copy data
+> from user memory into the kernel memory or vice versa. Since a user can
+> provided a tagged pointer to one of the syscalls that use copy_from_user,
+> we need to correctly handle such pointers.
+> 
+> Do this by untagging user pointers in access_ok and in __uaccess_mask_ptr,
+> before performing access validity checks.
+> 
+> Note, that this patch only temporarily untags the pointers to perform the
+> checks, but then passes them as is into the kernel internals.
+> 
+> Reviewed-by: Kees Cook <keescook@chromium.org>
+> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+
+Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+
+> ---
+>  arch/arm64/include/asm/uaccess.h | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm64/include/asm/uaccess.h b/arch/arm64/include/asm/uaccess.h
+> index e5d5f31c6d36..df729afca0ba 100644
+> --- a/arch/arm64/include/asm/uaccess.h
+> +++ b/arch/arm64/include/asm/uaccess.h
+> @@ -73,6 +73,8 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
+>  {
+>  	unsigned long ret, limit = current_thread_info()->addr_limit;
+>  
+> +	addr = untagged_addr(addr);
+> +
+>  	__chk_user_ptr(addr);
+>  	asm volatile(
+>  	// A + B <= C + 1 for all A,B,C, in four easy steps:
+> @@ -226,7 +228,8 @@ static inline void uaccess_enable_not_uao(void)
+>  
+>  /*
+>   * Sanitise a uaccess pointer such that it becomes NULL if above the
+> - * current addr_limit.
+> + * current addr_limit. In case the pointer is tagged (has the top byte set),
+> + * untag the pointer before checking.
+>   */
+>  #define uaccess_mask_ptr(ptr) (__typeof__(ptr))__uaccess_mask_ptr(ptr)
+>  static inline void __user *__uaccess_mask_ptr(const void __user *ptr)
+> @@ -234,10 +237,11 @@ static inline void __user *__uaccess_mask_ptr(const void __user *ptr)
+>  	void __user *safe_ptr;
+>  
+>  	asm volatile(
+> -	"	bics	xzr, %1, %2\n"
+> +	"	bics	xzr, %3, %2\n"
+>  	"	csel	%0, %1, xzr, eq\n"
+>  	: "=&r" (safe_ptr)
+> -	: "r" (ptr), "r" (current_thread_info()->addr_limit)
+> +	: "r" (ptr), "r" (current_thread_info()->addr_limit),
+> +	  "r" (untagged_addr(ptr))
+>  	: "cc");
+>  
+>  	csdb();
+> 
+
+-- 
+Regards,
+Vincenzo
