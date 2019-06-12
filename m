@@ -1,110 +1,70 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 3/4] RDMA/mlx5: Consider eswitch encap mode
-Date: Wed, 12 Jun 2019 15:20:13 +0300
-Message-ID: <20190612122014.22359-4-leon@kernel.org>
-References: <20190612122014.22359-1-leon@kernel.org>
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: Re: [PATCH net-next 1/2] ipoib: correcly show a VF hardware address
+Date: Wed, 12 Jun 2019 15:26:07 +0300
+Message-ID: <CAOJe8K0x-OFg656266oc8ky6VtcX9tUOm03_gWtVBfiXgjJ73w@mail.gmail.com>
+References: <20190612113348.59858-1-dkirjanov@suse.com> <20190612113348.59858-3-dkirjanov@suse.com>
+ <20190612120909.GI31797@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190612122014.22359-1-leon@kernel.org>
+In-Reply-To: <20190612120909.GI31797@unicorn.suse.cz>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Parav Pandit <parav@mellanox.com>, Petr Vorel <pvorel@suse.cz>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Jiri Pirko <jiri@mellanox.com>
+To: Michal Kubecek <mkubecek@suse.cz>
+Cc: davem@davemloft.net, dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@mellanox.com>
+On 6/12/19, Michal Kubecek <mkubecek@suse.cz> wrote:
+> On Wed, Jun 12, 2019 at 01:33:47PM +0200, Denis Kirjanov wrote:
+>> in the case of IPoIB with SRIOV enabled hardware
+>> ip link show command incorrecly prints
+>> 0 instead of a VF hardware address. To correcly print the address
+>> add a new field to specify an address length.
+>>
+>> Before:
+>> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+>> state UP mode DEFAULT group default qlen 256
+>>     link/infiniband
+>> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+>> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>>     vf 0 MAC 00:00:00:00:00:00, spoof checking off, link-state disable,
+>> trust off, query_rss off
+>> ...
+>> After:
+>> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+>> state UP mode DEFAULT group default qlen 256
+>>     link/infiniband
+>> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+>> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>>     vf 0     link/infiniband
+>> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+>> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+>> checking off, link-state disable, trust off, query_rss off
+>> ...
+>>
+>> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+>> ---
+> ...
+>> diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
+>> index 5b225ff63b48..904ee1a7330b 100644
+>> --- a/include/uapi/linux/if_link.h
+>> +++ b/include/uapi/linux/if_link.h
+>> @@ -702,6 +702,7 @@ enum {
+>>  struct ifla_vf_mac {
+>>  	__u32 vf;
+>>  	__u8 mac[32]; /* MAX_ADDR_LEN */
+>> +	__u8 addr_len;
+>>  };
+>
+> This structure is part of userspace API, adding a member would break
+> compatibility between new kernel and old iproute2 and vice versa. Do we
+> need to pass MAC address length for each VF if (AFAICS) it's always the
+> same as dev->addr_len?
 
-When flow steering is created, then the encap support should
-consider the eswitch encap mode. If the eswitch flow table (FDB)
-supports encap then it shouldn't be supported on NIC RX flow tables.
+I believe so, initially I thought that it's required to pass a length
+but looks like I can use RTA_DATA/RTA_PAYLOAD() for that.
 
-Fixes: 4adda1122c490 ('RDMA/mlx5: Enable decap and packet reformat on flow tables')
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Petr Vorel <pvorel@suse.cz>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/main.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index e832ac6c83a4..a6e2e0210ebb 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -52,6 +52,7 @@
- #include <linux/mlx5/port.h>
- #include <linux/mlx5/vport.h>
- #include <linux/mlx5/fs.h>
-+#include <linux/mlx5/eswitch.h>
- #include <linux/list.h>
- #include <rdma/ib_smi.h>
- #include <rdma/ib_umem.h>
-@@ -3245,11 +3246,14 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 	int max_table_size;
- 	int num_entries;
- 	int num_groups;
-+	bool esw_encap;
- 	u32 flags = 0;
- 	int priority;
-
- 	max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
- 						       log_max_ft_size));
-+	esw_encap = mlx5_eswitch_get_encap_mode(dev->mdev) !=
-+		DEVLINK_ESWITCH_ENCAP_MODE_NONE;
- 	if (flow_attr->type == IB_FLOW_ATTR_NORMAL) {
- 		enum mlx5_flow_namespace_type fn_type;
-
-@@ -3262,10 +3266,10 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 		if (ft_type == MLX5_IB_FT_RX) {
- 			fn_type = MLX5_FLOW_NAMESPACE_BYPASS;
- 			prio = &dev->flow_db->prios[priority];
--			if (!dev->is_rep &&
-+			if (!dev->is_rep && !esw_encap &&
- 			    MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev, decap))
- 				flags |= MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
--			if (!dev->is_rep &&
-+			if (!dev->is_rep && !esw_encap &&
- 			    MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
- 					reformat_l3_tunnel_to_l2))
- 				flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
-@@ -3275,7 +3279,7 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 							      log_max_ft_size));
- 			fn_type = MLX5_FLOW_NAMESPACE_EGRESS;
- 			prio = &dev->flow_db->egress_prios[priority];
--			if (!dev->is_rep &&
-+			if (!dev->is_rep && !esw_encap &&
- 			    MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev, reformat))
- 				flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
- 		}
-@@ -3885,6 +3889,7 @@ _get_flow_table(struct mlx5_ib_dev *dev,
- 	struct mlx5_flow_namespace *ns = NULL;
- 	struct mlx5_ib_flow_prio *prio = NULL;
- 	int max_table_size = 0;
-+	bool esw_encap;
- 	u32 flags = 0;
- 	int priority;
-
-@@ -3893,18 +3898,21 @@ _get_flow_table(struct mlx5_ib_dev *dev,
- 	else
- 		priority = ib_prio_to_core_prio(fs_matcher->priority, false);
-
-+	esw_encap = mlx5_eswitch_get_encap_mode(dev->mdev) !=
-+		DEVLINK_ESWITCH_ENCAP_MODE_NONE;
- 	if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_BYPASS) {
- 		max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
- 					log_max_ft_size));
--		if (MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev, decap))
-+		if (MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev, decap) && !esw_encap)
- 			flags |= MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
- 		if (MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
--					      reformat_l3_tunnel_to_l2))
-+					      reformat_l3_tunnel_to_l2) &&
-+		    !esw_encap)
- 			flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
- 	} else if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_EGRESS) {
- 		max_table_size = BIT(
- 			MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev, log_max_ft_size));
--		if (MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev, reformat))
-+		if (MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev, reformat) && !esw_encap)
- 			flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
- 	} else if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB) {
- 		max_table_size = BIT(
+>
+> Michal
+>
+>
