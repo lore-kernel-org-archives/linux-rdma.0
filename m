@@ -1,7 +1,7 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH net-next 2/2] ipoib: show VF broadcast address
-Date: Wed, 12 Jun 2019 13:33:48 +0200
-Message-ID: <20190612113348.59858-4-dkirjanov@suse.com>
+Subject: [PATCH 2/2] ipoib: show VF broadcast address
+Date: Wed, 12 Jun 2019 13:33:46 +0200
+Message-ID: <20190612113348.59858-2-dkirjanov@suse.com>
 References: <20190612113348.59858-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190612113348.59858-1-dkirjanov@suse.com>
