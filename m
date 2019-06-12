@@ -1,7 +1,7 @@
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH v17 12/15] media/v4l2-core, arm64: untag user pointers in videobuf_dma_contig_user_get
-Date: Wed, 12 Jun 2019 13:43:29 +0200
-Message-ID: <7fbcdbe16a2bd99e92eb4541248469738d89a122.1560339705.git.andreyknvl@google.com>
+Subject: [PATCH v17 08/15] userfaultfd, arm64: untag user pointers
+Date: Wed, 12 Jun 2019 13:43:25 +0200
+Message-ID: <e2f35a0400150594a39d9c3f4b3088601fd5dc30.1560339705.git.andreyknvl@google.com>
 References: <cover.1560339705.git.andreyknvl@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -16,56 +16,95 @@ This patch is a part of a series that extends arm64 kernel ABI to allow to
 pass tagged user pointers (with the top byte set to something else other
 than 0x00) as syscall arguments.
 
-videobuf_dma_contig_user_get() uses provided user pointers for vma
-lookups, which can only by done with untagged pointers.
+userfaultfd code use provided user pointers for vma lookups, which can
+only by done with untagged pointers.
 
-Untag the pointers in this function.
+Untag user pointers in validate_range().
 
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- drivers/media/v4l2-core/videobuf-dma-contig.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/userfaultfd.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-index e1bf50df4c70..8a1ddd146b17 100644
---- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-@@ -160,6 +160,7 @@ static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
- static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
- 					struct videobuf_buffer *vb)
+diff --git a/fs/userfaultfd.c b/fs/userfaultfd.c
+index 3b30301c90ec..24d68c3b5ee2 100644
+--- a/fs/userfaultfd.c
++++ b/fs/userfaultfd.c
+@@ -1263,21 +1263,23 @@ static __always_inline void wake_userfault(struct userfaultfd_ctx *ctx,
+ }
+ 
+ static __always_inline int validate_range(struct mm_struct *mm,
+-					  __u64 start, __u64 len)
++					  __u64 *start, __u64 len)
  {
-+	unsigned long untagged_baddr = untagged_addr(vb->baddr);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 	unsigned long prev_pfn, this_pfn;
-@@ -167,22 +168,22 @@ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
- 	unsigned int offset;
- 	int ret;
+ 	__u64 task_size = mm->task_size;
  
--	offset = vb->baddr & ~PAGE_MASK;
-+	offset = untagged_baddr & ~PAGE_MASK;
- 	mem->size = PAGE_ALIGN(vb->size + offset);
- 	ret = -EINVAL;
+-	if (start & ~PAGE_MASK)
++	*start = untagged_addr(*start);
++
++	if (*start & ~PAGE_MASK)
+ 		return -EINVAL;
+ 	if (len & ~PAGE_MASK)
+ 		return -EINVAL;
+ 	if (!len)
+ 		return -EINVAL;
+-	if (start < mmap_min_addr)
++	if (*start < mmap_min_addr)
+ 		return -EINVAL;
+-	if (start >= task_size)
++	if (*start >= task_size)
+ 		return -EINVAL;
+-	if (len > task_size - start)
++	if (len > task_size - *start)
+ 		return -EINVAL;
+ 	return 0;
+ }
+@@ -1327,7 +1329,7 @@ static int userfaultfd_register(struct userfaultfd_ctx *ctx,
+ 		goto out;
+ 	}
  
- 	down_read(&mm->mmap_sem);
+-	ret = validate_range(mm, uffdio_register.range.start,
++	ret = validate_range(mm, &uffdio_register.range.start,
+ 			     uffdio_register.range.len);
+ 	if (ret)
+ 		goto out;
+@@ -1516,7 +1518,7 @@ static int userfaultfd_unregister(struct userfaultfd_ctx *ctx,
+ 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
+ 		goto out;
  
--	vma = find_vma(mm, vb->baddr);
-+	vma = find_vma(mm, untagged_baddr);
- 	if (!vma)
- 		goto out_up;
+-	ret = validate_range(mm, uffdio_unregister.start,
++	ret = validate_range(mm, &uffdio_unregister.start,
+ 			     uffdio_unregister.len);
+ 	if (ret)
+ 		goto out;
+@@ -1667,7 +1669,7 @@ static int userfaultfd_wake(struct userfaultfd_ctx *ctx,
+ 	if (copy_from_user(&uffdio_wake, buf, sizeof(uffdio_wake)))
+ 		goto out;
  
--	if ((vb->baddr + mem->size) > vma->vm_end)
-+	if ((untagged_baddr + mem->size) > vma->vm_end)
- 		goto out_up;
+-	ret = validate_range(ctx->mm, uffdio_wake.start, uffdio_wake.len);
++	ret = validate_range(ctx->mm, &uffdio_wake.start, uffdio_wake.len);
+ 	if (ret)
+ 		goto out;
  
- 	pages_done = 0;
- 	prev_pfn = 0; /* kill warning */
--	user_address = vb->baddr;
-+	user_address = untagged_baddr;
+@@ -1707,7 +1709,7 @@ static int userfaultfd_copy(struct userfaultfd_ctx *ctx,
+ 			   sizeof(uffdio_copy)-sizeof(__s64)))
+ 		goto out;
  
- 	while (pages_done < (mem->size >> PAGE_SHIFT)) {
- 		ret = follow_pfn(vma, user_address, &this_pfn);
+-	ret = validate_range(ctx->mm, uffdio_copy.dst, uffdio_copy.len);
++	ret = validate_range(ctx->mm, &uffdio_copy.dst, uffdio_copy.len);
+ 	if (ret)
+ 		goto out;
+ 	/*
+@@ -1763,7 +1765,7 @@ static int userfaultfd_zeropage(struct userfaultfd_ctx *ctx,
+ 			   sizeof(uffdio_zeropage)-sizeof(__s64)))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, uffdio_zeropage.range.start,
++	ret = validate_range(ctx->mm, &uffdio_zeropage.range.start,
+ 			     uffdio_zeropage.range.len);
+ 	if (ret)
+ 		goto out;
 -- 
 2.22.0.rc2.383.gf4fbbf30c2-goog
