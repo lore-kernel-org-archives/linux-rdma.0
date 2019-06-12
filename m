@@ -1,8 +1,10 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH 1/2] ipoib: correcly show a VF hardware address
-Date: Wed, 12 Jun 2019 13:33:45 +0200
-Message-ID: <20190612113348.59858-1-dkirjanov@suse.com>
+Subject: [PATCH net-next 1/2] ipoib: correcly show a VF hardware address
+Date: Wed, 12 Jun 2019 13:33:47 +0200
+Message-ID: <20190612113348.59858-3-dkirjanov@suse.com>
+References: <20190612113348.59858-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190612113348.59858-1-dkirjanov@suse.com>
 Sender: netdev-owner@vger.kernel.org
 To: davem@davemloft.net, dledford@redhat.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Denis Kirjanov <kda@linux-powerpc.org>
