@@ -1,56 +1,81 @@
-From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH 2/2] ipoib: show VF broadcast address
-Date: Wed, 12 Jun 2019 13:33:46 +0200
-Message-ID: <20190612113348.59858-2-dkirjanov@suse.com>
-References: <20190612113348.59858-1-dkirjanov@suse.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190612113348.59858-1-dkirjanov@suse.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, dledford@redhat.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: Re: [PATCH v16 08/16] fs, arm64: untag user pointers in copy_mount_options
+Date: Wed, 12 Jun 2019 13:36:36 +0200
+Message-ID: <CAAeHK+xCmc-x=Mvs8RC+xJOCw6AnEUgUzXXjjS3NJXeLwJkyqg@mail.gmail.com>
+References: <cover.1559580831.git.andreyknvl@google.com> <51f44a12c4e81c9edea8dcd268f820f5d1fad87c.1559580831.git.andreyknvl@google.com>
+ <201906072101.58C919E@keescook> <CAAeHK+y8CH4P3vheUDCEnPAuO-2L6mc-sz6wMA_hT=wC1Cy3KQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAAeHK+y8CH4P3vheUDCEnPAuO-2L6mc-sz6wMA_hT=wC1Cy3KQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian>
 List-Id: linux-rdma@vger.kernel.org
 
-in IPoIB case we can't see a VF broadcast address for but
-can see for PF
+On Tue, Jun 11, 2019 at 4:38 PM Andrey Konovalov <andreyknvl@google.com> wrote:
+>
+> On Sat, Jun 8, 2019 at 6:02 AM Kees Cook <keescook@chromium.org> wrote:
+> >
+> > On Mon, Jun 03, 2019 at 06:55:10PM +0200, Andrey Konovalov wrote:
+> > > This patch is a part of a series that extends arm64 kernel ABI to allow to
+> > > pass tagged user pointers (with the top byte set to something else other
+> > > than 0x00) as syscall arguments.
+> > >
+> > > In copy_mount_options a user address is being subtracted from TASK_SIZE.
+> > > If the address is lower than TASK_SIZE, the size is calculated to not
+> > > allow the exact_copy_from_user() call to cross TASK_SIZE boundary.
+> > > However if the address is tagged, then the size will be calculated
+> > > incorrectly.
+> > >
+> > > Untag the address before subtracting.
+> > >
+> > > Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+> > > Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> >
+> > One thing I just noticed in the commit titles... "arm64" is in the
+> > prefix, but these are arch-indep areas. Should the ", arm64" be left
+> > out?
+> >
+> > I would expect, instead:
+> >
+> >         fs/namespace: untag user pointers in copy_mount_options
+>
+> Hm, I've added the arm64 tag in all of the patches because they are
+> related to changes in arm64 kernel ABI. I can remove it from all the
+> patches that only touch common code if you think that it makes sense.
 
-Before:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-    link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-    vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
-trust off, query_rss off
-...
+I'll keep the arm64 tags in commit titles for v17. Please reply
+explicitly if you think I should remove them. Thanks! :)
 
-After:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-    link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-    vf 0     link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-checking off, link-state disable, trust off, query_rss off
-...
-
-Signed-off-by: Denis Kirjanov <dkirjanov@suse.com>
----
- net/core/rtnetlink.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index 2e1b9ffbe602..f70902b57a40 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -1248,6 +1248,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
- 	if (!vf)
- 		goto nla_put_vfinfo_failure;
- 	if (nla_put(skb, IFLA_VF_MAC, sizeof(vf_mac), &vf_mac) ||
-+	    nla_put(skb, IFLA_BROADCAST, dev->addr_len, dev->broadcast) ||
- 	    nla_put(skb, IFLA_VF_VLAN, sizeof(vf_vlan), &vf_vlan) ||
- 	    nla_put(skb, IFLA_VF_RATE, sizeof(vf_rate),
- 		    &vf_rate) ||
--- 
-2.12.3
+>
+> Thanks!
+>
+> >
+> > Reviewed-by: Kees Cook <keescook@chromium.org>
+> >
+> > -Kees
+> >
+> > > ---
+> > >  fs/namespace.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > > diff --git a/fs/namespace.c b/fs/namespace.c
+> > > index b26778bdc236..2e85712a19ed 100644
+> > > --- a/fs/namespace.c
+> > > +++ b/fs/namespace.c
+> > > @@ -2993,7 +2993,7 @@ void *copy_mount_options(const void __user * data)
+> > >        * the remainder of the page.
+> > >        */
+> > >       /* copy_from_user cannot cross TASK_SIZE ! */
+> > > -     size = TASK_SIZE - (unsigned long)data;
+> > > +     size = TASK_SIZE - (unsigned long)untagged_addr(data);
+> > >       if (size > PAGE_SIZE)
+> > >               size = PAGE_SIZE;
+> > >
+> > > --
+> > > 2.22.0.rc1.311.g5d7573a151-goog
+> > >
+> >
+> > --
+> > Kees Cook
