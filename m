@@ -1,14 +1,15 @@
 From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: Re: [PATCH v17 05/15] mm, arm64: untag user pointers in mm/gup.c
-Date: Wed, 12 Jun 2019 15:33:38 +0100
-Message-ID: <8b74a24e-4fe0-3fdd-e66a-d04c359b6104@arm.com>
+Subject: Re: [PATCH v17 06/15] mm, arm64: untag user pointers in
+ get_vaddr_frames
+Date: Wed, 12 Jun 2019 15:34:31 +0100
+Message-ID: <89b0c166-9a83-ba09-42e1-4fa478417b3d@arm.com>
 References: <cover.1560339705.git.andreyknvl@google.com>
- <8f65548bef8544d49980a92d221b74440d544c1e.1560339705.git.andreyknvl@google.com>
+ <4c0b9a258e794437a1c6cec97585b4b5bd2d3bba.1560339705.git.andreyknvl@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8f65548bef8544d49980a92d221b74440d544c1e.1560339705.git.andreyknvl@google.com>
+In-Reply-To: <4c0b9a258e794437a1c6cec97585b4b5bd2d3bba.1560339705.git.andreyknvl@google.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org
@@ -20,45 +21,33 @@ On 12/06/2019 12:43, Andrey Konovalov wrote:
 > pass tagged user pointers (with the top byte set to something else other
 > than 0x00) as syscall arguments.
 > 
-> mm/gup.c provides a kernel interface that accepts user addresses and
-> manipulates user pages directly (for example get_user_pages, that is used
-> by the futex syscall). Since a user can provided tagged addresses, we need
-> to handle this case.
+> get_vaddr_frames uses provided user pointers for vma lookups, which can
+> only by done with untagged pointers. Instead of locating and changing
+> all callers of this function, perform untagging in it.
 > 
-> Add untagging to gup.c functions that use user addresses for vma lookups.
-> 
+> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 > Reviewed-by: Kees Cook <keescook@chromium.org>
-> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 > Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 
 Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 
 > ---
->  mm/gup.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  mm/frame_vector.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/mm/gup.c b/mm/gup.c
-> index ddde097cf9e4..c37df3d455a2 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -802,6 +802,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  	if (!nr_pages)
->  		return 0;
+> diff --git a/mm/frame_vector.c b/mm/frame_vector.c
+> index c64dca6e27c2..c431ca81dad5 100644
+> --- a/mm/frame_vector.c
+> +++ b/mm/frame_vector.c
+> @@ -46,6 +46,8 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+>  	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
+>  		nr_frames = vec->nr_allocated;
 >  
 > +	start = untagged_addr(start);
 > +
->  	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
->  
->  	/*
-> @@ -964,6 +966,8 @@ int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
->  	struct vm_area_struct *vma;
->  	vm_fault_t ret, major = 0;
->  
-> +	address = untagged_addr(address);
-> +
->  	if (unlocked)
->  		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
->  
+>  	down_read(&mm->mmap_sem);
+>  	locked = 1;
+>  	vma = find_vma_intersection(mm, start, start + 1);
 > 
 
 -- 
