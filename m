@@ -1,92 +1,67 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v16 12/16] IB, arm64: untag user pointers in
- ib_uverbs_(re)reg_mr()
-Date: Wed, 12 Jun 2019 12:01:34 +0100
-Message-ID: <20190612110129.GC28951@C02TF0J2HF1T.local>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <c829f93b19ad6af1b13be8935ce29baa8e58518f.1559580831.git.andreyknvl@google.com>
- <20190603174619.GC11474@ziepe.ca>
- <CAAeHK+xy-dx4dLDLLj9dRzRNSVG9H5nDPPnjpYF38qKZNNCh_g@mail.gmail.com>
- <20190604122714.GA15385@ziepe.ca>
- <CAAeHK+xyqwuJyviGhvU7L1wPZQF7Mf9g2vgKSsYmML3fV6NrXg@mail.gmail.com>
- <20190604130207.GD15385@ziepe.ca>
- <CAAeHK+xBxDB-OBuzPDcNaTHCNJqu6djHwqoVGSYpxG33w-YR9g@mail.gmail.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: Re: [PATCH v16 02/16] arm64: untag user pointers in access_ok and __uaccess_mask_ptr
+Date: Wed, 12 Jun 2019 13:03:10 +0200
+Message-ID: <CAAeHK+ysoiCSiCNrrvXqffK53WwBMHbc3bk69uU0vY0+R4_JvQ@mail.gmail.com>
+References: <cover.1559580831.git.andreyknvl@google.com> <4327b260fb17c4776a1e3c844f388e4948cfb747.1559580831.git.andreyknvl@google.com>
+ <20190610175326.GC25803@arrakis.emea.arm.com> <20190611145720.GA63588@arrakis.emea.arm.com>
+ <CAAeHK+z5nSOOaGfehETzznNcMq5E5U+Eb1rZE16UVsT8FWT0Vg@mail.gmail.com> <20190611173903.4icrfmoyfvms35cy@mbp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAeHK+xBxDB-OBuzPDcNaTHCNJqu6djHwqoVGSYpxG33w-YR9g@mail.gmail.com>
+In-Reply-To: <20190611173903.4icrfmoyfvms35cy@mbp>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kerne
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 04, 2019 at 03:09:26PM +0200, Andrey Konovalov wrote:
-> On Tue, Jun 4, 2019 at 3:02 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > On Tue, Jun 04, 2019 at 02:45:32PM +0200, Andrey Konovalov wrote:
-> > > On Tue, Jun 4, 2019 at 2:27 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > > > On Tue, Jun 04, 2019 at 02:18:19PM +0200, Andrey Konovalov wrote:
-> > > > > On Mon, Jun 3, 2019 at 7:46 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > > > > > On Mon, Jun 03, 2019 at 06:55:14PM +0200, Andrey Konovalov wrote:
-> > > > > > > This patch is a part of a series that extends arm64 kernel ABI to allow to
-> > > > > > > pass tagged user pointers (with the top byte set to something else other
-> > > > > > > than 0x00) as syscall arguments.
-> > > > > > >
-> > > > > > > ib_uverbs_(re)reg_mr() use provided user pointers for vma lookups (through
-> > > > > > > e.g. mlx4_get_umem_mr()), which can only by done with untagged pointers.
-> > > > > > >
-> > > > > > > Untag user pointers in these functions.
-> > > > > > >
-> > > > > > > Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> > > > > > >  drivers/infiniband/core/uverbs_cmd.c | 4 ++++
-> > > > > > >  1 file changed, 4 insertions(+)
-> > > > > > >
-> > > > > > > diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> > > > > > > index 5a3a1780ceea..f88ee733e617 100644
-> > > > > > > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > > > > > > @@ -709,6 +709,8 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
-> > > > > > >       if (ret)
-> > > > > > >               return ret;
-> > > > > > >
-> > > > > > > +     cmd.start = untagged_addr(cmd.start);
-> > > > > > > +
-> > > > > > >       if ((cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK))
-> > > > > > >               return -EINVAL;
-> > > > > >
-> > > > > > I feel like we shouldn't thave to do this here, surely the cmd.start
-> > > > > > should flow unmodified to get_user_pages, and gup should untag it?
-> > > > > >
-> > > > > > ie, this sort of direction for the IB code (this would be a giant
-> > > > > > patch, so I didn't have time to write it all, but I think it is much
-> > > > > > saner):
-> > > > >
-> > > > > ib_uverbs_reg_mr() passes cmd.start to mlx4_get_umem_mr(), which calls
-> > > > > find_vma(), which only accepts untagged addresses. Could you explain
-> > > > > how your patch helps?
-> > > >
-> > > > That mlx4 is just a 'weird duck', it is not the normal flow, and I
-> > > > don't think the core code should be making special consideration for
-> > > > it.
+On Tue, Jun 11, 2019 at 7:39 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
+>
+> On Tue, Jun 11, 2019 at 07:09:46PM +0200, Andrey Konovalov wrote:
+> > On Tue, Jun 11, 2019 at 4:57 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
 > > >
-> > > How do you think we should do untagging (or something else) to deal
-> > > with this 'weird duck' case?
+> > > On Mon, Jun 10, 2019 at 06:53:27PM +0100, Catalin Marinas wrote:
+> > > > On Mon, Jun 03, 2019 at 06:55:04PM +0200, Andrey Konovalov wrote:
+> > > > > diff --git a/arch/arm64/include/asm/uaccess.h b/arch/arm64/include/asm/uaccess.h
+> > > > > index e5d5f31c6d36..9164ecb5feca 100644
+> > > > > --- a/arch/arm64/include/asm/uaccess.h
+> > > > > +++ b/arch/arm64/include/asm/uaccess.h
+> > > > > @@ -94,7 +94,7 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
+> > > > >     return ret;
+> > > > >  }
+> > > > >
+> > > > > -#define access_ok(addr, size)      __range_ok(addr, size)
+> > > > > +#define access_ok(addr, size)      __range_ok(untagged_addr(addr), size)
+> > > >
+> > > > I'm going to propose an opt-in method here (RFC for now). We can't have
+> > > > a check in untagged_addr() since this is already used throughout the
+> > > > kernel for both user and kernel addresses (khwasan) but we can add one
+> > > > in __range_ok(). The same prctl() option will be used for controlling
+> > > > the precise/imprecise mode of MTE later on. We can use a TIF_ flag here
+> > > > assuming that this will be called early on and any cloned thread will
+> > > > inherit this.
+> > >
+> > > Updated patch, inlining it below. Once we agreed on the approach, I
+> > > think Andrey can insert in in this series, probably after patch 2. The
+> > > differences from the one I posted yesterday:
+> > >
+> > > - renamed PR_* macros together with get/set variants and the possibility
+> > >   to disable the relaxed ABI
+> > >
+> > > - sysctl option - /proc/sys/abi/tagged_addr to disable the ABI globally
+> > >   (just the prctl() opt-in, tasks already using it won't be affected)
+> > >
+> > > And, of course, it needs more testing.
 > >
-> > mlx4 should handle it around the call to find_vma like other patches
-> > do, ideally as part of the cast from a void __user * to the unsigned
-> > long that find_vma needs
-> 
-> So essentially what we had a few versions ago
-> (https://lkml.org/lkml/2019/4/30/785) plus changing unsigned longs to
-> __user * across all IB code? I think the second part is something
-> that's not related to this series and needs to be done separately. I
-> can move untagging back to mlx4_get_umem_mr() though.
-> 
-> Catalin, you've initially asked to to move untagging out of
-> mlx4_get_umem_mr(), do you have any comments on this?
+> > Sure, I'll add it to the series.
+> >
+> > Should I drop access_ok() change from my patch, since yours just reverts it?
+>
+> Not necessary, your patch just relaxes the ABI for all apps, mine
+> tightens it. You could instead move the untagging to __range_ok() and
+> rebase my patch accordingly.
 
-It's fine by me either way. My original reasoning was to untag this at
-the higher level as tags may not be relevant to the mlx4 code. If that's
-what Jason prefers, go for it.
+OK, will do. I'll also add a comment next to TIF_TAGGED_ADDR as Vincenzo asked.
 
--- 
-Catalin
+>
+> --
+> Catalin
