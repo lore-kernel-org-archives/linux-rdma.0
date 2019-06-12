@@ -1,105 +1,83 @@
-From: "Yang, Philip" <Philip.Yang-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [PATCH v2 hmm 00/11] Various revisions from a locking/code review
-Date: Wed, 12 Jun 2019 21:49:12 +0000
-Message-ID: <69bb7fe9-98e7-8a49-3e0b-f639010b8991@amd.com>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190611194858.GA27792@ziepe.ca>
- <5d3b0ae2-3662-cab2-5e6c-82912f32356a@amd.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Date: Wed, 12 Jun 2019 16:30:24 -0700
+Message-ID: <20190612233024.GD14336@iweiny-DESK2.sc.intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <20190606104203.GF7433@quack2.suse.cz>
+ <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+ <20190607110426.GB12765@quack2.suse.cz>
+ <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
+ <20190608001036.GF14308@dread.disaster.area>
+ <20190612123751.GD32656@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <5d3b0ae2-3662-cab2-5e6c-82912f32356a-5C7GfCeVMHo@public.gmane.org>
-Content-Language: en-US
-Content-ID: <B9FCFC9950F7E245B5942E8C6AA7BC38-asWib9pRmPqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: "Kuehling, Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20190612123751.GD32656-PfSpb0PWhxZc2C7mugBRk2EX/6BAtgUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-UmViYXNlIHRvIGh0dHBzOi8vZ2l0aHViLmNvbS9qZ3VudGhvcnBlL2xpbnV4LmdpdCBobW0gYnJh
-bmNoLCBuZWVkIHNvbWUgDQpjaGFuZ2VzIGJlY2F1c2Ugb2YgaW50ZXJmYWNlIGhtbV9yYW5nZV9y
-ZWdpc3RlciBjaGFuZ2UuIFRoZW4gcnVuIGEgcXVpY2sgDQphbWRncHVfdGVzdC4gVGVzdCBpcyBm
-aW5pc2hlZCwgcmVzdWx0IGlzIG9rLiBCdXQgdGhlcmUgaXMgYmVsb3cga2VybmVsIA0KQlVHIG1l
-c3NhZ2UsIHNlZW1zIGhtbV9mcmVlX3JjdSBjYWxscyBkb3duX3dyaXRlLi4uLi4NCg0KWyAxMTcx
-LjkxOTkyMV0gQlVHOiBzbGVlcGluZyBmdW5jdGlvbiBjYWxsZWQgZnJvbSBpbnZhbGlkIGNvbnRl
-eHQgYXQgDQovaG9tZS95YW5ncC9naXQvY29tcHV0ZV9zdGFnaW5nL2tlcm5lbC9rZXJuZWwvbG9j
-a2luZy9yd3NlbS5jOjY1DQpbIDExNzEuOTE5OTMzXSBpbl9hdG9taWMoKTogMSwgaXJxc19kaXNh
-YmxlZCgpOiAwLCBwaWQ6IDUzLCBuYW1lOiANCmt3b3JrZXIvMToxDQpbIDExNzEuOTE5OTM4XSAy
-IGxvY2tzIGhlbGQgYnkga3dvcmtlci8xOjEvNTM6DQpbIDExNzEuOTE5OTQwXSAgIzA6IDAwMDAw
-MDAwMWM3YzE5ZDQgKCh3cV9jb21wbGV0aW9uKXJjdV9ncCl7Ky4rLn0sIGF0OiANCnByb2Nlc3Nf
-b25lX3dvcmsrMHgyMGUvMHg2MzANClsgMTE3MS45MTk5NTFdICAjMTogMDAwMDAwMDA5MjNmMmNm
-YSANCigod29ya19jb21wbGV0aW9uKSgmc2RwLT53b3JrKSl7Ky4rLn0sIGF0OiBwcm9jZXNzX29u
-ZV93b3JrKzB4MjBlLzB4NjMwDQpbIDExNzEuOTE5OTU5XSBDUFU6IDEgUElEOiA1MyBDb21tOiBr
-d29ya2VyLzE6MSBUYWludGVkOiBHICAgICAgICBXIA0KICAgIDUuMi4wLXJjMS1rZmQteWFuZ3Ag
-IzE5Ng0KWyAxMTcxLjkxOTk2MV0gSGFyZHdhcmUgbmFtZTogQVNVUyBBbGwgU2VyaWVzL1o5Ny1Q
-Uk8oV2ktRmkgYWMpL1VTQiAzLjEsIA0KQklPUyA5MDAxIDAzLzA3LzIwMTYNClsgMTE3MS45MTk5
-NjVdIFdvcmtxdWV1ZTogcmN1X2dwIHNyY3VfaW52b2tlX2NhbGxiYWNrcw0KWyAxMTcxLjkxOTk2
-OF0gQ2FsbCBUcmFjZToNClsgMTE3MS45MTk5NzRdICBkdW1wX3N0YWNrKzB4NjcvMHg5Yg0KWyAx
-MTcxLjkxOTk4MF0gIF9fX21pZ2h0X3NsZWVwKzB4MTQ5LzB4MjMwDQpbIDExNzEuOTE5OTg1XSAg
-ZG93bl93cml0ZSsweDFjLzB4NzANClsgMTE3MS45MTk5ODldICBobW1fZnJlZV9yY3UrMHgyNC8w
-eDgwDQpbIDExNzEuOTE5OTkzXSAgc3JjdV9pbnZva2VfY2FsbGJhY2tzKzB4YzkvMHgxNTANClsg
-MTE3MS45MjAwMDBdICBwcm9jZXNzX29uZV93b3JrKzB4MjhlLzB4NjMwDQpbIDExNzEuOTIwMDA4
-XSAgd29ya2VyX3RocmVhZCsweDM5LzB4M2YwDQpbIDExNzEuOTIwMDE0XSAgPyBwcm9jZXNzX29u
-ZV93b3JrKzB4NjMwLzB4NjMwDQpbIDExNzEuOTIwMDE3XSAga3RocmVhZCsweDExYy8weDE0MA0K
-WyAxMTcxLjkyMDAyMV0gID8ga3RocmVhZF9wYXJrKzB4OTAvMHg5MA0KWyAxMTcxLjkyMDAyNl0g
-IHJldF9mcm9tX2ZvcmsrMHgyNC8weDMwDQoNClBoaWxpcA0KDQpPbiAyMDE5LTA2LTEyIDE6NTQg
-cC5tLiwgS3VlaGxpbmcsIEZlbGl4IHdyb3RlOg0KPiBbK1BoaWxpcF0NCj4gDQo+IEhpIEphc29u
-LA0KPiANCj4gSSdtIG91dCBvZiB0aGUgb2ZmaWNlIHRoaXMgd2Vlay4NCj4gDQo+IEhpIFBoaWxp
-cCwgY2FuIHlvdSBnaXZlIHRoaXMgYSBnbz8gTm90IHN1cmUgaG93IG11Y2ggeW91J3ZlIGJlZW4N
-Cj4gZm9sbG93aW5nIHRoaXMgcGF0Y2ggc2VyaWVzIHJldmlldy4gTWVzc2FnZSBvciBjYWxsIG1l
-IG9uIFNreXBlIHRvDQo+IGRpc2N1c3MgYW55IHF1ZXN0aW9ucy4NCj4gDQo+IFRoYW5rcywNCj4g
-ICDCoCBGZWxpeA0KPiANCj4gT24gMjAxOS0wNi0xMSAxMjo0OCwgSmFzb24gR3VudGhvcnBlIHdy
-b3RlOg0KPj4gT24gVGh1LCBKdW4gMDYsIDIwMTkgYXQgMDM6NDQ6MjdQTSAtMDMwMCwgSmFzb24g
-R3VudGhvcnBlIHdyb3RlOg0KPj4+IEZyb206IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94
-LmNvbT4NCj4+Pg0KPj4+IEZvciBobW0uZ2l0Og0KPj4+DQo+Pj4gVGhpcyBwYXRjaCBzZXJpZXMg
-YXJpc2VkIG91dCBvZiBkaXNjdXNzaW9ucyB3aXRoIEplcm9tZSB3aGVuIGxvb2tpbmcgYXQgdGhl
-DQo+Pj4gT0RQIGNoYW5nZXMsIHBhcnRpY3VsYXJseSBpbmZvcm1lZCBieSB1c2UgYWZ0ZXIgZnJl
-ZSByYWNlcyB3ZSBoYXZlIGFscmVhZHkNCj4+PiBmb3VuZCBhbmQgZml4ZWQgaW4gdGhlIE9EUCBj
-b2RlICh0aGFua3MgdG8gc3l6a2FsbGVyKSB3b3JraW5nIHdpdGggbW11DQo+Pj4gbm90aWZpZXJz
-LCBhbmQgdGhlIGRpc2N1c3Npb24gd2l0aCBSYWxwaCBvbiBob3cgdG8gcmVzb2x2ZSB0aGUgbGlm
-ZXRpbWUgbW9kZWwuDQo+Pj4NCj4+PiBPdmVyYWxsIHRoaXMgYnJpbmdzIGluIGEgc2ltcGxpZmll
-ZCBsb2NraW5nIHNjaGVtZSBhbmQgZWFzeSB0byBleHBsYWluDQo+Pj4gbGlmZXRpbWUgbW9kZWw6
-DQo+Pj4NCj4+PiAgICBJZiBhIGhtbV9yYW5nZSBpcyB2YWxpZCwgdGhlbiB0aGUgaG1tIGlzIHZh
-bGlkLCBpZiBhIGhtbSBpcyB2YWxpZCB0aGVuIHRoZSBtbQ0KPj4+ICAgIGlzIGFsbG9jYXRlZCBt
-ZW1vcnkuDQo+Pj4NCj4+PiAgICBJZiB0aGUgbW0gbmVlZHMgdG8gc3RpbGwgYmUgYWxpdmUgKGll
-IHRvIGxvY2sgdGhlIG1tYXBfc2VtLCBmaW5kIGEgdm1hLCBldGMpDQo+Pj4gICAgdGhlbiB0aGUg
-bW1nZXQgbXVzdCBiZSBvYnRhaW5lZCB2aWEgbW1nZXRfbm90X3plcm8oKS4NCj4+Pg0KPj4+IExv
-Y2tpbmcgb2YgbW0tPmhtbSBpcyBzaGlmdGVkIHRvIHVzZSB0aGUgbW1hcF9zZW0gY29uc2lzdGVu
-dGx5IGZvciBhbGwNCj4+PiByZWFkL3dyaXRlIGFuZCB1bmxvY2tlZCBhY2Nlc3NlcyBhcmUgcmVt
-b3ZlZC4NCj4+Pg0KPj4+IFRoZSB1c2UgdW5sb2NrZWQgcmVhZHMgb24gJ2htbS0+ZGVhZCcgYXJl
-IGFsc28gZWxpbWluYXRlZCBpbiBmYXZvdXIgb2YgdXNpbmcNCj4+PiBzdGFuZGFyZCBtbWdldCgp
-IGxvY2tpbmcgdG8gcHJldmVudCB0aGUgbW0gZnJvbSBiZWluZyByZWxlYXNlZC4gTWFueSBvZiB0
-aGUNCj4+PiBkZWJ1Z2dpbmcgY2hlY2tzIG9mICFyYW5nZS0+aG1tIGFuZCAhaG1tLT5tbSBhcmUg
-ZHJvcHBlZCBpbiBmYXZvdXIgb2YgcG9pc29uIC0NCj4+PiB3aGljaCBpcyBtdWNoIGNsZWFyZXIg
-YXMgdG8gdGhlIGxpZmV0aW1lIGludGVudC4NCj4+Pg0KPj4+IFRoZSB0cmFpbGluZyBwYXRjaGVz
-IGFyZSBqdXN0IHNvbWUgcmFuZG9tIGNsZWFudXBzIEkgbm90aWNlZCB3aGVuIHJldmlld2luZw0K
-Pj4+IHRoaXMgY29kZS4NCj4+Pg0KPj4+IFRoaXMgdjIgaW5jb3Jwb3JhdGVzIGFsb3Qgb2YgdGhl
-IGdvb2Qgb2ZmIGxpc3QgY2hhbmdlcyAmIGZlZWRiYWNrIEplcm9tZSBoYWQsDQo+Pj4gYW5kIGFs
-bCB0aGUgb24tbGlzdCBjb21tZW50cyB0b28uIEhvd2V2ZXIsIG5vdyB0aGF0IHdlIGhhdmUgdGhl
-IHNoYXJlZCBnaXQgSQ0KPj4+IGhhdmUga2VwdCB0aGUgb25lIGxpbmUgY2hhbmdlIHRvIG5vdXZl
-YXVfc3ZtLmMgcmF0aGVyIHRoYW4gdGhlIGNvbXBhdA0KPj4+IGZ1bnRpb25zLg0KPj4+DQo+Pj4g
-SSBiZWxpZXZlIHdlIGNhbiByZXNvbHZlIHRoaXMgbWVyZ2UgaW4gdGhlIERSTSB0cmVlIG5vdyBh
-bmQga2VlcCB0aGUgY29yZQ0KPj4+IG1tL2htbS5jIGNsZWFuLiBEUk0gbWFpbnRhaW5lcnMsIHBs
-ZWFzZSBjb3JyZWN0IG1lIGlmIEknbSB3cm9uZy4NCj4+Pg0KPj4+IEl0IGlzIG9uIHRvcCBvZiBo
-bW0uZ2l0LCBhbmQgSSBoYXZlIGEgZ2l0IHRyZWUgb2YgdGhpcyBzZXJpZXMgdG8gZWFzZSB0ZXN0
-aW5nDQo+Pj4gaGVyZToNCj4+Pg0KPj4+IGh0dHBzOi8vZ2l0aHViLmNvbS9qZ3VudGhvcnBlL2xp
-bnV4L3RyZWUvaG1tDQo+Pj4NCj4+PiBUaGVyZSBhcmUgc3RpbGwgc29tZSBvcGVuIGxvY2tpbmcg
-aXNzdWVzLCBhcyBJIHRoaW5rIHRoaXMgcmVtYWlucyB1bmFkZHJlc3NlZDoNCj4+Pg0KPj4+IGh0
-dHBzOi8vbG9yZS5rZXJuZWwub3JnL2xpbnV4LW1tLzIwMTkwNTI3MTk1ODI5LkdCMTgwMTlAbWVs
-bGFub3guY29tLw0KPj4+DQo+Pj4gSSdtIGxvb2tpbmcgZm9yIHNvbWUgbW9yZSBhY2tzLCByZXZp
-ZXdzIGFuZCB0ZXN0cyBzbyB0aGlzIGNhbiBtb3ZlIGFoZWFkIHRvDQo+Pj4gaG1tLmdpdC4NCj4+
-IEFNRCBGb2xrcywgdGhpcyBpcyBsb29raW5nIHByZXR0eSBnb29kIG5vdywgY2FuIHlvdSBwbGVh
-c2UgZ2l2ZSBhdA0KPj4gbGVhc3QgYSBUZXN0ZWQtYnkgZm9yIHRoZSBuZXcgZHJpdmVyIGNvZGUg
-dXNpbmcgdGhpcyB0aGF0IEkgc2VlIGluDQo+PiBsaW51eC1uZXh0Pw0KPj4NCj4+IFRoYW5rcywN
-Cj4+IEphc29uDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwphbWQtZ2Z4IG1haWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
-czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
+On Wed, Jun 12, 2019 at 05:37:53AM -0700, Matthew Wilcox wrote:
+> On Sat, Jun 08, 2019 at 10:10:36AM +1000, Dave Chinner wrote:
+> > On Fri, Jun 07, 2019 at 11:25:35AM -0700, Ira Weiny wrote:
+> > > Are you suggesting that we have something like this from user space?
+> > > 
+> > > 	fcntl(fd, F_SETLEASE, F_LAYOUT | F_UNBREAKABLE);
+> > 
+> > Rather than "unbreakable", perhaps a clearer description of the
+> > policy it entails is "exclusive"?
+> > 
+> > i.e. what we are talking about here is an exclusive lease that
+> > prevents other processes from changing the layout. i.e. the
+> > mechanism used to guarantee a lease is exclusive is that the layout
+> > becomes "unbreakable" at the filesystem level, but the policy we are
+> > actually presenting to uses is "exclusive access"...
+> 
+> That's rather different from the normal meaning of 'exclusive' in the
+> context of locks, which is "only one user can have access to this at
+> a time".  As I understand it, this is rather more like a 'shared' or
+> 'read' lock.  The filesystem would be the one which wants an exclusive
+> lock, so it can modify the mapping of logical to physical blocks.
+> 
+> The complication being that by default the filesystem has an exclusive
+> lock on the mapping, and what we're trying to add is the ability for
+> readers to ask the filesystem to give up its exclusive lock.
+
+This is an interesting view...
+
+And after some more thought, exclusive does not seem like a good name for this
+because technically F_WRLCK _is_ an exclusive lease...
+
+In addition, the user does not need to take the "exclusive" write lease to be
+notified of (broken by) an unexpected truncate.  A "read" lease is broken by
+truncate.  (And "write" leases really don't do anything different WRT the
+interaction of the FS and the user app.  Write leases control "exclusive"
+access between other file descriptors.)
+
+Another thing to consider is that this patch set _allows_ a truncate/hole punch
+to proceed _if_ the pages being affected are not actually pinned.  So the
+unbreakable/exclusive nature of the lease is not absolute.
+
+Personally I like this functionality.  I'm not quite sure I can make it work
+with what Jan is suggesting.  But I like it.
+
+Given the muddied water of "exclusive" and "write" lease I'm now feeling like
+Jeff has a point WRT the conflation of F_RDLCK/F_WRLCK/F_UNLCK and this new
+functionality.
+
+Should we use his suggested F_SETLAYOUT/F_GETLAYOUT cmd type?[1]
+
+Ira
+
+[1] https://lkml.org/lkml/2019/6/9/117
