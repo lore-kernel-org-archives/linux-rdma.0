@@ -1,23 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] linux-next: DOC: RDS: Fix a typo in rds.txt
-Date: Wed, 12 Jun 2019 09:56:40 -0700 (PDT)
-Message-ID: <20190612.095640.540431327072712172.davem@davemloft.net>
-References: <20190612122934.3515-1-standby24x7@gmail.com>
+From: "Kuehling, Felix" <Felix.Kuehling@amd.com>
+Subject: Re: [PATCH v2 hmm 00/11] Various revisions from a locking/code review
+Date: Wed, 12 Jun 2019 17:54:33 +0000
+Message-ID: <5d3b0ae2-3662-cab2-5e6c-82912f32356a@amd.com>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
+ <20190611194858.GA27792@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190612122934.3515-1-standby24x7@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: standby24x7@gmail.com
-Cc: santosh.shilimkar@oracle.com, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190611194858.GA27792@ziepe.ca>
+Content-Language: en-US
+Content-ID: <D7961056F695C445A1434E7B7D490147@namprd12.prod.outlook.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, "Deucher, Alexander" <Alexander.Deucher@amd.com>, "Yang, Philip" <Philip.Yang@amd.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Masanari Iida <standby24x7@gmail.com>
-Date: Wed, 12 Jun 2019 21:29:34 +0900
-
-> This patch fixes a spelling typo in rds.txt
-> 
-> Signed-off-by: Masanari Iida <standby24x7@gmail.com>
-
-Applied.
+WytQaGlsaXBdDQoNCkhpIEphc29uLA0KDQpJJ20gb3V0IG9mIHRoZSBvZmZpY2UgdGhpcyB3ZWVr
+Lg0KDQpIaSBQaGlsaXAsIGNhbiB5b3UgZ2l2ZSB0aGlzIGEgZ28/IE5vdCBzdXJlIGhvdyBtdWNo
+IHlvdSd2ZSBiZWVuIA0KZm9sbG93aW5nIHRoaXMgcGF0Y2ggc2VyaWVzIHJldmlldy4gTWVzc2Fn
+ZSBvciBjYWxsIG1lIG9uIFNreXBlIHRvIA0KZGlzY3VzcyBhbnkgcXVlc3Rpb25zLg0KDQpUaGFu
+a3MsDQogwqAgRmVsaXgNCg0KT24gMjAxOS0wNi0xMSAxMjo0OCwgSmFzb24gR3VudGhvcnBlIHdy
+b3RlOg0KPiBPbiBUaHUsIEp1biAwNiwgMjAxOSBhdCAwMzo0NDoyN1BNIC0wMzAwLCBKYXNvbiBH
+dW50aG9ycGUgd3JvdGU6DQo+PiBGcm9tOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5j
+b20+DQo+Pg0KPj4gRm9yIGhtbS5naXQ6DQo+Pg0KPj4gVGhpcyBwYXRjaCBzZXJpZXMgYXJpc2Vk
+IG91dCBvZiBkaXNjdXNzaW9ucyB3aXRoIEplcm9tZSB3aGVuIGxvb2tpbmcgYXQgdGhlDQo+PiBP
+RFAgY2hhbmdlcywgcGFydGljdWxhcmx5IGluZm9ybWVkIGJ5IHVzZSBhZnRlciBmcmVlIHJhY2Vz
+IHdlIGhhdmUgYWxyZWFkeQ0KPj4gZm91bmQgYW5kIGZpeGVkIGluIHRoZSBPRFAgY29kZSAodGhh
+bmtzIHRvIHN5emthbGxlcikgd29ya2luZyB3aXRoIG1tdQ0KPj4gbm90aWZpZXJzLCBhbmQgdGhl
+IGRpc2N1c3Npb24gd2l0aCBSYWxwaCBvbiBob3cgdG8gcmVzb2x2ZSB0aGUgbGlmZXRpbWUgbW9k
+ZWwuDQo+Pg0KPj4gT3ZlcmFsbCB0aGlzIGJyaW5ncyBpbiBhIHNpbXBsaWZpZWQgbG9ja2luZyBz
+Y2hlbWUgYW5kIGVhc3kgdG8gZXhwbGFpbg0KPj4gbGlmZXRpbWUgbW9kZWw6DQo+Pg0KPj4gICBJ
+ZiBhIGhtbV9yYW5nZSBpcyB2YWxpZCwgdGhlbiB0aGUgaG1tIGlzIHZhbGlkLCBpZiBhIGhtbSBp
+cyB2YWxpZCB0aGVuIHRoZSBtbQ0KPj4gICBpcyBhbGxvY2F0ZWQgbWVtb3J5Lg0KPj4NCj4+ICAg
+SWYgdGhlIG1tIG5lZWRzIHRvIHN0aWxsIGJlIGFsaXZlIChpZSB0byBsb2NrIHRoZSBtbWFwX3Nl
+bSwgZmluZCBhIHZtYSwgZXRjKQ0KPj4gICB0aGVuIHRoZSBtbWdldCBtdXN0IGJlIG9idGFpbmVk
+IHZpYSBtbWdldF9ub3RfemVybygpLg0KPj4NCj4+IExvY2tpbmcgb2YgbW0tPmhtbSBpcyBzaGlm
+dGVkIHRvIHVzZSB0aGUgbW1hcF9zZW0gY29uc2lzdGVudGx5IGZvciBhbGwNCj4+IHJlYWQvd3Jp
+dGUgYW5kIHVubG9ja2VkIGFjY2Vzc2VzIGFyZSByZW1vdmVkLg0KPj4NCj4+IFRoZSB1c2UgdW5s
+b2NrZWQgcmVhZHMgb24gJ2htbS0+ZGVhZCcgYXJlIGFsc28gZWxpbWluYXRlZCBpbiBmYXZvdXIg
+b2YgdXNpbmcNCj4+IHN0YW5kYXJkIG1tZ2V0KCkgbG9ja2luZyB0byBwcmV2ZW50IHRoZSBtbSBm
+cm9tIGJlaW5nIHJlbGVhc2VkLiBNYW55IG9mIHRoZQ0KPj4gZGVidWdnaW5nIGNoZWNrcyBvZiAh
+cmFuZ2UtPmhtbSBhbmQgIWhtbS0+bW0gYXJlIGRyb3BwZWQgaW4gZmF2b3VyIG9mIHBvaXNvbiAt
+DQo+PiB3aGljaCBpcyBtdWNoIGNsZWFyZXIgYXMgdG8gdGhlIGxpZmV0aW1lIGludGVudC4NCj4+
+DQo+PiBUaGUgdHJhaWxpbmcgcGF0Y2hlcyBhcmUganVzdCBzb21lIHJhbmRvbSBjbGVhbnVwcyBJ
+IG5vdGljZWQgd2hlbiByZXZpZXdpbmcNCj4+IHRoaXMgY29kZS4NCj4+DQo+PiBUaGlzIHYyIGlu
+Y29ycG9yYXRlcyBhbG90IG9mIHRoZSBnb29kIG9mZiBsaXN0IGNoYW5nZXMgJiBmZWVkYmFjayBK
+ZXJvbWUgaGFkLA0KPj4gYW5kIGFsbCB0aGUgb24tbGlzdCBjb21tZW50cyB0b28uIEhvd2V2ZXIs
+IG5vdyB0aGF0IHdlIGhhdmUgdGhlIHNoYXJlZCBnaXQgSQ0KPj4gaGF2ZSBrZXB0IHRoZSBvbmUg
+bGluZSBjaGFuZ2UgdG8gbm91dmVhdV9zdm0uYyByYXRoZXIgdGhhbiB0aGUgY29tcGF0DQo+PiBm
+dW50aW9ucy4NCj4+DQo+PiBJIGJlbGlldmUgd2UgY2FuIHJlc29sdmUgdGhpcyBtZXJnZSBpbiB0
+aGUgRFJNIHRyZWUgbm93IGFuZCBrZWVwIHRoZSBjb3JlDQo+PiBtbS9obW0uYyBjbGVhbi4gRFJN
+IG1haW50YWluZXJzLCBwbGVhc2UgY29ycmVjdCBtZSBpZiBJJ20gd3JvbmcuDQo+Pg0KPj4gSXQg
+aXMgb24gdG9wIG9mIGhtbS5naXQsIGFuZCBJIGhhdmUgYSBnaXQgdHJlZSBvZiB0aGlzIHNlcmll
+cyB0byBlYXNlIHRlc3RpbmcNCj4+IGhlcmU6DQo+Pg0KPj4gaHR0cHM6Ly9naXRodWIuY29tL2pn
+dW50aG9ycGUvbGludXgvdHJlZS9obW0NCj4+DQo+PiBUaGVyZSBhcmUgc3RpbGwgc29tZSBvcGVu
+IGxvY2tpbmcgaXNzdWVzLCBhcyBJIHRoaW5rIHRoaXMgcmVtYWlucyB1bmFkZHJlc3NlZDoNCj4+
+DQo+PiBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1tbS8yMDE5MDUyNzE5NTgyOS5HQjE4
+MDE5QG1lbGxhbm94LmNvbS8NCj4+DQo+PiBJJ20gbG9va2luZyBmb3Igc29tZSBtb3JlIGFja3Ms
+IHJldmlld3MgYW5kIHRlc3RzIHNvIHRoaXMgY2FuIG1vdmUgYWhlYWQgdG8NCj4+IGhtbS5naXQu
+DQo+IEFNRCBGb2xrcywgdGhpcyBpcyBsb29raW5nIHByZXR0eSBnb29kIG5vdywgY2FuIHlvdSBw
+bGVhc2UgZ2l2ZSBhdA0KPiBsZWFzdCBhIFRlc3RlZC1ieSBmb3IgdGhlIG5ldyBkcml2ZXIgY29k
+ZSB1c2luZyB0aGlzIHRoYXQgSSBzZWUgaW4NCj4gbGludXgtbmV4dD8NCj4NCj4gVGhhbmtzLA0K
+PiBKYXNvbg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+ZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
