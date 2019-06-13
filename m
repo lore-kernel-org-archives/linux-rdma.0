@@ -1,8 +1,10 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH 1/2] ipoib: correcly show a VF hardware address
-Date: Thu, 13 Jun 2019 16:20:00 +0200
-Message-ID: <20190613142003.129391-1-dkirjanov@suse.com>
+Subject: [PATCH net-next v2 1/2] ipoib: correcly show a VF hardware address
+Date: Thu, 13 Jun 2019 16:20:02 +0200
+Message-ID: <20190613142003.129391-3-dkirjanov@suse.com>
+References: <20190613142003.129391-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190613142003.129391-1-dkirjanov@suse.com>
 Sender: netdev-owner@vger.kernel.org
 To: davem@davemloft.net, dledford@redhat.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
@@ -32,8 +34,6 @@ state UP mode DEFAULT group default qlen 256
 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
 checking off, link-state disable, trust off, query_rss off
-
-v1->v2: just copy an address without modifing ifla_vf_mac
 
 Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
 ---
