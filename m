@@ -1,7 +1,7 @@
-From: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
+From: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Date: Thu, 13 Jun 2019 14:36:49 +1000
-Message-ID: <20190613043649.GJ14363@dread.disaster.area>
+Date: Thu, 13 Jun 2019 03:47:43 -0700
+Message-ID: <20190613104743.GH32656@bombadil.infradead.org>
 References: <20190606014544.8339-1-ira.weiny@intel.com>
  <20190606104203.GF7433@quack2.suse.cz>
  <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
@@ -11,12 +11,13 @@ References: <20190606014544.8339-1-ira.weiny@intel.com>
  <20190612123751.GD32656@bombadil.infradead.org>
  <20190613002555.GH14363@dread.disaster.area>
  <20190613032320.GG32656@bombadil.infradead.org>
+ <20190613043649.GJ14363@dread.disaster.area>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190613032320.GG32656-PfSpb0PWhxZc2C7mugBRk2EX/6BAtgUQ@public.gmane.org>
+In-Reply-To: <20190613043649.GJ14363-pA1nmv6sEBkOM8BvhN4Z8vybgvtCy99p@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,96 +27,59 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
 Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 12, 2019 at 08:23:20PM -0700, Matthew Wilcox wrote:
-> On Thu, Jun 13, 2019 at 10:25:55AM +1000, Dave Chinner wrote:
-> > On Wed, Jun 12, 2019 at 05:37:53AM -0700, Matthew Wilcox wrote:
-> > > That's rather different from the normal meaning of 'exclusive' in the
-> > > context of locks, which is "only one user can have access to this at
-> > > a time".
+On Thu, Jun 13, 2019 at 02:36:49PM +1000, Dave Chinner wrote:
+> On Wed, Jun 12, 2019 at 08:23:20PM -0700, Matthew Wilcox wrote:
+> > On Thu, Jun 13, 2019 at 10:25:55AM +1000, Dave Chinner wrote:
+> > > On Wed, Jun 12, 2019 at 05:37:53AM -0700, Matthew Wilcox wrote:
+> > > > That's rather different from the normal meaning of 'exclusive' in the
+> > > > context of locks, which is "only one user can have access to this at
+> > > > a time".
+> > > 
+> > > Layout leases are not locks, they are a user access policy object.
+> > > It is the process/fd which holds the lease and it's the process/fd
+> > > that is granted exclusive access.  This is exactly the same semantic
+> > > as O_EXCL provides for granting exclusive access to a block device
+> > > via open(), yes?
 > > 
-> > Layout leases are not locks, they are a user access policy object.
-> > It is the process/fd which holds the lease and it's the process/fd
-> > that is granted exclusive access.  This is exactly the same semantic
-> > as O_EXCL provides for granting exclusive access to a block device
-> > via open(), yes?
+> > This isn't my understanding of how RDMA wants this to work, so we should
+> > probably clear that up before we get too far down deciding what name to
+> > give it.
+> > 
+> > For the RDMA usage case, it is entirely possible that both process A
+> > and process B which don't know about each other want to perform RDMA to
+> > file F.  So there will be two layout leases active on this file at the
+> > same time.  It's fine for IOs to simultaneously be active to both leases.
 > 
-> This isn't my understanding of how RDMA wants this to work, so we should
-> probably clear that up before we get too far down deciding what name to
-> give it.
+> Yes, it is.
 > 
-> For the RDMA usage case, it is entirely possible that both process A
-> and process B which don't know about each other want to perform RDMA to
-> file F.  So there will be two layout leases active on this file at the
-> same time.  It's fine for IOs to simultaneously be active to both leases.
+> > But if the filesystem wants to move blocks around, it has to break
+> > both leases.
+> 
+> No, the _lease layer_ needs to break both leases when the filesystem
+> calls break_layout().
 
-Yes, it is.
+That's a distinction without a difference as far as userspace is
+concerned.  If process A asks for an exclusive lease (and gets it),
+then process B asks for an exclusive lease (and gets it), that lease
+isn't exclusive!  It's shared.
 
-> But if the filesystem wants to move blocks around, it has to break
-> both leases.
+I think the example you give of O_EXCL is more of a historical accident.
+It's a relatively recent Linuxism that O_EXCL on a block device means
+"this block device is not part of a filesystem", and I don't think
+most userspace programmers are aware of what it means when not paired
+with O_CREAT.
 
-No, the _lease layer_ needs to break both leases when the filesystem
-calls break_layout().
+> > If Process C tries to do a write to file F without a lease, there's no
+> > problem, unless a side-effect of the write would be to change the block
+> > mapping,
+> 
+> That's a side effect we cannot predict ahead of time. But it's
+> also _completely irrelevant_ to the layout lease layer API and
+> implementation.(*)
 
-The filesystem is /completely unaware/ of whether a lease is held,
-how many leases are held, what is involved in revoking leases or
-whether they are exclusive or not. The filesystem only knows that it
-is about to perform an operation that may require a layout lease to
-be broken, so it's _asking permission_ from the layout lease layer
-whether it is OK to go ahead with the operation.
-
-See what I mean about the layout lease being an /access arbitration/
-layer? It's the layer that decides whether a modification can be
-made or not, not the filesystem. The layout lease layer tells the
-filesystem what it should do, the filesystem just has to ensure it
-adds layout breaking callouts in places that can block safely and
-are serialised to ensure operations from new layouts can't race with
-the operation that broke the existing layouts.
-
-> If Process C tries to do a write to file F without a lease, there's no
-> problem, unless a side-effect of the write would be to change the block
-> mapping,
-
-That's a side effect we cannot predict ahead of time. But it's
-also _completely irrelevant_ to the layout lease layer API and
-implementation.(*)
-
-> in which case either the leases must break first, or the write
-> must be denied.
-
-Which is exactly how I'm saying layout leases already interact with
-the filesystem: that if the lease cannot be broken, break_layout()
-returns -ETXTBSY to the filesystem, and the filesystem returns that
-to the application having made no changes at all. Layout leases are
-the policy engine, the filesystem just has to implement the
-break_layout() callouts such that layout breaking is consistent,
-correct, and robust....
-
-Cheers,
-
-Dave.
-
-(*) In the case of XFS, we don't know if a layout change will be
-necessary until we are deep inside the actual IO path and hold inode
-metadata locks. We can't block here to break the layout because IO
-completion and metadata commits need to occur to allow the
-application to release it's lease and IO completion requires that
-same inode metadata lock. i.e. if we block once we know a layout
-change needs to occur, we will deadlock the filesystem on the inode
-metadata lock.
-
-Hence the filesystem implementation dictates when the filesystem
-issues layout lease break notifications. However, these filesystem
-implementation issues do not dictate how applications interact with
-layout leases, how layout leases are managed, whether concurrent
-leases are allowed, whether leases can be broken, etc.  That's all
-managed by the layout lease layer and that's where the go/no go
-decision is made and communicated to the filesystem as the return
-value from the break_layout() call.
-
--- 
-Dave Chinner
-david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
+It's irrelevant to the naming, but you brought it up as part of the
+semantics.
