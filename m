@@ -1,65 +1,34 @@
-From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-Subject: Re: [PATCH v2] RDMA/cma: Make CM response timeout and # CM retries
- configurable
-Date: Thu, 13 Jun 2019 19:39:24 +0200
-Message-ID: <1D8E6B14-3336-42B3-B572-596DD2183D89@oracle.com>
-References: <20190226075722.1692315-1-haakon.bugge@oracle.com>
- <174ccd37a9ffa05d0c7c03fe80ff7170a9270824.camel@redhat.com>
- <67B4F337-4C3A-4193-B1EF-42FD4765CBB7@oracle.com>
- <20190613172355.GF22901@ziepe.ca>
-Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.11\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190613172355.GF22901@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 00/16] Mellanox, mlx5 next updates 10-06-2019
+Date: Thu, 13 Jun 2019 18:02:19 +0000
+Message-ID: <c1c038bc012806e704a39b2debabe39f8d33796c.camel@mellanox.com>
+References: <20190610233733.12155-1-saeedm@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190610233733.12155-1-saeedm@mellanox.com>
+Content-Language: en-US
+Content-ID: <F27127C8E97B5C489F24E500EE4090E7@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> On 13 Jun 2019, at 19:23, Jason Gunthorpe <jgg@ziepe.ca> wrote:
->=20
-> On Thu, Jun 13, 2019 at 06:58:30PM +0200, H=C3=A5kon Bugge wrote:
->=20
->> If you refer to the backlog parameter in rdma_listen(), I cannot see
->> it being used at all for IB.
->>=20
->> For CX-3, which is paravirtualized wrt. MAD packets, it is the proxy
->> UD receive queue length for the PF driver that can be construed as a
->> backlog.=20
->=20
-> No, in IB you can drop UD packets if your RQ is full - so the proxy RQ
-> is really part of the overall RQ on QP1.
->=20
-> The backlog starts once packets are taken off the RQ and begin the
-> connection accept processing.
-
-Do think we say the same thing. If, incoming REQ processing is severly =
-delayed, the backlog is #entries in the QP1 receive queue in the PF. I =
-can call rdma_listen() with a backlog of a zillion, but it will not =
-help.
-
->> Customer configures #VMs and different workload may lead to way
->> different number of CM connections. The proxying of MAD packet
->> through the PF driver has a finite packet rate. With 64 VMs, 10.000
->> QPs on each, all going down due to a switch failing or similar, you
->> have 640.000 DREQs to be sent, and with the finite packet rate of MA
->> packets through the PF, this takes more than the current CM
->> timeout. And then you re-transmit and increase the burden of the PF
->> proxying.
->=20
-> I feel like the performance of all this proxying is too low to support
-> such a large work load :(
-
-That is what I am aiming at, for example to spread the =
-completion_vector(s) for said QPs ;-)
-
--h
-
->=20
-> Can it be improved?
->=20
-> Jason
+T24gTW9uLCAyMDE5LTA2LTEwIGF0IDIzOjM4ICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
+Cj4gSGkgQWxsLA0KPiANCj4gVGhpcyBzZXJpZXMgaXMgYWltZWQgbWx4NS1uZXh0IGJyYW5jaCwg
+aXQgaW5jbHVkZXMgYSBjb3VwbGUgb2YgbG93DQo+IGxldmVsDQo+IHVwZGF0ZXMgZm9yIG1seDVf
+Y29yZSBkcml2ZXIsIG5lZWRlZCBmb3IgYm90aCByZG1hIGFuZCBuZXQtbmV4dA0KPiB0cmVlcy4N
+Cj4gDQo+IDEpIEJvZG9uZyByZWZhY3RvcnMgcXVlcnkgZXN3IGZ1bmN0aW9ucyBzbyBoZSBjb3Vs
+ZCB1c2UgaXQgdG8gc3VwcG9ydA0KPiBxdWVyeWluZyBtYXggVkZzIGZyb20gZGV2aWNlLg0KPiAN
+Cj4gMikgVnUsIGhhbmRsZXMgVkYgcmVwcmVzZW50b3JzIGNyZWF0aW9uIGZyb20gVkYgY3JlYXRp
+b24gaGFuZGxlcg0KPiBjb250ZXh0Lg0KPiANCj4gMykgRGFuaWVsLCBpbmNyZWFzZWQgdGhlIGZ3
+IGluaXRpYWxpemF0aW9uIHdhaXQgdGltZW91dCBmb3IgbGFyZ2UNCj4gc3Jpb3YNCj4gY29uZmln
+dXJhdGlvbi4NCj4gDQo+IDQpIFl1dmFsLCByZWZhY3RvcnMgSVJRIHZlY3RvcnMgbWFuYWdlbWVu
+dCBhbmQgc2VwYXJhdGVzIHRoZW0gZnJvbQ0KPiBFUXMsDQo+IHNvIElSUXMgY2FuIGJlIHNoYXJl
+ZCBiZXR3ZWVuIGRpZmZlcmVudCBFUXMgdG8gc2F2ZSBzeXN0ZW0gcmVzb3VyY2VzLA0KPiBlc3Bl
+Y2lhbGx5IG9uIFZNcyBhbmQgVkYgZnVuY3Rpb25zLg0KPiANCj4gNSkgQXJpZWwsIGV4cGxvaXRz
+IFl1dmFsJ3Mgd29yayBhbmQgdXNlcyBvbmx5IG9uZSBJUlEgZm9yIHRoZSA0IGFzeW5jDQo+IEVR
+cyB3ZSBoYXZlIHBlciBmdW5jdGlvbiAoU28gd2UgY2FuIHNhdmUgMyBJUlEgdmVjdG9ycyBwZXIg
+ZnVuY3Rpb24pLg0KPiANCj4gVGhhbmtzLA0KPiBTYWVlZC4NCj4gDQoNCkFwcGxpZWQgdG8gbWx4
+NS1uZXh0LA0KDQpUaGFua3MhDQoNCg==
