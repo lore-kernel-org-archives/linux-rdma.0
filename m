@@ -1,85 +1,84 @@
-From: Michal Kalderon <michal.kalderon@marvell.com>
-Subject: [PATCH v3 rdma-next 1/3] qed*: Change dpi_addr to be denoted with __iomem
-Date: Thu, 13 Jun 2019 11:38:17 +0300
-Message-ID: <20190613083819.6998-2-michal.kalderon@marvell.com>
-References: <20190613083819.6998-1-michal.kalderon@marvell.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v2] RDMA/cma: Make CM response timeout and # CM retries
+ configurable
+Date: Thu, 13 Jun 2019 12:32:24 -0400
+Message-ID: <08deb91f7516b4c8911211499a00a58392d65a8b.camel@redhat.com>
+References: <20190226075722.1692315-1-haakon.bugge@oracle.com>
+         <174ccd37a9ffa05d0c7c03fe80ff7170a9270824.camel@redhat.com>
+         <2c114313-01fe-6d4d-5134-592d1a7b829b@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190613083819.6998-1-michal.kalderon@marvell.com>
-Sender: netdev-owner@vger.kernel.org
-To: michal.kalderon@marvell.com, ariel.elior@marvell.com, jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, davem@davemloft.net, netdev@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-0AQ/OTcN7UdTwkCoV3sM"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2c114313-01fe-6d4d-5134-592d1a7b829b@acm.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>, =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Several casts were required around dpi_addr parameter in qed_rdma_if.h
-This is an address on the doorbell bar and should therefore be marked
-with __iomem.
 
-Reported-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
----
- drivers/infiniband/hw/qedr/main.c          | 2 +-
- drivers/infiniband/hw/qedr/qedr.h          | 2 +-
- drivers/net/ethernet/qlogic/qed/qed_rdma.c | 6 +++---
- include/linux/qed/qed_rdma_if.h            | 2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+--=-0AQ/OTcN7UdTwkCoV3sM
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index 083c2c00a8e9..3d1f32d56b37 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -813,7 +813,7 @@ static int qedr_init_hw(struct qedr_dev *dev)
- 	if (rc)
- 		goto out;
- 
--	dev->db_addr = (void __iomem *)(uintptr_t)out_params.dpi_addr;
-+	dev->db_addr = out_params.dpi_addr;
- 	dev->db_phys_addr = out_params.dpi_phys_addr;
- 	dev->db_size = out_params.dpi_size;
- 	dev->dpi = out_params.dpi;
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index 6175d1e98717..8df56aba9d2c 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -227,7 +227,7 @@ struct qedr_ucontext {
- 	struct ib_ucontext ibucontext;
- 	struct qedr_dev *dev;
- 	struct qedr_pd *pd;
--	u64 dpi_addr;
-+	void __iomem *dpi_addr;
- 	u64 dpi_phys_addr;
- 	u32 dpi_size;
- 	u16 dpi;
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_rdma.c b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
-index 7873d6dfd91f..fef3e6979a26 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_rdma.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
-@@ -799,9 +799,9 @@ static int qed_rdma_add_user(void *rdma_cxt,
- 	/* Calculate the corresponding DPI address */
- 	dpi_start_offset = p_hwfn->dpi_start_offset;
- 
--	out_params->dpi_addr = (u64)((u8 __iomem *)p_hwfn->doorbells +
--				     dpi_start_offset +
--				     ((out_params->dpi) * p_hwfn->dpi_size));
-+	out_params->dpi_addr = ((u8 __iomem *)p_hwfn->doorbells +
-+				dpi_start_offset +
-+				((out_params->dpi) * p_hwfn->dpi_size));
- 
- 	out_params->dpi_phys_addr = p_hwfn->cdev->db_phys_addr +
- 				    dpi_start_offset +
-diff --git a/include/linux/qed/qed_rdma_if.h b/include/linux/qed/qed_rdma_if.h
-index d15f8e4815e3..834166809a6c 100644
---- a/include/linux/qed/qed_rdma_if.h
-+++ b/include/linux/qed/qed_rdma_if.h
-@@ -225,7 +225,7 @@ struct qed_rdma_start_in_params {
- 
- struct qed_rdma_add_user_out_params {
- 	u16 dpi;
--	u64 dpi_addr;
-+	void __iomem *dpi_addr;
- 	u64 dpi_phys_addr;
- 	u32 dpi_size;
- 	u16 wid_count;
--- 
-2.14.5
+On Thu, 2019-06-13 at 08:28 -0700, Bart Van Assche wrote:
+> On 6/13/19 7:25 AM, Doug Ledford wrote:
+> > So, to revive this patch, what I'd like to see is some attempt to
+> > actually quantify a reasonable timeout for the default backlog
+> > depth,
+> > then the patch should actually change the default to that
+> > reasonable
+> > timeout, and then put in the ability to adjust the timeout with
+> > some
+> > sort of doc guidance on how to calculate a reasonable timeout based
+> > on
+> > configured backlog depth.
+>=20
+> How about following the approach of the SRP initiator driver? It
+> derives=20
+> the CM timeout from the subnet manager timeout. The assumption
+> behind=20
+> this is that in large networks the subnet manager timeout has to be
+> set=20
+> higher than its default to make communication work. See also=20
+> srp_get_subnet_timeout().
+
+Theoretically, the subnet manager needs a longer timeout in a bigger
+network because it's handling more data as a single point of lookup for
+the entire subnet.  Individual machines, on the other hand, have the
+same backlog size (by default) regardless of the size of the network,
+and there is no guarantee that if the admin increased the subnet
+manager timeout, that they also increased the backlog queue depth size.
+So, while I like things that auto-tune like you are suggesting, the
+problem is that the one item does not directly correlate with the
+other.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
+2FDD
+
+--=-0AQ/OTcN7UdTwkCoV3sM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0CepgACgkQuCajMw5X
+L93+Mw/6A61mDk+ikAXS6vmFqzcWR0dtVmtxKeNB1/IKvTOJ4JZJxnaYaVIrCjzE
+dn3S3UH0Y3ulfyq90Rl3o9opmes7P0vuL+yvxV8Z75EfSObyrFddWfa3JubQ1j6+
+Qn5OygYPCpW6hL1xV8VjT9f4od+BKUglDkkD9SHIWPaZWVEwLzM1b3EDSLxLFX4u
+kk71uM2PEgxjc3ZSUOSGJrmWEQsM3G/nTshnDD47DJl9PcYx1CUQq6z4aouVQsD0
+IlBm6xnWjlfO5qNlCJDXEtKmZgKvI/r1r8+xdz8IicTtmDNaXxxoJX4kP5KNbo4l
+W0a9FogbmLhkpigzG0EqOkFUlJkvS/rPvancckDaNMX8YWh3uYrt1v+BKecgw0Rp
+tzGLkDJSoqsmsxZc2as0fUz4CmxA5cPypi+wPQ7LFc2JyfVpdYCGsoiwIwVP7r29
+R0dmZNfnVp78QEEcKHmRMVjaRNVzbEYiE2+4Y8MZ7IgB3YBqNgQqByhbha++wFry
+BXZlf8isVQdeZlYl1QFczlOENrPrYLcz8tPt4eFxheWy8mmLgBboX5otxI0nn4jQ
+jR7qBUtefDDwmDyOw1++jVg1TI9yTxtfD7W4avzg7Z7R7WlsipO3X91VZjWSFDXu
+qfE+tzXZx2jCudHaU5e4n0Hp8pE+f+GLERIhPcTAjr6RIuJl78k=
+=6Yw4
+-----END PGP SIGNATURE-----
+
+--=-0AQ/OTcN7UdTwkCoV3sM--
