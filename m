@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 05/12] net/mlx5: Report a CQ error event only when a handler was set
-Date: Thu, 13 Jun 2019 09:26:33 +0300
-Message-ID: <20190613062640.28958-6-leon@kernel.org>
+Subject: [PATCH mlx5-next 04/12] net/mlx5: mlx5_core_create_cq() enhancements
+Date: Thu, 13 Jun 2019 09:26:32 +0300
+Message-ID: <20190613062640.28958-5-leon@kernel.org>
 References: <20190613062640.28958-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,32 +14,124 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Report a CQ error event only when a handler was set.
-
-This enables mlx5_ib to not set a handler upon CQ creation and use some
-other mechanism to get this event as of other events by the
-mlx5_eq_notifier_register API.
+Enhance mlx5_core_create_cq() to get the command out buffer from the
+callers to let them use the output.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eq.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/cq.c                     | 3 ++-
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c        | 7 +++----
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c   | 3 ++-
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 3 ++-
+ include/linux/mlx5/cq.h                             | 2 +-
+ 5 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index 5971c1870e0d..c2a679657c34 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -494,7 +494,8 @@ static int cq_err_event_notifier(struct notifier_block *nb,
- 		return NOTIFY_OK;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 07b73df0e1a3..9f39e7b9dd1b 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -892,6 +892,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	int vector = attr->comp_vector;
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 	struct mlx5_ib_cq *cq = to_mcq(ibcq);
++	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
+ 	int uninitialized_var(index);
+ 	int uninitialized_var(inlen);
+ 	u32 *cqb = NULL;
+@@ -954,7 +955,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
+ 		MLX5_SET(cqc, cqc, oi, 1);
  
--	cq->event(cq, type);
-+	if (cq->event)
-+		cq->event(cq, type);
+-	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen);
++	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen, out, sizeof(out));
+ 	if (err)
+ 		goto err_cqb;
  
- 	mlx5_cq_put(cq);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+index 703d88332bc6..1bd4336392a2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+@@ -87,11 +87,10 @@ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq)
+ }
  
+ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+-			u32 *in, int inlen)
++			u32 *in, int inlen, u32 *out, int outlen)
+ {
+ 	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context), c_eqn);
+ 	u32 dout[MLX5_ST_SZ_DW(destroy_cq_out)];
+-	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
+ 	u32 din[MLX5_ST_SZ_DW(destroy_cq_in)];
+ 	struct mlx5_eq_comp *eq;
+ 	int err;
+@@ -100,9 +99,9 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 	if (IS_ERR(eq))
+ 		return PTR_ERR(eq);
+ 
+-	memset(out, 0, sizeof(out));
++	memset(out, 0, outlen);
+ 	MLX5_SET(create_cq_in, in, opcode, MLX5_CMD_OP_CREATE_CQ);
+-	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
++	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 457cc39423f2..7186282785df 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1517,6 +1517,7 @@ static void mlx5e_free_cq(struct mlx5e_cq *cq)
+ 
+ static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
+ {
++	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
+ 	struct mlx5_core_dev *mdev = cq->mdev;
+ 	struct mlx5_core_cq *mcq = &cq->mcq;
+ 
+@@ -1551,7 +1552,7 @@ static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
+ 					    MLX5_ADAPTER_PAGE_SHIFT);
+ 	MLX5_SET64(cqc, cqc, dbr_addr,      cq->wq_ctrl.db.dma);
+ 
+-	err = mlx5_core_create_cq(mdev, mcq, in, inlen);
++	err = mlx5_core_create_cq(mdev, mcq, in, inlen, out, sizeof(out));
+ 
+ 	kvfree(in);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+index ca2296a2f9ee..dc7b9d9f274d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+@@ -429,6 +429,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
+ 	struct mlx5_fpga_device *fdev = conn->fdev;
+ 	struct mlx5_core_dev *mdev = fdev->mdev;
+ 	u32 temp_cqc[MLX5_ST_SZ_DW(cqc)] = {0};
++	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
+ 	struct mlx5_wq_param wqp;
+ 	struct mlx5_cqe64 *cqe;
+ 	int inlen, err, eqn;
+@@ -476,7 +477,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
+ 	pas = (__be64 *)MLX5_ADDR_OF(create_cq_in, in, pas);
+ 	mlx5_fill_page_frag_array(&conn->cq.wq_ctrl.buf, pas);
+ 
+-	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen);
++	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen, out, sizeof(out));
+ 	kvfree(in);
+ 
+ 	if (err)
+diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
+index 769326ea1d9b..e44157a2b7db 100644
+--- a/include/linux/mlx5/cq.h
++++ b/include/linux/mlx5/cq.h
+@@ -185,7 +185,7 @@ static inline void mlx5_cq_put(struct mlx5_core_cq *cq)
+ }
+ 
+ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+-			u32 *in, int inlen);
++			u32 *in, int inlen, u32 *out, int outlen);
+ int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
+ int mlx5_core_query_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 		       u32 *out, int outlen);
 -- 
 2.20.1
