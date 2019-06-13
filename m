@@ -1,106 +1,178 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 01/12] net/mlx5: Fix mlx5_core_destroy_cq() error flow
-Date: Thu, 13 Jun 2019 09:26:29 +0300
-Message-ID: <20190613062640.28958-2-leon@kernel.org>
-References: <20190613062640.28958-1-leon@kernel.org>
+Subject: Re: [PATCH mlx5-next v1 1/4] net/mlx5: Declare more strictly devlink
+ encap mode
+Date: Thu, 13 Jun 2019 08:59:54 +0300
+Message-ID: <20190613055954.GV6369@mtr-leonro.mtl.com>
+References: <20190612122014.22359-1-leon@kernel.org>
+ <20190612122014.22359-2-leon@kernel.org>
+ <VI1PR0501MB2271FF8A570DDBBD26CF7100D1EF0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190613062640.28958-1-leon@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <VI1PR0501MB2271FF8A570DDBBD26CF7100D1EF0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Parav Pandit <parav@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Petr Vorel <pvorel@suse.cz>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Jiri Pirko <jiri@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+On Thu, Jun 13, 2019 at 04:32:25AM +0000, Parav Pandit wrote:
+>
+>
+> > -----Original Message-----
+> > From: Leon Romanovsky <leon@kernel.org>
+> > Sent: Wednesday, June 12, 2019 5:50 PM
+> > To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe
+> > <jgg@mellanox.com>
+> > Cc: Leon Romanovsky <leonro@mellanox.com>; RDMA mailing list <linux-
+> > rdma@vger.kernel.org>; Maor Gottlieb <maorg@mellanox.com>; Mark Bloch
+> > <markb@mellanox.com>; Parav Pandit <parav@mellanox.com>; Petr Vorel
+> > <pvorel@suse.cz>; Saeed Mahameed <saeedm@mellanox.com>; linux-
+> > netdev <netdev@vger.kernel.org>; Jiri Pirko <jiri@mellanox.com>
+> > Subject: [PATCH mlx5-next v1 1/4] net/mlx5: Declare more strictly devlink
+> > encap mode
+> >
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Devlink has UAPI declaration for encap mode, so there is no need to be
+> > loose on the data get/set by drivers.
+> >
+> > Update call sites to use enum devlink_eswitch_encap_mode instead of plain
+> > u8.
+> >
+> > Suggested-by: Parav Pandit <parav@mellanox.com>
+> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> > ---
+> >  drivers/net/ethernet/mellanox/mlx5/core/eswitch.h         | 8 +++++---
+> >  .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 6 ++++--
+> >  include/net/devlink.h                                     | 6 ++++--
+> >  net/core/devlink.c                                        | 6 ++++--
+> >  4 files changed, 17 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+> > b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+> > index ed3fad689ec9..e264dfc64a6e 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+> > @@ -175,7 +175,7 @@ struct mlx5_esw_offload {
+> >  	DECLARE_HASHTABLE(mod_hdr_tbl, 8);
+> >  	u8 inline_mode;
+> >  	u64 num_flows;
+> > -	u8 encap;
+> > +	enum devlink_eswitch_encap_mode encap;
+> >  };
+> >
+> >  /* E-Switch MC FDB table hash node */
+> > @@ -356,9 +356,11 @@ int mlx5_devlink_eswitch_inline_mode_set(struct
+> > devlink *devlink, u8 mode,
+> >  					 struct netlink_ext_ack *extack);
+> >  int mlx5_devlink_eswitch_inline_mode_get(struct devlink *devlink, u8
+> > *mode);  int mlx5_eswitch_inline_mode_get(struct mlx5_eswitch *esw, int
+> > nvfs, u8 *mode); -int mlx5_devlink_eswitch_encap_mode_set(struct devlink
+> > *devlink, u8 encap,
+> > +int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink,
+> > +					enum devlink_eswitch_encap_mode
+> > encap,
+> >  					struct netlink_ext_ack *extack);
+> > -int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8
+> > *encap);
+> > +int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink,
+> > +					enum devlink_eswitch_encap_mode
+> > *encap);
+> >  void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8
+> > rep_type);
+> >
+> >  int mlx5_eswitch_add_vlan_action(struct mlx5_eswitch *esw, diff --git
+> > a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> > b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> > index e09ae27485ee..f1571163143d 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> > @@ -2137,7 +2137,8 @@ int mlx5_eswitch_inline_mode_get(struct
+> > mlx5_eswitch *esw, int nvfs, u8 *mode)
+> >  	return 0;
+> >  }
+> >
+> > -int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink, u8
+> > encap,
+> > +int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink,
+> > +					enum devlink_eswitch_encap_mode
+> > encap,
+> >  					struct netlink_ext_ack *extack)
+> >  {
+> >  	struct mlx5_core_dev *dev = devlink_priv(devlink); @@ -2186,7
+> > +2187,8 @@ int mlx5_devlink_eswitch_encap_mode_set(struct devlink
+> > *devlink, u8 encap,
+> >  	return err;
+> >  }
+> >
+> > -int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8
+> > *encap)
+> > +int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink,
+> > +					enum devlink_eswitch_encap_mode
+> > *encap)
+> >  {
+> >  	struct mlx5_core_dev *dev = devlink_priv(devlink);
+> >  	struct mlx5_eswitch *esw = dev->priv.eswitch; diff --git
+> > a/include/net/devlink.h b/include/net/devlink.h index
+> > 1c4adfb4195a..7a34fc586def 100644
+> > --- a/include/net/devlink.h
+> > +++ b/include/net/devlink.h
+> > @@ -530,8 +530,10 @@ struct devlink_ops {
+> >  	int (*eswitch_inline_mode_get)(struct devlink *devlink, u8
+> > *p_inline_mode);
+> >  	int (*eswitch_inline_mode_set)(struct devlink *devlink, u8
+> > inline_mode,
+> >  				       struct netlink_ext_ack *extack);
+> > -	int (*eswitch_encap_mode_get)(struct devlink *devlink, u8
+> > *p_encap_mode);
+> > -	int (*eswitch_encap_mode_set)(struct devlink *devlink, u8
+> > encap_mode,
+> > +	int (*eswitch_encap_mode_get)(struct devlink *devlink,
+> > +				      enum devlink_eswitch_encap_mode
+> > *p_encap_mode);
+> > +	int (*eswitch_encap_mode_set)(struct devlink *devlink,
+> > +				      enum devlink_eswitch_encap_mode
+> > encap_mode,
+> >  				      struct netlink_ext_ack *extack);
+> >  	int (*info_get)(struct devlink *devlink, struct devlink_info_req *req,
+> >  			struct netlink_ext_ack *extack);
+> > diff --git a/net/core/devlink.c b/net/core/devlink.c index
+> > d43bc52b8840..47ae69363b07 100644
+> > --- a/net/core/devlink.c
+> > +++ b/net/core/devlink.c
+> > @@ -1552,7 +1552,8 @@ static int devlink_nl_eswitch_fill(struct sk_buff
+> > *msg, struct devlink *devlink,
+> >  				   u32 seq, int flags)
+> >  {
+> >  	const struct devlink_ops *ops = devlink->ops;
+> > -	u8 inline_mode, encap_mode;
+> > +	enum devlink_eswitch_encap_mode encap_mode;
+> > +	u8 inline_mode;
+> >  	void *hdr;
+> >  	int err = 0;
+> >  	u16 mode;
+> > @@ -1628,7 +1629,8 @@ static int devlink_nl_cmd_eswitch_set_doit(struct
+> > sk_buff *skb,  {
+> >  	struct devlink *devlink = info->user_ptr[0];
+> >  	const struct devlink_ops *ops = devlink->ops;
+> > -	u8 inline_mode, encap_mode;
+> > +	enum devlink_eswitch_encap_mode encap_mode;
+> > +	u8 inline_mode;
+> >  	int err = 0;
+> >  	u16 mode;
+> >
+> > --
+> > 2.20.1
+>
+> Netdev follows reverse Christmas tree, but otherwise,
 
-The firmware command to destroy a CQ might fail when the object is
-referenced by other object and the ref count is managed by the firmware.
+It was before this patch, if Jiri is ok with that, I'll change this
+"const struct devlink_ops *ops = devlink->ops;" line while I'll apply
+this patchset to mlx5-net. If not, I'll leave it as is.
 
-To enable a second successful destruction post the first failure need to
-change  mlx5_eq_del_cq() to be a void function.
+> Reviewed-by: Parav Pandit <parav@mellanox.com>
 
-As an error in mlx5_eq_del_cq() is quite fatal from the option to
-recover, a debug message inside it should be good enough and it was
-changed to be void.
+Thanks
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/cq.c     |  9 ++-------
- drivers/net/ethernet/mellanox/mlx5/core/eq.c     | 16 +++++++---------
- drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h |  2 +-
- 3 files changed, 10 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-index 713a17ee3751..703d88332bc6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-@@ -158,13 +158,8 @@ int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq)
- 	u32 in[MLX5_ST_SZ_DW(destroy_cq_in)] = {0};
- 	int err;
- 
--	err = mlx5_eq_del_cq(mlx5_get_async_eq(dev), cq);
--	if (err)
--		return err;
--
--	err = mlx5_eq_del_cq(&cq->eq->core, cq);
--	if (err)
--		return err;
-+	mlx5_eq_del_cq(mlx5_get_async_eq(dev), cq);
-+	mlx5_eq_del_cq(&cq->eq->core, cq);
- 
- 	MLX5_SET(destroy_cq_in, in, opcode, MLX5_CMD_OP_DESTROY_CQ);
- 	MLX5_SET(destroy_cq_in, in, cqn, cq->cqn);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index 23883d1fa22f..7c4213147541 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -382,7 +382,7 @@ int mlx5_eq_add_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq)
- 	return err;
- }
- 
--int mlx5_eq_del_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq)
-+void mlx5_eq_del_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq)
- {
- 	struct mlx5_cq_table *table = &eq->cq_table;
- 	struct mlx5_core_cq *tmp;
-@@ -392,16 +392,14 @@ int mlx5_eq_del_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq)
- 	spin_unlock(&table->lock);
- 
- 	if (!tmp) {
--		mlx5_core_warn(eq->dev, "cq 0x%x not found in eq 0x%x tree\n", eq->eqn, cq->cqn);
--		return -ENOENT;
-+		mlx5_core_dbg(eq->dev, "cq 0x%x not found in eq 0x%x tree\n",
-+			      eq->eqn, cq->cqn);
-+		return;
- 	}
- 
--	if (tmp != cq) {
--		mlx5_core_warn(eq->dev, "corruption on cqn 0x%x in eq 0x%x\n", eq->eqn, cq->cqn);
--		return -EINVAL;
--	}
--
--	return 0;
-+	if (tmp != cq)
-+		mlx5_core_dbg(eq->dev, "corruption on cqn 0x%x in eq 0x%x\n",
-+			      eq->eqn, cq->cqn);
- }
- 
- int mlx5_eq_table_init(struct mlx5_core_dev *dev)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
-index c0fb6d72b695..eb105338467d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
-@@ -70,7 +70,7 @@ int mlx5_eq_table_create(struct mlx5_core_dev *dev);
- void mlx5_eq_table_destroy(struct mlx5_core_dev *dev);
- 
- int mlx5_eq_add_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq);
--int mlx5_eq_del_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq);
-+void mlx5_eq_del_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq);
- struct mlx5_eq_comp *mlx5_eqn2comp_eq(struct mlx5_core_dev *dev, int eqn);
- struct mlx5_eq *mlx5_get_async_eq(struct mlx5_core_dev *dev);
- void mlx5_cq_tasklet_cb(unsigned long data);
--- 
-2.20.1
+>
