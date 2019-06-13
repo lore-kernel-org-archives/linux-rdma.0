@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 04/12] net/mlx5: mlx5_core_create_cq() enhancements
-Date: Thu, 13 Jun 2019 09:46:31 +0300
-Message-ID: <20190613064639.30898-5-leon@kernel.org>
+Subject: [PATCH rdma-next 09/12] IB/mlx5: Register DEVX with mlx5_core to get async events
+Date: Thu, 13 Jun 2019 09:46:36 +0300
+Message-ID: <20190613064639.30898-10-leon@kernel.org>
 References: <20190613064639.30898-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,124 +14,128 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Enhance mlx5_core_create_cq() to get the command out buffer from the
-callers to let them use the output.
+Register DEVX with with mlx5_core to get async events.  This will enable
+to dispatch the applicable events to its consumers in down stream
+patches.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c                     | 3 ++-
- drivers/net/ethernet/mellanox/mlx5/core/cq.c        | 7 +++----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c   | 3 ++-
- drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 3 ++-
- include/linux/mlx5/cq.h                             | 2 +-
- 5 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c    | 30 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c    |  8 ++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++++++++
+ 3 files changed, 48 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 07b73df0e1a3..9f39e7b9dd1b 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -892,6 +892,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	int vector = attr->comp_vector;
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 	struct mlx5_ib_cq *cq = to_mcq(ibcq);
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	int uninitialized_var(index);
- 	int uninitialized_var(inlen);
- 	u32 *cqb = NULL;
-@@ -954,7 +955,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
- 		MLX5_SET(cqc, cqc, oi, 1);
- 
--	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen);
-+	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen, out, sizeof(out));
- 	if (err)
- 		goto err_cqb;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-index 703d88332bc6..1bd4336392a2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-@@ -87,11 +87,10 @@ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq)
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 1815ce0f8daf..e9b9ba5a3e9a 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -1670,6 +1670,36 @@ static int devx_umem_cleanup(struct ib_uobject *uobject,
+ 	return 0;
  }
  
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen)
-+			u32 *in, int inlen, u32 *out, int outlen)
++static int devx_event_notifier(struct notifier_block *nb,
++			       unsigned long event_type, void *data)
++{
++	return NOTIFY_DONE;
++}
++
++void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_devx_event_table *table = &dev->devx_event_table;
++
++	xa_init(&table->event_xa);
++	mutex_init(&table->event_xa_lock);
++	MLX5_NB_INIT(&table->devx_nb, devx_event_notifier, NOTIFY_ANY);
++	mlx5_eq_notifier_register(dev->mdev, &table->devx_nb);
++}
++
++void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_devx_event_table *table = &dev->devx_event_table;
++	void *entry;
++	unsigned long id;
++
++	mlx5_eq_notifier_unregister(dev->mdev, &table->devx_nb);
++
++	xa_for_each(&table->event_xa, id, entry)
++		kfree(entry);
++
++	xa_destroy(&table->event_xa);
++}
++
+ static ssize_t devx_async_cmd_event_read(struct file *filp, char __user *buf,
+ 					 size_t count, loff_t *pos)
  {
- 	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context), c_eqn);
- 	u32 dout[MLX5_ST_SZ_DW(destroy_cq_out)];
--	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	u32 din[MLX5_ST_SZ_DW(destroy_cq_in)];
- 	struct mlx5_eq_comp *eq;
- 	int err;
-@@ -100,9 +99,9 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 	if (IS_ERR(eq))
- 		return PTR_ERR(eq);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 8850e3f9c855..cbffc80fd0f7 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6662,15 +6662,19 @@ static int mlx5_ib_stage_devx_init(struct mlx5_ib_dev *dev)
+ 	int uid;
  
--	memset(out, 0, sizeof(out));
-+	memset(out, 0, outlen);
- 	MLX5_SET(create_cq_in, in, opcode, MLX5_CMD_OP_CREATE_CQ);
--	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
-+	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
- 	if (err)
- 		return err;
+ 	uid = mlx5_ib_devx_create(dev, false);
+-	if (uid > 0)
++	if (uid > 0) {
+ 		dev->devx_whitelist_uid = uid;
++		mlx5_ib_devx_init_event_table(dev);
++	}
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 457cc39423f2..7186282785df 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1517,6 +1517,7 @@ static void mlx5e_free_cq(struct mlx5e_cq *cq)
- 
- static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
+ 	return 0;
+ }
+ static void mlx5_ib_stage_devx_cleanup(struct mlx5_ib_dev *dev)
  {
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	struct mlx5_core_dev *mdev = cq->mdev;
- 	struct mlx5_core_cq *mcq = &cq->mcq;
- 
-@@ -1551,7 +1552,7 @@ static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
- 					    MLX5_ADAPTER_PAGE_SHIFT);
- 	MLX5_SET64(cqc, cqc, dbr_addr,      cq->wq_ctrl.db.dma);
- 
--	err = mlx5_core_create_cq(mdev, mcq, in, inlen);
-+	err = mlx5_core_create_cq(mdev, mcq, in, inlen, out, sizeof(out));
- 
- 	kvfree(in);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-index ca2296a2f9ee..dc7b9d9f274d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-@@ -429,6 +429,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
- 	struct mlx5_fpga_device *fdev = conn->fdev;
- 	struct mlx5_core_dev *mdev = fdev->mdev;
- 	u32 temp_cqc[MLX5_ST_SZ_DW(cqc)] = {0};
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	struct mlx5_wq_param wqp;
- 	struct mlx5_cqe64 *cqe;
- 	int inlen, err, eqn;
-@@ -476,7 +477,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
- 	pas = (__be64 *)MLX5_ADDR_OF(create_cq_in, in, pas);
- 	mlx5_fill_page_frag_array(&conn->cq.wq_ctrl.buf, pas);
- 
--	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen);
-+	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen, out, sizeof(out));
- 	kvfree(in);
- 
- 	if (err)
-diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
-index 769326ea1d9b..e44157a2b7db 100644
---- a/include/linux/mlx5/cq.h
-+++ b/include/linux/mlx5/cq.h
-@@ -185,7 +185,7 @@ static inline void mlx5_cq_put(struct mlx5_core_cq *cq)
+-	if (dev->devx_whitelist_uid)
++	if (dev->devx_whitelist_uid) {
++		mlx5_ib_devx_cleanup_event_table(dev);
+ 		mlx5_ib_devx_destroy(dev, dev->devx_whitelist_uid);
++	}
  }
  
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen);
-+			u32 *in, int inlen, u32 *out, int outlen);
- int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
- int mlx5_core_query_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 		       u32 *out, int outlen);
+ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 0bfc14ff8aed..e28189a1519b 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -943,6 +943,13 @@ struct mlx5_ib_pf_eq {
+ 	mempool_t *pool;
+ };
+ 
++struct mlx5_devx_event_table {
++	struct mlx5_nb devx_nb;
++	/* serialize updating the event_xa */
++	struct mutex event_xa_lock;
++	struct xarray event_xa;
++};
++
+ struct mlx5_ib_dev {
+ 	struct ib_device		ib_dev;
+ 	struct mlx5_core_dev		*mdev;
+@@ -993,6 +1000,7 @@ struct mlx5_ib_dev {
+ 	struct mlx5_srq_table   srq_table;
+ 	struct mlx5_async_ctx   async_ctx;
+ 	int			free_port;
++	struct mlx5_devx_event_table devx_event_table;
+ };
+ 
+ static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
+@@ -1332,6 +1340,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
+ #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user);
+ void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid);
++void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev);
++void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev);
+ const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
+ extern const struct uapi_definition mlx5_ib_devx_defs[];
+ extern const struct uapi_definition mlx5_ib_flow_defs[];
+@@ -1348,6 +1358,8 @@ static inline int
+ mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
+ 			   bool is_user) { return -EOPNOTSUPP; }
+ static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid) {}
++static inline void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev) {}
++static inline void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev) {}
+ static inline bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
+ 					     int *dest_type)
+ {
 -- 
 2.20.1
