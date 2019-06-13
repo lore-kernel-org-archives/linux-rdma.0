@@ -1,7 +1,7 @@
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
 Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Date: Wed, 12 Jun 2019 16:30:24 -0700
-Message-ID: <20190612233024.GD14336@iweiny-DESK2.sc.intel.com>
+Date: Thu, 13 Jun 2019 10:25:55 +1000
+Message-ID: <20190613002555.GH14363@dread.disaster.area>
 References: <20190606014544.8339-1-ira.weiny@intel.com>
  <20190606104203.GF7433@quack2.suse.cz>
  <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
@@ -25,7 +25,7 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On Wed, Jun 12, 2019 at 05:37:53AM -0700, Matthew Wilcox wrote:
@@ -46,38 +46,69 @@ On Wed, Jun 12, 2019 at 05:37:53AM -0700, Matthew Wilcox wrote:
 > 
 > That's rather different from the normal meaning of 'exclusive' in the
 > context of locks, which is "only one user can have access to this at
-> a time".  As I understand it, this is rather more like a 'shared' or
+> a time".
+
+
+Layout leases are not locks, they are a user access policy object.
+It is the process/fd which holds the lease and it's the process/fd
+that is granted exclusive access.  This is exactly the same semantic
+as O_EXCL provides for granting exclusive access to a block device
+via open(), yes?
+
+> As I understand it, this is rather more like a 'shared' or
 > 'read' lock.  The filesystem would be the one which wants an exclusive
 > lock, so it can modify the mapping of logical to physical blocks.
-> 
+
+ISTM that you're conflating internal filesystem implementation with
+application visible semantics. Yes, the filesystem uses internal
+locks to serialise the modification of the things the lease manages
+access too, but that has nothing to do with the access policy the
+lease provides to users.
+
+e.g. Process A has an exclusive layout lease on file F. It does an
+IO to file F. The filesystem IO path checks that Process A owns the
+lease on the file and so skips straight through layout breaking
+because it owns the lease and is allowed to modify the layout. It
+then takes the inode metadata locks to allocate new space and write
+new data.
+
+Process B now tries to write to file F. The FS checks whether
+Process B owns a layout lease on file F. It doesn't, so then it
+tries to break the layout lease so the IO can proceed. The layout
+breaking code sees that process A has an exclusive layout lease
+granted, and so returns -ETXTBSY to process B - it is not allowed to
+break the lease and so the IO fails with -ETXTBSY.
+
+i.e. the exclusive layout lease prevents other processes from
+performing operations that may need to modify the layout from
+performing those operations. It does not "lock" the file/inode in
+any way, it just changes how the layout lease breaking behaves.
+
+Further, the "exclusiveness" of a layout lease is completely
+irrelevant to the filesystem that is indicating that an operation
+that may need to modify the layout is about to be performed. All the
+filesystem has to do is handle failures to break the lease
+appropriately.  Yes, XFS serialises the layout lease validation
+against other IO to the same file via it's IO locks, but that's an
+internal data IO coherency requirement, not anything to do with
+layout lease management.
+
+Note that I talk about /writes/ here. This is interchangable with
+any other operation that may need to modify the extent layout of the
+file, be it truncate, fallocate, etc: the attempt to break the
+layout lease by a non-owner should fail if the lease is "exclusive"
+to the owner.
+
 > The complication being that by default the filesystem has an exclusive
 > lock on the mapping, and what we're trying to add is the ability for
 > readers to ask the filesystem to give up its exclusive lock.
 
-This is an interesting view...
+The filesystem doesn't even lock the "mapping" until after the
+layout lease has been validated or broken.
 
-And after some more thought, exclusive does not seem like a good name for this
-because technically F_WRLCK _is_ an exclusive lease...
+Cheers,
 
-In addition, the user does not need to take the "exclusive" write lease to be
-notified of (broken by) an unexpected truncate.  A "read" lease is broken by
-truncate.  (And "write" leases really don't do anything different WRT the
-interaction of the FS and the user app.  Write leases control "exclusive"
-access between other file descriptors.)
-
-Another thing to consider is that this patch set _allows_ a truncate/hole punch
-to proceed _if_ the pages being affected are not actually pinned.  So the
-unbreakable/exclusive nature of the lease is not absolute.
-
-Personally I like this functionality.  I'm not quite sure I can make it work
-with what Jan is suggesting.  But I like it.
-
-Given the muddied water of "exclusive" and "write" lease I'm now feeling like
-Jeff has a point WRT the conflation of F_RDLCK/F_WRLCK/F_UNLCK and this new
-functionality.
-
-Should we use his suggested F_SETLAYOUT/F_GETLAYOUT cmd type?[1]
-
-Ira
-
-[1] https://lkml.org/lkml/2019/6/9/117
+Dave.
+-- 
+Dave Chinner
+david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
