@@ -1,104 +1,39 @@
-From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-Subject: Re: [PATCH v2] RDMA/cma: Make CM response timeout and # CM retries
- configurable
-Date: Thu, 13 Jun 2019 18:58:30 +0200
-Message-ID: <67B4F337-4C3A-4193-B1EF-42FD4765CBB7@oracle.com>
-References: <20190226075722.1692315-1-haakon.bugge@oracle.com>
- <174ccd37a9ffa05d0c7c03fe80ff7170a9270824.camel@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.11\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Kashyap Desai <kashyap.desai@broadcom.com>
+Subject: RE: [PATCH 10/13] megaraid_sas: set virt_boundary_mask in the scsi host
+Date: Fri, 14 Jun 2019 01:28:47 +0530
+Message-ID: <98f6557ae91a7cdfe8069fcf7d788c88@mail.gmail.com>
+References: <20190605190836.32354-1-hch@lst.de> <20190605190836.32354-11-hch@lst.de>
+ <cd713506efb9579d1f69a719d831c28d@mail.gmail.com> <20190608081400.GA19573@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <174ccd37a9ffa05d0c7c03fe80ff7170a9270824.camel@redhat.com>
+In-Reply-To: <20190608081400.GA19573@lst.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Sebastian Ott <sebott@linux.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, "PDL,MEGARAIDLINUX" <megaraidlinux.pdl@broadcom.com>, PDL-MPT-FUSIONLINUX <mpt-fusionlinux.pdl@broadcom.com>, linux-hyperv@vger.kernel.org, linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+>
+> On Thu, Jun 06, 2019 at 09:07:27PM +0530, Kashyap Desai wrote:
+> > Hi Christoph, Changes for <megaraid_sas> and <mpt3sas> looks good. We
+> > want to confirm few sanity before ACK. BTW, what benefit we will see
+> > moving virt_boundry setting to SCSI mid layer ? Is it just modular
+> > approach OR any functional fix ?
+>
+> The big difference is that virt_boundary now also changes the
+> max_segment_size, and this ensures that this limit is also communicated
+to
+> the DMA mapping layer.
+Is there any changes in API  blk_queue_virt_boundary? I could not find
+relevant code which account for this. Can you help ?
+Which git repo shall I use for testing ? That way I can confirm, I didn't
+miss relevant changes.
 
+>From your above explanation, it means (after this patch) max segment size
+of the MR controller will be set to 4K.
+Earlier it is possible to receive single SGE of 64K datalength (Since max
+seg size was 64K), but now the same buffer will reach the driver having 16
+SGEs (Each SGE will contain 4K length).
+Right ?
 
-> On 13 Jun 2019, at 16:25, Doug Ledford <dledford@redhat.com> wrote:
->=20
-> On Tue, 2019-02-26 at 08:57 +0100, H=C3=A5kon Bugge wrote:
->> During certain workloads, the default CM response timeout is too
->> short, leading to excessive retries. Hence, make it configurable
->> through sysctl. While at it, also make number of CM retries
->> configurable.
->>=20
->> The defaults are not changed.
->>=20
->> Signed-off-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
->> ---
->> v1 -> v2:
->>   * Added unregister_net_sysctl_table() in cma_cleanup()
->> ---
->> drivers/infiniband/core/cma.c | 52 ++++++++++++++++++++++++++++++---
->> --
->> 1 file changed, 45 insertions(+), 7 deletions(-)
->=20
-> This has been sitting on patchworks since forever.  Presumably because
-> Jason and I neither one felt like we really wanted it, but also
-> couldn't justify flat refusing it.
-
-I thought the agreement was to use NL and iproute2. But I haven't had =
-the capacity.
-
->  Well, I've made up my mind, so
-> unless Jason wants to argue the other side, I'm rejecting this patch.=20=
-
-> Here's why.  The whole concept of a timeout is to help recovery in a
-> situation that overloads one end of the connection.  There is a
-> relationship between the max queue backlog on the one host and the
-> timeout on the other host. =20
-
-If you refer to the backlog parameter in rdma_listen(), I cannot see it =
-being used at all for IB.
-
-For CX-3, which is paravirtualized wrt. MAD packets, it is the proxy UD =
-receive queue length for the PF driver that can be construed as a =
-backlog. Remember that any MAD packet being sent from a VF or the PF =
-itself, is sent to a proxy UD QP in the PF. Those packets are then =
-multiplexed out on the real QP0/1. Incoming MAD packets are =
-demultiplexed and sent once more to the proxy QP in the VF.
-
-> Generally, in order for a request to get
-> dropped and us to need to retransmit, the queue must already have a
-> full backlog.  So, how long does it take a heavily loaded system to
-> process a full backlog?  That, plus a fuzz for a margin of error,
-> should be our timeout.  We shouldn't be asking users to configure it.
-
-Customer configures #VMs and different workload may lead to way =
-different number of CM connections. The proxying of MAD packet through =
-the PF driver has a finite packet rate. With 64 VMs, 10.000 QPs on each, =
-all going down due to a switch failing or similar, you have 640.000 =
-DREQs to be sent, and with the finite packet rate of MA packets through =
-the PF, this takes more than the current CM timeout. And then you =
-re-transmit and increase the burden of the PF proxying.
-
-So, we can change the default to cope with this. But, a MAD packet is =
-unreliable, we may have transient loss. In this case, we want a short =
-timeout.
-
-> However, if users change the default backlog queue on their systems,
-> *then* it would make sense to have the users also change the timeout
-> here, but I think guidance would be helpful.
->=20
-> So, to revive this patch, what I'd like to see is some attempt to
-> actually quantify a reasonable timeout for the default backlog depth,
-> then the patch should actually change the default to that reasonable
-> timeout, and then put in the ability to adjust the timeout with some
-> sort of doc guidance on how to calculate a reasonable timeout based on
-> configured backlog depth.
-
-I can agree to this :-)
-
-
-Thxs, H=C3=A5kon
-
->=20
-> --=20
-> Doug Ledford <dledford@redhat.com>
->    GPG KeyID: B826A3330E572FDD
->    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
-> 2FDD
+Kashyap
