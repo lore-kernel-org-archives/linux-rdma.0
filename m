@@ -1,19 +1,78 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 10/13] megaraid_sas: set virt_boundary_mask in the scsi
- host
-Date: Thu, 13 Jun 2019 10:44:58 +0200
-Message-ID: <20190613084458.GB13221@lst.de>
-References: <20190605190836.32354-1-hch@lst.de> <20190605190836.32354-11-hch@lst.de> <cd713506efb9579d1f69a719d831c28d@mail.gmail.com>
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: Re: [PATCH v17 03/15] arm64: Introduce prctl() options to control the
+ tagged user addresses ABI
+Date: Thu, 13 Jun 2019 17:15:57 +0100
+Message-ID: <e481dbf9-880e-c77e-5200-1dbc35be7a48@arm.com>
+References: <cover.1560339705.git.andreyknvl@google.com>
+ <a7a2933bea5fe57e504891b7eec7e9432e5e1c1a.1560339705.git.andreyknvl@google.com>
+ <20190613111659.GX28398@e103592.cambridge.arm.com>
+ <20190613153505.GU28951@C02TF0J2HF1T.local>
+ <99cc257d-5e99-922a-fbe7-3bbaf3621e38@arm.com>
+ <20190613155754.GX28951@C02TF0J2HF1T.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cd713506efb9579d1f69a719d831c28d@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kashyap Desai <kashyap.desai@broadcom.com>
-Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Sebastian Ott <sebott@linux.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, "PDL,MEGARAIDLINUX" <megaraidlinux.pdl@broadcom.com>, PDL-MPT-FUSIONLINUX <mpt-fusionlinux.pdl@broadcom.com>, linux-hyperv@vger.kernel.org, linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190613155754.GX28951@C02TF0J2HF1T.local>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Christian Koenig <Christian.Koenig@amd.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Kostya Serebryany <kcc@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Lee Smith <Lee.Smith@arm.com>, linux-kselftest@vger.kernel.org, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Alex Williamson <alex.williams>
 List-Id: linux-rdma@vger.kernel.org
 
-So before I respin this series, can you help with a way to figure out
-for mpt3sas and megaraid if a given controller supports NVMe devices
-at all, so that we don't have to set the virt boundary if not?
+
+On 13/06/2019 16:57, Catalin Marinas wrote:
+> On Thu, Jun 13, 2019 at 04:45:54PM +0100, Vincenzo Frascino wrote:
+>> On 13/06/2019 16:35, Catalin Marinas wrote:
+>>> On Thu, Jun 13, 2019 at 12:16:59PM +0100, Dave P Martin wrote:
+>>>> On Wed, Jun 12, 2019 at 01:43:20PM +0200, Andrey Konovalov wrote:
+>>>>> +
+>>>>> +/*
+>>>>> + * Control the relaxed ABI allowing tagged user addresses into the kernel.
+>>>>> + */
+>>>>> +static unsigned int tagged_addr_prctl_allowed = 1;
+>>>>> +
+>>>>> +long set_tagged_addr_ctrl(unsigned long arg)
+>>>>> +{
+>>>>> +	if (!tagged_addr_prctl_allowed)
+>>>>> +		return -EINVAL;
+>>>>
+>>>> So, tagging can actually be locked on by having a process enable it and
+>>>> then some possibly unrelated process clearing tagged_addr_prctl_allowed.
+>>>> That feels a bit weird.
+>>>
+>>> The problem is that if you disable the ABI globally, lots of
+>>> applications would crash. This sysctl is meant as a way to disable the
+>>> opt-in to the TBI ABI. Another option would be a kernel command line
+>>> option (I'm not keen on a Kconfig option).
+>>
+>> Why you are not keen on a Kconfig option?
+> 
+> Because I don't want to rebuild the kernel/reboot just to be able to
+> test how user space handles the ABI opt-in. I'm ok with a Kconfig option
+> to disable this globally in addition to a run-time option (if actually
+> needed, I'm not sure).
+> 
+There might be scenarios (i.e. embedded) in which this is not needed, hence
+having a config option (maybe Y by default) that removes from the kernel the
+whole feature would be good, obviously in conjunction with the run-time option.
+
+Based on my previous review, if we move out the code from process.c in its own
+independent file when the Kconfig option is turned off we could remove the
+entire object from the kernel (this would remove the sysctl and let still the
+prctl return -EINVAL).
+
+These changes though could be done successively with a separate patch set, if
+the Kconfig is meant to be Y by default.
+
+-- 
+Regards,
+Vincenzo
