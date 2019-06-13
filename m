@@ -1,7 +1,7 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH net-next v2 2/2] ipoib: show VF broadcast address
-Date: Thu, 13 Jun 2019 16:20:03 +0200
-Message-ID: <20190613142003.129391-4-dkirjanov@suse.com>
+Subject: [PATCH 2/2] ipoib: show VF broadcast address
+Date: Thu, 13 Jun 2019 16:20:01 +0200
+Message-ID: <20190613142003.129391-2-dkirjanov@suse.com>
 References: <20190613142003.129391-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190613142003.129391-1-dkirjanov@suse.com>
@@ -33,6 +33,8 @@ state UP mode DEFAULT group default qlen 256
 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
 checking off, link-state disable, trust off, query_rss off
+
+v1->v2: add the IFLA_VF_BROADCAST constant
 
 Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
 ---
