@@ -1,7 +1,7 @@
-From: Ira Weiny <ira.weiny@intel.com>
+From: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
 Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Date: Thu, 13 Jun 2019 17:00:11 -0700
-Message-ID: <20190614000010.GA783@iweiny-DESK2.sc.intel.com>
+Date: Fri, 14 Jun 2019 12:09:21 +1000
+Message-ID: <20190614020921.GM14363@dread.disaster.area>
 References: <20190606104203.GF7433@quack2.suse.cz>
  <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
  <20190607110426.GB12765@quack2.suse.cz>
@@ -13,13 +13,22 @@ References: <20190606104203.GF7433@quack2.suse.cz>
  <20190613211321.GC32404@iweiny-DESK2.sc.intel.com>
  <20190613234530.GK22901@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190613234530.GK22901@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Matthew Wilcox <willy@infradead.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20190613234530.GK22901-uk2M96/98Pc@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On Thu, Jun 13, 2019 at 08:45:30PM -0300, Jason Gunthorpe wrote:
@@ -52,10 +61,20 @@ On Thu, Jun 13, 2019 at 08:45:30PM -0300, Jason Gunthorpe wrote:
 > Because process A had a layout lease (and presumably a MR) and the
 > layout was still modified in way that invalidates the RDMA MR.
 
-Oh sorry I miss read the above...  (got Process A and  B mixed up...)
+The lease holder is allowed to modify the mapping it has a lease
+over. That's necessary so lease holders can write data into
+unallocated space in the file. The lease is there to prevent third
+parties from modifying the layout without the lease holder being
+informed and taking appropriate action to allow that 3rd party
+modification to occur.
 
-Right, but Process A still can't free those blocks because the gup pin exists
-on them...  So yea it can't _just_ be a layout lease which controls this on the
-"file fd".
+If the lease holder modifies the mapping in a way that causes it's
+own internal state to screw up, then that's a bug in the lease
+holder application.
 
-Ira
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
