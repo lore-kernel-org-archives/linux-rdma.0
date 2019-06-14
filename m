@@ -1,18 +1,16 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: Re: [PATCH 16/16] dma-mapping: use exact allocation in
- dma_alloc_contiguous
-Date: Fri, 14 Jun 2019 15:16:43 +0000
-Message-ID: <d8009432a10549bbbda802021562a28b@AcuMS.aculab.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 12/16] staging/comedi: mark as broken
+Date: Fri, 14 Jun 2019 17:30:32 +0200
+Message-ID: <20190614153032.GD18049@kroah.com>
 References: <20190614134726.3827-1-hch@lst.de>
- <20190614134726.3827-17-hch@lst.de>
- <a90cf7ec5f1c4166b53c40e06d4d832a@AcuMS.aculab.com>
- <20190614145001.GB9088@lst.de> <4113cd5f-5c13-e9c7-bc5e-dcf0b60e7054@arm.com>
+ <20190614134726.3827-13-hch@lst.de>
+ <20190614140239.GA7234@kroah.com> <20190614144857.GA9088@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <4113cd5f-5c13-e9c7-bc5e-dcf0b60e7054@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190614144857.GA9088@lst.de>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
@@ -22,28 +20,23 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: intel-gfx-bounces@lists.freedesktop.org
 Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: 'Robin Murphy' <robin.murphy@arm.com>, 'Christoph Hellwig' <hch@lst.de>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, David Airlie <airlied@linux.ie>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Intel Linux Wireless <linuxwifi@intel.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Ian Abbott <abbotti@mev.co.uk>, "moderated list:ARM
- PORT" <linux-arm-kernel@lists.infradead.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, H Hartley Sweeten <hsweeten@visionengravers.com>, iommu@lists
+To: Christoph Hellwig <hch@lst.de>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, David Airlie <airlied@linux.ie>, linux-media@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, intel-gfx@lists.freedesktop.org, Ian Abbott <abbotti@mev.co.uk>, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, H Hartley Sweeten <hsweeten@visionengravers.com>, iommu@lists.linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogUm9iaW4gTXVycGh5DQo+IFNlbnQ6IDE0IEp1bmUgMjAxOSAxNjowNg0KLi4uDQo+IFdl
-bGwsIGFwYXJ0IGZyb20gdGhlIGJpdCBpbiBETUEtQVBJLUhPV1RPIHdoaWNoIGhhcyBzYWlkIHRo
-aXMgc2luY2UNCj4gZm9yZXZlciAod2VsbCwgYmVmb3JlIEdpdCBoaXN0b3J5LCBhdCBsZWFzdCk6
-DQo+IA0KPiAiVGhlIENQVSB2aXJ0dWFsIGFkZHJlc3MgYW5kIHRoZSBETUEgYWRkcmVzcyBhcmUg
-Ym90aA0KPiBndWFyYW50ZWVkIHRvIGJlIGFsaWduZWQgdG8gdGhlIHNtYWxsZXN0IFBBR0VfU0la
-RSBvcmRlciB3aGljaA0KPiBpcyBncmVhdGVyIHRoYW4gb3IgZXF1YWwgdG8gdGhlIHJlcXVlc3Rl
-ZCBzaXplLiAgVGhpcyBpbnZhcmlhbnQNCj4gZXhpc3RzIChmb3IgZXhhbXBsZSkgdG8gZ3VhcmFu
-dGVlIHRoYXQgaWYgeW91IGFsbG9jYXRlIGEgY2h1bmsNCj4gd2hpY2ggaXMgc21hbGxlciB0aGFu
-IG9yIGVxdWFsIHRvIDY0IGtpbG9ieXRlcywgdGhlIGV4dGVudCBvZiB0aGUNCj4gYnVmZmVyIHlv
-dSByZWNlaXZlIHdpbGwgbm90IGNyb3NzIGEgNjRLIGJvdW5kYXJ5LiINCg0KSSBrbmV3IGl0IHdh
-cyBzb21ld2hlcmUgOi0pDQpJbnRlcmVzdGluZ2x5IHRoYXQgYWxzbyBpbXBsaWVzIHRoYXQgdGhl
-IGFkZHJlc3MgcmV0dXJuZWQgZm9yIGEgc2l6ZQ0Kb2YgKHNheSkgMTI4IHdpbGwgYWxzbyBiZSBw
-YWdlIGFsaWduZWQuDQpJbiB0aGF0IGNhc2UgMTI4IGJ5dGUgYWxpZ25tZW50IHNob3VsZCBwcm9i
-YWJseSBiZSBvayAtIGJ1dCBpdCBpcyBzdGlsbA0KYW4gQVBJIGNoYW5nZSB0aGF0IGNvdWxkIGhh
-dmUgaG9ycmlkIGNvbnNlcXVlbmNlcy4NCg0KCURhdmlkDQoNCi0NClJlZ2lzdGVyZWQgQWRkcmVz
-cyBMYWtlc2lkZSwgQnJhbWxleSBSb2FkLCBNb3VudCBGYXJtLCBNaWx0b24gS2V5bmVzLCBNSzEg
-MVBULCBVSw0KUmVnaXN0cmF0aW9uIE5vOiAxMzk3Mzg2IChXYWxlcykNCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QK
-SW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9w
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeA==
+T24gRnJpLCBKdW4gMTQsIDIwMTkgYXQgMDQ6NDg6NTdQTSArMDIwMCwgQ2hyaXN0b3BoIEhlbGx3
+aWcgd3JvdGU6Cj4gT24gRnJpLCBKdW4gMTQsIDIwMTkgYXQgMDQ6MDI6MzlQTSArMDIwMCwgR3Jl
+ZyBLSCB3cm90ZToKPiA+IFBlcmhhcHMgYSBoaW50IGFzIHRvIGhvdyB3ZSBjYW4gZml4IHRoaXMg
+dXA/ICBUaGlzIGlzIHRoZSBmaXJzdCB0aW1lCj4gPiBJJ3ZlIGhlYXJkIG9mIHRoZSBjb21lZGkg
+Y29kZSBub3QgaGFuZGxpbmcgZG1hIHByb3Blcmx5Lgo+IAo+IEl0IGNhbiBiZSBmaXhlZCBieToK
+PiAKPiAgYSkgbmV2ZXIgY2FsbGluZyB2aXJ0X3RvX3BhZ2UgKG9yIHZtYWxsb2NfdG9fcGFnZSBm
+b3IgdGhhdCBtYXR0ZXIpCj4gICAgIG9uIGRtYSBhbGxvY2F0aW9uCj4gIGIpIG5ldmVyIHJlbWFw
+cGluZyBkbWEgYWxsb2NhdGlvbiB3aXRoIGNvbmZsaWN0aW5nIGNhY2hlIG1vZGVzCj4gICAgIChu
+byByZW1hcHBpbmcgc2hvdWxkIGJlIGRvYWJsZSBhZnRlciBhKSBhbnl3YXkpLgoKT2ssIGZhaXIg
+ZW5vdWdoLCBoYXZlIGFueSBwb2ludGVycyBvZiBkcml2ZXJzL2NvcmUgY29kZSB0aGF0IGRvZXMg
+dGhpcwpjb3JyZWN0bHk/ICBJIGNhbiBwdXQgaXQgb24gbXkgdG9kbyBsaXN0LCBidXQgbWlnaHQg
+dGFrZSBhIHdlZWsgb3Igc28uLi4KCklhbiwgd2FudCB0byBsb29rIGludG8gZG9pbmcgdGhpcyBz
+b29uZXI/Cgp0aGFua3MsCgpncmVnIGstaApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9pbnRlbC1nZng=
