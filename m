@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 06/18] IB/{qib, hfi1, rdmavt}: Correct ibv_devinfo max_mr value
-Date: Fri, 14 Jun 2019 16:30:22 -0400
-Message-ID: <20190614203037.27910-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 04/18] IB/rdmavt: Fix alloc_qpn() WARN_ON()
+Date: Fri, 14 Jun 2019 16:30:20 -0400
+Message-ID: <20190614203037.27910-4-sashal@kernel.org>
 References: <20190614203037.27910-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,68 +9,59 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20190614203037.27910-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Josh Collier <josh.d.collier@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-[ Upstream commit 35164f5259a47ea756fa1deb3e463ac2a4f10dc9 ]
+[ Upstream commit 2abae62a26a265129b364d8c1ef3be55e2c01309 ]
 
-The command 'ibv_devinfo -v' reports 0 for max_mr.
+The qpn allocation logic has a WARN_ON() that intends to detect the use of
+an index that will introduce bits in the lower order bits of the QOS bits
+in the QPN.
 
-Fix by assigning the query values after the mr lkey_table has been built
-rather than early on in the driver.
+Unfortunately, it has the following bugs:
+- it misfires when wrapping QPN allocation for non-QOS
+- it doesn't correctly detect low order QOS bits (despite the comment)
 
-Fixes: 7b1e2099adc8 ("IB/rdmavt: Move memory registration into rdmavt")
-Reviewed-by: Josh Collier <josh.d.collier@intel.com>
+The WARN_ON() should not be applied to non-QOS (qos_shift == 1).
+
+Additionally, it SHOULD test the qpn bits per the table below:
+
+2 data VLs:   [qp7, qp6, qp5, qp4, qp3, qp2, qp1] ^
+              [  0,   0,   0,   0,   0,   0, sc0],  qp bit 1 always 0*
+3-4 data VLs: [qp7, qp6, qp5, qp4, qp3, qp2, qp1] ^
+              [  0,   0,   0,   0,   0, sc1, sc0], qp bits [21] always 0
+5-8 data VLs: [qp7, qp6, qp5, qp4, qp3, qp2, qp1] ^
+              [  0,   0,   0,   0, sc2, sc1, sc0] qp bits [321] always 0
+
+Fix by qualifying the warning for qos_shift > 1 and producing the correct
+mask to insure the above bits are zero without generating a superfluous
+warning.
+
+Fixes: 501edc42446e ("IB/rdmavt: Correct warning during QPN allocation")
+Reviewed-by: Kaike Wan <kaike.wan@intel.com>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/verbs.c    | 2 --
- drivers/infiniband/hw/qib/qib_verbs.c | 2 --
- drivers/infiniband/sw/rdmavt/mr.c     | 2 ++
- 3 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index d9c71750e22d..15054a0cbf6d 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1344,8 +1344,6 @@ static void hfi1_fill_device_attr(struct hfi1_devdata *dd)
- 	rdi->dparms.props.max_cq = hfi1_max_cqs;
- 	rdi->dparms.props.max_ah = hfi1_max_ahs;
- 	rdi->dparms.props.max_cqe = hfi1_max_cqes;
--	rdi->dparms.props.max_mr = rdi->lkey_table.max;
--	rdi->dparms.props.max_fmr = rdi->lkey_table.max;
- 	rdi->dparms.props.max_map_per_fmr = 32767;
- 	rdi->dparms.props.max_pd = hfi1_max_pds;
- 	rdi->dparms.props.max_qp_rd_atom = HFI1_MAX_RDMA_ATOMIC;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 954f15064514..d6e183775e24 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1568,8 +1568,6 @@ static void qib_fill_device_attr(struct qib_devdata *dd)
- 	rdi->dparms.props.max_cq = ib_qib_max_cqs;
- 	rdi->dparms.props.max_cqe = ib_qib_max_cqes;
- 	rdi->dparms.props.max_ah = ib_qib_max_ahs;
--	rdi->dparms.props.max_mr = rdi->lkey_table.max;
--	rdi->dparms.props.max_fmr = rdi->lkey_table.max;
- 	rdi->dparms.props.max_map_per_fmr = 32767;
- 	rdi->dparms.props.max_qp_rd_atom = QIB_MAX_RDMA_ATOMIC;
- 	rdi->dparms.props.max_qp_init_rd_atom = 255;
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index 49d55a0322f6..dbd4c0d268e9 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -94,6 +94,8 @@ int rvt_driver_mr_init(struct rvt_dev_info *rdi)
- 	for (i = 0; i < rdi->lkey_table.max; i++)
- 		RCU_INIT_POINTER(rdi->lkey_table.table[i], NULL);
- 
-+	rdi->dparms.props.max_mr = rdi->lkey_table.max;
-+	rdi->dparms.props.max_fmr = rdi->lkey_table.max;
- 	return 0;
- }
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 6500c3b5a89c..8b330b53d636 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -370,7 +370,8 @@ static int alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
+ 			offset = qpt->incr | ((offset & 1) ^ 1);
+ 		}
+ 		/* there can be no set bits in low-order QoS bits */
+-		WARN_ON(offset & (BIT(rdi->dparms.qos_shift) - 1));
++		WARN_ON(rdi->dparms.qos_shift > 1 &&
++			offset & ((BIT(rdi->dparms.qos_shift - 1) - 1) << 1));
+ 		qpn = mk_qpn(qpt, map, offset);
+ 	}
  
 -- 
 2.20.1
