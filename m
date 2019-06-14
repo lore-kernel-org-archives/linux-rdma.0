@@ -1,171 +1,179 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Subject: Re: [Intel-gfx] [PATCH 03/16] drm/i915: stop using drm_pci_alloc
-Date: Fri, 14 Jun 2019 19:45:49 +0300
-Message-ID: <20190614164549.GD5942@intel.com>
-References: <20190614134726.3827-1-hch@lst.de>
- <20190614134726.3827-4-hch@lst.de>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 2/2] ipoib: show VF broadcast address
+Date: Fri, 14 Jun 2019 13:46:43 -0400
+Message-ID: <f91615fe4a883ccb6490aec11ef4ae64cdd9e494.camel@redhat.com>
+References: <20190614133249.18308-1-dkirjanov@suse.com>
+         <20190614133249.18308-2-dkirjanov@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190614134726.3827-4-hch@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, "moderated list:ARM PORT" <linux-a>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-2TqKf2wcaxprFekRzaj+"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190614133249.18308-2-dkirjanov@suse.com>
+Sender: netdev-owner@vger.kernel.org
+To: Denis Kirjanov <kda@linux-powerpc.org>, davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 14, 2019 at 03:47:13PM +0200, Christoph Hellwig wrote:
-> Remove usage of the legacy drm PCI DMA wrappers, and with that the
-> incorrect usage cocktail of __GFP_COMP, virt_to_page on DMA allocation
-> and SetPageReserved.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+
+--=-2TqKf2wcaxprFekRzaj+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, 2019-06-14 at 15:32 +0200, Denis Kirjanov wrote:
+> in IPoIB case we can't see a VF broadcast address for but
+> can see for PF
+>=20
+> Before:
+> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+> state UP mode DEFAULT group default qlen 256
+>     link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>     vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state
+> disable,
+> trust off, query_rss off
+> ...
+
+The above Before: output should be used as the After: portion of the
+previous commit message.  The previos commit does not fully resolve the
+problem, but yet the commit message acts as though it does.
+
+>=20
+> After:
+> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+> state UP mode DEFAULT group default qlen 256
+>     link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>     vf 0     link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+> checking off, link-state disable, trust off, query_rss off
+
+Ok, I get why the After: should have a valid broadcast.  What I don't
+get is why the Before: shows a MAC and the After: shows a
+link/infiniband?  What change in this patch is responsible for that
+difference?  I honestly expect, by reading this patch, that you would
+have a MAC and Broadcast that look like Ethernet, not that the full
+issue would be resolved.
+
+> v1->v2: add the IFLA_VF_BROADCAST constant
+> v2->v3: put IFLA_VF_BROADCAST at the end
+> to avoid KABI breakage and set NLA_REJECT
+> dev_setlink
+>=20
+> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
 > ---
->  drivers/gpu/drm/i915/i915_gem.c        | 30 +++++++++++++-------------
->  drivers/gpu/drm/i915/i915_gem_object.h |  3 ++-
->  drivers/gpu/drm/i915/intel_display.c   |  2 +-
->  3 files changed, 18 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
-> index ad01c92aaf74..8f2053c91aff 100644
-> --- a/drivers/gpu/drm/i915/i915_gem.c
-> +++ b/drivers/gpu/drm/i915/i915_gem.c
-> @@ -228,7 +228,6 @@ i915_gem_get_aperture_ioctl(struct drm_device *dev, void *data,
->  static int i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
->  {
->  	struct address_space *mapping = obj->base.filp->f_mapping;
-> -	drm_dma_handle_t *phys;
->  	struct sg_table *st;
->  	struct scatterlist *sg;
->  	char *vaddr;
-> @@ -242,13 +241,13 @@ static int i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
->  	 * to handle all possible callers, and given typical object sizes,
->  	 * the alignment of the buddy allocation will naturally match.
->  	 */
-> -	phys = drm_pci_alloc(obj->base.dev,
-> -			     roundup_pow_of_two(obj->base.size),
-> -			     roundup_pow_of_two(obj->base.size));
-> -	if (!phys)
-> +	obj->phys_vaddr = dma_alloc_coherent(&obj->base.dev->pdev->dev,
-> +			roundup_pow_of_two(obj->base.size),
-> +			&obj->phys_handle, GFP_KERNEL);
-> +	if (!obj->phys_vaddr)
->  		return -ENOMEM;
->  
-> -	vaddr = phys->vaddr;
-> +	vaddr = obj->phys_vaddr;
->  	for (i = 0; i < obj->base.size / PAGE_SIZE; i++) {
->  		struct page *page;
->  		char *src;
-> @@ -286,18 +285,17 @@ static int i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
->  	sg->offset = 0;
->  	sg->length = obj->base.size;
->  
-> -	sg_dma_address(sg) = phys->busaddr;
-> +	sg_dma_address(sg) = obj->phys_handle;
->  	sg_dma_len(sg) = obj->base.size;
->  
-> -	obj->phys_handle = phys;
-> -
->  	__i915_gem_object_set_pages(obj, st, sg->length);
->  
->  	return 0;
->  
->  err_phys:
-> -	drm_pci_free(obj->base.dev, phys);
-> -
-> +	dma_free_coherent(&obj->base.dev->pdev->dev,
-> +			roundup_pow_of_two(obj->base.size), obj->phys_vaddr,
-> +			obj->phys_handle);
-
-Need to undo the damage to obj->phys_vaddr here since
-i915_gem_pwrite_ioctl() will now use that to determine if it's
-dealing with a phys obj.
-
->  	return err;
->  }
->  
-> @@ -335,7 +333,7 @@ i915_gem_object_put_pages_phys(struct drm_i915_gem_object *obj,
->  
->  	if (obj->mm.dirty) {
->  		struct address_space *mapping = obj->base.filp->f_mapping;
-> -		char *vaddr = obj->phys_handle->vaddr;
-> +		char *vaddr = obj->phys_vaddr;
->  		int i;
->  
->  		for (i = 0; i < obj->base.size / PAGE_SIZE; i++) {
-> @@ -363,7 +361,9 @@ i915_gem_object_put_pages_phys(struct drm_i915_gem_object *obj,
->  	sg_free_table(pages);
->  	kfree(pages);
->  
-> -	drm_pci_free(obj->base.dev, obj->phys_handle);
-> +	dma_free_coherent(&obj->base.dev->pdev->dev,
-> +			roundup_pow_of_two(obj->base.size), obj->phys_vaddr,
-> +			obj->phys_handle);
-
-This one is fine I think since the object remains a phys obj once
-turned into one. At least the current code isn't clearing
-phys_handle here. But my memory is a bit hazy on the details. Chris?
-
-Also maybe s/phys_handle/phys_busaddr/ all over?
-
->  }
->  
->  static void
-> @@ -603,7 +603,7 @@ i915_gem_phys_pwrite(struct drm_i915_gem_object *obj,
->  		     struct drm_i915_gem_pwrite *args,
->  		     struct drm_file *file)
->  {
-> -	void *vaddr = obj->phys_handle->vaddr + args->offset;
-> +	void *vaddr = obj->phys_vaddr + args->offset;
->  	char __user *user_data = u64_to_user_ptr(args->data_ptr);
->  
->  	/* We manually control the domain here and pretend that it
-> @@ -1431,7 +1431,7 @@ i915_gem_pwrite_ioctl(struct drm_device *dev, void *data,
->  		ret = i915_gem_gtt_pwrite_fast(obj, args);
->  
->  	if (ret == -EFAULT || ret == -ENOSPC) {
-> -		if (obj->phys_handle)
-> +		if (obj->phys_vaddr)
->  			ret = i915_gem_phys_pwrite(obj, args, file);
->  		else
->  			ret = i915_gem_shmem_pwrite(obj, args);
-> diff --git a/drivers/gpu/drm/i915/i915_gem_object.h b/drivers/gpu/drm/i915/i915_gem_object.h
-> index ca93a40c0c87..14bd2d61d0f6 100644
-> --- a/drivers/gpu/drm/i915/i915_gem_object.h
-> +++ b/drivers/gpu/drm/i915/i915_gem_object.h
-> @@ -290,7 +290,8 @@ struct drm_i915_gem_object {
->  	};
->  
->  	/** for phys allocated objects */
-> -	struct drm_dma_handle *phys_handle;
-> +	dma_addr_t phys_handle;
-> +	void *phys_vaddr;
->  
->  	struct reservation_object __builtin_resv;
+>  include/uapi/linux/if_link.h | 5 +++++
+>  net/core/rtnetlink.c         | 5 +++++
+>  2 files changed, 10 insertions(+)
+>=20
+> diff --git a/include/uapi/linux/if_link.h
+> b/include/uapi/linux/if_link.h
+> index 5b225ff63b48..6f75bda2c2d7 100644
+> --- a/include/uapi/linux/if_link.h
+> +++ b/include/uapi/linux/if_link.h
+> @@ -694,6 +694,7 @@ enum {
+>  	IFLA_VF_IB_NODE_GUID,	/* VF Infiniband node GUID */
+>  	IFLA_VF_IB_PORT_GUID,	/* VF Infiniband port GUID */
+>  	IFLA_VF_VLAN_LIST,	/* nested list of vlans, option for
+> QinQ */
+> +	IFLA_VF_BROADCAST,	/* VF broadcast */
+>  	__IFLA_VF_MAX,
 >  };
-> diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
-> index 5098228f1302..4f8b368ac4e2 100644
-> --- a/drivers/gpu/drm/i915/intel_display.c
-> +++ b/drivers/gpu/drm/i915/intel_display.c
-> @@ -10066,7 +10066,7 @@ static u32 intel_cursor_base(const struct intel_plane_state *plane_state)
->  	u32 base;
->  
->  	if (INTEL_INFO(dev_priv)->display.cursor_needs_physical)
-> -		base = obj->phys_handle->busaddr;
-> +		base = obj->phys_handle;
->  	else
->  		base = intel_plane_ggtt_offset(plane_state);
->  
-> -- 
-> 2.20.1
-> 
-> _______________________________________________
-> Intel-gfx mailing list
-> Intel-gfx@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
+> =20
+> @@ -704,6 +705,10 @@ struct ifla_vf_mac {
+>  	__u8 mac[32]; /* MAX_ADDR_LEN */
+>  };
+> =20
+> +struct ifla_vf_broadcast {
+> +	__u8 broadcast[32];
+> +};
+> +
+>  struct ifla_vf_vlan {
+>  	__u32 vf;
+>  	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
+> diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+> index cec60583931f..8ac81630ab5c 100644
+> --- a/net/core/rtnetlink.c
+> +++ b/net/core/rtnetlink.c
+> @@ -908,6 +908,7 @@ static inline int rtnl_vfinfo_size(const struct
+> net_device *dev,
+>  		size +=3D num_vfs *
+>  			(nla_total_size(0) +
+>  			 nla_total_size(sizeof(struct ifla_vf_mac)) +
+> +			 nla_total_size(sizeof(struct
+> ifla_vf_broadcast)) +
+>  			 nla_total_size(sizeof(struct ifla_vf_vlan)) +
+>  			 nla_total_size(0) + /* nest IFLA_VF_VLAN_LIST
+> */
+>  			 nla_total_size(MAX_VLAN_LIST_LEN *
+> @@ -1197,6 +1198,7 @@ static noinline_for_stack int
+> rtnl_fill_vfinfo(struct sk_buff *skb,
+>  	struct ifla_vf_vlan vf_vlan;
+>  	struct ifla_vf_rate vf_rate;
+>  	struct ifla_vf_mac vf_mac;
+> +	struct ifla_vf_broadcast vf_broadcast;
+>  	struct ifla_vf_info ivi;
+> =20
+>  	memset(&ivi, 0, sizeof(ivi));
+> @@ -1231,6 +1233,7 @@ static noinline_for_stack int
+> rtnl_fill_vfinfo(struct sk_buff *skb,
+>  		vf_trust.vf =3D ivi.vf;
+> =20
+>  	memcpy(vf_mac.mac, ivi.mac, sizeof(ivi.mac));
+> +	memcpy(vf_broadcast.broadcast, dev->broadcast, dev->addr_len);
+>  	vf_vlan.vlan =3D ivi.vlan;
+>  	vf_vlan.qos =3D ivi.qos;
+>  	vf_vlan_info.vlan =3D ivi.vlan;
+> @@ -1247,6 +1250,7 @@ static noinline_for_stack int
+> rtnl_fill_vfinfo(struct sk_buff *skb,
+>  	if (!vf)
+>  		goto nla_put_vfinfo_failure;
+>  	if (nla_put(skb, IFLA_VF_MAC, sizeof(vf_mac), &vf_mac) ||
+> +	    nla_put(skb, IFLA_VF_BROADCAST, sizeof(vf_broadcast),
+> &vf_broadcast) ||
+>  	    nla_put(skb, IFLA_VF_VLAN, sizeof(vf_vlan), &vf_vlan) ||
+>  	    nla_put(skb, IFLA_VF_RATE, sizeof(vf_rate),
+>  		    &vf_rate) ||
+> @@ -1753,6 +1757,7 @@ static const struct nla_policy
+> ifla_info_policy[IFLA_INFO_MAX+1] =3D {
+> =20
+>  static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] =3D {
+>  	[IFLA_VF_MAC]		=3D { .len =3D sizeof(struct ifla_vf_mac)
+> },
+> +	[IFLA_VF_BROADCAST]	=3D { .type =3D NLA_REJECT },
+>  	[IFLA_VF_VLAN]		=3D { .len =3D sizeof(struct
+> ifla_vf_vlan) },
+>  	[IFLA_VF_VLAN_LIST]     =3D { .type =3D NLA_NESTED },
+>  	[IFLA_VF_TX_RATE]	=3D { .len =3D sizeof(struct ifla_vf_tx_rate) },
 
--- 
-Ville Syrjälä
-Intel
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
+2FDD
+
+--=-2TqKf2wcaxprFekRzaj+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0D3YMACgkQuCajMw5X
+L90EfQ/+JJh0Hz6r/mLXCvqdNd8wzfuGlJvbgkB+MVsUO+OtEK1sYsnm1SYeib9D
+DKpZub957TzmlKwPvLSAGyxt/7AW2P6TgPigDz2ljudd7TrdaLTPow0vTe/qMuuS
+WYkni0SfWe+iuKvuKuKEoQ96NoVEp/YA0YMvmvklcqN+sN2gkkjNMF07uuifSTiK
+e5D6Y1ju7E6cuxkBPZtY1nyNTIyo2uuAg0Q8Q9Ra+mYXSyJfsGh9AeagpXcYDZFr
+Laf/W1s9dwfynjccSouxPW3dclmfQPT5HLIsrLuDKUfb/SrVFg8qlTVDMDgpshPC
+xXVho7hUdluxOb2PA6Biu/Axg/U3ufWQ6ocZivpIrPzCNCtCFK1zEH1k7Z34p4mR
+FFxFZbpCEZiZ80nQHWfnefokO8xQ1g0+bc/Jh9FvriSWnxT/kZQXoo0XpIZqWCqD
+iWEQ5YQE7rKibvM2xvDBm/9cIQuZEJ+/kgKUfJt/DmQelPn+tFj+D+FmOjlS16O2
++g/a/He6hyoKrSzYpZfXSPTvNHNTM51GD0ea9m9ah5nfkSf93teosRkZdljfyBsa
+2t2yNxi4OOuS8nz9RKqyktBpUOhQmo1P//UTC8KDY4arojQhdd+Sv2DYOB4aSuha
+eNgwqCGTh47fo5UkMcnAsPMTiFQQkBAGIBZpuqubDnzdsLDfdj8=
+=uEhD
+-----END PGP SIGNATURE-----
+
+--=-2TqKf2wcaxprFekRzaj+--
