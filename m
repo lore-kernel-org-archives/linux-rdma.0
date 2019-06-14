@@ -1,35 +1,80 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: use exact allocation for dma coherent memory
-Date: Fri, 14 Jun 2019 15:47:10 +0200
-Message-ID: <20190614134726.3827-1-hch@lst.de>
+Subject: [PATCH 01/16] media: videobuf-dma-contig: use
+ dma_mmap_coherent
+Date: Fri, 14 Jun 2019 15:47:11 +0200
+Message-ID: <20190614134726.3827-2-hch@lst.de>
+References: <20190614134726.3827-1-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20190614134726.3827-1-hch@lst.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
 To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>
 Cc: devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi all,
-
-various architectures have used exact memory allocations for dma
-allocations for a long time, but x86 and thus the common code based
-on it kept using our normal power of two allocator, which tends to
-waste a lot of memory for certain allocations.
-
-Switching to a slightly cleaned up alloc_pages_exact is pretty easy,
-but it turns out that because we didn't filter valid gfp_t flags
-on the DMA allocator, a bunch of drivers were passing __GFP_COMP
-to it, which is rather bogus in too many ways to explain.  Arm has
-been filtering it for a while, but this series instead tries to fix
-the drivers and warn when __GFP_COMP is passed, which makes it much
-larger than just adding the functionality.
+ZG1hX2FsbG9jX2NvaGVyZW50IGRvZXMgbm90IHJldHVybiBhIHBoeXNpY2FsIGFkZHJlc3MsIGJ1
+dCBhIERNQQphZGRyZXNzLCB3aGljaCBtaWdodCBiZSByZW1hcHBlZCBvciBoYXZlIGFuIG9mZnNl
+dC4gIFBhc3NpbmcgdGhpcwpETUEgYWRkcmVzcyB0byB2bV9pb21hcF9tZW1vcnkgaXMgY29tcGxl
+dGVseSBib2d1cy4gIFVzZSB0aGUgcHJvcGVyCmRtYV9tbWFwX2NvaGVyZW50IGhlbHBlciBpbnN0
+ZWFkLCBhbmQgc3RvcCBwYXNzaW5nIF9fR0ZQX0NPTVAKdG8gZG1hX2FsbG9jX2NvaGVyZW50LCBh
+cyB0aGUgbWVtb3J5IG1hbmFnZW1lbnQgaW5zaWRlIHRoZSBETUEKYWxsb2NhdG9yIGlzIGhpZGRl
+biBmcm9tIHRoZSBjYWxsZXJzLgoKRml4ZXM6IGE4ZjNjMjAzZTE5YiAoIlttZWRpYV0gdmlkZW9i
+dWYtZG1hLWNvbnRpZzogYWRkIGNhY2hlIHN1cHBvcnQiKQpTaWduZWQtb2ZmLWJ5OiBDaHJpc3Rv
+cGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KLS0tCiBkcml2ZXJzL21lZGlhL3Y0bDItY29yZS92aWRl
+b2J1Zi1kbWEtY29udGlnLmMgfCAyMyArKysrKysrLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdl
+ZCwgOCBpbnNlcnRpb25zKCspLCAxNSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L21lZGlhL3Y0bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGlnLmMgYi9kcml2ZXJzL21lZGlhL3Y0
+bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGlnLmMKaW5kZXggZTFiZjUwZGY0YzcwLi5hNTk0MmVh
+MzhmMWYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1j
+b250aWcuYworKysgYi9kcml2ZXJzL21lZGlhL3Y0bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGln
+LmMKQEAgLTM5LDExICszOSwxMSBAQCBzdHJ1Y3QgdmlkZW9idWZfZG1hX2NvbnRpZ19tZW1vcnkg
+ewogCiBzdGF0aWMgaW50IF9fdmlkZW9idWZfZGNfYWxsb2Moc3RydWN0IGRldmljZSAqZGV2LAog
+CQkJICAgICAgIHN0cnVjdCB2aWRlb2J1Zl9kbWFfY29udGlnX21lbW9yeSAqbWVtLAotCQkJICAg
+ICAgIHVuc2lnbmVkIGxvbmcgc2l6ZSwgZ2ZwX3QgZmxhZ3MpCisJCQkgICAgICAgdW5zaWduZWQg
+bG9uZyBzaXplKQogewogCW1lbS0+c2l6ZSA9IHNpemU7Ci0JbWVtLT52YWRkciA9IGRtYV9hbGxv
+Y19jb2hlcmVudChkZXYsIG1lbS0+c2l6ZSwKLQkJCQkJJm1lbS0+ZG1hX2hhbmRsZSwgZmxhZ3Mp
+OworCW1lbS0+dmFkZHIgPSBkbWFfYWxsb2NfY29oZXJlbnQoZGV2LCBtZW0tPnNpemUsICZtZW0t
+PmRtYV9oYW5kbGUsCisJCQlHRlBfS0VSTkVMKTsKIAogCWlmICghbWVtLT52YWRkcikgewogCQlk
+ZXZfZXJyKGRldiwgIm1lbW9yeSBhbGxvYyBzaXplICVsZCBmYWlsZWRcbiIsIG1lbS0+c2l6ZSk7
+CkBAIC0yNjAsOCArMjYwLDcgQEAgc3RhdGljIGludCBfX3ZpZGVvYnVmX2lvbG9jayhzdHJ1Y3Qg
+dmlkZW9idWZfcXVldWUgKnEsCiAJCQlyZXR1cm4gdmlkZW9idWZfZG1hX2NvbnRpZ191c2VyX2dl
+dChtZW0sIHZiKTsKIAogCQkvKiBhbGxvY2F0ZSBtZW1vcnkgZm9yIHRoZSByZWFkKCkgbWV0aG9k
+ICovCi0JCWlmIChfX3ZpZGVvYnVmX2RjX2FsbG9jKHEtPmRldiwgbWVtLCBQQUdFX0FMSUdOKHZi
+LT5zaXplKSwKLQkJCQkJR0ZQX0tFUk5FTCkpCisJCWlmIChfX3ZpZGVvYnVmX2RjX2FsbG9jKHEt
+PmRldiwgbWVtLCBQQUdFX0FMSUdOKHZiLT5zaXplKSkpCiAJCQlyZXR1cm4gLUVOT01FTTsKIAkJ
+YnJlYWs7CiAJY2FzZSBWNEwyX01FTU9SWV9PVkVSTEFZOgpAQCAtMjgwLDcgKzI3OSw2IEBAIHN0
+YXRpYyBpbnQgX192aWRlb2J1Zl9tbWFwX21hcHBlcihzdHJ1Y3QgdmlkZW9idWZfcXVldWUgKnEs
+CiAJc3RydWN0IHZpZGVvYnVmX2RtYV9jb250aWdfbWVtb3J5ICptZW07CiAJc3RydWN0IHZpZGVv
+YnVmX21hcHBpbmcgKm1hcDsKIAlpbnQgcmV0dmFsOwotCXVuc2lnbmVkIGxvbmcgc2l6ZTsKIAog
+CWRldl9kYmcocS0+ZGV2LCAiJXNcbiIsIF9fZnVuY19fKTsKIApAQCAtMjk4LDIzICsyOTYsMTgg
+QEAgc3RhdGljIGludCBfX3ZpZGVvYnVmX21tYXBfbWFwcGVyKHN0cnVjdCB2aWRlb2J1Zl9xdWV1
+ZSAqcSwKIAlCVUdfT04oIW1lbSk7CiAJTUFHSUNfQ0hFQ0sobWVtLT5tYWdpYywgTUFHSUNfRENf
+TUVNKTsKIAotCWlmIChfX3ZpZGVvYnVmX2RjX2FsbG9jKHEtPmRldiwgbWVtLCBQQUdFX0FMSUdO
+KGJ1Zi0+YnNpemUpLAotCQkJCUdGUF9LRVJORUwgfCBfX0dGUF9DT01QKSkKKwlpZiAoX192aWRl
+b2J1Zl9kY19hbGxvYyhxLT5kZXYsIG1lbSwgUEFHRV9BTElHTihidWYtPmJzaXplKSkpCiAJCWdv
+dG8gZXJyb3I7CiAKLQkvKiBUcnkgdG8gcmVtYXAgbWVtb3J5ICovCi0Jc2l6ZSA9IHZtYS0+dm1f
+ZW5kIC0gdm1hLT52bV9zdGFydDsKLQl2bWEtPnZtX3BhZ2VfcHJvdCA9IHBncHJvdF9ub25jYWNo
+ZWQodm1hLT52bV9wYWdlX3Byb3QpOwotCiAJLyogdGhlICJ2bV9wZ29mZiIgaXMganVzdCB1c2Vk
+IGluIHY0bDIgdG8gZmluZCB0aGUKIAkgKiBjb3JyZXNwb25kaW5nIGJ1ZmZlciBkYXRhIHN0cnVj
+dHVyZSB3aGljaCBpcyBhbGxvY2F0ZWQKIAkgKiBlYXJsaWVyIGFuZCBpdCBkb2VzIG5vdCBtZWFu
+IHRoZSBvZmZzZXQgZnJvbSB0aGUgcGh5c2ljYWwKIAkgKiBidWZmZXIgc3RhcnQgYWRkcmVzcyBh
+cyB1c3VhbC4gU28gc2V0IGl0IHRvIDAgdG8gcGFzcwotCSAqIHRoZSBzYW5pdHkgY2hlY2sgaW4g
+dm1faW9tYXBfbWVtb3J5KCkuCisJICogdGhlIHNhbml0eSBjaGVjayBpbiBkbWFfbW1hcF9jb2hl
+cmVudCgpLgogCSAqLwogCXZtYS0+dm1fcGdvZmYgPSAwOwotCi0JcmV0dmFsID0gdm1faW9tYXBf
+bWVtb3J5KHZtYSwgbWVtLT5kbWFfaGFuZGxlLCBzaXplKTsKKwlyZXR2YWwgPSBkbWFfbW1hcF9j
+b2hlcmVudChxLT5kZXYsIHZtYSwgbWVtLT52YWRkciwgbWVtLT5kbWFfaGFuZGxlLAorCQkJdm1h
+LT52bV9lbmQgLSB2bWEtPnZtX3N0YXJ0KTsKIAlpZiAocmV0dmFsKSB7CiAJCWRldl9lcnIocS0+
+ZGV2LCAibW1hcDogcmVtYXAgZmFpbGVkIHdpdGggZXJyb3IgJWQuICIsCiAJCQlyZXR2YWwpOwot
+LSAKMi4yMC4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
+aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZng=
