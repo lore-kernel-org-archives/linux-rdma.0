@@ -1,98 +1,129 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 02/16] drm/ati_pcigart: stop using drm_pci_alloc
-Date: Fri, 14 Jun 2019 15:47:12 +0200
-Message-ID: <20190614134726.3827-3-hch@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 04/16] drm: move drm_pci_{alloc,
+ free} to drm_legacy
+Date: Fri, 14 Jun 2019 15:47:14 +0200
+Message-ID: <20190614134726.3827-5-hch@lst.de>
 References: <20190614134726.3827-1-hch@lst.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20190614134726.3827-1-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maarten Lankhorst <maarten.lankhorst-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Maxime Ripard <maxime.ripard-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, Sean Paul <sean-p7yTbzM4H96eqtR555YLDQ@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ian Abbott <abbotti-GUHe90Wt2aFaa/9Udqfwiw@public.gmane.org>, H Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>
-Cc: Intel Linux Wireless <linuxwifi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "moderated list:ARM PORT" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20190614134726.3827-1-hch@lst.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove usage of the legacy drm PCI DMA wrappers, and with that the
-incorrect usage cocktail of __GFP_COMP, virt_to_page on DMA allocation
-and SetPageReserved.
-
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- drivers/gpu/drm/ati_pcigart.c | 27 +++++++++++----------------
- include/drm/ati_pcigart.h     |  5 ++++-
- 2 files changed, 15 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/gpu/drm/ati_pcigart.c b/drivers/gpu/drm/ati_pcigart.c
-index 2362f07fe1fc..f66d4fccd812 100644
---- a/drivers/gpu/drm/ati_pcigart.c
-+++ b/drivers/gpu/drm/ati_pcigart.c
-@@ -41,21 +41,14 @@
- static int drm_ati_alloc_pcigart_table(struct drm_device *dev,
- 				       struct drm_ati_pcigart_info *gart_info)
- {
--	gart_info->table_handle = drm_pci_alloc(dev, gart_info->table_size,
--						PAGE_SIZE);
--	if (gart_info->table_handle == NULL)
-+	gart_info->table_vaddr = dma_alloc_coherent(&dev->pdev->dev,
-+			gart_info->table_size, &gart_info->table_handle,
-+			GFP_KERNEL);
-+	if (!gart_info->table_vaddr)
- 		return -ENOMEM;
--
- 	return 0;
- }
- 
--static void drm_ati_free_pcigart_table(struct drm_device *dev,
--				       struct drm_ati_pcigart_info *gart_info)
--{
--	drm_pci_free(dev, gart_info->table_handle);
--	gart_info->table_handle = NULL;
--}
--
- int drm_ati_pcigart_cleanup(struct drm_device *dev, struct drm_ati_pcigart_info *gart_info)
- {
- 	struct drm_sg_mem *entry = dev->sg;
-@@ -87,8 +80,10 @@ int drm_ati_pcigart_cleanup(struct drm_device *dev, struct drm_ati_pcigart_info
- 	}
- 
- 	if (gart_info->gart_table_location == DRM_ATI_GART_MAIN &&
--	    gart_info->table_handle) {
--		drm_ati_free_pcigart_table(dev, gart_info);
-+	    gart_info->table_vaddr) {
-+		dma_free_coherent(&dev->pdev->dev, gart_info->table_size,
-+				gart_info->table_vaddr, gart_info->table_handle);
-+		gart_info->table_vaddr = NULL;
- 	}
- 
- 	return 1;
-@@ -127,9 +122,9 @@ int drm_ati_pcigart_init(struct drm_device *dev, struct drm_ati_pcigart_info *ga
- 			goto done;
- 		}
- 
--		pci_gart = gart_info->table_handle->vaddr;
--		address = gart_info->table_handle->vaddr;
--		bus_address = gart_info->table_handle->busaddr;
-+		pci_gart = gart_info->table_vaddr;
-+		address = gart_info->table_vaddr;
-+		bus_address = gart_info->table_handle;
- 	} else {
- 		address = gart_info->addr;
- 		bus_address = gart_info->bus_addr;
-diff --git a/include/drm/ati_pcigart.h b/include/drm/ati_pcigart.h
-index a728a1364e66..2ffe278ba3b3 100644
---- a/include/drm/ati_pcigart.h
-+++ b/include/drm/ati_pcigart.h
-@@ -18,7 +18,10 @@ struct drm_ati_pcigart_info {
- 	void *addr;
- 	dma_addr_t bus_addr;
- 	dma_addr_t table_mask;
--	struct drm_dma_handle *table_handle;
-+
-+	dma_addr_t table_handle;
-+	void *table_vaddr;
-+
- 	struct drm_local_map mapping;
- 	int table_size;
- };
--- 
-2.20.1
+VGhlc2UgZnVuY3Rpb25zIGFyZSByYXRoZXIgYnJva2VuIGluIHRoYXQgdGhleSB0cnkgdG8gcGFz
+cyBfX0dGUF9DT01QCnRvIGRtYV9hbGxvY19jb2hlcmVudCwgY2FsbCB2aXJ0X3RvX3BhZ2Ugb24g
+dGhlIHJldHVybiB2YWx1ZSBhbmQKbWVzcyB3aXRoIFBhZ2VSZXNlcnZlZC4gIEFuZCBub3QgYWN0
+dWFsbHkgdXNlZCBieSBhbnkgbW9kZXJuIGRyaXZlci4KClNpZ25lZC1vZmYtYnk6IENocmlzdG9w
+aCBIZWxsd2lnIDxoY2hAbHN0LmRlPgotLS0KIGRyaXZlcnMvZ3B1L2RybS9kcm1fYnVmcy5jIHwg
+ODUgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiBkcml2ZXJzL2dwdS9kcm0v
+ZHJtX3BjaS5jICB8IDg5IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAy
+IGZpbGVzIGNoYW5nZWQsIDg1IGluc2VydGlvbnMoKyksIDg5IGRlbGV0aW9ucygtKQoKZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9kcm1fYnVmcy5jIGIvZHJpdmVycy9ncHUvZHJtL2RybV9i
+dWZzLmMKaW5kZXggYmZjNDE5ZWQ5ZDZjLi43NDE4ODcyZDg3YzYgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvZ3B1L2RybS9kcm1fYnVmcy5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9kcm1fYnVmcy5jCkBA
+IC0zOCw2ICszOCw5MSBAQAogCiAjaW5jbHVkZSA8bGludXgvbm9zcGVjLmg+CiAKKy8qKgorICog
+ZHJtX3BjaV9hbGxvYyAtIEFsbG9jYXRlIGEgUENJIGNvbnNpc3RlbnQgbWVtb3J5IGJsb2NrLCBm
+b3IgRE1BLgorICogQGRldjogRFJNIGRldmljZQorICogQHNpemU6IHNpemUgb2YgYmxvY2sgdG8g
+YWxsb2NhdGUKKyAqIEBhbGlnbjogYWxpZ25tZW50IG9mIGJsb2NrCisgKgorICogRklYTUU6IFRo
+aXMgaXMgYSBuZWVkbGVzcyBhYnN0cmFjdGlvbiBvZiB0aGUgTGludXggZG1hLWFwaSBhbmQgc2hv
+dWxkIGJlCisgKiByZW1vdmVkLgorICoKKyAqIFJldHVybjogQSBoYW5kbGUgdG8gdGhlIGFsbG9j
+YXRlZCBtZW1vcnkgYmxvY2sgb24gc3VjY2VzcyBvciBOVUxMIG9uCisgKiBmYWlsdXJlLgorICov
+Citkcm1fZG1hX2hhbmRsZV90ICpkcm1fcGNpX2FsbG9jKHN0cnVjdCBkcm1fZGV2aWNlICogZGV2
+LCBzaXplX3Qgc2l6ZSwgc2l6ZV90IGFsaWduKQoreworCWRybV9kbWFfaGFuZGxlX3QgKmRtYWg7
+CisJdW5zaWduZWQgbG9uZyBhZGRyOworCXNpemVfdCBzejsKKworCS8qIHBjaV9hbGxvY19jb25z
+aXN0ZW50IG9ubHkgZ3VhcmFudGVlcyBhbGlnbm1lbnQgdG8gdGhlIHNtYWxsZXN0CisJICogUEFH
+RV9TSVpFIG9yZGVyIHdoaWNoIGlzIGdyZWF0ZXIgdGhhbiBvciBlcXVhbCB0byB0aGUgcmVxdWVz
+dGVkIHNpemUuCisJICogUmV0dXJuIE5VTEwgaGVyZSBmb3Igbm93IHRvIG1ha2Ugc3VyZSBub2Jv
+ZHkgdHJpZXMgZm9yIGxhcmdlciBhbGlnbm1lbnQKKwkgKi8KKwlpZiAoYWxpZ24gPiBzaXplKQor
+CQlyZXR1cm4gTlVMTDsKKworCWRtYWggPSBrbWFsbG9jKHNpemVvZihkcm1fZG1hX2hhbmRsZV90
+KSwgR0ZQX0tFUk5FTCk7CisJaWYgKCFkbWFoKQorCQlyZXR1cm4gTlVMTDsKKworCWRtYWgtPnNp
+emUgPSBzaXplOworCWRtYWgtPnZhZGRyID0gZG1hX2FsbG9jX2NvaGVyZW50KCZkZXYtPnBkZXYt
+PmRldiwgc2l6ZSwKKwkJCQkJICZkbWFoLT5idXNhZGRyLAorCQkJCQkgR0ZQX0tFUk5FTCB8IF9f
+R0ZQX0NPTVApOworCisJaWYgKGRtYWgtPnZhZGRyID09IE5VTEwpIHsKKwkJa2ZyZWUoZG1haCk7
+CisJCXJldHVybiBOVUxMOworCX0KKworCS8qIFhYWCAtIElzIHZpcnRfdG9fcGFnZSgpIGxlZ2Fs
+IGZvciBjb25zaXN0ZW50IG1lbT8gKi8KKwkvKiBSZXNlcnZlICovCisJZm9yIChhZGRyID0gKHVu
+c2lnbmVkIGxvbmcpZG1haC0+dmFkZHIsIHN6ID0gc2l6ZTsKKwkgICAgIHN6ID4gMDsgYWRkciAr
+PSBQQUdFX1NJWkUsIHN6IC09IFBBR0VfU0laRSkgeworCQlTZXRQYWdlUmVzZXJ2ZWQodmlydF90
+b19wYWdlKCh2b2lkICopYWRkcikpOworCX0KKworCXJldHVybiBkbWFoOworfQorCisvKgorICog
+RnJlZSBhIFBDSSBjb25zaXN0ZW50IG1lbW9yeSBibG9jayB3aXRob3V0IGZyZWVpbmcgaXRzIGRl
+c2NyaXB0b3IuCisgKgorICogVGhpcyBmdW5jdGlvbiBpcyBmb3IgaW50ZXJuYWwgdXNlIGluIHRo
+ZSBMaW51eC1zcGVjaWZpYyBEUk0gY29yZSBjb2RlLgorICovCit2b2lkIF9fZHJtX2xlZ2FjeV9w
+Y2lfZnJlZShzdHJ1Y3QgZHJtX2RldmljZSAqIGRldiwgZHJtX2RtYV9oYW5kbGVfdCAqIGRtYWgp
+Cit7CisJdW5zaWduZWQgbG9uZyBhZGRyOworCXNpemVfdCBzejsKKworCWlmIChkbWFoLT52YWRk
+cikgeworCQkvKiBYWFggLSBJcyB2aXJ0X3RvX3BhZ2UoKSBsZWdhbCBmb3IgY29uc2lzdGVudCBt
+ZW0/ICovCisJCS8qIFVucmVzZXJ2ZSAqLworCQlmb3IgKGFkZHIgPSAodW5zaWduZWQgbG9uZylk
+bWFoLT52YWRkciwgc3ogPSBkbWFoLT5zaXplOworCQkgICAgIHN6ID4gMDsgYWRkciArPSBQQUdF
+X1NJWkUsIHN6IC09IFBBR0VfU0laRSkgeworCQkJQ2xlYXJQYWdlUmVzZXJ2ZWQodmlydF90b19w
+YWdlKCh2b2lkICopYWRkcikpOworCQl9CisJCWRtYV9mcmVlX2NvaGVyZW50KCZkZXYtPnBkZXYt
+PmRldiwgZG1haC0+c2l6ZSwgZG1haC0+dmFkZHIsCisJCQkJICBkbWFoLT5idXNhZGRyKTsKKwl9
+Cit9CisKKy8qKgorICogZHJtX3BjaV9mcmVlIC0gRnJlZSBhIFBDSSBjb25zaXN0ZW50IG1lbW9y
+eSBibG9jaworICogQGRldjogRFJNIGRldmljZQorICogQGRtYWg6IGhhbmRsZSB0byBtZW1vcnkg
+YmxvY2sKKyAqCisgKiBGSVhNRTogVGhpcyBpcyBhIG5lZWRsZXNzIGFic3RyYWN0aW9uIG9mIHRo
+ZSBMaW51eCBkbWEtYXBpIGFuZCBzaG91bGQgYmUKKyAqIHJlbW92ZWQuCisgKi8KK3ZvaWQgZHJt
+X3BjaV9mcmVlKHN0cnVjdCBkcm1fZGV2aWNlICogZGV2LCBkcm1fZG1hX2hhbmRsZV90ICogZG1h
+aCkKK3sKKwlfX2RybV9sZWdhY3lfcGNpX2ZyZWUoZGV2LCBkbWFoKTsKKwlrZnJlZShkbWFoKTsK
+K30KKwogc3RhdGljIHN0cnVjdCBkcm1fbWFwX2xpc3QgKmRybV9maW5kX21hdGNoaW5nX21hcChz
+dHJ1Y3QgZHJtX2RldmljZSAqZGV2LAogCQkJCQkJICBzdHJ1Y3QgZHJtX2xvY2FsX21hcCAqbWFw
+KQogewpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL2RybV9wY2kuYyBiL2RyaXZlcnMvZ3B1
+L2RybS9kcm1fcGNpLmMKaW5kZXggNjkzNzQ4YWQ4Yjg4Li43N2EyMTVmMmE4ZTQgMTAwNjQ0Ci0t
+LSBhL2RyaXZlcnMvZ3B1L2RybS9kcm1fcGNpLmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL2RybV9w
+Y2kuYwpAQCAtMzEsOTUgKzMxLDYgQEAKICNpbmNsdWRlICJkcm1faW50ZXJuYWwuaCIKICNpbmNs
+dWRlICJkcm1fbGVnYWN5LmgiCiAKLS8qKgotICogZHJtX3BjaV9hbGxvYyAtIEFsbG9jYXRlIGEg
+UENJIGNvbnNpc3RlbnQgbWVtb3J5IGJsb2NrLCBmb3IgRE1BLgotICogQGRldjogRFJNIGRldmlj
+ZQotICogQHNpemU6IHNpemUgb2YgYmxvY2sgdG8gYWxsb2NhdGUKLSAqIEBhbGlnbjogYWxpZ25t
+ZW50IG9mIGJsb2NrCi0gKgotICogRklYTUU6IFRoaXMgaXMgYSBuZWVkbGVzcyBhYnN0cmFjdGlv
+biBvZiB0aGUgTGludXggZG1hLWFwaSBhbmQgc2hvdWxkIGJlCi0gKiByZW1vdmVkLgotICoKLSAq
+IFJldHVybjogQSBoYW5kbGUgdG8gdGhlIGFsbG9jYXRlZCBtZW1vcnkgYmxvY2sgb24gc3VjY2Vz
+cyBvciBOVUxMIG9uCi0gKiBmYWlsdXJlLgotICovCi1kcm1fZG1hX2hhbmRsZV90ICpkcm1fcGNp
+X2FsbG9jKHN0cnVjdCBkcm1fZGV2aWNlICogZGV2LCBzaXplX3Qgc2l6ZSwgc2l6ZV90IGFsaWdu
+KQotewotCWRybV9kbWFfaGFuZGxlX3QgKmRtYWg7Ci0JdW5zaWduZWQgbG9uZyBhZGRyOwotCXNp
+emVfdCBzejsKLQotCS8qIHBjaV9hbGxvY19jb25zaXN0ZW50IG9ubHkgZ3VhcmFudGVlcyBhbGln
+bm1lbnQgdG8gdGhlIHNtYWxsZXN0Ci0JICogUEFHRV9TSVpFIG9yZGVyIHdoaWNoIGlzIGdyZWF0
+ZXIgdGhhbiBvciBlcXVhbCB0byB0aGUgcmVxdWVzdGVkIHNpemUuCi0JICogUmV0dXJuIE5VTEwg
+aGVyZSBmb3Igbm93IHRvIG1ha2Ugc3VyZSBub2JvZHkgdHJpZXMgZm9yIGxhcmdlciBhbGlnbm1l
+bnQKLQkgKi8KLQlpZiAoYWxpZ24gPiBzaXplKQotCQlyZXR1cm4gTlVMTDsKLQotCWRtYWggPSBr
+bWFsbG9jKHNpemVvZihkcm1fZG1hX2hhbmRsZV90KSwgR0ZQX0tFUk5FTCk7Ci0JaWYgKCFkbWFo
+KQotCQlyZXR1cm4gTlVMTDsKLQotCWRtYWgtPnNpemUgPSBzaXplOwotCWRtYWgtPnZhZGRyID0g
+ZG1hX2FsbG9jX2NvaGVyZW50KCZkZXYtPnBkZXYtPmRldiwgc2l6ZSwKLQkJCQkJICZkbWFoLT5i
+dXNhZGRyLAotCQkJCQkgR0ZQX0tFUk5FTCB8IF9fR0ZQX0NPTVApOwotCi0JaWYgKGRtYWgtPnZh
+ZGRyID09IE5VTEwpIHsKLQkJa2ZyZWUoZG1haCk7Ci0JCXJldHVybiBOVUxMOwotCX0KLQotCS8q
+IFhYWCAtIElzIHZpcnRfdG9fcGFnZSgpIGxlZ2FsIGZvciBjb25zaXN0ZW50IG1lbT8gKi8KLQkv
+KiBSZXNlcnZlICovCi0JZm9yIChhZGRyID0gKHVuc2lnbmVkIGxvbmcpZG1haC0+dmFkZHIsIHN6
+ID0gc2l6ZTsKLQkgICAgIHN6ID4gMDsgYWRkciArPSBQQUdFX1NJWkUsIHN6IC09IFBBR0VfU0la
+RSkgewotCQlTZXRQYWdlUmVzZXJ2ZWQodmlydF90b19wYWdlKCh2b2lkICopYWRkcikpOwotCX0K
+LQotCXJldHVybiBkbWFoOwotfQotCi1FWFBPUlRfU1lNQk9MKGRybV9wY2lfYWxsb2MpOwotCi0v
+KgotICogRnJlZSBhIFBDSSBjb25zaXN0ZW50IG1lbW9yeSBibG9jayB3aXRob3V0IGZyZWVpbmcg
+aXRzIGRlc2NyaXB0b3IuCi0gKgotICogVGhpcyBmdW5jdGlvbiBpcyBmb3IgaW50ZXJuYWwgdXNl
+IGluIHRoZSBMaW51eC1zcGVjaWZpYyBEUk0gY29yZSBjb2RlLgotICovCi12b2lkIF9fZHJtX2xl
+Z2FjeV9wY2lfZnJlZShzdHJ1Y3QgZHJtX2RldmljZSAqIGRldiwgZHJtX2RtYV9oYW5kbGVfdCAq
+IGRtYWgpCi17Ci0JdW5zaWduZWQgbG9uZyBhZGRyOwotCXNpemVfdCBzejsKLQotCWlmIChkbWFo
+LT52YWRkcikgewotCQkvKiBYWFggLSBJcyB2aXJ0X3RvX3BhZ2UoKSBsZWdhbCBmb3IgY29uc2lz
+dGVudCBtZW0/ICovCi0JCS8qIFVucmVzZXJ2ZSAqLwotCQlmb3IgKGFkZHIgPSAodW5zaWduZWQg
+bG9uZylkbWFoLT52YWRkciwgc3ogPSBkbWFoLT5zaXplOwotCQkgICAgIHN6ID4gMDsgYWRkciAr
+PSBQQUdFX1NJWkUsIHN6IC09IFBBR0VfU0laRSkgewotCQkJQ2xlYXJQYWdlUmVzZXJ2ZWQodmly
+dF90b19wYWdlKCh2b2lkICopYWRkcikpOwotCQl9Ci0JCWRtYV9mcmVlX2NvaGVyZW50KCZkZXYt
+PnBkZXYtPmRldiwgZG1haC0+c2l6ZSwgZG1haC0+dmFkZHIsCi0JCQkJICBkbWFoLT5idXNhZGRy
+KTsKLQl9Ci19Ci0KLS8qKgotICogZHJtX3BjaV9mcmVlIC0gRnJlZSBhIFBDSSBjb25zaXN0ZW50
+IG1lbW9yeSBibG9jawotICogQGRldjogRFJNIGRldmljZQotICogQGRtYWg6IGhhbmRsZSB0byBt
+ZW1vcnkgYmxvY2sKLSAqCi0gKiBGSVhNRTogVGhpcyBpcyBhIG5lZWRsZXNzIGFic3RyYWN0aW9u
+IG9mIHRoZSBMaW51eCBkbWEtYXBpIGFuZCBzaG91bGQgYmUKLSAqIHJlbW92ZWQuCi0gKi8KLXZv
+aWQgZHJtX3BjaV9mcmVlKHN0cnVjdCBkcm1fZGV2aWNlICogZGV2LCBkcm1fZG1hX2hhbmRsZV90
+ICogZG1haCkKLXsKLQlfX2RybV9sZWdhY3lfcGNpX2ZyZWUoZGV2LCBkbWFoKTsKLQlrZnJlZShk
+bWFoKTsKLX0KLQotRVhQT1JUX1NZTUJPTChkcm1fcGNpX2ZyZWUpOwotCiAjaWZkZWYgQ09ORklH
+X1BDSQogCiBzdGF0aWMgaW50IGRybV9nZXRfcGNpX2RvbWFpbihzdHJ1Y3QgZHJtX2RldmljZSAq
+ZGV2KQotLSAKMi4yMC4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3Rv
+cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRl
+bC1nZng=
