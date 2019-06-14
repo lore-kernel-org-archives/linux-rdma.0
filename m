@@ -1,78 +1,38 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 16/16] dma-mapping: use exact allocation in
- dma_alloc_contiguous
-Date: Fri, 14 Jun 2019 15:47:26 +0200
-Message-ID: <20190614134726.3827-17-hch@lst.de>
-References: <20190614134726.3827-1-hch@lst.de>
+From: Colin Ian King <colin.king@canonical.com>
+Subject: re: RDMA: Clean destroy CQ in drivers do not return errors
+Date: Fri, 14 Jun 2019 14:59:32 +0100
+Message-ID: <68d62660-902c-ca49-20fd-32e92830faa7@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20190614134726.3827-1-hch@lst.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>, Gal Pressman <galpress@amazon.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-TWFueSBhcmNoaXRlY3R1cmVzIChlLmcuIGFybSwgbTY4IGFuZCBzaCkgaGF2ZSBhbHdheXMgdXNl
-ZCBleGFjdAphbGxvY2F0aW9uIGluIHRoZWlyIGRtYSBjb2hlcmVudCBhbGxvY2F0b3IsIHdoaWNo
-IGF2b2lkcyBhIGxvdCBvZgptZW1vcnkgd2FzdGUgZXNwZWNpYWxseSBmb3IgbGFyZ2VyIGFsbG9j
-YXRpb25zLiAgTGlmdCB0aGlzIGJlaGF2aW9yCmludG8gdGhlIGdlbmVyaWMgYWxsb2NhdG9yIHNv
-IHRoYXQgZG1hLWRpcmVjdCBhbmQgdGhlIGdlbmVyaWMgSU9NTVUKY29kZSBiZW5lZml0IGZyb20g
-dGhpcyBiZWhhdmlvciBhcyB3ZWxsLgoKU2lnbmVkLW9mZi1ieTogQ2hyaXN0b3BoIEhlbGx3aWcg
-PGhjaEBsc3QuZGU+Ci0tLQogaW5jbHVkZS9saW51eC9kbWEtY29udGlndW91cy5oIHwgIDggKysr
-KystLS0KIGtlcm5lbC9kbWEvY29udGlndW91cy5jICAgICAgICB8IDE3ICsrKysrKysrKysrLS0t
-LS0tCiAyIGZpbGVzIGNoYW5nZWQsIDE2IGluc2VydGlvbnMoKyksIDkgZGVsZXRpb25zKC0pCgpk
-aWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9kbWEtY29udGlndW91cy5oIGIvaW5jbHVkZS9saW51
-eC9kbWEtY29udGlndW91cy5oCmluZGV4IGMwNWQ0ZTY2MTQ4OS4uMmU1NDJlMzE0YWNmIDEwMDY0
-NAotLS0gYS9pbmNsdWRlL2xpbnV4L2RtYS1jb250aWd1b3VzLmgKKysrIGIvaW5jbHVkZS9saW51
-eC9kbWEtY29udGlndW91cy5oCkBAIC0xNjEsMTUgKzE2MSwxNyBAQCBzdGF0aWMgaW5saW5lIHN0
-cnVjdCBwYWdlICpkbWFfYWxsb2NfY29udGlndW91cyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHNpemVf
-dCBzaXplLAogCQlnZnBfdCBnZnApCiB7CiAJaW50IG5vZGUgPSBkZXYgPyBkZXZfdG9fbm9kZShk
-ZXYpIDogTlVNQV9OT19OT0RFOwotCXNpemVfdCBhbGlnbiA9IGdldF9vcmRlcihQQUdFX0FMSUdO
-KHNpemUpKTsKKwl2b2lkICpjcHVfYWRkciA9IGFsbG9jX3BhZ2VzX2V4YWN0X25vZGUobm9kZSwg
-c2l6ZSwgZ2ZwKTsKIAotCXJldHVybiBhbGxvY19wYWdlc19ub2RlKG5vZGUsIGdmcCwgYWxpZ24p
-OworCWlmICghY3B1X2FkZHIpCisJCXJldHVybiBOVUxMOworCXJldHVybiB2aXJ0X3RvX3BhZ2Uo
-cCk7CiB9CiAKIHN0YXRpYyBpbmxpbmUgdm9pZCBkbWFfZnJlZV9jb250aWd1b3VzKHN0cnVjdCBk
-ZXZpY2UgKmRldiwgc3RydWN0IHBhZ2UgKnBhZ2UsCiAJCXNpemVfdCBzaXplKQogewotCV9fZnJl
-ZV9wYWdlcyhwYWdlLCBnZXRfb3JkZXIoc2l6ZSkpOworCWZyZWVfcGFnZXNfZXhhY3QocGFnZV9h
-ZGRyZXNzKHBhZ2UpLCBnZXRfb3JkZXIoc2l6ZSkpOwogfQogCiAjZW5kaWYKZGlmZiAtLWdpdCBh
-L2tlcm5lbC9kbWEvY29udGlndW91cy5jIGIva2VybmVsL2RtYS9jb250aWd1b3VzLmMKaW5kZXgg
-YmZjMGMxN2YyYTNkLi44NGY0MWVlYTI3NDEgMTAwNjQ0Ci0tLSBhL2tlcm5lbC9kbWEvY29udGln
-dW91cy5jCisrKyBiL2tlcm5lbC9kbWEvY29udGlndW91cy5jCkBAIC0yMzIsOSArMjMyLDggQEAg
-c3RydWN0IHBhZ2UgKmRtYV9hbGxvY19jb250aWd1b3VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc2l6
-ZV90IHNpemUsIGdmcF90IGdmcCkKIHsKIAlpbnQgbm9kZSA9IGRldiA/IGRldl90b19ub2RlKGRl
-dikgOiBOVU1BX05PX05PREU7CiAJc2l6ZV90IGNvdW50ID0gUEFHRV9BTElHTihzaXplKSA+PiBQ
-QUdFX1NISUZUOwotCXNpemVfdCBhbGlnbiA9IGdldF9vcmRlcihQQUdFX0FMSUdOKHNpemUpKTsK
-LQlzdHJ1Y3QgcGFnZSAqcGFnZSA9IE5VTEw7CiAJc3RydWN0IGNtYSAqY21hID0gTlVMTDsKKwl2
-b2lkICpjcHVfYWRkcjsKIAogCWlmIChkZXYgJiYgZGV2LT5jbWFfYXJlYSkKIAkJY21hID0gZGV2
-LT5jbWFfYXJlYTsKQEAgLTI0MywxNCArMjQyLDIwIEBAIHN0cnVjdCBwYWdlICpkbWFfYWxsb2Nf
-Y29udGlndW91cyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHNpemVfdCBzaXplLCBnZnBfdCBnZnApCiAK
-IAkvKiBDTUEgY2FuIGJlIHVzZWQgb25seSBpbiB0aGUgY29udGV4dCB3aGljaCBwZXJtaXRzIHNs
-ZWVwaW5nICovCiAJaWYgKGNtYSAmJiBnZnBmbGFnc19hbGxvd19ibG9ja2luZyhnZnApKSB7CisJ
-CXNpemVfdCBhbGlnbiA9IGdldF9vcmRlcihQQUdFX0FMSUdOKHNpemUpKTsKKwkJc3RydWN0IHBh
-Z2UgKnBhZ2U7CisKIAkJYWxpZ24gPSBtaW5fdChzaXplX3QsIGFsaWduLCBDT05GSUdfQ01BX0FM
-SUdOTUVOVCk7CiAJCXBhZ2UgPSBjbWFfYWxsb2MoY21hLCBjb3VudCwgYWxpZ24sIGdmcCAmIF9f
-R0ZQX05PV0FSTik7CisJCWlmIChwYWdlKQorCQkJcmV0dXJuIHBhZ2U7CiAJfQogCiAJLyogRmFs
-bGJhY2sgYWxsb2NhdGlvbiBvZiBub3JtYWwgcGFnZXMgKi8KLQlpZiAoIXBhZ2UpCi0JCXBhZ2Ug
-PSBhbGxvY19wYWdlc19ub2RlKG5vZGUsIGdmcCwgYWxpZ24pOwotCXJldHVybiBwYWdlOworCWNw
-dV9hZGRyID0gYWxsb2NfcGFnZXNfZXhhY3Rfbm9kZShub2RlLCBzaXplLCBnZnApOworCWlmICgh
-Y3B1X2FkZHIpCisJCXJldHVybiBOVUxMOworCXJldHVybiB2aXJ0X3RvX3BhZ2UoY3B1X2FkZHIp
-OwogfQogCiAvKioKQEAgLTI2Nyw3ICsyNzIsNyBAQCBzdHJ1Y3QgcGFnZSAqZG1hX2FsbG9jX2Nv
-bnRpZ3VvdXMoc3RydWN0IGRldmljZSAqZGV2LCBzaXplX3Qgc2l6ZSwgZ2ZwX3QgZ2ZwKQogdm9p
-ZCBkbWFfZnJlZV9jb250aWd1b3VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHBhZ2UgKnBh
-Z2UsIHNpemVfdCBzaXplKQogewogCWlmICghY21hX3JlbGVhc2UoZGV2X2dldF9jbWFfYXJlYShk
-ZXYpLCBwYWdlLCBzaXplID4+IFBBR0VfU0hJRlQpKQotCQlfX2ZyZWVfcGFnZXMocGFnZSwgZ2V0
-X29yZGVyKHNpemUpKTsKKwkJZnJlZV9wYWdlc19leGFjdChwYWdlX2FkZHJlc3MocGFnZSksIGdl
-dF9vcmRlcihzaXplKSk7CiB9CiAKIC8qCi0tIAoyLjIwLjEKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwt
-Z2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeA==
+Hi,
+
+Static analysis with Coverity reported an issue with the following commit:
+
+commit a52c8e2469c30cf7ac453d624aed9c168b23d1af
+Author: Leon Romanovsky <leonro@mellanox.com>
+Date:   Tue May 28 14:37:28 2019 +0300
+
+    RDMA: Clean destroy CQ in drivers do not return errors
+
+In function bnxt_re_destroy_cq() contains the following:
+
+        if (!cq->umem)
+                ib_umem_release(cq->umem);
+
+Coverity detects this as a deference after null check on the null
+pointer cq->umem:
+
+"var_deref_model: Passing null pointer cq->umem to ib_umem_release,
+which dereferences it"
+
+Is the logic inverted on that null check?
+
+Colin
