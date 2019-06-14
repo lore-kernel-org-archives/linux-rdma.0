@@ -1,71 +1,56 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH v3 hmm 11/12] mm/hmm: Remove confusing comment and logic from
- hmm_release
-Date: Thu, 13 Jun 2019 21:44:49 -0300
-Message-ID: <20190614004450.20252-12-jgg@ziepe.ca>
-References: <20190614004450.20252-1-jgg@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190614004450.20252-1-jgg@ziepe.ca>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jerome Glisse <jglisse@redhat.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Philip Yang <Philip.Yang@amd.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, linux-mm@kvack.org, Jason Gunthorpe <jgg@mellanox.com>, dri-devel@lists.freedesktop.org, Ben Skeggs <bskeggs@redhat.com>
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: [PATCH 1/2] ipoib: correcly show a VF hardware address
+Date: Fri, 14 Jun 2019 15:32:46 +0200
+Message-ID: <20190614133249.18308-1-dkirjanov@suse.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, dledford@redhat.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgoKaG1tX3JlbGVhc2UoKSBp
-cyBjYWxsZWQgZXhhY3RseSBvbmNlIHBlciBobW0uIG9wcy0+cmVsZWFzZSgpIGNhbm5vdAphY2Np
-ZGVudGFsbHkgdHJpZ2dlciBhbnkgYWN0aW9uIHRoYXQgd291bGQgcmVjdXJzZSBiYWNrIG9udG8K
-aG1tLT5taXJyb3JzX3NlbS4KClRoaXMgZml4ZXMgYSB1c2UgYWZ0ZXItZnJlZSByYWNlIG9mIHRo
-ZSBmb3JtOgoKICAgICAgIENQVTAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIENQ
-VTEKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGhtbV9yZWxlYXNl
-KCkKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdXBfd3JpdGUo
-JmhtbS0+bWlycm9yc19zZW0pOwogaG1tX21pcnJvcl91bnJlZ2lzdGVyKG1pcnJvcikKICBkb3du
-X3dyaXRlKCZobW0tPm1pcnJvcnNfc2VtKTsKICB1cF93cml0ZSgmaG1tLT5taXJyb3JzX3NlbSk7
-CiAga2ZyZWUobWlycm9yKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBtaXJyb3ItPm9wcy0+cmVsZWFzZShtaXJyb3IpCgpUaGUgb25seSB1c2VyIHdlIGhhdmUg
-dG9kYXkgZm9yIG9wcy0+cmVsZWFzZSBpcyBhbiBlbXB0eSBmdW5jdGlvbiwgc28gdGhpcwppcyB1
-bmFtYmlndW91c2x5IHNhZmUuCgpBcyBhIGNvbnNlcXVlbmNlIG9mIHBsdWdnaW5nIHRoaXMgcmFj
-ZSBkcml2ZXJzIGFyZSBub3QgYWxsb3dlZCB0bwpyZWdpc3Rlci91bnJlZ2lzdGVyIG1pcnJvcnMg
-ZnJvbSB3aXRoaW4gYSByZWxlYXNlIG9wLgoKU2lnbmVkLW9mZi1ieTogSmFzb24gR3VudGhvcnBl
-IDxqZ2dAbWVsbGFub3guY29tPgpUZXN0ZWQtYnk6IFBoaWxpcCBZYW5nIDxQaGlsaXAuWWFuZ0Bh
-bWQuY29tPgotLS0KIG1tL2htbS5jIHwgMjggKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLQog
-MSBmaWxlIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKSwgMTkgZGVsZXRpb25zKC0pCgpkaWZmIC0t
-Z2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCAyNmFmNTExY2JkZDA3NS4uYzBkNDMzMDJm
-ZDZiMmYgMTAwNjQ0Ci0tLSBhL21tL2htbS5jCisrKyBiL21tL2htbS5jCkBAIC0xMzcsMjYgKzEz
-NywxNiBAQCBzdGF0aWMgdm9pZCBobW1fcmVsZWFzZShzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwg
-c3RydWN0IG1tX3N0cnVjdCAqbW0pCiAJV0FSTl9PTighbGlzdF9lbXB0eSgmaG1tLT5yYW5nZXMp
-KTsKIAltdXRleF91bmxvY2soJmhtbS0+bG9jayk7CiAKLQlkb3duX3dyaXRlKCZobW0tPm1pcnJv
-cnNfc2VtKTsKLQltaXJyb3IgPSBsaXN0X2ZpcnN0X2VudHJ5X29yX251bGwoJmhtbS0+bWlycm9y
-cywgc3RydWN0IGhtbV9taXJyb3IsCi0JCQkJCSAgbGlzdCk7Ci0Jd2hpbGUgKG1pcnJvcikgewot
-CQlsaXN0X2RlbF9pbml0KCZtaXJyb3ItPmxpc3QpOwotCQlpZiAobWlycm9yLT5vcHMtPnJlbGVh
-c2UpIHsKLQkJCS8qCi0JCQkgKiBEcm9wIG1pcnJvcnNfc2VtIHNvIHRoZSByZWxlYXNlIGNhbGxi
-YWNrIGNhbiB3YWl0Ci0JCQkgKiBvbiBhbnkgcGVuZGluZyB3b3JrIHRoYXQgbWlnaHQgaXRzZWxm
-IHRyaWdnZXIgYQotCQkJICogbW11X25vdGlmaWVyIGNhbGxiYWNrIGFuZCB0aHVzIHdvdWxkIGRl
-YWRsb2NrIHdpdGgKLQkJCSAqIHVzLgotCQkJICovCi0JCQl1cF93cml0ZSgmaG1tLT5taXJyb3Jz
-X3NlbSk7CisJZG93bl9yZWFkKCZobW0tPm1pcnJvcnNfc2VtKTsKKwlsaXN0X2Zvcl9lYWNoX2Vu
-dHJ5KG1pcnJvciwgJmhtbS0+bWlycm9ycywgbGlzdCkgeworCQkvKgorCQkgKiBOb3RlOiBUaGUg
-ZHJpdmVyIGlzIG5vdCBhbGxvd2VkIHRvIHRyaWdnZXIKKwkJICogaG1tX21pcnJvcl91bnJlZ2lz
-dGVyKCkgZnJvbSB0aGlzIHRocmVhZC4KKwkJICovCisJCWlmIChtaXJyb3ItPm9wcy0+cmVsZWFz
-ZSkKIAkJCW1pcnJvci0+b3BzLT5yZWxlYXNlKG1pcnJvcik7Ci0JCQlkb3duX3dyaXRlKCZobW0t
-Pm1pcnJvcnNfc2VtKTsKLQkJfQotCQltaXJyb3IgPSBsaXN0X2ZpcnN0X2VudHJ5X29yX251bGwo
-JmhtbS0+bWlycm9ycywKLQkJCQkJCSAgc3RydWN0IGhtbV9taXJyb3IsIGxpc3QpOwogCX0KLQl1
-cF93cml0ZSgmaG1tLT5taXJyb3JzX3NlbSk7CisJdXBfcmVhZCgmaG1tLT5taXJyb3JzX3NlbSk7
-CiAKIAlobW1fcHV0KGhtbSk7CiB9CkBAIC0yODYsNyArMjc2LDcgQEAgdm9pZCBobW1fbWlycm9y
-X3VucmVnaXN0ZXIoc3RydWN0IGhtbV9taXJyb3IgKm1pcnJvcikKIAlzdHJ1Y3QgaG1tICpobW0g
-PSBtaXJyb3ItPmhtbTsKIAogCWRvd25fd3JpdGUoJmhtbS0+bWlycm9yc19zZW0pOwotCWxpc3Rf
-ZGVsX2luaXQoJm1pcnJvci0+bGlzdCk7CisJbGlzdF9kZWwoJm1pcnJvci0+bGlzdCk7CiAJdXBf
-d3JpdGUoJmhtbS0+bWlycm9yc19zZW0pOwogCWhtbV9wdXQoaG1tKTsKIAltZW1zZXQoJm1pcnJv
-ci0+aG1tLCBQT0lTT05fSU5VU0UsIHNpemVvZihtaXJyb3ItPmhtbSkpOwotLSAKMi4yMS4wCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwg
-bWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0
-cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+in the case of IPoIB with SRIOV enabled hardware
+ip link show command incorrecly prints
+0 instead of a VF hardware address.
+
+Before:
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+    link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+    vf 0 MAC 00:00:00:00:00:00, spoof checking off, link-state disable,
+trust off, query_rss off
+...
+After:
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+    link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+    vf 0     link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+checking off, link-state disable, trust off, query_rss off
+
+v1->v2: just copy an address without modifing ifla_vf_mac
+v2->v3: update the changelog
+
+Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 9b5e11d3fb85..04ea7db08e87 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1998,6 +1998,7 @@ static int ipoib_get_vf_config(struct net_device *dev, int vf,
+ 		return err;
+ 
+ 	ivf->vf = vf;
++	memcpy(ivf->mac, dev->dev_addr, dev->addr_len);
+ 
+ 	return 0;
+ }
+-- 
+2.12.3
