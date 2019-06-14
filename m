@@ -1,54 +1,35 @@
-From: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
-Subject: Re: [PATCH] RDMA/ucma: Use struct_size() helper
-Date: Fri, 14 Jun 2019 15:39:14 +0200
-Message-ID: <f8d5dcb8-b665-b34e-3869-a720fd6f6899@metux.net>
-References: <20190604154222.GA8938@embeddedor>
+From: Christoph Hellwig <hch@lst.de>
+Subject: use exact allocation for dma coherent memory
+Date: Fri, 14 Jun 2019 15:47:10 +0200
+Message-ID: <20190614134726.3827-1-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190604154222.GA8938@embeddedor>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 04.06.19 17:42, Gustavo A. R. Silva wrote:
+Hi all,
 
-Hi,
+various architectures have used exact memory allocations for dma
+allocations for a long time, but x86 and thus the common code based
+on it kept using our normal power of two allocator, which tends to
+waste a lot of memory for certain allocations.
 
-<snip>
-
-> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-> index 140a338a135f..cbe460076611 100644
-> --- a/drivers/infiniband/core/ucma.c
-> +++ b/drivers/infiniband/core/ucma.c
-> @@ -951,8 +951,7 @@ static ssize_t ucma_query_path(struct ucma_context *ctx,
->  		}
->  	}
->  
-> -	if (copy_to_user(response, resp,
-> -			 sizeof(*resp) + (i * sizeof(struct ib_path_rec_data))))
-> +	if (copy_to_user(response, resp, struct_size(resp, path_data, i)))
->  		ret = -EFAULT;
-
-have you already considered further reducing the boilerplate by putting
-this into it's own helper macro, so it finally would look like this ?
-
-+	if (copy_to_user_structs(response, resp, resp, path_data, i)))
->  		ret = -EFAULT;
-
-You've posted similar patches that also affected things like kzalloc().
-Maybe for those it would be better candidates for putting everything
-into its own helper macro ? (I've already got that on my 2do list, but
-not sure whether maintainers really like to be bothered with those
-kind of patches ;-)).
-
-
---mtx
-
--- 
-Enrico Weigelt, metux IT consult
-Free software and Linux embedded engineering
-info@metux.net -- +49-151-27565287
+Switching to a slightly cleaned up alloc_pages_exact is pretty easy,
+but it turns out that because we didn't filter valid gfp_t flags
+on the DMA allocator, a bunch of drivers were passing __GFP_COMP
+to it, which is rather bogus in too many ways to explain.  Arm has
+been filtering it for a while, but this series instead tries to fix
+the drivers and warn when __GFP_COMP is passed, which makes it much
+larger than just adding the functionality.
