@@ -1,57 +1,63 @@
-From: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
-Subject: RE: [PATCH 16/16] dma-mapping: use exact allocation in
- dma_alloc_contiguous
-Date: Fri, 14 Jun 2019 14:15:44 +0000
-Message-ID: <a90cf7ec5f1c4166b53c40e06d4d832a@AcuMS.aculab.com>
-References: <20190614134726.3827-1-hch@lst.de>
- <20190614134726.3827-17-hch@lst.de>
+From: Ajay Kaher <akaher@vmware.com>
+Subject: Re: [PATCH] [v4.14.y] infiniband: fix race condition between
+ infiniband mlx4, mlx5  driver and core dumping
+Date: Fri, 14 Jun 2019 14:41:39 +0000
+Message-ID: <9C189085-083D-46EA-98DB-B11AD62051B6@vmware.com>
+References: <1560199937-23476-1-git-send-email-akaher@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20190614134726.3827-17-hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1560199937-23476-1-git-send-email-akaher@vmware.com>
 Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, Maarten Lankhorst <maarten.lankhorst-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Maxime Ripard <maxime.ripard-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, Sean Paul <sean-p7yTbzM4H96eqtR555YLDQ@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ian Abbott <abbotti-GUHe90Wt2aFaa/9Udqfwiw@public.gmane.org>, H Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>
-Cc: Intel Linux Wireless <linuxwifi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "moderated list:ARM PORT" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-ID: <13955127BE722040A2F36BA3306CE790@namprd05.prod.outlook.com>
+Sender: stable-owner@vger.kernel.org
+To: "aarcange@redhat.com" <aarcange@redhat.com>, "jannh@google.com" <jannh@google.com>, "oleg@redhat.com" <oleg@redhat.com>, "peterx@redhat.com" <peterx@redhat.com>, "rppt@linux.ibm.com" <rppt@linux.ibm.com>, "jgg@mellanox.com" <jgg@mellanox.com>, "mhocko@suse.com" <mhocko@suse.com>
+Cc: "yishaih@mellanox.com" <yishaih@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "matanb@mellanox.com" <matanb@mellanox.com>, "leonro@mellanox.com" <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Srivatsa Bhat <srivatsab@vmware.com>, Alexey Makhalov <amakhalov@vmware.com>, Greg KH <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christoph Hellwig
-> Sent: 14 June 2019 14:47
-> 
-> Many architectures (e.g. arm, m68 and sh) have always used exact
-> allocation in their dma coherent allocator, which avoids a lot of
-> memory waste especially for larger allocations.  Lift this behavior
-> into the generic allocator so that dma-direct and the generic IOMMU
-> code benefit from this behavior as well.
-> 
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> ---
->  include/linux/dma-contiguous.h |  8 +++++---
->  kernel/dma/contiguous.c        | 17 +++++++++++------
->  2 files changed, 16 insertions(+), 9 deletions(-)
-> 
-> diff --git a/include/linux/dma-contiguous.h b/include/linux/dma-contiguous.h
-> index c05d4e661489..2e542e314acf 100644
-> --- a/include/linux/dma-contiguous.h
-> +++ b/include/linux/dma-contiguous.h
-> @@ -161,15 +161,17 @@ static inline struct page *dma_alloc_contiguous(struct device *dev, size_t size,
->  		gfp_t gfp)
->  {
->  	int node = dev ? dev_to_node(dev) : NUMA_NO_NODE;
-> -	size_t align = get_order(PAGE_ALIGN(size));
-> +	void *cpu_addr = alloc_pages_exact_node(node, size, gfp);
-> 
-> -	return alloc_pages_node(node, gfp, align);
-> +	if (!cpu_addr)
-> +		return NULL;
-> +	return virt_to_page(p);
->  }
-
-Does this still guarantee that requests for 16k will not cross a 16k boundary?
-It looks like you are losing the alignment parameter.
-
-There may be drivers and hardware that also require 12k allocates
-to not cross 16k boundaries (etc).
-
-	David
+DQrvu79PbiAxMC8wNi8xOSwgNjoyMiBQTSwgIkFqYXkgS2FoZXIiIDxha2FoZXJAdm13YXJlLmNv
+bT4gd3JvdGU6DQoNCj4gVGhpcyBwYXRjaCBpcyB0aGUgZXh0ZW5zaW9uIG9mIGZvbGxvd2luZyB1
+cHN0cmVhbSBjb21taXQgdG8gZml4DQo+IHRoZSByYWNlIGNvbmRpdGlvbiBiZXR3ZWVuIGdldF90
+YXNrX21tKCkgYW5kIGNvcmUgZHVtcGluZw0KPiBmb3IgSUItPm1seDQgYW5kIElCLT5tbHg1IGRy
+aXZlcnM6DQo+IA0KPiBjb21taXQgMDRmNTg2NmU0MWZiICgiY29yZWR1bXA6IGZpeCByYWNlIGNv
+bmRpdGlvbiBiZXR3ZWVuDQo+IG1tZ2V0X25vdF96ZXJvKCkvZ2V0X3Rhc2tfbW0oKSBhbmQgY29y
+ZSBkdW1waW5nIiknDQo+ICAgIA0KPiBUaGFua3MgdG8gSmFzb24gZm9yIHBvaW50aW5nIHRoaXMu
+DQo+ICAgIA0KPiBTaWduZWQtb2ZmLWJ5OiBBamF5IEthaGVyIDxha2FoZXJAdm13YXJlLmNvbT4N
+Cj4gQWNrZWQtYnk6IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4NCg0KR3JlZywg
+SSBob3BlIHlvdSB3b3VsZCBsaWtlIHRvIHJldmlldyBhbmQgcHJvY2VlZCBmdXJ0aGVyIHdpdGgg
+dGhpcyBwYXRjaC4gIA0KDQo+IC0tLQ0KPiBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tYWlu
+LmMgfCA0ICsrKy0NCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvbWFpbi5jIHwgMyArKysN
+Cj4gMiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gICAg
+DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tYWluLmMgYi9kcml2
+ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tYWluLmMNCj4gaW5kZXggZTJiZWIxOC4uMDI5OWMwNiAx
+MDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvbWFpbi5jDQo+ICsrKyBi
+L2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21haW4uYw0KPiBAQCAtMTE5Nyw2ICsxMTk3LDgg
+QEAgc3RhdGljIHZvaWQgbWx4NF9pYl9kaXNhc3NvY2lhdGVfdWNvbnRleHQoc3RydWN0IGliX3Vj
+b250ZXh0ICppYmNvbnRleHQpDQo+ICAJICogbWx4NF9pYl92bWFfY2xvc2UoKS4NCj4gIAkgKi8N
+Cj4gIAlkb3duX3dyaXRlKCZvd25pbmdfbW0tPm1tYXBfc2VtKTsNCj4gKwlpZiAoIW1tZ2V0X3N0
+aWxsX3ZhbGlkKG93bmluZ19tbSkpDQo+ICsJCWdvdG8gc2tpcF9tbTsNCj4gIAlmb3IgKGkgPSAw
+OyBpIDwgSFdfQkFSX0NPVU5UOyBpKyspIHsNCj4gIAkJdm1hID0gY29udGV4dC0+aHdfYmFyX2lu
+Zm9baV0udm1hOw0KPiAgCQlpZiAoIXZtYSkNCj4gIEBAIC0xMjE1LDcgKzEyMTcsNyBAQCBzdGF0
+aWMgdm9pZCBtbHg0X2liX2Rpc2Fzc29jaWF0ZV91Y29udGV4dChzdHJ1Y3QgaWJfdWNvbnRleHQg
+KmliY29udGV4dCkNCj4gIAkJLyogY29udGV4dCBnb2luZyB0byBiZSBkZXN0cm95ZWQsIHNob3Vs
+ZCBub3QgYWNjZXNzIG9wcyBhbnkgbW9yZSAqLw0KPiAgCQljb250ZXh0LT5od19iYXJfaW5mb1tp
+XS52bWEtPnZtX29wcyA9IE5VTEw7DQo+ICAJfQ0KPiAtDQo+ICtza2lwX21tOg0KPiAJdXBfd3Jp
+dGUoJm93bmluZ19tbS0+bW1hcF9zZW0pOw0KPiAgCW1tcHV0KG93bmluZ19tbSk7DQo+IAlwdXRf
+dGFza19zdHJ1Y3Qob3duaW5nX3Byb2Nlc3MpOw0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZp
+bmliYW5kL2h3L21seDUvbWFpbi5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvbWFpbi5j
+DQo+IGluZGV4IDEzYTkyMDYuLjNmYmUzOTYgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5p
+YmFuZC9ody9tbHg1L21haW4uYw0KPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9t
+YWluLmMNCj4gQEAgLTE2NDYsNiArMTY0Niw4IEBAIHN0YXRpYyB2b2lkIG1seDVfaWJfZGlzYXNz
+b2NpYXRlX3Vjb250ZXh0KHN0cnVjdCBpYl91Y29udGV4dCAqaWJjb250ZXh0KQ0KPiAgCSAqIG1s
+eDVfaWJfdm1hX2Nsb3NlLg0KPiAgCSAqLw0KPiAgCWRvd25fd3JpdGUoJm93bmluZ19tbS0+bW1h
+cF9zZW0pOw0KPiArCWlmICghbW1nZXRfc3RpbGxfdmFsaWQob3duaW5nX21tKSkNCj4gKwkJZ290
+byBza2lwX21tOw0KPiAgCW11dGV4X2xvY2soJmNvbnRleHQtPnZtYV9wcml2YXRlX2xpc3RfbXV0
+ZXgpOw0KPiAgCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZSh2bWFfcHJpdmF0ZSwgbiwgJmNvbnRl
+eHQtPnZtYV9wcml2YXRlX2xpc3QsDQo+ICAJCQkJIGxpc3QpIHsNCj4gQEAgLTE2NjIsNiArMTY2
+NCw3IEBAIHN0YXRpYyB2b2lkIG1seDVfaWJfZGlzYXNzb2NpYXRlX3Vjb250ZXh0KHN0cnVjdCBp
+Yl91Y29udGV4dCAqaWJjb250ZXh0KQ0KPiAgCQlrZnJlZSh2bWFfcHJpdmF0ZSk7DQo+ICAJfQ0K
+PiAgCW11dGV4X3VubG9jaygmY29udGV4dC0+dm1hX3ByaXZhdGVfbGlzdF9tdXRleCk7DQo+ICtz
+a2lwX21tOg0KPiAgCXVwX3dyaXRlKCZvd25pbmdfbW0tPm1tYXBfc2VtKTsNCj4gIAltbXB1dChv
+d25pbmdfbW0pOw0KPiAgCXB1dF90YXNrX3N0cnVjdChvd25pbmdfcHJvY2Vzcyk7DQo+IC0tIA0K
+PiAyLjcuNA0KICAgIA0KICAgIA0KDQo=
