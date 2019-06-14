@@ -1,50 +1,61 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] RDMA/cma: Make CM response timeout and # CM retries
- configurable
-Date: Thu, 13 Jun 2019 20:46:33 -0300
-Message-ID: <20190613234633.GL22901@ziepe.ca>
-References: <20190226075722.1692315-1-haakon.bugge@oracle.com>
- <174ccd37a9ffa05d0c7c03fe80ff7170a9270824.camel@redhat.com>
- <67B4F337-4C3A-4193-B1EF-42FD4765CBB7@oracle.com>
- <20190613172355.GF22901@ziepe.ca>
- <1D8E6B14-3336-42B3-B572-596DD2183D89@oracle.com>
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Date: Thu, 13 Jun 2019 17:00:11 -0700
+Message-ID: <20190614000010.GA783@iweiny-DESK2.sc.intel.com>
+References: <20190606104203.GF7433@quack2.suse.cz>
+ <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+ <20190607110426.GB12765@quack2.suse.cz>
+ <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
+ <20190608001036.GF14308@dread.disaster.area>
+ <20190612123751.GD32656@bombadil.infradead.org>
+ <20190613002555.GH14363@dread.disaster.area>
+ <20190613152755.GI32656@bombadil.infradead.org>
+ <20190613211321.GC32404@iweiny-DESK2.sc.intel.com>
+ <20190613234530.GK22901@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1D8E6B14-3336-42B3-B572-596DD2183D89@oracle.com>
+In-Reply-To: <20190613234530.GK22901@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Matthew Wilcox <willy@infradead.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 13, 2019 at 07:39:24PM +0200, Håkon Bugge wrote:
+On Thu, Jun 13, 2019 at 08:45:30PM -0300, Jason Gunthorpe wrote:
+> On Thu, Jun 13, 2019 at 02:13:21PM -0700, Ira Weiny wrote:
+> > On Thu, Jun 13, 2019 at 08:27:55AM -0700, Matthew Wilcox wrote:
+> > > On Thu, Jun 13, 2019 at 10:25:55AM +1000, Dave Chinner wrote:
+> > > > e.g. Process A has an exclusive layout lease on file F. It does an
+> > > > IO to file F. The filesystem IO path checks that Process A owns the
+> > > > lease on the file and so skips straight through layout breaking
+> > > > because it owns the lease and is allowed to modify the layout. It
+> > > > then takes the inode metadata locks to allocate new space and write
+> > > > new data.
+> > > > 
+> > > > Process B now tries to write to file F. The FS checks whether
+> > > > Process B owns a layout lease on file F. It doesn't, so then it
+> > > > tries to break the layout lease so the IO can proceed. The layout
+> > > > breaking code sees that process A has an exclusive layout lease
+> > > > granted, and so returns -ETXTBSY to process B - it is not allowed to
+> > > > break the lease and so the IO fails with -ETXTBSY.
+> > > 
+> > > This description doesn't match the behaviour that RDMA wants either.
+> > > Even if Process A has a lease on the file, an IO from Process A which
+> > > results in blocks being freed from the file is going to result in the
+> > > RDMA device being able to write to blocks which are now freed (and
+> > > potentially reallocated to another file).
+> > 
+> > I don't understand why this would not work for RDMA?  As long as the layout
+> > does not change the page pins can remain in place.
 > 
-> 
-> > On 13 Jun 2019, at 19:23, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > 
-> > On Thu, Jun 13, 2019 at 06:58:30PM +0200, Håkon Bugge wrote:
-> > 
-> >> If you refer to the backlog parameter in rdma_listen(), I cannot see
-> >> it being used at all for IB.
-> >> 
-> >> For CX-3, which is paravirtualized wrt. MAD packets, it is the proxy
-> >> UD receive queue length for the PF driver that can be construed as a
-> >> backlog. 
-> > 
-> > No, in IB you can drop UD packets if your RQ is full - so the proxy RQ
-> > is really part of the overall RQ on QP1.
-> > 
-> > The backlog starts once packets are taken off the RQ and begin the
-> > connection accept processing.
-> 
-> Do think we say the same thing. If, incoming REQ processing is
-> severly delayed, the backlog is #entries in the QP1 receive queue in
-> the PF. I can call rdma_listen() with a backlog of a zillion, but it
-> will not help.
+> Because process A had a layout lease (and presumably a MR) and the
+> layout was still modified in way that invalidates the RDMA MR.
 
-backlog and queue depth are different things, we shouldn't confuse
-them together..
+Oh sorry I miss read the above...  (got Process A and  B mixed up...)
 
-Jason
+Right, but Process A still can't free those blocks because the gup pin exists
+on them...  So yea it can't _just_ be a layout lease which controls this on the
+"file fd".
+
+Ira
