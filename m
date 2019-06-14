@@ -1,100 +1,171 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc 2/7] IB/hfi1: Silence txreq allocation warnings
-Date: Fri, 14 Jun 2019 12:32:32 -0400
-Message-ID: <20190614163231.44927.3897.stgit@awfm-01.aw.intel.com>
-References: <20190614163146.44927.95985.stgit@awfm-01.aw.intel.com>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+Subject: Re: [Intel-gfx] [PATCH 03/16] drm/i915: stop using drm_pci_alloc
+Date: Fri, 14 Jun 2019 19:45:49 +0300
+Message-ID: <20190614164549.GD5942@intel.com>
+References: <20190614134726.3827-1-hch@lst.de>
+ <20190614134726.3827-4-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190614163146.44927.95985.stgit@awfm-01.aw.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190614134726.3827-4-hch@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, "moderated list:ARM PORT" <linux-a>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+On Fri, Jun 14, 2019 at 03:47:13PM +0200, Christoph Hellwig wrote:
+> Remove usage of the legacy drm PCI DMA wrappers, and with that the
+> incorrect usage cocktail of __GFP_COMP, virt_to_page on DMA allocation
+> and SetPageReserved.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/gpu/drm/i915/i915_gem.c        | 30 +++++++++++++-------------
+>  drivers/gpu/drm/i915/i915_gem_object.h |  3 ++-
+>  drivers/gpu/drm/i915/intel_display.c   |  2 +-
+>  3 files changed, 18 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+> index ad01c92aaf74..8f2053c91aff 100644
+> --- a/drivers/gpu/drm/i915/i915_gem.c
+> +++ b/drivers/gpu/drm/i915/i915_gem.c
+> @@ -228,7 +228,6 @@ i915_gem_get_aperture_ioctl(struct drm_device *dev, void *data,
+>  static int i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
+>  {
+>  	struct address_space *mapping = obj->base.filp->f_mapping;
+> -	drm_dma_handle_t *phys;
+>  	struct sg_table *st;
+>  	struct scatterlist *sg;
+>  	char *vaddr;
+> @@ -242,13 +241,13 @@ static int i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
+>  	 * to handle all possible callers, and given typical object sizes,
+>  	 * the alignment of the buddy allocation will naturally match.
+>  	 */
+> -	phys = drm_pci_alloc(obj->base.dev,
+> -			     roundup_pow_of_two(obj->base.size),
+> -			     roundup_pow_of_two(obj->base.size));
+> -	if (!phys)
+> +	obj->phys_vaddr = dma_alloc_coherent(&obj->base.dev->pdev->dev,
+> +			roundup_pow_of_two(obj->base.size),
+> +			&obj->phys_handle, GFP_KERNEL);
+> +	if (!obj->phys_vaddr)
+>  		return -ENOMEM;
+>  
+> -	vaddr = phys->vaddr;
+> +	vaddr = obj->phys_vaddr;
+>  	for (i = 0; i < obj->base.size / PAGE_SIZE; i++) {
+>  		struct page *page;
+>  		char *src;
+> @@ -286,18 +285,17 @@ static int i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
+>  	sg->offset = 0;
+>  	sg->length = obj->base.size;
+>  
+> -	sg_dma_address(sg) = phys->busaddr;
+> +	sg_dma_address(sg) = obj->phys_handle;
+>  	sg_dma_len(sg) = obj->base.size;
+>  
+> -	obj->phys_handle = phys;
+> -
+>  	__i915_gem_object_set_pages(obj, st, sg->length);
+>  
+>  	return 0;
+>  
+>  err_phys:
+> -	drm_pci_free(obj->base.dev, phys);
+> -
+> +	dma_free_coherent(&obj->base.dev->pdev->dev,
+> +			roundup_pow_of_two(obj->base.size), obj->phys_vaddr,
+> +			obj->phys_handle);
 
-The following warning can happen when a memory shortage
-occurs during txreq allocation:
+Need to undo the damage to obj->phys_vaddr here since
+i915_gem_pwrite_ioctl() will now use that to determine if it's
+dealing with a phys obj.
 
-[10220.939246] SLUB: Unable to allocate memory on node -1, gfp=0xa20(GFP_ATOMIC)
-[10220.939246] Hardware name: Intel Corporation S2600WT2R/S2600WT2R, BIOS SE5C610.86B.01.01.0018.C4.072020161249 07/20/2016
-[10220.939247]   cache: mnt_cache, object size: 384, buffer size: 384, default order: 2, min order: 0
-[10220.939260] Workqueue: hfi0_0 _hfi1_do_send [hfi1]
-[10220.939261]   node 0: slabs: 1026568, objs: 43115856, free: 0
-[10220.939262] Call Trace:
-[10220.939262]   node 1: slabs: 820872, objs: 34476624, free: 0
-[10220.939263]  dump_stack+0x5a/0x73
-[10220.939265]  warn_alloc+0x103/0x190
-[10220.939267]  ? wake_all_kswapds+0x54/0x8b
-[10220.939268]  __alloc_pages_slowpath+0x86c/0xa2e
-[10220.939270]  ? __alloc_pages_nodemask+0x2fe/0x320
-[10220.939271]  __alloc_pages_nodemask+0x2fe/0x320
-[10220.939273]  new_slab+0x475/0x550
-[10220.939275]  ___slab_alloc+0x36c/0x520
-[10220.939287]  ? hfi1_make_rc_req+0x90/0x18b0 [hfi1]
-[10220.939299]  ? __get_txreq+0x54/0x160 [hfi1]
-[10220.939310]  ? hfi1_make_rc_req+0x90/0x18b0 [hfi1]
-[10220.939312]  __slab_alloc+0x40/0x61
-[10220.939323]  ? hfi1_make_rc_req+0x90/0x18b0 [hfi1]
-[10220.939325]  kmem_cache_alloc+0x181/0x1b0
-[10220.939336]  hfi1_make_rc_req+0x90/0x18b0 [hfi1]
-[10220.939348]  ? hfi1_verbs_send_dma+0x386/0xa10 [hfi1]
-[10220.939359]  ? find_prev_entry+0xb0/0xb0 [hfi1]
-[10220.939371]  hfi1_do_send+0x1d9/0x3f0 [hfi1]
-[10220.939372]  process_one_work+0x171/0x380
-[10220.939374]  worker_thread+0x49/0x3f0
-[10220.939375]  kthread+0xf8/0x130
-[10220.939377]  ? max_active_store+0x80/0x80
-[10220.939378]  ? kthread_bind+0x10/0x10
-[10220.939379]  ret_from_fork+0x35/0x40
-[10220.939381] SLUB: Unable to allocate memory on node -1, gfp=0xa20(GFP_ATOMIC)
+>  	return err;
+>  }
+>  
+> @@ -335,7 +333,7 @@ i915_gem_object_put_pages_phys(struct drm_i915_gem_object *obj,
+>  
+>  	if (obj->mm.dirty) {
+>  		struct address_space *mapping = obj->base.filp->f_mapping;
+> -		char *vaddr = obj->phys_handle->vaddr;
+> +		char *vaddr = obj->phys_vaddr;
+>  		int i;
+>  
+>  		for (i = 0; i < obj->base.size / PAGE_SIZE; i++) {
+> @@ -363,7 +361,9 @@ i915_gem_object_put_pages_phys(struct drm_i915_gem_object *obj,
+>  	sg_free_table(pages);
+>  	kfree(pages);
+>  
+> -	drm_pci_free(obj->base.dev, obj->phys_handle);
+> +	dma_free_coherent(&obj->base.dev->pdev->dev,
+> +			roundup_pow_of_two(obj->base.size), obj->phys_vaddr,
+> +			obj->phys_handle);
 
-The shortage is handled properly so the message isn't needed. Silence by
-adding the no warn option to the slab allocation.
+This one is fine I think since the object remains a phys obj once
+turned into one. At least the current code isn't clearing
+phys_handle here. But my memory is a bit hazy on the details. Chris?
 
-Fixes: 45842abbb292 ("staging/rdma/hfi1: move txreq header code")
-Cc: <stable@vger.kernel.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/verbs_txreq.c |    2 +-
- drivers/infiniband/hw/hfi1/verbs_txreq.h |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+Also maybe s/phys_handle/phys_busaddr/ all over?
 
-diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.c b/drivers/infiniband/hw/hfi1/verbs_txreq.c
-index c4ab2d5..8f766dd 100644
---- a/drivers/infiniband/hw/hfi1/verbs_txreq.c
-+++ b/drivers/infiniband/hw/hfi1/verbs_txreq.c
-@@ -100,7 +100,7 @@ struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
- 	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
- 		struct hfi1_qp_priv *priv;
- 
--		tx = kmem_cache_alloc(dev->verbs_txreq_cache, GFP_ATOMIC);
-+		tx = kmem_cache_alloc(dev->verbs_txreq_cache, VERBS_TXREQ_GFP);
- 		if (tx)
- 			goto out;
- 		priv = qp->priv;
-diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.h b/drivers/infiniband/hw/hfi1/verbs_txreq.h
-index b002e96..bfa6e08 100644
---- a/drivers/infiniband/hw/hfi1/verbs_txreq.h
-+++ b/drivers/infiniband/hw/hfi1/verbs_txreq.h
-@@ -72,6 +72,7 @@ struct verbs_txreq {
- struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
- 				struct rvt_qp *qp);
- 
-+#define VERBS_TXREQ_GFP (GFP_ATOMIC | __GFP_NOWARN)
- static inline struct verbs_txreq *get_txreq(struct hfi1_ibdev *dev,
- 					    struct rvt_qp *qp)
- 	__must_hold(&qp->slock)
-@@ -79,7 +80,7 @@ static inline struct verbs_txreq *get_txreq(struct hfi1_ibdev *dev,
- 	struct verbs_txreq *tx;
- 	struct hfi1_qp_priv *priv = qp->priv;
- 
--	tx = kmem_cache_alloc(dev->verbs_txreq_cache, GFP_ATOMIC);
-+	tx = kmem_cache_alloc(dev->verbs_txreq_cache, VERBS_TXREQ_GFP);
- 	if (unlikely(!tx)) {
- 		/* call slow path to get the lock */
- 		tx = __get_txreq(dev, qp);
+>  }
+>  
+>  static void
+> @@ -603,7 +603,7 @@ i915_gem_phys_pwrite(struct drm_i915_gem_object *obj,
+>  		     struct drm_i915_gem_pwrite *args,
+>  		     struct drm_file *file)
+>  {
+> -	void *vaddr = obj->phys_handle->vaddr + args->offset;
+> +	void *vaddr = obj->phys_vaddr + args->offset;
+>  	char __user *user_data = u64_to_user_ptr(args->data_ptr);
+>  
+>  	/* We manually control the domain here and pretend that it
+> @@ -1431,7 +1431,7 @@ i915_gem_pwrite_ioctl(struct drm_device *dev, void *data,
+>  		ret = i915_gem_gtt_pwrite_fast(obj, args);
+>  
+>  	if (ret == -EFAULT || ret == -ENOSPC) {
+> -		if (obj->phys_handle)
+> +		if (obj->phys_vaddr)
+>  			ret = i915_gem_phys_pwrite(obj, args, file);
+>  		else
+>  			ret = i915_gem_shmem_pwrite(obj, args);
+> diff --git a/drivers/gpu/drm/i915/i915_gem_object.h b/drivers/gpu/drm/i915/i915_gem_object.h
+> index ca93a40c0c87..14bd2d61d0f6 100644
+> --- a/drivers/gpu/drm/i915/i915_gem_object.h
+> +++ b/drivers/gpu/drm/i915/i915_gem_object.h
+> @@ -290,7 +290,8 @@ struct drm_i915_gem_object {
+>  	};
+>  
+>  	/** for phys allocated objects */
+> -	struct drm_dma_handle *phys_handle;
+> +	dma_addr_t phys_handle;
+> +	void *phys_vaddr;
+>  
+>  	struct reservation_object __builtin_resv;
+>  };
+> diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+> index 5098228f1302..4f8b368ac4e2 100644
+> --- a/drivers/gpu/drm/i915/intel_display.c
+> +++ b/drivers/gpu/drm/i915/intel_display.c
+> @@ -10066,7 +10066,7 @@ static u32 intel_cursor_base(const struct intel_plane_state *plane_state)
+>  	u32 base;
+>  
+>  	if (INTEL_INFO(dev_priv)->display.cursor_needs_physical)
+> -		base = obj->phys_handle->busaddr;
+> +		base = obj->phys_handle;
+>  	else
+>  		base = intel_plane_ggtt_offset(plane_state);
+>  
+> -- 
+> 2.20.1
+> 
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
+
+-- 
+Ville Syrjälä
+Intel
