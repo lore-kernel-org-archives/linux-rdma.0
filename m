@@ -1,116 +1,148 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH net-next v3 2/2] ipoib: show VF broadcast address
-Date: Fri, 14 Jun 2019 15:32:49 +0200
-Message-ID: <20190614133249.18308-4-dkirjanov@suse.com>
-References: <20190614133249.18308-1-dkirjanov@suse.com>
+Subject: Re: [PATCH net-next v2 2/2] ipoib: show VF broadcast address
+Date: Fri, 14 Jun 2019 16:37:02 +0300
+Message-ID: <CAOJe8K1OycscWUKfYKP73bK_eJdmG3=-_yK6ajSUpXpfGEEgwQ@mail.gmail.com>
+References: <20190613142003.129391-1-dkirjanov@suse.com> <20190613142003.129391-4-dkirjanov@suse.com>
+ <20190613163941.GK31797@unicorn.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190614133249.18308-1-dkirjanov@suse.com>
+In-Reply-To: <20190613163941.GK31797@unicorn.suse.cz>
 Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, dledford@redhat.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
+To: Michal Kubecek <mkubecek@suse.cz>
+Cc: davem@davemloft.net, dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-in IPoIB case we can't see a VF broadcast address for but
-can see for PF
+On 6/13/19, Michal Kubecek <mkubecek@suse.cz> wrote:
+> On Thu, Jun 13, 2019 at 04:20:03PM +0200, Denis Kirjanov wrote:
+>> in IPoIB case we can't see a VF broadcast address for but
+>> can see for PF
+>>
+>> Before:
+>> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+>> state UP mode DEFAULT group default qlen 256
+>>     link/infiniband
+>> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+>> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>>     vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
+>> trust off, query_rss off
+>> ...
+>>
+>> After:
+>> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+>> state UP mode DEFAULT group default qlen 256
+>>     link/infiniband
+>> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+>> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>>     vf 0     link/infiniband
+>> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+>> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+>> checking off, link-state disable, trust off, query_rss off
+>>
+>> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+>> ---
+>>  include/uapi/linux/if_link.h | 5 +++++
+>>  net/core/rtnetlink.c         | 6 ++++++
+>>  2 files changed, 11 insertions(+)
+>>
+>> diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
+>> index 5b225ff63b48..1f36dd3a45d6 100644
+>> --- a/include/uapi/linux/if_link.h
+>> +++ b/include/uapi/linux/if_link.h
+>> @@ -681,6 +681,7 @@ enum {
+>>  enum {
+>>  	IFLA_VF_UNSPEC,
+>>  	IFLA_VF_MAC,		/* Hardware queue specific attributes */
+>> +	IFLA_VF_BROADCAST,
+>>  	IFLA_VF_VLAN,		/* VLAN ID and QoS */
+>>  	IFLA_VF_TX_RATE,	/* Max TX Bandwidth Allocation */
+>>  	IFLA_VF_SPOOFCHK,	/* Spoof Checking on/off switch */
+>
+> Oops, I forgot to mention one important point when reviewing v1: the new
+> attribute type must be added at the end (just before __IFLA_VF_MAX) so
+> that you do not change value of existing IFLA_VF_* constants (this would
+> break compatibility).
 
-Before:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-    link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-    vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
-trust off, query_rss off
-...
+Right, I've also missed that that the change breaks KABI.
 
-After:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-    link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-    vf 0     link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-checking off, link-state disable, trust off, query_rss off
+>
+>> @@ -704,6 +705,10 @@ struct ifla_vf_mac {
+>>  	__u8 mac[32]; /* MAX_ADDR_LEN */
+>>  };
+>>
+>> +struct ifla_vf_broadcast {
+>> +	__u8 broadcast[32];
+>> +};
+>> +
+>>  struct ifla_vf_vlan {
+>>  	__u32 vf;
+>>  	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
+>
+> My first idea was that to question the need of a wrapping structure as
+> we couldn't modify that structure in the future anyway so that there
+> does not seem to be any gain against simply passing the address as a
+> binary with attribute length equal to address length (like we do with
+> IFLA_ADDRESS and IFLA_BROADCAST).
+>
+> But then I checked other IFLA_VF_* attributes and I'm confused. The
+> structure seems to be
+>
+>     IFLA_VF_INFO_LIST
+>         IFLA_VF_INFO
+>             IFLA_VF_MAC
+>             IFLA_VF_VLAN
+>             ...
+>         IFLA_VF_INFO
+>             IFLA_VF_MAC
+>             IFLA_VF_VLAN
+>             ...
+>         ...
+>
+> Each IFLA_VF_INFO corresponds to one virtual function but its number is
+> not determined by an attribute within this nest. Instead, each of the
+> neste IFLA_VF_* attributes is a structure containing "__u32 vf" and it's
+> only matter of convention that within one IFLA_VF_INFO nest, all data
+> belongs to the same VF, neither do_setlink() nor do_setvfinfo() check
+> it.
+>
+> I guess you should either follow this weird pattern or introduce proper
+> IFLA_VF_ID to be used for IFLA_VF_BROADCAST and all future IFLA_VF_*
+> attributes. However, each new attribute makes IFLA_VF_INFO bigger and
+> lowers the number of VFs that can be stored in an IFLA_VF_INFO_LIST nest
+> without exceeding the hard limit of 65535 bytes so that we cannot afford
+> to add too many.
 
-v1->v2: add the IFLA_VF_BROADCAST constant
-v2->v3: put IFLA_VF_BROADCAST at the end
-to avoid KABI breakage and set NLA_REJECT
-dev_setlink
+I've just put it as other attrs for now.
 
-Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
----
- include/uapi/linux/if_link.h | 5 +++++
- net/core/rtnetlink.c         | 5 +++++
- 2 files changed, 10 insertions(+)
+>
+>> diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+>> index cec60583931f..88304212f127 100644
+>> --- a/net/core/rtnetlink.c
+>> +++ b/net/core/rtnetlink.c
+> ...
+>> @@ -1753,6 +1758,7 @@ static const struct nla_policy
+>> ifla_info_policy[IFLA_INFO_MAX+1] = {
+>>
+>>  static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] = {
+>>  	[IFLA_VF_MAC]		= { .len = sizeof(struct ifla_vf_mac) },
+>> +	[IFLA_VF_BROADCAST]	= {. len = sizeof(struct ifla_vf_broadcast) },
+>>  	[IFLA_VF_VLAN]		= { .len = sizeof(struct ifla_vf_vlan) },
+>>  	[IFLA_VF_VLAN_LIST]     = { .type = NLA_NESTED },
+>>  	[IFLA_VF_TX_RATE]	= { .len = sizeof(struct ifla_vf_tx_rate) },
+>
+> As you do not implement setting the broadcast address (is that possible
+> at all?),
 
-diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
-index 5b225ff63b48..6f75bda2c2d7 100644
---- a/include/uapi/linux/if_link.h
-+++ b/include/uapi/linux/if_link.h
-@@ -694,6 +694,7 @@ enum {
- 	IFLA_VF_IB_NODE_GUID,	/* VF Infiniband node GUID */
- 	IFLA_VF_IB_PORT_GUID,	/* VF Infiniband port GUID */
- 	IFLA_VF_VLAN_LIST,	/* nested list of vlans, option for QinQ */
-+	IFLA_VF_BROADCAST,	/* VF broadcast */
- 	__IFLA_VF_MAX,
- };
- 
-@@ -704,6 +705,10 @@ struct ifla_vf_mac {
- 	__u8 mac[32]; /* MAX_ADDR_LEN */
- };
- 
-+struct ifla_vf_broadcast {
-+	__u8 broadcast[32];
-+};
-+
- struct ifla_vf_vlan {
- 	__u32 vf;
- 	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index cec60583931f..8ac81630ab5c 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -908,6 +908,7 @@ static inline int rtnl_vfinfo_size(const struct net_device *dev,
- 		size += num_vfs *
- 			(nla_total_size(0) +
- 			 nla_total_size(sizeof(struct ifla_vf_mac)) +
-+			 nla_total_size(sizeof(struct ifla_vf_broadcast)) +
- 			 nla_total_size(sizeof(struct ifla_vf_vlan)) +
- 			 nla_total_size(0) + /* nest IFLA_VF_VLAN_LIST */
- 			 nla_total_size(MAX_VLAN_LIST_LEN *
-@@ -1197,6 +1198,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
- 	struct ifla_vf_vlan vf_vlan;
- 	struct ifla_vf_rate vf_rate;
- 	struct ifla_vf_mac vf_mac;
-+	struct ifla_vf_broadcast vf_broadcast;
- 	struct ifla_vf_info ivi;
- 
- 	memset(&ivi, 0, sizeof(ivi));
-@@ -1231,6 +1233,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
- 		vf_trust.vf = ivi.vf;
- 
- 	memcpy(vf_mac.mac, ivi.mac, sizeof(ivi.mac));
-+	memcpy(vf_broadcast.broadcast, dev->broadcast, dev->addr_len);
- 	vf_vlan.vlan = ivi.vlan;
- 	vf_vlan.qos = ivi.qos;
- 	vf_vlan_info.vlan = ivi.vlan;
-@@ -1247,6 +1250,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
- 	if (!vf)
- 		goto nla_put_vfinfo_failure;
- 	if (nla_put(skb, IFLA_VF_MAC, sizeof(vf_mac), &vf_mac) ||
-+	    nla_put(skb, IFLA_VF_BROADCAST, sizeof(vf_broadcast), &vf_broadcast) ||
- 	    nla_put(skb, IFLA_VF_VLAN, sizeof(vf_vlan), &vf_vlan) ||
- 	    nla_put(skb, IFLA_VF_RATE, sizeof(vf_rate),
- 		    &vf_rate) ||
-@@ -1753,6 +1757,7 @@ static const struct nla_policy ifla_info_policy[IFLA_INFO_MAX+1] = {
- 
- static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] = {
- 	[IFLA_VF_MAC]		= { .len = sizeof(struct ifla_vf_mac) },
-+	[IFLA_VF_BROADCAST]	= { .type = NLA_REJECT },
- 	[IFLA_VF_VLAN]		= { .len = sizeof(struct ifla_vf_vlan) },
- 	[IFLA_VF_VLAN_LIST]     = { .type = NLA_NESTED },
- 	[IFLA_VF_TX_RATE]	= { .len = sizeof(struct ifla_vf_tx_rate) },
--- 
-2.12.3
+According to rfc4391 it's formed from the components like p_key,
+q_key, mtu and other.
+
+ NLA_REJECT would be more appropriate so that the request isn't
+> silently ignored.
+
+Anyway, I've sent v3.
+
+Thanks!
+
+>
+> Michal
+>
