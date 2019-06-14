@@ -1,152 +1,63 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 2/2] ipoib: show VF broadcast address
-Date: Fri, 14 Jun 2019 13:46:43 -0400
-Message-ID: <f91615fe4a883ccb6490aec11ef4ae64cdd9e494.camel@redhat.com>
-References: <20190614133249.18308-1-dkirjanov@suse.com>
-         <20190614133249.18308-2-dkirjanov@suse.com>
+Subject: Re: RDMA: Clean destroy CQ in drivers do not return errors
+Date: Fri, 14 Jun 2019 15:46:50 -0400
+Message-ID: <ee0c017e93e28317791b7395e257801a208c7306.camel@redhat.com>
+References: <68d62660-902c-ca49-20fd-32e92830faa7@canonical.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-2TqKf2wcaxprFekRzaj+"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190614133249.18308-2-dkirjanov@suse.com>
-Sender: netdev-owner@vger.kernel.org
-To: Denis Kirjanov <kda@linux-powerpc.org>, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz
+        protocol="application/pgp-signature"; boundary="=-oclBt3wpyL1/z9Jqf2cH"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <68d62660-902c-ca49-20fd-32e92830faa7@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin Ian King <colin.king@canonical.com>, Leon Romanovsky <leonro@mellanox.com>, Gal Pressman <galpress@amazon.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-2TqKf2wcaxprFekRzaj+
+--=-oclBt3wpyL1/z9Jqf2cH
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2019-06-14 at 15:32 +0200, Denis Kirjanov wrote:
-> in IPoIB case we can't see a VF broadcast address for but
-> can see for PF
+On Fri, 2019-06-14 at 14:59 +0100, Colin Ian King wrote:
+> Hi,
 >=20
-> Before:
-> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-> state UP mode DEFAULT group default qlen 256
->     link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
->     vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state
-> disable,
-> trust off, query_rss off
-> ...
-
-The above Before: output should be used as the After: portion of the
-previous commit message.  The previos commit does not fully resolve the
-problem, but yet the commit message acts as though it does.
-
+> Static analysis with Coverity reported an issue with the following
+> commit:
 >=20
-> After:
-> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-> state UP mode DEFAULT group default qlen 256
->     link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
->     vf 0     link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-> checking off, link-state disable, trust off, query_rss off
-
-Ok, I get why the After: should have a valid broadcast.  What I don't
-get is why the Before: shows a MAC and the After: shows a
-link/infiniband?  What change in this patch is responsible for that
-difference?  I honestly expect, by reading this patch, that you would
-have a MAC and Broadcast that look like Ethernet, not that the full
-issue would be resolved.
-
-> v1->v2: add the IFLA_VF_BROADCAST constant
-> v2->v3: put IFLA_VF_BROADCAST at the end
-> to avoid KABI breakage and set NLA_REJECT
-> dev_setlink
+> commit a52c8e2469c30cf7ac453d624aed9c168b23d1af
+> Author: Leon Romanovsky <leonro@mellanox.com>
+> Date:   Tue May 28 14:37:28 2019 +0300
 >=20
-> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
-> ---
->  include/uapi/linux/if_link.h | 5 +++++
->  net/core/rtnetlink.c         | 5 +++++
->  2 files changed, 10 insertions(+)
+>     RDMA: Clean destroy CQ in drivers do not return errors
 >=20
-> diff --git a/include/uapi/linux/if_link.h
-> b/include/uapi/linux/if_link.h
-> index 5b225ff63b48..6f75bda2c2d7 100644
-> --- a/include/uapi/linux/if_link.h
-> +++ b/include/uapi/linux/if_link.h
-> @@ -694,6 +694,7 @@ enum {
->  	IFLA_VF_IB_NODE_GUID,	/* VF Infiniband node GUID */
->  	IFLA_VF_IB_PORT_GUID,	/* VF Infiniband port GUID */
->  	IFLA_VF_VLAN_LIST,	/* nested list of vlans, option for
-> QinQ */
-> +	IFLA_VF_BROADCAST,	/* VF broadcast */
->  	__IFLA_VF_MAX,
->  };
-> =20
-> @@ -704,6 +705,10 @@ struct ifla_vf_mac {
->  	__u8 mac[32]; /* MAX_ADDR_LEN */
->  };
-> =20
-> +struct ifla_vf_broadcast {
-> +	__u8 broadcast[32];
-> +};
-> +
->  struct ifla_vf_vlan {
->  	__u32 vf;
->  	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
-> diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-> index cec60583931f..8ac81630ab5c 100644
-> --- a/net/core/rtnetlink.c
-> +++ b/net/core/rtnetlink.c
-> @@ -908,6 +908,7 @@ static inline int rtnl_vfinfo_size(const struct
-> net_device *dev,
->  		size +=3D num_vfs *
->  			(nla_total_size(0) +
->  			 nla_total_size(sizeof(struct ifla_vf_mac)) +
-> +			 nla_total_size(sizeof(struct
-> ifla_vf_broadcast)) +
->  			 nla_total_size(sizeof(struct ifla_vf_vlan)) +
->  			 nla_total_size(0) + /* nest IFLA_VF_VLAN_LIST
-> */
->  			 nla_total_size(MAX_VLAN_LIST_LEN *
-> @@ -1197,6 +1198,7 @@ static noinline_for_stack int
-> rtnl_fill_vfinfo(struct sk_buff *skb,
->  	struct ifla_vf_vlan vf_vlan;
->  	struct ifla_vf_rate vf_rate;
->  	struct ifla_vf_mac vf_mac;
-> +	struct ifla_vf_broadcast vf_broadcast;
->  	struct ifla_vf_info ivi;
-> =20
->  	memset(&ivi, 0, sizeof(ivi));
-> @@ -1231,6 +1233,7 @@ static noinline_for_stack int
-> rtnl_fill_vfinfo(struct sk_buff *skb,
->  		vf_trust.vf =3D ivi.vf;
-> =20
->  	memcpy(vf_mac.mac, ivi.mac, sizeof(ivi.mac));
-> +	memcpy(vf_broadcast.broadcast, dev->broadcast, dev->addr_len);
->  	vf_vlan.vlan =3D ivi.vlan;
->  	vf_vlan.qos =3D ivi.qos;
->  	vf_vlan_info.vlan =3D ivi.vlan;
-> @@ -1247,6 +1250,7 @@ static noinline_for_stack int
-> rtnl_fill_vfinfo(struct sk_buff *skb,
->  	if (!vf)
->  		goto nla_put_vfinfo_failure;
->  	if (nla_put(skb, IFLA_VF_MAC, sizeof(vf_mac), &vf_mac) ||
-> +	    nla_put(skb, IFLA_VF_BROADCAST, sizeof(vf_broadcast),
-> &vf_broadcast) ||
->  	    nla_put(skb, IFLA_VF_VLAN, sizeof(vf_vlan), &vf_vlan) ||
->  	    nla_put(skb, IFLA_VF_RATE, sizeof(vf_rate),
->  		    &vf_rate) ||
-> @@ -1753,6 +1757,7 @@ static const struct nla_policy
-> ifla_info_policy[IFLA_INFO_MAX+1] =3D {
-> =20
->  static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] =3D {
->  	[IFLA_VF_MAC]		=3D { .len =3D sizeof(struct ifla_vf_mac)
-> },
-> +	[IFLA_VF_BROADCAST]	=3D { .type =3D NLA_REJECT },
->  	[IFLA_VF_VLAN]		=3D { .len =3D sizeof(struct
-> ifla_vf_vlan) },
->  	[IFLA_VF_VLAN_LIST]     =3D { .type =3D NLA_NESTED },
->  	[IFLA_VF_TX_RATE]	=3D { .len =3D sizeof(struct ifla_vf_tx_rate) },
+> In function bnxt_re_destroy_cq() contains the following:
+>=20
+>         if (!cq->umem)
+>                 ib_umem_release(cq->umem);
+
+Given that the original test that was replaced was:
+	if (!IS_ERR_OR_NULL(cq->umem))
+
+we aren't really worried about a null cq, just that umem is valid.  So,
+the logic is inverted on the test (or possibly we shouldn't have
+replaced !IS_ERR_OR_NULL(cq->umem) at all).
+
+But on closer inspection, the bnxt_re specific portion of this patch
+appears to have another problem in that it no longer checks the result
+of bnxt_qplib_destroy_cq() yet it does nothing to keep that function
+from failing.
+
+Leon, can you send a followup fix?
+
+> Coverity detects this as a deference after null check on the null
+> pointer cq->umem:
+>=20
+> "var_deref_model: Passing null pointer cq->umem to ib_umem_release,
+> which dereferences it"
+>=20
+> Is the logic inverted on that null check?
+>=20
+> Colin
 
 --=20
 Doug Ledford <dledford@redhat.com>
@@ -154,26 +65,26 @@ Doug Ledford <dledford@redhat.com>
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
 2FDD
 
---=-2TqKf2wcaxprFekRzaj+
+--=-oclBt3wpyL1/z9Jqf2cH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0D3YMACgkQuCajMw5X
-L90EfQ/+JJh0Hz6r/mLXCvqdNd8wzfuGlJvbgkB+MVsUO+OtEK1sYsnm1SYeib9D
-DKpZub957TzmlKwPvLSAGyxt/7AW2P6TgPigDz2ljudd7TrdaLTPow0vTe/qMuuS
-WYkni0SfWe+iuKvuKuKEoQ96NoVEp/YA0YMvmvklcqN+sN2gkkjNMF07uuifSTiK
-e5D6Y1ju7E6cuxkBPZtY1nyNTIyo2uuAg0Q8Q9Ra+mYXSyJfsGh9AeagpXcYDZFr
-Laf/W1s9dwfynjccSouxPW3dclmfQPT5HLIsrLuDKUfb/SrVFg8qlTVDMDgpshPC
-xXVho7hUdluxOb2PA6Biu/Axg/U3ufWQ6ocZivpIrPzCNCtCFK1zEH1k7Z34p4mR
-FFxFZbpCEZiZ80nQHWfnefokO8xQ1g0+bc/Jh9FvriSWnxT/kZQXoo0XpIZqWCqD
-iWEQ5YQE7rKibvM2xvDBm/9cIQuZEJ+/kgKUfJt/DmQelPn+tFj+D+FmOjlS16O2
-+g/a/He6hyoKrSzYpZfXSPTvNHNTM51GD0ea9m9ah5nfkSf93teosRkZdljfyBsa
-2t2yNxi4OOuS8nz9RKqyktBpUOhQmo1P//UTC8KDY4arojQhdd+Sv2DYOB4aSuha
-eNgwqCGTh47fo5UkMcnAsPMTiFQQkBAGIBZpuqubDnzdsLDfdj8=
-=uEhD
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0D+aoACgkQuCajMw5X
+L92tOA//WBx64wApAfYYhQxaTRKXZLJQhiLjnObsbdbdnLBZbluvKdmWTQoWeuhz
+9AZD/okm8UQudNP94wn9wDJYTkrICHIB5rp/HDTD4h2Rvm4pqMwUwKD69C21kl3/
+b4Ggw+i9R3jRLR+jAJk+vsT8gVpUztnrDAPeqGf68dvH/Ms8se5nCP2FPTUfm0OD
+i65BNrbryB1sX1oHzkNWbf0APmPPbR1GNPlrjykwQEOFbfdsf/bJ9MUb58SnKtOP
+R2ntK1epLbIhPAYYOig4/JSdKfe/D5BS8BiXZiQeVH4COyyLiSxsCGqzVQ2Vtu71
+P3l27U6NaLiOW18XorOoc8J0GdEb+kS7zoas8blEdiJM48j0Pptp+wjiaOLwjTqZ
+4yL79btwVY8qYbMTXCbMttYRrvk3GEeTNQt226/Cv7xwpRbP8GV239BsetOWcLb8
+1Cvnu30q9cDwLOdpBC1BEyExOkHLDuWf6E3t9kaLuKhDEpt1QDPbkd6VNjNM1K3T
+Rsu/99cmxDSmzfIcLn8/5Xm/qAmJtTH1tvwvmumm32ZbGQk/gxjyQYxxGb/gusL1
+NJ3V+RgujDpIVmEk4oD5moeVeMILfyLHVFN7gwCOIpUq0t/qS63wyOB+TdCWmurV
+fOaqfxusOYqIFQ+Jr1VT0SL/DGQ3yfNyxD7IE/17Y38i8Bqo+cU=
+=B1SW
 -----END PGP SIGNATURE-----
 
---=-2TqKf2wcaxprFekRzaj+--
+--=-oclBt3wpyL1/z9Jqf2cH--
