@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 12/39] IB/hfi1: Insure freeze_work work_struct is canceled on shutdown
-Date: Fri, 14 Jun 2019 16:29:17 -0400
-Message-ID: <20190614202946.27385-12-sashal@kernel.org>
-References: <20190614202946.27385-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 05/18] IB/hfi1: Insure freeze_work work_struct is canceled on shutdown
+Date: Fri, 14 Jun 2019 16:30:21 -0400
+Message-ID: <20190614203037.27910-5-sashal@kernel.org>
+References: <20190614203037.27910-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190614202946.27385-1-sashal@kernel.org>
+In-Reply-To: <20190614203037.27910-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
@@ -33,10 +33,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index b12c8ff8ed66..d8eb4dc04d69 100644
+index d30b3b908621..85db856047a9 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9849,6 +9849,7 @@ void hfi1_quiet_serdes(struct hfi1_pportdata *ppd)
+@@ -9620,6 +9620,7 @@ void hfi1_quiet_serdes(struct hfi1_pportdata *ppd)
  
  	/* disable the port */
  	clear_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
