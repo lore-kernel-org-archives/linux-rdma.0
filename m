@@ -1,36 +1,41 @@
-From: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+From: 'Christoph Hellwig' <hch@lst.de>
 Subject: Re: [PATCH 16/16] dma-mapping: use exact allocation in
-	dma_alloc_contiguous
-Date: Fri, 14 Jun 2019 17:05:58 +0200
-Message-ID: <20190614150558.GA9402@lst.de>
+ dma_alloc_contiguous
+Date: Fri, 14 Jun 2019 17:08:27 +0200
+Message-ID: <20190614150827.GA9460@lst.de>
 References: <20190614134726.3827-1-hch@lst.de>
-	<20190614134726.3827-17-hch@lst.de>
-	<a90cf7ec5f1c4166b53c40e06d4d832a@AcuMS.aculab.com>
-	<20190614145001.GB9088@lst.de>
-	<d93fd4c2c1584d92a05dd641929f6d63@AcuMS.aculab.com>
+ <20190614134726.3827-17-hch@lst.de>
+ <a90cf7ec5f1c4166b53c40e06d4d832a@AcuMS.aculab.com>
+ <20190614145001.GB9088@lst.de> <4113cd5f-5c13-e9c7-bc5e-dcf0b60e7054@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <d93fd4c2c1584d92a05dd641929f6d63-1XygrNkDbNvwg4NCKwmqgw@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
-Cc: Maxime Ripard <maxime.ripard-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, "linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Intel Linux Wireless <linuxwifi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Maarten Lankhorst <maarten.lankhorst-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ian Abbott <abbotti-GUHe90Wt2aFaa/9Udqfwiw@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Paul <sean-p7yTbzM4H96eqtR555YLDQ@public.gmane.org>, "moderated list:ARM PORT" <linux-arm-kernel-IAPFreCvJWM1dQTEkxZZdg@public.gmane.org>
+In-Reply-To: <4113cd5f-5c13-e9c7-bc5e-dcf0b60e7054@arm.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, 'Christoph Hellwig' <hch@lst.de>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, David Airlie <airlied@linux.ie>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Intel Linux Wireless <linuxwifi@intel.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Ian Abbott <abbotti@mev.co.uk>, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, H Hartley Sweeten <hsweeten@v>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 14, 2019 at 03:01:22PM +0000, David Laight wrote:
-> I'm pretty sure there is a lot of code out there that makes that assumption.
-> Without it many drivers will have to allocate almost double the
-> amount of memory they actually need in order to get the required alignment.
-> So instead of saving memory you'll actually make more be used.
-
-That code would already be broken on a lot of Linux platforms.
+T24gRnJpLCBKdW4gMTQsIDIwMTkgYXQgMDQ6MDU6MzNQTSArMDEwMCwgUm9iaW4gTXVycGh5IHdy
+b3RlOgo+IFRoYXQgc2FpZCwgSSBkb24ndCBiZWxpZXZlIHRoaXMgcGFydGljdWxhciBwYXRjaCBz
+aG91bGQgbWFrZSBhbnkgCj4gYXBwcmVjaWFibGUgZGlmZmVyZW5jZSAtIGFsbG9jX3BhZ2VzX2V4
+YWN0KCkgaXMgc3RpbGwgZ29pbmcgdG8gZ2l2ZSBiYWNrIAo+IHRoZSBzYW1lIGJhc2UgYWRkcmVz
+cyBhcyB0aGUgcm91bmRlZCB1cCBvdmVyLWFsbG9jYXRpb24gd291bGQsIGFuZCAKPiBQQUdFX0FM
+SUdOKClpbmcgdGhlIHNpemUgcGFzc2VkIHRvIGdldF9vcmRlcigpIGFscmVhZHkgc2VlbWVkIHRv
+IGJlIAo+IHBvaW50bGVzcy4KClRydWUsIHdlIGFjdHVhbGx5IGRvIGdldCB0aGUgcmlnaHQgYWxp
+Z25tZW50IGp1c3QgYWJvdXQgYW55d2hlcmUuCk5vdCAxMDAlIHN1cmUgYWJvdXQgdGhlIHZhcmlv
+dXMgc3RhdGljIHBvb2wgaW1wbGVtZW50YXRpb25zLCBidXQgd2UKY2FuIG1ha2Ugc3VyZSBpZiBh
+bnkgZGlkbid0IHdlJ2xsIGRvIHRoYXQgcmlnaHQgdGhpbmcgb25jZSB0aG9zZQpnZXQgY29uc29s
+aWRhdGVkLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJ
+bnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZng=
