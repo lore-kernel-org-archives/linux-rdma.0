@@ -1,15 +1,16 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v3 hmm 03/12] mm/hmm: Hold a mmgrab from hmm to mm
-Date: Sat, 15 Jun 2019 06:59:42 -0700
-Message-ID: <20190615135942.GC17724@infradead.org>
+Subject: Re: [PATCH v3 hmm 05/12] mm/hmm: Remove duplicate condition test
+ before wait_event_timeout
+Date: Sat, 15 Jun 2019 07:12:35 -0700
+Message-ID: <20190615141235.GE17724@infradead.org>
 References: <20190614004450.20252-1-jgg@ziepe.ca>
- <20190614004450.20252-4-jgg@ziepe.ca>
+ <20190614004450.20252-6-jgg@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190614004450.20252-4-jgg-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20190614004450.20252-6-jgg-uk2M96/98Pc@public.gmane.org>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
  <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
