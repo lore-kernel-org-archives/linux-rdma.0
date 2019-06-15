@@ -1,10 +1,8 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [iproute2] ipaddress: correctly print a VF hw address in the IPoIB case
-Date: Sat, 15 Jun 2019 13:40:56 +0200
-Message-ID: <20190615114056.100808-2-dkirjanov@suse.com>
-References: <20190615114056.100808-1-dkirjanov@suse.com>
+Subject: [PATCH] ipaddress: correctly print a VF hw address in the IPoIB case
+Date: Sat, 15 Jun 2019 13:40:55 +0200
+Message-ID: <20190615114056.100808-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190615114056.100808-1-dkirjanov@suse.com>
 Sender: netdev-owner@vger.kernel.org
 To: stephen@networkplumber.org
 Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
