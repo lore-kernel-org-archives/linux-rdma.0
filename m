@@ -1,48 +1,81 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 22/59] IB/hfi1: Insure freeze_work work_struct is canceled on shutdown
-Date: Fri, 14 Jun 2019 16:28:06 -0400
-Message-ID: <20190614202843.26941-22-sashal@kernel.org>
-References: <20190614202843.26941-1-sashal@kernel.org>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: RDMA: Clean destroy CQ in drivers do not return errors
+Date: Sat, 15 Jun 2019 07:12:27 +0000
+Message-ID: <20190615071224.GA4694@mtr-leonro.mtl.com>
+References: <68d62660-902c-ca49-20fd-32e92830faa7@canonical.com>
+ <ee0c017e93e28317791b7395e257801a208c7306.camel@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190614202843.26941-1-sashal@kernel.org>
+In-Reply-To: <ee0c017e93e28317791b7395e257801a208c7306.camel@redhat.com>
+Content-Language: en-US
+Content-ID: <C2621CA764179B4DAA30AD367EA0F07E@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Colin Ian King <colin.king@canonical.com>, Gal Pressman <galpress@amazon.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+On Fri, Jun 14, 2019 at 03:46:50PM -0400, Doug Ledford wrote:
+> On Fri, 2019-06-14 at 14:59 +0100, Colin Ian King wrote:
+> > Hi,
+> >
+> > Static analysis with Coverity reported an issue with the following
+> > commit:
+> >
+> > commit a52c8e2469c30cf7ac453d624aed9c168b23d1af
+> > Author: Leon Romanovsky <leonro@mellanox.com>
+> > Date:   Tue May 28 14:37:28 2019 +0300
+> >
+> >     RDMA: Clean destroy CQ in drivers do not return errors
+> >
+> > In function bnxt_re_destroy_cq() contains the following:
+> >
+> >         if (!cq->umem)
+> >                 ib_umem_release(cq->umem);
+>
+> Given that the original test that was replaced was:
+> 	if (!IS_ERR_OR_NULL(cq->umem))
+>
+> we aren't really worried about a null cq, just that umem is valid.  So,
+> the logic is inverted on the test (or possibly we shouldn't have
+> replaced !IS_ERR_OR_NULL(cq->umem) at all).
 
-[ Upstream commit 6d517353c70bb0818b691ca003afdcb5ee5ea44e ]
+I took a very brief look and think that the better way will be to put
+this "if (null)" check inside ib_umem_release() and make unconditional
+call to that function in all call sites.
 
-By code inspection, the freeze_work is never canceled.
+>
+> But on closer inspection, the bnxt_re specific portion of this patch
+> appears to have another problem in that it no longer checks the result
+> of bnxt_qplib_destroy_cq() yet it does nothing to keep that function
+> from failing.
 
-Fix by adding a cancel_work_sync in the shutdown path to insure it is no
-longer running.
+It was intentional for two reasons. First, bnxt_re already had exactly
+same logic without any checks of returned call inside bnxt_re_create_cq().
+Second, we need to release kernel memory without any relation to HW state.
 
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/hfi1/chip.c | 1 +
- 1 file changed, 1 insertion(+)
+Maybe I should move bnxt_qplib_free_hwq() to be immediately after
+bnxt_qplib_rcfw_send_message() inside of bnxt_qplib_destroy_cq()?
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 9784c6c0d2ec..403e23c5d08f 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9848,6 +9848,7 @@ void hfi1_quiet_serdes(struct hfi1_pportdata *ppd)
- 
- 	/* disable the port */
- 	clear_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
-+	cancel_work_sync(&ppd->freeze_work);
- }
- 
- static inline int init_cpu_counters(struct hfi1_devdata *dd)
--- 
-2.20.1
+>
+> Leon, can you send a followup fix?
+
+Sure, I'll do it tomorrow.
+
+>
+> > Coverity detects this as a deference after null check on the null
+> > pointer cq->umem:
+> >
+> > "var_deref_model: Passing null pointer cq->umem to ib_umem_release,
+> > which dereferences it"
+> >
+> > Is the logic inverted on that null check?
+> >
+> > Colin
+>
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
+> 2FDD
