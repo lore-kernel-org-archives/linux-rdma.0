@@ -1,209 +1,188 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 2/2] ipoib: show VF broadcast address
-Date: Sat, 15 Jun 2019 11:04:30 -0400
-Message-ID: <348d854d2717899906ad8779270449a06b5701de.camel@redhat.com>
-References: <20190614133249.18308-1-dkirjanov@suse.com>
-         <20190614133249.18308-2-dkirjanov@suse.com>
-         <f91615fe4a883ccb6490aec11ef4ae64cdd9e494.camel@redhat.com>
-         <CAHj3AVny9PijUD7_bWM2-fDNF9n4YZ5xgnG-_O9rZhr1cNVicw@mail.gmail.com>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [PATCH mlx5-next v1 1/4] net/mlx5: Declare more strictly devlink
+ encap mode
+Date: Sun, 16 Jun 2019 12:07:07 +0200
+Message-ID: <20190616100707.GB2511@nanopsycho>
+References: <20190612122014.22359-1-leon@kernel.org>
+ <20190612122014.22359-2-leon@kernel.org>
+ <VI1PR0501MB2271FF8A570DDBBD26CF7100D1EF0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+ <20190613055954.GV6369@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-VLNM8+Kt3BokOZUjxe4Y"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAHj3AVny9PijUD7_bWM2-fDNF9n4YZ5xgnG-_O9rZhr1cNVicw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190613055954.GV6369@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Denis Kirjanov <kirjanov@gmail.com>
-Cc: Denis Kirjanov <kda@linux-powerpc.org>, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Parav Pandit <parav@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Petr Vorel <pvorel@suse.cz>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Jiri Pirko <jiri@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Thu, Jun 13, 2019 at 07:59:54AM CEST, leon@kernel.org wrote:
+>On Thu, Jun 13, 2019 at 04:32:25AM +0000, Parav Pandit wrote:
+>>
+>>
+>> > -----Original Message-----
+>> > From: Leon Romanovsky <leon@kernel.org>
+>> > Sent: Wednesday, June 12, 2019 5:50 PM
+>> > To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe
+>> > <jgg@mellanox.com>
+>> > Cc: Leon Romanovsky <leonro@mellanox.com>; RDMA mailing list <linux-
+>> > rdma@vger.kernel.org>; Maor Gottlieb <maorg@mellanox.com>; Mark Bloch
+>> > <markb@mellanox.com>; Parav Pandit <parav@mellanox.com>; Petr Vorel
+>> > <pvorel@suse.cz>; Saeed Mahameed <saeedm@mellanox.com>; linux-
+>> > netdev <netdev@vger.kernel.org>; Jiri Pirko <jiri@mellanox.com>
+>> > Subject: [PATCH mlx5-next v1 1/4] net/mlx5: Declare more strictly devlink
+>> > encap mode
+>> >
+>> > From: Leon Romanovsky <leonro@mellanox.com>
+>> >
+>> > Devlink has UAPI declaration for encap mode, so there is no need to be
+>> > loose on the data get/set by drivers.
+>> >
+>> > Update call sites to use enum devlink_eswitch_encap_mode instead of plain
+>> > u8.
+>> >
+>> > Suggested-by: Parav Pandit <parav@mellanox.com>
+>> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>> > ---
+>> >  drivers/net/ethernet/mellanox/mlx5/core/eswitch.h         | 8 +++++---
+>> >  .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 6 ++++--
+>> >  include/net/devlink.h                                     | 6 ++++--
+>> >  net/core/devlink.c                                        | 6 ++++--
+>> >  4 files changed, 17 insertions(+), 9 deletions(-)
+>> >
+>> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+>> > b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+>> > index ed3fad689ec9..e264dfc64a6e 100644
+>> > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+>> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+>> > @@ -175,7 +175,7 @@ struct mlx5_esw_offload {
+>> >  	DECLARE_HASHTABLE(mod_hdr_tbl, 8);
+>> >  	u8 inline_mode;
+>> >  	u64 num_flows;
+>> > -	u8 encap;
+>> > +	enum devlink_eswitch_encap_mode encap;
+>> >  };
+>> >
+>> >  /* E-Switch MC FDB table hash node */
+>> > @@ -356,9 +356,11 @@ int mlx5_devlink_eswitch_inline_mode_set(struct
+>> > devlink *devlink, u8 mode,
+>> >  					 struct netlink_ext_ack *extack);
+>> >  int mlx5_devlink_eswitch_inline_mode_get(struct devlink *devlink, u8
+>> > *mode);  int mlx5_eswitch_inline_mode_get(struct mlx5_eswitch *esw, int
+>> > nvfs, u8 *mode); -int mlx5_devlink_eswitch_encap_mode_set(struct devlink
+>> > *devlink, u8 encap,
+>> > +int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink,
+>> > +					enum devlink_eswitch_encap_mode
+>> > encap,
+>> >  					struct netlink_ext_ack *extack);
+>> > -int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8
+>> > *encap);
+>> > +int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink,
+>> > +					enum devlink_eswitch_encap_mode
+>> > *encap);
+>> >  void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8
+>> > rep_type);
+>> >
+>> >  int mlx5_eswitch_add_vlan_action(struct mlx5_eswitch *esw, diff --git
+>> > a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+>> > b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+>> > index e09ae27485ee..f1571163143d 100644
+>> > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+>> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+>> > @@ -2137,7 +2137,8 @@ int mlx5_eswitch_inline_mode_get(struct
+>> > mlx5_eswitch *esw, int nvfs, u8 *mode)
+>> >  	return 0;
+>> >  }
+>> >
+>> > -int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink, u8
+>> > encap,
+>> > +int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink,
+>> > +					enum devlink_eswitch_encap_mode
+>> > encap,
+>> >  					struct netlink_ext_ack *extack)
+>> >  {
+>> >  	struct mlx5_core_dev *dev = devlink_priv(devlink); @@ -2186,7
+>> > +2187,8 @@ int mlx5_devlink_eswitch_encap_mode_set(struct devlink
+>> > *devlink, u8 encap,
+>> >  	return err;
+>> >  }
+>> >
+>> > -int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8
+>> > *encap)
+>> > +int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink,
+>> > +					enum devlink_eswitch_encap_mode
+>> > *encap)
+>> >  {
+>> >  	struct mlx5_core_dev *dev = devlink_priv(devlink);
+>> >  	struct mlx5_eswitch *esw = dev->priv.eswitch; diff --git
+>> > a/include/net/devlink.h b/include/net/devlink.h index
+>> > 1c4adfb4195a..7a34fc586def 100644
+>> > --- a/include/net/devlink.h
+>> > +++ b/include/net/devlink.h
+>> > @@ -530,8 +530,10 @@ struct devlink_ops {
+>> >  	int (*eswitch_inline_mode_get)(struct devlink *devlink, u8
+>> > *p_inline_mode);
+>> >  	int (*eswitch_inline_mode_set)(struct devlink *devlink, u8
+>> > inline_mode,
+>> >  				       struct netlink_ext_ack *extack);
+>> > -	int (*eswitch_encap_mode_get)(struct devlink *devlink, u8
+>> > *p_encap_mode);
+>> > -	int (*eswitch_encap_mode_set)(struct devlink *devlink, u8
+>> > encap_mode,
+>> > +	int (*eswitch_encap_mode_get)(struct devlink *devlink,
+>> > +				      enum devlink_eswitch_encap_mode
+>> > *p_encap_mode);
+>> > +	int (*eswitch_encap_mode_set)(struct devlink *devlink,
+>> > +				      enum devlink_eswitch_encap_mode
+>> > encap_mode,
+>> >  				      struct netlink_ext_ack *extack);
+>> >  	int (*info_get)(struct devlink *devlink, struct devlink_info_req *req,
+>> >  			struct netlink_ext_ack *extack);
+>> > diff --git a/net/core/devlink.c b/net/core/devlink.c index
+>> > d43bc52b8840..47ae69363b07 100644
+>> > --- a/net/core/devlink.c
+>> > +++ b/net/core/devlink.c
+>> > @@ -1552,7 +1552,8 @@ static int devlink_nl_eswitch_fill(struct sk_buff
+>> > *msg, struct devlink *devlink,
+>> >  				   u32 seq, int flags)
+>> >  {
+>> >  	const struct devlink_ops *ops = devlink->ops;
+>> > -	u8 inline_mode, encap_mode;
+>> > +	enum devlink_eswitch_encap_mode encap_mode;
+>> > +	u8 inline_mode;
+>> >  	void *hdr;
+>> >  	int err = 0;
+>> >  	u16 mode;
+>> > @@ -1628,7 +1629,8 @@ static int devlink_nl_cmd_eswitch_set_doit(struct
+>> > sk_buff *skb,  {
+>> >  	struct devlink *devlink = info->user_ptr[0];
+>> >  	const struct devlink_ops *ops = devlink->ops;
+>> > -	u8 inline_mode, encap_mode;
+>> > +	enum devlink_eswitch_encap_mode encap_mode;
+>> > +	u8 inline_mode;
+>> >  	int err = 0;
+>> >  	u16 mode;
+>> >
+>> > --
+>> > 2.20.1
+>>
+>> Netdev follows reverse Christmas tree, but otherwise,
+>
+>It was before this patch, if Jiri is ok with that, I'll change this
+>"const struct devlink_ops *ops = devlink->ops;" line while I'll apply
+>this patchset to mlx5-net. If not, I'll leave it as is.
 
---=-VLNM8+Kt3BokOZUjxe4Y
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Change to what? I don't follow. The patch looks completely fine to me as
+it is.
 
-On Sat, 2019-06-15 at 11:49 +0300, Denis Kirjanov wrote:
-> On 6/14/19, Doug Ledford <dledford@redhat.com> wrote:
-> > On Fri, 2019-06-14 at 15:32 +0200, Denis Kirjanov wrote:
-> > > in IPoIB case we can't see a VF broadcast address for but
-> > > can see for PF
-> > >=20
-> > > Before:
-> > > 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc
-> > > pfifo_fast
-> > > state UP mode DEFAULT group default qlen 256
-> > >     link/infiniband
-> > > 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> > > 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-> > >     vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state
-> > > disable,
-> > > trust off, query_rss off
-> > > ...
-> >=20
-> > The above Before: output should be used as the After: portion of
-> > the
-> > previous commit message.  The previos commit does not fully resolve
-> > the
-> > problem, but yet the commit message acts as though it does.
-> >=20
-> > > After:
-> > > 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc
-> > > pfifo_fast
-> > > state UP mode DEFAULT group default qlen 256
-> > >     link/infiniband
-> > > 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> > > 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-> > >     vf 0     link/infiniband
-> > > 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> > > 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff,
-> > > spoof
-> > > checking off, link-state disable, trust off, query_rss off
-> >=20
-> > Ok, I get why the After: should have a valid broadcast.  What I
-> > don't
-> > get is why the Before: shows a MAC and the After: shows a
-> > link/infiniband?  What change in this patch is responsible for that
-> > difference?  I honestly expect, by reading this patch, that you
-> > would
-> > have a MAC and Broadcast that look like Ethernet, not that the full
-> > issue would be resolved.
->=20
-> Hi Doug,
-> it's the patch for iproute2 that I'm going to send
+Acked-by: Jiri Pirko <jiri@mellanox.com>
 
-Ahh, ok, then please mention that in the commit message or else the
-commit message and the patch won't quite make sense together.  Maybe do
-a before: and after: without the iproute2 patch, then a after-with-
-userspace-fix: that is the final result and mention the fix to iproute2
-to print out the right link layer and size of address/broadcast.
 
-> > > v1->v2: add the IFLA_VF_BROADCAST constant
-> > > v2->v3: put IFLA_VF_BROADCAST at the end
-> > > to avoid KABI breakage and set NLA_REJECT
-> > > dev_setlink
-> > >=20
-> > > Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
-> > > ---
-> > >  include/uapi/linux/if_link.h | 5 +++++
-> > >  net/core/rtnetlink.c         | 5 +++++
-> > >  2 files changed, 10 insertions(+)
-> > >=20
-> > > diff --git a/include/uapi/linux/if_link.h
-> > > b/include/uapi/linux/if_link.h
-> > > index 5b225ff63b48..6f75bda2c2d7 100644
-> > > --- a/include/uapi/linux/if_link.h
-> > > +++ b/include/uapi/linux/if_link.h
-> > > @@ -694,6 +694,7 @@ enum {
-> > >  	IFLA_VF_IB_NODE_GUID,	/* VF Infiniband node GUID */
-> > >  	IFLA_VF_IB_PORT_GUID,	/* VF Infiniband port GUID */
-> > >  	IFLA_VF_VLAN_LIST,	/* nested list of vlans, option for
-> > > QinQ */
-> > > +	IFLA_VF_BROADCAST,	/* VF broadcast */
-> > >  	__IFLA_VF_MAX,
-> > >  };
-> > >=20
-> > > @@ -704,6 +705,10 @@ struct ifla_vf_mac {
-> > >  	__u8 mac[32]; /* MAX_ADDR_LEN */
-> > >  };
-> > >=20
-> > > +struct ifla_vf_broadcast {
-> > > +	__u8 broadcast[32];
-> > > +};
-> > > +
-> > >  struct ifla_vf_vlan {
-> > >  	__u32 vf;
-> > >  	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
-> > > diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-> > > index cec60583931f..8ac81630ab5c 100644
-> > > --- a/net/core/rtnetlink.c
-> > > +++ b/net/core/rtnetlink.c
-> > > @@ -908,6 +908,7 @@ static inline int rtnl_vfinfo_size(const
-> > > struct
-> > > net_device *dev,
-> > >  		size +=3D num_vfs *
-> > >  			(nla_total_size(0) +
-> > >  			 nla_total_size(sizeof(struct ifla_vf_mac)) +
-> > > +			 nla_total_size(sizeof(struct
-> > > ifla_vf_broadcast)) +
-> > >  			 nla_total_size(sizeof(struct ifla_vf_vlan)) +
-> > >  			 nla_total_size(0) + /* nest IFLA_VF_VLAN_LIST
-> > > */
-> > >  			 nla_total_size(MAX_VLAN_LIST_LEN *
-> > > @@ -1197,6 +1198,7 @@ static noinline_for_stack int
-> > > rtnl_fill_vfinfo(struct sk_buff *skb,
-> > >  	struct ifla_vf_vlan vf_vlan;
-> > >  	struct ifla_vf_rate vf_rate;
-> > >  	struct ifla_vf_mac vf_mac;
-> > > +	struct ifla_vf_broadcast vf_broadcast;
-> > >  	struct ifla_vf_info ivi;
-> > >=20
-> > >  	memset(&ivi, 0, sizeof(ivi));
-> > > @@ -1231,6 +1233,7 @@ static noinline_for_stack int
-> > > rtnl_fill_vfinfo(struct sk_buff *skb,
-> > >  		vf_trust.vf =3D ivi.vf;
-> > >=20
-> > >  	memcpy(vf_mac.mac, ivi.mac, sizeof(ivi.mac));
-> > > +	memcpy(vf_broadcast.broadcast, dev->broadcast, dev->addr_len);
-> > >  	vf_vlan.vlan =3D ivi.vlan;
-> > >  	vf_vlan.qos =3D ivi.qos;
-> > >  	vf_vlan_info.vlan =3D ivi.vlan;
-> > > @@ -1247,6 +1250,7 @@ static noinline_for_stack int
-> > > rtnl_fill_vfinfo(struct sk_buff *skb,
-> > >  	if (!vf)
-> > >  		goto nla_put_vfinfo_failure;
-> > >  	if (nla_put(skb, IFLA_VF_MAC, sizeof(vf_mac), &vf_mac) ||
-> > > +	    nla_put(skb, IFLA_VF_BROADCAST, sizeof(vf_broadcast),
-> > > &vf_broadcast) ||
-> > >  	    nla_put(skb, IFLA_VF_VLAN, sizeof(vf_vlan), &vf_vlan) ||
-> > >  	    nla_put(skb, IFLA_VF_RATE, sizeof(vf_rate),
-> > >  		    &vf_rate) ||
-> > > @@ -1753,6 +1757,7 @@ static const struct nla_policy
-> > > ifla_info_policy[IFLA_INFO_MAX+1] =3D {
-> > >=20
-> > >  static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] =3D {
-> > >  	[IFLA_VF_MAC]		=3D { .len =3D sizeof(struct ifla_vf_mac)
-> > > },
-> > > +	[IFLA_VF_BROADCAST]	=3D { .type =3D NLA_REJECT },
-> > >  	[IFLA_VF_VLAN]		=3D { .len =3D sizeof(struct
-> > > ifla_vf_vlan) },
-> > >  	[IFLA_VF_VLAN_LIST]     =3D { .type =3D NLA_NESTED },
-> > >  	[IFLA_VF_TX_RATE]	=3D { .len =3D sizeof(struct ifla_vf_tx_rate)
-> > > },
-> >=20
-> > --
-> > Doug Ledford <dledford@redhat.com>
-> >     GPG KeyID: B826A3330E572FDD
-> >     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
-> > 2FDD
-> >=20
->=20
->=20
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
-2FDD
-
---=-VLNM8+Kt3BokOZUjxe4Y
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0FCP4ACgkQuCajMw5X
-L90jxQ//ZmDmaE0Zwa1LEJDfgNHOz4QPU4vszfGyKI7PxZEp3vg2DzChw0i3C0R/
-MLKfUHNIEkn13XV4wxyQn7reNOAN0en3kcygUXd5RPzerxFX8FVbREi4FOtE7riN
-r610Qp3uzKeJkhJHiBXxYj7i1jwyoT2jDKYc3SoY34TtjFQAV1m36sxrzIrE/zyU
-6fjK3G7jItQ2dlfKCFG8gtBjKPQEuX2PcnYyGZ2wIgJ1Gn5z2rZkRQIy4cqCokrU
-8EP7nytEyOIAhL9UrQJTDhkkNjrz83X/IVmRLckKmjOKtPuVg/g8Trs4Ja9uvmO5
-93ooqhGzaF0uSGVfTp/WSaNWhiGqZYaW74Jwu9Dz14DQzDkYK4uZR3lvsvyErHhH
-Lnp+lQMBqEduw63Q6yCG0/PwZRNqKpnz88FpIvf2L+ubpHaeticQD0g7FUFidIF5
-tIi0m4ntukMbcbTgPLJ+hWb6LxgW9gjCXUeq7AcEt+offatpdItg2gNpCPXk7/P9
-fnr52Wmgeetvhnte/qnpz3QbskiIMTH45z7OAcZKm0+NQ2Z1C4xGvsCwk6ccO7kV
-2iUo2CEsuOFRGa8BjOQ42MVuGGco1ddGfhHE28LelcRAwY29eedMAo1O5IbNcoxE
-8v7KHAzEwpR33uTuYmeRmUMbUo+HKSF43caIIQ4HgoYI0U+331s=
-=QyNF
------END PGP SIGNATURE-----
-
---=-VLNM8+Kt3BokOZUjxe4Y--
+>
+>> Reviewed-by: Parav Pandit <parav@mellanox.com>
+>
+>Thanks
+>
+>>
