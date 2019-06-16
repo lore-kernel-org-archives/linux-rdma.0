@@ -1,226 +1,66 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH mlx5-next v1 1/4] net/mlx5: Declare more strictly devlink
- encap mode
-Date: Sun, 16 Jun 2019 13:18:42 +0200
-Message-ID: <20190616111842.GD2511@nanopsycho>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH rdma-next v1 0/4] Expose ENCAP mode to mlx5_ib
+Date: Sun, 16 Jun 2019 12:44:01 +0000
+Message-ID: <20190616124357.GH4694@mtr-leonro.mtl.com>
 References: <20190612122014.22359-1-leon@kernel.org>
- <20190612122014.22359-2-leon@kernel.org>
- <VI1PR0501MB2271FF8A570DDBBD26CF7100D1EF0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
- <20190613055954.GV6369@mtr-leonro.mtl.com>
- <20190616100707.GB2511@nanopsycho>
- <20190616101507.GF4694@mtr-leonro.mtl.com>
- <20190616103939.GC2511@nanopsycho>
- <20190616105327.GG4694@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190616105327.GG4694@mtr-leonro.mtl.com>
+In-Reply-To: <20190612122014.22359-1-leon@kernel.org>
+Content-Language: en-US
+Content-ID: <37A744EF553FF2438A01E5C4BF8E415C@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Parav Pandit <parav@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Petr Vorel <pvorel@suse.cz>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Jiri Pirko <jiri@mellanox.com>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Parav Pandit <parav@mellanox.com>, Petr Vorel <pvorel@suse.cz>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Jiri Pirko <jiri@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Sun, Jun 16, 2019 at 12:53:27PM CEST, leon@kernel.org wrote:
->On Sun, Jun 16, 2019 at 12:39:40PM +0200, Jiri Pirko wrote:
->> Sun, Jun 16, 2019 at 12:15:07PM CEST, leon@kernel.org wrote:
->> >On Sun, Jun 16, 2019 at 12:07:07PM +0200, Jiri Pirko wrote:
->> >> Thu, Jun 13, 2019 at 07:59:54AM CEST, leon@kernel.org wrote:
->> >> >On Thu, Jun 13, 2019 at 04:32:25AM +0000, Parav Pandit wrote:
->> >> >>
->> >> >>
->> >> >> > -----Original Message-----
->> >> >> > From: Leon Romanovsky <leon@kernel.org>
->> >> >> > Sent: Wednesday, June 12, 2019 5:50 PM
->> >> >> > To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe
->> >> >> > <jgg@mellanox.com>
->> >> >> > Cc: Leon Romanovsky <leonro@mellanox.com>; RDMA mailing list <linux-
->> >> >> > rdma@vger.kernel.org>; Maor Gottlieb <maorg@mellanox.com>; Mark Bloch
->> >> >> > <markb@mellanox.com>; Parav Pandit <parav@mellanox.com>; Petr Vorel
->> >> >> > <pvorel@suse.cz>; Saeed Mahameed <saeedm@mellanox.com>; linux-
->> >> >> > netdev <netdev@vger.kernel.org>; Jiri Pirko <jiri@mellanox.com>
->> >> >> > Subject: [PATCH mlx5-next v1 1/4] net/mlx5: Declare more strictly devlink
->> >> >> > encap mode
->> >> >> >
->> >> >> > From: Leon Romanovsky <leonro@mellanox.com>
->> >> >> >
->> >> >> > Devlink has UAPI declaration for encap mode, so there is no need to be
->> >> >> > loose on the data get/set by drivers.
->> >> >> >
->> >> >> > Update call sites to use enum devlink_eswitch_encap_mode instead of plain
->> >> >> > u8.
->> >> >> >
->> >> >> > Suggested-by: Parav Pandit <parav@mellanox.com>
->> >> >> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->> >> >> > ---
->> >> >> >  drivers/net/ethernet/mellanox/mlx5/core/eswitch.h         | 8 +++++---
->> >> >> >  .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 6 ++++--
->> >> >> >  include/net/devlink.h                                     | 6 ++++--
->> >> >> >  net/core/devlink.c                                        | 6 ++++--
->> >> >> >  4 files changed, 17 insertions(+), 9 deletions(-)
->> >> >> >
->> >> >> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
->> >> >> > b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
->> >> >> > index ed3fad689ec9..e264dfc64a6e 100644
->> >> >> > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
->> >> >> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
->> >> >> > @@ -175,7 +175,7 @@ struct mlx5_esw_offload {
->> >> >> >  	DECLARE_HASHTABLE(mod_hdr_tbl, 8);
->> >> >> >  	u8 inline_mode;
->> >> >> >  	u64 num_flows;
->> >> >> > -	u8 encap;
->> >> >> > +	enum devlink_eswitch_encap_mode encap;
->> >> >> >  };
->> >> >> >
->> >> >> >  /* E-Switch MC FDB table hash node */
->> >> >> > @@ -356,9 +356,11 @@ int mlx5_devlink_eswitch_inline_mode_set(struct
->> >> >> > devlink *devlink, u8 mode,
->> >> >> >  					 struct netlink_ext_ack *extack);
->> >> >> >  int mlx5_devlink_eswitch_inline_mode_get(struct devlink *devlink, u8
->> >> >> > *mode);  int mlx5_eswitch_inline_mode_get(struct mlx5_eswitch *esw, int
->> >> >> > nvfs, u8 *mode); -int mlx5_devlink_eswitch_encap_mode_set(struct devlink
->> >> >> > *devlink, u8 encap,
->> >> >> > +int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink,
->> >> >> > +					enum devlink_eswitch_encap_mode
->> >> >> > encap,
->> >> >> >  					struct netlink_ext_ack *extack);
->> >> >> > -int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8
->> >> >> > *encap);
->> >> >> > +int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink,
->> >> >> > +					enum devlink_eswitch_encap_mode
->> >> >> > *encap);
->> >> >> >  void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8
->> >> >> > rep_type);
->> >> >> >
->> >> >> >  int mlx5_eswitch_add_vlan_action(struct mlx5_eswitch *esw, diff --git
->> >> >> > a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
->> >> >> > b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
->> >> >> > index e09ae27485ee..f1571163143d 100644
->> >> >> > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
->> >> >> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
->> >> >> > @@ -2137,7 +2137,8 @@ int mlx5_eswitch_inline_mode_get(struct
->> >> >> > mlx5_eswitch *esw, int nvfs, u8 *mode)
->> >> >> >  	return 0;
->> >> >> >  }
->> >> >> >
->> >> >> > -int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink, u8
->> >> >> > encap,
->> >> >> > +int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink,
->> >> >> > +					enum devlink_eswitch_encap_mode
->> >> >> > encap,
->> >> >> >  					struct netlink_ext_ack *extack)
->> >> >> >  {
->> >> >> >  	struct mlx5_core_dev *dev = devlink_priv(devlink); @@ -2186,7
->> >> >> > +2187,8 @@ int mlx5_devlink_eswitch_encap_mode_set(struct devlink
->> >> >> > *devlink, u8 encap,
->> >> >> >  	return err;
->> >> >> >  }
->> >> >> >
->> >> >> > -int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8
->> >> >> > *encap)
->> >> >> > +int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink,
->> >> >> > +					enum devlink_eswitch_encap_mode
->> >> >> > *encap)
->> >> >> >  {
->> >> >> >  	struct mlx5_core_dev *dev = devlink_priv(devlink);
->> >> >> >  	struct mlx5_eswitch *esw = dev->priv.eswitch; diff --git
->> >> >> > a/include/net/devlink.h b/include/net/devlink.h index
->> >> >> > 1c4adfb4195a..7a34fc586def 100644
->> >> >> > --- a/include/net/devlink.h
->> >> >> > +++ b/include/net/devlink.h
->> >> >> > @@ -530,8 +530,10 @@ struct devlink_ops {
->> >> >> >  	int (*eswitch_inline_mode_get)(struct devlink *devlink, u8
->> >> >> > *p_inline_mode);
->> >> >> >  	int (*eswitch_inline_mode_set)(struct devlink *devlink, u8
->> >> >> > inline_mode,
->> >> >> >  				       struct netlink_ext_ack *extack);
->> >> >> > -	int (*eswitch_encap_mode_get)(struct devlink *devlink, u8
->> >> >> > *p_encap_mode);
->> >> >> > -	int (*eswitch_encap_mode_set)(struct devlink *devlink, u8
->> >> >> > encap_mode,
->> >> >> > +	int (*eswitch_encap_mode_get)(struct devlink *devlink,
->> >> >> > +				      enum devlink_eswitch_encap_mode
->> >> >> > *p_encap_mode);
->> >> >> > +	int (*eswitch_encap_mode_set)(struct devlink *devlink,
->> >> >> > +				      enum devlink_eswitch_encap_mode
->> >> >> > encap_mode,
->> >> >> >  				      struct netlink_ext_ack *extack);
->> >> >> >  	int (*info_get)(struct devlink *devlink, struct devlink_info_req *req,
->> >> >> >  			struct netlink_ext_ack *extack);
->> >> >> > diff --git a/net/core/devlink.c b/net/core/devlink.c index
->> >> >> > d43bc52b8840..47ae69363b07 100644
->> >> >> > --- a/net/core/devlink.c
->> >> >> > +++ b/net/core/devlink.c
->> >> >> > @@ -1552,7 +1552,8 @@ static int devlink_nl_eswitch_fill(struct sk_buff
->> >> >> > *msg, struct devlink *devlink,
->> >> >> >  				   u32 seq, int flags)
->> >> >> >  {
->> >> >> >  	const struct devlink_ops *ops = devlink->ops;
->> >> >> > -	u8 inline_mode, encap_mode;
->> >> >> > +	enum devlink_eswitch_encap_mode encap_mode;
->> >> >> > +	u8 inline_mode;
->> >> >> >  	void *hdr;
->> >> >> >  	int err = 0;
->> >> >> >  	u16 mode;
->> >> >> > @@ -1628,7 +1629,8 @@ static int devlink_nl_cmd_eswitch_set_doit(struct
->> >> >> > sk_buff *skb,  {
->> >> >> >  	struct devlink *devlink = info->user_ptr[0];
->> >> >> >  	const struct devlink_ops *ops = devlink->ops;
->> >> >> > -	u8 inline_mode, encap_mode;
->> >> >> > +	enum devlink_eswitch_encap_mode encap_mode;
->> >> >> > +	u8 inline_mode;
->> >> >> >  	int err = 0;
->> >> >> >  	u16 mode;
->> >> >> >
->> >> >> > --
->> >> >> > 2.20.1
->> >> >>
->> >> >> Netdev follows reverse Christmas tree, but otherwise,
->> >> >
->> >> >It was before this patch, if Jiri is ok with that, I'll change this
->> >> >"const struct devlink_ops *ops = devlink->ops;" line while I'll apply
->> >> >this patchset to mlx5-net. If not, I'll leave it as is.
->> >>
->> >> Change to what? I don't follow. The patch looks completely fine to me as
->> >> it is.
->> >
->> >Thanks Jiri,
->> >
->> >Parav mentioned that two lines above my change were already not in Christmas
->> >tree format.
->> >
->> >   struct devlink *devlink = info->user_ptr[0];
->> >   const struct devlink_ops *ops = devlink->ops;
->>
->> As there is a dependency between those 2 lines, I don't see how you can
->> fix this.
+On Wed, Jun 12, 2019 at 03:20:10PM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
 >
->I don't want to do it, but this is possible solution:
+> Changelog v0->v1:
+>  * Added patch to devlink to use declared enum for encap mode instead of =
+u8
+>  * Constify input argumetn to encap mode function
+>  * fix encap variable type to be boolean
 >
->	const struct devlink_ops *ops:
->	struct devlink *devlink;
->	..... extra declarations ....
+> ---------------------------------------------------------------------
+> Hi,
 >
->	devlink = info->user_ptr[0];
->	ops = devlink->ops;
->	... rest of the code ...
+> This is short series from Maor to expose and use enacap mode inside mlx5_=
+ib.
+>
+> Thanks
+>
+> Leon Romanovsky (1):
+>   net/mlx5: Declare more strictly devlink encap mode
+>
+> Maor Gottlieb (3):
+>   net/mlx5: Expose eswitch encap mode
 
-Please don't.
+Those two applied to mlx5-next
+82b11f071936 net/mlx5: Expose eswitch encap mode
+98fdbea55037 net/mlx5: Declare more strictly devlink encap mode
 
+>   RDMA/mlx5: Consider eswitch encap mode
+>   RDMA/mlx5: Enable decap and packet reformat on FDB
 
->>
->>
->> >
->> >Thanks
->> >
->> >>
->> >> Acked-by: Jiri Pirko <jiri@mellanox.com>
->> >>
->> >>
->> >>
->> >> >
->> >> >> Reviewed-by: Parav Pandit <parav@mellanox.com>
->> >> >
->> >> >Thanks
->> >> >
->> >> >>
+Doug, Jason
+
+Can you please take those two patches in addition to latest mlx5-next?
+
+Thanks
+
+>
+>  drivers/infiniband/hw/mlx5/main.c             | 25 ++++++++++++++-----
+>  .../net/ethernet/mellanox/mlx5/core/eswitch.c | 11 ++++++++
+>  .../net/ethernet/mellanox/mlx5/core/eswitch.h |  8 +++---
+>  .../mellanox/mlx5/core/eswitch_offloads.c     |  6 +++--
+>  include/linux/mlx5/eswitch.h                  | 12 +++++++++
+>  include/net/devlink.h                         |  6 +++--
+>  net/core/devlink.c                            |  6 +++--
+>  7 files changed, 59 insertions(+), 15 deletions(-)
+>
+> --
+> 2.20.1
+>
