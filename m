@@ -1,8 +1,10 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH 1/2] ipoib: correcly show a VF hardware address
-Date: Mon, 17 Jun 2019 10:53:38 +0200
-Message-ID: <20190617085341.51592-1-dkirjanov@suse.com>
+Subject: [PATCH net-next v4 1/2] ipoib: correcly show a VF hardware address
+Date: Mon, 17 Jun 2019 10:53:40 +0200
+Message-ID: <20190617085341.51592-3-dkirjanov@suse.com>
+References: <20190617085341.51592-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190617085341.51592-1-dkirjanov@suse.com>
 Sender: netdev-owner@vger.kernel.org
 To: davem@davemloft.net, dledford@redhat.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
@@ -21,7 +23,7 @@ state UP mode DEFAULT group default qlen 256
     vf 0 MAC 00:00:00:00:00:00, spoof checking off, link-state disable,
 trust off, query_rss off
 ...
-After with iproute2 patch[0]
+After:
 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
 state UP mode DEFAULT group default qlen 256
     link/infiniband
@@ -32,11 +34,8 @@ state UP mode DEFAULT group default qlen 256
 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
 checking off, link-state disable, trust off, query_rss off
 
-[0]: https://patchwork.kernel.org/patch/10997111/
-
 v1->v2: just copy an address without modifing ifla_vf_mac
 v2->v3: update the changelog
-v3->v4: update the changelog: add a link to the patch for iproute2
 
 Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
 ---
