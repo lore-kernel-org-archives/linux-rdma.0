@@ -1,154 +1,38 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] net/mlx5e: reduce stack usage in mlx5_eswitch_termtbl_create
-Date: Mon, 17 Jun 2019 13:08:22 +0200
-Message-ID: <20190617110855.2085326-1-arnd@arndb.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 2/8] scsi: take the DMA max mapping size into account
+Date: Mon, 17 Jun 2019 14:19:54 +0200
+Message-ID: <20190617122000.22181-3-hch@lst.de>
+References: <20190617122000.22181-1-hch@lst.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, Oz Shlomo <ozsh@mellanox.com>, Paul Blakey <paulb@mellanox.com>, Eli Britstein <elibr@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190617122000.22181-1-hch@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Martin K . Petersen" <martin.petersen@oracle.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, megaraidlinux.pdl@broadcom.com, MPT-FusionLinux.pdl@broadcom.com, linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Putting an empty 'mlx5_flow_spec' structure on the stack is a bit
-wasteful and causes a warning on 32-bit architectures when building
-with clang -fsanitize-coverage:
+We need to limit the devices max_sectors to what the DMA mapping
+implementation can support.  If not we risk running out of swiotlb
+buffers easily.
 
-drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c: In function 'mlx5_eswitch_termtbl_create':
-drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c:90:1: error: the frame size of 1032 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
-
-Since the structure is never written to, we can statically allocate
-it to avoid the stack usage. To be on the safe side, mark all
-subsequent function arguments that we pass it into as 'const'
-as well.
-
-Fixes: 10caabdaad5a ("net/mlx5e: Use termination table for VLAN push actions")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- .../mlx5/core/eswitch_offloads_termtbl.c      |  2 +-
- .../net/ethernet/mellanox/mlx5/core/fs_core.c | 20 +++++++++----------
- include/linux/mlx5/fs.h                       |  2 +-
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/scsi/scsi_lib.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c
-index cb7d8ebe2c95..171f3d4ef9ac 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c
-@@ -50,7 +50,7 @@ mlx5_eswitch_termtbl_create(struct mlx5_core_dev *dev,
- 			    struct mlx5_flow_act *flow_act)
- {
- 	struct mlx5_flow_namespace *root_ns;
--	struct mlx5_flow_spec spec = {};
-+	static const struct mlx5_flow_spec spec = {};
- 	int prio, flags;
- 	int err;
+diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+index d333bb6b1c59..f233bfd84cd7 100644
+--- a/drivers/scsi/scsi_lib.c
++++ b/drivers/scsi/scsi_lib.c
+@@ -1768,6 +1768,8 @@ void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
+ 		blk_queue_max_integrity_segments(q, shost->sg_prot_tablesize);
+ 	}
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index fe76c6fd6d80..739123e1363b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -584,7 +584,7 @@ static int insert_fte(struct mlx5_flow_group *fg, struct fs_fte *fte)
- }
- 
- static struct fs_fte *alloc_fte(struct mlx5_flow_table *ft,
--				u32 *match_value,
-+				const u32 *match_value,
- 				struct mlx5_flow_act *flow_act)
- {
- 	struct mlx5_flow_steering *steering = get_steering(&ft->node);
-@@ -612,7 +612,7 @@ static void dealloc_flow_group(struct mlx5_flow_steering *steering,
- 
- static struct mlx5_flow_group *alloc_flow_group(struct mlx5_flow_steering *steering,
- 						u8 match_criteria_enable,
--						void *match_criteria,
-+						const void *match_criteria,
- 						int start_index,
- 						int end_index)
- {
-@@ -642,7 +642,7 @@ static struct mlx5_flow_group *alloc_flow_group(struct mlx5_flow_steering *steer
- 
- static struct mlx5_flow_group *alloc_insert_flow_group(struct mlx5_flow_table *ft,
- 						       u8 match_criteria_enable,
--						       void *match_criteria,
-+						       const void *match_criteria,
- 						       int start_index,
- 						       int end_index,
- 						       struct list_head *prev)
-@@ -1285,7 +1285,7 @@ add_rule_fte(struct fs_fte *fte,
- }
- 
- static struct mlx5_flow_group *alloc_auto_flow_group(struct mlx5_flow_table  *ft,
--						     struct mlx5_flow_spec *spec)
-+						     const struct mlx5_flow_spec *spec)
- {
- 	struct list_head *prev = &ft->node.children;
- 	struct mlx5_flow_group *fg;
-@@ -1451,7 +1451,7 @@ static int check_conflicting_ftes(struct fs_fte *fte, const struct mlx5_flow_act
- }
- 
- static struct mlx5_flow_handle *add_rule_fg(struct mlx5_flow_group *fg,
--					    u32 *match_value,
-+					    const u32 *match_value,
- 					    struct mlx5_flow_act *flow_act,
- 					    struct mlx5_flow_destination *dest,
- 					    int dest_num,
-@@ -1536,7 +1536,7 @@ static void free_match_list(struct match_list_head *head)
- 
- static int build_match_list(struct match_list_head *match_head,
- 			    struct mlx5_flow_table *ft,
--			    struct mlx5_flow_spec *spec)
-+			    const struct mlx5_flow_spec *spec)
- {
- 	struct rhlist_head *tmp, *list;
- 	struct mlx5_flow_group *g;
-@@ -1589,7 +1589,7 @@ static u64 matched_fgs_get_version(struct list_head *match_head)
- 
- static struct fs_fte *
- lookup_fte_locked(struct mlx5_flow_group *g,
--		  u32 *match_value,
-+		  const u32 *match_value,
- 		  bool take_write)
- {
- 	struct fs_fte *fte_tmp;
-@@ -1622,7 +1622,7 @@ lookup_fte_locked(struct mlx5_flow_group *g,
- static struct mlx5_flow_handle *
- try_add_to_existing_fg(struct mlx5_flow_table *ft,
- 		       struct list_head *match_head,
--		       struct mlx5_flow_spec *spec,
-+		       const struct mlx5_flow_spec *spec,
- 		       struct mlx5_flow_act *flow_act,
- 		       struct mlx5_flow_destination *dest,
- 		       int dest_num,
-@@ -1715,7 +1715,7 @@ try_add_to_existing_fg(struct mlx5_flow_table *ft,
- 
- static struct mlx5_flow_handle *
- _mlx5_add_flow_rules(struct mlx5_flow_table *ft,
--		     struct mlx5_flow_spec *spec,
-+		     const struct mlx5_flow_spec *spec,
- 		     struct mlx5_flow_act *flow_act,
- 		     struct mlx5_flow_destination *dest,
- 		     int dest_num)
-@@ -1823,7 +1823,7 @@ static bool fwd_next_prio_supported(struct mlx5_flow_table *ft)
- 
- struct mlx5_flow_handle *
- mlx5_add_flow_rules(struct mlx5_flow_table *ft,
--		    struct mlx5_flow_spec *spec,
-+		    const struct mlx5_flow_spec *spec,
- 		    struct mlx5_flow_act *flow_act,
- 		    struct mlx5_flow_destination *dest,
- 		    int num_dest)
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 2ddaa97f2179..c0c029664527 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -200,7 +200,7 @@ struct mlx5_flow_act {
-  */
- struct mlx5_flow_handle *
- mlx5_add_flow_rules(struct mlx5_flow_table *ft,
--		    struct mlx5_flow_spec *spec,
-+		    const struct mlx5_flow_spec *spec,
- 		    struct mlx5_flow_act *flow_act,
- 		    struct mlx5_flow_destination *dest,
- 		    int num_dest);
++	shost->max_sectors = min_t(unsigned int, shost->max_sectors,
++			dma_max_mapping_size(dev) << SECTOR_SHIFT);
+ 	blk_queue_max_hw_sectors(q, shost->max_sectors);
+ 	if (shost->unchecked_isa_dma)
+ 		blk_queue_bounce_limit(q, BLK_BOUNCE_ISA);
 -- 
-2.20.0
+2.20.1
