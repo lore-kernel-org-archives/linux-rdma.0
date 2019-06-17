@@ -1,55 +1,40 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Subject: Re: use exact allocation for dma coherent memory
-Date: Mon, 17 Jun 2019 11:21:48 +0300
-Message-ID: <20190617082148.GF28859@kadam>
-References: <20190614134726.3827-1-hch@lst.de>
+Date: Mon, 17 Jun 2019 10:33:42 +0200
+Message-ID: <20190617083342.GA7883@lst.de>
+References: <20190614134726.3827-1-hch@lst.de> <20190617082148.GF28859@kadam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190614134726.3827-1-hch@lst.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, David Airlie <airlied@linux.ie>, linux-media@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, intel-gfx@lists.freedesktop.org, Ian Abbott <abbotti@mev.co.uk>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Sean Paul <sean@poorly.run>, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, H Hartley Sweeten <hsweeten@visionengravers.com>, iommu@lists.linux-foundation.org
+In-Reply-To: <20190617082148.GF28859@kadam>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Maxime Ripard <maxime.ripard-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Intel Linux Wireless <linuxwifi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Maarten Lankhorst <maarten.lankhorst-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ian Abbott <abbotti-GUHe90Wt2aFaa/9Udqfwiw@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Paul <sean-p7yTbzM4H96eqtR555YLDQ@public.gmane.org>, "moderated list:ARM PORT" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, H Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SSBvbmNlIHdyb3RlIGEgU21hdGNoIGNoZWNrIGJhc2VkIG9uIGEgY29tbWl0IG1lc3NhZ2UgdGhh
-dCBzYWlkIHdlIGNhbid0CnBhc3MgZG1hX2FsbG9jX2NvaGVyZW50KCkgcG9pbnRlcnMgdG8gdmly
-dF90b19waHlzKCkuICBCdXQgdGhlbiBJIG5ldmVyCmZlbHQgbGlrZSBJIHVuZGVyc3Rvb2QgdGhl
-IHJ1bGVzIGVub3VnaCB0byBhY3R1YWxseSByZXBvcnQgdGhlIHdhcm5pbmdzCmFzIGJ1Z3MuCgpk
-cml2ZXJzL3BsYXRmb3JtL3g4Ni9kY2RiYXMuYzoxMDggc21pX2RhdGFfYnVmX3JlYWxsb2MoKSBl
-cnJvcjogJ2J1ZicgY2FtZSBmcm9tIGRtYV9hbGxvY19jb2hlcmVudCgpIHNvIHdlIGNhbid0IGRv
-IHZpcnRfdG9fcGh5cygpCmRyaXZlcnMvbmV0L2NhaWYvY2FpZl92aXJ0aW8uYzo0MTQgY2Z2X2Ny
-ZWF0ZV9nZW5wb29sKCkgZXJyb3I6ICdjZnYtPmFsbG9jX2FkZHInIGNhbWUgZnJvbSBkbWFfYWxs
-b2NfY29oZXJlbnQoKSBzbyB3ZSBjYW4ndCBkbyB2aXJ0X3RvX3BoeXMoKQpkcml2ZXJzL2luZmlu
-aWJhbmQvaHcvY3hnYjQvcXAuYzoxMzUgYWxsb2NfaG9zdF9zcSgpIGVycm9yOiAnc3EtPnF1ZXVl
-JyBjYW1lIGZyb20gZG1hX2FsbG9jX2NvaGVyZW50KCkgc28gd2UgY2FuJ3QgZG8gdmlydF90b19w
-aHlzKCkKZHJpdmVycy9pbmZpbmliYW5kL2h3L2N4Z2I0L3FwLmM6MjcyIGNyZWF0ZV9xcCgpIGVy
-cm9yOiAnd3EtPnJxLnF1ZXVlJyBjYW1lIGZyb20gZG1hX2FsbG9jX2NvaGVyZW50KCkgc28gd2Ug
-Y2FuJ3QgZG8gdmlydF90b19waHlzKCkKZHJpdmVycy9pbmZpbmliYW5kL2h3L2N4Z2I0L3FwLmM6
-MjYyOCBhbGxvY19zcnFfcXVldWUoKSBlcnJvcjogJ3dxLT5xdWV1ZScgY2FtZSBmcm9tIGRtYV9h
-bGxvY19jb2hlcmVudCgpIHNvIHdlIGNhbid0IGRvIHZpcnRfdG9fcGh5cygpCmRyaXZlcnMvaW5m
-aW5pYmFuZC9ody9vY3JkbWEvb2NyZG1hX3ZlcmJzLmM6NDk0IG9jcmRtYV9hbGxvY191Y29udGV4
-dCgpIGVycm9yOiAnY3R4LT5haF90YmwudmEnIGNhbWUgZnJvbSBkbWFfYWxsb2NfY29oZXJlbnQo
-KSBzbyB3ZSBjYW4ndCBkbyB2aXJ0X3RvX3BoeXMoKQoKZHJpdmVycy9pbmZpbmliYW5kL2h3L2N4
-Z2I0L3FwLmMKICAgMTI5ICBzdGF0aWMgaW50IGFsbG9jX2hvc3Rfc3Eoc3RydWN0IGM0aXdfcmRl
-diAqcmRldiwgc3RydWN0IHQ0X3NxICpzcSkKICAgMTMwICB7CiAgIDEzMSAgICAgICAgICBzcS0+
-cXVldWUgPSBkbWFfYWxsb2NfY29oZXJlbnQoJihyZGV2LT5sbGRpLnBkZXYtPmRldiksIHNxLT5t
-ZW1zaXplLAogICAxMzIgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICYo
-c3EtPmRtYV9hZGRyKSwgR0ZQX0tFUk5FTCk7CiAgIDEzMyAgICAgICAgICBpZiAoIXNxLT5xdWV1
-ZSkKICAgMTM0ICAgICAgICAgICAgICAgICAgcmV0dXJuIC1FTk9NRU07CiAgIDEzNSAgICAgICAg
-ICBzcS0+cGh5c19hZGRyID0gdmlydF90b19waHlzKHNxLT5xdWV1ZSk7CiAgIDEzNiAgICAgICAg
-ICBkbWFfdW5tYXBfYWRkcl9zZXQoc3EsIG1hcHBpbmcsIHNxLT5kbWFfYWRkcik7CiAgIDEzNyAg
-ICAgICAgICByZXR1cm4gMDsKICAgMTM4ICB9CgpJcyB0aGlzIGEgYnVnPwoKcmVnYXJkcywKZGFu
-IGNhcnBlbnRlcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+> drivers/infiniband/hw/cxgb4/qp.c
+>    129  static int alloc_host_sq(struct c4iw_rdev *rdev, struct t4_sq *sq)
+>    130  {
+>    131          sq->queue = dma_alloc_coherent(&(rdev->lldi.pdev->dev), sq->memsize,
+>    132                                         &(sq->dma_addr), GFP_KERNEL);
+>    133          if (!sq->queue)
+>    134                  return -ENOMEM;
+>    135          sq->phys_addr = virt_to_phys(sq->queue);
+>    136          dma_unmap_addr_set(sq, mapping, sq->dma_addr);
+>    137          return 0;
+>    138  }
+> 
+> Is this a bug?
+
+Yes.  This will blow up badly on many platforms, as sq->queue
+might be vmapped, ioremapped, come from a pool without page backing.
