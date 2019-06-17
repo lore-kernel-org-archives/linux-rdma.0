@@ -1,7 +1,7 @@
 From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH net-next v4 2/2] ipoib: show VF broadcast address
-Date: Mon, 17 Jun 2019 10:53:41 +0200
-Message-ID: <20190617085341.51592-4-dkirjanov@suse.com>
+Subject: [PATCH 2/2] ipoib: show VF broadcast address
+Date: Mon, 17 Jun 2019 10:53:39 +0200
+Message-ID: <20190617085341.51592-2-dkirjanov@suse.com>
 References: <20190617085341.51592-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190617085341.51592-1-dkirjanov@suse.com>
@@ -23,7 +23,7 @@ state UP mode DEFAULT group default qlen 256
 trust off, query_rss off
 ...
 
-After:
+After with iproute2 patch[0]:
 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
 state UP mode DEFAULT group default qlen 256
     link/infiniband
@@ -34,10 +34,13 @@ state UP mode DEFAULT group default qlen 256
 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
 checking off, link-state disable, trust off, query_rss off
 
+[0]: https://patchwork.kernel.org/patch/10997111 
+
 v1->v2: add the IFLA_VF_BROADCAST constant
 v2->v3: put IFLA_VF_BROADCAST at the end
 to avoid KABI breakage and set NLA_REJECT
 dev_setlink
+v3->v4: update the changelog: add a link to the patch for iproute2
 
 Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
 ---
