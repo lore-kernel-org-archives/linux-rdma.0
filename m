@@ -1,42 +1,59 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 10/13] megaraid_sas: set virt_boundary_mask in the scsi
- host
-Date: Mon, 17 Jun 2019 10:44:33 +0200
-Message-ID: <20190617084433.GA7969@lst.de>
-References: <20190605190836.32354-1-hch@lst.de> <20190605190836.32354-11-hch@lst.de> <cd713506efb9579d1f69a719d831c28d@mail.gmail.com> <20190608081400.GA19573@lst.de> <98f6557ae91a7cdfe8069fcf7d788c88@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <98f6557ae91a7cdfe8069fcf7d788c88@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kashyap Desai <kashyap.desai@broadcom.com>
-Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Sebastian Ott <sebott@linux.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, "PDL,MEGARAIDLINUX" <megaraidlinux.pdl@broadcom.com>, PDL-MPT-FUSIONLINUX <mpt-fusionlinux.pdl@broadcom.com>, linux-hyperv@vger.kernel.org, linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, linux-kernel@vger.kernel.org
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: [PATCH 1/2] ipoib: correcly show a VF hardware address
+Date: Mon, 17 Jun 2019 10:53:38 +0200
+Message-ID: <20190617085341.51592-1-dkirjanov@suse.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, dledford@redhat.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 14, 2019 at 01:28:47AM +0530, Kashyap Desai wrote:
-> Is there any changes in API  blk_queue_virt_boundary? I could not find
-> relevant code which account for this. Can you help ?
-> Which git repo shall I use for testing ? That way I can confirm, I didn't
-> miss relevant changes.
+in the case of IPoIB with SRIOV enabled hardware
+ip link show command incorrecly prints
+0 instead of a VF hardware address.
 
-Latest mainline plus the series (which is about to get resent).
-blk_queue_virt_boundary now forced an unlimited max_hw_sectors as that
-is how PRP-like schemes work, to work around a block driver merging
-bug.  But we also need to communicate that limit to the DMA layer so
-that we don't set a smaller iommu segment size limitation.
+Before:
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+    link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+    vf 0 MAC 00:00:00:00:00:00, spoof checking off, link-state disable,
+trust off, query_rss off
+...
+After with iproute2 patch[0]
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+    link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+    vf 0     link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+checking off, link-state disable, trust off, query_rss off
 
-> >From your above explanation, it means (after this patch) max segment size
-> of the MR controller will be set to 4K.
-> Earlier it is possible to receive single SGE of 64K datalength (Since max
-> seg size was 64K), but now the same buffer will reach the driver having 16
-> SGEs (Each SGE will contain 4K length).
+[0]: https://patchwork.kernel.org/patch/10997111/
 
-No, there is no more limit for the size of the segment at all,
-as for PRPs each PRP is sort of a segment from the hardware perspective.
-We just require the segments to not have gaps, as PRPs don't allow for
-that.
+v1->v2: just copy an address without modifing ifla_vf_mac
+v2->v3: update the changelog
+v3->v4: update the changelog: add a link to the patch for iproute2
 
-That being said I think these patches are wrong for the case of megaraid
-or mpt having both NVMe and SAS/ATA devices behind a single controller.
-Is that a valid configuration?
+Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 9b5e11d3fb85..04ea7db08e87 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1998,6 +1998,7 @@ static int ipoib_get_vf_config(struct net_device *dev, int vf,
+ 		return err;
+ 
+ 	ivf->vf = vf;
++	memcpy(ivf->mac, dev->dev_addr, dev->addr_len);
+ 
+ 	return 0;
+ }
+-- 
+2.12.3
