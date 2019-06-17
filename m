@@ -1,41 +1,59 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH] net/mlx5e: reduce stack usage in
- mlx5_eswitch_termtbl_create
-Date: Mon, 17 Jun 2019 21:30:34 +0000
-Message-ID: <69c6a9cfe132a4437bc7d481fb9aeddbe57f7114.camel@mellanox.com>
-References: <20190617110855.2085326-1-arnd@arndb.de>
-         <20190617.140230.537297372523260104.davem@davemloft.net>
+From: Evgenii Stepanov <eugenis@google.com>
+Subject: Re: [PATCH v17 03/15] arm64: Introduce prctl() options to control the
+ tagged user addresses ABI
+Date: Mon, 17 Jun 2019 14:59:29 -0700
+Message-ID: <CAFKCwrhuQ+x-KprJV=CPCrnQR9Ky9qL=M5q_pa3fGj27oo4mng@mail.gmail.com>
+References: <cover.1560339705.git.andreyknvl@google.com> <a7a2933bea5fe57e504891b7eec7e9432e5e1c1a.1560339705.git.andreyknvl@google.com>
+ <20190617135636.GC1367@arrakis.emea.arm.com> <CAFKCwrjJ+0ijNKa3ioOP7xa91QmZU0NhkO=tNC-Q_ThC69vTug@mail.gmail.com>
+ <20190617171813.GC34565@arrakis.emea.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190617.140230.537297372523260104.davem@davemloft.net>
-Content-Language: en-US
-Content-ID: <23411EEE6753F64894B885E3F75CECE2@eurprd05.prod.outlook.com>
+In-Reply-To: <20190617171813.GC34565@arrakis.emea.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "davem@davemloft.net" <davem@davemloft.net>, "arnd@arndb.de" <arnd@arndb.de>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>, Paul Blakey <paulb@mellanox.com>, Mark Bloch <markb@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Eli Britstein <elibr@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE5LTA2LTE3IGF0IDE0OjAyIC0wNzAwLCBEYXZpZCBNaWxsZXIgd3JvdGU6DQo+
-IEZyb206IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+DQo+IERhdGU6IE1vbiwgMTcgSnVu
-IDIwMTkgMTM6MDg6MjIgKzAyMDANCj4gDQo+ID4gUHV0dGluZyBhbiBlbXB0eSAnbWx4NV9mbG93
-X3NwZWMnIHN0cnVjdHVyZSBvbiB0aGUgc3RhY2sgaXMgYSBiaXQNCj4gPiB3YXN0ZWZ1bCBhbmQg
-Y2F1c2VzIGEgd2FybmluZyBvbiAzMi1iaXQgYXJjaGl0ZWN0dXJlcyB3aGVuIGJ1aWxkaW5nDQo+
-ID4gd2l0aCBjbGFuZyAtZnNhbml0aXplLWNvdmVyYWdlOg0KPiA+IA0KPiA+IGRyaXZlcnMvbmV0
-L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzX3Rlcm10YmwuYzoN
-Cj4gPiBJbiBmdW5jdGlvbiAnbWx4NV9lc3dpdGNoX3Rlcm10YmxfY3JlYXRlJzoNCj4gPiBkcml2
-ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZXN3aXRjaF9vZmZsb2Fkc190ZXJt
-dGJsLmM6DQo+ID4gOTA6MTogZXJyb3I6IHRoZSBmcmFtZSBzaXplIG9mIDEwMzIgYnl0ZXMgaXMg
-bGFyZ2VyIHRoYW4gMTAyNCBieXRlcw0KPiA+IFstV2Vycm9yPWZyYW1lLWxhcmdlci10aGFuPV0N
-Cj4gPiANCj4gPiBTaW5jZSB0aGUgc3RydWN0dXJlIGlzIG5ldmVyIHdyaXR0ZW4gdG8sIHdlIGNh
-biBzdGF0aWNhbGx5IGFsbG9jYXRlDQo+ID4gaXQgdG8gYXZvaWQgdGhlIHN0YWNrIHVzYWdlLiBU
-byBiZSBvbiB0aGUgc2FmZSBzaWRlLCBtYXJrIGFsbA0KPiA+IHN1YnNlcXVlbnQgZnVuY3Rpb24g
-YXJndW1lbnRzIHRoYXQgd2UgcGFzcyBpdCBpbnRvIGFzICdjb25zdCcNCj4gPiBhcyB3ZWxsLg0K
-PiA+IA0KPiA+IEZpeGVzOiAxMGNhYWJkYWFkNWEgKCJuZXQvbWx4NWU6IFVzZSB0ZXJtaW5hdGlv
-biB0YWJsZSBmb3IgVkxBTg0KPiA+IHB1c2ggYWN0aW9ucyIpDQo+ID4gU2lnbmVkLW9mZi1ieTog
-QXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4NCj4gDQo+IFNhZWVkLCBvbmNlIEFybmQgZml4
-ZXMgdGhlIHJldmVyc2UgY2hyaXN0bWFzIHRyZWUgaXNzdWUsIEkgYXNzdW1lIHlvdQ0KPiB3aWxs
-IHRha2UNCj4gdGhpcyBpbiB2aWEgeW91ciB0cmVlPw0KDQpZZXMsIHRoaXMgaXMgYSBjb3JlIGNo
-YW5nZSB0aGF0IG1pZ2h0IGNvbmZsaWN0IHdpdGggc29tZSBvbmdvaW5nIHN0dWZmLg0KDQpUaGFu
-ayB5b3UgRGF2ZSAhDQpTYWVlZC4NCg==
+On Mon, Jun 17, 2019 at 10:18 AM Catalin Marinas
+<catalin.marinas@arm.com> wrote:
+>
+> On Mon, Jun 17, 2019 at 09:57:36AM -0700, Evgenii Stepanov wrote:
+> > On Mon, Jun 17, 2019 at 6:56 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > > On Wed, Jun 12, 2019 at 01:43:20PM +0200, Andrey Konovalov wrote:
+> > > > From: Catalin Marinas <catalin.marinas@arm.com>
+> > > >
+> > > > It is not desirable to relax the ABI to allow tagged user addresses into
+> > > > the kernel indiscriminately. This patch introduces a prctl() interface
+> > > > for enabling or disabling the tagged ABI with a global sysctl control
+> > > > for preventing applications from enabling the relaxed ABI (meant for
+> > > > testing user-space prctl() return error checking without reconfiguring
+> > > > the kernel). The ABI properties are inherited by threads of the same
+> > > > application and fork()'ed children but cleared on execve().
+> > > >
+> > > > The PR_SET_TAGGED_ADDR_CTRL will be expanded in the future to handle
+> > > > MTE-specific settings like imprecise vs precise exceptions.
+> > > >
+> > > > Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+> > >
+> > > A question for the user-space folk: if an application opts in to this
+> > > ABI, would you want the sigcontext.fault_address and/or siginfo.si_addr
+> > > to contain the tag? We currently clear it early in the arm64 entry.S but
+> > > we could find a way to pass it down if needed.
+> >
+> > For HWASan this would not be useful because we instrument memory
+> > accesses with explicit checks anyway. For MTE, on the other hand, it
+> > would be very convenient to know the fault address tag without
+> > disassembling the code.
+>
+> I could as this differently: does anything break if, once the user
+> opts in to TBI, fault_address and/or si_addr have non-zero top byte?
+
+I think it would be fine.
+
+> Alternatively, we could present the original FAR_EL1 register as a
+> separate field as we do with ESR_EL1, independently of whether the user
+> opted in to TBI or not.
+>
+> --
+> Catalin
