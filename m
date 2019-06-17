@@ -1,67 +1,73 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 15/15] RDMA/mlx5: Cleanup rep when doing unload
-Date: Mon, 17 Jun 2019 19:23:39 +0000
-Message-ID: <20190617192247.25107-16-saeedm@mellanox.com>
-References: <20190617192247.25107-1-saeedm@mellanox.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] RDMA/odp: Fix missed unlock in non-blocking
+ invalidate_start
+Date: Mon, 17 Jun 2019 15:56:34 -0400
+Message-ID: <92ef28dedfbe5adf7928caceeaa79b452492f44d.camel@redhat.com>
+References: <20190611160951.23135-1-jgg@ziepe.ca>
+         <20190612161536.GS6369@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190617192247.25107-1-saeedm@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Bodong Wang <bodong@mellanox.com>, Mark Bloch <markb@mellanox.com>, Parav Pandit <parav@mellanox.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-ZWPd+e+sfldX6aOXW9Rd"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190612161536.GS6369@mtr-leonro.mtl.com>
+Sender: stable-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, Moni Shoua <monis@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogQm9kb25nIFdhbmcgPGJvZG9uZ0BtZWxsYW5veC5jb20+DQoNCldoZW4gYW4gSUIgcmVw
-IGlzIGxvYWRlZCwgbmV0ZGV2IGZvciB0aGUgc2FtZSB2cG9ydCBpcyBzYXZlZCBmb3IgbGF0ZXIN
-CnJlZmVyZW5jZS4gSG93ZXZlciwgaXQncyBub3QgY2xlYW5lZCB1cCB3aGVuIGRvaW5nIHVubG9h
-ZC4gRm9yIEVDUEYsDQprZXJuZWwgY3Jhc2hlcyB3aGVuIGRyaXZlciBpcyByZWZlcnJpbmcgdG8g
-dGhlIGFscmVhZHkgcmVtb3ZlZCBuZXRkZXYuDQoNCkZvbGxvd2luZyBzdGVwcyBsZWFkIHRvIGEg
-c2hvd24gY2FsbCB0cmFjZToNCjEuIENyZWF0ZSBuIFZGcyBmcm9tIGhvc3QgUEYNCjIuIERpc3Ry
-b3kgdGhlIFZGcw0KMy4gUnVuICJyZG1hIGxpbmsiIGZyb20gQVJNDQoNCkNhbGwgdHJhY2U6DQog
-IG1seDVfaWJfZ2V0X25ldGRldisweDljLzB4ZTggW21seDVfaWJdDQogIG1seDVfcXVlcnlfcG9y
-dF9yb2NlKzB4MjY4LzB4NTU4IFttbHg1X2liXQ0KICBtbHg1X2liX3JlcF9xdWVyeV9wb3J0KzB4
-MTQvMHgzNCBbbWx4NV9pYl0NCiAgaWJfcXVlcnlfcG9ydCsweDljLzB4ZmMgW2liX2NvcmVdDQog
-IGZpbGxfcG9ydF9pbmZvKzB4NzQvMHgyOGMgW2liX2NvcmVdDQogIG5sZGV2X3BvcnRfZ2V0X2Rv
-aXQrMHgxYTgvMHgxZTggW2liX2NvcmVdDQogIHJkbWFfbmxfcmN2X21zZysweDE2Yy8weDFjMCBb
-aWJfY29yZV0NCiAgcmRtYV9ubF9yY3YrMHhlOC8weDE0NCBbaWJfY29yZV0NCiAgbmV0bGlua191
-bmljYXN0KzB4MTg0LzB4MjE0DQogIG5ldGxpbmtfc2VuZG1zZysweDI4OC8weDM1NA0KICBzb2Nr
-X3NlbmRtc2crMHgxOC8weDJjDQogIF9fc3lzX3NlbmR0bysweGJjLzB4MTM4DQogIF9fYXJtNjRf
-c3lzX3NlbmR0bysweDI4LzB4MzQNCiAgZWwwX3N2Y19jb21tb24rMHhiMC8weDEwMA0KICBlbDBf
-c3ZjX2hhbmRsZXIrMHg2Yy8weDg0DQogIGVsMF9zdmMrMHg4LzB4Yw0KDQpDbGVhbnVwIHRoZSBy
-ZXAgYW5kIG5ldGRldiByZWZlcmVuY2Ugd2hlbiB1bmxvYWRpbmcgSUIgcmVwLg0KDQpGaXhlczog
-MjY2MjhlMmQ1OGM5ICgiUkRNQS9tbHg1OiBNb3ZlIHRvIHNpbmdsZSBkZXZpY2UgbXVsdGlwb3J0
-IHBvcnRzIGluIHN3aXRjaGRldiBtb2RlIikNClNpZ25lZC1vZmYtYnk6IEJvZG9uZyBXYW5nIDxi
-b2RvbmdAbWVsbGFub3guY29tPg0KUmV2aWV3ZWQtYnk6IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxh
-bm94LmNvbT4NClJldmlld2VkLWJ5OiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4N
-ClNpZ25lZC1vZmYtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KLS0t
-DQogZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvaWJfcmVwLmMgfCAxOCArKysrKysrKysrKy0t
-LS0tLS0NCiAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkN
-Cg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L2liX3JlcC5jIGIvZHJp
-dmVycy9pbmZpbmliYW5kL2h3L21seDUvaWJfcmVwLmMNCmluZGV4IGRhNGI5MzZiMzIxOS4uYTRh
-NTRkZGViYjcxIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvaWJfcmVw
-LmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L2liX3JlcC5jDQpAQCAtMTcsNiAr
-MTcsNyBAQCBtbHg1X2liX3NldF92cG9ydF9yZXAoc3RydWN0IG1seDVfY29yZV9kZXYgKmRldiwg
-c3RydWN0IG1seDVfZXN3aXRjaF9yZXAgKnJlcCkNCiAJdnBvcnRfaW5kZXggPSByZXAtPnZwb3J0
-X2luZGV4Ow0KIA0KIAlpYmRldi0+cG9ydFt2cG9ydF9pbmRleF0ucmVwID0gcmVwOw0KKwlyZXAt
-PnJlcF9kYXRhW1JFUF9JQl0ucHJpdiA9IGliZGV2Ow0KIAl3cml0ZV9sb2NrKCZpYmRldi0+cG9y
-dFt2cG9ydF9pbmRleF0ucm9jZS5uZXRkZXZfbG9jayk7DQogCWliZGV2LT5wb3J0W3Zwb3J0X2lu
-ZGV4XS5yb2NlLm5ldGRldiA9DQogCQltbHg1X2liX2dldF9yZXBfbmV0ZGV2KGRldi0+cHJpdi5l
-c3dpdGNoLCByZXAtPnZwb3J0KTsNCkBAIC02OCwxNSArNjksMTggQEAgbWx4NV9pYl92cG9ydF9y
-ZXBfbG9hZChzdHJ1Y3QgbWx4NV9jb3JlX2RldiAqZGV2LCBzdHJ1Y3QgbWx4NV9lc3dpdGNoX3Jl
-cCAqcmVwKQ0KIHN0YXRpYyB2b2lkDQogbWx4NV9pYl92cG9ydF9yZXBfdW5sb2FkKHN0cnVjdCBt
-bHg1X2Vzd2l0Y2hfcmVwICpyZXApDQogew0KLQlzdHJ1Y3QgbWx4NV9pYl9kZXYgKmRldjsNCi0N
-Ci0JaWYgKCFyZXAtPnJlcF9kYXRhW1JFUF9JQl0ucHJpdiB8fA0KLQkgICAgcmVwLT52cG9ydCAh
-PSBNTFg1X1ZQT1JUX1VQTElOSykNCi0JCXJldHVybjsNCisJc3RydWN0IG1seDVfaWJfZGV2ICpk
-ZXYgPSBtbHg1X2liX3JlcF90b19kZXYocmVwKTsNCisJc3RydWN0IG1seDVfaWJfcG9ydCAqcG9y
-dDsNCiANCi0JZGV2ID0gbWx4NV9pYl9yZXBfdG9fZGV2KHJlcCk7DQotCV9fbWx4NV9pYl9yZW1v
-dmUoZGV2LCBkZXYtPnByb2ZpbGUsIE1MWDVfSUJfU1RBR0VfTUFYKTsNCisJcG9ydCA9ICZkZXYt
-PnBvcnRbcmVwLT52cG9ydF9pbmRleF07DQorCXdyaXRlX2xvY2soJnBvcnQtPnJvY2UubmV0ZGV2
-X2xvY2spOw0KKwlwb3J0LT5yb2NlLm5ldGRldiA9IE5VTEw7DQorCXdyaXRlX3VubG9jaygmcG9y
-dC0+cm9jZS5uZXRkZXZfbG9jayk7DQogCXJlcC0+cmVwX2RhdGFbUkVQX0lCXS5wcml2ID0gTlVM
-TDsNCisJcG9ydC0+cmVwID0gTlVMTDsNCisNCisJaWYgKHJlcC0+dnBvcnQgPT0gTUxYNV9WUE9S
-VF9VUExJTkspDQorCQlfX21seDVfaWJfcmVtb3ZlKGRldiwgZGV2LT5wcm9maWxlLCBNTFg1X0lC
-X1NUQUdFX01BWCk7DQogfQ0KIA0KIHN0YXRpYyB2b2lkICptbHg1X2liX3Zwb3J0X2dldF9wcm90
-b19kZXYoc3RydWN0IG1seDVfZXN3aXRjaF9yZXAgKnJlcCkNCi0tIA0KMi4yMS4wDQoNCg==
+
+--=-ZWPd+e+sfldX6aOXW9Rd
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 2019-06-12 at 19:15 +0300, Leon Romanovsky wrote:
+> On Tue, Jun 11, 2019 at 01:09:51PM -0300, Jason Gunthorpe wrote:
+> > From: Jason Gunthorpe <jgg@mellanox.com>
+> >=20
+> > If invalidate_start returns with EAGAIN then the umem_rwsem needs
+> > to be
+> > unlocked as no invalidate_end will be called.
+> >=20
+> > Cc: <stable@vger.kernel.org>
+> > Fixes: ca748c39ea3f ("RDMA/umem: Get rid of per_mm-
+> > >notifier_count")
+> > Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+> > ---
+> >  drivers/infiniband/core/umem_odp.c | 14 +++++++++-----
+> >  1 file changed, 9 insertions(+), 5 deletions(-)
+> >=20
+>=20
+> Thanks,
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+Thanks, applied to for-next.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
+2FDD
+
+--=-ZWPd+e+sfldX6aOXW9Rd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0H8HIACgkQuCajMw5X
+L91AnxAAgivoNirOgguwm5USGyeORAmKQo2bF3OadlT7XFwv1DEj8Vp0Cx27u0Hb
+oxzMn0V0HJ4CH142yS2bX8N7dhbzXmWqUs7/9n/yTufXHQOy3FB8l3Iu6MirmvCL
+iromXBKfVaFltxCXgpfHugk+76RRQgZevbjg3+NUfYqGVBp/98WKMdzJVo9oMmzO
+p+MrWpYR5/1xnm1XFdfmpGxrubZzhX/jNcgmlESD5BWEcqAIP+WFk11x4JthuH7J
+9uzgSbToQpiCd+qqoVael3yMbZBI5/zM0D5AdIfW6N8HWEpjH4y9HyN9r4xEj1ga
+cOAHYUfUCulzGkWrwq3Z+LvDzCirshsAmC+Zltmk3chSg//cyoHvj09XJvIVgK3P
+MMIJweBePpyrQ3uWW2o6SE5/uD3L/uHflyw5iHhFjXSrETNJzowJccE+zA6mEP0M
+k5k7TpZx/lnW2gvhLDyADydDhbbXORNTt738oK1G4pujKt3+M9kYLALhbgfqjlXC
+vSiBBDwZm0lJAxp+nCXtUBS3ZgsVmIrS1wyj59z24Txaqj8NGyJ3bIuAAOuiZ650
+Pn+8uZzKjU/TQ/1iGtt0hKIOPSPZOQBJZPN634F6tBntrsgvpQfGhuuGfJiUe8L9
+FiF1818NEdXftBDQBj7u+CmESbI2dWVHJNynO87TwY68sgNvl0I=
+=AFTM
+-----END PGP SIGNATURE-----
+
+--=-ZWPd+e+sfldX6aOXW9Rd--
