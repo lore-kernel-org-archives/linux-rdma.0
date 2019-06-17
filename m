@@ -1,46 +1,63 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] RDMA/odp: Fix missed unlock in non-blocking
- invalidate_start
-Date: Mon, 17 Jun 2019 15:56:34 -0400
-Message-ID: <92ef28dedfbe5adf7928caceeaa79b452492f44d.camel@redhat.com>
-References: <20190611160951.23135-1-jgg@ziepe.ca>
-         <20190612161536.GS6369@mtr-leonro.mtl.com>
+Subject: Re: [PATCH rdma-next v1 0/4] Expose ENCAP mode to mlx5_ib
+Date: Mon, 17 Jun 2019 16:18:56 -0400
+Message-ID: <51c50b108d2ab2fc7ff22bf7b38053adca0c365e.camel@redhat.com>
+References: <20190612122014.22359-1-leon@kernel.org>
+         <20190616124357.GH4694@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-ZWPd+e+sfldX6aOXW9Rd"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190612161536.GS6369@mtr-leonro.mtl.com>
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, Moni Shoua <monis@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, stable@vger.kernel.org
+        protocol="application/pgp-signature"; boundary="=-cDVk982+pcQY7caxNPz5"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190616124357.GH4694@mtr-leonro.mtl.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Parav Pandit <parav@mellanox.com>, Petr Vorel <pvorel@suse.cz>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Jiri Pirko <jiri@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-ZWPd+e+sfldX6aOXW9Rd
+--=-cDVk982+pcQY7caxNPz5
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2019-06-12 at 19:15 +0300, Leon Romanovsky wrote:
-> On Tue, Jun 11, 2019 at 01:09:51PM -0300, Jason Gunthorpe wrote:
-> > From: Jason Gunthorpe <jgg@mellanox.com>
+On Sun, 2019-06-16 at 12:44 +0000, Leon Romanovsky wrote:
+> On Wed, Jun 12, 2019 at 03:20:10PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
 > >=20
-> > If invalidate_start returns with EAGAIN then the umem_rwsem needs
-> > to be
-> > unlocked as no invalidate_end will be called.
+> > Changelog v0->v1:
+> >  * Added patch to devlink to use declared enum for encap mode
+> > instead of u8
+> >  * Constify input argumetn to encap mode function
+> >  * fix encap variable type to be boolean
 > >=20
-> > Cc: <stable@vger.kernel.org>
-> > Fixes: ca748c39ea3f ("RDMA/umem: Get rid of per_mm-
-> > >notifier_count")
-> > Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-> > ---
-> >  drivers/infiniband/core/umem_odp.c | 14 +++++++++-----
-> >  1 file changed, 9 insertions(+), 5 deletions(-)
+> > -----------------------------------------------------------------
+> > ----
+> > Hi,
 > >=20
+> > This is short series from Maor to expose and use enacap mode inside
+> > mlx5_ib.
+> >=20
+> > Thanks
+> >=20
+> > Leon Romanovsky (1):
+> >   net/mlx5: Declare more strictly devlink encap mode
+> >=20
+> > Maor Gottlieb (3):
+> >   net/mlx5: Expose eswitch encap mode
 >=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+> Those two applied to mlx5-next
+> 82b11f071936 net/mlx5: Expose eswitch encap mode
+> 98fdbea55037 net/mlx5: Declare more strictly devlink encap mode
+>=20
+> >   RDMA/mlx5: Consider eswitch encap mode
+> >   RDMA/mlx5: Enable decap and packet reformat on FDB
+>=20
+> Doug, Jason
+>=20
+> Can you please take those two patches in addition to latest mlx5-
+> next?
 
-Thanks, applied to for-next.
+Done, thanks.
+
 
 --=20
 Doug Ledford <dledford@redhat.com>
@@ -48,26 +65,26 @@ Doug Ledford <dledford@redhat.com>
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
 2FDD
 
---=-ZWPd+e+sfldX6aOXW9Rd
+--=-cDVk982+pcQY7caxNPz5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0H8HIACgkQuCajMw5X
-L91AnxAAgivoNirOgguwm5USGyeORAmKQo2bF3OadlT7XFwv1DEj8Vp0Cx27u0Hb
-oxzMn0V0HJ4CH142yS2bX8N7dhbzXmWqUs7/9n/yTufXHQOy3FB8l3Iu6MirmvCL
-iromXBKfVaFltxCXgpfHugk+76RRQgZevbjg3+NUfYqGVBp/98WKMdzJVo9oMmzO
-p+MrWpYR5/1xnm1XFdfmpGxrubZzhX/jNcgmlESD5BWEcqAIP+WFk11x4JthuH7J
-9uzgSbToQpiCd+qqoVael3yMbZBI5/zM0D5AdIfW6N8HWEpjH4y9HyN9r4xEj1ga
-cOAHYUfUCulzGkWrwq3Z+LvDzCirshsAmC+Zltmk3chSg//cyoHvj09XJvIVgK3P
-MMIJweBePpyrQ3uWW2o6SE5/uD3L/uHflyw5iHhFjXSrETNJzowJccE+zA6mEP0M
-k5k7TpZx/lnW2gvhLDyADydDhbbXORNTt738oK1G4pujKt3+M9kYLALhbgfqjlXC
-vSiBBDwZm0lJAxp+nCXtUBS3ZgsVmIrS1wyj59z24Txaqj8NGyJ3bIuAAOuiZ650
-Pn+8uZzKjU/TQ/1iGtt0hKIOPSPZOQBJZPN634F6tBntrsgvpQfGhuuGfJiUe8L9
-FiF1818NEdXftBDQBj7u+CmESbI2dWVHJNynO87TwY68sgNvl0I=
-=AFTM
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0H9bAACgkQuCajMw5X
+L917uA//e5x498U/O5qfHU6XmC/M8F30bbBP9608RzJTu6smZnw0HysLX98g9AeA
+99dod1NvL8XSm6vJkZDFeMuCVHTXSIbnujEWbk5hSnqmgFxG+Q2sIG1pxmNft7zy
+Bt+MWMoedRmuvQUgU3nQr8OcMRIXKaPuYCVaGvmhu5s4Q2Qy6SG3jK9ka/TN0lHP
+63ke/oNQyY9Y7gnxfJRBfCfcAe+iF94S1rdWhKhQNM8E0zBJ0axzC+JcJAlm8qd/
+eZX2++0FrBdDPInwWZfm8YZK41cTrit+jzZZr5EBuUdx1EoaBmUYOcXoL8kwUjM7
+Sg6VzGLWoKLhJhhF2obvVZwu51x2uu1gzr2GCIN14kslxsyoxSwhOaX6YAk7bVLT
+DJFcp21AEEVCi/2GZDPrWS55KI1uWy0azKfXKK9w7aDJXrs56MkJ/jII41c5IV9A
+YVj6YffTL5CjMQikq6cLcOIybL9tZZtQM8OPrBhY5V23P1kXF+ZU1GTG6tnjuG9v
+AHlUJ3XNCiMxtoxJfwXhhr4ifpwBeRoO7JVn3XPPIGTizAq53nNXb+QYNi3KPIYd
+JhCvywYgm5Fhs6tapHuqnsIgWu5ACLEOOACHtA6G/sjRjGIreX8pck25bqAESS//
+0M1XmdfGtCoInB/Zp8/pSW9dZD/pRVdh9+lY+yBiV+/LA8gcFvg=
+=wE8p
 -----END PGP SIGNATURE-----
 
---=-ZWPd+e+sfldX6aOXW9Rd--
+--=-cDVk982+pcQY7caxNPz5--
