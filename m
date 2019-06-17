@@ -1,119 +1,52 @@
-From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH 2/2] ipoib: show VF broadcast address
-Date: Mon, 17 Jun 2019 10:53:39 +0200
-Message-ID: <20190617085341.51592-2-dkirjanov@suse.com>
-References: <20190617085341.51592-1-dkirjanov@suse.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190617085341.51592-1-dkirjanov@suse.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, dledford@redhat.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
+From: Kashyap Desai <kashyap.desai@broadcom.com>
+Subject: RE: [PATCH 10/13] megaraid_sas: set virt_boundary_mask in the scsi host
+Date: Mon, 17 Jun 2019 14:40:25 +0530
+Message-ID: <e7443be50725bbdcdb6f1f4cc73955aa@mail.gmail.com>
+References: <20190605190836.32354-1-hch@lst.de> <20190605190836.32354-11-hch@lst.de>
+ <cd713506efb9579d1f69a719d831c28d@mail.gmail.com> <20190608081400.GA19573@lst.de>
+ <98f6557ae91a7cdfe8069fcf7d788c88@mail.gmail.com> <20190617084433.GA7969@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190617084433.GA7969@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Sebastian Ott <sebott@linux.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, "PDL,MEGARAIDLINUX" <megaraidlinux.pdl@broadcom.com>, PDL-MPT-FUSIONLINUX <mpt-fusionlinux.pdl@broadcom.com>, linux-hyperv@vger.kernel.org, linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-in IPoIB case we can't see a VF broadcast address for but
-can see for PF
-
-Before:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-    link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-    vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
-trust off, query_rss off
-...
-
-After with iproute2 patch[0]:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-    link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-    vf 0     link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-checking off, link-state disable, trust off, query_rss off
-
-[0]: https://patchwork.kernel.org/patch/10997111 
-
-v1->v2: add the IFLA_VF_BROADCAST constant
-v2->v3: put IFLA_VF_BROADCAST at the end
-to avoid KABI breakage and set NLA_REJECT
-dev_setlink
-v3->v4: update the changelog: add a link to the patch for iproute2
-
-Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
----
- include/uapi/linux/if_link.h | 5 +++++
- net/core/rtnetlink.c         | 5 +++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
-index 5b225ff63b48..6f75bda2c2d7 100644
---- a/include/uapi/linux/if_link.h
-+++ b/include/uapi/linux/if_link.h
-@@ -694,6 +694,7 @@ enum {
- 	IFLA_VF_IB_NODE_GUID,	/* VF Infiniband node GUID */
- 	IFLA_VF_IB_PORT_GUID,	/* VF Infiniband port GUID */
- 	IFLA_VF_VLAN_LIST,	/* nested list of vlans, option for QinQ */
-+	IFLA_VF_BROADCAST,	/* VF broadcast */
- 	__IFLA_VF_MAX,
- };
- 
-@@ -704,6 +705,10 @@ struct ifla_vf_mac {
- 	__u8 mac[32]; /* MAX_ADDR_LEN */
- };
- 
-+struct ifla_vf_broadcast {
-+	__u8 broadcast[32];
-+};
-+
- struct ifla_vf_vlan {
- 	__u32 vf;
- 	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index cec60583931f..8ac81630ab5c 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -908,6 +908,7 @@ static inline int rtnl_vfinfo_size(const struct net_device *dev,
- 		size += num_vfs *
- 			(nla_total_size(0) +
- 			 nla_total_size(sizeof(struct ifla_vf_mac)) +
-+			 nla_total_size(sizeof(struct ifla_vf_broadcast)) +
- 			 nla_total_size(sizeof(struct ifla_vf_vlan)) +
- 			 nla_total_size(0) + /* nest IFLA_VF_VLAN_LIST */
- 			 nla_total_size(MAX_VLAN_LIST_LEN *
-@@ -1197,6 +1198,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
- 	struct ifla_vf_vlan vf_vlan;
- 	struct ifla_vf_rate vf_rate;
- 	struct ifla_vf_mac vf_mac;
-+	struct ifla_vf_broadcast vf_broadcast;
- 	struct ifla_vf_info ivi;
- 
- 	memset(&ivi, 0, sizeof(ivi));
-@@ -1231,6 +1233,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
- 		vf_trust.vf = ivi.vf;
- 
- 	memcpy(vf_mac.mac, ivi.mac, sizeof(ivi.mac));
-+	memcpy(vf_broadcast.broadcast, dev->broadcast, dev->addr_len);
- 	vf_vlan.vlan = ivi.vlan;
- 	vf_vlan.qos = ivi.qos;
- 	vf_vlan_info.vlan = ivi.vlan;
-@@ -1247,6 +1250,7 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
- 	if (!vf)
- 		goto nla_put_vfinfo_failure;
- 	if (nla_put(skb, IFLA_VF_MAC, sizeof(vf_mac), &vf_mac) ||
-+	    nla_put(skb, IFLA_VF_BROADCAST, sizeof(vf_broadcast), &vf_broadcast) ||
- 	    nla_put(skb, IFLA_VF_VLAN, sizeof(vf_vlan), &vf_vlan) ||
- 	    nla_put(skb, IFLA_VF_RATE, sizeof(vf_rate),
- 		    &vf_rate) ||
-@@ -1753,6 +1757,7 @@ static const struct nla_policy ifla_info_policy[IFLA_INFO_MAX+1] = {
- 
- static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] = {
- 	[IFLA_VF_MAC]		= { .len = sizeof(struct ifla_vf_mac) },
-+	[IFLA_VF_BROADCAST]	= { .type = NLA_REJECT },
- 	[IFLA_VF_VLAN]		= { .len = sizeof(struct ifla_vf_vlan) },
- 	[IFLA_VF_VLAN_LIST]     = { .type = NLA_NESTED },
- 	[IFLA_VF_TX_RATE]	= { .len = sizeof(struct ifla_vf_tx_rate) },
--- 
-2.12.3
+>
+> On Fri, Jun 14, 2019 at 01:28:47AM +0530, Kashyap Desai wrote:
+> > Is there any changes in API  blk_queue_virt_boundary? I could not find
+> > relevant code which account for this. Can you help ?
+> > Which git repo shall I use for testing ? That way I can confirm, I
+> > didn't miss relevant changes.
+>
+> Latest mainline plus the series (which is about to get resent).
+> blk_queue_virt_boundary now forced an unlimited max_hw_sectors as that
+is
+> how PRP-like schemes work, to work around a block driver merging bug.
+But
+> we also need to communicate that limit to the DMA layer so that we don't
+set
+> a smaller iommu segment size limitation.
+>
+> > >From your above explanation, it means (after this patch) max segment
+> > >size
+> > of the MR controller will be set to 4K.
+> > Earlier it is possible to receive single SGE of 64K datalength (Since
+> > max seg size was 64K), but now the same buffer will reach the driver
+> > having 16 SGEs (Each SGE will contain 4K length).
+>
+> No, there is no more limit for the size of the segment at all, as for
+PRPs each
+> PRP is sort of a segment from the hardware perspective.
+> We just require the segments to not have gaps, as PRPs don't allow for
+that.
+Thanks for clarification. I have also observed that max_segment_size Is
+unchanged and it is 64K.
+>
+> That being said I think these patches are wrong for the case of megaraid
+or
+> mpt having both NVMe and SAS/ATA devices behind a single controller.
+> Is that a valid configuration?
+Yes. This is a valid configuration.
