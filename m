@@ -1,22 +1,38 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 6/8] IB/srp: set virt_boundary_mask in the scsi host
-Date: Mon, 17 Jun 2019 14:01:01 -0700
-Message-ID: <840d9dbd-918b-d749-186a-3cc26d53fe76@acm.org>
-References: <20190617122000.22181-1-hch@lst.de>
- <20190617122000.22181-7-hch@lst.de>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net/mlx5e: reduce stack usage in
+ mlx5_eswitch_termtbl_create
+Date: Mon, 17 Jun 2019 14:02:30 -0700 (PDT)
+Message-ID: <20190617.140230.537297372523260104.davem@davemloft.net>
+References: <20190617110855.2085326-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190617122000.22181-7-hch@lst.de>
-Content-Language: en-US
+In-Reply-To: <20190617110855.2085326-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, "Martin K . Petersen" <martin.petersen@oracle.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, megaraidlinux.pdl@broadcom.com, MPT-FusionLinux.pdl@broadcom.com, linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org
+To: arnd@arndb.de
+Cc: saeedm@mellanox.com, leon@kernel.org, ozsh@mellanox.com, paulb@mellanox.com, elibr@mellanox.com, markb@mellanox.com, ogerlitz@mellanox.com, maorg@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/17/19 5:19 AM, Christoph Hellwig wrote:
-> This ensures all proper DMA layer handling is taken care of by the
-> SCSI midlayer.
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 17 Jun 2019 13:08:22 +0200
 
-Acked-by: Bart Van Assche <bvanassche@acm.org>
+> Putting an empty 'mlx5_flow_spec' structure on the stack is a bit
+> wasteful and causes a warning on 32-bit architectures when building
+> with clang -fsanitize-coverage:
+> 
+> drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c: In function 'mlx5_eswitch_termtbl_create':
+> drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c:90:1: error: the frame size of 1032 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
+> 
+> Since the structure is never written to, we can statically allocate
+> it to avoid the stack usage. To be on the safe side, mark all
+> subsequent function arguments that we pass it into as 'const'
+> as well.
+> 
+> Fixes: 10caabdaad5a ("net/mlx5e: Use termination table for VLAN push actions")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+Saeed, once Arnd fixes the reverse christmas tree issue, I assume you will take
+this in via your tree?
+
+Thanks.
