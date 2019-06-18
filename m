@@ -1,24 +1,90 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next v4 2/2] ipoib: show VF broadcast address
-Date: Tue, 18 Jun 2019 10:08:01 -0700 (PDT)
-Message-ID: <20190618.100801.2026737630386139646.davem@davemloft.net>
-References: <20190617085341.51592-1-dkirjanov@suse.com>
-        <20190617085341.51592-4-dkirjanov@suse.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next v1 00/12] DEVX asynchronous events
+Date: Tue, 18 Jun 2019 20:15:28 +0300
+Message-ID: <20190618171540.11729-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190617085341.51592-4-dkirjanov@suse.com>
 Sender: netdev-owner@vger.kernel.org
-To: kda@linux-powerpc.org
-Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Denis Kirjanov <kda@linux-powerpc.org>
-Date: Mon, 17 Jun 2019 10:53:41 +0200
+From: Leon Romanovsky <leonro@mellanox.com>
 
-> in IPoIB case we can't see a VF broadcast address for but
-> can see for PF
+Changelog:
+ v0 -> v1:
+ * Fix the unbind / hot unplug flows to work properly.
+ * Fix Ref count handling on the eventfd mode in some flow.
+ * Rebased to latest rdma-next
 
-I just want to understand why this need to see the VF broadcast
-address is IPoIB specific?
+Thanks
+
+------------------------------------------------------------------------------------
+>From Yishai:
+
+This series enables RDMA applications that use the DEVX interface to
+subscribe and read device asynchronous events.
+
+The solution is designed to allow extension of events in the future
+without need to perform any changes in the driver code.
+
+To enable that few changes had been done in mlx5_core, it includes:
+ * Reading device event capabilities that are user related
+   (affiliated and un-affiliated) and set the matching mask upon
+   creating the matching EQ.
+ * Enable DEVX/mlx5_ib to register for ANY event instead of the option to
+   get some hard-coded ones.
+ * Enable DEVX/mlx5_ib to get the device raw data for CQ completion events.
+ * Enhance mlx5_core_create/destroy CQ to enable DEVX using them so that CQ
+   events will be reported as well.
+
+In mlx5_ib layer the below changes were done:
+ * A new DEVX API was introduced to allocate an event channel by using
+   the uverbs FD object type.
+ * Implement the FD channel operations to enable read/poo/close over it.
+ * A new DEVX API was introduced to subscribe for specific events over an
+   event channel.
+ * Manage an internal data structure  over XA(s) to subscribe/dispatch events
+   over the different event channels.
+ * Use from DEVX the mlx5_core APIs to create/destroy a CQ to be able to
+   get its relevant events.
+
+Yishai
+
+Yishai Hadas (12):
+  net/mlx5: Fix mlx5_core_destroy_cq() error flow
+  net/mlx5: Use event mask based on device capabilities
+  net/mlx5: Expose the API to register for ANY event
+  net/mlx5: mlx5_core_create_cq() enhancements
+  net/mlx5: Report a CQ error event only when a handler was set
+  net/mlx5: Report EQE data upon CQ completion
+  net/mlx5: Expose device definitions for object events
+  IB/mlx5: Introduce MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD
+  IB/mlx5: Register DEVX with mlx5_core to get async events
+  IB/mlx5: Enable subscription for device events over DEVX
+  IB/mlx5: Implement DEVX dispatching event
+  IB/mlx5: Add DEVX support for CQ events
+
+ drivers/infiniband/hw/mlx5/cq.c               |    5 +-
+ drivers/infiniband/hw/mlx5/devx.c             | 1082 ++++++++++++++++-
+ drivers/infiniband/hw/mlx5/main.c             |   10 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |   12 +
+ drivers/infiniband/hw/mlx5/odp.c              |    3 +-
+ drivers/infiniband/hw/mlx5/qp.c               |    2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c  |   21 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en.h  |    2 +-
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |    3 +-
+ .../net/ethernet/mellanox/mlx5/core/en_txrx.c |    2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   68 +-
+ .../ethernet/mellanox/mlx5/core/fpga/conn.c   |    6 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c  |    6 +
+ .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |    5 +-
+ include/linux/mlx5/cq.h                       |    6 +-
+ include/linux/mlx5/device.h                   |    6 +-
+ include/linux/mlx5/driver.h                   |    2 +
+ include/linux/mlx5/eq.h                       |    4 +-
+ include/linux/mlx5/mlx5_ifc.h                 |   34 +-
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h      |   19 +
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h     |    9 +
+ 21 files changed, 1237 insertions(+), 70 deletions(-)
