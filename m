@@ -1,81 +1,63 @@
 From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next 12/15] net/mlx5: E-Switch, Enable vport metadata
- matching if firmware supports it
-Date: Tue, 18 Jun 2019 10:35:38 +0000
-Message-ID: <20190618103535.GF4690@mtr-leonro.mtl.com>
+Subject: Re: [PATCH mlx5-next 15/15] RDMA/mlx5: Cleanup rep when doing unload
+Date: Tue, 18 Jun 2019 10:38:25 +0000
+Message-ID: <20190618103823.GG4690@mtr-leonro.mtl.com>
 References: <20190617192247.25107-1-saeedm@mellanox.com>
- <20190617192247.25107-13-saeedm@mellanox.com>
- <AM0PR05MB4866AA7738F3DE1D3CF47FFBD1EA0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <20190617192247.25107-16-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AM0PR05MB4866AA7738F3DE1D3CF47FFBD1EA0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+In-Reply-To: <20190617192247.25107-16-saeedm@mellanox.com>
 Content-Language: en-US
-Content-ID: <953718B094FA504982271FD642327A5D@eurprd05.prod.outlook.com>
+Content-ID: <92BFC6D9B624BF4BA7520001F32A998D@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jianbo Liu <jianbol@mellanox.com>, Roi Dayan <roid@mellanox.com>, Mark Bloch <markb@mellanox.com>
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Bodong Wang <bodong@mellanox.com>, Mark Bloch <markb@mellanox.com>, Parav Pandit <parav@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 18, 2019 at 10:24:49AM +0000, Parav Pandit wrote:
+On Mon, Jun 17, 2019 at 07:23:39PM +0000, Saeed Mahameed wrote:
+> From: Bodong Wang <bodong@mellanox.com>
 >
+> When an IB rep is loaded, netdev for the same vport is saved for later
+> reference. However, it's not cleaned up when doing unload. For ECPF,
+> kernel crashes when driver is referring to the already removed netdev.
 >
-> > -----Original Message-----
-> > From: linux-rdma-owner@vger.kernel.org <linux-rdma-
-> > owner@vger.kernel.org> On Behalf Of Saeed Mahameed
-> > Sent: Tuesday, June 18, 2019 12:54 AM
-> > To: Saeed Mahameed <saeedm@mellanox.com>; Leon Romanovsky
-> > <leonro@mellanox.com>
-> > Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; Jianbo Liu
-> > <jianbol@mellanox.com>; Roi Dayan <roid@mellanox.com>; Mark Bloch
-> > <markb@mellanox.com>
-> > Subject: [PATCH mlx5-next 12/15] net/mlx5: E-Switch, Enable vport metad=
-ata
-> > matching if firmware supports it
-> >
-> > From: Jianbo Liu <jianbol@mellanox.com>
-> >
-> > As the ingress ACL rules save vhca id and vport number to packet's meta=
-data
-> > REG_C_0, and the metadata matching for the rules in both fast path and =
-slow
-> > path are all added, enable this feature if supported.
-> >
-> > Signed-off-by: Jianbo Liu <jianbol@mellanox.com>
-> > Reviewed-by: Roi Dayan <roid@mellanox.com>
-> > Reviewed-by: Mark Bloch <markb@mellanox.com>
-> > Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> > ---
-> >  .../ethernet/mellanox/mlx5/core/eswitch_offloads.c  | 13 +++++++++++++
-> >  1 file changed, 13 insertions(+)
-> >
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> > b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> > index 363517e29d4c..5124219a31de 100644
-> > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> > @@ -1906,12 +1906,25 @@ static int
-> > esw_vport_ingress_common_config(struct mlx5_eswitch *esw,
-> >  	return err;
-> >  }
-> >
-> > +static int esw_check_vport_match_metadata_supported(struct mlx5_eswitc=
-h
-> > +*esw) {
-> > +	return (MLX5_CAP_ESW_FLOWTABLE(esw->dev,
-> > fdb_to_vport_reg_c_id) &
-> > +		MLX5_FDB_TO_VPORT_REG_C_0) &&
-> > +	       MLX5_CAP_ESW_FLOWTABLE(esw->dev, flow_source) &&
-> > +	       MLX5_CAP_ESW(esw->dev, esw_uplink_ingress_acl) &&
-> > +	       !mlx5_core_is_ecpf_esw_manager(esw->dev) &&
-> > +	       !mlx5_ecpf_vport_exists(esw->dev);
-> > +}
-> > +
-> struct mlx5_eswitch* should be const.
-> return type should be bool.
+> Following steps lead to a shown call trace:
+> 1. Create n VFs from host PF
+> 2. Distroy the VFs
+> 3. Run "rdma link" from ARM
+>
+> Call trace:
+>   mlx5_ib_get_netdev+0x9c/0xe8 [mlx5_ib]
+>   mlx5_query_port_roce+0x268/0x558 [mlx5_ib]
+>   mlx5_ib_rep_query_port+0x14/0x34 [mlx5_ib]
+>   ib_query_port+0x9c/0xfc [ib_core]
+>   fill_port_info+0x74/0x28c [ib_core]
+>   nldev_port_get_doit+0x1a8/0x1e8 [ib_core]
+>   rdma_nl_rcv_msg+0x16c/0x1c0 [ib_core]
+>   rdma_nl_rcv+0xe8/0x144 [ib_core]
+>   netlink_unicast+0x184/0x214
+>   netlink_sendmsg+0x288/0x354
+>   sock_sendmsg+0x18/0x2c
+>   __sys_sendto+0xbc/0x138
+>   __arm64_sys_sendto+0x28/0x34
+>   el0_svc_common+0xb0/0x100
+>   el0_svc_handler+0x6c/0x84
+>   el0_svc+0x8/0xc
+>
+> Cleanup the rep and netdev reference when unloading IB rep.
+>
+> Fixes: 26628e2d58c9 ("RDMA/mlx5: Move to single device multiport ports in=
+ switchdev mode")
+> Signed-off-by: Bodong Wang <bodong@mellanox.com>
+> Reviewed-by: Mark Bloch <markb@mellanox.com>
+> Reviewed-by: Parav Pandit <parav@mellanox.com>
+> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+> ---
+>  drivers/infiniband/hw/mlx5/ib_rep.c | 18 +++++++++++-------
+>  1 file changed, 11 insertions(+), 7 deletions(-)
+>
 
-It is also completely indigestible and should be break into peaces to
-make it readable.
-
-Thanks
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
