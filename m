@@ -1,37 +1,35 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][next] net/mlx5: add missing void argument to function mlx5_devlink_alloc
-Date: Tue, 18 Jun 2019 16:15:10 +0100
-Message-ID: <20190618151510.18672-1-colin.king@canonical.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [iproute2] ipaddress: correctly print a VF hw address in the
+ IPoIB case
+Date: Tue, 18 Jun 2019 09:51:44 -0700
+Message-ID: <20190618095144.4ef794a9@hermes.lan>
+References: <20190615114056.100808-1-dkirjanov@suse.com>
+        <20190615114056.100808-2-dkirjanov@suse.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190615114056.100808-2-dkirjanov@suse.com>
+Sender: netdev-owner@vger.kernel.org
+To: Denis Kirjanov <kda@linux-powerpc.org>
+Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Sat, 15 Jun 2019 13:40:56 +0200
+Denis Kirjanov <kda@linux-powerpc.org> wrote:
 
-Function mlx5_devlink_alloc is missing a void argument, add it
-to clean up the non-ANSI function declaration.
+> diff --git a/include/uapi/linux/netdevice.h b/include/uapi/linux/netdevice.h
+> index 86d961c9..aaa48818 100644
+> --- a/include/uapi/linux/netdevice.h
+> +++ b/include/uapi/linux/netdevice.h
+> @@ -30,7 +30,7 @@
+>  #include <linux/if_ether.h>
+>  #include <linux/if_packet.h>
+>  #include <linux/if_link.h>
+> -
+> +#include <linux/if_infiniband.h>
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+You can't modify kernel headers in iproute.
+These are updated by a script and your change will get overwritten.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index ed4202e883f0..1533c657220b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -37,7 +37,7 @@ static const struct devlink_ops mlx5_devlink_ops = {
- 	.flash_update = mlx5_devlink_flash_update,
- };
- 
--struct devlink *mlx5_devlink_alloc()
-+struct devlink *mlx5_devlink_alloc(void)
- {
- 	return devlink_alloc(&mlx5_devlink_ops, sizeof(struct mlx5_core_dev));
- }
--- 
-2.20.1
+I did go ahead and put if_link.h and if_infiniband.h in already.
