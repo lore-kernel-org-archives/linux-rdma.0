@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 12/12] IB/mlx5: Add DEVX support for CQ events
-Date: Tue, 18 Jun 2019 20:15:40 +0300
-Message-ID: <20190618171540.11729-13-leon@kernel.org>
+Subject: [PATCH rdma-next v1 09/12] IB/mlx5: Register DEVX with mlx5_core to get async events
+Date: Tue, 18 Jun 2019 20:15:37 +0300
+Message-ID: <20190618171540.11729-10-leon@kernel.org>
 References: <20190618171540.11729-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,117 +14,128 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Add DEVX support for CQ events by creating and destroying the CQ via
-mlx5_core and set an handler to manage its completions.
+Register DEVX with with mlx5_core to get async events.  This will enable
+to dispatch the applicable events to its consumers in down stream
+patches.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c | 40 +++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/infiniband/hw/mlx5/devx.c    | 30 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c    |  8 ++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++++++++
+ 3 files changed, 48 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 49fdce95d6d9..91ccd58ebc05 100644
+index 1815ce0f8daf..e9b9ba5a3e9a 100644
 --- a/drivers/infiniband/hw/mlx5/devx.c
 +++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -19,9 +19,12 @@
- #define UVERBS_MODULE_NAME mlx5_ib
- #include <rdma/uverbs_named_ioctl.h>
- 
-+static void dispatch_event_fd(struct list_head *fd_list, const void *data);
-+
- enum devx_obj_flags {
- 	DEVX_OBJ_FLAGS_INDIRECT_MKEY = 1 << 0,
- 	DEVX_OBJ_FLAGS_DCT = 1 << 1,
-+	DEVX_OBJ_FLAGS_CQ = 1 << 2,
- };
- 
- struct devx_async_data {
-@@ -94,6 +97,7 @@ struct devx_async_event_file {
- #define MLX5_MAX_DESTROY_INBOX_SIZE_DW MLX5_ST_SZ_DW(delete_fte_in)
- struct devx_obj {
- 	struct mlx5_core_dev	*mdev;
-+	struct mlx5_ib_dev	*ib_dev;
- 	u64			obj_id;
- 	u32			dinlen; /* destroy inbox length */
- 	u32			dinbox[MLX5_MAX_DESTROY_INBOX_SIZE_DW];
-@@ -101,6 +105,7 @@ struct devx_obj {
- 	union {
- 		struct mlx5_ib_devx_mr	devx_mr;
- 		struct mlx5_core_dct	core_dct;
-+		struct mlx5_core_cq	core_cq;
- 	};
- 	struct list_head event_sub; /* holds devx_event_subscription entries */
- };
-@@ -1384,6 +1389,8 @@ static int devx_obj_cleanup(struct ib_uobject *uobject,
- 
- 	if (obj->flags & DEVX_OBJ_FLAGS_DCT)
- 		ret = mlx5_core_destroy_dct(obj->mdev, &obj->core_dct);
-+	else if (obj->flags & DEVX_OBJ_FLAGS_CQ)
-+		ret = mlx5_core_destroy_cq(obj->mdev, &obj->core_cq);
- 	else
- 		ret = mlx5_cmd_exec(obj->mdev, obj->dinbox, obj->dinlen, out,
- 				    sizeof(out));
-@@ -1408,6 +1415,30 @@ static int devx_obj_cleanup(struct ib_uobject *uobject,
- 	return ret;
+@@ -1670,6 +1670,36 @@ static int devx_umem_cleanup(struct ib_uobject *uobject,
+ 	return 0;
  }
  
-+static void devx_cq_comp(struct mlx5_core_cq *mcq, struct mlx5_eqe *eqe)
++static int devx_event_notifier(struct notifier_block *nb,
++			       unsigned long event_type, void *data)
 +{
-+	struct devx_obj *obj = container_of(mcq, struct devx_obj, core_cq);
-+	struct mlx5_devx_event_table *table;
-+	struct devx_event *event;
-+	struct devx_obj_event *obj_event;
-+	u32 obj_id = mcq->cqn;
-+
-+	table = &obj->ib_dev->devx_event_table;
-+	event = xa_load(&table->event_xa, MLX5_EVENT_TYPE_COMP);
-+	if (!event)
-+		return;
-+
-+	rcu_read_lock();
-+	obj_event = xa_load(&event->object_ids, obj_id);
-+	if (!obj_event) {
-+		rcu_read_unlock();
-+		return;
-+	}
-+
-+	dispatch_event_fd(&obj_event->obj_sub_list, eqe);
-+	rcu_read_unlock();
++	return NOTIFY_DONE;
 +}
 +
- static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- 	struct uverbs_attr_bundle *attrs)
++void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_devx_event_table *table = &dev->devx_event_table;
++
++	xa_init(&table->event_xa);
++	mutex_init(&table->event_xa_lock);
++	MLX5_NB_INIT(&table->devx_nb, devx_event_notifier, NOTIFY_ANY);
++	mlx5_eq_notifier_register(dev->mdev, &table->devx_nb);
++}
++
++void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_devx_event_table *table = &dev->devx_event_table;
++	void *entry;
++	unsigned long id;
++
++	mlx5_eq_notifier_unregister(dev->mdev, &table->devx_nb);
++
++	xa_for_each(&table->event_xa, id, entry)
++		kfree(entry);
++
++	xa_destroy(&table->event_xa);
++}
++
+ static ssize_t devx_async_cmd_event_read(struct file *filp, char __user *buf,
+ 					 size_t count, loff_t *pos)
  {
-@@ -1459,6 +1490,12 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- 		err = mlx5_core_create_dct(dev->mdev, &obj->core_dct,
- 					   cmd_in, cmd_in_len,
- 					   cmd_out, cmd_out_len);
-+	} else if (opcode == MLX5_CMD_OP_CREATE_CQ) {
-+		obj->flags |= DEVX_OBJ_FLAGS_CQ;
-+		obj->core_cq.comp = devx_cq_comp;
-+		err = mlx5_core_create_cq(dev->mdev, &obj->core_cq,
-+					  cmd_in, cmd_in_len, cmd_out,
-+					  cmd_out_len);
- 	} else {
- 		err = mlx5_cmd_exec(dev->mdev, cmd_in,
- 				    cmd_in_len,
-@@ -1471,6 +1508,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- 	uobj->object = obj;
- 	obj->mdev = dev->mdev;
- 	INIT_LIST_HEAD(&obj->event_sub);
-+	obj->ib_dev = dev;
- 	devx_obj_build_destroy_cmd(cmd_in, cmd_out, obj->dinbox, &obj->dinlen,
- 				   &obj_id);
- 	WARN_ON(obj->dinlen > MLX5_MAX_DESTROY_INBOX_SIZE_DW * sizeof(u32));
-@@ -1498,6 +1536,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- obj_destroy:
- 	if (obj->flags & DEVX_OBJ_FLAGS_DCT)
- 		mlx5_core_destroy_dct(obj->mdev, &obj->core_dct);
-+	else if (obj->flags & DEVX_OBJ_FLAGS_CQ)
-+		mlx5_core_destroy_cq(obj->mdev, &obj->core_cq);
- 	else
- 		mlx5_cmd_exec(obj->mdev, obj->dinbox, obj->dinlen, out,
- 			      sizeof(out));
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c9c6710afc6b..67b9e7ac569a 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6653,15 +6653,19 @@ static int mlx5_ib_stage_devx_init(struct mlx5_ib_dev *dev)
+ 	int uid;
+ 
+ 	uid = mlx5_ib_devx_create(dev, false);
+-	if (uid > 0)
++	if (uid > 0) {
+ 		dev->devx_whitelist_uid = uid;
++		mlx5_ib_devx_init_event_table(dev);
++	}
+ 
+ 	return 0;
+ }
+ static void mlx5_ib_stage_devx_cleanup(struct mlx5_ib_dev *dev)
+ {
+-	if (dev->devx_whitelist_uid)
++	if (dev->devx_whitelist_uid) {
++		mlx5_ib_devx_cleanup_event_table(dev);
+ 		mlx5_ib_devx_destroy(dev, dev->devx_whitelist_uid);
++	}
+ }
+ 
+ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 9cf23ae6324e..556af34b788b 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -944,6 +944,13 @@ struct mlx5_ib_pf_eq {
+ 	mempool_t *pool;
+ };
+ 
++struct mlx5_devx_event_table {
++	struct mlx5_nb devx_nb;
++	/* serialize updating the event_xa */
++	struct mutex event_xa_lock;
++	struct xarray event_xa;
++};
++
+ struct mlx5_ib_dev {
+ 	struct ib_device		ib_dev;
+ 	struct mlx5_core_dev		*mdev;
+@@ -994,6 +1001,7 @@ struct mlx5_ib_dev {
+ 	struct mlx5_srq_table   srq_table;
+ 	struct mlx5_async_ctx   async_ctx;
+ 	int			free_port;
++	struct mlx5_devx_event_table devx_event_table;
+ };
+ 
+ static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
+@@ -1333,6 +1341,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
+ #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user);
+ void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid);
++void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev);
++void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev);
+ const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
+ extern const struct uapi_definition mlx5_ib_devx_defs[];
+ extern const struct uapi_definition mlx5_ib_flow_defs[];
+@@ -1349,6 +1359,8 @@ static inline int
+ mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
+ 			   bool is_user) { return -EOPNOTSUPP; }
+ static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid) {}
++static inline void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev) {}
++static inline void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev) {}
+ static inline bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
+ 					     int *dest_type)
+ {
 -- 
 2.20.1
