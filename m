@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v4 10/17] RDMA/nldev: Allow counter auto mode configration through RDMA netlink
-Date: Tue, 18 Jun 2019 20:26:18 +0300
-Message-ID: <20190618172625.13432-11-leon@kernel.org>
+Subject: [PATCH rdma-next v4 17/17] RDMA/nldev: Allow get default counter statistics through RDMA netlink
+Date: Tue, 18 Jun 2019 20:26:25 +0300
+Message-ID: <20190618172625.13432-18-leon@kernel.org>
 References: <20190618172625.13432-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,59 +14,50 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Provide an option to enable/disable per-port counter auto mode through
-RDMA netlink. Limit it to users with ADMIN capability only.
+This patch adds the ability to return the hwstats of per-port default
+counters (which can also be queried through sysfs nodes).
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/nldev.c  | 78 ++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  8 ++++
- 2 files changed, 86 insertions(+)
+ drivers/infiniband/core/nldev.c | 98 ++++++++++++++++++++++++++++++++-
+ drivers/infiniband/core/sysfs.c |  6 ++
+ include/rdma/ib_verbs.h         |  1 +
+ 3 files changed, 104 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 39dd9b366629..9819dc718928 100644
+index ccbc85d692e1..a6502b94239f 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -120,6 +120,9 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_DEV_PROTOCOL]		= { .type = NLA_NUL_STRING,
- 				    .len = RDMA_NLDEV_ATTR_ENTRY_STRLEN },
- 	[RDMA_NLDEV_NET_NS_FD]			= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_STAT_MODE]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_STAT_RES]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK]	= { .type = NLA_U32 },
- };
-
- static int put_driver_name_print_type(struct sk_buff *msg, const char *name,
-@@ -1388,6 +1391,78 @@ static int nldev_set_sys_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	return err;
+@@ -1705,6 +1705,99 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	return ret;
  }
 
-+static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			       struct netlink_ext_ack *extack)
++static int stat_get_doit_default_counter(struct sk_buff *skb,
++					 struct nlmsghdr *nlh,
++					 struct netlink_ext_ack *extack,
++					 struct nlattr *tb[])
 +{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	u32 index, port, mode, mask = 0;
++	struct rdma_hw_stats *stats;
++	struct nlattr *table_attr;
 +	struct ib_device *device;
++	int ret, num_cnts, i;
 +	struct sk_buff *msg;
-+	int ret;
++	u32 index, port;
++	u64 v;
 +
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	/* Currently only counter for QP is supported */
-+	if (ret || !tb[RDMA_NLDEV_ATTR_STAT_RES] ||
-+	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX] || !tb[RDMA_NLDEV_ATTR_STAT_MODE])
-+		return -EINVAL;
-+
-+	if (nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_RES]) != RDMA_NLDEV_ATTR_RES_QP)
++	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
 +		return -EINVAL;
 +
 +	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
 +	device = ib_device_get_by_index(sock_net(skb->sk), index);
 +	if (!device)
 +		return -EINVAL;
++
++	if (!device->ops.alloc_hw_stats || !device->ops.get_hw_stats) {
++		ret = -EINVAL;
++		goto err;
++	}
 +
 +	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
 +	if (!rdma_is_port_valid(device, port)) {
@@ -79,35 +70,55 @@ index 39dd9b366629..9819dc718928 100644
 +		ret = -ENOMEM;
 +		goto err;
 +	}
++
 +	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
 +			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
-+					 RDMA_NLDEV_CMD_STAT_SET),
++					 RDMA_NLDEV_CMD_STAT_GET),
 +			0, 0);
 +
-+	mode = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_MODE]);
-+	if (mode != RDMA_COUNTER_MODE_AUTO) {
++	if (fill_nldev_handle(msg, device) ||
++	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port)) {
 +		ret = -EMSGSIZE;
 +		goto err_msg;
 +	}
 +
-+	if (tb[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK])
-+		mask = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK]);
-+
-+	ret = rdma_counter_set_auto_mode(device, port,
-+					 mask ? true : false, mask);
-+	if (ret)
-+		goto err_msg;
-+
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_MODE, mode) ||
-+	    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK, mask)) {
-+		ret = -EMSGSIZE;
++	stats = device->port_data ? device->port_data[port].hw_stats : NULL;
++	if (stats == NULL) {
++		ret = -EINVAL;
 +		goto err_msg;
 +	}
++	mutex_lock(&stats->lock);
 +
++	num_cnts = device->ops.get_hw_stats(device, stats, port, 0);
++	if (num_cnts < 0) {
++		ret = -EINVAL;
++		goto err_stats;
++	}
++
++	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_STAT_HWCOUNTERS);
++	if (!table_attr) {
++		ret = -EMSGSIZE;
++		goto err_stats;
++	}
++	for (i = 0; i < num_cnts; i++) {
++		v = stats->value[i] +
++			rdma_counter_get_hwstat_value(device, port, i);
++		if (fill_stat_hwcounter_entry(msg, stats->names[i], v)) {
++			ret = -EMSGSIZE;
++			goto err_table;
++		}
++	}
++	nla_nest_end(msg, table_attr);
++
++	mutex_unlock(&stats->lock);
 +	nlmsg_end(msg, nlh);
 +	ib_device_put(device);
 +	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
 +
++err_table:
++	nla_nest_cancel(msg, table_attr);
++err_stats:
++	mutex_unlock(&stats->lock);
 +err_msg:
 +	nlmsg_free(msg);
 +err:
@@ -115,42 +126,63 @@ index 39dd9b366629..9819dc718928 100644
 +	return ret;
 +}
 +
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -1438,6 +1513,9 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	},
- 	[RDMA_NLDEV_CMD_SYS_SET] = {
- 		.doit = nldev_set_sys_set_doit,
-+	},
-+	[RDMA_NLDEV_CMD_STAT_SET] = {
-+		.doit = nldev_stat_set_doit,
- 		.flags = RDMA_NL_ADMIN_PERM,
- 	},
- };
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 56ddd4cd30a2..f33fe37b2f3e 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -279,6 +279,8 @@ enum rdma_nldev_command {
+ static int stat_get_doit_qp(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			    struct netlink_ext_ack *extack, struct nlattr *tb[])
 
- 	RDMA_NLDEV_CMD_RES_PD_GET, /* can dump */
+@@ -1777,9 +1870,12 @@ static int nldev_stat_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
 
-+	RDMA_NLDEV_CMD_STAT_SET,
+ 	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
+ 			  nldev_policy, extack);
+-	if (ret || !tb[RDMA_NLDEV_ATTR_STAT_RES])
++	if (ret)
+ 		return -EINVAL;
+
++	if (!tb[RDMA_NLDEV_ATTR_STAT_RES])
++		return stat_get_doit_default_counter(skb, nlh, extack, tb);
 +
- 	RDMA_NLDEV_NUM_OPS
+ 	switch (nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_RES])) {
+ 	case RDMA_NLDEV_ATTR_RES_QP:
+ 		ret = stat_get_doit_qp(skb, nlh, extack, tb);
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index c59b80e0a740..b477295a96c2 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -1003,6 +1003,8 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+ 			goto err;
+ 		port->hw_stats_ag = hsag;
+ 		port->hw_stats = stats;
++		if (device->port_data)
++			device->port_data[port_num].hw_stats = stats;
+ 	} else {
+ 		struct kobject *kobj = &device->dev.kobj;
+ 		ret = sysfs_create_group(kobj, hsag);
+@@ -1293,6 +1295,8 @@ const struct attribute_group ib_dev_attr_group = {
+
+ void ib_free_port_attrs(struct ib_core_device *coredev)
+ {
++	struct ib_device *device = rdma_device_to_ibdev(&coredev->dev);
++	bool is_full_dev = &device->coredev == coredev;
+ 	struct kobject *p, *t;
+
+ 	list_for_each_entry_safe(p, t, &coredev->port_list, entry) {
+@@ -1302,6 +1306,8 @@ void ib_free_port_attrs(struct ib_core_device *coredev)
+ 		if (port->hw_stats_ag)
+ 			free_hsag(&port->kobj, port->hw_stats_ag);
+ 		kfree(port->hw_stats);
++		if (device->port_data && is_full_dev)
++			device->port_data[port->port_num].hw_stats = NULL;
+
+ 		if (port->pma_table)
+ 			sysfs_remove_group(p, port->pma_table);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ff1a312d3e79..d1401f2a25be 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2237,6 +2237,7 @@ struct ib_port_data {
+ 	struct net_device __rcu *netdev;
+ 	struct hlist_node ndev_hash_link;
+ 	struct rdma_port_counter port_counter;
++	struct rdma_hw_stats *hw_stats;
  };
 
-@@ -490,6 +492,12 @@ enum rdma_nldev_attr {
- 	 * File descriptor handle of the net namespace object
- 	 */
- 	RDMA_NLDEV_NET_NS_FD,			/* u32 */
-+	/*
-+	 * Counter-specific attributes.
-+	 */
-+	RDMA_NLDEV_ATTR_STAT_MODE,		/* u32 */
-+	RDMA_NLDEV_ATTR_STAT_RES,		/* u32 */
-+	RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK,	/* u32 */
-
- 	/*
- 	 * Always the end
+ /* rdma netdev type - specifies protocol type */
