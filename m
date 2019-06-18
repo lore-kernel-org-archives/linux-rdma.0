@@ -1,72 +1,51 @@
-From: Michal Rostecki <mrostecki@opensuse.org>
-Subject: [PATCH bpf-next] samples: bpf: Remove bpf_debug macro in favor of bpf_printk
-Date: Tue, 18 Jun 2019 20:13:18 +0200
-Message-ID: <20190618181338.24145-1-mrostecki@opensuse.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 14/15] {IB, net}/mlx5: E-Switch, Use index of
+ rep for vport to IB port mapping
+Date: Tue, 18 Jun 2019 18:25:46 +0000
+Message-ID: <7b098b42a51e5b96eca99c024719eebafa775f7a.camel@mellanox.com>
+References: <20190617192247.25107-1-saeedm@mellanox.com>
+         <20190617192247.25107-15-saeedm@mellanox.com>
+         <20190618104220.GH4690@mtr-leonro.mtl.com>
+         <AM0PR05MB4866DF63BB7D80483630F0A9D1EA0@AM0PR05MB4866.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: Michal Rostecki <mrostecki@opensuse.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <AM0PR05MB4866DF63BB7D80483630F0A9D1EA0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+Content-Language: en-US
+Content-ID: <09BE78105BB32A4781F89EF5AA17F0AD@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Parav Pandit <parav@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: Mark Bloch <markb@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Bodong Wang <bodong@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-ibumad example was implementing the bpf_debug macro which is exactly the
-same as the bpf_printk macro available in bpf_helpers.h. This change
-makes use of bpf_printk instead of bpf_debug.
-
-Signed-off-by: Michal Rostecki <mrostecki@opensuse.org>
----
- samples/bpf/ibumad_kern.c | 18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
-
-diff --git a/samples/bpf/ibumad_kern.c b/samples/bpf/ibumad_kern.c
-index 38b2b3f22049..f281df7e0089 100644
---- a/samples/bpf/ibumad_kern.c
-+++ b/samples/bpf/ibumad_kern.c
-@@ -31,15 +31,9 @@ struct bpf_map_def SEC("maps") write_count = {
- };
- 
- #undef DEBUG
--#ifdef DEBUG
--#define bpf_debug(fmt, ...)                         \
--({                                                  \
--	char ____fmt[] = fmt;                       \
--	bpf_trace_printk(____fmt, sizeof(____fmt),  \
--			 ##__VA_ARGS__);            \
--})
--#else
--#define bpf_debug(fmt, ...)
-+#ifndef DEBUG
-+#undef bpf_printk
-+#define bpf_printk(fmt, ...)
- #endif
- 
- /* Taken from the current format defined in
-@@ -86,7 +80,7 @@ int on_ib_umad_read_recv(struct ib_umad_rw_args *ctx)
- 	u64 zero = 0, *val;
- 	u8 class = ctx->mgmt_class;
- 
--	bpf_debug("ib_umad read recv : class 0x%x\n", class);
-+	bpf_printk("ib_umad read recv : class 0x%x\n", class);
- 
- 	val = bpf_map_lookup_elem(&read_count, &class);
- 	if (!val) {
-@@ -106,7 +100,7 @@ int on_ib_umad_read_send(struct ib_umad_rw_args *ctx)
- 	u64 zero = 0, *val;
- 	u8 class = ctx->mgmt_class;
- 
--	bpf_debug("ib_umad read send : class 0x%x\n", class);
-+	bpf_printk("ib_umad read send : class 0x%x\n", class);
- 
- 	val = bpf_map_lookup_elem(&read_count, &class);
- 	if (!val) {
-@@ -126,7 +120,7 @@ int on_ib_umad_write(struct ib_umad_rw_args *ctx)
- 	u64 zero = 0, *val;
- 	u8 class = ctx->mgmt_class;
- 
--	bpf_debug("ib_umad write : class 0x%x\n", class);
-+	bpf_printk("ib_umad write : class 0x%x\n", class);
- 
- 	val = bpf_map_lookup_elem(&write_count, &class);
- 	if (!val) {
--- 
-2.21.0
+T24gVHVlLCAyMDE5LTA2LTE4IGF0IDEwOjQ3ICswMDAwLCBQYXJhdiBQYW5kaXQgd3JvdGU6DQo+
+IEhpIExlb24sDQo+IA0KPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTog
+TGVvbiBSb21hbm92c2t5DQo+ID4gU2VudDogVHVlc2RheSwgSnVuZSAxOCwgMjAxOSA0OjEyIFBN
+DQo+ID4gVG86IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KPiA+IENjOiBu
+ZXRkZXZAdmdlci5rZXJuZWwub3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgQm9kb25n
+IFdhbmcNCj4gPiA8Ym9kb25nQG1lbGxhbm94LmNvbT47IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVs
+bGFub3guY29tPjsgTWFyaw0KPiA+IEJsb2NoDQo+ID4gPG1hcmtiQG1lbGxhbm94LmNvbT4NCj4g
+PiBTdWJqZWN0OiBSZTogW1BBVENIIG1seDUtbmV4dCAxNC8xNV0ge0lCLCBuZXR9L21seDU6IEUt
+U3dpdGNoLCBVc2UNCj4gPiBpbmRleCBvZiByZXANCj4gPiBmb3IgdnBvcnQgdG8gSUIgcG9ydCBt
+YXBwaW5nDQo+ID4gDQo+ID4gT24gTW9uLCBKdW4gMTcsIDIwMTkgYXQgMDc6MjM6MzdQTSArMDAw
+MCwgU2FlZWQgTWFoYW1lZWQgd3JvdGU6DQo+ID4gPiBGcm9tOiBCb2RvbmcgV2FuZyA8Ym9kb25n
+QG1lbGxhbm94LmNvbT4NCj4gPiA+IA0KPiA+ID4gSW4gdGhlIHNpbmdsZSBJQiBkZXZpY2UgbW9k
+ZSwgdGhlIG1hcHBpbmcgYmV0d2VlbiB2cG9ydCBudW1iZXINCj4gPiA+IGFuZCByZXANCj4gPiA+
+IHJlbGllcyBvbiBhIGNvdW50ZXIuIEhvd2V2ZXIgZm9yIGR5bmFtaWMgdnBvcnQgYWxsb2NhdGlv
+biwgaXQgaXMNCj4gPiA+IGRlc2lyZWQgdG8ga2VlcCBjb25zaXN0ZW50IG1hcCBvZiBlc3dpdGNo
+IHZwb3J0IGFuZCBJQiBwb3J0Lg0KPiA+ID4gDQo+ID4gPiBIZW5jZSwgc2ltcGxpZnkgY29kZSB0
+byByZW1vdmUgdGhlIGZyZWUgcnVubmluZyBjb3VudGVyIGFuZA0KPiA+ID4gaW5zdGVhZA0KPiA+
+ID4gdXNlIHRoZSBhdmFpbGFibGUgdnBvcnQgaW5kZXggZHVyaW5nIGxvYWQvdW5sb2FkIHNlcXVl
+bmNlIGZyb20NCj4gPiA+IHRoZQ0KPiA+ID4gZXN3aXRjaC4NCj4gPiA+IA0KPiA+ID4gU2lnbmVk
+LW9mZi1ieTogQm9kb25nIFdhbmcgPGJvZG9uZ0BtZWxsYW5veC5jb20+DQo+ID4gPiBTdWdnZXN0
+ZWQtYnk6IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiA+ID4gUmV2aWV3ZWQt
+Ynk6IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiA+IA0KPiA+IFdlIGFyZSBu
+b3QgYWRkaW5nIG11bHRpcGxlICIqLWJ5IiBmb3Igc2FtZSB1c2VyLCBwbGVhc2UgY2hvb3NlIG9u
+ZS4NCj4gPiANCj4gU3VnZ2VzdGVkLWJ5IHdhcyBhZGRlZCBieSBCb2RvbmcgZHVyaW5nIG91ciBk
+aXNjdXNzaW9uLiBMYXRlciBvbiB3aGVuDQo+IEkgZGlkIGdlcnJpdCArMSwgUkIgdGFnIGdvdCBh
+ZGRlZC4NCj4gDQoNCklzIHRoZXJlIGEgcnVsZSBhZ2FpbnN0IGhhdmluZyBtdWx0aXBsZSAiKi1i
+eSIgPyBpIGRvbid0IHRoaW5rIHNvICBhbmQNCnRoZXJlIHNob3VsZG4ndCBiZSwgdXNlcnMgbmVl
+ZCB0byBnZXQgdGhlIGV4YWN0IGFtb3VudCBvZiByZWNvZ25pdGlvbg0KYXMgdGhlIGFtb3VudCBv
+ZiB3b3JrIHRoZXkgcHV0IGludG8gdGhpcyBwYXRjaCwgaWYgdGhleSByZXZpZXdlZCBhbmQNCnRl
+c3RlZCBhIHBhdGNoIHRoZXkgZGVzZXJ2ZSB0d28gdGFncyAuLiANCg0KDQo=
