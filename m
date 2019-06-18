@@ -1,63 +1,55 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next 11/15] RDMA/mlx5: Add vport metadata matching
- for IB representors
-Date: Tue, 18 Jun 2019 10:19:31 +0000
-Message-ID: <20190618101928.GE4690@mtr-leonro.mtl.com>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH mlx5-next 12/15] net/mlx5: E-Switch, Enable vport metadata
+ matching if firmware supports it
+Date: Tue, 18 Jun 2019 10:24:49 +0000
+Message-ID: <AM0PR05MB4866AA7738F3DE1D3CF47FFBD1EA0@AM0PR05MB4866.eurprd05.prod.outlook.com>
 References: <20190617192247.25107-1-saeedm@mellanox.com>
- <20190617192247.25107-12-saeedm@mellanox.com>
+ <20190617192247.25107-13-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190617192247.25107-12-saeedm@mellanox.com>
+In-Reply-To: <20190617192247.25107-13-saeedm@mellanox.com>
 Content-Language: en-US
-Content-ID: <E77D49567320B841AFDC4B9A6D11C371@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
+To: Saeed Mahameed <saeedm@mellanox.com>Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
 Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jianbo Liu <jianbol@mellanox.com>, Roi Dayan <roid@mellanox.com>, Mark Bloch <markb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 17, 2019 at 07:23:30PM +0000, Saeed Mahameed wrote:
-> From: Jianbo Liu <jianbol@mellanox.com>
->
-> If vport metadata matching is enabled in eswitch, the rule created
-> must be changed to match on the metadata, instead of source port.
->
-> Signed-off-by: Jianbo Liu <jianbol@mellanox.com>
-> Reviewed-by: Roi Dayan <roid@mellanox.com>
-> Reviewed-by: Mark Bloch <markb@mellanox.com>
-> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> ---
->  drivers/infiniband/hw/mlx5/ib_rep.c | 11 +++++++
->  drivers/infiniband/hw/mlx5/ib_rep.h | 16 ++++++++++
->  drivers/infiniband/hw/mlx5/main.c   | 45 +++++++++++++++++++++++------
->  3 files changed, 63 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/=
-mlx5/ib_rep.c
-> index 22e651cb5534..d4ed611de35d 100644
-> --- a/drivers/infiniband/hw/mlx5/ib_rep.c
-> +++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-> @@ -131,6 +131,17 @@ struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct ml=
-x5_eswitch *esw, int vport)
->  	return mlx5_eswitch_vport_rep(esw, vport);
->  }
->
-> +u32 mlx5_ib_eswitch_vport_match_metadata_enabled(struct mlx5_eswitch *es=
-w)
-> +{
-> +	return mlx5_eswitch_vport_match_metadata_enabled(esw);
-> +}
-> +
-> +u32 mlx5_ib_eswitch_get_vport_metadata_for_match(struct mlx5_eswitch *es=
-w,
-> +						 u16 vport)
-> +{
-> +	return mlx5_eswitch_get_vport_metadata_for_match(esw, vport);
-> +}
-
-1. There is no need to introduce one line functions, call to that code dire=
-ctly.
-2. It should be bool and not u32.
-
-Thanks
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgPGxpbnV4LXJkbWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZz4g
+T24gQmVoYWxmIE9mIFNhZWVkIE1haGFtZWVkDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMTgsIDIw
+MTkgMTI6NTQgQU0NCj4gVG86IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPjsg
+TGVvbiBSb21hbm92c2t5DQo+IDxsZW9ucm9AbWVsbGFub3guY29tPg0KPiBDYzogbmV0ZGV2QHZn
+ZXIua2VybmVsLm9yZzsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IEppYW5ibyBMaXUNCj4g
+PGppYW5ib2xAbWVsbGFub3guY29tPjsgUm9pIERheWFuIDxyb2lkQG1lbGxhbm94LmNvbT47IE1h
+cmsgQmxvY2gNCj4gPG1hcmtiQG1lbGxhbm94LmNvbT4NCj4gU3ViamVjdDogW1BBVENIIG1seDUt
+bmV4dCAxMi8xNV0gbmV0L21seDU6IEUtU3dpdGNoLCBFbmFibGUgdnBvcnQgbWV0YWRhdGENCj4g
+bWF0Y2hpbmcgaWYgZmlybXdhcmUgc3VwcG9ydHMgaXQNCj4gDQo+IEZyb206IEppYW5ibyBMaXUg
+PGppYW5ib2xAbWVsbGFub3guY29tPg0KPiANCj4gQXMgdGhlIGluZ3Jlc3MgQUNMIHJ1bGVzIHNh
+dmUgdmhjYSBpZCBhbmQgdnBvcnQgbnVtYmVyIHRvIHBhY2tldCdzIG1ldGFkYXRhDQo+IFJFR19D
+XzAsIGFuZCB0aGUgbWV0YWRhdGEgbWF0Y2hpbmcgZm9yIHRoZSBydWxlcyBpbiBib3RoIGZhc3Qg
+cGF0aCBhbmQgc2xvdw0KPiBwYXRoIGFyZSBhbGwgYWRkZWQsIGVuYWJsZSB0aGlzIGZlYXR1cmUg
+aWYgc3VwcG9ydGVkLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogSmlhbmJvIExpdSA8amlhbmJvbEBt
+ZWxsYW5veC5jb20+DQo+IFJldmlld2VkLWJ5OiBSb2kgRGF5YW4gPHJvaWRAbWVsbGFub3guY29t
+Pg0KPiBSZXZpZXdlZC1ieTogTWFyayBCbG9jaCA8bWFya2JAbWVsbGFub3guY29tPg0KPiBTaWdu
+ZWQtb2ZmLWJ5OiBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCj4gLS0tDQo+
+ICAuLi4vZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYyAgfCAx
+MyArKysrKysrKysrKysrDQo+ICAxIGZpbGUgY2hhbmdlZCwgMTMgaW5zZXJ0aW9ucygrKQ0KPiAN
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9l
+c3dpdGNoX29mZmxvYWRzLmMNCj4gYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1
+L2NvcmUvZXN3aXRjaF9vZmZsb2Fkcy5jDQo+IGluZGV4IDM2MzUxN2UyOWQ0Yy4uNTEyNDIxOWEz
+MWRlIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
+cmUvZXN3aXRjaF9vZmZsb2Fkcy5jDQo+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxh
+bm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzLmMNCj4gQEAgLTE5MDYsMTIgKzE5MDYsMjUg
+QEAgc3RhdGljIGludA0KPiBlc3dfdnBvcnRfaW5ncmVzc19jb21tb25fY29uZmlnKHN0cnVjdCBt
+bHg1X2Vzd2l0Y2ggKmVzdywNCj4gIAlyZXR1cm4gZXJyOw0KPiAgfQ0KPiANCj4gK3N0YXRpYyBp
+bnQgZXN3X2NoZWNrX3Zwb3J0X21hdGNoX21ldGFkYXRhX3N1cHBvcnRlZChzdHJ1Y3QgbWx4NV9l
+c3dpdGNoDQo+ICsqZXN3KSB7DQo+ICsJcmV0dXJuIChNTFg1X0NBUF9FU1dfRkxPV1RBQkxFKGVz
+dy0+ZGV2LA0KPiBmZGJfdG9fdnBvcnRfcmVnX2NfaWQpICYNCj4gKwkJTUxYNV9GREJfVE9fVlBP
+UlRfUkVHX0NfMCkgJiYNCj4gKwkgICAgICAgTUxYNV9DQVBfRVNXX0ZMT1dUQUJMRShlc3ctPmRl
+diwgZmxvd19zb3VyY2UpICYmDQo+ICsJICAgICAgIE1MWDVfQ0FQX0VTVyhlc3ctPmRldiwgZXN3
+X3VwbGlua19pbmdyZXNzX2FjbCkgJiYNCj4gKwkgICAgICAgIW1seDVfY29yZV9pc19lY3BmX2Vz
+d19tYW5hZ2VyKGVzdy0+ZGV2KSAmJg0KPiArCSAgICAgICAhbWx4NV9lY3BmX3Zwb3J0X2V4aXN0
+cyhlc3ctPmRldik7DQo+ICt9DQo+ICsNCnN0cnVjdCBtbHg1X2Vzd2l0Y2gqIHNob3VsZCBiZSBj
+b25zdC4NCnJldHVybiB0eXBlIHNob3VsZCBiZSBib29sLg0K
