@@ -1,59 +1,59 @@
-From: Evgenii Stepanov <eugenis@google.com>
-Subject: Re: [PATCH v17 03/15] arm64: Introduce prctl() options to control the
- tagged user addresses ABI
-Date: Mon, 17 Jun 2019 14:59:29 -0700
-Message-ID: <CAFKCwrhuQ+x-KprJV=CPCrnQR9Ky9qL=M5q_pa3fGj27oo4mng@mail.gmail.com>
-References: <cover.1560339705.git.andreyknvl@google.com> <a7a2933bea5fe57e504891b7eec7e9432e5e1c1a.1560339705.git.andreyknvl@google.com>
- <20190617135636.GC1367@arrakis.emea.arm.com> <CAFKCwrjJ+0ijNKa3ioOP7xa91QmZU0NhkO=tNC-Q_ThC69vTug@mail.gmail.com>
- <20190617171813.GC34565@arrakis.emea.arm.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 1/8] scsi: add a host / host template field for the virt boundary
+Date: Tue, 18 Jun 2019 08:35:21 +0800
+Message-ID: <CACVXFVOwCeM2JzefBpKsVZrEaWpSBR0DF8qp4oKfoHm+pwLBYw@mail.gmail.com>
+References: <20190617122000.22181-1-hch@lst.de> <20190617122000.22181-2-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190617171813.GC34565@arrakis.emea.arm.com>
+In-Reply-To: <20190617122000.22181-2-hch@lst.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd>
+To: Christoph Hellwig <hch@lst.de>
+Cc: "Martin K . Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma <linux-rdma@vger.kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, megaraidlinux.pdl@broadcom.com, MPT-FusionLinux.pdl@broadcom.com, linux-hyperv@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 17, 2019 at 10:18 AM Catalin Marinas
-<catalin.marinas@arm.com> wrote:
+On Mon, Jun 17, 2019 at 8:21 PM Christoph Hellwig <hch@lst.de> wrote:
 >
-> On Mon, Jun 17, 2019 at 09:57:36AM -0700, Evgenii Stepanov wrote:
-> > On Mon, Jun 17, 2019 at 6:56 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > > On Wed, Jun 12, 2019 at 01:43:20PM +0200, Andrey Konovalov wrote:
-> > > > From: Catalin Marinas <catalin.marinas@arm.com>
-> > > >
-> > > > It is not desirable to relax the ABI to allow tagged user addresses into
-> > > > the kernel indiscriminately. This patch introduces a prctl() interface
-> > > > for enabling or disabling the tagged ABI with a global sysctl control
-> > > > for preventing applications from enabling the relaxed ABI (meant for
-> > > > testing user-space prctl() return error checking without reconfiguring
-> > > > the kernel). The ABI properties are inherited by threads of the same
-> > > > application and fork()'ed children but cleared on execve().
-> > > >
-> > > > The PR_SET_TAGGED_ADDR_CTRL will be expanded in the future to handle
-> > > > MTE-specific settings like imprecise vs precise exceptions.
-> > > >
-> > > > Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-> > >
-> > > A question for the user-space folk: if an application opts in to this
-> > > ABI, would you want the sigcontext.fault_address and/or siginfo.si_addr
-> > > to contain the tag? We currently clear it early in the arm64 entry.S but
-> > > we could find a way to pass it down if needed.
-> >
-> > For HWASan this would not be useful because we instrument memory
-> > accesses with explicit checks anyway. For MTE, on the other hand, it
-> > would be very convenient to know the fault address tag without
-> > disassembling the code.
+> This allows drivers setting it up easily instead of branching out to
+> block layer calls in slave_alloc, and ensures the upgraded
+> max_segment_size setting gets picked up by the DMA layer.
 >
-> I could as this differently: does anything break if, once the user
-> opts in to TBI, fault_address and/or si_addr have non-zero top byte?
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/scsi/hosts.c     | 3 +++
+>  drivers/scsi/scsi_lib.c  | 3 ++-
+>  include/scsi/scsi_host.h | 3 +++
+>  3 files changed, 8 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/scsi/hosts.c b/drivers/scsi/hosts.c
+> index ff0d8c6a8d0c..55522b7162d3 100644
+> --- a/drivers/scsi/hosts.c
+> +++ b/drivers/scsi/hosts.c
+> @@ -462,6 +462,9 @@ struct Scsi_Host *scsi_host_alloc(struct scsi_host_template *sht, int privsize)
+>         else
+>                 shost->dma_boundary = 0xffffffff;
+>
+> +       if (sht->virt_boundary_mask)
+> +               shost->virt_boundary_mask = sht->virt_boundary_mask;
+> +
+>         device_initialize(&shost->shost_gendev);
+>         dev_set_name(&shost->shost_gendev, "host%d", shost->host_no);
+>         shost->shost_gendev.bus = &scsi_bus_type;
+> diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+> index 65d0a10c76ad..d333bb6b1c59 100644
+> --- a/drivers/scsi/scsi_lib.c
+> +++ b/drivers/scsi/scsi_lib.c
+> @@ -1775,7 +1775,8 @@ void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
+>         dma_set_seg_boundary(dev, shost->dma_boundary);
+>
+>         blk_queue_max_segment_size(q, shost->max_segment_size);
+> -       dma_set_max_seg_size(dev, shost->max_segment_size);
+> +       blk_queue_virt_boundary(q, shost->virt_boundary_mask);
+> +       dma_set_max_seg_size(dev, queue_max_segment_size(q));
 
-I think it would be fine.
+The patch looks fine, also suggest to make sure that max_segment_size
+is block-size aligned, and un-aligned max segment size has caused trouble
+on mmc.
 
-> Alternatively, we could present the original FAR_EL1 register as a
-> separate field as we do with ESR_EL1, independently of whether the user
-> opted in to TBI or not.
->
-> --
-> Catalin
+Thanks,
+Ming Lei
