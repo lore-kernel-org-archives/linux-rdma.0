@@ -1,17 +1,16 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v3 hmm 06/12] mm/hmm: Hold on to the mmget for the
- lifetime of the range
-Date: Tue, 18 Jun 2019 12:11:00 -0300
-Message-ID: <20190618151100.GI6961@ziepe.ca>
+Subject: Re: [PATCH v3 hmm 09/12] mm/hmm: Poison hmm_range during unregister
+Date: Tue, 18 Jun 2019 15:04:22 -0300
+Message-ID: <20190618180422.GK6961@ziepe.ca>
 References: <20190614004450.20252-1-jgg@ziepe.ca>
- <20190614004450.20252-7-jgg@ziepe.ca>
- <20190615141435.GF17724@infradead.org>
+ <20190614004450.20252-10-jgg@ziepe.ca>
+ <20190615141726.GI17724@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20190615141435.GF17724@infradead.org>
+In-Reply-To: <20190615141726.GI17724@infradead.org>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -22,36 +21,29 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Christoph Hellwig <hch@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>, amd-gfx@lists.freedesktop.org, Ben Skeggs <bskeggs@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com, dri-devel@lists.freedesktop.org, Souptick Joarder <jrdr.linux@gmail.com>, linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>, amd-gfx@lists.freedesktop.org, Ira Weiny <ira.weiny@intel.com>, Ben Skeggs <bskeggs@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU2F0LCBKdW4gMTUsIDIwMTkgYXQgMDc6MTQ6MzVBTSAtMDcwMCwgQ2hyaXN0b3BoIEhlbGx3
-aWcgd3JvdGU6Cj4gPiAgCW11dGV4X2xvY2soJmhtbS0+bG9jayk7Cj4gPiAtCWxpc3RfZm9yX2Vh
-Y2hfZW50cnkocmFuZ2UsICZobW0tPnJhbmdlcywgbGlzdCkKPiA+IC0JCXJhbmdlLT52YWxpZCA9
-IGZhbHNlOwo+ID4gLQl3YWtlX3VwX2FsbCgmaG1tLT53cSk7Cj4gPiArCS8qCj4gPiArCSAqIFNp
-bmNlIGhtbV9yYW5nZV9yZWdpc3RlcigpIGhvbGRzIHRoZSBtbWdldCgpIGxvY2sgaG1tX3JlbGVh
-c2UoKSBpcwo+ID4gKwkgKiBwcmV2ZW50ZWQgYXMgbG9uZyBhcyBhIHJhbmdlIGV4aXN0cy4KPiA+
-ICsJICovCj4gPiArCVdBUk5fT04oIWxpc3RfZW1wdHkoJmhtbS0+cmFuZ2VzKSk7Cj4gPiAgCW11
-dGV4X3VubG9jaygmaG1tLT5sb2NrKTsKPiAKPiBUaGlzIGNhbiBqdXN0IHVzZSBsaXN0X2VtcHR5
-X2NhcmVmdWwgYW5kIGF2b2lkIHRoZSBsb2NrIGVudGlyZWx5LgoKU3VyZSwgaXQgaXMganVzdCBh
-IGRlYnVnZ2luZyBoZWxwZXIgYW5kIHRoZSBtbXB1dCBzaG91bGQgc2VyaWFsaXplCnRoaW5pZ3Mg
-ZW5vdWdoIHRvIGJlIHJlbGlhYmxlLiBJIGhhZCB0byBtb3ZlIHRoZSBSQ1UgcGF0Y2ggYWhlYWQg
-b2YKdGhpcy4gVGhhbmtzCgpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCBh
-OWFjZTI4OTg0ZWE0Mi4uMWVkZGRhNDVjZWZhZTcgMTAwNjQ0Ci0tLSBhL21tL2htbS5jCisrKyBi
-L21tL2htbS5jCkBAIC0xMjQsMTMgKzEyNCwxMSBAQCBzdGF0aWMgdm9pZCBobW1fcmVsZWFzZShz
-dHJ1Y3QgbW11X25vdGlmaWVyICptbiwgc3RydWN0IG1tX3N0cnVjdCAqbW0pCiAJaWYgKCFrcmVm
-X2dldF91bmxlc3NfemVybygmaG1tLT5rcmVmKSkKIAkJcmV0dXJuOwogCi0JbXV0ZXhfbG9jaygm
-aG1tLT5sb2NrKTsKIAkvKgogCSAqIFNpbmNlIGhtbV9yYW5nZV9yZWdpc3RlcigpIGhvbGRzIHRo
-ZSBtbWdldCgpIGxvY2sgaG1tX3JlbGVhc2UoKSBpcwogCSAqIHByZXZlbnRlZCBhcyBsb25nIGFz
-IGEgcmFuZ2UgZXhpc3RzLgogCSAqLwotCVdBUk5fT04oIWxpc3RfZW1wdHkoJmhtbS0+cmFuZ2Vz
-KSk7Ci0JbXV0ZXhfdW5sb2NrKCZobW0tPmxvY2spOworCVdBUk5fT04oIWxpc3RfZW1wdHlfY2Fy
-ZWZ1bCgmaG1tLT5yYW5nZXMpKTsKIAogCWRvd25fd3JpdGUoJmhtbS0+bWlycm9yc19zZW0pOwog
-CW1pcnJvciA9IGxpc3RfZmlyc3RfZW50cnlfb3JfbnVsbCgmaG1tLT5taXJyb3JzLCBzdHJ1Y3Qg
-aG1tX21pcnJvciwKQEAgLTkzOCw3ICs5MzYsNyBAQCB2b2lkIGhtbV9yYW5nZV91bnJlZ2lzdGVy
-KHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlKQogCQlyZXR1cm47CiAKIAltdXRleF9sb2NrKCZobW0t
-PmxvY2spOwotCWxpc3RfZGVsKCZyYW5nZS0+bGlzdCk7CisJbGlzdF9kZWxfaW5pdCgmcmFuZ2Ut
-Pmxpc3QpOwogCW11dGV4X3VubG9jaygmaG1tLT5sb2NrKTsKIAogCS8qIERyb3AgcmVmZXJlbmNl
-IHRha2VuIGJ5IGhtbV9yYW5nZV9yZWdpc3RlcigpICovCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+T24gU2F0LCBKdW4gMTUsIDIwMTkgYXQgMDc6MTc6MjZBTSAtMDcwMCwgQ2hyaXN0b3BoIEhlbGx3
+aWcgd3JvdGU6Cj4gPiAtCS8qIFNhbml0eSBjaGVjayB0aGlzIHJlYWxseSBzaG91bGQgbm90IGhh
+cHBlbi4gKi8KPiA+IC0JaWYgKGhtbSA9PSBOVUxMIHx8IHJhbmdlLT5lbmQgPD0gcmFuZ2UtPnN0
+YXJ0KQo+ID4gLQkJcmV0dXJuOwo+ID4gLQo+ID4gIAltdXRleF9sb2NrKCZobW0tPmxvY2spOwo+
+ID4gIAlsaXN0X2RlbF9yY3UoJnJhbmdlLT5saXN0KTsKPiA+ICAJbXV0ZXhfdW5sb2NrKCZobW0t
+PmxvY2spOwo+ID4gIAo+ID4gIAkvKiBEcm9wIHJlZmVyZW5jZSB0YWtlbiBieSBobW1fcmFuZ2Vf
+cmVnaXN0ZXIoKSAqLwo+ID4gLQlyYW5nZS0+dmFsaWQgPSBmYWxzZTsKPiA+ICAJbW1wdXQoaG1t
+LT5tbSk7Cj4gPiAgCWhtbV9wdXQoaG1tKTsKPiA+IC0JcmFuZ2UtPmhtbSA9IE5VTEw7Cj4gPiAr
+Cj4gPiArCS8qCj4gPiArCSAqIFRoZSByYW5nZSBpcyBub3cgaW52YWxpZCBhbmQgdGhlIHJlZiBv
+biB0aGUgaG1tIGlzIGRyb3BwZWQsIHNvCj4gPiArICAgICAgICAgKiBwb2lzb24gdGhlIHBvaW50
+ZXIuICBMZWF2ZSBvdGhlciBmaWVsZHMgaW4gcGxhY2UsIGZvciB0aGUgY2FsbGVyJ3MKPiA+ICsg
+ICAgICAgICAqIHVzZS4KPiA+ICsgICAgICAgICAqLwo+ID4gKwlyYW5nZS0+dmFsaWQgPSBmYWxz
+ZTsKPiA+ICsJbWVtc2V0KCZyYW5nZS0+aG1tLCBQT0lTT05fSU5VU0UsIHNpemVvZihyYW5nZS0+
+aG1tKSk7Cj4gCj4gRm9ybWF0dGluZyBzZWVtcyB0byBiZSBtZXNzZWQgdXAuICBCdXQgYWdhaW4g
+SSBkb24ndCBzZWUgdGhlIHZhbHVlCj4gaW4gdGhlIHBvaXNvbmluZywganVzdCBsZXQgbm9ybWFs
+IGxpbmtlZCBsaXN0IGRlYnVnZ2luZyBkbyBpdHMgd29yay4KPiBUaGUgb3RoZXIgY2xlYW51cHMg
+bG9va3MgZmluZSB0byBtZS4KCnRhYnMgdnMgc3BhY2VzLCBJIGZpeGVkIGl0LiBUaGlzIG9uZSBp
+cyBtb3JlIG11cmt5IHRoYW4gdGhlIG90aGVyIC0gaXQKaXMgdG8gcHJldmVudCB0aGUgY2FsbGVy
+IGZyb20gdXNpbmcgYW55IG9mIHRoZSByYW5nZSBBUElzIGFmdGVyIHRoZQpyYW5nZSBpcyB1bnJl
+Z2lzdGVyZWQsIGJ1dCB3ZSBjb3VsZCBhbHNvIHNhZmVseSB1c2UgTlVMTCBoZXJlLCBJCnRoaW5r
+LgoKSmFzb24KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+ZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
