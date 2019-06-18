@@ -1,39 +1,51 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v3 hmm 11/12] mm/hmm: Remove confusing comment and logic
- from hmm_release
-Date: Mon, 17 Jun 2019 22:37:33 -0700
-Message-ID: <20190618053733.GA25048@infradead.org>
-References: <20190614004450.20252-1-jgg@ziepe.ca>
- <20190614004450.20252-12-jgg@ziepe.ca>
- <20190615142106.GK17724@infradead.org>
- <20190618004509.GE30762@ziepe.ca>
+From: Dave Martin <Dave.Martin@arm.com>
+Subject: Re: [PATCH v17 03/15] arm64: Introduce prctl() options to control
+ the tagged user addresses ABI
+Date: Tue, 18 Jun 2019 10:18:12 +0100
+Message-ID: <20190618091811.GC2790@e103592.cambridge.arm.com>
+References: <cover.1560339705.git.andreyknvl@google.com>
+ <a7a2933bea5fe57e504891b7eec7e9432e5e1c1a.1560339705.git.andreyknvl@google.com>
+ <20190613110235.GW28398@e103592.cambridge.arm.com>
+ <20190613152632.GT28951@C02TF0J2HF1T.local>
+ <201906132209.FC65A3C771@keescook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190618004509.GE30762-uk2M96/98Pc@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Philip Yang <Philip.Yang-5C7GfCeVMHo@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <201906132209.FC65A3C771@keescook>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Christian Koenig <Christian.Koenig@amd.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Kostya Serebryany <kcc@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Lee Smith <Lee.Smith@arm.com>, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Ruben
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCBKdW4gMTcsIDIwMTkgYXQgMDk6NDU6MDlQTSAtMDMwMCwgSmFzb24gR3VudGhvcnBl
-IHdyb3RlOgo+IEFtIEkgbG9va2luZyBhdCB0aGUgd3JvbmcgdGhpbmc/IExvb2tzIGxpa2UgaXQg
-Y2FsbHMgaXQgdGhyb3VnaCBhIHdvcmsKPiBxdWV1ZSBzaG91bGQgc2hvdWxkIGJlIE9LLi4KClll
-cywgaXQgY2FsbHMgaXQgdGhyb3VnaCBhIHdvcmsgcXVldWUuICBJIGd1ZXNzIHRoYXQgaXMgZmlu
-ZSBiZWNhdXNlCml0IG5lZWRzIHRvIHRha2UgdGhlIGxvY2sgYWdhaW4uCgo+IFRob3VnaCB2ZXJ5
-IHN0cmFuZ2UgdGhhdCBhbWRncHUgb25seSBkZXN0cm95cyB0aGUgbWlycm9yIHZpYSByZWxlYXNl
-LAo+IHRoYXQgY2Fubm90IGJlIHJpZ2h0LgoKQXMgc2FpZCB0aGUgd2hvbGUgdGhpbmdzIGxvb2tz
-IHJhdGhlciBvZGQgdG8gbWUuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdm
-eA==
+On Thu, Jun 13, 2019 at 10:13:54PM -0700, Kees Cook wrote:
+> On Thu, Jun 13, 2019 at 04:26:32PM +0100, Catalin Marinas wrote:
+> > On Thu, Jun 13, 2019 at 12:02:35PM +0100, Dave P Martin wrote:
+> > > On Wed, Jun 12, 2019 at 01:43:20PM +0200, Andrey Konovalov wrote:
+> > > > +static int zero;
+> > > > +static int one = 1;
+> > > 
+> > > !!!
+> > > 
+> > > And these can't even be const without a cast.  Yuk.
+> > > 
+> > > (Not your fault though, but it would be nice to have a proc_dobool() to
+> > > avoid this.)
+> > 
+> > I had the same reaction. Maybe for another patch sanitising this pattern
+> > across the kernel.
+> 
+> That's actually already happening (via -mm tree last I looked). tl;dr:
+> it ends up using a cast hidden in a macro. It's in linux-next already
+> along with a checkpatch.pl addition to yell about doing what's being
+> done here. ;)
+> 
+> https://lore.kernel.org/lkml/20190430180111.10688-1-mcroce@redhat.com/#r
+
+Hmmm, that is marginally less bad.
+
+Ideally we'd have a union in there, not just a bunch of void *.  I may
+look at that someday...
+
+Cheers
+---Dave
