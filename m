@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v4 09/17] IB/mlx5: Support statistic q counter configuration
-Date: Tue, 18 Jun 2019 20:26:17 +0300
-Message-ID: <20190618172625.13432-10-leon@kernel.org>
+Subject: [PATCH rdma-next v4 04/17] RDMA/restrack: Make is_visible_in_pid_ns() as an API
+Date: Tue, 18 Jun 2019 20:26:12 +0300
+Message-ID: <20190618172625.13432-5-leon@kernel.org>
 References: <20190618172625.13432-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,75 +14,86 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Add support for ib callbacks counter_bind_qp(), counter_unbind_qp()
-and counter_dealloc().
+Remove is_visible_in_pid_ns() from nldev.c and make it as a restrack API,
+so that it can be taken advantage by other parts like counter.
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 44 +++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ drivers/infiniband/core/nldev.c    | 15 ++-------------
+ drivers/infiniband/core/restrack.c | 13 +++++++++++++
+ drivers/infiniband/core/restrack.h |  1 +
+ 3 files changed, 16 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4493700099d4..ec2bf52634e8 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5550,6 +5550,47 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
- 	return num_counters;
- }
-
-+static int mlx5_ib_counter_bind_qp(struct rdma_counter *counter,
-+				   struct ib_qp *qp)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	u16 cnt_set_id = 0;
-+	int err;
-+
-+	if (!counter->id) {
-+		err = mlx5_cmd_alloc_q_counter(dev->mdev,
-+					       &cnt_set_id,
-+					       MLX5_SHARED_RESOURCE_UID);
-+		if (err)
-+			return err;
-+		counter->id = cnt_set_id;
-+	}
-+
-+	err = mlx5_ib_qp_set_counter(qp, counter);
-+	if (err)
-+		goto fail_set_counter;
-+
-+	return 0;
-+
-+fail_set_counter:
-+	mlx5_core_dealloc_q_counter(dev->mdev, cnt_set_id);
-+	counter->id = 0;
-+
-+	return err;
-+}
-+
-+static int mlx5_ib_counter_unbind_qp(struct ib_qp *qp)
-+{
-+	return mlx5_ib_qp_set_counter(qp, NULL);
-+}
-+
-+static int mlx5_ib_counter_dealloc(struct rdma_counter *counter)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(counter->device);
-+
-+	return mlx5_core_dealloc_q_counter(dev->mdev, counter->id);
-+}
-+
- static int mlx5_ib_rn_get_params(struct ib_device *device, u8 port_num,
- 				 enum rdma_netdev_t type,
- 				 struct rdma_netdev_alloc_params *params)
-@@ -6471,6 +6512,9 @@ static void mlx5_ib_stage_odp_cleanup(struct mlx5_ib_dev *dev)
- static const struct ib_device_ops mlx5_ib_dev_hw_stats_ops = {
- 	.alloc_hw_stats = mlx5_ib_alloc_hw_stats,
- 	.get_hw_stats = mlx5_ib_get_hw_stats,
-+	.counter_bind_qp = mlx5_ib_counter_bind_qp,
-+	.counter_unbind_qp = mlx5_ib_counter_unbind_qp,
-+	.counter_dealloc = mlx5_ib_counter_dealloc,
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 69188cbbd99b..39dd9b366629 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -992,17 +992,6 @@ static const struct nldev_fill_res_entry fill_entries[RDMA_RESTRACK_MAX] = {
+ 	},
  };
 
- static int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
+-static bool is_visible_in_pid_ns(struct rdma_restrack_entry *res)
+-{
+-	/*
+-	 * 1. Kern resources should be visible in init name space only
+-	 * 2. Present only resources visible in the current namespace
+-	 */
+-	if (rdma_is_kernel_res(res))
+-		return task_active_pid_ns(current) == &init_pid_ns;
+-	return task_active_pid_ns(current) == task_active_pid_ns(res->task);
+-}
+-
+ static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			       struct netlink_ext_ack *extack,
+ 			       enum rdma_restrack_type res_type)
+@@ -1047,7 +1036,7 @@ static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		goto err;
+ 	}
+
+-	if (!is_visible_in_pid_ns(res)) {
++	if (!rdma_is_visible_in_pid_ns(res)) {
+ 		ret = -ENOENT;
+ 		goto err_get;
+ 	}
+@@ -1159,7 +1148,7 @@ static int res_get_common_dumpit(struct sk_buff *skb,
+ 	 * objects.
+ 	 */
+ 	xa_for_each(&rt->xa, id, res) {
+-		if (!is_visible_in_pid_ns(res))
++		if (!rdma_is_visible_in_pid_ns(res))
+ 			continue;
+
+ 		if (idx < start || !rdma_restrack_get(res))
+diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+index 3714634ae296..bddff426ee0f 100644
+--- a/drivers/infiniband/core/restrack.c
++++ b/drivers/infiniband/core/restrack.c
+@@ -349,3 +349,16 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
+ 	}
+ }
+ EXPORT_SYMBOL(rdma_restrack_del);
++
++bool rdma_is_visible_in_pid_ns(struct rdma_restrack_entry *res)
++{
++	/*
++	 * 1. Kern resources should be visible in init
++	 *    namespace only
++	 * 2. Present only resources visible in the current
++	 *     namespace
++	 */
++	if (rdma_is_kernel_res(res))
++		return task_active_pid_ns(current) == &init_pid_ns;
++	return task_active_pid_ns(current) == task_active_pid_ns(res->task);
++}
+diff --git a/drivers/infiniband/core/restrack.h b/drivers/infiniband/core/restrack.h
+index d084e5f89849..7bd177cc0a61 100644
+--- a/drivers/infiniband/core/restrack.h
++++ b/drivers/infiniband/core/restrack.h
+@@ -27,4 +27,5 @@ int rdma_restrack_init(struct ib_device *dev);
+ void rdma_restrack_clean(struct ib_device *dev);
+ void rdma_restrack_attach_task(struct rdma_restrack_entry *res,
+ 			       struct task_struct *task);
++bool rdma_is_visible_in_pid_ns(struct rdma_restrack_entry *res);
+ #endif /* _RDMA_CORE_RESTRACK_H_ */
