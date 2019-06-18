@@ -1,43 +1,72 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next v4 2/2] ipoib: show VF broadcast address
-Date: Tue, 18 Jun 2019 10:40:37 -0700 (PDT)
-Message-ID: <20190618.104037.359105025150148890.davem@davemloft.net>
-References: <20190617085341.51592-4-dkirjanov@suse.com>
-        <20190618.100801.2026737630386139646.davem@davemloft.net>
-        <bd0b0a87b8bc459e172ad9396931bb69697da6c9.camel@redhat.com>
+From: Michal Rostecki <mrostecki@opensuse.org>
+Subject: [PATCH bpf-next] samples: bpf: Remove bpf_debug macro in favor of bpf_printk
+Date: Tue, 18 Jun 2019 20:13:18 +0200
+Message-ID: <20190618181338.24145-1-mrostecki@opensuse.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <bd0b0a87b8bc459e172ad9396931bb69697da6c9.camel@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: kda@linux-powerpc.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, mkubecek@suse.cz
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Michal Rostecki <mrostecki@opensuse.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Doug Ledford <dledford@redhat.com>
-Date: Tue, 18 Jun 2019 13:29:59 -0400
+ibumad example was implementing the bpf_debug macro which is exactly the
+same as the bpf_printk macro available in bpf_helpers.h. This change
+makes use of bpf_printk instead of bpf_debug.
 
-> On Tue, 2019-06-18 at 10:08 -0700, David Miller wrote:
->> From: Denis Kirjanov <kda@linux-powerpc.org>
->> Date: Mon, 17 Jun 2019 10:53:41 +0200
->> 
->> > in IPoIB case we can't see a VF broadcast address for but
->> > can see for PF
->> 
->> I just want to understand why this need to see the VF broadcast
->> address is IPoIB specific?
-> 
-> A VF might or might not have the same security domain (P_Key) as the
-> parent, and the P_Key is encoded in the broadcast address.  In the
-> event that two vfs or a vf and a pf can't see each other over the IPoIB
-> network, it is necessary to be able to see the broadcast address in use
-> by each to make sure they are the same and not that they shouldn't be
-> able to see each other because they are on different P_Keys and
-> therefore different broadcast multicast groups.
+Signed-off-by: Michal Rostecki <mrostecki@opensuse.org>
+---
+ samples/bpf/ibumad_kern.c | 18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-Thanks for explaining.
-
-I'll apply these to net-next right now then.
-
-Thanks again.
+diff --git a/samples/bpf/ibumad_kern.c b/samples/bpf/ibumad_kern.c
+index 38b2b3f22049..f281df7e0089 100644
+--- a/samples/bpf/ibumad_kern.c
++++ b/samples/bpf/ibumad_kern.c
+@@ -31,15 +31,9 @@ struct bpf_map_def SEC("maps") write_count = {
+ };
+ 
+ #undef DEBUG
+-#ifdef DEBUG
+-#define bpf_debug(fmt, ...)                         \
+-({                                                  \
+-	char ____fmt[] = fmt;                       \
+-	bpf_trace_printk(____fmt, sizeof(____fmt),  \
+-			 ##__VA_ARGS__);            \
+-})
+-#else
+-#define bpf_debug(fmt, ...)
++#ifndef DEBUG
++#undef bpf_printk
++#define bpf_printk(fmt, ...)
+ #endif
+ 
+ /* Taken from the current format defined in
+@@ -86,7 +80,7 @@ int on_ib_umad_read_recv(struct ib_umad_rw_args *ctx)
+ 	u64 zero = 0, *val;
+ 	u8 class = ctx->mgmt_class;
+ 
+-	bpf_debug("ib_umad read recv : class 0x%x\n", class);
++	bpf_printk("ib_umad read recv : class 0x%x\n", class);
+ 
+ 	val = bpf_map_lookup_elem(&read_count, &class);
+ 	if (!val) {
+@@ -106,7 +100,7 @@ int on_ib_umad_read_send(struct ib_umad_rw_args *ctx)
+ 	u64 zero = 0, *val;
+ 	u8 class = ctx->mgmt_class;
+ 
+-	bpf_debug("ib_umad read send : class 0x%x\n", class);
++	bpf_printk("ib_umad read send : class 0x%x\n", class);
+ 
+ 	val = bpf_map_lookup_elem(&read_count, &class);
+ 	if (!val) {
+@@ -126,7 +120,7 @@ int on_ib_umad_write(struct ib_umad_rw_args *ctx)
+ 	u64 zero = 0, *val;
+ 	u8 class = ctx->mgmt_class;
+ 
+-	bpf_debug("ib_umad write : class 0x%x\n", class);
++	bpf_printk("ib_umad write : class 0x%x\n", class);
+ 
+ 	val = bpf_map_lookup_elem(&write_count, &class);
+ 	if (!val) {
+-- 
+2.21.0
