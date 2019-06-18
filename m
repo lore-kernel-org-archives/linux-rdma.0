@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v1 04/12] net/mlx5: mlx5_core_create_cq() enhancements
-Date: Tue, 18 Jun 2019 20:15:32 +0300
-Message-ID: <20190618171540.11729-5-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 02/12] net/mlx5: Use event mask based on device capabilities
+Date: Tue, 18 Jun 2019 20:15:30 +0300
+Message-ID: <20190618171540.11729-3-leon@kernel.org>
 References: <20190618171540.11729-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,123 +14,257 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Enhance mlx5_core_create_cq() to get the command out buffer from the
-callers to let them use the output.
+Use the reported device capabilities for the supported user events (i.e.
+affiliated and un-affiliated) to set the EQ mask.
+
+As the event mask can be up to 256 defined by 4 entries of u64 change
+the applicable code to work accordingly.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c                     | 3 ++-
- drivers/net/ethernet/mellanox/mlx5/core/cq.c        | 7 +++----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c   | 3 ++-
- drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 3 ++-
- include/linux/mlx5/cq.h                             | 2 +-
- 5 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c             |  3 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 45 ++++++++++++++++----
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c |  6 +++
+ include/linux/mlx5/device.h                  |  6 ++-
+ include/linux/mlx5/eq.h                      |  4 +-
+ include/linux/mlx5/mlx5_ifc.h                | 13 ++++--
+ 6 files changed, 63 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 07b73df0e1a3..9f39e7b9dd1b 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -892,6 +892,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	int vector = attr->comp_vector;
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 	struct mlx5_ib_cq *cq = to_mcq(ibcq);
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	int uninitialized_var(index);
- 	int uninitialized_var(inlen);
- 	u32 *cqb = NULL;
-@@ -954,7 +955,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
- 		MLX5_SET(cqc, cqc, oi, 1);
- 
--	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen);
-+	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen, out, sizeof(out));
- 	if (err)
- 		goto err_cqb;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-index 703d88332bc6..1bd4336392a2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-@@ -87,11 +87,10 @@ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq)
- }
- 
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen)
-+			u32 *in, int inlen, u32 *out, int outlen)
- {
- 	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context), c_eqn);
- 	u32 dout[MLX5_ST_SZ_DW(destroy_cq_out)];
--	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	u32 din[MLX5_ST_SZ_DW(destroy_cq_in)];
- 	struct mlx5_eq_comp *eq;
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 600fe23e2eae..a6740ec308ed 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -1559,10 +1559,11 @@ mlx5_ib_create_pf_eq(struct mlx5_ib_dev *dev, struct mlx5_ib_pf_eq *eq)
+ 	eq->irq_nb.notifier_call = mlx5_ib_eq_pf_int;
+ 	param = (struct mlx5_eq_param) {
+ 		.irq_index = 0,
+-		.mask = 1 << MLX5_EVENT_TYPE_PAGE_FAULT,
+ 		.nent = MLX5_IB_NUM_PF_EQE,
+ 	};
+ 	eq->core = mlx5_eq_create_generic(dev->mdev, &param);
++
++	param.mask[0] = 1ull << MLX5_EVENT_TYPE_PAGE_FAULT;
+ 	if (IS_ERR(eq->core)) {
+ 		err = PTR_ERR(eq->core);
+ 		goto err_wq;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index 8000d2a4a7e2..9d07add38940 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -256,6 +256,7 @@ create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
+ 	int inlen;
+ 	u32 *in;
  	int err;
-@@ -100,9 +99,9 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 	if (IS_ERR(eq))
- 		return PTR_ERR(eq);
++	int i;
  
--	memset(out, 0, sizeof(out));
-+	memset(out, 0, outlen);
- 	MLX5_SET(create_cq_in, in, opcode, MLX5_CMD_OP_CREATE_CQ);
--	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
-+	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
- 	if (err)
- 		return err;
+ 	/* Init CQ table */
+ 	memset(cq_table, 0, sizeof(*cq_table));
+@@ -283,10 +284,12 @@ create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
+ 	mlx5_fill_page_array(&eq->buf, pas);
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 457cc39423f2..7186282785df 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1517,6 +1517,7 @@ static void mlx5e_free_cq(struct mlx5e_cq *cq)
+ 	MLX5_SET(create_eq_in, in, opcode, MLX5_CMD_OP_CREATE_EQ);
+-	if (!param->mask && MLX5_CAP_GEN(dev, log_max_uctx))
++	if (!param->mask[0] && MLX5_CAP_GEN(dev, log_max_uctx))
+ 		MLX5_SET(create_eq_in, in, uid, MLX5_SHARED_RESOURCE_UID);
  
- static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
- {
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	struct mlx5_core_dev *mdev = cq->mdev;
- 	struct mlx5_core_cq *mcq = &cq->mcq;
+-	MLX5_SET64(create_eq_in, in, event_bitmask, param->mask);
++	for (i = 0; i < 4; i++)
++		MLX5_ARRAY_SET64(create_eq_in, in, event_bitmask, i,
++				 param->mask[i]);
  
-@@ -1551,7 +1552,7 @@ static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
- 					    MLX5_ADAPTER_PAGE_SHIFT);
- 	MLX5_SET64(cqc, cqc, dbr_addr,      cq->wq_ctrl.db.dma);
- 
--	err = mlx5_core_create_cq(mdev, mcq, in, inlen);
-+	err = mlx5_core_create_cq(mdev, mcq, in, inlen, out, sizeof(out));
- 
- 	kvfree(in);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-index ca2296a2f9ee..dc7b9d9f274d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-@@ -429,6 +429,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
- 	struct mlx5_fpga_device *fdev = conn->fdev;
- 	struct mlx5_core_dev *mdev = fdev->mdev;
- 	u32 temp_cqc[MLX5_ST_SZ_DW(cqc)] = {0};
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	struct mlx5_wq_param wqp;
- 	struct mlx5_cqe64 *cqe;
- 	int inlen, err, eqn;
-@@ -476,7 +477,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
- 	pas = (__be64 *)MLX5_ADDR_OF(create_cq_in, in, pas);
- 	mlx5_fill_page_frag_array(&conn->cq.wq_ctrl.buf, pas);
- 
--	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen);
-+	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen, out, sizeof(out));
- 	kvfree(in);
- 
- 	if (err)
-diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
-index 769326ea1d9b..e44157a2b7db 100644
---- a/include/linux/mlx5/cq.h
-+++ b/include/linux/mlx5/cq.h
-@@ -185,7 +185,7 @@ static inline void mlx5_cq_put(struct mlx5_core_cq *cq)
+ 	eqc = MLX5_ADDR_OF(create_eq_in, in, eq_context_entry);
+ 	MLX5_SET(eqc, eqc, log_eq_size, ilog2(eq->nent));
+@@ -507,10 +510,32 @@ static int cq_err_event_notifier(struct notifier_block *nb,
+ 	return NOTIFY_OK;
  }
  
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen);
-+			u32 *in, int inlen, u32 *out, int outlen);
- int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
- int mlx5_core_query_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 		       u32 *out, int outlen);
+-static u64 gather_async_events_mask(struct mlx5_core_dev *dev)
++static void gather_async_events_from_cap(struct mlx5_core_dev *dev,
++					 u64 mask[4])
++{
++	__be64 *user_unaffiliated_events;
++	__be64 *user_affiliated_events;
++	int i;
++
++	user_affiliated_events =
++		MLX5_CAP_DEV_EVENT(dev, user_affiliated_events);
++	user_unaffiliated_events =
++		MLX5_CAP_DEV_EVENT(dev, user_unaffiliated_events);
++
++	for (i = 0; i < 4; i++)
++		mask[i] = be64_to_cpu(user_affiliated_events[i] |
++				      user_unaffiliated_events[i]);
++}
++
++static void gather_async_events_mask(struct mlx5_core_dev *dev, u64 mask[4])
+ {
+ 	u64 async_event_mask = MLX5_ASYNC_EVENT_MASK;
+ 
++	if (MLX5_CAP_GEN(dev, event_cap)) {
++		gather_async_events_from_cap(dev, mask);
++		return;
++	}
++
+ 	if (MLX5_VPORT_MANAGER(dev))
+ 		async_event_mask |= (1ull << MLX5_EVENT_TYPE_NIC_VPORT_CHANGE);
+ 
+@@ -544,7 +569,7 @@ static u64 gather_async_events_mask(struct mlx5_core_dev *dev)
+ 		async_event_mask |=
+ 			(1ull << MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED);
+ 
+-	return async_event_mask;
++	mask[0] = async_event_mask;
+ }
+ 
+ static int create_async_eqs(struct mlx5_core_dev *dev)
+@@ -559,9 +584,11 @@ static int create_async_eqs(struct mlx5_core_dev *dev)
+ 	table->cmd_eq.irq_nb.notifier_call = mlx5_eq_async_int;
+ 	param = (struct mlx5_eq_param) {
+ 		.irq_index = 0,
+-		.mask = 1ull << MLX5_EVENT_TYPE_CMD,
++		.mask = {1ull << MLX5_EVENT_TYPE_CMD},
+ 		.nent = MLX5_NUM_CMD_EQE,
+ 	};
++
++	param.mask[0] = 1ull << MLX5_EVENT_TYPE_CMD;
+ 	err = create_async_eq(dev, &table->cmd_eq.core, &param);
+ 	if (err) {
+ 		mlx5_core_warn(dev, "failed to create cmd EQ %d\n", err);
+@@ -577,9 +604,9 @@ static int create_async_eqs(struct mlx5_core_dev *dev)
+ 	table->async_eq.irq_nb.notifier_call = mlx5_eq_async_int;
+ 	param = (struct mlx5_eq_param) {
+ 		.irq_index = 0,
+-		.mask = gather_async_events_mask(dev),
+ 		.nent = MLX5_NUM_ASYNC_EQE,
+ 	};
++	gather_async_events_mask(dev, param.mask);
+ 	err = create_async_eq(dev, &table->async_eq.core, &param);
+ 	if (err) {
+ 		mlx5_core_warn(dev, "failed to create async EQ %d\n", err);
+@@ -595,9 +622,11 @@ static int create_async_eqs(struct mlx5_core_dev *dev)
+ 	table->pages_eq.irq_nb.notifier_call = mlx5_eq_async_int;
+ 	param = (struct mlx5_eq_param) {
+ 		.irq_index = 0,
+-		.mask =  1 << MLX5_EVENT_TYPE_PAGE_REQUEST,
++		.mask = {1 << MLX5_EVENT_TYPE_PAGE_REQUEST},
+ 		.nent = /* TODO: sriov max_vf + */ 1,
+ 	};
++
++	param.mask[0] = 1ull << MLX5_EVENT_TYPE_PAGE_REQUEST;
+ 	err = create_async_eq(dev, &table->pages_eq.core, &param);
+ 	if (err) {
+ 		mlx5_core_warn(dev, "failed to create pages EQ %d\n", err);
+@@ -789,7 +818,7 @@ static int create_comp_eqs(struct mlx5_core_dev *dev)
+ 		eq->irq_nb.notifier_call = mlx5_eq_comp_int;
+ 		param = (struct mlx5_eq_param) {
+ 			.irq_index = vecidx,
+-			.mask = 0,
++			.mask = {0},
+ 			.nent = nent,
+ 		};
+ 		err = create_map_eq(dev, &eq->core, &param);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+index 1ab6f7e3bec6..05367f15c3a7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+@@ -202,6 +202,12 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
+ 			return err;
+ 	}
+ 
++	if (MLX5_CAP_GEN(dev, event_cap)) {
++		err = mlx5_core_get_caps(dev, MLX5_CAP_DEV_EVENT);
++		if (err)
++			return err;
++	}
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 5e760067ac41..0d1abe097627 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -351,7 +351,7 @@ enum mlx5_event {
+ 
+ 	MLX5_EVENT_TYPE_DEVICE_TRACER      = 0x26,
+ 
+-	MLX5_EVENT_TYPE_MAX                = MLX5_EVENT_TYPE_DEVICE_TRACER + 1,
++	MLX5_EVENT_TYPE_MAX                = 0x100,
+ };
+ 
+ enum {
+@@ -1077,6 +1077,7 @@ enum mlx5_cap_type {
+ 	MLX5_CAP_DEBUG,
+ 	MLX5_CAP_RESERVED_14,
+ 	MLX5_CAP_DEV_MEM,
++	MLX5_CAP_DEV_EVENT = 0x14,
+ 	/* NUM OF CAP Types */
+ 	MLX5_CAP_NUM
+ };
+@@ -1255,6 +1256,9 @@ enum mlx5_qcam_feature_groups {
+ #define MLX5_CAP64_DEV_MEM(mdev, cap)\
+ 	MLX5_GET64(device_mem_cap, mdev->caps.hca_cur[MLX5_CAP_DEV_MEM], cap)
+ 
++#define MLX5_CAP_DEV_EVENT(mdev, cap)\
++	MLX5_ADDR_OF(device_event_cap, (mdev)->caps.hca_cur[MLX5_CAP_DEV_EVENT], cap)
++
+ enum {
+ 	MLX5_CMD_STAT_OK			= 0x0,
+ 	MLX5_CMD_STAT_INT_ERR			= 0x1,
+diff --git a/include/linux/mlx5/eq.h b/include/linux/mlx5/eq.h
+index 70e16dcfb4c4..202df2e5fe8c 100644
+--- a/include/linux/mlx5/eq.h
++++ b/include/linux/mlx5/eq.h
+@@ -15,7 +15,9 @@ struct mlx5_core_dev;
+ struct mlx5_eq_param {
+ 	u8             irq_index;
+ 	int            nent;
+-	u64            mask;
++	u64            mask[4];
++	void          *context;
++	irq_handler_t  handler;
+ };
+ 
+ struct mlx5_eq *
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 16348528fef6..3ef716c054c2 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -823,6 +823,12 @@ struct mlx5_ifc_device_mem_cap_bits {
+ 	u8         reserved_at_180[0x680];
+ };
+ 
++struct mlx5_ifc_device_event_cap_bits {
++	u8         user_affiliated_events[4][0x40];
++
++	u8         user_unaffiliated_events[4][0x40];
++};
++
+ enum {
+ 	MLX5_ATOMIC_CAPS_ATOMIC_SIZE_QP_1_BYTE     = 0x0,
+ 	MLX5_ATOMIC_CAPS_ATOMIC_SIZE_QP_2_BYTES    = 0x2,
+@@ -980,7 +986,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 
+ 	u8         log_max_srq_sz[0x8];
+ 	u8         log_max_qp_sz[0x8];
+-	u8         reserved_at_90[0x8];
++	u8         event_cap[0x1];
++	u8         reserved_at_91[0x7];
+ 	u8         prio_tag_required[0x1];
+ 	u8         reserved_at_99[0x2];
+ 	u8         log_max_qp[0x5];
+@@ -7364,9 +7371,9 @@ struct mlx5_ifc_create_eq_in_bits {
+ 
+ 	u8         reserved_at_280[0x40];
+ 
+-	u8         event_bitmask[0x40];
++	u8         event_bitmask[4][0x40];
+ 
+-	u8         reserved_at_300[0x580];
++	u8         reserved_at_3c0[0x4c0];
+ 
+ 	u8         pas[0][0x40];
+ };
 -- 
 2.20.1
