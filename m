@@ -1,141 +1,107 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 09/12] IB/mlx5: Register DEVX with mlx5_core to get async events
-Date: Tue, 18 Jun 2019 20:15:37 +0300
-Message-ID: <20190618171540.11729-10-leon@kernel.org>
-References: <20190618171540.11729-1-leon@kernel.org>
+Subject: [PATCH rdma-next v4 00/17] Statistics counter support
+Date: Tue, 18 Jun 2019 20:26:08 +0300
+Message-ID: <20190618172625.13432-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190618171540.11729-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Register DEVX with with mlx5_core to get async events.  This will enable
-to dispatch the applicable events to its consumers in down stream
-patches.
+Changelog:
+ v3 -> v4:
+ * Add counter_dealloc() callback function
+ * Moved to kref implementation
+ * Fixed lock during spinlock
+ v2 -> v3:
+ * We didn't change use of atomics over kref for management of unbind
+   counter from QP. The reason to it that bind and unbind are non-symmetric
+   in regards of put and get, so we need to count differently memory
+   release flows of HW objects (restrack) and SW bind operations.
+ * Everything else was addressed.
+ v1 -> v2:
+ * Rebased to latest rdma-next
+ v0 -> v1:
+ * Changed wording of counter comment
+ * Removed unneeded assignments
+ * Added extra patch to present global counters
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/devx.c    | 30 ++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/main.c    |  8 ++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++++++++
- 3 files changed, 48 insertions(+), 2 deletions(-)
+----------------------------------------------------
 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 1815ce0f8daf..e9b9ba5a3e9a 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -1670,6 +1670,36 @@ static int devx_umem_cleanup(struct ib_uobject *uobject,
- 	return 0;
- }
- 
-+static int devx_event_notifier(struct notifier_block *nb,
-+			       unsigned long event_type, void *data)
-+{
-+	return NOTIFY_DONE;
-+}
-+
-+void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_devx_event_table *table = &dev->devx_event_table;
-+
-+	xa_init(&table->event_xa);
-+	mutex_init(&table->event_xa_lock);
-+	MLX5_NB_INIT(&table->devx_nb, devx_event_notifier, NOTIFY_ANY);
-+	mlx5_eq_notifier_register(dev->mdev, &table->devx_nb);
-+}
-+
-+void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_devx_event_table *table = &dev->devx_event_table;
-+	void *entry;
-+	unsigned long id;
-+
-+	mlx5_eq_notifier_unregister(dev->mdev, &table->devx_nb);
-+
-+	xa_for_each(&table->event_xa, id, entry)
-+		kfree(entry);
-+
-+	xa_destroy(&table->event_xa);
-+}
-+
- static ssize_t devx_async_cmd_event_read(struct file *filp, char __user *buf,
- 					 size_t count, loff_t *pos)
- {
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index c9c6710afc6b..67b9e7ac569a 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -6653,15 +6653,19 @@ static int mlx5_ib_stage_devx_init(struct mlx5_ib_dev *dev)
- 	int uid;
- 
- 	uid = mlx5_ib_devx_create(dev, false);
--	if (uid > 0)
-+	if (uid > 0) {
- 		dev->devx_whitelist_uid = uid;
-+		mlx5_ib_devx_init_event_table(dev);
-+	}
- 
- 	return 0;
- }
- static void mlx5_ib_stage_devx_cleanup(struct mlx5_ib_dev *dev)
- {
--	if (dev->devx_whitelist_uid)
-+	if (dev->devx_whitelist_uid) {
-+		mlx5_ib_devx_cleanup_event_table(dev);
- 		mlx5_ib_devx_destroy(dev, dev->devx_whitelist_uid);
-+	}
- }
- 
- void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 9cf23ae6324e..556af34b788b 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -944,6 +944,13 @@ struct mlx5_ib_pf_eq {
- 	mempool_t *pool;
- };
- 
-+struct mlx5_devx_event_table {
-+	struct mlx5_nb devx_nb;
-+	/* serialize updating the event_xa */
-+	struct mutex event_xa_lock;
-+	struct xarray event_xa;
-+};
-+
- struct mlx5_ib_dev {
- 	struct ib_device		ib_dev;
- 	struct mlx5_core_dev		*mdev;
-@@ -994,6 +1001,7 @@ struct mlx5_ib_dev {
- 	struct mlx5_srq_table   srq_table;
- 	struct mlx5_async_ctx   async_ctx;
- 	int			free_port;
-+	struct mlx5_devx_event_table devx_event_table;
- };
- 
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-@@ -1333,6 +1341,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
- #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
- int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user);
- void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid);
-+void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev);
-+void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev);
- const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
- extern const struct uapi_definition mlx5_ib_devx_defs[];
- extern const struct uapi_definition mlx5_ib_flow_defs[];
-@@ -1349,6 +1359,8 @@ static inline int
- mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
- 			   bool is_user) { return -EOPNOTSUPP; }
- static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid) {}
-+static inline void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev) {}
-+static inline void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev) {}
- static inline bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
- 					     int *dest_type)
- {
--- 
-2.20.1
+Hi,
+
+This series from Mark provides dynamic statistics infrastructure.
+He uses netlink interface to configure and retrieve those counters.
+
+This infrastructure allows to users monitor various objects by binding
+to them counters. As the beginning, we used QP object as target for
+those counters, but future patches will include ODP MR information too.
+
+Two binding modes are supported:
+ - Auto: This allows a user to build automatic set of objects to a counter
+   according to common criteria. For example in a per-type scheme, where in
+   one process all QPs with same QP type are bound automatically to a single
+   counter.
+ - Manual: This allows a user to manually bind objects on a counter.
+
+Those two modes are mutual-exclusive with separation between processes,
+objects created by different processes cannot be bound to a same counter.
+
+For objects which don't support counter binding, we will return
+pre-allocated counters.
+
+$ rdma statistic qp set link mlx5_2/1 auto type on
+$ rdma statistic qp set link mlx5_2/1 auto off
+$ rdma statistic qp bind link mlx5_2/1 lqpn 178
+$ rdma statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178
+$ rdma statistic show
+$ rdma statistic qp mode
+
+Thanks
+
+Mark Zhang (17):
+  net/mlx5: Add rts2rts_qp_counters_set_id field in hca cap
+  RDMA/restrack: Introduce statistic counter
+  RDMA/restrack: Add an API to attach a task to a resource
+  RDMA/restrack: Make is_visible_in_pid_ns() as an API
+  RDMA/counter: Add set/clear per-port auto mode support
+  RDMA/counter: Add "auto" configuration mode support
+  IB/mlx5: Support set qp counter
+  IB/mlx5: Add counter set id as a parameter for
+    mlx5_ib_query_q_counters()
+  IB/mlx5: Support statistic q counter configuration
+  RDMA/nldev: Allow counter auto mode configration through RDMA netlink
+  RDMA/netlink: Implement counter dumpit calback
+  IB/mlx5: Add counter_alloc_stats() and counter_update_stats() support
+  RDMA/core: Get sum value of all counters when perform a sysfs stat
+    read
+  RDMA/counter: Allow manual mode configuration support
+  RDMA/nldev: Allow counter manual mode configration through RDMA
+    netlink
+  RDMA/nldev: Allow get counter mode through RDMA netlink
+  RDMA/nldev: Allow get default counter statistics through RDMA netlink
+
+ drivers/infiniband/core/Makefile     |   2 +-
+ drivers/infiniband/core/counters.c   | 663 +++++++++++++++++++++++++++
+ drivers/infiniband/core/device.c     |  12 +-
+ drivers/infiniband/core/nldev.c      | 551 +++++++++++++++++++++-
+ drivers/infiniband/core/restrack.c   |  49 +-
+ drivers/infiniband/core/restrack.h   |   3 +
+ drivers/infiniband/core/sysfs.c      |  16 +-
+ drivers/infiniband/core/verbs.c      |   9 +
+ drivers/infiniband/hw/mlx5/main.c    |  77 +++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 +
+ drivers/infiniband/hw/mlx5/qp.c      |  76 ++-
+ include/linux/mlx5/mlx5_ifc.h        |   4 +-
+ include/linux/mlx5/qp.h              |   1 +
+ include/rdma/ib_verbs.h              |  31 ++
+ include/rdma/rdma_counter.h          |  65 +++
+ include/rdma/restrack.h              |   4 +
+ include/uapi/rdma/rdma_netlink.h     |  52 ++-
+ 17 files changed, 1589 insertions(+), 32 deletions(-)
+ create mode 100644 drivers/infiniband/core/counters.c
+ create mode 100644 include/rdma/rdma_counter.h
