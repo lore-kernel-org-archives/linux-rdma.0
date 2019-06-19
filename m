@@ -1,14 +1,16 @@
 From: Khalid Aziz <khalid.aziz@oracle.com>
-Subject: Re: [PATCH v17 05/15] mm, arm64: untag user pointers in mm/gup.c
-Date: Wed, 19 Jun 2019 10:41:12 -0600
-Message-ID: <dbf2dd46-0240-f8a9-203c-4f1234c16825@oracle.com>
+Subject: Re: [PATCH v17 04/15] mm, arm64: untag user pointers passed to memory
+ syscalls
+Date: Wed, 19 Jun 2019 10:46:17 -0600
+Message-ID: <c4bdd767-eb3f-6668-0f49-4aaf4bc7689d@oracle.com>
 References: <cover.1560339705.git.andreyknvl@google.com>
- <8f65548bef8544d49980a92d221b74440d544c1e.1560339705.git.andreyknvl@google.com>
+ <f9b50767d639b7116aa986dc67f158131b8d4169.1560339705.git.andreyknvl@google.com>
+ <a5e0e465-89d5-91d0-c6a4-39674269bbf2@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <8f65548bef8544d49980a92d221b74440d544c1e.1560339705.git.andreyknvl@google.com>
+In-Reply-To: <a5e0e465-89d5-91d0-c6a4-39674269bbf2@oracle.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -23,49 +25,175 @@ To: Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.o
 Cc: Mark Rutland <mark.rutland@arm.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Kostya Serebryany <kcc@google.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>J
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/12/19 5:43 AM, Andrey Konovalov wrote:
-> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> pass tagged user pointers (with the top byte set to something else other
-> than 0x00) as syscall arguments.
+On 6/19/19 9:55 AM, Khalid Aziz wrote:
+> On 6/12/19 5:43 AM, Andrey Konovalov wrote:
+>> This patch is a part of a series that extends arm64 kernel ABI to allow to
+>> pass tagged user pointers (with the top byte set to something else other
+>> than 0x00) as syscall arguments.
+>>
+>> This patch allows tagged pointers to be passed to the following memory
+>> syscalls: get_mempolicy, madvise, mbind, mincore, mlock, mlock2, mprotect,
+>> mremap, msync, munlock, move_pages.
+>>
+>> The mmap and mremap syscalls do not currently accept tagged addresses.
+>> Architectures may interpret the tag as a background colour for the
+>> corresponding vma.
+>>
+>> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+>> Reviewed-by: Kees Cook <keescook@chromium.org>
+>> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+>> ---
 > 
-> mm/gup.c provides a kernel interface that accepts user addresses and
-> manipulates user pages directly (for example get_user_pages, that is used
-> by the futex syscall). Since a user can provided tagged addresses, we need
-> to handle this case.
+> Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
 > 
-> Add untagging to gup.c functions that use user addresses for vma lookups.
 > 
-> Reviewed-by: Kees Cook <keescook@chromium.org>
-> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> ---
 
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+I would also recommend updating commit log for all the patches in this
+series that are changing files under mm/ as opposed to arch/arm64 to not
+reference arm64 kernel ABI since the change applies to every
+architecture. So something along the lines of "This patch is part of a
+series that extends kernel ABI to allow......."
+
+--
+Khalid
 
 
->  mm/gup.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>>  mm/madvise.c   | 2 ++
+>>  mm/mempolicy.c | 3 +++
+>>  mm/migrate.c   | 2 +-
+>>  mm/mincore.c   | 2 ++
+>>  mm/mlock.c     | 4 ++++
+>>  mm/mprotect.c  | 2 ++
+>>  mm/mremap.c    | 7 +++++++
+>>  mm/msync.c     | 2 ++
+>>  8 files changed, 23 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/mm/madvise.c b/mm/madvise.c
+>> index 628022e674a7..39b82f8a698f 100644
+>> --- a/mm/madvise.c
+>> +++ b/mm/madvise.c
+>> @@ -810,6 +810,8 @@ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
+>>  	size_t len;
+>>  	struct blk_plug plug;
+>>  
+>> +	start = untagged_addr(start);
+>> +
+>>  	if (!madvise_behavior_valid(behavior))
+>>  		return error;
+>>  
+>> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+>> index 01600d80ae01..78e0a88b2680 100644
+>> --- a/mm/mempolicy.c
+>> +++ b/mm/mempolicy.c
+>> @@ -1360,6 +1360,7 @@ static long kernel_mbind(unsigned long start, unsigned long len,
+>>  	int err;
+>>  	unsigned short mode_flags;
+>>  
+>> +	start = untagged_addr(start);
+>>  	mode_flags = mode & MPOL_MODE_FLAGS;
+>>  	mode &= ~MPOL_MODE_FLAGS;
+>>  	if (mode >= MPOL_MAX)
+>> @@ -1517,6 +1518,8 @@ static int kernel_get_mempolicy(int __user *policy,
+>>  	int uninitialized_var(pval);
+>>  	nodemask_t nodes;
+>>  
+>> +	addr = untagged_addr(addr);
+>> +
+>>  	if (nmask != NULL && maxnode < nr_node_ids)
+>>  		return -EINVAL;
+>>  
+>> diff --git a/mm/migrate.c b/mm/migrate.c
+>> index f2ecc2855a12..d22c45cf36b2 100644
+>> --- a/mm/migrate.c
+>> +++ b/mm/migrate.c
+>> @@ -1616,7 +1616,7 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
+>>  			goto out_flush;
+>>  		if (get_user(node, nodes + i))
+>>  			goto out_flush;
+>> -		addr = (unsigned long)p;
+>> +		addr = (unsigned long)untagged_addr(p);
+>>  
+>>  		err = -ENODEV;
+>>  		if (node < 0 || node >= MAX_NUMNODES)
+>> diff --git a/mm/mincore.c b/mm/mincore.c
+>> index c3f058bd0faf..64c322ed845c 100644
+>> --- a/mm/mincore.c
+>> +++ b/mm/mincore.c
+>> @@ -249,6 +249,8 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
+>>  	unsigned long pages;
+>>  	unsigned char *tmp;
+>>  
+>> +	start = untagged_addr(start);
+>> +
+>>  	/* Check the start address: needs to be page-aligned.. */
+>>  	if (start & ~PAGE_MASK)
+>>  		return -EINVAL;fixup_user_fault
+>> diff --git a/mm/mlock.c b/mm/mlock.c
+>> index 080f3b36415b..e82609eaa428 100644
+>> --- a/mm/mlock.c
+>> +++ b/mm/mlock.c
+>> @@ -674,6 +674,8 @@ static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t fla
+>>  	unsigned long lock_limit;
+>>  	int error = -ENOMEM;
+>>  
+>> +	start = untagged_addr(start);
+>> +
+>>  	if (!can_do_mlock())
+>>  		return -EPERM;
+>>  
+>> @@ -735,6 +737,8 @@ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
+>>  {
+>>  	int ret;
+>>  
+>> +	start = untagged_addr(start);
+>> +
+>>  	len = PAGE_ALIGN(len + (offset_in_page(start)));
+>>  	start &= PAGE_MASK;
+>>  
+>> diff --git a/mm/mprotect.c b/mm/mprotect.c
+>> index bf38dfbbb4b4..19f981b733bc 100644
+>> --- a/mm/mprotect.c
+>> +++ b/mm/mprotect.c
+>> @@ -465,6 +465,8 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
+>>  	const bool rier = (current->personality & READ_IMPLIES_EXEC) &&
+>>  				(prot & PROT_READ);
+>>  
+>> +	start = untagged_addr(start);
+>> +
+>>  	prot &= ~(PROT_GROWSDOWN|PROT_GROWSUP);
+>>  	if (grows == (PROT_GROWSDOWN|PROT_GROWSUP)) /* can't be both */
+>>  		return -EINVAL;
+>> diff --git a/mm/mremap.c b/mm/mremap.c
+>> index fc241d23cd97..64c9a3b8be0a 100644
+>> --- a/mm/mremap.c
+>> +++ b/mm/mremap.c
+>> @@ -606,6 +606,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, addr, unsigned long, old_len,
+>>  	LIST_HEAD(uf_unmap_early);
+>>  	LIST_HEAD(uf_unmap);
+>>  
+>> +	/*
+>> +	 * Architectures may interpret the tag passed to mmap as a background
+>> +	 * colour for the corresponding vma. For mremap we don't allow tagged
+>> +	 * new_addr to preserve similar behaviour to mmap.
+>> +	 */
+>> +	addr = untagged_addr(addr);
+>> +
+>>  	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
+>>  		return ret;
+>>  
+>> diff --git a/mm/msync.c b/mm/msync.c
+>> index ef30a429623a..c3bd3e75f687 100644
+>> --- a/mm/msync.c
+>> +++ b/mm/msync.c
+>> @@ -37,6 +37,8 @@ SYSCALL_DEFINE3(msync, unsigned long, start, size_t, len, int, flags)
+>>  	int unmapped_error = 0;
+>>  	int error = -EINVAL;
+>>  
+>> +	start = untagged_addr(start);
+>> +
+>>  	if (flags & ~(MS_ASYNC | MS_INVALIDATE | MS_SYNC))
+>>  		goto out;
+>>  	if (offset_in_page(start))
+>>
 > 
-> diff --git a/mm/gup.c b/mm/gup.c
-> index ddde097cf9e4..c37df3d455a2 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -802,6 +802,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  	if (!nr_pages)
->  		return 0;
->  
-> +	start = untagged_addr(start);
-> +
->  	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
->  
->  	/*
-> @@ -964,6 +966,8 @@ int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
->  	struct vm_area_struct *vma;
->  	vm_fault_t ret, major = 0;
->  
-> +	address = untagged_addr(address);
-> +
->  	if (unlocked)
->  		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
->  
 > 
