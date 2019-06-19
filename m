@@ -1,75 +1,42 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v3 hmm 11/12] mm/hmm: Remove confusing comment and logic
- from hmm_release
-Date: Wed, 19 Jun 2019 08:56:32 -0300
-Message-ID: <20190619115632.GC9360@ziepe.ca>
-References: <20190614004450.20252-1-jgg@ziepe.ca>
- <20190614004450.20252-12-jgg@ziepe.ca>
- <20190615142106.GK17724@infradead.org>
- <20190618004509.GE30762@ziepe.ca>
- <20190618053733.GA25048@infradead.org>
- <be4f8573-6284-04a6-7862-23bb357bfe3c@amd.com>
- <20190619080705.GA5164@infradead.org>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v17 03/15] arm64: Introduce prctl() options to control
+ the tagged user addresses ABI
+Date: Wed, 19 Jun 2019 16:29:39 +0100
+Message-ID: <20190619152938.GD25211@arrakis.emea.arm.com>
+References: <cover.1560339705.git.andreyknvl@google.com>
+ <a7a2933bea5fe57e504891b7eec7e9432e5e1c1a.1560339705.git.andreyknvl@google.com>
+ <CAAeHK+xvtqALY9DESF048mR17Po=W++QwWOUOOeSXKgriVTC-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190619080705.GA5164@infradead.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>, "Yang,
- Philip" <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Jerome Glisse <jglisse@redhat.com>, "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>, Ben Skeggs <bskeggs@redhat.com>
+In-Reply-To: <CAAeHK+xvtqALY9DESF048mR17Po=W++QwWOUOOeSXKgriVTC-w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBKdW4gMTksIDIwMTkgYXQgMDE6MDc6MDVBTSAtMDcwMCwgQ2hyaXN0b3BoIEhlbGx3
-aWcgd3JvdGU6Cj4gT24gV2VkLCBKdW4gMTksIDIwMTkgYXQgMTI6NTM6NTVBTSArMDAwMCwgS3Vl
-aGxpbmcsIEZlbGl4IHdyb3RlOgo+ID4gVGhpcyBjb2RlIGlzIGRlcml2ZWQgZnJvbSBvdXIgb2xk
-IE1NVSBub3RpZmllciBjb2RlLiBCZWZvcmUgSE1NIHdlIHVzZWQgCj4gPiB0byByZWdpc3RlciBh
-IHNpbmdsZSBNTVUgbm90aWZpZXIgcGVyIG1tX3N0cnVjdCBhbmQgbG9vayB1cCB2aXJ0dWFsIAo+
-ID4gYWRkcmVzcyByYW5nZXMgdGhhdCBoYWQgYmVlbiByZWdpc3RlcmVkIGZvciBtaXJyb3Jpbmcg
-dmlhIGRyaXZlciBBUEkgCj4gPiBjYWxscy4gVGhlIGlkZWEgd2FzIHRvIHJldXNlIGEgc2luZ2xl
-IE1NVSBub3RpZmllciBmb3IgdGhlIGxpZmUgdGltZSBvZiAKPiA+IHRoZSBwcm9jZXNzLiBJdCB3
-b3VsZCByZW1haW4gcmVnaXN0ZXJlZCB1bnRpbCB3ZSBnb3QgYSBub3RpZmllcl9yZWxlYXNlLgo+
-ID4gCj4gPiBobW1fbWlycm9yIHRvb2sgdGhlIHBsYWNlIG9mIHRoYXQgd2hlbiB3ZSBjb252ZXJ0
-ZWQgdGhlIGNvZGUgdG8gSE1NLgo+ID4gCj4gPiBJIHN1cHBvc2Ugd2UgY291bGQgZGVzdHJveSB0
-aGUgbWlycm9yIGVhcmxpZXIsIHdoZW4gd2UgaGF2ZSBubyBtb3JlIAo+ID4gcmVnaXN0ZXJlZCB2
-aXJ0dWFsIGFkZHJlc3MgcmFuZ2VzLCBhbmQgY3JlYXRlIGEgbmV3IG9uZSBpZiBuZWVkZWQgbGF0
-ZXIuCj4gCj4gSSBkaWRuJ3Qgd3JpdGUgdGhlIGNvZGUsIGJ1dCBpZiB5b3UgbG9vayBhdCBobW1f
-bWlycm9yIGl0IGFscmVhZHkgaXMKPiBhIG11bHRpcGxleGVyIG92ZXIgdGhlIG1tdSBub3RpZmll
-ciwgYW5kIHRoZSBpbnRlbnQgY2xlYXJseSBzZWVtcyB0aGF0Cj4geW91IHJlZ2lzdGVyIG9uZSBw
-ZXIgcmFuZ2UgdGhhdCB5b3Ugd2FudCB0byBtaXJyb3IsIGFuZCBub3QgbXVsdGlwbGV4Cj4gaXQg
-b25jZSBhZ2Fpbi4gIEluIG90aGVyIHdvcmRzIC0gSSB0aGluayBlYWNoIGFtZGdwdV9tbl9ub2Rl
-IHNob3VsZAo+IHByb2JhYmx5IGhhdmUgaXRzIG93biBobW1fbWlycm9yLiAgQW5kIHdoaWxlIHRo
-ZSBhbWRncHVfbW5fbm9kZSBvYmplY3RzCj4gYXJlIGN1cnJlbnRseSBzdG9yZWQgaW4gYW4gaW50
-ZXJ2YWwgdHJlZSBpdCBzZWVtcyBsaWtlIHRoZXkgYXJlIG9ubHkKPiBsaW5lYXJseSBpdGVyYXRl
-ZCBhbnl3YXksIHNvIGEgbGlzdCBhY3R1YWxseSBzZWVtcyBwcmV0dHkgc3VpdGFibGUuICBJZgo+
-IG5vdCB3ZSBuZWVkIHRvIGltcHJvdmUgdGhlIGNvcmUgZGF0YSBzdHJ1Y3R1cmVzIGluc3RlYWQg
-b2Ygd29ya2luZwo+IGFyb3VuZCB0aGVtLgoKVGhpcyBsb29rcyBhIGxvdCBsaWtlIHRoZSBPRFAg
-Y29kZSAoYW1kZ3B1X21uX25vZGUgPT0gaWJfdW1lbV9vZHApCgpUaGUgaW50ZXJ2YWwgdHJlZSBp
-cyB0byBxdWlja2x5IGZpbmQgdGhlIGRyaXZlciBvYmplY3QocykgdGhhdCBoYXZlCnRoZSB2aXJ0
-dWFsIHBhZ2VzIGR1cmluZyBpbnZhbGlkYXRpb246CgpzdGF0aWMgaW50IGFtZGdwdV9tbl9zeW5j
-X3BhZ2V0YWJsZXNfZ2Z4KHN0cnVjdCBobW1fbWlycm9yICptaXJyb3IsCiAgICAgICAgICAgICAg
-ICAgICAgICAgIGNvbnN0IHN0cnVjdCBobW1fdXBkYXRlICp1cGRhdGUpCnsKICAgICAgICBpdCA9
-IGludGVydmFsX3RyZWVfaXRlcl9maXJzdCgmYW1uLT5vYmplY3RzLCBzdGFydCwgZW5kKTsKICAg
-ICAgICB3aGlsZSAoaXQpIHsKICAgICAgICAgICAgICAgIFsuLl0KICAgICAgICAgICAgICAgIGFt
-ZGdwdV9tbl9pbnZhbGlkYXRlX25vZGUobm9kZSwgc3RhcnQsIGVuZCk7CgpBbmQgZm9sbG93aW5n
-IHRoZSBPRFAgbW9kZWwgdGhlcmUgc2hvdWxkIGJlIGEgc2luZ2xlIGhtbV9taXJyb3IgcGVyLW1t
-Cih1c2VyIGNhbiBmb3JrIGFuZCBzdHVmZiwgdGhpcyBpcyBzb21ldGhpbmcgSSB3YW50IHRvIGhh
-dmUgY29yZSBjb2RlCmhlbHAgd2l0aCkuIAoKVGhlIGhtbV9taXJyb3IgY2FuIGVpdGhlciBleGlz
-dCBzbyBsb25nIGFzIG9iamVjdHMgZXhpc3QsIG9yIGl0IGNhbgpleGlzdCB1bnRpbCB0aGUgY2hh
-cmRldiBpcyBjbG9zZWQgLSBidXQgbmV2ZXIgbG9uZ2VyIHRoYW4gdGhlCmNoYXJkZXYncyBsaWZl
-dGltZS4KCk1heWJlIHdlIHNob3VsZCBiZSBjb25zaWRlcmluZyBwcm92aWRpbmcgYSBtbXUgbm90
-aWZpZXIgJiBpbnRlcnZhbAp0cmVlICYgbG9jayBhYnN0cmFjdGlvbiBzaW5jZSBPRFAgJiBBTUQg
-YXJlIHZlcnkgc2ltaWxhciBoZXJlLi4KCkphc29uCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxp
-c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2RyaS1kZXZlbA==
+On Wed, Jun 19, 2019 at 04:45:02PM +0200, Andrey Konovalov wrote:
+> On Wed, Jun 12, 2019 at 1:43 PM Andrey Konovalov <andreyknvl@google.com> wrote:
+> > From: Catalin Marinas <catalin.marinas@arm.com>
+> >
+> > It is not desirable to relax the ABI to allow tagged user addresses into
+> > the kernel indiscriminately. This patch introduces a prctl() interface
+> > for enabling or disabling the tagged ABI with a global sysctl control
+> > for preventing applications from enabling the relaxed ABI (meant for
+> > testing user-space prctl() return error checking without reconfiguring
+> > the kernel). The ABI properties are inherited by threads of the same
+> > application and fork()'ed children but cleared on execve().
+> >
+> > The PR_SET_TAGGED_ADDR_CTRL will be expanded in the future to handle
+> > MTE-specific settings like imprecise vs precise exceptions.
+> >
+> > Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+> 
+> Catalin, would you like to do the requested changes to this patch
+> yourself and send it to me or should I do that?
+
+I'll send you an updated version this week.
+
+-- 
+Catalin
