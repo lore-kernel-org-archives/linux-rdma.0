@@ -1,8 +1,8 @@
-From: Mark Bloch <markb@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 Subject: Re: [PATCH mlx5-next 11/15] RDMA/mlx5: Add vport metadata matching
  for IB representors
-Date: Wed, 19 Jun 2019 07:58:51 +0000
-Message-ID: <ac23c3ea-3ea7-2a5b-5fc6-aece0aed0b54@mellanox.com>
+Date: Wed, 19 Jun 2019 08:12:29 +0000
+Message-ID: <20190619081226.GI11611@mtr-leonro.mtl.com>
 References: <20190617192247.25107-1-saeedm@mellanox.com>
  <20190617192247.25107-12-saeedm@mellanox.com>
  <20190618101928.GE4690@mtr-leonro.mtl.com>
@@ -12,95 +12,183 @@ References: <20190617192247.25107-1-saeedm@mellanox.com>
  <20190619065125.GF11611@mtr-leonro.mtl.com>
  <4e01d326-db6c-f746-acd6-06f65f311f5b@mellanox.com>
  <20190619074338.GG11611@mtr-leonro.mtl.com>
+ <ac23c3ea-3ea7-2a5b-5fc6-aece0aed0b54@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190619074338.GG11611@mtr-leonro.mtl.com>
+In-Reply-To: <ac23c3ea-3ea7-2a5b-5fc6-aece0aed0b54@mellanox.com>
 Content-Language: en-US
-Content-ID: <AC50D6893262F44DB0A15F7AF061F0F8@eurprd05.prod.outlook.com>
+Content-ID: <EFF0DA22E8C65A4B91AAE2B9CC8899D4@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
+To: Mark Bloch <markb@mellanox.com>
 Cc: Jianbo Liu <jianbol@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Roi Dayan <roid@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDYvMTkvMjAxOSAwMDo0MywgTGVvbiBSb21hbm92c2t5IHdyb3RlOg0KPiBPbiBXZWQs
-IEp1biAxOSwgMjAxOSBhdCAwNzoyNjo1NEFNICswMDAwLCBNYXJrIEJsb2NoIHdyb3RlOg0KPj4N
-Cj4+DQo+PiBPbiA2LzE4LzIwMTkgMjM6NTEsIExlb24gUm9tYW5vdnNreSB3cm90ZToNCj4+PiBP
-biBXZWQsIEp1biAxOSwgMjAxOSBhdCAwNjo0MDoxNkFNICswMDAwLCBKaWFuYm8gTGl1IHdyb3Rl
-Og0KPj4+PiBUaGUgMDYvMTkvMjAxOSAxMzowNCwgTGVvbiBSb21hbm92c2t5IHdyb3RlOg0KPj4+
-Pj4gT24gV2VkLCBKdW4gMTksIDIwMTkgYXQgMDQ6NDQ6MjZBTSArMDAwMCwgSmlhbmJvIExpdSB3
-cm90ZToNCj4+Pj4+PiBUaGUgMDYvMTgvMjAxOSAxODoxOSwgTGVvbiBSb21hbm92c2t5IHdyb3Rl
-Og0KPj4+Pj4+PiBPbiBNb24sIEp1biAxNywgMjAxOSBhdCAwNzoyMzozMFBNICswMDAwLCBTYWVl
-ZCBNYWhhbWVlZCB3cm90ZToNCj4+Pj4+Pj4+IEZyb206IEppYW5ibyBMaXUgPGppYW5ib2xAbWVs
-bGFub3guY29tPg0KPj4+Pj4+Pj4NCj4+Pj4+Pj4+IElmIHZwb3J0IG1ldGFkYXRhIG1hdGNoaW5n
-IGlzIGVuYWJsZWQgaW4gZXN3aXRjaCwgdGhlIHJ1bGUgY3JlYXRlZA0KPj4+Pj4+Pj4gbXVzdCBi
-ZSBjaGFuZ2VkIHRvIG1hdGNoIG9uIHRoZSBtZXRhZGF0YSwgaW5zdGVhZCBvZiBzb3VyY2UgcG9y
-dC4NCj4+Pj4+Pj4+DQo+Pj4+Pj4+PiBTaWduZWQtb2ZmLWJ5OiBKaWFuYm8gTGl1IDxqaWFuYm9s
-QG1lbGxhbm94LmNvbT4NCj4+Pj4+Pj4+IFJldmlld2VkLWJ5OiBSb2kgRGF5YW4gPHJvaWRAbWVs
-bGFub3guY29tPg0KPj4+Pj4+Pj4gUmV2aWV3ZWQtYnk6IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxh
-bm94LmNvbT4NCj4+Pj4+Pj4+IFNpZ25lZC1vZmYtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1A
-bWVsbGFub3guY29tPg0KPj4+Pj4+Pj4gLS0tDQo+Pj4+Pj4+PiAgZHJpdmVycy9pbmZpbmliYW5k
-L2h3L21seDUvaWJfcmVwLmMgfCAxMSArKysrKysrDQo+Pj4+Pj4+PiAgZHJpdmVycy9pbmZpbmli
-YW5kL2h3L21seDUvaWJfcmVwLmggfCAxNiArKysrKysrKysrDQo+Pj4+Pj4+PiAgZHJpdmVycy9p
-bmZpbmliYW5kL2h3L21seDUvbWFpbi5jICAgfCA0NSArKysrKysrKysrKysrKysrKysrKysrKy0t
-LS0tLQ0KPj4+Pj4+Pj4gIDMgZmlsZXMgY2hhbmdlZCwgNjMgaW5zZXJ0aW9ucygrKSwgOSBkZWxl
-dGlvbnMoLSkNCj4+Pj4+Pj4+DQo+Pj4+Pj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmli
-YW5kL2h3L21seDUvaWJfcmVwLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9pYl9yZXAu
-Yw0KPj4+Pj4+Pj4gaW5kZXggMjJlNjUxY2I1NTM0Li5kNGVkNjExZGUzNWQgMTAwNjQ0DQo+Pj4+
-Pj4+PiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9pYl9yZXAuYw0KPj4+Pj4+Pj4g
-KysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvaWJfcmVwLmMNCj4+Pj4+Pj4+IEBAIC0x
-MzEsNiArMTMxLDE3IEBAIHN0cnVjdCBtbHg1X2Vzd2l0Y2hfcmVwICptbHg1X2liX3Zwb3J0X3Jl
-cChzdHJ1Y3QgbWx4NV9lc3dpdGNoICplc3csIGludCB2cG9ydCkNCj4+Pj4+Pj4+ICAJcmV0dXJu
-IG1seDVfZXN3aXRjaF92cG9ydF9yZXAoZXN3LCB2cG9ydCk7DQo+Pj4+Pj4+PiAgfQ0KPj4+Pj4+
-Pj4NCj4+Pj4+Pj4+ICt1MzIgbWx4NV9pYl9lc3dpdGNoX3Zwb3J0X21hdGNoX21ldGFkYXRhX2Vu
-YWJsZWQoc3RydWN0IG1seDVfZXN3aXRjaCAqZXN3KQ0KPj4+Pj4+Pj4gK3sNCj4+Pj4+Pj4+ICsJ
-cmV0dXJuIG1seDVfZXN3aXRjaF92cG9ydF9tYXRjaF9tZXRhZGF0YV9lbmFibGVkKGVzdyk7DQo+
-Pj4+Pj4+PiArfQ0KPj4+Pj4+Pj4gKw0KPj4+Pj4+Pj4gK3UzMiBtbHg1X2liX2Vzd2l0Y2hfZ2V0
-X3Zwb3J0X21ldGFkYXRhX2Zvcl9tYXRjaChzdHJ1Y3QgbWx4NV9lc3dpdGNoICplc3csDQo+Pj4+
-Pj4+PiArCQkJCQkJIHUxNiB2cG9ydCkNCj4+Pj4+Pj4+ICt7DQo+Pj4+Pj4+PiArCXJldHVybiBt
-bHg1X2Vzd2l0Y2hfZ2V0X3Zwb3J0X21ldGFkYXRhX2Zvcl9tYXRjaChlc3csIHZwb3J0KTsNCj4+
-Pj4+Pj4+ICt9DQo+Pj4+Pj4+DQo+Pj4+Pj4+IDEuIFRoZXJlIGlzIG5vIG5lZWQgdG8gaW50cm9k
-dWNlIG9uZSBsaW5lIGZ1bmN0aW9ucywgY2FsbCB0byB0aGF0IGNvZGUgZGlyZWN0bHkuDQo+Pj4+
-Pj4NCj4+Pj4+PiBOby4gVGhleSBhcmUgaW4gSUIsIGFuZCB3ZSBkb24ndCB3YW50IHRoZW0gYmUg
-bWl4ZWQgdXAgYnkgdGhlIG9yaWdpbmFsDQo+Pj4+Pj4gZnVuY3Rpb25zIGluIGVzd2l0Y2guIFBs
-ZWFzZSBhc2sgTWFyayBtb3JlIGFib3V0IGl0Lg0KPj4+Pj4NCj4+Pj4+IFBsZWFzZSBlbmxpZ2h0
-ZW4gbWUuDQo+Pj4+DQo+Pj4+IEl0IHdhcyBzdWdnZXN0ZWQgYnkgTWFyayBpbiBwcmV2b3VpcyBy
-ZXZpZXcuDQo+Pj4+IEkgdGhpbmsgaXQncyBiZWNhdXNlIHRoZXJlIGFyZSBpbiBkaWZmZXJlbnQg
-bW9kdWxlcywgYW5kIGJldHRlciB0byB3aXRoDQo+Pj4+IGRpZmZlcmVudCBuYW1lcywgc28gaW50
-cm9kdWNlIHRoZXJlIGV4dHJhIG9uZSBsaW5lIGZ1bmN0aW9ucy4NCj4+Pj4gUGxlYXNlIGNvcnJl
-Y3QgbWUgaWYgSSdtIHdyb25nLCBNYXJrLi4uDQo+Pj4NCj4+PiBtbHg1X2liIGlzIGZ1bGwgb2Yg
-ZGlyZWN0IGZ1bmN0aW9uIGNhbGxzIHRvIG1seDVfY29yZSBhbmQgaXQgaXMgZG9uZSBvbg0KPj4+
-IHB1cnBvc2UgZm9yIGF0IGxlYXN0IHR3byByZWFzb25zLiBGaXJzdCBpcyB0byBjb250cm9sIGlu
-IG9uZSBwbGFjZQ0KPj4+IGFsbCBjb21waWxhdGlvbiBvcHRpb25zIGFuZCBleHBvc2UgcHJvcGVy
-IEFQSSBpbnRlcmZhY2Ugd2l0aCBhbmQgd2l0aG91dA0KPj4+IHNwZWNpZmljIGtlcm5lbCBjb25m
-aWcgaXMgb24uIFNlY29uZCBpcyB0byBlbXBoYXNpemUgdGhhdCB0aGlzIGlzIGNvcmUNCj4+PiBm
-dW5jdGlvbiBhbmQgc2F2ZSB1cyB0aW1lIGluIHJlZmFjdG9yaW5nIGFuZCByZXZpZXdpbmcuDQo+
-Pg0KPj4gVGhpcyB3YXMgZG9uZSBpbiBvcmRlciB0byBhdm9pZCAjaWZkZWYgQ09ORklHX01MWDVf
-RVNXSVRDSCwNCj4+IEkgd2FudCB0byBoaWRlIChhcyBtdWNoIGFzIHBvc3NpYmxlKSB0aGUgaW50
-ZXJhY3Rpb25zIHdpdGggdGhlIGVzd2l0Y2ggbGV2ZWwgaW4gaWJfcmVwLmMvaWJfcmVwLmgNCj4+
-IHNvIGliX3JlcC5oIHdpbGwgcHJvdmlkZSB0aGUgc3R1YnMgbmVlZGVkIGluIGNhc2UgQ09ORklH
-X01MWDVfRVNXSVRDSCBpc24ndCBkZWZpbmVkLg0KPj4gKFRvZGF5IGluY2x1ZGUvbGludXgvbWx4
-NS9lc3dpdGNoLmgpIGRvZXNuJ3QgcHJvdmlkZSBhbnkgc3R1YnMsIG1seDVfZXN3aXRjaF9nZXRf
-ZW5jYXBfbW9kZSgpDQo+PiBzaG91bGQgaGF2ZSBwcm9iYWJseSBkb25lIHRoZSBzYW1lLg0KPiAN
-Cj4gVGhpcyBpcyBleGFjdGx5IHRoZSBwcm9ibGVtLCBlc3dpdGNoLmggc2hvdWxkIHByb3ZpZGUg
-c3R1YnMgZm9yIGFsbA0KPiBleHBvcnRlZCBmdW5jdGlvbnMsIHNvIG90aGVyIGNsaWVudHMgb2Yg
-ZXN3aXRjaCB3b24ndCBuZWVkIHRvIGRlYWwgd2l0aA0KPiB2YXJpb3VzIHVucmVsYXRlZCBjb25m
-aWcgb3B0aW9ucy4NCg0KVGhlIHdheSBpdCB3b3JrcyB0b2RheSwgY29kZSBpbiBkcml2ZXJzL2lu
-ZmluaWJhbmQvaHcvbWx4NS9tYWluLmMgZG9lc24ndCBjYWxsIGVzd2l0Y2ggbGF5ZXIgZGlyZWN0
-bHkNCmJ1dCB0aGUgZnVuY3Rpb25zIGluIGliX3JlcC57YyxofSBhcyBtb3N0IG9mdGVuIHRoZXJl
-IGlzIGFkZGl0aW9uYWwgbG9naWMgd2UgbXVzdCBkbyBiZWZvcmUgY2FsbGluZw0KdGhlIGVzd2l0
-Y2ggbGF5ZXIuDQoNCklmIHlvdSBsb29rIGF0IGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L01h
-a2VmaWxlIHlvdSB3aWxsIHNlZSBpYl9yZXAgaXMgY29tcGxpZWQgb25seSB3aGVuDQpDT05GSUdf
-TUxYNV9FU1dJVENIIGlkIGRlZmluZWQuDQoNCnNvIGluc3RlYWQgb2YgaGF2aW5nIHRvIGRlYWwg
-d2l0aCB0d28gcGxhY2VzIHRoYXQgY29udGFpbiBzdHVicywgd2UgbmVlZCB0byBkZWFsIHdpdGgg
-b25seSBvbmUgKGliX3JlcC5oKS4NCkZvciBtZSBpdCBtYWtlcyBpdCBlYXNpZXIgdG8gZm9sbG93
-LCBidXQgSSBjYW4gYWRlcHQgaWYgeW91IGRvbid0IGxpa2UgaXQuDQoNCk1hcmsNCg0KPiANCj4+
-DQo+PiBBcyBteSBsb25nIHRlcm0gZ29hbCBpcyB0byBicmVhayBkcml2ZXJzL2luZmluaWJhbmQv
-aHcvbWx4NS9tYWluLmMgKHRoYXQgZmlsZSBpcyBhbHJlYWR5IDcwMDAgTE9DKQ0KPj4gSSB3YW50
-IHRvIGdyb3VwIHRvZ2V0aGVyIHN0dWZmIGluIHNlcGFyYXRlIGZpbGVzLg0KPiANCj4gWWVzLCBp
-dCBpcyByaWdodCB0aGluZyB0byBkby4NCj4gDQo+Pg0KPj4gSWYgeW91IHByZWZlciBkaXJlY3Qg
-Y2FsbHMgdGhhdCdzIG9rYXkgYXMgd2VsbC4NCj4gDQo+IFllcywgcGxlYXNlLg0KPiANCj4+DQo+
-PiBNYXJrDQo+Pg0KPj4+DQo+Pj4+DQo+Pj4+Pg0KPj4+Pj4+DQo+Pj4+Pj4+IDIuIEl0IHNob3Vs
-ZCBiZSBib29sIGFuZCBub3QgdTMyLg0KPj4+Pj4+Pg0KPj4+Pj4+PiBUaGFua3MNCj4+Pj4+Pg0K
-Pj4+Pj4+IC0tDQo+Pj4+DQo+Pj4+IC0tDQo=
+On Wed, Jun 19, 2019 at 07:58:51AM +0000, Mark Bloch wrote:
+>
+>
+> On 6/19/2019 00:43, Leon Romanovsky wrote:
+> > On Wed, Jun 19, 2019 at 07:26:54AM +0000, Mark Bloch wrote:
+> >>
+> >>
+> >> On 6/18/2019 23:51, Leon Romanovsky wrote:
+> >>> On Wed, Jun 19, 2019 at 06:40:16AM +0000, Jianbo Liu wrote:
+> >>>> The 06/19/2019 13:04, Leon Romanovsky wrote:
+> >>>>> On Wed, Jun 19, 2019 at 04:44:26AM +0000, Jianbo Liu wrote:
+> >>>>>> The 06/18/2019 18:19, Leon Romanovsky wrote:
+> >>>>>>> On Mon, Jun 17, 2019 at 07:23:30PM +0000, Saeed Mahameed wrote:
+> >>>>>>>> From: Jianbo Liu <jianbol@mellanox.com>
+> >>>>>>>>
+> >>>>>>>> If vport metadata matching is enabled in eswitch, the rule creat=
+ed
+> >>>>>>>> must be changed to match on the metadata, instead of source port=
+.
+> >>>>>>>>
+> >>>>>>>> Signed-off-by: Jianbo Liu <jianbol@mellanox.com>
+> >>>>>>>> Reviewed-by: Roi Dayan <roid@mellanox.com>
+> >>>>>>>> Reviewed-by: Mark Bloch <markb@mellanox.com>
+> >>>>>>>> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+> >>>>>>>> ---
+> >>>>>>>>  drivers/infiniband/hw/mlx5/ib_rep.c | 11 +++++++
+> >>>>>>>>  drivers/infiniband/hw/mlx5/ib_rep.h | 16 ++++++++++
+> >>>>>>>>  drivers/infiniband/hw/mlx5/main.c   | 45 ++++++++++++++++++++++=
++------
+> >>>>>>>>  3 files changed, 63 insertions(+), 9 deletions(-)
+> >>>>>>>>
+> >>>>>>>> diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infin=
+iband/hw/mlx5/ib_rep.c
+> >>>>>>>> index 22e651cb5534..d4ed611de35d 100644
+> >>>>>>>> --- a/drivers/infiniband/hw/mlx5/ib_rep.c
+> >>>>>>>> +++ b/drivers/infiniband/hw/mlx5/ib_rep.c
+> >>>>>>>> @@ -131,6 +131,17 @@ struct mlx5_eswitch_rep *mlx5_ib_vport_rep(=
+struct mlx5_eswitch *esw, int vport)
+> >>>>>>>>  	return mlx5_eswitch_vport_rep(esw, vport);
+> >>>>>>>>  }
+> >>>>>>>>
+> >>>>>>>> +u32 mlx5_ib_eswitch_vport_match_metadata_enabled(struct mlx5_es=
+witch *esw)
+> >>>>>>>> +{
+> >>>>>>>> +	return mlx5_eswitch_vport_match_metadata_enabled(esw);
+> >>>>>>>> +}
+> >>>>>>>> +
+> >>>>>>>> +u32 mlx5_ib_eswitch_get_vport_metadata_for_match(struct mlx5_es=
+witch *esw,
+> >>>>>>>> +						 u16 vport)
+> >>>>>>>> +{
+> >>>>>>>> +	return mlx5_eswitch_get_vport_metadata_for_match(esw, vport);
+> >>>>>>>> +}
+> >>>>>>>
+> >>>>>>> 1. There is no need to introduce one line functions, call to that=
+ code directly.
+> >>>>>>
+> >>>>>> No. They are in IB, and we don't want them be mixed up by the orig=
+inal
+> >>>>>> functions in eswitch. Please ask Mark more about it.
+> >>>>>
+> >>>>> Please enlighten me.
+> >>>>
+> >>>> It was suggested by Mark in prevouis review.
+> >>>> I think it's because there are in different modules, and better to w=
+ith
+> >>>> different names, so introduce there extra one line functions.
+> >>>> Please correct me if I'm wrong, Mark...
+> >>>
+> >>> mlx5_ib is full of direct function calls to mlx5_core and it is done =
+on
+> >>> purpose for at least two reasons. First is to control in one place
+> >>> all compilation options and expose proper API interface with and with=
+out
+> >>> specific kernel config is on. Second is to emphasize that this is cor=
+e
+> >>> function and save us time in refactoring and reviewing.
+> >>
+> >> This was done in order to avoid #ifdef CONFIG_MLX5_ESWITCH,
+> >> I want to hide (as much as possible) the interactions with the eswitch=
+ level in ib_rep.c/ib_rep.h
+> >> so ib_rep.h will provide the stubs needed in case CONFIG_MLX5_ESWITCH =
+isn't defined.
+> >> (Today include/linux/mlx5/eswitch.h) doesn't provide any stubs, mlx5_e=
+switch_get_encap_mode()
+> >> should have probably done the same.
+> >
+> > This is exactly the problem, eswitch.h should provide stubs for all
+> > exported functions, so other clients of eswitch won't need to deal with
+> > various unrelated config options.
+>
+> The way it works today, code in drivers/infiniband/hw/mlx5/main.c doesn't=
+ call eswitch layer directly
+> but the functions in ib_rep.{c,h} as most often there is additional logic=
+ we must do before calling
+> the eswitch layer.
+>
+> If you look at drivers/infiniband/hw/mlx5/Makefile you will see ib_rep is=
+ complied only when
+> CONFIG_MLX5_ESWITCH id defined.
+
+This simple patch + cleanup of ib_rep.h will do the trick.
+
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5=
+/main.c
+index 67b9e7ac569a..b917ba28659e 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -59,7 +59,9 @@
+ #include <linux/in.h>
+ #include <linux/etherdevice.h>
+ #include "mlx5_ib.h"
++#if defined(CONFIG_MLX5_ESWITCH)
+ #include "ib_rep.h"
++#endif
+ #include "cmd.h"
+ #include "srq.h"
+ #include <linux/mlx5/fs_helpers.h>
+@@ -6765,6 +6767,7 @@ static const struct mlx5_ib_profile  pf_profile =3D {
+                        mlx5_ib_stage_delay_drop_cleanup),
+	     };
+
++#if defined(CONFIG_MLX5_ESWITCH)
+ const struct mlx5_ib_profile uplink_rep_profile =3D {
+	STAGE_CREATE(MLX5_IB_STAGE_INIT,
+		     mlx5_ib_stage_init_init,
+@@ -6812,6 +6815,7 @@
+ const struct mlx5_ib_profile uplink_rep_profile =3D {
+		               mlx5_ib_stage_post_ib_reg_umr_init,
+		               NULL),
+		};
+
+>
+> so instead of having to deal with two places that contain stubs, we need =
+to deal with only one (ib_rep.h).
+> For me it makes it easier to follow, but I can adept if you don't like it=
+.
+>
+> Mark
+>
+> >
+> >>
+> >> As my long term goal is to break drivers/infiniband/hw/mlx5/main.c (th=
+at file is already 7000 LOC)
+> >> I want to group together stuff in separate files.
+> >
+> > Yes, it is right thing to do.
+> >
+> >>
+> >> If you prefer direct calls that's okay as well.
+> >
+> > Yes, please.
+> >
+> >>
+> >> Mark
+> >>
+> >>>
+> >>>>
+> >>>>>
+> >>>>>>
+> >>>>>>> 2. It should be bool and not u32.
+> >>>>>>>
+> >>>>>>> Thanks
+> >>>>>>
+> >>>>>> --
+> >>>>
+> >>>> --
