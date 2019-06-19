@@ -1,54 +1,134 @@
-From: Federico Vaga <federico.vaga@vaga.pv.it>
-Subject: Re: [PATCH v1 02/22] docs: ioctl-number.txt: convert it to ReST format
-Date: Wed, 19 Jun 2019 09:32:14 +0200
-Message-ID: <1723505.IrfYrSHNLM@pcbe13614>
-References: <cover.1560891322.git.mchehab+samsung@kernel.org> <e8f1c925c5d118717eb38455e8f9dacf340cc35e.1560891322.git.mchehab+samsung@kernel.org>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH mlx5-next 11/15] RDMA/mlx5: Add vport metadata matching
+ for IB representors
+Date: Wed, 19 Jun 2019 07:43:41 +0000
+Message-ID: <20190619074338.GG11611@mtr-leonro.mtl.com>
+References: <20190617192247.25107-1-saeedm@mellanox.com>
+ <20190617192247.25107-12-saeedm@mellanox.com>
+ <20190618101928.GE4690@mtr-leonro.mtl.com>
+ <20190619044420.GA30694@mellanox.com>
+ <20190619050412.GC11611@mtr-leonro.mtl.com>
+ <20190619063941.GA5176@mellanox.com>
+ <20190619065125.GF11611@mtr-leonro.mtl.com>
+ <4e01d326-db6c-f746-acd6-06f65f311f5b@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e8f1c925c5d118717eb38455e8f9dacf340cc35e.1560891322.git.mchehab+samsung@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Harry Wei <harryxiyou@gmail.com>, Alex Shi <alex.shi@linux.alibaba.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4e01d326-db6c-f746-acd6-06f65f311f5b@mellanox.com>
+Content-Language: en-US
+Content-ID: <81D23662DA27334C93CDE54F93CA921C@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mark Bloch <markb@mellanox.com>
+Cc: Jianbo Liu <jianbol@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Roi Dayan <roid@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday, June 18, 2019 11:05:26 PM CEST Mauro Carvalho Chehab wrote:
-> The conversion itself is simple: add a markup for the
-> title of this file and add markups for both tables.
-> 
-> Yet, the big table here with IOCTL numbers is badly formatted:
-> on several lines, the "Include File" column has some values that
-> are bigger than the reserved space there.
-> 
-> Also, on several places, a comment was misplaced at the "Include
-> File" space.
-> 
-> So, most of the work here is to actually ensure that each field
-> will be properly fixed.
-> 
-> Also worth to mention that some URLs have the asterisk character
-> on it. Well, Sphinx has an issue with asterisks in the middle
-> of an string. As this is URL, use the alternate format: %2A.
-> 
-> As a side effect of this patch, it is now a lot easier to see that
-> some reserved ioctl numbers are missing the include files
-> where it is supposed to be used.
-> 
-> PS.: While this is part of a subdir, I opted to convert this
-> single file alone, as this file has a potential of conflicts,
-> as most subsystem maintainers touch it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  .../{ioctl-number.txt => ioctl-number.rst}    | 588 +++++++++---------
->  Documentation/process/submit-checklist.rst    |   2 +-
->  .../it_IT/process/submit-checklist.rst        |   2 +-
->  .../zh_CN/process/submit-checklist.rst        |   2 +-
->  include/uapi/rdma/rdma_user_ioctl_cmds.h      |   2 +-
+On Wed, Jun 19, 2019 at 07:26:54AM +0000, Mark Bloch wrote:
+>
+>
+> On 6/18/2019 23:51, Leon Romanovsky wrote:
+> > On Wed, Jun 19, 2019 at 06:40:16AM +0000, Jianbo Liu wrote:
+> >> The 06/19/2019 13:04, Leon Romanovsky wrote:
+> >>> On Wed, Jun 19, 2019 at 04:44:26AM +0000, Jianbo Liu wrote:
+> >>>> The 06/18/2019 18:19, Leon Romanovsky wrote:
+> >>>>> On Mon, Jun 17, 2019 at 07:23:30PM +0000, Saeed Mahameed wrote:
+> >>>>>> From: Jianbo Liu <jianbol@mellanox.com>
+> >>>>>>
+> >>>>>> If vport metadata matching is enabled in eswitch, the rule created
+> >>>>>> must be changed to match on the metadata, instead of source port.
+> >>>>>>
+> >>>>>> Signed-off-by: Jianbo Liu <jianbol@mellanox.com>
+> >>>>>> Reviewed-by: Roi Dayan <roid@mellanox.com>
+> >>>>>> Reviewed-by: Mark Bloch <markb@mellanox.com>
+> >>>>>> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+> >>>>>> ---
+> >>>>>>  drivers/infiniband/hw/mlx5/ib_rep.c | 11 +++++++
+> >>>>>>  drivers/infiniband/hw/mlx5/ib_rep.h | 16 ++++++++++
+> >>>>>>  drivers/infiniband/hw/mlx5/main.c   | 45 +++++++++++++++++++++++-=
+-----
+> >>>>>>  3 files changed, 63 insertions(+), 9 deletions(-)
+> >>>>>>
+> >>>>>> diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infinib=
+and/hw/mlx5/ib_rep.c
+> >>>>>> index 22e651cb5534..d4ed611de35d 100644
+> >>>>>> --- a/drivers/infiniband/hw/mlx5/ib_rep.c
+> >>>>>> +++ b/drivers/infiniband/hw/mlx5/ib_rep.c
+> >>>>>> @@ -131,6 +131,17 @@ struct mlx5_eswitch_rep *mlx5_ib_vport_rep(st=
+ruct mlx5_eswitch *esw, int vport)
+> >>>>>>  	return mlx5_eswitch_vport_rep(esw, vport);
+> >>>>>>  }
+> >>>>>>
+> >>>>>> +u32 mlx5_ib_eswitch_vport_match_metadata_enabled(struct mlx5_eswi=
+tch *esw)
+> >>>>>> +{
+> >>>>>> +	return mlx5_eswitch_vport_match_metadata_enabled(esw);
+> >>>>>> +}
+> >>>>>> +
+> >>>>>> +u32 mlx5_ib_eswitch_get_vport_metadata_for_match(struct mlx5_eswi=
+tch *esw,
+> >>>>>> +						 u16 vport)
+> >>>>>> +{
+> >>>>>> +	return mlx5_eswitch_get_vport_metadata_for_match(esw, vport);
+> >>>>>> +}
+> >>>>>
+> >>>>> 1. There is no need to introduce one line functions, call to that c=
+ode directly.
+> >>>>
+> >>>> No. They are in IB, and we don't want them be mixed up by the origin=
+al
+> >>>> functions in eswitch. Please ask Mark more about it.
+> >>>
+> >>> Please enlighten me.
+> >>
+> >> It was suggested by Mark in prevouis review.
+> >> I think it's because there are in different modules, and better to wit=
+h
+> >> different names, so introduce there extra one line functions.
+> >> Please correct me if I'm wrong, Mark...
+> >
+> > mlx5_ib is full of direct function calls to mlx5_core and it is done on
+> > purpose for at least two reasons. First is to control in one place
+> > all compilation options and expose proper API interface with and withou=
+t
+> > specific kernel config is on. Second is to emphasize that this is core
+> > function and save us time in refactoring and reviewing.
+>
+> This was done in order to avoid #ifdef CONFIG_MLX5_ESWITCH,
+> I want to hide (as much as possible) the interactions with the eswitch le=
+vel in ib_rep.c/ib_rep.h
+> so ib_rep.h will provide the stubs needed in case CONFIG_MLX5_ESWITCH isn=
+'t defined.
+> (Today include/linux/mlx5/eswitch.h) doesn't provide any stubs, mlx5_eswi=
+tch_get_encap_mode()
+> should have probably done the same.
 
-Acked-by: Federico Vaga <federico.vaga@vaga.pv.it>
+This is exactly the problem, eswitch.h should provide stubs for all
+exported functions, so other clients of eswitch won't need to deal with
+various unrelated config options.
 
--- 
-Federico Vaga
-http://www.federicovaga.it/
+>
+> As my long term goal is to break drivers/infiniband/hw/mlx5/main.c (that =
+file is already 7000 LOC)
+> I want to group together stuff in separate files.
+
+Yes, it is right thing to do.
+
+>
+> If you prefer direct calls that's okay as well.
+
+Yes, please.
+
+>
+> Mark
+>
+> >
+> >>
+> >>>
+> >>>>
+> >>>>> 2. It should be bool and not u32.
+> >>>>>
+> >>>>> Thanks
+> >>>>
+> >>>> --
+> >>
+> >> --
