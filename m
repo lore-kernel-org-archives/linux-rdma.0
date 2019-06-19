@@ -1,94 +1,123 @@
-From: Jianbo Liu <jianbol@mellanox.com>
-Subject: Re: [PATCH mlx5-next 05/15] net/mlx5: E-Switch, Tag packet with vport
- number in VF vports and uplink ingress ACLs
-Date: Wed, 19 Jun 2019 12:52:27 +0000
-Message-ID: <20190619125122.GA14681@mellanox.com>
-References: <20190617192247.25107-1-saeedm@mellanox.com>
- <20190617192247.25107-6-saeedm@mellanox.com>
- <AM0PR05MB48664868E0B89E582807830BD1EA0@AM0PR05MB4866.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: [PATCH iproute2 v2 1/2] ipaddress: correctly print a VF hw address in the IPoIB case
+Date: Wed, 19 Jun 2019 16:14:13 +0200
+Message-ID: <20190619141414.4242-1-dkirjanov@suse.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AM0PR05MB48664868E0B89E582807830BD1EA0@AM0PR05MB4866.eurprd05.prod.outlook.com>
-Content-Language: en-US
-Content-ID: <C0C334EBD81F5C48B0C7DBBD260E1FC3@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Eli Britstein <elibr@mellanox.com>, Roi Dayan <roid@mellanox.com>, Mark Bloch <markb@mellanox.com>
+To: stephen@networkplumber.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhlIDA2LzE4LzIwMTkgMTg6MzEsIFBhcmF2IFBhbmRpdCB3cm90ZToNCj4gDQo+IA0KPiA+IC0t
-LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTogbmV0ZGV2LW93bmVyQHZnZXIua2Vy
-bmVsLm9yZyA8bmV0ZGV2LW93bmVyQHZnZXIua2VybmVsLm9yZz4gT24NCj4gPiBCZWhhbGYgT2Yg
-U2FlZWQgTWFoYW1lZWQNCj4gPiBTZW50OiBUdWVzZGF5LCBKdW5lIDE4LCAyMDE5IDEyOjUzIEFN
-DQo+ID4gVG86IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPjsgTGVvbiBSb21h
-bm92c2t5DQo+ID4gPGxlb25yb0BtZWxsYW5veC5jb20+DQo+ID4gQ2M6IG5ldGRldkB2Z2VyLmtl
-cm5lbC5vcmc7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBKaWFuYm8gTGl1DQo+ID4gPGpp
-YW5ib2xAbWVsbGFub3guY29tPjsgRWxpIEJyaXRzdGVpbiA8ZWxpYnJAbWVsbGFub3guY29tPjsg
-Um9pIERheWFuDQo+ID4gPHJvaWRAbWVsbGFub3guY29tPjsgTWFyayBCbG9jaCA8bWFya2JAbWVs
-bGFub3guY29tPg0KPiA+IFN1YmplY3Q6IFtQQVRDSCBtbHg1LW5leHQgMDUvMTVdIG5ldC9tbHg1
-OiBFLVN3aXRjaCwgVGFnIHBhY2tldCB3aXRoIHZwb3J0DQo+ID4gbnVtYmVyIGluIFZGIHZwb3J0
-cyBhbmQgdXBsaW5rIGluZ3Jlc3MgQUNMcw0KPiA+IA0KPiA+IEZyb206IEppYW5ibyBMaXUgPGpp
-YW5ib2xAbWVsbGFub3guY29tPg0KPiA+IA0KPiA+IFdoZW4gYSBkdWFsLXBvcnQgVkhDQSBzZW5k
-cyBhIFJvQ0UgcGFja2V0IG9uIGl0cyBub24tbmF0aXZlIHBvcnQsIGFuZCB0aGUNCj4gPiBwYWNr
-ZXQgYXJyaXZlcyB0byBpdHMgYWZmaWxpYXRlZCB2cG9ydCBGREIsIGEgbWlzbWF0Y2ggbWlnaHQg
-b2NjdXIgb24gdGhlIHJ1bGVzDQo+ID4gdGhhdCBtYXRjaCB0aGUgcGFja2V0IHNvdXJjZSB2cG9y
-dCBhcyBpdCBpcyBub3QgcmVwcmVzZW50ZWQgYnkgc2luZ2xlIFZIQ0Egb25seQ0KPiA+IGluIHRo
-aXMgY2FzZS4gU28gd2UgY2hhbmdlIHRvIG1hdGNoIG9uIG1ldGFkYXRhIGluc3RlYWQgb2Ygc291
-cmNlIHZwb3J0Lg0KPiA+IFRvIGRvIHRoYXQsIGEgcnVsZSBpcyBjcmVhdGVkIGluIGFsbCB2cG9y
-dHMgYW5kIHVwbGluayBpbmdyZXNzIEFDTHMsIHRvIHNhdmUgdGhlDQo+ID4gc291cmNlIHZwb3J0
-IG51bWJlciBhbmQgdmhjYSBpZCBpbiB0aGUgcGFja2V0J3MgbWV0YWRhdGEgaW4gb3JkZXIgdG8g
-bWF0Y2ggb24NCj4gPiBpdCBsYXRlci4NCj4gPiBUaGUgbWV0YWRhdGEgcmVnaXN0ZXIgdXNlZCBp
-cyB0aGUgZmlyc3Qgb2YgdGhlIDMyLWJpdCB0eXBlIEMgcmVnaXN0ZXJzLiBJdCBjYW4gYmUNCj4g
-PiB1c2VkIGZvciBtYXRjaGluZyBhbmQgaGVhZGVyIG1vZGlmeSBvcGVyYXRpb25zLiBUaGUgaGln
-aGVyIDE2IGJpdHMgb2YgdGhpcw0KPiA+IHJlZ2lzdGVyIGFyZSBmb3IgdmhjYSBpZCwgYW5kIHRo
-ZSBsb3dlciAxNiBvbmVzIGlzIGZvciB2cG9ydCBudW1iZXIuDQo+ID4gVGhpcyBjaGFuZ2UgaXMg
-bm90IGZvciBkdWFsLXBvcnQgUm9DRSBvbmx5LiBJZiBIVyBhbmQgRlcgYWxsb3csIHRoZSB2cG9y
-dA0KPiA+IG1ldGFkYXRhIG1hdGNoaW5nIGlzIGVuYWJsZWQgYnkgZGVmYXVsdC4NCj4gPiANCj4g
-PiBTaWduZWQtb2ZmLWJ5OiBKaWFuYm8gTGl1IDxqaWFuYm9sQG1lbGxhbm94LmNvbT4NCj4gPiBS
-ZXZpZXdlZC1ieTogRWxpIEJyaXRzdGVpbiA8ZWxpYnJAbWVsbGFub3guY29tPg0KPiA+IFJldmll
-d2VkLWJ5OiBSb2kgRGF5YW4gPHJvaWRAbWVsbGFub3guY29tPg0KPiA+IFJldmlld2VkLWJ5OiBN
-YXJrIEJsb2NoIDxtYXJrYkBtZWxsYW5veC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogU2FlZWQg
-TWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQo+ID4gLS0tDQo+ID4gIC4uLi9uZXQvZXRo
-ZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2guYyB8ICAgMiArDQo+ID4gIC4uLi9uZXQv
-ZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2guaCB8ICAgOSArDQo+ID4gIC4uLi9t
-ZWxsYW5veC9tbHg1L2NvcmUvZXN3aXRjaF9vZmZsb2Fkcy5jICAgICB8IDE4MyArKysrKysrKysr
-KysrKy0tLS0NCj4gPiAgaW5jbHVkZS9saW51eC9tbHg1L2Vzd2l0Y2guaCAgICAgICAgICAgICAg
-ICAgIHwgICAzICsNCj4gPiAgNCBmaWxlcyBjaGFuZ2VkLCAxNjEgaW5zZXJ0aW9ucygrKSwgMzYg
-ZGVsZXRpb25zKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoLmMNCj4gPiBiL2RyaXZlcnMvbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoLmMNCj4gPiBpbmRleCBhNDJhMjNlNTA1ZGYuLjEy
-MzVmZDg0YWUzYSAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
-eC9tbHg1L2NvcmUvZXN3aXRjaC5jDQo+ID4gKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVs
-bGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2guYw0KDQouLi4NCg0KPiA+ICsJCQllcnIgPSBlc3dfdnBv
-cnRfZWdyZXNzX3ByaW9fdGFnX2NvbmZpZyhlc3csIHZwb3J0KTsNCj4gPiArCQkJaWYgKGVycikN
-Cj4gPiArCQkJCWdvdG8gZXJyX2VncmVzczsNCj4gPiArCQl9DQo+ID4gIAl9DQo+ID4gDQo+ID4g
-KwlpZiAobWx4NV9lc3dpdGNoX3Zwb3J0X21hdGNoX21ldGFkYXRhX2VuYWJsZWQoZXN3KSkNCj4g
-PiArCQllc3dfaW5mbyhlc3ctPmRldiwgIlVzZSBtZXRhZGF0YSByZWdfYyBhcyBzb3VyY2UgdnBv
-cnQgdG8NCj4gPiBtYXRjaFxuIik7DQo+ID4gKw0KPiA+ICAJcmV0dXJuIDA7DQo+ID4gDQo+ID4g
-IGVycl9lZ3Jlc3M6DQo+ID4gIAllc3dfdnBvcnRfZGlzYWJsZV9pbmdyZXNzX2FjbChlc3csIHZw
-b3J0KTsNCj4gPiAgZXJyX2luZ3Jlc3M6DQo+ID4gLQltbHg1X2Vzd19mb3JfZWFjaF92Zl92cG9y
-dF9yZXZlcnNlKGVzdywgaiwgdnBvcnQsIGkgLSAxKSB7DQo+ID4gKwlmb3IgKGogPSBNTFg1X1ZQ
-T1JUX1BGOyBqIDwgaTsgaisrKSB7DQo+IEtlZXAgdGhlIHJldmVyc2Ugb3JkZXIgYXMgYmVmb3Jl
-Lg0KDQpUaGUgdnBvcnRzIGFyZSBpbmRlcGVuZGVudCBmcm9tIGVhY2ggb3RoZXIuIEl0IGRvZXNu
-J3QgbWF0dGVyIGRpc2FibGluZw0KdGhlbSBpbiBvciBvdXQgb2Ygb3JkZXIuIEkgZG9uJ3QgdW5k
-ZXJzdGFuZCB3aGF0J3MgdGhlIGJlbmlmaXQuDQoNCj4gDQo+ID4gKwkJdnBvcnQgPSAmZXN3LT52
-cG9ydHNbal07DQo+ID4gIAkJZXN3X3Zwb3J0X2Rpc2FibGVfZWdyZXNzX2FjbChlc3csIHZwb3J0
-KTsNCj4gPiAgCQllc3dfdnBvcnRfZGlzYWJsZV9pbmdyZXNzX2FjbChlc3csIHZwb3J0KTsNCj4g
-PiAgCX0NCj4gPiBAQCAtMTcwNCwxNSArMTgwMCwxNyBAQCBzdGF0aWMgaW50IGVzd19wcmlvX3Rh
-Z19hY2xzX2NvbmZpZyhzdHJ1Y3QNCj4gPiBtbHg1X2Vzd2l0Y2ggKmVzdywgaW50IG52cG9ydHMp
-DQo+ID4gIAlyZXR1cm4gZXJyOw0KPiA+ICB9DQo+ID4gDQo+ID4gLXN0YXRpYyB2b2lkIGVzd19w
-cmlvX3RhZ19hY2xzX2NsZWFudXAoc3RydWN0IG1seDVfZXN3aXRjaCAqZXN3KQ0KPiA+ICtzdGF0
-aWMgdm9pZCBlc3dfZGVzdHJveV9vZmZsb2Fkc19hY2xfdGFibGVzKHN0cnVjdCBtbHg1X2Vzd2l0
-Y2ggKmVzdykNCj4gPiAgew0KPiA+ICAJc3RydWN0IG1seDVfdnBvcnQgKnZwb3J0Ow0KPiA+ICAJ
-aW50IGk7DQo+ID4gDQo+ID4gLQltbHg1X2Vzd19mb3JfZWFjaF92Zl92cG9ydChlc3csIGksIHZw
-b3J0LCBlc3ctPm52cG9ydHMpIHsNCj4gPiArCW1seDVfZXN3X2Zvcl9hbGxfdnBvcnRzKGVzdywg
-aSwgdnBvcnQpIHsNCj4gSWYgeW91IGFyZSBjaGFuZ2luZyB0aGlzLCBwbGVhc2UgZG8gaW4gcmV2
-ZXJzZSBvcmRlciB0byBrZWVwIGl0IGV4YWN0IG1pcnJvciBvZiBjcmVhdGUvZW5hYmxlIHNlcXVl
-bmNlLg0KDQpTYW1lLi4uDQoNCj4gDQo+ID4gIAkJZXN3X3Zwb3J0X2Rpc2FibGVfZWdyZXNzX2Fj
-bChlc3csIHZwb3J0KTsNCj4gPiAgCQllc3dfdnBvcnRfZGlzYWJsZV9pbmdyZXNzX2FjbChlc3cs
-IHZwb3J0KTsNCj4gPiAgCX0NCj4gPiArDQo+ID4gKwllc3ctPmZsYWdzICY9IH5NTFg1X0VTV0lU
-Q0hfVlBPUlRfTUFUQ0hfTUVUQURBVEE7DQo+ID4gIH0NCj4gPiANCj4gPiAgc3RhdGljIGludCBl
-c3dfb2ZmbG9hZHNfc3RlZXJpbmdfaW5pdChzdHJ1Y3QgbWx4NV9lc3dpdGNoICplc3csIGludCBu
-dnBvcnRzKQ0K
+Current code assumes that we print Etheret mac and
+that doesn't work in IPoIB case with SRIOV-enabled hardware
+
+Before:
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+        link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+        vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
+    trust off, query_rss off
+    ...
+
+After:
+11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+state UP mode DEFAULT group default qlen 256
+        link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+        vf 0     link/infiniband
+80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+checking off, link-state disable, trust off, query_rss off
+
+v1->v2: updated kernel headers to uapi commit
+
+Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+---
+ ip/ipaddress.c | 42 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 37 insertions(+), 5 deletions(-)
+
+diff --git a/ip/ipaddress.c b/ip/ipaddress.c
+index b504200b..13ad76dd 100644
+--- a/ip/ipaddress.c
++++ b/ip/ipaddress.c
+@@ -26,6 +26,7 @@
+ 
+ #include <linux/netdevice.h>
+ #include <linux/if_arp.h>
++#include <linux/if_infiniband.h>
+ #include <linux/sockios.h>
+ #include <linux/net_namespace.h>
+ 
+@@ -349,9 +350,10 @@ static void print_af_spec(FILE *fp, struct rtattr *af_spec_attr)
+ 
+ static void print_vf_stats64(FILE *fp, struct rtattr *vfstats);
+ 
+-static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
++static void print_vfinfo(struct ifinfomsg *ifi, FILE *fp, struct rtattr *vfinfo)
+ {
+ 	struct ifla_vf_mac *vf_mac;
++	struct ifla_vf_broadcast *vf_broadcast;
+ 	struct ifla_vf_tx_rate *vf_tx_rate;
+ 	struct rtattr *vf[IFLA_VF_MAX + 1] = {};
+ 
+@@ -365,13 +367,43 @@ static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
+ 	parse_rtattr_nested(vf, IFLA_VF_MAX, vfinfo);
+ 
+ 	vf_mac = RTA_DATA(vf[IFLA_VF_MAC]);
++	vf_broadcast = RTA_DATA(vf[IFLA_VF_BROADCAST]);
+ 	vf_tx_rate = RTA_DATA(vf[IFLA_VF_TX_RATE]);
+ 
+ 	print_string(PRINT_FP, NULL, "%s    ", _SL_);
+ 	print_int(PRINT_ANY, "vf", "vf %d ", vf_mac->vf);
+-	print_string(PRINT_ANY, "mac", "MAC %s",
+-		     ll_addr_n2a((unsigned char *) &vf_mac->mac,
+-				 ETH_ALEN, 0, b1, sizeof(b1)));
++
++	print_string(PRINT_ANY,
++			"link_type",
++			"    link/%s ",
++			ll_type_n2a(ifi->ifi_type, b1, sizeof(b1)));
++
++	print_color_string(PRINT_ANY,
++				COLOR_MAC,
++				"address",
++				"%s",
++				ll_addr_n2a((unsigned char *) &vf_mac->mac,
++					ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
++					ifi->ifi_type,
++					b1, sizeof(b1)));
++
++	if (vf[IFLA_VF_BROADCAST]) {
++		if (ifi->ifi_flags&IFF_POINTOPOINT) {
++			print_string(PRINT_FP, NULL, " peer ", NULL);
++			print_bool(PRINT_JSON,
++					"link_pointtopoint", NULL, true);
++                        } else {
++				print_string(PRINT_FP, NULL, " brd ", NULL);
++                        }
++                        print_color_string(PRINT_ANY,
++                                           COLOR_MAC,
++                                           "broadcast",
++                                           "%s",
++                                           ll_addr_n2a((unsigned char *) &vf_broadcast->broadcast,
++                                                       ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
++                                                       ifi->ifi_type,
++                                                       b1, sizeof(b1)));
++	}
+ 
+ 	if (vf[IFLA_VF_VLAN_LIST]) {
+ 		struct rtattr *i, *vfvlanlist = vf[IFLA_VF_VLAN_LIST];
+@@ -1102,7 +1134,7 @@ int print_linkinfo(struct nlmsghdr *n, void *arg)
+ 		open_json_array(PRINT_JSON, "vfinfo_list");
+ 		for (i = RTA_DATA(vflist); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+ 			open_json_object(NULL);
+-			print_vfinfo(fp, i);
++			print_vfinfo(ifi, fp, i);
+ 			close_json_object();
+ 		}
+ 		close_json_array(PRINT_JSON, NULL);
+-- 
+2.12.3
