@@ -1,52 +1,35 @@
-From: Jianbo Liu <jianbol@mellanox.com>
-Subject: Re: [PATCH mlx5-next 11/15] RDMA/mlx5: Add vport metadata matching
- for IB representors
-Date: Wed, 19 Jun 2019 04:44:26 +0000
-Message-ID: <20190619044420.GA30694@mellanox.com>
-References: <20190617192247.25107-1-saeedm@mellanox.com>
- <20190617192247.25107-12-saeedm@mellanox.com>
- <20190618101928.GE4690@mtr-leonro.mtl.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next v1 00/12] DEVX asynchronous events
+Date: Wed, 19 Jun 2019 07:45:57 +0300
+Message-ID: <20190619044557.GA11611@mtr-leonro.mtl.com>
+References: <20190618171540.11729-1-leon@kernel.org>
+ <19107c92279cf4ad4d870fa54514423c5e46b748.camel@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190618101928.GE4690@mtr-leonro.mtl.com>
-Content-Language: en-US
-Content-ID: <5D53FAC4AD07764E8A73AD58D18FAD24@eurprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <19107c92279cf4ad4d870fa54514423c5e46b748.camel@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Roi Dayan <roid@mellanox.com>, Mark Bloch <markb@mellanox.com>
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhlIDA2LzE4LzIwMTkgMTg6MTksIExlb24gUm9tYW5vdnNreSB3cm90ZToNCj4gT24gTW9uLCBK
-dW4gMTcsIDIwMTkgYXQgMDc6MjM6MzBQTSArMDAwMCwgU2FlZWQgTWFoYW1lZWQgd3JvdGU6DQo+
-ID4gRnJvbTogSmlhbmJvIExpdSA8amlhbmJvbEBtZWxsYW5veC5jb20+DQo+ID4NCj4gPiBJZiB2
-cG9ydCBtZXRhZGF0YSBtYXRjaGluZyBpcyBlbmFibGVkIGluIGVzd2l0Y2gsIHRoZSBydWxlIGNy
-ZWF0ZWQNCj4gPiBtdXN0IGJlIGNoYW5nZWQgdG8gbWF0Y2ggb24gdGhlIG1ldGFkYXRhLCBpbnN0
-ZWFkIG9mIHNvdXJjZSBwb3J0Lg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogSmlhbmJvIExpdSA8
-amlhbmJvbEBtZWxsYW5veC5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IFJvaSBEYXlhbiA8cm9pZEBt
-ZWxsYW5veC5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxhbm94
-LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94
-LmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvaWJfcmVwLmMg
-fCAxMSArKysrKysrDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L2liX3JlcC5oIHwg
-MTYgKysrKysrKysrKw0KPiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9tYWluLmMgICB8
-IDQ1ICsrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tDQo+ID4gIDMgZmlsZXMgY2hhbmdlZCwg
-NjMgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9k
-cml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9pYl9yZXAuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9o
-dy9tbHg1L2liX3JlcC5jDQo+ID4gaW5kZXggMjJlNjUxY2I1NTM0Li5kNGVkNjExZGUzNWQgMTAw
-NjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvaWJfcmVwLmMNCj4gPiAr
-KysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9pYl9yZXAuYw0KPiA+IEBAIC0xMzEsNiAr
-MTMxLDE3IEBAIHN0cnVjdCBtbHg1X2Vzd2l0Y2hfcmVwICptbHg1X2liX3Zwb3J0X3JlcChzdHJ1
-Y3QgbWx4NV9lc3dpdGNoICplc3csIGludCB2cG9ydCkNCj4gPiAgCXJldHVybiBtbHg1X2Vzd2l0
-Y2hfdnBvcnRfcmVwKGVzdywgdnBvcnQpOw0KPiA+ICB9DQo+ID4NCj4gPiArdTMyIG1seDVfaWJf
-ZXN3aXRjaF92cG9ydF9tYXRjaF9tZXRhZGF0YV9lbmFibGVkKHN0cnVjdCBtbHg1X2Vzd2l0Y2gg
-KmVzdykNCj4gPiArew0KPiA+ICsJcmV0dXJuIG1seDVfZXN3aXRjaF92cG9ydF9tYXRjaF9tZXRh
-ZGF0YV9lbmFibGVkKGVzdyk7DQo+ID4gK30NCj4gPiArDQo+ID4gK3UzMiBtbHg1X2liX2Vzd2l0
-Y2hfZ2V0X3Zwb3J0X21ldGFkYXRhX2Zvcl9tYXRjaChzdHJ1Y3QgbWx4NV9lc3dpdGNoICplc3cs
-DQo+ID4gKwkJCQkJCSB1MTYgdnBvcnQpDQo+ID4gK3sNCj4gPiArCXJldHVybiBtbHg1X2Vzd2l0
-Y2hfZ2V0X3Zwb3J0X21ldGFkYXRhX2Zvcl9tYXRjaChlc3csIHZwb3J0KTsNCj4gPiArfQ0KPiAN
-Cj4gMS4gVGhlcmUgaXMgbm8gbmVlZCB0byBpbnRyb2R1Y2Ugb25lIGxpbmUgZnVuY3Rpb25zLCBj
-YWxsIHRvIHRoYXQgY29kZSBkaXJlY3RseS4NCg0KTm8uIFRoZXkgYXJlIGluIElCLCBhbmQgd2Ug
-ZG9uJ3Qgd2FudCB0aGVtIGJlIG1peGVkIHVwIGJ5IHRoZSBvcmlnaW5hbA0KZnVuY3Rpb25zIGlu
-IGVzd2l0Y2guIFBsZWFzZSBhc2sgTWFyayBtb3JlIGFib3V0IGl0Lg0KDQo+IDIuIEl0IHNob3Vs
-ZCBiZSBib29sIGFuZCBub3QgdTMyLg0KPiANCj4gVGhhbmtzDQoNCi0tIA0K
+On Tue, Jun 18, 2019 at 06:51:45PM +0000, Saeed Mahameed wrote:
+> On Tue, 2019-06-18 at 20:15 +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Changelog:
+> >  v0 -> v1:
+>
+> Normally 1st submission is V1 and 2nd is V2.
+> so this should have been v1->v2.
+
+"Normally" depends on the language you are using. In C, everything
+starts from 0, including version of patches :).
+
+>
+> For mlx5-next patches:
+>
+> Acked-by: Saeed Mahameed <saeedm@mellanox.com>
+
+Thanks
