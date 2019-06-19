@@ -1,42 +1,71 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: use exact allocation for dma coherent memory
-Date: Wed, 19 Jun 2019 13:29:03 -0300
-Message-ID: <20190619162903.GF9360@ziepe.ca>
-References: <20190614134726.3827-1-hch@lst.de>
- <20190617082148.GF28859@kadam>
- <20190617083342.GA7883@lst.de>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Subject: Re: [PATCH v17 05/15] mm, arm64: untag user pointers in mm/gup.c
+Date: Wed, 19 Jun 2019 10:41:12 -0600
+Message-ID: <dbf2dd46-0240-f8a9-203c-4f1234c16825@oracle.com>
+References: <cover.1560339705.git.andreyknvl@google.com>
+ <8f65548bef8544d49980a92d221b74440d544c1e.1560339705.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190617083342.GA7883@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, Potnuri Bharat Teja <bharat@chelsio.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, iommu@lists.linux-foundati
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <8f65548bef8544d49980a92d221b74440d544c1e.1560339705.git.andreyknvl@google.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Kostya Serebryany <kcc@google.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>J
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 17, 2019 at 10:33:42AM +0200, Christoph Hellwig wrote:
-> > drivers/infiniband/hw/cxgb4/qp.c
-> >    129  static int alloc_host_sq(struct c4iw_rdev *rdev, struct t4_sq *sq)
-> >    130  {
-> >    131          sq->queue = dma_alloc_coherent(&(rdev->lldi.pdev->dev), sq->memsize,
-> >    132                                         &(sq->dma_addr), GFP_KERNEL);
-> >    133          if (!sq->queue)
-> >    134                  return -ENOMEM;
-> >    135          sq->phys_addr = virt_to_phys(sq->queue);
-> >    136          dma_unmap_addr_set(sq, mapping, sq->dma_addr);
-> >    137          return 0;
-> >    138  }
-> > 
-> > Is this a bug?
+On 6/12/19 5:43 AM, Andrey Konovalov wrote:
+> This patch is a part of a series that extends arm64 kernel ABI to allow to
+> pass tagged user pointers (with the top byte set to something else other
+> than 0x00) as syscall arguments.
 > 
-> Yes.  This will blow up badly on many platforms, as sq->queue
-> might be vmapped, ioremapped, come from a pool without page backing.
+> mm/gup.c provides a kernel interface that accepts user addresses and
+> manipulates user pages directly (for example get_user_pages, that is used
+> by the futex syscall). Since a user can provided tagged addresses, we need
+> to handle this case.
+> 
+> Add untagging to gup.c functions that use user addresses for vma lookups.
+> 
+> Reviewed-by: Kees Cook <keescook@chromium.org>
+> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> ---
 
-Gah, this addr gets fed into io_remap_pfn_range/remap_pfn_range too..
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
 
-Potnuri, you should fix this.. 
 
-You probably need to use dma_mmap_from_dev_coherent() in the mmap ?
-
-Jason
+>  mm/gup.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/mm/gup.c b/mm/gup.c
+> index ddde097cf9e4..c37df3d455a2 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -802,6 +802,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+>  	if (!nr_pages)
+>  		return 0;
+>  
+> +	start = untagged_addr(start);
+> +
+>  	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
+>  
+>  	/*
+> @@ -964,6 +966,8 @@ int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
+>  	struct vm_area_struct *vma;
+>  	vm_fault_t ret, major = 0;
+>  
+> +	address = untagged_addr(address);
+> +
+>  	if (unlocked)
+>  		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
+>  
+> 
