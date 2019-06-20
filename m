@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 28/28] memremap: Remove PCI P2PDMA page memory type
-Date: Thu, 20 Jun 2019 10:12:40 -0600
-Message-ID: <20190620161240.22738-29-logang@deltatee.com>
+Subject: [RFC PATCH 08/28] block: Introduce dmavec_phys_mergeable()
+Date: Thu, 20 Jun 2019 10:12:20 -0600
+Message-ID: <20190620161240.22738-9-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,59 +12,63 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-There are no more users of MEMORY_DEVICE_PCI_P2PDMA and
-is_pci_p2pdma_page(), so remove them.
+Introduce a new helper which is an analog of biovec_phys_mergeable()
+for dma-direct vectors.
+
+This also provides a common helper vec_phys_mergeable() for use in
+code that's general to both bio_vecs and dma_vecs.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- include/linux/memremap.h |  5 -----
- include/linux/mm.h       | 13 -------------
- 2 files changed, 18 deletions(-)
+ block/blk.h | 28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 1732dea030b2..2e5d9fcd4d69 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -51,16 +51,11 @@ struct vmem_altmap {
-  * wakeup event whenever a page is unpinned and becomes idle. This
-  * wakeup is used to coordinate physical address space management (ex:
-  * fs truncate/hole punch) vs pinned pages (ex: device dma).
-- *
-- * MEMORY_DEVICE_PCI_P2PDMA:
-- * Device memory residing in a PCI BAR intended for use with Peer-to-Peer
-- * transactions.
-  */
- enum memory_type {
- 	MEMORY_DEVICE_PRIVATE = 1,
- 	MEMORY_DEVICE_PUBLIC,
- 	MEMORY_DEVICE_FS_DAX,
--	MEMORY_DEVICE_PCI_P2PDMA,
- };
- 
- /*
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index dd0b5f4e1e45..f5fa9ec440e3 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -966,19 +966,6 @@ static inline bool is_device_public_page(const struct page *page)
- 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
+diff --git a/block/blk.h b/block/blk.h
+index 7814aa207153..4142383eed7a 100644
+--- a/block/blk.h
++++ b/block/blk.h
+@@ -66,20 +66,36 @@ static inline void blk_queue_enter_live(struct request_queue *q)
+ 	percpu_ref_get(&q->q_usage_counter);
  }
  
--#ifdef CONFIG_PCI_P2PDMA
--static inline bool is_pci_p2pdma_page(const struct page *page)
--{
--	return is_zone_device_page(page) &&
--		page->pgmap->type == MEMORY_DEVICE_PCI_P2PDMA;
--}
--#else /* CONFIG_PCI_P2PDMA */
--static inline bool is_pci_p2pdma_page(const struct page *page)
--{
--	return false;
--}
--#endif /* CONFIG_PCI_P2PDMA */
--
- #else /* CONFIG_DEV_PAGEMAP_OPS */
- static inline void dev_pagemap_get_ops(void)
++static inline bool vec_phys_mergeable(struct request_queue *q,
++				      unsigned long addr1, unsigned int len1,
++				      unsigned long addr2, unsigned int len2)
++{
++	unsigned long mask = queue_segment_boundary(q);
++
++	if (addr1 + len1 != addr2)
++		return false;
++	if ((addr1 | mask) != ((addr2 + len2 - 1) | mask))
++		return false;
++	return true;
++}
++
+ static inline bool biovec_phys_mergeable(struct request_queue *q,
+ 		struct bio_vec *vec1, struct bio_vec *vec2)
  {
+-	unsigned long mask = queue_segment_boundary(q);
+ 	phys_addr_t addr1 = page_to_phys(vec1->bv_page) + vec1->bv_offset;
+ 	phys_addr_t addr2 = page_to_phys(vec2->bv_page) + vec2->bv_offset;
+ 
+-	if (addr1 + vec1->bv_len != addr2)
+-		return false;
+ 	if (xen_domain() && !xen_biovec_phys_mergeable(vec1, vec2->bv_page))
+ 		return false;
+-	if ((addr1 | mask) != ((addr2 + vec2->bv_len - 1) | mask))
+-		return false;
+-	return true;
++
++	return vec_phys_mergeable(q, addr1, vec1->bv_len, addr2, vec2->bv_len);
++}
++
++static inline bool dmavec_phys_mergeable(struct request_queue *q,
++		struct dma_vec *vec1, struct dma_vec *vec2)
++{
++	return vec_phys_mergeable(q, vec1->dv_addr, vec1->dv_len,
++				  vec2->dv_addr, vec2->dv_len);
+ }
+ 
+ static inline bool __bvec_gap_to_prev(struct request_queue *q,
 -- 
 2.20.1
