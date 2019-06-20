@@ -1,26 +1,38 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH][next] RDMA: check for null return from call to
- ib_get_client_data
-Date: Thu, 20 Jun 2019 12:02:17 -0300
-Message-ID: <20190620150217.GA19891@ziepe.ca>
-References: <20190620135052.27367-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jack Wang <jinpuwang@gmail.com>
+Subject: [PATCH v4 01/25] sysfs: export sysfs_remove_file_self()
+Date: Thu, 20 Jun 2019 17:03:13 +0200
+Message-ID: <20190620150337.7847-2-jinpuwang@gmail.com>
+References: <20190620150337.7847-1-jinpuwang@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190620135052.27367-1-colin.king@canonical.com>
+In-Reply-To: <20190620150337.7847-1-jinpuwang@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me, bvanassche@acm.org, jgg@mellanox.com, dledford@redhat.com, danil.kipnis@cloud.ionos.com, rpenyaev@suse.de, Roman Pen <roman.penyaev@profitbricks.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 20, 2019 at 02:50:52PM +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The return from ib_get_client_data can potentially be null, so add a null
-> check on umad_dev and return -ENODEV in this unlikely case to avoid any
-> null pointer deferences.
+From: Roman Pen <roman.penyaev@profitbricks.com>
 
-It would be a kernel bug if NULL is seen here.
+Function is going to be used in transport over RDMA module
+in subsequent patches.
 
-Jason
+Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org
+---
+ fs/sysfs/file.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/sysfs/file.c b/fs/sysfs/file.c
+index 130fc6fbcc03..1ff4672d7746 100644
+--- a/fs/sysfs/file.c
++++ b/fs/sysfs/file.c
+@@ -492,6 +492,7 @@ bool sysfs_remove_file_self(struct kobject *kobj, const struct attribute *attr)
+ 	kernfs_put(kn);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(sysfs_remove_file_self);
+ 
+ void sysfs_remove_files(struct kobject *kobj, const struct attribute * const *ptr)
+ {
+-- 
+2.17.1
