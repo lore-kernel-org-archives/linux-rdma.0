@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 17/28] block: Introduce queue flag to indicate support for dma-direct bios
-Date: Thu, 20 Jun 2019 10:12:29 -0600
-Message-ID: <20190620161240.22738-18-logang@deltatee.com>
+Subject: [RFC PATCH 01/28] block: Introduce DMA direct request type
+Date: Thu, 20 Jun 2019 10:12:13 -0600
+Message-ID: <20190620161240.22738-2-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,36 +12,78 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Queues will need to advertise support to accept dma-direct requests.
-
-The existing PCI P2P support which will be replaced by this and thus
-the P2P flag will be dropped in a subsequent patch.
+A DMA direct request allows passing DMA addresses directly through
+the block layer, instead of struct pages. This allows the calling
+layer to take care of the mapping and unmapping and also creates
+a path to doing peer-to-peer transactions without using struct pages.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- include/linux/blkdev.h | 3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/blk_types.h |  9 ++++++++-
+ include/linux/blkdev.h    | 10 ++++++++++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
+diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+index 95202f80676c..f3cabfdb6774 100644
+--- a/include/linux/blk_types.h
++++ b/include/linux/blk_types.h
+@@ -322,6 +322,7 @@ enum req_flag_bits {
+ 	__REQ_NOUNMAP,		/* do not free blocks when zeroing */
+ 
+ 	__REQ_HIPRI,
++	__REQ_DMA_DIRECT,	/* DMA address direct request */
+ 
+ 	/* for driver use */
+ 	__REQ_DRV,
+@@ -345,6 +346,7 @@ enum req_flag_bits {
+ #define REQ_NOWAIT		(1ULL << __REQ_NOWAIT)
+ #define REQ_NOUNMAP		(1ULL << __REQ_NOUNMAP)
+ #define REQ_HIPRI		(1ULL << __REQ_HIPRI)
++#define REQ_DMA_DIRECT		(1ULL << __REQ_DMA_DIRECT)
+ 
+ #define REQ_DRV			(1ULL << __REQ_DRV)
+ #define REQ_SWAP		(1ULL << __REQ_SWAP)
+@@ -353,7 +355,7 @@ enum req_flag_bits {
+ 	(REQ_FAILFAST_DEV | REQ_FAILFAST_TRANSPORT | REQ_FAILFAST_DRIVER)
+ 
+ #define REQ_NOMERGE_FLAGS \
+-	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA)
++	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA | REQ_DMA_DIRECT)
+ 
+ enum stat_group {
+ 	STAT_READ,
+@@ -412,6 +414,11 @@ static inline int op_stat_group(unsigned int op)
+ 	return op_is_write(op);
+ }
+ 
++static inline int op_is_dma_direct(unsigned int op)
++{
++	return op & REQ_DMA_DIRECT;
++}
++
+ typedef unsigned int blk_qc_t;
+ #define BLK_QC_T_NONE		-1U
+ #define BLK_QC_T_SHIFT		16
 diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index ce70d5dded5f..a5b856324276 100644
+index 592669bcc536..ce70d5dded5f 100644
 --- a/include/linux/blkdev.h
 +++ b/include/linux/blkdev.h
-@@ -616,6 +616,7 @@ struct request_queue {
- #define QUEUE_FLAG_SCSI_PASSTHROUGH 23	/* queue supports SCSI commands */
- #define QUEUE_FLAG_QUIESCED	24	/* queue has been quiesced */
- #define QUEUE_FLAG_PCI_P2PDMA	25	/* device supports PCI p2p requests */
-+#define QUEUE_FLAG_DMA_DIRECT	26	/* device supports dma-addr requests */
+@@ -271,6 +271,16 @@ static inline bool bio_is_passthrough(struct bio *bio)
+ 	return blk_op_is_scsi(op) || blk_op_is_private(op);
+ }
  
- #define QUEUE_FLAG_MQ_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
- 				 (1 << QUEUE_FLAG_SAME_COMP))
-@@ -642,6 +643,8 @@ bool blk_queue_flag_test_and_set(unsigned int flag, struct request_queue *q);
- 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
- #define blk_queue_pci_p2pdma(q)	\
- 	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
-+#define blk_queue_dma_direct(q)	\
-+	test_bit(QUEUE_FLAG_DMA_DIRECT, &(q)->queue_flags)
- 
- #define blk_noretry_request(rq) \
- 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
++static inline bool bio_is_dma_direct(struct bio *bio)
++{
++	return op_is_dma_direct(bio->bi_opf);
++}
++
++static inline bool blk_rq_is_dma_direct(struct request *rq)
++{
++	return op_is_dma_direct(rq->cmd_flags);
++}
++
+ static inline unsigned short req_get_ioprio(struct request *req)
+ {
+ 	return req->ioprio;
 -- 
 2.20.1
