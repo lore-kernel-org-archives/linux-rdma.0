@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 13/28] block: Generalize bvec_should_split()
-Date: Thu, 20 Jun 2019 10:12:25 -0600
-Message-ID: <20190620161240.22738-14-logang@deltatee.com>
+Subject: [RFC PATCH 17/28] block: Introduce queue flag to indicate support for dma-direct bios
+Date: Thu, 20 Jun 2019 10:12:29 -0600
+Message-ID: <20190620161240.22738-18-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,91 +12,36 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-bvec_should_split() will need to also operate on dma_vecs so
-generalize it to take an offset and length instead of a bio_vec.
+Queues will need to advertise support to accept dma-direct requests.
+
+The existing PCI P2P support which will be replaced by this and thus
+the P2P flag will be dropped in a subsequent patch.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- block/blk-merge.c | 31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ include/linux/blkdev.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index d9e89c0ad40d..32653fca53ce 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -206,23 +206,25 @@ struct blk_segment_split_ctx {
- 	unsigned sectors;
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index ce70d5dded5f..a5b856324276 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -616,6 +616,7 @@ struct request_queue {
+ #define QUEUE_FLAG_SCSI_PASSTHROUGH 23	/* queue supports SCSI commands */
+ #define QUEUE_FLAG_QUIESCED	24	/* queue has been quiesced */
+ #define QUEUE_FLAG_PCI_P2PDMA	25	/* device supports PCI p2p requests */
++#define QUEUE_FLAG_DMA_DIRECT	26	/* device supports dma-addr requests */
  
- 	bool prv_valid;
--	struct bio_vec bvprv;
-+	unsigned prv_offset;
-+	unsigned prv_len;
+ #define QUEUE_FLAG_MQ_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+ 				 (1 << QUEUE_FLAG_SAME_COMP))
+@@ -642,6 +643,8 @@ bool blk_queue_flag_test_and_set(unsigned int flag, struct request_queue *q);
+ 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
+ #define blk_queue_pci_p2pdma(q)	\
+ 	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
++#define blk_queue_dma_direct(q)	\
++	test_bit(QUEUE_FLAG_DMA_DIRECT, &(q)->queue_flags)
  
- 	const unsigned max_sectors;
- 	const unsigned max_segs;
- };
- 
--static bool bvec_should_split(struct request_queue *q, struct bio_vec *bv,
--			      struct blk_segment_split_ctx *ctx)
-+static bool vec_should_split(struct request_queue *q, unsigned offset,
-+			     unsigned len, struct blk_segment_split_ctx *ctx)
- {
- 	/*
- 	 * If the queue doesn't support SG gaps and adding this
- 	 * offset would create a gap, disallow it.
- 	 */
--	if (ctx->prv_valid && bvec_gap_to_prev(q, &ctx->bvprv, bv->bv_offset))
-+	if (ctx->prv_valid &&
-+	    vec_gap_to_prev(q, ctx->prv_offset, ctx->prv_len, offset))
- 		return true;
- 
--	if (ctx->sectors + (bv->bv_len >> 9) > ctx->max_sectors) {
-+	if (ctx->sectors + (len >> 9) > ctx->max_sectors) {
- 		/*
- 		 * Consider this a new segment if we're splitting in
- 		 * the middle of this vector.
-@@ -230,9 +232,9 @@ static bool bvec_should_split(struct request_queue *q, struct bio_vec *bv,
- 		if (ctx->nsegs < ctx->max_segs &&
- 		    ctx->sectors < ctx->max_sectors) {
- 			/* split in the middle of bvec */
--			bv->bv_len = (ctx->max_sectors - ctx->sectors) << 9;
--			bvec_split_segs(q, bv, &ctx->nsegs,
--					&ctx->sectors, ctx->max_segs);
-+			len = (ctx->max_sectors - ctx->sectors) << 9;
-+			vec_split_segs(q, offset, len, &ctx->nsegs,
-+				       &ctx->sectors, ctx->max_segs);
- 		}
- 		return true;
- 	}
-@@ -240,14 +242,15 @@ static bool bvec_should_split(struct request_queue *q, struct bio_vec *bv,
- 	if (ctx->nsegs == ctx->max_segs)
- 		return true;
- 
--	ctx->bvprv = *bv;
-+	ctx->prv_offset = offset;
-+	ctx->prv_len = len;
- 	ctx->prv_valid = true;
- 
--	if (bv->bv_offset + bv->bv_len <= PAGE_SIZE) {
-+	if (offset + len <= PAGE_SIZE) {
- 		ctx->nsegs++;
--		ctx->sectors += bv->bv_len >> 9;
--	} else if (bvec_split_segs(q, bv, &ctx->nsegs, &ctx->sectors,
--				   ctx->max_segs)) {
-+		ctx->sectors += len >> 9;
-+	} else if (vec_split_segs(q, offset, len, &ctx->nsegs, &ctx->sectors,
-+				  ctx->max_segs)) {
- 		return true;
- 	}
- 
-@@ -270,7 +273,7 @@ static struct bio *blk_bio_segment_split(struct request_queue *q,
- 	};
- 
- 	bio_for_each_bvec(bv, bio, iter) {
--		do_split = bvec_should_split(q, &bv, &ctx);
-+		do_split = vec_should_split(q, bv.bv_offset, bv.bv_len, &ctx);
- 		if (do_split)
- 			break;
- 	}
+ #define blk_noretry_request(rq) \
+ 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
 -- 
 2.20.1
