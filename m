@@ -1,32 +1,42 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: use exact allocation for dma coherent memory
-Date: Thu, 20 Jun 2019 12:51:24 +0200
-Message-ID: <20190620105124.GA25233@lst.de>
-References: <20190614134726.3827-1-hch@lst.de> <20190617082148.GF28859@kadam> <20190617083342.GA7883@lst.de> <20190619162903.GF9360@ziepe.ca>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][next] RDMA: check for null return from call to ib_get_client_data
+Date: Thu, 20 Jun 2019 14:50:52 +0100
+Message-ID: <20190620135052.27367-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190619162903.GF9360@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Christoph Hellwig <hch@lst.de>, Potnuri Bharat Teja <bharat@chelsio.com>, Dan Carpenter <dan.carpenter@oracle.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.or
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 19, 2019 at 01:29:03PM -0300, Jason Gunthorpe wrote:
-> > Yes.  This will blow up badly on many platforms, as sq->queue
-> > might be vmapped, ioremapped, come from a pool without page backing.
-> 
-> Gah, this addr gets fed into io_remap_pfn_range/remap_pfn_range too..
-> 
-> Potnuri, you should fix this.. 
-> 
-> You probably need to use dma_mmap_from_dev_coherent() in the mmap ?
+From: Colin Ian King <colin.king@canonical.com>
 
-The function to use is dma_mmap_coherent, dma_mmap_from_dev_coherent is
-just an internal helper.
+The return from ib_get_client_data can potentially be null, so add a null
+check on umad_dev and return -ENODEV in this unlikely case to avoid any
+null pointer deferences.
 
-That beiŋ said the drivers/infiniband code has a lot of
-*remap_pfn_range, and a lot of them look like they might be for
-DMA memory.
+Addresses-Coverity: ("Dereference null return")
+Fixes: 8f71bb0030b8 ("RDMA: Report available cdevs through RDMA_NLDEV_CMD_GET_CHARDEV")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/core/user_mad.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 547090b41cfb..d78a35913824 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -1153,6 +1153,9 @@ static int ib_issm_get_nl_info(struct ib_device *ibdev, void *client_data,
+ 	struct ib_umad_device *umad_dev =
+ 		ib_get_client_data(ibdev, &umad_client);
+ 
++	if (!umad_dev)
++		return -ENODEV;
++
+ 	if (!rdma_is_port_valid(ibdev, res->port))
+ 		return -EINVAL;
+ 
+-- 
+2.20.1
