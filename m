@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 27/28] PCI/P2PDMA: Remove struct pages that back P2PDMA memory
-Date: Thu, 20 Jun 2019 10:12:39 -0600
-Message-ID: <20190620161240.22738-28-logang@deltatee.com>
+Subject: [RFC PATCH 10/28] block: Create generic vec_split_segs() from bvec_split_segs()
+Date: Thu, 20 Jun 2019 10:12:22 -0600
+Message-ID: <20190620161240.22738-11-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,211 +12,74 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-There are no more users of the struct pages that back P2P memory,
-so convert the devm_memremap_pages() call to devm_memremap() to remove
-them.
+bvec_split_segs() only requires the address and length of the
+vector. In order to generalize it to work with dma_vecs, we just
+take the address and length directly instead of the bio_vec.
 
-The percpu_ref and completion are retained in struct p2pdma to track
-when there is no memory allocated out of the genpool and it is safe
-to free it.
+The function is renamed to vec_split_segs() and a helper is added
+to avoid having to adjust the existing callsites.
+
+Note: the new bvec_split_segs() helper will be removed in a subsequent
+patch.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/pci/p2pdma.c | 107 +++++++++++++------------------------------
- 1 file changed, 33 insertions(+), 74 deletions(-)
+ block/blk-merge.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 9b82e13f802c..83d93911f792 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -22,10 +22,6 @@
- struct pci_p2pdma {
- 	struct gen_pool *pool;
- 	bool p2pmem_published;
--};
--
--struct p2pdma_pagemap {
--	struct dev_pagemap pgmap;
- 	struct percpu_ref ref;
- 	struct completion ref_done;
- };
-@@ -78,29 +74,12 @@ static const struct attribute_group p2pmem_group = {
- 	.name = "p2pmem",
- };
- 
--static struct p2pdma_pagemap *to_p2p_pgmap(struct percpu_ref *ref)
--{
--	return container_of(ref, struct p2pdma_pagemap, ref);
--}
--
- static void pci_p2pdma_percpu_release(struct percpu_ref *ref)
- {
--	struct p2pdma_pagemap *p2p_pgmap = to_p2p_pgmap(ref);
-+	struct pci_p2pdma *p2pdma =
-+		container_of(ref, struct pci_p2pdma, ref);
- 
--	complete(&p2p_pgmap->ref_done);
--}
--
--static void pci_p2pdma_percpu_kill(struct percpu_ref *ref)
--{
--	percpu_ref_kill(ref);
--}
--
--static void pci_p2pdma_percpu_cleanup(struct percpu_ref *ref)
--{
--	struct p2pdma_pagemap *p2p_pgmap = to_p2p_pgmap(ref);
--
--	wait_for_completion(&p2p_pgmap->ref_done);
--	percpu_ref_exit(&p2p_pgmap->ref);
-+	complete(&p2pdma->ref_done);
+diff --git a/block/blk-merge.c b/block/blk-merge.c
+index 17713d7d98d5..3581c7ac3c1b 100644
+--- a/block/blk-merge.c
++++ b/block/blk-merge.c
+@@ -158,13 +158,13 @@ static unsigned get_max_segment_size(struct request_queue *q,
  }
  
- static void pci_p2pdma_release(void *data)
-@@ -111,6 +90,10 @@ static void pci_p2pdma_release(void *data)
- 	if (!p2pdma)
- 		return;
- 
-+	percpu_ref_kill(&p2pdma->ref);
-+	wait_for_completion(&p2pdma->ref_done);
-+	percpu_ref_exit(&p2pdma->ref);
-+
- 	/* Flush and disable pci_alloc_p2p_mem() */
- 	pdev->p2pdma = NULL;
- 	synchronize_rcu();
-@@ -128,10 +111,17 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
- 	if (!p2p)
- 		return -ENOMEM;
- 
-+	init_completion(&p2p->ref_done);
-+
- 	p2p->pool = gen_pool_create(PAGE_SHIFT, dev_to_node(&pdev->dev));
- 	if (!p2p->pool)
- 		goto out;
- 
-+	error = percpu_ref_init(&p2p->ref, pci_p2pdma_percpu_release, 0,
-+				GFP_KERNEL);
-+	if (error)
-+		goto out_pool_destroy;
-+
- 	error = devm_add_action_or_reset(&pdev->dev, pci_p2pdma_release, pdev);
- 	if (error)
- 		goto out_pool_destroy;
-@@ -165,8 +155,7 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
- int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 			    u64 offset)
+ /*
+- * Split the bvec @bv into segments, and update all kinds of
+- * variables.
++ * Split the an address/offset and length into segments, and
++ * update all kinds of variables.
+  */
+-static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
+-		unsigned *nsegs, unsigned *sectors, unsigned max_segs)
++static bool vec_split_segs(struct request_queue *q, unsigned offset,
++			   unsigned len, unsigned *nsegs, unsigned *sectors,
++			   unsigned max_segs)
  {
--	struct p2pdma_pagemap *p2p_pgmap;
--	struct dev_pagemap *pgmap;
-+	struct resource res;
- 	void *addr;
- 	int error;
+-	unsigned len = bv->bv_len;
+ 	unsigned total_len = 0;
+ 	unsigned new_nsegs = 0, seg_size = 0;
  
-@@ -188,50 +177,26 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 			return error;
+@@ -173,14 +173,14 @@ static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
+ 	 * current bvec has to be splitted as multiple segments.
+ 	 */
+ 	while (len && new_nsegs + *nsegs < max_segs) {
+-		seg_size = get_max_segment_size(q, bv->bv_offset + total_len);
++		seg_size = get_max_segment_size(q, offset + total_len);
+ 		seg_size = min(seg_size, len);
+ 
+ 		new_nsegs++;
+ 		total_len += seg_size;
+ 		len -= seg_size;
+ 
+-		if ((bv->bv_offset + total_len) & queue_virt_boundary(q))
++		if ((offset + total_len) & queue_virt_boundary(q))
+ 			break;
  	}
  
--	p2p_pgmap = devm_kzalloc(&pdev->dev, sizeof(*p2p_pgmap), GFP_KERNEL);
--	if (!p2p_pgmap)
--		return -ENOMEM;
-+	res.start = pci_resource_start(pdev, bar) + offset;
-+	res.end = res.start + size - 1;
-+	res.flags = pci_resource_flags(pdev, bar);
- 
--	init_completion(&p2p_pgmap->ref_done);
--	error = percpu_ref_init(&p2p_pgmap->ref,
--			pci_p2pdma_percpu_release, 0, GFP_KERNEL);
--	if (error)
--		goto pgmap_free;
--
--	pgmap = &p2p_pgmap->pgmap;
--
--	pgmap->res.start = pci_resource_start(pdev, bar) + offset;
--	pgmap->res.end = pgmap->res.start + size - 1;
--	pgmap->res.flags = pci_resource_flags(pdev, bar);
--	pgmap->ref = &p2p_pgmap->ref;
--	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
--	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
--		pci_resource_start(pdev, bar);
--	pgmap->kill = pci_p2pdma_percpu_kill;
--	pgmap->cleanup = pci_p2pdma_percpu_cleanup;
--
--	addr = devm_memremap_pages(&pdev->dev, pgmap);
--	if (IS_ERR(addr)) {
--		error = PTR_ERR(addr);
--		goto pgmap_free;
--	}
-+	addr = devm_memremap(&pdev->dev, res.start, size, MEMREMAP_WC);
-+	if (IS_ERR(addr))
-+		return PTR_ERR(addr);
- 
--	error = gen_pool_add_owner(pdev->p2pdma->pool, (unsigned long)addr,
--			pci_bus_address(pdev, bar) + offset,
--			resource_size(&pgmap->res), dev_to_node(&pdev->dev),
--			&p2p_pgmap->ref);
-+	error = gen_pool_add_virt(pdev->p2pdma->pool, (unsigned long)addr,
-+				  pci_bus_address(pdev, bar) + offset, size,
-+				  dev_to_node(&pdev->dev));
- 	if (error)
- 		goto pages_free;
- 
--	pci_info(pdev, "added peer-to-peer DMA memory %pR\n",
--		 &pgmap->res);
-+	pci_info(pdev, "added peer-to-peer DMA memory %pR\n", &res);
- 
- 	return 0;
- 
- pages_free:
--	devm_memunmap_pages(&pdev->dev, pgmap);
--pgmap_free:
--	devm_kfree(&pdev->dev, p2p_pgmap);
-+	devm_memunmap(&pdev->dev, addr);
- 	return error;
+@@ -194,6 +194,13 @@ static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
+ 	return !!len;
  }
- EXPORT_SYMBOL_GPL(pci_p2pdma_add_resource);
-@@ -601,7 +566,6 @@ EXPORT_SYMBOL_GPL(pci_p2pmem_find_many);
- void *pci_alloc_p2pmem(struct pci_dev *pdev, size_t size)
- {
- 	void *ret = NULL;
--	struct percpu_ref *ref;
  
- 	/*
- 	 * Pairs with synchronize_rcu() in pci_p2pdma_release() to
-@@ -612,16 +576,13 @@ void *pci_alloc_p2pmem(struct pci_dev *pdev, size_t size)
- 	if (unlikely(!pdev->p2pdma))
- 		goto out;
- 
--	ret = (void *)gen_pool_alloc_owner(pdev->p2pdma->pool, size,
--			(void **) &ref);
--	if (!ret)
-+	if (unlikely(!percpu_ref_tryget_live(&pdev->p2pdma->ref)))
- 		goto out;
- 
--	if (unlikely(!percpu_ref_tryget_live(ref))) {
--		gen_pool_free(pdev->p2pdma->pool, (unsigned long) ret, size);
--		ret = NULL;
--		goto out;
--	}
-+	ret = (void *)gen_pool_alloc(pdev->p2pdma->pool, size);
-+	if (!ret)
-+		percpu_ref_put(&pdev->p2pdma->ref);
++static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
++		unsigned *nsegs, unsigned *sectors, unsigned max_segs)
++{
++	return vec_split_segs(q, bv->bv_offset, bv->bv_len, nsegs,
++			      sectors, max_segs);
++}
 +
- out:
- 	rcu_read_unlock();
- 	return ret;
-@@ -636,11 +597,9 @@ EXPORT_SYMBOL_GPL(pci_alloc_p2pmem);
-  */
- void pci_free_p2pmem(struct pci_dev *pdev, void *addr, size_t size)
- {
--	struct percpu_ref *ref;
-+	gen_pool_free(pdev->p2pdma->pool, (uintptr_t)addr, size);
- 
--	gen_pool_free_owner(pdev->p2pdma->pool, (uintptr_t)addr, size,
--			(void **) &ref);
--	percpu_ref_put(ref);
-+	percpu_ref_put(&pdev->p2pdma->ref);
- }
- EXPORT_SYMBOL_GPL(pci_free_p2pmem);
- 
+ static struct bio *blk_bio_segment_split(struct request_queue *q,
+ 					 struct bio *bio,
+ 					 struct bio_set *bs,
 -- 
 2.20.1
