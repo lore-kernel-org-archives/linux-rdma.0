@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 11/28] block: Create blk_segment_split_ctx
-Date: Thu, 20 Jun 2019 10:12:23 -0600
-Message-ID: <20190620161240.22738-12-logang@deltatee.com>
+Subject: [RFC PATCH 18/28] block: Introduce bio_add_dma_addr()
+Date: Thu, 20 Jun 2019 10:12:30 -0600
+Message-ID: <20190620161240.22738-19-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,120 +12,94 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to support dma-direct bios, blk_bio_segment_split() will
-need to operate on both bio_vecs and dma_vecs. In order to do
-this the code inside bio_for_each_bvec() needs to be moved into
-a generic helper. Step one to do this is to put some of the
-variables used inside the loop into a context structure so we
-don't need to pass a dozen variables to this new function.
+bio_add_dma_addr() is analagous to bio_add_page() except it
+adds a dma address to a dma-direct bio instead of a struct page.
+
+It also checks to ensure that the queue supports dma address bios and
+that we are not mixing dma addresses and struct pages.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- block/blk-merge.c | 55 ++++++++++++++++++++++++++++++-----------------
- 1 file changed, 35 insertions(+), 20 deletions(-)
+ block/bio.c         | 38 ++++++++++++++++++++++++++++++++++++++
+ include/linux/bio.h | 10 ++++++++++
+ 2 files changed, 48 insertions(+)
 
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index 3581c7ac3c1b..414e61a714bf 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -201,63 +201,78 @@ static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
- 			      sectors, max_segs);
+diff --git a/block/bio.c b/block/bio.c
+index 6998fceddd36..02ae72e3ccfa 100644
+--- a/block/bio.c
++++ b/block/bio.c
+@@ -874,6 +874,44 @@ static void bio_release_pages(struct bio *bio)
+ 		put_page(bvec->bv_page);
  }
  
-+struct blk_segment_split_ctx {
-+	unsigned nsegs;
-+	unsigned sectors;
++/**
++ *	bio_add_dma_addr - attempt to add a dma address to a bio
++ *	@q: the target queue
++ *	@bio: destination bio
++ *	@dma_addr: dma address to add
++ *	@len: vec entry length
++ *
++ *	Attempt to add a dma address to the dma_vec maplist. This can
++ *	fail for a number of reasons, such as the bio being full or
++ *	target block device limitations. The target request queue must
++ *	support dma-only bios and bios can not mix pages and dma_addresses.
++ */
++int bio_add_dma_addr(struct request_queue *q, struct bio *bio,
++		     dma_addr_t dma_addr, unsigned int len)
++{
++	struct dma_vec *dv = &bio->bi_dma_vec[bio->bi_vcnt];
 +
-+	bool prv_valid;
-+	struct bio_vec bvprv;
++	if (!blk_queue_dma_direct(q))
++		return -EINVAL;
 +
-+	const unsigned max_sectors;
-+	const unsigned max_segs;
-+};
++	if (!bio_is_dma_direct(bio))
++		return -EINVAL;
 +
- static struct bio *blk_bio_segment_split(struct request_queue *q,
- 					 struct bio *bio,
- 					 struct bio_set *bs,
- 					 unsigned *segs)
++	if (bio_dma_full(bio))
++		return 0;
++
++	WARN_ON_ONCE(bio_flagged(bio, BIO_CLONED));
++
++	dv->dv_addr = dma_addr;
++	dv->dv_len = len;
++
++	bio->bi_iter.bi_size += len;
++	bio->bi_vcnt++;
++
++	return len;
++}
++EXPORT_SYMBOL_GPL(bio_add_dma_addr);
++
+ static int __bio_iov_bvec_add_pages(struct bio *bio, struct iov_iter *iter)
  {
--	struct bio_vec bv, bvprv, *bvprvp = NULL;
-+	struct bio_vec bv;
- 	struct bvec_iter iter;
--	unsigned nsegs = 0, sectors = 0;
- 	bool do_split = true;
- 	struct bio *new = NULL;
--	const unsigned max_sectors = get_max_io_size(q, bio);
--	const unsigned max_segs = queue_max_segments(q);
+ 	const struct bio_vec *bv = iter->bvec;
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index df7973932525..d775f381ae00 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -112,6 +112,13 @@ static inline bool bio_full(struct bio *bio)
+ 	return bio->bi_vcnt >= bio->bi_max_vecs;
+ }
+ 
++static inline bool bio_dma_full(struct bio *bio)
++{
++	size_t vec_size = bio->bi_max_vecs * sizeof(struct bio_vec);
 +
-+	struct blk_segment_split_ctx ctx = {
-+		.max_sectors = get_max_io_size(q, bio),
-+		.max_segs = queue_max_segments(q),
-+	};
- 
- 	bio_for_each_bvec(bv, bio, iter) {
- 		/*
- 		 * If the queue doesn't support SG gaps and adding this
- 		 * offset would create a gap, disallow it.
- 		 */
--		if (bvprvp && bvec_gap_to_prev(q, bvprvp, bv.bv_offset))
-+		if (ctx.prv_valid && bvec_gap_to_prev(q, &ctx.bvprv,
-+						      bv.bv_offset))
- 			goto split;
- 
--		if (sectors + (bv.bv_len >> 9) > max_sectors) {
-+		if (ctx.sectors + (bv.bv_len >> 9) > ctx.max_sectors) {
- 			/*
- 			 * Consider this a new segment if we're splitting in
- 			 * the middle of this vector.
- 			 */
--			if (nsegs < max_segs &&
--			    sectors < max_sectors) {
-+			if (ctx.nsegs < ctx.max_segs &&
-+			    ctx.sectors < ctx.max_sectors) {
- 				/* split in the middle of bvec */
--				bv.bv_len = (max_sectors - sectors) << 9;
--				bvec_split_segs(q, &bv, &nsegs,
--						&sectors, max_segs);
-+				bv.bv_len =
-+					(ctx.max_sectors - ctx.sectors) << 9;
-+				bvec_split_segs(q, &bv, &ctx.nsegs,
-+						&ctx.sectors, ctx.max_segs);
- 			}
- 			goto split;
- 		}
- 
--		if (nsegs == max_segs)
-+		if (ctx.nsegs == ctx.max_segs)
- 			goto split;
- 
--		bvprv = bv;
--		bvprvp = &bvprv;
-+		ctx.bvprv = bv;
-+		ctx.prv_valid = true;
- 
- 		if (bv.bv_offset + bv.bv_len <= PAGE_SIZE) {
--			nsegs++;
--			sectors += bv.bv_len >> 9;
--		} else if (bvec_split_segs(q, &bv, &nsegs, &sectors,
--				max_segs)) {
-+			ctx.nsegs++;
-+			ctx.sectors += bv.bv_len >> 9;
-+		} else if (bvec_split_segs(q, &bv, &ctx.nsegs, &ctx.sectors,
-+				ctx.max_segs)) {
- 			goto split;
- 		}
- 	}
- 
- 	do_split = false;
- split:
--	*segs = nsegs;
-+	*segs = ctx.nsegs;
- 
- 	if (do_split) {
--		new = bio_split(bio, sectors, GFP_NOIO, bs);
-+		new = bio_split(bio, ctx.sectors, GFP_NOIO, bs);
- 		if (new)
- 			bio = new;
- 	}
++	return bio->bi_vcnt >= (vec_size / sizeof(struct dma_vec));
++}
++
+ static inline bool bio_next_segment(const struct bio *bio,
+ 				    struct bvec_iter_all *iter)
+ {
+@@ -438,6 +445,9 @@ void bio_chain(struct bio *, struct bio *);
+ extern int bio_add_page(struct bio *, struct page *, unsigned int,unsigned int);
+ extern int bio_add_pc_page(struct request_queue *, struct bio *, struct page *,
+ 			   unsigned int, unsigned int);
++extern int bio_add_dma_addr(struct request_queue *q, struct bio *bio,
++			    dma_addr_t dma_addr, unsigned int len);
++
+ bool __bio_try_merge_page(struct bio *bio, struct page *page,
+ 		unsigned int len, unsigned int off, bool same_page);
+ void __bio_add_page(struct bio *bio, struct page *page,
 -- 
 2.20.1
