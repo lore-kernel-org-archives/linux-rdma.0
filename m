@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 10/28] block: Create generic vec_split_segs() from bvec_split_segs()
-Date: Thu, 20 Jun 2019 10:12:22 -0600
-Message-ID: <20190620161240.22738-11-logang@deltatee.com>
+Subject: [RFC PATCH 09/28] block: Introduce vec_gap_to_prev()
+Date: Thu, 20 Jun 2019 10:12:21 -0600
+Message-ID: <20190620161240.22738-10-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,74 +12,58 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-bvec_split_segs() only requires the address and length of the
-vector. In order to generalize it to work with dma_vecs, we just
-take the address and length directly instead of the bio_vec.
+Introduce vec_gap_to_prev() which is a more general
+form of bvec_gap_to_prev().
 
-The function is renamed to vec_split_segs() and a helper is added
-to avoid having to adjust the existing callsites.
-
-Note: the new bvec_split_segs() helper will be removed in a subsequent
-patch.
+In order to support splitting dma_vecs we will need to do a similar
+calcualtion using the DMA address and length.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- block/blk-merge.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ block/blk.h | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index 17713d7d98d5..3581c7ac3c1b 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -158,13 +158,13 @@ static unsigned get_max_segment_size(struct request_queue *q,
+diff --git a/block/blk.h b/block/blk.h
+index 4142383eed7a..c5512fefe703 100644
+--- a/block/blk.h
++++ b/block/blk.h
+@@ -98,11 +98,19 @@ static inline bool dmavec_phys_mergeable(struct request_queue *q,
+ 				  vec2->dv_addr, vec2->dv_len);
+ }
+ 
++static inline bool __vec_gap_to_prev(struct request_queue *q,
++		unsigned int prv_offset, unsigned int prv_len,
++		unsigned int nxt_offset)
++{
++	return (nxt_offset & queue_virt_boundary(q)) ||
++		((prv_offset + prv_len) & queue_virt_boundary(q));
++}
++
+ static inline bool __bvec_gap_to_prev(struct request_queue *q,
+ 		struct bio_vec *bprv, unsigned int offset)
+ {
+-	return (offset & queue_virt_boundary(q)) ||
+-		((bprv->bv_offset + bprv->bv_len) & queue_virt_boundary(q));
++	return __vec_gap_to_prev(q, bprv->bv_offset, bprv->bv_len,
++				 offset);
  }
  
  /*
-- * Split the bvec @bv into segments, and update all kinds of
-- * variables.
-+ * Split the an address/offset and length into segments, and
-+ * update all kinds of variables.
-  */
--static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
--		unsigned *nsegs, unsigned *sectors, unsigned max_segs)
-+static bool vec_split_segs(struct request_queue *q, unsigned offset,
-+			   unsigned len, unsigned *nsegs, unsigned *sectors,
-+			   unsigned max_segs)
- {
--	unsigned len = bv->bv_len;
- 	unsigned total_len = 0;
- 	unsigned new_nsegs = 0, seg_size = 0;
- 
-@@ -173,14 +173,14 @@ static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
- 	 * current bvec has to be splitted as multiple segments.
- 	 */
- 	while (len && new_nsegs + *nsegs < max_segs) {
--		seg_size = get_max_segment_size(q, bv->bv_offset + total_len);
-+		seg_size = get_max_segment_size(q, offset + total_len);
- 		seg_size = min(seg_size, len);
- 
- 		new_nsegs++;
- 		total_len += seg_size;
- 		len -= seg_size;
- 
--		if ((bv->bv_offset + total_len) & queue_virt_boundary(q))
-+		if ((offset + total_len) & queue_virt_boundary(q))
- 			break;
- 	}
- 
-@@ -194,6 +194,13 @@ static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
- 	return !!len;
+@@ -117,6 +125,15 @@ static inline bool bvec_gap_to_prev(struct request_queue *q,
+ 	return __bvec_gap_to_prev(q, bprv, offset);
  }
  
-+static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
-+		unsigned *nsegs, unsigned *sectors, unsigned max_segs)
++static inline bool vec_gap_to_prev(struct request_queue *q,
++		unsigned int prv_offset, unsigned int prv_len,
++		unsigned int nxt_offset)
 +{
-+	return vec_split_segs(q, bv->bv_offset, bv->bv_len, nsegs,
-+			      sectors, max_segs);
++	if (!queue_virt_boundary(q))
++		return false;
++	return __vec_gap_to_prev(q, prv_offset, prv_len, nxt_offset);
 +}
 +
- static struct bio *blk_bio_segment_split(struct request_queue *q,
- 					 struct bio *bio,
- 					 struct bio_set *bs,
+ #ifdef CONFIG_BLK_DEV_INTEGRITY
+ void blk_flush_integrity(void);
+ bool __bio_integrity_endio(struct bio *);
 -- 
 2.20.1
