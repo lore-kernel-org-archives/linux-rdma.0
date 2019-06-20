@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 26/28] PCI/P2PDMA: Remove SGL helpers
-Date: Thu, 20 Jun 2019 10:12:38 -0600
-Message-ID: <20190620161240.22738-27-logang@deltatee.com>
+Subject: [RFC PATCH 06/28] block: Support dma-direct bios in bio_advance_iter()
+Date: Thu, 20 Jun 2019 10:12:18 -0600
+Message-ID: <20190620161240.22738-7-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,196 +12,26 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The functions, pci_p2pmem_alloc_sgl(), pci_p2pmem_free_sgl() and
-pci_p2pdma_map_sg() no longer have any callers, so remove them.
+Dma-direct bio iterators need to be advanced using a similar
+dvec_iter_advance helper.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- Documentation/driver-api/pci/p2pdma.rst |  9 +--
- drivers/pci/p2pdma.c                    | 95 -------------------------
- include/linux/pci-p2pdma.h              | 19 -----
- 3 files changed, 3 insertions(+), 120 deletions(-)
+ include/linux/bio.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-index 44deb52beeb4..5b19c420d921 100644
---- a/Documentation/driver-api/pci/p2pdma.rst
-+++ b/Documentation/driver-api/pci/p2pdma.rst
-@@ -84,9 +84,8 @@ Client Drivers
- --------------
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index 8180309123d7..e212e5958a75 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -134,6 +134,8 @@ static inline void bio_advance_iter(struct bio *bio, struct bvec_iter *iter,
  
- A client driver typically only has to conditionally change its DMA map
--routine to use the mapping function :c:func:`pci_p2pdma_map_sg()` instead
--of the usual :c:func:`dma_map_sg()` function. Memory mapped in this
--way does not need to be unmapped.
-+routine to use the PCI bus address with :c:func:`pci_p2pmem_virt_to_bus()`
-+for the DMA address instead of the usual :c:func:`dma_map_sg()` function.
- 
- The client may also, optionally, make use of
- :c:func:`is_pci_p2pdma_page()` to determine when to use the P2P mapping
-@@ -117,9 +116,7 @@ returned with pci_dev_put().
- 
- Once a provider is selected, the orchestrator can then use
- :c:func:`pci_alloc_p2pmem()` and :c:func:`pci_free_p2pmem()` to
--allocate P2P memory from the provider. :c:func:`pci_p2pmem_alloc_sgl()`
--and :c:func:`pci_p2pmem_free_sgl()` are convenience functions for
--allocating scatter-gather lists with P2P memory.
-+allocate P2P memory from the provider.
- 
- Struct Page Caveats
- -------------------
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index a98126ad9c3a..9b82e13f802c 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -666,60 +666,6 @@ pci_bus_addr_t pci_p2pmem_virt_to_bus(struct pci_dev *pdev, void *addr)
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_virt_to_bus);
- 
--/**
-- * pci_p2pmem_alloc_sgl - allocate peer-to-peer DMA memory in a scatterlist
-- * @pdev: the device to allocate memory from
-- * @nents: the number of SG entries in the list
-- * @length: number of bytes to allocate
-- *
-- * Return: %NULL on error or &struct scatterlist pointer and @nents on success
-- */
--struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
--					 unsigned int *nents, u32 length)
--{
--	struct scatterlist *sg;
--	void *addr;
--
--	sg = kzalloc(sizeof(*sg), GFP_KERNEL);
--	if (!sg)
--		return NULL;
--
--	sg_init_table(sg, 1);
--
--	addr = pci_alloc_p2pmem(pdev, length);
--	if (!addr)
--		goto out_free_sg;
--
--	sg_set_buf(sg, addr, length);
--	*nents = 1;
--	return sg;
--
--out_free_sg:
--	kfree(sg);
--	return NULL;
--}
--EXPORT_SYMBOL_GPL(pci_p2pmem_alloc_sgl);
--
--/**
-- * pci_p2pmem_free_sgl - free a scatterlist allocated by pci_p2pmem_alloc_sgl()
-- * @pdev: the device to allocate memory from
-- * @sgl: the allocated scatterlist
-- */
--void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl)
--{
--	struct scatterlist *sg;
--	int count;
--
--	for_each_sg(sgl, sg, INT_MAX, count) {
--		if (!sg)
--			break;
--
--		pci_free_p2pmem(pdev, sg_virt(sg), sg->length);
--	}
--	kfree(sgl);
--}
--EXPORT_SYMBOL_GPL(pci_p2pmem_free_sgl);
--
- /**
-  * pci_p2pmem_publish - publish the peer-to-peer DMA memory for use by
-  *	other devices with pci_p2pmem_find()
-@@ -738,47 +684,6 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
- 
--/**
-- * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
-- * @dev: device doing the DMA request
-- * @sg: scatter list to map
-- * @nents: elements in the scatterlist
-- * @dir: DMA direction
-- *
-- * Scatterlists mapped with this function should not be unmapped in any way.
-- *
-- * Returns the number of SG entries mapped or 0 on error.
-- */
--int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--		      enum dma_data_direction dir)
--{
--	struct dev_pagemap *pgmap;
--	struct scatterlist *s;
--	phys_addr_t paddr;
--	int i;
--
--	/*
--	 * p2pdma mappings are not compatible with devices that use
--	 * dma_virt_ops. If the upper layers do the right thing
--	 * this should never happen because it will be prevented
--	 * by the check in pci_p2pdma_add_client()
--	 */
--	if (WARN_ON_ONCE(IS_ENABLED(CONFIG_DMA_VIRT_OPS) &&
--			 dev->dma_ops == &dma_virt_ops))
--		return 0;
--
--	for_each_sg(sg, s, nents, i) {
--		pgmap = sg_page(s)->pgmap;
--		paddr = sg_phys(s);
--
--		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
--		sg_dma_len(s) = s->length;
--	}
--
--	return nents;
--}
--EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
--
- /**
-  * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
-  *		to enable p2pdma
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index bca9bc3e5be7..4a75a3f43444 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -26,12 +26,7 @@ struct pci_dev *pci_p2pmem_find_many(struct device **clients, int num_clients);
- void *pci_alloc_p2pmem(struct pci_dev *pdev, size_t size);
- void pci_free_p2pmem(struct pci_dev *pdev, void *addr, size_t size);
- pci_bus_addr_t pci_p2pmem_virt_to_bus(struct pci_dev *pdev, void *addr);
--struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
--					 unsigned int *nents, u32 length);
--void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
--int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--		      enum dma_data_direction dir);
- int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
- 			    bool *use_p2pdma);
- ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-@@ -69,23 +64,9 @@ static inline pci_bus_addr_t pci_p2pmem_virt_to_bus(struct pci_dev *pdev,
- {
- 	return 0;
- }
--static inline struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
--		unsigned int *nents, u32 length)
--{
--	return NULL;
--}
--static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
--		struct scatterlist *sgl)
--{
--}
- static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- {
- }
--static inline int pci_p2pdma_map_sg(struct device *dev,
--		struct scatterlist *sg, int nents, enum dma_data_direction dir)
--{
--	return 0;
--}
- static inline int pci_p2pdma_enable_store(const char *page,
- 		struct pci_dev **p2p_dev, bool *use_p2pdma)
- {
+ 	if (bio_no_advance_iter(bio))
+ 		iter->bi_size -= bytes;
++	else if (op_is_dma_direct(bio->bi_opf))
++		dvec_iter_advance(bio->bi_dma_vec, iter, bytes);
+ 	else
+ 		bvec_iter_advance(bio->bi_io_vec, iter, bytes);
+ 		/* TODO: It is reasonable to complete bio with error here. */
 -- 
 2.20.1
