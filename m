@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 06/28] block: Support dma-direct bios in bio_advance_iter()
-Date: Thu, 20 Jun 2019 10:12:18 -0600
-Message-ID: <20190620161240.22738-7-logang@deltatee.com>
+Subject: [RFC PATCH 05/28] block: Skip dma-direct bios in bio_integrity_prep()
+Date: Thu, 20 Jun 2019 10:12:17 -0600
+Message-ID: <20190620161240.22738-6-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,26 +12,34 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Dma-direct bio iterators need to be advanced using a similar
-dvec_iter_advance helper.
+The block layer will not be able to handle integrity for dma-direct
+bios seeing it does not have access to the underlying data.
+
+If users of dma-direct require integrity, they will have to handle it
+in the layer creating the bios. This is left as future work should
+somebody care about handling such a case.
+
+Thus, bio_integrity_prep() should ignore dma-direct bios.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- include/linux/bio.h | 2 ++
- 1 file changed, 2 insertions(+)
+ block/bio-integrity.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/linux/bio.h b/include/linux/bio.h
-index 8180309123d7..e212e5958a75 100644
---- a/include/linux/bio.h
-+++ b/include/linux/bio.h
-@@ -134,6 +134,8 @@ static inline void bio_advance_iter(struct bio *bio, struct bvec_iter *iter,
+diff --git a/block/bio-integrity.c b/block/bio-integrity.c
+index 4db620849515..10fdf456fcd8 100644
+--- a/block/bio-integrity.c
++++ b/block/bio-integrity.c
+@@ -221,6 +221,10 @@ bool bio_integrity_prep(struct bio *bio)
+ 	if (bio_integrity(bio))
+ 		return true;
  
- 	if (bio_no_advance_iter(bio))
- 		iter->bi_size -= bytes;
-+	else if (op_is_dma_direct(bio->bi_opf))
-+		dvec_iter_advance(bio->bi_dma_vec, iter, bytes);
- 	else
- 		bvec_iter_advance(bio->bi_io_vec, iter, bytes);
- 		/* TODO: It is reasonable to complete bio with error here. */
++	/* The block layer cannot handle integrity for dma-direct bios */
++	if (bio_is_dma_direct(bio))
++		return true;
++
+ 	if (bio_data_dir(bio) == READ) {
+ 		if (!bi->profile->verify_fn ||
+ 		    !(bi->flags & BLK_INTEGRITY_VERIFY))
 -- 
 2.20.1
