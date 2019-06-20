@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 21/28] nvmet: Split nvmet_bdev_execute_rw() into a helper function
-Date: Thu, 20 Jun 2019 10:12:33 -0600
-Message-ID: <20190620161240.22738-22-logang@deltatee.com>
+Subject: [RFC PATCH 24/28] block: Remove PCI_P2PDMA queue flag
+Date: Thu, 20 Jun 2019 10:12:36 -0600
+Message-ID: <20190620161240.22738-25-logang@deltatee.com>
 References: <20190620161240.22738-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,91 +12,35 @@ To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.
 Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Move the mapping of the SG and submission of the bio
-into a static helper function to reduce the complexity.
-
-This will be useful in the next patch which submits dma-direct bios
-for P2P requests.
+This flag has been superseded by the DMA_DIRECT functionality.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/nvme/target/io-cmd-bdev.c | 52 ++++++++++++++++++-------------
- 1 file changed, 31 insertions(+), 21 deletions(-)
+ include/linux/blkdev.h | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/nvme/target/io-cmd-bdev.c b/drivers/nvme/target/io-cmd-bdev.c
-index 7a1cf6437a6a..061d40b020c7 100644
---- a/drivers/nvme/target/io-cmd-bdev.c
-+++ b/drivers/nvme/target/io-cmd-bdev.c
-@@ -103,13 +103,41 @@ static void nvmet_bio_done(struct bio *bio)
- 		bio_put(bio);
- }
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index a5b856324276..9ea800645cf5 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -615,8 +615,7 @@ struct request_queue {
+ #define QUEUE_FLAG_REGISTERED	22	/* queue has been registered to a disk */
+ #define QUEUE_FLAG_SCSI_PASSTHROUGH 23	/* queue supports SCSI commands */
+ #define QUEUE_FLAG_QUIESCED	24	/* queue has been quiesced */
+-#define QUEUE_FLAG_PCI_P2PDMA	25	/* device supports PCI p2p requests */
+-#define QUEUE_FLAG_DMA_DIRECT	26	/* device supports dma-addr requests */
++#define QUEUE_FLAG_DMA_DIRECT	25	/* device supports dma-addr requests */
  
-+static void nvmet_submit_sg(struct nvmet_req *req, struct bio *bio,
-+			    sector_t sector)
-+{
-+	int sg_cnt = req->sg_cnt;
-+	struct scatterlist *sg;
-+	int i;
-+
-+	for_each_sg(req->sg, sg, req->sg_cnt, i) {
-+		while (bio_add_page(bio, sg_page(sg), sg->length, sg->offset)
-+				!= sg->length) {
-+			struct bio *prev = bio;
-+
-+			bio = bio_alloc(GFP_KERNEL,
-+					min(sg_cnt, BIO_MAX_PAGES));
-+			bio_set_dev(bio, req->ns->bdev);
-+			bio->bi_iter.bi_sector = sector;
-+			bio->bi_opf = prev->bi_opf;
-+
-+			bio_chain(bio, prev);
-+			submit_bio(prev);
-+		}
-+
-+		sector += sg->length >> 9;
-+		sg_cnt--;
-+	}
-+
-+	submit_bio(bio);
-+}
-+
- static void nvmet_bdev_execute_rw(struct nvmet_req *req)
- {
- 	int sg_cnt = req->sg_cnt;
- 	struct bio *bio;
--	struct scatterlist *sg;
- 	sector_t sector;
--	int op, op_flags = 0, i;
-+	int op, op_flags = 0;
+ #define QUEUE_FLAG_MQ_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+ 				 (1 << QUEUE_FLAG_SAME_COMP))
+@@ -641,8 +640,6 @@ bool blk_queue_flag_test_and_set(unsigned int flag, struct request_queue *q);
+ #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
+ #define blk_queue_scsi_passthrough(q)	\
+ 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
+-#define blk_queue_pci_p2pdma(q)	\
+-	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
+ #define blk_queue_dma_direct(q)	\
+ 	test_bit(QUEUE_FLAG_DMA_DIRECT, &(q)->queue_flags)
  
- 	if (!req->sg_cnt) {
- 		nvmet_req_complete(req, 0);
-@@ -143,25 +171,7 @@ static void nvmet_bdev_execute_rw(struct nvmet_req *req)
- 	bio->bi_end_io = nvmet_bio_done;
- 	bio_set_op_attrs(bio, op, op_flags);
- 
--	for_each_sg(req->sg, sg, req->sg_cnt, i) {
--		while (bio_add_page(bio, sg_page(sg), sg->length, sg->offset)
--				!= sg->length) {
--			struct bio *prev = bio;
--
--			bio = bio_alloc(GFP_KERNEL, min(sg_cnt, BIO_MAX_PAGES));
--			bio_set_dev(bio, req->ns->bdev);
--			bio->bi_iter.bi_sector = sector;
--			bio_set_op_attrs(bio, op, op_flags);
--
--			bio_chain(bio, prev);
--			submit_bio(prev);
--		}
--
--		sector += sg->length >> 9;
--		sg_cnt--;
--	}
--
--	submit_bio(bio);
-+	nvmet_submit_sg(req, bio, sector);
- }
- 
- static void nvmet_bdev_execute_flush(struct nvmet_req *req)
 -- 
 2.20.1
