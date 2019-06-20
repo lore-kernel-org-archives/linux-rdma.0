@@ -1,123 +1,32 @@
-From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH iproute2-next v2 1/2] ipaddress: correctly print a VF hw address in the IPoIB case
-Date: Thu, 20 Jun 2019 11:02:48 +0200
-Message-ID: <20190620090249.106704-1-dkirjanov@suse.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: stephen@networkplumber.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: use exact allocation for dma coherent memory
+Date: Thu, 20 Jun 2019 12:51:24 +0200
+Message-ID: <20190620105124.GA25233@lst.de>
+References: <20190614134726.3827-1-hch@lst.de> <20190617082148.GF28859@kadam> <20190617083342.GA7883@lst.de> <20190619162903.GF9360@ziepe.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190619162903.GF9360@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christoph Hellwig <hch@lst.de>, Potnuri Bharat Teja <bharat@chelsio.com>, Dan Carpenter <dan.carpenter@oracle.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ian Abbott <abbotti@mev.co.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Intel Linux Wireless <linuxwifi@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.or
 List-Id: linux-rdma@vger.kernel.org
 
-Current code assumes that we print Etheret mac and
-that doesn't work in IPoIB case with SRIOV-enabled hardware
+On Wed, Jun 19, 2019 at 01:29:03PM -0300, Jason Gunthorpe wrote:
+> > Yes.  This will blow up badly on many platforms, as sq->queue
+> > might be vmapped, ioremapped, come from a pool without page backing.
+> 
+> Gah, this addr gets fed into io_remap_pfn_range/remap_pfn_range too..
+> 
+> Potnuri, you should fix this.. 
+> 
+> You probably need to use dma_mmap_from_dev_coherent() in the mmap ?
 
-Before:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-        link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-        vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
-    trust off, query_rss off
-    ...
+The function to use is dma_mmap_coherent, dma_mmap_from_dev_coherent is
+just an internal helper.
 
-After:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-        link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-        vf 0     link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-checking off, link-state disable, trust off, query_rss off
-
-v1->v2: updated kernel headers to uapi commit
-
-Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
----
- ip/ipaddress.c | 42 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 5 deletions(-)
-
-diff --git a/ip/ipaddress.c b/ip/ipaddress.c
-index b504200b..13ad76dd 100644
---- a/ip/ipaddress.c
-+++ b/ip/ipaddress.c
-@@ -26,6 +26,7 @@
- 
- #include <linux/netdevice.h>
- #include <linux/if_arp.h>
-+#include <linux/if_infiniband.h>
- #include <linux/sockios.h>
- #include <linux/net_namespace.h>
- 
-@@ -349,9 +350,10 @@ static void print_af_spec(FILE *fp, struct rtattr *af_spec_attr)
- 
- static void print_vf_stats64(FILE *fp, struct rtattr *vfstats);
- 
--static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
-+static void print_vfinfo(struct ifinfomsg *ifi, FILE *fp, struct rtattr *vfinfo)
- {
- 	struct ifla_vf_mac *vf_mac;
-+	struct ifla_vf_broadcast *vf_broadcast;
- 	struct ifla_vf_tx_rate *vf_tx_rate;
- 	struct rtattr *vf[IFLA_VF_MAX + 1] = {};
- 
-@@ -365,13 +367,43 @@ static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
- 	parse_rtattr_nested(vf, IFLA_VF_MAX, vfinfo);
- 
- 	vf_mac = RTA_DATA(vf[IFLA_VF_MAC]);
-+	vf_broadcast = RTA_DATA(vf[IFLA_VF_BROADCAST]);
- 	vf_tx_rate = RTA_DATA(vf[IFLA_VF_TX_RATE]);
- 
- 	print_string(PRINT_FP, NULL, "%s    ", _SL_);
- 	print_int(PRINT_ANY, "vf", "vf %d ", vf_mac->vf);
--	print_string(PRINT_ANY, "mac", "MAC %s",
--		     ll_addr_n2a((unsigned char *) &vf_mac->mac,
--				 ETH_ALEN, 0, b1, sizeof(b1)));
-+
-+	print_string(PRINT_ANY,
-+			"link_type",
-+			"    link/%s ",
-+			ll_type_n2a(ifi->ifi_type, b1, sizeof(b1)));
-+
-+	print_color_string(PRINT_ANY,
-+				COLOR_MAC,
-+				"address",
-+				"%s",
-+				ll_addr_n2a((unsigned char *) &vf_mac->mac,
-+					ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
-+					ifi->ifi_type,
-+					b1, sizeof(b1)));
-+
-+	if (vf[IFLA_VF_BROADCAST]) {
-+		if (ifi->ifi_flags&IFF_POINTOPOINT) {
-+			print_string(PRINT_FP, NULL, " peer ", NULL);
-+			print_bool(PRINT_JSON,
-+					"link_pointtopoint", NULL, true);
-+                        } else {
-+				print_string(PRINT_FP, NULL, " brd ", NULL);
-+                        }
-+                        print_color_string(PRINT_ANY,
-+                                           COLOR_MAC,
-+                                           "broadcast",
-+                                           "%s",
-+                                           ll_addr_n2a((unsigned char *) &vf_broadcast->broadcast,
-+                                                       ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
-+                                                       ifi->ifi_type,
-+                                                       b1, sizeof(b1)));
-+	}
- 
- 	if (vf[IFLA_VF_VLAN_LIST]) {
- 		struct rtattr *i, *vfvlanlist = vf[IFLA_VF_VLAN_LIST];
-@@ -1102,7 +1134,7 @@ int print_linkinfo(struct nlmsghdr *n, void *arg)
- 		open_json_array(PRINT_JSON, "vfinfo_list");
- 		for (i = RTA_DATA(vflist); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
- 			open_json_object(NULL);
--			print_vfinfo(fp, i);
-+			print_vfinfo(ifi, fp, i);
- 			close_json_object();
- 		}
- 		close_json_array(PRINT_JSON, NULL);
--- 
-2.12.3
+That beiŋ said the drivers/infiniband code has a lot of
+*remap_pfn_range, and a lot of them look like they might be for
+DMA memory.
