@@ -1,96 +1,94 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [RFC PATCH 15/28] block: Support counting dma-direct bio segments
-Date: Thu, 20 Jun 2019 10:12:27 -0600
-Message-ID: <20190620161240.22738-16-logang@deltatee.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [RFC PATCH 20/28] IB/core: Introduce API for initializing a RW
+ ctx from a DMA address
+Date: Thu, 20 Jun 2019 13:49:09 -0300
+Message-ID: <20190620164909.GC19891@ziepe.ca>
 References: <20190620161240.22738-1-logang@deltatee.com>
+ <20190620161240.22738-21-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190620161240.22738-1-logang@deltatee.com>
+Content-Disposition: inline
+In-Reply-To: <20190620161240.22738-21-logang@deltatee.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Change __blk_recalc_rq_segments() to loop through dma_vecs when
-appropriate. It calls vec_split_segs() for each dma_vec or bio_vec.
+On Thu, Jun 20, 2019 at 10:12:32AM -0600, Logan Gunthorpe wrote:
+> Introduce rdma_rw_ctx_dma_init() and rdma_rw_ctx_dma_destroy() which
+> peform the same operation as rdma_rw_ctx_init() and
+> rdma_rw_ctx_destroy() respectively except they operate on a DMA
+> address and length instead of an SGL.
+> 
+> This will be used for struct page-less P2PDMA, but there's also
+> been opinions expressed to migrate away from SGLs and struct
+> pages in the RDMA APIs and this will likely fit with that
+> effort.
+> 
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+>  drivers/infiniband/core/rw.c | 74 ++++++++++++++++++++++++++++++------
+>  include/rdma/rw.h            |  6 +++
+>  2 files changed, 69 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+> index 32ca8429eaae..cefa6b930bc8 100644
+> +++ b/drivers/infiniband/core/rw.c
+> @@ -319,6 +319,39 @@ int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
+>  }
+>  EXPORT_SYMBOL(rdma_rw_ctx_init);
+>  
+> +/**
+> + * rdma_rw_ctx_dma_init - initialize a RDMA READ/WRITE context from a
+> + *	DMA address instead of SGL
+> + * @ctx:	context to initialize
+> + * @qp:		queue pair to operate on
+> + * @port_num:	port num to which the connection is bound
+> + * @addr:	DMA address to READ/WRITE from/to
+> + * @len:	length of memory to operate on
+> + * @remote_addr:remote address to read/write (relative to @rkey)
+> + * @rkey:	remote key to operate on
+> + * @dir:	%DMA_TO_DEVICE for RDMA WRITE, %DMA_FROM_DEVICE for RDMA READ
+> + *
+> + * Returns the number of WQEs that will be needed on the workqueue if
+> + * successful, or a negative error code.
+> + */
+> +int rdma_rw_ctx_dma_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
+> +		u8 port_num, dma_addr_t addr, u32 len, u64 remote_addr,
+> +		u32 rkey, enum dma_data_direction dir)
 
-Once this is done the bvec_split_segs() helper is no longer used.
+Why not keep the same basic signature here but replace the scatterlist
+with the dma vec ?
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- block/blk-merge.c | 41 ++++++++++++++++++++++++++++++-----------
- 1 file changed, 30 insertions(+), 11 deletions(-)
+> +{
+> +	struct scatterlist sg;
+> +
+> +	sg_dma_address(&sg) = addr;
+> +	sg_dma_len(&sg) = len;
 
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index c4c016f994f6..a7a5453987f9 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -194,13 +194,6 @@ static bool vec_split_segs(struct request_queue *q, unsigned offset,
- 	return !!len;
- }
- 
--static bool bvec_split_segs(struct request_queue *q, struct bio_vec *bv,
--		unsigned *nsegs, unsigned *sectors, unsigned max_segs)
--{
--	return vec_split_segs(q, bv->bv_offset, bv->bv_len, nsegs,
--			      sectors, max_segs);
--}
--
- struct blk_segment_split_ctx {
- 	unsigned nsegs;
- 	unsigned sectors;
-@@ -366,12 +359,36 @@ void blk_queue_split(struct request_queue *q, struct bio **bio)
- }
- EXPORT_SYMBOL(blk_queue_split);
- 
-+static unsigned int bio_calc_segs(struct request_queue *q, struct bio *bio)
-+{
-+	unsigned int nsegs = 0;
-+	struct bvec_iter iter;
-+	struct bio_vec bv;
-+
-+	bio_for_each_bvec(bv, bio, iter)
-+		vec_split_segs(q, bv.bv_offset, bv.bv_len, &nsegs,
-+			       NULL, UINT_MAX);
-+
-+	return nsegs;
-+}
-+
-+static unsigned int bio_dma_calc_segs(struct request_queue *q, struct bio *bio)
-+{
-+	unsigned int nsegs = 0;
-+	struct bvec_iter iter;
-+	struct dma_vec dv;
-+
-+	bio_for_each_dvec(dv, bio, iter)
-+		vec_split_segs(q, dv.dv_addr, dv.dv_len, &nsegs,
-+			       NULL, UINT_MAX);
-+
-+	return nsegs;
-+}
-+
- static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
- 					     struct bio *bio)
- {
- 	unsigned int nr_phys_segs = 0;
--	struct bvec_iter iter;
--	struct bio_vec bv;
- 
- 	if (!bio)
- 		return 0;
-@@ -386,8 +403,10 @@ static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
- 	}
- 
- 	for_each_bio(bio) {
--		bio_for_each_bvec(bv, bio, iter)
--			bvec_split_segs(q, &bv, &nr_phys_segs, NULL, UINT_MAX);
-+		if (bio_is_dma_direct(bio))
-+			nr_phys_segs += bio_calc_segs(q, bio);
-+		else
-+			nr_phys_segs += bio_dma_calc_segs(q, bio);
- 	}
- 
- 	return nr_phys_segs;
--- 
-2.20.1
+This needs to fail if the driver is one of the few that require
+struct page to work..
+
+Really want I want to do is to have this new 'dma vec' pushed through
+the RDMA APIs so we know that if a driver is using the dma vec
+interface it is struct page free.
+
+This is not so hard to do, as most drivers are already struct page
+free, but is pretty much blocked on needing some way to go from the
+block layer SGL world to the dma vec world that does not hurt storage
+performance.
+
+I am hoping that the biovec dma mapping that CH has talked about will
+give the missing pieces.
+
+FWIW, rdma is one of the places that is largely struct page free, and
+has few problems to natively handle a 'dma vec' from top to bottom, so
+I do like this approach.
+
+Someone would have to look carefully at siw, rxe and hfi/qib to see
+how they could continue to work with a dma vec, as they do actually
+seem to need to kmap the data they are transferring. However, I
+thought they were using custom dma ops these days, so maybe they just
+encode a struct page in their dma vec and reject p2p entirely?
+
+Jason
