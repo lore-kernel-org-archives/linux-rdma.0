@@ -1,65 +1,125 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Fri, 21 Jun 2019 10:54:03 -0700
-Message-ID: <CAPcyv4h6CjzxbWLg3upmUiaYQ2eqP-ZyHxMBfh6kkQpwHX9HWg@mail.gmail.com>
-References: <20190620161240.22738-1-logang@deltatee.com> <CAPcyv4ijztOK1FUjLuFing7ps4LOHt=6z=eO=98HHWauHA+yog@mail.gmail.com>
- <20190620193353.GF19891@ziepe.ca> <CAPcyv4jyNRBvtWhr9+aHbzWP6=D4qAME+=hWMtOYJ17BVHdy2w@mail.gmail.com>
- <20190621174724.GV19891@ziepe.ca>
+From: Doug Ledford <dledford@redhat.com>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 21 Jun 2019 15:42:09 -0400
+Message-ID: <3ed43fc8399c5b8efa262699a1d3559cbe41fed5.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-BxiJK0wsevTO9MrcGUQb"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190621174724.GV19891@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
+To: "Torvalds, Linus" <torvalds@linux-foundation.org>
+Cc: "Gunthorpe, Jason" <jgg@ziepe.ca>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 21, 2019 at 10:47 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
-> On Thu, Jun 20, 2019 at 01:18:13PM -0700, Dan Williams wrote:
->
-> > > This P2P is quite distinct from DAX as the struct page* would point to
-> > > non-cacheable weird memory that few struct page users would even be
-> > > able to work with, while I understand DAX use cases focused on CPU
-> > > cache coherent memory, and filesystem involvement.
-> >
-> > What I'm poking at is whether this block layer capability can pick up
-> > users outside of RDMA, more on this below...
->
-> The generic capability is to do a transfer through the block layer and
-> scatter/gather the resulting data to some PCIe BAR memory. Currently
-> the block layer can only scatter/gather data into CPU cache coherent
-> memory.
->
-> We know of several useful places to put PCIe BAR memory already:
->  - On a GPU (or FPGA, acclerator, etc), ie the GB's of GPU private
->    memory that is standard these days.
->  - On a NVMe CMB. This lets the NVMe drive avoid DMA entirely
->  - On a RDMA NIC. Mellanox NICs have a small amount of BAR memory that
->    can be used like a CMB and avoids a DMA
->
-> RDMA doesn't really get so involved here, except that RDMA is often
-> the prefered way to source/sink the data buffers after the block layer has
-> scatter/gathered to them. (and of course RDMA is often for a block
-> driver, ie NMVe over fabrics)
->
-> > > > My primary concern with this is that ascribes a level of generality
-> > > > that just isn't there for peer-to-peer dma operations. "Peer"
-> > > > addresses are not "DMA" addresses, and the rules about what can and
-> > > > can't do peer-DMA are not generically known to the block layer.
-> > >
-> > > ?? The P2P infrastructure produces a DMA bus address for the
-> > > initiating device that is is absolutely a DMA address. There is some
-> > > intermediate CPU centric representation, but after mapping it is the
-> > > same as any other DMA bus address.
-> >
-> > Right, this goes back to the confusion caused by the hardware / bus /
-> > address that a dma-engine would consume directly, and Linux "DMA"
-> > address as a device-specific translation of host memory.
->
-> I don't think there is a confusion :) Logan explained it, the
-> dma_addr_t is always the thing you program into the DMA engine of the
-> device it was created for, and this changes nothing about that.
 
-Yup, Logan and I already settled that point on our last exchange and
-offered to make that clearer in the changelog.
+--=-BxiJK0wsevTO9MrcGUQb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Linus,
+
+This is probably our last -rc pull request.  We don't have anything else
+outstanding at the moment anyway, and with the summer months on us and
+people taking trips, I expect the next weeks leading up to the merge
+window to be pretty calm and sedate.
+
+This has two simple, no brainer fixes for the EFA driver.
+
+Then it has ten not quite so simple fixes for the hfi1 driver.  The
+problem with them is that they aren't simply one liner typo fixes.=20
+They're still fixes, but they're more complex issues like livelock under
+heavy load where the answer was to change work queue usage and spinlock
+usage to resolve the problem, or issues with orphaned requests during
+certain types of failures like link down which required some more
+complex work to fix too.  They all look like legitimate fixes to me,
+they just aren't small like I wish they were.
+
+Here's the boilerplate:
+
+The following changes since commit d1fdb6d8f6a4109a4263176c84b899076a5f8008=
+:
+
+  Linux 5.2-rc4 (2019-06-08 20:24:46 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linu=
+s
+
+for you to fetch changes up to 7a5834e456f7fb3eca9b63af2a6bc7f460ae482f:
+
+  RDMA/efa: Handle mmap insertions overflow (2019-06-18 16:27:24 -0400)
+
+----------------------------------------------------------------
+Pull request for 5.1-rc5
+
+- 2 minor EFA fixes
+- 10 hfi1 fixes related to scaling issues
+
+----------------------------------------------------------------
+Gal Pressman (2):
+      RDMA/efa: Fix success return value in case of error
+      RDMA/efa: Handle mmap insertions overflow
+
+Kaike Wan (1):
+      IB/hfi1: Validate fault injection opcode user input
+
+Mike Marciniszyn (9):
+      IB/hfi1: Close PSM sdma_progress sleep window
+      IB/hfi1: Correct tid qp rcd to match verbs context
+      IB/hfi1: Avoid hardlockup with flushlist_lock
+      IB/hfi1: Silence txreq allocation warnings
+      IB/hfi1: Create inline to get extended headers
+      IB/hfi1: Use aborts to trigger RC throttling
+      IB/hfi1: Wakeup QPs orphaned on wait list after flush
+      IB/hfi1: Handle wakeup of orphaned QPs for pio
+      IB/hfi1: Handle port down properly in pio
+
+ drivers/infiniband/hw/efa/efa_com_cmd.c  | 24 +++++++++++----
+ drivers/infiniband/hw/efa/efa_verbs.c    | 21 ++++++++++---
+ drivers/infiniband/hw/hfi1/chip.c        | 13 ++++++++
+ drivers/infiniband/hw/hfi1/chip.h        |  1 +
+ drivers/infiniband/hw/hfi1/fault.c       |  5 +++
+ drivers/infiniband/hw/hfi1/hfi.h         | 31 +++++++++++++++++++
+ drivers/infiniband/hw/hfi1/pio.c         | 21 +++++++++++--
+ drivers/infiniband/hw/hfi1/rc.c          | 53 +++++++++++++++++++---------=
+----
+ drivers/infiniband/hw/hfi1/sdma.c        | 26 ++++++++++++----
+ drivers/infiniband/hw/hfi1/tid_rdma.c    |  4 +--
+ drivers/infiniband/hw/hfi1/ud.c          |  4 +--
+ drivers/infiniband/hw/hfi1/user_sdma.c   | 12 +++-----
+ drivers/infiniband/hw/hfi1/user_sdma.h   |  1 -
+ drivers/infiniband/hw/hfi1/verbs.c       | 14 +++++----
+ drivers/infiniband/hw/hfi1/verbs.h       |  1 +
+ drivers/infiniband/hw/hfi1/verbs_txreq.c |  2 +-
+ drivers/infiniband/hw/hfi1/verbs_txreq.h |  3 +-
+ 17 files changed, 174 insertions(+), 62 deletions(-)
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--=-BxiJK0wsevTO9MrcGUQb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0NMxEACgkQuCajMw5X
+L90Ejw/9HNVIwSjBM02c0aSeSwBP2Ie4aasjlB/Kqg828G/DCbts1/ryVLZMSAWE
+FAHWRsvswPXZEbUgOV5w80SwHgoPfspHrkOXObTi5NQGwQISMVRnRyMeWu1a2guQ
+mP3vuhmTDhhB9gk3I19Tvmvn58TT99xdoebfPrYWjl53/llIta9JNgXwBZ5UNwkO
+r6iwbl3Yly9Sz72dfM2bapJ2r2bGIOUDDjBCPIv024yu4RIeQkHExTajy/CLnSMj
+Cjze2SrQL+VPNqm9Ro2ZJAWJh9WRrlHu366wwdT0ntH3zvcdrgENeUI4sMWCy4yg
+NLMwLJGBU//a7naY6Zqx3DYzGoGOyNBzYa6t3ni4lQoPWSmfvb9uuB9EzTIRd0x2
+9M8lL1xYdp++pOYf41ThlaeSd+whDBoRI2m4uK3V58FOQ3w3qL/i7y1t6J9ORuH7
+2e2NJeOENxN4SPdrDnJUVQ5268zLXh8mY4+T6rN9xwlKTYTO9w9GrqHR5TFLjldx
+k2UtC5zhV9fMnHoHsuHHZL2aD+QvwJaBiell2wF6hGen8cNU8DymKSAuEdXmx6cJ
+BESTZp1Ry+cLowNqI0GKAdto6Pz+5tHAmbC9f3pOnsUrYlPMDfeSwMtmL7mPs3Xe
+KHRpbVburKoCLzhWbeLoklAZ5nNyZMZfSflhtujyFxVT5cSGius=
+=WI49
+-----END PGP SIGNATURE-----
+
+--=-BxiJK0wsevTO9MrcGUQb--
