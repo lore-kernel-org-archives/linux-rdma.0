@@ -1,125 +1,58 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Fri, 21 Jun 2019 15:42:09 -0400
-Message-ID: <3ed43fc8399c5b8efa262699a1d3559cbe41fed5.camel@redhat.com>
+From: Michal Kalderon <mkalderon@marvell.com>
+Subject: RE: [PATCH v3 rdma-next 0/3] RDMA/qedr: Use the doorbell overflow
+ recovery mechanism for RDMA
+Date: Fri, 21 Jun 2019 19:49:39 +0000
+Message-ID: <MN2PR18MB3182498CA8C9C7EB3259F62FA1E70@MN2PR18MB3182.namprd18.prod.outlook.com>
+References: <20190613083819.6998-1-michal.kalderon@marvell.com>
+ <bda0321cb362bc93f5428b1df7daf69fed083656.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-BxiJK0wsevTO9MrcGUQb"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Torvalds, Linus" <torvalds@linux-foundation.org>
-Cc: "Gunthorpe, Jason" <jgg@ziepe.ca>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <bda0321cb362bc93f5428b1df7daf69fed083656.camel@redhat.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Ariel Elior <aelior@marvell.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-BxiJK0wsevTO9MrcGUQb
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi Linus,
-
-This is probably our last -rc pull request.  We don't have anything else
-outstanding at the moment anyway, and with the summer months on us and
-people taking trips, I expect the next weeks leading up to the merge
-window to be pretty calm and sedate.
-
-This has two simple, no brainer fixes for the EFA driver.
-
-Then it has ten not quite so simple fixes for the hfi1 driver.  The
-problem with them is that they aren't simply one liner typo fixes.=20
-They're still fixes, but they're more complex issues like livelock under
-heavy load where the answer was to change work queue usage and spinlock
-usage to resolve the problem, or issues with orphaned requests during
-certain types of failures like link down which required some more
-complex work to fix too.  They all look like legitimate fixes to me,
-they just aren't small like I wish they were.
-
-Here's the boilerplate:
-
-The following changes since commit d1fdb6d8f6a4109a4263176c84b899076a5f8008=
-:
-
-  Linux 5.2-rc4 (2019-06-08 20:24:46 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linu=
-s
-
-for you to fetch changes up to 7a5834e456f7fb3eca9b63af2a6bc7f460ae482f:
-
-  RDMA/efa: Handle mmap insertions overflow (2019-06-18 16:27:24 -0400)
-
-----------------------------------------------------------------
-Pull request for 5.1-rc5
-
-- 2 minor EFA fixes
-- 10 hfi1 fixes related to scaling issues
-
-----------------------------------------------------------------
-Gal Pressman (2):
-      RDMA/efa: Fix success return value in case of error
-      RDMA/efa: Handle mmap insertions overflow
-
-Kaike Wan (1):
-      IB/hfi1: Validate fault injection opcode user input
-
-Mike Marciniszyn (9):
-      IB/hfi1: Close PSM sdma_progress sleep window
-      IB/hfi1: Correct tid qp rcd to match verbs context
-      IB/hfi1: Avoid hardlockup with flushlist_lock
-      IB/hfi1: Silence txreq allocation warnings
-      IB/hfi1: Create inline to get extended headers
-      IB/hfi1: Use aborts to trigger RC throttling
-      IB/hfi1: Wakeup QPs orphaned on wait list after flush
-      IB/hfi1: Handle wakeup of orphaned QPs for pio
-      IB/hfi1: Handle port down properly in pio
-
- drivers/infiniband/hw/efa/efa_com_cmd.c  | 24 +++++++++++----
- drivers/infiniband/hw/efa/efa_verbs.c    | 21 ++++++++++---
- drivers/infiniband/hw/hfi1/chip.c        | 13 ++++++++
- drivers/infiniband/hw/hfi1/chip.h        |  1 +
- drivers/infiniband/hw/hfi1/fault.c       |  5 +++
- drivers/infiniband/hw/hfi1/hfi.h         | 31 +++++++++++++++++++
- drivers/infiniband/hw/hfi1/pio.c         | 21 +++++++++++--
- drivers/infiniband/hw/hfi1/rc.c          | 53 +++++++++++++++++++---------=
-----
- drivers/infiniband/hw/hfi1/sdma.c        | 26 ++++++++++++----
- drivers/infiniband/hw/hfi1/tid_rdma.c    |  4 +--
- drivers/infiniband/hw/hfi1/ud.c          |  4 +--
- drivers/infiniband/hw/hfi1/user_sdma.c   | 12 +++-----
- drivers/infiniband/hw/hfi1/user_sdma.h   |  1 -
- drivers/infiniband/hw/hfi1/verbs.c       | 14 +++++----
- drivers/infiniband/hw/hfi1/verbs.h       |  1 +
- drivers/infiniband/hw/hfi1/verbs_txreq.c |  2 +-
- drivers/infiniband/hw/hfi1/verbs_txreq.h |  3 +-
- 17 files changed, 174 insertions(+), 62 deletions(-)
-
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---=-BxiJK0wsevTO9MrcGUQb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0NMxEACgkQuCajMw5X
-L90Ejw/9HNVIwSjBM02c0aSeSwBP2Ie4aasjlB/Kqg828G/DCbts1/ryVLZMSAWE
-FAHWRsvswPXZEbUgOV5w80SwHgoPfspHrkOXObTi5NQGwQISMVRnRyMeWu1a2guQ
-mP3vuhmTDhhB9gk3I19Tvmvn58TT99xdoebfPrYWjl53/llIta9JNgXwBZ5UNwkO
-r6iwbl3Yly9Sz72dfM2bapJ2r2bGIOUDDjBCPIv024yu4RIeQkHExTajy/CLnSMj
-Cjze2SrQL+VPNqm9Ro2ZJAWJh9WRrlHu366wwdT0ntH3zvcdrgENeUI4sMWCy4yg
-NLMwLJGBU//a7naY6Zqx3DYzGoGOyNBzYa6t3ni4lQoPWSmfvb9uuB9EzTIRd0x2
-9M8lL1xYdp++pOYf41ThlaeSd+whDBoRI2m4uK3V58FOQ3w3qL/i7y1t6J9ORuH7
-2e2NJeOENxN4SPdrDnJUVQ5268zLXh8mY4+T6rN9xwlKTYTO9w9GrqHR5TFLjldx
-k2UtC5zhV9fMnHoHsuHHZL2aD+QvwJaBiell2wF6hGen8cNU8DymKSAuEdXmx6cJ
-BESTZp1Ry+cLowNqI0GKAdto6Pz+5tHAmbC9f3pOnsUrYlPMDfeSwMtmL7mPs3Xe
-KHRpbVburKoCLzhWbeLoklAZ5nNyZMZfSflhtujyFxVT5cSGius=
-=WI49
------END PGP SIGNATURE-----
-
---=-BxiJK0wsevTO9MrcGUQb--
+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyA8bGludXgtcmRtYS0NCj4g
+b3duZXJAdmdlci5rZXJuZWwub3JnPiBPbiBCZWhhbGYgT2YgRG91ZyBMZWRmb3JkDQo+IA0KPiBP
+biBUaHUsIDIwMTktMDYtMTMgYXQgMTE6MzggKzAzMDAsIE1pY2hhbCBLYWxkZXJvbiB3cm90ZToN
+Cj4gPiBUaGlzIHBhdGNoIHNlcmllcyB1c2VkIHRoZSBkb29yYmVsbCBvdmVyZmxvdyByZWNvdmVy
+eSBtZWNoYW5pc20NCj4gPiBpbnRyb2R1Y2VkIGluIGNvbW1pdCAzNjkwN2NkNWNkNzIgKCJxZWQ6
+IEFkZCBkb29yYmVsbCBvdmVyZmxvdw0KPiA+IHJlY292ZXJ5IG1lY2hhbmlzbSIpIGZvciByZG1h
+ICggUm9DRSBhbmQgaVdBUlAgKQ0KPiA+DQo+ID4gcmRtYS1jb3JlIHB1bGwgcmVxdWVzdCAjNDkz
+DQo+ID4NCj4gPiBDaGFuZ2VzIGZyb20gVjI6DQo+ID4gLSBEb24ndCB1c2UgbG9uZy1saXZlZCBr
+bWFwLiBJbnN0ZWFkIHVzZSB1c2VyLXRyaWdnZXIgbW1hcCBmb3IgdGhlDQo+ID4gICBkb29yYmVs
+bCByZWNvdmVyeSBlbnRyaWVzLg0KPiA+IC0gTW9kaWZ5IGRwaV9hZGRyIHRvIGJlIGRlbm90ZWQg
+d2l0aCBfX2lvbWVtIGFuZCBhdm9pZCByZWR1bmRhbnQNCj4gPiAgIGNhc3RzDQo+ID4NCj4gPiBD
+aGFuZ2VzIGZyb20gVjE6DQo+ID4gLSBjYWxsIGttYXAgdG8gbWFwIHZpcnR1YWwgYWRkcmVzcyBp
+bnRvIGtlcm5lbCBzcGFjZQ0KPiA+IC0gbW9kaWZ5IGRiX3JlY19kZWxldGUgdG8gYmUgdm9pZA0K
+PiA+IC0gcmVtb3ZlIHNvbWUgY3B1X3RvX2xlMTYgdGhhdCB3ZXJlIGFkZGVkIHRvIHByZXZpb3Vz
+IHBhdGNoIHdoaWNoIGFyZQ0KPiA+ICAgY29ycmVjdCBidXQgbm90IHJlbGF0ZWQgdG8gdGhlIG92
+ZXJmbG93IHJlY292ZXJ5IG1lY2hhbmlzbS4gV2lsbCBiZQ0KPiA+ICAgc3VibWl0dGVkIGFzIHBh
+cnQgb2YgYSBkaWZmZXJlbnQgcGF0Y2gNCj4gPg0KPiA+DQo+ID4gTWljaGFsIEthbGRlcm9uICgz
+KToNCj4gPiAgIHFlZCo6IENoYW5nZSBkcGlfYWRkciB0byBiZSBkZW5vdGVkIHdpdGggX19pb21l
+bQ0KPiA+ICAgUkRNQS9xZWRyOiBBZGQgZG9vcmJlbGwgb3ZlcmZsb3cgcmVjb3Zlcnkgc3VwcG9y
+dA0KPiA+ICAgUkRNQS9xZWRyOiBBZGQgaVdBUlAgZG9vcmJlbGwgcmVjb3Zlcnkgc3VwcG9ydA0K
+PiA+DQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL21haW4uYyAgICAgICAgICB8ICAg
+MiArLQ0KPiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWVkci9xZWRyLmggICAgICAgICAgfCAg
+MjcgKy0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvdmVyYnMuYyAgICAgICAgIHwg
+Mzg3DQo+ID4gKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0NCj4gPiAgZHJpdmVycy9uZXQv
+ZXRoZXJuZXQvcWxvZ2ljL3FlZC9xZWRfcmRtYS5jIHwgICA2ICstDQo+ID4gIGluY2x1ZGUvbGlu
+dXgvcWVkL3FlZF9yZG1hX2lmLmggICAgICAgICAgICB8ICAgMiArLQ0KPiA+ICBpbmNsdWRlL3Vh
+cGkvcmRtYS9xZWRyLWFiaS5oICAgICAgICAgICAgICAgfCAgMjUgKysNCj4gPiAgNiBmaWxlcyBj
+aGFuZ2VkLCAzNzggaW5zZXJ0aW9ucygrKSwgNzEgZGVsZXRpb25zKC0pDQo+ID4NCj4gDQo+IEhp
+IE1pY2hhbCwNCj4gDQo+IEluIHBhdGNoIDIgYW5kIDMgYm90aCwgeW91IHN0aWxsIGhhdmUgcXVp
+dGUgYSBmZXcgY2FzdHMgdG8gKHU4IF9faW9tZW0gKikuDQo+IFdoeSBub3QganVzdCBkZWZpbmUg
+dGhlIHN0cnVjdCBlbGVtZW50cyBhcyB1OCBfX2lvbWVtICogaW5zdGVhZCBvZiB2b2lkDQo+IF9f
+aW9tZW0gKiBhbmQgYXZvaWQgYWxsIHRoZSBjYXN0cz8NCj4gDQpIaSBEb3VnLCANCg0KVGhhbmtz
+IGZvciB0aGUgcmV2aWV3LiBUaGUgcmVtYWluaW5nIGNhc3RzIGFyZSBkdWUgdG8gcG9pbnRlciBh
+cml0aG1ldGljIGFuZCBub3QgdmFyaWFibGUgYXNzaWdubWVudHMNCmFzIGJlZm9yZS4gUmVtb3Zp
+bmcgdGhlIGNhc3QgZW50aXJlbHkgd2lsbCByZXF1aXJlIHF1aXRlIGEgbG90IG9mIGNoYW5nZXMg
+aW4gcWVkIGFuZCBpbiByZG1hLWNvcmUNCndoaWNoIEkgd291bGQgYmUgaGFwcHkgdG8gYXZvaWQg
+YXQgdGhpcyB0aW1lLiANClBsZWFzZSByZWNvbnNpZGVyLCANClRoYW5rcyBhZ2FpbiANCk1pY2hh
+bA0KDQoNCj4gLS0NCj4gRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPg0KPiAgICAg
+R1BHIEtleUlEOiBCODI2QTMzMzBFNTcyRkREDQo+ICAgICBGaW5nZXJwcmludCA9IEFFNkIgMUJE
+QSAxMjJCIDIzQjQgMjY1QiAgMTI3NCBCODI2IEEzMzMgMEU1NyAyRkREDQo=
