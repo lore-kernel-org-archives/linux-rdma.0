@@ -1,74 +1,24 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v3 rdma-next 0/3] RDMA/qedr: Use the doorbell overflow
- recovery mechanism for RDMA
-Date: Fri, 21 Jun 2019 16:58:18 -0300
-Message-ID: <20190621195818.GY19891@ziepe.ca>
-References: <20190613083819.6998-1-michal.kalderon@marvell.com>
- <bda0321cb362bc93f5428b1df7daf69fed083656.camel@redhat.com>
- <MN2PR18MB3182498CA8C9C7EB3259F62FA1E70@MN2PR18MB3182.namprd18.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <MN2PR18MB3182498CA8C9C7EB3259F62FA1E70@MN2PR18MB3182.namprd18.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Michal Kalderon <mkalderon@marvell.com>
-Cc: Doug Ledford <dledford@redhat.com>, Ariel Elior <aelior@marvell.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+From: pr-tracker-bot@kernel.org
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 21 Jun 2019 22:35:04 +0000
+Message-ID: <156115650496.19817.5999188001035010719.pr-tracker-bot@kernel.org>
+References: <3ed43fc8399c5b8efa262699a1d3559cbe41fed5.camel@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3ed43fc8399c5b8efa262699a1d3559cbe41fed5.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: "Torvalds, Linus" <torvalds@linux-foundation.org>, "Gunthorpe, Jason" <jgg@ziepe.ca>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 21, 2019 at 07:49:39PM +0000, Michal Kalderon wrote:
-> > From: linux-rdma-owner@vger.kernel.org <linux-rdma-
-> > owner@vger.kernel.org> On Behalf Of Doug Ledford
-> > 
-> > On Thu, 2019-06-13 at 11:38 +0300, Michal Kalderon wrote:
-> > > This patch series used the doorbell overflow recovery mechanism
-> > > introduced in commit 36907cd5cd72 ("qed: Add doorbell overflow
-> > > recovery mechanism") for rdma ( RoCE and iWARP )
-> > >
-> > > rdma-core pull request #493
-> > >
-> > > Changes from V2:
-> > > - Don't use long-lived kmap. Instead use user-trigger mmap for the
-> > >   doorbell recovery entries.
-> > > - Modify dpi_addr to be denoted with __iomem and avoid redundant
-> > >   casts
-> > >
-> > > Changes from V1:
-> > > - call kmap to map virtual address into kernel space
-> > > - modify db_rec_delete to be void
-> > > - remove some cpu_to_le16 that were added to previous patch which are
-> > >   correct but not related to the overflow recovery mechanism. Will be
-> > >   submitted as part of a different patch
-> > >
-> > >
-> > > Michal Kalderon (3):
-> > >   qed*: Change dpi_addr to be denoted with __iomem
-> > >   RDMA/qedr: Add doorbell overflow recovery support
-> > >   RDMA/qedr: Add iWARP doorbell recovery support
-> > >
-> > >  drivers/infiniband/hw/qedr/main.c          |   2 +-
-> > >  drivers/infiniband/hw/qedr/qedr.h          |  27 +-
-> > >  drivers/infiniband/hw/qedr/verbs.c         | 387
-> > > ++++++++++++++++++++++++-----
-> > >  drivers/net/ethernet/qlogic/qed/qed_rdma.c |   6 +-
-> > >  include/linux/qed/qed_rdma_if.h            |   2 +-
-> > >  include/uapi/rdma/qedr-abi.h               |  25 ++
-> > >  6 files changed, 378 insertions(+), 71 deletions(-)
-> > >
-> > 
-> > Hi Michal,
-> > 
-> > In patch 2 and 3 both, you still have quite a few casts to (u8 __iomem *).
-> > Why not just define the struct elements as u8 __iomem * instead of void
-> > __iomem * and avoid all the casts?
-> > 
-> Hi Doug, 
-> 
-> Thanks for the review. The remaining casts are due to pointer arithmetic and not variable assignments
-> as before. Removing the cast entirely will require quite a lot of changes in qed and in rdma-core
-> which I would be happy to avoid at this time. 
+The pull request you sent on Fri, 21 Jun 2019 15:42:09 -0400:
 
-In linux pointer math on a void * acts the same as a u8 so you should
-never need to cast a void * to a u8 just to do math?
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
 
-Jason
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/121bddf39a8e39baf0df9ef1d688392c179935cd
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
