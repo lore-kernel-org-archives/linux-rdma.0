@@ -1,58 +1,74 @@
-From: Michal Kalderon <mkalderon@marvell.com>
-Subject: RE: [PATCH v3 rdma-next 0/3] RDMA/qedr: Use the doorbell overflow
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v3 rdma-next 0/3] RDMA/qedr: Use the doorbell overflow
  recovery mechanism for RDMA
-Date: Fri, 21 Jun 2019 19:49:39 +0000
-Message-ID: <MN2PR18MB3182498CA8C9C7EB3259F62FA1E70@MN2PR18MB3182.namprd18.prod.outlook.com>
+Date: Fri, 21 Jun 2019 16:58:18 -0300
+Message-ID: <20190621195818.GY19891@ziepe.ca>
 References: <20190613083819.6998-1-michal.kalderon@marvell.com>
  <bda0321cb362bc93f5428b1df7daf69fed083656.camel@redhat.com>
+ <MN2PR18MB3182498CA8C9C7EB3259F62FA1E70@MN2PR18MB3182.namprd18.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <bda0321cb362bc93f5428b1df7daf69fed083656.camel@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <MN2PR18MB3182498CA8C9C7EB3259F62FA1E70@MN2PR18MB3182.namprd18.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Ariel Elior <aelior@marvell.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Michal Kalderon <mkalderon@marvell.com>
+Cc: Doug Ledford <dledford@redhat.com>, Ariel Elior <aelior@marvell.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyA8bGludXgtcmRtYS0NCj4g
-b3duZXJAdmdlci5rZXJuZWwub3JnPiBPbiBCZWhhbGYgT2YgRG91ZyBMZWRmb3JkDQo+IA0KPiBP
-biBUaHUsIDIwMTktMDYtMTMgYXQgMTE6MzggKzAzMDAsIE1pY2hhbCBLYWxkZXJvbiB3cm90ZToN
-Cj4gPiBUaGlzIHBhdGNoIHNlcmllcyB1c2VkIHRoZSBkb29yYmVsbCBvdmVyZmxvdyByZWNvdmVy
-eSBtZWNoYW5pc20NCj4gPiBpbnRyb2R1Y2VkIGluIGNvbW1pdCAzNjkwN2NkNWNkNzIgKCJxZWQ6
-IEFkZCBkb29yYmVsbCBvdmVyZmxvdw0KPiA+IHJlY292ZXJ5IG1lY2hhbmlzbSIpIGZvciByZG1h
-ICggUm9DRSBhbmQgaVdBUlAgKQ0KPiA+DQo+ID4gcmRtYS1jb3JlIHB1bGwgcmVxdWVzdCAjNDkz
-DQo+ID4NCj4gPiBDaGFuZ2VzIGZyb20gVjI6DQo+ID4gLSBEb24ndCB1c2UgbG9uZy1saXZlZCBr
-bWFwLiBJbnN0ZWFkIHVzZSB1c2VyLXRyaWdnZXIgbW1hcCBmb3IgdGhlDQo+ID4gICBkb29yYmVs
-bCByZWNvdmVyeSBlbnRyaWVzLg0KPiA+IC0gTW9kaWZ5IGRwaV9hZGRyIHRvIGJlIGRlbm90ZWQg
-d2l0aCBfX2lvbWVtIGFuZCBhdm9pZCByZWR1bmRhbnQNCj4gPiAgIGNhc3RzDQo+ID4NCj4gPiBD
-aGFuZ2VzIGZyb20gVjE6DQo+ID4gLSBjYWxsIGttYXAgdG8gbWFwIHZpcnR1YWwgYWRkcmVzcyBp
-bnRvIGtlcm5lbCBzcGFjZQ0KPiA+IC0gbW9kaWZ5IGRiX3JlY19kZWxldGUgdG8gYmUgdm9pZA0K
-PiA+IC0gcmVtb3ZlIHNvbWUgY3B1X3RvX2xlMTYgdGhhdCB3ZXJlIGFkZGVkIHRvIHByZXZpb3Vz
-IHBhdGNoIHdoaWNoIGFyZQ0KPiA+ICAgY29ycmVjdCBidXQgbm90IHJlbGF0ZWQgdG8gdGhlIG92
-ZXJmbG93IHJlY292ZXJ5IG1lY2hhbmlzbS4gV2lsbCBiZQ0KPiA+ICAgc3VibWl0dGVkIGFzIHBh
-cnQgb2YgYSBkaWZmZXJlbnQgcGF0Y2gNCj4gPg0KPiA+DQo+ID4gTWljaGFsIEthbGRlcm9uICgz
-KToNCj4gPiAgIHFlZCo6IENoYW5nZSBkcGlfYWRkciB0byBiZSBkZW5vdGVkIHdpdGggX19pb21l
-bQ0KPiA+ICAgUkRNQS9xZWRyOiBBZGQgZG9vcmJlbGwgb3ZlcmZsb3cgcmVjb3Zlcnkgc3VwcG9y
-dA0KPiA+ICAgUkRNQS9xZWRyOiBBZGQgaVdBUlAgZG9vcmJlbGwgcmVjb3Zlcnkgc3VwcG9ydA0K
-PiA+DQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL21haW4uYyAgICAgICAgICB8ICAg
-MiArLQ0KPiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWVkci9xZWRyLmggICAgICAgICAgfCAg
-MjcgKy0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvdmVyYnMuYyAgICAgICAgIHwg
-Mzg3DQo+ID4gKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0NCj4gPiAgZHJpdmVycy9uZXQv
-ZXRoZXJuZXQvcWxvZ2ljL3FlZC9xZWRfcmRtYS5jIHwgICA2ICstDQo+ID4gIGluY2x1ZGUvbGlu
-dXgvcWVkL3FlZF9yZG1hX2lmLmggICAgICAgICAgICB8ICAgMiArLQ0KPiA+ICBpbmNsdWRlL3Vh
-cGkvcmRtYS9xZWRyLWFiaS5oICAgICAgICAgICAgICAgfCAgMjUgKysNCj4gPiAgNiBmaWxlcyBj
-aGFuZ2VkLCAzNzggaW5zZXJ0aW9ucygrKSwgNzEgZGVsZXRpb25zKC0pDQo+ID4NCj4gDQo+IEhp
-IE1pY2hhbCwNCj4gDQo+IEluIHBhdGNoIDIgYW5kIDMgYm90aCwgeW91IHN0aWxsIGhhdmUgcXVp
-dGUgYSBmZXcgY2FzdHMgdG8gKHU4IF9faW9tZW0gKikuDQo+IFdoeSBub3QganVzdCBkZWZpbmUg
-dGhlIHN0cnVjdCBlbGVtZW50cyBhcyB1OCBfX2lvbWVtICogaW5zdGVhZCBvZiB2b2lkDQo+IF9f
-aW9tZW0gKiBhbmQgYXZvaWQgYWxsIHRoZSBjYXN0cz8NCj4gDQpIaSBEb3VnLCANCg0KVGhhbmtz
-IGZvciB0aGUgcmV2aWV3LiBUaGUgcmVtYWluaW5nIGNhc3RzIGFyZSBkdWUgdG8gcG9pbnRlciBh
-cml0aG1ldGljIGFuZCBub3QgdmFyaWFibGUgYXNzaWdubWVudHMNCmFzIGJlZm9yZS4gUmVtb3Zp
-bmcgdGhlIGNhc3QgZW50aXJlbHkgd2lsbCByZXF1aXJlIHF1aXRlIGEgbG90IG9mIGNoYW5nZXMg
-aW4gcWVkIGFuZCBpbiByZG1hLWNvcmUNCndoaWNoIEkgd291bGQgYmUgaGFwcHkgdG8gYXZvaWQg
-YXQgdGhpcyB0aW1lLiANClBsZWFzZSByZWNvbnNpZGVyLCANClRoYW5rcyBhZ2FpbiANCk1pY2hh
-bA0KDQoNCj4gLS0NCj4gRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPg0KPiAgICAg
-R1BHIEtleUlEOiBCODI2QTMzMzBFNTcyRkREDQo+ICAgICBGaW5nZXJwcmludCA9IEFFNkIgMUJE
-QSAxMjJCIDIzQjQgMjY1QiAgMTI3NCBCODI2IEEzMzMgMEU1NyAyRkREDQo=
+On Fri, Jun 21, 2019 at 07:49:39PM +0000, Michal Kalderon wrote:
+> > From: linux-rdma-owner@vger.kernel.org <linux-rdma-
+> > owner@vger.kernel.org> On Behalf Of Doug Ledford
+> > 
+> > On Thu, 2019-06-13 at 11:38 +0300, Michal Kalderon wrote:
+> > > This patch series used the doorbell overflow recovery mechanism
+> > > introduced in commit 36907cd5cd72 ("qed: Add doorbell overflow
+> > > recovery mechanism") for rdma ( RoCE and iWARP )
+> > >
+> > > rdma-core pull request #493
+> > >
+> > > Changes from V2:
+> > > - Don't use long-lived kmap. Instead use user-trigger mmap for the
+> > >   doorbell recovery entries.
+> > > - Modify dpi_addr to be denoted with __iomem and avoid redundant
+> > >   casts
+> > >
+> > > Changes from V1:
+> > > - call kmap to map virtual address into kernel space
+> > > - modify db_rec_delete to be void
+> > > - remove some cpu_to_le16 that were added to previous patch which are
+> > >   correct but not related to the overflow recovery mechanism. Will be
+> > >   submitted as part of a different patch
+> > >
+> > >
+> > > Michal Kalderon (3):
+> > >   qed*: Change dpi_addr to be denoted with __iomem
+> > >   RDMA/qedr: Add doorbell overflow recovery support
+> > >   RDMA/qedr: Add iWARP doorbell recovery support
+> > >
+> > >  drivers/infiniband/hw/qedr/main.c          |   2 +-
+> > >  drivers/infiniband/hw/qedr/qedr.h          |  27 +-
+> > >  drivers/infiniband/hw/qedr/verbs.c         | 387
+> > > ++++++++++++++++++++++++-----
+> > >  drivers/net/ethernet/qlogic/qed/qed_rdma.c |   6 +-
+> > >  include/linux/qed/qed_rdma_if.h            |   2 +-
+> > >  include/uapi/rdma/qedr-abi.h               |  25 ++
+> > >  6 files changed, 378 insertions(+), 71 deletions(-)
+> > >
+> > 
+> > Hi Michal,
+> > 
+> > In patch 2 and 3 both, you still have quite a few casts to (u8 __iomem *).
+> > Why not just define the struct elements as u8 __iomem * instead of void
+> > __iomem * and avoid all the casts?
+> > 
+> Hi Doug, 
+> 
+> Thanks for the review. The remaining casts are due to pointer arithmetic and not variable assignments
+> as before. Removing the cast entirely will require quite a lot of changes in qed and in rdma-core
+> which I would be happy to avoid at this time. 
+
+In linux pointer math on a void * acts the same as a u8 so you should
+never need to cast a void * to a u8 just to do math?
+
+Jason
