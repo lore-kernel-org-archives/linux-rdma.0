@@ -1,88 +1,92 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] RDMA/core: Fix race when resolving IP address
-Date: Fri, 21 Jun 2019 11:56:04 -0300
-Message-ID: <20190621145604.GS19891@ziepe.ca>
-References: <1561126156-10162-1-git-send-email-dag.moxnes@oracle.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v3 rdma-next 0/3] RDMA/qedr: Use the doorbell overflow
+ recovery mechanism for RDMA
+Date: Fri, 21 Jun 2019 11:49:56 -0400
+Message-ID: <bda0321cb362bc93f5428b1df7daf69fed083656.camel@redhat.com>
+References: <20190613083819.6998-1-michal.kalderon@marvell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1561126156-10162-1-git-send-email-dag.moxnes@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dag Moxnes <dag.moxnes@oracle.com>
-Cc: dledford@redhat.com, leon@kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Parav Pandit <parav@mellanox.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-dsnFBwleYpJojgxQ5ys9"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190613083819.6998-1-michal.kalderon@marvell.com>
+Sender: netdev-owner@vger.kernel.org
+To: Michal Kalderon <michal.kalderon@marvell.com>, ariel.elior@marvell.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, davem@davemloft.net, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 21, 2019 at 04:09:16PM +0200, Dag Moxnes wrote:
-> Use neighbour lock when copying MAC address from neighbour data struct
-> in dst_fetch_ha.
-> 
-> When not using the lock, it is possible for the function to race with
-> neigh_update, causing it to copy an invalid MAC address.
-> 
-> It is possible to provoke this error by calling rdma_resolve_addr in a
-> tight loop, while deleting the corresponding ARP entry in another tight
-> loop.
-> 
-> Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
-> Change-Id: I3c5f982b304457f0a83ea7def2fac70315ed38b4
->  drivers/infiniband/core/addr.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-> index 2f7d141598..e4945fd1bb 100644
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -333,12 +333,16 @@ static int dst_fetch_ha(const struct dst_entry *dst,
->  	if (!n)
->  		return -ENODATA;
->  
-> +	read_lock_bh(&n->lock)
->  	if (!(n->nud_state & NUD_VALID)) {
-> -		neigh_event_send(n, NULL);
->  		ret = -ENODATA;
->  	} else {
->  		memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
->  	}
-> +	read_unlock_bh(&n->lock);
-> +
-> +	if (ret)
-> +		neigh_event_send(n, NULL);
->  
->  	neigh_release(n);
 
-Can we write this with less spaghetti please, maybe:
+--=-dsnFBwleYpJojgxQ5ys9
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-static int dst_fetch_ha(const struct dst_entry *dst,
-			struct rdma_dev_addr *dev_addr,
-			const void *daddr)
-{
-	struct neighbour *n;
-	int ret = 0;
+On Thu, 2019-06-13 at 11:38 +0300, Michal Kalderon wrote:
+> This patch series used the doorbell overflow recovery mechanism
+> introduced in
+> commit 36907cd5cd72 ("qed: Add doorbell overflow recovery mechanism")
+> for rdma ( RoCE and iWARP )
+>=20
+> rdma-core pull request #493
+>=20
+> Changes from V2:
+> - Don't use long-lived kmap. Instead use user-trigger mmap for the
+>   doorbell recovery entries.
+> - Modify dpi_addr to be denoted with __iomem and avoid redundant
+>   casts
+>=20
+> Changes from V1:
+> - call kmap to map virtual address into kernel space
+> - modify db_rec_delete to be void
+> - remove some cpu_to_le16 that were added to previous patch which are
+>   correct but not related to the overflow recovery mechanism. Will be
+>   submitted as part of a different patch
+>=20
+>=20
+> Michal Kalderon (3):
+>   qed*: Change dpi_addr to be denoted with __iomem
+>   RDMA/qedr: Add doorbell overflow recovery support
+>   RDMA/qedr: Add iWARP doorbell recovery support
+>=20
+>  drivers/infiniband/hw/qedr/main.c          |   2 +-
+>  drivers/infiniband/hw/qedr/qedr.h          |  27 +-
+>  drivers/infiniband/hw/qedr/verbs.c         | 387
+> ++++++++++++++++++++++++-----
+>  drivers/net/ethernet/qlogic/qed/qed_rdma.c |   6 +-
+>  include/linux/qed/qed_rdma_if.h            |   2 +-
+>  include/uapi/rdma/qedr-abi.h               |  25 ++
+>  6 files changed, 378 insertions(+), 71 deletions(-)
+>=20
 
-	n = dst_neigh_lookup(dst, daddr);
-	if (!n)
-		return -ENODATA;
+Hi Michal,
 
-	read_lock_bh(&n->lock);
-	if (!(n->nud_state & NUD_VALID)) {
-		read_unlock_bh(&n->lock);
-		goto out_send;
-	}
-	memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
-	read_unlock_bh(&n->lock);
+In patch 2 and 3 both, you still have quite a few casts to (u8 __iomem
+*).  Why not just define the struct elements as u8 __iomem * instead of
+void __iomem * and avoid all the casts?
 
-	goto out_release;
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-out_send:
-	neigh_event_send(n, NULL);
-	ret = -ENODATA;
-out_release:
-	neigh_release(n);
+--=-dsnFBwleYpJojgxQ5ys9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-	return ret;
-}
+-----BEGIN PGP SIGNATURE-----
 
-Also, Parav should look at it.
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl0M/KQACgkQuCajMw5X
+L91UWw//RDPqDJyB9yRh6Hp1fiLklEqPg4ActjxLNqTy8dTC7ptZhB23B5chNdeZ
+eDXcrnrq80Li9Gc1zRW9Zrt214PHr8o08Br1GfhKMC6LCDebqK5RVDO6rV/hCNIt
+QL3cScpKQBDwuUqpKCd4DmS/jDbdSPRSxl41r2LxzhJE8vNBnhdCtTsGUmXaD+ew
+iRc3L+fbqQ9Lb5pbnL5LTlYIMF1kfWIB8bRbPd81efCRXMrDVStGGEDR4h+Obfbk
+a8ej6vefDDALftxs4IjxrUvMW5CRid/tpy00dsbVmRWzIbmnvjaDYQfX0s57Fc+I
+JImrePFMs85BVifPkfpfzVMCwTfUhKcaiy3B8LjniEGqyRloaM2F3A7Kx8sOmg3p
+FG54KyScc1VJBoxP7Cu/gvyAeiJHopuTEGvNQMbQ0Q1ed69+Krg03eVzdGZss9H4
+0bq2qf/Tce8VqDadB7S3Ru1EWeUqQtmM8LyNMaOngadGe7+U2ncfV5bsfGEciTG/
+CPseTH6ch1IGwp1RyK+lFQlftbSjPqY37WtdGMuPqP2E/E5QrgQBWeFztItcG1ji
+7cRKGNNg03wSut0oPwII2B0bRw5TT83nULXQALmi5zw7NhZkC5QaebbykZvs27xd
+LOrGZobjf1AdqK5vst5Rmp5+cx3N8Ey8YDMx//gueWqiRsjIDDc=
+=CAEI
+-----END PGP SIGNATURE-----
 
-Thanks,
-Jason
+--=-dsnFBwleYpJojgxQ5ys9--
