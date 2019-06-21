@@ -1,143 +1,50 @@
-From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: Re: [PATCH iproute2-next v2 1/2] ipaddress: correctly print a VF hw
- address in the IPoIB case
-Date: Fri, 21 Jun 2019 13:30:34 +0300
-Message-ID: <CAOJe8K3ugk1SvBKOhv5d7C8gHjJ+Tjpi9UgqNQhEan=Pf9Qx2g@mail.gmail.com>
-References: <20190620090249.106704-1-dkirjanov@suse.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190620090249.106704-1-dkirjanov@suse.com>
-Sender: netdev-owner@vger.kernel.org
-To: stephen@networkplumber.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
+From: Dag Moxnes <dag.moxnes@oracle.com>
+Subject: [PATCH] RDMA/core: Fix race when resolving IP address
+Date: Fri, 21 Jun 2019 16:09:16 +0200
+Message-ID: <1561126156-10162-1-git-send-email-dag.moxnes@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dag.moxnes@oracle.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/20/19, Denis Kirjanov <kda@linux-powerpc.org> wrote:
-> Current code assumes that we print Etheret mac and
-> that doesn't work in IPoIB case with SRIOV-enabled hardware
->
-> Before:
-> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-> state UP mode DEFAULT group default qlen 256
->         link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
->         vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
->     trust off, query_rss off
->     ...
->
-> After:
-> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-> state UP mode DEFAULT group default qlen 256
->         link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
->         vf 0     link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-> checking off, link-state disable, trust off, query_rss off
->
-> v1->v2: updated kernel headers to uapi commit
->
-> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+Use neighbour lock when copying MAC address from neighbour data struct
+in dst_fetch_ha.
 
-Hi Stephen,
+When not using the lock, it is possible for the function to race with
+neigh_update, causing it to copy an invalid MAC address.
 
-are you going to take the patches?
+It is possible to provoke this error by calling rdma_resolve_addr in a
+tight loop, while deleting the corresponding ARP entry in another tight
+loop.
 
-Thanks!
+Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
+Change-Id: I3c5f982b304457f0a83ea7def2fac70315ed38b4
+---
+ drivers/infiniband/core/addr.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-> ---
->  ip/ipaddress.c | 42 +++++++++++++++++++++++++++++++++++++-----
->  1 file changed, 37 insertions(+), 5 deletions(-)
->
-> diff --git a/ip/ipaddress.c b/ip/ipaddress.c
-> index b504200b..13ad76dd 100644
-> --- a/ip/ipaddress.c
-> +++ b/ip/ipaddress.c
-> @@ -26,6 +26,7 @@
->
->  #include <linux/netdevice.h>
->  #include <linux/if_arp.h>
-> +#include <linux/if_infiniband.h>
->  #include <linux/sockios.h>
->  #include <linux/net_namespace.h>
->
-> @@ -349,9 +350,10 @@ static void print_af_spec(FILE *fp, struct rtattr
-> *af_spec_attr)
->
->  static void print_vf_stats64(FILE *fp, struct rtattr *vfstats);
->
-> -static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
-> +static void print_vfinfo(struct ifinfomsg *ifi, FILE *fp, struct rtattr
-> *vfinfo)
->  {
->  	struct ifla_vf_mac *vf_mac;
-> +	struct ifla_vf_broadcast *vf_broadcast;
->  	struct ifla_vf_tx_rate *vf_tx_rate;
->  	struct rtattr *vf[IFLA_VF_MAX + 1] = {};
->
-> @@ -365,13 +367,43 @@ static void print_vfinfo(FILE *fp, struct rtattr
-> *vfinfo)
->  	parse_rtattr_nested(vf, IFLA_VF_MAX, vfinfo);
->
->  	vf_mac = RTA_DATA(vf[IFLA_VF_MAC]);
-> +	vf_broadcast = RTA_DATA(vf[IFLA_VF_BROADCAST]);
->  	vf_tx_rate = RTA_DATA(vf[IFLA_VF_TX_RATE]);
->
->  	print_string(PRINT_FP, NULL, "%s    ", _SL_);
->  	print_int(PRINT_ANY, "vf", "vf %d ", vf_mac->vf);
-> -	print_string(PRINT_ANY, "mac", "MAC %s",
-> -		     ll_addr_n2a((unsigned char *) &vf_mac->mac,
-> -				 ETH_ALEN, 0, b1, sizeof(b1)));
-> +
-> +	print_string(PRINT_ANY,
-> +			"link_type",
-> +			"    link/%s ",
-> +			ll_type_n2a(ifi->ifi_type, b1, sizeof(b1)));
-> +
-> +	print_color_string(PRINT_ANY,
-> +				COLOR_MAC,
-> +				"address",
-> +				"%s",
-> +				ll_addr_n2a((unsigned char *) &vf_mac->mac,
-> +					ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
-> +					ifi->ifi_type,
-> +					b1, sizeof(b1)));
-> +
-> +	if (vf[IFLA_VF_BROADCAST]) {
-> +		if (ifi->ifi_flags&IFF_POINTOPOINT) {
-> +			print_string(PRINT_FP, NULL, " peer ", NULL);
-> +			print_bool(PRINT_JSON,
-> +					"link_pointtopoint", NULL, true);
-> +                        } else {
-> +				print_string(PRINT_FP, NULL, " brd ", NULL);
-> +                        }
-> +                        print_color_string(PRINT_ANY,
-> +                                           COLOR_MAC,
-> +                                           "broadcast",
-> +                                           "%s",
-> +                                           ll_addr_n2a((unsigned char *)
-> &vf_broadcast->broadcast,
-> +                                                       ifi->ifi_type ==
-> ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
-> +                                                       ifi->ifi_type,
-> +                                                       b1, sizeof(b1)));
-> +	}
->
->  	if (vf[IFLA_VF_VLAN_LIST]) {
->  		struct rtattr *i, *vfvlanlist = vf[IFLA_VF_VLAN_LIST];
-> @@ -1102,7 +1134,7 @@ int print_linkinfo(struct nlmsghdr *n, void *arg)
->  		open_json_array(PRINT_JSON, "vfinfo_list");
->  		for (i = RTA_DATA(vflist); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
->  			open_json_object(NULL);
-> -			print_vfinfo(fp, i);
-> +			print_vfinfo(ifi, fp, i);
->  			close_json_object();
->  		}
->  		close_json_array(PRINT_JSON, NULL);
-> --
-> 2.12.3
->
->
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 2f7d141598..e4945fd1bb 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -333,12 +333,16 @@ static int dst_fetch_ha(const struct dst_entry *dst,
+ 	if (!n)
+ 		return -ENODATA;
+ 
++	read_lock_bh(&n->lock)
+ 	if (!(n->nud_state & NUD_VALID)) {
+-		neigh_event_send(n, NULL);
+ 		ret = -ENODATA;
+ 	} else {
+ 		memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
+ 	}
++	read_unlock_bh(&n->lock);
++
++	if (ret)
++		neigh_event_send(n, NULL);
+ 
+ 	neigh_release(n);
+ 
+-- 
+2.20.1
