@@ -1,33 +1,143 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Thu, 20 Jun 2019 17:42:50 -0600
-Message-ID: <3379917c-0ebc-0019-a71c-12248f4668ee@deltatee.com>
-References: <20190620161240.22738-1-logang@deltatee.com>
- <CAPcyv4ijztOK1FUjLuFing7ps4LOHt=6z=eO=98HHWauHA+yog@mail.gmail.com>
- <91eba9a0-27b4-08b4-7c12-86e24e1bfe85@deltatee.com>
- <CAPcyv4gPOXaL3qks6RMufu==O9RV2m_-7bBmJqKOFYTf4v_jXQ@mail.gmail.com>
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: Re: [PATCH iproute2-next v2 1/2] ipaddress: correctly print a VF hw
+ address in the IPoIB case
+Date: Fri, 21 Jun 2019 13:30:34 +0300
+Message-ID: <CAOJe8K3ugk1SvBKOhv5d7C8gHjJ+Tjpi9UgqNQhEan=Pf9Qx2g@mail.gmail.com>
+References: <20190620090249.106704-1-dkirjanov@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4gPOXaL3qks6RMufu==O9RV2m_-7bBmJqKOFYTf4v_jXQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190620090249.106704-1-dkirjanov@suse.com>
+Sender: netdev-owner@vger.kernel.org
+To: stephen@networkplumber.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 6/20/19, Denis Kirjanov <kda@linux-powerpc.org> wrote:
+> Current code assumes that we print Etheret mac and
+> that doesn't work in IPoIB case with SRIOV-enabled hardware
+>
+> Before:
+> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+> state UP mode DEFAULT group default qlen 256
+>         link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>         vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
+>     trust off, query_rss off
+>     ...
+>
+> After:
+> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+> state UP mode DEFAULT group default qlen 256
+>         link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>         vf 0     link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+> checking off, link-state disable, trust off, query_rss off
+>
+> v1->v2: updated kernel headers to uapi commit
+>
+> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
 
+Hi Stephen,
 
-On 2019-06-20 5:40 p.m., Dan Williams wrote:
-> This seems to be the most salient point. I was missing the fact that
-> this replaces custom hacks and "special" pages with an explicit "just
-> pass this pre-mapped address down the stack". It's functionality that
-> might plausibly be used outside of p2p, as long as the driver can
-> assert that it never needs to touch the data with the cpu before
-> handing it off to a dma-engine.
+are you going to take the patches?
 
-Yup, that's a good way to put it. If I resend this patchset, I'll
-include wording like yours in the cover letter.
+Thanks!
 
-Logan
+> ---
+>  ip/ipaddress.c | 42 +++++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 37 insertions(+), 5 deletions(-)
+>
+> diff --git a/ip/ipaddress.c b/ip/ipaddress.c
+> index b504200b..13ad76dd 100644
+> --- a/ip/ipaddress.c
+> +++ b/ip/ipaddress.c
+> @@ -26,6 +26,7 @@
+>
+>  #include <linux/netdevice.h>
+>  #include <linux/if_arp.h>
+> +#include <linux/if_infiniband.h>
+>  #include <linux/sockios.h>
+>  #include <linux/net_namespace.h>
+>
+> @@ -349,9 +350,10 @@ static void print_af_spec(FILE *fp, struct rtattr
+> *af_spec_attr)
+>
+>  static void print_vf_stats64(FILE *fp, struct rtattr *vfstats);
+>
+> -static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
+> +static void print_vfinfo(struct ifinfomsg *ifi, FILE *fp, struct rtattr
+> *vfinfo)
+>  {
+>  	struct ifla_vf_mac *vf_mac;
+> +	struct ifla_vf_broadcast *vf_broadcast;
+>  	struct ifla_vf_tx_rate *vf_tx_rate;
+>  	struct rtattr *vf[IFLA_VF_MAX + 1] = {};
+>
+> @@ -365,13 +367,43 @@ static void print_vfinfo(FILE *fp, struct rtattr
+> *vfinfo)
+>  	parse_rtattr_nested(vf, IFLA_VF_MAX, vfinfo);
+>
+>  	vf_mac = RTA_DATA(vf[IFLA_VF_MAC]);
+> +	vf_broadcast = RTA_DATA(vf[IFLA_VF_BROADCAST]);
+>  	vf_tx_rate = RTA_DATA(vf[IFLA_VF_TX_RATE]);
+>
+>  	print_string(PRINT_FP, NULL, "%s    ", _SL_);
+>  	print_int(PRINT_ANY, "vf", "vf %d ", vf_mac->vf);
+> -	print_string(PRINT_ANY, "mac", "MAC %s",
+> -		     ll_addr_n2a((unsigned char *) &vf_mac->mac,
+> -				 ETH_ALEN, 0, b1, sizeof(b1)));
+> +
+> +	print_string(PRINT_ANY,
+> +			"link_type",
+> +			"    link/%s ",
+> +			ll_type_n2a(ifi->ifi_type, b1, sizeof(b1)));
+> +
+> +	print_color_string(PRINT_ANY,
+> +				COLOR_MAC,
+> +				"address",
+> +				"%s",
+> +				ll_addr_n2a((unsigned char *) &vf_mac->mac,
+> +					ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
+> +					ifi->ifi_type,
+> +					b1, sizeof(b1)));
+> +
+> +	if (vf[IFLA_VF_BROADCAST]) {
+> +		if (ifi->ifi_flags&IFF_POINTOPOINT) {
+> +			print_string(PRINT_FP, NULL, " peer ", NULL);
+> +			print_bool(PRINT_JSON,
+> +					"link_pointtopoint", NULL, true);
+> +                        } else {
+> +				print_string(PRINT_FP, NULL, " brd ", NULL);
+> +                        }
+> +                        print_color_string(PRINT_ANY,
+> +                                           COLOR_MAC,
+> +                                           "broadcast",
+> +                                           "%s",
+> +                                           ll_addr_n2a((unsigned char *)
+> &vf_broadcast->broadcast,
+> +                                                       ifi->ifi_type ==
+> ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
+> +                                                       ifi->ifi_type,
+> +                                                       b1, sizeof(b1)));
+> +	}
+>
+>  	if (vf[IFLA_VF_VLAN_LIST]) {
+>  		struct rtattr *i, *vfvlanlist = vf[IFLA_VF_VLAN_LIST];
+> @@ -1102,7 +1134,7 @@ int print_linkinfo(struct nlmsghdr *n, void *arg)
+>  		open_json_array(PRINT_JSON, "vfinfo_list");
+>  		for (i = RTA_DATA(vflist); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+>  			open_json_object(NULL);
+> -			print_vfinfo(fp, i);
+> +			print_vfinfo(ifi, fp, i);
+>  			close_json_object();
+>  		}
+>  		close_json_array(PRINT_JSON, NULL);
+> --
+> 2.12.3
+>
+>
