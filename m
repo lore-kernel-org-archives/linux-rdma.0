@@ -1,78 +1,74 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next v2 1/2] ipaddress: correctly print a VF hw
- address in the IPoIB case
-Date: Fri, 21 Jun 2019 16:56:09 -0600
-Message-ID: <68e73778-a739-4337-0e48-280483a73569@gmail.com>
-References: <20190620090249.106704-1-dkirjanov@suse.com>
+From: Ajay Kaher <akaher@vmware.com>
+Subject: [PATCH v3 2/2][v4.9.y] coredump: fix race condition between mmget_not_zero()/get_task_mm() and core dumping
+Date: Sat, 22 Jun 2019 18:32:18 +0530
+Message-ID: <1561208539-29682-2-git-send-email-akaher@vmware.com>
+References: <1561208539-29682-1-git-send-email-akaher@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190620090249.106704-1-dkirjanov@suse.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Denis Kirjanov <kda@linux-powerpc.org>, stephen@networkplumber.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz
+Content-Type: text/plain
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1561208539-29682-1-git-send-email-akaher@vmware.com>
+Sender: stable-owner@vger.kernel.org
+To: aarcange@redhat.com, jannh@google.com, oleg@redhat.com, peterx@redhat.com, rppt@linux.ibm.com, jgg@mellanox.com, mhocko@suse.com
+Cc: jglisse@redhat.com, akpm@linux-foundation.org, mike.kravetz@oracle.com, viro@zeniv.linux.org.uk, riandrews@android.com, arve@android.com, yishaih@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, matanb@mellanox.com, leonro@mellanox.com, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, akaher@vmware.com, srivatsab@vmware.com, amakhalov@vmware.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/20/19 3:02 AM, Denis Kirjanov wrote:
-> @@ -349,9 +350,10 @@ static void print_af_spec(FILE *fp, struct rtattr *af_spec_attr)
->  
->  static void print_vf_stats64(FILE *fp, struct rtattr *vfstats);
->  
-> -static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
-> +static void print_vfinfo(struct ifinfomsg *ifi, FILE *fp, struct rtattr *vfinfo)
->  {
->  	struct ifla_vf_mac *vf_mac;
-> +	struct ifla_vf_broadcast *vf_broadcast;
->  	struct ifla_vf_tx_rate *vf_tx_rate;
->  	struct rtattr *vf[IFLA_VF_MAX + 1] = {};
->  
-> @@ -365,13 +367,43 @@ static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
->  	parse_rtattr_nested(vf, IFLA_VF_MAX, vfinfo);
->  
->  	vf_mac = RTA_DATA(vf[IFLA_VF_MAC]);
-> +	vf_broadcast = RTA_DATA(vf[IFLA_VF_BROADCAST]);
->  	vf_tx_rate = RTA_DATA(vf[IFLA_VF_TX_RATE]);
->  
->  	print_string(PRINT_FP, NULL, "%s    ", _SL_);
->  	print_int(PRINT_ANY, "vf", "vf %d ", vf_mac->vf);
-> -	print_string(PRINT_ANY, "mac", "MAC %s",
-> -		     ll_addr_n2a((unsigned char *) &vf_mac->mac,
-> -				 ETH_ALEN, 0, b1, sizeof(b1)));
-> +
-> +	print_string(PRINT_ANY,
-> +			"link_type",
-> +			"    link/%s ",
-> +			ll_type_n2a(ifi->ifi_type, b1, sizeof(b1)));
-> +
-> +	print_color_string(PRINT_ANY,
-> +				COLOR_MAC,
-> +				"address",
-> +				"%s",
-> +				ll_addr_n2a((unsigned char *) &vf_mac->mac,
-> +					ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
-> +					ifi->ifi_type,
-> +					b1, sizeof(b1)));
-> +
-> +	if (vf[IFLA_VF_BROADCAST]) {
-> +		if (ifi->ifi_flags&IFF_POINTOPOINT) {
-> +			print_string(PRINT_FP, NULL, " peer ", NULL);
-> +			print_bool(PRINT_JSON,
-> +					"link_pointtopoint", NULL, true);
-> +                        } else {
-> +				print_string(PRINT_FP, NULL, " brd ", NULL);
-> +                        }
-> +                        print_color_string(PRINT_ANY,
-> +                                           COLOR_MAC,
-> +                                           "broadcast",
-> +                                           "%s",
-> +                                           ll_addr_n2a((unsigned char *) &vf_broadcast->broadcast,
-> +                                                       ifi->ifi_type == ARPHRD_ETHER ? ETH_ALEN : INFINIBAND_ALEN,
-> +                                                       ifi->ifi_type,
-> +                                                       b1, sizeof(b1)));
-> +	}
->  
+This patch is the extension of following upstream commit to fix
+the race condition between get_task_mm() and core dumping
+for IB->mlx4 and IB->mlx5 drivers:
 
-you have a number of alignment problems with the above changes. you can
-run checkpatch from the kernel repo on it to verify the coding standards.
+commit 04f5866e41fb ("coredump: fix race condition between
+mmget_not_zero()/get_task_mm() and core dumping")'
+
+Thanks to Jason for pointing this.
+
+Signed-off-by: Ajay Kaher <akaher@vmware.com>
+---
+ drivers/infiniband/hw/mlx4/main.c | 4 +++-
+ drivers/infiniband/hw/mlx5/main.c | 3 +++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 8d59a59..7ccf722 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1172,6 +1172,8 @@ static void mlx4_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 	 * mlx4_ib_vma_close().
+ 	 */
+ 	down_write(&owning_mm->mmap_sem);
++	if (!mmget_still_valid(owning_mm))
++		goto skip_mm;
+ 	for (i = 0; i < HW_BAR_COUNT; i++) {
+ 		vma = context->hw_bar_info[i].vma;
+ 		if (!vma)
+@@ -1190,7 +1192,7 @@ static void mlx4_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 		/* context going to be destroyed, should not access ops any more */
+ 		context->hw_bar_info[i].vma->vm_ops = NULL;
+ 	}
+-
++skip_mm:
+ 	up_write(&owning_mm->mmap_sem);
+ 	mmput(owning_mm);
+ 	put_task_struct(owning_process);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b1daf5c..f94df0e 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1307,6 +1307,8 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 	 * mlx5_ib_vma_close.
+ 	 */
+ 	down_write(&owning_mm->mmap_sem);
++	if (!mmget_still_valid(owning_mm))
++		goto skip_mm;
+ 	list_for_each_entry_safe(vma_private, n, &context->vma_private_list,
+ 				 list) {
+ 		vma = vma_private->vma;
+@@ -1321,6 +1323,7 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
+ 		list_del(&vma_private->list);
+ 		kfree(vma_private);
+ 	}
++skip_mm:
+ 	up_write(&owning_mm->mmap_sem);
+ 	mmput(owning_mm);
+ 	put_task_struct(owning_process);
+-- 
+2.7.4
