@@ -1,28 +1,45 @@
-From: Ajay Kaher <akaher@vmware.com>
-Subject: [PATCH v3 0/2] [v4.9.y] coredump: fix race condition between mmget_not_zero()/get_task_mm() and core dumping
-Date: Sat, 22 Jun 2019 18:32:19 +0530
-Message-ID: <1561208539-29682-3-git-send-email-akaher@vmware.com>
-References: <1561208539-29682-1-git-send-email-akaher@vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1561208539-29682-1-git-send-email-akaher@vmware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: aarcange@redhat.com, jannh@google.com, oleg@redhat.com, peterx@redhat.com, rppt@linux.ibm.com, jgg@mellanox.com, mhocko@suse.com
-Cc: jglisse@redhat.com, akpm@linux-foundation.org, mike.kravetz@oracle.com, viro@zeniv.linux.org.uk, riandrews@android.com, arve@android.com, yishaih@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, matanb@mellanox.com, leonro@mellanox.com, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, akaher@vmware.com, srivatsab@vmware.com, amakhalov@vmware.com
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: [PATCH iproute2-next v3 2/2] uapi: update if_link.h
+Date: Sat, 22 Jun 2019 20:00:35 +0200
+Message-ID: <20190622180035.40245-2-dkirjanov@suse.com>
+References: <20190622180035.40245-1-dkirjanov@suse.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190622180035.40245-1-dkirjanov@suse.com>
+Sender: netdev-owner@vger.kernel.org
+To: stephen@networkplumber.org, dsahern@gmail.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
 List-Id: linux-rdma@vger.kernel.org
 
-coredump: fix race condition between mmget_not_zero()/get_task_mm()
-and core dumping
+update if_link.h to commit 75345f888f700c4ab2448287e35d48c760b202e6
+("ipoib: show VF broadcast address")
 
-[PATCH v3 1/2]:
-Backporting of commit 04f5866e41fb70690e28397487d8bd8eea7d712a upstream.
+Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+---
+ include/uapi/linux/if_link.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-[PATCH v3 2/2]:
-Extension of commit 04f5866e41fb to fix the race condition between
-get_task_mm() and core dumping for IB->mlx4 and IB->mlx5 drivers.
-
-[diff from v2]:
-- moved mmget_still_valid to mm.h in [PATCH v3 1/2]
-- added binder.c changes in [PATCH v3 1/2]
-- added [PATCH v3 2/2]
+diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
+index bfe7f9e6..5f271d84 100644
+--- a/include/uapi/linux/if_link.h
++++ b/include/uapi/linux/if_link.h
+@@ -692,6 +692,7 @@ enum {
+ 	IFLA_VF_IB_NODE_GUID,	/* VF Infiniband node GUID */
+ 	IFLA_VF_IB_PORT_GUID,	/* VF Infiniband port GUID */
+ 	IFLA_VF_VLAN_LIST,	/* nested list of vlans, option for QinQ */
++	IFLA_VF_BROADCAST,      /* VF broadcast */
+ 	__IFLA_VF_MAX,
+ };
+ 
+@@ -702,6 +703,10 @@ struct ifla_vf_mac {
+ 	__u8 mac[32]; /* MAX_ADDR_LEN */
+ };
+ 
++struct ifla_vf_broadcast {
++	__u8 broadcast[32];
++};
++
+ struct ifla_vf_vlan {
+ 	__u32 vf;
+ 	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
+-- 
+2.12.3
