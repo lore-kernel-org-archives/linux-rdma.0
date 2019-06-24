@@ -1,35 +1,34 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH rdma-next v1 00/12] DEVX asynchronous events
-Date: Mon, 24 Jun 2019 21:57:05 +0000
-Message-ID: <a8de53f1acb069057dedc94fb8bd29ea3e658716.camel@mellanox.com>
-References: <20190618171540.11729-1-leon@kernel.org>
-         <19107c92279cf4ad4d870fa54514423c5e46b748.camel@mellanox.com>
-         <20190619044557.GA11611@mtr-leonro.mtl.com>
+Subject: Re: [PATCH mlx5-next] net/mlx5: Convert mkey_table to XArray
+Date: Mon, 24 Jun 2019 22:05:33 +0000
+Message-ID: <18138852207dfcd26ed512482af2c5ea9de93277.camel@mellanox.com>
+References: <20190620070305.31632-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190619044557.GA11611@mtr-leonro.mtl.com>
+In-Reply-To: <20190620070305.31632-1-saeedm@mellanox.com>
 Content-Language: en-US
-Content-ID: <D58CD9665377FF479CD3B806169914B6@eurprd05.prod.outlook.com>
+Content-ID: <0FCFA3E0244E5A4E9DA00271DA13B946@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: "leon@kernel.org" <leon@kernel.org>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "willy@infradead.org" <willy@infradead.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE5LTA2LTE5IGF0IDA3OjQ1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFR1ZSwgSnVuIDE4LCAyMDE5IGF0IDA2OjUxOjQ1UE0gKzAwMDAsIFNhZWVkIE1haGFt
-ZWVkIHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxOS0wNi0xOCBhdCAyMDoxNSArMDMwMCwgTGVvbiBS
-b21hbm92c2t5IHdyb3RlOg0KPiA+ID4gRnJvbTogTGVvbiBSb21hbm92c2t5IDxsZW9ucm9AbWVs
-bGFub3guY29tPg0KPiA+ID4gDQo+ID4gPiBDaGFuZ2Vsb2c6DQo+ID4gPiAgdjAgLT4gdjE6DQo+
-ID4gDQo+ID4gTm9ybWFsbHkgMXN0IHN1Ym1pc3Npb24gaXMgVjEgYW5kIDJuZCBpcyBWMi4NCj4g
-PiBzbyB0aGlzIHNob3VsZCBoYXZlIGJlZW4gdjEtPnYyLg0KPiANCj4gIk5vcm1hbGx5IiBkZXBl
-bmRzIG9uIHRoZSBsYW5ndWFnZSB5b3UgYXJlIHVzaW5nLiBJbiBDLCBldmVyeXRoaW5nDQo+IHN0
-YXJ0cyBmcm9tIDAsIGluY2x1ZGluZyB2ZXJzaW9uIG9mIHBhdGNoZXMgOikuDQo+IA0KDQpZb3Ug
-YXJlIHdyb25nOg0KcXVvdGluZzogaHR0cHM6Ly9rZXJuZWxuZXdiaWVzLm9yZy9QYXRjaFRpcHNB
-bmRUcmlja3MNCg0KIkZvciBleGFtcGxlLCBpZiB5b3UncmUgc2VuZGluZyB0aGUgc2Vjb25kIHJl
-dmlzaW9uIG9mIGEgcGF0Y2gsIHlvdQ0Kc2hvdWxkIHVzZSBbUEFUQ0ggdjJdLiINCg0Kbm93IGRv
-bid0IHRlbGwgbWUgdGhhdCBzZWNvbmQgcmV2aXNpb24gaXMgYWN0dWFsbHkgM3JkIHJldmlzaW9u
-IG9yIDFzdA0KaXMgMm5kIDopLi4gDQoNCj4gPiBGb3IgbWx4NS1uZXh0IHBhdGNoZXM6DQo+ID4g
-DQo+ID4gQWNrZWQtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KPiAN
-Cj4gVGhhbmtzDQo=
+T24gVGh1LCAyMDE5LTA2LTIwIGF0IDA3OjAzICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
+Cj4gRnJvbTogTWF0dGhldyBXaWxjb3ggPHdpbGx5QGluZnJhZGVhZC5vcmc+DQo+IA0KPiBUaGUg
+bG9jayBwcm90ZWN0aW5nIHRoZSBkYXRhIHN0cnVjdHVyZSBkb2VzIG5vdCBuZWVkIHRvIGJlIGFu
+DQo+IHJ3bG9jay4gIFRoZQ0KPiBvbmx5IHJlYWQgYWNjZXNzIHRvIHRoZSBsb2NrIGlzIGluIGFu
+IGVycm9yIHBhdGgsIGFuZCBpZiB0aGF0J3MNCj4gbGltaXRpbmcNCj4geW91ciBzY2FsYWJpbGl0
+eSwgeW91IGhhdmUgYmlnZ2VyIHBlcmZvcm1hbmNlIHByb2JsZW1zLg0KPiANCj4gRWxpbWluYXRl
+IG1seDVfbWtleV90YWJsZSBpbiBmYXZvdXIgb2YgdXNpbmcgdGhlIHhhcnJheSBkaXJlY3RseS4N
+Cj4gcmVnX21yX2NhbGxiYWNrIG11c3QgdXNlIEdGUF9BVE9NSUMgZm9yIGFsbG9jYXRpbmcgWEFy
+cmF5IG5vZGVzIGFzIGl0DQo+IG1heQ0KPiBiZSBjYWxsZWQgaW4gaW50ZXJydXB0IGNvbnRleHQu
+DQo+IA0KPiBUaGlzIGFsc28gZml4ZXMgYSBtaW5vciBidWcgd2hlcmUgU1JDVSBsb2NraW5nIHdh
+cyBiZWluZyB1c2VkIG9uIHRoZQ0KPiByYWRpeA0KPiB0cmVlIHJlYWQgc2lkZSwgd2hlbiBSQ1Ug
+d2FzIG5lZWRlZCB0b28uDQo+IA0KPiBDaGFuZ2UtSWQ6IElmZWVkYmJjOGYyYzg1NmNjMDQ0MDk0
+ZDAzMTY3YWFlOWY5MTYyNDAwDQo+IFNpZ25lZC1vZmYtYnk6IE1hdHRoZXcgV2lsY294IDx3aWxs
+eUBpbmZyYWRlYWQub3JnPg0KPiBTaWduZWQtb2ZmLWJ5OiBKYXNvbiBHdW50aG9ycGUgPGpnZ0Bt
+ZWxsYW5veC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVs
+bGFub3guY29tPg0KPiAgDQoNCkFwcGxpZWQgdG8gbWx4NS1uZXh0Lg0KDQpUaGFua3MsDQpTYWVl
+ZC4NCg==
