@@ -1,7 +1,7 @@
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH v18 04/15] mm: untag user pointers passed to memory syscalls
-Date: Mon, 24 Jun 2019 16:32:49 +0200
-Message-ID: <387274fe8ecad41a73aec347fe24682b633a8147.1561386715.git.andreyknvl@google.com>
+Subject: [PATCH v18 05/15] mm: untag user pointers in mm/gup.c
+Date: Mon, 24 Jun 2019 16:32:50 +0200
+Message-ID: <3f5c63a871c652369d3cf7741499d1d65413641c.1561386715.git.andreyknvl@google.com>
 References: <cover.1561386715.git.andreyknvl@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -16,155 +16,43 @@ This patch is a part of a series that extends kernel ABI to allow to pass
 tagged user pointers (with the top byte set to something else other than
 0x00) as syscall arguments.
 
-This patch allows tagged pointers to be passed to the following memory
-syscalls: get_mempolicy, madvise, mbind, mincore, mlock, mlock2, mprotect,
-mremap, msync, munlock, move_pages.
+mm/gup.c provides a kernel interface that accepts user addresses and
+manipulates user pages directly (for example get_user_pages, that is used
+by the futex syscall). Since a user can provided tagged addresses, we need
+to handle this case.
 
-The mmap and mremap syscalls do not currently accept tagged addresses.
-Architectures may interpret the tag as a background colour for the
-corresponding vma.
+Add untagging to gup.c functions that use user addresses for vma lookups.
 
 Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
 Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- mm/madvise.c   | 2 ++
- mm/mempolicy.c | 3 +++
- mm/migrate.c   | 2 +-
- mm/mincore.c   | 2 ++
- mm/mlock.c     | 4 ++++
- mm/mprotect.c  | 2 ++
- mm/mremap.c    | 7 +++++++
- mm/msync.c     | 2 ++
- 8 files changed, 23 insertions(+), 1 deletion(-)
+ mm/gup.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/mm/madvise.c b/mm/madvise.c
-index 628022e674a7..39b82f8a698f 100644
---- a/mm/madvise.c
-+++ b/mm/madvise.c
-@@ -810,6 +810,8 @@ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
- 	size_t len;
- 	struct blk_plug plug;
+diff --git a/mm/gup.c b/mm/gup.c
+index ddde097cf9e4..c37df3d455a2 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -802,6 +802,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 	if (!nr_pages)
+ 		return 0;
  
 +	start = untagged_addr(start);
 +
- 	if (!madvise_behavior_valid(behavior))
- 		return error;
+ 	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
  
-diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-index 01600d80ae01..78e0a88b2680 100644
---- a/mm/mempolicy.c
-+++ b/mm/mempolicy.c
-@@ -1360,6 +1360,7 @@ static long kernel_mbind(unsigned long start, unsigned long len,
- 	int err;
- 	unsigned short mode_flags;
+ 	/*
+@@ -964,6 +966,8 @@ int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
+ 	struct vm_area_struct *vma;
+ 	vm_fault_t ret, major = 0;
  
-+	start = untagged_addr(start);
- 	mode_flags = mode & MPOL_MODE_FLAGS;
- 	mode &= ~MPOL_MODE_FLAGS;
- 	if (mode >= MPOL_MAX)
-@@ -1517,6 +1518,8 @@ static int kernel_get_mempolicy(int __user *policy,
- 	int uninitialized_var(pval);
- 	nodemask_t nodes;
- 
-+	addr = untagged_addr(addr);
++	address = untagged_addr(address);
 +
- 	if (nmask != NULL && maxnode < nr_node_ids)
- 		return -EINVAL;
+ 	if (unlocked)
+ 		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
  
-diff --git a/mm/migrate.c b/mm/migrate.c
-index f2ecc2855a12..d22c45cf36b2 100644
---- a/mm/migrate.c
-+++ b/mm/migrate.c
-@@ -1616,7 +1616,7 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
- 			goto out_flush;
- 		if (get_user(node, nodes + i))
- 			goto out_flush;
--		addr = (unsigned long)p;
-+		addr = (unsigned long)untagged_addr(p);
- 
- 		err = -ENODEV;
- 		if (node < 0 || node >= MAX_NUMNODES)
-diff --git a/mm/mincore.c b/mm/mincore.c
-index c3f058bd0faf..64c322ed845c 100644
---- a/mm/mincore.c
-+++ b/mm/mincore.c
-@@ -249,6 +249,8 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
- 	unsigned long pages;
- 	unsigned char *tmp;
- 
-+	start = untagged_addr(start);
-+
- 	/* Check the start address: needs to be page-aligned.. */
- 	if (start & ~PAGE_MASK)
- 		return -EINVAL;
-diff --git a/mm/mlock.c b/mm/mlock.c
-index a90099da4fb4..a72c1eeded77 100644
---- a/mm/mlock.c
-+++ b/mm/mlock.c
-@@ -674,6 +674,8 @@ static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t fla
- 	unsigned long lock_limit;
- 	int error = -ENOMEM;
- 
-+	start = untagged_addr(start);
-+
- 	if (!can_do_mlock())
- 		return -EPERM;
- 
-@@ -735,6 +737,8 @@ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
- {
- 	int ret;
- 
-+	start = untagged_addr(start);
-+
- 	len = PAGE_ALIGN(len + (offset_in_page(start)));
- 	start &= PAGE_MASK;
- 
-diff --git a/mm/mprotect.c b/mm/mprotect.c
-index bf38dfbbb4b4..19f981b733bc 100644
---- a/mm/mprotect.c
-+++ b/mm/mprotect.c
-@@ -465,6 +465,8 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
- 	const bool rier = (current->personality & READ_IMPLIES_EXEC) &&
- 				(prot & PROT_READ);
- 
-+	start = untagged_addr(start);
-+
- 	prot &= ~(PROT_GROWSDOWN|PROT_GROWSUP);
- 	if (grows == (PROT_GROWSDOWN|PROT_GROWSUP)) /* can't be both */
- 		return -EINVAL;
-diff --git a/mm/mremap.c b/mm/mremap.c
-index fc241d23cd97..64c9a3b8be0a 100644
---- a/mm/mremap.c
-+++ b/mm/mremap.c
-@@ -606,6 +606,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, addr, unsigned long, old_len,
- 	LIST_HEAD(uf_unmap_early);
- 	LIST_HEAD(uf_unmap);
- 
-+	/*
-+	 * Architectures may interpret the tag passed to mmap as a background
-+	 * colour for the corresponding vma. For mremap we don't allow tagged
-+	 * new_addr to preserve similar behaviour to mmap.
-+	 */
-+	addr = untagged_addr(addr);
-+
- 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
- 		return ret;
- 
-diff --git a/mm/msync.c b/mm/msync.c
-index ef30a429623a..c3bd3e75f687 100644
---- a/mm/msync.c
-+++ b/mm/msync.c
-@@ -37,6 +37,8 @@ SYSCALL_DEFINE3(msync, unsigned long, start, size_t, len, int, flags)
- 	int unmapped_error = 0;
- 	int error = -EINVAL;
- 
-+	start = untagged_addr(start);
-+
- 	if (flags & ~(MS_ASYNC | MS_INVALIDATE | MS_SYNC))
- 		goto out;
- 	if (offset_in_page(start))
 -- 
 2.22.0.410.gd8fdbe21b5-goog
