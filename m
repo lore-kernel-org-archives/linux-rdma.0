@@ -1,194 +1,105 @@
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: Re: [PATCH v17 04/15] mm, arm64: untag user pointers passed to memory syscalls
-Date: Mon, 24 Jun 2019 16:22:34 +0200
-Message-ID: <CAAeHK+zceAZ0Mqhz3t6Ob71-Dgk4DNHRrzr72r+qEsUugwzTsg@mail.gmail.com>
-References: <cover.1560339705.git.andreyknvl@google.com> <f9b50767d639b7116aa986dc67f158131b8d4169.1560339705.git.andreyknvl@google.com>
- <a5e0e465-89d5-91d0-c6a4-39674269bbf2@oracle.com> <c4bdd767-eb3f-6668-0f49-4aaf4bc7689d@oracle.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH rdma-next v1 08/12] IB/mlx5: Introduce
+ MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD
+Date: Mon, 24 Jun 2019 14:30:19 +0000
+Message-ID: <20190624143016.GC7418@mellanox.com>
+References: <20190618171540.11729-1-leon@kernel.org>
+ <20190618171540.11729-9-leon@kernel.org> <20190624115059.GA5479@mellanox.com>
+ <baae74b9-94ff-9f5a-0992-c1eec5049306@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c4bdd767-eb3f-6668-0f49-4aaf4bc7689d@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@am>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <baae74b9-94ff-9f5a-0992-c1eec5049306@dev.mellanox.co.il>
+Content-Language: en-US
+Content-ID: <C5E69717CEF56D4CA091E76CCD5397A4@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 19, 2019 at 6:46 PM Khalid Aziz <khalid.aziz@oracle.com> wrote:
->
-> On 6/19/19 9:55 AM, Khalid Aziz wrote:
-> > On 6/12/19 5:43 AM, Andrey Konovalov wrote:
-> >> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> >> pass tagged user pointers (with the top byte set to something else other
-> >> than 0x00) as syscall arguments.
-> >>
-> >> This patch allows tagged pointers to be passed to the following memory
-> >> syscalls: get_mempolicy, madvise, mbind, mincore, mlock, mlock2, mprotect,
-> >> mremap, msync, munlock, move_pages.
-> >>
-> >> The mmap and mremap syscalls do not currently accept tagged addresses.
-> >> Architectures may interpret the tag as a background colour for the
-> >> corresponding vma.
-> >>
-> >> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-> >> Reviewed-by: Kees Cook <keescook@chromium.org>
-> >> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> >> ---
-> >
-> > Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-> >
-> >
->
-> I would also recommend updating commit log for all the patches in this
-> series that are changing files under mm/ as opposed to arch/arm64 to not
-> reference arm64 kernel ABI since the change applies to every
-> architecture. So something along the lines of "This patch is part of a
-> series that extends kernel ABI to allow......."
+On Mon, Jun 24, 2019 at 04:25:37PM +0300, Yishai Hadas wrote:
+> On 6/24/2019 2:51 PM, Jason Gunthorpe wrote:
+> > On Tue, Jun 18, 2019 at 08:15:36PM +0300, Leon Romanovsky wrote:
+> > > From: Yishai Hadas <yishaih@mellanox.com>
+> > >=20
+> > > Introduce MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD and its initial
+> > > implementation.
+> > >=20
+> > > This object is from type class FD and will be used to read DEVX
+> > > async events.
+> > >=20
+> > > Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+> > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> > >   drivers/infiniband/hw/mlx5/devx.c         | 112 +++++++++++++++++++=
++--
+> > >   include/uapi/rdma/mlx5_user_ioctl_cmds.h  |  10 ++
+> > >   include/uapi/rdma/mlx5_user_ioctl_verbs.h |   4 +
+> > >   3 files changed, 116 insertions(+), 10 deletions(-)
+> > >=20
+> > > diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/h=
+w/mlx5/devx.c
+> > > index 80b42d069328..1815ce0f8daf 100644
+> > > +++ b/drivers/infiniband/hw/mlx5/devx.c
+> > > @@ -33,6 +33,24 @@ struct devx_async_data {
+> > >   	struct mlx5_ib_uapi_devx_async_cmd_hdr hdr;
+> > >   };
+> > > +struct devx_async_event_queue {
+> >=20
+> > It seems to be a mistake to try and re-use the async_event_queue for
+> > both cmd and event, as they use it very differently and don't even
+> > store the same things in the event_list. I think it is bettter to just
+> > inline this into devx_async_event_file (and inline the old struct in
+> > the cmd file
+> >=20
+>=20
+> How about having another struct with all the event's queue fields togethe=
+r ?
+> this has the benefit of having all those related fields in one place and
+> leave the cmd as is.
+>=20
+> Alternatively,
+> We can inline the event stuff under devx_async_event_file and leave the c=
+md
+> for now under a struct as it's not directly related to this series.
 
-Sure, will do in v18, thanks!
+I would probbaly do this
 
->
-> --
-> Khalid
->
->
-> >>  mm/madvise.c   | 2 ++
-> >>  mm/mempolicy.c | 3 +++
-> >>  mm/migrate.c   | 2 +-
-> >>  mm/mincore.c   | 2 ++
-> >>  mm/mlock.c     | 4 ++++
-> >>  mm/mprotect.c  | 2 ++
-> >>  mm/mremap.c    | 7 +++++++
-> >>  mm/msync.c     | 2 ++
-> >>  8 files changed, 23 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/mm/madvise.c b/mm/madvise.c
-> >> index 628022e674a7..39b82f8a698f 100644
-> >> --- a/mm/madvise.c
-> >> +++ b/mm/madvise.c
-> >> @@ -810,6 +810,8 @@ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
-> >>      size_t len;
-> >>      struct blk_plug plug;
-> >>
-> >> +    start = untagged_addr(start);
-> >> +
-> >>      if (!madvise_behavior_valid(behavior))
-> >>              return error;
-> >>
-> >> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-> >> index 01600d80ae01..78e0a88b2680 100644
-> >> --- a/mm/mempolicy.c
-> >> +++ b/mm/mempolicy.c
-> >> @@ -1360,6 +1360,7 @@ static long kernel_mbind(unsigned long start, unsigned long len,
-> >>      int err;
-> >>      unsigned short mode_flags;
-> >>
-> >> +    start = untagged_addr(start);
-> >>      mode_flags = mode & MPOL_MODE_FLAGS;
-> >>      mode &= ~MPOL_MODE_FLAGS;
-> >>      if (mode >= MPOL_MAX)
-> >> @@ -1517,6 +1518,8 @@ static int kernel_get_mempolicy(int __user *policy,
-> >>      int uninitialized_var(pval);
-> >>      nodemask_t nodes;
-> >>
-> >> +    addr = untagged_addr(addr);
-> >> +
-> >>      if (nmask != NULL && maxnode < nr_node_ids)
-> >>              return -EINVAL;
-> >>
-> >> diff --git a/mm/migrate.c b/mm/migrate.c
-> >> index f2ecc2855a12..d22c45cf36b2 100644
-> >> --- a/mm/migrate.c
-> >> +++ b/mm/migrate.c
-> >> @@ -1616,7 +1616,7 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
-> >>                      goto out_flush;
-> >>              if (get_user(node, nodes + i))
-> >>                      goto out_flush;
-> >> -            addr = (unsigned long)p;
-> >> +            addr = (unsigned long)untagged_addr(p);
-> >>
-> >>              err = -ENODEV;
-> >>              if (node < 0 || node >= MAX_NUMNODES)
-> >> diff --git a/mm/mincore.c b/mm/mincore.c
-> >> index c3f058bd0faf..64c322ed845c 100644
-> >> --- a/mm/mincore.c
-> >> +++ b/mm/mincore.c
-> >> @@ -249,6 +249,8 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
-> >>      unsigned long pages;
-> >>      unsigned char *tmp;
-> >>
-> >> +    start = untagged_addr(start);
-> >> +
-> >>      /* Check the start address: needs to be page-aligned.. */
-> >>      if (start & ~PAGE_MASK)
-> >>              return -EINVAL;fixup_user_fault
-> >> diff --git a/mm/mlock.c b/mm/mlock.c
-> >> index 080f3b36415b..e82609eaa428 100644
-> >> --- a/mm/mlock.c
-> >> +++ b/mm/mlock.c
-> >> @@ -674,6 +674,8 @@ static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t fla
-> >>      unsigned long lock_limit;
-> >>      int error = -ENOMEM;
-> >>
-> >> +    start = untagged_addr(start);
-> >> +
-> >>      if (!can_do_mlock())
-> >>              return -EPERM;
-> >>
-> >> @@ -735,6 +737,8 @@ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
-> >>  {
-> >>      int ret;
-> >>
-> >> +    start = untagged_addr(start);
-> >> +
-> >>      len = PAGE_ALIGN(len + (offset_in_page(start)));
-> >>      start &= PAGE_MASK;
-> >>
-> >> diff --git a/mm/mprotect.c b/mm/mprotect.c
-> >> index bf38dfbbb4b4..19f981b733bc 100644
-> >> --- a/mm/mprotect.c
-> >> +++ b/mm/mprotect.c
-> >> @@ -465,6 +465,8 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
-> >>      const bool rier = (current->personality & READ_IMPLIES_EXEC) &&
-> >>                              (prot & PROT_READ);
-> >>
-> >> +    start = untagged_addr(start);
-> >> +
-> >>      prot &= ~(PROT_GROWSDOWN|PROT_GROWSUP);
-> >>      if (grows == (PROT_GROWSDOWN|PROT_GROWSUP)) /* can't be both */
-> >>              return -EINVAL;
-> >> diff --git a/mm/mremap.c b/mm/mremap.c
-> >> index fc241d23cd97..64c9a3b8be0a 100644
-> >> --- a/mm/mremap.c
-> >> +++ b/mm/mremap.c
-> >> @@ -606,6 +606,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, addr, unsigned long, old_len,
-> >>      LIST_HEAD(uf_unmap_early);
-> >>      LIST_HEAD(uf_unmap);
-> >>
-> >> +    /*
-> >> +     * Architectures may interpret the tag passed to mmap as a background
-> >> +     * colour for the corresponding vma. For mremap we don't allow tagged
-> >> +     * new_addr to preserve similar behaviour to mmap.
-> >> +     */
-> >> +    addr = untagged_addr(addr);
-> >> +
-> >>      if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
-> >>              return ret;
-> >>
-> >> diff --git a/mm/msync.c b/mm/msync.c
-> >> index ef30a429623a..c3bd3e75f687 100644
-> >> --- a/mm/msync.c
-> >> +++ b/mm/msync.c
-> >> @@ -37,6 +37,8 @@ SYSCALL_DEFINE3(msync, unsigned long, start, size_t, len, int, flags)
-> >>      int unmapped_error = 0;
-> >>      int error = -EINVAL;
-> >>
-> >> +    start = untagged_addr(start);
-> >> +
-> >>      if (flags & ~(MS_ASYNC | MS_INVALIDATE | MS_SYNC))
-> >>              goto out;
-> >>      if (offset_in_page(start))
-> >>
-> >
-> >
->
->
+> > > +	spinlock_t		lock;
+> > > +	wait_queue_head_t	poll_wait;
+> > > +	struct list_head	event_list;
+> > > +	atomic_t		bytes_in_use;
+> > > +	u8			is_destroyed:1;
+> > > +	u32			flags;
+> > > +};
+> >=20
+> > All the flags testing is ugly, why not just add another bitfield?
+>=20
+> The flags are coming from user space and have their different name space,=
+ I
+> prefer to not mix with kernel ones. (i.e. is_destroyed).
+> Makes sense ?
+
+No, better to add a bitfield than store the raw flags and another
+bitfield.
+
+> > > diff --git a/include/uapi/rdma/mlx5_user_ioctl_verbs.h b/include/uapi=
+/rdma/mlx5_user_ioctl_verbs.h
+> > > index a8f34c237458..57beea4589e4 100644
+> > > +++ b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+> > > @@ -63,5 +63,9 @@ enum mlx5_ib_uapi_dm_type {
+> > >   	MLX5_IB_UAPI_DM_TYPE_HEADER_MODIFY_SW_ICM,
+> > >   };
+> > > +enum mlx5_ib_uapi_devx_create_event_channel_flags {
+> > > +	MLX5_IB_UAPI_DEVX_CREATE_EVENT_CHANNEL_FLAGS_OMIT_EV_DATA =3D 1
+> > > << 0,
+> >=20
+> > Maybe this name is too long
+>=20
+> Quite long but follows the name scheme having the UAPI prefix.
+> Any shorter suggestion ?
+>=20
+
+I think you should shorten it
+
+Jason
