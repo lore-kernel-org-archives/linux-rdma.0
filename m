@@ -1,116 +1,166 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v18 08/15] userfaultfd: untag user pointers
-Date: Mon, 24 Jun 2019 18:51:21 +0100
-Message-ID: <20190624175120.GN29120@arrakis.emea.arm.com>
-References: <cover.1561386715.git.andreyknvl@google.com>
- <d8e3b9a819e98d6527e506027b173b128a148d3c.1561386715.git.andreyknvl@google.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH rdma-next v1 10/12] IB/mlx5: Enable subscription for
+ device events over DEVX
+Date: Mon, 24 Jun 2019 17:56:12 +0000
+Message-ID: <20190624175609.GK7418@mellanox.com>
+References: <20190618171540.11729-1-leon@kernel.org>
+ <20190618171540.11729-11-leon@kernel.org>
+ <20190624115726.GC5479@mellanox.com>
+ <33f9402b-ccae-b874-cc72-b6afb1fb8655@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d8e3b9a819e98d6527e506027b173b128a148d3c.1561386715.git.andreyknvl@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <33f9402b-ccae-b874-cc72-b6afb1fb8655@dev.mellanox.co.il>
+Content-Language: en-US
+Content-ID: <E27C16DE2FED5648B7E727DBD1377AB0@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 24, 2019 at 04:32:53PM +0200, Andrey Konovalov wrote:
-> This patch is a part of a series that extends kernel ABI to allow to pass
-> tagged user pointers (with the top byte set to something else other than
-> 0x00) as syscall arguments.
-> 
-> userfaultfd code use provided user pointers for vma lookups, which can
-> only by done with untagged pointers.
-> 
-> Untag user pointers in validate_range().
-> 
-> Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-> Reviewed-by: Kees Cook <keescook@chromium.org>
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> ---
->  fs/userfaultfd.c | 22 ++++++++++++----------
->  1 file changed, 12 insertions(+), 10 deletions(-)
+On Mon, Jun 24, 2019 at 07:13:14PM +0300, Yishai Hadas wrote:
+> > > +	u32 xa_key_level1;
+> > > +	u32 xa_key_level2;
+> > > +	struct rcu_head	rcu;
+> > > +	u64 cookie;
+> > > +	bool is_obj_related;
+> > > +	struct ib_uobject *fd_uobj;
+> > > +	void *object;	/* May need direct access upon hot unplug */
+> >=20
+> > This should be a 'struct file *' and have a better name.
+> >=20
+>=20
+> OK, will change.
+>=20
+> > And I'm unclear why we need to store both the ib_uobject and the
+> > struct file for the same thing?
+>=20
+> Post hot unplug/unbind the uobj can't be accessed any more to reach the
+> object as it will be set to NULL by ib_core layer [1].
 
-Same here, it needs an ack from Al Viro.
+struct file users need to get the uobject from the file->private_data
+under a fget.
 
-> diff --git a/fs/userfaultfd.c b/fs/userfaultfd.c
-> index ae0b8b5f69e6..c2be36a168ca 100644
-> --- a/fs/userfaultfd.c
-> +++ b/fs/userfaultfd.c
-> @@ -1261,21 +1261,23 @@ static __always_inline void wake_userfault(struct userfaultfd_ctx *ctx,
->  }
->  
->  static __always_inline int validate_range(struct mm_struct *mm,
-> -					  __u64 start, __u64 len)
-> +					  __u64 *start, __u64 len)
->  {
->  	__u64 task_size = mm->task_size;
->  
-> -	if (start & ~PAGE_MASK)
-> +	*start = untagged_addr(*start);
-> +
-> +	if (*start & ~PAGE_MASK)
->  		return -EINVAL;
->  	if (len & ~PAGE_MASK)
->  		return -EINVAL;
->  	if (!len)
->  		return -EINVAL;
-> -	if (start < mmap_min_addr)
-> +	if (*start < mmap_min_addr)
->  		return -EINVAL;
-> -	if (start >= task_size)
-> +	if (*start >= task_size)
->  		return -EINVAL;
-> -	if (len > task_size - start)
-> +	if (len > task_size - *start)
->  		return -EINVAL;
->  	return 0;
->  }
-> @@ -1325,7 +1327,7 @@ static int userfaultfd_register(struct userfaultfd_ctx *ctx,
->  		goto out;
->  	}
->  
-> -	ret = validate_range(mm, uffdio_register.range.start,
-> +	ret = validate_range(mm, &uffdio_register.range.start,
->  			     uffdio_register.range.len);
->  	if (ret)
->  		goto out;
-> @@ -1514,7 +1516,7 @@ static int userfaultfd_unregister(struct userfaultfd_ctx *ctx,
->  	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
->  		goto out;
->  
-> -	ret = validate_range(mm, uffdio_unregister.start,
-> +	ret = validate_range(mm, &uffdio_unregister.start,
->  			     uffdio_unregister.len);
->  	if (ret)
->  		goto out;
-> @@ -1665,7 +1667,7 @@ static int userfaultfd_wake(struct userfaultfd_ctx *ctx,
->  	if (copy_from_user(&uffdio_wake, buf, sizeof(uffdio_wake)))
->  		goto out;
->  
-> -	ret = validate_range(ctx->mm, uffdio_wake.start, uffdio_wake.len);
-> +	ret = validate_range(ctx->mm, &uffdio_wake.start, uffdio_wake.len);
->  	if (ret)
->  		goto out;
->  
-> @@ -1705,7 +1707,7 @@ static int userfaultfd_copy(struct userfaultfd_ctx *ctx,
->  			   sizeof(uffdio_copy)-sizeof(__s64)))
->  		goto out;
->  
-> -	ret = validate_range(ctx->mm, uffdio_copy.dst, uffdio_copy.len);
-> +	ret = validate_range(ctx->mm, &uffdio_copy.dst, uffdio_copy.len);
->  	if (ret)
->  		goto out;
->  	/*
-> @@ -1761,7 +1763,7 @@ static int userfaultfd_zeropage(struct userfaultfd_ctx *ctx,
->  			   sizeof(uffdio_zeropage)-sizeof(__s64)))
->  		goto out;
->  
-> -	ret = validate_range(ctx->mm, uffdio_zeropage.range.start,
-> +	ret = validate_range(ctx->mm, &uffdio_zeropage.range.start,
->  			     uffdio_zeropage.range.len);
->  	if (ret)
->  		goto out;
-> -- 
-> 2.22.0.410.gd8fdbe21b5-goog
+There is only place place that needed fd_uobj, and it was under the
+fget section, so it should simply use private_data.
+
+This is why you should only store the struct file and not the uobject.
+
+> This was the comment that I have just put above in the code, I may improv=
+e
+> it with more details as pointed here.
+>=20
+> [1]
+> https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/core/rd=
+ma_core.c#L149
+
+I'm wondering if this is a bug to do this for fds?
+
+> > Since uobj->object =3D=3D flip && filp->private_data =3D=3D uobj, I hav=
+e a
+> > hard time to understand why we need both things, it seems to me that
+> > if we get the fget on the filp then we can rely on the
+> > filp->private_data to get back to the devx_async_event_file.
+> >=20
+>=20
+> The idea was to not take an extra ref count on the file (i.e. fget) per
+> subscription, this will let the release option to be called once the file
+> will be closed by the application.
+
+No extra ref is needed, the fget is already obtained in the only place
+that needs fd_uobj.
+
+> > > +	obj_event =3D xa_load(&event->object_ids, key_level2);
+> > > +	if (!obj_event) {
+> > > +		err =3D xa_reserve(&event->object_ids, key_level2, GFP_KERNEL);
+> > > +		if (err)
+> > > +			goto err_level1;
+> > > +
+> > > +		obj_event =3D kzalloc(sizeof(*obj_event), GFP_KERNEL);
+> > > +		if (!obj_event) {
+> > > +			err =3D -ENOMEM;
+> > > +			goto err_level2;
+> > > +		}
+> > > +
+> > > +		INIT_LIST_HEAD(&obj_event->obj_sub_list);
+> > > +		*alloc_obj_event =3D obj_event;
+> >=20
+> > This is goofy, just store the empty obj_event in the xa instead of
+> > using xa_reserve, and when you go to do the error unwind just delete
+> > any level2' devx_obj_event' that has a list_empty(obj_sub_list), get
+> > rid of the wonky alloc_obj_event stuff.
+> >=20
+>=20
+> Please see my answer above about how level2 is managed by this
+> alloc_obj_event, is that really worth a change ? I found current logic to=
+ be
+> clear. I may put some note here if we can stay with that.
+
+I think it is alot cleaner/simpler than using this extra memory
+
+> > The best configuration would be to use devx_cleanup_subscription to
+> > undo the partially ready subscription.
+>=20
+> This partially ready subscription might not match the
+> devx_cleanup_subscription(), e.g. it wasn't added to xa_list and can't be
+> deleted without any specific flag to ignore ..
+
+Maybe, but I suspect it can work out
+
+> > > +	event_sub_arr =3D uverbs_zalloc(attrs,
+> > > +		MAX_NUM_EVENTS * sizeof(struct devx_event_subscription *));
+> > > +	event_obj_array_alloc =3D uverbs_zalloc(attrs,
+> > > +		MAX_NUM_EVENTS * sizeof(struct devx_obj_event *));
+> >=20
+> > There are so many list_heads in the devx_event_subscription, why not
+> > use just one of them to store the allocated events instead of this
+> > temp array? ie event_list looks good for this purpose.
+> >=20
+>=20
+> I'm using the array later on with direct access to the index that should =
+be
+> de-allocated. I would prefer staying with this array rather than using th=
+e
+> 'event_list' which has other purpose down the road, it's used per
+> subscription and doesn't look match to hold the devx_obj_event which has =
+no
+> list entry for this purpose..
+
+Replace the event_obj_array_alloc by storing that data directly in
+the xarray
+
+Replace the event_sub_arr by building them into a linked list - it
+always need to iterate over the whole list anyhow.
+
+> > > +
+> > > +	if (!event_sub_arr || !event_obj_array_alloc)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	/* Protect from concurrent subscriptions to same XA entries to allo=
+w
+> > > +	 * both to succeed
+> > > +	 */
+> > > +	mutex_lock(&devx_event_table->event_xa_lock);
+> > > +	for (i =3D 0; i < num_events; i++) {
+> > > +		u32 key_level1;
+> > > +
+> > > +		if (obj)
+> > > +			obj_type =3D get_dec_obj_type(obj,
+> > > +						    event_type_num_list[i]);
+> > > +		key_level1 =3D event_type_num_list[i] | obj_type << 16;
+> > > +
+> > > +		err =3D subscribe_event_xa_alloc(devx_event_table,
+> > > +					       key_level1,
+> > > +					       obj ? true : false,
+> > > +					       obj_id,
+> > > +					       &event_obj_array_alloc[i]);
+> >=20
+> > Usless ?:
+>=20
+> What do you suggest instead ?
+
+Nothing is needed, cast to implicit bool is always forced to
+true/false
+
+Jason
