@@ -1,65 +1,43 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH v4 hmm 00/12]
-Date: Mon, 24 Jun 2019 18:00:58 -0300
-Message-ID: <20190624210110.5098-1-jgg@ziepe.ca>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][next] RDMA/hns: fix potential integer overflow on left shift
+Date: Mon, 24 Jun 2019 22:46:08 +0100
+Message-ID: <20190624214608.11765-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Philip Yang <Philip.Yang-5C7GfCeVMHo@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgoKVGhpcyBwYXRjaCBzZXJp
-ZXMgYXJpc2VkIG91dCBvZiBkaXNjdXNzaW9ucyB3aXRoIEplcm9tZSB3aGVuIGxvb2tpbmcgYXQg
-dGhlCk9EUCBjaGFuZ2VzLCBwYXJ0aWN1bGFybHkgaW5mb3JtZWQgYnkgdXNlIGFmdGVyIGZyZWUg
-cmFjZXMgd2UgaGF2ZSBhbHJlYWR5CmZvdW5kIGFuZCBmaXhlZCBpbiB0aGUgT0RQIGNvZGUgKHRo
-YW5rcyB0byBzeXprYWxsZXIpIHdvcmtpbmcgd2l0aCBtbXUKbm90aWZpZXJzLCBhbmQgdGhlIGRp
-c2N1c3Npb24gd2l0aCBSYWxwaCBvbiBob3cgdG8gcmVzb2x2ZSB0aGUgbGlmZXRpbWUgbW9kZWwu
-CgpPdmVyYWxsIHRoaXMgYnJpbmdzIGluIGEgc2ltcGxpZmllZCBsb2NraW5nIHNjaGVtZSBhbmQg
-ZWFzeSB0byBleHBsYWluCmxpZmV0aW1lIG1vZGVsOgoKIElmIGEgaG1tX3JhbmdlIGlzIHZhbGlk
-LCB0aGVuIHRoZSBobW0gaXMgdmFsaWQsIGlmIGEgaG1tIGlzIHZhbGlkIHRoZW4gdGhlIG1tCiBp
-cyBhbGxvY2F0ZWQgbWVtb3J5LgoKIElmIHRoZSBtbSBuZWVkcyB0byBzdGlsbCBiZSBhbGl2ZSAo
-aWUgdG8gbG9jayB0aGUgbW1hcF9zZW0sIGZpbmQgYSB2bWEsIGV0YykKIHRoZW4gdGhlIG1tZ2V0
-IG11c3QgYmUgb2J0YWluZWQgdmlhIG1tZ2V0X25vdF96ZXJvKCkuCgpUaGUgdXNlIG9mIHVubG9j
-a2VkIHJlYWRzIG9uICdobW0tPmRlYWQnIGFyZSBhbHNvIGVsaW1pbmF0ZWQgaW4gZmF2b3VyIG9m
-CnVzaW5nIHN0YW5kYXJkIG1tZ2V0KCkgbG9ja2luZyB0byBwcmV2ZW50IHRoZSBtbSBmcm9tIGJl
-aW5nIHJlbGVhc2VkLiBNYW55IG9mCnRoZSBkZWJ1Z2dpbmcgY2hlY2tzIG9mICFyYW5nZS0+aG1t
-IGFuZCAhaG1tLT5tbSBhcmUgZHJvcHBlZCBpbiBmYXZvdXIgb2YKcG9pc29uIC0gd2hpY2ggaXMg
-bXVjaCBjbGVhcmVyIGFzIHRvIHRoZSBsaWZldGltZSBpbnRlbnQuCgpUaGUgdHJhaWxpbmcgcGF0
-Y2hlcyBhcmUganVzdCBzb21lIHJhbmRvbSBjbGVhbnVwcyBJIG5vdGljZWQgd2hlbiByZXZpZXdp
-bmcKdGhpcyBjb2RlLgoKSSdsbCBhcHBseSB0aGlzIGluIHRoZSBuZXh0IGZldyBkYXlzIC0gdGhl
-IG9ubHkgcGF0Y2ggdGhhdCBkb2Vzbid0IGhhdmUgZW5vdWdoClJldmlld2VkLWJ5cyBpcyAnbW0v
-aG1tOiBSZW1vdmUgY29uZnVzaW5nIGNvbW1lbnQgYW5kIGxvZ2ljIGZyb20gaG1tX3JlbGVhc2Un
-LAp3aGljaCBoYWQgYWxvdCBvZiBxdWVzdGlvbnMsIEkgc3RpbGwgdGhpbmsgaXQgaXMgZ29vZC4g
-SWYgcGVvcGxlIHJlYWxseSBkb24ndApsaWtlIGl0IEknbGwgZHJvcCBpdC4KClRoYW5rcyB0byBl
-dmVyeW9uZSB3aG8gdG9vayB0aW1lIHRvIGxvb2sgYXQgdGhpcyEKCkphc29uIEd1bnRob3JwZSAo
-MTIpOgogIG1tL2htbTogZml4IHVzZSBhZnRlciBmcmVlIHdpdGggc3RydWN0IGhtbSBpbiB0aGUg
-bW11IG5vdGlmaWVycwogIG1tL2htbTogVXNlIGhtbV9taXJyb3Igbm90IG1tIGFzIGFuIGFyZ3Vt
-ZW50IGZvciBobW1fcmFuZ2VfcmVnaXN0ZXIKICBtbS9obW06IEhvbGQgYSBtbWdyYWIgZnJvbSBo
-bW0gdG8gbW0KICBtbS9obW06IFNpbXBsaWZ5IGhtbV9nZXRfb3JfY3JlYXRlIGFuZCBtYWtlIGl0
-IHJlbGlhYmxlCiAgbW0vaG1tOiBSZW1vdmUgZHVwbGljYXRlIGNvbmRpdGlvbiB0ZXN0IGJlZm9y
-ZSB3YWl0X2V2ZW50X3RpbWVvdXQKICBtbS9obW06IERvIG5vdCB1c2UgbGlzdCpfcmN1KCkgZm9y
-IGhtbS0+cmFuZ2VzCiAgbW0vaG1tOiBIb2xkIG9uIHRvIHRoZSBtbWdldCBmb3IgdGhlIGxpZmV0
-aW1lIG9mIHRoZSByYW5nZQogIG1tL2htbTogVXNlIGxvY2tkZXAgaW5zdGVhZCBvZiBjb21tZW50
-cwogIG1tL2htbTogUmVtb3ZlIHJhY3kgcHJvdGVjdGlvbiBhZ2FpbnN0IGRvdWJsZS11bnJlZ2lz
-dHJhdGlvbgogIG1tL2htbTogUG9pc29uIGhtbV9yYW5nZSBkdXJpbmcgdW5yZWdpc3RlcgogIG1t
-L2htbTogUmVtb3ZlIGNvbmZ1c2luZyBjb21tZW50IGFuZCBsb2dpYyBmcm9tIGhtbV9yZWxlYXNl
-CiAgbW0vaG1tOiBGaXggZXJyb3IgZmxvd3MgaW4gaG1tX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQK
-CiBkcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X3N2bS5jIHwgICAyICstCiBpbmNsdWRl
-L2xpbnV4L2htbS5oICAgICAgICAgICAgICAgICAgIHwgIDUyICstLS0tCiBrZXJuZWwvZm9yay5j
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAxIC0KIG1tL2htbS5jICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgfCAyNzUgKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0KIDQgZmlsZXMg
-Y2hhbmdlZCwgMTMwIGluc2VydGlvbnMoKyksIDIwMCBkZWxldGlvbnMoLSkKCi0tIAoyLjIyLjAK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmFtZC1nZngg
-bWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeA==
+From: Colin Ian King <colin.king@canonical.com>
+
+There is a potential integer overflow when int i is left shifted
+as this is evaluated using 32 bit arithmetic but is being used in
+a context that expects an expression of type dma_addr_t.  Fix this
+by casting integer i to dma_addr_t before shifting to avoid the
+overflow.
+
+Addresses-Coverity: ("Unintentional integer overflow")
+Fixes: 2ac0bc5e725e ("RDMA/hns: Add a group interfaces for optimizing buffers getting flow")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_alloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+index 14fcc359599c..2c8defa94107 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
++++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+@@ -257,7 +257,7 @@ int hns_roce_get_kmem_bufs(struct hns_roce_dev *hr_dev, dma_addr_t *bufs,
+ 	for (i = start; i < end; i++)
+ 		if (buf->nbufs == 1)
+ 			bufs[total++] = buf->direct.map +
+-					(i << buf->page_shift);
++					((dma_addr_t)i << buf->page_shift);
+ 		else
+ 			bufs[total++] = buf->page_list[i].map;
+ 
+-- 
+2.20.1
