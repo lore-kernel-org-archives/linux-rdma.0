@@ -1,90 +1,63 @@
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH v18 03/15] lib: untag user pointers in strn*_user
-Date: Mon, 24 Jun 2019 16:32:48 +0200
-Message-ID: <1a53da43d69d644793110e85671d20158ebf29cb.1561386715.git.andreyknvl@google.com>
+Subject: [PATCH v18 09/15] drm/amdgpu: untag user pointers
+Date: Mon, 24 Jun 2019 16:32:54 +0200
+Message-ID: <1d036fc5bec4be059ee7f4f42bf7417dc44651dd.1561386715.git.andreyknvl@google.com>
 References: <cover.1561386715.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1561386715.git.andreyknvl@google.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Kostya Serebryany <kcc@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, Greg
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>, Alex Williamson <alex.williamson@redhat.com>, Leon Romanovsky <leon@kernel.org>, Luc Van Oostenryck <luc.vanoostenryck@gmail.com>, Dave Martin <Dave.Martin@arm.com>, Khalid Aziz <khalid.aziz@oracle.com>, enh <enh@>
 List-Id: linux-rdma@vger.kernel.org
 
 This patch is a part of a series that extends kernel ABI to allow to pass
 tagged user pointers (with the top byte set to something else other than
 0x00) as syscall arguments.
 
-strncpy_from_user and strnlen_user accept user addresses as arguments, and
-do not go through the same path as copy_from_user and others, so here we
-need to handle the case of tagged user addresses separately.
+In amdgpu_gem_userptr_ioctl() and amdgpu_amdkfd_gpuvm.c/init_user_pages()
+an MMU notifier is set up with a (tagged) userspace pointer. The untagged
+address should be used so that MMU notifiers for the untagged address get
+correctly matched up with the right BO. This patch untag user pointers in
+amdgpu_gem_userptr_ioctl() for the GEM case and in amdgpu_amdkfd_gpuvm_
+alloc_memory_of_gpu() for the KFD case. This also makes sure that an
+untagged pointer is passed to amdgpu_ttm_tt_get_user_pages(), which uses
+it for vma lookups.
 
-Untag user pointers passed to these functions.
-
-Note, that this patch only temporarily untags the pointers to perform
-validity checks, but then uses them as is to perform user memory accesses.
-
-Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Suggested-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- lib/strncpy_from_user.c | 3 ++-
- lib/strnlen_user.c      | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c | 2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c          | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/lib/strncpy_from_user.c b/lib/strncpy_from_user.c
-index 023ba9f3b99f..dccb95af6003 100644
---- a/lib/strncpy_from_user.c
-+++ b/lib/strncpy_from_user.c
-@@ -6,6 +6,7 @@
- #include <linux/uaccess.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
-+#include <linux/mm.h>
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
+index a6e5184d436c..5d476e9bbc43 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
+@@ -1108,7 +1108,7 @@ int amdgpu_amdkfd_gpuvm_alloc_memory_of_gpu(
+ 		alloc_flags = 0;
+ 		if (!offset || !*offset)
+ 			return -EINVAL;
+-		user_addr = *offset;
++		user_addr = untagged_addr(*offset);
+ 	} else if (flags & ALLOC_MEM_FLAGS_DOORBELL) {
+ 		domain = AMDGPU_GEM_DOMAIN_GTT;
+ 		alloc_domain = AMDGPU_GEM_DOMAIN_CPU;
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+index d4fcf5475464..e91df1407618 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+@@ -287,6 +287,8 @@ int amdgpu_gem_userptr_ioctl(struct drm_device *dev, void *data,
+ 	uint32_t handle;
+ 	int r;
  
- #include <asm/byteorder.h>
- #include <asm/word-at-a-time.h>
-@@ -108,7 +109,7 @@ long strncpy_from_user(char *dst, const char __user *src, long count)
- 		return 0;
++	args->addr = untagged_addr(args->addr);
++
+ 	if (offset_in_page(args->addr | args->size))
+ 		return -EINVAL;
  
- 	max_addr = user_addr_max();
--	src_addr = (unsigned long)src;
-+	src_addr = (unsigned long)untagged_addr(src);
- 	if (likely(src_addr < max_addr)) {
- 		unsigned long max = max_addr - src_addr;
- 		long retval;
-diff --git a/lib/strnlen_user.c b/lib/strnlen_user.c
-index 7f2db3fe311f..28ff554a1be8 100644
---- a/lib/strnlen_user.c
-+++ b/lib/strnlen_user.c
-@@ -2,6 +2,7 @@
- #include <linux/kernel.h>
- #include <linux/export.h>
- #include <linux/uaccess.h>
-+#include <linux/mm.h>
- 
- #include <asm/word-at-a-time.h>
- 
-@@ -109,7 +110,7 @@ long strnlen_user(const char __user *str, long count)
- 		return 0;
- 
- 	max_addr = user_addr_max();
--	src_addr = (unsigned long)str;
-+	src_addr = (unsigned long)untagged_addr(str);
- 	if (likely(src_addr < max_addr)) {
- 		unsigned long max = max_addr - src_addr;
- 		long retval;
 -- 
 2.22.0.410.gd8fdbe21b5-goog
