@@ -1,44 +1,86 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: Re: [PATCH v4 0/3] [v4.9.y] coredump: fix race condition between
- mmget_not_zero()/get_task_mm() and core dumping
-Date: Mon, 24 Jun 2019 16:21:50 -0400
-Message-ID: <20190624202150.GC3881@sasha-vm>
-References: <1561410186-3919-1-git-send-email-akaher@vmware.com>
- <1561410186-3919-4-git-send-email-akaher@vmware.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: [PATCH v4 hmm 03/12] mm/hmm: Hold a mmgrab from hmm to mm
+Date: Mon, 24 Jun 2019 18:01:01 -0300
+Message-ID: <20190624210110.5098-4-jgg@ziepe.ca>
+References: <20190624210110.5098-1-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1561410186-3919-4-git-send-email-akaher@vmware.com>
-Sender: stable-owner@vger.kernel.org
-To: Ajay Kaher <akaher@vmware.com>
-Cc: aarcange@redhat.com, jannh@google.com, oleg@redhat.com, peterx@redhat.com, rppt@linux.ibm.com, jgg@mellanox.com, mhocko@suse.com, jglisse@redhat.com, akpm@linux-foundation.org, mike.kravetz@oracle.com, viro@zeniv.linux.org.uk, riandrews@android.com, arve@android.com, yishaih@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, matanb@mellanox.com, leonro@mellanox.com, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, srivatsab@vmware.com, amakhalov@vmware.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20190624210110.5098-1-jgg-uk2M96/98Pc@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Philip Yang <Philip.Yang-5C7GfCeVMHo@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 25, 2019 at 02:33:06AM +0530, Ajay Kaher wrote:
->coredump: fix race condition between mmget_not_zero()/get_task_mm()
->and core dumping
->
->[PATCH v4 1/3]:
->Backporting of commit 04f5866e41fb70690e28397487d8bd8eea7d712a upstream.
->
->[PATCH v4 2/3]:
->Extension of commit 04f5866e41fb to fix the race condition between
->get_task_mm() and core dumping for IB->mlx4 and IB->mlx5 drivers.
->
->[PATCH v4 3/3]
->Backporting of commit 59ea6d06cfa9247b586a695c21f94afa7183af74 upstream.
->
->[diff from v3]:
->- added [PATCH v4 3/3]
-
-Why do all the patches have the same subject line?
-
-I guess it's correct for the first one, but can you explain what's up
-with #2 and #3?
-
-If the second one isn't upstream, please explain in detail why not and
-how 4.9 differs from upstream so that it requires a custom backport.
-
-The third one just looks like a different patch altogether with a wrong
-subject line?
+RnJvbTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgoKU28gbG9uZyBhcyBhIHN0
+cnVjdCBobW0gcG9pbnRlciBleGlzdHMsIHNvIHNob3VsZCB0aGUgc3RydWN0IG1tIGl0IGlzCmxp
+bmtlZCB0b28uIEhvbGQgdGhlIG1tZ3JhYigpIGFzIHNvb24gYXMgYSBobW0gaXMgY3JlYXRlZCwg
+YW5kIG1tZHJvcCgpIGl0Cm9uY2UgdGhlIGhtbSByZWZjb3VudCBnb2VzIHRvIHplcm8uCgpTaW5j
+ZSBtbWRyb3AoKSAoaWUgYSAwIGtyZWYgb24gc3RydWN0IG1tKSBpcyBub3cgaW1wb3NzaWJsZSB3
+aXRoIGEgIU5VTEwKbW0tPmhtbSBkZWxldGUgdGhlIGhtbV9obW1fZGVzdHJveSgpLgoKU2lnbmVk
+LW9mZi1ieTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgpSZXZpZXdlZC1ieTog
+SsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClJldmlld2VkLWJ5OiBKb2huIEh1
+YmJhcmQgPGpodWJiYXJkQG52aWRpYS5jb20+ClJldmlld2VkLWJ5OiBSYWxwaCBDYW1wYmVsbCA8
+cmNhbXBiZWxsQG52aWRpYS5jb20+ClJldmlld2VkLWJ5OiBJcmEgV2VpbnkgPGlyYS53ZWlueUBp
+bnRlbC5jb20+ClJldmlld2VkLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KVGVz
+dGVkLWJ5OiBQaGlsaXAgWWFuZyA8UGhpbGlwLllhbmdAYW1kLmNvbT4KLS0tCnYyOgogLSBGaXgg
+ZXJyb3IgdW53aW5kIHBhdGhzIGluIGhtbV9nZXRfb3JfY3JlYXRlIChKZXJvbWUvSmFzb24pCi0t
+LQogaW5jbHVkZS9saW51eC9obW0uaCB8ICAzIC0tLQoga2VybmVsL2ZvcmsuYyAgICAgICB8ICAx
+IC0KIG1tL2htbS5jICAgICAgICAgICAgfCAyMiArKysrLS0tLS0tLS0tLS0tLS0tLS0tCiAzIGZp
+bGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMjIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS9saW51eC9obW0uaCBiL2luY2x1ZGUvbGludXgvaG1tLmgKaW5kZXggMWZiYTY5
+NzlhZGY0NjAuLjFkOTdiNmQ2MmM1YmNmIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2htbS5o
+CisrKyBiL2luY2x1ZGUvbGludXgvaG1tLmgKQEAgLTU3NywxNCArNTc3LDExIEBAIHN0YXRpYyBp
+bmxpbmUgaW50IGhtbV92bWFfZmF1bHQoc3RydWN0IGhtbV9taXJyb3IgKm1pcnJvciwKIH0KIAog
+LyogQmVsb3cgYXJlIGZvciBITU0gaW50ZXJuYWwgdXNlIG9ubHkhIE5vdCB0byBiZSB1c2VkIGJ5
+IGRldmljZSBkcml2ZXIhICovCi12b2lkIGhtbV9tbV9kZXN0cm95KHN0cnVjdCBtbV9zdHJ1Y3Qg
+Km1tKTsKLQogc3RhdGljIGlubGluZSB2b2lkIGhtbV9tbV9pbml0KHN0cnVjdCBtbV9zdHJ1Y3Qg
+Km1tKQogewogCW1tLT5obW0gPSBOVUxMOwogfQogI2Vsc2UgLyogSVNfRU5BQkxFRChDT05GSUdf
+SE1NX01JUlJPUikgKi8KLXN0YXRpYyBpbmxpbmUgdm9pZCBobW1fbW1fZGVzdHJveShzdHJ1Y3Qg
+bW1fc3RydWN0ICptbSkge30KIHN0YXRpYyBpbmxpbmUgdm9pZCBobW1fbW1faW5pdChzdHJ1Y3Qg
+bW1fc3RydWN0ICptbSkge30KICNlbmRpZiAvKiBJU19FTkFCTEVEKENPTkZJR19ITU1fTUlSUk9S
+KSAqLwogCmRpZmYgLS1naXQgYS9rZXJuZWwvZm9yay5jIGIva2VybmVsL2ZvcmsuYwppbmRleCA3
+NTY3NWI5YmY2ZGZkMy4uYzcwNGMzY2VkZWU3OGQgMTAwNjQ0Ci0tLSBhL2tlcm5lbC9mb3JrLmMK
+KysrIGIva2VybmVsL2ZvcmsuYwpAQCAtNjczLDcgKzY3Myw2IEBAIHZvaWQgX19tbWRyb3Aoc3Ry
+dWN0IG1tX3N0cnVjdCAqbW0pCiAJV0FSTl9PTl9PTkNFKG1tID09IGN1cnJlbnQtPmFjdGl2ZV9t
+bSk7CiAJbW1fZnJlZV9wZ2QobW0pOwogCWRlc3Ryb3lfY29udGV4dChtbSk7Ci0JaG1tX21tX2Rl
+c3Ryb3kobW0pOwogCW1tdV9ub3RpZmllcl9tbV9kZXN0cm95KG1tKTsKIAljaGVja19tbShtbSk7
+CiAJcHV0X3VzZXJfbnMobW0tPnVzZXJfbnMpOwpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9o
+bW0uYwppbmRleCAyMmE5N2FkYTEwOGI0ZS4uMDgwYjE3YTJlODdlMmQgMTAwNjQ0Ci0tLSBhL21t
+L2htbS5jCisrKyBiL21tL2htbS5jCkBAIC0yMCw2ICsyMCw3IEBACiAjaW5jbHVkZSA8bGludXgv
+c3dhcG9wcy5oPgogI2luY2x1ZGUgPGxpbnV4L2h1Z2V0bGIuaD4KICNpbmNsdWRlIDxsaW51eC9t
+ZW1yZW1hcC5oPgorI2luY2x1ZGUgPGxpbnV4L3NjaGVkL21tLmg+CiAjaW5jbHVkZSA8bGludXgv
+anVtcF9sYWJlbC5oPgogI2luY2x1ZGUgPGxpbnV4L2RtYS1tYXBwaW5nLmg+CiAjaW5jbHVkZSA8
+bGludXgvbW11X25vdGlmaWVyLmg+CkBAIC03Myw2ICs3NCw3IEBAIHN0YXRpYyBzdHJ1Y3QgaG1t
+ICpobW1fZ2V0X29yX2NyZWF0ZShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIAlobW0tPm5vdGlmaWVy
+cyA9IDA7CiAJaG1tLT5kZWFkID0gZmFsc2U7CiAJaG1tLT5tbSA9IG1tOworCW1tZ3JhYihobW0t
+Pm1tKTsKIAogCXNwaW5fbG9jaygmbW0tPnBhZ2VfdGFibGVfbG9jayk7CiAJaWYgKCFtbS0+aG1t
+KQpAQCAtMTAwLDYgKzEwMiw3IEBAIHN0YXRpYyBzdHJ1Y3QgaG1tICpobW1fZ2V0X29yX2NyZWF0
+ZShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIAkJbW0tPmhtbSA9IE5VTEw7CiAJc3Bpbl91bmxvY2so
+Jm1tLT5wYWdlX3RhYmxlX2xvY2spOwogZXJyb3I6CisJbW1kcm9wKGhtbS0+bW0pOwogCWtmcmVl
+KGhtbSk7CiAJcmV0dXJuIE5VTEw7CiB9CkBAIC0xMjEsNiArMTI0LDcgQEAgc3RhdGljIHZvaWQg
+aG1tX2ZyZWUoc3RydWN0IGtyZWYgKmtyZWYpCiAJCW1tLT5obW0gPSBOVUxMOwogCXNwaW5fdW5s
+b2NrKCZtbS0+cGFnZV90YWJsZV9sb2NrKTsKIAorCW1tZHJvcChobW0tPm1tKTsKIAltbXVfbm90
+aWZpZXJfY2FsbF9zcmN1KCZobW0tPnJjdSwgaG1tX2ZyZWVfcmN1KTsKIH0KIApAQCAtMTI5LDI0
+ICsxMzMsNiBAQCBzdGF0aWMgaW5saW5lIHZvaWQgaG1tX3B1dChzdHJ1Y3QgaG1tICpobW0pCiAJ
+a3JlZl9wdXQoJmhtbS0+a3JlZiwgaG1tX2ZyZWUpOwogfQogCi12b2lkIGhtbV9tbV9kZXN0cm95
+KHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQotewotCXN0cnVjdCBobW0gKmhtbTsKLQotCXNwaW5fbG9j
+aygmbW0tPnBhZ2VfdGFibGVfbG9jayk7Ci0JaG1tID0gbW1fZ2V0X2htbShtbSk7Ci0JbW0tPmht
+bSA9IE5VTEw7Ci0JaWYgKGhtbSkgewotCQlobW0tPm1tID0gTlVMTDsKLQkJaG1tLT5kZWFkID0g
+dHJ1ZTsKLQkJc3Bpbl91bmxvY2soJm1tLT5wYWdlX3RhYmxlX2xvY2spOwotCQlobW1fcHV0KGht
+bSk7Ci0JCXJldHVybjsKLQl9Ci0KLQlzcGluX3VubG9jaygmbW0tPnBhZ2VfdGFibGVfbG9jayk7
+Ci19Ci0KIHN0YXRpYyB2b2lkIGhtbV9yZWxlYXNlKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLCBz
+dHJ1Y3QgbW1fc3RydWN0ICptbSkKIHsKIAlzdHJ1Y3QgaG1tICpobW0gPSBjb250YWluZXJfb2Yo
+bW4sIHN0cnVjdCBobW0sIG1tdV9ub3RpZmllcik7Ci0tIAoyLjIyLjAKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFt
+ZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vYW1kLWdmeA==
