@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Subject: [PATCH] IB/hfi1: Close PSM sdma_progress sleep window
-Date: Mon, 24 Jun 2019 16:17:36 -0400
-Message-ID: <20190624201735.170363.43524.stgit@awfm-01.aw.intel.com>
+Date: Mon, 24 Jun 2019 16:19:43 -0400
+Message-ID: <20190624201943.170417.50138.stgit@awfm-01.aw.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -24,7 +24,7 @@ Fix by moving the lock to enclose the sdma_progress() call.
 Also, delete busycount. The need for this was removed by:
 commit bcad29137a97 ("IB/hfi1: Serve the most starved iowait entry first")
 
-Ported to linux-4.14.y.
+Ported to linux-4.19.y.
 
 Cc: <stable@vger.kernel.org>
 Fixes: 7724105686e7 ("IB/hfi1: add driver files")
@@ -38,7 +38,7 @@ Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
  2 files changed, 4 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index cbe5ab2..75275f9 100644
+index 51831bf..cbff746 100644
 --- a/drivers/infiniband/hw/hfi1/user_sdma.c
 +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
 @@ -132,25 +132,22 @@ static int defer_packet_queue(
@@ -80,10 +80,10 @@ index cbe5ab2..75275f9 100644
  
  		/*
 diff --git a/drivers/infiniband/hw/hfi1/user_sdma.h b/drivers/infiniband/hw/hfi1/user_sdma.h
-index 2b5326d..87b0c56 100644
+index 91c343f..2c05670 100644
 --- a/drivers/infiniband/hw/hfi1/user_sdma.h
 +++ b/drivers/infiniband/hw/hfi1/user_sdma.h
-@@ -236,7 +236,6 @@ struct user_sdma_txreq {
+@@ -245,7 +245,6 @@ struct user_sdma_txreq {
  	struct list_head list;
  	struct user_sdma_request *req;
  	u16 flags;
