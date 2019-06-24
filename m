@@ -1,7 +1,7 @@
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH v18 13/15] tee/shm: untag user pointers in tee_shm_register
-Date: Mon, 24 Jun 2019 16:32:58 +0200
-Message-ID: <280ca5496fe82873caac306ca76fb40d702979ff.1561386715.git.andreyknvl@google.com>
+Subject: [PATCH v18 14/15] vfio/type1: untag user pointers in vaddr_get_pfn
+Date: Mon, 24 Jun 2019 16:32:59 +0200
+Message-ID: <125994bfab8f29da8f58c8fcd0d94ef4bf55b3ea.1561386715.git.andreyknvl@google.com>
 References: <cover.1561386715.git.andreyknvl@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -16,30 +16,32 @@ This patch is a part of a series that extends kernel ABI to allow to pass
 tagged user pointers (with the top byte set to something else other than
 0x00) as syscall arguments.
 
-tee_shm_register()->optee_shm_unregister()->check_mem_type() uses provided
-user pointers for vma lookups (via __check_mem_type()), which can only by
-done with untagged pointers.
+vaddr_get_pfn() uses provided user pointers for vma lookups, which can
+only by done with untagged pointers.
 
 Untag user pointers in this function.
 
+Reviewed-by: Eric Auger <eric.auger@redhat.com>
+Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Jens Wiklander <jens.wiklander@linaro.org>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- drivers/tee/tee_shm.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/vfio/vfio_iommu_type1.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/tee/tee_shm.c b/drivers/tee/tee_shm.c
-index 2da026fd12c9..09ddcd06c715 100644
---- a/drivers/tee/tee_shm.c
-+++ b/drivers/tee/tee_shm.c
-@@ -254,6 +254,7 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
- 	shm->teedev = teedev;
- 	shm->ctx = ctx;
- 	shm->id = -1;
-+	addr = untagged_addr(addr);
- 	start = rounddown(addr, PAGE_SIZE);
- 	shm->offset = addr - start;
- 	shm->size = length;
+diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type1.c
+index add34adfadc7..7b8283e33d10 100644
+--- a/drivers/vfio/vfio_iommu_type1.c
++++ b/drivers/vfio/vfio_iommu_type1.c
+@@ -381,6 +381,8 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned long vaddr,
+ 
+ 	down_read(&mm->mmap_sem);
+ 
++	vaddr = untagged_addr(vaddr);
++
+ 	vma = find_vma_intersection(mm, vaddr, vaddr + 1);
+ 
+ 	if (vma && vma->vm_flags & VM_PFNMAP) {
 -- 
 2.22.0.410.gd8fdbe21b5-goog
