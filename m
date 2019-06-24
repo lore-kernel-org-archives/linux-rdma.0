@@ -1,60 +1,49 @@
-From: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Subject: Re: [PATCH rdma-next v1 12/12] IB/mlx5: Add DEVX support for CQ
- events
-Date: Mon, 24 Jun 2019 20:03:07 +0300
-Message-ID: <a076a050-871b-c468-f62e-95bb4f0ac2c2@dev.mellanox.co.il>
-References: <20190618171540.11729-1-leon@kernel.org>
- <20190618171540.11729-13-leon@kernel.org>
- <20190624120416.GE5479@mellanox.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v18 15/15] selftests, arm64: add a selftest for passing
+ tagged pointers to kernel
+Date: Mon, 24 Jun 2019 18:38:06 +0100
+Message-ID: <20190624173805.GK29120@arrakis.emea.arm.com>
+References: <cover.1561386715.git.andreyknvl@google.com>
+ <0999c80cd639b78ae27c0674069d552833227564.1561386715.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190624120416.GE5479@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0999c80cd639b78ae27c0674069d552833227564.1561386715.git.andreyknvl@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/24/2019 3:04 PM, Jason Gunthorpe wrote:
-> On Tue, Jun 18, 2019 at 08:15:40PM +0300, Leon Romanovsky wrote:
->> From: Yishai Hadas <yishaih@mellanox.com>
->>
->> Add DEVX support for CQ events by creating and destroying the CQ via
->> mlx5_core and set an handler to manage its completions.
->>
->> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
->> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->>   drivers/infiniband/hw/mlx5/devx.c | 40 +++++++++++++++++++++++++++++++
->>   1 file changed, 40 insertions(+)
->>
->> diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
->> index 49fdce95d6d9..91ccd58ebc05 100644
->> +++ b/drivers/infiniband/hw/mlx5/devx.c
->> @@ -19,9 +19,12 @@
->>   #define UVERBS_MODULE_NAME mlx5_ib
->>   #include <rdma/uverbs_named_ioctl.h>
->>   
->> +static void dispatch_event_fd(struct list_head *fd_list, const void *data);
->> +
->>   enum devx_obj_flags {
->>   	DEVX_OBJ_FLAGS_INDIRECT_MKEY = 1 << 0,
->>   	DEVX_OBJ_FLAGS_DCT = 1 << 1,
->> +	DEVX_OBJ_FLAGS_CQ = 1 << 2,
->>   };
->>   
->>   struct devx_async_data {
->> @@ -94,6 +97,7 @@ struct devx_async_event_file {
->>   #define MLX5_MAX_DESTROY_INBOX_SIZE_DW MLX5_ST_SZ_DW(delete_fte_in)
->>   struct devx_obj {
->>   	struct mlx5_core_dev	*mdev;
->> +	struct mlx5_ib_dev	*ib_dev;
-> 
-> This seems strange, why would we need to store the core_dev and the ib_dev
-> in a struct when ibdev->mdev == core_dev?
-> 
+On Mon, Jun 24, 2019 at 04:33:00PM +0200, Andrey Konovalov wrote:
+> --- /dev/null
+> +++ b/tools/testing/selftests/arm64/tags_test.c
+> @@ -0,0 +1,29 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <unistd.h>
+> +#include <stdint.h>
+> +#include <sys/prctl.h>
+> +#include <sys/utsname.h>
+> +
+> +#define SHIFT_TAG(tag)		((uint64_t)(tag) << 56)
+> +#define SET_TAG(ptr, tag)	(((uint64_t)(ptr) & ~SHIFT_TAG(0xff)) | \
+> +					SHIFT_TAG(tag))
+> +
+> +int main(void)
+> +{
+> +	static int tbi_enabled = 0;
+> +	struct utsname *ptr, *tagged_ptr;
+> +	int err;
+> +
+> +	if (prctl(PR_SET_TAGGED_ADDR_CTRL, PR_TAGGED_ADDR_ENABLE, 0, 0, 0) == 0)
+> +		tbi_enabled = 1;
 
-We need to add the ib_dev as we can't access it from the core_dev.
-Most of this patch we can probably go and drop the mdev and access it 
-from ib_dev, I preferred to not handle that in this patch.
+Nitpick: with the latest prctl() patch, you can skip the last three
+arguments as they are ignored.
+
+Either way:
+
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
