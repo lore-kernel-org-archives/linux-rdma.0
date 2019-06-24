@@ -1,68 +1,97 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH] IB/hfi1: Avoid hardlockup with flushlist_lock
-Date: Mon, 24 Jun 2019 11:56:02 -0400
-Message-ID: <20190624155601.134582.32938.stgit@awfm-01.aw.intel.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
+Date: Mon, 24 Jun 2019 10:07:56 -0600
+Message-ID: <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
+References: <20190620161240.22738-1-logang@deltatee.com>
+ <20190624072752.GA3954@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190624072752.GA3954@lst.de>
+Content-Language: en-CA
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-commit cf131a81967583ae737df6383a0893b9fee75b4e upstream.
 
-Heavy contention of the sde flushlist_lock can cause hard lockups at
-extreme scale when the flushing logic is under stress.
 
-Mitigate by replacing the item at a time copy to the local list with
-an O(1) list_splice_init() and using the high priority work queue to
-do the flushes.
+On 2019-06-24 1:27 a.m., Christoph Hellwig wrote:
+> This is not going to fly.
+> 
+> For one passing a dma_addr_t through the block layer is a layering
+> violation, and one that I think will also bite us in practice.
+> The host physical to PCIe bus address mapping can have offsets, and
+> those offsets absolutely can be different for differnet root ports.
+> So with your caller generated dma_addr_t everything works fine with
+> a switched setup as the one you are probably testing on, but on a
+> sufficiently complicated setup with multiple root ports it can break.
 
-Ported to linux-4.9.y.
+I don't follow this argument. Yes, I understand PCI Bus offsets and yes
+I understand that they only apply beyond the bus they're working with.
+But this isn't *that* complicated and it should be the responsibility of
+the P2PDMA code to sort out and provide a dma_addr_t for. The dma_addr_t
+that's passed through the block layer could be a bus address or it could
+be the result of a dma_map_* request (if the transaction is found to go
+through an RC) depending on the requirements of the devices being used.
 
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Cc: <stable@vger.kernel.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
----
- drivers/infiniband/hw/hfi1/sdma.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+> Also duplicating the whole block I/O stack, including hooks all over
+> the fast path is pretty much a no-go.
 
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index 9cbe52d..76e63c8 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -410,10 +410,7 @@ static void sdma_flush(struct sdma_engine *sde)
- 	sdma_flush_descq(sde);
- 	spin_lock_irqsave(&sde->flushlist_lock, flags);
- 	/* copy flush list */
--	list_for_each_entry_safe(txp, txp_next, &sde->flushlist, list) {
--		list_del_init(&txp->list);
--		list_add_tail(&txp->list, &flushlist);
--	}
-+	list_splice_init(&sde->flushlist, &flushlist);
- 	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
- 	/* flush from flush list */
- 	list_for_each_entry_safe(txp, txp_next, &flushlist, list)
-@@ -2406,7 +2403,7 @@ int sdma_send_txreq(struct sdma_engine *sde,
- 		wait->tx_count++;
- 		wait->count += tx->num_desc;
- 	}
--	schedule_work(&sde->flush_worker);
-+	queue_work_on(sde->cpu, system_highpri_wq, &sde->flush_worker);
- 	ret = -ECOMM;
- 	goto unlock;
- nodesc:
-@@ -2504,7 +2501,7 @@ int sdma_send_txlist(struct sdma_engine *sde, struct iowait *wait,
- 		}
- 	}
- 	spin_unlock(&sde->flushlist_lock);
--	schedule_work(&sde->flush_worker);
-+	queue_work_on(sde->cpu, system_highpri_wq, &sde->flush_worker);
- 	ret = -ECOMM;
- 	goto update_tail;
- nodesc:
+There was very little duplicate code in the patch set. (Really just the
+mapping code). There are a few hooks, but in practice not that many if
+we ignore the WARN_ONs. We might be able to work to reduce this further.
+The main hooks are: when we skip bouncing, when we skip integrity prep,
+when we split, and when we map. And the patchset drops the PCI_P2PDMA
+hook when we map. So we're talking about maybe three or four extra ifs
+that would likely normally be fast due to the branch predictor.
+
+> I've been pondering for a while if we wouldn't be better off just
+> passing a phys_addr_t + len instead of the page, offset, len tuple
+> in the bio_vec, though.  If you look at the normal I/O path here
+> is what we normally do:
+> 
+>  - we get a page as input, either because we have it at hand (e.g.
+>    from the page cache) or from get_user_pages (which actually caculates
+>    it from a pfn in the page tables)
+>  - once in the bio all the merging decisions are based on the physical
+>    address, so we have to convert it to the physical address there,
+>    potentially multiple times
+>  - then dma mapping all works off the physical address, which it gets
+>    from the page at the start
+>  - then only the dma address is used for the I/O
+>  - on I/O completion we often but not always need the page again.  In
+>    the direct I/O case for reference counting and dirty status, in the
+>    file system also for things like marking the page uptodate
+> 
+> So if we move to a phys_addr_t we'd need to go back to the page at least
+> once.  But because of how the merging works we really only need to do
+> it once per segment, as we can just do pointer arithmerics do get the
+> following pages.  As we generally go at least once from a physical
+> address to a page in the merging code even a relatively expensive vmem_map
+> looks shouldn't be too bad.  Even more so given that the super hot path
+> (small blkdev direct I/O) can actually trivially cache the affected pages
+> as well.
+
+I've always wondered why it wasn't done this way. Passing around a page
+pointer *and* an offset always seemed less efficient than just a
+physical address. If we did do this, the proposed dma_addr_t and
+phys_addr_t paths through the block layer could be a lot more similar as
+things like the split calculation could work on either address type.
+We'd just have to prevent bouncing and integrity and change have a hook
+on how it's mapped.
+
+> Linus kinda hates the pfn approach, but part of that was really that
+> it was proposed for file system data, which we all found out really
+> can't work as-is without pages the hard way.  Another part probably
+> was potential performance issue, but between the few page lookups, and
+> the fact that using a single phys_addr_t instead of pfn/page + offset
+> should avoid quite a few calculations performance should not actually
+> be affected, although we'll have to be careful to actually verify that.
+
+Yes, I'd agree that removing the offset should make things simpler. But
+that requires changing a lot of stuff and doesn't really help what I'm
+trying to do.
+
+Logan
