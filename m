@@ -1,93 +1,44 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH] IB/hfi1: Close PSM sdma_progress sleep window
-Date: Mon, 24 Jun 2019 16:19:43 -0400
-Message-ID: <20190624201943.170417.50138.stgit@awfm-01.aw.intel.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: Re: [PATCH v4 0/3] [v4.9.y] coredump: fix race condition between
+ mmget_not_zero()/get_task_mm() and core dumping
+Date: Mon, 24 Jun 2019 16:21:50 -0400
+Message-ID: <20190624202150.GC3881@sasha-vm>
+References: <1561410186-3919-1-git-send-email-akaher@vmware.com>
+ <1561410186-3919-4-git-send-email-akaher@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1561410186-3919-4-git-send-email-akaher@vmware.com>
 Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+To: Ajay Kaher <akaher@vmware.com>
+Cc: aarcange@redhat.com, jannh@google.com, oleg@redhat.com, peterx@redhat.com, rppt@linux.ibm.com, jgg@mellanox.com, mhocko@suse.com, jglisse@redhat.com, akpm@linux-foundation.org, mike.kravetz@oracle.com, viro@zeniv.linux.org.uk, riandrews@android.com, arve@android.com, yishaih@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, matanb@mellanox.com, leonro@mellanox.com, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, srivatsab@vmware.com, amakhalov@vmware.com
 List-Id: linux-rdma@vger.kernel.org
 
-commit da9de5f8527f4b9efc82f967d29a583318c034c7 upstream.
+On Tue, Jun 25, 2019 at 02:33:06AM +0530, Ajay Kaher wrote:
+>coredump: fix race condition between mmget_not_zero()/get_task_mm()
+>and core dumping
+>
+>[PATCH v4 1/3]:
+>Backporting of commit 04f5866e41fb70690e28397487d8bd8eea7d712a upstream.
+>
+>[PATCH v4 2/3]:
+>Extension of commit 04f5866e41fb to fix the race condition between
+>get_task_mm() and core dumping for IB->mlx4 and IB->mlx5 drivers.
+>
+>[PATCH v4 3/3]
+>Backporting of commit 59ea6d06cfa9247b586a695c21f94afa7183af74 upstream.
+>
+>[diff from v3]:
+>- added [PATCH v4 3/3]
 
-The call to sdma_progress() is called outside the wait lock.
+Why do all the patches have the same subject line?
 
-In this case, there is a race condition where sdma_progress() can return
-false and the sdma_engine can idle.  If that happens, there will be no
-more sdma interrupts to cause the wakeup and the user_sdma xmit will hang.
+I guess it's correct for the first one, but can you explain what's up
+with #2 and #3?
 
-Fix by moving the lock to enclose the sdma_progress() call.
+If the second one isn't upstream, please explain in detail why not and
+how 4.9 differs from upstream so that it requires a custom backport.
 
-Also, delete busycount. The need for this was removed by:
-commit bcad29137a97 ("IB/hfi1: Serve the most starved iowait entry first")
-
-Ported to linux-4.19.y.
-
-Cc: <stable@vger.kernel.org>
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Reviewed-by: Gary Leshner <Gary.S.Leshner@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
----
- drivers/infiniband/hw/hfi1/user_sdma.c |   12 ++++--------
- drivers/infiniband/hw/hfi1/user_sdma.h |    1 -
- 2 files changed, 4 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 51831bf..cbff746 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -132,25 +132,22 @@ static int defer_packet_queue(
- 	struct hfi1_user_sdma_pkt_q *pq =
- 		container_of(wait, struct hfi1_user_sdma_pkt_q, busy);
- 	struct hfi1_ibdev *dev = &pq->dd->verbs_dev;
--	struct user_sdma_txreq *tx =
--		container_of(txreq, struct user_sdma_txreq, txreq);
- 
--	if (sdma_progress(sde, seq, txreq)) {
--		if (tx->busycount++ < MAX_DEFER_RETRY_COUNT)
--			goto eagain;
--	}
-+	write_seqlock(&dev->iowait_lock);
-+	if (sdma_progress(sde, seq, txreq))
-+		goto eagain;
- 	/*
- 	 * We are assuming that if the list is enqueued somewhere, it
- 	 * is to the dmawait list since that is the only place where
- 	 * it is supposed to be enqueued.
- 	 */
- 	xchg(&pq->state, SDMA_PKT_Q_DEFERRED);
--	write_seqlock(&dev->iowait_lock);
- 	if (list_empty(&pq->busy.list))
- 		iowait_queue(pkts_sent, &pq->busy, &sde->dmawait);
- 	write_sequnlock(&dev->iowait_lock);
- 	return -EBUSY;
- eagain:
-+	write_sequnlock(&dev->iowait_lock);
- 	return -EAGAIN;
- }
- 
-@@ -803,7 +800,6 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 
- 		tx->flags = 0;
- 		tx->req = req;
--		tx->busycount = 0;
- 		INIT_LIST_HEAD(&tx->list);
- 
- 		/*
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.h b/drivers/infiniband/hw/hfi1/user_sdma.h
-index 91c343f..2c05670 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.h
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.h
-@@ -245,7 +245,6 @@ struct user_sdma_txreq {
- 	struct list_head list;
- 	struct user_sdma_request *req;
- 	u16 flags;
--	unsigned int busycount;
- 	u64 seqnum;
- };
- 
+The third one just looks like a different patch altogether with a wrong
+subject line?
