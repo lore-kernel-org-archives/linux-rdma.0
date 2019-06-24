@@ -1,43 +1,35 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][next] RDMA/hns: fix potential integer overflow on left shift
-Date: Mon, 24 Jun 2019 22:46:08 +0100
-Message-ID: <20190624214608.11765-1-colin.king@canonical.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH rdma-next v1 00/12] DEVX asynchronous events
+Date: Mon, 24 Jun 2019 21:57:05 +0000
+Message-ID: <a8de53f1acb069057dedc94fb8bd29ea3e658716.camel@mellanox.com>
+References: <20190618171540.11729-1-leon@kernel.org>
+         <19107c92279cf4ad4d870fa54514423c5e46b748.camel@mellanox.com>
+         <20190619044557.GA11611@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190619044557.GA11611@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <D58CD9665377FF479CD3B806169914B6@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "leon@kernel.org" <leon@kernel.org>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-
-There is a potential integer overflow when int i is left shifted
-as this is evaluated using 32 bit arithmetic but is being used in
-a context that expects an expression of type dma_addr_t.  Fix this
-by casting integer i to dma_addr_t before shifting to avoid the
-overflow.
-
-Addresses-Coverity: ("Unintentional integer overflow")
-Fixes: 2ac0bc5e725e ("RDMA/hns: Add a group interfaces for optimizing buffers getting flow")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/hns/hns_roce_alloc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-index 14fcc359599c..2c8defa94107 100644
---- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-@@ -257,7 +257,7 @@ int hns_roce_get_kmem_bufs(struct hns_roce_dev *hr_dev, dma_addr_t *bufs,
- 	for (i = start; i < end; i++)
- 		if (buf->nbufs == 1)
- 			bufs[total++] = buf->direct.map +
--					(i << buf->page_shift);
-+					((dma_addr_t)i << buf->page_shift);
- 		else
- 			bufs[total++] = buf->page_list[i].map;
- 
--- 
-2.20.1
+T24gV2VkLCAyMDE5LTA2LTE5IGF0IDA3OjQ1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIFR1ZSwgSnVuIDE4LCAyMDE5IGF0IDA2OjUxOjQ1UE0gKzAwMDAsIFNhZWVkIE1haGFt
+ZWVkIHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxOS0wNi0xOCBhdCAyMDoxNSArMDMwMCwgTGVvbiBS
+b21hbm92c2t5IHdyb3RlOg0KPiA+ID4gRnJvbTogTGVvbiBSb21hbm92c2t5IDxsZW9ucm9AbWVs
+bGFub3guY29tPg0KPiA+ID4gDQo+ID4gPiBDaGFuZ2Vsb2c6DQo+ID4gPiAgdjAgLT4gdjE6DQo+
+ID4gDQo+ID4gTm9ybWFsbHkgMXN0IHN1Ym1pc3Npb24gaXMgVjEgYW5kIDJuZCBpcyBWMi4NCj4g
+PiBzbyB0aGlzIHNob3VsZCBoYXZlIGJlZW4gdjEtPnYyLg0KPiANCj4gIk5vcm1hbGx5IiBkZXBl
+bmRzIG9uIHRoZSBsYW5ndWFnZSB5b3UgYXJlIHVzaW5nLiBJbiBDLCBldmVyeXRoaW5nDQo+IHN0
+YXJ0cyBmcm9tIDAsIGluY2x1ZGluZyB2ZXJzaW9uIG9mIHBhdGNoZXMgOikuDQo+IA0KDQpZb3Ug
+YXJlIHdyb25nOg0KcXVvdGluZzogaHR0cHM6Ly9rZXJuZWxuZXdiaWVzLm9yZy9QYXRjaFRpcHNB
+bmRUcmlja3MNCg0KIkZvciBleGFtcGxlLCBpZiB5b3UncmUgc2VuZGluZyB0aGUgc2Vjb25kIHJl
+dmlzaW9uIG9mIGEgcGF0Y2gsIHlvdQ0Kc2hvdWxkIHVzZSBbUEFUQ0ggdjJdLiINCg0Kbm93IGRv
+bid0IHRlbGwgbWUgdGhhdCBzZWNvbmQgcmV2aXNpb24gaXMgYWN0dWFsbHkgM3JkIHJldmlzaW9u
+IG9yIDFzdA0KaXMgMm5kIDopLi4gDQoNCj4gPiBGb3IgbWx4NS1uZXh0IHBhdGNoZXM6DQo+ID4g
+DQo+ID4gQWNrZWQtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KPiAN
+Cj4gVGhhbmtzDQo=
