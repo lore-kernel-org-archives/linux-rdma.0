@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Subject: [PATCH] IB/hfi1: Avoid hardlockup with flushlist_lock
-Date: Mon, 24 Jun 2019 12:14:29 -0400
-Message-ID: <20190624161428.17461.31880.stgit@awfm-01.aw.intel.com>
+Date: Mon, 24 Jun 2019 12:26:23 -0400
+Message-ID: <20190624162623.184356.72785.stgit@awfm-01.aw.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -20,7 +20,7 @@ Mitigate by replacing the item at a time copy to the local list with
 an O(1) list_splice_init() and using the high priority work queue to
 do the flushes.
 
-Ported to linux-4.14.y.
+Ported to linux-4.19.y.
 
 Fixes: 7724105686e7 ("IB/hfi1: add driver files")
 Cc: <stable@vger.kernel.org>
@@ -33,7 +33,7 @@ Signed-off-by: Doug Ledford <dledford@redhat.com>
  1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index 6781bcd..ec613d5 100644
+index 88e326d..d648a41 100644
 --- a/drivers/infiniband/hw/hfi1/sdma.c
 +++ b/drivers/infiniband/hw/hfi1/sdma.c
 @@ -410,10 +410,7 @@ static void sdma_flush(struct sdma_engine *sde)
@@ -48,7 +48,7 @@ index 6781bcd..ec613d5 100644
  	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
  	/* flush from flush list */
  	list_for_each_entry_safe(txp, txp_next, &flushlist, list)
-@@ -2437,7 +2434,7 @@ int sdma_send_txreq(struct sdma_engine *sde,
+@@ -2426,7 +2423,7 @@ int sdma_send_txreq(struct sdma_engine *sde,
  		wait->tx_count++;
  		wait->count += tx->num_desc;
  	}
@@ -57,7 +57,7 @@ index 6781bcd..ec613d5 100644
  	ret = -ECOMM;
  	goto unlock;
  nodesc:
-@@ -2537,7 +2534,7 @@ int sdma_send_txlist(struct sdma_engine *sde, struct iowait *wait,
+@@ -2526,7 +2523,7 @@ int sdma_send_txlist(struct sdma_engine *sde, struct iowait *wait,
  		}
  	}
  	spin_unlock(&sde->flushlist_lock);
