@@ -1,126 +1,62 @@
-From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: [PATCH iproute2-next v3 1/2] ipaddress: correctly print a VF hw address in the IPoIB case
-Date: Sat, 22 Jun 2019 20:00:34 +0200
-Message-ID: <20190622180035.40245-1-dkirjanov@suse.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: stephen@networkplumber.org, dsahern@gmail.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz, Denis Kirjanov <kda@linux-powerpc.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
+Date: Mon, 24 Jun 2019 09:27:52 +0200
+Message-ID: <20190624072752.GA3954@lst.de>
+References: <20190620161240.22738-1-logang@deltatee.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190620161240.22738-1-logang@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Current code assumes that we print ethernet mac and
-that doesn't work in the IPoIB case with SRIOV-enabled hardware
+This is not going to fly.
 
-Before:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-        link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-        vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state disable,
-    trust off, query_rss off
-    ...
+For one passing a dma_addr_t through the block layer is a layering
+violation, and one that I think will also bite us in practice.
+The host physical to PCIe bus address mapping can have offsets, and
+those offsets absolutely can be different for differnet root ports.
+So with your caller generated dma_addr_t everything works fine with
+a switched setup as the one you are probably testing on, but on a
+sufficiently complicated setup with multiple root ports it can break.
 
-After:
-11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-state UP mode DEFAULT group default qlen 256
-        link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-        vf 0     link/infiniband
-80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-checking off, link-state disable, trust off, query_rss off
+Also duplicating the whole block I/O stack, including hooks all over
+the fast path is pretty much a no-go.
 
-v1->v2: updated kernel headers to uapi commit
-v2->v3: fixed alignment
+I've been pondering for a while if we wouldn't be better off just
+passing a phys_addr_t + len instead of the page, offset, len tuple
+in the bio_vec, though.  If you look at the normal I/O path here
+is what we normally do:
 
-Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
----
- ip/ipaddress.c | 44 +++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 39 insertions(+), 5 deletions(-)
+ - we get a page as input, either because we have it at hand (e.g.
+   from the page cache) or from get_user_pages (which actually caculates
+   it from a pfn in the page tables)
+ - once in the bio all the merging decisions are based on the physical
+   address, so we have to convert it to the physical address there,
+   potentially multiple times
+ - then dma mapping all works off the physical address, which it gets
+   from the page at the start
+ - then only the dma address is used for the I/O
+ - on I/O completion we often but not always need the page again.  In
+   the direct I/O case for reference counting and dirty status, in the
+   file system also for things like marking the page uptodate
 
-diff --git a/ip/ipaddress.c b/ip/ipaddress.c
-index b504200b..52078675 100644
---- a/ip/ipaddress.c
-+++ b/ip/ipaddress.c
-@@ -26,6 +26,7 @@
- 
- #include <linux/netdevice.h>
- #include <linux/if_arp.h>
-+#include <linux/if_infiniband.h>
- #include <linux/sockios.h>
- #include <linux/net_namespace.h>
- 
-@@ -349,9 +350,10 @@ static void print_af_spec(FILE *fp, struct rtattr *af_spec_attr)
- 
- static void print_vf_stats64(FILE *fp, struct rtattr *vfstats);
- 
--static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
-+static void print_vfinfo(struct ifinfomsg *ifi, FILE *fp, struct rtattr *vfinfo)
- {
- 	struct ifla_vf_mac *vf_mac;
-+	struct ifla_vf_broadcast *vf_broadcast;
- 	struct ifla_vf_tx_rate *vf_tx_rate;
- 	struct rtattr *vf[IFLA_VF_MAX + 1] = {};
- 
-@@ -365,13 +367,45 @@ static void print_vfinfo(FILE *fp, struct rtattr *vfinfo)
- 	parse_rtattr_nested(vf, IFLA_VF_MAX, vfinfo);
- 
- 	vf_mac = RTA_DATA(vf[IFLA_VF_MAC]);
-+	vf_broadcast = RTA_DATA(vf[IFLA_VF_BROADCAST]);
- 	vf_tx_rate = RTA_DATA(vf[IFLA_VF_TX_RATE]);
- 
- 	print_string(PRINT_FP, NULL, "%s    ", _SL_);
- 	print_int(PRINT_ANY, "vf", "vf %d ", vf_mac->vf);
--	print_string(PRINT_ANY, "mac", "MAC %s",
--		     ll_addr_n2a((unsigned char *) &vf_mac->mac,
--				 ETH_ALEN, 0, b1, sizeof(b1)));
-+
-+	print_string(PRINT_ANY,
-+			"link_type",
-+			"    link/%s ",
-+			ll_type_n2a(ifi->ifi_type, b1, sizeof(b1)));
-+
-+	print_color_string(PRINT_ANY,
-+				COLOR_MAC,
-+				"address",
-+				"%s",
-+				ll_addr_n2a((unsigned char *) &vf_mac->mac,
-+					ifi->ifi_type == ARPHRD_ETHER ?
-+					ETH_ALEN : INFINIBAND_ALEN,
-+					ifi->ifi_type,
-+					b1, sizeof(b1)));
-+
-+	if (vf[IFLA_VF_BROADCAST]) {
-+		if (ifi->ifi_flags&IFF_POINTOPOINT) {
-+			print_string(PRINT_FP, NULL, " peer ", NULL);
-+			print_bool(PRINT_JSON,
-+					"link_pointtopoint", NULL, true);
-+		} else
-+			print_string(PRINT_FP, NULL, " brd ", NULL);
-+
-+		print_color_string(PRINT_ANY,
-+				COLOR_MAC,
-+				"broadcast",
-+				"%s",
-+				ll_addr_n2a((unsigned char *) &vf_broadcast->broadcast,
-+					ifi->ifi_type == ARPHRD_ETHER ?
-+					ETH_ALEN : INFINIBAND_ALEN,
-+					ifi->ifi_type,
-+					b1, sizeof(b1)));
-+	}
- 
- 	if (vf[IFLA_VF_VLAN_LIST]) {
- 		struct rtattr *i, *vfvlanlist = vf[IFLA_VF_VLAN_LIST];
-@@ -1102,7 +1136,7 @@ int print_linkinfo(struct nlmsghdr *n, void *arg)
- 		open_json_array(PRINT_JSON, "vfinfo_list");
- 		for (i = RTA_DATA(vflist); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
- 			open_json_object(NULL);
--			print_vfinfo(fp, i);
-+			print_vfinfo(ifi, fp, i);
- 			close_json_object();
- 		}
- 		close_json_array(PRINT_JSON, NULL);
--- 
-2.12.3
+So if we move to a phys_addr_t we'd need to go back to the page at least
+once.  But because of how the merging works we really only need to do
+it once per segment, as we can just do pointer arithmerics do get the
+following pages.  As we generally go at least once from a physical
+address to a page in the merging code even a relatively expensive vmem_map
+looks shouldn't be too bad.  Even more so given that the super hot path
+(small blkdev direct I/O) can actually trivially cache the affected pages
+as well.
+
+Linus kinda hates the pfn approach, but part of that was really that
+it was proposed for file system data, which we all found out really
+can't work as-is without pages the hard way.  Another part probably
+was potential performance issue, but between the few page lookups, and
+the fact that using a single phys_addr_t instead of pfn/page + offset
+should avoid quite a few calculations performance should not actually
+be affected, although we'll have to be careful to actually verify that.
