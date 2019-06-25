@@ -1,48 +1,30 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Tue, 25 Jun 2019 09:20:08 +0200
-Message-ID: <20190625072008.GB30350@lst.de>
-References: <20190620161240.22738-1-logang@deltatee.com> <20190624072752.GA3954@lst.de> <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v4 hmm 04/12] mm/hmm: Simplify hmm_get_or_create and
+ make it reliable
+Date: Tue, 25 Jun 2019 09:02:34 +0200
+Message-ID: <20190625070234.GA30123@lst.de>
+References: <20190624210110.5098-1-jgg@ziepe.ca>
+ <20190624210110.5098-5-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
+In-Reply-To: <20190624210110.5098-5-jgg-uk2M96/98Pc@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Philip Yang <Philip.Yang-5C7GfCeVMHo@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 24, 2019 at 10:07:56AM -0600, Logan Gunthorpe wrote:
-> > For one passing a dma_addr_t through the block layer is a layering
-> > violation, and one that I think will also bite us in practice.
-> > The host physical to PCIe bus address mapping can have offsets, and
-> > those offsets absolutely can be different for differnet root ports.
-> > So with your caller generated dma_addr_t everything works fine with
-> > a switched setup as the one you are probably testing on, but on a
-> > sufficiently complicated setup with multiple root ports it can break.
-> 
-> I don't follow this argument. Yes, I understand PCI Bus offsets and yes
-> I understand that they only apply beyond the bus they're working with.
-> But this isn't *that* complicated and it should be the responsibility of
-> the P2PDMA code to sort out and provide a dma_addr_t for. The dma_addr_t
-> that's passed through the block layer could be a bus address or it could
-> be the result of a dma_map_* request (if the transaction is found to go
-> through an RC) depending on the requirements of the devices being used.
-
-You assume all addressing is done by the PCI bus address.  If a device
-is addressing its own BAR there is no reason to use the PCI bus address,
-as it might have much more intelligent schemes (usually bar + offset).
-> 
-> > Also duplicating the whole block I/O stack, including hooks all over
-> > the fast path is pretty much a no-go.
-> 
-> There was very little duplicate code in the patch set. (Really just the
-> mapping code). There are a few hooks, but in practice not that many if
-> we ignore the WARN_ONs. We might be able to work to reduce this further.
-> The main hooks are: when we skip bouncing, when we skip integrity prep,
-> when we split, and when we map. And the patchset drops the PCI_P2PDMA
-> hook when we map. So we're talking about maybe three or four extra ifs
-> that would likely normally be fast due to the branch predictor.
-
-And all of those add code to the block layer fast path.
+TG9va3MgZ29vZCwKClJldmlld2VkLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4K
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBt
+YWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
+cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
