@@ -1,65 +1,84 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Tue, 25 Jun 2019 19:01:15 +0200
-Message-ID: <20190625170115.GA9746@lst.de>
-References: <20190620161240.22738-1-logang@deltatee.com> <20190624072752.GA3954@lst.de> <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com> <20190625072008.GB30350@lst.de> <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 00/13] Mellanox, mlx5 vport metadata matching
+Date: Tue, 25 Jun 2019 17:47:48 +0000
+Message-ID: <20190625174727.20309-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-US
+Content-ID: <79E22F8C25CF8C42B436A0606522F85A@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 25, 2019 at 09:57:52AM -0600, Logan Gunthorpe wrote:
-> > You assume all addressing is done by the PCI bus address.  If a device
-> > is addressing its own BAR there is no reason to use the PCI bus address,
-> > as it might have much more intelligent schemes (usually bar + offset).
-> 
-> Yes, that will be a bit tricky regardless of what we do.
-
-At least right now it isn't at all.  I've implemented support for
-a draft NVMe proposal for that, and it basically boils down to this
-in the p2p path:
-
-	addr = sg_phys(sg);
-
-	if (page->pgmap->dev == ctrl->dev && HAS_RELATIVE_ADDRESSING)
-		addr -= ctrl->cmb_start_addr;
-
-		// set magic flag in the SGL
-	} else {
-		addr -= pgmap->pci_p2pdma_bus_offset;
-	}
-
-without the pagemap it would require a range compare instead, which
-isn't all that hard either.
-
-> >>> Also duplicating the whole block I/O stack, including hooks all over
-> >>> the fast path is pretty much a no-go.
-> >>
-> >> There was very little duplicate code in the patch set. (Really just the
-> >> mapping code). There are a few hooks, but in practice not that many if
-> >> we ignore the WARN_ONs. We might be able to work to reduce this further.
-> >> The main hooks are: when we skip bouncing, when we skip integrity prep,
-> >> when we split, and when we map. And the patchset drops the PCI_P2PDMA
-> >> hook when we map. So we're talking about maybe three or four extra ifs
-> >> that would likely normally be fast due to the branch predictor.
-> > 
-> > And all of those add code to the block layer fast path.
-> 
-> If we can't add any ifs to the block layer, there's really nothing we
-> can do.
-
-That is not what I said.  Of course we can.  But we rather have a
-really good reason.  And adding a parallel I/O path violating the
-highlevel model is not one.
-
-> So then we're committed to using struct page for P2P?
-
-Only until we have a significantly better soltution.  And I think
-using physical address in some form instead of pages is that,
-adding a parallel path with dma_addr_t is not, it actually is worse
-than the current code in many respects.
+VGhpcyBzZXJpZXMgaW5jbHVkZXMgbWx4NSB1cGRhdGVzIGZvciBib3RoIHJkbWEgYW5kIG5ldC1u
+ZXh0IHRyZWVzLg0KSW4gY2FzZSBvZiBubyBvYmplY3Rpb24gaXQgd2lsbCBiZSBhcHBsaWVkIHRv
+IG1seDUtbmV4dCBicmFuY2ggYW5kIGxhdGVyDQpvbiB3aWxsIGJlIHNlbnQgYXMgcHVsbCByZXF1
+ZXN0IHRvIHJkbWEgYW5kIG5ldC1uZXh0Lg0KDQpGcm9tIEppYW5ibywgVnBvcnQgbWV0YSBkYXRh
+IG1hdGNoaW5nOg0KDQpIYXJkd2FyZSBzdGVlcmluZyBoYXMgbm8gbm90aW9uIG9mIHZwb3J0IG51
+bWJlciwgYW5kIHZwb3J0IGlzIGFuDQphYnN0cmFjdCBjb25jZXB0LCBzbyBmaXJtd2FyZSBuZWVk
+IHRvIHRyYW5zbGF0ZSB0aGUgc291cmNlIHZwb3J0DQptYXRjaGluZyB0byBtYXRjaCBvbiB0aGUg
+VkhDQSBJRCAoVmlydHVhbCBIQ0EgSUQpLg0KDQpJbiBkdWFsLXBvcnQgUm9DRSwgdGhlIGR1YWwt
+cG9ydCBWSENBIGlzIGFibGUgdG8gc2VuZCBhbHNvIG9uIHRoZQ0Kc2Vjb25kIHBvcnQgb24gYmVo
+YWxmIG9mIHRoZSBhZmZpbGlhdGVkIHZwb3J0LCBzbyBub3cgd2UgY2Fu4oCZdCBhc3N1bWUNCmFu
+eW1vcmUgdGhhdCB2cG9ydCBpcyByZXByZXNlbnRlZCBieSBzaW5nbGUgVkhDQSBvbmx5Lg0KDQpU
+byByZXNvbHZlIHRoaXMgaXNzdWUsIHdlIHVzZSBtZXRhZGF0YSByZWdpc3RlciBhcyBzb3VyY2Ug
+cG9ydA0KaW5kaWNhdG9yIGluc3RlYWQuDQoNCldoZW4gYSBwYWNrZXQgZW50ZXJzIHRoZSBlc3dp
+dGNoLCBlc3dpdGNoIGluZ3Jlc3MgdHJhZmZpYyBwYXNzZXMgdGhlDQppbmdyZXNzIEFDTCBmbG93
+IHRhYmxlcywgd2hlcmUgd2UgdGFnIHRoZSBwYWNrZXRzICh2aWEgdGhlIG1ldGFkYXRhDQp2YWx1
+ZSwgaW4gdGhpcyBjYXNlIFJFR19DIGF0IGluZGV4IDApIHdpdGggYSB1bmlxdWUgdmFsdWUgd2hp
+Y2ggd2lsbA0KYWN0IGFzIGFuIGFsaWFzIG9mIHRoZSB2cG9ydC4gSW4gb3JkZXIgdG8gZ3VhcmFu
+dGVlIHVuaXF1ZW5lc3MsIHdlIHVzZQ0KdGhlIGVzd2l0Y2ggb3duZXIgdmhjYSBpZCBhbmQgdGhl
+IHZwb3J0IG51bWJlciBhcyB0aGF0IHZhbHVlLg0KDQpVc3VhbGx5LCB0aGUgdnBvcnRzIGFyZSBu
+dW1iZXJlZCBpbiBlYWNoIGVzd2l0Y2ggYXMgZm9sbG93ZWQ6DQogICAgLSBQaHlzaWNhbCBGdW5j
+dGlvbiAoUEYpIHZwb3J0LCB0aGUgbnVtYmVyIGlzIDAuDQogICAgLSBWaXJ0dWFsIEZ1bmN0aW9u
+IChWRikgdnBvcnQsIHN0YXJ0aW5nIGZyb20gMS4NCiAgICAtIFVwbGluayB2cG9ydCwgdGhlIHJl
+c2VydmVkIHZwb3J0IG51bWJlciBmb3IgaXQgaXMgMHhGRkZGLg0KDQpXaXRoIHRoZSBtZXRhZGF0
+YSBpbiBlYWNoIHBhY2tldCwgd2UgY2FuIHRoZW4gZG8gbWF0Y2hpbmcgb24gaXQsIGluDQpib3Ro
+IGZhc3QgcGF0aCBhbmQgc2xvdyBwYXRoLg0KDQpGb3Igc2xvdyBwYXRoLCB0aGVyZSBpcyBhIHJl
+cHJlc2VudG9yIGZvciBlYWNoIHZwb3J0LiBQYWNrZXQgdGhhdA0KbWlzc2VzIGFsbCBvZmZsb2Fk
+ZWQgcnVsZXMgaW4gRkRCLCB3aWxsIGJlIGZvcndhcmRlZCB0byB0aGUgZXN3aXRjaA0KbWFuYWdl
+ciB2cG9ydC4gSW4gaXRzIE5JQyBSWCwgaXQgdGhlbiB3aWxsIGJlIHN0ZWVyZWQgdG8gdGhlIHJp
+Z2h0DQpyZXByZXNlbnRvci4gVGhlIHJ1bGVzLCB3aGljaCBkZWNpZGUgdGhlIGRlc3RpbmF0aW9u
+IHJlcHJlc2VudG9yLA0KcHJldmlvdXNseSB3ZXJlIG1hdGNoaW5nIG9uIHNvdXJjZSBwb3J0LCB3
+aWxsIG5vdyBtYXRjaCBtZXRhZGF0YQ0KaW5zdGVhZC4NCg0KVjI6DQotIFJlbW92ZSBlc3dpdGNo
+IGNsZWFudXAgcGF0Y2hlcyBmcm9tIGJvZG9uZywgd2lsbCBzdWJtaXQgbGF0ZXIuDQotIFJlbW92
+ZSBJQiBzcGVjaWZpZWQgQVBJcyAobWx4NV9pYl9lc3dpdGNoXyopIGFkZGVkIGluIFYxLg0KLSBB
+ZGQgbWx4NV9lc3dpdGNoX2lzX3ZmX3Zwb3J0KCkgdG8gY2hlY2sgaWYgdGhlIHZwb3J0IGlzIFZG
+IHZwb3J0Lg0KLSBPdGhlciBzbWFsbCBjaGFuZ2VzLg0KDQpUaGFua3MsDQpTYWVlZC4NCg0KLS0t
+DQoNCkppYW5ibyBMaXUgKDEyKToNCiAgbmV0L21seDU6IEludHJvZHVjZSB2cG9ydCBtZXRhZGF0
+YSBtYXRjaGluZyBiaXRzIGFuZCBlbnVtIGNvbnN0YW50cw0KICBuZXQvbWx4NTogR2V0IHZwb3J0
+IEFDTCBuYW1lc3BhY2UgYnkgdnBvcnQgaW5kZXgNCiAgbmV0L21seDU6IFN1cHBvcnQgYWxsb2Nh
+dGluZyBtb2RpZnkgaGVhZGVyIGNvbnRleHQgZnJvbSBpbmdyZXNzIEFDTA0KICBuZXQvbWx4NTog
+QWRkIGZsb3cgY29udGV4dCBmb3IgZmxvdyB0YWcNCiAgbmV0L21seDU6IEUtU3dpdGNoLCBUYWcg
+cGFja2V0IHdpdGggdnBvcnQgbnVtYmVyIGluIFZGIHZwb3J0cyBhbmQNCiAgICB1cGxpbmsgaW5n
+cmVzcyBBQ0xzDQogIG5ldC9tbHg1ZTogU3BlY2lmeWluZyBrbm93biBvcmlnaW4gb2YgcGFja2V0
+cyBtYXRjaGluZyB0aGUgZmxvdw0KICBuZXQvbWx4NTogRS1Td2l0Y2gsIEFkZCBtYXRjaCBvbiB2
+cG9ydCBtZXRhZGF0YSBmb3IgcnVsZSBpbiBmYXN0IHBhdGgNCiAgbmV0L21seDU6IEUtU3dpdGNo
+LCBBZGQgcXVlcnkgYW5kIG1vZGlmeSBlc3cgdnBvcnQgY29udGV4dCBmdW5jdGlvbnMNCiAgbmV0
+L21seDU6IEUtU3dpdGNoLCBQYXNzIG1ldGFkYXRhIGZyb20gRkRCIHRvIGVzd2l0Y2ggbWFuYWdl
+cg0KICBuZXQvbWx4NTogRS1Td2l0Y2gsIEFkZCBtYXRjaCBvbiB2cG9ydCBtZXRhZGF0YSBmb3Ig
+cnVsZSBpbiBzbG93IHBhdGgNCiAgUkRNQS9tbHg1OiBBZGQgdnBvcnQgbWV0YWRhdGEgbWF0Y2hp
+bmcgZm9yIElCIHJlcHJlc2VudG9ycw0KICBuZXQvbWx4NTogRS1Td2l0Y2gsIEVuYWJsZSB2cG9y
+dCBtZXRhZGF0YSBtYXRjaGluZyBpZiBmaXJtd2FyZQ0KICAgIHN1cHBvcnRzIGl0DQoNClBhcmF2
+IFBhbmRpdCAoMSk6DQogIG5ldC9tbHg1OiBJbnRyb2R1Y2UgYSBoZWxwZXIgQVBJIHRvIGNoZWNr
+IFZGIHZwb3J0DQoNCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9mbG93LmMgICAgICAgICAg
+ICAgfCAgMTMgKy0NCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9tYWluLmMgICAgICAgICAg
+ICAgfCAgNzUgKystDQogZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvbWx4NV9pYi5oICAgICAg
+ICAgIHwgICAxICsNCiAuLi4vbWVsbGFub3gvbWx4NS9jb3JlL2RpYWcvZnNfdHJhY2Vwb2ludC5o
+ICAgfCAgIDQgKy0NCiAuLi4vbWVsbGFub3gvbWx4NS9jb3JlL2VuX2ZzX2V0aHRvb2wuYyAgICAg
+ICAgfCAgIDIgKy0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lbl90Yy5j
+ICAgfCAgIDcgKy0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNo
+LmMgfCAgMzAgKy0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNo
+LmggfCAgMTYgKw0KIC4uLi9tZWxsYW5veC9tbHg1L2NvcmUvZXN3aXRjaF9vZmZsb2Fkcy5jICAg
+ICB8IDUwMCArKysrKysrKysrKysrKy0tLS0NCiAuLi4vZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9j
+b3JlL2ZwZ2EvaXBzZWMuYyAgfCAgIDggKy0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21s
+eDUvY29yZS9mc19jbWQuYyAgfCAgMTAgKy0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21s
+eDUvY29yZS9mc19jb3JlLmMgfCAgMzQgKy0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21s
+eDUvY29yZS9mc19jb3JlLmggfCAgIDEgKw0KIGluY2x1ZGUvbGludXgvbWx4NS9lc3dpdGNoLmgg
+ICAgICAgICAgICAgICAgICB8ICAxNyArDQogaW5jbHVkZS9saW51eC9tbHg1L2ZzLmggICAgICAg
+ICAgICAgICAgICAgICAgIHwgIDE2ICstDQogaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmgg
+ICAgICAgICAgICAgICAgIHwgIDU2ICstDQogMTYgZmlsZXMgY2hhbmdlZCwgNjIyIGluc2VydGlv
+bnMoKyksIDE2OCBkZWxldGlvbnMoLSkNCg0KLS0gDQoyLjIxLjANCg0K
