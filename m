@@ -1,50 +1,31 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 13/13] net/mlx5: E-Switch, Enable vport metadata
- matching if firmware supports it
-Date: Tue, 25 Jun 2019 17:48:14 +0000
-Message-ID: <20190625174727.20309-14-saeedm@mellanox.com>
-References: <20190625174727.20309-1-saeedm@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH][next] RDMA/hns: fix spelling mistake "attatch" ->
+ "attach"
+Date: Tue, 25 Jun 2019 19:34:31 +0000
+Message-ID: <20190625193427.GA13242@mellanox.com>
+References: <20190624121649.3281-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190625174727.20309-1-saeedm@mellanox.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190624121649.3281-1-colin.king@canonical.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jianbo Liu <jianbol@mellanox.com>, Roi Dayan <roid@mellanox.com>, Mark Bloch <markb@mellanox.com>
+Content-ID: <C058B1AA2CB2E74692648DB987484356@eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSmlhbmJvIExpdSA8amlhbmJvbEBtZWxsYW5veC5jb20+DQoNCkFzIHRoZSBpbmdyZXNz
-IEFDTCBydWxlcyBzYXZlIHZoY2EgaWQgYW5kIHZwb3J0IG51bWJlciB0byBwYWNrZXQncw0KbWV0
-YWRhdGEgUkVHX0NfMCwgYW5kIHRoZSBtZXRhZGF0YSBtYXRjaGluZyBmb3IgdGhlIHJ1bGVzIGlu
-IGJvdGggZmFzdA0KcGF0aCBhbmQgc2xvdyBwYXRoIGFyZSBhbGwgYWRkZWQsIGVuYWJsZSB0aGlz
-IGZlYXR1cmUgaWYgc3VwcG9ydGVkLg0KDQpTaWduZWQtb2ZmLWJ5OiBKaWFuYm8gTGl1IDxqaWFu
-Ym9sQG1lbGxhbm94LmNvbT4NClJldmlld2VkLWJ5OiBSb2kgRGF5YW4gPHJvaWRAbWVsbGFub3gu
-Y29tPg0KUmV2aWV3ZWQtYnk6IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxhbm94LmNvbT4NClNpZ25l
-ZC1vZmYtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KLS0tDQogLi4u
-L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzLmMgICAgIHwgMjMgKysrKysrKysr
-KysrKysrKysrKw0KIDEgZmlsZSBjaGFuZ2VkLCAyMyBpbnNlcnRpb25zKCspDQoNCmRpZmYgLS1n
-aXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZXN3aXRjaF9vZmZs
-b2Fkcy5jIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hf
-b2ZmbG9hZHMuYw0KaW5kZXggOTRiNTVkMGJkZGE5Li4xNzRiMGVjNDE2MmYgMTAwNjQ0DQotLS0g
-YS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZXN3aXRjaF9vZmZsb2Fk
-cy5jDQorKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZXN3aXRj
-aF9vZmZsb2Fkcy5jDQpAQCAtMTkwNCwxMiArMTkwNCwzNSBAQCBzdGF0aWMgaW50IGVzd192cG9y
-dF9pbmdyZXNzX2NvbW1vbl9jb25maWcoc3RydWN0IG1seDVfZXN3aXRjaCAqZXN3LA0KIAlyZXR1
-cm4gZXJyOw0KIH0NCiANCitzdGF0aWMgYm9vbA0KK2Vzd19jaGVja192cG9ydF9tYXRjaF9tZXRh
-ZGF0YV9zdXBwb3J0ZWQoY29uc3Qgc3RydWN0IG1seDVfZXN3aXRjaCAqZXN3KQ0KK3sNCisJaWYg
-KCFNTFg1X0NBUF9FU1coZXN3LT5kZXYsIGVzd191cGxpbmtfaW5ncmVzc19hY2wpKQ0KKwkJcmV0
-dXJuIGZhbHNlOw0KKw0KKwlpZiAoIShNTFg1X0NBUF9FU1dfRkxPV1RBQkxFKGVzdy0+ZGV2LCBm
-ZGJfdG9fdnBvcnRfcmVnX2NfaWQpICYNCisJICAgICAgTUxYNV9GREJfVE9fVlBPUlRfUkVHX0Nf
-MCkpDQorCQlyZXR1cm4gZmFsc2U7DQorDQorCWlmICghTUxYNV9DQVBfRVNXX0ZMT1dUQUJMRShl
-c3ctPmRldiwgZmxvd19zb3VyY2UpKQ0KKwkJcmV0dXJuIGZhbHNlOw0KKw0KKwlpZiAobWx4NV9j
-b3JlX2lzX2VjcGZfZXN3X21hbmFnZXIoZXN3LT5kZXYpIHx8DQorCSAgICBtbHg1X2VjcGZfdnBv
-cnRfZXhpc3RzKGVzdy0+ZGV2KSkNCisJCXJldHVybiBmYWxzZTsNCisNCisJcmV0dXJuIHRydWU7
-DQorfQ0KKw0KIHN0YXRpYyBpbnQgZXN3X2NyZWF0ZV9vZmZsb2Fkc19hY2xfdGFibGVzKHN0cnVj
-dCBtbHg1X2Vzd2l0Y2ggKmVzdykNCiB7DQogCXN0cnVjdCBtbHg1X3Zwb3J0ICp2cG9ydDsNCiAJ
-aW50IGksIGo7DQogCWludCBlcnI7DQogDQorCWlmIChlc3dfY2hlY2tfdnBvcnRfbWF0Y2hfbWV0
-YWRhdGFfc3VwcG9ydGVkKGVzdykpDQorCQllc3ctPmZsYWdzIHw9IE1MWDVfRVNXSVRDSF9WUE9S
-VF9NQVRDSF9NRVRBREFUQTsNCisNCiAJbWx4NV9lc3dfZm9yX2FsbF92cG9ydHMoZXN3LCBpLCB2
-cG9ydCkgew0KIAkJZXJyID0gZXN3X3Zwb3J0X2luZ3Jlc3NfY29tbW9uX2NvbmZpZyhlc3csIHZw
-b3J0KTsNCiAJCWlmIChlcnIpDQotLSANCjIuMjEuMA0KDQo=
+On Mon, Jun 24, 2019 at 01:16:49PM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>=20
+> There is a spelling mistake in an dev_err message. Fix it.
+>=20
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_qp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+
+Applied to for-next, thanks
+
+Jason
