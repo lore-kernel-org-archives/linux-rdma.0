@@ -1,112 +1,81 @@
 From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH v4 rdma-next 2/3] RDMA/qedr: Add doorbell overflow
- recovery support
-Date: Tue, 25 Jun 2019 20:04:08 +0000
-Message-ID: <20190625200404.GA17378@mellanox.com>
-References: <20190624102809.8793-1-michal.kalderon@marvell.com>
- <20190624102809.8793-3-michal.kalderon@marvell.com>
+Subject: Re: [PATCH rdma-next v1 11/12] IB/mlx5: Implement DEVX dispatching
+ event
+Date: Tue, 25 Jun 2019 20:23:24 +0000
+Message-ID: <20190625202320.GJ3607@mellanox.com>
+References: <20190618171540.11729-1-leon@kernel.org>
+ <20190618171540.11729-12-leon@kernel.org>
+ <20190624120338.GD5479@mellanox.com>
+ <3a2e53f8-e7dd-3e01-c7c7-99d41f711d87@dev.mellanox.co.il>
+ <20190624180558.GL7418@mellanox.com>
+ <a2380ea6-4542-c72c-96f7-e68786847ccc@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190624102809.8793-3-michal.kalderon@marvell.com>
+In-Reply-To: <a2380ea6-4542-c72c-96f7-e68786847ccc@dev.mellanox.co.il>
 Content-Language: en-US
-Content-ID: <78478FDD0C3D784E8B2F45758E4C374E@eurprd05.prod.outlook.com>
+Content-ID: <40E9C00191753E49BCF30A92BCDAD487@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Michal Kalderon <michal.kalderon@marvell.com>
-Cc: "ariel.elior@marvell.com" <ariel.elior@marvell.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 24, 2019 at 01:28:08PM +0300, Michal Kalderon wrote:
+On Tue, Jun 25, 2019 at 05:41:49PM +0300, Yishai Hadas wrote:
+> > > > Why don't we return EIO as soon as is-destroyed happens? What is th=
+e
+> > > > point of flushing out the accumulated events?
+> > >=20
+> > > It follows the above uverb code/logic that returns existing events ev=
+en in
+> > > that case, also the async command events in this file follows that lo=
+gic, I
+> > > suggest to stay consistent.
+> >=20
+> > Don't follow broken uverbs stuff...
+>=20
+> May it be that there is some event that we still want to deliver post
+> unbind/hot-unplug ? for example IB_EVENT_DEVICE_FATAL in uverbs and other=
+s
+> from the driver code.
 
-> +/* Map the kernel doorbell recovery memory entry */
-> +int qedr_mmap_db_rec(struct vm_area_struct *vma)
-> +{
-> +	unsigned long len =3D vma->vm_end - vma->vm_start;
-> +
-> +	return remap_pfn_range(vma, vma->vm_start,
-> +			       vma->vm_pgoff,
-> +			       len, vma->vm_page_prot);
-> +}
-> +
->  int qedr_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
->  {
->  	struct qedr_ucontext *ucontext =3D get_qedr_ucontext(context);
-> @@ -390,6 +446,8 @@ int qedr_mmap(struct ib_ucontext *context, struct vm_=
-area_struct *vma)
->  	unsigned long phys_addr =3D vma->vm_pgoff << PAGE_SHIFT;
->  	unsigned long len =3D (vma->vm_end - vma->vm_start);
->  	unsigned long dpi_start;
-> +	struct qedr_mm *mm;
-> +	int rc;
-> =20
->  	dpi_start =3D dev->db_phys_addr + (ucontext->dpi * ucontext->dpi_size);
-> =20
-> @@ -405,29 +463,28 @@ int qedr_mmap(struct ib_ucontext *context, struct v=
-m_area_struct *vma)
->  		return -EINVAL;
->  	}
-> =20
-> -	if (!qedr_search_mmap(ucontext, phys_addr, len)) {
-> -		DP_ERR(dev, "failed mmap, vm_pgoff=3D0x%lx is not authorized\n",
-> +	mm =3D qedr_remove_mmap(ucontext, phys_addr, len);
-> +	if (!mm) {
-> +		DP_ERR(dev, "failed to remove mmap, vm_pgoff=3D0x%lx\n",
->  		       vma->vm_pgoff);
->  		return -EINVAL;
->  =09
+EIO is DEVICE_FATAL.
 
-This is so gross, please follow the pattern other drivers use for
-managing the mmap cookie
+> Not sure that we want to change this logic.
+> What do you think ?
 
-In fact I am sick of seeing drivers wrongly re-implement this, so you
-now get the job to make some proper core helpers to manage mmap
-cookies for drivers.
+I think this code should exit immediately with EIO if the device is
+disassociated.
 
-The EFA driver is probably the best example, I suggest you move that
-code to a common file in ib-core and use it here instead of redoing
-yet again another broken version.
+> > > > Maybe the event should be re-added on error? Tricky.
+> > >=20
+> > > What will happen if another copy_to_user may then fail again (loop ?)=
+ ...
+> > > not sure that we want to get into this tricky handling ...
+> > >=20
+> > > As of above, It follows the logic from uverbs at that area.
+> > > https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/cor=
+e/uverbs_main.c#L267
+> >=20
+> > again it is wrong...
+> >=20
+> > There is no loop if you just stick the item back on the head of the
+> > list and exit, which is probably the right thing to do..
+> >=20
+>=20
+> What if copy_to_user() will fail again just later on ? we might end-up wi=
+th
+> loop of read(s) that always find an event as it was put back.
 
-siw has another copy of basically the same thing.
+That is clearly an application bug and is not the concern of the
+kernel..
 
-> +static int qedr_init_user_db_rec(struct ib_udata *udata,
-> +				 struct qedr_dev *dev, struct qedr_userq *q,
-> +				 bool requires_db_rec)
-> +{
-> +	struct qedr_ucontext *uctx =3D
-> +		rdma_udata_to_drv_context(udata, struct qedr_ucontext,
-> +					  ibucontext);
-> +
-> +	/* Aborting for non doorbell userqueue (SRQ) or non-supporting lib */
-> +	if (requires_db_rec =3D=3D 0 || !uctx->db_rec)
-> +		return 0;
-> +
-> +	/* Allocate a page for doorbell recovery, add to mmap ) */
-> +	q->db_rec_data =3D (void *)get_zeroed_page(GFP_KERNEL);
+> I suggest to leave this flow as it's now, at least for this series
+> submission.
+>=20
+> Agree ?
 
-Pages obtained by get_zeroed_page shuld not be inserted by
-remap_pfn_range, those cases need to use vm_insert_page instead.
-
->  struct qedr_alloc_ucontext_resp {
->  	__aligned_u64 db_pa;
-> @@ -74,6 +83,7 @@ struct qedr_create_cq_uresp {
->  	__u32 db_offset;
->  	__u16 icid;
->  	__u16 reserved;
-> +	__u64 db_rec_addr;
->  };
-
-All uapi u64s need to be __aligned_u64 in this file.
-
-> +/* doorbell recovery entry allocated and populated by userspace doorbell=
-ing
-> + * entities and mapped to kernel. Kernel uses this to register doorbell
-> + * information with doorbell drop recovery mechanism.
-> + */
-> +struct qedr_user_db_rec {
-> +	__aligned_u64 db_data; /* doorbell data */
-> +};
-
-like this one :\
+I don't think you can actually fix this, so maybe we have to leave
+it. But add a comment explaining=20
 
 Jason
