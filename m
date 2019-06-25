@@ -1,16 +1,16 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v4 hmm 04/12] mm/hmm: Simplify hmm_get_or_create and
- make it reliable
-Date: Tue, 25 Jun 2019 09:02:34 +0200
-Message-ID: <20190625070234.GA30123@lst.de>
+Subject: Re: [PATCH v4 hmm 11/12] mm/hmm: Remove confusing comment and
+ logic from hmm_release
+Date: Tue, 25 Jun 2019 09:03:29 +0200
+Message-ID: <20190625070329.GB30123@lst.de>
 References: <20190624210110.5098-1-jgg@ziepe.ca>
- <20190624210110.5098-5-jgg@ziepe.ca>
+ <20190624210110.5098-12-jgg@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190624210110.5098-5-jgg-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20190624210110.5098-12-jgg-uk2M96/98Pc@public.gmane.org>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
  <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
