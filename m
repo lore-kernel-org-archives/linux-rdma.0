@@ -1,97 +1,112 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Tue, 25 Jun 2019 13:54:21 -0600
-Message-ID: <41235a05-8ed1-e69a-e7cd-48cae7d8a676@deltatee.com>
-References: <20190620161240.22738-1-logang@deltatee.com>
- <20190624072752.GA3954@lst.de>
- <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
- <20190625072008.GB30350@lst.de>
- <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com>
- <20190625170115.GA9746@lst.de>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH v4 rdma-next 2/3] RDMA/qedr: Add doorbell overflow
+ recovery support
+Date: Tue, 25 Jun 2019 20:04:08 +0000
+Message-ID: <20190625200404.GA17378@mellanox.com>
+References: <20190624102809.8793-1-michal.kalderon@marvell.com>
+ <20190624102809.8793-3-michal.kalderon@marvell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190625170115.GA9746@lst.de>
-Content-Language: en-CA
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190624102809.8793-3-michal.kalderon@marvell.com>
+Content-Language: en-US
+Content-ID: <78478FDD0C3D784E8B2F45758E4C374E@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Michal Kalderon <michal.kalderon@marvell.com>
+Cc: "ariel.elior@marvell.com" <ariel.elior@marvell.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Jun 24, 2019 at 01:28:08PM +0300, Michal Kalderon wrote:
 
+> +/* Map the kernel doorbell recovery memory entry */
+> +int qedr_mmap_db_rec(struct vm_area_struct *vma)
+> +{
+> +	unsigned long len =3D vma->vm_end - vma->vm_start;
+> +
+> +	return remap_pfn_range(vma, vma->vm_start,
+> +			       vma->vm_pgoff,
+> +			       len, vma->vm_page_prot);
+> +}
+> +
+>  int qedr_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+>  {
+>  	struct qedr_ucontext *ucontext =3D get_qedr_ucontext(context);
+> @@ -390,6 +446,8 @@ int qedr_mmap(struct ib_ucontext *context, struct vm_=
+area_struct *vma)
+>  	unsigned long phys_addr =3D vma->vm_pgoff << PAGE_SHIFT;
+>  	unsigned long len =3D (vma->vm_end - vma->vm_start);
+>  	unsigned long dpi_start;
+> +	struct qedr_mm *mm;
+> +	int rc;
+> =20
+>  	dpi_start =3D dev->db_phys_addr + (ucontext->dpi * ucontext->dpi_size);
+> =20
+> @@ -405,29 +463,28 @@ int qedr_mmap(struct ib_ucontext *context, struct v=
+m_area_struct *vma)
+>  		return -EINVAL;
+>  	}
+> =20
+> -	if (!qedr_search_mmap(ucontext, phys_addr, len)) {
+> -		DP_ERR(dev, "failed mmap, vm_pgoff=3D0x%lx is not authorized\n",
+> +	mm =3D qedr_remove_mmap(ucontext, phys_addr, len);
+> +	if (!mm) {
+> +		DP_ERR(dev, "failed to remove mmap, vm_pgoff=3D0x%lx\n",
+>  		       vma->vm_pgoff);
+>  		return -EINVAL;
+>  =09
 
-On 2019-06-25 11:01 a.m., Christoph Hellwig wrote:
-> On Tue, Jun 25, 2019 at 09:57:52AM -0600, Logan Gunthorpe wrote:
->>> You assume all addressing is done by the PCI bus address.  If a device
->>> is addressing its own BAR there is no reason to use the PCI bus address,
->>> as it might have much more intelligent schemes (usually bar + offset).
->>
->> Yes, that will be a bit tricky regardless of what we do.
-> 
-> At least right now it isn't at all.  I've implemented support for
-> a draft NVMe proposal for that, and it basically boils down to this
-> in the p2p path:
-> 
-> 	addr = sg_phys(sg);
-> 
-> 	if (page->pgmap->dev == ctrl->dev && HAS_RELATIVE_ADDRESSING)
-> 		addr -= ctrl->cmb_start_addr;
-> 
-> 		// set magic flag in the SGL
-> 	} else {
-> 		addr -= pgmap->pci_p2pdma_bus_offset;
-> 	}
-> 
-> without the pagemap it would require a range compare instead, which
-> isn't all that hard either.
-> 
->>>>> Also duplicating the whole block I/O stack, including hooks all over
->>>>> the fast path is pretty much a no-go.
->>>>
->>>> There was very little duplicate code in the patch set. (Really just the
->>>> mapping code). There are a few hooks, but in practice not that many if
->>>> we ignore the WARN_ONs. We might be able to work to reduce this further.
->>>> The main hooks are: when we skip bouncing, when we skip integrity prep,
->>>> when we split, and when we map. And the patchset drops the PCI_P2PDMA
->>>> hook when we map. So we're talking about maybe three or four extra ifs
->>>> that would likely normally be fast due to the branch predictor.
->>>
->>> And all of those add code to the block layer fast path.
->>
->> If we can't add any ifs to the block layer, there's really nothing we
->> can do.
-> 
-> That is not what I said.  Of course we can.  But we rather have a
-> really good reason.  And adding a parallel I/O path violating the
-> highlevel model is not one.
-> 
->> So then we're committed to using struct page for P2P?
-> 
-> Only until we have a significantly better soltution.  And I think
-> using physical address in some form instead of pages is that,
-> adding a parallel path with dma_addr_t is not, it actually is worse
-> than the current code in many respects.
+This is so gross, please follow the pattern other drivers use for
+managing the mmap cookie
 
-Well whether it's dma_addr_t, phys_addr_t, pfn_t the result isn't all
-that different. You still need roughly the same 'if' hooks for any
-backed memory that isn't in the linear mapping and you can't get a
-kernel mapping for directly.
+In fact I am sick of seeing drivers wrongly re-implement this, so you
+now get the job to make some proper core helpers to manage mmap
+cookies for drivers.
 
-It wouldn't be too hard to do a similar patch set that uses something
-like phys_addr_t instead and have a request and queue flag for support
-of non-mappable memory. But you'll end up with very similar 'if' hooks
-and we'd have to clean up all bio-using drivers that access the struct
-pages directly.
+The EFA driver is probably the best example, I suggest you move that
+code to a common file in ib-core and use it here instead of redoing
+yet again another broken version.
 
-Though, we'd also still have the problem of how to recognize when the
-address points to P2PDMA and needs to be translated to the bus offset.
-The map-first inversion was what helped here because the driver
-submitting the requests had all the information. Though it could be
-another request flag and indicating non-mappable memory could be a flag
-group like REQ_NOMERGE_FLAGS -- REQ_NOMAP_FLAGS.
+siw has another copy of basically the same thing.
 
-If you think any of the above ideas sound workable I'd be happy to try
-to code up another prototype.
+> +static int qedr_init_user_db_rec(struct ib_udata *udata,
+> +				 struct qedr_dev *dev, struct qedr_userq *q,
+> +				 bool requires_db_rec)
+> +{
+> +	struct qedr_ucontext *uctx =3D
+> +		rdma_udata_to_drv_context(udata, struct qedr_ucontext,
+> +					  ibucontext);
+> +
+> +	/* Aborting for non doorbell userqueue (SRQ) or non-supporting lib */
+> +	if (requires_db_rec =3D=3D 0 || !uctx->db_rec)
+> +		return 0;
+> +
+> +	/* Allocate a page for doorbell recovery, add to mmap ) */
+> +	q->db_rec_data =3D (void *)get_zeroed_page(GFP_KERNEL);
 
-Logan
+Pages obtained by get_zeroed_page shuld not be inserted by
+remap_pfn_range, those cases need to use vm_insert_page instead.
+
+>  struct qedr_alloc_ucontext_resp {
+>  	__aligned_u64 db_pa;
+> @@ -74,6 +83,7 @@ struct qedr_create_cq_uresp {
+>  	__u32 db_offset;
+>  	__u16 icid;
+>  	__u16 reserved;
+> +	__u64 db_rec_addr;
+>  };
+
+All uapi u64s need to be __aligned_u64 in this file.
+
+> +/* doorbell recovery entry allocated and populated by userspace doorbell=
+ing
+> + * entities and mapped to kernel. Kernel uses this to register doorbell
+> + * information with doorbell drop recovery mechanism.
+> + */
+> +struct qedr_user_db_rec {
+> +	__aligned_u64 db_data; /* doorbell data */
+> +};
+
+like this one :\
+
+Jason
