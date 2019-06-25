@@ -1,30 +1,62 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v4 hmm 11/12] mm/hmm: Remove confusing comment and
- logic from hmm_release
-Date: Tue, 25 Jun 2019 09:03:29 +0200
-Message-ID: <20190625070329.GB30123@lst.de>
-References: <20190624210110.5098-1-jgg@ziepe.ca>
- <20190624210110.5098-12-jgg@ziepe.ca>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [RFC][PATCH] wake_up_var() memory ordering
+Date: Tue, 25 Jun 2019 08:51:01 +0100
+Message-ID: <32379.1561449061@warthog.procyon.org.uk>
+References: <20190624165012.GH3436@hirez.programming.kicks-ass.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20190624210110.5098-12-jgg-uk2M96/98Pc@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Philip Yang <Philip.Yang-5C7GfCeVMHo@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190624165012.GH3436@hirez.programming.kicks-ass.net>
+Content-ID: <32378.1561449061.1@warthog.procyon.org.uk>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Martin Brandenburg <martin@omnibond.com>, linux-cachefs@redhat.com, Mike Snitzer <snitzer@redhat.com>, linux-aio@kvack.org, David Airlie <airlied@linux.ie>, samba-technical@lists.samba.org, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, dhowells@redhat.com, Chris Mason <clm@fb.com>, dm-devel@redhat.com, keyrings@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-afs@lists.infradead.org, Alasdair Kergon <agk@redhat.com>, Mike Marshall <hubcap@omnibond.com>, linux-cifs@vger.kernel.org, rds-devel@oss.oracle.com, Andreas Gruenbacher <agruenba@redhat.com>, linux-rdma@vger.kernel.org, James Morris <jmorris@namei.org>, cluster-devel@redhat.com, Matthias Brugger <matthias.bgg@gmail.com>, Paul McKenney <paulmck@linux.vnet.ibm.com>, intel-gfx@lists.freedesktop.org, devel@lists.orangefs.org, "Serge E. Hallyn" <serge@hallyn.com>, Santosh Shilimkar <santosh.s>
 List-Id: linux-rdma@vger.kernel.org
 
-TG9va3MgZ29vZCwKClJldmlld2VkLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4K
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBt
-YWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
+UGV0ZXIgWmlqbHN0cmEgPHBldGVyekBpbmZyYWRlYWQub3JnPiB3cm90ZToKCj4gSSB0cmllZCB1
+c2luZyB3YWtlX3VwX3ZhcigpIHRvZGF5IGFuZCBhY2NpZGVudGFsbHkgbm90aWNlZCB0aGF0IGl0
+Cj4gZGlkbid0IGltcGx5IGFuIHNtcF9tYigpIGFuZCBzcGVjaWZpY2FsbHkgcmVxdWlyZXMgaXQg
+dGhyb3VnaAo+IHdha2VfdXBfYml0KCkgLyB3YWl0cXVldWVfYWN0aXZlKCkuCgpUaGlua2luZyBh
+Ym91dCBpdCBhZ2FpbiwgSSdtIG5vdCBzdXJlIHdoeSB5b3UgbmVlZCB0byBhZGQgdGhlIGJhcnJp
+ZXIgd2hlbgp3YWtlX3VwKCkgKHdoaWNoIHRoaXMgaXMgYSB3cmFwcGVyIGFyb3VuZCkgaXMgcmVx
+dWlyZWQgdG8gaW1wb3NlIGEgYmFycmllciBhdAp0aGUgZnJvbnQgaWYgdGhlcmUncyBhbnl0aGlu
+ZyB0byB3YWtlIHVwIChpZS4gdGhlIHdhaXQgcXVldWUgaXNuJ3QgZW1wdHkpLgoKSWYgdGhpcyBp
+cyBpbnN1ZmZpY2llbnQsIGRvZXMgaXQgbWFrZSBzZW5zZSBqdXN0IHRvIGhhdmUgd2FrZV91cCoo
+KSBmdW5jdGlvbnMKZG8gYW4gdW5jb25kaXRpb25hbCByZWxlYXNlIG9yIGZ1bGwgYmFycmllciBy
+aWdodCBhdCB0aGUgZnJvbnQsIHJhdGhlciB0aGFuIGl0CmJlaW5nIGNvbmRpdGlvbmFsIG9uIHNv
+bWV0aGluZyBiZWluZyB3b2tlbiB1cD8KCj4gQEAgLTYxOSw5ICs2MTQsNyBAQCBzdGF0aWMgaW50
+IGR2Yl91c2JfZmVfc2xlZXAoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUpCj4gIGVycjoKPiAgCWlm
+ICghYWRhcC0+c3VzcGVuZF9yZXN1bWVfYWN0aXZlKSB7Cj4gIAkJYWRhcC0+YWN0aXZlX2ZlID0g
+LTE7CgpJJ20gd29uZGVyaW5nIGlmIHRoZXJlJ3MgYSBtaXNzaW5nIGJhcnJpZXIgaGVyZS4gIFNo
+b3VsZCB0aGUgY2xlYXJfYml0KCkgb24KdGhlIG5leHQgbGluZSBiZSBjbGVhcl9iaXRfdW5sb2Nr
+KCkgb3IgY2xlYXJfYml0X3JlbGVhc2UoKT8KCj4gLQkJY2xlYXJfYml0KEFEQVBfU0xFRVAsICZh
+ZGFwLT5zdGF0ZV9iaXRzKTsKPiAtCQlzbXBfbWJfX2FmdGVyX2F0b21pYygpOwo+IC0JCXdha2Vf
+dXBfYml0KCZhZGFwLT5zdGF0ZV9iaXRzLCBBREFQX1NMRUVQKTsKPiArCQljbGVhcl9hbmRfd2Fr
+ZV91cF9iaXQoQURBUF9TTEVFUCwgJmFkYXAtPnN0YXRlX2JpdHMpOwo+ICAJfQo+ICAKPiAgCWRl
+dl9kYmcoJmQtPnVkZXYtPmRldiwgIiVzOiByZXQ9JWRcbiIsIF9fZnVuY19fLCByZXQpOwo+IGRp
+ZmYgLS1naXQgYS9mcy9hZnMvZnNfcHJvYmUuYyBiL2ZzL2Fmcy9mc19wcm9iZS5jCj4gaW5kZXgg
+Y2ZlNjJiMTU0ZjY4Li4zNzdlZTA3ZDVmNzYgMTAwNjQ0Cj4gLS0tIGEvZnMvYWZzL2ZzX3Byb2Jl
+LmMKPiArKysgYi9mcy9hZnMvZnNfcHJvYmUuYwo+IEBAIC0xOCw2ICsxOCw3IEBAIHN0YXRpYyBi
+b29sIGFmc19mc19wcm9iZV9kb25lKHN0cnVjdCBhZnNfc2VydmVyICpzZXJ2ZXIpCj4gIAo+ICAJ
+d2FrZV91cF92YXIoJnNlcnZlci0+cHJvYmVfb3V0c3RhbmRpbmcpOwo+ICAJY2xlYXJfYml0X3Vu
+bG9jayhBRlNfU0VSVkVSX0ZMX1BST0JJTkcsICZzZXJ2ZXItPmZsYWdzKTsKPiArCXNtcF9tYl9f
+YWZ0ZXJfYXRvbWljKCk7Cj4gIAl3YWtlX3VwX2JpdCgmc2VydmVyLT5mbGFncywgQUZTX1NFUlZF
+Ul9GTF9QUk9CSU5HKTsKPiAgCXJldHVybiB0cnVlOwo+ICB9CgpMb29raW5nIGF0IHRoaXMgYW5k
+IHRoZSBkdmIgb25lLCBkb2VzIGl0IG1ha2Ugc2Vuc2UgdG8gc3RpY2sgdGhlIHJlbGVhc2UKc2Vt
+YW50aWNzIG9mIGNsZWFyX2JpdF91bmxvY2soKSBpbnRvIGNsZWFyX2FuZF93YWtlX3VwX2JpdCgp
+PwoKQWxzbywgc2hvdWxkIGNsZWFyX2JpdF91bmxvY2soKSBiZSByZW5hbWVkIHRvIGNsZWFyX2Jp
+dF9yZWxlYXNlKCkgKGFuZApzaW1pbGFybHkgdGVzdF9hbmRfc2V0X2JpdF9sb2NrKCkgLT4gdGVz
+dF9hbmRfc2V0X2JpdF9hY3F1aXJlKCkpIGlmIHdlIHNlZW0gdG8KYmUgdHJ5aW5nIHRvIHN0YW5k
+YXJkaXNlIG9uIHRoYXQgdGVybWlub2xvZ3kuCgpEYXZpZApfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
+bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
