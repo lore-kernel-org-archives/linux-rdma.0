@@ -1,47 +1,154 @@
-From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [RFC][PATCH] wake_up_var() memory ordering
-Date: Tue, 25 Jun 2019 15:27:36 +0200
-Message-ID: <20190625132736.GZ3419@hirez.programming.kicks-ass.net>
-References: <20190624165012.GH3436@hirez.programming.kicks-ass.net>
- <CAHc6FU7j5iW7WQoxN_OSfvK4zxv_MxTWJpiNsqFW8TEDMX1rjw@mail.gmail.com>
- <20190625103430.GW3402@hirez.programming.kicks-ass.net>
- <CAHc6FU6zUCdQZ1AfN2KYcPYVKc5bwvc0bD7=-KZpFXws+F9QZQ@mail.gmail.com>
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH rdma-next v1 11/12] IB/mlx5: Implement DEVX dispatching
+ event
+Date: Tue, 25 Jun 2019 17:41:49 +0300
+Message-ID: <a2380ea6-4542-c72c-96f7-e68786847ccc@dev.mellanox.co.il>
+References: <20190618171540.11729-1-leon@kernel.org>
+ <20190618171540.11729-12-leon@kernel.org>
+ <20190624120338.GD5479@mellanox.com>
+ <3a2e53f8-e7dd-3e01-c7c7-99d41f711d87@dev.mellanox.co.il>
+ <20190624180558.GL7418@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAHc6FU6zUCdQZ1AfN2KYcPYVKc5bwvc0bD7=-KZpFXws+F9QZQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Andreas Gruenbacher <agruenba-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Martin Brandenburg <martin-gqc3UtWaqJ5Wk0Htik3J/w@public.gmane.org>, linux-cachefs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-aio-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chris Mason <clm-b10kYP2dOMg@public.gmane.org>, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Alasdair Kergon <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mike Marshall <hubcap-gqc3UtWaqJ5Wk0Htik3J/w@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, cluster-devel <cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Antti Palosaari <crope-X3B1VOXEql0@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul McKenney <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.orgd
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190624180558.GL7418@mellanox.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 25, 2019 at 02:12:22PM +0200, Andreas Gruenbacher wrote:
-
-> > Only if we do as David suggested and make clean_and_wake_up_bit()
-> > provide the RELEASE barrier.
+On 6/24/2019 9:06 PM, Jason Gunthorpe wrote:
+> On Mon, Jun 24, 2019 at 07:55:32PM +0300, Yishai Hadas wrote:
 > 
-> (It's clear_and_wake_up_bit, not clean_and_wake_up_bit.)
+>>>> +	/* Explicit filtering to kernel events which may occur frequently */
+>>>> +	if (event_type == MLX5_EVENT_TYPE_CMD ||
+>>>> +	    event_type == MLX5_EVENT_TYPE_PAGE_REQUEST)
+>>>> +		return NOTIFY_OK;
+>>>> +
+>>>> +	table = container_of(nb, struct mlx5_devx_event_table, devx_nb.nb);
+>>>> +	dev = container_of(table, struct mlx5_ib_dev, devx_event_table);
+>>>> +	is_unaffiliated = is_unaffiliated_event(dev->mdev, event_type);
+>>>> +
+>>>> +	if (!is_unaffiliated)
+>>>> +		obj_type = get_event_obj_type(event_type, data);
+>>>> +	event = xa_load(&table->event_xa, event_type | (obj_type << 16));
+>>>> +	if (!event)
+>>>> +		return NOTIFY_DONE;
+>>>
+>>> event should be in the rcu as well
+>>
+>> Do we really need this ? I didn't see a flow that really requires
+>> that.
+> 
+> I think there are no frees left? Even so it makes much more sense to
+> include the event in the rcu as if we ever did need to kfree it would
+> have to be via rcu
+> 
 
-Yes, typing hard.
+OK
 
-> > That is, currently clear_and_wake_up_bit() is
-> >
-> >         clear_bit()
-> >         smp_mb__after_atomic();
-> >         wake_up_bit();
-> >
+>>>> +	while (list_empty(&ev_queue->event_list)) {
+>>>> +		spin_unlock_irq(&ev_queue->lock);
+>>>> +
+>>>> +		if (filp->f_flags & O_NONBLOCK)
+>>>> +			return -EAGAIN;
+>>>> +
+>>>> +		if (wait_event_interruptible(ev_queue->poll_wait,
+>>>> +			    (!list_empty(&ev_queue->event_list) ||
+>>>> +			     ev_queue->is_destroyed))) {
+>>>> +			return -ERESTARTSYS;
+>>>> +		}
+>>>> +
+>>>> +		if (list_empty(&ev_queue->event_list) &&
+>>>> +		    ev_queue->is_destroyed)
+>>>> +			return -EIO;
+>>>
+>>> All these tests should be under the lock.
+>>
+>> We can't call wait_event_interruptible() above which may sleep under the
+>> lock, correct ? are you referring to the list_empty() and
+>> is_destroyed ?
+> 
+> yes
+> 
+>> By the way looking in uverb code [1], similar code which is not done under
+>> the lock as of here..
+>>
+>> [1] https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/core/uverbs_main.c#L244
+> 
+> Also not a good idea
+> 
+>>> Why don't we return EIO as soon as is-destroyed happens? What is the
+>>> point of flushing out the accumulated events?
+>>
+>> It follows the above uverb code/logic that returns existing events even in
+>> that case, also the async command events in this file follows that logic, I
+>> suggest to stay consistent.
+> 
+> Don't follow broken uverbs stuff...
 
-> Now I'm confused because clear_and_wake_up_bit() in mainline does use
-> clear_bit_unlock(), so it's the exact opposite of what you just said.
+May it be that there is some event that we still want to deliver post 
+unbind/hot-unplug ? for example IB_EVENT_DEVICE_FATAL in uverbs and 
+others from the driver code.
 
-Argh; clearly I couldn't read. And then yes, you're right.
+Not sure that we want to change this logic.
+What do you think ?
+
+> 
+>>> Maybe the event should be re-added on error? Tricky.
+>>
+>> What will happen if another copy_to_user may then fail again (loop ?) ...
+>> not sure that we want to get into this tricky handling ...
+>>
+>> As of above, It follows the logic from uverbs at that area.
+>> https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/core/uverbs_main.c#L267
+> 
+> again it is wrong...
+> 
+> There is no loop if you just stick the item back on the head of the
+> list and exit, which is probably the right thing to do..
+> 
+
+What if copy_to_user() will fail again just later on ? we might end-up 
+with loop of read(s) that always find an event as it was put back.
+I suggest to leave this flow as it's now, at least for this series 
+submission.
+
+Agree ?
+
+
+>>>> @@ -2374,6 +2705,17 @@ static int devx_hot_unplug_async_cmd_event_file(struct ib_uobject *uobj,
+>>>>    static int devx_hot_unplug_async_event_file(struct ib_uobject *uobj,
+>>>>    					    enum rdma_remove_reason why)
+>>>>    {
+>>>> +	struct devx_async_event_file *ev_file =
+>>>> +		container_of(uobj, struct devx_async_event_file,
+>>>> +			     uobj);
+>>>> +	struct devx_async_event_queue *ev_queue = &ev_file->ev_queue;
+>>>> +
+>>>> +	spin_lock_irq(&ev_queue->lock);
+>>>> +	ev_queue->is_destroyed = 1;
+>>>> +	spin_unlock_irq(&ev_queue->lock);
+>>>> +
+>>>> +	if (why == RDMA_REMOVE_DRIVER_REMOVE)
+>>>> +		wake_up_interruptible(&ev_queue->poll_wait);
+>>>
+>>> Why isn't this wakeup always done?
+>>
+>> Maybe you are right and this can be always done to wake up any readers as
+>> the 'is_destroyed' was set.
+>>
+>> By the way, any idea why it was done as such in uverbs [1] for similar flow
+>> ? also the command events follows that.
+> 
+> I don't know, it is probably pointless too.
+> 
+> If we don't need it here then we shouldn't have it.
+> 
+> These random pointless ifs bother me as we have to spend time trying
+> to figure out that they are pointless down the road.
+> 
+
+OK, will drop this if.
