@@ -1,69 +1,94 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Wed, 26 Jun 2019 08:57:08 +0200
-Message-ID: <20190626065708.GB24531@lst.de>
-References: <20190620161240.22738-1-logang@deltatee.com> <20190624072752.GA3954@lst.de> <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com> <20190625072008.GB30350@lst.de> <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com> <20190625170115.GA9746@lst.de> <41235a05-8ed1-e69a-e7cd-48cae7d8a676@deltatee.com>
+From: Idan Burstein <idanb@mellanox.com>
+Subject: RE: [for-next V2 10/10] RDMA/core: Provide RDMA DIM support for ULPs
+Date: Wed, 26 Jun 2019 07:56:44 +0000
+Message-ID: <AM5PR0501MB248327B260F97EF97CD5B80EC5E20@AM5PR0501MB2483.eurprd05.prod.outlook.com>
+References: <20190625205701.17849-1-saeedm@mellanox.com>
+ <20190625205701.17849-11-saeedm@mellanox.com>
+ <adb3687a-6db3-b1a4-cd32-8b4889550c81@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <41235a05-8ed1-e69a-e7cd-48cae7d8a676@deltatee.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <adb3687a-6db3-b1a4-cd32-8b4889550c81@grimberg.me>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Tal Gilboa <talgi@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yamin Friedman <yaminf@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 25, 2019 at 01:54:21PM -0600, Logan Gunthorpe wrote:
-> Well whether it's dma_addr_t, phys_addr_t, pfn_t the result isn't all
-> that different. You still need roughly the same 'if' hooks for any
-> backed memory that isn't in the linear mapping and you can't get a
-> kernel mapping for directly.
-> 
-> It wouldn't be too hard to do a similar patch set that uses something
-> like phys_addr_t instead and have a request and queue flag for support
-> of non-mappable memory. But you'll end up with very similar 'if' hooks
-> and we'd have to clean up all bio-using drivers that access the struct
-> pages directly.
-
-We'll need to clean that mess up anyway, and I've been chugging
-along doing some of that.  A lot still assume no highmem, so we need
-to convert them over to something that kmaps anyway.  If we get
-the abstraction right that will actually help converting over to
-a better reprsentation.
-
-> Though, we'd also still have the problem of how to recognize when the
-> address points to P2PDMA and needs to be translated to the bus offset.
-> The map-first inversion was what helped here because the driver
-> submitting the requests had all the information. Though it could be
-> another request flag and indicating non-mappable memory could be a flag
-> group like REQ_NOMERGE_FLAGS -- REQ_NOMAP_FLAGS.
-
-The assumes the request all has the same memory, which is a simplifing
-assuption.  My idea was that if had our new bio_vec like this:
-
-struct bio_vec {
-	phys_addr_t		paddr; // 64-bit on 64-bit systems
-	unsigned long		len;
-};
-
-we have a hole behind len where we could store flag.  Preferably
-optionally based on a P2P or other magic memory types config
-option so that 32-bit systems with 32-bit phys_addr_t actually
-benefit from the smaller and better packing structure.
-
-> If you think any of the above ideas sound workable I'd be happy to try
-> to code up another prototype.
-
-Іt sounds workable.  To some of the first steps are cleanups independent
-of how the bio_vec is eventually going to look like.  That is making
-the DMA-API internals work on the phys_addr_t, which also unifies the
-map_resource implementation with map_page.  I plan to do that relatively
-soon.  The next is sorting out access to bios data by virtual address.
-All these need nice kmapping helper that avoid too much open coding.
-I was going to look into that next, mostly to kill the block layer
-bounce buffering code.  Similar things will also be needed at the
-scatterlist level I think.  After that we need to more audits of
-how bv_page is still used.  something like a bv_phys() helper that
-does "page_to_phys(bv->bv_page) + bv->bv_offset" might come in handy
-for example.
+IiBQbGVhc2UgZG9uJ3QuIFRoaXMgaXMgYSBiYWQgY2hvaWNlIHRvIG9wdCBpdCBpbiBieSBkZWZh
+dWx0LiINCg0KSSBkaXNhZ3JlZSBoZXJlLiBJJ2QgcHJlZmVyIExpbnV4IHRvIGhhdmUgZ29vZCBv
+dXQgb2YgdGhlIGJveCBleHBlcmllbmNlIChlLmcuIHJlYWNoIDEwMEcgaW4gNEsgTlZNZU9GIG9u
+IEludGVsIHNlcnZlcnMpIHdpdGggdGhlIGRlZmF1bHQgcGFyYW1ldGVycy4gRXNwZWNpYWxseSBz
+aW5jZSBZYW1pbiBoYXZlIHNob3duIGl0IGlzIGJlbmVmaWNpYWwgLyBub3QgaHVydGluZyBpbiB0
+ZXJtcyBvZiBwZXJmb3JtYW5jZSBmb3IgdmFyaWV0eSBvZiB1c2UgY2FzZXMuIFRoZSB3aG9sZSBj
+b25jZXB0IG9mIERJTSBpcyB0aGF0IGl0IGFkYXB0cyB0byB0aGUgd29ya2xvYWQgcmVxdWlyZW1l
+bnRzIGluIHRlcm1zIG9mIGJhbmR3aWR0aCBhbmQgbGF0ZW5jeS4gDQoNCk1vcmVvdmVyLCBuZXQt
+ZGltIGlzIGVuYWJsZWQgYnkgZGVmYXVsdCwgSSBkb24ndCBzZWUgd2h5IFJETUEgaXMgZGlmZmVy
+ZW50Lg0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1yZG1hLW93
+bmVyQHZnZXIua2VybmVsLm9yZyA8bGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmc+IE9u
+IEJlaGFsZiBPZiBTYWdpIEdyaW1iZXJnDQpTZW50OiBXZWRuZXNkYXksIEp1bmUgMjYsIDIwMTkg
+MTI6MTQgQU0NClRvOiBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT47IERhdmlk
+IFMuIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD47IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRA
+cmVkaGF0LmNvbT47IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4NCkNjOiBMZW9u
+IFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+OyBPciBHZXJsaXR6IDxvZ2VybGl0ekBt
+ZWxsYW5veC5jb20+OyBUYWwgR2lsYm9hIDx0YWxnaUBtZWxsYW5veC5jb20+OyBuZXRkZXZAdmdl
+ci5rZXJuZWwub3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgWWFtaW4gRnJpZWRtYW4g
+PHlhbWluZkBtZWxsYW5veC5jb20+OyBNYXggR3VydG92b3kgPG1heGdAbWVsbGFub3guY29tPg0K
+U3ViamVjdDogUmU6IFtmb3ItbmV4dCBWMiAxMC8xMF0gUkRNQS9jb3JlOiBQcm92aWRlIFJETUEg
+RElNIHN1cHBvcnQgZm9yIFVMUHMNCg0KDQoNCj4gK3N0YXRpYyBpbnQgaWJfcG9sbF9kaW1faGFu
+ZGxlcihzdHJ1Y3QgaXJxX3BvbGwgKmlvcCwgaW50IGJ1ZGdldCkgew0KPiArCXN0cnVjdCBpYl9j
+cSAqY3EgPSBjb250YWluZXJfb2YoaW9wLCBzdHJ1Y3QgaWJfY3EsIGlvcCk7DQo+ICsJc3RydWN0
+IGRpbSAqZGltID0gY3EtPmRpbTsNCj4gKwlpbnQgY29tcGxldGVkOw0KPiArDQo+ICsJY29tcGxl
+dGVkID0gX19pYl9wcm9jZXNzX2NxKGNxLCBidWRnZXQsIGNxLT53YywgSUJfUE9MTF9CQVRDSCk7
+DQo+ICsJaWYgKGNvbXBsZXRlZCA8IGJ1ZGdldCkgew0KPiArCQlpcnFfcG9sbF9jb21wbGV0ZSgm
+Y3EtPmlvcCk7DQo+ICsJCWlmIChpYl9yZXFfbm90aWZ5X2NxKGNxLCBJQl9QT0xMX0ZMQUdTKSA+
+IDApDQo+ICsJCQlpcnFfcG9sbF9zY2hlZCgmY3EtPmlvcCk7DQo+ICsJfQ0KPiArDQo+ICsJcmRt
+YV9kaW0oZGltLCBjb21wbGV0ZWQpOw0KDQpXaHkgZHVwbGljYXRlIHRoZSBlbnRpcmUgdGhpbmcg
+Zm9yIGEgb25lLWxpbmVyPw0KDQo+ICsNCj4gKwlyZXR1cm4gY29tcGxldGVkOw0KPiArfQ0KPiAr
+DQo+ICAgc3RhdGljIHZvaWQgaWJfY3FfY29tcGxldGlvbl9zb2Z0aXJxKHN0cnVjdCBpYl9jcSAq
+Y3EsIHZvaWQgKnByaXZhdGUpDQo+ICAgew0KPiAgIAlpcnFfcG9sbF9zY2hlZCgmY3EtPmlvcCk7
+DQo+IEBAIC0xMDUsMTQgKzE1NywxOCBAQCBzdGF0aWMgdm9pZCBpYl9jcV9jb21wbGV0aW9uX3Nv
+ZnRpcnEoc3RydWN0IA0KPiBpYl9jcSAqY3EsIHZvaWQgKnByaXZhdGUpDQo+ICAgDQo+ICAgc3Rh
+dGljIHZvaWQgaWJfY3FfcG9sbF93b3JrKHN0cnVjdCB3b3JrX3N0cnVjdCAqd29yaykNCj4gICB7
+DQo+IC0Jc3RydWN0IGliX2NxICpjcSA9IGNvbnRhaW5lcl9vZih3b3JrLCBzdHJ1Y3QgaWJfY3Es
+IHdvcmspOw0KPiArCXN0cnVjdCBpYl9jcSAqY3EgPSBjb250YWluZXJfb2Yod29yaywgc3RydWN0
+IGliX2NxLA0KPiArCQkJCQl3b3JrKTsNCg0KV2h5IHdhcyB0aGF0IGNoYW5nZWQ/DQoNCj4gICAJ
+aW50IGNvbXBsZXRlZDsNCj4gICANCj4gICAJY29tcGxldGVkID0gX19pYl9wcm9jZXNzX2NxKGNx
+LCBJQl9QT0xMX0JVREdFVF9XT1JLUVVFVUUsIGNxLT53YywNCj4gICAJCQkJICAgIElCX1BPTExf
+QkFUQ0gpOw0KPiArDQoNCm5ld2xpbmU/DQoNCj4gICAJaWYgKGNvbXBsZXRlZCA+PSBJQl9QT0xM
+X0JVREdFVF9XT1JLUVVFVUUgfHwNCj4gICAJICAgIGliX3JlcV9ub3RpZnlfY3EoY3EsIElCX1BP
+TExfRkxBR1MpID4gMCkNCj4gICAJCXF1ZXVlX3dvcmsoY3EtPmNvbXBfd3EsICZjcS0+d29yayk7
+DQo+ICsJZWxzZSBpZiAoY3EtPmRpbSkNCj4gKwkJcmRtYV9kaW0oY3EtPmRpbSwgY29tcGxldGVk
+KTsNCj4gICB9DQo+ICAgDQo+ICAgc3RhdGljIHZvaWQgaWJfY3FfY29tcGxldGlvbl93b3JrcXVl
+dWUoc3RydWN0IGliX2NxICpjcSwgdm9pZCANCj4gKnByaXZhdGUpIEBAIC0xNjYsNiArMjIyLDgg
+QEAgc3RydWN0IGliX2NxICpfX2liX2FsbG9jX2NxX3VzZXIoc3RydWN0IGliX2RldmljZSAqZGV2
+LCB2b2lkICpwcml2YXRlLA0KPiAgIAlyZG1hX3Jlc3RyYWNrX3NldF90YXNrKCZjcS0+cmVzLCBj
+YWxsZXIpOw0KPiAgIAlyZG1hX3Jlc3RyYWNrX2thZGQoJmNxLT5yZXMpOw0KPiAgIA0KPiArCXJk
+bWFfZGltX2luaXQoY3EpOw0KPiArDQo+ICAgCXN3aXRjaCAoY3EtPnBvbGxfY3R4KSB7DQo+ICAg
+CWNhc2UgSUJfUE9MTF9ESVJFQ1Q6DQo+ICAgCQljcS0+Y29tcF9oYW5kbGVyID0gaWJfY3FfY29t
+cGxldGlvbl9kaXJlY3Q7IEBAIC0xNzMsNyArMjMxLDEzIEBAIA0KPiBzdHJ1Y3QgaWJfY3EgKl9f
+aWJfYWxsb2NfY3FfdXNlcihzdHJ1Y3QgaWJfZGV2aWNlICpkZXYsIHZvaWQgKnByaXZhdGUsDQo+
+ICAgCWNhc2UgSUJfUE9MTF9TT0ZUSVJROg0KPiAgIAkJY3EtPmNvbXBfaGFuZGxlciA9IGliX2Nx
+X2NvbXBsZXRpb25fc29mdGlycTsNCj4gICANCj4gLQkJaXJxX3BvbGxfaW5pdCgmY3EtPmlvcCwg
+SUJfUE9MTF9CVURHRVRfSVJRLCBpYl9wb2xsX2hhbmRsZXIpOw0KPiArCQlpZiAoY3EtPmRpbSkg
+ew0KPiArCQkJaXJxX3BvbGxfaW5pdCgmY3EtPmlvcCwgSUJfUE9MTF9CVURHRVRfSVJRLA0KPiAr
+CQkJCSAgICAgIGliX3BvbGxfZGltX2hhbmRsZXIpOw0KPiArCQl9IGVsc2UNCj4gKwkJCWlycV9w
+b2xsX2luaXQoJmNxLT5pb3AsIElCX1BPTExfQlVER0VUX0lSUSwNCj4gKwkJCQkgICAgICBpYl9w
+b2xsX2hhbmRsZXIpOw0KPiArDQo+ICAgCQlpYl9yZXFfbm90aWZ5X2NxKGNxLCBJQl9DUV9ORVhU
+X0NPTVApOw0KPiAgIAkJYnJlYWs7DQo+ICAgCWNhc2UgSUJfUE9MTF9XT1JLUVVFVUU6DQo+IEBA
+IC0yMjYsNiArMjkwLDkgQEAgdm9pZCBpYl9mcmVlX2NxX3VzZXIoc3RydWN0IGliX2NxICpjcSwg
+c3RydWN0IGliX3VkYXRhICp1ZGF0YSkNCj4gICAJCVdBUk5fT05fT05DRSgxKTsNCj4gICAJfQ0K
+PiAgIA0KPiArCWlmIChjcS0+ZGltKQ0KPiArCQljYW5jZWxfd29ya19zeW5jKCZjcS0+ZGltLT53
+b3JrKTsNCj4gKwlrZnJlZShjcS0+ZGltKTsNCj4gICAJa2ZyZWUoY3EtPndjKTsNCj4gICAJcmRt
+YV9yZXN0cmFja19kZWwoJmNxLT5yZXMpOw0KPiAgIAlyZXQgPSBjcS0+ZGV2aWNlLT5vcHMuZGVz
+dHJveV9jcShjcSwgdWRhdGEpOyBkaWZmIC0tZ2l0IA0KPiBhL2RyaXZlcnMvaW5maW5pYmFuZC9o
+dy9tbHg1L21haW4uYyANCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9tYWluLmMNCj4g
+aW5kZXggYWJhYzcwYWQ1YzdjLi5iMWI0NWRiZTI0YTUgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMv
+aW5maW5pYmFuZC9ody9tbHg1L21haW4uYw0KPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcv
+bWx4NS9tYWluLmMNCj4gQEAgLTYzMDUsNiArNjMwNSw4IEBAIHN0YXRpYyBpbnQgbWx4NV9pYl9z
+dGFnZV9jYXBzX2luaXQoc3RydWN0IG1seDVfaWJfZGV2ICpkZXYpDQo+ICAgCSAgICAgTUxYNV9D
+QVBfR0VOKGRldi0+bWRldiwgZGlzYWJsZV9sb2NhbF9sYl9tYykpKQ0KPiAgIAkJbXV0ZXhfaW5p
+dCgmZGV2LT5sYi5tdXRleCk7DQo+ICAgDQo+ICsJZGV2LT5pYl9kZXYudXNlX2NxX2RpbSA9IHRy
+dWU7DQo+ICsNCg0KUGxlYXNlIGRvbid0LiBUaGlzIGlzIGEgYmFkIGNob2ljZSB0byBvcHQgaXQg
+aW4gYnkgZGVmYXVsdC4NCg==
