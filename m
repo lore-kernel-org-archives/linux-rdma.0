@@ -1,7 +1,7 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: Logan Gunthorpe <logang@deltatee.com>
 Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Wed, 26 Jun 2019 18:00:18 -0300
-Message-ID: <20190626210018.GB6392@ziepe.ca>
+Date: Wed, 26 Jun 2019 15:18:07 -0600
+Message-ID: <c25d3333-dcd5-3313-089b-7fbbd6fbd876@deltatee.com>
 References: <20190624072752.GA3954@lst.de>
  <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
  <20190625072008.GB30350@lst.de>
@@ -12,57 +12,80 @@ References: <20190624072752.GA3954@lst.de>
  <c15d5997-9ba4-f7db-0e7a-a69e75df316c@deltatee.com>
  <20190626202107.GA5850@ziepe.ca>
  <8a0a08c3-a537-bff6-0852-a5f337a70688@deltatee.com>
+ <20190626210018.GB6392@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <8a0a08c3-a537-bff6-0852-a5f337a70688@deltatee.com>
+In-Reply-To: <20190626210018.GB6392@ziepe.ca>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 26, 2019 at 02:45:38PM -0600, Logan Gunthorpe wrote:
+
+
+On 2019-06-26 3:00 p.m., Jason Gunthorpe wrote:
+> On Wed, Jun 26, 2019 at 02:45:38PM -0600, Logan Gunthorpe wrote:
+>>
+>>
+>> On 2019-06-26 2:21 p.m., Jason Gunthorpe wrote:
+>>> On Wed, Jun 26, 2019 at 12:31:08PM -0600, Logan Gunthorpe wrote:
+>>>>> we have a hole behind len where we could store flag.  Preferably
+>>>>> optionally based on a P2P or other magic memory types config
+>>>>> option so that 32-bit systems with 32-bit phys_addr_t actually
+>>>>> benefit from the smaller and better packing structure.
+>>>>
+>>>> That seems sensible. The one thing that's unclear though is how to get
+>>>> the PCI Bus address when appropriate. Can we pass that in instead of the
+>>>> phys_addr with an appropriate flag? Or will we need to pass the actual
+>>>> physical address and then, at the map step, the driver has to some how
+>>>> lookup the PCI device to figure out the bus offset?
+>>>
+>>> I agree with CH, if we go down this path it is a layering violation
+>>> for the thing injecting bio's into the block stack to know what struct
+>>> device they egress&dma map on just to be able to do the dma_map up
+>>> front.
+>>
+>> Not sure I agree with this statement. The p2pdma code already *must*
+>> know and access the pci_dev of the dma device ahead of when it submits
+>> the IO to know if it's valid to allocate and use P2P memory at all.
 > 
+> I don't think we should make drives do that. What if it got CMB memory
+> on some other device?
+
+Huh? A driver submitting P2P requests finds appropriate memory to use
+based on the DMA device that will be doing the mapping. It *has* to. It
+doesn't necessarily have control over which P2P provider it might find
+(ie. it may get CMB memory from a random NVMe device), but it easily
+knows the NVMe device it got the CMB memory for. Look at the existing
+code in the nvme target.
+
+>>> For instance we could use a small hash table of the upper phys addr
+>>> bits, or an interval tree, to do the lookup.
+>>
+>> Yes, if we're going to take a hard stance on this. But using an interval
+>> tree (or similar) is a lot more work for the CPU to figure out these
+>> mappings that may not be strictly necessary if we could just pass better
+>> information down from the submitting driver to the mapping driver.
 > 
-> On 2019-06-26 2:21 p.m., Jason Gunthorpe wrote:
-> > On Wed, Jun 26, 2019 at 12:31:08PM -0600, Logan Gunthorpe wrote:
-> >>> we have a hole behind len where we could store flag.  Preferably
-> >>> optionally based on a P2P or other magic memory types config
-> >>> option so that 32-bit systems with 32-bit phys_addr_t actually
-> >>> benefit from the smaller and better packing structure.
-> >>
-> >> That seems sensible. The one thing that's unclear though is how to get
-> >> the PCI Bus address when appropriate. Can we pass that in instead of the
-> >> phys_addr with an appropriate flag? Or will we need to pass the actual
-> >> physical address and then, at the map step, the driver has to some how
-> >> lookup the PCI device to figure out the bus offset?
-> > 
-> > I agree with CH, if we go down this path it is a layering violation
-> > for the thing injecting bio's into the block stack to know what struct
-> > device they egress&dma map on just to be able to do the dma_map up
-> > front.
-> 
-> Not sure I agree with this statement. The p2pdma code already *must*
-> know and access the pci_dev of the dma device ahead of when it submits
-> the IO to know if it's valid to allocate and use P2P memory at all.
+> Right, this is coming down to an optimization argument. I think there
+> are very few cases (Basically yours) where the caller will know this
+> info, so we need to support the other cases anyhow.
 
-I don't think we should make drives do that. What if it got CMB memory
-on some other device?
+I disagree. I think it has to be a common pattern. A driver doing a P2P
+transaction *must* find some device to obtain memory from (or it may be
+itself)  and check if it is compatible with the device that's going to
+be mapping the memory or vice versa. So no matter what we do, a driver
+submitting P2P requests must have access to both the PCI device that's
+going to be mapping the memory and the device that's providing the memory.
 
-> > For instance we could use a small hash table of the upper phys addr
-> > bits, or an interval tree, to do the lookup.
-> 
-> Yes, if we're going to take a hard stance on this. But using an interval
-> tree (or similar) is a lot more work for the CPU to figure out these
-> mappings that may not be strictly necessary if we could just pass better
-> information down from the submitting driver to the mapping driver.
+> I think with some simple caching this will become negligible for cases
+> you care about
 
-Right, this is coming down to an optimization argument. I think there
-are very few cases (Basically yours) where the caller will know this
-info, so we need to support the other cases anyhow.
+Well *maybe* it will be negligible performance wise, but it's also a lot
+more complicated, code wise. Tree lookups will always be a lot more
+expensive than just checking a flag.
 
-I think with some simple caching this will become negligible for cases
-you care about
-
-Jason
+Logan
