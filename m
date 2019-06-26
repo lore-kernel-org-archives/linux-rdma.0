@@ -1,90 +1,52 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Wed, 26 Jun 2019 12:31:08 -0600
-Message-ID: <c15d5997-9ba4-f7db-0e7a-a69e75df316c@deltatee.com>
-References: <20190620161240.22738-1-logang@deltatee.com>
- <20190624072752.GA3954@lst.de>
- <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
- <20190625072008.GB30350@lst.de>
- <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com>
- <20190625170115.GA9746@lst.de>
- <41235a05-8ed1-e69a-e7cd-48cae7d8a676@deltatee.com>
- <20190626065708.GB24531@lst.de>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH V2 mlx5-next 00/13] Mellanox, mlx5 vport metadata matching
+Date: Wed, 26 Jun 2019 19:05:46 +0000
+Message-ID: <773d05d69aa291631fd99425841a4c17a39e098f.camel@mellanox.com>
+References: <20190625174727.20309-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190626065708.GB24531@lst.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190625174727.20309-1-saeedm@mellanox.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Stephen Bates <sbates@raithlin.com>
+Content-ID: <7FEE14955F237F4B96576E64223B55F3@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2019-06-26 12:57 a.m., Christoph Hellwig wrote:
-> On Tue, Jun 25, 2019 at 01:54:21PM -0600, Logan Gunthorpe wrote:
->> Well whether it's dma_addr_t, phys_addr_t, pfn_t the result isn't all
->> that different. You still need roughly the same 'if' hooks for any
->> backed memory that isn't in the linear mapping and you can't get a
->> kernel mapping for directly.
->>
->> It wouldn't be too hard to do a similar patch set that uses something
->> like phys_addr_t instead and have a request and queue flag for support
->> of non-mappable memory. But you'll end up with very similar 'if' hooks
->> and we'd have to clean up all bio-using drivers that access the struct
->> pages directly.
-> 
-> We'll need to clean that mess up anyway, and I've been chugging
-> along doing some of that.  A lot still assume no highmem, so we need
-> to convert them over to something that kmaps anyway.  If we get
-> the abstraction right that will actually help converting over to
-> a better reprsentation.
-> 
->> Though, we'd also still have the problem of how to recognize when the
->> address points to P2PDMA and needs to be translated to the bus offset.
->> The map-first inversion was what helped here because the driver
->> submitting the requests had all the information. Though it could be
->> another request flag and indicating non-mappable memory could be a flag
->> group like REQ_NOMERGE_FLAGS -- REQ_NOMAP_FLAGS.
-> 
-> The assumes the request all has the same memory, which is a simplifing
-> assuption.  My idea was that if had our new bio_vec like this:
-> 
-> struct bio_vec {
-> 	phys_addr_t		paddr; // 64-bit on 64-bit systems
-> 	unsigned long		len;
-> };
-> 
-> we have a hole behind len where we could store flag.  Preferably
-> optionally based on a P2P or other magic memory types config
-> option so that 32-bit systems with 32-bit phys_addr_t actually
-> benefit from the smaller and better packing structure.
-
-That seems sensible. The one thing that's unclear though is how to get
-the PCI Bus address when appropriate. Can we pass that in instead of the
-phys_addr with an appropriate flag? Or will we need to pass the actual
-physical address and then, at the map step, the driver has to some how
-lookup the PCI device to figure out the bus offset?
-
->> If you think any of the above ideas sound workable I'd be happy to try
->> to code up another prototype.
-> 
-> Іt sounds workable.  To some of the first steps are cleanups independent
-> of how the bio_vec is eventually going to look like.  That is making
-> the DMA-API internals work on the phys_addr_t, which also unifies the
-> map_resource implementation with map_page.  I plan to do that relatively
-> soon.  The next is sorting out access to bios data by virtual address.
-> All these need nice kmapping helper that avoid too much open coding.
-> I was going to look into that next, mostly to kill the block layer
-> bounce buffering code.  Similar things will also be needed at the
-> scatterlist level I think.  After that we need to more audits of
-> how bv_page is still used.  something like a bv_phys() helper that
-> does "page_to_phys(bv->bv_page) + bv->bv_offset" might come in handy
-> for example.
-
-Ok, I should be able to help with that. When I have a chance I'll try to
-look at the bv_phys() helper.
-
-Logan
+T24gVHVlLCAyMDE5LTA2LTI1IGF0IDE3OjQ3ICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
+Cj4gVGhpcyBzZXJpZXMgaW5jbHVkZXMgbWx4NSB1cGRhdGVzIGZvciBib3RoIHJkbWEgYW5kIG5l
+dC1uZXh0IHRyZWVzLg0KPiBJbiBjYXNlIG9mIG5vIG9iamVjdGlvbiBpdCB3aWxsIGJlIGFwcGxp
+ZWQgdG8gbWx4NS1uZXh0IGJyYW5jaCBhbmQNCj4gbGF0ZXINCj4gb24gd2lsbCBiZSBzZW50IGFz
+IHB1bGwgcmVxdWVzdCB0byByZG1hIGFuZCBuZXQtbmV4dC4NCj4gDQo+IEZyb20gSmlhbmJvLCBW
+cG9ydCBtZXRhIGRhdGEgbWF0Y2hpbmc6DQo+IA0KPiBIYXJkd2FyZSBzdGVlcmluZyBoYXMgbm8g
+bm90aW9uIG9mIHZwb3J0IG51bWJlciwgYW5kIHZwb3J0IGlzIGFuDQo+IGFic3RyYWN0IGNvbmNl
+cHQsIHNvIGZpcm13YXJlIG5lZWQgdG8gdHJhbnNsYXRlIHRoZSBzb3VyY2UgdnBvcnQNCj4gbWF0
+Y2hpbmcgdG8gbWF0Y2ggb24gdGhlIFZIQ0EgSUQgKFZpcnR1YWwgSENBIElEKS4NCj4gDQo+IElu
+IGR1YWwtcG9ydCBSb0NFLCB0aGUgZHVhbC1wb3J0IFZIQ0EgaXMgYWJsZSB0byBzZW5kIGFsc28g
+b24gdGhlDQo+IHNlY29uZCBwb3J0IG9uIGJlaGFsZiBvZiB0aGUgYWZmaWxpYXRlZCB2cG9ydCwg
+c28gbm93IHdlIGNhbuKAmXQgYXNzdW1lDQo+IGFueW1vcmUgdGhhdCB2cG9ydCBpcyByZXByZXNl
+bnRlZCBieSBzaW5nbGUgVkhDQSBvbmx5Lg0KPiANCj4gVG8gcmVzb2x2ZSB0aGlzIGlzc3VlLCB3
+ZSB1c2UgbWV0YWRhdGEgcmVnaXN0ZXIgYXMgc291cmNlIHBvcnQNCj4gaW5kaWNhdG9yIGluc3Rl
+YWQuDQo+IA0KPiBXaGVuIGEgcGFja2V0IGVudGVycyB0aGUgZXN3aXRjaCwgZXN3aXRjaCBpbmdy
+ZXNzIHRyYWZmaWMgcGFzc2VzIHRoZQ0KPiBpbmdyZXNzIEFDTCBmbG93IHRhYmxlcywgd2hlcmUg
+d2UgdGFnIHRoZSBwYWNrZXRzICh2aWEgdGhlIG1ldGFkYXRhDQo+IHZhbHVlLCBpbiB0aGlzIGNh
+c2UgUkVHX0MgYXQgaW5kZXggMCkgd2l0aCBhIHVuaXF1ZSB2YWx1ZSB3aGljaCB3aWxsDQo+IGFj
+dCBhcyBhbiBhbGlhcyBvZiB0aGUgdnBvcnQuIEluIG9yZGVyIHRvIGd1YXJhbnRlZSB1bmlxdWVu
+ZXNzLCB3ZQ0KPiB1c2UNCj4gdGhlIGVzd2l0Y2ggb3duZXIgdmhjYSBpZCBhbmQgdGhlIHZwb3J0
+IG51bWJlciBhcyB0aGF0IHZhbHVlLg0KPiANCj4gVXN1YWxseSwgdGhlIHZwb3J0cyBhcmUgbnVt
+YmVyZWQgaW4gZWFjaCBlc3dpdGNoIGFzIGZvbGxvd2VkOg0KPiAgICAgLSBQaHlzaWNhbCBGdW5j
+dGlvbiAoUEYpIHZwb3J0LCB0aGUgbnVtYmVyIGlzIDAuDQo+ICAgICAtIFZpcnR1YWwgRnVuY3Rp
+b24gKFZGKSB2cG9ydCwgc3RhcnRpbmcgZnJvbSAxLg0KPiAgICAgLSBVcGxpbmsgdnBvcnQsIHRo
+ZSByZXNlcnZlZCB2cG9ydCBudW1iZXIgZm9yIGl0IGlzIDB4RkZGRi4NCj4gDQo+IFdpdGggdGhl
+IG1ldGFkYXRhIGluIGVhY2ggcGFja2V0LCB3ZSBjYW4gdGhlbiBkbyBtYXRjaGluZyBvbiBpdCwg
+aW4NCj4gYm90aCBmYXN0IHBhdGggYW5kIHNsb3cgcGF0aC4NCj4gDQo+IEZvciBzbG93IHBhdGgs
+IHRoZXJlIGlzIGEgcmVwcmVzZW50b3IgZm9yIGVhY2ggdnBvcnQuIFBhY2tldCB0aGF0DQo+IG1p
+c3NlcyBhbGwgb2ZmbG9hZGVkIHJ1bGVzIGluIEZEQiwgd2lsbCBiZSBmb3J3YXJkZWQgdG8gdGhl
+IGVzd2l0Y2gNCj4gbWFuYWdlciB2cG9ydC4gSW4gaXRzIE5JQyBSWCwgaXQgdGhlbiB3aWxsIGJl
+IHN0ZWVyZWQgdG8gdGhlIHJpZ2h0DQo+IHJlcHJlc2VudG9yLiBUaGUgcnVsZXMsIHdoaWNoIGRl
+Y2lkZSB0aGUgZGVzdGluYXRpb24gcmVwcmVzZW50b3IsDQo+IHByZXZpb3VzbHkgd2VyZSBtYXRj
+aGluZyBvbiBzb3VyY2UgcG9ydCwgd2lsbCBub3cgbWF0Y2ggbWV0YWRhdGENCj4gaW5zdGVhZC4N
+Cj4gDQoNClNlcmllcyBhcHBsaWVkIHRvIG1seDUtbmV4dC4NCg0KVGhhbmtzIGV2ZXJ5b25lIQ0K
+U2FlZWQuDQoNCg==
