@@ -1,52 +1,55 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH V2 mlx5-next 00/13] Mellanox, mlx5 vport metadata matching
-Date: Wed, 26 Jun 2019 19:05:46 +0000
-Message-ID: <773d05d69aa291631fd99425841a4c17a39e098f.camel@mellanox.com>
-References: <20190625174727.20309-1-saeedm@mellanox.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
+Date: Wed, 26 Jun 2019 17:21:08 -0300
+Message-ID: <20190626202107.GA5850@ziepe.ca>
+References: <20190620161240.22738-1-logang@deltatee.com>
+ <20190624072752.GA3954@lst.de>
+ <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
+ <20190625072008.GB30350@lst.de>
+ <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com>
+ <20190625170115.GA9746@lst.de>
+ <41235a05-8ed1-e69a-e7cd-48cae7d8a676@deltatee.com>
+ <20190626065708.GB24531@lst.de>
+ <c15d5997-9ba4-f7db-0e7a-a69e75df316c@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190625174727.20309-1-saeedm@mellanox.com>
-Content-Language: en-US
-Content-ID: <7FEE14955F237F4B96576E64223B55F3@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <c15d5997-9ba4-f7db-0e7a-a69e75df316c@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE5LTA2LTI1IGF0IDE3OjQ3ICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
-Cj4gVGhpcyBzZXJpZXMgaW5jbHVkZXMgbWx4NSB1cGRhdGVzIGZvciBib3RoIHJkbWEgYW5kIG5l
-dC1uZXh0IHRyZWVzLg0KPiBJbiBjYXNlIG9mIG5vIG9iamVjdGlvbiBpdCB3aWxsIGJlIGFwcGxp
-ZWQgdG8gbWx4NS1uZXh0IGJyYW5jaCBhbmQNCj4gbGF0ZXINCj4gb24gd2lsbCBiZSBzZW50IGFz
-IHB1bGwgcmVxdWVzdCB0byByZG1hIGFuZCBuZXQtbmV4dC4NCj4gDQo+IEZyb20gSmlhbmJvLCBW
-cG9ydCBtZXRhIGRhdGEgbWF0Y2hpbmc6DQo+IA0KPiBIYXJkd2FyZSBzdGVlcmluZyBoYXMgbm8g
-bm90aW9uIG9mIHZwb3J0IG51bWJlciwgYW5kIHZwb3J0IGlzIGFuDQo+IGFic3RyYWN0IGNvbmNl
-cHQsIHNvIGZpcm13YXJlIG5lZWQgdG8gdHJhbnNsYXRlIHRoZSBzb3VyY2UgdnBvcnQNCj4gbWF0
-Y2hpbmcgdG8gbWF0Y2ggb24gdGhlIFZIQ0EgSUQgKFZpcnR1YWwgSENBIElEKS4NCj4gDQo+IElu
-IGR1YWwtcG9ydCBSb0NFLCB0aGUgZHVhbC1wb3J0IFZIQ0EgaXMgYWJsZSB0byBzZW5kIGFsc28g
-b24gdGhlDQo+IHNlY29uZCBwb3J0IG9uIGJlaGFsZiBvZiB0aGUgYWZmaWxpYXRlZCB2cG9ydCwg
-c28gbm93IHdlIGNhbuKAmXQgYXNzdW1lDQo+IGFueW1vcmUgdGhhdCB2cG9ydCBpcyByZXByZXNl
-bnRlZCBieSBzaW5nbGUgVkhDQSBvbmx5Lg0KPiANCj4gVG8gcmVzb2x2ZSB0aGlzIGlzc3VlLCB3
-ZSB1c2UgbWV0YWRhdGEgcmVnaXN0ZXIgYXMgc291cmNlIHBvcnQNCj4gaW5kaWNhdG9yIGluc3Rl
-YWQuDQo+IA0KPiBXaGVuIGEgcGFja2V0IGVudGVycyB0aGUgZXN3aXRjaCwgZXN3aXRjaCBpbmdy
-ZXNzIHRyYWZmaWMgcGFzc2VzIHRoZQ0KPiBpbmdyZXNzIEFDTCBmbG93IHRhYmxlcywgd2hlcmUg
-d2UgdGFnIHRoZSBwYWNrZXRzICh2aWEgdGhlIG1ldGFkYXRhDQo+IHZhbHVlLCBpbiB0aGlzIGNh
-c2UgUkVHX0MgYXQgaW5kZXggMCkgd2l0aCBhIHVuaXF1ZSB2YWx1ZSB3aGljaCB3aWxsDQo+IGFj
-dCBhcyBhbiBhbGlhcyBvZiB0aGUgdnBvcnQuIEluIG9yZGVyIHRvIGd1YXJhbnRlZSB1bmlxdWVu
-ZXNzLCB3ZQ0KPiB1c2UNCj4gdGhlIGVzd2l0Y2ggb3duZXIgdmhjYSBpZCBhbmQgdGhlIHZwb3J0
-IG51bWJlciBhcyB0aGF0IHZhbHVlLg0KPiANCj4gVXN1YWxseSwgdGhlIHZwb3J0cyBhcmUgbnVt
-YmVyZWQgaW4gZWFjaCBlc3dpdGNoIGFzIGZvbGxvd2VkOg0KPiAgICAgLSBQaHlzaWNhbCBGdW5j
-dGlvbiAoUEYpIHZwb3J0LCB0aGUgbnVtYmVyIGlzIDAuDQo+ICAgICAtIFZpcnR1YWwgRnVuY3Rp
-b24gKFZGKSB2cG9ydCwgc3RhcnRpbmcgZnJvbSAxLg0KPiAgICAgLSBVcGxpbmsgdnBvcnQsIHRo
-ZSByZXNlcnZlZCB2cG9ydCBudW1iZXIgZm9yIGl0IGlzIDB4RkZGRi4NCj4gDQo+IFdpdGggdGhl
-IG1ldGFkYXRhIGluIGVhY2ggcGFja2V0LCB3ZSBjYW4gdGhlbiBkbyBtYXRjaGluZyBvbiBpdCwg
-aW4NCj4gYm90aCBmYXN0IHBhdGggYW5kIHNsb3cgcGF0aC4NCj4gDQo+IEZvciBzbG93IHBhdGgs
-IHRoZXJlIGlzIGEgcmVwcmVzZW50b3IgZm9yIGVhY2ggdnBvcnQuIFBhY2tldCB0aGF0DQo+IG1p
-c3NlcyBhbGwgb2ZmbG9hZGVkIHJ1bGVzIGluIEZEQiwgd2lsbCBiZSBmb3J3YXJkZWQgdG8gdGhl
-IGVzd2l0Y2gNCj4gbWFuYWdlciB2cG9ydC4gSW4gaXRzIE5JQyBSWCwgaXQgdGhlbiB3aWxsIGJl
-IHN0ZWVyZWQgdG8gdGhlIHJpZ2h0DQo+IHJlcHJlc2VudG9yLiBUaGUgcnVsZXMsIHdoaWNoIGRl
-Y2lkZSB0aGUgZGVzdGluYXRpb24gcmVwcmVzZW50b3IsDQo+IHByZXZpb3VzbHkgd2VyZSBtYXRj
-aGluZyBvbiBzb3VyY2UgcG9ydCwgd2lsbCBub3cgbWF0Y2ggbWV0YWRhdGENCj4gaW5zdGVhZC4N
-Cj4gDQoNClNlcmllcyBhcHBsaWVkIHRvIG1seDUtbmV4dC4NCg0KVGhhbmtzIGV2ZXJ5b25lIQ0K
-U2FlZWQuDQoNCg==
+On Wed, Jun 26, 2019 at 12:31:08PM -0600, Logan Gunthorpe wrote:
+> > we have a hole behind len where we could store flag.  Preferably
+> > optionally based on a P2P or other magic memory types config
+> > option so that 32-bit systems with 32-bit phys_addr_t actually
+> > benefit from the smaller and better packing structure.
+> 
+> That seems sensible. The one thing that's unclear though is how to get
+> the PCI Bus address when appropriate. Can we pass that in instead of the
+> phys_addr with an appropriate flag? Or will we need to pass the actual
+> physical address and then, at the map step, the driver has to some how
+> lookup the PCI device to figure out the bus offset?
+
+I agree with CH, if we go down this path it is a layering violation
+for the thing injecting bio's into the block stack to know what struct
+device they egress&dma map on just to be able to do the dma_map up
+front.
+
+So we must be able to go from this new phys_addr_t&flags to some BAR
+information during dma_map.
+
+For instance we could use a small hash table of the upper phys addr
+bits, or an interval tree, to do the lookup.
+
+The bar info would give the exporting struct device and any other info
+we need to make the iommu mapping.
+
+This phys_addr_t seems like a good approach to me as it avoids the
+struct page overheads and will lets us provide copy from/to bio
+primitives that could work on BAR memory. I think we can surely use
+this approach in RDMA as well.
+
+Jason
