@@ -1,41 +1,40 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [for-next V2 08/10] linux/dim: Implement rdma_dim
-Date: Wed, 26 Jun 2019 14:57:36 +0300
-Message-ID: <CAJ3xEMhrZgUkekCh+-bUFataSAWZA_xx9sCCzRfkjnE0Lz7M2w@mail.gmail.com>
-References: <20190625205701.17849-1-saeedm@mellanox.com> <20190625205701.17849-9-saeedm@mellanox.com>
- <bfa2159e-1576-6b3c-c85b-ee98bd4f9a47@grimberg.me>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] net/mlx5: remove redundant assignment to ret
+Date: Wed, 26 Jun 2019 17:44:11 +0100
+Message-ID: <20190626164411.20403-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <bfa2159e-1576-6b3c-c85b-ee98bd4f9a47@grimberg.me>
-Sender: netdev-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Tal Gilboa <talgi@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yamin Friedman <yaminf@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Idan Burstein <idanb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 26, 2019 at 1:03 AM Sagi Grimberg <sagi@grimberg.me> wrote:
->
-> > +void rdma_dim(struct dim *dim, u64 completions)
-> > +{
-> > +     struct dim_sample *curr_sample = &dim->measuring_sample;
-> > +     struct dim_stats curr_stats;
-> > +     u32 nevents;
-> > +
-> > +     dim_update_sample_with_comps(curr_sample->event_ctr + 1,
-> > +                                  curr_sample->pkt_ctr,
-> > +                                  curr_sample->byte_ctr,
-> > +                                  curr_sample->comp_ctr + completions,
-> > +                                  &dim->measuring_sample);
->
-> If this is the only caller, why add pkt_ctr and byte_ctr at all?
+From: Colin Ian King <colin.king@canonical.com>
 
-Hi Sagi,
+Variable ret is being initialized with a value that is never read and
+ret is being re-assigned later on.  The initialization is redundant
+and can be removed.
 
-Thanks for the fast review and feedback, other than the default per
-ib/rdma device setup for rdma
-dim / adaptive-moderation for which Idan commented on (and lets
-discuss it there please) seems
-the rest of the comments are fine and Yamin will respond / address
-them in the coming days.
+Addresses-Coverity: ("Unused value")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Or.
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 072b56fda27e..dd47c6d03dad 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1477,7 +1477,7 @@ static const struct pci_error_handlers mlx5_err_handler = {
+ static int mlx5_try_fast_unload(struct mlx5_core_dev *dev)
+ {
+ 	bool fast_teardown = false, force_teardown = false;
+-	int ret = 1;
++	int ret;
+ 
+ 	fast_teardown = MLX5_CAP_GEN(dev, fast_teardown);
+ 	force_teardown = MLX5_CAP_GEN(dev, force_teardown);
+-- 
+2.20.1
