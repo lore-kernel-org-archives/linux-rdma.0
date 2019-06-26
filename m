@@ -1,8 +1,9 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: Logan Gunthorpe <logang@deltatee.com>
 Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Wed, 26 Jun 2019 17:54:58 -0300
-Message-ID: <20190626205458.GA6392@ziepe.ca>
-References: <20190624072752.GA3954@lst.de>
+Date: Wed, 26 Jun 2019 14:55:08 -0600
+Message-ID: <a17acf94-e19f-e478-27ac-93f6d2a34af4@deltatee.com>
+References: <20190620161240.22738-1-logang@deltatee.com>
+ <20190624072752.GA3954@lst.de>
  <558a27ba-e7c9-9d94-cad0-377b8ee374a6@deltatee.com>
  <20190625072008.GB30350@lst.de>
  <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com>
@@ -13,22 +14,67 @@ References: <20190624072752.GA3954@lst.de>
  <20190626202107.GA5850@ziepe.ca>
  <CAPcyv4hCNoMeFyOE588=kuNUXaPS-rzaXnF2cN2TFejso1SGRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <CAPcyv4hCNoMeFyOE588=kuNUXaPS-rzaXnF2cN2TFejso1SGRw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Christoph Hellwig <hch@lst.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
+To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christoph Hellwig <hch@lst.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 26, 2019 at 01:39:01PM -0700, Dan Williams wrote:
+
+
+On 2019-06-26 2:39 p.m., Dan Williams wrote:
+> On Wed, Jun 26, 2019 at 1:21 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>>
+>> On Wed, Jun 26, 2019 at 12:31:08PM -0600, Logan Gunthorpe wrote:
+>>>> we have a hole behind len where we could store flag.  Preferably
+>>>> optionally based on a P2P or other magic memory types config
+>>>> option so that 32-bit systems with 32-bit phys_addr_t actually
+>>>> benefit from the smaller and better packing structure.
+>>>
+>>> That seems sensible. The one thing that's unclear though is how to get
+>>> the PCI Bus address when appropriate. Can we pass that in instead of the
+>>> phys_addr with an appropriate flag? Or will we need to pass the actual
+>>> physical address and then, at the map step, the driver has to some how
+>>> lookup the PCI device to figure out the bus offset?
+>>
+>> I agree with CH, if we go down this path it is a layering violation
+>> for the thing injecting bio's into the block stack to know what struct
+>> device they egress&dma map on just to be able to do the dma_map up
+>> front.
+>>
+>> So we must be able to go from this new phys_addr_t&flags to some BAR
+>> information during dma_map.
+>>
+>> For instance we could use a small hash table of the upper phys addr
+>> bits, or an interval tree, to do the lookup.
+> 
 > Hmm, that sounds like dev_pagemap without the pages.
 
-Yes, and other page related overhead. Maybe both ideas can exist in
-the pagemap code?
+Yup, that's why I'd like to avoid it, but IMO it would still be an
+improvement to use a interval tree over struct pages because without
+struct page we just have a range and a length and it's relatively easy
+to check that the whole range belongs to a specific pci_dev. To be
+correct with the struct page approach we really have to loop through all
+pages to ensure they all belong to the same pci_dev which is a big pain.
 
-All that is needed here is to map a bar phys_addr_t to some 'bar info'
-that helps the mapping.
+> There's already no requirement that dev_pagemap point to real /
+> present pages (DEVICE_PRIVATE) seems a straightforward extension to
+> use it for helping coordinate phys_addr_t in 'struct bio'. Then
+> Logan's future plans to let userspace coordinate p2p operations could
+> build on PTE_DEVMAP.
 
-Jason
+Well I think the biggest difficulty with struct page for user space is
+dealing with cases when the struct pages of different types get mixed
+together (or even struct pages that are all P2P pages but from different
+PCI devices). We'd have to go through each page and ensure that each
+type gets it's own bio_vec with appropriate flags.
+
+Though really, the whole mixed IO from userspace poses a bunch of
+problems. I'd prefer to just be able to say that a single IO can be all
+or nothing P2P memory from a single device.
+
+Logan
