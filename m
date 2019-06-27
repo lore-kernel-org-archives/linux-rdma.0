@@ -1,121 +1,115 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 82/95] IB/hfi1: Handle port down properly in pio
-Date: Wed, 26 Jun 2019 20:30:07 -0400
-Message-ID: <20190627003021.19867-82-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 78/95] IB/hfi1: Create inline to get extended headers
+Date: Wed, 26 Jun 2019 20:30:03 -0400
+Message-ID: <20190627003021.19867-78-sashal@kernel.org>
 References: <20190627003021.19867-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190627003021.19867-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-[ Upstream commit 942a899335707fc9cfc97cb382a60734b2ff4e03 ]
+[ Upstream commit 9755f72496664eec70bc804104118b5797b6bf63 ]
 
-The call to sc_buffer_alloc currently returns NULL (no buffer) or
-a buffer descriptor.
+This paves the way for another patch that reacts to a
+flush sdma completion for RC.
 
-There is a third case when the port is down.  Currently that
-returns NULL and this prevents the caller from properly handling the
-sc_buffer_alloc() failure.  A verbs code link test after the call is
-racy so the indication needs to come from the state check inside the allocation
-routine to be valid.
-
-Fix by encoding the ECOMM failure like SDMA.   IS_ERR_OR_NULL() tests
-are added at all call sites.  For verbs send, this needs to treat any
-error by returning a completion without any MMIO copy.
-
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+Fixes: 81cd3891f021 ("IB/hfi1: Add support for 16B Management Packets")
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/pio.c   | 5 +++--
- drivers/infiniband/hw/hfi1/rc.c    | 2 +-
- drivers/infiniband/hw/hfi1/ud.c    | 4 ++--
- drivers/infiniband/hw/hfi1/verbs.c | 4 ++--
- 4 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hfi1/hfi.h | 31 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/rc.c  | 21 +--------------------
+ 2 files changed, 32 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index 1ee47838d4de..17ea224fbecb 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -1443,7 +1443,8 @@ void sc_stop(struct send_context *sc, int flag)
-  * @cb: optional callback to call when the buffer is finished sending
-  * @arg: argument for cb
-  *
-- * Return a pointer to a PIO buffer if successful, NULL if not enough room.
-+ * Return a pointer to a PIO buffer, NULL if not enough room, -ECOMM
-+ * when link is down.
-  */
- struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
- 				pio_release_cb cb, void *arg)
-@@ -1459,7 +1460,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
- 	spin_lock_irqsave(&sc->alloc_lock, flags);
- 	if (!(sc->flags & SCF_ENABLED)) {
- 		spin_unlock_irqrestore(&sc->alloc_lock, flags);
--		goto done;
-+		return ERR_PTR(-ECOMM);
- 	}
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 048b5d73ba39..d85b16a3aaaf 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -539,6 +539,37 @@ static inline void hfi1_16B_set_qpn(struct opa_16b_mgmt *mgmt,
+ 	mgmt->src_qpn = cpu_to_be32(src_qp & OPA_16B_MGMT_QPN_MASK);
+ }
  
- retry:
++/**
++ * hfi1_get_rc_ohdr - get extended header
++ * @opah - the opaheader
++ */
++static inline struct ib_other_headers *
++hfi1_get_rc_ohdr(struct hfi1_opa_header *opah)
++{
++	struct ib_other_headers *ohdr;
++	struct ib_header *hdr = NULL;
++	struct hfi1_16b_header *hdr_16b = NULL;
++
++	/* Find out where the BTH is */
++	if (opah->hdr_type == HFI1_PKT_TYPE_9B) {
++		hdr = &opah->ibh;
++		if (ib_get_lnh(hdr) == HFI1_LRH_BTH)
++			ohdr = &hdr->u.oth;
++		else
++			ohdr = &hdr->u.l.oth;
++	} else {
++		u8 l4;
++
++		hdr_16b = &opah->opah;
++		l4  = hfi1_16B_get_l4(hdr_16b);
++		if (l4 == OPA_16B_L4_IB_LOCAL)
++			ohdr = &hdr_16b->u.oth;
++		else
++			ohdr = &hdr_16b->u.l.oth;
++	}
++	return ohdr;
++}
++
+ struct rvt_sge_state;
+ 
+ /*
 diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 24cbac277bf0..b7b74222eaf0 100644
+index 5991211d72bd..82f101878e33 100644
 --- a/drivers/infiniband/hw/hfi1/rc.c
 +++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -1434,7 +1434,7 @@ void hfi1_send_rc_ack(struct hfi1_packet *packet, bool is_fecn)
- 	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps,
- 			 sc_to_vlt(ppd->dd, sc5), plen);
- 	pbuf = sc_buffer_alloc(rcd->sc, plen, NULL, NULL);
--	if (!pbuf) {
-+	if (IS_ERR_OR_NULL(pbuf)) {
- 		/*
- 		 * We have no room to send at the moment.  Pass
- 		 * responsibility for sending the ACK to the send engine
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index f88ad425664a..4cb0fce5c096 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -683,7 +683,7 @@ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
- 	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps, vl, plen);
- 	if (ctxt) {
- 		pbuf = sc_buffer_alloc(ctxt, plen, NULL, NULL);
--		if (pbuf) {
-+		if (!IS_ERR_OR_NULL(pbuf)) {
- 			trace_pio_output_ibhdr(ppd->dd, &hdr, sc5);
- 			ppd->dd->pio_inline_send(ppd->dd, pbuf, pbc,
- 						 &hdr, hwords);
-@@ -738,7 +738,7 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
- 	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps, vl, plen);
- 	if (ctxt) {
- 		pbuf = sc_buffer_alloc(ctxt, plen, NULL, NULL);
--		if (pbuf) {
-+		if (!IS_ERR_OR_NULL(pbuf)) {
- 			trace_pio_output_ibhdr(ppd->dd, &hdr, sc5);
- 			ppd->dd->pio_inline_send(ppd->dd, pbuf, pbc,
- 						 &hdr, hwords);
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 8d64972c6226..ef290f1fdf63 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1039,10 +1039,10 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 	if (cb)
- 		iowait_pio_inc(&priv->s_iowait);
- 	pbuf = sc_buffer_alloc(sc, plen, cb, qp);
--	if (unlikely(!pbuf)) {
-+	if (unlikely(IS_ERR_OR_NULL(pbuf))) {
- 		if (cb)
- 			verbs_pio_complete(qp, 0);
--		if (ppd->host_link_state != HLS_UP_ACTIVE) {
-+		if (IS_ERR(pbuf)) {
- 			/*
- 			 * If we have filled the PIO buffers to capacity and are
- 			 * not in an active state this request is not going to
+@@ -1711,8 +1711,6 @@ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah)
+ 	struct ib_other_headers *ohdr;
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 	struct rvt_swqe *wqe;
+-	struct ib_header *hdr = NULL;
+-	struct hfi1_16b_header *hdr_16b = NULL;
+ 	u32 opcode, head, tail;
+ 	u32 psn;
+ 	struct tid_rdma_request *req;
+@@ -1721,24 +1719,7 @@ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah)
+ 	if (!(ib_rvt_state_ops[qp->state] & RVT_SEND_OR_FLUSH_OR_RECV_OK))
+ 		return;
+ 
+-	/* Find out where the BTH is */
+-	if (priv->hdr_type == HFI1_PKT_TYPE_9B) {
+-		hdr = &opah->ibh;
+-		if (ib_get_lnh(hdr) == HFI1_LRH_BTH)
+-			ohdr = &hdr->u.oth;
+-		else
+-			ohdr = &hdr->u.l.oth;
+-	} else {
+-		u8 l4;
+-
+-		hdr_16b = &opah->opah;
+-		l4  = hfi1_16B_get_l4(hdr_16b);
+-		if (l4 == OPA_16B_L4_IB_LOCAL)
+-			ohdr = &hdr_16b->u.oth;
+-		else
+-			ohdr = &hdr_16b->u.l.oth;
+-	}
+-
++	ohdr = hfi1_get_rc_ohdr(opah);
+ 	opcode = ib_bth_get_opcode(ohdr);
+ 	if ((opcode >= OP(RDMA_READ_RESPONSE_FIRST) &&
+ 	     opcode <= OP(ATOMIC_ACKNOWLEDGE)) ||
 -- 
 2.20.1
