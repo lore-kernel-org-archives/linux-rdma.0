@@ -1,31 +1,34 @@
 From: Fuqian Huang <huangfq.daxian@gmail.com>
-Subject: [PATCH 28/87] infiniband: ulp: remove memset after vzalloc in ipoib_cm.c
-Date: Fri, 28 Jun 2019 01:38:04 +0800
-Message-ID: <20190627173806.3307-1-huangfq.daxian@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: Fuqian Huang <huangfq.daxian@gmail.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Kamal Heib <kamalheib1@gmail.com>, Feras Daoud <ferasda@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Aaron Knister <aaron.s.knister@nasa.gov>, Denis Drozdov <denisd@mellanox.com>, Parav Pandit <parav@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 87/87] ethernet: mlx4: remove memset after dma_alloc_coherent
+Date: Fri, 28 Jun 2019 01:42:27 +0800
+Message-ID: <20190627174227.4726-1-huangfq.daxian@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+Cc: Fuqian Huang <huangfq.daxian@gmail.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-vzalloc has already zeroed the memory.
-So memset is unneeded.
+In commit af7ddd8a627c
+("Merge tag 'dma-mapping-4.21' of git://git.infradead.org/users/hch/dma-mapping"),
+dma_alloc_coherent has already zeroed the memory.
+So memset is not needed.
 
 Signed-off-by: Fuqian Huang <huangfq.daxian@gmail.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx4/eq.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index aa9dcfc36cd3..c59e00a0881f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1153,7 +1153,6 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
- 		ret = -ENOMEM;
- 		goto err_tx;
- 	}
--	memset(p->tx_ring, 0, ipoib_sendq_size * sizeof(*p->tx_ring));
+diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
+index a5be27772b8e..c790a5fcea73 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
+@@ -1013,8 +1013,6 @@ static int mlx4_create_eq(struct mlx4_dev *dev, int nent,
  
- 	p->qp = ipoib_cm_create_tx_qp(p->dev, p);
- 	memalloc_noio_restore(noio_flag);
+ 		dma_list[i] = t;
+ 		eq->page_list[i].map = t;
+-
+-		memset(eq->page_list[i].buf, 0, PAGE_SIZE);
+ 	}
+ 
+ 	eq->eqn = mlx4_bitmap_alloc(&priv->eq_table.bitmap);
 -- 
 2.11.0
