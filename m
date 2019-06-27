@@ -1,156 +1,65 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v4 hmm 12/12] mm/hmm: Fix error flows in
- hmm_invalidate_range_start
-Date: Thu, 27 Jun 2019 16:06:41 +0000
-Message-ID: <20190627160634.GA9499@mellanox.com>
-References: <20190624210110.5098-1-jgg@ziepe.ca>
- <20190624210110.5098-13-jgg@ziepe.ca>
- <035fa354-6caa-3738-b84d-20804813009a@nvidia.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
+Date: Thu, 27 Jun 2019 10:09:41 -0600
+Message-ID: <6afe4027-26c8-df4e-65ce-49df07dec54d@deltatee.com>
+References: <20190625072008.GB30350@lst.de>
+ <f0f002bf-2b94-cd18-d18f-5d0b08311495@deltatee.com>
+ <20190625170115.GA9746@lst.de>
+ <41235a05-8ed1-e69a-e7cd-48cae7d8a676@deltatee.com>
+ <20190626065708.GB24531@lst.de>
+ <c15d5997-9ba4-f7db-0e7a-a69e75df316c@deltatee.com>
+ <20190626202107.GA5850@ziepe.ca>
+ <8a0a08c3-a537-bff6-0852-a5f337a70688@deltatee.com>
+ <20190626210018.GB6392@ziepe.ca>
+ <c25d3333-dcd5-3313-089b-7fbbd6fbd876@deltatee.com>
+ <20190627063223.GA7736@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <035fa354-6caa-3738-b84d-20804813009a-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190627063223.GA7736@ziepe.ca>
 Content-Language: en-US
-Content-ID: <93A213DE25C0DA43B1A6F1B8214CA1F7-wNKe6lTLrGecE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Philip Yang <Philip.Yang-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBKdW4gMjYsIDIwMTkgYXQgMTE6MTg6MjNBTSAtMDcwMCwgUmFscGggQ2FtcGJlbGwg
-d3JvdGU6Cj4gPiBkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwo+ID4gaW5kZXggYjIy
-NGVhNjM1YTc3MTYuLjg5NTQ5ZWFjMDNkNTA2IDEwMDY0NAo+ID4gKysrIGIvbW0vaG1tLmMKPiA+
-IEBAIC02NCw3ICs2NCw3IEBAIHN0YXRpYyBzdHJ1Y3QgaG1tICpobW1fZ2V0X29yX2NyZWF0ZShz
-dHJ1Y3QgbW1fc3RydWN0ICptbSkKPiA+ICAgCWluaXRfcndzZW0oJmhtbS0+bWlycm9yc19zZW0p
-Owo+ID4gICAJaG1tLT5tbXVfbm90aWZpZXIub3BzID0gTlVMTDsKPiA+ICAgCUlOSVRfTElTVF9I
-RUFEKCZobW0tPnJhbmdlcyk7Cj4gPiAtCW11dGV4X2luaXQoJmhtbS0+bG9jayk7Cj4gPiArCXNw
-aW5fbG9ja19pbml0KCZobW0tPnJhbmdlc19sb2NrKTsKPiA+ICAgCWtyZWZfaW5pdCgmaG1tLT5r
-cmVmKTsKPiA+ICAgCWhtbS0+bm90aWZpZXJzID0gMDsKPiA+ICAgCWhtbS0+bW0gPSBtbTsKPiA+
-IEBAIC0xNDQsNiArMTQ0LDIzIEBAIHN0YXRpYyB2b2lkIGhtbV9yZWxlYXNlKHN0cnVjdCBtbXVf
-bm90aWZpZXIgKm1uLCBzdHJ1Y3QgbW1fc3RydWN0ICptbSkKPiA+ICAgCWhtbV9wdXQoaG1tKTsK
-PiA+ICAgfQo+ID4gK3N0YXRpYyB2b2lkIG5vdGlmaWVyc19kZWNyZW1lbnQoc3RydWN0IGhtbSAq
-aG1tKQo+ID4gK3sKPiA+ICsJbG9ja2RlcF9hc3NlcnRfaGVsZCgmaG1tLT5yYW5nZXNfbG9jayk7
-Cj4gPiArCj4gCj4gV2h5IG5vdCBhY3F1aXJlIHRoZSBsb2NrIGhlcmUgYW5kIHJlbGVhc2UgYXQg
-dGhlIGVuZCBpbnN0ZWFkCj4gb2YgYXNzZXJ0aW5nIHRoZSBsb2NrIGlzIGhlbGQ/Cj4gSXQgbG9v
-a3MgbGlrZSBldmVyeXdoZXJlIG5vdGlmaWVyc19kZWNyZW1lbnQoKSBpcyBjYWxsZWQgZG9lcwo+
-IHRoYXQuCgpZZXMsIHRoaXMgaXMganVzdCBzb21lIGxlZnQgb3ZlciBtaXN0YWtlLCB0aGFua3MK
-CkZyb20gYWEzNzFjNzIwYTllM2M2MzJkY2Q5YTZhMmM3M2UzMjViOWIyYjk4YyBNb24gU2VwIDE3
-IDAwOjAwOjAwIDIwMDEKRnJvbTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgpE
-YXRlOiBGcmksIDcgSnVuIDIwMTkgMTI6MTA6MzMgLTAzMDAKU3ViamVjdDogW1BBVENIXSBtbS9o
-bW06IEZpeCBlcnJvciBmbG93cyBpbiBobW1faW52YWxpZGF0ZV9yYW5nZV9zdGFydAoKSWYgdGhl
-IHRyeWxvY2sgb24gdGhlIGhtbS0+bWlycm9yc19zZW0gZmFpbHMgdGhlIGZ1bmN0aW9uIHdpbGwg
-cmV0dXJuCndpdGhvdXQgZGVjcmVtZW50aW5nIHRoZSBub3RpZmllcnMgdGhhdCB3ZXJlIHByZXZp
-b3VzbHkgaW5jcmVtZW50ZWQuIFNpbmNlCnRoZSBjYWxsZXIgd2lsbCBub3QgY2FsbCBpbnZhbGlk
-YXRlX3JhbmdlX2VuZCgpIG9uIEVBR0FJTiB0aGlzIHdpbGwgcmVzdWx0CmluIG5vdGlmaWVycyBi
-ZWNvbWluZyBwZXJtYW5lbnRseSBpbmNyZW1lbnRlZCBhbmQgZGVhZGxvY2suCgpJZiB0aGUgc3lu
-Y19jcHVfZGV2aWNlX3BhZ2V0YWJsZXMoKSByZXF1aXJlZCBibG9ja2luZyB0aGUgZnVuY3Rpb24g
-d2lsbApub3QgcmV0dXJuIEVBR0FJTiBldmVuIHRob3VnaCB0aGUgZGV2aWNlIGNvbnRpbnVlcyB0
-byB0b3VjaCB0aGUKcGFnZXMuIFRoaXMgaXMgYSB2aW9sYXRpb24gb2YgdGhlIG1tdSBub3RpZmll
-ciBjb250cmFjdC4KClN3aXRjaCwgYW5kIHJlbmFtZSwgdGhlIHJhbmdlc19sb2NrIHRvIGEgc3Bp
-biBsb2NrIHNvIHdlIGNhbiByZWxpYWJseQpvYnRhaW4gaXQgd2l0aG91dCBibG9ja2luZyBkdXJp
-bmcgZXJyb3IgdW53aW5kLgoKVGhlIGVycm9yIHVud2luZCBpcyBuZWNlc3Nhcnkgc2luY2UgdGhl
-IG5vdGlmaWVycyBjb3VudCBtdXN0IGJlIGhlbGQKaW5jcmVtZW50ZWQgYWNyb3NzIHRoZSBjYWxs
-IHRvIHN5bmNfY3B1X2RldmljZV9wYWdldGFibGVzKCkgYXMgd2UgY2Fubm90CmFsbG93IHRoZSBy
-YW5nZSB0byBiZWNvbWUgbWFya2VkIHZhbGlkIGJ5IGEgcGFyYWxsZWwKaW52YWxpZGF0ZV9zdGFy
-dC9lbmQoKSBwYWlyIHdoaWxlIGRvaW5nIHN5bmNfY3B1X2RldmljZV9wYWdldGFibGVzKCkuCgpT
-aWduZWQtb2ZmLWJ5OiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+ClJldmlld2Vk
-LWJ5OiBSYWxwaCBDYW1wYmVsbCA8cmNhbXBiZWxsQG52aWRpYS5jb20+ClJldmlld2VkLWJ5OiBD
-aHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KVGVzdGVkLWJ5OiBQaGlsaXAgWWFuZyA8UGhp
-bGlwLllhbmdAYW1kLmNvbT4KLS0tCnY0CiAtIE1vdmUgbG9jayBpbnRvIG5vdGlmaWVyc19kZWNy
-ZW1lbnQoKSAoUmFscGgpCi0tLQogaW5jbHVkZS9saW51eC9obW0uaCB8ICAyICstCiBtbS9obW0u
-YyAgICAgICAgICAgIHwgNjkgKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0t
-LS0tLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDQxIGluc2VydGlvbnMoKyksIDMwIGRlbGV0aW9ucygt
-KQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvaG1tLmggYi9pbmNsdWRlL2xpbnV4L2htbS5o
-CmluZGV4IGJmMDEzZTk2NTI1NzcxLi4wZmE4ZWEzNGNjZWY2ZCAxMDA2NDQKLS0tIGEvaW5jbHVk
-ZS9saW51eC9obW0uaAorKysgYi9pbmNsdWRlL2xpbnV4L2htbS5oCkBAIC04Niw3ICs4Niw3IEBA
-CiBzdHJ1Y3QgaG1tIHsKIAlzdHJ1Y3QgbW1fc3RydWN0CSptbTsKIAlzdHJ1Y3Qga3JlZgkJa3Jl
-ZjsKLQlzdHJ1Y3QgbXV0ZXgJCWxvY2s7CisJc3BpbmxvY2tfdAkJcmFuZ2VzX2xvY2s7CiAJc3Ry
-dWN0IGxpc3RfaGVhZAlyYW5nZXM7CiAJc3RydWN0IGxpc3RfaGVhZAltaXJyb3JzOwogCXN0cnVj
-dCBtbXVfbm90aWZpZXIJbW11X25vdGlmaWVyOwpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9o
-bW0uYwppbmRleCBiMjI0ZWE2MzVhNzcxNi4uZGUzNTI4OWRmMjBkNDMgMTAwNjQ0Ci0tLSBhL21t
-L2htbS5jCisrKyBiL21tL2htbS5jCkBAIC02NCw3ICs2NCw3IEBAIHN0YXRpYyBzdHJ1Y3QgaG1t
-ICpobW1fZ2V0X29yX2NyZWF0ZShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIAlpbml0X3J3c2VtKCZo
-bW0tPm1pcnJvcnNfc2VtKTsKIAlobW0tPm1tdV9ub3RpZmllci5vcHMgPSBOVUxMOwogCUlOSVRf
-TElTVF9IRUFEKCZobW0tPnJhbmdlcyk7Ci0JbXV0ZXhfaW5pdCgmaG1tLT5sb2NrKTsKKwlzcGlu
-X2xvY2tfaW5pdCgmaG1tLT5yYW5nZXNfbG9jayk7CiAJa3JlZl9pbml0KCZobW0tPmtyZWYpOwog
-CWhtbS0+bm90aWZpZXJzID0gMDsKIAlobW0tPm1tID0gbW07CkBAIC0xNDQsNiArMTQ0LDI1IEBA
-IHN0YXRpYyB2b2lkIGhtbV9yZWxlYXNlKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLCBzdHJ1Y3Qg
-bW1fc3RydWN0ICptbSkKIAlobW1fcHV0KGhtbSk7CiB9CiAKK3N0YXRpYyB2b2lkIG5vdGlmaWVy
-c19kZWNyZW1lbnQoc3RydWN0IGhtbSAqaG1tKQoreworCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CisK
-KwlzcGluX2xvY2tfaXJxc2F2ZSgmaG1tLT5yYW5nZXNfbG9jaywgZmxhZ3MpOworCWhtbS0+bm90
-aWZpZXJzLS07CisJaWYgKCFobW0tPm5vdGlmaWVycykgeworCQlzdHJ1Y3QgaG1tX3JhbmdlICpy
-YW5nZTsKKworCQlsaXN0X2Zvcl9lYWNoX2VudHJ5KHJhbmdlLCAmaG1tLT5yYW5nZXMsIGxpc3Qp
-IHsKKwkJCWlmIChyYW5nZS0+dmFsaWQpCisJCQkJY29udGludWU7CisJCQlyYW5nZS0+dmFsaWQg
-PSB0cnVlOworCQl9CisJCXdha2VfdXBfYWxsKCZobW0tPndxKTsKKwl9CisJc3Bpbl91bmxvY2tf
-aXJxcmVzdG9yZSgmaG1tLT5yYW5nZXNfbG9jaywgZmxhZ3MpOworfQorCiBzdGF0aWMgaW50IGht
-bV9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAogCQkJY29u
-c3Qgc3RydWN0IG1tdV9ub3RpZmllcl9yYW5nZSAqbnJhbmdlKQogewpAQCAtMTUxLDYgKzE3MCw3
-IEBAIHN0YXRpYyBpbnQgaG1tX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoc3RydWN0IG1tdV9ub3Rp
-ZmllciAqbW4sCiAJc3RydWN0IGhtbV9taXJyb3IgKm1pcnJvcjsKIAlzdHJ1Y3QgaG1tX3VwZGF0
-ZSB1cGRhdGU7CiAJc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2U7CisJdW5zaWduZWQgbG9uZyBmbGFn
-czsKIAlpbnQgcmV0ID0gMDsKIAogCWlmICgha3JlZl9nZXRfdW5sZXNzX3plcm8oJmhtbS0+a3Jl
-ZikpCkBAIC0xNjEsMTIgKzE4MSw3IEBAIHN0YXRpYyBpbnQgaG1tX2ludmFsaWRhdGVfcmFuZ2Vf
-c3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCiAJdXBkYXRlLmV2ZW50ID0gSE1NX1VQREFU
-RV9JTlZBTElEQVRFOwogCXVwZGF0ZS5ibG9ja2FibGUgPSBtbXVfbm90aWZpZXJfcmFuZ2VfYmxv
-Y2thYmxlKG5yYW5nZSk7CiAKLQlpZiAobW11X25vdGlmaWVyX3JhbmdlX2Jsb2NrYWJsZShucmFu
-Z2UpKQotCQltdXRleF9sb2NrKCZobW0tPmxvY2spOwotCWVsc2UgaWYgKCFtdXRleF90cnlsb2Nr
-KCZobW0tPmxvY2spKSB7Ci0JCXJldCA9IC1FQUdBSU47Ci0JCWdvdG8gb3V0OwotCX0KKwlzcGlu
-X2xvY2tfaXJxc2F2ZSgmaG1tLT5yYW5nZXNfbG9jaywgZmxhZ3MpOwogCWhtbS0+bm90aWZpZXJz
-Kys7CiAJbGlzdF9mb3JfZWFjaF9lbnRyeShyYW5nZSwgJmhtbS0+cmFuZ2VzLCBsaXN0KSB7CiAJ
-CWlmICh1cGRhdGUuZW5kIDwgcmFuZ2UtPnN0YXJ0IHx8IHVwZGF0ZS5zdGFydCA+PSByYW5nZS0+
-ZW5kKQpAQCAtMTc0LDcgKzE4OSw3IEBAIHN0YXRpYyBpbnQgaG1tX2ludmFsaWRhdGVfcmFuZ2Vf
-c3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCiAKIAkJcmFuZ2UtPnZhbGlkID0gZmFsc2U7
-CiAJfQotCW11dGV4X3VubG9jaygmaG1tLT5sb2NrKTsKKwlzcGluX3VubG9ja19pcnFyZXN0b3Jl
-KCZobW0tPnJhbmdlc19sb2NrLCBmbGFncyk7CiAKIAlpZiAobW11X25vdGlmaWVyX3JhbmdlX2Js
-b2NrYWJsZShucmFuZ2UpKQogCQlkb3duX3JlYWQoJmhtbS0+bWlycm9yc19zZW0pOwpAQCAtMTgy
-LDE2ICsxOTcsMjMgQEAgc3RhdGljIGludCBobW1faW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1
-Y3QgbW11X25vdGlmaWVyICptbiwKIAkJcmV0ID0gLUVBR0FJTjsKIAkJZ290byBvdXQ7CiAJfQor
-CiAJbGlzdF9mb3JfZWFjaF9lbnRyeShtaXJyb3IsICZobW0tPm1pcnJvcnMsIGxpc3QpIHsKLQkJ
-aW50IHJldDsKKwkJaW50IHJjOwogCi0JCXJldCA9IG1pcnJvci0+b3BzLT5zeW5jX2NwdV9kZXZp
-Y2VfcGFnZXRhYmxlcyhtaXJyb3IsICZ1cGRhdGUpOwotCQlpZiAoIXVwZGF0ZS5ibG9ja2FibGUg
-JiYgcmV0ID09IC1FQUdBSU4pCisJCXJjID0gbWlycm9yLT5vcHMtPnN5bmNfY3B1X2RldmljZV9w
-YWdldGFibGVzKG1pcnJvciwgJnVwZGF0ZSk7CisJCWlmIChyYykgeworCQkJaWYgKFdBUk5fT04o
-dXBkYXRlLmJsb2NrYWJsZSB8fCByYyAhPSAtRUFHQUlOKSkKKwkJCQljb250aW51ZTsKKwkJCXJl
-dCA9IC1FQUdBSU47CiAJCQlicmVhazsKKwkJfQogCX0KIAl1cF9yZWFkKCZobW0tPm1pcnJvcnNf
-c2VtKTsKIAogb3V0OgorCWlmIChyZXQpCisJCW5vdGlmaWVyc19kZWNyZW1lbnQoaG1tKTsKIAlo
-bW1fcHV0KGhtbSk7CiAJcmV0dXJuIHJldDsKIH0KQEAgLTIwNCwyMCArMjI2LDcgQEAgc3RhdGlj
-IHZvaWQgaG1tX2ludmFsaWRhdGVfcmFuZ2VfZW5kKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAog
-CWlmICgha3JlZl9nZXRfdW5sZXNzX3plcm8oJmhtbS0+a3JlZikpCiAJCXJldHVybjsKIAotCW11
-dGV4X2xvY2soJmhtbS0+bG9jayk7Ci0JaG1tLT5ub3RpZmllcnMtLTsKLQlpZiAoIWhtbS0+bm90
-aWZpZXJzKSB7Ci0JCXN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlOwotCi0JCWxpc3RfZm9yX2VhY2hf
-ZW50cnkocmFuZ2UsICZobW0tPnJhbmdlcywgbGlzdCkgewotCQkJaWYgKHJhbmdlLT52YWxpZCkK
-LQkJCQljb250aW51ZTsKLQkJCXJhbmdlLT52YWxpZCA9IHRydWU7Ci0JCX0KLQkJd2FrZV91cF9h
-bGwoJmhtbS0+d3EpOwotCX0KLQltdXRleF91bmxvY2soJmhtbS0+bG9jayk7Ci0KKwlub3RpZmll
-cnNfZGVjcmVtZW50KGhtbSk7CiAJaG1tX3B1dChobW0pOwogfQogCkBAIC04NjgsNiArODc3LDcg
-QEAgaW50IGhtbV9yYW5nZV9yZWdpc3RlcihzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSwKIHsKIAl1
-bnNpZ25lZCBsb25nIG1hc2sgPSAoKDFVTCA8PCBwYWdlX3NoaWZ0KSAtIDFVTCk7CiAJc3RydWN0
-IGhtbSAqaG1tID0gbWlycm9yLT5obW07CisJdW5zaWduZWQgbG9uZyBmbGFnczsKIAogCXJhbmdl
-LT52YWxpZCA9IGZhbHNlOwogCXJhbmdlLT5obW0gPSBOVUxMOwpAQCAtODg2LDcgKzg5Niw3IEBA
-IGludCBobW1fcmFuZ2VfcmVnaXN0ZXIoc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2UsCiAJCXJldHVy
-biAtRUZBVUxUOwogCiAJLyogSW5pdGlhbGl6ZSByYW5nZSB0byB0cmFjayBDUFUgcGFnZSB0YWJs
-ZSB1cGRhdGVzLiAqLwotCW11dGV4X2xvY2soJmhtbS0+bG9jayk7CisJc3Bpbl9sb2NrX2lycXNh
-dmUoJmhtbS0+cmFuZ2VzX2xvY2ssIGZsYWdzKTsKIAogCXJhbmdlLT5obW0gPSBobW07CiAJa3Jl
-Zl9nZXQoJmhtbS0+a3JlZik7CkBAIC04OTgsNyArOTA4LDcgQEAgaW50IGhtbV9yYW5nZV9yZWdp
-c3RlcihzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSwKIAkgKi8KIAlpZiAoIWhtbS0+bm90aWZpZXJz
-KQogCQlyYW5nZS0+dmFsaWQgPSB0cnVlOwotCW11dGV4X3VubG9jaygmaG1tLT5sb2NrKTsKKwlz
-cGluX3VubG9ja19pcnFyZXN0b3JlKCZobW0tPnJhbmdlc19sb2NrLCBmbGFncyk7CiAKIAlyZXR1
-cm4gMDsKIH0KQEAgLTkxNCwxMCArOTI0LDExIEBAIEVYUE9SVF9TWU1CT0woaG1tX3JhbmdlX3Jl
-Z2lzdGVyKTsKIHZvaWQgaG1tX3JhbmdlX3VucmVnaXN0ZXIoc3RydWN0IGhtbV9yYW5nZSAqcmFu
-Z2UpCiB7CiAJc3RydWN0IGhtbSAqaG1tID0gcmFuZ2UtPmhtbTsKKwl1bnNpZ25lZCBsb25nIGZs
-YWdzOwogCi0JbXV0ZXhfbG9jaygmaG1tLT5sb2NrKTsKKwlzcGluX2xvY2tfaXJxc2F2ZSgmaG1t
-LT5yYW5nZXNfbG9jaywgZmxhZ3MpOwogCWxpc3RfZGVsX2luaXQoJnJhbmdlLT5saXN0KTsKLQlt
-dXRleF91bmxvY2soJmhtbS0+bG9jayk7CisJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmaG1tLT5y
-YW5nZXNfbG9jaywgZmxhZ3MpOwogCiAJLyogRHJvcCByZWZlcmVuY2UgdGFrZW4gYnkgaG1tX3Jh
-bmdlX3JlZ2lzdGVyKCkgKi8KIAltbXB1dChobW0tPm1tKTsKLS0gCjIuMjIuMAoKCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBtYWlsaW5n
-IGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
+
+
+On 2019-06-27 12:32 a.m., Jason Gunthorpe wrote:
+> On Wed, Jun 26, 2019 at 03:18:07PM -0600, Logan Gunthorpe wrote:
+>>> I don't think we should make drives do that. What if it got CMB memory
+>>> on some other device?
+>>
+>> Huh? A driver submitting P2P requests finds appropriate memory to use
+>> based on the DMA device that will be doing the mapping. It *has* to. It
+>> doesn't necessarily have control over which P2P provider it might find
+>> (ie. it may get CMB memory from a random NVMe device), but it easily
+>> knows the NVMe device it got the CMB memory for. Look at the existing
+>> code in the nvme target.
+> 
+> No, this all thinking about things from the CMB perspective. With CMB
+> you don't care about the BAR location because it is just a temporary
+> buffer. That is a unique use model.
+> 
+> Every other case has data residing in BAR memory that can really only
+> reside in that one place (ie on a GPU/FPGA DRAM or something). When an IO
+> against that is run it should succeed, even if that means bounce
+> buffering the IO - as the user has really asked for this transfer to
+> happen.
+> 
+> We certainly don't get to generally pick where the data resides before
+> starting the IO, that luxury is only for CMB.
+
+I disagree. If we we're going to implement a "bounce" we'd probably want
+to do it in two DMA requests. So the GPU/FPGA driver would first decide
+whether it can do it P2P directly and, if it can't, would want to submit
+a DMA request copy the data to host memory and then submit an IO
+normally to the data's final destination.
+
+I think it would be a larger layering violation to have the NVMe driver
+(for example) memcpy data off a GPU's bar during a dma_map step to
+support this bouncing. And it's even crazier to expect a DMA transfer to
+be setup in the map step.
+
+Logan
