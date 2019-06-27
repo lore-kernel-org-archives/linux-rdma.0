@@ -1,7 +1,7 @@
 From: Fuqian Huang <huangfq.daxian@gmail.com>
-Subject: [PATCH 21/87] infiniband: cxgb4: Remove call to memset after dma_alloc_coherent in cq.c
-Date: Fri, 28 Jun 2019 01:37:08 +0800
-Message-ID: <20190627173708.2939-1-huangfq.daxian@gmail.com>
+Subject: [PATCH 22/87] infiniband: cxgb4: Remove call to memset after dma_alloc_coherent in qp.c
+Date: Fri, 28 Jun 2019 01:37:16 +0800
+Message-ID: <20190627173717.2991-1-huangfq.daxian@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 Cc: Fuqian Huang <huangfq.daxian@gmail.com>, Potnuri Bharat Teja <bharat@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
@@ -14,20 +14,20 @@ So memset is not needed.
 
 Signed-off-by: Fuqian Huang <huangfq.daxian@gmail.com>
 ---
- drivers/infiniband/hw/cxgb4/cq.c | 1 -
+ drivers/infiniband/hw/cxgb4/qp.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index 52ce586621c6..fcd161e3495b 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -104,7 +104,6 @@ static int create_cq(struct c4iw_rdev *rdev, struct t4_cq *cq,
- 		goto err3;
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index e92b9544357a..4882dcbb7d20 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -274,7 +274,6 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
+ 			 (unsigned long long)virt_to_phys(wq->sq.queue),
+ 			 wq->rq.queue,
+ 			 (unsigned long long)virt_to_phys(wq->rq.queue));
+-		memset(wq->rq.queue, 0, wq->rq.memsize);
+ 		dma_unmap_addr_set(&wq->rq, mapping, wq->rq.dma_addr);
  	}
- 	dma_unmap_addr_set(cq, mapping, cq->dma_addr);
--	memset(cq->queue, 0, cq->memsize);
  
- 	if (user && ucontext->is_32b_cqe) {
- 		cq->qp_errp = &((struct t4_status_page *)
 -- 
 2.11.0
