@@ -1,62 +1,37 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 81/95] IB/hfi1: Handle wakeup of orphaned QPs for pio
-Date: Wed, 26 Jun 2019 20:30:06 -0400
-Message-ID: <20190627003021.19867-81-sashal@kernel.org>
-References: <20190627003021.19867-1-sashal@kernel.org>
+From: Yamin Friedman <yaminf@mellanox.com>
+Subject: Re: [for-next V2 08/10] linux/dim: Implement rdma_dim
+Date: Thu, 27 Jun 2019 05:25:23 +0000
+Message-ID: <54f580a7-e94a-04b9-1472-5c543ad03f57@mellanox.com>
+References: <20190625205701.17849-1-saeedm@mellanox.com>
+ <20190625205701.17849-9-saeedm@mellanox.com>
+ <bfa2159e-1576-6b3c-c85b-ee98bd4f9a47@grimberg.me>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190627003021.19867-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <bfa2159e-1576-6b3c-c85b-ee98bd4f9a47@grimberg.me>
+Content-Language: en-US
+Content-ID: <B81E7DD7FB8B8E4C8FB9BBBBB95D9EFE@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Tal Gilboa <talgi@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Max Gurtovoy <maxg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-
-[ Upstream commit 099a884ba4c00145cef283d36e050726311c2e95 ]
-
-Once a send context is taken down due to a link failure, any QPs waiting
-for pio credits will stay on the waitlist indefinitely.
-
-Fix by wakeing up all QPs linked to piowait list.
-
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/hfi1/pio.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
-
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index a1de566fe95e..1ee47838d4de 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -952,6 +952,22 @@ void sc_disable(struct send_context *sc)
- 		}
- 	}
- 	spin_unlock(&sc->release_lock);
-+
-+	write_seqlock(&sc->waitlock);
-+	while (!list_empty(&sc->piowait)) {
-+		struct iowait *wait;
-+		struct rvt_qp *qp;
-+		struct hfi1_qp_priv *priv;
-+
-+		wait = list_first_entry(&sc->piowait, struct iowait, list);
-+		qp = iowait_to_qp(wait);
-+		priv = qp->priv;
-+		list_del_init(&priv->s_iowait.list);
-+		priv->s_iowait.lock = NULL;
-+		hfi1_qp_wakeup(qp, RVT_S_WAIT_PIO | HFI1_S_WAIT_PIO_DRAIN);
-+	}
-+	write_sequnlock(&sc->waitlock);
-+
- 	spin_unlock_irq(&sc->alloc_lock);
- }
- 
--- 
-2.20.1
+DQpPbiA2LzI2LzIwMTkgMTowMiBBTSwgU2FnaSBHcmltYmVyZyB3cm90ZToNCj4NCj4+ICt2b2lk
+IHJkbWFfZGltKHN0cnVjdCBkaW0gKmRpbSwgdTY0IGNvbXBsZXRpb25zKQ0KPj4gK3sNCj4+ICvC
+oMKgwqAgc3RydWN0IGRpbV9zYW1wbGUgKmN1cnJfc2FtcGxlID0gJmRpbS0+bWVhc3VyaW5nX3Nh
+bXBsZTsNCj4+ICvCoMKgwqAgc3RydWN0IGRpbV9zdGF0cyBjdXJyX3N0YXRzOw0KPj4gK8KgwqDC
+oCB1MzIgbmV2ZW50czsNCj4+ICsNCj4+ICvCoMKgwqAgZGltX3VwZGF0ZV9zYW1wbGVfd2l0aF9j
+b21wcyhjdXJyX3NhbXBsZS0+ZXZlbnRfY3RyICsgMSwNCj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgIGN1cnJfc2FtcGxlLT5wa3RfY3RyLA0KPj4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgY3Vycl9zYW1wbGUtPmJ5dGVfY3RyLA0K
+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgY3Vycl9zYW1wbGUt
+PmNvbXBfY3RyICsgY29tcGxldGlvbnMsDQo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoCAmZGltLT5tZWFzdXJpbmdfc2FtcGxlKTsNCj4NCj4gSWYgdGhpcyBpcyB0
+aGUgb25seSBjYWxsZXIsIHdoeSBhZGQgcGt0X2N0ciBhbmQgYnl0ZV9jdHIgYXQgYWxsPw0KDQoN
+CldlIHdhbnRlZCB0byBrZWVwIHRoZSBBUEkgZ2VuZXJhbCBlbm91Z2ggdGhhdCBpZiBzb21lb25l
+IHdhbnRzIHRvIA0KaW1wbGVtZW50IGEgZGlmZmVyZW50IGFsZ29yaXRobSB1c2luZyB0aGUgZGlt
+IGxpYnJhcnkgdGhleSB3aWxsIGJlIGFibGUgDQp0byB1c2UgYWxsIHRoZSBwb3NzaWJsZSBzdGF0
+aXN0aWNzLiBJIGFncmVlIHRob3VnaCB0aGF0IGluIHRoZSByZG1hX2RpbSANCmZ1bmN0aW9uIHRo
+ZXJlIGlzIG5vIHBvaW50IGluIG1ha2luZyBpdCBzZWVtIGxpa2UgdGhleSBhcmUgcmVsZXZhbnQg
+DQpwYXJhbWV0ZXJzLg0KDQo=
