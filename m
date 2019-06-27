@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 78/95] IB/hfi1: Create inline to get extended headers
-Date: Wed, 26 Jun 2019 20:30:03 -0400
-Message-ID: <20190627003021.19867-78-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 81/95] IB/hfi1: Handle wakeup of orphaned QPs for pio
+Date: Wed, 26 Jun 2019 20:30:06 -0400
+Message-ID: <20190627003021.19867-81-sashal@kernel.org>
 References: <20190627003021.19867-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,102 +14,49 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-[ Upstream commit 9755f72496664eec70bc804104118b5797b6bf63 ]
+[ Upstream commit 099a884ba4c00145cef283d36e050726311c2e95 ]
 
-This paves the way for another patch that reacts to a
-flush sdma completion for RC.
+Once a send context is taken down due to a link failure, any QPs waiting
+for pio credits will stay on the waitlist indefinitely.
 
-Fixes: 81cd3891f021 ("IB/hfi1: Add support for 16B Management Packets")
+Fix by wakeing up all QPs linked to piowait list.
+
+Fixes: 7724105686e7 ("IB/hfi1: add driver files")
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/hfi.h | 31 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/rc.c  | 21 +--------------------
- 2 files changed, 32 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/hfi1/pio.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 048b5d73ba39..d85b16a3aaaf 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -539,6 +539,37 @@ static inline void hfi1_16B_set_qpn(struct opa_16b_mgmt *mgmt,
- 	mgmt->src_qpn = cpu_to_be32(src_qp & OPA_16B_MGMT_QPN_MASK);
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index a1de566fe95e..1ee47838d4de 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -952,6 +952,22 @@ void sc_disable(struct send_context *sc)
+ 		}
+ 	}
+ 	spin_unlock(&sc->release_lock);
++
++	write_seqlock(&sc->waitlock);
++	while (!list_empty(&sc->piowait)) {
++		struct iowait *wait;
++		struct rvt_qp *qp;
++		struct hfi1_qp_priv *priv;
++
++		wait = list_first_entry(&sc->piowait, struct iowait, list);
++		qp = iowait_to_qp(wait);
++		priv = qp->priv;
++		list_del_init(&priv->s_iowait.list);
++		priv->s_iowait.lock = NULL;
++		hfi1_qp_wakeup(qp, RVT_S_WAIT_PIO | HFI1_S_WAIT_PIO_DRAIN);
++	}
++	write_sequnlock(&sc->waitlock);
++
+ 	spin_unlock_irq(&sc->alloc_lock);
  }
  
-+/**
-+ * hfi1_get_rc_ohdr - get extended header
-+ * @opah - the opaheader
-+ */
-+static inline struct ib_other_headers *
-+hfi1_get_rc_ohdr(struct hfi1_opa_header *opah)
-+{
-+	struct ib_other_headers *ohdr;
-+	struct ib_header *hdr = NULL;
-+	struct hfi1_16b_header *hdr_16b = NULL;
-+
-+	/* Find out where the BTH is */
-+	if (opah->hdr_type == HFI1_PKT_TYPE_9B) {
-+		hdr = &opah->ibh;
-+		if (ib_get_lnh(hdr) == HFI1_LRH_BTH)
-+			ohdr = &hdr->u.oth;
-+		else
-+			ohdr = &hdr->u.l.oth;
-+	} else {
-+		u8 l4;
-+
-+		hdr_16b = &opah->opah;
-+		l4  = hfi1_16B_get_l4(hdr_16b);
-+		if (l4 == OPA_16B_L4_IB_LOCAL)
-+			ohdr = &hdr_16b->u.oth;
-+		else
-+			ohdr = &hdr_16b->u.l.oth;
-+	}
-+	return ohdr;
-+}
-+
- struct rvt_sge_state;
- 
- /*
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 5991211d72bd..82f101878e33 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -1711,8 +1711,6 @@ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah)
- 	struct ib_other_headers *ohdr;
- 	struct hfi1_qp_priv *priv = qp->priv;
- 	struct rvt_swqe *wqe;
--	struct ib_header *hdr = NULL;
--	struct hfi1_16b_header *hdr_16b = NULL;
- 	u32 opcode, head, tail;
- 	u32 psn;
- 	struct tid_rdma_request *req;
-@@ -1721,24 +1719,7 @@ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah)
- 	if (!(ib_rvt_state_ops[qp->state] & RVT_SEND_OR_FLUSH_OR_RECV_OK))
- 		return;
- 
--	/* Find out where the BTH is */
--	if (priv->hdr_type == HFI1_PKT_TYPE_9B) {
--		hdr = &opah->ibh;
--		if (ib_get_lnh(hdr) == HFI1_LRH_BTH)
--			ohdr = &hdr->u.oth;
--		else
--			ohdr = &hdr->u.l.oth;
--	} else {
--		u8 l4;
--
--		hdr_16b = &opah->opah;
--		l4  = hfi1_16B_get_l4(hdr_16b);
--		if (l4 == OPA_16B_L4_IB_LOCAL)
--			ohdr = &hdr_16b->u.oth;
--		else
--			ohdr = &hdr_16b->u.l.oth;
--	}
--
-+	ohdr = hfi1_get_rc_ohdr(opah);
- 	opcode = ib_bth_get_opcode(ohdr);
- 	if ((opcode >= OP(RDMA_READ_RESPONSE_FIRST) &&
- 	     opcode <= OP(ATOMIC_ACKNOWLEDGE)) ||
 -- 
 2.20.1
