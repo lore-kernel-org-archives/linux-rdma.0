@@ -1,68 +1,54 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 06/18] net/mlx5: Rename mlx5_pci_dev_type to
- mlx5_coredev_type
-Date: Fri, 28 Jun 2019 22:35:58 +0000
-Message-ID: <20190628223516.9368-7-saeedm@mellanox.com>
-References: <20190628223516.9368-1-saeedm@mellanox.com>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH iproute2-next v4 1/2] ipaddress: correctly print a VF hw
+ address in the IPoIB case
+Date: Fri, 28 Jun 2019 17:21:41 -0600
+Message-ID: <10ad5a7d-b539-4847-c588-4c1a647e3c29@gmail.com>
+References: <20190628095426.2819-1-dkirjanov@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190628223516.9368-1-saeedm@mellanox.com>
+In-Reply-To: <20190628095426.2819-1-dkirjanov@suse.com>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Huy Nguyen <huyn@mellanox.com>, Vu Pham <vuhuong@mellanox.com>, Parav Pandit <parav@mellanox.com>
+To: Denis Kirjanov <kda@linux-powerpc.org>, stephen@networkplumber.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSHV5IE5ndXllbiA8aHV5bkBtZWxsYW5veC5jb20+DQoNClJlbmFtZSBtbHg1X3BjaV9k
-ZXZfdHlwZSB0byBtbHg1X2NvcmVkZXZfdHlwZSB0byBkaXN0aW5ndWlzaCBkaWZmZXJlbnQgbWx4
-NQ0KZGV2aWNlIHR5cGVzLg0KDQptbHg1X2NvcmVkZXZfdHlwZSByZXByZXNlbnRzIG1seDVfY29y
-ZV9kZXYgaW5zdGFuY2UgdHlwZS4gSGVuY2Uga2VlcA0KbWx4NV9jb3JlZGV2X3R5cGUgaW4gbWx4
-NV9jb3JlX2RldiBzdHJ1Y3R1cmUuDQoNClNpZ25lZC1vZmYtYnk6IEh1eSBOZ3V5ZW4gPGh1eW5A
-bWVsbGFub3guY29tPg0KU2lnbmVkLW9mZi1ieTogVnUgUGhhbSA8dnVodW9uZ0BtZWxsYW5veC5j
-b20+DQpTaWduZWQtb2ZmLWJ5OiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NClJl
-dmlld2VkLWJ5OiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NClNpZ25lZC1vZmYt
-Ynk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KLS0tDQogZHJpdmVycy9u
-ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4uYyB8ICA1ICsrKy0tDQogaW5jbHVk
-ZS9saW51eC9tbHg1L2RyaXZlci5oICAgICAgICAgICAgICAgICAgICB8IDExICsrKysrKysrLS0t
-DQogMiBmaWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQ0KDQpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4u
-YyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9tYWluLmMNCmluZGV4
-IGJmYzhjNmZhZWRjMi4uZTVmOWRmN2Y3ZTM0IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9uZXQvZXRo
-ZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4uYw0KKysrIGIvZHJpdmVycy9uZXQvZXRoZXJu
-ZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4uYw0KQEAgLTczMSw4ICs3MzEsNiBAQCBzdGF0aWMg
-aW50IG1seDVfcGNpX2luaXQoc3RydWN0IG1seDVfY29yZV9kZXYgKmRldiwgc3RydWN0IHBjaV9k
-ZXYgKnBkZXYsDQogCXN0cnVjdCBtbHg1X3ByaXYgKnByaXYgPSAmZGV2LT5wcml2Ow0KIAlpbnQg
-ZXJyID0gMDsNCiANCi0JcHJpdi0+cGNpX2Rldl9kYXRhID0gaWQtPmRyaXZlcl9kYXRhOw0KLQ0K
-IAlwY2lfc2V0X2RydmRhdGEoZGV2LT5wZGV2LCBkZXYpOw0KIA0KIAlkZXYtPmJhcl9hZGRyID0g
-cGNpX3Jlc291cmNlX3N0YXJ0KHBkZXYsIDApOw0KQEAgLTEzMjAsNiArMTMxOCw5IEBAIHN0YXRp
-YyBpbnQgaW5pdF9vbmUoc3RydWN0IHBjaV9kZXYgKnBkZXYsIGNvbnN0IHN0cnVjdCBwY2lfZGV2
-aWNlX2lkICppZCkNCiAJZGV2LT5kZXZpY2UgPSAmcGRldi0+ZGV2Ow0KIAlkZXYtPnBkZXYgPSBw
-ZGV2Ow0KIA0KKwlkZXYtPmNvcmVkZXZfdHlwZSA9IGlkLT5kcml2ZXJfZGF0YSAmIE1MWDVfUENJ
-X0RFVl9JU19WRiA/DQorCQkJIE1MWDVfQ09SRURFVl9WRiA6IE1MWDVfQ09SRURFVl9QRjsNCisN
-CiAJZXJyID0gbWx4NV9tZGV2X2luaXQoZGV2LCBwcm9mX3NlbCk7DQogCWlmIChlcnIpDQogCQln
-b3RvIG1kZXZfaW5pdF9lcnI7DQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9tbHg1L2RyaXZl
-ci5oIGIvaW5jbHVkZS9saW51eC9tbHg1L2RyaXZlci5oDQppbmRleCAyZmY2MjRhOTFlM2QuLjE1
-NWI4Y2JlMWNjOSAxMDA2NDQNCi0tLSBhL2luY2x1ZGUvbGludXgvbWx4NS9kcml2ZXIuaA0KKysr
-IGIvaW5jbHVkZS9saW51eC9tbHg1L2RyaXZlci5oDQpAQCAtMTgyLDYgKzE4MiwxMSBAQCBlbnVt
-IHBvcnRfc3RhdGVfcG9saWN5IHsNCiAJTUxYNV9QT0xJQ1lfSU5WQUxJRAk9IDB4ZmZmZmZmZmYN
-CiB9Ow0KIA0KK2VudW0gbWx4NV9jb3JlZGV2X3R5cGUgew0KKwlNTFg1X0NPUkVERVZfUEYsDQor
-CU1MWDVfQ09SRURFVl9WRg0KK307DQorDQogc3RydWN0IG1seDVfZmllbGRfZGVzYyB7DQogCXN0
-cnVjdCBkZW50cnkJICAgICAgICpkZW50Ow0KIAlpbnQJCQlpOw0KQEAgLTU2Nyw3ICs1NzIsNiBA
-QCBzdHJ1Y3QgbWx4NV9wcml2IHsNCiAJc3RydWN0IG1seDVfY29yZV9zcmlvdglzcmlvdjsNCiAJ
-c3RydWN0IG1seDVfbGFnCQkqbGFnOw0KIAlzdHJ1Y3QgbWx4NV9kZXZjb20JKmRldmNvbTsNCi0J
-dW5zaWduZWQgbG9uZwkJcGNpX2Rldl9kYXRhOw0KIAlzdHJ1Y3QgbWx4NV9jb3JlX3JvY2UJcm9j
-ZTsNCiAJc3RydWN0IG1seDVfZmNfc3RhdHMJCWZjX3N0YXRzOw0KIAlzdHJ1Y3QgbWx4NV9ybF90
-YWJsZSAgICAgICAgICAgIHJsX3RhYmxlOw0KQEAgLTY0Niw2ICs2NTAsNyBAQCBzdHJ1Y3QgbWx4
-NV92eGxhbjsNCiANCiBzdHJ1Y3QgbWx4NV9jb3JlX2RldiB7DQogCXN0cnVjdCBkZXZpY2UgKmRl
-dmljZTsNCisJZW51bSBtbHg1X2NvcmVkZXZfdHlwZSBjb3JlZGV2X3R5cGU7DQogCXN0cnVjdCBw
-Y2lfZGV2CSAgICAgICAqcGRldjsNCiAJLyogc3luYyBwY2kgc3RhdGUgKi8NCiAJc3RydWN0IG11
-dGV4CQlwY2lfc3RhdHVzX211dGV4Ow0KQEAgLTEwNzksOSArMTA4NCw5IEBAIGVudW0gew0KIAlN
-TFg1X1BDSV9ERVZfSVNfVkYJCT0gMSA8PCAwLA0KIH07DQogDQotc3RhdGljIGlubGluZSBpbnQg
-bWx4NV9jb3JlX2lzX3BmKHN0cnVjdCBtbHg1X2NvcmVfZGV2ICpkZXYpDQorc3RhdGljIGlubGlu
-ZSBib29sIG1seDVfY29yZV9pc19wZihzdHJ1Y3QgbWx4NV9jb3JlX2RldiAqZGV2KQ0KIHsNCi0J
-cmV0dXJuICEoZGV2LT5wcml2LnBjaV9kZXZfZGF0YSAmIE1MWDVfUENJX0RFVl9JU19WRik7DQor
-CXJldHVybiBkZXYtPmNvcmVkZXZfdHlwZSA9PSBNTFg1X0NPUkVERVZfUEY7DQogfQ0KIA0KIHN0
-YXRpYyBpbmxpbmUgYm9vbCBtbHg1X2NvcmVfaXNfZWNwZihzdHJ1Y3QgbWx4NV9jb3JlX2RldiAq
-ZGV2KQ0KLS0gDQoyLjIxLjANCg0K
+On 6/28/19 3:54 AM, Denis Kirjanov wrote:
+> Current code assumes that we print ethernet mac and
+> that doesn't work in the IPoIB case with SRIOV-enabled hardware
+> 
+> Before:
+> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+> state UP mode DEFAULT group default qlen 256
+>         link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>         vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state
+> disable,
+>     trust off, query_rss off
+>     ...
+> 
+> After:
+> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
+> state UP mode DEFAULT group default qlen 256
+>         link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+>         vf 0     link/infiniband
+> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
+> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
+> checking off, link-state disable, trust off, query_rss off
+> 
+> v1->v2: updated kernel headers to uapi commit
+> v2->v3: fixed alignment
+> v3->v4: aligned print statements as used through the source
+> 
+> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+> ---
+>  ip/ipaddress.c | 40 +++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 35 insertions(+), 5 deletions(-)
+> 
+
+Fixed the alignment issues and applied.
