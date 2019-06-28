@@ -1,86 +1,66 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Fri, 28 Jun 2019 01:57:05 -0300
-Message-ID: <20190628045705.GD3705@ziepe.ca>
-References: <20190626065708.GB24531@lst.de>
- <c15d5997-9ba4-f7db-0e7a-a69e75df316c@deltatee.com>
- <20190626202107.GA5850@ziepe.ca>
- <8a0a08c3-a537-bff6-0852-a5f337a70688@deltatee.com>
- <20190626210018.GB6392@ziepe.ca>
- <c25d3333-dcd5-3313-089b-7fbbd6fbd876@deltatee.com>
- <20190627063223.GA7736@ziepe.ca>
- <6afe4027-26c8-df4e-65ce-49df07dec54d@deltatee.com>
- <20190627163504.GB9568@ziepe.ca>
- <4894142c-3233-a3bb-f9a3-4a4985136e9b@deltatee.com>
+From: Kalle Valo <kvalo@codeaurora.org>
+Subject: Re: [PATCH v2 16/27] net: remove unneeded memset
+Date: Fri, 28 Jun 2019 08:00:54 +0300
+Message-ID: <87v9wqqp6h.fsf@codeaurora.org>
+References: <20190628024843.15635-1-huangfq.daxian@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4894142c-3233-a3bb-f9a3-4a4985136e9b@deltatee.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ath10k-bounces+gldad-ath10k=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190628024843.15635-1-huangfq.daxian@gmail.com> (Fuqian Huang's
+ message of "Fri, 28 Jun 2019 10:48:31 +0800")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/ath10k>,
+ <mailto:ath10k-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/ath10k/>
+List-Post: <mailto:ath10k@lists.infradead.org>
+List-Help: <mailto:ath10k-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/ath10k>,
+ <mailto:ath10k-request@lists.infradead.org?subject=subscribe>
+Sender: "ath10k" <ath10k-bounces@lists.infradead.org>
+Errors-To: ath10k-bounces+gldad-ath10k=m.gmane.org@lists.infradead.org
+To: Fuqian Huang <huangfq.daxian@gmail.com>
+Cc: Ronak Doshi <doshir@vmware.com>, Sergey Matyukevich <smatyukevich@quantenna.com>, "VMware,
+ Inc." <pv-drivers@vmware.com>, Chris Snook <chris.snook@gmail.com>, Chi-Hsien Lin <chi-hsien.lin@cypress.com>, Arend van Spriel <arend.vanspriel@broadcom.com>, linux-kernel@vger.kernel.org, Vishal Kulkarni <vishal@chelsio.com>, Samuel Chessman <chessman@tux.org>, =?utf-8?Q?Rafa=C5=82_Mi=C5=82ecki?= <rafal@milecki.pl>, netdev@vger.kernel.org, Avinash Patil <avinashp@quantenna.com>, Thomas Gleixner <tglx@linutronix.de>, Manish Chopra <manishc@marvell.com>, linux-rdma@vger.kernel.org, Will Deacon <will@kernel.org>, Guo-Fu Tseng <cooldavid@cooldavid.org>, Rahul Verma <rahulv@marvell.com>, ath10k@lists.infradead.org, brcm80211-dev-list@cypress.com, Saeed Mahameed <saeedm@mellanox.com>, linux-hippi@sunsite.dk, Franky Lin <franky.lin@broadcom.com>, Yang Wei <yang.wei9@zte.com.cn>, Jes
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 27, 2019 at 10:49:43AM -0600, Logan Gunthorpe wrote:
+Fuqian Huang <huangfq.daxian@gmail.com> writes:
 
-> > I don't think a GPU/FPGA driver will be involved, this would enter the
-> > block layer through the O_DIRECT path or something generic.. This the
-> > general flow I was suggesting to Dan earlier
-> 
-> I would say the O_DIRECT path has to somehow call into the driver
-> backing the VMA to get an address to appropriate memory (in some way
-> vaguely similar to how we were discussing at LSF/MM)
+> The memset with 0 after zeroing allocator is unneeded.
+>
+> pci_alloc_persistent calls dma_alloc_coherent directly.
+> In commit af7ddd8a627c
+> ("Merge tag 'dma-mapping-4.21' of git://git.infradead.org/users/hch/dma-mapping"),
+> dma_alloc_coherent has already zeroed the memory.
+> So the memset after these functions is unneeded.
+>
+> Signed-off-by: Fuqian Huang <huangfq.daxian@gmail.com>
+> ---
+>  drivers/net/ethernet/atheros/atlx/atl1.c                   | 2 --
+>  drivers/net/ethernet/atheros/atlx/atl2.c                   | 1 -
+>  drivers/net/ethernet/broadcom/bnxt/bnxt.c                  | 2 --
+>  drivers/net/ethernet/chelsio/cxgb4/sched.c                 | 1 -
+>  drivers/net/ethernet/freescale/fec_main.c                  | 2 --
+>  drivers/net/ethernet/jme.c                                 | 5 -----
+>  drivers/net/ethernet/marvell/skge.c                        | 2 --
+>  drivers/net/ethernet/mellanox/mlx4/eq.c                    | 2 --
+>  drivers/net/ethernet/mellanox/mlx5/core/eswitch.c          | 1 -
+>  drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 2 --
+>  drivers/net/ethernet/mellanox/mlxsw/pci.c                  | 1 -
+>  drivers/net/ethernet/neterion/s2io.c                       | 1 -
+>  drivers/net/ethernet/qlogic/netxen/netxen_nic_ctx.c        | 3 ---
+>  drivers/net/ethernet/ti/tlan.c                             | 1 -
+>  drivers/net/hippi/rrunner.c                                | 2 --
+>  drivers/net/vmxnet3/vmxnet3_drv.c                          | 1 -
+>  drivers/net/wireless/ath/ath10k/ce.c                       | 5 -----
+>  drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c    | 2 --
+>  drivers/net/wireless/quantenna/qtnfmac/pcie/pearl_pcie.c   | 2 --
+>  drivers/net/wireless/quantenna/qtnfmac/pcie/topaz_pcie.c   | 2 --
 
-Maybe, maybe no. For something like VFIO the PTE already has the
-correct phys_addr_t and we don't need to do anything..
+For the wireless part:
 
-For DEVICE_PRIVATE we need to get the phys_addr_t out - presumably
-through a new pagemap op?
+Acked-by: Kalle Valo <kvalo@codeaurora.org>
 
-> If P2P can't be done at that point, then the provider driver would
-> do the copy to system memory, in the most appropriate way, and
-> return regular pages for O_DIRECT to submit to the block device.
+I assume Dave will take this.
 
-That only makes sense for the migratable DEVICE_PRIVATE case, it
-doesn't help the VFIO-like case, there you'd need to bounce buffer.
-
-> >> I think it would be a larger layering violation to have the NVMe driver
-> >> (for example) memcpy data off a GPU's bar during a dma_map step to
-> >> support this bouncing. And it's even crazier to expect a DMA transfer to
-> >> be setup in the map step.
-> > 
-> > Why? Don't we already expect the DMA mapper to handle bouncing for
-> > lots of cases, how is this case different? This is the best place to
-> > place it to make it shared.
-> 
-> This is different because it's special memory where the DMA mapper
-> can't possibly know the best way to transfer the data.
-
-Why not?  If we have a 'bar info' structure that could have data
-transfer op callbacks, infact, I think we might already have similar
-callbacks for migrating to/from DEVICE_PRIVATE memory with DMA..
-
-> One could argue that the hook to the GPU/FPGA driver could be in the
-> mapping step but then we'd have to do lookups based on an address --
-> where as the VMA could more easily have a hook back to whatever driver
-> exported it.
-
-The trouble with a VMA hook is that it is only really avaiable when
-working with the VA, and it is not actually available during GUP, you
-have to have a GUP-like thing such as hmm_range_snapshot that is
-specifically VMA based. And it is certainly not available during dma_map.
-
-When working with VMA's/etc it seems there are some good reasons to
-drive things off of the PTE content (either via struct page & pgmap or
-via phys_addr_t & barmap)
-
-I think the best reason to prefer a uniform phys_addr_t is that it
-does give us the option to copy the data to/from CPU memory. That
-option goes away as soon as the bio sometimes provides a dma_addr_t.
-
-At least for RDMA, we do have some cases (like siw/rxe, hfi) where
-they sometimes need to do that copy. I suspect the block stack is
-similar, in the general case.
-
-Jason
+-- 
+Kalle Valo
