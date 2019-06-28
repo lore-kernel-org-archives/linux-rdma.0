@@ -1,152 +1,79 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
-Date: Fri, 28 Jun 2019 13:35:42 -0600
-Message-ID: <cb680437-9615-da42-ebc5-4751e024a45f@deltatee.com>
-References: <20190626210018.GB6392@ziepe.ca>
- <c25d3333-dcd5-3313-089b-7fbbd6fbd876@deltatee.com>
- <20190627063223.GA7736@ziepe.ca>
- <6afe4027-26c8-df4e-65ce-49df07dec54d@deltatee.com>
- <20190627163504.GB9568@ziepe.ca>
- <4894142c-3233-a3bb-f9a3-4a4985136e9b@deltatee.com>
- <20190628045705.GD3705@ziepe.ca>
- <8022a2a4-4069-d256-11da-e6d9b2ffbf60@deltatee.com>
- <20190628172926.GA3877@ziepe.ca>
- <25a87c72-630b-e1f1-c858-9c8b417506fc@deltatee.com>
- <20190628190931.GC3877@ziepe.ca>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 00/18] Mellanox, mlx5 E-Switch and low level updates
+Date: Fri, 28 Jun 2019 22:35:46 +0000
+Message-ID: <20190628223516.9368-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190628190931.GC3877@ziepe.ca>
-Content-Language: en-CA
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2019-06-28 1:09 p.m., Jason Gunthorpe wrote:
-> On Fri, Jun 28, 2019 at 12:29:32PM -0600, Logan Gunthorpe wrote:
->>
->>
->> On 2019-06-28 11:29 a.m., Jason Gunthorpe wrote:
->>> On Fri, Jun 28, 2019 at 10:22:06AM -0600, Logan Gunthorpe wrote:
->>>
->>>>> Why not?  If we have a 'bar info' structure that could have data
->>>>> transfer op callbacks, infact, I think we might already have similar
->>>>> callbacks for migrating to/from DEVICE_PRIVATE memory with DMA..
->>>>
->>>> Well it could, in theory be done, but It just seems wrong to setup and
->>>> wait for more DMA requests while we are in mid-progress setting up
->>>> another DMA request. Especially when the block layer has historically
->>>> had issues with stack sizes. It's also possible you might have multiple
->>>> bio_vec's that have to each do a migration and with a hook here they'd
->>>> have to be done serially.
->>>
->>> *shrug* this is just standard bounce buffering stuff...
->>
->> I don't know of any "standard" bounce buffering stuff that uses random
->> other device's DMA engines where appropriate.
-> 
-> IMHO, it is conceptually the same as memcpy.. And probably we will not
-> ever need such optimization in dma map. Other copy places might be
-> different at least we have the option.
->  
->> IMO the bouncing in the DMA layer isn't a desirable thing, it was a
->> necessary addition to work around various legacy platform issues and
->> have existing code still work correctly. 
-> 
-> Of course it is not desireable! But there are many situations where we
-> do not have the luxury to work around the HW limits in the caller, so
-> those callers either have to not do DMA or they have to open code
-> bounce buffering - both are wrong.
-
-They don't have to open code it, they can use helpers and good coding
-practices. But the submitting driver is the one that's in the best
-position to figure this stuff out. Just like it is with the dma_map
-bouncing -- all it has to do is use dma_alloc_coherent(). If we don't
-write any submitting drivers that assume the dma_map API bounces than we
-should never have to deal with it.
-
->>> What I see as the question is how to layout the BIO. 
->>>
->>> If we agree the bio should only have phys_addr_t then we need some
->>> 'bar info' (ie at least the offset) in the dma map and some 'bar info'
->>> (ie the DMA device) during the bio construciton.
->>
->> Per my other email, it was phys_addr_t plus hints on how to map the
->> memory (bus address, dma_map_resource, or regular). This requires
->> exactly two flag bits in the bio_vec and no interval tree or hash table.
->> I don't want to have to pass bar info, other hooks, or anything like
->> that to the block layer.
-> 
-> This scheme makes the assumption that the dma mapping struct device is
-> all you need, and we never need to know the originating struct device
-> during dma map. This is clearly safe if the two devices are on the
-> same PCIe segment
-> 
-> However, I'd feel more comfortable about that assumption if we had
-> code to support the IOMMU case, and know for sure it doesn't require
-> more info :(
-
-The example I posted *does* support the IOMMU case. That was case (b1)
-in the description. The idea is that pci_p2pdma_dist() returns a
-distance with a high bit set (PCI_P2PDMA_THRU_HOST_BRIDGE) when an IOMMU
-mapping is required and the appropriate flag tells it to call
-dma_map_resource(). This way, it supports both same-segment and
-different-segments without needing any look ups in the map step.
-
-For the only existing upstream use case (NVMe-of), this is ideal because
-we can calculate the mapping requirements exactly once ahead of any
-transfers. Then populating the bvecs and dma-mapping for each transfer
-is fast and doesn't require any additional work besides deciding where
-to get the memory from.
-
-For O_DIRECT and userspace RDMA, this should also be ideal, the real
-problem is how to get the necessary information out of the VMA. This
-isn't helped by having a lookup at the dma map step. But the provider
-driver is certainly going to be involved in creating the VMA so it
-should be able to easily provide the necessary hooks. Though there are
-still a bunch of challenges here.
-
-Maybe other use-cases are not this ideal but I suspect they should still
-be able to make use of the same flags. It's hard to say right now,
-though, because we haven't seen any other use cases.
-
-
-> Maybe you can hide these flags as some dma_map helper, then the
-> layering might be nicer:
-> 
->   dma_map_set_bio_p2p_flags(bio, phys_addr, source dev, dest_dev) 
-> 
-> ?
-> 
-> ie the choice of flag scheme to use is opaque to the DMA layer.
-
-If there was such a use case, I suppose you could use a couple of flag
-bits to tell you how to interpret the other flag bits but, at the
-moment, I only see a need for 2 bits so we'll probably have a lot of
-spares for a long time. You could certainly have a 3rd bit which says do
-a lookup and try to figure out bouncing, but I don't think it's a good idea.
-
->>> If we can spare 4-8 bits in the bio then I suggest a 'perfect hash
->>> table'. Assign each registered P2P 'bar info' a small 4 bit id and
->>> hash on that. It should be fast enough to not worry about the double
->>> lookup.
->>
->> This feels like it's just setting us up to run into nasty limits based
->> on the number of bits we actually have. The number of bits in a bio_vec
->> will always be a precious resource. If I have a server chassis that
->> exist today with 24 NVMe devices, and each device has a CMB, I'm already
->> using up 6 of those bits. Then we might have DEVICE_PRIVATE and other
->> uses on top of that.
-> 
-> A hash is an alternative data structure to a interval tree that has
-> better scaling for small numbers of BARs, which I think is our
-> case.
-
-But then you need a large and not necessarily future-proof number of
-bits in the bio_vec to store the hash.
-
-Logan
+SGkgQWxsLA0KDQpUaGlzIHNlcmllcyBpbmNsdWRlcyBzb21lIGxvdyBsZXZlbCB1cGRhdGVzIG1h
+aW5seSBpbiB0aGUgRS1Td2l0Y2gNCm5ldGRldiBhbmQgcmRtYSB2cG9ydCByZXByZXNlbnRvcnMg
+YXJlYXMuDQoNCkZyb20gUGFyYXYgYW5kIEh1eToNCiAxKSBBZGRlZCBoYXJkd2FyZSBiaXRzIGFu
+ZCBzdHJ1Y3R1cmVzIGRlZmluaXRpb25zIGZvciBzdWItZnVuY3Rpb25zDQogMikgU21hbGwgY29k
+ZSBjbGVhbnVwIGFuZCBpbXByb3ZlbWVudCBmb3IgUEYgcGNpIGRyaXZlci4NCg0KRnJvbSBCb2Rv
+bmc6DQogMykgVXNlIHRoZSBjb3JyZWN0IG5hbWUgc2VtYW50aWNzIG9mIHZwb3J0IGluZGV4IGFu
+ZCB2cG9ydCBudW1iZXINCiA0KSBDbGVhbnVwIHRoZSByZXAgYW5kIG5ldGRldiByZWZlcmVuY2Ug
+d2hlbiB1bmxvYWRpbmcgSUIgcmVwLg0KIDUpIEJsdWVmaWVsZCAoRUNQRikgdXBkYXRlcyBhbmQg
+cmVmYWN0b3JpbmcgZm9yIGJldHRlciBFLVN3aXRjaCANCiAgICBtYW5hZ2VtZW50IG9uIEVDUEYg
+ZW1iZWRkZWQgQ1BVIE5JQzoNCiAgICA1LjEpIENvbnNvbGlkYXRlIHF1ZXJ5aW5nIGVzd2l0Y2gg
+bnVtYmVyIG9mIFZGcw0KICAgIDUuMikgUmVnaXN0ZXIgZXZlbnQgaGFuZGxlciBhdCB0aGUgY29y
+cmVjdCBFLVN3aXRjaCBpbml0IHN0YWdlDQogICAgNS4zKSBTZXR1cCBQRidzIGlubGluZSBtb2Rl
+IGFuZCB2bGFuIHBvcCB3aGVuIHRoZSBFQ1BGIGlzIHRoZQ0KICAgICAgICAgRS1Td3RpY2ggbWFu
+YWdlciAoIHRoZSBob3N0IFBGIGlzIGJhc2ljYWxseSBhIFZGICkuDQogICAgNS40KSBIYW5kbGUg
+VnBvcnQgVUMgYWRkcmVzcyBjaGFuZ2VzIGluIHN3aXRjaGRldiBtb2RlLg0KDQpGcm9tIFNoYXk6
+DQogNikgQWRkIHN1cHBvcnQgZm9yIE1DUUkgYW5kIE1DUVMgaGFyZHdhcmUgcmVnaXN0ZXJzLg0K
+DQpJbiBjYXNlIG9mIG5vIG9iamVjdGlvbnMgdGhlc2UgcGF0Y2hlcyB3aWxsIGJlIGFwcGxpZWQg
+dG8gbWx4NS1uZXh0IGFuZA0Kd2lsbCBiZSBzZW50IGxhdGVyIGFzIHB1bGwgcmVxdWVzdCB0byBi
+b3RoIHJkbWEtbmV4dCBhbmQgbmV0LW5leHQgdHJlZXMuDQoNClRoYW5rcywNClNhZWVkLg0KDQot
+LS0NCg0KQm9kb25nIFdhbmcgKDEyKToNCiAgbmV0L21seDU6IEUtU3dpdGNoLCBVc2UgdnBvcnQg
+aW5kZXggd2hlbiBpbml0IHJlcA0KICB7SUIsIG5ldH0vbWx4NTogRS1Td2l0Y2gsIFVzZSBpbmRl
+eCBvZiByZXAgZm9yIHZwb3J0IHRvIElCIHBvcnQNCiAgICBtYXBwaW5nDQogIFJETUEvbWx4NTog
+Q2xlYW51cCByZXAgd2hlbiBkb2luZyB1bmxvYWQNCiAgbmV0L21seDU6IERvbid0IGhhbmRsZSBW
+RiBmdW5jIGNoYW5nZSBpZiBob3N0IFBGIGlzIGRpc2FibGVkDQogIG5ldC9tbHg1OiBFLVN3aXRj
+aCwgVXNlIGNvcnJlY3QgZmxhZ3Mgd2hlbiBjb25maWd1cmluZyB2bGFuDQogIG5ldC9tbHg1OiBI
+YW5kbGUgaG9zdCBQRiB2cG9ydCBtYWMvZ3VpZCBmb3IgRUNQRg0KICBuZXQvbWx4NTogRS1Td2l0
+Y2gsIFJlZmFjdG9yIGVzd2l0Y2ggU1ItSU9WIGludGVyZmFjZQ0KICBuZXQvbWx4NTogRS1Td2l0
+Y2gsIENvbnNvbGlkYXRlIGVzd2l0Y2ggZnVuY3Rpb24gbnVtYmVyIG9mIFZGcw0KICBuZXQvbWx4
+NTogRS1Td2l0Y2gsIFJlZy91bnJlZyBmdW5jdGlvbiBjaGFuZ2VkIGV2ZW50IGF0IGNvcnJlY3Qg
+c3RhZ2UNCiAgbmV0L21seDU6IEUtU3dpdGNoLCBVc2UgaXRlcmF0b3IgZm9yIHZsYW4gYW5kIG1p
+bi1pbmxpbmUgc2V0dXBzDQogIG5ldC9tbHg1OiBFLVN3aXRjaCwgQ29uc2lkZXIgaG9zdCBQRiBm
+b3IgaW5saW5lIG1vZGUgYW5kIHZsYW4gcG9wDQogIG5ldC9tbHg1OiBFLVN3aXRjaCwgSGFuZGxl
+IFVDIGFkZHJlc3MgY2hhbmdlIGluIHN3aXRjaGRldiBtb2RlDQoNCkh1eSBOZ3V5ZW4gKDEpOg0K
+ICBuZXQvbWx4NTogUmVuYW1lIG1seDVfcGNpX2Rldl90eXBlIHRvIG1seDVfY29yZWRldl90eXBl
+DQoNClBhcmF2IFBhbmRpdCAoNCk6DQogIG5ldC9tbHg1OiBBZGQgaGFyZHdhcmUgZGVmaW5pdGlv
+bnMgZm9yIHN1YiBmdW5jdGlvbnMNCiAgbmV0L21seDU6IE1vdmUgcGNpIHN0YXR1cyByZWcgYWNj
+ZXNzIG11dGV4IHRvIG1seDVfcGNpX2luaXQNCiAgbmV0L21seDU6IExpbWl0IHNjb3BlIG9mIG1s
+eDVfZ2V0X25leHRfcGh5c19kZXYoKSB0byBQQ0kgUEYgZGV2aWNlcw0KICBuZXQvbWx4NTogUmVk
+dWNlIGRlcGVuZGVuY3kgb24gZW5hYmxlZF92ZnMgY291bnRlciBhbmQgbnVtX3Zmcw0KDQpTaGF5
+IEFncm9za2luICgxKToNCiAgbmV0L21seDU6IEFkZGVkIE1DUUkgYW5kIE1DUVMgcmVnaXN0ZXJz
+JyBkZXNjcmlwdGlvbiB0byBpZmMNCg0KIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L2liX3Jl
+cC5jICAgICAgICAgICB8ICAyMiArLQ0KIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L2liX3Jl
+cC5oICAgICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21haW4u
+YyAgICAgICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21seDVf
+aWIuaCAgICAgICAgICB8ICAgMSAtDQogZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4
+NS9jb3JlL2Rldi5jIHwgICA5ICstDQogLi4uL2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9l
+bl9kY2JubC5jICAgIHwgICAyICstDQogLi4uL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
+cmUvZW5fbWFpbi5jIHwgICA0ICstDQogLi4uL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
+cmUvZW5fcmVwLmMgIHwgICA4ICstDQogLi4uL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
+cmUvZW5fdGMuYyAgIHwgICAyICstDQogLi4uL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
+cmUvZXN3aXRjaC5jIHwgMTUxICsrKysrKysrLS0tLS0tDQogLi4uL25ldC9ldGhlcm5ldC9tZWxs
+YW5veC9tbHg1L2NvcmUvZXN3aXRjaC5oIHwgIDQ0ICsrKy0NCiAuLi4vbWVsbGFub3gvbWx4NS9j
+b3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYyAgICAgfCAxOTYgKysrKysrKystLS0tLS0tLS0tDQogLi4u
+L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9mcGdhL2Nvbm4uYyAgIHwgICAyICstDQogZHJp
+dmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2xhZy5jIHwgICA0ICstDQogLi4u
+L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvbWFpbi5jICAgIHwgICA3ICstDQogLi4u
+L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvcmRtYS5jICAgIHwgICAyICstDQogLi4u
+L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvc3Jpb3YuYyAgIHwgIDI3ICstLQ0KIC4u
+Li9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Zwb3J0LmMgICB8ICAyOCArKy0NCiBp
+bmNsdWRlL2xpbnV4L21seDUvZHJpdmVyLmggICAgICAgICAgICAgICAgICAgfCAgMTMgKy0NCiBp
+bmNsdWRlL2xpbnV4L21seDUvZXN3aXRjaC5oICAgICAgICAgICAgICAgICAgfCAgIDggKy0NCiBp
+bmNsdWRlL2xpbnV4L21seDUvbWx4NV9pZmMuaCAgICAgICAgICAgICAgICAgfCAxNjEgKysrKysr
+KysrKysrKy0NCiBpbmNsdWRlL2xpbnV4L21seDUvdnBvcnQuaCAgICAgICAgICAgICAgICAgICAg
+fCAgIDQgKy0NCiAyMiBmaWxlcyBjaGFuZ2VkLCA0NDYgaW5zZXJ0aW9ucygrKSwgMjUzIGRlbGV0
+aW9ucygtKQ0KDQotLSANCjIuMjEuMA0KDQo=
