@@ -1,141 +1,70 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 09/13] IB/mlx5: Register DEVX with mlx5_core to get async events
-Date: Sun, 30 Jun 2019 19:23:30 +0300
-Message-ID: <20190630162334.22135-10-leon@kernel.org>
-References: <20190630162334.22135-1-leon@kernel.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH v4 hmm 00/12]
+Date: Sat, 29 Jun 2019 01:26:51 +0000
+Message-ID: <20190629012642.GA22386@mellanox.com>
+References: <20190624210110.5098-1-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190630162334.22135-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190624210110.5098-1-jgg@ziepe.ca>
+Content-Language: en-US
+Content-ID: <381E97B2C5DFB24EBF1D7DB5781C70C6@eurprd05.prod.outlook.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jerome Glisse <jglisse@redhat.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, "Felix.Kuehling@amd.com" <Felix.Kuehling@amd.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Philip Yang <Philip.Yang@amd.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Ira Weiny <ira.weiny@intel.com>, Christoph Hellwig <hch@lst.de>, Ben Skeggs <bskeggs@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
-
-Register DEVX with with mlx5_core to get async events.  This will enable
-to dispatch the applicable events to its consumers in down stream
-patches.
-
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/devx.c    | 30 ++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/main.c    |  8 ++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++++++++
- 3 files changed, 48 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 89947b4f4f6f..b7b17e882d82 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -1673,6 +1673,36 @@ static int devx_umem_cleanup(struct ib_uobject *uobject,
- 	return 0;
- }
- 
-+static int devx_event_notifier(struct notifier_block *nb,
-+			       unsigned long event_type, void *data)
-+{
-+	return NOTIFY_DONE;
-+}
-+
-+void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_devx_event_table *table = &dev->devx_event_table;
-+
-+	xa_init(&table->event_xa);
-+	mutex_init(&table->event_xa_lock);
-+	MLX5_NB_INIT(&table->devx_nb, devx_event_notifier, NOTIFY_ANY);
-+	mlx5_eq_notifier_register(dev->mdev, &table->devx_nb);
-+}
-+
-+void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_devx_event_table *table = &dev->devx_event_table;
-+	void *entry;
-+	unsigned long id;
-+
-+	mlx5_eq_notifier_unregister(dev->mdev, &table->devx_nb);
-+
-+	xa_for_each(&table->event_xa, id, entry)
-+		kfree(entry);
-+
-+	xa_destroy(&table->event_xa);
-+}
-+
- static ssize_t devx_async_cmd_event_read(struct file *filp, char __user *buf,
- 					 size_t count, loff_t *pos)
- {
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 23997f744586..be0e04cfed77 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -6652,15 +6652,19 @@ static int mlx5_ib_stage_devx_init(struct mlx5_ib_dev *dev)
- 	int uid;
- 
- 	uid = mlx5_ib_devx_create(dev, false);
--	if (uid > 0)
-+	if (uid > 0) {
- 		dev->devx_whitelist_uid = uid;
-+		mlx5_ib_devx_init_event_table(dev);
-+	}
- 
- 	return 0;
- }
- static void mlx5_ib_stage_devx_cleanup(struct mlx5_ib_dev *dev)
- {
--	if (dev->devx_whitelist_uid)
-+	if (dev->devx_whitelist_uid) {
-+		mlx5_ib_devx_cleanup_event_table(dev);
- 		mlx5_ib_devx_destroy(dev, dev->devx_whitelist_uid);
-+	}
- }
- 
- void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 9cf23ae6324e..556af34b788b 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -944,6 +944,13 @@ struct mlx5_ib_pf_eq {
- 	mempool_t *pool;
- };
- 
-+struct mlx5_devx_event_table {
-+	struct mlx5_nb devx_nb;
-+	/* serialize updating the event_xa */
-+	struct mutex event_xa_lock;
-+	struct xarray event_xa;
-+};
-+
- struct mlx5_ib_dev {
- 	struct ib_device		ib_dev;
- 	struct mlx5_core_dev		*mdev;
-@@ -994,6 +1001,7 @@ struct mlx5_ib_dev {
- 	struct mlx5_srq_table   srq_table;
- 	struct mlx5_async_ctx   async_ctx;
- 	int			free_port;
-+	struct mlx5_devx_event_table devx_event_table;
- };
- 
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-@@ -1333,6 +1341,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
- #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
- int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user);
- void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid);
-+void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev);
-+void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev);
- const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
- extern const struct uapi_definition mlx5_ib_devx_defs[];
- extern const struct uapi_definition mlx5_ib_flow_defs[];
-@@ -1349,6 +1359,8 @@ static inline int
- mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
- 			   bool is_user) { return -EOPNOTSUPP; }
- static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid) {}
-+static inline void mlx5_ib_devx_init_event_table(struct mlx5_ib_dev *dev) {}
-+static inline void mlx5_ib_devx_cleanup_event_table(struct mlx5_ib_dev *dev) {}
- static inline bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
- 					     int *dest_type)
- {
--- 
-2.20.1
+T24gTW9uLCBKdW4gMjQsIDIwMTkgYXQgMDY6MDA6NThQTSAtMDMwMCwgSmFzb24gR3VudGhvcnBl
+IHdyb3RlOgo+IEZyb206IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPiAKPiBU
+aGlzIHBhdGNoIHNlcmllcyBhcmlzZWQgb3V0IG9mIGRpc2N1c3Npb25zIHdpdGggSmVyb21lIHdo
+ZW4gbG9va2luZyBhdCB0aGUKPiBPRFAgY2hhbmdlcywgcGFydGljdWxhcmx5IGluZm9ybWVkIGJ5
+IHVzZSBhZnRlciBmcmVlIHJhY2VzIHdlIGhhdmUgYWxyZWFkeQo+IGZvdW5kIGFuZCBmaXhlZCBp
+biB0aGUgT0RQIGNvZGUgKHRoYW5rcyB0byBzeXprYWxsZXIpIHdvcmtpbmcgd2l0aCBtbXUKPiBu
+b3RpZmllcnMsIGFuZCB0aGUgZGlzY3Vzc2lvbiB3aXRoIFJhbHBoIG9uIGhvdyB0byByZXNvbHZl
+IHRoZSBsaWZldGltZSBtb2RlbC4KPiAKPiBPdmVyYWxsIHRoaXMgYnJpbmdzIGluIGEgc2ltcGxp
+ZmllZCBsb2NraW5nIHNjaGVtZSBhbmQgZWFzeSB0byBleHBsYWluCj4gbGlmZXRpbWUgbW9kZWw6
+Cj4gCj4gIElmIGEgaG1tX3JhbmdlIGlzIHZhbGlkLCB0aGVuIHRoZSBobW0gaXMgdmFsaWQsIGlm
+IGEgaG1tIGlzIHZhbGlkIHRoZW4gdGhlIG1tCj4gIGlzIGFsbG9jYXRlZCBtZW1vcnkuCj4gCj4g
+IElmIHRoZSBtbSBuZWVkcyB0byBzdGlsbCBiZSBhbGl2ZSAoaWUgdG8gbG9jayB0aGUgbW1hcF9z
+ZW0sIGZpbmQgYSB2bWEsIGV0YykKPiAgdGhlbiB0aGUgbW1nZXQgbXVzdCBiZSBvYnRhaW5lZCB2
+aWEgbW1nZXRfbm90X3plcm8oKS4KPiAKPiBUaGUgdXNlIG9mIHVubG9ja2VkIHJlYWRzIG9uICdo
+bW0tPmRlYWQnIGFyZSBhbHNvIGVsaW1pbmF0ZWQgaW4gZmF2b3VyIG9mCj4gdXNpbmcgc3RhbmRh
+cmQgbW1nZXQoKSBsb2NraW5nIHRvIHByZXZlbnQgdGhlIG1tIGZyb20gYmVpbmcgcmVsZWFzZWQu
+IE1hbnkgb2YKPiB0aGUgZGVidWdnaW5nIGNoZWNrcyBvZiAhcmFuZ2UtPmhtbSBhbmQgIWhtbS0+
+bW0gYXJlIGRyb3BwZWQgaW4gZmF2b3VyIG9mCj4gcG9pc29uIC0gd2hpY2ggaXMgbXVjaCBjbGVh
+cmVyIGFzIHRvIHRoZSBsaWZldGltZSBpbnRlbnQuCj4gCj4gVGhlIHRyYWlsaW5nIHBhdGNoZXMg
+YXJlIGp1c3Qgc29tZSByYW5kb20gY2xlYW51cHMgSSBub3RpY2VkIHdoZW4gcmV2aWV3aW5nCj4g
+dGhpcyBjb2RlLgo+IAo+IEknbGwgYXBwbHkgdGhpcyBpbiB0aGUgbmV4dCBmZXcgZGF5cyAtIHRo
+ZSBvbmx5IHBhdGNoIHRoYXQgZG9lc24ndCBoYXZlIGVub3VnaAo+IFJldmlld2VkLWJ5cyBpcyAn
+bW0vaG1tOiBSZW1vdmUgY29uZnVzaW5nIGNvbW1lbnQgYW5kIGxvZ2ljIGZyb20gaG1tX3JlbGVh
+c2UnLAo+IHdoaWNoIGhhZCBhbG90IG9mIHF1ZXN0aW9ucywgSSBzdGlsbCB0aGluayBpdCBpcyBn
+b29kLiBJZiBwZW9wbGUgcmVhbGx5IGRvbid0Cj4gbGlrZSBpdCBJJ2xsIGRyb3AgaXQuCj4gCj4g
+VGhhbmtzIHRvIGV2ZXJ5b25lIHdobyB0b29rIHRpbWUgdG8gbG9vayBhdCB0aGlzIQo+IAo+IEph
+c29uIEd1bnRob3JwZSAoMTIpOgo+ICAgbW0vaG1tOiBmaXggdXNlIGFmdGVyIGZyZWUgd2l0aCBz
+dHJ1Y3QgaG1tIGluIHRoZSBtbXUgbm90aWZpZXJzCj4gICBtbS9obW06IFVzZSBobW1fbWlycm9y
+IG5vdCBtbSBhcyBhbiBhcmd1bWVudCBmb3IgaG1tX3JhbmdlX3JlZ2lzdGVyCj4gICBtbS9obW06
+IEhvbGQgYSBtbWdyYWIgZnJvbSBobW0gdG8gbW0KPiAgIG1tL2htbTogU2ltcGxpZnkgaG1tX2dl
+dF9vcl9jcmVhdGUgYW5kIG1ha2UgaXQgcmVsaWFibGUKPiAgIG1tL2htbTogUmVtb3ZlIGR1cGxp
+Y2F0ZSBjb25kaXRpb24gdGVzdCBiZWZvcmUgd2FpdF9ldmVudF90aW1lb3V0Cj4gICBtbS9obW06
+IERvIG5vdCB1c2UgbGlzdCpfcmN1KCkgZm9yIGhtbS0+cmFuZ2VzCj4gICBtbS9obW06IEhvbGQg
+b24gdG8gdGhlIG1tZ2V0IGZvciB0aGUgbGlmZXRpbWUgb2YgdGhlIHJhbmdlCj4gICBtbS9obW06
+IFVzZSBsb2NrZGVwIGluc3RlYWQgb2YgY29tbWVudHMKPiAgIG1tL2htbTogUmVtb3ZlIHJhY3kg
+cHJvdGVjdGlvbiBhZ2FpbnN0IGRvdWJsZS11bnJlZ2lzdHJhdGlvbgo+ICAgbW0vaG1tOiBQb2lz
+b24gaG1tX3JhbmdlIGR1cmluZyB1bnJlZ2lzdGVyCj4gICBtbS9obW06IFJlbW92ZSBjb25mdXNp
+bmcgY29tbWVudCBhbmQgbG9naWMgZnJvbSBobW1fcmVsZWFzZQo+ICAgbW0vaG1tOiBGaXggZXJy
+b3IgZmxvd3MgaW4gaG1tX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQKCkkgdGhpbmsgd2UgYXJlIGRv
+bmUgbm93LCBzbyBhcHBsaWVkIHRvIGhtbS5naXQsIHRoYW5rIHlvdSB0byBldmVyeW9uZS4KCkkg
+ZXhwZWN0IHNvbWUgY29uZmxpY3RzIGluIGxpbnV4LW5leHQgd2l0aCB0aGUgQU1EIERSTSBkcml2
+ZXIsIHdlIG5lZWQKdG8gZGVjaWRlIGhvdyB0byBoYW5kbGUgdGhlbS4KCkphc29uCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
+IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
+ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
