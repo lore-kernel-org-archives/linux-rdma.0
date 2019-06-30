@@ -1,56 +1,36 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next v1 00/12] DEVX asynchronous events
-Date: Sun, 30 Jun 2019 11:53:35 +0300
-Message-ID: <20190630085335.GD4727@mtr-leonro.mtl.com>
-References: <20190618171540.11729-1-leon@kernel.org>
- <19107c92279cf4ad4d870fa54514423c5e46b748.camel@mellanox.com>
- <20190619044557.GA11611@mtr-leonro.mtl.com>
- <a8de53f1acb069057dedc94fb8bd29ea3e658716.camel@mellanox.com>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH 87/87] ethernet: mlx4: remove memset after
+ dma_alloc_coherent
+Date: Sun, 30 Jun 2019 12:15:33 +0000
+Message-ID: <4645429b-1429-34bb-e181-74c461ace04a@mellanox.com>
+References: <20190627174227.4726-1-huangfq.daxian@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a8de53f1acb069057dedc94fb8bd29ea3e658716.camel@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190627174227.4726-1-huangfq.daxian@gmail.com>
+Content-Language: en-US
+Content-ID: <A51E0748EDA4C240AF843394D503CD31@eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fuqian Huang <huangfq.daxian@gmail.com>
+Cc: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 24, 2019 at 09:57:05PM +0000, Saeed Mahameed wrote:
-> On Wed, 2019-06-19 at 07:45 +0300, Leon Romanovsky wrote:
-> > On Tue, Jun 18, 2019 at 06:51:45PM +0000, Saeed Mahameed wrote:
-> > > On Tue, 2019-06-18 at 20:15 +0300, Leon Romanovsky wrote:
-> > > > From: Leon Romanovsky <leonro@mellanox.com>
-> > > >
-> > > > Changelog:
-> > > >  v0 -> v1:
-> > >
-> > > Normally 1st submission is V1 and 2nd is V2.
-> > > so this should have been v1->v2.
-> >
-> > "Normally" depends on the language you are using. In C, everything
-> > starts from 0, including version of patches :).
-> >
->
-> You are wrong:
-> quoting: https://kernelnewbies.org/PatchTipsAndTricks
->
-> "For example, if you're sending the second revision of a patch, you
-> should use [PATCH v2]."
->
-> now don't tell me that second revision is actually 3rd revision or 1st
-> is 2nd :)..
-
-:)
-
-If you don't mind, I will stick to common sense (v0, v1, v2 ...)
-and official kernel documentation, which mentions existence of v1.
-
-https://elixir.bootlin.com/linux/latest/source/Documentation/process/submitting-patches.rst#L682
-
->
-> > > For mlx5-next patches:
-> > >
-> > > Acked-by: Saeed Mahameed <saeedm@mellanox.com>
-> >
-> > Thanks
+DQoNCk9uIDYvMjcvMjAxOSA4OjQyIFBNLCBGdXFpYW4gSHVhbmcgd3JvdGU6DQo+IEluIGNvbW1p
+dCBhZjdkZGQ4YTYyN2MNCj4gKCJNZXJnZSB0YWcgJ2RtYS1tYXBwaW5nLTQuMjEnIG9mIGdpdDov
+L2dpdC5pbmZyYWRlYWQub3JnL3VzZXJzL2hjaC9kbWEtbWFwcGluZyIpLA0KPiBkbWFfYWxsb2Nf
+Y29oZXJlbnQgaGFzIGFscmVhZHkgemVyb2VkIHRoZSBtZW1vcnkuDQo+IFNvIG1lbXNldCBpcyBu
+b3QgbmVlZGVkLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogRnVxaWFuIEh1YW5nIDxodWFuZ2ZxLmRh
+eGlhbkBnbWFpbC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94
+L21seDQvZXEuYyB8IDIgLS0NCj4gICAxIGZpbGUgY2hhbmdlZCwgMiBkZWxldGlvbnMoLSkNCj4g
+DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VxLmMg
+Yi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VxLmMNCj4gaW5kZXggYTViZTI3
+NzcyYjhlLi5jNzkwYTVmY2VhNzMgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0
+L21lbGxhbm94L21seDQvZXEuYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
+eC9tbHg0L2VxLmMNCj4gQEAgLTEwMTMsOCArMTAxMyw2IEBAIHN0YXRpYyBpbnQgbWx4NF9jcmVh
+dGVfZXEoc3RydWN0IG1seDRfZGV2ICpkZXYsIGludCBuZW50LA0KPiAgIA0KPiAgIAkJZG1hX2xp
+c3RbaV0gPSB0Ow0KPiAgIAkJZXEtPnBhZ2VfbGlzdFtpXS5tYXAgPSB0Ow0KPiAtDQo+IC0JCW1l
+bXNldChlcS0+cGFnZV9saXN0W2ldLmJ1ZiwgMCwgUEFHRV9TSVpFKTsNCj4gICAJfQ0KPiAgIA0K
+PiAgIAllcS0+ZXFuID0gbWx4NF9iaXRtYXBfYWxsb2MoJnByaXYtPmVxX3RhYmxlLmJpdG1hcCk7
+DQo+IA0KDQpSZXZpZXdlZC1ieTogVGFyaXEgVG91a2FuIDx0YXJpcXRAbWVsbGFub3guY29tPg0K
+DQpUaGFua3MuDQo=
