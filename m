@@ -1,54 +1,93 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next v4 1/2] ipaddress: correctly print a VF hw
- address in the IPoIB case
-Date: Fri, 28 Jun 2019 17:21:41 -0600
-Message-ID: <10ad5a7d-b539-4847-c588-4c1a647e3c29@gmail.com>
-References: <20190628095426.2819-1-dkirjanov@suse.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH rdma-next v4 06/17] RDMA/counter: Add "auto" configuration
+ mode support
+Date: Sun, 30 Jun 2019 00:32:08 +0000
+Message-ID: <20190630003200.GA7173@mellanox.com>
+References: <20190618172625.13432-1-leon@kernel.org>
+ <20190618172625.13432-7-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190628095426.2819-1-dkirjanov@suse.com>
+In-Reply-To: <20190618172625.13432-7-leon@kernel.org>
 Content-Language: en-US
+Content-ID: <3B0F99AFCC5F4B44A12EFD058D50D00C@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Denis Kirjanov <kda@linux-powerpc.org>, stephen@networkplumber.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, mkubecek@suse.cz
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/28/19 3:54 AM, Denis Kirjanov wrote:
-> Current code assumes that we print ethernet mac and
-> that doesn't work in the IPoIB case with SRIOV-enabled hardware
-> 
-> Before:
-> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-> state UP mode DEFAULT group default qlen 256
->         link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
->         vf 0 MAC 14:80:00:00:66:fe, spoof checking off, link-state
-> disable,
->     trust off, query_rss off
->     ...
-> 
-> After:
-> 11: ib1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast
-> state UP mode DEFAULT group default qlen 256
->         link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
->         vf 0     link/infiniband
-> 80:00:00:66:fe:80:00:00:00:00:00:00:24:8a:07:03:00:a4:3e:7c brd
-> 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff, spoof
-> checking off, link-state disable, trust off, query_rss off
-> 
-> v1->v2: updated kernel headers to uapi commit
-> v2->v3: fixed alignment
-> v3->v4: aligned print statements as used through the source
-> 
-> Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
-> ---
->  ip/ipaddress.c | 40 +++++++++++++++++++++++++++++++++++-----
->  1 file changed, 35 insertions(+), 5 deletions(-)
-> 
+On Tue, Jun 18, 2019 at 08:26:14PM +0300, Leon Romanovsky wrote:
 
-Fixed the alignment issues and applied.
+> +/**
+> + * rdma_counter_bind_qp_auto - Check and bind the QP to a counter base o=
+n
+> + *   the auto-mode rule
+> + */
+> +int rdma_counter_bind_qp_auto(struct ib_qp *qp, u8 port)
+> +{
+> +	struct rdma_port_counter *port_counter;
+> +	struct ib_device *dev =3D qp->device;
+> +	struct rdma_counter *counter;
+> +	int ret;
+> +
+> +	if (!rdma_is_port_valid(dev, port))
+> +		return -EINVAL;
+> +
+> +	port_counter =3D &dev->port_data[port].port_counter;
+> +	if (port_counter->mode.mode !=3D RDMA_COUNTER_MODE_AUTO)
+> +		return 0;
+> +
+> +	counter =3D rdma_get_counter_auto_mode(qp, port);
+> +	if (counter) {
+> +		ret =3D __rdma_counter_bind_qp(counter, qp);
+> +		if (ret) {
+> +			rdma_restrack_put(&counter->res);
+> +			return ret;
+> +		}
+> +		kref_get(&counter->kref);
+
+The counter is left in the xarray while the kref is zero, this
+kref_get is wrong..
+
+Using two kref like things at the same time is a bad idea, the
+'rdma_get_counter_auto_mode' should return the kref held, not the
+restrack get. The restrack_del doesn't happen as long as the kref is
+positive, so we don't need the retrack thing here..
+
+> +	} else {
+> +		counter =3D rdma_counter_alloc(dev, port, RDMA_COUNTER_MODE_AUTO);
+> +		if (!counter)
+> +			return -ENOMEM;
+> +
+> +		auto_mode_init_counter(counter, qp, port_counter->mode.mask);
+> +
+> +		ret =3D __rdma_counter_bind_qp(counter, qp);
+> +		if (ret)
+> +			goto err_bind;
+> +
+> +		rdma_counter_res_add(counter, qp);
+> +		if (!rdma_restrack_get(&counter->res)) {
+> +			ret =3D -EINVAL;
+> +			goto err_get;
+> +		}
+
+and this shouldn't be needed as the kref is inited to 1 by the
+rdma_counter_alloc..
+
+> +	}
+> +
+> +	return 0;
+> +
+> +err_get:
+> +	 __rdma_counter_unbind_qp(qp);
+> +	__rdma_counter_dealloc(counter);
+> +err_bind:
+> +	rdma_counter_free(counter);
+> +	return ret;
+> +}
+
+And then all this error unwind and all the twisty __ functions should
+just be a single kref_put and the release should handle everything.
+
+Jason
