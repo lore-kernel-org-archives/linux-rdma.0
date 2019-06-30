@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v2 04/13] net/mlx5: mlx5_core_create_cq() enhancements
-Date: Sun, 30 Jun 2019 19:23:25 +0300
-Message-ID: <20190630162334.22135-5-leon@kernel.org>
+Subject: [PATCH rdma-next v2 08/13] IB/mlx5: Introduce MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD
+Date: Sun, 30 Jun 2019 19:23:29 +0300
+Message-ID: <20190630162334.22135-9-leon@kernel.org>
 References: <20190630162334.22135-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,124 +14,204 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Enhance mlx5_core_create_cq() to get the command out buffer from the
-callers to let them use the output.
+Introduce MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD and its initial
+implementation.
+
+This object is from type class FD and will be used to read DEVX
+async events.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Acked-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c                     | 3 ++-
- drivers/net/ethernet/mellanox/mlx5/core/cq.c        | 7 +++----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c   | 3 ++-
- drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 3 ++-
- include/linux/mlx5/cq.h                             | 2 +-
- 5 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c         | 95 +++++++++++++++++++++++
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h  | 10 +++
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h |  4 +
+ 3 files changed, 109 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 22230fd7d741..857a554e2c29 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -891,6 +891,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	int entries = attr->cqe;
- 	int vector = attr->comp_vector;
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	struct mlx5_ib_cq *cq = to_mcq(ibcq);
- 	int uninitialized_var(index);
- 	int uninitialized_var(inlen);
-@@ -954,7 +955,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
- 		MLX5_SET(cqc, cqc, oi, 1);
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 80b42d069328..89947b4f4f6f 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -33,6 +33,17 @@ struct devx_async_data {
+ 	struct mlx5_ib_uapi_devx_async_cmd_hdr hdr;
+ };
  
--	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen);
-+	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen, out, sizeof(out));
- 	if (err)
- 		goto err_cqb;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-index 703d88332bc6..1bd4336392a2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-@@ -87,11 +87,10 @@ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq)
++struct devx_async_event_file {
++	struct ib_uobject uobj;
++	/* Head of events that are subscribed to this FD */
++	struct list_head subscribed_events_list;
++	spinlock_t lock;
++	wait_queue_head_t poll_wait;
++	struct list_head event_list;
++	struct mlx5_ib_dev *dev;
++	u8 omit_data:1;
++};
++
+ #define MLX5_MAX_DESTROY_INBOX_SIZE_DW MLX5_ST_SZ_DW(delete_fte_in)
+ struct devx_obj {
+ 	struct mlx5_core_dev	*mdev;
+@@ -1375,6 +1386,37 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_ASYNC_CMD_FD_ALLOC)(
+ 	return 0;
  }
  
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen)
-+			u32 *in, int inlen, u32 *out, int outlen)
++static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_ASYNC_EVENT_FD_ALLOC)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj = uverbs_attr_get_uobject(
++		attrs, MLX5_IB_ATTR_DEVX_ASYNC_EVENT_FD_ALLOC_HANDLE);
++	struct devx_async_event_file *ev_file;
++	struct mlx5_ib_ucontext *c = rdma_udata_to_drv_context(
++		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
++	struct mlx5_ib_dev *dev = to_mdev(c->ibucontext.device);
++	u32 flags;
++	int err;
++
++	err = uverbs_get_flags32(&flags, attrs,
++		MLX5_IB_ATTR_DEVX_ASYNC_EVENT_FD_ALLOC_FLAGS,
++		MLX5_IB_UAPI_DEVX_CR_EV_CH_FLAGS_OMIT_DATA);
++
++	if (err)
++		return err;
++
++	ev_file = container_of(uobj, struct devx_async_event_file,
++			       uobj);
++	spin_lock_init(&ev_file->lock);
++	INIT_LIST_HEAD(&ev_file->event_list);
++	init_waitqueue_head(&ev_file->poll_wait);
++	if (flags & MLX5_IB_UAPI_DEVX_CR_EV_CH_FLAGS_OMIT_DATA)
++		ev_file->omit_data = 1;
++	INIT_LIST_HEAD(&ev_file->subscribed_events_list);
++	ev_file->dev = dev;
++	return 0;
++}
++
+ static void devx_query_callback(int status, struct mlx5_async_work *context)
  {
- 	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context), c_eqn);
- 	u32 dout[MLX5_ST_SZ_DW(destroy_cq_out)];
--	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	u32 din[MLX5_ST_SZ_DW(destroy_cq_in)];
- 	struct mlx5_eq_comp *eq;
- 	int err;
-@@ -100,9 +99,9 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 	if (IS_ERR(eq))
- 		return PTR_ERR(eq);
+ 	struct devx_async_data *async_data =
+@@ -1729,6 +1771,32 @@ static const struct file_operations devx_async_cmd_event_fops = {
+ 	.llseek	 = no_llseek,
+ };
  
--	memset(out, 0, sizeof(out));
-+	memset(out, 0, outlen);
- 	MLX5_SET(create_cq_in, in, opcode, MLX5_CMD_OP_CREATE_CQ);
--	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
-+	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
- 	if (err)
- 		return err;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 1046bd057152..2a1a7dad5d04 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1518,6 +1518,7 @@ static void mlx5e_free_cq(struct mlx5e_cq *cq)
- 
- static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
++static ssize_t devx_async_event_read(struct file *filp, char __user *buf,
++				     size_t count, loff_t *pos)
++{
++	return -EINVAL;
++}
++
++static __poll_t devx_async_event_poll(struct file *filp,
++				      struct poll_table_struct *wait)
++{
++	return 0;
++}
++
++static int devx_async_event_close(struct inode *inode, struct file *filp)
++{
++	uverbs_close_fd(filp);
++	return 0;
++}
++
++static const struct file_operations devx_async_event_fops = {
++	.owner	 = THIS_MODULE,
++	.read	 = devx_async_event_read,
++	.poll    = devx_async_event_poll,
++	.release = devx_async_event_close,
++	.llseek	 = no_llseek,
++};
++
+ static int devx_hot_unplug_async_cmd_event_file(struct ib_uobject *uobj,
+ 						   enum rdma_remove_reason why)
  {
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	struct mlx5_core_dev *mdev = cq->mdev;
- 	struct mlx5_core_cq *mcq = &cq->mcq;
+@@ -1748,6 +1816,12 @@ static int devx_hot_unplug_async_cmd_event_file(struct ib_uobject *uobj,
+ 	return 0;
+ };
  
-@@ -1552,7 +1553,7 @@ static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
- 					    MLX5_ADAPTER_PAGE_SHIFT);
- 	MLX5_SET64(cqc, cqc, dbr_addr,      cq->wq_ctrl.db.dma);
++static int devx_hot_unplug_async_event_file(struct ib_uobject *uobj,
++					    enum rdma_remove_reason why)
++{
++	return 0;
++};
++
+ DECLARE_UVERBS_NAMED_METHOD(
+ 	MLX5_IB_METHOD_DEVX_UMEM_REG,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_DEVX_UMEM_REG_HANDLE,
+@@ -1913,6 +1987,24 @@ DECLARE_UVERBS_NAMED_OBJECT(
+ 			     O_RDONLY),
+ 	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_ASYNC_CMD_FD_ALLOC));
  
--	err = mlx5_core_create_cq(mdev, mcq, in, inlen);
-+	err = mlx5_core_create_cq(mdev, mcq, in, inlen, out, sizeof(out));
++DECLARE_UVERBS_NAMED_METHOD(
++	MLX5_IB_METHOD_DEVX_ASYNC_EVENT_FD_ALLOC,
++	UVERBS_ATTR_FD(MLX5_IB_ATTR_DEVX_ASYNC_EVENT_FD_ALLOC_HANDLE,
++			MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_FLAGS_IN(MLX5_IB_ATTR_DEVX_ASYNC_EVENT_FD_ALLOC_FLAGS,
++			enum mlx5_ib_uapi_devx_create_event_channel_flags,
++			UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(
++	MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD,
++	UVERBS_TYPE_ALLOC_FD(sizeof(struct devx_async_event_file),
++			     devx_hot_unplug_async_event_file,
++			     &devx_async_event_fops, "[devx_async_event]",
++			     O_RDONLY),
++	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_ASYNC_EVENT_FD_ALLOC));
++
+ static bool devx_is_supported(struct ib_device *device)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+@@ -1933,5 +2025,8 @@ const struct uapi_definition mlx5_ib_devx_defs[] = {
+ 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(
+ 		MLX5_IB_OBJECT_DEVX_ASYNC_CMD_FD,
+ 		UAPI_DEF_IS_OBJ_SUPPORTED(devx_is_supported)),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(
++		MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD,
++		UAPI_DEF_IS_OBJ_SUPPORTED(devx_is_supported)),
+ 	{},
+ };
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+index d404c951954c..6ad8f4f11ddd 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+@@ -127,16 +127,26 @@ enum mlx5_ib_devx_async_cmd_fd_alloc_attrs {
+ 	MLX5_IB_ATTR_DEVX_ASYNC_CMD_FD_ALLOC_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
+ };
  
- 	kvfree(in);
++enum mlx5_ib_devx_async_event_fd_alloc_attrs {
++	MLX5_IB_ATTR_DEVX_ASYNC_EVENT_FD_ALLOC_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_ATTR_DEVX_ASYNC_EVENT_FD_ALLOC_FLAGS,
++};
++
+ enum mlx5_ib_devx_async_cmd_fd_methods {
+ 	MLX5_IB_METHOD_DEVX_ASYNC_CMD_FD_ALLOC = (1U << UVERBS_ID_NS_SHIFT),
+ };
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-index ca2296a2f9ee..dc7b9d9f274d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-@@ -429,6 +429,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
- 	struct mlx5_fpga_device *fdev = conn->fdev;
- 	struct mlx5_core_dev *mdev = fdev->mdev;
- 	u32 temp_cqc[MLX5_ST_SZ_DW(cqc)] = {0};
-+	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
- 	struct mlx5_wq_param wqp;
- 	struct mlx5_cqe64 *cqe;
- 	int inlen, err, eqn;
-@@ -476,7 +477,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
- 	pas = (__be64 *)MLX5_ADDR_OF(create_cq_in, in, pas);
- 	mlx5_fill_page_frag_array(&conn->cq.wq_ctrl.buf, pas);
++enum mlx5_ib_devx_async_event_fd_methods {
++	MLX5_IB_METHOD_DEVX_ASYNC_EVENT_FD_ALLOC = (1U << UVERBS_ID_NS_SHIFT),
++};
++
+ enum mlx5_ib_objects {
+ 	MLX5_IB_OBJECT_DEVX = (1U << UVERBS_ID_NS_SHIFT),
+ 	MLX5_IB_OBJECT_DEVX_OBJ,
+ 	MLX5_IB_OBJECT_DEVX_UMEM,
+ 	MLX5_IB_OBJECT_FLOW_MATCHER,
+ 	MLX5_IB_OBJECT_DEVX_ASYNC_CMD_FD,
++	MLX5_IB_OBJECT_DEVX_ASYNC_EVENT_FD,
+ };
  
--	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen);
-+	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen, out, sizeof(out));
- 	kvfree(in);
+ enum mlx5_ib_flow_matcher_create_attrs {
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_verbs.h b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+index a8f34c237458..b44691315d39 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_verbs.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+@@ -63,5 +63,9 @@ enum mlx5_ib_uapi_dm_type {
+ 	MLX5_IB_UAPI_DM_TYPE_HEADER_MODIFY_SW_ICM,
+ };
  
- 	if (err)
-diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
-index 769326ea1d9b..e44157a2b7db 100644
---- a/include/linux/mlx5/cq.h
-+++ b/include/linux/mlx5/cq.h
-@@ -185,7 +185,7 @@ static inline void mlx5_cq_put(struct mlx5_core_cq *cq)
- }
++enum mlx5_ib_uapi_devx_create_event_channel_flags {
++	MLX5_IB_UAPI_DEVX_CR_EV_CH_FLAGS_OMIT_DATA = 1 << 0,
++};
++
+ #endif
  
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen);
-+			u32 *in, int inlen, u32 *out, int outlen);
- int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
- int mlx5_core_query_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 		       u32 *out, int outlen);
 -- 
 2.20.1
