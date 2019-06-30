@@ -1,36 +1,37 @@
 From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH 87/87] ethernet: mlx4: remove memset after
- dma_alloc_coherent
-Date: Sun, 30 Jun 2019 12:15:33 +0000
-Message-ID: <4645429b-1429-34bb-e181-74c461ace04a@mellanox.com>
-References: <20190627174227.4726-1-huangfq.daxian@gmail.com>
+Subject: Re: [PATCH v2 15/27] net: use zeroing allocator rather than allocator
+ followed by memset zero
+Date: Sun, 30 Jun 2019 12:19:49 +0000
+Message-ID: <741d9946-ff30-1df1-1de0-592621531387@mellanox.com>
+References: <20190628024824.15581-1-huangfq.daxian@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190627174227.4726-1-huangfq.daxian@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190628024824.15581-1-huangfq.daxian@gmail.com>
 Content-Language: en-US
-Content-ID: <A51E0748EDA4C240AF843394D503CD31@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-ID: <A80E9E5F6E5D8B4DA0E5ECDAD3C4D3C8@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
 To: Fuqian Huang <huangfq.daxian@gmail.com>
-Cc: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>, Derek Chickles <dchickles@marvell.com>, Satanand Burla <sburla@marvell.com>, Felix Manlunas <fmanlunas@marvell.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDYvMjcvMjAxOSA4OjQyIFBNLCBGdXFpYW4gSHVhbmcgd3JvdGU6DQo+IEluIGNvbW1p
-dCBhZjdkZGQ4YTYyN2MNCj4gKCJNZXJnZSB0YWcgJ2RtYS1tYXBwaW5nLTQuMjEnIG9mIGdpdDov
-L2dpdC5pbmZyYWRlYWQub3JnL3VzZXJzL2hjaC9kbWEtbWFwcGluZyIpLA0KPiBkbWFfYWxsb2Nf
-Y29oZXJlbnQgaGFzIGFscmVhZHkgemVyb2VkIHRoZSBtZW1vcnkuDQo+IFNvIG1lbXNldCBpcyBu
-b3QgbmVlZGVkLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogRnVxaWFuIEh1YW5nIDxodWFuZ2ZxLmRh
-eGlhbkBnbWFpbC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94
-L21seDQvZXEuYyB8IDIgLS0NCj4gICAxIGZpbGUgY2hhbmdlZCwgMiBkZWxldGlvbnMoLSkNCj4g
-DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VxLmMg
-Yi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VxLmMNCj4gaW5kZXggYTViZTI3
-NzcyYjhlLi5jNzkwYTVmY2VhNzMgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDQvZXEuYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
-eC9tbHg0L2VxLmMNCj4gQEAgLTEwMTMsOCArMTAxMyw2IEBAIHN0YXRpYyBpbnQgbWx4NF9jcmVh
-dGVfZXEoc3RydWN0IG1seDRfZGV2ICpkZXYsIGludCBuZW50LA0KPiAgIA0KPiAgIAkJZG1hX2xp
-c3RbaV0gPSB0Ow0KPiAgIAkJZXEtPnBhZ2VfbGlzdFtpXS5tYXAgPSB0Ow0KPiAtDQo+IC0JCW1l
-bXNldChlcS0+cGFnZV9saXN0W2ldLmJ1ZiwgMCwgUEFHRV9TSVpFKTsNCj4gICAJfQ0KPiAgIA0K
-PiAgIAllcS0+ZXFuID0gbWx4NF9iaXRtYXBfYWxsb2MoJnByaXYtPmVxX3RhYmxlLmJpdG1hcCk7
-DQo+IA0KDQpSZXZpZXdlZC1ieTogVGFyaXEgVG91a2FuIDx0YXJpcXRAbWVsbGFub3guY29tPg0K
-DQpUaGFua3MuDQo=
+DQoNCk9uIDYvMjgvMjAxOSA1OjQ4IEFNLCBGdXFpYW4gSHVhbmcgd3JvdGU6DQo+IFJlcGxhY2Ug
+YWxsb2NhdG9yIGZvbGxvd2VkIGJ5IG1lbXNldCB3aXRoIDAgd2l0aCB6ZXJvaW5nIGFsbG9jYXRv
+ci4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEZ1cWlhbiBIdWFuZyA8aHVhbmdmcS5kYXhpYW5AZ21h
+aWwuY29tPg0KPiAtLS0NCg0KLi4NCg0KDQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21l
+bGxhbm94L21seDQvZW5fcnguYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
+eC9tbHg0L2VuX3J4LmMNCj4gQEAgLTEwNjIsNyArMTA2Miw3IEBAIHN0YXRpYyBpbnQgbWx4NF9l
+bl9jb25maWdfcnNzX3FwKHN0cnVjdCBtbHg0X2VuX3ByaXYgKnByaXYsIGludCBxcG4sDQo+ICAg
+CXN0cnVjdCBtbHg0X3FwX2NvbnRleHQgKmNvbnRleHQ7DQo+ICAgCWludCBlcnIgPSAwOw0KPiAg
+IA0KPiAtCWNvbnRleHQgPSBrbWFsbG9jKHNpemVvZigqY29udGV4dCksIEdGUF9LRVJORUwpOw0K
+PiArCWNvbnRleHQgPSBremFsbG9jKHNpemVvZigqY29udGV4dCksIEdGUF9LRVJORUwpOw0KPiAg
+IAlpZiAoIWNvbnRleHQpDQo+ICAgCQlyZXR1cm4gLUVOT01FTTsNCj4gICANCj4gQEAgLTEwNzMs
+NyArMTA3Myw2IEBAIHN0YXRpYyBpbnQgbWx4NF9lbl9jb25maWdfcnNzX3FwKHN0cnVjdCBtbHg0
+X2VuX3ByaXYgKnByaXYsIGludCBxcG4sDQo+ICAgCX0NCj4gICAJcXAtPmV2ZW50ID0gbWx4NF9l
+bl9zcXBfZXZlbnQ7DQo+ICAgDQo+IC0JbWVtc2V0KGNvbnRleHQsIDAsIHNpemVvZigqY29udGV4
+dCkpOw0KPiAgIAltbHg0X2VuX2ZpbGxfcXBfY29udGV4dChwcml2LCByaW5nLT5hY3R1YWxfc2l6
+ZSwgcmluZy0+c3RyaWRlLCAwLCAwLA0KPiAgIAkJCQlxcG4sIHJpbmctPmNxbiwgLTEsIGNvbnRl
+eHQpOw0KPiAgIAljb250ZXh0LT5kYl9yZWNfYWRkciA9IGNwdV90b19iZTY0KHJpbmctPndxcmVz
+LmRiLmRtYSk7DQo+IA0KDQoNCkZvciB0aGUgbWx4NCBwYXJ0Og0KUmV2aWV3ZWQtYnk6IFRhcmlx
+IFRvdWthbiA8dGFyaXF0QG1lbGxhbm94LmNvbT4NCg0KVGFyaXENCg==
