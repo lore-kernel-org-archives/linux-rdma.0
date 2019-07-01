@@ -1,120 +1,45 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 2/2] IB/mlx5: Implement VHCA tunnel mechanism in DEVX
-Date: Mon,  1 Jul 2019 21:14:02 +0300
-Message-ID: <20190701181402.25286-3-leon@kernel.org>
-References: <20190701181402.25286-1-leon@kernel.org>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH mlx5-next 00/18] Mellanox, mlx5 E-Switch and low level updates
+Date: Mon, 1 Jul 2019 16:46:29 -0700
+Message-ID: <CALzJLG-LEPqr3kDTYRKq8V-URsdTS2F87mV_qO9HaCX6CY7VZQ@mail.gmail.com>
+References: <20190628223516.9368-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190701181402.25286-1-leon@kernel.org>
+In-Reply-To: <20190628223516.9368-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Max Gurtovoy <maxg@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Max Gurtovoy <maxg@mellanox.com>
+On Fri, Jun 28, 2019 at 3:35 PM Saeed Mahameed <saeedm@mellanox.com> wrote:
+>
+> Hi All,
+>
+> This series includes some low level updates mainly in the E-Switch
+> netdev and rdma vport representors areas.
+>
+> From Parav and Huy:
+>  1) Added hardware bits and structures definitions for sub-functions
+>  2) Small code cleanup and improvement for PF pci driver.
+>
+> From Bodong:
+>  3) Use the correct name semantics of vport index and vport number
+>  4) Cleanup the rep and netdev reference when unloading IB rep.
+>  5) Bluefield (ECPF) updates and refactoring for better E-Switch
+>     management on ECPF embedded CPU NIC:
+>     5.1) Consolidate querying eswitch number of VFs
+>     5.2) Register event handler at the correct E-Switch init stage
+>     5.3) Setup PF's inline mode and vlan pop when the ECPF is the
+>          E-Swtich manager ( the host PF is basically a VF ).
+>     5.4) Handle Vport UC address changes in switchdev mode.
+>
+> From Shay:
+>  6) Add support for MCQI and MCQS hardware registers.
+>
+> In case of no objections these patches will be applied to mlx5-next and
+> will be sent later as pull request to both rdma-next and net-next trees.
 
-This mechanism will allow function-A to perform operations "on behalf"
-of function-B via tunnel object. Function-A will have privileges for
-creating and using this tunnel object.
+Applied to mlx5-next,
 
-For example, in the device emulation feature presented in Bluefield-1 SoC,
-using device emulation capability, one can present NVMe function to the host OS.
-
-Since the NVMe function doesn't have a normal command interface to the HCA HW,
-here is a need to create a channel that will be able to issue commands "on behalf"
-of this function.
-
-This channel is the VHCA_TUNNEL general object. The emulation software will create
-this tunnel for every managed function and issue commands via devx general cmd
-interface using the appropriate tunnel ID. When devX context will receive a command
-with non-zero vhca_tunnel_id, it will pass the command as-is down to the HCA.
-
-All the validation, security and resource tracking of the commands and the created
-tunneled objects is in the responsibility of the HCA FW. When a VHCA_TUNNEL object
-destroyed, the device will issue an internal FLR (function level reset) to the
-emulated function associated with this tunnel. This will destroy all the created
-resources using the tunnel mechanism.
-
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
-Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/devx.c | 24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index cb4f0fc79176..26ba6bf5d19a 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -894,12 +894,16 @@ static int devx_get_uid(struct mlx5_ib_ucontext *c, void *cmd_in)
- 
- 	return c->devx_uid;
- }
--static bool devx_is_general_cmd(void *in)
-+
-+static bool devx_is_general_cmd(void *in, struct mlx5_ib_dev *dev)
- {
- 	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
- 
--	if (opcode >= MLX5_CMD_OP_GENERAL_START &&
--	    opcode < MLX5_CMD_OP_GENERAL_END)
-+	/* Pass all cmds for vhca_tunnel as general, tracking is done in FW */
-+	if ((MLX5_CAP_GEN_64(dev->mdev, vhca_tunnel_commands) &&
-+	     MLX5_GET(general_obj_in_cmd_hdr, in, vhca_tunnel_id)) ||
-+	    (opcode >= MLX5_CMD_OP_GENERAL_START &&
-+	     opcode < MLX5_CMD_OP_GENERAL_END))
- 		return true;
- 
- 	switch (opcode) {
-@@ -1025,7 +1029,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
- 		return uid;
- 
- 	/* Only white list of some general HCA commands are allowed for this method. */
--	if (!devx_is_general_cmd(cmd_in))
-+	if (!devx_is_general_cmd(cmd_in, dev))
- 		return -EINVAL;
- 
- 	cmd_out = uverbs_zalloc(attrs, cmd_out_len);
-@@ -1420,6 +1424,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- 	u32 obj_id;
- 	u16 opcode;
- 
-+	if (MLX5_GET(general_obj_in_cmd_hdr, cmd_in, vhca_tunnel_id))
-+		return -EINVAL;
-+
- 	uid = devx_get_uid(c, cmd_in);
- 	if (uid < 0)
- 		return uid;
-@@ -1519,6 +1526,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
- 	int err;
- 	int uid;
- 
-+	if (MLX5_GET(general_obj_in_cmd_hdr, cmd_in, vhca_tunnel_id))
-+		return -EINVAL;
-+
- 	uid = devx_get_uid(c, cmd_in);
- 	if (uid < 0)
- 		return uid;
-@@ -1561,6 +1571,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
- 	int uid;
- 	struct mlx5_ib_dev *mdev = to_mdev(c->ibucontext.device);
- 
-+	if (MLX5_GET(general_obj_in_cmd_hdr, cmd_in, vhca_tunnel_id))
-+		return -EINVAL;
-+
- 	uid = devx_get_uid(c, cmd_in);
- 	if (uid < 0)
- 		return uid;
-@@ -1698,6 +1711,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY)(
- 	struct devx_async_cmd_event_file *ev_file;
- 	struct devx_async_data *async_data;
- 
-+	if (MLX5_GET(general_obj_in_cmd_hdr, cmd_in, vhca_tunnel_id))
-+		return -EINVAL;
-+
- 	uid = devx_get_uid(c, cmd_in);
- 	if (uid < 0)
- 		return uid;
--- 
-2.20.1
+Thanks!
