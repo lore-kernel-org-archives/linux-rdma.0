@@ -1,29 +1,46 @@
-From: Ajay Kaher <akaher@vmware.com>
-Subject: [PATCH v5 0/3] [v4.9.y] coredump: fix race condition between mmget_not_zero()/get_task_mm() and core dumping
-Date: Tue, 2 Jul 2019 00:02:08 +0530
-Message-ID: <1562005928-1929-4-git-send-email-akaher@vmware.com>
-References: <1562005928-1929-1-git-send-email-akaher@vmware.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 4.17-1 GA release is available
+Date: Mon, 1 Jul 2019 16:56:28 +0300
+Message-ID: <bc645a23-c951-59d5-e6f7-81b20652de1c@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1562005928-1929-1-git-send-email-akaher@vmware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: aarcange@redhat.com, jannh@google.com, oleg@redhat.com, peterx@redhat.com, rppt@linux.ibm.com, jgg@mellanox.com, mhocko@suse.com
-Cc: jglisse@redhat.com, akpm@linux-foundation.org, mike.kravetz@oracle.com, viro@zeniv.linux.org.uk, riandrews@android.com, arve@android.com, yishaih@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, matanb@mellanox.com, leonro@mellanox.com, gregkh@linuxfoundation.org, torvalds@linux-foundation.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, akaher@vmware.com, srivatsab@vmware.com, amakhalov@vmware.com
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-coredump: fix race condition between mmget_not_zero()/get_task_mm()
-and core dumping
-
-[PATCH v5 1/3]:
-Backporting of commit 04f5866e41fb70690e28397487d8bd8eea7d712a upstream.
-
-[PATCH v5 2/3]:
-Extension of commit 04f5866e41fb to fix the race condition between
-get_task_mm() and core dumping for IB->mlx4 and IB->mlx5 drivers.
-
-[PATCH v5 3/3]
-Backporting of commit 59ea6d06cfa9247b586a695c21f94afa7183af74 upstream.
-
-[diff from v4]:
-- Corrected Subject line for [PATCH v5 2/3], [PATCH v5 3/3]
+SGksCk9GRUQtNC4xNy0xIGlzIGF2YWlsYWJsZSBhdDoKaHR0cDovL29wZW5mYWJyaWNzLm9yZy9k
+b3dubG9hZHMvT0ZFRC9vZmVkLTQuMTctMS9PRkVELTQuMTctMS50Z3oKVG8gZ2V0IEJVSUxEX0lE
+IHJ1biBvZmVkX2luZm8KClBsZWFzZSByZXBvcnQgYW55IGlzc3VlcyBpbiBidWd6aWxsYQpodHRw
+Oi8vYnVncy5vcGVuZmFicmljcy5vcmcvYnVnemlsbGEvIGZvciBPRkVEIDQuMTctMQoKUmVsZWFz
+ZSBub3RlczoKaHR0cDovL29wZW5mYWJyaWNzLm9yZy9kb3dubG9hZHMvT0ZFRC9yZWxlYXNlX25v
+dGVzL09GRURfNC4xNy0xLXJlbGVhc2Vfbm90ZXMKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KT0ZF
+RC00LjE3LTEtR0EgTWFpbiBDaGFuZ2VzIGZyb20gT0ZFRC00LjE3Ci0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KMS4gQWRkIHN1cHBvcnQgZm9yIFJIRUw3LjYgYW5kIFNMRVMxMiBTUDQKCjIuIGNvbXBh
+dC1yZG1hCi0gTW9kdWxlLnN1cHBvcnRlZDogQWRkZWQgbmV3IE1lbGxhbm94IGtlcm5lbCBtb2R1
+bGVzCi0gYm54dF9lbjogRml4IGJueHRfZW4gY29tcGlsYXRpb24gZm9yIFJIIDcuNgotIEFkZCB2
+bXdfcHZyZG1hIHBhdGNoIGZyb20gbGludXgtbmV4dAotIGNvbXBhdDogTW92ZSBicGZfcHJvZ19z
+dWIgdG8gYmUgZXhwb3J0ZWQgYnkgY29tcGF0CgozLiBVcGRhdGVkIHBhY2thZ2VzCi0gcmRtYS1j
+b3JlIHYxNy41Ci0gcGVyZnRlc3QtNC40LTAuNi5nYmE0YmY2ZAotIG9wZW5zbS0zLjMuMjIKLSBt
+c3RmbGludC00LjExLjAtNAotIGxpYmZhYnJpYy0xLjcuMQotIGZhYnRlc3RzLTEuNy4xCgo0LiBv
+ZmVkLXNjcmlwdHMKLSBpbnN0YWxsLnBsOiBVcGRhdGVkIHJkbWEtY29yZSByZXF1aXJlbWVudHMK
+LSBpbnN0YWxsLnBsOiBEaXNhYmxlIGNvbXBhdC1yZG1hLWZpcm13YXJlIG9uIFNMRVMxMlNQNCBk
+dWUgdG8gY29uZmxpY3QKLSBpbnN0YWxsLnBsOiBBZGRlZCBTTEVTMTIgU1A0IHN1cHBvcnQKLSBp
+bnN0YWxsLnBsOiBBZGRlZCBSSEVMNy42IHN1cHBvcnQKLSBpbnN0YWxsLnBsOiBBZGRlZCBvcGVu
+c3NsLWRldmVsIHJlcXVpcmVtZW50IGZvciBtc3RmbGludAoKClJlZ2FyZHMsClZsYWRpbWlyCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmV3ZyBtYWlsaW5n
+IGxpc3QKZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpodHRwczovL2xpc3RzLm9wZW5mYWJyaWNz
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2V3Zwo=
