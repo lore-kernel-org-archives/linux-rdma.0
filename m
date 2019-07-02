@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v5 12/17] IB/mlx5: Add counter_alloc_stats() and counter_update_stats() support
-Date: Tue,  2 Jul 2019 13:02:41 +0300
-Message-ID: <20190702100246.17382-13-leon@kernel.org>
+Subject: [PATCH rdma-next v5 13/17] RDMA/core: Get sum value of all counters when perform a sysfs stat read
+Date: Tue,  2 Jul 2019 13:02:42 +0300
+Message-ID: <20190702100246.17382-14-leon@kernel.org>
 References: <20190702100246.17382-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,56 +14,200 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Add support for ib callback counter_alloc_stats() and
-counter_update_stats().
+Since a QP can only be bound to one counter, then if it is bound to a
+separate counter, for backward compatibility purpose, the statistic
+value must be:
+* stat of default counter
++ stat of all running allocated counters
++ stat of all deallocated counters (history stats)
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/infiniband/core/counters.c | 89 ++++++++++++++++++++++++++++++
+ drivers/infiniband/core/sysfs.c    | 10 +++-
+ include/rdma/rdma_counter.h        |  2 +
+ 3 files changed, 98 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index ffd6f16d3c37..d6751b2cfa1c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5552,6 +5552,27 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
- 	return num_counters;
+diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+index ca9adee19159..2de4c555eba9 100644
+--- a/drivers/infiniband/core/counters.c
++++ b/drivers/infiniband/core/counters.c
+@@ -158,6 +158,20 @@ static int __rdma_counter_unbind_qp(struct ib_qp *qp)
+ 	return ret;
  }
  
-+static struct rdma_hw_stats *
-+mlx5_ib_counter_alloc_stats(struct rdma_counter *counter)
++static void counter_history_stat_update(const struct rdma_counter *counter)
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(counter->device);
-+	struct mlx5_ib_port *port = &dev->port[counter->port - 1];
++	struct ib_device *dev = counter->device;
++	struct rdma_port_counter *port_counter;
++	int i;
 +
-+	/* Q counters are in the beginning of all counters */
-+	return rdma_alloc_hw_stats_struct(port->cnts.names,
-+					  port->cnts.num_q_counters,
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
++	port_counter = &dev->port_data[counter->port].port_counter;
++	if (!port_counter->hstats)
++		return;
++
++	for (i = 0; i < counter->stats->num_counters; i++)
++		port_counter->hstats->value[i] += counter->stats->value[i];
 +}
 +
-+static int mlx5_ib_counter_update_stats(struct rdma_counter *counter)
+ /**
+  * rdma_get_counter_auto_mode - Find the counter that @qp should be bound
+  *     with in auto mode
+@@ -215,6 +229,7 @@ static void counter_release(struct kref *kref)
+ 	struct rdma_counter *counter;
+ 
+ 	counter = container_of(kref, struct rdma_counter, kref);
++	counter_history_stat_update(counter);
+ 	counter->device->ops.counter_dealloc(counter);
+ 	rdma_counter_free(counter);
+ }
+@@ -299,6 +314,55 @@ int rdma_counter_query_stats(struct rdma_counter *counter)
+ 	return ret;
+ }
+ 
++static u64 get_running_counters_hwstat_sum(struct ib_device *dev,
++					   u8 port, u32 index)
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(counter->device);
-+	struct mlx5_ib_port *port = &dev->port[counter->port - 1];
++	struct rdma_restrack_entry *res;
++	struct rdma_restrack_root *rt;
++	struct rdma_counter *counter;
++	unsigned long id = 0;
++	u64 sum = 0;
 +
-+	return mlx5_ib_query_q_counters(dev->mdev, port,
-+					counter->stats, counter->id);
++	rt = &dev->res[RDMA_RESTRACK_COUNTER];
++	xa_lock(&rt->xa);
++	xa_for_each(&rt->xa, id, res) {
++		if (!rdma_restrack_get(res))
++			continue;
++
++		xa_unlock(&rt->xa);
++
++		counter = container_of(res, struct rdma_counter, res);
++		if ((counter->device != dev) || (counter->port != port) ||
++		    rdma_counter_query_stats(counter))
++			goto next;
++
++		sum += counter->stats->value[index];
++
++next:
++		xa_lock(&rt->xa);
++		rdma_restrack_put(res);
++	}
++
++	xa_unlock(&rt->xa);
++	return sum;
 +}
 +
- static int mlx5_ib_counter_bind_qp(struct rdma_counter *counter,
- 				   struct ib_qp *qp)
++/**
++ * rdma_counter_get_hwstat_value() - Get the sum value of all counters on a
++ *   specific port, including the running ones and history data
++ */
++u64 rdma_counter_get_hwstat_value(struct ib_device *dev, u8 port, u32 index)
++{
++	struct rdma_port_counter *port_counter;
++	u64 sum;
++
++	port_counter = &dev->port_data[port].port_counter;
++	sum = get_running_counters_hwstat_sum(dev, port, index);
++	sum += port_counter->hstats->value[index];
++
++	return sum;
++}
++
+ void rdma_counter_init(struct ib_device *dev)
  {
-@@ -6519,6 +6540,8 @@ static const struct ib_device_ops mlx5_ib_dev_hw_stats_ops = {
- 	.counter_bind_qp = mlx5_ib_counter_bind_qp,
- 	.counter_unbind_qp = mlx5_ib_counter_unbind_qp,
- 	.counter_dealloc = mlx5_ib_counter_dealloc,
-+	.counter_alloc_stats = mlx5_ib_counter_alloc_stats,
-+	.counter_update_stats = mlx5_ib_counter_update_stats,
+ 	struct rdma_port_counter *port_counter;
+@@ -311,9 +375,34 @@ void rdma_counter_init(struct ib_device *dev)
+ 		port_counter = &dev->port_data[port].port_counter;
+ 		port_counter->mode.mode = RDMA_COUNTER_MODE_NONE;
+ 		mutex_init(&port_counter->lock);
++
++		port_counter->hstats = dev->ops.alloc_hw_stats(dev, port);
++		if (!port_counter->hstats)
++			goto fail;
+ 	}
++
++	return;
++
++fail:
++	rdma_for_each_port(dev, port) {
++		port_counter = &dev->port_data[port].port_counter;
++		kfree(port_counter->hstats);
++		port_counter->hstats = NULL;
++	}
++
++	return;
+ }
+ 
+ void rdma_counter_release(struct ib_device *dev)
+ {
++	struct rdma_port_counter *port_counter;
++	u32 port;
++
++	if (!dev->ops.alloc_hw_stats)
++		return;
++
++	rdma_for_each_port(dev, port) {
++		port_counter = &dev->port_data[port].port_counter;
++		kfree(port_counter->hstats);
++	}
+ }
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index c78d0c9646ae..c59b80e0a740 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -43,6 +43,7 @@
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_pma.h>
+ #include <rdma/ib_cache.h>
++#include <rdma/rdma_counter.h>
+ 
+ struct ib_port;
+ 
+@@ -800,9 +801,12 @@ static int update_hw_stats(struct ib_device *dev, struct rdma_hw_stats *stats,
+ 	return 0;
+ }
+ 
+-static ssize_t print_hw_stat(struct rdma_hw_stats *stats, int index, char *buf)
++static ssize_t print_hw_stat(struct ib_device *dev, int port_num,
++			     struct rdma_hw_stats *stats, int index, char *buf)
+ {
+-	return sprintf(buf, "%llu\n", stats->value[index]);
++	u64 v = rdma_counter_get_hwstat_value(dev, port_num, index);
++
++	return sprintf(buf, "%llu\n", stats->value[index] + v);
+ }
+ 
+ static ssize_t show_hw_stats(struct kobject *kobj, struct attribute *attr,
+@@ -828,7 +832,7 @@ static ssize_t show_hw_stats(struct kobject *kobj, struct attribute *attr,
+ 	ret = update_hw_stats(dev, stats, hsa->port_num, hsa->index);
+ 	if (ret)
+ 		goto unlock;
+-	ret = print_hw_stat(stats, hsa->index, buf);
++	ret = print_hw_stat(dev, hsa->port_num, stats, hsa->index, buf);
+ unlock:
+ 	mutex_unlock(&stats->lock);
+ 
+diff --git a/include/rdma/rdma_counter.h b/include/rdma/rdma_counter.h
+index f2a5c8efc404..bf2c3578768f 100644
+--- a/include/rdma/rdma_counter.h
++++ b/include/rdma/rdma_counter.h
+@@ -27,6 +27,7 @@ struct rdma_counter_mode {
+ 
+ struct rdma_port_counter {
+ 	struct rdma_counter_mode mode;
++	struct rdma_hw_stats *hstats;
+ 	struct mutex lock;
  };
  
- static int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
+@@ -49,5 +50,6 @@ int rdma_counter_bind_qp_auto(struct ib_qp *qp, u8 port);
+ int rdma_counter_unbind_qp(struct ib_qp *qp, bool force);
+ 
+ int rdma_counter_query_stats(struct rdma_counter *counter);
++u64 rdma_counter_get_hwstat_value(struct ib_device *dev, u8 port, u32 index);
+ 
+ #endif /* _RDMA_COUNTER_H_ */
 -- 
 2.20.1
