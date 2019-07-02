@@ -1,46 +1,47 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC] mm/hmm: pass mmu_notifier_range to
- sync_cpu_device_pagetables
-Date: Tue, 2 Jul 2019 19:53:23 +0000
-Message-ID: <20190702195317.GT31718@mellanox.com>
-References: <20190608001452.7922-1-rcampbell@nvidia.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [RFC PATCH 00/28] Removing struct page from P2PDMA
+Date: Tue, 2 Jul 2019 19:45:30 -0300
+Message-ID: <20190702224530.GD11860@ziepe.ca>
+References: <20190627063223.GA7736@ziepe.ca>
+ <6afe4027-26c8-df4e-65ce-49df07dec54d@deltatee.com>
+ <20190627163504.GB9568@ziepe.ca>
+ <4894142c-3233-a3bb-f9a3-4a4985136e9b@deltatee.com>
+ <20190628045705.GD3705@ziepe.ca>
+ <8022a2a4-4069-d256-11da-e6d9b2ffbf60@deltatee.com>
+ <20190628172926.GA3877@ziepe.ca>
+ <25a87c72-630b-e1f1-c858-9c8b417506fc@deltatee.com>
+ <20190628190931.GC3877@ziepe.ca>
+ <cb680437-9615-da42-ebc5-4751e024a45f@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190608001452.7922-1-rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <9EEF795A80FA1D4D8BB871FDEA45923F-wNKe6lTLrGecE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cb680437-9615-da42-ebc5-4751e024a45f@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDU6MTQ6NTJQTSAtMDcwMCwgUmFscGggQ2FtcGJlbGwg
-d3JvdGU6Cj4gSE1NIGRlZmluZXMgaXRzIG93biBzdHJ1Y3QgaG1tX3VwZGF0ZSB3aGljaCBpcyBw
-YXNzZWQgdG8gdGhlCj4gc3luY19jcHVfZGV2aWNlX3BhZ2V0YWJsZXMoKSBjYWxsYmFjayBmdW5j
-dGlvbi4gVGhpcyBpcwo+IHN1ZmZpY2llbnQgd2hlbiB0aGUgb25seSBhY3Rpb24gaXMgdG8gaW52
-YWxpZGF0ZS4gSG93ZXZlciwKPiBhIGRldmljZSBtYXkgd2FudCB0byBrbm93IHRoZSByZWFzb24g
-Zm9yIHRoZSBpbnZhbGlkYXRpb24gYW5kCj4gYmUgYWJsZSB0byBzZWUgdGhlIG5ldyBwZXJtaXNz
-aW9ucyBvbiBhIHJhbmdlLCB1cGRhdGUgZGV2aWNlIGFjY2Vzcwo+IHJpZ2h0cyBvciByYW5nZSBz
-dGF0aXN0aWNzLiBTaW5jZSBzeW5jX2NwdV9kZXZpY2VfcGFnZXRhYmxlcygpCj4gY2FuIGJlIGNh
-bGxlZCBmcm9tIHRyeV90b191bm1hcCgpLCB0aGUgbW1hcF9zZW0gbWF5IG5vdCBiZSBoZWxkCj4g
-YW5kIGZpbmRfdm1hKCkgaXMgbm90IHNhZmUgdG8gYmUgY2FsbGVkLgo+IFBhc3MgdGhlIHN0cnVj
-dCBtbXVfbm90aWZpZXJfcmFuZ2UgdG8gc3luY19jcHVfZGV2aWNlX3BhZ2V0YWJsZXMoKQo+IHRv
-IGFsbG93IHRoZSBmdWxsIGludmFsaWRhdGlvbiBpbmZvcm1hdGlvbiB0byBiZSB1c2VkLgo+IAo+
-IFNpZ25lZC1vZmYtYnk6IFJhbHBoIENhbXBiZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KPiAt
-LS0KPiAKPiBJJ20gc2VuZGluZyB0aGlzIG91dCBub3cgc2luY2Ugd2UgYXJlIHVwZGF0aW5nIG1h
-bnkgb2YgdGhlIEhNTSBBUElzCj4gYW5kIEkgdGhpbmsgaXQgd2lsbCBiZSB1c2VmdWwuCgpUaGlz
-IG1ha2Ugc28gbXVjaCBzZW5zZSwgSSdkIGxpa2UgdG8gYXBwbHkgdGhpcyBpbiBobW0uZ2l0LCBp
-cyB0aGVyZQphbnkgb2JqZWN0aW9uPwoKSmFzb24KX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBtYWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5m
-cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9hbWQtZ2Z4
+On Fri, Jun 28, 2019 at 01:35:42PM -0600, Logan Gunthorpe wrote:
+
+> > However, I'd feel more comfortable about that assumption if we had
+> > code to support the IOMMU case, and know for sure it doesn't require
+> > more info :(
+> 
+> The example I posted *does* support the IOMMU case. That was case (b1)
+> in the description. The idea is that pci_p2pdma_dist() returns a
+> distance with a high bit set (PCI_P2PDMA_THRU_HOST_BRIDGE) when an IOMMU
+> mapping is required and the appropriate flag tells it to call
+> dma_map_resource(). This way, it supports both same-segment and
+> different-segments without needing any look ups in the map step.
+
+I mean we actually have some iommu drivers that can setup P2P in real
+HW. I'm worried that real IOMMUs will need to have the BDF of the
+completer to route completions back to the requester - which we can't
+trivially get through this scheme.
+
+However, maybe that is just a future problem, and certainly we can see
+that with an interval tree or otherwise such a IOMMU could get the
+information it needs.
+
+Jason
