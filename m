@@ -1,70 +1,284 @@
-From: "Kuehling, Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [RFC] mm/hmm: pass mmu_notifier_range to
- sync_cpu_device_pagetables
-Date: Wed, 3 Jul 2019 02:27:22 +0000
-Message-ID: <1dc82dc8-3e6f-1d6f-b14d-41ae3c1b2709@amd.com>
-References: <20190608001452.7922-1-rcampbell@nvidia.com>
- <20190702195317.GT31718@mellanox.com> <20190702224912.GA24043@lst.de>
- <20190702225911.GA11833@mellanox.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 1/5] net/mlx5: Introduce and use
+ mlx5_eswitch_get_total_vports()
+Date: Wed, 3 Jul 2019 07:39:26 +0000
+Message-ID: <20190703073909.14965-2-saeedm@mellanox.com>
+References: <20190703073909.14965-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190702225911.GA11833-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190703073909.14965-1-saeedm@mellanox.com>
 Content-Language: en-US
-Content-ID: <545ED388DC4B924F8D65E5F30ACEE5DA-asWib9pRmPqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Parav Pandit <parav@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMjAxOS0wNy0wMiA2OjU5IHAubS4sIEphc29uIEd1bnRob3JwZSB3cm90ZToNCj4gT24gV2Vk
-LCBKdWwgMDMsIDIwMTkgYXQgMTI6NDk6MTJBTSArMDIwMCwgQ2hyaXN0b3BoIEhlbGx3aWcgd3Jv
-dGU6DQo+PiBPbiBUdWUsIEp1bCAwMiwgMjAxOSBhdCAwNzo1MzoyM1BNICswMDAwLCBKYXNvbiBH
-dW50aG9ycGUgd3JvdGU6DQo+Pj4+IEknbSBzZW5kaW5nIHRoaXMgb3V0IG5vdyBzaW5jZSB3ZSBh
-cmUgdXBkYXRpbmcgbWFueSBvZiB0aGUgSE1NIEFQSXMNCj4+Pj4gYW5kIEkgdGhpbmsgaXQgd2ls
-bCBiZSB1c2VmdWwuDQo+Pj4gVGhpcyBtYWtlIHNvIG11Y2ggc2Vuc2UsIEknZCBsaWtlIHRvIGFw
-cGx5IHRoaXMgaW4gaG1tLmdpdCwgaXMgdGhlcmUNCj4+PiBhbnkgb2JqZWN0aW9uPw0KPj4gQXMg
-dGhpcyBjcmVhdGVzIGEgc29tZXdoYXQgaGFpcnkgY29uZmxpY3QgZm9yIGFtZGdwdSwgd291bGRu
-J3QgaXQgYmUNCj4+IGEgYmV0dGVyIGlkZWEgdG8gd2FpdCBhIGJpdCBhbmQgYXBwbHkgaXQgZmly
-c3QgdGhpbmcgZm9yIG5leHQgbWVyZ2UNCj4+IHdpbmRvdz8NCj4gTXkgdGhpbmtpbmcgaXMgdGhh
-dCBBTUQgR1BVIGFscmVhZHkgaGFzIGEgbW9uc3RlciBjb25mbGljdCBmcm9tIHRoaXM6DQo+DQo+
-ICAgaW50IGhtbV9yYW5nZV9yZWdpc3RlcihzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSwNCj4gLSAg
-ICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgbW1fc3RydWN0ICptbSwNCj4gKyAgICAgICAgICAg
-ICAgICAgICAgICBzdHJ1Y3QgaG1tX21pcnJvciAqbWlycm9yLA0KPiAgICAgICAgICAgICAgICAg
-ICAgICAgICB1bnNpZ25lZCBsb25nIHN0YXJ0LA0KPiAgICAgICAgICAgICAgICAgICAgICAgICB1
-bnNpZ25lZCBsb25nIGVuZCwNCj4gICAgICAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgcGFn
-ZV9zaGlmdCk7DQo+DQo+IFNvLCBkZXBlbmRpbmcgb24gaG93IHRoYXQgaXMgcmVzb2x2ZWQgd2Ug
-bWlnaHQgd2FudCB0byBkbyBib3RoIEFQSQ0KPiBjaGFuZ2VzIGF0IG9uY2UuDQoNCkkganVzdCBz
-ZW50IG91dCBhIGZpeCBmb3IgdGhlIGhtbV9taXJyb3IgQVBJIGNoYW5nZS4NCg0KDQo+DQo+IE9y
-IHdlIG1heSBoYXZlIHRvIHJldmVydCB0aGUgYWJvdmUgY2hhbmdlIGF0IHRoaXMgbGF0ZSBkYXRl
-Lg0KPg0KPiBXYWl0aW5nIGZvciBBTURHUFUgdGVhbSB0byBkaXNjdXNzIHdoYXQgcHJvY2VzcyB0
-aGV5IHdhbnQgdG8gdXNlLg0KDQpZZWFoLCBJJ20gd29uZGVyaW5nIHdoYXQgdGhlIHByb2Nlc3Mg
-aXMgbXlzZWxmLiBXaXRoIEhNTSBhbmQgZHJpdmVyIA0KZGV2ZWxvcG1lbnQgaGFwcGVuaW5nIG9u
-IGRpZmZlcmVudCBicmFuY2hlcyB0aGVzZSBraW5kcyBvZiBBUEkgY2hhbmdlcyANCmFyZSBwYWlu
-ZnVsLiBUaGVyZSBzZWVtcyB0byBiZSBhIGJ1aWx0LWluIGFzc3VtcHRpb24gaW4gdGhlIGN1cnJl
-bnQgDQpwcm9jZXNzLCB0aGF0IGNvZGUgZmxvd3MgbW9zdGx5IGluIG9uZSBkaXJlY3Rpb24gYW1k
-LXN0YWdpbmctZHJtLW5leHQgLT4gDQpkcm0tbmV4dCAtPiBsaW51eC1uZXh0IC0+IGxpbnV4LiBU
-aGF0IGFzc3VtcHRpb24gaXMgYnJva2VuIHdpdGggSE1NIGNvZGUgDQpldm9sdmluZyByYXBpZGx5
-IGluIGJvdGggYW1kZ3B1IGFuZCBtbS4NCg0KSWYgd2Ugd2FudCB0byBjb250aW51ZSBkZXZlbG9w
-aW5nIEhNTSBkcml2ZXIgY2hhbmdlcyBpbiANCmFtZC1zdGFnaW5nLWRybS1uZXh0LCB3ZSdsbCBu
-ZWVkIHRvIHN5bmNocm9uaXplIHdpdGggaG1tLmdpdCBtb3JlIA0KZnJlcXVlbnRseSwgYm90aCB3
-YXlzLiBJIGJlbGlldmUgcGFydCBvZiB0aGUgcHJvYmxlbSBpcywgdGhhdCB0aGVyZSBpcyBhIA0K
-ZmFpcmx5IGxvbmcgbGVhZC10aW1lIGZyb20gZ2V0dGluZyBjaGFuZ2VzIGZyb20gYW1kLXN0YWdp
-bmctZHJtLW5leHQgDQppbnRvIGxpbnV4LW5leHQsIGFzIHRoZXkgYXJlIGhlbGQgZm9yIG9uZSBy
-ZWxlYXNlIGN5Y2xlIGluIGRybS1uZXh0LiANClB1c2hpbmcgSE1NLXJlbGF0ZWQgY2hhbmdlcyB0
-aHJvdWdoIGRybS1maXhlcyBtYXkgb2ZmZXIgYSBraW5kIG9mIA0Kc2hvcnRjdXQuIFBoaWxpcCBh
-bmQgbXkgbGF0ZXN0IGZpeHVwIGlzIGp1c3QgYnlwYXNzaW5nIGRybS1uZXh0IA0KY29tcGxldGVs
-eSBhbmQgZ29pbmcgc3RyYWlnaHQgaW50byBsaW51eC1uZXh0LCB0aG91Z2guDQoNClJlZ2FyZHMs
-DQogwqAgRmVsaXgNCg0KDQo+DQo+IEphc29uDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2FtZC1nZng=
+From: Parav Pandit <parav@mellanox.com>
+
+Instead MLX5_TOTAL_VPORTS, use mlx5_eswitch_get_total_vports().
+mlx5_eswitch_get_total_vports() in subsequent patch accounts for SF
+vports as well.
+Expanding MLX5_TOTAL_VPORTS macro would require exposing SF internals to
+more generic vport.h header file. Such exposure is not desired.
+Hence a mlx5_eswitch_get_total_vports() is introduced.
+
+Given that mlx5_eswitch_get_total_vports() API wants to work on const
+mlx5_core_dev*, change its helper functions also to accept const *dev.
+
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/ib_rep.c           |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c |  4 ++-
+ .../mellanox/mlx5/core/eswitch_offloads.c     |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/fs_core.c | 26 +++++++++++--------
+ .../net/ethernet/mellanox/mlx5/core/vport.c   | 15 +++++++++++
+ include/linux/mlx5/driver.h                   |  9 ++++---
+ include/linux/mlx5/eswitch.h                  |  3 +++
+ include/linux/mlx5/vport.h                    |  3 ---
+ 8 files changed, 43 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/ml=
+x5/ib_rep.c
+index 3065c5d0ee96..f2cb789d2331 100644
+--- a/drivers/infiniband/hw/mlx5/ib_rep.c
++++ b/drivers/infiniband/hw/mlx5/ib_rep.c
+@@ -29,7 +29,7 @@ mlx5_ib_set_vport_rep(struct mlx5_core_dev *dev, struct m=
+lx5_eswitch_rep *rep)
+ static int
+ mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep =
+*rep)
+ {
+-	int num_ports =3D MLX5_TOTAL_VPORTS(dev);
++	int num_ports =3D mlx5_eswitch_get_total_vports(dev);
+ 	const struct mlx5_ib_profile *profile;
+ 	struct mlx5_ib_dev *ibdev;
+ 	int vport_index;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/ne=
+t/ethernet/mellanox/mlx5/core/eswitch.c
+index 89f52370e770..9137a8390216 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1868,14 +1868,16 @@ void mlx5_eswitch_disable(struct mlx5_eswitch *esw)
+=20
+ int mlx5_eswitch_init(struct mlx5_core_dev *dev)
+ {
+-	int total_vports =3D MLX5_TOTAL_VPORTS(dev);
+ 	struct mlx5_eswitch *esw;
+ 	struct mlx5_vport *vport;
++	int total_vports;
+ 	int err, i;
+=20
+ 	if (!MLX5_VPORT_MANAGER(dev))
+ 		return 0;
+=20
++	total_vports =3D mlx5_eswitch_get_total_vports(dev);
++
+ 	esw_info(dev,
+ 		 "Total vports %d, per vport: max uc(%d) max mc(%d)\n",
+ 		 total_vports,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/d=
+rivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 50e5841c1698..5c8fb2597bfa 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -1394,7 +1394,7 @@ void esw_offloads_cleanup_reps(struct mlx5_eswitch *e=
+sw)
+=20
+ int esw_offloads_init_reps(struct mlx5_eswitch *esw)
+ {
+-	int total_vports =3D MLX5_TOTAL_VPORTS(esw->dev);
++	int total_vports =3D esw->total_vports;
+ 	struct mlx5_core_dev *dev =3D esw->dev;
+ 	struct mlx5_eswitch_rep *rep;
+ 	u8 hw_id[ETH_ALEN], rep_type;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/ne=
+t/ethernet/mellanox/mlx5/core/fs_core.c
+index 9f5544ac6b8a..8162252585ad 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -2090,7 +2090,7 @@ struct mlx5_flow_namespace *mlx5_get_flow_vport_acl_n=
+amespace(struct mlx5_core_d
+ {
+ 	struct mlx5_flow_steering *steering =3D dev->priv.steering;
+=20
+-	if (!steering || vport >=3D MLX5_TOTAL_VPORTS(dev))
++	if (!steering || vport >=3D mlx5_eswitch_get_total_vports(dev))
+ 		return NULL;
+=20
+ 	switch (type) {
+@@ -2421,7 +2421,7 @@ static void cleanup_egress_acls_root_ns(struct mlx5_c=
+ore_dev *dev)
+ 	if (!steering->esw_egress_root_ns)
+ 		return;
+=20
+-	for (i =3D 0; i < MLX5_TOTAL_VPORTS(dev); i++)
++	for (i =3D 0; i < mlx5_eswitch_get_total_vports(dev); i++)
+ 		cleanup_root_ns(steering->esw_egress_root_ns[i]);
+=20
+ 	kfree(steering->esw_egress_root_ns);
+@@ -2435,7 +2435,7 @@ static void cleanup_ingress_acls_root_ns(struct mlx5_=
+core_dev *dev)
+ 	if (!steering->esw_ingress_root_ns)
+ 		return;
+=20
+-	for (i =3D 0; i < MLX5_TOTAL_VPORTS(dev); i++)
++	for (i =3D 0; i < mlx5_eswitch_get_total_vports(dev); i++)
+ 		cleanup_root_ns(steering->esw_ingress_root_ns[i]);
+=20
+ 	kfree(steering->esw_ingress_root_ns);
+@@ -2614,16 +2614,18 @@ static int init_ingress_acl_root_ns(struct mlx5_flo=
+w_steering *steering, int vpo
+ static int init_egress_acls_root_ns(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_flow_steering *steering =3D dev->priv.steering;
++	int total_vports =3D mlx5_eswitch_get_total_vports(dev);
+ 	int err;
+ 	int i;
+=20
+-	steering->esw_egress_root_ns =3D kcalloc(MLX5_TOTAL_VPORTS(dev),
+-					       sizeof(*steering->esw_egress_root_ns),
+-					       GFP_KERNEL);
++	steering->esw_egress_root_ns =3D
++			kcalloc(total_vports,
++				sizeof(*steering->esw_egress_root_ns),
++				GFP_KERNEL);
+ 	if (!steering->esw_egress_root_ns)
+ 		return -ENOMEM;
+=20
+-	for (i =3D 0; i < MLX5_TOTAL_VPORTS(dev); i++) {
++	for (i =3D 0; i < total_vports; i++) {
+ 		err =3D init_egress_acl_root_ns(steering, i);
+ 		if (err)
+ 			goto cleanup_root_ns;
+@@ -2641,16 +2643,18 @@ static int init_egress_acls_root_ns(struct mlx5_cor=
+e_dev *dev)
+ static int init_ingress_acls_root_ns(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_flow_steering *steering =3D dev->priv.steering;
++	int total_vports =3D mlx5_eswitch_get_total_vports(dev);
+ 	int err;
+ 	int i;
+=20
+-	steering->esw_ingress_root_ns =3D kcalloc(MLX5_TOTAL_VPORTS(dev),
+-						sizeof(*steering->esw_ingress_root_ns),
+-						GFP_KERNEL);
++	steering->esw_ingress_root_ns =3D
++			kcalloc(total_vports,
++				sizeof(*steering->esw_ingress_root_ns),
++				GFP_KERNEL);
+ 	if (!steering->esw_ingress_root_ns)
+ 		return -ENOMEM;
+=20
+-	for (i =3D 0; i < MLX5_TOTAL_VPORTS(dev); i++) {
++	for (i =3D 0; i < total_vports; i++) {
+ 		err =3D init_ingress_acl_root_ns(steering, i);
+ 		if (err)
+ 			goto cleanup_root_ns;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/=
+ethernet/mellanox/mlx5/core/vport.c
+index 670fa493c5f5..c912d82ca64b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -34,6 +34,7 @@
+ #include <linux/etherdevice.h>
+ #include <linux/mlx5/driver.h>
+ #include <linux/mlx5/vport.h>
++#include <linux/mlx5/eswitch.h>
+ #include "mlx5_core.h"
+=20
+ /* Mutex to hold while enabling or disabling RoCE */
+@@ -1165,3 +1166,17 @@ u64 mlx5_query_nic_system_image_guid(struct mlx5_cor=
+e_dev *mdev)
+ 	return tmp;
+ }
+ EXPORT_SYMBOL_GPL(mlx5_query_nic_system_image_guid);
++
++/**
++ * mlx5_eswitch_get_total_vports - Get total vports of the eswitch
++ *
++ * @dev:	Pointer to core device
++ *
++ * mlx5_eswitch_get_total_vports returns total number of vports for
++ * the eswitch.
++ */
++u16 mlx5_eswitch_get_total_vports(const struct mlx5_core_dev *dev)
++{
++	return MLX5_SPECIAL_VPORTS(dev) + mlx5_core_max_vfs(dev);
++}
++EXPORT_SYMBOL(mlx5_eswitch_get_total_vports);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 7658a4908431..2c3e8d86e12d 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1083,7 +1083,7 @@ enum {
+ 	MLX5_PCI_DEV_IS_VF		=3D 1 << 0,
+ };
+=20
+-static inline bool mlx5_core_is_pf(struct mlx5_core_dev *dev)
++static inline bool mlx5_core_is_pf(const struct mlx5_core_dev *dev)
+ {
+ 	return dev->coredev_type =3D=3D MLX5_COREDEV_PF;
+ }
+@@ -1093,17 +1093,18 @@ static inline bool mlx5_core_is_ecpf(struct mlx5_co=
+re_dev *dev)
+ 	return dev->caps.embedded_cpu;
+ }
+=20
+-static inline bool mlx5_core_is_ecpf_esw_manager(struct mlx5_core_dev *dev=
+)
++static inline bool
++mlx5_core_is_ecpf_esw_manager(const struct mlx5_core_dev *dev)
+ {
+ 	return dev->caps.embedded_cpu && MLX5_CAP_GEN(dev, eswitch_manager);
+ }
+=20
+-static inline bool mlx5_ecpf_vport_exists(struct mlx5_core_dev *dev)
++static inline bool mlx5_ecpf_vport_exists(const struct mlx5_core_dev *dev)
+ {
+ 	return mlx5_core_is_pf(dev) && MLX5_CAP_ESW(dev, ecpf_vport_exists);
+ }
+=20
+-static inline u16 mlx5_core_max_vfs(struct mlx5_core_dev *dev)
++static inline u16 mlx5_core_max_vfs(const struct mlx5_core_dev *dev)
+ {
+ 	return dev->priv.sriov.max_vfs;
+ }
+diff --git a/include/linux/mlx5/eswitch.h b/include/linux/mlx5/eswitch.h
+index d4731199edb4..61db37aa9642 100644
+--- a/include/linux/mlx5/eswitch.h
++++ b/include/linux/mlx5/eswitch.h
+@@ -66,6 +66,8 @@ struct mlx5_flow_handle *
+ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw,
+ 				    int vport, u32 sqn);
+=20
++u16 mlx5_eswitch_get_total_vports(const struct mlx5_core_dev *dev);
++
+ #ifdef CONFIG_MLX5_ESWITCH
+ enum devlink_eswitch_encap_mode
+ mlx5_eswitch_get_encap_mode(const struct mlx5_core_dev *dev);
+@@ -93,4 +95,5 @@ mlx5_eswitch_get_vport_metadata_for_match(const struct ml=
+x5_eswitch *esw,
+ 	return 0;
+ };
+ #endif /* CONFIG_MLX5_ESWITCH */
++
+ #endif
+diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
+index 6cbf29229749..16060fb9b5e5 100644
+--- a/include/linux/mlx5/vport.h
++++ b/include/linux/mlx5/vport.h
+@@ -44,9 +44,6 @@
+ 				   MLX5_VPORT_UPLINK_PLACEHOLDER +	\
+ 				   MLX5_VPORT_ECPF_PLACEHOLDER(mdev))
+=20
+-#define MLX5_TOTAL_VPORTS(mdev)	(MLX5_SPECIAL_VPORTS(mdev) +		\
+-				 mlx5_core_max_vfs(mdev))
+-
+ #define MLX5_VPORT_MANAGER(mdev)					\
+ 	(MLX5_CAP_GEN(mdev, vport_group_manager) &&			\
+ 	 (MLX5_CAP_GEN(mdev, port_type) =3D=3D MLX5_CAP_PORT_TYPE_ETH) &&	\
+--=20
+2.21.0
