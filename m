@@ -1,49 +1,106 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 5/5] net/mlx5: Properly name the generic WQE control
- field
-Date: Wed, 3 Jul 2019 07:39:34 +0000
-Message-ID: <20190703073909.14965-6-saeedm@mellanox.com>
-References: <20190703073909.14965-1-saeedm@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190703073909.14965-1-saeedm@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Tariq Toukan <tariqt@mellanox.com>
-List-Id: linux-rdma@vger.kernel.org
+Return-Path: <SRS0=m4pY=VB=vger.kernel.org=linux-rdma-owner@kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E7E5C0650E
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 06:26:17 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id DF67521850
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 06:26:16 +0000 (UTC)
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S1726085AbfGDG0Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Jul 2019 02:26:16 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:34986 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725879AbfGDG0Q (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Jul 2019 02:26:16 -0400
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id E0BC66B07F6697DD95CE;
+        Thu,  4 Jul 2019 14:26:13 +0800 (CST)
+Received: from linux-ioko.site (10.71.200.31) by
+ DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
+ 14.3.439.0; Thu, 4 Jul 2019 14:26:03 +0800
+From:   Lijun Ou <oulijun@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH for-next] RDMA/hns: Bugfix for hns Makefile
+Date:   Thu, 4 Jul 2019 14:22:58 +0800
+Message-ID: <1562221378-73312-1-git-send-email-oulijun@huawei.com>
+X-Mailer: git-send-email 1.9.1
+MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.71.200.31]
+X-CFilter-Loop: Reflected
+Sender: linux-rdma-owner@vger.kernel.org
+Precedence: bulk
+List-ID: <linux-rdma.vger.kernel.org>
+X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Tariq Toukan <tariqt@mellanox.com>
+Here has a bug for hns Makefile and will lead to a build error
+when use allmodconfig to build hns driver.
 
-A generic WQE control field is used for different purposes
-in different cases.
-Use union to allow using the proper name in each case.
+The build log as follows:
+After merging the rdma tree, today's linux-next build (x86_64
+allmodconfig) failed like this:
 
-Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_ah.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_alloc.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_cmd.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_cq.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_db.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_hem.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_mr.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_pd.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_qp.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_restrack.o
+see include/linux/module.h for more information
+WARNING: modpost: missing MODULE_LICENSE() in drivers/infiniband/hw/hns/hns_roce_srq.o
+see include/linux/module.h for more information
+ERROR: "hns_roce_bitmap_cleanup" [drivers/infiniband/hw/hns/hns_roce_srq.ko] undefined!
+ERROR: "hns_roce_bitmap_init" [drivers/infiniband/hw/hns/hns_roce_srq.ko] undefined!
+ERROR: "hns_roce_free_cmd_mailbox" [drivers/infiniband/hw/hns/hns_roce_srq.ko] undefined!
+ERROR: "hns_roce_alloc_cmd_mailbox" [drivers/infiniband/hw/hns/hns_roce_srq.ko] undefined!
+ERROR: "hns_roce_table_get" [drivers/infiniband/hw/hns/hns_roce_srq.ko] undefined!
+ERROR: "hns_roce_bitmap_alloc" [drivers/infiniband/hw/hns/hns_roce_srq.ko] undefined!
+ERROR: "hns_roce_table_find" [drivers/infiniband/hw/hns/hns_roce_srq.ko] undefined!
+
+Fixes: e9816ddf2a33 ("RDMA/hns: Cleanup unnecessary exported symbols")
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
- include/linux/mlx5/qp.h | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index d1f353c64797..127d224443e3 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -202,7 +202,12 @@ struct mlx5_wqe_ctrl_seg {
- 	u8			signature;
- 	u8			rsvd[2];
- 	u8			fm_ce_se;
--	__be32			imm;
-+	union {
-+		__be32		general_id;
-+		__be32		imm;
-+		__be32		umr_mkey;
-+		__be32		tisn;
-+	};
- };
-=20
- #define MLX5_WQE_CTRL_DS_MASK 0x3f
---=20
-2.21.0
+diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
+index b956cf4..b06125f 100644
+--- a/drivers/infiniband/hw/hns/Makefile
++++ b/drivers/infiniband/hw/hns/Makefile
+@@ -9,8 +9,8 @@ hns-roce-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_pd.o \
+ 	hns_roce_cq.o hns_roce_alloc.o hns_roce_db.o hns_roce_srq.o hns_roce_restrack.o
+ 
+ ifdef CONFIG_INFINIBAND_HNS_HIP06
+-hns-roce-hw-v1-objs := hns_roce_hw_v1.o
+-obj-$(CONFIG_INFINIBAND_HNS) += hns-roce-hw-v1.o $(hns-roce-objs)
++hns-roce-hw-v1-objs := hns_roce_hw_v1.o $(hns-roce-objs)
++obj-$(CONFIG_INFINIBAND_HNS) += hns-roce-hw-v1.o
+ endif
+ 
+ ifdef CONFIG_INFINIBAND_HNS_HIP08
+-- 
+1.9.1
+
