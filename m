@@ -2,50 +2,53 @@ Return-Path: <SRS0=m4pY=VB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAC8AC0651F
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 13:09:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A895C0651F
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 13:09:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF9A4218A6
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 13:09:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A01B218AD
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 13:09:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562245782;
-	bh=oGMrApK+0qtwjUv9iwjhOK/1fGZRu9APeJaxmBKvLgs=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=dW4A0lmjGhjcDhog3rR9cjEh1IUVck5/n2y3DWFHhVzTqpyx9VMgVPNHPGyBfvjTd
-	 rGFzSk+Y/3U1CIghAgqL7jzLyTZ+DkPezjZgY65o1CxQltvyZrY1CxK4PAfFnlu4CV
-	 VhgvUxwj+HkJ9WxsBP1yFNkZkWBMKmBWAhf8A3pM=
+	s=default; t=1562245786;
+	bh=pUG09UF0OY+eEOCKnenHq38XwXbGc686vfzXR6Zxp+U=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=Qqm+AUPrAXMXzI6heEgGm/J5C4QGIjQryzcWM1T5nCyrcIJipze8Ej7aNi+m4ZBMi
+	 mC9nYTMAJZxIsUCvkBar5ZwGfStS1itRX76UlLsWF+nucKF43GIaQMd90IXe2h1trf
+	 oCks9DcM11YWLhhGBYTbqfcOXkkka1D+vbeLgqKo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727092AbfGDNJm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Jul 2019 09:09:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38676 "EHLO mail.kernel.org"
+        id S1727116AbfGDNJp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Jul 2019 09:09:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727087AbfGDNJm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Jul 2019 09:09:42 -0400
+        id S1727087AbfGDNJp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Jul 2019 09:09:45 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7228421852;
-        Thu,  4 Jul 2019 13:09:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F33DD218A6;
+        Thu,  4 Jul 2019 13:09:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562245781;
-        bh=oGMrApK+0qtwjUv9iwjhOK/1fGZRu9APeJaxmBKvLgs=;
-        h=From:To:Cc:Subject:Date:From;
-        b=VnJl2r8dvfogzs4NnliuuLzyrtVmSCugSRrNycv8A69Mt+voIFvQGzoSHEhPb/UAP
-         g/2vMnKSzDpcNbTtP+WutKFnq7zMcXp+4MxJdOXXfymohQymXuUqPlUI+TnisEhbiG
-         DnfcfQRZDvxElKSBuRcCuBD1ce3Tdtayc+EQpbl4=
+        s=default; t=1562245784;
+        bh=pUG09UF0OY+eEOCKnenHq38XwXbGc686vfzXR6Zxp+U=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=DmNBGkmN8XVikKUM2nvNA201J7jZ7JHkBLuc7KX7PhPioetqPhwYguf16f9q4Jf9s
+         x4tY9RiSmdg2GllBIuw5CdVlZjpXVNSe1kgWvWYk6n9e2M39mucjRPwYIkuAgDOnfP
+         wwGO7sJFN7zL9/Rf28NHjEKkJJ1oCAvgxL2t4wMU=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH rdma-next 0/2] Initial code to cleanup RWQ
-Date:   Thu,  4 Jul 2019 16:09:34 +0300
-Message-Id: <20190704130936.8705-1-leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] RDMA/mlx4: Annotate boolean arguments as bool and not int
+Date:   Thu,  4 Jul 2019 16:09:36 +0300
+Message-Id: <20190704130936.8705-3-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190704130936.8705-1-leon@kernel.org>
+References: <20190704130936.8705-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -55,18 +58,49 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Inside mlx4 RWQ is integrated into QP, this complicates my deallocation
-patches. This is small set of patches which I carried for whole cycle.
+Information provided by qp_has_rq() and used latter is boolean,
+so update callers to proper type.
 
-Thanks
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/mlx4/qp.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Leon Romanovsky (2):
-  RDMA/mlx4: Separate creation of RWQ and QP
-  RDMA/mlx4: Annotate boolean arguments as bool and not int
-
- drivers/infiniband/hw/mlx4/qp.c | 242 +++++++++++++++++++++-----------
- 1 file changed, 157 insertions(+), 85 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index e409adac4e2e..bd4aa04416c6 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -325,7 +325,7 @@ static int send_wqe_overhead(enum mlx4_ib_qp_type type, u32 flags)
+ }
+ 
+ static int set_rq_size(struct mlx4_ib_dev *dev, struct ib_qp_cap *cap,
+-		       bool is_user, int has_rq, struct mlx4_ib_qp *qp,
++		       bool is_user, bool has_rq, struct mlx4_ib_qp *qp,
+ 		       u32 inl_recv_sz)
+ {
+ 	/* Sanity check RQ size before proceeding */
+@@ -506,10 +506,10 @@ static void free_proxy_bufs(struct ib_device *dev, struct mlx4_ib_qp *qp)
+ 	kfree(qp->sqp_proxy_rcv);
+ }
+ 
+-static int qp_has_rq(struct ib_qp_init_attr *attr)
++static bool qp_has_rq(struct ib_qp_init_attr *attr)
+ {
+ 	if (attr->qp_type == IB_QPT_XRC_INI || attr->qp_type == IB_QPT_XRC_TGT)
+-		return 0;
++		return false;
+ 
+ 	return !attr->srq;
+ }
+@@ -906,7 +906,7 @@ static int create_rq(struct ib_pd *pd, struct ib_qp_init_attr *init_attr,
+ 	if (init_attr->create_flags & IB_QP_CREATE_SCATTER_FCS)
+ 		qp->flags |= MLX4_IB_QP_SCATTER_FCS;
+ 
+-	err = set_rq_size(dev, &init_attr->cap, true, 1, qp, qp->inl_recv_sz);
++	err = set_rq_size(dev, &init_attr->cap, true, true, qp, qp->inl_recv_sz);
+ 	if (err)
+ 		goto err;
+ 
+-- 
 2.20.1
 
