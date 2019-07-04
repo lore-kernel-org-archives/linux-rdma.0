@@ -2,41 +2,42 @@ Return-Path: <SRS0=m4pY=VB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7805C06513
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCA46C0651F
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C142218A0
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CB0F218A3
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562245069;
-	bh=L+505R5nN9hY0PrBl0VtyIfGZw+NiWTLqAURX5FrqhY=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=u7VxjEk+W4dBwiJx3BQ2DBjQIKb88bQkM+F7BbsQaXVzyx96QybdpYwRGPNp7kjWc
-	 P0cS+RrmlRKj1bL0d/qBtcgITeus+UGUtDns+QZUvSzcwf4Fxzt5G+L4XNfpliaCLZ
-	 CSvhrFH+mHN9IgyuBaNUtxudrJGDpem8VmniU+vs=
+	s=default; t=1562245073;
+	bh=u3qM8NAPU81Tov8sIbbwcLllTfgbMFu8LeBuv34GkxI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=t1McRY1k0QkWHoS7GBULhHm8ZeroWc9au4m8RU62DDpTbpF3CJsjj8rZ6SR6NbdEg
+	 VQWSvItmA3IR4oTVaGUXWMJD5ulC61gW9nW0xzl7ppVL0vS04YxmD/xk9AZ5ZGxpKk
+	 X/fd1SXF6xeTZobpBz++klZI8p2BlLMxaMkWfXQI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727198AbfGDM5s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Jul 2019 08:57:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59930 "EHLO mail.kernel.org"
+        id S1726791AbfGDM5x (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Jul 2019 08:57:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59982 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726791AbfGDM5s (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Jul 2019 08:57:48 -0400
+        id S1726120AbfGDM5w (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Jul 2019 08:57:52 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7F7672189E;
-        Thu,  4 Jul 2019 12:57:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0A1CE218A0;
+        Thu,  4 Jul 2019 12:57:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562245068;
-        bh=L+505R5nN9hY0PrBl0VtyIfGZw+NiWTLqAURX5FrqhY=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Th8RB/fQ+3BitA2a0wZpm5JXXbs8STdgfUMJVrj4N+DG06yoc0eecUA5JaNQNg8ty
-         KE5/6FiTDCTXTcON6SlU3p+rw0+GBs1OmaMTNHxSKmsYmu2SxVPhZMxUH2agY7sVAm
-         1+6NiX2qh/y3TKptH+0ZRFxX4g4EqsN+y2m8e4kE=
+        s=default; t=1562245071;
+        bh=u3qM8NAPU81Tov8sIbbwcLllTfgbMFu8LeBuv34GkxI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=rAkhMu3amn4la5Ir2ZGo8DgpmJCNQ/s7aH9+E9MMIsXxDPZIReC1BDyh1sb32JIh4
+         1/4KkAltH5WoSXJmRNrWcfD5gaQ34GmQY0SHLC3+Skw6XDtgtGdddctfxg4hYGe+Fo
+         uDArgP0zrZ/tBzv4jxuXS04Ridg36ht6t2bKsSdA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -46,10 +47,12 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Sagi Grimberg <sagi@grimberg.me>,
         Yamin Friedman <yaminf@mellanox.com>
-Subject: [PATCH rdma-next v4 0/3] Use RDMA adaptive moderation library
-Date:   Thu,  4 Jul 2019 15:57:40 +0300
-Message-Id: <20190704125743.7814-1-leon@kernel.org>
+Subject: [PATCH rdma-next v4 2/3] RDMA/core: Provide RDMA DIM support for ULPs
+Date:   Thu,  4 Jul 2019 15:57:42 +0300
+Message-Id: <20190704125743.7814-3-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190704125743.7814-1-leon@kernel.org>
+References: <20190704125743.7814-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,59 +60,191 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Yamin Friedman <yaminf@mellanox.com>
 
-Hi,
+Added the interface in the infiniband driver that applies the rdma_dim
+adaptive moderation. There is now a special function for allocating an
+ib_cq that uses rdma_dim.
 
-This is RDMA part of previously sent DIM library improvements series
-[1], which was pulled by Dave. It needs to be pulled to RDMA too as
-a pre-requirements.
+Performance improvement (ConnectX-5 100GbE, x86) running FIO benchmark over
+NVMf between two equal end-hosts with 56 cores across a Mellanox switch
+using null_blk device:
 
-Changes since v3:
- * Renamed dim_owner to be priv
- * Added Sagi's ROBs
- * Removed casting of void pointer.
+READS without DIM:
+blk size | BW       | IOPS | 99th percentile latency  | 99.99th latency
+512B     | 3.8GiB/s | 7.7M | 1401  usec               | 2442  usec
+4k       | 7.0GiB/s | 1.8M | 4817  usec               | 6587  usec
+64k      | 10.7GiB/s| 175k | 9896  usec               | 10028 usec
 
-Changes since v2:
-- renamed user-space knob from dim to adaptive-moderation (Sagi)
-- some minor code clean ups (Sagi)
-- Reordered patches to ensure that netlink expose is last in the series.
-- Slightly cleaned commit messages
-- Changed "bool use_cq_dim" flag to be bitwise to save space.
+IO WRITES without DIM:
+blk size | BW       | IOPS | 99th percentile latency  | 99.99th latency
+512B     | 3.6GiB/s | 7.5M | 1434  usec               | 2474  usec
+4k       | 6.3GiB/s | 1.6M | 938   usec               | 1221  usec
+64k      | 10.7GiB/s| 175k | 8979  usec               | 12780 usec
 
-Changes since v1:
-- added per ib device configuration knob for rdma-dim (Sagi)
-- add NL directives for user-space / rdma tool to configure rdma dim
-  (Sagi/Leon)
-- use one header file for DIM implementations (Leon)
-- various point changes in the rdma dim related code in the IB core
-  (Leon)
-- removed the RDMA specific patches form this pull request\
+IO READS with DIM:
+blk size | BW       | IOPS | 99th percentile latency  | 99.99th latency
+512B     | 4GiB/s   | 8.2M | 816    usec              | 889   usec
+4k       | 10.1GiB/s| 2.65M| 3359   usec              | 5080  usec
+64k      | 10.7GiB/s| 175k | 9896   usec              | 10028 usec
 
-Thanks
+IO WRITES with DIM:
+blk size | BW       | IOPS  | 99th percentile latency | 99.99th latency
+512B     | 3.9GiB/s | 8.1M  | 799   usec              | 922   usec
+4k       | 9.6GiB/s | 2.5M  | 717   usec              | 1004  usec
+64k      | 10.7GiB/s| 176k  | 8586  usec              | 12256 usec
 
-[1] https://www.spinics.net/lists/netdev/msg581046.html
+The rdma_dim algorithm was designed to measure the effectiveness of
+moderation on the flow in a general way and thus should be appropriate
+for all RDMA storage protocols.
 
-Yamin Friedman (3):
-  linux/dim: Implement RDMA adaptive moderation (DIM)
-  RDMA/core: Provide RDMA DIM support for ULPs
-  RDMA/nldev: Added configuration of RDMA dynamic interrupt moderation
-    to netlink
+rdma_dim is configured to be the default option based on performance
+improvement seen after extensive tests.
 
- drivers/infiniband/Kconfig          |   1 +
- drivers/infiniband/core/core_priv.h |   1 +
- drivers/infiniband/core/cq.c        |  45 ++++++++++++
- drivers/infiniband/core/device.c    |   9 +++
- drivers/infiniband/core/nldev.c     |  14 ++++
- drivers/infiniband/hw/mlx5/main.c   |   2 +
- include/linux/dim.h                 |  36 ++++++++++
- include/rdma/ib_verbs.h             |   4 ++
- include/uapi/rdma/rdma_netlink.h    |   5 ++
- lib/dim/Makefile                    |   6 +-
- lib/dim/rdma_dim.c                  | 108 ++++++++++++++++++++++++++++
- 11 files changed, 227 insertions(+), 4 deletions(-)
- create mode 100644 lib/dim/rdma_dim.c
+Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/cq.c      | 45 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c |  2 ++
+ include/rdma/ib_verbs.h           |  4 +++
+ 3 files changed, 51 insertions(+)
 
---
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index 00d70f166209..ffd6e24109d5 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -18,6 +18,40 @@
+ #define IB_POLL_FLAGS \
+ 	(IB_CQ_NEXT_COMP | IB_CQ_REPORT_MISSED_EVENTS)
+ 
++static void ib_cq_rdma_dim_work(struct work_struct *w)
++{
++	struct dim *dim = container_of(w, struct dim, work);
++	struct ib_cq *cq = dim->priv;
++
++	u16 usec = rdma_dim_prof[dim->profile_ix].usec;
++	u16 comps = rdma_dim_prof[dim->profile_ix].comps;
++
++	dim->state = DIM_START_MEASURE;
++
++	cq->device->ops.modify_cq(cq, comps, usec);
++}
++
++static void rdma_dim_init(struct ib_cq *cq)
++{
++	struct dim *dim;
++
++	if (!cq->device->ops.modify_cq || !cq->device->use_cq_dim ||
++	    cq->poll_ctx == IB_POLL_DIRECT)
++		return;
++
++	dim = kzalloc(sizeof(struct dim), GFP_KERNEL);
++	if (!dim)
++		return;
++
++	dim->state = DIM_START_MEASURE;
++	dim->tune_state = DIM_GOING_RIGHT;
++	dim->profile_ix = RDMA_DIM_START_PROFILE;
++	dim->priv = cq;
++	cq->dim = dim;
++
++	INIT_WORK(&dim->work, ib_cq_rdma_dim_work);
++}
++
+ static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc *wcs,
+ 			   int batch)
+ {
+@@ -78,6 +112,7 @@ static void ib_cq_completion_direct(struct ib_cq *cq, void *private)
+ static int ib_poll_handler(struct irq_poll *iop, int budget)
+ {
+ 	struct ib_cq *cq = container_of(iop, struct ib_cq, iop);
++	struct dim *dim = cq->dim;
+ 	int completed;
+ 
+ 	completed = __ib_process_cq(cq, budget, cq->wc, IB_POLL_BATCH);
+@@ -87,6 +122,9 @@ static int ib_poll_handler(struct irq_poll *iop, int budget)
+ 			irq_poll_sched(&cq->iop);
+ 	}
+ 
++	if (dim)
++		rdma_dim(dim, completed);
++
+ 	return completed;
+ }
+ 
+@@ -105,6 +143,8 @@ static void ib_cq_poll_work(struct work_struct *work)
+ 	if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
+ 	    ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+ 		queue_work(cq->comp_wq, &cq->work);
++	else if (cq->dim)
++		rdma_dim(cq->dim, completed);
+ }
+ 
+ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+@@ -161,6 +201,8 @@ struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+ 
+ 	rdma_restrack_kadd(&cq->res);
+ 
++	rdma_dim_init(cq);
++
+ 	switch (cq->poll_ctx) {
+ 	case IB_POLL_DIRECT:
+ 		cq->comp_handler = ib_cq_completion_direct;
+@@ -223,6 +265,9 @@ void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ 
+ 	rdma_restrack_del(&cq->res);
+ 	cq->device->ops.destroy_cq(cq, udata);
++	if (cq->dim)
++		cancel_work_sync(&cq->dim->work);
++	kfree(cq->dim);
+ 	kfree(cq->wc);
+ 	kfree(cq);
+ }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 7581571bd9cd..07a05b0b9e42 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6424,6 +6424,8 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 	     MLX5_CAP_GEN(dev->mdev, disable_local_lb_mc)))
+ 		mutex_init(&dev->lb.mutex);
+ 
++	dev->ib_dev.use_cq_dim = true;
++
+ 	return 0;
+ }
+ 
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 50806bef9f20..30eb68f36109 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -61,6 +61,7 @@
+ #include <linux/cgroup_rdma.h>
+ #include <linux/irqflags.h>
+ #include <linux/preempt.h>
++#include <linux/dim.h>
+ #include <uapi/rdma/ib_user_verbs.h>
+ #include <rdma/rdma_counter.h>
+ #include <rdma/restrack.h>
+@@ -1509,6 +1510,7 @@ struct ib_cq {
+ 		struct work_struct	work;
+ 	};
+ 	struct workqueue_struct *comp_wq;
++	struct dim *dim;
+ 	/*
+ 	 * Implementation details of the RDMA core, don't use in drivers:
+ 	 */
+@@ -2576,6 +2578,8 @@ struct ib_device {
+ 	u16                          is_switch:1;
+ 	/* Indicates kernel verbs support, should not be used in drivers */
+ 	u16                          kverbs_provider:1;
++	/* CQ adaptive moderation (RDMA DIM) */
++	u16                          use_cq_dim:1;
+ 	u8                           node_type;
+ 	u8                           phys_port_cnt;
+ 	struct ib_device_attr        attrs;
+-- 
 2.20.1
 
