@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 169CBC0651F
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC84C0651F
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E0704218BA
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE9A1218BB
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jul 2019 12:57:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562245077;
-	bh=FTbIpsVzoltlh97L2txdOd+ZFMWjV3lJqpAPxDKAxwc=;
+	s=default; t=1562245079;
+	bh=ru9IT8C7yrYWJNT0B/5r1p7VMxtUzvhLAzRTfbPxRqU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kmlPoDGcdIpnjRYjfWzA3ZXxww4CrGp+stMKTIyEP3Z9ORQojb5xuciCxsQveTxOX
-	 DtvOj4PiO4Lj+LivqfFlY9APVuPIFum46z6V71lCrfGf+5EofEjVHkHRQerAxAzxmT
-	 QlHJkMBwc7Zl1g7HO9K3jrZTLIkyCRy0DUk74zBs=
+	b=cN+23ssgN2PWsHMnHCmwRm4pVW/ezefuoG3YJt6ob/0ld+/gNxXWs9f4xTSA4d8Dc
+	 Vi3F0o2MVkh8QNzMI9n1F4OYgM3cmLHyD7w7cxN3XY8hOF0H/0QAB7s2mkMifUKkPa
+	 0EYu2nrrytXeE70+56T2vC0yoU428mO3gLg0jYI0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727199AbfGDM54 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Jul 2019 08:57:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60036 "EHLO mail.kernel.org"
+        id S1727201AbfGDM57 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Jul 2019 08:57:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60114 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726120AbfGDM54 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Jul 2019 08:57:56 -0400
+        id S1726120AbfGDM57 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Jul 2019 08:57:59 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B02A218A3;
-        Thu,  4 Jul 2019 12:57:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AB43B218BA;
+        Thu,  4 Jul 2019 12:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562245075;
-        bh=FTbIpsVzoltlh97L2txdOd+ZFMWjV3lJqpAPxDKAxwc=;
+        s=default; t=1562245078;
+        bh=ru9IT8C7yrYWJNT0B/5r1p7VMxtUzvhLAzRTfbPxRqU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Crou6deKznObAvWScXAJP3nJ89OVy5bct1jB0MRjbMvvfXdCZVxiFhczEapCgF5MK
-         WnO2wVZ4nUc8ypaGFJVDdO3P2w1V8xwy6l+hm8V/EjQaWatdA50JZieBGzt+f8rrdw
-         WS5WDmr1VIzGDFXfgvv+wr6UBCR77TT+IOLunTzw=
+        b=k2m2Lh98o7Ko5q2D0vkMdXf8HGWloKaPjc0F38BlUL8RurHziqwioxbWk7Ln3t8Sj
+         /sbX21ERnLgKqKnStzJrZXRIHXWZ8Q8zbIQJM5pvOX9qpnmTUsaaih4i16hnBDu+sV
+         ROKN8t255RBAzO7Xk3AfIIeTi588eu5Pd4HAYllc=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,9 +47,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Sagi Grimberg <sagi@grimberg.me>,
         Yamin Friedman <yaminf@mellanox.com>
-Subject: [PATCH rdma-next v4 3/3] RDMA/nldev: Added configuration of RDMA dynamic interrupt moderation to netlink
-Date:   Thu,  4 Jul 2019 15:57:43 +0300
-Message-Id: <20190704125743.7814-4-leon@kernel.org>
+Subject: [PATCH rdma-next v4 1/3] linux/dim: Implement RDMA adaptive moderation (DIM)
+Date:   Thu,  4 Jul 2019 15:57:41 +0300
+Message-Id: <20190704125743.7814-2-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190704125743.7814-1-leon@kernel.org>
 References: <20190704125743.7814-1-leon@kernel.org>
@@ -62,138 +62,214 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yamin Friedman <yaminf@mellanox.com>
 
-Added parameter in ib_device for enabling dynamic interrupt moderation so
-that it can be configured in userspace using rdma tool.
+RDMA DIM implements a different algorithm from net DIM and is based on
+completions which is how we can implement interrupt moderation in RDMA.
 
-In order to set adaptive-moderation for an ib device the command is:
-rdma dev set [DEV] adaptive-moderation [on|off]
-Please set on/off.
-
-rdma dev show
-0: mlx5_0: node_type ca fw 16.26.0055 node_guid 248a:0703:00a5:29d0
-sys_image_guid 248a:0703:00a5:29d0 adaptive-moderation on
-
-rdma resource show cq
-dev mlx5_0 cqn 0 cqe 1023 users 4 poll-ctx UNBOUND_WORKQUEUE
-adaptive-moderation off comm [ib_core]
+The algorithm optimizes for number of completions and ratio between
+completions and events. In order to avoid long latencies, the
+implementation performs fast reduction of moderation level when the
+traffic changes.
 
 Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
 Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/Kconfig          |  1 +
- drivers/infiniband/core/core_priv.h |  1 +
- drivers/infiniband/core/device.c    |  9 +++++++++
- drivers/infiniband/core/nldev.c     | 14 ++++++++++++++
- include/uapi/rdma/rdma_netlink.h    |  5 +++++
- 5 files changed, 30 insertions(+)
+ include/linux/dim.h |  36 +++++++++++++++
+ lib/dim/Makefile    |   6 +--
+ lib/dim/rdma_dim.c  | 108 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 146 insertions(+), 4 deletions(-)
+ create mode 100644 lib/dim/rdma_dim.c
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index f277cb7aea29..85e103b147cc 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -7,6 +7,7 @@ menuconfig INFINIBAND
- 	depends on m || IPV6 != m
- 	depends on !ALPHA
- 	select IRQ_POLL
-+	select DIMLIB
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
- 	  any protocols you wish to use as well as drivers for your
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index a953c2fa2e78..888d89ce81df 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -60,6 +60,7 @@ extern bool ib_devices_shared_netns;
- int ib_device_register_sysfs(struct ib_device *device);
- void ib_device_unregister_sysfs(struct ib_device *device);
- int ib_device_rename(struct ib_device *ibdev, const char *name);
-+int ib_device_set_dim(struct ib_device *ibdev, u8 use_dim);
+diff --git a/include/linux/dim.h b/include/linux/dim.h
+index aa9bdd47a648..aa69730c3b8d 100644
+--- a/include/linux/dim.h
++++ b/include/linux/dim.h
+@@ -82,6 +82,7 @@ struct dim_stats {
+  * @prev_stats: Measured rates from previous iteration (for comparison)
+  * @start_sample: Sampled data at start of current iteration
+  * @work: Work to perform on action required
++ * @priv: A pointer to the struct that points to dim
+  * @profile_ix: Current moderation profile
+  * @mode: CQ period count mode
+  * @tune_state: Algorithm tuning state (see below)
+@@ -95,6 +96,7 @@ struct dim {
+ 	struct dim_sample start_sample;
+ 	struct dim_sample measuring_sample;
+ 	struct work_struct work;
++	void *priv;
+ 	u8 profile_ix;
+ 	u8 mode;
+ 	u8 tune_state;
+@@ -363,4 +365,38 @@ struct dim_cq_moder net_dim_get_def_tx_moderation(u8 cq_period_mode);
+  */
+ void net_dim(struct dim *dim, struct dim_sample end_sample);
  
- typedef void (*roce_netdev_callback)(struct ib_device *device, u8 port,
- 	      struct net_device *idev, void *cookie);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index bdf61499e6d5..7f4affe8a10d 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -448,6 +448,15 @@ int ib_device_rename(struct ib_device *ibdev, const char *name)
- 	return 0;
- }
++/* RDMA DIM */
++
++/*
++ * RDMA DIM profile:
++ * profile size must be of RDMA_DIM_PARAMS_NUM_PROFILES.
++ */
++#define RDMA_DIM_PARAMS_NUM_PROFILES 9
++#define RDMA_DIM_START_PROFILE 0
++
++static const struct dim_cq_moder
++rdma_dim_prof[RDMA_DIM_PARAMS_NUM_PROFILES] = {
++	{1,   0, 1,  0},
++	{1,   0, 4,  0},
++	{2,   0, 4,  0},
++	{2,   0, 8,  0},
++	{4,   0, 8,  0},
++	{16,  0, 8,  0},
++	{16,  0, 16, 0},
++	{32,  0, 16, 0},
++	{32,  0, 32, 0},
++};
++
++/**
++ * rdma_dim - Runs the adaptive moderation.
++ * @dim: The moderation struct.
++ * @completions: The number of completions collected in this round.
++ *
++ * Each call to rdma_dim takes the latest amount of completions that
++ * have been collected and counts them as a new event.
++ * Once enough events have been collected the algorithm decides a new
++ * moderation level.
++ */
++void rdma_dim(struct dim *dim, u64 completions);
++
+ #endif /* DIM_H */
+diff --git a/lib/dim/Makefile b/lib/dim/Makefile
+index 160afe288df0..1d6858a108cb 100644
+--- a/lib/dim/Makefile
++++ b/lib/dim/Makefile
+@@ -2,8 +2,6 @@
+ # DIM Dynamic Interrupt Moderation library
+ #
  
-+int ib_device_set_dim(struct ib_device *ibdev, u8 use_dim)
+-obj-$(CONFIG_DIMLIB) = net_dim.o
++obj-$(CONFIG_DIMLIB) += dim.o
+ 
+-net_dim-y = \
+-	dim.o		\
+-	net_dim.o
++dim-y := dim.o net_dim.o rdma_dim.o
+diff --git a/lib/dim/rdma_dim.c b/lib/dim/rdma_dim.c
+new file mode 100644
+index 000000000000..f7e26c7b4749
+--- /dev/null
++++ b/lib/dim/rdma_dim.c
+@@ -0,0 +1,108 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * Copyright (c) 2019, Mellanox Technologies inc.  All rights reserved.
++ */
++
++#include <linux/dim.h>
++
++static int rdma_dim_step(struct dim *dim)
 +{
-+	if (use_dim > 1)
-+		return -EINVAL;
-+	ibdev->use_cq_dim = use_dim;
-+
-+	return 0;
-+}
-+
- static int alloc_name(struct ib_device *ibdev, const char *name)
- {
- 	struct ib_device *device;
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index a4431ed566b6..d9f2a30e6467 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -52,6 +52,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 					.len = RDMA_NLDEV_ATTR_EMPTY_STRING },
- 	[RDMA_NLDEV_ATTR_CHARDEV_TYPE]		= { .type = NLA_NUL_STRING,
- 					.len = RDMA_NLDEV_ATTR_CHARDEV_TYPE_SIZE },
-+	[RDMA_NLDEV_ATTR_DEV_DIM]               = { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DEV_INDEX]		= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_DEV_NAME]		= { .type = NLA_NUL_STRING,
- 					.len = IB_DEVICE_NAME_MAX },
-@@ -252,6 +253,8 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 		return -EMSGSIZE;
- 	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_NODE_TYPE, device->node_type))
- 		return -EMSGSIZE;
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_DIM, device->use_cq_dim))
-+		return -EMSGSIZE;
- 
- 	/*
- 	 * Link type is determined on first port and mlx4 device
-@@ -552,6 +555,9 @@ static int fill_res_cq_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 	    nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_POLL_CTX, cq->poll_ctx))
- 		goto err;
- 
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_DIM, (cq->dim != NULL)))
-+		goto err;
-+
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CQN, res->id))
- 		goto err;
- 	if (!rdma_is_kernel_res(res) &&
-@@ -870,6 +876,14 @@ static int nldev_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		goto put_done;
- 	}
- 
-+	if (tb[RDMA_NLDEV_ATTR_DEV_DIM]) {
-+		u8 use_dim;
-+
-+		use_dim = nla_get_u8(tb[RDMA_NLDEV_ATTR_DEV_DIM]);
-+		err = ib_device_set_dim(device,  use_dim);
-+		goto done;
++	if (dim->tune_state == DIM_GOING_RIGHT) {
++		if (dim->profile_ix == (RDMA_DIM_PARAMS_NUM_PROFILES - 1))
++			return DIM_ON_EDGE;
++		dim->profile_ix++;
++		dim->steps_right++;
++	}
++	if (dim->tune_state == DIM_GOING_LEFT) {
++		if (dim->profile_ix == 0)
++			return DIM_ON_EDGE;
++		dim->profile_ix--;
++		dim->steps_left++;
 +	}
 +
- done:
- 	ib_device_put(device);
- put_done:
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 8c5383e28438..f6d54c0a0ae8 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -522,6 +522,11 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_STAT_HWCOUNTER_ENTRY_NAME,	/* string */
- 	RDMA_NLDEV_ATTR_STAT_HWCOUNTER_ENTRY_VALUE,	/* u64 */
- 
-+	/*
-+	 * CQ adaptive moderatio (DIM)
-+	 */
-+	RDMA_NLDEV_ATTR_DEV_DIM,                /* u8 */
++	return DIM_STEPPED;
++}
 +
- 	/*
- 	 * Always the end
- 	 */
++static int rdma_dim_stats_compare(struct dim_stats *curr,
++				  struct dim_stats *prev)
++{
++	/* first stat */
++	if (!prev->cpms)
++		return DIM_STATS_SAME;
++
++	if (IS_SIGNIFICANT_DIFF(curr->cpms, prev->cpms))
++		return (curr->cpms > prev->cpms) ? DIM_STATS_BETTER :
++						DIM_STATS_WORSE;
++
++	if (IS_SIGNIFICANT_DIFF(curr->cpe_ratio, prev->cpe_ratio))
++		return (curr->cpe_ratio > prev->cpe_ratio) ? DIM_STATS_BETTER :
++						DIM_STATS_WORSE;
++
++	return DIM_STATS_SAME;
++}
++
++static bool rdma_dim_decision(struct dim_stats *curr_stats, struct dim *dim)
++{
++	int prev_ix = dim->profile_ix;
++	u8 state = dim->tune_state;
++	int stats_res;
++	int step_res;
++
++	if (state != DIM_PARKING_ON_TOP && state != DIM_PARKING_TIRED) {
++		stats_res = rdma_dim_stats_compare(curr_stats,
++						   &dim->prev_stats);
++
++		switch (stats_res) {
++		case DIM_STATS_SAME:
++			if (curr_stats->cpe_ratio <= 50 * prev_ix)
++				dim->profile_ix = 0;
++			break;
++		case DIM_STATS_WORSE:
++			dim_turn(dim);
++			/* fall through */
++		case DIM_STATS_BETTER:
++			step_res = rdma_dim_step(dim);
++			if (step_res == DIM_ON_EDGE)
++				dim_turn(dim);
++			break;
++		}
++	}
++
++	dim->prev_stats = *curr_stats;
++
++	return dim->profile_ix != prev_ix;
++}
++
++void rdma_dim(struct dim *dim, u64 completions)
++{
++	struct dim_sample *curr_sample = &dim->measuring_sample;
++	struct dim_stats curr_stats;
++	u32 nevents;
++
++	dim_update_sample_with_comps(curr_sample->event_ctr + 1, 0, 0,
++				     curr_sample->comp_ctr + completions,
++				     &dim->measuring_sample);
++
++	switch (dim->state) {
++	case DIM_MEASURE_IN_PROGRESS:
++		nevents = curr_sample->event_ctr - dim->start_sample.event_ctr;
++		if (nevents < DIM_NEVENTS)
++			break;
++		dim_calc_stats(&dim->start_sample, curr_sample, &curr_stats);
++		if (rdma_dim_decision(&curr_stats, dim)) {
++			dim->state = DIM_APPLY_NEW_PROFILE;
++			schedule_work(&dim->work);
++			break;
++		}
++		/* fall through */
++	case DIM_START_MEASURE:
++		dim->state = DIM_MEASURE_IN_PROGRESS;
++		dim_update_sample_with_comps(curr_sample->event_ctr, 0, 0,
++					     curr_sample->comp_ctr,
++					     &dim->start_sample);
++		break;
++	case DIM_APPLY_NEW_PROFILE:
++		break;
++	}
++}
++EXPORT_SYMBOL(rdma_dim);
 -- 
 2.20.1
 
