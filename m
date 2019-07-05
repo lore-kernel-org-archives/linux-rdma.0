@@ -2,131 +2,126 @@ Return-Path: <SRS0=E/Z5=VC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57F18C0650E
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jul 2019 02:19:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 790FCC5B57D
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jul 2019 04:10:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3011120B1F
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jul 2019 02:19:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k/4eqnPX"
+	by mail.kernel.org (Postfix) with ESMTP id 4E1FA2189E
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jul 2019 04:10:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1562299809;
+	bh=o3nJicTy+Qjp7G09STgRNAO/lzLw5iVeuJIFKu6cNw0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=PsTpuuUjPQ3HhR1to4Hm5oEI1hh1r4itelMm/ewqA3p4hZC4EQsbWqL1gdA6gXJaU
+	 DG23D49b9KhW/ly7kf07rW0+KIgGgvADDXHtEMgvsgQORSzjNCK8FZZV7/CbiM8cfN
+	 37zh0S1eMLoBVIEOJsOq6QgYmxhSJYVkFIh0346o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727348AbfGECTS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Jul 2019 22:19:18 -0400
-Received: from mail-io1-f67.google.com ([209.85.166.67]:37245 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726404AbfGECTS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Jul 2019 22:19:18 -0400
-Received: by mail-io1-f67.google.com with SMTP id e5so11691468iok.4;
-        Thu, 04 Jul 2019 19:19:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=qk2//h2D34hxgiSXW2dV6ayNgCS4DN9Pcd0bjNc8T14=;
-        b=k/4eqnPXmvuJt4S26AnW4sZ9spsOUER10IC3IAOmmIe/lkWqvSTSB7mFLcxFoxl+OI
-         hEatzLQM99Q/U0verRfdZRXYMCE0E041igoz+u78i+RA7szMvLxuRp8E8zcnGkyKOioK
-         PxnX8YDbeJ7lETII83tfsmexFKsCYb9GAHLwN3hKR/xVQSfRk700JKPxp9MvGbmWDx/v
-         hx+imqPwvHAggwi2mBWeNwzgJPrwpghzPqaiLT88uxM0IpIQrdEi2G7K4/Ql/ubKXfn5
-         yFCes3LmCPwDgJeY4X7hYVEWLb5a29FVu306GYMGTLKXg8l2Np7VgkMmCDCEOE1p23cZ
-         0+qw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=qk2//h2D34hxgiSXW2dV6ayNgCS4DN9Pcd0bjNc8T14=;
-        b=EvvEjatB5wI2Jnobm2xPz1yhhdzmbimm5Yp488+V9950PPv+crr0C37++fw1k7YCeE
-         ueTOFkBE1sDOaFI+zcI+fsWWk+rBidydl4d/KlUYqnS8mRaE2S0EzjlJSC64SPZZkeN6
-         4Vf7WGGWx8vzvXc/7bRJGezkEmUXL6903T0dNQgt0Z78eHY3Jo9dVmjoS3R+s8YFn43Q
-         WhuPVI44bj/KbEZk6fYsklE2WnBHa7dBMBSPkBBpnPAeYkgR1D7f6QtWAU5ZDugmasoy
-         ibVjajxB9hcydA/Y5R2cA0DfZb1gRtMuk6s4wb6ERijAHB4L5KKFeemHKxo2Yz1oAe5o
-         OazA==
-X-Gm-Message-State: APjAAAX36Y5XISMTpimg4A0XPYuHKsP457t0sQJkAgtLNs0+hhuvDaih
-        agz0Iz5w+DktqcdJu/S9+1SGYzmpLAEdOP9TVXUXxf2B
-X-Google-Smtp-Source: APXvYqyuVXO6nUUU3KDsJ2cq/+XZFLt+HvdkmxPLjVip5YJIhgnjkHZTG5y0OqoSLAkSE44MVLIgaD3LZeXZNm+LAwI=
-X-Received: by 2002:a5d:968b:: with SMTP id m11mr1472848ion.16.1562293157370;
- Thu, 04 Jul 2019 19:19:17 -0700 (PDT)
-MIME-Version: 1.0
-References: <1561711763-24705-1-git-send-email-dag.moxnes@oracle.com>
-In-Reply-To: <1561711763-24705-1-git-send-email-dag.moxnes@oracle.com>
-From:   Parav Pandit <pandit.parav@gmail.com>
-Date:   Fri, 5 Jul 2019 07:49:06 +0530
-Message-ID: <CAG53R5VQqqr0S6OU+13tcuxcvz922iuqoP-mWbaQERPc48964A@mail.gmail.com>
-Subject: Re: [PATCH v2] RDMA/core: Fix race when resolving IP address
-To:     Dag Moxnes <dag.moxnes@oracle.com>
-Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
+        id S1725554AbfGEEKI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Jul 2019 00:10:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51550 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725280AbfGEEKI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 5 Jul 2019 00:10:08 -0400
+Received: from localhost (unknown [37.142.3.125])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id EC53A21852;
+        Fri,  5 Jul 2019 04:10:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1562299807;
+        bh=o3nJicTy+Qjp7G09STgRNAO/lzLw5iVeuJIFKu6cNw0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=uxQMNM/AZcsCbdxpbp3iTVv59AZe9WzAV267s8w8FeqzB4qpzHnMfsWwyvaylHTxS
+         NTFaOoU3gAihbyOE8cqchTWA8I7Bfbt7lMA7ZGrY3eAv8ZxfFZXUQbN9ovcR3HRCx/
+         JTNiGdwc1QRvZv5pPJodfrmIIzWPs1nBVeWpJHO4=
+Date:   Fri, 5 Jul 2019 07:09:50 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Parav Pandit <pandit.parav@gmail.com>
+Cc:     Dag Moxnes <dag.moxnes@oracle.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
         Parav Pandit <parav@mellanox.com>,
         linux-rdma <linux-rdma@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH v2] RDMA/core: Fix race when resolving IP address
+Message-ID: <20190705040950.GO7212@mtr-leonro.mtl.com>
+References: <1561711763-24705-1-git-send-email-dag.moxnes@oracle.com>
+ <CAG53R5VQqqr0S6OU+13tcuxcvz922iuqoP-mWbaQERPc48964A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAG53R5VQqqr0S6OU+13tcuxcvz922iuqoP-mWbaQERPc48964A@mail.gmail.com>
+User-Agent: Mutt/1.12.0 (2019-05-25)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jun 28, 2019 at 2:20 PM Dag Moxnes <dag.moxnes@oracle.com> wrote:
+On Fri, Jul 05, 2019 at 07:49:06AM +0530, Parav Pandit wrote:
+> On Fri, Jun 28, 2019 at 2:20 PM Dag Moxnes <dag.moxnes@oracle.com> wrote:
+> >
+> > Use neighbour lock when copying MAC address from neighbour data struct
+> > in dst_fetch_ha.
+> >
+> > When not using the lock, it is possible for the function to race with
+> > neigh_update, causing it to copy an invalid MAC address.
+> >
+> > It is possible to provoke this error by calling rdma_resolve_addr in a
+> > tight loop, while deleting the corresponding ARP entry in another tight
+> > loop.
+> >
+> > Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
+> > Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+> >
+> > ---
+> > v1 -> v2:
+> >    * Modified implementation to improve readability
+> > ---
+> >  drivers/infiniband/core/addr.c | 9 ++++++---
+> >  1 file changed, 6 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+> > index 2f7d141598..51323ffbc5 100644
+> > --- a/drivers/infiniband/core/addr.c
+> > +++ b/drivers/infiniband/core/addr.c
+> > @@ -333,11 +333,14 @@ static int dst_fetch_ha(const struct dst_entry *dst,
+> >         if (!n)
+> >                 return -ENODATA;
+> >
+> > -       if (!(n->nud_state & NUD_VALID)) {
+> > +       read_lock_bh(&n->lock);
+> > +       if (n->nud_state & NUD_VALID) {
+> > +               memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
+> > +               read_unlock_bh(&n->lock);
+> > +       } else {
+> > +               read_unlock_bh(&n->lock);
+> >                 neigh_event_send(n, NULL);
+> >                 ret = -ENODATA;
+> > -       } else {
+> > -               memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
+> >         }
+> >
+> >         neigh_release(n);
+> > --
+> > 2.20.1
+> >
+> Reviewed-by: Parav Pandit <parav@mellanox.com>
 >
-> Use neighbour lock when copying MAC address from neighbour data struct
-> in dst_fetch_ha.
+> A sample trace such as below in commit message would be good to have.
+> Or the similar one that you noticed with ARP delete sequence.
 >
-> When not using the lock, it is possible for the function to race with
-> neigh_update, causing it to copy an invalid MAC address.
+> neigh_changeaddr()
+>   neigh_flush_dev()
+>    n->nud_state = NUD_NOARP;
 >
-> It is possible to provoke this error by calling rdma_resolve_addr in a
-> tight loop, while deleting the corresponding ARP entry in another tight
-> loop.
->
-> Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
-> Signed-off-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
->
-> ---
-> v1 -> v2:
->    * Modified implementation to improve readability
-> ---
->  drivers/infiniband/core/addr.c | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/add=
-r.c
-> index 2f7d141598..51323ffbc5 100644
-> --- a/drivers/infiniband/core/addr.c
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -333,11 +333,14 @@ static int dst_fetch_ha(const struct dst_entry *dst=
-,
->         if (!n)
->                 return -ENODATA;
->
-> -       if (!(n->nud_state & NUD_VALID)) {
-> +       read_lock_bh(&n->lock);
-> +       if (n->nud_state & NUD_VALID) {
-> +               memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
-> +               read_unlock_bh(&n->lock);
-> +       } else {
-> +               read_unlock_bh(&n->lock);
->                 neigh_event_send(n, NULL);
->                 ret =3D -ENODATA;
-> -       } else {
-> -               memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
->         }
->
->         neigh_release(n);
-> --
-> 2.20.1
->
-Reviewed-by: Parav Pandit <parav@mellanox.com>
+> Having some issues with office outlook, so replying via gmail.
 
-A sample trace such as below in commit message would be good to have.
-Or the similar one that you noticed with ARP delete sequence.
+Your replies from gmail looks much better when you used Outlook - proper
+spacing between quoted text and your reply.
 
-neigh_changeaddr()
-  neigh_flush_dev()
-   n->nud_state =3D NUD_NOARP;
-
-Having some issues with office outlook, so replying via gmail.
+Thanks
