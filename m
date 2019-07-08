@@ -2,57 +2,60 @@ Return-Path: <SRS0=cc4V=VF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5BC8C606A2
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 09:17:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFE3C606A1
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 09:17:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BEFD020644
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 09:17:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53B2B20644
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 09:17:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="P1298bTc"
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="n/pcSYhB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729781AbfGHJRO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1729778AbfGHJRO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 8 Jul 2019 05:17:14 -0400
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:12302 "EHLO
+Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:3404 "EHLO
         mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729748AbfGHJRO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 8 Jul 2019 05:17:14 -0400
+        by vger.kernel.org with ESMTP id S1729763AbfGHJRK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 8 Jul 2019 05:17:10 -0400
 Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x689FSOK013243;
-        Mon, 8 Jul 2019 02:16:39 -0700
+        by mx0b-0016f401.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x689GhUm014464;
+        Mon, 8 Jul 2019 02:16:51 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-type; s=pfpt0818;
- bh=wUHTRFgmJ0XZTTjqXXgwrbh+jS1o0zASftJ2Quajh1E=;
- b=P1298bTcdm3h53VTUCGjG5HYZFBPe+UTDCg0REznsqYxqIV1erECX76fI+gTU6YeYnWL
- QrRiNtAeYuZdWjYfqOk7HkOogMiMPmcuxO1RlL3HpDovMsLLoguRgXLuUuDn4Nr8Xixf
- vTOOHRJ5/ywto32SkWZSoPlz8QkQhbzD5GkxcbgVAdwqdUtAbcHvVtE6AEgPjhytpnTf
- 9RO0eUdn8c9KnC16j7gWvORo7JuPToSg007cblKf7qSrjiWbsg1R3U62wE00olfsMWI+
- 3yJv1FMWNLQlc4siXXaJKPBduvXBwpIeGfAHsqNSco8C8fOqy5G291CIjQKaGAjXRheE qA== 
-Received: from sc-exch03.marvell.com ([199.233.58.183])
-        by mx0b-0016f401.pphosted.com with ESMTP id 2tju5j6f8g-2
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-type; s=pfpt0818; bh=LTHYzTbxR3HanCEwR0nptnE4msixX4blE2Z0Vo4k310=;
+ b=n/pcSYhBVduTx1YLmuZqwj4XfThhHMWPr+puvYKGB7T01odDLlnPFuGaeKwM50etnoHT
+ DNHfD4LNYd4UuAusE7Z2TI3mDhkj8r6/Dntq+SSePEhVjOijJpKKoMQbh1RA++BG+BNN
+ DZC8NvkMkqh1BfWkIh8Yjtxr9lg1XiXiefUSwhkxo9hsGlPcPgOL+1uSJmS5fmBYARXu
+ fMMxrT7uU6KGcs0Wzq5/MgniKDHBCfXPPiTAQzTRZmj3TRG+m3k4KDvKSAcR0fLt7SPG
+ uiC9Ww5/VuVPCVsQwtvsqBIjZacQzLnkkiBPdZlMhPf+D/IOIHAPpNVc4GCSzS0fbTbY UA== 
+Received: from sc-exch01.marvell.com ([199.233.58.181])
+        by mx0b-0016f401.pphosted.com with ESMTP id 2tju5j6f96-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Mon, 08 Jul 2019 02:16:39 -0700
-Received: from SC-EXCH01.marvell.com (10.93.176.81) by SC-EXCH03.marvell.com
- (10.93.176.83) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Mon, 8 Jul
- 2019 02:16:38 -0700
+        Mon, 08 Jul 2019 02:16:51 -0700
+Received: from SC-EXCH01.marvell.com (10.93.176.81) by SC-EXCH01.marvell.com
+ (10.93.176.81) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Mon, 8 Jul
+ 2019 02:16:49 -0700
 Received: from maili.marvell.com (10.93.176.43) by SC-EXCH01.marvell.com
  (10.93.176.81) with Microsoft SMTP Server id 15.0.1367.3 via Frontend
- Transport; Mon, 8 Jul 2019 02:16:38 -0700
+ Transport; Mon, 8 Jul 2019 02:16:49 -0700
 Received: from lb-tlvb-michal.il.qlogic.org (unknown [10.5.220.215])
-        by maili.marvell.com (Postfix) with ESMTP id D72563F7040;
-        Mon,  8 Jul 2019 02:16:35 -0700 (PDT)
+        by maili.marvell.com (Postfix) with ESMTP id 408DD3F7041;
+        Mon,  8 Jul 2019 02:16:47 -0700 (PDT)
 From:   Michal Kalderon <michal.kalderon@marvell.com>
 To:     <michal.kalderon@marvell.com>, <ariel.elior@marvell.com>,
         <jgg@ziepe.ca>, <dledford@redhat.com>, <galpress@amazon.com>
 CC:     <linux-rdma@vger.kernel.org>, <davem@davemloft.net>,
         <netdev@vger.kernel.org>
-Subject: [PATCH v5 rdma-next 0/6] RDMA/qedr: Use the doorbell overflow recovery mechanism for RDMA
-Date:   Mon, 8 Jul 2019 12:14:57 +0300
-Message-ID: <20190708091503.14723-1-michal.kalderon@marvell.com>
+Subject: [PATCH v5 rdma-next 4/6] qed*: Change dpi_addr to be denoted with __iomem
+Date:   Mon, 8 Jul 2019 12:15:01 +0300
+Message-ID: <20190708091503.14723-5-michal.kalderon@marvell.com>
 X-Mailer: git-send-email 2.14.5
+In-Reply-To: <20190708091503.14723-1-michal.kalderon@marvell.com>
+References: <20190708091503.14723-1-michal.kalderon@marvell.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-07-08_02:,,
@@ -62,70 +65,74 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch series uses the doorbell overflow recovery mechanism
-introduced in
-commit 36907cd5cd72 ("qed: Add doorbell overflow recovery mechanism")
-for rdma ( RoCE and iWARP )
+Several casts were required around dpi_addr parameter in qed_rdma_if.h
+This is an address on the doorbell bar and should therefore be marked
+with __iomem.
 
-The first three patches modify the core code to contain helper
-functions for managing mmap_xa inserting, getting and freeing
-entries. The code was taken almost as is from the efa driver.
-There is still an open discussion on whether we should take
-this even further and make the entire mmap generic. Until a
-decision is made, I only created the database API and modified 
-the efa and qedr driver to use it. The doorbell recovery code will be based
-on the common code.
+Reported-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
+---
+ drivers/infiniband/hw/qedr/main.c          | 2 +-
+ drivers/infiniband/hw/qedr/qedr.h          | 2 +-
+ drivers/net/ethernet/qlogic/qed/qed_rdma.c | 5 ++---
+ include/linux/qed/qed_rdma_if.h            | 2 +-
+ 4 files changed, 5 insertions(+), 6 deletions(-)
 
-Efa driver was compile tested only.
-
-rdma-core pull request #493
-
-Changes from V4:
-- Add common mmap database and cookie helper functions.
-
-Changes from V3:
-- Remove casts from void to u8. Pointer arithmetic can be done on void
-- rebase to tip of rdma-next
-
-Changes from V2:
-- Don't use long-lived kmap. Instead use user-trigger mmap for the
-  doorbell recovery entries.
-- Modify dpi_addr to be denoted with __iomem and avoid redundant
-  casts
-
-Changes from V1:
-- call kmap to map virtual address into kernel space
-- modify db_rec_delete to be void
-- remove some cpu_to_le16 that were added to previous patch which are
-  correct but not related to the overflow recovery mechanism. Will be
-  submitted as part of a different patch
-
-
-Michal Kalderon (6):
-  RDMA/core: Create mmap database and cookie helper functions
-  RDMA/efa: Use the common mmap_xa helpers
-  RDMA/qedr: Use the common mmap API
-  qed*: Change dpi_addr to be denoted with __iomem
-  RDMA/qedr: Add doorbell overflow recovery support
-  RDMA/qedr: Add iWARP doorbell recovery support
-
- drivers/infiniband/core/device.c           |   1 +
- drivers/infiniband/core/rdma_core.c        |   1 +
- drivers/infiniband/core/uverbs_cmd.c       |   1 +
- drivers/infiniband/core/uverbs_main.c      | 105 +++++++
- drivers/infiniband/hw/efa/efa.h            |   3 +-
- drivers/infiniband/hw/efa/efa_main.c       |   1 +
- drivers/infiniband/hw/efa/efa_verbs.c      | 183 +++---------
- drivers/infiniband/hw/qedr/main.c          |   3 +-
- drivers/infiniband/hw/qedr/qedr.h          |  32 +-
- drivers/infiniband/hw/qedr/verbs.c         | 463 ++++++++++++++++++++---------
- drivers/infiniband/hw/qedr/verbs.h         |   4 +-
- drivers/net/ethernet/qlogic/qed/qed_rdma.c |   5 +-
- include/linux/qed/qed_rdma_if.h            |   2 +-
- include/rdma/ib_verbs.h                    |  32 ++
- include/uapi/rdma/qedr-abi.h               |  25 ++
- 15 files changed, 554 insertions(+), 307 deletions(-)
-
+diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+index a0a7ba0a5af4..3db4b6ba5ad6 100644
+--- a/drivers/infiniband/hw/qedr/main.c
++++ b/drivers/infiniband/hw/qedr/main.c
+@@ -815,7 +815,7 @@ static int qedr_init_hw(struct qedr_dev *dev)
+ 	if (rc)
+ 		goto out;
+ 
+-	dev->db_addr = (void __iomem *)(uintptr_t)out_params.dpi_addr;
++	dev->db_addr = out_params.dpi_addr;
+ 	dev->db_phys_addr = out_params.dpi_phys_addr;
+ 	dev->db_size = out_params.dpi_size;
+ 	dev->dpi = out_params.dpi;
+diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+index 97c90d1e525d..7e80ce521d8d 100644
+--- a/drivers/infiniband/hw/qedr/qedr.h
++++ b/drivers/infiniband/hw/qedr/qedr.h
+@@ -227,7 +227,7 @@ struct qedr_ucontext {
+ 	struct ib_ucontext ibucontext;
+ 	struct qedr_dev *dev;
+ 	struct qedr_pd *pd;
+-	u64 dpi_addr;
++	void __iomem *dpi_addr;
+ 	u64 dpi_phys_addr;
+ 	u32 dpi_size;
+ 	u16 dpi;
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_rdma.c b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
+index 7873d6dfd91f..fb3fe60a1a68 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_rdma.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
+@@ -799,9 +799,8 @@ static int qed_rdma_add_user(void *rdma_cxt,
+ 	/* Calculate the corresponding DPI address */
+ 	dpi_start_offset = p_hwfn->dpi_start_offset;
+ 
+-	out_params->dpi_addr = (u64)((u8 __iomem *)p_hwfn->doorbells +
+-				     dpi_start_offset +
+-				     ((out_params->dpi) * p_hwfn->dpi_size));
++	out_params->dpi_addr = p_hwfn->doorbells + dpi_start_offset +
++			       out_params->dpi * p_hwfn->dpi_size;
+ 
+ 	out_params->dpi_phys_addr = p_hwfn->cdev->db_phys_addr +
+ 				    dpi_start_offset +
+diff --git a/include/linux/qed/qed_rdma_if.h b/include/linux/qed/qed_rdma_if.h
+index d15f8e4815e3..834166809a6c 100644
+--- a/include/linux/qed/qed_rdma_if.h
++++ b/include/linux/qed/qed_rdma_if.h
+@@ -225,7 +225,7 @@ struct qed_rdma_start_in_params {
+ 
+ struct qed_rdma_add_user_out_params {
+ 	u16 dpi;
+-	u64 dpi_addr;
++	void __iomem *dpi_addr;
+ 	u64 dpi_phys_addr;
+ 	u32 dpi_size;
+ 	u16 wid_count;
 -- 
 2.14.5
 
