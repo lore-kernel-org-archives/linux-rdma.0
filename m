@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2719AC606AF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 490C9C606AF
 	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 13:44:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F3A0720844
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 13:44:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BA5020844
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 13:44:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731415AbfGHNo4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1729856AbfGHNo4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 8 Jul 2019 09:44:56 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:2180 "EHLO huawei.com"
+Received: from szxga04-in.huawei.com ([45.249.212.190]:2184 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729856AbfGHNo4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1731412AbfGHNo4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 8 Jul 2019 09:44:56 -0400
 Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 5E1A76AB677ECD6CFA26;
+        by Forcepoint Email with ESMTP id 788815CD0541EE1020B5;
         Mon,  8 Jul 2019 21:44:49 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 8 Jul 2019 21:44:39 +0800
+ 14.3.439.0; Mon, 8 Jul 2019 21:44:40 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/9] RDMA/hns: Refactor the code of creating srq
-Date:   Mon, 8 Jul 2019 21:41:18 +0800
-Message-ID: <1562593285-8037-3-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 8/9] RDMA/hns: Refactor hem table mhop check and calculation
+Date:   Mon, 8 Jul 2019 21:41:24 +0800
+Message-ID: <1562593285-8037-9-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1562593285-8037-1-git-send-email-oulijun@huawei.com>
 References: <1562593285-8037-1-git-send-email-oulijun@huawei.com>
@@ -43,370 +43,250 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Here moves the relatived codes of creating user srq and
-kernel srq into the two independent functions as well as
-removes some unused codes and optimizes some codes.
+The calculation of mhop for hem is duplicated in
+hns_roce_init_hem_table and hns_roce_calc_hem_mhop,
+extracting it from them to a separated function. Moreover,
+this patch refactor hns_roce_check_whether_mhop to
+reduce complexity.
 
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_srq.c | 310 ++++++++++++++++++-------------
- 1 file changed, 183 insertions(+), 127 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 180 ++++++++++++-------------------
+ 1 file changed, 70 insertions(+), 110 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index 38bb548..c011422 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -175,6 +175,91 @@ static void hns_roce_srq_free(struct hns_roce_dev *hr_dev,
- 	hns_roce_bitmap_free(&srq_table->bitmap, srq->srqn, BITMAP_NO_RR);
- }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index f4da5bd..6150311 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -41,20 +41,47 @@
  
-+static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
-+			   int srq_buf_size)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(srq->ibsrq.device);
-+	struct hns_roce_ib_create_srq  ucmd;
-+	u32 page_shift;
-+	u32 npages;
-+	int ret;
-+
-+	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd)))
-+		return -EFAULT;
-+
-+	srq->umem = ib_umem_get(udata, ucmd.buf_addr, srq_buf_size, 0, 0);
-+	if (IS_ERR(srq->umem))
-+		return PTR_ERR(srq->umem);
-+
-+	if (hr_dev->caps.srqwqe_buf_pg_sz) {
-+		npages = (ib_umem_page_count(srq->umem) +
-+			 (1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
-+			 (1 << hr_dev->caps.srqwqe_buf_pg_sz);
-+		page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
-+		ret = hns_roce_mtt_init(hr_dev, npages, page_shift, &srq->mtt);
-+	} else
-+		ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(srq->umem),
-+					PAGE_SHIFT, &srq->mtt);
-+	if (ret)
-+		goto err_user_buf;
-+
-+	ret = hns_roce_ib_umem_write_mtt(hr_dev, &srq->mtt, srq->umem);
-+	if (ret)
-+		goto err_user_srq_mtt;
-+
-+	/* config index queue BA */
-+	srq->idx_que.umem = ib_umem_get(udata, ucmd.que_addr,
-+					srq->idx_que.buf_size, 0, 0);
-+	if (IS_ERR(srq->idx_que.umem)) {
-+		dev_err(hr_dev->dev, "ib_umem_get error for index queue\n");
-+		ret = PTR_ERR(srq->idx_que.umem);
-+		goto err_user_srq_mtt;
-+	}
-+
-+	if (hr_dev->caps.idx_buf_pg_sz) {
-+		npages = (ib_umem_page_count(srq->idx_que.umem) +
-+			 (1 << hr_dev->caps.idx_buf_pg_sz) - 1) /
-+			 (1 << hr_dev->caps.idx_buf_pg_sz);
-+		page_shift = PAGE_SHIFT + hr_dev->caps.idx_buf_pg_sz;
-+		ret = hns_roce_mtt_init(hr_dev, npages, page_shift,
-+					&srq->idx_que.mtt);
-+	} else {
-+		ret = hns_roce_mtt_init(hr_dev,
-+					ib_umem_page_count(srq->idx_que.umem),
-+					PAGE_SHIFT,
-+					&srq->idx_que.mtt);
-+	}
-+
-+	if (ret) {
-+		dev_err(hr_dev->dev, "hns_roce_mtt_init error for idx que\n");
-+		goto err_user_idx_mtt;
-+	}
-+
-+	ret = hns_roce_ib_umem_write_mtt(hr_dev, &srq->idx_que.mtt,
-+					 srq->idx_que.umem);
-+	if (ret) {
-+		dev_err(hr_dev->dev,
-+			"hns_roce_ib_umem_write_mtt error for idx que\n");
-+		goto err_user_idx_buf;
-+	}
-+
-+	return 0;
-+
-+err_user_idx_buf:
-+	hns_roce_mtt_cleanup(hr_dev, &srq->idx_que.mtt);
-+
-+err_user_idx_mtt:
-+	ib_umem_release(srq->idx_que.umem);
-+
-+err_user_srq_mtt:
-+	hns_roce_mtt_cleanup(hr_dev, &srq->mtt);
-+
-+err_user_buf:
-+	ib_umem_release(srq->umem);
-+
-+	return ret;
-+}
-+
- static int hns_roce_create_idx_que(struct ib_pd *pd, struct hns_roce_srq *srq,
- 				   u32 page_shift)
+ bool hns_roce_check_whether_mhop(struct hns_roce_dev *hr_dev, u32 type)
  {
-@@ -196,6 +281,93 @@ static int hns_roce_create_idx_que(struct ib_pd *pd, struct hns_roce_srq *srq,
- 	return 0;
+-	if ((hr_dev->caps.qpc_hop_num && type == HEM_TYPE_QPC) ||
+-	    (hr_dev->caps.mpt_hop_num && type == HEM_TYPE_MTPT) ||
+-	    (hr_dev->caps.cqc_hop_num && type == HEM_TYPE_CQC) ||
+-	    (hr_dev->caps.srqc_hop_num && type == HEM_TYPE_SRQC) ||
+-	    (hr_dev->caps.sccc_hop_num && type == HEM_TYPE_SCCC) ||
+-	    (hr_dev->caps.qpc_timer_hop_num && type == HEM_TYPE_QPC_TIMER) ||
+-	    (hr_dev->caps.cqc_timer_hop_num && type == HEM_TYPE_CQC_TIMER) ||
+-	    (hr_dev->caps.cqe_hop_num && type == HEM_TYPE_CQE) ||
+-	    (hr_dev->caps.mtt_hop_num && type == HEM_TYPE_MTT) ||
+-	    (hr_dev->caps.srqwqe_hop_num && type == HEM_TYPE_SRQWQE) ||
+-	    (hr_dev->caps.idx_hop_num && type == HEM_TYPE_IDX))
+-		return true;
+-
+-	return false;
++	int hop_num = 0;
++
++	switch (type) {
++	case HEM_TYPE_QPC:
++		hop_num = hr_dev->caps.qpc_hop_num;
++		break;
++	case HEM_TYPE_MTPT:
++		hop_num = hr_dev->caps.mpt_hop_num;
++		break;
++	case HEM_TYPE_CQC:
++		hop_num = hr_dev->caps.cqc_hop_num;
++		break;
++	case HEM_TYPE_SRQC:
++		hop_num = hr_dev->caps.srqc_hop_num;
++		break;
++	case HEM_TYPE_SCCC:
++		hop_num = hr_dev->caps.sccc_hop_num;
++		break;
++	case HEM_TYPE_QPC_TIMER:
++		hop_num = hr_dev->caps.qpc_timer_hop_num;
++		break;
++	case HEM_TYPE_CQC_TIMER:
++		hop_num = hr_dev->caps.cqc_timer_hop_num;
++		break;
++	case HEM_TYPE_CQE:
++		hop_num = hr_dev->caps.cqe_hop_num;
++		break;
++	case HEM_TYPE_MTT:
++		hop_num = hr_dev->caps.mtt_hop_num;
++		break;
++	case HEM_TYPE_SRQWQE:
++		hop_num = hr_dev->caps.srqwqe_hop_num;
++		break;
++	case HEM_TYPE_IDX:
++		hop_num = hr_dev->caps.idx_hop_num;
++		break;
++	default:
++		return false;
++	}
++
++	return hop_num ? true : false;
  }
  
-+static int create_kernel_srq(struct hns_roce_srq *srq, int srq_buf_size)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(srq->ibsrq.device);
-+	u32 page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
-+	int ret;
-+
-+	if (hns_roce_buf_alloc(hr_dev, srq_buf_size, (1 << page_shift) * 2,
-+			       &srq->buf, page_shift))
-+		return -ENOMEM;
-+
-+	srq->head = 0;
-+	srq->tail = srq->max - 1;
-+
-+	ret = hns_roce_mtt_init(hr_dev, srq->buf.npages, srq->buf.page_shift,
-+				&srq->mtt);
-+	if (ret)
-+		goto err_kernel_buf;
-+
-+	ret = hns_roce_buf_write_mtt(hr_dev, &srq->mtt, &srq->buf);
-+	if (ret)
-+		goto err_kernel_srq_mtt;
-+
-+	page_shift = PAGE_SHIFT + hr_dev->caps.idx_buf_pg_sz;
-+	ret = hns_roce_create_idx_que(srq->ibsrq.pd, srq, page_shift);
-+	if (ret) {
-+		dev_err(hr_dev->dev, "Create idx queue fail(%d)!\n", ret);
-+		goto err_kernel_srq_mtt;
-+	}
-+
-+	/* Init mtt table for idx_que */
-+	ret = hns_roce_mtt_init(hr_dev, srq->idx_que.idx_buf.npages,
-+				srq->idx_que.idx_buf.page_shift,
-+				&srq->idx_que.mtt);
-+	if (ret)
-+		goto err_kernel_create_idx;
-+
-+	/* Write buffer address into the mtt table */
-+	ret = hns_roce_buf_write_mtt(hr_dev, &srq->idx_que.mtt,
-+				     &srq->idx_que.idx_buf);
-+	if (ret)
-+		goto err_kernel_idx_buf;
-+
-+	srq->wrid = kvmalloc_array(srq->max, sizeof(u64), GFP_KERNEL);
-+	if (!srq->wrid) {
-+		ret = -ENOMEM;
-+		goto err_kernel_idx_buf;
-+	}
-+
-+	return 0;
-+
-+err_kernel_idx_buf:
-+	hns_roce_mtt_cleanup(hr_dev, &srq->idx_que.mtt);
-+
-+err_kernel_create_idx:
-+	hns_roce_buf_free(hr_dev, srq->idx_que.buf_size,
-+			  &srq->idx_que.idx_buf);
-+	kfree(srq->idx_que.bitmap);
-+
-+err_kernel_srq_mtt:
-+	hns_roce_mtt_cleanup(hr_dev, &srq->mtt);
-+
-+err_kernel_buf:
-+	hns_roce_buf_free(hr_dev, srq_buf_size, &srq->buf);
-+
-+	return ret;
-+}
-+
-+static void destroy_user_srq(struct hns_roce_dev *hr_dev,
-+			     struct hns_roce_srq *srq)
-+{
-+	hns_roce_mtt_cleanup(hr_dev, &srq->idx_que.mtt);
-+	ib_umem_release(srq->idx_que.umem);
-+	hns_roce_mtt_cleanup(hr_dev, &srq->mtt);
-+	ib_umem_release(srq->umem);
-+}
-+
-+static void destroy_kernel_srq(struct hns_roce_dev *hr_dev,
-+			       struct hns_roce_srq *srq, int srq_buf_size)
-+{
-+	kvfree(srq->wrid);
-+	hns_roce_mtt_cleanup(hr_dev, &srq->idx_que.mtt);
-+	hns_roce_buf_free(hr_dev, srq->idx_que.buf_size, &srq->idx_que.idx_buf);
-+	kfree(srq->idx_que.bitmap);
-+	hns_roce_mtt_cleanup(hr_dev, &srq->mtt);
-+	hns_roce_buf_free(hr_dev, srq_buf_size, &srq->buf);
-+}
-+
- int hns_roce_create_srq(struct ib_srq *ib_srq,
- 			struct ib_srq_init_attr *srq_init_attr,
- 			struct ib_udata *udata)
-@@ -205,9 +377,7 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	struct hns_roce_srq *srq = to_hr_srq(ib_srq);
- 	int srq_desc_size;
- 	int srq_buf_size;
--	u32 page_shift;
- 	int ret = 0;
--	u32 npages;
- 	u32 cqn;
+ static bool hns_roce_check_hem_null(struct hns_roce_hem **hem, u64 start_idx,
+@@ -92,17 +119,13 @@ static int hns_roce_get_bt_num(u32 table_type, u32 hop_num)
+ 		return 0;
+ }
  
- 	/* Check the actual SRQ wqe and SRQ sge num */
-@@ -233,115 +403,16 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	srq->idx_que.mtt.mtt_type = MTT_TYPE_IDX;
+-int hns_roce_calc_hem_mhop(struct hns_roce_dev *hr_dev,
+-			   struct hns_roce_hem_table *table, unsigned long *obj,
+-			   struct hns_roce_hem_mhop *mhop)
++static int get_hem_table_config(struct hns_roce_dev *hr_dev,
++				struct hns_roce_hem_mhop *mhop,
++				u32 type)
+ {
+ 	struct device *dev = hr_dev->dev;
+-	u32 chunk_ba_num;
+-	u32 table_idx;
+-	u32 bt_num;
+-	u32 chunk_size;
  
- 	if (udata) {
--		struct hns_roce_ib_create_srq  ucmd;
--
--		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd)))
--			return -EFAULT;
--
--		srq->umem =
--			ib_umem_get(udata, ucmd.buf_addr, srq_buf_size, 0, 0);
--		if (IS_ERR(srq->umem))
--			return PTR_ERR(srq->umem);
--
--		if (hr_dev->caps.srqwqe_buf_pg_sz) {
--			npages = (ib_umem_page_count(srq->umem) +
--				  (1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
--				  (1 << hr_dev->caps.srqwqe_buf_pg_sz);
--			page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
--			ret = hns_roce_mtt_init(hr_dev, npages,
--						page_shift,
--						&srq->mtt);
--		} else
--			ret = hns_roce_mtt_init(hr_dev,
--						ib_umem_page_count(srq->umem),
--						PAGE_SHIFT, &srq->mtt);
--		if (ret)
--			goto err_buf;
--
--		ret = hns_roce_ib_umem_write_mtt(hr_dev, &srq->mtt, srq->umem);
--		if (ret)
--			goto err_srq_mtt;
--
--		/* config index queue BA */
--		srq->idx_que.umem = ib_umem_get(udata, ucmd.que_addr,
--						srq->idx_que.buf_size, 0, 0);
--		if (IS_ERR(srq->idx_que.umem)) {
--			dev_err(hr_dev->dev,
--				"ib_umem_get error for index queue\n");
--			ret = PTR_ERR(srq->idx_que.umem);
--			goto err_srq_mtt;
--		}
--
--		if (hr_dev->caps.idx_buf_pg_sz) {
--			npages = (ib_umem_page_count(srq->idx_que.umem) +
--				  (1 << hr_dev->caps.idx_buf_pg_sz) - 1) /
--				  (1 << hr_dev->caps.idx_buf_pg_sz);
--			page_shift = PAGE_SHIFT + hr_dev->caps.idx_buf_pg_sz;
--			ret = hns_roce_mtt_init(hr_dev, npages,
--						page_shift, &srq->idx_que.mtt);
--		} else {
--			ret = hns_roce_mtt_init(
--				hr_dev, ib_umem_page_count(srq->idx_que.umem),
--				PAGE_SHIFT, &srq->idx_que.mtt);
--		}
--
--		if (ret) {
--			dev_err(hr_dev->dev,
--				"hns_roce_mtt_init error for idx que\n");
--			goto err_idx_mtt;
--		}
--
--		ret = hns_roce_ib_umem_write_mtt(hr_dev, &srq->idx_que.mtt,
--						 srq->idx_que.umem);
-+		ret = create_user_srq(srq, udata, srq_buf_size);
- 		if (ret) {
--			dev_err(hr_dev->dev,
--			      "hns_roce_ib_umem_write_mtt error for idx que\n");
--			goto err_idx_buf;
-+			dev_err(hr_dev->dev, "Create user srq failed\n");
-+			goto err_srq;
- 		}
- 	} else {
--		page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
--		if (hns_roce_buf_alloc(hr_dev, srq_buf_size,
--				       (1 << page_shift) * 2, &srq->buf,
--				       page_shift))
--			return -ENOMEM;
--
--		srq->head = 0;
--		srq->tail = srq->max - 1;
--
--		ret = hns_roce_mtt_init(hr_dev, srq->buf.npages,
--					srq->buf.page_shift, &srq->mtt);
--		if (ret)
--			goto err_buf;
--
--		ret = hns_roce_buf_write_mtt(hr_dev, &srq->mtt, &srq->buf);
--		if (ret)
--			goto err_srq_mtt;
--
--		page_shift = PAGE_SHIFT + hr_dev->caps.idx_buf_pg_sz;
--		ret = hns_roce_create_idx_que(ib_srq->pd, srq, page_shift);
-+		ret = create_kernel_srq(srq, srq_buf_size);
- 		if (ret) {
--			dev_err(hr_dev->dev, "Create idx queue fail(%d)!\n",
--				ret);
--			goto err_srq_mtt;
--		}
--
--		/* Init mtt table for idx_que */
--		ret = hns_roce_mtt_init(hr_dev, srq->idx_que.idx_buf.npages,
--					srq->idx_que.idx_buf.page_shift,
--					&srq->idx_que.mtt);
--		if (ret)
--			goto err_create_idx;
--
--		/* Write buffer address into the mtt table */
--		ret = hns_roce_buf_write_mtt(hr_dev, &srq->idx_que.mtt,
--					     &srq->idx_que.idx_buf);
--		if (ret)
--			goto err_idx_buf;
--
--		srq->wrid = kvmalloc_array(srq->max, sizeof(u64), GFP_KERNEL);
--		if (!srq->wrid) {
--			ret = -ENOMEM;
--			goto err_idx_buf;
-+			dev_err(hr_dev->dev, "Create kernel srq failed\n");
-+			goto err_srq;
- 		}
+-	switch (table->type) {
++	switch (type) {
+ 	case HEM_TYPE_QPC:
+ 		mhop->buf_chunk_size = 1 << (hr_dev->caps.qpc_buf_pg_sz
+ 					     + PAGE_SHIFT);
+@@ -193,10 +216,26 @@ int hns_roce_calc_hem_mhop(struct hns_roce_dev *hr_dev,
+ 		break;
+ 	default:
+ 		dev_err(dev, "Table %d not support multi-hop addressing!\n",
+-			 table->type);
++			type);
+ 		return -EINVAL;
  	}
  
-@@ -373,27 +444,12 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	hns_roce_srq_free(hr_dev, srq);
++	return 0;
++}
++
++int hns_roce_calc_hem_mhop(struct hns_roce_dev *hr_dev,
++			   struct hns_roce_hem_table *table, unsigned long *obj,
++			   struct hns_roce_hem_mhop *mhop)
++{
++	struct device *dev = hr_dev->dev;
++	u32 chunk_ba_num;
++	u32 table_idx;
++	u32 bt_num;
++	u32 chunk_size;
++
++	if (get_hem_table_config(hr_dev, mhop, table->type))
++		return -EINVAL;
++
+ 	if (!obj)
+ 		return 0;
  
- err_wrid:
--	kvfree(srq->wrid);
--
--err_idx_buf:
--	hns_roce_mtt_cleanup(hr_dev, &srq->idx_que.mtt);
--
--err_idx_mtt:
--	ib_umem_release(srq->idx_que.umem);
--
--err_create_idx:
--	hns_roce_buf_free(hr_dev, srq->idx_que.buf_size,
--			  &srq->idx_que.idx_buf);
--	bitmap_free(srq->idx_que.bitmap);
--
--err_srq_mtt:
--	hns_roce_mtt_cleanup(hr_dev, &srq->mtt);
--
--err_buf:
--	ib_umem_release(srq->umem);
--	if (!udata)
--		hns_roce_buf_free(hr_dev, srq_buf_size, &srq->buf);
-+	if (udata)
-+		destroy_user_srq(hr_dev, srq);
-+	else
-+		destroy_kernel_srq(hr_dev, srq, srq_buf_size);
+@@ -887,7 +926,6 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
+ 			    unsigned long obj_size, unsigned long nobj,
+ 			    int use_lowmem)
+ {
+-	struct device *dev = hr_dev->dev;
+ 	unsigned long obj_per_chunk;
+ 	unsigned long num_hem;
  
-+err_srq:
- 	return ret;
- }
+@@ -900,99 +938,21 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
+ 		if (!table->hem)
+ 			return -ENOMEM;
+ 	} else {
++		struct hns_roce_hem_mhop mhop = {};
+ 		unsigned long buf_chunk_size;
+ 		unsigned long bt_chunk_size;
+ 		unsigned long bt_chunk_num;
+ 		unsigned long num_bt_l0 = 0;
+ 		u32 hop_num;
  
+-		switch (type) {
+-		case HEM_TYPE_QPC:
+-			buf_chunk_size = 1 << (hr_dev->caps.qpc_buf_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = 1 << (hr_dev->caps.qpc_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			num_bt_l0 = hr_dev->caps.qpc_bt_num;
+-			hop_num = hr_dev->caps.qpc_hop_num;
+-			break;
+-		case HEM_TYPE_MTPT:
+-			buf_chunk_size = 1 << (hr_dev->caps.mpt_buf_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = 1 << (hr_dev->caps.mpt_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			num_bt_l0 = hr_dev->caps.mpt_bt_num;
+-			hop_num = hr_dev->caps.mpt_hop_num;
+-			break;
+-		case HEM_TYPE_CQC:
+-			buf_chunk_size = 1 << (hr_dev->caps.cqc_buf_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = 1 << (hr_dev->caps.cqc_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			num_bt_l0 = hr_dev->caps.cqc_bt_num;
+-			hop_num = hr_dev->caps.cqc_hop_num;
+-			break;
+-		case HEM_TYPE_SCCC:
+-			buf_chunk_size = 1 << (hr_dev->caps.sccc_buf_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = 1 << (hr_dev->caps.sccc_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			num_bt_l0 = hr_dev->caps.sccc_bt_num;
+-			hop_num = hr_dev->caps.sccc_hop_num;
+-			break;
+-		case HEM_TYPE_QPC_TIMER:
+-			buf_chunk_size = 1 << (hr_dev->caps.qpc_timer_buf_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = 1 << (hr_dev->caps.qpc_timer_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			num_bt_l0 = hr_dev->caps.qpc_timer_bt_num;
+-			hop_num = hr_dev->caps.qpc_timer_hop_num;
+-			break;
+-		case HEM_TYPE_CQC_TIMER:
+-			buf_chunk_size = 1 << (hr_dev->caps.cqc_timer_buf_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = 1 << (hr_dev->caps.cqc_timer_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			num_bt_l0 = hr_dev->caps.cqc_timer_bt_num;
+-			hop_num = hr_dev->caps.cqc_timer_hop_num;
+-			break;
+-		case HEM_TYPE_SRQC:
+-			buf_chunk_size = 1 << (hr_dev->caps.srqc_buf_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = 1 << (hr_dev->caps.srqc_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			num_bt_l0 = hr_dev->caps.srqc_bt_num;
+-			hop_num = hr_dev->caps.srqc_hop_num;
+-			break;
+-		case HEM_TYPE_MTT:
+-			buf_chunk_size = 1 << (hr_dev->caps.mtt_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = buf_chunk_size;
+-			hop_num = hr_dev->caps.mtt_hop_num;
+-			break;
+-		case HEM_TYPE_CQE:
+-			buf_chunk_size = 1 << (hr_dev->caps.cqe_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = buf_chunk_size;
+-			hop_num = hr_dev->caps.cqe_hop_num;
+-			break;
+-		case HEM_TYPE_SRQWQE:
+-			buf_chunk_size = 1 << (hr_dev->caps.srqwqe_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = buf_chunk_size;
+-			hop_num = hr_dev->caps.srqwqe_hop_num;
+-			break;
+-		case HEM_TYPE_IDX:
+-			buf_chunk_size = 1 << (hr_dev->caps.idx_ba_pg_sz
+-					+ PAGE_SHIFT);
+-			bt_chunk_size = buf_chunk_size;
+-			hop_num = hr_dev->caps.idx_hop_num;
+-			break;
+-		default:
+-			dev_err(dev,
+-			  "Table %d not support to init hem table here!\n",
+-			  type);
++		if (get_hem_table_config(hr_dev, &mhop, type))
+ 			return -EINVAL;
+-		}
++
++		buf_chunk_size = mhop.buf_chunk_size;
++		bt_chunk_size = mhop.bt_chunk_size;
++		num_bt_l0 = mhop.ba_l0_num;
++		hop_num = mhop.hop_num;
++
+ 		obj_per_chunk = buf_chunk_size / obj_size;
+ 		num_hem = (nobj + obj_per_chunk - 1) / obj_per_chunk;
+ 		bt_chunk_num = bt_chunk_size / BA_BYTE_LEN;
 -- 
 1.9.1
 
