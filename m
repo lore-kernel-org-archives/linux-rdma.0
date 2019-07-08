@@ -2,198 +2,150 @@ Return-Path: <SRS0=cc4V=VF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E87C4C606AC
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 10:59:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D44EEC606AC
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 11:17:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C142320861
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 10:59:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562583568;
-	bh=UW8HOORyjAMHB09Ljwrwx1ORaISPBHq9w7o2isNmtzI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=MW5wNhKzZ8Do3AIEwBom4KKZamYHASB7eDeyl6ikSE8xCySanvXpDsRUUmX6HgkSf
-	 QRentTtyHBXc5mKz1+2lNjkChLz/PAdCujssqPqz1IaAQyllPvbYdIPce9QswXzdLB
-	 EotYzRxiinNqKfLTwYGh93VpKlW20O/Wcqhj/4VA=
+	by mail.kernel.org (Postfix) with ESMTP id A696D20665
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 11:17:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="EYrfpuje"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730234AbfGHK72 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 8 Jul 2019 06:59:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51320 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725836AbfGHK72 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 8 Jul 2019 06:59:28 -0400
-Received: from localhost (unknown [37.142.3.125])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CF3142086D;
-        Mon,  8 Jul 2019 10:59:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562583567;
-        bh=UW8HOORyjAMHB09Ljwrwx1ORaISPBHq9w7o2isNmtzI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=F8BnyUpsrw4JrGd+YvZ1xKoPCOlb7Nl4SBliYt7eTlB2XuFJloUorjX+DR/oQVDQ3
-         zVi92BKdd6+XVJXHXO8iODNDuxmq6wz3AP+Y1/Zo9xTZuAWX8W75IPfWdweIC8WYg5
-         sxNPf/U82LgHYKXkb7K5+FVvXQ4zh1tvZ0Kvy98c=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Max Gurtovoy <maxg@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Yamin Friedman <yaminf@mellanox.com>
-Subject: [PATCH rdma-next v5 3/4] RDMA/nldev: Added configuration of RDMA dynamic interrupt moderation to netlink
-Date:   Mon,  8 Jul 2019 13:59:04 +0300
-Message-Id: <20190708105905.27468-4-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190708105905.27468-1-leon@kernel.org>
-References: <20190708105905.27468-1-leon@kernel.org>
+        id S1730409AbfGHLRR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Jul 2019 07:17:17 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:39644 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730258AbfGHLRR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 8 Jul 2019 07:17:17 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x68BEbUZ144983;
+        Mon, 8 Jul 2019 11:16:54 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-type :
+ content-transfer-encoding; s=corp-2018-07-02;
+ bh=wyEdXnjJ8jw6sAdU9BtEeTeNAhQPGnvYdqq4Yf+RfmY=;
+ b=EYrfpujejJTqx0+2HHciLdDO2gGPwyoRRmV3E7Nh2ivAl011KySpBHyaPVtBRkkzTTbW
+ uhdORuYHtWrZ1c0PKLoyLwQsz6A0rqrIewH6meH2Z523hDUPBQyQCl+30IBQRjqLju90
+ P3q31NT3cg0pgKnxrG3qRwaHA2MJ5xuwV+nHRy4/Xb6ix094srK+x1d/R8O3KLk/jeaz
+ sY6bQkSlOplZ90iUa0nmelpzKRDgBI9L0pE3dE0i7xB7V7J4za2pBG4fJQk4mU2xh7Lf
+ fES+O8cbpF7edN5wfSFrNFDnY+XlJlUCuyTv0AAZXotZaV3kEimOK+ivCQqQGI4DomXG hA== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by aserp2120.oracle.com with ESMTP id 2tjkkpdsw8-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 08 Jul 2019 11:16:54 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x68BD0nE176139;
+        Mon, 8 Jul 2019 11:16:54 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by userp3020.oracle.com with ESMTP id 2tjjyk57pc-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 08 Jul 2019 11:16:53 +0000
+Received: from abhmp0010.oracle.com (abhmp0010.oracle.com [141.146.116.16])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x68BGqmU015176;
+        Mon, 8 Jul 2019 11:16:52 GMT
+Received: from dm-oel.no.oracle.com (/10.172.157.165)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Mon, 08 Jul 2019 04:16:51 -0700
+From:   Dag Moxnes <dag.moxnes@oracle.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
+        parav@mellanox.com
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3] RDMA/core: Fix race when resolving IP address
+Date:   Mon,  8 Jul 2019 13:16:24 +0200
+Message-Id: <1562584584-13132-1-git-send-email-dag.moxnes@oracle.com>
+X-Mailer: git-send-email 1.7.1
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9311 signatures=668688
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1810050000 definitions=main-1907080145
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9311 signatures=668688
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
+ definitions=main-1907080145
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yamin Friedman <yaminf@mellanox.com>
+Use neighbour lock when copying MAC address from neighbour data struct
+in dst_fetch_ha.
 
-Added parameter in ib_device for enabling dynamic interrupt moderation so
-that it can be configured in userspace using rdma tool.
+When not using the lock, it is possible for the function to race with
+neigh_update, causing it to copy an invalid MAC address.
 
-In order to set adaptive-moderation for an ib device the command is:
-rdma dev set [DEV] adaptive-moderation [on|off]
-Please set on/off.
+It is possible to provoke this error by calling rdma_resolve_addr in a
+tight loop, while deleting the corresponding ARP entry in another tight
+loop.
 
-rdma dev show
-0: mlx5_0: node_type ca fw 16.26.0055 node_guid 248a:0703:00a5:29d0
-sys_image_guid 248a:0703:00a5:29d0 adaptive-moderation on
+This will cause the race shown it the following sample trace:
 
-rdma resource show cq
-dev mlx5_0 cqn 0 cqe 1023 users 4 poll-ctx UNBOUND_WORKQUEUE
-adaptive-moderation off comm [ib_core]
+rdma_resolve_addr()
+  rdma_resolve_ip()
+    addr_resolve()
+      addr_resolve_neigh()
+        fetch_ha()
+          dst_fetch_ha()
+            n->nud_state == NUD_VALID
 
-Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+and
+
+net_ioctl()
+  arp_ioctl()
+    arp_rec_delete()
+      arp_invalidate()
+        neigh_update()
+          __neigh_update()
+            neigh->nud_state = new;
+
+Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Parav Pandit <parav@mellanox.com>
 ---
- drivers/infiniband/Kconfig          |  1 +
- drivers/infiniband/core/core_priv.h |  1 +
- drivers/infiniband/core/device.c    |  9 +++++++++
- drivers/infiniband/core/nldev.c     | 14 ++++++++++++++
- include/uapi/rdma/rdma_netlink.h    |  5 +++++
- 5 files changed, 30 insertions(+)
+v1 -> v2:
+   * Modified implementation to improve readability
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index f277cb7aea29..85e103b147cc 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -7,6 +7,7 @@ menuconfig INFINIBAND
- 	depends on m || IPV6 != m
- 	depends on !ALPHA
- 	select IRQ_POLL
-+	select DIMLIB
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
- 	  any protocols you wish to use as well as drivers for your
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index a953c2fa2e78..888d89ce81df 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -60,6 +60,7 @@ extern bool ib_devices_shared_netns;
- int ib_device_register_sysfs(struct ib_device *device);
- void ib_device_unregister_sysfs(struct ib_device *device);
- int ib_device_rename(struct ib_device *ibdev, const char *name);
-+int ib_device_set_dim(struct ib_device *ibdev, u8 use_dim);
+v2 -> v3:
+   * Added sample trace as suggested by Parav Pandit
+   * Added Reviewed-by
+
+
+---
+ drivers/infiniband/core/addr.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 2f7d141598..51323ffbc5 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -333,11 +333,14 @@ static int dst_fetch_ha(const struct dst_entry *dst,
+ 	if (!n)
+ 		return -ENODATA;
  
- typedef void (*roce_netdev_callback)(struct ib_device *device, u8 port,
- 	      struct net_device *idev, void *cookie);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index bdf61499e6d5..7f4affe8a10d 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -448,6 +448,15 @@ int ib_device_rename(struct ib_device *ibdev, const char *name)
- 	return 0;
- }
- 
-+int ib_device_set_dim(struct ib_device *ibdev, u8 use_dim)
-+{
-+	if (use_dim > 1)
-+		return -EINVAL;
-+	ibdev->use_cq_dim = use_dim;
-+
-+	return 0;
-+}
-+
- static int alloc_name(struct ib_device *ibdev, const char *name)
- {
- 	struct ib_device *device;
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index a4431ed566b6..d9f2a30e6467 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -52,6 +52,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 					.len = RDMA_NLDEV_ATTR_EMPTY_STRING },
- 	[RDMA_NLDEV_ATTR_CHARDEV_TYPE]		= { .type = NLA_NUL_STRING,
- 					.len = RDMA_NLDEV_ATTR_CHARDEV_TYPE_SIZE },
-+	[RDMA_NLDEV_ATTR_DEV_DIM]               = { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DEV_INDEX]		= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_DEV_NAME]		= { .type = NLA_NUL_STRING,
- 					.len = IB_DEVICE_NAME_MAX },
-@@ -252,6 +253,8 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 		return -EMSGSIZE;
- 	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_NODE_TYPE, device->node_type))
- 		return -EMSGSIZE;
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_DIM, device->use_cq_dim))
-+		return -EMSGSIZE;
- 
- 	/*
- 	 * Link type is determined on first port and mlx4 device
-@@ -552,6 +555,9 @@ static int fill_res_cq_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 	    nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_POLL_CTX, cq->poll_ctx))
- 		goto err;
- 
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_DIM, (cq->dim != NULL)))
-+		goto err;
-+
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CQN, res->id))
- 		goto err;
- 	if (!rdma_is_kernel_res(res) &&
-@@ -870,6 +876,14 @@ static int nldev_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		goto put_done;
+-	if (!(n->nud_state & NUD_VALID)) {
++	read_lock_bh(&n->lock);
++	if (n->nud_state & NUD_VALID) {
++		memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
++		read_unlock_bh(&n->lock);
++	} else {
++		read_unlock_bh(&n->lock);
+ 		neigh_event_send(n, NULL);
+ 		ret = -ENODATA;
+-	} else {
+-		memcpy(dev_addr->dst_dev_addr, n->ha, MAX_ADDR_LEN);
  	}
  
-+	if (tb[RDMA_NLDEV_ATTR_DEV_DIM]) {
-+		u8 use_dim;
-+
-+		use_dim = nla_get_u8(tb[RDMA_NLDEV_ATTR_DEV_DIM]);
-+		err = ib_device_set_dim(device,  use_dim);
-+		goto done;
-+	}
-+
- done:
- 	ib_device_put(device);
- put_done:
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index ce6fd66e7aa3..8e277783fa96 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -520,6 +520,11 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_STAT_HWCOUNTER_ENTRY_NAME,	/* string */
- 	RDMA_NLDEV_ATTR_STAT_HWCOUNTER_ENTRY_VALUE,	/* u64 */
- 
-+	/*
-+	 * CQ adaptive moderatio (DIM)
-+	 */
-+	RDMA_NLDEV_ATTR_DEV_DIM,                /* u8 */
-+
- 	/*
- 	 * Always the end
- 	 */
+ 	neigh_release(n);
 -- 
 2.20.1
 
