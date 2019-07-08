@@ -2,36 +2,38 @@ Return-Path: <SRS0=cc4V=VF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79DF4C606AC
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 13:44:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51024C606AC
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 13:44:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5808220844
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 13:44:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34405208E4
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jul 2019 13:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731413AbfGHNor (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 8 Jul 2019 09:44:47 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:46180 "EHLO huawei.com"
+        id S1731410AbfGHNox (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Jul 2019 09:44:53 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2241 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728124AbfGHNor (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 8 Jul 2019 09:44:47 -0400
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 4E122F598F09DA991E14;
-        Mon,  8 Jul 2019 21:44:44 +0800 (CST)
+        id S1728124AbfGHNox (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 8 Jul 2019 09:44:53 -0400
+Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 9396370015FFBED8023E;
+        Mon,  8 Jul 2019 21:44:49 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 8 Jul 2019 21:44:38 +0800
+ 14.3.439.0; Mon, 8 Jul 2019 21:44:40 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/9] Codes optimization for hip08
-Date:   Mon, 8 Jul 2019 21:41:16 +0800
-Message-ID: <1562593285-8037-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 7/9] RDMA/hns: Package for hns_roce_rereg_user_mr function
+Date:   Mon, 8 Jul 2019 21:41:23 +0800
+Message-ID: <1562593285-8037-8-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
+In-Reply-To: <1562593285-8037-1-git-send-email-oulijun@huawei.com>
+References: <1562593285-8037-1-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.71.200.31]
@@ -41,35 +43,207 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Here are codes optimization in order to reduce complexity and
-add readability.
+Here moves some codes of hns_roce_rereg_user_mr functioon into
+an independent function in oder to optimize complexity.
 
-Lijun Ou (6):
-  RDMA/hns: Package the flow of creating cq
-  RDMA/hns: Refactor the code of creating srq
-  RDMA/hns: Refactor for hns_roce_v2_modify_qp function
-  RDMA/hns: Use a separated function for setting extend sge paramters
-  RDMA/hns: Package for hns_roce_rereg_user_mr function
-  RDMA/hns: Refactor hem table mhop check and calculation
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_mr.c | 153 +++++++++++++++++++-------------
+ 1 file changed, 89 insertions(+), 64 deletions(-)
 
-Xi Wang (1):
-  RDMA/hns: optimize the duplicated code for qpc setting flow
-
-Yixian Liu (1):
-  RDMA/hns: Refactor eq table init for hip08
-
-chenglang (1):
-  RDMA/hns: Optimize hns_roce_mhop_alloc function.
-
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 186 +++++---
- drivers/infiniband/hw/hns/hns_roce_device.h |   2 -
- drivers/infiniband/hw/hns/hns_roce_hem.c    | 180 ++++----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 628 ++++++++++++++++------------
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 428 +++++++++++--------
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  61 ++-
- drivers/infiniband/hw/hns/hns_roce_srq.c    | 310 ++++++++------
- 7 files changed, 1015 insertions(+), 780 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index c4b758c..0cfa946 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -1206,6 +1206,83 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	return ERR_PTR(ret);
+ }
+ 
++static int rereg_mr_trans(struct ib_mr *ibmr, int flags,
++			  u64 start, u64 length,
++			  u64 virt_addr, int mr_access_flags,
++			  struct hns_roce_cmd_mailbox *mailbox,
++			  u32 pdn, struct ib_udata *udata)
++{
++	struct hns_roce_dev *hr_dev = to_hr_dev(ibmr->device);
++	struct hns_roce_mr *mr = to_hr_mr(ibmr);
++	struct device *dev = hr_dev->dev;
++	int npages;
++	int ret;
++
++	if (mr->size != ~0ULL) {
++		npages = ib_umem_page_count(mr->umem);
++
++		if (hr_dev->caps.pbl_hop_num)
++			hns_roce_mhop_free(hr_dev, mr);
++		else
++			dma_free_coherent(dev, npages * 8,
++					  mr->pbl_buf, mr->pbl_dma_addr);
++	}
++	ib_umem_release(mr->umem);
++
++	mr->umem = ib_umem_get(udata, start, length, mr_access_flags, 0);
++	if (IS_ERR(mr->umem)) {
++		ret = PTR_ERR(mr->umem);
++		mr->umem = NULL;
++		return -ENOMEM;
++	}
++	npages = ib_umem_page_count(mr->umem);
++
++	if (hr_dev->caps.pbl_hop_num) {
++		ret = hns_roce_mhop_alloc(hr_dev, npages, mr);
++		if (ret)
++			goto release_umem;
++	} else {
++		mr->pbl_buf = dma_alloc_coherent(dev, npages * 8,
++						 &(mr->pbl_dma_addr),
++						 GFP_KERNEL);
++		if (!mr->pbl_buf) {
++			ret = -ENOMEM;
++			goto release_umem;
++		}
++	}
++
++	ret = hr_dev->hw->rereg_write_mtpt(hr_dev, mr, flags, pdn,
++					   mr_access_flags, virt_addr,
++					   length, mailbox->buf);
++	if (ret)
++		goto release_umem;
++
++
++	ret = hns_roce_ib_umem_write_mr(hr_dev, mr, mr->umem);
++	if (ret) {
++		if (mr->size != ~0ULL) {
++			npages = ib_umem_page_count(mr->umem);
++
++			if (hr_dev->caps.pbl_hop_num)
++				hns_roce_mhop_free(hr_dev, mr);
++			else
++				dma_free_coherent(dev, npages * 8,
++						  mr->pbl_buf,
++						  mr->pbl_dma_addr);
++		}
++
++		goto release_umem;
++	}
++
++	return 0;
++
++release_umem:
++	ib_umem_release(mr->umem);
++	return ret;
++
++}
++
++
+ int hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start, u64 length,
+ 			   u64 virt_addr, int mr_access_flags, struct ib_pd *pd,
+ 			   struct ib_udata *udata)
+@@ -1216,7 +1293,6 @@ int hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start, u64 length,
+ 	struct device *dev = hr_dev->dev;
+ 	unsigned long mtpt_idx;
+ 	u32 pdn = 0;
+-	int npages;
+ 	int ret;
+ 
+ 	if (!mr->enabled)
+@@ -1243,73 +1319,25 @@ int hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start, u64 length,
+ 		pdn = to_hr_pd(pd)->pdn;
+ 
+ 	if (flags & IB_MR_REREG_TRANS) {
+-		if (mr->size != ~0ULL) {
+-			npages = ib_umem_page_count(mr->umem);
+-
+-			if (hr_dev->caps.pbl_hop_num)
+-				hns_roce_mhop_free(hr_dev, mr);
+-			else
+-				dma_free_coherent(dev, npages * 8, mr->pbl_buf,
+-						  mr->pbl_dma_addr);
+-		}
+-		ib_umem_release(mr->umem);
+-
+-		mr->umem =
+-			ib_umem_get(udata, start, length, mr_access_flags, 0);
+-		if (IS_ERR(mr->umem)) {
+-			ret = PTR_ERR(mr->umem);
+-			mr->umem = NULL;
++		ret = rereg_mr_trans(ibmr, flags,
++				     start, length,
++				     virt_addr, mr_access_flags,
++				     mailbox, pdn, udata);
++		if (ret)
+ 			goto free_cmd_mbox;
+-		}
+-		npages = ib_umem_page_count(mr->umem);
+-
+-		if (hr_dev->caps.pbl_hop_num) {
+-			ret = hns_roce_mhop_alloc(hr_dev, npages, mr);
+-			if (ret)
+-				goto release_umem;
+-		} else {
+-			mr->pbl_buf = dma_alloc_coherent(dev, npages * 8,
+-							 &(mr->pbl_dma_addr),
+-							 GFP_KERNEL);
+-			if (!mr->pbl_buf) {
+-				ret = -ENOMEM;
+-				goto release_umem;
+-			}
+-		}
+-	}
+-
+-	ret = hr_dev->hw->rereg_write_mtpt(hr_dev, mr, flags, pdn,
+-					   mr_access_flags, virt_addr,
+-					   length, mailbox->buf);
+-	if (ret) {
+-		if (flags & IB_MR_REREG_TRANS)
+-			goto release_umem;
+-		else
++	} else {
++		ret = hr_dev->hw->rereg_write_mtpt(hr_dev, mr, flags, pdn,
++						   mr_access_flags, virt_addr,
++						   length, mailbox->buf);
++		if (ret)
+ 			goto free_cmd_mbox;
+ 	}
+ 
+-	if (flags & IB_MR_REREG_TRANS) {
+-		ret = hns_roce_ib_umem_write_mr(hr_dev, mr, mr->umem);
+-		if (ret) {
+-			if (mr->size != ~0ULL) {
+-				npages = ib_umem_page_count(mr->umem);
+-
+-				if (hr_dev->caps.pbl_hop_num)
+-					hns_roce_mhop_free(hr_dev, mr);
+-				else
+-					dma_free_coherent(dev, npages * 8,
+-							  mr->pbl_buf,
+-							  mr->pbl_dma_addr);
+-			}
+-
+-			goto release_umem;
+-		}
+-	}
+-
+ 	ret = hns_roce_sw2hw_mpt(hr_dev, mailbox, mtpt_idx);
+ 	if (ret) {
+ 		dev_err(dev, "SW2HW_MPT failed (%d)\n", ret);
+-		goto release_umem;
++		ib_umem_release(mr->umem);
++		goto free_cmd_mbox;
+ 	}
+ 
+ 	mr->enabled = 1;
+@@ -1320,9 +1348,6 @@ int hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start, u64 length,
+ 
+ 	return 0;
+ 
+-release_umem:
+-	ib_umem_release(mr->umem);
+-
+ free_cmd_mbox:
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 
 -- 
 1.9.1
 
