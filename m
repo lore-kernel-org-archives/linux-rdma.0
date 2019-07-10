@@ -2,213 +2,88 @@ Return-Path: <SRS0=nSk8=VH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9C5AC73C7C
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 07:25:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B519C73C7C
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 07:32:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A20C82064A
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 07:25:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562743533;
-	bh=amLX3eh5KPTW4tcOZzx0sxsoFSHElEgac6P7zZoYSr0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Q8ZTGpE7VdkfI3Li1ZqblQP65JqE+1FRwpU7dg+kgWSKkUKTxV3InLxPzUNEkpkp6
-	 4rK2S/gAhJUhVmGw3iVevdqk/d+erj00j/ELhfkHVFyvlZmk4i7X36oRp2Tc6P1yge
-	 wgfzNrTnIasTC2WU4JVboYdZc8C4LSo0yk896vGI=
+	by mail.kernel.org (Postfix) with ESMTP id DF0FF2064A
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 07:32:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="iu9bCyfI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727296AbfGJHZd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Jul 2019 03:25:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51008 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727142AbfGJHZc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Jul 2019 03:25:32 -0400
-Received: from localhost (unknown [37.142.3.125])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1E5D420838;
-        Wed, 10 Jul 2019 07:25:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562743531;
-        bh=amLX3eh5KPTW4tcOZzx0sxsoFSHElEgac6P7zZoYSr0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=xSi3VDsesY5kNYuiJxgbzOuI8T7KVZz+p1yTm2i64bTZobCO7TJ4QSobI2gCDH4S5
-         u2M5moj4RY8v2aSr2B8yUwbGLYcm4TcDRbBFvGvWmNYK+c1otY0Jn3iB+YQUjPOaiR
-         PaNSMb0FbkroT5bz5dfk06dVlcCZmcUJcvVijelA=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Stephen Hemminger <stephen@networkplumber.org>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        netdev <netdev@vger.kernel.org>, David Ahern <dsahern@gmail.com>,
-        Mark Zhang <markz@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH iproute2-rc 4/8] rdma: Add rdma statistic counter per-port auto mode support
-Date:   Wed, 10 Jul 2019 10:24:51 +0300
-Message-Id: <20190710072455.9125-5-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190710072455.9125-1-leon@kernel.org>
-References: <20190710072455.9125-1-leon@kernel.org>
+        id S1727348AbfGJHc4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Jul 2019 03:32:56 -0400
+Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:45793 "EHLO
+        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727290AbfGJHc4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Jul 2019 03:32:56 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1562743975; x=1594279975;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=sjG8ku6+W5v5awx8flcDasikc66jlGfghcpLlMkY5xU=;
+  b=iu9bCyfIJEVTU1ETcj0yR+4k0NAm0CO1ba6UCB8GSO1zzDDGYN8kShIi
+   kyUuT3QxeT6pgK82PAs6qgBv3R0wypW+84HTimwfsAt1kusWVqaJhOm7j
+   UYcESwxZcJ4+Vf9KJZDD+iTqaLwrFUyoW8kD9gSxZs3pyGP5+4kIjaEQJ
+   0=;
+X-IronPort-AV: E=Sophos;i="5.62,473,1554768000"; 
+   d="scan'208";a="773977521"
+Received: from iad6-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1a-e34f1ddc.us-east-1.amazon.com) ([10.124.125.6])
+  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 10 Jul 2019 07:32:54 +0000
+Received: from EX13MTAUEA001.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan2.iad.amazon.com [10.40.159.162])
+        by email-inbound-relay-1a-e34f1ddc.us-east-1.amazon.com (Postfix) with ESMTPS id 652ECA1FCD;
+        Wed, 10 Jul 2019 07:32:52 +0000 (UTC)
+Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
+ EX13MTAUEA001.ant.amazon.com (10.43.61.82) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Wed, 10 Jul 2019 07:32:51 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.245) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Wed, 10 Jul 2019 07:32:46 +0000
+Subject: Re: [PATCH v6 rdma-next 0/6] RDMA/qedr: Use the doorbell overflow
+ recovery mechanism for RDMA
+To:     Michal Kalderon <michal.kalderon@marvell.com>,
+        <ariel.elior@marvell.com>, <jgg@ziepe.ca>, <dledford@redhat.com>
+CC:     <linux-rdma@vger.kernel.org>, <davem@davemloft.net>,
+        <netdev@vger.kernel.org>, <sleybo@amazon.com>
+References: <20190709141735.19193-1-michal.kalderon@marvell.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <7b2f2205-6b5d-c9e7-2d59-296367e517ac@amazon.com>
+Date:   Wed, 10 Jul 2019 10:32:41 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:60.0)
+ Gecko/20100101 Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190709141735.19193-1-michal.kalderon@marvell.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.160.245]
+X-ClientProxiedBy: EX13D25UWB001.ant.amazon.com (10.43.161.245) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markz@mellanox.com>
+On 09/07/2019 17:17, Michal Kalderon wrote:
+> This patch series uses the doorbell overflow recovery mechanism
+> introduced in
+> commit 36907cd5cd72 ("qed: Add doorbell overflow recovery mechanism")
+> for rdma ( RoCE and iWARP )
+> 
+> The first three patches modify the core code to contain helper
+> functions for managing mmap_xa inserting, getting and freeing
+> entries. The code was taken almost as is from the efa driver.
+> There is still an open discussion on whether we should take
+> this even further and make the entire mmap generic. Until a
+> decision is made, I only created the database API and modified
+> the efa and qedr driver to use it. The doorbell recovery code will be based
+> on the common code.
+> 
+> Efa driver was compile tested only.
 
-With per-QP statistic counter support, a user is allowed to monitor
-specific QPs categories, which are bound to/unbound from counters
-dynamically allocated/deallocated.
-
-In per-port "auto" mode, QPs are bound to counters automatically
-according to common criteria. For example a per "type"(qp type)
-scheme, where in each process all QPs have same qp type are bind
-automatically to a single counter.
-Currently only "type" (qp type) is supported. Examples:
-
-$ rdma statistic qp set link mlx5_2/1 auto type on
-$ rdma statistic qp set link mlx5_2/1 auto off
-
-Signed-off-by: Mark Zhang <markz@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- rdma/stat.c  | 87 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- rdma/utils.c |  1 +
- 2 files changed, 88 insertions(+)
-
-diff --git a/rdma/stat.c b/rdma/stat.c
-index 0c239851..ad1cc063 100644
---- a/rdma/stat.c
-+++ b/rdma/stat.c
-@@ -14,12 +14,17 @@ static int stat_help(struct rd *rd)
- 	pr_out("       %s statistic OBJECT show\n", rd->filename);
- 	pr_out("       %s statistic OBJECT show link [ DEV/PORT_INDEX ] [ FILTER-NAME FILTER-VALUE ]\n", rd->filename);
- 	pr_out("       %s statistic OBJECT mode\n", rd->filename);
-+	pr_out("       %s statistic OBJECT set COUNTER_SCOPE [DEV/PORT_INDEX] auto {CRITERIA | off}\n", rd->filename);
- 	pr_out("where  OBJECT: = { qp }\n");
-+	pr_out("       CRITERIA : = { type }\n");
-+	pr_out("       COUNTER_SCOPE: = { link | dev }\n");
- 	pr_out("Examples:\n");
- 	pr_out("       %s statistic qp show\n", rd->filename);
- 	pr_out("       %s statistic qp show link mlx5_2/1\n", rd->filename);
- 	pr_out("       %s statistic qp mode\n", rd->filename);
- 	pr_out("       %s statistic qp mode link mlx5_0\n", rd->filename);
-+	pr_out("       %s statistic qp set link mlx5_2/1 auto type on\n", rd->filename);
-+	pr_out("       %s statistic qp set link mlx5_2/1 auto off\n", rd->filename);
- 
- 	return 0;
- }
-@@ -381,6 +386,87 @@ static int stat_qp_show(struct rd *rd)
- 	return rd_exec_cmd(rd, cmds, "parameter");
- }
- 
-+static int stat_qp_set_link_auto_sendmsg(struct rd *rd, uint32_t mask)
-+{
-+	uint32_t seq;
-+
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_STAT_SET,
-+		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
-+
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_PORT_INDEX, rd->port_idx);
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_RES, RDMA_NLDEV_ATTR_RES_QP);
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_MODE,
-+			 RDMA_COUNTER_MODE_AUTO);
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK, mask);
-+
-+	return rd_sendrecv_msg(rd, seq);
-+}
-+
-+static int stat_one_qp_set_link_auto_off(struct rd *rd)
-+{
-+	return stat_qp_set_link_auto_sendmsg(rd, 0);
-+}
-+
-+static int stat_one_qp_set_auto_type_on(struct rd *rd)
-+{
-+	return stat_qp_set_link_auto_sendmsg(rd, RDMA_COUNTER_MASK_QP_TYPE);
-+}
-+
-+static int stat_one_qp_set_link_auto_type(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		stat_help },
-+		{ "on",		stat_one_qp_set_auto_type_on },
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+static int stat_one_qp_set_link_auto(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		stat_one_qp_link_get_mode },
-+		{ "off",	stat_one_qp_set_link_auto_off },
-+		{ "type",	stat_one_qp_set_link_auto_type },
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+static int stat_one_qp_set_link(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		stat_one_qp_link_get_mode },
-+		{ "auto",	stat_one_qp_set_link_auto },
-+		{ 0 }
-+	};
-+
-+	if (!rd->port_idx)
-+		return 0;
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+static int stat_qp_set_link(struct rd *rd)
-+{
-+	return rd_exec_link(rd, stat_one_qp_set_link, false);
-+}
-+
-+static int stat_qp_set(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		stat_help },
-+		{ "link",	stat_qp_set_link },
-+		{ "help",	stat_help },
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
- static int stat_qp(struct rd *rd)
- {
- 	const struct rd_cmd cmds[] =  {
-@@ -388,6 +474,7 @@ static int stat_qp(struct rd *rd)
- 		{ "show",	stat_qp_show },
- 		{ "list",	stat_qp_show },
- 		{ "mode",	stat_qp_get_mode },
-+		{ "set",	stat_qp_set },
- 		{ "help",	stat_help },
- 		{ 0 }
- 	};
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 9c885ad7..aed1a3d0 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -445,6 +445,7 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_STAT_HWCOUNTER_ENTRY_VALUE] = MNL_TYPE_U64,
- 	[RDMA_NLDEV_ATTR_STAT_MODE] = MNL_TYPE_U32,
- 	[RDMA_NLDEV_ATTR_STAT_RES] = MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK] = MNL_TYPE_U32,
- };
- 
- int rd_attr_check(const struct nlattr *attr, int *typep)
--- 
-2.20.1
-
+For the whole series:
+Tested-by: Gal Pressman <galpress@amazon.com>
