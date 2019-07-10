@@ -2,36 +2,61 @@ Return-Path: <SRS0=nSk8=VH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A55C3C74A30
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 17:03:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD179C74A30
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 17:07:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7DC0720665
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 17:03:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BC3720844
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 17:07:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WgX7vUmp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727793AbfGJRDZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Jul 2019 13:03:25 -0400
-Received: from mga07.intel.com ([134.134.136.100]:17215 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727463AbfGJRDY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Jul 2019 13:03:24 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Jul 2019 10:03:24 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.63,475,1557212400"; 
-   d="scan'208";a="176899411"
-Received: from iweiny-desk2.sc.intel.com ([10.3.52.157])
-  by orsmga002.jf.intel.com with ESMTP; 10 Jul 2019 10:03:23 -0700
-Date:   Wed, 10 Jul 2019 10:03:23 -0700
-From:   Ira Weiny <ira.weiny@intel.com>
-To:     Nathan Chancellor <natechancellor@gmail.com>
+        id S1727319AbfGJRHQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Jul 2019 13:07:16 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:38786 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727460AbfGJRHP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Jul 2019 13:07:15 -0400
+Received: by mail-wr1-f66.google.com with SMTP id g17so3272674wrr.5;
+        Wed, 10 Jul 2019 10:07:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=LTapdIVWysC4BmFKF+77+HFRaZAY62cmjGq1o8w76vc=;
+        b=WgX7vUmpKwcssDeQZ0MQCpS6ehrwEZDkM5PrLDqqta6OsnfC5F/Bw2Y9Vgk6sNw2Gr
+         Yq58/XpF/aKiFjPlxKZM+3JMgmZ7tzLpluZX2SWGwZqyliDcjaAyYAXrJi71ipLyF1Y8
+         d3URV+ecdHf25fEvfA4CvW85ZfzhvfiYe8OzWLt9aAtkLKNMLrmEI/P8NT3QGbGnZ9kK
+         nPLRwL8VGEViiZy/BdIVQJVP1jEdMadH1/l+WgWrl5VX3tBfkYSyEU1dueTO+h1N6Pz8
+         gAhNyadOvDm3f0iYbtgwfJ/7ieqKduIuEkabjZCWOpeq1nBmhSSbg7nQrBphy4k2Tox3
+         Zmpg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=LTapdIVWysC4BmFKF+77+HFRaZAY62cmjGq1o8w76vc=;
+        b=FPog9j/g4SJu2c+4cmvIcgQl20Yv04Zzpa1weJwr9gOPPOKbuGUZwQUhZIdrcy1/Up
+         hgY0VpIwEChj0fzdHJePt1GEu/eDTkR2gVvm2y7ABIw5gPyr75SI0EUUQITL06VjGhya
+         JERIZ1Y66OwbB0iiASMg8BKXVL2Yc5/fm5IClAjV9dtrcz0CO1sNGon+Bji1nuHZYtY/
+         lR5rbbVnWdl5M/Tsi2dEmozljo3cxHu7Ddy6K9h5dCtIXYLHrlnwxo0ZJWEKYPJXS96/
+         G89qB2AEB96nl91uDRZvS3HmIP5TDRYLr4Ylh/tO2kiW+ZqEq6Pw6jQoXJ+b5sJEPymP
+         YZkw==
+X-Gm-Message-State: APjAAAX+QjD8QFDF3l5pIkQullidtrrg8FGsBa3WTJO/F41NINfV+dM3
+        pns5IrsAti2OTRES45jE9CPITU5axvojjg==
+X-Google-Smtp-Source: APXvYqzlGvjJxPScjAmBHyjng9WLycfn5Ibh6mdp6sgjQFC0e/OL/AbQOXuRiD7VtdFPAH68+7a1SA==
+X-Received: by 2002:adf:f046:: with SMTP id t6mr1655148wro.307.1562778433258;
+        Wed, 10 Jul 2019 10:07:13 -0700 (PDT)
+Received: from archlinux-threadripper ([2a01:4f8:222:2f1b::2])
+        by smtp.gmail.com with ESMTPSA id c12sm4348617wrd.21.2019.07.10.10.07.12
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Wed, 10 Jul 2019 10:07:12 -0700 (PDT)
+Date:   Wed, 10 Jul 2019 10:07:11 -0700
+From:   Nathan Chancellor <natechancellor@gmail.com>
+To:     Ira Weiny <ira.weiny@intel.com>
 Cc:     Dennis Dalessandro <dennis.dalessandro@intel.com>,
         Mike Marciniszyn <mike.marciniszyn@intel.com>,
         Doug Ledford <dledford@redhat.com>,
@@ -42,100 +67,34 @@ Cc:     Dennis Dalessandro <dennis.dalessandro@intel.com>,
         Nick Desaulniers <ndesaulniers@google.com>
 Subject: Re: [PATCH v2] IB/rdmavt: Fix variable shadowing issue in
  rvt_create_cq
-Message-ID: <20190710170322.GA5072@iweiny-DESK2.sc.intel.com>
+Message-ID: <20190710170711.GA80444@archlinux-threadripper>
 References: <20190709221312.7089-1-natechancellor@gmail.com>
  <20190709230552.61842-1-natechancellor@gmail.com>
+ <20190710170322.GA5072@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190709230552.61842-1-natechancellor@gmail.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+In-Reply-To: <20190710170322.GA5072@iweiny-DESK2.sc.intel.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 09, 2019 at 04:05:53PM -0700, Nathan Chancellor wrote:
-> clang warns:
+On Wed, Jul 10, 2019 at 10:03:23AM -0700, Ira Weiny wrote:
+> What version of the kernel was this found on?
 > 
-> drivers/infiniband/sw/rdmavt/cq.c:260:7: warning: variable 'err' is used
-> uninitialized whenever 'if' condition is true
-> [-Wsometimes-uninitialized]
->                 if (err)
->                     ^~~
-> drivers/infiniband/sw/rdmavt/cq.c:310:9: note: uninitialized use occurs
-> here
->         return err;
->                ^~~
-> drivers/infiniband/sw/rdmavt/cq.c:260:3: note: remove the 'if' if its
-> condition is always false
->                 if (err)
->                 ^~~~~~~~
-> drivers/infiniband/sw/rdmavt/cq.c:253:7: warning: variable 'err' is used
-> uninitialized whenever 'if' condition is true
-> [-Wsometimes-uninitialized]
->                 if (!cq->ip) {
->                     ^~~~~~~
-> drivers/infiniband/sw/rdmavt/cq.c:310:9: note: uninitialized use occurs
-> here
->         return err;
->                ^~~
-> drivers/infiniband/sw/rdmavt/cq.c:253:3: note: remove the 'if' if its
-> condition is always false
->                 if (!cq->ip) {
->                 ^~~~~~~~~~~~~~
-> drivers/infiniband/sw/rdmavt/cq.c:211:9: note: initialize the variable
-> 'err' to silence this warning
->         int err;
->                ^
->                 = 0
-> 2 warnings generated.
+> I don't see the problem with 5.2.  AFAICS there is no 'err' in the function
+> scope and the if scoped 'err' is initialized properly on line 239.
+> 
+> Ira
+> 
 
-What version of the kernel was this found on?
+$ git describe --contains 239b0e52d8aa
+next-20190709~84^2~57
 
-I don't see the problem with 5.2.  AFAICS there is no 'err' in the function
-scope and the if scoped 'err' is initialized properly on line 239.
+I should probably be better about adding 'PATCH -next' to my patches,
+sorry for the confusion!
 
-Ira
-
-> 
-> The function scoped err variable is uninitialized when the flow jumps
-> into the if statement. The if scoped err variable shadows the function
-> scoped err variable, preventing the err assignments within the if
-> statement to be reflected at the function level, which will cause
-> uninitialized use when the goto statements are taken.
-> 
-> Just remove the if scoped err declaration so that there is only one
-> copy of the err variable for this function.
-> 
-> Fixes: 239b0e52d8aa ("IB/hfi1: Move rvt_cq_wc struct into uapi directory")
-> Link: https://github.com/ClangBuiltLinux/linux/issues/594
-> Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
-> 
-> v1 -> v2:
-> 
-> * Updated the wording of the commit message to use proper terms like
->   scoping and shadowing, thanks to review from Nick (let me know if the
->   wording isn't up to snuff).
-> 
->  drivers/infiniband/sw/rdmavt/cq.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
-> index fac87b13329d..a85571a4cf57 100644
-> --- a/drivers/infiniband/sw/rdmavt/cq.c
-> +++ b/drivers/infiniband/sw/rdmavt/cq.c
-> @@ -247,8 +247,6 @@ int rvt_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
->  	 * See rvt_mmap() for details.
->  	 */
->  	if (udata && udata->outlen >= sizeof(__u64)) {
-> -		int err;
-> -
->  		cq->ip = rvt_create_mmap_info(rdi, sz, udata, u_wc);
->  		if (!cq->ip) {
->  			err = -ENOMEM;
-> -- 
-> 2.22.0
-> 
+Cheers,
+Nathan
