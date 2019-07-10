@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87031C74A23
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:31:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27A6DC74A21
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:31:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5DDD52086D
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:31:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0ADDD20651
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:31:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727154AbfGJOb5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Jul 2019 10:31:57 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:47975 "EHLO
+        id S1726617AbfGJOb6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Jul 2019 10:31:58 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:47974 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725911AbfGJOb5 (ORCPT
+        with ESMTP id S1727190AbfGJOb5 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Jul 2019 10:31:57 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from noaos@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 10 Jul 2019 17:31:51 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x6AEVpIm004077;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x6AEVpIj004077;
         Wed, 10 Jul 2019 17:31:51 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
 Cc:     linux-rdma@vger.kernel.org, Noa Osherovich <noaos@mellanox.com>,
         Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-core 4/4] pyverbs: Fix assignments of bad work requests
-Date:   Wed, 10 Jul 2019 17:22:51 +0300
-Message-Id: <20190710142251.9396-5-noaos@mellanox.com>
+Subject: [PATCH rdma-core 1/4] pyverbs: Fix Cython future warning during build
+Date:   Wed, 10 Jul 2019 17:22:48 +0300
+Message-Id: <20190710142251.9396-2-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190710142251.9396-1-noaos@mellanox.com>
 References: <20190710142251.9396-1-noaos@mellanox.com>
@@ -41,59 +41,144 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The bad work request content wasn't properly copied from the C
-object, fix copying to contain the bad work request data.
+Since Cython 0.29, a language_level directive is required in pxd
+files. This currently appears as a FutureWarning e.g.:
+FutureWarning: Cython directive 'language_level' not set, using 2 for
+now (Py2). This will change in a later release!
+
+This patch updates pyverbs' pxd files with this directive.
 
 Signed-off-by: Noa Osherovich <noaos@mellanox.com>
 Reviewd-by: Maor Gottlieb <maorg@mellanox.com>
 ---
- pyverbs/qp.pyx | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ pyverbs/addr.pxd             | 2 ++
+ pyverbs/base.pxd             | 2 ++
+ pyverbs/cq.pxd               | 3 +++
+ pyverbs/device.pxd           | 2 ++
+ pyverbs/libibverbs_enums.pxd | 3 +++
+ pyverbs/mr.pxd               | 2 ++
+ pyverbs/pd.pxd               | 3 +++
+ pyverbs/qp.pxd               | 3 +++
+ pyverbs/wr.pxd               | 2 ++
+ 9 files changed, 22 insertions(+)
 
-diff --git a/pyverbs/qp.pyx b/pyverbs/qp.pyx
-index 47a2158a5acc..ad89c94c002e 100644
---- a/pyverbs/qp.pyx
-+++ b/pyverbs/qp.pyx
-@@ -14,6 +14,9 @@ cimport pyverbs.libibverbs as v
- from pyverbs.pd cimport PD
+diff --git a/pyverbs/addr.pxd b/pyverbs/addr.pxd
+index 389c2d5bdb2e..e7322e8d7fdd 100644
+--- a/pyverbs/addr.pxd
++++ b/pyverbs/addr.pxd
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2018, Mellanox Technologies. All rights reserved. See COPYING file
  
- 
-+cdef extern from 'string.h':
-+    void *memcpy(void *dest, const void *src, size_t n);
++#cython: language_level=3
 +
- cdef class QPCap(PyverbsObject):
-     def __cinit__(self, max_send_wr=1, max_recv_wr=10, max_send_sge=1,
-                       max_recv_sge=1, max_inline_data=0):
-@@ -963,10 +966,12 @@ cdef class QP(PyverbsCM):
-         :return: None
-         """
-         cdef v.ibv_recv_wr *my_bad_wr
-+        # In order to provide a pointer to a pointer, use a temporary cdef'ed
-+        # variable.
-         rc = v.ibv_post_recv(self.qp, &wr.recv_wr, &my_bad_wr)
-         if rc != 0:
--            if bad_wr is not None:
--                bad_wr.wr = <object>my_bad_wr
-+            if (bad_wr):
-+                memcpy(&bad_wr.recv_wr, my_bad_wr, sizeof(bad_wr.recv_wr))
-             raise PyverbsRDMAErrno('Failed to post recv (returned {rc})'.
-                                    format(rc=rc))
+ from .base cimport PyverbsObject, PyverbsCM
+ from pyverbs cimport libibverbs as v
  
-@@ -978,11 +983,13 @@ cdef class QP(PyverbsCM):
-                        case of a failure
-         :return: None
-         """
-+        # In order to provide a pointer to a pointer, use a temporary cdef'ed
-+        # variable.
-         cdef v.ibv_send_wr *my_bad_wr
-         rc = v.ibv_post_send(self.qp, &wr.send_wr, &my_bad_wr)
-         if rc != 0:
--            if bad_wr is not None:
--                bad_wr.wr = <object>my_bad_wr
-+            if (bad_wr):
-+                memcpy(&bad_wr.send_wr, my_bad_wr, sizeof(bad_wr.send_wr))
-             raise PyverbsRDMAErrno('Failed to post send (returned {rc})'.
-                                    format(rc=rc))
+diff --git a/pyverbs/base.pxd b/pyverbs/base.pxd
+index fa661edb5315..e85f7c020e1c 100644
+--- a/pyverbs/base.pxd
++++ b/pyverbs/base.pxd
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019, Mellanox Technologies. All rights reserved.
+ 
++#cython: language_level=3
++
+ cdef class PyverbsObject(object):
+     cdef object __weakref__
+     cdef object logger
+diff --git a/pyverbs/cq.pxd b/pyverbs/cq.pxd
+index 0e3bcdfffb7e..9b8df5dcae39 100644
+--- a/pyverbs/cq.pxd
++++ b/pyverbs/cq.pxd
+@@ -1,5 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019, Mellanox Technologies. All rights reserved.
++
++#cython: language_level=3
++
+ from pyverbs.base cimport PyverbsObject, PyverbsCM
+ cimport pyverbs.libibverbs as v
+ 
+diff --git a/pyverbs/device.pxd b/pyverbs/device.pxd
+index 3cb52bde4603..44c8bc3cbcbc 100644
+--- a/pyverbs/device.pxd
++++ b/pyverbs/device.pxd
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2018, Mellanox Technologies. All rights reserved. See COPYING file
+ 
++#cython: language_level=3
++
+ from .base cimport PyverbsObject, PyverbsCM
+ cimport pyverbs.libibverbs as v
+ 
+diff --git a/pyverbs/libibverbs_enums.pxd b/pyverbs/libibverbs_enums.pxd
+index 85b5092c486f..c347ef31dd2b 100644
+--- a/pyverbs/libibverbs_enums.pxd
++++ b/pyverbs/libibverbs_enums.pxd
+@@ -1,6 +1,9 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2018, Mellanox Technologies. All rights reserved.
+ 
++#cython: language_level=3
++
++
+ cdef extern from '<infiniband/verbs.h>':
+ 
+     cpdef enum ibv_transport_type:
+diff --git a/pyverbs/mr.pxd b/pyverbs/mr.pxd
+index 2d76f2dfbe7c..fb46611e6f42 100644
+--- a/pyverbs/mr.pxd
++++ b/pyverbs/mr.pxd
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019, Mellanox Technologies. All rights reserved. See COPYING file
+ 
++#cython: language_level=3
++
+ from pyverbs.base cimport PyverbsCM
+ from . cimport libibverbs as v
+ 
+diff --git a/pyverbs/pd.pxd b/pyverbs/pd.pxd
+index 07c9158b27eb..e0861b301b7c 100644
+--- a/pyverbs/pd.pxd
++++ b/pyverbs/pd.pxd
+@@ -1,5 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019, Mellanox Technologies. All rights reserved.
++
++#cython: language_level=3
++
+ from pyverbs.device cimport Context
+ cimport pyverbs.libibverbs as v
+ from .base cimport PyverbsCM
+diff --git a/pyverbs/qp.pxd b/pyverbs/qp.pxd
+index d85bc28992ad..29b9ec4a0221 100644
+--- a/pyverbs/qp.pxd
++++ b/pyverbs/qp.pxd
+@@ -1,5 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved.
++
++#cython: language_level=3
++
+ from pyverbs.base cimport PyverbsObject, PyverbsCM
+ cimport pyverbs.libibverbs as v
+ 
+diff --git a/pyverbs/wr.pxd b/pyverbs/wr.pxd
+index 64b16091116a..e259249ef7f8 100644
+--- a/pyverbs/wr.pxd
++++ b/pyverbs/wr.pxd
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved. See COPYING file
+ 
++#cython: language_level=3
++
+ from .base cimport PyverbsCM
+ from pyverbs cimport libibverbs as v
  
 -- 
 2.21.0
