@@ -2,76 +2,79 @@ Return-Path: <SRS0=nSk8=VH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5599C004EF
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 09:31:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB55C73C64
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 12:10:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 921A520838
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 09:31:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562751111;
-	bh=vy0Mr4Uol6rxl9Ul5HNef3JkghGVfMZzH2ZYvBEDPNM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=TKbhFAs5jJ9SMzkT3i5sHFJ1cLlFPdbdEESlfPXVYWkUfgdHrj+VqBhZtPvHAgzJz
-	 4ir535FdeZsPRAF86O1+T2fAQtP8UKLGKHfMRWrdPwjVDSW4/SMwPNR7T1iXLLXC9t
-	 zzPy1KorIWyiPNDc4NN2TxQTCdOqOVAab/Dnjwew=
+	by mail.kernel.org (Postfix) with ESMTP id 10FA520651
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 12:10:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="NW36NFr+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727324AbfGJJbp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Jul 2019 05:31:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34308 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727064AbfGJJbp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Jul 2019 05:31:45 -0400
-Received: from localhost (unknown [37.142.3.125])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C01A020838;
-        Wed, 10 Jul 2019 09:31:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562751104;
-        bh=vy0Mr4Uol6rxl9Ul5HNef3JkghGVfMZzH2ZYvBEDPNM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=v3AUO4eYGlcdf0/mRSZxPbZ2Xs+pJEVLj+7ECL67ahfXbHScUC+ItJ93D0h1evUJv
-         X4xwiL//KM6HoaGu1aq2/XwMq3fleodsYyTzpDjOQ25Ie/Vz+b4bt39sAJRumpGlLl
-         PWR5BVOMD3BBROb3E3q6OTjafSO/4YRLR5rXa9ME=
-Date:   Wed, 10 Jul 2019 12:31:39 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Nathan Chancellor <natechancellor@gmail.com>
-Cc:     Saeed Mahameed <saeedm@mellanox.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Boris Pismenny <borisp@mellanox.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        clang-built-linux@googlegroups.com,
-        Nick Desaulniers <ndesaulniers@google.com>
-Subject: Re: [PATCH net-next v3] net/mlx5e: Convert single case statement
- switch statements into if statements
-Message-ID: <20190710093139.GG7034@mtr-leonro.mtl.com>
-References: <20190710044748.3924-1-natechancellor@gmail.com>
- <20190710060614.6155-1-natechancellor@gmail.com>
+        id S1725929AbfGJMKL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Jul 2019 08:10:11 -0400
+Received: from smtp-fw-9101.amazon.com ([207.171.184.25]:31786 "EHLO
+        smtp-fw-9101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725911AbfGJMKL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Jul 2019 08:10:11 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1562760610; x=1594296610;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=keN8EFn+IHg5hXYYMmmGsxMpxiPk60sc+gcoGB+dD7M=;
+  b=NW36NFr+XI9CRjcQrsBKodDRWC9uNX8Q+9E0nbrQAP0qm7xot1lCQaBy
+   QcuOXJPsx8zs2FMbH16NPu2J9RabeZFtoxfHrakuVx9BWEoagn7JdwztR
+   nrlQb37ixVHOHxj5M/wEkN0PtFPtFBJmAf29kcqG2EAHyL+V4iaH7FA4N
+   Q=;
+X-IronPort-AV: E=Sophos;i="5.62,474,1554768000"; 
+   d="scan'208";a="815382902"
+Received: from sea3-co-svc-lb6-vlan2.sea.amazon.com (HELO email-inbound-relay-2a-53356bf6.us-west-2.amazon.com) ([10.47.22.34])
+  by smtp-border-fw-out-9101.sea19.amazon.com with ESMTP; 10 Jul 2019 12:10:03 +0000
+Received: from EX13MTAUEA001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
+        by email-inbound-relay-2a-53356bf6.us-west-2.amazon.com (Postfix) with ESMTPS id C5405A2362;
+        Wed, 10 Jul 2019 12:10:02 +0000 (UTC)
+Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
+ EX13MTAUEA001.ant.amazon.com (10.43.61.82) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Wed, 10 Jul 2019 12:10:02 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.43.161.115) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Wed, 10 Jul 2019 12:09:58 +0000
+Subject: Re: [PATCH v6 rdma-next 2/6] RDMA/efa: Use the common mmap_xa helpers
+To:     Michal Kalderon <michal.kalderon@marvell.com>,
+        <ariel.elior@marvell.com>, <jgg@ziepe.ca>, <dledford@redhat.com>
+CC:     <linux-rdma@vger.kernel.org>, <davem@davemloft.net>,
+        <netdev@vger.kernel.org>
+References: <20190709141735.19193-1-michal.kalderon@marvell.com>
+ <20190709141735.19193-3-michal.kalderon@marvell.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <ba7809c0-5ab1-ac5e-bcf9-57d2930d21ed@amazon.com>
+Date:   Wed, 10 Jul 2019 15:09:52 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:60.0)
+ Gecko/20100101 Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190710060614.6155-1-natechancellor@gmail.com>
-User-Agent: Mutt/1.12.0 (2019-05-25)
+In-Reply-To: <20190709141735.19193-3-michal.kalderon@marvell.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.161.115]
+X-ClientProxiedBy: EX13D06UWA001.ant.amazon.com (10.43.160.220) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 09, 2019 at 11:06:15PM -0700, Nathan Chancellor wrote:
-> During the review of commit 1ff2f0fa450e ("net/mlx5e: Return in default
-> case statement in tx_post_resync_params"), Leon and Nick pointed out
-> that the switch statements can be converted to single if statements
-> that return early so that the code is easier to follow.
->
-> Suggested-by: Leon Romanovsky <leon@kernel.org>
-> Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
+On 09/07/2019 17:17, Michal Kalderon wrote:
+> Remove the functions related to managing the mmap_xa database.
+> This code was copied to the ib_core. Use the common API's instead.
+> 
+> Signed-off-by: Ariel Elior <ariel.elior@marvell.com>
+> Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
 
-Thanks again,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Thanks Michal,
+Acked-by: Gal Pressman <galpress@amazon.com>
