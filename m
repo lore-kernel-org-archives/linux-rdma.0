@@ -2,138 +2,51 @@ Return-Path: <SRS0=nSk8=VH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE28DC73C6D
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 05:27:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26D07C73C6D
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 05:37:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F5D72083D
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 05:27:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562736472;
-	bh=7L1PogGoEpn5Kd8aneV8mLaxZSNCTpPPc2eMzKiOKO8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=OvmSNAZGDP8/Hn68lLOaKI8o7IpinZyN7I82cuMdc6ArSSV4RiTmzOWd+/Qf6LCjD
-	 hJZm4tMhz2UvyHBkcUBaGPMGepFphVe2IwXiGqSwh3WNiXaB+em6/YHvJSlX1fLQZV
-	 3Pg6lWzrBn4znDEMs0qvjmph9d/Uz29WT663cQwA=
+	by mail.kernel.org (Postfix) with ESMTP id EC2D120651
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 05:37:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726080AbfGJF1v (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Jul 2019 01:27:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49908 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725932AbfGJF1v (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Jul 2019 01:27:51 -0400
-Received: from localhost (unknown [37.142.3.125])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3709A20665;
-        Wed, 10 Jul 2019 05:27:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562736470;
-        bh=7L1PogGoEpn5Kd8aneV8mLaxZSNCTpPPc2eMzKiOKO8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Fao99MZDLEPFpKcxGrLYlGStt4Rk2hTF5HhRtch8AOxm+g9/mUQ/wO5/Z3zZmnlEr
-         2nNEaOsqg3pxr4Gn58O/0DyiAcnOnw6tThQ6oqSpJEmmdRH3R/v8zLiP0vXX9c+LKb
-         bAriiEFNCFE2oNeIpB5PBb6sdD0EeZuV/ykrW8Xo=
-Date:   Wed, 10 Jul 2019 08:27:46 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Saeed Mahameed <saeedm@mellanox.com>
-Cc:     "saeedm@dev.mellanox.co.il" <saeedm@dev.mellanox.co.il>,
-        Eran Ben Elisha <eranbe@mellanox.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH mlx5-next 4/5] net/mlx5: Introduce TLS TX offload
- hardware bits and structures
-Message-ID: <20190710052746.GE7034@mtr-leonro.mtl.com>
-References: <20190703073909.14965-1-saeedm@mellanox.com>
- <20190703073909.14965-5-saeedm@mellanox.com>
- <20190703092735.GZ4727@mtr-leonro.mtl.com>
- <CALzJLG-em1w+Lgf2UutbG2Lzq8bx3zUqoLGx26H2_EXOuuk+jg@mail.gmail.com>
- <20190704171519.GE7212@mtr-leonro.mtl.com>
- <CALzJLG--k3z2HuV09tivJuOtU-BFAyCEV1vJbPqYX+OyskggmQ@mail.gmail.com>
- <20190704182113.GG7212@mtr-leonro.mtl.com>
- <c5cc4604e5759e5b8a056a3baefb8a3d3caf4f74.camel@mellanox.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c5cc4604e5759e5b8a056a3baefb8a3d3caf4f74.camel@mellanox.com>
-User-Agent: Mutt/1.12.0 (2019-05-25)
+        id S1726961AbfGJFhJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Jul 2019 01:37:09 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:50402 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725932AbfGJFhJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Jul 2019 01:37:09 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 4101C13E9F129;
+        Tue,  9 Jul 2019 22:37:08 -0700 (PDT)
+Date:   Tue, 09 Jul 2019 22:36:57 -0700 (PDT)
+Message-Id: <20190709.223657.1108624224137142530.davem@davemloft.net>
+To:     natechancellor@gmail.com
+Cc:     saeedm@mellanox.com, leon@kernel.org, borisp@mellanox.com,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, clang-built-linux@googlegroups.com,
+        ndesaulniers@google.com
+Subject: Re: [PATCH v2] net/mlx5e: Refactor switch statements to avoid
+ using uninitialized variables
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20190710044748.3924-1-natechancellor@gmail.com>
+References: <20190708231154.89969-1-natechancellor@gmail.com>
+        <20190710044748.3924-1-natechancellor@gmail.com>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Tue, 09 Jul 2019 22:37:08 -0700 (PDT)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 09, 2019 at 08:54:58PM +0000, Saeed Mahameed wrote:
-> On Thu, 2019-07-04 at 21:21 +0300, Leon Romanovsky wrote:
-> > On Thu, Jul 04, 2019 at 01:21:04PM -0400, Saeed Mahameed wrote:
-> > > On Thu, Jul 4, 2019 at 1:15 PM Leon Romanovsky <leon@kernel.org>
-> > > wrote:
-> > > > On Thu, Jul 04, 2019 at 01:06:58PM -0400, Saeed Mahameed wrote:
-> > > > > On Wed, Jul 3, 2019 at 5:27 AM <leon@kernel.org> wrote:
-> > > > > > On Wed, Jul 03, 2019 at 07:39:32AM +0000, Saeed Mahameed
-> > > > > > wrote:
-> > > > > > > From: Eran Ben Elisha <eranbe@mellanox.com>
-> > > > > > >
-> > > > > > > Add TLS offload related IFC structs, layouts and
-> > > > > > > enumerations.
-> > > > > > >
-> > > > > > > Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
-> > > > > > > Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
-> > > > > > > Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> > > > > > > ---
-> > > > > > >  include/linux/mlx5/device.h   |  14 +++++
-> > > > > > >  include/linux/mlx5/mlx5_ifc.h | 104
-> > > > > > > ++++++++++++++++++++++++++++++++--
-> > > > > > >  2 files changed, 114 insertions(+), 4 deletions(-)
-> > > > > >
-> > > > > > <...>
-> > > > > >
-> > > > > > > @@ -2725,7 +2739,8 @@ struct mlx5_ifc_traffic_counter_bits
-> > > > > > > {
-> > > > > > >
-> > > > > > >  struct mlx5_ifc_tisc_bits {
-> > > > > > >       u8         strict_lag_tx_port_affinity[0x1];
-> > > > > > > -     u8         reserved_at_1[0x3];
-> > > > > > > +     u8         tls_en[0x1];
-> > > > > > > +     u8         reserved_at_1[0x2];
-> > > > > >
-> > > > > > It should be reserved_at_2.
-> > > > > >
-> > > > >
-> > > > > it should be at_1.
-> > > >
-> > > > Why? See mlx5_ifc_flow_table_prop_layout_bits,
-> > > > mlx5_ifc_roce_cap_bits, e.t.c.
-> > > >
-> > >
-> > > they are all at_1 .. so i don't really understand what you want
-> > > from me,
-> > > Leon the code is good, please double check you comments..
-> >
-> > Saeed,
-> >
-> > reserved_at_1 should be renamed to be reserved_at_2.
-> >
-> > strict_lag_tx_port_affinity[0x1] + tls_en[0x1] = 0x2
-> >
->
-> Ok now it is clear, i trusted the developer on this one :)
-> anyway you have to admit that you mislead me with your examples:
-> mx5_ifc_flow_table_prop_layout_bits and mlx5_ifc_roce_cap_bits, they
-> both are fine so i though this was fine too.
->
-> I will fix it up.
 
-Thanks
-
->
-> Thanks,
-> Saeed.
->
-> > > > Thanks
-> > > >
-> > > > > > Thanks
+I applied your simpler addition of the return statement so that I could
+get the net-next pull request out tonight, just FYI...
