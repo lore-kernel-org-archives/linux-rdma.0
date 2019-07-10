@@ -2,312 +2,112 @@ Return-Path: <SRS0=nSk8=VH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D913C74A21
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:32:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 858B7C74A2C
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:46:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 463E020651
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:32:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F34C20651
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Jul 2019 14:46:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="F9uV7Mji"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727190AbfGJOb7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Jul 2019 10:31:59 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:47977 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726098AbfGJOb7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Jul 2019 10:31:59 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 10 Jul 2019 17:31:51 +0300
-Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x6AEVpIl004077;
-        Wed, 10 Jul 2019 17:31:51 +0300
-From:   Noa Osherovich <noaos@mellanox.com>
-To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-core 3/4] pyverbs: Avoid casting pointers to object type
-Date:   Wed, 10 Jul 2019 17:22:50 +0300
-Message-Id: <20190710142251.9396-4-noaos@mellanox.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190710142251.9396-1-noaos@mellanox.com>
-References: <20190710142251.9396-1-noaos@mellanox.com>
+        id S1727674AbfGJOqi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Jul 2019 10:46:38 -0400
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:36491 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727546AbfGJOqi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Jul 2019 10:46:38 -0400
+Received: by mail-qk1-f193.google.com with SMTP id g18so2088649qkl.3
+        for <linux-rdma@vger.kernel.org>; Wed, 10 Jul 2019 07:46:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=ZOo+HIvtnGeDjn4M9ja4kY1nWK9vaSMpBmDscZRAu/o=;
+        b=F9uV7MjikC39N7Z+mGrSWIh/WJjoQEa3TFGorbASmstt1fOczlcFWWfpxmOSVWfZ85
+         JD/XNAVlipIovCqNDZFwtuP91XvcG1HtnmePpr3s2PFcIfs+iJFuO384oIJDXARkfWgs
+         5Gs5ansx5gY9m1G5yUl14dSjku2aqKWfuLsQ1xCpKPXYhHz9s9u0MWfs0itlqK022TPz
+         X/zhUNL3Khr9V7qMBqwFR+XIr2X1/0jHM5u4YjKMmxNnbbVeVhFKjJeZYmcM7josFQ8L
+         Ys5wq33297sygc5sQYerkz4uAJ8k5rX5hwkwPQimxPEqvM0XHfGWqNzMtryvMXrZzTlg
+         6odw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=ZOo+HIvtnGeDjn4M9ja4kY1nWK9vaSMpBmDscZRAu/o=;
+        b=gz0VZxImwCN/kau5fkbxbhtKWp9trLipIRuURTEVGg0M8EUwy+03VmIEyz5q/QPfHd
+         NFXorNPacWgWMjLhLnBXooO+AnLnZd6Zr41P9vCE6ZWQMd2AhE0FQDke77pbhmvsIK+f
+         eNXzsIGtJwJ4dHJk5MVVFsMTHUnTVrVVpbFzZwYqbK4LLq212SEjBDCgLduD4ant8VAF
+         L8Au4xYLcrmF9mkdGZq08YCuFHTzSQUBnIKJCoJZbj9HuK0rh9hMnioZJzUqzNzurhyr
+         3wj7fe3peRVVdxEjT+HHVxczfTgaid0T5oFXBbSZaHc9mEerPYuZ1KFBXufg4VleAAjp
+         aCLA==
+X-Gm-Message-State: APjAAAVfetExparmzDaHRc1uW1Mqi/+D29ZJ3gMBfnoPZLjIU/ETGkpa
+        KuwsJJyvga6KNwBHzkHq6w5Cuw==
+X-Google-Smtp-Source: APXvYqzgAsqcicTC3uYfs0bv1X70M1RUqm2tfrYF9UoRPj0OHibx5L7ZXAAsXar79xXLNpgRyLGW/Q==
+X-Received: by 2002:a05:620a:124f:: with SMTP id a15mr24276909qkl.173.1562769997487;
+        Wed, 10 Jul 2019 07:46:37 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
+        by smtp.gmail.com with ESMTPSA id u126sm1100041qkf.132.2019.07.10.07.46.37
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 10 Jul 2019 07:46:37 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1hlDrg-0002WC-LU; Wed, 10 Jul 2019 11:46:36 -0300
+Date:   Wed, 10 Jul 2019 11:46:36 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Cc:     Bernard Metzler <bmt@zurich.ibm.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-next@vger.kernel.org
+Subject: Re: [PATCH -next] rdma/siw: Add missing dependencies on LIBCRC32C
+ and DMA_VIRT_OPS
+Message-ID: <20190710144636.GC4051@ziepe.ca>
+References: <20190710133930.26591-1-geert@linux-m68k.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190710133930.26591-1-geert@linux-m68k.org>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maxim Chicherin <maximc@mellanox.com>
+On Wed, Jul 10, 2019 at 03:39:30PM +0200, Geert Uytterhoeven wrote:
+> If LIBCRC32C and DMA_VIRT_OPS are not enabled:
+> 
+>     drivers/infiniband/sw/siw/siw_main.o: In function `siw_newlink':
+>     siw_main.c:(.text+0x35c): undefined reference to `dma_virt_ops'
+>     drivers/infiniband/sw/siw/siw_qp_rx.o: In function `siw_csum_update':
+>     siw_qp_rx.c:(.text+0x16): undefined reference to `crc32c'
+> 
+> Fix the first issue by adding a select of DMA_VIRT_OPS.
+> Fix the second issue by replacing the unneeded dependency on
+> CRYPTO_CRC32 by a dependency on LIBCRC32C.
+> 
+> Reported-by: noreply@ellerman.id.au (first issue)
+> Fixes: c0cf5bdde46c664d ("rdma/siw: addition to kernel build environment")
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+>  drivers/infiniband/sw/siw/Kconfig | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/sw/siw/Kconfig b/drivers/infiniband/sw/siw/Kconfig
+> index 94f684174ce3556e..b622fc62f2cd6d46 100644
+> +++ b/drivers/infiniband/sw/siw/Kconfig
+> @@ -1,6 +1,7 @@
+>  config RDMA_SIW
+>  	tristate "Software RDMA over TCP/IP (iWARP) driver"
+> -	depends on INET && INFINIBAND && CRYPTO_CRC32
+> +	depends on INET && INFINIBAND && LIBCRC32C
 
-When casting a C pointer into <object> type python assumes that the
-head of the struct is the reference count. The reference count is
-incremented every time another variable points to this object.
-The result is that the first member of the C struct, which is wrapped
-by python object, is incremented. E.g. PD holds ibv_pd pointer, so the
-first field of ibv_pd which is ibv_context address is incremented by
-1, meaning ibv_context pointer holds invalid address.
+Is this the best practice? 
 
-Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
-Reviewd-by: Maor Gottlieb <maorg@mellanox.com>
----
- pyverbs/cq.pyx | 23 +++--------------------
- pyverbs/pd.pyx |  4 ----
- pyverbs/qp.pyx | 39 +++++++++++++++++++--------------------
- pyverbs/wr.pyx | 17 +++++------------
- 4 files changed, 27 insertions(+), 56 deletions(-)
+siw is using both the libcrc32c API and the
+'crypto_alloc_shash("crc32c", 0, 0);' version. Is it right to get that
+transitively through LIBCRC32C?
 
-diff --git a/pyverbs/cq.pyx b/pyverbs/cq.pyx
-index dd475759337c..dc09924e88a9 100644
---- a/pyverbs/cq.pyx
-+++ b/pyverbs/cq.pyx
-@@ -59,10 +59,6 @@ cdef class CompChannel(PyverbsCM):
-         if isinstance(obj, CQ) or isinstance(obj, CQEX):
-             self.cqs.add(obj)
- 
--    @property
--    def channel(self):
--        return <object>self.cc
--
- 
- cdef class CQ(PyverbsCM):
-     """
-@@ -84,8 +80,7 @@ cdef class CQ(PyverbsCM):
-         """
-         if channel is not None:
-             self.cq = v.ibv_create_cq(context.context, cqe, <void*>cq_context,
--                                      <v.ibv_comp_channel*>channel.channel,
--                                      comp_vector)
-+                                      channel.cc, comp_vector)
-             channel.add_ref(self)
-         else:
-             self.cq = v.ibv_create_cq(context.context, cqe, <void*>cq_context,
-@@ -162,10 +157,6 @@ cdef class CQ(PyverbsCM):
-         """
-         v.ibv_ack_cq_events(self.cq, num_events)
- 
--    @property
--    def _cq(self):
--        return <object>self.cq
--
-     def __str__(self):
-         print_format = '{:22}: {:<20}\n'
-         return 'CQ\n' +\
-@@ -215,9 +206,9 @@ cdef class CqInitAttrEx(PyverbsObject):
-     def comp_channel(self):
-         return self.channel
-     @comp_channel.setter
--    def comp_channel(self, val):
-+    def comp_channel(self, CompChannel val):
-         self.channel = val
--        self.attr.channel = <v.ibv_comp_channel*>val
-+        self.attr.channel = val.cc
- 
-     @property
-     def comp_vector(self):
-@@ -364,14 +355,6 @@ cdef class CQEX(PyverbsCM):
-     def wr_id(self, val):
-         self.cq.wr_id = val
- 
--    @property
--    def _cq(self):
--        return <object>self.cq
--
--    @property
--    def _ibv_cq(self):
--        return <object>self.ibv_cq
--
-     def __str__(self):
-         print_format = '{:<22}: {:<20}\n'
-         return 'Extended CQ:\n' +\
-diff --git a/pyverbs/pd.pyx b/pyverbs/pd.pyx
-index 4b5dc139c59f..7cd0876682b2 100644
---- a/pyverbs/pd.pyx
-+++ b/pyverbs/pd.pyx
-@@ -67,7 +67,3 @@ cdef class PD(PyverbsCM):
-             self.qps.add(obj)
-         else:
-             raise PyverbsError('Unrecognized object type')
--
--    @property
--    def _pd(self):
--        return <object>self.pd
-diff --git a/pyverbs/qp.pyx b/pyverbs/qp.pyx
-index b33993a106e9..47a2158a5acc 100644
---- a/pyverbs/qp.pyx
-+++ b/pyverbs/qp.pyx
-@@ -101,9 +101,9 @@ cdef class QPInitAttr(PyverbsObject):
-         self.attr.qp_context = <void*>qp_context
-         if scq is not None:
-             if type(scq) is CQ:
--                self.attr.send_cq = <v.ibv_cq*>scq._cq
-+                self.attr.send_cq = (<CQ>rcq).cq
-             elif type(scq) is CQEX:
--                self.attr.send_cq = <v.ibv_cq*>scq._ibv_cq
-+                self.attr.send_cq = (<CQEX>rcq).ibv_cq
-             else:
-                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
-                                        format(t=type(scq)))
-@@ -111,9 +111,9 @@ cdef class QPInitAttr(PyverbsObject):
- 
-         if rcq is not None:
-             if type(rcq) is CQ:
--                self.attr.recv_cq = <v.ibv_cq*>rcq._cq
-+                self.attr.recv_cq = (<CQ>rcq).cq
-             elif type(rcq) is CQEX:
--                self.attr.recv_cq = <v.ibv_cq*>rcq._ibv_cq
-+                self.attr.recv_cq = (<CQEX>rcq).ibv_cq
-             else:
-                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
-                                        format(t=type(rcq)))
-@@ -129,9 +129,9 @@ cdef class QPInitAttr(PyverbsObject):
-     @send_cq.setter
-     def send_cq(self, val):
-         if type(val) is CQ:
--            self.attr.send_cq = <v.ibv_cq*>val._cq
-+            self.attr.send_cq = (<CQ>val).cq
-         elif type(val) is CQEX:
--            self.attr.send_cq = <v.ibv_cq*>val._ibv_cq
-+            self.attr.send_cq = (<CQEX>val).ibv_cq
-         self.scq = val
- 
-     @property
-@@ -140,9 +140,9 @@ cdef class QPInitAttr(PyverbsObject):
-     @recv_cq.setter
-     def recv_cq(self, val):
-         if type(val) is CQ:
--            self.attr.recv_cq = <v.ibv_cq*>val._cq
-+            self.attr.recv_cq = (<CQ>val).cq
-         elif type(val) is CQEX:
--            self.attr.recv_cq = <v.ibv_cq*>val._ibv_cq
-+            self.attr.recv_cq = (<CQEX>val).ibv_cq
-         self.rcq = val
- 
-     @property
-@@ -218,9 +218,9 @@ cdef class QPInitAttrEx(PyverbsObject):
-         _copy_caps(cap, self)
-         if scq is not None:
-             if type(scq) is CQ:
--                self.attr.send_cq = <v.ibv_cq*>scq._cq
-+                self.attr.send_cq = (<CQ>rcq).cq
-             elif type(scq) is CQEX:
--                self.attr.send_cq = <v.ibv_cq*>scq._ibv_cq
-+                self.attr.send_cq = (<CQEX>rcq).ibv_cq
-             else:
-                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
-                                        format(t=type(scq)))
-@@ -228,12 +228,12 @@ cdef class QPInitAttrEx(PyverbsObject):
- 
-         if rcq is not None:
-             if type(rcq) is CQ:
--                self.attr.recv_cq = <v.ibv_cq*>rcq._cq
-+                self.attr.recv_cq = (<CQ>rcq).cq
-             elif type(rcq) is CQEX:
--                self.attr.recv_cq = <v.ibv_cq*>rcq._ibv_cq
-+                self.attr.recv_cq = (<CQEX>rcq).ibv_cq
-             else:
-                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
--                                       format(type(rcq)))
-+                                       format(t=type(rcq)))
-         self.rcq = rcq
- 
-         self.attr.srq = NULL  # Until SRQ support is added
-@@ -247,7 +247,6 @@ cdef class QPInitAttrEx(PyverbsObject):
-             raise PyverbsUserError('XRCD and RSS are not yet supported in pyverbs')
-         self.attr.comp_mask = comp_mask
-         if pd is not None:
--            self.attr.pd = <v.ibv_pd*>pd._pd
-             self.pd = pd
-         self.attr.create_flags = create_flags
-         self.attr.max_tso_header = max_tso_header
-@@ -259,9 +258,9 @@ cdef class QPInitAttrEx(PyverbsObject):
-     @send_cq.setter
-     def send_cq(self, val):
-         if type(val) is CQ:
--            self.attr.send_cq = <v.ibv_cq*>val._cq
-+            self.attr.send_cq = (<CQ>val).cq
-         elif type(val) is CQEX:
--            self.attr.send_cq = <v.ibv_cq*>val._ibv_cq
-+            self.attr.send_cq = (<CQEX>val).ibv_cq
-         self.scq = val
- 
-     @property
-@@ -270,9 +269,9 @@ cdef class QPInitAttrEx(PyverbsObject):
-     @recv_cq.setter
-     def recv_cq(self, val):
-         if type(val) is CQ:
--            self.attr.recv_cq = <v.ibv_cq*>val._cq
-+            self.attr.recv_cq = (<CQ>val).cq
-         elif type(val) is CQEX:
--            self.attr.recv_cq = <v.ibv_cq*>val._ibv_cq
-+            self.attr.recv_cq = (<CQEX>val).ibv_cq
-         self.rcq = val
- 
-     @property
-@@ -311,8 +310,8 @@ cdef class QPInitAttrEx(PyverbsObject):
-     def pd(self):
-         return self.pd
-     @pd.setter
--    def pd(self, val):
--        self.attr.pd = <v.ibv_pd*>val._pd
-+    def pd(self, PD val):
-+        self.attr.pd = <v.ibv_pd*>val.pd
-         self.pd = val
- 
-     @property
-diff --git a/pyverbs/wr.pyx b/pyverbs/wr.pyx
-index 2dc766282db3..3003224a8f32 100644
---- a/pyverbs/wr.pyx
-+++ b/pyverbs/wr.pyx
-@@ -53,10 +53,7 @@ cdef class SGE(PyverbsCM):
-         cdef char *sg_data
-         cdef int off = offset
-         sg_data = <char*>(self.sge.addr + off)
--        return <object>sg_data[:length]
--
--    def _get_sge(self):
--        return <object>self.sge
-+        return sg_data[:length]
- 
-     def __str__(self):
-         print_format = '{:22}: {:<20}\n'
-@@ -104,7 +101,7 @@ cdef class RecvWR(PyverbsCM):
-         if self.recv_wr.sg_list == NULL:
-             raise PyverbsRDMAErrno('Failed to malloc SG buffer')
-         dst = self.recv_wr.sg_list
--        copy_sg_array(<object>dst, sg, num_sge)
-+        copy_sg_array(dst, sg, num_sge)
-         self.recv_wr.num_sge = num_sge
-         self.recv_wr.wr_id = wr_id
-         if next_wr is not None:
-@@ -166,7 +163,7 @@ cdef class SendWR(PyverbsCM):
-         if self.send_wr.sg_list == NULL:
-             raise PyverbsRDMAErrno('Failed to malloc SG buffer')
-         dst = self.send_wr.sg_list
--        copy_sg_array(<object>dst, sg, num_sge)
-+        copy_sg_array(dst, sg, num_sge)
-         self.send_wr.num_sge = num_sge
-         self.send_wr.wr_id = wr_id
-         if next_wr is not None:
-@@ -298,13 +295,9 @@ def send_flags_to_str(flags):
-     return flags_str
- 
- 
--cdef copy_sg_array(dst_obj, sg, num_sge):
--    cdef v.ibv_sge *dst = <v.ibv_sge*>dst_obj
-+cdef copy_sg_array(v.ibv_sge *dst, sg, num_sge):
-     cdef v.ibv_sge *src
-     for i in range(num_sge):
--        # Avoid 'storing unsafe C derivative of temporary Python' errors
--        # that will occur if we merge the two following lines.
--        tmp = sg[i]._get_sge()
--        src = <v.ibv_sge*>tmp
-+        src = (<SGE>sg[i]).sge
-         memcpy(dst, src, sizeof(v.ibv_sge))
-         dst += 1
--- 
-2.21.0
-
+Jason
