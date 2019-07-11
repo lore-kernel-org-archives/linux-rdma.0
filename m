@@ -2,119 +2,120 @@ Return-Path: <SRS0=2cZW=VI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE058C74A5B
-	for <linux-rdma@archiver.kernel.org>; Thu, 11 Jul 2019 16:11:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9879BC74A5B
+	for <linux-rdma@archiver.kernel.org>; Thu, 11 Jul 2019 16:13:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 825162084B
-	for <linux-rdma@archiver.kernel.org>; Thu, 11 Jul 2019 16:11:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="OWv+rO7+"
+	by mail.kernel.org (Postfix) with ESMTP id 75F9D2084B
+	for <linux-rdma@archiver.kernel.org>; Thu, 11 Jul 2019 16:13:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728325AbfGKQLM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 11 Jul 2019 12:11:12 -0400
-Received: from mail-eopbgr50053.outbound.protection.outlook.com ([40.107.5.53]:18707
-        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728294AbfGKQLL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 11 Jul 2019 12:11:11 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=atxF5SG7D7iNOTo+PPe7usVAldjDwatmWzO42kp4+jA=;
- b=OWv+rO7+jBHq8gZVZg5T4yi+J/94SbQ62nAHRXDAamI5NTRdgibBOn+0iPMdLJPxY8Mw4ba8zMwOoraapGdt9ANVW8ZLbNZROiNunGOMtI/fZBD2z3U5E1a8FQ4uycPRWSmrub8t/y5apR4WWODCJHytb/z/L+1TxdDiMAUzMrA=
-Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (10.171.182.144) by
- VI1PR05MB4575.eurprd05.prod.outlook.com (20.176.3.28) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2052.19; Thu, 11 Jul 2019 16:11:07 +0000
-Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
- ([fe80::f5d8:df9:731:682e]) by VI1PR05MB4141.eurprd05.prod.outlook.com
- ([fe80::f5d8:df9:731:682e%5]) with mapi id 15.20.2052.020; Thu, 11 Jul 2019
- 16:11:07 +0000
-From:   Jason Gunthorpe <jgg@mellanox.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Doug Ledford <dledford@redhat.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Yamin Friedman <yaminf@mellanox.com>
-Subject: Re: [PATCH rdma-next] lib/dim: Prevent overflow in calculation of
- ratio statistics
-Thread-Topic: [PATCH rdma-next] lib/dim: Prevent overflow in calculation of
- ratio statistics
-Thread-Index: AQHVN/21HuAr6Ssdm0+h3g3lp6E1KKbFjsQAgAABKgCAAAaPgA==
-Date:   Thu, 11 Jul 2019 16:11:07 +0000
-Message-ID: <20190711161103.GL25821@mellanox.com>
-References: <20190711153118.14635-1-leon@kernel.org>
- <20190711154324.GK25821@mellanox.com>
- <20190711154734.GI23598@mtr-leonro.mtl.com>
-In-Reply-To: <20190711154734.GI23598@mtr-leonro.mtl.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: BL0PR0102CA0021.prod.exchangelabs.com
- (2603:10b6:207:18::34) To VI1PR05MB4141.eurprd05.prod.outlook.com
- (2603:10a6:803:4d::16)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=jgg@mellanox.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [156.34.55.100]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 46701464-ab58-4d14-0b1a-08d7061a61dd
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:VI1PR05MB4575;
-x-ms-traffictypediagnostic: VI1PR05MB4575:
-x-ms-exchange-purlcount: 1
-x-microsoft-antispam-prvs: <VI1PR05MB4575B5DB25FE904E49E56983CFF30@VI1PR05MB4575.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:2449;
-x-forefront-prvs: 0095BCF226
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(39860400002)(346002)(396003)(136003)(376002)(366004)(199004)(189003)(305945005)(36756003)(6916009)(14454004)(6486002)(186003)(4744005)(7736002)(81156014)(26005)(52116002)(81166006)(5660300002)(86362001)(102836004)(76176011)(8676002)(71190400001)(71200400001)(1076003)(66946007)(66556008)(64756008)(66476007)(6506007)(386003)(66446008)(256004)(6246003)(2906002)(54906003)(11346002)(107886003)(476003)(25786009)(99286004)(66066001)(3846002)(2616005)(486006)(53936002)(8936002)(446003)(6306002)(6512007)(4326008)(6436002)(966005)(478600001)(316002)(229853002)(68736007)(33656002)(6116002);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB4575;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: C6bDSTw9Ny/zSjYEVCFvwqnLkCRmXkW+FmDphC/aH/XudiNh5RmMnVb24BCDZFwLvFCx+vnraStkfaanA0VknFWxzR3yjYGuDj4lwNFHbYD5Dy7pyd8PU/yDmrsMHLc9vzmkA1UrteS6lSsKuTGYoQGzCGi9BkFCovBwMTwqJN6gICSuxhWOCOXcLZaXvU8QHyx4yyMu7X6a3/qJpA7fmIWBCMrVASEE59B9H4IW/8pFvLqD3Ddau11VwZoOQTAbkg7YWEAC3X51oKcsz1nkiY5F0t/kQn0qBrCWU6OWjXxB/jTsM1RIbXWt9vTLQIbkGKZisJ2JRD+be1GWwOBV9gj81da7mJ7tEQNtqPK0f6WETR+W6ndGL8Woy9/K/IDPopS8tuzQXcE4yzdzknp5f98uBIiczGdSnA9t0Oo+2wU=
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <FE309A2B082DDC43BBEDA9453940A078@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: quoted-printable
+        id S1728178AbfGKQNp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 11 Jul 2019 12:13:45 -0400
+Received: from mail-pf1-f180.google.com ([209.85.210.180]:42195 "EHLO
+        mail-pf1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727612AbfGKQNo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 11 Jul 2019 12:13:44 -0400
+Received: by mail-pf1-f180.google.com with SMTP id q10so2971929pff.9
+        for <linux-rdma@vger.kernel.org>; Thu, 11 Jul 2019 09:13:44 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=cL/X5NWFWdpnoYati0e4ynEWFOKwvnTNd7do68BUFSI=;
+        b=IPQdPzoK1xVzj8Yk3AhpYboRDlLmFDXMKHTjb5PJXxLAzKbuEmXcOmN5czhqSYlyfr
+         UqUgyfysflLUbd8bx14dbsR072Hz748tlgkAPpl0bGk8PVY7LljXp9N9YIQrwl6BOcuQ
+         fMrNLD8LTHgMYwo80YU6kQH/XLqCST3accTh9jKj7I9IQNofMCUYIB3p9UBUhBK4eYIz
+         MQpNvBksrb/eLX/DQfp/40XDWrZqnkd0uZQjdCkiTPmHUzXmDA9xG1F/h7yo11qDNXI5
+         U/5QBmS4iSba955VOHqUf9VgSy0Q09ooKiPuq8fdv6odGmyqmzZtgiJhtwpEUVnESv2+
+         pl/w==
+X-Gm-Message-State: APjAAAWunOV8ospm+mkB9j7LdkSmYaFewFPOIISj+iTzwOSyL2lgjUxG
+        KPBXhUsM5RA4pCC2F3/YlsC6YnFY
+X-Google-Smtp-Source: APXvYqyovg84n56ALe90eTRcaqvHSGjGsiS1t6ROazoXWQqOeQYdKCgb+X3Tp9zfcZNO+iOAcaLIeA==
+X-Received: by 2002:a63:c508:: with SMTP id f8mr5384491pgd.48.1562861623638;
+        Thu, 11 Jul 2019 09:13:43 -0700 (PDT)
+Received: from ?IPv6:2601:647:4800:973f:10a0:43d6:25f7:7bc3? ([2601:647:4800:973f:10a0:43d6:25f7:7bc3])
+        by smtp.gmail.com with ESMTPSA id a10sm5093314pgq.2.2019.07.11.09.13.42
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 11 Jul 2019 09:13:42 -0700 (PDT)
+Subject: Re: regression: nvme rdma with bnxt_re0 broken
+To:     Yi Zhang <yi.zhang@redhat.com>, linux-nvme@lists.infradead.org
+Cc:     danielj@mellanox.com, parav@mellanox.com,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+References: <619411460.27128070.1562838433020.JavaMail.zimbra@redhat.com>
+From:   Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <648e86db-864f-9eb1-5275-564a1ef535fb@grimberg.me>
+Date:   Thu, 11 Jul 2019 09:13:41 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 46701464-ab58-4d14-0b1a-08d7061a61dd
-X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Jul 2019 16:11:07.8066
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: jgg@mellanox.com
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB4575
+In-Reply-To: <619411460.27128070.1562838433020.JavaMail.zimbra@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jul 11, 2019 at 06:47:34PM +0300, Leon Romanovsky wrote:
-> > > diff --git a/lib/dim/dim.c b/lib/dim/dim.c
-> > > index 439d641ec796..38045d6d0538 100644
-> > > +++ b/lib/dim/dim.c
-> > > @@ -74,8 +74,8 @@ void dim_calc_stats(struct dim_sample *start, struc=
-t dim_sample *end,
-> > >  					delta_us);
-> > >  	curr_stats->cpms =3D DIV_ROUND_UP(ncomps * USEC_PER_MSEC, delta_us)=
-;
-> > >  	if (curr_stats->epms !=3D 0)
-> > > -		curr_stats->cpe_ratio =3D
-> > > -				(curr_stats->cpms * 100) / curr_stats->epms;
-> > > +		curr_stats->cpe_ratio =3D DIV_ROUND_DOWN_ULL(
-> > > +			curr_stats->cpms * 100, curr_stats->epms);
-> >
-> > This will still potentially overfow the 'int' for cpe_ratio if epms <
-> > 100 ?
->=20
-> I assumed that assignment to "unsigned long long" will do the trick.
-> https://elixir.bootlin.com/linux/latest/source/include/linux/kernel.h#L94
+CC linux-rdma
 
-That only protects the multiply, the result of DIV_ROUND_DOWN_ULL is
-casted to int.
-
-Jason
+On 7/11/19 2:47 AM, Yi Zhang wrote:
+> Hello
+> 
+> 'nvme connect' failed when use bnxt_re0 on latest upstream build[1], by bisecting I found it was introduced from v5.2.0-rc1 with [2], it works after I revert it.
+> Let me know if you need more info, thanks.
+> 
+> [1]
+> [root@rdma-perf-07 ~]$ nvme connect -t rdma -a 172.31.40.125 -s 4420 -n testnqn
+> Failed to write to /dev/nvme-fabrics: Bad address
+> 
+> [root@rdma-perf-07 ~]$ dmesg
+> [  476.320742] bnxt_en 0000:19:00.0: QPLIB: cmdq[0x4b9]=0x15 status 0x5
+> [  476.327103] infiniband bnxt_re0: Failed to allocate HW AH
+> [  476.332525] nvme nvme2: rdma_connect failed (-14).
+> [  476.343552] nvme nvme2: rdma connection establishment failed (-14)
+> 
+> [root@rdma-perf-07 ~]$ lspci  | grep -i Broadcom
+> 01:00.0 Ethernet controller: Broadcom Inc. and subsidiaries NetXtreme BCM5720 2-port Gigabit Ethernet PCIe
+> 01:00.1 Ethernet controller: Broadcom Inc. and subsidiaries NetXtreme BCM5720 2-port Gigabit Ethernet PCIe
+> 18:00.0 RAID bus controller: Broadcom / LSI MegaRAID SAS-3 3008 [Fury] (rev 02)
+> 19:00.0 Ethernet controller: Broadcom Inc. and subsidiaries BCM57412 NetXtreme-E 10Gb RDMA Ethernet Controller (rev 01)
+> 19:00.1 Ethernet controller: Broadcom Inc. and subsidiaries BCM57412 NetXtreme-E 10Gb RDMA Ethernet Controller (rev 01)
+> 
+> 
+> [2]
+> commit 823b23da71132b80d9f41ab667c68b112455f3b6
+> Author: Parav Pandit <parav@mellanox.com>
+> Date:   Wed Apr 10 11:23:03 2019 +0300
+> 
+>      IB/core: Allow vlan link local address based RoCE GIDs
+>      
+>      IPv6 link local address for a VLAN netdevice has nothing to do with its
+>      resemblance with the default GID, because VLAN link local GID is in
+>      different layer 2 domain.
+>      
+>      Now that RoCE MAD packet processing and route resolution consider the
+>      right GID index, there is no need for an unnecessary check which prevents
+>      the addition of vlan based IPv6 link local GIDs.
+>      
+>      Signed-off-by: Parav Pandit <parav@mellanox.com>
+>      Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+>      Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>      Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+> 
+> 
+> 
+> Best Regards,
+>    Yi Zhang
+> 
+> 
+> 
+> _______________________________________________
+> Linux-nvme mailing list
+> Linux-nvme@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-nvme
+> 
