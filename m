@@ -2,97 +2,72 @@ Return-Path: <SRS0=klTw=VJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2546EC742DA
-	for <linux-rdma@archiver.kernel.org>; Fri, 12 Jul 2019 19:40:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F1A1C742D7
+	for <linux-rdma@archiver.kernel.org>; Fri, 12 Jul 2019 20:24:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05B4C21019
-	for <linux-rdma@archiver.kernel.org>; Fri, 12 Jul 2019 19:40:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E12632146E
+	for <linux-rdma@archiver.kernel.org>; Fri, 12 Jul 2019 20:24:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727261AbfGLTkJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 12 Jul 2019 15:40:09 -0400
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:33441 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727226AbfGLTkI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 12 Jul 2019 15:40:08 -0400
-Received: by mail-ot1-f65.google.com with SMTP id q20so10576428otl.0;
-        Fri, 12 Jul 2019 12:40:08 -0700 (PDT)
+        id S1727536AbfGLUY3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 12 Jul 2019 16:24:29 -0400
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:33174 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727118AbfGLUY3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 12 Jul 2019 16:24:29 -0400
+Received: by mail-qk1-f193.google.com with SMTP id r6so7433307qkc.0;
+        Fri, 12 Jul 2019 13:24:29 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=HFpxZgsSIxsazA1/oZg/kAp/zrOjt6UHihSAZrgcZlE=;
-        b=Ae4lZh/7hluwXWWoHAwv/UxbvQkZ3mhXQxISte0T+aLmWoht5y5eLA5RRW7CeodQlH
-         SI+ZUvEgGUdsKBuwzaFPUYMXK+K7rmRz9c1LhGwaq6iULRHEBcAZwwAQyP1dPq8Dugyo
-         QLsWegTKxfYgdbpsNkVn5oL2ozbB4diD7LIsmyfqfrDTZ3TKBUvJC+4bKPRf2ik2VVrs
-         iOlPzlNC7k5RfbvDKgiVS47JFHvAVF4m+8ZeQ4bIBaXp0p622qG6wF1tzbAxCjI1CfWJ
-         fT7AONZ63kfeOSpDbe/9xYNKj6C9n13U1Rs9WimJpidC8bPQzcOzIjYdjZ2dwmnryGcJ
-         fjnQ==
-X-Gm-Message-State: APjAAAVIcNowOGg9Aa75mlf+YzTjZHfTZttQbuZ10/xGIv5VKN8OFO26
-        VyB1dqY5ta+uqKWgxGtltQ8=
-X-Google-Smtp-Source: APXvYqzveAK2peSCSmr6FwEGqa68OjQzEs78W1hOb+X3FP4XQUInf/BMTUhVYhWSQQweFrMPHqspLA==
-X-Received: by 2002:a05:6830:120e:: with SMTP id r14mr9497773otp.4.1562960407781;
-        Fri, 12 Jul 2019 12:40:07 -0700 (PDT)
-Received: from ?IPv6:2600:1700:65a0:78e0:514:7862:1503:8e4d? ([2600:1700:65a0:78e0:514:7862:1503:8e4d])
-        by smtp.gmail.com with ESMTPSA id 68sm3380373otg.78.2019.07.12.12.40.06
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 12 Jul 2019 12:40:07 -0700 (PDT)
-Subject: Re: [PATCH v4 00/25] InfiniBand Transport (IBTRS) and Network Block
- Device (IBNBD)
-To:     Jinpu Wang <jinpuwang@gmail.com>
-Cc:     Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>, bvanassche@acm.org,
-        jgg@mellanox.com, dledford@redhat.com,
-        Roman Pen <r.peniaev@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-References: <20190620150337.7847-1-jinpuwang@gmail.com>
- <CAHg0HuzUaKs-ACHah-VdNHbot0_usx4ErMesVAw8+DFR63FFqw@mail.gmail.com>
- <a8f2f1d2-b5d9-92fc-40c8-090af0487723@grimberg.me>
- <CAHg0HuxZvXH899=M4vC7BTH-bP2J35aTwsGhiGoC8AamD8gOyA@mail.gmail.com>
- <aef765ed-4bb9-2211-05d0-b320cc3ac275@grimberg.me>
- <CAD9gYJKcJ47ogKL4S_KMtxpS1gPHHhqqG7-GTi-2c0cOJ-LJtw@mail.gmail.com>
-From:   Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <11653912-924a-965a-45fe-3abd1ca00053@grimberg.me>
-Date:   Fri, 12 Jul 2019 12:40:05 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5AnwL9QMhOvEkju5sgdju6SDmCAcrRdWohbiNJ53Gz8=;
+        b=YjMXGHWIS7wN9mB3TganGrcaA/Km/VKF4Hjvp4iu3CvR+c9eBNgNXobjzlz9JGRRrv
+         5uhPSWYQGuoXjIIH4gR8wb0W8/pJ8ZYC2qDNpJjPWEw4ElseOQXmtlyMjFMo9aCuxqb9
+         lDuXroZRasdYjNgcLnu0thP4gyMx0IyHnkTxjwdAjWXN4G+wy5//nDGsKJzX4t/JnI7r
+         U39rJkLcSsgT6xjIN1cuGFinRwNgzQ/ixiGdnN37B8tIdqmVW0GIWp7AEKzkFFtQjzc/
+         fH7p/sUFRVqK360anIpLyQgHwLjQt0NZrJacbpUgNvUVRo3d3U6NOKRqpk+cAwRRmxTR
+         yQMA==
+X-Gm-Message-State: APjAAAXhzGQOMMrL6NTtClnTD7eJDXCJyT3H3YH65aWCc5Q2NEXZQ0xG
+        xN5qZ+HSWCi2eWpu7jgHZ0Q4dXNdHOGLQR86s0yPA2mE
+X-Google-Smtp-Source: APXvYqyMaZHfK8W0Y+cZkQ8qPgpqVV/Kl0pC/cAZz3DeuvjrVg4FwV8mCqImWkc0fANtTclL7NvITtJY4Xx3o+0txh4=
+X-Received: by 2002:a37:5f45:: with SMTP id t66mr7933814qkb.286.1562963068694;
+ Fri, 12 Jul 2019 13:24:28 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAD9gYJKcJ47ogKL4S_KMtxpS1gPHHhqqG7-GTi-2c0cOJ-LJtw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20190712085212.3901785-1-arnd@arndb.de> <OF05C1A780.433E36D1-ON00258435.003381DA-00258435.003F847E@notes.na.collabserv.com>
+ <20190712120328.GB27512@ziepe.ca> <OF36428621.B839DE8B-ON00258435.00461748-00258435.0047E413@notes.na.collabserv.com>
+ <CAK8P3a3ZqY_qLSN1gw12EvzLS49RAnmG4nT9=N+Qj9XngQd0CA@mail.gmail.com> <20190712151423.GG27512@ziepe.ca>
+In-Reply-To: <20190712151423.GG27512@ziepe.ca>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Fri, 12 Jul 2019 22:24:11 +0200
+Message-ID: <CAK8P3a0=48ULbgBhx97RncS_em+ymEnDZuVbA29+NF2QQ0KU4Q@mail.gmail.com>
+Subject: Re: Re: [PATCH] rdma/siw: avoid smp_store_mb() on a u64
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Bernard Metzler <BMT@zurich.ibm.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Fri, Jul 12, 2019 at 5:14 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Fri, Jul 12, 2019 at 03:22:35PM +0200, Arnd Bergmann wrote:
+> > On Fri, Jul 12, 2019 at 3:05 PM Bernard Metzler <BMT@zurich.ibm.com> wrote:
+>
+> Since this is coming up so late in the merge window, I'm inclined to
+> take the simple path while Bernard makes a complete solution
+> here. What do you think Arnd?
 
-> Hi Sagi,
-> 
->>>> Another question, from what I understand from the code, the client
->>>> always rdma_writes data on writes (with imm) from a remote pool of
->>>> server buffers dedicated to it. Essentially all writes are immediate (no
->>>> rdma reads ever). How is that different than using send wrs to a set of
->>>> pre-posted recv buffers (like all others are doing)? Is it faster?
->>> At the very beginning of the project we did some measurements and saw,
->>> that it is faster. I'm not sure if this is still true
->>
->> Its not significantly faster (can't imagine why it would be).
->> What could make a difference is probably the fact that you never
->> do rdma reads for I/O writes which might be better. Also perhaps the
->> fact that you normally don't wait for send completions before completing
->> I/O (which is broken), and the fact that you batch recv operations.
-> 
-> I don't know how do you come to the conclusion we don't wait for send
-> completion before completing IO.
-> 
-> We do chain wr on successfull read request from server, see funtion
-> rdma_write_sg,
+I don't see a problem either way, since it's a new driver, so both
+disabling it on 32-bit and applying a fix that might cause something
+to break is not going to make it worse for anyone compared to the
+linux-5.2 release.
 
-I was referring to the client side
+      Arnd
