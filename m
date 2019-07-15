@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89445C7618F
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jul 2019 14:22:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 956C2C76191
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jul 2019 14:42:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 53F9521842
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jul 2019 14:22:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65957205ED
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jul 2019 14:42:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563200577;
-	bh=lK9lfElVqVXzrAUTT9+IEnKKOZByTMSF42kelGYAQdk=;
+	s=default; t=1563201773;
+	bh=tuJB84rXC7Q+h6ENUYeb97y8lmA49fuyzqulqcxENxM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=w2BsJA1aF7RQ7ygI8k90Nh8X1n2uYnx65d92s6QDKwP29YerQOXfZSUItk7zI/FD4
-	 pRvkPEoPvfLQTZiqU11latA9er52I2ixKo381Sh99kidYgMYziaudVr9C4DXWflFri
-	 a8ATbHMbFgJAZqrfQFATQ3u6E4YUYp31IKLA/E8Y=
+	b=t/ycjb6IM9XaVWvpvlCgo7yj5ujbbxi2JWeYLuE7iM3OF4mm2BuaNt1F3sB5A1VYp
+	 dvS4XM7Z1ANSx55I1PYluQohx9h+sAktWWHlwe9k6dCCHiKDo5KjO0w8Hv/mmCHuUv
+	 F8PkYMHLF3lkvnIFvHOxGjT2iUrity7FHzj/0tM8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390331AbfGOOWw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 15 Jul 2019 10:22:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52206 "EHLO mail.kernel.org"
+        id S2404265AbfGOOj1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 15 Jul 2019 10:39:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38688 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390338AbfGOOWv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 15 Jul 2019 10:22:51 -0400
+        id S2404237AbfGOOjV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 15 Jul 2019 10:39:21 -0400
 Received: from sasha-vm.mshome.net (unknown [73.61.17.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B65FB20896;
-        Mon, 15 Jul 2019 14:22:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E16F7205ED;
+        Mon, 15 Jul 2019 14:39:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563200570;
-        bh=lK9lfElVqVXzrAUTT9+IEnKKOZByTMSF42kelGYAQdk=;
+        s=default; t=1563201560;
+        bh=tuJB84rXC7Q+h6ENUYeb97y8lmA49fuyzqulqcxENxM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PHQIwVyhgzUhCYYvidnfc7USrglTuCpzJKkqD0JPCTw7v15yb57bOZ0XVdgPeCs12
-         VkrhJeki3O4b86kdklzOieJuWAbuOiDUeBtsCbmz2WvKE3VuV5FUqVc3U9Y2P4tNZx
-         XjPJ1/EWXjOzwkRL018JtCiuGGXgF9NsdZK7gffg=
+        b=xFyGl6hHG0BeESUX9rjghPU8kMP8F9tWaAogNllRiwqc3NmTUcWhHPPjfc6SEIhxm
+         Q1e42nVscLx+upX8O3eppmhbLDAH+pu0qaYDaivgGJ0t25qRJFsp0q7Hg6BzK+W1f+
+         tuXCTbuHXeA7Is7o+jZpHa84rPF5k5C5AqUMWkFQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Denis Kirjanov <kda@linux-powerpc.org>,
         Doug Ledford <dledford@redhat.com>,
         "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 080/158] ipoib: correcly show a VF hardware address
-Date:   Mon, 15 Jul 2019 10:16:51 -0400
-Message-Id: <20190715141809.8445-80-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 42/73] ipoib: correcly show a VF hardware address
+Date:   Mon, 15 Jul 2019 10:35:58 -0400
+Message-Id: <20190715143629.10893-42-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190715141809.8445-1-sashal@kernel.org>
-References: <20190715141809.8445-1-sashal@kernel.org>
+In-Reply-To: <20190715143629.10893-1-sashal@kernel.org>
+References: <20190715143629.10893-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -99,10 +99,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 30f840f874b3..009615499b37 100644
+index 17c5bc7e8957..45504febbc2a 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1997,6 +1997,7 @@ static int ipoib_get_vf_config(struct net_device *dev, int vf,
+@@ -1751,6 +1751,7 @@ static int ipoib_get_vf_config(struct net_device *dev, int vf,
  		return err;
  
  	ivf->vf = vf;
