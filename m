@@ -2,104 +2,71 @@ Return-Path: <SRS0=BP9/=VO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 876A2C76195
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 03:08:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 693A8C76186
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 05:09:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6143320818
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 03:08:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DC11208C0
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 05:09:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="GOiTdgfT"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="C33o6z7d"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728310AbfGQDI3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 16 Jul 2019 23:08:29 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:57436 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726069AbfGQDI2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Jul 2019 23:08:28 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x6H35cca191468;
-        Wed, 17 Jul 2019 03:08:01 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=to : cc : subject :
- from : references : date : in-reply-to : message-id : mime-version :
- content-type; s=corp-2018-07-02;
- bh=UEaaAVvgCGyb+7Yj61X9MJGTm0YgTvSRv1ONnMOutJQ=;
- b=GOiTdgfTFSbb/EFuPcJN7jTYkY32Qmns5pYKAj8sb8IUcHKX3AiiAvu0KZr2DhGuUTjl
- Q+ViMT+0FbMmKkcPnICdmmxs+N+7nfidYVrJDJsF3cXRn0PLLpbAfF2s3M7HLZv0gYfj
- WNqq+LZR5C8T+WQ0Vdks5WvoyMpZaAnPccg6+SN5MIYBLpU6kfSOxxbmnsSvzWTTdLZM
- brw8TGVSUYnNBT4KD2ukTj6IdHno3pnlq/aIADGZlnIFmhVSgz3vb9x1y5cGcIIffbgh
- jvOO1we7rSUyeE9/yl0uH6nLZFtLVSeZ7ecKJmDL0/wp2mT4NG3B8YXVUcdziP4fQpvR 0g== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by aserp2120.oracle.com with ESMTP id 2tq78pquay-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 17 Jul 2019 03:08:00 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x6H32jv8038951;
-        Wed, 17 Jul 2019 03:08:00 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3030.oracle.com with ESMTP id 2tq4du8s0c-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 17 Jul 2019 03:08:00 +0000
-Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x6H37wC2022960;
-        Wed, 17 Jul 2019 03:07:58 GMT
-Received: from ca-mkp.ca.oracle.com (/10.159.214.123)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 17 Jul 2019 03:07:58 +0000
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Max Gurtovoy <maxg@mellanox.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org,
-        megaraidlinux.pdl@broadcom.com, MPT-FusionLinux.pdl@broadcom.com,
-        linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: properly communicate queue limits to the DMA layer v2
-From:   "Martin K. Petersen" <martin.petersen@oracle.com>
-Organization: Oracle Corporation
-References: <20190617122000.22181-1-hch@lst.de>
-        <20190715165823.GA10029@lst.de> <yq1tvbn2ofc.fsf@oracle.com>
-        <20190715174617.GA11094@lst.de>
-Date:   Tue, 16 Jul 2019 23:07:55 -0400
-In-Reply-To: <20190715174617.GA11094@lst.de> (Christoph Hellwig's message of
-        "Mon, 15 Jul 2019 19:46:17 +0200")
-Message-ID: <yq1y30xxss4.fsf@oracle.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1.92 (gnu/linux)
+        id S1726857AbfGQFJl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Jul 2019 01:09:41 -0400
+Received: from bombadil.infradead.org ([198.137.202.133]:50732 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726775AbfGQFJl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Jul 2019 01:09:41 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=1+t8nFs6WiSQrcpholSuGb1chNm88t1z1W05LV8gtBA=; b=C33o6z7dsRbZbgbsRGLrnXpRe
+        ihiesxs8jhZDMAvBPevR5fiLoy2KMXyKlkYq5Fef/fgSOO/8RQyuioDa+yhSieltnXtoEAqg3iEzH
+        Wj5MOyt/xmiBUur+Qr7jkfl02DB2+Zxmk4nS/FEe1G2T9XsoZ4ofcwxRbMEnKZNfmudRoATV0sZMR
+        OcTKQjDjZO8C5A3VmjnMrCweLMN45DO9ZmCHf/jlu3ELDO8M+mcAUAzFiftfYn00nynsYTPKB8UGr
+        JijDwVIxGoRxSdnX6rD0o/QOtdy/GWGXZrL89E0Q5iadXT+NjvEYmiF/y5qTKXsQUoh9pRfyuekPM
+        tbo0I04Mw==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.92 #3 (Red Hat Linux))
+        id 1hncC3-0004xJ-FC; Wed, 17 Jul 2019 05:09:31 +0000
+Date:   Tue, 16 Jul 2019 22:09:31 -0700
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Shamir Rabinovitch <srabinov7@gmail.com>
+Cc:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
+        monis@mellanox.com, parav@mellanox.com, danielj@mellanox.com,
+        kamalheib1@gmail.com, markz@mellanox.com,
+        swise@opengridcomputing.com, shamir.rabinovitch@oracle.com,
+        johannes.berg@intel.com, willy@infradead.org,
+        michaelgur@mellanox.com, markb@mellanox.com,
+        yuval.shaia@oracle.com, dan.carpenter@oracle.com,
+        bvanassche@acm.org, maxg@mellanox.com, israelr@mellanox.com,
+        galpress@amazon.com, denisd@mellanox.com, yuvalav@mellanox.com,
+        dennis.dalessandro@intel.com, will@kernel.org, ereza@mellanox.com,
+        jgg@mellanox.com, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH 00/25] Shared PD and MR
+Message-ID: <20190717050931.GA18936@infradead.org>
+References: <20190716181200.4239-1-srabinov7@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9320 signatures=668688
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=907
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1810050000 definitions=main-1907170036
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9320 signatures=668688
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=953 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
- definitions=main-1907170036
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190716181200.4239-1-srabinov7@gmail.com>
+User-Agent: Mutt/1.11.4 (2019-03-13)
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Tue, Jul 16, 2019 at 09:11:35PM +0300, Shamir Rabinovitch wrote:
+> Following patch-set introduce the shared object feature.
+> 
+> A shared object feature allows one process to create HW objects (currently
+> PD and MR) so that a second process can import.
 
-Christoph,
-
-> I think all the patches on the block side went into 5.2, but it's been
-> a while, so I might misremember..
-
-I checked my notes and the reason I held them back was that I was
-waiting for a response from Broadcom wrt. the megaraid segment size
-limitation.  However, given that mpt3sas was acked, I assume it's the
-same thing.
-
-I'm not so keen on how big the last batch of patches for the merge
-window is getting. But I queued your fixes up for 5.3.
-
--- 
-Martin K. Petersen	Oracle Linux Engineering
+That sounds like a major complication, so you'd better also explain
+the use case very well.
