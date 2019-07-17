@@ -4,49 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 689AAC7618F
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 14:32:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66609C76192
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 14:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14C882182B
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 14:32:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19B0D21743
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jul 2019 14:32:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563373958;
-	bh=k5Er4QeMYHcTtp8sBWP9hdIs+UOSwmDSV0HMPL1MnoI=;
+	s=default; t=1563373965;
+	bh=AdwEpxyJ1eJuGvJPr4f48rGWB+DKXfBSL/iJJnSVrAY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YwH+kAHOTQjFXNcR3G5mt/kQPq+5a93RTPxhAVPtzWqUPi1+nCbG0eaWabSlKUmzg
-	 6jwJlAOsjuHNZuAGBuDpN+LC3nNRDkPRwhGETYfUPTKNopVskNZv6vCKeWEblIr7tA
-	 DNyA5NqXdNVpoRE9HgoGOdb4WUl3WHyCWI5QZAiw=
+	b=FeDA1JboNGkZfenHpdmS+tQkb3LP1mhd2JrMJmlrv4z1g9XGo5J9yR9sCDvHzbuVm
+	 eQ24LfaEBYLFhBlK33hZLBoTpNEwNdaXuYYUI5V8hrwDBfdQ+XvGuEGQSinKqnx7a+
+	 GOZ0DJGRet5RtGfYgYLCeiJIxUyCCZ0xvBRToUvQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727406AbfGQOch (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Jul 2019 10:32:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53812 "EHLO mail.kernel.org"
+        id S1727969AbfGQOcm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Jul 2019 10:32:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53842 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726892AbfGQOch (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 17 Jul 2019 10:32:37 -0400
+        id S1726892AbfGQOcm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 17 Jul 2019 10:32:42 -0400
 Received: from localhost (unknown [37.142.3.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0318221743;
-        Wed, 17 Jul 2019 14:32:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5275121743;
+        Wed, 17 Jul 2019 14:32:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563373955;
-        bh=k5Er4QeMYHcTtp8sBWP9hdIs+UOSwmDSV0HMPL1MnoI=;
+        s=default; t=1563373961;
+        bh=AdwEpxyJ1eJuGvJPr4f48rGWB+DKXfBSL/iJJnSVrAY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GtHynIopkZak6pQconRUj/Gs1WVyaLkRmmWWoGyDKrodxxKkxZhd5ke+CJfNquwhI
-         F0gqjJgBJIwlok1POXkFdOvXazJ1ZoH3ec5Ji61oY+XQpPloWheoc1xbOS+EmGqO/b
-         hZKutXkwh9psXHqeUmvpn9a/KoJRWjw75R2At3S0=
+        b=qD7e7JpfZ499wtLoShKs/UQEh/R1l9EEw/FbgirEE1g4050OD9/qBw3waRuMjQsnW
+         UOKoAS35Bf5ZXg2YgDTwSBofJqTaPH5bS5y0VMOrbFoUtuNkrplO9eQx32j7dgf/gd
+         WCsr7x0sjBai0n7OXqmtwrA5haNZef6/AWkpm2so=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Stephen Hemminger <stephen@networkplumber.org>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         netdev <netdev@vger.kernel.org>, David Ahern <dsahern@gmail.com>,
         Mark Zhang <markz@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH iproute2-rc v1 7/7] rdma: Document counter statistic
-Date:   Wed, 17 Jul 2019 17:31:56 +0300
-Message-Id: <20190717143157.27205-8-leon@kernel.org>
+Subject: [PATCH iproute2-rc v1 5/7] rdma: Add stat manual mode support
+Date:   Wed, 17 Jul 2019 17:31:54 +0300
+Message-Id: <20190717143157.27205-6-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190717143157.27205-1-leon@kernel.org>
 References: <20190717143157.27205-1-leon@kernel.org>
@@ -59,261 +59,249 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Add document of accessing the QP counter, including bind/unbind a QP
-to a counter manually or automatically, and dump counter statistics.
+In manual mode a QP can be manually bound to a counter. If the counter
+id(cntn) is not specified that kernel will allocate one. After a
+successful bind, the cntn can be seen through "rdma statistic qp show".
+And in unbind if lqpn is not specified then all QPs on this counter will
+be unbound.
+The manual and auto mode are mutual-exclusive.
+
+Examples:
+$ rdma statistic qp bind link mlx5_2/1 lqpn 178
+$ rdma statistic qp bind link mlx5_2/1 lqpn 178 cntn 4
+$ rdma statistic qp unbind link mlx5_2/1 cntn 4
+$ rdma statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- man/man8/rdma-dev.8       |   1 +
- man/man8/rdma-link.8      |   1 +
- man/man8/rdma-resource.8  |   1 +
- man/man8/rdma-statistic.8 | 167 ++++++++++++++++++++++++++++++++++++++
- man/man8/rdma.8           |   7 +-
- 5 files changed, 176 insertions(+), 1 deletion(-)
- create mode 100644 man/man8/rdma-statistic.8
+ rdma/stat.c | 192 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 192 insertions(+)
 
-diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
-index 38e34b3b..e77e7cd0 100644
---- a/man/man8/rdma-dev.8
-+++ b/man/man8/rdma-dev.8
-@@ -77,6 +77,7 @@ previously created using iproute2 ip command.
- .BR rdma-link (8),
- .BR rdma-resource (8),
- .BR rdma-system (8),
-+.BR rdma-statistic (8),
- .br
+diff --git a/rdma/stat.c b/rdma/stat.c
+index ad1cc063..942c1ac3 100644
+--- a/rdma/stat.c
++++ b/rdma/stat.c
+@@ -15,6 +15,8 @@ static int stat_help(struct rd *rd)
+ 	pr_out("       %s statistic OBJECT show link [ DEV/PORT_INDEX ] [ FILTER-NAME FILTER-VALUE ]\n", rd->filename);
+ 	pr_out("       %s statistic OBJECT mode\n", rd->filename);
+ 	pr_out("       %s statistic OBJECT set COUNTER_SCOPE [DEV/PORT_INDEX] auto {CRITERIA | off}\n", rd->filename);
++	pr_out("       %s statistic OBJECT bind COUNTER_SCOPE [DEV/PORT_INDEX] [OBJECT-ID] [COUNTER-ID]\n", rd->filename);
++	pr_out("       %s statistic OBJECT unbind COUNTER_SCOPE [DEV/PORT_INDEX] [COUNTER-ID]\n", rd->filename);
+ 	pr_out("where  OBJECT: = { qp }\n");
+ 	pr_out("       CRITERIA : = { type }\n");
+ 	pr_out("       COUNTER_SCOPE: = { link | dev }\n");
+@@ -25,6 +27,10 @@ static int stat_help(struct rd *rd)
+ 	pr_out("       %s statistic qp mode link mlx5_0\n", rd->filename);
+ 	pr_out("       %s statistic qp set link mlx5_2/1 auto type on\n", rd->filename);
+ 	pr_out("       %s statistic qp set link mlx5_2/1 auto off\n", rd->filename);
++	pr_out("       %s statistic qp bind link mlx5_2/1 lqpn 178\n", rd->filename);
++	pr_out("       %s statistic qp bind link mlx5_2/1 lqpn 178 cntn 4\n", rd->filename);
++	pr_out("       %s statistic qp unbind link mlx5_2/1 cntn 4\n", rd->filename);
++	pr_out("       %s statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178\n", rd->filename);
  
- .SH AUTHOR
-diff --git a/man/man8/rdma-link.8 b/man/man8/rdma-link.8
-index b3b40de7..32f80228 100644
---- a/man/man8/rdma-link.8
-+++ b/man/man8/rdma-link.8
-@@ -97,6 +97,7 @@ Removes RXE link rxe_eth0
- .BR rdma (8),
- .BR rdma-dev (8),
- .BR rdma-resource (8),
-+.BR rdma-statistic (8),
- .br
+ 	return 0;
+ }
+@@ -467,6 +473,190 @@ static int stat_qp_set(struct rd *rd)
+ 	return rd_exec_cmd(rd, cmds, "parameter");
+ }
  
- .SH AUTHOR
-diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
-index 40b073db..05030d0a 100644
---- a/man/man8/rdma-resource.8
-+++ b/man/man8/rdma-resource.8
-@@ -103,6 +103,7 @@ Show CQs belonging to pid 30489
- .BR rdma (8),
- .BR rdma-dev (8),
- .BR rdma-link (8),
-+.BR rdma-statistic (8),
- .br
- 
- .SH AUTHOR
-diff --git a/man/man8/rdma-statistic.8 b/man/man8/rdma-statistic.8
-new file mode 100644
-index 00000000..dea6ff24
---- /dev/null
-+++ b/man/man8/rdma-statistic.8
-@@ -0,0 +1,167 @@
-+.TH RDMA\-STATISTIC 8 "17 Mar 2019" "iproute2" "Linux"
-+.SH NAME
-+rdma-statistic \- RDMA statistic counter configuration
-+.SH SYNOPSIS
-+.sp
-+.ad l
-+.in +8
-+.ti -8
-+.B rdma
-+.RI "[ " OPTIONS " ]"
-+.B statistic
-+.RI  " { " COMMAND " | "
-+.BR help " }"
-+.sp
++static int stat_get_arg(struct rd *rd, const char *arg)
++{
++	int value = 0;
++	char *endp;
 +
-+.ti -8
-+.B rdma statistic
-+.RI "[ " OBJECT " ]"
-+.B show
++	if (strcmpx(rd_argv(rd), arg) != 0)
++		return -EINVAL;
 +
-+.ti -8
-+.B rdma statistic
-+.RI "[ " OBJECT " ]"
-+.B show link
-+.RI "[ " DEV/PORT_INDX " ]"
++	rd_arg_inc(rd);
++	value = strtol(rd_argv(rd), &endp, 10);
++	rd_arg_inc(rd);
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B mode
++	return value;
++}
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B set
-+.IR COUNTER_SCOPE
-+.RI "[ " DEV/PORT_INDEX "]"
-+.B auto
-+.RI "{ " CRITERIA " | "
-+.BR off " }"
++static int stat_one_qp_bind(struct rd *rd)
++{
++	int lqpn = 0, cntn = 0, ret;
++	uint32_t seq;
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B bind
-+.IR COUNTER_SCOPE
-+.RI "[ " DEV/PORT_INDEX "]"
-+.RI "[ " OBJECT-ID " ]"
-+.RI "[ " COUNTER-ID " ]"
++	if (rd_no_arg(rd)) {
++		stat_help(rd);
++		return -EINVAL;
++	}
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B unbind
-+.IR COUNTER_SCOPE
-+.RI "[ " DEV/PORT_INDEX "]"
-+.RI "[ " COUNTER-ID " ]"
-+.RI "[ " OBJECT-ID " ]"
++	ret = rd_build_filter(rd, stat_valid_filters);
++	if (ret)
++		return ret;
 +
-+.ti -8
-+.IR COUNTER_SCOPE " := "
-+.RB "{ " link " | " dev " }"
++	lqpn = stat_get_arg(rd, "lqpn");
 +
-+.ti -8
-+.IR OBJECT " := "
-+.RB "{ " qp " }"
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_STAT_SET,
++		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
 +
-+.ti -8
-+.IR CRITERIA " := "
-+.RB "{ " type " }"
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_MODE,
++			 RDMA_COUNTER_MODE_MANUAL);
 +
-+.SH "DESCRIPTION"
-+.SS rdma statistic [object] show - Queries the specified RDMA device for RDMA and driver-specific statistics. Show the default hw counters if object is not specified
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_RES, RDMA_NLDEV_ATTR_RES_QP);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_PORT_INDEX, rd->port_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_RES_LQPN, lqpn);
 +
-+.PP
-+.I "DEV"
-+- specifies counters on this RDMA device to show.
++	if (rd_argc(rd)) {
++		cntn = stat_get_arg(rd, "cntn");
++		mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_COUNTER_ID,
++				 cntn);
++	}
 +
-+.I "PORT_INDEX"
-+- specifies counters on this RDMA port to show.
++	return rd_sendrecv_msg(rd, seq);
++}
 +
-+.SS rdma statistic <object> set - configure counter statistic auto-mode for a specific device/port
-+In auto mode all objects belong to one category are bind automatically to a single counter set.
++static int do_stat_qp_unbind_lqpn(struct rd *rd, uint32_t cntn, uint32_t lqpn)
++{
++	uint32_t seq;
 +
-+.SS rdma statistic <object> bind - manually bind an object (e.g., a qp) with a counter
-+When bound the statistics of this object are available in this counter.
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_STAT_DEL,
++		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
 +
-+.SS rdma statistic <object> unbind - manually unbind an object (e.g., a qp) from the counter previously bound
-+When unbound the statistics of this object are no longer available in this counter; And if object id is not specified then all objects on this counter will be unbound.
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_MODE,
++			 RDMA_COUNTER_MODE_MANUAL);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_RES, RDMA_NLDEV_ATTR_RES_QP);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_PORT_INDEX, rd->port_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_COUNTER_ID, cntn);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_RES_LQPN, lqpn);
 +
-+.I "COUNTER-ID"
-+- specifies the id of the counter to be bound.
-+If this argument is omitted then a new counter will be allocated.
++	return rd_sendrecv_msg(rd, seq);
++}
 +
-+.SH "EXAMPLES"
-+.PP
-+rdma statistic show
-+.RS 4
-+Shows the state of the default counter of all RDMA devices on the system.
-+.RE
-+.PP
-+rdma statistic show link mlx5_2/1
-+.RS 4
-+Shows the state of the default counter of specified RDMA port
-+.RE
-+.PP
-+rdma statistic qp show
-+.RS 4
-+Shows the state of all qp counters of all RDMA devices on the system.
-+.RE
-+.PP
-+rdma statistic qp show link mlx5_2/1
-+.RS 4
-+Shows the state of all qp counters of specified RDMA port.
-+.RE
-+.PP
-+rdma statistic qp show link mlx5_2 pid 30489
-+.RS 4
-+Shows the state of all qp counters of specified RDMA port and belonging to pid 30489
-+.RE
-+.PP
-+rdma statistic qp mode
-+.RS 4
-+List current counter mode on all devices
-+.RE
-+.PP
-+rdma statistic qp mode link mlx5_2/1
-+.RS 4
-+List current counter mode of device mlx5_2 port 1
-+.RE
-+.PP
-+rdma statistic qp set link mlx5_2/1 auto type on
-+.RS 4
-+On device mlx5_2 port 1, for each new QP bind it with a counter automatically. Per counter for QPs with same qp type in each process. Currently only "type" is supported.
-+.RE
-+.PP
-+rdma statistic qp set link mlx5_2/1 auto off
-+.RS 4
-+Turn-off auto mode on device mlx5_2 port 1. The allocated counters can be manually accessed.
-+.RE
-+.PP
-+rdma statistic qp bind link mlx5_2/1 lqpn 178
-+.RS 4
-+On device mlx5_2 port 1, allocate a counter and bind the specified qp on it
-+.RE
-+.PP
-+rdma statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178
-+.RS 4
-+On device mlx5_2 port 1, bind the specified qp on the specified counter
-+.RE
-+.PP
-+rdma statistic qp unbind link mlx5_2/1 cntn 4
-+.RS 4
-+On device mlx5_2 port 1, unbind all QPs on the specified counter. After that this counter will be released automatically by the kernel.
++static int stat_get_counter_parse_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
++	struct nlattr *nla_table, *nla_entry;
++	struct rd *rd = data;
++	uint32_t lqpn, cntn;
++	int err;
 +
-+.RE
-+.PP
++	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
 +
-+.SH SEE ALSO
-+.BR rdma (8),
-+.BR rdma-dev (8),
-+.BR rdma-link (8),
-+.BR rdma-resource (8),
-+.br
++	if (!tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID])
++		return MNL_CB_ERROR;
++	cntn = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID]);
 +
-+.SH AUTHOR
-+Mark Zhang <markz@mellanox.com>
-diff --git a/man/man8/rdma.8 b/man/man8/rdma.8
-index 3ae33987..ef29b1c6 100644
---- a/man/man8/rdma.8
-+++ b/man/man8/rdma.8
-@@ -19,7 +19,7 @@ rdma \- RDMA tool
- 
- .ti -8
- .IR OBJECT " := { "
--.BR dev " | " link " | " system " }"
-+.BR dev " | " link " | " system " | " statistic " }"
- .sp
- 
- .ti -8
-@@ -74,6 +74,10 @@ Generate JSON output.
- .B sys
- - RDMA subsystem related.
- 
-+.TP
-+.B statistic
-+- RDMA counter statistic related.
++	nla_table = tb[RDMA_NLDEV_ATTR_RES_QP];
++	if (!nla_table)
++		return MNL_CB_ERROR;
 +
- .PP
- The names of all objects may be written in full or
- abbreviated form, for example
-@@ -112,6 +116,7 @@ Exit status is 0 if command was successful or a positive integer upon failure.
- .BR rdma-link (8),
- .BR rdma-resource (8),
- .BR rdma-system (8),
-+.BR rdma-statistic (8),
- .br
- 
- .SH REPORTING BUGS
++	mnl_attr_for_each_nested(nla_entry, nla_table) {
++		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
++
++		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
++		if (err != MNL_CB_OK)
++			return -EINVAL;
++
++		if (!nla_line[RDMA_NLDEV_ATTR_RES_LQPN])
++			return -EINVAL;
++
++		lqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_LQPN]);
++		err = do_stat_qp_unbind_lqpn(rd, cntn, lqpn);
++		if (err)
++			return MNL_CB_ERROR;
++	}
++
++	return MNL_CB_OK;
++}
++
++static int stat_one_qp_unbind(struct rd *rd)
++{
++	int flags = NLM_F_REQUEST | NLM_F_ACK, ret;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	int lqpn = 0, cntn = 0;
++	unsigned int portid;
++	uint32_t seq;
++
++	ret = rd_build_filter(rd, stat_valid_filters);
++	if (ret)
++		return ret;
++
++	cntn = stat_get_arg(rd, "cntn");
++	if (rd_argc(rd)) {
++		lqpn = stat_get_arg(rd, "lqpn");
++		return do_stat_qp_unbind_lqpn(rd, cntn, lqpn);
++	}
++
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_STAT_GET, &seq, flags);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_PORT_INDEX, rd->port_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_RES, RDMA_NLDEV_ATTR_RES_QP);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_COUNTER_ID, cntn);
++	ret = rd_send_msg(rd);
++	if (ret)
++		return ret;
++
++
++	/* Can't use rd_recv_msg() since the callback also calls it (recursively),
++	 * then rd_recv_msg() always return -1 here
++	 */
++	portid = mnl_socket_get_portid(rd->nl);
++	ret = mnl_socket_recvfrom(rd->nl, buf, sizeof(buf));
++	if (ret <= 0)
++		return ret;
++
++	ret = mnl_cb_run(buf, ret, seq, portid, stat_get_counter_parse_cb, rd);
++	mnl_socket_close(rd->nl);
++	if (ret != MNL_CB_OK)
++		return ret;
++
++	return 0;
++}
++
++static int stat_qp_bind_link(struct rd *rd)
++{
++	return rd_exec_link(rd, stat_one_qp_bind, true);
++}
++
++static int stat_qp_bind(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL,		stat_help },
++		{ "link",	stat_qp_bind_link },
++		{ "help",	stat_help },
++		{ 0 },
++	};
++
++	return rd_exec_cmd(rd, cmds, "parameter");
++}
++
++static int stat_qp_unbind_link(struct rd *rd)
++{
++	return rd_exec_link(rd, stat_one_qp_unbind, true);
++}
++
++static int stat_qp_unbind(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL,		stat_help },
++		{ "link",	stat_qp_unbind_link },
++		{ "help",	stat_help },
++		{ 0 },
++	};
++
++	return rd_exec_cmd(rd, cmds, "parameter");
++}
++
+ static int stat_qp(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] =  {
+@@ -475,6 +665,8 @@ static int stat_qp(struct rd *rd)
+ 		{ "list",	stat_qp_show },
+ 		{ "mode",	stat_qp_get_mode },
+ 		{ "set",	stat_qp_set },
++		{ "bind",	stat_qp_bind },
++		{ "unbind",	stat_qp_unbind },
+ 		{ "help",	stat_help },
+ 		{ 0 }
+ 	};
 -- 
 2.20.1
 
