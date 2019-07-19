@@ -4,48 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F56C76195
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:20:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62839C76196
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:20:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6A67C2082F
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:20:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3201021849
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:20:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563510028;
-	bh=qE3Q9x5YdgO1hyOffk/qTRAgEMWyl3U7/3nVRaeVeHg=;
+	s=default; t=1563510053;
+	bh=hiTHTmyk3KOj/EoQupVp/vhM9auTA+2n0b+Szdifsqw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=0tTFaPyNYytf3sswkJhg8oTCY5TktzkYQ3v7k8pmkK92UuyhVdntNfT/CtAk8Ssej
-	 T2vIDpRwgok4oN90TxwKpEAVPXVcll4wPmcuYumYBReJNDYjP0OpJ5OSVSGCBNlpLP
-	 GfU9a51Ntg+gIJJsc3f9rtZgMn8msggw+3aVkrqo=
+	b=QXe5F+e8RQ131mbp8hK1QfPm45/h/YTCWsBpdFzqSrSK5s93sQ52RnYrUb1D/06qB
+	 w0y72Xghin49MLKoUXZi62GH5mhnIazMHRWO8JdhlaYzZQGL4dFqlKuaG8LEkDtN7D
+	 Rkkmmrqtqhd2FiVLfNeea6T1L/3O5r1qvQ8WM9Io=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388949AbfGSEU1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Jul 2019 00:20:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48080 "EHLO mail.kernel.org"
+        id S2389155AbfGSEUs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Jul 2019 00:20:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388895AbfGSEMi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 19 Jul 2019 00:12:38 -0400
+        id S1732409AbfGSEMS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 19 Jul 2019 00:12:18 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0F497218D9;
-        Fri, 19 Jul 2019 04:12:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3B060218D2;
+        Fri, 19 Jul 2019 04:12:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563509557;
-        bh=qE3Q9x5YdgO1hyOffk/qTRAgEMWyl3U7/3nVRaeVeHg=;
+        s=default; t=1563509538;
+        bh=hiTHTmyk3KOj/EoQupVp/vhM9auTA+2n0b+Szdifsqw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=1/Xs2A1EQjgiA78RH2SFQSOh4hrCHuBeSY8eTHydjh1911KGzZJgxfGmkxxwZjlQk
-         pZ3qpM1qH2JhterFE9WfXHH6IU6CeNs7GAkjVVnAysCExByFKyiiIKUI0UTHhiRVu5
-         peIcr8Nb/bPjWOmWBK/5ex57FbRlOYtzGYmteI+8=
+        b=y7yd2REnIT0k9rDn9Au9IYAAA4kgrEPVLNgtuSC+hdfqXt/ZpKsx3ZSgR+/TXrYSa
+         aNniuEeOWjOMQUlV2DHkh0Of+AMKdtve9PX09W6iWCl9LHvM3d0GEI92tXPtXSbnwd
+         Hbi5IfnwNCHdmN5tCg3qcrWWKm9tnmWP1Jx6EkVg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Konstantin Taranov <konstantin.taranov@inf.ethz.ch>,
+Cc:     "Liu, Changcheng" <changcheng.liu@intel.com>,
+        Changcheng Liu <changcheng.liu@aliyun.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 46/60] RDMA/rxe: Fill in wc byte_len with IB_WC_RECV_RDMA_WITH_IMM
-Date:   Fri, 19 Jul 2019 00:10:55 -0400
-Message-Id: <20190719041109.18262-46-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 38/60] RDMA/i40iw: Set queue pair state when being queried
+Date:   Fri, 19 Jul 2019 00:10:47 -0400
+Message-Id: <20190719041109.18262-38-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190719041109.18262-1-sashal@kernel.org>
 References: <20190719041109.18262-1-sashal@kernel.org>
@@ -58,61 +60,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Konstantin Taranov <konstantin.taranov@inf.ethz.ch>
+From: "Liu, Changcheng" <changcheng.liu@intel.com>
 
-[ Upstream commit bdce1290493caa3f8119f24b5dacc3fb7ca27389 ]
+[ Upstream commit 2e67e775845373905d2c2aecb9062c2c4352a535 ]
 
-Calculate the correct byte_len on the receiving side when a work
-completion is generated with IB_WC_RECV_RDMA_WITH_IMM opcode.
+The API for ib_query_qp requires the driver to set qp_state and
+cur_qp_state on return, add the missing sets.
 
-According to the IBA byte_len must indicate the number of written bytes,
-whereas it was always equal to zero for the IB_WC_RECV_RDMA_WITH_IMM
-opcode, even though data was transferred.
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Konstantin Taranov <konstantin.taranov@inf.ethz.ch>
+Fixes: d37498417947 ("i40iw: add files for iwarp interface")
+Signed-off-by: Changcheng Liu <changcheng.liu@aliyun.com>
+Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_resp.c  | 5 ++++-
- drivers/infiniband/sw/rxe/rxe_verbs.h | 1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 74328561bee2..9207682b7a2e 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -435,6 +435,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
- 			qp->resp.va = reth_va(pkt);
- 			qp->resp.rkey = reth_rkey(pkt);
- 			qp->resp.resid = reth_len(pkt);
-+			qp->resp.length = reth_len(pkt);
- 		}
- 		access = (pkt->mask & RXE_READ_MASK) ? IB_ACCESS_REMOTE_READ
- 						     : IB_ACCESS_REMOTE_WRITE;
-@@ -860,7 +861,9 @@ static enum resp_states do_complete(struct rxe_qp *qp,
- 				pkt->mask & RXE_WRITE_MASK) ?
- 					IB_WC_RECV_RDMA_WITH_IMM : IB_WC_RECV;
- 		wc->vendor_err = 0;
--		wc->byte_len = wqe->dma.length - wqe->dma.resid;
-+		wc->byte_len = (pkt->mask & RXE_IMMDT_MASK &&
-+				pkt->mask & RXE_WRITE_MASK) ?
-+					qp->resp.length : wqe->dma.length - wqe->dma.resid;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index c1021b4afb41..57bfe4808247 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -821,6 +821,8 @@ static int i40iw_query_qp(struct ib_qp *ibqp,
+ 	struct i40iw_qp *iwqp = to_iwqp(ibqp);
+ 	struct i40iw_sc_qp *qp = &iwqp->sc_qp;
  
- 		/* fields after byte_len are different between kernel and user
- 		 * space
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 59f6a24db064..b2b76a316eba 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -214,6 +214,7 @@ struct rxe_resp_info {
- 	struct rxe_mem		*mr;
- 	u32			resid;
- 	u32			rkey;
-+	u32			length;
- 	u64			atomic_orig;
- 
- 	/* SRQ only */
++	attr->qp_state = iwqp->ibqp_state;
++	attr->cur_qp_state = attr->qp_state;
+ 	attr->qp_access_flags = 0;
+ 	attr->cap.max_send_wr = qp->qp_uk.sq_size;
+ 	attr->cap.max_recv_wr = qp->qp_uk.rq_size;
 -- 
 2.20.1
 
