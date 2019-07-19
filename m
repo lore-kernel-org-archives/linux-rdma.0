@@ -2,94 +2,134 @@ Return-Path: <SRS0=alaQ=VQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6381AC76196
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:36:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79BCBC76188
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 11:46:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 33601206DD
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:36:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563511019;
-	bh=8jc9kvZcD3+DghNPJWeOogXprIlcVQ98zV7vIwDv3T0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=SfrdQB5RE099+HfsYCSJm7P3k1wRwkQ4/aHW0rKcfeo2dLz1Kl7c5N8S/WLOJNzLs
-	 CQBoQaLgW10ns/kLbTKmHYAnPREsik+svbpi+Lcd4ppn7eN8JLxMDyg46KGeG8v3Td
-	 dhRaE1MDUwuftiqmp3SwM8/GZz4UgTgDRSgtNxfI=
+	by mail.kernel.org (Postfix) with ESMTP id 4966120873
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 11:46:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="RdYYPjgF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729001AbfGSEAX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Jul 2019 00:00:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60236 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728996AbfGSEAW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 19 Jul 2019 00:00:22 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 276072189F;
-        Fri, 19 Jul 2019 04:00:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563508822;
-        bh=8jc9kvZcD3+DghNPJWeOogXprIlcVQ98zV7vIwDv3T0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BQEza/1AeTQKJ/dKK0m89aUHwXGOIsyz8wpkWGFXLuINsGD6CXj0iZ6F1+OqRVU/L
-         CiDdYPhCcBoMmUFHrc6Aj9hqG8iGQ4YZBbU6MmtYchYAr5RUZul/1NQG24fuyEbsMj
-         lPLiCzgCZBIgHfxN75+79GnrVtGr00OfLXDRBbis=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Liu, Changcheng" <changcheng.liu@intel.com>,
-        Changcheng Liu <changcheng.liu@aliyun.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 108/171] RDMA/i40iw: Set queue pair state when being queried
-Date:   Thu, 18 Jul 2019 23:55:39 -0400
-Message-Id: <20190719035643.14300-108-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190719035643.14300-1-sashal@kernel.org>
-References: <20190719035643.14300-1-sashal@kernel.org>
+        id S1728034AbfGSLqz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Jul 2019 07:46:55 -0400
+Received: from mail-qt1-f195.google.com ([209.85.160.195]:41185 "EHLO
+        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726072AbfGSLqz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Jul 2019 07:46:55 -0400
+Received: by mail-qt1-f195.google.com with SMTP id d17so30510923qtj.8
+        for <linux-rdma@vger.kernel.org>; Fri, 19 Jul 2019 04:46:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=O0jjdFiNkuhqvchRHcGPsH0wilH8Gr779DZhO2v0yAM=;
+        b=RdYYPjgFXt84MxWQpA/qfrN+EJDTa9rrTndOvR8uYUggRYxMr3CgbZNKnOglA/J+sG
+         PRI+/muDSuH0SL3OZGleJlUtKDyKEnTMSACsDVbbvGR1FBVjgj+2R9tekjfptsxZ9+pc
+         PrTVg62NYBKMAPNqOaw1He6jAuYgfLWPbmT26/d1W8ZKkqcBa+CYOMHuPiPFq3crJTF4
+         VtvsJE0GNwJoGy4DlcoidUoyLodIJQwP+9W+Qjeftqk/UjyPlzj1YqAucsDEYojah+tO
+         ihVu7VmMnKu7VKMY2O+oBfSnmprqqvs/0fdmLqivNLE12yC+LM8EaeR1ZrPK1YRbMNXJ
+         eDUg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=O0jjdFiNkuhqvchRHcGPsH0wilH8Gr779DZhO2v0yAM=;
+        b=App+qTYJyK4/E6A18GBsYik6gEvSkbV/JMiRoyUhT1Gg2LbLhqtINRAKx1xhn+aFhn
+         C0TCU3DSHMTT2/XHkuaxzEH6nKWbWO26S4/gqd9aESnlfP/8/2eZamWFu0s64lEuBBkY
+         qjyNt8scISfto3i9ptSjp4PicAdftwI1SelULpNRJxuwht6kPBYSP4zfDTkgKM2RaGk9
+         9vqed7wCJMRU0/5pFOokEDTcxupYMN+jttB8NZHMlOXE/z7ij3S3XmbnYKscitEQG4WA
+         hAajOwW3M7N7M75ifUJu6IWvcFu5ku3B1cd7OyUGpMRIGDESDxUPQWGiS4uUYoDkVce/
+         vRfg==
+X-Gm-Message-State: APjAAAUk+jQG9QCwrAcGT3j1K6B1iu3qCh7VMuBiMKLXdkNUdhe5BWaD
+        PR59GY2+YWggeDrrw1YskKhxEw==
+X-Google-Smtp-Source: APXvYqw+DoelgWqF+sf2FJBzeu5MZkcOMSmEGnTRlWydQmmWOISapKniAPR3tnLoiwu8g9V+lVI7IA==
+X-Received: by 2002:ac8:f91:: with SMTP id b17mr36341307qtk.352.1563536814571;
+        Fri, 19 Jul 2019 04:46:54 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
+        by smtp.gmail.com with ESMTPSA id y42sm20591453qtc.66.2019.07.19.04.46.53
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 19 Jul 2019 04:46:53 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1hoRLh-00049m-Ax; Fri, 19 Jul 2019 08:46:53 -0300
+Date:   Fri, 19 Jul 2019 08:46:53 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Yuval Shaia <yuval.shaia@oracle.com>
+Cc:     Matthew Wilcox <willy@infradead.org>,
+        Shamir Rabinovitch <srabinov7@gmail.com>, dledford@redhat.com,
+        leon@kernel.org, monis@mellanox.com, parav@mellanox.com,
+        danielj@mellanox.com, kamalheib1@gmail.com, markz@mellanox.com,
+        swise@opengridcomputing.com, johannes.berg@intel.com,
+        michaelgur@mellanox.com, markb@mellanox.com,
+        dan.carpenter@oracle.com, bvanassche@acm.org, maxg@mellanox.com,
+        israelr@mellanox.com, galpress@amazon.com, denisd@mellanox.com,
+        yuvalav@mellanox.com, dennis.dalessandro@intel.com,
+        will@kernel.org, ereza@mellanox.com, linux-rdma@vger.kernel.org,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH 08/25] IB/uverbs: ufile must be freed only when not used
+ anymore
+Message-ID: <20190719114653.GA15816@ziepe.ca>
+References: <20190716181200.4239-1-srabinov7@gmail.com>
+ <20190716181200.4239-9-srabinov7@gmail.com>
+ <20190717115354.GC12119@ziepe.ca>
+ <20190717192525.GA2515@shamir-ThinkPad-X240>
+ <20190717193313.GN12119@ziepe.ca>
+ <20190717203112.GA7307@lap1>
+ <20190717204505.GD32320@bombadil.infradead.org>
+ <20190717213636.GA2797@lap1>
+ <20190718121747.GB1667@ziepe.ca>
+ <20190718204551.GA5043@lap1>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190718204551.GA5043@lap1>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "Liu, Changcheng" <changcheng.liu@intel.com>
+On Thu, Jul 18, 2019 at 11:45:52PM +0300, Yuval Shaia wrote:
+> On Thu, Jul 18, 2019 at 09:17:47AM -0300, Jason Gunthorpe wrote:
+> > On Thu, Jul 18, 2019 at 12:36:37AM +0300, Yuval Shaia wrote:
+> > > On Wed, Jul 17, 2019 at 01:45:05PM -0700, Matthew Wilcox wrote:
+> > > > On Wed, Jul 17, 2019 at 11:31:12PM +0300, Yuval Shaia wrote:
+> > > > > On Wed, Jul 17, 2019 at 04:33:13PM -0300, Jason Gunthorpe wrote:
+> > > > > > Like I said, drivers that require the creating ucontext as part of the
+> > > > > > PD and MR cannot support sharing.
+> > > > > 
+> > > > > Even if we can make sure the process that creates the MR stays alive until
+> > > > > all reference to this MR completes?
+> > > > 
+> > > > The kernel can't rely on userspace to do that.
+> > > 
+> > > ok, how about this: we know that for MR to be shared the memory behinds it
+> > > should also be shared.
+> > > 
+> > > In this case, i know it sounds horrifying but do we care that the process
+> > > that originally created this MR exits? i.e. how about just before the
+> > > process leaves this world we will find some other ucontext to hold these
+> > > memory mappings that driver holds?
+> > > Or how about moving this mapping from ucontext pointed by ib_mr directly to
+> > > ib_mr?
+> > 
+> > What are you worrying about? My point is we don't need to *anything*
+> > if the driver objects for PD and MR don't rely on the ucontext. This
+> > appears to be the normal case.
+> 
+> but we saw that mlx4 (and i think also 5) do use the ucontext, i think to
+> undo umem_get stuff.
 
-[ Upstream commit 2e67e775845373905d2c2aecb9062c2c4352a535 ]
+It is unnecessary, remove it.
 
-The API for ib_query_qp requires the driver to set qp_state and
-cur_qp_state on return, add the missing sets.
+> > MRs already work fine if they outlive the creating process.
+> 
+> You mean if we leave the creating process alive?
 
-Fixes: d37498417947 ("i40iw: add files for iwarp interface")
-Signed-off-by: Changcheng Liu <changcheng.liu@aliyun.com>
-Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 ++
- 1 file changed, 2 insertions(+)
+No, let it die, it is fine
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 5689d742bafb..4c88d6f72574 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -772,6 +772,8 @@ static int i40iw_query_qp(struct ib_qp *ibqp,
- 	struct i40iw_qp *iwqp = to_iwqp(ibqp);
- 	struct i40iw_sc_qp *qp = &iwqp->sc_qp;
- 
-+	attr->qp_state = iwqp->ibqp_state;
-+	attr->cur_qp_state = attr->qp_state;
- 	attr->qp_access_flags = 0;
- 	attr->cap.max_send_wr = qp->qp_uk.sq_size;
- 	attr->cap.max_recv_wr = qp->qp_uk.rq_size;
--- 
-2.20.1
-
+Jason
