@@ -7,50 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C754C76195
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25589C76195
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:28:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C95B20873
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:24:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E67C921852
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:28:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563510287;
-	bh=Ej61BrCroaMEonR5w1+AInRvRheTnOb37mbgr66Yftk=;
+	s=default; t=1563510495;
+	bh=jfItoQGzZ9Q/lmuzO+wU4JzzLhRe2zgd3/tbSLJUNXI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Ws92Low89c93L9TGPSyxTOBCKdJRBUq1zKptBm8l2o6LWhekXFtOdJWFSRm0SFYUm
-	 HrIyDE3JkEHTOWyiAfFjNi/bl7dflRh851gWLv2zDL1K6PbvjPJVu+caCToBEFDZCo
-	 s4tH3Wtjja4He6JiKEyOkigNIJvnz/jrJ5brw9vQ=
+	b=ugqxhy5vJjm1NxhIZ7M33nUD/vg9GZs35iCvVZJgjrfBfTMo2TdOolaCYQmBAtRNt
+	 wBm90mRJ8PB+bk6w4ekwvbncJQtnIDHehCnUvvzAcIo27M7ZSIPZ+jDCZc2ll0jgvv
+	 KOGjyRMeMaztyNi3KxZWfgZcET2J8VjSw7MC5cuI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387591AbfGSEJc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Jul 2019 00:09:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44084 "EHLO mail.kernel.org"
+        id S1732232AbfGSEGh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Jul 2019 00:06:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387577AbfGSEJb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 19 Jul 2019 00:09:31 -0400
+        id S1732215AbfGSEGh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 19 Jul 2019 00:06:37 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AEFFC218D9;
-        Fri, 19 Jul 2019 04:09:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 10E53218BC;
+        Fri, 19 Jul 2019 04:06:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563509370;
-        bh=Ej61BrCroaMEonR5w1+AInRvRheTnOb37mbgr66Yftk=;
+        s=default; t=1563509195;
+        bh=jfItoQGzZ9Q/lmuzO+wU4JzzLhRe2zgd3/tbSLJUNXI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=0hZPTBRB1UBRvK/FLRROE0z6ZJCToGvnaxyKdi1e+CDdhIx2W8HLXI8f2KurW9yvb
-         t7N5ePaCWpW83u72ymMmWEuSQJZIxrDY3u2lIIaMqADIHGF6KFhZgUtXRvLtoaUAij
-         vCn0k36u5uk8IS6Xgbq6MB56gsyULNJ55zmnlCEw=
+        b=lL52lsDukMYYVoJXbT7J0EzLX/KladXZdlA8jYN1xmTTGaZOV4582pYrUkIsxJ9nj
+         EYilC80bvk3ZuHXoQzNACSvF7ciQX33aDlaIQC1yGht7cFcGoYaHBj8CohtklqMe76
+         NARdIgRjQArryIJ6YoeUzjuAQFnrgLJ2GGfvTp3g=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Liu, Changcheng" <changcheng.liu@intel.com>,
-        Changcheng Liu <changcheng.liu@aliyun.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 058/101] RDMA/i40iw: Set queue pair state when being queried
-Date:   Fri, 19 Jul 2019 00:06:49 -0400
-Message-Id: <20190719040732.17285-58-sashal@kernel.org>
+Cc:     Aya Levin <ayal@mellanox.com>, Feras Daoud <ferasda@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.1 121/141] net/mlx5e: IPoIB, Add error path in mlx5_rdma_setup_rn
+Date:   Fri, 19 Jul 2019 00:02:26 -0400
+Message-Id: <20190719040246.15945-121-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190719040732.17285-1-sashal@kernel.org>
-References: <20190719040732.17285-1-sashal@kernel.org>
+In-Reply-To: <20190719040246.15945-1-sashal@kernel.org>
+References: <20190719040246.15945-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,36 +59,48 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "Liu, Changcheng" <changcheng.liu@intel.com>
+From: Aya Levin <ayal@mellanox.com>
 
-[ Upstream commit 2e67e775845373905d2c2aecb9062c2c4352a535 ]
+[ Upstream commit ef1ce7d7b67b46661091c7ccc0396186b7a247ef ]
 
-The API for ib_query_qp requires the driver to set qp_state and
-cur_qp_state on return, add the missing sets.
+Check return value from mlx5e_attach_netdev, add error path on failure.
 
-Fixes: d37498417947 ("i40iw: add files for iwarp interface")
-Signed-off-by: Changcheng Liu <changcheng.liu@aliyun.com>
-Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: 48935bbb7ae8 ("net/mlx5e: IPoIB, Add netdevice profile skeleton")
+Signed-off-by: Aya Levin <ayal@mellanox.com>
+Reviewed-by: Feras Daoud <ferasda@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index e2e6c74a7452..a5e3349b8a7c 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -806,6 +806,8 @@ static int i40iw_query_qp(struct ib_qp *ibqp,
- 	struct i40iw_qp *iwqp = to_iwqp(ibqp);
- 	struct i40iw_sc_qp *qp = &iwqp->sc_qp;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+index 4eac42555c7d..5d0783e55f42 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+@@ -698,7 +698,9 @@ static int mlx5_rdma_setup_rn(struct ib_device *ibdev, u8 port_num,
  
-+	attr->qp_state = iwqp->ibqp_state;
-+	attr->cur_qp_state = attr->qp_state;
- 	attr->qp_access_flags = 0;
- 	attr->cap.max_send_wr = qp->qp_uk.sq_size;
- 	attr->cap.max_recv_wr = qp->qp_uk.rq_size;
+ 	prof->init(mdev, netdev, prof, ipriv);
+ 
+-	mlx5e_attach_netdev(epriv);
++	err = mlx5e_attach_netdev(epriv);
++	if (err)
++		goto detach;
+ 	netif_carrier_off(netdev);
+ 
+ 	/* set rdma_netdev func pointers */
+@@ -714,6 +716,11 @@ static int mlx5_rdma_setup_rn(struct ib_device *ibdev, u8 port_num,
+ 
+ 	return 0;
+ 
++detach:
++	prof->cleanup(epriv);
++	if (ipriv->sub_interface)
++		return err;
++	mlx5e_destroy_mdev_resources(mdev);
+ destroy_ht:
+ 	mlx5i_pkey_qpn_ht_cleanup(netdev);
+ 	return err;
 -- 
 2.20.1
 
