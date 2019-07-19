@@ -4,49 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73BA0C76195
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:34:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6A5BC76188
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:34:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4CC3220873
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:34:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 883B0206DD
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jul 2019 04:34:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563510879;
-	bh=+hCM6REWCGyOM6ATFUsntBdajWBPV6AdXDvS2mwE8Qg=;
+	s=default; t=1563510890;
+	bh=V4huZNzy8HgUqUG9Hs18Y4DPLc1zQdIPvTrO6il0Jp0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=iODowr8RgVhjOm33G35NgfIelDgpq0F4XJLhJMN54NlYFhbIK8JNxtvtNQyb61pE0
-	 Eth2SX4h2S/9hZzKKN0UTHPWMVtDt/5ffLct1FUpEbXcs4fPr58NnEuI8thvwfIsso
-	 pjk/uKZ8mQLLLo26Z6RLG50uf/LTylxkHsMw51T4=
+	b=BMc8Wup4KPLybM2e9B3abQe4PWxTSKfBVxGK9Uba/MWE5e5tKvTC/E01cdPJz+9wS
+	 2p5oDqF5xyEZ7e5P5+ABK7To3v59bHUEQjKij8GbxXw4Fq3l26JuTdpweIopMavREk
+	 Kmk2xcav98Fw+YFCZOxtSHH5mKGHfGDS8OeGo4Vw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729723AbfGSEea (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Jul 2019 00:34:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33684 "EHLO mail.kernel.org"
+        id S1729642AbfGSEBr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Jul 2019 00:01:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729693AbfGSEBx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 19 Jul 2019 00:01:53 -0400
+        id S1727273AbfGSEBp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 19 Jul 2019 00:01:45 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0D5A321851;
-        Fri, 19 Jul 2019 04:01:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 291BB21851;
+        Fri, 19 Jul 2019 04:01:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563508912;
-        bh=+hCM6REWCGyOM6ATFUsntBdajWBPV6AdXDvS2mwE8Qg=;
+        s=default; t=1563508905;
+        bh=V4huZNzy8HgUqUG9Hs18Y4DPLc1zQdIPvTrO6il0Jp0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fzWYcQuMN9EAw0u2vd5/2Q+4CK1ltGJPIP/ygvB+bUP4cS38CHYs0xHZa3UzNPY5O
-         GSqqkvR9NRCzYGPKYvqmFrMz4OzZD1/zF0YCUOlENOw8xzOBLY51cDvPPQpYk6/tYH
-         A/nO+OMQjzuiiUYOXPD9q+zxuJzw6NmeliD7AY0k=
+        b=mCVa+NvSuDYvSIZZItDuyhIp90cmgKhxrHouR9TwJvrujabTZ2BqW0ICBIaYl7iZ+
+         wtVuAH61AdhNJVnOHqf/FAUVSiImqrIRyGF1LyvchP/ipBWzGXqP1g+Dl6gl6gV2l2
+         zI8XRnwOMWOuOClduApluTEQY6ilRon3N+Ps+ndA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Maor Gottlieb <maorg@mellanox.com>, Roi Dayan <roid@mellanox.com>,
+Cc:     Aya Levin <ayal@mellanox.com>, Feras Daoud <ferasda@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 155/171] net/mlx5: E-Switch, Fix default encap mode
-Date:   Thu, 18 Jul 2019 23:56:26 -0400
-Message-Id: <20190719035643.14300-155-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 150/171] net/mlx5e: IPoIB, Add error path in mlx5_rdma_setup_rn
+Date:   Thu, 18 Jul 2019 23:56:21 -0400
+Message-Id: <20190719035643.14300-150-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190719035643.14300-1-sashal@kernel.org>
 References: <20190719035643.14300-1-sashal@kernel.org>
@@ -59,66 +59,48 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@mellanox.com>
+From: Aya Levin <ayal@mellanox.com>
 
-[ Upstream commit 9a64144d683a4395f57562d90247c61a0bf5105f ]
+[ Upstream commit ef1ce7d7b67b46661091c7ccc0396186b7a247ef ]
 
-Encap mode is related to switchdev mode only. Move the init of
-the encap mode to eswitch_offloads. Before this change, we reported
-that eswitch supports encap, even tough the device was in non
-SRIOV mode.
+Check return value from mlx5e_attach_netdev, add error path on failure.
 
-Fixes: 7768d1971de67 ('net/mlx5: E-Switch, Add control for encapsulation')
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Roi Dayan <roid@mellanox.com>
+Fixes: 48935bbb7ae8 ("net/mlx5e: IPoIB, Add netdevice profile skeleton")
+Signed-off-by: Aya Levin <ayal@mellanox.com>
+Reviewed-by: Feras Daoud <ferasda@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c          | 5 -----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 7 +++++++
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 6a921e24cd5e..e9339e7d6a18 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1882,11 +1882,6 @@ int mlx5_eswitch_init(struct mlx5_core_dev *dev)
- 	esw->enabled_vports = 0;
- 	esw->mode = SRIOV_NONE;
- 	esw->offloads.inline_mode = MLX5_INLINE_MODE_NONE;
--	if (MLX5_CAP_ESW_FLOWTABLE_FDB(dev, reformat) &&
--	    MLX5_CAP_ESW_FLOWTABLE_FDB(dev, decap))
--		esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_BASIC;
--	else
--		esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_NONE;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+index 9ca492b430d8..603d294757b4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+@@ -698,7 +698,9 @@ static int mlx5_rdma_setup_rn(struct ib_device *ibdev, u8 port_num,
  
- 	dev->priv.eswitch = esw;
+ 	prof->init(mdev, netdev, prof, ipriv);
+ 
+-	mlx5e_attach_netdev(epriv);
++	err = mlx5e_attach_netdev(epriv);
++	if (err)
++		goto detach;
+ 	netif_carrier_off(netdev);
+ 
+ 	/* set rdma_netdev func pointers */
+@@ -714,6 +716,11 @@ static int mlx5_rdma_setup_rn(struct ib_device *ibdev, u8 port_num,
+ 
  	return 0;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 47b446d30f71..c2beadc41c40 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -1840,6 +1840,12 @@ int esw_offloads_init(struct mlx5_eswitch *esw, int vf_nvports,
- {
- 	int err;
  
-+	if (MLX5_CAP_ESW_FLOWTABLE_FDB(esw->dev, reformat) &&
-+	    MLX5_CAP_ESW_FLOWTABLE_FDB(esw->dev, decap))
-+		esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_BASIC;
-+	else
-+		esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_NONE;
-+
- 	err = esw_offloads_steering_init(esw, vf_nvports, total_nvports);
- 	if (err)
- 		return err;
-@@ -1901,6 +1907,7 @@ void esw_offloads_cleanup(struct mlx5_eswitch *esw)
- 	esw_offloads_devcom_cleanup(esw);
- 	esw_offloads_unload_all_reps(esw, num_vfs);
- 	esw_offloads_steering_cleanup(esw);
-+	esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_NONE;
- }
- 
- static int esw_mode_from_devlink(u16 mode, u16 *mlx5_mode)
++detach:
++	prof->cleanup(epriv);
++	if (ipriv->sub_interface)
++		return err;
++	mlx5e_destroy_mdev_resources(mdev);
+ destroy_ht:
+ 	mlx5i_pkey_qpn_ht_cleanup(netdev);
+ 	return err;
 -- 
 2.20.1
 
