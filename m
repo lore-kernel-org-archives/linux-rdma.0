@@ -2,138 +2,122 @@ Return-Path: <SRS0=nyJA=VT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB522C76190
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 22:34:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81C86C7618F
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:09:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C1D6E21985
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 22:34:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Sw0HvJJT"
+	by mail.kernel.org (Postfix) with ESMTP id 607FF21985
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:09:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733277AbfGVWee (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 Jul 2019 18:34:34 -0400
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:45556 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733248AbfGVWeX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Jul 2019 18:34:23 -0400
-Received: by mail-pg1-f195.google.com with SMTP id o13so18325311pgp.12;
-        Mon, 22 Jul 2019 15:34:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=/ofa5EhPy5N+KM7nweAsOE7rWC5Duznu1d2IMlN4I/Y=;
-        b=Sw0HvJJTDmzbJlbRnGPA0tEKa9wBsoXOpSBSyyCpXXoTDy/oLlPojLp975N/iZT3Rt
-         8jfBQuYyMJoyHlJ2fyV7WUkxYIldTegTihpxRiAvNY8zRba3PO9qS3NZSvTUxei06Rk0
-         uOGdeG1FwadWsIBYlsr2yV0g+UwUeH2FEFiAyASHNNXam+5nvwUOaLXqS8GitFl6ninp
-         eVYAIz6e9bu5JJNLX4jLtYsSme3OBg4qojzmnb1QA+ka0SBTx6a2p/N+h2SdySOnbmnd
-         qH6vvH98sRnmJjM2M9uSzbppXdvFGZyQFLd9B0l+ZOt4ywhtBFZH/zZ3Y6U5IOl5jKuB
-         XGJA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=/ofa5EhPy5N+KM7nweAsOE7rWC5Duznu1d2IMlN4I/Y=;
-        b=nQt9Bnhijl78wihrIrOnFKmCFYUnu+x8HxtHt8m4TeO104UJziZrGVWZY0UAXs0KOO
-         XO8/WVxyHVBG5ixf98t40r1P1DrSt7NUE3UunuVsWXwoIP8LT3p0aR43V/aW8Op+N4H5
-         cbpl2BjeuTbAaLOgiRwBeMlfYIeZtjTgcaMMAtPX5J2lfmAEG0eHEM1iuRndHZ83e0yq
-         eh4QWL8UMx3bwRsCu/eAPYJ69TUIsqvnOoeAt/NNUihVWOHoOAYFFsLgLbrsrEEq3ecQ
-         0VJ39BxrEeER1ZWG7f/dLjEUlsv5larFeIKBe9DtHORW4ia7N35IdXGA8NDzts0g5qpg
-         TkMA==
-X-Gm-Message-State: APjAAAW1RyKoMQ6V4NLv/JvmQv8m7v8pLLu5MxYdd8N7Ae+zTAHwZRFE
-        KiGi45FnS1H7Byuw4PJFVsY=
-X-Google-Smtp-Source: APXvYqwVaJn+EzirdPn13F0RFZ1U5rQgVF9dbTt0Dcd+iQUjCIySQADzRQKVKnRyYTBRNLHQ9Mrw9A==
-X-Received: by 2002:a62:7990:: with SMTP id u138mr2390135pfc.191.1563834863230;
-        Mon, 22 Jul 2019 15:34:23 -0700 (PDT)
-Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id r18sm30597570pfg.77.2019.07.22.15.34.21
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Mon, 22 Jul 2019 15:34:22 -0700 (PDT)
-From:   john.hubbard@gmail.com
-X-Google-Original-From: jhubbard@nvidia.com
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
-        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>,
-        Boaz Harrosh <boaz@plexistor.com>,
+        id S1729772AbfGVXJL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 Jul 2019 19:09:11 -0400
+Received: from ale.deltatee.com ([207.54.116.67]:40248 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726130AbfGVXJL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 22 Jul 2019 19:09:11 -0400
+Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
+        by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <gunthorp@deltatee.com>)
+        id 1hphQb-0002jx-Dj; Mon, 22 Jul 2019 17:09:10 -0600
+Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
+        (envelope-from <gunthorp@deltatee.com>)
+        id 1hphQU-0001Qk-VM; Mon, 22 Jul 2019 17:09:03 -0600
+From:   Logan Gunthorpe <logang@deltatee.com>
+To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Christoph Hellwig <hch@lst.de>,
-        Daniel Vetter <daniel@ffwll.ch>,
+        Christian Koenig <Christian.Koenig@amd.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@fb.com>,
         Dan Williams <dan.j.williams@intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        David Airlie <airlied@linux.ie>,
-        "David S . Miller" <davem@davemloft.net>,
-        Ilya Dryomov <idryomov@gmail.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Magnus Karlsson <magnus.karlsson@intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Ming Lei <ming.lei@redhat.com>, Sage Weil <sage@redhat.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        Yan Zheng <zyan@redhat.com>, netdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
-        linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH 3/3] net/xdp: convert put_page() to put_user_page*()
-Date:   Mon, 22 Jul 2019 15:34:15 -0700
-Message-Id: <20190722223415.13269-4-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190722223415.13269-1-jhubbard@nvidia.com>
-References: <20190722223415.13269-1-jhubbard@nvidia.com>
+        Eric Pilmore <epilmore@gigaio.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+Date:   Mon, 22 Jul 2019 17:08:48 -0600
+Message-Id: <20190722230859.5436-4-logang@deltatee.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190722230859.5436-1-logang@deltatee.com>
+References: <20190722230859.5436-1-logang@deltatee.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-NVConfidentiality: public
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 172.16.1.31
+X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
+X-SA-Exim-Mail-From: gunthorp@deltatee.com
+Subject: [PATCH 03/14] PCI/P2PDMA: Apply host bridge white list for ACS
+X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+When a P2PDMA transfer is rejected due to ACS being set, we
+can also check the white list and allow the transactions.
 
-For pages that were retained via get_user_pages*(), release those pages
-via the new put_user_page*() routines, instead of via put_page() or
-release_pages().
+Do this by pushing the whitelist check into the
+upstream_bridge_distance() function.
 
-This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
-
-Cc: Björn Töpel <bjorn.topel@intel.com>
-Cc: Magnus Karlsson <magnus.karlsson@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- net/xdp/xdp_umem.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ drivers/pci/p2pdma.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
-index 83de74ca729a..0325a17915de 100644
---- a/net/xdp/xdp_umem.c
-+++ b/net/xdp/xdp_umem.c
-@@ -166,14 +166,7 @@ void xdp_umem_clear_dev(struct xdp_umem *umem)
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index 289d03a31e7d..d5034e28d1e1 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -324,15 +324,7 @@ static int __upstream_bridge_distance(struct pci_dev *provider,
+ 		dist_a++;
+ 	}
  
- static void xdp_umem_unpin_pages(struct xdp_umem *umem)
+-	/*
+-	 * Allow the connection if both devices are on a whitelisted root
+-	 * complex, but add an arbitrary large value to the distance.
+-	 */
+-	if (root_complex_whitelist(provider) &&
+-	    root_complex_whitelist(client))
+-		return (dist_a + dist_b) | P2PDMA_THRU_HOST_BRIDGE;
+-
+-	return (dist_a + dist_b) | P2PDMA_NOT_SUPPORTED;
++	return (dist_a + dist_b) | P2PDMA_THRU_HOST_BRIDGE;
+ 
+ check_b_path_acs:
+ 	bb = b;
+@@ -350,7 +342,8 @@ static int __upstream_bridge_distance(struct pci_dev *provider,
+ 	}
+ 
+ 	if (acs_cnt)
+-		return P2PDMA_NOT_SUPPORTED | P2PDMA_ACS_FORCES_UPSTREAM;
++		return (dist_a + dist_b) | P2PDMA_ACS_FORCES_UPSTREAM |
++			P2PDMA_THRU_HOST_BRIDGE;
+ 
+ 	return dist_a + dist_b;
+ }
+@@ -397,7 +390,17 @@ static int upstream_bridge_distance(struct pci_dev *provider,
+ 				    struct pci_dev *client,
+ 				    struct seq_buf *acs_list)
  {
--	unsigned int i;
--
--	for (i = 0; i < umem->npgs; i++) {
--		struct page *page = umem->pgs[i];
--
--		set_page_dirty_lock(page);
--		put_page(page);
--	}
-+	put_user_pages_dirty_lock(umem->pgs, umem->npgs);
+-	return __upstream_bridge_distance(provider, client, acs_list);
++	int dist;
++
++	dist = __upstream_bridge_distance(provider, client, acs_list);
++
++	if (!(dist & P2PDMA_THRU_HOST_BRIDGE))
++		return dist;
++
++	if (root_complex_whitelist(provider) && root_complex_whitelist(client))
++		return dist;
++
++	return dist | P2PDMA_NOT_SUPPORTED;
+ }
  
- 	kfree(umem->pgs);
- 	umem->pgs = NULL;
+ static int upstream_bridge_distance_warn(struct pci_dev *provider,
 -- 
-2.22.0
+2.20.1
 
