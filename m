@@ -4,32 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BC53C76190
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 15:14:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78A68C76197
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 15:14:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D8B021921
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 15:14:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F6AA21951
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 15:14:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728278AbfGVPOq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 Jul 2019 11:14:46 -0400
-Received: from os.inf.tu-dresden.de ([141.76.48.99]:58298 "EHLO
+        id S1728274AbfGVPOs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 Jul 2019 11:14:48 -0400
+Received: from os.inf.tu-dresden.de ([141.76.48.99]:58304 "EHLO
         os.inf.tu-dresden.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728152AbfGVPOp (ORCPT
+        with ESMTP id S1728254AbfGVPOp (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Jul 2019 11:14:45 -0400
 Received: from [195.176.96.199] (helo=jupiter)
         by os.inf.tu-dresden.de with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256) (Exim 4.92)
-        id 1hpa1N-0008A1-23; Mon, 22 Jul 2019 17:14:37 +0200
+        id 1hpa1N-0008A8-KD; Mon, 22 Jul 2019 17:14:37 +0200
 From:   Maksym Planeta <mplaneta@os.inf.tu-dresden.de>
 To:     Moni Shoua <monis@mellanox.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org
 Cc:     Maksym Planeta <mplaneta@os.inf.tu-dresden.de>
-Subject: [PATCH 06/10] Remove pd form rxe_ah
-Date:   Mon, 22 Jul 2019 17:14:22 +0200
-Message-Id: <20190722151426.5266-7-mplaneta@os.inf.tu-dresden.de>
+Subject: [PATCH 07/10] Pass the return value of kref_put further
+Date:   Mon, 22 Jul 2019 17:14:23 +0200
+Message-Id: <20190722151426.5266-8-mplaneta@os.inf.tu-dresden.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190722151426.5266-1-mplaneta@os.inf.tu-dresden.de>
 References: <20190722151426.5266-1-mplaneta@os.inf.tu-dresden.de>
@@ -40,25 +40,45 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Pointer to PD is not used in rxe_ah anymore.
+Used in a later patch.
 
 Signed-off-by: Maksym Planeta <mplaneta@os.inf.tu-dresden.de>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.h | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_pool.c | 3 ++-
+ drivers/infiniband/sw/rxe/rxe_pool.h | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 5c4b2239129c..8dd65c2a7c72 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -73,7 +73,6 @@ struct rxe_pd {
- struct rxe_ah {
- 	struct ib_ah		ibah;
- 	struct rxe_pool_entry	pelem;
--	struct rxe_pd		*pd;
- 	struct rxe_av		av;
- };
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 30a887cf9200..711d7d7f3692 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -541,7 +541,7 @@ static void rxe_dummy_release(struct kref *kref)
+ {
+ }
  
+-void rxe_drop_ref(struct rxe_pool_entry *pelem)
++int rxe_drop_ref(struct rxe_pool_entry *pelem)
+ {
+ 	int res;
+ 	struct rxe_pool *pool = pelem->pool;
+@@ -553,4 +553,5 @@ void rxe_drop_ref(struct rxe_pool_entry *pelem)
+ 	if (res) {
+ 		rxe_elem_release(&pelem->ref_cnt);
+ 	}
++	return res;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index b90cc84c5511..1e3508c74dc0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -166,6 +166,6 @@ static inline void rxe_add_ref(struct rxe_pool_entry *pelem) {
+ }
+ 
+ /* drop a reference on an object */
+-void rxe_drop_ref(struct rxe_pool_entry *pelem);
++int rxe_drop_ref(struct rxe_pool_entry *pelem);
+ 
+ #endif /* RXE_POOL_H */
 -- 
 2.20.1
 
