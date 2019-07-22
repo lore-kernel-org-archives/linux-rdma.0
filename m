@@ -4,28 +4,29 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C1EBC7618F
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA79EC76190
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0DF1E21985
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 988DB21985
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729758AbfGVXKC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1730390AbfGVXKC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 22 Jul 2019 19:10:02 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:40284 "EHLO ale.deltatee.com"
+Received: from ale.deltatee.com ([207.54.116.67]:40280 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733222AbfGVXJP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 22 Jul 2019 19:09:15 -0400
+        id S1733221AbfGVXJO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 22 Jul 2019 19:09:14 -0400
 Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
         by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQb-0002k3-Dj; Mon, 22 Jul 2019 17:09:14 -0600
+        id 1hphQb-0002jy-Dj; Mon, 22 Jul 2019 17:09:13 -0600
 Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQW-0001R2-CF; Mon, 22 Jul 2019 17:09:04 -0600
+        id 1hphQV-0001Qn-7B; Mon, 22 Jul 2019 17:09:03 -0600
 From:   Logan Gunthorpe <logang@deltatee.com>
 To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
@@ -39,8 +40,8 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Eric Pilmore <epilmore@gigaio.com>,
         Stephen Bates <sbates@raithlin.com>,
         Logan Gunthorpe <logang@deltatee.com>
-Date:   Mon, 22 Jul 2019 17:08:54 -0600
-Message-Id: <20190722230859.5436-10-logang@deltatee.com>
+Date:   Mon, 22 Jul 2019 17:08:49 -0600
+Message-Id: <20190722230859.5436-5-logang@deltatee.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190722230859.5436-1-logang@deltatee.com>
 References: <20190722230859.5436-1-logang@deltatee.com>
@@ -49,7 +50,7 @@ Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 172.16.1.31
 X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
 X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH 09/14] PCI/P2PDMA: Introduce pci_p2pdma_unmap_sg()
+Subject: [PATCH 04/14] PCI/P2PDMA: Cache the result of upstream_bridge_distance()
 X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,126 +58,80 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add pci_p2pdma_unmap_sg() to the two places that call
-pci_p2pdma_map_sg().
-
-This is a prep patch to introduce correct mappings for p2pdma
-transactions that go through the root complex.
+The result of upstream_bridge_distance() will be needed every time
+we map the dma address so cache it in an xarray stored in the
+provider's p2pdma struct.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/infiniband/core/rw.c |  6 ++++--
- drivers/nvme/host/pci.c      |  6 ++++--
- drivers/pci/p2pdma.c         | 18 +++++++++++++++++-
- include/linux/pci-p2pdma.h   | 13 +++++++++++++
- 4 files changed, 38 insertions(+), 5 deletions(-)
+ drivers/pci/p2pdma.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index dce06108c8c3..5337393d4dfe 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -583,8 +583,10 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 		break;
- 	}
- 
--	/* P2PDMA contexts do not need to be unmapped */
--	if (!is_pci_p2pdma_page(sg_page(sg)))
-+	if (is_pci_p2pdma_page(sg_page(sg)))
-+		pci_p2pdma_unmap_sg(qp->pd->device->dma_device, sg,
-+				    sg_cnt, dir);
-+	else
- 		ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
- }
- EXPORT_SYMBOL(rdma_rw_ctx_destroy);
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 7747712054cd..2348b15f6bd0 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -547,8 +547,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 
- 	WARN_ON_ONCE(!iod->nents);
- 
--	/* P2PDMA requests do not need to be unmapped */
--	if (!is_pci_p2pdma_page(sg_page(iod->sg)))
-+	if (is_pci_p2pdma_page(sg_page(iod->sg)))
-+		pci_p2pdma_unmap_sg(dev->dev, iod->sg, iod->nents,
-+				    rq_dma_dir(req));
-+	else
- 		dma_unmap_sg(dev->dev, iod->sg, iod->nents, rq_dma_dir(req));
- 
- 
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index ce361e287543..d3ced8eee30a 100644
+index d5034e28d1e1..25663c1d8bc9 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -793,7 +793,8 @@ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
-  * @dir: DMA direction
-  * @attrs: dma attributes passed to dma_map_sg() (if called)
-  *
-- * Scatterlists mapped with this function should not be unmapped in any way.
-+ * Scatterlists mapped with this function should be unmapped using
-+ * pci_p2pdma_unmap_sg_attrs().
-  *
-  * Returns the number of SG entries mapped or 0 on error.
-  */
-@@ -827,6 +828,21 @@ int pci_p2pdma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
- }
- EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg_attrs);
+@@ -19,10 +19,12 @@
+ #include <linux/random.h>
+ #include <linux/seq_buf.h>
+ #include <linux/iommu.h>
++#include <linux/xarray.h>
  
-+/**
-+ * pci_p2pdma_unmap_sg - unmap a PCI peer-to-peer scatterlist that was
-+ *	mapped with pci_p2pdma_map_sg()
-+ * @dev: device doing the DMA request
-+ * @sg: scatter list to map
-+ * @nents: number of elements returned by pci_p2pdma_map_sg()
-+ * @dir: DMA direction
-+ * @attrs: dma attributes passed to dma_unmap_sg() (if called)
-+ */
-+void pci_p2pdma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg,
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
-+{
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_unmap_sg_attrs);
+ struct pci_p2pdma {
+ 	struct gen_pool *pool;
+ 	bool p2pmem_published;
++	struct xarray dist_cache;
+ };
+ 
+ static ssize_t size_show(struct device *dev, struct device_attribute *attr,
+@@ -98,6 +100,8 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
+ 	if (!p2p)
+ 		return -ENOMEM;
+ 
++	xa_init(&p2p->dist_cache);
 +
- /**
-  * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
-  *		to enable p2pdma
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 7fd51954f93a..8318a97c9c61 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -32,6 +32,8 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
- int pci_p2pdma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
- 		int nents, enum dma_data_direction dir, unsigned long attrs);
-+void pci_p2pdma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg,
-+		int nents, enum dma_data_direction dir, unsigned long attrs);
- int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
- 			    bool *use_p2pdma);
- ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-@@ -87,6 +89,11 @@ static inline int pci_p2pdma_map_sg_attrs(struct device *dev,
+ 	p2p->pool = gen_pool_create(PAGE_SHIFT, dev_to_node(&pdev->dev));
+ 	if (!p2p->pool)
+ 		goto out;
+@@ -390,17 +394,34 @@ static int upstream_bridge_distance(struct pci_dev *provider,
+ 				    struct pci_dev *client,
+ 				    struct seq_buf *acs_list)
  {
- 	return 0;
- }
-+static inline void pci_p2pdma_unmap_sg_attrs(struct device *dev,
-+		struct scatterlist *sg, int nents, enum dma_data_direction dir,
-+		unsigned long attrs)
-+{
-+}
- static inline int pci_p2pdma_enable_store(const char *page,
- 		struct pci_dev **p2p_dev, bool *use_p2pdma)
- {
-@@ -118,4 +125,10 @@ static inline int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg,
- 	return pci_p2pdma_map_sg_attrs(dev, sg, nents, dir, 0);
++	void *entry;
+ 	int dist;
++	int idx;
++
++	idx = (pci_domain_nr(client->bus) << 16) |
++		(client->bus->number << 8) | client->devfn;
++
++	if (provider->p2pdma) {
++		entry = xa_load(&provider->p2pdma->dist_cache, idx);
++		if (entry)
++			return xa_to_value(entry);
++	}
+ 
+ 	dist = __upstream_bridge_distance(provider, client, acs_list);
+ 
+ 	if (!(dist & P2PDMA_THRU_HOST_BRIDGE))
+-		return dist;
++		goto store_and_return;
++
++	if (!root_complex_whitelist(provider) ||
++	    !root_complex_whitelist(client))
++		dist |= P2PDMA_NOT_SUPPORTED;
+ 
+-	if (root_complex_whitelist(provider) && root_complex_whitelist(client))
+-		return dist;
++store_and_return:
++	if (provider->p2pdma)
++		xa_store(&provider->p2pdma->dist_cache, idx,
++			 xa_mk_value(dist), GFP_KERNEL);
+ 
+-	return dist | P2PDMA_NOT_SUPPORTED;
++	return dist;
  }
  
-+static inline void pci_p2pdma_unmap_sg(struct device *dev,
-+		struct scatterlist *sg, int nents, enum dma_data_direction dir)
-+{
-+	pci_p2pdma_unmap_sg_attrs(dev, sg, nents, dir, 0);
-+}
-+
- #endif /* _LINUX_PCI_P2P_H */
+ static int upstream_bridge_distance_warn(struct pci_dev *provider,
 -- 
 2.20.1
 
