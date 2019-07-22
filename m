@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74529C76190
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 081E5C7618F
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 568BA21985
+	by mail.kernel.org (Postfix) with ESMTP id DE88B21985
 	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733289AbfGVXJP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1733263AbfGVXJP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 22 Jul 2019 19:09:15 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:40290 "EHLO ale.deltatee.com"
+Received: from ale.deltatee.com ([207.54.116.67]:40274 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733236AbfGVXJP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 22 Jul 2019 19:09:15 -0400
+        id S1733209AbfGVXJO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 22 Jul 2019 19:09:14 -0400
 Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
         by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQb-0002k1-Dk; Mon, 22 Jul 2019 17:09:14 -0600
+        id 1hphQb-0002k5-Vz; Mon, 22 Jul 2019 17:09:13 -0600
 Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQV-0001Qw-TY; Mon, 22 Jul 2019 17:09:03 -0600
+        id 1hphQW-0001R5-JS; Mon, 22 Jul 2019 17:09:04 -0600
 From:   Logan Gunthorpe <logang@deltatee.com>
 To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
@@ -40,8 +40,8 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Eric Pilmore <epilmore@gigaio.com>,
         Stephen Bates <sbates@raithlin.com>,
         Logan Gunthorpe <logang@deltatee.com>
-Date:   Mon, 22 Jul 2019 17:08:52 -0600
-Message-Id: <20190722230859.5436-8-logang@deltatee.com>
+Date:   Mon, 22 Jul 2019 17:08:55 -0600
+Message-Id: <20190722230859.5436-11-logang@deltatee.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190722230859.5436-1-logang@deltatee.com>
 References: <20190722230859.5436-1-logang@deltatee.com>
@@ -50,7 +50,7 @@ Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 172.16.1.31
 X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
 X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH 07/14] PCI/P2PDMA: Add the provider's pci_dev to the dev_pgmap struct
+Subject: [PATCH 10/14] PCI/P2PDMA: Factor out __pci_p2pdma_map_sg()
 X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Sender: linux-rdma-owner@vger.kernel.org
@@ -58,38 +58,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The provider will be needed to figure out how to properly map a device.
+Factor out the bus only mapping into it's own static function.
+No functional changes. The original pci_p2pdma_map_sg_attrs() will
+be used to decide whether this is an appropriate way to map.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/pci/p2pdma.c     | 1 +
- include/linux/memremap.h | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/pci/p2pdma.c | 39 +++++++++++++++++++++++----------------
+ 1 file changed, 23 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 143e11d2a5c3..70c262b7c731 100644
+index d3ced8eee30a..5f43f92f9336 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -168,6 +168,7 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 	pgmap->res.end = pgmap->res.start + size - 1;
- 	pgmap->res.flags = pci_resource_flags(pdev, bar);
- 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
-+	pgmap->pci_p2pdma_provider = pdev;
- 	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
- 		pci_resource_start(pdev, bar);
+@@ -785,23 +785,9 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ }
+ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
  
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index f8a5b2a19945..91aee61796bc 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -112,6 +112,7 @@ struct dev_pagemap {
- 	struct device *dev;
- 	enum memory_type type;
- 	unsigned int flags;
-+	struct pci_dev *pci_p2pdma_provider;
- 	u64 pci_p2pdma_bus_offset;
- 	const struct dev_pagemap_ops *ops;
- };
+-/**
+- * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
+- * @dev: device doing the DMA request
+- * @sg: scatter list to map
+- * @nents: elements in the scatterlist
+- * @dir: DMA direction
+- * @attrs: dma attributes passed to dma_map_sg() (if called)
+- *
+- * Scatterlists mapped with this function should be unmapped using
+- * pci_p2pdma_unmap_sg_attrs().
+- *
+- * Returns the number of SG entries mapped or 0 on error.
+- */
+-int pci_p2pdma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
+-		int nents, enum dma_data_direction dir, unsigned long attrs)
++static int __pci_p2pdma_map_sg(struct dev_pagemap *pgmap,
++		struct device *dev, struct scatterlist *sg, int nents)
+ {
+-	struct dev_pagemap *pgmap;
+ 	struct scatterlist *s;
+ 	phys_addr_t paddr;
+ 	int i;
+@@ -826,6 +812,27 @@ int pci_p2pdma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
+ 
+ 	return nents;
+ }
++
++/**
++ * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
++ * @dev: device doing the DMA request
++ * @sg: scatter list to map
++ * @nents: elements in the scatterlist
++ * @dir: DMA direction
++ * @attrs: dma attributes passed to dma_map_sg() (if called)
++ *
++ * Scatterlists mapped with this function should be unmapped using
++ * pci_p2pdma_unmap_sg_attrs().
++ *
++ * Returns the number of SG entries mapped or 0 on error.
++ */
++int pci_p2pdma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
++		int nents, enum dma_data_direction dir, unsigned long attrs)
++{
++	struct dev_pagemap *pgmap = sg_page(sg)->pgmap;
++
++	return __pci_p2pdma_map_sg(pgmap, dev, sg, nents);
++}
+ EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg_attrs);
+ 
+ /**
 -- 
 2.20.1
 
