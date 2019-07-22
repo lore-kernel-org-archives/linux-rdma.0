@@ -6,26 +6,26 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F2F1C76194
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D27B7C7618F
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2215522296
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0DFB21985
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733174AbfGVXJM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 Jul 2019 19:09:12 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:40254 "EHLO ale.deltatee.com"
+        id S1726130AbfGVXKR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 Jul 2019 19:10:17 -0400
+Received: from ale.deltatee.com ([207.54.116.67]:40264 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728191AbfGVXJM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1733159AbfGVXJM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 22 Jul 2019 19:09:12 -0400
 Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
         by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQb-0002k9-Dj; Mon, 22 Jul 2019 17:09:11 -0600
+        id 1hphQb-0002k0-Dk; Mon, 22 Jul 2019 17:09:11 -0600
 Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQX-0001RH-V5; Mon, 22 Jul 2019 17:09:06 -0600
+        id 1hphQV-0001Qt-MG; Mon, 22 Jul 2019 17:09:03 -0600
 From:   Logan Gunthorpe <logang@deltatee.com>
 To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
@@ -39,8 +39,8 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Eric Pilmore <epilmore@gigaio.com>,
         Stephen Bates <sbates@raithlin.com>,
         Logan Gunthorpe <logang@deltatee.com>
-Date:   Mon, 22 Jul 2019 17:08:59 -0600
-Message-Id: <20190722230859.5436-15-logang@deltatee.com>
+Date:   Mon, 22 Jul 2019 17:08:51 -0600
+Message-Id: <20190722230859.5436-7-logang@deltatee.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190722230859.5436-1-logang@deltatee.com>
 References: <20190722230859.5436-1-logang@deltatee.com>
@@ -49,7 +49,7 @@ Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 172.16.1.31
 X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
 X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH 14/14] PCI/P2PDMA: Introduce pci_p2pdma_[un]map_resource()
+Subject: [PATCH 06/14] PCI/P2PDMA: Add whitelist support for Intel Host Bridges
 X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,115 +57,85 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-pci_p2pdma_[un]map_resource() can be used to map a resource given
-it's physical address and the backing pci_dev. The functions will call
-dma_[un]map_resource() when appropriate.
+Intel devices do not have good support for P2P requests that span
+different host bridges as the transactions will cross the QPI/UPI bus
+and this does not perform well.
 
-This is for demonstration purposes only as there are no users of this
-function at this time. Thus, this patch should not be merged at
-this time.
+Therefore, enable support for these devices only if the host bridges
+match.
+
+Adds the Intel device's that have been tested to work. There are
+likely many others out there that will need to be tested and added.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/pci/p2pdma.c | 85 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
+ drivers/pci/p2pdma.c | 36 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index baf476039396..20c834cfd2d3 100644
+index dfb802afc8ca..143e11d2a5c3 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -874,6 +874,91 @@ void pci_p2pdma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg,
+@@ -250,9 +250,28 @@ static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *pdev)
+ 	seq_buf_printf(buf, "%s;", pci_name(pdev));
  }
- EXPORT_SYMBOL_GPL(pci_p2pdma_unmap_sg_attrs);
  
-+static pci_bus_addr_t pci_p2pdma_phys_to_bus(struct pci_dev *dev,
-+		phys_addr_t start, size_t size)
-+{
-+	struct pci_host_bridge *bridge = pci_find_host_bridge(dev->bus);
-+	phys_addr_t end = start + size;
-+	struct resource_entry *window;
+-static bool __host_bridge_whitelist(struct pci_host_bridge *host)
++static const struct pci_p2pdma_whitelist_entry {
++	unsigned short vendor;
++	unsigned short device;
++	bool req_same_host_bridge;
++} pci_p2pdma_whitelist[] = {
++	/* AMD ZEN */
++	{PCI_VENDOR_ID_AMD,	0x1450,	false},
 +
-+	resource_list_for_each_entry(window, &bridge->windows) {
-+		if (window->res->start <= start && window->res->end >= end)
-+			return start - window->offset;
++	/* Intel Xeon E5/Core i7 */
++	{PCI_VENDOR_ID_INTEL,	0x3c00, true},
++	{PCI_VENDOR_ID_INTEL,	0x3c01, true},
++	/* Intel Xeon E7 v3/Xeon E5 v3/Core i7 */
++	{PCI_VENDOR_ID_INTEL,	0x2f00, true},
++	{PCI_VENDOR_ID_INTEL,	0x2f01, true},
++	{}
++};
++
++static bool __host_bridge_whitelist(struct pci_host_bridge *host,
++				    bool same_host_bridge)
+ {
+ 	struct pci_dev *root = pci_get_slot(host->bus, PCI_DEVFN(0, 0));
++	const struct pci_p2pdma_whitelist_entry *entry;
+ 	unsigned short vendor, device;
+ 
+ 	if (!root)
+@@ -262,9 +281,14 @@ static bool __host_bridge_whitelist(struct pci_host_bridge *host)
+ 	device = root->device;
+ 	pci_dev_put(root);
+ 
+-	/* AMD ZEN host bridges can do peer to peer */
+-	if (vendor == PCI_VENDOR_ID_AMD && device == 0x1450)
++	for (entry = pci_p2pdma_whitelist; entry->vendor; entry++) {
++		if (vendor != entry->vendor || device != entry->device)
++			continue;
++		if (entry->req_same_host_bridge && !same_host_bridge)
++			return false;
++
+ 		return true;
 +	}
+ 
+ 	return false;
+ }
+@@ -281,7 +305,11 @@ static bool host_bridge_whitelist(struct pci_dev *a, struct pci_dev *b)
+ 	if (iommu_present(a->dev.bus) || iommu_present(b->dev.bus))
+ 		return false;
+ 
+-	if (__host_bridge_whitelist(host_a) && __host_bridge_whitelist(host_b))
++	if (host_a == host_b)
++		return __host_bridge_whitelist(host_a, true);
 +
-+	return DMA_MAPPING_ERROR;
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_phys_to_bus);
-+
-+/**
-+ * pci_p2pdma_map_resource - map a PCI peer-to-peer physical address for DMA
-+ * @provider: pci device that provides the memory backed by phys_addr
-+ * @dma_dev: device doing the DMA request
-+ * @phys_addr: physical address of the memory to map
-+ * @size: size of the memory to map
-+ * @dir: DMA direction
-+ * @attrs: dma attributes passed to dma_map_resource() (if called)
-+ *
-+ * Maps a BAR physical address for programming a DMA engine.
-+ *
-+ * Returns the dma_addr_t to map or DMA_MAPPING_ERROR on failure
-+ */
-+dma_addr_t pci_p2pdma_map_resource(struct pci_dev *provider,
-+		struct device *dma_dev, phys_addr_t phys_addr, size_t size,
-+		enum dma_data_direction dir, unsigned long attrs)
-+{
-+	struct pci_dev *client;
-+	int dist;
-+
-+	client = find_parent_pci_dev(dma_dev);
-+	if (!client)
-+		return DMA_MAPPING_ERROR;
-+
-+	dist = upstream_bridge_distance(provider, client, NULL);
-+	if (dist & P2PDMA_NOT_SUPPORTED)
-+		return DMA_MAPPING_ERROR;
-+
-+	if (dist & P2PDMA_THRU_HOST_BRIDGE)
-+		return dma_map_resource(dma_dev, phys_addr, size, dir, attrs);
-+	else
-+		return pci_p2pdma_phys_to_bus(provider, phys_addr, size);
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_map_resource);
-+
-+/**
-+ * pci_p2pdma_unmap_resource - unmap a resource mapped with
-+ *		pci_p2pdma_map_resource()
-+ * @provider: pci device that provides the memory backed by phys_addr
-+ * @dma_dev: device doing the DMA request
-+ * @addr: dma address returned by pci_p2pdma_unmap_resource()
-+ * @size: size of the memory to map
-+ * @dir: DMA direction
-+ * @attrs: dma attributes passed to dma_unmap_resource() (if called)
-+ *
-+ * Maps a BAR physical address for programming a DMA engine.
-+ *
-+ * Returns the dma_addr_t to map or DMA_MAPPING_ERROR on failure
-+ */
-+void pci_p2pdma_unmap_resource(struct pci_dev *provider,
-+		struct device *dma_dev, dma_addr_t addr, size_t size,
-+		enum dma_data_direction dir, unsigned long attrs)
-+{
-+	struct pci_dev *client;
-+	int dist;
-+
-+	client = find_parent_pci_dev(dma_dev);
-+	if (!client)
-+		return;
-+
-+	dist = upstream_bridge_distance(provider, client, NULL);
-+	if (dist & P2PDMA_NOT_SUPPORTED)
-+		return;
-+
-+	if (dist & P2PDMA_THRU_HOST_BRIDGE)
-+		dma_unmap_resource(dma_dev, addr, size, dir, attrs);
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_unmap_resource);
-+
- /**
-  * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
-  *		to enable p2pdma
++	if (__host_bridge_whitelist(host_a, false) &&
++	    __host_bridge_whitelist(host_b, false))
+ 		return true;
+ 
+ 	return false;
 -- 
 2.20.1
 
