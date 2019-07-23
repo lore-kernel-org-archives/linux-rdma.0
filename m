@@ -2,67 +2,67 @@ Return-Path: <SRS0=t5r7=VU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4731C76186
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:11:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A5AEC76194
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:11:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA1E921849
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:11:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73D9921849
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:11:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="MuPSKhOr"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Bg/UYAse"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728954AbfGWTLd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728441AbfGWTLd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 23 Jul 2019 15:11:33 -0400
-Received: from mail-qt1-f171.google.com ([209.85.160.171]:37979 "EHLO
-        mail-qt1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728441AbfGWTLd (ORCPT
+Received: from mail-qt1-f172.google.com ([209.85.160.172]:37982 "EHLO
+        mail-qt1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728935AbfGWTLd (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 15:11:33 -0400
-Received: by mail-qt1-f171.google.com with SMTP id n11so42966688qtl.5
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 12:11:32 -0700 (PDT)
+Received: by mail-qt1-f172.google.com with SMTP id n11so42966741qtl.5
+        for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 12:11:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=WeLeHSW5IWfJdV5bVLUG5dsIV+T04rqjlm+2/mArvng=;
-        b=MuPSKhOrMkztA/YpagsNpBrCe/s4lb+iTFuCrvx5UyM8Laq7Tp9c/o318Evt6+A7Ff
-         raOdkq72dQkY6/po3SW/ENa4lv5YvEuheOf1bir5DAwXCojcS+7Zk7OG+lfcEkgqJ6c/
-         f7w4JV9nqxQddCOk5UnxzJN0i3zUrfsJm19WkEfT0asOXJ3jrELCw+YxwQ9YiFruxO/W
-         WMPeOnYXcVCfBhzsWLGlpvBGTjoDufvtbZdMfbveRbae6XVCM6jx6xkF06zBoy0Agkvp
-         bVj7P6q6LZA5CEobxpDx45gaI3dDWHc86jjsvseNgSdk662U/4oIaKef+1nifin9r6Qr
-         2BGQ==
+        bh=F+7An6ChOa8ZnFVYb7cHZW+1mye1pJH1wLwrfaJrMB0=;
+        b=Bg/UYAseTfS5bemsVA4fcn6KTAC8eXwpacb49bZqTcJCynp5/rUOxUS+wD3ldIUq13
+         WM4TqE8Ta7oe1DR1wQPaQuMtbQK1/zi6CWx2NUNfQoWmVh3YgMntjkVzDA3UgeU1J9ra
+         PXawUXkq8QDaC/4cYeXOk6oufQUcKSSicMiv6gMio4dDI6Dmcxi2FdTxFdMJMHZP5HHI
+         JP1RCLSOUittqgrcoZB7bO90tPMf2/j0nkF0wj2+WrkEEQ+/HIPd5liRNfweHuXFLR1t
+         mzSCZVVdUDYYq8+9edpwT9zNXNS9JN62ULQQJfYE1Jar6WGMfHCeWgQEEWFjjT1z3kgC
+         7YnQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=WeLeHSW5IWfJdV5bVLUG5dsIV+T04rqjlm+2/mArvng=;
-        b=tho+XWi1zBfVZsK3EJpMcdneMEq6bEi7kNQ2cogy/700AJrBJ/SmnoIXy1Q5OHtWga
-         21jyacq+bJDnFAsXK+7nCdt38Aa3OpHCh1Y/fjq1/ZyFdwNIKX94asNp5jrl+SpH0ZjF
-         5p9X4LvvsZKiqDkZYIkpOjObYZxrhksEVClacOOH3Xl4lD3ywBZXExHM9g9jL1T325fN
-         fBPaCen3sXyi6L6hHV/PcUd5HjmT+xXjNmU6QVMwdb0qxFsbZOL8iOJuNeSCgwtcgBPG
-         KbanBMxqP+GPPpNqr8oO86wv4dlYTgFi9K2i+N/PY6KbthSIhFprKYj8c4GOUo1BPsez
-         ufxg==
-X-Gm-Message-State: APjAAAULzrfdZT+UttILXUrKTqH0t4fXndOaSVsvchydkaT7qec025ML
-        99IoLo400XHGUYpyq9QyGXBOnyrD+luERg==
-X-Google-Smtp-Source: APXvYqxDD0/iqTQXR/B4n/DKM1iygVKBoohZ3RWLcU3T4N0ZeSt9BmHmXUMV4nCO3sn0jFsJon+rYg==
-X-Received: by 2002:ac8:2bd4:: with SMTP id n20mr55312288qtn.131.1563909091246;
-        Tue, 23 Jul 2019 12:11:31 -0700 (PDT)
+        bh=F+7An6ChOa8ZnFVYb7cHZW+1mye1pJH1wLwrfaJrMB0=;
+        b=eD18BRVo+MbbfVQGawFKDk0BZTot5RSc+FNcLOkPCV3zuPiNQQmwo0uW/Z00QQm2f/
+         SNGnjBYLPHTyjQkahDCNRKBqyEfPFKt2wPjW5S2Hh/WjyI6icMrxzWyhP13EcX83uX1x
+         HbDg5/CDzrfG+3T1dnHvPb6eDUsZA2jNSWAm8iB6POSxl0EaLVBEb9tPi1PtMws/HPSP
+         Q3SIakumVAnzFkeCIHCE2FdjybHynmyUA/MdM+HV0tLgi7C9W2tYTr5Ij8AtfRCKXuhC
+         ZMqr5yDZCwas6wTqDlrTVBiyci2pSaukOH6BKEGqZp16XyjRRGotKzyH85jhiIr/m3d9
+         Xu2g==
+X-Gm-Message-State: APjAAAUwLUkANZqEVCPnGXVJv/V/Wsi8R3OgHhJgBgNxPeGUdm2BfYkz
+        IavLBVwdPP2QkNtXxzH/lFGBLZUza1h/Kw==
+X-Google-Smtp-Source: APXvYqy0n0lNRhjAL+JGOyziFE6LJHuSQ5q2NLEp/CrDS+0Fyl20WsZ96SktznVzlY3Np10egwVD0w==
+X-Received: by 2002:ad4:498b:: with SMTP id t11mr57333813qvx.139.1563909092511;
+        Tue, 23 Jul 2019 12:11:32 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id r36sm23191245qte.71.2019.07.23.12.11.30
+        by smtp.gmail.com with ESMTPSA id v17sm25287534qtc.23.2019.07.23.12.11.31
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 23 Jul 2019 12:11:30 -0700 (PDT)
+        Tue, 23 Jul 2019 12:11:31 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hq02f-00045b-0L; Tue, 23 Jul 2019 16:01:41 -0300
+        id 1hq02e-00045P-UU; Tue, 23 Jul 2019 16:01:40 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH rdma-core 19/19] build/azp: Have Azure Pipelines create releases when tags are made
-Date:   Tue, 23 Jul 2019 16:01:37 -0300
-Message-Id: <20190723190137.15370-20-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 17/19] build/azp: Run lintian over the bionic .debs
+Date:   Tue, 23 Jul 2019 16:01:35 -0300
+Message-Id: <20190723190137.15370-18-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190723190137.15370-1-jgg@ziepe.ca>
 References: <20190723190137.15370-1-jgg@ziepe.ca>
@@ -75,119 +75,41 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Build a draft release and push the source .tar.gz to GitHub's releases
-page.
-
-For some reason this relies on an Azure Pipeline's user-specific service
-connection instead of the existing app installation:
-
-https://github.com/MicrosoftDocs/vsts-docs/issues/4260
-
-This is done in a dedicated YAML file as it runs with a separate
-configuration on AZP that authorizes it to use the write-access service
-connections.
+Lets look for errors as we go.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- .travis.yml                          | 17 ----------
- buildlib/azure-pipelines-release.yml | 48 ++++++++++++++++++++++++++++
- buildlib/github-release              |  7 ----
- 3 files changed, 48 insertions(+), 24 deletions(-)
- create mode 100644 buildlib/azure-pipelines-release.yml
- delete mode 100755 buildlib/github-release
+ buildlib/azure-pipelines.yml | 4 ++++
+ buildlib/cbuild              | 1 +
+ 2 files changed, 5 insertions(+)
 
-diff --git a/.travis.yml b/.travis.yml
-index 82f16d65e0a646..e00b0165215b4d 100644
---- a/.travis.yml
-+++ b/.travis.yml
-@@ -43,20 +43,3 @@ before_script:
-   - http_proxy= pip3 install cython
- script:
-   - buildlib/travis-build
--  - buildlib/github-release
--deploy:
--  # Deploy assets to Github releases
--  # https://docs.travis-ci.com/user/deployment/releases/
--  provider: releases
--  api_key:
--    # This is encrypted OAth token generated by
--    # Travis CLI tool (travis setup releases) limited to specific repo.
--    secure: ok/WMzFgsSnk+NZ850QEUESHRfJ4Ae7T8eA4dcx4fuw2RqybAh8wjxrLP5GKR27WrzB3hKHHTi7fgE0VtBY024kGJ/+wlQXHN1p89JvCiQlGOKkxy5YIlS4GUhwwkqgoU+hmifxl1i+9yCuowHPIM4WoP+NR+IZgvMahlrdPCS2OleFtrqyaHZbC/Usdt0WZLeQzG+rVLec/NvPnVOn81e17yuAuluHAzu+qcV94szqe/zwDzG8RUUKXaeDEQ3JQja4bCLL/kTkWR8JGsfwvcqc9Ut4Ry2b7uEWp5/FIcxUGWviKRgRzEdcT40iMMiJbIrH7gYp66Ymr/dypqUfc4u/xSb4AmpTMcYGUXJxsdzKyL6d/7HbuHIIVc5o1V/L5mdaIjeO5KjTFjMMD5KoSXfBlNIGk2as1JD/99lxJ3VlpQGwI5390+Tyl8o4Ao4aBXSCG96PDK4+UkYFht/wrw+UoYdV07u3x7zz21O3N3Lu5733hDvcvyOW6uIzoeLQ5O62/3Pq+DOFRs/nnRiW8/gjIkEQAyj/GGxw/taslpFJFcdVt/MSueV4t5OCI2YdGA/NxG/c4FIGy+dntV5BB6Gld8KkP/PP74yzJ1o/PRDRExTbsQzrdisDrVIf0r4pxTTsw1gXRE5r6S0tQ5aNoXAQ5h4xiwAIGqqBF4HESJjA=
--  file: rdma-core-*.tar.gz
--  # Allow asterisks in file names.
--  file_glob: true
--  skip_cleanup: true
--  # Limit scope of deploy to specific repo.
--  on:
--    repo: linux-rdma/rdma-core
--    tags: true
-diff --git a/buildlib/azure-pipelines-release.yml b/buildlib/azure-pipelines-release.yml
-new file mode 100644
-index 00000000000000..fd5e4a1e43270d
---- /dev/null
-+++ b/buildlib/azure-pipelines-release.yml
-@@ -0,0 +1,48 @@
-+# See https://aka.ms/yaml
-+# This pipeline runs to produce GitHub releases when tags are pushed. The
-+# pipeline is never run from a PR and has access to all the build secrets,
-+# including write permission to GitHub.
-+
-+trigger:
-+  tags:
-+    include:
-+      - v*
-+
-+resources:
-+  containers:
-+    - container: azp
-+      image: ucfconsort.azurecr.io/rdma-core/azure_pipelines:25.0
-+      endpoint: ucfconsort_registry
-+
-+stages:
-+  - stage: Release
-+    jobs:
-+      - job: SrcPrep
-+        displayName: Build Source Tar
-+        pool:
-+          vmImage: 'Ubuntu-16.04'
-+        container: azp
-+        steps:
-+          - checkout: self
-+            fetchDepth: 1
-+
+diff --git a/buildlib/azure-pipelines.yml b/buildlib/azure-pipelines.yml
+index 6a69e940a5b19e..153d437d8e81e9 100644
+--- a/buildlib/azure-pipelines.yml
++++ b/buildlib/azure-pipelines.yml
+@@ -119,6 +119,10 @@ stages:
+               set -e
+               fakeroot debian/rules binary
+             displayName: clang 8.0 Bionic .deb Build
 +          - bash: |
 +              set -e
-+              mkdir build-pandoc artifacts
-+              cd build-pandoc
-+              CC=gcc-9 cmake -GNinja ..
-+              ninja docs
-+
-+              cd ..
-+              python3 buildlib/cbuild make-dist-tar build-pandoc
-+            displayName: Prebuild Documentation
-+
-+          - task: GithubRelease@0
-+            displayName: 'Create GitHub Release'
-+            inputs:
-+              githubConnection: github_release
-+              repositoryName: linux-rdma/rdma-core
-+              assets: ./*.tar.gz
-+              action: create
-+              isDraft: true
-+              addChangeLog: true
-diff --git a/buildlib/github-release b/buildlib/github-release
-deleted file mode 100755
-index 8fc536fb8b1074..00000000000000
---- a/buildlib/github-release
-+++ /dev/null
-@@ -1,7 +0,0 @@
--#!/bin/bash
--
--set -e
--
--if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
--    buildlib/cbuild make-dist-tar --tag "$TRAVIS_TAG" build-travis
--fi
++              lintian ../*.deb
++            displayName: Debian Lintian for .deb packages
+ 
+       - job: SrcPrep
+         displayName: Build Source Tar
+diff --git a/buildlib/cbuild b/buildlib/cbuild
+index e7065e3e7d8d2d..c9522841dc1b8e 100755
+--- a/buildlib/cbuild
++++ b/buildlib/cbuild
+@@ -451,6 +451,7 @@ class azure_pipelines(APTEnvironment):
+         "libnl-route-3-dev",
+         "libsystemd-dev",
+         "libudev-dev",
++        "lintian",
+         "make",
+         "ninja-build",
+         "pandoc",
 -- 
 2.22.0
 
