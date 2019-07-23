@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14A3CC76190
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72142C76186
 	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D873321655
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B3D521655
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="RW7azUJz"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Q6Tx1Jrf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726715AbfGWTBp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2391639AbfGWTBp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 23 Jul 2019 15:01:45 -0400
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:46095 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726621AbfGWTBp (ORCPT
+Received: from mail-qk1-f196.google.com ([209.85.222.196]:46452 "EHLO
+        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391637AbfGWTBp (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 15:01:45 -0400
-Received: by mail-qt1-f193.google.com with SMTP id h21so42887924qtn.13
+Received: by mail-qk1-f196.google.com with SMTP id r4so31840460qkm.13
         for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 12:01:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=dfl71m/NsNfbA8WM2LSOzoDmgIsqi5BgwE8JCMzyrSk=;
-        b=RW7azUJziMmcZhJesmHWpu34IKQ/fJMc1JvkNVHTaNXLCyY5fR7r3uchFqOZmsgRyl
-         xgSJ1+88F8k2tXTEHXY27L9z7mWrJ4gTt6KgGgbRVJQQ6UlEJBZXnT0Twl+dWupcCnU4
-         aI1E/AvTAgipukkIvikuqiS6/MuMwaa0Bz4asSX3hc3WmtCZDFdk++tOYglvz+qN1ucn
-         AsOaSts8ZI1/E+KakO/i/gR1hnEeoZKnHRMIEx+izpO4nRcmAlF5tetDQTtWqQsT62lj
-         SxoGPV00nTy7KG2O23K8JZ0tVP1B9hLA8VNdERe/7IXs3Co6A0Lnr/ht8PjQjBNDS3AK
-         e9yQ==
+        bh=3xizULMY+3etu/2FnZTSV4yQ4WFrL4KEPZtIVZVyx4k=;
+        b=Q6Tx1JrfcxSmfqEo6OVJAE+cEql7sG7s8J1caVCvSpyArRgPmKPys1WoXLI7vjsANX
+         WxX/XndIN7jQ8Ql9DoDuSXY9wDymmi7JituT/4lKxA5D1EsMCtaqIgmQmzWUhlqFXu71
+         EXgcWXPkeKT24ukwMM8BXlQw3hoxgQXrPoisV6MIB4SQJHCnKvFSP4eaGvjFNMb4KIrF
+         qNN4O8bgCFmF+gruZPCBAtG6pswir0SBL2xnmPDVlsK0RMXN9Ooyf3Iyi+Pp+RxIqE1Z
+         dtNELqcTRPW4fJoN2c/PKGJz40zqUYqn9zx55uJfZaZcXxNFRQVbO3MIP1PlhyXDWP74
+         ycMg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=dfl71m/NsNfbA8WM2LSOzoDmgIsqi5BgwE8JCMzyrSk=;
-        b=AYdkHtZ6ZoS+rPLNKlgGDIrTRe/r94gTlZhvqUUGR8XZV4rQunCBGTylA5FmuFdMOz
-         AOf8DhU2bikyo1UsS5BsI/W2Dj8rswXmlGUeLloqduhTLQGMC4RJisw2BCyemn8dwsnt
-         o19LLL6SJ7U0xOedbxeDfqgZl89q+PoZxgy5YvJlCKFSJYrevESE6HNySjBeVHdlrvgV
-         rhcX4V6cPHs4mJKWjBwftUalrZxk0L/4u8/itI1V+zSuI5WU0Z5L1sYlFgkVmYFARLQS
-         nrysPivLMoeEbvGqPnNpmgX4f0/pcUVUC2+q9ha61YWuc6UWvwaXyCATYpFLY8Oyi3Tv
-         4+LA==
-X-Gm-Message-State: APjAAAW2kd8TZoUNnmdj+UskFv+kui0bkUJwuSEo4RoMBhR6Q0awOFm1
-        ATywRMSVEYoJ5UKa6a/GLFs2CODUw5ER8A==
-X-Google-Smtp-Source: APXvYqz0kHT2VoJVq+hHfSt9oBwqeRAjnQgK0UI5SxfMNIvkw5A+9W45oVsI+XoJaknZ4b06S3G1Ww==
-X-Received: by 2002:ac8:2a99:: with SMTP id b25mr54940841qta.223.1563908504034;
+        bh=3xizULMY+3etu/2FnZTSV4yQ4WFrL4KEPZtIVZVyx4k=;
+        b=gKZ9vUjfip0JOxEwyQxtMVRhsbhUwTZ9GIoRZ125E20b2KZxMRIAsnoOQWwXBH0QHv
+         +0o9coWDnhBLoPMI3fXv2R9gDFrdzXciPmBHc3UixhJA4pKRLpiHxU9bVzMSsL+mMwBa
+         34yGsLSgFK01w8KqCdggt7PBhpnjkxioJtr2o8Zq9q0KsuicGtRUuTptTCqyW3QgiXjP
+         9ZlS6UegvI7QCE/faE6T5lKmJmgR9/DNg4xxT0mP8OeFXllWMq9Xe689NpazqW3yBAws
+         hgJ1trSyxvZ/9QmXVly1Y2rdKHX/lqNtixOghz3xLIKkPyzv9dLjNVNVhvmPvQkbhbO/
+         1pIw==
+X-Gm-Message-State: APjAAAWr5oeeIEn2xaP+5MZxwYvyETuHseBZDtNa5d2ZIzLHu5BVe5bV
+        RVuEgHLNsAqJ0uIHUnGMazlDT947H995ww==
+X-Google-Smtp-Source: APXvYqxXPJr7RtjAifUTNTCqGC2PmiCBk3vb2mOANh3infYXJtM63Ma9Tqckxz6+F/q9wkIwatGZWw==
+X-Received: by 2002:a37:6146:: with SMTP id v67mr35456091qkb.493.1563908504351;
         Tue, 23 Jul 2019 12:01:44 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id c5sm27505525qta.5.2019.07.23.12.01.41
+        by smtp.gmail.com with ESMTPSA id h40sm25618528qth.4.2019.07.23.12.01.41
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Tue, 23 Jul 2019 12:01:41 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hq02e-00044X-K5; Tue, 23 Jul 2019 16:01:40 -0300
+        id 1hq02e-00045D-SF; Tue, 23 Jul 2019 16:01:40 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH rdma-core 08/19] build/cbuild: Add push-azp-images
-Date:   Tue, 23 Jul 2019 16:01:26 -0300
-Message-Id: <20190723190137.15370-9-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 15/19] build/azp: Reduce the package list
+Date:   Tue, 23 Jul 2019 16:01:33 -0300
+Message-Id: <20190723190137.15370-16-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190723190137.15370-1-jgg@ziepe.ca>
 References: <20190723190137.15370-1-jgg@ziepe.ca>
@@ -75,56 +75,69 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Do a parallel push of all the Azure Pipelines images to the container
-registry.
+Remove some unneeded packages and files from the container. The unpacked
+image size is reduced by about 120MB.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- buildlib/cbuild | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ buildlib/cbuild | 27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
 diff --git a/buildlib/cbuild b/buildlib/cbuild
-index 1c325c9fe7cbdf..9fd51cc750dcbb 100755
+index d6727f46669197..cc9c7e2999a9d2 100755
 --- a/buildlib/cbuild
 +++ b/buildlib/cbuild
-@@ -161,6 +161,7 @@ class centos7_epel(centos7):
-     ninja_cmd = "ninja-build";
-     # Our spec file does not know how to cope with cmake3
-     is_rpm = False;
-+    to_azp = False;
+@@ -200,7 +200,7 @@ class APTEnvironment(Environment):
+     build_python = True;
+     def get_docker_file(self,tmpdir):
+         res = DockerFile(self.docker_parent);
+-        res.lines.append("RUN apt-get update && apt-get install -y --no-install-recommends %s && apt-get clean && rm -rf /usr/share/doc/ /usr/lib/debug"%(
++        res.lines.append("RUN apt-get update && apt-get install -y --no-install-recommends %s && apt-get clean && rm -rf /usr/share/doc/ /usr/lib/debug /var/lib/apt/lists/"%(
+             " ".join(sorted(self.pkgs))));
+         return res;
  
-     def get_docker_file(self):
-         res = YumEnvironment.get_docker_file(self);
-@@ -1059,6 +1060,29 @@ def cmd_build_images(args):
-                      tmpdir]);
-             docker_cmd(args,*opts);
+@@ -429,19 +429,38 @@ class tumbleweed(ZypperEnvironment):
  
-+# -------------------------------------------------------------------------
-+
-+def args_push_azp_images(args):
-+    pass
-+def cmd_push_azp_images(args):
-+    """Push the images required for Azure Pipelines to the container
-+    registry. Must have done 'az login' first"""
-+    subprocess.check_call(["sudo","az","acr","login","--name","ucfconsort"]);
-+    with private_tmp(args) as tmpdir:
-+        nfn = os.path.join(tmpdir,"build.ninja");
-+        with open(nfn,"w") as F:
-+            F.write("""rule push
-+            command = docker push $img
-+            description=Push $img\n""");
-+
-+            for env in environments:
-+                name = env.image_name()
-+                if "ucfconsort.azurecr.io" not in name:
-+                    continue
-+                F.write("build push_%s : push\n   img = %s\n"%(env.name,env.image_name()));
-+                F.write("default push_%s\n"%(env.name));
-+        subprocess.check_call(["sudo","ninja"],cwd=tmpdir);
-+
  # -------------------------------------------------------------------------
- def args_make_dist_tar(parser):
-     parser.add_argument("BUILD",help="Path to the build directory")
+ 
+-class azure_pipelines(bionic):
+-    pkgs = bionic.pkgs | {
++class azure_pipelines(APTEnvironment):
++    docker_parent = "ubuntu:18.04"
++    pkgs = {
+         "abi-compliance-checker",
+         "abi-dumper",
+         "ca-certificates",
+         "clang-8",
++        "cmake",
++        "cython3",
++        "debhelper",
++        "dh-systemd",
++        "dpkg-dev",
+         "fakeroot",
+         "gcc-9",
+         "git",
+         "python2.7",
++        "libc6-dev",
++        "libnl-3-dev",
++        "libnl-route-3-dev",
++        "libsystemd-dev",
++        "libudev-dev",
++        "make",
++        "ninja-build",
++        "pandoc",
++        "pkg-config",
++        "python3-docutils",
++        "python3",
++        "python3-dev",
++        "python3-docutils",
+         "python3-yaml",
+         "sparse",
+-        'python-docutils',
++        "valgrind",
+     } | {
+         # 32 bit build support
+         "libgcc-9-dev:i386",
 -- 
 2.22.0
 
