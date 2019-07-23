@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22926C76188
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 06:57:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6A72C76190
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 06:57:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EB8782239E
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 06:57:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B222B2239E
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 06:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563865073;
-	bh=kAp/WEsDoFogVI/6Z603r1fuO6zztm9RBhUZg+sBmc0=;
+	s=default; t=1563865076;
+	bh=0p2AqdLl6OvvOvbQgtVfx1SfsmfUtWSjWx9s/FRzTIk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=IA+fDBUr8E9Li+rdbMR97TX7SbcDtqaVHJ0Pg/3qadnphSVAjnd4t7UkF5WADDPIS
-	 sQ3DHJ+4xt1oGw9WZEgu5hvsE/k4jy2Ubm/GOE5f3TtOurqidS/18oKPN60291IoqT
-	 Sg0d6klyCQEYXsiHAj4VZ+lw1h0fJ8zJsTVMYqys=
+	b=BTniRxwsSkg/ODE/4FwG+diD8em6TQDPcl0Yr8RhqFjhkpWbWpDtw6LFhcRne/u/n
+	 rXui6z4GLa0Ef+2dfOlYMo2NuWqUXHi/Gkg7EwMx3a4+n8EiJ4XTNPxEdfIv6PitkC
+	 n7Qv1M0T5fmf+B+VFkr+6dzs6z1fFdmEP4m6NIcc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730602AbfGWG5w (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jul 2019 02:57:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42496 "EHLO mail.kernel.org"
+        id S1730829AbfGWG54 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jul 2019 02:57:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729469AbfGWG5w (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Jul 2019 02:57:52 -0400
+        id S1729469AbfGWG5z (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Jul 2019 02:57:55 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 045512190F;
-        Tue, 23 Jul 2019 06:57:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 57B622190F;
+        Tue, 23 Jul 2019 06:57:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563865071;
-        bh=kAp/WEsDoFogVI/6Z603r1fuO6zztm9RBhUZg+sBmc0=;
+        s=default; t=1563865075;
+        bh=0p2AqdLl6OvvOvbQgtVfx1SfsmfUtWSjWx9s/FRzTIk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Pu05Rzo/36zAps9zi9lG8v4hnlu4+nNxx0kAX3cquG7RmIEgW+5wPqQu69FdnCP5J
-         6ND6KMB0lf7W6fgGnMx8+GqCe4tZ6JFG7kSURojpD1W12GqRuFD6obZvZ+VKCkV66z
-         4CQb62ErEOalC86y1mByQRUXsrayq2F39/tt2EQ8=
+        b=fG28k9EUlArObbWJLrEsQTfmcBU9aSlPUUd1FUBreYfJPqwHVxWT/2dJjDmGoxVux
+         9E54Vglpg0UJO3Z/Okz0H82T4AZvTMRKLE+t3Z7tFWwVcb+MMPZ3+98wUxlpAqYJSu
+         d42EnAHJBYEqd5LFbGBheoqX4/VrhzgiZ7zlP6rM=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -53,9 +53,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Parav Pandit <parav@mellanox.com>,
         Sagi Grimberg <sagig@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-rc 01/10] RDMA/core: Annotate destroy of mutex to ensure that it is released as unlocked
-Date:   Tue, 23 Jul 2019 09:57:24 +0300
-Message-Id: <20190723065733.4899-2-leon@kernel.org>
+Subject: [PATCH rdma-rc 06/10] IB/mlx5: Fix RSS Toeplitz function to be specification aligned
+Date:   Tue, 23 Jul 2019 09:57:29 +0300
+Message-Id: <20190723065733.4899-7-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190723065733.4899-1-leon@kernel.org>
 References: <20190723065733.4899-1-leon@kernel.org>
@@ -66,120 +66,35 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+From: Yishai Hadas <yishaih@mellanox.com>
 
-While compiled with CONFIG_DEBUG_MUTEXES, the kernel ensures that mutex
-is not held during destroy.
-Hence add mutex_destroy() for mutexes used in RDMA modules.
+The specification for the Toeplitz function doesn't mention to set the
+key explicitly to be symmetric. In case a symmetric functionality is
+required a symmetric key can be simply used.
 
-Signed-off-by: Parav Pandit <parav@mellanox.com>
+Fix the code accordingly.
+
+Cc: <stable@vger.kernel.org> # 4.7
+Fixes: 28d6137008b2aa ("IB/mlx5: Add RSS QP support")
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Alex Vainman <alexv@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cache.c        | 1 +
- drivers/infiniband/core/cma_configfs.c | 8 +++++++-
- drivers/infiniband/core/device.c       | 3 +++
- drivers/infiniband/core/user_mad.c     | 2 +-
- drivers/infiniband/core/uverbs_main.c  | 4 ++++
- drivers/infiniband/core/verbs.c        | 1 +
- 6 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 18e476b3ced0..00fb3eacda19 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -810,6 +810,7 @@ static void release_gid_table(struct ib_device *device,
- 	if (leak)
- 		return;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 615cc6771516..379328b2598f 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1713,7 +1713,6 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		}
 
-+	mutex_destroy(&table->lock);
- 	kfree(table->data_vec);
- 	kfree(table);
- }
-diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-index 3ec2c415bb70..8b0b5ae22e4c 100644
---- a/drivers/infiniband/core/cma_configfs.c
-+++ b/drivers/infiniband/core/cma_configfs.c
-@@ -342,12 +342,18 @@ static struct configfs_subsystem cma_subsys = {
-
- int __init cma_configfs_init(void)
- {
-+	int ret;
-+
- 	config_group_init(&cma_subsys.su_group);
- 	mutex_init(&cma_subsys.su_mutex);
--	return configfs_register_subsystem(&cma_subsys);
-+	ret = configfs_register_subsystem(&cma_subsys);
-+	if (ret)
-+		mutex_destroy(&cma_subsys.su_mutex);
-+	return ret;
- }
-
- void __exit cma_configfs_exit(void)
- {
- 	configfs_unregister_subsystem(&cma_subsys);
-+	mutex_destroy(&cma_subsys.su_mutex);
- }
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index c56993e5e5ea..c3576c7d2e8f 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -497,6 +497,9 @@ static void ib_device_release(struct device *device)
- 			  rcu_head);
+ 		MLX5_SET(tirc, tirc, rx_hash_fn, MLX5_RX_HASH_FN_TOEPLITZ);
+-		MLX5_SET(tirc, tirc, rx_hash_symmetric, 1);
+ 		memcpy(rss_key, ucmd.rx_hash_key, len);
+ 		break;
  	}
-
-+	mutex_destroy(&dev->unregistration_lock);
-+	mutex_destroy(&dev->compat_devs_mutex);
-+
- 	xa_destroy(&dev->compat_devs);
- 	xa_destroy(&dev->client_data);
- 	kfree_rcu(dev, rcu_head);
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 9f8a48016b41..e0512aef033c 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1038,7 +1038,7 @@ static int ib_umad_close(struct inode *inode, struct file *filp)
- 				ib_unregister_mad_agent(file->agent[i]);
-
- 	mutex_unlock(&file->port->file_mutex);
--
-+	mutex_destroy(&file->mutex);
- 	kfree(file);
- 	return 0;
- }
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 11c13c1381cf..02b57240176c 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -120,6 +120,8 @@ static void ib_uverbs_release_dev(struct device *device)
-
- 	uverbs_destroy_api(dev->uapi);
- 	cleanup_srcu_struct(&dev->disassociate_srcu);
-+	mutex_destroy(&dev->lists_mutex);
-+	mutex_destroy(&dev->xrcd_tree_mutex);
- 	kfree(dev);
- }
-
-@@ -212,6 +214,8 @@ void ib_uverbs_release_file(struct kref *ref)
-
- 	if (file->disassociate_page)
- 		__free_pages(file->disassociate_page, 0);
-+	mutex_destroy(&file->umap_lock);
-+	mutex_destroy(&file->ucontext_lock);
- 	kfree(file);
- }
-
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 92349bf37589..f974b6854224 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2259,6 +2259,7 @@ int ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata)
- 		if (ret)
- 			return ret;
- 	}
-+	mutex_destroy(&xrcd->tgt_qp_mutex);
-
- 	return xrcd->device->ops.dealloc_xrcd(xrcd, udata);
- }
 --
 2.20.1
 
