@@ -1,141 +1,133 @@
-Return-Path: <SRS0=nyJA=VT=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=t5r7=VU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D27B7C7618F
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51839C7618F
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 00:25:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B0DFB21985
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jul 2019 23:10:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3047E21955
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 00:25:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726130AbfGVXKR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 Jul 2019 19:10:17 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:40264 "EHLO ale.deltatee.com"
+        id S1728470AbfGWAZh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 Jul 2019 20:25:37 -0400
+Received: from mga04.intel.com ([192.55.52.120]:52276 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733159AbfGVXJM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 22 Jul 2019 19:09:12 -0400
-Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
-        by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQb-0002k0-Dk; Mon, 22 Jul 2019 17:09:11 -0600
-Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
-        (envelope-from <gunthorp@deltatee.com>)
-        id 1hphQV-0001Qt-MG; Mon, 22 Jul 2019 17:09:03 -0600
-From:   Logan Gunthorpe <logang@deltatee.com>
-To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        id S1727627AbfGWAZh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 22 Jul 2019 20:25:37 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jul 2019 17:25:36 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.64,297,1559545200"; 
+   d="scan'208";a="180568074"
+Received: from iweiny-desk2.sc.intel.com ([10.3.52.157])
+  by orsmga002.jf.intel.com with ESMTP; 22 Jul 2019 17:25:34 -0700
+Date:   Mon, 22 Jul 2019 17:25:34 -0700
+From:   Ira Weiny <ira.weiny@intel.com>
+To:     john.hubbard@gmail.com
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn.topel@intel.com>,
+        Boaz Harrosh <boaz@plexistor.com>,
         Christoph Hellwig <hch@lst.de>,
-        Christian Koenig <Christian.Koenig@amd.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@fb.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
         Dan Williams <dan.j.williams@intel.com>,
-        Eric Pilmore <epilmore@gigaio.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date:   Mon, 22 Jul 2019 17:08:51 -0600
-Message-Id: <20190722230859.5436-7-logang@deltatee.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190722230859.5436-1-logang@deltatee.com>
-References: <20190722230859.5436-1-logang@deltatee.com>
+        Dave Chinner <david@fromorbit.com>,
+        David Airlie <airlied@linux.ie>,
+        "David S . Miller" <davem@davemloft.net>,
+        Ilya Dryomov <idryomov@gmail.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Magnus Karlsson <magnus.karlsson@intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Ming Lei <ming.lei@redhat.com>, Sage Weil <sage@redhat.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        Yan Zheng <zyan@redhat.com>, netdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
+        linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 3/3] net/xdp: convert put_page() to put_user_page*()
+Message-ID: <20190723002534.GA10284@iweiny-DESK2.sc.intel.com>
+References: <20190722223415.13269-1-jhubbard@nvidia.com>
+ <20190722223415.13269-4-jhubbard@nvidia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 172.16.1.31
-X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
-X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH 06/14] PCI/P2PDMA: Add whitelist support for Intel Host Bridges
-X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+In-Reply-To: <20190722223415.13269-4-jhubbard@nvidia.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Intel devices do not have good support for P2P requests that span
-different host bridges as the transactions will cross the QPI/UPI bus
-and this does not perform well.
+On Mon, Jul 22, 2019 at 03:34:15PM -0700, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
+> 
+> For pages that were retained via get_user_pages*(), release those pages
+> via the new put_user_page*() routines, instead of via put_page() or
+> release_pages().
+> 
+> This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+> ("mm: introduce put_user_page*(), placeholder versions").
+> 
+> Cc: Björn Töpel <bjorn.topel@intel.com>
+> Cc: Magnus Karlsson <magnus.karlsson@intel.com>
+> Cc: David S. Miller <davem@davemloft.net>
+> Cc: netdev@vger.kernel.org
+> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> ---
+>  net/xdp/xdp_umem.c | 9 +--------
+>  1 file changed, 1 insertion(+), 8 deletions(-)
+> 
+> diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
+> index 83de74ca729a..0325a17915de 100644
+> --- a/net/xdp/xdp_umem.c
+> +++ b/net/xdp/xdp_umem.c
+> @@ -166,14 +166,7 @@ void xdp_umem_clear_dev(struct xdp_umem *umem)
+>  
+>  static void xdp_umem_unpin_pages(struct xdp_umem *umem)
+>  {
+> -	unsigned int i;
+> -
+> -	for (i = 0; i < umem->npgs; i++) {
+> -		struct page *page = umem->pgs[i];
+> -
+> -		set_page_dirty_lock(page);
+> -		put_page(page);
+> -	}
+> +	put_user_pages_dirty_lock(umem->pgs, umem->npgs);
 
-Therefore, enable support for these devices only if the host bridges
-match.
+What is the difference between this and
 
-Adds the Intel device's that have been tested to work. There are
-likely many others out there that will need to be tested and added.
+__put_user_pages(umem->pgs, umem->npgs, PUP_FLAGS_DIRTY_LOCK);
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/pci/p2pdma.c | 36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+?
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index dfb802afc8ca..143e11d2a5c3 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -250,9 +250,28 @@ static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *pdev)
- 	seq_buf_printf(buf, "%s;", pci_name(pdev));
- }
- 
--static bool __host_bridge_whitelist(struct pci_host_bridge *host)
-+static const struct pci_p2pdma_whitelist_entry {
-+	unsigned short vendor;
-+	unsigned short device;
-+	bool req_same_host_bridge;
-+} pci_p2pdma_whitelist[] = {
-+	/* AMD ZEN */
-+	{PCI_VENDOR_ID_AMD,	0x1450,	false},
-+
-+	/* Intel Xeon E5/Core i7 */
-+	{PCI_VENDOR_ID_INTEL,	0x3c00, true},
-+	{PCI_VENDOR_ID_INTEL,	0x3c01, true},
-+	/* Intel Xeon E7 v3/Xeon E5 v3/Core i7 */
-+	{PCI_VENDOR_ID_INTEL,	0x2f00, true},
-+	{PCI_VENDOR_ID_INTEL,	0x2f01, true},
-+	{}
-+};
-+
-+static bool __host_bridge_whitelist(struct pci_host_bridge *host,
-+				    bool same_host_bridge)
- {
- 	struct pci_dev *root = pci_get_slot(host->bus, PCI_DEVFN(0, 0));
-+	const struct pci_p2pdma_whitelist_entry *entry;
- 	unsigned short vendor, device;
- 
- 	if (!root)
-@@ -262,9 +281,14 @@ static bool __host_bridge_whitelist(struct pci_host_bridge *host)
- 	device = root->device;
- 	pci_dev_put(root);
- 
--	/* AMD ZEN host bridges can do peer to peer */
--	if (vendor == PCI_VENDOR_ID_AMD && device == 0x1450)
-+	for (entry = pci_p2pdma_whitelist; entry->vendor; entry++) {
-+		if (vendor != entry->vendor || device != entry->device)
-+			continue;
-+		if (entry->req_same_host_bridge && !same_host_bridge)
-+			return false;
-+
- 		return true;
-+	}
- 
- 	return false;
- }
-@@ -281,7 +305,11 @@ static bool host_bridge_whitelist(struct pci_dev *a, struct pci_dev *b)
- 	if (iommu_present(a->dev.bus) || iommu_present(b->dev.bus))
- 		return false;
- 
--	if (__host_bridge_whitelist(host_a) && __host_bridge_whitelist(host_b))
-+	if (host_a == host_b)
-+		return __host_bridge_whitelist(host_a, true);
-+
-+	if (__host_bridge_whitelist(host_a, false) &&
-+	    __host_bridge_whitelist(host_b, false))
- 		return true;
- 
- 	return false;
--- 
-2.20.1
+I'm a bit concerned with adding another form of the same interface.  We should
+either have 1 call with flags (enum in this case) or multiple calls.  Given the
+previous discussion lets move in the direction of having the enum but don't
+introduce another caller of the "old" interface.
 
+So I think on this patch NAK from me.
+
+I also don't like having a __* call in the exported interface but there is a
+__get_user_pages_fast() call so I guess there is precedent.  :-/
+
+Ira
+
+>  
+>  	kfree(umem->pgs);
+>  	umem->pgs = NULL;
+> -- 
+> 2.22.0
+> 
