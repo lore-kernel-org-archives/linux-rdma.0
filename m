@@ -8,56 +8,57 @@ X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD830C76186
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 17:59:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EFD9C76190
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 18:00:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABE7B218A0
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 17:59:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17066218A0
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 18:00:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="uWaCwrDk"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="h3Kq7We2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391346AbfGWR7l (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jul 2019 13:59:41 -0400
-Received: from mail-qk1-f202.google.com ([209.85.222.202]:48956 "EHLO
-        mail-qk1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732975AbfGWR7j (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 13:59:39 -0400
-Received: by mail-qk1-f202.google.com with SMTP id z13so37109629qka.15
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 10:59:38 -0700 (PDT)
+        id S2391431AbfGWR75 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jul 2019 13:59:57 -0400
+Received: from mail-pg1-f201.google.com ([209.85.215.201]:45578 "EHLO
+        mail-pg1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391436AbfGWR74 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 13:59:56 -0400
+Received: by mail-pg1-f201.google.com with SMTP id n3so16602773pgh.12
+        for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 10:59:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=bNeVrTrPvpjyJWHVtXYqgQlj6F1/0IzkZ0bc3aEFST0=;
-        b=uWaCwrDkBN5GRSLhaw7WQwMKcK3AhPqO/fzElVN3JcPy98UFLj7JeXsg8P+SLlr/8N
-         uTaOa6VggUuncDHcvq/dm+VjbWoXQVCEMVj3yqEv0lzhkp6ZqhxIJZIXWJox0QqwZPpw
-         oblQlXNCYt4tHVrvlJypYdteLVvehIkVLfAlFHjgdjHvnPpCAD6GJOEurxmklM0IOqwa
-         r3we5GB8/FJKwWzwzqUCJtO6E9+uXUbwxjMkihzlNrMKNzLhjZggf+0ZB/LMAafHfS91
-         EJUlnCmBt8+isj3aFtdbAWI7Fy268Gzi52Ek2+IZaH/c0AJ5vAsChMY+9qCOx6dYD5bK
-         14lw==
+        bh=jOShWl3tVsknYDB/YoUvrUIV3eQMt6LYV5d/jQUs6fk=;
+        b=h3Kq7We2lcnT64/ZTs7I4tdBthajlqrQq0s3uG0rcdUUGUvc4KeWtl8Lap+IaEU0xC
+         yYJQXzHFT7D2Jqscee4HDCwPCbx8Wu4vGwr8iHjoxORK9KGqLusafVkNZ/vi+rdiyHeG
+         jdIKwPH4OSoAMEvF/wL6dPzkou8jWXYcRntfsmvla/c6SEeJlZfF2ghZPEbGkeY9ptz1
+         cvZXKirYuxY3KSRTfpbbshoiYk3G2vA59VITNzPxXSGn8hhh7sloFpM7Eqe6wa8z0eYK
+         HPQ0vNQ1FWKABTpWUeLw9Zvt3IMDsn825fB13HkZ/3l6+zJgRTNpYSRvvg1VGXgpvW9L
+         /8xQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=bNeVrTrPvpjyJWHVtXYqgQlj6F1/0IzkZ0bc3aEFST0=;
-        b=oEM5LZtTuhxfNhoOAVnA5OtIjJBObLjnO5H8CdEe1+PI6GmaFgP62gha/VaoolIfFn
-         AcXGfbiD0zbJRFdCWw7edw3huB3Pw3t0zupKnSlUlAec0o+MtLcPBdpIelyyLvshiL9l
-         RptBnhqyaEpcvAr9Lm3zP/T77mc5oiIZb33aueXlfH83XjleVAeh0NlYZbecYvRL0Kmi
-         9oEikG15Kk2IJDTLaT9WsJLg3edliQiInp5IoBm3LMfsaRiWAX+/f4nULHBfd9w/N9sI
-         JKwF+mqWnvhkTqlIWDJsMj1Aebe27PzpwjQfMnU4YIcabIqB6cMKzTXBV4yoWueVB20U
-         LQyA==
-X-Gm-Message-State: APjAAAXiVEveRdkGFFNulBsUFEoRs2a+sk3aLBUwa+iB2mZ+bTqYoNRR
-        ZMek465Fq6/r8jIy436ykQ/HFYJyw6yCnD8z
-X-Google-Smtp-Source: APXvYqyRt/sslYOExeWvOFH4KfKnKxW+V8w8qG436u1Li2H+fm4BIS46hHRf2O8j3VSTAztC1lSBD2N1vfHNfs72
-X-Received: by 2002:a05:620a:522:: with SMTP id h2mr54247961qkh.329.1563904775319;
- Tue, 23 Jul 2019 10:59:35 -0700 (PDT)
-Date:   Tue, 23 Jul 2019 19:58:46 +0200
+        bh=jOShWl3tVsknYDB/YoUvrUIV3eQMt6LYV5d/jQUs6fk=;
+        b=dqg7ZzYLxEz60fzMUl6skj1++gSf+IhSYVR5tgibvpYu1h11Q/MFiatzIPvUWfFo9b
+         L4DPRL8QBPboZY50S6g6fssilZL/jZ0TlxaLYJyRylRDqdKZ69HYN7ITi704b79JEM/G
+         o7ozAk/pZp5uYXG2BikWsJSOUA+n5zhBoAs1Dg9U+7zvENIUS8oOBjkwb6OhpnqxINU+
+         KYWxpJnLTd/7zqKV58DVIdwR8w7s9OBNwn/Rr6yFL3u53okpB8xzqR2KNdb8xb/QBEg3
+         GnQnAI12TV2V2pv2QmBwy+2zg2JmMQMyOOFibvJJZyPEHfqKPzn43ut6SasNiEH+ULTn
+         9ecg==
+X-Gm-Message-State: APjAAAX2uVJ5qVl/o+WVAt8d1gCQxAAB9LZLde57o0LqOERG8uwnh02E
+        jimp1/Cb0bcmWSy9ETsKEkuWf4C0GD2xC5L/
+X-Google-Smtp-Source: APXvYqxAti31RDws7lqydpjpU2QNSIYIBexpp6X7xTgogP1B1IYuH3vnzKrv44nIChFaGEFwrbMkdTHOIZSmLzhz
+X-Received: by 2002:a65:5a44:: with SMTP id z4mr77715645pgs.41.1563904795339;
+ Tue, 23 Jul 2019 10:59:55 -0700 (PDT)
+Date:   Tue, 23 Jul 2019 19:58:52 +0200
 In-Reply-To: <cover.1563904656.git.andreyknvl@google.com>
-Message-Id: <d684e1df08f2ecb6bc292e222b64fa9efbc26e69.1563904656.git.andreyknvl@google.com>
+Message-Id: <c1e6aad230658bc175b42d92daeff2e30050302a.1563904656.git.andreyknvl@google.com>
 Mime-Version: 1.0
 References: <cover.1563904656.git.andreyknvl@google.com>
 X-Mailer: git-send-email 2.22.0.709.g102302147b-goog
-Subject: [PATCH v19 09/15] drm/amdgpu: untag user pointers
+Subject: [PATCH v19 15/15] selftests, arm64: add a selftest for passing tagged
+ pointers to kernel
 From:   Andrey Konovalov <andreyknvl@google.com>
 To:     linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
@@ -105,50 +106,101 @@ This patch is a part of a series that extends kernel ABI to allow to pass
 tagged user pointers (with the top byte set to something else other than
 0x00) as syscall arguments.
 
-In amdgpu_gem_userptr_ioctl() and amdgpu_amdkfd_gpuvm.c/init_user_pages()
-an MMU notifier is set up with a (tagged) userspace pointer. The untagged
-address should be used so that MMU notifiers for the untagged address get
-correctly matched up with the right BO. This patch untag user pointers in
-amdgpu_gem_userptr_ioctl() for the GEM case and in amdgpu_amdkfd_gpuvm_
-alloc_memory_of_gpu() for the KFD case. This also makes sure that an
-untagged pointer is passed to amdgpu_ttm_tt_get_user_pages(), which uses
-it for vma lookups.
+This patch adds a simple test, that calls the uname syscall with a
+tagged user pointer as an argument. Without the kernel accepting tagged
+user pointers the test fails with EFAULT.
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c | 2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c          | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ tools/testing/selftests/arm64/.gitignore      |  1 +
+ tools/testing/selftests/arm64/Makefile        | 11 +++++++
+ .../testing/selftests/arm64/run_tags_test.sh  | 12 ++++++++
+ tools/testing/selftests/arm64/tags_test.c     | 29 +++++++++++++++++++
+ 4 files changed, 53 insertions(+)
+ create mode 100644 tools/testing/selftests/arm64/.gitignore
+ create mode 100644 tools/testing/selftests/arm64/Makefile
+ create mode 100755 tools/testing/selftests/arm64/run_tags_test.sh
+ create mode 100644 tools/testing/selftests/arm64/tags_test.c
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-index 1d3ee9c42f7e..00468ebf8b76 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-@@ -1103,7 +1103,7 @@ int amdgpu_amdkfd_gpuvm_alloc_memory_of_gpu(
- 		alloc_flags = 0;
- 		if (!offset || !*offset)
- 			return -EINVAL;
--		user_addr = *offset;
-+		user_addr = untagged_addr(*offset);
- 	} else if (flags & (ALLOC_MEM_FLAGS_DOORBELL |
- 			ALLOC_MEM_FLAGS_MMIO_REMAP)) {
- 		domain = AMDGPU_GEM_DOMAIN_GTT;
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
-index 939f8305511b..d7855842fd51 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
-@@ -291,6 +291,8 @@ int amdgpu_gem_userptr_ioctl(struct drm_device *dev, void *data,
- 	uint32_t handle;
- 	int r;
- 
-+	args->addr = untagged_addr(args->addr);
+diff --git a/tools/testing/selftests/arm64/.gitignore b/tools/testing/selftests/arm64/.gitignore
+new file mode 100644
+index 000000000000..e8fae8d61ed6
+--- /dev/null
++++ b/tools/testing/selftests/arm64/.gitignore
+@@ -0,0 +1 @@
++tags_test
+diff --git a/tools/testing/selftests/arm64/Makefile b/tools/testing/selftests/arm64/Makefile
+new file mode 100644
+index 000000000000..a61b2e743e99
+--- /dev/null
++++ b/tools/testing/selftests/arm64/Makefile
+@@ -0,0 +1,11 @@
++# SPDX-License-Identifier: GPL-2.0
 +
- 	if (offset_in_page(args->addr | args->size))
- 		return -EINVAL;
- 
++# ARCH can be overridden by the user for cross compiling
++ARCH ?= $(shell uname -m 2>/dev/null || echo not)
++
++ifneq (,$(filter $(ARCH),aarch64 arm64))
++TEST_GEN_PROGS := tags_test
++TEST_PROGS := run_tags_test.sh
++endif
++
++include ../lib.mk
+diff --git a/tools/testing/selftests/arm64/run_tags_test.sh b/tools/testing/selftests/arm64/run_tags_test.sh
+new file mode 100755
+index 000000000000..745f11379930
+--- /dev/null
++++ b/tools/testing/selftests/arm64/run_tags_test.sh
+@@ -0,0 +1,12 @@
++#!/bin/sh
++# SPDX-License-Identifier: GPL-2.0
++
++echo "--------------------"
++echo "running tags test"
++echo "--------------------"
++./tags_test
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++else
++	echo "[PASS]"
++fi
+diff --git a/tools/testing/selftests/arm64/tags_test.c b/tools/testing/selftests/arm64/tags_test.c
+new file mode 100644
+index 000000000000..22a1b266e373
+--- /dev/null
++++ b/tools/testing/selftests/arm64/tags_test.c
+@@ -0,0 +1,29 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <stdint.h>
++#include <sys/prctl.h>
++#include <sys/utsname.h>
++
++#define SHIFT_TAG(tag)		((uint64_t)(tag) << 56)
++#define SET_TAG(ptr, tag)	(((uint64_t)(ptr) & ~SHIFT_TAG(0xff)) | \
++					SHIFT_TAG(tag))
++
++int main(void)
++{
++	static int tbi_enabled = 0;
++	struct utsname *ptr, *tagged_ptr;
++	int err;
++
++	if (prctl(PR_SET_TAGGED_ADDR_CTRL, PR_TAGGED_ADDR_ENABLE, 0, 0, 0) == 0)
++		tbi_enabled = 1;
++	ptr = (struct utsname *)malloc(sizeof(*ptr));
++	if (tbi_enabled)
++		tagged_ptr = (struct utsname *)SET_TAG(ptr, 0x42);
++	err = uname(tagged_ptr);
++	free(ptr);
++
++	return err;
++}
 -- 
 2.22.0.709.g102302147b-goog
 
