@@ -2,108 +2,99 @@ Return-Path: <SRS0=t5r7=VU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C48C76190
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6191C76186
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:04:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D81EE21655
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="oTIcjnGs"
+	by mail.kernel.org (Postfix) with ESMTP id AA1DA2229A
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:04:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1563908664;
+	bh=qBdiWSKWIjCsHen6DnbxUXpe6f7Z76IfupBI004rDYA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=xK0e5ilDLuhTT/5V0ri4mEiurT3gwvagse5E8XWS6WUeh9a929LHlePZpV1k1sWf7
+	 6myf1SRJe24w6jz1YaBR73t5VANvpQ/p62UN4YZiNuaDDy6RtdYqZ05ETEgQpc1Gtt
+	 CXCztUPSH+lQqETy3nedkA1KxkIlVvz/hLiDXVh0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391637AbfGWTBt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jul 2019 15:01:49 -0400
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:46110 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391653AbfGWTBt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 15:01:49 -0400
-Received: by mail-qt1-f194.google.com with SMTP id h21so42888149qtn.13
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 12:01:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=3EqDChbKkzRP/kkIXXxca7ygw4tAja1zmZyruAsHAvU=;
-        b=oTIcjnGsggk8W9LcbolM/i2hsh7PeL6D29qg93GmXDghMxUWcBN/+EnXA/uWCeGa4Y
-         sVOkLlCoeIFjrqbsGiAOeSqjSN2Awo/z3+bBdViNVAy8YPEQYJmaP7RcGSeCAcqbP8uj
-         //xwIIZSJl2kQm3pNDw+2EcPOxIe0NJ8z7LwmGOll1xN3AMI1cJXERrKVP/fTI+Eyzy1
-         yvqwmBqH3v1U+ks3bcCn0n5c7RIaozj+KfUG9279AEx1C3sBoWtQnStZHgKr16Ahj+L+
-         Vvknv7x82UqsqQmBBXduMTGgb4JT/f69KSSnUpHzWy7csF0mvehz4SLueW5bLrRDzuAW
-         1n8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=3EqDChbKkzRP/kkIXXxca7ygw4tAja1zmZyruAsHAvU=;
-        b=uHXzef00uPRhysjGr7bxbaRris3RL1tsqjlFDV2U+sfb7mZdlY5sBFhpX1EcKaD8PB
-         aEH4hixCHbZgFaX1IJvxHZM+y7jRISsoyw5JKzF5baaqcBOqoj7dOty3QkJMrFv7Wn7Z
-         t4SET44jAqgc6qQpBGtuX0Wyhs4wr5qLBhvEEKLvFkJd04HaF8tuCfIQM9owF9b5AVAR
-         ZHlfkj21Xbv0qnoZzdu1iLXQwJm/YkvyRSZI99JsuDX7HNr+F1hWUvkU5gaP/ARDzfeR
-         za3KjpajDMuiBv+d63FZYtqGx75g2nbdUcYbM9N/AnWfFR7lkJ8o6oZjT7YSsyTmAZhR
-         /FOA==
-X-Gm-Message-State: APjAAAWN3yI4a4e/JEZiPHURoiN7EVIE+CDXNP+TIpLirArp6Ib5G8T8
-        gEDPs9chSz1z2U/51x+/hCW6tBPwOEeFyQ==
-X-Google-Smtp-Source: APXvYqy/LX/2E3GTLX4O9/ewRjcjD8hDJLDoIL/DfEesV3wfOQH+9QTNAnAd2HC3XKnClfka1FTpBg==
-X-Received: by 2002:ac8:1750:: with SMTP id u16mr51649419qtk.90.1563908508134;
-        Tue, 23 Jul 2019 12:01:48 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id d23sm18627126qkk.46.2019.07.23.12.01.40
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 23 Jul 2019 12:01:42 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1hq02e-00043x-AL; Tue, 23 Jul 2019 16:01:40 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     linux-rdma@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH rdma-core 02/19] util: Enable uninitialized_var on powerpc
-Date:   Tue, 23 Jul 2019 16:01:20 -0300
-Message-Id: <20190723190137.15370-3-jgg@ziepe.ca>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190723190137.15370-1-jgg@ziepe.ca>
-References: <20190723190137.15370-1-jgg@ziepe.ca>
+        id S1732186AbfGWTEY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jul 2019 15:04:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33130 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729511AbfGWTEX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Jul 2019 15:04:23 -0400
+Received: from localhost (unknown [37.142.3.125])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 34A90218F0;
+        Tue, 23 Jul 2019 19:04:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1563908662;
+        bh=qBdiWSKWIjCsHen6DnbxUXpe6f7Z76IfupBI004rDYA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=C556rVfU9yA8awMISWDNFXvi69SukXOZ/51Z7wszIOrAmvkAKrA6vrLUlfGyp809s
+         noXnBRk//Ep/8rZoqEB2ATyLRt3aaVNL75nn/VSwqcDovIuiR9SxsQLOmbEseMqEXO
+         3ajYdU82gtgjVyI1emhn/2TfPOUBI7IS1RfkUgUw=
+Date:   Tue, 23 Jul 2019 22:04:14 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     David Miller <davem@davemloft.net>
+Cc:     dledford@redhat.com, jgg@mellanox.com, edwards@mellanox.com,
+        linux-rdma@vger.kernel.org, yishaih@mellanox.com,
+        saeedm@mellanox.com, netdev@vger.kernel.org
+Subject: Re: [PATCH mlx5-next] net/mlx5: Fix modify_cq_in alignment
+Message-ID: <20190723190414.GU5125@mtr-leonro.mtl.com>
+References: <20190723071255.6588-1-leon@kernel.org>
+ <20190723.112850.610952032088764951.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190723.112850.610952032088764951.davem@davemloft.net>
+User-Agent: Mutt/1.12.0 (2019-05-25)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+On Tue, Jul 23, 2019 at 11:28:50AM -0700, David Miller wrote:
+> From: Leon Romanovsky <leon@kernel.org>
+> Date: Tue, 23 Jul 2019 10:12:55 +0300
+>
+> > From: Edward Srouji <edwards@mellanox.com>
+> >
+> > Fix modify_cq_in alignment to match the device specification.
+> > After this fix the 'cq_umem_valid' field will be in the right offset.
+> >
+> > Cc: <stable@vger.kernel.org> # 4.19
+> > Fixes: bd37197554eb ("net/mlx5: Update mlx5_ifc with DEVX UID bits")
+> > Signed-off-by: Edward Srouji <edwards@mellanox.com>
+> > Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>
+> Very confusing submission on many levels.
+>
+> Coming from a Mellanox developer using a kernel.org email address.
 
-For some reason the gcc 8/3 build for powerpc behaves differently from
-AMD64 and ARM64:
+It works for us and was proven internally as the best way to have
+setup which always works.
 
-../providers/mlx4/qp.c: In function 'mlx4_post_send':
-../providers/mlx4/qp.c:478:22: warning: 'ctrl' may be used uninitialized in this function [-Wmaybe-uninitialized]
-   ctrl->owner_opcode |= htobe32((qp->sq.head & 0xffff) << 8);
+>
+> Targetting the mlx5-next tree, yet CC:'ing stable.
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
----
- util/compiler.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+This patch was found by RDMA team, needed by RDMA but changes are located
+in code accessible by mlx5_core part. This is why mlx5-next.
 
-diff --git a/util/compiler.h b/util/compiler.h
-index 16f5ee14be2a8a..dfce82f1884149 100644
---- a/util/compiler.h
-+++ b/util/compiler.h
-@@ -7,9 +7,10 @@
- 
-    This is only enabled for old compilers. gcc 6.x and beyond have excellent
-    static flow analysis. If code solicits a warning from 6.x it is almost
--   certainly too complex for a human to understand.
-+   certainly too complex for a human to understand. For some reason powerpc
-+   uses a different scheme than gcc for flow analysis.
- */
--#if __GNUC__ >= 6 || defined(__clang__)
-+#if (__GNUC__ >= 6 && !defined(__powerpc__)) || defined(__clang__)
- #define uninitialized_var(x) x
- #else
- #define uninitialized_var(x) x = x
--- 
-2.22.0
+>
+> A networking change, for which stable submissions are handled by me by
+> hand and not via CC:'ing stable.
 
+The intention was to have this patch in shared mlx5 branch, which is
+picked by RDMA too. This "Cc: stable@..." together with merge through
+RDMA will ensure that such patch will be part of stable automatically.
+
+I can remove "Cc: ..." line if you think that it is inappropriate to
+have such line in patch in mlx5-next.
+
+Thanks
