@@ -2,286 +2,201 @@ Return-Path: <SRS0=t5r7=VU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53CD0C76186
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:11:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A6B6C76194
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:14:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 239D321849
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:11:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44133218A0
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:14:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ix3BFGlI"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kghJOur2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729571AbfGWTLk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jul 2019 15:11:40 -0400
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:39388 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728935AbfGWTLk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 15:11:40 -0400
-Received: by mail-qk1-f194.google.com with SMTP id w190so31920319qkc.6
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 12:11:39 -0700 (PDT)
+        id S1729511AbfGWTOA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jul 2019 15:14:00 -0400
+Received: from mail-vs1-f65.google.com ([209.85.217.65]:39851 "EHLO
+        mail-vs1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728935AbfGWTOA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 15:14:00 -0400
+Received: by mail-vs1-f65.google.com with SMTP id u3so29625487vsh.6;
+        Tue, 23 Jul 2019 12:13:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=Lz5MTuqfXxvjBuzR2PQib/9Vw5DvcY8g/qxbQf+4H0w=;
-        b=ix3BFGlI2C69ooNZ/av43hDls0gSGoiqHEykLzmHkAVl2fZj4TBDd/hekwoExc99tI
-         sTuK8oqKoa6F+3aprpImFSxruHonDHCM05yow1wnRyBJon2nHJN+osTNm1luagjcvGy1
-         hv7NahnJW9D8eCEhqIV9P7SJsleWP42ZbgYaDJ+j3/s0kfw04vUDwlg9WHvPTQzZz08Q
-         obIxEUTQgPZMRdn8cqpw6X1I+E/+1ANnvtT56q0kMJEy9fPC8jrNjjqRHeYPB809U2tc
-         LWpbG9K/fCRNyj474hsYdGgiZRSNkn/YTON6oQioiOpEMUdMPcPEVtKG/aC4zo3L6uWx
-         qqpQ==
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:date:message-id:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=mCFR2IQNm0hmioLVOd7QF/xJfVRtWFkovxZJz2yC7AU=;
+        b=kghJOur2nzo23SRl91iCsTz2CjZTC1wGF6CEwLnGg2mcWP4nqZdK2clgIQN65Cg0dH
+         6dWW6CgwPIfvcr+K0hjDuMU9SupACSGDGyzsXaqFFACM7Ta00flpJ0L9W8romd9Cp1yX
+         lgrGGuUPYT88AHImPcytWvhg/4qaAt6TK6QI06uJQvtIBzTPv99KOrclKTOA4e7lS/Xq
+         vpI2bvzjlA+o2VBhfCYN6HESRPlu1INeMvsg4mVVOzq69ZDUFyA+c264iXb3hWR7eEYq
+         a+pLa6EIpOby+4ffhrQ7Ve8i6oXc3hQJXkS/4Sf7oxbIqRn9/tl19JtfaaHgw6wLTb+i
+         f+2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=Lz5MTuqfXxvjBuzR2PQib/9Vw5DvcY8g/qxbQf+4H0w=;
-        b=ND0+NxdRlLHskurgEGzgx3VRLLM8+1+SvVd8J3g5LY6xawmwGyiXka5vq+0ransTlR
-         uGn5vJnGOwCqF5wyf5HxE4Urn5poQ4bAsggqN5g52wGBgDM4TWJuCab2rBqBZEEKKEUu
-         ee0yhFSSl6LGI4nHq0v5SWMThcl5/22drr/iS2qt1ULPRSFh9Y/vdDx6YWfN5E8ivf0K
-         sBlcEHpgseCl4hEWRIg1MxrjnQj00JnPuIPE8ohUXwc7KhbnyR01/8wOuq/Z1RaIYCnr
-         5jiV9PlcEuS8QnW9WEEbK7PDiG+areijgacpsjJF6jqSWApkSsG0GBih47aeE6ieW1w8
-         Xoiw==
-X-Gm-Message-State: APjAAAUeHfbdktTjbCE7AQGLZQltd/2MKkhHIphysGAQWGYJX1ATZzQS
-        IkHf/yepz0aUL/5OaoivJAMdRW/Vr+jx8w==
-X-Google-Smtp-Source: APXvYqxmkTKGUrnclMbj2q2i+tZZvdlVQox0lDw1CNIjmmoJpa01MXlCVgxW6mO3c8p8CLZ/esCZRg==
-X-Received: by 2002:a05:620a:12f8:: with SMTP id f24mr54193322qkl.202.1563909098849;
-        Tue, 23 Jul 2019 12:11:38 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id z1sm20214939qke.122.2019.07.23.12.11.38
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 23 Jul 2019 12:11:38 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1hq02e-000451-Py; Tue, 23 Jul 2019 16:01:40 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     linux-rdma@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH rdma-core 13/19] build/azp: Update check-build to work with python3
-Date:   Tue, 23 Jul 2019 16:01:31 -0300
-Message-Id: <20190723190137.15370-14-jgg@ziepe.ca>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190723190137.15370-1-jgg@ziepe.ca>
-References: <20190723190137.15370-1-jgg@ziepe.ca>
+        h=x-gm-message-state:sender:subject:from:to:date:message-id
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=mCFR2IQNm0hmioLVOd7QF/xJfVRtWFkovxZJz2yC7AU=;
+        b=H1pCc3vsNuZpmIbHObqco6H/Lu96VH4g1Nj8eMGeMMQgfRIRHBAvY6pJdJ/OoNdoeX
+         BLQI81dyiLTpea9LcWLmKh4rkkhrvlau/WjpS/DSZfgIzi0dSctEet23iw52EasY4nPK
+         Yd77HNPO6P4Fe0q99jJIfdYOCnXowPhTfycMu46E2A1F6GEFEQHr30ivKJmhhEciaQCB
+         M9Bh010cAQ5nxAL5n9kdTZG0R2ShQa6deBLVP5K5I0b5vFQf3eZUNnaqsQpXKDQU6S7M
+         3t+qjqXmHBoREx3wbDRGdK7FiGhqYIgxnFeIcBaVFALDl0WgUzUz2kM74bC8AKTp44Kp
+         Bwxg==
+X-Gm-Message-State: APjAAAUfvrlJU983VqZdTYcILMRp7dRdziFxqL7cDgtuXvijAUd9ZAoj
+        rfSVUg1ON/EI+6qydOcwJP/FWB0o9WK8Ww==
+X-Google-Smtp-Source: APXvYqyxG/2hpnYJeRDXmNuM0ujhurNc4eqen+D0JDOO8yhUGCACahyO/ghn4Gd3Miss4oXPjxwPrw==
+X-Received: by 2002:a67:f75a:: with SMTP id w26mr45539455vso.148.1563909238532;
+        Tue, 23 Jul 2019 12:13:58 -0700 (PDT)
+Received: from seurat29.1015granger.net (dhcp-82c9.meeting.ietf.org. [31.133.130.201])
+        by smtp.gmail.com with ESMTPSA id j80sm5541004vkj.47.2019.07.23.12.13.57
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 23 Jul 2019 12:13:58 -0700 (PDT)
+Subject: [PATCH v1] rdma: Enable ib_alloc_cq to spread work over a device's
+ comp_vectors
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
+Date:   Tue, 23 Jul 2019 15:13:37 -0400
+Message-ID: <156390915496.6759.4305845732131573253.stgit@seurat29.1015granger.net>
+User-Agent: StGit/unknown-version
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+Send and Receive completion is handled on a single CPU selected at
+the time each Completion Queue is allocated. Typically this is when
+an initiator instantiates an RDMA transport, or when a target
+accepts an RDMA connection.
 
-Remove dependencies on python2.7 so it can be removed from the container.
+Some ULPs cannot open a connection per CPU to spread completion
+workload across available CPUs. For these ULPs, allow the RDMA core
+to select a completion vector based on the device's complement of
+available comp_vecs.
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+When a ULP elects to use RDMA_CORE_ANY_COMPVEC, if multiple CPUs are
+available, a different CPU will be selected for each Completion
+Queue. For the moment, a simple round-robin mechanism is used.
+
+Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
- buildlib/azure-pipelines.yml | 10 +++++---
- buildlib/cbuild              |  7 +++--
- buildlib/check-build         | 50 +++++++++++++++++++-----------------
- 3 files changed, 37 insertions(+), 30 deletions(-)
+ drivers/infiniband/core/cq.c             |   20 +++++++++++++++++++-
+ include/rdma/ib_verbs.h                  |    3 +++
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    6 ++++--
+ net/sunrpc/xprtrdma/verbs.c              |    5 ++---
+ 4 files changed, 28 insertions(+), 6 deletions(-)
 
-diff --git a/buildlib/azure-pipelines.yml b/buildlib/azure-pipelines.yml
-index 7df483e3329534..39188a4c0b727b 100644
---- a/buildlib/azure-pipelines.yml
-+++ b/buildlib/azure-pipelines.yml
-@@ -44,11 +44,13 @@ stages:
-               ninja
-             displayName: gcc 9.1 Compile
+Jason-
+
+If this patch is acceptable to all, then I would expect you to take
+it through the RDMA tree.
+
+
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index 7c599878ccf7..a89d549490c4 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -165,12 +165,27 @@ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+ 	queue_work(cq->comp_wq, &cq->work);
+ }
  
--          - bash: |
--              set -e
--              cd build-gcc9
--              python2.7 ../buildlib/check-build --src .. --cc gcc-9
-+          - task: PythonScript@0
-             displayName: Check Build Script
-+            inputs:
-+              scriptPath: buildlib/check-build
-+              arguments: --src .. --cc gcc-9
-+              workingDirectory: build-gcc9
-+              pythonInterpreter: /usr/bin/python3
- 
-           # Run sparse on the subdirectories which are sparse clean
-           - bash: |
-diff --git a/buildlib/cbuild b/buildlib/cbuild
-index 1441a91a8427fd..1de550e7bf8934 100755
---- a/buildlib/cbuild
-+++ b/buildlib/cbuild
-@@ -903,8 +903,11 @@ def run_azp_build(args,env):
-             script.append(I["bash"]);
-         elif I.get("task") == "PythonScript@0":
-             script.append("set -e");
--            script.append("%s %s"%(I["inputs"]["pythonInterpreter"],
--                                   I["inputs"]["scriptPath"]));
-+            if "workingDirectory" in I["inputs"]:
-+                script.append("cd %s"%(os.path.join(srcdir,I["inputs"]["workingDirectory"])));
-+            script.append("%s %s %s"%(I["inputs"]["pythonInterpreter"],
-+                                      os.path.join(srcdir,I["inputs"]["scriptPath"]),
-+                                      I["inputs"].get("arguments","")));
-         else:
-             raise ValueError("Unknown stanza %r"%(I));
- 
-diff --git a/buildlib/check-build b/buildlib/check-build
-index 82812272b40b1d..acb72f0e1f2588 100755
---- a/buildlib/check-build
-+++ b/buildlib/check-build
-@@ -1,7 +1,8 @@
--#!/usr/bin/env python
-+#!/usr/bin/env python3
- # Copyright 2017 Obsidian Research Corp.
- # Licensed under BSD (MIT variant) or GPLv2. See COPYING.
- """check-build - Run static checks on a build"""
-+from __future__ import print_function
- import argparse
- import inspect
- import os
-@@ -18,7 +19,7 @@ from distutils.version import LooseVersion;
- 
- def get_src_dir():
-     """Get the source directory using git"""
--    git_top = subprocess.check_output(["git","rev-parse","--git-dir"]).strip();
-+    git_top = subprocess.check_output(["git","rev-parse","--git-dir"]).decode().strip();
-     if git_top == ".git":
-         return ".";
-     return os.path.dirname(git_top);
-@@ -55,7 +56,8 @@ def private_tmp():
- 
- def get_symbol_vers(fn,exported=True):
-     """Return the symbol version suffixes from the ELF file, eg IB_VERBS_1.0, etc"""
--    syms = subprocess.check_output(["readelf","--wide","-s",fn]);
-+    syms = subprocess.check_output(["readelf","--wide","-s",fn]).decode();
++/*
++ * Attempt to spread ULP completion queues over a device's completion
++ * vectors so that all available CPU cores can help service the device's
++ * interrupt workload. This mechanism may be improved at a later point
++ * to dynamically take into account the system's actual workload.
++ */
++static int ib_get_comp_vector(struct ib_device *dev)
++{
++	static atomic_t cv;
 +
-     go = False;
-     res = set();
-     for I in syms.splitlines():
-@@ -166,7 +168,7 @@ def check_abi(args,fn):
-                            "-o",cur_fn]);
++	if (dev->num_comp_vectors > 1)
++		return atomic_inc_return(&cv) % dev->num_comp_vectors;
++	return 0;
++}
++
+ /**
+  * __ib_alloc_cq_user - allocate a completion queue
+  * @dev:		device to allocate the CQ for
+  * @private:		driver private data, accessible from cq->cq_context
+  * @nr_cqe:		number of CQEs to allocate
+- * @comp_vector:	HCA completion vectors for this CQ
++ * @comp_vector:	HCA completion vector for this CQ
+  * @poll_ctx:		context to poll the CQ from.
+  * @caller:		module owner name.
+  * @udata:		Valid user data or NULL for kernel object
+@@ -208,6 +223,9 @@ struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+ 	cq->res.type = RDMA_RESTRACK_CQ;
+ 	rdma_restrack_set_task(&cq->res, caller);
  
-     if not os.path.exists(ref_fn):
--        print >> sys.stderr, "ABI file does not exist for %r"%(ref_fn);
-+        print("ABI file does not exist for %r"%(ref_fn), file=sys.stderr);
-         return False;
++	if (comp_vector == RDMA_CORE_ANY_COMPVEC)
++		cq_attr.comp_vector = ib_get_comp_vector(dev);
++
+ 	ret = dev->ops.create_cq(cq, &cq_attr, NULL);
+ 	if (ret)
+ 		goto out_free_wc;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index c5f8a9f17063..547d36bcef7e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3669,6 +3669,9 @@ static inline int ib_post_recv(struct ib_qp *qp,
+ 	return qp->device->ops.post_recv(qp, recv_wr, bad_recv_wr ? : &dummy);
+ }
  
-     subprocess.check_call(["abi-compliance-checker",
-@@ -183,7 +185,7 @@ def test_verbs_uapi(args):
++/* Tell the RDMA core to select an appropriate comp_vector */
++#define RDMA_CORE_ANY_COMPVEC	((int)(-1))
++
+ struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+ 				 int nr_cqe, int comp_vector,
+ 				 enum ib_poll_context poll_ctx,
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 3fe665152d95..7df6de6e9162 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -455,13 +455,15 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		goto errout;
+ 	}
+ 	newxprt->sc_sq_cq = ib_alloc_cq(dev, newxprt, newxprt->sc_sq_depth,
+-					0, IB_POLL_WORKQUEUE);
++					RDMA_CORE_ANY_COMPVEC,
++					IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(newxprt->sc_sq_cq)) {
+ 		dprintk("svcrdma: error creating SQ CQ for connect request\n");
+ 		goto errout;
+ 	}
+ 	newxprt->sc_rq_cq = ib_alloc_cq(dev, newxprt, rq_depth,
+-					0, IB_POLL_WORKQUEUE);
++					RDMA_CORE_ANY_COMPVEC,
++					IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(newxprt->sc_rq_cq)) {
+ 		dprintk("svcrdma: error creating RQ CQ for connect request\n");
+ 		goto errout;
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 805b1f35e1ca..6e5989e2b8ed 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -523,8 +523,7 @@ int rpcrdma_ep_create(struct rpcrdma_xprt *r_xprt)
  
-     # User must provide the ABI dir in the source tree
-     if not os.path.isdir(os.path.join(args.SRC,"ABI")):
--        print "ABI check skipped, no ABI/ directory.";
-+        print("ABI check skipped, no ABI/ directory.");
-         return;
+ 	sendcq = ib_alloc_cq(ia->ri_id->device, NULL,
+ 			     ep->rep_attr.cap.max_send_wr + 1,
+-			     ia->ri_id->device->num_comp_vectors > 1 ? 1 : 0,
+-			     IB_POLL_WORKQUEUE);
++			     RDMA_CORE_ANY_COMPVEC, IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(sendcq)) {
+ 		rc = PTR_ERR(sendcq);
+ 		goto out1;
+@@ -532,7 +531,7 @@ int rpcrdma_ep_create(struct rpcrdma_xprt *r_xprt)
  
-     libd = os.path.join(args.BUILD,"lib");
-@@ -221,24 +223,24 @@ def get_headers(incdir):
-     return includes;
- 
- def compile_test_headers(tmpd,incdir,includes,with_cxx=False):
--    cppflags = subprocess.check_output(["pkg-config","libnl-3.0","--cflags-only-I"]).strip();
-+    cppflags = subprocess.check_output(["pkg-config","libnl-3.0","--cflags-only-I"]).decode().strip();
-     cppflags = "-I %s %s"%(incdir,cppflags)
-     with open(os.path.join(tmpd,"build.ninja"),"wt") as F:
--        print >> F,"rule comp";
--        print >> F," command = %s -Werror -c %s $in -o $out"%(args.CC,cppflags);
--        print >> F," description=Header check for $in";
--        print >> F,"rule comp_cxx";
--        print >> F," command = %s -Werror -c %s $in -o $out"%(args.CXX,cppflags);
--        print >> F," description=Header C++ check for $in";
-+        print("rule comp", file=F);
-+        print(" command = %s -Werror -c %s $in -o $out"%(args.CC,cppflags), file=F);
-+        print(" description=Header check for $in", file=F);
-+        print("rule comp_cxx", file=F);
-+        print(" command = %s -Werror -c %s $in -o $out"%(args.CXX,cppflags), file=F);
-+        print(" description=Header C++ check for $in", file=F);
-         count = 0;
-         for I in sorted(includes):
-             if is_obsolete(I) or is_fixup(I):
-                 continue;
--            print >> F,"build %s : comp %s"%("out%d.o"%(count),I);
--            print >> F,"default %s"%("out%d.o"%(count));
--            print >> F,"build %s : comp_cxx %s"%("outxx%d.o"%(count),I);
-+            print("build %s : comp %s"%("out%d.o"%(count),I), file=F);
-+            print("default %s"%("out%d.o"%(count)), file=F);
-+            print("build %s : comp_cxx %s"%("outxx%d.o"%(count),I), file=F);
-             if with_cxx:
--                print >> F,"default %s"%("outxx%d.o"%(count));
-+                print("default %s"%("outxx%d.o"%(count)), file=F);
-             count = count + 1;
-     subprocess.check_call(["ninja"],cwd=tmpd);
- 
-@@ -286,7 +288,7 @@ def test_installed_headers(args):
-         subprocess.check_output(["ninja","install"],env=env,cwd=args.BUILD);
- 
-         includes = get_headers(tmpd);
--        incdir = os.path.commonprefix(includes);
-+        incdir = os.path.commonprefix(list(includes));
-         rincludes = {I[len(incdir):] for I in includes};
- 
-         bincdir = os.path.abspath(os.path.join(args.BUILD,"include"));
-@@ -308,7 +310,7 @@ def test_installed_headers(args):
-                 os.makedirs(dfn);
-             assert not os.path.exists(I);
-             with open(I,"w") as F:
--                print >> F,'#error "Private internal header"';
-+                print('#error "Private internal header"', file=F);
- 
-         # Roughly check that the headers have the extern "C" for C++
-         # compilation.
-@@ -324,7 +326,7 @@ def test_installed_headers(args):
- 
- def get_symbol_names(fn):
-     """Return the defined, public, symbols from a ELF shlib"""
--    syms = subprocess.check_output(["readelf", "--wide", "-s", fn])
-+    syms = subprocess.check_output(["readelf", "--wide", "-s", fn]).decode()
-     go = False
-     res = set()
-     for I in syms.splitlines():
-@@ -352,7 +354,7 @@ def get_cc_args_from_pkgconfig(args, name, static):
-     flags = ["pkg-config", "--errors-to-stdout", "--cflags", "--libs"]
-     if static:
-         flags.append("--static")
--    opts = subprocess.check_output(flags + ["lib" + name])
-+    opts = subprocess.check_output(flags + ["lib" + name]).decode()
-     opts = shlex.split(opts)
- 
-     opts.insert(0, "-Wall")
-@@ -365,7 +367,7 @@ def get_cc_args_from_pkgconfig(args, name, static):
-     # The old pkg-config that travis uses incorrectly removes duplicated
-     # flags, which breaks linking.
-     if (name == "ibverbs" and
--        subprocess.check_output(["pkg-config", "--version"]).strip() == "0.26"):
-+        subprocess.check_output(["pkg-config", "--version"]).decode().strip() == "0.26"):
-         opts.insert(0, "-libverbs")
- 
-     # Only static link the pkg-config stuff, otherwise we get warnings about
-@@ -392,7 +394,7 @@ def get_cc_args_from_pkgconfig(args, name, static):
- 
- 
- def compile_ninja(args, Fninja, name, cfn, opts):
--    print >> Fninja, """
-+    print("""
- rule comp_{name}
-     command = {CC} -Wall -o $out $in {opts}
-     description = Compile and link $out
-@@ -401,7 +403,7 @@ default {name}""".format(
-         name=name,
-         CC=args.CC,
-         cfn=cfn,
--        opts=" ".join(pipes.quote(I) for I in opts))
-+        opts=" ".join(pipes.quote(I) for I in opts)), file=Fninja)
- 
- 
- def get_providers(args):
-@@ -510,6 +512,6 @@ args.SRC = os.path.abspath(args.SRC);
- args.PACKAGE_VERSION = get_package_version(args);
- 
- funcs = globals();
--for k,v in funcs.items():
-+for k,v in list(funcs.items()):
-     if k.startswith("test_") and inspect.isfunction(v):
-         v(args);
--- 
-2.22.0
+ 	recvcq = ib_alloc_cq(ia->ri_id->device, NULL,
+ 			     ep->rep_attr.cap.max_recv_wr + 1,
+-			     0, IB_POLL_WORKQUEUE);
++			     RDMA_CORE_ANY_COMPVEC, IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(recvcq)) {
+ 		rc = PTR_ERR(recvcq);
+ 		goto out2;
 
