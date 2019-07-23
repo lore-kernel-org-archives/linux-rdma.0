@@ -2,67 +2,67 @@ Return-Path: <SRS0=t5r7=VU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-14.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7B67C76190
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D32C76186
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 80AEC21655
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C8F921655
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Ypck7+D0"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="J7qUhNen"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391652AbfGWTBs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jul 2019 15:01:48 -0400
-Received: from mail-qk1-f193.google.com ([209.85.222.193]:42491 "EHLO
+        id S2391640AbfGWTBt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jul 2019 15:01:49 -0400
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:38195 "EHLO
         mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391640AbfGWTBs (ORCPT
+        with ESMTP id S2391643AbfGWTBs (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 15:01:48 -0400
-Received: by mail-qk1-f193.google.com with SMTP id 201so31890180qkm.9
+Received: by mail-qk1-f193.google.com with SMTP id a27so31922994qkk.5
         for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 12:01:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=cE2YmJOoUvJi6N4PcPWSBx7RPu50opRPgii3QI4KFAw=;
-        b=Ypck7+D0U1yItOkAPT0ChuzBPHCHQIsynQqVtwAaFPoNTwVd25zqygJ+L4CjBxTFtB
-         pR1PNjIhG3RhOL6WMucGglRWvbpctGZIQA71781evLJfbH7gShdlq9wnde9w1G0k71bQ
-         omEckzrJolglh54SS5h1HECqen6jBkMjoeQaIDjogjTiU/4s+bNgUwhtSYRjylfQx8Sj
-         ptg/s8KtjJSmRhhCEBd+52rlBJzCYiVCsNIXDpOwel2oVLulym6sfkoDi/8Bpsw9QWpi
-         a/+8edLWDub/PQ8QWOU71OY39xEG89lUu/RLi6ufRKekcRBsVT2ZM9AuIYqi5GgcsQdG
-         RIyQ==
+        bh=UKmdwvw/8ttn78/lBaV+bKRv55wjOH8lCAZy5e7wk/Y=;
+        b=J7qUhNen3Dz157dE2Ng4CmMJ5GsktjzuBk0xwqCsq7Gg0fu8uM2iULT2VTyInspP8j
+         qjfNqQlLwC+tSfmxldjXQat/ys31GWvcBP89uQX9ANmqRyqN0y56axjNw3QpGBmr31E0
+         AcbJZsLhB6p+VJzVtog0FX96AqpuQ5pDPxd4md2/HtEl8FKlG2AHzCxKsfIyG+VgZfG/
+         LVPAHJSfKK2GyyBzpK3rZiP4ZRoz9p5Ib/Ic3dB6lJpuqzPBuJBFQ7ciH0ipeeeWRQtb
+         jTxafsXUg9ADuWu+QYyAQd6x1NuC0UqYdxamfyN8ZCxLITW2yS6frBomryB4LKrW1LbX
+         rEZg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=cE2YmJOoUvJi6N4PcPWSBx7RPu50opRPgii3QI4KFAw=;
-        b=OLkO8k8EMQu1qnIGKDW7c2EvtJ+c7RkiGjm1f62H+uuW5LxLzT2D/sbctkLJyyIi0P
-         7THbGSXuDwLbZWxU+5syAOybVkopFZM5NpdqpV4ixSFDLKjZTIH8aXp0FzkwulwJHrfQ
-         fhpY6ZdsuNQgfnk6mTVhvTDadTfsGpzKrA8VoO/nHJGJkIO9D9MsH4QmxHFeFK7UA2k3
-         NigTkHxdZJZQ61YwdBIo/gy1pCjNrm/7COR5whdYvZMo7x/MmQFMxzg1hfJT6X6g8r8J
-         w+OzjQ5RK1EkTHpmyAJRr7pCLDG1gfqUwuy/JIqvbjeixdcNvbY5hd2wjf4BDH6yYQBd
-         7PNg==
-X-Gm-Message-State: APjAAAX4oCWhMYBpoqT0Gb3HBK0PTvbiMGHYJVsTctpZqp3iu9LBDoq6
-        XxuKzMcbSW9MHgU54X4kOis42eEiXEoRQQ==
-X-Google-Smtp-Source: APXvYqxLqTbthcMrrkkFC7+zoxkntGtNqarkvs+JMTVvr3pBka5EiPgQyBLNR10HgL7a8u6VaWocpg==
-X-Received: by 2002:a37:8604:: with SMTP id i4mr50512960qkd.255.1563908506600;
-        Tue, 23 Jul 2019 12:01:46 -0700 (PDT)
+        bh=UKmdwvw/8ttn78/lBaV+bKRv55wjOH8lCAZy5e7wk/Y=;
+        b=IEqLEKpoEV9cikLpxsND20OKvrHU/Lh++qSljEvpubPO4AQi+QentBBbHouPbGtRfM
+         g3W12EfmgaSNyK98jkhmwg2poKlUz1okIy89NQFVLraFsl67+jJ/TMjTNOK8BokcH8Ky
+         qdyKlB6Sk8kJIEbkzF+6NUHr7FO1+M0Uy2OGyKQv6FF2qzE1EhHfGoTMWg6cNfQpj+CI
+         PtuTTXKTEbdoRzv1QwiX+b7jpWvRoMsN28bi00HY8pdpvlPr2D19QtGHiygOpq9/IW2E
+         cR4zTl048go8pebNOMH6haU1uFc/b0/LY7n2i55/+rF3rJxHSPLbpMZMTYtkLcwvLt81
+         laKQ==
+X-Gm-Message-State: APjAAAXDdZDPkVRgCNZ0uxHizMh+LWvQfXu4NTcBh8CDxOabesTxxoo8
+        aLzDsxjBs8IINacdXc9fzdRbaHY19c4FxQ==
+X-Google-Smtp-Source: APXvYqwG4XPp3FH/0xpUjVyxR2/hZmH0XFLnyWl9ztKjsNcfiTrhqbtdWPBZq806poL8TNUbJNyszw==
+X-Received: by 2002:a37:274a:: with SMTP id n71mr47384474qkn.448.1563908507213;
+        Tue, 23 Jul 2019 12:01:47 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id o5sm19396466qkf.10.2019.07.23.12.01.41
+        by smtp.gmail.com with ESMTPSA id m44sm24417261qtm.54.2019.07.23.12.01.41
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Tue, 23 Jul 2019 12:01:41 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hq02e-00044R-I5; Tue, 23 Jul 2019 16:01:40 -0300
+        id 1hq02e-00044F-FD; Tue, 23 Jul 2019 16:01:40 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH rdma-core 07/19] build/azp: Use a version number for the docker images
-Date:   Tue, 23 Jul 2019 16:01:25 -0300
-Message-Id: <20190723190137.15370-8-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 05/19] build/travis: Do not run checkpatch
+Date:   Tue, 23 Jul 2019 16:01:23 -0300
+Message-Id: <20190723190137.15370-6-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190723190137.15370-1-jgg@ziepe.ca>
 References: <20190723190137.15370-1-jgg@ziepe.ca>
@@ -75,119 +75,63 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-This way when we make a stable branch the CI container images will remain
-unchanged for that branch instead of tracking the master branch.
-
-If incompatible changes are made during a release then a suffix should be
-appended.
-
-The version number for the image is taken from the
-buildlib/azure-pipelines.yml.
+AZP does this now and shows the results in a much clearer way.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- buildlib/azure-pipelines.yml |  6 +++---
- buildlib/cbuild              | 22 ++++++++++++++++++----
- 2 files changed, 21 insertions(+), 7 deletions(-)
+ .travis.yml                |  1 -
+ buildlib/travis-checkpatch | 30 ------------------------------
+ 2 files changed, 31 deletions(-)
+ delete mode 100755 buildlib/travis-checkpatch
 
-diff --git a/buildlib/azure-pipelines.yml b/buildlib/azure-pipelines.yml
-index 998b598bfc482f..e1ed19c6e7ad93 100644
---- a/buildlib/azure-pipelines.yml
-+++ b/buildlib/azure-pipelines.yml
-@@ -8,13 +8,13 @@ pr:
- resources:
-   containers:
-     - container: azp
--      image: ucfconsort.azurecr.io/rdma-core/azure_pipelines:latest
-+      image: ucfconsort.azurecr.io/rdma-core/azure_pipelines:25.0
-       endpoint: ucfconsort_registry
-     - container: centos7
--      image: ucfconsort.azurecr.io/rdma-core/centos7:latest
-+      image: ucfconsort.azurecr.io/rdma-core/centos7:25.0
-       endpoint: ucfconsort_registry
-     - container: leap
--      image: ucfconsort.azurecr.io/rdma-core/opensuse-15.0:latest
-+      image: ucfconsort.azurecr.io/rdma-core/opensuse-15.0:25.0
-       endpoint: ucfconsort_registry
- 
- stages:
-diff --git a/buildlib/cbuild b/buildlib/cbuild
-index 7f93baa82b1959..1c325c9fe7cbdf 100755
---- a/buildlib/cbuild
-+++ b/buildlib/cbuild
-@@ -52,6 +52,7 @@ import shutil
- import subprocess
- import sys
- import tempfile
-+import yaml
- from contextlib import contextmanager;
- 
- project = "rdma-core";
-@@ -72,6 +73,7 @@ class DockerFile(object):
-         self.lines = ["FROM %s"%(src)];
- 
- class Environment(object):
-+    azp_images = None;
-     pandoc = True;
-     python_cmd = "python3";
-     aliases = set();
-@@ -81,9 +83,23 @@ class Environment(object):
- 
-     to_azp = False;
- 
-+    def _get_azp_names(self):
-+        if Environment.azp_images:
-+            return Environment.azp_images;
-+
-+        with open("buildlib/azure-pipelines.yml") as F:
-+            azp = yaml.safe_load(F)
-+        Environment.azp_images = set(I["image"] for I in azp["resources"]["containers"])
-+        return Environment.azp_images;
-+
-     def image_name(self):
-         if self.to_azp:
--            return "ucfconsort.azurecr.io/%s/%s"%(project, self.name);
-+            # Get the version number of the container out of the azp file.
-+            prefix = "ucfconsort.azurecr.io/%s/%s:"%(project, self.name);
-+            for I in self._get_azp_names():
-+                if I.startswith(prefix):
-+                    return I;
-+            raise ValueError("Image is not used in buildlib/azure-pipelines.yml")
-         return "build-%s/%s"%(project,self.name);
- 
- # -------------------------------------------------------------------------
-@@ -252,7 +268,6 @@ class travis(APTEnvironment):
-     _yaml = None;
- 
-     def get_yaml(self):
--        import yaml
-         if self._yaml:
-             return self._yaml;
- 
-@@ -394,6 +409,7 @@ class azure_pipelines(bionic):
-         "gcc-8",
-         "git",
-         "python2.7",
-+        "python3-yaml",
-         "sparse",
-         'python-docutils',
-     } | {
-@@ -750,7 +766,6 @@ def copy_abi_files(src):
-             shutil.copy(cur_fn, ref_fn);
- 
- def run_travis_build(args,env):
--    import yaml
-     with private_tmp(args) as tmpdir:
-         os.mkdir(os.path.join(tmpdir,"src"));
-         os.mkdir(os.path.join(tmpdir,"tmp"));
-@@ -815,7 +830,6 @@ def run_travis_build(args,env):
-         copy_abi_files(os.path.join(tmpdir, "src/ABI"));
- 
- def run_azp_build(args,env):
--    import yaml
-     # Load the commands from the pipelines file
-     with open("buildlib/azure-pipelines.yml") as F:
-         azp = yaml.safe_load(F);
+diff --git a/.travis.yml b/.travis.yml
+index 23226a679acb6b..d20dadf8e9d90f 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -48,7 +48,6 @@ before_script:
+   - http_proxy= pip3 install cython
+ script:
+   - buildlib/travis-build
+-  - buildlib/travis-checkpatch
+   - buildlib/github-release
+ deploy:
+   # Deploy assets to Github releases
+diff --git a/buildlib/travis-checkpatch b/buildlib/travis-checkpatch
+deleted file mode 100755
+index 5e78ec47406210..00000000000000
+--- a/buildlib/travis-checkpatch
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#!/bin/bash
+-# Copyright 2017 Mellanox Technologies Ltd.
+-# Licensed under BSD (MIT variant) or GPLv2. See COPYING.
+-
+-
+-if [ "x$TRAVIS_EVENT_TYPE" != "xpull_request" ]; then
+-	# Peform checkpatch checks on pull requests only
+-	exit 0
+-fi
+-
+-# The below "set" is commented, because the checkpatch.pl returns 1 (error) for warnings too.
+-# And the rdma-core code is not mature enough to be warning safe
+-# set -e
+-
+-if [ "x$TRAVIS_COMMIT_RANGE" != "x" ]; then
+-	cd buildlib/
+-	wget -q https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/checkpatch.pl \
+-	        https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/spelling.txt
+-	DIR_FOR_PATCHES_TO_CHECK=$(mktemp -d)
+-	git format-patch --no-cover-letter $TRAVIS_COMMIT_RANGE ^$TRAVIS_BRANCH -o $DIR_FOR_PATCHES_TO_CHECK/
+-	CHECKPATCH_OPT="--no-tree --ignore PREFER_KERNEL_TYPES,FILE_PATH_CHANGES,EXECUTE_PERMISSIONS,USE_NEGATIVE_ERRNO,CONST_STRUCT $DIR_FOR_PATCHES_TO_CHECK/*"
+-	perl checkpatch.pl $CHECKPATCH_OPT
+-	if [ $? -ne 0 ]; then
+-		# We rerun checkpatch to simplify parsing and to understand if we failed for errors
+-		# For example, the output on some arbitrary patchset of the following line without awk is:
+-		# total: 1 errors, 3 warnings, 42 lines checked
+-		NUMB_ERRRORS=$(perl checkpatch.pl --terse $CHECKPATCH_OPT | awk 'BEGIN {FS = "total:"} ; {sum+=$2} END {print sum}')
+-		exit $NUMB_ERRRORS
+-	fi
+-fi
 -- 
 2.22.0
 
