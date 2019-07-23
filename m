@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BF4CC76194
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7B67C76190
 	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA13E21655
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80AEC21655
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jul 2019 19:01:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="pUzrn1OM"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Ypck7+D0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391651AbfGWTBs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2391652AbfGWTBs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 23 Jul 2019 15:01:48 -0400
-Received: from mail-qt1-f195.google.com ([209.85.160.195]:35325 "EHLO
-        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391637AbfGWTBs (ORCPT
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:42491 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391640AbfGWTBs (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jul 2019 15:01:48 -0400
-Received: by mail-qt1-f195.google.com with SMTP id d23so42974904qto.2
+Received: by mail-qk1-f193.google.com with SMTP id 201so31890180qkm.9
         for <linux-rdma@vger.kernel.org>; Tue, 23 Jul 2019 12:01:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=XRdZj1Zvb8MX9SSm2nB0KIj52rEnPTFvLcvMpWBeU2I=;
-        b=pUzrn1OMw3yQlb0HMThEKw5aYK21dXyIWwB26ns4BrUNeEDnd5jX2/coFZ4jA4ZmG2
-         oTUU5E2F1EHx1/nxUjdoAS2D1coYmhjujgccyxQDlNCqkfaPCyf7iMvmduxAgJay3Sfm
-         C338aKkdmGBxFRW3nOaDH4lN+xRNa2StLZffQDlpo/5vX8WiCl1Q0VOXsM+u1G8HIIQx
-         wmNNsjHvrtPeB3fACELpJnv2HA1OBVDCBy1r2tXLVtTXo6mQEkiRj9KNcJmjXSFH5Dlc
-         DeGlh39ni85d4ip8y8ar6fYtOWN2g/sGf51jsNJMypYiF9PX0yRBXquNv3o/9PKITT6M
-         zQAw==
+        bh=cE2YmJOoUvJi6N4PcPWSBx7RPu50opRPgii3QI4KFAw=;
+        b=Ypck7+D0U1yItOkAPT0ChuzBPHCHQIsynQqVtwAaFPoNTwVd25zqygJ+L4CjBxTFtB
+         pR1PNjIhG3RhOL6WMucGglRWvbpctGZIQA71781evLJfbH7gShdlq9wnde9w1G0k71bQ
+         omEckzrJolglh54SS5h1HECqen6jBkMjoeQaIDjogjTiU/4s+bNgUwhtSYRjylfQx8Sj
+         ptg/s8KtjJSmRhhCEBd+52rlBJzCYiVCsNIXDpOwel2oVLulym6sfkoDi/8Bpsw9QWpi
+         a/+8edLWDub/PQ8QWOU71OY39xEG89lUu/RLi6ufRKekcRBsVT2ZM9AuIYqi5GgcsQdG
+         RIyQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=XRdZj1Zvb8MX9SSm2nB0KIj52rEnPTFvLcvMpWBeU2I=;
-        b=bR1ivxEyfDANNqhR0jufYp56k9HSSizMwyoqoQ0g20S1aM+YRn5ykO9hlUA4N8BbCE
-         8Ff0e65BMusa3O7d5usqnX0aZh705dTa7gE06ffy66djuLrjHm87VY5q6/bIedFzKCM/
-         Zn+WHh2DGVFlhfKVqLRViGcT305pZ0oU35s3cBU6GFnVwTcsvs6rr7CLTOrVPBnDXBo+
-         /WR26IWU8Lmt1qnheIqPkG5lIMRJzpC0jacZEKyA7Wvjsdps/kUDq5pHWG3vU/RyD15S
-         3JB+5OyHVqURJeZMNax4xg6SGjETX8s1FBaccEAcEWb8XhhugQd4KsYv3kTbKhJ2dLIM
-         k2AQ==
-X-Gm-Message-State: APjAAAVzihfcO4MIhsPHxm/G6LWuvIbBGMeH5mV09cbCT3LKtQQwhiOh
-        mWR1sFWRxZ3drzkEBSF5mWaXfLaOjLZvfQ==
-X-Google-Smtp-Source: APXvYqwOc07k7WtyS1BkTmiypkjQTDtIyD9GPaLr3aQQrdE7eUVc0MEp+LHrUN7EF61nmpflOeJ19g==
-X-Received: by 2002:ac8:689a:: with SMTP id m26mr54220249qtq.192.1563908506875;
+        bh=cE2YmJOoUvJi6N4PcPWSBx7RPu50opRPgii3QI4KFAw=;
+        b=OLkO8k8EMQu1qnIGKDW7c2EvtJ+c7RkiGjm1f62H+uuW5LxLzT2D/sbctkLJyyIi0P
+         7THbGSXuDwLbZWxU+5syAOybVkopFZM5NpdqpV4ixSFDLKjZTIH8aXp0FzkwulwJHrfQ
+         fhpY6ZdsuNQgfnk6mTVhvTDadTfsGpzKrA8VoO/nHJGJkIO9D9MsH4QmxHFeFK7UA2k3
+         NigTkHxdZJZQ61YwdBIo/gy1pCjNrm/7COR5whdYvZMo7x/MmQFMxzg1hfJT6X6g8r8J
+         w+OzjQ5RK1EkTHpmyAJRr7pCLDG1gfqUwuy/JIqvbjeixdcNvbY5hd2wjf4BDH6yYQBd
+         7PNg==
+X-Gm-Message-State: APjAAAX4oCWhMYBpoqT0Gb3HBK0PTvbiMGHYJVsTctpZqp3iu9LBDoq6
+        XxuKzMcbSW9MHgU54X4kOis42eEiXEoRQQ==
+X-Google-Smtp-Source: APXvYqxLqTbthcMrrkkFC7+zoxkntGtNqarkvs+JMTVvr3pBka5EiPgQyBLNR10HgL7a8u6VaWocpg==
+X-Received: by 2002:a37:8604:: with SMTP id i4mr50512960qkd.255.1563908506600;
         Tue, 23 Jul 2019 12:01:46 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id 39sm24021537qts.41.2019.07.23.12.01.41
+        by smtp.gmail.com with ESMTPSA id o5sm19396466qkf.10.2019.07.23.12.01.41
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Tue, 23 Jul 2019 12:01:41 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hq02e-00044p-NX; Tue, 23 Jul 2019 16:01:40 -0300
+        id 1hq02e-00044R-I5; Tue, 23 Jul 2019 16:01:40 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH rdma-core 11/19] build/azp: Run a test compile on ppc64el as well
-Date:   Tue, 23 Jul 2019 16:01:29 -0300
-Message-Id: <20190723190137.15370-12-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 07/19] build/azp: Use a version number for the docker images
+Date:   Tue, 23 Jul 2019 16:01:25 -0300
+Message-Id: <20190723190137.15370-8-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190723190137.15370-1-jgg@ziepe.ca>
 References: <20190723190137.15370-1-jgg@ziepe.ca>
@@ -75,71 +75,119 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Now that we have bionic this is fairly simple to get a cross compile
-environment, use the same approach as for ARM64.
+This way when we make a stable branch the CI container images will remain
+unchanged for that branch instead of tracking the master branch.
+
+If incompatible changes are made during a release then a suffix should be
+appended.
+
+The version number for the image is taken from the
+buildlib/azure-pipelines.yml.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- buildlib/azure-pipelines.yml |  8 ++++++++
- buildlib/cbuild              | 16 +++++++++++++---
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ buildlib/azure-pipelines.yml |  6 +++---
+ buildlib/cbuild              | 22 ++++++++++++++++++----
+ 2 files changed, 21 insertions(+), 7 deletions(-)
 
 diff --git a/buildlib/azure-pipelines.yml b/buildlib/azure-pipelines.yml
-index f6f71ac0adfa42..1d4e1f317bbe0f 100644
+index 998b598bfc482f..e1ed19c6e7ad93 100644
 --- a/buildlib/azure-pipelines.yml
 +++ b/buildlib/azure-pipelines.yml
-@@ -90,6 +90,14 @@ stages:
-               ninja
-             displayName: gcc 8.3 ARM64 Compile
+@@ -8,13 +8,13 @@ pr:
+ resources:
+   containers:
+     - container: azp
+-      image: ucfconsort.azurecr.io/rdma-core/azure_pipelines:latest
++      image: ucfconsort.azurecr.io/rdma-core/azure_pipelines:25.0
+       endpoint: ucfconsort_registry
+     - container: centos7
+-      image: ucfconsort.azurecr.io/rdma-core/centos7:latest
++      image: ucfconsort.azurecr.io/rdma-core/centos7:25.0
+       endpoint: ucfconsort_registry
+     - container: leap
+-      image: ucfconsort.azurecr.io/rdma-core/opensuse-15.0:latest
++      image: ucfconsort.azurecr.io/rdma-core/opensuse-15.0:25.0
+       endpoint: ucfconsort_registry
  
-+          - bash: |
-+              set -e
-+              mkdir build-ppc64el
-+              cd build-ppc64el
-+              CC=powerpc64le-linux-gnu-gcc-8 CFLAGS="-Werror" cmake -GNinja .. -DIOCTL_MODE=both -DNO_PYVERBS=1
-+              ninja
-+            displayName: gcc 8.3 PPC64EL Compile
-+
-           # When running cmake through debian/rules it is hard to set -Werror,
-           # instead force it on by changing the CMakeLists.txt
-           - bash: |
+ stages:
 diff --git a/buildlib/cbuild b/buildlib/cbuild
-index 0be5d498bc1ae8..6e9a9cec9cd6cd 100755
+index 7f93baa82b1959..1c325c9fe7cbdf 100755
 --- a/buildlib/cbuild
 +++ b/buildlib/cbuild
-@@ -457,6 +457,15 @@ class azure_pipelines(bionic):
-         "libnl-route-3-dev:arm64",
-         "libsystemd-dev:arm64",
-         "libudev-dev:arm64",
-+    } | {
-+        # PPC 64 cross compiler
-+        "gcc-8-powerpc64le-linux-gnu",
-+        "libgcc-8-dev:ppc64el",
-+        "libc6-dev:ppc64el",
-+        "libnl-3-dev:ppc64el",
-+        "libnl-route-3-dev:ppc64el",
-+        "libsystemd-dev:ppc64el",
-+        "libudev-dev:ppc64el",
-     }
-     to_azp = True;
-     name = "azure_pipelines";
-@@ -471,12 +480,13 @@ class azure_pipelines(bionic):
-                      "deb [arch=amd64] http://apt.llvm.org/bionic/ llvm-toolchain-bionic-8 main",
-                      "15CF4D18AF4F7421");
-         self.add_source_list(tmpdir,"arm64.list",
--                             """deb [arch=arm64] http://ports.ubuntu.com/ bionic main universe
--deb [arch=arm64] http://ports.ubuntu.com/ bionic-security main universe
--deb [arch=arm64] http://ports.ubuntu.com/ bionic-updates main universe""");
-+                             """deb [arch=arm64,ppc64el] http://ports.ubuntu.com/ bionic main universe
-+deb [arch=arm64,ppc64el] http://ports.ubuntu.com/ bionic-security main universe
-+deb [arch=arm64,ppc64el] http://ports.ubuntu.com/ bionic-updates main universe""");
+@@ -52,6 +52,7 @@ import shutil
+ import subprocess
+ import sys
+ import tempfile
++import yaml
+ from contextlib import contextmanager;
  
-         res.lines.insert(1,"ADD etc/ /etc/");
-         res.lines.insert(1,"RUN dpkg --add-architecture i386 &&"
-+                         "dpkg --add-architecture ppc64el &&"
-                          "dpkg --add-architecture arm64 &&"
-                          "sed -i -e 's/^deb /deb [arch=amd64,i386] /g' /etc/apt/sources.list");
-         return res;
+ project = "rdma-core";
+@@ -72,6 +73,7 @@ class DockerFile(object):
+         self.lines = ["FROM %s"%(src)];
+ 
+ class Environment(object):
++    azp_images = None;
+     pandoc = True;
+     python_cmd = "python3";
+     aliases = set();
+@@ -81,9 +83,23 @@ class Environment(object):
+ 
+     to_azp = False;
+ 
++    def _get_azp_names(self):
++        if Environment.azp_images:
++            return Environment.azp_images;
++
++        with open("buildlib/azure-pipelines.yml") as F:
++            azp = yaml.safe_load(F)
++        Environment.azp_images = set(I["image"] for I in azp["resources"]["containers"])
++        return Environment.azp_images;
++
+     def image_name(self):
+         if self.to_azp:
+-            return "ucfconsort.azurecr.io/%s/%s"%(project, self.name);
++            # Get the version number of the container out of the azp file.
++            prefix = "ucfconsort.azurecr.io/%s/%s:"%(project, self.name);
++            for I in self._get_azp_names():
++                if I.startswith(prefix):
++                    return I;
++            raise ValueError("Image is not used in buildlib/azure-pipelines.yml")
+         return "build-%s/%s"%(project,self.name);
+ 
+ # -------------------------------------------------------------------------
+@@ -252,7 +268,6 @@ class travis(APTEnvironment):
+     _yaml = None;
+ 
+     def get_yaml(self):
+-        import yaml
+         if self._yaml:
+             return self._yaml;
+ 
+@@ -394,6 +409,7 @@ class azure_pipelines(bionic):
+         "gcc-8",
+         "git",
+         "python2.7",
++        "python3-yaml",
+         "sparse",
+         'python-docutils',
+     } | {
+@@ -750,7 +766,6 @@ def copy_abi_files(src):
+             shutil.copy(cur_fn, ref_fn);
+ 
+ def run_travis_build(args,env):
+-    import yaml
+     with private_tmp(args) as tmpdir:
+         os.mkdir(os.path.join(tmpdir,"src"));
+         os.mkdir(os.path.join(tmpdir,"tmp"));
+@@ -815,7 +830,6 @@ def run_travis_build(args,env):
+         copy_abi_files(os.path.join(tmpdir, "src/ABI"));
+ 
+ def run_azp_build(args,env):
+-    import yaml
+     # Load the commands from the pipelines file
+     with open("buildlib/azure-pipelines.yml") as F:
+         azp = yaml.safe_load(F);
 -- 
 2.22.0
 
