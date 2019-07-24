@@ -5,56 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFC2CC7618F
-	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 04:25:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7AC7C7618F
+	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 04:25:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD84F2080C
-	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 04:25:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FF2722387
+	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 04:25:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ebcJECgW"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AJiRp1Us"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726308AbfGXEZ2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 24 Jul 2019 00:25:28 -0400
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:45271 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726179AbfGXEZ1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 24 Jul 2019 00:25:27 -0400
-Received: by mail-pg1-f196.google.com with SMTP id o13so20495620pgp.12;
-        Tue, 23 Jul 2019 21:25:26 -0700 (PDT)
+        id S1726571AbfGXEZk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 24 Jul 2019 00:25:40 -0400
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:44293 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726534AbfGXEZj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 24 Jul 2019 00:25:39 -0400
+Received: by mail-pg1-f193.google.com with SMTP id i18so20511859pgl.11;
+        Tue, 23 Jul 2019 21:25:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=KTRb5TwAvlEMgKUD4ybaWyu+OqmkL6O8558wldZQN2o=;
-        b=ebcJECgWyU9zYGN2pJY78eWtcvtnox+Oa1zooAOzP6xSmTu5g5nerb6ZfvRSMWFmb+
-         nprY3fdZfkPasdJ9q4KtJrJq8tRNMrlLU/iHYusPMn3+9BiXMb/qeZvJ3C/ltb4T4DOy
-         ur2oHnU3+1kwTjn9nSXg+vBXMtZIrJ+7IxZcmGAs0pw/RJBl9ZFjfw+QBa7rsXW2W9lk
-         0w+ANgMMW5FgsBW5Bc0ygGww1qHrY3+ToVb43K1oJqh8E1qTVYlCJnF6+no0vWLUn6Ku
-         wUWcMe8XiTWbkXVO+hHw3kXkBi6lbd9CK09V0F+9Edlqf99NXHcyx09tJPd3+4Lpdei7
-         xJTg==
+        bh=I1wDMaqOj/gzGRufAfLYBvs0e80ibIJerHEY6qRx+9Q=;
+        b=AJiRp1Uswxxxj2fjLfbqacoLwH06WJ9mszsK/zlNhFuhNoSLtvKRmhFo9KLI7JLl8B
+         hxIxG1xThvmkqqGsj4H+PIkZgqzG39WvTfqHCYX31eWH9qZ8HHJptRyRkIYZTdhpSSJA
+         nZA7WnB2fukiDrq9dsIiMnZ4oXRSDbx8C0GrWwEoTfJ4nGsrUGvTe9DUv98TbDoHZftU
+         2sPJK+pDMsCNPpAzyI5pMUhaliFeOadZMdLhzw1frV4a114QmQGutmlMg9ocT4gPTziz
+         ZW1wdryUHfhxRuoKX5pPJ1KukLjcZAbAo24BFz30vzwXdEBQHRvTjXN7uylJkrR8anzL
+         2E2g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=KTRb5TwAvlEMgKUD4ybaWyu+OqmkL6O8558wldZQN2o=;
-        b=lrivXTV2rInVok/iQeqVGjgvce1BZ92gVIqe9JAVP2saaiqLrDlXKMg47+a5qEk/eL
-         d25LNqBFZedgaFgFrF29tdu61Pt4TAMARDnz1+qNoy0FOWa2epKhTWZXjaHTb0CUOz0n
-         oqVLuOEuMOFXRUToLOaufhme6tt4G3wIgbfai77Mstq16NplNYtYU+kC8Ef9hRfZDA7u
-         WZ9BdxlcYhO55zVwRMrm5Yc7c2SwYynxWbOF6gzSUgZmVMakHI0IHAEWb2lHR3h58kYX
-         cm+GTuVnX78gC+/7Osg6p/Y0muNGMMuVUbxTg8eAxEzDG4Z1euqoDcIIwOMplN6N4rIt
-         PatQ==
-X-Gm-Message-State: APjAAAWoc9u1yKWWLBY5wtOUMlayhw9y2qz5Rqxpt9oz+vofkhqasqg2
-        xImD4a1Rmv8SZ6mmKz6tM+4=
-X-Google-Smtp-Source: APXvYqzBe/J5Vy13pSVSxifZgvBoznxAqrjVmFcElFPWOR9wwqxoPED73uSDyHAUwm8NHJdocMjUeA==
-X-Received: by 2002:a62:7641:: with SMTP id r62mr9177588pfc.35.1563942325690;
-        Tue, 23 Jul 2019 21:25:25 -0700 (PDT)
+        bh=I1wDMaqOj/gzGRufAfLYBvs0e80ibIJerHEY6qRx+9Q=;
+        b=Nm9JBfyjZZRpKI39U9r5n8J23vF8EW0fqfdDCkmf9aBgUf4hmqu3GV1JHLRrvCjgav
+         7ajV9Wig5bhzAkmozNLVjrsXLNeK8cSpNsOJpvJzi/44SrZEihQxrUi2mrn3lQvXtPCf
+         VaEnVe5ByQDxiaRNmvbS550+6zgctRHVvxOaMsl6dxz8hdXh4b/EYxcU3YY3Ue83ZlMJ
+         XifOgyxu4jw+pMjT1QMjJHrcDvdzPYMDWqpJ5LfUF9NUM2DmpYx9C0aWg8bbgS5IO0eP
+         Zagn/++uqNhC+hRMg5wNk329CJhJ6RsO7IMsuO3mCl/YIE4Ch1W9QMMpuNii6HGlz9AQ
+         SBlQ==
+X-Gm-Message-State: APjAAAVfcaP/BgUygBi+bAdiEZv1tCKB/k4SLrePn+5mLz4Ph4VhxJL7
+        gt3jOXEyc4mAYsIb6M9ll+4=
+X-Google-Smtp-Source: APXvYqwVZxneCPfv2nDeo72FQ4K0Ri4nG9i/Jh52gTbxtuFDM1ER91LNrK6Q0r6xmbSBuioIPNnbSg==
+X-Received: by 2002:a62:38c6:: with SMTP id f189mr9250236pfa.157.1563942338440;
+        Tue, 23 Jul 2019 21:25:38 -0700 (PDT)
 Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id a15sm34153364pgw.3.2019.07.23.21.25.24
+        by smtp.gmail.com with ESMTPSA id a15sm34153364pgw.3.2019.07.23.21.25.37
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Tue, 23 Jul 2019 21:25:25 -0700 (PDT)
+        Tue, 23 Jul 2019 21:25:38 -0700 (PDT)
 From:   john.hubbard@gmail.com
 X-Google-Original-From: jhubbard@nvidia.com
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -78,18 +78,14 @@ Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
         netdev@vger.kernel.org, samba-technical@lists.samba.org,
         v9fs-developer@lists.sourceforge.net,
         virtualization@lists.linux-foundation.org,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-        Minwoo Im <minwoo.im.dev@gmail.com>
-Subject: [PATCH 03/12] block: bio_release_pages: use flags arg instead of bool
-Date:   Tue, 23 Jul 2019 21:25:09 -0700
-Message-Id: <20190724042518.14363-4-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH 12/12] fs/ceph: fix a build warning: returning a value from void function
+Date:   Tue, 23 Jul 2019 21:25:18 -0700
+Message-Id: <20190724042518.14363-13-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190724042518.14363-1-jhubbard@nvidia.com>
 References: <20190724042518.14363-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-NVConfidentiality: public
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -99,148 +95,27 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
-In commit d241a95f3514 ("block: optionally mark pages dirty in
-bio_release_pages"), new "bool mark_dirty" argument was added to
-bio_release_pages.
+Trivial build warning fix: don't return a value from a function
+whose type is "void".
 
-In upcoming work, another bool argument (to indicate that the pages came
-from get_user_pages) is going to be added. That's one bool too many,
-because it's not desirable have calls of the form:
-
-    foo(true, false, true, etc);
-
-In order to prepare for that, change the argument from a bool, to a
-typesafe (enum-based) flags argument.
-
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Minwoo Im <minwoo.im.dev@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- block/bio.c         | 12 ++++++------
- fs/block_dev.c      |  4 ++--
- fs/direct-io.c      |  2 +-
- include/linux/bio.h | 13 ++++++++++++-
- 4 files changed, 21 insertions(+), 10 deletions(-)
+ fs/ceph/debugfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/block/bio.c b/block/bio.c
-index 299a0e7651ec..7675e2de509d 100644
---- a/block/bio.c
-+++ b/block/bio.c
-@@ -833,7 +833,7 @@ int bio_add_page(struct bio *bio, struct page *page,
- }
- EXPORT_SYMBOL(bio_add_page);
+diff --git a/fs/ceph/debugfs.c b/fs/ceph/debugfs.c
+index 2eb88ed22993..fa14c8e8761d 100644
+--- a/fs/ceph/debugfs.c
++++ b/fs/ceph/debugfs.c
+@@ -294,7 +294,7 @@ void ceph_fs_debugfs_init(struct ceph_fs_client *fsc)
  
--void bio_release_pages(struct bio *bio, bool mark_dirty)
-+void bio_release_pages(struct bio *bio, enum bio_rp_flags_t flags)
+ void ceph_fs_debugfs_init(struct ceph_fs_client *fsc)
  {
- 	struct bvec_iter_all iter_all;
- 	struct bio_vec *bvec;
-@@ -842,7 +842,7 @@ void bio_release_pages(struct bio *bio, bool mark_dirty)
- 		return;
- 
- 	bio_for_each_segment_all(bvec, bio, iter_all) {
--		if (mark_dirty && !PageCompound(bvec->bv_page))
-+		if ((flags & BIO_RP_MARK_DIRTY) && !PageCompound(bvec->bv_page))
- 			set_page_dirty_lock(bvec->bv_page);
- 		put_page(bvec->bv_page);
- 	}
-@@ -1421,7 +1421,7 @@ struct bio *bio_map_user_iov(struct request_queue *q,
- 	return bio;
- 
-  out_unmap:
--	bio_release_pages(bio, false);
-+	bio_release_pages(bio, BIO_RP_NORMAL);
- 	bio_put(bio);
- 	return ERR_PTR(ret);
+-	return 0;
++	return;
  }
-@@ -1437,7 +1437,7 @@ struct bio *bio_map_user_iov(struct request_queue *q,
-  */
- void bio_unmap_user(struct bio *bio)
- {
--	bio_release_pages(bio, bio_data_dir(bio) == READ);
-+	bio_release_pages(bio, bio_rp_dirty_flag(bio_data_dir(bio) == READ));
- 	bio_put(bio);
- 	bio_put(bio);
- }
-@@ -1683,7 +1683,7 @@ static void bio_dirty_fn(struct work_struct *work)
- 	while ((bio = next) != NULL) {
- 		next = bio->bi_private;
  
--		bio_release_pages(bio, true);
-+		bio_release_pages(bio, BIO_RP_MARK_DIRTY);
- 		bio_put(bio);
- 	}
- }
-@@ -1699,7 +1699,7 @@ void bio_check_pages_dirty(struct bio *bio)
- 			goto defer;
- 	}
- 
--	bio_release_pages(bio, false);
-+	bio_release_pages(bio, BIO_RP_NORMAL);
- 	bio_put(bio);
- 	return;
- defer:
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 4707dfff991b..9fe6616f8788 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -259,7 +259,7 @@ __blkdev_direct_IO_simple(struct kiocb *iocb, struct iov_iter *iter,
- 	}
- 	__set_current_state(TASK_RUNNING);
- 
--	bio_release_pages(&bio, should_dirty);
-+	bio_release_pages(&bio, bio_rp_dirty_flag(should_dirty));
- 	if (unlikely(bio.bi_status))
- 		ret = blk_status_to_errno(bio.bi_status);
- 
-@@ -329,7 +329,7 @@ static void blkdev_bio_end_io(struct bio *bio)
- 	if (should_dirty) {
- 		bio_check_pages_dirty(bio);
- 	} else {
--		bio_release_pages(bio, false);
-+		bio_release_pages(bio, BIO_RP_NORMAL);
- 		bio_put(bio);
- 	}
- }
-diff --git a/fs/direct-io.c b/fs/direct-io.c
-index ae196784f487..423ef431ddda 100644
---- a/fs/direct-io.c
-+++ b/fs/direct-io.c
-@@ -551,7 +551,7 @@ static blk_status_t dio_bio_complete(struct dio *dio, struct bio *bio)
- 	if (dio->is_async && should_dirty) {
- 		bio_check_pages_dirty(bio);	/* transfers ownership */
- 	} else {
--		bio_release_pages(bio, should_dirty);
-+		bio_release_pages(bio, bio_rp_dirty_flag(should_dirty));
- 		bio_put(bio);
- 	}
- 	return err;
-diff --git a/include/linux/bio.h b/include/linux/bio.h
-index 3cdb84cdc488..2715e55679c1 100644
---- a/include/linux/bio.h
-+++ b/include/linux/bio.h
-@@ -440,7 +440,18 @@ bool __bio_try_merge_page(struct bio *bio, struct page *page,
- void __bio_add_page(struct bio *bio, struct page *page,
- 		unsigned int len, unsigned int off);
- int bio_iov_iter_get_pages(struct bio *bio, struct iov_iter *iter);
--void bio_release_pages(struct bio *bio, bool mark_dirty);
-+
-+enum bio_rp_flags_t {
-+	BIO_RP_NORMAL		= 0,
-+	BIO_RP_MARK_DIRTY	= 1,
-+};
-+
-+static inline enum bio_rp_flags_t bio_rp_dirty_flag(bool mark_dirty)
-+{
-+	return mark_dirty ? BIO_RP_MARK_DIRTY : BIO_RP_NORMAL;
-+}
-+
-+void bio_release_pages(struct bio *bio, enum bio_rp_flags_t flags);
- struct rq_map_data;
- extern struct bio *bio_map_user_iov(struct request_queue *,
- 				    struct iov_iter *, gfp_t);
+ void ceph_fs_debugfs_cleanup(struct ceph_fs_client *fsc)
 -- 
 2.22.0
 
