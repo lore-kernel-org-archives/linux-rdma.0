@@ -4,97 +4,100 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00FA2C76186
-	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 19:03:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE2AC76186
+	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 20:30:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C4B5F217D4
-	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 19:03:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EA8A214AF
+	for <linux-rdma@archiver.kernel.org>; Wed, 24 Jul 2019 20:30:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="HYBM8Nll"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="kqZlOYO6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727777AbfGXTDe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 24 Jul 2019 15:03:34 -0400
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:41623 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727544AbfGXTDe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 24 Jul 2019 15:03:34 -0400
-Received: by mail-qt1-f196.google.com with SMTP id d17so46506109qtj.8
-        for <linux-rdma@vger.kernel.org>; Wed, 24 Jul 2019 12:03:33 -0700 (PDT)
+        id S2388255AbfGXTcE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 24 Jul 2019 15:32:04 -0400
+Received: from mail-qk1-f195.google.com ([209.85.222.195]:35783 "EHLO
+        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388574AbfGXTcA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 24 Jul 2019 15:32:00 -0400
+Received: by mail-qk1-f195.google.com with SMTP id r21so34685899qke.2
+        for <linux-rdma@vger.kernel.org>; Wed, 24 Jul 2019 12:31:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=JxYMRxDBbiQc911aIAHJmYAqUaYKY3lTrLmxrWOfQDA=;
-        b=HYBM8NllR3h5xXaOnsFHsaekf2KO7v9LAlxcKEkHnhnUS91Fv/TZD8mJ+7qcBUrGev
-         LU/MQbloVKx38/QnNklnrJLwOZ31JaETEM6L9qzc/Il5aUrUgmK6OGY7XP+gsna8Dyp6
-         dwSXzKnoXU5yi2U1bvXt1klu6qb58WYrxQjv3KLleGoSug86dIg4luSmK9H3TEm1hWIS
-         xwxL4gpOD4ZYgKHk4oHZGKiWz4JmonqBm81BPeP8K/hqHW9tBrUiB2QB15MwG7pLZvXn
-         QXP7kA5l+EX7oTi2D43AIh90C9jsJFUJ58YapyhGGt89ZBiQAJSwnoOvVAJACIWGANy7
-         q25A==
+        bh=JInymQc+r2pImT3B/SmMJqhNX9Hf0EsstZD4VE2LjQM=;
+        b=kqZlOYO69x/UMTO3KbfUun+RUej+Y76S6n3UnFY6G3wqJzkvqWxwRxlpmvMwx+lWQp
+         5P9Ndi1/9ULn3zbXOvj43rZB0qedEiDhjIQyLZpqiO5jWvvjUpbuSLTz6gw40pIyuntD
+         cggriFRIBnzO0dFwBsK1LW9AG+oSsbnKRqd9uBFaiBHzjjfM7TJVfClTjmOZ8ugBiuap
+         e+wEr5Hxo0frnDbySkZTeLae0KrjbsyVtLi40YtQfm//ENZepIaOs2io14Ncx3Had2jj
+         BXr+eLZ5gyA77h7uoSpLFR7S/AV7V7Gd6/I2q8XVXeVOcxH6jFEGqEsXWRMTP5SwFtzV
+         786A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=JxYMRxDBbiQc911aIAHJmYAqUaYKY3lTrLmxrWOfQDA=;
-        b=qXLNK1kgFy72+Nf5dmkeLerKCgaaXXHRxwzNbnO3CqyH937qjyVYwFzTSdmZSv9WU5
-         wTcJPglyRvzC1YCJQL322yGIeKJy3+jgbAmlu20eU28jI8NHt8hc4ABwBBQTB36K2qXz
-         GUs6cvmcbyo8mCMr5x44cr7dw8/+kgiq/G8ATa2Shd6oaGDiim50LglE9UxCWJjs18T5
-         3whrhKq2PxZBB8XUi5qfPZXptQI+pnXNFOnKDj1yomr9XNr8psp4uUHf7MfeqpmwiGF4
-         nzI9884kBZf/lTjkpRalYlADzK9CODauZCCTxc1kKq+5hKv6IApY3vZP4IJx8f1gaJfU
-         Youw==
-X-Gm-Message-State: APjAAAW4La+bVkAej0t5Gk6FdUXjAPfGET4nOEizHlsNh9eTtalPP3s/
-        70R+nwtVKUL88NDx1Fuxm3TOs7/TkSLTBA==
-X-Google-Smtp-Source: APXvYqwIOGqxuNv4C1NUqdT2MjDRL5kDCXzqkjV+EBeUxQJWSwnUe75k0rTTBHGZMNHGgeQt07425g==
-X-Received: by 2002:ac8:70d1:: with SMTP id g17mr59814923qtp.124.1563995013065;
-        Wed, 24 Jul 2019 12:03:33 -0700 (PDT)
+        bh=JInymQc+r2pImT3B/SmMJqhNX9Hf0EsstZD4VE2LjQM=;
+        b=iPVK7xD2w4MDZD6AENaS890NV3HnWMoCYE0DCQI0rbfJT4LgKtk4XSfI3oV3dcXKFz
+         OHPD3kIHqvCfnqcH0EHWlNZm6bcsVdbf3alBnvc1oiJbXuBm+7FZxalSyhjq0J9ir9IR
+         YgJALVziQRBV4C22dNRB3SY6MrE3N3Qv07JGfEPPU0FHbiKm+NYJ7otm/2B1n7ELYo83
+         GXEh7UbEvQPwVPGWbbtgsRXdouJLyZBKQEan9uVhzNG31Sx+phDqx77oZO4O53EFXkO8
+         aiCgWETEMVAnmnAwjpwV6mKCb/U/JzzhTXhioLIt9cb5GNoSnmWBGzTJzTQFjguq+u5i
+         QBYg==
+X-Gm-Message-State: APjAAAVzh46/iPfyetnATuP008VSTy+P/JnIhFEF35SfEhcy9v0nZfxN
+        x/VuRpQFrRN2GzbtNO9QY1uRFL0oTnW/vA==
+X-Google-Smtp-Source: APXvYqxLDN1MDxYfhjO8ggCE8CbyvO+EWhy5R2UY8hExLnegRMJl96uiWmL/0ruwscoK42+uMywHnw==
+X-Received: by 2002:a37:7604:: with SMTP id r4mr53902933qkc.395.1563996718992;
+        Wed, 24 Jul 2019 12:31:58 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id a67sm22207335qkg.131.2019.07.24.12.03.32
+        by smtp.gmail.com with ESMTPSA id u4sm21157159qkb.16.2019.07.24.12.31.58
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 24 Jul 2019 12:03:32 -0700 (PDT)
+        Wed, 24 Jul 2019 12:31:58 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hqMXz-0006W9-Tm; Wed, 24 Jul 2019 16:03:31 -0300
-Date:   Wed, 24 Jul 2019 16:03:31 -0300
+        id 1hqMzW-0001jO-03; Wed, 24 Jul 2019 16:31:58 -0300
+Date:   Wed, 24 Jul 2019 16:31:57 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Gal Pressman <galpress@amazon.com>
-Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Firas JahJah <firasj@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>
-Subject: Re: [PATCH for-next] RDMA/efa: Expose device statistics
-Message-ID: <20190724190331.GA25015@ziepe.ca>
-References: <20190707142038.23191-1-galpress@amazon.com>
+To:     Colin King <colin.king@canonical.com>
+Cc:     Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2][next] RDMA/hns: fix comparison of unsigned long
+ variable 'end' with less than zero
+Message-ID: <20190724193157.GA6620@ziepe.ca>
+References: <20190531092101.28772-1-colin.king@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190707142038.23191-1-galpress@amazon.com>
+In-Reply-To: <20190531092101.28772-1-colin.king@canonical.com>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Jul 07, 2019 at 05:20:38PM +0300, Gal Pressman wrote:
-> Expose hardware statistics through the sysfs api:
-> /sys/class/infiniband/efa_0/hw_counters/*.
+On Fri, May 31, 2019 at 10:21:00AM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> Reviewed-by: Firas JahJah <firasj@amazon.com>
-> Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
-> Signed-off-by: Gal Pressman <galpress@amazon.com>
+> Currently the comparison of end with less than zero is always false
+> because end is an unsigned long.  Also, replace checks of end with
+> non-zero with end > 0 as it is possible that the #defined decrement
+> may be changed in the future causing end to step over zero and go
+> negative.
+> 
+> The initialization of end with 0 is also redundant as this value is
+> never read and is later set to HW_SYNC_TIMEOUT_MSECS, so fix this by
+> initializing it with this value to begin with.
+> 
+> Addresses-Coverity: ("Unsigned compared against 0")
+> Fixes: 669cefb654cb ("RDMA/hns: Remove jiffies operation in disable interrupt context")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 > ---
->  drivers/infiniband/hw/efa/efa.h         |  3 +
->  drivers/infiniband/hw/efa/efa_com_cmd.c | 35 +++++++++++
->  drivers/infiniband/hw/efa/efa_com_cmd.h | 23 +++++++
->  drivers/infiniband/hw/efa/efa_main.c    |  2 +
->  drivers/infiniband/hw/efa/efa_verbs.c   | 79 +++++++++++++++++++++++++
->  5 files changed, 142 insertions(+)
+>  drivers/infiniband/hw/hns/hns_roce_hem.c   |  4 ++--
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 12 ++++++------
+>  2 files changed, 8 insertions(+), 8 deletions(-)
 
-Am I right that this patch needs 
-
-https://patchwork.kernel.org/patch/11053949/
-
-before it won't crash?
+Applied to for-next, thanks
 
 Jason
