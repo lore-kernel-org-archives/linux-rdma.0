@@ -2,61 +2,62 @@ Return-Path: <SRS0=z2ls=V2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A2B1C76186
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jul 2019 21:13:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C331C433FF
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jul 2019 21:13:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 39E182073F
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jul 2019 21:13:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13E1C2073F
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jul 2019 21:13:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="Ob0J6CC9"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="ewirsGBQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388450AbfG2VNE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Jul 2019 17:13:04 -0400
-Received: from mail-eopbgr10054.outbound.protection.outlook.com ([40.107.1.54]:2445
+        id S2388361AbfG2VNR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Jul 2019 17:13:17 -0400
+Received: from mail-eopbgr10050.outbound.protection.outlook.com ([40.107.1.50]:5933
         "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2388434AbfG2VND (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 29 Jul 2019 17:13:03 -0400
+        id S2387803AbfG2VNR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 29 Jul 2019 17:13:17 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=F7VphGLL5c9yVnVV274twOIeoE/njfQTzT/lc6sz7gRfacnNMzVvCzg2ixePJiKteKlEC6MkrKt8cMALbbT/djRcM4MCiCL0rVbO0serJfz2J5uyLslHC5ZpQ0NvxUvi17YVGKTxh7yf8HOJOB1tHKzm6WV3Bj3gyAx7yHHtWjrN/KsNhQwxDpWV2XYS44L1tqabq9Ex/swy6vWb20zucWd61eRI0G8b1tMiNB0m4DNWC/uyUB/iTzl7DwO/GTyXksbFxCdelGTgh2ztzwFPLtW7hmFxD9wxWh54vY83JQGqS1b5kOoBtc5MqE/NPu5Rwo/y2Ptis74m5w/xXs/L3g==
+ b=hteXCrKIFq0Gy6wFppLXkaAjzgHvbH/pJEnTW2qkKqMqUyEB4fXiD49+lIPcn7LZ8CSgGeucBtWVPg/r8FEQ8ZjZoXwuh1/WDsaieWQGQzO8BFDijK1E0H+8KEaB3ATI9MjRFImgdn7dFjhwuXr5GBkIEA6rY1r0moxXtEmDSvA+9CGrd7l0ZValQQhVLjuGVfV+MrBxlJ7aA62IsIBDppVTMt6eM+D8QyvT/wUnPF/u6/dWEQgp/SM4hv6igIU/YzEJ1ys1MRn3EbiYWx4zig0WYtFUfZfCYAZU49X1RufATkt0YP5exz+S6XtehQHO9oMwQoUE+dGSUNNPW54jmw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=k0gsSeQB57OWaAojMa+b9EC5sVfUG/zQQuw62dmp8ic=;
- b=DIP6KwsEV+TDvepz4aeiMJqSKwd2kzmC4YBrRMdzFaJ6JjNdVUksc1k8GsXFGmWTZqllVYOixqxK0sSthLZn4NNcSUfT8eC8tvmoKeQeVQxTnTy5NdSG2OnryRJaXH0D54T/yrzBuYORWkrf64OnLIhuZHT9WBRtSxnz2Y1WAOapH9fsALiVpBeMkjLzUZ+LbJM6xc8dQcADUFUxF+WguQSmOZZzc7GHTEc/XJTGpzpDrVbZ1eFY4Ek3QjefEAhpmftiwFhTqqXv5Olt2LuLrIyKlxey0JElVKfnABfxg86iG5RPrM34O+36OjkLTOE98Pfolr+PO4poO3KbHLIDjA==
+ bh=Aa7SrWt4Izf5ymGltyfrSyvzDbJcO4Z5hiwC/1R2fpI=;
+ b=QcjT+YaQSW+74OUqc+huM2Nzwo6m5e2ZFomSwLLyQjs7ReTlJodDtVQZ4xgKpSo3x1nlfikkCOqAQVc3RtypFer7zlqQ8DVEhItcs+MyyYgU8pGyPCkJOUFp+QOCNBQFzg4PtUJah7tWY4wS5pzsmL0pHZ+rrMcdhfLEgYZGElXckGmHr7pL73lj5bTKlPylYFLE5GCaPDFA0OQRFgMjMX57UQDqHAZIo+JamvqMY9dXyElG+/Bkg6NCZcrCqo2aFC0xeuljYfZ/fTiX90ZDlkcpkq9UDIT8wBfNqyhjPAPztqKxyO0ErHP6AU8dMW9lwaOwMRPuUAvSBX+1I2bcTA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1;spf=pass
  smtp.mailfrom=mellanox.com;dmarc=pass action=none
  header.from=mellanox.com;dkim=pass header.d=mellanox.com;arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=k0gsSeQB57OWaAojMa+b9EC5sVfUG/zQQuw62dmp8ic=;
- b=Ob0J6CC9dzbzuLyXxrERVR4r5RlqgkEn0fvHcW1wwB1cr0cz6fvVjFxD3/47onaHpzN91Um33N8RS9pfwspEqlm+GUh1r6TfQcac9dT+ov8cO6B7Epsdh9zbERrSDm921XmgB0ZK7JI21W6EhR1AhHBRAJok5skuwuEVr0lrB/4=
+ bh=Aa7SrWt4Izf5ymGltyfrSyvzDbJcO4Z5hiwC/1R2fpI=;
+ b=ewirsGBQX6qOle95+eRCxG31WNe/pDM+oPTKtlg6XckSKcSZEXS6Dt3AaGTtmZtoawTVSXQMzmI0W0PtfXsrr1vDDFiudMHmOZDT8OsYOawDfl0SFrt4ZzaH4HM4jlZ0Fr/S1S3w/IUE9uCODFQvjAZTVehpVucTj59NcaAw8hE=
 Received: from DB6PR0501MB2759.eurprd05.prod.outlook.com (10.172.227.7) by
  DB6PR0501MB2375.eurprd05.prod.outlook.com (10.168.72.150) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2115.10; Mon, 29 Jul 2019 21:12:56 +0000
+ 15.20.2115.10; Mon, 29 Jul 2019 21:13:00 +0000
 Received: from DB6PR0501MB2759.eurprd05.prod.outlook.com
  ([fe80::3c28:c77d:55b0:15b2]) by DB6PR0501MB2759.eurprd05.prod.outlook.com
  ([fe80::3c28:c77d:55b0:15b2%5]) with mapi id 15.20.2115.005; Mon, 29 Jul 2019
- 21:12:56 +0000
+ 21:13:00 +0000
 From:   Saeed Mahameed <saeedm@mellanox.com>
 To:     Saeed Mahameed <saeedm@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: [PATCH mlx5-next 03/11] net/mlx5: Fix offset of tisc bits reserved
- field
-Thread-Topic: [PATCH mlx5-next 03/11] net/mlx5: Fix offset of tisc bits
- reserved field
-Thread-Index: AQHVRlJkqMfsMXBx6EWTMCn5TNPjqA==
-Date:   Mon, 29 Jul 2019 21:12:56 +0000
-Message-ID: <20190729211209.14772-4-saeedm@mellanox.com>
+CC:     Eli Cohen <eli@mellanox.com>, Paul Blakey <paulb@mellanox.com>
+Subject: [PATCH mlx5-next 05/11] net/mlx5: E-Switch, Verify support QoS
+ element type
+Thread-Topic: [PATCH mlx5-next 05/11] net/mlx5: E-Switch, Verify support QoS
+ element type
+Thread-Index: AQHVRlJmWxzTFuXbIkyV0t86aZ45Yw==
+Date:   Mon, 29 Jul 2019 21:13:00 +0000
+Message-ID: <20190729211209.14772-6-saeedm@mellanox.com>
 References: <20190729211209.14772-1-saeedm@mellanox.com>
 In-Reply-To: <20190729211209.14772-1-saeedm@mellanox.com>
 Accept-Language: en-US
@@ -72,24 +73,24 @@ authentication-results: spf=none (sender IP is )
  smtp.mailfrom=saeedm@mellanox.com; 
 x-ms-exchange-messagesentrepresentingtype: 1
 x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 7b3bdc9a-2d4f-42e4-9998-08d7146986be
+x-ms-office365-filtering-correlation-id: e3d35eb0-af05-45ac-707c-08d71469892a
 x-ms-office365-filtering-ht: Tenant
 x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:DB6PR0501MB2375;
 x-ms-traffictypediagnostic: DB6PR0501MB2375:
-x-microsoft-antispam-prvs: <DB6PR0501MB23758C70DE13578E8D6549BEBEDD0@DB6PR0501MB2375.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:843;
+x-microsoft-antispam-prvs: <DB6PR0501MB2375C07670ACD8964A648993BEDD0@DB6PR0501MB2375.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:1169;
 x-forefront-prvs: 01136D2D90
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(136003)(376002)(346002)(39860400002)(366004)(396003)(199004)(189003)(50226002)(14444005)(5660300002)(6116002)(3846002)(486006)(446003)(86362001)(81156014)(186003)(36756003)(81166006)(8936002)(26005)(25786009)(316002)(4744005)(71190400001)(71200400001)(110136005)(64756008)(76176011)(66556008)(2906002)(66946007)(66446008)(99286004)(66476007)(1076003)(386003)(6506007)(102836004)(256004)(7736002)(6486002)(14454004)(66066001)(2501003)(8676002)(305945005)(6436002)(11346002)(68736007)(52116002)(2616005)(476003)(478600001)(6512007)(450100002)(2201001)(53936002);DIR:OUT;SFP:1101;SCL:1;SRVR:DB6PR0501MB2375;H:DB6PR0501MB2759.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(136003)(376002)(346002)(39860400002)(366004)(396003)(199004)(189003)(50226002)(14444005)(5660300002)(6116002)(3846002)(486006)(446003)(86362001)(81156014)(186003)(36756003)(81166006)(8936002)(26005)(25786009)(316002)(71190400001)(71200400001)(110136005)(54906003)(64756008)(76176011)(66556008)(2906002)(66946007)(66446008)(99286004)(66476007)(1076003)(386003)(6506007)(102836004)(256004)(7736002)(6486002)(14454004)(66066001)(2501003)(8676002)(305945005)(6436002)(4326008)(11346002)(68736007)(52116002)(2616005)(476003)(478600001)(6512007)(450100002)(2201001)(107886003)(53936002);DIR:OUT;SFP:1101;SCL:1;SRVR:DB6PR0501MB2375;H:DB6PR0501MB2759.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
 received-spf: None (protection.outlook.com: mellanox.com does not designate
  permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: 7bB33Zudg8wP5P1GmYZh0Q8+lOBYz25FowJR2ldEP6fiH0Wiiw+Pkspp31hi1jmON5L1KZmOTRZmuvdHrE+MyJqbAGoQ4PQ/Rh/DZ8WDzcoNs/eJRog0Ak2zyKzVrozqWIBzCfWiL25iAOPSPL7KKYHD1Vgvfd/oYMc4okC8r/DG6b9BlK9JC25dV+bQHIHZTqP6Qgskndeufa/RChBlUqL484ov0uxUKQXJUrxwhAEO/XdrlPzAmGPFQLqzheklb70obmFnMbSJTNVVnr0NAO8zmJ7Sri8NFbFCX5XgqJWPatYZgDd5mK6oftA0ZkanmLYI3O5UtXGzdUpUDJt/t1T3Izw0BWC2imEdJf+W1IhgmA08E0gLu6KmozFY39CE7oppvFGgZb1uetrmR0H3o4sk2GneWNAMvCYcU7DU/Fs=
+x-microsoft-antispam-message-info: LEtvU0tJ2rc4Twr8I1+drpf2lUCk6l/N/ZcIo6FYiOa7+lZGGYLQ8FCzDNflOXUkDs0O8275ts3bGtWkfZSMZeyFTSejlKY/qFz3UT1roboMQxsxLukFGDeQ6OsywOmdLt7xlXfTDneXdyUkKAWTUgNLJG4PDVQ0Lb6s/139r6G4HwsbUwUucoGkeu6pbHnr5RSmYUOko4zE63PHQ3MRmLPNawunou8/ZsjNpXnyQRepEd/cvAmdpzrwdadTVzqr3CNf1o9BtcMrFEjZm+C77BRsaNfghix8vtxAX34iB5Bo0djd+HjIQG+lDrzuqXOap7npaMq4/MYYa7FuYoAtYqof5NgFpE+6yg7DXtqYg4bVKYXPwr6Lkw6nm/qO3ZyaPFtZbhhYIc/YsKG5sFmeMTGFZnLBfN80hLVwWR96vxs=
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7b3bdc9a-2d4f-42e4-9998-08d7146986be
-X-MS-Exchange-CrossTenant-originalarrivaltime: 29 Jul 2019 21:12:56.4442
+X-MS-Exchange-CrossTenant-Network-Message-Id: e3d35eb0-af05-45ac-707c-08d71469892a
+X-MS-Exchange-CrossTenant-originalarrivaltime: 29 Jul 2019 21:13:00.3115
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
@@ -101,30 +102,95 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-First reserved field is off by one instead of reserved_at_1 it should be
-reserved_at_2, fix that.
+From: Eli Cohen <eli@mellanox.com>
 
-Fixes: a12ff35e0fb7 ("net/mlx5: Introduce TLS TX offload hardware bits and =
-structures")
+Check if firmware supports the requested element type before
+attempting to create the element type.
+In addition, explicitly specify the request element type and tsar type.
+
+Signed-off-by: Eli Cohen <eli@mellanox.com>
+Reviewed-by: Paul Blakey <paulb@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c | 31 +++++++++++++++++++
+ include/linux/mlx5/mlx5_ifc.h                 |  7 +++++
+ 2 files changed, 38 insertions(+)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/ne=
+t/ethernet/mellanox/mlx5/core/eswitch.c
+index 1f3891fde2eb..2927fa1da92f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1393,19 +1393,50 @@ static int esw_vport_egress_config(struct mlx5_eswi=
+tch *esw,
+ 	return err;
+ }
+=20
++static bool element_type_supported(struct mlx5_eswitch *esw, int type)
++{
++	struct mlx5_core_dev *dev =3D esw->dev =3D esw->dev;
++
++	switch (type) {
++	case SCHEDULING_CONTEXT_ELEMENT_TYPE_TSAR:
++		return MLX5_CAP_QOS(dev, esw_element_type) &
++		       ELEMENT_TYPE_CAP_MASK_TASR;
++	case SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT:
++		return MLX5_CAP_QOS(dev, esw_element_type) &
++		       ELEMENT_TYPE_CAP_MASK_VPORT;
++	case SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT_TC:
++		return MLX5_CAP_QOS(dev, esw_element_type) &
++		       ELEMENT_TYPE_CAP_MASK_VPORT_TC;
++	case SCHEDULING_CONTEXT_ELEMENT_TYPE_PARA_VPORT_TC:
++		return MLX5_CAP_QOS(dev, esw_element_type) &
++		       ELEMENT_TYPE_CAP_MASK_PARA_VPORT_TC;
++	}
++	return false;
++}
++
+ /* Vport QoS management */
+ static int esw_create_tsar(struct mlx5_eswitch *esw)
+ {
+ 	u32 tsar_ctx[MLX5_ST_SZ_DW(scheduling_context)] =3D {0};
+ 	struct mlx5_core_dev *dev =3D esw->dev;
++	__be32 *attr;
+ 	int err;
+=20
+ 	if (!MLX5_CAP_GEN(dev, qos) || !MLX5_CAP_QOS(dev, esw_scheduling))
+ 		return 0;
+=20
++	if (!element_type_supported(esw, SCHEDULING_CONTEXT_ELEMENT_TYPE_TSAR))
++		return 0;
++
+ 	if (esw->qos.enabled)
+ 		return -EEXIST;
+=20
++	MLX5_SET(scheduling_context, tsar_ctx, element_type,
++		 SCHEDULING_CONTEXT_ELEMENT_TYPE_TSAR);
++
++	attr =3D MLX5_ADDR_OF(scheduling_context, tsar_ctx, element_attributes);
++	*attr =3D cpu_to_be32(TSAR_ELEMENT_TSAR_TYPE_DWRR << 16);
++
+ 	err =3D mlx5_create_scheduling_element_cmd(dev,
+ 						 SCHEDULING_HIERARCHY_E_SWITCH,
+ 						 tsar_ctx,
 diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 196987f14a3f..9265c84ad353 100644
+index 9265c84ad353..30d15e80bcc7 100644
 --- a/include/linux/mlx5/mlx5_ifc.h
 +++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -2782,7 +2782,7 @@ struct mlx5_ifc_traffic_counter_bits {
- struct mlx5_ifc_tisc_bits {
- 	u8         strict_lag_tx_port_affinity[0x1];
- 	u8         tls_en[0x1];
--	u8         reserved_at_1[0x2];
-+	u8         reserved_at_2[0x2];
- 	u8         lag_tx_port_affinity[0x04];
+@@ -2957,6 +2957,13 @@ enum {
+ 	SCHEDULING_CONTEXT_ELEMENT_TYPE_PARA_VPORT_TC =3D 0x3,
+ };
 =20
- 	u8         reserved_at_8[0x4];
++enum {
++	ELEMENT_TYPE_CAP_MASK_TASR		=3D 1 << 0,
++	ELEMENT_TYPE_CAP_MASK_VPORT		=3D 1 << 1,
++	ELEMENT_TYPE_CAP_MASK_VPORT_TC		=3D 1 << 2,
++	ELEMENT_TYPE_CAP_MASK_PARA_VPORT_TC	=3D 1 << 3,
++};
++
+ struct mlx5_ifc_scheduling_context_bits {
+ 	u8         element_type[0x8];
+ 	u8         reserved_at_8[0x18];
 --=20
 2.21.0
 
