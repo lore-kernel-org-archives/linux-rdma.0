@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D2B9C0650F
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:36:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E264C31E40
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:36:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 21819208E3
+	by mail.kernel.org (Postfix) with ESMTP id E3620208E3
 	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:36:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729407AbfG3QgH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 12:36:07 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:34156 "EHLO ale.deltatee.com"
+        id S1729365AbfG3QgG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 12:36:06 -0400
+Received: from ale.deltatee.com ([207.54.116.67]:34146 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729326AbfG3QgG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1729184AbfG3QgG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 30 Jul 2019 12:36:06 -0400
 Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
         by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hsV6V-0003yC-5p; Tue, 30 Jul 2019 10:36:05 -0600
+        id 1hsV6V-0003yE-5j; Tue, 30 Jul 2019 10:36:04 -0600
 Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hsV6R-0001IO-Gl; Tue, 30 Jul 2019 10:35:55 -0600
+        id 1hsV6R-0001IU-Mg; Tue, 30 Jul 2019 10:35:55 -0600
 From:   Logan Gunthorpe <logang@deltatee.com>
 To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
@@ -39,20 +39,18 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Dan Williams <dan.j.williams@intel.com>,
         Eric Pilmore <epilmore@gigaio.com>,
         Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
-Date:   Tue, 30 Jul 2019 10:35:35 -0600
-Message-Id: <20190730163545.4915-5-logang@deltatee.com>
+        Logan Gunthorpe <logang@deltatee.com>
+Date:   Tue, 30 Jul 2019 10:35:37 -0600
+Message-Id: <20190730163545.4915-7-logang@deltatee.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190730163545.4915-1-logang@deltatee.com>
 References: <20190730163545.4915-1-logang@deltatee.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 172.16.1.31
-X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com, Christian.Koenig@amd.com, christian.koenig@amd.com
+X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
 X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH v2 04/14] PCI/P2PDMA: Factor out __upstream_bridge_distance()
+Subject: [PATCH v2 06/14] PCI/P2PDMA: Factor out host_bridge_whitelist()
 X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Sender: linux-rdma-owner@vger.kernel.org
@@ -60,125 +58,77 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This is a prep patch to create a second level helper. There are no
-functional changes.
+Push both PCI devices into the whitelist checking function seeing
+some hardware will require us ensuring they are on the same host
+bridge.
 
-The root complex whitelist code will be moved into this function in
-a subsequent patch.
+At the same time we rename root_complex_whitelist() to
+host_bridge_whitelist() to match the terminology used in the code.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Christian König <christian.koenig@amd.com>
 ---
- drivers/pci/p2pdma.c | 89 ++++++++++++++++++++++++--------------------
- 1 file changed, 48 insertions(+), 41 deletions(-)
+ drivers/pci/p2pdma.c | 30 ++++++++++++++++++++----------
+ 1 file changed, 20 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 64f5a0e30244..b4ef6e8da784 100644
+index 10765ab90e64..ca36ea533ed7 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -303,47 +303,9 @@ enum {
- 	P2PDMA_NOT_SUPPORTED		= 0x08000000,
- };
+@@ -262,19 +262,11 @@ static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *pdev)
+ 	seq_buf_printf(buf, "%s;", pci_name(pdev));
+ }
  
 -/*
-- * Find the distance through the nearest common upstream bridge between
-- * two PCI devices.
-- *
-- * If the two devices are the same device then 0 will be returned.
-- *
-- * If there are two virtual functions of the same device behind the same
-- * bridge port then 2 will be returned (one step down to the PCIe switch,
-- * then one step back to the same device).
-- *
-- * In the case where two devices are connected to the same PCIe switch, the
-- * value 4 will be returned. This corresponds to the following PCI tree:
-- *
-- *     -+  Root Port
-- *      \+ Switch Upstream Port
-- *       +-+ Switch Downstream Port
-- *       + \- Device A
-- *       \-+ Switch Downstream Port
-- *         \- Device B
-- *
-- * The distance is 4 because we traverse from Device A through the downstream
-- * port of the switch, to the common upstream port, back up to the second
-- * downstream port and then to Device B.
-- *
-- * Any two devices that cannot communicate using p2pdma will return the distance
-- * with the flag P2PDMA_NOT_SUPPORTED.
-- *
-- * Any two devices that have a data path that goes through the host bridge
-- * will consult a whitelist. If the host bridges are on the whitelist,
-- * then the distance will be returned with the flag P2PDMA_THRU_HOST_BRIDGE set.
-- * If either bridge is not on the whitelist, the flag P2PDMA_NOT_SUPPORTED will
-- * be set.
-- *
-- * If a bridge which has any ACS redirection bits set is in the path
-- * then this functions will flag the result with P2PDMA_ACS_FORCES_UPSTREAM.
-- * In this case, a list of all infringing bridge addresses will be
-- * populated in acs_list (assuming it's non-null) for printk purposes.
+- * If we can't find a common upstream bridge take a look at the root
+- * complex and compare it to a whitelist of known good hardware.
 - */
--static int upstream_bridge_distance(struct pci_dev *provider,
--				    struct pci_dev *client,
--				    struct seq_buf *acs_list)
-+static int __upstream_bridge_distance(struct pci_dev *provider,
-+				      struct pci_dev *client,
-+				      struct seq_buf *acs_list)
+-static bool root_complex_whitelist(struct pci_dev *dev)
++static bool __host_bridge_whitelist(struct pci_host_bridge *host)
  {
- 	struct pci_dev *a = provider, *b = client, *bb;
- 	int dist_a = 0;
-@@ -409,6 +371,51 @@ static int upstream_bridge_distance(struct pci_dev *provider,
- 	return dist_a + dist_b;
+-	struct pci_host_bridge *host = pci_find_host_bridge(dev->bus);
+ 	struct pci_dev *root = pci_get_slot(host->bus, PCI_DEVFN(0, 0));
+ 	unsigned short vendor, device;
+ 
+-	if (iommu_present(dev->dev.bus))
+-		return false;
+-
+ 	if (!root)
+ 		return false;
+ 
+@@ -289,6 +281,24 @@ static bool root_complex_whitelist(struct pci_dev *dev)
+ 	return false;
  }
  
 +/*
-+ * Find the distance through the nearest common upstream bridge between
-+ * two PCI devices.
-+ *
-+ * If the two devices are the same device then 0 will be returned.
-+ *
-+ * If there are two virtual functions of the same device behind the same
-+ * bridge port then 2 will be returned (one step down to the PCIe switch,
-+ * then one step back to the same device).
-+ *
-+ * In the case where two devices are connected to the same PCIe switch, the
-+ * value 4 will be returned. This corresponds to the following PCI tree:
-+ *
-+ *     -+  Root Port
-+ *      \+ Switch Upstream Port
-+ *       +-+ Switch Downstream Port
-+ *       + \- Device A
-+ *       \-+ Switch Downstream Port
-+ *         \- Device B
-+ *
-+ * The distance is 4 because we traverse from Device A through the downstream
-+ * port of the switch, to the common upstream port, back up to the second
-+ * downstream port and then to Device B.
-+ *
-+ * Any two devices that cannot communicate using p2pdma will return the distance
-+ * with the flag P2PDMA_NOT_SUPPORTED.
-+ *
-+ * Any two devices that have a data path that goes through the host bridge
-+ * will consult a whitelist. If the host bridges are on the whitelist,
-+ * then the distance will be returned with the flag P2PDMA_THRU_HOST_BRIDGE set.
-+ * If either bridge is not on the whitelist, the flag P2PDMA_NOT_SUPPORTED will
-+ * be set.
-+ *
-+ * If a bridge which has any ACS redirection bits set is in the path
-+ * then this functions will flag the result with P2PDMA_ACS_FORCES_UPSTREAM.
-+ * In this case, a list of all infringing bridge addresses will be
-+ * populated in acs_list (assuming it's non-null) for printk purposes.
++ * If we can't find a common upstream bridge take a look at the root
++ * complex and compare it to a whitelist of known good hardware.
 + */
-+static int upstream_bridge_distance(struct pci_dev *provider,
-+				    struct pci_dev *client,
-+				    struct seq_buf *acs_list)
++static bool host_bridge_whitelist(struct pci_dev *a, struct pci_dev *b)
 +{
-+	return __upstream_bridge_distance(provider, client, acs_list);
++	struct pci_host_bridge *host_a = pci_find_host_bridge(a->bus);
++	struct pci_host_bridge *host_b = pci_find_host_bridge(b->bus);
++
++	if (iommu_present(a->dev.bus) || iommu_present(b->dev.bus))
++		return false;
++
++	if (__host_bridge_whitelist(host_a) && __host_bridge_whitelist(host_b))
++		return true;
++
++	return false;
 +}
 +
- static int upstream_bridge_distance_warn(struct pci_dev *provider,
- 					 struct pci_dev *client)
- {
+ enum {
+ 	/*
+ 	 * These arbitrary offset are or'd onto the upstream distance
+@@ -413,7 +423,7 @@ static int upstream_bridge_distance(struct pci_dev *provider,
+ 	if (!(dist & P2PDMA_THRU_HOST_BRIDGE))
+ 		return dist;
+ 
+-	if (root_complex_whitelist(provider) && root_complex_whitelist(client))
++	if (host_bridge_whitelist(provider, client))
+ 		return dist;
+ 
+ 	return dist | P2PDMA_NOT_SUPPORTED;
 -- 
 2.20.1
 
