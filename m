@@ -2,95 +2,76 @@ Return-Path: <SRS0=GXMw=V3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64421C0650F
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 15:19:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA91C433FF
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 15:22:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 28C7E20693
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 15:19:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0262E206E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 15:22:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564499987;
-	bh=sjpJj9N+XWCLQQ8ovnXRoeAxzTYexRwIxEDc4XutAYE=;
+	s=default; t=1564500144;
+	bh=ck3U7mve6X2aVYvYLXG+YCm8yZsK1ud3yvrmDzy2+jE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=NkrlMtniT4zW4U0K4BZUngRnlIhMR5+z7KScQTgaLmEae5jDiXPJALgfXV4h80J0u
-	 cLcwRCo+kXvJcUxENHJ6BD/Dw1vZtimxTNkdb925MamDyGVc6DRR2h3dMmrS7r423v
-	 7wvAwOroYUjZyqZDMJSBOyJk4xlNSZ5zGRrn7PF8=
+	b=Nw6xx2AHwJbVoEqsSykQOYrdPHstMz1q7wwisDLAb+jQpW/+Qan7H8B4E2NDupfm4
+	 4/k22L6DRmWflguRGscHwnyMWBu6m68B2BgcDUJTCst6zPqvoL5fsjQ+WIX1lb1lzA
+	 Vga4/9CrWF+Uh3uUhp5q2qqrQhTraxbo6gyDStbc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729557AbfG3PTq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 11:19:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49368 "EHLO mail.kernel.org"
+        id S1732250AbfG3PWU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 11:22:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51950 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728919AbfG3PTq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 11:19:46 -0400
+        id S1729905AbfG3PWU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jul 2019 11:22:20 -0400
 Received: from localhost (unknown [77.137.115.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 173D020693;
-        Tue, 30 Jul 2019 15:19:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 480C1206E0;
+        Tue, 30 Jul 2019 15:22:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564499985;
-        bh=sjpJj9N+XWCLQQ8ovnXRoeAxzTYexRwIxEDc4XutAYE=;
+        s=default; t=1564500140;
+        bh=ck3U7mve6X2aVYvYLXG+YCm8yZsK1ud3yvrmDzy2+jE=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=bbRofjSVgNRUx5SRMOS5BprtXjGXQrTW8Fv8e0NG4hIkG+ZoBMEhy9A74gsM0Gi4p
-         +e9DH49EEZsgGxg03Akv7O+WQoWVDwxYup2CvLoKpKKHBFK7GjuAqPkJMrZlwr6BVc
-         RQbdqN7GAlUZlGDrNDAKV+hsdRrUTJFPf2rTthZU=
-Date:   Tue, 30 Jul 2019 18:19:36 +0300
+        b=LsaLHu5Yytli3AmrBuEVCulhfvSLhUuLuPIRxZta1NTJWmzuwWEPfxPd8sm7w5aFS
+         dJvXHpJ+BhNrZnCgQ9vL+aiGo5VNKafE+XpRNSwNeTVzXOgfj3iYgB47+I8iMb9afy
+         rNfiMlztnGDoTtS/m7PrR0QLfttdYcbtmboJpZhM=
+Date:   Tue, 30 Jul 2019 18:22:16 +0300
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Gal Pressman <galpress@amazon.com>
 Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
         linux-rdma@vger.kernel.org
-Subject: Re: [PATCH for-rc] RDMA/restrack: Track driver QP types in resource
- tracker
-Message-ID: <20190730151936.GE4878@mtr-leonro.mtl.com>
-References: <20190730110137.37826-1-galpress@amazon.com>
- <20190730133817.GC4878@mtr-leonro.mtl.com>
- <24f4f7e3-dada-5185-3988-2e821b321bc1@amazon.com>
+Subject: Re: [PATCH for-rc v2] RDMA/restrack: Track driver QP types in
+ resource tracker
+Message-ID: <20190730152216.GF4878@mtr-leonro.mtl.com>
+References: <20190730133720.62548-1-galpress@amazon.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <24f4f7e3-dada-5185-3988-2e821b321bc1@amazon.com>
+In-Reply-To: <20190730133720.62548-1-galpress@amazon.com>
 User-Agent: Mutt/1.12.0 (2019-05-25)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 30, 2019 at 04:49:52PM +0300, Gal Pressman wrote:
-> On 30/07/2019 16:38, Leon Romanovsky wrote:
-> > On Tue, Jul 30, 2019 at 02:01:37PM +0300, Gal Pressman wrote:
-> >> The check for QP type different than XRC has wrongly excluded driver QP
-> >> types from the resource tracker.
-> >>
-> >> Fixes: 78a0cd648a80 ("RDMA/core: Add resource tracking for create and destroy QPs")
-> >
-> > It is a little bit over to say "wrongly". At that time, we did it on purpose
-> > because it was unclear how to represent such QP types to users and we didn't
-> > have vendor specific hooks introduced by Steve later on.
+On Tue, Jul 30, 2019 at 04:37:20PM +0300, Gal Pressman wrote:
+> The check for QP type different than XRC has wrongly excluded driver QP
+> types from the resource tracker.
+> As a result, "rdma resource show" user command would not show opened
+> driver QPs which does not reflect the real state of the system.
 >
-> It's very confusing to see a test running and zero QPs in "rdma res".
-> I'm fine with removing the "wrongly" :), but I still think this should be
-> targeted to for-rc as a bug fix.
+> Check QP type explicitly instead of improperly assuming enum
+> values/ordering.
+>
+> Fixes: 78a0cd648a80 ("RDMA/core: Add resource tracking for create and destroy QPs")
+> Signed-off-by: Gal Pressman <galpress@amazon.com>
+> ---
+> v2:
+> * Improve commit message
 
-Yes, please remove "wrongly" and change Fixes line to be
-"Fixes: 40909f664d27 ("RDMA/efa: Add EFA verbs implementation")",
-because before addition of EFA driver all other drivers had QPs.
-
->
-> >
-> > I would like to see the output or "rdma res" and "rdma res show qp" with
-> > running driver QP after your change.
->
-> gal@server [~] $ rdma res
-> 0: efa_0: pd 2 cq 4 qp 2 cm_id 0 mr 2 ctx 2
-> gal@server [~] $ rdma res show qp
-> link efa_0/1 lqpn 0 type UNKNOWN state RTS sq-psn 13400680 pdn 0 pid 17847 comm ib_send_bw
-> link efa_0/1 lqpn 1 type UNKNOWN state RTR sq-psn 0 pdn 1 pid 17820 comm ib_send_bw
->
-> We can change the UNKNOWN to DRIVER/something else in userspace code.
-
-We need to change it too.
+Please finish review of v0 and give enough time for reviewers to see
+patch and post their notes before resending.
 
 Thanks
