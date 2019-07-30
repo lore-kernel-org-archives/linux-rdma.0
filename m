@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8DB6C32750
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95C88C433FF
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 813E5206E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66CB12087F
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730373AbfG3JAz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 05:00:55 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:53786 "EHLO huawei.com"
+        id S1731227AbfG3JA5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 05:00:57 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:54048 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730465AbfG3JAz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 05:00:55 -0400
+        id S1730510AbfG3JA5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jul 2019 05:00:57 -0400
 Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 6995060AA737C2E0DFE1;
+        by Forcepoint Email with ESMTP id 8CB52B671135E9B4F922;
         Tue, 30 Jul 2019 17:00:53 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
@@ -28,9 +28,9 @@ From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 07/13] RDMA/hns: Handling the error return value of hem function
-Date:   Tue, 30 Jul 2019 16:56:44 +0800
-Message-ID: <1564477010-29804-8-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 09/13] RDMA/hns: Refactor irq request code
+Date:   Tue, 30 Jul 2019 16:56:46 +0800
+Message-ID: <1564477010-29804-10-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
 References: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
@@ -45,63 +45,49 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Lang Cheng <chenglang@huawei.com>
 
-Handling the error return value of hns_roce_calc_hem_mhop.
+Remove unnecessary if...else..., to make the code look simpler.
 
 Signed-off-by: Lang Cheng <chenglang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index d3e72a0..0268c7a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -830,7 +830,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 	} else {
- 		u32 seg_size = 64; /* 8 bytes per BA and 8 BA per segment */
- 
--		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
-+		if (hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop))
-+			goto out;
- 		/* mtt mhop */
- 		i = mhop.l0_idx;
- 		j = mhop.l1_idx;
-@@ -879,11 +880,13 @@ int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
- {
- 	struct hns_roce_hem_mhop mhop;
- 	unsigned long inc = table->table_chunk_size / table->obj_size;
--	unsigned long i;
-+	unsigned long i = 0;
- 	int ret;
- 
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
--		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		ret = hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		if (ret)
-+			goto fail;
- 		inc = mhop.bt_chunk_size / table->obj_size;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 85e0687a..1186e34 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5749,18 +5749,19 @@ static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
  	}
  
-@@ -913,7 +916,8 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
- 	unsigned long i;
+ 	/* irq contains: abnormal + AEQ + CEQ */
+-	for (j = 0; j < irq_num; j++)
+-		if (j < other_num)
+-			snprintf((char *)hr_dev->irq_names[j],
+-				 HNS_ROCE_INT_NAME_LEN, "hns-abn-%d", j);
+-		else if (j < (other_num + aeq_num))
+-			snprintf((char *)hr_dev->irq_names[j],
+-				 HNS_ROCE_INT_NAME_LEN, "hns-aeq-%d",
+-				 j - other_num);
+-		else
+-			snprintf((char *)hr_dev->irq_names[j],
+-				 HNS_ROCE_INT_NAME_LEN, "hns-ceq-%d",
+-				 j - other_num - aeq_num);
++	for (j = 0; j < other_num; j++)
++		snprintf((char *)hr_dev->irq_names[j],
++			 HNS_ROCE_INT_NAME_LEN, "hns-abn-%d", j);
++
++	for (j = other_num; j < (other_num + aeq_num); j++)
++		snprintf((char *)hr_dev->irq_names[j],
++			 HNS_ROCE_INT_NAME_LEN, "hns-aeq-%d",
++			 j - other_num);
++
++	for (j = (other_num + aeq_num); j < irq_num; j++)
++		snprintf((char *)hr_dev->irq_names[j],
++			 HNS_ROCE_INT_NAME_LEN, "hns-ceq-%d",
++			 j - other_num - aeq_num);
  
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
--		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
-+			return;
- 		inc = mhop.bt_chunk_size / table->obj_size;
- 	}
- 
-@@ -1035,7 +1039,8 @@ static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
- 	int i;
- 	u64 obj;
- 
--	hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+	if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
-+		return;
- 	buf_chunk_size = table->type < HEM_TYPE_MTT ? mhop.buf_chunk_size :
- 					mhop.bt_chunk_size;
- 
+ 	for (j = 0; j < irq_num; j++) {
+ 		if (j < other_num)
 -- 
 1.9.1
 
