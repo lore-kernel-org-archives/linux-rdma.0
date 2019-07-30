@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95C88C433FF
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48C1BC41514
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 66CB12087F
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E1BA206E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731227AbfG3JA5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 05:00:57 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:54048 "EHLO huawei.com"
+        id S1730465AbfG3JA4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 05:00:56 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:53844 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730510AbfG3JA5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 05:00:57 -0400
+        id S1730144AbfG3JA4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jul 2019 05:00:56 -0400
 Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 8CB52B671135E9B4F922;
+        by Forcepoint Email with ESMTP id 757F7E1E986870529323;
         Tue, 30 Jul 2019 17:00:53 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 30 Jul 2019 17:00:46 +0800
+ 14.3.439.0; Tue, 30 Jul 2019 17:00:44 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 09/13] RDMA/hns: Refactor irq request code
-Date:   Tue, 30 Jul 2019 16:56:46 +0800
-Message-ID: <1564477010-29804-10-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 01/13] RDMA/hns: Encapsulate some lines for setting sq size in user mode
+Date:   Tue, 30 Jul 2019 16:56:38 +0800
+Message-ID: <1564477010-29804-2-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
 References: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
@@ -43,51 +43,65 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+It needs to check the sq size with integrity when configures
+the relatived parameters of sq. Here moves the relatived code
+into a special function.
 
-Remove unnecessary if...else..., to make the code look simpler.
-
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 85e0687a..1186e34 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5749,18 +5749,19 @@ static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 9c272c2..35ef7e2 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -324,16 +324,12 @@ static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
+ 	return 0;
+ }
+ 
+-static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+-				     struct ib_qp_cap *cap,
+-				     struct hns_roce_qp *hr_qp,
+-				     struct hns_roce_ib_create_qp *ucmd)
++static int check_sq_size_with_integrity(struct hns_roce_dev *hr_dev,
++					struct ib_qp_cap *cap,
++					struct hns_roce_ib_create_qp *ucmd)
+ {
+ 	u32 roundup_sq_stride = roundup_pow_of_two(hr_dev->caps.max_sq_desc_sz);
+ 	u8 max_sq_stride = ilog2(roundup_sq_stride);
+-	u32 ex_sge_num;
+-	u32 page_size;
+-	u32 max_cnt;
+ 
+ 	/* Sanity check SQ size before proceeding */
+ 	if ((u32)(1 << ucmd->log_sq_bb_count) > hr_dev->caps.max_wqes ||
+@@ -349,6 +345,25 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+ 		return -EINVAL;
  	}
  
- 	/* irq contains: abnormal + AEQ + CEQ */
--	for (j = 0; j < irq_num; j++)
--		if (j < other_num)
--			snprintf((char *)hr_dev->irq_names[j],
--				 HNS_ROCE_INT_NAME_LEN, "hns-abn-%d", j);
--		else if (j < (other_num + aeq_num))
--			snprintf((char *)hr_dev->irq_names[j],
--				 HNS_ROCE_INT_NAME_LEN, "hns-aeq-%d",
--				 j - other_num);
--		else
--			snprintf((char *)hr_dev->irq_names[j],
--				 HNS_ROCE_INT_NAME_LEN, "hns-ceq-%d",
--				 j - other_num - aeq_num);
-+	for (j = 0; j < other_num; j++)
-+		snprintf((char *)hr_dev->irq_names[j],
-+			 HNS_ROCE_INT_NAME_LEN, "hns-abn-%d", j);
++	return 0;
++}
 +
-+	for (j = other_num; j < (other_num + aeq_num); j++)
-+		snprintf((char *)hr_dev->irq_names[j],
-+			 HNS_ROCE_INT_NAME_LEN, "hns-aeq-%d",
-+			 j - other_num);
++static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
++				     struct ib_qp_cap *cap,
++				     struct hns_roce_qp *hr_qp,
++				     struct hns_roce_ib_create_qp *ucmd)
++{
++	u32 ex_sge_num;
++	u32 page_size;
++	u32 max_cnt;
++	int ret;
 +
-+	for (j = (other_num + aeq_num); j < irq_num; j++)
-+		snprintf((char *)hr_dev->irq_names[j],
-+			 HNS_ROCE_INT_NAME_LEN, "hns-ceq-%d",
-+			 j - other_num - aeq_num);
++	ret = check_sq_size_with_integrity(hr_dev, cap, ucmd);
++	if (ret) {
++		dev_err(hr_dev->dev, "Sanity check sq size fail\n");
++		return ret;
++	}
++
+ 	hr_qp->sq.wqe_cnt = 1 << ucmd->log_sq_bb_count;
+ 	hr_qp->sq.wqe_shift = ucmd->log_sq_stride;
  
- 	for (j = 0; j < irq_num; j++) {
- 		if (j < other_num)
 -- 
 1.9.1
 
