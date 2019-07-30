@@ -2,181 +2,136 @@ Return-Path: <SRS0=GXMw=V3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0579DC0650F
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:37:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EB68C31E40
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 18:20:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D701420693
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:37:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15C5420C01
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 18:20:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="e+WyNRNo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729688AbfG3Qh2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 12:37:28 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:34110 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728930AbfG3QgE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 12:36:04 -0400
-Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
-        by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <gunthorp@deltatee.com>)
-        id 1hsV6V-0003yH-5k; Tue, 30 Jul 2019 10:36:02 -0600
-Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
-        (envelope-from <gunthorp@deltatee.com>)
-        id 1hsV6S-0001Id-0A; Tue, 30 Jul 2019 10:35:56 -0600
-From:   Logan Gunthorpe <logang@deltatee.com>
-To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Christian Koenig <Christian.Koenig@amd.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@fb.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Eric Pilmore <epilmore@gigaio.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date:   Tue, 30 Jul 2019 10:35:40 -0600
-Message-Id: <20190730163545.4915-10-logang@deltatee.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190730163545.4915-1-logang@deltatee.com>
-References: <20190730163545.4915-1-logang@deltatee.com>
+        id S1728804AbfG3ST6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 14:19:58 -0400
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:33867 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387904AbfG3SQQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jul 2019 14:16:16 -0400
+Received: by mail-pf1-f193.google.com with SMTP id b13so30263509pfo.1
+        for <linux-rdma@vger.kernel.org>; Tue, 30 Jul 2019 11:16:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=VrkRbDzr3PjCa/bkRL7w2lB6fdcpmQGt7tWtDP9dwcc=;
+        b=e+WyNRNolRLQziccTpNHSyiKpyyOeUMfcGl6wn61KqLcd1VX2GVhoen80F0RJRAzk9
+         NP6LMtp6ZhdmWXmYwqsWPM9LHwk7sLvWLOrtAnjvvNMRVic6I6U6aZho/X52ypCRNup0
+         9UPtzjMP+tAz/2ZNbfjssbrCKjy6dAzpHPong=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=VrkRbDzr3PjCa/bkRL7w2lB6fdcpmQGt7tWtDP9dwcc=;
+        b=jj3VWWjBwQXHTz72P2X539AyJ6RoYAOVQYf2inQeBoi5JFAMxIi4kTUM7W86BB0/j5
+         WxKJy5zsPmnVLS3nOee2Hi11YTO22dD0yHUeV2fNslKYGRHfKDyClOC5aS9odOac9vq5
+         LNt4HgWmBX9K/y1BpLvrykN2WuOGU/TOmsQkXoKLAg6Uk2QN7YZ08zxebnq+I+Vvoy1B
+         7BW4qQIZspIv75NUVqa+/f/MEEezCn1iqJvyUUlpRtS3l2c+GQbgl0E8qzJFG2sblWBn
+         tEck+remXPsWSAop73Wtr+EgTH5wk5eXOZ4dcxA1OtF9oKGQwcse6y7Z6nGxAVWGt17A
+         LeeA==
+X-Gm-Message-State: APjAAAVDA63UVuEEEGueIqJgXhw2mvd7wpsGjZDtth+YWtBzMu/MGRwM
+        ltttmsYfkwzBS2aZXeipVVu00g==
+X-Google-Smtp-Source: APXvYqxJWxieoGzyPZ24ebf1AxpIyPNcsS5Oh6md2BEapPyVdOsYCpjQyJR8ZnzfKSIADSSU+GyQyQ==
+X-Received: by 2002:a17:90a:2486:: with SMTP id i6mr117014119pje.125.1564510576096;
+        Tue, 30 Jul 2019 11:16:16 -0700 (PDT)
+Received: from smtp.gmail.com ([2620:15c:202:1:fa53:7765:582b:82b9])
+        by smtp.gmail.com with ESMTPSA id g1sm106744083pgg.27.2019.07.30.11.16.15
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Tue, 30 Jul 2019 11:16:15 -0700 (PDT)
+From:   Stephen Boyd <swboyd@chromium.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        linux-rdma@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH v6 20/57] infiniband: Remove dev_err() usage after platform_get_irq()
+Date:   Tue, 30 Jul 2019 11:15:20 -0700
+Message-Id: <20190730181557.90391-21-swboyd@chromium.org>
+X-Mailer: git-send-email 2.22.0.709.g102302147b-goog
+In-Reply-To: <20190730181557.90391-1-swboyd@chromium.org>
+References: <20190730181557.90391-1-swboyd@chromium.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 172.16.1.31
-X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
-X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH v2 09/14] PCI/P2PDMA: Introduce pci_p2pdma_unmap_sg()
-X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add pci_p2pdma_unmap_sg() to the two places that call
-pci_p2pdma_map_sg().
+We don't need dev_err() messages when platform_get_irq() fails now that
+platform_get_irq() prints an error message itself when something goes
+wrong. Let's remove these prints with a simple semantic patch.
 
-This is a prep patch to introduce correct mappings for p2pdma
-transactions that go through the root complex.
+// <smpl>
+@@
+expression ret;
+struct platform_device *E;
+@@
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+ret =
+(
+platform_get_irq(E, ...)
+|
+platform_get_irq_byname(E, ...)
+);
+
+if ( \( ret < 0 \| ret <= 0 \) )
+{
+(
+-if (ret != -EPROBE_DEFER)
+-{ ...
+-dev_err(...);
+-... }
+|
+...
+-dev_err(...);
+)
+...
+}
+// </smpl>
+
+While we're here, remove braces on if statements that only have one
+statement (manually).
+
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Stephen Boyd <swboyd@chromium.org>
 ---
- drivers/infiniband/core/rw.c |  6 ++++--
- drivers/nvme/host/pci.c      |  6 ++++--
- drivers/pci/p2pdma.c         | 18 +++++++++++++++++-
- include/linux/pci-p2pdma.h   | 13 +++++++++++++
- 4 files changed, 38 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index dce06108c8c3..5337393d4dfe 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -583,8 +583,10 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 		break;
+Please apply directly to subsystem trees
+
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 81e6dedb1e02..7541177eb648 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -4637,10 +4637,8 @@ static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
+ 	/* fetch the interrupt numbers */
+ 	for (i = 0; i < HNS_ROCE_V1_MAX_IRQ_NUM; i++) {
+ 		hr_dev->irq[i] = platform_get_irq(hr_dev->pdev, i);
+-		if (hr_dev->irq[i] <= 0) {
+-			dev_err(dev, "platform get of irq[=%d] failed!\n", i);
++		if (hr_dev->irq[i] <= 0)
+ 			return -EINVAL;
+-		}
  	}
  
--	/* P2PDMA contexts do not need to be unmapped */
--	if (!is_pci_p2pdma_page(sg_page(sg)))
-+	if (is_pci_p2pdma_page(sg_page(sg)))
-+		pci_p2pdma_unmap_sg(qp->pd->device->dma_device, sg,
-+				    sg_cnt, dir);
-+	else
- 		ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
- }
- EXPORT_SYMBOL(rdma_rw_ctx_destroy);
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index f97bb031228a..0f92cca7a860 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -547,8 +547,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 
- 	WARN_ON_ONCE(!iod->nents);
- 
--	/* P2PDMA requests do not need to be unmapped */
--	if (!is_pci_p2pdma_page(sg_page(iod->sg)))
-+	if (is_pci_p2pdma_page(sg_page(iod->sg)))
-+		pci_p2pdma_unmap_sg(dev->dev, iod->sg, iod->nents,
-+				    rq_dma_dir(req));
-+	else
- 		dma_unmap_sg(dev->dev, iod->sg, iod->nents, rq_dma_dir(req));
- 
- 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 0d875abea8a1..392653fe0583 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -790,7 +790,8 @@ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
-  * @dir: DMA direction
-  * @attrs: dma attributes passed to dma_map_sg() (if called)
-  *
-- * Scatterlists mapped with this function should not be unmapped in any way.
-+ * Scatterlists mapped with this function should be unmapped using
-+ * pci_p2pdma_unmap_sg_attrs().
-  *
-  * Returns the number of SG entries mapped or 0 on error.
-  */
-@@ -824,6 +825,21 @@ int pci_p2pdma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
- }
- EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg_attrs);
- 
-+/**
-+ * pci_p2pdma_unmap_sg - unmap a PCI peer-to-peer scatterlist that was
-+ *	mapped with pci_p2pdma_map_sg()
-+ * @dev: device doing the DMA request
-+ * @sg: scatter list to map
-+ * @nents: number of elements returned by pci_p2pdma_map_sg()
-+ * @dir: DMA direction
-+ * @attrs: dma attributes passed to dma_unmap_sg() (if called)
-+ */
-+void pci_p2pdma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg,
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
-+{
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_unmap_sg_attrs);
-+
- /**
-  * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
-  *		to enable p2pdma
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 7fd51954f93a..8318a97c9c61 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -32,6 +32,8 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
- int pci_p2pdma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
- 		int nents, enum dma_data_direction dir, unsigned long attrs);
-+void pci_p2pdma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg,
-+		int nents, enum dma_data_direction dir, unsigned long attrs);
- int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
- 			    bool *use_p2pdma);
- ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-@@ -87,6 +89,11 @@ static inline int pci_p2pdma_map_sg_attrs(struct device *dev,
- {
  	return 0;
- }
-+static inline void pci_p2pdma_unmap_sg_attrs(struct device *dev,
-+		struct scatterlist *sg, int nents, enum dma_data_direction dir,
-+		unsigned long attrs)
-+{
-+}
- static inline int pci_p2pdma_enable_store(const char *page,
- 		struct pci_dev **p2p_dev, bool *use_p2pdma)
- {
-@@ -118,4 +125,10 @@ static inline int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg,
- 	return pci_p2pdma_map_sg_attrs(dev, sg, nents, dir, 0);
- }
- 
-+static inline void pci_p2pdma_unmap_sg(struct device *dev,
-+		struct scatterlist *sg, int nents, enum dma_data_direction dir)
-+{
-+	pci_p2pdma_unmap_sg_attrs(dev, sg, nents, dir, 0);
-+}
-+
- #endif /* _LINUX_PCI_P2P_H */
 -- 
-2.20.1
+Sent by a computer through tubes
 
