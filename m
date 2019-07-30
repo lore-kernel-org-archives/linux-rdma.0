@@ -4,33 +4,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06389C433FF
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:01:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAF4FC0650F
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:01:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D72A52087F
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:01:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F8AE2087F
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:01:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730702AbfG3JBA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 05:01:00 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:53842 "EHLO huawei.com"
+        id S1731238AbfG3JBC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 05:01:02 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:54030 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730144AbfG3JA7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 05:00:59 -0400
+        id S1731237AbfG3JBB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jul 2019 05:01:01 -0400
 Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 79926F370A95BEED36CF;
+        by Forcepoint Email with ESMTP id 84C42B3966D337C3C158;
         Tue, 30 Jul 2019 17:00:53 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 30 Jul 2019 17:00:47 +0800
+ 14.3.439.0; Tue, 30 Jul 2019 17:00:45 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 12/13] RDMA/hns: Remove redundant print in hns_roce_v2_ceq_int()
-Date:   Tue, 30 Jul 2019 16:56:49 +0800
-Message-ID: <1564477010-29804-13-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 04/13] RDMA/hns: Remove unnessary init for cmq reg
+Date:   Tue, 30 Jul 2019 16:56:41 +0800
+Message-ID: <1564477010-29804-5-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
 References: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
@@ -43,33 +43,53 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Weihang Li <liweihang@hisilicon.com>
+From: Yixian Liu <liuyixian@huawei.com>
 
-There is no need to tell users when eq->cons_index is overflow, we
-just set it back to zero.
+There is no need to init the enable bit of cmq.
 
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 --
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 8f4430b..699a5b9 100644
+index 064e56c..b13c68e 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5009,10 +5009,9 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 		++eq->cons_index;
- 		aeqe_found = 1;
+@@ -887,8 +887,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_BASEADDR_H_REG,
+ 			   upper_32_bits(dma));
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_DEPTH_REG,
+-			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
+-			   HNS_ROCE_CMQ_ENABLE);
++			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, 0);
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, 0);
+ 	} else {
+@@ -896,8 +895,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_H_REG,
+ 			   upper_32_bits(dma));
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_DEPTH_REG,
+-			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
+-			   HNS_ROCE_CMQ_ENABLE);
++			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_HEAD_REG, 0);
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_TAIL_REG, 0);
+ 	}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 478f5a5..58931b5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -126,8 +126,6 @@
+ #define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
  
--		if (eq->cons_index > (2 * eq->entries - 1)) {
--			dev_warn(dev, "cons_index overflow, set back to 0.\n");
-+		if (eq->cons_index > (2 * eq->entries - 1))
- 			eq->cons_index = 0;
--		}
-+
- 		hns_roce_v2_init_irq_work(hr_dev, eq, qpn, cqn);
+ #define HNS_ROCE_CMQ_DESC_NUM_S		3
+-#define HNS_ROCE_CMQ_EN_B		16
+-#define HNS_ROCE_CMQ_ENABLE		BIT(HNS_ROCE_CMQ_EN_B)
  
- 		aeqe = next_aeqe_sw_v2(eq);
+ #define HNS_ROCE_CMQ_SCC_CLR_DONE_CNT		5
+ 
 -- 
 1.9.1
 
