@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48C1BC41514
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E3E7C31E40
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1E1BA206E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 419912087F
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:00:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730465AbfG3JA4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 05:00:56 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:53844 "EHLO huawei.com"
+        id S1731233AbfG3JA6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 05:00:58 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:54058 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730144AbfG3JA4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 05:00:56 -0400
+        id S1731220AbfG3JA6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jul 2019 05:00:58 -0400
 Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 757F7E1E986870529323;
+        by Forcepoint Email with ESMTP id 9E905D796BCF4A7A81F1;
         Tue, 30 Jul 2019 17:00:53 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 30 Jul 2019 17:00:44 +0800
+ 14.3.439.0; Tue, 30 Jul 2019 17:00:46 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 01/13] RDMA/hns: Encapsulate some lines for setting sq size in user mode
-Date:   Tue, 30 Jul 2019 16:56:38 +0800
-Message-ID: <1564477010-29804-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 08/13] RDMA/hns: Split bool statement and assign statement
+Date:   Tue, 30 Jul 2019 16:56:45 +0800
+Message-ID: <1564477010-29804-9-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
 References: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
@@ -43,65 +43,72 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-It needs to check the sq size with integrity when configures
-the relatived parameters of sq. Here moves the relatived code
-into a special function.
+From: Lang Cheng <chenglang@huawei.com>
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Assign statement can not be contained in bool statement or
+function param.
+
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 9c272c2..35ef7e2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -324,16 +324,12 @@ static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
- 	return 0;
- }
- 
--static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
--				     struct ib_qp_cap *cap,
--				     struct hns_roce_qp *hr_qp,
--				     struct hns_roce_ib_create_qp *ucmd)
-+static int check_sq_size_with_integrity(struct hns_roce_dev *hr_dev,
-+					struct ib_qp_cap *cap,
-+					struct hns_roce_ib_create_qp *ucmd)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index fc4c1d6..85e0687a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4938,7 +4938,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_eq *eq)
  {
- 	u32 roundup_sq_stride = roundup_pow_of_two(hr_dev->caps.max_sq_desc_sz);
- 	u8 max_sq_stride = ilog2(roundup_sq_stride);
--	u32 ex_sge_num;
--	u32 page_size;
--	u32 max_cnt;
+ 	struct device *dev = hr_dev->dev;
+-	struct hns_roce_aeqe *aeqe;
++	struct hns_roce_aeqe *aeqe = next_aeqe_sw_v2(eq);
+ 	int aeqe_found = 0;
+ 	int event_type;
+ 	int sub_type;
+@@ -4946,8 +4946,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
+ 	u32 qpn;
+ 	u32 cqn;
  
- 	/* Sanity check SQ size before proceeding */
- 	if ((u32)(1 << ucmd->log_sq_bb_count) > hr_dev->caps.max_wqes ||
-@@ -349,6 +345,25 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
- 		return -EINVAL;
+-	while ((aeqe = next_aeqe_sw_v2(eq))) {
+-
++	while (aeqe) {
+ 		/* Make sure we read AEQ entry after we have checked the
+ 		 * ownership bit
+ 		 */
+@@ -5016,6 +5015,8 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
+ 			eq->cons_index = 0;
+ 		}
+ 		hns_roce_v2_init_irq_work(hr_dev, eq, qpn, cqn);
++
++		aeqe = next_aeqe_sw_v2(eq);
  	}
  
-+	return 0;
-+}
-+
-+static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
-+				     struct ib_qp_cap *cap,
-+				     struct hns_roce_qp *hr_qp,
-+				     struct hns_roce_ib_create_qp *ucmd)
-+{
-+	u32 ex_sge_num;
-+	u32 page_size;
-+	u32 max_cnt;
-+	int ret;
-+
-+	ret = check_sq_size_with_integrity(hr_dev, cap, ucmd);
-+	if (ret) {
-+		dev_err(hr_dev->dev, "Sanity check sq size fail\n");
-+		return ret;
-+	}
-+
- 	hr_qp->sq.wqe_cnt = 1 << ucmd->log_sq_bb_count;
- 	hr_qp->sq.wqe_shift = ucmd->log_sq_stride;
+ 	set_eq_cons_index_v2(eq);
+@@ -5068,12 +5069,11 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_eq *eq)
+ {
+ 	struct device *dev = hr_dev->dev;
+-	struct hns_roce_ceqe *ceqe;
++	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
+ 	int ceqe_found = 0;
+ 	u32 cqn;
  
+-	while ((ceqe = next_ceqe_sw_v2(eq))) {
+-
++	while (ceqe) {
+ 		/* Make sure we read CEQ entry after we have checked the
+ 		 * ownership bit
+ 		 */
+@@ -5092,6 +5092,8 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
+ 			dev_warn(dev, "cons_index overflow, set back to 0.\n");
+ 			eq->cons_index = 0;
+ 		}
++
++		ceqe = next_ceqe_sw_v2(eq);
+ 	}
+ 
+ 	set_eq_cons_index_v2(eq);
 -- 
 1.9.1
 
