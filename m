@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D164C0650F
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:36:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBF8BC0650F
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:36:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 29ABC216C8
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:36:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A33F0216C8
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 16:36:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727775AbfG3Qgc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 12:36:32 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:34270 "EHLO ale.deltatee.com"
+        id S1729458AbfG3QgI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 12:36:08 -0400
+Received: from ale.deltatee.com ([207.54.116.67]:34198 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729634AbfG3QgK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 12:36:10 -0400
+        id S1729380AbfG3QgH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jul 2019 12:36:07 -0400
 Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
         by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hsV6V-0003yJ-MY; Tue, 30 Jul 2019 10:36:09 -0600
+        id 1hsV6V-0003yB-5n; Tue, 30 Jul 2019 10:36:06 -0600
 Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.89)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1hsV6S-0001Ij-6c; Tue, 30 Jul 2019 10:35:56 -0600
+        id 1hsV6R-0001IL-Do; Tue, 30 Jul 2019 10:35:55 -0600
 From:   Logan Gunthorpe <logang@deltatee.com>
 To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
@@ -39,18 +39,20 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Dan Williams <dan.j.williams@intel.com>,
         Eric Pilmore <epilmore@gigaio.com>,
         Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date:   Tue, 30 Jul 2019 10:35:42 -0600
-Message-Id: <20190730163545.4915-12-logang@deltatee.com>
+        Logan Gunthorpe <logang@deltatee.com>,
+        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Date:   Tue, 30 Jul 2019 10:35:34 -0600
+Message-Id: <20190730163545.4915-4-logang@deltatee.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190730163545.4915-1-logang@deltatee.com>
 References: <20190730163545.4915-1-logang@deltatee.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 172.16.1.31
-X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
+X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com, Christian.Koenig@amd.com, christian.koenig@amd.com
 X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH v2 11/14] PCI/P2PDMA: Store mapping method in an xarray
+Subject: [PATCH v2 03/14] PCI/P2PDMA: Add constants for not-supported result upstream_bridge_distance()
 X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Sender: linux-rdma-owner@vger.kernel.org
@@ -58,104 +60,128 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When upstream_bridge_distance() is called store the method required
-to map the DMA transfers in an xarray so that it can be looked up
-efficiently on the hot path in pci_p2pdma_map_sg().
+Add constant flags to indicate two devices are not supported or whether
+the data path goes through the host bridge instead of using the negative
+values -1 and -2.
+
+This helps annotate the code better, but the main reason is so we
+can use the information to store the required mapping method in an
+xarray.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
 ---
- drivers/pci/p2pdma.c | 40 +++++++++++++++++++++++++++++++++++-----
- 1 file changed, 35 insertions(+), 5 deletions(-)
+ drivers/pci/p2pdma.c | 52 ++++++++++++++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index fe647bd8f947..010aa8742bec 100644
+index 93fbda14f4a9..64f5a0e30244 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -19,10 +19,19 @@
- #include <linux/random.h>
- #include <linux/seq_buf.h>
- #include <linux/iommu.h>
-+#include <linux/xarray.h>
+@@ -289,6 +289,20 @@ static bool root_complex_whitelist(struct pci_dev *dev)
+ 	return false;
+ }
+ 
++enum {
++	/*
++	 * These arbitrary offset are or'd onto the upstream distance
++	 * calculation for the following conditions:
++	 */
 +
-+enum pci_p2pdma_map_type {
-+	PCI_P2PDMA_MAP_UNKNOWN = 0,
-+	PCI_P2PDMA_MAP_NOT_SUPPORTED,
-+	PCI_P2PDMA_MAP_BUS_ADDR,
-+	PCI_P2PDMA_MAP_THRU_IOMMU,
++	/* The data path includes the host-bridge */
++	P2PDMA_THRU_HOST_BRIDGE		= 0x02000000,
++	/* The data path is forced through the host-bridge due to ACS */
++	P2PDMA_ACS_FORCES_UPSTREAM	= 0x04000000,
++	/* The data path is not supported by P2PDMA */
++	P2PDMA_NOT_SUPPORTED		= 0x08000000,
 +};
- 
- struct pci_p2pdma {
- 	struct gen_pool *pool;
- 	bool p2pmem_published;
-+	struct xarray map_types;
- };
- 
- struct pci_p2pdma_pagemap {
-@@ -98,6 +107,7 @@ static void pci_p2pdma_release(void *data)
- 
- 	gen_pool_destroy(p2pdma->pool);
- 	sysfs_remove_group(&pdev->dev.kobj, &p2pmem_group);
-+	xa_destroy(&p2pdma->map_types);
- }
- 
- static int pci_p2pdma_setup(struct pci_dev *pdev)
-@@ -109,6 +119,8 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
- 	if (!p2p)
- 		return -ENOMEM;
- 
-+	xa_init(&p2p->map_types);
-+
- 	p2p->pool = gen_pool_create(PAGE_SHIFT, dev_to_node(&pdev->dev));
- 	if (!p2p->pool)
- 		goto out;
-@@ -404,6 +416,12 @@ static int __upstream_bridge_distance(struct pci_dev *provider,
- 	return dist_a + dist_b;
- }
- 
-+static int map_types_idx(struct pci_dev *client)
-+{
-+	return (pci_domain_nr(client->bus) << 16) |
-+		(client->bus->number << 8) | client->devfn;
-+}
 +
  /*
   * Find the distance through the nearest common upstream bridge between
   * two PCI devices.
-@@ -446,17 +464,29 @@ static int upstream_bridge_distance(struct pci_dev *provider,
- 				    struct pci_dev *client,
- 				    struct seq_buf *acs_list)
- {
-+	enum pci_p2pdma_map_type map_type;
- 	int dist;
+@@ -313,22 +327,17 @@ static bool root_complex_whitelist(struct pci_dev *dev)
+  * port of the switch, to the common upstream port, back up to the second
+  * downstream port and then to Device B.
+  *
+- * Any two devices that don't have a common upstream bridge will return -1.
+- * In this way devices on separate PCIe root ports will be rejected, which
+- * is what we want for peer-to-peer seeing each PCIe root port defines a
+- * separate hierarchy domain and there's no way to determine whether the root
+- * complex supports forwarding between them.
++ * Any two devices that cannot communicate using p2pdma will return the distance
++ * with the flag P2PDMA_NOT_SUPPORTED.
+  *
+- * In the case where two devices are connected to different PCIe switches,
+- * this function will still return a positive distance as long as both
+- * switches eventually have a common upstream bridge. Note this covers
+- * the case of using multiple PCIe switches to achieve a desired level of
+- * fan-out from a root port. The exact distance will be a function of the
+- * number of switches between Device A and Device B.
++ * Any two devices that have a data path that goes through the host bridge
++ * will consult a whitelist. If the host bridges are on the whitelist,
++ * then the distance will be returned with the flag P2PDMA_THRU_HOST_BRIDGE set.
++ * If either bridge is not on the whitelist, the flag P2PDMA_NOT_SUPPORTED will
++ * be set.
+  *
+  * If a bridge which has any ACS redirection bits set is in the path
+- * then this functions will return -2. This is so we reject any
+- * cases where the TLPs are forwarded up into the root complex.
++ * then this functions will flag the result with P2PDMA_ACS_FORCES_UPSTREAM.
+  * In this case, a list of all infringing bridge addresses will be
+  * populated in acs_list (assuming it's non-null) for printk purposes.
+  */
+@@ -375,9 +384,9 @@ static int upstream_bridge_distance(struct pci_dev *provider,
+ 	 */
+ 	if (root_complex_whitelist(provider) &&
+ 	    root_complex_whitelist(client))
+-		return 0x1000 + dist_a + dist_b;
++		return (dist_a + dist_b) | P2PDMA_THRU_HOST_BRIDGE;
  
- 	dist = __upstream_bridge_distance(provider, client, acs_list);
+-	return -1;
++	return (dist_a + dist_b) | P2PDMA_NOT_SUPPORTED;
  
--	if (!(dist & P2PDMA_THRU_HOST_BRIDGE))
--		return dist;
-+	if (!(dist & P2PDMA_THRU_HOST_BRIDGE)) {
-+		map_type = PCI_P2PDMA_MAP_BUS_ADDR;
-+		goto store_map_type_and_return;
-+	}
-+
-+	if (host_bridge_whitelist(provider, client)) {
-+		map_type = PCI_P2PDMA_MAP_THRU_IOMMU;
-+	} else {
-+		dist |= P2PDMA_NOT_SUPPORTED;
-+		map_type = PCI_P2PDMA_MAP_NOT_SUPPORTED;
-+	}
+ check_b_path_acs:
+ 	bb = b;
+@@ -395,7 +404,7 @@ static int upstream_bridge_distance(struct pci_dev *provider,
+ 	}
  
--	if (host_bridge_whitelist(provider, client))
--		return dist;
-+store_map_type_and_return:
-+	if (provider->p2pdma)
-+		xa_store(&provider->p2pdma->map_types, map_types_idx(client),
-+			 xa_mk_value(map_type), GFP_KERNEL);
+ 	if (acs_cnt)
+-		return -2;
++		return P2PDMA_NOT_SUPPORTED | P2PDMA_ACS_FORCES_UPSTREAM;
  
--	return dist | P2PDMA_NOT_SUPPORTED;
-+	return dist;
+ 	return dist_a + dist_b;
  }
+@@ -411,16 +420,17 @@ static int upstream_bridge_distance_warn(struct pci_dev *provider,
+ 		return -ENOMEM;
  
- static int upstream_bridge_distance_warn(struct pci_dev *provider,
+ 	ret = upstream_bridge_distance(provider, client, &acs_list);
+-	if (ret == -2) {
+-		pci_warn(client, "cannot be used for peer-to-peer DMA as ACS redirect is set between the client and provider (%s)\n",
++	if (ret & P2PDMA_ACS_FORCES_UPSTREAM) {
++		pci_warn(client, "ACS redirect is set between the client and provider (%s)\n",
+ 			 pci_name(provider));
+ 		/* Drop final semicolon */
+ 		acs_list.buffer[acs_list.len-1] = 0;
+ 		pci_warn(client, "to disable ACS redirect for this path, add the kernel parameter: pci=disable_acs_redir=%s\n",
+ 			 acs_list.buffer);
++	}
+ 
+-	} else if (ret < 0) {
+-		pci_warn(client, "cannot be used for peer-to-peer DMA as the client and provider (%s) do not share an upstream bridge\n",
++	if (ret & P2PDMA_NOT_SUPPORTED) {
++		pci_warn(client, "cannot be used for peer-to-peer DMA as the client and provider (%s) do not share an upstream bridge or whitelisted host bridge\n",
+ 			 pci_name(provider));
+ 	}
+ 
+@@ -484,7 +494,7 @@ int pci_p2pdma_distance_many(struct pci_dev *provider, struct device **clients,
+ 
+ 		pci_dev_put(pci_client);
+ 
+-		if (ret < 0)
++		if (ret & P2PDMA_NOT_SUPPORTED)
+ 			not_supported = true;
+ 
+ 		if (not_supported && !verbose)
 -- 
 2.20.1
 
