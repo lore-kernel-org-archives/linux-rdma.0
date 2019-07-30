@@ -2,96 +2,84 @@ Return-Path: <SRS0=GXMw=V3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C67C0650F
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:17:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB590C433FF
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 10:26:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E85720665
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 09:17:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9893620651
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jul 2019 10:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727317AbfG3JRK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jul 2019 05:17:10 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:43690 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727036AbfG3JRK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jul 2019 05:17:10 -0400
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 80E1656ECD906174D696;
-        Tue, 30 Jul 2019 17:00:53 +0800 (CST)
-Received: from linux-ioko.site (10.71.200.31) by
- DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 30 Jul 2019 17:00:45 +0800
-From:   Lijun Ou <oulijun@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 03/13] RDMA/hns: Update the prompt message for creating and destroy qp
-Date:   Tue, 30 Jul 2019 16:56:40 +0800
-Message-ID: <1564477010-29804-4-git-send-email-oulijun@huawei.com>
-X-Mailer: git-send-email 1.9.1
-In-Reply-To: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
-References: <1564477010-29804-1-git-send-email-oulijun@huawei.com>
+        id S1732574AbfG3K0H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jul 2019 06:26:07 -0400
+Received: from verein.lst.de ([213.95.11.211]:49987 "EHLO verein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727156AbfG3K0D (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jul 2019 06:26:03 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id 4C21468B02; Tue, 30 Jul 2019 12:25:57 +0200 (CEST)
+Date:   Tue, 30 Jul 2019 12:25:57 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Jerome Glisse <jglisse@redhat.com>
+Cc:     Christoph Hellwig <hch@infradead.org>, john.hubbard@gmail.com,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Anna Schumaker <anna.schumaker@netapp.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Eric Van Hensbergen <ericvh@gmail.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Jason Wang <jasowang@redhat.com>, Jens Axboe <axboe@kernel.dk>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        "Michael S . Tsirkin" <mst@redhat.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+        LKML <linux-kernel@vger.kernel.org>, ceph-devel@vger.kernel.org,
+        kvm@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-cifs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, samba-technical@lists.samba.org,
+        v9fs-developer@lists.sourceforge.net,
+        virtualization@lists.linux-foundation.org,
+        John Hubbard <jhubbard@nvidia.com>,
+        Minwoo Im <minwoo.im.dev@gmail.com>
+Subject: Re: [PATCH 03/12] block: bio_release_pages: use flags arg instead
+ of bool
+Message-ID: <20190730102557.GA1700@lst.de>
+References: <20190724042518.14363-1-jhubbard@nvidia.com> <20190724042518.14363-4-jhubbard@nvidia.com> <20190724053053.GA18330@infradead.org> <20190729205721.GB3760@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.71.200.31]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190729205721.GB3760@redhat.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+On Mon, Jul 29, 2019 at 04:57:21PM -0400, Jerome Glisse wrote:
+> > All pages releases by bio_release_pages should come from
+> > get_get_user_pages, so I don't really see the point here.
+> 
+> No they do not all comes from GUP for see various callers
+> of bio_check_pages_dirty() for instance iomap_dio_zero()
+> 
+> I have carefully tracked down all this and i did not do
+> anyconvertion just for the fun of it :)
 
-Current prompt message is uncorrect when destroying qp, add qpn
-information when creating qp.
+Well, the point is _should_ not necessarily do.  iomap_dio_zero adds the
+ZERO_PAGE, which we by definition don't need to refcount.  So we can
+mark this bio BIO_NO_PAGE_REF safely after removing the get_page there.
 
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
- drivers/infiniband/hw/hns/hns_roce_qp.c    | 3 ++-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+Note that the equivalent in the old direct I/O code, dio_refill_pages,
+will be a little more complicated as it can match user pages and the
+ZERO_PAGE in a single bio, so a per-bio flag won't handle it easily.
+Maybe we just need to use a separate bio there as well.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 83c58be..064e56c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4571,8 +4571,7 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- 		ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, NULL, 0,
- 					    hr_qp->state, IB_QPS_RESET);
- 		if (ret) {
--			dev_err(dev, "modify QP %06lx to ERR failed.\n",
--				hr_qp->qpn);
-+			dev_err(dev, "modify QP to Reset failed.\n");
- 			return ret;
- 		}
- 	}
-@@ -4641,7 +4640,8 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 
- 	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
- 	if (ret) {
--		dev_err(hr_dev->dev, "Destroy qp failed(%d)\n", ret);
-+		dev_err(hr_dev->dev, "Destroy qp 0x%06lx failed(%d)\n",
-+			hr_qp->qpn, ret);
- 		return ret;
- 	}
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 8b2d10f..c88a42d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -1002,7 +1002,8 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata, 0,
- 						hr_qp);
- 		if (ret) {
--			dev_err(dev, "Create RC QP failed\n");
-+			dev_err(dev, "Create RC QP 0x%06lx failed(%d)\n",
-+				hr_qp->qpn, ret);
- 			kfree(hr_qp);
- 			return ERR_PTR(ret);
- 		}
--- 
-1.9.1
-
+In general with series like this we should not encode the status quo an
+pile new hacks upon the old one, but thing where we should be and fix
+up the old warts while having to wade through all that code.
