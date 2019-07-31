@@ -2,58 +2,59 @@ Return-Path: <SRS0=HDkz=V4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C0FBC32751
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:15:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D582C433FF
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:15:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F188206B8
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:15:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70BAC206B8
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:15:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jegIlqYy"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ITf9kC4W"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726378AbfGaLP2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 31 Jul 2019 07:15:28 -0400
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:37643 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725921AbfGaLP2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 31 Jul 2019 07:15:28 -0400
-Received: by mail-wr1-f68.google.com with SMTP id n9so44154337wrr.4
-        for <linux-rdma@vger.kernel.org>; Wed, 31 Jul 2019 04:15:26 -0700 (PDT)
+        id S1728725AbfGaLPd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 31 Jul 2019 07:15:33 -0400
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:46685 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726763AbfGaLPc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 31 Jul 2019 07:15:32 -0400
+Received: by mail-wr1-f65.google.com with SMTP id z1so69198986wru.13
+        for <linux-rdma@vger.kernel.org>; Wed, 31 Jul 2019 04:15:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=crtL51XQqSRRlxWMIfz7T4S/5O93x6zgYjSUF7m9UVk=;
-        b=jegIlqYynwc07GcqCHOY0cV3PO4pKWXxgl0P/sVig741TGk8zfWTHMwzAVTrkzTFVE
-         hnpOS4a0063ArcDhSiAoyYZvxi4zi3612wxCsy4gcZlzwpiKYTRV3RauIw9bCCbDbAlU
-         6WZl8d1BL0n0I9zsCulrnwsLaNeruogIhBkkJjD42iYczE4Fek8DTKO4dqMqFo3Sr7bd
-         eeEL7sFfMxEUNbBvWIbzjVW5kjW+O72ST9lv4F6laAUl7aHSxMj1ksmaubL9hxxBNxQR
-         jAJ3N+qCTnru3ihpueKBj5XjuKRQ1z7EYV7WCmSsJv5UF5gs9zR6ky6yGd4mIZ5Wcda8
-         61Yg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=nJ8lWXhH5FN5zVWUDgS/ZjpIZ9jEHMtpHfW5T1E6xr0=;
+        b=ITf9kC4WRfh52jGugLEKyqC83N+7rMF53Ii44Ka3qTrLmRgJBrfwQZ6E1TeQWUpkJF
+         k4kTpGdZ/d3DKiV/Xt9W/w5URUEHgluLjNWJwLsRKKg4llHBxGa3pgEccmRNMjFIwAAb
+         KQrR41l23fRLRmDrCyXpAucxMLUh/K6rNKEoh/mYEK6JyY2t/7OmJii7oHM5wfDncUJ6
+         kKS6Au5FllSqeX3vs5vfendUKXHk26GNIlOfs1i6jJ9swpxXpm+qKNTy0dYEWEbU8CrG
+         XSmPBxl2g8q1QxanQHZ31eS4Adah3lP7Tn+TCP8Scf2yQsFuUqA4xgRLLOhnGsuHsJja
+         sZVg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=crtL51XQqSRRlxWMIfz7T4S/5O93x6zgYjSUF7m9UVk=;
-        b=F656Im6LABWYW10oYpdTrqMZiLWFVcVYL3wMWcywn8mnROIknv+ztQPvQu/BScPLT1
-         yYF2HRmY3bxGfdmzWjlwxP7rDob1RvohHInFRwD+Ptr0dEOaW1/FWtYJx1CHM4Ynjiku
-         5U3rkhHPLbTxTId2kBvnFUdnC44fQYhYPR0gpT/kUEvLR/xss5qPw4wCN1d1O/qJPXTw
-         q51dS07kAMRaqixVNEFS+HaGZcA8gFjaIIBQU+3oKIq/9DjT/0Ou7I2GZm5gmX/uaEJG
-         UDcsEg97rJ6o2yfP4QoO0WYeGsVwA7wiCO9RnNblAi2biOmYnzc5CYEjjMl0njimBjYF
-         yRyA==
-X-Gm-Message-State: APjAAAVnAlllpLcSJRwTM4M+fTjgjQkuCwf9/YPsd6fw3811lXac01Xx
-        H4sTkiJtB5T23czyx3G43IRBI6Gi
-X-Google-Smtp-Source: APXvYqw5CbPqb2JMC1ihIn2NLADiXwqirIC51AW5eJb7kYwcENgVim7COWOflLiKdi2lhJc6Ip69dA==
-X-Received: by 2002:adf:e40e:: with SMTP id g14mr49561856wrm.161.1564571725901;
-        Wed, 31 Jul 2019 04:15:25 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=nJ8lWXhH5FN5zVWUDgS/ZjpIZ9jEHMtpHfW5T1E6xr0=;
+        b=JWWtvJTx3JOmRhnpCOVlpnJb/CmG79fmrhBaeUwZcuN73mjlAl6ftjcfecZcezwhrS
+         61oQuXauG/+huNSrERN4HXDvPEkbYadiH4zuJzKqI5USoMYNHPv4ucbYLwG4N4bfXxaQ
+         X6IJZhkETl716Os0erqTSwMHq2D8MrN+GKZig8hQ1IsTgJMc2p5QIaeE69FLjj9uMnWQ
+         SXpupNJMofmCr11dVhGvEchSVEVlb48imkxqe4nikKiQxP9ug28pQmSjSd3a4uW0Y3lb
+         y91LUwEr4iuNFh7K0U6a39Rj3/izyJM+q/xqtyQKKcrWs3r+wSeC3+rlMfp6mpoduAuL
+         Fo2Q==
+X-Gm-Message-State: APjAAAXowkm/l0u4epJBgl7C9dsoSGwKc18c9iJiDZqdKM6lclacZxbA
+        fmJsKxXtJF7kzGLdIZLYGl4uT2E5
+X-Google-Smtp-Source: APXvYqyrjRfC1vjPICJ2/cyr57kHegdB31YAN196FbY+U6+ri3ERTmBeJJqVOQnSK53kQipetEROtg==
+X-Received: by 2002:adf:e50b:: with SMTP id j11mr97061429wrm.351.1564571730074;
+        Wed, 31 Jul 2019 04:15:30 -0700 (PDT)
 Received: from kheib-workstation.redhat.com (bzq-109-65-15-211.red.bezeqint.net. [109.65.15.211])
-        by smtp.gmail.com with ESMTPSA id h133sm73133732wme.28.2019.07.31.04.15.23
+        by smtp.gmail.com with ESMTPSA id h133sm73133732wme.28.2019.07.31.04.15.28
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Wed, 31 Jul 2019 04:15:25 -0700 (PDT)
+        Wed, 31 Jul 2019 04:15:29 -0700 (PDT)
 From:   Kamal Heib <kamalheib1@gmail.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
@@ -67,10 +68,12 @@ Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
         Bernard Metzler <bmt@zurich.ibm.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next 0/4] RDMA: Cleanups and improvements 
-Date:   Wed, 31 Jul 2019 14:14:59 +0300
-Message-Id: <20190731111503.8872-1-kamalheib1@gmail.com>
+Subject: [PATCH for-next 2/4] RDMA/cxgb3: Use ib_device_set_netdev()
+Date:   Wed, 31 Jul 2019 14:15:01 +0300
+Message-Id: <20190731111503.8872-3-kamalheib1@gmail.com>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190731111503.8872-1-kamalheib1@gmail.com>
+References: <20190731111503.8872-1-kamalheib1@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -78,36 +81,55 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series includes few cleanups and improvements, the first patch
-introduce a new enum for describing the physical state values and use it
-instead of using the magic numbers, patch 2-4 add support for a common
-query port for iWARP drivers and remove the common code from the iWARP
-drivers.
+This change is required to associate the cxgb3 ib_dev with the
+underlying net_device, so in the upcoming patch we can call
+ib_device_get_netdev().
 
-Kamal Heib (4):
-  RDMA: Introduce ib_port_phys_state enum
-  RDMA/cxgb3: Use ib_device_set_netdev()
-  RDMA/core: Add common iWARP query port
-  RDMA/{cxgb3, cxgb4, i40iw}: Remove common code
+Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
+---
+ drivers/infiniband/hw/cxgb3/iwch_provider.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
- drivers/infiniband/core/device.c             | 85 ++++++++++++++++----
- drivers/infiniband/core/sysfs.c              | 24 ++++--
- drivers/infiniband/hw/bnxt_re/ib_verbs.c     |  4 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  | 45 +++++------
- drivers/infiniband/hw/cxgb4/provider.c       | 24 ------
- drivers/infiniband/hw/efa/efa_verbs.c        |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 11 ---
- drivers/infiniband/hw/mlx5/main.c            |  4 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  4 +-
- drivers/infiniband/hw/qedr/verbs.c           |  4 +-
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  7 +-
- drivers/infiniband/sw/rxe/rxe.h              |  4 -
- drivers/infiniband/sw/rxe/rxe_param.h        |  2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c        |  6 +-
- drivers/infiniband/sw/siw/siw_verbs.c        |  3 +-
- include/rdma/ib_verbs.h                      | 10 +++
- 16 files changed, 136 insertions(+), 103 deletions(-)
-
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index e775c1a1a450..5848e4727b2e 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -1273,8 +1273,24 @@ static const struct ib_device_ops iwch_dev_ops = {
+ 	INIT_RDMA_OBJ_SIZE(ib_ucontext, iwch_ucontext, ibucontext),
+ };
+ 
++static int set_netdevs(struct ib_device *ib_dev, struct cxio_rdev *rdev)
++{
++	int ret;
++	int i;
++
++	for (i = 0; i < rdev->port_info.nports; i++) {
++		ret = ib_device_set_netdev(ib_dev, rdev->port_info.lldevs[i],
++					   i + 1);
++		if (ret)
++			return ret;
++	}
++	return 0;
++}
++
+ int iwch_register_device(struct iwch_dev *dev)
+ {
++	int err;
++
+ 	pr_debug("%s iwch_dev %p\n", __func__, dev);
+ 	memset(&dev->ibdev.node_guid, 0, sizeof(dev->ibdev.node_guid));
+ 	memcpy(&dev->ibdev.node_guid, dev->rdev.t3cdev_p->lldev->dev_addr, 6);
+@@ -1315,6 +1331,10 @@ int iwch_register_device(struct iwch_dev *dev)
+ 
+ 	rdma_set_device_sysfs_group(&dev->ibdev, &iwch_attr_group);
+ 	ib_set_device_ops(&dev->ibdev, &iwch_dev_ops);
++	err = set_netdevs(&dev->ibdev, &dev->rdev);
++	if (err)
++		return err;
++
+ 	return ib_register_device(&dev->ibdev, "cxgb3_%d");
+ }
+ 
 -- 
 2.20.1
 
