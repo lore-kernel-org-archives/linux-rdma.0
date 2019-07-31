@@ -2,88 +2,152 @@ Return-Path: <SRS0=HDkz=V4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7D0FC433FF
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:40:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A5CC433FF
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:46:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E4DA208C3
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:40:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A03712089E
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Jul 2019 11:46:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564573228;
-	bh=nfkmVZjbiklD7mauA11uZuNUYB6Rf9S0xfeDzFGI3eo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=PqOZ2c3/T3/nt52/Fe/eRG/sbB1eI40S+DbwWOCCWT6AQDPuwvGbgsAjoWkoPrt18
-	 u+gId7zmE0i9bY8PG2e+Qx/jbd65kuvRvT4l8n8agMWIHGS1k9/5V3VKCAbllUtB3X
-	 Ijmd/G+JYluAyBKRBDWYMhI8YLrOX8NXv1L7opzg=
+	s=default; t=1564573575;
+	bh=v5MEBAeGlBwTr+/V8qBkRz08MH6jE8WcYIKV++/hrHA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=q5ZyrBOzDtO4V0q3X26eEPcUZRuEtFjFD93xJhBBsWaGWjiF6K1z6XUYyWr2KNxSe
+	 YMppH/Lqq0v/O0Kar4//RYupZjY9PIGuPHlX0Y9VmivupKhzWT0E9qhYwSeZmHOlkb
+	 q5VDcn3POAGx1DLBJDrfw88huU7aHBCljR3xHg0A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727535AbfGaLk2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 31 Jul 2019 07:40:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43742 "EHLO mail.kernel.org"
+        id S1726232AbfGaLqO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 31 Jul 2019 07:46:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45548 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727529AbfGaLk1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 31 Jul 2019 07:40:27 -0400
+        id S1726463AbfGaLqO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 31 Jul 2019 07:46:14 -0400
 Received: from localhost (unknown [77.137.115.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9A4DE2089E;
-        Wed, 31 Jul 2019 11:40:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B61E02089E;
+        Wed, 31 Jul 2019 11:46:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564573227;
-        bh=nfkmVZjbiklD7mauA11uZuNUYB6Rf9S0xfeDzFGI3eo=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GWWeBXQuve7KP61y3YhgCQmwG9BrgWrQ8ouFPPlxbn1KZ8oMDrC5YHKfAy8Bu6axo
-         OELyJ0EJQ3uCLVnTOWxM/MngkhBtoGBYfCjKrbcGDMFqSr/jsTibtwzXq8/YWLCbdz
-         pkBfsA/TdkEYfaQH6JVxe2K1gOQyYumIM8lammqM=
+        s=default; t=1564573573;
+        bh=v5MEBAeGlBwTr+/V8qBkRz08MH6jE8WcYIKV++/hrHA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=zeoQBFmvYF333x817Ul9id+xKe24cNHvvg8NqaFxSv8Kd3dImiDzpiX5PgM5d8Jrc
+         Dr7HZDv/qsNF/ERQIzrogf3Z0hZa9Krvahs5S39306NL88pcxBi5Z3a3CxyhQ9Fd5Q
+         ZmsVpF1aBtspoSFk7sArJS6G0LQTu1xpCpEl+EuQ=
+Date:   Wed, 31 Jul 2019 14:46:09 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Mark Zhang <markz@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 1/2] net/mlx5: Fix mlx5_ifc_query_lag_out_bits
-Date:   Wed, 31 Jul 2019 14:40:13 +0300
-Message-Id: <20190731114014.4786-2-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190731114014.4786-1-leon@kernel.org>
-References: <20190731114014.4786-1-leon@kernel.org>
+To:     Gal Pressman <galpress@amazon.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH for-next 1/2] RDMA/core: Introduce ratelimited ibdev
+ printk functions
+Message-ID: <20190731114609.GS4878@mtr-leonro.mtl.com>
+References: <20190730151834.70993-1-galpress@amazon.com>
+ <20190730151834.70993-2-galpress@amazon.com>
+ <20190730154148.GG4878@mtr-leonro.mtl.com>
+ <dd2c23a3-1d92-56d4-933e-68ec37aebb65@amazon.com>
+ <20190731074109.GL4878@mtr-leonro.mtl.com>
+ <dfffaa13-3b1a-81ef-1922-68aacf085616@amazon.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <dfffaa13-3b1a-81ef-1922-68aacf085616@amazon.com>
+User-Agent: Mutt/1.12.0 (2019-05-25)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markz@mellanox.com>
+On Wed, Jul 31, 2019 at 01:51:05PM +0300, Gal Pressman wrote:
+> On 31/07/2019 10:41, Leon Romanovsky wrote:
+> > On Wed, Jul 31, 2019 at 10:22:42AM +0300, Gal Pressman wrote:
+> >> On 30/07/2019 18:41, Leon Romanovsky wrote:
+> >>> On Tue, Jul 30, 2019 at 06:18:33PM +0300, Gal Pressman wrote:
+> >>>> Add ratelimited helpers to the ibdev_* printk functions.
+> >>>> Implementation inspired by counterpart dev_*_ratelimited functions.
+> >>>>
+> >>>> Signed-off-by: Gal Pressman <galpress@amazon.com>
+> >>>> ---
+> >>>>  include/rdma/ib_verbs.h | 51 +++++++++++++++++++++++++++++++++++++++++
+> >>>>  1 file changed, 51 insertions(+)
+> >>>>
+> >>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> >>>> index c5f8a9f17063..356e6a105366 100644
+> >>>> --- a/include/rdma/ib_verbs.h
+> >>>> +++ b/include/rdma/ib_verbs.h
+> >>>> @@ -107,6 +107,57 @@ static inline
+> >>>>  void ibdev_dbg(const struct ib_device *ibdev, const char *format, ...) {}
+> >>>>  #endif
+> >>>>
+> >>>> +#define ibdev_level_ratelimited(ibdev_level, ibdev, fmt, ...)           \
+> >>>> +do {                                                                    \
+> >>>> +	static DEFINE_RATELIMIT_STATE(_rs,                              \
+> >>>> +				      DEFAULT_RATELIMIT_INTERVAL,       \
+> >>>> +				      DEFAULT_RATELIMIT_BURST);         \
+> >>>> +	if (__ratelimit(&_rs))                                          \
+> >>>> +		ibdev_level(ibdev, fmt, ##__VA_ARGS__);                 \
+> >>>> +} while (0)
+> >>>> +
+> >>>> +#define ibdev_emerg_ratelimited(ibdev, fmt, ...) \
+> >>>> +	ibdev_level_ratelimited(ibdev_emerg, ibdev, fmt, ##__VA_ARGS__)
+> >>>> +#define ibdev_alert_ratelimited(ibdev, fmt, ...) \
+> >>>> +	ibdev_level_ratelimited(ibdev_alert, ibdev, fmt, ##__VA_ARGS__)
+> >>>> +#define ibdev_crit_ratelimited(ibdev, fmt, ...) \
+> >>>> +	ibdev_level_ratelimited(ibdev_crit, ibdev, fmt, ##__VA_ARGS__)
+> >>>> +#define ibdev_err_ratelimited(ibdev, fmt, ...) \
+> >>>> +	ibdev_level_ratelimited(ibdev_err, ibdev, fmt, ##__VA_ARGS__)
+> >>>> +#define ibdev_warn_ratelimited(ibdev, fmt, ...) \
+> >>>> +	ibdev_level_ratelimited(ibdev_warn, ibdev, fmt, ##__VA_ARGS__)
+> >>>> +#define ibdev_notice_ratelimited(ibdev, fmt, ...) \
+> >>>> +	ibdev_level_ratelimited(ibdev_notice, ibdev, fmt, ##__VA_ARGS__)
+> >>>> +#define ibdev_info_ratelimited(ibdev, fmt, ...) \
+> >>>> +	ibdev_level_ratelimited(ibdev_info, ibdev, fmt, ##__VA_ARGS__)
+> >>>> +
+> >>>> +#if defined(CONFIG_DYNAMIC_DEBUG)
+> >>>> +/* descriptor check is first to prevent flooding with "callbacks suppressed" */
+> >>>> +#define ibdev_dbg_ratelimited(ibdev, fmt, ...)                          \
+> >>>> +do {                                                                    \
+> >>>> +	static DEFINE_RATELIMIT_STATE(_rs,                              \
+> >>>> +				      DEFAULT_RATELIMIT_INTERVAL,       \
+> >>>> +				      DEFAULT_RATELIMIT_BURST);         \
+> >>>> +	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);                 \
+> >>>> +	if (DYNAMIC_DEBUG_BRANCH(descriptor) && __ratelimit(&_rs))      \
+> >>>> +		__dynamic_ibdev_dbg(&descriptor, ibdev, fmt,            \
+> >>>> +				    ##__VA_ARGS__);                     \
+> >>>> +} while (0)
+> >>>> +#elif defined(DEBUG)
+> >>>
+> >>> When will you see this CONFIG_DEBUG set? I suspect only in private
+> >>> out-of-tree builds which we are not really care. Also I can't imagine
+> >>> system with this CONFIG_DEBUG and without CONFIG_DYNAMIC_DEBUG.
+> >>
+> >> This is the common way to handle debug prints, see:
+> >> https://elixir.bootlin.com/linux/v5.2.1/source/include/linux/printk.h#L331
+> >> https://elixir.bootlin.com/linux/v5.2.1/source/include/linux/device.h#L1493
+> >> https://elixir.bootlin.com/linux/v5.2.1/source/include/linux/netdevice.h#L4743
+> >> https://elixir.bootlin.com/linux/v5.2.1/source/include/linux/net.h#L266
+> >
+> > I'm more interested to know the real usage of this copy/paste and
+> > understand if it makes sense for drivers/infiniband/* or not.
+> >
+> > Not everything in netdev is great and worth to borrow.
+>
+> DEBUG exists since the first commit in the tree, and is used in various parts of
+> the kernel (mlx5 as well). Do you think it should be removed from the kernel?
 
-Remove the "reserved_at_40" field to match the device specification.
+It is gradually removed when it is spotted, I'll send a patch for mlx5 now.
 
-Fixes: 84df61ebc69b ("net/mlx5: Add HW interfaces used by LAG")
-Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- include/linux/mlx5/mlx5_ifc.h | 2 --
- 1 file changed, 2 deletions(-)
+>
+> Regarding combination of both, I don't think DEBUG is related to
+> CONFIG_DYNAMIC_DEBUG. DEBUG is a generic debug flag (not necessarily to prints)
+> while CONFIG_DYNAMIC_DEBUG is specific to the dynamic debug prints infrastructure.
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 5eae8d734435..726790d9ef25 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -9572,8 +9572,6 @@ struct mlx5_ifc_query_lag_out_bits {
+I know exactly what DEBUG and CONFIG_DYNAMIC_DEBUG mean, but I'm
+asking YOU to provide us real and in-tree scenario where DEBUG will
+exists and CONFIG_DYNAMIC_DEBUG won't.
 
- 	u8         syndrome[0x20];
-
--	u8         reserved_at_40[0x40];
--
- 	struct mlx5_ifc_lagc_bits ctx;
- };
-
---
-2.20.1
-
+Thanks
