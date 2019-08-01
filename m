@@ -2,114 +2,137 @@ Return-Path: <SRS0=ZuZ5=V5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF14C19759
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 16:04:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A3F6C19759
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 16:11:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 388902087E
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 16:04:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E94FF206A3
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 16:11:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732670AbfHAQEn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Aug 2019 12:04:43 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:45510 "EHLO mx1.redhat.com"
+        id S1732792AbfHAQLY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Aug 2019 12:11:24 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:49554 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731613AbfHAQEn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 1 Aug 2019 12:04:43 -0400
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        id S1727403AbfHAQLY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 1 Aug 2019 12:11:24 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 871043246FA7;
-        Thu,  1 Aug 2019 15:56:47 +0000 (UTC)
+        by mx1.redhat.com (Postfix) with ESMTPS id D331D3143555;
+        Thu,  1 Aug 2019 16:11:23 +0000 (UTC)
 Received: from linux-ws.nc.xsintricity.com (ovpn-112-50.rdu2.redhat.com [10.10.112.50])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 863FD60BC7;
-        Thu,  1 Aug 2019 15:56:46 +0000 (UTC)
-Message-ID: <578335bf30e4b12dc45ca4c8a6e74e93aff7419f.camel@redhat.com>
-Subject: Re: [PATCH for-rc v3] RDMA/restrack: Track driver QP types in
- resource tracker
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id F259760625;
+        Thu,  1 Aug 2019 16:11:22 +0000 (UTC)
+Message-ID: <a0dc81b63fdef1b7e877d5172be13792dda763d2.camel@redhat.com>
+Subject: Re: [PATCH rdma-rc] RDMA/mlx5: Release locks during notifier
+ unregister
 From:   Doug Ledford <dledford@redhat.com>
-To:     Leon Romanovsky <leon@kernel.org>,
-        Gal Pressman <galpress@amazon.com>
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Date:   Thu, 01 Aug 2019 11:56:43 -0400
-In-Reply-To: <20190801121254.GL4832@mtr-leonro.mtl.com>
-References: <20190801104354.11417-1-galpress@amazon.com>
-         <20190801121254.GL4832@mtr-leonro.mtl.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Saeed Mahameed <saeedm@mellanox.com>
+Date:   Thu, 01 Aug 2019 12:11:20 -0400
+In-Reply-To: <20190801155912.GS4832@mtr-leonro.mtl.com>
+References: <44863abbef5c1e233cbedfdf959fe900f7722d74.camel@redhat.com>
+         <20190731170054.GF22677@mellanox.com>
+         <20190731170944.GC4832@mtr-leonro.mtl.com>
+         <20190731172215.GJ22677@mellanox.com>
+         <20190731180124.GE4832@mtr-leonro.mtl.com>
+         <20190731195523.GK22677@mellanox.com>
+         <20190801082749.GH4832@mtr-leonro.mtl.com>
+         <20190801120007.GB23885@mellanox.com>
+         <20190801120821.GK4832@mtr-leonro.mtl.com>
+         <060b3e8fbe48312e9af33b88ba7ba62a6b64b493.camel@redhat.com>
+         <20190801155912.GS4832@mtr-leonro.mtl.com>
 Organization: Red Hat, Inc.
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-7+armsdRi5QC8SZUUX6W"
+        protocol="application/pgp-signature"; boundary="=-ZHwAK1/j+KaZSU7psla1"
 User-Agent: Evolution 3.32.4 (3.32.4-1.fc30) 
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.41]); Thu, 01 Aug 2019 15:56:47 +0000 (UTC)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.49]); Thu, 01 Aug 2019 16:11:23 +0000 (UTC)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 
---=-7+armsdRi5QC8SZUUX6W
+--=-ZHwAK1/j+KaZSU7psla1
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2019-08-01 at 15:12 +0300, Leon Romanovsky wrote:
-> On Thu, Aug 01, 2019 at 01:43:54PM +0300, Gal Pressman wrote:
-> > The check for QP type different than XRC has excluded driver QP
-> > types from the resource tracker.
-> > As a result, "rdma resource show" user command would not show opened
-> > driver QPs which does not reflect the real state of the system.
-> >=20
-> > Check QP type explicitly instead of assuming enum values/ordering.
-> >=20
-> > Fixes: 40909f664d27 ("RDMA/efa: Add EFA verbs implementation")
-> > Signed-off-by: Gal Pressman <galpress@amazon.com>
-> > ---
-> > v3:
-> > * Reword commit message
-> > * Change the commit in Fixes: line
-> >=20
-> > v2:
-> > * Improve commit message
-> > ---
-> >  drivers/infiniband/core/core_priv.h | 5 ++++-
-> >  1 file changed, 4 insertions(+), 1 deletion(-)
-> >=20
+On Thu, 2019-08-01 at 18:59 +0300, Leon Romanovsky wrote:
+> > There's no need for a lockdep.  The removal of the notifier callback
+> > entry is re-entrant safe.  The core removal routines have their own
+> > spinlock they use to protect the actual notifier list.  If you call
+> > it
+> > more than once, the second and subsequent calls merely scan the
+> > list,
+> > find no matching entry, and return ENOENT.  The only reason this
+> > might
+> > need a lock and a lockdep entry is if you are protecting against a
+> > race
+> > with the *add* notifier code in the mlx5 driver specifically (the
+> > core
+> > add code won't have an issue, but since you only have a single place
+> > to
+> > store the notifier callback pointer, if it would be possible for you
+> > to
+> > add two callbacks and write over the first callback pointer with the
+> > second without removing the first, then you would leak a callback
+> > notifier in the core notifier list).
 >=20
-> Please don't forget rdmatool patch.
+> atomic_notifier_chain_unregister() unconditionally calls to
+> syncronize_rcu() and I'm not so sure that it is best thing to do
+> for every port unbind.
 >=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+> Actually, I'm completely lost here, we are all agree that the patch
+> fixes issue correctly, and it returns the code to be exactly as
+> it was before commit df097a278c75 ("IB/mlx5: Use the new mlx5 core
+> notifier
+> API"). Can we simply merge it and fix the kernel panic?
 
-Thanks, applied to for-rc.
+As long as you are OK with me adding a comment to the patch so people
+coming back later won't scratch their head about how can it possible be
+right to do that sequence without a lock held, I'm fine merging the fix.
+
+Something like:
+
+/*
+ * The check/unregister/set-NULL sequence below does not need to be
+ * locked for correctness as it's only an optimization, and can't
+ * be under a lock or will throw a scheduling while atomic error.
+ */
 
 --=20
 Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
---=-7+armsdRi5QC8SZUUX6W
+--=-ZHwAK1/j+KaZSU7psla1
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl1DC7sACgkQuCajMw5X
-L932ug//UHrnEQbfLL/HwAZjH6bKSy/jG4JspmgKdZdiZu4lenbBj0U4m2E4erKE
-wFE0B9G6XRy9vATCNcAMop+ABU54mzwbnmR0/2spafkoLcvSuYh+anlU9zdnQyn3
-nO4fYKkqnPZBPSVZEZ/kpvoh9X9qG5WD/Uvk5esLEWuWBGCJ0YhDI4KMBqoKPMlv
-PMFaBmys+WYtSfgXpOen1fyFbzP4W9Ks3bI7qH6uFqHy2sTt4CECvLkaxORCDl2i
-xotf181xkLZXg97v2qMEMb6EvZMHhjYn4XjNMhjiH5bQe59RbUeXlPRTPK5k9csV
-/bpDxKIKLKxAYfTV/BEx91/s6DqK5jc4cma+hUGtEq1Xg4xpYTQt5bps+oSiomJv
-XlDNTnzoX308H3S3MMg6BkubYRRHYDtuSCt/H1uc16eC1D5VBaIrRtKotP1hVlQM
-3NgzAHcn2XoyL8tw0OhlMKBDlNBJTn3+zPfv2uf/vVhvr6Odbzp65wXJZTK5lbVQ
-FZXlhQ/b2iAUz9Wsp322fzPXsof2sLDGBUOdDxv94nTBigZCSm6ZWLYoAtE3cMYy
-fjAhgJv2KoM6j2PsjvloeG00K51K/e8Q+CCsw2y2Tc/RL01RLiRf3dDWlSpUOPit
-bI6mEDMVfR/oPoZuEvUiLdCRexWrBkHjw+SwVez7vAVLnluU5yg=
-=nzez
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl1DDygACgkQuCajMw5X
+L92T8RAAuK+rfX9LjOM4InQhYpOJJNRX2qwUOEBbzO7/ud905Jo50WvSr4N2+eWC
+X64xhTFKOGVGwzpuwpjdWCunV9yOCmZjKcxx9Nb9lNKIyZPh7HqFAhku5nP82OEr
+7h9EVlUbmLW+GBsCSRpLtAg2ykH3YwawRpqJAR11JsGnv+pQyQjACdaqss/1MMRe
+KkjYroy6OSpS8YonAWAGFf0bIGepkJuf4kz+7+jWi3hbhWVhh6G2hR/tyrR8Jy21
+itAMETFu8fDhUgRw8tpmKLv//y3wI3gPmrRwcHHPwmftnH5/pT2stcO2kFFhChtD
+ojU/3YUtdTTo0KDpYpQVPfEV0R7VB1pMfQ5yLx5uuddvo901Wp5+6bQzx48wBYIA
+j5WeUEeLh+fOjYFk793OK3a0oF13WbRaGM9DJpJlH3YAojoXNfJJPpNVBLgxfg0u
+HqgyC6fyufN2ETlq+8nMTq0wnekmgRZwkS1cIUuG8LdGxOMlAFqa6B+Q0r6swUFN
+L5zpP3S2abGkB0LCDOVGtauXHsQWnGpoQbdxToW/EB+FJ8NfrFOB3mEhZdKbKo4B
+TxPxp3eMlDgb0IvDTKaQLetTbOmOcIrsip7JH9YOqfZaPacVS4LG0w+Gbsf+Xfft
+UQ5LnUDg+XTnayouP1WveUkFPvodBrcnxTSZrGmv1iyxYgZ3NUQ=
+=DreM
 -----END PGP SIGNATURE-----
 
---=-7+armsdRi5QC8SZUUX6W--
+--=-ZHwAK1/j+KaZSU7psla1--
 
