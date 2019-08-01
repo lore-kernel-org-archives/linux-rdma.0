@@ -2,127 +2,106 @@ Return-Path: <SRS0=ZuZ5=V5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8252BC433FF
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:27:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34AB8C19759
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:33:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 52041214DA
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:27:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564648075;
-	bh=L8Akj5KKLmVFaa9GYZXaak5d2uP9eVF8GmrFy4RwUF0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=FRwwZx3WX9Fetar7cubDkUXdpTmwnWHn7gstbTVdYWFKxEqJpvWDm1GOC3ZTY6C0k
-	 qMA2HZ0KRWWp4/VOLajN592ib6RdBo6bA+vJeczAykagZwNlK2/uOOFqp9GWElX4XE
-	 m2dhAEifSBjsFeLaP8mVU4MpnAsWdS/sdhDpDeSQ=
+	by mail.kernel.org (Postfix) with ESMTP id 0E99721773
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:33:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729531AbfHAI1y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Aug 2019 04:27:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43622 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729140AbfHAI1y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 1 Aug 2019 04:27:54 -0400
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 32D282087E;
-        Thu,  1 Aug 2019 08:27:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564648073;
-        bh=L8Akj5KKLmVFaa9GYZXaak5d2uP9eVF8GmrFy4RwUF0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=1OU/fJQkVFqYgYdQawR9BtzrgrS7Zq6IyyUURt+L0ujjvRgViQuXeUN4f24K/SPjM
-         FSPA6+jX8qskxeU5xSfXEqoigUA4TBF7MKZh5WRCKPZ+hpS4EqeDu12LaohTj8P/fg
-         cz0wodx02D90WuL3ilmxNbLsBYIf4PoKVrIgy8Bk=
-Date:   Thu, 1 Aug 2019 11:27:49 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH rdma-rc] RDMA/mlx5: Release locks during notifier
- unregister
-Message-ID: <20190801082749.GH4832@mtr-leonro.mtl.com>
-References: <20190731083852.584-1-leon@kernel.org>
- <44863abbef5c1e233cbedfdf959fe900f7722d74.camel@redhat.com>
- <20190731170054.GF22677@mellanox.com>
- <20190731170944.GC4832@mtr-leonro.mtl.com>
- <20190731172215.GJ22677@mellanox.com>
- <20190731180124.GE4832@mtr-leonro.mtl.com>
- <20190731195523.GK22677@mellanox.com>
+        id S1729902AbfHAIdZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Aug 2019 04:33:25 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:41908 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728987AbfHAIdZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 1 Aug 2019 04:33:25 -0400
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 0C4B4C1347FB17E388B8;
+        Thu,  1 Aug 2019 16:33:23 +0800 (CST)
+Received: from linux-ioko.site (10.71.200.31) by
+ DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
+ 14.3.439.0; Thu, 1 Aug 2019 16:33:13 +0800
+From:   Lijun Ou <oulijun@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH V2 for-next 07/13] RDMA/hns: Handling the error return value of hem function
+Date:   Thu, 1 Aug 2019 16:29:08 +0800
+Message-ID: <1564648154-123172-8-git-send-email-oulijun@huawei.com>
+X-Mailer: git-send-email 1.9.1
+In-Reply-To: <1564648154-123172-1-git-send-email-oulijun@huawei.com>
+References: <1564648154-123172-1-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190731195523.GK22677@mellanox.com>
-User-Agent: Mutt/1.12.0 (2019-05-25)
+Content-Type: text/plain
+X-Originating-IP: [10.71.200.31]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Jul 31, 2019 at 07:55:28PM +0000, Jason Gunthorpe wrote:
-> On Wed, Jul 31, 2019 at 09:01:24PM +0300, Leon Romanovsky wrote:
-> > On Wed, Jul 31, 2019 at 05:22:19PM +0000, Jason Gunthorpe wrote:
-> > > On Wed, Jul 31, 2019 at 08:09:44PM +0300, Leon Romanovsky wrote:
-> > > > On Wed, Jul 31, 2019 at 05:00:59PM +0000, Jason Gunthorpe wrote:
-> > > > > On Wed, Jul 31, 2019 at 12:22:44PM -0400, Doug Ledford wrote:
-> > > > > > > diff --git a/drivers/infiniband/hw/mlx5/main.c
-> > > > > > > b/drivers/infiniband/hw/mlx5/main.c
-> > > > > > > index c2a5780cb394..e12a4404096b 100644
-> > > > > > > +++ b/drivers/infiniband/hw/mlx5/main.c
-> > > > > > > @@ -5802,13 +5802,12 @@ static void mlx5_ib_unbind_slave_port(struct
-> > > > > > > mlx5_ib_dev *ibdev,
-> > > > > > >  		return;
-> > > > > > >  	}
-> > > > > > >
-> > > > > > > -	if (mpi->mdev_events.notifier_call)
-> > > > > > > -		mlx5_notifier_unregister(mpi->mdev, &mpi->mdev_events);
-> > > > > > > -	mpi->mdev_events.notifier_call = NULL;
-> > > > > > > -
-> > > > > > >  	mpi->ibdev = NULL;
-> > > > > > >
-> > > > > > >  	spin_unlock(&port->mp.mpi_lock);
-> > > > > > > +	if (mpi->mdev_events.notifier_call)
-> > > > > > > +		mlx5_notifier_unregister(mpi->mdev, &mpi->mdev_events);
-> > > > > > > +	mpi->mdev_events.notifier_call = NULL;
-> > > > > >
-> > > > > > I can see where this fixes the problem at hand, but this gives the
-> > > > > > appearance of creating a new race.  Doing a check/unregister/set-null
-> > > > > > series outside of any locks is a red flag to someone investigating the
-> > > > > > code.  You should at least make note of the fact that calling unregister
-> > > > > > more than once is safe.  If you're fine with it, I can add a comment and
-> > > > > > take the patch, or you can resubmit.
-> > > > >
-> > > > > Mucking about notifier_call like that is gross anyhow, maybe better to
-> > > > > delete it entirely.
-> > > >
-> > > > What do you propose to delete?
-> > >
-> > > The 'mpi->mdev_events.notifier_call = NULL;' and 'if
-> > > (mpi->mdev_events.notifier_call)'
-> > >
-> > > Once it leaves the lock it stops doing anything useful.
-> > >
-> > > If you need it, then we can't drop the lock, if you don't, it is just
-> > > dead code, delete it.
-> >
-> > This specific notifier_call is protected outside
-> > of mlx5_ib_unbind_slave_port() by mlx5_ib_multiport_mutex and NULL check
-> > is needed to ensure single call to mlx5_notifier_unregister, because
-> > calls to mlx5_ib_unbind_slave_port() will be serialized.
->
-> If this routine is now relying on locking that is not obvious in the
-> function itself then add a lockdep too.
+From: Lang Cheng <chenglang@huawei.com>
 
-It was "before" without lockdep and we are
-protecting "mpi->mdev_events.notifier_call = NULL;"
+Handling the error return value of hns_roce_calc_hem_mhop.
 
-So why should we change this patch?
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-Thanks
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index d3e72a0..0268c7a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -830,7 +830,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
+ 	} else {
+ 		u32 seg_size = 64; /* 8 bytes per BA and 8 BA per segment */
+ 
+-		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
++		if (hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop))
++			goto out;
+ 		/* mtt mhop */
+ 		i = mhop.l0_idx;
+ 		j = mhop.l1_idx;
+@@ -879,11 +880,13 @@ int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
+ {
+ 	struct hns_roce_hem_mhop mhop;
+ 	unsigned long inc = table->table_chunk_size / table->obj_size;
+-	unsigned long i;
++	unsigned long i = 0;
+ 	int ret;
+ 
+ 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
+-		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++		ret = hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++		if (ret)
++			goto fail;
+ 		inc = mhop.bt_chunk_size / table->obj_size;
+ 	}
+ 
+@@ -913,7 +916,8 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
+ 	unsigned long i;
+ 
+ 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
+-		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++		if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
++			return;
+ 		inc = mhop.bt_chunk_size / table->obj_size;
+ 	}
+ 
+@@ -1035,7 +1039,8 @@ static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
+ 	int i;
+ 	u64 obj;
+ 
+-	hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++	if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
++		return;
+ 	buf_chunk_size = table->type < HEM_TYPE_MTT ? mhop.buf_chunk_size :
+ 					mhop.bt_chunk_size;
+ 
+-- 
+1.9.1
 
->
-> Jason
