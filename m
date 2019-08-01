@@ -2,36 +2,35 @@ Return-Path: <SRS0=ZuZ5=V5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E003C32754
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:33:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A88DC41517
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:33:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4CDF6214DA
+	by mail.kernel.org (Postfix) with ESMTP id EE9D6214DA
 	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:33:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729702AbfHAId3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1730583AbfHAId3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 1 Aug 2019 04:33:29 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:42082 "EHLO huawei.com"
+Received: from szxga07-in.huawei.com ([45.249.212.35]:42110 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730596AbfHAId3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1730280AbfHAId3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 1 Aug 2019 04:33:29 -0400
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 107005685F16BFAE8BB6;
+        by Forcepoint Email with ESMTP id 396A8CA30EDC09BB2526;
         Thu,  1 Aug 2019 16:33:23 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 1 Aug 2019 16:33:12 +0800
+ 14.3.439.0; Thu, 1 Aug 2019 16:33:14 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V2 for-next 02/13] RDMA/hns: Optimize hns_roce_modify_qp function
-Date:   Thu, 1 Aug 2019 16:29:03 +0800
-Message-ID: <1564648154-123172-3-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V2 for-next 08/13] RDMA/hns: Split bool statement and assign statement
+Date:   Thu, 1 Aug 2019 16:29:09 +0800
+Message-ID: <1564648154-123172-9-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564648154-123172-1-git-send-email-oulijun@huawei.com>
 References: <1564648154-123172-1-git-send-email-oulijun@huawei.com>
@@ -44,195 +43,72 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Here mainly packages some code into some new functions in order to
-reduce code compelexity.
+From: Lang Cheng <chenglang@huawei.com>
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
----
-V1->V2:
-1. Use ibdev prefix print interface
----
- drivers/infiniband/hw/hns/hns_roce_qp.c | 131 +++++++++++++++++++-------------
- 1 file changed, 80 insertions(+), 51 deletions(-)
+Assign statement can not be contained in bool statement or
+function param.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 8abd1aa..2eb5b0a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -1070,93 +1070,122 @@ int to_hr_qp_type(int qp_type)
- 	return transport_type;
- }
- 
--int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
--		       int attr_mask, struct ib_udata *udata)
-+static int check_mtu_validate(struct hns_roce_dev *hr_dev,
-+			      struct hns_roce_qp *hr_qp,
-+			      struct ib_qp_attr *attr, int attr_mask)
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 6dcb3ac..05b906f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4938,7 +4938,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_eq *eq)
  {
--	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
--	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
--	enum ib_qp_state cur_state, new_state;
--	struct device *dev = hr_dev->dev;
--	int ret = -EINVAL;
--	int p;
- 	enum ib_mtu active_mtu;
-+	int p;
+ 	struct device *dev = hr_dev->dev;
+-	struct hns_roce_aeqe *aeqe;
++	struct hns_roce_aeqe *aeqe = next_aeqe_sw_v2(eq);
+ 	int aeqe_found = 0;
+ 	int event_type;
+ 	int sub_type;
+@@ -4946,8 +4946,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
+ 	u32 qpn;
+ 	u32 cqn;
  
--	mutex_lock(&hr_qp->mutex);
+-	while ((aeqe = next_aeqe_sw_v2(eq))) {
 -
--	cur_state = attr_mask & IB_QP_CUR_STATE ?
--		    attr->cur_qp_state : (enum ib_qp_state)hr_qp->state;
--	new_state = attr_mask & IB_QP_STATE ?
--		    attr->qp_state : cur_state;
--
--	if (ibqp->uobject &&
--	    (attr_mask & IB_QP_STATE) && new_state == IB_QPS_ERR) {
--		if (hr_qp->sdb_en == 1) {
--			hr_qp->sq.head = *(int *)(hr_qp->sdb.virt_addr);
-+	p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp->port;
-+	    active_mtu = iboe_get_mtu(hr_dev->iboe.netdevs[p]->mtu);
- 
--			if (hr_qp->rdb_en == 1)
--				hr_qp->rq.head = *(int *)(hr_qp->rdb.virt_addr);
--		} else {
--			dev_warn(dev, "flush cqe is not supported in userspace!\n");
--			goto out;
--		}
-+	if ((hr_dev->caps.max_mtu >= IB_MTU_2048 &&
-+	    attr->path_mtu > hr_dev->caps.max_mtu) ||
-+	    attr->path_mtu < IB_MTU_256 || attr->path_mtu > active_mtu) {
-+		ibdev_err(&hr_dev->ib_dev,
-+			"attr path_mtu(%d)invalid while modify qp",
-+			attr->path_mtu);
-+		return -EINVAL;
- 	}
- 
--	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type,
--				attr_mask)) {
--		dev_err(dev, "ib_modify_qp_is_ok failed\n");
--		goto out;
--	}
-+	return 0;
-+}
-+
-+static int hns_roce_check_qp_attr(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-+				  int attr_mask)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
-+	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-+	int ret = 0;
-+	int p;
- 
- 	if ((attr_mask & IB_QP_PORT) &&
- 	    (attr->port_num == 0 || attr->port_num > hr_dev->caps.num_ports)) {
--		dev_err(dev, "attr port_num invalid.attr->port_num=%d\n",
-+		ibdev_err(&hr_dev->ib_dev,
-+			"attr port_num invalid.attr->port_num=%d\n",
- 			attr->port_num);
--		goto out;
-+		return -EINVAL;
- 	}
- 
- 	if (attr_mask & IB_QP_PKEY_INDEX) {
- 		p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp->port;
- 		if (attr->pkey_index >= hr_dev->caps.pkey_table_len[p]) {
--			dev_err(dev, "attr pkey_index invalid.attr->pkey_index=%d\n",
-+			ibdev_err(&hr_dev->ib_dev,
-+				"attr pkey_index invalid.attr->pkey_index=%d\n",
- 				attr->pkey_index);
--			goto out;
-+			return -EINVAL;
++	while (aeqe) {
+ 		/* Make sure we read AEQ entry after we have checked the
+ 		 * ownership bit
+ 		 */
+@@ -5016,6 +5015,8 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
+ 			eq->cons_index = 0;
  		}
+ 		hns_roce_v2_init_irq_work(hr_dev, eq, qpn, cqn);
++
++		aeqe = next_aeqe_sw_v2(eq);
  	}
  
- 	if (attr_mask & IB_QP_PATH_MTU) {
--		p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp->port;
--		active_mtu = iboe_get_mtu(hr_dev->iboe.netdevs[p]->mtu);
+ 	set_eq_cons_index_v2(eq);
+@@ -5068,12 +5069,11 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_eq *eq)
+ {
+ 	struct device *dev = hr_dev->dev;
+-	struct hns_roce_ceqe *ceqe;
++	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
+ 	int ceqe_found = 0;
+ 	u32 cqn;
+ 
+-	while ((ceqe = next_ceqe_sw_v2(eq))) {
 -
--		if ((hr_dev->caps.max_mtu == IB_MTU_4096 &&
--		    attr->path_mtu > IB_MTU_4096) ||
--		    (hr_dev->caps.max_mtu == IB_MTU_2048 &&
--		    attr->path_mtu > IB_MTU_2048) ||
--		    attr->path_mtu < IB_MTU_256 ||
--		    attr->path_mtu > active_mtu) {
--			dev_err(dev, "attr path_mtu(%d)invalid while modify qp",
--				attr->path_mtu);
--			goto out;
--		}
-+		ret = check_mtu_validate(hr_dev, hr_qp, attr, attr_mask);
-+		if (ret)
-+			return ret;
++	while (ceqe) {
+ 		/* Make sure we read CEQ entry after we have checked the
+ 		 * ownership bit
+ 		 */
+@@ -5092,6 +5092,8 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
+ 			dev_warn(dev, "cons_index overflow, set back to 0.\n");
+ 			eq->cons_index = 0;
+ 		}
++
++		ceqe = next_ceqe_sw_v2(eq);
  	}
  
- 	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC &&
- 	    attr->max_rd_atomic > hr_dev->caps.max_qp_init_rdma) {
--		dev_err(dev, "attr max_rd_atomic invalid.attr->max_rd_atomic=%d\n",
-+		ibdev_err(&hr_dev->ib_dev,
-+			"attr max_rd_atomic invalid.attr->max_rd_atomic=%d\n",
- 			attr->max_rd_atomic);
--		goto out;
-+		return -EINVAL;
- 	}
- 
- 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC &&
- 	    attr->max_dest_rd_atomic > hr_dev->caps.max_qp_dest_rdma) {
--		dev_err(dev, "attr max_dest_rd_atomic invalid.attr->max_dest_rd_atomic=%d\n",
-+		ibdev_err(&hr_dev->ib_dev,
-+			"attr max_dest_rd_atomic invalid.attr->max_dest_rd_atomic=%d\n",
- 			attr->max_dest_rd_atomic);
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-+		       int attr_mask, struct ib_udata *udata)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
-+	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-+	enum ib_qp_state cur_state, new_state;
-+	int ret = -EINVAL;
-+
-+	mutex_lock(&hr_qp->mutex);
-+
-+	cur_state = attr_mask & IB_QP_CUR_STATE ?
-+		    attr->cur_qp_state : (enum ib_qp_state)hr_qp->state;
-+	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
-+
-+	if (ibqp->uobject &&
-+	    (attr_mask & IB_QP_STATE) && new_state == IB_QPS_ERR) {
-+		if (hr_qp->sdb_en == 1) {
-+			hr_qp->sq.head = *(int *)(hr_qp->sdb.virt_addr);
-+
-+			if (hr_qp->rdb_en == 1)
-+				hr_qp->rq.head = *(int *)(hr_qp->rdb.virt_addr);
-+		} else {
-+			ibdev_warn(&hr_dev->ib_dev,
-+				  "flush cqe is not supported in userspace!\n");
-+			goto out;
-+		}
-+	}
-+
-+	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type,
-+				attr_mask)) {
-+		ibdev_err(&hr_dev->ib_dev, "ib_modify_qp_is_ok failed\n");
- 		goto out;
- 	}
- 
-+	ret = hns_roce_check_qp_attr(ibqp, attr, attr_mask);
-+	if (ret)
-+		goto out;
-+
- 	if (cur_state == new_state && cur_state == IB_QPS_RESET) {
- 		if (hr_dev->caps.min_wqes) {
- 			ret = -EPERM;
--			dev_err(dev, "cur_state=%d new_state=%d\n", cur_state,
-+			ibdev_err(&hr_dev->ib_dev,
-+				"cur_state=%d new_state=%d\n", cur_state,
- 				new_state);
- 		} else {
- 			ret = 0;
+ 	set_eq_cons_index_v2(eq);
 -- 
 1.9.1
 
