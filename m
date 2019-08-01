@@ -2,184 +2,177 @@ Return-Path: <SRS0=ZuZ5=V5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E9D6C19759
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 15:59:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BF17C19759
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 16:00:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2483D2087E
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 15:59:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564675160;
-	bh=6sXYakjSTba1H5xK6EGDWaqk7CCoYYzC7eaDqCYqKtM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=092qOP0S17hB58MvVqoOz5FvGjrZjt7wyVVcNajUjlxBUMs+uQ/+M1kBJ242cQP/S
-	 9vutRdyk+QvPQ9s4ACp/7PMfB3U9Wc+YhhajZCoH/rNOkN7U1Wdyd4V/3jNZoQAwKN
-	 nK3Nj8mKdGx1vKwVXtLZr5ZNfQo2/kKjj30YDgXM=
+	by mail.kernel.org (Postfix) with ESMTP id E05DB206B8
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 16:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730728AbfHAP7T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Aug 2019 11:59:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53510 "EHLO mail.kernel.org"
+        id S1729708AbfHAQAS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Aug 2019 12:00:18 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:36142 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729708AbfHAP7T (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 1 Aug 2019 11:59:19 -0400
-Received: from localhost (unknown [77.137.115.125])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1729117AbfHAQAS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 1 Aug 2019 12:00:18 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 64016206B8;
-        Thu,  1 Aug 2019 15:59:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564675158;
-        bh=6sXYakjSTba1H5xK6EGDWaqk7CCoYYzC7eaDqCYqKtM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=FnUowuEuQHz6In1lXhrm5ZV+ZBsBSbAG86zO3leqHD/TyC8imvzeeKd+fHspYKI0z
-         HRFxG+Qxi2cs8IyjNIftuq1lrIJ6uz5a26k9R+ZBX6OpMBBoxOalvrLMxrSbSqxUrU
-         OSECDylBHikS+p/bXJsx1GkYfzbFV6pFO0A69o3E=
-Date:   Thu, 1 Aug 2019 18:59:12 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        by mx1.redhat.com (Postfix) with ESMTPS id 1DEF86404F;
+        Thu,  1 Aug 2019 16:00:17 +0000 (UTC)
+Received: from linux-ws.nc.xsintricity.com (ovpn-112-50.rdu2.redhat.com [10.10.112.50])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id CF2DA60623;
+        Thu,  1 Aug 2019 16:00:15 +0000 (UTC)
+Message-ID: <c3d95377af494b5d519a26f5c7dd8426ed93612f.camel@redhat.com>
+Subject: Re: [PATCH rdma-rc] IB/mad: Fix use-after-free in ib mad completion
+ handling
+From:   Doug Ledford <dledford@redhat.com>
+To:     Leon Romanovsky <leon@kernel.org>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Jack Morgenstein <jackm@dev.mellanox.co.il>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH rdma-rc] RDMA/mlx5: Release locks during notifier
- unregister
-Message-ID: <20190801155912.GS4832@mtr-leonro.mtl.com>
-References: <44863abbef5c1e233cbedfdf959fe900f7722d74.camel@redhat.com>
- <20190731170054.GF22677@mellanox.com>
- <20190731170944.GC4832@mtr-leonro.mtl.com>
- <20190731172215.GJ22677@mellanox.com>
- <20190731180124.GE4832@mtr-leonro.mtl.com>
- <20190731195523.GK22677@mellanox.com>
- <20190801082749.GH4832@mtr-leonro.mtl.com>
- <20190801120007.GB23885@mellanox.com>
- <20190801120821.GK4832@mtr-leonro.mtl.com>
- <060b3e8fbe48312e9af33b88ba7ba62a6b64b493.camel@redhat.com>
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leonro@mellanox.com>
+Date:   Thu, 01 Aug 2019 12:00:13 -0400
+In-Reply-To: <20190801121449.24973-1-leon@kernel.org>
+References: <20190801121449.24973-1-leon@kernel.org>
+Organization: Red Hat, Inc.
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-+z1pMIKdAvYiqfxRqCc0"
+User-Agent: Evolution 3.32.4 (3.32.4-1.fc30) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <060b3e8fbe48312e9af33b88ba7ba62a6b64b493.camel@redhat.com>
-User-Agent: Mutt/1.12.0 (2019-05-25)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.25]); Thu, 01 Aug 2019 16:00:17 +0000 (UTC)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 01, 2019 at 10:16:23AM -0400, Doug Ledford wrote:
-> On Thu, 2019-08-01 at 15:08 +0300, Leon Romanovsky wrote:
-> > On Thu, Aug 01, 2019 at 12:00:12PM +0000, Jason Gunthorpe wrote:
-> > > On Thu, Aug 01, 2019 at 11:27:49AM +0300, Leon Romanovsky wrote:
-> > > > On Wed, Jul 31, 2019 at 07:55:28PM +0000, Jason Gunthorpe wrote:
-> > > > > On Wed, Jul 31, 2019 at 09:01:24PM +0300, Leon Romanovsky wrote:
-> > > > > > On Wed, Jul 31, 2019 at 05:22:19PM +0000, Jason Gunthorpe
-> > > > > > wrote:
-> > > > > > > On Wed, Jul 31, 2019 at 08:09:44PM +0300, Leon Romanovsky
-> > > > > > > wrote:
-> > > > > > > > On Wed, Jul 31, 2019 at 05:00:59PM +0000, Jason Gunthorpe
-> > > > > > > > wrote:
-> > > > > > > > > On Wed, Jul 31, 2019 at 12:22:44PM -0400, Doug Ledford
-> > > > > > > > > wrote:
-> > > > > > > > > > > diff --git a/drivers/infiniband/hw/mlx5/main.c
-> > > > > > > > > > > b/drivers/infiniband/hw/mlx5/main.c
-> > > > > > > > > > > index c2a5780cb394..e12a4404096b 100644
-> > > > > > > > > > > +++ b/drivers/infiniband/hw/mlx5/main.c
-> > > > > > > > > > > @@ -5802,13 +5802,12 @@ static void
-> > > > > > > > > > > mlx5_ib_unbind_slave_port(struct
-> > > > > > > > > > > mlx5_ib_dev *ibdev,
-> > > > > > > > > > >  		return;
-> > > > > > > > > > >  	}
-> > > > > > > > > > >
-> > > > > > > > > > > -	if (mpi->mdev_events.notifier_call)
-> > > > > > > > > > > -		mlx5_notifier_unregister(mpi->mdev,
-> > > > > > > > > > > &mpi->mdev_events);
-> > > > > > > > > > > -	mpi->mdev_events.notifier_call = NULL;
-> > > > > > > > > > > -
-> > > > > > > > > > >  	mpi->ibdev = NULL;
-> > > > > > > > > > >
-> > > > > > > > > > >  	spin_unlock(&port->mp.mpi_lock);
-> > > > > > > > > > > +	if (mpi->mdev_events.notifier_call)
-> > > > > > > > > > > +		mlx5_notifier_unregister(mpi->mdev,
-> > > > > > > > > > > &mpi->mdev_events);
-> > > > > > > > > > > +	mpi->mdev_events.notifier_call = NULL;
-> > > > > > > > > >
-> > > > > > > > > > I can see where this fixes the problem at hand, but
-> > > > > > > > > > this gives the
-> > > > > > > > > > appearance of creating a new race.  Doing a
-> > > > > > > > > > check/unregister/set-null
-> > > > > > > > > > series outside of any locks is a red flag to someone
-> > > > > > > > > > investigating the
-> > > > > > > > > > code.  You should at least make note of the fact that
-> > > > > > > > > > calling unregister
-> > > > > > > > > > more than once is safe.  If you're fine with it, I can
-> > > > > > > > > > add a comment and
-> > > > > > > > > > take the patch, or you can resubmit.
-> > > > > > > > >
-> > > > > > > > > Mucking about notifier_call like that is gross anyhow,
-> > > > > > > > > maybe better to
-> > > > > > > > > delete it entirely.
-> > > > > > > >
-> > > > > > > > What do you propose to delete?
-> > > > > > >
-> > > > > > > The 'mpi->mdev_events.notifier_call = NULL;' and 'if
-> > > > > > > (mpi->mdev_events.notifier_call)'
-> > > > > > >
-> > > > > > > Once it leaves the lock it stops doing anything useful.
-> > > > > > >
-> > > > > > > If you need it, then we can't drop the lock, if you don't,
-> > > > > > > it is just
-> > > > > > > dead code, delete it.
-> > > > > >
-> > > > > > This specific notifier_call is protected outside
-> > > > > > of mlx5_ib_unbind_slave_port() by mlx5_ib_multiport_mutex and
-> > > > > > NULL check
-> > > > > > is needed to ensure single call to mlx5_notifier_unregister,
-> > > > > > because
-> > > > > > calls to mlx5_ib_unbind_slave_port() will be serialized.
-> > > > >
-> > > > > If this routine is now relying on locking that is not obvious in
-> > > > > the
-> > > > > function itself then add a lockdep too.
-> > > >
-> > > > It was "before" without lockdep and we are
-> > > > protecting "mpi->mdev_events.notifier_call = NULL;"
-> > >
-> > > Before the locking was relying on mpi_lock inside this function now
-> > > this patch changes it to relies on mlx5_ib_multiport_mutex, so it
-> > > needs a lockdep
-> >
-> > It didn't rely, but was moved by mistake. I'll add lockdep and resend.
-> >
-> > Thanks
->
-> There's no need for a lockdep.  The removal of the notifier callback
-> entry is re-entrant safe.  The core removal routines have their own
-> spinlock they use to protect the actual notifier list.  If you call it
-> more than once, the second and subsequent calls merely scan the list,
-> find no matching entry, and return ENOENT.  The only reason this might
-> need a lock and a lockdep entry is if you are protecting against a race
-> with the *add* notifier code in the mlx5 driver specifically (the core
-> add code won't have an issue, but since you only have a single place to
-> store the notifier callback pointer, if it would be possible for you to
-> add two callbacks and write over the first callback pointer with the
-> second without removing the first, then you would leak a callback
-> notifier in the core notifier list).
 
-atomic_notifier_chain_unregister() unconditionally calls to
-syncronize_rcu() and I'm not so sure that it is best thing to do
-for every port unbind.
+--=-+z1pMIKdAvYiqfxRqCc0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Actually, I'm completely lost here, we are all agree that the patch
-fixes issue correctly, and it returns the code to be exactly as
-it was before commit df097a278c75 ("IB/mlx5: Use the new mlx5 core notifier
-API"). Can we simply merge it and fix the kernel panic?
+On Thu, 2019-08-01 at 15:14 +0300, Leon Romanovsky wrote:
+> From: Jack Morgenstein <jackm@dev.mellanox.co.il>
+>=20
+> We encountered a use-after-free bug when unloading the driver:
+>=20
+> [ 3562.116059] BUG: KASAN: use-after-free in
+> ib_mad_post_receive_mads+0xddc/0xed0 [ib_core]
+> [ 3562.117233] Read of size 4 at addr ffff8882ca5aa868 by task
+> kworker/u13:2/23862
+> [ 3562.118385]
+> [ 3562.119519] CPU: 2 PID: 23862 Comm: kworker/u13:2 Tainted:
+> G           OE     5.1.0-for-upstream-dbg-2019-05-19_16-44-30-13 #1
+> [ 3562.121806] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+> BIOS Ubuntu-1.8.2-1ubuntu2 04/01/2014
+> [ 3562.123075] Workqueue: ib-comp-unb-wq ib_cq_poll_work [ib_core]
+> [ 3562.124383] Call Trace:
+> [ 3562.125640]  dump_stack+0x9a/0xeb
+> [ 3562.126911]  print_address_description+0xe3/0x2e0
+> [ 3562.128223]  ? ib_mad_post_receive_mads+0xddc/0xed0 [ib_core]
+> [ 3562.129545]  __kasan_report+0x15c/0x1df
+> [ 3562.130866]  ? ib_mad_post_receive_mads+0xddc/0xed0 [ib_core]
+> [ 3562.132174]  kasan_report+0xe/0x20
+> [ 3562.133514]  ib_mad_post_receive_mads+0xddc/0xed0 [ib_core]
+> [ 3562.134835]  ? find_mad_agent+0xa00/0xa00 [ib_core]
+> [ 3562.136158]  ? qlist_free_all+0x51/0xb0
+> [ 3562.137498]  ? mlx4_ib_sqp_comp_worker+0x1970/0x1970 [mlx4_ib]
+> [ 3562.138833]  ? quarantine_reduce+0x1fa/0x270
+> [ 3562.140171]  ? kasan_unpoison_shadow+0x30/0x40
+> [ 3562.141522]  ib_mad_recv_done+0xdf6/0x3000 [ib_core]
+> [ 3562.142880]  ? _raw_spin_unlock_irqrestore+0x46/0x70
+> [ 3562.144277]  ? ib_mad_send_done+0x1810/0x1810 [ib_core]
+> [ 3562.145649]  ? mlx4_ib_destroy_cq+0x2a0/0x2a0 [mlx4_ib]
+> [ 3562.147008]  ? _raw_spin_unlock_irqrestore+0x46/0x70
+> [ 3562.148380]  ? debug_object_deactivate+0x2b9/0x4a0
+> [ 3562.149814]  __ib_process_cq+0xe2/0x1d0 [ib_core]
+> [ 3562.151195]  ib_cq_poll_work+0x45/0xf0 [ib_core]
+> [ 3562.152577]  process_one_work+0x90c/0x1860
+> [ 3562.153959]  ? pwq_dec_nr_in_flight+0x320/0x320
+> [ 3562.155320]  worker_thread+0x87/0xbb0
+> [ 3562.156687]  ? __kthread_parkme+0xb6/0x180
+> [ 3562.158058]  ? process_one_work+0x1860/0x1860
+> [ 3562.159429]  kthread+0x320/0x3e0
+> [ 3562.161391]  ? kthread_park+0x120/0x120
+> [ 3562.162744]  ret_from_fork+0x24/0x30
+> ...
+> [ 3562.187615] Freed by task 31682:
+> [ 3562.188602]  save_stack+0x19/0x80
+> [ 3562.189586]  __kasan_slab_free+0x11d/0x160
+> [ 3562.190571]  kfree+0xf5/0x2f0
+> [ 3562.191552]  ib_mad_port_close+0x200/0x380 [ib_core]
+> [ 3562.192538]  ib_mad_remove_device+0xf0/0x230 [ib_core]
+> [ 3562.193538]  remove_client_context+0xa6/0xe0 [ib_core]
+> [ 3562.194514]  disable_device+0x14e/0x260 [ib_core]
+> [ 3562.195488]  __ib_unregister_device+0x79/0x150 [ib_core]
+> [ 3562.196462]  ib_unregister_device+0x21/0x30 [ib_core]
+> [ 3562.197439]  mlx4_ib_remove+0x162/0x690 [mlx4_ib]
+> [ 3562.198408]  mlx4_remove_device+0x204/0x2c0 [mlx4_core]
+> [ 3562.199381]  mlx4_unregister_interface+0x49/0x1d0 [mlx4_core]
+> [ 3562.200356]  mlx4_ib_cleanup+0xc/0x1d [mlx4_ib]
+> [ 3562.201329]  __x64_sys_delete_module+0x2d2/0x400
+> [ 3562.202288]  do_syscall_64+0x95/0x470
+> [ 3562.203277]  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+>=20
+> The problem was that the MAD PD was deallocated before the MAD CQ.
+> There was completion work pending for the CQ when the PD got
+> deallocated.
+> When the mad completion handling reached procedure
+> ib_mad_post_receive_mads(), we got a use-after-free bug in the
+> following
+> line of code in that procedure:
+>    sg_list.lkey =3D qp_info->port_priv->pd->local_dma_lkey;
+> (the pd pointer in the above line is no longer valid, because the
+> pd has been deallocated).
+>=20
+> We fix this by allocating the PD before the CQ in procedure
+> ib_mad_port_open(), and deallocating the PD after freeing the CQ
+> in procedure ib_mad_port_close().
+>=20
+> Since the CQ completion work queue is flushed during ib_free_cq(),
+> no completions will be pending for that CQ when the PD is later
+> deallocated.
+>=20
+> Note that freeing the CQ before deallocating the PD is the practice
+> in the ULPs.
+>=20
+> Fixes: 4be90bc60df4 ("IB/mad: Remove ib_get_dma_mr calls")
+> Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 
-Thanks
+Thanks, applied to for-rc.
 
->
-> --
-> Doug Ledford <dledford@redhat.com>
->     GPG KeyID: B826A3330E572FDD
->     Fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
+--=-+z1pMIKdAvYiqfxRqCc0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl1DDI0ACgkQuCajMw5X
+L93LvA/8D1yvkMGxzGF9X9TmRrX6C1dFRNp8CkzTUt1FU/358hMxaXqfYZ7RNbgs
+7/B6pMriha/yS5ZWQolGkRH4oV7/baEoA1NiFJmSJHDEJaP06Fc59s+lqSz27OCZ
+BmiZx9IpJIVC+kmaC0yWunobrhlTqnNZ+X2r74ZtKLWoquU6R3dNKPFfI03tOnNN
+feeV4qCm8IP4q63a/mqqwbI7UrmHTD0RUoobh9D3laixcR8SLjyn1BWRsDyZ/0s7
+DEjJdDeJpwh4k6kQzptfusasEFcpo3j+yEI6uVjrQrtgQnedtHoc9yTiTtsDhZ9g
+GE03eA8iW/D5DpibNKhYU01Hij85N7lQ9mgUFY/x6H0NHvUxBbBF1xgZGWV8x8/l
+5KGE+nc6Vizw0aEMGMmL+/HyXBP6XS4uwMje8tZolUMBPcKRO3T6QTFm4DP5z2vC
+txv3CYgQ+vh0HvpYO5huQE4u6s5fR2OjlwmVYWG3qtCs69Mu/XpmjpaqzUF04zt0
+yvJZEZNkVlN2bMLzKVjy8x2JXWV8xpuMcUnTaeXZI+qcSDBfqm00t7dBkpKutsOC
+x0Bt2OKbeGROD+kLsiJRClIWylywVQg/Sy3ENMojdRUGroGnQUc22VRoLFWrRPnx
+8LurH+IT7sqLzVwCNSCnlQsLp2n9CdAi5oz7gNe7qzFXKSMyd8w=
+=DAOC
+-----END PGP SIGNATURE-----
+
+--=-+z1pMIKdAvYiqfxRqCc0--
 
