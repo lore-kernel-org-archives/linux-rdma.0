@@ -2,130 +2,106 @@ Return-Path: <SRS0=ZuZ5=V5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7522C19759
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 17:15:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B931EC433FF
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 17:32:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB1C4204EC
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 17:15:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="IHmTPTEv"
+	by mail.kernel.org (Postfix) with ESMTP id 864C420838
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 17:32:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1564680728;
+	bh=uT898DY/h5AlbuNLdjIFzQnGHZILdJJSpYiv/gOrQx8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=0ZUlQ6yzojVBGgPLTZXFpjVcEmcjokqyCvuC/CpeYaezm3/wCU5JQ1hqFYkNYvP9t
+	 iX81jjLODxw0PhoTEMCXuge2/c+QKteh08+Zp/5hWQZPqDsejYDlPzW3vq0cWToe5m
+	 1P3L2YT0rR2LWaCpjkQvnZknzFSe/7OmE9RbTzmE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732408AbfHARPg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Aug 2019 13:15:36 -0400
-Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:39759 "EHLO
-        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727498AbfHARPg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Aug 2019 13:15:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1564679735; x=1596215735;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=/VhI+lEn+tsVMv1+k4y3EQ9t+IG0GxM/17ifq2bRUJ8=;
-  b=IHmTPTEvol/HXL6/Ou2uWQ3PCki4jlg7vSbYoWvkVs7wPRcW8AFDS7ky
-   7hZ0u9MrZAQlRQSvt1TLSVlZwvDSAhDGgIRfw2iVvrFeSOrm0JZwOSrEQ
-   Pb0e/p/4qdGjfbtmSGLVU66x+UI1s9XObKgdUqobRBOIub40MnIbUgBfy
-   Y=;
-X-IronPort-AV: E=Sophos;i="5.64,334,1559520000"; 
-   d="scan'208";a="815790423"
-Received: from sea3-co-svc-lb6-vlan3.sea.amazon.com (HELO email-inbound-relay-2b-4ff6265a.us-west-2.amazon.com) ([10.47.22.38])
-  by smtp-border-fw-out-33001.sea14.amazon.com with ESMTP; 01 Aug 2019 17:15:17 +0000
-Received: from EX13MTAUEA001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan3.pdx.amazon.com [10.170.41.166])
-        by email-inbound-relay-2b-4ff6265a.us-west-2.amazon.com (Postfix) with ESMTPS id 40587A25F9;
-        Thu,  1 Aug 2019 17:15:17 +0000 (UTC)
-Received: from EX13D19EUA004.ant.amazon.com (10.43.165.28) by
- EX13MTAUEA001.ant.amazon.com (10.43.61.82) with Microsoft SMTP Server (TLS)
- id 15.0.1367.3; Thu, 1 Aug 2019 17:15:16 +0000
-Received: from EX13MTAUWB001.ant.amazon.com (10.43.161.207) by
- EX13D19EUA004.ant.amazon.com (10.43.165.28) with Microsoft SMTP Server (TLS)
- id 15.0.1367.3; Thu, 1 Aug 2019 17:15:15 +0000
-Received: from 8c85908914bf.ant.amazon.com (10.95.68.21) by
- mail-relay.amazon.com (10.43.161.249) with Microsoft SMTP Server id
- 15.0.1367.3 via Frontend Transport; Thu, 1 Aug 2019 17:15:12 +0000
-From:   Gal Pressman <galpress@amazon.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
-        "Leon Romanovsky" <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, Gal Pressman <galpress@amazon.com>
-Subject: [PATCH for-next v2 1/2] RDMA/core: Introduce ratelimited ibdev printk functions
-Date:   Thu, 1 Aug 2019 20:14:46 +0300
-Message-ID: <20190801171447.54440-2-galpress@amazon.com>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190801171447.54440-1-galpress@amazon.com>
-References: <20190801171447.54440-1-galpress@amazon.com>
+        id S1727616AbfHARcH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Aug 2019 13:32:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53528 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726118AbfHARcH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 1 Aug 2019 13:32:07 -0400
+Received: from localhost (unknown [77.137.115.125])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0D3C9205F4;
+        Thu,  1 Aug 2019 17:32:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1564680726;
+        bh=uT898DY/h5AlbuNLdjIFzQnGHZILdJJSpYiv/gOrQx8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=loP3f3XlAbzCZn8O7wehdsdpagbpl41moB8hfOW9FZD4s3URSTO2Xh25OwZsh8yTI
+         7MM0wcvrlTMrEA8ce3PVlPVXc+jRPCWizKS0+Ma5HZa6QSd6KPNZdrfYlnaJsx2tlc
+         2rZwz+874rGntsbiF8nV+VhfhR20PU6arqs7fFz0=
+Date:   Thu, 1 Aug 2019 20:31:54 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH rdma-rc] RDMA/mlx5: Release locks during notifier
+ unregister
+Message-ID: <20190801173154.GY4832@mtr-leonro.mtl.com>
+References: <20190801082749.GH4832@mtr-leonro.mtl.com>
+ <20190801120007.GB23885@mellanox.com>
+ <20190801120821.GK4832@mtr-leonro.mtl.com>
+ <060b3e8fbe48312e9af33b88ba7ba62a6b64b493.camel@redhat.com>
+ <20190801155912.GS4832@mtr-leonro.mtl.com>
+ <a0dc81b63fdef1b7e877d5172be13792dda763d2.camel@redhat.com>
+ <20190801162008.GF23885@mellanox.com>
+ <b74a9eb67af54e8f5050e97a3ab13899de17fe0a.camel@redhat.com>
+ <20190801164330.GH23885@mellanox.com>
+ <760cfc7eb23c6dc170856a3a60226f32f8c8bf9f.camel@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <760cfc7eb23c6dc170856a3a60226f32f8c8bf9f.camel@redhat.com>
+User-Agent: Mutt/1.12.0 (2019-05-25)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add ratelimited helpers to the ibdev_* printk functions.
-Implementation inspired by counterpart dev_*_ratelimited functions.
+On Thu, Aug 01, 2019 at 12:50:37PM -0400, Doug Ledford wrote:
+> On Thu, 2019-08-01 at 16:43 +0000, Jason Gunthorpe wrote:
+> > On Thu, Aug 01, 2019 at 12:40:43PM -0400, Doug Ledford wrote:
+> >
+> > > > It does have a lock though, the caller holds it, hence the request
+> > > > for
+> > > > the lockdep.
+> > >
+> > > You're right, although I think the lockdep annotation can be a
+> > > separate
+> > > patch as it's neeeded on more than just the function this patch
+> > > touches.
+> >
+> > Why? This relies on that lock, so it should have the
+> > lockdep_assert_held assert.
+>
+> It does, but this patch is about the scheduling while atomic, adding a
+> lockdep assertion fix is doubling up on fixes in the patch.  A separate
+> patch that addes the lockdep assert to both the bind and unbind calls
+> makes more sense and just feels cleaner to me.
 
-Signed-off-by: Gal Pressman <galpress@amazon.com>
----
- include/rdma/ib_verbs.h | 42 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
++1
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index c5f8a9f17063..c224b56f4cca 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -107,6 +107,48 @@ static inline
- void ibdev_dbg(const struct ib_device *ibdev, const char *format, ...) {}
- #endif
- 
-+#define ibdev_level_ratelimited(ibdev_level, ibdev, fmt, ...)           \
-+do {                                                                    \
-+	static DEFINE_RATELIMIT_STATE(_rs,                              \
-+				      DEFAULT_RATELIMIT_INTERVAL,       \
-+				      DEFAULT_RATELIMIT_BURST);         \
-+	if (__ratelimit(&_rs))                                          \
-+		ibdev_level(ibdev, fmt, ##__VA_ARGS__);                 \
-+} while (0)
-+
-+#define ibdev_emerg_ratelimited(ibdev, fmt, ...) \
-+	ibdev_level_ratelimited(ibdev_emerg, ibdev, fmt, ##__VA_ARGS__)
-+#define ibdev_alert_ratelimited(ibdev, fmt, ...) \
-+	ibdev_level_ratelimited(ibdev_alert, ibdev, fmt, ##__VA_ARGS__)
-+#define ibdev_crit_ratelimited(ibdev, fmt, ...) \
-+	ibdev_level_ratelimited(ibdev_crit, ibdev, fmt, ##__VA_ARGS__)
-+#define ibdev_err_ratelimited(ibdev, fmt, ...) \
-+	ibdev_level_ratelimited(ibdev_err, ibdev, fmt, ##__VA_ARGS__)
-+#define ibdev_warn_ratelimited(ibdev, fmt, ...) \
-+	ibdev_level_ratelimited(ibdev_warn, ibdev, fmt, ##__VA_ARGS__)
-+#define ibdev_notice_ratelimited(ibdev, fmt, ...) \
-+	ibdev_level_ratelimited(ibdev_notice, ibdev, fmt, ##__VA_ARGS__)
-+#define ibdev_info_ratelimited(ibdev, fmt, ...) \
-+	ibdev_level_ratelimited(ibdev_info, ibdev, fmt, ##__VA_ARGS__)
-+
-+#if defined(CONFIG_DYNAMIC_DEBUG)
-+/* descriptor check is first to prevent flooding with "callbacks suppressed" */
-+#define ibdev_dbg_ratelimited(ibdev, fmt, ...)                          \
-+do {                                                                    \
-+	static DEFINE_RATELIMIT_STATE(_rs,                              \
-+				      DEFAULT_RATELIMIT_INTERVAL,       \
-+				      DEFAULT_RATELIMIT_BURST);         \
-+	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);                 \
-+	if (DYNAMIC_DEBUG_BRANCH(descriptor) && __ratelimit(&_rs))      \
-+		__dynamic_ibdev_dbg(&descriptor, ibdev, fmt,            \
-+				    ##__VA_ARGS__);                     \
-+} while (0)
-+#else
-+__printf(2, 3) __cold
-+static inline
-+void ibdev_dbg_ratelimited(const struct ib_device *ibdev, const char *format, ...) {}
-+#endif
-+
- union ib_gid {
- 	u8	raw[16];
- 	struct {
--- 
-2.22.0
+Also, I'm not going to take any chances in -rc submission, and won't
+change in -rc patches anything without verification approval and it will
+take time and will come very late in -rcX.
+
+Thanks
+
+>
+> > If there are more functions with implicit locking theyt they can be
+> > fixed separately...
+>
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG KeyID: B826A3330E572FDD
+>     Fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 
