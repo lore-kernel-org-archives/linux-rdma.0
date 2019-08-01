@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34AB8C19759
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D623C41514
 	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:33:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E99721773
+	by mail.kernel.org (Postfix) with ESMTP id 6C06D2171F
 	for <linux-rdma@archiver.kernel.org>; Thu,  1 Aug 2019 08:33:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729902AbfHAIdZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728987AbfHAIdZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 1 Aug 2019 04:33:25 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:41908 "EHLO huawei.com"
+Received: from szxga07-in.huawei.com ([45.249.212.35]:41942 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728987AbfHAIdZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1728900AbfHAIdZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 1 Aug 2019 04:33:25 -0400
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 0C4B4C1347FB17E388B8;
+        by Forcepoint Email with ESMTP id 15C0D84907D5DC1AB472;
         Thu,  1 Aug 2019 16:33:23 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
@@ -28,9 +28,9 @@ From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V2 for-next 07/13] RDMA/hns: Handling the error return value of hem function
-Date:   Thu, 1 Aug 2019 16:29:08 +0800
-Message-ID: <1564648154-123172-8-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V2 for-next 03/13] RDMA/hns: Update the prompt message for creating and destroy qp
+Date:   Thu, 1 Aug 2019 16:29:04 +0800
+Message-ID: <1564648154-123172-4-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564648154-123172-1-git-send-email-oulijun@huawei.com>
 References: <1564648154-123172-1-git-send-email-oulijun@huawei.com>
@@ -43,65 +43,105 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+From: Yixian Liu <liuyixian@huawei.com>
 
-Handling the error return value of hns_roce_calc_hem_mhop.
+Current prompt message is uncorrect when destroying qp, add qpn
+information when creating qp.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+V1->V2:
+1. Use ibdev_err instead of dev_err
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  8 ++++----
+ drivers/infiniband/hw/hns/hns_roce_qp.c    | 12 +++++++-----
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index d3e72a0..0268c7a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -830,7 +830,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 	} else {
- 		u32 seg_size = 64; /* 8 bytes per BA and 8 BA per segment */
- 
--		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
-+		if (hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop))
-+			goto out;
- 		/* mtt mhop */
- 		i = mhop.l0_idx;
- 		j = mhop.l1_idx;
-@@ -879,11 +880,13 @@ int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 83c58be..2769802 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4563,7 +4563,7 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 					 struct ib_udata *udata)
  {
- 	struct hns_roce_hem_mhop mhop;
- 	unsigned long inc = table->table_chunk_size / table->obj_size;
--	unsigned long i;
-+	unsigned long i = 0;
+ 	struct hns_roce_cq *send_cq, *recv_cq;
+-	struct device *dev = hr_dev->dev;
++	struct ib_device *ibdev = &hr_dev->ib_dev;
  	int ret;
  
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
--		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		ret = hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		if (ret)
-+			goto fail;
- 		inc = mhop.bt_chunk_size / table->obj_size;
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_RC && hr_qp->state != IB_QPS_RESET) {
+@@ -4571,8 +4571,7 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 		ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, NULL, 0,
+ 					    hr_qp->state, IB_QPS_RESET);
+ 		if (ret) {
+-			dev_err(dev, "modify QP %06lx to ERR failed.\n",
+-				hr_qp->qpn);
++			ibdev_err(ibdev, "modify QP to Reset failed.\n");
+ 			return ret;
+ 		}
+ 	}
+@@ -4641,7 +4640,8 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 
+ 	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
+ 	if (ret) {
+-		dev_err(hr_dev->dev, "Destroy qp failed(%d)\n", ret);
++		ibdev_err(&hr_dev->ib_dev, "Destroy qp 0x%06lx failed(%d)\n",
++			  hr_qp->qpn, ret);
+ 		return ret;
  	}
  
-@@ -913,7 +916,8 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
- 	unsigned long i;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 2eb5b0a..b1ee729 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -988,7 +988,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 				 struct ib_udata *udata)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
+-	struct device *dev = hr_dev->dev;
++	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	struct hns_roce_sqp *hr_sqp;
+ 	struct hns_roce_qp *hr_qp;
+ 	int ret;
+@@ -1002,7 +1002,8 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata, 0,
+ 						hr_qp);
+ 		if (ret) {
+-			dev_err(dev, "Create RC QP failed\n");
++			ibdev_err(ibdev, "Create RC QP 0x%06lx failed(%d)\n",
++				  hr_qp->qpn, ret);
+ 			kfree(hr_qp);
+ 			return ERR_PTR(ret);
+ 		}
+@@ -1014,7 +1015,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 	case IB_QPT_GSI: {
+ 		/* Userspace is not allowed to create special QPs: */
+ 		if (udata) {
+-			dev_err(dev, "not support usr space GSI\n");
++			ibdev_err(ibdev, "not support usr space GSI\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
  
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
--		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
-+			return;
- 		inc = mhop.bt_chunk_size / table->obj_size;
+@@ -1036,7 +1037,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
+ 						hr_qp->ibqp.qp_num, hr_qp);
+ 		if (ret) {
+-			dev_err(dev, "Create GSI QP failed!\n");
++			ibdev_err(ibdev, "Create GSI QP failed!\n");
+ 			kfree(hr_sqp);
+ 			return ERR_PTR(ret);
+ 		}
+@@ -1044,7 +1045,8 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 		break;
  	}
- 
-@@ -1035,7 +1039,8 @@ static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
- 	int i;
- 	u64 obj;
- 
--	hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+	if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
-+		return;
- 	buf_chunk_size = table->type < HEM_TYPE_MTT ? mhop.buf_chunk_size :
- 					mhop.bt_chunk_size;
- 
+ 	default:{
+-		dev_err(dev, "not support QP type %d\n", init_attr->qp_type);
++		ibdev_err(ibdev, "not support QP type %d\n",
++			  init_attr->qp_type);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 	}
 -- 
 1.9.1
 
