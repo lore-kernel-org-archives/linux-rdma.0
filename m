@@ -8,53 +8,53 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97CF7C32753
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 02:21:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA68C19759
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 02:21:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6DC65205F4
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 02:21:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05A64216C8
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 02:21:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FnXZWigm"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="elfpTxMe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403958AbfHBCVG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Aug 2019 22:21:06 -0400
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:43864 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389236AbfHBCVE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Aug 2019 22:21:04 -0400
-Received: by mail-pf1-f194.google.com with SMTP id i189so35157808pfg.10;
-        Thu, 01 Aug 2019 19:21:04 -0700 (PDT)
+        id S2390980AbfHBCVD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Aug 2019 22:21:03 -0400
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:40285 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2403927AbfHBCVA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Aug 2019 22:21:00 -0400
+Received: by mail-pl1-f196.google.com with SMTP id a93so32956918pla.7;
+        Thu, 01 Aug 2019 19:20:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=rv0dCo+fqAQ13SgPxACDlFOa16RsKjSPlFe+eBoZNRU=;
-        b=FnXZWigmXks7P7vrWF7fKqdJ1mEC+gV48nu3UaSpxK4YL8v+ZyKfQNiGbSuus211Io
-         +fy2JCOQXe0u+yVyht7IUnGNiz1ytce226/iQ1Wda7n+sWhgorrLFCh54sw2yd22N9l0
-         AXL2/cPWN7xjLjU338yB5B7ZEpAB76ymwzaqr46s48M64gK8WOGJ87UIWJj0TMsT00ZG
-         rYH/3SCw5LcEELiN57lLCnYUd8Lx6hylUyDzZKFYq9GvzONQ8cx9AYXJHJgmouhXLCeg
-         1q2sn/m6YtRZPuqIGm/1JYTBARn6QQkL/1+apRqX4+bW7vcNXDLWp8NZbJWw7fVf637Q
-         Jc5Q==
+        bh=4iYkOl3aeyTERThJenFq1/3UwJx4Onl0nTT+k7YLDaI=;
+        b=elfpTxMe1/6j0BhX2ft/28omzWdU5w7mpxF5KS6Ry8a8zkGJScYbqAJ2NTQjOpA+gX
+         oQX8NO2qfr8fQYzhkmlI2m44i8n5UA95IshiSsHQfSaUB55LfEMP8Nf6Bwly/9Em6O/v
+         kb75MLzprl0H6ilua+Tsx9/J/pL9/kQBkbd23F8nfmf7/S2UoqNko9rQth0i8PtjUyLH
+         QNhM+JJQO3CxcyAMQTRjV2IrQz9Ukzpv3t7kO6uUD4p+f92uGnc2g/qdEf6YIu13QPQ3
+         M8XRiksoxntjoSZ9RhVKNzEdpCIwtT4CToNN39nu0gxIxKKgNM9/D3+uDvkH0PFa7iEb
+         mOeg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=rv0dCo+fqAQ13SgPxACDlFOa16RsKjSPlFe+eBoZNRU=;
-        b=HJqG/flgOGh/fii3iWu6xG4g8HGiVkekK+v30qJjv6sxDaZ9a1InrCq7TMbMngKdAa
-         Hi/ppnJEOGQSCwsJdpmUuxN85WF4swh3E4csWLQce2+vobf3sREjtFICjXvhxp4/5PwR
-         CAVc6KIE8mJIsRcvhBTTADRVXRyDgGcuHm2UrEA8RF1konf2mBx+2hjzh5jLHaYWjfqz
-         uxAoLRJP+FiM6VrinMl4wlmhfw+ivkej+5Msq0x/TJ9XTKp6SF7Vxmd8zylTH4kbg80H
-         A2tn07F/r3Pt3GnUIZKO336NCKNonYjzd197a6ViB8whG5rtex0Dzec+ofX+slwEc3rv
-         +fGg==
-X-Gm-Message-State: APjAAAVJydwGJZ2wlhtKLl+uGR8RrmQzoAnmnLz15NEFL5VciviGzYn3
-        E4uUOAwFc96qdLgGEM66W4M=
-X-Google-Smtp-Source: APXvYqw6pZRI02L0RsJ0l51BCisQWQi/OHFOULF/U1jaQbwym1DWFopp5ASpqFdR23hpYNhrKVILMg==
-X-Received: by 2002:a17:90a:bf92:: with SMTP id d18mr1939362pjs.128.1564712463758;
-        Thu, 01 Aug 2019 19:21:03 -0700 (PDT)
+        bh=4iYkOl3aeyTERThJenFq1/3UwJx4Onl0nTT+k7YLDaI=;
+        b=PLAez0ogaqNnQruJFBUToD7FeRFODHIb94GTu8+AHemkfmxF55FTc+GkKPqmt9kCe6
+         V1/wi2ErINac2oSBpGXUzt8GaTmIprA2XpttY452Z4+75tKFXMGrpmH/Ph9l9cvv7K3r
+         NhQ8cABqp2Ib9yr25YDN7s4cntcB0aG4N6Xp9pO0OBDKcIWf9YIQ9jYESaoCIFaM7Icc
+         dH3Vm6n1I0b6j07u23t5S+vbJgO5KyJI8m125otOEJEVtQcFktuOXNbwzl5aEVkU+6c1
+         +wtcci5DAcDPr8OjAFADSW8+2Zhf6eqAZrhYQuYwLyux/0PGThiuv1uinK/9TS/RXkpi
+         Iu2A==
+X-Gm-Message-State: APjAAAXlHNssEMSpp1Vjny/9d8VAmvMsJZIq+2kKxs3z8E1ISqyhtZOM
+        6RzWlOtM00ggVTPY+5fOg2Q=
+X-Google-Smtp-Source: APXvYqzzllbFm5p1RJ6Hv9sdYEOY7jdZkiYuzxv4vZdIzU4+gyWXMgDLOAREt7Tj2iCCice8+nHYSA==
+X-Received: by 2002:a17:902:24b:: with SMTP id 69mr123385473plc.250.1564712458970;
+        Thu, 01 Aug 2019 19:20:58 -0700 (PDT)
 Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id u9sm38179744pgc.5.2019.08.01.19.21.02
+        by smtp.gmail.com with ESMTPSA id u9sm38179744pgc.5.2019.08.01.19.20.57
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Thu, 01 Aug 2019 19:21:03 -0700 (PDT)
+        Thu, 01 Aug 2019 19:20:58 -0700 (PDT)
 From:   john.hubbard@gmail.com
 X-Google-Original-From: jhubbard@nvidia.com
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -78,15 +78,11 @@ Cc:     Christoph Hellwig <hch@infradead.org>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         sparclinux@vger.kernel.org, x86@kernel.org,
         xen-devel@lists.xenproject.org, John Hubbard <jhubbard@nvidia.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>
-Subject: [PATCH 33/34] kernel/events/core.c: convert put_page() to put_user_page*()
-Date:   Thu,  1 Aug 2019 19:20:04 -0700
-Message-Id: <20190802022005.5117-34-jhubbard@nvidia.com>
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>
+Subject: [PATCH 30/34] crypt: convert put_page() to put_user_page*()
+Date:   Thu,  1 Aug 2019 19:20:01 -0700
+Message-Id: <20190802022005.5117-31-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 References: <20190802022005.5117-1-jhubbard@nvidia.com>
@@ -107,30 +103,39 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: linux-crypto@vger.kernel.org
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- kernel/events/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crypto/af_alg.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 0463c1151bae..7be52bbbfe87 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -6426,7 +6426,7 @@ static u64 perf_virt_to_phys(u64 virt)
- 			phys_addr = page_to_phys(p) + virt % PAGE_SIZE;
+diff --git a/crypto/af_alg.c b/crypto/af_alg.c
+index 879cf23f7489..edd358ea64da 100644
+--- a/crypto/af_alg.c
++++ b/crypto/af_alg.c
+@@ -428,10 +428,7 @@ static void af_alg_link_sg(struct af_alg_sgl *sgl_prev,
  
- 		if (p)
--			put_page(p);
-+			put_user_page(p);
- 	}
+ void af_alg_free_sg(struct af_alg_sgl *sgl)
+ {
+-	int i;
+-
+-	for (i = 0; i < sgl->npages; i++)
+-		put_page(sgl->pages[i]);
++	put_user_pages(sgl->pages, sgl->npages);
+ }
+ EXPORT_SYMBOL_GPL(af_alg_free_sg);
  
- 	return phys_addr;
+@@ -668,7 +665,7 @@ static void af_alg_free_areq_sgls(struct af_alg_async_req *areq)
+ 		for_each_sg(tsgl, sg, areq->tsgl_entries, i) {
+ 			if (!sg_page(sg))
+ 				continue;
+-			put_page(sg_page(sg));
++			put_user_page(sg_page(sg));
+ 		}
+ 
+ 		sock_kfree_s(sk, tsgl, areq->tsgl_entries * sizeof(*tsgl));
 -- 
 2.22.0
 
