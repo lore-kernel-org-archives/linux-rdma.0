@@ -2,129 +2,126 @@ Return-Path: <SRS0=RN5a=V6=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3CC0C32750
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 10:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CB34C32756
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 10:20:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9ADDA20665
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 10:05:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BeDr4pQ6"
+	by mail.kernel.org (Postfix) with ESMTP id E57472073D
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 10:20:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391209AbfHBJcX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 2 Aug 2019 05:32:23 -0400
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:33948 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391203AbfHBJcX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Aug 2019 05:32:23 -0400
-Received: by mail-wr1-f66.google.com with SMTP id 31so76488878wrm.1
-        for <linux-rdma@vger.kernel.org>; Fri, 02 Aug 2019 02:32:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=u/LSenS1bWdvoriWhcDksjc9f4pD9PoC8yGdy0BNtbk=;
-        b=BeDr4pQ6whBW8wd0A/BKGOmgEwAojiUxt0Zfebit5gLDLvoFYQSSlIiVWouv/mVKXq
-         Lkw6hb4dRsXB5QgA0OOg8VwRiFCkZv2LZOcOgJqT2Trr/6b5eRwVkFL0TCQHTfO6EyVN
-         HvqYSodTDsoy/mOdtHgZ1RGxwJTNC/A3Vm/D/F5B5NU37LekosQdsldYxEfDlYotunWq
-         4SUlaaNO7hR8xGGV5YYbb2dDYs3tx9lFjprrdlPqyIX+edzcdZNLKMXgUFV0ptIV3B69
-         WV1vflDkhagpUVfV5/tZaGmWEedlF6GbQGUc6yqgtcF5QRWHN6kLPHKVCRgT2nqupHtF
-         Qf7w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=u/LSenS1bWdvoriWhcDksjc9f4pD9PoC8yGdy0BNtbk=;
-        b=c8meGEPySaRtML2fNca9gVQoTlAmz2JbRaoD/8U1kyETooZR+awBd+9NMpSjc3atEN
-         UwzqCaLyKbmNT4afTuAs8teohuiBKsoLCryvmKDra+0xYMvQygMsUuw+hvDi2zD0DNlZ
-         Q0ETXqr+sNdQ9vn2DOQvbWQIqyN/EU2avhqucozpQQOO3KP6A0gCuuiT7tYqsNMhQhzr
-         uP/g2+O+dKASdAOW67Lzs46rIASh+XYT1iuvxHGty3gmpxj/+BPDK5kDFAny3Z1GCXSB
-         3b7idgjfhmPRtYPDdvrVu6VkKNLSSgjnY9JwdVxweC/APulxK8ZnHH5+rOrJFBj/CK/y
-         nd+w==
-X-Gm-Message-State: APjAAAUy4FkdWJA6NPqRiHfeKC09YAQWHii/vfKJhBfrKN2V5h5kaLE6
-        M2ilBJP5md6dJX/dyLCWMeIw/PHT
-X-Google-Smtp-Source: APXvYqxq5uJJVCJ8wUBffvb0B3fM8+v9hxpkxHHeMUZiQb5fnZLcOjT9gMHQUgpmkuM8OLVzuY1IhQ==
-X-Received: by 2002:adf:e4c6:: with SMTP id v6mr139194933wrm.315.1564738341300;
-        Fri, 02 Aug 2019 02:32:21 -0700 (PDT)
-Received: from kheib-workstation.redhat.com (bzq-109-65-15-211.red.bezeqint.net. [109.65.15.211])
-        by smtp.gmail.com with ESMTPSA id w23sm80651404wmi.45.2019.08.02.02.32.18
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Fri, 02 Aug 2019 02:32:20 -0700 (PDT)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Gal Pressman <galpress@amazon.com>,
+        id S2391058AbfHBKUk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 2 Aug 2019 06:20:40 -0400
+Received: from foss.arm.com ([217.140.110.172]:49040 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389243AbfHBKUk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 2 Aug 2019 06:20:40 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E44A3344;
+        Fri,  2 Aug 2019 03:20:38 -0700 (PDT)
+Received: from arrakis.emea.arm.com (arrakis.cambridge.arm.com [10.1.196.78])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 26BB63F71F;
+        Fri,  2 Aug 2019 03:20:34 -0700 (PDT)
+Date:   Fri, 2 Aug 2019 11:20:32 +0100
+From:   Catalin Marinas <catalin.marinas@arm.com>
+To:     Dave Hansen <dave.hansen@intel.com>
+Cc:     Andrey Konovalov <andreyknvl@google.com>,
+        Kevin Brodsky <kevin.brodsky@arm.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
+        kvm@vger.kernel.org,
+        "open list:KERNEL SELFTEST FRAMEWORK" 
+        <linux-kselftest@vger.kernel.org>,
+        Vincenzo Frascino <vincenzo.frascino@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Felix Kuehling <Felix.Kuehling@amd.com>,
+        Alexander Deucher <Alexander.Deucher@amd.com>,
+        Christian Koenig <Christian.Koenig@amd.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jens Wiklander <jens.wiklander@linaro.org>,
+        Alex Williamson <alex.williamson@redhat.com>,
         Leon Romanovsky <leon@kernel.org>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Christian Benvenuti <benve@cisco.com>,
-        Moni Shoua <monis@mellanox.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Andrew Boyer <aboyer@tobark.org>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next V3 0/4] RDMA: Cleanups and improvements
-Date:   Fri,  2 Aug 2019 12:32:06 +0300
-Message-Id: <20190802093210.5705-1-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.20.1
+        Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
+        Dave Martin <Dave.Martin@arm.com>,
+        Khalid Aziz <khalid.aziz@oracle.com>, enh <enh@google.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        Evgeniy Stepanov <eugenis@google.com>,
+        Lee Smith <Lee.Smith@arm.com>,
+        Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>,
+        Jacob Bramley <Jacob.Bramley@arm.com>,
+        Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Szabolcs Nagy <Szabolcs.Nagy@arm.com>
+Subject: Re: [PATCH v19 00/15] arm64: untag user pointers passed to the kernel
+Message-ID: <20190802102031.GB4175@arrakis.emea.arm.com>
+References: <cover.1563904656.git.andreyknvl@google.com>
+ <8c618cc9-ae68-9769-c5bb-67f1295abc4e@intel.com>
+ <13b4cf53-3ecb-f7e7-b504-d77af15d77aa@arm.com>
+ <CAAeHK+zTFqsLiB3Wf0bAi5A8ukQX5ZuvfUg4td-=r5UhBsUBOQ@mail.gmail.com>
+ <96fd8da4-a912-f6cc-2b32-5791027dbbd5@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <96fd8da4-a912-f6cc-2b32-5791027dbbd5@intel.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series includes few cleanups and improvements, the first patch
-introduce a new enum for describing the physical state values and use it
-instead of using the magic numbers, patch 2-4 add support for a common
-query port for iWARP drivers and remove the common code from the iWARP
-drivers.
+On Thu, Aug 01, 2019 at 08:36:47AM -0700, Dave Hansen wrote:
+> On 8/1/19 5:48 AM, Andrey Konovalov wrote:
+> > On Thu, Aug 1, 2019 at 2:11 PM Kevin Brodsky <kevin.brodsky@arm.com> wrote:
+> >> On 31/07/2019 17:50, Dave Hansen wrote:
+> >>> On 7/23/19 10:58 AM, Andrey Konovalov wrote:
+> >>>> The mmap and mremap (only new_addr) syscalls do not currently accept
+> >>>> tagged addresses. Architectures may interpret the tag as a background
+> >>>> colour for the corresponding vma.
+> >>>
+> >>> What the heck is a "background colour"? :)
+> >>
+> >> Good point, this is some jargon that we started using for MTE, the idea being that
+> >> the kernel could set a tag value (specified during mmap()) as "background colour" for
+> >> anonymous pages allocated in that range.
+> >>
+> >> Anyway, this patch series is not about MTE. Andrey, for v20 (if any), I think it's
+> >> best to drop this last sentence to avoid any confusion.
 
-Changes from v2:
-- Patch #1:
--- Update mlx4 and hns to use the new ib_port_phys_state enum.
-- Patch #3:
--- Use rdma_protocol_iwarp() instead of rdma_node_get_transport().
+Indeed, the part with the "background colour" and even the "currently"
+adverb should be dropped.
 
-Changes from v1 :
-- Patch #3:
--- Delete __ prefix.
--- Add missing dev_put(netdev);
--- Initilize gid to {}.
--- Return error code directly.
+Also, if we merge the patches via different trees anyway, I don't think
+there is a need for Andrey to integrate them with his series. We can
+pick them up directly in the arm64 tree (once the review finished).
 
-Kamal Heib (4):
-  RDMA: Introduce ib_port_phys_state enum
-  RDMA/cxgb3: Use ib_device_set_netdev()
-  RDMA/core: Add common iWARP query port
-  RDMA/{cxgb3, cxgb4, i40iw}: Remove common code
+> OK, but what does that mean for tagged addresses getting passed to
+> mmap/mremap?  That sentence read to me like "architectures might allow
+> tags for ...something...".  So do we accept tagged addresses into those
+> syscalls?
 
- drivers/infiniband/core/device.c             | 87 ++++++++++++++++----
- drivers/infiniband/core/sysfs.c              | 24 ++++--
- drivers/infiniband/hw/bnxt_re/ib_verbs.c     |  4 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  | 45 +++++-----
- drivers/infiniband/hw/cxgb4/provider.c       | 24 ------
- drivers/infiniband/hw/efa/efa_verbs.c        |  2 +-
- drivers/infiniband/hw/hns/hns_roce_device.h  | 10 ---
- drivers/infiniband/hw/hns/hns_roce_main.c    |  3 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 11 ---
- drivers/infiniband/hw/mlx4/main.c            |  3 +-
- drivers/infiniband/hw/mlx5/main.c            |  4 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  4 +-
- drivers/infiniband/hw/qedr/verbs.c           |  4 +-
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  7 +-
- drivers/infiniband/sw/rxe/rxe.h              |  4 -
- drivers/infiniband/sw/rxe/rxe_param.h        |  2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c        |  6 +-
- drivers/infiniband/sw/siw/siw_verbs.c        |  3 +-
- include/rdma/ib_verbs.h                      | 10 +++
- 19 files changed, 140 insertions(+), 117 deletions(-)
+If mmap() does not return a tagged address, the reasoning is that it
+should not accept one as an address hint (with or without MAP_FIXED).
+Note that these docs should only describe the top-byte-ignore ABI while
+leaving the memory tagging for a future patchset.
+
+In that future patchset, we may want to update the mmap() ABI to allow,
+only in conjunction with PROT_MTE, a tagged pointer as an address
+argument. In such case mmap() will return a tagged address and the pages
+pre-coloured (on fault) with the tag requested by the user. As I said,
+that's to be discussed later in the year.
 
 -- 
-2.20.1
-
+Catalin
