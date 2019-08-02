@@ -8,53 +8,53 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4317C19759
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 02:26:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17CFEC433FF
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 02:26:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B3832083B
+	by mail.kernel.org (Postfix) with ESMTP id E3B2120B7C
 	for <linux-rdma@archiver.kernel.org>; Fri,  2 Aug 2019 02:26:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZjBIvPI6"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g/PNAVO1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387430AbfHBC0d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Aug 2019 22:26:33 -0400
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:44701 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389155AbfHBCUW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Aug 2019 22:20:22 -0400
-Received: by mail-pl1-f194.google.com with SMTP id t14so32989913plr.11;
-        Thu, 01 Aug 2019 19:20:21 -0700 (PDT)
+        id S2389223AbfHBCUT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Aug 2019 22:20:19 -0400
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:40730 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389155AbfHBCUR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Aug 2019 22:20:17 -0400
+Received: by mail-pg1-f196.google.com with SMTP id w10so35239351pgj.7;
+        Thu, 01 Aug 2019 19:20:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=fEUR/G5OnJcefSlX4AYJWWcgqHhC+JXxEofDOG22P/4=;
-        b=ZjBIvPI6FGYYuQaoM3wYb6xPjNep6A1qdBgLoxOD+angQDRZC9mN7qZBiGsA4x1Mmk
-         DVp0b1Fq3km/l8LFUFJZZReS797zF2kYF9KrMWUllVa8HFfcUrM1hAE1P/qQjXzrMnOX
-         JxD/xFl+WZHXSEuAGF9iElPEIqC+TRo873joNlnRMAHY9AMqSmLW3nsU27bTpXhcFKV6
-         4LeM2yIf45e6IoMit2yX6aFzmLhkspb/EkG8Tlqf3bZNN4WeHI7tMYFctQdF6liMtwoJ
-         IvfT9HS49sxx2bYOPNOBswTMjccuTwXWnzyhwEMT1ktty7/Al6mbgY/88Wt++RCGQUor
-         cVVw==
+        bh=weSPcOAlMB+nks0BWLOsxsBmAu907UZGrfndvq6oQnc=;
+        b=g/PNAVO1jcA7rjmvur5Gi5SyBm+cHCwd0FZu0S4Yd4WKYY8nqKUy+Kjq5L8LbAIDam
+         oq+DMw/apiFaV6V9t2AYTvJ0UtZRGdqpPgiFYeIHq5U9A659jHv3iijVBsi80zStn1WW
+         yA7d3ZYX2ikKALXpz54vXEPMXgXSlYxT87JksMZBQueD34Vn0QLhvvHOTCuzyirgAxhY
+         PS1hXIRKbtV044f7MD5ThhAFxJavcS5DN9nP30sURDOyWv4TACAbp0MhELnCZVrxEr+Y
+         L5R1pu68TEBkTXOjXzFMyL79KTHMlgJNcYv+KmIulF31bskwh/7J7wKRv6nstiIy1Eix
+         KMbg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=fEUR/G5OnJcefSlX4AYJWWcgqHhC+JXxEofDOG22P/4=;
-        b=qJzMtOS01K6ueHV/44EeVtQPdGkbZLE2O2uO+47uZD/U0bwhygx6cqTGwjV5cxAdAj
-         RlyFwzZeweTvTqwM2fhIZ23mf7Y1OyUV121E/gSx+Oe38oH5rxHAZW1xsXy9yCRCtkmc
-         9/MRH5gdEhoyd0799QxgUS/c/sOPmoRIF+6COVz8MMn/KFQo9wHGxdIFs26KV60dxFSS
-         XDAb9zz1ubHtl5aypj1xbr35OxdWGhiRZPuAggBnD7mHXZ3zqMOcGu0YJAfG+M0Dl6dP
-         qnQgGhS+NzHjWABW+Pvfn4Hdwjtn6ZpG1OZkMxildRUoq6AO0AufUu7LjDJUVZM1OhYf
-         lCvw==
-X-Gm-Message-State: APjAAAX9SubK8EaeleW2X1NDvPlTJUOSqLrDWWvv8QP1XjckOXJehhUt
-        BLrGTWY3gfyyAqajHFkZ2vY=
-X-Google-Smtp-Source: APXvYqx7CDlh0PC+iGQbvpFabXIK4hA95kcB6ECyCRgjU7tdLEhAXCZnA9jGvinS59yHHVq1pirulQ==
-X-Received: by 2002:a17:902:a409:: with SMTP id p9mr130268364plq.218.1564712421229;
-        Thu, 01 Aug 2019 19:20:21 -0700 (PDT)
+        bh=weSPcOAlMB+nks0BWLOsxsBmAu907UZGrfndvq6oQnc=;
+        b=o4Eqi8NJ0wrOgekR+b4mBIVpr6KbsQXS3DQa9QvDakCgzYaTpPlxZZ50AH1P0+qVhz
+         Y4Qdv9sHWh2WJtP5AA8Ajzv385nmCb7cL+tSMKs6fD4pKIXe6gnlUx+P380aYNAT20nK
+         0x21ZufVpnU+TdhQVIS6cGOlWksgQkg1Pvm+AbyR+FAtjGLmXb+Fpfw+jRL5k/YxIyRw
+         LqyaWFSH+QgWM/2HigiM7wPqVEnpx8ahi/nHdR+7jnlbowtdZaPjIP0I+XZbzIhAsUHG
+         l3FBUsS3UpggWPWtH2Oj62tam+4TqHrqe02Xqbra4O/bXG7DJ8gMkZCAsffn26XJMAFb
+         Pi+w==
+X-Gm-Message-State: APjAAAXeIYaK0sqKy/FlsaNEbgpXd6EvbXHN7Dza7eHie3mkT3ADHUyn
+        sO0AAF8XzSe8iRThNQnLlaIqrhd3
+X-Google-Smtp-Source: APXvYqxciGgcMDXcQ3A2dbcQcp1f7eltXWtJvGVKyn0lRu+bq9UEFtA9QCl9A6sNDZqj7/W8XpREEA==
+X-Received: by 2002:a17:90a:2385:: with SMTP id g5mr1977411pje.12.1564712416439;
+        Thu, 01 Aug 2019 19:20:16 -0700 (PDT)
 Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id u9sm38179744pgc.5.2019.08.01.19.20.19
+        by smtp.gmail.com with ESMTPSA id u9sm38179744pgc.5.2019.08.01.19.20.14
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Thu, 01 Aug 2019 19:20:20 -0700 (PDT)
+        Thu, 01 Aug 2019 19:20:16 -0700 (PDT)
 From:   john.hubbard@gmail.com
 X-Google-Original-From: jhubbard@nvidia.com
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -78,13 +78,11 @@ Cc:     Christoph Hellwig <hch@infradead.org>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         sparclinux@vger.kernel.org, x86@kernel.org,
         xen-devel@lists.xenproject.org, John Hubbard <jhubbard@nvidia.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        David Airlie <airlied@linux.ie>
-Subject: [PATCH 06/34] drm/i915: convert put_page() to put_user_page*()
-Date:   Thu,  1 Aug 2019 19:19:37 -0700
-Message-Id: <20190802022005.5117-7-jhubbard@nvidia.com>
+        Ilya Dryomov <idryomov@gmail.com>, Sage Weil <sage@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>
+Subject: [PATCH 03/34] net/ceph: convert put_page() to put_user_page*()
+Date:   Thu,  1 Aug 2019 19:19:34 -0700
+Message-Id: <20190802022005.5117-4-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 References: <20190802022005.5117-1-jhubbard@nvidia.com>
@@ -105,62 +103,35 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Note that this effectively changes the code's behavior in
-i915_gem_userptr_put_pages(): it now calls set_page_dirty_lock(),
-instead of set_page_dirty(). This is probably more accurate.
-
-As Christophe Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
-
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: intel-gfx@lists.freedesktop.org
-Cc: dri-devel@lists.freedesktop.org
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Sage Weil <sage@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: ceph-devel@vger.kernel.org
+Cc: netdev@vger.kernel.org
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/gpu/drm/i915/gem/i915_gem_userptr.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ net/ceph/pagevec.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c b/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
-index 528b61678334..c18008d3cc2a 100644
---- a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
-+++ b/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
-@@ -527,7 +527,7 @@ __i915_gem_userptr_get_pages_worker(struct work_struct *_work)
- 	}
- 	mutex_unlock(&obj->mm.lock);
+diff --git a/net/ceph/pagevec.c b/net/ceph/pagevec.c
+index 64305e7056a1..c88fff2ab9bd 100644
+--- a/net/ceph/pagevec.c
++++ b/net/ceph/pagevec.c
+@@ -12,13 +12,7 @@
  
--	release_pages(pvec, pinned);
-+	put_user_pages(pvec, pinned);
- 	kvfree(pvec);
- 
- 	i915_gem_object_put(obj);
-@@ -640,7 +640,7 @@ static int i915_gem_userptr_get_pages(struct drm_i915_gem_object *obj)
- 		__i915_gem_userptr_set_active(obj, true);
- 
- 	if (IS_ERR(pages))
--		release_pages(pvec, pinned);
-+		put_user_pages(pvec, pinned);
- 	kvfree(pvec);
- 
- 	return PTR_ERR_OR_ZERO(pages);
-@@ -663,11 +663,8 @@ i915_gem_userptr_put_pages(struct drm_i915_gem_object *obj,
- 	i915_gem_gtt_finish_pages(obj, pages);
- 
- 	for_each_sgt_page(page, sgt_iter, pages) {
--		if (obj->mm.dirty)
--			set_page_dirty(page);
+ void ceph_put_page_vector(struct page **pages, int num_pages, bool dirty)
+ {
+-	int i;
 -
- 		mark_page_accessed(page);
--		put_page(page);
-+		put_user_pages_dirty_lock(&page, 1, obj->mm.dirty);
- 	}
- 	obj->mm.dirty = false;
- 
+-	for (i = 0; i < num_pages; i++) {
+-		if (dirty)
+-			set_page_dirty_lock(pages[i]);
+-		put_page(pages[i]);
+-	}
++	put_user_pages_dirty_lock(pages, num_pages, dirty);
+ 	kvfree(pages);
+ }
+ EXPORT_SYMBOL(ceph_put_page_vector);
 -- 
 2.22.0
 
