@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A01BFC32751
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 737E1C31E40
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 700D321783
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4645321783
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387817AbfHCItg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 3 Aug 2019 04:49:36 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3748 "EHLO huawei.com"
+        id S2387810AbfHCIth (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Aug 2019 04:49:37 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:3753 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387810AbfHCItf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 3 Aug 2019 04:49:35 -0400
+        id S2387808AbfHCItg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 3 Aug 2019 04:49:36 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id A1B32DE87A3B58A296C0;
+        by Forcepoint Email with ESMTP id B52BA3450DFB77216AD5;
         Sat,  3 Aug 2019 16:49:30 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.439.0; Sat, 3 Aug 2019 16:49:23 +0800
+ 14.3.439.0; Sat, 3 Aug 2019 16:49:21 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V3 for-next 11/13] RDMA/hns: Refactor hns_roce_v2_set_hem for hip08
-Date:   Sat, 3 Aug 2019 16:45:17 +0800
-Message-ID: <1564821919-100676-12-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V3 for-next 01/13] RDMA/hns: Encapsulate some lines for setting sq size in user mode
+Date:   Sat, 3 Aug 2019 16:45:07 +0800
+Message-ID: <1564821919-100676-2-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
 References: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
@@ -43,121 +43,80 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
+It needs to check the sq size with integrity when configures
+the relatived parameters of sq. Here moves the relatived code
+into a special function.
 
-In order to reduce the complexity of hns_roce_v2_set_hem, extract
-the implementation of op as a function.
-
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 75 +++++++++++++++++-------------
- 1 file changed, 42 insertions(+), 33 deletions(-)
+V1->V2:
+1. Use the new print interface according to Gal Pressman because it
+   can print the detail ib_device name
+---
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 35 +++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 8076b1e..9329efa 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2903,11 +2903,49 @@ static int hns_roce_v2_poll_cq(struct ib_cq *ibcq, int num_entries,
- 	return npolled;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 9c272c2..8abd1aa 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -324,31 +324,46 @@ static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
+ 	return 0;
  }
  
-+static int get_op_for_set_hem(struct hns_roce_dev *hr_dev, u32 type,
-+			      int step_idx)
-+{
-+	int op;
-+
-+	if (type == HEM_TYPE_SCCC && step_idx)
-+		return -EINVAL;
-+
-+	switch (type) {
-+	case HEM_TYPE_QPC:
-+		op = HNS_ROCE_CMD_WRITE_QPC_BT0;
-+		break;
-+	case HEM_TYPE_MTPT:
-+		op = HNS_ROCE_CMD_WRITE_MPT_BT0;
-+		break;
-+	case HEM_TYPE_CQC:
-+		op = HNS_ROCE_CMD_WRITE_CQC_BT0;
-+		break;
-+	case HEM_TYPE_SRQC:
-+		op = HNS_ROCE_CMD_WRITE_SRQC_BT0;
-+		break;
-+	case HEM_TYPE_SCCC:
-+		op = HNS_ROCE_CMD_WRITE_SCCC_BT0;
-+		break;
-+	case HEM_TYPE_QPC_TIMER:
-+		op = HNS_ROCE_CMD_WRITE_QPC_TIMER_BT0;
-+		break;
-+	case HEM_TYPE_CQC_TIMER:
-+		op = HNS_ROCE_CMD_WRITE_CQC_TIMER_BT0;
-+		break;
-+	default:
-+		dev_warn(hr_dev->dev,
-+			 "Table %d not to be written by mailbox!\n", type);
-+		return -EINVAL;
-+	}
-+
-+	return op + step_idx;
-+}
-+
- static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_hem_table *table, int obj,
- 			       int step_idx)
+-static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+-				     struct ib_qp_cap *cap,
+-				     struct hns_roce_qp *hr_qp,
+-				     struct hns_roce_ib_create_qp *ucmd)
++static int check_sq_size_with_integrity(struct hns_roce_dev *hr_dev,
++					struct ib_qp_cap *cap,
++					struct hns_roce_ib_create_qp *ucmd)
  {
--	struct device *dev = hr_dev->dev;
- 	struct hns_roce_cmd_mailbox *mailbox;
- 	struct hns_roce_hem_iter iter;
- 	struct hns_roce_hem_mhop mhop;
-@@ -2920,7 +2958,7 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 	u64 bt_ba = 0;
- 	u32 chunk_ba_num;
- 	u32 hop_num;
--	u16 op = 0xff;
-+	int op;
+ 	u32 roundup_sq_stride = roundup_pow_of_two(hr_dev->caps.max_sq_desc_sz);
+ 	u8 max_sq_stride = ilog2(roundup_sq_stride);
+-	u32 ex_sge_num;
+-	u32 page_size;
+-	u32 max_cnt;
  
- 	if (!hns_roce_check_whether_mhop(hr_dev, table->type))
- 		return 0;
-@@ -2942,38 +2980,9 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 		hem_idx = i;
+ 	/* Sanity check SQ size before proceeding */
+ 	if ((u32)(1 << ucmd->log_sq_bb_count) > hr_dev->caps.max_wqes ||
+ 	     ucmd->log_sq_stride > max_sq_stride ||
+ 	     ucmd->log_sq_stride < HNS_ROCE_IB_MIN_SQ_STRIDE) {
+-		dev_err(hr_dev->dev, "check SQ size error!\n");
++		ibdev_err(&hr_dev->ib_dev, "check SQ size error!\n");
+ 		return -EINVAL;
  	}
  
--	switch (table->type) {
--	case HEM_TYPE_QPC:
--		op = HNS_ROCE_CMD_WRITE_QPC_BT0;
--		break;
--	case HEM_TYPE_MTPT:
--		op = HNS_ROCE_CMD_WRITE_MPT_BT0;
--		break;
--	case HEM_TYPE_CQC:
--		op = HNS_ROCE_CMD_WRITE_CQC_BT0;
--		break;
--	case HEM_TYPE_SRQC:
--		op = HNS_ROCE_CMD_WRITE_SRQC_BT0;
--		break;
--	case HEM_TYPE_SCCC:
--		op = HNS_ROCE_CMD_WRITE_SCCC_BT0;
--		break;
--	case HEM_TYPE_QPC_TIMER:
--		op = HNS_ROCE_CMD_WRITE_QPC_TIMER_BT0;
--		break;
--	case HEM_TYPE_CQC_TIMER:
--		op = HNS_ROCE_CMD_WRITE_CQC_TIMER_BT0;
--		break;
--	default:
--		dev_warn(dev, "Table %d not to be written by mailbox!\n",
--			 table->type);
-+	op = get_op_for_set_hem(hr_dev, table->type, step_idx);
-+	if (op == -EINVAL)
- 		return 0;
--	}
--
--	if (table->type == HEM_TYPE_SCCC && step_idx)
--		return 0;
--
--	op += step_idx;
+ 	if (cap->max_send_sge > hr_dev->caps.max_sq_sg) {
+-		dev_err(hr_dev->dev, "SQ sge error! max_send_sge=%d\n",
+-			cap->max_send_sge);
++		ibdev_err(&hr_dev->ib_dev, "SQ sge error! max_send_sge=%d\n",
++			  cap->max_send_sge);
+ 		return -EINVAL;
+ 	}
  
- 	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
- 	if (IS_ERR(mailbox))
++	return 0;
++}
++
++static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
++				     struct ib_qp_cap *cap,
++				     struct hns_roce_qp *hr_qp,
++				     struct hns_roce_ib_create_qp *ucmd)
++{
++	u32 ex_sge_num;
++	u32 page_size;
++	u32 max_cnt;
++	int ret;
++
++	ret = check_sq_size_with_integrity(hr_dev, cap, ucmd);
++	if (ret) {
++		ibdev_err(&hr_dev->ib_dev, "Sanity check sq size failed\n");
++		return ret;
++	}
++
+ 	hr_qp->sq.wqe_cnt = 1 << ucmd->log_sq_bb_count;
+ 	hr_qp->sq.wqe_shift = ucmd->log_sq_stride;
+ 
 -- 
 1.9.1
 
