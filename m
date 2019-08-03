@@ -2,106 +2,107 @@ Return-Path: <SRS0=pRdt=V7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70DD6C32754
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE8A9C31E40
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 15:02:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3C2B421783
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0EBD206C1
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 15:02:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PMPGtK8U"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387812AbfHCIti (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 3 Aug 2019 04:49:38 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3751 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387818AbfHCItf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 3 Aug 2019 04:49:35 -0400
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id B9056D9B7BD7879EC479;
-        Sat,  3 Aug 2019 16:49:30 +0800 (CST)
-Received: from linux-ioko.site (10.71.200.31) by
- DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.439.0; Sat, 3 Aug 2019 16:49:22 +0800
-From:   Lijun Ou <oulijun@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH V3 for-next 07/13] RDMA/hns: Handling the error return value of hem function
-Date:   Sat, 3 Aug 2019 16:45:13 +0800
-Message-ID: <1564821919-100676-8-git-send-email-oulijun@huawei.com>
-X-Mailer: git-send-email 1.9.1
-In-Reply-To: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
-References: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
+        id S1727856AbfHCPCt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Aug 2019 11:02:49 -0400
+Received: from mail-io1-f65.google.com ([209.85.166.65]:36531 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727854AbfHCPCt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 3 Aug 2019 11:02:49 -0400
+Received: by mail-io1-f65.google.com with SMTP id o9so55109541iom.3;
+        Sat, 03 Aug 2019 08:02:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Fo/kv+brWQ1flp7Vdkb8WoUBvAMa5Whd0L9OkVELuTQ=;
+        b=PMPGtK8UFs07wgyVwxnfAQyx3EFb0wXBwNBqjDExProlToHDrO8vJ1hKOZY4+mtnY6
+         EK1ULx/2yyTfRyW9lgo5KJwuJInKH2ClW5dsywvBbP+XNueqGOhItEYmxJNtP/DihL3j
+         elV0Eh6W7RGnsfDsdt6UEcjakmGtslXbd3KiADHYYA+eGl2ne/yQJn0fJtvRFYrAysdc
+         iJuLr3jxvoTZdXNjRUq60+UxbKic/xv1cG+Ph0uhlKsk45vC/7P8RTm/CmUkgMX+9qVS
+         7pgB+Hi9W/JvahVts2rVeUCj3cf4QrWmrZt4Do/UV3DFbVDMZwwP5SO9eMKY8ZSUkb+t
+         yq8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Fo/kv+brWQ1flp7Vdkb8WoUBvAMa5Whd0L9OkVELuTQ=;
+        b=Erh04UxC24116R9oFA/aP+VpEpTOVqY/aSFHC0qQLuqSyGK0P3Z0b1b6oLUOWYU81D
+         0wK1PLucb5pM6hiVon+lSeYLLAbvRIc7VA6i27kE/7Xw2z3ZNxbhRp6D+hTAdTt3kshX
+         aTd87x2dYl6PQXmZnPWMWp0pLxoVK6Hp7/jemE82+O/+1shVdvyNh6y5oB1qgnWvwZaH
+         Cl/+U7pSabiWVHS38kabH1FH32nN54L1/rOJJhWvHULXzrHWvWn1Gy9QrGrFcecMT3tk
+         9xzD0qnkH9LuxDICS5ZVOxHMXnJWvepXPZbWjhHZAlfbDRMl47umVzRIMT923rb+/qIo
+         BKAg==
+X-Gm-Message-State: APjAAAW17REctFgznjxIqvuznV1dbubB2BU0hYl+g6hM0BgXs070ylD1
+        Hu+XjGKdXj3RCjKHLKEKXBQlNGzZvkzWX34V5MJntY/g
+X-Google-Smtp-Source: APXvYqxcf3eS9deQHUBrGtW7fFUKmTKrSFL7EwRO762escS+44kEsee8qFfmBQ4ZGsZsDRuvdb/3GYwhCE5lb9mohnE=
+X-Received: by 2002:a5d:968b:: with SMTP id m11mr84322526ion.16.1564844567923;
+ Sat, 03 Aug 2019 08:02:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.71.200.31]
-X-CFilter-Loop: Reflected
+References: <20190802151316.16011-1-colin.king@canonical.com>
+In-Reply-To: <20190802151316.16011-1-colin.king@canonical.com>
+From:   Parav Pandit <pandit.parav@gmail.com>
+Date:   Sat, 3 Aug 2019 20:32:37 +0530
+Message-ID: <CAG53R5VvSwYYVhSLpLpGyrPt6emLy_YCDBPjzWSng9EpVcQDoQ@mail.gmail.com>
+Subject: Re: [PATCH][net-next][V2] net/mlx5: remove self-assignment on esw->dev
+To:     Colin King <colin.king@canonical.com>
+Cc:     Saeed Mahameed <saeedm@mellanox.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
-
-Handling the error return value of hns_roce_calc_hem_mhop.
-
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hem.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index d3e72a0..0268c7a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -830,7 +830,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 	} else {
- 		u32 seg_size = 64; /* 8 bytes per BA and 8 BA per segment */
- 
--		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
-+		if (hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop))
-+			goto out;
- 		/* mtt mhop */
- 		i = mhop.l0_idx;
- 		j = mhop.l1_idx;
-@@ -879,11 +880,13 @@ int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
- {
- 	struct hns_roce_hem_mhop mhop;
- 	unsigned long inc = table->table_chunk_size / table->obj_size;
--	unsigned long i;
-+	unsigned long i = 0;
- 	int ret;
- 
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
--		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		ret = hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		if (ret)
-+			goto fail;
- 		inc = mhop.bt_chunk_size / table->obj_size;
- 	}
- 
-@@ -913,7 +916,8 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
- 	unsigned long i;
- 
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
--		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
-+			return;
- 		inc = mhop.bt_chunk_size / table->obj_size;
- 	}
- 
-@@ -1035,7 +1039,8 @@ static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
- 	int i;
- 	u64 obj;
- 
--	hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+	if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
-+		return;
- 	buf_chunk_size = table->type < HEM_TYPE_MTT ? mhop.buf_chunk_size :
- 					mhop.bt_chunk_size;
- 
--- 
-1.9.1
-
+On Sat, Aug 3, 2019 at 7:54 PM Colin King <colin.king@canonical.com> wrote:
+>
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> There is a self assignment of esw->dev to itself, clean this up by
+> removing it. Also make dev a const pointer.
+>
+> Addresses-Coverity: ("Self assignment")
+> Fixes: 6cedde451399 ("net/mlx5: E-Switch, Verify support QoS element type")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>
+> V2: make dev const
+>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> index f4ace5f8e884..de0894b695e3 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> @@ -1413,7 +1413,7 @@ static int esw_vport_egress_config(struct mlx5_eswitch *esw,
+>
+>  static bool element_type_supported(struct mlx5_eswitch *esw, int type)
+>  {
+> -       struct mlx5_core_dev *dev = esw->dev = esw->dev;
+> +       const struct mlx5_core_dev *dev = esw->dev;
+>
+>         switch (type) {
+>         case SCHEDULING_CONTEXT_ELEMENT_TYPE_TSAR:
+> --
+> 2.20.1
+>
+Reviewed-by: Parav Pandit <parav@mellanox.com>
