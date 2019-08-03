@@ -2,112 +2,72 @@ Return-Path: <SRS0=pRdt=V7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72A49C41517
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 07:07:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD7FC433FF
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48FCE2166E
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 07:07:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564816036;
-	bh=pPLKovyN1NMpp946XJreXv1Y0yg1S4P9Y162ukSMn64=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=C1UVU+1HTEC2TVEbOCB2X42rgZHDyS64GPadVHBmnPlyhGESYTo6kndk7XLj22kdb
-	 4AesR9XFRD5ZPMXNNXci2JnGICLCTBx6G4WO/NW8zf+CzOK9JDct4HxlHcD2ZMpvPU
-	 1TZdGKVljQc8DjVaRXW4yOGMleQFLcnUUqS0Zkh4=
+	by mail.kernel.org (Postfix) with ESMTP id 918C1217F5
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727136AbfHCHGv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 3 Aug 2019 03:06:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40602 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727100AbfHCHGv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 3 Aug 2019 03:06:51 -0400
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 08D01206A2;
-        Sat,  3 Aug 2019 07:06:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564816009;
-        bh=pPLKovyN1NMpp946XJreXv1Y0yg1S4P9Y162ukSMn64=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Rlojk96gVoiyivb+U7yrIkDTuHtioqnhmcEmMjAk1MQVJmXSmgcGRpi/2JLag+Dd6
-         M19hr//PiOu9iNAJPJwAfgv2wtT5dx2nyCeRHoSIIHS1qKxvoiJQ2X4AR13zqgfnZk
-         KxaPAYdBHbY01Ff9SDG1UhnB5NnA5pYpWqC1XkA0=
-Date:   Sat, 3 Aug 2019 09:06:21 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     john.hubbard@gmail.com
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>,
-        kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
-        sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org,
-        devel@driverdev.osuosl.org, rds-devel@oss.oracle.com,
-        linux-rdma@vger.kernel.org, Suniel Mahesh <sunil.m@techveda.org>,
-        x86@kernel.org, amd-gfx@lists.freedesktop.org,
-        Christoph Hellwig <hch@infradead.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Mihaela Muraru <mihaela.muraru21@gmail.com>,
-        xen-devel@lists.xenproject.org, devel@lists.orangefs.org,
-        linux-media@vger.kernel.org,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        intel-gfx@lists.freedesktop.org,
-        Kishore KP <kishore.p@techveda.org>,
-        linux-block@vger.kernel.org,
-        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
-        linux-rpi-kernel@lists.infradead.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        Sidong Yang <realwakka@gmail.com>,
-        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
-        Eric Anholt <eric@anholt.net>, netdev@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        Al Viro <viro@zeniv.linux.org.uk>
-Subject: Re: [PATCH 15/34] staging/vc04_services: convert put_page() to
- put_user_page*()
-Message-ID: <20190803070621.GA2508@kroah.com>
-References: <20190802022005.5117-1-jhubbard@nvidia.com>
- <20190802022005.5117-16-jhubbard@nvidia.com>
+        id S1727542AbfHCItd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Aug 2019 04:49:33 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:3741 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727529AbfHCItc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 3 Aug 2019 04:49:32 -0400
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 927B04B6C9443EFBC833;
+        Sat,  3 Aug 2019 16:49:30 +0800 (CST)
+Received: from linux-ioko.site (10.71.200.31) by
+ DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
+ 14.3.439.0; Sat, 3 Aug 2019 16:49:24 +0800
+From:   Lijun Ou <oulijun@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH V3 for-next 13/13] RDMA/hns: Disable alw_lcl_lpbk of SSU
+Date:   Sat, 3 Aug 2019 16:45:19 +0800
+Message-ID: <1564821919-100676-14-git-send-email-oulijun@huawei.com>
+X-Mailer: git-send-email 1.9.1
+In-Reply-To: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
+References: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190802022005.5117-16-jhubbard@nvidia.com>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+Content-Type: text/plain
+X-Originating-IP: [10.71.200.31]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 01, 2019 at 07:19:46PM -0700, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
-> 
-> For pages that were retained via get_user_pages*(), release those pages
-> via the new put_user_page*() routines, instead of via put_page() or
-> release_pages().
-> 
-> This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-> ("mm: introduce put_user_page*(), placeholder versions").
-> 
-> Cc: Eric Anholt <eric@anholt.net>
-> Cc: Stefan Wahren <stefan.wahren@i2se.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Mihaela Muraru <mihaela.muraru21@gmail.com>
-> Cc: Suniel Mahesh <sunil.m@techveda.org>
-> Cc: Al Viro <viro@zeniv.linux.org.uk>
-> Cc: Sidong Yang <realwakka@gmail.com>
-> Cc: Kishore KP <kishore.p@techveda.org>
-> Cc: linux-rpi-kernel@lists.infradead.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: devel@driverdev.osuosl.org
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-> ---
->  .../vc04_services/interface/vchiq_arm/vchiq_2835_arm.c | 10 ++--------
->  1 file changed, 2 insertions(+), 8 deletions(-)
+From: Weihang Li <liweihang@hisilicon.com>
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+If we enabled alw_lcl_lpbk in promiscuous mode, packet whose source
+and destination mac address is equal will be handled in both inner
+loopback and outer loopback. This will halve performance of roce in
+promiscuous mode.
+
+Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 713bfab..df0b011 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1308,7 +1308,7 @@ static int hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
+ 		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
+ 	desc.flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
+ 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LPBK_S, 1);
+-	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 1);
++	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 0);
+ 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_DST_OVRD_S, 1);
+ 
+ 	return hns_roce_cmq_send(hr_dev, &desc, 1);
+-- 
+1.9.1
+
