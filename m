@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3715FC32750
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70DD6C32754
 	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 177B921783
+	by mail.kernel.org (Postfix) with ESMTP id 3C2B421783
 	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 08:49:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387808AbfHCIth (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 3 Aug 2019 04:49:37 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3746 "EHLO huawei.com"
+        id S2387812AbfHCIti (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Aug 2019 04:49:38 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:3751 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387812AbfHCItf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S2387818AbfHCItf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Sat, 3 Aug 2019 04:49:35 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 9E26F5CFE5BC0AD9C3D5;
+        by Forcepoint Email with ESMTP id B9056D9B7BD7879EC479;
         Sat,  3 Aug 2019 16:49:30 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
@@ -28,9 +28,9 @@ From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V3 for-next 04/13] RDMA/hns: Remove unnessary init for cmq reg
-Date:   Sat, 3 Aug 2019 16:45:10 +0800
-Message-ID: <1564821919-100676-5-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V3 for-next 07/13] RDMA/hns: Handling the error return value of hem function
+Date:   Sat, 3 Aug 2019 16:45:13 +0800
+Message-ID: <1564821919-100676-8-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
 References: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
@@ -43,52 +43,64 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+From: Lang Cheng <chenglang@huawei.com>
 
-There is no need to init the enable bit of cmq.
+Handling the error return value of hns_roce_calc_hem_mhop.
 
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 --
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2769802..455b08c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -887,8 +887,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
- 		roce_write(hr_dev, ROCEE_TX_CMQ_BASEADDR_H_REG,
- 			   upper_32_bits(dma));
- 		roce_write(hr_dev, ROCEE_TX_CMQ_DEPTH_REG,
--			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
--			   HNS_ROCE_CMQ_ENABLE);
-+			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
- 		roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, 0);
- 		roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, 0);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index d3e72a0..0268c7a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -830,7 +830,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
  	} else {
-@@ -896,8 +895,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
- 		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_H_REG,
- 			   upper_32_bits(dma));
- 		roce_write(hr_dev, ROCEE_RX_CMQ_DEPTH_REG,
--			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
--			   HNS_ROCE_CMQ_ENABLE);
-+			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
- 		roce_write(hr_dev, ROCEE_RX_CMQ_HEAD_REG, 0);
- 		roce_write(hr_dev, ROCEE_RX_CMQ_TAIL_REG, 0);
+ 		u32 seg_size = 64; /* 8 bytes per BA and 8 BA per segment */
+ 
+-		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
++		if (hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop))
++			goto out;
+ 		/* mtt mhop */
+ 		i = mhop.l0_idx;
+ 		j = mhop.l1_idx;
+@@ -879,11 +880,13 @@ int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
+ {
+ 	struct hns_roce_hem_mhop mhop;
+ 	unsigned long inc = table->table_chunk_size / table->obj_size;
+-	unsigned long i;
++	unsigned long i = 0;
+ 	int ret;
+ 
+ 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
+-		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++		ret = hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++		if (ret)
++			goto fail;
+ 		inc = mhop.bt_chunk_size / table->obj_size;
  	}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 478f5a5..58931b5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -126,8 +126,6 @@
- #define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
  
- #define HNS_ROCE_CMQ_DESC_NUM_S		3
--#define HNS_ROCE_CMQ_EN_B		16
--#define HNS_ROCE_CMQ_ENABLE		BIT(HNS_ROCE_CMQ_EN_B)
+@@ -913,7 +916,8 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
+ 	unsigned long i;
  
- #define HNS_ROCE_CMQ_SCC_CLR_DONE_CNT		5
+ 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
+-		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++		if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
++			return;
+ 		inc = mhop.bt_chunk_size / table->obj_size;
+ 	}
+ 
+@@ -1035,7 +1039,8 @@ static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
+ 	int i;
+ 	u64 obj;
+ 
+-	hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
++	if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
++		return;
+ 	buf_chunk_size = table->type < HEM_TYPE_MTT ? mhop.buf_chunk_size :
+ 					mhop.bt_chunk_size;
  
 -- 
 1.9.1
