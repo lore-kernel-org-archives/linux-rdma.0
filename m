@@ -2,96 +2,105 @@ Return-Path: <SRS0=pRdt=V7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B6C8C433FF
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 02:42:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C03CBC32750
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 07:06:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E2CE920679
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 02:42:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VvHc2KZk"
+	by mail.kernel.org (Postfix) with ESMTP id 950F921783
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Aug 2019 07:06:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1564816017;
+	bh=fAm+JJVlEEdZsZEnQU6VmG7AlISaD9fVfUjXl/e9MGA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=v5QiJWOyDLBL4sa5ZX81ptVVlP+zo8ZPFLJc3TOVVU7Np83kKFGZu3+5ndjInpSkV
+	 KYaOCz8puvFXyCSzLhc+Wp8trhvveW5D96+jwX69IQSJ2MdERSRj2D1dIS7eiJHpxj
+	 sGk92xXpaQLEAEfgEvG72StIyPvtx9E1Cs1aEfQY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387593AbfHCCmp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 2 Aug 2019 22:42:45 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:44154 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387492AbfHCCmo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Aug 2019 22:42:44 -0400
-Received: by mail-ed1-f66.google.com with SMTP id k8so73977004edr.11;
-        Fri, 02 Aug 2019 19:42:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=o1vMxhl+4Xe8qt/aHo+GhoXoYmWQszbPFJSU0NitREQ=;
-        b=VvHc2KZkDBdebb6X8/gGkQvTDaYUvh/XU5tP/42xt6NVPTfjJOyNyL7/9fNgAZrgih
-         4bryokS8g7RSJX8RY9r/PeWkPp029rbVwLGpnPHk9eJjZJaAERVj/a/Qz044hf+rfumc
-         8phV03Gl/qpN2BKLJUZlHL+psH+2XaTBVG5UVIGmhXKk8atykWK4GNYigxYmyYFZPmnT
-         DBsENi0ZOO8AfcUmET3/yFiCQi+/ZGrB2YQ1Hp6cEGTCFRI9AhDpnDYIkTwvweQ5g8dZ
-         LwWvPDUdixr4iznREIccOOtKVx8W2x1PG8RCDWlKjfu2EslcUlR5c6fmhizqCJCR3Txh
-         Xb1Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=o1vMxhl+4Xe8qt/aHo+GhoXoYmWQszbPFJSU0NitREQ=;
-        b=ogt5up4vX/Glo3QVlnXztfmlllrFnOtV5AOwhWO1PZGyaqJVm/Sk/BeNKkdZx3mB67
-         4sHcAMLaE1Oq04P97uz1KGGYmwduaupBYHagl7H71MTKxhoND/Ksu1s1+4bryNhW7YWg
-         +K/AeJOgoMhqvk5lZBy4rbp+3doxYFeZQ+uNGQ+lfNNxGv4EtrS7t8/WXTqNFzKbZ9ev
-         s01K0X9IXHOlo0Z9Yb+y2IEY4wIFPoHev+p3iTgabTeIUGe7QB/JJfG6huln0qZzjoCr
-         hXXtpQ/qA8irI5LEjTPwVZQnXa270DATAu2JgFOkPDK/2h6PIjL23WBXiTL9/8cL3zpg
-         IsxA==
-X-Gm-Message-State: APjAAAWnV38dtcVntxBKky+sRGsLX/kMApM6UMCvBNCdU/1NMUKu/0Zz
-        uw4bxF3/o8/Vt4COt3+mo9fFJTIyioRjnqoOK+k=
-X-Google-Smtp-Source: APXvYqwz6jft7qzAaK2FHh0KFWud0KyfK29vGPe8vQ99QQ21veviaWlDirto/7DeK2h37wXASAXva3yGfsaunlGCWg8=
-X-Received: by 2002:a17:906:32c2:: with SMTP id k2mr15739979ejk.147.1564800162874;
- Fri, 02 Aug 2019 19:42:42 -0700 (PDT)
+        id S1727251AbfHCHGz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Aug 2019 03:06:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40672 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727206AbfHCHGx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 3 Aug 2019 03:06:53 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 756402173E;
+        Sat,  3 Aug 2019 07:06:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1564816011;
+        bh=fAm+JJVlEEdZsZEnQU6VmG7AlISaD9fVfUjXl/e9MGA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=EvBQbY6tUIAsZP4MFxGmLRqZJjlnz59fmNMbvE0jfno1B+JXE+PNryIyzSAnXbr8N
+         +lgw4Y3y5zL8NJKrLYjFHjBcr6/6qlTB3yc6rbylv5fVS7aSSqYd41B1eBmWwcN4jJ
+         e48QvmU3i/Btia6YyxF5rYYxbA6/qQXbJH8nGzR0=
+Date:   Sat, 3 Aug 2019 09:06:40 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     john.hubbard@gmail.com
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>,
+        kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>,
+        Dave Chinner <david@fromorbit.com>,
+        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
+        sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org,
+        devel@driverdev.osuosl.org, rds-devel@oss.oracle.com,
+        linux-rdma@vger.kernel.org, x86@kernel.org,
+        amd-gfx@lists.freedesktop.org,
+        Christoph Hellwig <hch@infradead.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org,
+        devel@lists.orangefs.org, linux-media@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        "Guilherme G. Piccoli" <gpiccoli@linux.vnet.ibm.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org,
+        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
+        linux-rpi-kernel@lists.infradead.org,
+        Dan Williams <dan.j.williams@intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
+        netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        linux-xfs@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org,
+        Frank Haverkamp <haver@linux.vnet.ibm.com>
+Subject: Re: [PATCH 10/34] genwqe: convert put_page() to put_user_page*()
+Message-ID: <20190803070640.GB2508@kroah.com>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+ <20190802022005.5117-11-jhubbard@nvidia.com>
 MIME-Version: 1.0
-References: <20190802121020.1181-1-hslester96@gmail.com> <CANhBUQ1chO0Q6wHJwbKMvp6LkD7qLBRw57xwf1QkBAKaewHs5w@mail.gmail.com>
- <47bb83d0111f1132bbf532c16be483c5efbe839f.camel@mellanox.com>
-In-Reply-To: <47bb83d0111f1132bbf532c16be483c5efbe839f.camel@mellanox.com>
-From:   Chuhong Yuan <hslester96@gmail.com>
-Date:   Sat, 3 Aug 2019 10:42:31 +0800
-Message-ID: <CANhBUQ1wZPinWicu2c_VZjpTtP_9+AxB=7zn+ymPyYVo_rsxZQ@mail.gmail.com>
-Subject: Re: [PATCH] net/mlx4_core: Use refcount_t for refcount
-To:     Saeed Mahameed <saeedm@mellanox.com>
-Cc:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        Tariq Toukan <tariqt@mellanox.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190802022005.5117-11-jhubbard@nvidia.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Saeed Mahameed <saeedm@mellanox.com> =E4=BA=8E2019=E5=B9=B48=E6=9C=883=E6=
-=97=A5=E5=91=A8=E5=85=AD =E4=B8=8A=E5=8D=882:38=E5=86=99=E9=81=93=EF=BC=9A
->
-> On Sat, 2019-08-03 at 00:10 +0800, Chuhong Yuan wrote:
-> > Chuhong Yuan <hslester96@gmail.com> =E4=BA=8E2019=E5=B9=B48=E6=9C=882=
-=E6=97=A5=E5=91=A8=E4=BA=94 =E4=B8=8B=E5=8D=888:10=E5=86=99=E9=81=93=EF=BC=
-=9A
-> > > refcount_t is better for reference counters since its
-> > > implementation can prevent overflows.
-> > > So convert atomic_t ref counters to refcount_t.
-> > >
-> > > Also convert refcount from 0-based to 1-based.
-> > >
-> >
-> > It seems that directly converting refcount from 0-based
-> > to 1-based is infeasible.
-> > I am sorry for this mistake.
->
-> Just curious, why not keep it 0 based and use refcout_t ?
->
-> refcount API should have the same semantics as atomic_t API .. no ?
+On Thu, Aug 01, 2019 at 07:19:41PM -0700, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
+> 
+> For pages that were retained via get_user_pages*(), release those pages
+> via the new put_user_page*() routines, instead of via put_page() or
+> release_pages().
+> 
+> This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+> ("mm: introduce put_user_page*(), placeholder versions").
+> 
+> This changes the release code slightly, because each page slot in the
+> page_list[] array is no longer checked for NULL. However, that check
+> was wrong anyway, because the get_user_pages() pattern of usage here
+> never allowed for NULL entries within a range of pinned pages.
+> 
+> Cc: Frank Haverkamp <haver@linux.vnet.ibm.com>
+> Cc: "Guilherme G. Piccoli" <gpiccoli@linux.vnet.ibm.com>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> ---
+>  drivers/misc/genwqe/card_utils.c | 17 +++--------------
+>  1 file changed, 3 insertions(+), 14 deletions(-)
 
-refcount API will warn when increase a 0 refcount.
-It regards this as a use-after-free.
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
