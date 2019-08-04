@@ -8,53 +8,53 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3A45C433FF
-	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 22:50:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68BADC433FF
+	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 22:51:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 796432089F
-	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 22:50:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F2162182B
+	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 22:51:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TnoFvHk+"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n2GzADBC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728000AbfHDWuu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 4 Aug 2019 18:50:50 -0400
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:39628 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727806AbfHDWuL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 4 Aug 2019 18:50:11 -0400
-Received: by mail-pl1-f195.google.com with SMTP id b7so35729367pls.6;
-        Sun, 04 Aug 2019 15:50:10 -0700 (PDT)
+        id S1727790AbfHDWuI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 4 Aug 2019 18:50:08 -0400
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:44271 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727726AbfHDWuE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 4 Aug 2019 18:50:04 -0400
+Received: by mail-pl1-f194.google.com with SMTP id t14so35655548plr.11;
+        Sun, 04 Aug 2019 15:50:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=46lxAY1z81U+mrrESVpVIrQ+fWJc6iHl4OExj8KwBEA=;
-        b=TnoFvHk+U9GlniOKiXvWmHaHCeiVRyFhspf1Ucco3Opb6Zsra5EKt4aW1VdCEHOoOL
-         B19ZrZSjdl4XOLjhMd/tz/suTkdRby0Q/hj5CJZSGF/pCKAPl5af/u3ds9o4NJugQJUH
-         wah7eFEy+LBD8ieXrf5M4ghNwdqYF47d1zgnqfS2OWPzozoT/nJvTGXUM3ZYObcV1Nod
-         /B+8RZc6MysuCMtgdDFKXIhBZ1vxh5KoYsW/S+ERZyza2fEF3JOhoez0XL3hqg3QsNHf
-         A2vrE2EWhCkc/+2Bi4Qkus+K6o78OOjPZC/JIdc8d4G2oWHuj6EfQ91Jku0EJ0FsNSHa
-         w9qg==
+        bh=Puv5caB6Xd1AJbwd7nGzyFKNouoVWAfL+vJwz/b+4QQ=;
+        b=n2GzADBCRaGfCHf6HbXgRg+V0C89X4GtWNxkv2j3+LQsrqKpmTUVe0ByTHKQwdeBJn
+         2GjNEQhUsYm7dhY4Od2Sd6r20534hykhUqRe4t1VnKwQ4DMvNZ5YhS01Fzzgrjh0SFnz
+         cOALy97h5W1lbkzKyPwHr+vFBFBbcXlcy5zpFAQBNWN4n0Cj0kftmPhY24PBwGy3tLN5
+         iaVwvJuxvheoQgKbgYArnZAnGqCyndt7VZwBKzGO0BC6OrGMqarpUlPnyV+UVYDmCU/k
+         M/mEk0A479arzsza58VY7eIxZdZ0ZSau4HrT6ltuIf1VzdnlaHlbMs8Cfp7zJmoWUVEJ
+         eBOw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=46lxAY1z81U+mrrESVpVIrQ+fWJc6iHl4OExj8KwBEA=;
-        b=ochFYl6AlOkGQNem6gwSJHbju1mISJID6vzwCMEMvcZ4CyQNj68HuFv2M0Gn52cbWf
-         GSQaBs6bSb4fa+GK13u2Y4MHA38cBtM4ld+KN60CSb1NsV4wZh3wBoIbA1ENNETuETYy
-         vXMS0sx6NYTIoiHUMW3k0y/8SetQ6+SCFW/M1197Y5RiZ6PsWpnuRlqrNRzIeSRDgFOh
-         H46tamU8u/c/v54bEeLXxn+BtaF2bAFvemRJc+5cvzU8sLjothMmg5hMhi2jGcE62ueL
-         t339jfWOmrIRhXr2RmyYYWYvWJe4WSfIP5v+Ct3Xc216pFcZ963MhD6154E5OLOcVkZ5
-         1M7g==
-X-Gm-Message-State: APjAAAWQBzWzKJwNYdAbSScaRHKeKQyqfuXahFKYijL0M9VceebEMP5A
-        TJQRapXKGO+Duyy0ps3yof8=
-X-Google-Smtp-Source: APXvYqzB7V+habp3I96Q8m7XMJqRYvky1QL0M1s1kWUjAVtyhhVWp0HvJtmcLDTq9kGGDNeFtLuO/Q==
-X-Received: by 2002:a17:902:9a84:: with SMTP id w4mr21647219plp.160.1564959010056;
-        Sun, 04 Aug 2019 15:50:10 -0700 (PDT)
+        bh=Puv5caB6Xd1AJbwd7nGzyFKNouoVWAfL+vJwz/b+4QQ=;
+        b=GOB6Wn+Qx4Lco+3J+fQAPjs3H4X16WtX94Sc/LOjOnw3ffOBouIfy2eASOYG6tYge/
+         nZduX9s6/PIN4UkbHiCQ1YfynPL0F/9KTws0HLFfKI9fhpKZdbq7rE/QLEdkjPbuMecT
+         64jLcCoigcj56ozSESlekZhDp7MmUBAFPmChJMm607/nqejZXCdqEujQVho8TnqeXMzA
+         pq8rVdHzQ34HmaIdZjmjQY/NFaZEXveLuZ5wfXqzsZAtyL8o/nP85WSzxbPqlqkzkhvp
+         e2jWEJEm7EKYIF2vT9qd+EjHvxyaxliezTrIWVfryCWv8UV46lgJKE5HisHon8NM08O3
+         EuOg==
+X-Gm-Message-State: APjAAAXCzQryubidO0k67nx34jKfv4tLqKu9cZR72GTYJ3RdSAOzgHjN
+        H1wx1UxE270oe2CiEGZUBck=
+X-Google-Smtp-Source: APXvYqwABL/owZcbuKs02BqFh/fswcnIOGTkP8u9lrE9SbNiB96M9TYbiEw8R+LSl6DRBzA56M1pUA==
+X-Received: by 2002:a17:902:bb81:: with SMTP id m1mr58194086pls.125.1564959003903;
+        Sun, 04 Aug 2019 15:50:03 -0700 (PDT)
 Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id r6sm35946836pjb.22.2019.08.04.15.50.08
+        by smtp.gmail.com with ESMTPSA id r6sm35946836pjb.22.2019.08.04.15.50.02
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Sun, 04 Aug 2019 15:50:09 -0700 (PDT)
+        Sun, 04 Aug 2019 15:50:03 -0700 (PDT)
 From:   john.hubbard@gmail.com
 X-Google-Original-From: jhubbard@nvidia.com
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -78,15 +78,17 @@ Cc:     Christoph Hellwig <hch@infradead.org>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         sparclinux@vger.kernel.org, x86@kernel.org,
         xen-devel@lists.xenproject.org, John Hubbard <jhubbard@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Roman Kiryanov <rkir@google.com>
-Subject: [PATCH v2 32/34] goldfish_pipe: convert put_page() to put_user_page*()
-Date:   Sun,  4 Aug 2019 15:49:13 -0700
-Message-Id: <20190804224915.28669-33-jhubbard@nvidia.com>
+        Daniel Black <daniel@linux.ibm.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>
+Subject: [PATCH v2 28/34] mm/madvise.c: convert put_page() to put_user_page*()
+Date:   Sun,  4 Aug 2019 15:49:09 -0700
+Message-Id: <20190804224915.28669-29-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190804224915.28669-1-jhubbard@nvidia.com>
 References: <20190804224915.28669-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-NVConfidentiality: public
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -103,46 +105,30 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Note that this effectively changes the code's behavior in
-qp_release_pages(): it now ultimately calls set_page_dirty_lock(),
-instead of set_page_dirty(). This is probably more accurate.
-
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
-
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Roman Kiryanov <rkir@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Daniel Black <daniel@linux.ibm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/platform/goldfish/goldfish_pipe.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/madvise.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
-index cef0133aa47a..2bd21020e288 100644
---- a/drivers/platform/goldfish/goldfish_pipe.c
-+++ b/drivers/platform/goldfish/goldfish_pipe.c
-@@ -288,15 +288,12 @@ static int pin_user_pages(unsigned long first_page,
- static void release_user_pages(struct page **pages, int pages_count,
- 			       int is_write, s32 consumed_size)
- {
--	int i;
-+	bool dirty = !is_write && consumed_size > 0;
- 
--	for (i = 0; i < pages_count; i++) {
--		if (!is_write && consumed_size > 0)
--			set_page_dirty(pages[i]);
--		put_page(pages[i]);
--	}
-+	put_user_pages_dirty_lock(pages, pages_count, dirty);
- }
- 
-+
- /* Populate the call parameters, merging adjacent pages together */
- static void populate_rw_params(struct page **pages,
- 			       int pages_count,
+diff --git a/mm/madvise.c b/mm/madvise.c
+index 968df3aa069f..1c6881a761a5 100644
+--- a/mm/madvise.c
++++ b/mm/madvise.c
+@@ -672,7 +672,7 @@ static int madvise_inject_error(int behavior,
+ 		 * routine is responsible for pinning the page to prevent it
+ 		 * from being released back to the page allocator.
+ 		 */
+-		put_page(page);
++		put_user_page(page);
+ 		ret = memory_failure(pfn, 0);
+ 		if (ret)
+ 			return ret;
 -- 
 2.22.0
 
