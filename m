@@ -2,58 +2,59 @@ Return-Path: <SRS0=GppO=WA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E010DC433FF
-	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 21:40:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 590FDC32754
+	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 21:40:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9925A20880
-	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 21:40:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C40820880
+	for <linux-rdma@archiver.kernel.org>; Sun,  4 Aug 2019 21:40:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="u39I0RWz"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H+p30VSj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726766AbfHDVkq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 4 Aug 2019 17:40:46 -0400
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:46011 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726536AbfHDVkq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 4 Aug 2019 17:40:46 -0400
-Received: by mail-pg1-f196.google.com with SMTP id o13so38595940pgp.12;
-        Sun, 04 Aug 2019 14:40:45 -0700 (PDT)
+        id S1726844AbfHDVkt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 4 Aug 2019 17:40:49 -0400
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:45917 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726841AbfHDVkt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 4 Aug 2019 17:40:49 -0400
+Received: by mail-pl1-f194.google.com with SMTP id y8so35656809plr.12;
+        Sun, 04 Aug 2019 14:40:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=u7QfHgAZJphiJkiML+n7+9xiXsnu4L5blHeWg2XiOgc=;
-        b=u39I0RWzXaT9LZiMOuWXB1YMfdm9l0k5XildL+8oy8WG+Xp+HlNRUNYjNYcsIgMMTB
-         ZpD/HwYg5a0o6ahOx9ZYRbmJlZZ3NLwUfe/ls4mO6JoAFJIx/C4wKRP28ihiEUB5VjhT
-         D58n4BNw9c55IlGQPpiJrVPRnoEMM0g6/Xf+ahwHFl/B88xU2qGxK/pemUTTRjimFwRi
-         t/D8fcfMolCCDTGQO+urRxWr1DbAd4j3hCpOP6OcV/VT/muTPpaFTvV1+DiX2EdeA9OL
-         XsnejpGlwKFc3nz+z9brQ1fZaYH/JKmBK+jueenTXLYIBOez7qe7f8v+Db7b0LHhvgd6
-         B7fA==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=SsIRGkPWeq5HvTZzTxF/TGZYHjIKFiRIBMhKcsnvtic=;
+        b=H+p30VSjG2bf5AhOggB5BMZsW4m9risk1SBKygWZEa4RLF2QVvj46onSB9Iu63cBhz
+         /42BdWC1CpQTI/gGo4HQcAmlqUhbQCDZyO1er4CKT+ES4DgPE9pjxTxvrM2Ml2etyUAT
+         1Jtn0wq64e1geuJnx4qMRvHAZBG/LKpdwbNiHwhnrbMTIkPJsHZzbHJBHtuUZ+gVzsbV
+         zw4cg6zSDS23YxXKB9O6N3MS4xcetMMvqcuy9hwn1XOQsF1ghps+HImfUVntNxOD9trO
+         /ykc4DpaFmLktsZjHWpryrOPu7Yfj6Ao/n7wqskKVhmAebiL+EbFEYmmU1Z31P50MkGX
+         IaUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=u7QfHgAZJphiJkiML+n7+9xiXsnu4L5blHeWg2XiOgc=;
-        b=eD0MRIqa5Oj8GNBWMxatoMKxfLzjC7ouyELY647D/NYoMmEhvW2Aal2804l0PDCkVH
-         0MNCBTfMQMhjhviBwK699xvSKz+xaBOS+tq+dyCNMhZFHLBowBEfcG0EenMH3oq5YgV0
-         dRnKbqoZ0XokKnPp/3nhw2q4i7bLWy2YyLQ1f8ak8s/g4Y2BSQ1NszaEkKx+mh92DVoA
-         X9eFN99IS8J4DRZw3zCluC1f/gXZdMilYnZ0OxXqtCVOsvrXNSjTb7TmdWpOVBjM762G
-         CmqBY0NAsgfRwU/DCZCDFUYHF8+lRto9aa4CuVQUABTl7VaxPSHVNVn0+0bg9HbDfQ2I
-         XeTw==
-X-Gm-Message-State: APjAAAUkKgjXNKGXTJoltYtU1GCewByfllvZsFD9mNcNAo4QSw2shG3c
-        BxdBpTAuhQhfLR8V+fLkL0U=
-X-Google-Smtp-Source: APXvYqzFCjqlZU+HDCyGiBEvpK2/pADBDo3dD7v/H/FvucfCIeD6scQK7TlMDTLTVLBWsfhNeMf1fA==
-X-Received: by 2002:a17:90a:bc0c:: with SMTP id w12mr14275839pjr.111.1564954845639;
-        Sun, 04 Aug 2019 14:40:45 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=SsIRGkPWeq5HvTZzTxF/TGZYHjIKFiRIBMhKcsnvtic=;
+        b=Hk1ueckUHA4P93CYqobOdnVd9X8HLSzSfhof1rszUGJA4HUoT/xNsoGLFxD19kqIj4
+         Ehr59qg83xhq9XWEXvOrejQVynp1p/GrV2HZgWyvQm9fU77469fyEqg+UozUGaSu4SPa
+         hr+ZHMxvzOd8ywdNbPNTYysAokDKke/bWzN8UK9GUy7l0HO4RjhdR3xTzKqy2c2wARKS
+         IS+tZoM0yUMXnBKHw8ZALEceaPD2PSOC0NbbtiZ3qO1LcZe68L/BlK5F9X8hjuC5C2PI
+         ve89qzm2pc45Osk02IuEgo9GsJeZ6mcNYSI06hbua482qBYOag5SoICubp8ZPTOygYAm
+         1Xig==
+X-Gm-Message-State: APjAAAUb0oq2MtcrAPGV36oaqroIoEpfMUb+m7x+0m24rBDAJjv5/P7v
+        aXyivzaVB+FZCJPX99XHuI8=
+X-Google-Smtp-Source: APXvYqydipLt//yx7Zzw8Y7M/UPDM4z+2keifWIA9ZuDE301mL9AEMh6QPc9OqCc5SJgqPJLA9fETg==
+X-Received: by 2002:a17:902:16f:: with SMTP id 102mr136326006plb.94.1564954848548;
+        Sun, 04 Aug 2019 14:40:48 -0700 (PDT)
 Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id 143sm123751024pgc.6.2019.08.04.14.40.43
+        by smtp.gmail.com with ESMTPSA id 143sm123751024pgc.6.2019.08.04.14.40.47
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Sun, 04 Aug 2019 14:40:44 -0700 (PDT)
+        Sun, 04 Aug 2019 14:40:47 -0700 (PDT)
 From:   john.hubbard@gmail.com
 X-Google-Original-From: jhubbard@nvidia.com
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -80,12 +81,13 @@ Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
         linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
         LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v6 0/3] mm/gup: add make_dirty arg to put_user_pages_dirty_lock()
-Date:   Sun,  4 Aug 2019 14:40:39 -0700
-Message-Id: <20190804214042.4564-1-jhubbard@nvidia.com>
+Subject: [PATCH v6 2/3] drivers/gpu/drm/via: convert put_page() to put_user_page*()
+Date:   Sun,  4 Aug 2019 14:40:41 -0700
+Message-Id: <20190804214042.4564-3-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.22.0
+In-Reply-To: <20190804214042.4564-1-jhubbard@nvidia.com>
+References: <20190804214042.4564-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-NVConfidentiality: public
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -95,84 +97,52 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
-Changes since v5:
-
-* Patch #1: Fixed a bug that I introduced in v4:
-  drivers/infiniband/sw/siw/siw_mem.c needs to refer to
-  umem->page_chunk[i].plist, rather than umem->page_chunk[i].
-
-Changes since v4:
-
-* Christophe Hellwig's review applied: deleted siw_free_plist() and
-  __qib_release_user_pages(), now that put_user_pages_dirty_lock() does
-  what those routines were doing.
-
-* Applied Bjorn's ACK for net/xdp, and Christophe's Reviewed-by for patch
-  #1.
-
-Changes since v3:
-
-* Fixed an unused variable warning in siw_mem.c
-
-Changes since v2:
-
-* Critical bug fix: remove a stray "break;" from the new routine.
-
-Changes since v1:
-
-* Instead of providing __put_user_pages(), add an argument to
-  put_user_pages_dirty_lock(), and delete put_user_pages_dirty().
-  This is based on the following points:
-
-    1. Lots of call sites become simpler if a bool is passed
-    into put_user_page*(), instead of making the call site
-    choose which put_user_page*() variant to call.
-
-    2. Christoph Hellwig's observation that set_page_dirty_lock()
-    is usually correct, and set_page_dirty() is usually a
-    bug, or at least questionable, within a put_user_page*()
-    calling chain.
-
-* Added the Infiniband driver back to the patch series, because it is
-  a caller of put_user_pages_dirty_lock().
-
-Unchanged parts from the v1 cover letter (except for the diffstat):
-
-Notes about the remaining patches to come:
-
-There are about 50+ patches in my tree [2], and I'll be sending out the
-remaining ones in a few more groups:
-
-    * The block/bio related changes (Jerome mostly wrote those, but I've
-      had to move stuff around extensively, and add a little code)
-
-    * mm/ changes
-
-    * other subsystem patches
-
-    * an RFC that shows the current state of the tracking patch set. That
-      can only be applied after all call sites are converted, but it's
-      good to get an early look at it.
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-John Hubbard (3):
-  mm/gup: add make_dirty arg to put_user_pages_dirty_lock()
-  drivers/gpu/drm/via: convert put_page() to put_user_page*()
-  net/xdp: convert put_page() to put_user_page*()
+Also reverse the order of a comparison, in order to placate
+checkpatch.pl.
 
- drivers/gpu/drm/via/via_dmablit.c          |  10 +-
- drivers/infiniband/core/umem.c             |   5 +-
- drivers/infiniband/hw/hfi1/user_pages.c    |   5 +-
- drivers/infiniband/hw/qib/qib_user_pages.c |  13 +--
- drivers/infiniband/hw/usnic/usnic_uiom.c   |   5 +-
- drivers/infiniband/sw/siw/siw_mem.c        |  19 +---
- include/linux/mm.h                         |   5 +-
- mm/gup.c                                   | 115 +++++++++------------
- net/xdp/xdp_umem.c                         |   9 +-
- 9 files changed, 64 insertions(+), 122 deletions(-)
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: dri-devel@lists.freedesktop.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/gpu/drm/via/via_dmablit.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/gpu/drm/via/via_dmablit.c b/drivers/gpu/drm/via/via_dmablit.c
+index 062067438f1d..b5b5bf0ba65e 100644
+--- a/drivers/gpu/drm/via/via_dmablit.c
++++ b/drivers/gpu/drm/via/via_dmablit.c
+@@ -171,7 +171,6 @@ via_map_blit_for_device(struct pci_dev *pdev,
+ static void
+ via_free_sg_info(struct pci_dev *pdev, drm_via_sg_info_t *vsg)
+ {
+-	struct page *page;
+ 	int i;
+ 
+ 	switch (vsg->state) {
+@@ -186,13 +185,8 @@ via_free_sg_info(struct pci_dev *pdev, drm_via_sg_info_t *vsg)
+ 		kfree(vsg->desc_pages);
+ 		/* fall through */
+ 	case dr_via_pages_locked:
+-		for (i = 0; i < vsg->num_pages; ++i) {
+-			if (NULL != (page = vsg->pages[i])) {
+-				if (!PageReserved(page) && (DMA_FROM_DEVICE == vsg->direction))
+-					SetPageDirty(page);
+-				put_page(page);
+-			}
+-		}
++		put_user_pages_dirty_lock(vsg->pages, vsg->num_pages,
++					  (vsg->direction == DMA_FROM_DEVICE));
+ 		/* fall through */
+ 	case dr_via_pages_alloc:
+ 		vfree(vsg->pages);
 -- 
 2.22.0
 
