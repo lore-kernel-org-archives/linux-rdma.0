@@ -2,288 +2,125 @@ Return-Path: <SRS0=BMee=WC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FB11C31E40
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 14:39:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D890FC433FF
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 14:47:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06F13214C6
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 14:39:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5A0820C01
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 14:47:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="cwOQj1oM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733035AbfHFOjJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 10:39:09 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48826 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1732018AbfHFOjJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 10:39:09 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from haimbo@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 6 Aug 2019 17:39:03 +0300
-Received: from r-ufm115.mtr.labs.mlnx (r-ufm115.mtr.labs.mlnx [10.209.36.210])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x76Ed2Ow007278;
-        Tue, 6 Aug 2019 17:39:02 +0300
-Received: from r-ufm115.mtr.labs.mlnx (localhost [127.0.0.1])
-        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7) with ESMTP id x76Ed3Or020955;
-        Tue, 6 Aug 2019 14:39:03 GMT
-Received: (from haimbo@localhost)
-        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7/Submit) id x76Ed2Ij020954;
-        Tue, 6 Aug 2019 14:39:02 GMT
-From:   Haim Boozaglo <haimbo@mellanox.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Vladimir Koushnir <vladimirk@mellanox.com>,
-        Haim Boozaglo <haimbo@mellanox.com>
-Subject: [PATCH 2/3] libibumad: Redesign resolve_ca_name to support arbitrary number of IB devices
-Date:   Tue,  6 Aug 2019 14:38:53 +0000
-Message-Id: <1565102334-20903-2-git-send-email-haimbo@mellanox.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1565102334-20903-1-git-send-email-haimbo@mellanox.com>
-References: <1565102334-20903-1-git-send-email-haimbo@mellanox.com>
+        id S1733043AbfHFOrE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 10:47:04 -0400
+Received: from mail-eopbgr130087.outbound.protection.outlook.com ([40.107.13.87]:26750
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1732037AbfHFOrD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Aug 2019 10:47:03 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Do+BwNok/HHiYkAvv/ey/RxAOZ8+PDM3fhSX3ELaoK182KgNJj/nDW3L2WoiwJbsFU1GoRq8Wccor/pzjj0FdUKZY2qNStve8hQizzlFTuP77BXX7Mg3C1PBlLRHrlyxXrMG4JFtRivz1OYXHEo7ps3WzMkYD8ewNhhVsTZENQykaYqNNrwFEIAoGF/xCg7v0MEsae2qMdI5QhkMhPbD+2BJOJFTOQgXq/IHuwwBoNk4nZAWzsznK9Pz7meegyK65JklVvLZFN5JtfolXfEla1VOYPicoqbTN8QsgMUvt61h9MSyY3Cz2toNtVymETT7vw0jyH2QRNTB9gMH6iTynw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ANlJ2JAN2KAMottifsVJOI5Fo9er3Kov+SpbOk5OGIA=;
+ b=Vzelu782tsaYSo7vXgU59yyxGnluhdzvaI0cwLUkdUfzA+NC2KUPHMMQYYVXGuTZA8iOu/MCYnV5ldWmlHzoEqrBhjQonyibSDy1PKEB5iIGDPItX64ZpkEdWPA2CfjXkDdh0XzDxFOsyIDdU2EII5+tTyvbhm1TV8Mpzx/ANZgFQ3txXD19BgwZ9nLFBqp95Z1qYFj0ecpKIBH+hA2kI06JHcrDHnqIkgcpdyTMoe8W+W6NLUrUnGnRfC8eEiEZfL4Pq+3ZQhe7x5M0dhIVl2lqM9UjIYY60iVl1pJVHf8sgGOffTsgL2oak4ya6DLeQuToPvSaR7SFMrZ4WbVxRg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1;spf=pass
+ smtp.mailfrom=mellanox.com;dmarc=pass action=none
+ header.from=mellanox.com;dkim=pass header.d=mellanox.com;arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ANlJ2JAN2KAMottifsVJOI5Fo9er3Kov+SpbOk5OGIA=;
+ b=cwOQj1oMiEO+Zy8oCU2rdyanXbdF6ztU7svyfvHSLU6tullfhxAXcKAJ2U9hZzkxrxxP9ygBGJE6DTFNFSo8aH7FlEkHd3mBdBxJJ1imM/tYwzgh76/uUKxYzwOcvh+K23/VC86n5V/B4I6cOLaWKUM7XVoHA+KHq19TeHN6DFI=
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (10.171.182.144) by
+ VI1PR05MB5101.eurprd05.prod.outlook.com (20.177.49.139) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2115.15; Tue, 6 Aug 2019 14:46:58 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::5c6f:6120:45cd:2880]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::5c6f:6120:45cd:2880%4]) with mapi id 15.20.2136.018; Tue, 6 Aug 2019
+ 14:46:58 +0000
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Leon Romanovsky <leonro@mellanox.com>
+CC:     Doug Ledford <dledford@redhat.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Mark Zhang <markz@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH rdma-next 0/2] Enable QUERY_LAG over DEVX
+Thread-Topic: [PATCH rdma-next 0/2] Enable QUERY_LAG over DEVX
+Thread-Index: AQHVR5S96BofU7cLsE+M/qJVn2ksr6bqrh8AgAOOSoA=
+Date:   Tue, 6 Aug 2019 14:46:58 +0000
+Message-ID: <20190806144653.GM11641@mellanox.com>
+References: <20190731114014.4786-1-leon@kernel.org>
+ <20190804082848.GF4832@mtr-leonro.mtl.com>
+In-Reply-To: <20190804082848.GF4832@mtr-leonro.mtl.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: YTOPR0101CA0006.CANPRD01.PROD.OUTLOOK.COM
+ (2603:10b6:b00:15::19) To VI1PR05MB4141.eurprd05.prod.outlook.com
+ (2603:10a6:803:4d::16)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [156.34.55.100]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 38c6472a-1dbc-4eba-1176-08d71a7ceefe
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:VI1PR05MB5101;
+x-ms-traffictypediagnostic: VI1PR05MB5101:
+x-microsoft-antispam-prvs: <VI1PR05MB51018685FBA21A7C375DD77ECFD50@VI1PR05MB5101.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:6790;
+x-forefront-prvs: 0121F24F22
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(136003)(39860400002)(366004)(346002)(376002)(199004)(189003)(4326008)(7736002)(256004)(36756003)(68736007)(81166006)(229853002)(26005)(305945005)(186003)(37006003)(486006)(53936002)(2616005)(476003)(6246003)(4744005)(52116002)(6116002)(102836004)(386003)(66446008)(11346002)(6862004)(6486002)(316002)(25786009)(6512007)(478600001)(6506007)(33656002)(446003)(66476007)(6436002)(2906002)(76176011)(81156014)(66556008)(8936002)(66066001)(8676002)(6636002)(99286004)(71200400001)(5660300002)(66946007)(71190400001)(107886003)(64756008)(1076003)(3846002)(54906003)(14454004)(86362001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB5101;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: A4Lt0sQhs/3vWUoo+EiFQSlXCdppIHwDK2R+9XzozOp/r+1Fvs2BAD36YYsP7Rgox8X2IqxrD3kZtjRrEsXg/l998RQoiTRodRbPE7XZUNMELP8ZGHac5rav2tbuOAqtJUtY3ZrShL9TJP0B/y8W2ZTOGv2E95hQFNl0/cUNq8YVcml1hR7tnW35N/zS41YSgMbaudlIdd51LWAKRqD+/ycYHM8fVlq9oMFR6aP44Fw6OgU1dm8JsVfQqIoqbormiGDGngwe1FoTK/K+iWlQdU/FbLctCWSjaC/qeKQvBiB0sY9B7+ejQUIsqOpyk3mcx9A0mqq/4/bu5YFSByEnKcM6xkRoiXJiOvgoMgSG6TrwCiIBW6Mr1RMv9GTuo1I1MVvfPUUCRRM4m0ZW02FX87YxUVRqBW73/13opjLoocM=
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <CB408D59CB581E468A36029D35455E26@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 38c6472a-1dbc-4eba-1176-08d71a7ceefe
+X-MS-Exchange-CrossTenant-originalarrivaltime: 06 Aug 2019 14:46:58.5758
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: jgg@mellanox.com
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB5101
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Vladimir Koushnir <vladimirk@mellanox.com>
+On Sun, Aug 04, 2019 at 05:28:50AM -0300, Leon Romanovsky wrote:
+> On Wed, Jul 31, 2019 at 02:40:12PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Hi,
+> >
+> > Enable QUERY_LAG command over DEVX. That command was added to the mlx5_=
+core,
+> > but were not used and hence has wrong HW spec layout which is fixed in
+> > first patch. The second patch actually makes this command available for
+> > DEVX users.
+> >
+> > Thanks
+> >
+> > Mark Zhang (2):
+> >   net/mlx5: Fix mlx5_ifc_query_lag_out_bits
+> >   IB/mlx5: Support MLX5_CMD_OP_QUERY_LAG as a DEVX general command
+>=20
+> Both patches are applied to mlx5-next.
 
-resolve_ca_name is now based on the new umad_get_ca_namelist API
-rather than the old umad_get_cas_names API.
+Why the second one?
 
-Signed-off-by: Vladimir Koushnir <vladimirk@mellanox.com>
-Signed-off-by: Haim Boozaglo <haimbo@mellanox.com>
----
- libibumad/umad.c | 100 +++++++++++++++++++++++++++++++++++--------------------
- 1 file changed, 64 insertions(+), 36 deletions(-)
-
-diff --git a/libibumad/umad.c b/libibumad/umad.c
-index 9d0303b..0fdf85e 100644
---- a/libibumad/umad.c
-+++ b/libibumad/umad.c
-@@ -331,42 +331,52 @@ Exit:
- 	return ret;
- }
- 
--static const char *resolve_ca_name(const char *ca_name, int *best_port)
-+static int resolve_ca_name(const char *ca_in, int *best_port,
-+			   char ca_name[UMAD_CA_NAME_LEN])
- {
--	static char names[UMAD_MAX_DEVICES][UMAD_CA_NAME_LEN];
-+	char *names;
-+	char *name_found;
- 	int phys_found = -1, port_found = 0, port, port_type;
- 	int caidx, n;
- 
--	if (ca_name && (!best_port || *best_port))
--		return ca_name;
-+	if (ca_in && (!best_port || *best_port)) {
-+		strncpy(ca_name, ca_in, UMAD_CA_NAME_LEN);
-+		return 0;
-+	}
- 
--	if (ca_name) {
--		if (resolve_ca_port(ca_name, best_port) < 0)
--			return NULL;
--		return ca_name;
-+	if (ca_in) {
-+		if (resolve_ca_port(ca_in, best_port) < 0)
-+			return -1;
-+		strncpy(ca_name, ca_in, UMAD_CA_NAME_LEN);
-+		return 0;
- 	}
- 
- 	/* Get the list of CA names */
--	if ((n = umad_get_cas_names((void *)names, UMAD_MAX_DEVICES)) < 0)
--		return NULL;
-+	if ((n = umad_get_ca_namelist(&names)) < 0)
-+		return -1;
- 
- 	/* Find the first existing CA with an active port */
- 	for (caidx = 0; caidx < n; caidx++) {
--		TRACE("checking ca '%s'", names[caidx]);
-+		name_found = &names[caidx * UMAD_CA_NAME_LEN];
-+
-+		TRACE("checking ca '%s'", name_found);
- 
- 		port = best_port ? *best_port : 0;
--		if ((port_type = resolve_ca_port(names[caidx], &port)) < 0)
-+		if ((port_type = resolve_ca_port(name_found,
-+						 &port)) < 0)
- 			continue;
- 
- 		DEBUG("found ca %s with port %d type %d",
--		      names[caidx], port, port_type);
-+		      name_found, port, port_type);
- 
- 		if (port_type > 0) {
- 			if (best_port)
- 				*best_port = port;
- 			DEBUG("found ca %s with active port %d",
--			      names[caidx], port);
--			return (char *)(names + caidx);
-+			      name_found, port);
-+			strncpy(ca_name, name_found, UMAD_CA_NAME_LEN);
-+			umad_free_ca_namelist(names);
-+			return 0;
- 		}
- 
- 		if (phys_found == -1) {
-@@ -376,17 +386,30 @@ static const char *resolve_ca_name(const char *ca_name, int *best_port)
- 	}
- 
- 	DEBUG("phys found %d on %s port %d",
--	      phys_found, phys_found >= 0 ? names[phys_found] : NULL,
-+	      phys_found,
-+	      phys_found >= 0 ? &names[phys_found *  UMAD_CA_NAME_LEN] : NULL,
- 	      port_found);
-+
- 	if (phys_found >= 0) {
-+		name_found = &names[phys_found * UMAD_CA_NAME_LEN];
-+		DEBUG("phys found %d on %s port %d",
-+			phys_found,
-+			phys_found >= 0 ? name_found : NULL,
-+			port_found);
- 		if (best_port)
- 			*best_port = port_found;
--		return names[phys_found];
-+		strncpy(ca_name, name_found, UMAD_CA_NAME_LEN);
-+		umad_free_ca_namelist(names);
-+		return 0;
- 	}
- 
-+	umad_free_ca_namelist(names);
-+
- 	if (best_port)
- 		*best_port = def_ca_port;
--	return def_ca_name;
-+
-+	strncpy(ca_name, def_ca_name, UMAD_CA_NAME_LEN);
-+	return 0;
- }
- 
- static int get_ca(const char *ca_name, umad_ca_t * ca)
-@@ -577,16 +600,17 @@ int umad_get_cas_names(char cas[][UMAD_CA_NAME_LEN], int max)
- 	return j;
- }
- 
--int umad_get_ca_portguids(const char *ca_name, __be64 *portguids, int max)
-+int umad_get_ca_portguids(const char *ca_name, __be64 * portguids, int max)
- {
- 	umad_ca_t ca;
- 	int ports = 0, i;
-+	char found_ca_name[UMAD_CA_NAME_LEN];
- 
- 	TRACE("ca name %s max port guids %d", ca_name, max);
--	if (!(ca_name = resolve_ca_name(ca_name, NULL)))
-+	if (resolve_ca_name(ca_name, NULL, found_ca_name) < 0)
- 		return -ENODEV;
- 
--	if (umad_get_ca(ca_name, &ca) < 0)
-+	if (umad_get_ca(found_ca_name, &ca) < 0)
- 		return -1;
- 
- 	if (portguids) {
-@@ -596,12 +620,12 @@ int umad_get_ca_portguids(const char *ca_name, __be64 *portguids, int max)
- 		}
- 
- 		for (i = 0; i <= ca.numports; i++)
--			portguids[ports++] = ca.ports[i] ?
--				ca.ports[i]->port_guid : htobe64(0);
-+			portguids[ports++] =
-+			    ca.ports[i] ? ca.ports[i]->port_guid : 0;
- 	}
- 
- 	release_ca(&ca);
--	DEBUG("%s: %d ports", ca_name, ports);
-+	DEBUG("%s: %d ports", found_ca_name, ports);
- 
- 	return ports;
- }
-@@ -609,13 +633,14 @@ int umad_get_ca_portguids(const char *ca_name, __be64 *portguids, int max)
- int umad_get_issm_path(const char *ca_name, int portnum, char path[], int max)
- {
- 	int umad_id;
-+	char found_ca_name[UMAD_CA_NAME_LEN];
- 
- 	TRACE("ca %s port %d", ca_name, portnum);
- 
--	if (!(ca_name = resolve_ca_name(ca_name, &portnum)))
-+	if (resolve_ca_name(ca_name, &portnum, found_ca_name) < 0)
- 		return -ENODEV;
- 
--	if ((umad_id = dev_to_umad_id(ca_name, portnum)) < 0)
-+	if ((umad_id = dev_to_umad_id(found_ca_name, portnum)) < 0)
- 		return -EINVAL;
- 
- 	snprintf(path, max, "%s/issm%u", RDMA_CDEV_DIR, umad_id);
-@@ -628,18 +653,19 @@ int umad_open_port(const char *ca_name, int portnum)
- 	char dev_file[UMAD_DEV_FILE_SZ];
- 	int umad_id, fd;
- 	unsigned int abi_version = get_abi_version();
-+	char found_ca_name[UMAD_CA_NAME_LEN];
- 
- 	TRACE("ca %s port %d", ca_name, portnum);
- 
- 	if (!abi_version)
- 		return -EOPNOTSUPP;
- 
--	if (!(ca_name = resolve_ca_name(ca_name, &portnum)))
-+	if (resolve_ca_name(ca_name, &portnum, found_ca_name) < 0 )
- 		return -ENODEV;
- 
--	DEBUG("opening %s port %d", ca_name, portnum);
-+	DEBUG("opening %s port %d", found_ca_name, portnum);
- 
--	if ((umad_id = dev_to_umad_id(ca_name, portnum)) < 0)
-+	if ((umad_id = dev_to_umad_id(found_ca_name, portnum)) < 0)
- 		return -EINVAL;
- 
- 	snprintf(dev_file, sizeof(dev_file), "%s/umad%d",
-@@ -662,18 +688,19 @@ int umad_open_port(const char *ca_name, int portnum)
- int umad_get_ca(const char *ca_name, umad_ca_t * ca)
- {
- 	int r;
-+	char found_ca_name[UMAD_CA_NAME_LEN];
- 
- 	TRACE("ca_name %s", ca_name);
--	if (!(ca_name = resolve_ca_name(ca_name, NULL)))
-+	if (resolve_ca_name(ca_name, NULL, found_ca_name) < 0)
- 		return -ENODEV;
- 
--	if (find_cached_ca(ca_name, ca) > 0)
-+	if (find_cached_ca(found_ca_name, ca) > 0)
- 		return 0;
- 
--	if ((r = get_ca(ca_name, ca)) < 0)
-+	if ((r = get_ca(found_ca_name, ca)) < 0)
- 		return r;
- 
--	DEBUG("opened %s", ca_name);
-+	DEBUG("opened %s", found_ca_name);
- 	return 0;
- }
- 
-@@ -695,16 +722,17 @@ int umad_release_ca(umad_ca_t * ca)
- int umad_get_port(const char *ca_name, int portnum, umad_port_t * port)
- {
- 	char dir_name[256];
-+	char found_ca_name[UMAD_CA_NAME_LEN];
- 
- 	TRACE("ca_name %s portnum %d", ca_name, portnum);
- 
--	if (!(ca_name = resolve_ca_name(ca_name, &portnum)))
-+	if (resolve_ca_name(ca_name, &portnum, found_ca_name) < 0)
- 		return -ENODEV;
- 
- 	snprintf(dir_name, sizeof(dir_name), "%s/%s/%s",
--		 SYS_INFINIBAND, ca_name, SYS_CA_PORTS_DIR);
-+		 SYS_INFINIBAND, found_ca_name, SYS_CA_PORTS_DIR);
- 
--	return get_port(ca_name, dir_name, portnum, port);
-+	return get_port(found_ca_name, dir_name, portnum, port);
- }
- 
- int umad_release_port(umad_port_t * port)
--- 
-1.8.3.1
-
+Jason
