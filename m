@@ -2,61 +2,61 @@ Return-Path: <SRS0=BMee=WC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 012ACC31E40
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC14AC31E40
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C0DCC20B1F
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9255214C6
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="B0RBkomh"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="OggTUEsp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726238AbfHFXQf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 19:16:35 -0400
-Received: from mail-qt1-f195.google.com ([209.85.160.195]:41917 "EHLO
-        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726069AbfHFXQT (ORCPT
+        id S1726069AbfHFXQg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 19:16:36 -0400
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:45413 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727289AbfHFXQT (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 19:16:19 -0400
-Received: by mail-qt1-f195.google.com with SMTP id d17so7513975qtj.8
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Aug 2019 16:16:19 -0700 (PDT)
+Received: by mail-qt1-f193.google.com with SMTP id x22so13035631qtp.12
+        for <linux-rdma@vger.kernel.org>; Tue, 06 Aug 2019 16:16:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=0FF0tXIe7rc2zq4BQfqO1Tr1iiwuQDZe0G+/mYZhPb4=;
-        b=B0RBkomh8xhiu/KwJPirnADpsgmm80iyA8oyAeS7tjmLyr6+OYlG3sTHcQnHxrHuyg
-         hrEV+59BPYDAolV+0C/Qm0JvE6OUmYPhPiU/hCiW2Im2VGOJ31mcwLL+A5qQ1rCZHNwb
-         x+I+HX18fZ8WcbYwPofPsca2cfe1Dd0aGLylzfF8mtyBVAM+qXmK/+UgNQi+0EQzC0Kz
-         oB9X6jiIokBPaNFinF6Ry/tAJjp1AH1v6xOfZIYHJxV9CiAgZfrkjAi5u5gvTirJtxfP
-         ZI1nGkw+lv9ZBWXCB3lQbrDgT2UX0s56E7c4eY7X9nbudd1m6cqGwR2I36Jj2ZjMphM1
-         s7aQ==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=Pn+tyQ3Pr4O2LIFi6En+JQU77nMjukrgPYCGXMr75Sc=;
+        b=OggTUEspMMn1b2yn+uWIxqTUSf36GrQvvrKxao/PHqyl+DTzlNDH4G1PGH3Rn0oGUS
+         9yWjg40oqduC6+lBlaQt5AEvzMMt0+HwZg55qm2B0NolxD6rKy/+kW7fIzbbXJKBopU0
+         i0almRR6UKPo/GhOflLmKlphmx9M/H798dmunpZq7PtsAO2b61x95N71srn2s2CDP8O8
+         2Nnw5Qr44QCLihcSGiRyMe3Kj2uVDFPch0f783vgeAsiRsnpUJHeAgiwM1GQwWYB1VHE
+         DvJqjSXNfKnDYlNgHN92XgTfN016uxa+ZXPo1oS4z0q6EyI5dcvmeyhfMveigWb28Muk
+         7f4w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=0FF0tXIe7rc2zq4BQfqO1Tr1iiwuQDZe0G+/mYZhPb4=;
-        b=qR/spfFfKKjs8wauV/tg9v6d79Q6ykdT5w4FU7P3cDdJ4JlcyClbsQ981jSLr5YbJU
-         yLBng8Ft0TyL7Jy0iO8o7RAo//SgwrP666nJoogUhIVs9OxfXqcSrEzG8L9kJom3XJjz
-         9w6uLh/MAbR3Y6gCxw1Sec6xRhEXW51+WCQBsWRLdBf/Es/PMFArgQenZy4Ndp5V/MVd
-         nLEO7q/KZzkUiwQ0gFuuy7Vz83fPAE9UR9UpInk80SVOccPnZ1frJahEC+nERtDylPqg
-         NYSQ8o+MY2fIH5ChnQZuLRClkFrM/g++1YoD3gZk4bdC3EvlUOSswX8lKmUSeto6/DKM
-         7/Tw==
-X-Gm-Message-State: APjAAAUBx79XG2+efioecTmqrJs+ajzAUhXvXmoby/muvS4AbtDzpXru
-        a2ip9fv1HspbxYZNh8jz0zjFwQ==
-X-Google-Smtp-Source: APXvYqwaqbdf4QIvkKtMVoSEHzYJbTOhZ2bib6YyUfojcuKh8v466IsdF9eIG1S+OrEDo9cDhi4cNQ==
-X-Received: by 2002:aed:37e7:: with SMTP id j94mr5361848qtb.75.1565133378614;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=Pn+tyQ3Pr4O2LIFi6En+JQU77nMjukrgPYCGXMr75Sc=;
+        b=H/Y760ehk06z9uM/255oxBLumVzNZKveSzXU1z1QrRyrxHRwkzgYrnwqgrGy/kmX2X
+         FCByFsRvjImfPlCbDGruhLaDvF+svvROZuUNQEBhmFZXaao1Bor4KeVEHcAzjMR6m74l
+         zcvTCVlXdrkVIFXJMKz27+BUaXqrec1TEAQG3D2PEJn0DBCAMZCF0i9YsUb/4ah9rifB
+         5HcLLDdIbFF33Usev+PEING/VvOlQGbG2ybdCL4Avw2uGtsWs8y5wr1wlyXQv7fAxK9+
+         l//8FGqV8p07dEilpv82KNKPUNF61o//cv6nOq6bKi+VCzOwKKKje59Ew93FM7JF3/BS
+         30cA==
+X-Gm-Message-State: APjAAAXnZfLRjB+r6GZd7xufgMkFcmUA0A0P10JcClJYyw+97+EuEjdN
+        /oNEE6EPvORzamsK9yHp6WTzvA==
+X-Google-Smtp-Source: APXvYqxTw9+mlouFwWoFRA0XatHqfMRrcpDdIv2NXf5/HvRxmFylGt3sJXAS2PMqHoBRobENBadT3A==
+X-Received: by 2002:ac8:285c:: with SMTP id 28mr5575869qtr.186.1565133378273;
         Tue, 06 Aug 2019 16:16:18 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id o21sm10387881qtc.63.2019.08.06.16.16.15
+        by smtp.gmail.com with ESMTPSA id r40sm47669868qtr.57.2019.08.06.16.16.14
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Tue, 06 Aug 2019 16:16:17 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hv8gf-0006eA-Vd; Tue, 06 Aug 2019 20:16:13 -0300
+        id 1hv8gg-0006ey-Dk; Tue, 06 Aug 2019 20:16:14 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-mm@kvack.org
 Cc:     Andrea Arcangeli <aarcange@redhat.com>,
@@ -75,10 +75,12 @@ Cc:     Andrea Arcangeli <aarcange@redhat.com>,
         Gavin Shan <shangw@linux.vnet.ibm.com>,
         Andrea Righi <andrea@betterlinux.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH v3 hmm 00/11] Add mmu_notifier_get/put for managing mmu notifier registrations
-Date:   Tue,  6 Aug 2019 20:15:37 -0300
-Message-Id: <20190806231548.25242-1-jgg@ziepe.ca>
+Subject: [PATCH v3 hmm 08/11] drm/radeon: use mmu_notifier_get/put for struct radeon_mn
+Date:   Tue,  6 Aug 2019 20:15:45 -0300
+Message-Id: <20190806231548.25242-9-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.22.0
+In-Reply-To: <20190806231548.25242-1-jgg@ziepe.ca>
+References: <20190806231548.25242-1-jgg@ziepe.ca>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -88,103 +90,307 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-This series introduces a new registration flow for mmu_notifiers based on
-the idea that the user would like to get a single refcounted piece of
-memory for a mm, keyed to its use.
+radeon is using a device global hash table to track what mmu_notifiers
+have been registered on struct mm. This is better served with the new
+get/put scheme instead.
 
-For instance many users of mmu_notifiers use an interval tree or similar
-to dispatch notifications to some object. There are many objects but only
-one notifier subscription per mm holding the tree.
+radeon has a bug where it was not blocking notifier release() until all
+the BO's had been invalidated. This could result in a use after free of
+pages the BOs. This is tied into a second bug where radeon left the
+notifiers running endlessly even once the interval tree became
+empty. This could result in a use after free with module unload.
 
-Of the 12 places that call mmu_notifier_register:
- - 7 are maintaining some kind of obvious mapping of mm_struct to
-   mmu_notifier registration, ie in some linked list or hash table. Of
-   the 7 this series converts 4 (gru, hmm, RDMA, radeon)
+Both are fixed by changing the lifetime model, the BOs exist in the
+interval tree with their natural lifetimes independent of the mm_struct
+lifetime using the get/put scheme. The release runs synchronously and just
+does invalidate_start across the entire interval tree to create the
+required DMA fence.
 
- - 3 (hfi1, gntdev, vhost) are registering multiple notifiers, but each
-   one immediately does some VA range filtering, ie with an interval tree.
-   These would be better with a global subsystem-wide range filter and
-   could convert to this API.
+Additions to the interval tree after release are already impossible as
+only current->mm is used during the add.
 
- - 2 (kvm, amd_iommu) are deliberately using a single mm at a time, and
-   really can't use this API. One of the intel-svm's modes is also in this
-   list
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/gpu/drm/radeon/radeon.h        |   3 -
+ drivers/gpu/drm/radeon/radeon_device.c |   2 -
+ drivers/gpu/drm/radeon/radeon_drv.c    |   2 +
+ drivers/gpu/drm/radeon/radeon_mn.c     | 157 ++++++-------------------
+ 4 files changed, 38 insertions(+), 126 deletions(-)
 
-The 3/7 unconverted drivers are:
- - intel-svm
-   This driver tracks mm's in a global linked list 'global_svm_list'
-   and would benefit from this API.
+AMD team: I wonder if kfd has similar lifetime issues?
 
-   Its flow is a bit complex, since it also wants a set of non-shared
-   notifiers.
-
- - i915_gem_usrptr
-   This driver tracks mm's in a per-device hash
-   table (dev_priv->mm_structs), but only has an optional use of
-   mmu_notifiers.  Since it still seems to need the hash table it is
-   difficult to convert.
-
- - amdkfd/kfd_process
-   This driver is using a global SRCU hash table to track mm's
-
-   The control flow here is very complicated and the driver is relying on
-   this hash table to be fast on the ioctl syscall path.
-
-   It would definitely benefit, but only if the ioctl path didn't need to
-   do the search so often.
-
-This series is already entangled with patches in the hmm & RDMA tree and
-will require some git topic branches for the RDMA ODP stuff. I intend for
-it to go through the hmm tree.
-
-There is a git version here:
-
-https://github.com/jgunthorpe/linux/commits/mmu_notifier
-
-Which has the required pre-patches for the RDMA ODP conversion that are
-still being reviewed.
-
-Jason Gunthorpe (11):
-  mm/mmu_notifiers: hoist do_mmu_notifier_register down_write to the
-    caller
-  mm/mmu_notifiers: do not speculatively allocate a mmu_notifier_mm
-  mm/mmu_notifiers: add a get/put scheme for the registration
-  misc/sgi-gru: use mmu_notifier_get/put for struct gru_mm_struct
-  hmm: use mmu_notifier_get/put for 'struct hmm'
-  RDMA/odp: use mmu_notifier_get/put for 'struct ib_ucontext_per_mm'
-  RDMA/odp: remove ib_ucontext from ib_umem
-  drm/radeon: use mmu_notifier_get/put for struct radeon_mn
-  drm/amdkfd: fix a use after free race with mmu_notifer unregister
-  drm/amdkfd: use mmu_notifier_put
-  mm/mmu_notifiers: remove unregister_no_release
-
- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c  |   1 +
- drivers/gpu/drm/amd/amdkfd/kfd_priv.h    |   3 -
- drivers/gpu/drm/amd/amdkfd/kfd_process.c |  88 ++++-----
- drivers/gpu/drm/nouveau/nouveau_drm.c    |   3 +
- drivers/gpu/drm/radeon/radeon.h          |   3 -
- drivers/gpu/drm/radeon/radeon_device.c   |   2 -
- drivers/gpu/drm/radeon/radeon_drv.c      |   2 +
- drivers/gpu/drm/radeon/radeon_mn.c       | 157 ++++------------
- drivers/infiniband/core/umem.c           |   4 +-
- drivers/infiniband/core/umem_odp.c       | 183 ++++++------------
- drivers/infiniband/core/uverbs_cmd.c     |   3 -
- drivers/infiniband/core/uverbs_main.c    |   1 +
- drivers/infiniband/hw/mlx5/main.c        |   5 -
- drivers/misc/sgi-gru/grufile.c           |   1 +
- drivers/misc/sgi-gru/grutables.h         |   2 -
- drivers/misc/sgi-gru/grutlbpurge.c       |  84 +++------
- include/linux/hmm.h                      |  12 +-
- include/linux/mm_types.h                 |   6 -
- include/linux/mmu_notifier.h             |  40 +++-
- include/rdma/ib_umem.h                   |   2 +-
- include/rdma/ib_umem_odp.h               |  10 +-
- include/rdma/ib_verbs.h                  |   3 -
- kernel/fork.c                            |   1 -
- mm/hmm.c                                 | 121 +++---------
- mm/mmu_notifier.c                        | 230 +++++++++++++++++------
- 25 files changed, 408 insertions(+), 559 deletions(-)
-
+diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
+index 32808e50be12f8..918164f90b114a 100644
+--- a/drivers/gpu/drm/radeon/radeon.h
++++ b/drivers/gpu/drm/radeon/radeon.h
+@@ -2451,9 +2451,6 @@ struct radeon_device {
+ 	/* tracking pinned memory */
+ 	u64 vram_pin_size;
+ 	u64 gart_pin_size;
+-
+-	struct mutex	mn_lock;
+-	DECLARE_HASHTABLE(mn_hash, 7);
+ };
+ 
+ bool radeon_is_px(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/radeon/radeon_device.c b/drivers/gpu/drm/radeon/radeon_device.c
+index dceb554e567446..788b1d8a80e660 100644
+--- a/drivers/gpu/drm/radeon/radeon_device.c
++++ b/drivers/gpu/drm/radeon/radeon_device.c
+@@ -1325,8 +1325,6 @@ int radeon_device_init(struct radeon_device *rdev,
+ 	init_rwsem(&rdev->pm.mclk_lock);
+ 	init_rwsem(&rdev->exclusive_lock);
+ 	init_waitqueue_head(&rdev->irq.vblank_queue);
+-	mutex_init(&rdev->mn_lock);
+-	hash_init(rdev->mn_hash);
+ 	r = radeon_gem_init(rdev);
+ 	if (r)
+ 		return r;
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index a6cbe11f79c611..b6535ac91fdb74 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -35,6 +35,7 @@
+ #include <linux/module.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/vga_switcheroo.h>
++#include <linux/mmu_notifier.h>
+ 
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_drv.h>
+@@ -624,6 +625,7 @@ static void __exit radeon_exit(void)
+ {
+ 	pci_unregister_driver(pdriver);
+ 	radeon_unregister_atpx_handler();
++	mmu_notifier_synchronize();
+ }
+ 
+ module_init(radeon_init);
+diff --git a/drivers/gpu/drm/radeon/radeon_mn.c b/drivers/gpu/drm/radeon/radeon_mn.c
+index 8c3871ed23a9f0..fc8254273a800b 100644
+--- a/drivers/gpu/drm/radeon/radeon_mn.c
++++ b/drivers/gpu/drm/radeon/radeon_mn.c
+@@ -37,17 +37,8 @@
+ #include "radeon.h"
+ 
+ struct radeon_mn {
+-	/* constant after initialisation */
+-	struct radeon_device	*rdev;
+-	struct mm_struct	*mm;
+ 	struct mmu_notifier	mn;
+ 
+-	/* only used on destruction */
+-	struct work_struct	work;
+-
+-	/* protected by rdev->mn_lock */
+-	struct hlist_node	node;
+-
+ 	/* objects protected by lock */
+ 	struct mutex		lock;
+ 	struct rb_root_cached	objects;
+@@ -58,55 +49,6 @@ struct radeon_mn_node {
+ 	struct list_head		bos;
+ };
+ 
+-/**
+- * radeon_mn_destroy - destroy the rmn
+- *
+- * @work: previously sheduled work item
+- *
+- * Lazy destroys the notifier from a work item
+- */
+-static void radeon_mn_destroy(struct work_struct *work)
+-{
+-	struct radeon_mn *rmn = container_of(work, struct radeon_mn, work);
+-	struct radeon_device *rdev = rmn->rdev;
+-	struct radeon_mn_node *node, *next_node;
+-	struct radeon_bo *bo, *next_bo;
+-
+-	mutex_lock(&rdev->mn_lock);
+-	mutex_lock(&rmn->lock);
+-	hash_del(&rmn->node);
+-	rbtree_postorder_for_each_entry_safe(node, next_node,
+-					     &rmn->objects.rb_root, it.rb) {
+-
+-		interval_tree_remove(&node->it, &rmn->objects);
+-		list_for_each_entry_safe(bo, next_bo, &node->bos, mn_list) {
+-			bo->mn = NULL;
+-			list_del_init(&bo->mn_list);
+-		}
+-		kfree(node);
+-	}
+-	mutex_unlock(&rmn->lock);
+-	mutex_unlock(&rdev->mn_lock);
+-	mmu_notifier_unregister(&rmn->mn, rmn->mm);
+-	kfree(rmn);
+-}
+-
+-/**
+- * radeon_mn_release - callback to notify about mm destruction
+- *
+- * @mn: our notifier
+- * @mn: the mm this callback is about
+- *
+- * Shedule a work item to lazy destroy our notifier.
+- */
+-static void radeon_mn_release(struct mmu_notifier *mn,
+-			      struct mm_struct *mm)
+-{
+-	struct radeon_mn *rmn = container_of(mn, struct radeon_mn, mn);
+-	INIT_WORK(&rmn->work, radeon_mn_destroy);
+-	schedule_work(&rmn->work);
+-}
+-
+ /**
+  * radeon_mn_invalidate_range_start - callback to notify about mm change
+  *
+@@ -183,65 +125,44 @@ static int radeon_mn_invalidate_range_start(struct mmu_notifier *mn,
+ 	return ret;
+ }
+ 
+-static const struct mmu_notifier_ops radeon_mn_ops = {
+-	.release = radeon_mn_release,
+-	.invalidate_range_start = radeon_mn_invalidate_range_start,
+-};
++static void radeon_mn_release(struct mmu_notifier *mn, struct mm_struct *mm)
++{
++	struct mmu_notifier_range range = {
++		.mm = mm,
++		.start = 0,
++		.end = ULONG_MAX,
++		.flags = 0,
++		.event = MMU_NOTIFY_UNMAP,
++	};
++
++	radeon_mn_invalidate_range_start(mn, &range);
++}
+ 
+-/**
+- * radeon_mn_get - create notifier context
+- *
+- * @rdev: radeon device pointer
+- *
+- * Creates a notifier context for current->mm.
+- */
+-static struct radeon_mn *radeon_mn_get(struct radeon_device *rdev)
++static struct mmu_notifier *radeon_mn_alloc_notifier(struct mm_struct *mm)
+ {
+-	struct mm_struct *mm = current->mm;
+ 	struct radeon_mn *rmn;
+-	int r;
+-
+-	if (down_write_killable(&mm->mmap_sem))
+-		return ERR_PTR(-EINTR);
+-
+-	mutex_lock(&rdev->mn_lock);
+-
+-	hash_for_each_possible(rdev->mn_hash, rmn, node, (unsigned long)mm)
+-		if (rmn->mm == mm)
+-			goto release_locks;
+ 
+ 	rmn = kzalloc(sizeof(*rmn), GFP_KERNEL);
+-	if (!rmn) {
+-		rmn = ERR_PTR(-ENOMEM);
+-		goto release_locks;
+-	}
++	if (!rmn)
++		return ERR_PTR(-ENOMEM);
+ 
+-	rmn->rdev = rdev;
+-	rmn->mm = mm;
+-	rmn->mn.ops = &radeon_mn_ops;
+ 	mutex_init(&rmn->lock);
+ 	rmn->objects = RB_ROOT_CACHED;
+-	
+-	r = __mmu_notifier_register(&rmn->mn, mm);
+-	if (r)
+-		goto free_rmn;
+-
+-	hash_add(rdev->mn_hash, &rmn->node, (unsigned long)mm);
+-
+-release_locks:
+-	mutex_unlock(&rdev->mn_lock);
+-	up_write(&mm->mmap_sem);
+-
+-	return rmn;
+-
+-free_rmn:
+-	mutex_unlock(&rdev->mn_lock);
+-	up_write(&mm->mmap_sem);
+-	kfree(rmn);
++	return &rmn->mn;
++}
+ 
+-	return ERR_PTR(r);
++static void radeon_mn_free_notifier(struct mmu_notifier *mn)
++{
++	kfree(container_of(mn, struct radeon_mn, mn));
+ }
+ 
++static const struct mmu_notifier_ops radeon_mn_ops = {
++	.release = radeon_mn_release,
++	.invalidate_range_start = radeon_mn_invalidate_range_start,
++	.alloc_notifier = radeon_mn_alloc_notifier,
++	.free_notifier = radeon_mn_free_notifier,
++};
++
+ /**
+  * radeon_mn_register - register a BO for notifier updates
+  *
+@@ -254,15 +175,16 @@ static struct radeon_mn *radeon_mn_get(struct radeon_device *rdev)
+ int radeon_mn_register(struct radeon_bo *bo, unsigned long addr)
+ {
+ 	unsigned long end = addr + radeon_bo_size(bo) - 1;
+-	struct radeon_device *rdev = bo->rdev;
++	struct mmu_notifier *mn;
+ 	struct radeon_mn *rmn;
+ 	struct radeon_mn_node *node = NULL;
+ 	struct list_head bos;
+ 	struct interval_tree_node *it;
+ 
+-	rmn = radeon_mn_get(rdev);
+-	if (IS_ERR(rmn))
+-		return PTR_ERR(rmn);
++	mn = mmu_notifier_get(&radeon_mn_ops, current->mm);
++	if (IS_ERR(mn))
++		return PTR_ERR(mn);
++	rmn = container_of(mn, struct radeon_mn, mn);
+ 
+ 	INIT_LIST_HEAD(&bos);
+ 
+@@ -309,22 +231,13 @@ int radeon_mn_register(struct radeon_bo *bo, unsigned long addr)
+  */
+ void radeon_mn_unregister(struct radeon_bo *bo)
+ {
+-	struct radeon_device *rdev = bo->rdev;
+-	struct radeon_mn *rmn;
++	struct radeon_mn *rmn = bo->mn;
+ 	struct list_head *head;
+ 
+-	mutex_lock(&rdev->mn_lock);
+-	rmn = bo->mn;
+-	if (rmn == NULL) {
+-		mutex_unlock(&rdev->mn_lock);
+-		return;
+-	}
+-
+ 	mutex_lock(&rmn->lock);
+ 	/* save the next list entry for later */
+ 	head = bo->mn_list.next;
+ 
+-	bo->mn = NULL;
+ 	list_del(&bo->mn_list);
+ 
+ 	if (list_empty(head)) {
+@@ -335,5 +248,7 @@ void radeon_mn_unregister(struct radeon_bo *bo)
+ 	}
+ 
+ 	mutex_unlock(&rmn->lock);
+-	mutex_unlock(&rdev->mn_lock);
++
++	mmu_notifier_put(&rmn->mn);
++	bo->mn = NULL;
+ }
 -- 
 2.22.0
 
