@@ -2,61 +2,61 @@ Return-Path: <SRS0=BMee=WC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD7FC31E40
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D488AC31E40
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 021E520B1F
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EB3920B1F
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:16:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="MzTXpv/R"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Aqt2P6wk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726494AbfHFXQQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 19:16:16 -0400
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:35698 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726085AbfHFXQQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 19:16:16 -0400
-Received: by mail-qk1-f194.google.com with SMTP id r21so64423295qke.2
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Aug 2019 16:16:15 -0700 (PDT)
+        id S1727101AbfHFXQS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 19:16:18 -0400
+Received: from mail-qt1-f195.google.com ([209.85.160.195]:36951 "EHLO
+        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726892AbfHFXQR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 19:16:17 -0400
+Received: by mail-qt1-f195.google.com with SMTP id y26so86458674qto.4
+        for <linux-rdma@vger.kernel.org>; Tue, 06 Aug 2019 16:16:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=evI7jo74G4Gx7Gga7ZV8g3f7D3AhHv7OMI4oYy7KjpQ=;
-        b=MzTXpv/RThZvTM0oekrE0HbJIq9MDfLDK/pFUY/Kg6pyTj13D+sPiKCI/dSGwPAxpY
-         66cmu6NttsKhYSMYlnguyr7uhmgAbn3zoEecwJHbFK40+26VHkYuF99AdRjGXrECGqPh
-         vtfbOQsp5XxERMNpAIlGBC0fNvBHCI4Xe9NbY9LiKeaS2gZSeE7ortCdr7AwymC1bQMf
-         tH8isbUtYa12pesEmXPJTyySS7DaU/IrFA7s+yY18pgcvmsoF40zJdJl86bWxSpitktu
-         59wGxHKZqUMMqNyx4DORY6ozb2JQGWE2AME4lSBAP89G+fxJ+NZfrKn08DfZpc+bITKO
-         VTAg==
+        bh=mjtpPFkSq3UiLsyLXzaYFfxy47hSUzru4mJ5ITxeLVU=;
+        b=Aqt2P6wkNDk7Ey4zJ/R2dr20/+p+3YhHJwj0w4amgSQKlEOzS7bH+L1Oepqzsr46++
+         aqXCSW5qQ+ZwByqVsAB+aLiCdaOPYHZoHMNlOBje6tt/3/uvpiTCTJbTvN+WthemRndl
+         /kJKQxc7MJH2ISRonRwzYob3+PusKHZyNLKSSWfe24VwuwxIhBYqxbeduEP8ekflzqn+
+         3yA1G3kjs09AVnNH83BdYQtbyyY6PmgYHmcfgbvOmvx4hl79v7MqlTCtxlX6HMoPt34s
+         F8GhD+KbHjGiBPnxWQSt/UpHQqEubqay3aXPCjsT8vtbafoNOzsV5GtwtBxXRIkev7JZ
+         fWtQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=evI7jo74G4Gx7Gga7ZV8g3f7D3AhHv7OMI4oYy7KjpQ=;
-        b=Xk+UT5zOta4jhxfF613lRbOEqIwm6Cx37dhUmezeDmnQN4DjQxcub+e4zeN1LgNaLb
-         0TtwndjUYBkdzScmNb7r92BwwkS8YJen077YhC42wAEHBWWJlySw9EW/BSyJcpz0NOqA
-         a1gFmGzpazDLD7tkkTK19JBawqRnq17wEUWqEBiSVZqYh8xv7gE0Jd+6CRCVtVFcPFaV
-         wiPQCrcQ/wDCxaFk66+sNJyVK2KhUoiGzAF32e+Mpke60KjYjxEeZfLKQ2OI25EuSU0f
-         VPiSN+Tl07t38/u4wTtp95Z1aXVaeZq1CAHlHMr264Gh0l4MRc4igwDG+k/klO/vDNoX
-         Qkog==
-X-Gm-Message-State: APjAAAVBJOqsuYqagO3c/gz/tGCb4zVAEn01nLhqfi0StEZxrmUPvp2j
-        QYzKAweRHK28jyJqmFsoAalcyQ==
-X-Google-Smtp-Source: APXvYqylqTmNzPQYqTYhRiwrI4AtCqibIZpw6EBPoIBj42tnctW/9AiKc7I50IcPqwnV2QCyiSKRxQ==
-X-Received: by 2002:a37:660d:: with SMTP id a13mr5780388qkc.36.1565133374824;
-        Tue, 06 Aug 2019 16:16:14 -0700 (PDT)
+        bh=mjtpPFkSq3UiLsyLXzaYFfxy47hSUzru4mJ5ITxeLVU=;
+        b=ZqDVq8+CyA6Z/gduKmitPf9H6LtqUzkpmdvrsR9EgJ2F9XrnGONpkUHmgMsCFJa+Yi
+         iBM2rdoNuBxGa8NvIDMFsDsp0m6SzJuzOFa6oYzER7t/t3XWEWVfjepWkPO25SnZ1SBa
+         6zdy+nvLrdRlVMyMeDp8mc7VWGGbWJV2jgXMHpLybOKP6kZv/5BrTM0954/zOcgGvwum
+         8efU+zxJ/UcTqMMgs1Q6BjqOOCGQa4SitCfn/nXDNFiW1cz6SPDMUvxqLSwiTTXIau1o
+         cSCkTEHj8InGaFZcJjlU202lRhyNGM40TrTKJ48SrJBtBoUxyEJyV46d2M7vnGRrZovC
+         Y8HA==
+X-Gm-Message-State: APjAAAUvCdP7JCsHc1RxtFWyz/TROFf3webCABo5QZAuQWZg5HqhyCzM
+        rt+GKq+X9hamIjwHwsP6VLmosw==
+X-Google-Smtp-Source: APXvYqz63tweA2E8MzBrzK5yWz5htOs/6XLwX1oleep4fUjPNFszgc4r2awnmY97Q4W0cA2HokN6fA==
+X-Received: by 2002:aed:2435:: with SMTP id r50mr1433667qtc.43.1565133376646;
+        Tue, 06 Aug 2019 16:16:16 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id f22sm35086171qkk.45.2019.08.06.16.16.14
+        by smtp.gmail.com with ESMTPSA id x206sm40603751qkb.127.2019.08.06.16.16.14
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Tue, 06 Aug 2019 16:16:14 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hv8gg-0006eG-0j; Tue, 06 Aug 2019 20:16:14 -0300
+        id 1hv8gg-0006es-Bw; Tue, 06 Aug 2019 20:16:14 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-mm@kvack.org
 Cc:     Andrea Arcangeli <aarcange@redhat.com>,
@@ -74,11 +74,10 @@ Cc:     Andrea Arcangeli <aarcange@redhat.com>,
         iommu@lists.linux-foundation.org, intel-gfx@lists.freedesktop.org,
         Gavin Shan <shangw@linux.vnet.ibm.com>,
         Andrea Righi <andrea@betterlinux.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Christoph Hellwig <hch@infradead.org>
-Subject: [PATCH v3 hmm 01/11] mm/mmu_notifiers: hoist do_mmu_notifier_register down_write to the caller
-Date:   Tue,  6 Aug 2019 20:15:38 -0300
-Message-Id: <20190806231548.25242-2-jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH v3 hmm 07/11] RDMA/odp: remove ib_ucontext from ib_umem
+Date:   Tue,  6 Aug 2019 20:15:44 -0300
+Message-Id: <20190806231548.25242-8-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190806231548.25242-1-jgg@ziepe.ca>
 References: <20190806231548.25242-1-jgg@ziepe.ca>
@@ -91,94 +90,111 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-This simplifies the code to not have so many one line functions and extra
-logic. __mmu_notifier_register() simply becomes the entry point to
-register the notifier, and the other one calls it under lock.
+At this point the ucontext is only being stored to access the ib_device,
+so just store the ib_device directly instead. This is more natural and
+logical as the umem has nothing to do with the ucontext.
 
-Also add a lockdep_assert to check that the callers are holding the lock
-as expected.
-
-Suggested-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- mm/mmu_notifier.c | 35 ++++++++++++++---------------------
- 1 file changed, 14 insertions(+), 21 deletions(-)
+ drivers/infiniband/core/umem.c     |  4 ++--
+ drivers/infiniband/core/umem_odp.c | 13 ++++++-------
+ include/rdma/ib_umem.h             |  2 +-
+ 3 files changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
-index b5670620aea0fc..218a6f108bc2d0 100644
---- a/mm/mmu_notifier.c
-+++ b/mm/mmu_notifier.c
-@@ -236,22 +236,22 @@ void __mmu_notifier_invalidate_range(struct mm_struct *mm,
- }
- EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range);
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index c59aa57d36510f..5ab9165ffbef0a 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -242,7 +242,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+ 			return ERR_PTR(-ENOMEM);
+ 	}
  
--static int do_mmu_notifier_register(struct mmu_notifier *mn,
--				    struct mm_struct *mm,
--				    int take_mmap_sem)
-+/*
-+ * Same as mmu_notifier_register but here the caller must hold the
-+ * mmap_sem in write mode.
-+ */
-+int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
+-	umem->context    = context;
++	umem->ibdev = context->device;
+ 	umem->length     = size;
+ 	umem->address    = addr;
+ 	umem->writable   = ib_access_writable(access);
+@@ -370,7 +370,7 @@ void ib_umem_release(struct ib_umem *umem)
+ 		return;
+ 	}
+ 
+-	__ib_umem_release(umem->context->device, umem, 1);
++	__ib_umem_release(umem->ibdev, umem, 1);
+ 
+ 	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
+ 	__ib_umem_release_tail(umem);
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index a02e6e3d7b72fb..da72318e17592f 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -103,7 +103,7 @@ static void ib_umem_notifier_release(struct mmu_notifier *mn,
+ 		 */
+ 		smp_wmb();
+ 		complete_all(&umem_odp->notifier_completion);
+-		umem_odp->umem.context->device->ops.invalidate_range(
++		umem_odp->umem.ibdev->ops.invalidate_range(
+ 			umem_odp, ib_umem_start(umem_odp),
+ 			ib_umem_end(umem_odp));
+ 	}
+@@ -116,7 +116,7 @@ static int invalidate_range_start_trampoline(struct ib_umem_odp *item,
+ 					     u64 start, u64 end, void *cookie)
  {
- 	struct mmu_notifier_mm *mmu_notifier_mm;
- 	int ret;
- 
-+	lockdep_assert_held_write(&mm->mmap_sem);
- 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
- 
--	ret = -ENOMEM;
- 	mmu_notifier_mm = kmalloc(sizeof(struct mmu_notifier_mm), GFP_KERNEL);
- 	if (unlikely(!mmu_notifier_mm))
--		goto out;
-+		return -ENOMEM;
- 
--	if (take_mmap_sem)
--		down_write(&mm->mmap_sem);
- 	ret = mm_take_all_locks(mm);
- 	if (unlikely(ret))
- 		goto out_clean;
-@@ -279,13 +279,11 @@ static int do_mmu_notifier_register(struct mmu_notifier *mn,
- 
- 	mm_drop_all_locks(mm);
- out_clean:
--	if (take_mmap_sem)
--		up_write(&mm->mmap_sem);
- 	kfree(mmu_notifier_mm);
--out:
- 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
- 	return ret;
+ 	ib_umem_notifier_start_account(item);
+-	item->umem.context->device->ops.invalidate_range(item, start, end);
++	item->umem.ibdev->ops.invalidate_range(item, start, end);
+ 	return 0;
  }
-+EXPORT_SYMBOL_GPL(__mmu_notifier_register);
  
- /*
-  * Must not hold mmap_sem nor any other VM related lock when calling
-@@ -302,19 +300,14 @@ static int do_mmu_notifier_register(struct mmu_notifier *mn,
-  */
- int mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
+@@ -319,7 +319,7 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_udata *udata,
+ 	if (!umem_odp)
+ 		return ERR_PTR(-ENOMEM);
+ 	umem = &umem_odp->umem;
+-	umem->context = context;
++	umem->ibdev = context->device;
+ 	umem->writable = ib_access_writable(access);
+ 	umem->owning_mm = current->mm;
+ 	umem_odp->is_implicit_odp = 1;
+@@ -364,7 +364,7 @@ struct ib_umem_odp *ib_umem_odp_alloc_child(struct ib_umem_odp *root,
+ 	if (!odp_data)
+ 		return ERR_PTR(-ENOMEM);
+ 	umem = &odp_data->umem;
+-	umem->context    = root->umem.context;
++	umem->ibdev = root->umem.ibdev;
+ 	umem->length     = size;
+ 	umem->address    = addr;
+ 	umem->writable   = root->umem.writable;
+@@ -477,8 +477,7 @@ static int ib_umem_odp_map_dma_single_page(
+ 		u64 access_mask,
+ 		unsigned long current_seq)
  {
--	return do_mmu_notifier_register(mn, mm, 1);
--}
--EXPORT_SYMBOL_GPL(mmu_notifier_register);
-+	int ret;
+-	struct ib_ucontext *context = umem_odp->umem.context;
+-	struct ib_device *dev = context->device;
++	struct ib_device *dev = umem_odp->umem.ibdev;
+ 	dma_addr_t dma_addr;
+ 	int remove_existing_mapping = 0;
+ 	int ret = 0;
+@@ -691,7 +690,7 @@ void ib_umem_odp_unmap_dma_pages(struct ib_umem_odp *umem_odp, u64 virt,
+ {
+ 	int idx;
+ 	u64 addr;
+-	struct ib_device *dev = umem_odp->umem.context->device;
++	struct ib_device *dev = umem_odp->umem.ibdev;
  
--/*
-- * Same as mmu_notifier_register but here the caller must hold the
-- * mmap_sem in write mode.
-- */
--int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
--{
--	return do_mmu_notifier_register(mn, mm, 0);
-+	down_write(&mm->mmap_sem);
-+	ret = __mmu_notifier_register(mn, mm);
-+	up_write(&mm->mmap_sem);
-+	return ret;
- }
--EXPORT_SYMBOL_GPL(__mmu_notifier_register);
-+EXPORT_SYMBOL_GPL(mmu_notifier_register);
+ 	virt = max_t(u64, virt, ib_umem_start(umem_odp));
+ 	bound = min_t(u64, bound, ib_umem_end(umem_odp));
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 1052d0d62be7d2..a91b2af64ec47b 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -42,7 +42,7 @@ struct ib_ucontext;
+ struct ib_umem_odp;
  
- /* this is called after the last mmu_notifier_unregister() returned */
- void __mmu_notifier_mm_destroy(struct mm_struct *mm)
+ struct ib_umem {
+-	struct ib_ucontext     *context;
++	struct ib_device       *ibdev;
+ 	struct mm_struct       *owning_mm;
+ 	size_t			length;
+ 	unsigned long		address;
 -- 
 2.22.0
 
