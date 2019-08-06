@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF120C433FF
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:36:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A327EC31E40
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:37:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 991DE2089E
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:36:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CD1C2189D
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:37:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565127377;
-	bh=0FyF+E95ivBJy5/xmnQuRuxWyeBzH7N7DCZtFpxBWFo=;
+	s=default; t=1565127467;
+	bh=NUZggXvPBEy/q3q5YoXf8umnkLf7FMDxEdABCmsqVG0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=yygMO1+iRfHaN6/SbDtMK6ShtfLJui22Ud4lftGv2TB/nWOuLbqZM+tW/s5IfRRCn
-	 tmB76pA/cwLjKScbYOHHStsdrQgCx8lerjCTRHPG5pM0KVxc/2PVvxHvyDBatfqWNX
-	 0Nxn76ZI7kQu4Ij09D5hpr6ZUnOUSYYsu4dXcie4=
+	b=P+MTx4SUzS0OVK40ILx85kJhBjmPtCrc/vdenr6y1EXnJM3TztFyLGrd0l7HKWEeI
+	 OAMzgBe8Gmm3Q12gjhk45eCjxO+2ioN7PmmJPQUT4RuyKZwD8TSvQMTRo+yFbZld43
+	 IbOWfdgFZKiir/3MpfjASTI8pdzExRd5ikaVifgs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727762AbfHFVgQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 17:36:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54014 "EHLO mail.kernel.org"
+        id S1729433AbfHFVhq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 17:37:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727527AbfHFVgO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Aug 2019 17:36:14 -0400
+        id S1727781AbfHFVho (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Aug 2019 17:37:44 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4C78C2089E;
-        Tue,  6 Aug 2019 21:36:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3B11521874;
+        Tue,  6 Aug 2019 21:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565127373;
-        bh=0FyF+E95ivBJy5/xmnQuRuxWyeBzH7N7DCZtFpxBWFo=;
+        s=default; t=1565127463;
+        bh=NUZggXvPBEy/q3q5YoXf8umnkLf7FMDxEdABCmsqVG0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=X8KPmO/gf3rlpFvKgwEAFEwiZsnmTra8hKPG94rpMg8WjJccMIXSh5Nukgg+AWXsX
-         2OXc/AEiwd6aCaOvAFH3UDAcEO9Y2IR/ZYWGa/zlHV6XKw2Pmo3BhYY9R1/4PQjEUd
-         hNETPqhXXyjNDqgQVxIP6WqadojDxt2+lQUH6o1A=
+        b=Sv9KYiZZI2i4mA0OaRWsZnxQp2XR5xRrLKrITPqiqVEULeuCxLpLkBBp5HocXq80i
+         jVQe8N2xRxFg3TF1IQwKw/SYgZ8WpL1UFCoKeyZWpAcyROFgX0dGUfGVklild0LQ1F
+         9StRrAkJHNctlmdnMWfho8jR0d1bgxrt0dxTgTmk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jack Morgenstein <jackm@dev.mellanox.co.il>,
         Leon Romanovsky <leonro@mellanox.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 26/32] IB/mad: Fix use-after-free in ib mad completion handling
-Date:   Tue,  6 Aug 2019 17:35:14 -0400
-Message-Id: <20190806213522.19859-26-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 14/17] IB/mad: Fix use-after-free in ib mad completion handling
+Date:   Tue,  6 Aug 2019 17:37:11 -0400
+Message-Id: <20190806213715.20487-14-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190806213522.19859-1-sashal@kernel.org>
-References: <20190806213522.19859-1-sashal@kernel.org>
+In-Reply-To: <20190806213715.20487-1-sashal@kernel.org>
+References: <20190806213715.20487-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -150,10 +150,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index ef459f2f2eeb8..7586c1dd73f19 100644
+index 3e2ab04201e2c..25a28e7060725 100644
 --- a/drivers/infiniband/core/mad.c
 +++ b/drivers/infiniband/core/mad.c
-@@ -3182,18 +3182,18 @@ static int ib_mad_port_open(struct ib_device *device,
+@@ -3155,18 +3155,18 @@ static int ib_mad_port_open(struct ib_device *device,
  	if (has_smi)
  		cq_size *= 2;
  
@@ -179,7 +179,7 @@ index ef459f2f2eeb8..7586c1dd73f19 100644
  		goto error4;
  	}
  
-@@ -3236,11 +3236,11 @@ static int ib_mad_port_open(struct ib_device *device,
+@@ -3209,11 +3209,11 @@ static int ib_mad_port_open(struct ib_device *device,
  error7:
  	destroy_mad_qp(&port_priv->qp_info[0]);
  error6:
@@ -193,7 +193,7 @@ index ef459f2f2eeb8..7586c1dd73f19 100644
  error3:
  	kfree(port_priv);
  
-@@ -3270,8 +3270,8 @@ static int ib_mad_port_close(struct ib_device *device, int port_num)
+@@ -3243,8 +3243,8 @@ static int ib_mad_port_close(struct ib_device *device, int port_num)
  	destroy_workqueue(port_priv->wq);
  	destroy_mad_qp(&port_priv->qp_info[1]);
  	destroy_mad_qp(&port_priv->qp_info[0]);
