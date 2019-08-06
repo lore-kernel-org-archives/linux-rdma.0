@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4E3EC31E40
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:43:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94F5FC433FF
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:43:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B5C72216F4
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:43:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FDE2216F4
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:43:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565127788;
-	bh=gHKN6VO5FHUT4n/WevuPBAN7VBwc4Wg2WGpEHcz+kKs=;
+	s=default; t=1565127790;
+	bh=Oh7XQow2ZDNdqQQwh8d/ZYTxfDgUlpgZcT0J10Y3w+Q=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=XPkb3PpKsBZBDUlbgZQZuujcybrDzJoQ1RwdSBKTVUau/pIFzvAIeJN84/fMxK0kT
-	 ubzFo8l00Dd5XajdpnKEMXFBvurluDr5ea3lAh0Y2Q0PWtocTST+EwG//T7K7oCRcb
-	 pauSCKlSf+wN6gJo8b8vr3upZYAuZFnIgZ1o0U3g=
+	b=cIb/9NIUHx6Jpps2C5PU94NATqjS7BkQpAX/rrzs+hju8G1tE262xj+/oGslmL0H0
+	 0qSgKBUrLf/J4EozzUogk5+jFg1nhKmePmhXWvBt8m3x2mEKbbtDqldvBESLI40g7W
+	 aABHEOb3ZaLkoxS6Ds/ijnWlLKlcR1y/5jCqQLII=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728069AbfHFVm6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 17:42:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52772 "EHLO mail.kernel.org"
+        id S1727985AbfHFVey (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 17:34:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728048AbfHFVe7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Aug 2019 17:34:59 -0400
+        id S1727956AbfHFVey (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Aug 2019 17:34:54 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4D2B3217D7;
-        Tue,  6 Aug 2019 21:34:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 453E82089E;
+        Tue,  6 Aug 2019 21:34:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565127299;
-        bh=gHKN6VO5FHUT4n/WevuPBAN7VBwc4Wg2WGpEHcz+kKs=;
+        s=default; t=1565127293;
+        bh=Oh7XQow2ZDNdqQQwh8d/ZYTxfDgUlpgZcT0J10Y3w+Q=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JrK4dhXdy+dtCt41psVtswv87CiLNPLx2+eU17rUJ/YaMZCGfK+P7hJwfaqISetvL
-         pfYyVMwPvxgKfSRYJwQkHPZo+/AeezdrXJYUKWRx3Mqe253G8hvccSEtC6l8eACSIy
-         5B6p2XwQFJN8yDAUXaF4fDyWTGh5WwXmpbZohkrg=
+        b=ctb2/FGlfPZ6q88XWkkOprwfCh/tXCg3Iz9PcUnYjPx13JRigd4/SCXNSJCo+0/B2
+         a5y7mVQaz9izVaPZeLtAvoRSL2LggcB+qw0yLzlVX2VGAE15VQ1IfG4nDpoTL/YXEC
+         tc5e+LAIpCr/JPInES9g9wPcnX+5M01BSaRuOStY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Wei Yongjun <weiyongjun1@huawei.com>,
+Cc:     Gal Pressman <galpress@amazon.com>,
         Leon Romanovsky <leonro@mellanox.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 50/59] RDMA/hns: Fix error return code in hns_roce_v1_rsv_lp_qp()
-Date:   Tue,  6 Aug 2019 17:33:10 -0400
-Message-Id: <20190806213319.19203-50-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 46/59] RDMA/restrack: Track driver QP types in resource tracker
+Date:   Tue,  6 Aug 2019 17:33:06 -0400
+Message-Id: <20190806213319.19203-46-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190806213319.19203-1-sashal@kernel.org>
 References: <20190806213319.19203-1-sashal@kernel.org>
@@ -59,40 +59,51 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+From: Gal Pressman <galpress@amazon.com>
 
-[ Upstream commit 020fb3bebc224dfe9353a56ecbe2d5fac499dffc ]
+[ Upstream commit 52e0a118a20308dd6aa531e20a5ab5907d2264c8 ]
 
-Fix to return error code -ENOMEM from the rdma_zalloc_drv_obj() error
-handling case instead of 0, as done elsewhere in this function.
+The check for QP type different than XRC has excluded driver QP
+types from the resource tracker.
+As a result, "rdma resource show" user command would not show opened
+driver QPs which does not reflect the real state of the system.
 
-Fixes: e8ac9389f0d7 ("RDMA: Fix allocation failure on pointer pd")
-Fixes: 21a428a019c9 ("RDMA: Handle PD allocations by IB/core")
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Check QP type explicitly instead of assuming enum values/ordering.
+
+Fixes: 40909f664d27 ("RDMA/efa: Add EFA verbs implementation")
+Signed-off-by: Gal Pressman <galpress@amazon.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Link: https://lore.kernel.org/r/20190801012725.150493-1-weiyongjun1@huawei.com
+Link: https://lore.kernel.org/r/20190801104354.11417-1-galpress@amazon.com
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/core_priv.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index e068a02122f5e..9496c69fff3a2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -745,8 +745,10 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index ff40a450b5d28..ff9e0d7fb4f31 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -292,7 +292,9 @@ static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
+ 					  struct ib_udata *udata,
+ 					  struct ib_uobject *uobj)
+ {
++	enum ib_qp_type qp_type = attr->qp_type;
+ 	struct ib_qp *qp;
++	bool is_xrc;
  
- 	ibdev = &hr_dev->ib_dev;
- 	pd = rdma_zalloc_drv_obj(ibdev, ib_pd);
--	if (!pd)
-+	if (!pd) {
-+		ret = -ENOMEM;
- 		goto alloc_mem_failed;
-+	}
- 
- 	pd->device  = ibdev;
- 	ret = hns_roce_alloc_pd(pd, NULL);
+ 	if (!dev->ops.create_qp)
+ 		return ERR_PTR(-EOPNOTSUPP);
+@@ -310,7 +312,8 @@ static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
+ 	 * and more importantly they are created internaly by driver,
+ 	 * see mlx5 create_dev_resources() as an example.
+ 	 */
+-	if (attr->qp_type < IB_QPT_XRC_INI) {
++	is_xrc = qp_type == IB_QPT_XRC_INI || qp_type == IB_QPT_XRC_TGT;
++	if ((qp_type < IB_QPT_MAX && !is_xrc) || qp_type == IB_QPT_DRIVER) {
+ 		qp->res.type = RDMA_RESTRACK_QP;
+ 		if (uobj)
+ 			rdma_restrack_uadd(&qp->res);
 -- 
 2.20.1
 
