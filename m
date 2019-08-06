@@ -2,33 +2,50 @@ Return-Path: <SRS0=BMee=WC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F2D0C31E40
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 11:08:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5327C433FF
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 11:13:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D7DFC20B1F
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 11:08:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D8DF20B1F
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 11:13:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1565090002;
+	bh=zZ9eLyccO8b6tvvvVNFaANxGTIj0zUiZNKzPkaNmXLo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=1W+6b+JhQRios+C1uZSTOzlUi7EtVJz5ZqDIME0JFDpeSSyDU1ZO2ysvVEQjC62dB
+	 p5Y9NB/gCxbpaQExhfaqg1/One4mvA06KTl/ywFZdXdpri2NFagCuonZU/F0TzK2j3
+	 ukcrNZXdNkltmJdcsDCz1hsRAU4OBtqu/K0tSgaU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731235AbfHFLIY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 07:08:24 -0400
-Received: from stargate.chelsio.com ([12.32.117.8]:21083 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730071AbfHFLIY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 07:08:24 -0400
-Received: from localhost (mehrangarh.blr.asicdesigners.com [10.193.185.169])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id x76B8E4F007896;
-        Tue, 6 Aug 2019 04:08:15 -0700
-Date:   Tue, 6 Aug 2019 16:38:13 +0530
-From:   Potnuri Bharat Teja <bharat@chelsio.com>
-To:     Leon Romanovsky <leon@kernel.org>
+        id S1730676AbfHFLNW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 07:13:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51096 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730381AbfHFLNV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Aug 2019 07:13:21 -0400
+Received: from localhost (unknown [193.47.165.251])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4273720B1F;
+        Tue,  6 Aug 2019 11:13:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1565090000;
+        bh=zZ9eLyccO8b6tvvvVNFaANxGTIj0zUiZNKzPkaNmXLo=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=QiPFRAdBBfXHCExovcETbtF/WdksDpn2nvLPACfK4IVxTSrn9vpUZbya0Aakf1Lzd
+         iVNUnXOlJS3h0Z5MReYL+iNr+2fVRFNMchb9cb1Iy86TQVGNVgDQ9pqN5iqNq1hLX7
+         doQ6Od3JenkZlcNFojdsLzJ8+trHrdZjaA8sXOBw=
+Date:   Tue, 6 Aug 2019 14:13:17 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Potnuri Bharat Teja <bharat@chelsio.com>
 Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         Nirranjan Kirubaharan <nirranjan@chelsio.com>
 Subject: Re: [PATCH rdma-core 2/2] cxgb4: remove unused c4iw_match_device
-Message-ID: <20190806110812.GA6109@chelsio.com>
+Message-ID: <20190806111317.GV4832@mtr-leonro.mtl.com>
 References: <20190725174928.26863-1-bharat@chelsio.com>
  <20190725181424.GB7467@ziepe.ca>
  <20190728083749.GH4674@mtr-leonro.mtl.com>
@@ -36,46 +53,53 @@ References: <20190725174928.26863-1-bharat@chelsio.com>
  <20190805110652.GB23319@chelsio.com>
  <20190806080902.GS4832@mtr-leonro.mtl.com>
  <20190806094849.GT4832@mtr-leonro.mtl.com>
+ <20190806110812.GA6109@chelsio.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190806094849.GT4832@mtr-leonro.mtl.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <20190806110812.GA6109@chelsio.com>
+User-Agent: Mutt/1.12.0 (2019-05-25)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tuesday, August 08/06/19, 2019 at 15:18:49 +0530, Leon Romanovsky wrote:
-> On Tue, Aug 06, 2019 at 11:09:02AM +0300, Leon Romanovsky wrote:
-> > On Mon, Aug 05, 2019 at 04:36:53PM +0530, Potnuri Bharat Teja wrote:
-> > > On Monday, July 07/29/19, 2019 at 13:16:20 +0530, Potnuri Bharat Teja wrote:
-> > > > On Sunday, July 07/28/19, 2019 at 14:07:49 +0530, Leon Romanovsky wrote:
-> > > > > On Thu, Jul 25, 2019 at 03:14:24PM -0300, Jason Gunthorpe wrote:
-> > > > > > On Thu, Jul 25, 2019 at 11:19:28PM +0530, Potnuri Bharat Teja wrote:
-> > > > > > > match_device handler is no longer needed after latest device binding changes.
+On Tue, Aug 06, 2019 at 04:38:13PM +0530, Potnuri Bharat Teja wrote:
+> On Tuesday, August 08/06/19, 2019 at 15:18:49 +0530, Leon Romanovsky wrote:
+> > On Tue, Aug 06, 2019 at 11:09:02AM +0300, Leon Romanovsky wrote:
+> > > On Mon, Aug 05, 2019 at 04:36:53PM +0530, Potnuri Bharat Teja wrote:
+> > > > On Monday, July 07/29/19, 2019 at 13:16:20 +0530, Potnuri Bharat Teja wrote:
+> > > > > On Sunday, July 07/28/19, 2019 at 14:07:49 +0530, Leon Romanovsky wrote:
+> > > > > > On Thu, Jul 25, 2019 at 03:14:24PM -0300, Jason Gunthorpe wrote:
+> > > > > > > On Thu, Jul 25, 2019 at 11:19:28PM +0530, Potnuri Bharat Teja wrote:
+> > > > > > > > match_device handler is no longer needed after latest device binding changes.
+> > > > > > > >
+> > > > > > > > Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
+> > > > > > > > ---
+> > > > > > > >  providers/cxgb4/dev.c | 41 -----------------------------------------
+> > > > > > > >  1 file changed, 41 deletions(-)
 > > > > > > >
-> > > > > > > Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
-> > > > > > > ---
-> > > > > > >  providers/cxgb4/dev.c | 41 -----------------------------------------
-> > > > > > >  1 file changed, 41 deletions(-)
+> > > > > > > Do you know if we can also drop the same code in cxgb3?
 > > > > > >
-> > > > > > Do you know if we can also drop the same code in cxgb3?
+> > > > > > Can we simply remove cxgb3?
+> > > > > >
 > > > > >
-> > > > > Can we simply remove cxgb3?
-> > > > >
+> > > > > I am in talks with the people here. I'll confirm it soon.
 > > > >
-> > > > I am in talks with the people here. I'll confirm it soon.
+> > > > Hi Jason/Doug/Leon,
+> > > > Chelsio is fine with removing cxgb3.
 > > >
-> > > Hi Jason/Doug/Leon,
-> > > Chelsio is fine with removing cxgb3.
+> > > Thanks a lot.
 > >
-> > Thanks a lot.
-> 
-> Which parts of cxgb3 can we remove? RDMA, scsi, net or everything?
+> > Which parts of cxgb3 can we remove? RDMA, scsi, net or everything?
+>
+> I can only say RDMA. For net and scsi parts of cxgb3, the corresponding
+> maintainers might request for their removal.
+> Should I send a patch removing RDMA cxgb3?
 
-I can only say RDMA. For net and scsi parts of cxgb3, the corresponding 
-maintainers might request for their removal.
-Should I send a patch removing RDMA cxgb3?
+It will be the best variant.
 
-Thanks.
+Thanks
+
+>
+> Thanks.
