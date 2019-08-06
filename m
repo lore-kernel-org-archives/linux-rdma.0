@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2D56C31E40
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:17:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40142C433FF
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:17:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7854520C01
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:17:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02FDE20C01
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 23:17:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="WIvITimi"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="lO1sgfmm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726953AbfHFXRG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 19:17:06 -0400
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:44675 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726485AbfHFXQQ (ORCPT
+        id S1726485AbfHFXRH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 19:17:07 -0400
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:36945 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726431AbfHFXQQ (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 19:16:16 -0400
-Received: by mail-qt1-f194.google.com with SMTP id 44so55381456qtg.11
+Received: by mail-qt1-f193.google.com with SMTP id y26so86458614qto.4
         for <linux-rdma@vger.kernel.org>; Tue, 06 Aug 2019 16:16:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=qo3M/m6bAMWNKeEf1KSsSvYS6KA/79bnXZ/MG9HQ7+c=;
-        b=WIvITimiWkKwXR9MAnwvbjPd/jMGoFdgSbKJFYsFUTclr60pQsMdghZmIOiCh5YXC0
-         UttFPobZS06cPlOZT0PF7D3HVksfWxSV4t/CAk8TXFyUTmugFgIF0+8oo8kipepx+JH2
-         FaOArh02dXo+Kn1J1o19Ll/t6xFzUWU5L8C0euhgPJsWnHYPCsSB+yc+FHlEmVCAuX1U
-         +F5OWyMlJ9C8l6nJvwq0WdkKMN98R7WVkx30edRvtFR93R5JGnJIrzkZgNRu9P36xdgz
-         ULUtU6UxEUUqnG9agwf1nN+Htatwu+jA9bbrHaEueg4ngKDbsCMWsyahgp9VLjoDhgxe
-         +acQ==
+        bh=zMCnJFSOouEfBlilBoskv+IiaZaXJbwxtFCutX/1ZbM=;
+        b=lO1sgfmmxfGlNqAPOvqLT1SGqrTemHFJclBTTUaP/JdfZebfYNEmZx12KN2d9x+t1K
+         lII9WK9gYfQZPyWgyPFTPCoEGHZt8F0M7jQCLkLSlFxnaHHwQXPyY3CcqvQ580SczZfN
+         qAhsOYwXpYzFayOyEW24oPZpEQGwPISo/iiZPCSocZqmP49DBEnHdgl5cijvZU770sK2
+         rst5KmBjQuunoLWsnmCgllUhFH26FxYZrBl8qIJPrLLJfK3/2D+8ShVoV4s+9VzUPpPr
+         JMuDt8hth2BUVJE2B6xnVe4lowU/3I7TBYPiS33xCwbY2pskYzWJYZAzDEPq+ODY5GTM
+         Yhuw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=qo3M/m6bAMWNKeEf1KSsSvYS6KA/79bnXZ/MG9HQ7+c=;
-        b=KJv6fytRditkY9iNIyUqds1nZ2hqlUUgWLN/bFUfRxGAU3d4zZCsAjcL1jGPQm7Zqz
-         tLvhBX6O1Xv3HQ7TW329/qJUsgidA/MKjcLv1LIeNU5DmdteSUwdDeloV2zrRcedNgLr
-         2XwnqbE8njq2HPwVZ38r+zzHuh1IgkVTkIab7PcsilQjJPVPdp7pyqu0DmQ3boRbRJr1
-         gGD/v/4jPKTczMCJ2NGs9zOSKqJ2f5Eh0jrqjLGKIUvYZaG6Bp4ODZsGHQLNx8EAltom
-         WLI3mRb1cBGRsieOPeIHuJcCyDi82aLA2rQcS6uR/SUe/WMmjzQpt67ayeD3RgJlt5Lf
-         UTJA==
-X-Gm-Message-State: APjAAAWy+TNe0xualvr4cR4zRg2HFRdHrL83p0zRQnxal/IhUdiKCQQa
-        oxtsVZUTGeCh60TvzwSIncRFsw==
-X-Google-Smtp-Source: APXvYqwzSzqBhit7womFZned74qAW6JuvC+DaQssS9gJgppa+iNTQrGgfDRkcUg2AKLeoxFn+koswg==
-X-Received: by 2002:a0c:ad6f:: with SMTP id v44mr5590212qvc.40.1565133375491;
+        bh=zMCnJFSOouEfBlilBoskv+IiaZaXJbwxtFCutX/1ZbM=;
+        b=NPEdbydzNZzkYhi2lkBOs76AK291ShkmaXlpQNsj8IzWa+QLXACI5ZYCWDw9HO7zLH
+         9cwHG+ARlCRLzlQm7I6BamyS+c1I6pyu6iwMNwD05rlE1AbINIP/rSoyD9BQk4wMZPWk
+         dWP1Q2zkM6r4XdyS8klnQkK8/ozzcBQZSi/aBVmwscmTzeaoGUliRTZH/GDhdfcTrOOr
+         jta4ncJMTmIfn6zW7WVeKRAYt8jPGzm4X3RaeN2ucYBqsnQj2RCpjr5SDo0duOy9GcH7
+         JCzdAKhCR9OR8l/z6u5VnQpRWeLrl2zPChhhfoGB7h8mTnW41qSTCGxOdYqbG+zK4iZl
+         DeQw==
+X-Gm-Message-State: APjAAAUANIUl4lwXVy6ZLelPrHV+ByUn2c+j67hskA3oGv2wpXhqYpQt
+        KMQTH4Ngb4F5qXD8wgXmT4QEZQ==
+X-Google-Smtp-Source: APXvYqxMVRT0WflMzTw7hoNYehDw3sJ1fV7g1I1BCJ9PGgwnJ2UQq4JSqfd/nXhEpMBqp4lLxDXVKg==
+X-Received: by 2002:a0c:9e27:: with SMTP id p39mr5387552qve.151.1565133375135;
         Tue, 06 Aug 2019 16:16:15 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id l5sm38853627qte.9.2019.08.06.16.16.14
+        by smtp.gmail.com with ESMTPSA id d9sm38947489qke.136.2019.08.06.16.16.14
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Tue, 06 Aug 2019 16:16:14 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1hv8gg-0006eL-1z; Tue, 06 Aug 2019 20:16:14 -0300
+        id 1hv8gg-0006eZ-5J; Tue, 06 Aug 2019 20:16:14 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-mm@kvack.org
 Cc:     Andrea Arcangeli <aarcange@redhat.com>,
@@ -75,9 +75,9 @@ Cc:     Andrea Arcangeli <aarcange@redhat.com>,
         Gavin Shan <shangw@linux.vnet.ibm.com>,
         Andrea Righi <andrea@betterlinux.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH v3 hmm 02/11] mm/mmu_notifiers: do not speculatively allocate a mmu_notifier_mm
-Date:   Tue,  6 Aug 2019 20:15:39 -0300
-Message-Id: <20190806231548.25242-3-jgg@ziepe.ca>
+Subject: [PATCH v3 hmm 04/11] misc/sgi-gru: use mmu_notifier_get/put for struct gru_mm_struct
+Date:   Tue,  6 Aug 2019 20:15:41 -0300
+Message-Id: <20190806231548.25242-5-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190806231548.25242-1-jgg@ziepe.ca>
 References: <20190806231548.25242-1-jgg@ziepe.ca>
@@ -90,95 +90,168 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-A prior commit e0f3c3f78da2 ("mm/mmu_notifier: init notifier if necessary")
-made an attempt at doing this, but had to be reverted as calling
-the GFP_KERNEL allocator under the i_mmap_mutex causes deadlock, see
-commit 35cfa2b0b491 ("mm/mmu_notifier: allocate mmu_notifier in advance").
+GRU is already using almost the same algorithm as get/put, it even
+helpfully has a 10 year old comment to make this algorithm common, which
+is finally happening.
 
-However, we can avoid that problem by doing the allocation only under
-the mmap_sem, which is already happening.
-
-Since all writers to mm->mmu_notifier_mm hold the write side of the
-mmap_sem reading it under that sem is deterministic and we can use that to
-decide if the allocation path is required, without speculation.
-
-The actual update to mmu_notifier_mm must still be done under the
-mm_take_all_locks() to ensure read-side coherency.
+There are a few differences and fixes from this conversion:
+- GRU used rcu not srcu to read the hlist
+- Unclear how the locking worked to prevent gru_register_mmu_notifier()
+  from running concurrently with gru_drop_mmu_notifier() - this version is
+  safe
+- GRU had a release function which only set a variable without any locking
+  that skiped the synchronize_srcu during unregister which looks racey,
+  but this makes it reliable via the integrated call_srcu().
+- It is unclear if the mmap_sem is actually held when
+  __mmu_notifier_register() was called, lockdep will now warn if this is
+  wrong
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- mm/mmu_notifier.c | 34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+ drivers/misc/sgi-gru/grufile.c     |  1 +
+ drivers/misc/sgi-gru/grutables.h   |  2 -
+ drivers/misc/sgi-gru/grutlbpurge.c | 84 +++++++++---------------------
+ 3 files changed, 25 insertions(+), 62 deletions(-)
 
-diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
-index 218a6f108bc2d0..696810f632ade1 100644
---- a/mm/mmu_notifier.c
-+++ b/mm/mmu_notifier.c
-@@ -242,27 +242,32 @@ EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range);
-  */
- int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- {
--	struct mmu_notifier_mm *mmu_notifier_mm;
-+	struct mmu_notifier_mm *mmu_notifier_mm = NULL;
- 	int ret;
- 
- 	lockdep_assert_held_write(&mm->mmap_sem);
- 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
- 
--	mmu_notifier_mm = kmalloc(sizeof(struct mmu_notifier_mm), GFP_KERNEL);
--	if (unlikely(!mmu_notifier_mm))
--		return -ENOMEM;
-+	if (!mm->mmu_notifier_mm) {
-+		/*
-+		 * kmalloc cannot be called under mm_take_all_locks(), but we
-+		 * know that mm->mmu_notifier_mm can't change while we hold
-+		 * the write side of the mmap_sem.
-+		 */
-+		mmu_notifier_mm =
-+			kmalloc(sizeof(struct mmu_notifier_mm), GFP_KERNEL);
-+		if (!mmu_notifier_mm)
-+			return -ENOMEM;
-+
-+		INIT_HLIST_HEAD(&mmu_notifier_mm->list);
-+		spin_lock_init(&mmu_notifier_mm->lock);
-+	}
- 
- 	ret = mm_take_all_locks(mm);
- 	if (unlikely(ret))
- 		goto out_clean;
- 
--	if (!mm_has_notifiers(mm)) {
--		INIT_HLIST_HEAD(&mmu_notifier_mm->list);
--		spin_lock_init(&mmu_notifier_mm->lock);
--
--		mm->mmu_notifier_mm = mmu_notifier_mm;
--		mmu_notifier_mm = NULL;
--	}
-+	/* Pairs with the mmdrop in mmu_notifier_unregister_* */
- 	mmgrab(mm);
- 
- 	/*
-@@ -273,14 +278,19 @@ int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- 	 * We can't race against any other mmu notifier method either
- 	 * thanks to mm_take_all_locks().
- 	 */
-+	if (mmu_notifier_mm)
-+		mm->mmu_notifier_mm = mmu_notifier_mm;
-+
- 	spin_lock(&mm->mmu_notifier_mm->lock);
- 	hlist_add_head_rcu(&mn->hlist, &mm->mmu_notifier_mm->list);
- 	spin_unlock(&mm->mmu_notifier_mm->lock);
- 
- 	mm_drop_all_locks(mm);
-+	BUG_ON(atomic_read(&mm->mm_users) <= 0);
-+	return 0;
-+
- out_clean:
- 	kfree(mmu_notifier_mm);
--	BUG_ON(atomic_read(&mm->mm_users) <= 0);
- 	return ret;
+diff --git a/drivers/misc/sgi-gru/grufile.c b/drivers/misc/sgi-gru/grufile.c
+index a2a142ae087bfa..9d042310214ff9 100644
+--- a/drivers/misc/sgi-gru/grufile.c
++++ b/drivers/misc/sgi-gru/grufile.c
+@@ -573,6 +573,7 @@ static void __exit gru_exit(void)
+ 	gru_free_tables();
+ 	misc_deregister(&gru_miscdev);
+ 	gru_proc_exit();
++	mmu_notifier_synchronize();
  }
- EXPORT_SYMBOL_GPL(__mmu_notifier_register);
+ 
+ static const struct file_operations gru_fops = {
+diff --git a/drivers/misc/sgi-gru/grutables.h b/drivers/misc/sgi-gru/grutables.h
+index 438191c220570c..a7e44b2eb413f6 100644
+--- a/drivers/misc/sgi-gru/grutables.h
++++ b/drivers/misc/sgi-gru/grutables.h
+@@ -307,10 +307,8 @@ struct gru_mm_tracker {				/* pack to reduce size */
+ 
+ struct gru_mm_struct {
+ 	struct mmu_notifier	ms_notifier;
+-	atomic_t		ms_refcnt;
+ 	spinlock_t		ms_asid_lock;	/* protects ASID assignment */
+ 	atomic_t		ms_range_active;/* num range_invals active */
+-	char			ms_released;
+ 	wait_queue_head_t	ms_wait_queue;
+ 	DECLARE_BITMAP(ms_asidmap, GRU_MAX_GRUS);
+ 	struct gru_mm_tracker	ms_asids[GRU_MAX_GRUS];
+diff --git a/drivers/misc/sgi-gru/grutlbpurge.c b/drivers/misc/sgi-gru/grutlbpurge.c
+index 59ba0adf23cee4..10921cd2608dfa 100644
+--- a/drivers/misc/sgi-gru/grutlbpurge.c
++++ b/drivers/misc/sgi-gru/grutlbpurge.c
+@@ -235,83 +235,47 @@ static void gru_invalidate_range_end(struct mmu_notifier *mn,
+ 		gms, range->start, range->end);
+ }
+ 
+-static void gru_release(struct mmu_notifier *mn, struct mm_struct *mm)
++static struct mmu_notifier *gru_alloc_notifier(struct mm_struct *mm)
+ {
+-	struct gru_mm_struct *gms = container_of(mn, struct gru_mm_struct,
+-						 ms_notifier);
++	struct gru_mm_struct *gms;
++
++	gms = kzalloc(sizeof(*gms), GFP_KERNEL);
++	if (!gms)
++		return ERR_PTR(-ENOMEM);
++	STAT(gms_alloc);
++	spin_lock_init(&gms->ms_asid_lock);
++	init_waitqueue_head(&gms->ms_wait_queue);
+ 
+-	gms->ms_released = 1;
+-	gru_dbg(grudev, "gms %p\n", gms);
++	return &gms->ms_notifier;
+ }
+ 
++static void gru_free_notifier(struct mmu_notifier *mn)
++{
++	kfree(container_of(mn, struct gru_mm_struct, ms_notifier));
++	STAT(gms_free);
++}
+ 
+ static const struct mmu_notifier_ops gru_mmuops = {
+ 	.invalidate_range_start	= gru_invalidate_range_start,
+ 	.invalidate_range_end	= gru_invalidate_range_end,
+-	.release		= gru_release,
++	.alloc_notifier		= gru_alloc_notifier,
++	.free_notifier		= gru_free_notifier,
+ };
+ 
+-/* Move this to the basic mmu_notifier file. But for now... */
+-static struct mmu_notifier *mmu_find_ops(struct mm_struct *mm,
+-			const struct mmu_notifier_ops *ops)
+-{
+-	struct mmu_notifier *mn, *gru_mn = NULL;
+-
+-	if (mm->mmu_notifier_mm) {
+-		rcu_read_lock();
+-		hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list,
+-					 hlist)
+-		    if (mn->ops == ops) {
+-			gru_mn = mn;
+-			break;
+-		}
+-		rcu_read_unlock();
+-	}
+-	return gru_mn;
+-}
+-
+ struct gru_mm_struct *gru_register_mmu_notifier(void)
+ {
+-	struct gru_mm_struct *gms;
+ 	struct mmu_notifier *mn;
+-	int err;
+-
+-	mn = mmu_find_ops(current->mm, &gru_mmuops);
+-	if (mn) {
+-		gms = container_of(mn, struct gru_mm_struct, ms_notifier);
+-		atomic_inc(&gms->ms_refcnt);
+-	} else {
+-		gms = kzalloc(sizeof(*gms), GFP_KERNEL);
+-		if (!gms)
+-			return ERR_PTR(-ENOMEM);
+-		STAT(gms_alloc);
+-		spin_lock_init(&gms->ms_asid_lock);
+-		gms->ms_notifier.ops = &gru_mmuops;
+-		atomic_set(&gms->ms_refcnt, 1);
+-		init_waitqueue_head(&gms->ms_wait_queue);
+-		err = __mmu_notifier_register(&gms->ms_notifier, current->mm);
+-		if (err)
+-			goto error;
+-	}
+-	if (gms)
+-		gru_dbg(grudev, "gms %p, refcnt %d\n", gms,
+-			atomic_read(&gms->ms_refcnt));
+-	return gms;
+-error:
+-	kfree(gms);
+-	return ERR_PTR(err);
++
++	mn = mmu_notifier_get_locked(&gru_mmuops, current->mm);
++	if (IS_ERR(mn))
++		return ERR_CAST(mn);
++
++	return container_of(mn, struct gru_mm_struct, ms_notifier);
+ }
+ 
+ void gru_drop_mmu_notifier(struct gru_mm_struct *gms)
+ {
+-	gru_dbg(grudev, "gms %p, refcnt %d, released %d\n", gms,
+-		atomic_read(&gms->ms_refcnt), gms->ms_released);
+-	if (atomic_dec_return(&gms->ms_refcnt) == 0) {
+-		if (!gms->ms_released)
+-			mmu_notifier_unregister(&gms->ms_notifier, current->mm);
+-		kfree(gms);
+-		STAT(gms_free);
+-	}
++	mmu_notifier_put(&gms->ms_notifier);
+ }
+ 
+ /*
 -- 
 2.22.0
 
