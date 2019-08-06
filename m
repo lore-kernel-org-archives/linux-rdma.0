@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1280EC31E40
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:38:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A022C31E40
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:39:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CAD4A2189F
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:38:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 621DD2189F
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Aug 2019 21:39:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565127513;
-	bh=WfJITCGv9bAQKx9HPueqnYT/6ry3FvjBX8ESFIOFElE=;
+	s=default; t=1565127561;
+	bh=1fRc/zFettj7AJF4rtA0Lm09G1L8kTnLLuDzgTzBtNY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=u4nW2KntSmd9DN9EfaSaVFFdJ/4kmWZmrUsOIs6LMzeDjDtphGqZ9ZeVi5Tvc96/b
-	 qw1p0RbN9ge6+uCCyevJkWLl0wlRKltN2fWF6Ry86mGY0I06Fwwi6SYvArrwkcqJvD
-	 hGSnKrb0OwyKWT6ZUK9aIdLRztJtaWVCafGGIle0=
+	b=UxCDoj/dzZEbxPEtcUUFwm4EhD4BWyNdnUK9Rez5Yh6nA9ylHYyTdUssxoQSZf6iq
+	 3D6RVtyjyqZX51Gtp7UzHX5AQidkVXxhu8VL6qRPTXMa+P2X3DDaNhblV0T/ZDgH9Y
+	 37HT7KCt9/DOR9BB4xtYrSe+/OyTZACEFAgVIWTw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729653AbfHFViL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 17:38:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55844 "EHLO mail.kernel.org"
+        id S1727432AbfHFVhn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 17:37:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55412 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727570AbfHFViL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Aug 2019 17:38:11 -0400
+        id S1729433AbfHFVhl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Aug 2019 17:37:41 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3F27A20C01;
-        Tue,  6 Aug 2019 21:38:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9100E21873;
+        Tue,  6 Aug 2019 21:37:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565127489;
-        bh=WfJITCGv9bAQKx9HPueqnYT/6ry3FvjBX8ESFIOFElE=;
+        s=default; t=1565127460;
+        bh=1fRc/zFettj7AJF4rtA0Lm09G1L8kTnLLuDzgTzBtNY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=sW90APsVeVDQpVt0nOUMuZbfmaBLu3nOLRBaSBz8k4V8L+r81JZ10Z/5GI9GMdI2k
-         E5Dck8mVYOXVDeQyjL+HdyiMBi4o2OfyYudNuWmof4IVOnD7o3R30hKxAGtAYH28nE
-         E9BpGXkLMXNlSiOBAmnjrs8lycC5wmtXrj5ZLL+Q=
+        b=Wn0y9LLzJlr7NbIjD4zh1tssATpc+qml5Y0J06qByqypUN5q67nLyZXe4BxUBJ029
+         vdlM9fF0nMs4XMX2Fb5B75ccby5ZdFaDVSs0rjDr7O7WMOUQ+TgB8WTJq5Vn7p5XbM
+         bZ5f2b8RzOkhO0BrS+hqJxwCpTnha+LAMi8rY2fo=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Luck, Tony" <tony.luck@intel.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 11/14] IB/core: Add mitigation for Spectre V1
-Date:   Tue,  6 Aug 2019 17:37:45 -0400
-Message-Id: <20190806213749.20689-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 13/17] IB/core: Add mitigation for Spectre V1
+Date:   Tue,  6 Aug 2019 17:37:10 -0400
+Message-Id: <20190806213715.20487-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190806213749.20689-1-sashal@kernel.org>
-References: <20190806213749.20689-1-sashal@kernel.org>
+In-Reply-To: <20190806213715.20487-1-sashal@kernel.org>
+References: <20190806213715.20487-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -77,7 +77,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 57f281f8d6862..e9e75f40714cb 100644
+index 415a3185cde7f..cf93a96b63249 100644
 --- a/drivers/infiniband/core/user_mad.c
 +++ b/drivers/infiniband/core/user_mad.c
 @@ -49,6 +49,7 @@
@@ -88,7 +88,7 @@ index 57f281f8d6862..e9e75f40714cb 100644
  
  #include <asm/uaccess.h>
  
-@@ -842,11 +843,14 @@ static int ib_umad_unreg_agent(struct ib_umad_file *file, u32 __user *arg)
+@@ -843,11 +844,14 @@ static int ib_umad_unreg_agent(struct ib_umad_file *file, u32 __user *arg)
  
  	if (get_user(id, arg))
  		return -EFAULT;
