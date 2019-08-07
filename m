@@ -2,76 +2,51 @@ Return-Path: <SRS0=tA3/=WD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F65AC32751
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 10:32:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C78BC433FF
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 10:34:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1E5972086D
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 10:32:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AGdWGDF9"
+	by mail.kernel.org (Postfix) with ESMTP id 433742086D
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 10:34:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1565174054;
+	bh=kEg78J7uc4eeJ+qMTejNy6AMuZbBMrW4NY4PWYUSJtk=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=OBme0jGuEhFJUSrRPpDl47Uxaz5wnbnqCwMsnCvCVmwjJ2dGD8zm9SYo0NIhpZrIT
+	 KzJ5TjHz6VRuR0GUuRVUOWpmHkq+mXea+VIprZeS6kaWxROaw499OSXW1Dr9qSYAgO
+	 ROIIVplxDX2jCxh+zzkszh50hkCtQor1YZgl/U8Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729330AbfHGKbv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Aug 2019 06:31:51 -0400
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:41122 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729273AbfHGKbu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Aug 2019 06:31:50 -0400
-Received: by mail-wr1-f65.google.com with SMTP id c2so87591186wrm.8
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Aug 2019 03:31:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=f+bDJrDFi3CtuJvT1mMy497fGymepKVwPqfzySMCSxk=;
-        b=AGdWGDF9yAlHvB7Vc81n0QU41JkUDdyT+QBx2Dxa9Buqu0i99h8ufFFbfhxuPTYAAo
-         yzs0C3oH7vtpLo6wTJq8VM8xSOpFejE4F85J2dTCBg43wLkS5Kt0dDESyMpkwyXYD98o
-         PZrOXSDxK53A7ckmecTpJltfZHPT3Hlr/jjAv3Muw46TYtxOSgi423UFjDjCDV57seV6
-         W/fSmq/5ddkJrb4mAiDcJ1stqS+BqpC9xqQhC8X95W/tT5XndpDqjW6LHkmHvwRmnEn8
-         eMNKdIAPn99BpHTgtn+69uMQSTD29R6u5eFPi/Ln6iAIoDTPkcWU/jK4u6JnwVOMa1Dk
-         eIow==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=f+bDJrDFi3CtuJvT1mMy497fGymepKVwPqfzySMCSxk=;
-        b=nkH0fI5k4Ru/fouF3JI0tMt3djLBl+JtyYswZlpre1aSbUr9s3Cg6dGjstbkXZc0ro
-         zb+ngWMwVydRBy5Hjyq09HE8XEyYV1xXmOtjZ0YMbotP7P19xryH8KYrIaQilu9VUTZw
-         osr8WYofnCXZCF2RbjfwgEgUNE6W1VVYvM5S7Azny8T01WW1s0LaSViUrYPToYZzwAla
-         2JgpJr5aeZE4YU+aKUOpGc38Q/jJN7Oy0xEeOLv0y18CcW2McvkN3mlJJo0/7BYeo0vc
-         kt1QTEGONFA5oX+P4o/4hXxVNIIbUlT/OtVRpuFwUueOo3UDOp3T4aIoqzjvER5ElzGh
-         ckgQ==
-X-Gm-Message-State: APjAAAU9VQyh4dnrddhH1Fxp8325o1/B0IfojpGNLV4v3Fkq0KwWJPnF
-        guNsW/+6HdHTBC6sCGEnxcSFwFwDjtc=
-X-Google-Smtp-Source: APXvYqzVQveMkn75c6W2ijZmF6n6LprF/I6SHVVJ/86rf+iNIK8w2zsSa6/d6z+onvZaL6RnGJzGaw==
-X-Received: by 2002:adf:e552:: with SMTP id z18mr10210528wrm.45.1565173907766;
-        Wed, 07 Aug 2019 03:31:47 -0700 (PDT)
-Received: from kheib-workstation.redhat.com (bzq-109-66-104-187.red.bezeqint.net. [109.66.104.187])
-        by smtp.gmail.com with ESMTPSA id o3sm79713845wrs.59.2019.08.07.03.31.45
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Wed, 07 Aug 2019 03:31:47 -0700 (PDT)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Christian Benvenuti <benve@cisco.com>,
-        Moni Shoua <monis@mellanox.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Andrew Boyer <aboyer@tobark.org>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next V4 0/4] RDMA: Cleanups and improvements
-Date:   Wed,  7 Aug 2019 13:31:34 +0300
-Message-Id: <20190807103138.17219-1-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.20.1
+        id S1726418AbfHGKeN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Aug 2019 06:34:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41772 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726269AbfHGKeN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 7 Aug 2019 06:34:13 -0400
+Received: from localhost (unknown [77.137.115.125])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 780D021E6E;
+        Wed,  7 Aug 2019 10:34:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1565174053;
+        bh=kEg78J7uc4eeJ+qMTejNy6AMuZbBMrW4NY4PWYUSJtk=;
+        h=From:To:Cc:Subject:Date:From;
+        b=CDkbCkrPAhs10gPDKVKOHmmc8LnHjuTxS4pY725u3PHmK/Wncp5aKlOtq2g63BFjS
+         wW9CuQfXPgpD2gUTjDAjT6gEW5OTnFwPTaBxluoKZEsAdoacX8+qy7Rg375sdc4Mmr
+         ye0iXZx9zp912EOtkTTYbvM1uAIubb8ZwlteL680=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Erez Alfasi <ereza@mellanox.com>
+Subject: [PATCH rdma-next 0/6] ODP information and statistics
+Date:   Wed,  7 Aug 2019 13:33:57 +0300
+Message-Id: <20190807103403.8102-1-leon@kernel.org>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -79,56 +54,60 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series includes few cleanups and improvements, the first patch
-introduce a new enum for describing the physical state values and use it
-instead of using the magic numbers, patch 2-4 add support for a common
-query port for iWARP drivers and remove the common code from the iWARP
-drivers.
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Changes from v3:
-- Patch #1:
--- Introduce phys_state_to_str() and use it. 
+Hi,
 
-Changes from v2:
-- Patch #1:
--- Update mlx4 and hns to use the new ib_port_phys_state enum.
-- Patch #3:
--- Use rdma_protocol_iwarp() instead of rdma_node_get_transport().
+This series from Erez refactors exposes ODP type information (explicit,
+implicit) and statistics through netlink interface.
 
-Changes from v1 :
-- Patch #3:
--- Delete __ prefix.
--- Add missing dev_put(netdev);
--- Initilize gid to {}.
--- Return error code directly.
+The iproute2 will be sent a little bit later this week.
 
-Kamal Heib (4):
-  RDMA: Introduce ib_port_phys_state enum
-  RDMA/cxgb3: Use ib_device_set_netdev()
-  RDMA/core: Add common iWARP query port
-  RDMA/{cxgb3, cxgb4, i40iw}: Remove common code
+Thanks
 
- drivers/infiniband/core/device.c             | 87 ++++++++++++++++----
- drivers/infiniband/core/sysfs.c              | 30 ++++---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c     |  4 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  | 45 +++++-----
- drivers/infiniband/hw/cxgb4/provider.c       | 24 ------
- drivers/infiniband/hw/efa/efa_verbs.c        |  2 +-
- drivers/infiniband/hw/hns/hns_roce_device.h  | 10 ---
- drivers/infiniband/hw/hns/hns_roce_main.c    |  3 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 11 ---
- drivers/infiniband/hw/mlx4/main.c            |  3 +-
- drivers/infiniband/hw/mlx5/main.c            |  4 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  4 +-
- drivers/infiniband/hw/qedr/verbs.c           |  4 +-
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  7 +-
- drivers/infiniband/sw/rxe/rxe.h              |  4 -
- drivers/infiniband/sw/rxe/rxe_param.h        |  2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c        |  6 +-
- drivers/infiniband/sw/siw/siw_verbs.c        |  3 +-
- include/rdma/ib_verbs.h                      | 10 +++
- 19 files changed, 144 insertions(+), 119 deletions(-)
+Erez Alfasi (6):
+  RDMA: Embed umem within core MR
+  RDMA/umem: Add ODP type indicator within ib_umem_odp
+  RDMA/nldev: Return ODP type per MR
+  IB/mlx5: Introduce ODP diagnostic counters
+  RDMA/nldev: Allow different fill function per resource
+  RDMA/nldev: Provide MR statistics
 
--- 
+ drivers/infiniband/core/nldev.c              | 101 ++++++++++++++++---
+ drivers/infiniband/core/umem.c               |   1 +
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c     |   4 +-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h     |   1 -
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |  15 +--
+ drivers/infiniband/hw/cxgb3/iwch_provider.h  |   1 -
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h       |   1 -
+ drivers/infiniband/hw/cxgb4/mem.c            |  13 +--
+ drivers/infiniband/hw/efa/efa.h              |   1 -
+ drivers/infiniband/hw/efa/efa_verbs.c        |  19 ++--
+ drivers/infiniband/hw/hns/hns_roce_device.h  |   1 -
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c   |   7 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c   |   3 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c      |  42 ++++----
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    |   8 +-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h    |   1 -
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |   1 -
+ drivers/infiniband/hw/mlx4/mr.c              |  43 ++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |   5 +-
+ drivers/infiniband/hw/mlx5/mr.c              |  36 +++----
+ drivers/infiniband/hw/mlx5/odp.c             |  39 +++++--
+ drivers/infiniband/hw/mthca/mthca_provider.c |  17 ++--
+ drivers/infiniband/hw/mthca/mthca_provider.h |   1 -
+ drivers/infiniband/hw/ocrdma/ocrdma.h        |   1 -
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  12 +--
+ drivers/infiniband/hw/qedr/qedr.h            |   1 -
+ drivers/infiniband/hw/qedr/verbs.c           |  12 +--
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    |   1 -
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c |   8 +-
+ include/rdma/ib_umem_odp.h                   |  28 +++++
+ include/rdma/ib_verbs.h                      |   1 +
+ include/uapi/rdma/ib_user_verbs.h            |   5 +
+ include/uapi/rdma/rdma_netlink.h             |   5 +
+ 33 files changed, 279 insertions(+), 156 deletions(-)
+
+--
 2.20.1
 
