@@ -8,53 +8,53 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97117C433FF
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 01:37:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFC4AC31E40
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 01:37:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6EA8D217F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 01:37:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C84D5217F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 01:37:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oYwU8ETg"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L6PrjOsr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730202AbfHGBgv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Aug 2019 21:36:51 -0400
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:38789 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729807AbfHGBef (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 21:34:35 -0400
-Received: by mail-pl1-f195.google.com with SMTP id az7so38558663plb.5;
-        Tue, 06 Aug 2019 18:34:34 -0700 (PDT)
+        id S1729790AbfHGBee (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Aug 2019 21:34:34 -0400
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:47054 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729738AbfHGBeb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Aug 2019 21:34:31 -0400
+Received: by mail-pg1-f196.google.com with SMTP id w3so5333781pgt.13;
+        Tue, 06 Aug 2019 18:34:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=P44t64b1Yt2CczJo6SOAPYnnEfAXhRMhGjbg0YSdFKY=;
-        b=oYwU8ETglc6KiHkcA0RyRS5vGqCW2i7AIOfUQ1rGo+vD39eROBW26/892d5mL8jCka
-         9NN3Xib7WtATsBiYJqkB3ezAv9jDjLgX0Nt2lJwKPO87RMwjfI/ercmqj2pogsz06Wb7
-         pt7t+tRi22lEyEbjwYG4pvxEn5EP2upJ7sBYXvkRkx1OZr8K8A0zsi1zsXDmxeKjKGdS
-         rd7sOAmNlVKLyRrCXgSP759pVqt58t0Qr3CX/SHM65KMfp9F8GOgkLwibGL9VUlsrg7f
-         RCrbiDazxsGGGqq8tug1r4v+hpbk+DodA1qAwxGhZjgi6TOY5xhcloApNp8UIjMczhiZ
-         1TFQ==
+        bh=uQGOdku7Vl3REPvOJ8nTMNJxS9zoi9IIquO7PYdcYIA=;
+        b=L6PrjOsrS6boUIN/DOymS83vV7YlAKPpT9Xdrfk7ax1OcCgE7PAsCiB8I3wTJde6P0
+         jWSZSVN0MQGqPFzlI9I6nQdqRL1oXS8MVgrMBG2RUC/9SCRR/2JXuxH0Bc1AbFhAasOV
+         xWwwBWKfNUqmzHZ9usEoeFIoZA0TFhsqfa1vxdEBmkB+UHsGh6j98UqgUEfpOkZ8azEw
+         XctfU3/I30ArTXSEYH2C9KRaAbt0v2hqFYnx8WGIkLVSjGqesnYt/lo+Nif4WusFAWAo
+         kwn89YnMjOOYX9/SsgW6zCkgnnE6VjyidKN7erx1BI5f02v6uid8cXohhKk4FwCmi1FI
+         cYgw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=P44t64b1Yt2CczJo6SOAPYnnEfAXhRMhGjbg0YSdFKY=;
-        b=bsLJ3tXUXUWASIgmL+I0A4zQsCCo3ZAnnkIM6g4/UilS3ZEjcVvmSLvMd0dRklRr8X
-         hyoqDXH9DtMmY91+h8xoM7IhLK21oHfzvce+48oyfg5DM1mRqP2vGSXgch+xfa2y2bEt
-         7jlEbKHdHSBKD8Dfz5oH4WCD6wLpnEeCIjdro041sNyjHyFnFVpSRiEV88/z/1C3ZjOI
-         /NbxlGFL2ZdNby34elbdb68Q11lGLk3yHjOjV5tyOCvtGYIXIbe6P/JAALWPTzP9DgB3
-         auaffKQsvjqsnua5pSxLQrLRsi4CGpVPno1aW6XYEZUboF6FqbqdasoqBUcPmJL63SXk
-         +E7w==
-X-Gm-Message-State: APjAAAUslQu9CLEkPRDToRLK0yv8UX2Xtsbeg2a9DzXWKOASdfvWFL41
-        87McRU3aPO3EN9l1H4Q1OAE=
-X-Google-Smtp-Source: APXvYqw8+L1VoxRPbf6Y+c4qD8GNaA9eNx8R+zkKMbLiZR/mjctguTvKD53OkN4n/knnADLxacIAYA==
-X-Received: by 2002:a17:902:7782:: with SMTP id o2mr5960829pll.12.1565141674655;
-        Tue, 06 Aug 2019 18:34:34 -0700 (PDT)
+        bh=uQGOdku7Vl3REPvOJ8nTMNJxS9zoi9IIquO7PYdcYIA=;
+        b=AtcMSFh0U5imUlPpqf0ap4oYH36SIPatoRKBWM5yfrx8+GMT6KCYpi+5NP7X8dQxNl
+         7LjYWToA6DOAmXj4Y69ul4+XRDOZWIM4wxhwtc27Bu8w1TEhpf5hh8SRmTD6EQaWU7Vg
+         sJfVA64SAsXf/W/accrUAu8fXUyBpMZY+e4SNTMN9a/TKhJLpVdo0tW42YsycQ9cVhz8
+         p0oOF0qTY5YandeaN2Q1ujLdXC62PIR/FN4M0bw3h/pcL54LA5I2EfkitClFLwERM9FB
+         G9he6Hm0IN+U4qi6bvvhz8uzCHVEQmuSZJ3Wgrs44HJMk7aS5K3AuBJNwYQW0sZCO8uv
+         TWqg==
+X-Gm-Message-State: APjAAAWrf23IMcXMEe8XgwlDmhmMJ7iLp0Qzip40a+qksGKnbUGgsNDg
+        GODeM7hhMQKp7kOC/xPDUgI=
+X-Google-Smtp-Source: APXvYqyaoKmDNdUJQD7xvZFSQjCmYuVY+zKJwqcOsFMJXKJ76CQxjmhpKXdBBVyw94JCP/lkY4QWYw==
+X-Received: by 2002:aa7:8f2c:: with SMTP id y12mr6988234pfr.38.1565141669837;
+        Tue, 06 Aug 2019 18:34:29 -0700 (PDT)
 Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id u69sm111740800pgu.77.2019.08.06.18.34.32
+        by smtp.gmail.com with ESMTPSA id u69sm111740800pgu.77.2019.08.06.18.34.28
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Tue, 06 Aug 2019 18:34:34 -0700 (PDT)
+        Tue, 06 Aug 2019 18:34:29 -0700 (PDT)
 From:   john.hubbard@gmail.com
 X-Google-Original-From: jhubbard@nvidia.com
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -78,18 +78,15 @@ Cc:     Christoph Hellwig <hch@infradead.org>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         sparclinux@vger.kernel.org, x86@kernel.org,
         xen-devel@lists.xenproject.org, John Hubbard <jhubbard@nvidia.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Christopher Yeoh <cyeoh@au1.ibm.com>,
-        Heiko Carstens <heiko.carstens@de.ibm.com>,
-        Ingo Molnar <mingo@kernel.org>, Jann Horn <jann@thejh.net>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-        Mike Rapoport <rppt@linux.vnet.ibm.com>,
-        Rashika Kheria <rashika.kheria@gmail.com>
-Subject: [PATCH v3 31/41] mm/process_vm_access.c: convert put_page() to put_user_page*()
-Date:   Tue,  6 Aug 2019 18:33:30 -0700
-Message-Id: <20190807013340.9706-32-jhubbard@nvidia.com>
+        Keith Busch <keith.busch@intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
+        "Michael S . Tsirkin" <mst@redhat.com>,
+        YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH v3 28/41] mm/gup_benchmark.c: convert put_page() to put_user_page*()
+Date:   Tue,  6 Aug 2019 18:33:27 -0700
+Message-Id: <20190807013340.9706-29-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 References: <20190807013340.9706-1-jhubbard@nvidia.com>
@@ -110,69 +107,32 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christopher Yeoh <cyeoh@au1.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jann Horn <jann@thejh.net>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Rashika Kheria <rashika.kheria@gmail.com>
+Reviewed-by: Keith Busch <keith.busch@intel.com>
+
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: YueHaibing <yuehaibing@huawei.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/process_vm_access.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/gup_benchmark.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/mm/process_vm_access.c b/mm/process_vm_access.c
-index 357aa7bef6c0..4d29d54ec93f 100644
---- a/mm/process_vm_access.c
-+++ b/mm/process_vm_access.c
-@@ -96,7 +96,7 @@ static int process_vm_rw_single_vec(unsigned long addr,
- 		flags |= FOLL_WRITE;
- 
- 	while (!rc && nr_pages && iov_iter_count(iter)) {
--		int pages = min(nr_pages, max_pages_per_loop);
-+		int pinned_pages = min(nr_pages, max_pages_per_loop);
- 		int locked = 1;
- 		size_t bytes;
- 
-@@ -106,14 +106,15 @@ static int process_vm_rw_single_vec(unsigned long addr,
- 		 * current/current->mm
- 		 */
- 		down_read(&mm->mmap_sem);
--		pages = get_user_pages_remote(task, mm, pa, pages, flags,
--					      process_pages, NULL, &locked);
-+		pinned_pages = get_user_pages_remote(task, mm, pa, pinned_pages,
-+						     flags, process_pages, NULL,
-+						     &locked);
- 		if (locked)
- 			up_read(&mm->mmap_sem);
--		if (pages <= 0)
-+		if (pinned_pages <= 0)
- 			return -EFAULT;
- 
--		bytes = pages * PAGE_SIZE - start_offset;
-+		bytes = pinned_pages * PAGE_SIZE - start_offset;
- 		if (bytes > len)
- 			bytes = len;
- 
-@@ -122,10 +123,9 @@ static int process_vm_rw_single_vec(unsigned long addr,
- 					 vm_write);
- 		len -= bytes;
- 		start_offset = 0;
--		nr_pages -= pages;
--		pa += pages * PAGE_SIZE;
--		while (pages)
--			put_page(process_pages[--pages]);
-+		nr_pages -= pinned_pages;
-+		pa += pinned_pages * PAGE_SIZE;
-+		put_user_pages(process_pages, pinned_pages);
+diff --git a/mm/gup_benchmark.c b/mm/gup_benchmark.c
+index 7dd602d7f8db..515ac8eeb6ee 100644
+--- a/mm/gup_benchmark.c
++++ b/mm/gup_benchmark.c
+@@ -79,7 +79,7 @@ static int __gup_benchmark_ioctl(unsigned int cmd,
+ 	for (i = 0; i < nr_pages; i++) {
+ 		if (!pages[i])
+ 			break;
+-		put_page(pages[i]);
++		put_user_page(pages[i]);
  	}
- 
- 	return rc;
+ 	end_time = ktime_get();
+ 	gup->put_delta_usec = ktime_us_delta(end_time, start_time);
 -- 
 2.22.0
 
