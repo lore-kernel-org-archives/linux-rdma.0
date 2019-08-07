@@ -2,129 +2,94 @@ Return-Path: <SRS0=tA3/=WD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C829C32751
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 10:34:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1FEC433FF
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 11:23:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 047592086D
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 10:34:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565174072;
-	bh=sQsYb8oa6kbZFp9chjRreTMkAOUwv973c0v/4dx8DDM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hucPui/lnmT2MwhFZdcj0bjbIHHjEFzBp9f8vbvTlKADFvQbXWO7ZPxJUCObCaI1m
-	 /FgAZ8MvaRFQ+R1YaQ//+6lPcrkcAW78hrj336N5bg9v3gF0YAgkliTtnmqwzccG5C
-	 wSXX2AHindzPjBZdgP0QDc+OQz67C7oB67eqRCes=
+	by mail.kernel.org (Postfix) with ESMTP id 75EBD21BE6
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Aug 2019 11:23:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="obahbiqa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726773AbfHGKeb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Aug 2019 06:34:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41988 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726744AbfHGKeb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 7 Aug 2019 06:34:31 -0400
-Received: from localhost (unknown [77.137.115.125])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 566C621E6E;
-        Wed,  7 Aug 2019 10:34:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565174071;
-        bh=sQsYb8oa6kbZFp9chjRreTMkAOUwv973c0v/4dx8DDM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JsgrHoCuQuYxD209Nutyl99aAOhMjlvB/UHpJcydQu7kl6w4zbmfKQkKHNKIVqwW2
-         XaWiDZZz8zvlSP5I4j/tTRYYf5VSgdthPw/9+xS4Lba6l7tFTAL1nwS8YBkZAdYZjk
-         Fxo2hs8vATm6HZCAID0kGrs3rr8vGGmB1RGF/ELM=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
+        id S1729408AbfHGLXQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Aug 2019 07:23:16 -0400
+Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:9320 "EHLO
+        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729348AbfHGLXP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Aug 2019 07:23:15 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1565176995; x=1596712995;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=DUJrwV2/HRKwHvABiPUOhZMrWnMHQlvXmR6sksm98mg=;
+  b=obahbiqavRwpWqJGMyd5qxiPz/QLhMc+ybOP05bDNmsuLAiu3EwYd3eI
+   bYVi3ysrs/Xk5gtHiLgY+0+VgXirBFyYEwsQRT0AI82hm0nW0eEFUJvgR
+   YM8FBCFUS70javmMqYflDl9dshpbeTJKX7KVRmHKVffPriEZ30L1/hUVt
+   k=;
+X-IronPort-AV: E=Sophos;i="5.64,357,1559520000"; 
+   d="scan'208";a="817547327"
+Received: from sea3-co-svc-lb6-vlan2.sea.amazon.com (HELO email-inbound-relay-2c-168cbb73.us-west-2.amazon.com) ([10.47.22.34])
+  by smtp-border-fw-out-33001.sea14.amazon.com with ESMTP; 07 Aug 2019 11:23:13 +0000
+Received: from EX13MTAUEA001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
+        by email-inbound-relay-2c-168cbb73.us-west-2.amazon.com (Postfix) with ESMTPS id DBF95A2862;
+        Wed,  7 Aug 2019 11:23:12 +0000 (UTC)
+Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
+ EX13MTAUEA001.ant.amazon.com (10.43.61.82) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Wed, 7 Aug 2019 11:23:12 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.20) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Wed, 7 Aug 2019 11:23:08 +0000
+Subject: Re: [PATCH rdma-next 2/6] RDMA/umem: Add ODP type indicator within
+ ib_umem_odp
+To:     Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
+CC:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Erez Alfasi <ereza@mellanox.com>
-Subject: [PATCH rdma-next 3/6] RDMA/nldev: Return ODP type per MR
-Date:   Wed,  7 Aug 2019 13:34:00 +0300
-Message-Id: <20190807103403.8102-4-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190807103403.8102-1-leon@kernel.org>
 References: <20190807103403.8102-1-leon@kernel.org>
+ <20190807103403.8102-3-leon@kernel.org>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <20441b80-b901-9e42-90e0-f1cf17ac6d5b@amazon.com>
+Date:   Wed, 7 Aug 2019 14:23:03 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:60.0)
+ Gecko/20100101 Thunderbird/60.8.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190807103403.8102-3-leon@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.160.20]
+X-ClientProxiedBy: EX13D03UWC004.ant.amazon.com (10.43.162.49) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Erez Alfasi <ereza@mellanox.com>
+On 07/08/2019 13:33, Leon Romanovsky wrote:
+> +static inline void ib_umem_odp_set_type(struct ib_umem_odp *umem_odp,
+> +					unsigned long start, size_t end)
 
-Provide an ODP explicit/implicit type indicator
-as part of 'rdma resource mr show' dump.
+Consider renaming 'end' to 'size'?
 
-For example:
-~$: rdma resource mr show
-dev mlx5_0 mrn 1 rkey 0xa99a lkey 0xa99a mrlen 50000000
-pdn 9 pid 7372 odp explicit comm ibv_rc_pingpong
+> +{
+> +	if (!start && !end)
 
-For non-ODP MRs, we won't print "odp ..." at all.
+According to the man pages, To create an implicit ODP MR, IBV_ACCESS_ON_DEMAND
+should be set, addr should be 0 and length should be SIZE_MAX.
+Why check end against zero?
 
-Signed-off-by: Erez Alfasi <ereza@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/nldev.c  | 8 ++++++++
- include/uapi/rdma/rdma_netlink.h | 5 +++++
- 2 files changed, 13 insertions(+)
-
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index e287b71a1cfd..1562b9446c51 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -37,6 +37,8 @@
- #include <net/netlink.h>
- #include <rdma/rdma_cm.h>
- #include <rdma/rdma_netlink.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_umem_odp.h>
- 
- #include "core_priv.h"
- #include "cma_priv.h"
-@@ -101,6 +103,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_RES_MRLEN]		= { .type = NLA_U64 },
- 	[RDMA_NLDEV_ATTR_RES_MRN]		= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_RES_MR_ENTRY]		= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_MR_ODP_TYPE]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_RES_PD]		= { .type = NLA_NESTED },
- 	[RDMA_NLDEV_ATTR_RES_PDN]		= { .type = NLA_U32 },
-@@ -589,6 +592,11 @@ static int fill_res_mr_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 			goto err;
- 	}
- 
-+	if (mr->umem->is_odp)
-+		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_MR_ODP_TYPE,
-+			       to_ib_umem_odp(mr->umem)->type))
-+			goto err;
-+
- 	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_RES_MRLEN, mr->length,
- 			      RDMA_NLDEV_ATTR_PAD))
- 		goto err;
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 8e277783fa96..765771a7caf7 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -525,6 +525,11 @@ enum rdma_nldev_attr {
- 	 */
- 	RDMA_NLDEV_ATTR_DEV_DIM,                /* u8 */
- 
-+	/*
-+	 * MR ODP type, e.g. implicit/explicit.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_MR_ODP_TYPE,	/* u8 */
-+
- 	/*
- 	 * Always the end
- 	 */
--- 
-2.20.1
-
+> +		umem_odp->type = IB_ODP_TYPE_IMPLICIT;
+> +	else
+> +		umem_odp->type = IB_ODP_TYPE_EXPLICIT;
+> +}
+> +
+>  /*
+>   * The lower 2 bits of the DMA address signal the R/W permissions for
+>   * the entry. To upgrade the permissions, provide the appropriate
