@@ -2,36 +2,38 @@ Return-Path: <SRS0=Pj7p=WE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06435C433FF
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E1A8C0650F
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D2C0021883
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03D9E217D7
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733142AbfHHO6R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Aug 2019 10:58:17 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4201 "EHLO huawei.com"
+        id S1733152AbfHHO6S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Aug 2019 10:58:18 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4196 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1732667AbfHHO6R (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 8 Aug 2019 10:58:17 -0400
+        id S1728120AbfHHO6S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 8 Aug 2019 10:58:18 -0400
 Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 5A224DD422F73A2A8244;
+        by Forcepoint Email with ESMTP id 4944381133731C05C36C;
         Thu,  8 Aug 2019 22:58:12 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 8 Aug 2019 22:58:04 +0800
+ 14.3.439.0; Thu, 8 Aug 2019 22:58:05 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V4 for-next 00/14] Updates for 5.3-rc2
-Date:   Thu, 8 Aug 2019 22:53:40 +0800
-Message-ID: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V4 for-next 04/14] RDMA/hns: Remove unnessary init for cmq reg
+Date:   Thu, 8 Aug 2019 22:53:44 +0800
+Message-ID: <1565276034-97329-5-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
+In-Reply-To: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
+References: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.71.200.31]
@@ -41,54 +43,53 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Here are some updates for hns driver based 5.3-rc2, mainly
-include some codes optimization and comments style modification.
+From: Yixian Liu <liuyixian@huawei.com>
 
-Change from V3:
-1. Separate ibdev print replace for a single patch
-2. Fix the comments gived by Doug Ledford
+There is no need to init the enable bit of cmq.
 
-Change from V2:
-1. Remove the unncessary memset opertion for the tenth patch
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 --
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-Change from V1:
-1. Fix the checkpatch warning
-2. Use ibdev print interface instead of dev print interface in
-   this patchset.
-
-Lang Cheng (6):
-  RDMA/hns: Clean up unnecessary initial assignment
-  RDMA/hns: Update some comments style
-  RDMA/hns: Handling the error return value of hem function
-  RDMA/hns: Split bool statement and assign statement
-  RDMA/hns: Refactor irq request code
-  RDMA/hns: Remove unnecessary kzalloc
-
-Lijun Ou (3):
-  RDMA/hns: Encapsulate some lines for setting sq size in user mode
-  RDMA/hns: Optimize hns_roce_modify_qp function
-  RDMA/hns: Use the new APIs for printing log
-
-Weihang Li (2):
-  RDMA/hns: Remove redundant print in hns_roce_v2_ceq_int()
-  RDMA/hns: Disable alw_lcl_lpbk of SSU
-
-Yangyang Li (1):
-  RDMA/hns: Refactor hns_roce_v2_set_hem for hip08
-
-Yixian Liu (2):
-  RDMA/hns: Update the prompt message for creating and destroy qp
-  RDMA/hns: Remove unnessary init for cmq reg
-
- drivers/infiniband/hw/hns/hns_roce_device.h |  65 +++++----
- drivers/infiniband/hw/hns/hns_roce_hem.c    |  15 +-
- drivers/infiniband/hw/hns/hns_roce_hem.h    |   6 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 212 ++++++++++++++--------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   2 -
- drivers/infiniband/hw/hns/hns_roce_mr.c     |   1 -
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 176 ++++++++++++++---------
- 7 files changed, 258 insertions(+), 219 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 6dff7e2..eedafd6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -887,8 +887,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_BASEADDR_H_REG,
+ 			   upper_32_bits(dma));
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_DEPTH_REG,
+-			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
+-			   HNS_ROCE_CMQ_ENABLE);
++			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, 0);
+ 		roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, 0);
+ 	} else {
+@@ -896,8 +895,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_H_REG,
+ 			   upper_32_bits(dma));
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_DEPTH_REG,
+-			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
+-			   HNS_ROCE_CMQ_ENABLE);
++			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_HEAD_REG, 0);
+ 		roce_write(hr_dev, ROCEE_RX_CMQ_TAIL_REG, 0);
+ 	}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 478f5a5..58931b5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -126,8 +126,6 @@
+ #define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
+ 
+ #define HNS_ROCE_CMQ_DESC_NUM_S		3
+-#define HNS_ROCE_CMQ_EN_B		16
+-#define HNS_ROCE_CMQ_ENABLE		BIT(HNS_ROCE_CMQ_EN_B)
+ 
+ #define HNS_ROCE_CMQ_SCC_CLR_DONE_CNT		5
+ 
 -- 
 1.9.1
 
