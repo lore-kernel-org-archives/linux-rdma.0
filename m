@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6EF6C0650F
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DC76C0650F
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B47F5217D7
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB69B217F4
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565253850;
-	bh=NZNTcb5u7zKUtGMPcMt7y9ZPwP2CnSNSshE7gew5V6s=;
+	s=default; t=1565253854;
+	bh=SIfM/mRJMEXLrkcEjwtTVleq8Ukx+/D0BVY1fGIEz7c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hxbu7IKfcKEaAvCFdnC8eBL7fvMS0awJ6MIese9xVR+XAxonNf4chHUeqxxqtjRjm
-	 ns2Ro4+T2EAayiky4tnE35fh10BCbs8+4CJ9sN4LfG/1tikONa0mozfxoiXsTmudpd
-	 5Evv2Tq9UFOog9YEiXHA4YYCExYB8S9EoNKhR/v0=
+	b=GcV5P7bsPiWT0+BSarYmABQi1SlplLBENXNhcqFJQcjgko4OWQovZZwxFKrdaT+KY
+	 ZFiFypEOz+Jt+tt6B1VC9CtcT8f8PAU54poB8sBxGHm9CqIXjot087LKCnr5BGzi7s
+	 01Vr6ePEsex04x426z+BsGAhXM6nCxTWzL6zVfs8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731485AbfHHIoK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Aug 2019 04:44:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50710 "EHLO mail.kernel.org"
+        id S1731500AbfHHIoN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Aug 2019 04:44:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50736 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730678AbfHHIoJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 8 Aug 2019 04:44:09 -0400
+        id S1730678AbfHHIoN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 8 Aug 2019 04:44:13 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 35C152173C;
-        Thu,  8 Aug 2019 08:44:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6BD80217D7;
+        Thu,  8 Aug 2019 08:44:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565253848;
-        bh=NZNTcb5u7zKUtGMPcMt7y9ZPwP2CnSNSshE7gew5V6s=;
+        s=default; t=1565253852;
+        bh=SIfM/mRJMEXLrkcEjwtTVleq8Ukx+/D0BVY1fGIEz7c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PPSX9zJ+2pBK8Uq1vjXs7tqT2oHQZWIiKMjdawMFDHW6DM3xsAA3zsHoPpv9hgXQz
-         Kl8IEY5d+Vr3rAoe/iMIqbLiaoSWGRct/M68qLKespPh4ORP+l0IXu109nOswJRDDP
-         Be03q2hmQDt8xdcnyE7gizE++TNgnA8US7iK1PVs=
+        b=MBoNYV4D9Dm1KvBCbIPdGTJ/zF5nd2hLM9mC49KqudeUkMdJXyTvhwgYubATdOOJg
+         b8RjEIPExwdw6zSyZMfJ0zBjUsAONvXy8BnMnrEnHYZO9y0st0Z/boK8T4hYCY7MdC
+         cmT1lnR/C0AlYC0v9EJzoDeSdNPAntyFC7X3Kn3s=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,9 +47,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH mlx5-next 2/4] net/mlx5: Add XRQ legacy commands opcodes
-Date:   Thu,  8 Aug 2019 11:43:56 +0300
-Message-Id: <20190808084358.29517-3-leon@kernel.org>
+Subject: [PATCH rdma-next 4/4] IB/mlx5: Expose XRQ legacy commands over the DEVX interface
+Date:   Thu,  8 Aug 2019 11:43:58 +0300
+Message-Id: <20190808084358.29517-5-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190808084358.29517-1-leon@kernel.org>
 References: <20190808084358.29517-1-leon@kernel.org>
@@ -62,51 +62,36 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Add XRQ legacy commands opcodes, will be used via the DEVX interface.
+Expose missing XRQ legacy commands over the DEVX interface.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 4 ++++
- include/linux/mlx5/mlx5_ifc.h                 | 2 ++
- 2 files changed, 6 insertions(+)
+ drivers/infiniband/hw/mlx5/devx.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 8cdd7e66f8df..53d09620e215 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -446,6 +446,8 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
- 	case MLX5_CMD_OP_CREATE_UMEM:
- 	case MLX5_CMD_OP_DESTROY_UMEM:
- 	case MLX5_CMD_OP_ALLOC_MEMIC:
-+	case MLX5_CMD_OP_MODIFY_XRQ:
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 3dbdfe0eb5e4..04b4e937c198 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -546,6 +546,8 @@ static u64 devx_get_obj_id(const void *in)
+ 		break;
+ 	case MLX5_CMD_OP_ARM_XRQ:
+ 	case MLX5_CMD_OP_SET_XRQ_DC_PARAMS_ENTRY:
 +	case MLX5_CMD_OP_RELEASE_XRQ_ERROR:
- 		*status = MLX5_DRIVER_STATUS_ABORTED;
- 		*synd = MLX5_DRIVER_SYND;
- 		return -EIO;
-@@ -637,6 +639,8 @@ const char *mlx5_command_str(int command)
- 	MLX5_COMMAND_STR_CASE(DESTROY_UCTX);
- 	MLX5_COMMAND_STR_CASE(CREATE_UMEM);
- 	MLX5_COMMAND_STR_CASE(DESTROY_UMEM);
-+	MLX5_COMMAND_STR_CASE(RELEASE_XRQ_ERROR);
-+	MLX5_COMMAND_STR_CASE(MODIFY_XRQ);
- 	default: return "unknown command opcode";
- 	}
- }
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 82470b670cb7..080bba20b129 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -172,6 +172,8 @@ enum {
- 	MLX5_CMD_OP_QUERY_XRQ_DC_PARAMS_ENTRY     = 0x725,
- 	MLX5_CMD_OP_SET_XRQ_DC_PARAMS_ENTRY       = 0x726,
- 	MLX5_CMD_OP_QUERY_XRQ_ERROR_PARAMS        = 0x727,
-+	MLX5_CMD_OP_RELEASE_XRQ_ERROR             = 0x729,
-+	MLX5_CMD_OP_MODIFY_XRQ                    = 0x72a,
- 	MLX5_CMD_OP_QUERY_ESW_FUNCTIONS           = 0x740,
- 	MLX5_CMD_OP_QUERY_VPORT_STATE             = 0x750,
- 	MLX5_CMD_OP_MODIFY_VPORT_STATE            = 0x751,
++	case MLX5_CMD_OP_MODIFY_XRQ:
+ 		obj_id = get_enc_obj_id(MLX5_CMD_OP_CREATE_XRQ,
+ 					MLX5_GET(arm_xrq_in, in, xrqn));
+ 		break;
+@@ -822,6 +824,8 @@ static bool devx_is_obj_modify_cmd(const void *in)
+ 	case MLX5_CMD_OP_ARM_DCT_FOR_KEY_VIOLATION:
+ 	case MLX5_CMD_OP_ARM_XRQ:
+ 	case MLX5_CMD_OP_SET_XRQ_DC_PARAMS_ENTRY:
++	case MLX5_CMD_OP_RELEASE_XRQ_ERROR:
++	case MLX5_CMD_OP_MODIFY_XRQ:
+ 		return true;
+ 	case MLX5_CMD_OP_SET_FLOW_TABLE_ENTRY:
+ 	{
 -- 
 2.20.1
 
