@@ -2,157 +2,113 @@ Return-Path: <SRS0=Pj7p=WE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A2B7C433FF
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C237C433FF
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 09:27:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D41BC217F4
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565253856;
-	bh=zfXrYbZgAI2l9+qZcGRipjsZJ2zc/2vmcUK5eXukgCY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Sc4hta93rW1lzI/OLQYPmII5L3KcjhcZ4/DzWvkKSN67g94LHbwDqud/y9Lez8j9x
-	 eDzKmG44IdGm3EmcRRbXoiR4LyOGFScn1EyVFI/rk8sPQD2ZILtMfO3L0HNcAOZ7Ma
-	 Bf2LV1mIBFz9BtmsU5UN1u2NBciQhTiUOLu4Td+0=
+	by mail.kernel.org (Postfix) with ESMTP id 17C0B2173C
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 09:27:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730678AbfHHIoQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Aug 2019 04:44:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50770 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728289AbfHHIoQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 8 Aug 2019 04:44:16 -0400
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A84302173C;
-        Thu,  8 Aug 2019 08:44:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565253855;
-        bh=zfXrYbZgAI2l9+qZcGRipjsZJ2zc/2vmcUK5eXukgCY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HZcQEndYZ1nuz4D9XOMnkJOXz0eN9DpSvaROmXSzx5Pdk2EDhG+bU4hHTrcpyGmzX
-         7ZVoxNK2zpbmXnP/kCUYUzc2Ggtxzl0BDLwXeJn3t1JMcjXV7QcrhkfoyjWVFEEGVH
-         h5wFg9JW7Eornmqf0D/m9WcoHerL2RgaVUpwrrPU=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Edward Srouji <edwards@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH mlx5-next 3/4] IB/mlx5: Add legacy events to DEVX list
-Date:   Thu,  8 Aug 2019 11:43:57 +0300
-Message-Id: <20190808084358.29517-4-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190808084358.29517-1-leon@kernel.org>
-References: <20190808084358.29517-1-leon@kernel.org>
+        id S1732123AbfHHJ1a (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Aug 2019 05:27:30 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4193 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731788AbfHHJ1a (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 8 Aug 2019 05:27:30 -0400
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id B901F7F8BF89E20C12DF;
+        Thu,  8 Aug 2019 17:27:27 +0800 (CST)
+Received: from [127.0.0.1] (10.61.25.96) by DGGEMS409-HUB.china.huawei.com
+ (10.3.19.209) with Microsoft SMTP Server id 14.3.439.0; Thu, 8 Aug 2019
+ 17:27:19 +0800
+Subject: Re: [PATCH V3 for-next 00/13] Updates for 5.3-rc2
+To:     Doug Ledford <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+References: <1564821919-100676-1-git-send-email-oulijun@huawei.com>
+ <c4af76063f6cd72b8dccf21d4256273a69fad309.camel@redhat.com>
+From:   oulijun <oulijun@huawei.com>
+Message-ID: <a9c1bcb9-42f9-9419-0243-7d212b67638a@huawei.com>
+Date:   Thu, 8 Aug 2019 17:27:18 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.1.0
 MIME-Version: 1.0
+In-Reply-To: <c4af76063f6cd72b8dccf21d4256273a69fad309.camel@redhat.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.61.25.96]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+在 2019/8/8 3:38, Doug Ledford 写道:
+> On Sat, 2019-08-03 at 16:45 +0800, Lijun Ou wrote:
+>> Here are some updates for hns driver based 5.3-rc2, mainly
+>> include some codes optimization and comments style modification.
+>>
+>> Change from V2:
+>> 1. Remove the unncessary memset opertion for the tenth patch
+>>
+>> Change from V1:
+>> 1. Fix the checkpatch warning
+>> 2. Use ibdev print interface instead of dev print interface in
+>>    this patchset.
+> I need you to separate the ibdev changes from other changes.  I have
+> other comments on the patches that I'll make on the individual patches,
+> but just in general, do one single patch to switch to using ibdev prints
+> and have it cover the entire driver.  You can make it the first or last
+> patch, I don't care.  But don't mix anything else in with the ibdev
+> transition patch.  You shouldn't be mixing things like fixing an
+> incorrect print with a switch to ibdev print in the same patch because
+> it makes it very difficult on people that might be backporting these
+> patches to take the fix if they haven't also taken the ibdev print
+> patchset.
+Thank your advice. I also started thinking about this problem before send V3.
+I want to use a following patch separately to instead the dev print.  But the overall
+replacement in the drvier is more troublesome and need to analysis. Because if
+replace all dev print interfaces, may cause a null print infomation.  the ibdev is NULL before
+the roce device registered sucessfully.
 
-Add two events that were defined in the device specification but were
-not exposed in the driver list.
+So my solution is to modify the dev print in the current patchset and later send a modified patch
+for replacing all dev interface after the overall analysis is clear.
+>> Lang Cheng (6):
+>>   RDMA/hns: Clean up unnecessary initial assignment
+>>   RDMA/hns: Update some comments style
+>>   RDMA/hns: Handling the error return value of hem function
+>>   RDMA/hns: Split bool statement and assign statement
+>>   RDMA/hns: Refactor irq request code
+>>   RDMA/hns: Remove unnecessary kzalloc
+>>
+>> Lijun Ou (2):
+>>   RDMA/hns: Encapsulate some lines for setting sq size in user mode
+>>   RDMA/hns: Optimize hns_roce_modify_qp function
+>>
+>> Weihang Li (2):
+>>   RDMA/hns: Remove redundant print in hns_roce_v2_ceq_int()
+>>   RDMA/hns: Disable alw_lcl_lpbk of SSU
+>>
+>> Yangyang Li (1):
+>>   RDMA/hns: Refactor hns_roce_v2_set_hem for hip08
+>>
+>> Yixian Liu (2):
+>>   RDMA/hns: Update the prompt message for creating and destroy qp
+>>   RDMA/hns: Remove unnessary init for cmq reg
+>>
+>>  drivers/infiniband/hw/hns/hns_roce_device.h |  65 +++++----
+>>  drivers/infiniband/hw/hns/hns_roce_hem.c    |  15 +-
+>>  drivers/infiniband/hw/hns/hns_roce_hem.h    |   6 +-
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 211 ++++++++++++++-----
+>> ---------
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   2 -
+>>  drivers/infiniband/hw/hns/hns_roce_mr.c     |   1 -
+>>  drivers/infiniband/hw/hns/hns_roce_qp.c     | 178 ++++++++++++++-----
+>> ----
+>>  7 files changed, 260 insertions(+), 218 deletions(-)
+>>
 
-Post this patch those events can be read over the DEVX events interface
-once be reported by the firmware.
-
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Edward Srouji <edwards@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/devx.c | 8 ++++++++
- include/linux/mlx5/device.h       | 9 +++++++++
- 2 files changed, 17 insertions(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index fd577ffd7864..3dbdfe0eb5e4 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -233,6 +233,8 @@ static bool is_legacy_obj_event_num(u16 event_num)
- 	case MLX5_EVENT_TYPE_SRQ_CATAS_ERROR:
- 	case MLX5_EVENT_TYPE_DCT_DRAINED:
- 	case MLX5_EVENT_TYPE_COMP:
-+	case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
-+	case MLX5_EVENT_TYPE_XRQ_ERROR:
- 		return true;
- 	default:
- 		return false;
-@@ -315,8 +317,10 @@ static u16 get_event_obj_type(unsigned long event_type, struct mlx5_eqe *eqe)
- 	case MLX5_EVENT_TYPE_SRQ_CATAS_ERROR:
- 		return eqe->data.qp_srq.type;
- 	case MLX5_EVENT_TYPE_CQ_ERROR:
-+	case MLX5_EVENT_TYPE_XRQ_ERROR:
- 		return 0;
- 	case MLX5_EVENT_TYPE_DCT_DRAINED:
-+	case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
- 		return MLX5_EVENT_QUEUE_TYPE_DCT;
- 	default:
- 		return MLX5_GET(affiliated_event_header, &eqe->data, obj_type);
-@@ -2300,7 +2304,11 @@ static u32 devx_get_obj_id_from_event(unsigned long event_type, void *data)
- 	case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
- 		obj_id = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
- 		break;
-+	case MLX5_EVENT_TYPE_XRQ_ERROR:
-+		obj_id = be32_to_cpu(eqe->data.xrq_err.type_xrqn) & 0xffffff;
-+		break;
- 	case MLX5_EVENT_TYPE_DCT_DRAINED:
-+	case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
- 		obj_id = be32_to_cpu(eqe->data.dct.dctn) & 0xffffff;
- 		break;
- 	case MLX5_EVENT_TYPE_CQ_ERROR:
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index ce9839c8bc1a..e427af260ebe 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -328,6 +328,7 @@ enum mlx5_event {
- 	MLX5_EVENT_TYPE_GPIO_EVENT	   = 0x15,
- 	MLX5_EVENT_TYPE_PORT_MODULE_EVENT  = 0x16,
- 	MLX5_EVENT_TYPE_TEMP_WARN_EVENT    = 0x17,
-+	MLX5_EVENT_TYPE_XRQ_ERROR	   = 0x18,
- 	MLX5_EVENT_TYPE_REMOTE_CONFIG	   = 0x19,
- 	MLX5_EVENT_TYPE_GENERAL_EVENT	   = 0x22,
- 	MLX5_EVENT_TYPE_MONITOR_COUNTER    = 0x24,
-@@ -345,6 +346,7 @@ enum mlx5_event {
- 	MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED = 0xe,
- 
- 	MLX5_EVENT_TYPE_DCT_DRAINED        = 0x1c,
-+	MLX5_EVENT_TYPE_DCT_KEY_VIOLATION  = 0x1d,
- 
- 	MLX5_EVENT_TYPE_FPGA_ERROR         = 0x20,
- 	MLX5_EVENT_TYPE_FPGA_QP_ERROR      = 0x21,
-@@ -584,6 +586,12 @@ struct mlx5_eqe_cq_err {
- 	u8	syndrome;
- };
- 
-+struct mlx5_eqe_xrq_err {
-+	__be32	reserved1[5];
-+	__be32	type_xrqn;
-+	__be32	reserved2;
-+};
-+
- struct mlx5_eqe_port_state {
- 	u8	reserved0[8];
- 	u8	port;
-@@ -698,6 +706,7 @@ union ev_data {
- 	struct mlx5_eqe_pps		pps;
- 	struct mlx5_eqe_dct             dct;
- 	struct mlx5_eqe_temp_warning	temp_warning;
-+	struct mlx5_eqe_xrq_err		xrq_err;
- } __packed;
- 
- struct mlx5_eqe {
--- 
-2.20.1
 
