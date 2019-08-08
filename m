@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A208C0650F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED02C32757
 	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2C025217D7
+	by mail.kernel.org (Postfix) with ESMTP id 4FD16217D7
 	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732606AbfHHO6W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1732760AbfHHO6W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 8 Aug 2019 10:58:22 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4202 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:50866 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1732760AbfHHO6V (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1732667AbfHHO6V (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 8 Aug 2019 10:58:21 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 6212C21B5A895749F92E;
-        Thu,  8 Aug 2019 22:58:12 +0800 (CST)
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 78EEF39878E15D84ACF2;
+        Thu,  8 Aug 2019 22:58:17 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 8 Aug 2019 22:58:05 +0800
+ 14.3.439.0; Thu, 8 Aug 2019 22:58:08 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V4 for-next 01/14] RDMA/hns: Encapsulate some lines for setting sq size in user mode
-Date:   Thu, 8 Aug 2019 22:53:41 +0800
-Message-ID: <1565276034-97329-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V4 for-next 13/14] RDMA/hns: Disable alw_lcl_lpbk of SSU
+Date:   Thu, 8 Aug 2019 22:53:53 +0800
+Message-ID: <1565276034-97329-14-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
 References: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
@@ -43,72 +43,31 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-It needs to check the sq size with integrity when configures
-the relatived parameters of sq. Here moves the relatived code
-into a special function.
+From: Weihang Li <liweihang@hisilicon.com>
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
+If we enabled alw_lcl_lpbk in promiscuous mode, packet whose source
+and destination mac address is equal will be handled in both inner
+loopback and outer loopback. This will halve performance of roce in
+promiscuous mode.
+
+Signed-off-by: Weihang Li <liweihang@hisilicon.com>
 ---
-V3->V4:
-1. Remove replace operation for the origin dev print interface.
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-V1->V2:
-1. Use the new print interface according to Gal Pressman because it
-   can print the detail ib_device name
----
- drivers/infiniband/hw/hns/hns_roce_qp.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 9c272c2..5fcc17e6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -324,16 +324,12 @@ static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
- 	return 0;
- }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index b949329..567be0a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1308,7 +1308,7 @@ static int hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
+ 		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
+ 	desc.flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
+ 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LPBK_S, 1);
+-	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 1);
++	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 0);
+ 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_DST_OVRD_S, 1);
  
--static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
--				     struct ib_qp_cap *cap,
--				     struct hns_roce_qp *hr_qp,
--				     struct hns_roce_ib_create_qp *ucmd)
-+static int check_sq_size_with_integrity(struct hns_roce_dev *hr_dev,
-+					struct ib_qp_cap *cap,
-+					struct hns_roce_ib_create_qp *ucmd)
- {
- 	u32 roundup_sq_stride = roundup_pow_of_two(hr_dev->caps.max_sq_desc_sz);
- 	u8 max_sq_stride = ilog2(roundup_sq_stride);
--	u32 ex_sge_num;
--	u32 page_size;
--	u32 max_cnt;
- 
- 	/* Sanity check SQ size before proceeding */
- 	if ((u32)(1 << ucmd->log_sq_bb_count) > hr_dev->caps.max_wqes ||
-@@ -349,6 +345,25 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
- 		return -EINVAL;
- 	}
- 
-+	return 0;
-+}
-+
-+static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
-+				     struct ib_qp_cap *cap,
-+				     struct hns_roce_qp *hr_qp,
-+				     struct hns_roce_ib_create_qp *ucmd)
-+{
-+	u32 ex_sge_num;
-+	u32 page_size;
-+	u32 max_cnt;
-+	int ret;
-+
-+	ret = check_sq_size_with_integrity(hr_dev, cap, ucmd);
-+	if (ret) {
-+		ibdev_err(&hr_dev->ib_dev, "Sanity check sq size failed\n");
-+		return ret;
-+	}
-+
- 	hr_qp->sq.wqe_cnt = 1 << ucmd->log_sq_bb_count;
- 	hr_qp->sq.wqe_shift = ucmd->log_sq_stride;
- 
+ 	return hns_roce_cmq_send(hr_dev, &desc, 1);
 -- 
 1.9.1
 
