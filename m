@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E1A8C0650F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B50CCC32754
 	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03D9E217D7
+	by mail.kernel.org (Postfix) with ESMTP id 8CCF62189D
 	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733152AbfHHO6S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Aug 2019 10:58:18 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4196 "EHLO huawei.com"
+        id S1733176AbfHHO6T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Aug 2019 10:58:19 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:50768 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728120AbfHHO6S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1733144AbfHHO6S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 8 Aug 2019 10:58:18 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 4944381133731C05C36C;
-        Thu,  8 Aug 2019 22:58:12 +0800 (CST)
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 5E1789522CFED346E9F7;
+        Thu,  8 Aug 2019 22:58:17 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 8 Aug 2019 22:58:05 +0800
+ 14.3.439.0; Thu, 8 Aug 2019 22:58:07 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V4 for-next 04/14] RDMA/hns: Remove unnessary init for cmq reg
-Date:   Thu, 8 Aug 2019 22:53:44 +0800
-Message-ID: <1565276034-97329-5-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V4 for-next 09/14] RDMA/hns: Refactor irq request code
+Date:   Thu, 8 Aug 2019 22:53:49 +0800
+Message-ID: <1565276034-97329-10-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
 References: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
@@ -43,53 +43,51 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+From: Lang Cheng <chenglang@huawei.com>
 
-There is no need to init the enable bit of cmq.
+Remove unnecessary if...else..., to make the code look simpler.
 
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 --
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 6dff7e2..eedafd6 100644
+index 4b9f839..c2ad774 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -887,8 +887,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
- 		roce_write(hr_dev, ROCEE_TX_CMQ_BASEADDR_H_REG,
- 			   upper_32_bits(dma));
- 		roce_write(hr_dev, ROCEE_TX_CMQ_DEPTH_REG,
--			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
--			   HNS_ROCE_CMQ_ENABLE);
-+			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
- 		roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, 0);
- 		roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, 0);
- 	} else {
-@@ -896,8 +895,7 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
- 		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_H_REG,
- 			   upper_32_bits(dma));
- 		roce_write(hr_dev, ROCEE_RX_CMQ_DEPTH_REG,
--			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
--			   HNS_ROCE_CMQ_ENABLE);
-+			   ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
- 		roce_write(hr_dev, ROCEE_RX_CMQ_HEAD_REG, 0);
- 		roce_write(hr_dev, ROCEE_RX_CMQ_TAIL_REG, 0);
+@@ -5749,18 +5749,19 @@ static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
  	}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 478f5a5..58931b5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -126,8 +126,6 @@
- #define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
  
- #define HNS_ROCE_CMQ_DESC_NUM_S		3
--#define HNS_ROCE_CMQ_EN_B		16
--#define HNS_ROCE_CMQ_ENABLE		BIT(HNS_ROCE_CMQ_EN_B)
+ 	/* irq contains: abnormal + AEQ + CEQ */
+-	for (j = 0; j < irq_num; j++)
+-		if (j < other_num)
+-			snprintf((char *)hr_dev->irq_names[j],
+-				 HNS_ROCE_INT_NAME_LEN, "hns-abn-%d", j);
+-		else if (j < (other_num + aeq_num))
+-			snprintf((char *)hr_dev->irq_names[j],
+-				 HNS_ROCE_INT_NAME_LEN, "hns-aeq-%d",
+-				 j - other_num);
+-		else
+-			snprintf((char *)hr_dev->irq_names[j],
+-				 HNS_ROCE_INT_NAME_LEN, "hns-ceq-%d",
+-				 j - other_num - aeq_num);
++	for (j = 0; j < other_num; j++)
++		snprintf((char *)hr_dev->irq_names[j],
++			 HNS_ROCE_INT_NAME_LEN, "hns-abn-%d", j);
++
++	for (j = other_num; j < (other_num + aeq_num); j++)
++		snprintf((char *)hr_dev->irq_names[j],
++			 HNS_ROCE_INT_NAME_LEN, "hns-aeq-%d",
++			 j - other_num);
++
++	for (j = (other_num + aeq_num); j < irq_num; j++)
++		snprintf((char *)hr_dev->irq_names[j],
++			 HNS_ROCE_INT_NAME_LEN, "hns-ceq-%d",
++			 j - other_num - aeq_num);
  
- #define HNS_ROCE_CMQ_SCC_CLR_DONE_CNT		5
- 
+ 	for (j = 0; j < irq_num; j++) {
+ 		if (j < other_num)
 -- 
 1.9.1
 
