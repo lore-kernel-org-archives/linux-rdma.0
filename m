@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CAFAC32756
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC5B1C433FF
 	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 623FB217D7
+	by mail.kernel.org (Postfix) with ESMTP id 908ED21874
 	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728289AbfHHO6T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1733149AbfHHO6T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 8 Aug 2019 10:58:19 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:50838 "EHLO huawei.com"
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4197 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1733149AbfHHO6S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1732667AbfHHO6S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 8 Aug 2019 10:58:18 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 70D6F51533CC48E97B80;
-        Thu,  8 Aug 2019 22:58:17 +0800 (CST)
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 4D7A03A7BFCCBB206746;
+        Thu,  8 Aug 2019 22:58:12 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 8 Aug 2019 22:58:06 +0800
+ 14.3.439.0; Thu, 8 Aug 2019 22:58:05 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH V4 for-next 08/14] RDMA/hns: Split bool statement and assign statement
-Date:   Thu, 8 Aug 2019 22:53:48 +0800
-Message-ID: <1565276034-97329-9-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V4 for-next 03/14] RDMA/hns: Update the prompt message for creating and destroy qp
+Date:   Thu, 8 Aug 2019 22:53:43 +0800
+Message-ID: <1565276034-97329-4-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
 References: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
@@ -43,72 +43,59 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+From: Yixian Liu <liuyixian@huawei.com>
 
-Assign statement can not be contained in bool statement or
-function param.
+Current prompt message is uncorrect when destroying qp, add qpn
+information when creating qp.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+V3->V4:
+1. Remove the new API.
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
+ drivers/infiniband/hw/hns/hns_roce_qp.c    | 3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 9b037b3..4b9f839 100644
+index 59f88bf0..6dff7e2 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4938,7 +4938,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_eq *eq)
- {
- 	struct device *dev = hr_dev->dev;
--	struct hns_roce_aeqe *aeqe;
-+	struct hns_roce_aeqe *aeqe = next_aeqe_sw_v2(eq);
- 	int aeqe_found = 0;
- 	int event_type;
- 	int sub_type;
-@@ -4946,8 +4946,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 	u32 qpn;
- 	u32 cqn;
- 
--	while ((aeqe = next_aeqe_sw_v2(eq))) {
--
-+	while (aeqe) {
- 		/* Make sure we read AEQ entry after we have checked the
- 		 * ownership bit
- 		 */
-@@ -5016,6 +5015,8 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 			eq->cons_index = 0;
+@@ -4571,8 +4571,7 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 		ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, NULL, 0,
+ 					    hr_qp->state, IB_QPS_RESET);
+ 		if (ret) {
+-			dev_err(dev, "modify QP %06lx to ERR failed.\n",
+-				hr_qp->qpn);
++			dev_err(dev, "modify QP to Reset failed.\n");
+ 			return ret;
  		}
- 		hns_roce_v2_init_irq_work(hr_dev, eq, qpn, cqn);
-+
-+		aeqe = next_aeqe_sw_v2(eq);
+ 	}
+@@ -4641,7 +4640,8 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 
+ 	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
+ 	if (ret) {
+-		dev_err(hr_dev->dev, "Destroy qp failed(%d)\n", ret);
++		dev_err(&hr_dev->dev, "Destroy qp 0x%06lx failed(%d)\n",
++			hr_qp->qpn, ret);
+ 		return ret;
  	}
  
- 	set_eq_cons_index_v2(eq);
-@@ -5068,12 +5069,11 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_eq *eq)
- {
- 	struct device *dev = hr_dev->dev;
--	struct hns_roce_ceqe *ceqe;
-+	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
- 	int ceqe_found = 0;
- 	u32 cqn;
- 
--	while ((ceqe = next_ceqe_sw_v2(eq))) {
--
-+	while (ceqe) {
- 		/* Make sure we read CEQ entry after we have checked the
- 		 * ownership bit
- 		 */
-@@ -5092,6 +5092,8 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 			dev_warn(dev, "cons_index overflow, set back to 0.\n");
- 			eq->cons_index = 0;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index f76617b..f803209 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1002,7 +1002,8 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata, 0,
+ 						hr_qp);
+ 		if (ret) {
+-			dev_err(dev, "Create RC QP failed\n");
++			dev_err(dev, "Create RC QP 0x%06lx failed(%d)\n",
++				hr_qp->qpn, ret);
+ 			kfree(hr_qp);
+ 			return ERR_PTR(ret);
  		}
-+
-+		ceqe = next_ceqe_sw_v2(eq);
- 	}
- 
- 	set_eq_cons_index_v2(eq);
 -- 
 1.9.1
 
