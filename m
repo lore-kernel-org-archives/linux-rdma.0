@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DC76C0650F
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A2B7C433FF
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CB69B217F4
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D41BC217F4
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 08:44:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565253854;
-	bh=SIfM/mRJMEXLrkcEjwtTVleq8Ukx+/D0BVY1fGIEz7c=;
+	s=default; t=1565253856;
+	bh=zfXrYbZgAI2l9+qZcGRipjsZJ2zc/2vmcUK5eXukgCY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=GcV5P7bsPiWT0+BSarYmABQi1SlplLBENXNhcqFJQcjgko4OWQovZZwxFKrdaT+KY
-	 ZFiFypEOz+Jt+tt6B1VC9CtcT8f8PAU54poB8sBxGHm9CqIXjot087LKCnr5BGzi7s
-	 01Vr6ePEsex04x426z+BsGAhXM6nCxTWzL6zVfs8=
+	b=Sc4hta93rW1lzI/OLQYPmII5L3KcjhcZ4/DzWvkKSN67g94LHbwDqud/y9Lez8j9x
+	 eDzKmG44IdGm3EmcRRbXoiR4LyOGFScn1EyVFI/rk8sPQD2ZILtMfO3L0HNcAOZ7Ma
+	 Bf2LV1mIBFz9BtmsU5UN1u2NBciQhTiUOLu4Td+0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731500AbfHHIoN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Aug 2019 04:44:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50736 "EHLO mail.kernel.org"
+        id S1730678AbfHHIoQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Aug 2019 04:44:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50770 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730678AbfHHIoN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 8 Aug 2019 04:44:13 -0400
+        id S1728289AbfHHIoQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 8 Aug 2019 04:44:16 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6BD80217D7;
-        Thu,  8 Aug 2019 08:44:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A84302173C;
+        Thu,  8 Aug 2019 08:44:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565253852;
-        bh=SIfM/mRJMEXLrkcEjwtTVleq8Ukx+/D0BVY1fGIEz7c=;
+        s=default; t=1565253855;
+        bh=zfXrYbZgAI2l9+qZcGRipjsZJ2zc/2vmcUK5eXukgCY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MBoNYV4D9Dm1KvBCbIPdGTJ/zF5nd2hLM9mC49KqudeUkMdJXyTvhwgYubATdOOJg
-         b8RjEIPExwdw6zSyZMfJ0zBjUsAONvXy8BnMnrEnHYZO9y0st0Z/boK8T4hYCY7MdC
-         cmT1lnR/C0AlYC0v9EJzoDeSdNPAntyFC7X3Kn3s=
+        b=HZcQEndYZ1nuz4D9XOMnkJOXz0eN9DpSvaROmXSzx5Pdk2EDhG+bU4hHTrcpyGmzX
+         7ZVoxNK2zpbmXnP/kCUYUzc2Ggtxzl0BDLwXeJn3t1JMcjXV7QcrhkfoyjWVFEEGVH
+         h5wFg9JW7Eornmqf0D/m9WcoHerL2RgaVUpwrrPU=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,9 +47,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH rdma-next 4/4] IB/mlx5: Expose XRQ legacy commands over the DEVX interface
-Date:   Thu,  8 Aug 2019 11:43:58 +0300
-Message-Id: <20190808084358.29517-5-leon@kernel.org>
+Subject: [PATCH mlx5-next 3/4] IB/mlx5: Add legacy events to DEVX list
+Date:   Thu,  8 Aug 2019 11:43:57 +0300
+Message-Id: <20190808084358.29517-4-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190808084358.29517-1-leon@kernel.org>
 References: <20190808084358.29517-1-leon@kernel.org>
@@ -62,36 +62,97 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Expose missing XRQ legacy commands over the DEVX interface.
+Add two events that were defined in the device specification but were
+not exposed in the driver list.
+
+Post this patch those events can be read over the DEVX events interface
+once be reported by the firmware.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Edward Srouji <edwards@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/infiniband/hw/mlx5/devx.c | 8 ++++++++
+ include/linux/mlx5/device.h       | 9 +++++++++
+ 2 files changed, 17 insertions(+)
 
 diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 3dbdfe0eb5e4..04b4e937c198 100644
+index fd577ffd7864..3dbdfe0eb5e4 100644
 --- a/drivers/infiniband/hw/mlx5/devx.c
 +++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -546,6 +546,8 @@ static u64 devx_get_obj_id(const void *in)
- 		break;
- 	case MLX5_CMD_OP_ARM_XRQ:
- 	case MLX5_CMD_OP_SET_XRQ_DC_PARAMS_ENTRY:
-+	case MLX5_CMD_OP_RELEASE_XRQ_ERROR:
-+	case MLX5_CMD_OP_MODIFY_XRQ:
- 		obj_id = get_enc_obj_id(MLX5_CMD_OP_CREATE_XRQ,
- 					MLX5_GET(arm_xrq_in, in, xrqn));
- 		break;
-@@ -822,6 +824,8 @@ static bool devx_is_obj_modify_cmd(const void *in)
- 	case MLX5_CMD_OP_ARM_DCT_FOR_KEY_VIOLATION:
- 	case MLX5_CMD_OP_ARM_XRQ:
- 	case MLX5_CMD_OP_SET_XRQ_DC_PARAMS_ENTRY:
-+	case MLX5_CMD_OP_RELEASE_XRQ_ERROR:
-+	case MLX5_CMD_OP_MODIFY_XRQ:
+@@ -233,6 +233,8 @@ static bool is_legacy_obj_event_num(u16 event_num)
+ 	case MLX5_EVENT_TYPE_SRQ_CATAS_ERROR:
+ 	case MLX5_EVENT_TYPE_DCT_DRAINED:
+ 	case MLX5_EVENT_TYPE_COMP:
++	case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
++	case MLX5_EVENT_TYPE_XRQ_ERROR:
  		return true;
- 	case MLX5_CMD_OP_SET_FLOW_TABLE_ENTRY:
- 	{
+ 	default:
+ 		return false;
+@@ -315,8 +317,10 @@ static u16 get_event_obj_type(unsigned long event_type, struct mlx5_eqe *eqe)
+ 	case MLX5_EVENT_TYPE_SRQ_CATAS_ERROR:
+ 		return eqe->data.qp_srq.type;
+ 	case MLX5_EVENT_TYPE_CQ_ERROR:
++	case MLX5_EVENT_TYPE_XRQ_ERROR:
+ 		return 0;
+ 	case MLX5_EVENT_TYPE_DCT_DRAINED:
++	case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
+ 		return MLX5_EVENT_QUEUE_TYPE_DCT;
+ 	default:
+ 		return MLX5_GET(affiliated_event_header, &eqe->data, obj_type);
+@@ -2300,7 +2304,11 @@ static u32 devx_get_obj_id_from_event(unsigned long event_type, void *data)
+ 	case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
+ 		obj_id = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
+ 		break;
++	case MLX5_EVENT_TYPE_XRQ_ERROR:
++		obj_id = be32_to_cpu(eqe->data.xrq_err.type_xrqn) & 0xffffff;
++		break;
+ 	case MLX5_EVENT_TYPE_DCT_DRAINED:
++	case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
+ 		obj_id = be32_to_cpu(eqe->data.dct.dctn) & 0xffffff;
+ 		break;
+ 	case MLX5_EVENT_TYPE_CQ_ERROR:
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index ce9839c8bc1a..e427af260ebe 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -328,6 +328,7 @@ enum mlx5_event {
+ 	MLX5_EVENT_TYPE_GPIO_EVENT	   = 0x15,
+ 	MLX5_EVENT_TYPE_PORT_MODULE_EVENT  = 0x16,
+ 	MLX5_EVENT_TYPE_TEMP_WARN_EVENT    = 0x17,
++	MLX5_EVENT_TYPE_XRQ_ERROR	   = 0x18,
+ 	MLX5_EVENT_TYPE_REMOTE_CONFIG	   = 0x19,
+ 	MLX5_EVENT_TYPE_GENERAL_EVENT	   = 0x22,
+ 	MLX5_EVENT_TYPE_MONITOR_COUNTER    = 0x24,
+@@ -345,6 +346,7 @@ enum mlx5_event {
+ 	MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED = 0xe,
+ 
+ 	MLX5_EVENT_TYPE_DCT_DRAINED        = 0x1c,
++	MLX5_EVENT_TYPE_DCT_KEY_VIOLATION  = 0x1d,
+ 
+ 	MLX5_EVENT_TYPE_FPGA_ERROR         = 0x20,
+ 	MLX5_EVENT_TYPE_FPGA_QP_ERROR      = 0x21,
+@@ -584,6 +586,12 @@ struct mlx5_eqe_cq_err {
+ 	u8	syndrome;
+ };
+ 
++struct mlx5_eqe_xrq_err {
++	__be32	reserved1[5];
++	__be32	type_xrqn;
++	__be32	reserved2;
++};
++
+ struct mlx5_eqe_port_state {
+ 	u8	reserved0[8];
+ 	u8	port;
+@@ -698,6 +706,7 @@ union ev_data {
+ 	struct mlx5_eqe_pps		pps;
+ 	struct mlx5_eqe_dct             dct;
+ 	struct mlx5_eqe_temp_warning	temp_warning;
++	struct mlx5_eqe_xrq_err		xrq_err;
+ } __packed;
+ 
+ struct mlx5_eqe {
 -- 
 2.20.1
 
