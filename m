@@ -2,25 +2,25 @@ Return-Path: <SRS0=Pj7p=WE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEFABC433FF
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 10:28:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07995C0650F
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 10:29:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CA8042173E
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 10:28:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB7E021880
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 10:29:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389906AbfHHK2R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Aug 2019 06:28:17 -0400
-Received: from verein.lst.de ([213.95.11.211]:45444 "EHLO verein.lst.de"
+        id S2389974AbfHHK3y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Aug 2019 06:29:54 -0400
+Received: from verein.lst.de ([213.95.11.211]:45463 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389810AbfHHK2Q (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 8 Aug 2019 06:28:16 -0400
+        id S2389963AbfHHK3y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 8 Aug 2019 06:29:54 -0400
 Received: by verein.lst.de (Postfix, from userid 2407)
-        id 211AB227A81; Thu,  8 Aug 2019 12:28:14 +0200 (CEST)
-Date:   Thu, 8 Aug 2019 12:28:13 +0200
+        id ECABD227A81; Thu,  8 Aug 2019 12:29:51 +0200 (CEST)
+Date:   Thu, 8 Aug 2019 12:29:51 +0200
 From:   Christoph Hellwig <hch@lst.de>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>,
@@ -39,20 +39,31 @@ Cc:     linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>,
         Gavin Shan <shangw@linux.vnet.ibm.com>,
         Andrea Righi <andrea@betterlinux.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH v3 hmm 05/11] hmm: use mmu_notifier_get/put for 'struct
- hmm'
-Message-ID: <20190808102813.GD648@lst.de>
-References: <20190806231548.25242-1-jgg@ziepe.ca> <20190806231548.25242-6-jgg@ziepe.ca>
+Subject: Re: [PATCH v3 hmm 11/11] mm/mmu_notifiers: remove
+ unregister_no_release
+Message-ID: <20190808102951.GE648@lst.de>
+References: <20190806231548.25242-1-jgg@ziepe.ca> <20190806231548.25242-12-jgg@ziepe.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190806231548.25242-6-jgg@ziepe.ca>
+In-Reply-To: <20190806231548.25242-12-jgg@ziepe.ca>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Looks good,
+On Tue, Aug 06, 2019 at 08:15:48PM -0300, Jason Gunthorpe wrote:
+> From: Jason Gunthorpe <jgg@mellanox.com>
+> 
+> mmu_notifier_unregister_no_release() and mmu_notifier_call_srcu() no
+> longer have any users, they have all been converted to use
+> mmu_notifier_put().
+> 
+> So delete this difficult to use interface.
+> 
+> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+
+Looks good:
 
 Reviewed-by: Christoph Hellwig <hch@lst.de>
