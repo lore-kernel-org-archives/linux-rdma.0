@@ -2,302 +2,392 @@ Return-Path: <SRS0=Pj7p=WE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A9B2C32754
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11794C433FF
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 15:06:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 301C1217D7
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 14:58:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CFCDB217D7
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Aug 2019 15:06:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732844AbfHHO6X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Aug 2019 10:58:23 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4203 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1733180AbfHHO6X (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 8 Aug 2019 10:58:23 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 6615226B34EE4366043B;
-        Thu,  8 Aug 2019 22:58:12 +0800 (CST)
-Received: from linux-ioko.site (10.71.200.31) by
- DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 8 Aug 2019 22:58:06 +0800
-From:   Lijun Ou <oulijun@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH V4 for-next 06/14] RDMA/hns: Update some comments style
-Date:   Thu, 8 Aug 2019 22:53:46 +0800
-Message-ID: <1565276034-97329-7-git-send-email-oulijun@huawei.com>
-X-Mailer: git-send-email 1.9.1
-In-Reply-To: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
-References: <1565276034-97329-1-git-send-email-oulijun@huawei.com>
+        id S1728289AbfHHPGE convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Aug 2019 11:06:04 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:44080 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727649AbfHHPGE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Aug 2019 11:06:04 -0400
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x78F3Rwd060037
+        for <linux-rdma@vger.kernel.org>; Thu, 8 Aug 2019 11:06:03 -0400
+Received: from smtp.notes.na.collabserv.com (smtp.notes.na.collabserv.com [158.85.210.104])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2u8n04ke2q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-rdma@vger.kernel.org>; Thu, 08 Aug 2019 11:06:02 -0400
+Received: from localhost
+        by smtp.notes.na.collabserv.com with smtp.notes.na.collabserv.com ESMTP
+        for <linux-rdma@vger.kernel.org> from <BMT@zurich.ibm.com>;
+        Thu, 8 Aug 2019 15:06:01 -0000
+Received: from us1b3-smtp01.a3dr.sjc01.isc4sb.com (10.122.7.174)
+        by smtp.notes.na.collabserv.com (10.122.47.44) with smtp.notes.na.collabserv.com ESMTP;
+        Thu, 8 Aug 2019 15:05:12 -0000
+Received: from us1b3-mail162.a3dr.sjc03.isc4sb.com ([10.160.174.187])
+          by us1b3-smtp01.a3dr.sjc01.isc4sb.com
+          with ESMTP id 2019080815051280-570044 ;
+          Thu, 8 Aug 2019 15:05:12 +0000 
+In-Reply-To: <20190805172605.GA5549@chelsio.com>
+From:   "Bernard Metzler" <BMT@zurich.ibm.com>
+To:     "Krishnamraju Eraparaju" <krishna2@chelsio.com>
+Cc:     "Tom Talpey" <tom@talpey.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "Potnuri Bharat Teja" <bharat@chelsio.com>,
+        "Nirranjan Kirubaharan" <nirranjan@chelsio.com>
+Date:   Thu, 8 Aug 2019 15:05:12 +0000
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.71.200.31]
-X-CFilter-Loop: Reflected
+Sensitivity: 
+Importance: Normal
+X-Priority: 3 (Normal)
+References: <20190805172605.GA5549@chelsio.com>,<8499b96a-48dd-1286-ea0f-e66be34afffa@talpey.com>
+ <20190731103310.23199-1-krishna2@chelsio.com>
+ <OF4DB6F345.7C76F976-ON00258449.00392FF3-00258449.003C1BFB@notes.na.collabserv.com>
+ <OF95C29EF7.244FC9E1-ON0025844A.003D049F-0025844A.003E229B@notes.na.collabserv.com>
+ <518b1734-5d72-e32d-376b-0fec1cbce8f5@talpey.com>
+X-Mailer: IBM iNotes ($HaikuForm 1054) | IBM Domino Build
+ SCN1812108_20180501T0841_FP55 May 22, 2019 at 11:09
+X-KeepSent: 7F439620:B43AE37C-00258450:00524237;
+ type=4; name=$KeepSent
+X-LLNOutbound: False
+X-Disclaimed: 18695
+X-TNEFEvaluated: 1
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+x-cbid: 19080815-5525-0000-0000-00000081787E
+X-IBM-SpamModules-Scores: BY=0; FL=0; FP=0; FZ=0; HX=0; KW=0; PH=0;
+ SC=0.399202; ST=0; TS=0; UL=0; ISC=; MB=0.261808
+X-IBM-SpamModules-Versions: BY=3.00011571; HX=3.00000242; KW=3.00000007;
+ PH=3.00000004; SC=3.00000287; SDB=6.01243887; UDB=6.00656214; IPR=6.01025364;
+ MB=3.00028094; MTD=3.00000008; XFM=3.00000015; UTC=2019-08-08 15:05:57
+X-IBM-AV-DETECTION: SAVI=unsuspicious REMOTE=unsuspicious XFE=unused
+X-IBM-AV-VERSION: SAVI=2019-08-08 12:25:41 - 6.00010260
+x-cbparentid: 19080815-5526-0000-0000-000000D78BC6
+Message-Id: <OF7F439620.B43AE37C-ON00258450.00524237-00258450.0052DFDC@notes.na.collabserv.com>
+Subject: RE: [PATCH for-rc] siw: MPA Reply handler tries to read beyond MPA message
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-08_06:,,
+ signatures=0
+X-Proofpoint-Spam-Reason: safe
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+-----"Krishnamraju Eraparaju" <krishna2@chelsio.com> wrote: -----
 
-Here removes some useless comments and adds necessary spaces to
-another comments.
+>To: "Tom Talpey" <tom@talpey.com>, <BMT@zurich.ibm.com>
+>From: "Krishnamraju Eraparaju" <krishna2@chelsio.com>
+>Date: 08/05/2019 07:26PM
+>Cc: "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org"
+><linux-rdma@vger.kernel.org>, "Potnuri Bharat Teja"
+><bharat@chelsio.com>, "Nirranjan Kirubaharan" <nirranjan@chelsio.com>
+>Subject: [EXTERNAL] Re: [PATCH for-rc] siw: MPA Reply handler tries
+>to read beyond MPA message
+>
+>On Friday, August 08/02/19, 2019 at 18:17:37 +0530, Tom Talpey wrote:
+>> On 8/2/2019 7:18 AM, Bernard Metzler wrote:
+>> > -----"Tom Talpey" <tom@talpey.com> wrote: -----
+>> > 
+>> >> To: "Bernard Metzler" <BMT@zurich.ibm.com>, "Krishnamraju
+>Eraparaju"
+>> >> <krishna2@chelsio.com>
+>> >> From: "Tom Talpey" <tom@talpey.com>
+>> >> Date: 08/01/2019 08:54PM
+>> >> Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+>bharat@chelsio.com,
+>> >> nirranjan@chelsio.com, krishn2@chelsio.com
+>> >> Subject: [EXTERNAL] Re: [PATCH for-rc] siw: MPA Reply handler
+>tries
+>> >> to read beyond MPA message
+>> >>
+>> >> On 8/1/2019 6:56 AM, Bernard Metzler wrote:
+>> >>> -----"Krishnamraju Eraparaju" <krishna2@chelsio.com> wrote:
+>-----
+>> >>>
+>> >>>> To: jgg@ziepe.ca, bmt@zurich.ibm.com
+>> >>>> From: "Krishnamraju Eraparaju" <krishna2@chelsio.com>
+>> >>>> Date: 07/31/2019 12:34PM
+>> >>>> Cc: linux-rdma@vger.kernel.org, bharat@chelsio.com,
+>> >>>> nirranjan@chelsio.com, krishn2@chelsio.com, "Krishnamraju
+>> >> Eraparaju"
+>> >>>> <krishna2@chelsio.com>
+>> >>>> Subject: [EXTERNAL] [PATCH for-rc] siw: MPA Reply handler
+>tries to
+>> >>>> read beyond MPA message
+>> >>>>
+>> >>>> while processing MPA Reply, SIW driver is trying to read extra
+>4
+>> >>>> bytes
+>> >>>> than what peer has advertised as private data length.
+>> >>>>
+>> >>>> If a FPDU data is received before even siw_recv_mpa_rr()
+>completed
+>> >>>> reading MPA reply, then ksock_recv() in siw_recv_mpa_rr()
+>could
+>> >> also
+>> >>>> read FPDU, if "size" is larger than advertised MPA reply
+>length.
+>> >>>>
+>> >>>> 501 static int siw_recv_mpa_rr(struct siw_cep *cep)
+>> >>>> 502 {
+>> >>>>            .............
+>> >>>> 572
+>> >>>> 573         if (rcvd > to_rcv)
+>> >>>> 574                 return -EPROTO;   <----- Failure here
+>> >>>>
+>> >>>> Looks like the intention here is to throw an ERROR if the
+>received
+>> >>>> data
+>> >>>> is more than the total private data length advertised by the
+>peer.
+>> >>>> But
+>> >>>> reading beyond MPA message causes siw_cm to generate
+>> >>>> RDMA_CM_EVENT_CONNECT_ERROR event when TCP socket recv buffer
+>is
+>> >>>> already
+>> >>>> queued with FPDU messages.
+>> >>>>
+>> >>>> Hence, this function should only read upto private data
+>length.
+>> >>>>
+>> >>>> Signed-off-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
+>> >>>> ---
+>> >>>> drivers/infiniband/sw/siw/siw_cm.c | 4 ++--
+>> >>>> 1 file changed, 2 insertions(+), 2 deletions(-)
+>> >>>>
+>> >>>> diff --git a/drivers/infiniband/sw/siw/siw_cm.c
+>> >>>> b/drivers/infiniband/sw/siw/siw_cm.c
+>> >>>> index a7cde98e73e8..8dc8cea2566c 100644
+>> >>>> --- a/drivers/infiniband/sw/siw/siw_cm.c
+>> >>>> +++ b/drivers/infiniband/sw/siw/siw_cm.c
+>> >>>> @@ -559,13 +559,13 @@ static int siw_recv_mpa_rr(struct
+>siw_cep
+>> >> *cep)
+>> >>>> 	 * A private data buffer gets allocated if hdr->params.pd_len
+>!=
+>> >> 0.
+>> >>>> 	 */
+>> >>>> 	if (!cep->mpa.pdata) {
+>> >>>> -		cep->mpa.pdata = kmalloc(pd_len + 4, GFP_KERNEL);
+>> >>>> +		cep->mpa.pdata = kmalloc(pd_len, GFP_KERNEL);
+>> >>>> 		if (!cep->mpa.pdata)
+>> >>>> 			return -ENOMEM;
+>> >>>> 	}
+>> >>>> 	rcvd = ksock_recv(
+>> >>>> 		s, cep->mpa.pdata + cep->mpa.bytes_rcvd - sizeof(struct
+>mpa_rr),
+>> >>>> -		to_rcv + 4, MSG_DONTWAIT);
+>> >>>> +		to_rcv, MSG_DONTWAIT);
+>> >>>>
+>> >>>> 	if (rcvd < 0)
+>> >>>> 		return rcvd;
+>> >>>> -- 
+>> >>>> 2.23.0.rc0
+>> >>>>
+>> >>>>
+>> >>>
+>> >>> The intention of this code is to make sure the
+>> >>> peer does not violates the MPA handshake rules.
+>> >>> The initiator MUST NOT send extra data after its
+>> >>> MPA request and before receiving the MPA reply.
+>> >>
+>> >> I think this is true only for MPA v2. With MPA v1, the
+>> >> initiator can begin sending immediately (before receiving
+>> >> the MPA reply), because there is no actual negotiation at
+>> >> the MPA layer.
+>> >>
+>> >> With MPA v2, the negotiation exchange is required because
+>> >> the type of the following message is predicated by the
+>> >> "Enhanced mode" a|b|c|d flags present in the first 32 bits
+>> >> of the private data buffer.
+>> >>
+>> >> So, it seems to me that additional logic is needed here to
+>> >> determine the MPA version, before sniffing additional octets
+>> >>from the incoming stream?
+>> >>
+>> >> Tom.
+>> >>
+>> > 
+>> > There still is the marker negotiation taking place.
+>> > RFC 5044 says in section 7.1.2:
+>> > 
+>> > "Note: Since the receiver's ability to deal with Markers is
+>> >   unknown until the Request and Reply Frames have been
+>> >   received, sending FPDUs before this occurs is not possible."
+>> > 
+>> > This section further discusses the responder's behavior,
+>> > where it MUST receive a first FPDU from the initiator
+>> > before sending its first FPDU:
+>> > 
+>> > "4.  MPA Responder mode implementations MUST receive and validate
+>at
+>> >         least one FPDU before sending any FPDUs or Markers."
+>> > 
+>> > So it appears with MPA version 1, the current siw
+>> > code is correct. The initiator is entering FPDU mode
+>> > first, and only after receiving the MPA reply frame.
+>> > Only after the initiator sent a first FPDU, the responder
+>> > can start using the connection in FPDU mode.
+>> > Because of this somehow broken connection establishment
+>> > procedure (only the initiator can start sending data), a
+>> > later MPA version makes this first FPDU exchange explicit
+>> > and selectable (zero length READ/WRITE/Send).
+>> 
+>> Yeah, I guess so. Because nobody ever actually implemented markers,
+>> I think that they may more or less passively ignore this. But
+>you're
+>> currect that it's invalid protocol behavior.
+>> 
+>> If your testing didn't uncover any issues with existing
+>implementations
+>> failing to connect with your strict checking, I'm ok with it.
+>Tom & Bernard,
+>Thanks for the insight on MPA negotiation.
+>
+>Could the below patch be considered as a proper fix?
+>
+>diff --git a/drivers/infiniband/sw/siw/siw_cm.c
+>b/drivers/infiniband/sw/siw/siw_cm.c
+>index 9ce8a1b925d2..0aec1b5212f9 100644
+>--- a/drivers/infiniband/sw/siw/siw_cm.c
+>+++ b/drivers/infiniband/sw/siw/siw_cm.c
+>@@ -503,6 +503,7 @@ static int siw_recv_mpa_rr(struct siw_cep *cep)
+>        struct socket *s = cep->sock;
+>        u16 pd_len;
+>        int rcvd, to_rcv;
+>+       int extra_data_check = 4; /* 4Bytes, for MPA rules violation
+>checking */
+>
+>        if (cep->mpa.bytes_rcvd < sizeof(struct mpa_rr)) {
+>                rcvd = ksock_recv(s, (char *)hdr +
+>cep->mpa.bytes_rcvd,
+>@@ -553,23 +554,37 @@ static int siw_recv_mpa_rr(struct siw_cep *cep)
+>                return -EPROTO;
+>        }
+>
+>+       /*
+>+        * Peer must not send any extra data other than MPA messages
+>until MPA
+>+        * negotiation is completed, an exception is MPA V2
+>client-server Mode,
+>+        * IE, in this mode the peer after sending MPA Reply can
+>immediately
+>+        * start sending data in RDMA mode.
+>+        */
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h | 65 ++++++++++++++---------------
- drivers/infiniband/hw/hns/hns_roce_hem.h    |  6 +--
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  9 ++--
- drivers/infiniband/hw/hns/hns_roce_mr.c     |  1 -
- 4 files changed, 38 insertions(+), 43 deletions(-)
+This is unfortunately not true. The responder NEVER sends
+an FPDU without having seen an FPDU from the initiator.
+I just checked RFC 6581 again. The RTR (ready-to-receive)
+indication from the initiator is still needed, but now
+provided by the protocol and not the application: w/o
+'enhanced MPA setup', the initiator sends the first
+FPDU as an application message. With 'enhanced MPA setup',
+the initiator protocol entity sends (w/o application
+interaction) a zero length READ/WRITE/Send as a first FPDU,
+as previously negotiated with the responder. Again: only
+after the responder has seen the first FPDU, it can
+start sending in FPDU mode.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index b39497a..8c4b120 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -84,7 +84,6 @@
- #define HNS_ROCE_CEQ_ENTRY_SIZE			0x4
- #define HNS_ROCE_AEQ_ENTRY_SIZE			0x10
- 
--/* 4G/4K = 1M */
- #define HNS_ROCE_SL_SHIFT			28
- #define HNS_ROCE_TCLASS_SHIFT			20
- #define HNS_ROCE_FLOW_LABEL_MASK		0xfffff
-@@ -322,7 +321,7 @@ struct hns_roce_hem_table {
- 	unsigned long	num_hem;
- 	/* HEM entry record obj total num */
- 	unsigned long	num_obj;
--	/*Single obj size */
-+	/* Single obj size */
- 	unsigned long	obj_size;
- 	unsigned long	table_chunk_size;
- 	int		lowmem;
-@@ -343,7 +342,7 @@ struct hns_roce_mtt {
- 
- struct hns_roce_buf_region {
- 	int offset; /* page offset */
--	u32 count; /* page count*/
-+	u32 count; /* page count */
- 	int hopnum; /* addressing hop num */
- };
- 
-@@ -384,25 +383,25 @@ struct hns_roce_mr {
- 	u64			size; /* Address range of MR */
- 	u32			key; /* Key of MR */
- 	u32			pd;   /* PD num of MR */
--	u32			access;/* Access permission of MR */
-+	u32			access;	/* Access permission of MR */
- 	u32			npages;
- 	int			enabled; /* MR's active status */
- 	int			type;	/* MR's register type */
--	u64			*pbl_buf;/* MR's PBL space */
-+	u64			*pbl_buf;	/* MR's PBL space */
- 	dma_addr_t		pbl_dma_addr;	/* MR's PBL space PA */
--	u32			pbl_size;/* PA number in the PBL */
--	u64			pbl_ba;/* page table address */
--	u32			l0_chunk_last_num;/* L0 last number */
--	u32			l1_chunk_last_num;/* L1 last number */
--	u64			**pbl_bt_l2;/* PBL BT L2 */
--	u64			**pbl_bt_l1;/* PBL BT L1 */
--	u64			*pbl_bt_l0;/* PBL BT L0 */
--	dma_addr_t		*pbl_l2_dma_addr;/* PBL BT L2 dma addr */
--	dma_addr_t		*pbl_l1_dma_addr;/* PBL BT L1 dma addr */
--	dma_addr_t		pbl_l0_dma_addr;/* PBL BT L0 dma addr */
--	u32			pbl_ba_pg_sz;/* BT chunk page size */
--	u32			pbl_buf_pg_sz;/* buf chunk page size */
--	u32			pbl_hop_num;/* multi-hop number */
-+	u32			pbl_size;	/* PA number in the PBL */
-+	u64			pbl_ba;		/* page table address */
-+	u32			l0_chunk_last_num;	/* L0 last number */
-+	u32			l1_chunk_last_num;	/* L1 last number */
-+	u64			**pbl_bt_l2;	/* PBL BT L2 */
-+	u64			**pbl_bt_l1;	/* PBL BT L1 */
-+	u64			*pbl_bt_l0;	/* PBL BT L0 */
-+	dma_addr_t		*pbl_l2_dma_addr;	/* PBL BT L2 dma addr */
-+	dma_addr_t		*pbl_l1_dma_addr;	/* PBL BT L1 dma addr */
-+	dma_addr_t		pbl_l0_dma_addr;	/* PBL BT L0 dma addr */
-+	u32			pbl_ba_pg_sz;	/* BT chunk page size */
-+	u32			pbl_buf_pg_sz;	/* buf chunk page size */
-+	u32			pbl_hop_num;	/* multi-hop number */
- };
- 
- struct hns_roce_mr_table {
-@@ -425,16 +424,16 @@ struct hns_roce_wq {
- 	u32		max_post;
- 	int		max_gs;
- 	int		offset;
--	int		wqe_shift;/* WQE size */
-+	int		wqe_shift;	/* WQE size */
- 	u32		head;
- 	u32		tail;
- 	void __iomem	*db_reg_l;
- };
- 
- struct hns_roce_sge {
--	int		sge_cnt;  /* SGE num */
-+	int		sge_cnt;	/* SGE num */
- 	int		offset;
--	int		sge_shift;/* SGE size */
-+	int		sge_shift;	/* SGE size */
- };
- 
- struct hns_roce_buf_list {
-@@ -750,7 +749,7 @@ struct hns_roce_eq {
- 	struct hns_roce_dev		*hr_dev;
- 	void __iomem			*doorbell;
- 
--	int				type_flag;/* Aeq:1 ceq:0 */
-+	int				type_flag; /* Aeq:1 ceq:0 */
- 	int				eqn;
- 	u32				entries;
- 	int				log_entries;
-@@ -796,22 +795,22 @@ struct hns_roce_caps {
- 	int		local_ca_ack_delay;
- 	int		num_uars;
- 	u32		phy_num_uars;
--	u32		max_sq_sg;	/* 2 */
--	u32		max_sq_inline;	/* 32 */
--	u32		max_rq_sg;	/* 2 */
-+	u32		max_sq_sg;
-+	u32		max_sq_inline;
-+	u32		max_rq_sg;
- 	u32		max_extend_sg;
--	int		num_qps;	/* 256k */
-+	int		num_qps;
- 	int             reserved_qps;
- 	int		num_qpc_timer;
- 	int		num_cqc_timer;
- 	u32		max_srq_sg;
- 	int		num_srqs;
--	u32		max_wqes;	/* 16k */
-+	u32		max_wqes;
- 	u32		max_srqs;
- 	u32		max_srq_wrs;
- 	u32		max_srq_sges;
--	u32		max_sq_desc_sz;	/* 64 */
--	u32		max_rq_desc_sz;	/* 64 */
-+	u32		max_sq_desc_sz;
-+	u32		max_rq_desc_sz;
- 	u32		max_srq_desc_sz;
- 	int		max_qp_init_rdma;
- 	int		max_qp_dest_rdma;
-@@ -822,7 +821,7 @@ struct hns_roce_caps {
- 	int		reserved_cqs;
- 	int		reserved_srqs;
- 	u32		max_srqwqes;
--	int		num_aeq_vectors;	/* 1 */
-+	int		num_aeq_vectors;
- 	int		num_comp_vectors;
- 	int		num_other_vectors;
- 	int		num_mtpts;
-@@ -903,7 +902,7 @@ struct hns_roce_caps {
- 	u32		sl_num;
- 	u32		tsq_buf_pg_sz;
- 	u32		tpq_buf_pg_sz;
--	u32		chunk_sz;	/* chunk size in non multihop mode*/
-+	u32		chunk_sz;	/* chunk size in non multihop mode */
- 	u64		flags;
- };
- 
-@@ -1043,8 +1042,8 @@ struct hns_roce_dev {
- 	int			loop_idc;
- 	u32			sdb_offset;
- 	u32			odb_offset;
--	dma_addr_t		tptr_dma_addr; /*only for hw v1*/
--	u32			tptr_size; /*only for hw v1*/
-+	dma_addr_t		tptr_dma_addr;	/* only for hw v1 */
-+	u32			tptr_size;	/* only for hw v1 */
- 	const struct hns_roce_hw *hw;
- 	void			*priv;
- 	struct workqueue_struct *irq_workq;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
-index f1ccb8f..8678327 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
-@@ -102,9 +102,9 @@ struct hns_roce_hem_mhop {
- 	u32	buf_chunk_size;
- 	u32	bt_chunk_size;
- 	u32	ba_l0_num;
--	u32	l0_idx;/* level 0 base address table index */
--	u32	l1_idx;/* level 1 base address table index */
--	u32	l2_idx;/* level 2 base address table index */
-+	u32	l0_idx; /* level 0 base address table index */
-+	u32	l1_idx; /* level 1 base address table index */
-+	u32	l2_idx; /* level 2 base address table index */
- };
- 
- void hns_roce_free_hem(struct hns_roce_dev *hr_dev, struct hns_roce_hem *hem);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2bb2d0c..9b037b3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1886,7 +1886,7 @@ static int hns_roce_v2_init(struct hns_roce_dev *hr_dev)
- 		goto err_tpq_init_failed;
- 	}
- 
--	/* Alloc memory for QPC Timer buffer space chunk*/
-+	/* Alloc memory for QPC Timer buffer space chunk */
- 	for (qpc_count = 0; qpc_count < hr_dev->caps.qpc_timer_bt_num;
- 	     qpc_count++) {
- 		ret = hns_roce_table_get(hr_dev, &hr_dev->qpc_timer_table,
-@@ -1897,7 +1897,7 @@ static int hns_roce_v2_init(struct hns_roce_dev *hr_dev)
- 		}
- 	}
- 
--	/* Alloc memory for CQC Timer buffer space chunk*/
-+	/* Alloc memory for CQC Timer buffer space chunk */
- 	for (cqc_count = 0; cqc_count < hr_dev->caps.cqc_timer_bt_num;
- 	     cqc_count++) {
- 		ret = hns_roce_table_get(hr_dev, &hr_dev->cqc_timer_table,
-@@ -5236,14 +5236,12 @@ static void hns_roce_mhop_free_eq(struct hns_roce_dev *hr_dev,
- 	buf_chk_sz = 1 << (hr_dev->caps.eqe_buf_pg_sz + PAGE_SHIFT);
- 	bt_chk_sz = 1 << (hr_dev->caps.eqe_ba_pg_sz + PAGE_SHIFT);
- 
--	/* hop_num = 0 */
- 	if (mhop_num == HNS_ROCE_HOP_NUM_0) {
- 		dma_free_coherent(dev, (unsigned int)(eq->entries *
- 				  eq->eqe_size), eq->bt_l0, eq->l0_dma);
- 		return;
- 	}
- 
--	/* hop_num = 1 or hop = 2 */
- 	dma_free_coherent(dev, bt_chk_sz, eq->bt_l0, eq->l0_dma);
- 	if (mhop_num == 1) {
- 		for (i = 0; i < eq->l0_last_num; i++) {
-@@ -5483,7 +5481,6 @@ static int hns_roce_mhop_alloc_eq(struct hns_roce_dev *hr_dev,
- 			      buf_chk_sz);
- 	bt_num = DIV_ROUND_UP(ba_num, bt_chk_sz / BA_BYTE_LEN);
- 
--	/* hop_num = 0 */
- 	if (mhop_num == HNS_ROCE_HOP_NUM_0) {
- 		if (eq->entries > buf_chk_sz / eq->eqe_size) {
- 			dev_err(dev, "eq entries %d is larger than buf_pg_sz!",
-@@ -5749,7 +5746,7 @@ static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
- 		}
- 	}
- 
--	/* irq contains: abnormal + AEQ + CEQ*/
-+	/* irq contains: abnormal + AEQ + CEQ */
- 	for (j = 0; j < irq_num; j++)
- 		if (j < other_num)
- 			snprintf((char *)hr_dev->irq_names[j],
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 0cfa946..8157679 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -517,7 +517,6 @@ static int hns_roce_mhop_alloc(struct hns_roce_dev *hr_dev, int npages,
- 	if (mhop_num == HNS_ROCE_HOP_NUM_0)
- 		return 0;
- 
--	/* hop_num = 1 */
- 	if (mhop_num == 1)
- 		return pbl_1hop_alloc(hr_dev, npages, mr, pbl_bt_sz);
- 
--- 
-1.9.1
+Sorry for the confusion. But the current
+siw code appears to be just correct.
+
+Thanks
+Bernard
+
+
+
+>+       if ((__mpa_rr_revision(cep->mpa.hdr.params.bits) ==
+>MPA_REVISION_2) &&
+>+               (cep->state == SIW_EPSTATE_AWAIT_MPAREP)) {
+>+               int mpa_p2p_mode = cep->mpa.v2_ctrl_req.ord &
+>+                               (MPA_V2_RDMA_WRITE_RTR |
+>MPA_V2_RDMA_READ_RTR);
+>+               if (!mpa_p2p_mode)
+>+                       extra_data_check = 0;
+>+       }
+>+
+>        /*
+>         * At this point, we must have hdr->params.pd_len != 0.
+>         * A private data buffer gets allocated if hdr->params.pd_len
+>!=
+>         * 0.
+>         */
+>        if (!cep->mpa.pdata) {
+>-               cep->mpa.pdata = kmalloc(pd_len + 4, GFP_KERNEL);
+>+               cep->mpa.pdata = kmalloc(pd_len + extra_data_check,
+>GFP_KERNEL);
+>                if (!cep->mpa.pdata)
+>                        return -ENOMEM;
+>        }
+>        rcvd = ksock_recv(
+>                s, cep->mpa.pdata + cep->mpa.bytes_rcvd -
+>sizeof(struct
+>mpa_rr),
+>-               to_rcv + 4, MSG_DONTWAIT);
+>+               to_rcv + extra_data_check, MSG_DONTWAIT);
+>
+>        if (rcvd < 0)
+>                return rcvd;
+>
+>-       if (rcvd > to_rcv)
+>+       if (extra_data_check && (rcvd > to_rcv))
+>                return -EPROTO;
+>
+>        cep->mpa.bytes_rcvd += rcvd;
+>
+>-Krishna.
+>> 
+>> Tom.
+>> 
+>> 
+>> 
+>> > 
+>> > Bernard.
+>> > 
+>> >>
+>> >>> So, for the MPA request case, this code is needed
+>> >>> to check for protocol correctness.
+>> >>> You are right for the MPA reply case - if we are
+>> >>> _not_ in peer2peer mode, the peer can immediately
+>> >>> start sending data in RDMA mode after its MPA Reply.
+>> >>> So we shall add appropriate code to be more specific
+>> >>> For an error, we are (1) processing an MPA Request,
+>> >>> OR (2) processing an MPA Reply AND we are not expected
+>> >>> to send an initial READ/WRITE/Send as negotiated with
+>> >>> the peer (peer2peer mode MPA handshake).
+>> >>>
+>> >>> Just removing this check would make siw more permissive,
+>> >>> but to a point where peer MPA protocol errors are
+>> >>> tolerated. I am not in favor of that level of
+>> >>> forgiveness.
+>> >>>
+>> >>> If possible, please provide an appropriate patch
+>> >>> or (if it causes current issues with another peer
+>> >>> iWarp implementation) just run in MPA peer2peer mode,
+>> >>> where the current check is appropriate.
+>> >>> Otherwise, I would provide an appropriate fix by Monday
+>> >>> (I am still out of office this week).
+>> >>>
+>> >>>
+>> >>> Many thanks and best regards,
+>> >>> Bernard.
+>> >>>
+>> >>>
+>> >>>
+>> >>
+>> >>
+>> > 
+>> > 
+>> > 
+>
+>
 
