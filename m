@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A675C31E40
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 22:59:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D69F8C31E40
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 22:59:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EDD86208C4
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 22:59:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC7B6208C4
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 22:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729234AbfHIW73 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Aug 2019 18:59:29 -0400
-Received: from mga11.intel.com ([192.55.52.93]:23377 "EHLO mga11.intel.com"
+        id S1731109AbfHIW7f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Aug 2019 18:59:35 -0400
+Received: from mga07.intel.com ([134.134.136.100]:60827 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730744AbfHIW7J (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 9 Aug 2019 18:59:09 -0400
+        id S1730626AbfHIW7H (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 9 Aug 2019 18:59:07 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Aug 2019 15:59:08 -0700
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Aug 2019 15:59:03 -0700
 X-IronPort-AV: E=Sophos;i="5.64,367,1559545200"; 
-   d="scan'208";a="199539307"
+   d="scan'208";a="175282026"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.157])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Aug 2019 15:59:08 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Aug 2019 15:59:03 -0700
 From:   ira.weiny@intel.com
 To:     Andrew Morton <akpm@linux-foundation.org>
 Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
@@ -40,9 +40,9 @@ Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
         linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org,
         linux-ext4@vger.kernel.org, linux-mm@kvack.org,
         Ira Weiny <ira.weiny@intel.com>
-Subject: [RFC PATCH v2 18/19] {mm,procfs}: Add display file_pins proc
-Date:   Fri,  9 Aug 2019 15:58:32 -0700
-Message-Id: <20190809225833.6657-19-ira.weiny@intel.com>
+Subject: [RFC PATCH v2 14/19] fs/locks: Associate file pins while performing GUP
+Date:   Fri,  9 Aug 2019 15:58:28 -0700
+Message-Id: <20190809225833.6657-15-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
 References: <20190809225833.6657-1-ira.weiny@intel.com>
@@ -55,271 +55,391 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-Now that we have the file pins information stored add a new procfs entry
-to display them to the user.
-
-NOTE output will be dependant on where the file pin is tied to.  Some
-processes may have the pin associated with a file descriptor in which
-case that file is reported as well.
-
-Others are associated directly with the process mm and are reported as
-such.
-
-For example of a file pinned to an RDMA open context (fd 4) and a file
-pinned to the mm of that process:
-
-4: /dev/infiniband/uverbs0
-   /mnt/pmem/foo
-/mnt/pmem/bar
+When a file back area is being pinned add the appropriate file pin
+information to the appropriate file or mm owner.  This information can
+then be used by admins to determine who is causing a failure to change
+the layout of a file.
 
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/proc/base.c | 214 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 214 insertions(+)
+ fs/locks.c         | 195 ++++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/mm.h |  35 +++++++-
+ mm/gup.c           |   8 +-
+ mm/huge_memory.c   |   4 +-
+ 4 files changed, 230 insertions(+), 12 deletions(-)
 
-diff --git a/fs/proc/base.c b/fs/proc/base.c
-index ebea9501afb8..f4d219172235 100644
---- a/fs/proc/base.c
-+++ b/fs/proc/base.c
-@@ -2995,6 +2995,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
-  */
- static const struct file_operations proc_task_operations;
- static const struct inode_operations proc_task_inode_operations;
-+static const struct file_operations proc_pid_file_pins_operations;
+diff --git a/fs/locks.c b/fs/locks.c
+index 14892c84844b..02c525446d25 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -168,6 +168,7 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/hashtable.h>
+ #include <linux/percpu.h>
++#include <linux/sched/mm.h>
  
- static const struct pid_entry tgid_base_stuff[] = {
- 	DIR("task",       S_IRUGO|S_IXUGO, proc_task_inode_operations, proc_task_operations),
-@@ -3024,6 +3025,7 @@ static const struct pid_entry tgid_base_stuff[] = {
- 	ONE("stat",       S_IRUGO, proc_tgid_stat),
- 	ONE("statm",      S_IRUGO, proc_pid_statm),
- 	REG("maps",       S_IRUGO, proc_pid_maps_operations),
-+	REG("file_pins",  S_IRUGO, proc_pid_file_pins_operations),
- #ifdef CONFIG_NUMA
- 	REG("numa_maps",  S_IRUGO, proc_pid_numa_maps_operations),
- #endif
-@@ -3422,6 +3424,7 @@ static const struct pid_entry tid_base_stuff[] = {
- 	ONE("stat",      S_IRUGO, proc_tid_stat),
- 	ONE("statm",     S_IRUGO, proc_pid_statm),
- 	REG("maps",      S_IRUGO, proc_pid_maps_operations),
-+	REG("file_pins", S_IRUGO, proc_pid_file_pins_operations),
- #ifdef CONFIG_PROC_CHILDREN
- 	REG("children",  S_IRUGO, proc_tid_children_operations),
- #endif
-@@ -3718,3 +3721,214 @@ void __init set_proc_pid_nlink(void)
- 	nlink_tid = pid_entry_nlink(tid_base_stuff, ARRAY_SIZE(tid_base_stuff));
- 	nlink_tgid = pid_entry_nlink(tgid_base_stuff, ARRAY_SIZE(tgid_base_stuff));
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/filelock.h>
+@@ -2972,9 +2973,194 @@ static int __init filelock_init(void)
  }
-+
-+/**
-+ * file_pin information below.
-+ */
-+
-+struct proc_file_pins_private {
-+	struct inode *inode;
-+	struct task_struct *task;
-+	struct mm_struct *mm;
-+	struct files_struct *files;
-+	unsigned int nr_pins;
-+	struct xarray fps;
-+} __randomize_layout;
-+
-+static void release_fp(struct proc_file_pins_private *priv)
+ core_initcall(filelock_init);
+ 
++static struct file_file_pin *alloc_file_file_pin(struct inode *inode,
++						 struct file *file)
 +{
-+	up_read(&priv->mm->mmap_sem);
-+	mmput(priv->mm);
++	struct file_file_pin *fp = kzalloc(sizeof(*fp), GFP_ATOMIC);
++
++	if (!fp)
++		return ERR_PTR(-ENOMEM);
++
++	INIT_LIST_HEAD(&fp->list);
++	kref_init(&fp->ref);
++	return fp;
 +}
 +
-+static void print_fd_file_pin(struct seq_file *m, struct file *file,
-+			    unsigned long i)
++static int add_file_pin_to_f_owner(struct vaddr_pin *vaddr_pin,
++				   struct inode *inode,
++				   struct file *file)
++{
++	struct file_file_pin *fp;
++
++	list_for_each_entry(fp, &vaddr_pin->f_owner->file_pins, list) {
++		if (fp->file == file) {
++			kref_get(&fp->ref);
++			return 0;
++		}
++	}
++
++	fp = alloc_file_file_pin(inode, file);
++	if (IS_ERR(fp))
++		return PTR_ERR(fp);
++
++	fp->file = get_file(file);
++	/* NOTE no reference needed here.
++	 * It is expected that the caller holds a reference to the owner file
++	 * for the duration of this pin.
++	 */
++	fp->f_owner = vaddr_pin->f_owner;
++
++	spin_lock(&fp->f_owner->fp_lock);
++	list_add(&fp->list, &fp->f_owner->file_pins);
++	spin_unlock(&fp->f_owner->fp_lock);
++
++	return 0;
++}
++
++static void release_file_file_pin(struct kref *ref)
++{
++	struct file_file_pin *fp = container_of(ref, struct file_file_pin, ref);
++
++	spin_lock(&fp->f_owner->fp_lock);
++	list_del(&fp->list);
++	spin_unlock(&fp->f_owner->fp_lock);
++	fput(fp->file);
++	kfree(fp);
++}
++
++static struct mm_file_pin *alloc_mm_file_pin(struct inode *inode,
++					     struct file *file)
++{
++	struct mm_file_pin *fp = kzalloc(sizeof(*fp), GFP_ATOMIC);
++
++	if (!fp)
++		return ERR_PTR(-ENOMEM);
++
++	INIT_LIST_HEAD(&fp->list);
++	kref_init(&fp->ref);
++	return fp;
++}
++
++/**
++ * This object bridges files and the mm struct for the purpose of tracking
++ * which files have GUP pins on them.
++ */
++static int add_file_pin_to_mm(struct vaddr_pin *vaddr_pin, struct inode *inode,
++			      struct file *file)
++{
++	struct mm_file_pin *fp;
++
++	list_for_each_entry(fp, &vaddr_pin->mm->file_pins, list) {
++		if (fp->inode == inode) {
++			kref_get(&fp->ref);
++			return 0;
++		}
++	}
++
++	fp = alloc_mm_file_pin(inode, file);
++	if (IS_ERR(fp))
++		return PTR_ERR(fp);
++
++	fp->inode = igrab(inode);
++	if (!fp->inode) {
++		kfree(fp);
++		return -EFAULT;
++	}
++
++	fp->file = get_file(file);
++	fp->mm = vaddr_pin->mm;
++	mmgrab(fp->mm);
++
++	spin_lock(&fp->mm->fp_lock);
++	list_add(&fp->list, &fp->mm->file_pins);
++	spin_unlock(&fp->mm->fp_lock);
++
++	return 0;
++}
++
++static void release_mm_file_pin(struct kref *ref)
++{
++	struct mm_file_pin *fp = container_of(ref, struct mm_file_pin, ref);
++
++	spin_lock(&fp->mm->fp_lock);
++	list_del(&fp->list);
++	spin_unlock(&fp->mm->fp_lock);
++
++	mmdrop(fp->mm);
++	fput(fp->file);
++	iput(fp->inode);
++	kfree(fp);
++}
++
++static void remove_file_file_pin(struct vaddr_pin *vaddr_pin)
 +{
 +	struct file_file_pin *fp;
 +	struct file_file_pin *tmp;
 +
-+	if (list_empty_careful(&file->file_pins))
-+		return;
-+
-+	seq_printf(m, "%lu: ", i);
-+	seq_file_path(m, file, "\n");
-+	seq_putc(m, '\n');
-+
-+	list_for_each_entry_safe(fp, tmp, &file->file_pins, list) {
-+		seq_puts(m, "   ");
-+		seq_file_path(m, fp->file, "\n");
-+		seq_putc(m, '\n');
++	list_for_each_entry_safe(fp, tmp, &vaddr_pin->f_owner->file_pins,
++				 list) {
++		kref_put(&fp->ref, release_file_file_pin);
 +	}
 +}
 +
-+/* We are storing the index's within the FD table for later retrieval */
-+static int store_fd(const void *priv , struct file *file, unsigned i)
-+{
-+	struct proc_file_pins_private *fp_priv;
-+
-+	/* cast away const... */
-+	fp_priv = (struct proc_file_pins_private *)priv;
-+
-+	if (list_empty_careful(&file->file_pins))
-+		return 0;
-+
-+	/* can't sleep in the iterate of the fd table */
-+	xa_store(&fp_priv->fps, fp_priv->nr_pins, xa_mk_value(i), GFP_ATOMIC);
-+	fp_priv->nr_pins++;
-+
-+	return 0;
-+}
-+
-+static void store_mm_pins(struct proc_file_pins_private *priv)
++static void remove_mm_file_pin(struct vaddr_pin *vaddr_pin,
++			       struct inode *inode)
 +{
 +	struct mm_file_pin *fp;
 +	struct mm_file_pin *tmp;
 +
-+	list_for_each_entry_safe(fp, tmp, &priv->mm->file_pins, list) {
-+		xa_store(&priv->fps, priv->nr_pins, fp, GFP_KERNEL);
-+		priv->nr_pins++;
++	list_for_each_entry_safe(fp, tmp, &vaddr_pin->mm->file_pins, list) {
++		if (fp->inode == inode)
++			kref_put(&fp->ref, release_mm_file_pin);
 +	}
 +}
 +
-+
-+static void *fp_start(struct seq_file *m, loff_t *ppos)
++static bool add_file_pin(struct vaddr_pin *vaddr_pin, struct inode *inode,
++			 struct file *file)
 +{
-+	struct proc_file_pins_private *priv = m->private;
-+	unsigned int pos = *ppos;
++	bool ret = true;
 +
-+	priv->task = get_proc_task(priv->inode);
-+	if (!priv->task)
-+		return ERR_PTR(-ESRCH);
++	if (!vaddr_pin || (!vaddr_pin->f_owner && !vaddr_pin->mm))
++		return false;
 +
-+	if (!priv->mm || !mmget_not_zero(priv->mm))
-+		return NULL;
-+
-+	priv->files = get_files_struct(priv->task);
-+	down_read(&priv->mm->mmap_sem);
-+
-+	xa_destroy(&priv->fps);
-+	priv->nr_pins = 0;
-+
-+	/* grab fds of "files" which have pins and store as xa values */
-+	if (priv->files)
-+		iterate_fd(priv->files, 0, store_fd, priv);
-+
-+	/* store mm_file_pins as xa entries */
-+	store_mm_pins(priv);
-+
-+	if (pos >= priv->nr_pins) {
-+		release_fp(priv);
-+		return NULL;
-+	}
-+
-+	return xa_load(&priv->fps, pos);
-+}
-+
-+static void *fp_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	struct proc_file_pins_private *priv = m->private;
-+
-+	(*pos)++;
-+	if ((*pos) >= priv->nr_pins) {
-+		release_fp(priv);
-+		return NULL;
-+	}
-+
-+	return xa_load(&priv->fps, *pos);
-+}
-+
-+static void fp_stop(struct seq_file *m, void *v)
-+{
-+	struct proc_file_pins_private *priv = m->private;
-+
-+	if (v)
-+		release_fp(priv);
-+
-+	if (priv->task) {
-+		put_task_struct(priv->task);
-+		priv->task = NULL;
-+	}
-+
-+	if (priv->files) {
-+		put_files_struct(priv->files);
-+		priv->files = NULL;
-+	}
-+}
-+
-+static int show_fp(struct seq_file *m, void *v)
-+{
-+	struct proc_file_pins_private *priv = m->private;
-+
-+	if (xa_is_value(v)) {
-+		struct file *file;
-+		unsigned long fd = xa_to_value(v);
-+
-+		rcu_read_lock();
-+		file = fcheck_files(priv->files, fd);
-+		if (file)
-+			print_fd_file_pin(m, file, fd);
-+		rcu_read_unlock();
++	if (vaddr_pin->f_owner) {
++		if (add_file_pin_to_f_owner(vaddr_pin, inode, file))
++			ret = false;
 +	} else {
-+		struct mm_file_pin *fp = v;
-+
-+		seq_puts(m, "mm: ");
-+		seq_file_path(m, fp->file, "\n");
++		if (add_file_pin_to_mm(vaddr_pin, inode, file))
++			ret = false;
 +	}
 +
-+	return 0;
++	return ret;
 +}
 +
-+static const struct seq_operations proc_pid_file_pins_op = {
-+	.start	= fp_start,
-+	.next	= fp_next,
-+	.stop	= fp_stop,
-+	.show	= show_fp
-+};
-+
-+static int proc_file_pins_open(struct inode *inode, struct file *file)
++void mapping_release_file(struct vaddr_pin *vaddr_pin, struct page *page)
 +{
-+	struct proc_file_pins_private *priv = __seq_open_private(file,
-+						&proc_pid_file_pins_op,
-+						sizeof(*priv));
++	struct inode *inode;
 +
-+	if (!priv)
-+		return -ENOMEM;
++	if (WARN_ON(!page) || WARN_ON(!vaddr_pin) ||
++	    WARN_ON(!vaddr_pin->mm && !vaddr_pin->f_owner))
++		return;
 +
-+	xa_init(&priv->fps);
-+	priv->inode = inode;
-+	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
-+	priv->task = NULL;
-+	if (IS_ERR(priv->mm)) {
-+		int err = PTR_ERR(priv->mm);
++	if (PageAnon(page) ||
++	    !page->mapping ||
++	    !page->mapping->host)
++		return;
 +
-+		seq_release_private(inode, file);
-+		return err;
++	inode = page->mapping->host;
++
++	if (vaddr_pin->f_owner)
++		remove_file_file_pin(vaddr_pin);
++	else
++		remove_mm_file_pin(vaddr_pin, inode);
++}
++EXPORT_SYMBOL_GPL(mapping_release_file);
++
+ /**
+  * mapping_inode_has_layout - ensure a file mapped page has a layout lease
+  * taken
++ * @vaddr_pin: pin owner information to store with this pin if a proper layout
++ * is lease is found.
+  * @page: page we are trying to GUP
+  *
+  * This should only be called on DAX pages.  DAX pages which are mapped through
+@@ -2983,9 +3169,12 @@ core_initcall(filelock_init);
+  * This allows the user to opt-into the fact that truncation operations will
+  * fail for the duration of the pin.
+  *
++ * Also if the proper layout leases are found we store pining information into
++ * the owner passed in via the vaddr_pin structure.
++ *
+  * Return true if the page has a LAYOUT lease associated with it's file.
+  */
+-bool mapping_inode_has_layout(struct page *page)
++bool mapping_inode_has_layout(struct vaddr_pin *vaddr_pin, struct page *page)
+ {
+ 	bool ret = false;
+ 	struct inode *inode;
+@@ -3003,12 +3192,12 @@ bool mapping_inode_has_layout(struct page *page)
+ 	if (inode->i_flctx &&
+ 	    !list_empty_careful(&inode->i_flctx->flc_lease)) {
+ 		spin_lock(&inode->i_flctx->flc_lock);
+-		ret = false;
+ 		list_for_each_entry(fl, &inode->i_flctx->flc_lease, fl_list) {
+ 			if (fl->fl_pid == current->tgid &&
+ 			    (fl->fl_flags & FL_LAYOUT) &&
+ 			    (fl->fl_flags & FL_EXCLUSIVE)) {
+-				ret = true;
++				ret = add_file_pin(vaddr_pin, inode,
++						   fl->fl_file);
+ 				break;
+ 			}
+ 		}
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 9d37cafbef9a..657c947bda49 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -981,9 +981,11 @@ struct vaddr_pin {
+ };
+ 
+ #ifdef CONFIG_DEV_PAGEMAP_OPS
++void mapping_release_file(struct vaddr_pin *vaddr_pin, struct page *page);
+ void __put_devmap_managed_page(struct page *page);
+ DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
+-static inline bool put_devmap_managed_page(struct page *page)
++
++static inline bool page_is_devmap_managed(struct page *page)
+ {
+ 	if (!static_branch_unlikely(&devmap_managed_key))
+ 		return false;
+@@ -992,7 +994,6 @@ static inline bool put_devmap_managed_page(struct page *page)
+ 	switch (page->pgmap->type) {
+ 	case MEMORY_DEVICE_PRIVATE:
+ 	case MEMORY_DEVICE_FS_DAX:
+-		__put_devmap_managed_page(page);
+ 		return true;
+ 	default:
+ 		break;
+@@ -1000,11 +1001,39 @@ static inline bool put_devmap_managed_page(struct page *page)
+ 	return false;
+ }
+ 
++static inline bool put_devmap_managed_page(struct page *page)
++{
++	bool is_devmap = page_is_devmap_managed(page);
++	if (is_devmap)
++		__put_devmap_managed_page(page);
++	return is_devmap;
++}
++
++static inline bool put_devmap_managed_user_page(struct vaddr_pin *vaddr_pin,
++						struct page *page)
++{
++	bool is_devmap = page_is_devmap_managed(page);
++
++	if (is_devmap) {
++		if (page->pgmap->type == MEMORY_DEVICE_FS_DAX)
++			mapping_release_file(vaddr_pin, page);
++
++		__put_devmap_managed_page(page);
 +	}
 +
-+	return 0;
++	return is_devmap;
 +}
 +
-+static int proc_file_pins_release(struct inode *inode, struct file *file)
+ #else /* CONFIG_DEV_PAGEMAP_OPS */
+ static inline bool put_devmap_managed_page(struct page *page)
+ {
+ 	return false;
+ }
++static inline bool put_devmap_managed_user_page(struct vaddr_pin *vaddr_pin,
++						struct page *page)
 +{
-+	struct seq_file *seq = file->private_data;
-+	struct proc_file_pins_private *priv = seq->private;
-+
-+	/* This is for "protection" not sure when these may end up not being
-+	 * NULL here... */
-+	WARN_ON(priv->files);
-+	WARN_ON(priv->task);
-+
-+	if (priv->mm)
-+		mmdrop(priv->mm);
-+
-+	xa_destroy(&priv->fps);
-+
-+	return seq_release_private(inode, file);
++	return false;
 +}
-+
-+static const struct file_operations proc_pid_file_pins_operations = {
-+	.open		= proc_file_pins_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= proc_file_pins_release,
-+};
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+ 
+ static inline bool is_device_private_page(const struct page *page)
+@@ -1574,7 +1603,7 @@ int account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc);
+ int __account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc,
+ 			struct task_struct *task, bool bypass_rlim);
+ 
+-bool mapping_inode_has_layout(struct page *page);
++bool mapping_inode_has_layout(struct vaddr_pin *vaddr_pin, struct page *page);
+ 
+ /* Container for pinned pfns / pages */
+ struct frame_vector {
+diff --git a/mm/gup.c b/mm/gup.c
+index 10cfd30ff668..eeaa0ddd08a6 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -34,7 +34,7 @@ static void __put_user_page(struct vaddr_pin *vaddr_pin, struct page *page)
+ 	 * page is free and we need to inform the device driver through
+ 	 * callback. See include/linux/memremap.h and HMM for details.
+ 	 */
+-	if (put_devmap_managed_page(page))
++	if (put_devmap_managed_user_page(vaddr_pin, page))
+ 		return;
+ 
+ 	if (put_page_testzero(page))
+@@ -272,7 +272,7 @@ static struct page *follow_page_pte(struct vm_area_struct *vma,
+ 
+ 		if (unlikely(flags & FOLL_LONGTERM) &&
+ 		    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
+-		    !mapping_inode_has_layout(page)) {
++		    !mapping_inode_has_layout(ctx->vaddr_pin, page)) {
+ 			page = ERR_PTR(-EPERM);
+ 			goto out;
+ 		}
+@@ -1915,7 +1915,7 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 		if (pte_devmap(pte) &&
+ 		    unlikely(flags & FOLL_LONGTERM) &&
+ 		    pgmap->type == MEMORY_DEVICE_FS_DAX &&
+-		    !mapping_inode_has_layout(head)) {
++		    !mapping_inode_has_layout(vaddr_pin, head)) {
+ 			put_user_page(head);
+ 			goto pte_unmap;
+ 		}
+@@ -1972,7 +1972,7 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+ 
+ 		if (unlikely(flags & FOLL_LONGTERM) &&
+ 		    pgmap->type == MEMORY_DEVICE_FS_DAX &&
+-		    !mapping_inode_has_layout(page)) {
++		    !mapping_inode_has_layout(vaddr_pin, page)) {
+ 			undo_dev_pagemap(nr, nr_start, pages);
+ 			return 0;
+ 		}
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 7e09f2f17ed8..2d700e21d4af 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -957,7 +957,7 @@ struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 
+ 	if (unlikely(flags & FOLL_LONGTERM) &&
+ 	    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
+-	    !mapping_inode_has_layout(page))
++	    !mapping_inode_has_layout(ctx->vaddr_pin, page))
+ 		return ERR_PTR(-EPERM);
+ 
+ 	get_page(page);
+@@ -1104,7 +1104,7 @@ struct page *follow_devmap_pud(struct vm_area_struct *vma, unsigned long addr,
+ 
+ 	if (unlikely(flags & FOLL_LONGTERM) &&
+ 	    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
+-	    !mapping_inode_has_layout(page))
++	    !mapping_inode_has_layout(ctx->vaddr_pin, page))
+ 		return ERR_PTR(-EPERM);
+ 
+ 	get_page(page);
 -- 
 2.20.1
 
