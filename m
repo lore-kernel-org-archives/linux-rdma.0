@@ -2,24 +2,24 @@ Return-Path: <SRS0=9Fe3=WF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95636C433FF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA98DC31E40
 	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 70F7E2184E
+	by mail.kernel.org (Postfix) with ESMTP id 930F4217F5
 	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406116AbfHIJp2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1730233AbfHIJp2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 9 Aug 2019 05:45:28 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4213 "EHLO huawei.com"
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4210 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730233AbfHIJp2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726152AbfHIJp2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 9 Aug 2019 05:45:28 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id C30FCC30398AB0DA68AE;
+        by Forcepoint Email with ESMTP id BB39030FE410BB3BE2B9;
         Fri,  9 Aug 2019 17:45:26 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
@@ -28,10 +28,12 @@ From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/9] Bugfixes for 5.3-rc2
-Date:   Fri, 9 Aug 2019 17:40:57 +0800
-Message-ID: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 1/9] RDMA/hns: Logic optimization of wc_flags
+Date:   Fri, 9 Aug 2019 17:40:58 +0800
+Message-ID: <1565343666-73193-2-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
+In-Reply-To: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
+References: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.71.200.31]
@@ -41,38 +43,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Here fixes some bugs for hip08
+From: Weihang Li <liweihang@hisilicon.com>
 
-Lang Cheng (1):
-  RDMA/hns: Remove unuseful member
+We should set IB_WC_WITH_VLAN only when VLAN is enabled.
+In addition, move setting of IB_WC_WITH_SMAC below
+setting of wc->smac.
 
-Lijun Ou (2):
-  RDMA/hns: Bugfix for creating qp attached to srq
-  RDMA/hns: Copy some information of AV to user
+Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Weihang Li (1):
-  RDMA/hns: Logic optimization of wc_flags
-
-Xi Wang (2):
-  RDMA/hns: Bugfix for slab-out-of-bounds when unloading hip08 driver
-  RDMA/hns: bugfix for slab-out-of-bounds when loading hip08 driver
-
-Yangyang Li (3):
-  RDMA/hns: Completely release qp resources when hw err
-  RDMA/hns: Modify pi vlaue when cq overflows
-  RDMA/hns: Kernel notify usr space to stop ring db
-
- drivers/infiniband/hw/hns/hns_roce_ah.c     | 22 ++++++--
- drivers/infiniband/hw/hns/hns_roce_cmd.c    |  1 -
- drivers/infiniband/hw/hns/hns_roce_device.h |  8 ++-
- drivers/infiniband/hw/hns/hns_roce_hem.c    | 19 ++++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 78 +++++++++++++++++++++++------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  4 ++
- drivers/infiniband/hw/hns/hns_roce_main.c   | 29 +++++++----
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 25 ++++++---
- include/uapi/rdma/hns-abi.h                 |  7 +++
- 9 files changed, 148 insertions(+), 45 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 87a1574..7a14f0b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2860,15 +2860,16 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
+ 		wc->smac[5] = roce_get_field(cqe->byte_28,
+ 					     V2_CQE_BYTE_28_SMAC_5_M,
+ 					     V2_CQE_BYTE_28_SMAC_5_S);
++		wc->wc_flags |= IB_WC_WITH_SMAC;
+ 		if (roce_get_bit(cqe->byte_28, V2_CQE_BYTE_28_VID_VLD_S)) {
+ 			wc->vlan_id = (u16)roce_get_field(cqe->byte_28,
+ 							  V2_CQE_BYTE_28_VID_M,
+ 							  V2_CQE_BYTE_28_VID_S);
++			wc->wc_flags |= IB_WC_WITH_VLAN;
+ 		} else {
+ 			wc->vlan_id = 0xffff;
+ 		}
+ 
+-		wc->wc_flags |= (IB_WC_WITH_VLAN | IB_WC_WITH_SMAC);
+ 		wc->network_hdr_type = roce_get_field(cqe->byte_28,
+ 						    V2_CQE_BYTE_28_PORT_TYPE_M,
+ 						    V2_CQE_BYTE_28_PORT_TYPE_S);
 -- 
 1.9.1
 
