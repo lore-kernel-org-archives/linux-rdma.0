@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA98DC31E40
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FE7C32758
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 930F4217F5
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAE1D2171F
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730233AbfHIJp2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Aug 2019 05:45:28 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4210 "EHLO huawei.com"
+        id S2405976AbfHIJpa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Aug 2019 05:45:30 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4209 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726152AbfHIJp2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 9 Aug 2019 05:45:28 -0400
+        id S2406053AbfHIJp3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 9 Aug 2019 05:45:29 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id BB39030FE410BB3BE2B9;
+        by Forcepoint Email with ESMTP id B2FE31DE1C64D207FA77;
         Fri,  9 Aug 2019 17:45:26 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.439.0; Fri, 9 Aug 2019 17:45:19 +0800
+ 14.3.439.0; Fri, 9 Aug 2019 17:45:20 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 1/9] RDMA/hns: Logic optimization of wc_flags
-Date:   Fri, 9 Aug 2019 17:40:58 +0800
-Message-ID: <1565343666-73193-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 4/9] RDMA/hns: Modify pi vlaue when cq overflows
+Date:   Fri, 9 Aug 2019 17:41:01 +0800
+Message-ID: <1565343666-73193-5-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
 References: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
@@ -43,39 +43,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Weihang Li <liweihang@hisilicon.com>
+From: Yangyang Li <liyangyang20@huawei.com>
 
-We should set IB_WC_WITH_VLAN only when VLAN is enabled.
-In addition, move setting of IB_WC_WITH_SMAC below
-setting of wc->smac.
+When exiting "for loop", the actual value of pi will be
+increased by 1, which is compatible with the next calculation.
+But when pi is equal to "ci + hr_cq-> ib_cq.cqe", the "break"
+was called and the pi is actual value, it will lead one cqe
+still existing, so the "==" should be modify to ">".
 
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 87a1574..7a14f0b 100644
+index 0409851..c6b55a1 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2860,15 +2860,16 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		wc->smac[5] = roce_get_field(cqe->byte_28,
- 					     V2_CQE_BYTE_28_SMAC_5_M,
- 					     V2_CQE_BYTE_28_SMAC_5_S);
-+		wc->wc_flags |= IB_WC_WITH_SMAC;
- 		if (roce_get_bit(cqe->byte_28, V2_CQE_BYTE_28_VID_VLD_S)) {
- 			wc->vlan_id = (u16)roce_get_field(cqe->byte_28,
- 							  V2_CQE_BYTE_28_VID_M,
- 							  V2_CQE_BYTE_28_VID_S);
-+			wc->wc_flags |= IB_WC_WITH_VLAN;
- 		} else {
- 			wc->vlan_id = 0xffff;
- 		}
+@@ -2407,7 +2407,7 @@ static void __hns_roce_v2_cq_clean(struct hns_roce_cq *hr_cq, u32 qpn,
  
--		wc->wc_flags |= (IB_WC_WITH_VLAN | IB_WC_WITH_SMAC);
- 		wc->network_hdr_type = roce_get_field(cqe->byte_28,
- 						    V2_CQE_BYTE_28_PORT_TYPE_M,
- 						    V2_CQE_BYTE_28_PORT_TYPE_S);
+ 	for (prod_index = hr_cq->cons_index; get_sw_cqe_v2(hr_cq, prod_index);
+ 	     ++prod_index) {
+-		if (prod_index == hr_cq->cons_index + hr_cq->ib_cq.cqe)
++		if (prod_index > hr_cq->cons_index + hr_cq->ib_cq.cqe)
+ 			break;
+ 	}
+ 
 -- 
 1.9.1
 
