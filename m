@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB0A2C433FF
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1638EC32757
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9C8A72171F
+	by mail.kernel.org (Postfix) with ESMTP id ECBD82171F
 	for <linux-rdma@archiver.kernel.org>; Fri,  9 Aug 2019 09:45:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406136AbfHIJpe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2406120AbfHIJpe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 9 Aug 2019 05:45:34 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:55556 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:55538 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2406120AbfHIJpd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 9 Aug 2019 05:45:33 -0400
+        id S2405773AbfHIJpe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 9 Aug 2019 05:45:34 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id C9C25159F539E5631454;
+        by Forcepoint Email with ESMTP id C585D7AD63B6C701E89A;
         Fri,  9 Aug 2019 17:45:31 +0800 (CST)
 Received: from linux-ioko.site (10.71.200.31) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
@@ -28,9 +28,9 @@ From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 8/9] RDMA/hns: Kernel notify usr space to stop ring db
-Date:   Fri, 9 Aug 2019 17:41:05 +0800
-Message-ID: <1565343666-73193-9-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 6/9] RDMA/hns: bugfix for slab-out-of-bounds when loading hip08 driver
+Date:   Fri, 9 Aug 2019 17:41:03 +0800
+Message-ID: <1565343666-73193-7-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
 References: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
@@ -43,191 +43,119 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
+From: Xi Wang <wangxi11@huawei.com>
 
-In the reset scenario, if the kernel receives the reset signal,
-it needs to notify the user space to stop ring doorbell.
+kasan will report a BUG when run command 'insmod hns_roce_hw_v2.ko', the
+calltrace is as follows:
 
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+==================================================================
+BUG: KASAN: slab-out-of-bounds in hns_roce_v2_init_eq_table+0x1324/0x1948
+[hns_roce_hw_v2]
+Read of size 8 at addr ffff8020e7a10608 by task insmod/256
+
+CPU: 0 PID: 256 Comm: insmod Tainted: G           O      5.2.0-rc4 #1
+Hardware name: Huawei D06 /D06, BIOS Hisilicon D06 UEFI RC0
+Call trace:
+dump_backtrace+0x0/0x1e8
+show_stack+0x14/0x20
+dump_stack+0xc4/0xfc
+print_address_description+0x60/0x270
+__kasan_report+0x164/0x1b8
+kasan_report+0xc/0x18
+__asan_load8+0x84/0xa8
+hns_roce_v2_init_eq_table+0x1324/0x1948 [hns_roce_hw_v2]
+hns_roce_init+0xf8/0xfe0 [hns_roce]
+__hns_roce_hw_v2_init_instance+0x284/0x330 [hns_roce_hw_v2]
+hns_roce_hw_v2_init_instance+0xd0/0x1b8 [hns_roce_hw_v2]
+hclge_init_roce_client_instance+0x180/0x310 [hclge]
+hclge_init_client_instance+0xcc/0x508 [hclge]
+hnae3_init_client_instance.part.3+0x3c/0x80 [hnae3]
+hnae3_register_client+0x134/0x1a8 [hnae3]
+hns_roce_hw_v2_init+0x14/0x10000 [hns_roce_hw_v2]
+do_one_initcall+0x9c/0x3e0
+do_init_module+0xd4/0x2d8
+load_module+0x3284/0x3690
+__se_sys_init_module+0x274/0x308
+__arm64_sys_init_module+0x40/0x50
+el0_svc_handler+0xbc/0x210
+el0_svc+0x8/0xc
+
+Allocated by task 256:
+__kasan_kmalloc.isra.0+0xd0/0x180
+kasan_kmalloc+0xc/0x18
+__kmalloc+0x16c/0x328
+hns_roce_v2_init_eq_table+0x764/0x1948 [hns_roce_hw_v2]
+hns_roce_init+0xf8/0xfe0 [hns_roce]
+__hns_roce_hw_v2_init_instance+0x284/0x330 [hns_roce_hw_v2]
+hns_roce_hw_v2_init_instance+0xd0/0x1b8 [hns_roce_hw_v2]
+hclge_init_roce_client_instance+0x180/0x310 [hclge]
+hclge_init_client_instance+0xcc/0x508 [hclge]
+hnae3_init_client_instance.part.3+0x3c/0x80 [hnae3]
+hnae3_register_client+0x134/0x1a8 [hnae3]
+hns_roce_hw_v2_init+0x14/0x10000 [hns_roce_hw_v2]
+do_one_initcall+0x9c/0x3e0
+do_init_module+0xd4/0x2d8
+load_module+0x3284/0x3690
+__se_sys_init_module+0x274/0x308
+__arm64_sys_init_module+0x40/0x50
+el0_svc_handler+0xbc/0x210
+el0_svc+0x8/0xc
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8020e7a10600
+which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 8 bytes inside of
+128-byte region [ffff8020e7a10600, ffff8020e7a10680)
+The buggy address belongs to the page:
+page:ffff7fe00839e840 refcount:1 mapcount:0 mapping:ffff802340020200 index:0x0
+flags: 0x5fffe00000000200(slab)
+raw: 5fffe00000000200 dead000000000100 dead000000000200 ffff802340020200
+raw: 0000000000000000 0000000081000100 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ffff8020e7a10500: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+ffff8020e7a10580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8020e7a10600: 00 fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+^
+ffff8020e7a10680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ffff8020e7a10700: 00 fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================
+Disabling lock debugging due to kernel taint
+
+Fixes: a5073d6054f7 ("RDMA/hns: Add eq support of hip08")
+
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  4 +++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 52 ++++++++++++++++++++++++++++-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  4 +++
- drivers/infiniband/hw/hns/hns_roce_main.c   | 22 ++++++------
- 4 files changed, 70 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 32465f5..be65fce 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -268,6 +268,8 @@ enum {
- 
- #define PAGE_ADDR_SHIFT				12
- 
-+#define HNS_ROCE_IS_RESETTING			1
-+
- struct hns_roce_uar {
- 	u64		pfn;
- 	unsigned long	index;
-@@ -1043,6 +1045,8 @@ struct hns_roce_dev {
- 	u32			odb_offset;
- 	dma_addr_t		tptr_dma_addr;	/* only for hw v1 */
- 	u32			tptr_size;	/* only for hw v1 */
-+	struct page		*reset_page; /* store reset state */
-+	void			*reset_kaddr; /* addr of reset page */
- 	const struct hns_roce_hw *hw;
- 	void			*priv;
- 	struct workqueue_struct *irq_workq;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index d33341e..138e5a8 100644
+index c6b55a1..d33341e 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1867,17 +1867,49 @@ static void hns_roce_free_link_table(struct hns_roce_dev *hr_dev,
- 			  link_tbl->table.map);
- }
+@@ -5543,7 +5543,8 @@ static int hns_roce_mhop_alloc_eq(struct hns_roce_dev *hr_dev,
+ 				break;
+ 		}
+ 		eq->cur_eqe_ba = eq->buf_dma[0];
+-		eq->nxt_eqe_ba = eq->buf_dma[1];
++		if (ba_num > 1)
++			eq->nxt_eqe_ba = eq->buf_dma[1];
  
-+static int hns_roce_v2_get_reset_page(struct hns_roce_dev *hr_dev)
-+{
-+	hr_dev->reset_page = alloc_page(GFP_KERNEL | __GFP_ZERO);
-+	if (!hr_dev->reset_page)
-+		return -ENOMEM;
-+
-+	hr_dev->reset_kaddr = vmap(&hr_dev->reset_page, 1, VM_MAP, PAGE_KERNEL);
-+	if (!hr_dev->reset_kaddr)
-+		goto err_with_vmap;
-+
-+	return 0;
-+
-+err_with_vmap:
-+	put_page(hr_dev->reset_page);
-+	return -ENOMEM;
-+}
-+
-+static void hns_roce_v2_put_reset_page(struct hns_roce_dev *hr_dev)
-+{
-+	vunmap(hr_dev->reset_kaddr);
-+	hr_dev->reset_kaddr = NULL;
-+	put_page(hr_dev->reset_page);
-+	hr_dev->reset_page = NULL;
-+}
-+
- static int hns_roce_v2_init(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_v2_priv *priv = hr_dev->priv;
- 	int qpc_count, cqc_count;
- 	int ret, i;
- 
-+	ret = hns_roce_v2_get_reset_page(hr_dev);
-+	if (ret) {
-+		dev_err(hr_dev->dev,
-+			"reset state init failed, ret = %d.\n", ret);
-+		return ret;
-+	}
-+
- 	/* TSQ includes SQ doorbell and ack doorbell */
- 	ret = hns_roce_init_link_table(hr_dev, TSQ_LINK_TABLE);
- 	if (ret) {
- 		dev_err(hr_dev->dev, "TSQ init failed, ret = %d.\n", ret);
--		return ret;
-+		goto err_tsq_init_failed;
+ 	} else if (mhop_num == 2) {
+ 		/* alloc L1 BT and buf */
+@@ -5584,7 +5585,8 @@ static int hns_roce_mhop_alloc_eq(struct hns_roce_dev *hr_dev,
+ 				break;
+ 		}
+ 		eq->cur_eqe_ba = eq->buf_dma[0];
+-		eq->nxt_eqe_ba = eq->buf_dma[1];
++		if (ba_num > 1)
++			eq->nxt_eqe_ba = eq->buf_dma[1];
  	}
  
- 	ret = hns_roce_init_link_table(hr_dev, TPQ_LINK_TABLE);
-@@ -1923,6 +1955,9 @@ static int hns_roce_v2_init(struct hns_roce_dev *hr_dev)
- err_tpq_init_failed:
- 	hns_roce_free_link_table(hr_dev, &priv->tsq);
- 
-+err_tsq_init_failed:
-+	hns_roce_v2_put_reset_page(hr_dev);
-+
- 	return ret;
- }
- 
-@@ -1935,6 +1970,7 @@ static void hns_roce_v2_exit(struct hns_roce_dev *hr_dev)
- 
- 	hns_roce_free_link_table(hr_dev, &priv->tpq);
- 	hns_roce_free_link_table(hr_dev, &priv->tsq);
-+	hns_roce_v2_put_reset_page(hr_dev);
- }
- 
- static int hns_roce_query_mbox_status(struct hns_roce_dev *hr_dev)
-@@ -6434,6 +6470,19 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
- 
- 	handle->rinfo.instance_state = HNS_ROCE_STATE_NON_INIT;
- }
-+
-+static void hns_roce_v2_reset_notify_user(struct hns_roce_dev *hr_dev)
-+{
-+	struct hns_roce_v2_reset_state *state;
-+
-+	state = (struct hns_roce_v2_reset_state *) hr_dev->reset_kaddr;
-+
-+	state->reset_state = HNS_ROCE_IS_RESETTING;
-+
-+	/* Ensure reset state was flushed in memory */
-+	wmb();
-+}
-+
- static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
- {
- 	struct hns_roce_dev *hr_dev;
-@@ -6454,6 +6503,7 @@ static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
- 	hr_dev->is_reset = true;
- 	hr_dev->active = false;
- 	hr_dev->dis_db = true;
-+	hns_roce_v2_reset_notify_user(hr_dev);
- 
- 	event.event = IB_EVENT_DEVICE_FATAL;
- 	event.device = &hr_dev->ib_dev;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 58931b5..392bc03 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -1622,6 +1622,10 @@ struct hns_roce_link_table_entry {
- #define HNS_ROCE_LINK_TABLE_NXT_PTR_S 20
- #define HNS_ROCE_LINK_TABLE_NXT_PTR_M GENMASK(31, 20)
- 
-+struct hns_roce_v2_reset_state {
-+	u32 reset_state; /* stored to use in user space */
-+};
-+
- struct hns_roce_v2_priv {
- 	struct hnae3_handle *handle;
- 	struct hns_roce_v2_cmq cmq;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 1e4ba48..1bda7a5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -360,18 +360,18 @@ static int hns_roce_mmap(struct ib_ucontext *context,
- 					 PAGE_SIZE,
- 					 pgprot_noncached(vma->vm_page_prot));
- 
--	/* vm_pgoff: 1 -- TPTR */
-+	/* vm_pgoff: 1 -- TPTR(hw v1), reset_page(hw v2) */
- 	case 1:
--		if (!hr_dev->tptr_dma_addr || !hr_dev->tptr_size)
--			return -EINVAL;
--		/*
--		 * FIXME: using io_remap_pfn_range on the dma address returned
--		 * by dma_alloc_coherent is totally wrong.
--		 */
--		return rdma_user_mmap_io(context, vma,
--					 hr_dev->tptr_dma_addr >> PAGE_SHIFT,
--					 hr_dev->tptr_size,
--					 vma->vm_page_prot);
-+		if (hr_dev->tptr_dma_addr && hr_dev->tptr_size)
-+			return rdma_user_mmap_io(context, vma,
-+					    hr_dev->tptr_dma_addr >> PAGE_SHIFT,
-+					    hr_dev->tptr_size,
-+					    vma->vm_page_prot);
-+
-+		if (hr_dev->reset_page)
-+			return remap_pfn_range(vma, vma->vm_start,
-+					  page_to_pfn(hr_dev->reset_page),
-+					  PAGE_SIZE, vma->vm_page_prot);
- 
- 	default:
- 		return -EINVAL;
+ 	eq->l0_last_num = i + 1;
 -- 
 1.9.1
 
