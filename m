@@ -2,245 +2,153 @@ Return-Path: <SRS0=iTlL=WH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3CA5C32756
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 16:29:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD8C9C32757
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 23:07:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 83CD72085B
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 16:29:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A295820818
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 23:07:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="GjochqX+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725837AbfHKQ3f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Aug 2019 12:29:35 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41712 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725848AbfHKQ3e (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Aug 2019 12:29:34 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from haimbo@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 11 Aug 2019 19:29:27 +0300
-Received: from r-ufm115.mtr.labs.mlnx (r-ufm115.mtr.labs.mlnx [10.209.36.210])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7BGTR0b008098;
-        Sun, 11 Aug 2019 19:29:27 +0300
-Received: from r-ufm115.mtr.labs.mlnx (localhost [127.0.0.1])
-        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7) with ESMTP id x7BGTRi1020239;
-        Sun, 11 Aug 2019 16:29:27 GMT
-Received: (from haimbo@localhost)
-        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7/Submit) id x7BGTRHs020238;
-        Sun, 11 Aug 2019 16:29:27 GMT
-From:   Haim Boozaglo <haimbo@mellanox.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Vladimir Koushnir <vladimirk@mellanox.com>,
-        Haim Boozaglo <haimbo@mellanox.com>
-Subject: [PATCH 1/3] libibumad: Support arbitrary number of IB devices
-Date:   Sun, 11 Aug 2019 16:29:20 +0000
-Message-Id: <1565540962-20188-2-git-send-email-haimbo@mellanox.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1565540962-20188-1-git-send-email-haimbo@mellanox.com>
-References: <1565540962-20188-1-git-send-email-haimbo@mellanox.com>
+        id S1726566AbfHKXH0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Aug 2019 19:07:26 -0400
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:7185 "EHLO
+        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725855AbfHKXH0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Aug 2019 19:07:26 -0400
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate15.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5d509fb60000>; Sun, 11 Aug 2019 16:07:34 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate102.nvidia.com (PGP Universal service);
+  Sun, 11 Aug 2019 16:07:24 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate102.nvidia.com on Sun, 11 Aug 2019 16:07:24 -0700
+Received: from [10.110.48.28] (10.124.1.5) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 11 Aug
+ 2019 23:07:23 +0000
+Subject: Re: [RFC PATCH v2 15/19] mm/gup: Introduce vaddr_pin_pages()
+To:     <ira.weiny@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+CC:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+        Theodore Ts'o <tytso@mit.edu>, Michal Hocko <mhocko@suse.com>,
+        Dave Chinner <david@fromorbit.com>,
+        <linux-xfs@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+        <linux-nvdimm@lists.01.org>, <linux-ext4@vger.kernel.org>,
+        <linux-mm@kvack.org>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
+ <20190809225833.6657-16-ira.weiny@intel.com>
+X-Nvconfidentiality: public
+From:   John Hubbard <jhubbard@nvidia.com>
+Message-ID: <88d82639-c0b2-0b35-1919-999a8438031c@nvidia.com>
+Date:   Sun, 11 Aug 2019 16:07:23 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
+MIME-Version: 1.0
+In-Reply-To: <20190809225833.6657-16-ira.weiny@intel.com>
+X-Originating-IP: [10.124.1.5]
+X-ClientProxiedBy: HQMAIL104.nvidia.com (172.18.146.11) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1565564854; bh=WyN+cqUy4NONmSoVEoC5zyApgJufQNRRkmxYAmxiNRk=;
+        h=X-PGP-Universal:Subject:To:CC:References:X-Nvconfidentiality:From:
+         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
+         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
+         Content-Transfer-Encoding;
+        b=GjochqX+orN7s3BQGomPrZQyWc/568hzhVWT8sDxI6ycL8n3NJRfjYVyxlilSkFJV
+         0v1gr7a1sg2wL7PQ7Q0Dcubx1ogIn8Ke72whU/7rqtGuRqPq7C+Ov/M2GpkOhsvG7D
+         prYV07lPVe1n7zXbUFOOqu0O+zmZFD4o9ZwEYryqx80zMRNZ+bq7HCwxmmVbIxjO2a
+         eyfVpsIxVN8KjqFFKHnKr50U23pYiJqe16sEcZFBVMMPBbuIaXUFHzc2oRYO+Hbvbq
+         BtKCArw8N2g27OxonpaIrJUWZPBJhIbV9JVwYzpariVg0rZ5RNb/Q9Z0jeOeGL3ylM
+         qgEDDHrL4QwYQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Vladimir Koushnir <vladimirk@mellanox.com>
+On 8/9/19 3:58 PM, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> The addition of FOLL_LONGTERM has taken on additional meaning for CMA
+> pages.
+> 
+> In addition subsystems such as RDMA require new information to be passed
+> to the GUP interface to track file owning information.  As such a simple
+> FOLL_LONGTERM flag is no longer sufficient for these users to pin pages.
+> 
+> Introduce a new GUP like call which takes the newly introduced vaddr_pin
+> information.  Failure to pass the vaddr_pin object back to a vaddr_put*
+> call will result in a failure if pins were created on files during the
+> pin operation.
+> 
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
 
-Added new function returning a list of available InfiniBand device names.
-The returned list is not limited to 32 devices.
+I'm creating a new call site conversion series, to replace the 
+"put_user_pages(): miscellaneous call sites" series. This uses
+vaddr_pin_pages*() where appropriate. So it's based on your series here.
 
-Signed-off-by: Vladimir Koushnir <vladimirk@mellanox.com>
-Signed-off-by: Haim Boozaglo <haimbo@mellanox.com>
----
- debian/libibumad3.symbols             |  2 ++
- libibumad/CMakeLists.txt              |  2 +-
- libibumad/libibumad.map               |  6 +++++
- libibumad/man/umad_free_ca_namelist.3 | 28 ++++++++++++++++++++++++
- libibumad/man/umad_get_ca_namelist.3  | 34 +++++++++++++++++++++++++++++
- libibumad/umad.c                      | 41 +++++++++++++++++++++++++++++++++++
- libibumad/umad.h                      |  2 ++
- 7 files changed, 114 insertions(+), 1 deletion(-)
- create mode 100644 libibumad/man/umad_free_ca_namelist.3
- create mode 100644 libibumad/man/umad_get_ca_namelist.3
+btw, while doing that, I noticed one more typo while re-reading some of the comments. 
+Thought you probably want to collect them all for the next spin. Below...
 
-diff --git a/debian/libibumad3.symbols b/debian/libibumad3.symbols
-index 31a749f..d4b9bde 100644
---- a/debian/libibumad3.symbols
-+++ b/debian/libibumad3.symbols
-@@ -9,7 +9,9 @@ libibumad.so.3 libibumad3 #MINVER#
-  umad_debug@IBUMAD_1.0 1.3.9
-  umad_done@IBUMAD_1.0 1.3.9
-  umad_dump@IBUMAD_1.0 1.3.9
-+ umad_free_ca_namelist@IBUMAD_1.1 3.1.26
-  umad_get_ca@IBUMAD_1.0 1.3.9
-+ umad_get_ca_namelist@IBUMAD_1.1 3.1.26
-  umad_get_ca_portguids@IBUMAD_1.0 1.3.9
-  umad_get_cas_names@IBUMAD_1.0 1.3.9
-  umad_get_fd@IBUMAD_1.0 1.3.9
-diff --git a/libibumad/CMakeLists.txt b/libibumad/CMakeLists.txt
-index 1f600a0..9d0a425 100644
---- a/libibumad/CMakeLists.txt
-+++ b/libibumad/CMakeLists.txt
-@@ -10,7 +10,7 @@ publish_headers(infiniband
- 
- rdma_library(ibumad libibumad.map
-   # See Documentation/versioning.md
--  3 3.0.${PACKAGE_VERSION}
-+  3 3.1.${PACKAGE_VERSION}
-   sysfs.c
-   umad.c
-   umad_str.c
-diff --git a/libibumad/libibumad.map b/libibumad/libibumad.map
-index 8bf474e..1f66cc3 100644
---- a/libibumad/libibumad.map
-+++ b/libibumad/libibumad.map
-@@ -39,3 +39,9 @@ IBUMAD_1.0 {
- 		umad_attribute_str;
- 	local: *;
- };
-+
-+IBUMAD_1.1 {
-+	global:
-+		umad_free_ca_namelist;
-+		umad_get_ca_namelist;
-+} IBUMAD_1.0;
-diff --git a/libibumad/man/umad_free_ca_namelist.3 b/libibumad/man/umad_free_ca_namelist.3
-new file mode 100644
-index 0000000..f15958b
---- /dev/null
-+++ b/libibumad/man/umad_free_ca_namelist.3
-@@ -0,0 +1,28 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH UMAD_FREE_CA_NAMELIST 3  "May 1, 2018" "OpenIB" "OpenIB Programmer\'s Manual"
-+.SH "NAME"
-+umad_free_ca_namelist \- free InfiniBand devices name list
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/umad.h>
-+.sp
-+.BI "void umad_free_ca_namelist(char " "*cas" );
-+.fi
-+.SH "DESCRIPTION"
-+.B umad_get_free_namelist()
-+frees the InfiniBand devices name list previously allocated with
-+.B umad_get_ca_namelist()\fR.
-+The argument
-+.I cas
-+is a character array of InfiniBand devices names
-+.SH "RETURN VALUE"
-+.B umad_free_ca_namelist()
-+returns no value.
-+.SH "SEE ALSO"
-+.BR umad_get_ca_namelist(3)
-+.SH "AUTHORS"
-+.TP
-+Vladimir Koushnir <vladimirk@mellanox.com>
-+.TP
-+Hal Rosenstock <hal@mellanox.com>
-diff --git a/libibumad/man/umad_get_ca_namelist.3 b/libibumad/man/umad_get_ca_namelist.3
-new file mode 100644
-index 0000000..5b30209
---- /dev/null
-+++ b/libibumad/man/umad_get_ca_namelist.3
-@@ -0,0 +1,34 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH UMAD_GET_CA_NAMELIST 3  "May 1, 2018" "OpenIB" "OpenIB Programmer\'s Manual"
-+.SH "NAME"
-+umad_get_ca_namelist \- get list of available InfiniBand device names
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/umad.h>
-+.sp
-+.BI "int umad_get_ca_namelist(char " "**cas" );
-+.fi
-+.SH "DESCRIPTION"
-+.B umad_get_ca_namelist()
-+fills the
-+.I cas
-+array with arbitrary number of local IB devices (CAs) names.
-+The argument
-+.I cas
-+is a character array that will be allocated by the function to include number of entries, each with
-+.B UMAD_CA_NAME_LEN
-+characters.
-+.SH "RETURN VALUE"
-+.B umad_get_ca_namelist()
-+returns a non-negative value equal to the number of entries filled,
-+or \-1 on errors.
-+.SH "SEE ALSO"
-+.BR umad_get_ca_portguids (3),
-+.BR umad_open_port (3)
-+.BR umad_free_ca_namelist(3)
-+.SH "AUTHORS"
-+.TP
-+Vladimir Koushnir <vladimirk@mellanox.com>
-+.TP
-+Hal Rosenstock <hal@mellanox.com>
-diff --git a/libibumad/umad.c b/libibumad/umad.c
-index 5f8656e..9d0303b 100644
---- a/libibumad/umad.c
-+++ b/libibumad/umad.c
-@@ -1123,3 +1123,44 @@ void umad_dump(void *umad)
- 	       mad->agent_id, mad->status, mad->timeout_ms);
- 	umad_addr_dump(&mad->addr);
- }
-+
-+int umad_get_ca_namelist(char **cas)
-+{
-+	struct dirent **namelist;
-+	int n, i, j = 0;
-+
-+	n = scandir(SYS_INFINIBAND, &namelist, NULL, alphasort);
-+
-+	if (n > 0) {
-+		*cas = (char *) calloc(1, n * sizeof(char) * UMAD_CA_NAME_LEN);
-+		for (i = 0; i < n; i++) {
-+			if (*cas && strcmp(namelist[i]->d_name, ".") &&
-+			    strcmp(namelist[i]->d_name, "..")) {
-+				if (is_ib_type(namelist[i]->d_name)) {
-+					strncpy(*cas + j * UMAD_CA_NAME_LEN,
-+						namelist[i]->d_name,
-+						UMAD_CA_NAME_LEN);
-+					j++;
-+				}
-+			}
-+			free(namelist[i]);
-+		}
-+		DEBUG("return %d cas", j);
-+	} else {
-+		/* Is this still needed ? */
-+		if ((*cas = calloc(1, UMAD_CA_NAME_LEN * sizeof(char)))) {
-+			strncpy(*cas, def_ca_name, UMAD_CA_NAME_LEN);
-+			DEBUG("return 1 ca");
-+			j = 1;
-+		}
-+	}
-+	if (n >= 0)
-+		free(namelist);
-+
-+	return j;
-+}
-+
-+void umad_free_ca_namelist(char *cas)
-+{
-+	free(cas);
-+}
-diff --git a/libibumad/umad.h b/libibumad/umad.h
-index 3cc551f..70bc213 100644
---- a/libibumad/umad.h
-+++ b/libibumad/umad.h
-@@ -208,6 +208,8 @@ int umad_register(int portid, int mgmt_class, int mgmt_version,
- int umad_register_oui(int portid, int mgmt_class, uint8_t rmpp_version,
- 		      uint8_t oui[3], long method_mask[16 / sizeof(long)]);
- int umad_unregister(int portid, int agentid);
-+int umad_get_ca_namelist(char **cas);
-+void umad_free_ca_namelist(char *cas);
- 
- enum {
- 	UMAD_USER_RMPP = (1 << 0)
+> ---
+> Changes from list:
+> 	Change to vaddr_put_pages_dirty_lock
+> 	Change to vaddr_unpin_pages_dirty_lock
+> 
+>  include/linux/mm.h |  5 ++++
+>  mm/gup.c           | 59 ++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 64 insertions(+)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 657c947bda49..90c5802866df 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1603,6 +1603,11 @@ int account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc);
+>  int __account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc,
+>  			struct task_struct *task, bool bypass_rlim);
+>  
+> +long vaddr_pin_pages(unsigned long addr, unsigned long nr_pages,
+> +		     unsigned int gup_flags, struct page **pages,
+> +		     struct vaddr_pin *vaddr_pin);
+> +void vaddr_unpin_pages_dirty_lock(struct page **pages, unsigned long nr_pages,
+> +				  struct vaddr_pin *vaddr_pin, bool make_dirty);
+>  bool mapping_inode_has_layout(struct vaddr_pin *vaddr_pin, struct page *page);
+>  
+>  /* Container for pinned pfns / pages */
+> diff --git a/mm/gup.c b/mm/gup.c
+> index eeaa0ddd08a6..6d23f70d7847 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -2536,3 +2536,62 @@ int get_user_pages_fast(unsigned long start, int nr_pages,
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(get_user_pages_fast);
+> +
+> +/**
+> + * vaddr_pin_pages pin pages by virtual address and return the pages to the
+> + * user.
+> + *
+> + * @addr, start address
+> + * @nr_pages, number of pages to pin
+> + * @gup_flags, flags to use for the pin
+> + * @pages, array of pages returned
+> + * @vaddr_pin, initalized meta information this pin is to be associated
+
+Typo:
+                  initialized
+
+
+thanks,
 -- 
-1.8.3.1
-
+John Hubbard
+NVIDIA
