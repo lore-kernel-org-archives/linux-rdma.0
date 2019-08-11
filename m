@@ -2,70 +2,158 @@ Return-Path: <SRS0=iTlL=WH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE4C6C0650F
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 16:29:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2825C0650F
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 16:29:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E0F42085B
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 16:29:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E5862085B
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 16:29:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726014AbfHKQ3b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Aug 2019 12:29:31 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41691 "EHLO
+        id S1726477AbfHKQ3e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Aug 2019 12:29:34 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41717 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725837AbfHKQ33 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Aug 2019 12:29:29 -0400
+        with ESMTP id S1726469AbfHKQ3d (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Aug 2019 12:29:33 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from haimbo@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 11 Aug 2019 19:29:27 +0300
+        with ESMTPS (AES256-SHA encrypted); 11 Aug 2019 19:29:28 +0300
 Received: from r-ufm115.mtr.labs.mlnx (r-ufm115.mtr.labs.mlnx [10.209.36.210])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7BGTRR8008095;
-        Sun, 11 Aug 2019 19:29:27 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7BGTSMe008104;
+        Sun, 11 Aug 2019 19:29:28 +0300
 Received: from r-ufm115.mtr.labs.mlnx (localhost [127.0.0.1])
-        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7) with ESMTP id x7BGTR5v020236;
-        Sun, 11 Aug 2019 16:29:27 GMT
+        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7) with ESMTP id x7BGTSGx020243;
+        Sun, 11 Aug 2019 16:29:28 GMT
 Received: (from haimbo@localhost)
-        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7/Submit) id x7BGTQHj020235;
-        Sun, 11 Aug 2019 16:29:26 GMT
+        by r-ufm115.mtr.labs.mlnx (8.14.7/8.14.7/Submit) id x7BGTSuD020242;
+        Sun, 11 Aug 2019 16:29:28 GMT
 From:   Haim Boozaglo <haimbo@mellanox.com>
 To:     linux-rdma@vger.kernel.org
-Cc:     Haim Boozaglo <haimbo@mellanox.com>
-Subject: [PATCH rdma-core 0/3] get more than 32 available InfiniBand device names
-Date:   Sun, 11 Aug 2019 16:29:19 +0000
-Message-Id: <1565540962-20188-1-git-send-email-haimbo@mellanox.com>
+Cc:     Vladimir Koushnir <vladimirk@mellanox.com>,
+        Haim Boozaglo <haimbo@mellanox.com>
+Subject: [PATCH 3/3] ibdiags: Support arbitrary number of IB devices in ibstat
+Date:   Sun, 11 Aug 2019 16:29:22 +0000
+Message-Id: <1565540962-20188-4-git-send-email-haimbo@mellanox.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1565540962-20188-1-git-send-email-haimbo@mellanox.com>
+References: <1565540962-20188-1-git-send-email-haimbo@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+From: Vladimir Koushnir <vladimirk@mellanox.com>
 
-This series from Vladimir Koushnir adds the ability to get
-list of InfiniBand device names greater than 32.
+Allow showing more than 32 IB devices on the server.
+umad_get_ca_namelist API is used for this purpose.
 
-Thanks
+Signed-off-by: Vladimir Koushnir <vladimirk@mellanox.com>
+Signed-off-by: Haim Boozaglo <haimbo@mellanox.com>
+---
+ infiniband-diags/ibstat.c | 47 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 26 insertions(+), 21 deletions(-)
 
-Vladimir Koushnir (3):
-  libibumad: Support arbitrary number of IB devices
-  libibumad: Redesign resolve_ca_name to support arbitrary number of IB
-    devices
-  ibdiags: Support arbitrary number of IB devices in ibstat
-
- debian/libibumad3.symbols             |   2 +
- infiniband-diags/ibstat.c             |  47 +++++++-----
- libibumad/CMakeLists.txt              |   2 +-
- libibumad/libibumad.map               |   6 ++
- libibumad/man/umad_free_ca_namelist.3 |  28 +++++++
- libibumad/man/umad_get_ca_namelist.3  |  34 ++++++++
- libibumad/umad.c                      | 141 +++++++++++++++++++++++++---------
- libibumad/umad.h                      |   2 +
- 8 files changed, 204 insertions(+), 58 deletions(-)
- create mode 100644 libibumad/man/umad_free_ca_namelist.3
- create mode 100644 libibumad/man/umad_get_ca_namelist.3
-
+diff --git a/infiniband-diags/ibstat.c b/infiniband-diags/ibstat.c
+index 4601f2a..9c87ff8 100644
+--- a/infiniband-diags/ibstat.c
++++ b/infiniband-diags/ibstat.c
+@@ -232,23 +232,22 @@ static int ca_stat(char *ca_name, int portnum, int no_ports)
+ 	return 0;
+ }
+ 
+-static int ports_list(char names[][UMAD_CA_NAME_LEN], int n)
++static int ports_list(char *names, int n)
+ {
+ 	__be64 guids[64];
+-	int found, ports, i;
++	int ports, i, j;
+ 
+-	for (i = 0, found = 0; i < n && found < 64; i++) {
++	for (i = 0; i < n ; i++) {
+ 		if ((ports =
+-		     umad_get_ca_portguids(names[i], guids + found,
+-					   64 - found)) < 0)
++		     umad_get_ca_portguids(&names[i * UMAD_CA_NAME_LEN],
++					   &guids[0], 64)) < 0)
+ 			return -1;
+-		found += ports;
+-	}
+ 
+-	for (i = 0; i < found; i++)
+-		if (guids[i])
+-			printf("0x%016" PRIx64 "\n", be64toh(guids[i]));
+-	return found;
++		for (j = 0; j < ports; j++)
++			if (guids[j])
++				printf("0x%016" PRIx64 "\n", be64toh(guids[j]));
++	}
++	return 0;
+ }
+ 
+ static int list_only, short_format, list_ports;
+@@ -273,9 +272,10 @@ static int process_opt(void *context, int ch)
+ 
+ int main(int argc, char *argv[])
+ {
+-	char names[UMAD_MAX_DEVICES][UMAD_CA_NAME_LEN];
++	char *names;
+ 	int dev_port = -1;
+ 	int n, i;
++	char *nptr;
+ 
+ 	const struct ibdiag_opt opts[] = {
+ 		{"list_of_cas", 'l', 0, NULL, "list all IB devices"},
+@@ -302,33 +302,38 @@ int main(int argc, char *argv[])
+ 	if (umad_init() < 0)
+ 		IBPANIC("can't init UMAD library");
+ 
+-	if ((n = umad_get_cas_names(names, UMAD_MAX_DEVICES)) < 0)
++	if ((n = umad_get_ca_namelist(&names)) < 0)
+ 		IBPANIC("can't list IB device names");
+ 
+ 	if (argc) {
+ 		for (i = 0; i < n; i++)
+-			if (!strncmp(names[i], argv[0], sizeof names[i]))
++			if (!strncmp(&names[i * UMAD_CA_NAME_LEN],
++				     argv[0], UMAD_CA_NAME_LEN))
+ 				break;
+ 		if (i >= n)
+ 			IBPANIC("'%s' IB device can't be found", argv[0]);
+-
+-		strncpy(names[0], argv[0], sizeof(names[0])-1);
+-		names[0][sizeof(names[0])-1] = '\0';
++		if (i != 0) {
++			strncpy(&names[0],
++				&names[i * UMAD_CA_NAME_LEN],
++				UMAD_CA_NAME_LEN);
++		}
+ 		n = 1;
+ 	}
+ 
+ 	if (list_ports) {
+ 		if (ports_list(names, n) < 0)
+ 			IBPANIC("can't list ports");
++		umad_free_ca_namelist(names);
+ 		return 0;
+ 	}
+ 
+ 	for (i = 0; i < n; i++) {
++		nptr = &names[i * UMAD_CA_NAME_LEN];
+ 		if (list_only)
+-			printf("%s\n", names[i]);
+-		else if (ca_stat(names[i], dev_port, short_format) < 0)
+-			IBPANIC("stat of IB device '%s' failed", names[i]);
++			printf("%s\n", nptr);
++		else if (ca_stat(nptr, dev_port, short_format) < 0)
++			IBPANIC("stat of IB device '%s' failed", nptr);
+ 	}
+-
++	umad_free_ca_namelist(names);
+ 	return 0;
+ }
 -- 
 1.8.3.1
 
