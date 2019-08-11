@@ -1,126 +1,130 @@
-Return-Path: <SRS0=hunQ=WG=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=iTlL=WH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEDBBC433FF
-	for <linux-rdma@archiver.kernel.org>; Sat, 10 Aug 2019 15:58:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20CE2C0650F
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 09:56:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 84804208C3
-	for <linux-rdma@archiver.kernel.org>; Sat, 10 Aug 2019 15:58:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D292A2173C
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Aug 2019 09:56:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nifty.com header.i=@nifty.com header.b="QRz/HTl6"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="Irf3nmJb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726145AbfHJP64 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 10 Aug 2019 11:58:56 -0400
-Received: from condef-03.nifty.com ([202.248.20.68]:41395 "EHLO
-        condef-03.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725862AbfHJP6z (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 10 Aug 2019 11:58:55 -0400
-Received: from conuserg-11.nifty.com ([10.126.8.74])by condef-03.nifty.com with ESMTP id x7AFtOOp007456;
-        Sun, 11 Aug 2019 00:55:24 +0900
-Received: from grover.flets-west.jp (softbank126125143222.bbtec.net [126.125.143.222]) (authenticated)
-        by conuserg-11.nifty.com with ESMTP id x7AFrG8t009713;
-        Sun, 11 Aug 2019 00:53:17 +0900
-DKIM-Filter: OpenDKIM Filter v2.10.3 conuserg-11.nifty.com x7AFrG8t009713
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
-        s=dec2015msa; t=1565452398;
-        bh=oC63xap+fxhG9bzK+JnNTDD45f6COtr1Al2zhD2RQ+A=;
-        h=From:To:Cc:Subject:Date:From;
-        b=QRz/HTl63qVrVTBqUg3+u+Dklu40WD9vhseAg4FJ5HltnTHBLjXl/xoo5p1cQaowl
-         2SbyyKz6G7ZsMJeOXEA1NevVxbw2p+BDy/WnSkiGXuEA8IgxM1gdqq6ice3Ocpq8eG
-         5wXh9rypOSc3FpReWjYOlzm3Km8ISSl797/j2PotFFDP+ITNphwWGF3gG228KXZvdG
-         +DVWRjSfCcxV3fRTy1RJ0wQdZscJUJ5+1TJZJaHNd8uMtPN+M3SdbsN1J4ccjmajk2
-         cIYJpMIbPJ+XhO4NJWNrvdbI0WoXHgjzeKYJeWuRXa6Z+LV1DjB1lJNEZuuv10GMZH
-         PfGev3kUnpmsw==
-X-Nifty-SrcIP: [126.125.143.222]
-From:   Masahiro Yamada <yamada.masahiro@socionext.com>
-To:     linux-kbuild@vger.kernel.org
-Cc:     Christoph Hellwig <hch@lst.de>, Sam Ravnborg <sam@ravnborg.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        id S1726038AbfHKJ4F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Aug 2019 05:56:05 -0400
+Received: from mail-eopbgr140057.outbound.protection.outlook.com ([40.107.14.57]:50760
+        "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725900AbfHKJ4F (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 11 Aug 2019 05:56:05 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=NQtZkbdYptQtCagSdMzg5d3sbrKrdL6yvWVN6o1yFDftUUpOIASdRWBqNisVpL6KSPhjBojvbvGtEZcTqZWlUi2/yVTrTvaPJuovXkhx+Eyq+hmG81zTFN5rxlFre7nrgdoRSNCjQVr5XtevdphIPtaI+OscB181YFT9PjThGmmSLVhXzwqWvyW2pK+MLamH0BQQMQKZNIe2FGV3+bKQRDY9pLZEXhtkNtP35jLXzDH509NvEDLv8SJO7rq2coN5rnKLXDav32KIbuBb8Sd6F5FvVFgq1JsuSw9QuPbNgljn1pc1JmRSjXpMlQ8J1PXfRkV+mX1GSSTZ6/7MOOBqqA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LJtzcYhH8Dei1lvX5Lut2M+WOEfZoTyMfeC5WS3b/og=;
+ b=EDtNbfuKl4qdHOdDg5Zhgujc3AZ0u31pXf9CUeHptsJrb9abZAmfHe6sMLcAiCcjqRguTPQUnAkP7dGlQO6zXS2Icx616nyBcEX9aEpFNVpkb93hvKs4mlTpXNWaYkjOVueqayYioG1kcMQQBAtHVEOuKFRZlZG37d5cU9KGg/eYDvKFEIpOKhyZXV9zf08BjAB+eBZlpCTwXsvqFEhBcQS4z7DeG5KaGgQNI05slgQE35DRf367738YFVkTwSBJz2GGOR1l1Y5KDGE+jS89JtLmPT7byNATA3Pb5sIt29Jk087OGuMTg47P2O0ax0MjvEme09RThjxC1z6Ss614BQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LJtzcYhH8Dei1lvX5Lut2M+WOEfZoTyMfeC5WS3b/og=;
+ b=Irf3nmJbp1R2uoOy+bKZC6gszk5O7YkJ8c5NFfYcA3K9n9GU8cqbAIunYGyULnuEa25vKiK4rR34HhA9wEI3ZFBYXHAimCn6Dr7oc92jQofiJMzsHNgSHA1xQ8rnUIUIcAyTU3QpM2JimwR5mHD6VWKMu2tfdanDpeTx25ZIK7c=
+Received: from AM4PR05MB3137.eurprd05.prod.outlook.com (10.171.188.155) by
+ AM4PR05MB3458.eurprd05.prod.outlook.com (10.170.125.151) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2157.14; Sun, 11 Aug 2019 09:55:58 +0000
+Received: from AM4PR05MB3137.eurprd05.prod.outlook.com
+ ([fe80::a1bc:70:4ca9:49f6]) by AM4PR05MB3137.eurprd05.prod.outlook.com
+ ([fe80::a1bc:70:4ca9:49f6%7]) with mapi id 15.20.2157.022; Sun, 11 Aug 2019
+ 09:55:58 +0000
+From:   Leon Romanovsky <leonro@mellanox.com>
+To:     Masahiro Yamada <yamada.masahiro@socionext.com>
+CC:     "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Sam Ravnborg <sam@ravnborg.org>,
         Alexei Starovoitov <ast@kernel.org>,
         Boris Pismenny <borisp@mellanox.com>,
         Daniel Borkmann <daniel@iogearbox.net>,
         "David S. Miller" <davem@davemloft.net>,
         Igor Russkikh <igor.russkikh@aquantia.com>,
         Jakub Kicinski <jakub.kicinski@netronome.com>,
-        Leon Romanovsky <leon@kernel.org>,
         Martin KaFai Lau <kafai@fb.com>,
-        Michal Marek <michal.lkml@markovi.net>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        oss-drivers@netronome.com
-Subject: [PATCH 00/11] kbuild: clean-ups and improvement of single targets
-Date:   Sun, 11 Aug 2019 00:52:56 +0900
-Message-Id: <20190810155307.29322-1-yamada.masahiro@socionext.com>
-X-Mailer: git-send-email 2.17.1
+        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "oss-drivers@netronome.com" <oss-drivers@netronome.com>
+Subject: Re: [PATCH 11/11] treewide: remove dummy Makefiles for single targets
+Thread-Topic: [PATCH 11/11] treewide: remove dummy Makefiles for single
+ targets
+Thread-Index: AQHVT5QeRE/eBhrx90G8ydJdkg0FfKb1tsaA
+Date:   Sun, 11 Aug 2019 09:55:58 +0000
+Message-ID: <20190811095555.GF28049@mtr-leonro.mtl.com>
+References: <20190810155307.29322-1-yamada.masahiro@socionext.com>
+ <20190810155307.29322-12-yamada.masahiro@socionext.com>
+In-Reply-To: <20190810155307.29322-12-yamada.masahiro@socionext.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: PR2PR09CA0020.eurprd09.prod.outlook.com
+ (2603:10a6:101:16::32) To AM4PR05MB3137.eurprd05.prod.outlook.com
+ (2603:10a6:205:8::27)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=leonro@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [193.47.165.251]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 5a6960f3-1c5c-406b-f5ef-08d71e421c0e
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600148)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:AM4PR05MB3458;
+x-ms-traffictypediagnostic: AM4PR05MB3458:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <AM4PR05MB3458C667CF8B910D35D17B15B0D00@AM4PR05MB3458.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:5236;
+x-forefront-prvs: 0126A32F74
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(39850400004)(376002)(366004)(396003)(136003)(346002)(199004)(189003)(6246003)(4326008)(8676002)(11346002)(6486002)(478600001)(446003)(81156014)(81166006)(229853002)(5660300002)(66066001)(316002)(8936002)(4744005)(14454004)(2906002)(54906003)(486006)(6436002)(1076003)(66446008)(64756008)(66556008)(66476007)(66946007)(476003)(3846002)(6506007)(386003)(7416002)(52116002)(9686003)(6512007)(6116002)(102836004)(6916009)(25786009)(86362001)(186003)(53936002)(99286004)(71190400001)(71200400001)(305945005)(76176011)(33656002)(7736002)(26005)(256004);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR05MB3458;H:AM4PR05MB3137.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: C1hooVLEz9S7qgTUPP8Zlpw5FQtCLRbfPMo7YyXFLvvb9F073Xk/btf9azTdxldc8ZlWSJ2SUjuLi5/cnHManxEwIdITcihL6aove01RaWwQvatTerBqbYQ9Hk+QmuWHsLw0XBnsTxmdl9WQQZDwx7hBUbCkKfUZsaOR9e6U5ITrBqxsgzBXEzksUxER1HbFjQsrHLbgknODGGJ8kApjvFtT4J6sjT0aivxkmqj2kYbXKxZgmRGgncne3Ubb2XOu2jasWESfT8NkaHhj0sb130Ylcfz62iVUoCNdeFV8oUwv+qK8Z9WtoPB6s2Uvclyv/zgHEhaCbnBIFrToCIL2a+NGbHWQSjbcEZpFv5s8MRvmxV6PP2pntXa3z834xZizLkBZ0i8cgLbeqTrxjbVQ6a1/Iqji4xIJWljsKbFIPlk=
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <D00E1D38B2CAF44D82BE59CBB71B2DAA@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5a6960f3-1c5c-406b-f5ef-08d71e421c0e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Aug 2019 09:55:58.6030
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: yes2R86qFUOXZKiZF1gnTM+fy5wNPsgym0WfQhcCmZeOuLNs2hUD2a4zvtZuE4yDFj8D2rpmIs9GKaNm+uhlew==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR05MB3458
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Sun, Aug 11, 2019 at 12:53:07AM +0900, Masahiro Yamada wrote:
+> Now that the single target build descends into sub-directories
+> in the same ways as the normal build, these dummy Makefiles
+> are not needed any more.
+>
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> ---
+>
 
-01/11-09/11 are trivial clean-ups.
+It is hard to test/review/ack on this patch without seeing previous
+patches, especially patch #10 where you changed logic of single targets.
 
-10/11 makes the single targets work more correctly.
-
-11/11 cleans up Makefiles that have been added
-to work aroud the single target issues.
-
-
-
-Masahiro Yamada (11):
-  kbuild: move the Module.symvers check for external module build
-  kbuild: refactor part-of-module more
-  kbuild: fix modkern_aflags implementation
-  kbuild: remove 'make /' support
-  kbuild: remove meaningless 'targets' in ./Kbuild
-  kbuild: do not descend to ./Kbuild when cleaning
-  kbuild: unset variables in top Makefile instead of setting 0
-  kbuild: unify vmlinux-dirs and module-dirs rules
-  kbuild: unify clean-dirs rule for in-kernel and external module
-  kbuild: make single targets work more correctly
-  treewide: remove dummy Makefiles for single targets
-
- Kbuild                                        |   7 -
- Makefile                                      | 193 ++++++++++--------
- .../aquantia/atlantic/hw_atl/Makefile         |   2 -
- .../mellanox/mlx5/core/accel/Makefile         |   2 -
- .../ethernet/mellanox/mlx5/core/diag/Makefile |   2 -
- .../ethernet/mellanox/mlx5/core/en/Makefile   |   2 -
- .../mellanox/mlx5/core/en/xsk/Makefile        |   1 -
- .../mellanox/mlx5/core/en_accel/Makefile      |   2 -
- .../ethernet/mellanox/mlx5/core/fpga/Makefile |   2 -
- .../mellanox/mlx5/core/ipoib/Makefile         |   2 -
- .../ethernet/mellanox/mlx5/core/lib/Makefile  |   2 -
- .../net/ethernet/netronome/nfp/bpf/Makefile   |   2 -
- .../ethernet/netronome/nfp/flower/Makefile    |   2 -
- .../ethernet/netronome/nfp/nfpcore/Makefile   |   2 -
- .../netronome/nfp/nfpcore/nfp6000/Makefile    |   2 -
- .../net/ethernet/netronome/nfp/nic/Makefile   |   2 -
- scripts/Makefile.build                        |  55 +++--
- 17 files changed, 149 insertions(+), 133 deletions(-)
- delete mode 100644 drivers/net/ethernet/aquantia/atlantic/hw_atl/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/accel/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/diag/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en/xsk/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en_accel/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/fpga/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/ipoib/Makefile
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lib/Makefile
- delete mode 100644 drivers/net/ethernet/netronome/nfp/bpf/Makefile
- delete mode 100644 drivers/net/ethernet/netronome/nfp/flower/Makefile
- delete mode 100644 drivers/net/ethernet/netronome/nfp/nfpcore/Makefile
- delete mode 100644 drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000/Makefile
- delete mode 100644 drivers/net/ethernet/netronome/nfp/nic/Makefile
-
--- 
-2.17.1
-
+Thanks
