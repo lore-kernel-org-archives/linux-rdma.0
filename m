@@ -2,94 +2,142 @@ Return-Path: <SRS0=ZP0N=WI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28762C32750
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 17:31:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B06EC433FF
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 17:56:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F26A521721
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 17:31:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D009620663
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 17:56:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="aT1+Cp+K"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727146AbfHLRa6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Aug 2019 13:30:58 -0400
-Received: from ale.deltatee.com ([207.54.116.67]:37738 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727078AbfHLRa6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 12 Aug 2019 13:30:58 -0400
-Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
-        by ale.deltatee.com with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <gunthorp@deltatee.com>)
-        id 1hxE9l-0002sh-OD; Mon, 12 Aug 2019 11:30:56 -0600
-Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.92)
-        (envelope-from <gunthorp@deltatee.com>)
-        id 1hxE9j-0002Pj-To; Mon, 12 Aug 2019 11:30:51 -0600
-From:   Logan Gunthorpe <logang@deltatee.com>
-To:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Christian Koenig <Christian.Koenig@amd.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@fb.com>,
+        id S1726610AbfHLR4R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Aug 2019 13:56:17 -0400
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:35884 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726090AbfHLR4R (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Aug 2019 13:56:17 -0400
+Received: by mail-qt1-f193.google.com with SMTP id z4so103774416qtc.3
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Aug 2019 10:56:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=YeHGfRcz7/xDdQu045YPZqSeRdWuIL5U3pex4BeV6Co=;
+        b=aT1+Cp+KGWQyozFDowVXklkNZVi/kM9KamsNgl23DUo+IJyNPad8EzXuoAG7s3f5bf
+         bOSW7DhNODTjMskeg1DRPDb4g7NB2wX2AWkHQuyR0cct0HrdnZzak9aU8g7CHTL0qHoO
+         IKZcX3vXDSq/u24mEPYpzVVHpbOB2TSRpMchVGlB+vxEwN6TXEtwOQ8uYyw5P8+cz9Hd
+         j1BzALymBU6a7rw2q7wWcxOSnVbjWppZ0IMW4+9rMtyvhB+q0F08Mu3PWUPEGDQxvNfD
+         RqDlAaDfsxyO370w/XugHLZnyfoDs8iN8igYYDuAHaeRZtKy3Zg+yOMKiyalzWN131uL
+         Eqkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=YeHGfRcz7/xDdQu045YPZqSeRdWuIL5U3pex4BeV6Co=;
+        b=oo6D1NnjqP+YnmjgP5wSP+618e5/Ph0Nl4JhWFPfwBY9O6b9n2tumXLmxPQ5abZKqr
+         OlTehQr12yeKogUt7bu0MRyoM8pTxBDACr7XxSGbVd10DlJgcslbknMpDFUM2jqjRVDK
+         PL8DalO/lJze93J3pmXGcaoi4fD6LUQvKXvlrIJoGy1t0rAunVkdFAifr0D1T//kz94y
+         wCKrlE/ZHJynxuCxBhKU2/tM9IWhpD1u9mQJ/Jl5bUlFkMtnAivKJI3ZWJPIH6SoFwXb
+         QjoeAE70H/JiMH7Jm2b+TMAckiR8HCJiVqsPw9zm+PN0CXzAbjb8EGJIGsyeBEOUSCIP
+         H5dA==
+X-Gm-Message-State: APjAAAUvvDumhqh5G2mFTGAijJhbfI7Gt7gH7NRiReIQ8ua1/6ZrYeAV
+        9fhR1XepamJ2r/ygc8Yxo8UEzg==
+X-Google-Smtp-Source: APXvYqx5MBD9MG64lV9iZUYWN/EeNo5U4lzvE+q4eQc5jVQAxZ4QmzhDKvfOk+m1tNY0/uiYKcLUcw==
+X-Received: by 2002:ac8:43c4:: with SMTP id w4mr15414493qtn.238.1565632576300;
+        Mon, 12 Aug 2019 10:56:16 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
+        by smtp.gmail.com with ESMTPSA id r15sm5883158qtp.94.2019.08.12.10.56.15
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Mon, 12 Aug 2019 10:56:15 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1hxEYJ-0004LN-Ev; Mon, 12 Aug 2019 14:56:15 -0300
+Date:   Mon, 12 Aug 2019 14:56:15 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Ira Weiny <ira.weiny@intel.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Dan Williams <dan.j.williams@intel.com>,
-        Eric Pilmore <epilmore@gigaio.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date:   Mon, 12 Aug 2019 11:30:47 -0600
-Message-Id: <20190812173048.9186-14-logang@deltatee.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190812173048.9186-1-logang@deltatee.com>
-References: <20190812173048.9186-1-logang@deltatee.com>
+        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+        Theodore Ts'o <tytso@mit.edu>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-ext4@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [RFC PATCH v2 16/19] RDMA/uverbs: Add back pointer to system
+ file object
+Message-ID: <20190812175615.GI24457@ziepe.ca>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
+ <20190809225833.6657-17-ira.weiny@intel.com>
+ <20190812130039.GD24457@ziepe.ca>
+ <20190812172826.GA19746@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 172.16.1.31
-X-SA-Exim-Rcpt-To: linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, bhelgaas@google.com, hch@lst.de, Christian.Koenig@amd.com, jgg@mellanox.com, sagi@grimberg.me, kbusch@kernel.org, axboe@fb.com, dan.j.williams@intel.com, epilmore@gigaio.com, sbates@raithlin.com, logang@deltatee.com
-X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH v3 13/14] PCI/P2PDMA: Allow IOMMU for host bridge whitelist
-X-SA-Exim-Version: 4.2.1 (built Tue, 02 Aug 2016 21:08:31 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190812172826.GA19746@iweiny-DESK2.sc.intel.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Now that we map the requests correctly we can remove the iommu_present()
-restriction.
+On Mon, Aug 12, 2019 at 10:28:27AM -0700, Ira Weiny wrote:
+> On Mon, Aug 12, 2019 at 10:00:40AM -0300, Jason Gunthorpe wrote:
+> > On Fri, Aug 09, 2019 at 03:58:30PM -0700, ira.weiny@intel.com wrote:
+> > > From: Ira Weiny <ira.weiny@intel.com>
+> > > 
+> > > In order for MRs to be tracked against the open verbs context the ufile
+> > > needs to have a pointer to hand to the GUP code.
+> > > 
+> > > No references need to be taken as this should be valid for the lifetime
+> > > of the context.
+> > > 
+> > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > >  drivers/infiniband/core/uverbs.h      | 1 +
+> > >  drivers/infiniband/core/uverbs_main.c | 1 +
+> > >  2 files changed, 2 insertions(+)
+> > > 
+> > > diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+> > > index 1e5aeb39f774..e802ba8c67d6 100644
+> > > +++ b/drivers/infiniband/core/uverbs.h
+> > > @@ -163,6 +163,7 @@ struct ib_uverbs_file {
+> > >  	struct page *disassociate_page;
+> > >  
+> > >  	struct xarray		idr;
+> > > +	struct file             *sys_file; /* backpointer to system file object */
+> > >  };
+> > 
+> > The 'struct file' has a lifetime strictly shorter than the
+> > ib_uverbs_file, which is kref'd on its own lifetime. Having a back
+> > pointer like this is confouding as it will be invalid for some of the
+> > lifetime of the struct.
+> 
+> Ah...  ok.  I really thought it was the other way around.
+> 
+> __fput() should not call ib_uverbs_close() until the last reference on struct
+> file is released...  What holds references to struct ib_uverbs_file past that?
 
-Link: https://lore.kernel.org/r/20190730163545.4915-14-logang@deltatee.com
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/p2pdma.c | 4 ----
- 1 file changed, 4 deletions(-)
+Child fds hold onto the internal ib_uverbs_file until they are closed
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index bca1ffc7075e..d8c824097d26 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -18,7 +18,6 @@
- #include <linux/percpu-refcount.h>
- #include <linux/random.h>
- #include <linux/seq_buf.h>
--#include <linux/iommu.h>
- #include <linux/xarray.h>
- 
- enum pci_p2pdma_map_type {
-@@ -328,9 +327,6 @@ static bool host_bridge_whitelist(struct pci_dev *a, struct pci_dev *b)
- 	struct pci_host_bridge *host_a = pci_find_host_bridge(a->bus);
- 	struct pci_host_bridge *host_b = pci_find_host_bridge(b->bus);
- 
--	if (iommu_present(a->dev.bus) || iommu_present(b->dev.bus))
--		return false;
--
- 	if (host_a == host_b)
- 		return __host_bridge_whitelist(host_a, true);
- 
--- 
-2.20.1
+> Perhaps I need to add this (untested)?
+> 
+> diff --git a/drivers/infiniband/core/uverbs_main.c
+> b/drivers/infiniband/core/uverbs_main.c
+> index f628f9e4c09f..654e774d9cf2 100644
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -1125,6 +1125,8 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+>         list_del_init(&file->list);
+>         mutex_unlock(&file->device->lists_mutex);
+>  
+> +       file->sys_file = NULL;
 
+Now this has unlocked updates to that data.. you'd need some lock and
+get not zero pattern
+
+Jason
