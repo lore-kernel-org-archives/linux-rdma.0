@@ -2,156 +2,127 @@ Return-Path: <SRS0=ZP0N=WI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89984C0650F
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 01:51:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79B4CC31E40
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 05:52:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5B2122084D
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 01:51:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n9WdsBYC"
+	by mail.kernel.org (Postfix) with ESMTP id 42069208C2
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 05:52:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1565589148;
+	bh=lwjrFNiRVlxYY8eL4EjsKkgRTO2TS6xYQUAV1/FHCj4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=AEjXEr0xfAny43T6cbzVxNe5VEuR8lcrLloxgRQfT8M3X0BWqI4SJYNCOls6peWcV
+	 4oXiJ59siYWWSNMiypJxC7LQJBMJUKf2s4fi1ZbQPZTLyAbPLgth7GqNmEuCLzNTtb
+	 GEiahOA9zsXMDPJKBuzR2TOZIgH+XkAH68eS2cM8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726831AbfHLBu7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Aug 2019 21:50:59 -0400
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:36191 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726200AbfHLBu5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Aug 2019 21:50:57 -0400
-Received: by mail-pl1-f195.google.com with SMTP id g4so785412plo.3;
-        Sun, 11 Aug 2019 18:50:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=//FfBrFJF4GgHRR+yYGohW47iWmsEIpsgR4o2CfLEaI=;
-        b=n9WdsBYCNshNyrjNwoA988ZTa5cUmZ3ftfo2srk4qVaeFk/3QoLLi5AAHL4AElSmiI
-         XuhzXcej3mP/qZgB3XHsGbTfB/yNKw6cCUUIAPQ+5Nz8QE6P37CaiJAF1juYEdwzcQ7x
-         KCBBLQdzMFyQAH/huuHEICl517WeOf9evlQYRM6ra2qmGObt90NYEQrc2g3Hrh2Z96nu
-         KDGoR5r30ngur4PCtV8FhCZSZwFtTuDq2bAvEGOaEF6xs7+I2IMBDgXvMsOlYXQ02UbB
-         3XrvtA2d2QJxWudzhOEkOmMrqZS8v6TJDdTbi1eDdq4ek8o80TJA5b2A6NTjpOCVITJa
-         5I0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=//FfBrFJF4GgHRR+yYGohW47iWmsEIpsgR4o2CfLEaI=;
-        b=s1Tqi5Ho9l68qUnJg2DpDM3hCfFgcjt+i4BWmpcWAcbwnXmk0SrjKXI2sYWQLPbR3k
-         Z9Sdw14Zknfcw8zi/tExms3m4rxzuqw7CKOePEzaFhP9Yc5zf3Q6AlL6mWh1YiciSGHe
-         0hDpP8McVlJuP0+cFMnEMLtY640SHJJn0iIba0IFsVvjaGuYQik887A3IbK8yiFn3rj7
-         0xADGp+v0kVBoarO6LxZLpkxcPrb3/FgHz8eCfPBIM9f+XJYRI53hoJhoI+BDMP/g8K2
-         WMEdqZC+s6hpnQ5+S8ZtofKJ0j6wm0CLMXdWQUjo2scsE5EaNCNtcFcgSTXGXrnatl2k
-         R2MA==
-X-Gm-Message-State: APjAAAXC2ep1QKmxmbbK/yDsvSMgd9r8a3w4P+b+VYQxMLxn//f6OUiH
-        Dd3HkhNwS9+vWI61CQwAMmqKpDGv
-X-Google-Smtp-Source: APXvYqzT/0PLSkZoDJi/ZIzWxvm8QO/lLOlBRLMJ5/ogboYNq/cgR98nTHd4GJwrVGgRFe2BKV9BHg==
-X-Received: by 2002:a17:902:b604:: with SMTP id b4mr15581107pls.94.1565574657032;
-        Sun, 11 Aug 2019 18:50:57 -0700 (PDT)
-Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id j20sm100062363pfr.113.2019.08.11.18.50.56
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Sun, 11 Aug 2019 18:50:56 -0700 (PDT)
-From:   john.hubbard@gmail.com
-X-Google-Original-From: jhubbard@nvidia.com
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org,
-        linux-fsdevel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        John Hubbard <jhubbard@nvidia.com>,
-        Michal Hocko <mhocko@kernel.org>
-Subject: [RFC PATCH 1/2] mm/gup: introduce FOLL_PIN flag for get_user_pages()
-Date:   Sun, 11 Aug 2019 18:50:43 -0700
-Message-Id: <20190812015044.26176-2-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190812015044.26176-1-jhubbard@nvidia.com>
-References: <20190812015044.26176-1-jhubbard@nvidia.com>
+        id S1725843AbfHLFw1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Aug 2019 01:52:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49126 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725822AbfHLFw1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 12 Aug 2019 01:52:27 -0400
+Received: from localhost (unknown [77.137.115.125])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 36B522070C;
+        Mon, 12 Aug 2019 05:52:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1565589146;
+        bh=lwjrFNiRVlxYY8eL4EjsKkgRTO2TS6xYQUAV1/FHCj4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Vo5vFeJeE2r8MGuCyC5+m1GudhxMMLkucD8pJ0lnGAr3pDDPtXwCWZYMyxhCkUcy+
+         tjvdXTpZ3Q6+fI+2PjExQLe82+hVBi2OSKvTohqTp4hmAH3z8IdEmRWveOwU5uunJK
+         2c+9JVB0VBz+ARW9MtlqbWeglOXspaEbRuEValSA=
+Date:   Mon, 12 Aug 2019 08:52:20 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Lijun Ou <oulijun@huawei.com>
+Cc:     dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        linuxarm@huawei.com
+Subject: Re: [PATCH for-next 8/9] RDMA/hns: Kernel notify usr space to stop
+ ring db
+Message-ID: <20190812055220.GA8440@mtr-leonro.mtl.com>
+References: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
+ <1565343666-73193-9-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1565343666-73193-9-git-send-email-oulijun@huawei.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+On Fri, Aug 09, 2019 at 05:41:05PM +0800, Lijun Ou wrote:
+> From: Yangyang Li <liyangyang20@huawei.com>
+>
+> In the reset scenario, if the kernel receives the reset signal,
+> it needs to notify the user space to stop ring doorbell.
 
-FOLL_PIN is set by vaddr_pin_pages(). This is different than
-FOLL_LONGTERM, because even short term page pins need a new kind
-of tracking, if those pinned pages' data is going to potentially
-be modified.
+I doubt about it, it is racy like hell and relies on assumption that
+userspace will honor such request to stop.
 
-This situation is described in more detail in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
+>
+> Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_device.h |  4 +++
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 52 ++++++++++++++++++++++++++++-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  4 +++
+>  drivers/infiniband/hw/hns/hns_roce_main.c   | 22 ++++++------
+>  4 files changed, 70 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+> index 32465f5..be65fce 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
+> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+> @@ -268,6 +268,8 @@ enum {
+>
+>  #define PAGE_ADDR_SHIFT				12
+>
+> +#define HNS_ROCE_IS_RESETTING			1
+> +
+>  struct hns_roce_uar {
+>  	u64		pfn;
+>  	unsigned long	index;
+> @@ -1043,6 +1045,8 @@ struct hns_roce_dev {
+>  	u32			odb_offset;
+>  	dma_addr_t		tptr_dma_addr;	/* only for hw v1 */
+>  	u32			tptr_size;	/* only for hw v1 */
+> +	struct page		*reset_page; /* store reset state */
+> +	void			*reset_kaddr; /* addr of reset page */
+>  	const struct hns_roce_hw *hw;
+>  	void			*priv;
+>  	struct workqueue_struct *irq_workq;
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> index d33341e..138e5a8 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> @@ -1867,17 +1867,49 @@ static void hns_roce_free_link_table(struct hns_roce_dev *hr_dev,
+>  			  link_tbl->table.map);
+>  }
+>
+> +static int hns_roce_v2_get_reset_page(struct hns_roce_dev *hr_dev)
+> +{
+> +	hr_dev->reset_page = alloc_page(GFP_KERNEL | __GFP_ZERO);
+> +	if (!hr_dev->reset_page)
+> +		return -ENOMEM;
+> +
+> +	hr_dev->reset_kaddr = vmap(&hr_dev->reset_page, 1, VM_MAP, PAGE_KERNEL);
+> +	if (!hr_dev->reset_kaddr)
+> +		goto err_with_vmap;
+> +
+> +	return 0;
+> +
+> +err_with_vmap:
+> +	put_page(hr_dev->reset_page);
 
-FOLL_PIN is added now, rather than waiting until there is code that
-takes action based on FOLL_PIN. That's because having FOLL_PIN in
-the code helps to highlight the differences between:
+Are you sure that pages allocated with alloc_page() are released with put_page()?
 
-    a) get_user_pages(): soon to be deprecated. Used to pin pages,
-       but without awareness of file systems that might use those
-       pages,
+I would say with high confidence that whole this patch is wrong.
 
-    b) The original vaddr_pin_pages(): intended only for
-       FOLL_LONGTERM and DAX use cases. This assumes direct IO
-       and therefore is not applicable the most of the other
-       callers of get_user_pages(), and
-
-    c) The new vaddr_pin_pages(), which provides the correct
-       get_user_pages() flags for all cases, by setting FOLL_PIN.
-
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- include/linux/mm.h | 1 +
- mm/gup.c           | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 90c5802866df..61b616cd9243 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2663,6 +2663,7 @@ struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
- #define FOLL_ANON	0x8000	/* don't do file mappings */
- #define FOLL_LONGTERM	0x10000	/* mapping lifetime is indefinite: see below */
- #define FOLL_SPLIT_PMD	0x20000	/* split huge pmd before returning */
-+#define FOLL_PIN	0x40000	/* pages must be released via put_user_page() */
- 
- /*
-  * NOTE on FOLL_LONGTERM:
-diff --git a/mm/gup.c b/mm/gup.c
-index 58f008a3c153..85f09958fbdc 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -2494,6 +2494,9 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
-  * being made against.  Usually "current->mm".
-  *
-  * Expects mmap_sem to be read locked.
-+ *
-+ * Implementation note: this sets FOLL_PIN, which means that the pages must
-+ * ultimately be released by put_user_page().
-  */
- long vaddr_pin_pages(unsigned long addr, unsigned long nr_pages,
- 		     unsigned int gup_flags, struct page **pages,
-@@ -2501,7 +2504,7 @@ long vaddr_pin_pages(unsigned long addr, unsigned long nr_pages,
- {
- 	long ret;
- 
--	gup_flags |= FOLL_LONGTERM;
-+	gup_flags |= FOLL_LONGTERM | FOLL_PIN;
- 
- 	if (!vaddr_pin || (!vaddr_pin->mm && !vaddr_pin->f_owner))
- 		return -EINVAL;
--- 
-2.22.0
-
+Thanks
