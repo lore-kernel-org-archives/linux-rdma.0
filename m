@@ -2,58 +2,59 @@ Return-Path: <SRS0=ZP0N=WI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E82C6C433FF
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 01:50:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 797B8C32756
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 01:51:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B64CA2084D
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 01:50:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 431382087B
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 01:51:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J3n5ZKeo"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tN18OW3e"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726786AbfHLBu5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Aug 2019 21:50:57 -0400
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:43921 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726200AbfHLBu4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Aug 2019 21:50:56 -0400
-Received: by mail-pf1-f196.google.com with SMTP id v12so1141998pfn.10;
-        Sun, 11 Aug 2019 18:50:56 -0700 (PDT)
+        id S1726825AbfHLBu7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Aug 2019 21:50:59 -0400
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:41607 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726820AbfHLBu6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Aug 2019 21:50:58 -0400
+Received: by mail-pl1-f194.google.com with SMTP id m9so47106182pls.8;
+        Sun, 11 Aug 2019 18:50:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=pfaVFzFF0GvUkP+csExf9mRMYKLakGIqocXWtOijWcs=;
-        b=J3n5ZKeoQQ0bmNJgluv6gAytDIfBo9heugCs0XBMhVCrev0LMMnqqYvHMPS/Cr0eBt
-         gctxUlCPGnoXwjK2CwzgVvi28Wb22MRLlEhA2lKWros6W4HEdEFgJOn/NBCaUfYs2Th8
-         uPiE4ZxUz27VerKWtltJreVV1o5cNvwgiQmm2L4fmmkncjkGTaspegF0sY5rCwFaz1Bj
-         NmwHks4rnhNi7uAo/lBpxeuM3ZbiuZQc8DkW7I1xNK4QRa1pZCMUjYzqmjrptEEwb9Fi
-         DfhQnMHmRrF6nz3dpmgznKvjSD+eNOrb0yEq+WeDxCYjBjqUNCYLFdD0M1uwwALX4eRZ
-         OSMA==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=5JtiWY0w31kuQOtn3l4X+8CaJzkxiVZy5vK9oZwhAyM=;
+        b=tN18OW3egtBoEIE9QN2L83YpkIuEmn8E/2vatlX2Rt8/d5Cz4UgSVajiq6e/mKLtaS
+         Y249S8PkRKY1XNNQCc1ShRk2rwVcEYBgq5dc/KhKvRDosjYbqzTKzsXamCtfiXYDc9Xp
+         e09h33F7vAARQiFw/FG8VCiqdIkvyyhBlY/mp3fdDfxf6u2KTJYoHRQkFO45IwfAa5bo
+         gJG8IrKfVZKwLlhGy/t3ERaR2nPJMfzZ5Lyz1p0oex5y7bLt3zvVM2vRFJ5rXSFt80t5
+         3snZBb+hSDGsUlRyup/QfXn5z03seNoHqcPJopyWhki+dM/QX6bD5iOeLfhwkSMlhTih
+         Gj3w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=pfaVFzFF0GvUkP+csExf9mRMYKLakGIqocXWtOijWcs=;
-        b=MXJwOuOHmKADAU2vW5Wl+ibhpMmFzsIFmV9dQVSznTMaeSqywa251ZKEmB8DChqAtv
-         MBzHJRjZnFMSWb7mnvbWw+FG+sZT9r0bYfuHgEGOU67iL6pb2NFfbim3jIpRNUJRU7oJ
-         HVxkxX/bX76r9mLlPlr10ooXMhXfs+yO7rsW0+3b2n3nSp9G/SH6jJLN2EI5sGp1tqZW
-         r7b6v5anIqIp5IvaEleQDqTaLAgV9BBHinmn8eEbIaG1pNpi/PVc1fFQwQ/Sq7iR2Ap7
-         4t4VUEvFH1/VSdF1D05tc8ALRAYZs8iHRCc/C1TUAigSFtO22OaTVKYnGauINordz8o+
-         rjOw==
-X-Gm-Message-State: APjAAAV5MRK7ASlQc6cFhAXEcnQ9SbO9LMetLVT5YBzO5i6NHDs4S/da
-        RinunS/jdu+RtHY9PI2hhDHGPMXA
-X-Google-Smtp-Source: APXvYqwiGohojGGhDnygsE9A4cyzbEHPkz9fH4ggMXoJfzmaJzcdAgT3McHJiakV36cLDMyvSwP/zg==
-X-Received: by 2002:a65:44cc:: with SMTP id g12mr27761338pgs.409.1565574656022;
-        Sun, 11 Aug 2019 18:50:56 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=5JtiWY0w31kuQOtn3l4X+8CaJzkxiVZy5vK9oZwhAyM=;
+        b=Wbw8fm51zM6+Z/vl5lKHDjQN3Y59AOd4sn6pZtN0WOw8imPTPeiG7cTMMo4KHaAus0
+         dVhn7Iqg6x04BP1+95q+p/1JvNJJ/WlwMbEBNMv1RDzRyUP+0Z/kND/ZM6HUzLVIPGtI
+         NHwYDUTJZjZKlwLHxxYOh3HebepGXJDwdR1SmEEoWOBG4nK5QXLBB/+vcdcw5UG2vwIT
+         dorfDQ7aEPMU38t0F29rsS6R8En6vbSmy/NljkfUoaBlLjCshnfBtsnPEhgs1OLwLJUq
+         GgoSa0AOaeut7w1PevjvvTFOTGUVzpRLVC1STjheZS7vc2YlPmABLRWrBNBqxUjFeuvX
+         qEGQ==
+X-Gm-Message-State: APjAAAVRkk8ukadmsDDEKmKl6OPedDj4d3rIjEH6QbD34MFA68Ir8tVa
+        XJNUutLZbhRWGfzdrRbPPEY=
+X-Google-Smtp-Source: APXvYqzBXwirWl6l+fEmHVCahvbTNzZTrBy2+Jlu3deIQj1LEMtfht+Rr+eRVfWYnMxSvK5SOCC2EQ==
+X-Received: by 2002:a17:902:e311:: with SMTP id cg17mr3605017plb.183.1565574657941;
+        Sun, 11 Aug 2019 18:50:57 -0700 (PDT)
 Received: from blueforge.nvidia.com (searspoint.nvidia.com. [216.228.112.21])
-        by smtp.gmail.com with ESMTPSA id j20sm100062363pfr.113.2019.08.11.18.50.55
+        by smtp.gmail.com with ESMTPSA id j20sm100062363pfr.113.2019.08.11.18.50.57
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Sun, 11 Aug 2019 18:50:55 -0700 (PDT)
+        Sun, 11 Aug 2019 18:50:57 -0700 (PDT)
 From:   john.hubbard@gmail.com
 X-Google-Original-From: jhubbard@nvidia.com
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -66,10 +67,12 @@ Cc:     Christoph Hellwig <hch@infradead.org>,
         LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org,
         linux-fsdevel@vger.kernel.org, linux-rdma@vger.kernel.org,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [RFC PATCH 0/2] mm/gup: introduce vaddr_pin_pages_remote(), FOLL_PIN
-Date:   Sun, 11 Aug 2019 18:50:42 -0700
-Message-Id: <20190812015044.26176-1-jhubbard@nvidia.com>
+Subject: [RFC PATCH 2/2] mm/gup: introduce vaddr_pin_pages_remote()
+Date:   Sun, 11 Aug 2019 18:50:44 -0700
+Message-Id: <20190812015044.26176-3-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.22.0
+In-Reply-To: <20190812015044.26176-1-jhubbard@nvidia.com>
+References: <20190812015044.26176-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
 Content-Transfer-Encoding: 8bit
@@ -80,39 +83,159 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
-Hi,
+This is the "vaddr_pin_pages" corresponding variant to
+get_user_pages_remote(), but with FOLL_PIN semantics: the implementation
+sets FOLL_PIN. That, in turn, means that the pages must ultimately be
+released by put_user_page*()--typically, via vaddr_unpin_pages*().
 
-Dave Chinner's head didn't seem to explode...much, when he saw Ira's
-series, so I optimistically started taking it from there...this builds on
-top of Ira's patchset that he just sent out:
+Note that the put_user_page*() requirement won't be truly
+required until all of the call sites have been converted, and
+the tracking of pages is actually activated.
 
-  "[RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002   ;-)" [1]
+Also introduce vaddr_unpin_pages(), in order to have a simpler
+call for the error handling cases.
 
-...which in turn is based on the latest -mmotm.
+Use both of these new calls in the Infiniband drive, replacing
+get_user_pages_remote() and put_user_pages().
 
-If Ira's series and this one are both acceptable, then
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/infiniband/core/umem_odp.c | 15 +++++----
+ include/linux/mm.h                 |  7 +++++
+ mm/gup.c                           | 50 ++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+), 6 deletions(-)
 
-    a) I'll rework the 41-patch "put_user_pages(): miscellaneous call
-       sites" series, and
-
-    b) note that this will take rather longer and will be quite a bit more
-       intrusive for each call site (but it's worth it), due to the
-       need to plumb the owning struct file* all the way down to the gup()
-       call. whew.
-
-[1] https://lore.kernel.org/r/20190809225833.6657-1-ira.weiny@intel.com
-
-[2] https://lore.kernel.org/r/20190807013340.9706-1-jhubbard@nvidia.com
-
-John Hubbard (2):
-  mm/gup: introduce FOLL_PIN flag for get_user_pages()
-  mm/gup: introduce vaddr_pin_pages_remote()
-
- drivers/infiniband/core/umem_odp.c | 15 ++++----
- include/linux/mm.h                 |  8 +++++
- mm/gup.c                           | 55 +++++++++++++++++++++++++++++-
- 3 files changed, 71 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 53085896d718..fdff034a8a30 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -534,7 +534,7 @@ static int ib_umem_odp_map_dma_single_page(
+ 	}
+ 
+ out:
+-	put_user_page(page);
++	vaddr_unpin_pages(&page, 1, &umem_odp->umem.vaddr_pin);
+ 
+ 	if (remove_existing_mapping) {
+ 		ib_umem_notifier_start_account(umem_odp);
+@@ -635,9 +635,10 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 		 * complex (and doesn't gain us much performance in most use
+ 		 * cases).
+ 		 */
+-		npages = get_user_pages_remote(owning_process, owning_mm,
++		npages = vaddr_pin_pages_remote(owning_process, owning_mm,
+ 				user_virt, gup_num_pages,
+-				flags, local_page_list, NULL, NULL);
++				flags, local_page_list, NULL, NULL,
++				&umem_odp->umem.vaddr_pin);
+ 		up_read(&owning_mm->mmap_sem);
+ 
+ 		if (npages < 0) {
+@@ -657,7 +658,8 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 					ret = -EFAULT;
+ 					break;
+ 				}
+-				put_user_page(local_page_list[j]);
++				vaddr_unpin_pages(&local_page_list[j], 1,
++						  &umem_odp->umem.vaddr_pin);
+ 				continue;
+ 			}
+ 
+@@ -684,8 +686,9 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 			 * ib_umem_odp_map_dma_single_page().
+ 			 */
+ 			if (npages - (j + 1) > 0)
+-				put_user_pages(&local_page_list[j+1],
+-					       npages - (j + 1));
++				vaddr_unpin_pages(&local_page_list[j+1],
++						  npages - (j + 1),
++						  &umem_odp->umem.vaddr_pin);
+ 			break;
+ 		}
+ 	}
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 61b616cd9243..2bd76ad8787e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1606,6 +1606,13 @@ int __account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc,
+ long vaddr_pin_pages(unsigned long addr, unsigned long nr_pages,
+ 		     unsigned int gup_flags, struct page **pages,
+ 		     struct vaddr_pin *vaddr_pin);
++long vaddr_pin_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
++			    unsigned long start, unsigned long nr_pages,
++			    unsigned int gup_flags, struct page **pages,
++			    struct vm_area_struct **vmas, int *locked,
++			    struct vaddr_pin *vaddr_pin);
++void vaddr_unpin_pages(struct page **pages, unsigned long nr_pages,
++		       struct vaddr_pin *vaddr_pin);
+ void vaddr_unpin_pages_dirty_lock(struct page **pages, unsigned long nr_pages,
+ 				  struct vaddr_pin *vaddr_pin, bool make_dirty);
+ bool mapping_inode_has_layout(struct vaddr_pin *vaddr_pin, struct page *page);
+diff --git a/mm/gup.c b/mm/gup.c
+index 85f09958fbdc..bb95adfaf9b6 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2518,6 +2518,38 @@ long vaddr_pin_pages(unsigned long addr, unsigned long nr_pages,
+ }
+ EXPORT_SYMBOL(vaddr_pin_pages);
+ 
++/**
++ * vaddr_pin_pages pin pages by virtual address and return the pages to the
++ * user.
++ *
++ * @tsk:	the task_struct to use for page fault accounting, or
++ *		NULL if faults are not to be recorded.
++ * @mm:		mm_struct of target mm
++ * @addr:	start address
++ * @nr_pages:	number of pages to pin
++ * @gup_flags:	flags to use for the pin
++ * @pages:	array of pages returned
++ * @vaddr_pin:	initialized meta information this pin is to be associated
++ * with.
++ *
++ * This is the "vaddr_pin_pages" corresponding variant to
++ * get_user_pages_remote(), but with FOLL_PIN semantics: the implementation sets
++ * FOLL_PIN. That, in turn, means that the pages must ultimately be released
++ * by put_user_page().
++ */
++long vaddr_pin_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
++			    unsigned long start, unsigned long nr_pages,
++			    unsigned int gup_flags, struct page **pages,
++			    struct vm_area_struct **vmas, int *locked,
++			    struct vaddr_pin *vaddr_pin)
++{
++	gup_flags |= FOLL_TOUCH | FOLL_REMOTE | FOLL_PIN;
++
++	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
++				       locked, gup_flags, vaddr_pin);
++}
++EXPORT_SYMBOL(vaddr_pin_pages_remote);
++
+ /**
+  * vaddr_unpin_pages_dirty_lock - counterpart to vaddr_pin_pages
+  *
+@@ -2536,3 +2568,21 @@ void vaddr_unpin_pages_dirty_lock(struct page **pages, unsigned long nr_pages,
+ 	__put_user_pages_dirty_lock(vaddr_pin, pages, nr_pages, make_dirty);
+ }
+ EXPORT_SYMBOL(vaddr_unpin_pages_dirty_lock);
++
++/**
++ * vaddr_unpin_pages - simple, non-dirtying counterpart to vaddr_pin_pages
++ *
++ * @pages: array of pages returned
++ * @nr_pages: number of pages in pages
++ * @vaddr_pin: same information passed to vaddr_pin_pages
++ *
++ * Like vaddr_unpin_pages_dirty_lock, but for non-dirty pages. Useful in putting
++ * back pages in an error case: they were never made dirty.
++ */
++void vaddr_unpin_pages(struct page **pages, unsigned long nr_pages,
++		       struct vaddr_pin *vaddr_pin)
++{
++	__put_user_pages_dirty_lock(vaddr_pin, pages, nr_pages, false);
++}
++EXPORT_SYMBOL(vaddr_unpin_pages);
++
 -- 
 2.22.0
 
