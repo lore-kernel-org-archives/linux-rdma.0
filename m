@@ -2,95 +2,101 @@ Return-Path: <SRS0=ZP0N=WI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66BE8C433FF
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 15:29:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5259BC31E40
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 15:40:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 421CD2070C
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 15:29:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E58E20679
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Aug 2019 15:40:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728286AbfHLP3z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Aug 2019 11:29:55 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:55116 "EHLO mx1.redhat.com"
+        id S1726496AbfHLPkH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Aug 2019 11:40:07 -0400
+Received: from ajax.cs.uga.edu ([128.192.4.6]:57260 "EHLO ajax.cs.uga.edu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726818AbfHLP3z (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 12 Aug 2019 11:29:55 -0400
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 4513F3172D8F;
-        Mon, 12 Aug 2019 15:29:55 +0000 (UTC)
-Received: from linux-ws.nc.xsintricity.com (ovpn-112-57.rdu2.redhat.com [10.10.112.57])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 3A69F4142;
-        Mon, 12 Aug 2019 15:29:54 +0000 (UTC)
-Message-ID: <b24ec049045f5700f31c90d5bbe3d70521c0b534.camel@redhat.com>
-Subject: Re: [PATCH for-next 2/9] RDMA/hns: Bugfix for creating qp attached
- to srq
-From:   Doug Ledford <dledford@redhat.com>
-To:     Lijun Ou <oulijun@huawei.com>, jgg@ziepe.ca
-Cc:     leon@kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
-Date:   Mon, 12 Aug 2019 11:29:51 -0400
-In-Reply-To: <1565343666-73193-3-git-send-email-oulijun@huawei.com>
-References: <1565343666-73193-1-git-send-email-oulijun@huawei.com>
-         <1565343666-73193-3-git-send-email-oulijun@huawei.com>
-Organization: Red Hat, Inc.
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-oMYPbOCquJvFLBxwKgf8"
-User-Agent: Evolution 3.32.4 (3.32.4-1.fc30) 
+        id S1725901AbfHLPkH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 12 Aug 2019 11:40:07 -0400
+X-Greylist: delayed 3763 seconds by postgrey-1.27 at vger.kernel.org; Mon, 12 Aug 2019 11:40:06 EDT
+Received: from mail-lj1-f174.google.com (mail-lj1-f174.google.com [209.85.208.174])
+        (authenticated bits=0)
+        by ajax.cs.uga.edu (8.14.4/8.14.4) with ESMTP id x7CEbLnw046789
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 12 Aug 2019 10:37:22 -0400
+Received: by mail-lj1-f174.google.com with SMTP id r9so98508484ljg.5;
+        Mon, 12 Aug 2019 07:37:22 -0700 (PDT)
+X-Gm-Message-State: APjAAAUq4y/aUsIswoRcA+NYjGPlUsoFngqk9beTMkpc7wNU561pK+Ts
+        7F2Hrk5hqsL12tGCbzfonO8VhlAZuqIGNGzLpc8=
+X-Google-Smtp-Source: APXvYqwHjweXtAnZiiWTex2gV+573FnnCM4Bigr6V0xRAj2PUVm5tKqJ0aEvN23cJIb7jhc7vNyJ3r75T6pPOtCVtDA=
+X-Received: by 2002:a2e:3c12:: with SMTP id j18mr3801850lja.50.1565620641004;
+ Mon, 12 Aug 2019 07:37:21 -0700 (PDT)
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.41]); Mon, 12 Aug 2019 15:29:55 +0000 (UTC)
+References: <1565591765-6461-1-git-send-email-wenwen@cs.uga.edu> <75e09920-4ae3-0a19-4c2a-112d16bb81a5@mellanox.com>
+In-Reply-To: <75e09920-4ae3-0a19-4c2a-112d16bb81a5@mellanox.com>
+From:   Wenwen Wang <wenwen@cs.uga.edu>
+Date:   Mon, 12 Aug 2019 10:36:44 -0400
+X-Gmail-Original-Message-ID: <CAAa=b7dk37o-z=XNTCFOFMuR=G1_ig1bv+YRJaNwJSkgfQTVPw@mail.gmail.com>
+Message-ID: <CAAa=b7dk37o-z=XNTCFOFMuR=G1_ig1bv+YRJaNwJSkgfQTVPw@mail.gmail.com>
+Subject: Re: [PATCH] net/mlx4_en: fix a memory leak bug
+To:     Tariq Toukan <tariqt@mellanox.com>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        "open list:MELLANOX ETHERNET DRIVER (mlx4_en)" 
+        <netdev@vger.kernel.org>,
+        "open list:MELLANOX MLX4 core VPI driver" 
+        <linux-rdma@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        Wenwen Wang <wenwen@cs.uga.edu>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Mon, Aug 12, 2019 at 5:05 AM Tariq Toukan <tariqt@mellanox.com> wrote:
+>
+> Hi Wenwen,
+>
+> Thanks for your patch.
+>
+> On 8/12/2019 9:36 AM, Wenwen Wang wrote:
+> > In mlx4_en_config_rss_steer(), 'rss_map->indir_qp' is allocated through
+> > kzalloc(). After that, mlx4_qp_alloc() is invoked to configure RSS
+> > indirection. However, if mlx4_qp_alloc() fails, the allocated
+> > 'rss_map->indir_qp' is not deallocated, leading to a memory leak bug.
+> >
+> > To fix the above issue, add the 'mlx4_err' label to free
+> > 'rss_map->indir_qp'.
+> >
+>
+> Add a Fixes line.
+>
+> > Signed-off-by: Wenwen Wang <wenwen@cs.uga.edu> > ---
+> >   drivers/net/ethernet/mellanox/mlx4/en_rx.c | 3 ++-
+> >   1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> > index 6c01314..9476dbd 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> > @@ -1187,7 +1187,7 @@ int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv)
+> >       err = mlx4_qp_alloc(mdev->dev, priv->base_qpn, rss_map->indir_qp);
+> >       if (err) {
+> >               en_err(priv, "Failed to allocate RSS indirection QP\n");
+> > -             goto rss_err;
+> > +             goto mlx4_err;
+> >       }
+> >
+> >       rss_map->indir_qp->event = mlx4_en_sqp_event;
+> > @@ -1241,6 +1241,7 @@ int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv)
+> >                      MLX4_QP_STATE_RST, NULL, 0, 0, rss_map->indir_qp);
+> >       mlx4_qp_remove(mdev->dev, rss_map->indir_qp);
+> >       mlx4_qp_free(mdev->dev, rss_map->indir_qp);
+> > +mlx4_err:
+>
+> I don't like the label name. It's too general and not informative.
+> Maybe qp_alloc_err?
 
---=-oMYPbOCquJvFLBxwKgf8
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thanks! I will rework the patch.
 
-On Fri, 2019-08-09 at 17:40 +0800, Lijun Ou wrote:
->                 hr_qp->sq.wrid =3D kcalloc(hr_qp->sq.wqe_cnt,
-> sizeof(u64),
-> -                                        GFP_KERNEL);
-> -               hr_qp->rq.wrid =3D kcalloc(hr_qp->rq.wqe_cnt,
-> sizeof(u64),
-> -                                        GFP_KERNEL);
-> -               if (!hr_qp->sq.wrid || !hr_qp->rq.wrid) {
-> +                                              GFP_KERNEL);
-
-Whitespace breakage.
-
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---=-oMYPbOCquJvFLBxwKgf8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl1Rhe8ACgkQuCajMw5X
-L91HaA/7BkGdEjdNO3cNrPc1Cij++WuKW87GkafIFPp6Dw4vmo8eW/j4pnvGQgDZ
-YFB2pMfWHsK0YRSVzpt0LzsRZCZms3T2XRn8+HM999e42aN51Dl4lv9WF2niifwn
-Up4wB/BT7DMF+Fzw8M51a2M81u+mcfJP2TVDE52clPCB/maOnlwnnNvQcaeMrvDq
-NqvDmRGpjiCqF5mQJx0HDLHuxP0zA09eM/Be2HgkcvyQJ2i51MJ9FtedB7tqkBeH
-6u4YK9OwQ0MSrt2O4K+pBqG93UkIpd9fDCMbxWJ4Ff+9oozq8zjXYA7cLStiE4cJ
-39qwA5e8URZuDqEgCwplL8K2L7RMH+rGBiPeV/cJkGFq7/ltIsmMQ06Fhiqx2ig2
-IQcLtzq2vkz8Gx4Glcj6ijfYh1LyRyh7HOK2zRTVhRGiC35pAT6/qUxKRXFwWpei
-bLWJaF/mrGAZFzYvDUmct4a90Gs9tOPgrl9HyuExOjaScnuxEUnctf7gWQAhewUL
-B0lTrfCGKbvkW+HX3DEfNNN0yPjBXnB3FqbQejhVi9zKHEyZQAMpm8teCwZq6l5K
-3KDwg78PEbO5LIoKOLGFyYD51E52//Nbi9gt0KJLiEItfA2aL1iBcMvL4PEeTGUR
-e88gW1hmln0VdlQtGOlvLb3/iroWpXVuDGpa124IqGJPsuUHo6U=
-=2zd1
------END PGP SIGNATURE-----
-
---=-oMYPbOCquJvFLBxwKgf8--
-
+Wenwen
