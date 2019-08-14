@@ -2,111 +2,100 @@ Return-Path: <SRS0=eFdo=WK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EB2AC32753
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Aug 2019 21:57:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FF56C433FF
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Aug 2019 23:50:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CE8602133F
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Aug 2019 21:57:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A846206C1
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Aug 2019 23:50:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728810AbfHNV5n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 14 Aug 2019 17:57:43 -0400
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:57130 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728745AbfHNV5m (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 14 Aug 2019 17:57:42 -0400
-Received: from dread.disaster.area (pa49-195-190-67.pa.nsw.optusnet.com.au [49.195.190.67])
-        by mail104.syd.optusnet.com.au (Postfix) with ESMTPS id 800D843DB39;
-        Thu, 15 Aug 2019 07:57:37 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92)
-        (envelope-from <david@fromorbit.com>)
-        id 1hy1Fu-0006Ca-2B; Thu, 15 Aug 2019 07:56:30 +1000
-Date:   Thu, 15 Aug 2019 07:56:30 +1000
-From:   Dave Chinner <david@fromorbit.com>
-To:     Jeff Layton <jlayton@kernel.org>
-Cc:     ira.weiny@intel.com, Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
+        id S1728370AbfHNXuB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 14 Aug 2019 19:50:01 -0400
+Received: from mga11.intel.com ([192.55.52.93]:12480 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728262AbfHNXuB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 14 Aug 2019 19:50:01 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Aug 2019 16:50:00 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.64,387,1559545200"; 
+   d="scan'208";a="184468157"
+Received: from iweiny-desk2.sc.intel.com ([10.3.52.157])
+  by FMSMGA003.fm.intel.com with ESMTP; 14 Aug 2019 16:50:00 -0700
+Date:   Wed, 14 Aug 2019 16:50:00 -0700
+From:   Ira Weiny <ira.weiny@intel.com>
+To:     John Hubbard <jhubbard@nvidia.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Christoph Hellwig <hch@infradead.org>,
         Dan Williams <dan.j.williams@intel.com>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-        Theodore Ts'o <tytso@mit.edu>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Michal Hocko <mhocko@suse.com>, linux-xfs@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-ext4@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [RFC PATCH v2 02/19] fs/locks: Add Exclusive flag to user Layout
- lease
-Message-ID: <20190814215630.GQ6129@dread.disaster.area>
-References: <20190809225833.6657-1-ira.weiny@intel.com>
- <20190809225833.6657-3-ira.weiny@intel.com>
- <fde2959db776616008fc5d31df700f5d7d899433.camel@kernel.org>
+        Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org,
+        linux-fsdevel@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [RFC PATCH 2/2] mm/gup: introduce vaddr_pin_pages_remote()
+Message-ID: <20190814234959.GA463@iweiny-DESK2.sc.intel.com>
+References: <20190812015044.26176-1-jhubbard@nvidia.com>
+ <20190812015044.26176-3-jhubbard@nvidia.com>
+ <20190812234950.GA6455@iweiny-DESK2.sc.intel.com>
+ <38d2ff2f-4a69-e8bd-8f7c-41f1dbd80fae@nvidia.com>
+ <20190813210857.GB12695@iweiny-DESK2.sc.intel.com>
+ <a1044a0d-059c-f347-bd68-38be8478bf20@nvidia.com>
+ <90e5cd11-fb34-6913-351b-a5cc6e24d85d@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <fde2959db776616008fc5d31df700f5d7d899433.camel@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=FNpr/6gs c=1 sm=1 tr=0
-        a=TR82T6zjGmBjdfWdGgpkDw==:117 a=TR82T6zjGmBjdfWdGgpkDw==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=FmdZ9Uzk2mMA:10
-        a=QyXUC8HyAAAA:8 a=7-415B0cAAAA:8 a=qa3ElbQomqnm_qv8Y-cA:9
-        a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
+In-Reply-To: <90e5cd11-fb34-6913-351b-a5cc6e24d85d@nvidia.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Aug 14, 2019 at 10:15:06AM -0400, Jeff Layton wrote:
-> On Fri, 2019-08-09 at 15:58 -0700, ira.weiny@intel.com wrote:
-> > From: Ira Weiny <ira.weiny@intel.com>
+On Tue, Aug 13, 2019 at 05:56:31PM -0700, John Hubbard wrote:
+> On 8/13/19 5:51 PM, John Hubbard wrote:
+> > On 8/13/19 2:08 PM, Ira Weiny wrote:
+> >> On Mon, Aug 12, 2019 at 05:07:32PM -0700, John Hubbard wrote:
+> >>> On 8/12/19 4:49 PM, Ira Weiny wrote:
+> >>>> On Sun, Aug 11, 2019 at 06:50:44PM -0700, john.hubbard@gmail.com wrote:
+> >>>>> From: John Hubbard <jhubbard@nvidia.com>
+> >>> ...
+> >> Finally, I struggle with converting everyone to a new call.  It is more
+> >> overhead to use vaddr_pin in the call above because now the GUP code is going
+> >> to associate a file pin object with that file when in ODP we don't need that
+> >> because the pages can move around.
 > > 
-> > Add an exclusive lease flag which indicates that the layout mechanism
-> > can not be broken.
+> > What if the pages in ODP are file-backed? 
 > > 
-> > Exclusive layout leases allow the file system to know that pages may be
-> > GUP pined and that attempts to change the layout, ie truncate, should be
-> > failed.
-> > 
-> > A process which attempts to break it's own exclusive lease gets an
-> > EDEADLOCK return to help determine that this is likely a programming bug
-> > vs someone else holding a resource.
-.....
-> > diff --git a/include/uapi/asm-generic/fcntl.h b/include/uapi/asm-generic/fcntl.h
-> > index baddd54f3031..88b175ceccbc 100644
-> > --- a/include/uapi/asm-generic/fcntl.h
-> > +++ b/include/uapi/asm-generic/fcntl.h
-> > @@ -176,6 +176,8 @@ struct f_owner_ex {
-> >  
-> >  #define F_LAYOUT	16      /* layout lease to allow longterm pins such as
-> >  				   RDMA */
-> > +#define F_EXCLUSIVE	32      /* layout lease is exclusive */
-> > +				/* FIXME or shoudl this be F_EXLCK??? */
-> >  
-> >  /* operations for bsd flock(), also used by the kernel implementation */
-> >  #define LOCK_SH		1	/* shared lock */
 > 
-> This interface just seems weird to me. The existing F_*LCK values aren't
-> really set up to be flags, but are enumerated values (even if there are
-> some gaps on some arches). For instance, on parisc and sparc:
+> oops, strike that, you're right: in that case, even the file system case is covered.
+> Don't mind me. :)
 
-I don't think we need to worry about this - the F_WRLCK version of
-the layout lease should have these exclusive access semantics (i.e
-other ops fail rather than block waiting for lease recall) and hence
-the API shouldn't need a new flag to specify them.
+Ok so are we agreed we will drop the patch to the ODP code?  I'm going to keep
+the FOLL_PIN flag and addition in the vaddr_pin_pages.
 
-i.e. the primary difference between F_RDLCK and F_WRLCK layout
-leases is that the F_RDLCK is a shared, co-operative lease model
-where only delays in operations will be seen, while F_WRLCK is a
-"guarantee exclusive access and I don't care what it breaks"
-model... :)
+Ira
 
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+> 
+> >>
+> >> This overhead may be fine, not sure in this case, but I don't see everyone
+> >> wanting it.
+> 
+> So now I see why you said that, but I will note that ODP hardware is rare,
+> and will likely remain rare: replayable page faults require really special 
+> hardware, and after all this time, we still only have CPUs, GPUs, and the
+> Mellanox cards that do it.
+> 
+> That leaves a lot of other hardware to take care of.
+> 
+> thanks,
+> -- 
+> John Hubbard
+> NVIDIA
+> 
