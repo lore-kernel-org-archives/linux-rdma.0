@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E716CC433FF
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:39:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5499BC31E40
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:39:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE76922387
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:39:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E7BE22387
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:39:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565858348;
-	bh=dbN+XXnlU1qrx6bVOtm2DUsShhgBs0OtQPX9viZgMjg=;
+	s=default; t=1565858351;
+	bh=AFRkQLZI+8XDklm1zo97b1gCLuojb80Z6LUBwZL+v6g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Rh8pMs/g4ByB+FyiSTQBQU7TjxQH6eP5YlBeTcUeSMMQnvXqHKD3QwT5BL2Z4pgp9
-	 kK1WUFnUyw30OaeI0aWrGrRNu1Q2DRHJv7+iUvoLbNkq52tffVcMZIMGkS9BLA6o2Q
-	 DP8hnywYP1HYB3gLbZ1eoakzmjZfDQsTu09mn0O8=
+	b=szKLASIgwIygjxUuw7umB/0Qz1I7t/1qKbPAuFJsYgHAfRjtW/aRF47UJXx90zOjS
+	 KlJq51KJ+Tzu6WxS9dsHBcc/rvqVfIKTWoU8RBhtCetMHR2PxAbLoBEhNfvfzEu5LK
+	 8pn8wGnxxi0TZ5Wy5gwLVoj21ysjdz4VL9NPrXl8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730834AbfHOIjI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 15 Aug 2019 04:39:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56510 "EHLO mail.kernel.org"
+        id S1730841AbfHOIjK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 15 Aug 2019 04:39:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725875AbfHOIjI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 15 Aug 2019 04:39:08 -0400
+        id S1725875AbfHOIjK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 15 Aug 2019 04:39:10 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4957A2235C;
-        Thu, 15 Aug 2019 08:39:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7E1872235C;
+        Thu, 15 Aug 2019 08:39:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565858346;
-        bh=dbN+XXnlU1qrx6bVOtm2DUsShhgBs0OtQPX9viZgMjg=;
+        s=default; t=1565858350;
+        bh=AFRkQLZI+8XDklm1zo97b1gCLuojb80Z6LUBwZL+v6g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=jycaABpmgxXrkzaVTd6seURo7XP8cqIx8OuAWxaPjnpy2KPGTN4vfKB1l4AV8MAXW
-         AFST4T2w+D29jFLrmzeSlV8FQfX7ydL8q9ZmXIANahdZQOq6hfSJghkBqqdHuWE6Ip
-         PDHb/xjyc9BUJBQyquqFCie0aoMRthjfYfHLHgDA=
+        b=ffGqLpCinOVMsoQbkTDhgg1x5EXzwNkBw08AUGTFG4Fb/Cb7vXMR2jGpX/AQ6tQaR
+         5aGb+Fh+o8kt+6v8hft9N57PN32vJLEAo/bWuvLmSVVLHzAFcYcQsmcIafP6gLpznG
+         4L1hpcf8CZvNb6GCN5YOnXRrvZE6JUYjupVMeQvI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -48,9 +48,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Majd Dibbiny <majd@mellanox.com>,
         Mark Zhang <markz@mellanox.com>,
         Moni Shoua <monis@mellanox.com>
-Subject: [PATCH rdma-rc 8/8] IB/mlx5: Block MR WR if UMR is not possible
-Date:   Thu, 15 Aug 2019 11:38:34 +0300
-Message-Id: <20190815083834.9245-9-leon@kernel.org>
+Subject: [PATCH rdma-rc 4/8] RDMA/mlx5: Fix MR npages calculation for IB_ACCESS_HUGETLB
+Date:   Thu, 15 Aug 2019 11:38:30 +0300
+Message-Id: <20190815083834.9245-5-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190815083834.9245-1-leon@kernel.org>
 References: <20190815083834.9245-1-leon@kernel.org>
@@ -61,99 +61,57 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-Check conditions that are mandatory to post_send UMR WQEs.
-1. Modifying page size.
-2. Modifying remote atomic permissions if atomic access is required.
+When ODP is enabled with IB_ACCESS_HUGETLB then the required pages
+should be calculated based on the extent of the MR, which is rounded
+to the nearest huge page alignment.
 
-If either condition is not fulfilled then fail to post_send() flow.
-
-Fixes: c8d75a980fab ("IB/mlx5: Respect new UMR capabilities")
-Signed-off-by: Moni Shoua <monis@mellanox.com>
-Reviewed-by: Guy Levi <guyle@mellanox.com>
+Fixes: d2183c6f1958 ("RDMA/umem: Move page_shift from ib_umem to ib_odp_umem")
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/umem.c   | 7 +------
+ drivers/infiniband/hw/mlx5/mem.c | 5 +++--
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 379328b2598f..72869ff4a334 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -4162,7 +4162,7 @@ static u64 get_xlt_octo(u64 bytes)
- 	       MLX5_IB_UMR_OCTOWORD;
- }
-
--static __be64 frwr_mkey_mask(void)
-+static __be64 frwr_mkey_mask(bool atomic)
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 08da840ed7ee..56553668256f 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -379,14 +379,9 @@ EXPORT_SYMBOL(ib_umem_release);
+ 
+ int ib_umem_page_count(struct ib_umem *umem)
  {
- 	u64 result;
-
-@@ -4175,10 +4175,12 @@ static __be64 frwr_mkey_mask(void)
- 		MLX5_MKEY_MASK_LW		|
- 		MLX5_MKEY_MASK_RR		|
- 		MLX5_MKEY_MASK_RW		|
--		MLX5_MKEY_MASK_A		|
- 		MLX5_MKEY_MASK_SMALL_FENCE	|
- 		MLX5_MKEY_MASK_FREE;
-
-+	if (atomic)
-+		result |= MLX5_MKEY_MASK_A;
-+
- 	return cpu_to_be64(result);
- }
-
-@@ -4204,7 +4206,7 @@ static __be64 sig_mkey_mask(void)
- }
-
- static void set_reg_umr_seg(struct mlx5_wqe_umr_ctrl_seg *umr,
--			    struct mlx5_ib_mr *mr, u8 flags)
-+			    struct mlx5_ib_mr *mr, u8 flags, bool atomic)
- {
- 	int size = (mr->ndescs + mr->meta_ndescs) * mr->desc_size;
-
-@@ -4212,7 +4214,7 @@ static void set_reg_umr_seg(struct mlx5_wqe_umr_ctrl_seg *umr,
-
- 	umr->flags = flags;
- 	umr->xlt_octowords = cpu_to_be16(get_xlt_octo(size));
--	umr->mkey_mask = frwr_mkey_mask();
-+	umr->mkey_mask = frwr_mkey_mask(atomic);
- }
-
- static void set_linv_umr_seg(struct mlx5_wqe_umr_ctrl_seg *umr)
-@@ -4811,10 +4813,22 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
- {
- 	struct mlx5_ib_mr *mr = to_mmr(wr->mr);
- 	struct mlx5_ib_pd *pd = to_mpd(qp->ibqp.pd);
-+	struct mlx5_ib_dev *dev = to_mdev(pd->ibpd.device);
- 	int mr_list_size = (mr->ndescs + mr->meta_ndescs) * mr->desc_size;
- 	bool umr_inline = mr_list_size <= MLX5_IB_SQ_UMR_INLINE_THRESHOLD;
-+	bool atomic = wr->access & IB_ACCESS_REMOTE_ATOMIC;
- 	u8 flags = 0;
-
-+	if (!mlx5_ib_can_use_umr(dev, atomic)) {
-+		mlx5_ib_warn(to_mdev(qp->ibqp.device),
-+			     "Fast update of %s for MR is disabled\n",
-+			     (MLX5_CAP_GEN(dev->mdev,
-+					   umr_modify_entity_size_disabled)) ?
-+				     "entity size" :
-+				     "atomic access");
-+		return -EINVAL;
-+	}
-+
- 	if (unlikely(wr->wr.send_flags & IB_SEND_INLINE)) {
- 		mlx5_ib_warn(to_mdev(qp->ibqp.device),
- 			     "Invalid IB_SEND_INLINE send flag\n");
-@@ -4826,7 +4840,7 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
- 	if (umr_inline)
- 		flags |= MLX5_UMR_INLINE;
-
--	set_reg_umr_seg(*seg, mr, flags);
-+	set_reg_umr_seg(*seg, mr, flags, atomic);
- 	*seg += sizeof(struct mlx5_wqe_umr_ctrl_seg);
- 	*size += sizeof(struct mlx5_wqe_umr_ctrl_seg) / 16;
- 	handle_post_send_edge(&qp->sq, seg, *size, cur_edge);
---
+-	int i;
+-	int n;
++	int i, n = 0;
+ 	struct scatterlist *sg;
+ 
+-	if (umem->is_odp)
+-		return ib_umem_num_pages(umem);
+-
+-	n = 0;
+ 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, i)
+ 		n += sg_dma_len(sg) >> PAGE_SHIFT;
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index fe1a76d8531c..a40e0abf2338 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -57,9 +57,10 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
+ 	int entry;
+ 
+ 	if (umem->is_odp) {
+-		unsigned int page_shift = to_ib_umem_odp(umem)->page_shift;
++		struct ib_umem_odp *odp = to_ib_umem_odp(umem);
++		unsigned int page_shift = odp->page_shift;
+ 
+-		*ncont = ib_umem_page_count(umem);
++		*ncont = ib_umem_odp_num_pages(odp);
+ 		*count = *ncont << (page_shift - PAGE_SHIFT);
+ 		*shift = page_shift;
+ 		if (order)
+-- 
 2.20.1
 
