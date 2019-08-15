@@ -2,41 +2,42 @@ Return-Path: <SRS0=U7hD=WL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37816C433FF
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 854C6C31E40
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06FCC22387
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CC4B2235C
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565858321;
-	bh=46Yq+zl//G7zUWKlqawAyH/NQ9s4IR+M2R0EUKgNFy0=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=Bee660ZXSvRNUqkN/d/MEMhMA+NSt1ME6J4xcqs7AmTw3akcyW93xhTZ0hznqJVy6
-	 o23jD4bA5ePmbW68gIzTKk+bLWiZHQLeAXXWx752cFN++2w/iE5DRXjtz2ofUBHDyq
-	 8ti0LvCDhcS2ePw4GMfOA/3+al4X2Ph6qNWRgM7g=
+	s=default; t=1565858323;
+	bh=aEhbEIJvaeRc9m9j1JAXD6aHvWZvVWRh38CHquhzCek=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=rsB25e5bqWSNhJ7X/uMY0I9GP9Eqtqys2gAxnwxATL26hGImnfEKOFnNC+N52dksk
+	 zJ98mH/9zEHk7xDUQfL/O0o+ogtGsXhHUbJCmbHD6jEChl8GA9C3lPVJiNt/q2b0+f
+	 muL0xIin67YiFMkseNYxAxjHhaxyxxAQ3QAonHAo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726366AbfHOIik (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 15 Aug 2019 04:38:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56016 "EHLO mail.kernel.org"
+        id S1726865AbfHOIim (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 15 Aug 2019 04:38:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725875AbfHOIik (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 15 Aug 2019 04:38:40 -0400
+        id S1726443AbfHOIim (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 15 Aug 2019 04:38:42 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 969C22235C;
-        Thu, 15 Aug 2019 08:38:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CA48322387;
+        Thu, 15 Aug 2019 08:38:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565858319;
-        bh=46Yq+zl//G7zUWKlqawAyH/NQ9s4IR+M2R0EUKgNFy0=;
-        h=From:To:Cc:Subject:Date:From;
-        b=X1U6NYg3ornT/BJcVK7ottML5nRkionXKC9lcY09R7UXfYDS7wlZgPck4xtYFU9Uy
-         8NouAlMfNn8bAjXSJAXk6wLXaUzzaGF0bwOq+AednPx0UyymJHh5mCgW3SIP6RzDmF
-         WhzFIp7vhBbxaZ+t7qQ2R+bLrvaxl6bKi8d4jK4Q=
+        s=default; t=1565858322;
+        bh=aEhbEIJvaeRc9m9j1JAXD6aHvWZvVWRh38CHquhzCek=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=pqnU0RTlMGztRP8O2bL4bchYzja4KaUX9y7DUJGfdMErplH0z327oynhzz1oeGv6b
+         77dItO0tH/3BePrWB8UwHuBlljPpVhynDfgjx/h8xyMpqJ04y9bb3N9I0bYTRfrume
+         IWn9dwrD0mTOLZFp/1f5m5rgsl97fAVpYEJGQRH0=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,10 +48,12 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Majd Dibbiny <majd@mellanox.com>,
         Mark Zhang <markz@mellanox.com>,
         Moni Shoua <monis@mellanox.com>
-Subject: [PATCH rdma-rc 0/8] Fixes for v5.3
-Date:   Thu, 15 Aug 2019 11:38:26 +0300
-Message-Id: <20190815083834.9245-1-leon@kernel.org>
+Subject: [PATCH rdma-rc 1/8] IB/core: Fix NULL pointer dereference when bind QP to counter
+Date:   Thu, 15 Aug 2019 11:38:27 +0300
+Message-Id: <20190815083834.9245-2-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190815083834.9245-1-leon@kernel.org>
+References: <20190815083834.9245-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -58,46 +61,56 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Ido Kalir <idok@mellanox.com>
 
-Hi,
+If QP is not visible to the pid, then we try to decrease its reference
+count and return from the function before the QP pointer is
+initialized. This lead to NULL pointer dereference.
+Fix it by pass directly the res to the rdma_restract_put as arg instead of
+&qp->res.
 
-This is a collection of new fixes for v5.3, everything here is fixing
-kernel crash or visible bug with one exception: patch #5 "IB/mlx5:
-Consolidate use_umr checks into single function". That patch is nice
-to have improvement to implement rest of the series.
+This fixes below call trace:
+[ 5845.110329] BUG: kernel NULL pointer dereference, address:
+00000000000000dc
+[ 5845.120482] Oops: 0002 [#1] SMP PTI
+[ 5845.129119] RIP: 0010:rdma_restrack_put+0x5/0x30 [ib_core]
+[ 5845.169450] Call Trace:
+[ 5845.170544]  rdma_counter_get_qp+0x5c/0x70 [ib_core]
+[ 5845.172074]  rdma_counter_bind_qpn_alloc+0x6f/0x1a0 [ib_core]
+[ 5845.173731]  nldev_stat_set_doit+0x314/0x330 [ib_core]
+[ 5845.175279]  rdma_nl_rcv_msg+0xeb/0x1d0 [ib_core]
+[ 5845.176772]  ? __kmalloc_node_track_caller+0x20b/0x2b0
+[ 5845.178321]  rdma_nl_rcv+0xcb/0x120 [ib_core]
+[ 5845.179753]  netlink_unicast+0x179/0x220
+[ 5845.181066]  netlink_sendmsg+0x2d8/0x3d0
+[ 5845.182338]  sock_sendmsg+0x30/0x40
+[ 5845.183544]  __sys_sendto+0xdc/0x160
+[ 5845.184832]  ? syscall_trace_enter+0x1f8/0x2e0
+[ 5845.186209]  ? __audit_syscall_exit+0x1d9/0x280
+[ 5845.187584]  __x64_sys_sendto+0x24/0x30
+[ 5845.188867]  do_syscall_64+0x48/0x120
+[ 5845.190097]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-Thanks
+Fixes: 1bd8e0a9d0fd1 ("RDMA/counter: Allow manual mode configuration support")
+Signed-off-by: Ido Kalir <idok@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/counters.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Ido Kalir (1):
-  IB/core: Fix NULL pointer dereference when bind QP to counter
-
-Jason Gunthorpe (1):
-  RDMA/mlx5: Fix MR npages calculation for IB_ACCESS_HUGETLB
-
-Leon Romanovsky (2):
-  RDMA/counters: Properly implement PID checks
-  RDMA/restrack: Rewrite PID namespace check to be reliable
-
-Moni Shoua (4):
-  IB/mlx5: Consolidate use_umr checks into single function
-  IB/mlx5: Report and handle ODP support properly
-  IB/mlx5: Fix MR re-registration flow to use UMR properly
-  IB/mlx5: Block MR WR if UMR is not possible
-
- drivers/infiniband/core/counters.c   | 10 ++++------
- drivers/infiniband/core/nldev.c      |  3 +--
- drivers/infiniband/core/restrack.c   | 15 +++++++--------
- drivers/infiniband/core/umem.c       |  7 +------
- drivers/infiniband/hw/mlx5/main.c    |  6 +++---
- drivers/infiniband/hw/mlx5/mem.c     |  5 +++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 14 ++++++++++++++
- drivers/infiniband/hw/mlx5/mr.c      |  7 +++----
- drivers/infiniband/hw/mlx5/odp.c     | 17 +++++++++--------
- drivers/infiniband/hw/mlx5/qp.c      | 24 +++++++++++++++++++-----
- include/rdma/restrack.h              |  3 +--
- 11 files changed, 65 insertions(+), 46 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+index b79890739a2c..955d061af06a 100644
+--- a/drivers/infiniband/core/counters.c
++++ b/drivers/infiniband/core/counters.c
+@@ -424,7 +424,7 @@ static struct ib_qp *rdma_counter_get_qp(struct ib_device *dev, u32 qp_num)
+ 	return qp;
+ 
+ err:
+-	rdma_restrack_put(&qp->res);
++	rdma_restrack_put(res);
+ 	return NULL;
+ }
+ 
+-- 
 2.20.1
 
