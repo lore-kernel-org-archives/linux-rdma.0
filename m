@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91492C433FF
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFF6C433FF
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 66D542235C
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E032B2235C
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Aug 2019 08:38:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565858334;
-	bh=L11hKorvZW28GkqLNvqA7712NVQnrQhNz6gTBU98o08=;
+	s=default; t=1565858338;
+	bh=ZyzqQf17cnEyHFW9E++HcPHt+RGN+l++Znjp64bFEak=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=JbEhOnLrgSwdvjDp5Ajlk8lCaDvODLX9ffc1p0SX3yxy2OMrl1C2EEJbkba10iS8Z
-	 4E+j/huNseb36vibVTQh812VvGDNd9p4k1yxxyz6Ra4Ay1xZXUczwHRJh+CmDsOxvC
-	 SpL4ww0yWHyyBRVOz0xLfvXnuEOUpVlUiYcDM6TE=
+	b=KJlc9rrly9cwLZseBWWn7jI5GHeO1XXwj7giS7C2k71gL0mzvvEyLec4KB09ZyUju
+	 RDkT+Wx0DdTPjdGg+KZyAUdWbZdxOKSW+z3wtSBaZKz8nGq3hXJOWhoxvE+YkMOkzc
+	 IndtDZ11pz8gFU/kzhODr8ZutmXU7k0HgJ/fWJD8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730823AbfHOIix (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 15 Aug 2019 04:38:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56210 "EHLO mail.kernel.org"
+        id S1730829AbfHOIi5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 15 Aug 2019 04:38:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56276 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725875AbfHOIix (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 15 Aug 2019 04:38:53 -0400
+        id S1725875AbfHOIi5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 15 Aug 2019 04:38:57 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3B7E522387;
-        Thu, 15 Aug 2019 08:38:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6C07A22387;
+        Thu, 15 Aug 2019 08:38:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565858332;
-        bh=L11hKorvZW28GkqLNvqA7712NVQnrQhNz6gTBU98o08=;
+        s=default; t=1565858336;
+        bh=ZyzqQf17cnEyHFW9E++HcPHt+RGN+l++Znjp64bFEak=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=W41x+rE595eTdj27//nC1F35v6/U4pzuF3ytySOOZMMxa3XFmTW+vgLaga27Wke1x
-         ve2IV8g28t3wEA8+AVddID0sccZHTY9YZF6wWy/HSJOXNXwBkc62ufScJ2FgvW8bVg
-         CF4GXahJMS7mJFt96ZV4Gxw3E0xepXVtL8j9zKIQ=
+        b=cv/FAEJZXBoV/aKe7iCw7y5DqEOZ3E1YFbZzNiW0opDaugMee/flpafuTRM+LAAv6
+         qKcUiEJNXlITmW0pwPnpAV7FchHtelTX+OYT4buqCGo28JifzjAe/mYu6xaWjzUqxs
+         JnGSk7Xe5nYo9VN7Uz5SXZ1guZAMdAeLJJD5xKKA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -48,9 +48,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Majd Dibbiny <majd@mellanox.com>,
         Mark Zhang <markz@mellanox.com>,
         Moni Shoua <monis@mellanox.com>
-Subject: [PATCH rdma-rc 3/8] RDMA/restrack: Rewrite PID namespace check to be reliable
-Date:   Thu, 15 Aug 2019 11:38:29 +0300
-Message-Id: <20190815083834.9245-4-leon@kernel.org>
+Subject: [PATCH rdma-rc 5/8] IB/mlx5: Consolidate use_umr checks into single function
+Date:   Thu, 15 Aug 2019 11:38:31 +0300
+Message-Id: <20190815083834.9245-6-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190815083834.9245-1-leon@kernel.org>
 References: <20190815083834.9245-1-leon@kernel.org>
@@ -61,93 +61,55 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Moni Shoua <monis@mellanox.com>
 
-task_active_pid_ns() is wrong API to check PID namespace because it
-posses some restrictions and return PID namespace where the process
-was allocated. It created mismatches with current namespace, which
-can be different.
+Introduce helper function to unify various use_umr checks.
 
-Rewrite whole rdma_is_visible_in_pid_ns() logic to provide reliable
-results without any relation to allocated PID namespace.
-
-Fixes: 8be565e65fa9 ("RDMA/nldev: Factor out the PID namespace check")
-Fixes: 6a6c306a09b5 ("RDMA/restrack: Make is_visible_in_pid_ns() as an API")
-Reviewed-by: Mark Zhang <markz@mellanox.com>
+Signed-off-by: Moni Shoua <monis@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/nldev.c    |  3 +--
- drivers/infiniband/core/restrack.c | 15 +++++++--------
- include/rdma/restrack.h            |  3 +--
- 3 files changed, 9 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 14 ++++++++++++++
+ drivers/infiniband/hw/mlx5/mr.c      |  4 +---
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 87d40d1ecdde..020c26976558 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -382,8 +382,7 @@ static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
- 	for (i = 0; i < RDMA_RESTRACK_MAX; i++) {
- 		if (!names[i])
- 			continue;
--		curr = rdma_restrack_count(device, i,
--					   task_active_pid_ns(current));
-+		curr = rdma_restrack_count(device, i);
- 		ret = fill_res_info_entry(msg, names[i], curr);
- 		if (ret)
- 			goto err;
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index bddff426ee0f..a07665f7ef8c 100644
---- a/drivers/infiniband/core/restrack.c
-+++ b/drivers/infiniband/core/restrack.c
-@@ -107,10 +107,8 @@ void rdma_restrack_clean(struct ib_device *dev)
-  * rdma_restrack_count() - the current usage of specific object
-  * @dev:  IB device
-  * @type: actual type of object to operate
-- * @ns:   PID namespace
-  */
--int rdma_restrack_count(struct ib_device *dev, enum rdma_restrack_type type,
--			struct pid_namespace *ns)
-+int rdma_restrack_count(struct ib_device *dev, enum rdma_restrack_type type)
- {
- 	struct rdma_restrack_root *rt = &dev->res[type];
- 	struct rdma_restrack_entry *e;
-@@ -119,10 +117,9 @@ int rdma_restrack_count(struct ib_device *dev, enum rdma_restrack_type type,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index f6a53455bf8b..9ae587b74b12 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1475,4 +1475,18 @@ int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
+ 			bool dyn_bfreg);
  
- 	xa_lock(&rt->xa);
- 	xas_for_each(&xas, e, U32_MAX) {
--		if (ns == &init_pid_ns ||
--		    (!rdma_is_kernel_res(e) &&
--		     ns == task_active_pid_ns(e->task)))
--			cnt++;
-+		if (!rdma_is_visible_in_pid_ns(e))
-+			continue;
-+		cnt++;
- 	}
- 	xa_unlock(&rt->xa);
- 	return cnt;
-@@ -360,5 +357,7 @@ bool rdma_is_visible_in_pid_ns(struct rdma_restrack_entry *res)
- 	 */
- 	if (rdma_is_kernel_res(res))
- 		return task_active_pid_ns(current) == &init_pid_ns;
--	return task_active_pid_ns(current) == task_active_pid_ns(res->task);
+ int mlx5_ib_qp_set_counter(struct ib_qp *qp, struct rdma_counter *counter);
 +
-+	/* PID 0 means that resource is not found in current namespace */
-+	return task_pid_vnr(res->task);
- }
-diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-index b0fc6b26bdf5..83df1ec6664e 100644
---- a/include/rdma/restrack.h
-+++ b/include/rdma/restrack.h
-@@ -105,8 +105,7 @@ struct rdma_restrack_entry {
- };
++static inline bool mlx5_ib_can_use_umr(struct mlx5_ib_dev *dev,
++				       bool do_modify_atomic)
++{
++	if (MLX5_CAP_GEN(dev->mdev, umr_modify_entity_size_disabled))
++		return false;
++
++	if (do_modify_atomic &&
++	    MLX5_CAP_GEN(dev->mdev, atomic) &&
++	    MLX5_CAP_GEN(dev->mdev, umr_modify_atomic_disabled))
++		return false;
++
++	return true;
++}
+ #endif /* MLX5_IB_H */
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index b74fad08412f..8bce65c03b84 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1293,9 +1293,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	if (err < 0)
+ 		return ERR_PTR(err);
  
- int rdma_restrack_count(struct ib_device *dev,
--			enum rdma_restrack_type type,
--			struct pid_namespace *ns);
-+			enum rdma_restrack_type type);
+-	use_umr = !MLX5_CAP_GEN(dev->mdev, umr_modify_entity_size_disabled) &&
+-		  (!MLX5_CAP_GEN(dev->mdev, umr_modify_atomic_disabled) ||
+-		   !MLX5_CAP_GEN(dev->mdev, atomic));
++	use_umr = mlx5_ib_can_use_umr(dev, true);
  
- void rdma_restrack_kadd(struct rdma_restrack_entry *res);
- void rdma_restrack_uadd(struct rdma_restrack_entry *res);
+ 	if (order <= mr_cache_max_order(dev) && use_umr) {
+ 		mr = alloc_mr_from_cache(pd, umem, virt_addr, length, ncont,
 -- 
 2.20.1
 
