@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5927DC3A59C
-	for <linux-rdma@archiver.kernel.org>; Fri, 16 Aug 2019 08:08:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09571C3A59C
+	for <linux-rdma@archiver.kernel.org>; Fri, 16 Aug 2019 08:09:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 37C412133F
-	for <linux-rdma@archiver.kernel.org>; Fri, 16 Aug 2019 08:08:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DAB80206C2
+	for <linux-rdma@archiver.kernel.org>; Fri, 16 Aug 2019 08:09:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726803AbfHPIIh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 16 Aug 2019 04:08:37 -0400
-Received: from verein.lst.de ([213.95.11.211]:53296 "EHLO verein.lst.de"
+        id S1726684AbfHPIJS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 16 Aug 2019 04:09:18 -0400
+Received: from verein.lst.de ([213.95.11.211]:53304 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726277AbfHPIIh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 16 Aug 2019 04:08:37 -0400
+        id S1726166AbfHPIJR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 16 Aug 2019 04:09:17 -0400
 Received: by verein.lst.de (Postfix, from userid 2407)
-        id 19BBC68B05; Fri, 16 Aug 2019 10:08:34 +0200 (CEST)
-Date:   Fri, 16 Aug 2019 10:08:33 +0200
+        id 7AE4368B02; Fri, 16 Aug 2019 10:09:14 +0200 (CEST)
+Date:   Fri, 16 Aug 2019 10:09:14 +0200
 From:   Christoph Hellwig <hch@lst.de>
 To:     Logan Gunthorpe <logang@deltatee.com>
 Cc:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
@@ -34,31 +34,33 @@ Cc:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         Dan Williams <dan.j.williams@intel.com>,
         Eric Pilmore <epilmore@gigaio.com>,
         Stephen Bates <sbates@raithlin.com>
-Subject: Re: [PATCH v3 04/14] PCI/P2PDMA: Factor out
- __upstream_bridge_distance()
-Message-ID: <20190816080833.GD9249@lst.de>
-References: <20190812173048.9186-1-logang@deltatee.com> <20190812173048.9186-5-logang@deltatee.com>
+Subject: Re: [PATCH v3 05/14] PCI/P2PDMA: Apply host bridge whitelist for
+ ACS
+Message-ID: <20190816080914.GE9249@lst.de>
+References: <20190812173048.9186-1-logang@deltatee.com> <20190812173048.9186-6-logang@deltatee.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190812173048.9186-5-logang@deltatee.com>
+In-Reply-To: <20190812173048.9186-6-logang@deltatee.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 12, 2019 at 11:30:38AM -0600, Logan Gunthorpe wrote:
-> This is a prep patch to create a second level helper. There are no
-> functional changes.
+On Mon, Aug 12, 2019 at 11:30:39AM -0600, Logan Gunthorpe wrote:
+> When a P2PDMA transfer is rejected due to ACS being set, we can also check
+> the whitelist and allow the transactions.
 > 
-> The root complex whitelist code will be moved into this function in a
-> subsequent patch.
+> Do this by pushing the whitelist check into the upstream_bridge_distance()
+> function.
 > 
-> Link: https://lore.kernel.org/r/20190730163545.4915-5-logang@deltatee.com
+> Link: https://lore.kernel.org/r/20190730163545.4915-6-logang@deltatee.com
 > Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 > Reviewed-by: Christian König <christian.koenig@amd.com>
+
+Looks good,
 
 Reviewed-by: Christoph Hellwig <hch@lst.de>
