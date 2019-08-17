@@ -2,115 +2,122 @@ Return-Path: <SRS0=ccI+=WN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1C6BC3A5A0
-	for <linux-rdma@archiver.kernel.org>; Sat, 17 Aug 2019 02:24:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3846C3A59D
+	for <linux-rdma@archiver.kernel.org>; Sat, 17 Aug 2019 02:27:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87C602133F
-	for <linux-rdma@archiver.kernel.org>; Sat, 17 Aug 2019 02:24:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="UrOX2DWB"
+	by mail.kernel.org (Postfix) with ESMTP id 83D0A2133F
+	for <linux-rdma@archiver.kernel.org>; Sat, 17 Aug 2019 02:27:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726132AbfHQCYW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 16 Aug 2019 22:24:22 -0400
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:2876 "EHLO
-        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725945AbfHQCYW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 16 Aug 2019 22:24:22 -0400
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate14.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5d5765580001>; Fri, 16 Aug 2019 19:24:24 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Fri, 16 Aug 2019 19:24:21 -0700
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Fri, 16 Aug 2019 19:24:21 -0700
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 17 Aug
- 2019 02:24:21 +0000
-Received: from hqnvemgw02.nvidia.com (172.16.227.111) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sat, 17 Aug 2019 02:24:21 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw02.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5d5765550001>; Fri, 16 Aug 2019 19:24:21 -0700
-From:   <jhubbard@nvidia.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-CC:     Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
+        id S1726239AbfHQC1U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 16 Aug 2019 22:27:20 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:48957 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726032AbfHQC1U (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 16 Aug 2019 22:27:20 -0400
+Received: from dread.disaster.area (pa49-195-190-67.pa.nsw.optusnet.com.au [49.195.190.67])
+        by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id D0D423617AF;
+        Sat, 17 Aug 2019 12:27:10 +1000 (AEST)
+Received: from dave by dread.disaster.area with local (Exim 4.92)
+        (envelope-from <david@fromorbit.com>)
+        id 1hyoPr-0000Wh-58; Sat, 17 Aug 2019 12:26:03 +1000
+Date:   Sat, 17 Aug 2019 12:26:03 +1000
+From:   Dave Chinner <david@fromorbit.com>
+To:     Ira Weiny <ira.weiny@intel.com>
+Cc:     Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>,
         Jason Gunthorpe <jgg@ziepe.ca>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        LKML <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>,
-        <linux-fsdevel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [RFC PATCH v2 1/3] For Ira: tiny formatting tweak to kerneldoc
-Date:   Fri, 16 Aug 2019 19:24:17 -0700
-Message-ID: <20190817022419.23304-2-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.22.1
-In-Reply-To: <20190817022419.23304-1-jhubbard@nvidia.com>
-References: <20190817022419.23304-1-jhubbard@nvidia.com>
+        Dan Williams <dan.j.williams@intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Theodore Ts'o <tytso@mit.edu>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Michal Hocko <mhocko@suse.com>, linux-xfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-ext4@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ;-)
+Message-ID: <20190817022603.GW6129@dread.disaster.area>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
+ <20190814101714.GA26273@quack2.suse.cz>
+ <20190814180848.GB31490@iweiny-DESK2.sc.intel.com>
+ <20190815130558.GF14313@quack2.suse.cz>
+ <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1566008664; bh=vujlpEbUPcZOIHM0E4+H2IssxqbGZn6F4auD5+LUKwo=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=UrOX2DWBxcLHfSdWH9D1O4EqxSJYzLmgQW88SJBsz2UXDE9uNYezznYJFM9XFY1+R
-         yL20cRMLCB+M51fikAto9Y7iuHTb2RxVyglHrqlQWYjoP7bj9A8Rbm69Yb5Kz0biu4
-         Di0qY0Zwu6Xhp5HVhjQFdLlH/yP7SgnWMEQx53qsQp1ClujvwGwtwOwHdduYJ5kBaY
-         WzHujmy4Nfh7VqdbvTyufzCUrO7xgAmcDs12SRcm00djT2WyKpcPNOhiFrnk9HdML5
-         CGgFJOMySWlq3Tg1MLyGwnBseQ04uzqWAOAvEWfm/gTUp1onvO5OfqmzsMH55SwGm8
-         uhx3wILje553g==
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=D+Q3ErZj c=1 sm=1 tr=0
+        a=TR82T6zjGmBjdfWdGgpkDw==:117 a=TR82T6zjGmBjdfWdGgpkDw==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=IkcTkHD0fZMA:10 a=FmdZ9Uzk2mMA:10
+        a=7-415B0cAAAA:8 a=r7a9GJFEl8VWeONERSwA:9 a=QEXdDO2ut3YA:10
+        a=biEYGPWJfzWAr4FL6Ov7:22
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+On Fri, Aug 16, 2019 at 12:05:28PM -0700, Ira Weiny wrote:
+> On Thu, Aug 15, 2019 at 03:05:58PM +0200, Jan Kara wrote:
+> > On Wed 14-08-19 11:08:49, Ira Weiny wrote:
+> > > On Wed, Aug 14, 2019 at 12:17:14PM +0200, Jan Kara wrote:
+> 2) Second reason is that I thought I did not have a good way to tell if the
+>    lease was actually in use.  What I mean is that letting the lease go should
+>    be ok IFF we don't have any pins...  I was thinking that without John's code
+>    we don't have a way to know if there are any pins...  But that is wrong...
+>    All we have to do is check
+> 
+> 	!list_empty(file->file_pins)
+> 
+> So now with this detail I think you are right, we should be able to hold the
+> lease through the struct file even if the process no longer has any
+> "references" to it (ie closes and munmaps the file).
 
-For your vaddr_pin_pages() and vaddr_unpin_pages().
-Just merge it into wherever it goes please. Didn't want to
-cause merge problems so it's a separate patch-let.
+I really, really dislike the idea of zombie layout leases. It's a
+nasty hack for poor application behaviour. This is a "we allow use
+after layout lease release" API, and I think encoding largely
+untraceable zombie objects into an API is very poor design.
 
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- mm/gup.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+From the fcntl man page:
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 56421b880325..e49096d012ea 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -2465,7 +2465,7 @@ int get_user_pages_fast(unsigned long start, int nr_p=
-ages,
- EXPORT_SYMBOL_GPL(get_user_pages_fast);
-=20
- /**
-- * vaddr_pin_pages pin pages by virtual address and return the pages to th=
-e
-+ * vaddr_pin_pages() - pin pages by virtual address and return the pages t=
-o the
-  * user.
-  *
-  * @addr: start address
-@@ -2505,7 +2505,7 @@ long vaddr_pin_pages(unsigned long addr, unsigned lon=
-g nr_pages,
- EXPORT_SYMBOL(vaddr_pin_pages);
-=20
- /**
-- * vaddr_unpin_pages - counterpart to vaddr_pin_pages
-+ * vaddr_unpin_pages() - counterpart to vaddr_pin_pages
-  *
-  * @pages: array of pages returned
-  * @nr_pages: number of pages in pages
---=20
-2.22.1
+LEASES
+	Leases are associated with an open file description (see
+	open(2)).  This means that duplicate file descriptors
+	(created by, for example, fork(2) or dup(2))  re‐ fer  to
+	the  same  lease,  and this lease may be modified or
+	released using any of these descriptors.  Furthermore, the
+	lease is released by either an explicit F_UNLCK operation on
+	any of these duplicate file descriptors, or when all such
+	file descriptors have been closed.
 
+Leases are associated with *open* file descriptors, not the
+lifetime of the struct file in the kernel. If the application closes
+the open fds that refer to the lease, then the kernel does not
+guarantee, and the application has no right to expect, that the
+lease remains active in any way once the application closes all
+direct references to the lease.
+
+IOWs, applications using layout leases need to hold the lease fd
+open for as long as the want access to the physical file layout. It
+is a also a requirement of the layout lease that the holder releases
+the resources it holds on the layout before it releases the layout
+lease, exclusive lease or not. Closing the fd indicates they do not
+need access to the file any more, and so the lease should be
+reclaimed at that point.
+
+I'm of a mind to make the last close() on a file block if there's an
+active layout lease to prevent processes from zombie-ing layout
+leases like this. i.e. you can't close the fd until resources that
+pin the lease have been released.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
