@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1ADBC3A5A0
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A07EC3A59D
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6EE4C20851
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F9222085A
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566216510;
-	bh=LkiTbhQy0Vf8VC6YojsyRQ2jwhvO0AJ/ASXLiU9Nljk=;
+	s=default; t=1566216513;
+	bh=aosPnERQ1Ip+qp+Z1xF6d76QS7ZxGePLisfLCpO0mnQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=V383dSw4m/K2tvvnb6eCw/HEKcbhRdfm0DpbYqUu9guzH34hNHeFVjks6L7X1WQtS
-	 7hQ84Yrw8mYQsVsYlpGZ8DQtxdwgbO5NBGX+DYOJfIET4ANjrZNUHamkVai/dqehXK
-	 TlaXJGX5XEgiy3f6bw8C9MJbU/9dJpvEgdh4nuBg=
+	b=TIkGtj9SdGjIdZtADSX0apDBCJ5cKwCVZ8MvuSO4ww/o+XHIDC/KhXrQrrndR1U+x
+	 qIo62X6RI2fYmnkgIRPvBOXFnt6VLbsHlWb9r47CwGVz6T3z05d2mXn0esZAzZtIUb
+	 EHswZUSzXM/NuxG3EhPfLJNQla6ZsCeY6pZgdQX8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727503AbfHSMI2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 08:08:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47152 "EHLO mail.kernel.org"
+        id S1727544AbfHSMIc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 08:08:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726987AbfHSMI2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 19 Aug 2019 08:08:28 -0400
+        id S1726987AbfHSMIc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 19 Aug 2019 08:08:32 -0400
 Received: from localhost (unknown [77.137.115.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3633D20851;
-        Mon, 19 Aug 2019 12:08:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BDD3520851;
+        Mon, 19 Aug 2019 12:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566216507;
-        bh=LkiTbhQy0Vf8VC6YojsyRQ2jwhvO0AJ/ASXLiU9Nljk=;
+        s=default; t=1566216511;
+        bh=aosPnERQ1Ip+qp+Z1xF6d76QS7ZxGePLisfLCpO0mnQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HpfAEm1tO3I2rltaeDUUwZWLpjC5Qd+79FlI/SXmogUqSJIv+Zb/wrMUQoqwp/cin
-         2sA1hm96p/yS8itq7WxNouoPeQvRJTXBkBzddt92ZDHP/Q6Q5a98UO+l3lyTzfszVN
-         BI8a6LvzqnZM5q+r9uWi0xrVFH82q6T71rv6Tho0=
+        b=BZkyt6o+BWe7ALhzCvRqx0vsC6UAWi34VQVscFl2CZFRjGmehDpxasUcZr/q1m6qm
+         JO9aGJ+S086OX+J0cjvhbtmXgwo4cUzETvXxQaGBOilG5nxPTDQ5oNAJg9/RhTDb/R
+         FipqWGMa68coX7X2jFlstW1X3d+Ypo+Qdf0eFy0I=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -46,9 +46,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Michael Guralnik <michaelgur@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH rdma-next v3 3/3] IB/mlx5: Add page fault handler for DC initiator WQE
-Date:   Mon, 19 Aug 2019 15:08:15 +0300
-Message-Id: <20190819120815.21225-4-leon@kernel.org>
+Subject: [PATCH rdma-next v3 2/3] IB/mlx5: Remove check of FW capabilities in ODP page fault handling
+Date:   Mon, 19 Aug 2019 15:08:14 +0300
+Message-Id: <20190819120815.21225-3-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819120815.21225-1-leon@kernel.org>
 References: <20190819120815.21225-1-leon@kernel.org>
@@ -61,29 +61,96 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Michael Guralnik <michaelgur@mellanox.com>
 
-Parsing DC initiator WQEs upon page fault requires skipping an address
-vector segment, as in UD WQEs.
+As page fault handling is initiated by FW, there is no need to check that
+the ODP supports the operation and transport.
 
 Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/odp.c | 48 +-------------------------------
+ 1 file changed, 1 insertion(+), 47 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index e7a4ea979209..e6903e90aaf1 100644
+index 8b155a1f0b38..e7a4ea979209 100644
 --- a/drivers/infiniband/hw/mlx5/odp.c
 +++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -1022,7 +1022,8 @@ static int mlx5_ib_mr_initiator_pfault_handler(
- 	if (qp->ibqp.qp_type == IB_QPT_XRC_INI)
- 		*wqe += sizeof(struct mlx5_wqe_xrc_seg);
+@@ -986,17 +986,6 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
+ 	return ret < 0 ? ret : npages;
+ }
  
--	if (qp->ibqp.qp_type == IB_QPT_UD) {
-+	if (qp->ibqp.qp_type == IB_QPT_UD ||
-+	    qp->qp_sub_type == MLX5_IB_QPT_DCI) {
+-static const u32 mlx5_ib_odp_opcode_cap[] = {
+-	[MLX5_OPCODE_SEND]	       = IB_ODP_SUPPORT_SEND,
+-	[MLX5_OPCODE_SEND_IMM]	       = IB_ODP_SUPPORT_SEND,
+-	[MLX5_OPCODE_SEND_INVAL]       = IB_ODP_SUPPORT_SEND,
+-	[MLX5_OPCODE_RDMA_WRITE]       = IB_ODP_SUPPORT_WRITE,
+-	[MLX5_OPCODE_RDMA_WRITE_IMM]   = IB_ODP_SUPPORT_WRITE,
+-	[MLX5_OPCODE_RDMA_READ]	       = IB_ODP_SUPPORT_READ,
+-	[MLX5_OPCODE_ATOMIC_CS]	       = IB_ODP_SUPPORT_ATOMIC,
+-	[MLX5_OPCODE_ATOMIC_FA]	       = IB_ODP_SUPPORT_ATOMIC,
+-};
+-
+ /*
+  * Parse initiator WQE. Advances the wqe pointer to point at the
+  * scatter-gather list, and set wqe_end to the end of the WQE.
+@@ -1007,7 +996,6 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+ {
+ 	struct mlx5_wqe_ctrl_seg *ctrl = *wqe;
+ 	u16 wqe_index = pfault->wqe.wqe_index;
+-	u32 transport_caps;
+ 	struct mlx5_base_av *av;
+ 	unsigned ds, opcode;
+ 	u32 qpn = qp->trans_qp.base.mqp.qpn;
+@@ -1031,29 +1019,8 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+ 	opcode = be32_to_cpu(ctrl->opmod_idx_opcode) &
+ 		 MLX5_WQE_CTRL_OPCODE_MASK;
+ 
+-	switch (qp->ibqp.qp_type) {
+-	case IB_QPT_XRC_INI:
++	if (qp->ibqp.qp_type == IB_QPT_XRC_INI)
+ 		*wqe += sizeof(struct mlx5_wqe_xrc_seg);
+-		transport_caps = dev->odp_caps.per_transport_caps.xrc_odp_caps;
+-		break;
+-	case IB_QPT_RC:
+-		transport_caps = dev->odp_caps.per_transport_caps.rc_odp_caps;
+-		break;
+-	case IB_QPT_UD:
+-		transport_caps = dev->odp_caps.per_transport_caps.ud_odp_caps;
+-		break;
+-	default:
+-		mlx5_ib_err(dev, "ODP fault on QP of an unsupported transport 0x%x\n",
+-			    qp->ibqp.qp_type);
+-		return -EFAULT;
+-	}
+-
+-	if (unlikely(opcode >= ARRAY_SIZE(mlx5_ib_odp_opcode_cap) ||
+-		     !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
+-		mlx5_ib_err(dev, "ODP fault on QP of an unsupported opcode 0x%x\n",
+-			    opcode);
+-		return -EFAULT;
+-	}
+ 
+ 	if (qp->ibqp.qp_type == IB_QPT_UD) {
  		av = *wqe;
- 		if (av->dqp_dct & cpu_to_be32(MLX5_EXTENDED_UD_AV))
- 			*wqe += sizeof(struct mlx5_av);
+@@ -1118,19 +1085,6 @@ static int mlx5_ib_mr_responder_pfault_handler_rq(struct mlx5_ib_dev *dev,
+ 		return -EFAULT;
+ 	}
+ 
+-	switch (qp->ibqp.qp_type) {
+-	case IB_QPT_RC:
+-		if (!(dev->odp_caps.per_transport_caps.rc_odp_caps &
+-		      IB_ODP_SUPPORT_RECV))
+-			goto invalid_transport_or_opcode;
+-		break;
+-	default:
+-invalid_transport_or_opcode:
+-		mlx5_ib_err(dev, "ODP fault on QP of an unsupported transport. transport: 0x%x\n",
+-			    qp->ibqp.qp_type);
+-		return -EFAULT;
+-	}
+-
+ 	*wqe_end = wqe + wqe_size;
+ 
+ 	return 0;
 -- 
 2.20.1
 
