@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4659C3A59D
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:17:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ADB1C3A59D
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:17:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7A57C2086C
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:17:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D4B22086C
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:17:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566213473;
-	bh=RqqwixJFdLXzbyX/SBdbIcbTYnHS72+OZtDom+QJt4U=;
+	s=default; t=1566213477;
+	bh=5p/sOk0LjOpZBCV1zE/qeXyKsy+9zRkTskYbo786Njg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=CU49uT+lELsFcicZ2iWR6cAkFiPAImSwqlM3jQ0sybHRqTK29DhiRsDvRJz/2LKh4
-	 mlM8I20pzQgH5XKVmp+IP+/HR30LG8jUViUAZV8ImAA+8W2Jkoz+ouJQIwvAENNKqr
-	 vl3wGk6eK5YIhXZ/TgLT7RtOsgIn69hyOGhga7Q4=
+	b=RHGSwZlv5lMSexkHSDKS3gkFnsxsHeve7vINrqy/hm9LbjJ62gh/d5A/1V+ayq3AI
+	 XrI3JOA+vKZD9IPEbsuc0dD8z0Fcb3CzMlZLOj9jMLFmOYoHRSj/08WDXQRbppaVft
+	 +m370jhU1ItHL+hLj/gfz/1iOJLW3aHf4ofMIBwo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726852AbfHSLRx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 07:17:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33182 "EHLO mail.kernel.org"
+        id S1726550AbfHSLR4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 07:17:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727339AbfHSLRw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 19 Aug 2019 07:17:52 -0400
+        id S1726776AbfHSLR4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 19 Aug 2019 07:17:56 -0400
 Received: from localhost (unknown [77.137.115.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 412732085A;
-        Mon, 19 Aug 2019 11:17:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CD5292085A;
+        Mon, 19 Aug 2019 11:17:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566213471;
-        bh=RqqwixJFdLXzbyX/SBdbIcbTYnHS72+OZtDom+QJt4U=;
+        s=default; t=1566213475;
+        bh=5p/sOk0LjOpZBCV1zE/qeXyKsy+9zRkTskYbo786Njg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MzjohZYlR06ewAUQXiTTt/uL0uZR0rSSP5EG+BbNeQjvINBBUfwPd6aK2YNsbEcL1
-         t3phfFlP/7iTnRhMgivfDv+axI0bhoIys+Va1CL0DOISu/9GkVeL9o7t2emaRxcp6a
-         GqUa0M2QK/BUBK9PXZZWJoksN1DqM3Eb86NU89Ew=
+        b=oBM1z88n0ulqbO1jqKa45Tf4M27eoLZnBVdWYI2/vUKwiwI9PPL/PBnZe7uY/A0tP
+         zDD8TFZ6FNFCCkyOzVVWfDk84KFLiPko+5R5rUZcG2i/X1OHc4q55mSz6Nfcb6JIk/
+         HItcaJuEsGhWiGOpcoch/lgjNxwA0D5+YVdBYu9A=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Guy Levi <guyle@mellanox.com>, Moni Shoua <monis@mellanox.com>
-Subject: [PATCH rdma-next 11/12] RDMA/mlx5: Use ib_umem_start instead of umem.address
-Date:   Mon, 19 Aug 2019 14:17:09 +0300
-Message-Id: <20190819111710.18440-12-leon@kernel.org>
+Subject: [PATCH rdma-next 12/12] RDMA/mlx5: Use odp instead of mr->umem in pagefault_mr
+Date:   Mon, 19 Aug 2019 14:17:10 +0300
+Message-Id: <20190819111710.18440-13-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819111710.18440-1-leon@kernel.org>
 References: <20190819111710.18440-1-leon@kernel.org>
@@ -59,47 +59,58 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-These are subtly different, the address is the original VA requested
-during umem_get, while ib_umem_start() is the version that is rounded to
-the proper page size, ie is the true start of the umem's dma map.
+These are the same thing since mr always comes from odp->private. It is
+confusing to reference the same memory via two names.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index c755c76729bc..70e0a3555f11 100644
+index 70e0a3555f11..8b155a1f0b38 100644
 --- a/drivers/infiniband/hw/mlx5/odp.c
 +++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -184,7 +184,7 @@ void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t offset,
- 	for (i = 0; i < nentries; i++, pklm++) {
- 		pklm->bcount = cpu_to_be32(MLX5_IMR_MTT_SIZE);
- 		va = (offset + i) * MLX5_IMR_MTT_SIZE;
--		if (odp && odp->umem.address == va) {
-+		if (odp && ib_umem_start(odp) == va) {
- 			struct mlx5_ib_mr *mtt = odp->private;
+@@ -603,7 +603,7 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
+ 	start_idx = (io_virt - (mr->mmkey.iova & page_mask)) >> page_shift;
+ 	access_mask = ODP_READ_ALLOWED_BIT;
  
- 			pklm->key = cpu_to_be32(mtt->ibmr.lkey);
-@@ -494,7 +494,7 @@ static struct ib_umem_odp *implicit_mr_get_data(struct mlx5_ib_mr *mr,
- 	addr += MLX5_IMR_MTT_SIZE;
- 	if (unlikely(addr < io_virt + bcnt)) {
- 		odp = odp_next(odp);
--		if (odp && odp->umem.address != addr)
-+		if (odp && ib_umem_start(odp) != addr)
- 			odp = NULL;
- 		goto next_mr;
+-	if (prefetch && !downgrade && !mr->umem->writable) {
++	if (prefetch && !downgrade && !odp->umem.writable) {
+ 		/* prefetch with write-access must
+ 		 * be supported by the MR
+ 		 */
+@@ -611,7 +611,7 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
+ 		goto out;
  	}
-@@ -664,7 +664,7 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
  
- 		io_virt += size;
- 		next = odp_next(odp);
--		if (unlikely(!next || next->umem.address != io_virt)) {
-+		if (unlikely(!next || ib_umem_start(next) != io_virt)) {
- 			mlx5_ib_dbg(dev, "next implicit leaf removed at 0x%llx. got %p\n",
- 				    io_virt, next);
- 			return -EAGAIN;
+-	if (mr->umem->writable && !downgrade)
++	if (odp->umem.writable && !downgrade)
+ 		access_mask |= ODP_WRITE_ALLOWED_BIT;
+ 
+ 	current_seq = READ_ONCE(odp->notifiers_seq);
+@@ -621,8 +621,8 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
+ 	 */
+ 	smp_rmb();
+ 
+-	ret = ib_umem_odp_map_dma_pages(to_ib_umem_odp(mr->umem), io_virt, size,
+-					access_mask, current_seq);
++	ret = ib_umem_odp_map_dma_pages(odp, io_virt, size, access_mask,
++					current_seq);
+ 
+ 	if (ret < 0)
+ 		goto out;
+@@ -630,8 +630,7 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
+ 	np = ret;
+ 
+ 	mutex_lock(&odp->umem_mutex);
+-	if (!ib_umem_mmu_notifier_retry(to_ib_umem_odp(mr->umem),
+-					current_seq)) {
++	if (!ib_umem_mmu_notifier_retry(odp, current_seq)) {
+ 		/*
+ 		 * No need to check whether the MTTs really belong to
+ 		 * this MR, since ib_umem_odp_map_dma_pages already
 -- 
 2.20.1
 
