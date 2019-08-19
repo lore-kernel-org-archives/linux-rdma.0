@@ -2,188 +2,221 @@ Return-Path: <SRS0=Wuup=WP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-1.0 required=3.0 tests=MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DDD3C3A5A5
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B622C3A59B
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 07:04:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E1282087E
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04EA020874
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 07:04:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726670AbfHSG6i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 02:58:38 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53184 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726717AbfHSG6f (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:35 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:31 +0300
-Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNP004602;
-        Mon, 19 Aug 2019 09:58:31 +0300
-From:   Noa Osherovich <noaos@mellanox.com>
-To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, Noa Osherovich <noaos@mellanox.com>
-Subject: [PATCH rdma-core 13/14] Documentation: Add background for rdma-core tests
-Date:   Mon, 19 Aug 2019 09:58:26 +0300
-Message-Id: <20190819065827.26921-14-noaos@mellanox.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190819065827.26921-1-noaos@mellanox.com>
-References: <20190819065827.26921-1-noaos@mellanox.com>
+        id S1725871AbfHSHEp convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 03:04:45 -0400
+Received: from mail.wl.linuxfoundation.org ([198.145.29.98]:49900 "EHLO
+        mail.wl.linuxfoundation.org" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725536AbfHSHEp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 19 Aug 2019 03:04:45 -0400
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+        by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 0F8F628590
+        for <linux-rdma@vger.kernel.org>; Mon, 19 Aug 2019 07:04:44 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+        id 000C9285B3; Mon, 19 Aug 2019 07:04:43 +0000 (UTC)
+From:   bugzilla-daemon@bugzilla.kernel.org
+To:     linux-rdma@vger.kernel.org
+Subject: [Bug 204617] New: drivers/infiniband/sw/siw not 32-bit clean - cast
+ from pointer to integer warnings on i686
+Date:   Mon, 19 Aug 2019 07:04:43 +0000
+X-Bugzilla-Reason: None
+X-Bugzilla-Type: new
+X-Bugzilla-Watch-Reason: AssignedTo
+ drivers_infiniband-rdma@kernel-bugs.osdl.org
+X-Bugzilla-Product: Drivers
+X-Bugzilla-Component: Infiniband/RDMA
+X-Bugzilla-Version: 2.5
+X-Bugzilla-Keywords: 
+X-Bugzilla-Severity: normal
+X-Bugzilla-Who: hramrach@gmail.com
+X-Bugzilla-Status: NEW
+X-Bugzilla-Resolution: 
+X-Bugzilla-Priority: P1
+X-Bugzilla-Assigned-To: drivers_infiniband-rdma@kernel-bugs.osdl.org
+X-Bugzilla-Flags: 
+X-Bugzilla-Changed-Fields: bug_id short_desc product version
+ cf_kernel_version rep_platform op_sys cf_tree bug_status bug_severity
+ priority component assigned_to reporter cf_regression
+Message-ID: <bug-204617-11804@https.bugzilla.kernel.org/>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+X-Bugzilla-URL: https://bugzilla.kernel.org/
+Auto-Submitted: auto-generated
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-testing.md describes the design behind the tests' infrastructure and
-provides explanations for:
-- How to run tests.
-- How to control which tests to run and with which parameters.
-- How to add tests.
+https://bugzilla.kernel.org/show_bug.cgi?id=204617
 
-Signed-off-by: Noa Osherovich <noaos@mellanox.com>
----
- Documentation/testing.md | 126 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 126 insertions(+)
- create mode 100644 Documentation/testing.md
+            Bug ID: 204617
+           Summary: drivers/infiniband/sw/siw not 32-bit clean - cast from
+                    pointer to integer warnings on i686
+           Product: Drivers
+           Version: 2.5
+    Kernel Version: 5.3
+          Hardware: All
+                OS: Linux
+              Tree: Mainline
+            Status: NEW
+          Severity: normal
+          Priority: P1
+         Component: Infiniband/RDMA
+          Assignee: drivers_infiniband-rdma@kernel-bugs.osdl.org
+          Reporter: hramrach@gmail.com
+        Regression: No
 
-diff --git a/Documentation/testing.md b/Documentation/testing.md
-new file mode 100644
-index 000000000000..218dc36be478
---- /dev/null
-+++ b/Documentation/testing.md
-@@ -0,0 +1,126 @@
-+# Testing in rdma-core
-+
-+rdma-core now offers an infrastructure for quick and easy additions of feature-
-+specific tests.
-+
-+## Design
-+### Resources Management
-+`BaseResources` class is the basic objects aggregator available. It includes a
-+Context and a PD.
-+Inheriting from it is `TrafficResources` class, which also holds a MR, CQ and
-+QP, making it enough to support loopback traffic testing. It exposes methods for
-+creation of these objects which can be overridden by inheriting classes.
-+Inheriting from `TrafficResources` are currently two class:
-+- `RCResources`
-+- `UDResources`
-+
-+Both add traffic-specific constants. `UDResources` for example overrides
-+create_mr and adds the size of the GRH header to the message size. `RCResources`
-+exposes a wrapper to modify the QP to RTS.
-+
-+### Tests-related Classes
-+`unittest.TestCase` is a logical test unit in Python's unittest module.
-+`RDMATestCase` inherits from it and adds the option to accept parameters
-+(example will follow below) or use a random set of valid parameters:
-+- If no device was provided, it iterates over the existing devices, for each
-+  port of each device, it checks which GID indexes are valid (in RoCE, only
-+  IPv4 and IPv6 based GIDs are used). Each <dev, port, gid> is added to an array
-+  and one entry is selected.
-+- If a device was provided, the same process is done for all ports of this
-+  device, and so on.
-+
-+### Traffic Utilities
-+tests/utils.py offers a few wrappers for common traffic operations, making the
-+use of default values even shorter. Those traffic utilities accept an
-+aggregation object as their first parameter and rely on that object to have
-+valid RDMA resources for proper functioning.
-+- get_[send, recv]_wr() creates a [Send, Recv]WR object with a single SGE. It
-+  also sets the MR content to be 'c's for client side or 's's for server side
-+  (this is later validated).
-+- post_send() posts a single send request to the aggregation object's QP. If the
-+  QP is a UD QP, an address vector will be added to the send WR.
-+- post_recv() posts the given RecvWR <num> times, so it can be used to fill the
-+  RQ prior to traffic as well as during traffic.
-+- poll_cq() polls <num> completions from the CQ and raises an exception on a
-+  non-success status.
-+- validate() verifies that the data in the MR is as expected ('c's for server,
-+  's's for client).
-+- traffic() runs <num> iterations of send/recv between 2 players.
-+
-+## How to run rdma-core's tests
-+The tests are not a Python package, as such they can be found under
-+/usr/share/doc/rdma-core-{version}.
-+In order to run all tests:
-+```
-+cd /usr/share/doc/rdma-core-26.0
-+python3 run_tests.py
-+```
-+Output will be something like:
-+```
-+$ python3 run_tests.py
-+..........................................ss...............
-+----------------------------------------------------------------------
-+Ran 59 tests in 13.268s
-+
-+OK (skipped=2)
-+```
-+A dot represents a passing test. 's' means a skipped test. 'E' means a test
-+that failed.
-+
-+Tests can also be executed in verbose mode:
-+```
-+$ python3 run_tests.py -v
-+test_create_ah (test_addr.AHTest) ... ok
-+test_create_ah_roce (test_addr.AHTest) ... ok
-+test_destroy_ah (test_addr.AHTest) ... ok
-+test_create_comp_channel (test_cq.CCTest) ... ok
-+< many more lines here>
-+test_odp_rc_traffic (test_odp.OdpTestCase) ... skipped 'No dev/port/GID combinations, please check your setup and try again'
-+test_odp_ud_traffic (test_odp.OdpTestCase) ... skipped 'No dev/port/GID combinations, please check your setup and try again'
-+<more lines>
-+
-+----------------------------------------------------------------------
-+Ran 59 tests in 12.857s
-+
-+OK (skipped=2)
-+```
-+Verbose mode provides the reason for skipping the test (if one was provided by
-+the test developer).
-+
-+### Customized Execution
-+tests/__init__.py defines a `load_tests` function that returns a
-+unittest.TestSuite with the tests that will be executed.
-+The default implementation collects all test_* methods from all the classes that
-+inherit from `unittest.TestCase` (or `RDMATestCase`) and located in files under
-+tests directory which names starts with test_.
-+Users can replace that and create a suite that contains only a few selected
-+tests:
-+```
-+suite = unittest.TestSuite()
-+suite.addTest(RDMATestCase.parametrize(YourTestCase))
-+```
-+We're using 'parametrize' as it instantiates the TestCase for us.
-+'parametrize' can accept arguments as well (device name, IB port, GID index and
-+PKey index):
-+```
-+suite = unittest.TestSuite()
-+suite.addTest(RDMATestCase.parametrize(YourTestCase, dev_name='devname'))
-+```
-+
-+## Writing Tests
-+The following section explains how to add a new test, using tests/test_odp.py
-+as an example. It's a simple test that runs ping-pong over a few different
-+traffic types.
-+
-+ODP requires capability check, so a decorator was added to tests/utils.py.
-+The first change for ODP execution is when registering a memory region (need to
-+set the ON_DEMAND access flag), so we do as follows:
-+1. Create the players by inheriting from `RCResources` (for RC traffic).
-+2. In the player, override create_mr() and add the decorator to it. It will run
-+   before the actual call to ibv_reg_mr and if ODP caps are off, the test will
-+   be skipped.
-+ 3. Create the `OdpTestCase` by inheriting from `RDMATestCase`.
-+ 4. In the test case, add a method starting with test_, to let the unittest
-+    infrastructure that this is a test.
-+ 5. In the test method, create the players (which already check the ODP caps)
-+    and call the traffic() function, providing it the two players.
+In file included from ../include/linux/printk.h:332,
+../drivers/infiniband/sw/siw/siw_cq.c: In function 'siw_reap_cqe':
+../drivers/infiniband/sw/siw/siw_cq.c:76:20: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../include/linux/dynamic_debug.h:125:15: note: in definition of macro
+'__dynamic_func_call'
+../include/linux/dynamic_debug.h:165:2: note: in expansion of macro
+'_dynamic_func_call'
+../include/rdma/ib_verbs.h:100:2: note: in expansion of macro
+'dynamic_ibdev_dbg'
+../drivers/infiniband/sw/siw/siw.h:725:2: note: in expansion of macro
+'ibdev_dbg'
+../drivers/infiniband/sw/siw/siw_cq.c:74:4: note: in expansion of macro
+'siw_dbg_cq'
+
+../drivers/infiniband/sw/siw/siw_qp.c: In function 'siw_activate_tx':
+../drivers/infiniband/sw/siw/siw_qp.c:952:28: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+In file included from ../include/linux/kernel.h:15,
+../drivers/infiniband/sw/siw/siw_qp_rx.c: In function 'siw_rx_umem':
+../drivers/infiniband/sw/siw/siw_qp_rx.c:43:5: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../include/linux/printk.h:306:37: note: in definition of macro 'pr_warning'
+../drivers/infiniband/sw/siw/siw_qp_rx.c:41:4: note: in expansion of macro
+'pr_warn'
+
+../drivers/infiniband/sw/siw/siw_qp_rx.c:43:24: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../include/linux/printk.h:306:37: note: in definition of macro 'pr_warning'
+../drivers/infiniband/sw/siw/siw_qp_rx.c:41:4: note: in expansion of macro
+'pr_warn'
+
+../drivers/infiniband/sw/siw/siw_qp_rx.c: In function 'siw_rx_pbl':
+../drivers/infiniband/sw/siw/siw_qp_rx.c:141:23: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_rx.c: In function 'siw_proc_send':
+../drivers/infiniband/sw/siw/siw_qp_rx.c:488:6: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_rx.c: In function 'siw_proc_write':
+../drivers/infiniband/sw/siw/siw_qp_rx.c:601:5: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_rx.c: In function 'siw_proc_rresp':
+../drivers/infiniband/sw/siw/siw_qp_rx.c:844:24: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+In file included from ../arch/x86/include/asm/string.h:3,
+../drivers/infiniband/sw/siw/siw_qp_tx.c: In function 'siw_try_1seg':
+../drivers/infiniband/sw/siw/siw_qp_tx.c:53:10: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../arch/x86/include/asm/string_32.h:182:42: note: in definition of macro
+'memcpy'
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:59:11: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../arch/x86/include/asm/string_32.h:182:42: note: in definition of macro
+'memcpy'
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:59:26: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../arch/x86/include/asm/string_32.h:182:45: note: in definition of macro
+'memcpy'
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:61:23: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:62:9: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+In file included from ../arch/x86/include/asm/string.h:3,
+../drivers/infiniband/sw/siw/siw_qp_tx.c:82:12: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../arch/x86/include/asm/string_32.h:182:42: note: in definition of macro
+'memcpy'
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:87:12: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../arch/x86/include/asm/string_32.h:182:42: note: in definition of macro
+'memcpy'
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:101:12: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../arch/x86/include/asm/string_32.h:182:42: note: in definition of macro
+'memcpy'
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c: In function 'siw_qp_prepare_tx':
+../drivers/infiniband/sw/siw/siw_qp_tx.c:169:29: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:192:29: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:204:29: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:219:29: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c: In function 'siw_tx_hdt':
+../drivers/infiniband/sw/siw/siw_qp_tx.c:476:24: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c:535:7: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c: In function 'siw_qp_sq_proc_tx':
+../drivers/infiniband/sw/siw/siw_qp_tx.c:832:29: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+../drivers/infiniband/sw/siw/siw_qp_tx.c: In function 'siw_fastreg_mr':
+../drivers/infiniband/sw/siw/siw_qp_tx.c:927:26: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+
+../drivers/infiniband/sw/siw/siw_verbs.c: In function 'siw_copy_inline_sgl':
+../drivers/infiniband/sw/siw/siw_verbs.c:665:22: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+../drivers/infiniband/sw/siw/siw_verbs.c: In function 'siw_post_send':
+../drivers/infiniband/sw/siw/siw_verbs.c:828:19: warning: cast from pointer to
+integer of different size [-Wpointer-to-int-cast]
+
+In file included from ../include/linux/printk.h:332,
+../drivers/infiniband/sw/siw/siw_verbs.c:846:32: warning: cast to pointer from
+integer of different size [-Wint-to-pointer-cast]
+../include/linux/dynamic_debug.h:125:15: note: in definition of macro
+'__dynamic_func_call'
+../include/linux/dynamic_debug.h:165:2: note: in expansion of macro
+'_dynamic_func_call'
+../include/rdma/ib_verbs.h:100:2: note: in expansion of macro
+'dynamic_ibdev_dbg'
+../drivers/infiniband/sw/siw/siw.h:721:2: note: in expansion of macro
+'ibdev_dbg'
+../drivers/infiniband/sw/siw/siw_verbs.c:845:3: note: in expansion of macro
+'siw_dbg_qp'
+
 -- 
-2.21.0
-
+You are receiving this mail because:
+You are watching the assignee of the bug.
