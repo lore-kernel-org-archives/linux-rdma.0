@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 756B5C3A59D
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA359C3A5A4
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 54B8D20874
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A5062087E
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726661AbfHSG6h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 02:58:37 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53190 "EHLO
+        id S1725872AbfHSG6i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 02:58:38 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53151 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726814AbfHSG6g (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:36 -0400
+        with ESMTP id S1726390AbfHSG6f (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:35 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:31 +0300
+        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:30 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNQ004602;
-        Mon, 19 Aug 2019 09:58:31 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUND004602;
+        Mon, 19 Aug 2019 09:58:30 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
 Cc:     linux-rdma@vger.kernel.org, Noa Osherovich <noaos@mellanox.com>
-Subject: [PATCH rdma-core 14/14] tests: Unify API tests' output
-Date:   Mon, 19 Aug 2019 09:58:27 +0300
-Message-Id: <20190819065827.26921-15-noaos@mellanox.com>
+Subject: [PATCH rdma-core 01/14] pyverbs/tests: Rename base class
+Date:   Mon, 19 Aug 2019 09:58:14 +0300
+Message-Id: <20190819065827.26921-2-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819065827.26921-1-noaos@mellanox.com>
 References: <20190819065827.26921-1-noaos@mellanox.com>
@@ -40,139 +40,196 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When executed in verbose mode, unittest infrastructure prints a test's
-docstring if it's in a single line format, which was used in some
-tests. Change those to use multiline format instead.
+Rename PyverbsTestCase to PyverbsAPITestCase as a preparation for
+addition of feature-based tests.
 
 Signed-off-by: Noa Osherovich <noaos@mellanox.com>
 ---
- tests/test_device.py |  6 ++++--
- tests/test_mr.py     | 36 +++++++++++++++++++++++++++---------
- 2 files changed, 31 insertions(+), 11 deletions(-)
+ pyverbs/tests/addr.py   | 4 ++--
+ pyverbs/tests/base.py   | 2 +-
+ pyverbs/tests/cq.py     | 8 ++++----
+ pyverbs/tests/device.py | 4 ++--
+ pyverbs/tests/mr.py     | 8 ++++----
+ pyverbs/tests/pd.py     | 4 ++--
+ pyverbs/tests/qp.py     | 4 ++--
+ 7 files changed, 17 insertions(+), 17 deletions(-)
 
-diff --git a/tests/test_device.py b/tests/test_device.py
-index e395e793c28f..32dedb34d559 100644
---- a/tests/test_device.py
-+++ b/tests/test_device.py
-@@ -120,7 +120,9 @@ class DeviceTest(unittest.TestCase):
+diff --git a/pyverbs/tests/addr.py b/pyverbs/tests/addr.py
+index 1326eec0d0f6..1c56f56bd0bd 100644
+--- a/pyverbs/tests/addr.py
++++ b/pyverbs/tests/addr.py
+@@ -1,15 +1,15 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved.  See COPYING file
  
-     @staticmethod
-     def test_query_port_bad_flow():
--        """ Verify that querying non-existing ports fails as expected """
-+        """
-+        Verify that querying non-existing ports fails as expected
-+        """
-         lst = d.get_device_list()
-         for dev in lst:
-             with d.Context(name=dev.name.decode()) as ctx:
-@@ -199,7 +201,7 @@ class DMTest(PyverbsAPITestCase):
++from pyverbs.tests.base import PyverbsAPITestCase
+ from pyverbs.addr import GlobalRoute, AHAttr, AH
+ from pyverbs.pyverbs_error import PyverbsError
+-from pyverbs.tests.base import PyverbsTestCase
+ import pyverbs.device as d
+ import pyverbs.enums as e
+ from pyverbs.pd import PD
+ from pyverbs.cq import WC
  
-     def test_destroy_dm_bad_flow(self):
+-class AHTest(PyverbsTestCase):
++class AHTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the AH class.
+     """
+diff --git a/pyverbs/tests/base.py b/pyverbs/tests/base.py
+index 9541e61b0d55..a1eae2becdc0 100644
+--- a/pyverbs/tests/base.py
++++ b/pyverbs/tests/base.py
+@@ -5,7 +5,7 @@ import unittest
+ 
+ import pyverbs.device as d
+ 
+-class PyverbsTestCase(unittest.TestCase):
++class PyverbsAPITestCase(unittest.TestCase):
+     def setUp(self):
          """
--        test calling ibv_free_dm() twice
-+        Test calling ibv_free_dm() twice
-         """
-         for ctx, attr, attr_ex in self.devices:
-             if attr_ex.max_dm_size == 0:
-diff --git a/tests/test_mr.py b/tests/test_mr.py
-index e87fb33624ed..d11a4b8f8f26 100644
---- a/tests/test_mr.py
-+++ b/tests/test_mr.py
-@@ -32,7 +32,9 @@ class MRTest(PyverbsAPITestCase):
-                         pass
+         Opens the devices and queries them
+diff --git a/pyverbs/tests/cq.py b/pyverbs/tests/cq.py
+index 38f145f865ba..e1e56d363011 100644
+--- a/pyverbs/tests/cq.py
++++ b/pyverbs/tests/cq.py
+@@ -7,12 +7,12 @@ import random
  
-     def test_dereg_mr(self):
--        """ Test ibv_dereg_mr() """
-+        """
-+        Test ibv_dereg_mr()
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 flags = u.get_access_flags(ctx)
-@@ -42,7 +44,9 @@ class MRTest(PyverbsAPITestCase):
+ from pyverbs.cq import CompChannel, CQ, CqInitAttrEx, CQEX
+ from pyverbs.pyverbs_error import PyverbsError
+-from pyverbs.tests.base import PyverbsTestCase
++from pyverbs.tests.base import PyverbsAPITestCase
+ import pyverbs.tests.utils as u
+ import pyverbs.enums as e
  
-     @staticmethod
-     def test_reg_mr_bad_flow():
--        """ Verify that trying to register a MR with None PD fails """
-+        """
-+        Verify that trying to register a MR with None PD fails
-+        """
-         try:
-             # Use the simplest access flags necessary
-             MR(None, random.randint(0, 10000), e.IBV_ACCESS_LOCAL_WRITE)
-@@ -53,7 +57,9 @@ class MRTest(PyverbsAPITestCase):
-             raise PyverbsRDMAErrno('Created a MR with None PD')
  
-     def test_dereg_mr_twice(self):
--        """ Verify that explicit call to MR's close() doesn't fails """
-+        """
-+        Verify that explicit call to MR's close() doesn't fail
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 flags = u.get_access_flags(ctx)
-@@ -65,7 +71,9 @@ class MRTest(PyverbsAPITestCase):
-                         mr.close()
+-class CQTest(PyverbsTestCase):
++class CQTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the CQ class.
+     """
+@@ -84,7 +84,7 @@ class CQTest(PyverbsTestCase):
+                 cq.close()
  
-     def test_reg_mr_bad_flags(self):
--        """ Verify that illegal flags combination fails as expected """
-+        """
-+        Verify that illegal flags combination fails as expected
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 for i in range(5):
-@@ -159,35 +167,45 @@ class MWTest(PyverbsAPITestCase):
+ 
+-class CCTest(PyverbsTestCase):
++class CCTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the Completion Channel class.
+     """
+@@ -105,7 +105,7 @@ class CCTest(PyverbsTestCase):
+             cc.close()
+ 
+ 
+-class CQEXTest(PyverbsTestCase):
++class CQEXTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the CQEX class.
+     """
+diff --git a/pyverbs/tests/device.py b/pyverbs/tests/device.py
+index 54ff438d12fa..63f195156119 100644
+--- a/pyverbs/tests/device.py
++++ b/pyverbs/tests/device.py
+@@ -8,7 +8,7 @@ import resource
+ import random
+ 
+ from pyverbs.pyverbs_error import PyverbsError, PyverbsRDMAError
+-from pyverbs.tests.base import PyverbsTestCase
++from pyverbs.tests.base import PyverbsAPITestCase
+ import pyverbs.tests.utils as u
+ import pyverbs.device as d
+ 
+@@ -137,7 +137,7 @@ class DeviceTest(unittest.TestCase):
+                         format(p=port))
+ 
+ 
+-class DMTest(PyverbsTestCase):
++class DMTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the DM class.
+     """
+diff --git a/pyverbs/tests/mr.py b/pyverbs/tests/mr.py
+index e303fd575de4..4be3987fc18b 100644
+--- a/pyverbs/tests/mr.py
++++ b/pyverbs/tests/mr.py
+@@ -7,7 +7,7 @@ from itertools import combinations as com
+ import random
+ 
+ from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsError
+-from pyverbs.tests.base import PyverbsTestCase
++from pyverbs.tests.base import PyverbsAPITestCase
+ from pyverbs.base import PyverbsRDMAErrno
+ from pyverbs.mr import MR, MW, DMMR
+ import pyverbs.tests.utils as u
+@@ -18,7 +18,7 @@ import pyverbs.enums as e
+ MAX_IO_LEN = 1048576
+ 
+ 
+-class MRTest(PyverbsTestCase):
++class MRTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the MR class.
+     """
+@@ -154,7 +154,7 @@ class MRTest(PyverbsTestCase):
+                         mr.buf
+ 
+ 
+-class MWTest(PyverbsTestCase):
++class MWTest(PyverbsAPITestCase):
+     """
      Test various functionalities of the MW class.
      """
-     def test_reg_mw_type1(self):
--        """ Test ibv_alloc_mw() """
-+        """
-+        Test ibv_alloc_mw() for type 1 MW
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 with MW(pd, e.IBV_MW_TYPE_1):
-                     pass
+@@ -200,7 +200,7 @@ class MWTest(PyverbsTestCase):
+                                        format(t=mw_type))
  
-     def test_reg_mw_type2(self):
--        """ Test ibv_alloc_mw() """
-+        """
-+        Test ibv_alloc_mw() for type 2 MW
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 with MW(pd, e.IBV_MW_TYPE_2):
-                     pass
  
-     def test_dereg_mw_type1(self):
--        """ Test ibv_dealloc_mw() """
-+        """
-+        Test ibv_dealloc_mw() for type 1 MW
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 with MW(pd, e.IBV_MW_TYPE_1) as mw:
-                     mw.close()
+-class DMMRTest(PyverbsTestCase):
++class DMMRTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the DMMR class.
+     """
+diff --git a/pyverbs/tests/pd.py b/pyverbs/tests/pd.py
+index 5072a4a35de1..87528db7d437 100644
+--- a/pyverbs/tests/pd.py
++++ b/pyverbs/tests/pd.py
+@@ -5,13 +5,13 @@ Test module for pyverbs' pd module.
+ """
+ import random
  
-     def test_dereg_mw_type2(self):
--        """ Test ibv_dealloc_mw() """
-+        """
-+        Test ibv_dealloc_mw() for type 2 MW
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 with MW(pd, e.IBV_MW_TYPE_2) as mw:
-                     mw.close()
+-from pyverbs.tests.base import PyverbsTestCase
++from pyverbs.tests.base import PyverbsAPITestCase
+ from pyverbs.base import PyverbsRDMAErrno
+ import pyverbs.device as d
+ from pyverbs.pd import PD
  
-     def test_reg_mw_wrong_type(self):
--        """ Test ibv_alloc_mw() """
-+        """
-+        Verify that trying to create a MW of a wrong type fails
-+        """
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
-                 try:
+ 
+-class PDTest(PyverbsTestCase):
++class PDTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the PD class.
+     """
+diff --git a/pyverbs/tests/qp.py b/pyverbs/tests/qp.py
+index be152d4ca5bd..bbf28244f641 100644
+--- a/pyverbs/tests/qp.py
++++ b/pyverbs/tests/qp.py
+@@ -5,7 +5,7 @@ Test module for pyverbs' qp module.
+ """
+ import random
+ 
+-from pyverbs.tests.base import PyverbsTestCase
++from pyverbs.tests.base import PyverbsAPITestCase
+ from pyverbs.qp import QPInitAttr, QPAttr, QP
+ import pyverbs.tests.utils as u
+ import pyverbs.enums as e
+@@ -13,7 +13,7 @@ from pyverbs.pd import PD
+ from pyverbs.cq import CQ
+ 
+ 
+-class QPTest(PyverbsTestCase):
++class QPTest(PyverbsAPITestCase):
+     """
+     Test various functionalities of the QP class.
+     """
 -- 
 2.21.0
 
