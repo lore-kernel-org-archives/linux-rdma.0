@@ -7,30 +7,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D3DC3A5A0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2291C3A5A1
 	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 76E3820874
+	by mail.kernel.org (Postfix) with ESMTP id D1FCC20874
 	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726736AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1725958AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 19 Aug 2019 02:58:35 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53173 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53157 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725958AbfHSG6e (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:34 -0400
+        with ESMTP id S1726211AbfHSG6f (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:35 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:31 +0300
+        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:30 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNM004602;
-        Mon, 19 Aug 2019 09:58:31 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNE004602;
+        Mon, 19 Aug 2019 09:58:30 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>,
-        Noa Osherovich <noaos@mellanox.com>
-Subject: [PATCH rdma-core 10/14] tests: Add ODP RC test
-Date:   Mon, 19 Aug 2019 09:58:23 +0300
-Message-Id: <20190819065827.26921-11-noaos@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org, Noa Osherovich <noaos@mellanox.com>
+Subject: [PATCH rdma-core 02/14] pyverbs: Move tests to a stand-alone directory
+Date:   Mon, 19 Aug 2019 09:58:15 +0300
+Message-Id: <20190819065827.26921-3-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819065827.26921-1-noaos@mellanox.com>
 References: <20190819065827.26921-1-noaos@mellanox.com>
@@ -41,65 +40,181 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maxim Chicherin <maximc@mellanox.com>
+Unittests can be added regardless of pyverbs, change the directory
+hierarchy to reflect that.
 
-Add a TestCase for ODP/RC traffic.
-
-Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
 Signed-off-by: Noa Osherovich <noaos@mellanox.com>
 ---
- tests/CMakeLists.txt |  1 +
- tests/test_odp.py    | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
- create mode 100644 tests/test_odp.py
+ tests/CMakeLists.txt                            | 14 ++++++++++++++
+ {pyverbs/tests => tests}/__init__.py            |  0
+ {pyverbs/tests => tests}/base.py                |  0
+ pyverbs/tests/addr.py => tests/test_addr.py     |  2 +-
+ pyverbs/tests/cq.py => tests/test_cq.py         |  4 ++--
+ pyverbs/tests/device.py => tests/test_device.py |  4 ++--
+ pyverbs/tests/mr.py => tests/test_mr.py         |  4 ++--
+ pyverbs/tests/pd.py => tests/test_pd.py         |  2 +-
+ pyverbs/tests/qp.py => tests/test_qp.py         |  4 ++--
+ {pyverbs/tests => tests}/utils.py               |  0
+ 10 files changed, 24 insertions(+), 10 deletions(-)
+ create mode 100644 tests/CMakeLists.txt
+ rename {pyverbs/tests => tests}/__init__.py (100%)
+ rename {pyverbs/tests => tests}/base.py (100%)
+ rename pyverbs/tests/addr.py => tests/test_addr.py (98%)
+ rename pyverbs/tests/cq.py => tests/test_cq.py (98%)
+ rename pyverbs/tests/device.py => tests/test_device.py (99%)
+ rename pyverbs/tests/mr.py => tests/test_mr.py (99%)
+ rename pyverbs/tests/pd.py => tests/test_pd.py (97%)
+ rename pyverbs/tests/qp.py => tests/test_qp.py (99%)
+ rename {pyverbs/tests => tests}/utils.py (100%)
 
 diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
-index f1ba542fab90..6f3c23cd1ec0 100644
---- a/tests/CMakeLists.txt
-+++ b/tests/CMakeLists.txt
-@@ -10,5 +10,6 @@ rdma_python_test(tests
-   test_mr.py
-   test_pd.py
-   test_qp.py
-+  test_odp.py
-   utils.py
-   )
-diff --git a/tests/test_odp.py b/tests/test_odp.py
 new file mode 100644
-index 000000000000..a9f3bf4573a5
+index 000000000000..f1ba542fab90
 --- /dev/null
-+++ b/tests/test_odp.py
-@@ -0,0 +1,30 @@
-+from tests.base import RDMATestCase
-+from tests.utils import requires_odp, traffic
-+from tests.base import RCResources
-+from pyverbs.mr import MR
-+import pyverbs.enums as e
++++ b/tests/CMakeLists.txt
+@@ -0,0 +1,14 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright (c) 2019, Mellanox Technologies. All rights reserved. See COPYING file
 +
-+
-+class OdpRC(RCResources):
-+    @requires_odp('rc')
-+    def create_mr(self):
-+        self.mr = MR(self.pd, self.msg_size,
-+                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_ON_DEMAND)
-+
-+
-+class OdpTestCase(RDMATestCase):
-+    def setUp(self):
-+        super(OdpTestCase, self).setUp()
-+        self.iters = 100
-+        self.qp_dict = {'rc': OdpRC}
-+
-+    def create_players(self, qp_type):
-+        client = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
-+        server = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
-+        client.pre_run(server.psn, server.qpn)
-+        server.pre_run(client.psn, client.qpn)
-+        return client, server
-+
-+    def test_odp_rc_traffic(self):
-+        client, server = self.create_players('rc')
-+        traffic(client, server, self.iters, self.gid_index, self.ib_port)
++rdma_python_test(tests
++  __init__.py
++  test_addr.py
++  base.py
++  test_cq.py
++  test_device.py
++  test_mr.py
++  test_pd.py
++  test_qp.py
++  utils.py
++  )
+diff --git a/pyverbs/tests/__init__.py b/tests/__init__.py
+similarity index 100%
+rename from pyverbs/tests/__init__.py
+rename to tests/__init__.py
+diff --git a/pyverbs/tests/base.py b/tests/base.py
+similarity index 100%
+rename from pyverbs/tests/base.py
+rename to tests/base.py
+diff --git a/pyverbs/tests/addr.py b/tests/test_addr.py
+similarity index 98%
+rename from pyverbs/tests/addr.py
+rename to tests/test_addr.py
+index 1c56f56bd0bd..9cc801226e69 100644
+--- a/pyverbs/tests/addr.py
++++ b/tests/test_addr.py
+@@ -1,9 +1,9 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved.  See COPYING file
+ 
+-from pyverbs.tests.base import PyverbsAPITestCase
+ from pyverbs.addr import GlobalRoute, AHAttr, AH
+ from pyverbs.pyverbs_error import PyverbsError
++from tests.base import PyverbsAPITestCase
+ import pyverbs.device as d
+ import pyverbs.enums as e
+ from pyverbs.pd import PD
+diff --git a/pyverbs/tests/cq.py b/tests/test_cq.py
+similarity index 98%
+rename from pyverbs/tests/cq.py
+rename to tests/test_cq.py
+index e1e56d363011..7848f39c9c63 100644
+--- a/pyverbs/tests/cq.py
++++ b/tests/test_cq.py
+@@ -7,9 +7,9 @@ import random
+ 
+ from pyverbs.cq import CompChannel, CQ, CqInitAttrEx, CQEX
+ from pyverbs.pyverbs_error import PyverbsError
+-from pyverbs.tests.base import PyverbsAPITestCase
+-import pyverbs.tests.utils as u
++from tests.base import PyverbsAPITestCase
+ import pyverbs.enums as e
++import tests.utils as u
+ 
+ 
+ class CQTest(PyverbsAPITestCase):
+diff --git a/pyverbs/tests/device.py b/tests/test_device.py
+similarity index 99%
+rename from pyverbs/tests/device.py
+rename to tests/test_device.py
+index 63f195156119..e395e793c28f 100644
+--- a/pyverbs/tests/device.py
++++ b/tests/test_device.py
+@@ -8,8 +8,8 @@ import resource
+ import random
+ 
+ from pyverbs.pyverbs_error import PyverbsError, PyverbsRDMAError
+-from pyverbs.tests.base import PyverbsAPITestCase
+-import pyverbs.tests.utils as u
++from tests.base import PyverbsAPITestCase
++import tests.utils as u
+ import pyverbs.device as d
+ 
+ PAGE_SIZE = resource.getpagesize()
+diff --git a/pyverbs/tests/mr.py b/tests/test_mr.py
+similarity index 99%
+rename from pyverbs/tests/mr.py
+rename to tests/test_mr.py
+index 4be3987fc18b..e87fb33624ed 100644
+--- a/pyverbs/tests/mr.py
++++ b/tests/test_mr.py
+@@ -7,13 +7,13 @@ from itertools import combinations as com
+ import random
+ 
+ from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsError
+-from pyverbs.tests.base import PyverbsAPITestCase
++from tests.base import PyverbsAPITestCase
+ from pyverbs.base import PyverbsRDMAErrno
+ from pyverbs.mr import MR, MW, DMMR
+-import pyverbs.tests.utils as u
+ import pyverbs.device as d
+ from pyverbs.pd import PD
+ import pyverbs.enums as e
++import tests.utils as u
+ 
+ MAX_IO_LEN = 1048576
+ 
+diff --git a/pyverbs/tests/pd.py b/tests/test_pd.py
+similarity index 97%
+rename from pyverbs/tests/pd.py
+rename to tests/test_pd.py
+index 87528db7d437..978cf4900146 100644
+--- a/pyverbs/tests/pd.py
++++ b/tests/test_pd.py
+@@ -5,7 +5,7 @@ Test module for pyverbs' pd module.
+ """
+ import random
+ 
+-from pyverbs.tests.base import PyverbsAPITestCase
++from tests.base import PyverbsAPITestCase
+ from pyverbs.base import PyverbsRDMAErrno
+ import pyverbs.device as d
+ from pyverbs.pd import PD
+diff --git a/pyverbs/tests/qp.py b/tests/test_qp.py
+similarity index 99%
+rename from pyverbs/tests/qp.py
+rename to tests/test_qp.py
+index bbf28244f641..1ce98388871b 100644
+--- a/pyverbs/tests/qp.py
++++ b/tests/test_qp.py
+@@ -5,12 +5,12 @@ Test module for pyverbs' qp module.
+ """
+ import random
+ 
+-from pyverbs.tests.base import PyverbsAPITestCase
+ from pyverbs.qp import QPInitAttr, QPAttr, QP
+-import pyverbs.tests.utils as u
++from tests.base import PyverbsAPITestCase
+ import pyverbs.enums as e
+ from pyverbs.pd import PD
+ from pyverbs.cq import CQ
++import tests.utils as u
+ 
+ 
+ class QPTest(PyverbsAPITestCase):
+diff --git a/pyverbs/tests/utils.py b/tests/utils.py
+similarity index 100%
+rename from pyverbs/tests/utils.py
+rename to tests/utils.py
 -- 
 2.21.0
 
