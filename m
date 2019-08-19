@@ -2,205 +2,93 @@ Return-Path: <SRS0=Wuup=WP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F4F5C3A59D
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:37:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE871C3A59F
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4014220851
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:37:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C42462087E
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726295AbfHSGhC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 02:37:02 -0400
-Received: from mx2.suse.de ([195.135.220.15]:45540 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726132AbfHSGhC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 19 Aug 2019 02:37:02 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 01D2AAC26;
-        Mon, 19 Aug 2019 06:36:59 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id AB8171E155E; Mon, 19 Aug 2019 08:36:58 +0200 (CEST)
-Date:   Mon, 19 Aug 2019 08:36:58 +0200
-From:   Jan Kara <jack@suse.cz>
-To:     Ira Weiny <ira.weiny@intel.com>
-Cc:     Jan Kara <jack@suse.cz>, Michal Hocko <mhocko@suse.com>,
-        Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org,
-        linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>,
-        Dave Chinner <david@fromorbit.com>,
-        linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>,
-        linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
-        linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-ext4@vger.kernel.org
-Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ;
- -)
-Message-ID: <20190819063658.GB20455@quack2.suse.cz>
-References: <20190809225833.6657-1-ira.weiny@intel.com>
- <20190814101714.GA26273@quack2.suse.cz>
- <20190814180848.GB31490@iweiny-DESK2.sc.intel.com>
- <20190815130558.GF14313@quack2.suse.cz>
- <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
- <20190816232006.GA11384@iweiny-DESK2.sc.intel.com>
+        id S1726810AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 02:58:35 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53174 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726464AbfHSG6e (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:34 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:31 +0300
+Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNN004602;
+        Mon, 19 Aug 2019 09:58:31 +0300
+From:   Noa Osherovich <noaos@mellanox.com>
+To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
+Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
+Subject: [PATCH rdma-core 11/14] tests: Add ODP UD test
+Date:   Mon, 19 Aug 2019 09:58:24 +0300
+Message-Id: <20190819065827.26921-12-noaos@mellanox.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190819065827.26921-1-noaos@mellanox.com>
+References: <20190819065827.26921-1-noaos@mellanox.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190816232006.GA11384@iweiny-DESK2.sc.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri 16-08-19 16:20:07, Ira Weiny wrote:
-> On Fri, Aug 16, 2019 at 12:05:28PM -0700, 'Ira Weiny' wrote:
-> > On Thu, Aug 15, 2019 at 03:05:58PM +0200, Jan Kara wrote:
-> > > On Wed 14-08-19 11:08:49, Ira Weiny wrote:
-> > > > On Wed, Aug 14, 2019 at 12:17:14PM +0200, Jan Kara wrote:
-> > > > > Hello!
-> > > > > 
-> > > > > On Fri 09-08-19 15:58:14, ira.weiny@intel.com wrote:
-> > > > > > Pre-requisites
-> > > > > > ==============
-> > > > > > 	Based on mmotm tree.
-> > > > > > 
-> > > > > > Based on the feedback from LSFmm, the LWN article, the RFC series since
-> > > > > > then, and a ton of scenarios I've worked in my mind and/or tested...[1]
-> > > > > > 
-> > > > > > Solution summary
-> > > > > > ================
-> > > > > > 
-> > > > > > The real issue is that there is no use case for a user to have RDMA pinn'ed
-> > > > > > memory which is then truncated.  So really any solution we present which:
-> > > > > > 
-> > > > > > A) Prevents file system corruption or data leaks
-> > > > > > ...and...
-> > > > > > B) Informs the user that they did something wrong
-> > > > > > 
-> > > > > > Should be an acceptable solution.
-> > > > > > 
-> > > > > > Because this is slightly new behavior.  And because this is going to be
-> > > > > > specific to DAX (because of the lack of a page cache) we have made the user
-> > > > > > "opt in" to this behavior.
-> > > > > > 
-> > > > > > The following patches implement the following solution.
-> > > > > > 
-> > > > > > 0) Registrations to Device DAX char devs are not affected
-> > > > > > 
-> > > > > > 1) The user has to opt in to allowing page pins on a file with an exclusive
-> > > > > >    layout lease.  Both exclusive and layout lease flags are user visible now.
-> > > > > > 
-> > > > > > 2) page pins will fail if the lease is not active when the file back page is
-> > > > > >    encountered.
-> > > > > > 
-> > > > > > 3) Any truncate or hole punch operation on a pinned DAX page will fail.
-> > > > > 
-> > > > > So I didn't fully grok the patch set yet but by "pinned DAX page" do you
-> > > > > mean a page which has corresponding file_pin covering it? Or do you mean a
-> > > > > page which has pincount increased? If the first then I'd rephrase this to
-> > > > > be less ambiguous, if the second then I think it is wrong. 
-> > > > 
-> > > > I mean the second.  but by "fail" I mean hang.  Right now the "normal" page
-> > > > pincount processing will hang the truncate.  Given the discussion with John H
-> > > > we can make this a bit better if we use something like FOLL_PIN and the page
-> > > > count bias to indicate this type of pin.  Then I could fail the truncate
-> > > > outright.  but that is not done yet.
-> > > > 
-> > > > so... I used the word "fail" to be a bit more vague as the final implementation
-> > > > may return ETXTBUSY or hang as noted.
-> > > 
-> > > Ah, OK. Hanging is fine in principle but with longterm pins, your work
-> > > makes sure they actually fail with ETXTBUSY, doesn't it? The thing is that
-> > > e.g. DIO will use page pins as well for its buffers and we must wait there
-> > > until the pin is released. So please just clarify your 'fail' here a bit
-> > > :).
-> > 
-> > It will fail with ETXTBSY.  I've fixed a bug...  See below.
-> > 
-> > > 
-> > > > > > 4) The user has the option of holding the lease or releasing it.  If they
-> > > > > >    release it no other pin calls will work on the file.
-> > > > > 
-> > > > > Last time we spoke the plan was that the lease is kept while the pages are
-> > > > > pinned (and an attempt to release the lease would block until the pages are
-> > > > > unpinned). That also makes it clear that the *lease* is what is making
-> > > > > truncate and hole punch fail with ETXTBUSY and the file_pin structure is
-> > > > > just an implementation detail how the existence is efficiently tracked (and
-> > > > > what keeps the backing file for the pages open so that the lease does not
-> > > > > get auto-destroyed). Why did you change this?
-> > > > 
-> > > > closing the file _and_ unmaping it will cause the lease to be released
-> > > > regardless of if we allow this or not.
-> > > > 
-> > > > As we discussed preventing the close seemed intractable.
-> > > 
-> > > Yes, preventing the application from closing the file is difficult. But
-> > > from a quick look at your patches it seemed to me that you actually hold a
-> > > backing file reference from the file_pin structure thus even though the
-> > > application closes its file descriptor, the struct file (and thus the
-> > > lease) lives further until the file_pin gets released. And that should last
-> > > as long as the pages are pinned. Am I missing something?
-> > > 
-> > > > I thought about failing the munmap but that seemed wrong as well.  But more
-> > > > importantly AFAIK RDMA can pass its memory pins to other processes via FD
-> > > > passing...  This means that one could pin this memory, pass it to another
-> > > > process and exit.  The file lease on the pin'ed file is lost.
-> > > 
-> > > Not if file_pin grabs struct file reference as I mentioned above...
-> > >  
-> > > > The file lease is just a key to get the memory pin.  Once unlocked the procfs
-> > > > tracking keeps track of where that pin goes and which processes need to be
-> > > > killed to get rid of it.
-> > > 
-> > > I think having file lease being just a key to get the pin is conceptually
-> > > wrong. The lease is what expresses: "I'm accessing these blocks directly,
-> > > don't touch them without coordinating with me." So it would be only natural
-> > > if we maintained the lease while we are accessing blocks instead of
-> > > transferring this protection responsibility to another structure - namely
-> > > file_pin - and letting the lease go.
-> > 
-> > We do transfer that protection to the file_pin but we don't have to "let the
-> > lease" go.  We just keep the lease with the file_pin as you said.  See below...
-> > 
-> > > But maybe I miss some technical reason
-> > > why maintaining file lease is difficult. If that's the case, I'd like to hear
-> > > what...
-> > 
-> > Ok, I've thought a bit about what you said and indeed it should work that way.
-> > The reason I had to think a bit is that I was not sure why I thought we needed
-> > to hang...  Turns out there were a couple of reasons...  1 not so good and 1 ok
-> > but still not good enough to allow this...
-> > 
-> > 1) I had a bug in the XFS code which should have failed rather than hanging...
-> >    So this was not a good reason...  And I was able to find/fix it...  Thanks!
-> > 
-> > 2) Second reason is that I thought I did not have a good way to tell if the
-> >    lease was actually in use.  What I mean is that letting the lease go should
-> >    be ok IFF we don't have any pins...  I was thinking that without John's code
-> >    we don't have a way to know if there are any pins...  But that is wrong...
-> >    All we have to do is check
-> > 
-> > 	!list_empty(file->file_pins)
-> 
-> Oops...  I got my "struct files" mixed up...  The RDMA struct file has the
-> file_pins hanging off it...  This will not work.
-> 
-> I'll have to try something else to prevent this.  However, I don't want to walk
-> all the pages of the inode.
-> 
-> Also I'm concerned about just failing if they happen to be pinned.  They need
-> to be LONGTERM pinned...  Otherwise we might have a transient failure of an
-> unlock based on some internal kernel transient pin...  :-/
+From: Maxim Chicherin <maximc@mellanox.com>
 
-My solution for this was that file_pin would contain counter of pinned
-pages which vaddr_pin_pages() would increment and vaddr_unpin_pages() would
-decrement. Checking whether there's any outstanding page pinned attached to
-the file_pin is then trivial...
+Add a TestCase for ODP/UD traffic.
 
-								Honza
+Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
+---
+ tests/test_odp.py | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/tests/test_odp.py b/tests/test_odp.py
+index a9f3bf4573a5..922cd0d9aad5 100644
+--- a/tests/test_odp.py
++++ b/tests/test_odp.py
+@@ -1,10 +1,17 @@
+ from tests.base import RDMATestCase
+ from tests.utils import requires_odp, traffic
+-from tests.base import RCResources
++from tests.base import RCResources, UDResources
+ from pyverbs.mr import MR
+ import pyverbs.enums as e
+ 
+ 
++class OdpUD(UDResources):
++    @requires_odp('ud')
++    def create_mr(self):
++        self.mr = MR(self.pd, self.msg_size + self.GRH_SIZE ,
++                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_ON_DEMAND)
++
++
+ class OdpRC(RCResources):
+     @requires_odp('rc')
+     def create_mr(self):
+@@ -16,7 +23,7 @@ class OdpTestCase(RDMATestCase):
+     def setUp(self):
+         super(OdpTestCase, self).setUp()
+         self.iters = 100
+-        self.qp_dict = {'rc': OdpRC}
++        self.qp_dict = {'rc': OdpRC, 'ud': OdpUD}
+ 
+     def create_players(self, qp_type):
+         client = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
+@@ -28,3 +35,7 @@ class OdpTestCase(RDMATestCase):
+     def test_odp_rc_traffic(self):
+         client, server = self.create_players('rc')
+         traffic(client, server, self.iters, self.gid_index, self.ib_port)
++
++    def test_odp_ud_traffic(self):
++        client, server = self.create_players('ud')
++        traffic(client, server, self.iters, self.gid_index, self.ib_port)
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.21.0
+
