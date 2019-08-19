@@ -2,155 +2,122 @@ Return-Path: <SRS0=Wuup=WP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=0.5 required=3.0 tests=BIGNUM_EMAILS,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A07EC3A59D
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF221C3A59D
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4F9222085A
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566216513;
-	bh=aosPnERQ1Ip+qp+Z1xF6d76QS7ZxGePLisfLCpO0mnQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TIkGtj9SdGjIdZtADSX0apDBCJ5cKwCVZ8MvuSO4ww/o+XHIDC/KhXrQrrndR1U+x
-	 qIo62X6RI2fYmnkgIRPvBOXFnt6VLbsHlWb9r47CwGVz6T3z05d2mXn0esZAzZtIUb
-	 EHswZUSzXM/NuxG3EhPfLJNQla6ZsCeY6pZgdQX8=
+	by mail.kernel.org (Postfix) with ESMTP id C081320851
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:11:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Jh5HfbAX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727544AbfHSMIc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 08:08:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47196 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726987AbfHSMIc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 19 Aug 2019 08:08:32 -0400
-Received: from localhost (unknown [77.137.115.125])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BDD3520851;
-        Mon, 19 Aug 2019 12:08:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566216511;
-        bh=aosPnERQ1Ip+qp+Z1xF6d76QS7ZxGePLisfLCpO0mnQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BZkyt6o+BWe7ALhzCvRqx0vsC6UAWi34VQVscFl2CZFRjGmehDpxasUcZr/q1m6qm
-         JO9aGJ+S086OX+J0cjvhbtmXgwo4cUzETvXxQaGBOilG5nxPTDQ5oNAJg9/RhTDb/R
-         FipqWGMa68coX7X2jFlstW1X3d+Ypo+Qdf0eFy0I=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Michael Guralnik <michaelgur@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH rdma-next v3 2/3] IB/mlx5: Remove check of FW capabilities in ODP page fault handling
-Date:   Mon, 19 Aug 2019 15:08:14 +0300
-Message-Id: <20190819120815.21225-3-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190819120815.21225-1-leon@kernel.org>
-References: <20190819120815.21225-1-leon@kernel.org>
+        id S1727262AbfHSMLy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 08:11:54 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:33102 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726491AbfHSMLy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 08:11:54 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7JC97kU047500;
+        Mon, 19 Aug 2019 12:11:51 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type; s=corp-2019-08-05;
+ bh=u8unIYQ7i2zWreioTHfGDdMWESRTBoBKE3x7Aei6fxU=;
+ b=Jh5HfbAXgpjhY3jDMUOna/448TQOaCcGUZDqELI2AZgoilxCFLpDW7T53MFTwL7T1Trg
+ 1eWnqP8YJgd5CR0LFT2I24uob3wL3MmSNRKehKdCKrXyjbfEYnr21MYF4aYQ4xi/27y5
+ iPCKKw4buTpg1qKrAD/7SdBR5w/5RcSLHpkh0G4xRO7U6C0t838g3mjeGaBaCymw0ndG
+ XEBXCnp8+1jcE1V2EZvKWSNMcmI3rozCtZSQG72sZJwtWG7ViJkEsBl2UvoUEivInLBB
+ ILx57JVbluRKJGp0SpqNMBhLGTHfkHkkcXFkfgGwV0W4hIJTVY6LDXXJm1aABJ8b6DL0 Xw== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by aserp2120.oracle.com with ESMTP id 2ue9hp7170-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 19 Aug 2019 12:11:51 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7JC7cuk144093;
+        Mon, 19 Aug 2019 12:09:50 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by aserp3030.oracle.com with ESMTP id 2ufb46pa01-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 19 Aug 2019 12:09:50 +0000
+Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7JC9nC8003588;
+        Mon, 19 Aug 2019 12:09:49 GMT
+Received: from mwanda (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Mon, 19 Aug 2019 05:09:48 -0700
+Date:   Mon, 19 Aug 2019 15:09:43 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     bmt@zurich.ibm.com
+Cc:     linux-rdma@vger.kernel.org
+Subject: [bug report] rdma/siw: connection management
+Message-ID: <20190819120943.GA27514@mwanda>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9353 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=3 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=769
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1906280000 definitions=main-1908190140
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9353 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=3 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=829 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
+ definitions=main-1908190140
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Michael Guralnik <michaelgur@mellanox.com>
+Hello Bernard Metzler,
 
-As page fault handling is initiated by FW, there is no need to check that
-the ODP supports the operation and transport.
+This is a semi-automatic email about new static checker warnings.
 
-Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/odp.c | 48 +-------------------------------
- 1 file changed, 1 insertion(+), 47 deletions(-)
+The patch 6c52fdc244b5: "rdma/siw: connection management" from Jun
+20, 2019, leads to the following Smatch complaint:
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 8b155a1f0b38..e7a4ea979209 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -986,17 +986,6 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
- 	return ret < 0 ? ret : npages;
- }
- 
--static const u32 mlx5_ib_odp_opcode_cap[] = {
--	[MLX5_OPCODE_SEND]	       = IB_ODP_SUPPORT_SEND,
--	[MLX5_OPCODE_SEND_IMM]	       = IB_ODP_SUPPORT_SEND,
--	[MLX5_OPCODE_SEND_INVAL]       = IB_ODP_SUPPORT_SEND,
--	[MLX5_OPCODE_RDMA_WRITE]       = IB_ODP_SUPPORT_WRITE,
--	[MLX5_OPCODE_RDMA_WRITE_IMM]   = IB_ODP_SUPPORT_WRITE,
--	[MLX5_OPCODE_RDMA_READ]	       = IB_ODP_SUPPORT_READ,
--	[MLX5_OPCODE_ATOMIC_CS]	       = IB_ODP_SUPPORT_ATOMIC,
--	[MLX5_OPCODE_ATOMIC_FA]	       = IB_ODP_SUPPORT_ATOMIC,
--};
--
- /*
-  * Parse initiator WQE. Advances the wqe pointer to point at the
-  * scatter-gather list, and set wqe_end to the end of the WQE.
-@@ -1007,7 +996,6 @@ static int mlx5_ib_mr_initiator_pfault_handler(
- {
- 	struct mlx5_wqe_ctrl_seg *ctrl = *wqe;
- 	u16 wqe_index = pfault->wqe.wqe_index;
--	u32 transport_caps;
- 	struct mlx5_base_av *av;
- 	unsigned ds, opcode;
- 	u32 qpn = qp->trans_qp.base.mqp.qpn;
-@@ -1031,29 +1019,8 @@ static int mlx5_ib_mr_initiator_pfault_handler(
- 	opcode = be32_to_cpu(ctrl->opmod_idx_opcode) &
- 		 MLX5_WQE_CTRL_OPCODE_MASK;
- 
--	switch (qp->ibqp.qp_type) {
--	case IB_QPT_XRC_INI:
-+	if (qp->ibqp.qp_type == IB_QPT_XRC_INI)
- 		*wqe += sizeof(struct mlx5_wqe_xrc_seg);
--		transport_caps = dev->odp_caps.per_transport_caps.xrc_odp_caps;
--		break;
--	case IB_QPT_RC:
--		transport_caps = dev->odp_caps.per_transport_caps.rc_odp_caps;
--		break;
--	case IB_QPT_UD:
--		transport_caps = dev->odp_caps.per_transport_caps.ud_odp_caps;
--		break;
--	default:
--		mlx5_ib_err(dev, "ODP fault on QP of an unsupported transport 0x%x\n",
--			    qp->ibqp.qp_type);
--		return -EFAULT;
--	}
--
--	if (unlikely(opcode >= ARRAY_SIZE(mlx5_ib_odp_opcode_cap) ||
--		     !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
--		mlx5_ib_err(dev, "ODP fault on QP of an unsupported opcode 0x%x\n",
--			    opcode);
--		return -EFAULT;
--	}
- 
- 	if (qp->ibqp.qp_type == IB_QPT_UD) {
- 		av = *wqe;
-@@ -1118,19 +1085,6 @@ static int mlx5_ib_mr_responder_pfault_handler_rq(struct mlx5_ib_dev *dev,
- 		return -EFAULT;
- 	}
- 
--	switch (qp->ibqp.qp_type) {
--	case IB_QPT_RC:
--		if (!(dev->odp_caps.per_transport_caps.rc_odp_caps &
--		      IB_ODP_SUPPORT_RECV))
--			goto invalid_transport_or_opcode;
--		break;
--	default:
--invalid_transport_or_opcode:
--		mlx5_ib_err(dev, "ODP fault on QP of an unsupported transport. transport: 0x%x\n",
--			    qp->ibqp.qp_type);
--		return -EFAULT;
--	}
--
- 	*wqe_end = wqe + wqe_size;
- 
- 	return 0;
--- 
-2.20.1
+    drivers/infiniband/sw/siw/siw_cm.c:1518 siw_connect()
+    error: we previously assumed 'qp' could be null (see line 1372)
 
+drivers/infiniband/sw/siw/siw_cm.c
+  1371		qp = siw_qp_id2obj(sdev, params->qpn);
+  1372		if (!qp) {
+                    ^^^
+NULL
+
+  1373			WARN(1, "[QP %u] does not exist\n", params->qpn);
+  1374			rv = -EINVAL;
+  1375			goto error;
+                        ^^^^^^^^^^
+
+  1376		}
+  1377		if (v4)
+  1378			siw_dbg_qp(qp,
+
+[ snip ]
+
+  1508		if (rv >= 0) {
+  1509			rv = siw_cm_queue_work(cep, SIW_CM_WORK_MPATIMEOUT);
+  1510			if (!rv) {
+  1511				siw_dbg_cep(cep, "id 0x%p, [QP %u]: exit\n", id,
+  1512					    qp_id(qp));
+  1513				siw_cep_set_free(cep);
+  1514				return 0;
+  1515			}
+  1516		}
+  1517	error:
+  1518		siw_dbg_qp(qp, "failed: %d\n", rv);
+                           ^^
+NULL dereference.
+
+  1519	
+  1520		if (cep) {
+
+regards,
+dan carpenter
