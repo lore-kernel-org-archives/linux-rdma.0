@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02756C3A59D
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:36:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0541C3A59D
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:36:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C000620851
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:36:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C647D20851
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:36:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566214597;
-	bh=3VsIy8a6UEh3Iz6brqydfUyslV6tDliigK5MGul8jX4=;
+	s=default; t=1566214600;
+	bh=QsmOmcTjeV0lKPUNon1RjJ7lGJdKTjiu790zyBEUJZw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Isw5Z2k6dFT6Z2wrACGYJAohE50jsb+XeKO57/0HilnHghgOfwuVEf6K0tUT2SuZF
-	 3QIKPiJtEB1ttw9UlKYHbtFS5YKdoOsQlZW1Q4r1if6jZTOSRAUM9pvrM6ETlegaMv
-	 gPy2yJ6omxFxL0bs1sIjHLZmvkpMTByYAdqXjwvA=
+	b=ly6JchAnsTqsTWQv6o/GihB2DzxZxCLKe0SySknpau5FmxzZ0fGgYCYPuM/OVRwiW
+	 ThlhCH2sa2JfxI6eP+/a4loY2LPaFjawX2hwKibBOqG215IT/hBMfOpM6O3l2WHqFv
+	 xhxlNm8fbM8Wva2oP06fxGTBqShjxuY/WjOUDub4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727440AbfHSLgh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 07:36:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38608 "EHLO mail.kernel.org"
+        id S1727471AbfHSLgk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 07:36:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726594AbfHSLgh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 19 Aug 2019 07:36:37 -0400
+        id S1726594AbfHSLgj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 19 Aug 2019 07:36:39 -0400
 Received: from localhost (unknown [77.137.115.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B88432063F;
-        Mon, 19 Aug 2019 11:36:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 358B72063F;
+        Mon, 19 Aug 2019 11:36:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566214595;
-        bh=3VsIy8a6UEh3Iz6brqydfUyslV6tDliigK5MGul8jX4=;
+        s=default; t=1566214598;
+        bh=QsmOmcTjeV0lKPUNon1RjJ7lGJdKTjiu790zyBEUJZw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TIIpmKvBubMHlASWJ47ybPXTKgFFReayQERCSqB873vpprHfMLPoAV/sjbLEWVRuz
-         VZ/1Cw4+JSVOeC25sdsHwdXAzKfT/aIYTMnF8cwMy4QjiZU6272VTG+r76vk8kGPxJ
-         2J+kMPRtufeF7FfBM5H2gj3A1hs0rH6vizqiiSj8=
+        b=dQNS+0Gq/MavRJi7SE8YdIn/LzpOkeakKIqh9+q9DkwH04knTkybIE6hnWARTZOLS
+         3lopqdMUxVTOUy/EkQEWVafNUpPfdLM3Ojbh+18cGpNQx9AOlhprj0IHax/8GEgE/3
+         ft+e3fQHY3ZEOFYlEysVMSxOqMpc/q61Y/dtqdw8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,9 +47,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Mark Zhang <markz@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH mlx5-next 1/3] net/mlx5: Add per-namespace flow table default miss action support
-Date:   Mon, 19 Aug 2019 14:36:24 +0300
-Message-Id: <20190819113626.20284-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/3] RDMA/mlx5: RDMA_RX flow type support for user applications
+Date:   Mon, 19 Aug 2019 14:36:26 +0300
+Message-Id: <20190819113626.20284-4-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819113626.20284-1-leon@kernel.org>
 References: <20190819113626.20284-1-leon@kernel.org>
@@ -62,213 +62,108 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Currently all the namespaces under the same steering domain share the same
-default table miss action, however in some situations (e.g., RDMA RX)
-different actions are required. This patch adds a per-namespace default
-table miss action instead of using the miss action of the steering domain.
+Currently user applications can only steer TCP/IP(NIC RX/RX) traffic.
+This patch adds RDMA_RX as a new flow type to allow the user to insert
+steering rules to control RDMA traffic.
+Two destinations are supported(but not set at the same time): devx
+flow table object and QP.
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |  4 +-
- .../net/ethernet/mellanox/mlx5/core/fs_core.c | 73 +++++++++++--------
- .../net/ethernet/mellanox/mlx5/core/fs_core.h |  3 +-
- 3 files changed, 47 insertions(+), 33 deletions(-)
+ drivers/infiniband/hw/mlx5/flow.c         | 13 +++++++++++--
+ drivers/infiniband/hw/mlx5/main.c         |  7 +++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h      |  1 +
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h |  1 +
+ 4 files changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index b84a225bbe86..1e3381604b3d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -182,7 +182,7 @@ static int mlx5_cmd_create_flow_table(struct mlx5_flow_root_namespace *ns,
- 		} else {
- 			MLX5_SET(create_flow_table_in, in,
- 				 flow_table_context.table_miss_action,
--				 ns->def_miss_action);
-+				 ft->def_miss_action);
- 		}
+diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
+index b8841355fcd5..571bb8539cdb 100644
+--- a/drivers/infiniband/hw/mlx5/flow.c
++++ b/drivers/infiniband/hw/mlx5/flow.c
+@@ -32,6 +32,9 @@ mlx5_ib_ft_type_to_namespace(enum mlx5_ib_uapi_flow_table_type table_type,
+ 	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_FDB:
+ 		*namespace = MLX5_FLOW_NAMESPACE_FDB;
  		break;
++	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_RX:
++		*namespace = MLX5_FLOW_NAMESPACE_RDMA_RX;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -101,6 +104,11 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 	if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB && !dest_devx)
+ 		return -EINVAL;
  
-@@ -262,7 +262,7 @@ static int mlx5_cmd_modify_flow_table(struct mlx5_flow_root_namespace *ns,
- 		} else {
- 			MLX5_SET(modify_flow_table_in, in,
- 				 flow_table_context.table_miss_action,
--				 ns->def_miss_action);
-+				 ft->def_miss_action);
- 		}
++	/* Allow only DEVX object or QP as dest when inserting to RDMA_RX */
++	if ((fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX) &&
++	    ((!dest_devx && !dest_qp) || (dest_devx && dest_qp)))
++		return -EINVAL;
++
+ 	if (dest_devx) {
+ 		devx_obj = uverbs_attr_get_obj(
+ 			attrs, MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX);
+@@ -112,8 +120,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 		 */
+ 		if (!mlx5_ib_devx_is_flow_dest(devx_obj, &dest_id, &dest_type))
+ 			return -EINVAL;
+-		/* Allow only flow table as dest when inserting to FDB */
+-		if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB &&
++		/* Allow only flow table as dest when inserting to FDB or RDMA_RX */
++		if ((fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB ||
++		     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX) &&
+ 		    dest_type != MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE)
+ 			return -EINVAL;
+ 	} else if (dest_qp) {
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 08020affdc17..4e86212e6ea8 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3963,6 +3963,11 @@ _get_flow_table(struct mlx5_ib_dev *dev,
+ 		    esw_encap)
+ 			flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
+ 		priority = FDB_BYPASS_PATH;
++	} else if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX) {
++		max_table_size =
++			BIT(MLX5_CAP_FLOWTABLE_RDMA_RX(dev->mdev,
++						       log_max_ft_size));
++		priority = fs_matcher->priority;
  	}
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 3e99799bdb40..fb3cfdfbafbe 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -60,7 +60,8 @@
- 	ADD_PRIO(num_prios_val, 0, num_levels_val, {},\
- 		 __VA_ARGS__)\
+ 	max_table_size = min_t(int, max_table_size, MLX5_FS_MAX_ENTRIES);
+@@ -3977,6 +3982,8 @@ _get_flow_table(struct mlx5_ib_dev *dev,
+ 		prio = &dev->flow_db->egress_prios[priority];
+ 	else if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB)
+ 		prio = &dev->flow_db->fdb;
++	else if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX)
++		prio = &dev->flow_db->rdma_rx[priority];
  
--#define ADD_NS(...) {.type = FS_TYPE_NAMESPACE,\
-+#define ADD_NS(def_miss_act, ...) {.type = FS_TYPE_NAMESPACE,	\
-+	.def_miss_action = def_miss_act,\
- 	.children = (struct init_tree_node[]) {__VA_ARGS__},\
- 	.ar_size = INIT_TREE_NODE_ARRAY_SIZE(__VA_ARGS__) \
- }
-@@ -131,33 +132,41 @@ static struct init_tree_node {
- 	int num_leaf_prios;
- 	int prio;
- 	int num_levels;
-+	enum mlx5_flow_table_miss_action def_miss_action;
- } root_fs = {
- 	.type = FS_TYPE_NAMESPACE,
- 	.ar_size = 7,
--	.children = (struct init_tree_node[]) {
--		ADD_PRIO(0, BY_PASS_MIN_LEVEL, 0,
--			 FS_CHAINING_CAPS,
--			 ADD_NS(ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_PRIOS,
--						  BY_PASS_PRIO_NUM_LEVELS))),
--		ADD_PRIO(0, LAG_MIN_LEVEL, 0,
--			 FS_CHAINING_CAPS,
--			 ADD_NS(ADD_MULTIPLE_PRIO(LAG_NUM_PRIOS,
--						  LAG_PRIO_NUM_LEVELS))),
--		ADD_PRIO(0, OFFLOADS_MIN_LEVEL, 0, {},
--			 ADD_NS(ADD_MULTIPLE_PRIO(OFFLOADS_NUM_PRIOS, OFFLOADS_MAX_FT))),
--		ADD_PRIO(0, ETHTOOL_MIN_LEVEL, 0,
--			 FS_CHAINING_CAPS,
--			 ADD_NS(ADD_MULTIPLE_PRIO(ETHTOOL_NUM_PRIOS,
--						  ETHTOOL_PRIO_NUM_LEVELS))),
--		ADD_PRIO(0, KERNEL_MIN_LEVEL, 0, {},
--			 ADD_NS(ADD_MULTIPLE_PRIO(KERNEL_NIC_TC_NUM_PRIOS, KERNEL_NIC_TC_NUM_LEVELS),
--				ADD_MULTIPLE_PRIO(KERNEL_NIC_NUM_PRIOS,
--						  KERNEL_NIC_PRIO_NUM_LEVELS))),
--		ADD_PRIO(0, BY_PASS_MIN_LEVEL, 0,
--			 FS_CHAINING_CAPS,
--			 ADD_NS(ADD_MULTIPLE_PRIO(LEFTOVERS_NUM_PRIOS, LEFTOVERS_NUM_LEVELS))),
--		ADD_PRIO(0, ANCHOR_MIN_LEVEL, 0, {},
--			 ADD_NS(ADD_MULTIPLE_PRIO(ANCHOR_NUM_PRIOS, ANCHOR_NUM_LEVELS))),
-+	  .children = (struct init_tree_node[]){
-+		  ADD_PRIO(0, BY_PASS_MIN_LEVEL, 0, FS_CHAINING_CAPS,
-+			   ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				  ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_PRIOS,
-+						    BY_PASS_PRIO_NUM_LEVELS))),
-+		  ADD_PRIO(0, LAG_MIN_LEVEL, 0, FS_CHAINING_CAPS,
-+			   ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				  ADD_MULTIPLE_PRIO(LAG_NUM_PRIOS,
-+						    LAG_PRIO_NUM_LEVELS))),
-+		  ADD_PRIO(0, OFFLOADS_MIN_LEVEL, 0, {},
-+			   ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				  ADD_MULTIPLE_PRIO(OFFLOADS_NUM_PRIOS,
-+						    OFFLOADS_MAX_FT))),
-+		  ADD_PRIO(0, ETHTOOL_MIN_LEVEL, 0, FS_CHAINING_CAPS,
-+			   ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				  ADD_MULTIPLE_PRIO(ETHTOOL_NUM_PRIOS,
-+						    ETHTOOL_PRIO_NUM_LEVELS))),
-+		  ADD_PRIO(0, KERNEL_MIN_LEVEL, 0, {},
-+			   ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				  ADD_MULTIPLE_PRIO(KERNEL_NIC_TC_NUM_PRIOS,
-+						    KERNEL_NIC_TC_NUM_LEVELS),
-+				  ADD_MULTIPLE_PRIO(KERNEL_NIC_NUM_PRIOS,
-+						    KERNEL_NIC_PRIO_NUM_LEVELS))),
-+		  ADD_PRIO(0, BY_PASS_MIN_LEVEL, 0, FS_CHAINING_CAPS,
-+			   ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				  ADD_MULTIPLE_PRIO(LEFTOVERS_NUM_PRIOS,
-+						    LEFTOVERS_NUM_LEVELS))),
-+		  ADD_PRIO(0, ANCHOR_MIN_LEVEL, 0, {},
-+			   ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				  ADD_MULTIPLE_PRIO(ANCHOR_NUM_PRIOS,
-+						    ANCHOR_NUM_LEVELS))),
- 	}
+ 	if (!prio)
+ 		return ERR_PTR(-EINVAL);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index cb41a7e6255a..6abfbf3a69b7 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -200,6 +200,7 @@ struct mlx5_ib_flow_db {
+ 	struct mlx5_ib_flow_prio	sniffer[MLX5_IB_NUM_SNIFFER_FTS];
+ 	struct mlx5_ib_flow_prio	egress[MLX5_IB_NUM_EGRESS_FTS];
+ 	struct mlx5_ib_flow_prio	fdb;
++	struct mlx5_ib_flow_prio	rdma_rx[MLX5_IB_NUM_FLOW_FT];
+ 	struct mlx5_flow_table		*lag_demux_ft;
+ 	/* Protect flow steering bypass flow tables
+ 	 * when add/del flow rules.
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_verbs.h b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+index 7e9900b0e746..88b6ca70c2fe 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_verbs.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+@@ -43,6 +43,7 @@ enum mlx5_ib_uapi_flow_table_type {
+ 	MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_RX     = 0x0,
+ 	MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_TX	= 0x1,
+ 	MLX5_IB_UAPI_FLOW_TABLE_TYPE_FDB	= 0x2,
++	MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_RX	= 0x3,
  };
  
-@@ -167,7 +176,8 @@ static struct init_tree_node egress_root_fs = {
- 	.children = (struct init_tree_node[]) {
- 		ADD_PRIO(0, MLX5_BY_PASS_NUM_PRIOS, 0,
- 			 FS_CHAINING_CAPS_EGRESS,
--			 ADD_NS(ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_PRIOS,
-+			 ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
-+				ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_PRIOS,
- 						  BY_PASS_PRIO_NUM_LEVELS))),
- 	}
- };
-@@ -1014,6 +1024,7 @@ static struct mlx5_flow_table *__mlx5_create_flow_table(struct mlx5_flow_namespa
- 	tree_init_node(&ft->node, del_hw_flow_table, del_sw_flow_table);
- 	log_table_sz = ft->max_fte ? ilog2(ft->max_fte) : 0;
- 	next_ft = find_next_chained_ft(fs_prio);
-+	ft->def_miss_action = ns->def_miss_action;
- 	err = root->cmds->create_flow_table(root, ft, log_table_sz, next_ft);
- 	if (err)
- 		goto free_ft;
-@@ -2155,7 +2166,8 @@ static struct mlx5_flow_namespace *fs_init_namespace(struct mlx5_flow_namespace
- 	return ns;
- }
- 
--static struct mlx5_flow_namespace *fs_create_namespace(struct fs_prio *prio)
-+static struct mlx5_flow_namespace *fs_create_namespace(struct fs_prio *prio,
-+						       int def_miss_act)
- {
- 	struct mlx5_flow_namespace	*ns;
- 
-@@ -2164,6 +2176,7 @@ static struct mlx5_flow_namespace *fs_create_namespace(struct fs_prio *prio)
- 		return ERR_PTR(-ENOMEM);
- 
- 	fs_init_namespace(ns);
-+	ns->def_miss_action = def_miss_act;
- 	tree_init_node(&ns->node, NULL, del_sw_ns);
- 	tree_add_node(&ns->node, &prio->node);
- 	list_add_tail(&ns->node.list, &prio->node.children);
-@@ -2230,7 +2243,7 @@ static int init_root_tree_recursive(struct mlx5_flow_steering *steering,
- 		base = &fs_prio->node;
- 	} else if (init_node->type == FS_TYPE_NAMESPACE) {
- 		fs_get_obj(fs_prio, fs_parent_node);
--		fs_ns = fs_create_namespace(fs_prio);
-+		fs_ns = fs_create_namespace(fs_prio, init_node->def_miss_action);
- 		if (IS_ERR(fs_ns))
- 			return PTR_ERR(fs_ns);
- 		base = &fs_ns->node;
-@@ -2500,7 +2513,7 @@ static int init_rdma_rx_root_ns(struct mlx5_flow_steering *steering)
- 	if (!steering->rdma_rx_root_ns)
- 		return -ENOMEM;
- 
--	steering->rdma_rx_root_ns->def_miss_action =
-+	steering->rdma_rx_root_ns->ns.def_miss_action =
- 		MLX5_FLOW_TABLE_MISS_ACTION_SWITCH_DOMAIN;
- 
- 	/* Create single prio */
-@@ -2543,7 +2556,7 @@ static int init_fdb_root_ns(struct mlx5_flow_steering *steering)
- 	}
- 
- 	for (chain = 0; chain <= FDB_MAX_CHAIN; chain++) {
--		ns = fs_create_namespace(maj_prio);
-+		ns = fs_create_namespace(maj_prio, MLX5_FLOW_TABLE_MISS_ACTION_DEF);
- 		if (IS_ERR(ns)) {
- 			err = PTR_ERR(ns);
- 			goto out_err;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-index c48c382f926f..69f809831959 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-@@ -145,6 +145,7 @@ struct mlx5_flow_table {
- 	struct list_head		fwd_rules;
- 	u32				flags;
- 	struct rhltable			fgs_hash;
-+	enum mlx5_flow_table_miss_action def_miss_action;
- };
- 
- struct mlx5_ft_underlay_qp {
-@@ -191,6 +192,7 @@ struct fs_prio {
- struct mlx5_flow_namespace {
- 	/* parent == NULL => root ns */
- 	struct	fs_node			node;
-+	enum mlx5_flow_table_miss_action def_miss_action;
- };
- 
- struct mlx5_flow_group_mask {
-@@ -219,7 +221,6 @@ struct mlx5_flow_root_namespace {
- 	struct mutex			chain_lock;
- 	struct list_head		underlay_qpns;
- 	const struct mlx5_flow_cmds	*cmds;
--	enum mlx5_flow_table_miss_action def_miss_action;
- };
- 
- int mlx5_init_fc_stats(struct mlx5_core_dev *dev);
+ enum mlx5_ib_uapi_flow_action_packet_reformat_type {
 -- 
 2.20.1
 
