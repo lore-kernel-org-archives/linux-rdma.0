@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AC2BC3A59D
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1ADBC3A5A0
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06B9820851
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EE4C20851
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 12:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566216506;
-	bh=lXZsojdv4RlfhyVDjM7oCq2p4qIXcHkpMuGjOCJen/U=;
+	s=default; t=1566216510;
+	bh=LkiTbhQy0Vf8VC6YojsyRQ2jwhvO0AJ/ASXLiU9Nljk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Yp2CU1Be2pMd8TrT2Pyz2917rqyRYPm1yMJIZEV4/5ZQ81yX09ZdJujRlNjmBPCVZ
-	 GoEeNPC3SjFGkP4HQRARyeNuNspn8+EFGfp/zO+JGxZdnQs+AgI9d1tQOY7IEfiJ82
-	 ZWNdqQN59RDTgLOUTRHDSOEsceq5Yfvlfeispj6E=
+	b=V383dSw4m/K2tvvnb6eCw/HEKcbhRdfm0DpbYqUu9guzH34hNHeFVjks6L7X1WQtS
+	 7hQ84Yrw8mYQsVsYlpGZ8DQtxdwgbO5NBGX+DYOJfIET4ANjrZNUHamkVai/dqehXK
+	 TlaXJGX5XEgiy3f6bw8C9MJbU/9dJpvEgdh4nuBg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727084AbfHSMIZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 08:08:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47116 "EHLO mail.kernel.org"
+        id S1727503AbfHSMI2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 08:08:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726987AbfHSMIZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 19 Aug 2019 08:08:25 -0400
+        id S1726987AbfHSMI2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 19 Aug 2019 08:08:28 -0400
 Received: from localhost (unknown [77.137.115.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9BA9B2085A;
-        Mon, 19 Aug 2019 12:08:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3633D20851;
+        Mon, 19 Aug 2019 12:08:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566216504;
-        bh=lXZsojdv4RlfhyVDjM7oCq2p4qIXcHkpMuGjOCJen/U=;
+        s=default; t=1566216507;
+        bh=LkiTbhQy0Vf8VC6YojsyRQ2jwhvO0AJ/ASXLiU9Nljk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=j5F+ujeQ5WhG4ymaKNw5vpJ9WP+Saf8Bwy/UHe775j83fxf20hKI7FmRjM806P/uQ
-         F4YsY2DGDEYxeO+W3vMjIiaVB27xo/ISw4AjmTKq9kPMVoAl4u9mo9zcPQKlLCaVE2
-         OlSeapTWeSRlWrU5URFdbd9KCPEZjcPhASeyMUDg=
+        b=HpfAEm1tO3I2rltaeDUUwZWLpjC5Qd+79FlI/SXmogUqSJIv+Zb/wrMUQoqwp/cin
+         2sA1hm96p/yS8itq7WxNouoPeQvRJTXBkBzddt92ZDHP/Q6Q5a98UO+l3lyTzfszVN
+         BI8a6LvzqnZM5q+r9uWi0xrVFH82q6T71rv6Tho0=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -46,9 +46,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Michael Guralnik <michaelgur@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH mlx5-next v3 1/3] net/mlx5: Set ODP capabilities for DC transport to max
-Date:   Mon, 19 Aug 2019 15:08:13 +0300
-Message-Id: <20190819120815.21225-2-leon@kernel.org>
+Subject: [PATCH rdma-next v3 3/3] IB/mlx5: Add page fault handler for DC initiator WQE
+Date:   Mon, 19 Aug 2019 15:08:15 +0300
+Message-Id: <20190819120815.21225-4-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819120815.21225-1-leon@kernel.org>
 References: <20190819120815.21225-1-leon@kernel.org>
@@ -61,48 +61,29 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Michael Guralnik <michaelgur@mellanox.com>
 
-In mlx5_core initialization, query max ODP capabilities for DC transport
-from FW and set as current capabilities.
+Parsing DC initiator WQEs upon page fault requires skipping an address
+vector segment, as in UD WQEs.
 
 Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 6 ++++++
- include/linux/mlx5/mlx5_ifc.h                  | 4 +++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/odp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index fa0e991f1983..7f70ecb1db6d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -495,6 +495,12 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
- 	ODP_CAP_SET_MAX(dev, xrc_odp_caps.write);
- 	ODP_CAP_SET_MAX(dev, xrc_odp_caps.read);
- 	ODP_CAP_SET_MAX(dev, xrc_odp_caps.atomic);
-+	ODP_CAP_SET_MAX(dev, dc_odp_caps.srq_receive);
-+	ODP_CAP_SET_MAX(dev, dc_odp_caps.send);
-+	ODP_CAP_SET_MAX(dev, dc_odp_caps.receive);
-+	ODP_CAP_SET_MAX(dev, dc_odp_caps.write);
-+	ODP_CAP_SET_MAX(dev, dc_odp_caps.read);
-+	ODP_CAP_SET_MAX(dev, dc_odp_caps.atomic);
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index e7a4ea979209..e6903e90aaf1 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -1022,7 +1022,8 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+ 	if (qp->ibqp.qp_type == IB_QPT_XRC_INI)
+ 		*wqe += sizeof(struct mlx5_wqe_xrc_seg);
  
- 	if (do_set)
- 		err = set_caps(dev, set_ctx, set_sz,
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index ab6ae723aae6..f037f8d5970e 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -946,7 +946,9 @@ struct mlx5_ifc_odp_cap_bits {
- 
- 	struct mlx5_ifc_odp_per_transport_service_cap_bits xrc_odp_caps;
- 
--	u8         reserved_at_100[0x700];
-+	struct mlx5_ifc_odp_per_transport_service_cap_bits dc_odp_caps;
-+
-+	u8         reserved_at_120[0x6E0];
- };
- 
- struct mlx5_ifc_calc_op {
+-	if (qp->ibqp.qp_type == IB_QPT_UD) {
++	if (qp->ibqp.qp_type == IB_QPT_UD ||
++	    qp->qp_sub_type == MLX5_IB_QPT_DCI) {
+ 		av = *wqe;
+ 		if (av->dqp_dct & cpu_to_be32(MLX5_EXTENDED_UD_AV))
+ 			*wqe += sizeof(struct mlx5_av);
 -- 
 2.20.1
 
