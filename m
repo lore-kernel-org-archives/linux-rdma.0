@@ -4,32 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE871C3A59F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4DFCC3A59B
 	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C42462087E
+	by mail.kernel.org (Postfix) with ESMTP id 9EDF820874
 	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726810AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726817AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 19 Aug 2019 02:58:35 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53174 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53154 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726464AbfHSG6e (ORCPT
+        with ESMTP id S1726810AbfHSG6e (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:34 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:31 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNN004602;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNJ004602;
         Mon, 19 Aug 2019 09:58:31 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
 Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 11/14] tests: Add ODP UD test
-Date:   Mon, 19 Aug 2019 09:58:24 +0300
-Message-Id: <20190819065827.26921-12-noaos@mellanox.com>
+Subject: [PATCH rdma-core 07/14] tests: RCResources and UDResources classes
+Date:   Mon, 19 Aug 2019 09:58:20 +0300
+Message-Id: <20190819065827.26921-8-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819065827.26921-1-noaos@mellanox.com>
 References: <20190819065827.26921-1-noaos@mellanox.com>
@@ -42,53 +42,98 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maxim Chicherin <maximc@mellanox.com>
 
-Add a TestCase for ODP/UD traffic.
+Add RC and UD specific aggregation objects. They provide
+traffic-specific implementations for control path functions such as
+modify QP.
 
 Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
 ---
- tests/test_odp.py | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ tests/base.py | 66 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 64 insertions(+), 2 deletions(-)
 
-diff --git a/tests/test_odp.py b/tests/test_odp.py
-index a9f3bf4573a5..922cd0d9aad5 100644
---- a/tests/test_odp.py
-+++ b/tests/test_odp.py
-@@ -1,10 +1,17 @@
- from tests.base import RDMATestCase
- from tests.utils import requires_odp, traffic
--from tests.base import RCResources
-+from tests.base import RCResources, UDResources
- from pyverbs.mr import MR
+diff --git a/tests/base.py b/tests/base.py
+index 54ebac27d522..a28e9b9dc466 100644
+--- a/tests/base.py
++++ b/tests/base.py
+@@ -4,9 +4,8 @@
+ import unittest
+ import random
+ 
+-from pyverbs.pyverbs_error import PyverbsError, PyverbsRDMAError
+ from pyverbs.qp import QPCap, QPInitAttr, QPAttr, QP
+-from tests.utils import wc_status_to_str
++from pyverbs.addr import AHAttr, GlobalRoute
+ from pyverbs.device import Context
+ import pyverbs.device as d
  import pyverbs.enums as e
- 
- 
-+class OdpUD(UDResources):
-+    @requires_odp('ud')
+@@ -229,3 +228,66 @@ class TrafficResources(BaseResources):
+         :return: None
+         """
+         raise NotImplementedError()
++
++
++class RCResources(TrafficResources):
++    PATH_MTU = e.IBV_MTU_1024
++    MAX_DEST_RD_ATOMIC = 1
++    MAX_RD_ATOMIC = 1
++    MIN_RNR_TIMER =12
++    RETRY_CNT = 7
++    RNR_RETRY = 7
++    TIMEOUT = 14
++
++    def to_rts(self, rpsn, rqpn):
++        """
++        Set the QP attributes' values to arbitrary values (same values used in
++        ibv_rc_pingpong).
++        :param rpsn: Remote PSN (packet serial number)
++        :param rqpn: Remote QP number
++        :return: None
++        """
++        attr = QPAttr(port_num=self.ib_port)
++        attr.dest_qp_num = rqpn
++        attr.path_mtu = self.PATH_MTU
++        attr.max_dest_rd_atomic = self.MAX_DEST_RD_ATOMIC
++        attr.min_rnr_timer = self.MIN_RNR_TIMER
++        attr.rq_psn = rpsn
++        attr.sq_psn = self.psn
++        attr.timeout = self.TIMEOUT
++        attr.retry_cnt = self.RETRY_CNT
++        attr.rnr_retry = self.RNR_RETRY
++        attr.max_rd_atomic = self.MAX_RD_ATOMIC
++        gr = GlobalRoute(dgid=self.ctx.query_gid(self.ib_port, self.gid_index),
++                         sgid_index=self.gid_index)
++        ah_attr = AHAttr(port_num=self.ib_port, is_global=1, gr=gr,
++                         dlid=self.port_attr.lid)
++        attr.ah_attr = ah_attr
++        self.qp.to_rts(attr)
++
++    def pre_run(self, rpsn, rqpn):
++        self.rqpn = rqpn
++        self.rpsn = rpsn
++        self.to_rts(rpsn, rqpn)
++
++
++class UDResources(TrafficResources):
++    UD_QKEY = 0x11111111
++    UD_PKEY_INDEX = 0
++
 +    def create_mr(self):
-+        self.mr = MR(self.pd, self.msg_size + self.GRH_SIZE ,
-+                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_ON_DEMAND)
++        self.mr = MR(self.pd, self.msg_size + self.GRH_SIZE,
++                     e.IBV_ACCESS_LOCAL_WRITE)
 +
++    def create_qp(self):
++        qp_caps = QPCap(max_recv_wr=self.num_msgs)
++        qp_init_attr = QPInitAttr(qp_type=e.IBV_QPT_UD, cap=qp_caps,
++                                  scq=self.cq, rcq=self.cq)
++        qp_attr = QPAttr(port_num=self.ib_port)
++        qp_attr.qkey = self.UD_QKEY
++        qp_attr.pkey_index = self.UD_PKEY_INDEX
++        self.qp = QP(self.pd, qp_init_attr, qp_attr)
 +
- class OdpRC(RCResources):
-     @requires_odp('rc')
-     def create_mr(self):
-@@ -16,7 +23,7 @@ class OdpTestCase(RDMATestCase):
-     def setUp(self):
-         super(OdpTestCase, self).setUp()
-         self.iters = 100
--        self.qp_dict = {'rc': OdpRC}
-+        self.qp_dict = {'rc': OdpRC, 'ud': OdpUD}
- 
-     def create_players(self, qp_type):
-         client = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
-@@ -28,3 +35,7 @@ class OdpTestCase(RDMATestCase):
-     def test_odp_rc_traffic(self):
-         client, server = self.create_players('rc')
-         traffic(client, server, self.iters, self.gid_index, self.ib_port)
-+
-+    def test_odp_ud_traffic(self):
-+        client, server = self.create_players('ud')
-+        traffic(client, server, self.iters, self.gid_index, self.ib_port)
++    def pre_run(self, rpsn, rqpn):
++        self.rqpn = rqpn
++        self.rpsn = rpsn
+\ No newline at end of file
 -- 
 2.21.0
 
