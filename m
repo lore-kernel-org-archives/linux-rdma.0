@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C85DC3A5A2
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50B9AC3A59F
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0201320874
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 236BD20874
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726541AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726464AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 19 Aug 2019 02:58:35 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53183 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53162 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726808AbfHSG6e (ORCPT
+        with ESMTP id S1726553AbfHSG6e (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:34 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:31 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNO004602;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNK004602;
         Mon, 19 Aug 2019 09:58:31 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, Noa Osherovich <noaos@mellanox.com>
-Subject: [PATCH rdma-core 12/14] tests: Fix test locating process
-Date:   Mon, 19 Aug 2019 09:58:25 +0300
-Message-Id: <20190819065827.26921-13-noaos@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
+Subject: [PATCH rdma-core 08/14] tests: ODP requires decorator
+Date:   Mon, 19 Aug 2019 09:58:21 +0300
+Message-Id: <20190819065827.26921-9-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819065827.26921-1-noaos@mellanox.com>
 References: <20190819065827.26921-1-noaos@mellanox.com>
@@ -40,74 +40,61 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a module-specific load_tests method in __init__.py. It currently
-locates all existing tests under its directory (files should start
-with 'test_') and runs them without any parameters. In order to run a
-test with a specific set of parameters, user can add the relevant
-lines in __init__.py (example provided in the file).
+From: Maxim Chicherin <maximc@mellanox.com>
 
-Signed-off-by: Noa Osherovich <noaos@mellanox.com>
+Add a 'requires_odp' decorator, to be used when registering an MR with
+ON_DEMAND access flag.
+
+Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
 ---
- run_tests.py      | 20 +++++++-------------
- tests/__init__.py | 17 +++++++++++++++++
- 2 files changed, 24 insertions(+), 13 deletions(-)
+ tests/utils.py | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/run_tests.py b/run_tests.py
-index dbee92d942bd..4f6b212dab9f 100644
---- a/run_tests.py
-+++ b/run_tests.py
-@@ -1,22 +1,16 @@
- # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
- # Copyright (c) 2018, Mellanox Technologies. All rights reserved.  See COPYING file
--import unittest,os,os.path,fnmatch
--import tests
- 
+diff --git a/tests/utils.py b/tests/utils.py
+index 30166f41d555..20a7e8d38e54 100644
+--- a/tests/utils.py
++++ b/tests/utils.py
+@@ -5,6 +5,7 @@ Provide some useful helper function for pyverbs' tests.
+ """
+ from itertools import combinations as com
+ from string import ascii_lowercase as al
 +import unittest
+ import random
+ 
+ from pyverbs.qp import QPCap, QPInitAttrEx
+@@ -241,3 +242,32 @@ def wc_status_to_str(status):
+     except KeyError:
+         return 'Unknown WC status ({s})'.format(s=status)
  
 +
-+# Run from /usr/share/doc/rdma-core-<version>
- def test_all():
--    # FIXME: This implementation is for older Python versions, will
--    # be replaced with discover()
--    return test_suite
-+    module = __import__('tests')
-+    loader = unittest.TestLoader()
-+    suite = loader.loadTestsFromModule(module)
-+    return suite
- 
--module = __import__("tests")
--fns = [os.path.splitext(I)[0] for I in fnmatch.filter(os.listdir(module.__path__[0]),"*.py")]
--fns.remove("__init__")
--for I in fns:
--    __import__("tests." + I)
--test_suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromNames(fns,module))
- 
- if __name__ == '__main__':
-     unittest.main(defaultTest="test_all")
--
--
-diff --git a/tests/__init__.py b/tests/__init__.py
-index e69de29bb2d1..7a2efdfb6e6b 100644
---- a/tests/__init__.py
-+++ b/tests/__init__.py
-@@ -0,0 +1,17 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
-+# Copyright (c) 2019 Mellanox Technologies, Inc . All rights reserved. See COPYING file
++# Decorators
 +
-+import unittest
++def requires_odp(qp_type):
++    def outer(func):
++        def inner(instance):
++            odp_supported(instance.ctx, qp_type)
++            return func(instance)
++        return inner
++    return outer
 +
 +
-+def load_tests(loader, standard_tests, pattern):
-+    loader = unittest.TestLoader()
-+    suite = loader.discover('tests')
-+    return suite
-+#   To run only some test cases / parametrized tests:
-+#   1. Add RDMATestCase to the imports:
-+#    from tests.base import RDMATestCase
-+#   2. Replace the current TestSuite with a customized one and add tests to it
-+#      (parameters are optional)
-+#    suite = unittest.TestSuite()
-+#    suite.addTest(RDMATestCase.parametrize(YourTestCase, dev_name='rocep0s8f0', ...))
++def odp_supported(ctx, qp_type):
++    """
++    Check device ODP capabilities, support only send/recv so far.
++    :param ctx: Device Context
++    :param qp_type: QP type ('rc', 'ud' or 'uc')
++    :return: None
++    """
++    odp_caps = ctx.query_device_ex().odp_caps
++    if odp_caps.general_caps == 0:
++        raise unittest.SkipTest('ODP is not supported - No ODP caps')
++    qp_odp_caps = getattr(odp_caps, '{}_odp_caps'.format(qp_type))
++    has_odp_send = qp_odp_caps & e.IBV_ODP_SUPPORT_SEND
++    has_odp_recv = qp_odp_caps & e.IBV_ODP_SUPPORT_RECV
++    if has_odp_send == 0:
++        raise unittest.SkipTest('ODP is not supported - ODP send not supported')
++    if has_odp_recv == 0:
++        raise unittest.SkipTest('ODP is not supported - ODP recv not supported')
 -- 
 2.21.0
 
