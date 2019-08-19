@@ -4,32 +4,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 734ECC3A59D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D3DC3A5A0
 	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48E5C20874
+	by mail.kernel.org (Postfix) with ESMTP id 76E3820874
 	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 06:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726550AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726736AbfHSG6f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 19 Aug 2019 02:58:35 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53156 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53173 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726736AbfHSG6e (ORCPT
+        with ESMTP id S1725958AbfHSG6e (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Aug 2019 02:58:34 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:30 +0300
+        with ESMTPS (AES256-SHA encrypted); 19 Aug 2019 09:58:31 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNG004602;
-        Mon, 19 Aug 2019 09:58:30 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x7J6wUNM004602;
+        Mon, 19 Aug 2019 09:58:31 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 04/14] tests: BaseResources Class
-Date:   Mon, 19 Aug 2019 09:58:17 +0300
-Message-Id: <20190819065827.26921-5-noaos@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>,
+        Noa Osherovich <noaos@mellanox.com>
+Subject: [PATCH rdma-core 10/14] tests: Add ODP RC test
+Date:   Mon, 19 Aug 2019 09:58:23 +0300
+Message-Id: <20190819065827.26921-11-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190819065827.26921-1-noaos@mellanox.com>
 References: <20190819065827.26921-1-noaos@mellanox.com>
@@ -42,52 +43,63 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maxim Chicherin <maximc@mellanox.com>
 
-Base aggregator object which contains basic resources like Context
-and PD.
+Add a TestCase for ODP/RC traffic.
 
 Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
+Signed-off-by: Noa Osherovich <noaos@mellanox.com>
 ---
- tests/base.py | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ tests/CMakeLists.txt |  1 +
+ tests/test_odp.py    | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
+ create mode 100644 tests/test_odp.py
 
-diff --git a/tests/base.py b/tests/base.py
-index a1eae2becdc0..88f00e07b326 100644
---- a/tests/base.py
-+++ b/tests/base.py
-@@ -3,7 +3,10 @@
- 
- import unittest
- 
-+from pyverbs.device import Context
- import pyverbs.device as d
-+from pyverbs.pd import PD
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index f1ba542fab90..6f3c23cd1ec0 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -10,5 +10,6 @@ rdma_python_test(tests
+   test_mr.py
+   test_pd.py
+   test_qp.py
++  test_odp.py
+   utils.py
+   )
+diff --git a/tests/test_odp.py b/tests/test_odp.py
+new file mode 100644
+index 000000000000..a9f3bf4573a5
+--- /dev/null
++++ b/tests/test_odp.py
+@@ -0,0 +1,30 @@
++from tests.base import RDMATestCase
++from tests.utils import requires_odp, traffic
++from tests.base import RCResources
++from pyverbs.mr import MR
++import pyverbs.enums as e
 +
- 
- class PyverbsAPITestCase(unittest.TestCase):
-     def setUp(self):
-@@ -21,3 +24,22 @@ class PyverbsAPITestCase(unittest.TestCase):
-     def tearDown(self):
-         for tup in self.devices:
-             tup[0].close()
++
++class OdpRC(RCResources):
++    @requires_odp('rc')
++    def create_mr(self):
++        self.mr = MR(self.pd, self.msg_size,
++                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_ON_DEMAND)
 +
 +
-+class BaseResources(object):
-+    """
-+    BaseResources class is a base aggregator object which contains basic
-+    resources like Context and PD. It opens a context over the given device
-+    and port and allocates a PD.
-+    """
-+    def __init__(self, dev_name, ib_port, gid_index):
-+        """
-+        Initializes a BaseResources object.
-+        :param dev_name: Device name to be used (default: 'ibp0s8f0')
-+        :param ib_port: IB port of the device to use (default: 1)
-+        :param gid_index: Which GID index to use (default: 0)
-+        """
-+        self.ctx = Context(name=dev_name)
-+        self.gid_index = gid_index
-+        self.pd = PD(self.ctx)
-+        self.ib_port = ib_port
++class OdpTestCase(RDMATestCase):
++    def setUp(self):
++        super(OdpTestCase, self).setUp()
++        self.iters = 100
++        self.qp_dict = {'rc': OdpRC}
++
++    def create_players(self, qp_type):
++        client = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
++        server = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
++        client.pre_run(server.psn, server.qpn)
++        server.pre_run(client.psn, client.qpn)
++        return client, server
++
++    def test_odp_rc_traffic(self):
++        client, server = self.create_players('rc')
++        traffic(client, server, self.iters, self.gid_index, self.ib_port)
 -- 
 2.21.0
 
