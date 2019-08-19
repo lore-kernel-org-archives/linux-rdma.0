@@ -2,54 +2,54 @@ Return-Path: <SRS0=Wuup=WP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A44EC3A59D
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:18:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95752C3A59D
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:36:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 50C312085A
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:18:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 665F520851
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Aug 2019 11:36:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566213480;
-	bh=kfH6SGTaSxNfI2d4IeDbLimhCVud6dopTWhxTGTvFkQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=PEFU95ASdLbdQE579uBI8Mz5kFOu0OqhNbYFnriHaCpezksn0axjJw0NjbuTWXtpO
-	 ZtCPst4ZScGUwobgb7OKLF0qG/mTAoPLw0urD0+TD4m34YmJojkL1ZS6LL/N5nIxGX
-	 fKwq77+bv15YQB4mX6yPNIKLV2v7h4N+F8VhM09M=
+	s=default; t=1566214593;
+	bh=8PsWZ7yMm+CYgbUN5c5O3IxCzwZSmMi1RkdT26qMK+w=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=NJI8kgLm5kk0d8REdwusChgxAisj7apjgRXZRAtoVlZT//hjHF72EWi4rB5GogJzO
+	 DnnigQyD+zZelLCT6U5DbXYNabPmsYRuS9tgzxNnDHz9lOGci1Nr6BbguWA63AhuD0
+	 WGgUc0sCS0kWzFY44p0VLwaHZZyEOEQVYX2MR2s8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727215AbfHSLR7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Aug 2019 07:17:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33238 "EHLO mail.kernel.org"
+        id S1726717AbfHSLgc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Aug 2019 07:36:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38584 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726776AbfHSLR7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 19 Aug 2019 07:17:59 -0400
+        id S1726594AbfHSLgc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 19 Aug 2019 07:36:32 -0400
 Received: from localhost (unknown [77.137.115.125])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 568F22087B;
-        Mon, 19 Aug 2019 11:17:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0CFD22063F;
+        Mon, 19 Aug 2019 11:36:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566213479;
-        bh=kfH6SGTaSxNfI2d4IeDbLimhCVud6dopTWhxTGTvFkQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=LENo9HGoTDVSpo+NgMc7AKUO/fe+5MgOu+lC/nfcLwQgiJ3WMjmz0Q1R0G/T3VHEV
-         p9ZGvmBRVGmA+rQZyX6DViJqBhdEjqTS/p33JSKoh0OLgD6FD3PY5cHTfDWmUe2oiz
-         x/XpAPRo0vqrSbaDuZXl+GoqeMS/7t6oto47tvnY=
+        s=default; t=1566214591;
+        bh=8PsWZ7yMm+CYgbUN5c5O3IxCzwZSmMi1RkdT26qMK+w=;
+        h=From:To:Cc:Subject:Date:From;
+        b=t6FdztyAWXbGqU3nEucPHOJTaq9YO6V8zZa2Ma+40aGeRT76hCQ9HZ2nsqfvNVjOV
+         xu2iEkTEmUGsFE37xgejGkbIQ0lU+1ZkPYFtdifR/wsVGRFU8raGVKLVw4xKk7+a5B
+         s8zi/CDzrLuglmQB6PGS2DQUYAQMCsEfpnLslZfo=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Guy Levi <guyle@mellanox.com>, Moni Shoua <monis@mellanox.com>
-Subject: [PATCH rdma-next 10/12] RDMA/core: Make invalidate_range a device operation
-Date:   Mon, 19 Aug 2019 14:17:08 +0300
-Message-Id: <20190819111710.18440-11-leon@kernel.org>
+        Mark Bloch <markb@mellanox.com>,
+        Mark Zhang <markz@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        linux-netdev <netdev@vger.kernel.org>
+Subject: [PATCH rdma-next 0/3] RDMA RX RoCE Steering Support
+Date:   Mon, 19 Aug 2019 14:36:23 +0300
+Message-Id: <20190819113626.20284-1-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190819111710.18440-1-leon@kernel.org>
-References: <20190819111710.18440-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,148 +57,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-The callback function 'invalidate_range' is implemented in a driver so the
-place for it is in the ib_device_ops structure and not in ib_ucontext.
+Hi,
 
-Signed-off-by: Moni Shoua <monis@mellanox.com>
-Reviewed-by: Guy Levi <guyle@mellanox.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/device.c     |  1 +
- drivers/infiniband/core/umem_odp.c   | 10 +++++-----
- drivers/infiniband/core/uverbs_cmd.c |  2 --
- drivers/infiniband/hw/mlx5/main.c    |  4 ----
- drivers/infiniband/hw/mlx5/odp.c     |  1 +
- include/rdma/ib_verbs.h              |  4 ++--
- 6 files changed, 9 insertions(+), 13 deletions(-)
+This series from Mark extends mlx5 with RDMA_RX RoCE flow steering support
+for DEVX and QP objects.
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 8892862fb759..6e284963741e 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2582,6 +2582,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, get_vf_config);
- 	SET_DEVICE_OP(dev_ops, get_vf_stats);
- 	SET_DEVICE_OP(dev_ops, init_port);
-+	SET_DEVICE_OP(dev_ops, invalidate_range);
- 	SET_DEVICE_OP(dev_ops, iw_accept);
- 	SET_DEVICE_OP(dev_ops, iw_add_ref);
- 	SET_DEVICE_OP(dev_ops, iw_connect);
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index f1b298575b4c..09c0c585b2e7 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -103,7 +103,7 @@ static void ib_umem_notifier_release(struct mmu_notifier *mn,
- 		 */
- 		smp_wmb();
- 		complete_all(&umem_odp->notifier_completion);
--		umem_odp->umem.context->invalidate_range(
-+		umem_odp->umem.context->device->ops.invalidate_range(
- 			umem_odp, ib_umem_start(umem_odp),
- 			ib_umem_end(umem_odp));
- 	}
-@@ -116,7 +116,7 @@ static int invalidate_range_start_trampoline(struct ib_umem_odp *item,
- 					     u64 start, u64 end, void *cookie)
- {
- 	ib_umem_notifier_start_account(item);
--	item->umem.context->invalidate_range(item, start, end);
-+	item->umem.context->device->ops.invalidate_range(item, start, end);
- 	return 0;
- }
- 
-@@ -392,7 +392,7 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_udata *udata,
- 
- 	if (!context)
- 		return ERR_PTR(-EIO);
--	if (WARN_ON_ONCE(!context->invalidate_range))
-+	if (WARN_ON_ONCE(!context->device->ops.invalidate_range))
- 		return ERR_PTR(-EINVAL);
- 
- 	umem_odp = kzalloc(sizeof(*umem_odp), GFP_KERNEL);
-@@ -486,7 +486,7 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_udata *udata, unsigned long addr,
- 		return ERR_PTR(-EIO);
- 
- 	if (WARN_ON_ONCE(!(access & IB_ACCESS_ON_DEMAND)) ||
--	    WARN_ON_ONCE(!context->invalidate_range))
-+	    WARN_ON_ONCE(!context->device->ops.invalidate_range))
- 		return ERR_PTR(-EINVAL);
- 
- 	umem_odp = kzalloc(sizeof(struct ib_umem_odp), GFP_KERNEL);
-@@ -614,7 +614,7 @@ static int ib_umem_odp_map_dma_single_page(
- 
- 	if (remove_existing_mapping) {
- 		ib_umem_notifier_start_account(umem_odp);
--		context->invalidate_range(
-+		dev->ops.invalidate_range(
- 			umem_odp,
- 			ib_umem_start(umem_odp) +
- 				(page_index << umem_odp->page_shift),
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 7ddd0e5bc6b3..8f4fd4fac159 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -275,8 +275,6 @@ static int ib_uverbs_get_context(struct uverbs_attr_bundle *attrs)
- 	ret = ib_dev->ops.alloc_ucontext(ucontext, &attrs->driver_udata);
- 	if (ret)
- 		goto err_file;
--	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_ON_DEMAND_PAGING))
--		ucontext->invalidate_range = NULL;
- 
- 	rdma_restrack_uadd(&ucontext->res);
- 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 98e566acb746..08020affdc17 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1867,10 +1867,6 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
- 	if (err)
- 		goto out_sys_pages;
- 
--	if (ibdev->attrs.device_cap_flags & IB_DEVICE_ON_DEMAND_PAGING)
--		context->ibucontext.invalidate_range =
--			&mlx5_ib_invalidate_range;
--
- 	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX) {
- 		err = mlx5_ib_devx_create(dev, true);
- 		if (err < 0)
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index ad5d5f2c8509..c755c76729bc 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -1594,6 +1594,7 @@ void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent)
- 
- static const struct ib_device_ops mlx5_ib_dev_odp_ops = {
- 	.advise_mr = mlx5_ib_advise_mr,
-+	.invalidate_range = mlx5_ib_invalidate_range,
- };
- 
- int mlx5_ib_odp_init_one(struct mlx5_ib_dev *dev)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 391499008a22..18a34888bbca 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1469,8 +1469,6 @@ struct ib_ucontext {
- 
- 	bool cleanup_retryable;
- 
--	void (*invalidate_range)(struct ib_umem_odp *umem_odp,
--				 unsigned long start, unsigned long end);
- 	struct mutex per_mm_list_lock;
- 	struct list_head per_mm_list;
- 
-@@ -2430,6 +2428,8 @@ struct ib_device_ops {
- 			    u64 iova);
- 	int (*unmap_fmr)(struct list_head *fmr_list);
- 	int (*dealloc_fmr)(struct ib_fmr *fmr);
-+	void (*invalidate_range)(struct ib_umem_odp *umem_odp,
-+				 unsigned long start, unsigned long end);
- 	int (*attach_mcast)(struct ib_qp *qp, union ib_gid *gid, u16 lid);
- 	int (*detach_mcast)(struct ib_qp *qp, union ib_gid *gid, u16 lid);
- 	struct ib_xrcd *(*alloc_xrcd)(struct ib_device *device,
--- 
+Thanks
+
+Mark Zhang (3):
+  net/mlx5: Add per-namespace flow table default miss action support
+  net/mlx5: Create bypass and loopback flow steering namespaces for RDMA
+    RX
+  RDMA/mlx5: RDMA_RX flow type support for user applications
+
+ drivers/infiniband/hw/mlx5/flow.c             |  13 +-
+ drivers/infiniband/hw/mlx5/main.c             |   7 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |   1 +
+ .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |   4 +-
+ .../net/ethernet/mellanox/mlx5/core/fs_core.c | 120 ++++++++++++------
+ .../net/ethernet/mellanox/mlx5/core/fs_core.h |   3 +-
+ .../net/ethernet/mellanox/mlx5/core/rdma.c    |   2 +-
+ include/linux/mlx5/fs.h                       |   1 +
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h     |   1 +
+ 9 files changed, 107 insertions(+), 45 deletions(-)
+
+--
 2.20.1
 
