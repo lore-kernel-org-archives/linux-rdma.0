@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D18EC3A5A3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C06E8C3A5A2
 	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:17:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1DD5722CF7
+	by mail.kernel.org (Postfix) with ESMTP id 9660522CF7
 	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:17:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726372AbfHUNR6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728278AbfHUNR6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 21 Aug 2019 09:17:58 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:38404 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:38410 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728278AbfHUNR6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1728413AbfHUNR6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 21 Aug 2019 09:17:58 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id EEA79FB470096FE06FC7;
+        by Forcepoint Email with ESMTP id F24F38A2CBEA3E1E0EE1;
         Wed, 21 Aug 2019 21:17:53 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 21 Aug 2019 21:17:46 +0800
+ 14.3.439.0; Wed, 21 Aug 2019 21:17:47 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH for-next 1/9] RDMA/hns: Refactor cmd init and mode selection for hip08
-Date:   Wed, 21 Aug 2019 21:14:28 +0800
-Message-ID: <1566393276-42555-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 7/9] RDMA/hns: Remove if-else judgment statements for creating srq
+Date:   Wed, 21 Aug 2019 21:14:34 +0800
+Message-ID: <1566393276-42555-8-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1566393276-42555-1-git-send-email-oulijun@huawei.com>
 References: <1566393276-42555-1-git-send-email-oulijun@huawei.com>
@@ -42,100 +42,65 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-This patch refactor the initialization of cmd, and also for the cmd
-mode selection on event and poll mode.
+Because if the value of srqwqe_buf_pg_sz is zero, npages and
+ib_umem_page_count are equivalent, page_shif and PAGE_SHIFT
+are equivalent in hns_roce_create_srq. Here remove it.
 
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
-Signed-off-by: Lang Chen <chenglang@huawei.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cmd.c  | 14 ++++----------
- drivers/infiniband/hw/hns/hns_roce_main.c | 18 ++++++++----------
- 2 files changed, 12 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_srq.c | 29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index ade26fa..547002f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -251,23 +251,17 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
- 	hr_cmd->token_mask = CMD_TOKEN_MASK;
- 	hr_cmd->use_events = 1;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index c011422..1a42172 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -191,15 +191,11 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
+ 	if (IS_ERR(srq->umem))
+ 		return PTR_ERR(srq->umem);
  
--	down(&hr_cmd->poll_sem);
--
- 	return 0;
- }
+-	if (hr_dev->caps.srqwqe_buf_pg_sz) {
+-		npages = (ib_umem_page_count(srq->umem) +
+-			 (1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
+-			 (1 << hr_dev->caps.srqwqe_buf_pg_sz);
+-		page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
+-		ret = hns_roce_mtt_init(hr_dev, npages, page_shift, &srq->mtt);
+-	} else
+-		ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(srq->umem),
+-					PAGE_SHIFT, &srq->mtt);
++	npages = (ib_umem_page_count(srq->umem) +
++		(1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
++		(1 << hr_dev->caps.srqwqe_buf_pg_sz);
++	page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
++	ret = hns_roce_mtt_init(hr_dev, npages, page_shift, &srq->mtt);
+ 	if (ret)
+ 		goto err_user_buf;
  
- void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_cmdq *hr_cmd = &hr_dev->cmd;
--	int i;
--
--	hr_cmd->use_events = 0;
- 
--	for (i = 0; i < hr_cmd->max_cmds; ++i)
--		down(&hr_cmd->event_sem);
--
--	kfree(hr_cmd->context);
--	up(&hr_cmd->poll_sem);
-+	if (hr_cmd->use_events) {
-+		kfree(hr_cmd->context);
-+		hr_cmd->use_events = 0;
-+	}
- }
- 
- struct hns_roce_cmd_mailbox
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 1b757cc..f3b2f67 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -902,6 +902,7 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
- 		goto error_failed_cmd_init;
+@@ -216,19 +212,8 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
+ 		goto err_user_srq_mtt;
  	}
  
-+	/* EQ depends on poll mode, event mode depends on EQ */
- 	ret = hr_dev->hw->init_eq(hr_dev);
+-	if (hr_dev->caps.idx_buf_pg_sz) {
+-		npages = (ib_umem_page_count(srq->idx_que.umem) +
+-			 (1 << hr_dev->caps.idx_buf_pg_sz) - 1) /
+-			 (1 << hr_dev->caps.idx_buf_pg_sz);
+-		page_shift = PAGE_SHIFT + hr_dev->caps.idx_buf_pg_sz;
+-		ret = hns_roce_mtt_init(hr_dev, npages, page_shift,
+-					&srq->idx_que.mtt);
+-	} else {
+-		ret = hns_roce_mtt_init(hr_dev,
+-					ib_umem_page_count(srq->idx_que.umem),
+-					PAGE_SHIFT,
+-					&srq->idx_que.mtt);
+-	}
++	ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(srq->idx_que.umem),
++				PAGE_SHIFT, &srq->idx_que.mtt);
+ 
  	if (ret) {
- 		dev_err(dev, "eq init failed!\n");
-@@ -911,8 +912,9 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
- 	if (hr_dev->cmd_mod) {
- 		ret = hns_roce_cmd_use_events(hr_dev);
- 		if (ret) {
--			dev_err(dev, "Switch to event-driven cmd failed!\n");
--			goto error_failed_use_event;
-+			dev_warn(dev,
-+				 "Cmd event  mode failed, set back to poll!\n");
-+			hns_roce_cmd_use_polling(hr_dev);
- 		}
- 	}
- 
-@@ -928,12 +930,10 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
- 		goto error_failed_setup_hca;
- 	}
- 
--	if (hr_dev->hw->hw_init) {
--		ret = hr_dev->hw->hw_init(hr_dev);
--		if (ret) {
--			dev_err(dev, "hw_init failed!\n");
--			goto error_failed_engine_init;
--		}
-+	ret = hr_dev->hw->hw_init(hr_dev);
-+	if (ret) {
-+		dev_err(dev, "hw_init failed!\n");
-+		goto error_failed_engine_init;
- 	}
- 
- 	ret = hns_roce_register_device(hr_dev);
-@@ -955,8 +955,6 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
- error_failed_init_hem:
- 	if (hr_dev->cmd_mod)
- 		hns_roce_cmd_use_polling(hr_dev);
--
--error_failed_use_event:
- 	hr_dev->hw->cleanup_eq(hr_dev);
- 
- error_failed_eq_table:
+ 		dev_err(hr_dev->dev, "hns_roce_mtt_init error for idx que\n");
 -- 
 2.8.1
 
