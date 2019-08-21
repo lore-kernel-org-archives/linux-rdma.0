@@ -2,37 +2,35 @@ Return-Path: <SRS0=E+a+=WR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AA64C3A5A0
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20402C3A59E
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:33:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 603E822DD3
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:18:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F05A92339F
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728861AbfHUNSA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Aug 2019 09:18:00 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4747 "EHLO huawei.com"
+        id S1728546AbfHUNdv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 09:33:51 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:52002 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728219AbfHUNSA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 21 Aug 2019 09:18:00 -0400
+        id S1728492AbfHUNdv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 21 Aug 2019 09:33:51 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id E4AE76DE12217181A863;
-        Wed, 21 Aug 2019 21:17:58 +0800 (CST)
+        by Forcepoint Email with ESMTP id 05809A0855F60CFA39AD;
+        Wed, 21 Aug 2019 21:17:54 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 21 Aug 2019 21:17:48 +0800
+ 14.3.439.0; Wed, 21 Aug 2019 21:17:45 +0800
 From:   Lijun Ou <oulijun@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH for-next 9/9] RDMA/hns: Fix wrong assignment of qp_access_flags
-Date:   Wed, 21 Aug 2019 21:14:36 +0800
-Message-ID: <1566393276-42555-10-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 0/9] Fixes for hip08 driver
+Date:   Wed, 21 Aug 2019 21:14:27 +0800
+Message-ID: <1566393276-42555-1-git-send-email-oulijun@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1566393276-42555-1-git-send-email-oulijun@huawei.com>
-References: <1566393276-42555-1-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -42,32 +40,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-We used wrong shifts when set qp_attr->qp_access_flag,
-this patch exchange V2_QP_RRE_S and V2_QP_RWE_S to fix it.
+Here optimizes some codes and removes some warnings
+by sparse tool checking as well as fixes some defects.
 
-Fixes: 2a3d923f8730 ("RDMA/hns: Replace magic numbers with #defines")
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Lang Cheng (3):
+  RDMA/hns: Modify the data structure of hns_roce_av
+  RDMA/hns: Fix cast from or to restricted __le32 for driver
+  RDMA/hns: Add reset process for function-clear
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index ecd0283..7a89d66 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4574,9 +4574,9 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 						  V2_QPC_BYTE_56_DQPN_M,
- 						  V2_QPC_BYTE_56_DQPN_S);
- 	qp_attr->qp_access_flags = ((roce_get_bit(context.byte_76_srqn_op_en,
--				    V2_QPC_BYTE_76_RRE_S)) << V2_QP_RWE_S) |
-+				    V2_QPC_BYTE_76_RRE_S)) << V2_QP_RRE_S) |
- 				    ((roce_get_bit(context.byte_76_srqn_op_en,
--				    V2_QPC_BYTE_76_RWE_S)) << V2_QP_RRE_S) |
-+				    V2_QPC_BYTE_76_RWE_S)) << V2_QP_RWE_S) |
- 				    ((roce_get_bit(context.byte_76_srqn_op_en,
- 				    V2_QPC_BYTE_76_ATE_S)) << V2_QP_ATE_S);
- 
+Lijun Ou (3):
+  RDMA/hns: Refactor the codes of creating qp
+  RDMA/hns: Remove the some magic number
+  RDMA/hns: Fix wrong assignment of qp_access_flags
+
+Wenpeng Liang (2):
+  RDMA/hns: Remove if-else judgment statements for creating srq
+  RDMA/hns: Delete the not-used lines
+
+Yixian Liu (1):
+  RDMA/hns: Refactor cmd init and mode selection for hip08
+
+ drivers/infiniband/hw/hns/hns_roce_ah.c     |  23 +--
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    |  14 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |  17 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |  34 ++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  49 +++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 256 +++++++++++++++++++---------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   5 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  18 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c     |   7 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 108 +++++++-----
+ drivers/infiniband/hw/hns/hns_roce_srq.c    |  30 +---
+ 11 files changed, 314 insertions(+), 247 deletions(-)
+
 -- 
 2.8.1
 
