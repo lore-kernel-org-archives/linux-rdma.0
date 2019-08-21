@@ -2,106 +2,230 @@ Return-Path: <SRS0=E+a+=WR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80EDAC3A59E
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 12:57:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E42FDC3A5A1
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:17:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 526BB22DD3
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 12:57:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="i9/omhZP"
+	by mail.kernel.org (Postfix) with ESMTP id C26F122DD3
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 13:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726372AbfHUM5P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Aug 2019 08:57:15 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:58554 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726371AbfHUM5P (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 08:57:15 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LCrpiH193860;
-        Wed, 21 Aug 2019 12:57:04 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2019-08-05;
- bh=FqRMXuoagecAv6BT0jIeDP4/ljzxgl7Gd7buLWT/xm4=;
- b=i9/omhZPf5Dwqmn0+kHPmTJ5Vk++xoxsAPS2Kb8TNu+8tLmS731SBCtHb51incH6SfuA
- KKw3+aVwHiNU6gRtbwDSN0rPpkh1nIxkP7suy5ExSEBMdX1LLwi0E0Vcqor+adn3J47d
- a31pTT1a1zoUsNAyEgiEbH37pzDM7toRBrlChOOVi6E+mKTPow6hOjCF5yhlvjQvXJEQ
- 1Rk407/f5ZX08JdN3XRQ032vihuLJEOprb5TQ9LkqLFx92G+ALme3GKUZjx7zPBJW1QZ
- scevpCz2UQSpHyjL9EUXm5DNa+Q8zUQQD71H4d14Gn9iSUOzTZlUDuc/T63rgp5dHyHJ UQ== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2120.oracle.com with ESMTP id 2uea7qwcs7-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 12:57:04 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LCrvGq056574;
-        Wed, 21 Aug 2019 12:57:03 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3020.oracle.com with ESMTP id 2ug26a0cqp-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 12:57:03 +0000
-Received: from abhmp0009.oracle.com (abhmp0009.oracle.com [141.146.116.15])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x7LCv10X002062;
-        Wed, 21 Aug 2019 12:57:01 GMT
-Received: from kadam (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 21 Aug 2019 05:57:01 -0700
-Date:   Wed, 21 Aug 2019 15:56:45 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Doug Ledford <dledford@redhat.com>
-Cc:     Bernard Metzler <bmt@zurich.ibm.com>, linux-rdma@vger.kernel.org,
-        jgg@ziepe.ca
-Subject: Re: [PATCH] siw: Fix potential NULL pointer in siw_connect().
-Message-ID: <20190821125645.GE3964@kadam>
-References: <20190819140257.19319-1-bmt@zurich.ibm.com>
- <30814d3ca3b06c83b31f9255f140fdf2115e83e5.camel@redhat.com>
+        id S1727559AbfHUNR5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 09:17:57 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:38352 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728050AbfHUNR4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 21 Aug 2019 09:17:56 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id E07B526F5063EE32A895;
+        Wed, 21 Aug 2019 21:17:53 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
+ 14.3.439.0; Wed, 21 Aug 2019 21:17:46 +0800
+From:   Lijun Ou <oulijun@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
+Subject: [PATCH for-next 2/9] RDMA/hns: Refactor the codes of creating qp
+Date:   Wed, 21 Aug 2019 21:14:29 +0800
+Message-ID: <1566393276-42555-3-git-send-email-oulijun@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1566393276-42555-1-git-send-email-oulijun@huawei.com>
+References: <1566393276-42555-1-git-send-email-oulijun@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <30814d3ca3b06c83b31f9255f140fdf2115e83e5.camel@redhat.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1906280000 definitions=main-1908210142
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
- definitions=main-1908210142
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Aug 20, 2019 at 12:05:33PM -0400, Doug Ledford wrote:
-> Please take a look (I pushed it out to my wip/dl-for-rc branch) so you
-> can see what I mean about how to make both a simple subject line and a
-> decent commit message.  Also, no final punctuation on the subject line,
-> and try to keep the subject length <= 50 chars total.  If you have to go
-> over to have a decent subject, then so be it, but we strive for that 50
-> char limit to make a subject stay on one line when displayed using git
-> log --oneline.
+Here packages the codes of allocating receive rq inline buffer
+in hns_roce_create_qp_common function in order to reduce the
+complexity.
 
-50 is really small.  If it were based on git log --oneline output the
-limit would be 67 characters.  If you look at actual kernel git commits
-then the average subject is 52.4 characters and probably the upper bound
-is 60+ or so.
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 100 +++++++++++++++++++-------------
+ 1 file changed, 61 insertions(+), 39 deletions(-)
 
-I was surprised how well I had done personally at generating subjects
-when I looked at my own git log.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index ec6b5dd..7e10820 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -635,6 +635,55 @@ static int hns_roce_qp_has_rq(struct ib_qp_init_attr *attr)
+ 	return 1;
+ }
+ 
++static int hns_roce_alloc_recv_inline_buffer(struct hns_roce_qp *hr_qp,
++					     struct ib_qp_init_attr *init_attr)
++{
++	int ret;
++	int i;
++
++	/* allocate recv inline buf */
++	hr_qp->rq_inl_buf.wqe_list = kcalloc(hr_qp->rq.wqe_cnt,
++					     sizeof(struct hns_roce_rinl_wqe),
++					     GFP_KERNEL);
++	if (!hr_qp->rq_inl_buf.wqe_list) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	hr_qp->rq_inl_buf.wqe_cnt = hr_qp->rq.wqe_cnt;
++
++	/* Firstly, allocate a list of sge space buffer */
++	hr_qp->rq_inl_buf.wqe_list[0].sg_list =
++					kcalloc(hr_qp->rq_inl_buf.wqe_cnt,
++					init_attr->cap.max_recv_sge *
++					sizeof(struct hns_roce_rinl_sge),
++					GFP_KERNEL);
++	if (!hr_qp->rq_inl_buf.wqe_list[0].sg_list) {
++		ret = -ENOMEM;
++		goto err_wqe_list;
++	}
++
++	for (i = 1; i < hr_qp->rq_inl_buf.wqe_cnt; i++)
++		/* Secondly, reallocate the buffer */
++		hr_qp->rq_inl_buf.wqe_list[i].sg_list =
++				     &hr_qp->rq_inl_buf.wqe_list[0].sg_list[i *
++				     init_attr->cap.max_recv_sge];
++
++	return 0;
++
++err_wqe_list:
++	kfree(hr_qp->rq_inl_buf.wqe_list);
++
++err:
++	return ret;
++}
++
++static void hns_roce_free_recv_inline_buffer(struct hns_roce_qp *hr_qp)
++{
++	kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
++	kfree(hr_qp->rq_inl_buf.wqe_list);
++}
++
+ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 				     struct ib_pd *ib_pd,
+ 				     struct ib_qp_init_attr *init_attr,
+@@ -676,33 +725,11 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 
+ 	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
+ 	    hns_roce_qp_has_rq(init_attr)) {
+-		/* allocate recv inline buf */
+-		hr_qp->rq_inl_buf.wqe_list = kcalloc(hr_qp->rq.wqe_cnt,
+-					       sizeof(struct hns_roce_rinl_wqe),
+-					       GFP_KERNEL);
+-		if (!hr_qp->rq_inl_buf.wqe_list) {
+-			ret = -ENOMEM;
++		ret = hns_roce_alloc_recv_inline_buffer(hr_qp, init_attr);
++		if (ret) {
++			dev_err(dev, "allocate receive inline buffer failed\n");
+ 			goto err_out;
+ 		}
+-
+-		hr_qp->rq_inl_buf.wqe_cnt = hr_qp->rq.wqe_cnt;
+-
+-		/* Firstly, allocate a list of sge space buffer */
+-		hr_qp->rq_inl_buf.wqe_list[0].sg_list =
+-					kcalloc(hr_qp->rq_inl_buf.wqe_cnt,
+-					       init_attr->cap.max_recv_sge *
+-					       sizeof(struct hns_roce_rinl_sge),
+-					       GFP_KERNEL);
+-		if (!hr_qp->rq_inl_buf.wqe_list[0].sg_list) {
+-			ret = -ENOMEM;
+-			goto err_wqe_list;
+-		}
+-
+-		for (i = 1; i < hr_qp->rq_inl_buf.wqe_cnt; i++)
+-			/* Secondly, reallocate the buffer */
+-			hr_qp->rq_inl_buf.wqe_list[i].sg_list =
+-				&hr_qp->rq_inl_buf.wqe_list[0].sg_list[i *
+-				init_attr->cap.max_recv_sge];
+ 	}
+ 
+ 	page_shift = PAGE_SHIFT + hr_dev->caps.mtt_buf_pg_sz;
+@@ -710,14 +737,14 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
+ 			dev_err(dev, "ib_copy_from_udata error for create qp\n");
+ 			ret = -EFAULT;
+-			goto err_rq_sge_list;
++			goto err_alloc_recv_inline_buffer;
+ 		}
+ 
+ 		ret = hns_roce_set_user_sq_size(hr_dev, &init_attr->cap, hr_qp,
+ 						&ucmd);
+ 		if (ret) {
+ 			dev_err(dev, "hns_roce_set_user_sq_size error for create qp\n");
+-			goto err_rq_sge_list;
++			goto err_alloc_recv_inline_buffer;
+ 		}
+ 
+ 		hr_qp->umem = ib_umem_get(udata, ucmd.buf_addr,
+@@ -725,7 +752,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 		if (IS_ERR(hr_qp->umem)) {
+ 			dev_err(dev, "ib_umem_get error for create qp\n");
+ 			ret = PTR_ERR(hr_qp->umem);
+-			goto err_rq_sge_list;
++			goto err_alloc_recv_inline_buffer;
+ 		}
+ 		hr_qp->region_cnt = split_wqe_buf_region(hr_dev, hr_qp,
+ 				hr_qp->regions, ARRAY_SIZE(hr_qp->regions),
+@@ -786,13 +813,13 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 		    IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
+ 			dev_err(dev, "init_attr->create_flags error!\n");
+ 			ret = -EINVAL;
+-			goto err_rq_sge_list;
++			goto err_alloc_recv_inline_buffer;
+ 		}
+ 
+ 		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO) {
+ 			dev_err(dev, "init_attr->create_flags error!\n");
+ 			ret = -EINVAL;
+-			goto err_rq_sge_list;
++			goto err_alloc_recv_inline_buffer;
+ 		}
+ 
+ 		/* Set SQ size */
+@@ -800,7 +827,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 						  hr_qp);
+ 		if (ret) {
+ 			dev_err(dev, "hns_roce_set_kernel_sq_size error!\n");
+-			goto err_rq_sge_list;
++			goto err_alloc_recv_inline_buffer;
+ 		}
+ 
+ 		/* QP doorbell register address */
+@@ -814,7 +841,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 			ret = hns_roce_alloc_db(hr_dev, &hr_qp->rdb, 0);
+ 			if (ret) {
+ 				dev_err(dev, "rq record doorbell alloc failed!\n");
+-				goto err_rq_sge_list;
++				goto err_alloc_recv_inline_buffer;
+ 			}
+ 			*hr_qp->rdb.db_record = 0;
+ 			hr_qp->rdb_en = 1;
+@@ -980,15 +1007,10 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 	    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB))
+ 		hns_roce_free_db(hr_dev, &hr_qp->rdb);
+ 
+-err_rq_sge_list:
+-	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
+-	     hns_roce_qp_has_rq(init_attr))
+-		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
+-
+-err_wqe_list:
++err_alloc_recv_inline_buffer:
+ 	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
+ 	     hns_roce_qp_has_rq(init_attr))
+-		kfree(hr_qp->rq_inl_buf.wqe_list);
++		hns_roce_free_recv_inline_buffer(hr_qp);
+ 
+ err_out:
+ 	return ret;
+-- 
+2.8.1
 
-My shortest subject was commit 0746556beab1 ("bna: off by one").  That
-was from 10 years ago and is not up to my current standards.  My longest
-was commit 49d3d6c37a32 ("drivers/misc/sgi-gru/grukdump.c: unlocking
-should be conditional in gru_dump_context()"), but originally I used
-"gru:" as the patch prefix and Andrew changed it.  :P
-
-regards,
-dan carpenter
