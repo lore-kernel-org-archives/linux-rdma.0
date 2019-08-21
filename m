@@ -2,53 +2,54 @@ Return-Path: <SRS0=E+a+=WR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE1E4C3A59E
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:27:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4F63C3A59E
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:27:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C0BEB214DA
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:27:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75AA3214DA
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:27:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="PO+uh8CA"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="hRYplcd9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729011AbfHUO10 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Aug 2019 10:27:26 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:51752 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727949AbfHUO10 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:27:26 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LENXvb096446;
-        Wed, 21 Aug 2019 14:26:59 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id : mime-version : content-transfer-encoding;
- s=corp-2019-08-05; bh=1auPGg+/vG0RdyB63WsggCifsf1kXs0JscGVAUu3qiU=;
- b=PO+uh8CAYB/eivF20h+fHqQ+g8l0ibBh7pVFekLAjvMVNnzJezxbvv530w6iEmcjY4ST
- NQq5vLrSqmt7KdbfuC+LMmo67g3xhET7bmmCu2sBJcMi1xYJMmPhLwWJ+XQJ6ziEqb3G
- ctjPJ05+m5qtZzFr2TaEe91f8UD9Go1UEVwcPmozsprJIk9XPu9RzxeXbvIJx6U2F6yz
- ysptHOWtaVPGw3pK+Q5hYLUJ1pCLiMqyYHOuw3+3sgAfulNwrFQs71shB+ZZWMoke1qA
- c/DOyfKpxZx/4MUI5SoYzyo9EFU01oAxdW4rOOnPi/XejI3QGU7Rt80qrLt3SdsmafpU +A== 
+        id S1729022AbfHUO1e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 10:27:34 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:44976 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727949AbfHUO1d (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:27:33 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LENU8H086661;
+        Wed, 21 Aug 2019 14:27:12 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding; s=corp-2019-08-05;
+ bh=Y40LB/n87O1OkNVgQyWvm7j7emodK3xi8FMFMog1i/4=;
+ b=hRYplcd9uF3QvyxDL4ZLUrEjmrVtDVmOwmYHfqM1DRnDQeqqc9lhyFTz94Vqm9bIVSIQ
+ M0gvPH37+G2ZoYQzD5TnygJfWIbVHXv0vsQtyr/chW6l8XkRp62CyvO7Hl060J+YZ5/M
+ qZ0mYriO58dA691k1FAbS9Dw6efGA2mhx2TA/hpskVgvXYBgzmcrGibeLaQQnCCYyDyr
+ TxauNLjbAMI3lVeirgf+OSTDngVFmm3aIfh1I1sc3RC4UbAd/ufSHRtPY6OxqHLU+U+L
+ 8uYdAzv9QkWGsgOhFWioC53rZd57AB4wLTwSDcuqBflZKdUBb5x15dOjpJDpKN89gVjy PA== 
 Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 2ue9hpnvx1-1
+        by userp2120.oracle.com with ESMTP id 2uea7qwyhq-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 14:26:59 +0000
+        Wed, 21 Aug 2019 14:27:12 +0000
 Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEMZ9O115247;
-        Wed, 21 Aug 2019 14:26:58 GMT
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEMYdS115109;
+        Wed, 21 Aug 2019 14:27:11 GMT
 Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by userp3020.oracle.com with ESMTP id 2ug26a3fab-1
+        by userp3020.oracle.com with ESMTP id 2ug26a3fnj-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 14:26:58 +0000
+        Wed, 21 Aug 2019 14:27:11 +0000
 Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7LEQuZT019763;
-        Wed, 21 Aug 2019 14:26:56 GMT
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7LER8aG019932;
+        Wed, 21 Aug 2019 14:27:08 GMT
 Received: from host5.lan (/77.138.183.59)
         by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 21 Aug 2019 07:26:56 -0700
+        with ESMTP ; Wed, 21 Aug 2019 07:27:08 -0700
 From:   Yuval Shaia <yuval.shaia@oracle.com>
 To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
         monis@mellanox.com, parav@mellanox.com, danielj@mellanox.com,
@@ -61,20 +62,23 @@ To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
         galpress@amazon.com, denisd@mellanox.com, yuvalav@mellanox.com,
         dennis.dalessandro@intel.com, will@kernel.org, ereza@mellanox.com,
         jgg@mellanox.com, linux-rdma@vger.kernel.org
-Subject: [PATCH v1 rdma-core 00/12] Shared PD and MR
-Date:   Wed, 21 Aug 2019 17:26:27 +0300
-Message-Id: <20190821142639.5807-1-yuval.shaia@oracle.com>
+Cc:     Shamir Rabinovitch <srabinov7@gmail.com>
+Subject: [PATCH v1 rdma-core 02/12] man: Add description to ibv_import_pd function
+Date:   Wed, 21 Aug 2019 17:26:29 +0300
+Message-Id: <20190821142639.5807-3-yuval.shaia@oracle.com>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190821142639.5807-1-yuval.shaia@oracle.com>
+References: <20190821142639.5807-1-yuval.shaia@oracle.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=9 malwarescore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
  phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
  adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.0.1-1906280000 definitions=main-1908210158
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=9 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
  lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
  definitions=main-1908210158
@@ -83,58 +87,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Following patch-set introduce the shared object feature.
+New ibv_import_pd is introduce to allow process to import a PD craeted
+by another process.
+Add description of the API to ibv_alloc_pd man page.
 
-A shared object feature allows one process to create HW objects (currently
-PD and MR) so that a second process can import.
+Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+Signed-off-by: Shamir Rabinovitch <srabinov7@gmail.com>
+---
+ libibverbs/man/ibv_alloc_pd.3 | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-Patch-set is logically splits to two parts, one for PD and one for MR.
-(patches 2 and 7 are the changes to man pages)
-
-v0 -> v1:
-	* Fix typo in comment
-	* Rebase to latest upstream branch
-
-Shamir Rabinovitch (2):
-  verbs: Introduce new inline helpers
-  verbs: pinpong test using shared objects API
-
-Yuval Shaia (10):
-  man: Add description to ibv_import_pd function
-  verbs: Introduce new verb to import PD object
-  mlx4: Implementation of import PD callback
-  mlx5: Implementation of import PD callback
-  rxe: Implementation of import PD callback
-  man: Add description to ibv_import_mr function
-  verbs: Introduce new verb to import MR object
-  mlx4: Implementation of import MR callback
-  mlx5: Implementation of import MR callback
-  rxe: Implementation of import MR callback
-
- kernel-headers/rdma/ib_user_verbs.h |   26 +
- libibverbs/cmd.c                    |   39 +
- libibverbs/driver.h                 |   12 +
- libibverbs/dummy_ops.c              |   18 +
- libibverbs/examples/CMakeLists.txt  |    3 +
- libibverbs/examples/shpd_pingpong.c | 1142 +++++++++++++++++++++++++++
- libibverbs/kern-abi.h               |    3 +-
- libibverbs/libibverbs.map.in        |    3 +
- libibverbs/man/ibv_alloc_pd.3       |   22 +-
- libibverbs/man/ibv_reg_mr.3         |   17 +-
- libibverbs/verbs.h                  |   55 ++
- providers/mlx4/mlx4-abi.h           |    2 +
- providers/mlx4/mlx4.c               |    2 +
- providers/mlx4/mlx4.h               |    4 +
- providers/mlx4/verbs.c              |   56 ++
- providers/mlx5/mlx5-abi.h           |    2 +
- providers/mlx5/mlx5.c               |    2 +
- providers/mlx5/mlx5.h               |    4 +
- providers/mlx5/verbs.c              |   54 ++
- providers/rxe/rxe-abi.h             |    2 +
- providers/rxe/rxe.c                 |   55 ++
- 21 files changed, 1520 insertions(+), 3 deletions(-)
- create mode 100644 libibverbs/examples/shpd_pingpong.c
-
+diff --git a/libibverbs/man/ibv_alloc_pd.3 b/libibverbs/man/ibv_alloc_pd.3
+index cc475f4a..aed72ff4 100644
+--- a/libibverbs/man/ibv_alloc_pd.3
++++ b/libibverbs/man/ibv_alloc_pd.3
+@@ -3,13 +3,16 @@
+ .\"
+ .TH IBV_ALLOC_PD 3 2006-10-31 libibverbs "Libibverbs Programmer's Manual"
+ .SH "NAME"
+-ibv_alloc_pd, ibv_dealloc_pd \- allocate or deallocate a protection domain (PDs)
++ibv_alloc_pd, ibv_import_pd, ibv_dealloc_pd \- allocate, import or deallocate a protection domain (PDs)
+ .SH "SYNOPSIS"
+ .nf
+ .B #include <infiniband/verbs.h>
+ .sp
+ .BI "struct ibv_pd *ibv_alloc_pd(struct ibv_context " "*context" );
+ .sp
++.BI "struct ibv_pd *ibv_import_pd(struct ibv_context " "*context" ",
++.BI "                             uint32_t" " fd" ", uint32_t" " handle" );
++.sp
+ .BI "int ibv_dealloc_pd(struct ibv_pd " "*pd" );
+ .fi
+ .SH "DESCRIPTION"
+@@ -17,6 +20,14 @@ ibv_alloc_pd, ibv_dealloc_pd \- allocate or deallocate a protection domain (PDs)
+ allocates a PD for the RDMA device context 
+ .I context\fR.
+ .PP
++.B ibv_import_pd()
++imports PD identified by
++.I handle\fR
++from context identified by file descriptor
++.I fd\fR
++to context
++.I context\fR.
++.PP
+ .B ibv_dealloc_pd()
+ deallocates the PD
+ .I pd\fR.
+@@ -24,9 +35,18 @@ deallocates the PD
+ .B ibv_alloc_pd()
+ returns a pointer to the allocated PD, or NULL if the request fails.
+ .PP
++.B ibv_import_pd()
++returns a pointer to the imported PD, or NULL if the request fails.
++.PP
+ .B ibv_dealloc_pd()
+ returns 0 on success, or the value of errno on failure (which indicates the failure reason).
+ .SH "NOTES"
++.B ibv_import_pd()
++once PD is imported the process which created it stays on hold until all
++reference to it are deallocated (PD can be imported more than once). The
++results of importing a PD from the same process that creates it are
++unexpected.
++.PP
+ .B ibv_dealloc_pd()
+ may fail if any other resource is still associated with the PD being
+ freed.
 -- 
 2.20.1
 
