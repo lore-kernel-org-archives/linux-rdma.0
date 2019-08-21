@@ -2,183 +2,113 @@ Return-Path: <SRS0=E+a+=WR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB31BC3A59E
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 02:07:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60564C3A59E
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 04:04:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ADB0E22DD3
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 02:07:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2829E2332A
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 04:04:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Cs+O3zZk"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ejyl/X8L"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727010AbfHUCHn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 20 Aug 2019 22:07:43 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:54934 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726804AbfHUCHn (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 20 Aug 2019 22:07:43 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7L24NkZ038648;
-        Wed, 21 Aug 2019 02:07:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2019-08-05;
- bh=Jpt22Rz137CZfbO+YNmSg/zTZ/piPXKdBPp0iZlKO/0=;
- b=Cs+O3zZk1BepOggOr1uoFsihlwIt+PNNSRX3LY1YwXU78muD0maHLkZKM9Pj8oMJE4xQ
- 0mJZYKLOiofftifO17pAedxAHBvzJ48NHXO32Z6WlRqq0QJlgpkO6jSMb6lBax7QedHj
- 6STyGs3sPoDbvpeE13XtRq6DYbesl+BvQShNchSYFcGGzqDwPoktv9iQFA4bIEFoZepO
- prFyCpiy2IPWgUcWkvvgiFnAFWTFtHeZhHT4IwhlLtKGrSqLdsGUvBbkRsrxXszp4jjR
- TSoC53V0UBjhrVQjXHPQHB40PTMUNKkdJJRGNXJm9Mr8m5ywNdHUQETgmjnhmR8+iK3p tw== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by aserp2120.oracle.com with ESMTP id 2ue9hpj5cc-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 02:07:19 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7L23DDW088308;
-        Wed, 21 Aug 2019 02:07:19 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-        by userp3030.oracle.com with ESMTP id 2ug1ga0dhm-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 21 Aug 2019 02:07:18 +0000
-Received: from userp3030.oracle.com (userp3030.oracle.com [127.0.0.1])
-        by pps.reinject (8.16.0.27/8.16.0.27) with SMTP id x7L27I1A098271;
-        Wed, 21 Aug 2019 02:07:18 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3030.oracle.com with ESMTP id 2ug1ga0dhb-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 02:07:18 +0000
-Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x7L27HLa032090;
-        Wed, 21 Aug 2019 02:07:17 GMT
-Received: from [10.182.71.192] (/10.182.71.192)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 20 Aug 2019 19:07:17 -0700
-Subject: Re: [PATCH 1/1] net: rds: add service level support in rds-info
-To:     Doug Ledford <dledford@redhat.com>, davem@davemloft.net,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        rds-devel@oss.oracle.com
-References: <1566262341-18165-1-git-send-email-yanjun.zhu@oracle.com>
- <f3de2e40f1bc2eb219d3056ee954747db90dbbb4.camel@redhat.com>
-From:   Zhu Yanjun <yanjun.zhu@oracle.com>
-Organization: Oracle Corporation
-Message-ID: <f3ff7a39-8b24-5398-26c9-8a07ac9863bc@oracle.com>
-Date:   Wed, 21 Aug 2019 10:10:41 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        id S1726658AbfHUED7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 00:03:59 -0400
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:18780 "EHLO
+        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726409AbfHUED7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 00:03:59 -0400
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate14.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5d5cc2ad0002>; Tue, 20 Aug 2019 21:03:57 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate102.nvidia.com (PGP Universal service);
+  Tue, 20 Aug 2019 21:03:57 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate102.nvidia.com on Tue, 20 Aug 2019 21:03:57 -0700
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 21 Aug
+ 2019 04:03:57 +0000
+Received: from hqnvemgw02.nvidia.com (172.16.227.111) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Wed, 21 Aug 2019 04:03:57 +0000
+Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw02.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5d5cc2ac0001>; Tue, 20 Aug 2019 21:03:56 -0700
+From:   John Hubbard <jhubbard@nvidia.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+CC:     Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Chinner <david@fromorbit.com>,
+        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        LKML <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>,
+        <linux-fsdevel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH 2/4] For Ira: tiny formatting tweak to kerneldoc
+Date:   Tue, 20 Aug 2019 21:03:53 -0700
+Message-ID: <20190821040355.19566-2-jhubbard@nvidia.com>
+X-Mailer: git-send-email 2.22.1
+In-Reply-To: <20190821040355.19566-1-jhubbard@nvidia.com>
+References: <20190821040355.19566-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <f3de2e40f1bc2eb219d3056ee954747db90dbbb4.camel@redhat.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
- definitions=main-1908210018
+X-NVConfidentiality: public
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1566360237; bh=N6ccyzf5PMKW+koaJVWa/WJ5yd4Gtcd+1v71ttVDCNg=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=ejyl/X8LGp01d3V/HJlJwY+MWLCCvGZ39TTEg9R9pYbOpOmFI0ccB+jQnpnh9VgIH
+         dhWOd9LD5FqATRk2iyAHYsquSGNX0Xo2wNigIAsNVWdBCRelcHUQQsxpIQxXl0Rs3j
+         aJKpdDavlZNbpn9cPq29Qnxefgfefjf45gDj4mhxS9r1YIpIiIiRhBbZyOALotnhL/
+         zCqK+dG9WRz+1OGythS2WTZ2NiWsRhGnj9KI4bY1dIRXHMU9RMxxX2OYaE9obDVejW
+         OYakeTAaS4XHjrpRPDWfyhbjQJ5nbOyzY6cO75mhq/xJwCHEtDrt8CK+tNaRkhsIpa
+         pEMwZF6ZD4oTQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi，Doug
+For your vaddr_pin_pages() and vaddr_unpin_pages().
+Just merge it into wherever it goes please. Didn't want to
+cause merge problems so it's a separate patch-let.
 
-My reply is in line.
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ mm/gup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On 2019/8/20 23:28, Doug Ledford wrote:
-> On Mon, 2019-08-19 at 20:52 -0400, Zhu Yanjun wrote:
->> diff --git a/include/uapi/linux/rds.h b/include/uapi/linux/rds.h
->> index fd6b5f6..cba368e 100644
->> --- a/include/uapi/linux/rds.h
->> +++ b/include/uapi/linux/rds.h
->> @@ -250,6 +250,7 @@ struct rds_info_rdma_connection {
->>          __u32           rdma_mr_max;
->>          __u32           rdma_mr_size;
->>          __u8            tos;
->> +       __u8            sl;
->>          __u32           cache_allocs;
->>   };
->>   
->> @@ -265,6 +266,7 @@ struct rds6_info_rdma_connection {
->>          __u32           rdma_mr_max;
->>          __u32           rdma_mr_size;
->>          __u8            tos;
->> +       __u8            sl;
->>          __u32           cache_allocs;
->>   };
->>   
-> This is a user space API break (as was the prior patch mentioned
-> below)...
->
->> The commit fe3475af3bdf ("net: rds: add per rds connection cache
->> statistics") adds cache_allocs in struct rds_info_rdma_connection
->> as below:
->> struct rds_info_rdma_connection {
->> ...
->>          __u32           rdma_mr_max;
->>          __u32           rdma_mr_size;
->>          __u8            tos;
->>          __u32           cache_allocs;
->>   };
->> The peer struct in rds-tools of struct rds_info_rdma_connection is as
->> below:
->> struct rds_info_rdma_connection {
->> ...
->>          uint32_t        rdma_mr_max;
->>          uint32_t        rdma_mr_size;
->>          uint8_t         tos;
->>          uint8_t         sl;
->>          uint32_t        cache_allocs;
->> };
-> Why are the user space rds tools not using the kernel provided abi
-> files?
-Perhaps it is a long story.
->
-> In order to know if this ABI breakage is safe, we need to know what
-> versions of rds-tools are out in the wild and have their own headers
-> that we need to match up with.
+diff --git a/mm/gup.c b/mm/gup.c
+index 56421b880325..e49096d012ea 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2465,7 +2465,7 @@ int get_user_pages_fast(unsigned long start, int nr_p=
+ages,
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+=20
+ /**
+- * vaddr_pin_pages pin pages by virtual address and return the pages to th=
+e
++ * vaddr_pin_pages() - pin pages by virtual address and return the pages t=
+o the
+  * user.
+  *
+  * @addr: start address
+@@ -2505,7 +2505,7 @@ long vaddr_pin_pages(unsigned long addr, unsigned lon=
+g nr_pages,
+ EXPORT_SYMBOL(vaddr_pin_pages);
+=20
+ /**
+- * vaddr_unpin_pages - counterpart to vaddr_pin_pages
++ * vaddr_unpin_pages() - counterpart to vaddr_pin_pages
+  *
+  * @pages: array of pages returned
+  * @nr_pages: number of pages in pages
+--=20
+2.22.1
 
- From my works in LAB and in the customer's host, rds-tools 2.0.7 is the 
-popular
-
-version. Other versions rds-tools are used less.
-
->    Are there any versions of rds-tools that
-> actually use the kernel provided headers?
-
-"the kernel provided headers", do you mean include/uapi/linux/rds.h?
-
-I checked the rds-tools source code. I do not find any version of 
-rds-tools us this header files.
-
-> Are there any other users of
-> uapi/linux/rds.h besides rds-tools?
-
-Not sure. But in Oracle, there are some rds applications. I am not sure 
-whether these rds applications
-
-will use include/uapi/linux/rds.h file or not.
-
-I will investigate it.
-
->
-> Once the kernel and rds-tools package are in sync,
-
-After this commit is merged into mailine, the kernel and rds-tools 
-package are in sync.
-
-I will make investigations about rds-tools using the kernel header 
-include/uapi/linux/rds.h.
-
-Thanks a lot for your comments.
-
-Zhu Yanjun
-
->   rds-tools needs to be
-> modified to use the kernel header and proper ABI maintenance needs to be
-> started.
->
