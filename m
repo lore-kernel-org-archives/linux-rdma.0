@@ -2,94 +2,116 @@ Return-Path: <SRS0=E+a+=WR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B16DCC3A59E
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 04:07:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0DEFC3A59E
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 04:07:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 83375206BA
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 04:07:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80BD8206BA
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 04:07:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="d8Q/64LQ"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="kyATeI4G"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727066AbfHUEHW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Aug 2019 00:07:22 -0400
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:18913 "EHLO
-        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726150AbfHUEHW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 00:07:22 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate15.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5d5cc3790000>; Tue, 20 Aug 2019 21:07:22 -0700
+        id S1727484AbfHUEHf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 00:07:35 -0400
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:17887 "EHLO
+        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727370AbfHUEHe (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 00:07:34 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5d5cc3860001>; Tue, 20 Aug 2019 21:07:34 -0700
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Tue, 20 Aug 2019 21:07:21 -0700
+  Tue, 20 Aug 2019 21:07:34 -0700
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 20 Aug 2019 21:07:21 -0700
-Received: from DRHQMAIL107.nvidia.com (10.27.9.16) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 21 Aug
- 2019 04:07:20 +0000
-Received: from [10.2.161.11] (172.20.13.39) by DRHQMAIL107.nvidia.com
- (10.27.9.16) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 21 Aug
- 2019 04:07:20 +0000
-Subject: disregard: [PATCH 1/4] checkpatch: revert broken NOTIFIER_HEAD check
+        by hqpgpgate101.nvidia.com on Tue, 20 Aug 2019 21:07:34 -0700
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 21 Aug
+ 2019 04:07:33 +0000
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 21 Aug
+ 2019 04:07:33 +0000
+Received: from hqnvemgw02.nvidia.com (172.16.227.111) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Wed, 21 Aug 2019 04:07:33 +0000
+Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw02.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5d5cc3850002>; Tue, 20 Aug 2019 21:07:33 -0700
+From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Christoph Hellwig <hch@infradead.org>,
         Dan Williams <dan.j.williams@intel.com>,
         Dave Chinner <david@fromorbit.com>,
         Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
         Jason Gunthorpe <jgg@ziepe.ca>,
-        =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>,
+        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Vlastimil Babka <vbabka@suse.cz>,
         LKML <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>,
         <linux-fsdevel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        Andy Whitcroft <apw@canonical.com>,
-        Joe Perches <joe@perches.com>,
-        Gilad Ben-Yossef <gilad@benyossef.com>,
-        Ofir Drang <ofir.drang@arm.com>
-References: <20190821040355.19566-1-jhubbard@nvidia.com>
-X-Nvconfidentiality: public
-From:   John Hubbard <jhubbard@nvidia.com>
-Message-ID: <7148f0a6-ee20-7c89-e11b-8ffe3053430b@nvidia.com>
-Date:   Tue, 20 Aug 2019 21:05:28 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v2 1/3] For Ira: tiny formatting tweak to kerneldoc
+Date:   Tue, 20 Aug 2019 21:07:25 -0700
+Message-ID: <20190821040727.19650-2-jhubbard@nvidia.com>
+X-Mailer: git-send-email 2.22.1
+In-Reply-To: <20190821040727.19650-1-jhubbard@nvidia.com>
+References: <20190821040727.19650-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <20190821040355.19566-1-jhubbard@nvidia.com>
-X-Originating-IP: [172.20.13.39]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- DRHQMAIL107.nvidia.com (10.27.9.16)
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-NVConfidentiality: public
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1566360442; bh=U6dFw5Ws7lt4i7y6B6eLJLXyO1E1XavUXw1yA0J+5V0=;
-        h=X-PGP-Universal:Subject:To:CC:References:X-Nvconfidentiality:From:
-         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
-         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
-         Content-Transfer-Encoding;
-        b=d8Q/64LQQmKuu3Q/qqnYCaLIetEHHMn3CaRH8dQ+Dqtbyg3M2by6NErdaqlxzy9S3
-         kb36YXBNUxf9kos4quc3VXSjz164OkNdfXhdyRA7zI0AsY31k1iC6v7pjxaW5GnRmF
-         Qu3bihEc9KQZTRDK8FxQcpuhg+lzkLVUIk8C2oBCklzVIatxXjgWe7Xe/Sb4fVfkDp
-         58QDCDYHT//I3TKAyic8P/sPKF9KVZRRfglG21DXObEiHYpQeUuibUs8GW0haa/87m
-         1YAfOryUurxDfIocVUNq87rgMdYBeJsXkPxtHZcohRu1S3Ip2m29yWb8sEi9Fw0TnP
-         BpZ4aPPEzaH3A==
+        t=1566360454; bh=N6ccyzf5PMKW+koaJVWa/WJ5yd4Gtcd+1v71ttVDCNg=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=kyATeI4GvI0wM6LrUvgYcUuvVkygFA4JyTgW+0ZbIfoMphOLUP79l03d3VBYHsz2s
+         1CY7+MAZotjRlkUZf+gs3dpdA2mi38fNQj7WAuTHr35cgt5F0ODZXtOnG4BQ0KpeKy
+         mx3iRvuI/rW4Jfnk/+2cwoElnxfMi8e4QwgNR5vbt3BQKBCNfotmHIM//RX1LyEPOW
+         DHW1oHlGkyqC4At7gax4YXMnfwFq5jRR/YEsU8tlZ/yOAhWfATtCG5Okf20bfeGKGU
+         w9byaMIBr4MVxT8h+4jI9vhBtdxj/dXbu80/v5ryCzlKcjbcNAi36pz6ZKsNKOwKvV
+         ugMEds1/mnrEQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 8/20/19 9:03 PM, John Hubbard wrote:
-> commit 1a47005dd5aa ("checkpatch: add *_NOTIFIER_HEAD as var
-> definition") causes the following warning when run on some
-> patches:
-> 
+For your vaddr_pin_pages() and vaddr_unpin_pages().
+Just merge it into wherever it goes please. Didn't want to
+cause merge problems so it's a separate patch-let.
 
-Please disregard this series. It's stale.
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ mm/gup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-thanks,
--- 
-John Hubbard
-NVIDIA
+diff --git a/mm/gup.c b/mm/gup.c
+index 56421b880325..e49096d012ea 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2465,7 +2465,7 @@ int get_user_pages_fast(unsigned long start, int nr_p=
+ages,
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+=20
+ /**
+- * vaddr_pin_pages pin pages by virtual address and return the pages to th=
+e
++ * vaddr_pin_pages() - pin pages by virtual address and return the pages t=
+o the
+  * user.
+  *
+  * @addr: start address
+@@ -2505,7 +2505,7 @@ long vaddr_pin_pages(unsigned long addr, unsigned lon=
+g nr_pages,
+ EXPORT_SYMBOL(vaddr_pin_pages);
+=20
+ /**
+- * vaddr_unpin_pages - counterpart to vaddr_pin_pages
++ * vaddr_unpin_pages() - counterpart to vaddr_pin_pages
+  *
+  * @pages: array of pages returned
+  * @nr_pages: number of pages in pages
+--=20
+2.22.1
+
