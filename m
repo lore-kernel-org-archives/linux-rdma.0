@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1286C3A5A0
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:24:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB83BC3A59E
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:27:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8A31D22D6D
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:24:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D4A9214DA
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:27:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="ERps7v3Q"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="ObcJ2U0D"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729352AbfHUOYd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Aug 2019 10:24:33 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:40946 "EHLO
+        id S1728984AbfHUO1V (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 10:27:21 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:44648 "EHLO
         userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728724AbfHUOYb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:24:31 -0400
+        with ESMTP id S1727949AbfHUO1U (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:27:20 -0400
 Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LENVYu086699;
-        Wed, 21 Aug 2019 14:24:04 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id : in-reply-to : references : mime-version :
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LENVZI086699;
+        Wed, 21 Aug 2019 14:27:04 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=corp-2019-08-05;
- bh=RfAdhnost4bMej9JuUi7DlfUHMtpa23/Q9xe2PERx28=;
- b=ERps7v3Qre3rQaAM2A7q9qeNYF0rJlijSFucP/Gt3QL92joaGb0C+e78BJBUJEqfYT5M
- njiwT1hNehozJmWpEoI+gfHsSWyLJtXj5SZCDDFwpPzk7b000+ty4x4BhXF464KPY6sY
- Sm2pMr5NT63UkePNDd8BlUqabKUZ3nt5OwUeM04WnsMYOQoW1d0Y7UE6OrZP653bHRh7
- 9bap4c4HnVWT1ZgsDsdJCO9Lu7+Dq68zXDwXLFPqWLhKT/aqgZZK5Zse6bv2YDxOJkE0
- cdLJyaER2LywPyfZTy8GzH1rXB6mr4jP3wEu+KMAPoGbFQx8GYgH68WXHBfZqcKLz7sG 8g== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by userp2120.oracle.com with ESMTP id 2uea7qwxwm-1
+ bh=S3lUxAsrxPKwchcuWoTnXr3efNBKEyaxmQJaoh3kIC8=;
+ b=ObcJ2U0DgvsqydMrRupGskXwew7XhVIEdLknhzZFqqjiusnOo5ap8O7SW2QIvAMF+XA4
+ hYYeNVncENkAEyEKAFg9bRknz2BZdJjoCF8Cs7JGokbGXF0JifQ1p8IeMHygtL08iHb9
+ ULG4tClsz4+bqWLWnoqzW2DW1/exklrX8X4iMbi+WioLxTMfsMYCbiGkti8pJYyrsaKi
+ F3GHuHMbBFh4Th9viGflz8i2sMsp80PPq3pL438DqFG59rjp/K5WhzuRctr4yZDgXSnf
+ sbAuuCmHE4r/X0FMeoXMPjVUiLRdrVJ8Emi0So41P+xsG+bNEM5L5TUvFWm5ptPDDuqM zA== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2120.oracle.com with ESMTP id 2uea7qwygd-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 14:24:03 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LENRIc194596;
-        Wed, 21 Aug 2019 14:24:03 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by aserp3030.oracle.com with ESMTP id 2ugj7qgfbe-1
+        Wed, 21 Aug 2019 14:27:04 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEMZm8115207;
+        Wed, 21 Aug 2019 14:27:03 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by userp3020.oracle.com with ESMTP id 2ug26a3fjd-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 14:24:02 +0000
-Received: from abhmp0022.oracle.com (abhmp0022.oracle.com [141.146.116.28])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7LEO0kS015958;
-        Wed, 21 Aug 2019 14:24:00 GMT
+        Wed, 21 Aug 2019 14:27:03 +0000
+Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7LER2Pa019910;
+        Wed, 21 Aug 2019 14:27:02 GMT
 Received: from host5.lan (/77.138.183.59)
         by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 21 Aug 2019 07:24:00 -0700
+        with ESMTP ; Wed, 21 Aug 2019 07:27:02 -0700
 From:   Yuval Shaia <yuval.shaia@oracle.com>
 To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
         monis@mellanox.com, parav@mellanox.com, danielj@mellanox.com,
@@ -62,12 +62,13 @@ To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
         galpress@amazon.com, denisd@mellanox.com, yuvalav@mellanox.com,
         dennis.dalessandro@intel.com, will@kernel.org, ereza@mellanox.com,
         jgg@mellanox.com, linux-rdma@vger.kernel.org
-Subject: [PATCH v1 24/24] IB/uverbs: Add MR import verb
-Date:   Wed, 21 Aug 2019 17:21:25 +0300
-Message-Id: <20190821142125.5706-25-yuval.shaia@oracle.com>
+Cc:     Shamir Rabinovitch <srabinov7@gmail.com>
+Subject: [PATCH v1 rdma-core 01/12] verbs: Introduce new inline helpers
+Date:   Wed, 21 Aug 2019 17:26:28 +0300
+Message-Id: <20190821142639.5807-2-yuval.shaia@oracle.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190821142125.5706-1-yuval.shaia@oracle.com>
-References: <20190821142125.5706-1-yuval.shaia@oracle.com>
+In-Reply-To: <20190821142639.5807-1-yuval.shaia@oracle.com>
+References: <20190821142639.5807-1-yuval.shaia@oracle.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
@@ -86,130 +87,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implementation of new verb which enable to import ib_mr object.
+From: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
 
+For sharing object an application needs an access to object's hadnle
+(such as PD handle).
+
+Add helpers to do that.
+
+Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
 Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+Signed-off-by: Shamir Rabinovitch <srabinov7@gmail.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 79 ++++++++++++++++++++++++++++
- include/uapi/rdma/ib_user_verbs.h    |  1 +
- 2 files changed, 80 insertions(+)
+ libibverbs/verbs.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 92f04e7360b6..5aaa6a7e129f 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3875,6 +3875,15 @@ static void ib_uverbs_clone_ib_pd(union ib_uverbs_import_fr_fd_resp *resp,
- 	resp->alloc_pd.pd_handle = handle;
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 1e01b5db..eb9df3a4 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -3270,6 +3270,21 @@ static inline int ibv_read_counters(struct ibv_counters *counters,
+ 	return vctx->read_counters(counters, counters_value, ncounters, flags);
  }
  
-+static void ib_uverbs_clone_ib_mr(union ib_uverbs_import_fr_fd_resp *resp,
-+				  struct ib_mr *mr,
-+				  __u32 handle)
++static inline uint32_t ibv_context_to_fd(struct ibv_context *context)
 +{
-+	resp->reg_mr.lkey = mr->lkey;
-+	resp->reg_mr.rkey = mr->rkey;
-+	resp->reg_mr.mr_handle = handle;
++	return context->cmd_fd;
 +}
 +
- static int ib_uverbs_import_ib_pd(struct uverbs_attr_bundle *attrs)
- {
- 	union ib_uverbs_import_fr_fd_resp resp = {0};
-@@ -3941,6 +3950,74 @@ static int ib_uverbs_import_ib_pd(struct uverbs_attr_bundle *attrs)
- 	return ret;
++static inline uint32_t ibv_pd_to_handle(struct ibv_pd *pd)
++{
++	return pd->handle;
++}
++
++static inline uint32_t ibv_mr_to_handle(struct ibv_mr *mr)
++{
++	return mr->handle;
++}
++
+ #ifdef __cplusplus
  }
- 
-+static int ib_uverbs_import_ib_mr(struct uverbs_attr_bundle *attrs)
-+{
-+	union ib_uverbs_import_fr_fd_resp resp = {0};
-+	struct ib_uobject *src_uobj = NULL;
-+	struct ib_uobject *dst_uobj = NULL;
-+	struct ib_uverbs_import_fr_fd cmd;
-+	struct ib_uverbs_file *src_file;
-+	struct ib_device *ibdev;
-+	struct ib_mr *mr;
-+	struct file *filep;
-+	int ret;
-+
-+	ret = uverbs_request(attrs, &cmd, sizeof(cmd));
-+	if (ret)
-+		return ret;
-+
-+	ret = ib_uverbs_import_lock(attrs, cmd.fd, UVERBS_OBJECT_MR,
-+				    cmd.handle, &src_uobj, &filep,
-+				    &src_file);
-+	if (ret)
-+		return ret;
-+
-+	mr = src_uobj->object;
-+
-+	dst_uobj = uobj_alloc(UVERBS_OBJECT_MR, attrs, &ibdev);
-+	if (IS_ERR(dst_uobj)) {
-+		ret = -ENOMEM;
-+		goto uobj;
-+	}
-+
-+	if (!ibdev->ops.clone_ib_mr) {
-+		ret = -EINVAL;
-+		goto uobj;
-+	}
-+
-+	dst_uobj->object = src_uobj->object;
-+	dst_uobj->refcnt = src_uobj->refcnt;
-+
-+	if (WARN_ON(!atomic_inc_not_zero(src_uobj->refcnt))) {
-+		ret = -EINVAL;
-+		goto uobj;
-+	}
-+
-+	ret = ibdev->ops.clone_ib_mr(&attrs->driver_udata, mr);
-+	if (ret)
-+		goto uobj;
-+
-+	ib_uverbs_clone_ib_mr(&resp, dst_uobj->object, dst_uobj->id);
-+
-+	ret = uverbs_response(attrs, &resp, sizeof(resp));
-+	if (ret)
-+		goto uobj;
-+
-+	ret = uobj_alloc_commit(dst_uobj, attrs);
-+
-+	ib_uverbs_import_unlock(src_uobj, filep);
-+
-+	return ret;
-+
-+uobj:
-+	ib_uverbs_import_unlock(src_uobj, filep);
-+
-+	if (!IS_ERR_OR_NULL(dst_uobj))
-+		uobj_alloc_abort(dst_uobj, attrs);
-+
-+	return ret;
-+}
-+
- static int ib_uverbs_import_fr_fd(struct uverbs_attr_bundle *attrs)
- {
- 	struct ib_uverbs_import_fr_fd cmd;
-@@ -3953,6 +4030,8 @@ static int ib_uverbs_import_fr_fd(struct uverbs_attr_bundle *attrs)
- 	switch (cmd.type) {
- 	case UVERBS_OBJECT_PD:
- 		return ib_uverbs_import_ib_pd(attrs);
-+	case UVERBS_OBJECT_MR:
-+		return ib_uverbs_import_ib_mr(attrs);
- 	}
- 
- 	return -EINVAL;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 4274c40bcff8..cfd1a734d5f3 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -1311,6 +1311,7 @@ struct ib_uverbs_import_fr_fd {
- 
- union ib_uverbs_import_fr_fd_resp {
- 	struct ib_uverbs_alloc_pd_resp alloc_pd;
-+	struct ib_uverbs_reg_mr_resp reg_mr;
- };
- 
- #define IB_DEVICE_NAME_MAX 64
+ #endif
 -- 
 2.20.1
 
