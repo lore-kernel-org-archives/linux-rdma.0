@@ -2,112 +2,152 @@ Return-Path: <SRS0=E+a+=WR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37CC3C3A59E
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:12:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37241C3A59E
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:22:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 04B8120644
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:12:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 036F9233A2
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:22:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="SfHa9R9h"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="UnahgY12"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729170AbfHUOM1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Aug 2019 10:12:27 -0400
-Received: from mail-qt1-f195.google.com ([209.85.160.195]:38790 "EHLO
-        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728981AbfHUOM1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:12:27 -0400
-Received: by mail-qt1-f195.google.com with SMTP id x4so3177581qts.5
-        for <linux-rdma@vger.kernel.org>; Wed, 21 Aug 2019 07:12:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=23kYTP6ULZNTAiPR6VTOlpIkPL5ATfekA0oN6rQYVu0=;
-        b=SfHa9R9hDTGZSZDBuv07U1+F0uHytanlIXLewgScfoiEtwwE6ts9Nlb0NqhIOFOjAd
-         5DZscNVMUPlmFzZn9OnpY8A6GFz+6Ed+xXZS/P3aahTZLLK8pte82Yo04Il8Toyg1DyL
-         tiYx2IVWIRtP+HuuiCWGUFSx6u7/RjbPc8x4wMTWYSoL0+WEZAmTS2AI0Axf8r14T+Gp
-         S0+VFYa2liPptoexANHyG5PdKKQb3QB7XzVmxv7De2HDJ6JgEW/sEEJnczv98TTNtO7/
-         YRQAKOS7Ebd9sqru/isfBJLmsRhsFHUasbUuGg5oxBtmyyELqKZGZMtOEfFm1WWcbY/s
-         g+vQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=23kYTP6ULZNTAiPR6VTOlpIkPL5ATfekA0oN6rQYVu0=;
-        b=nUXoIveEbpcF4uX3fOCHVKlUwDcU6xIaLtG1qPsZTYJ1YtDrMQU8Mm0MTLBSPv1Vvj
-         gxah02H5qcAemRZWpb3BVBBu4wMdlJS7aQ8s4v4+rBWnN67ppzvfghpEilrjMnQRRDth
-         5sUUmaRuHhc0g3c8e6Zbn6Qe3ohnGJ/bRwIna65fn2RJ2ikpk7Ud3je3sPRBZWClJcyR
-         lJPCnMaF6T2Q8DsiSyMfr5wKNRffJTTBvp/kcqCenuboE9TcROO0ofPnXgXXA985fJ4M
-         vuUnzGiE6x23zJ/mIE/A69GopklHNTGg6xZuKT6iFbsQgXSEkpte1ED1KxdpQpZXgoVT
-         IIhQ==
-X-Gm-Message-State: APjAAAU7ddwvsEKSUrdGzuqZJjdiUIsyEF1mt6P1amJM0mlGrEqg691s
-        Cqyl54FvBNR4NsA58/Dsj5Tc+g==
-X-Google-Smtp-Source: APXvYqznfhLaxA8m6jbIo0f2honvPCAF7TM+8aSKfg9a953CMl7wer84sA2VTun9dTN3WkfJar+kGA==
-X-Received: by 2002:a0c:aede:: with SMTP id n30mr17975282qvd.152.1566396746122;
-        Wed, 21 Aug 2019 07:12:26 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-55-100.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.55.100])
-        by smtp.gmail.com with ESMTPSA id y67sm10110811qkd.40.2019.08.21.07.12.25
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 21 Aug 2019 07:12:25 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1i0RLd-0006WN-3c; Wed, 21 Aug 2019 11:12:25 -0300
-Date:   Wed, 21 Aug 2019 11:12:25 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Doug Ledford <dledford@redhat.com>
-Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH] siw: Fix potential NULL pointer in siw_connect().
-Message-ID: <20190821141225.GB8653@ziepe.ca>
-References: <20190819140257.19319-1-bmt@zurich.ibm.com>
- <30814d3ca3b06c83b31f9255f140fdf2115e83e5.camel@redhat.com>
- <20190821125645.GE3964@kadam>
- <adc716f5d2105a3cc7978873cd0f14503ae323d8.camel@redhat.com>
+        id S1729315AbfHUOWR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 10:22:17 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:37616 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728871AbfHUOWQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:22:16 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEEMAM077937;
+        Wed, 21 Aug 2019 14:21:46 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
+ date : message-id : mime-version : content-transfer-encoding;
+ s=corp-2019-08-05; bh=XLC/hg3v7+kxf7Cw6O8axHdsVAK3rhV57+uPAmArkIg=;
+ b=UnahgY12tabeG1r1QjTtlwK0B135gqx1od3MGM0IFUvj4oqznIX92e6zdNhdAIJJzj8F
+ u8QVciBk/LxFZA3egbrstO3czQ8Iao7RwklNKpb5duCighkBgd+dC4DhBG6QF4zc1ASR
+ uxikXCMftQQ7NXoxRFjmD66btdASeW5sPa3+2mC8GHEt/rdf8UPwaHrdsV6RPUYH9SzD
+ OZ3rLRFwYzDrSpm9XhVAKgjg7TEF9mhBiqeAI01o/OW0kRosYNx87TjBXrUOJFpLcuTE
+ 2PzgserspmMZmWKS1hznT96jMd7JW1tr2avjYgj6nswW756XghM3mH3bG9jZN3LwOUh/ Rw== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by userp2120.oracle.com with ESMTP id 2uea7qwxdh-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 21 Aug 2019 14:21:45 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEIZB1182834;
+        Wed, 21 Aug 2019 14:21:45 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by aserp3030.oracle.com with ESMTP id 2ugj7qgd7q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 21 Aug 2019 14:21:44 +0000
+Received: from abhmp0022.oracle.com (abhmp0022.oracle.com [141.146.116.28])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7LELd7A014426;
+        Wed, 21 Aug 2019 14:21:39 GMT
+Received: from host5.lan (/77.138.183.59)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Wed, 21 Aug 2019 07:21:38 -0700
+From:   Yuval Shaia <yuval.shaia@oracle.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
+        monis@mellanox.com, parav@mellanox.com, danielj@mellanox.com,
+        kamalheib1@gmail.com, markz@mellanox.com,
+        swise@opengridcomputing.com, shamir.rabinovitch@oracle.com,
+        johannes.berg@intel.com, willy@infradead.org,
+        michaelgur@mellanox.com, markb@mellanox.com,
+        yuval.shaia@oracle.com, dan.carpenter@oracle.com,
+        bvanassche@acm.org, maxg@mellanox.com, israelr@mellanox.com,
+        galpress@amazon.com, denisd@mellanox.com, yuvalav@mellanox.com,
+        dennis.dalessandro@intel.com, will@kernel.org, ereza@mellanox.com,
+        jgg@mellanox.com, linux-rdma@vger.kernel.org
+Subject: [PATCH v1 00/24] Shared PD and MR
+Date:   Wed, 21 Aug 2019 17:21:01 +0300
+Message-Id: <20190821142125.5706-1-yuval.shaia@oracle.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <adc716f5d2105a3cc7978873cd0f14503ae323d8.camel@redhat.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1906280000 definitions=main-1908210157
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
+ definitions=main-1908210157
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Aug 21, 2019 at 09:39:50AM -0400, Doug Ledford wrote:
-> On Wed, 2019-08-21 at 15:56 +0300, Dan Carpenter wrote:
-> > On Tue, Aug 20, 2019 at 12:05:33PM -0400, Doug Ledford wrote:
-> > > Please take a look (I pushed it out to my wip/dl-for-rc branch) so
-> > > you
-> > > can see what I mean about how to make both a simple subject line and
-> > > a
-> > > decent commit message.  Also, no final punctuation on the subject
-> > > line,
-> > > and try to keep the subject length <= 50 chars total.  If you have
-> > > to go
-> > > over to have a decent subject, then so be it, but we strive for that
-> > > 50
-> > > char limit to make a subject stay on one line when displayed using
-> > > git
-> > > log --oneline.
-> > 
-> > 50 is really small.
-> 
-> 50 is the vim syntax highlighting suggested limit.  You can go over,
-> which is why I indicated it was a soft limit, but there you are.  It
-> leaves room for the displayed hash length to grow as well.
+Following patch-set introduce the shared object feature.
 
-I use 75 for all text in the commit message, as per
-Documentation/process/submitting-patches.rst
+A shared object feature allows one process to create HW objects (currently
+PD and MR) so that a second process can import.
 
-People using 'git log --oneline' should have terminals wider than 80
-:)
+Patch-set is logically splits to 4 parts as the following:
+- patches 1 to 7 and 18 are preparation steps.
+- patches 8 to 14 are the implementation of import PD
+- patches 15 to 17 are the implementation of the verb
+- patches 19 to 24 are the implementation of import MR
 
-The bigger question is if the first character after the subject tag
-should be uppper case or lower case <hum>
+v0 -> v1:
+	* Delete the patch "IB/uverbs: ufile must be freed only when not
+	  used anymore". The process can die, the ucontext remains until
+	  last reference to it is closed.
+	* Rebase to latest for-next branch
 
-Jason
+Shamir Rabinovitch (16):
+  RDMA/uverbs: uobj_get_obj_read should return the ib_uobject
+  RDMA/uverbs: Delete the macro uobj_put_obj_read
+  RDMA/nldev: ib_pd can be pointed by multiple ib_ucontext
+  IB/{core,hw}: ib_pd should not have ib_uobject pointer
+  IB/core: ib_uobject need HW object reference count
+  IB/uverbs: Helper function to initialize ufile member of
+    uverbs_attr_bundle
+  IB/uverbs: Add context import lock/unlock helper
+  IB/verbs: Prototype of HW object clone callback
+  IB/mlx4: Add implementation of clone_pd callback
+  IB/mlx5: Add implementation of clone_pd callback
+  RDMA/rxe: Add implementation of clone_pd callback
+  IB/uverbs: Add clone reference counting to ib_pd
+  IB/uverbs: Add PD import verb
+  IB/mlx4: Enable import from FD verb
+  IB/mlx5: Enable import from FD verb
+  RDMA/rxe: Enable import from FD verb
+
+Yuval Shaia (8):
+  IB/core: Install clone ib_pd in device ops
+  IB/core: ib_mr should not have ib_uobject pointer
+  IB/core: Install clone ib_mr in device ops
+  IB/mlx4: Add implementation of clone_pd callback
+  IB/mlx5: Add implementation of clone_pd callback
+  RDMA/rxe: Add implementation of clone_pd callback
+  IB/uverbs: Add clone reference counting to ib_mr
+  IB/uverbs: Add MR import verb
+
+ drivers/infiniband/core/device.c              |   2 +
+ drivers/infiniband/core/nldev.c               | 127 ++++-
+ drivers/infiniband/core/rdma_core.c           |  23 +-
+ drivers/infiniband/core/uverbs.h              |   2 +
+ drivers/infiniband/core/uverbs_cmd.c          | 489 +++++++++++++++---
+ drivers/infiniband/core/uverbs_main.c         |   1 +
+ drivers/infiniband/core/uverbs_std_types_mr.c |   1 -
+ drivers/infiniband/core/verbs.c               |   4 -
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c    |   1 -
+ drivers/infiniband/hw/mlx4/main.c             |  18 +-
+ drivers/infiniband/hw/mlx5/main.c             |  34 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c        |   3 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c         |   5 +
+ include/rdma/ib_verbs.h                       |  43 +-
+ include/rdma/uverbs_std_types.h               |  11 +-
+ include/uapi/rdma/ib_user_verbs.h             |  15 +
+ include/uapi/rdma/rdma_netlink.h              |   3 +
+ 17 files changed, 669 insertions(+), 113 deletions(-)
+
+-- 
+2.20.1
+
