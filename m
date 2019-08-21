@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E33ACC3A5A1
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:23:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF2C0C3A59E
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:23:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B7FAD22D6D
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:23:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CF1122D6D
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Aug 2019 14:23:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="O3dw0zkC"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="BVBXzECh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728502AbfHUOXT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Aug 2019 10:23:19 -0400
-Received: from userp2130.oracle.com ([156.151.31.86]:60910 "EHLO
+        id S1728608AbfHUOXh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Aug 2019 10:23:37 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:33308 "EHLO
         userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727696AbfHUOXT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:23:19 -0400
+        with ESMTP id S1727696AbfHUOXg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Aug 2019 10:23:36 -0400
 Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEEGjF063005;
-        Wed, 21 Aug 2019 14:22:55 GMT
+        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEEFsI062991;
+        Wed, 21 Aug 2019 14:23:10 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=corp-2019-08-05;
- bh=bk/Pph3NxhDkIuaXqS2hPm5wCXjqFUE71S0vwqVO4sE=;
- b=O3dw0zkCDYwWh/GowJH+jPbnUdpeZJYsXUV5NCFLBKu0mClQZ9iPurSvWuinITGT1d+k
- QTxrFhcEU4pUz8Ao3irHjs0SZBcLPevy0dF3a/BYp/ul7rTlBE16b3baZdSePTIfq8V/
- s1SPRr8T5cVdhkbQE/4G4wfZ/ZvARmvVsAfc1OJFHs63H2rLTprG4pa1pa2Vq09rbWFh
- zNZTVIzAsviSxlXCfW5Px3OJO6Y2pRd8i1lrDTpOHnqhMdOYn2LYpd7SskyJMYvcvBKp
- 41/TYA0Hgd/vHxlfFGn52kuRzuRKfBc0qj219OMB8Lz1N/mV+jmV+KbpUNNTXg2D60zA Bg== 
+ bh=R2KKciNByZNFZithYv0UD7UBCH/zBmalgOIGM4aVm3s=;
+ b=BVBXzEChr8GwHqAGfms/wMaFY+W1CNHH9rdLmECGDoxyR7x8ZXcVVBQRigdi4FwEKe9q
+ XYzq3q26TC3aWlCkNWy4A4+J2ezozkGpOlArp7H52M3n15mPfmaaSofXRj0gxAh+ud5t
+ KWzzqEe273sAKQNPtzLiAN90nZFMbuKkV6W0Mkl088uHHXy3AWhzIvJzsNuvpiWD2eaN
+ dM9TWwcMwQrZthGGJj/iYGNNdvV+qvIo2P1aFoCBXt6CHob+0+Q0whUgJW8D698ORnkU
+ pJpYeQG1lvA8+QWywLoLrUvOSomR9H+afIyJj4l6+nG/rN0zZzzIAbVAr+w2vueN9OrC AA== 
 Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by userp2130.oracle.com with ESMTP id 2ue90tp3vs-1
+        by userp2130.oracle.com with ESMTP id 2ue90tp3xd-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 14:22:55 +0000
+        Wed, 21 Aug 2019 14:23:10 +0000
 Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEMqWn017152;
-        Wed, 21 Aug 2019 14:22:54 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by userp3030.oracle.com with ESMTP id 2uh2q4jw2m-1
+        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7LEMqC8017043;
+        Wed, 21 Aug 2019 14:23:10 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by userp3030.oracle.com with ESMTP id 2uh2q4jwf2-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 14:22:54 +0000
+        Wed, 21 Aug 2019 14:23:09 +0000
 Received: from abhmp0022.oracle.com (abhmp0022.oracle.com [141.146.116.28])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7LEMool015290;
-        Wed, 21 Aug 2019 14:22:51 GMT
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x7LEN8jl011205;
+        Wed, 21 Aug 2019 14:23:08 GMT
 Received: from host5.lan (/77.138.183.59)
         by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 21 Aug 2019 07:22:50 -0700
+        with ESMTP ; Wed, 21 Aug 2019 07:23:08 -0700
 From:   Yuval Shaia <yuval.shaia@oracle.com>
 To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
         monis@mellanox.com, parav@mellanox.com, danielj@mellanox.com,
@@ -63,9 +63,9 @@ To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
         dennis.dalessandro@intel.com, will@kernel.org, ereza@mellanox.com,
         jgg@mellanox.com, linux-rdma@vger.kernel.org
 Cc:     Shamir Rabinovitch <srabinov7@gmail.com>
-Subject: [PATCH v1 12/24] RDMA/rxe: Add implementation of clone_pd callback
-Date:   Wed, 21 Aug 2019 17:21:13 +0300
-Message-Id: <20190821142125.5706-13-yuval.shaia@oracle.com>
+Subject: [PATCH v1 15/24] IB/mlx4: Enable import from FD verb
+Date:   Wed, 21 Aug 2019 17:21:16 +0300
+Message-Id: <20190821142125.5706-16-yuval.shaia@oracle.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190821142125.5706-1-yuval.shaia@oracle.com>
 References: <20190821142125.5706-1-yuval.shaia@oracle.com>
@@ -89,29 +89,28 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
 
-Copy rxe ib_pd to user-space.
+Turn on import_fr_fd bit in uverbs command mask.
 
 Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
-Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
 Signed-off-by: Shamir Rabinovitch <srabinov7@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/mlx4/main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 623129f27f5a..415ac9d3b504 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1148,6 +1148,9 @@ static const struct ib_device_ops rxe_dev_ops = {
- 	.req_notify_cq = rxe_req_notify_cq,
- 	.resize_cq = rxe_resize_cq,
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 6baf52d988ed..d0eef7e2d5a3 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2693,7 +2693,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
+-		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
++		(1ull << IB_USER_VERBS_CMD_OPEN_QP)		|
++		(1ull << IB_USER_VERBS_CMD_IMPORT_FR_FD);
  
-+	/* Object sharing callbacks */
-+	.clone_ib_pd = trivial_clone_ib_pd,
-+
- 	INIT_RDMA_OBJ_SIZE(ib_ah, rxe_ah, ibah),
- 	INIT_RDMA_OBJ_SIZE(ib_cq, rxe_cq, ibcq),
- 	INIT_RDMA_OBJ_SIZE(ib_pd, rxe_pd, ibpd),
+ 	ib_set_device_ops(&ibdev->ib_dev, &mlx4_ib_dev_ops);
+ 	ibdev->ib_dev.uverbs_ex_cmd_mask |=
 -- 
 2.20.1
 
