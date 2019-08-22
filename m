@@ -2,71 +2,132 @@ Return-Path: <SRS0=XaP6=WS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF4B9C3A59D
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 06:48:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BDCAC3A59D
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 07:12:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9569521848
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 06:48:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A89420644
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 07:12:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="hGvojV7U"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730647AbfHVGsp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Aug 2019 02:48:45 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:5189 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729942AbfHVGsp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 22 Aug 2019 02:48:45 -0400
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 7299B4B329C9C06D80F1;
-        Thu, 22 Aug 2019 14:48:40 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 22 Aug 2019 14:48:30 +0800
-From:   YueHaibing <yuehaibing@huawei.com>
-To:     Saeed Mahameed <saeedm@mellanox.com>,
-        Leon Romanovsky <leon@kernel.org>, <davem@davemloft.net>
-CC:     YueHaibing <yuehaibing@huawei.com>, <netdev@vger.kernel.org>,
-        <linux-rdma@vger.kernel.org>, <kernel-janitors@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH net-next] net/mlx5e: Use PTR_ERR_OR_ZERO in mlx5e_tc_add_nic_flow()
-Date:   Thu, 22 Aug 2019 06:52:19 +0000
-Message-ID: <20190822065219.73945-1-yuehaibing@huawei.com>
-X-Mailer: git-send-email 2.20.1
+        id S1726332AbfHVHMs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Aug 2019 03:12:48 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:36766 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726096AbfHVHMs (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Aug 2019 03:12:48 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7M78pAi031486;
+        Thu, 22 Aug 2019 07:12:32 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2019-08-05;
+ bh=0NRxzX8BxNs4uWBHiIcfM60enfXRWDPox17XpmTwAlY=;
+ b=hGvojV7U0jRzW56AnydHJk0PQFT88zIbpFmSFdQjhFmBsiCKyN93taZsdVvV9qS6SJhn
+ i6sHr2pZsQnNTrDzqowzt0DOgrPkl75Qu95UDF08F1bbx0Nw1pnMlGrVxAKU3Pf7f35/
+ Eifd4OM6REUYpawqnaV4ico+IhYcu9yoQDDLZK3fZdLt495h6JCdZU6YMlFeJhWIXfDh
+ h8zBtt9Fw5cS1h/zWmRzW5FF0p6tIFy83WXTFTxGc2LFoyqD8wy9XlNrQFo6bqUS6Lw+
+ kqPWaX2IxL2Bkq4MBAugyhjF2LMFyoA6NqsQxwmf8Jor6GlQXNDuHl7B/NeU6Y25Vpl1 5Q== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by aserp2120.oracle.com with ESMTP id 2ue9hpu56y-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 22 Aug 2019 07:12:32 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7M79FRi037955;
+        Thu, 22 Aug 2019 07:10:31 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3030.oracle.com with ESMTP id 2uh2q5gsj5-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 22 Aug 2019 07:10:31 +0000
+Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7M7ATHf006548;
+        Thu, 22 Aug 2019 07:10:30 GMT
+Received: from kadam (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 22 Aug 2019 00:10:29 -0700
+Date:   Thu, 22 Aug 2019 10:10:23 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] siw: Fix potential NULL pointer in siw_connect().
+Message-ID: <20190822071023.GF3964@kadam>
+References: <20190819140257.19319-1-bmt@zurich.ibm.com>
+ <30814d3ca3b06c83b31f9255f140fdf2115e83e5.camel@redhat.com>
+ <20190821125645.GE3964@kadam>
+ <adc716f5d2105a3cc7978873cd0f14503ae323d8.camel@redhat.com>
+ <20190821141225.GB8653@ziepe.ca>
 MIME-Version: 1.0
-Content-Type:   text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-X-Originating-IP: [10.175.113.25]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190821141225.GB8653@ziepe.ca>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1906280000 definitions=main-1908220078
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9355 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
+ definitions=main-1908220078
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use PTR_ERR_OR_ZERO rather than if(IS_ERR(...)) + PTR_ERR
+On Wed, Aug 21, 2019 at 11:12:25AM -0300, Jason Gunthorpe wrote:
+> On Wed, Aug 21, 2019 at 09:39:50AM -0400, Doug Ledford wrote:
+> > On Wed, 2019-08-21 at 15:56 +0300, Dan Carpenter wrote:
+> > > On Tue, Aug 20, 2019 at 12:05:33PM -0400, Doug Ledford wrote:
+> > > > Please take a look (I pushed it out to my wip/dl-for-rc branch) so
+> > > > you
+> > > > can see what I mean about how to make both a simple subject line and
+> > > > a
+> > > > decent commit message.  Also, no final punctuation on the subject
+> > > > line,
+> > > > and try to keep the subject length <= 50 chars total.  If you have
+> > > > to go
+> > > > over to have a decent subject, then so be it, but we strive for that
+> > > > 50
+> > > > char limit to make a subject stay on one line when displayed using
+> > > > git
+> > > > log --oneline.
+> > > 
+> > > 50 is really small.
+> > 
+> > 50 is the vim syntax highlighting suggested limit.  You can go over,
+> > which is why I indicated it was a soft limit, but there you are.  It
+> > leaves room for the displayed hash length to grow as well.
+> 
+> I use 75 for all text in the commit message, as per
+> Documentation/process/submitting-patches.rst
+> 
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+My limit is 57 characters for the subject (because otherwise mutt
+introduces a newline).  I sometimes go over but I'm annoyed when forced
+to do that.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 3917834b48ff..9d38c9e88f76 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -985,10 +985,7 @@ mlx5e_tc_add_nic_flow(struct mlx5e_priv *priv,
- 					    &flow_act, dest, dest_ix);
- 	mutex_unlock(&priv->fs.tc.t_lock);
- 
--	if (IS_ERR(flow->rule[0]))
--		return PTR_ERR(flow->rule[0]);
--
--	return 0;
-+	return PTR_ERR_OR_ZERO(flow->rule[0]);
- }
- 
- static void mlx5e_tc_del_nic_flow(struct mlx5e_priv *priv,
+72 characters for the commit message because that's my limit for emails.
 
+> People using 'git log --oneline' should have terminals wider than 80
+> :)
+> 
+> The bigger question is if the first character after the subject tag
+> should be uppper case or lower case <hum>
 
+I feel like more and more people are moving to upper case.  There are
+some people who insist on upper case and no one who insists on lower
+case so it's easier to just make everything upper case.
+
+regards,
+dan carpenter
 
