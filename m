@@ -2,105 +2,70 @@ Return-Path: <SRS0=XaP6=WS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77BCDC3A5A1
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:45:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE7CDC3A5A1
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:52:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 404AE23401
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:45:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A22C523401
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:52:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566488707;
-	bh=0lsRsK+iB9uzsfVYAueEgtqb2iXaNyfPtL5bw0ygs40=;
+	s=default; t=1566489151;
+	bh=LSJs+hg+Esa9XzSaNnvzaRu1U+LN0W0QrCA9FzqpRw0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=oEZsZ+PXILLZgzdX+NOPCGWV6E6GcA0Ge33WIebwSe6jk73XtFTjPVrz9wO2q5ry2
-	 lCqYp4Rwiniupqfwoo6T6IXLrj+lExnPrFuKHWb2pWPqIDlEQkMxw+Gl4ygkSB5YEh
-	 s7fqHew4mXiqJtiPJ7p3spIdlGz/j3ZkG4TtDnug=
+	b=CD9FTtEcOw/qkqAKK8Dap268e+OqH8wEihcQr9NgbPKSBMVqYn1uVIxAkcDWbuIiq
+	 UIoE5rO84/8JDUnxXuxFhJ4qGgRmZocxX39GdzhSRh839f985x3NACLVHPkbBqmMlE
+	 +ezivrEEqO0BnCjJU+Xu4rIjUgd68ii1q0XsfOhk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728125AbfHVPpG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Aug 2019 11:45:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56140 "EHLO mail.kernel.org"
+        id S1733080AbfHVPwb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Aug 2019 11:52:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59534 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732460AbfHVPpG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 22 Aug 2019 11:45:06 -0400
+        id S1727953AbfHVPwa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 22 Aug 2019 11:52:30 -0400
 Received: from localhost (wsip-184-188-36-2.sd.sd.cox.net [184.188.36.2])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 178EF23400;
-        Thu, 22 Aug 2019 15:45:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7DB962089E;
+        Thu, 22 Aug 2019 15:52:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566488705;
-        bh=0lsRsK+iB9uzsfVYAueEgtqb2iXaNyfPtL5bw0ygs40=;
+        s=default; t=1566489149;
+        bh=LSJs+hg+Esa9XzSaNnvzaRu1U+LN0W0QrCA9FzqpRw0=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=jmmQ9bcX0eF5kRcWdcR0w17hzS1aGLtTqiFDJSzScNVoOPqPn+XgV4IhOAChAZ6aW
-         orJUyc9Gwd72N+oBqtCUfkSYgSkZDHPHGhWOdprTfS+tpfGPTxCWkouPisqwRj2VSH
-         AcWCwxDe6i27f0d76s82ZR4G90HHsR3IxPc1Emj8=
-Date:   Thu, 22 Aug 2019 18:45:04 +0300
+        b=f/ddtJSGCGY64F5bIzbo8y00yVAkluyt6InZJmYvOD57H5NenPHuJBEPEhkukZ8gc
+         DvazXl9gd4ISH3deV5OMqkLBdu7VPs8kPJAB/ECWq2+CfFStcSiPz3osr89Mafdgbq
+         cGRFujZP8uT8CAJUVuzbNadmzl2Hups9aAOhlryU=
+Date:   Thu, 22 Aug 2019 18:50:01 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Mark Bloch <markb@mellanox.com>,
-        Mark Zhang <markz@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>
-Subject: Re: [PATCH rdma-next 0/3] RDMA RX RoCE Steering Support
-Message-ID: <20190822154504.GF29433@mtr-leonro.mtl.com>
-References: <20190819113626.20284-1-leon@kernel.org>
- <6e099d052f1803e74b5731fe3da2d9109533734d.camel@redhat.com>
- <20190821140204.GG4459@mtr-leonro.mtl.com>
- <c7caa8eece02f3d15a0928663e9f64f99572f3ab.camel@redhat.com>
+To:     YueHaibing <yuehaibing@huawei.com>
+Cc:     Saeed Mahameed <saeedm@mellanox.com>, davem@davemloft.net,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next] net/mlx5e: Use PTR_ERR_OR_ZERO in
+ mlx5e_tc_add_nic_flow()
+Message-ID: <20190822155001.GG29433@mtr-leonro.mtl.com>
+References: <20190822065219.73945-1-yuehaibing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <c7caa8eece02f3d15a0928663e9f64f99572f3ab.camel@redhat.com>
+In-Reply-To: <20190822065219.73945-1-yuehaibing@huawei.com>
 User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 22, 2019 at 11:29:02AM -0400, Doug Ledford wrote:
-> On Wed, 2019-08-21 at 17:02 +0300, Leon Romanovsky wrote:
-> > On Tue, Aug 20, 2019 at 01:54:59PM -0400, Doug Ledford wrote:
-> > > On Mon, 2019-08-19 at 14:36 +0300, Leon Romanovsky wrote:
-> > > > From: Leon Romanovsky <leonro@mellanox.com>
-> > > >
-> > > > Hi,
-> > > >
-> > > > This series from Mark extends mlx5 with RDMA_RX RoCE flow steering
-> > > > support
-> > > > for DEVX and QP objects.
-> > > >
-> > > > Thanks
-> > > >
-> > > > Mark Zhang (3):
-> > > >   net/mlx5: Add per-namespace flow table default miss action
-> > > > support
-> > > >   net/mlx5: Create bypass and loopback flow steering namespaces
-> > > > for
-> > > > RDMA
-> > > >     RX
-> > > >   RDMA/mlx5: RDMA_RX flow type support for user applications
-> > >
-> > > I have no objection to this series.
-> >
-> > Thanks, first two patches were applied to mlx5-next
-> >
-> > e6806e9a63a7 net/mlx5: Create bypass and loopback flow steering
-> > namespaces for RDMA RX
-> > f66ad830b114 net/mlx5: Add per-namespace flow table default miss
-> > action support
+On Thu, Aug 22, 2019 at 06:52:19AM +0000, YueHaibing wrote:
+> Use PTR_ERR_OR_ZERO rather than if(IS_ERR(...)) + PTR_ERR
 >
-> mlx5-next merged into for-next, final patch applied, thanks.
-
-Thanks
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
 >
-> --
-> Doug Ledford <dledford@redhat.com>
->     GPG KeyID: B826A3330E572FDD
->     Fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
