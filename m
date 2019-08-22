@@ -2,70 +2,103 @@ Return-Path: <SRS0=XaP6=WS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE7CDC3A5A1
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:52:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C131EC3A5A1
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:52:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A22C523401
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:52:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 978B623400
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Aug 2019 15:52:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1566489151;
-	bh=LSJs+hg+Esa9XzSaNnvzaRu1U+LN0W0QrCA9FzqpRw0=;
+	s=default; t=1566489153;
+	bh=FAkEVyVlRZ+M8xV5Ac/4Po8neKFiHNlFFnhb2yZRY4Y=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=CD9FTtEcOw/qkqAKK8Dap268e+OqH8wEihcQr9NgbPKSBMVqYn1uVIxAkcDWbuIiq
-	 UIoE5rO84/8JDUnxXuxFhJ4qGgRmZocxX39GdzhSRh839f985x3NACLVHPkbBqmMlE
-	 +ezivrEEqO0BnCjJU+Xu4rIjUgd68ii1q0XsfOhk=
+	b=P6iUzb05Z8wSoeCTiZqP6VKdmrlJrFWWFIkPgs6+0atH78y8hHAL5aOAaoI1WZna/
+	 PY+nq9BKvf6umvtFaMv/vVs9sZB5iC1i+CG9VTn2d+ee7T/X7x9kCYiYesG37Qj8Dn
+	 Rf+iq6XRYKfION2/cHUCVjepB37wpGyg3TyUNG2k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733080AbfHVPwb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Aug 2019 11:52:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59534 "EHLO mail.kernel.org"
+        id S2389645AbfHVPwc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Aug 2019 11:52:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727953AbfHVPwa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 22 Aug 2019 11:52:30 -0400
+        id S1727953AbfHVPwb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 22 Aug 2019 11:52:31 -0400
 Received: from localhost (wsip-184-188-36-2.sd.sd.cox.net [184.188.36.2])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7DB962089E;
-        Thu, 22 Aug 2019 15:52:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4A315233FD;
+        Thu, 22 Aug 2019 15:52:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1566489149;
-        bh=LSJs+hg+Esa9XzSaNnvzaRu1U+LN0W0QrCA9FzqpRw0=;
+        s=default; t=1566489151;
+        bh=FAkEVyVlRZ+M8xV5Ac/4Po8neKFiHNlFFnhb2yZRY4Y=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=f/ddtJSGCGY64F5bIzbo8y00yVAkluyt6InZJmYvOD57H5NenPHuJBEPEhkukZ8gc
-         DvazXl9gd4ISH3deV5OMqkLBdu7VPs8kPJAB/ECWq2+CfFStcSiPz3osr89Mafdgbq
-         cGRFujZP8uT8CAJUVuzbNadmzl2Hups9aAOhlryU=
-Date:   Thu, 22 Aug 2019 18:50:01 +0300
+        b=PqlYITxZEeKpqHWcReA+6o93A5tMwVJ5CH8FCHoHxW5TDe/XMHIbJ+LRMBJ/oVNNS
+         9gfYmwAAJhzr3HxwFPwLVJAAR9SO8Lg+rayzncglKCjoTUWJ5SWCRcPIv3ihMOIf1b
+         mRQPpgZr2fbmg5NjqVjgUefaFTKQCYO5w9/Tw0zg=
+Date:   Thu, 22 Aug 2019 18:52:28 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     YueHaibing <yuehaibing@huawei.com>
-Cc:     Saeed Mahameed <saeedm@mellanox.com>, davem@davemloft.net,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next] net/mlx5e: Use PTR_ERR_OR_ZERO in
- mlx5e_tc_add_nic_flow()
-Message-ID: <20190822155001.GG29433@mtr-leonro.mtl.com>
-References: <20190822065219.73945-1-yuehaibing@huawei.com>
+To:     Krishnamraju Eraparaju <krishna2@chelsio.com>
+Cc:     Marcin Mielniczuk <marcin@golem.network>,
+        linux-rdma@vger.kernel.org
+Subject: Re: Setting up siw devices
+Message-ID: <20190822155228.GH29433@mtr-leonro.mtl.com>
+References: <421f6635-e69c-623d-746a-df541c27f428@golem.network>
+ <20190822154323.GA19899@chelsio.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20190822065219.73945-1-yuehaibing@huawei.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190822154323.GA19899@chelsio.com>
 User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 22, 2019 at 06:52:19AM +0000, YueHaibing wrote:
-> Use PTR_ERR_OR_ZERO rather than if(IS_ERR(...)) + PTR_ERR
+On Thu, Aug 22, 2019 at 09:13:25PM +0530, Krishnamraju Eraparaju wrote:
+> On Thursday, August 08/22/19, 2019 at 17:08:49 +0200, Marcin Mielniczuk wrote:
+> > Hi,
+> >
+> > I'm trying to test the recently merged siw module.
+> > I'm running kernel 5.3-rc5 (taken from the Ubuntu mainline-kernel
+> > repository [1]) on Ubuntu 18.04 (bionic).
+> > I also manually installed rdma-core 25.0 from tarball, using the
+> > included Debian packaging. I installed all the packages but ibacm.
+> >
+> > After booting the new kernel I manually loaded the kernel module by
+> >
+> >      modprobe siw
+> >      modprobe rdma_ucm
+> >
+> > Then ibv_devinfo shows: "No IB devices found".
+> > dmesg only shows:
+> >      [   29.856751] SoftiWARP attached
+> >
+> > According to this tutorial, [2] it should be enough to just load the siw
+> > module. (unlike RXE, where one needs to use rxe_cfg to set up the
+> > interface)
+> > Is this a bug in siw or just a configuration issue on my side?
 >
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
+> Have you done "rdma link"?
 >
+> rdma link add <NAME> type siw netdev <NETDEV>
+>
+> http://man7.org/linux/man-pages/man8/rdma-link.8.html
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+BTW, the same goes for RXE and rxe_cfg is discouraged.
+
+Thanks
+
+>
+> >
+> > Thanks,
+> > Marcin
+> >
+> > [1] https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3-rc5/
+> > [2] https://budevg.github.io/posts/tutorials/2017/04/29/rdma-101-1.html
+> >
+>
+>
+>
