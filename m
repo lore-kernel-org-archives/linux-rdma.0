@@ -2,97 +2,56 @@ Return-Path: <SRS0=JUPT=WU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AFF5C3A59E
-	for <linux-rdma@archiver.kernel.org>; Sat, 24 Aug 2019 16:46:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E2DC3A59E
+	for <linux-rdma@archiver.kernel.org>; Sat, 24 Aug 2019 21:23:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5489E20870
-	for <linux-rdma@archiver.kernel.org>; Sat, 24 Aug 2019 16:46:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mngzlxNA"
+	by mail.kernel.org (Postfix) with ESMTP id AE49020870
+	for <linux-rdma@archiver.kernel.org>; Sat, 24 Aug 2019 21:23:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726464AbfHXQqi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 24 Aug 2019 12:46:38 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:38929 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726390AbfHXQqi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 24 Aug 2019 12:46:38 -0400
-Received: by mail-pg1-f193.google.com with SMTP id u17so7720822pgi.6;
-        Sat, 24 Aug 2019 09:46:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=ltb6VREx479pvKIqHb/++NdQYS9lzIX8qGSfLsJGfA8=;
-        b=mngzlxNAHsCaCw6r4DSsj6cBqeE9vK8cHnH52g9J87buWUE2f6SvlDXzKYrTWVKSV+
-         JmLPpS3DaVVlWivouAs6SyCdjhBc5nCZUmMHNlgL6mMcpdGYWd7vd4gAjnlEv0IRsvBE
-         s0ANk2LfMHCeF6pEoEnAhdg4MKts5D8aUrTRQr8FOuykskQN2Sut2ZLMDAGLJ/TL9jVm
-         97XAXaxyfoRsOSkgUKGvacMu6LAA9uIZ5s+vSG0x0OdaJEB03SvjerlK6duZO1NWnQL7
-         6L7kurbuqrsedxagpmKfHUkVbxLRi0SwbDDv2kCaCYwdYOPip8/QkGK7Qh2GPt4IusCn
-         EIPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=ltb6VREx479pvKIqHb/++NdQYS9lzIX8qGSfLsJGfA8=;
-        b=HdPOfchkz3uj3ya/JW+X3wNB1MugrfwOC9OOAYn3F46xp8/VQjAw7xxImVDKKY/fEe
-         pLqpgEtJyi7c/hNnMjILM3aWl4G3FyK4CyStO4h7NxmRu1VF1y/Iktd2px6nRjqoz74/
-         IvDmkrRv2sCU9AJxVK7d4gSFzc3/jO0Zj9S15Y5r9Pbxa6Y5RLGSy+3Sc9lVfoQOHvJp
-         3NlKtOw9RF4yG6pHvRU4yQmXQlstkKZyfrF4mie32+s1u0W0FQsJOcCFAjcXTLwh6JwW
-         x7LW1KlbSLIVkdrPxyGtfJW6HzY1zCBxyzSUuPgQhP9qYp8mZxmItB+Nv6TB6lEXA4u4
-         p8Pg==
-X-Gm-Message-State: APjAAAUss97q8Mvp6KBrUjAWkz1vserJ1LPKtQVge8UE+BHXsmEfmMHU
-        nAHx5tuHcGHy3G7aIw6OHEY=
-X-Google-Smtp-Source: APXvYqyJnrBvt/8og29GUcn1DC2jOAl4WNe/dSEAk0y++bQsU7ttBrGARYYcKlDUlCPiAdJ/SRxdMg==
-X-Received: by 2002:a17:90a:2841:: with SMTP id p1mr11253686pjf.101.1566665197514;
-        Sat, 24 Aug 2019 09:46:37 -0700 (PDT)
-Received: from jordon-HP-15-Notebook-PC.domain.name ([106.51.17.2])
-        by smtp.gmail.com with ESMTPSA id z16sm8921213pfr.136.2019.08.24.09.46.34
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Sat, 24 Aug 2019 09:46:36 -0700 (PDT)
-From:   Souptick Joarder <jrdr.linux@gmail.com>
-To:     leon@kernel.org, dledford@redhat.com, jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Souptick Joarder <jrdr.linux@gmail.com>
-Subject: [PATCH] RDMA/mlx5: Merge two enums into a single one
-Date:   Sat, 24 Aug 2019 22:22:26 +0530
-Message-Id: <1566665546-8209-1-git-send-email-jrdr.linux@gmail.com>
-X-Mailer: git-send-email 1.9.1
+        id S1728029AbfHXVXA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 24 Aug 2019 17:23:00 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:47744 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727708AbfHXVXA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 24 Aug 2019 17:23:00 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 39C8215252E0E;
+        Sat, 24 Aug 2019 14:22:59 -0700 (PDT)
+Date:   Sat, 24 Aug 2019 14:22:58 -0700 (PDT)
+Message-Id: <20190824.142258.1684009361732174753.davem@davemloft.net>
+To:     yuehaibing@huawei.com
+Cc:     saeedm@mellanox.com, leon@kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next] net/mlx5e: Use PTR_ERR_OR_ZERO in
+ mlx5e_tc_add_nic_flow()
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20190822065219.73945-1-yuehaibing@huawei.com>
+References: <20190822065219.73945-1-yuehaibing@huawei.com>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Sat, 24 Aug 2019 14:22:59 -0700 (PDT)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-These two enums can be merged into a single one wihtout effecting
-their caller if those were created without intension.
+From: YueHaibing <yuehaibing@huawei.com>
+Date: Thu, 22 Aug 2019 06:52:19 +0000
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
----
- include/uapi/rdma/mlx5-abi.h | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+> Use PTR_ERR_OR_ZERO rather than if(IS_ERR(...)) + PTR_ERR
+> 
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 624f5b53..c89363a 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -461,13 +461,10 @@ enum mlx5_ib_mmap_cmd {
- 	MLX5_IB_MMAP_DEVICE_MEM                 = 8,
- };
- 
--enum {
--	MLX5_IB_CLOCK_INFO_KERNEL_UPDATING = 1,
--};
--
- /* Bit indexes for the mlx5_alloc_ucontext_resp.clock_info_versions bitmap */
- enum {
- 	MLX5_IB_CLOCK_INFO_V1              = 0,
-+	MLX5_IB_CLOCK_INFO_KERNEL_UPDATING = 1,
- };
- 
- struct mlx5_ib_flow_counters_desc {
--- 
-1.9.1
+Saeed, please pick this up if you haven't already.
 
+Thank you.
