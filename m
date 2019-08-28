@@ -2,179 +2,158 @@ Return-Path: <SRS0=rwkM=WY=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C4BCC3A5A1
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 19:26:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB702C3A5A1
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 19:28:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D1D52053B
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 19:26:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8490A208C2
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 19:28:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="HUTFGa3A"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="HDWR7q9x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726749AbfH1T0Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Aug 2019 15:26:24 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:51596 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726616AbfH1T0Y (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Aug 2019 15:26:24 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7SJOirN177388;
-        Wed, 28 Aug 2019 19:25:59 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding; s=corp-2019-08-05;
- bh=W7/pUu22+A8c1nExIS3YuA36jEctFTpHfpteDc9MWXI=;
- b=HUTFGa3ATKk8wLIL27y3JbkbYG350PyonEL8l/JzU1Pr0r3asODoCdHDZ5kJWiKeJh8c
- o60DAvipB2hA3rb8AfIAxBLAh1t92tSBkOtNK3FZmBfb+WU65NEnRoHm6tFHk+8b/SAZ
- IzspJanwxdbH+P0gOPT+wZbzvshNrKS7Cy7EkSZq2lpBA29WYcDPkmjbxNIC0E4rFqT2
- DwOzMO975w6bDOVJWD7HIaFIt2ykm0IwapdrjYWIeanPT7eMJ80hpNT6E+OBJxpLkCzO
- BFSxhA9oUhEhaJrpDDP7Sy0p58kGFjWHnpYkVGqwfKREfL7Gq4OZ4UREyO1/eb547tFS ng== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by aserp2120.oracle.com with ESMTP id 2unyp901j1-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 28 Aug 2019 19:25:59 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7SJNrB7052800;
-        Wed, 28 Aug 2019 19:23:59 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by aserp3030.oracle.com with ESMTP id 2unduqaknp-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 28 Aug 2019 19:23:59 +0000
-Received: from abhmp0010.oracle.com (abhmp0010.oracle.com [141.146.116.16])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x7SJNLn1005756;
-        Wed, 28 Aug 2019 19:23:21 GMT
-Received: from host5.lan (/77.138.183.59)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 28 Aug 2019 12:23:21 -0700
-From:   Yuval Shaia <yuval.shaia@oracle.com>
-To:     dledford@redhat.com, jgg@ziepe.ca, oulijun@huawei.com,
-        xavier.huwei@huawei.com, leon@kernel.org, parav@mellanox.com,
-        markz@mellanox.com, swise@opengridcomputing.com,
-        galpress@amazon.com, israelr@mellanox.com, monis@mellanox.com,
-        maxg@mellanox.com, kamalheib1@gmail.com, yuval.shaia@oracle.com,
-        denisd@mellanox.com, yuvalav@mellanox.com,
-        dennis.dalessandro@intel.com, ereza@mellanox.com, will@kernel.org,
-        linux-rdma@vger.kernel.org, jgg@mellanox.com, srabinov7@gmail.com,
-        santosh.shilimkar@oracle.com
-Cc:     Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
-Subject: [PATCH v2 3/5] IB/{core,hw}: ib_pd should not have ib_uobject pointer
-Date:   Wed, 28 Aug 2019 22:22:43 +0300
-Message-Id: <20190828192245.11003-4-yuval.shaia@oracle.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190828192245.11003-1-yuval.shaia@oracle.com>
-References: <20190828192245.11003-1-yuval.shaia@oracle.com>
+        id S1726687AbfH1T23 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Aug 2019 15:28:29 -0400
+Received: from mail-eopbgr20083.outbound.protection.outlook.com ([40.107.2.83]:7652
+        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726605AbfH1T23 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 28 Aug 2019 15:28:29 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=d4MKA6N1oEB6DMMtk6gnQ88XAKu55WOSQn390TZg24Zse/m9hBCrtYgFhzK278Nn23o3t084jrxgOUPjyZOI+cOe85Q/LIhegeuiT7Cfl7eHqtPAuFhd+3WoSor+oexs45GKC61WnsXjv9YLfrp8RY0PpAR6/WjboXpmSIJhhIeDRDX5GrWYMbwvO/V+j4vGp67JQIaB/YOPBM/U/dCXxS3YcqA64Ut0h+pJ3+oZ5PIRcYd/NWToSMMXmD5UTxDl3DTbFX/t7Nea4QNz2KQA14bPnnK8aSDSyf3oEg9zUyJE7XZlx69o1NIoCN9JlswNZO2M61bh2w2G5BfmUPM1nA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fsCtbke7+QXvKzE+Y9KKV1CgOltSbOEGfKdcS/WEv+Y=;
+ b=TgBr+wIJQhu3NJHQbhM2C0wxzatZxzBYHmTfBYPIw5RDPzNbpB5/AwJoLKsvr0fGDFhjvt1VS3KZTs0pVZ2kV2+Uch2dgF9qsXx4D2lxPwCVDwdP75tI5bjf/aISMAYeikDU+PVh+Do8rcE2YbD5JCiVx8/eWofyLUIVZmOk7OUlN098DIQ+uvHmKnd/UdKH2YEqLYBF0qF2ko1FOiKF8fo5Y/xGHGmJDrSj2bEZUOEdG73SxO63OMKE02p3xpg5kNsqSFeu1QYCjV3v+0dfqB3JQdISmci4tolvBQDtiA2oya9G2UqjbI6DC6KmsTHTU0jzIF3ULfiI43HDfWvlXw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fsCtbke7+QXvKzE+Y9KKV1CgOltSbOEGfKdcS/WEv+Y=;
+ b=HDWR7q9xpWEuZZzbZdXlgXgrhYBaxAOvmmyyS5eSSbwT8vhHDvKlhsA3Z1A/PfRxu8uOwi/oAQfrFdb54vOAfjntbkxyfIEmLhqZh2JdnnMVfOk5C8tteUvTQWj5s8MjvkeL8HpzoaHCoIvRLmAltzoth7o4DRkdcDete5FeAYw=
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (10.171.182.144) by
+ VI1PR05MB5966.eurprd05.prod.outlook.com (20.178.126.223) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2199.21; Wed, 28 Aug 2019 19:28:23 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1d6:9c67:ea2d:38a7]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1d6:9c67:ea2d:38a7%6]) with mapi id 15.20.2199.021; Wed, 28 Aug 2019
+ 19:28:23 +0000
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Yuval Shaia <yuval.shaia@oracle.com>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "oulijun@huawei.com" <oulijun@huawei.com>,
+        "xavier.huwei@huawei.com" <xavier.huwei@huawei.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        Parav Pandit <parav@mellanox.com>,
+        Mark Zhang <markz@mellanox.com>,
+        "swise@opengridcomputing.com" <swise@opengridcomputing.com>,
+        "galpress@amazon.com" <galpress@amazon.com>,
+        Israel Rukshin <israelr@mellanox.com>,
+        Moni Shoua <monis@mellanox.com>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        "kamalheib1@gmail.com" <kamalheib1@gmail.com>,
+        Denis Drozdov <denisd@mellanox.com>,
+        Yuval Avnery <yuvalav@mellanox.com>,
+        "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>,
+        Erez Alfasi <ereza@mellanox.com>,
+        "will@kernel.org" <will@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "srabinov7@gmail.com" <srabinov7@gmail.com>,
+        "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>,
+        Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+Subject: Re: [PATCH v1 5/5] RDMA/nldev: ib_pd can be pointed by multiple
+ ib_ucontext
+Thread-Topic: [PATCH v1 5/5] RDMA/nldev: ib_pd can be pointed by multiple
+ ib_ucontext
+Thread-Index: AQHVXYFEn/7D2acVzkGMw1QsYEJ+MqcQlNSAgABU1wCAAAjPAA==
+Date:   Wed, 28 Aug 2019 19:28:23 +0000
+Message-ID: <20190828192818.GR914@mellanox.com>
+References: <20190828091533.3129-1-yuval.shaia@oracle.com>
+ <20190828091533.3129-6-yuval.shaia@oracle.com>
+ <20190828135307.GH914@mellanox.com> <20190828185645.GA4799@lap1>
+In-Reply-To: <20190828185645.GA4799@lap1>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: YTOPR0101CA0021.CANPRD01.PROD.OUTLOOK.COM
+ (2603:10b6:b00:15::34) To VI1PR05MB4141.eurprd05.prod.outlook.com
+ (2603:10a6:803:4d::16)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [142.167.216.168]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 87ad9960-c488-441f-3001-08d72bede44e
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600166)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:VI1PR05MB5966;
+x-ms-traffictypediagnostic: VI1PR05MB5966:
+x-ld-processed: a652971c-7d2e-4d9b-a6a4-d149256f461b,ExtAddr
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <VI1PR05MB5966DF438B34F9302FE8B906CFA30@VI1PR05MB5966.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:4941;
+x-forefront-prvs: 014304E855
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(346002)(366004)(136003)(39860400002)(376002)(189003)(199004)(1076003)(7736002)(86362001)(3846002)(486006)(476003)(6916009)(14454004)(36756003)(2616005)(53936002)(66476007)(64756008)(66556008)(6116002)(256004)(66066001)(66946007)(66446008)(4326008)(8936002)(8676002)(6246003)(81156014)(81166006)(25786009)(54906003)(71190400001)(33656002)(102836004)(26005)(2906002)(7416002)(99286004)(186003)(5660300002)(305945005)(6512007)(52116002)(478600001)(229853002)(446003)(11346002)(6486002)(6436002)(386003)(76176011)(316002)(71200400001)(6506007);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB5966;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: y8FsL/W4+RaCV1yyuPB8O0rec2al46F/Trj/O1wc2O+YM3yAuMF4Nu8gwIQW3dQPv3zjuGl34fC7rdLMLfkaI0S78BlkARNx6AKzdcV7FYSIaLHwoAYZgzjmWvoG2sG12rxlsEhmYi4yBU703Iv5xj0oA4a1KkiWMSfR44PgK5BD4r2KqwdpihgfkbnDPyTUmXA/dVzt8pxDxEBRVtzI0/FvWh41FrhRjEZTb5XBPlNpdwzFl6Uzd8sOrJi+mgHRSd75NYgeEu+DRgVifJQFMwWzrhJqPcLwBcRbtZQOMEEWdNt2xqQSS+pU2WWiEfsSyZ6x0npRKal2hbEFt6JGyLxmkIvITGxsWr4VrWitzHfyaNxRMgZ31XzvToAszYXuwv/ScKvHkzaXn8roWrd80F3AahE1gk+fr+Au0ESuLqI=
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <87F0F86829F63442863B9ED90EC93B7D@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9363 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=2 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1906280000 definitions=main-1908280188
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9363 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=2 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
- definitions=main-1908280188
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 87ad9960-c488-441f-3001-08d72bede44e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Aug 2019 19:28:23.5996
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: d36xY/L6uHu5P5aFRPcGyiHlBzK7+LqV7vX0hbxX4111aNQszB4NxQ75QzcdFCfiNz0un+j/YprH5yU7zCCSZw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB5966
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+On Wed, Aug 28, 2019 at 09:56:46PM +0300, Yuval Shaia wrote:
+> On Wed, Aug 28, 2019 at 01:53:12PM +0000, Jason Gunthorpe wrote:
+> > On Wed, Aug 28, 2019 at 12:15:33PM +0300, Yuval Shaia wrote:
+> > >  static int fill_res_pd_entry(struct sk_buff *msg, bool has_cap_net_a=
+dmin,
+> > >  			     struct rdma_restrack_entry *res, uint32_t port)
+> > >  {
+> > >  	struct ib_pd *pd =3D container_of(res, struct ib_pd, res);
+> > >  	struct ib_device *dev =3D pd->device;
+> > > +	struct nlattr *table_attr =3D NULL;
+> > > +	struct nlattr *entry_attr =3D NULL;
+> > > +	struct context_id *ctx_id;
+> > > +	struct context_id *tmp;
+> > > +	LIST_HEAD(pd_context_ids);
+> > > +	int ctx_count =3D 0;
+> > > =20
+> > >  	if (has_cap_net_admin) {
+> > >  		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,
+> > > @@ -633,10 +709,38 @@ static int fill_res_pd_entry(struct sk_buff *ms=
+g, bool has_cap_net_admin,
+> > >  	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_PDN, res->id))
+> > >  		goto err;
+> > > =20
+> > > -	if (!rdma_is_kernel_res(res) &&
+> > > -	    nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CTXN,
+> > > -			pd->uobject->context->res.id))
+> > > -		goto err;
+> >=20
+> > How do earlier patches compile?
+>=20
+> They did not
 
-As a preparation step to shared PD, where ib_pd object will be pointed
-by one or more ib_uobjects, remove ib_uobject pointer from ib_pd struct.
+That is not OK
 
-Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
-Signed-off-by: Shamir Rabinovitch <srabinov7@gmail.com>
----
- drivers/infiniband/core/uverbs_cmd.c       | 1 -
- drivers/infiniband/core/verbs.c            | 1 -
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 1 -
- drivers/infiniband/hw/mlx5/main.c          | 1 -
- drivers/infiniband/hw/mthca/mthca_qp.c     | 3 ++-
- include/rdma/ib_verbs.h                    | 1 -
- 6 files changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 204a93305f1c..d1f0c04f0ae8 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -432,7 +432,6 @@ static int ib_uverbs_alloc_pd(struct uverbs_attr_bundle *attrs)
- 	}
- 
- 	pd->device  = ib_dev;
--	pd->uobject = uobj;
- 	pd->__internal_mr = NULL;
- 	atomic_set(&pd->usecnt, 0);
- 	pd->res.type = RDMA_RESTRACK_PD;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index f974b6854224..1d0215c1a504 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -263,7 +263,6 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
- 		return ERR_PTR(-ENOMEM);
- 
- 	pd->device = device;
--	pd->uobject = NULL;
- 	pd->__internal_mr = NULL;
- 	atomic_set(&pd->usecnt, 0);
- 	pd->flags = flags;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 0ff5f9617639..bd4a09b2ec1e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -760,7 +760,6 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
- 
- 	free_mr->mr_free_pd = to_hr_pd(pd);
- 	free_mr->mr_free_pd->ibpd.device  = &hr_dev->ib_dev;
--	free_mr->mr_free_pd->ibpd.uobject = NULL;
- 	free_mr->mr_free_pd->ibpd.__internal_mr = NULL;
- 	atomic_set(&free_mr->mr_free_pd->ibpd.usecnt, 0);
- 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 98e566acb746..93db6d4c7da4 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4937,7 +4937,6 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
- 		return -ENOMEM;
- 
- 	devr->p0->device  = ibdev;
--	devr->p0->uobject = NULL;
- 	atomic_set(&devr->p0->usecnt, 0);
- 
- 	ret = mlx5_ib_alloc_pd(devr->p0, NULL);
-diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
-index d04c245359eb..b1a9169e3af6 100644
---- a/drivers/infiniband/hw/mthca/mthca_qp.c
-+++ b/drivers/infiniband/hw/mthca/mthca_qp.c
-@@ -956,7 +956,8 @@ static int mthca_max_data_size(struct mthca_dev *dev, struct mthca_qp *qp, int d
- static inline int mthca_max_inline_data(struct mthca_pd *pd, int max_data_size)
- {
- 	/* We don't support inline data for kernel QPs (yet). */
--	return pd->ibpd.uobject ? max_data_size - MTHCA_INLINE_HEADER_SIZE : 0;
-+	return !rdma_is_kernel_res(&pd->ibpd.res) ?
-+		max_data_size - MTHCA_INLINE_HEADER_SIZE : 0;
- }
- 
- static void mthca_adjust_qp_caps(struct mthca_dev *dev,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 391499008a22..7b429b2e7cf6 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1509,7 +1509,6 @@ struct ib_pd {
- 	u32			local_dma_lkey;
- 	u32			flags;
- 	struct ib_device       *device;
--	struct ib_uobject      *uobject;
- 	atomic_t          	usecnt; /* count all resources */
- 
- 	u32			unsafe_global_rkey;
--- 
-2.20.1
-
+Jason
