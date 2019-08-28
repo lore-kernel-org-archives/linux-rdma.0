@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62891C3A5A1
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 07:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD116C3A5A1
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 07:46:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 21D4922CF8
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 07:44:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9252F20679
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Aug 2019 07:46:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="ZNBuEC9p"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="haO332dS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726253AbfH1Hos (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Aug 2019 03:44:48 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:43922 "EHLO
+        id S1726292AbfH1Hq3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Aug 2019 03:46:29 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:45848 "EHLO
         aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726232AbfH1Hos (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Aug 2019 03:44:48 -0400
+        with ESMTP id S1726326AbfH1Hq2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Aug 2019 03:46:28 -0400
 Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7S7hie7135463;
-        Wed, 28 Aug 2019 07:44:10 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7S7hg15135405;
+        Wed, 28 Aug 2019 07:46:10 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
+ date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=corp-2019-08-05;
- bh=XJ76EAhWr1LGc676v9PENYEutqtgReMttyV7cQAy8K4=;
- b=ZNBuEC9p5TV53sXki4byOI3UjjEZh4DI/glHORN1dI/mXlrZ1Qj2He/U+odoAWRyGPZb
- dUemroMDCoC9erRw+O93+RLLpaKpXhUjki0nQtnQ0fwAF0I+4JJmPA7rRWKMMftcFrY1
- BLOJqlYAeL3kJ3bXCULC+ui1Y6PweIoHh3SDKQGNofKG/COsz4j1J6cZEL8/Vv1M6MZI
- jLdBrHa7bDURByLr54zG7mtwysYe5RGie2azY77qdsdc9T+y717CdRTLOq2gZEodZ0T+
- LKXEDQXHk+KY4wnSczYeOHG10l+jilxv1qnCwUia2kzlChvRiHF81Qc5qEU4SOv7fD00 9g== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by aserp2120.oracle.com with ESMTP id 2unnbhg1w8-1
+ bh=/uKWKfZKHxnopONxtzqg6DLer8B2DFebpi3V4z54eiA=;
+ b=haO332dSH58RDaLGQS6w1BIzsRtyIu3YadQoh7WQi49QF7QyTbR0uaQ5czFTPfs/y8/c
+ nooTPNtZXjKhxXN9uQ/m0YRqlV2wljiU77P7qLMjKIDNr6+mwGjJuoTPvjUnawkhzgsY
+ r0xXmMRsbcM6arVYMCmiuwlrW5tiY/6DsnsOnDUq3rJPryHaDIvwvDtC2OUL+cmq8TcA
+ IRcW8x1iW1Ou0tUF2LbDGeO5P0/DCIhyg4Aq/l7G9cafdRsDIebAwSe3oWENr8/ivrFq
+ /h6Ly5pdzxSm/AJcP3kKOOLYHNvKPBDNMlrFefvfdGKM22AGCCp2EweFbpZhBhOmtHTy 3w== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by aserp2120.oracle.com with ESMTP id 2unnbhg2c2-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 28 Aug 2019 07:44:10 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7S7dFZ6120164;
-        Wed, 28 Aug 2019 07:42:10 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by aserp3020.oracle.com with ESMTP id 2undw74eqb-1
+        Wed, 28 Aug 2019 07:46:10 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x7S7cKCO158971;
+        Wed, 28 Aug 2019 07:42:19 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by aserp3030.oracle.com with ESMTP id 2undupmrvj-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 28 Aug 2019 07:42:10 +0000
+        Wed, 28 Aug 2019 07:42:18 +0000
 Received: from abhmp0002.oracle.com (abhmp0002.oracle.com [141.146.116.8])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x7S7g7AW025283;
-        Wed, 28 Aug 2019 07:42:07 GMT
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x7S7gI13016674;
+        Wed, 28 Aug 2019 07:42:18 GMT
 Received: from host5.lan (/77.138.183.59)
         by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 28 Aug 2019 00:42:06 -0700
+        with ESMTP ; Wed, 28 Aug 2019 00:42:18 -0700
 From:   Yuval Shaia <yuval.shaia@oracle.com>
 To:     dledford@redhat.com, jgg@ziepe.ca, oulijun@huawei.com,
         xavier.huwei@huawei.com, leon@kernel.org, majd@mellanox.com,
@@ -60,23 +60,22 @@ To:     dledford@redhat.com, jgg@ziepe.ca, oulijun@huawei.com,
         dennis.dalessandro@intel.com, ereza@mellanox.com, will@kernel.org,
         linux-rdma@vger.kernel.org, jgg@mellanox.com, srabinov7@gmail.com,
         santosh.shilimkar@oracle.com
-Cc:     Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
-Subject: [PATCH 2/4] RDMA/uverbs: Delete the macro uobj_put_obj_read
-Date:   Wed, 28 Aug 2019 10:41:32 +0300
-Message-Id: <20190828074134.17042-3-yuval.shaia@oracle.com>
+Subject: [PATCH 4/4] IB/core: ib_mr should not have ib_uobject pointer
+Date:   Wed, 28 Aug 2019 10:41:34 +0300
+Message-Id: <20190828074134.17042-5-yuval.shaia@oracle.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190828074134.17042-1-yuval.shaia@oracle.com>
 References: <20190828074134.17042-1-yuval.shaia@oracle.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9362 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=2 malwarescore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
  phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
  adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.0.1-1906280000 definitions=main-1908280080
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9362 signatures=668685
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=2 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
  lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
  definitions=main-1908280081
@@ -85,373 +84,81 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+As a preparation step to shared MR, where ib_mr object will be pointed
+by one or more ib_uobjects, remove ib_uobject pointer from ib_mr struct.
 
-The macro uobj_put_obj_read assumes an existence of a member with the name
-uobject on each HW object. Since this member is about to be delete we
-shouldn't use this macro, instead use uobj_put_read and delete
-uobj_put_obj_read.
-
-Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
-Signed-off-by: Shamir Rabinovitch <srabinov7@gmail.com>
+Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 92 ++++++++++++++--------------
- include/rdma/uverbs_std_types.h      |  3 -
- 2 files changed, 46 insertions(+), 49 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c          | 1 -
+ drivers/infiniband/core/uverbs_std_types_mr.c | 1 -
+ drivers/infiniband/core/verbs.c               | 3 ---
+ include/rdma/ib_verbs.h                       | 1 -
+ 4 files changed, 6 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index b0dc301918bf..204a93305f1c 100644
+index d1f0c04f0ae8..54326ee25eaa 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -778,7 +778,7 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	if (ret)
- 		goto err_copy;
+@@ -761,7 +761,6 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
+ 	mr->type    = IB_MR_TYPE_USER;
+ 	mr->dm	    = NULL;
+ 	mr->sig_attrs = NULL;
+-	mr->uobject = uobj;
+ 	atomic_inc(&pd->usecnt);
+ 	mr->res.type = RDMA_RESTRACK_MR;
+ 	rdma_restrack_uadd(&mr->res);
+diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
+index c1286a52dc84..5219af8960a3 100644
+--- a/drivers/infiniband/core/uverbs_std_types_mr.c
++++ b/drivers/infiniband/core/uverbs_std_types_mr.c
+@@ -130,7 +130,6 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DM_MR_REG)(
+ 	mr->pd      = pd;
+ 	mr->type    = IB_MR_TYPE_DM;
+ 	mr->dm      = dm;
+-	mr->uobject = uobj;
+ 	atomic_inc(&pd->usecnt);
+ 	atomic_inc(&dm->usecnt);
  
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 1d0215c1a504..a7722d54869e 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -299,7 +299,6 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ 		mr->device	= pd->device;
+ 		mr->pd		= pd;
+ 		mr->type        = IB_MR_TYPE_DMA;
+-		mr->uobject	= NULL;
+ 		mr->need_inval	= false;
  
- 	return uobj_alloc_commit(uobj, attrs);
+ 		pd->__internal_mr = mr;
+@@ -2035,7 +2034,6 @@ struct ib_mr *ib_alloc_mr_user(struct ib_pd *pd, enum ib_mr_type mr_type,
+ 		mr->device  = pd->device;
+ 		mr->pd      = pd;
+ 		mr->dm      = NULL;
+-		mr->uobject = NULL;
+ 		atomic_inc(&pd->usecnt);
+ 		mr->need_inval = false;
+ 		mr->res.type = RDMA_RESTRACK_MR;
+@@ -2088,7 +2086,6 @@ struct ib_mr *ib_alloc_mr_integrity(struct ib_pd *pd,
+ 	mr->device = pd->device;
+ 	mr->pd = pd;
+ 	mr->dm = NULL;
+-	mr->uobject = NULL;
+ 	atomic_inc(&pd->usecnt);
+ 	mr->need_inval = false;
+ 	mr->res.type = RDMA_RESTRACK_MR;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 7b429b2e7cf6..fc4b1a0d3bf2 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1775,7 +1775,6 @@ struct ib_mr {
+ 	enum ib_mr_type	   type;
+ 	bool		   need_inval;
+ 	union {
+-		struct ib_uobject	*uobject;	/* user */
+ 		struct list_head	qp_entry;	/* FR */
+ 	};
  
-@@ -786,7 +786,7 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	ib_dereg_mr_user(mr, uverbs_get_cleared_udata(attrs));
- 
- err_put:
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- 
- err_free:
- 	uobj_alloc_abort(uobj, attrs);
-@@ -864,7 +864,7 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
- 
- put_uobj_pd:
- 	if (cmd.flags & IB_MR_REREG_PD)
--		uobj_put_obj_read(pd);
-+		uobj_put_read(pduobj);
- 
- put_uobjs:
- 	uobj_put_write(uobj);
-@@ -936,13 +936,13 @@ static int ib_uverbs_alloc_mw(struct uverbs_attr_bundle *attrs)
- 	if (ret)
- 		goto err_copy;
- 
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- 	return uobj_alloc_commit(uobj, attrs);
- 
- err_copy:
- 	uverbs_dealloc_mw(mw);
- err_put:
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- err_free:
- 	uobj_alloc_abort(uobj, attrs);
- 	return ret;
-@@ -1144,7 +1144,7 @@ static int ib_uverbs_resize_cq(struct uverbs_attr_bundle *attrs)
- 
- 	ret = uverbs_response(attrs, &resp, sizeof(resp));
- out:
--	uobj_put_obj_read(cq);
-+	uobj_put_read(cquobj);
- 
- 	return ret;
- }
-@@ -1229,7 +1229,7 @@ static int ib_uverbs_poll_cq(struct uverbs_attr_bundle *attrs)
- 		ret = uverbs_output_written(attrs, UVERBS_ATTR_CORE_OUT);
- 
- out_put:
--	uobj_put_obj_read(cq);
-+	uobj_put_read(cquobj);
- 	return ret;
- }
- 
-@@ -1252,7 +1252,7 @@ static int ib_uverbs_req_notify_cq(struct uverbs_attr_bundle *attrs)
- 	ib_req_notify_cq(cq, cmd.solicited_only ?
- 			 IB_CQ_SOLICITED : IB_CQ_NEXT_COMP);
- 
--	uobj_put_obj_read(cq);
-+	uobj_put_read(cquobj);
- 
- 	return 0;
- }
-@@ -1505,15 +1505,15 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
- 	}
- 
- 	if (pd)
--		uobj_put_obj_read(pd);
-+		uobj_put_read(pd_uobj);
- 	if (scq)
--		uobj_put_obj_read(scq);
-+		uobj_put_read(scq_uobj);
- 	if (rcq && rcq != scq)
--		uobj_put_obj_read(rcq);
-+		uobj_put_read(rcq_uobj);
- 	if (srq)
--		uobj_put_obj_read(srq);
-+		uobj_put_read(srq_uobj);
- 	if (ind_tbl)
--		uobj_put_obj_read(ind_tbl);
-+		uobj_put_read(ind_tbl_uobj);
- 
- 	return uobj_alloc_commit(&obj->uevent.uobject, attrs);
- err_cb:
-@@ -1523,15 +1523,15 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
- 	if (!IS_ERR(xrcd_uobj))
- 		uobj_put_read(xrcd_uobj);
- 	if (pd)
--		uobj_put_obj_read(pd);
-+		uobj_put_read(pd_uobj);
- 	if (scq)
--		uobj_put_obj_read(scq);
-+		uobj_put_read(scq_uobj);
- 	if (rcq && rcq != scq)
--		uobj_put_obj_read(rcq);
-+		uobj_put_read(rcq_uobj);
- 	if (srq)
--		uobj_put_obj_read(srq);
-+		uobj_put_read(srq_uobj);
- 	if (ind_tbl)
--		uobj_put_obj_read(ind_tbl);
-+		uobj_put_read(ind_tbl_uobj);
- 
- 	uobj_alloc_abort(&obj->uevent.uobject, attrs);
- 	return ret;
-@@ -1710,7 +1710,7 @@ static int ib_uverbs_query_qp(struct uverbs_attr_bundle *attrs)
- 
- 	ret = ib_query_qp(qp, attr, cmd.attr_mask, init_attr);
- 
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- 
- 	if (ret)
- 		goto out;
-@@ -1948,7 +1948,7 @@ static int modify_qp(struct uverbs_attr_bundle *attrs,
- 				      &attrs->driver_udata);
- 
- release_qp:
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- out:
- 	kfree(attr);
- 
-@@ -2216,11 +2216,11 @@ static int ib_uverbs_post_send(struct uverbs_attr_bundle *attrs)
- 		ret = ret2;
- 
- out_put:
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- 
- 	while (wr) {
- 		if (is_ud && ud_wr(wr)->ah)
--			uobj_put_obj_read(ud_wr(wr)->ah);
-+			uobj_put_read(ud_wr(wr)->ah->uobject);
- 		next = wr->next;
- 		kfree(wr);
- 		wr = next;
-@@ -2360,7 +2360,7 @@ static int ib_uverbs_post_recv(struct uverbs_attr_bundle *attrs)
- 	resp.bad_wr = 0;
- 	ret = qp->device->ops.post_recv(qp->real_qp, wr, &bad_wr);
- 
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- 	if (ret) {
- 		for (next = wr; next; next = next->next) {
- 			++resp.bad_wr;
-@@ -2412,7 +2412,7 @@ static int ib_uverbs_post_srq_recv(struct uverbs_attr_bundle *attrs)
- 	resp.bad_wr = 0;
- 	ret = srq->device->ops.post_srq_recv(srq, wr, &bad_wr);
- 
--	uobj_put_obj_read(srq);
-+	uobj_put_read(srquobj);
- 
- 	if (ret)
- 		for (next = wr; next; next = next->next) {
-@@ -2501,7 +2501,7 @@ static int ib_uverbs_create_ah(struct uverbs_attr_bundle *attrs)
- 	if (ret)
- 		goto err_copy;
- 
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- 	return uobj_alloc_commit(uobj, attrs);
- 
- err_copy:
-@@ -2509,7 +2509,7 @@ static int ib_uverbs_create_ah(struct uverbs_attr_bundle *attrs)
- 			     uverbs_get_cleared_udata(attrs));
- 
- err_put:
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- 
- err:
- 	uobj_alloc_abort(uobj, attrs);
-@@ -2573,7 +2573,7 @@ static int ib_uverbs_attach_mcast(struct uverbs_attr_bundle *attrs)
- 
- out_put:
- 	mutex_unlock(&obj->mcast_lock);
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- 
- 	return ret;
- }
-@@ -2618,7 +2618,7 @@ static int ib_uverbs_detach_mcast(struct uverbs_attr_bundle *attrs)
- 
- out_put:
- 	mutex_unlock(&obj->mcast_lock);
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- 	return ret;
- }
- 
-@@ -2737,7 +2737,7 @@ static int kern_spec_to_ib_spec_action(struct uverbs_attr_bundle *attrs,
- 		flow_resources_add(uflow_res,
- 				   IB_FLOW_SPEC_ACTION_HANDLE,
- 				   ib_spec->action.act);
--		uobj_put_obj_read(ib_spec->action.act);
-+		uobj_put_read(uobj);
- 		break;
- 	case IB_FLOW_SPEC_ACTION_COUNT:
- 		if (kern_spec->flow_count.size !=
-@@ -2755,7 +2755,7 @@ static int kern_spec_to_ib_spec_action(struct uverbs_attr_bundle *attrs,
- 		flow_resources_add(uflow_res,
- 				   IB_FLOW_SPEC_ACTION_COUNT,
- 				   ib_spec->flow_count.counters);
--		uobj_put_obj_read(ib_spec->flow_count.counters);
-+		uobj_put_read(uobj);
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -3022,16 +3022,16 @@ static int ib_uverbs_ex_create_wq(struct uverbs_attr_bundle *attrs)
- 	if (err)
- 		goto err_copy;
- 
--	uobj_put_obj_read(pd);
--	uobj_put_obj_read(cq);
-+	uobj_put_read(pduobj);
-+	uobj_put_read(cquobj);
- 	return uobj_alloc_commit(&obj->uevent.uobject, attrs);
- 
- err_copy:
- 	ib_destroy_wq(wq, uverbs_get_cleared_udata(attrs));
- err_put_cq:
--	uobj_put_obj_read(cq);
-+	uobj_put_read(cquobj);
- err_put_pd:
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- err_uobj:
- 	uobj_alloc_abort(&obj->uevent.uobject, attrs);
- 
-@@ -3097,7 +3097,7 @@ static int ib_uverbs_ex_modify_wq(struct uverbs_attr_bundle *attrs)
- 	}
- 	ret = wq->device->ops.modify_wq(wq, &wq_attr, cmd.attr_mask,
- 					&attrs->driver_udata);
--	uobj_put_obj_read(wq);
-+	uobj_put_read(wquobj);
- 	return ret;
- }
- 
-@@ -3201,7 +3201,7 @@ static int ib_uverbs_ex_create_rwq_ind_table(struct uverbs_attr_bundle *attrs)
- 	kfree(wqs_handles);
- 
- 	for (j = 0; j < num_read_wqs; j++)
--		uobj_put_obj_read(wqs[j]);
-+		uobj_put_read(wqs[j]->uobject);
- 
- 	return uobj_alloc_commit(uobj, attrs);
- 
-@@ -3211,7 +3211,7 @@ static int ib_uverbs_ex_create_rwq_ind_table(struct uverbs_attr_bundle *attrs)
- 	uobj_alloc_abort(uobj, attrs);
- put_wqs:
- 	for (j = 0; j < num_read_wqs; j++)
--		uobj_put_obj_read(wqs[j]);
-+		uobj_put_read(wqs[j]->uobject);
- err_free:
- 	kfree(wqs_handles);
- 	kfree(wqs);
-@@ -3380,7 +3380,7 @@ static int ib_uverbs_ex_create_flow(struct uverbs_attr_bundle *attrs)
- 	if (err)
- 		goto err_copy;
- 
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- 	kfree(flow_attr);
- 	if (cmd.flow_attr.num_of_specs)
- 		kfree(kern_flow_attr);
-@@ -3393,7 +3393,7 @@ static int ib_uverbs_ex_create_flow(struct uverbs_attr_bundle *attrs)
- err_free_flow_attr:
- 	kfree(flow_attr);
- err_put:
--	uobj_put_obj_read(qp);
-+	uobj_put_read(qpuobj);
- err_uobj:
- 	uobj_alloc_abort(uobj, attrs);
- err_free_attr:
-@@ -3532,9 +3532,9 @@ static int __uverbs_create_xsrq(struct uverbs_attr_bundle *attrs,
- 		uobj_put_read(xrcd_uobj);
- 
- 	if (ib_srq_has_cq(cmd->srq_type))
--		uobj_put_obj_read(attr.ext.cq);
-+		uobj_put_read(cquobj);
- 
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- 	return uobj_alloc_commit(&obj->uevent.uobject, attrs);
- 
- err_copy:
-@@ -3543,11 +3543,11 @@ static int __uverbs_create_xsrq(struct uverbs_attr_bundle *attrs,
- err_free:
- 	kfree(srq);
- err_put:
--	uobj_put_obj_read(pd);
-+	uobj_put_read(pduobj);
- 
- err_put_cq:
- 	if (ib_srq_has_cq(cmd->srq_type))
--		uobj_put_obj_read(attr.ext.cq);
-+		uobj_put_read(cquobj);
- 
- err_put_xrcd:
- 	if (cmd->srq_type == IB_SRQT_XRC) {
-@@ -3617,7 +3617,7 @@ static int ib_uverbs_modify_srq(struct uverbs_attr_bundle *attrs)
- 	ret = srq->device->ops.modify_srq(srq, &attr, cmd.attr_mask,
- 					  &attrs->driver_udata);
- 
--	uobj_put_obj_read(srq);
-+	uobj_put_read(srquobj);
- 
- 	return ret;
- }
-@@ -3642,7 +3642,7 @@ static int ib_uverbs_query_srq(struct uverbs_attr_bundle *attrs)
- 
- 	ret = ib_query_srq(srq, &attr);
- 
--	uobj_put_obj_read(srq);
-+	uobj_put_read(srquobj);
- 
- 	if (ret)
- 		return ret;
-@@ -3769,7 +3769,7 @@ static int ib_uverbs_ex_modify_cq(struct uverbs_attr_bundle *attrs)
- 
- 	ret = rdma_set_cq_moderation(cq, cmd.attr.cq_count, cmd.attr.cq_period);
- 
--	uobj_put_obj_read(cq);
-+	uobj_put_read(cquobj);
- 
- 	return ret;
- }
-diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
-index 578e5c28bc1c..02641a3241e3 100644
---- a/include/rdma/uverbs_std_types.h
-+++ b/include/rdma/uverbs_std_types.h
-@@ -98,9 +98,6 @@ static inline void uobj_put_read(struct ib_uobject *uobj)
- 	rdma_lookup_put_uobject(uobj, UVERBS_LOOKUP_READ);
- }
- 
--#define uobj_put_obj_read(_obj)					\
--	uobj_put_read((_obj)->uobject)
--
- static inline void uobj_put_write(struct ib_uobject *uobj)
- {
- 	rdma_lookup_put_uobject(uobj, UVERBS_LOOKUP_WRITE);
 -- 
 2.20.1
 
