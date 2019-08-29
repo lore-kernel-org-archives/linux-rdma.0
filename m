@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F89FC3A59F
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:18:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 491CBC3A59F
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:20:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B5CA2173E
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:18:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1649A2173E
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:20:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567102730;
-	bh=lawf9wsTvc8tfh2XXtfm0IRIv9n1yNwUWU/efGdOtZE=;
+	s=default; t=1567102803;
+	bh=szrB/sf1vVLKzmNKJA770muwa7kw0B3BXftuLhjYmrc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=y6mJyDxBAdt/B9sqM7Tl8mwqoqKuf+/r7Jvb3TTeidwZkmTy1cw6gcCzYEYk/UDD3
-	 ryhXu1yEmkwQZingkHxlBgr1udf47ylxZV7UNOoZPrLz999ygsbx6yAYWiZwc4bHrk
-	 HENfmC350QI9QGjoFB9+9YacioZGrM1/CBw5dnuY=
+	b=vmOtCkQJWPqqS54oRiBirxqvxoLVwKr1Vfs/Rmsm0BiRe9yYdcjczUKQKVF8MnL9U
+	 O3+4GErTq4t0wJ6hP5JBoGqJadLosaIsytjv8h9C00/AyqQ/973j9ZLGhEdsPaqJNQ
+	 YqjU//PaQ5Cf5XTyTPKHf53TQdQPGxomO5hek5jk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728924AbfH2SSo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 29 Aug 2019 14:18:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60550 "EHLO mail.kernel.org"
+        id S1729792AbfH2STw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 29 Aug 2019 14:19:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728409AbfH2SST (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 29 Aug 2019 14:18:19 -0400
+        id S1730276AbfH2SR6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 29 Aug 2019 14:17:58 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5497820828;
-        Thu, 29 Aug 2019 18:18:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C5F582189D;
+        Thu, 29 Aug 2019 18:17:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567102698;
-        bh=lawf9wsTvc8tfh2XXtfm0IRIv9n1yNwUWU/efGdOtZE=;
+        s=default; t=1567102677;
+        bh=szrB/sf1vVLKzmNKJA770muwa7kw0B3BXftuLhjYmrc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=XwIISBgJtDGYSGxFkGIYcS+k3mp+XKf04XxD4daaNj/Ff1MmDuZhyHymFrYhCg0s7
-         DaHFXt+w3NIFxRfzMC+F/fuyDaAOrWHD8YLUyitWNZ47ZVwyuM4oZonjqWMcZMfg+g
-         i8xgqHu08uHyOm/ITSzJ9+9f1pxJwzVjKhyIaRgM=
+        b=KCUvwO51xz9NgI8S2lxTi10C4Flr8xfRmHssbZndaxnXG3AS0GvgYQ8UqKO4qdUn4
+         6sAZemCfhGLWGo6INlSAo3RpXRzhBnw6E1tenPR5+jfTM1fApk4zDkoGc1cFzhWojI
+         AkbAKE9V6I0w1bs2rQM+F8ONQpfrxLdQAmCpfrFY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Wenwen Wang <wenwen@cs.uga.edu>,
         Leon Romanovsky <leonro@mellanox.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 13/15] IB/mlx4: Fix memory leaks
-Date:   Thu, 29 Aug 2019 14:18:00 -0400
-Message-Id: <20190829181802.9619-13-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 13/16] IB/mlx4: Fix memory leaks
+Date:   Thu, 29 Aug 2019 14:17:31 -0400
+Message-Id: <20190829181736.9040-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190829181802.9619-1-sashal@kernel.org>
-References: <20190829181802.9619-1-sashal@kernel.org>
+In-Reply-To: <20190829181736.9040-1-sashal@kernel.org>
+References: <20190829181736.9040-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -78,10 +78,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 199a9cdd0d12a..531c985f6fd71 100644
+index d9323d7c479c3..f32ffd74ec476 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -1526,8 +1526,6 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
+@@ -1643,8 +1643,6 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
  				    tx_buf_size, DMA_TO_DEVICE);
  		kfree(tun_qp->tx_ring[i].buf.addr);
  	}
@@ -90,7 +90,7 @@ index 199a9cdd0d12a..531c985f6fd71 100644
  	i = MLX4_NUM_TUNNEL_BUFS;
  err:
  	while (i > 0) {
-@@ -1536,6 +1534,8 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
+@@ -1653,6 +1651,8 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
  				    rx_buf_size, DMA_FROM_DEVICE);
  		kfree(tun_qp->ring[i].addr);
  	}
