@@ -7,50 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99894C3A59F
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:15:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F89FC3A59F
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:18:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 69E312341C
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:15:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B5CA2173E
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Aug 2019 18:18:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567102526;
-	bh=z9InydW22wZDB90lA96B3s583Hrax/MeN58phIna4jc=;
+	s=default; t=1567102730;
+	bh=lawf9wsTvc8tfh2XXtfm0IRIv9n1yNwUWU/efGdOtZE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=fmg9PSBEwn4nodd9YmFARsaIWwdiiBBM1OV+ssf0S3fIAJTtgedY60AieinwwuS4D
-	 xZF79JptnLBeD9dQn/LhmxE7xi5bwzp/ilXb5e270ajS1S4XBZ1a4xvEYOSQPeLvuu
-	 URdmoF5962iKgM9+fqUK0dZYHsfgL0Knz5IWyFok=
+	b=y6mJyDxBAdt/B9sqM7Tl8mwqoqKuf+/r7Jvb3TTeidwZkmTy1cw6gcCzYEYk/UDD3
+	 ryhXu1yEmkwQZingkHxlBgr1udf47ylxZV7UNOoZPrLz999ygsbx6yAYWiZwc4bHrk
+	 HENfmC350QI9QGjoFB9+9YacioZGrM1/CBw5dnuY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728333AbfH2SPR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 29 Aug 2019 14:15:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56964 "EHLO mail.kernel.org"
+        id S1728924AbfH2SSo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 29 Aug 2019 14:18:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729237AbfH2SPP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 29 Aug 2019 14:15:15 -0400
+        id S1728409AbfH2SST (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 29 Aug 2019 14:18:19 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C403723405;
-        Thu, 29 Aug 2019 18:15:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5497820828;
+        Thu, 29 Aug 2019 18:18:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567102514;
-        bh=z9InydW22wZDB90lA96B3s583Hrax/MeN58phIna4jc=;
+        s=default; t=1567102698;
+        bh=lawf9wsTvc8tfh2XXtfm0IRIv9n1yNwUWU/efGdOtZE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MOkDrwyQzD9r6r5raYlQZazfCHIO4gU19GwKX8/oqcCray09kMGqBprgZz5uigOnh
-         Drvwxu9vXcJmvc3SP3W19MPJJnDciV0WNZYMZcW60EaUjNf7AOZyf3s8jb7OD1HWfb
-         uK+ktOnZUBipPVSufJKDskja+tMifONmp+GLWl2k=
+        b=XwIISBgJtDGYSGxFkGIYcS+k3mp+XKf04XxD4daaNj/Ff1MmDuZhyHymFrYhCg0s7
+         DaHFXt+w3NIFxRfzMC+F/fuyDaAOrWHD8YLUyitWNZ47ZVwyuM4oZonjqWMcZMfg+g
+         i8xgqHu08uHyOm/ITSzJ9+9f1pxJwzVjKhyIaRgM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Wenwen Wang <wenwen@cs.uga.edu>,
         Leon Romanovsky <leonro@mellanox.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 62/76] infiniband: hfi1: fix memory leaks
-Date:   Thu, 29 Aug 2019 14:12:57 -0400
-Message-Id: <20190829181311.7562-62-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 13/15] IB/mlx4: Fix memory leaks
+Date:   Thu, 29 Aug 2019 14:18:00 -0400
+Message-Id: <20190829181802.9619-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190829181311.7562-1-sashal@kernel.org>
-References: <20190829181311.7562-1-sashal@kernel.org>
+In-Reply-To: <20190829181802.9619-1-sashal@kernel.org>
+References: <20190829181802.9619-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -62,53 +61,44 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Wenwen Wang <wenwen@cs.uga.edu>
 
-[ Upstream commit 2323d7baab2b18d87d9bc267452e387aa9f0060a ]
+[ Upstream commit 5c1baaa82cea2c815a5180ded402a7cd455d1810 ]
 
-In fault_opcodes_write(), 'data' is allocated through kcalloc(). However,
-it is not deallocated in the following execution if an error occurs,
-leading to memory leaks. To fix this issue, introduce the 'free_data' label
-to free 'data' before returning the error.
+In mlx4_ib_alloc_pv_bufs(), 'tun_qp->tx_ring' is allocated through
+kcalloc(). However, it is not always deallocated in the following execution
+if an error occurs, leading to memory leaks. To fix this issue, free
+'tun_qp->tx_ring' whenever an error occurs.
 
 Signed-off-by: Wenwen Wang <wenwen@cs.uga.edu>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Link: https://lore.kernel.org/r/1566154486-3713-1-git-send-email-wenwen@cs.uga.edu
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
+Link: https://lore.kernel.org/r/1566159781-4642-1-git-send-email-wenwen@cs.uga.edu
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/fault.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/fault.c b/drivers/infiniband/hw/hfi1/fault.c
-index 814324d172950..986c12153e62e 100644
---- a/drivers/infiniband/hw/hfi1/fault.c
-+++ b/drivers/infiniband/hw/hfi1/fault.c
-@@ -141,12 +141,14 @@ static ssize_t fault_opcodes_write(struct file *file, const char __user *buf,
- 	if (!data)
- 		return -ENOMEM;
- 	copy = min(len, datalen - 1);
--	if (copy_from_user(data, buf, copy))
--		return -EFAULT;
-+	if (copy_from_user(data, buf, copy)) {
-+		ret = -EFAULT;
-+		goto free_data;
-+	}
- 
- 	ret = debugfs_file_get(file->f_path.dentry);
- 	if (unlikely(ret))
--		return ret;
-+		goto free_data;
- 	ptr = data;
- 	token = ptr;
- 	for (ptr = data; *ptr; ptr = end + 1, token = ptr) {
-@@ -195,6 +197,7 @@ static ssize_t fault_opcodes_write(struct file *file, const char __user *buf,
- 	ret = len;
- 
- 	debugfs_file_put(file->f_path.dentry);
-+free_data:
- 	kfree(data);
- 	return ret;
- }
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 199a9cdd0d12a..531c985f6fd71 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1526,8 +1526,6 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
+ 				    tx_buf_size, DMA_TO_DEVICE);
+ 		kfree(tun_qp->tx_ring[i].buf.addr);
+ 	}
+-	kfree(tun_qp->tx_ring);
+-	tun_qp->tx_ring = NULL;
+ 	i = MLX4_NUM_TUNNEL_BUFS;
+ err:
+ 	while (i > 0) {
+@@ -1536,6 +1534,8 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
+ 				    rx_buf_size, DMA_FROM_DEVICE);
+ 		kfree(tun_qp->ring[i].addr);
+ 	}
++	kfree(tun_qp->tx_ring);
++	tun_qp->tx_ring = NULL;
+ 	kfree(tun_qp->ring);
+ 	tun_qp->ring = NULL;
+ 	return -ENOMEM;
 -- 
 2.20.1
 
