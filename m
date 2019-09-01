@@ -2,134 +2,288 @@ Return-Path: <SRS0=upTf=W4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CFEBC3A5A4
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Sep 2019 13:31:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3AF4C3A5A4
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Sep 2019 16:52:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1986122CF7
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Sep 2019 13:31:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B3704233A2
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Sep 2019 16:52:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="aws1NNE6"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="czKekPzn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726275AbfIANbB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Sep 2019 09:31:01 -0400
-Received: from mail-eopbgr40046.outbound.protection.outlook.com ([40.107.4.46]:2248
-        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726121AbfIANbB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 1 Sep 2019 09:31:01 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=CKZO6zbnAqCiNYrddciNAk/2+d6TkPXsITNvA7hj2nH3V/8tJtSRZgaFVt5MTErfUBIT6lubDuo69saln/2gW2U9eDRAAWUNIYBErwID6PMfzsv2j8bEpgLAkdCtu2JQ3suTwjRicYu5AZuIX8+jXp0oyAmhPdOIqaEeaKnQ6tLcuU65oa4MsluWe+BXK/dTbBw2a0qGb/HMamJ4QPjfjsYEnqnYtRbFgQD6PCfMWxsmGWCHlsU4iVolfLZUDM26g/7/Epbb20eCfXFCrlgwDiWczS7OR4wz5vPAV441L81i6Ka9Pf7A+4k6vcsJu1bwI5ZzCZYPCEAwaEaEKfPbMw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=YkI5/QSM/kT0ol8+5VrMP8+4MGooBFh8cnESHiGNOSA=;
- b=WF7JeZXNfsjNoEgHgIDSYN7xS7AktlOZsGm1t+IRCBvPBaQsYASGVvkM6U9XA6Iqdc/gRNnnbDXOrsfV9+TEjofKq5JL5GU2mUFM93bjaYqWuhAtntL4StXR6woX/GggcHQdz9dk3at4/IFXgvP2pBK14l68kHA0sBOMVeX23sZgiJzEqGMcI3CQqkNSZ+Q40VkzGLPZEv92WcPZeNFaS+kNpJPh9MMQbTnEgeIu4MC8jF7QS4z0Rba1osShQCs4HCNcUXBc6A6NQxfqmFnyBgmQ1AIcp/DU1jnXSw+y8LR4FzhzuVSZXZ/PzoVCz10NZMMgp0UDeUWRhjWyR0gDGQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=YkI5/QSM/kT0ol8+5VrMP8+4MGooBFh8cnESHiGNOSA=;
- b=aws1NNE6SQMjTUWUnc7EAxAva7ZW4tEM1Zea6rH74rHm/XalqkikfSc7gRZP1ZFEJmoBiJ/CaoPETzP7LHEfO+MItWvl8sW7g/F8o/lCUyYtgKHST8CedU64EaUxRhD/Jn94VUSwpRASk+uN2QyBPWz1FJfT/NbM6T+cf5V8EDI=
-Received: from AM6PR05MB4968.eurprd05.prod.outlook.com (20.177.33.17) by
- AM6PR05MB5624.eurprd05.prod.outlook.com (20.178.95.210) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2199.21; Sun, 1 Sep 2019 13:30:56 +0000
-Received: from AM6PR05MB4968.eurprd05.prod.outlook.com
- ([fe80::945c:650b:dd85:c2ce]) by AM6PR05MB4968.eurprd05.prod.outlook.com
- ([fe80::945c:650b:dd85:c2ce%6]) with mapi id 15.20.2199.021; Sun, 1 Sep 2019
- 13:30:56 +0000
-From:   Noa Osherovich <noaos@mellanox.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH rdma-core 03/14] build: Add pyverbs-based test to the
- build
-Thread-Topic: [PATCH rdma-core 03/14] build: Add pyverbs-based test to the
- build
-Thread-Index: AQHVVluKi/1wMEsI4UWSJliEROGNkacCfWOAgAGEcwCAA1vkAIAACaEAgA9+4wA=
-Date:   Sun, 1 Sep 2019 13:30:56 +0000
-Message-ID: <88435e1e-676b-f948-1c34-22cd471af4c9@mellanox.com>
-References: <20190819065827.26921-1-noaos@mellanox.com>
- <20190819065827.26921-4-noaos@mellanox.com>
- <20190819135019.GF5080@mellanox.com>
- <2ac30209-2c89-15ef-3907-98d3cd552f4d@mellanox.com>
- <20190822161813.GI29433@mtr-leonro.mtl.com>
- <20190822165247.GB8325@mellanox.com>
-In-Reply-To: <20190822165247.GB8325@mellanox.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: AM0PR01CA0060.eurprd01.prod.exchangelabs.com
- (2603:10a6:208:e6::37) To AM6PR05MB4968.eurprd05.prod.outlook.com
- (2603:10a6:20b:4::17)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=noaos@mellanox.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [193.47.165.251]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 3419115b-7d8a-497f-c81d-08d72ee09ea7
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600166)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:AM6PR05MB5624;
-x-ms-traffictypediagnostic: AM6PR05MB5624:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <AM6PR05MB5624E0CB63351E1280983FEBD9BF0@AM6PR05MB5624.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:10000;
-x-forefront-prvs: 0147E151B5
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(376002)(136003)(396003)(366004)(39860400002)(189003)(199004)(8936002)(478600001)(52116002)(81166006)(81156014)(7736002)(305945005)(14454004)(25786009)(53936002)(446003)(76176011)(6246003)(2906002)(8676002)(66066001)(6116002)(486006)(2616005)(3846002)(71190400001)(476003)(71200400001)(11346002)(36756003)(31696002)(110136005)(229853002)(31686004)(386003)(316002)(6506007)(186003)(53546011)(54906003)(102836004)(6486002)(6436002)(4326008)(5660300002)(99286004)(256004)(6636002)(6512007)(26005)(86362001)(66946007)(64756008)(66446008)(66556008)(66476007);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR05MB5624;H:AM6PR05MB4968.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: vUQN915ckwDSYO8qj3bkYZuZNHdUPh9h4kaRyanty+vh4e3l1wnFGz66dw6osH1TyBlxE/R5eWs710mG6ZfH1y0cvcDu8gQCFHcFWRP5p9zpjXl4WU9Xm9MLkAvxb+f/iiM7REf8wZAROb+Z7I4+yuhdc0MIb9+ISdAoUH4a/MOQWFIlbE3iTKyS6ItZNgGSPzs6Y78xkawoW2zZDn7gGmY5VW0yslXYRLWC9ZysPryvGNsHdtxgZ6BPBov8QHNVbNtnKynb6cJkeSAz9vReW8hVULmgMeK/3umQLmir/ogGSs7MHT+2SEAlA2Ar0hR6/3o5JaaRV3Rh3lan4zcHt6KtuTP9/Xo0/EaUKLJVomc/G3YDepBBKu3MdMvixuHMDTZthV1oG/SYfBsHgJANboKEIMD2myaNTWP7XriVtlg=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <E97EAE033DF8DB4E9939C14C580F7ED6@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        id S1728883AbfIAQwB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 1 Sep 2019 12:52:01 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:51800 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728878AbfIAQwB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 1 Sep 2019 12:52:01 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x81GmwNq189714;
+        Sun, 1 Sep 2019 16:51:38 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding; s=corp-2019-08-05;
+ bh=viZ0rpJhtreNNatRCsPHwnK5It+ZresIydLMQiXle/U=;
+ b=czKekPznH+r6oAcb8BdsMMOrxBQW0DGUW5mlNkZ24+j8Fc0E89jq5xbyMzcgAyKYt7DA
+ vdmszTvI3WhktS9o1fyqyA1B1AbU/6qfvHxc3YmO/zqrJfZd2/F8q0OcLzCgZqqApHBT
+ j2GKWA+kvPbUHETpUsD5hq1eWx5WOFh6KIq+HgAdMp1slHro5tan/pL2icERe+fGyPKy
+ k6V6+UvCAgIbzPWY0NM9icJV1JXFeIzhhErORH6wy5qXuejjF9vh+Eaqgd0uk8RzQldf
+ 74yXOh5ld/au8oJ1mWaPBF9JGFhoBpz0/0wP2bYGBJYI1ATEvcVJosRazNXrXpGv+QIK FA== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by userp2120.oracle.com with ESMTP id 2urht5r07p-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sun, 01 Sep 2019 16:51:38 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x81GmxJd156238;
+        Sun, 1 Sep 2019 16:51:37 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by aserp3020.oracle.com with ESMTP id 2uqgqjrbhv-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sun, 01 Sep 2019 16:51:37 +0000
+Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x81GpaTk026936;
+        Sun, 1 Sep 2019 16:51:36 GMT
+Received: from host5.lan (/77.138.183.59)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Sun, 01 Sep 2019 09:51:36 -0700
+From:   Yuval Shaia <yuval.shaia@oracle.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, oulijun@huawei.com,
+        xavier.huwei@huawei.com, leon@kernel.org, parav@mellanox.com,
+        markz@mellanox.com, swise@opengridcomputing.com,
+        galpress@amazon.com, israelr@mellanox.com, monis@mellanox.com,
+        maxg@mellanox.com, kamalheib1@gmail.com, yuval.shaia@oracle.com,
+        denisd@mellanox.com, yuvalav@mellanox.com,
+        dennis.dalessandro@intel.com, ereza@mellanox.com, will@kernel.org,
+        linux-rdma@vger.kernel.org, jgg@mellanox.com, srabinov7@gmail.com,
+        santosh.shilimkar@oracle.com
+Cc:     Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+Subject: [PATCH v3 3/5] RDMA/nldev: ib_pd can be pointed by multiple ib_ucontext
+Date:   Sun,  1 Sep 2019 19:51:06 +0300
+Message-Id: <20190901165108.11518-4-yuval.shaia@oracle.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190901165108.11518-1-yuval.shaia@oracle.com>
+References: <20190901165108.11518-1-yuval.shaia@oracle.com>
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3419115b-7d8a-497f-c81d-08d72ee09ea7
-X-MS-Exchange-CrossTenant-originalarrivaltime: 01 Sep 2019 13:30:56.7501
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: WRrgOWh3lxB+n/ZmzHypSpObPme5UWuJezIszb+Xt7g+6BUzdS6yRntgYJ9lRWlo/Fk7yjhNapHFR3qHf+gghw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB5624
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9367 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1906280000 definitions=main-1909010192
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9367 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
+ definitions=main-1909010192
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-T24gOC8yMi8yMDE5IDc6NTIgUE0sIEphc29uIEd1bnRob3JwZSB3cm90ZToNCg0KPiBPbiBUaHUs
-IEF1ZyAyMiwgMjAxOSBhdCAwMToxODoyNFBNIC0wMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+PiBPbiBUdWUsIEF1ZyAyMCwgMjAxOSBhdCAwMTowMDo0N1BNICswMDAwLCBOb2EgT3NoZXJv
-dmljaCB3cm90ZToNCj4+PiBPbiA4LzE5LzIwMTkgNDo1MCBQTSwgSmFzb24gR3VudGhvcnBlIHdy
-b3RlOg0KPj4+DQo+Pj4+IEknZCBwcmVmZXIgcnVuX3Rlc3RzIHRvIGJlIGluIHRoZSB0ZXN0cyBk
-aXJlY3RvcnkuLg0KPj4+Pg0KPj4+PiBKYXNvbg0KPj4+IFBSIHdhcyB1cGRhdGVkDQo+PiAxLg0K
-Pj4gSU1ITywgcnVuX3Rlc3RzLnB5IHNob3VsZCBiZSBwbGFjZWQgaW5zaWRlIHRlc3RzIGRpcmVj
-dG9yeSB0b28gYW5kIG5vdA0KPj4gb25seSBpbnN0YWxsZWQgaW50byB0ZXN0cy8uDQo+IFllcywg
-dGhpcyBpcyB3aGF0IEkgbWVudC4gVGhlIGZpbGUgc2hvdWxkIGJlIGluIHRlc3RzLyBhbmQgaXQg
-c2hvdWxkDQo+IGJlIGJ1aWx0IGludG8gYnVpbGQvYmluLCBhbmQgaW5zdGFsbGVkIGludG8gdGhl
-IGV4YW1wbGVzDQo+PiAyLg0KPj4gRXhlY3V0aW9uIG9mIHJ1bl90ZXN0cy5weSBwcm9kdWNlcyBh
-IGxvdCBvZiB1bnRyYWNrZWQgZmlsZWQNCj4+IOKenCAgcmRtYS1jb3JlIGdpdDoobm9hb3MtcHIt
-dGVzdHMpIOKclyBnaXQgc3QNCj4+IE9uIGJyYW5jaCBub2Fvcy1wci10ZXN0cw0KPj4gVW50cmFj
-a2VkIGZpbGVzOg0KPj4gICAodXNlICJnaXQgYWRkIDxmaWxlPi4uLiIgdG8gaW5jbHVkZSBpbiB3
-aGF0IHdpbGwgYmUgY29tbWl0dGVkKQ0KPj4NCj4+IAlweXZlcmJzL19faW5pdF9fLnB5Yw0KPj4g
-CXB5dmVyYnMvcHl2ZXJic19lcnJvci5weWMNCj4+IAl0ZXN0cy9fX2luaXRfXy5weWMNCj4+IAl0
-ZXN0cy9iYXNlLnB5Yw0KPj4gCXRlc3RzL3Rlc3RfYWRkci5weWMNCj4+IAl0ZXN0cy90ZXN0X2Nx
-LnB5Yw0KPj4gCXRlc3RzL3Rlc3RfZGV2aWNlLnB5Yw0KPj4gCXRlc3RzL3Rlc3RfbXIucHljDQo+
-PiAJdGVzdHMvdGVzdF9vZHAucHljDQo+PiAJdGVzdHMvdGVzdF9wZC5weWMNCj4+IAl0ZXN0cy90
-ZXN0X3FwLnB5Yw0KPiAqLnB5YyB3aWxsIGhhdmUgdG8gYmUgYWRkZWQgdG8gdGhlIC5naXRpZ25v
-cmUNCj4+IDMuIHJ1bl90ZXN0cy5weSBsYWNrcyBvZiBweXRob24zIHNoZWJhbmcNCj4gT3JpZ2lu
-YWxseSBpdCB3YXMgbm90IGluc3RhbGxlZCwgc28gdGhpcyB3YXMgZmluZSwgYXMgdGhlIGJ1aWxk
-L2Jpbg0KPiBzY3JpcHQgZG9lcyBhbGwgdGhlIHJlcXVpcmVkIHNldHVwLCBob3dldmVyIG5vdyB0
-aGF0IGl0IGlzIHRvIGJlDQo+IGluc3RhbGxlZCBpdCBzaG91bGQgaGF2ZSB0aGUgIyEgLSBhbmQg
-aXQgc2hvdWxkIGFsc28gd29yayB3aXRob3V0IGFueQ0KPiB0cm91YmxlIGZyb20gaXQncyBleGFt
-cGxlIGxvY2F0aW9uLg0KPg0KPiBKYXNvbg0KDQpQUiB3YXMgdXBkYXRlZC4NCg0KVGhhbmtzLA0K
-DQpOb2ENCg0K
+From: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+
+In shared object model ib_pd can belong to 1 or more ib_ucontext.
+Fix the nldev code so it could report multiple context ids.
+
+Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+Signed-off-by: Shamir Rabinovitch <srabinov7@gmail.com>
+---
+ drivers/infiniband/core/nldev.c  | 127 +++++++++++++++++++++++++++++--
+ include/uapi/rdma/rdma_netlink.h |   3 +
+ 2 files changed, 125 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index e287b71a1cfd..7ad23a6607f7 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -41,6 +41,7 @@
+ #include "core_priv.h"
+ #include "cma_priv.h"
+ #include "restrack.h"
++#include "uverbs.h"
+ 
+ /*
+  * Sort array elements by the netlink attribute name
+@@ -141,6 +142,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_UVERBS_DRIVER_ID]	= { .type = NLA_U32 },
+ 	[RDMA_NLDEV_NET_NS_FD]			= { .type = NLA_U32 },
+ 	[RDMA_NLDEV_SYS_ATTR_NETNS_MODE]	= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_CTX]		= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_CTX_ENTRY]		= { .type = NLA_NESTED },
+ };
+ 
+ static int put_driver_name_print_type(struct sk_buff *msg, const char *name,
+@@ -611,11 +614,84 @@ static int fill_res_mr_entry(struct sk_buff *msg, bool has_cap_net_admin,
+ err:	return -EMSGSIZE;
+ }
+ 
++struct context_id {
++	struct list_head list;
++	u32 id;
++};
++
++static void pd_context(struct ib_pd *pd, struct list_head *list, int *count)
++{
++	struct ib_device *device = pd->device;
++	struct rdma_restrack_entry *res;
++	struct rdma_restrack_root *rt;
++	struct ib_uverbs_file *ufile;
++	struct ib_ucontext *ucontext;
++	struct ib_uobject *uobj;
++	unsigned long flags;
++	unsigned long id;
++	bool found;
++
++	rt = &device->res[RDMA_RESTRACK_CTX];
++
++	xa_lock(&rt->xa);
++
++	xa_for_each(&rt->xa, id, res) {
++		if (!rdma_is_visible_in_pid_ns(res))
++			continue;
++
++		if (!rdma_restrack_get(res))
++			continue;
++
++		xa_unlock(&rt->xa);
++
++		ucontext = container_of(res, struct ib_ucontext, res);
++		ufile = ucontext->ufile;
++		found = false;
++
++		/* See locking requirements in struct ib_uverbs_file */
++		down_read(&ufile->hw_destroy_rwsem);
++		spin_lock_irqsave(&ufile->uobjects_lock, flags);
++
++		list_for_each_entry(uobj, &ufile->uobjects, list) {
++			if (uobj->object == pd) {
++				found = true;
++				goto found;
++			}
++		}
++
++found:		spin_unlock_irqrestore(&ufile->uobjects_lock, flags);
++		up_read(&ufile->hw_destroy_rwsem);
++
++		if (found) {
++			struct context_id *ctx_id =
++				kmalloc(sizeof(*ctx_id), GFP_KERNEL);
++
++			if (WARN_ON_ONCE(!ctx_id))
++				goto next;
++
++			ctx_id->id = ucontext->res.id;
++			list_add(&ctx_id->list, list);
++			(*count)++;
++		}
++
++next:		rdma_restrack_put(res);
++		xa_lock(&rt->xa);
++	}
++
++	xa_unlock(&rt->xa);
++}
++
+ static int fill_res_pd_entry(struct sk_buff *msg, bool has_cap_net_admin,
+ 			     struct rdma_restrack_entry *res, uint32_t port)
+ {
+ 	struct ib_pd *pd = container_of(res, struct ib_pd, res);
+ 	struct ib_device *dev = pd->device;
++	struct nlattr *table_attr = NULL;
++	struct nlattr *entry_attr = NULL;
++	struct context_id *ctx_id;
++	struct context_id *tmp;
++	LIST_HEAD(pd_context_ids);
++	int ctx_count = 0;
+ 
+ 	if (has_cap_net_admin) {
+ 		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,
+@@ -633,10 +709,38 @@ static int fill_res_pd_entry(struct sk_buff *msg, bool has_cap_net_admin,
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_PDN, res->id))
+ 		goto err;
+ 
+-	if (!rdma_is_kernel_res(res) &&
+-	    nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CTXN,
+-			pd->uobject->context->res.id))
+-		goto err;
++	if (!rdma_is_kernel_res(res)) {
++		pd_context(pd, &pd_context_ids, &ctx_count);
++		if (ctx_count == 1) {
++			/* user pd, not shared */
++			ctx_id = list_first_entry(&pd_context_ids,
++						  struct context_id, list);
++			if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CTXN,
++					ctx_id->id))
++				goto err;
++		} else if (ctx_count > 1) {
++			/* user pd, shared */
++			table_attr = nla_nest_start(msg,
++					RDMA_NLDEV_ATTR_RES_CTX);
++			if (!table_attr)
++				goto err;
++
++			list_for_each_entry(ctx_id, &pd_context_ids, list) {
++				entry_attr = nla_nest_start(msg,
++						RDMA_NLDEV_ATTR_RES_CTX_ENTRY);
++				if (!entry_attr)
++					goto err;
++				if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CTXN,
++						ctx_id->id))
++					goto err;
++				nla_nest_end(msg, entry_attr);
++				entry_attr = NULL;
++			}
++
++			nla_nest_end(msg, table_attr);
++			table_attr = NULL;
++		}
++	}
+ 
+ 	if (fill_res_name_pid(msg, res))
+ 		goto err;
+@@ -644,9 +748,22 @@ static int fill_res_pd_entry(struct sk_buff *msg, bool has_cap_net_admin,
+ 	if (fill_res_entry(dev, msg, res))
+ 		goto err;
+ 
++	list_for_each_entry_safe(ctx_id, tmp, &pd_context_ids, list)
++		kfree(ctx_id);
++
+ 	return 0;
+ 
+-err:	return -EMSGSIZE;
++err:
++	if (entry_attr)
++		nla_nest_end(msg, entry_attr);
++
++	if (table_attr)
++		nla_nest_end(msg, table_attr);
++
++	list_for_each_entry_safe(ctx_id, tmp, &pd_context_ids, list)
++		kfree(ctx_id);
++
++	return -EMSGSIZE;
+ }
+ 
+ static int fill_stat_counter_mode(struct sk_buff *msg,
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index 8e277783fa96..7fbbfb07f071 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -525,6 +525,9 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_DEV_DIM,                /* u8 */
+ 
++	RDMA_NLDEV_ATTR_RES_CTX,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_CTX_ENTRY,		/* nested table */
++
+ 	/*
+ 	 * Always the end
+ 	 */
+-- 
+2.20.1
+
