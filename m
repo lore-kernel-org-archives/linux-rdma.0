@@ -1,123 +1,109 @@
-Return-Path: <SRS0=upTf=W4=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=sZtl=W5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E000C3A5A4
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Sep 2019 16:53:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37C56C3A59B
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Sep 2019 06:45:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 70E7E20870
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Sep 2019 16:53:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08FB12190F
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Sep 2019 06:45:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="fo89dR9p"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="UhJSWo2q"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728570AbfIAQxx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Sep 2019 12:53:53 -0400
-Received: from userp2130.oracle.com ([156.151.31.86]:49136 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728496AbfIAQxx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 1 Sep 2019 12:53:53 -0400
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x81Gn0wg178754;
-        Sun, 1 Sep 2019 16:53:25 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id : mime-version : content-transfer-encoding;
- s=corp-2019-08-05; bh=5iZCgpzek+1XaMZLMl+1kbbVjymb7/H2pYuZ4wVTy/k=;
- b=fo89dR9pE4mNbBK2aBMBKlsw/cN2HW/aSDq/FMT/J4Vpibgv5F7CW/a+CJVmWJ8VtFcO
- D8Tdcd6NEcYtrimL6Ii5Dzw7VHOfVUIZtivj8s4xeiJJaBK9iXWlh+gjvywLE/2MdCOi
- 0bZ6CHe5icHk2huR6MboXNyml2AfqZey5+daFfewzXRt00UQWeU2ENP7xf3lgnCGpiXh
- r3rBBdzta+UoPTSfweald8fT5QPfqv0F4zUwMsGtdQBavnpYIvdgMcz5yZ9KHM/z8Snm
- aPlum8QBpfEYTRrNfqHv+4PLkH4h4ycjZ1dia71TjwZzg10bKo1n4KpzGGMeAkkvw9QE +g== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by userp2130.oracle.com with ESMTP id 2urhst00bh-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sun, 01 Sep 2019 16:53:25 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x81Gn1ZN171609;
-        Sun, 1 Sep 2019 16:51:24 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by aserp3030.oracle.com with ESMTP id 2uqey7paum-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sun, 01 Sep 2019 16:51:24 +0000
-Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x81GpKmQ007022;
-        Sun, 1 Sep 2019 16:51:20 GMT
-Received: from host5.lan (/77.138.183.59)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Sun, 01 Sep 2019 09:51:20 -0700
-From:   Yuval Shaia <yuval.shaia@oracle.com>
-To:     dledford@redhat.com, jgg@ziepe.ca, oulijun@huawei.com,
-        xavier.huwei@huawei.com, leon@kernel.org, parav@mellanox.com,
-        markz@mellanox.com, swise@opengridcomputing.com,
-        galpress@amazon.com, israelr@mellanox.com, monis@mellanox.com,
-        maxg@mellanox.com, kamalheib1@gmail.com, yuval.shaia@oracle.com,
-        denisd@mellanox.com, yuvalav@mellanox.com,
-        dennis.dalessandro@intel.com, ereza@mellanox.com, will@kernel.org,
-        linux-rdma@vger.kernel.org, jgg@mellanox.com, srabinov7@gmail.com,
-        santosh.shilimkar@oracle.com
-Subject: [PATCH v3 0/5] Take out ucontext from HW objects
-Date:   Sun,  1 Sep 2019 19:51:03 +0300
-Message-Id: <20190901165108.11518-1-yuval.shaia@oracle.com>
-X-Mailer: git-send-email 2.20.1
+        id S1729538AbfIBGpV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 2 Sep 2019 02:45:21 -0400
+Received: from mail-eopbgr20051.outbound.protection.outlook.com ([40.107.2.51]:28077
+        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726375AbfIBGpV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 2 Sep 2019 02:45:21 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=GolJbpg5gynI/21smxlDwqlyc8qler8Ghf571FWKc7JHfyyOdLJaf6RI3JnEybv61CKV8iGtMqSRCr2auwEURO4nORy5sGdqj50OQz7GHQZrNDgY5RiLxvubG/HLRf9df0MhHfxwoQOdt6sUajl9qxFY/nZewxdIOQMSZrByujvYD631EMP9nPmmbtIcB/LqydJEvVkmGr0F5OhFeBpszegZ1nhPegkDtOaJNIB/YgxtoPxITIvmBs7z0hF1nRue+TFVmAb2vdd5FlbFsPjIL+tYbJ5gVjXjKjldssux2zkyzixS1Dr2tF88EfI3jO3QUXsuiwbUzvCresfSBL6P9A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=P7p6uwxAc/QmU0EBU66q3qI3CTDJZ6Rmc6uYY/O2Dms=;
+ b=GpsrVfybTVFAm/7VAqKvru9XVoolFZZG1TuGH/KlfxjZbup/e6K1doIsjJN6I9RBiwVzRa67gWtlKo7iYUdjuRF9LqfmGuSA/UYVswBz0ggwvbPAo08WVK5LIVyQnBJsUybzmqshqR6Sukr+wPoOwzg6CRyf/QiUH9lP0CA1t0w07ayt5qJkS3Wz1JUgRMdEa13Wk3ekg/Q2gE5aK1rXcYxEkxZRoXCVnCwMKwNiGx8tWZnwcz9Q32JQMJx9H1sKDQuon5Ka0SPc93I9TAQpNcadBHXJ3zt1HwdVA+qcILr0tO7Llm43YY60YVoOja0MzuFJ3P/XTSM64zzyCQ+DwA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=P7p6uwxAc/QmU0EBU66q3qI3CTDJZ6Rmc6uYY/O2Dms=;
+ b=UhJSWo2qY6zSZ9/ymeAUeIMnZQgU+iomJUqvbnt0CmwQg4+gWqjNVKCkJCaKKv7KCOd5tNBQGinxgbN7zNKITHAOPjXy2/aU/wIaA7CKseNN4UClFQBcugoBrl7WBJ+2iMWFqmZEDiT0zH0dgld2BlnJxJ5Zx6A5cKXJnpCdA/w=
+Received: from AM4PR0501MB2756.eurprd05.prod.outlook.com (10.172.216.138) by
+ AM4PR0501MB2658.eurprd05.prod.outlook.com (10.172.219.17) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2220.18; Mon, 2 Sep 2019 06:45:16 +0000
+Received: from AM4PR0501MB2756.eurprd05.prod.outlook.com
+ ([fe80::58d1:d1d6:dbda:3576]) by AM4PR0501MB2756.eurprd05.prod.outlook.com
+ ([fe80::58d1:d1d6:dbda:3576%4]) with mapi id 15.20.2220.021; Mon, 2 Sep 2019
+ 06:45:16 +0000
+From:   Saeed Mahameed <saeedm@mellanox.com>
+To:     Leon Romanovsky <leonro@mellanox.com>
+CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH mlx5-next 0/5] Mellanox, mlx5 next updates 2019-09-29
+Thread-Topic: [PATCH mlx5-next 0/5] Mellanox, mlx5 next updates 2019-09-29
+Thread-Index: AQHVXsNqTpgpI39FF0GNuR1TlVUVtKcX9msA
+Date:   Mon, 2 Sep 2019 06:45:16 +0000
+Message-ID: <bb7ef7672dc2ca50cb70338eb61743b7db035dce.camel@mellanox.com>
+References: <20190829234151.9958-1-saeedm@mellanox.com>
+In-Reply-To: <20190829234151.9958-1-saeedm@mellanox.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Evolution 3.32.4 (3.32.4-1.fc30) 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=saeedm@mellanox.com; 
+x-originating-ip: [73.15.39.150]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 36c6ac52-288a-4bd1-3320-08d72f711d76
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600166)(711020)(4605104)(1401327)(4618075)(2017052603328)(7193020);SRVR:AM4PR0501MB2658;
+x-ms-traffictypediagnostic: AM4PR0501MB2658:|AM4PR0501MB2658:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <AM4PR0501MB265868B6E733970710D2906CBEBE0@AM4PR0501MB2658.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:7219;
+x-forefront-prvs: 01480965DA
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(366004)(136003)(39860400002)(346002)(376002)(396003)(53754006)(189003)(199004)(3846002)(316002)(66556008)(66446008)(64756008)(118296001)(76116006)(91956017)(53936002)(8936002)(66946007)(66476007)(476003)(86362001)(5660300002)(6116002)(25786009)(478600001)(6436002)(15650500001)(99286004)(4326008)(6862004)(6246003)(450100002)(81156014)(54906003)(486006)(37006003)(76176011)(26005)(71190400001)(71200400001)(6636002)(14454004)(58126008)(8676002)(6506007)(256004)(14444005)(4744005)(7736002)(229853002)(2906002)(66066001)(2616005)(36756003)(102836004)(11346002)(186003)(6486002)(446003)(81166006)(305945005)(6512007);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR0501MB2658;H:AM4PR0501MB2756.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: wLADI1ooidBY4x4QLG7QuI1u+wqIkP5u3WR7FJeaSs11d7zoTBfI2fpw4mN94Paeh5Q7ho+YFdF5ybiClRRmmRaozlUCV3OCR/C0nzZOf/ffdWdWRL0oWVmwVDsW1VGUl/7kXBSfFrN6b7HZJM80CzDLxj0P0q7f1aceaVnM6NSddufeZ8SECxSqTRS1PHCmy8rnwwD+oRCw/k+dQTbdrhlWU3/fBjDa48hJhnHlN70pXvlMRXSngWK92KoDlFcZcH0DTgLhngcNSkfaX1j168aPS91vRGNTeNi6z//sMIRy1HTB8nGhCwg5flHqP9aoMiOXkHLhRQi5NviKKWe70bgSduHYjhq6uVHBvCjcEakUd0xtitVj8hPyozqs4eP+Bcnz9CP9VbX+kIqmw2uYvJT8opb3uxQtLjJxPMfYH0I=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <29961281661ABC4C9F27183FB29894E0@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9367 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=775
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1906280000 definitions=main-1909010192
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9367 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=835 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
- definitions=main-1909010192
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 36c6ac52-288a-4bd1-3320-08d72f711d76
+X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Sep 2019 06:45:16.7360
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: G/cxPVYxSoEHVrToMP8xIOjxEU++XEVTYvFlbBMNZtt1g1ZdJaRNum9mBVhX/hrZnkFRC1bF8kSOGoKGc2cNpA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR0501MB2658
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch-set, originaly part of Shared PD & MR patch-set, intend to take
-out the field ucontext from the HW objects ib_pd and ib_mr.
-
-v0 -> v1:
-	* Add the patch "RDMA/nldev: ib_pd can be pointed by multiple
-	 ib_ucontext"
-
-v1 -> v2:
-	* Remove unneeded union in ib_mr
-
-v2 -> v3:
-	* Reorder patches so build would not break
-
-Thanks,
-Yuval
-
-Shamir Rabinovitch (4):
-  RDMA/uverbs: uobj_get_obj_read should return the ib_uobject
-  RDMA/uverbs: Delete the macro uobj_put_obj_read
-  RDMA/nldev: ib_pd can be pointed by multiple ib_ucontext
-  IB/{core,hw}: ib_pd should not have ib_uobject pointer
-
-Yuval Shaia (1):
-  IB/core: ib_mr should not have ib_uobject pointer
-
- drivers/infiniband/core/nldev.c               | 127 +++++++++-
- drivers/infiniband/core/uverbs_cmd.c          | 219 +++++++++++-------
- drivers/infiniband/core/uverbs_std_types_mr.c |   1 -
- drivers/infiniband/core/verbs.c               |   4 -
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c    |   1 -
- drivers/infiniband/hw/mlx5/main.c             |   1 -
- drivers/infiniband/hw/mthca/mthca_qp.c        |   3 +-
- include/rdma/ib_verbs.h                       |   6 +-
- include/rdma/uverbs_std_types.h               |  11 +-
- include/uapi/rdma/rdma_netlink.h              |   3 +
- 10 files changed, 272 insertions(+), 104 deletions(-)
-
--- 
-2.20.1
-
+T24gVGh1LCAyMDE5LTA4LTI5IGF0IDIzOjQyICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
+Cj4gSGkgQWxsLA0KPiANCj4gVGhpcyBzZXJpZXMgaW5jbHVkZXMgbWlzYyB1cGRhdGVzIGZvciBt
+bHg1LW5leHQgc2hhcmVkIGJyYW5jaA0KPiByZXF1aXJlZA0KPiBmb3IgdXBjb21pbmcgc29mdHdh
+cmUgc3RlZXJpbmcgZmVhdHVyZS4NCj4gDQo+IDEpIEFsZXggYWRkcyBIVyBiaXRzIGFuZCBkZWZp
+bml0aW9ucyByZXF1aXJlZCBmb3IgU1cgc3RlZXJpbmcNCj4gMikgQXJpZWwgbW92ZXMgZGV2aWNl
+IG1lbW9yeSBtYW5hZ2VtZW50IHRvIG1seDVfY29yZSAoRnJvbSBtbHg1X2liKQ0KPiAzKSBNYW9y
+LCBDbGVhbnVwcyBhbmQgZml4dXBzIGZvciBlc3dpdGNoIG1vZGUgYW5kIFJvQ0UNCj4gNCkgTWFy
+LCBTZXQgb25seSBzdGFnIGZvciBtYXRjaCB1bnRhZ2dlZCBwYWNrZXRzDQo+IA0KPiBJbiBjYXNl
+IG9mIG5vIG9iamVjdGlvbiB0aGlzIHNlcmllcyB3aWxsIGJlIGFwcGxpZWQgdG8gbWx4NS1uZXh0
+DQo+IGJyYW5jaA0KPiBhbmQgc2VudCBsYXRlciBhcyBwdWxsIHJlcXVlc3QgdG8gYm90aCByZG1h
+LW5leHQgYW5kIG5ldC1uZXh0DQo+IGJyYW5jaGVzLg0KPiANCg0KQXBwbGllZCB0byBtbHg1LW5l
+eHQNClRoYW5rcywNClNhZWVkDQo=
