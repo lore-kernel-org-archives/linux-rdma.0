@@ -2,169 +2,96 @@ Return-Path: <SRS0=wbeK=W6=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CAF1C3A5A2
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Sep 2019 16:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B995BC3A5A2
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Sep 2019 19:22:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 749A323400
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Sep 2019 16:41:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567528863;
-	bh=ClRwCvx8HHpkFwO3LeGjqjqNIj13E59y3JUVDZqeXGg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Jgj8olymSzoxRyj9ZBkYbGMgxlHdWfeVl4iTJpLSCVohMPz9L3uHet6EDQOSE/xAm
-	 Nc3raZqyATgHn6F+RsFRFR1vAEeoR//TTFdYYToYP9BlWQDCaHLLgA2zlOGlfjRSlW
-	 g9BYu+J7J19eQ77nBKIRsGMW1gXll3s8uuvwBQyc=
+	by mail.kernel.org (Postfix) with ESMTP id 7F9A02168B
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Sep 2019 19:22:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="GmwS5TWq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730200AbfICQY6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 3 Sep 2019 12:24:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44632 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730194AbfICQY5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 3 Sep 2019 12:24:57 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7D52523697;
-        Tue,  3 Sep 2019 16:24:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567527896;
-        bh=ClRwCvx8HHpkFwO3LeGjqjqNIj13E59y3JUVDZqeXGg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gfpXAegAvu3TWt4HSrhXA9VdtXFeb2ze8ju3j2jm8R20jV3e8axUYvR35XCcwC8d4
-         MqJgrxEqqsykGqY9mz6JUL2xRt+AsAh7N8n89ylk6+YdYjh64S5Edlzyeis7P5qxnb
-         q7wSPaz7sP52tYhH3RMRRoiEzRUt10LcKUEGFIis=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        "Michael J . Ruhl" <michael.j.ruhl@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 09/23] IB/rdmavt: Add new completion inline
-Date:   Tue,  3 Sep 2019 12:24:10 -0400
-Message-Id: <20190903162424.6877-9-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190903162424.6877-1-sashal@kernel.org>
-References: <20190903162424.6877-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S1726179AbfICTWZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 3 Sep 2019 15:22:25 -0400
+Received: from bombadil.infradead.org ([198.137.202.133]:40080 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726171AbfICTWY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 3 Sep 2019 15:22:24 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Message-Id:Date:Subject:Cc:To:From:
+        Sender:Reply-To:MIME-Version:Content-Type:Content-Transfer-Encoding:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=rOgj+Udj/SVslBo/wGoCPgqIw1KOQxB8hV1eV7Z2miA=; b=GmwS5TWqrEtYXxR842AsUVQYL
+        xseCOLMrFSnDM+ac9wXElaUWnFiBr+v9qJrop7yORQpXo/m+Dg2FwdLwPKtMqYnUhEH1+xh1O3yV7
+        jLsNoRsgp2cj5b2yQP67hDnVeVfOVnGxtmAiXFaqkvBtHgvWvPXltGyD0ZwV+D1YZBfms8g5e6LuC
+        28QbbxyA8TmxtgQ6ibKbU7XA+Op2mRDCHRbjG4lUguJxrnv+gUmBQ1C4LRUBmN+ovObxaUvKY5RHb
+        OQWPSgfjTbHT0do6QRFw9dFiQsVap2AH4jVV13bGQj8BkWYealDLr3eImr3KQjlpsZ2KD/x2eJyrL
+        rYCl8jqLQ==;
+Received: from [2600:1700:65a0:78e0:514:7862:1503:8e4d] (helo=sagi-Latitude-E7470.lbits)
+        by bombadil.infradead.org with esmtpsa (Exim 4.92 #3 (Red Hat Linux))
+        id 1i5ENk-0007iu-6f; Tue, 03 Sep 2019 19:22:24 +0000
+From:   Sagi Grimberg <sagi@grimberg.me>
+To:     linux-rdma@vger.kernel.org
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>
+Subject: [PATCH] iwcm: don't hold the irq disabled lock on iw_rem_ref
+Date:   Tue,  3 Sep 2019 12:22:23 -0700
+Message-Id: <20190903192223.17342-1-sagi@grimberg.me>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+This may be the final put on a qp and result in freeing
+resourcesand should not be done with interrupts disabled.
 
-There is opencoded send completion logic all over all
-the drivers.
+Produce the following warning:
+--
+[  317.026048] WARNING: CPU: 1 PID: 443 at kernel/smp.c:425 smp_call_function_many+0xa0/0x260
+[  317.026131] Call Trace:
+[  317.026159]  ? load_new_mm_cr3+0xe0/0xe0
+[  317.026161]  on_each_cpu+0x28/0x50
+[  317.026183]  __purge_vmap_area_lazy+0x72/0x150
+[  317.026200]  free_vmap_area_noflush+0x7a/0x90
+[  317.026202]  remove_vm_area+0x6f/0x80
+[  317.026203]  __vunmap+0x71/0x210
+[  317.026211]  siw_free_qp+0x8d/0x130 [siw]
+[  317.026217]  destroy_cm_id+0xc3/0x200 [iw_cm]
+[  317.026222]  rdma_destroy_id+0x224/0x2b0 [rdma_cm]
+[  317.026226]  nvme_rdma_reset_ctrl_work+0x2c/0x70 [nvme_rdma]
+[  317.026235]  process_one_work+0x1f4/0x3e0
+[  317.026249]  worker_thread+0x221/0x3e0
+[  317.026252]  ? process_one_work+0x3e0/0x3e0
+[  317.026256]  kthread+0x117/0x130
+[  317.026264]  ? kthread_create_worker_on_cpu+0x70/0x70
+[  317.026275]  ret_from_fork+0x35/0x40
+--
 
-We need to convert to this routine to enforce ordering
-issues for completions.  This routine fixes an ordering
-issue where the read of the SWQE fields necessary for creating
-the completion can race with a post send if the post send catches
-a send queue at the edge of being full.  Is is possible in that situation
-to read SWQE fields that are being written.
-
-This new routine insures that SWQE fields are read prior to advancing
-the index that post send uses to determine queue fullness.
-
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
+Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- include/rdma/rdmavt_qp.h | 72 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ drivers/infiniband/core/iwcm.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index 68e38c20afc04..6014f17669071 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -737,6 +737,78 @@ static inline void rvt_put_qp_swqe(struct rvt_qp *qp, struct rvt_swqe *wqe)
- 		atomic_dec(&ibah_to_rvtah(wqe->ud_wr.ah)->refcount);
- }
- 
-+/**
-+ * rvt_qp_sqwe_incr - increment ring index
-+ * @qp: the qp
-+ * @val: the starting value
-+ *
-+ * Return: the new value wrapping as appropriate
-+ */
-+static inline u32
-+rvt_qp_swqe_incr(struct rvt_qp *qp, u32 val)
-+{
-+	if (++val >= qp->s_size)
-+		val = 0;
-+	return val;
-+}
-+
-+/**
-+ * rvt_qp_complete_swqe - insert send completion
-+ * @qp - the qp
-+ * @wqe - the send wqe
-+ * @opcode - wc operation (driver dependent)
-+ * @status - completion status
-+ *
-+ * Update the s_last information, and then insert a send
-+ * completion into the completion
-+ * queue if the qp indicates it should be done.
-+ *
-+ * See IBTA 10.7.3.1 for info on completion
-+ * control.
-+ *
-+ * Return: new last
-+ */
-+static inline u32
-+rvt_qp_complete_swqe(struct rvt_qp *qp,
-+		     struct rvt_swqe *wqe,
-+		     enum ib_wc_opcode opcode,
-+		     enum ib_wc_status status)
-+{
-+	bool need_completion;
-+	u64 wr_id;
-+	u32 byte_len, last;
-+	int flags = wqe->wr.send_flags;
-+
-+	rvt_put_qp_swqe(qp, wqe);
-+
-+	need_completion =
-+		!(flags & RVT_SEND_RESERVE_USED) &&
-+		(!(qp->s_flags & RVT_S_SIGNAL_REQ_WR) ||
-+		(flags & IB_SEND_SIGNALED) ||
-+		status != IB_WC_SUCCESS);
-+	if (need_completion) {
-+		wr_id = wqe->wr.wr_id;
-+		byte_len = wqe->length;
-+		/* above fields required before writing s_last */
-+	}
-+	last = rvt_qp_swqe_incr(qp, qp->s_last);
-+	/* see rvt_qp_is_avail() */
-+	smp_store_release(&qp->s_last, last);
-+	if (need_completion) {
-+		struct ib_wc w = {
-+			.wr_id = wr_id,
-+			.status = status,
-+			.opcode = opcode,
-+			.qp = &qp->ibqp,
-+			.byte_len = byte_len,
-+		};
-+
-+		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.send_cq), &w,
-+			     status != IB_WC_SUCCESS);
-+	}
-+	return last;
-+}
-+
- extern const int  ib_rvt_state_ops[];
- 
- struct rvt_dev_info;
+diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
+index 72141c5b7c95..94566271dbff 100644
+--- a/drivers/infiniband/core/iwcm.c
++++ b/drivers/infiniband/core/iwcm.c
+@@ -427,7 +427,9 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
+ 		break;
+ 	}
+ 	if (cm_id_priv->qp) {
++		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 		cm_id_priv->id.device->ops.iw_rem_ref(cm_id_priv->qp);
++		spin_lock_irqsave(&cm_id_priv->lock, flags);
+ 		cm_id_priv->qp = NULL;
+ 	}
+ 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
 -- 
-2.20.1
+2.17.1
 
