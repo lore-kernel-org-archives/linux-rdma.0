@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95CA5C3A5A5
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Sep 2019 03:18:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18C4FC3A5A8
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Sep 2019 03:18:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 79A6722CED
+	by mail.kernel.org (Postfix) with ESMTP id F097222CEA
 	for <linux-rdma@archiver.kernel.org>; Wed,  4 Sep 2019 03:18:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727722AbfIDDSK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727716AbfIDDSK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 3 Sep 2019 23:18:10 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:49692 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:49650 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727374AbfIDDSK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727722AbfIDDSK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 3 Sep 2019 23:18:10 -0400
 Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 8EE7DD8FE8F8E1393836;
+        by Forcepoint Email with ESMTP id 80931B872B3619A5C317;
         Wed,  4 Sep 2019 11:18:08 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
@@ -27,9 +27,9 @@ Received: from localhost.localdomain (10.67.165.24) by
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/5] RDMA/hns: Fix wrong parameters when initial mtt of srq->idx_que
-Date:   Wed, 4 Sep 2019 11:14:42 +0800
-Message-ID: <1567566885-23088-3-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH for-next 4/5] RDMA/hns: Modify return value of restrack fucntions
+Date:   Wed, 4 Sep 2019 11:14:44 +0800
+Message-ID: <1567566885-23088-5-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1567566885-23088-1-git-send-email-liweihang@hisilicon.com>
 References: <1567566885-23088-1-git-send-email-liweihang@hisilicon.com>
@@ -42,68 +42,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The parameters npages used to initial mtt of srq->idx_que shouldn't be
-same with srq's. And page_shift should be calculated from idx_buf_pg_sz.
-This patch fixes above issuses and use field named npage and page_shift
-in hns_roce_buf instead of two temporary variables to let us use them
-anywhere.
+From: Lang Cheng <chenglang@huawei.com>
 
-Fixes: 18df508c7970 ("RDMA/hns: Remove if-else judgment statements for creating srq")
+THe restrack function return EINVAL instead of EMSGSIZE when the driver
+operation fails.
 
+Fixes: 4b42d05d0b2 ("RDMA/hns: Remove unnecessary kzalloc")
+
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_srq.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_restrack.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index 9591457..d96041d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -180,8 +180,7 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
- {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(srq->ibsrq.device);
- 	struct hns_roce_ib_create_srq  ucmd;
--	u32 page_shift;
--	u32 npages;
-+	struct hns_roce_buf *buf;
- 	int ret;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_restrack.c b/drivers/infiniband/hw/hns/hns_roce_restrack.c
+index 0a31d0a..a0d608ec 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_restrack.c
++++ b/drivers/infiniband/hw/hns/hns_roce_restrack.c
+@@ -95,7 +95,7 @@ static int hns_roce_fill_res_cq_entry(struct sk_buff *msg,
  
- 	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd)))
-@@ -191,11 +190,13 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
- 	if (IS_ERR(srq->umem))
- 		return PTR_ERR(srq->umem);
- 
--	npages = (ib_umem_page_count(srq->umem) +
--		(1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
--		(1 << hr_dev->caps.srqwqe_buf_pg_sz);
--	page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
--	ret = hns_roce_mtt_init(hr_dev, npages, page_shift, &srq->mtt);
-+	buf = &srq->buf;
-+	buf->npages = (ib_umem_page_count(srq->umem) +
-+		       (1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
-+		      (1 << hr_dev->caps.srqwqe_buf_pg_sz);
-+	buf->page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
-+	ret = hns_roce_mtt_init(hr_dev, buf->npages, buf->page_shift,
-+				&srq->mtt);
+ 	ret = hr_dev->dfx->query_cqc_info(hr_dev, hr_cq->cqn, (int *)context);
  	if (ret)
- 		goto err_user_buf;
+-		goto err;
++		return -EINVAL;
  
-@@ -212,9 +213,12 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
- 		goto err_user_srq_mtt;
- 	}
- 
--	ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(srq->idx_que.umem),
--				PAGE_SHIFT, &srq->idx_que.mtt);
--
-+	buf = &srq->idx_que.idx_buf;
-+	buf->npages = DIV_ROUND_UP(ib_umem_page_count(srq->idx_que.umem),
-+				   1 << hr_dev->caps.idx_buf_pg_sz);
-+	buf->page_shift = PAGE_SHIFT + hr_dev->caps.idx_buf_pg_sz;
-+	ret = hns_roce_mtt_init(hr_dev, buf->npages, buf->page_shift,
-+				&srq->idx_que.mtt);
- 	if (ret) {
- 		dev_err(hr_dev->dev, "hns_roce_mtt_init error for idx que\n");
- 		goto err_user_idx_mtt;
+ 	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_DRIVER);
+ 	if (!table_attr)
 -- 
 2.8.1
 
