@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47CE4C3A5AB
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Sep 2019 07:17:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F639C3A5AC
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Sep 2019 07:17:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0EAA92339D
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Sep 2019 07:17:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EDD9D2339E
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Sep 2019 07:17:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="aJAXgTTQ"
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="bePcneOg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727787AbfIDHRZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Sep 2019 03:17:25 -0400
-Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:34398 "EHLO
+        id S1728951AbfIDHRa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Sep 2019 03:17:30 -0400
+Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:43900 "EHLO
         mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728717AbfIDHRZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Sep 2019 03:17:25 -0400
+        by vger.kernel.org with ESMTP id S1728515AbfIDHRa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Sep 2019 03:17:30 -0400
 Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
-        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x847FENi030878;
-        Wed, 4 Sep 2019 00:17:17 -0700
+        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x847FZHa004160;
+        Wed, 4 Sep 2019 00:17:25 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
- content-type; s=pfpt0818; bh=24f/6JhQMR5sdVW+UJynd2V60UlsGUrLkRfeV53LbAY=;
- b=aJAXgTTQT2EpVpAjsT4mXYblE/O+0fRQF98kj4Ao+jJFaTaX2H/3miO6m4DIr4XMwSAr
- 6WSePs4L4gEKKHm5OC+BrFPSSFUEkMsSIHrNWybxfX7MEMgclaMLFp1l8/g6aq3sGrwL
- zfRhYpbv9LLb2Do0wwU9PpA4k5tmimXQUWst/Cya0IomrUvsldDvbvpgUqlH7qviBSQZ
- Z2spF0JaSe5FQ/a2kvZedp/0NY3sdYZz76J0UCzp6AEw+5vqcUIU9L6KBB6tndrxCwpD
- e6oGU8QEACXGUtaQm1Y3DgG8lH2RKewSy3W4oNbSUNTwS3Wdnxy+hlG/YijOPjhaj+8r Pg== 
-Received: from sc-exch01.marvell.com ([199.233.58.181])
-        by mx0a-0016f401.pphosted.com with ESMTP id 2uqp8pdn46-1
+ content-type; s=pfpt0818; bh=2v5vltHEuUfUaSus38+6LdpxVZY2uGmRAJZL3ve0U0k=;
+ b=bePcneOg1oHuRg5a7bPfQKrZ5JxbiTz157cElbYKeHhIAFnaFyrgm+DVXz8I0iTCGGgk
+ zO5g/lrUigSchkJppETPzqAH0uE2hSZVG7wmHk/OOlT/bk8rNcHl/4Ub/kZMoO6bzlot
+ KRNoQYgiMwQabh3lhClGclmHaPi1xqKVdwBpHE76Gj+Ik+OB0AKvr3DIs21YQ+eW1o+z
+ VUDO3ZX/7a04nN/nxlisJxBZOZtNq0tIfaWRHkKIy6GMQp+Hv+axu6KFz24CETV80Iri
+ oxlKr8G+9fwKEmNvwagfCiAnr/E+o/+5hmmlxJ+hnmBO61DIusQxMhOY5uYuZYs3tp1z lQ== 
+Received: from sc-exch04.marvell.com ([199.233.58.184])
+        by mx0a-0016f401.pphosted.com with ESMTP id 2uqp8pdn4r-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Wed, 04 Sep 2019 00:17:17 -0700
-Received: from SC-EXCH03.marvell.com (10.93.176.83) by SC-EXCH01.marvell.com
- (10.93.176.81) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Wed, 4 Sep
- 2019 00:17:15 -0700
-Received: from maili.marvell.com (10.93.176.43) by SC-EXCH03.marvell.com
- (10.93.176.83) with Microsoft SMTP Server id 15.0.1367.3 via Frontend
- Transport; Wed, 4 Sep 2019 00:17:15 -0700
+        Wed, 04 Sep 2019 00:17:24 -0700
+Received: from SC-EXCH01.marvell.com (10.93.176.81) by SC-EXCH04.marvell.com
+ (10.93.176.84) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Wed, 4 Sep
+ 2019 00:17:22 -0700
+Received: from maili.marvell.com (10.93.176.43) by SC-EXCH01.marvell.com
+ (10.93.176.81) with Microsoft SMTP Server id 15.0.1367.3 via Frontend
+ Transport; Wed, 4 Sep 2019 00:17:22 -0700
 Received: from lb-tlvb-michal.il.qlogic.org (unknown [10.5.220.215])
-        by maili.marvell.com (Postfix) with ESMTP id B46FB3F7044;
-        Wed,  4 Sep 2019 00:17:11 -0700 (PDT)
+        by maili.marvell.com (Postfix) with ESMTP id 336C03F703F;
+        Wed,  4 Sep 2019 00:17:18 -0700 (PDT)
 From:   Michal Kalderon <michal.kalderon@marvell.com>
 To:     <mkalderon@marvell.com>, <aelior@marvell.com>, <jgg@ziepe.ca>,
         <dledford@redhat.com>, <bmt@zurich.ibm.com>, <galpress@amazon.com>,
@@ -52,9 +52,9 @@ To:     <mkalderon@marvell.com>, <aelior@marvell.com>, <jgg@ziepe.ca>,
 CC:     <linux-rdma@vger.kernel.org>,
         Michal Kalderon <michal.kalderon@marvell.com>,
         Ariel Elior <ariel.elior@marvell.com>
-Subject: [PATCH v10 rdma-next 4/7] RDMA/siw: Use the common mmap_xa helpers
-Date:   Wed, 4 Sep 2019 10:15:04 +0300
-Message-ID: <20190904071507.8232-5-michal.kalderon@marvell.com>
+Subject: [PATCH v10 rdma-next 6/7] RDMA/qedr: Add doorbell overflow recovery support
+Date:   Wed, 4 Sep 2019 10:15:06 +0300
+Message-ID: <20190904071507.8232-7-michal.kalderon@marvell.com>
 X-Mailer: git-send-email 2.14.5
 In-Reply-To: <20190904071507.8232-1-michal.kalderon@marvell.com>
 References: <20190904071507.8232-1-michal.kalderon@marvell.com>
@@ -67,459 +67,742 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Remove the functions related to managing the mmap_xa database.
-This code is now common in ib_core. Use the common API's instead.
+Use the doorbell recovery mechanism to register rdma related doorbells
+that will be restored in case there is a doorbell overflow attention.
 
 Signed-off-by: Ariel Elior <ariel.elior@marvell.com>
 Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
 ---
- drivers/infiniband/sw/siw/siw.h       |  20 +++-
- drivers/infiniband/sw/siw/siw_main.c  |   1 +
- drivers/infiniband/sw/siw/siw_verbs.c | 210 +++++++++++++++++-----------------
- drivers/infiniband/sw/siw/siw_verbs.h |   1 +
- 4 files changed, 125 insertions(+), 107 deletions(-)
+ drivers/infiniband/hw/qedr/qedr.h  |   7 +
+ drivers/infiniband/hw/qedr/verbs.c | 315 +++++++++++++++++++++++++++++++------
+ include/uapi/rdma/qedr-abi.h       |  25 +++
+ 3 files changed, 299 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
-index 77b1aabf6ff3..c20b4ee1cb4b 100644
---- a/drivers/infiniband/sw/siw/siw.h
-+++ b/drivers/infiniband/sw/siw/siw.h
-@@ -220,7 +220,7 @@ struct siw_cq {
- 	u32 cq_get;
- 	u32 num_cqe;
- 	bool kernel_verbs;
--	u32 xa_cq_index; /* mmap information for CQE array */
-+	u64 cq_key; /* mmap information for CQE array */
- 	u32 id; /* For debugging only */
+diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+index f273906fca19..04f6f4fbe276 100644
+--- a/drivers/infiniband/hw/qedr/qedr.h
++++ b/drivers/infiniband/hw/qedr/qedr.h
+@@ -234,6 +234,7 @@ struct qedr_ucontext {
+ 	u64 dpi_phys_addr;
+ 	u32 dpi_size;
+ 	u16 dpi;
++	bool db_rec;
  };
  
-@@ -263,7 +263,7 @@ struct siw_srq {
- 	u32 rq_put;
- 	u32 rq_get;
- 	u32 num_rqe; /* max # of wqe's allowed */
--	u32 xa_srq_index; /* mmap information for SRQ array */
-+	u64 srq_key; /* mmap information for SRQ array */
- 	char armed; /* inform user if limit hit */
- 	char kernel_verbs; /* '1' if kernel client */
- };
-@@ -477,8 +477,8 @@ struct siw_qp {
- 		u8 layer : 4, etype : 4;
- 		u8 ecode;
- 	} term_info;
--	u32 xa_sq_index; /* mmap information for SQE array */
--	u32 xa_rq_index; /* mmap information for RQE array */
-+	u64 sq_key; /* mmap information for SQE array */
-+	u64 rq_key; /* mmap information for RQE array */
- 	struct rcu_head rcu;
- };
- 
-@@ -503,6 +503,12 @@ struct iwarp_msg_info {
- 	int (*rx_data)(struct siw_qp *qp);
- };
- 
-+struct siw_user_mmap_entry {
-+	struct rdma_user_mmap_entry rdma_entry;
-+	void *address;
-+	size_t length;
-+};
+ union db_prod64 {
+@@ -261,6 +262,12 @@ struct qedr_userq {
+ 	struct qedr_pbl *pbl_tbl;
+ 	u64 buf_addr;
+ 	size_t buf_len;
 +
- /* Global siw parameters. Currently set in siw_main.c */
- extern const bool zcopy_tx;
- extern const bool try_gso;
-@@ -607,6 +613,12 @@ static inline struct siw_mr *to_siw_mr(struct ib_mr *base_mr)
- 	return container_of(base_mr, struct siw_mr, base_mr);
++	/* doorbell recovery */
++	void __iomem *db_addr;
++	struct qedr_user_db_rec *db_rec_data;
++	u64 db_rec_phys;
++	u64 db_rec_key;
+ };
+ 
+ struct qedr_cq {
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index b796ce2c78bc..922c203ca0ea 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -60,6 +60,7 @@
+ 
+ enum {
+ 	QEDR_USER_MMAP_IO_WC = 0,
++	QEDR_USER_MMAP_PHYS_PAGE,
+ };
+ 
+ static inline int qedr_ib_copy_to_udata(struct ib_udata *udata, void *src,
+@@ -266,6 +267,7 @@ int qedr_alloc_ucontext(struct ib_ucontext *uctx, struct ib_udata *udata)
+ 	int rc;
+ 	struct qedr_ucontext *ctx = get_qedr_ucontext(uctx);
+ 	struct qedr_alloc_ucontext_resp uresp = {};
++	struct qedr_alloc_ucontext_req ureq = {};
+ 	struct qedr_dev *dev = get_qedr_dev(ibdev);
+ 	struct qed_rdma_add_user_out_params oparams;
+ 	struct qedr_user_mmap_entry *entry;
+@@ -273,6 +275,17 @@ int qedr_alloc_ucontext(struct ib_ucontext *uctx, struct ib_udata *udata)
+ 	if (!udata)
+ 		return -EFAULT;
+ 
++	if (udata->inlen) {
++		rc = ib_copy_from_udata(&ureq, udata,
++					min(sizeof(ureq), udata->inlen));
++		if (rc) {
++			DP_ERR(dev, "Problem copying data from user space\n");
++			return -EFAULT;
++		}
++
++		ctx->db_rec = !!(ureq.context_flags & QEDR_ALLOC_UCTX_DB_REC);
++	}
++
+ 	rc = dev->ops->rdma_add_user(dev->rdma_ctx, &oparams);
+ 	if (rc) {
+ 		DP_ERR(dev,
+@@ -347,6 +360,9 @@ void qedr_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
+ {
+ 	struct qedr_user_mmap_entry *entry = get_qedr_mmap_entry(rdma_entry);
+ 
++	if (entry->mmap_flag == QEDR_USER_MMAP_PHYS_PAGE)
++		free_page((unsigned long)phys_to_virt(entry->address));
++
+ 	kfree(entry);
  }
  
-+static inline struct siw_user_mmap_entry *
-+to_siw_mmap_entry(struct rdma_user_mmap_entry *rdma_mmap)
+@@ -402,6 +418,9 @@ int qedr_mmap(struct ib_ucontext *ucontext, struct vm_area_struct *vma)
+ 		err = rdma_user_mmap_io(ucontext, vma, pfn, length,
+ 					pgprot_writecombine(vma->vm_page_prot));
+ 		break;
++	case QEDR_USER_MMAP_PHYS_PAGE:
++		err = vm_insert_page(vma, vma->vm_start, pfn_to_page(pfn));
++		break;
+ 	default:
+ 		err = -EINVAL;
+ 	}
+@@ -647,16 +666,48 @@ static void qedr_populate_pbls(struct qedr_dev *dev, struct ib_umem *umem,
+ 	}
+ }
+ 
++static int qedr_db_recovery_add(struct qedr_dev *dev,
++				void __iomem *db_addr,
++				void *db_data,
++				enum qed_db_rec_width db_width,
++				enum qed_db_rec_space db_space)
 +{
-+	return container_of(rdma_mmap, struct siw_user_mmap_entry, rdma_entry);
++	if (!db_data) {
++		DP_DEBUG(dev, QEDR_MSG_INIT, "avoiding db rec since old lib\n");
++		return 0;
++	}
++
++	return dev->ops->common->db_recovery_add(dev->cdev, db_addr, db_data,
++						 db_width, db_space);
 +}
 +
- static inline struct siw_qp *siw_qp_id2obj(struct siw_device *sdev, int id)
- {
- 	struct siw_qp *qp;
-diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
-index 05a92f997f60..46c0bb59489d 100644
---- a/drivers/infiniband/sw/siw/siw_main.c
-+++ b/drivers/infiniband/sw/siw/siw_main.c
-@@ -298,6 +298,7 @@ static const struct ib_device_ops siw_device_ops = {
- 	.iw_rem_ref = siw_qp_put_ref,
- 	.map_mr_sg = siw_map_mr_sg,
- 	.mmap = siw_mmap,
-+	.mmap_free = siw_mmap_free,
- 	.modify_qp = siw_verbs_modify_qp,
- 	.modify_srq = siw_modify_srq,
- 	.poll_cq = siw_poll_cq,
-diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/siw/siw_verbs.c
-index 03176a3d1e18..fb7f651e8d82 100644
---- a/drivers/infiniband/sw/siw/siw_verbs.c
-+++ b/drivers/infiniband/sw/siw/siw_verbs.c
-@@ -34,44 +34,20 @@ static char ib_qp_state_to_string[IB_QPS_ERR + 1][sizeof("RESET")] = {
- 	[IB_QPS_ERR] = "ERR"
- };
- 
--static u32 siw_create_uobj(struct siw_ucontext *uctx, void *vaddr, u32 size)
-+void siw_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
- {
--	struct siw_uobj *uobj;
--	struct xa_limit limit = XA_LIMIT(0, SIW_UOBJ_MAX_KEY);
--	u32 key;
-+	struct siw_user_mmap_entry *entry = to_siw_mmap_entry(rdma_entry);
- 
--	uobj = kzalloc(sizeof(*uobj), GFP_KERNEL);
--	if (!uobj)
--		return SIW_INVAL_UOBJ_KEY;
--
--	if (xa_alloc_cyclic(&uctx->xa, &key, uobj, limit, &uctx->uobj_nextkey,
--			    GFP_KERNEL) < 0) {
--		kfree(uobj);
--		return SIW_INVAL_UOBJ_KEY;
--	}
--	uobj->size = PAGE_ALIGN(size);
--	uobj->addr = vaddr;
--
--	return key;
--}
--
--static struct siw_uobj *siw_get_uobj(struct siw_ucontext *uctx,
--				     unsigned long off, u32 size)
--{
--	struct siw_uobj *uobj = xa_load(&uctx->xa, off);
--
--	if (uobj && uobj->size == size)
--		return uobj;
--
--	return NULL;
-+	kfree(entry);
- }
- 
- int siw_mmap(struct ib_ucontext *ctx, struct vm_area_struct *vma)
- {
- 	struct siw_ucontext *uctx = to_siw_ctx(ctx);
--	struct siw_uobj *uobj;
--	unsigned long off = vma->vm_pgoff;
--	int size = vma->vm_end - vma->vm_start;
-+	unsigned long off = vma->vm_pgoff << PAGE_SHIFT;
-+	size_t size = vma->vm_end - vma->vm_start;
-+	struct rdma_user_mmap_entry *rdma_entry;
-+	struct siw_user_mmap_entry *entry;
- 	int rv = -EINVAL;
- 
- 	/*
-@@ -79,18 +55,30 @@ int siw_mmap(struct ib_ucontext *ctx, struct vm_area_struct *vma)
- 	 */
- 	if (vma->vm_start & (PAGE_SIZE - 1)) {
- 		pr_warn("siw: mmap not page aligned\n");
--		goto out;
-+		return -EINVAL;
- 	}
--	uobj = siw_get_uobj(uctx, off, size);
--	if (!uobj) {
--		siw_dbg(&uctx->sdev->base_dev, "mmap lookup failed: %lu, %u\n",
-+	rdma_entry = rdma_user_mmap_entry_get(&uctx->base_ucontext, off,
-+					      size, vma);
-+	if (!rdma_entry) {
-+		siw_dbg(&uctx->sdev->base_dev, "mmap lookup failed: %lu, %#zx\n",
- 			off, size);
--		goto out;
-+		return -EINVAL;
- 	}
--	rv = remap_vmalloc_range(vma, uobj->addr, 0);
--	if (rv)
--		pr_warn("remap_vmalloc_range failed: %lu, %u\n", off, size);
--out:
-+	entry = to_siw_mmap_entry(rdma_entry);
-+	if (PAGE_ALIGN(entry->length) != size) {
-+		siw_dbg(&uctx->sdev->base_dev,
-+			"key[%#lx] does not have valid length[%#zx] expected[%#zx]\n",
-+			off, size, entry->length);
-+		rdma_user_mmap_entry_put(&uctx->base_ucontext, rdma_entry);
-+		return -EINVAL;
-+	}
-+
-+	rv = remap_vmalloc_range(vma, entry->address, 0);
-+	if (rv) {
-+		pr_warn("remap_vmalloc_range failed: %lu, %zu\n", off, size);
-+		rdma_user_mmap_entry_put(&uctx->base_ucontext, rdma_entry);
-+	}
-+
- 	return rv;
- }
- 
-@@ -105,7 +93,7 @@ int siw_alloc_ucontext(struct ib_ucontext *base_ctx, struct ib_udata *udata)
- 		rv = -ENOMEM;
- 		goto err_out;
- 	}
--	xa_init_flags(&ctx->xa, XA_FLAGS_ALLOC);
-+
- 	ctx->uobj_nextkey = 0;
- 	ctx->sdev = sdev;
- 
-@@ -135,19 +123,7 @@ int siw_alloc_ucontext(struct ib_ucontext *base_ctx, struct ib_udata *udata)
- void siw_dealloc_ucontext(struct ib_ucontext *base_ctx)
- {
- 	struct siw_ucontext *uctx = to_siw_ctx(base_ctx);
--	void *entry;
--	unsigned long index;
- 
--	/*
--	 * Make sure all user mmap objects are gone. Since QP, CQ
--	 * and SRQ destroy routines destroy related objects, nothing
--	 * should be found here.
--	 */
--	xa_for_each(&uctx->xa, index, entry) {
--		kfree(xa_erase(&uctx->xa, index));
--		pr_warn("siw: dropping orphaned uobj at %lu\n", index);
--	}
--	xa_destroy(&uctx->xa);
- 	atomic_dec(&uctx->sdev->num_ctx);
- }
- 
-@@ -293,6 +269,28 @@ void siw_qp_put_ref(struct ib_qp *base_qp)
- 	siw_qp_put(to_siw_qp(base_qp));
- }
- 
-+static int siw_user_mmap_entry_insert(struct ib_ucontext *ucontext,
-+				      void *address, size_t length,
-+				      u64 *key)
++static void qedr_db_recovery_del(struct qedr_dev *dev,
++				 void __iomem *db_addr,
++				 void *db_data)
 +{
-+	struct siw_user_mmap_entry *entry = kzalloc(sizeof(*entry), GFP_KERNEL);
++	if (!db_data) {
++		DP_DEBUG(dev, QEDR_MSG_INIT, "avoiding db rec since old lib\n");
++		return;
++	}
 +
++	/* Ignore return code as there is not much we can do about it. Error
++	 * log will be printed inside.
++	 */
++	dev->ops->common->db_recovery_del(dev->cdev, db_addr, db_data);
++}
++
+ static int qedr_copy_cq_uresp(struct qedr_dev *dev,
+-			      struct qedr_cq *cq, struct ib_udata *udata)
++			      struct qedr_cq *cq, struct ib_udata *udata,
++			      u32 db_offset)
+ {
+ 	struct qedr_create_cq_uresp uresp;
+ 	int rc;
+ 
+ 	memset(&uresp, 0, sizeof(uresp));
+ 
+-	uresp.db_offset = DB_ADDR_SHIFT(DQ_PWM_OFFSET_UCM_RDMA_CQ_CONS_32BIT);
++	uresp.db_offset = db_offset;
+ 	uresp.icid = cq->icid;
++	uresp.db_rec_addr = cq->q.db_rec_key;
+ 
+ 	rc = qedr_ib_copy_to_udata(udata, &uresp, sizeof(uresp));
+ 	if (rc)
+@@ -684,10 +735,56 @@ static inline int qedr_align_cq_entries(int entries)
+ 	return aligned_size / QEDR_CQE_SIZE;
+ }
+ 
++static int qedr_init_user_db_rec(struct ib_udata *udata,
++				 struct qedr_dev *dev, struct qedr_userq *q,
++				 bool requires_db_rec)
++{
++	struct qedr_ucontext *uctx =
++		rdma_udata_to_drv_context(udata, struct qedr_ucontext,
++					  ibucontext);
++	struct qedr_user_mmap_entry *entry;
++
++	/* Aborting for non doorbell userqueue (SRQ) or non-supporting lib */
++	if (requires_db_rec == 0 || !uctx->db_rec)
++		return 0;
++
++	/* Allocate a page for doorbell recovery, add to mmap ) */
++	q->db_rec_data = (void *)get_zeroed_page(GFP_USER);
++	if (!q->db_rec_data) {
++		DP_ERR(dev,
++		       "get_free_page failed\n");
++		return -ENOMEM;
++	}
++
++	q->db_rec_phys = virt_to_phys(q->db_rec_data);
++	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
 +	if (!entry)
-+		return -ENOMEM;
++		goto err_nomem;
 +
-+	entry->address = address;
-+	entry->length = length;
-+
-+	*key = rdma_user_mmap_entry_insert(ucontext, &entry->rdma_entry,
-+					   length);
-+	if (*key == RDMA_USER_MMAP_INVALID) {
++	entry->address = q->db_rec_phys;
++	entry->length = PAGE_SIZE;
++	entry->mmap_flag = QEDR_USER_MMAP_PHYS_PAGE;
++	q->db_rec_key = rdma_user_mmap_entry_insert(&uctx->ibucontext,
++						    &entry->rdma_entry,
++						    PAGE_SIZE);
++	if (q->db_rec_key == RDMA_USER_MMAP_INVALID) {
 +		kfree(entry);
-+		return -ENOMEM;
++		goto err_nomem;
 +	}
 +
 +	return 0;
++
++err_nomem:
++	free_page((unsigned long)q->db_rec_data);
++	q->db_rec_data = NULL;
++	return -ENOMEM;
 +}
 +
- /*
-  * siw_create_qp()
-  *
-@@ -317,6 +315,8 @@ struct ib_qp *siw_create_qp(struct ib_pd *pd,
- 	struct siw_cq *scq = NULL, *rcq = NULL;
- 	unsigned long flags;
- 	int num_sqe, num_rqe, rv = 0;
-+	size_t length;
-+	u64 key;
- 
- 	siw_dbg(base_dev, "create new QP\n");
- 
-@@ -380,8 +380,8 @@ struct ib_qp *siw_create_qp(struct ib_pd *pd,
- 	spin_lock_init(&qp->orq_lock);
- 
- 	qp->kernel_verbs = !udata;
--	qp->xa_sq_index = SIW_INVAL_UOBJ_KEY;
--	qp->xa_rq_index = SIW_INVAL_UOBJ_KEY;
-+	qp->sq_key = RDMA_USER_MMAP_INVALID;
-+	qp->rq_key = RDMA_USER_MMAP_INVALID;
- 
- 	rv = siw_qp_add(sdev, qp);
- 	if (rv)
-@@ -459,22 +459,29 @@ struct ib_qp *siw_create_qp(struct ib_pd *pd,
- 		uresp.qp_id = qp_id(qp);
- 
- 		if (qp->sendq) {
--			qp->xa_sq_index =
--				siw_create_uobj(uctx, qp->sendq,
--					num_sqe * sizeof(struct siw_sqe));
-+			length = num_sqe * sizeof(struct siw_sqe);
-+			rv = siw_user_mmap_entry_insert(&uctx->base_ucontext,
-+							qp->sendq, length,
-+							&key);
-+			if (rv)
-+				goto err_out_xa;
-+
-+			qp->sq_key = key;
+ static inline int qedr_init_user_queue(struct ib_udata *udata,
+ 				       struct qedr_dev *dev,
+ 				       struct qedr_userq *q, u64 buf_addr,
+-				       size_t buf_len, int access, int dmasync,
++				       size_t buf_len, bool requires_db_rec,
++				       int access, int dmasync,
+ 				       int alloc_and_init)
+ {
+ 	u32 fw_pages;
+@@ -725,7 +822,8 @@ static inline int qedr_init_user_queue(struct ib_udata *udata,
  		}
-+
- 		if (qp->recvq) {
--			qp->xa_rq_index =
--				 siw_create_uobj(uctx, qp->recvq,
--					num_rqe * sizeof(struct siw_rqe));
--		}
--		if (qp->xa_sq_index == SIW_INVAL_UOBJ_KEY ||
--		    qp->xa_rq_index == SIW_INVAL_UOBJ_KEY) {
--			rv = -ENOMEM;
--			goto err_out_xa;
-+			length = num_rqe * sizeof(struct siw_rqe);
-+			rv = siw_user_mmap_entry_insert(&uctx->base_ucontext,
-+							qp->recvq, length,
-+							&key);
-+			if (rv)
-+				goto err_out_xa;
-+
-+			qp->rq_key = key;
- 		}
--		uresp.sq_key = qp->xa_sq_index << PAGE_SHIFT;
--		uresp.rq_key = qp->xa_rq_index << PAGE_SHIFT;
-+
-+		uresp.sq_key = qp->sq_key;
-+		uresp.rq_key = qp->rq_key;
- 
- 		if (udata->outlen < sizeof(uresp)) {
- 			rv = -EINVAL;
-@@ -502,11 +509,8 @@ struct ib_qp *siw_create_qp(struct ib_pd *pd,
- 	kfree(siw_base_qp);
- 
- 	if (qp) {
--		if (qp->xa_sq_index != SIW_INVAL_UOBJ_KEY)
--			kfree(xa_erase(&uctx->xa, qp->xa_sq_index));
--		if (qp->xa_rq_index != SIW_INVAL_UOBJ_KEY)
--			kfree(xa_erase(&uctx->xa, qp->xa_rq_index));
--
-+		rdma_user_mmap_entry_remove(&uctx->base_ucontext, qp->sq_key);
-+		rdma_user_mmap_entry_remove(&uctx->base_ucontext, qp->rq_key);
- 		vfree(qp->sendq);
- 		vfree(qp->recvq);
- 		kfree(qp);
-@@ -620,10 +624,10 @@ int siw_destroy_qp(struct ib_qp *base_qp, struct ib_udata *udata)
- 	qp->attrs.flags |= SIW_QP_IN_DESTROY;
- 	qp->rx_stream.rx_suspend = 1;
- 
--	if (uctx && qp->xa_sq_index != SIW_INVAL_UOBJ_KEY)
--		kfree(xa_erase(&uctx->xa, qp->xa_sq_index));
--	if (uctx && qp->xa_rq_index != SIW_INVAL_UOBJ_KEY)
--		kfree(xa_erase(&uctx->xa, qp->xa_rq_index));
-+	if (uctx)
-+		rdma_user_mmap_entry_remove(&uctx->base_ucontext, qp->sq_key);
-+	if (uctx)
-+		rdma_user_mmap_entry_remove(&uctx->base_ucontext, qp->rq_key);
- 
- 	down_write(&qp->state_lock);
- 
-@@ -993,8 +997,8 @@ void siw_destroy_cq(struct ib_cq *base_cq, struct ib_udata *udata)
- 
- 	siw_cq_flush(cq);
- 
--	if (ctx && cq->xa_cq_index != SIW_INVAL_UOBJ_KEY)
--		kfree(xa_erase(&ctx->xa, cq->xa_cq_index));
-+	if (ctx)
-+		rdma_user_mmap_entry_remove(&ctx->base_ucontext, cq->cq_key);
- 
- 	atomic_dec(&sdev->num_cq);
- 
-@@ -1031,7 +1035,7 @@ int siw_create_cq(struct ib_cq *base_cq, const struct ib_cq_init_attr *attr,
- 	size = roundup_pow_of_two(size);
- 	cq->base_cq.cqe = size;
- 	cq->num_cqe = size;
--	cq->xa_cq_index = SIW_INVAL_UOBJ_KEY;
-+	cq->cq_key = RDMA_USER_MMAP_INVALID;
- 
- 	if (!udata) {
- 		cq->kernel_verbs = 1;
-@@ -1057,16 +1061,16 @@ int siw_create_cq(struct ib_cq *base_cq, const struct ib_cq_init_attr *attr,
- 		struct siw_ucontext *ctx =
- 			rdma_udata_to_drv_context(udata, struct siw_ucontext,
- 						  base_ucontext);
-+		size_t length = size * sizeof(struct siw_cqe) +
-+			sizeof(struct siw_cq_ctrl);
- 
--		cq->xa_cq_index =
--			siw_create_uobj(ctx, cq->queue,
--					size * sizeof(struct siw_cqe) +
--						sizeof(struct siw_cq_ctrl));
--		if (cq->xa_cq_index == SIW_INVAL_UOBJ_KEY) {
--			rv = -ENOMEM;
-+		rv = siw_user_mmap_entry_insert(&ctx->base_ucontext,
-+						cq->queue, length,
-+						&cq->cq_key);
-+		if (rv)
- 			goto err_out;
--		}
--		uresp.cq_key = cq->xa_cq_index << PAGE_SHIFT;
-+
-+		uresp.cq_key = cq->cq_key;
- 		uresp.cq_id = cq->id;
- 		uresp.num_cqe = size;
- 
-@@ -1087,8 +1091,7 @@ int siw_create_cq(struct ib_cq *base_cq, const struct ib_cq_init_attr *attr,
- 		struct siw_ucontext *ctx =
- 			rdma_udata_to_drv_context(udata, struct siw_ucontext,
- 						  base_ucontext);
--		if (cq->xa_cq_index != SIW_INVAL_UOBJ_KEY)
--			kfree(xa_erase(&ctx->xa, cq->xa_cq_index));
-+		rdma_user_mmap_entry_remove(&ctx->base_ucontext, cq->cq_key);
- 		vfree(cq->queue);
  	}
- 	atomic_dec(&sdev->num_cq);
-@@ -1490,7 +1493,7 @@ int siw_create_srq(struct ib_srq *base_srq,
- 	}
- 	srq->max_sge = attrs->max_sge;
- 	srq->num_rqe = roundup_pow_of_two(attrs->max_wr);
--	srq->xa_srq_index = SIW_INVAL_UOBJ_KEY;
-+	srq->srq_key = RDMA_USER_MMAP_INVALID;
- 	srq->limit = attrs->srq_limit;
- 	if (srq->limit)
- 		srq->armed = 1;
-@@ -1509,15 +1512,15 @@ int siw_create_srq(struct ib_srq *base_srq,
- 	}
+ 
+-	return 0;
++	/* mmap the user address used to store doorbell data for recovery */
++	return qedr_init_user_db_rec(udata, dev, q, requires_db_rec);
+ 
+ err0:
+ 	ib_umem_release(q->umem);
+@@ -811,6 +909,7 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	int entries = attr->cqe;
+ 	struct qedr_cq *cq = get_qedr_cq(ibcq);
+ 	int chain_entries;
++	u32 db_offset;
+ 	int page_cnt;
+ 	u64 pbl_ptr;
+ 	u16 icid;
+@@ -830,8 +929,12 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	chain_entries = qedr_align_cq_entries(entries);
+ 	chain_entries = min_t(int, chain_entries, QEDR_MAX_CQES);
+ 
++	/* calc db offset. user will add DPI base, kernel will add db addr */
++	db_offset = DB_ADDR_SHIFT(DQ_PWM_OFFSET_UCM_RDMA_CQ_CONS_32BIT);
++
  	if (udata) {
- 		struct siw_uresp_create_srq uresp = {};
-+		size_t length = srq->num_rqe * sizeof(struct siw_rqe);
+-		if (ib_copy_from_udata(&ureq, udata, sizeof(ureq))) {
++		if (ib_copy_from_udata(&ureq, udata, min(sizeof(ureq),
++							 udata->inlen))) {
+ 			DP_ERR(dev,
+ 			       "create cq: problem copying data from user space\n");
+ 			goto err0;
+@@ -846,8 +949,9 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		cq->cq_type = QEDR_CQ_TYPE_USER;
  
--		srq->xa_srq_index = siw_create_uobj(
--			ctx, srq->recvq, srq->num_rqe * sizeof(struct siw_rqe));
--
--		if (srq->xa_srq_index == SIW_INVAL_UOBJ_KEY) {
--			rv = -ENOMEM;
-+		rv = siw_user_mmap_entry_insert(&ctx->base_ucontext,
-+						srq->recvq, length,
-+						&srq->srq_key);
-+		if (rv)
- 			goto err_out;
--		}
--		uresp.srq_key = srq->xa_srq_index;
+ 		rc = qedr_init_user_queue(udata, dev, &cq->q, ureq.addr,
+-					  ureq.len, IB_ACCESS_LOCAL_WRITE, 1,
+-					  1);
++					  ureq.len, true,
++					  IB_ACCESS_LOCAL_WRITE,
++					  1, 1);
+ 		if (rc)
+ 			goto err0;
+ 
+@@ -855,6 +959,7 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		page_cnt = cq->q.pbl_info.num_pbes;
+ 
+ 		cq->ibcq.cqe = chain_entries;
++		cq->q.db_addr = ctx->dpi_addr + db_offset;
+ 	} else {
+ 		cq->cq_type = QEDR_CQ_TYPE_KERNEL;
+ 
+@@ -866,7 +971,7 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 						   sizeof(union rdma_cqe),
+ 						   &cq->pbl, NULL);
+ 		if (rc)
+-			goto err1;
++			goto err0;
+ 
+ 		page_cnt = qed_chain_get_page_cnt(&cq->pbl);
+ 		pbl_ptr = qed_chain_get_pbl_phys(&cq->pbl);
+@@ -878,21 +983,28 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 
+ 	rc = dev->ops->rdma_create_cq(dev->rdma_ctx, &params, &icid);
+ 	if (rc)
+-		goto err2;
++		goto err1;
+ 
+ 	cq->icid = icid;
+ 	cq->sig = QEDR_CQ_MAGIC_NUMBER;
+ 	spin_lock_init(&cq->cq_lock);
+ 
+ 	if (udata) {
+-		rc = qedr_copy_cq_uresp(dev, cq, udata);
++		rc = qedr_copy_cq_uresp(dev, cq, udata, db_offset);
+ 		if (rc)
+-			goto err3;
++			goto err2;
 +
-+		uresp.srq_key = srq->srq_key;
- 		uresp.num_rqe = srq->num_rqe;
++		rc = qedr_db_recovery_add(dev, cq->q.db_addr,
++					  &cq->q.db_rec_data->db_data,
++					  DB_REC_WIDTH_64B,
++					  DB_REC_USER);
++		if (rc)
++			goto err2;
++
+ 	} else {
+ 		/* Generate doorbell address. */
+-		cq->db_addr = dev->db_addr +
+-		    DB_ADDR_SHIFT(DQ_PWM_OFFSET_UCM_RDMA_CQ_CONS_32BIT);
+ 		cq->db.data.icid = cq->icid;
++		cq->db_addr = dev->db_addr + db_offset;
+ 		cq->db.data.params = DB_AGG_CMD_SET <<
+ 		    RDMA_PWM_VAL32_DATA_AGG_CMD_SHIFT;
  
- 		if (udata->outlen < sizeof(uresp)) {
-@@ -1536,8 +1539,9 @@ int siw_create_srq(struct ib_srq *base_srq,
- 
- err_out:
- 	if (srq->recvq) {
--		if (ctx && srq->xa_srq_index != SIW_INVAL_UOBJ_KEY)
--			kfree(xa_erase(&ctx->xa, srq->xa_srq_index));
-+		if (ctx)
-+			rdma_user_mmap_entry_remove(&ctx->base_ucontext,
-+						    srq->srq_key);
- 		vfree(srq->recvq);
+@@ -902,6 +1014,11 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		cq->latest_cqe = NULL;
+ 		consume_cqe(cq);
+ 		cq->cq_cons = qed_chain_get_cons_idx_u32(&cq->pbl);
++
++		rc = qedr_db_recovery_add(dev, cq->db_addr, &cq->db.data,
++					  DB_REC_WIDTH_64B, DB_REC_KERNEL);
++		if (rc)
++			goto err2;
  	}
- 	atomic_dec(&sdev->num_srq);
-@@ -1623,9 +1627,9 @@ void siw_destroy_srq(struct ib_srq *base_srq, struct ib_udata *udata)
- 		rdma_udata_to_drv_context(udata, struct siw_ucontext,
- 					  base_ucontext);
  
--	if (ctx && srq->xa_srq_index != SIW_INVAL_UOBJ_KEY)
--		kfree(xa_erase(&ctx->xa, srq->xa_srq_index));
--
-+	if (ctx)
-+		rdma_user_mmap_entry_remove(&ctx->base_ucontext,
-+					    srq->srq_key);
- 	vfree(srq->recvq);
- 	atomic_dec(&sdev->num_srq);
+ 	DP_DEBUG(dev, QEDR_MSG_CQ,
+@@ -910,18 +1027,20 @@ int qedr_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 
+ 	return 0;
+ 
+-err3:
++err2:
+ 	destroy_iparams.icid = cq->icid;
+ 	dev->ops->rdma_destroy_cq(dev->rdma_ctx, &destroy_iparams,
+ 				  &destroy_oparams);
+-err2:
+-	if (udata)
+-		qedr_free_pbl(dev, &cq->q.pbl_info, cq->q.pbl_tbl);
+-	else
+-		dev->ops->common->chain_free(dev->cdev, &cq->pbl);
+ err1:
+-	if (udata)
++	if (udata) {
++		qedr_free_pbl(dev, &cq->q.pbl_info, cq->q.pbl_tbl);
+ 		ib_umem_release(cq->q.umem);
++		if (cq->q.db_rec_data)
++			rdma_user_mmap_entry_remove(&ctx->ibucontext,
++						    cq->q.db_rec_key);
++	} else {
++		dev->ops->common->chain_free(dev->cdev, &cq->pbl);
++	}
+ err0:
+ 	return -EINVAL;
  }
-diff --git a/drivers/infiniband/sw/siw/siw_verbs.h b/drivers/infiniband/sw/siw/siw_verbs.h
-index 1910869281cb..1a731989fad6 100644
---- a/drivers/infiniband/sw/siw/siw_verbs.h
-+++ b/drivers/infiniband/sw/siw/siw_verbs.h
-@@ -83,6 +83,7 @@ void siw_destroy_srq(struct ib_srq *base_srq, struct ib_udata *udata);
- int siw_post_srq_recv(struct ib_srq *base_srq, const struct ib_recv_wr *wr,
- 		      const struct ib_recv_wr **bad_wr);
- int siw_mmap(struct ib_ucontext *ctx, struct vm_area_struct *vma);
-+void siw_mmap_free(struct rdma_user_mmap_entry *rdma_entry);
- void siw_qp_event(struct siw_qp *qp, enum ib_event_type type);
- void siw_cq_event(struct siw_cq *cq, enum ib_event_type type);
- void siw_srq_event(struct siw_srq *srq, enum ib_event_type type);
+@@ -941,6 +1060,8 @@ int qedr_resize_cq(struct ib_cq *ibcq, int new_cnt, struct ib_udata *udata)
+ 
+ void qedr_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
+ {
++	struct qedr_ucontext *ctx = rdma_udata_to_drv_context(udata,
++		struct qedr_ucontext, ibucontext);
+ 	struct qedr_dev *dev = get_qedr_dev(ibcq->device);
+ 	struct qed_rdma_destroy_cq_out_params oparams;
+ 	struct qed_rdma_destroy_cq_in_params iparams;
+@@ -952,8 +1073,10 @@ void qedr_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
+ 	cq->destroyed = 1;
+ 
+ 	/* GSIs CQs are handled by driver, so they don't exist in the FW */
+-	if (cq->cq_type == QEDR_CQ_TYPE_GSI)
++	if (cq->cq_type == QEDR_CQ_TYPE_GSI) {
++		qedr_db_recovery_del(dev, cq->db_addr, &cq->db.data);
+ 		return;
++	}
+ 
+ 	iparams.icid = cq->icid;
+ 	dev->ops->rdma_destroy_cq(dev->rdma_ctx, &iparams, &oparams);
+@@ -962,6 +1085,15 @@ void qedr_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
+ 	if (udata) {
+ 		qedr_free_pbl(dev, &cq->q.pbl_info, cq->q.pbl_tbl);
+ 		ib_umem_release(cq->q.umem);
++
++		if (cq->q.db_rec_data) {
++			qedr_db_recovery_del(dev, cq->q.db_addr,
++					     &cq->q.db_rec_data->db_data);
++			rdma_user_mmap_entry_remove(&ctx->ibucontext,
++						    cq->q.db_rec_key);
++		}
++	} else {
++		qedr_db_recovery_del(dev, cq->db_addr, &cq->db.data);
+ 	}
+ 
+ 	/* We don't want the IRQ handler to handle a non-existing CQ so we
+@@ -1126,8 +1258,8 @@ static int qedr_copy_srq_uresp(struct qedr_dev *dev,
+ }
+ 
+ static void qedr_copy_rq_uresp(struct qedr_dev *dev,
+-			       struct qedr_create_qp_uresp *uresp,
+-			       struct qedr_qp *qp)
++			      struct qedr_create_qp_uresp *uresp,
++			      struct qedr_qp *qp)
+ {
+ 	/* iWARP requires two doorbells per RQ. */
+ 	if (rdma_protocol_iwarp(&dev->ibdev, 1)) {
+@@ -1140,6 +1272,7 @@ static void qedr_copy_rq_uresp(struct qedr_dev *dev,
+ 	}
+ 
+ 	uresp->rq_icid = qp->icid;
++	uresp->rq_db_rec_addr = qp->urq.db_rec_key;
+ }
+ 
+ static void qedr_copy_sq_uresp(struct qedr_dev *dev,
+@@ -1153,22 +1286,24 @@ static void qedr_copy_sq_uresp(struct qedr_dev *dev,
+ 		uresp->sq_icid = qp->icid;
+ 	else
+ 		uresp->sq_icid = qp->icid + 1;
++
++	uresp->sq_db_rec_addr = qp->usq.db_rec_key;
+ }
+ 
+ static int qedr_copy_qp_uresp(struct qedr_dev *dev,
+-			      struct qedr_qp *qp, struct ib_udata *udata)
++			      struct qedr_qp *qp, struct ib_udata *udata,
++			      struct qedr_create_qp_uresp *uresp)
+ {
+-	struct qedr_create_qp_uresp uresp;
+ 	int rc;
+ 
+-	memset(&uresp, 0, sizeof(uresp));
+-	qedr_copy_sq_uresp(dev, &uresp, qp);
+-	qedr_copy_rq_uresp(dev, &uresp, qp);
++	memset(uresp, 0, sizeof(*uresp));
++	qedr_copy_sq_uresp(dev, uresp, qp);
++	qedr_copy_rq_uresp(dev, uresp, qp);
+ 
+-	uresp.atomic_supported = dev->atomic_cap != IB_ATOMIC_NONE;
+-	uresp.qp_id = qp->qp_id;
++	uresp->atomic_supported = dev->atomic_cap != IB_ATOMIC_NONE;
++	uresp->qp_id = qp->qp_id;
+ 
+-	rc = qedr_ib_copy_to_udata(udata, &uresp, sizeof(uresp));
++	rc = qedr_ib_copy_to_udata(udata, uresp, sizeof(*uresp));
+ 	if (rc)
+ 		DP_ERR(dev,
+ 		       "create qp: failed a copy to user space with qp icid=0x%x.\n",
+@@ -1212,16 +1347,35 @@ static void qedr_set_common_qp_params(struct qedr_dev *dev,
+ 		 qp->sq.max_sges, qp->sq_cq->icid);
+ }
+ 
+-static void qedr_set_roce_db_info(struct qedr_dev *dev, struct qedr_qp *qp)
++static int qedr_set_roce_db_info(struct qedr_dev *dev, struct qedr_qp *qp)
+ {
++	int rc;
++
+ 	qp->sq.db = dev->db_addr +
+ 		    DB_ADDR_SHIFT(DQ_PWM_OFFSET_XCM_RDMA_SQ_PROD);
+ 	qp->sq.db_data.data.icid = qp->icid + 1;
++	rc = qedr_db_recovery_add(dev, qp->sq.db,
++				  &qp->sq.db_data,
++				  DB_REC_WIDTH_32B,
++				  DB_REC_KERNEL);
++	if (rc)
++		return rc;
++
+ 	if (!qp->srq) {
+ 		qp->rq.db = dev->db_addr +
+ 			    DB_ADDR_SHIFT(DQ_PWM_OFFSET_TCM_ROCE_RQ_PROD);
+ 		qp->rq.db_data.data.icid = qp->icid;
++
++		rc = qedr_db_recovery_add(dev, qp->rq.db,
++					  &qp->rq.db_data,
++					  DB_REC_WIDTH_32B,
++					  DB_REC_KERNEL);
++		if (rc)
++			qedr_db_recovery_del(dev, qp->sq.db,
++					     &qp->sq.db_data);
+ 	}
++
++	return rc;
+ }
+ 
+ static int qedr_check_srq_params(struct qedr_dev *dev,
+@@ -1275,7 +1429,7 @@ static int qedr_init_srq_user_params(struct ib_udata *udata,
+ 	int rc;
+ 
+ 	rc = qedr_init_user_queue(udata, srq->dev, &srq->usrq, ureq->srq_addr,
+-				  ureq->srq_len, access, dmasync, 1);
++				  ureq->srq_len, false, access, dmasync, 1);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -1371,7 +1525,8 @@ int qedr_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *init_attr,
+ 	hw_srq->max_sges = init_attr->attr.max_sge;
+ 
+ 	if (udata) {
+-		if (ib_copy_from_udata(&ureq, udata, sizeof(ureq))) {
++		if (ib_copy_from_udata(&ureq, udata, min(sizeof(ureq),
++							 udata->inlen))) {
+ 			DP_ERR(dev,
+ 			       "create srq: problem copying data from user space\n");
+ 			goto err0;
+@@ -1560,13 +1715,29 @@ qedr_iwarp_populate_user_qp(struct qedr_dev *dev,
+ 			   &qp->urq.pbl_info, FW_PAGE_SHIFT);
+ }
+ 
+-static void qedr_cleanup_user(struct qedr_dev *dev, struct qedr_qp *qp)
++static void qedr_cleanup_user(struct qedr_dev *dev,
++			      struct qedr_ucontext *ctx,
++			      struct qedr_qp *qp)
+ {
+ 	ib_umem_release(qp->usq.umem);
+ 	qp->usq.umem = NULL;
+ 
+ 	ib_umem_release(qp->urq.umem);
+ 	qp->urq.umem = NULL;
++
++	if (qp->usq.db_rec_data) {
++		qedr_db_recovery_del(dev, qp->usq.db_addr,
++				     &qp->usq.db_rec_data->db_data);
++		rdma_user_mmap_entry_remove(&ctx->ibucontext,
++					    qp->usq.db_rec_key);
++	}
++
++	if (qp->urq.db_rec_data) {
++		qedr_db_recovery_del(dev, qp->urq.db_addr,
++				     &qp->urq.db_rec_data->db_data);
++		rdma_user_mmap_entry_remove(&ctx->ibucontext,
++					    qp->urq.db_rec_key);
++	}
+ }
+ 
+ static int qedr_create_user_qp(struct qedr_dev *dev,
+@@ -1578,12 +1749,14 @@ static int qedr_create_user_qp(struct qedr_dev *dev,
+ 	struct qed_rdma_create_qp_in_params in_params;
+ 	struct qed_rdma_create_qp_out_params out_params;
+ 	struct qedr_pd *pd = get_qedr_pd(ibpd);
++	struct qedr_create_qp_uresp uresp;
++	struct qedr_ucontext *ctx = NULL;
+ 	struct qedr_create_qp_ureq ureq;
+ 	int alloc_and_init = rdma_protocol_roce(&dev->ibdev, 1);
+ 	int rc = -EINVAL;
+ 
+ 	memset(&ureq, 0, sizeof(ureq));
+-	rc = ib_copy_from_udata(&ureq, udata, sizeof(ureq));
++	rc = ib_copy_from_udata(&ureq, udata, min(sizeof(ureq), udata->inlen));
+ 	if (rc) {
+ 		DP_ERR(dev, "Problem copying data from user space\n");
+ 		return rc;
+@@ -1591,14 +1764,16 @@ static int qedr_create_user_qp(struct qedr_dev *dev,
+ 
+ 	/* SQ - read access only (0), dma sync not required (0) */
+ 	rc = qedr_init_user_queue(udata, dev, &qp->usq, ureq.sq_addr,
+-				  ureq.sq_len, 0, 0, alloc_and_init);
++				  ureq.sq_len, true, 0, 0,
++				  alloc_and_init);
+ 	if (rc)
+ 		return rc;
+ 
+ 	if (!qp->srq) {
+ 		/* RQ - read access only (0), dma sync not required (0) */
+ 		rc = qedr_init_user_queue(udata, dev, &qp->urq, ureq.rq_addr,
+-					  ureq.rq_len, 0, 0, alloc_and_init);
++					  ureq.rq_len, true,
++					  0, 0, alloc_and_init);
+ 		if (rc)
+ 			return rc;
+ 	}
+@@ -1628,29 +1803,56 @@ static int qedr_create_user_qp(struct qedr_dev *dev,
+ 	qp->qp_id = out_params.qp_id;
+ 	qp->icid = out_params.icid;
+ 
+-	rc = qedr_copy_qp_uresp(dev, qp, udata);
++	rc = qedr_copy_qp_uresp(dev, qp, udata, &uresp);
++	if (rc)
++		goto err;
++
++	/* db offset was calculated in copy_qp_uresp, now set in the user q */
++	ctx = pd->uctx;
++	qp->usq.db_addr = ctx->dpi_addr + uresp.sq_db_offset;
++	qp->urq.db_addr = ctx->dpi_addr + uresp.rq_db_offset;
++
++	rc = qedr_db_recovery_add(dev, qp->usq.db_addr,
++				  &qp->usq.db_rec_data->db_data,
++				  DB_REC_WIDTH_32B,
++				  DB_REC_USER);
+ 	if (rc)
+ 		goto err;
+ 
++	rc = qedr_db_recovery_add(dev, qp->urq.db_addr,
++				  &qp->urq.db_rec_data->db_data,
++				  DB_REC_WIDTH_32B,
++				  DB_REC_USER);
++	if (rc)
++		goto err;
+ 	qedr_qp_user_print(dev, qp);
+ 
+-	return 0;
++	return rc;
+ err:
+ 	rc = dev->ops->rdma_destroy_qp(dev->rdma_ctx, qp->qed_qp);
+ 	if (rc)
+ 		DP_ERR(dev, "create qp: fatal fault. rc=%d", rc);
+ 
+ err1:
+-	qedr_cleanup_user(dev, qp);
++	qedr_cleanup_user(dev, ctx, qp);
+ 	return rc;
+ }
+ 
+-static void qedr_set_iwarp_db_info(struct qedr_dev *dev, struct qedr_qp *qp)
++static int qedr_set_iwarp_db_info(struct qedr_dev *dev, struct qedr_qp *qp)
+ {
++	int rc;
++
+ 	qp->sq.db = dev->db_addr +
+ 	    DB_ADDR_SHIFT(DQ_PWM_OFFSET_XCM_RDMA_SQ_PROD);
+ 	qp->sq.db_data.data.icid = qp->icid;
+ 
++	rc = qedr_db_recovery_add(dev, qp->sq.db,
++				  &qp->sq.db_data,
++				  DB_REC_WIDTH_32B,
++				  DB_REC_KERNEL);
++	if (rc)
++		return rc;
++
+ 	qp->rq.db = dev->db_addr +
+ 		    DB_ADDR_SHIFT(DQ_PWM_OFFSET_TCM_IWARP_RQ_PROD);
+ 	qp->rq.db_data.data.icid = qp->icid;
+@@ -1658,6 +1860,13 @@ static void qedr_set_iwarp_db_info(struct qedr_dev *dev, struct qedr_qp *qp)
+ 			   DB_ADDR_SHIFT(DQ_PWM_OFFSET_TCM_FLAGS);
+ 	qp->rq.iwarp_db2_data.data.icid = qp->icid;
+ 	qp->rq.iwarp_db2_data.data.value = DQ_TCM_IWARP_POST_RQ_CF_CMD;
++
++	rc = qedr_db_recovery_add(dev, qp->rq.db,
++				  &qp->rq.db_data,
++				  DB_REC_WIDTH_32B,
++				  DB_REC_KERNEL);
++
++	return rc;
+ }
+ 
+ static int
+@@ -1705,8 +1914,7 @@ qedr_roce_create_kernel_qp(struct qedr_dev *dev,
+ 	qp->qp_id = out_params.qp_id;
+ 	qp->icid = out_params.icid;
+ 
+-	qedr_set_roce_db_info(dev, qp);
+-	return rc;
++	return qedr_set_roce_db_info(dev, qp);
+ }
+ 
+ static int
+@@ -1764,8 +1972,7 @@ qedr_iwarp_create_kernel_qp(struct qedr_dev *dev,
+ 	qp->qp_id = out_params.qp_id;
+ 	qp->icid = out_params.icid;
+ 
+-	qedr_set_iwarp_db_info(dev, qp);
+-	return rc;
++	return qedr_set_iwarp_db_info(dev, qp);
+ 
+ err:
+ 	dev->ops->rdma_destroy_qp(dev->rdma_ctx, qp->qed_qp);
+@@ -1780,6 +1987,15 @@ static void qedr_cleanup_kernel(struct qedr_dev *dev, struct qedr_qp *qp)
+ 
+ 	dev->ops->common->chain_free(dev->cdev, &qp->rq.pbl);
+ 	kfree(qp->rqe_wr_id);
++
++	/* GSI qp is not registered to db mechanism so no need to delete */
++	if (qp->qp_type == IB_QPT_GSI)
++		return;
++
++	qedr_db_recovery_del(dev, qp->sq.db, &qp->sq.db_data);
++
++	if (!qp->srq)
++		qedr_db_recovery_del(dev, qp->rq.db, &qp->rq.db_data);
+ }
+ 
+ static int qedr_create_kernel_qp(struct qedr_dev *dev,
+@@ -2419,7 +2635,10 @@ int qedr_query_qp(struct ib_qp *ibqp,
+ static int qedr_free_qp_resources(struct qedr_dev *dev, struct qedr_qp *qp,
+ 				  struct ib_udata *udata)
+ {
+-	int rc = 0;
++	struct qedr_ucontext *ctx =
++		rdma_udata_to_drv_context(udata, struct qedr_ucontext,
++					  ibucontext);
++	int rc;
+ 
+ 	if (qp->qp_type != IB_QPT_GSI) {
+ 		rc = dev->ops->rdma_destroy_qp(dev->rdma_ctx, qp->qed_qp);
+@@ -2428,7 +2647,7 @@ static int qedr_free_qp_resources(struct qedr_dev *dev, struct qedr_qp *qp,
+ 	}
+ 
+ 	if (udata)
+-		qedr_cleanup_user(dev, qp);
++		qedr_cleanup_user(dev, ctx, qp);
+ 	else
+ 		qedr_cleanup_kernel(dev, qp);
+ 
+diff --git a/include/uapi/rdma/qedr-abi.h b/include/uapi/rdma/qedr-abi.h
+index 7a10b3a325fa..c022ee26089b 100644
+--- a/include/uapi/rdma/qedr-abi.h
++++ b/include/uapi/rdma/qedr-abi.h
+@@ -38,6 +38,15 @@
+ #define QEDR_ABI_VERSION		(8)
+ 
+ /* user kernel communication data structures. */
++enum qedr_alloc_ucontext_flags {
++	QEDR_ALLOC_UCTX_RESERVED	= 1 << 0,
++	QEDR_ALLOC_UCTX_DB_REC		= 1 << 1
++};
++
++struct qedr_alloc_ucontext_req {
++	__u32 context_flags;
++	__u32 reserved;
++};
+ 
+ struct qedr_alloc_ucontext_resp {
+ 	__aligned_u64 db_pa;
+@@ -74,6 +83,7 @@ struct qedr_create_cq_uresp {
+ 	__u32 db_offset;
+ 	__u16 icid;
+ 	__u16 reserved;
++	__aligned_u64 db_rec_addr;
+ };
+ 
+ struct qedr_create_qp_ureq {
+@@ -109,6 +119,13 @@ struct qedr_create_qp_uresp {
+ 
+ 	__u32 rq_db2_offset;
+ 	__u32 reserved;
++
++	/* address of SQ doorbell recovery user entry */
++	__aligned_u64 sq_db_rec_addr;
++
++	/* address of RQ doorbell recovery user entry */
++	__aligned_u64 rq_db_rec_addr;
++
+ };
+ 
+ struct qedr_create_srq_ureq {
+@@ -128,4 +145,12 @@ struct qedr_create_srq_uresp {
+ 	__u32 reserved1;
+ };
+ 
++/* doorbell recovery entry allocated and populated by userspace doorbelling
++ * entities and mapped to kernel. Kernel uses this to register doorbell
++ * information with doorbell drop recovery mechanism.
++ */
++struct qedr_user_db_rec {
++	__aligned_u64 db_data; /* doorbell data */
++};
++
+ #endif /* __QEDR_USER_H__ */
 -- 
 2.14.5
 
