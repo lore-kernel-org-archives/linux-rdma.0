@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C5FC00307
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB910C433EF
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 233AD2089F
+	by mail.kernel.org (Postfix) with ESMTP id 9E39B21924
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389628AbfIIJHY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2389623AbfIIJHY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 9 Sep 2019 05:07:24 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48365 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48369 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389623AbfIIJHT (ORCPT
+        with ESMTP id S2389617AbfIIJHT (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Sep 2019 05:07:19 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:16 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp5028426;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp0028426;
         Mon, 9 Sep 2019 12:07:16 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
 Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 07/12] pyverbs: Add XRC to ODPCaps
-Date:   Mon,  9 Sep 2019 12:07:07 +0300
-Message-Id: <20190909090712.11029-8-noaos@mellanox.com>
+Subject: [PATCH rdma-core 02/12] pyverbs: Fix CQ and PD assignment in QPAttr
+Date:   Mon,  9 Sep 2019 12:07:02 +0300
+Message-Id: <20190909090712.11029-3-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190909090712.11029-1-noaos@mellanox.com>
 References: <20190909090712.11029-1-noaos@mellanox.com>
@@ -42,149 +42,79 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maxim Chicherin <maximc@mellanox.com>
 
-Added PCI atomic caps and XRC ODP caps:
-XRC ODP caps reports about XRC ODP capabilities of the device. To make
-it easier for users, pyverbs reports XRC ODP caps as part of the
-device's odp_caps, even though they're reported in a separate field.
-PCI atomic caps represents ibv_pci_atomic_caps which is part of
-DeviceAttrEx and is now exposed to pyverbs' users.
+Fixed CQs assignment in QPInitAttr, QPInitAttrEx and QP objects:
+Receive cq parameter was assigned to send_cq attribute in InitAttr
+objects, and in QP rcq and scq attributes was not initialized properly.
+Fixed PD assignment in QPInitAttrEx object:
+In QPInitAttrEx pd pointer was not initialized with PD.pd pointer.
 
 Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
 ---
- pyverbs/device.pxd     |  4 ++++
- pyverbs/device.pyx     | 42 ++++++++++++++++++++++++++++++++++++++++++
- pyverbs/libibverbs.pxd |  9 ++++++++-
- 3 files changed, 54 insertions(+), 1 deletion(-)
- mode change 100644 => 100755 pyverbs/device.pxd
- mode change 100644 => 100755 pyverbs/device.pyx
+ pyverbs/qp.pyx | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+ mode change 100644 => 100755 pyverbs/qp.pyx
 
-diff --git a/pyverbs/device.pxd b/pyverbs/device.pxd
+diff --git a/pyverbs/qp.pyx b/pyverbs/qp.pyx
 old mode 100644
 new mode 100755
-index ed2f1ca3d6ef..5cc13acb4331
---- a/pyverbs/device.pxd
-+++ b/pyverbs/device.pxd
-@@ -26,6 +26,7 @@ cdef class QueryDeviceExInput(PyverbsObject):
+index ad89c94c002e..732ef5094b6b
+--- a/pyverbs/qp.pyx
++++ b/pyverbs/qp.pyx
+@@ -104,9 +104,9 @@ cdef class QPInitAttr(PyverbsObject):
+         self.attr.qp_context = <void*>qp_context
+         if scq is not None:
+             if type(scq) is CQ:
+-                self.attr.send_cq = (<CQ>rcq).cq
++                self.attr.send_cq = (<CQ>scq).cq
+             elif type(scq) is CQEX:
+-                self.attr.send_cq = (<CQEX>rcq).ibv_cq
++                self.attr.send_cq = (<CQEX>scq).ibv_cq
+             else:
+                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
+                                        format(t=type(scq)))
+@@ -221,9 +221,9 @@ cdef class QPInitAttrEx(PyverbsObject):
+         _copy_caps(cap, self)
+         if scq is not None:
+             if type(scq) is CQ:
+-                self.attr.send_cq = (<CQ>rcq).cq
++                self.attr.send_cq = (<CQ>scq).cq
+             elif type(scq) is CQEX:
+-                self.attr.send_cq = (<CQEX>rcq).ibv_cq
++                self.attr.send_cq = (<CQEX>scq).ibv_cq
+             else:
+                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
+                                        format(t=type(scq)))
+@@ -251,6 +251,7 @@ cdef class QPInitAttrEx(PyverbsObject):
+         self.attr.comp_mask = comp_mask
+         if pd is not None:
+             self.pd = pd
++            self.attr.pd = pd.pd
+         self.attr.create_flags = create_flags
+         self.attr.max_tso_header = max_tso_header
+         self.attr.source_qpn = source_qpn
+@@ -814,18 +815,20 @@ cdef class QP(PyverbsCM):
+             if type(init_attr.send_cq) == CQ:
+                 cq = <CQ>init_attr.send_cq
+                 cq.add_ref(self)
++                self.scq = cq
+             else:
+                 cqex = <CQEX>init_attr.send_cq
+                 cqex.add_ref(self)
+-            self.scq = cq
++                self.scq = cqex
+         if init_attr.send_cq != init_attr.recv_cq and init_attr.recv_cq is not None:
+             if type(init_attr.recv_cq) == CQ:
+                 cq = <CQ>init_attr.recv_cq
+                 cq.add_ref(self)
++                self.rcq = cq
+             else:
+                 cqex = <CQEX>init_attr.recv_cq
+                 cqex.add_ref(self)
+-            self.rcq = cq
++                self.rcq = cqex
  
- cdef class ODPCaps(PyverbsObject):
-     cdef v.ibv_odp_caps odp_caps
-+    cdef object xrc_odp_caps
- 
- cdef class RSSCaps(PyverbsObject):
-     cdef v.ibv_rss_caps rss_caps
-@@ -33,6 +34,9 @@ cdef class RSSCaps(PyverbsObject):
- cdef class PacketPacingCaps(PyverbsObject):
-     cdef v.ibv_packet_pacing_caps packet_pacing_caps
- 
-+cdef class PCIAtomicCaps(PyverbsObject):
-+    cdef v.ibv_pci_atomic_caps caps
-+
- cdef class TMCaps(PyverbsObject):
-     cdef v.ibv_tm_caps tm_caps
- 
-diff --git a/pyverbs/device.pyx b/pyverbs/device.pyx
-old mode 100644
-new mode 100755
-index f238d37ce3a9..084086bdbc69
---- a/pyverbs/device.pyx
-+++ b/pyverbs/device.pyx
-@@ -393,6 +393,42 @@ cdef class ODPCaps(PyverbsObject):
-     @property
-     def ud_odp_caps(self):
-         return self.odp_caps.per_transport_caps.ud_odp_caps
-+    @property
-+    def xrc_odp_caps(self):
-+        return self.xrc_odp_caps
-+    @xrc_odp_caps.setter
-+    def xrc_odp_caps(self, val):
-+       self.xrc_odp_caps = val
-+
-+    def __str__(self):
-+        general_caps = {e.IBV_ODP_SUPPORT: 'IBV_ODP_SUPPORT',
-+              e.IBV_ODP_SUPPORT_IMPLICIT: 'IBV_ODP_SUPPORT_IMPLICIT'}
-+
-+        l = {e.IBV_ODP_SUPPORT_SEND: 'IBV_ODP_SUPPORT_SEND',
-+             e.IBV_ODP_SUPPORT_RECV: 'IBV_ODP_SUPPORT_RECV',
-+             e.IBV_ODP_SUPPORT_WRITE: 'IBV_ODP_SUPPORT_WRITE',
-+             e.IBV_ODP_SUPPORT_READ: 'IBV_ODP_SUPPORT_READ',
-+             e.IBV_ODP_SUPPORT_ATOMIC: 'IBV_ODP_SUPPORT_ATOMIC',
-+             e.IBV_ODP_SUPPORT_SRQ_RECV: 'IBV_ODP_SUPPORT_SRQ_RECV'}
-+
-+        print_format = '{}: {}\n'
-+        return print_format.format('ODP General caps', str_from_flags(self.general_caps, general_caps)) +\
-+            print_format.format('RC ODP caps', str_from_flags(self.rc_odp_caps, l)) +\
-+            print_format.format('UD ODP caps', str_from_flags(self.ud_odp_caps, l)) +\
-+            print_format.format('UC ODP caps', str_from_flags(self.uc_odp_caps, l)) +\
-+            print_format.format('XRC ODP caps', str_from_flags(self.xrc_odp_caps, l))
-+
-+
-+cdef class PCIAtomicCaps(PyverbsObject):
-+    @property
-+    def fetch_add(self):
-+        return self.caps.fetch_add
-+    @property
-+    def swap(self):
-+        return self.caps.swap
-+    @property
-+    def compare_swap(self):
-+        return self.caps.compare_swap
- 
- 
- cdef class TSOCaps(PyverbsObject):
-@@ -477,6 +513,7 @@ cdef class DeviceAttrEx(PyverbsObject):
-     def odp_caps(self):
-         caps = ODPCaps()
-         caps.odp_caps = self.dev_attr.odp_caps
-+        caps.xrc_odp_caps = self.dev_attr.xrc_odp_caps
-         return caps
-     @property
-     def completion_timestamp_mask(self):
-@@ -493,6 +530,11 @@ cdef class DeviceAttrEx(PyverbsObject):
-         caps.tso_caps = self.dev_attr.tso_caps
-         return caps
-     @property
-+    def pci_atomic_caps(self):
-+        caps = PCIAtomicCaps()
-+        caps.caps = self.dev_attr.pci_atomic_caps
-+        return caps
-+    @property
-     def rss_caps(self):
-         caps = RSSCaps()
-         caps.rss_caps = self.dev_attr.rss_caps
-diff --git a/pyverbs/libibverbs.pxd b/pyverbs/libibverbs.pxd
-index a92286d42c67..02137d81e2d3 100755
---- a/pyverbs/libibverbs.pxd
-+++ b/pyverbs/libibverbs.pxd
-@@ -2,7 +2,7 @@
- # Copyright (c) 2018, Mellanox Technologies. All rights reserved. See COPYING file
- 
- include 'libibverbs_enums.pxd'
--from libc.stdint cimport uint8_t, uint32_t, uint64_t
-+from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
- 
- cdef extern from 'infiniband/verbs.h':
- 
-@@ -117,6 +117,11 @@ cdef extern from 'infiniband/verbs.h':
-         unsigned int    max_cq_count
-         unsigned int    max_cq_period
- 
-+    cdef struct ibv_pci_atomic_caps:
-+        uint16_t fetch_add
-+        uint16_t swap
-+        uint16_t compare_swap
-+
-     cdef struct ibv_device_attr_ex:
-         ibv_device_attr         orig_attr
-         unsigned int            comp_mask
-@@ -132,6 +137,8 @@ cdef extern from 'infiniband/verbs.h':
-         ibv_tm_caps             tm_caps
-         ibv_cq_moderation_caps  cq_mod_caps
-         unsigned long           max_dm_size
-+        ibv_pci_atomic_caps     pci_atomic_caps
-+        uint32_t                xrc_odp_caps
- 
-     cdef struct ibv_mw:
-         ibv_context     *context
+     def _create_qp(self, PD pd, QPInitAttr attr):
+         self.qp = v.ibv_create_qp(pd.pd, &attr.attr)
 -- 
 2.21.0
 
