@@ -2,37 +2,34 @@ Return-Path: <SRS0=PR/X=XE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A8FBC49ED7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3B66C00307
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B2542089F
+	by mail.kernel.org (Postfix) with ESMTP id 9974E2089F
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389612AbfIIJHU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2389596AbfIIJHU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 9 Sep 2019 05:07:20 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48387 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48368 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389613AbfIIJHT (ORCPT
+        with ESMTP id S2389612AbfIIJHT (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Sep 2019 05:07:19 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:17 +0300
+        with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:16 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp9028426;
-        Mon, 9 Sep 2019 12:07:16 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fow028426;
+        Mon, 9 Sep 2019 12:07:15 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 11/12] tests: Add XRCResources class
-Date:   Mon,  9 Sep 2019 12:07:11 +0300
-Message-Id: <20190909090712.11029-12-noaos@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org, Noa Osherovich <noaos@mellanox.com>
+Subject: [PATCH rdma-core 00/12] Add XRCD and SRQ support to pyverbs
+Date:   Mon,  9 Sep 2019 12:07:00 +0300
+Message-Id: <20190909090712.11029-1-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190909090712.11029-1-noaos@mellanox.com>
-References: <20190909090712.11029-1-noaos@mellanox.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -40,144 +37,63 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maxim Chicherin <maximc@mellanox.com>
+The following patches provide support for XRCD and SRQ objects in
+pyverbs, including a documentation update, to demonstrate a basic
+usage, and a test using these objects.
+Preceding this support are a few fixes found on the way: wrong
+assignments fixes and cleanup of redundant enum entries.
 
-Add base aggregation object for XRC communication. XRCResources
-contains Context, PD, MR, CQ, two XRC RECV QPs, two XRC SEND QPs, SRQ
-and XRCD. XRCResources constructor has optional parameter qp_count
-which decides how many QPs to create (for both types),
-default value is 2.
+Maxim Chicherin (12):
+  pyverbs: Fix WC creation process
+  pyverbs: Fix CQ and PD assignment in QPAttr
+  pyverbs: Remove TM enums
+  pyverbs: Introducing XRCD class
+  pyverbs: Introducing SRQ class
+  pyverbs: Support XRC QPs when modifying QP states
+  pyverbs: Add XRC to ODPCaps
+  Documentation: Document creation of XRCD and SRQ
+  tests: Add missing constant in UDResources
+  tests: Fixes to to_rts() in RCResources
+  tests: Add XRCResources class
+  tests: Add XRC ODP test case
 
-Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
----
- tests/base.py | 107 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 105 insertions(+), 2 deletions(-)
+ Documentation/pyverbs.md     |  51 ++++++++++
+ pyverbs/CMakeLists.txt       |   2 +
+ pyverbs/cq.pxd               |   2 +
+ pyverbs/cq.pyx               |  47 +++++++---
+ pyverbs/device.pxd           |   5 +
+ pyverbs/device.pyx           |  49 +++++++++-
+ pyverbs/libibverbs.pxd       |  52 ++++++++++-
+ pyverbs/libibverbs_enums.pxd |  30 +-----
+ pyverbs/pd.pxd               |   1 +
+ pyverbs/pd.pyx               |   6 +-
+ pyverbs/qp.pxd               |   4 +
+ pyverbs/qp.pyx               |  91 ++++++++++++++----
+ pyverbs/srq.pxd              |  24 +++++
+ pyverbs/srq.pyx              | 176 +++++++++++++++++++++++++++++++++++
+ pyverbs/xrcd.pxd             |  17 ++++
+ pyverbs/xrcd.pyx             |  91 ++++++++++++++++++
+ tests/base.py                | 160 ++++++++++++++++++++++++++-----
+ tests/test_cq.py             |   2 -
+ tests/test_odp.py            |  32 +++++--
+ tests/utils.py               |  48 +++++++++-
+ 20 files changed, 791 insertions(+), 99 deletions(-)
+ mode change 100644 => 100755 Documentation/pyverbs.md
+ mode change 100644 => 100755 pyverbs/CMakeLists.txt
+ mode change 100644 => 100755 pyverbs/cq.pyx
+ mode change 100644 => 100755 pyverbs/device.pxd
+ mode change 100644 => 100755 pyverbs/device.pyx
+ mode change 100644 => 100755 pyverbs/libibverbs.pxd
+ mode change 100644 => 100755 pyverbs/libibverbs_enums.pxd
+ mode change 100644 => 100755 pyverbs/qp.pyx
+ create mode 100755 pyverbs/srq.pxd
+ create mode 100755 pyverbs/srq.pyx
+ create mode 100755 pyverbs/xrcd.pxd
+ create mode 100755 pyverbs/xrcd.pyx
+ mode change 100644 => 100755 tests/base.py
+ mode change 100644 => 100755 tests/test_odp.py
+ mode change 100644 => 100755 tests/utils.py
 
-diff --git a/tests/base.py b/tests/base.py
-index ce9ea83b6b53..dd17ddb6fc50 100755
---- a/tests/base.py
-+++ b/tests/base.py
-@@ -3,9 +3,13 @@
- 
- import unittest
- import random
-+import stat
-+import os
- 
--from pyverbs.qp import QPCap, QPInitAttr, QPAttr, QP
-+from pyverbs.qp import QPCap, QPInitAttrEx, QPInitAttr, QPAttr, QP
- from pyverbs.addr import AHAttr, GlobalRoute
-+from pyverbs.xrcd import XRCD, XRCDInitAttr
-+from pyverbs.srq import SRQ, SrqInitAttrEx
- from pyverbs.device import Context
- import pyverbs.device as d
- import pyverbs.enums as e
-@@ -296,4 +300,103 @@ class UDResources(TrafficResources):
- 
-     def pre_run(self, rpsn, rqpn):
-         self.rqpn = rqpn
--        self.rpsn = rpsn
-\ No newline at end of file
-+        self.rpsn = rpsn
-+
-+
-+class XRCResources(TrafficResources):
-+    def __init__(self, dev_name, ib_port, gid_index, qp_count=2):
-+        self.xrcd_fd = -1
-+        self.xrcd = None
-+        self.srq = None
-+        self.qp_count = qp_count
-+        self.sqp_lst = []
-+        self.rqp_lst = []
-+        self.qps_num = []
-+        self.psns = []
-+        self.rqps_num = None
-+        self.rpsns = None
-+        super(XRCResources, self).__init__(dev_name, ib_port, gid_index)
-+
-+    def close(self):
-+        os.close(self.xrcd_fd)
-+
-+    def create_qp(self):
-+        """
-+        Initializes self.qp with an XRC SEND/RECV QP.
-+        :return: None
-+        """
-+        qp_attr = QPAttr(port_num=self.ib_port)
-+        qp_attr.pkey_index = 0
-+
-+        for _ in range(self.qp_count):
-+            attr_ex = QPInitAttrEx(qp_type=e.IBV_QPT_XRC_RECV,
-+                                   comp_mask=e.IBV_QP_INIT_ATTR_XRCD,
-+                                   xrcd=self.xrcd)
-+            qp_attr.qp_access_flags = e.IBV_ACCESS_REMOTE_WRITE | \
-+                                      e.IBV_ACCESS_REMOTE_READ
-+            recv_qp = QP(self.ctx, attr_ex, qp_attr)
-+            self.rqp_lst.append(recv_qp)
-+
-+            qp_caps = QPCap(max_send_wr=self.num_msgs, max_recv_sge=0,
-+                            max_recv_wr=0)
-+            attr_ex = QPInitAttrEx(qp_type=e.IBV_QPT_XRC_SEND, sq_sig_all=1,
-+                                   comp_mask=e.IBV_QP_INIT_ATTR_PD,
-+                                   pd=self.pd, scq=self.cq, cap=qp_caps)
-+            qp_attr.qp_access_flags = 0
-+            send_qp =QP(self.ctx, attr_ex, qp_attr)
-+            self.sqp_lst.append(send_qp)
-+            self.qps_num.append((recv_qp.qp_num, send_qp.qp_num))
-+            self.psns.append(random.getrandbits(24))
-+
-+    def create_xrcd(self):
-+        """
-+        Initializes self.xrcd with an XRC Domain object.
-+        :return: None
-+        """
-+        self.xrcd_fd = os.open('/tmp/xrcd', os.O_RDONLY | os.O_CREAT,
-+                                stat.S_IRUSR | stat.S_IRGRP)
-+        init = XRCDInitAttr(
-+            e.IBV_XRCD_INIT_ATTR_FD | e.IBV_XRCD_INIT_ATTR_OFLAGS,
-+            os.O_CREAT, self.xrcd_fd)
-+        self.xrcd = XRCD(self.ctx, init)
-+
-+    def create_srq(self):
-+        """
-+        Initializes self.srq with a Shared Receive QP object.
-+        :return: None
-+        """
-+        srq_attr = SrqInitAttrEx(max_wr=self.qp_count*self.num_msgs)
-+        srq_attr.srq_type = e.IBV_SRQT_XRC
-+        srq_attr.pd = self.pd
-+        srq_attr.xrcd = self.xrcd
-+        srq_attr.cq = self.cq
-+        srq_attr.comp_mask = e.IBV_SRQ_INIT_ATTR_TYPE | e.IBV_SRQ_INIT_ATTR_PD | \
-+                             e.IBV_SRQ_INIT_ATTR_CQ | e.IBV_SRQ_INIT_ATTR_XRCD
-+        self.srq = SRQ(self.ctx, srq_attr)
-+
-+    def to_rts(self):
-+        ah_attr = AHAttr(dlid=self.port_attr.lid)
-+        qp_attr = QPAttr()
-+        qp_attr.path_mtu = PATH_MTU
-+        qp_attr.timeout = TIMEOUT
-+        qp_attr.retry_cnt = RETRY_CNT
-+        qp_attr.rnr_retry = RNR_RETRY
-+        qp_attr.min_rnr_timer = MIN_RNR_TIMER
-+        qp_attr.ah_attr = ah_attr
-+        for i in range(self.qp_count):
-+            qp_attr.dest_qp_num = self.rqps_num[i][1]
-+            qp_attr.rq_psn = self.psns[i]
-+            qp_attr.sq_psn = self.rpsns[i]
-+            self.rqp_lst[i].to_rts(qp_attr)
-+            qp_attr.dest_qp_num = self.rqps_num[i][0]
-+            self.sqp_lst[i].to_rts(qp_attr)
-+
-+    def init_resources(self):
-+        self.create_xrcd()
-+        super(XRCResources, self).init_resources()
-+        self.create_srq()
-+
-+    def pre_run(self, rpsns, rqps_num):
-+        self.rqps_num = rqps_num
-+        self.rpsns = rpsns
-+        self.to_rts()
 -- 
 2.21.0
 
