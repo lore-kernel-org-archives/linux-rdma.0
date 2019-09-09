@@ -2,119 +2,152 @@ Return-Path: <SRS0=PR/X=XE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB910C433EF
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC215C433EF
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:40:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E39B21924
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7406021A4C
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:40:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1568022015;
+	bh=Qg/woz40Ie68udKTXwrdRP0pCLCp/XGE1ZxfYaQjAH4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=NMLi3Na7Xz5n2BgLJAMU5tNogrWa4IBD+gQhf+uktk1Kvi+GCRBZtK9lxgEqcycHm
+	 2M3EcQidm8gJPdpUBmXIo7j1s9XzT9IV2anamR44nDO91GdHizO6FpQfZ4lSK4NyVs
+	 kHxUq5WztrYRHFLz7+sjB+7gGMobn5fqHKBiK5ow=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389623AbfIIJHY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Sep 2019 05:07:24 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48369 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389617AbfIIJHT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Sep 2019 05:07:19 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:16 +0300
-Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp0028426;
-        Mon, 9 Sep 2019 12:07:16 +0300
-From:   Noa Osherovich <noaos@mellanox.com>
-To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 02/12] pyverbs: Fix CQ and PD assignment in QPAttr
-Date:   Mon,  9 Sep 2019 12:07:02 +0300
-Message-Id: <20190909090712.11029-3-noaos@mellanox.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190909090712.11029-1-noaos@mellanox.com>
-References: <20190909090712.11029-1-noaos@mellanox.com>
+        id S1728492AbfIIJkO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Sep 2019 05:40:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54936 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725818AbfIIJkO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 9 Sep 2019 05:40:14 -0400
+Received: from localhost (unknown [148.69.85.38])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 56B832086D;
+        Mon,  9 Sep 2019 09:40:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1568022013;
+        bh=Qg/woz40Ie68udKTXwrdRP0pCLCp/XGE1ZxfYaQjAH4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=oWywqd+ktRkVF0G4BtRS3Vm5k3IIJOkVAFBffuDNG0E7ayffBxsC1QWqlqKuL9kjW
+         9ldCs2enOhjTy8vcFVFCR/GqR8btAmUwtTYWungH3MdyIJ5r5DshLWTegbqNjrr949
+         7yJbA+maVzhCBvFWMB3P9l1cl6YG8Ify5v9GzB5s=
+Date:   Mon, 9 Sep 2019 12:40:10 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Erez Alfasi <ereza@mellanox.com>
+Subject: Re: [PATCH rdma-next v1 1/4] IB/mlx5: Introduce ODP diagnostic
+ counters
+Message-ID: <20190909094010.GA6601@unreal>
+References: <20190830081612.2611-1-leon@kernel.org>
+ <20190830081612.2611-2-leon@kernel.org>
+ <20190909084535.GB2843@mellanox.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190909084535.GB2843@mellanox.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maxim Chicherin <maximc@mellanox.com>
+On Mon, Sep 09, 2019 at 08:45:36AM +0000, Jason Gunthorpe wrote:
+> On Fri, Aug 30, 2019 at 11:16:09AM +0300, Leon Romanovsky wrote:
+> > From: Erez Alfasi <ereza@mellanox.com>
+> >
+> > Introduce ODP diagnostic counters and count the following
+> > per MR within IB/mlx5 driver:
+> >  1) Page faults:
+> > 	Total number of faulted pages.
+> >  2) Page invalidations:
+> > 	Total number of pages invalidated by the OS during all
+> > 	invalidation events. The translations can be no longer
+> > 	valid due to either non-present pages or mapping changes.
+> >  3) Prefetched pages:
+> > 	When prefetching a page, page fault is generated
+> > 	in order to bring the page to the main memory.
+> > 	The prefetched pages counter will be updated
+> > 	during a page fault flow only if it was derived
+> > 	from prefetching operation.
+> >
+> > Signed-off-by: Erez Alfasi <ereza@mellanox.com>
+> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> >  drivers/infiniband/hw/mlx5/odp.c | 18 ++++++++++++++++++
+> >  include/rdma/ib_umem_odp.h       | 14 ++++++++++++++
+> >  2 files changed, 32 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+> > index 905936423a03..b7c8a49ac753 100644
+> > +++ b/drivers/infiniband/hw/mlx5/odp.c
+> > @@ -287,6 +287,10 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+> >
+> >  	ib_umem_odp_unmap_dma_pages(umem_odp, start, end);
+> >
+> > +	/* Count page invalidations */
+> > +	ib_update_odp_stats(umem_odp, invalidations,
+> > +			    ib_umem_odp_num_pages(umem_odp));
+>
+> This doesn't seem right, it should only count the number of pages that
+> were actually removed from the mapping
 
-Fixed CQs assignment in QPInitAttr, QPInitAttrEx and QP objects:
-Receive cq parameter was assigned to send_cq attribute in InitAttr
-objects, and in QP rcq and scq attributes was not initialized properly.
-Fixed PD assignment in QPInitAttrEx object:
-In QPInitAttrEx pd pointer was not initialized with PD.pd pointer.
+Absolutely, It is my mistake, I think that I mislead Erez back then.
 
-Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
----
- pyverbs/qp.pyx | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
- mode change 100644 => 100755 pyverbs/qp.pyx
+>
+> > diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
+> > index b37c674b7fe6..3359e34516da 100644
+> > +++ b/include/rdma/ib_umem_odp.h
+> > @@ -37,6 +37,12 @@
+> >  #include <rdma/ib_verbs.h>
+> >  #include <linux/interval_tree.h>
+> >
+> > +struct ib_odp_counters {
+> > +	atomic64_t faults;
+> > +	atomic64_t invalidations;
+> > +	atomic64_t prefetched;
+> > +};
+> > +
+> >  struct ib_umem_odp {
+> >  	struct ib_umem umem;
+> >  	struct ib_ucontext_per_mm *per_mm;
+> > @@ -62,6 +68,11 @@ struct ib_umem_odp {
+> >  	struct mutex		umem_mutex;
+> >  	void			*private; /* for the HW driver to use. */
+> >
+> > +	/*
+> > +	 * ODP diagnostic counters.
+> > +	 */
+> > +	struct ib_odp_counters odp_stats;
+>
+> This really belongs in the MR not the umem
 
-diff --git a/pyverbs/qp.pyx b/pyverbs/qp.pyx
-old mode 100644
-new mode 100755
-index ad89c94c002e..732ef5094b6b
---- a/pyverbs/qp.pyx
-+++ b/pyverbs/qp.pyx
-@@ -104,9 +104,9 @@ cdef class QPInitAttr(PyverbsObject):
-         self.attr.qp_context = <void*>qp_context
-         if scq is not None:
-             if type(scq) is CQ:
--                self.attr.send_cq = (<CQ>rcq).cq
-+                self.attr.send_cq = (<CQ>scq).cq
-             elif type(scq) is CQEX:
--                self.attr.send_cq = (<CQEX>rcq).ibv_cq
-+                self.attr.send_cq = (<CQEX>scq).ibv_cq
-             else:
-                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
-                                        format(t=type(scq)))
-@@ -221,9 +221,9 @@ cdef class QPInitAttrEx(PyverbsObject):
-         _copy_caps(cap, self)
-         if scq is not None:
-             if type(scq) is CQ:
--                self.attr.send_cq = (<CQ>rcq).cq
-+                self.attr.send_cq = (<CQ>scq).cq
-             elif type(scq) is CQEX:
--                self.attr.send_cq = (<CQEX>rcq).ibv_cq
-+                self.attr.send_cq = (<CQEX>scq).ibv_cq
-             else:
-                 raise PyverbsUserError('Expected CQ/CQEX, got {t}'.\
-                                        format(t=type(scq)))
-@@ -251,6 +251,7 @@ cdef class QPInitAttrEx(PyverbsObject):
-         self.attr.comp_mask = comp_mask
-         if pd is not None:
-             self.pd = pd
-+            self.attr.pd = pd.pd
-         self.attr.create_flags = create_flags
-         self.attr.max_tso_header = max_tso_header
-         self.attr.source_qpn = source_qpn
-@@ -814,18 +815,20 @@ cdef class QP(PyverbsCM):
-             if type(init_attr.send_cq) == CQ:
-                 cq = <CQ>init_attr.send_cq
-                 cq.add_ref(self)
-+                self.scq = cq
-             else:
-                 cqex = <CQEX>init_attr.send_cq
-                 cqex.add_ref(self)
--            self.scq = cq
-+                self.scq = cqex
-         if init_attr.send_cq != init_attr.recv_cq and init_attr.recv_cq is not None:
-             if type(init_attr.recv_cq) == CQ:
-                 cq = <CQ>init_attr.recv_cq
-                 cq.add_ref(self)
-+                self.rcq = cq
-             else:
-                 cqex = <CQEX>init_attr.recv_cq
-                 cqex.add_ref(self)
--            self.rcq = cq
-+                self.rcq = cqex
- 
-     def _create_qp(self, PD pd, QPInitAttr attr):
-         self.qp = v.ibv_create_qp(pd.pd, &attr.attr)
--- 
-2.21.0
+Bu why? We have umem_odp, all our statistics calculations are done
+in umem_odp level.
 
+>
+> >  	int notifiers_seq;
+> >  	int notifiers_count;
+> >  	int npages;
+> > @@ -106,6 +117,9 @@ static inline size_t ib_umem_odp_num_pages(struct ib_umem_odp *umem_odp)
+> >  	       umem_odp->page_shift;
+> >  }
+> >
+> > +#define ib_update_odp_stats(umem_odp, counter_name, value)		    \
+> > +	atomic64_add(value, &(umem_odp->odp_stats.counter_name))
+>
+> Missing brackets in a macro
+
+I am doubt about that, because it is one to one replace and not "real" macro.
+
+Thanks
+
+>
+> Jason
