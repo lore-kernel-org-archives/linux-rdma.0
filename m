@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00CEDC49ED4
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6FCEC49ED5
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CAF382089F
+	by mail.kernel.org (Postfix) with ESMTP id 886C921924
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389616AbfIIJHU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Sep 2019 05:07:20 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48366 "EHLO
+        id S2389605AbfIIJHT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Sep 2019 05:07:19 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48378 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389596AbfIIJHT (ORCPT
+        with ESMTP id S2389616AbfIIJHT (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Sep 2019 05:07:19 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:16 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp4028426;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp8028426;
         Mon, 9 Sep 2019 12:07:16 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
 Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 06/12] pyverbs: Support XRC QPs when modifying QP states
-Date:   Mon,  9 Sep 2019 12:07:06 +0300
-Message-Id: <20190909090712.11029-7-noaos@mellanox.com>
+Subject: [PATCH rdma-core 10/12] tests: Fixes to to_rts() in RCResources
+Date:   Mon,  9 Sep 2019 12:07:10 +0300
+Message-Id: <20190909090712.11029-11-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190909090712.11029-1-noaos@mellanox.com>
 References: <20190909090712.11029-1-noaos@mellanox.com>
@@ -42,51 +42,100 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maxim Chicherin <maximc@mellanox.com>
 
-Add the needed support to allow usage of to_<state> methods for
-XRC QP types.
+Move RCResources constants outside of the class in order to expose them
+to other classes. Avoid passing parameters that are available to the
+class.
 
 Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
 ---
- pyverbs/qp.pyx | 19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ tests/base.py | 49 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 27 insertions(+), 22 deletions(-)
+ mode change 100644 => 100755 tests/base.py
 
-diff --git a/pyverbs/qp.pyx b/pyverbs/qp.pyx
-index 0417625e4b6c..d9770608663c 100755
---- a/pyverbs/qp.pyx
-+++ b/pyverbs/qp.pyx
-@@ -836,6 +836,8 @@ cdef class QP(PyverbsCM):
-         if qp_attr is not None:
-             funcs = {e.IBV_QPT_RC: self.to_init, e.IBV_QPT_UC: self.to_init,
-                      e.IBV_QPT_UD: self.to_rts,
-+                     e.IBV_QPT_XRC_RECV: self.to_init,
-+                     e.IBV_QPT_XRC_SEND: self.to_init,
-                      e.IBV_QPT_RAW_PACKET: self.to_rts}
-             funcs[self.qp.qp_type](qp_attr)
+diff --git a/tests/base.py b/tests/base.py
+old mode 100644
+new mode 100755
+index b9bdaea93c96..ce9ea83b6b53
+--- a/tests/base.py
++++ b/tests/base.py
+@@ -13,6 +13,14 @@ from pyverbs.pd import PD
+ from pyverbs.cq import CQ
+ from pyverbs.mr import MR
  
-@@ -899,7 +901,22 @@ cdef class QP(PyverbsCM):
-                                e.IBV_QP_QKEY, 'RTR': 0,
-                                'RTS': e.IBV_QP_SQ_PSN},
-                 e.IBV_QPT_RAW_PACKET: {'INIT': e.IBV_QP_PORT, 'RTR': 0,
--                                       'RTS': 0}}
-+                                       'RTS': 0},
-+                e.IBV_QPT_XRC_RECV: {'INIT': e.IBV_QP_PKEY_INDEX |\
-+                                e.IBV_QP_PORT | e.IBV_QP_ACCESS_FLAGS,
-+                                'RTR': e.IBV_QP_AV | e.IBV_QP_PATH_MTU |\
-+                                e.IBV_QP_DEST_QPN | e.IBV_QP_RQ_PSN |   \
-+                                e.IBV_QP_MAX_DEST_RD_ATOMIC |\
-+                                e.IBV_QP_MIN_RNR_TIMER,
-+                                'RTS': e.IBV_QP_TIMEOUT | e.IBV_QP_SQ_PSN },
-+                e.IBV_QPT_XRC_SEND: {'INIT': e.IBV_QP_PKEY_INDEX |\
-+                                e.IBV_QP_PORT | e.IBV_QP_ACCESS_FLAGS,
-+                                'RTR': e.IBV_QP_AV | e.IBV_QP_PATH_MTU |\
-+                                e.IBV_QP_DEST_QPN | e.IBV_QP_RQ_PSN,
-+                                'RTS': e.IBV_QP_TIMEOUT |\
-+                                e.IBV_QP_RETRY_CNT | e.IBV_QP_RNR_RETRY |\
-+                                e.IBV_QP_SQ_PSN | e.IBV_QP_MAX_QP_RD_ATOMIC}}
++PATH_MTU = e.IBV_MTU_1024
++MAX_DEST_RD_ATOMIC = 1
++MAX_RD_ATOMIC = 1
++MIN_RNR_TIMER =12
++RETRY_CNT = 7
++RNR_RETRY = 7
++TIMEOUT = 14
 +
-         return masks[self.qp.qp_type][dst] | e.IBV_QP_STATE
  
-     def to_init(self, QPAttr qp_attr):
+ class PyverbsAPITestCase(unittest.TestCase):
+     def setUp(self):
+@@ -231,33 +239,24 @@ class TrafficResources(BaseResources):
+ 
+ 
+ class RCResources(TrafficResources):
+-    PATH_MTU = e.IBV_MTU_1024
+-    MAX_DEST_RD_ATOMIC = 1
+-    MAX_RD_ATOMIC = 1
+-    MIN_RNR_TIMER =12
+-    RETRY_CNT = 7
+-    RNR_RETRY = 7
+-    TIMEOUT = 14
+-
+-    def to_rts(self, rpsn, rqpn):
++
++    def to_rts(self):
+         """
+         Set the QP attributes' values to arbitrary values (same values used in
+         ibv_rc_pingpong).
+-        :param rpsn: Remote PSN (packet serial number)
+-        :param rqpn: Remote QP number
+         :return: None
+         """
+         attr = QPAttr(port_num=self.ib_port)
+-        attr.dest_qp_num = rqpn
+-        attr.path_mtu = self.PATH_MTU
+-        attr.max_dest_rd_atomic = self.MAX_DEST_RD_ATOMIC
+-        attr.min_rnr_timer = self.MIN_RNR_TIMER
+-        attr.rq_psn = rpsn
+-        attr.sq_psn = self.psn
+-        attr.timeout = self.TIMEOUT
+-        attr.retry_cnt = self.RETRY_CNT
+-        attr.rnr_retry = self.RNR_RETRY
+-        attr.max_rd_atomic = self.MAX_RD_ATOMIC
++        attr.dest_qp_num = self.rqpn
++        attr.path_mtu = PATH_MTU
++        attr.max_dest_rd_atomic = MAX_DEST_RD_ATOMIC
++        attr.min_rnr_timer = MIN_RNR_TIMER
++        attr.rq_psn = self.psn
++        attr.sq_psn = self.rpsn
++        attr.timeout = TIMEOUT
++        attr.retry_cnt = RETRY_CNT
++        attr.rnr_retry = RNR_RETRY
++        attr.max_rd_atomic = MAX_RD_ATOMIC
+         gr = GlobalRoute(dgid=self.ctx.query_gid(self.ib_port, self.gid_index),
+                          sgid_index=self.gid_index)
+         ah_attr = AHAttr(port_num=self.ib_port, is_global=1, gr=gr,
+@@ -266,9 +265,15 @@ class RCResources(TrafficResources):
+         self.qp.to_rts(attr)
+ 
+     def pre_run(self, rpsn, rqpn):
++        """
++        Configure Resources before running traffic
++        :param rpsn: Remote PSN (packet serial number)
++        :param rqpn: Remote QP number
++        :return: None
++        """
+         self.rqpn = rqpn
+         self.rpsn = rpsn
+-        self.to_rts(rpsn, rqpn)
++        self.to_rts()
+ 
+ 
+ class UDResources(TrafficResources):
 -- 
 2.21.0
 
