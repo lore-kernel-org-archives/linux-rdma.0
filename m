@@ -4,32 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA1EBC49ED6
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2F1CC49ED5
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AAF9B2089F
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B6D02089F
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389608AbfIIJHV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2389611AbfIIJHV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 9 Sep 2019 05:07:21 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48388 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48364 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389611AbfIIJHU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Sep 2019 05:07:20 -0400
+        with ESMTP id S2389597AbfIIJHV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Sep 2019 05:07:21 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:17 +0300
+        with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:16 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997FpA028426;
-        Mon, 9 Sep 2019 12:07:17 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp2028426;
+        Mon, 9 Sep 2019 12:07:16 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
 Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 12/12] tests: Add XRC ODP test case
-Date:   Mon,  9 Sep 2019 12:07:12 +0300
-Message-Id: <20190909090712.11029-13-noaos@mellanox.com>
+Subject: [PATCH rdma-core 04/12] pyverbs: Introducing XRCD class
+Date:   Mon,  9 Sep 2019 12:07:04 +0300
+Message-Id: <20190909090712.11029-5-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190909090712.11029-1-noaos@mellanox.com>
 References: <20190909090712.11029-1-noaos@mellanox.com>
@@ -42,193 +42,341 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maxim Chicherin <maximc@mellanox.com>
 
-This case creates client and server, each one have two SEND and RECV
-XRC QPs, and SRQ. By connecting SRQ and RECV XRC QPs to the same XRCD
-and connecting SEND XRC QPs to RECV XRC QPs of the opposite side,
-we run a traffic and validate the data received by the SRQ.
+Represents ibv_xrcd, The eXtended RC Domain.
 
 Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
 ---
- tests/base.py     |  5 ++++-
- tests/test_odp.py | 32 +++++++++++++++++++++++--------
- tests/utils.py    | 48 ++++++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 73 insertions(+), 12 deletions(-)
- mode change 100644 => 100755 tests/test_odp.py
- mode change 100644 => 100755 tests/utils.py
+ pyverbs/CMakeLists.txt       |  1 +
+ pyverbs/device.pxd           |  1 +
+ pyverbs/device.pyx           |  7 ++-
+ pyverbs/libibverbs.pxd       |  8 ++++
+ pyverbs/libibverbs_enums.pxd |  5 +++
+ pyverbs/qp.pxd               |  2 +
+ pyverbs/qp.pyx               | 25 ++++++++---
+ pyverbs/xrcd.pxd             | 16 +++++++
+ pyverbs/xrcd.pyx             | 87 ++++++++++++++++++++++++++++++++++++
+ 9 files changed, 145 insertions(+), 7 deletions(-)
+ mode change 100644 => 100755 pyverbs/CMakeLists.txt
+ mode change 100644 => 100755 pyverbs/libibverbs.pxd
+ create mode 100755 pyverbs/xrcd.pxd
+ create mode 100755 pyverbs/xrcd.pyx
 
-diff --git a/tests/base.py b/tests/base.py
-index dd17ddb6fc50..57a75f797770 100755
---- a/tests/base.py
-+++ b/tests/base.py
-@@ -375,7 +375,10 @@ class XRCResources(TrafficResources):
-         self.srq = SRQ(self.ctx, srq_attr)
- 
-     def to_rts(self):
--        ah_attr = AHAttr(dlid=self.port_attr.lid)
-+        gid = self.ctx.query_gid(self.ib_port, self.gid_index)
-+        gr = GlobalRoute(dgid=gid, sgid_index=self.gid_index)
-+        ah_attr = AHAttr(port_num=self.ib_port, is_global=True,
-+                         gr=gr, dlid=self.port_attr.lid)
-         qp_attr = QPAttr()
-         qp_attr.path_mtu = PATH_MTU
-         qp_attr.timeout = TIMEOUT
-diff --git a/tests/test_odp.py b/tests/test_odp.py
+diff --git a/pyverbs/CMakeLists.txt b/pyverbs/CMakeLists.txt
 old mode 100644
 new mode 100755
-index 922cd0d9aad5..d412a7792951
---- a/tests/test_odp.py
-+++ b/tests/test_odp.py
-@@ -1,6 +1,6 @@
-+from tests.base import RCResources, UDResources, XRCResources
-+from tests.utils import requires_odp, traffic, xrc_traffic
- from tests.base import RDMATestCase
--from tests.utils import requires_odp, traffic
--from tests.base import RCResources, UDResources
- from pyverbs.mr import MR
- import pyverbs.enums as e
+index da49093c2cf0..1addf10305c0
+--- a/pyverbs/CMakeLists.txt
++++ b/pyverbs/CMakeLists.txt
+@@ -11,6 +11,7 @@ rdma_cython_module(pyverbs
+   pd.pyx
+   qp.pyx
+   wr.pyx
++  xrcd.pyx
+   )
  
-@@ -8,7 +8,7 @@ import pyverbs.enums as e
- class OdpUD(UDResources):
-     @requires_odp('ud')
-     def create_mr(self):
--        self.mr = MR(self.pd, self.msg_size + self.GRH_SIZE ,
-+        self.mr = MR(self.pd, self.msg_size + self.GRH_SIZE,
-                      e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_ON_DEMAND)
+ rdma_python_module(pyverbs
+diff --git a/pyverbs/device.pxd b/pyverbs/device.pxd
+index 44c8bc3cbcbc..ed2f1ca3d6ef 100644
+--- a/pyverbs/device.pxd
++++ b/pyverbs/device.pxd
+@@ -16,6 +16,7 @@ cdef class Context(PyverbsCM):
+     cdef object ccs
+     cdef object cqs
+     cdef object qps
++    cdef object xrcds
  
+ cdef class DeviceAttr(PyverbsObject):
+     cdef v.ibv_device_attr dev_attr
+diff --git a/pyverbs/device.pyx b/pyverbs/device.pyx
+index cbba8837c283..f238d37ce3a9 100644
+--- a/pyverbs/device.pyx
++++ b/pyverbs/device.pyx
+@@ -14,6 +14,7 @@ from .pyverbs_error import PyverbsUserError
+ from pyverbs.base import PyverbsRDMAErrno
+ cimport pyverbs.libibverbs_enums as e
+ cimport pyverbs.libibverbs as v
++from pyverbs.xrcd cimport XRCD
+ from pyverbs.addr cimport GID
+ from pyverbs.mr import DMMR
+ from pyverbs.pd cimport PD
+@@ -90,6 +91,7 @@ cdef class Context(PyverbsCM):
+         self.ccs = weakref.WeakSet()
+         self.cqs = weakref.WeakSet()
+         self.qps = weakref.WeakSet()
++        self.xrcds = weakref.WeakSet()
  
-@@ -18,18 +18,30 @@ class OdpRC(RCResources):
-         self.mr = MR(self.pd, self.msg_size,
-                      e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_ON_DEMAND)
+         dev_name = kwargs.get('name')
  
-+class OdpXRC(XRCResources):
-+    @requires_odp('xrc')
-+    def create_mr(self):
-+        self.mr = MR(self.pd, self.msg_size,
-+                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_ON_DEMAND)
+@@ -126,7 +128,8 @@ cdef class Context(PyverbsCM):
+ 
+     cpdef close(self):
+         self.logger.debug('Closing Context')
+-        self.close_weakrefs([self.qps, self.ccs, self.cqs, self.dms, self.pds])
++        self.close_weakrefs([self.qps, self.ccs, self.cqs, self.dms, self.pds,
++                             self.xrcds])
+         if self.context != NULL:
+             rc = v.ibv_close_device(self.context)
+             if rc != 0:
+@@ -198,6 +201,8 @@ cdef class Context(PyverbsCM):
+             self.cqs.add(obj)
+         elif isinstance(obj, QP):
+             self.qps.add(obj)
++        elif isinstance(obj, XRCD):
++            self.xrcds.add(obj)
+         else:
+             raise PyverbsError('Unrecognized object type')
+ 
+diff --git a/pyverbs/libibverbs.pxd b/pyverbs/libibverbs.pxd
+old mode 100644
+new mode 100755
+index 1aa5844b126e..8a5dd446d847
+--- a/pyverbs/libibverbs.pxd
++++ b/pyverbs/libibverbs.pxd
+@@ -341,6 +341,11 @@ cdef extern from 'infiniband/verbs.h':
+         ibv_qp_type     qp_type
+         int             sq_sig_all
+ 
++    cdef struct ibv_xrcd_init_attr:
++        uint32_t comp_mask
++        int      fd
++        int      oflags
 +
+     cdef struct ibv_xrcd:
+         pass
  
- class OdpTestCase(RDMATestCase):
-     def setUp(self):
-         super(OdpTestCase, self).setUp()
-         self.iters = 100
--        self.qp_dict = {'rc': OdpRC, 'ud': OdpUD}
-+        self.qp_dict = {'rc': OdpRC, 'ud': OdpUD, 'xrc': OdpXRC}
+@@ -490,3 +495,6 @@ cdef extern from 'infiniband/verbs.h':
+     int ibv_destroy_qp(ibv_qp *qp)
+     int ibv_post_recv(ibv_qp *qp, ibv_recv_wr *wr, ibv_recv_wr **bad_wr)
+     int ibv_post_send(ibv_qp *qp, ibv_send_wr *wr, ibv_send_wr **bad_wr)
++    ibv_xrcd *ibv_open_xrcd(ibv_context *context,
++                            ibv_xrcd_init_attr *xrcd_init_attr)
++    int ibv_close_xrcd(ibv_xrcd *xrcd)
+diff --git a/pyverbs/libibverbs_enums.pxd b/pyverbs/libibverbs_enums.pxd
+index 1d437240a883..7d657b332324 100755
+--- a/pyverbs/libibverbs_enums.pxd
++++ b/pyverbs/libibverbs_enums.pxd
+@@ -393,6 +393,11 @@ cdef extern from '<infiniband/verbs.h>':
+         IBV_RAW_PACKET_CAP_IP_CSUM          = 1 << 2
+         IBV_RAW_PACKET_CAP_DELAY_DROP       = 1 << 3
  
-     def create_players(self, qp_type):
--        client = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
--        server = self.qp_dict[qp_type](self.dev_name, self.ib_port, self.gid_index)
--        client.pre_run(server.psn, server.qpn)
--        server.pre_run(client.psn, client.qpn)
-+        client = self.qp_dict[qp_type](self.dev_name, self.ib_port,
-+                                       self.gid_index)
-+        server = self.qp_dict[qp_type](self.dev_name, self.ib_port,
-+                                       self.gid_index)
-+        if qp_type == 'xrc':
-+            client.pre_run(server.psns, server.qps_num)
-+            server.pre_run(client.psns, client.qps_num)
++    cpdef enum ibv_xrcd_init_attr_mask:
++        IBV_XRCD_INIT_ATTR_FD       = 1 << 0
++        IBV_XRCD_INIT_ATTR_OFLAGS   = 1 << 1
++        IBV_XRCD_INIT_ATTR_RESERVED = 1 << 2
++
+     cdef unsigned long long IBV_DEVICE_RAW_SCATTER_FCS
+     cdef unsigned long long IBV_DEVICE_PCI_WRITE_END_PADDING
+ 
+diff --git a/pyverbs/qp.pxd b/pyverbs/qp.pxd
+index 29b9ec4a0221..a5c92ea673e5 100644
+--- a/pyverbs/qp.pxd
++++ b/pyverbs/qp.pxd
+@@ -18,6 +18,7 @@ cdef class QPInitAttrEx(PyverbsObject):
+     cdef v.ibv_qp_init_attr_ex attr
+     cdef object scq
+     cdef object rcq
++    cdef object xrcd
+     cdef object pd
+ 
+ cdef class QPAttr(PyverbsObject):
+@@ -29,6 +30,7 @@ cdef class QP(PyverbsCM):
+     cdef int state
+     cdef object pd
+     cdef object context
++    cdef object xrcd
+     cpdef close(self)
+     cdef update_cqs(self, init_attr)
+     cdef object scq
+diff --git a/pyverbs/qp.pyx b/pyverbs/qp.pyx
+index 732ef5094b6b..a36d5fe9d569 100755
+--- a/pyverbs/qp.pyx
++++ b/pyverbs/qp.pyx
+@@ -11,6 +11,7 @@ from pyverbs.addr cimport GlobalRoute
+ from pyverbs.device cimport Context
+ from pyverbs.cq cimport CQ, CQEX
+ cimport pyverbs.libibverbs as v
++from pyverbs.xrcd cimport XRCD
+ from pyverbs.pd cimport PD
+ 
+ 
+@@ -193,7 +194,7 @@ cdef class QPInitAttrEx(PyverbsObject):
+     def __cinit__(self, qp_type=e.IBV_QPT_UD, qp_context=None,
+                   PyverbsObject scq=None, PyverbsObject rcq=None,
+                   object srq=None, QPCap cap=None, sq_sig_all=0, comp_mask=0,
+-                  PD pd=None, object xrcd=None, create_flags=0,
++                  PD pd=None, XRCD xrcd=None, create_flags=0,
+                   max_tso_header=0, source_qpn=0, object hash_conf=None,
+                   object ind_table=None):
+         """
+@@ -209,7 +210,7 @@ cdef class QPInitAttrEx(PyverbsObject):
+         :param comp_mask: bit mask to determine which of the following fields
+                           are valid
+         :param pd: A PD object to be associated with this QP
+-        :param xrcd: Not yet supported
++        :param xrcd: XRC domain to be used for XRC QPs
+         :param create_flags: Creation flags for this QP
+         :param max_tso_header: Maximum TSO header size
+         :param source_qpn: Source QP number (requires IBV_QP_CREATE_SOURCE_QPN
+@@ -240,14 +241,14 @@ cdef class QPInitAttrEx(PyverbsObject):
+         self.rcq = rcq
+ 
+         self.attr.srq = NULL  # Until SRQ support is added
+-        self.attr.xrcd = NULL  # Until XRCD support is added
++        self.xrcd = xrcd
++        self.attr.xrcd = xrcd.xrcd if xrcd else NULL
+         self.attr.rwq_ind_tbl = NULL  # Until RSS support is added
+         self.attr.qp_type = qp_type
+         self.attr.sq_sig_all = sq_sig_all
+-        unsupp_flags = e.IBV_QP_INIT_ATTR_XRCD | e.IBV_QP_INIT_ATTR_IND_TABLE |\
+-                       e.IBV_QP_INIT_ATTR_RX_HASH
++        unsupp_flags = e.IBV_QP_INIT_ATTR_IND_TABLE | e.IBV_QP_INIT_ATTR_RX_HASH
+         if comp_mask & unsupp_flags:
+-            raise PyverbsUserError('XRCD and RSS are not yet supported in pyverbs')
++            raise PyverbsUserError('RSS is not yet supported in pyverbs')
+         self.attr.comp_mask = comp_mask
+         if pd is not None:
+             self.pd = pd
+@@ -318,6 +319,14 @@ cdef class QPInitAttrEx(PyverbsObject):
+         self.attr.pd = <v.ibv_pd*>val.pd
+         self.pd = val
+ 
++    @property
++    def xrcd(self):
++        return self.xrcd
++    @xrcd.setter
++    def xrcd(self, XRCD val):
++        self.attr.xrcd = <v.ibv_xrcd*>val.xrcd
++        self.xrcd = val
++
+     @property
+     def create_flags(self):
+         return self.attr.create_flags
+@@ -794,6 +803,10 @@ cdef class QP(PyverbsCM):
+                 pd = <PD>init_attr.pd
+                 pd.add_ref(self)
+                 self.pd = pd
++            if init_attr.xrcd is not None:
++                xrcd = <XRCD>init_attr.xrcd
++                xrcd.add_ref(self)
++                self.xrcd = xrcd
+         else:
+             self._create_qp(creator, init_attr)
+             pd = <PD>creator
+diff --git a/pyverbs/xrcd.pxd b/pyverbs/xrcd.pxd
+new file mode 100755
+index 000000000000..ab28dfafe1d1
+--- /dev/null
++++ b/pyverbs/xrcd.pxd
+@@ -0,0 +1,16 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright (c) 2019, Mellanox Technologies. All rights reserved.
++from pyverbs.base cimport PyverbsCM, PyverbsObject
++from pyverbs.device cimport Context
++cimport pyverbs.libibverbs as v
++
++
++cdef class XRCDInitAttr(PyverbsObject):
++    cdef v.ibv_xrcd_init_attr attr
++
++
++cdef class XRCD(PyverbsCM):
++    cdef v.ibv_xrcd *xrcd
++    cdef Context ctx
++    cdef add_ref(self, obj)
++    cdef object qps
+diff --git a/pyverbs/xrcd.pyx b/pyverbs/xrcd.pyx
+new file mode 100755
+index 000000000000..83d2a6b83e67
+--- /dev/null
++++ b/pyverbs/xrcd.pyx
+@@ -0,0 +1,87 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright (c) 2019, Mellanox Technologies. All rights reserved.
++import weakref
++
++from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsError
++from pyverbs.base import PyverbsRDMAErrno
++from pyverbs.device cimport Context
++from pyverbs.qp cimport QP
++
++cdef extern from 'errno.h':
++    int errno
++
++
++cdef class XRCDInitAttr(PyverbsObject):
++    def __cinit__(self, comp_mask, oflags, fd):
++        self.attr.fd = fd
++        self.attr.comp_mask = comp_mask
++        self.attr.oflags = oflags
++
++    @property
++    def fd(self):
++        return self.attr.fd
++    @fd.setter
++    def fd(self, val):
++        self.attr.fd = val
++
++    @property
++    def comp_mask(self):
++        return self.attr.comp_mask
++    @comp_mask.setter
++    def comp_mask(self, val):
++        self.attr.comp_mask = val
++
++    @property
++    def oflags(self):
++        return self.attr.oflags
++    @oflags.setter
++    def oflags(self, val):
++        self.attr.oflags = val
++
++
++cdef class XRCD(PyverbsCM):
++    def __cinit__(self, Context context not None, XRCDInitAttr init_attr not None):
++        """
++        Initializes a XRCD object.
++        :param context: The Context object creating the XRCD
++        :return: The newly created XRCD on success
++        """
++        self.xrcd = v.ibv_open_xrcd(<v.ibv_context*> context.context,
++                                    &init_attr.attr)
++        if self.xrcd == NULL:
++            raise PyverbsRDMAErrno('Failed to allocate XRCD', errno)
++        self.ctx = context
++        context.add_ref(self)
++        self.logger.debug('XRCD: Allocated ibv_xrcd')
++        self.qps = weakref.WeakSet()
++
++    def __dealloc__(self):
++        """
++        Closes the inner XRCD.
++        :return: None
++        """
++        self.close()
++
++    cpdef close(self):
++        """
++        Closes the underlying C object of the XRCD.
++        :return: None
++        """
++        self.logger.debug('Closing XRCD')
++        self.close_weakrefs([self.qps])
++        # XRCD may be deleted directly or indirectly by closing its context,
++        # which leaves the Python XRCD object without the underlying C object,
++        # so during destruction, need to check whether or not the C object
++        # exists.
++        if self.xrcd != NULL:
++            rc = v.ibv_close_xrcd(self.xrcd)
++            if rc != 0:
++                raise PyverbsRDMAErrno('Failed to dealloc XRCD')
++            self.xrcd = NULL
++            self.ctx = None
++
++    cdef add_ref(self, obj):
++        if isinstance(obj, QP):
++            self.qps.add(obj)
 +        else:
-+            client.pre_run(server.psn, server.qpn)
-+            server.pre_run(client.psn, client.qpn)
-         return client, server
- 
-     def test_odp_rc_traffic(self):
-@@ -39,3 +51,7 @@ class OdpTestCase(RDMATestCase):
-     def test_odp_ud_traffic(self):
-         client, server = self.create_players('ud')
-         traffic(client, server, self.iters, self.gid_index, self.ib_port)
-+
-+    def test_odp_xrc_traffic(self):
-+        client, server = self.create_players('xrc')
-+        xrc_traffic(client, server)
-diff --git a/tests/utils.py b/tests/utils.py
-old mode 100644
-new mode 100755
-index 881ce4d03634..785309552e25
---- a/tests/utils.py
-+++ b/tests/utils.py
-@@ -12,6 +12,7 @@ from pyverbs.pyverbs_error import PyverbsError, PyverbsRDMAError
- from pyverbs.addr import AHAttr, AH, GlobalRoute
- from pyverbs.wr import SGE, SendWR, RecvWR
- from pyverbs.qp import QPCap, QPInitAttrEx
-+from tests.base import XRCResources
- import pyverbs.device as d
- import pyverbs.enums as e
- 
-@@ -256,7 +257,8 @@ def get_send_wr(agr_obj, is_server):
-     :param is_server: Indicates whether this is server or client side
-     :return: send wr
-     """
--    qp_type = agr_obj.qp.qp_type
-+    qp_type = agr_obj.sqp_lst[0].qp_type if isinstance(agr_obj, XRCResources) \
-+                else agr_obj.qp.qp_type
-     mr = agr_obj.mr
-     if qp_type == e.IBV_QPT_UD:
-         send_sge = SGE(mr.buf + GRH_SIZE, agr_obj.msg_size, mr.lkey)
-@@ -273,7 +275,8 @@ def get_recv_wr(agr_obj):
-     :param agr_obj: Aggregation object which contains all resources necessary
-     :return: recv wr
-     """
--    qp_type = agr_obj.qp.qp_type
-+    qp_type = agr_obj.rqp_lst[0].qp_type if isinstance(agr_obj, XRCResources) \
-+                else agr_obj.qp.qp_type
-     mr = agr_obj.mr
-     if qp_type == e.IBV_QPT_UD:
-         recv_sge = SGE(mr.buf, agr_obj.msg_size + GRH_SIZE, mr.lkey)
-@@ -393,6 +396,44 @@ def traffic(client, server, iters, gid_idx, port):
-         msg_received = client.mr.read(client.msg_size, 0)
-         validate(msg_received, False, client.msg_size)
- 
-+
-+def xrc_traffic(client, server):
-+    """
-+    Runs basic xrc traffic, this function assumes that number of QPs, which
-+    server and client have are equal, server.send_qp[i] is connected to
-+    client.recv_qp[i], each time server.send_qp[i] sends a message, it is
-+    redirected to client.srq because client.recv_qp[i] and client.srq are
-+    under the same xrcd. The traffic flow in the opposite direction is the same.
-+    :param client: Aggregation object of the active side, should be an instance
-+    of XRCResources class
-+    :param server: Aggregation object of the passive side, should be an instance
-+    of XRCResources class
-+    :return: None
-+    """
-+    client_srqn = client.srq.get_srq_num()
-+    server_srqn = server.srq.get_srq_num()
-+    s_recv_wr = get_recv_wr(server)
-+    c_recv_wr = get_recv_wr(client)
-+    post_recv(client.srq, c_recv_wr, client.qp_count*client.num_msgs)
-+    post_recv(server.srq, s_recv_wr, server.qp_count*server.num_msgs)
-+    for _ in range(client.num_msgs):
-+        for i in range(server.qp_count):
-+            c_send_wr = get_send_wr(client, False)
-+            c_send_wr.set_qp_type_xrc(server_srqn)
-+            client.sqp_lst[i].post_send(c_send_wr)
-+            poll_cq(client.cq)
-+            poll_cq(server.cq)
-+            msg_received = server.mr.read(server.msg_size, 0)
-+            validate(msg_received, True, server.msg_size)
-+            s_send_wr = get_send_wr(server, True)
-+            s_send_wr.set_qp_type_xrc(client_srqn)
-+            server.sqp_lst[i].post_send(s_send_wr)
-+            poll_cq(server.cq)
-+            poll_cq(client.cq)
-+            msg_received = client.mr.read(client.msg_size, 0)
-+            validate(msg_received, False, client.msg_size)
-+
-+
- # Decorators
- def requires_odp(qp_type):
-     def outer(func):
-@@ -415,7 +456,8 @@ def odp_supported(ctx, qp_type):
-         raise unittest.SkipTest('ODP is not supported - No ODP caps')
-     qp_odp_caps = getattr(odp_caps, '{}_odp_caps'.format(qp_type))
-     has_odp_send = qp_odp_caps & e.IBV_ODP_SUPPORT_SEND
--    has_odp_recv = qp_odp_caps & e.IBV_ODP_SUPPORT_RECV
-+    has_odp_recv = qp_odp_caps & e.IBV_ODP_SUPPORT_SRQ_RECV if qp_type == 'xrc'\
-+                else qp_odp_caps & e.IBV_ODP_SUPPORT_RECV
-     if has_odp_send == 0:
-         raise unittest.SkipTest('ODP is not supported - ODP send not supported')
-     if has_odp_recv == 0:
++            raise PyverbsError('Unrecognized object type')
 -- 
 2.21.0
 
