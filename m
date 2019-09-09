@@ -4,32 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82A79C433EF
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00CEDC49ED4
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 64E882196E
+	by mail.kernel.org (Postfix) with ESMTP id CAF382089F
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Sep 2019 09:07:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389599AbfIIJHT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Sep 2019 05:07:19 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48362 "EHLO
+        id S2389616AbfIIJHU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Sep 2019 05:07:20 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:48366 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727674AbfIIJHT (ORCPT
+        with ESMTP id S2389596AbfIIJHT (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Sep 2019 05:07:19 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from noaos@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 9 Sep 2019 12:07:16 +0300
 Received: from reg-l-vrt-059-007.mtl.labs.mlnx (reg-l-vrt-059-007.mtl.labs.mlnx [10.135.59.7])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fox028426;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id x8997Fp4028426;
         Mon, 9 Sep 2019 12:07:16 +0300
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com
 Cc:     linux-rdma@vger.kernel.org, Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 01/12] pyverbs: Fix WC creation process
-Date:   Mon,  9 Sep 2019 12:07:01 +0300
-Message-Id: <20190909090712.11029-2-noaos@mellanox.com>
+Subject: [PATCH rdma-core 06/12] pyverbs: Support XRC QPs when modifying QP states
+Date:   Mon,  9 Sep 2019 12:07:06 +0300
+Message-Id: <20190909090712.11029-7-noaos@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190909090712.11029-1-noaos@mellanox.com>
 References: <20190909090712.11029-1-noaos@mellanox.com>
@@ -42,78 +42,51 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maxim Chicherin <maximc@mellanox.com>
 
-In WC constructor, parameters assignment was incorrect and values
-were not stored properly.
-imm_data attribute was not initiated, imm_data represents immediate
-data in network byte order if wc_flags & IBV_WC_WITH_IMM or stores the
-invalidated rkey if wc_flags & IBV_WC_WITH_INV.
+Add the needed support to allow usage of to_<state> methods for
+XRC QP types.
 
 Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
 ---
- pyverbs/cq.pyx | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
- mode change 100644 => 100755 pyverbs/cq.pyx
+ pyverbs/qp.pyx | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/pyverbs/cq.pyx b/pyverbs/cq.pyx
-old mode 100644
-new mode 100755
-index dc09924e88a9..3ac5f704766b
---- a/pyverbs/cq.pyx
-+++ b/pyverbs/cq.pyx
-@@ -366,18 +366,19 @@ cdef class WC(PyverbsObject):
-     def __cinit__(self, wr_id=0, status=0, opcode=0, vendor_err=0, byte_len=0,
-                   qp_num=0, src_qp=0, imm_data=0, wc_flags=0, pkey_index=0,
-                   slid=0, sl=0, dlid_path_bits=0):
--        self.wr_id = wr_id
--        self.status = status
--        self.opcode = opcode
--        self.vendor_err = vendor_err
--        self.byte_len = byte_len
--        self.qp_num = qp_num
--        self.src_qp = src_qp
--        self.wc_flags = wc_flags
--        self.pkey_index = pkey_index
--        self.slid = slid
--        self.sl = sl
--        self.dlid_path_bits = dlid_path_bits
-+        self.wc.wr_id = wr_id
-+        self.wc.status = status
-+        self.wc.opcode = opcode
-+        self.wc.vendor_err = vendor_err
-+        self.wc.byte_len = byte_len
-+        self.wc.qp_num = qp_num
-+        self.wc.src_qp = src_qp
-+        self.wc.wc_flags = wc_flags
-+        self.wc.pkey_index = pkey_index
-+        self.wc.slid = slid
-+        self.wc.imm_data = imm_data
-+        self.wc.sl = sl
-+        self.wc.dlid_path_bits = dlid_path_bits
+diff --git a/pyverbs/qp.pyx b/pyverbs/qp.pyx
+index 0417625e4b6c..d9770608663c 100755
+--- a/pyverbs/qp.pyx
++++ b/pyverbs/qp.pyx
+@@ -836,6 +836,8 @@ cdef class QP(PyverbsCM):
+         if qp_attr is not None:
+             funcs = {e.IBV_QPT_RC: self.to_init, e.IBV_QPT_UC: self.to_init,
+                      e.IBV_QPT_UD: self.to_rts,
++                     e.IBV_QPT_XRC_RECV: self.to_init,
++                     e.IBV_QPT_XRC_SEND: self.to_init,
+                      e.IBV_QPT_RAW_PACKET: self.to_rts}
+             funcs[self.qp.qp_type](qp_attr)
  
-     @property
-     def wr_id(self):
-@@ -456,6 +457,13 @@ cdef class WC(PyverbsObject):
-     def sl(self, val):
-         self.wc.sl = val
- 
-+    @property
-+    def imm_data(self):
-+        return self.wc.imm_data
-+    @imm_data.setter
-+    def imm_data(self, val):
-+        self.wc.imm_data = val
+@@ -899,7 +901,22 @@ cdef class QP(PyverbsCM):
+                                e.IBV_QP_QKEY, 'RTR': 0,
+                                'RTS': e.IBV_QP_SQ_PSN},
+                 e.IBV_QPT_RAW_PACKET: {'INIT': e.IBV_QP_PORT, 'RTR': 0,
+-                                       'RTS': 0}}
++                                       'RTS': 0},
++                e.IBV_QPT_XRC_RECV: {'INIT': e.IBV_QP_PKEY_INDEX |\
++                                e.IBV_QP_PORT | e.IBV_QP_ACCESS_FLAGS,
++                                'RTR': e.IBV_QP_AV | e.IBV_QP_PATH_MTU |\
++                                e.IBV_QP_DEST_QPN | e.IBV_QP_RQ_PSN |   \
++                                e.IBV_QP_MAX_DEST_RD_ATOMIC |\
++                                e.IBV_QP_MIN_RNR_TIMER,
++                                'RTS': e.IBV_QP_TIMEOUT | e.IBV_QP_SQ_PSN },
++                e.IBV_QPT_XRC_SEND: {'INIT': e.IBV_QP_PKEY_INDEX |\
++                                e.IBV_QP_PORT | e.IBV_QP_ACCESS_FLAGS,
++                                'RTR': e.IBV_QP_AV | e.IBV_QP_PATH_MTU |\
++                                e.IBV_QP_DEST_QPN | e.IBV_QP_RQ_PSN,
++                                'RTS': e.IBV_QP_TIMEOUT |\
++                                e.IBV_QP_RETRY_CNT | e.IBV_QP_RNR_RETRY |\
++                                e.IBV_QP_SQ_PSN | e.IBV_QP_MAX_QP_RD_ATOMIC}}
 +
-     @property
-     def dlid_path_bits(self):
-         return self.wc.dlid_path_bits
-@@ -476,6 +484,7 @@ cdef class WC(PyverbsObject):
-             print_format.format('pkey index', self.pkey_index) +\
-             print_format.format('slid', self.slid) +\
-             print_format.format('sl', self.sl) +\
-+            print_format.format('imm_data', self.imm_data) +\
-             print_format.format('dlid path bits', self.dlid_path_bits)
+         return masks[self.qp.qp_type][dst] | e.IBV_QP_STATE
  
- 
+     def to_init(self, QPAttr qp_attr):
 -- 
 2.21.0
 
