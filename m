@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A581C4740A
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Sep 2019 12:24:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 653A9C3A5A2
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Sep 2019 12:24:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B9FF20872
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Sep 2019 12:24:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 478B5208E4
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Sep 2019 12:24:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731259AbfIJMYV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Sep 2019 08:24:21 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:44164 "EHLO huawei.com"
+        id S2391540AbfIJMYW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Sep 2019 08:24:22 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:44132 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726841AbfIJMYV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Sep 2019 08:24:21 -0400
+        id S2390302AbfIJMYW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Sep 2019 08:24:22 -0400
 Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 73633C34BA5EF76B520D;
+        by Forcepoint Email with ESMTP id 624252D05724D93B9EE5;
         Tue, 10 Sep 2019 20:24:19 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 10 Sep 2019 20:24:09 +0800
+ 14.3.439.0; Tue, 10 Sep 2019 20:24:08 +0800
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH rdma-core 4/5] libhns: Add UD support for hip08 in user mode
-Date:   Tue, 10 Sep 2019 20:20:51 +0800
-Message-ID: <1568118052-33380-5-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH rdma-core 1/5] libhns: Add support of handling AH for hip08
+Date:   Tue, 10 Sep 2019 20:20:48 +0800
+Message-ID: <1568118052-33380-2-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1568118052-33380-1-git-send-email-liweihang@hisilicon.com>
 References: <1568118052-33380-1-git-send-email-liweihang@hisilicon.com>
@@ -45,240 +45,190 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-User Application can use Unreliable Datagram on hip08 now.
+This patch achieves two verbs create_ah and destroy_ah to support
+allocation and destruction of Address Handle.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Weihang Li <liweihang@hisilicon.com>
 ---
- providers/hns/hns_roce_u_hw_v2.c | 90 ++++++++++++++++++++++++++++++++++++++-
- providers/hns/hns_roce_u_hw_v2.h | 91 ++++++++++++++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_verbs.c |  4 ++
- 3 files changed, 184 insertions(+), 1 deletion(-)
+ kernel-headers/rdma/hns-abi.h    |  7 ++++++
+ providers/hns/hns_roce_u.c       |  2 ++
+ providers/hns/hns_roce_u.h       | 30 +++++++++++++++++++++++
+ providers/hns/hns_roce_u_abi.h   |  3 ++-
+ providers/hns/hns_roce_u_verbs.c | 53 ++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 94 insertions(+), 1 deletion(-)
 
-diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 21a6ee0..dd7545f 100644
---- a/providers/hns/hns_roce_u_hw_v2.c
-+++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -634,6 +634,92 @@ static void set_sge(struct hns_roce_v2_wqe_data_seg *dseg,
- 		}
- }
+diff --git a/kernel-headers/rdma/hns-abi.h b/kernel-headers/rdma/hns-abi.h
+index eb76b38..5f9b178 100644
+--- a/kernel-headers/rdma/hns-abi.h
++++ b/kernel-headers/rdma/hns-abi.h
+@@ -80,4 +80,11 @@ struct hns_roce_ib_alloc_pd_resp {
+ 	__u32 pdn;
+ };
  
-+static void set_ud_wqe(void *wqe, struct hns_roce_qp *qp,
-+		       struct ibv_send_wr *wr, int nreq,
-+		       struct hns_roce_sge_info *sge_info)
-+{
-+	struct hns_roce_ah *ah = to_hr_ah(wr->wr.ud.ah);
-+	struct hns_roce_ud_sq_wqe *ud_sq_wqe = wqe;
-+
-+	memset(ud_sq_wqe, 0, sizeof(*ud_sq_wqe));
-+
-+	roce_set_field(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_OPCODE_M,
-+		       UD_SQ_WQE_OPCODE_S, HNS_ROCE_WQE_OP_SEND);
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_CQE_S,
-+		     (wr->send_flags & IBV_SEND_SIGNALED) ? 1 : 0);
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_SE_S,
-+		     (wr->send_flags & IBV_SEND_SOLICITED) ? 1 : 0);
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_OWNER_S,
-+		     ~(((qp->sq.head + nreq) >> qp->sq.shift) & 0x1));
-+
-+	ud_sq_wqe->immtdata = htole32(be32toh(wr->imm_data));
-+
-+	roce_set_field(ud_sq_wqe->sge_num_pd, UD_SQ_WQE_PD_M,
-+		       UD_SQ_WQE_PD_S, to_hr_pd(qp->ibv_qp.pd)->pdn);
-+
-+	roce_set_field(ud_sq_wqe->rsv_msg_start_sge_idx,
-+		       UD_SQ_WQE_MSG_START_SGE_IDX_M,
-+		       UD_SQ_WQE_MSG_START_SGE_IDX_S,
-+		       sge_info->start_idx & (qp->sge.sge_cnt - 1));
-+
-+	roce_set_field(ud_sq_wqe->udpspn_rsv, UD_SQ_WQE_UDP_SPN_M,
-+		       UD_SQ_WQE_UDP_SPN_S, 0);
-+
-+	ud_sq_wqe->qkey = htole32(wr->wr.ud.remote_qkey);
-+
-+	roce_set_field(ud_sq_wqe->rsv_dqpn, UD_SQ_WQE_DQPN_M,
-+		       UD_SQ_WQE_DQPN_S, wr->wr.ud.remote_qpn);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_VLAN_M,
-+		       UD_SQ_WQE_VLAN_S, ah->av.vlan_id);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_TCLASS_M,
-+		       UD_SQ_WQE_TCLASS_S, ah->av.tclass);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_HOPLIMIT_M,
-+		       UD_SQ_WQE_HOPLIMIT_S, ah->av.hop_limit);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_FLOW_LABEL_M,
-+		       UD_SQ_WQE_FLOW_LABEL_S, ah->av.flowlabel);
-+
-+	roce_set_bit(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_VLAN_EN_S,
-+		     ah->av.vlan_en ? 1 : 0);
-+
-+	roce_set_bit(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_LBI_S, 0);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_SL_M,
-+		       UD_SQ_WQE_SL_S, ah->av.sl);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_PORTN_M,
-+		       UD_SQ_WQE_PORTN_S, qp->ibv_qp.qp_num);
-+
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_0_M,
-+		       UD_SQ_WQE_DMAC_0_S, ah->av.mac[0]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_1_M,
-+		       UD_SQ_WQE_DMAC_1_S, ah->av.mac[1]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_2_M,
-+		       UD_SQ_WQE_DMAC_2_S, ah->av.mac[2]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_3_M,
-+		       UD_SQ_WQE_DMAC_3_S, ah->av.mac[3]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac,
-+		       UD_SQ_WQE_DMAC_4_M, UD_SQ_WQE_DMAC_4_S,
-+		       to_hr_ah(wr->wr.ud.ah)->av.mac[4]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac,
-+		       UD_SQ_WQE_DMAC_5_M, UD_SQ_WQE_DMAC_5_S,
-+		       to_hr_ah(wr->wr.ud.ah)->av.mac[5]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac, UD_SQ_WQE_SGID_IDX_M,
-+		       UD_SQ_WQE_SGID_IDX_S, ah->av.gid_index);
-+
-+	memcpy(ud_sq_wqe->dgid, ah->av.dgid, HNS_ROCE_GID_SIZE);
-+
-+	set_sge(NULL, qp, wr, sge_info);
-+
-+	ud_sq_wqe->msg_len = htole32(sge_info->total_len);
-+
-+	roce_set_field(ud_sq_wqe->sge_num_pd, UD_SQ_WQE_SGE_NUM_M,
-+		       UD_SQ_WQE_SGE_NUM_S, sge_info->valid_num);
-+}
-+
- static int set_rc_wqe(void *wqe, struct hns_roce_qp *qp, struct ibv_send_wr *wr,
- 		      int nreq, struct hns_roce_sge_info *sge_info)
- {
-@@ -827,8 +913,10 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 				goto out;
- 			}
- 			break;
--		case IBV_QPT_UC:
- 		case IBV_QPT_UD:
-+			set_ud_wqe(wqe, qp, wr, nreq, &sge_info);
-+			break;
-+		case IBV_QPT_UC:
- 		default:
- 			ret = -EINVAL;
- 			*bad_wr = wr;
-diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
-index 3eca1fd..84cf6c4 100644
---- a/providers/hns/hns_roce_u_hw_v2.h
-+++ b/providers/hns/hns_roce_u_hw_v2.h
-@@ -291,4 +291,95 @@ struct hns_roce_wqe_atomic_seg {
- int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			    struct ibv_send_wr **bad_wr);
- 
-+struct hns_roce_ud_sq_wqe {
-+	__le32		rsv_opcode;
-+	__le32		msg_len;
-+	__le32		immtdata;
-+	__le32		sge_num_pd;
-+	__le32		rsv_msg_start_sge_idx;
-+	__le32		udpspn_rsv;
-+	__le32		qkey;
-+	__le32		rsv_dqpn;
-+	__le32		tclass_vlan;
-+	__le32		lbi_flow_label;
-+	__le32		dmac;
-+	__le32		smac_index_dmac;
-+	uint8_t		dgid[HNS_ROCE_GID_SIZE];
++struct hns_roce_ib_create_ah_resp {
++	__u8    dmac[6];
++	__u16   vlan_id;
++	__u8    vlan_en;
++	__u8    reserved[7];
 +};
 +
-+#define UD_SQ_WQE_OPCODE_S 0
-+#define UD_SQ_WQE_OPCODE_M  (((1UL << 5) - 1) << UD_SQ_WQE_OPCODE_S)
+ #endif /* HNS_ABI_USER_H */
+diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
+index 5872599..8ba41de 100644
+--- a/providers/hns/hns_roce_u.c
++++ b/providers/hns/hns_roce_u.c
+@@ -81,6 +81,8 @@ static const struct verbs_context_ops hns_common_ops = {
+ 	.modify_srq = hns_roce_u_modify_srq,
+ 	.query_srq = hns_roce_u_query_srq,
+ 	.destroy_srq = hns_roce_u_destroy_srq,
++	.create_ah = hns_roce_u_create_ah,
++	.destroy_ah = hns_roce_u_destroy_ah,
+ };
+ 
+ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index 23e0f13..45472fe 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -68,6 +68,8 @@
+ #define HNS_ROCE_TPTR_OFFSET		0x1000
+ #define HNS_ROCE_STATIC_RATE		3 /* Gbps */
+ 
++#define	ETH_ALEN			6
 +
-+#define UD_SQ_WQE_OWNER_S 7
+ #define roce_get_field(origin, mask, shift) \
+ 	(((le32toh(origin)) & (mask)) >> (shift))
+ 
+@@ -244,6 +246,25 @@ struct hns_roce_qp {
+ 	unsigned long			flags;
+ };
+ 
++struct hns_roce_av {
++	uint8_t				port;
++	uint8_t				gid_index;
++	uint8_t				static_rate;
++	uint8_t				hop_limit;
++	uint32_t			flowlabel;
++	uint8_t				sl;
++	uint8_t				tclass;
++	uint8_t				dgid[HNS_ROCE_GID_SIZE];
++	uint8_t				mac[ETH_ALEN];
++	uint16_t			vlan_id;
++	uint8_t				vlan_en;
++};
 +
-+#define UD_SQ_WQE_CQE_S 8
++struct hns_roce_ah {
++	struct ibv_ah			ibv_ah;
++	struct hns_roce_av		av;
++};
 +
-+#define UD_SQ_WQE_SE_S 11
+ struct hns_roce_u_hw {
+ 	uint32_t hw_version;
+ 	struct verbs_context_ops hw_ops;
+@@ -280,6 +301,11 @@ static inline struct  hns_roce_qp *to_hr_qp(struct ibv_qp *ibv_qp)
+ 	return container_of(ibv_qp, struct hns_roce_qp, ibv_qp);
+ }
+ 
++static inline struct hns_roce_ah *to_hr_ah(struct ibv_ah *ibv_ah)
++{
++	return container_of(ibv_ah, struct hns_roce_ah, ibv_ah);
++}
 +
-+#define UD_SQ_WQE_PD_S 0
-+#define UD_SQ_WQE_PD_M  (((1UL << 24) - 1) << UD_SQ_WQE_PD_S)
+ int hns_roce_u_query_device(struct ibv_context *context,
+ 			    struct ibv_device_attr *attr);
+ int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
+@@ -319,6 +345,10 @@ struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
+ int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
+ 			int attr_mask, struct ibv_qp_init_attr *init_attr);
+ 
++struct ibv_ah *hns_roce_u_create_ah(struct ibv_pd *pd,
++				    struct ibv_ah_attr *attr);
++int hns_roce_u_destroy_ah(struct ibv_ah *ah);
 +
-+#define UD_SQ_WQE_SGE_NUM_S 24
-+#define UD_SQ_WQE_SGE_NUM_M  (((1UL << 8) - 1) << UD_SQ_WQE_SGE_NUM_S)
-+
-+#define UD_SQ_WQE_MSG_START_SGE_IDX_S 0
-+#define UD_SQ_WQE_MSG_START_SGE_IDX_M \
-+	(((1UL << 24) - 1) << UD_SQ_WQE_MSG_START_SGE_IDX_S)
-+
-+#define UD_SQ_WQE_UDP_SPN_S 16
-+#define UD_SQ_WQE_UDP_SPN_M \
-+	(((1UL << 16) - 1) << UD_SQ_WQE_UDP_SPN_S)
-+
-+#define UD_SQ_WQE_DQPN_S 0
-+#define UD_SQ_WQE_DQPN_M (((1UL << 24) - 1) << UD_SQ_WQE_DQPN_S)
-+
-+#define UD_SQ_WQE_VLAN_S 0
-+#define UD_SQ_WQE_VLAN_M (((1UL << 16) - 1) << UD_SQ_WQE_VLAN_S)
-+
-+#define UD_SQ_WQE_HOPLIMIT_S 16
-+#define UD_SQ_WQE_HOPLIMIT_M (((1UL << 8) - 1) << UD_SQ_WQE_HOPLIMIT_S)
-+
-+#define UD_SQ_WQE_TCLASS_S 24
-+#define UD_SQ_WQE_TCLASS_M (((1UL << 8) - 1) << UD_SQ_WQE_TCLASS_S)
-+
-+#define UD_SQ_WQE_FLOW_LABEL_S 0
-+#define UD_SQ_WQE_FLOW_LABEL_M (((1UL << 20) - 1) << UD_SQ_WQE_FLOW_LABEL_S)
-+
-+#define UD_SQ_WQE_SL_S 20
-+#define UD_SQ_WQE_SL_M (((1UL << 4) - 1) << UD_SQ_WQE_SL_S)
-+
-+#define UD_SQ_WQE_PORTN_S 24
-+#define UD_SQ_WQE_PORTN_M (((1UL << 3) - 1) << UD_SQ_WQE_PORTN_S)
-+
-+#define UD_SQ_WQE_VLAN_EN_S 30
-+
-+#define UD_SQ_WQE_LBI_S 31
-+
-+#define UD_SQ_WQE_PORTN_S 24
-+#define UD_SQ_WQE_PORTN_M (((1UL << 3) - 1) << UD_SQ_WQE_PORTN_S)
-+
-+#define UD_SQ_WQE_DMAC_0_S 0
-+#define UD_SQ_WQE_DMAC_0_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_0_S)
-+
-+#define UD_SQ_WQE_DMAC_1_S 8
-+#define UD_SQ_WQE_DMAC_1_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_1_S)
-+
-+#define UD_SQ_WQE_DMAC_2_S 16
-+#define UD_SQ_WQE_DMAC_2_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_2_S)
-+
-+#define UD_SQ_WQE_DMAC_3_S 24
-+#define UD_SQ_WQE_DMAC_3_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_3_S)
-+
-+#define UD_SQ_WQE_DMAC_4_S 0
-+#define UD_SQ_WQE_DMAC_4_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_4_S)
-+
-+#define UD_SQ_WQE_DMAC_5_S 8
-+#define UD_SQ_WQE_DMAC_5_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_5_S)
-+
-+#define UD_SQ_WQE_SGID_IDX_S 16
-+#define UD_SQ_WQE_SGID_IDX_M (((1UL << 8) - 1) << UD_SQ_WQE_SGID_IDX_S)
-+
-+#define UD_SQ_WQE_SMAC_IDX_S 24
-+#define UD_SQ_WQE_SMAC_IDX_M (((1UL << 8) - 1) << UD_SQ_WQE_SMAC_IDX_S)
-+
- #endif /* _HNS_ROCE_U_HW_V2_H */
+ int hns_roce_alloc_buf(struct hns_roce_buf *buf, unsigned int size,
+ 		       int page_size);
+ void hns_roce_free_buf(struct hns_roce_buf *buf);
+diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
+index 79fd7dd..029535e 100644
+--- a/providers/hns/hns_roce_u_abi.h
++++ b/providers/hns/hns_roce_u_abi.h
+@@ -48,5 +48,6 @@ DECLARE_DRV_CMD(hns_roce_alloc_ucontext, IB_USER_VERBS_CMD_GET_CONTEXT,
+ 
+ DECLARE_DRV_CMD(hns_roce_create_srq, IB_USER_VERBS_CMD_CREATE_SRQ,
+ 		hns_roce_ib_create_srq, hns_roce_ib_create_srq_resp);
+-
++DECLARE_DRV_CMD(hns_roce_create_ah, IB_USER_VERBS_CMD_CREATE_AH, empty,
++		hns_roce_ib_create_ah_resp);
+ #endif /* _HNS_ROCE_U_ABI_H */
 diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index 0d10b1c..5255fff 100644
+index 9d222c0..0d10b1c 100644
 --- a/providers/hns/hns_roce_u_verbs.c
 +++ b/providers/hns/hns_roce_u_verbs.c
-@@ -767,6 +767,10 @@ static void hns_roce_set_qp_params(struct ibv_pd *pd,
- 		}
- 	}
+@@ -38,6 +38,7 @@
+ #include <sys/mman.h>
+ #include <ccan/ilog.h>
+ #include <ccan/minmax.h>
++#include <ccan/array_size.h>
+ #include <util/util.h>
+ #include "hns_roce_u.h"
+ #include "hns_roce_u_abi.h"
+@@ -952,3 +953,55 @@ int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
  
-+	if (attr->qp_type == IBV_QPT_UD)
-+		qp->sge.sge_cnt = roundup_pow_of_two(qp->sq.wqe_cnt *
-+						     qp->sq.max_gs);
+ 	return ret;
+ }
 +
- 	/* limit by the context queried during alloc context */
- 	qp->rq.max_post = min(ctx->max_qp_wr, qp->rq.wqe_cnt);
- 	qp->sq.max_post = min(ctx->max_qp_wr, qp->sq.wqe_cnt);
++struct ibv_ah *hns_roce_u_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
++{
++	struct hns_roce_create_ah_resp resp = {};
++	struct hns_roce_ah *ah;
++	int status;
++
++	ah = calloc(1, sizeof(*ah));
++	if (!ah)
++		return NULL;
++
++	ah->av.port = attr->port_num;
++	ah->av.sl = attr->sl;
++
++	if (attr->static_rate)
++		ah->av.static_rate = IBV_RATE_10_GBPS;
++
++	if (attr->is_global) {
++		ah->av.gid_index = attr->grh.sgid_index;
++		ah->av.hop_limit = attr->grh.hop_limit;
++		ah->av.tclass = attr->grh.traffic_class;
++		ah->av.flowlabel = attr->grh.flow_label;
++
++		memcpy(ah->av.dgid, attr->grh.dgid.raw,
++		       ARRAY_SIZE(ah->av.dgid));
++	}
++
++	status = ibv_cmd_create_ah(pd, &ah->ibv_ah, attr, &resp.ibv_resp,
++				   sizeof(resp));
++	if (status) {
++		free(ah);
++		return NULL;
++	}
++
++	memcpy(ah->av.mac, resp.dmac, ETH_ALEN);
++	ah->av.vlan_id = resp.vlan_id;
++	ah->av.vlan_en = resp.vlan_en;
++	return &ah->ibv_ah;
++}
++
++int hns_roce_u_destroy_ah(struct ibv_ah *ah)
++{
++	int ret;
++
++	ret = ibv_cmd_destroy_ah(ah);
++	if (ret)
++		return ret;
++
++	free(to_hr_ah(ah));
++
++	return 0;
++}
 -- 
 2.8.1
 
