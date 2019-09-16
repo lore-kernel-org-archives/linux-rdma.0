@@ -2,118 +2,77 @@ Return-Path: <SRS0=TGoC=XL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39D7AC49ED7
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Sep 2019 05:27:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB1FC49ED7
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Sep 2019 06:48:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 092CE214AF
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Sep 2019 05:27:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FCEF214AF
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Sep 2019 06:48:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1568611655;
-	bh=5V0xxOh8NLjEKs+yRiSk0RdBVTcGkJjjPD1bZy3GmEo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=loaziX22CkmGbNzRYavQBjPYzMXi0dleUFGoY2jZ5ChNk6FYPUCaW9IaKTm8N1WVS
-	 SlEvLkHNWu/W5Ydrg2BVYmqEVfJmk2Fewyw8yfn+Zr0l3hUue1/TbQ4BUiD/h6BjtP
-	 TtVS4aqSLnczW2Hw7pjKgXno9qFtka1DrCRmm/k8=
+	s=default; t=1568616505;
+	bh=ytMgmmCjZYWWk+LIGpYHyOBIct8DA8dSQxBNGE38Urc=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=jQKPKpFxwsewdDwrcLO2RxKlABWkGAtyeYskkvs/w6C/4BCTlzPYJt8TIBT5KDzkr
+	 cddbb+RhXEorV1wqRPvtcjgR6wSeQzPCmtNwny8KqIElGjkG9EApERdm01LEhHjV0q
+	 tyOlVIocOM07YaRJMdtfpUCZNQYtBdZSLOBLK0wo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727454AbfIPF1e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Sep 2019 01:27:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51716 "EHLO mail.kernel.org"
+        id S1729250AbfIPGsY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Sep 2019 02:48:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725775AbfIPF1e (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 16 Sep 2019 01:27:34 -0400
+        id S1726074AbfIPGsY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 16 Sep 2019 02:48:24 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 446AC2067B;
-        Mon, 16 Sep 2019 05:27:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4E61E20890;
+        Mon, 16 Sep 2019 06:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1568611652;
-        bh=5V0xxOh8NLjEKs+yRiSk0RdBVTcGkJjjPD1bZy3GmEo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=dOVmpJ/egQuUlM1hhw//+VgIGm6GlLI8BFCF9LWaLVLUnTo9j56CJ36dlQFvHQEJX
-         I+8Z912w6C2UFt4sStOxDq2+t2mTYVGHVPqkQKbMDiZPDSxR7iSX/ijEXJL7XRmv43
-         QYLqe06LxJtl18H35qH0FAA62Q2vDt7nbdtSHVYA=
-Date:   Mon, 16 Sep 2019 08:27:29 +0300
+        s=default; t=1568616504;
+        bh=ytMgmmCjZYWWk+LIGpYHyOBIct8DA8dSQxBNGE38Urc=;
+        h=From:To:Cc:Subject:Date:From;
+        b=rXDps4QjHGIQiM1miZ6RD+inwKLEDDzdvqKbbuIGdQXO7ooUeTPFFeky/79L0y1EN
+         hFl/+W/6CM4A7f2xU2LD68j3Y7KgiAE6vDoGOT4vijG8UPlU9DowmOu5TNZPUMtIkE
+         ykE1oqg2KYOc2T7gU9uHsD3oCCVDeUvqpWqd2+jM=
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Cc:     Bart Van Assche <bvanassche@acm.org>,
-        Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>, rpenyaev@suse.de,
-        Roman Pen <roman.penyaev@profitbricks.com>
-Subject: Re: [PATCH v4 15/25] ibnbd: private headers with IBNBD protocol
- structs and helpers
-Message-ID: <20190916052729.GB18203@unreal>
-References: <20190620150337.7847-1-jinpuwang@gmail.com>
- <20190620150337.7847-16-jinpuwang@gmail.com>
- <4fbad80b-f551-131e-9a5c-a24f1fa98fea@acm.org>
- <CAMGffEnVFHpmDCiazHFX1jwi4=p401T9goSkes3j1AttV0t1Ng@mail.gmail.com>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Daniel Jurgens <danielj@mellanox.com>,
+        Danit Goldberg <danitg@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>
+Subject: [PATCH 0/2] Two fixes for this merge window
+Date:   Mon, 16 Sep 2019 09:48:16 +0300
+Message-Id: <20190916064818.19823-1-leon@kernel.org>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMGffEnVFHpmDCiazHFX1jwi4=p401T9goSkes3j1AttV0t1Ng@mail.gmail.com>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Sep 15, 2019 at 04:30:04PM +0200, Jinpu Wang wrote:
-> Thanks Bart for detailed review, reply inline.
->
-> On Sat, Sep 14, 2019 at 12:10 AM Bart Van Assche <bvanassche@acm.org> wrote:
-> >
-> > On 6/20/19 8:03 AM, Jack Wang wrote:
-> > > +#define ibnbd_log(fn, dev, fmt, ...) ({                              \
-> > > +     __builtin_choose_expr(                                          \
-> > > +             __builtin_types_compatible_p(                           \
-> > > +                     typeof(dev), struct ibnbd_clt_dev *),           \
-> > > +             fn("<%s@%s> " fmt, (dev)->pathname,                     \
-> > > +             (dev)->sess->sessname,                                  \
-> > > +                ##__VA_ARGS__),                                      \
-> > > +             __builtin_choose_expr(                                  \
-> > > +                     __builtin_types_compatible_p(typeof(dev),       \
-> > > +                                     struct ibnbd_srv_sess_dev *),   \
-> > > +                     fn("<%s@%s>: " fmt, (dev)->pathname,            \
-> > > +                        (dev)->sess->sessname, ##__VA_ARGS__),       \
-> > > +                     unknown_type()));                               \
-> > > +})
-> >
-> > Please remove the __builtin_choose_expr() /
-> > __builtin_types_compatible_p() construct and split this macro into two
-> > macros or inline functions: one for struct ibnbd_clt_dev and another one
-> > for struct ibnbd_srv_sess_dev.
-> Ok, will split to two macros.
->
-> >
-> > > +#define IBNBD_PROTO_VER_MAJOR 2
-> > > +#define IBNBD_PROTO_VER_MINOR 0
-> > > +
-> > > +#define IBNBD_PROTO_VER_STRING __stringify(IBNBD_PROTO_VER_MAJOR) "." \
-> > > +                            __stringify(IBNBD_PROTO_VER_MINOR)
-> > > +
-> > > +#ifndef IBNBD_VER_STRING
-> > > +#define IBNBD_VER_STRING __stringify(IBNBD_PROTO_VER_MAJOR) "." \
-> > > +                      __stringify(IBNBD_PROTO_VER_MINOR)
-> >
-> > Upstream code should not have a version number.
-> IBNBD_VER_STRING can be removed together with MODULE_VERSION.
-> >
-> > > +/* TODO: should be configurable */
-> > > +#define IBTRS_PORT 1234
-> >
-> > How about converting this macro into a kernel module parameter?
-> Sounds good, will do.
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Don't rush to do it and defer it to be the last change before merging,
-this is controversial request which not everyone will like here.
+Hi,
+
+We are in merge window so I didn't know if I should put -next or -rc,
+but they are better to go this cycle.
 
 Thanks
+
+Danit Goldberg (2):
+  IB/mlx5: Free page from the beginning of the allocation
+  IB/mlx5: Free mpi in mp_slave mode
+
+ drivers/infiniband/hw/mlx5/main.c | 1 +
+ drivers/infiniband/hw/mlx5/odp.c  | 9 +++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+--
+2.20.1
+
