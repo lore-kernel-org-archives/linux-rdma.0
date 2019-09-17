@@ -2,194 +2,97 @@ Return-Path: <SRS0=K2hL=XM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 843F2C4CECD
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Sep 2019 13:40:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 671A5C4CEC9
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Sep 2019 15:42:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57F36206C2
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Sep 2019 13:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E79721852
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Sep 2019 15:42:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1568734928;
+	bh=Cs9d1NkB4qUoDkwuZrTgkp77GLRkyvP7Xqf3CmGIlKE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=RtUxqCQCPknRWFCZGveBvUjAF/bYrR0Bvlaqr57j6p5Cv1eQ16mGKq8pEpNfLF4cg
+	 EIywx7a8++MJC1Kvu8AIA/K5uDQQRBiRFQKX9oX2oF4IdkeBYEG+dmEPZFr4O9fypr
+	 T+ohn1hhtWgmNmL0vAuP0+JwvlVsdWalyMr+vDuI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728660AbfIQNkT convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Sep 2019 09:40:19 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:11994 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727698AbfIQNkT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 17 Sep 2019 09:40:19 -0400
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x8HDdWdU149625
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Sep 2019 09:40:16 -0400
-Received: from smtp.notes.na.collabserv.com (smtp.notes.na.collabserv.com [192.155.248.74])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2v2xs260e5-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Sep 2019 09:40:16 -0400
-Received: from localhost
-        by smtp.notes.na.collabserv.com with smtp.notes.na.collabserv.com ESMTP
-        for <linux-rdma@vger.kernel.org> from <BMT@zurich.ibm.com>;
-        Tue, 17 Sep 2019 13:40:14 -0000
-Received: from us1a3-smtp02.a3.dal06.isc4sb.com (10.106.154.159)
-        by smtp.notes.na.collabserv.com (10.106.227.92) with smtp.notes.na.collabserv.com ESMTP;
-        Tue, 17 Sep 2019 13:40:07 -0000
-Received: from us1a3-mail162.a3.dal06.isc4sb.com ([10.146.71.4])
-          by us1a3-smtp02.a3.dal06.isc4sb.com
-          with ESMTP id 2019091713400681-599055 ;
-          Tue, 17 Sep 2019 13:40:06 +0000 
-In-Reply-To: <20190917124719.GA11070@chelsio.com>
-Subject: Re: Re: Re: Re: [PATCH v3] iwcm: don't hold the irq disabled lock on
- iw_rem_ref
-From:   "Bernard Metzler" <BMT@zurich.ibm.com>
-To:     "Krishnamraju Eraparaju" <krishna2@chelsio.com>
-Cc:     "Steve Wise" <larrystevenwise@gmail.com>,
-        "Jason Gunthorpe" <jgg@ziepe.ca>,
-        "Sagi Grimberg" <sagi@grimberg.me>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "Nirranjan Kirubaharan" <nirranjan@chelsio.com>
-Date:   Tue, 17 Sep 2019 13:40:07 +0000
+        id S1729757AbfIQPmH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Sep 2019 11:42:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60618 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729699AbfIQPmH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Sep 2019 11:42:07 -0400
+Received: from localhost (unknown [77.137.89.37])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id D2CB52171F;
+        Tue, 17 Sep 2019 15:42:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1568734926;
+        bh=Cs9d1NkB4qUoDkwuZrTgkp77GLRkyvP7Xqf3CmGIlKE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=niTsgqzBynMTMZ7IJhyt0HpXRowaAMQxofie64ypEQI5fNX5hLevcX664d2xTgcQa
+         MH8w8RndhWSoUa7pBrkUMYdyiua6yGiphKlLZk4rKB1Uo1SsaxqpwxmhhT4VcxGKZD
+         v26Q9NJYrgFU7dVJOVwfaowWmsRnzZxmUkKrKtw0=
+Date:   Tue, 17 Sep 2019 18:41:50 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Bart Van Assche <bvanassche@acm.org>
+Cc:     Jinpu Wang <jinpu.wang@cloud.ionos.com>,
+        Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>, rpenyaev@suse.de,
+        Roman Pen <roman.penyaev@profitbricks.com>
+Subject: Re: [PATCH v4 15/25] ibnbd: private headers with IBNBD protocol
+ structs and helpers
+Message-ID: <20190917154150.GE18203@unreal>
+References: <20190620150337.7847-1-jinpuwang@gmail.com>
+ <20190620150337.7847-16-jinpuwang@gmail.com>
+ <4fbad80b-f551-131e-9a5c-a24f1fa98fea@acm.org>
+ <CAMGffEnVFHpmDCiazHFX1jwi4=p401T9goSkes3j1AttV0t1Ng@mail.gmail.com>
+ <20190916052729.GB18203@unreal>
+ <25bd79e1-9523-8354-873a-0ff1db92659a@acm.org>
 MIME-Version: 1.0
-Sensitivity: 
-Importance: Normal
-X-Priority: 3 (Normal)
-References: <20190917124719.GA11070@chelsio.com>,<20190916162829.GA22329@ziepe.ca>
- <20190904212531.6488-1-sagi@grimberg.me> <20190910111759.GA5472@chelsio.com>
- <5cc42f23-bf60-ca8d-f40c-cbd8875f5756@grimberg.me>
- <20190910192157.GA5954@chelsio.com>
- <OF00E4DFD9.0EEF58A6-ON00258472.0032F9AC-00258472.0034FEAA@notes.na.collabserv.com>
- <CADmRdJcCENJx==LaaJQYU_kMv5rSgD69Z6s+ubCKWjprZmPQpA@mail.gmail.com>
- <20190911155814.GA12639@chelsio.com>
- <OFAEAC1AA7.9611AF4F-ON00258478.002E162F-00258478.0031D798@notes.na.collabserv.com>
-X-Mailer: IBM iNotes ($HaikuForm 1054) | IBM Domino Build
- SCN1812108_20180501T0841_FP57 August 05, 2019 at 12:42
-X-LLNOutbound: False
-X-Disclaimed: 26195
-X-TNEFEvaluated: 1
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset=UTF-8
-x-cbid: 19091713-3165-0000-0000-000001098024
-X-IBM-SpamModules-Scores: BY=0; FL=0; FP=0; FZ=0; HX=0; KW=0; PH=0;
- SC=0.40962; ST=0; TS=0; UL=0; ISC=; MB=0.000006
-X-IBM-SpamModules-Versions: BY=3.00011790; HX=3.00000242; KW=3.00000007;
- PH=3.00000004; SC=3.00000291; SDB=6.01262645; UDB=6.00667693; IPR=6.01044506;
- MB=3.00028664; MTD=3.00000008; XFM=3.00000015; UTC=2019-09-17 13:40:12
-X-IBM-AV-DETECTION: SAVI=unsuspicious REMOTE=unsuspicious XFE=unused
-X-IBM-AV-VERSION: SAVI=2019-09-17 10:30:45 - 6.00010417
-x-cbparentid: 19091713-3166-0000-0000-00001C3E8EF8
-Message-Id: <OF4A250815.36D6F256-ON00258478.00487431-00258478.004B157C@notes.na.collabserv.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-09-17_06:,,
- signatures=0
-X-Proofpoint-Spam-Reason: safe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <25bd79e1-9523-8354-873a-0ff1db92659a@acm.org>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
------"Krishnamraju Eraparaju" <krishna2@chelsio.com> wrote: -----
-
->To: "Bernard Metzler" <BMT@zurich.ibm.com>, "Steve Wise"
-><larrystevenwise@gmail.com>
->From: "Krishnamraju Eraparaju" <krishna2@chelsio.com>
->Date: 09/17/2019 02:48PM
->Cc: "Jason Gunthorpe" <jgg@ziepe.ca>, "Sagi Grimberg"
-><sagi@grimberg.me>, "linux-rdma@vger.kernel.org"
-><linux-rdma@vger.kernel.org>, "Nirranjan Kirubaharan"
-><nirranjan@chelsio.com>
->Subject: [EXTERNAL] Re: Re: Re: [PATCH v3] iwcm: don't hold the irq
->disabled lock on iw_rem_ref
+On Mon, Sep 16, 2019 at 06:45:17AM -0700, Bart Van Assche wrote:
+> On 9/15/19 10:27 PM, Leon Romanovsky wrote:
+> > On Sun, Sep 15, 2019 at 04:30:04PM +0200, Jinpu Wang wrote:
+> > > On Sat, Sep 14, 2019 at 12:10 AM Bart Van Assche <bvanassche@acm.org> wrote:
+> > > > > +/* TODO: should be configurable */
+> > > > > +#define IBTRS_PORT 1234
+> > > >
+> > > > How about converting this macro into a kernel module parameter?
+> > > Sounds good, will do.
+> >
+> > Don't rush to do it and defer it to be the last change before merging,
+> > this is controversial request which not everyone will like here.
 >
->On Tuesday, September 09/17/19, 2019 at 14:34:24 +0530, Bernard
->Metzler wrote:
->> -----"Jason Gunthorpe" <jgg@ziepe.ca> wrote: -----
->> 
->> >To: "Krishnamraju Eraparaju" <krishna2@chelsio.com>
->> >From: "Jason Gunthorpe" <jgg@ziepe.ca>
->> >Date: 09/16/2019 06:28PM
->> >Cc: "Steve Wise" <larrystevenwise@gmail.com>, "Bernard Metzler"
->> ><BMT@zurich.ibm.com>, "Sagi Grimberg" <sagi@grimberg.me>,
->> >"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
->> >Subject: [EXTERNAL] Re: Re: [PATCH v3] iwcm: don't hold the irq
->> >disabled lock on iw_rem_ref
->> >
->> >On Wed, Sep 11, 2019 at 09:28:16PM +0530, Krishnamraju Eraparaju
->> >wrote:
->> >> Hi Steve & Bernard,
->> >> 
->> >> Thanks for the review comments.
->> >> I will do those formating changes.
->> >
->> >I don't see anything in patchworks, but the consensus is to drop
->> >Sagi's patch pending this future patch?
->> >
->> >Jason
->> >
->> This is my impression as well. But consensus should be
->> explicit...Sagi, what do you think?
->> 
->> Best regards,
->> Bernard.
->> 
->While testing iSER(with my proposed patch applied) I see Chelsio
->iwarp
->driver is hitting the below deadlock issue. This is due to iw_rem_ref
->reordering changes in IWCM.
+> Hi Leon,
 >
->Bernard, how about replacing vmalloc/vfree with kmalloc/kfree,
->such that freeing of SIW qp resources can be done with spinlocks
->held?
->to fix the orginal vfree issue less invasively..
+> If you do not agree with changing this macro into a kernel module parameter
+> please suggest an alternative.
 
-Well, I'd really like to avoid kmalloc on potentially
-large data structures when there is no need to have
-physically contiguous memory.
-
-I could of course move that vfree out to a worker.
-Simple, but not really nice though.
-
-So it seems it would be no good option to restructure
-the Chelsio driver?
+I didn't review code so my answer can be not fully accurate, but opening
+some port to use this IB* seems strange from my non-sysadmin POV.
+What about using RDMA-CM, like NVMe?
 
 Thanks
-Bernard.
 
 >
->Steve, any suggestions?
+> Thanks,
 >
->
->[ 1230.161871] INFO: task kworker/u12:0:11291 blocked for more than
->122
->seconds.
->[ 1230.162147]       Not tainted 5.3.0-rc5+ #19
->[ 1230.162417] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
->disables this message.
->[ 1230.162911] kworker/u12:0   D13000 11291      2 0x80004080
->[ 1230.163186] Workqueue: iw_cm_wq cm_work_handler
->[ 1230.163456] Call Trace:
->[ 1230.163718]  ? __schedule+0x297/0x510
->[ 1230.163986]  schedule+0x2e/0x90
->[ 1230.164253]  schedule_timeout+0x1c0/0x280
->[ 1230.164520]  ? xas_store+0x23e/0x500
->[ 1230.164789]  wait_for_completion+0xa2/0x110
->[ 1230.165067]  ? wake_up_q+0x70/0x70
->[ 1230.165336]  c4iw_destroy_qp+0x141/0x260 [iw_cxgb4]
->[ 1230.165611]  ? xas_store+0x23e/0x500
->[ 1230.165893]  ? _cond_resched+0x10/0x20
->[ 1230.166160]  ? wait_for_completion+0x2e/0x110
->[ 1230.166432]  ib_destroy_qp_user+0x142/0x230
->[ 1230.166699]  rdma_destroy_qp+0x1f/0x40
->[ 1230.166966]  iser_free_ib_conn_res+0x52/0x190 [ib_iser]
->[ 1230.167241]  iser_cleanup_handler.isra.15+0x32/0x60 [ib_iser]
->[ 1230.167510]  iser_cma_handler+0x23b/0x730 [ib_iser]
->[ 1230.167776]  cma_iw_handler+0x154/0x1e0
->[ 1230.168037]  cm_work_handler+0xb4c/0xd60
->[ 1230.168302]  process_one_work+0x155/0x380
->[ 1230.168564]  worker_thread+0x41/0x3b0
->[ 1230.168827]  kthread+0xf3/0x130
->[ 1230.169086]  ? process_one_work+0x380/0x380
->[ 1230.169350]  ? kthread_bind+0x10/0x10
->[ 1230.169615]  ret_from_fork+0x35/0x40
->[ 1230.169885] NMI backtrace for cpu 3
->
->
-
+> Bart.
