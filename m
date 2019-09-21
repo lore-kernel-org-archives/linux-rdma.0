@@ -2,298 +2,80 @@ Return-Path: <SRS0=2yMC=XQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A697C49ED7
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Sep 2019 07:06:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 182EBC4360D
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Sep 2019 17:40:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6FABF2086A
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Sep 2019 07:06:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DED3C21882
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Sep 2019 17:40:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1569087622;
+	bh=LsJ4KroFpbZgHfIznXa/jo/IJP0ugyfdqLBIjhc8268=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=a1mESLS5Hrirkj41VbXeGHmTtEUKA5woh7d/a/xaYuN4xmlLAHRaKOCrVR0tGrKPD
+	 0N1vGBX12fkvNZdyJt7JOt5XUOurvBNbEmBUE5wF8YfM3sSW8++c85jMtqFzkG2mIQ
+	 kx3jpgRH2uzEtoFR+bT1ZOhBFo2yRuMNmaznMLXI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437640AbfIUHGu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 21 Sep 2019 03:06:50 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2759 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2437661AbfIUHGu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 21 Sep 2019 03:06:50 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 1076C81D72EBD7E35594;
-        Sat, 21 Sep 2019 15:06:42 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.439.0; Sat, 21 Sep 2019 15:06:33 +0800
-From:   <liweihang@hisilicon.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 rdma-core 4/5] libhns: Add UD support for hip08 in user mode
-Date:   Sat, 21 Sep 2019 15:03:12 +0800
-Message-ID: <1569049393-10395-5-git-send-email-liweihang@hisilicon.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1569049393-10395-1-git-send-email-liweihang@hisilicon.com>
-References: <1569049393-10395-1-git-send-email-liweihang@hisilicon.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+        id S1731220AbfIURkW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 21 Sep 2019 13:40:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53586 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731214AbfIURkV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 21 Sep 2019 13:40:21 -0400
+Subject: Re: [GIT PULL] Please pull hmm related changes
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1569087621;
+        bh=LsJ4KroFpbZgHfIznXa/jo/IJP0ugyfdqLBIjhc8268=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=n6E7JQXe8lfUX+FaNG3J+BYya8cbdUEeLMb5493L7IbpwanV8sKgytc7F7dtJJl+X
+         YjHEfN1f8jVJtTyKyC+iccEBHw6eLdZDJyNoYh4DJSM09PrXbKWFTlSE0jE9DKn1Bn
+         V5mLYnWP9WTwNf5ger3difRJGdlkUKrHh5JlYecQ=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20190916162350.GA19191@ziepe.ca>
+References: <20190916162350.GA19191@ziepe.ca>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20190916162350.GA19191@ziepe.ca>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+ tags/for-linus-hmm
+X-PR-Tracked-Commit-Id: 62974fc389b364d8af70e044836362222bd3ae53
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 84da111de0b4be15bd500deff773f5116f39f7be
+Message-Id: <156908762129.32622.9253749641256776927.pr-tracker-bot@kernel.org>
+Date:   Sat, 21 Sep 2019 17:40:21 +0000
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        Dimitri Sivanich <sivanich@hpe.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+The pull request you sent on Mon, 16 Sep 2019 16:23:57 +0000:
 
-User Application can use Unreliable Datagram on hip08 now.
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus-hmm
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
----
- providers/hns/hns_roce_u_hw_v2.c | 104 ++++++++++++++++++++++++++++++++++++++-
- providers/hns/hns_roce_u_hw_v2.h |  91 ++++++++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_verbs.c |   6 +++
- 3 files changed, 200 insertions(+), 1 deletion(-)
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/84da111de0b4be15bd500deff773f5116f39f7be
 
-diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 50057e3..f0f76cc 100644
---- a/providers/hns/hns_roce_u_hw_v2.c
-+++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -637,6 +637,107 @@ static void set_sge(struct hns_roce_v2_wqe_data_seg *dseg,
- 		}
- }
- 
-+static void set_ud_wqe(void *wqe, struct hns_roce_qp *qp,
-+		       struct ibv_send_wr *wr, int nreq,
-+		       struct hns_roce_sge_info *sge_info)
-+{
-+	struct hns_roce_ah *ah = to_hr_ah(wr->wr.ud.ah);
-+	struct hns_roce_ud_sq_wqe *ud_sq_wqe = wqe;
-+	unsigned int hr_op;
-+
-+	memset(ud_sq_wqe, 0, sizeof(*ud_sq_wqe));
-+
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_CQE_S,
-+		     (wr->send_flags & IBV_SEND_SIGNALED) ? 1 : 0);
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_SE_S,
-+		     (wr->send_flags & IBV_SEND_SOLICITED) ? 1 : 0);
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_OWNER_S,
-+		     ~(((qp->sq.head + nreq) >> qp->sq.shift) & 0x1));
-+
-+	switch (wr->opcode) {
-+	case IBV_WR_SEND:
-+		hr_op = HNS_ROCE_WQE_OP_SEND;
-+		ud_sq_wqe->immtdata = 0;
-+		break;
-+	case IBV_WR_SEND_WITH_IMM:
-+		hr_op = HNS_ROCE_WQE_OP_SEND_WITH_IMM;
-+		ud_sq_wqe->immtdata =
-+				htole32(be32toh(wr->imm_data));
-+		break;
-+	default:
-+		hr_op = HNS_ROCE_WQE_OP_MASK;
-+		break;
-+	}
-+
-+	roce_set_field(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_OPCODE_M,
-+		       UD_SQ_WQE_OPCODE_S, hr_op);
-+
-+	roce_set_field(ud_sq_wqe->sge_num_pd, UD_SQ_WQE_PD_M,
-+		       UD_SQ_WQE_PD_S, to_hr_pd(qp->ibv_qp.pd)->pdn);
-+
-+	roce_set_field(ud_sq_wqe->rsv_msg_start_sge_idx,
-+		       UD_SQ_WQE_MSG_START_SGE_IDX_M,
-+		       UD_SQ_WQE_MSG_START_SGE_IDX_S,
-+		       sge_info->start_idx & (qp->sge.sge_cnt - 1));
-+
-+	roce_set_field(ud_sq_wqe->udpspn_rsv, UD_SQ_WQE_UDP_SPN_M,
-+		       UD_SQ_WQE_UDP_SPN_S, 0);
-+
-+	ud_sq_wqe->qkey = htole32(wr->wr.ud.remote_qkey);
-+
-+	roce_set_field(ud_sq_wqe->rsv_dqpn, UD_SQ_WQE_DQPN_M,
-+		       UD_SQ_WQE_DQPN_S, wr->wr.ud.remote_qpn);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_VLAN_M,
-+		       UD_SQ_WQE_VLAN_S, ah->av.vlan_id);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_TCLASS_M,
-+		       UD_SQ_WQE_TCLASS_S, ah->av.tclass);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_HOPLIMIT_M,
-+		       UD_SQ_WQE_HOPLIMIT_S, ah->av.hop_limit);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_FLOW_LABEL_M,
-+		       UD_SQ_WQE_FLOW_LABEL_S, ah->av.flowlabel);
-+
-+	roce_set_bit(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_VLAN_EN_S,
-+		     ah->av.vlan_en ? 1 : 0);
-+
-+	roce_set_bit(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_LBI_S, 0);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_SL_M,
-+		       UD_SQ_WQE_SL_S, ah->av.sl);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_PORTN_M,
-+		       UD_SQ_WQE_PORTN_S, qp->ibv_qp.qp_num);
-+
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_0_M,
-+		       UD_SQ_WQE_DMAC_0_S, ah->av.mac[0]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_1_M,
-+		       UD_SQ_WQE_DMAC_1_S, ah->av.mac[1]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_2_M,
-+		       UD_SQ_WQE_DMAC_2_S, ah->av.mac[2]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_3_M,
-+		       UD_SQ_WQE_DMAC_3_S, ah->av.mac[3]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac,
-+		       UD_SQ_WQE_DMAC_4_M, UD_SQ_WQE_DMAC_4_S,
-+		       to_hr_ah(wr->wr.ud.ah)->av.mac[4]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac,
-+		       UD_SQ_WQE_DMAC_5_M, UD_SQ_WQE_DMAC_5_S,
-+		       to_hr_ah(wr->wr.ud.ah)->av.mac[5]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac, UD_SQ_WQE_SGID_IDX_M,
-+		       UD_SQ_WQE_SGID_IDX_S, ah->av.gid_index);
-+
-+	memcpy(ud_sq_wqe->dgid, ah->av.dgid, HNS_ROCE_GID_SIZE);
-+
-+	set_sge(NULL, qp, wr, sge_info);
-+
-+	ud_sq_wqe->msg_len = htole32(sge_info->total_len);
-+
-+	roce_set_field(ud_sq_wqe->sge_num_pd, UD_SQ_WQE_SGE_NUM_M,
-+		       UD_SQ_WQE_SGE_NUM_S, sge_info->valid_num);
-+}
-+
- static int set_rc_wqe(void *wqe, struct hns_roce_qp *qp, struct ibv_send_wr *wr,
- 		      int nreq, struct hns_roce_sge_info *sge_info)
- {
-@@ -833,8 +934,9 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 				goto out;
- 			}
- 			break;
--		case IBV_QPT_UC:
- 		case IBV_QPT_UD:
-+			set_ud_wqe(wqe, qp, wr, nreq, &sge_info);
-+			break;
- 		default:
- 			ret = -EINVAL;
- 			*bad_wr = wr;
-diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
-index 3eca1fd..84cf6c4 100644
---- a/providers/hns/hns_roce_u_hw_v2.h
-+++ b/providers/hns/hns_roce_u_hw_v2.h
-@@ -291,4 +291,95 @@ struct hns_roce_wqe_atomic_seg {
- int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			    struct ibv_send_wr **bad_wr);
- 
-+struct hns_roce_ud_sq_wqe {
-+	__le32		rsv_opcode;
-+	__le32		msg_len;
-+	__le32		immtdata;
-+	__le32		sge_num_pd;
-+	__le32		rsv_msg_start_sge_idx;
-+	__le32		udpspn_rsv;
-+	__le32		qkey;
-+	__le32		rsv_dqpn;
-+	__le32		tclass_vlan;
-+	__le32		lbi_flow_label;
-+	__le32		dmac;
-+	__le32		smac_index_dmac;
-+	uint8_t		dgid[HNS_ROCE_GID_SIZE];
-+};
-+
-+#define UD_SQ_WQE_OPCODE_S 0
-+#define UD_SQ_WQE_OPCODE_M  (((1UL << 5) - 1) << UD_SQ_WQE_OPCODE_S)
-+
-+#define UD_SQ_WQE_OWNER_S 7
-+
-+#define UD_SQ_WQE_CQE_S 8
-+
-+#define UD_SQ_WQE_SE_S 11
-+
-+#define UD_SQ_WQE_PD_S 0
-+#define UD_SQ_WQE_PD_M  (((1UL << 24) - 1) << UD_SQ_WQE_PD_S)
-+
-+#define UD_SQ_WQE_SGE_NUM_S 24
-+#define UD_SQ_WQE_SGE_NUM_M  (((1UL << 8) - 1) << UD_SQ_WQE_SGE_NUM_S)
-+
-+#define UD_SQ_WQE_MSG_START_SGE_IDX_S 0
-+#define UD_SQ_WQE_MSG_START_SGE_IDX_M \
-+	(((1UL << 24) - 1) << UD_SQ_WQE_MSG_START_SGE_IDX_S)
-+
-+#define UD_SQ_WQE_UDP_SPN_S 16
-+#define UD_SQ_WQE_UDP_SPN_M \
-+	(((1UL << 16) - 1) << UD_SQ_WQE_UDP_SPN_S)
-+
-+#define UD_SQ_WQE_DQPN_S 0
-+#define UD_SQ_WQE_DQPN_M (((1UL << 24) - 1) << UD_SQ_WQE_DQPN_S)
-+
-+#define UD_SQ_WQE_VLAN_S 0
-+#define UD_SQ_WQE_VLAN_M (((1UL << 16) - 1) << UD_SQ_WQE_VLAN_S)
-+
-+#define UD_SQ_WQE_HOPLIMIT_S 16
-+#define UD_SQ_WQE_HOPLIMIT_M (((1UL << 8) - 1) << UD_SQ_WQE_HOPLIMIT_S)
-+
-+#define UD_SQ_WQE_TCLASS_S 24
-+#define UD_SQ_WQE_TCLASS_M (((1UL << 8) - 1) << UD_SQ_WQE_TCLASS_S)
-+
-+#define UD_SQ_WQE_FLOW_LABEL_S 0
-+#define UD_SQ_WQE_FLOW_LABEL_M (((1UL << 20) - 1) << UD_SQ_WQE_FLOW_LABEL_S)
-+
-+#define UD_SQ_WQE_SL_S 20
-+#define UD_SQ_WQE_SL_M (((1UL << 4) - 1) << UD_SQ_WQE_SL_S)
-+
-+#define UD_SQ_WQE_PORTN_S 24
-+#define UD_SQ_WQE_PORTN_M (((1UL << 3) - 1) << UD_SQ_WQE_PORTN_S)
-+
-+#define UD_SQ_WQE_VLAN_EN_S 30
-+
-+#define UD_SQ_WQE_LBI_S 31
-+
-+#define UD_SQ_WQE_PORTN_S 24
-+#define UD_SQ_WQE_PORTN_M (((1UL << 3) - 1) << UD_SQ_WQE_PORTN_S)
-+
-+#define UD_SQ_WQE_DMAC_0_S 0
-+#define UD_SQ_WQE_DMAC_0_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_0_S)
-+
-+#define UD_SQ_WQE_DMAC_1_S 8
-+#define UD_SQ_WQE_DMAC_1_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_1_S)
-+
-+#define UD_SQ_WQE_DMAC_2_S 16
-+#define UD_SQ_WQE_DMAC_2_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_2_S)
-+
-+#define UD_SQ_WQE_DMAC_3_S 24
-+#define UD_SQ_WQE_DMAC_3_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_3_S)
-+
-+#define UD_SQ_WQE_DMAC_4_S 0
-+#define UD_SQ_WQE_DMAC_4_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_4_S)
-+
-+#define UD_SQ_WQE_DMAC_5_S 8
-+#define UD_SQ_WQE_DMAC_5_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_5_S)
-+
-+#define UD_SQ_WQE_SGID_IDX_S 16
-+#define UD_SQ_WQE_SGID_IDX_M (((1UL << 8) - 1) << UD_SQ_WQE_SGID_IDX_S)
-+
-+#define UD_SQ_WQE_SMAC_IDX_S 24
-+#define UD_SQ_WQE_SMAC_IDX_M (((1UL << 8) - 1) << UD_SQ_WQE_SMAC_IDX_S)
-+
- #endif /* _HNS_ROCE_U_HW_V2_H */
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index 0d10b1c..07597a0 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -767,6 +767,12 @@ static void hns_roce_set_qp_params(struct ibv_pd *pd,
- 		}
- 	}
- 
-+	if (attr->qp_type == IBV_QPT_UD)
-+		qp->sge.sge_cnt = roundup_pow_of_two(qp->sq.wqe_cnt *
-+						     qp->sq.max_gs);
-+
-+	qp->ibv_qp.qp_type = attr->qp_type;
-+
- 	/* limit by the context queried during alloc context */
- 	qp->rq.max_post = min(ctx->max_qp_wr, qp->rq.wqe_cnt);
- 	qp->sq.max_post = min(ctx->max_qp_wr, qp->sq.wqe_cnt);
+Thank you!
+
 -- 
-2.8.1
-
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
