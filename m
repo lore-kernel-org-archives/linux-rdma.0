@@ -2,71 +2,73 @@ Return-Path: <SRS0=sZ6g=XS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=DATE_IN_PAST_96_XX,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4FB9C4CECF
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 17:18:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F30E5C4CEC4
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 17:21:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C00B72089F
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 17:18:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D176420820
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 17:21:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439989AbfIWRSL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Sep 2019 13:18:11 -0400
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:18042 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2407425AbfIWRSL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Sep 2019 13:18:11 -0400
-Received: from ubuntu-CJ.clients.t49.sncf ([109.190.253.13])
-        by mwinf5d53 with ME
-        id 55J4210050J6jfR035J4wj; Mon, 23 Sep 2019 19:18:07 +0200
-X-ME-Helo: ubuntu-CJ.clients.t49.sncf
-X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
-X-ME-Date: Mon, 23 Sep 2019 19:18:07 +0200
-X-ME-IP: 109.190.253.13
-From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
-        parav@mellanox.com, majd@mellanox.com, markz@mellanox.com,
-        swise@opengridcomputing.com
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH] RDMA/core: Fix an error handling path in 'res_get_common_doit()'
-Date:   Sun, 18 Aug 2019 11:10:44 +0200
-Message-Id: <20190818091044.8845-1-christophe.jaillet@wanadoo.fr>
-X-Mailer: git-send-email 2.20.1
+        id S2407451AbfIWRVn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Sep 2019 13:21:43 -0400
+Received: from mail-pg1-f170.google.com ([209.85.215.170]:41965 "EHLO
+        mail-pg1-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2407395AbfIWRVn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Sep 2019 13:21:43 -0400
+Received: by mail-pg1-f170.google.com with SMTP id s1so7239533pgv.8;
+        Mon, 23 Sep 2019 10:21:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=wR89duXvziwuehT9M3ezyTbGyDX3St5TL6xP7dbyLZc=;
+        b=QEux9+uKoCn7oHIaJeqWoN3DVc4I5IuBsFVDTgDrYxYA8WsW7/1/wl03yjjOHQJ2YJ
+         qzV7cq9ekuxa+3iPfSBgyHhToCxbPNC4uhWN7xLEZMitfdZxGz6bJCMjX35ukqUAk3cP
+         lcmzjIvAaS6WY7ahq220XJpw21BBnqAgwFLr965VDOlQUs/ppAnSHk7cNGD4UzOMIbVf
+         uyPigo6V7s7N2dEpVajhaiegTFYsGtdbD8IebxwzVikCwU7nMCKoQ04ZQBItyRTCW/iu
+         mZkdsKCwNzYSPFdQiYloHllBKsTqIWw+xh8Coky4dUUQrnAFC/g7ugXxCpCDPL3KRlVZ
+         Fa6w==
+X-Gm-Message-State: APjAAAXr4GA0VODWz4m6+EQ/4Tt+UAqq6EpWknojP9mJBboWHBYKHs18
+        Cudxc4CqesO3N9n4/8uASNFuZI2G
+X-Google-Smtp-Source: APXvYqz2GRCjrKwt0puk7dmPBAIzM4khPEuoiYfkfxjoxNDv9aHFtV5h+JnSHgBfGUy9YF3o0Cf14Q==
+X-Received: by 2002:a17:90a:f83:: with SMTP id 3mr608914pjz.90.1569259301738;
+        Mon, 23 Sep 2019 10:21:41 -0700 (PDT)
+Received: from desktop-bart.svl.corp.google.com ([2620:15c:2cd:202:4308:52a3:24b6:2c60])
+        by smtp.gmail.com with ESMTPSA id d69sm10401167pfd.175.2019.09.23.10.21.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 23 Sep 2019 10:21:40 -0700 (PDT)
+Subject: Re: [PATCH v4 01/25] sysfs: export sysfs_remove_file_self()
+To:     Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
+        jgg@mellanox.com, dledford@redhat.com,
+        danil.kipnis@cloud.ionos.com, rpenyaev@suse.de,
+        linux-kernel@vger.kernel.org
+References: <20190620150337.7847-1-jinpuwang@gmail.com>
+ <20190620150337.7847-2-jinpuwang@gmail.com>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <4cad763a-e803-1dd8-4ea5-d7ceab929841@acm.org>
+Date:   Mon, 23 Sep 2019 10:21:39 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190620150337.7847-2-jinpuwang@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-According to surrounding error paths, it is likely that 'goto err_get;' is
-expected here. Otherwise, a call to 'rdma_restrack_put(res);' would be
-missing.
+On 6/20/19 8:03 AM, Jack Wang wrote:
+> Function is going to be used in transport over RDMA module
+> in subsequent patches.
 
-Fixes: c5dfe0ea6ffa ("RDMA/nldev: Add resource tracker doit callback")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/infiniband/core/nldev.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It seems like several words are missing from this patch description.
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index e287b71a1cfd..03272791a5bf 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -1231,7 +1231,7 @@ static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg) {
- 		ret = -ENOMEM;
--		goto err;
-+		goto err_get;
- 	}
- 
- 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
--- 
-2.20.1
-
+Bart.
