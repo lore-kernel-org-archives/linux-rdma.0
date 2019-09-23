@@ -2,118 +2,124 @@ Return-Path: <SRS0=sZ6g=XS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF962C4CECF
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 16:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D616C4CEC4
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 17:11:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89D5B20882
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 16:59:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4763320820
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Sep 2019 17:11:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390940AbfIWQ7O (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Sep 2019 12:59:14 -0400
-Received: from mail-pf1-f193.google.com ([209.85.210.193]:43436 "EHLO
-        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390600AbfIWQ7O (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Sep 2019 12:59:14 -0400
-Received: by mail-pf1-f193.google.com with SMTP id a2so9466206pfo.10
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Sep 2019 09:59:13 -0700 (PDT)
+        id S1732902AbfIWRLK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Sep 2019 13:11:10 -0400
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:41672 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732891AbfIWRLK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Sep 2019 13:11:10 -0400
+Received: by mail-pf1-f194.google.com with SMTP id q7so9492638pfh.8
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Sep 2019 10:11:10 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=OAnMMIT9Vqgb6afR1uuGeTvM3DpRpXBvaKR+J8XYskY=;
-        b=GMSrxG6BQBkZVDQS2/wEO0HDK8JVz+7mkuAhhB3tskfIHsCun88550XbnvoGSay0OX
-         TxzSTgN4yVfBJl5oBJHWhz8qokBO3R3a4HzUa9SsUE9FpX9VeQK5fdcQx5hk8oUPi8Hg
-         9JbCEV9+J+FGY887ZBRyG2UIVCG9eCFpaAE61NQGU58vStYA/YoOf45fJIcCk8M38dw2
-         9kBFB18YvC3sGArMo3NSjg6/nX+ntVR2pPJLa70hagGu7i1WZSTV8RKyEXP1l9rCdtQa
-         2tFOYZ1iyzQNq+8zerKB1KNNrN5tEk2hYFsfvhVZ1xwtPqKtxpGGaXXYhZ2pA94Ld+Oh
-         r47g==
-X-Gm-Message-State: APjAAAVM/2aVpKdv/li2JY7VgH2zySi5d+YJ/f9+/aDzqlQdPrZKYpJ0
-        5GmAtdvGjlAujgMgqiR3FBs+tFlw
-X-Google-Smtp-Source: APXvYqw1iK2Yf9ckdpSomLB7fYFE24BV0dGPIB32Veow9MIokYalhhIkBDZP++oO4AyfTRqPye+09g==
-X-Received: by 2002:aa7:96a9:: with SMTP id g9mr616125pfk.16.1569257952775;
-        Mon, 23 Sep 2019 09:59:12 -0700 (PDT)
+        bh=EbHw7LY+MlMBXDkJZ+m2rigRGgYGCBYHumgjVs6DKv4=;
+        b=A5dIFzjliDwEboQnSn88XNM+3vGfsZPExpuO5z+g1kHvhcjzK/u2lAMAilvZrlVOFJ
+         HpQGU01UL1m/9vq4UiNHoSB4D1mexOOszQjZJO3ebIj9edtCbYL4YLAn5HStAqX0Sy2j
+         gz/lJP70xIstvkKQMvuolUzC/vyvK+4wDDmRjM3F8ny4qPCY9qBeI8Phv8gF3DkEi7NS
+         NJkMiehhfve7CAKzIcJKIRRdLXgy30e2KuK8zHBaTyKTKoVsQkHZO8JoaWhxvbTa21M+
+         7HVhrjcnlctbSB+DYPNjPz15FvxwZpIhq1qUaoR2gkBaPXFGQaETUAX2bCA0Ze9VO2+D
+         khGQ==
+X-Gm-Message-State: APjAAAUC+/NoDA6s5Dwj0iTTDsN7AblGugo88sk0gaehCSE2ec7gS/AH
+        0a5vj+LCxt0jkwD3l0Wg2tqiqvYu
+X-Google-Smtp-Source: APXvYqy9pGE/mN5e1eIYXeSSgZf0rBbVHjOX1Ztbo+YT5hxGIQIgAQFSdwqci8sMN/8C255i/tvB3A==
+X-Received: by 2002:a62:2ac9:: with SMTP id q192mr633525pfq.189.1569258669209;
+        Mon, 23 Sep 2019 10:11:09 -0700 (PDT)
 Received: from desktop-bart.svl.corp.google.com ([2620:15c:2cd:202:4308:52a3:24b6:2c60])
-        by smtp.gmail.com with ESMTPSA id 22sm12565598pfo.131.2019.09.23.09.59.11
+        by smtp.gmail.com with ESMTPSA id f89sm11976383pje.20.2019.09.23.10.11.08
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Sep 2019 09:59:11 -0700 (PDT)
-Subject: Re: [rdma-core patch] srp_daemon: print maximum initiator to target
- IU size
-To:     Honggang LI <honli@redhat.com>
+        Mon, 23 Sep 2019 10:11:08 -0700 (PDT)
+Subject: Re: [patch v4 2/2] RDMA/srp: calculate max_it_iu_size if remote
+ max_it_iu length available
+To:     Honggang LI <honli@redhat.com>, dledford@redhat.com, jgg@ziepe.ca
 Cc:     linux-rdma@vger.kernel.org
-References: <20190916013607.9474-1-honli@redhat.com>
- <deb829a3-813e-6b99-c932-ceecc06e09b3@acm.org>
- <20190918005508.GA8676@dhcp-128-227.nay.redhat.com>
+References: <20190923062940.12330-1-honli@redhat.com>
+ <20190923062940.12330-2-honli@redhat.com>
 From:   Bart Van Assche <bvanassche@acm.org>
-Message-ID: <46dfd841-f7d3-52fb-6737-253ce95108c2@acm.org>
-Date:   Mon, 23 Sep 2019 09:59:10 -0700
+Message-ID: <f18a4e69-f58d-a179-6fc0-ec15fee80957@acm.org>
+Date:   Mon, 23 Sep 2019 10:11:06 -0700
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <20190918005508.GA8676@dhcp-128-227.nay.redhat.com>
+In-Reply-To: <20190923062940.12330-2-honli@redhat.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 9/17/19 5:55 PM, Honggang LI wrote:
-> On Tue, Sep 17, 2019 at 10:19:37AM -0700, Bart Van Assche wrote:
->> On 9/15/19 6:36 PM, Honggang LI wrote:
->>> From: Honggang Li <honli@redhat.com>
->>>
->>> The 'Send Message Size' field of IOControllerProfile attributes
->>> contains the maximum initiator to target IU size.
->>>
->>> When there is something wrong with SRP login to a third party
->>> SRP target, whose ib_srpt parameters can't be collected with
->>> ordinary method, dump the 'Send Message Size' may help us to
->>> diagnose the problem.
->>>
->>> Signed-off-by: Honggang Li <honli@redhat.com>
->>> ---
->>>    srp_daemon/srp_daemon.c | 2 ++
->>>    1 file changed, 2 insertions(+)
->>>
->>> diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
->>> index 337b21c7..90533c77 100644
->>> --- a/srp_daemon/srp_daemon.c
->>> +++ b/srp_daemon/srp_daemon.c
->>> @@ -1022,6 +1022,8 @@ static int do_port(struct resources *res, uint16_t pkey, uint16_t dlid,
->>>    			pr_human("        vendor ID: %06x\n", be32toh(target->ioc_prof.vendor_id) >> 8);
->>>    			pr_human("        device ID: %06x\n", be32toh(target->ioc_prof.device_id));
->>>    			pr_human("        IO class : %04hx\n", be16toh(target->ioc_prof.io_class));
->>> +			pr_human("        Maximum initiator to target IU size: %d\n",
->>> +				 be32toh(target->ioc_prof.send_size));
->>>    			pr_human("        ID:        %s\n", target->ioc_prof.id);
->>>    			pr_human("        service entries: %d\n", target->ioc_prof.service_entries);
->>
->> How about using the terminology from the InfiniBand Architecture
-> 
-> As this is srp specific, so I suggest to use the terminology from
-> srp specification 'srp2r06'.
-> 
-> Table B.7 — IOControllerProfile attributes for SRP target ports
-> ----------------------------------------------------------------
-> | Field            | SRP requirement                           |
-> ----------------------------------------------------------------
-> |(skip many lines).....                                        |
-> ----------------------------------------------------------------
-> |Send Message Size |MAXIMUM INITIATOR TO TARGET IU LENGTH      |
-> ----------------------------------------------------------------
-> 
->> Specification? This is what I found in release 1.3, table 306:
->>
->> "Maximum size of Send Messages in bytes"
+On 9/22/19 11:29 PM, Honggang LI wrote:
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index b829dab0df77..b3bf5d552de9 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -139,7 +139,7 @@ MODULE_PARM_DESC(use_imm_data,
+>   
+>   static unsigned int srp_max_imm_data = 8 * 1024;
+>   module_param_named(max_imm_data, srp_max_imm_data, uint, 0644);
+> -MODULE_PARM_DESC(max_imm_data, "Maximum immediate data size.");
+> +MODULE_PARM_DESC(max_imm_data, "Maximum immediate data size if max_it_iu_size has not been specified.");
+>   
+>   static unsigned ch_count;
+>   module_param(ch_count, uint, 0444);
+> @@ -1362,15 +1362,23 @@ static void srp_terminate_io(struct srp_rport *rport)
+>   }
+>   
+>   /* Calculate maximum initiator to target information unit length. */
+> -static uint32_t srp_max_it_iu_len(int cmd_sg_cnt, bool use_imm_data)
+> +static uint32_t srp_max_it_iu_len(int cmd_sg_cnt, bool use_imm_data,
+> +				  uint32_t max_it_iu_size)
+>   {
+>   	uint32_t max_iu_len = sizeof(struct srp_cmd) + SRP_MAX_ADD_CDB_LEN +
+>   		sizeof(struct srp_indirect_buf) +
+>   		cmd_sg_cnt * sizeof(struct srp_direct_buf);
+>   
+> -	if (use_imm_data)
+> -		max_iu_len = max(max_iu_len, SRP_IMM_DATA_OFFSET +
+> -				 srp_max_imm_data);
+> +	if (use_imm_data) {
+> +		if (max_it_iu_size == 0) {
+> +			max_iu_len = max(max_iu_len,
+> +			   SRP_IMM_DATA_OFFSET + srp_max_imm_data);
+> +		} else {
+> +			max_iu_len = max_it_iu_size;
+> +		}
+> +	}
+> +
+> +	pr_debug("max_iu_len = %d\n", max_iu_len);
+>   
+>   	return max_iu_len;
+>   }
 
-I don't have a strong opinion about which description to use. The latter 
-may be easier to comprehend though. I'm not sure whether every SRP user 
-knows what an SRP "IU" is ...
+Thinking further about this, this removes the ability for users to limit 
+immediate data to a certain number of bytes. I think that's a step back. 
+How about not modifying the description of max_imm_data and to use the 
+following approach in srp_max_it_iu_len() for calculating max_iu_len?
+
+uint32_t max_iu_len = sizeof(struct srp_cmd) + SRP_MAX_ADD_CDB_LEN +
+		sizeof(struct srp_indirect_buf) +
+		cmd_sg_cnt * sizeof(struct srp_direct_buf);
+if (use_imm_data)
+	max_iu_len = max(max_iu_len, SRP_IMM_DATA_OFFSET +
+			 srp_max_imm_data);
+if (max_it_iu_size)
+	max_iu_len = min(max_iu_len, max_it_iu_size);
+
+Thanks,
 
 Bart.
