@@ -2,51 +2,44 @@ Return-Path: <SRS0=oVUF=XT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D4A4C432C1
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Sep 2019 05:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C71DC432C1
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Sep 2019 07:03:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6251214D9
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Sep 2019 05:15:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="OLBplSJ8";
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="V0LrSJ65"
+	by mail.kernel.org (Postfix) with ESMTP id D3A6921655
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Sep 2019 07:03:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1569308589;
+	bh=AlEW8CxXuFn8P/oDpAqEk3frXBsRLiuf+egkL9mACt8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=mEdq//Nh3L8Bd7SS4ouGklS08Eivoa7wXpDbYiVCedVMhG6++s4XtBvk/vpKd0/4J
+	 dYor9msJKjpHKACFY8aAIa61DAfcgNKe0Vl7JHBqEUBUSfJE58b5kzkPQNMLUj6Y0k
+	 DoL/U5BC5pDytEWGH9RE1zd9slu2e/i2in4pA36w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409033AbfIXFPt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Sep 2019 01:15:49 -0400
-Received: from smtp.codeaurora.org ([198.145.29.96]:59954 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2408781AbfIXFPt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 24 Sep 2019 01:15:49 -0400
-Received: by smtp.codeaurora.org (Postfix, from userid 1000)
-        id 8D3DD60A05; Tue, 24 Sep 2019 05:15:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1569302147;
-        bh=azdN6vc/PGfI2bjrfNHt+vK3hA51rRmp/zu9UwVEnFE=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=OLBplSJ8QK2fuDQ89srMfDYzbHh19cEyYIPeEsii4HRtIELHAPm2/Bj4HjIWZXbrz
-         /ghU6UC7s7RGXH9PaTA2M7cO0Y+Tl1Tpz4nk04oTdOYa9q6gh8IfvMgAhybAQw24qA
-         +MsumvlYAN0nGHMUT7XPSltgWncFxCom6omq3DHw=
-Received: from tynnyri.adurom.net (tynnyri.adurom.net [51.15.11.48])
+        id S2409160AbfIXHDJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Sep 2019 03:03:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55814 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2409158AbfIXHDJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 24 Sep 2019 03:03:09 -0400
+Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: kvalo@smtp.codeaurora.org)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 6A1EF602F0;
-        Tue, 24 Sep 2019 05:15:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1569302146;
-        bh=azdN6vc/PGfI2bjrfNHt+vK3hA51rRmp/zu9UwVEnFE=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=V0LrSJ65dpf3rFn2VjpBmfRFfW6ofjXym1S9bUV43cIfh1B+Izf9IeMywVs7MWDvQ
-         Q4eVfHhYpjXfey9K+PrTenhrts+tzG6/7DcQlcBpDeIdqCt24Fw+fYZPsGUAXoDwsn
-         B9wbiz9mXwVc2iXDjEl8E1xHTX6aJcLeBzwEzFvY=
-DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org 6A1EF602F0
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; spf=none smtp.mailfrom=kvalo@codeaurora.org
-From:   Kalle Valo <kvalo@codeaurora.org>
+        by mail.kernel.org (Postfix) with ESMTPSA id 9D8F720673;
+        Tue, 24 Sep 2019 07:03:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1569308588;
+        bh=AlEW8CxXuFn8P/oDpAqEk3frXBsRLiuf+egkL9mACt8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=NgPhsXprAhfXfXBMPmhNi6zDCC8P+Lv1t1OJaBYYq/OuXI2l+wTr48atArBd4iujI
+         pEiGSyKx2TzTQHYLZDzoFRzF7eIxparEi1i+IHrr5h2FzyssV4vjBmgrl3X4i81jMA
+         Gpzm0UZN6E6YR5znnHJXZueTNcgVSqzF9xZTqB1c=
+Date:   Tue, 24 Sep 2019 10:03:05 +0300
+From:   Leon Romanovsky <leon@kernel.org>
 To:     Krzysztof Kozlowski <krzk@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
         Michael Grzeschik <m.grzeschik@pengutronix.de>,
@@ -67,44 +60,29 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         coreteam@netfilter.org, lvs-devel@vger.kernel.org,
         rds-devel@oss.oracle.com
 Subject: Re: [PATCH trivial 2/2] drivers: net: Fix Kconfig indentation
+Message-ID: <20190924070305.GP14368@unreal>
 References: <20190923155243.6997-1-krzk@kernel.org>
-        <20190923155243.6997-2-krzk@kernel.org>
-Date:   Tue, 24 Sep 2019 08:15:39 +0300
-In-Reply-To: <20190923155243.6997-2-krzk@kernel.org> (Krzysztof Kozlowski's
-        message of "Mon, 23 Sep 2019 17:52:43 +0200")
-Message-ID: <87sgomi8as.fsf@tynnyri.adurom.net>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+ <20190923155243.6997-2-krzk@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190923155243.6997-2-krzk@kernel.org>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Krzysztof Kozlowski <krzk@kernel.org> writes:
-
+On Mon, Sep 23, 2019 at 05:52:43PM +0200, Krzysztof Kozlowski wrote:
 > Adjust indentation from spaces to tab (+optional two spaces) as in
 > coding style with command like:
 >     $ sed -e 's/^        /\t/' -i */Kconfig
 >
 > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 
-[...]
+<--->
 
->  drivers/net/wireless/ath/Kconfig              |   2 +-
->  drivers/net/wireless/ath/ar5523/Kconfig       |   4 +-
->  drivers/net/wireless/ath/ath6kl/Kconfig       |   2 +-
->  drivers/net/wireless/ath/ath9k/Kconfig        |   2 +-
->  drivers/net/wireless/ath/carl9170/Kconfig     |   6 +-
->  drivers/net/wireless/atmel/Kconfig            |  32 ++---
->  drivers/net/wireless/intel/ipw2x00/Kconfig    | 116 +++++++++---------
->  drivers/net/wireless/intel/iwlegacy/Kconfig   |   6 +-
->  drivers/net/wireless/intel/iwlwifi/Kconfig    |   6 +-
->  drivers/net/wireless/ralink/rt2x00/Kconfig    |  24 ++--
+>  .../net/ethernet/mellanox/mlx5/core/Kconfig   |  36 +++---
 
-I hope this goes through net or net-next, less chances of conflits then.
-
-Acked-by: Kalle Valo <kvalo@codeaurora.org>
-
--- 
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
