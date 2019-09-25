@@ -2,187 +2,105 @@ Return-Path: <SRS0=78Cs=XU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F7FC4320D
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 10:20:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B330C432C1
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 11:19:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E149321D7C
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 10:20:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6ABCB214D9
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 11:19:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="DfgkPxwg"
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="rjxlBv6s"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389410AbfIYKUW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 25 Sep 2019 06:20:22 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:40983 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730094AbfIYKUV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 25 Sep 2019 06:20:21 -0400
-Received: by mail-io1-f68.google.com with SMTP id r26so12324704ioh.8
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Sep 2019 03:20:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=6rqFBMqfsMIpbGjDwxfXDqANibsggHAFEEva+wKNyXE=;
-        b=DfgkPxwgx6IlpUoSFjiUg4LiX/fG8wfVimfdGdpw2liTnDBWvLTGoU9C7bB/7yLTUg
-         qH2AHhlB0eaOIBKbTsEwbBl1udQuu0qGGMtjj3hkw5OnPucDQ/MdqG3vE9Wg2UvJXnyj
-         uMBI/VE3tTGNNuyqjt4K6teCYhvnLTzP9OiXW2yz5TdrbwGL/Dy8gfbR4UqxqhWf3krj
-         LVij26nEtetuReQCOJMhJGEcBXc3xiWcUU4KvuVfjTDfa8G6avGrjMnc5Hca9HVKHkyi
-         DcUxdkC2Js9Xdih/lcwem5gakt/JXv67AoSPrqQhTltTb2Ys9PAD8+IqNakIbXY9/EUH
-         0zUg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=6rqFBMqfsMIpbGjDwxfXDqANibsggHAFEEva+wKNyXE=;
-        b=svSSlH3IGsl0TYAAlmL8cDXSo9l/5JzrcWHEB3jB7evlbD0n+uFkbxsCyopKnxYPu4
-         0AeQBsuFvuBzF9N+OAD3HxQX8tpEhgViYaDQn8T+/oh0H4tBMAiaUkvQpIlp9Y5CBYal
-         IKyQwrVUl7s1JkCV2OsV8ddSE5qygp6XzQJt4gJSRn/HUaN8NiWnxXSBnYkBeQdn+1k+
-         YSfIA0kF2bSmdJik/S2elUxg3v9EJ2QCrIGnq8SPU4/cr9nJLlV07gnRbxei/7Mm25Z8
-         gdPzj9iCHO/jixCbJBqSEYPgtNVUmwT7NPYxMzxiFIWuLSiW4cZx+2Y7oz9MqLqE7OGm
-         /j4w==
-X-Gm-Message-State: APjAAAXa/yVcpRE7a4YdjO98/XwuWsD4poLWtPd/wg1qEnluCa94UUBJ
-        NqWOoEOM9Nb6iHbI0ayoDUkfIPe3I39gSfpRlJ7N
-X-Google-Smtp-Source: APXvYqx+RGnccnEgT58KjxdVj/nQvPItToncpQDPGd+ehxdmlkE7H+NkwxQZ4ZlFn+x0gCdOp3N6ctOidA05VbXT0YQ=
-X-Received: by 2002:a92:1508:: with SMTP id v8mr169482ilk.116.1569406820486;
- Wed, 25 Sep 2019 03:20:20 -0700 (PDT)
+        id S2390818AbfIYLTL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 25 Sep 2019 07:19:11 -0400
+Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:63264 "EHLO
+        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727194AbfIYLTL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 25 Sep 2019 07:19:11 -0400
+Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
+        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x8PBEfi7019941;
+        Wed, 25 Sep 2019 04:19:08 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-type; s=pfpt0818;
+ bh=Py7+XpEDGdnQhnz0F2dAKTBgfZYzYwzrt7CD8Q+R81E=;
+ b=rjxlBv6sz5UgsKy6RzHke+r83aLnUT+i2m0XSg68yVTU4wuT+Xu6Y/l74QoTQUfnIRYd
+ uy7aRhK61ozYB3yTS+UxHsT/eh6OlDSaeLuXz6Dxbh0cvp46B17qLk47PO7S1AovOIwT
+ IGo5w0i24b1Y1Fk0VuHVNgxJ8b5Nxw+h4s4agwh9ek+PyB5pXiv1YE0+XwHtnhDcWkRH
+ g+lr+Yro4+aD2S/+zMngL0dKERrt4jyNUx1Vsy43yvm0dM91aj+FbWokMSdQIPkzxdp4
+ EvD1VdCnuevuiPHJvg6hoHy3679sbuJVLB5O5lpcBa78BRRlyU2sgytb9h0cbIWRuLhU yg== 
+Received: from sc-exch01.marvell.com ([199.233.58.181])
+        by mx0a-0016f401.pphosted.com with ESMTP id 2v876180sh-3
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
+        Wed, 25 Sep 2019 04:19:08 -0700
+Received: from SC-EXCH01.marvell.com (10.93.176.81) by SC-EXCH01.marvell.com
+ (10.93.176.81) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Wed, 25 Sep
+ 2019 04:18:50 -0700
+Received: from maili.marvell.com (10.93.176.43) by SC-EXCH01.marvell.com
+ (10.93.176.81) with Microsoft SMTP Server id 15.0.1367.3 via Frontend
+ Transport; Wed, 25 Sep 2019 04:18:50 -0700
+Received: from lb-tlvb-ybason.il.qlogic.org (unknown [10.5.221.176])
+        by maili.marvell.com (Postfix) with ESMTP id 0E9DB3F703F;
+        Wed, 25 Sep 2019 04:18:47 -0700 (PDT)
+From:   Yuval Basson <ybason@marvell.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <mkalderon@marvell.com>,
+        <linux-rdma@vger.kernel.org>, Yuval Basson <ybason@marvell.com>,
+        Ariel Elior <aelior@marvell.com>
+Subject: [PATCH rdma-next] RDMA/core: Fix find_gid_index to use the proper API to retrieve the vlan ID 
+Date:   Wed, 25 Sep 2019 14:23:01 +0300
+Message-ID: <20190925112301.10440-1-ybason@marvell.com>
+X-Mailer: git-send-email 2.14.5
 MIME-Version: 1.0
-References: <20190620150337.7847-1-jinpuwang@gmail.com> <20190620150337.7847-3-jinpuwang@gmail.com>
- <0607ca2d-6509-69da-4afc-0be6526b11c4@acm.org>
-In-Reply-To: <0607ca2d-6509-69da-4afc-0be6526b11c4@acm.org>
-From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Date:   Wed, 25 Sep 2019 12:20:09 +0200
-Message-ID: <CAHg0HuyL2V4YqPFvSzaahGL7vHG5mKybudpxkE3hZYsLg1wM+g@mail.gmail.com>
-Subject: Re: [PATCH v4 02/25] ibtrs: public interface header to establish RDMA connections
-To:     Bart Van Assche <bvanassche@acm.org>
-Cc:     Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Doug Ledford <dledford@redhat.com>, rpenyaev@suse.de,
-        Jack Wang <jinpu.wang@cloud.ionos.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,1.0.8
+ definitions=2019-09-25_05:2019-09-23,2019-09-25 signatures=0
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Sep 23, 2019 at 7:44 PM Bart Van Assche <bvanassche@acm.org> wrote:
-> > +/**
-> > + * enum ibtrs_clt_link_ev - Events about connectivity state of a client
-> > + * @IBTRS_CLT_LINK_EV_RECONNECTED    Client was reconnected.
-> > + * @IBTRS_CLT_LINK_EV_DISCONNECTED   Client was disconnected.
-> > + */
-> > +enum ibtrs_clt_link_ev {
-> > +     IBTRS_CLT_LINK_EV_RECONNECTED,
-> > +     IBTRS_CLT_LINK_EV_DISCONNECTED,
-> > +};
-> > +
-> > +/**
-> > + * Source and destination address of a path to be established
-> > + */
-> > +struct ibtrs_addr {
-> > +     struct sockaddr_storage *src;
-> > +     struct sockaddr_storage *dst;
-> > +};
->
-> Is it really useful to define a structure to hold two pointers or can
-> these two pointers also be passed as separate arguments?
-We always need both src and dst throughout ibnbd and ibtrs code and
-indeed one reason to introduce this struct is that "f(struct
-ibtrs_addr *addr, ...);" is shorter than "f(struct sockaddr_storage
-*src, struct sockaddr_storage *dst, ...);". But it also makes it
-easier to extend the address information describing one ibtrs path in
-the future.
+When working over a macvlan device which was itself
+created over a vlan device, the roce CM traffic should use
+the vlan from the lower vlan device, but instead it simply queries
+the macvlan device as to whether it is itself a vlan device. 
+Since it is not, the roce CM traffic is sent without any vlan, which
+causes it not to be accepted by the peer which is running directly
+over a vlan device, and will thus only accept roce CM traffic carrying
+the vlan.
 
-> > +/**
-> > + * ibtrs_clt_open() - Open a session to a IBTRS client
-> > + * @priv:            User supplied private data.
-> > + * @link_ev:         Event notification for connection state changes
-> > + *   @priv:                  user supplied data that was passed to
-> > + *                           ibtrs_clt_open()
-> > + *   @ev:                    Occurred event
-> > + * @sessname: name of the session
-> > + * @paths: Paths to be established defined by their src and dst addresses
-> > + * @path_cnt: Number of elemnts in the @paths array
-> > + * @port: port to be used by the IBTRS session
-> > + * @pdu_sz: Size of extra payload which can be accessed after tag allocation.
-> > + * @max_inflight_msg: Max. number of parallel inflight messages for the session
-> > + * @max_segments: Max. number of segments per IO request
-> > + * @reconnect_delay_sec: time between reconnect tries
-> > + * @max_reconnect_attempts: Number of times to reconnect on error before giving
-> > + *                       up, 0 for * disabled, -1 for forever
-> > + *
-> > + * Starts session establishment with the ibtrs_server. The function can block
-> > + * up to ~2000ms until it returns.
-> > + *
-> > + * Return a valid pointer on success otherwise PTR_ERR.
-> > + */
-> > +struct ibtrs_clt *ibtrs_clt_open(void *priv, link_clt_ev_fn *link_ev,
-> > +                              const char *sessname,
-> > +                              const struct ibtrs_addr *paths,
-> > +                              size_t path_cnt, short port,
-> > +                              size_t pdu_sz, u8 reconnect_delay_sec,
-> > +                              u16 max_segments,
-> > +                              s16 max_reconnect_attempts);
->
-> Having detailed kernel-doc headers for describing API functions is great
-> but I'm not sure a .h file is the best location for such documentation.
-> Many kernel developers keep kernel-doc headers in .c files because that
-> makes it more likely that the documentation and the implementation stay
-> in sync.
-What is better: to move it or to only copy it to the corresponding C file?
+Fixes: dbf727de7440 ("Use GID table in AH creation and dmac resolution")
+Signed-off-by: Ariel Elior <aelior@marvell.com>
+Signed-off-by: Yuval Basson <ybason@marvell.com>
+---
+ drivers/infiniband/core/verbs.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
->
-> > +
-> > +/**
-> > + * ibtrs_clt_close() - Close a session
-> > + * @sess: Session handler, is freed on return
->                       ^^^^^^^
->                       handle?
->
-> This sentence suggests that the handle is freed on return. I guess that
-> you meant that the session is freed upon return?
-Right, will fix the wording.
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f974b68..1d2d9be0 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -662,13 +662,13 @@ static bool find_gid_index(const union ib_gid *gid,
+ 			   void *context)
+ {
+ 	struct find_gid_index_context *ctx = context;
++	u16 vlan_id;
+ 
+ 	if (ctx->gid_type != gid_attr->gid_type)
+ 		return false;
+ 
+-	if ((!!(ctx->vlan_id != 0xffff) == !is_vlan_dev(gid_attr->ndev)) ||
+-	    (is_vlan_dev(gid_attr->ndev) &&
+-	     vlan_dev_vlan_id(gid_attr->ndev) != ctx->vlan_id))
++	rdma_read_gid_l2_fields(gid_attr, &vlan_id, NULL);
++	if (ctx->vlan_id != vlan_id)
+ 		return false;
+ 
+ 	return true;
+-- 
+1.8.3.1
 
->
-> > +/**
-> > + * ibtrs_clt_get_tag() - allocates tag for future RDMA operation
-> > + * @sess:    Current session
-> > + * @con_type:        Type of connection to use with the tag
-> > + * @wait:    Wait type
-> > + *
-> > + * Description:
-> > + *    Allocates tag for the following RDMA operation.  Tag is used
-> > + *    to preallocate all resources and to propagate memory pressure
-> > + *    up earlier.
-> > + *
-> > + * Context:
-> > + *    Can sleep if @wait == IBTRS_TAG_WAIT
-> > + */
-> > +struct ibtrs_tag *ibtrs_clt_get_tag(struct ibtrs_clt *sess,
-> > +                                 enum ibtrs_clt_con_type con_type,
-> > +                                 int wait);
->
-> Since struct ibtrs_tag has another role than what is called a tag in the
-> block layer I think a better description is needed of what struct
-> ibtrs_tag actually represents.
-I think it would be better to rename it to ibtrs_permit in order to
-avoid confusion with block layer tags. Will extend the description
-also.
-
-> > +/*
-> > + * Here goes IBTRS server API
-> > + */
->
-> Most software either uses the client API or the server API but not both
-> at the same time. Has it been considered to use separate header files
-> for the client and server APIs?
-I don't have any really good reason to put API of server and client
-into a single file. Except may be that the reader can see API calls
-corresponding the full sequence of request -> indication -> response
--> confirmation in one place.
