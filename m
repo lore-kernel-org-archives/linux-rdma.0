@@ -6,54 +6,53 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26901C432C2
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 20:52:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00D1CC432C2
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 20:52:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0142A21D82
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 20:52:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C55162146E
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Sep 2019 20:52:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393418AbfIYUwN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 25 Sep 2019 16:52:13 -0400
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:45695 "EHLO
+        id S1731082AbfIYUwc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 25 Sep 2019 16:52:32 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:43043 "EHLO
         mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393339AbfIYUwN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 25 Sep 2019 16:52:13 -0400
-Received: by mail-ot1-f68.google.com with SMTP id 41so6081512oti.12
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Sep 2019 13:52:12 -0700 (PDT)
+        with ESMTP id S1727639AbfIYUwc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 25 Sep 2019 16:52:32 -0400
+Received: by mail-ot1-f68.google.com with SMTP id o44so3572ota.10
+        for <linux-rdma@vger.kernel.org>; Wed, 25 Sep 2019 13:52:31 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+        h=x-gm-message-state:subject:to:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
         bh=nWpDQmZNg8zKVk12QskQ7NNS05C4fI/JmZBKLdKyu8Q=;
-        b=insDJwc6z7/UJZ1SUoCdibZ6Z6gv7esRUlZJH9gcsuXX+69E+1/I5PCFXyg2kTFZkK
-         Li2iQwlR1qYzJOzy+kcnSSbz8fhzRT3YIZxceoYk7Ufx6+aJ5NJ2KXKIqzekNpqg1ogG
-         sD8ynELRR8W0GotI+TePqbwCxkkJ1SXeKuuXazp2TcZ2g9s+WAozC/TA4iTVObEU1H9x
-         gUVJ0/ed5lVAeUGTMoz7eunvt/ZCLA4v65wrJghtwxmYrEPnD/OrH+TpiQIrBjHkPEYd
-         GaK35TPDg+hUqvDVtqPNjoD7YvlgrUIwl3CFX9rGkoUKPbkZmDCxOJcH0uyUE1HwO8ID
-         LuFg==
-X-Gm-Message-State: APjAAAVok+TZphY+4B0wiQ4XowtBdk3T+usU+07mJ8vOuvFg/qyhVRU5
-        JmoEkCu5by1GznWJDwNCLnc=
-X-Google-Smtp-Source: APXvYqxBcBVdIHlx4IlC5iEi65mICMjwqJNlsrcBvYWfAyoCR36KoK3ljjmgupSX4Mh4BcIE9XQZRw==
-X-Received: by 2002:a9d:378a:: with SMTP id x10mr68356otb.222.1569444732325;
-        Wed, 25 Sep 2019 13:52:12 -0700 (PDT)
+        b=BFDm7bC+G9QL3HWU4EYk+7NKvCZUCnpbtH3C29T3oyLWwhLo+PIpcoJM1fYhKwkeDw
+         AoHLzF8LYE54JsFuYS+J0QNOVVVJtkYsS+WG6L+vWFIgLikyuD5yd8SzF0VML94bailY
+         3jnM9wuKNAkdfjxbdMVnVbs0i4SCJfkYdJKAy/udQKnaQT4fZEdO4BXHgP6bkwBwWwtO
+         YQ9sNuuAs+PiehxM8CtfkfQT7EiFwLtUUGojiOQyrNS/Uv9W1Yt2Z47euZSY76h5rMY8
+         7yTikYaUURZXnIpW9QPzGHBgc9SN1sR/HhUYUxSm7frH4aUH/yl5bL+AU5obMcuZvSxn
+         k/Ug==
+X-Gm-Message-State: APjAAAVKZlyARkkpAe+3VQrsbcxdK81BgWnHrkERaXG5APPAY7ZbETuV
+        8PjmHea/El6GVEtWwtF17kQ=
+X-Google-Smtp-Source: APXvYqzycX/wrfH9sWik9hitwFu3xb2FcgsCGAbHrOibAvgaW9J5fNo1J62ezucI5IxM31se/BsZIA==
+X-Received: by 2002:a9d:128c:: with SMTP id g12mr43549otg.239.1569444751554;
+        Wed, 25 Sep 2019 13:52:31 -0700 (PDT)
 Received: from ?IPv6:2600:1700:65a0:78e0:514:7862:1503:8e4d? ([2600:1700:65a0:78e0:514:7862:1503:8e4d])
-        by smtp.gmail.com with ESMTPSA id y8sm19645oig.55.2019.09.25.13.52.10
+        by smtp.gmail.com with ESMTPSA id n9sm2088992otn.4.2019.09.25.13.52.29
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 25 Sep 2019 13:52:11 -0700 (PDT)
-Subject: Re: [PATCH 1/1] IB/iser: bound protection_sg size by data_sg size
+        Wed, 25 Sep 2019 13:52:30 -0700 (PDT)
+Subject: Re: [PATCH 1/1] IB/iser: remove redundant macro definitions
 To:     Max Gurtovoy <maxg@mellanox.com>, jgg@mellanox.com,
         linux-rdma@vger.kernel.org, dledford@redhat.com,
         leonro@mellanox.com
-Cc:     martin.petersen@oracle.com
-References: <1569359027-10987-1-git-send-email-maxg@mellanox.com>
+References: <1569359148-12312-1-git-send-email-maxg@mellanox.com>
 From:   Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <e6cfe04e-5fcc-0c43-c254-946e770db0bc@grimberg.me>
-Date:   Wed, 25 Sep 2019 13:52:10 -0700
+Message-ID: <75490168-e8ab-bc1c-8755-a641a5b278af@grimberg.me>
+Date:   Wed, 25 Sep 2019 13:52:29 -0700
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <1569359027-10987-1-git-send-email-maxg@mellanox.com>
+In-Reply-To: <1569359148-12312-1-git-send-email-maxg@mellanox.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
