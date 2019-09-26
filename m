@@ -6,35 +6,36 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FAE0ECE58B
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E63C4360C
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0651A222CB
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDCFA222CB
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727532AbfIZQpc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 26 Sep 2019 12:45:32 -0400
-Received: from mga18.intel.com ([134.134.136.126]:60795 "EHLO mga18.intel.com"
+        id S1727544AbfIZQpe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 26 Sep 2019 12:45:34 -0400
+Received: from mga06.intel.com ([134.134.136.31]:15107 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727454AbfIZQpb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 26 Sep 2019 12:45:31 -0400
+        id S1727502AbfIZQpd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 26 Sep 2019 12:45:33 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Sep 2019 09:45:28 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Sep 2019 09:45:30 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,552,1559545200"; 
-   d="scan'208";a="219465101"
+   d="scan'208";a="219465117"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.96])
-  by fmsmga002.fm.intel.com with ESMTP; 26 Sep 2019 09:45:27 -0700
+  by fmsmga002.fm.intel.com with ESMTP; 26 Sep 2019 09:45:29 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     dledford@redhat.com, jgg@mellanox.com, gregkh@linuxfoundation.org
-Cc:     Tony Nguyen <anthony.l.nguyen@intel.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Dave Ertman <david.m.ertman@intel.com>,
+Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [RFC 01/20] ice: Initialize and register multi-function device to provide RDMA
-Date:   Thu, 26 Sep 2019 09:45:00 -0700
-Message-Id: <20190926164519.10471-2-jeffrey.t.kirsher@intel.com>
+Subject: [RFC 04/20] RDMA/irdma: Add driver framework definitions
+Date:   Thu, 26 Sep 2019 09:45:03 -0700
+Message-Id: <20190926164519.10471-5-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190926164519.10471-1-jeffrey.t.kirsher@intel.com>
 References: <20190926164519.10471-1-jeffrey.t.kirsher@intel.com>
@@ -45,1363 +46,1926 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Tony Nguyen <anthony.l.nguyen@intel.com>
+From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-The RDMA block does not advertise on the PCI bus or any other bus.
-Thus the ice driver needs to provide access to the RDMA hardware block
-via a virtual bus; utilize a multi-function device to provide this access.
+Register irdma as a platform driver capable of supporting platform
+devices from multi-generation RDMA capable Intel HW. Establish the
+interface with all supported netdev peer devices and initialize HW.
 
-This patch initializes the driver to support RDMA as well as creates
-and registers a multi-function device for the RDMA driver to register to.
-At this point the driver is fully initialized to register a platform
-driver, however, can not yet register as the ops have not been
-implemented.
-
-We refer to the interaction of this platform device as Inter-Driver
-Communication (IDC); where the platform device is referred to as the peer
-device and the platform driver is referred to as the peer driver.
-
-Note that the header file iidc.h has been located under
-include/linux/net/intel as this file is a unified header file to be used by
-the ice and irdma driver.
-
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
-Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
+Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- MAINTAINERS                                   |   1 +
- drivers/net/ethernet/intel/Kconfig            |   1 +
- drivers/net/ethernet/intel/ice/Makefile       |   1 +
- drivers/net/ethernet/intel/ice/ice.h          |  16 +
- .../net/ethernet/intel/ice/ice_adminq_cmd.h   |   1 +
- drivers/net/ethernet/intel/ice/ice_common.c   |   5 +
- drivers/net/ethernet/intel/ice/ice_dcb_lib.c  |  31 ++
- drivers/net/ethernet/intel/ice/ice_dcb_lib.h  |   3 +
- .../net/ethernet/intel/ice/ice_hw_autogen.h   |   1 +
- drivers/net/ethernet/intel/ice/ice_idc.c      | 442 ++++++++++++++++++
- drivers/net/ethernet/intel/ice/ice_idc_int.h  |  81 ++++
- drivers/net/ethernet/intel/ice/ice_lib.c      |  11 +
- drivers/net/ethernet/intel/ice/ice_lib.h      |   1 +
- drivers/net/ethernet/intel/ice/ice_main.c     |  70 ++-
- drivers/net/ethernet/intel/ice/ice_type.h     |   1 +
- include/linux/net/intel/iidc.h                | 355 ++++++++++++++
- 16 files changed, 1019 insertions(+), 2 deletions(-)
- create mode 100644 drivers/net/ethernet/intel/ice/ice_idc.c
- create mode 100644 drivers/net/ethernet/intel/ice/ice_idc_int.h
- create mode 100644 include/linux/net/intel/iidc.h
+ drivers/infiniband/hw/irdma/i40iw_if.c | 270 +++++++++++
+ drivers/infiniband/hw/irdma/irdma_if.c | 436 +++++++++++++++++
+ drivers/infiniband/hw/irdma/main.c     | 531 ++++++++++++++++++++
+ drivers/infiniband/hw/irdma/main.h     | 639 +++++++++++++++++++++++++
+ 4 files changed, 1876 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/i40iw_if.c
+ create mode 100644 drivers/infiniband/hw/irdma/irdma_if.c
+ create mode 100644 drivers/infiniband/hw/irdma/main.c
+ create mode 100644 drivers/infiniband/hw/irdma/main.h
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b2326dece28e..07c374fa1975 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8205,6 +8205,7 @@ F:	Documentation/networking/device_drivers/intel/ice.rst
- F:	drivers/net/ethernet/intel/
- F:	drivers/net/ethernet/intel/*/
- F:	include/linux/avf/virtchnl.h
-+F:	include/linux/net/intel/iidc.h
- 
- INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
- M:	Maik Broemme <mbroemme@libmpq.org>
-diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
-index 154e2e818ec6..48ec63f27869 100644
---- a/drivers/net/ethernet/intel/Kconfig
-+++ b/drivers/net/ethernet/intel/Kconfig
-@@ -294,6 +294,7 @@ config ICE
- 	tristate "Intel(R) Ethernet Connection E800 Series Support"
- 	default n
- 	depends on PCI_MSI
-+	select MFD_CORE
- 	---help---
- 	  This driver supports Intel(R) Ethernet Connection E800 Series of
- 	  devices.  For more information on how to identify your adapter, go
-diff --git a/drivers/net/ethernet/intel/ice/Makefile b/drivers/net/ethernet/intel/ice/Makefile
-index 9edde960b4f2..2f0ba4aa4957 100644
---- a/drivers/net/ethernet/intel/ice/Makefile
-+++ b/drivers/net/ethernet/intel/ice/Makefile
-@@ -16,6 +16,7 @@ ice-y := ice_main.o	\
- 	 ice_lib.o	\
- 	 ice_txrx.o	\
- 	 ice_flex_pipe.o	\
-+	 ice_idc.o	\
- 	 ice_ethtool.o
- ice-$(CONFIG_PCI_IOV) += ice_virtchnl_pf.o ice_sriov.o
- ice-$(CONFIG_DCB) += ice_dcb.o ice_dcb_lib.o
-diff --git a/drivers/net/ethernet/intel/ice/ice.h b/drivers/net/ethernet/intel/ice/ice.h
-index 45e100666049..7160556ec55e 100644
---- a/drivers/net/ethernet/intel/ice/ice.h
-+++ b/drivers/net/ethernet/intel/ice/ice.h
-@@ -32,6 +32,7 @@
- #include <linux/if_bridge.h>
- #include <linux/ctype.h>
- #include <linux/avf/virtchnl.h>
-+#include <linux/mfd/core.h>
- #include <net/ipv6.h>
- #include "ice_devids.h"
- #include "ice_type.h"
-@@ -40,6 +41,7 @@
- #include "ice_switch.h"
- #include "ice_common.h"
- #include "ice_sched.h"
-+#include "ice_idc_int.h"
- #include "ice_virtchnl_pf.h"
- #include "ice_sriov.h"
- 
-@@ -69,6 +71,7 @@ extern const char ice_drv_ver[];
- #define ICE_MAX_SMALL_RSS_QS	8
- #define ICE_RES_VALID_BIT	0x8000
- #define ICE_RES_MISC_VEC_ID	(ICE_RES_VALID_BIT - 1)
-+#define ICE_RES_RDMA_VEC_ID	(ICE_RES_MISC_VEC_ID - 1)
- #define ICE_INVAL_Q_INDEX	0xffff
- #define ICE_INVAL_VFID		256
- 
-@@ -303,11 +306,13 @@ struct ice_q_vector {
- 
- enum ice_pf_flags {
- 	ICE_FLAG_FLTR_SYNC,
-+	ICE_FLAG_IWARP_ENA,
- 	ICE_FLAG_RSS_ENA,
- 	ICE_FLAG_SRIOV_ENA,
- 	ICE_FLAG_SRIOV_CAPABLE,
- 	ICE_FLAG_DCB_CAPABLE,
- 	ICE_FLAG_DCB_ENA,
-+	ICE_FLAG_PEER_ENA,
- 	ICE_FLAG_ADV_FEATURES,
- 	ICE_FLAG_LINK_DOWN_ON_CLOSE_ENA,
- 	ICE_FLAG_NO_MEDIA,
-@@ -347,6 +352,9 @@ struct ice_pf {
- 	struct mutex avail_q_mutex;	/* protects access to avail_[rx|tx]qs */
- 	struct mutex sw_mutex;		/* lock for protecting VSI alloc flow */
- 	u32 msg_enable;
-+	/* Total number of MSIX vectors reserved for base driver */
-+	u32 num_rdma_msix;
-+	u32 rdma_base_vector;
- 	u32 hw_csum_rx_error;
- 	u32 oicr_idx;		/* Other interrupt cause MSIX vector index */
- 	u32 num_avail_sw_msix;	/* remaining MSIX SW vectors left unclaimed */
-@@ -373,6 +381,8 @@ struct ice_pf {
- 	unsigned long tx_timeout_last_recovery;
- 	u32 tx_timeout_recovery_level;
- 	char int_name[ICE_INT_NAME_STR_LEN];
-+	struct ice_peer_dev_int **peers;
-+	int peer_idx;
- 	u32 sw_int_count;
- };
- 
-@@ -380,6 +390,8 @@ struct ice_netdev_priv {
- 	struct ice_vsi *vsi;
- };
- 
-+extern struct ida ice_peer_index_ida;
+diff --git a/drivers/infiniband/hw/irdma/i40iw_if.c b/drivers/infiniband/hw/irdma/i40iw_if.c
+new file mode 100644
+index 000000000000..3cddb091acfb
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/i40iw_if.c
+@@ -0,0 +1,270 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (c) 2019, Intel Corporation. */
 +
- /**
-  * ice_irq_dynamic_ena - Enable default interrupt generation settings
-  * @hw: pointer to HW struct
-@@ -447,6 +459,10 @@ int ice_set_rss(struct ice_vsi *vsi, u8 *seed, u8 *lut, u16 lut_size);
- int ice_get_rss(struct ice_vsi *vsi, u8 *seed, u8 *lut, u16 lut_size);
- void ice_fill_rss_lut(u8 *lut, u16 rss_table_size, u16 rss_size);
- void ice_print_link_msg(struct ice_vsi *vsi, bool isup);
-+int ice_init_peer_devices(struct ice_pf *pf);
-+int
-+ice_for_each_peer(struct ice_pf *pf, void *data,
-+		  int (*fn)(struct ice_peer_dev_int *, void *));
- #ifdef CONFIG_DCB
- int ice_pf_ena_all_vsi(struct ice_pf *pf, bool locked);
- void ice_pf_dis_all_vsi(struct ice_pf *pf, bool locked);
-diff --git a/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h b/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h
-index 023e3d2fee5f..c54e78492395 100644
---- a/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h
-+++ b/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h
-@@ -108,6 +108,7 @@ struct ice_aqc_list_caps_elem {
- #define ICE_AQC_CAPS_TXQS				0x0042
- #define ICE_AQC_CAPS_MSIX				0x0043
- #define ICE_AQC_CAPS_MAX_MTU				0x0047
-+#define ICE_AQC_CAPS_IWARP				0x0051
- 
- 	u8 major_ver;
- 	u8 minor_ver;
-diff --git a/drivers/net/ethernet/intel/ice/ice_common.c b/drivers/net/ethernet/intel/ice/ice_common.c
-index 3a6b3950eb0e..ed59eec57a52 100644
---- a/drivers/net/ethernet/intel/ice/ice_common.c
-+++ b/drivers/net/ethernet/intel/ice/ice_common.c
-@@ -1748,6 +1748,11 @@ ice_parse_caps(struct ice_hw *hw, void *buf, u32 cap_count,
- 				  "%s: msix_vector_first_id = %d\n", prefix,
- 				  caps->msix_vector_first_id);
- 			break;
-+		case ICE_AQC_CAPS_IWARP:
-+			caps->iwarp = (number == 1);
-+			ice_debug(hw, ICE_DBG_INIT,
-+				  "%s: iwarp = %d\n", prefix, caps->iwarp);
-+			break;
- 		case ICE_AQC_CAPS_MAX_MTU:
- 			caps->max_mtu = number;
- 			ice_debug(hw, ICE_DBG_INIT, "%s: max_mtu = %d\n",
-diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-index dd47869c4ad4..ed639ef5da42 100644
---- a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-+++ b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-@@ -613,6 +613,37 @@ ice_tx_prepare_vlan_flags_dcb(struct ice_ring *tx_ring,
- 	return 0;
- }
- 
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
++#include <net/addrconf.h>
++#include "main.h"
++#include "i40iw_hw.h"
++#include <linux/net/intel/i40e_client.h>
++
 +/**
-+ * ice_setup_dcb_qos_info - Setup DCB QoS information
-+ * @pf: ptr to ice_pf
-+ * @qos_info: QoS param instance
++ * i40iw_request_reset - Request a reset
++ * @rf: RDMA PCI function
++ *
 + */
-+void ice_setup_dcb_qos_info(struct ice_pf *pf, struct iidc_qos_params *qos_info)
++void i40iw_request_reset(struct irdma_pci_f *rf)
 +{
-+	struct ice_dcbx_cfg *dcbx_cfg;
-+	u32 up2tc;
++	struct i40e_info *ldev = (struct i40e_info *)rf->ldev.if_ldev;
++
++	ldev->ops->request_reset(ldev, rf->ldev.if_client, 1);
++}
++
++/**
++ * i40iw_open - client interface operation open for iwarp/uda device
++ * @ldev: LAN device information
++ * @client: iwarp client information, provided during registration
++ *
++ * Called by the LAN driver during the processing of client register
++ * Create device resources, set up queues, pble and hmc objects and
++ * register the device with the ib verbs interface
++ * Return 0 if successful, otherwise return error
++ */
++static int i40iw_open(struct i40e_info *ldev, struct i40e_client *client)
++{
++	struct irdma_l2params l2params = {};
++	struct irdma_device *iwdev = NULL;
++	struct irdma_handler *hdl = NULL;
++	struct irdma_priv_ldev *pldev;
++	u16 last_qset = IRDMA_NO_QSET;
++	struct irdma_sc_dev *dev;
++	struct irdma_pci_f *rf;
++	int err_code = -EIO;
++	u16 qset;
 +	int i;
 +
-+	dcbx_cfg = &pf->hw.port_info->local_dcbx_cfg;
-+	up2tc = rd32(&pf->hw, PRTDCB_TUP2TC);
-+	qos_info->num_apps = dcbx_cfg->numapps;
++	hdl = irdma_find_handler(ldev->pcidev);
++	if (hdl)
++		return 0;
 +
-+	qos_info->num_tc = ice_dcb_get_num_tc(dcbx_cfg);
++	hdl = kzalloc((sizeof(*hdl) + sizeof(*iwdev)), GFP_KERNEL);
++	if (!hdl)
++		return -ENOMEM;
 +
-+	for (i = 0; i < IIDC_MAX_USER_PRIORITY; i++)
-+		qos_info->up2tc[i] = (up2tc >> (i * 3)) & 0x7;
++	iwdev = (struct irdma_device *)((u8 *)hdl + sizeof(*hdl));
 +
-+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
-+		qos_info->tc_info[i].rel_bw =
-+			dcbx_cfg->etscfg.tcbwtable[i];
++	iwdev->param_wq = alloc_ordered_workqueue("l2params", WQ_MEM_RECLAIM);
++	if (!iwdev->param_wq)
++		goto error;
 +
-+	for (i = 0; i < qos_info->num_apps; i++) {
-+		qos_info->apps[i].priority = dcbx_cfg->app[i].priority;
-+		qos_info->apps[i].prot_id = dcbx_cfg->app[i].prot_id;
-+		qos_info->apps[i].selector = dcbx_cfg->app[i].selector;
++	rf = &hdl->rf;
++	rf->hdl = hdl;
++	dev = &rf->sc_dev;
++	dev->back_dev = rf;
++	rf->rdma_ver = IRDMA_GEN_1;
++	hdl->platform_dev = ldev->platform_dev;
++	irdma_init_rf_config_params(rf);
++	rf->init_hw = i40iw_init_hw;
++	rf->hw.hw_addr = ldev->hw_addr;
++	rf->pdev = ldev->pcidev;
++	rf->netdev = ldev->netdev;
++	dev->pci_rev = rf->pdev->revision;
++	iwdev->rf = rf;
++	iwdev->hdl = hdl;
++	iwdev->ldev = &rf->ldev;
++	iwdev->init_state = INITIAL_STATE;
++	iwdev->rcv_wnd = IRDMA_CM_DEFAULT_RCV_WND_SCALED;
++	iwdev->rcv_wscale = IRDMA_CM_DEFAULT_RCV_WND_SCALE;
++	iwdev->netdev = ldev->netdev;
++	iwdev->create_ilq = true;
++	iwdev->vsi_num = 0;
++
++	pldev = &rf->ldev;
++	hdl->ldev = pldev;
++	pldev->if_client = client;
++	pldev->if_ldev = ldev;
++	pldev->fn_num = ldev->fid;
++	pldev->ftype = ldev->ftype;
++	pldev->pf_vsi_num = 0;
++	pldev->msix_count = ldev->msix_count;
++	pldev->msix_entries = ldev->msix_entries;
++
++	if (irdma_ctrl_init_hw(rf))
++		goto error;
++
++	l2params.mtu =
++		(ldev->params.mtu) ? ldev->params.mtu : IRDMA_DEFAULT_MTU;
++	for (i = 0; i < I40E_CLIENT_MAX_USER_PRIORITY; i++) {
++		qset = ldev->params.qos.prio_qos[i].qs_handle;
++		l2params.up2tc[i] = ldev->params.qos.prio_qos[i].tc;
++		l2params.qs_handle_list[i] = qset;
++		if (last_qset == IRDMA_NO_QSET)
++			last_qset = qset;
++		else if ((qset != last_qset) && (qset != IRDMA_NO_QSET))
++			iwdev->dcb = true;
++	}
++
++	if (irdma_rt_init_hw(rf, iwdev, &l2params)) {
++		irdma_deinit_ctrl_hw(rf);
++		goto error;
++	}
++
++	irdma_add_handler(hdl);
++	return 0;
++error:
++	kfree(hdl);
++	return err_code;
++}
++
++/**
++ * i40iw_l2params_worker - worker for l2 params change
++ * @work: work pointer for l2 params
++ */
++static void i40iw_l2params_worker(struct work_struct *work)
++{
++	struct l2params_work *dwork =
++		container_of(work, struct l2params_work, work);
++	struct irdma_device *iwdev = dwork->iwdev;
++
++	irdma_change_l2params(&iwdev->vsi, &dwork->l2params);
++	atomic_dec(&iwdev->params_busy);
++	kfree(work);
++}
++
++/**
++ * i40iw_l2param_change - handle qs handles for QoS and MSS change
++ * @ldev: LAN device information
++ * @client: client for parameter change
++ * @params: new parameters from L2
++ */
++static void i40iw_l2param_change(struct i40e_info *ldev,
++				 struct i40e_client *client,
++				 struct i40e_params *params)
++{
++	struct irdma_l2params *l2params;
++	struct l2params_work *work;
++	struct irdma_device *iwdev;
++	struct irdma_handler *hdl;
++	int i;
++
++	hdl = irdma_find_handler(ldev->pcidev);
++	if (!hdl)
++		return;
++
++	iwdev = (struct irdma_device *)((u8 *)hdl + sizeof(*hdl));
++
++	if (atomic_read(&iwdev->params_busy))
++		return;
++	work = kzalloc(sizeof(*work), GFP_KERNEL);
++	if (!work)
++		return;
++
++	atomic_inc(&iwdev->params_busy);
++	work->iwdev = iwdev;
++	l2params = &work->l2params;
++	for (i = 0; i < I40E_CLIENT_MAX_USER_PRIORITY; i++)
++		l2params->qs_handle_list[i] = params->qos.prio_qos[i].qs_handle;
++
++	l2params->mtu = (params->mtu) ? params->mtu : iwdev->vsi.mtu;
++
++	INIT_WORK(&work->work, i40iw_l2params_worker);
++	queue_work(iwdev->param_wq, &work->work);
++}
++
++/**
++ * i40iw_close - client interface operation close for iwarp/uda device
++ * @ldev: LAN device information
++ * @client: client to close
++ * @reset: flag to indicate close on reset
++ *
++ * Called by the LAN driver during the processing of client unregister
++ * Destroy and clean up the driver resources
++ */
++static void i40iw_close(struct i40e_info *ldev, struct i40e_client *client,
++			bool reset)
++{
++	struct irdma_device *iwdev;
++	struct irdma_handler *hdl;
++	struct irdma_pci_f *rf;
++
++	hdl = irdma_find_handler(ldev->pcidev);
++	if (!hdl)
++		return;
++	rf = &hdl->rf;
++	iwdev = (struct irdma_device *)((u8 *)hdl + sizeof(*hdl));
++
++	if (iwdev->param_wq)
++		destroy_workqueue(iwdev->param_wq);
++
++	if (reset)
++		iwdev->reset = true;
++
++	irdma_deinit_rt_device(iwdev);
++	irdma_deinit_ctrl_hw(rf);
++	irdma_del_handler(irdma_find_handler(ldev->pcidev));
++	kfree(hdl);
++	pr_info("IRDMA hardware deinitialization complete\n");
++}
++
++/* client interface functions */
++static const struct i40e_client_ops i40e_ops = {
++	.open = i40iw_open,
++	.close = i40iw_close,
++	.l2_param_change = i40iw_l2param_change
++};
++
++static struct i40e_client i40iw_client = {
++	.name = "irdma",
++	.ops = &i40e_ops,
++	.version.major = I40E_CLIENT_VERSION_MAJOR,
++	.version.minor = I40E_CLIENT_VERSION_MINOR,
++	.version.build = I40E_CLIENT_VERSION_BUILD,
++	.type = I40E_CLIENT_IWARP,
++};
++
++int i40iw_probe(struct platform_device *pdev)
++{
++	struct i40e_peer_dev_platform_data *pdata =
++		dev_get_platdata(&pdev->dev);
++	struct i40e_info *ldev;
++
++	if (!pdata)
++		return -EINVAL;
++
++	ldev = pdata->ldev;
++
++	if (ldev->version.major != I40E_CLIENT_VERSION_MAJOR ||
++	    ldev->version.minor != I40E_CLIENT_VERSION_MINOR) {
++		pr_err("version mismatch:\n");
++		pr_err("expected major ver %d, caller specified major ver %d\n",
++		       I40E_CLIENT_VERSION_MAJOR, ldev->version.major);
++		pr_err("expected minor ver %d, caller specified minor ver %d\n",
++		       I40E_CLIENT_VERSION_MINOR, ldev->version.minor);
++		return -EINVAL;
++	}
++
++	if (!ldev->ops->client_device_register)
++		return -EINVAL;
++
++	ldev->client = &i40iw_client;
++	ldev->platform_dev = pdev;
++
++	return ldev->ops->client_device_register(ldev);
++}
++
++void i40iw_remove(struct platform_device *pdev)
++{
++	struct i40e_peer_dev_platform_data *pdata =
++		dev_get_platdata(&pdev->dev);
++	struct i40e_info *ldev;
++
++	if (!pdata)
++		return;
++
++	ldev = pdata->ldev;
++
++	if (ldev->ops->client_device_unregister)
++		ldev->ops->client_device_unregister(ldev);
++}
+diff --git a/drivers/infiniband/hw/irdma/irdma_if.c b/drivers/infiniband/hw/irdma/irdma_if.c
+new file mode 100644
+index 000000000000..a0bcb8538a5e
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/irdma_if.c
+@@ -0,0 +1,436 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (c) 2019, Intel Corporation. */
++
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/net/intel/iidc.h>
++#include "main.h"
++#include "ws.h"
++#include "icrdma_hw.h"
++
++/**
++ * irdma_lan_register_qset - Register qset with LAN driver
++ * @vsi: vsi structure
++ * @tc_node: Traffic class node
++ */
++enum irdma_status_code irdma_lan_register_qset(struct irdma_sc_vsi *vsi,
++					       struct irdma_ws_node *tc_node)
++{
++	struct irdma_device *iwdev = vsi->back_vsi;
++	struct iidc_peer_dev *ldev = (struct iidc_peer_dev *)iwdev->ldev->if_ldev;
++	struct iidc_res rdma_qset_res = {};
++	int ret;
++
++	if (ldev->ops->alloc_res) {
++		rdma_qset_res.cnt_req = 1;
++		rdma_qset_res.res_type = IIDC_RDMA_QSETS_TXSCHED;
++		rdma_qset_res.res[0].res.qsets.qs_handle = tc_node->qs_handle;
++		rdma_qset_res.res[0].res.qsets.tc = tc_node->traffic_class;
++		rdma_qset_res.res[0].res.qsets.vsi_id = vsi->vsi_idx;
++		ret = ldev->ops->alloc_res(ldev, &rdma_qset_res, 0);
++		if (ret) {
++			dev_dbg(rfdev_to_dev(vsi->dev),
++				"WS: LAN alloc_res for rdma qset failed.\n");
++			return IRDMA_ERR_NO_MEMORY;
++		}
++
++		tc_node->l2_sched_node_id = rdma_qset_res.res[0].res.qsets.teid;
++		vsi->qos[tc_node->user_pri].l2_sched_node_id =
++			rdma_qset_res.res[0].res.qsets.teid;
++	}
++
++	return 0;
++}
++
++/**
++ * irdma_lan_unregister_qset - Unregister qset with LAN driver
++ * @vsi: vsi structure
++ * @tc_node: Traffic class node
++ */
++void irdma_lan_unregister_qset(struct irdma_sc_vsi *vsi,
++			       struct irdma_ws_node *tc_node)
++{
++	struct irdma_device *iwdev = vsi->back_vsi;
++	struct iidc_peer_dev *ldev = (struct iidc_peer_dev *)iwdev->ldev->if_ldev;
++	struct iidc_res rdma_qset_res = {};
++
++	if (ldev->ops->free_res) {
++		rdma_qset_res.res_allocated = 1;
++		rdma_qset_res.res_type = IIDC_RDMA_QSETS_TXSCHED;
++		rdma_qset_res.res[0].res.qsets.vsi_id = vsi->vsi_idx;
++		rdma_qset_res.res[0].res.qsets.teid = tc_node->l2_sched_node_id;
++		rdma_qset_res.res[0].res.qsets.qs_handle = tc_node->qs_handle;
++
++		if (ldev->ops->free_res(ldev, &rdma_qset_res))
++			dev_dbg(rfdev_to_dev(vsi->dev),
++				"WS: LAN free_res for rdma qset failed.\n");
 +	}
 +}
 +
- /**
-  * ice_dcb_process_lldp_set_mib_change - Process MIB change
-  * @pf: ptr to ice_pf
-diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_lib.h b/drivers/net/ethernet/intel/ice/ice_dcb_lib.h
-index 661a6f7bca64..6c0585d1bc97 100644
---- a/drivers/net/ethernet/intel/ice/ice_dcb_lib.h
-+++ b/drivers/net/ethernet/intel/ice/ice_dcb_lib.h
-@@ -20,6 +20,8 @@ int
- ice_tx_prepare_vlan_flags_dcb(struct ice_ring *tx_ring,
- 			      struct ice_tx_buf *first);
- void
-+ice_setup_dcb_qos_info(struct ice_pf *pf, struct iidc_qos_params *qos_info);
-+void
- ice_dcb_process_lldp_set_mib_change(struct ice_pf *pf,
- 				    struct ice_rq_event_info *event);
- void ice_vsi_cfg_netdev_tc(struct ice_vsi *vsi, u8 ena_tc);
-@@ -57,6 +59,7 @@ ice_tx_prepare_vlan_flags_dcb(struct ice_ring __always_unused *tx_ring,
- 
- #define ice_update_dcb_stats(pf) do {} while (0)
- #define ice_vsi_cfg_dcb_rings(vsi) do {} while (0)
-+#define ice_setup_dcb_qos_info(pf, qos_info) do {} while (0)
- #define ice_dcb_process_lldp_set_mib_change(pf, event) do {} while (0)
- #define ice_set_cgd_num(tlan_ctx, ring) do {} while (0)
- #define ice_vsi_cfg_netdev_tc(vsi, ena_tc) do {} while (0)
-diff --git a/drivers/net/ethernet/intel/ice/ice_hw_autogen.h b/drivers/net/ethernet/intel/ice/ice_hw_autogen.h
-index 152fbd556e9b..05a71f223c5d 100644
---- a/drivers/net/ethernet/intel/ice/ice_hw_autogen.h
-+++ b/drivers/net/ethernet/intel/ice/ice_hw_autogen.h
-@@ -55,6 +55,7 @@
- #define PRTDCB_GENS				0x00083020
- #define PRTDCB_GENS_DCBX_STATUS_S		0
- #define PRTDCB_GENS_DCBX_STATUS_M		ICE_M(0x7, 0)
-+#define PRTDCB_TUP2TC				0x001D26C0
- #define GL_PREEXT_L2_PMASK0(_i)			(0x0020F0FC + ((_i) * 4))
- #define GL_PREEXT_L2_PMASK1(_i)			(0x0020F108 + ((_i) * 4))
- #define GLFLXP_RXDID_FLAGS(_i, _j)		(0x0045D000 + ((_i) * 4 + (_j) * 256))
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
-new file mode 100644
-index 000000000000..0850773ee679
---- /dev/null
-+++ b/drivers/net/ethernet/intel/ice/ice_idc.c
-@@ -0,0 +1,442 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright (c) 2019, Intel Corporation. */
-+
-+/* Inter-Driver Communication */
-+#include "ice.h"
-+#include "ice_lib.h"
-+#include "ice_dcb_lib.h"
-+
-+DEFINE_IDA(ice_peer_index_ida);
-+
-+static struct mfd_cell ice_mfd_cells[] = ASSIGN_PEER_INFO;
++/**
++ * irdma_log_invalid_mtu: log warning on invalid mtu
++ * @mtu: maximum tranmission unit
++ */
++static void irdma_log_invalid_mtu(u16 mtu)
++{
++	if (mtu < IRDMA_MIN_MTU_IPV4)
++		pr_warn("Current MTU setting of %d is too low for RDMA traffic. Minimum MTU is 576 for IPv4 and 1280 for IPv6\n",
++			mtu);
++	else if (mtu < IRDMA_MIN_MTU_IPV6)
++		pr_warn("Current MTU setting of %d is too low for IPv6 RDMA traffic, the minimum is 1280\n",
++			mtu);
++}
 +
 +/**
-+ * ice_peer_state_change - manage state machine for peer
-+ * @peer_dev: pointer to peer's configuration
-+ * @new_state: the state requested to transition into
-+ * @locked: boolean to determine if call made with mutex held
-+ *
-+ * This function handles all state transitions for peer devices.
-+ * The state machine is as follows:
-+ *
-+ *     +<-----------------------+<-----------------------------+
-+ *				|<-------+<----------+	       +
-+ *				\/	 +	     +	       +
-+ *    INIT  --------------> PROBED --> OPENING	  CLOSED --> REMOVED
-+ *					 +           +
-+ *				       OPENED --> CLOSING
-+ *					 +	     +
-+ *				       PREP_RST	     +
-+ *					 +	     +
-+ *				      PREPPED	     +
-+ *					 +---------->+
++ * irdma_prep_tc_change - Prepare for TC changes
++ * @ldev: Peer device structure
 + */
-+static void
-+ice_peer_state_change(struct ice_peer_dev_int *peer_dev, long new_state,
-+		      bool locked)
++static void irdma_prep_tc_change(struct iidc_peer_dev *ldev)
 +{
-+	struct device *dev;
++	struct irdma_device *iwdev;
 +
-+	dev = bus_find_device_by_name(&platform_bus_type, NULL,
-+				      peer_dev->plat_name);
++	iwdev = irdma_get_device(ldev->netdev);
++	if (!iwdev)
++		return;
 +
-+	if (!locked)
-+		mutex_lock(&peer_dev->peer_dev_state_mutex);
++	if (iwdev->vsi.tc_change_pending)
++		goto done;
 +
-+	switch (new_state) {
-+	case ICE_PEER_DEV_STATE_INIT:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_REMOVED,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_INIT, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _REMOVED to _INIT\n");
-+		} else {
-+			set_bit(ICE_PEER_DEV_STATE_INIT, peer_dev->state);
-+			if (dev)
-+				dev_dbg(dev, "state set to _INIT\n");
++	iwdev->vsi.tc_change_pending = true;
++	irdma_suspend_qps(&iwdev->vsi);
++
++	/* Wait for all qp's to suspend */
++	wait_event_timeout(iwdev->suspend_wq,
++			   !atomic_read(&iwdev->vsi.qp_suspend_reqs),
++			   IRDMA_EVENT_TIMEOUT);
++	irdma_ws_reset(&iwdev->vsi);
++done:
++	irdma_put_device(iwdev);
++}
++
++/**
++ * irdma_event_handler - Called by LAN driver to notify events
++ * @ldev: Peer device structure
++ * @event: event from LAN driver
++ */
++static void irdma_event_handler(struct iidc_peer_dev *ldev,
++				struct iidc_event *event)
++{
++	struct irdma_l2params l2params = {};
++	struct irdma_device *iwdev;
++	int i;
++
++	iwdev = irdma_get_device(ldev->netdev);
++	if (!iwdev)
++		return;
++
++	if (test_bit(IIDC_EVENT_LINK_CHANGE, event->type)) {
++		dev_dbg(rfdev_to_dev(&iwdev->rf->sc_dev),
++			"CLNT: LINK_CHANGE event\n");
++	} else if (test_bit(IIDC_EVENT_MTU_CHANGE, event->type)) {
++		dev_dbg(rfdev_to_dev(&iwdev->rf->sc_dev),
++			"CLNT: new MTU = %d\n", event->info.mtu);
++		if (iwdev->vsi.mtu != event->info.mtu) {
++			l2params.mtu = event->info.mtu;
++			l2params.mtu_changed = true;
++			irdma_log_invalid_mtu(l2params.mtu);
++			irdma_change_l2params(&iwdev->vsi, &l2params);
++		}
++	} else if (test_bit(IIDC_EVENT_TC_CHANGE, event->type)) {
++		if (!iwdev->vsi.tc_change_pending)
++			goto done;
++
++		l2params.tc_changed = true;
++		dev_dbg(rfdev_to_dev(&iwdev->rf->sc_dev), "CLNT: TC Change\n");
++		iwdev->dcb = event->info.port_qos.num_tc > 1 ? true : false;
++
++		for (i = 0; i < IIDC_MAX_USER_PRIORITY; ++i)
++			l2params.up2tc[i] = event->info.port_qos.up2tc[i];
++		irdma_change_l2params(&iwdev->vsi, &l2params);
++	} else if (test_bit(IIDC_EVENT_API_CHANGE, event->type)) {
++		dev_dbg(rfdev_to_dev(&iwdev->rf->sc_dev),
++			"CLNT: API_CHANGE\n");
++	}
++
++done:
++	irdma_put_device(iwdev);
++}
++
++/**
++ * irdma_open - client interface operation open for RDMA device
++ * @ldev: LAN device information
++ *
++ * Called by the LAN driver during the processing of client
++ * register.
++ */
++static int irdma_open(struct iidc_peer_dev *ldev)
++{
++	struct irdma_l2params l2params = {};
++	enum irdma_status_code status;
++	struct irdma_priv_ldev *pldev;
++	struct iidc_event events = {};
++	struct irdma_device *iwdev;
++	struct irdma_handler *hdl;
++	struct irdma_sc_dev *dev;
++	struct irdma_pci_f *rf;
++	int i;
++
++	hdl = irdma_find_handler(ldev->pdev);
++	if (!hdl)
++		return -ENODEV;
++
++	rf = &hdl->rf;
++	if (rf->init_state != CEQ0_CREATED)
++		return -EINVAL;
++
++	iwdev = kzalloc(sizeof(*iwdev), GFP_KERNEL);
++	if (!iwdev)
++		return -ENOMEM;
++
++	iwdev->hdl = hdl;
++	iwdev->rf = rf;
++	iwdev->ldev = &rf->ldev;
++	pldev = &rf->ldev;
++	pldev->pf_vsi_num = ldev->pf_vsi_num;
++
++	/* Set configfs default values */
++	iwdev->push_mode = 0;
++	iwdev->rcv_wnd = IRDMA_CM_DEFAULT_RCV_WND_SCALED;
++	iwdev->rcv_wscale = IRDMA_CM_DEFAULT_RCV_WND_SCALE;
++
++	dev = &hdl->rf.sc_dev;
++	iwdev->netdev = ldev->netdev;
++	iwdev->create_ilq = true;
++	if (rf->protocol_used == IRDMA_ROCE_PROTOCOL_ONLY) {
++		iwdev->roce_mode = true;
++		iwdev->create_ilq = false;
++	}
++	l2params.mtu = ldev->netdev->mtu;
++
++	l2params.num_tc = ldev->initial_qos_info.num_tc;
++	l2params.num_apps = ldev->initial_qos_info.num_apps;
++	l2params.vsi_prio_type = ldev->initial_qos_info.vsi_priority_type;
++	l2params.vsi_rel_bw = ldev->initial_qos_info.vsi_relative_bw;
++	for (i = 0; i < l2params.num_tc; i++) {
++		l2params.tc_info[i].egress_virt_up =
++			ldev->initial_qos_info.tc_info[i].egress_virt_up;
++		l2params.tc_info[i].ingress_virt_up =
++			ldev->initial_qos_info.tc_info[i].ingress_virt_up;
++		l2params.tc_info[i].prio_type =
++			ldev->initial_qos_info.tc_info[i].prio_type;
++		l2params.tc_info[i].rel_bw =
++			ldev->initial_qos_info.tc_info[i].rel_bw;
++		l2params.tc_info[i].tc_ctx =
++			ldev->initial_qos_info.tc_info[i].tc_ctx;
++	}
++	for (i = 0; i < IIDC_MAX_USER_PRIORITY; i++)
++		l2params.up2tc[i] = ldev->initial_qos_info.up2tc[i];
++
++	iwdev->vsi_num = ldev->pf_vsi_num;
++	ldev->ops->update_vsi_filter(ldev, IIDC_RDMA_FILTER_BOTH, true);
++
++	status = irdma_rt_init_hw(rf, iwdev, &l2params);
++	if (status) {
++		kfree(iwdev);
++		return -EIO;
++	}
++
++	events.reporter = ldev;
++	set_bit(IIDC_EVENT_LINK_CHANGE, events.type);
++	set_bit(IIDC_EVENT_MTU_CHANGE, events.type);
++	set_bit(IIDC_EVENT_TC_CHANGE, events.type);
++	set_bit(IIDC_EVENT_API_CHANGE, events.type);
++
++	if (ldev->ops->reg_for_notification)
++		ldev->ops->reg_for_notification(ldev, &events);
++	dev_info(rfdev_to_dev(dev), "IRDMA VSI Open Successful");
++	init_waitqueue_head(&iwdev->suspend_wq);
++
++	return 0;
++}
++
++/**
++ * irdma_close - client interface operation close for iwarp/uda device
++ * @ldev: LAN device information
++ * @reason: reason for closing
++ *
++ * Called by the LAN driver during the processing of client unregister
++ * Destroy and clean up the driver resources
++ */
++static void irdma_close(struct iidc_peer_dev *ldev, enum iidc_close_reason reason)
++{
++	struct irdma_device *iwdev;
++
++	iwdev = irdma_get_device(ldev->netdev);
++	if (!iwdev)
++		return;
++
++	irdma_put_device(iwdev);
++	if (reason == IIDC_REASON_HW_RESET_PENDING) {
++		iwdev->reset = true;
++		iwdev->rf->reset = true;
++	}
++
++	if (iwdev->init_state >= CEQ0_CREATED)
++		irdma_deinit_rt_device(iwdev);
++
++	kfree(iwdev);
++	ldev->ops->update_vsi_filter(ldev, IIDC_RDMA_FILTER_BOTH, false);
++	pr_info("IRDMA VSI close complete\n");
++}
++
++/**
++ * irdma_deinit_pf - Unrolls PF initializations done during irdma_probe()
++ * @rf: RDMA PCI function
++ */
++static void irdma_deinit_pf(struct irdma_pci_f *rf)
++{
++	if (rf->free_qp_wq)
++		destroy_workqueue(rf->free_qp_wq);
++	if (rf->free_cqbuf_wq)
++		destroy_workqueue(rf->free_cqbuf_wq);
++	irdma_deinit_ctrl_hw(rf);
++	irdma_del_handler(rf->hdl);
++	kfree(rf->hdl);
++}
++
++/**
++ * irdma_remove - GEN_2 device remove()
++ * @pdev: platform device
++ *
++ * Called on module unload.
++ */
++int irdma_remove(struct platform_device *pdev)
++{
++	struct iidc_peer_dev_platform_data *pdata =
++		dev_get_platdata(&pdev->dev);
++	struct iidc_peer_dev *ldev;
++	struct irdma_handler *hdl;
++
++	if (!pdata)
++		return -EINVAL;
++	ldev = pdata->peer_dev;
++
++	hdl = irdma_find_handler(ldev->pdev);
++	if (!hdl)
++		return 0;
++
++	if (ldev->ops->peer_unregister)
++		ldev->ops->peer_unregister(ldev);
++
++	irdma_deinit_pf(&hdl->rf);
++	pr_info("IRDMA hardware deinitialization complete\n");
++
++	return 0;
++}
++
++static const struct iidc_peer_ops irdma_peer_ops = {
++	.close = irdma_close,
++	.event_handler = irdma_event_handler,
++	.open = irdma_open,
++	.prep_tc_change = irdma_prep_tc_change,
++};
++
++static struct iidc_peer_drv irdma_peer_drv = {
++	.driver_id = IIDC_PEER_RDMA_DRIVER,
++	.name = KBUILD_MODNAME,
++	.ver.major = IIDC_PEER_MAJOR_VER,
++	.ver.minor = IIDC_PEER_MINOR_VER,
++};
++
++/**
++ * irdma_probe - GEN_2 device probe()
++ * @pdev: platform device
++ *
++ * Create device resources, set up queues, pble and hmc objects.
++ * Return 0 if successful, otherwise return error
++ */
++int irdma_probe(struct platform_device *pdev)
++{
++	struct iidc_peer_dev_platform_data *pdata =
++		dev_get_platdata(&pdev->dev);
++	struct irdma_priv_ldev *pldev;
++	struct iidc_peer_dev *ldev;
++	struct irdma_handler *hdl;
++	struct irdma_sc_dev *dev;
++	struct irdma_pci_f *rf;
++	int ret;
++
++	if (!pdata)
++		return -EINVAL;
++	ldev = pdata->peer_dev;
++
++	pr_info("probe: ldev=%p, ldev->dev.pdev.bus->number=%d, ldev->netdev=%p\n",
++		ldev, ldev->pdev->bus->number, ldev->netdev);
++
++	if (ldev->ver.major != IIDC_PEER_MAJOR_VER ||
++	    ldev->ver.minor != IIDC_PEER_MINOR_VER) {
++		pr_err("version mismatch:\n");
++		pr_err("expected major ver %d, caller specified major ver %d\n",
++		       IIDC_PEER_MAJOR_VER, ldev->ver.major);
++		pr_err("expected minor ver %d, caller specified minor ver %d\n",
++		       IIDC_PEER_MINOR_VER, ldev->ver.minor);
++		return -EINVAL;
++	}
++
++	hdl = irdma_find_handler(ldev->pdev);
++	if (hdl)
++		return -EBUSY;
++
++	if (!ldev->ops->peer_register)
++		return -EINVAL;
++
++	hdl = kzalloc(sizeof(*hdl), GFP_KERNEL);
++	if (!hdl)
++		return -ENOMEM;
++
++	rf = &hdl->rf;
++	pldev = &rf->ldev;
++	hdl->ldev = pldev;
++	hdl->platform_dev = pdev;
++	rf->hdl = hdl;
++	dev = &rf->sc_dev;
++	dev->back_dev = rf;
++	rf->init_hw = icrdma_init_hw;
++	pldev->if_ldev = ldev;
++	rf->rdma_ver = IRDMA_GEN_2;
++	irdma_init_rf_config_params(rf);
++	dev->pci_rev = ldev->pdev->revision;
++	rf->default_vsi.vsi_idx = ldev->pf_vsi_num;
++	/* save information from ldev to priv_ldev*/
++	pldev->fn_num = PCI_FUNC(ldev->pdev->devfn);
++	rf->hw.hw_addr = ldev->hw_addr;
++	rf->pdev = ldev->pdev;
++	rf->netdev = ldev->netdev;
++	pldev->ftype = ldev->ftype;
++	pldev->msix_count = ldev->msix_count;
++	pldev->msix_entries = ldev->msix_entries;
++	irdma_add_handler(hdl);
++	if (irdma_ctrl_init_hw(rf)) {
++		irdma_del_handler(hdl);
++		kfree(hdl);
++		return -EIO;
++	}
++	ldev->peer_ops = &irdma_peer_ops;
++	ldev->peer_drv = &irdma_peer_drv;
++	ret = ldev->ops->peer_register(ldev);
++	if (ret) {
++		irdma_deinit_pf(rf);
++		return ret;
++	}
++
++	return 0;
++}
++
++/**
++ * icrdma_request_reset - Request a reset
++ * @rf: RDMA PCI function
++ *
++ */
++void icrdma_request_reset(struct irdma_pci_f *rf)
++{
++	struct iidc_peer_dev *ldev = (struct iidc_peer_dev *)rf->ldev.if_ldev;
++
++	if (ldev && ldev->ops && ldev->ops->request_reset)
++		ldev->ops->request_reset(ldev, IIDC_PEER_PFR);
++}
+diff --git a/drivers/infiniband/hw/irdma/main.c b/drivers/infiniband/hw/irdma/main.c
+new file mode 100644
+index 000000000000..3ff29cafb92c
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/main.c
+@@ -0,0 +1,531 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (c) 2019, Intel Corporation. */
++
++#include "main.h"
++
++/* Legacy i40iw module parameters */
++static int resource_profile;
++module_param(resource_profile, int, 0644);
++MODULE_PARM_DESC(resource_profile, "Resource Profile: 0=PF only, 1=Weighted VF, 2=Even Distribution");
++
++static int max_rdma_vfs = 32;
++module_param(max_rdma_vfs, int, 0644);
++MODULE_PARM_DESC(max_rdma_vfs, "Maximum VF count: 0-32 32=default");
++
++static int mpa_version = 2;
++module_param(mpa_version, int, 0644);
++MODULE_PARM_DESC(mpa_version, "MPA version: deprecated parameter");
++
++static int push_mode;
++module_param(push_mode, int, 0644);
++MODULE_PARM_DESC(push_mode, "Low latency mode: deprecated parameter");
++
++static int debug;
++module_param(debug, int, 0644);
++MODULE_PARM_DESC(debug, "debug flags: deprecated parameter");
++
++MODULE_ALIAS("i40iw");
++MODULE_AUTHOR("Intel Corporation, <e1000-rdma@lists.sourceforge.net>");
++MODULE_DESCRIPTION("Intel(R) Ethernet Connection RDMA Driver");
++MODULE_LICENSE("Dual BSD/GPL");
++
++LIST_HEAD(irdma_handlers);
++DEFINE_SPINLOCK(irdma_handler_lock);
++
++static struct notifier_block irdma_inetaddr_notifier = {
++	.notifier_call = irdma_inetaddr_event
++};
++
++static struct notifier_block irdma_inetaddr6_notifier = {
++	.notifier_call = irdma_inet6addr_event
++};
++
++static struct notifier_block irdma_net_notifier = {
++	.notifier_call = irdma_net_event
++};
++
++static struct notifier_block irdma_netdevice_notifier = {
++	.notifier_call = irdma_netdevice_event
++};
++
++void irdma_init_rf_config_params(struct irdma_pci_f *rf)
++{
++	struct irdma_dl_priv *dl_priv;
++
++	rf->rsrc_profile = (resource_profile < IRDMA_HMC_PROFILE_EQUAL) ?
++			    (u8)resource_profile + IRDMA_HMC_PROFILE_DEFAULT :
++			    IRDMA_HMC_PROFILE_DEFAULT;
++	rf->max_rdma_vfs = (rf->rsrc_profile != IRDMA_HMC_PROFILE_DEFAULT) ?
++			    max_rdma_vfs : 0;
++	rf->max_ena_vfs = rf->max_rdma_vfs;
++	dl_priv = platform_get_drvdata(rf->hdl->platform_dev);
++	rf->limits_sel = dl_priv->limits_sel;
++	rf->protocol_used = dl_priv->roce_ena ? IRDMA_ROCE_PROTOCOL_ONLY :
++						IRDMA_IWARP_PROTOCOL_ONLY;
++}
++
++/**
++ * irdma_get_device - find a iwdev given a netdev
++ * @netdev: pointer to net_device
++ *
++ * This function takes a reference on ibdev and prevents ib
++ * device deregistration. The caller must call a matching
++ * irdma_put_device.
++ */
++struct irdma_device *irdma_get_device(struct net_device *netdev)
++{
++	struct ib_device *ibdev = ib_device_get_by_netdev(netdev,
++							  RDMA_DRIVER_I40IW);
++
++	if (!ibdev)
++		return NULL;
++
++	return to_iwdev(ibdev);
++}
++
++/**
++ * irdma_put_device - release ibdev refcnt
++ * @iwdev: device
++ *
++ * release refcnt on ibdev taken with irdma_get_device.
++ */
++void irdma_put_device(struct irdma_device *iwdev)
++{
++	struct ib_device *ibdev = &iwdev->iwibdev->ibdev;
++
++	ib_device_put(ibdev);
++}
++
++/**
++ * irdma_find_ice_handler - find a handler given a client info
++ * @pdev: pointer to pci dev info
++ */
++struct irdma_handler *irdma_find_handler(struct pci_dev *pdev)
++{
++	struct irdma_handler *hdl;
++	unsigned long flags;
++
++	spin_lock_irqsave(&irdma_handler_lock, flags);
++	list_for_each_entry(hdl, &irdma_handlers, list) {
++		if (hdl->rf.pdev->devfn == pdev->devfn &&
++		    hdl->rf.pdev->bus->number == pdev->bus->number) {
++			spin_unlock_irqrestore(&irdma_handler_lock, flags);
++			return hdl;
++		}
++	}
++	spin_unlock_irqrestore(&irdma_handler_lock, flags);
++
++	return NULL;
++}
++
++/**
++ * irdma_add_handler - add a handler to the list
++ * @hdl: handler to be added to the handler list
++ */
++void irdma_add_handler(struct irdma_handler *hdl)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&irdma_handler_lock, flags);
++	list_add(&hdl->list, &irdma_handlers);
++	spin_unlock_irqrestore(&irdma_handler_lock, flags);
++}
++
++/**
++ * irdma_del_handler - delete a handler from the list
++ * @hdl: handler to be deleted from the handler list
++ */
++void irdma_del_handler(struct irdma_handler *hdl)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&irdma_handler_lock, flags);
++	list_del(&hdl->list);
++	spin_unlock_irqrestore(&irdma_handler_lock, flags);
++}
++
++/**
++ * irdma_register_notifiers - register tcp ip notifiers
++ */
++void irdma_register_notifiers(void)
++{
++	register_inetaddr_notifier(&irdma_inetaddr_notifier);
++	register_inet6addr_notifier(&irdma_inetaddr6_notifier);
++	register_netevent_notifier(&irdma_net_notifier);
++	register_netdevice_notifier(&irdma_netdevice_notifier);
++}
++
++void irdma_unregister_notifiers(void)
++{
++	unregister_netevent_notifier(&irdma_net_notifier);
++	unregister_inetaddr_notifier(&irdma_inetaddr_notifier);
++	unregister_inet6addr_notifier(&irdma_inetaddr6_notifier);
++	unregister_netdevice_notifier(&irdma_netdevice_notifier);
++}
++
++/**
++ * irdma_add_ipv6_addr - add ipv6 address to the hw arp table
++ * @iwdev: iwarp device
++ */
++static void irdma_add_ipv6_addr(struct irdma_device *iwdev)
++{
++	struct inet6_ifaddr *ifp, *tmp;
++	struct net_device *ip_dev;
++	struct inet6_dev *idev;
++	u32 local_ipaddr6[4];
++
++	rcu_read_lock();
++	for_each_netdev_rcu(&init_net, ip_dev) {
++		if (((rdma_vlan_dev_vlan_id(ip_dev) < 0xFFFF &&
++		      rdma_vlan_dev_real_dev(ip_dev) == iwdev->netdev) ||
++		      ip_dev == iwdev->netdev) && ip_dev->flags & IFF_UP) {
++			idev = __in6_dev_get(ip_dev);
++			if (!idev) {
++				dev_err(rfdev_to_dev(&iwdev->rf->sc_dev),
++					"ipv6 inet device not found\n");
++				break;
++			}
++			list_for_each_entry_safe(ifp, tmp, &idev->addr_list,
++						 if_list) {
++				dev_info(rfdev_to_dev(&iwdev->rf->sc_dev),
++					 "IP=%pI6, vlan_id=%d, MAC=%pM\n",
++					 &ifp->addr,
++					 rdma_vlan_dev_vlan_id(ip_dev),
++					 ip_dev->dev_addr);
++
++				irdma_copy_ip_ntohl(local_ipaddr6,
++						    ifp->addr.in6_u.u6_addr32);
++				irdma_manage_arp_cache(iwdev->rf,
++						       ip_dev->dev_addr,
++						       local_ipaddr6, false,
++						       IRDMA_ARP_ADD);
++			}
++		}
++	}
++	rcu_read_unlock();
++}
++
++/**
++ * irdma_add_ipv4_addr - add ipv4 address to the hw arp table
++ * @iwdev: iwarp device
++ */
++static void irdma_add_ipv4_addr(struct irdma_device *iwdev)
++{
++	struct net_device *dev;
++	struct in_device *idev;
++	bool got_lock = true;
++	u32 ip_addr;
++
++	if (!rtnl_trylock())
++		got_lock = false;
++
++	for_each_netdev(&init_net, dev) {
++		if (((rdma_vlan_dev_vlan_id(dev) < 0xFFFF &&
++		      rdma_vlan_dev_real_dev(dev) == iwdev->netdev) ||
++		      dev == iwdev->netdev) && dev->flags & IFF_UP) {
++			const struct in_ifaddr *ifa;
++
++			idev = in_dev_get(dev);
++			in_dev_for_each_ifa_rtnl(ifa, idev) {
++				dev_dbg(rfdev_to_dev(&iwdev->rf->sc_dev),
++					"CM: IP=%pI4, vlan_id=%d, MAC=%pM\n",
++					&ifa->ifa_address,
++					rdma_vlan_dev_vlan_id(dev),
++					dev->dev_addr);
++
++				ip_addr = ntohl(ifa->ifa_address);
++				irdma_manage_arp_cache(iwdev->rf, dev->dev_addr,
++						       &ip_addr, true,
++						       IRDMA_ARP_ADD);
++			}
++			in_dev_put(idev);
++		}
++	}
++	if (got_lock)
++		rtnl_unlock();
++}
++
++/**
++ * irdma_add_ip - add ip addresses
++ * @iwdev: iwarp device
++ *
++ * Add ipv4/ipv6 addresses to the arp cache
++ */
++void irdma_add_ip(struct irdma_device *iwdev)
++{
++	irdma_add_ipv4_addr(iwdev);
++	irdma_add_ipv6_addr(iwdev);
++}
++
++/**
++ * irdma_request_reset - Request a reset
++ * @rf: RDMA PCI function
++ *
++ */
++void irdma_request_reset(struct irdma_pci_f *rf)
++{
++	dev_warn(rfdev_to_dev(&rf->sc_dev),
++		 "Requesting a a reset from LAN driver\n");
++	if (rf->rdma_ver == IRDMA_GEN_1)
++		i40iw_request_reset(rf);
++	else
++		icrdma_request_reset(rf);
++}
++
++static int irdma_devlink_rsrc_limits_validate(struct devlink *dl, u32 id,
++					      union devlink_param_value val,
++					      struct netlink_ext_ack *extack)
++{
++	u8 value = val.vu8;
++
++	if (value > 5) {
++		NL_SET_ERR_MSG_MOD(extack, "resource limits selector range is (0-5)");
++		return -ERANGE;
++	}
++
++	return 0;
++}
++
++enum irdma_dl_param_id {
++	IRDMA_DEVLINK_PARAM_ID_BASE = DEVLINK_PARAM_GENERIC_ID_MAX,
++	IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
++	IRDMA_DEVLINK_PARAM_ID_ROCE_ENABLE,
++};
++
++static const struct devlink_param irdma_devlink_params[] = {
++	/* Common */
++	DEVLINK_PARAM_DRIVER(IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
++			     "resource_limits_selector", DEVLINK_PARAM_TYPE_U8,
++			      BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
++			      NULL, NULL, irdma_devlink_rsrc_limits_validate),
++#define IRDMA_DL_COMMON_PARAMS_ARRAY_SZ 1
++	/* GEN_2 only */
++	DEVLINK_PARAM_DRIVER(IRDMA_DEVLINK_PARAM_ID_ROCE_ENABLE,
++			     "roce_enable", DEVLINK_PARAM_TYPE_BOOL,
++			      BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
++			      NULL, NULL, NULL),
++};
++
++static int irdma_devlink_reload(struct devlink *devlink,
++				struct netlink_ext_ack *extack)
++{
++	struct irdma_dl_priv *priv = devlink_priv(devlink);
++	const struct platform_device_id *id = platform_get_device_id(priv->pdev);
++	union devlink_param_value saved_value;
++	u8 gen_ver = id->driver_data;
++	int ret;
++
++	switch (gen_ver) {
++	case IRDMA_GEN_2:
++		irdma_remove(priv->pdev);
++		devlink_param_driverinit_value_get(devlink,
++					IRDMA_DEVLINK_PARAM_ID_ROCE_ENABLE,
++					&saved_value);
++		priv->roce_ena = saved_value.vbool;
++		devlink_param_driverinit_value_get(devlink,
++					IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
++					&saved_value);
++		priv->limits_sel = saved_value.vu8;
++		ret = irdma_probe(priv->pdev);
++		break;
++	case IRDMA_GEN_1:
++		i40iw_remove(priv->pdev);
++		devlink_param_driverinit_value_get(devlink,
++					IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
++					&saved_value);
++		priv->limits_sel = saved_value.vu8;
++		ret = i40iw_probe(priv->pdev);
++		break;
++	default:
++		ret = -ENODEV;
++		break;
++	}
++
++	return ret;
++}
++
++static const struct devlink_ops irdma_devlink_ops = {
++	.reload_up = irdma_devlink_reload,
++};
++
++static void irdma_devlink_unregister(struct platform_device *pdev)
++{
++	const struct platform_device_id *id = platform_get_device_id(pdev);
++	struct irdma_dl_priv *priv = platform_get_drvdata(pdev);
++	struct devlink *devlink = priv_to_devlink(priv);
++	u8 gen_ver = id->driver_data;
++
++	if (gen_ver == IRDMA_GEN_2)
++		devlink_params_unregister(devlink, irdma_devlink_params,
++					  ARRAY_SIZE(irdma_devlink_params));
++	else if (gen_ver == IRDMA_GEN_1)
++		devlink_params_unregister(devlink, irdma_devlink_params,
++					  IRDMA_DL_COMMON_PARAMS_ARRAY_SZ);
++
++	devlink_unregister(devlink);
++	devlink_free(devlink);
++}
++
++static int irdma_devlink_register(struct platform_device *pdev)
++{
++	const struct platform_device_id *id = platform_get_device_id(pdev);
++	union devlink_param_value value;
++	u8 gen_ver = id->driver_data;
++	struct irdma_dl_priv *priv;
++	struct devlink *devlink;
++	int ret;
++
++	devlink = devlink_alloc(&irdma_devlink_ops, sizeof(struct irdma_dl_priv));
++	if (!devlink)
++		return -ENOMEM;
++
++	priv = devlink_priv(devlink);
++	priv->pdev = pdev;
++	priv->roce_ena = 0;
++	platform_set_drvdata(pdev, priv);
++
++	ret = devlink_register(devlink, &pdev->dev);
++	if (ret)
++		goto err_dl_free;
++
++	switch (gen_ver) {
++	case IRDMA_GEN_2:
++		priv->limits_sel = 0;
++		ret = devlink_params_register(devlink, irdma_devlink_params,
++					      ARRAY_SIZE(irdma_devlink_params));
++		if (!ret) {
++			value.vbool = priv->roce_ena;
++			devlink_param_driverinit_value_set(devlink,
++					   IRDMA_DEVLINK_PARAM_ID_ROCE_ENABLE,
++					   value);
 +		}
 +		break;
-+	case ICE_PEER_DEV_STATE_PROBED:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_INIT,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_PROBED, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _INIT to _PROBED\n");
-+		} else if (test_and_clear_bit(ICE_PEER_DEV_STATE_REMOVED,
-+					      peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_PROBED, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _REMOVED to _PROBED\n");
-+		} else if (test_and_clear_bit(ICE_PEER_DEV_STATE_OPENING,
-+					      peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_PROBED, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _OPENING to _PROBED\n");
-+		}
++	case IRDMA_GEN_1:
++		priv->limits_sel = 2;
++		ret = devlink_params_register(devlink, irdma_devlink_params,
++					      IRDMA_DL_COMMON_PARAMS_ARRAY_SZ);
 +		break;
-+	case ICE_PEER_DEV_STATE_OPENING:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_PROBED,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_OPENING, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _PROBED to _OPENING\n");
-+		} else if (test_and_clear_bit(ICE_PEER_DEV_STATE_CLOSED,
-+					      peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_OPENING, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _CLOSED to _OPENING\n");
-+		}
++	default:
++		ret = -ENODEV;
 +		break;
-+	case ICE_PEER_DEV_STATE_OPENED:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_OPENING,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_OPENED, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _OPENING to _OPENED\n");
-+		}
++	}
++
++	if (ret)
++		goto err_dl_unreg;
++
++	value.vu8 = priv->limits_sel;
++	devlink_param_driverinit_value_set(devlink,
++					   IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
++					   value);
++	devlink_params_publish(devlink);
++
++	return 0;
++
++err_dl_unreg:
++	devlink_unregister(devlink);
++err_dl_free:
++	devlink_free(devlink);
++
++	return ret;
++}
++
++static int irdma_bus_probe(struct platform_device *pdev)
++{
++	const struct platform_device_id *id = platform_get_device_id(pdev);
++	u8 gen_ver = id->driver_data;
++	int ret = -ENODEV;
++
++	ret = irdma_devlink_register(pdev);
++	if (ret)
++		return ret;
++
++	switch (gen_ver) {
++	case IRDMA_GEN_2:
++		ret = irdma_probe(pdev);
 +		break;
-+	case ICE_PEER_DEV_STATE_PREP_RST:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_OPENED,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_PREP_RST, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _OPENED to _PREP_RST\n");
-+		}
-+		break;
-+	case ICE_PEER_DEV_STATE_PREPPED:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_PREP_RST,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_PREPPED, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition _PREP_RST to _PREPPED\n");
-+		}
-+		break;
-+	case ICE_PEER_DEV_STATE_CLOSING:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_OPENED,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_CLOSING, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _OPENED to _CLOSING\n");
-+		}
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_PREPPED,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_CLOSING, peer_dev->state);
-+			dev_dbg(dev, "state transition _PREPPED to _CLOSING\n");
-+		}
-+		/* NOTE - up to peer to handle this situation correctly */
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_PREP_RST,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_CLOSING, peer_dev->state);
-+			dev_warn(dev,
-+				 "WARN: Peer state PREP_RST to _CLOSING\n");
-+		}
-+		break;
-+	case ICE_PEER_DEV_STATE_CLOSED:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_CLOSING,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_CLOSED, peer_dev->state);
-+			dev_dbg(dev,
-+				"state transition from _CLOSING to _CLOSED\n");
-+		}
-+		break;
-+	case ICE_PEER_DEV_STATE_REMOVED:
-+		if (test_and_clear_bit(ICE_PEER_DEV_STATE_OPENED,
-+				       peer_dev->state) ||
-+		    test_and_clear_bit(ICE_PEER_DEV_STATE_CLOSED,
-+				       peer_dev->state)) {
-+			set_bit(ICE_PEER_DEV_STATE_REMOVED, peer_dev->state);
-+			dev_dbg(dev,
-+				"state from _OPENED/_CLOSED to _REMOVED\n");
-+			/* Clear registration for events when peer removed */
-+			bitmap_zero(peer_dev->events, ICE_PEER_DEV_STATE_NBITS);
-+		}
++	case IRDMA_GEN_1:
++		ret = i40iw_probe(pdev);
 +		break;
 +	default:
 +		break;
 +	}
 +
-+	if (!locked)
-+		mutex_unlock(&peer_dev->peer_dev_state_mutex);
++	if (ret)
++		irdma_devlink_unregister(pdev);
++
++	return ret;
 +}
 +
-+/**
-+ * ice_peer_update_vsi - update the pf_vsi info in peer_dev struct
-+ * @peer_dev_int: pointer to peer dev internal struct
-+ * @data: opaque pointer - VSI to be updated
-+ */
-+int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data)
++static int irdma_bus_remove(struct platform_device *pdev)
 +{
-+	struct ice_vsi *vsi = (struct ice_vsi *)data;
-+	struct iidc_peer_dev *peer_dev;
++	const struct platform_device_id *id = platform_get_device_id(pdev);
++	u8 gen_ver = id->driver_data;
 +
-+	peer_dev = ice_get_peer_dev(peer_dev_int);
-+	if (!peer_dev)
-+		return 0;
-+
-+	peer_dev->pf_vsi_num = vsi->vsi_num;
-+	return 0;
-+}
-+
-+/**
-+ * ice_for_each_peer - iterate across and call function for each peer dev
-+ * @pf: pointer to private board struct
-+ * @data: data to pass to function on each call
-+ * @fn: pointer to function to call for each peer
-+ */
-+int
-+ice_for_each_peer(struct ice_pf *pf, void *data,
-+		  int (*fn)(struct ice_peer_dev_int *, void *))
-+{
-+	int i;
-+
-+	if (!pf->peers)
-+		return 0;
-+
-+	for (i = 0; i < ARRAY_SIZE(ice_mfd_cells); i++) {
-+		struct ice_peer_dev_int *peer_dev_int;
-+
-+		peer_dev_int = pf->peers[i];
-+		if (peer_dev_int) {
-+			int ret = fn(peer_dev_int, data);
-+
-+			if (ret)
-+				return ret;
-+		}
++	switch (gen_ver) {
++	case IRDMA_GEN_2:
++		irdma_remove(pdev);
++		break;
++	case IRDMA_GEN_1:
++		i40iw_remove(pdev);
++		break;
++	default:
++		break;
 +	}
 +
++	irdma_devlink_unregister(pdev);
++
 +	return 0;
 +}
 +
++static const struct platform_device_id irdma_platform_id_table[] = {
++	{"ice_rdma", IRDMA_GEN_2},
++	{"i40e_rdma", IRDMA_GEN_1},
++	{},
++};
++
++MODULE_DEVICE_TABLE(platform, irdma_platform_id_table);
++
++static struct platform_driver irdma_pdriver = {
++	.probe = irdma_bus_probe,
++	.remove = irdma_bus_remove,
++	.id_table = irdma_platform_id_table,
++	.driver = {
++		   .name = "irdma",
++		   .owner = THIS_MODULE,
++		  },
++};
++
 +/**
-+ * ice_unreg_peer_device - unregister specified device
-+ * @peer_dev_int: ptr to peer device internal
-+ * @data: ptr to opaque data
++ * irdma_init_module - driver initialization function
 + *
-+ * This function invokes device unregistration, removes ID associated with
-+ * the specified device.
++ * First function to call when the driver is loaded
++ * Register the driver as ice client and port mapper client
 + */
-+int
-+ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int,
-+		      void __always_unused *data)
++static int __init irdma_init_module(void)
 +{
-+	struct ice_peer_drv_int *peer_drv_int;
-+	struct iidc_peer_dev *peer_dev;
-+	struct pci_dev *pdev;
-+	struct ice_pf *pf;
++	int ret;
 +
-+	if (!peer_dev_int)
-+		return 0;
-+
-+	peer_dev = ice_get_peer_dev(peer_dev_int);
-+	pdev = peer_dev->pdev;
-+	if (!pdev)
-+		return 0;
-+
-+	pf = pci_get_drvdata(pdev);
-+	if (!pf)
-+		return 0;
-+
-+	mfd_remove_devices(&pdev->dev);
-+
-+	peer_drv_int = peer_dev_int->peer_drv_int;
-+
-+	if (peer_dev_int->ice_peer_wq) {
-+		if (peer_dev_int->peer_prep_task.func)
-+			cancel_work_sync(&peer_dev_int->peer_prep_task);
-+
-+		if (peer_dev_int->peer_close_task.func)
-+			cancel_work_sync(&peer_dev_int->peer_close_task);
-+		destroy_workqueue(peer_dev_int->ice_peer_wq);
++	ret = platform_driver_register(&irdma_pdriver);
++	if (ret) {
++		pr_err("Failed irdma platform_driver_register()\n");
++		return ret;
 +	}
-+
-+	devm_kfree(&pf->pdev->dev, peer_drv_int);
-+
-+	devm_kfree(&pf->pdev->dev, peer_dev_int);
++	irdma_register_notifiers();
 +
 +	return 0;
 +}
 +
 +/**
-+ * ice_unroll_peer - destroy peers and peer_wq in case of error
-+ * @peer_dev_int: ptr to peer device internal struct
-+ * @data: ptr to opaque data
++ * irdma_exit_module - driver exit clean up function
 + *
-+ * This function releases resources in the event of a failure in creating
-+ * peer devices or their individual work_queues. Meant to be called from
-+ * a ice_for_each_peer invocation
++ * The function is called just before the driver is unloaded
++ * Unregister the driver as ice client and port mapper client
 + */
-+int
-+ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int,
-+		void __always_unused *data)
++static void __exit irdma_exit_module(void)
 +{
-+	struct iidc_peer_dev *peer_dev;
-+	struct ice_pf *pf;
-+
-+	peer_dev = ice_get_peer_dev(peer_dev_int);
-+	if (!peer_dev)
-+		return 0;
-+
-+	pf = pci_get_drvdata(peer_dev->pdev);
-+	if (!pf)
-+		return 0;
-+
-+	if (peer_dev_int->ice_peer_wq)
-+		destroy_workqueue(peer_dev_int->ice_peer_wq);
-+	devm_kfree(&pf->pdev->dev, peer_dev_int);
-+
-+	return 0;
++	irdma_unregister_notifiers();
++	platform_driver_unregister(&irdma_pdriver);
 +}
 +
-+/**
-+ * ice_reserve_peer_qvector - Reserve vector resources for peer drivers
-+ * @pf: board private structure to initialize
-+ */
-+static int ice_reserve_peer_qvector(struct ice_pf *pf)
-+{
-+	if (test_bit(ICE_FLAG_IWARP_ENA, pf->flags)) {
-+		int index;
-+
-+		index = ice_get_res(pf, pf->irq_tracker, pf->num_rdma_msix,
-+				    ICE_RES_RDMA_VEC_ID);
-+		if (index < 0)
-+			return index;
-+		pf->num_avail_sw_msix -= pf->num_rdma_msix;
-+		pf->rdma_base_vector = index;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * ice_init_peer_devices - initializes peer devices
-+ * @pf: ptr to ice_pf
-+ *
-+ * This function initializes peer devices and associates them with specified
-+ * pci_dev as their parent.
-+ */
-+int ice_init_peer_devices(struct ice_pf *pf)
-+{
-+	struct ice_vsi *vsi = pf->vsi[0];
-+	struct pci_dev *pdev = pf->pdev;
-+	struct device *dev = &pdev->dev;
-+	int status = 0;
-+	int i;
-+
-+	/* Reserve vector resources */
-+	status = ice_reserve_peer_qvector(pf);
-+	if (status < 0) {
-+		dev_err(dev, "failed to reserve vectors for peer drivers\n");
-+		return status;
-+	}
-+	for (i = 0; i < ARRAY_SIZE(ice_mfd_cells); i++) {
-+		struct iidc_peer_dev_platform_data *platform_data;
-+		struct ice_peer_dev_int *peer_dev_int;
-+		struct ice_peer_drv_int *peer_drv_int;
-+		struct iidc_qos_params *qos_info;
-+		struct msix_entry *entry = NULL;
-+		struct iidc_peer_dev *peer_dev;
-+		int j;
-+
-+		peer_dev_int = devm_kzalloc(dev, sizeof(*peer_dev_int),
-+					    GFP_KERNEL);
-+		if (!peer_dev_int)
-+			return -ENOMEM;
-+		pf->peers[i] = peer_dev_int;
-+
-+		peer_drv_int = devm_kzalloc(dev, sizeof(*peer_drv_int),
-+					    GFP_KERNEL);
-+		if (!peer_drv_int) {
-+			devm_kfree(&pf->pdev->dev, peer_dev_int);
-+			return -ENOMEM;
-+		}
-+
-+		peer_dev_int->peer_drv_int = peer_drv_int;
-+
-+		/* Initialize driver values */
-+		for (j = 0; j < IIDC_EVENT_NBITS; j++)
-+			bitmap_zero(peer_drv_int->current_events[j].type,
-+				    IIDC_EVENT_NBITS);
-+
-+		mutex_init(&peer_dev_int->peer_dev_state_mutex);
-+
-+		peer_dev = ice_get_peer_dev(peer_dev_int);
-+		peer_dev_int->plat_data.peer_dev = peer_dev;
-+		platform_data = &peer_dev_int->plat_data;
-+		peer_dev->peer_ops = NULL;
-+		peer_dev->hw_addr = (u8 __iomem *)pf->hw.hw_addr;
-+		peer_dev->ver.major = IIDC_PEER_MAJOR_VER;
-+		peer_dev->ver.minor = IIDC_PEER_MINOR_VER;
-+		peer_dev->peer_dev_id = ice_mfd_cells[i].id;
-+		peer_dev->pf_vsi_num = vsi->vsi_num;
-+		peer_dev->netdev = vsi->netdev;
-+
-+		ice_mfd_cells[i].platform_data = platform_data;
-+		ice_mfd_cells[i].pdata_size = sizeof(*platform_data);
-+
-+		peer_dev_int->ice_peer_wq =
-+			alloc_ordered_workqueue("ice_peer_wq_%d", WQ_UNBOUND,
-+						i);
-+		if (!peer_dev_int->ice_peer_wq)
-+			return -ENOMEM;
-+
-+		peer_dev->pdev = pdev;
-+		qos_info = &peer_dev->initial_qos_info;
-+
-+		/* setup qos_info fields with defaults */
-+		qos_info->num_apps = 0;
-+		qos_info->num_tc = 1;
-+
-+		for (j = 0; j < IIDC_MAX_USER_PRIORITY; j++)
-+			qos_info->up2tc[j] = 0;
-+
-+		qos_info->tc_info[0].rel_bw = 100;
-+		for (j = 1; j < IEEE_8021QAZ_MAX_TCS; j++)
-+			qos_info->tc_info[j].rel_bw = 0;
-+
-+		/* for DCB, override the qos_info defaults. */
-+		ice_setup_dcb_qos_info(pf, qos_info);
-+
-+		/* make sure peer specific resources such as msix_count and
-+		 * msix_entries are initialized
-+		 */
-+		switch (ice_mfd_cells[i].id) {
-+		case IIDC_PEER_RDMA_ID:
-+			if (test_bit(ICE_FLAG_IWARP_ENA, pf->flags)) {
-+				peer_dev->msix_count = pf->num_rdma_msix;
-+				entry = &pf->msix_entries[pf->rdma_base_vector];
-+			}
-+			break;
-+		default:
-+			break;
-+		}
-+
-+		peer_dev->msix_entries = entry;
-+		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_INIT,
-+				      false);
-+	}
-+
-+	status = ida_simple_get(&ice_peer_index_ida, 0, 0, GFP_KERNEL);
-+	if (status < 0) {
-+		dev_err(&pdev->dev,
-+			"failed to get unique index for device\n");
-+		return status;
-+	}
-+
-+	pf->peer_idx = status;
-+
-+	status = mfd_add_devices(dev, pf->peer_idx, ice_mfd_cells,
-+				 ARRAY_SIZE(ice_mfd_cells), NULL, 0, NULL);
-+	if (status)
-+		dev_err(dev, "Failure adding MFD devs for peers: %d\n", status);
-+
-+	for (i = 0; i < ARRAY_SIZE(ice_mfd_cells); i++) {
-+		snprintf(pf->peers[i]->plat_name, ICE_MAX_PEER_NAME, "%s.%d",
-+			 ice_mfd_cells[i].name,
-+			 pf->peer_idx + ice_mfd_cells[i].id);
-+		dev = bus_find_device_by_name(&platform_bus_type, NULL,
-+					      pf->peers[i]->plat_name);
-+		dev_dbg(dev, "Peer Created: %s %d\n", pf->peers[i]->plat_name,
-+			pf->peer_idx);
-+	}
-+
-+	return status;
-+}
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
++module_init(irdma_init_module);
++module_exit(irdma_exit_module);
+diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
 new file mode 100644
-index 000000000000..26ecd45faf16
+index 000000000000..8b57f77cdf72
 --- /dev/null
-+++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
-@@ -0,0 +1,81 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
++++ b/drivers/infiniband/hw/irdma/main.h
+@@ -0,0 +1,639 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
 +/* Copyright (c) 2019, Intel Corporation. */
 +
-+#ifndef _ICE_IDC_INT_H_
-+#define _ICE_IDC_INT_H_
++#ifndef IRDMA_MAIN_H
++#define IRDMA_MAIN_H
 +
-+#include <linux/net/intel/iidc.h>
-+#include "ice.h"
-+
-+enum ice_peer_dev_state {
-+	ICE_PEER_DEV_STATE_INIT,
-+	ICE_PEER_DEV_STATE_PROBED,
-+	ICE_PEER_DEV_STATE_OPENING,
-+	ICE_PEER_DEV_STATE_OPENED,
-+	ICE_PEER_DEV_STATE_PREP_RST,
-+	ICE_PEER_DEV_STATE_PREPPED,
-+	ICE_PEER_DEV_STATE_CLOSING,
-+	ICE_PEER_DEV_STATE_CLOSED,
-+	ICE_PEER_DEV_STATE_REMOVED,
-+	ICE_PEER_DEV_STATE_API_RDY,
-+	ICE_PEER_DEV_STATE_NBITS,               /* must be last */
-+};
-+
-+enum ice_peer_drv_state {
-+	ICE_PEER_DRV_STATE_MBX_RDY,
-+	ICE_PEER_DRV_STATE_NBITS,               /* must be last */
-+};
-+
-+struct ice_peer_drv_int {
-+	struct iidc_peer_drv *peer_drv;
-+
-+	/* States associated with peer driver */
-+	DECLARE_BITMAP(state, ICE_PEER_DRV_STATE_NBITS);
-+
-+	/* if this peer_dev is the originator of an event, these are the
-+	 * most recent events of each type
-+	 */
-+	struct iidc_event current_events[IIDC_EVENT_NBITS];
-+};
-+
-+#define ICE_MAX_PEER_NAME 64
-+
-+struct ice_peer_dev_int {
-+	struct iidc_peer_dev peer_dev;
-+	struct ice_peer_drv_int *peer_drv_int; /* driver private structure */
-+	char plat_name[ICE_MAX_PEER_NAME];
-+	struct iidc_peer_dev_platform_data plat_data;
-+
-+	/* if this peer_dev is the originator of an event, these are the
-+	 * most recent events of each type
-+	 */
-+	struct iidc_event current_events[IIDC_EVENT_NBITS];
-+	/* Events a peer has registered to be notified about */
-+	DECLARE_BITMAP(events, IIDC_EVENT_NBITS);
-+
-+	/* States associated with peer device */
-+	DECLARE_BITMAP(state, ICE_PEER_DEV_STATE_NBITS);
-+	struct mutex peer_dev_state_mutex; /* peer_dev state mutex */
-+
-+	/* per peer workqueue */
-+	struct workqueue_struct *ice_peer_wq;
-+
-+	struct work_struct peer_prep_task;
-+	struct work_struct peer_close_task;
-+
-+	enum iidc_close_reason rst_type;
-+};
-+
-+int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data);
-+int ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int, void *data);
-+int ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
-+
-+static inline struct
-+iidc_peer_dev *ice_get_peer_dev(struct ice_peer_dev_int *peer_dev_int)
-+{
-+	if (peer_dev_int)
-+		return &peer_dev_int->peer_dev;
-+	else
-+		return NULL;
-+}
-+#endif /* !_ICE_IDC_INT_H_ */
-diff --git a/drivers/net/ethernet/intel/ice/ice_lib.c b/drivers/net/ethernet/intel/ice/ice_lib.c
-index cc755382df25..5b95efab5f5c 100644
---- a/drivers/net/ethernet/intel/ice/ice_lib.c
-+++ b/drivers/net/ethernet/intel/ice/ice_lib.c
-@@ -763,6 +763,17 @@ bool ice_is_safe_mode(struct ice_pf *pf)
- 	return !test_bit(ICE_FLAG_ADV_FEATURES, pf->flags);
- }
- 
-+/*
-+ * ice_is_peer_ena
-+ * @pf: pointer to the PF struct
-+ *
-+ * returns true if peer devices/drivers are supported, false otherwise
-+ */
-+bool ice_is_peer_ena(struct ice_pf *pf)
-+{
-+	return test_bit(ICE_FLAG_PEER_ENA, pf->flags);
-+}
-+
- /**
-  * ice_rss_clean - Delete RSS related VSI structures that hold user inputs
-  * @vsi: the VSI being removed
-diff --git a/drivers/net/ethernet/intel/ice/ice_lib.h b/drivers/net/ethernet/intel/ice/ice_lib.h
-index 47bc033fff20..578de33493b6 100644
---- a/drivers/net/ethernet/intel/ice/ice_lib.h
-+++ b/drivers/net/ethernet/intel/ice/ice_lib.h
-@@ -126,4 +126,5 @@ enum ice_status
- ice_vsi_cfg_mac_fltr(struct ice_vsi *vsi, const u8 *macaddr, bool set);
- 
- bool ice_is_safe_mode(struct ice_pf *pf);
-+bool ice_is_peer_ena(struct ice_pf *pf);
- #endif /* !_ICE_LIB_H_ */
-diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index 214cd6eca405..706e5f5cadfc 100644
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -2321,6 +2321,12 @@ static void ice_set_pf_caps(struct ice_pf *pf)
- {
- 	struct ice_hw_func_caps *func_caps = &pf->hw.func_caps;
- 
-+	clear_bit(ICE_FLAG_IWARP_ENA, pf->flags);
-+	clear_bit(ICE_FLAG_PEER_ENA, pf->flags);
-+	if (func_caps->common_cap.iwarp) {
-+		set_bit(ICE_FLAG_IWARP_ENA, pf->flags);
-+		set_bit(ICE_FLAG_PEER_ENA, pf->flags);
-+	}
- 	clear_bit(ICE_FLAG_DCB_CAPABLE, pf->flags);
- 	if (func_caps->common_cap.dcb)
- 		set_bit(ICE_FLAG_DCB_CAPABLE, pf->flags);
-@@ -2400,6 +2406,17 @@ static int ice_ena_msix_range(struct ice_pf *pf)
- 	v_budget += needed;
- 	v_left -= needed;
- 
-+	/* reserve vectors for RDMA peer driver */
-+	if (test_bit(ICE_FLAG_IWARP_ENA, pf->flags)) {
-+		/* RDMA peer driver needs one extra to handle misc causes */
-+		needed = min_t(int, num_online_cpus(), v_left) + 1;
-+		if (v_left < needed)
-+			goto no_hw_vecs_left_err;
-+		pf->num_rdma_msix = needed;
-+		v_budget += needed;
-+		v_left -= needed;
-+	}
-+
- 	pf->msix_entries = devm_kcalloc(&pf->pdev->dev, v_budget,
- 					sizeof(*pf->msix_entries), GFP_KERNEL);
- 
-@@ -2425,16 +2442,19 @@ static int ice_ena_msix_range(struct ice_pf *pf)
- 		dev_warn(&pf->pdev->dev,
- 			 "not enough OS MSI-X vectors. requested = %d, obtained = %d\n",
- 			 v_budget, v_actual);
--/* 2 vectors for LAN (traffic + OICR) */
-+/* 2 vectors for LAN and RDMA (traffic + OICR) */
- #define ICE_MIN_LAN_VECS 2
-+#define ICE_MIN_RDMA_VECS 2
-+#define ICE_MIN_VECS (ICE_MIN_LAN_VECS + ICE_MIN_RDMA_VECS)
- 
--		if (v_actual < ICE_MIN_LAN_VECS) {
-+		if (v_actual < ICE_MIN_VECS) {
- 			/* error if we can't get minimum vectors */
- 			pci_disable_msix(pf->pdev);
- 			err = -ERANGE;
- 			goto msix_err;
- 		} else {
- 			pf->num_lan_msix = ICE_MIN_LAN_VECS;
-+			pf->num_rdma_msix = ICE_MIN_RDMA_VECS;
- 		}
- 	}
- 
-@@ -2451,6 +2471,7 @@ static int ice_ena_msix_range(struct ice_pf *pf)
- 	err = -ERANGE;
- exit_err:
- 	pf->num_lan_msix = 0;
-+	pf->num_rdma_msix = 0;
- 	return err;
- }
- 
-@@ -2960,6 +2981,26 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
- 		goto err_alloc_sw_unroll;
- 	}
- 
-+	/* init peers only if supported */
-+	if (ice_is_peer_ena(pf)) {
-+		pf->peers = devm_kcalloc(dev, IIDC_MAX_NUM_PEERS,
-+					 sizeof(*pf->peers), GFP_KERNEL);
-+		if (!pf->peers) {
-+			err = -ENOMEM;
-+			goto err_init_peer_unroll;
-+		}
-+
-+		err = ice_init_peer_devices(pf);
-+		if (err) {
-+			dev_err(dev, "Failed to initialize peer devices: 0x%x\n",
-+				err);
-+			err = -EIO;
-+			goto err_init_peer_unroll;
-+		}
-+	} else {
-+		dev_warn(dev, "RDMA is not supported on this device\n");
-+	}
-+
- 	ice_verify_cacheline_size(pf);
- 
- 	/* If no DDP driven features have to be setup, return here */
-@@ -2978,6 +3019,15 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
- 
- 	return 0;
- 
-+	/* Unwind non-managed device resources, etc. if something failed */
-+err_init_peer_unroll:
-+	if (ice_is_peer_ena(pf)) {
-+		ice_for_each_peer(pf, NULL, ice_unroll_peer);
-+		if (pf->peers) {
-+			devm_kfree(dev, pf->peers);
-+			pf->peers = NULL;
-+		}
-+	}
- err_alloc_sw_unroll:
- 	set_bit(__ICE_SERVICE_DIS, pf->state);
- 	set_bit(__ICE_DOWN, pf->state);
-@@ -3019,6 +3069,7 @@ static void ice_remove(struct pci_dev *pdev)
- 	if (test_bit(ICE_FLAG_SRIOV_ENA, pf->flags))
- 		ice_free_vfs(pf);
- 	ice_vsi_release_all(pf);
-+	ice_for_each_peer(pf, NULL, ice_unreg_peer_device);
- 	ice_free_irq_msix_misc(pf);
- 	ice_for_each_vsi(pf, i) {
- 		if (!pf->vsi[i])
-@@ -3223,6 +3274,7 @@ static int __init ice_module_init(void)
- 	if (status) {
- 		pr_err("failed to register PCI driver, err %d\n", status);
- 		destroy_workqueue(ice_wq);
-+		ida_destroy(&ice_peer_index_ida);
- 	}
- 
- 	return status;
-@@ -3239,6 +3291,10 @@ static void __exit ice_module_exit(void)
- {
- 	pci_unregister_driver(&ice_driver);
- 	destroy_workqueue(ice_wq);
-+	/* release all cached layer within ida tree, associated with
-+	 * ice_peer_index_ida object
-+	 */
-+	ida_destroy(&ice_peer_index_ida);
- 	pr_info("module unloaded\n");
- }
- module_exit(ice_module_exit);
-@@ -4291,6 +4347,16 @@ static void ice_rebuild(struct ice_pf *pf, enum ice_reset_req reset_type)
- 		goto err_vsi_rebuild;
- 	}
- 
-+	if (ice_is_peer_ena(pf)) {
-+		struct ice_vsi *vsi = ice_get_main_vsi(pf);
-+
-+		if (!vsi) {
-+			dev_err(dev, "No PF_VSI to update peer\n");
-+			goto err_vsi_rebuild;
-+		}
-+		ice_for_each_peer(pf, vsi, ice_peer_update_vsi);
-+	}
-+
- 	if (test_bit(ICE_FLAG_SRIOV_ENA, pf->flags)) {
- 		err = ice_vsi_rebuild_by_type(pf, ICE_VSI_VF);
- 		if (err) {
-diff --git a/drivers/net/ethernet/intel/ice/ice_type.h b/drivers/net/ethernet/intel/ice/ice_type.h
-index 6667d17a4206..d3e44a220d5d 100644
---- a/drivers/net/ethernet/intel/ice/ice_type.h
-+++ b/drivers/net/ethernet/intel/ice/ice_type.h
-@@ -174,6 +174,7 @@ struct ice_hw_common_caps {
- 	u8 rss_table_entry_width;	/* RSS Entry width in bits */
- 
- 	u8 dcb;
-+	u8 iwarp;
- };
- 
- /* Function specific capabilities */
-diff --git a/include/linux/net/intel/iidc.h b/include/linux/net/intel/iidc.h
-new file mode 100644
-index 000000000000..406169084a95
---- /dev/null
-+++ b/include/linux/net/intel/iidc.h
-@@ -0,0 +1,355 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (c) 2019, Intel Corporation. */
-+
-+#ifndef _IIDC_H_
-+#define _IIDC_H_
-+
-+#include <linux/dcbnl.h>
-+#include <linux/device.h>
-+#include <linux/if_ether.h>
-+#include <linux/kernel.h>
++#include <linux/ip.h>
++#include <linux/tcp.h>
++#include <linux/if_vlan.h>
++#include <net/addrconf.h>
++#include <net/netevent.h>
++#include <net/devlink.h>
 +#include <linux/netdevice.h>
++#include <linux/inetdevice.h>
++#include <linux/spinlock.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/pci.h>
++#include <linux/dma-mapping.h>
++#include <linux/workqueue.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/crc32c.h>
++#include <linux/kthread.h>
++#include <linux/platform_device.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_pack.h>
++#include <rdma/rdma_cm.h>
++#include <rdma/iw_cm.h>
++#include <crypto/hash.h>
++#include "status.h"
++#include "osdep.h"
++#include "defs.h"
++#include "hmc.h"
++#include "type.h"
++#include "protos.h"
++#include "pble.h"
++#include "verbs.h"
++#include "cm.h"
++#include "user.h"
++#include "puda.h"
++#include <rdma/irdma-abi.h>
 +
-+/* This major and minor version represent IDC API version information.
-+ * During peer driver registration, peer driver specifies major and minor
-+ * version information (via. peer_driver:ver_info). It gets checked against
-+ * following defines and if mismatch, then peer driver registration
-+ * fails and appropriate message gets logged.
-+ */
-+#define IIDC_PEER_MAJOR_VER		8
-+#define IIDC_PEER_MINOR_VER		0
++extern struct list_head irdma_handlers;
++extern spinlock_t irdma_handler_lock;
 +
-+enum iidc_event_type {
-+	IIDC_EVENT_LINK_CHANGE,
-+	IIDC_EVENT_MTU_CHANGE,
-+	IIDC_EVENT_TC_CHANGE,
-+	IIDC_EVENT_API_CHANGE,
-+	IIDC_EVENT_MBX_CHANGE,
-+	IIDC_EVENT_NBITS		/* must be last */
++#define IRDMA_FW_VER_DEFAULT	2
++#define IRDMA_HW_VER		2
++
++#define IRDMA_ARP_ADD		1
++#define IRDMA_ARP_DELETE	2
++#define IRDMA_ARP_RESOLVE	3
++
++#define IRDMA_MACIP_ADD		1
++#define IRDMA_MACIP_DELETE	2
++
++#define IW_CCQ_SIZE	(IRDMA_CQP_SW_SQSIZE_2048 + 1)
++#define IW_CEQ_SIZE	2048
++#define IW_AEQ_SIZE	2048
++
++#define RX_BUF_SIZE	(1536 + 8)
++#define IW_REG0_SIZE	(4 * 1024)
++#define IW_TX_TIMEOUT	(6 * HZ)
++#define IW_FIRST_QPN	1
++
++#define IW_SW_CONTEXT_ALIGN	1024
++
++#define MAX_DPC_ITERATIONS	128
++
++#define IRDMA_EVENT_TIMEOUT		100000
++#define IRDMA_VCHNL_EVENT_TIMEOUT	100000
++
++#define IRDMA_NO_QSET	0xffff
++
++#define IW_CFG_FPM_QP_COUNT		32768
++#define IRDMA_MAX_PAGES_PER_FMR		512
++#define IRDMA_MIN_PAGES_PER_FMR		1
++#define IRDMA_CQP_COMPL_RQ_WQE_FLUSHED	2
++#define IRDMA_CQP_COMPL_SQ_WQE_FLUSHED	3
++
++#define IRDMA_Q_TYPE_PE_AEQ	0x80
++#define IRDMA_Q_INVALID_IDX	0xffff
++#define IRDMA_REM_ENDPOINT_TRK_QPID	3
++
++#define IRDMA_DRV_OPT_ENA_MPA_VER_0		0x00000001
++#define IRDMA_DRV_OPT_DISABLE_MPA_CRC		0x00000002
++#define IRDMA_DRV_OPT_DISABLE_FIRST_WRITE	0x00000004
++#define IRDMA_DRV_OPT_DISABLE_INTF		0x00000008
++#define IRDMA_DRV_OPT_ENA_MSI			0x00000010
++#define IRDMA_DRV_OPT_DUAL_LOGICAL_PORT		0x00000020
++#define IRDMA_DRV_OPT_NO_INLINE_DATA		0x00000080
++#define IRDMA_DRV_OPT_DISABLE_INT_MOD		0x00000100
++#define IRDMA_DRV_OPT_DISABLE_VIRT_WQ		0x00000200
++#define IRDMA_DRV_OPT_ENA_PAU			0x00000400
++#define IRDMA_DRV_OPT_MCAST_LOGPORT_MAP		0x00000800
++
++#define IW_HMC_OBJ_TYPE_NUM	ARRAY_SIZE(iw_hmc_obj_types)
++
++enum init_completion_state {
++	INVALID_STATE = 0,
++	INITIAL_STATE,
++	CQP_CREATED,
++	HMC_OBJS_CREATED,
++	CCQ_CREATED,
++	AEQ_CREATED,
++	CEQ0_CREATED, /* Last state of probe */
++	CEQS_CREATED,
++	ILQ_CREATED,
++	IEQ_CREATED,
++	PBLE_CHUNK_MEM,
++	IP_ADDR_REGISTERED,
++	RDMA_DEV_REGISTERED, /* Last state of open */
 +};
 +
-+enum iidc_res_type {
-+	IIDC_INVAL_RES,
-+	IIDC_VSI,
-+	IIDC_VEB,
-+	IIDC_EVENT_Q,
-+	IIDC_EGRESS_CMPL_Q,
-+	IIDC_CMPL_EVENT_Q,
-+	IIDC_ASYNC_EVENT_Q,
-+	IIDC_DOORBELL_Q,
-+	IIDC_RDMA_QSETS_TXSCHED,
++struct irdma_rsrc_limits {
++	u32 qplimit;
++	u32 mrlimit;
++	u32 cqlimit;
 +};
 +
-+enum iidc_peer_reset_type {
-+	IIDC_PEER_PFR,
-+	IIDC_PEER_CORER,
-+	IIDC_PEER_CORER_SW_CORE,
-+	IIDC_PEER_CORER_SW_FULL,
-+	IIDC_PEER_GLOBR,
++struct irdma_cqp_compl_info {
++	u32 op_ret_val;
++	u16 maj_err_code;
++	u16 min_err_code;
++	bool error;
++	u8 op_code;
 +};
 +
-+/* reason notified to peer driver as part of event handling */
-+enum iidc_close_reason {
-+	IIDC_REASON_INVAL,
-+	IIDC_REASON_HW_UNRESPONSIVE,
-+	IIDC_REASON_INTERFACE_DOWN, /* Administrative down */
-+	IIDC_REASON_PEER_DRV_UNREG, /* peer driver getting unregistered */
-+	IIDC_REASON_PEER_DEV_UNINIT,
-+	IIDC_REASON_GLOBR_REQ,
-+	IIDC_REASON_CORER_REQ,
-+	IIDC_REASON_EMPR_REQ,
-+	IIDC_REASON_PFR_REQ,
-+	IIDC_REASON_HW_RESET_PENDING,
-+	IIDC_REASON_RECOVERY_MODE,
-+	IIDC_REASON_PARAM_CHANGE,
++struct irdma_cqp_request {
++	struct cqp_cmds_info info;
++	wait_queue_head_t waitq;
++	struct list_head list;
++	atomic_t refcount;
++	void (*callback_fcn)(struct irdma_cqp_request *cqp_request);
++	void *param;
++	struct irdma_cqp_compl_info compl_info;
++	bool waiting;
++	bool request_done;
++	bool dynamic;
 +};
 +
-+enum iidc_rdma_filter {
-+	IIDC_RDMA_FILTER_INVAL,
-+	IIDC_RDMA_FILTER_IWARP,
-+	IIDC_RDMA_FILTER_ROCEV2,
-+	IIDC_RDMA_FILTER_BOTH,
++struct irdma_cqp {
++	struct irdma_sc_cqp sc_cqp;
++	spinlock_t req_lock; /* protect CQP request list */
++	spinlock_t compl_lock; /* protect CQP completion processing */
++	wait_queue_head_t waitq;
++	wait_queue_head_t remove_wq;
++	struct irdma_dma_mem sq;
++	struct irdma_dma_mem host_ctx;
++	u64 *scratch_array;
++	struct irdma_cqp_request *cqp_requests;
++	struct list_head cqp_avail_reqs;
++	struct list_head cqp_pending_reqs;
++	struct task_struct *cqp_compl_thread;
++	struct semaphore cqp_compl_sem;
 +};
 +
-+/* This information is needed to handle peer driver registration,
-+ * instead of adding more params to peer_drv_registration function,
-+ * let's get it thru' peer_drv object.
-+ */
-+struct iidc_ver_info {
-+	u16 major;
-+	u16 minor;
-+	u64 support;
++struct irdma_ccq {
++	struct irdma_sc_cq sc_cq;
++	struct irdma_dma_mem mem_cq;
++	struct irdma_dma_mem shadow_area;
 +};
 +
-+/* Struct to hold per DCB APP info */
-+struct iidc_dcb_app_info {
-+	u8  priority;
-+	u8  selector;
-+	u16 prot_id;
++struct irdma_ceq {
++	struct irdma_sc_ceq sc_ceq;
++	struct irdma_dma_mem mem;
++	u32 irq;
++	u32 msix_idx;
++	struct irdma_pci_f *rf;
++	struct tasklet_struct dpc_tasklet;
 +};
 +
-+struct iidc_peer_dev;
-+
-+#define IIDC_MAX_USER_PRIORITY		8
-+#define IIDC_MAX_APPS			8
-+
-+/* Struct to hold per RDMA Qset info */
-+struct iidc_rdma_qset_params {
-+	u32 teid;	/* qset TEID */
-+	u16 qs_handle; /* RDMA driver provides this */
-+	u16 vsi_id; /* VSI index */
-+	u8 tc; /* TC branch the QSet should belong to */
-+	u8 reserved[3];
++struct irdma_aeq {
++	struct irdma_sc_aeq sc_aeq;
++	struct irdma_dma_mem mem;
 +};
 +
-+struct iidc_res_base {
-+	/* Union for future provision e.g. other res_type */
++struct irdma_arp_entry {
++	u32 ip_addr[4];
++	u8 mac_addr[ETH_ALEN];
++};
++
++struct irdma_msix_vector {
++	u32 idx;
++	u32 irq;
++	u32 cpu_affinity;
++	u32 ceq_id;
++	cpumask_t mask;
++};
++
++struct l2params_work {
++	struct work_struct work;
++	struct irdma_device *iwdev;
++	struct irdma_l2params l2params;
++};
++
++struct virtchnl_work {
++	struct work_struct work;
 +	union {
-+		struct iidc_rdma_qset_params qsets;
-+	} res;
++		struct irdma_cqp_request *cqp_request;
++		struct irdma_virtchnl_work_info work_info;
++	};
 +};
 +
-+struct iidc_res {
-+	/* Type of resource. Filled by peer driver */
-+	enum iidc_res_type res_type;
-+	/* Count requested by peer driver */
-+	u16 cnt_req;
-+
-+	/* Number of resources allocated. Filled in by callee.
-+	 * Based on this value, caller to fill up "resources"
-+	 */
-+	u16 res_allocated;
-+
-+	/* Unique handle to resources allocated. Zero if call fails.
-+	 * Allocated by callee and for now used by caller for internal
-+	 * tracking purpose.
-+	 */
-+	u32 res_handle;
-+
-+	/* Peer driver has to allocate sufficient memory, to accommodate
-+	 * cnt_requested before calling this function.
-+	 * Memory has to be zero initialized. It is input/output param.
-+	 * As a result of alloc_res API, this structures will be populated.
-+	 */
-+	struct iidc_res_base res[1];
++struct irdma_mc_table_info {
++	bool ipv4_valid;
++	u32 mgn;
++	u32 dest_ip[4];
++	bool lan_fwd;
 +};
 +
-+struct iidc_qos_info {
-+	u64 tc_ctx;
-+	u8 rel_bw;
-+	u8 prio_type;
-+	u8 egress_virt_up;
-+	u8 ingress_virt_up;
++struct mc_table_list {
++	struct list_head list;
++	struct irdma_mc_table_info mc_info;
++	struct irdma_mcast_grp_info mc_grp_ctx;
 +};
 +
-+/* Struct to hold QoS info */
-+struct iidc_qos_params {
-+	struct iidc_qos_info tc_info[IEEE_8021QAZ_MAX_TCS];
-+	u8 up2tc[IIDC_MAX_USER_PRIORITY];
-+	u8 vsi_relative_bw;
-+	u8 vsi_priority_type;
-+	u32 num_apps;
-+	struct iidc_dcb_app_info apps[IIDC_MAX_APPS];
-+	u8 num_tc;
++struct irdma_qv_info {
++	u32 v_idx; /* msix_vector */
++	u16 ceq_idx;
++	u16 aeq_idx;
++	u8 itr_idx;
 +};
 +
-+union iidc_event_info {
-+	/* IIDC_EVENT_LINK_CHANGE */
-+	struct {
-+		struct net_device *lwr_nd;
-+		u16 vsi_num; /* HW index of VSI corresponding to lwr ndev */
-+		u8 new_link_state;
-+		u8 lport;
-+	} link_info;
-+	/* IIDC_EVENT_MTU_CHANGE */
-+	u16 mtu;
-+	/* IIDC_EVENT_TC_CHANGE */
-+	struct iidc_qos_params port_qos;
-+	/* IIDC_EVENT_API_CHANGE */
-+	u8 api_rdy;
-+	/* IIDC_EVENT_MBX_CHANGE */
-+	u8 mbx_rdy;
++struct irdma_qvlist_info {
++	u32 num_vectors;
++	struct irdma_qv_info qv_info[1];
 +};
 +
-+/* iidc_event elements are to be passed back and forth between the device
-+ * owner and the peer drivers. They are to be used to both register/unregister
-+ * for event reporting and to report an event (events can be either device
-+ * owner generated or peer generated).
-+ *
-+ * For (un)registering for events, the structure needs to be populated with:
-+ *   reporter - pointer to the iidc_peer_dev struct of the peer (un)registering
-+ *   type - bitmap with bits set for event types to (un)register for
-+ *
-+ * For reporting events, the structure needs to be populated with:
-+ *   reporter - pointer to peer that generated the event (NULL for ice)
-+ *   type - bitmap with single bit set for this event type
-+ *   info - union containing data relevant to this event type
-+ */
-+struct iidc_event {
-+	struct iidc_peer_dev *reporter;
-+	DECLARE_BITMAP(type, IIDC_EVENT_NBITS);
-+	union iidc_event_info info;
++struct irdma_priv_ldev {
++	unsigned int fn_num;
++	bool ftype;
++	u16 pf_vsi_num;
++	u16 msix_count;
++	struct msix_entry *msix_entries;
++	void *if_client;
++	void *if_ldev;
 +};
 +
-+/* Following APIs are implemented by device owner and invoked by peer
-+ * drivers
-+ */
-+struct iidc_ops {
-+	/* APIs to allocate resources such as VEB, VSI, Doorbell queues,
-+	 * completion queues, Tx/Rx queues, etc...
-+	 */
-+	int (*alloc_res)(struct iidc_peer_dev *peer_dev,
-+			 struct iidc_res *res,
-+			 int partial_acceptable);
-+	int (*free_res)(struct iidc_peer_dev *peer_dev,
-+			struct iidc_res *res);
-+
-+	int (*is_vsi_ready)(struct iidc_peer_dev *peer_dev);
-+	int (*peer_register)(struct iidc_peer_dev *peer_dev);
-+	int (*peer_unregister)(struct iidc_peer_dev *peer_dev);
-+	int (*request_reset)(struct iidc_peer_dev *dev,
-+			     enum iidc_peer_reset_type reset_type);
-+
-+	void (*notify_state_change)(struct iidc_peer_dev *dev,
-+				    struct iidc_event *event);
-+
-+	/* Notification APIs */
-+	void (*reg_for_notification)(struct iidc_peer_dev *dev,
-+				     struct iidc_event *event);
-+	void (*unreg_for_notification)(struct iidc_peer_dev *dev,
-+				       struct iidc_event *event);
-+	int (*update_vsi_filter)(struct iidc_peer_dev *peer_dev,
-+				 enum iidc_rdma_filter filter, bool enable);
-+	int (*vc_send)(struct iidc_peer_dev *peer_dev, u32 vf_id, u8 *msg,
-+		       u16 len);
++struct irdma_dl_priv {
++	struct platform_device *pdev;
++	bool roce_ena;
++	u8 limits_sel;
 +};
 +
-+/* Following APIs are implemented by peer drivers and invoked by device
-+ * owner
-+ */
-+struct iidc_peer_ops {
-+	void (*event_handler)(struct iidc_peer_dev *peer_dev,
-+			      struct iidc_event *event);
-+
-+	/* Why we have 'open' and when it is expected to be called:
-+	 * 1. symmetric set of API w.r.t close
-+	 * 2. To be invoked form driver initialization path
-+	 *     - call peer_driver:open once device owner is fully
-+	 *     initialized
-+	 * 3. To be invoked upon RESET complete
-+	 */
-+	int (*open)(struct iidc_peer_dev *peer_dev);
-+
-+	/* Peer's close function is to be called when the peer needs to be
-+	 * quiesced. This can be for a variety of reasons (enumerated in the
-+	 * iidc_close_reason enum struct). A call to close will only be
-+	 * followed by a call to either remove or open. No IDC calls from the
-+	 * peer should be accepted until it is re-opened.
-+	 *
-+	 * The *reason* parameter is the reason for the call to close. This
-+	 * can be for any reason enumerated in the iidc_close_reason struct.
-+	 * It's primary reason is for the peer's bookkeeping and in case the
-+	 * peer want to perform any different tasks dictated by the reason.
-+	 */
-+	void (*close)(struct iidc_peer_dev *peer_dev,
-+		      enum iidc_close_reason reason);
-+
-+	int (*vc_receive)(struct iidc_peer_dev *peer_dev, u32 vf_id, u8 *msg,
-+			  u16 len);
-+	/* tell RDMA peer to prepare for TC change in a blocking call
-+	 * that will directly precede the change event
-+	 */
-+	void (*prep_tc_change)(struct iidc_peer_dev *peer_dev);
++struct irdma_pci_f {
++	bool ooo;
++	bool reset;
++	bool rsrc_created;
++	bool stop_cqp_thread;
++	bool msix_shared;
++	u8 rsrc_profile;
++	u8 max_rdma_vfs;
++	u8 max_ena_vfs;
++	u8 *hmc_info_mem;
++	u8 *mem_rsrc;
++	u8 rdma_ver;
++	enum irdma_protocol_used protocol_used;
++	u32 sd_type;
++	u32 msix_count;
++	u32 max_mr;
++	u32 max_qp;
++	u32 max_cq;
++	u32 max_ah;
++	u32 next_ah;
++	u32 max_mcg;
++	u32 next_mcg;
++	u32 max_pd;
++	u32 next_qp;
++	u32 next_cq;
++	u32 next_pd;
++	u32 max_mr_size;
++	u32 max_cqe;
++	u32 mr_stagmask;
++	u32 used_pds;
++	u32 used_cqs;
++	u32 used_mrs;
++	u32 used_qps;
++	u32 arp_table_size;
++	u32 next_arp_index;
++	u32 ceqs_count;
++	u32 next_ws_node_id;
++	u32 max_ws_node_id;
++	u32 limits_sel;
++	unsigned long *allocated_ws_nodes;
++	unsigned long *allocated_qps;
++	unsigned long *allocated_cqs;
++	unsigned long *allocated_mrs;
++	unsigned long *allocated_pds;
++	unsigned long *allocated_mcgs;
++	unsigned long *allocated_ahs;
++	unsigned long *allocated_arps;
++	enum init_completion_state init_state;
++	struct irdma_sc_dev sc_dev;
++	struct irdma_priv_ldev ldev;
++	struct irdma_handler *hdl;
++	struct pci_dev *pdev;
++	struct net_device *netdev;
++	struct irdma_hw hw;
++	struct irdma_cqp cqp;
++	struct irdma_ccq ccq;
++	struct irdma_aeq aeq;
++	struct irdma_ceq *ceqlist;
++	struct irdma_hmc_pble_rsrc *pble_rsrc;
++	struct irdma_arp_entry *arp_table;
++	spinlock_t arp_lock; /*protect ARP table access*/
++	spinlock_t rsrc_lock; /* protect HW resource array access */
++	spinlock_t qptable_lock; /*protect QP table access*/
++	struct irdma_qp **qp_table;
++	spinlock_t qh_list_lock; /* protect mc_qht_list */
++	struct mc_table_list mc_qht_list;
++	struct irdma_msix_vector *iw_msixtbl;
++	struct irdma_qvlist_info *iw_qvlist;
++	struct tasklet_struct dpc_tasklet;
++	struct irdma_dma_mem obj_mem;
++	struct irdma_dma_mem obj_next;
++	atomic_t vchnl_msgs;
++	wait_queue_head_t vchnl_waitq;
++	struct workqueue_struct *free_qp_wq;
++	struct workqueue_struct *free_cqbuf_wq;
++	struct virtchnl_work virtchnl_w[IRDMA_MAX_PE_ENA_VF_COUNT];
++	struct irdma_sc_vsi default_vsi;
++	void *back_fcn;
++	void (*init_hw)(struct irdma_sc_dev *dev);
 +};
 +
-+#define IIDC_PEER_RDMA_NAME	"iidc_rdma"
-+#define IIDC_PEER_RDMA_ID	0x00000010
-+#define IIDC_MAX_NUM_PEERS	4
-+
-+/* The const struct that instantiates peer_dev_id needs to be initialized
-+ * in the .c with the macro ASSIGN_PEER_INFO.
-+ * For example:
-+ * static const struct peer_dev_id peer_dev_ids[] = ASSIGN_PEER_INFO;
-+ */
-+struct peer_dev_id {
-+	char *name;
-+	int id;
++struct irdma_device {
++	struct irdma_ib_device *iwibdev;
++	struct irdma_pci_f *rf;
++	struct irdma_priv_ldev *ldev;
++	struct net_device *netdev;
++	struct irdma_handler *hdl;
++	struct irdma_sc_vsi vsi;
++	struct irdma_cm_core cm_core;
++	bool roce_mode;
++	u32 vendor_id;
++	u32 vendor_part_id;
++	u32 device_cap_flags;
++	u32 push_mode;
++	u32 rcv_wnd;
++	u16 mac_ip_table_idx;
++	u8 rcv_wscale;
++	u16 vsi_num;
++	bool create_ilq;
++	u8 iw_status;
++	struct tasklet_struct dpc_tasklet;
++	enum init_completion_state init_state;
++	bool dcb;
++	bool reset;
++	wait_queue_head_t suspend_wq;
++	struct workqueue_struct *param_wq;
++	atomic_t params_busy;
 +};
 +
-+#define ASSIGN_PEER_INFO						\
-+{									\
-+	{ .name = IIDC_PEER_RDMA_NAME, .id = IIDC_PEER_RDMA_ID },	\
++struct irdma_ib_device {
++	struct ib_device ibdev;
++	struct irdma_device *iwdev;
++};
++
++struct irdma_handler {
++	struct list_head list;
++	struct irdma_pci_f rf;
++	struct irdma_priv_ldev *ldev;
++	struct platform_device *platform_dev;
++	bool shared_res_created;
++};
++
++/***********************************************************/
++/**
++ * to_iwdev - get device
++ * @ibdev: ib device
++ **/
++static inline struct irdma_device *to_iwdev(struct ib_device *ibdev)
++{
++	return container_of(ibdev, struct irdma_ib_device, ibdev)->iwdev;
 +}
 +
-+#define iidc_peer_priv(x) ((x)->peer_priv)
++/**
++ * to_ucontext - get user context
++ * @ibucontext: ib user context
++ **/
++static inline struct irdma_ucontext *to_ucontext(struct ib_ucontext *ibucontext)
++{
++	return container_of(ibucontext, struct irdma_ucontext, ibucontext);
++}
 +
-+/* Structure representing peer specific information, each peer using the IIDC
-+ * interface will have an instance of this struct dedicated to it.
-+ */
-+struct iidc_peer_dev {
-+	struct iidc_ver_info ver;
-+	struct pci_dev *pdev; /* PCI device of corresponding to main function */
-+	/* KVA / Linear address corresponding to BAR0 of underlying
-+	 * pci_device.
-+	 */
-+	u8 __iomem *hw_addr;
-+	int peer_dev_id;
++/**
++ * to_iwpd - get protection domain
++ * @ibpd: ib pd
++ **/
++static inline struct irdma_pd *to_iwpd(struct ib_pd *ibpd)
++{
++	return container_of(ibpd, struct irdma_pd, ibpd);
++}
 +
-+	/* Opaque pointer for peer specific data tracking.  This memory will
-+	 * be alloc'd and freed by the peer driver and used for private data
-+	 * accessible only to the specific peer.  It is stored here so that
-+	 * when this struct is passed to the peer via an IDC call, the data
-+	 * can be accessed by the peer at that time.
-+	 * The peers should only retrieve the pointer by the macro:
-+	 *    iidc_peer_priv(struct iidc_peer_dev *)
-+	 */
-+	void *peer_priv;
++/**
++ * to_iwah - get device ah
++ * @ibdev: ib ah
++ **/
++static inline struct irdma_ah *to_iwah(struct ib_ah *ibah)
++{
++	return container_of(ibah, struct irdma_ah, ibah);
++}
 +
-+	u8 ftype;	/* PF(false) or VF (true) */
++/**
++ * to_iwmr - get device memory region
++ * @ibdev: ib memory region
++ **/
++static inline struct irdma_mr *to_iwmr(struct ib_mr *ibmr)
++{
++	return container_of(ibmr, struct irdma_mr, ibmr);
++}
 +
-+	/* Data VSI created by driver */
-+	u16 pf_vsi_num;
++/**
++ * to_iwmr_from_ibfmr - get device memory region
++ * @ibfmr: ib fmr
++ **/
++static inline struct irdma_mr *to_iwmr_from_ibfmr(struct ib_fmr *ibfmr)
++{
++	return container_of(ibfmr, struct irdma_mr, ibfmr);
++}
 +
-+	struct iidc_qos_params initial_qos_info;
-+	struct net_device *netdev;
++/**
++ * to_iwmw - get device memory window
++ * @ibmw: ib memory window
++ **/
++static inline struct irdma_mr *to_iwmw(struct ib_mw *ibmw)
++{
++	return container_of(ibmw, struct irdma_mr, ibmw);
++}
 +
-+	/* Based on peer driver type, this shall point to corresponding MSIx
-+	 * entries in pf->msix_entries (which were allocated as part of driver
-+	 * initialization) e.g. for RDMA driver, msix_entries reserved will be
-+	 * num_online_cpus + 1.
-+	 */
-+	u16 msix_count; /* How many vectors are reserved for this device */
-+	struct msix_entry *msix_entries;
++/**
++ * to_iwcq - get completion queue
++ * @ibcq: ib cqdevice
++ **/
++static inline struct irdma_cq *to_iwcq(struct ib_cq *ibcq)
++{
++	return container_of(ibcq, struct irdma_cq, ibcq);
++}
 +
-+	/* Following struct contains function pointers to be initialized
-+	 * by device owner and called by peer driver
-+	 */
-+	const struct iidc_ops *ops;
++/**
++ * to_iwqp - get device qp
++ * @ibqp: ib qp
++ **/
++static inline struct irdma_qp *to_iwqp(struct ib_qp *ibqp)
++{
++	return container_of(ibqp, struct irdma_qp, ibqp);
++}
 +
-+	/* Following struct contains function pointers to be initialized
-+	 * by peer driver and called by device owner
-+	 */
-+	const struct iidc_peer_ops *peer_ops;
++/**
++ * irdma_alloc_resource - allocate a resource
++ * @iwdev: device pointer
++ * @resource_array: resource bit array:
++ * @max_resources: maximum resource number
++ * @req_resources_num: Allocated resource number
++ * @next: next free id
++ **/
++static inline int irdma_alloc_rsrc(struct irdma_pci_f *rf,
++				   unsigned long *rsrc_array, u32 max_rsrc,
++				   u32 *req_rsrc_num, u32 *next)
++{
++	u32 rsrc_num;
++	unsigned long flags;
 +
-+	/* Pointer to peer_drv struct to be populated by peer driver */
-+	struct iidc_peer_drv *peer_drv;
-+};
++	spin_lock_irqsave(&rf->rsrc_lock, flags);
++	rsrc_num = find_next_zero_bit(rsrc_array, max_rsrc, *next);
++	if (rsrc_num >= max_rsrc) {
++		rsrc_num = find_first_zero_bit(rsrc_array, max_rsrc);
++		if (rsrc_num >= max_rsrc) {
++			spin_unlock_irqrestore(&rf->rsrc_lock, flags);
++			dev_dbg(rfdev_to_dev(&rf->sc_dev),
++				"ERR: resource [%d] allocation failed\n",
++				rsrc_num);
++			return -EOVERFLOW;
++		}
++	}
++	set_bit(rsrc_num, rsrc_array);
++	*next = rsrc_num + 1;
++	if (*next == max_rsrc)
++		*next = 0;
++	*req_rsrc_num = rsrc_num;
++	spin_unlock_irqrestore(&rf->rsrc_lock, flags);
 +
-+struct iidc_peer_dev_platform_data {
-+	struct iidc_peer_dev *peer_dev;
-+};
++	return 0;
++}
 +
-+/* structure representing peer driver
-+ * Peer driver to initialize those function ptrs and it will be invoked
-+ * by device owner as part of driver_registration via bus infrastructure
-+ */
-+struct iidc_peer_drv {
-+	u16 driver_id;
-+#define IIDC_PEER_DEVICE_OWNER		0
-+#define IIDC_PEER_RDMA_DRIVER		4
++/**
++ * irdma_is_resource_allocated - detrmine if resource is
++ * allocated
++ * @iwdev: device pointer
++ * @resource_array: resource array for the resource_num
++ * @resource_num: resource number to check
++ **/
++static inline bool irdma_is_rsrc_allocated(struct irdma_pci_f *rf,
++					   unsigned long *rsrc_array,
++					   u32 rsrc_num)
++{
++	bool bit_is_set;
++	unsigned long flags;
 +
-+	struct iidc_ver_info ver;
-+	const char *name;
++	spin_lock_irqsave(&rf->rsrc_lock, flags);
 +
-+};
-+#endif /* _IIDC_H_*/
++	bit_is_set = test_bit(rsrc_num, rsrc_array);
++	spin_unlock_irqrestore(&rf->rsrc_lock, flags);
++
++	return bit_is_set;
++}
++
++/**
++ * irdma_free_resource - free a resource
++ * @iwdev: device pointer
++ * @resource_array: resource array for the resource_num
++ * @resource_num: resource number to free
++ **/
++static inline void irdma_free_rsrc(struct irdma_pci_f *rf,
++				   unsigned long *rsrc_array, u32 rsrc_num)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&rf->rsrc_lock, flags);
++	clear_bit(rsrc_num, rsrc_array);
++	spin_unlock_irqrestore(&rf->rsrc_lock, flags);
++}
++
++void irdma_init_rf_config_params(struct irdma_pci_f *rf);
++enum irdma_status_code irdma_ctrl_init_hw(struct irdma_pci_f *rf);
++void irdma_deinit_ctrl_hw(struct irdma_pci_f *rf);
++enum irdma_status_code irdma_rt_init_hw(struct irdma_pci_f *rf,
++					struct irdma_device *iwdev,
++					struct irdma_l2params *l2params);
++void irdma_deinit_rt_device(struct irdma_device *iwdev);
++void irdma_add_ref(struct ib_qp *ibqp);
++void irdma_rem_ref(struct ib_qp *ibqp);
++struct ib_qp *irdma_get_qp(struct ib_device *ibdev, int qpn);
++void irdma_flush_wqes(struct irdma_pci_f *rf, struct irdma_qp *qp);
++void irdma_manage_arp_cache(struct irdma_pci_f *rf, unsigned char *mac_addr,
++			    u32 *ip_addr, bool ipv4, u32 action);
++int irdma_manage_apbvt(struct irdma_device *iwdev, u16 accel_local_port,
++		       bool add_port);
++struct irdma_cqp_request *irdma_get_cqp_request(struct irdma_cqp *cqp,
++						bool wait);
++void irdma_free_cqp_request(struct irdma_cqp *cqp,
++			    struct irdma_cqp_request *cqp_request);
++void irdma_put_cqp_request(struct irdma_cqp *cqp,
++			   struct irdma_cqp_request *cqp_request);
++struct irdma_device *irdma_get_device(struct net_device *netdev);
++void irdma_put_device(struct irdma_device *iwdev);
++struct irdma_handler *irdma_find_handler(struct pci_dev *pdev);
++struct irdma_device *irdma_find_iwdev(const char *name);
++void irdma_add_handler(struct irdma_handler *hdl);
++void irdma_del_handler(struct irdma_handler *hdl);
++void irdma_add_ip(struct irdma_device *iwdev);
++int irdma_alloc_local_mac_entry(struct irdma_pci_f *rf, u16 *mac_tbl_idx);
++int irdma_add_local_mac_entry(struct irdma_pci_f *rf, u8 *mac_addr, u16 idx);
++void irdma_del_local_mac_entry(struct irdma_pci_f *rf, u16 idx);
++
++u32 irdma_initialize_hw_rsrc(struct irdma_pci_f *rf);
++int irdma_register_rdma_device(struct irdma_device *iwdev);
++void irdma_port_ibevent(struct irdma_device *iwdev);
++void irdma_cm_disconn(struct irdma_qp *qp);
++
++enum irdma_status_code
++irdma_handle_cqp_op(struct irdma_pci_f *rf,
++		    struct irdma_cqp_request *cqp_request);
++
++int irdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr, int attr_mask,
++		    struct ib_udata *udata);
++int irdma_modify_qp_roce(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++			 int attr_mask, struct ib_udata *udata);
++void irdma_cq_wq_destroy(struct irdma_pci_f *rf, struct irdma_sc_cq *cq);
++
++void irdma_cleanup_pending_cqp_op(struct irdma_pci_f *rf);
++/* TODO: remove once VMWare implements or if not needed */
++enum irdma_status_code irdma_hw_modify_qp(struct irdma_device *iwdev,
++					  struct irdma_qp *iwqp,
++					  struct irdma_modify_qp_info *info,
++					  bool wait);
++enum irdma_status_code irdma_qp_suspend_resume(struct irdma_sc_qp *qp,
++					       bool suspend);
++enum irdma_status_code
++irdma_manage_qhash(struct irdma_device *iwdev, struct irdma_cm_info *cminfo,
++		   enum irdma_quad_entry_type etype,
++		   enum irdma_quad_hash_manage_type mtype, void *cmnode,
++		   bool wait);
++void irdma_receive_ilq(struct irdma_sc_vsi *vsi, struct irdma_puda_buf *rbuf);
++void irdma_free_sqbuf(struct irdma_sc_vsi *vsi, void *bufp);
++void irdma_free_qp_rsrc(struct irdma_device *iwdev, struct irdma_qp *iwqp,
++			u32 qp_num);
++void irdma_request_reset(struct irdma_pci_f *rf);
++void irdma_destroy_rdma_device(struct irdma_ib_device *iwibdev);
++enum irdma_status_code irdma_setup_cm_core(struct irdma_device *iwdev, u8 ver);
++void irdma_cleanup_cm_core(struct irdma_cm_core *cm_core);
++void irdma_next_iw_state(struct irdma_qp *iwqp, u8 state, u8 del_hash, u8 term,
++			 u8 term_len);
++int irdma_send_syn(struct irdma_cm_node *cm_node, u32 sendack);
++int irdma_send_reset(struct irdma_cm_node *cm_node);
++struct irdma_cm_node *irdma_find_node(struct irdma_cm_core *cm_core,
++				      u16 rem_port, u32 *rem_addr, u16 loc_port,
++				      u32 *loc_addr, bool add_refcnt,
++				      bool accelerated_list);
++enum irdma_status_code irdma_hw_flush_wqes(struct irdma_pci_f *rf,
++					   struct irdma_sc_qp *qp,
++					   struct irdma_qp_flush_info *info,
++					   bool wait);
++void irdma_gen_ae(struct irdma_pci_f *rf, struct irdma_sc_qp *qp,
++		  struct irdma_gen_ae_info *info, bool wait);
++void irdma_copy_ip_ntohl(u32 *dst, __be32 *src);
++void irdma_copy_ip_htonl(__be32 *dst, u32 *src);
++u16 irdma_get_vlan_ipv4(u32 *addr);
++struct net_device *irdma_netdev_vlan_ipv6(u32 *addr, u16 *vlan_id, u8 *mac);
++struct ib_mr *irdma_reg_phys_mr(struct ib_pd *ib_pd, u64 addr, u64 size,
++				int acc, u64 *iova_start);
++int cqp_compl_thread(void *context);
++int irdma_inetaddr_event(struct notifier_block *notifier, unsigned long event,
++			 void *ptr);
++int irdma_inet6addr_event(struct notifier_block *notifier, unsigned long event,
++			  void *ptr);
++int irdma_net_event(struct notifier_block *notifier, unsigned long event,
++		    void *ptr);
++int irdma_netdevice_event(struct notifier_block *notifier, unsigned long event,
++			  void *ptr);
++int irdma_probe(struct platform_device *pdev);
++int irdma_remove(struct platform_device *pdev);
++int i40iw_probe(struct platform_device *pdev);
++void i40iw_remove(struct platform_device *pdev);
++void i40iw_request_reset(struct irdma_pci_f *rf);
++void icrdma_request_reset(struct irdma_pci_f *rf);
++void irdma_register_notifiers(void);
++void irdma_unregister_notifiers(void);
++void irdma_cqp_ce_handler(struct irdma_pci_f *rf, struct irdma_sc_cq *cq);
++int irdma_ah_cqp_op(struct irdma_pci_f *rf, struct irdma_sc_ah *sc_ah, u8 cmd,
++		    bool wait,
++		    void (*callback_fcn)(struct irdma_cqp_request *cqp_request),
++		    void *cb_param);
++void irdma_gsi_ud_qp_ah_cb(struct irdma_cqp_request *cqp_request);
++int irdma_configfs_init(void);
++void irdma_configfs_exit(void);
++#endif /* IRDMA_MAIN_H */
 -- 
 2.21.0
 
