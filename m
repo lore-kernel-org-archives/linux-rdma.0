@@ -6,34 +6,36 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D3F1C352AD
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93034C352AB
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D82A6222CB
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73CC2222CB
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Sep 2019 16:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727549AbfIZQpm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 26 Sep 2019 12:45:42 -0400
-Received: from mga06.intel.com ([134.134.136.31]:15114 "EHLO mga06.intel.com"
+        id S1727603AbfIZQpo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 26 Sep 2019 12:45:44 -0400
+Received: from mga07.intel.com ([134.134.136.100]:46252 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727558AbfIZQpg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 26 Sep 2019 12:45:36 -0400
+        id S1727586AbfIZQpn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 26 Sep 2019 12:45:43 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Sep 2019 09:45:33 -0700
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Sep 2019 09:45:37 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,552,1559545200"; 
-   d="scan'208";a="219465141"
+   d="scan'208";a="219465169"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.96])
-  by fmsmga002.fm.intel.com with ESMTP; 26 Sep 2019 09:45:32 -0700
+  by fmsmga002.fm.intel.com with ESMTP; 26 Sep 2019 09:45:37 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     dledford@redhat.com, jgg@mellanox.com, gregkh@linuxfoundation.org
 Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [RFC 09/20] RDMA/irdma: Add QoS definitions
-Date:   Thu, 26 Sep 2019 09:45:08 -0700
-Message-Id: <20190926164519.10471-10-jeffrey.t.kirsher@intel.com>
+        linux-rdma@vger.kernel.org,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Subject: [RFC 17/20] RDMA/irdma: Add ABI definitions
+Date:   Thu, 26 Sep 2019 09:45:16 -0700
+Message-Id: <20190926164519.10471-18-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190926164519.10471-1-jeffrey.t.kirsher@intel.com>
 References: <20190926164519.10471-1-jeffrey.t.kirsher@intel.com>
@@ -46,471 +48,181 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Add definitions for managing the RDMA HW work scheduler (WS) tree.
-
-A WS node is created via a control QP operation with the bandwidth
-allocation, arbitration scheme, and traffic class of the QP specified.
-The Qset handle returned associates the QoS parameters for the QP.
-The Qset is registered with the LAN and a equivalent node is created
-in the LAN packet scheduler tree.
+Add ABI definitions for irdma.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- drivers/infiniband/hw/irdma/ws.c | 396 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/ws.h |  40 ++++
- 2 files changed, 436 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/ws.c
- create mode 100644 drivers/infiniband/hw/irdma/ws.h
+ include/uapi/rdma/irdma-abi.h | 159 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 159 insertions(+)
+ create mode 100644 include/uapi/rdma/irdma-abi.h
 
-diff --git a/drivers/infiniband/hw/irdma/ws.c b/drivers/infiniband/hw/irdma/ws.c
+diff --git a/include/uapi/rdma/irdma-abi.h b/include/uapi/rdma/irdma-abi.h
 new file mode 100644
-index 000000000000..8ecebc1f2ec8
+index 000000000000..d8d54e318536
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.c
-@@ -0,0 +1,396 @@
-+// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-+/* Copyright (c) 2019, Intel Corporation. */
-+
-+#include "osdep.h"
-+#include "status.h"
-+#include "hmc.h"
-+#include "defs.h"
-+#include "type.h"
-+#include "protos.h"
-+
-+#include "ws.h"
-+
-+/**
-+ * irdma_alloc_node - Allocate a WS node and init
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ * @node_type: Type of node, leaf or parent
-+ * @parent: parent node pointer
++++ b/include/uapi/rdma/irdma-abi.h
+@@ -0,0 +1,159 @@
++/*
++ * Copyright (c) 2006 - 2019 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
++ * Copyright (c) 2005 Cisco Systems.  All rights reserved.
++ * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
 + */
-+static struct irdma_ws_node *irdma_alloc_node(struct irdma_sc_vsi *vsi,
-+					      u8 user_pri,
-+					      enum irdma_ws_node_type node_type,
-+					      struct irdma_ws_node *parent)
-+{
-+	struct irdma_virt_mem ws_mem;
-+	struct irdma_ws_node *node;
-+	u16 node_index = 0;
 +
-+	ws_mem.size = sizeof(struct irdma_ws_node);
-+	ws_mem.va = kzalloc(ws_mem.size, GFP_ATOMIC);
-+	if (!ws_mem.va)
-+		return NULL;
++#ifndef IRDMA_ABI_H
++#define IRDMA_ABI_H
 +
-+	if (parent || vsi->vm_vf_type == IRDMA_VF_TYPE) {
-+		node_index = irdma_alloc_ws_node_id(vsi->dev);
-+		if (node_index == IRDMA_WS_NODE_INVALID) {
-+			kfree(ws_mem.va);
-+			return NULL;
-+		}
-+	}
++#include <linux/types.h>
 +
-+	node = ws_mem.va;
-+	node->index = node_index;
-+	node->vsi_index = vsi->vsi_idx;
-+	INIT_LIST_HEAD(&node->child_list_head);
-+	if (node_type == WS_NODE_TYPE_LEAF) {
-+		node->type_leaf = true;
-+		node->traffic_class = vsi->qos[user_pri].traffic_class;
-+		node->user_pri = user_pri;
-+		node->rel_bw = vsi->qos[user_pri].rel_bw;
-+		if (!node->rel_bw)
-+			node->rel_bw = 1;
-+
-+		node->lan_qs_handle = vsi->qos[user_pri].lan_qos_handle;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
-+	} else {
-+		node->rel_bw = 1;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
-+	}
-+
-+	node->parent = parent;
-+
-+	return node;
-+}
-+
-+/**
-+ * irdma_free_node - Free a WS node
-+ * @vsi: VSI stricture of device
-+ * @node: Pointer to node to free
++/* irdma must support legacy GEN_1 i40iw kernel
++ * and user-space whose last ABI ver is 5
 + */
-+static void irdma_free_node(struct irdma_sc_vsi *vsi,
-+			    struct irdma_ws_node *node)
-+{
-+	struct irdma_virt_mem ws_mem;
++#define IRDMA_ABI_VER 6
 +
-+	if (node->index)
-+		irdma_free_ws_node_id(vsi->dev, node->index);
-+
-+	ws_mem.va = node;
-+	ws_mem.size = sizeof(struct irdma_ws_node);
-+	kfree(ws_mem.va);
-+}
-+
-+/**
-+ * irdma_ws_cqp_cmd - Post CQP work scheduler node cmd
-+ * @vsi: vsi pointer
-+ * @node: pointer to node
-+ * @cmd: add, remove or modify
-+ */
-+static enum irdma_status_code
-+irdma_ws_cqp_cmd(struct irdma_sc_vsi *vsi, struct irdma_ws_node *node, u8 cmd)
-+{
-+	struct irdma_ws_node_info node_info = {};
-+
-+	node_info.id = node->index;
-+	node_info.vsi = node->vsi_index;
-+	if (node->parent)
-+		node_info.parent_id = node->parent->index;
-+	else
-+		node_info.parent_id = node_info.id;
-+
-+	node_info.weight = node->rel_bw;
-+	node_info.tc = node->traffic_class;
-+	node_info.prio_type = node->prio_type;
-+	node_info.type_leaf = node->type_leaf;
-+	node_info.enable = node->enable;
-+	if (irdma_cqp_ws_node_cmd(vsi->dev, cmd, &node_info)) {
-+		dev_dbg(rfdev_to_dev(vsi->dev), "WS: CQP WS CMD failed\n");
-+		return IRDMA_ERR_NO_MEMORY;
-+	}
-+
-+	if (node->type_leaf && cmd == IRDMA_OP_WS_ADD_NODE) {
-+		node->qs_handle = node_info.qs_handle;
-+		vsi->qos[node->user_pri].qs_handle = node_info.qs_handle;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * ws_find_node - Find SC WS node based on VSI id or TC
-+ * @parent: parent node of First VSI or TC node
-+ * @match_val: value to match
-+ * @type: match type VSI/TC
-+ */
-+static struct irdma_ws_node *ws_find_node(struct irdma_ws_node *parent,
-+					  u16 match_val,
-+					  enum irdma_ws_match_type type)
-+{
-+	struct irdma_ws_node *node;
-+
-+	switch (type) {
-+	case WS_MATCH_TYPE_VSI:
-+		list_for_each_entry(node, &parent->child_list_head, siblings) {
-+			if (node->vsi_index == match_val)
-+				return node;
-+		}
-+		break;
-+	case WS_MATCH_TYPE_TC:
-+		list_for_each_entry(node, &parent->child_list_head, siblings) {
-+			if (node->traffic_class == match_val)
-+				return node;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * irdma_tc_in_use - Checks to see if a leaf node is in use
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+static bool irdma_tc_in_use(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&vsi->qos[user_pri].lock, flags);
-+	if (!list_empty(&vsi->qos[user_pri].qplist)) {
-+		spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+		return true;
-+	}
-+
-+	/* Check if the traffic class associated with the given user priority
-+	 * is in use by any other user priority. If so, nothing left to do
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == vsi->qos[user_pri].traffic_class &&
-+		    !list_empty(&vsi->qos[i].qplist)) {
-+			spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+			return true;
-+		}
-+	}
-+	spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+
-+	return false;
-+}
-+
-+/**
-+ * irdma_remove_leaf - Remove leaf node unconditionally
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+static void irdma_remove_leaf(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	struct irdma_ws_node *ws_tree_root, *vsi_node, *tc_node;
-+
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root)
-+		return;
-+
-+	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+	if (!vsi_node)
-+		return;
-+
-+	tc_node = ws_find_node(vsi_node,
-+			       vsi->qos[user_pri].traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node)
-+		return;
-+
-+	irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_DELETE_NODE);
-+	irdma_lan_unregister_qset(vsi, tc_node);
-+	list_del(&tc_node->siblings);
-+	irdma_free_node(vsi, tc_node);
-+	/* Check if VSI node can be freed */
-+	if (list_empty(&vsi_node->child_list_head)) {
-+		irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE);
-+		list_del(&vsi_node->siblings);
-+		irdma_free_node(vsi, vsi_node);
-+		/* Free head node there are no remaining VSI nodes */
-+		if (list_empty(&ws_tree_root->child_list_head)) {
-+			irdma_ws_cqp_cmd(vsi, ws_tree_root,
-+					 IRDMA_OP_WS_DELETE_NODE);
-+			irdma_free_node(vsi, ws_tree_root);
-+			vsi->dev->ws_tree_root = NULL;
-+		}
-+	}
-+}
-+
-+/**
-+ * irdma_ws_add - Build work scheduler tree, set RDMA qs_handle
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	struct irdma_ws_node *ws_tree_root;
-+	struct irdma_ws_node *vsi_node;
-+	struct irdma_ws_node *tc_node;
-+	u16 traffic_class;
-+	enum irdma_status_code ret = 0;
-+	int i;
-+
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (vsi->tc_change_pending) {
-+		ret = IRDMA_ERR_NOT_READY;
-+		goto exit;
-+	}
-+
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root) {
-+		dev_dbg(rfdev_to_dev(vsi->dev), "WS: Creating root node\n");
-+		ws_tree_root = irdma_alloc_node(vsi, user_pri,
-+						WS_NODE_TYPE_PARENT, NULL);
-+		if (!ws_tree_root) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto exit;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, ws_tree_root);
-+			goto exit;
-+		}
-+
-+		vsi->dev->ws_tree_root = ws_tree_root;
-+	}
-+
-+	/* Find a second tier node that matches the VSI */
-+	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+
-+	/* If VSI node doesn't exist, add one */
-+	if (!vsi_node) {
-+		dev_dbg(rfdev_to_dev(vsi->dev),
-+			"WS: Node not found matching VSI %d\n", vsi->vsi_idx);
-+		vsi_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_PARENT,
-+					    ws_tree_root);
-+		if (!vsi_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto vsi_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, vsi_node);
-+			goto vsi_add_err;
-+		}
-+
-+		list_add(&vsi_node->siblings, &ws_tree_root->child_list_head);
-+	}
-+
-+	dev_dbg(rfdev_to_dev(vsi->dev),
-+		"WS: Using node %d which represents VSI %d\n",
-+		vsi_node->index, vsi->vsi_idx);
-+	traffic_class = vsi->qos[user_pri].traffic_class;
-+	tc_node = ws_find_node(vsi_node, traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node) {
-+		/* Add leaf node */
-+		dev_dbg(rfdev_to_dev(vsi->dev),
-+			"WS: Node not found matching VSI %d and TC %d\n",
-+			vsi->vsi_idx, traffic_class);
-+		tc_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_LEAF,
-+					   vsi_node);
-+		if (!tc_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto leaf_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, tc_node);
-+			goto leaf_add_err;
-+		}
-+
-+		list_add(&tc_node->siblings, &vsi_node->child_list_head);
-+		/*
-+		 * callback to LAN to update the LAN tree with our node
-+		 */
-+		ret = irdma_lan_register_qset(vsi, tc_node);
-+		if (ret)
-+			goto reg_err;
-+
-+		tc_node->enable = true;
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_MODIFY_NODE);
-+		if (ret)
-+			goto reg_err;
-+	}
-+	dev_dbg(rfdev_to_dev(vsi->dev),
-+		"WS: Using node %d which represents VSI %d TC %d\n",
-+		tc_node->index, vsi->vsi_idx, traffic_class);
-+	/*
-+	 * Iterate through other UPs and update the QS handle if they have
-+	 * a matching traffic class.
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == traffic_class) {
-+			vsi->qos[i].qs_handle = tc_node->qs_handle;
-+			vsi->qos[i].lan_qos_handle = tc_node->lan_qs_handle;
-+			vsi->qos[i].l2_sched_node_id = tc_node->l2_sched_node_id;
-+		}
-+	}
-+	goto exit;
-+
-+leaf_add_err:
-+	if (list_empty(&vsi_node->child_list_head)) {
-+		if (irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE))
-+			goto exit;
-+		list_del(&vsi_node->siblings);
-+		irdma_free_node(vsi, vsi_node);
-+	}
-+
-+vsi_add_err:
-+	/* Free head node there are no remaining VSI nodes */
-+	if (list_empty(&ws_tree_root->child_list_head)) {
-+		irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_DELETE_NODE);
-+		vsi->dev->ws_tree_root = NULL;
-+		irdma_free_node(vsi, ws_tree_root);
-+	}
-+
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	return ret;
-+
-+reg_err:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	irdma_ws_remove(vsi, user_pri);
-+	return ret;
-+}
-+
-+/**
-+ * irdma_ws_remove - Free WS scheduler node, update WS tree
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (irdma_tc_in_use(vsi, user_pri))
-+		goto exit;
-+
-+	irdma_remove_leaf(vsi, user_pri);
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+}
-+
-+/**
-+ * irdma_ws_reset - Reset entire WS tree
-+ * @vsi: vsi pointer
-+ */
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi)
-+{
-+	u8 i;
-+
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; ++i)
-+		irdma_remove_leaf(vsi, i);
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+}
-diff --git a/drivers/infiniband/hw/irdma/ws.h b/drivers/infiniband/hw/irdma/ws.h
-new file mode 100644
-index 000000000000..664c9f38b16b
---- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.h
-@@ -0,0 +1,40 @@
-+/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2019, Intel Corporation. */
-+
-+#ifndef IRDMA_WS_H
-+#define IRDMA_WS_H
-+
-+#include "osdep.h"
-+
-+enum irdma_ws_node_type {
-+	WS_NODE_TYPE_PARENT,
-+	WS_NODE_TYPE_LEAF,
++enum irdma_memreg_type {
++	IW_MEMREG_TYPE_MEM  = 0,
++	IW_MEMREG_TYPE_QP   = 1,
++	IW_MEMREG_TYPE_CQ   = 2,
++	IW_MEMREG_TYPE_RSVD = 3,
++	IW_MEMREG_TYPE_MW   = 4,
 +};
 +
-+enum irdma_ws_match_type {
-+	WS_MATCH_TYPE_VSI,
-+	WS_MATCH_TYPE_TC,
++struct irdma_alloc_ucontext_req {
++	__u32 rsvd32;
++	__u8 userspace_ver;
++	__u8 rsvd8[3];
 +};
 +
-+struct irdma_ws_node {
-+	struct list_head siblings;
-+	struct list_head child_list_head;
-+	struct irdma_ws_node *parent;
-+	u64 lan_qs_handle; /* opaque handle used by LAN */
-+	u32 l2_sched_node_id;
-+	u16 index;
-+	u16 qs_handle;
-+	u16 vsi_index;
-+	u8 traffic_class;
-+	u8 user_pri;
-+	u8 rel_bw;
-+	u8 abstraction_layer; /* used for splitting a TC */
-+	u8 prio_type;
-+	bool type_leaf;
-+	bool enable;
++struct i40iw_alloc_ucontext_req {
++	__u32 rsvd32;
++	__u8 userspace_ver;
++	__u8 rsvd8[3];
 +};
 +
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi);
-+#endif /* IRDMA_WS_H */
++struct irdma_alloc_ucontext_resp {
++	__aligned_u64 feature_flags;
++	__u32 max_hw_wq_frags;
++	__u32 max_hw_read_sges;
++	__u32 max_hw_inline;
++	__u32 max_hw_rq_quanta;
++	__u32 max_hw_wq_quanta;
++	__u32 min_hw_cq_size;
++	__u32 max_hw_cq_size;
++	__u32 rsvd1[7];
++	__u16 max_hw_sq_chunk;
++	__u16 rsvd2[11];
++	__u8 kernel_ver;
++	__u8 hw_rev;
++	__u8 rsvd3[6];
++};
++
++struct i40iw_alloc_ucontext_resp {
++	__u32 max_pds;
++	__u32 max_qps;
++	__u32 wq_size; /* size of the WQs (SQ+RQ) in the mmaped area */
++	__u8 kernel_ver;
++	__u8 rsvd[3];
++};
++
++struct irdma_alloc_pd_resp {
++	__u32 pd_id;
++	__u8 rsvd[4];
++};
++
++struct irdma_resize_cq_req {
++	__aligned_u64 user_cq_buffer;
++};
++
++struct irdma_create_cq_req {
++	__aligned_u64 user_cq_buf;
++	__aligned_u64 user_shadow_area;
++};
++
++struct irdma_create_qp_req {
++	__aligned_u64 user_wqe_bufs;
++	__aligned_u64 user_compl_ctx;
++};
++
++struct i40iw_create_qp_req {
++	__aligned_u64 user_wqe_bufs;
++	__aligned_u64 user_compl_ctx;
++};
++
++struct irdma_mem_reg_req {
++	__u16 reg_type; /* Memory, QP or CQ */
++	__u16 cq_pages;
++	__u16 rq_pages;
++	__u16 sq_pages;
++};
++
++struct irdma_create_cq_resp {
++	__u32 cq_id;
++	__u32 cq_size;
++};
++
++struct irdma_create_qp_resp {
++	__u32 qp_id;
++	__u32 actual_sq_size;
++	__u32 actual_rq_size;
++	__u32 irdma_drv_opt;
++	__u32 qp_caps;
++	__u16 rsvd1;
++	__u8 lsmm;
++	__u8 rsvd2;
++};
++
++struct i40iw_create_qp_resp {
++	__u32 qp_id;
++	__u32 actual_sq_size;
++	__u32 actual_rq_size;
++	__u32 i40iw_drv_opt;
++	__u16 push_idx;
++	__u8 lsmm;
++	__u8 rsvd;
++};
++
++struct irdma_modify_qp_resp {
++	__u16 push_idx;
++	__u16 push_offset;
++	__u8 rsvd[4];
++};
++
++struct irdma_create_ah_resp {
++	__u32 ah_id;
++	__u8 rsvd[4];
++};
++#endif /* IRDMA_ABI_H */
 -- 
 2.21.0
 
