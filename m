@@ -1,100 +1,147 @@
-Return-Path: <SRS0=wa48=XW=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=u+Z8=XX=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFEB6C4360C
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Sep 2019 22:37:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 179CCC4360C
+	for <linux-rdma@archiver.kernel.org>; Sat, 28 Sep 2019 05:53:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A1A4421655
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Sep 2019 22:37:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fG+4yMDV"
+	by mail.kernel.org (Postfix) with ESMTP id D6B1C2082F
+	for <linux-rdma@archiver.kernel.org>; Sat, 28 Sep 2019 05:53:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1569650009;
+	bh=aLkH+ZdXUFIBcnSNGNrkMg1yQ10pKKBf+tsQRFofYUE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=sTdTLsxi+9Pn4ptADoIeYZIKNIGm8WGITOl72OneRX2/zp5x77hWgG3R0PzAaFqps
+	 wPqUDsFbKu4Uk6SaKTTmMW5MbeeqPJjsBE1xLZTwmIPNmfR4HvLY/9xWcFG+3xPVYV
+	 LDiJmzv7sbatJ0FdPrVPS+mc7xTDD/64Yeg74vTs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725990AbfI0Whj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 27 Sep 2019 18:37:39 -0400
-Received: from mail-io1-f66.google.com ([209.85.166.66]:45303 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725306AbfI0Whj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Sep 2019 18:37:39 -0400
-Received: by mail-io1-f66.google.com with SMTP id c25so20523594iot.12;
-        Fri, 27 Sep 2019 15:37:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=KJsbedDzJ9he4QxIG59rwsjEIiza9En3mHn6hNsWXYY=;
-        b=fG+4yMDVI7aamOPCQtrzFijl8LlI8DkwqlCNN/DQ5QSvUSI+F7dPUTk7I8gsyOizYj
-         KMXn4v0/GbkqCoOdyD9mUa9gXElJuiba8droHLI1mH0pzNfN98J5yS98LWGVmgFlLf60
-         8DRYT/RvmMfuTlxNdVk88HWmLFjxgvxuyg2ynY/lB+3JpTGX8wa1Ig5SFOrdoPGLnOcc
-         WJGUyLxB+xQ08jbHUpww7k8Xjn2tEm6ZlNTfgxCVqS5D2gIMgzUoidI1MXc+Juf4ug7N
-         +R62JVtMI8d/2RxALavHgXv6pE4GZY+y3XhDaLolr7q9/AbjLHMbRaOAgI8cazidtqLP
-         InMg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=KJsbedDzJ9he4QxIG59rwsjEIiza9En3mHn6hNsWXYY=;
-        b=IicyxFBghcGAVC3260nb67beQ2Pab6YK7NVXtoLuQojCuWyZM5v3vz+ptLip3P1m8t
-         jeA4gGGvj4mrG05JFGwRrIsw52Y86KU8EYG3pQ7gjH2PliiIiZdq2D8ove7wVsDqR+yy
-         rPT/bEdbjuI5dcLaQHMTe2P9jxwEoC3BPTGtefdFyuYtHlR/ce5jGP9gL8OL6wskEKcJ
-         D5GxAHvwYw1mA7wl4C0iD3L5Z/tc6kF5JYokdoBf9WKX6cK+AGAiEnge1G6wSWU6Gc7F
-         OOgiW4fOeVvIfjGn3CpUG+KaO2mmHW9kDwtHMMddHbdh2jTZSXiWER3WO2osjBp+72JO
-         2HWw==
-X-Gm-Message-State: APjAAAUsn64WClix9onbqlf5A/hxiiNzF+mYAZrlL3QacRAgtw/gYI/a
-        wJ41o05HkjGezFJ9qmEJaNc=
-X-Google-Smtp-Source: APXvYqwcqRpB0l7iGwdaF88jD4psj19/i3NVAL0LUs/V4p5ib8sAyMZN/0gVlI6oS8ierQ+80JpdaQ==
-X-Received: by 2002:a6b:4403:: with SMTP id r3mr10878681ioa.2.1569623858759;
-        Fri, 27 Sep 2019 15:37:38 -0700 (PDT)
-Received: from cs-dulles.cs.umn.edu (cs-dulles.cs.umn.edu. [128.101.35.54])
-        by smtp.googlemail.com with ESMTPSA id g68sm1678229ilh.88.2019.09.27.15.37.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Sep 2019 15:37:38 -0700 (PDT)
-From:   Navid Emamdoost <navid.emamdoost@gmail.com>
-Cc:     emamd001@umn.edu, kjlu@umn.edu, smccaman@umn.edu,
-        Navid Emamdoost <navid.emamdoost@gmail.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] net/mlx5: fix memory leak in mlx5_fw_fatal_reporter_dump
-Date:   Fri, 27 Sep 2019 17:37:28 -0500
-Message-Id: <20190927223729.18043-1-navid.emamdoost@gmail.com>
-X-Mailer: git-send-email 2.17.1
-To:     unlisted-recipients:; (no To-header on input)
+        id S1725818AbfI1Fx3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 28 Sep 2019 01:53:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57426 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725856AbfI1Fx2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 28 Sep 2019 01:53:28 -0400
+Received: from localhost (unknown [77.137.89.37])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 256222081B;
+        Sat, 28 Sep 2019 05:53:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1569650007;
+        bh=aLkH+ZdXUFIBcnSNGNrkMg1yQ10pKKBf+tsQRFofYUE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=tC8wWFASvdAwXxb1tq5/NbfGDjw8Fu64StyGXFnwkdea8uJ8yfHEev2RAZ9ydTIhc
+         oeTDtpwsJZ2V78NTTjk4fIDTnOvF64WweqIdAw7jefT2WQtGgEuJxEo0e6Sccostth
+         M9bi1MkOp9rOisSlHyCcbwHS78RI/pm3FcOZ9tdU=
+Date:   Sat, 28 Sep 2019 08:53:22 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Cc:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@mellanox.com" <jgg@mellanox.com>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: [RFC 15/20] RDMA/irdma: Add miscellaneous utility definitions
+Message-ID: <20190928055322.GH14368@unreal>
+References: <20190926164519.10471-1-jeffrey.t.kirsher@intel.com>
+ <20190926164519.10471-16-jeffrey.t.kirsher@intel.com>
+ <20190926174948.GE14368@unreal>
+ <9DD61F30A802C4429A01CA4200E302A7AC702BC6@fmsmsx123.amr.corp.intel.com>
+ <20190927044653.GF14368@unreal>
+ <9DD61F30A802C4429A01CA4200E302A7AC704647@fmsmsx123.amr.corp.intel.com>
+ <20190927182346.GE1804168@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190927182346.GE1804168@kroah.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In mlx5_fw_fatal_reporter_dump if mlx5_crdump_collect fails the
-allocated memory for cr_data must be released otherwise there will be
-memory leak. To fix this, this commit changes the return instruction
-into goto error handling.
+On Fri, Sep 27, 2019 at 08:23:46PM +0200, gregkh@linuxfoundation.org wrote:
+> On Fri, Sep 27, 2019 at 02:28:20PM +0000, Saleem, Shiraz wrote:
+> > > Subject: Re: [RFC 15/20] RDMA/irdma: Add miscellaneous utility definitions
+> > >
+> > > On Thu, Sep 26, 2019 at 07:49:33PM +0000, Saleem, Shiraz wrote:
+> > > > > Subject: Re: [RFC 15/20] RDMA/irdma: Add miscellaneous utility
+> > > > > definitions
+> > > > >
+> > > > > On Thu, Sep 26, 2019 at 09:45:14AM -0700, Jeff Kirsher wrote:
+> > > > > > From: Mustafa Ismail <mustafa.ismail@intel.com>
+> > > > > >
+> > > > > > Add miscellaneous utility functions and headers.
+> > > > > >
+> > > > > > Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+> > > > > > Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> > > > > > ---
+> > > > > >  drivers/infiniband/hw/irdma/osdep.h  |  108 ++
+> > > > > >  drivers/infiniband/hw/irdma/protos.h |   96 ++
+> > > > > >  drivers/infiniband/hw/irdma/status.h |   70 +
+> > > > > >  drivers/infiniband/hw/irdma/utils.c  | 2333
+> > > > > > ++++++++++++++++++++++++++
+> > > > > >  4 files changed, 2607 insertions(+)  create mode 100644
+> > > > > > drivers/infiniband/hw/irdma/osdep.h
+> > > > > >  create mode 100644 drivers/infiniband/hw/irdma/protos.h
+> > > > > >  create mode 100644 drivers/infiniband/hw/irdma/status.h
+> > > > > >  create mode 100644 drivers/infiniband/hw/irdma/utils.c
+> > > > > >
+> > > > > > diff --git a/drivers/infiniband/hw/irdma/osdep.h
+> > > > > > b/drivers/infiniband/hw/irdma/osdep.h
+> > > > > > new file mode 100644
+> > > > > > index 000000000000..5885b6fa413d
+> > > > > > --- /dev/null
+> > > > > > +++ b/drivers/infiniband/hw/irdma/osdep.h
+> > > > > > @@ -0,0 +1,108 @@
+> > > > > > +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
+> > > > > > +/* Copyright (c) 2019, Intel Corporation. */
+> > > > > > +
+> > > > > > +#ifndef IRDMA_OSDEP_H
+> > > > > > +#define IRDMA_OSDEP_H
+> > > > > > +
+> > > > > > +#include <linux/version.h>
+> > > > > > +#include <linux/kernel.h>
+> > > > > > +#include <linux/vmalloc.h>
+> > > > > > +#include <linux/string.h>
+> > > > > > +#include <linux/bitops.h>
+> > > > > > +#include <linux/pci.h>
+> > > > > > +#include <net/tcp.h>
+> > > > > > +#include <crypto/hash.h>
+> > > > > > +/* get readq/writeq support for 32 bit kernels, use the low-first
+> > > > > > +version */ #include <linux/io-64-nonatomic-lo-hi.h>
+> > > > > > +
+> > > > > > +#define MAKEMASK(m, s) ((m) << (s))
+> > > > >
+> > > > > It is a little bit over-macro.
+> > > > >
+> > > >
+> > > > Why is this a problem?
+> > > > We are not translating any basic kernel construct here.
+> > >
+> > > See BIT() definition.
+> > >
+> > OK. And?
+>
+> And you just re-created GENMASK().  Please use in-kernel definitions
+> instead of creating your own.
 
-Fixes: 9b1f29823605 ("net/mlx5: Add support for FW fatal reporter dump")
+More on that, they also redefined so basic C-operation that it looks
+embarrassing. I tried to find any advantages of doing that and failed.
+ * Does it save typing (less to type) significantly ? - No
+ * Is it different between compilers/archs? - No
+ * Is it so tricky that average developer needs helper? - No
 
-Signed-off-by: Navid Emamdoost <navid.emamdoost@gmail.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/health.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
-index d685122d9ff7..c07f3154437c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
-@@ -572,7 +572,7 @@ mlx5_fw_fatal_reporter_dump(struct devlink_health_reporter *reporter,
- 		return -ENOMEM;
- 	err = mlx5_crdump_collect(dev, cr_data);
- 	if (err)
--		return err;
-+		goto free_data;
- 
- 	if (priv_ctx) {
- 		struct mlx5_fw_reporter_ctx *fw_reporter_ctx = priv_ctx;
--- 
-2.17.1
-
+>
+> thanks,
+>
+> greg k-h
