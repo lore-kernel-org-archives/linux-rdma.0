@@ -1,106 +1,191 @@
-Return-Path: <SRS0=u+Z8=XX=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=Ml00=XY=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7BF7C4360C
-	for <linux-rdma@archiver.kernel.org>; Sat, 28 Sep 2019 19:12:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC1CC4360C
+	for <linux-rdma@archiver.kernel.org>; Sun, 29 Sep 2019 08:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8135A2082F
-	for <linux-rdma@archiver.kernel.org>; Sat, 28 Sep 2019 19:12:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="AuPNQAQZ"
+	by mail.kernel.org (Postfix) with ESMTP id C9EE021835
+	for <linux-rdma@archiver.kernel.org>; Sun, 29 Sep 2019 08:32:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728621AbfI1TMx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 28 Sep 2019 15:12:53 -0400
-Received: from mail-eopbgr130085.outbound.protection.outlook.com ([40.107.13.85]:38038
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        id S1728877AbfI2Icp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 29 Sep 2019 04:32:45 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:49908 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728569AbfI1TMx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 28 Sep 2019 15:12:53 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=gC5tw/5tsXZyAryQ0zya+AJ2pInfTvJeAY54fczhvWShkmCGx5StQuFbqMIGAdy6Zx3bcsrVUed6sn2RFjJxOqwYIAW9/KJ7tBhRViejg3HNuFt9FJ74o2XomhDuTMxm/mfrer5PS/0O6QWqPrCuzz53CJqu62eMP3uMY7rNTuzzO00MW5jYAWXsEXPwBSU8y4eiGzLZab613sA2dVUqlmspnb+qf1daJMsJ7CL9zd0kTMNTyEKj2GO0VF4SnCLzvB3ilKh0HtYC1VMKNz9tSKjEemtJ4J8uvJjxCdGYEhlYsHcabVTmWYYjNHiJpIZQgF7FLB0gShCeph4dVW674Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xdaveTsVdccxdju6Nil7UfMEQ6pkxeNW85A2B94dnGg=;
- b=GgJW9LScgHDbGXQFW1AbdQEXGqi843Uc2/vKc/nDhZX+Io136dd5/wGVr4BeMQ57n4fyDCWUJhnrs77hKL/Zt+SZ3N+ZBQ9aTwvCudtqtmVxgFQJDPEXmHSN4cLuVOF5EVU8NuMOYJgh+QH6MZnDMG0tzXHEOy8Yy81Gw/b9ucuycpcqfveqH8//+dwbruC8MHm+yvD7zFbt1WGC/JO8yvE4JiQ0+tb0tFsIpizVyzXJZTCa/u/nMhtDHNuY2uLNGqmkW7wD61VJTHT28jH1zh71FrKvuKRlc7QMmGXi2uiJUEU5dCu43twTfgcd3faz7lwZJnw5ovhw/fK8lR9/7g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xdaveTsVdccxdju6Nil7UfMEQ6pkxeNW85A2B94dnGg=;
- b=AuPNQAQZVxp6iI9tadjR2B248q7ux/iWCm7cECV/VeCX8U6Q3jjyoUSiLJVFZJd8Unk0lb0r5wHkj264F+1pvo2il1bpGcrrjxaFZnMMnpMPARhblWkRbZl74x1RpMUcZUq0hc7t6FzFc3JT8YWPWb0FxQvw4ihNA3oqWGY0EpY=
-Received: from AM0PR05MB6115.eurprd05.prod.outlook.com (20.178.202.155) by
- AM0PR05MB6641.eurprd05.prod.outlook.com (10.141.190.19) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2305.15; Sat, 28 Sep 2019 19:12:50 +0000
-Received: from AM0PR05MB6115.eurprd05.prod.outlook.com
- ([fe80::89f6:397a:dad7:e455]) by AM0PR05MB6115.eurprd05.prod.outlook.com
- ([fe80::89f6:397a:dad7:e455%5]) with mapi id 15.20.2305.017; Sat, 28 Sep 2019
- 19:12:50 +0000
-From:   Yossi Itigin <yosefe@mellanox.com>
-To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: 2019 UCX and RDMA Annual Developers Meeting
-Thread-Topic: 2019 UCX and RDMA Annual Developers Meeting
-Thread-Index: AdV2MHuFApkTf3bHTQeqqCcemzHDEw==
-Date:   Sat, 28 Sep 2019 19:12:49 +0000
-Message-ID: <AM0PR05MB61157D44C2A2AE219418AC7EA6800@AM0PR05MB6115.eurprd05.prod.outlook.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=yosefe@mellanox.com; 
-x-originating-ip: [176.231.4.193]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 169a5f20-b062-42eb-571c-08d74447dacf
-x-ms-office365-filtering-ht: Tenant
-x-ms-traffictypediagnostic: AM0PR05MB6641:
-x-ms-exchange-purlcount: 1
-x-microsoft-antispam-prvs: <AM0PR05MB6641C86C1E2AAC594E346E51A6800@AM0PR05MB6641.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8882;
-x-forefront-prvs: 0174BD4BDA
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(136003)(366004)(39850400004)(376002)(396003)(199004)(189003)(476003)(6916009)(6506007)(25786009)(4744005)(102836004)(66946007)(2501003)(26005)(64756008)(66556008)(66476007)(256004)(7736002)(76116006)(486006)(33656002)(305945005)(66446008)(5640700003)(71190400001)(7696005)(5660300002)(71200400001)(93376004)(478600001)(2906002)(99286004)(966005)(2351001)(316002)(9686003)(6306002)(8936002)(55016002)(52536014)(81156014)(81166006)(8676002)(6116002)(74316002)(6436002)(86362001)(66066001)(186003)(3846002)(14454004)(15302535012);DIR:OUT;SFP:1101;SCL:1;SRVR:AM0PR05MB6641;H:AM0PR05MB6115.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: weCqbEESM8xYLmoBzrs7kGq/qqwCpZNkR3nbi9ReiLsgMBUm4L2mi11UsMZq9SGDkNKEMB55ezvFUDlsFeXUyBheuaR+srtIvmgmOd44AylfTCQVzt0AbqxjBZ7Lxq55w8bBSMUEVMjzwfNv7OegR11MuOgQYSWG5kp2s2trLHX14XQKYHfj3wwii6ZY/6d68kr6hS1gUxIPosRzoqs/ZlnLIN5AG/hKcWDkgkGraElbfuC1hr4mmhy06SN+hVUI6NWnH9UvP27MNspMdPRy6XvwpAvx1qBy8kx39CoIG53+4+6yPCXZU9soXhKsPvOHRqLilKv74B9uBrTahRL5F46BT/Vu+pmxB2Fm8G1wUPZ+PeZpDvD3oOUoAmeHGoGQsbu6eEEOTGedX5a3fH2eMUodBt0PCcln/qt9ajJl6Iiw4I1WKRNOfpT/7Wb1j6wCszzk/Cp2JQ97XjBZ3aov+g==
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S1728534AbfI2Ico (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 29 Sep 2019 04:32:44 -0400
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 35443CDE84216671EA8D;
+        Sun, 29 Sep 2019 16:32:43 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
+ 14.3.439.0; Sun, 29 Sep 2019 16:32:37 +0800
+From:   Weihang Li <liweihang@hisilicon.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
+Subject: [PATCH v4 rdma-core 1/4] libhns: Add support of handling AH for hip08
+Date:   Sun, 29 Sep 2019 16:29:11 +0800
+Message-ID: <1569745754-45346-2-git-send-email-liweihang@hisilicon.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1569745754-45346-1-git-send-email-liweihang@hisilicon.com>
+References: <1569745754-45346-1-git-send-email-liweihang@hisilicon.com>
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 169a5f20-b062-42eb-571c-08d74447dacf
-X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Sep 2019 19:12:49.9753
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: wzQMgvXc6s50bcnoKmsf1HpRKzAaBFyPRwlv1j+apr8WK/IgBxNKNcnRxFaasJGUl2BXV1op9cNnQWOTKCc6SA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB6641
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+From: Lijun Ou <oulijun@huawei.com>
 
-The UCF consortium will host the 2019 UCX and RDMA Annual Developers Meetin=
-g on December 9-12, at the Arm facilities, Austin, TX.
+This patch achieves two verbs create_ah and destroy_ah to support
+allocation and destruction of Address Handle.
 
-The three days meeting will cover UCX and RDMA related topics. You can find=
- the latest agenda on http://www.ucfconsortium.org/annual-meeting, as well =
-as logistics and a registration form.
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+---
+ providers/hns/hns_roce_u.c       |  2 ++
+ providers/hns/hns_roce_u.h       | 30 +++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u_verbs.c | 41 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 73 insertions(+)
 
-Please contact me for any questions, or requests for other topics.
-
-Regards,
-Yossi Itigin
+diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
+index 5872599..8ba41de 100644
+--- a/providers/hns/hns_roce_u.c
++++ b/providers/hns/hns_roce_u.c
+@@ -81,6 +81,8 @@ static const struct verbs_context_ops hns_common_ops = {
+ 	.modify_srq = hns_roce_u_modify_srq,
+ 	.query_srq = hns_roce_u_query_srq,
+ 	.destroy_srq = hns_roce_u_destroy_srq,
++	.create_ah = hns_roce_u_create_ah,
++	.destroy_ah = hns_roce_u_destroy_ah,
+ };
+ 
+ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index 23e0f13..45472fe 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -68,6 +68,8 @@
+ #define HNS_ROCE_TPTR_OFFSET		0x1000
+ #define HNS_ROCE_STATIC_RATE		3 /* Gbps */
+ 
++#define	ETH_ALEN			6
++
+ #define roce_get_field(origin, mask, shift) \
+ 	(((le32toh(origin)) & (mask)) >> (shift))
+ 
+@@ -244,6 +246,25 @@ struct hns_roce_qp {
+ 	unsigned long			flags;
+ };
+ 
++struct hns_roce_av {
++	uint8_t				port;
++	uint8_t				gid_index;
++	uint8_t				static_rate;
++	uint8_t				hop_limit;
++	uint32_t			flowlabel;
++	uint8_t				sl;
++	uint8_t				tclass;
++	uint8_t				dgid[HNS_ROCE_GID_SIZE];
++	uint8_t				mac[ETH_ALEN];
++	uint16_t			vlan_id;
++	uint8_t				vlan_en;
++};
++
++struct hns_roce_ah {
++	struct ibv_ah			ibv_ah;
++	struct hns_roce_av		av;
++};
++
+ struct hns_roce_u_hw {
+ 	uint32_t hw_version;
+ 	struct verbs_context_ops hw_ops;
+@@ -280,6 +301,11 @@ static inline struct  hns_roce_qp *to_hr_qp(struct ibv_qp *ibv_qp)
+ 	return container_of(ibv_qp, struct hns_roce_qp, ibv_qp);
+ }
+ 
++static inline struct hns_roce_ah *to_hr_ah(struct ibv_ah *ibv_ah)
++{
++	return container_of(ibv_ah, struct hns_roce_ah, ibv_ah);
++}
++
+ int hns_roce_u_query_device(struct ibv_context *context,
+ 			    struct ibv_device_attr *attr);
+ int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
+@@ -319,6 +345,10 @@ struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
+ int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
+ 			int attr_mask, struct ibv_qp_init_attr *init_attr);
+ 
++struct ibv_ah *hns_roce_u_create_ah(struct ibv_pd *pd,
++				    struct ibv_ah_attr *attr);
++int hns_roce_u_destroy_ah(struct ibv_ah *ah);
++
+ int hns_roce_alloc_buf(struct hns_roce_buf *buf, unsigned int size,
+ 		       int page_size);
+ void hns_roce_free_buf(struct hns_roce_buf *buf);
+diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
+index 9d222c0..ef4b9e0 100644
+--- a/providers/hns/hns_roce_u_verbs.c
++++ b/providers/hns/hns_roce_u_verbs.c
+@@ -38,6 +38,7 @@
+ #include <sys/mman.h>
+ #include <ccan/ilog.h>
+ #include <ccan/minmax.h>
++#include <ccan/array_size.h>
+ #include <util/util.h>
+ #include "hns_roce_u.h"
+ #include "hns_roce_u_abi.h"
+@@ -952,3 +953,43 @@ int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
+ 
+ 	return ret;
+ }
++
++struct ibv_ah *hns_roce_u_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
++{
++	struct hns_roce_ah *ah;
++
++	ah = calloc(1, sizeof(*ah));
++	if (!ah)
++		return NULL;
++
++	ah->av.port = attr->port_num;
++	ah->av.sl = attr->sl;
++
++	if (attr->static_rate)
++		ah->av.static_rate = IBV_RATE_10_GBPS;
++
++	if (attr->is_global) {
++		ah->av.gid_index = attr->grh.sgid_index;
++		ah->av.hop_limit = attr->grh.hop_limit;
++		ah->av.tclass = attr->grh.traffic_class;
++		ah->av.flowlabel = attr->grh.flow_label;
++
++		memcpy(ah->av.dgid, attr->grh.dgid.raw,
++		       ARRAY_SIZE(ah->av.dgid));
++	}
++
++	return &ah->ibv_ah;
++}
++
++int hns_roce_u_destroy_ah(struct ibv_ah *ah)
++{
++	int ret;
++
++	ret = ibv_cmd_destroy_ah(ah);
++	if (ret)
++		return ret;
++
++	free(to_hr_ah(ah));
++
++	return 0;
++}
+-- 
+2.8.1
 
