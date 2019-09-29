@@ -2,589 +2,87 @@ Return-Path: <SRS0=Ml00=XY=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5476BC352A9
-	for <linux-rdma@archiver.kernel.org>; Sun, 29 Sep 2019 08:32:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85607C4360C
+	for <linux-rdma@archiver.kernel.org>; Sun, 29 Sep 2019 09:28:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 21E1221835
-	for <linux-rdma@archiver.kernel.org>; Sun, 29 Sep 2019 08:32:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A332207FA
+	for <linux-rdma@archiver.kernel.org>; Sun, 29 Sep 2019 09:28:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SUVfiIRP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725906AbfI2Icx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 29 Sep 2019 04:32:53 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3231 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728913AbfI2Icx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 29 Sep 2019 04:32:53 -0400
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 4DEDDC7F8D41EBC7264D;
-        Sun, 29 Sep 2019 16:32:48 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.439.0; Sun, 29 Sep 2019 16:32:37 +0800
-From:   Weihang Li <liweihang@hisilicon.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v4 rdma-core 3/4] libhns: Refactor for post send
-Date:   Sun, 29 Sep 2019 16:29:13 +0800
-Message-ID: <1569745754-45346-4-git-send-email-liweihang@hisilicon.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1569745754-45346-1-git-send-email-liweihang@hisilicon.com>
-References: <1569745754-45346-1-git-send-email-liweihang@hisilicon.com>
+        id S1725974AbfI2J2x (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 29 Sep 2019 05:28:53 -0400
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:37193 "EHLO
+        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725924AbfI2J2x (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 29 Sep 2019 05:28:53 -0400
+Received: by mail-yw1-f65.google.com with SMTP id u65so2457081ywe.4;
+        Sun, 29 Sep 2019 02:28:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=LhqJy+3E+saXTZH05/yHEc9OZ1EPzeScFRjq1EhuFKY=;
+        b=SUVfiIRPjJYBCgAG6b/jkbsZBh8Pt5tkrR1SNdVcUeovQSuPGe2r888pdOn1zYIk4f
+         tLSgxvm5Db86SbdsOPN7guECTghcoJaQJIqNEDqerY8md3sis3DODubfVbMF7y/uDziJ
+         hxU3csMf9gWpHKrvldBsU+kLWMju78P8XDmAcjg/HV5vdrh3WrcmQxAHUX5Pe1ClH3bV
+         IYnup343opYNSdPE3n5WINJk6zdje1tkwmUU7TQeHDImNinE/JdXosj67luUI5QrF0Po
+         dA3JsPqRq177/PS/1LZV15iDt62psOU6qFTeWreKGzn+HeFABib4+9gRoy8VQujp3HE5
+         hvUw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=LhqJy+3E+saXTZH05/yHEc9OZ1EPzeScFRjq1EhuFKY=;
+        b=ChTS4uHqgEj8jlp/Zfe+V3YYGRomH8J8hiQ/xduXHxtd66t/BXMMc3wer3B2oyLlrS
+         TgmHGpgsxmCq4gO2SXIrWxI9tpoiEaWrzdTaXgpxvJTZMBjJ9MmE5Y1bm9At07JVjOws
+         KkxHuptCFt0mxLDEgRk77V0GfyZOa3s8X94LnlR+T/xbyMvRxnsBshx2Qf+sOREWA6dc
+         /fHTxFPRPTmDWWwq5zntMP1uPMv46w+qdYfj5bFsta+pAErbwQDsWBY1QqALfxwyunqO
+         JFpUIpfMFa3/JLCR4t0TaHO7YKGpFJsgxQSfVNCEcvDYMOmW9wm3HiQq4ZJCnE5fyNR6
+         8lHg==
+X-Gm-Message-State: APjAAAU6V1zj4fv/jZXBUcKC4wzSZxKfrCUBx+yWqGiTb8k7yVtZN1S+
+        mUG48+YuwGMVBO6q7JICyjyuwATPBSp2NbMDGMQ=
+X-Google-Smtp-Source: APXvYqwXCmu2mATLgc/3/EkZUKydu74jEomPES8eFT1J9JvSUr9NxL9rPnKEAEjkZyKnFbATlstg5uK7HkLy3nU5bR8=
+X-Received: by 2002:a0d:d605:: with SMTP id y5mr9542930ywd.510.1569749330770;
+ Sun, 29 Sep 2019 02:28:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+References: <20190926164519.10471-1-jeffrey.t.kirsher@intel.com>
+In-Reply-To: <20190926164519.10471-1-jeffrey.t.kirsher@intel.com>
+From:   Or Gerlitz <gerlitz.or@gmail.com>
+Date:   Sun, 29 Sep 2019 12:28:39 +0300
+Message-ID: <CAJ3xEMgJrj3JT-NS7xf8cpAWrQzDi-UAQ0f8S1rsk9Mv7jCsgA@mail.gmail.com>
+Subject: Re: [RFC 00/20] Intel RDMA/IDC Driver series
+To:     Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linux Netdev List <netdev@vger.kernel.org>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+On Thu, Sep 26, 2019 at 7:46 PM Jeff Kirsher
+<jeffrey.t.kirsher@intel.com> wrote:
+> This series is sent out as an RFC to verify that our implementation of
+> the MFD subsystem is correct to facilitate inner driver communication
+> (IDC) between the new "irdma" driver to support Intel's ice and i40e
+> drivers.
+>
+> The changes contain the modified ice and i40e driver changes using the
+> MFD subsystem.  It also contains the new irdma driver which is replacing
+> the i40iw driver and supports both the i40e and ice drivers.
 
-This patch refactors the interface of hns_roce_u_v2_post_send, which
-is now very complicated. We reduce the complexity with following points:
-1. Separate RC server into a function.
-2. Simplify and separate the process of sge.
-3. Keep the logic and consistence of all operations.
+Hi Jeff,
 
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
----
- providers/hns/hns_roce_u.h       |  10 +
- providers/hns/hns_roce_u_hw_v2.c | 433 +++++++++++++++++----------------------
- 2 files changed, 195 insertions(+), 248 deletions(-)
+Can this be fetched from somewhere? didn't see a related branch at
+your trees with these bits..
 
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 45472fe..27e6704 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -70,6 +70,9 @@
- 
- #define	ETH_ALEN			6
- 
-+#define HNS_ROCE_ADDRESS_MASK		0xFFFFFFFF
-+#define HNS_ROCE_ADDRESS_SHIFT		32
-+
- #define roce_get_field(origin, mask, shift) \
- 	(((le32toh(origin)) & (mask)) >> (shift))
- 
-@@ -206,6 +209,13 @@ struct hns_roce_wq {
- 	int				offset;
- };
- 
-+/* record the result of sge process */
-+struct hns_roce_sge_info {
-+	unsigned int		valid_num; /* sge length is not 0 */
-+	unsigned int		start_idx; /* start position of extend sge */
-+	unsigned int		total_len; /* total length of valid sges */
-+};
-+
- struct hns_roce_sge_ex {
- 	int				offset;
- 	unsigned int			sge_cnt;
-diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 439e547..50057e3 100644
---- a/providers/hns/hns_roce_u_hw_v2.c
-+++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -609,28 +609,194 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 	return 0;
- }
- 
-+static void set_sge(struct hns_roce_v2_wqe_data_seg *dseg,
-+		    struct hns_roce_qp *qp, struct ibv_send_wr *wr,
-+		    struct hns_roce_sge_info *sge_info)
-+{
-+	int i;
-+
-+	sge_info->valid_num = 0;
-+	sge_info->total_len = 0;
-+
-+	for (i = 0; i < wr->num_sge; i++)
-+		if (likely(wr->sg_list[i].length)) {
-+			sge_info->total_len += wr->sg_list[i].length;
-+			sge_info->valid_num++;
-+
-+			/* No inner sge in UD wqe */
-+			if (sge_info->valid_num <= HNS_ROCE_SGE_IN_WQE &&
-+			    qp->ibv_qp.qp_type != IBV_QPT_UD) {
-+				set_data_seg_v2(dseg, wr->sg_list + i);
-+				dseg++;
-+			} else {
-+				dseg = get_send_sge_ex(qp, sge_info->start_idx &
-+						       (qp->sge.sge_cnt - 1));
-+				set_data_seg_v2(dseg, wr->sg_list + i);
-+				sge_info->start_idx++;
-+			}
-+		}
-+}
-+
-+static int set_rc_wqe(void *wqe, struct hns_roce_qp *qp, struct ibv_send_wr *wr,
-+		      int nreq, struct hns_roce_sge_info *sge_info)
-+{
-+	struct hns_roce_rc_sq_wqe *rc_sq_wqe = wqe;
-+	struct hns_roce_v2_wqe_data_seg *dseg;
-+	int hr_op;
-+	int i;
-+
-+	memset(rc_sq_wqe, 0, sizeof(struct hns_roce_rc_sq_wqe));
-+
-+	switch (wr->opcode) {
-+	case IBV_WR_RDMA_READ:
-+		hr_op = HNS_ROCE_WQE_OP_RDMA_READ;
-+		rc_sq_wqe->va = htole64(wr->wr.rdma.remote_addr);
-+		rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
-+		break;
-+	case IBV_WR_RDMA_WRITE:
-+		hr_op = HNS_ROCE_WQE_OP_RDMA_WRITE;
-+		rc_sq_wqe->va =	htole64(wr->wr.rdma.remote_addr);
-+		rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
-+		break;
-+	case IBV_WR_RDMA_WRITE_WITH_IMM:
-+		hr_op = HNS_ROCE_WQE_OP_RDMA_WRITE_WITH_IMM;
-+		rc_sq_wqe->va =	htole64(wr->wr.rdma.remote_addr);
-+		rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
-+		rc_sq_wqe->immtdata = htole32(be32toh(wr->imm_data));
-+		break;
-+	case IBV_WR_SEND:
-+		hr_op = HNS_ROCE_WQE_OP_SEND;
-+		break;
-+	case IBV_WR_SEND_WITH_INV:
-+		hr_op = HNS_ROCE_WQE_OP_SEND_WITH_INV;
-+		rc_sq_wqe->inv_key = htole32(wr->invalidate_rkey);
-+		break;
-+	case IBV_WR_SEND_WITH_IMM:
-+		hr_op = HNS_ROCE_WQE_OP_SEND_WITH_IMM;
-+		rc_sq_wqe->immtdata = htole32(be32toh(wr->imm_data));
-+		break;
-+	case IBV_WR_LOCAL_INV:
-+		hr_op = HNS_ROCE_WQE_OP_LOCAL_INV;
-+		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_SO_S, 1);
-+		rc_sq_wqe->inv_key = htole32(wr->invalidate_rkey);
-+		break;
-+	case IBV_WR_BIND_MW:
-+		hr_op = HNS_ROCE_WQE_OP_BIND_MW_TYPE;
-+		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_MW_TYPE_S,
-+			     wr->bind_mw.mw->type - 1);
-+		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_ATOMIC_S,
-+			     (wr->bind_mw.bind_info.mw_access_flags &
-+			     IBV_ACCESS_REMOTE_ATOMIC) ? 1 : 0);
-+		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_RDMA_READ_S,
-+			     (wr->bind_mw.bind_info.mw_access_flags &
-+			     IBV_ACCESS_REMOTE_READ) ? 1 : 0);
-+		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_RDMA_WRITE_S,
-+			     (wr->bind_mw.bind_info.mw_access_flags &
-+			     IBV_ACCESS_REMOTE_WRITE) ? 1 : 0);
-+		rc_sq_wqe->new_rkey = htole32(wr->bind_mw.rkey);
-+		rc_sq_wqe->byte_16 = htole32(wr->bind_mw.bind_info.length &
-+					     HNS_ROCE_ADDRESS_MASK);
-+		rc_sq_wqe->byte_20 = htole32(wr->bind_mw.bind_info.length >>
-+					     HNS_ROCE_ADDRESS_SHIFT);
-+		rc_sq_wqe->rkey = htole32(wr->bind_mw.bind_info.mr->rkey);
-+		rc_sq_wqe->va = htole64(wr->bind_mw.bind_info.addr);
-+		break;
-+	case IBV_WR_ATOMIC_CMP_AND_SWP:
-+		hr_op = HNS_ROCE_WQE_OP_ATOMIC_COM_AND_SWAP;
-+		rc_sq_wqe->rkey = htole32(wr->wr.atomic.rkey);
-+		rc_sq_wqe->va = htole64(wr->wr.atomic.remote_addr);
-+		break;
-+	case IBV_WR_ATOMIC_FETCH_AND_ADD:
-+		hr_op = HNS_ROCE_WQE_OP_ATOMIC_FETCH_AND_ADD;
-+		rc_sq_wqe->rkey = htole32(wr->wr.atomic.rkey);
-+		rc_sq_wqe->va =	htole64(wr->wr.atomic.remote_addr);
-+		break;
-+	default:
-+		hr_op = HNS_ROCE_WQE_OP_MASK;
-+		fprintf(stderr, "Not supported transport opcode %d\n",
-+			wr->opcode);
-+		return -EINVAL;
-+	}
-+
-+	roce_set_field(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_OPCODE_M,
-+		       RC_SQ_WQE_BYTE_4_OPCODE_S, hr_op);
-+
-+	roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_CQE_S,
-+		     (wr->send_flags & IBV_SEND_SIGNALED) ? 1 : 0);
-+
-+	roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_FENCE_S,
-+		     (wr->send_flags & IBV_SEND_FENCE) ? 1 : 0);
-+
-+	roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_SE_S,
-+		     (wr->send_flags & IBV_SEND_SOLICITED) ? 1 : 0);
-+
-+	roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_OWNER_S,
-+		     ~(((qp->sq.head + nreq) >> qp->sq.shift) & 0x1));
-+
-+	roce_set_field(rc_sq_wqe->byte_20,
-+		       RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_M,
-+		       RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_S,
-+		       sge_info->start_idx & (qp->sge.sge_cnt - 1));
-+
-+	if (wr->opcode == IBV_WR_BIND_MW)
-+		return 0;
-+
-+	wqe += sizeof(struct hns_roce_rc_sq_wqe);
-+	dseg = wqe;
-+
-+	set_sge(dseg, qp, wr, sge_info);
-+
-+	rc_sq_wqe->msg_len = htole32(sge_info->total_len);
-+
-+	roce_set_field(rc_sq_wqe->byte_16, RC_SQ_WQE_BYTE_16_SGE_NUM_M,
-+		       RC_SQ_WQE_BYTE_16_SGE_NUM_S, sge_info->valid_num);
-+
-+	if (wr->opcode == IBV_WR_ATOMIC_FETCH_AND_ADD ||
-+	    wr->opcode == IBV_WR_ATOMIC_CMP_AND_SWP) {
-+		dseg++;
-+		set_atomic_seg((struct hns_roce_wqe_atomic_seg *)dseg, wr);
-+		return 0;
-+	}
-+
-+	if (wr->send_flags & IBV_SEND_INLINE) {
-+		if (wr->opcode == IBV_WR_RDMA_READ) {
-+			fprintf(stderr, "Not supported inline data!\n");
-+			return -EINVAL;
-+		}
-+
-+		if (sge_info->total_len > qp->max_inline_data) {
-+			fprintf(stderr,
-+				"Failed to inline, data len=%d, max inline len=%d!\n",
-+				sge_info->total_len, qp->max_inline_data);
-+			return -EINVAL;
-+		}
-+
-+		for (i = 0; i < wr->num_sge; i++) {
-+			memcpy(dseg, (void *)(uintptr_t)(wr->sg_list[i].addr),
-+			       wr->sg_list[i].length);
-+			dseg += wr->sg_list[i].length;
-+		}
-+		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_INLINE_S, 1);
-+	}
-+
-+	return 0;
-+}
-+
- int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			    struct ibv_send_wr **bad_wr)
- {
- 	struct hns_roce_context *ctx = to_hr_ctx(ibvqp->context);
- 	struct hns_roce_qp *qp = to_hr_qp(ibvqp);
--	struct hns_roce_v2_wqe_data_seg *dseg;
--	struct hns_roce_rc_sq_wqe *rc_sq_wqe;
-+	struct hns_roce_sge_info sge_info = {};
- 	struct ibv_qp_attr attr;
- 	unsigned int wqe_idx;
--	unsigned int sge_idx;
--	int valid_num_sge;
- 	int attr_mask;
- 	int ret = 0;
- 	void *wqe;
- 	int nreq;
--	int j;
--	int i;
- 
- 	pthread_spin_lock(&qp->sq.lock);
- 
--	sge_idx = qp->next_sge;
--
- 	/* check that state is OK to post send */
- 	if (ibvqp->state == IBV_QPS_RESET || ibvqp->state == IBV_QPS_INIT ||
- 	    ibvqp->state == IBV_QPS_RTR) {
-@@ -639,6 +805,8 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 		return EINVAL;
- 	}
- 
-+	sge_info.start_idx = qp->next_sge; /* start index of extend sge */
-+
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
- 		if (hns_roce_v2_wq_overflow(&qp->sq, nreq,
- 					    to_hr_cq(qp->ibv_qp.send_cq))) {
-@@ -647,274 +815,43 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			goto out;
- 		}
- 
--		wqe_idx = (qp->sq.head + nreq) & (qp->sq.wqe_cnt - 1);
--
- 		if (wr->num_sge > qp->sq.max_gs) {
- 			ret = EINVAL;
- 			*bad_wr = wr;
- 			goto out;
- 		}
- 
-+		wqe_idx = (qp->sq.head + nreq) & (qp->sq.wqe_cnt - 1);
- 		wqe = get_send_wqe(qp, wqe_idx);
--		rc_sq_wqe = wqe;
--
--		memset(rc_sq_wqe, 0, sizeof(struct hns_roce_rc_sq_wqe));
- 		qp->sq.wrid[wqe_idx] = wr->wr_id;
- 
--		valid_num_sge = wr->num_sge;
--		j = 0;
--
--		for (i = 0; i < wr->num_sge; i++) {
--			if (unlikely(!wr->sg_list[i].length))
--				valid_num_sge--;
--
--			rc_sq_wqe->msg_len =
--					htole32(le32toh(rc_sq_wqe->msg_len) +
--							wr->sg_list[i].length);
--		}
--
--		if (wr->opcode == IBV_WR_SEND_WITH_IMM ||
--		    wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM)
--			rc_sq_wqe->immtdata = htole32(be32toh(wr->imm_data));
--
--		roce_set_field(rc_sq_wqe->byte_16, RC_SQ_WQE_BYTE_16_SGE_NUM_M,
--			       RC_SQ_WQE_BYTE_16_SGE_NUM_S, valid_num_sge);
--
--		roce_set_field(rc_sq_wqe->byte_20,
--			       RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_S,
--			       RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_S,
--			       0);
--
--		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_CQE_S,
--			     (wr->send_flags & IBV_SEND_SIGNALED) ? 1 : 0);
--
--		/* Set fence attr */
--		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_FENCE_S,
--			     (wr->send_flags & IBV_SEND_FENCE) ? 1 : 0);
--
--		/* Set solicited attr */
--		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_SE_S,
--			     (wr->send_flags & IBV_SEND_SOLICITED) ? 1 : 0);
--
--		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_OWNER_S,
--			     ~(((qp->sq.head + nreq) >> qp->sq.shift) & 0x1));
--
--		wqe += sizeof(struct hns_roce_rc_sq_wqe);
--		/* set remote addr segment */
- 		switch (ibvqp->qp_type) {
- 		case IBV_QPT_RC:
--			switch (wr->opcode) {
--			case IBV_WR_RDMA_READ:
--				roce_set_field(rc_sq_wqe->byte_4,
--					       RC_SQ_WQE_BYTE_4_OPCODE_M,
--					       RC_SQ_WQE_BYTE_4_OPCODE_S,
--					       HNS_ROCE_WQE_OP_RDMA_READ);
--				rc_sq_wqe->va =
--					htole64(wr->wr.rdma.remote_addr);
--				rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
--				break;
--
--			case IBV_WR_RDMA_WRITE:
--				roce_set_field(rc_sq_wqe->byte_4,
--					       RC_SQ_WQE_BYTE_4_OPCODE_M,
--					       RC_SQ_WQE_BYTE_4_OPCODE_S,
--					       HNS_ROCE_WQE_OP_RDMA_WRITE);
--				rc_sq_wqe->va =
--					htole64(wr->wr.rdma.remote_addr);
--				rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
--				break;
--
--			case IBV_WR_RDMA_WRITE_WITH_IMM:
--				roce_set_field(rc_sq_wqe->byte_4,
--				       RC_SQ_WQE_BYTE_4_OPCODE_M,
--				       RC_SQ_WQE_BYTE_4_OPCODE_S,
--				       HNS_ROCE_WQE_OP_RDMA_WRITE_WITH_IMM);
--				rc_sq_wqe->va =
--					htole64(wr->wr.rdma.remote_addr);
--				rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
--				break;
--
--			case IBV_WR_SEND:
--				roce_set_field(rc_sq_wqe->byte_4,
--					       RC_SQ_WQE_BYTE_4_OPCODE_M,
--					       RC_SQ_WQE_BYTE_4_OPCODE_S,
--					       HNS_ROCE_WQE_OP_SEND);
--				break;
--			case IBV_WR_SEND_WITH_INV:
--				roce_set_field(rc_sq_wqe->byte_4,
--					     RC_SQ_WQE_BYTE_4_OPCODE_M,
--					     RC_SQ_WQE_BYTE_4_OPCODE_S,
--					     HNS_ROCE_WQE_OP_SEND_WITH_INV);
--				rc_sq_wqe->inv_key =
--						htole32(wr->invalidate_rkey);
--				break;
--			case IBV_WR_SEND_WITH_IMM:
--				roce_set_field(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_OPCODE_M,
--					RC_SQ_WQE_BYTE_4_OPCODE_S,
--					HNS_ROCE_WQE_OP_SEND_WITH_IMM);
--				break;
--
--			case IBV_WR_LOCAL_INV:
--				roce_set_field(rc_sq_wqe->byte_4,
--					       RC_SQ_WQE_BYTE_4_OPCODE_M,
--					       RC_SQ_WQE_BYTE_4_OPCODE_S,
--					       HNS_ROCE_WQE_OP_LOCAL_INV);
--				roce_set_bit(rc_sq_wqe->byte_4,
--					     RC_SQ_WQE_BYTE_4_SO_S, 1);
--				rc_sq_wqe->inv_key =
--						htole32(wr->invalidate_rkey);
--				break;
--			case IBV_WR_ATOMIC_CMP_AND_SWP:
--				roce_set_field(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_OPCODE_M,
--					RC_SQ_WQE_BYTE_4_OPCODE_S,
--					HNS_ROCE_WQE_OP_ATOMIC_COM_AND_SWAP);
--				rc_sq_wqe->rkey = htole32(wr->wr.atomic.rkey);
--				rc_sq_wqe->va =
--					htole64(wr->wr.atomic.remote_addr);
--				break;
--
--			case IBV_WR_ATOMIC_FETCH_AND_ADD:
--				roce_set_field(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_OPCODE_M,
--					RC_SQ_WQE_BYTE_4_OPCODE_S,
--					HNS_ROCE_WQE_OP_ATOMIC_FETCH_AND_ADD);
--				rc_sq_wqe->rkey = htole32(wr->wr.atomic.rkey);
--				rc_sq_wqe->va =
--					htole64(wr->wr.atomic.remote_addr);
--				break;
--
--			case IBV_WR_BIND_MW:
--				roce_set_field(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_OPCODE_M,
--					RC_SQ_WQE_BYTE_4_OPCODE_S,
--					HNS_ROCE_WQE_OP_BIND_MW_TYPE);
--				roce_set_bit(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_MW_TYPE_S,
--					wr->bind_mw.mw->type - 1);
--				roce_set_bit(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_ATOMIC_S,
--					wr->bind_mw.bind_info.mw_access_flags &
--					IBV_ACCESS_REMOTE_ATOMIC ? 1 : 0);
--				roce_set_bit(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_RDMA_READ_S,
--					wr->bind_mw.bind_info.mw_access_flags &
--					IBV_ACCESS_REMOTE_READ ? 1 : 0);
--				roce_set_bit(rc_sq_wqe->byte_4,
--					RC_SQ_WQE_BYTE_4_RDMA_WRITE_S,
--					wr->bind_mw.bind_info.mw_access_flags &
--					IBV_ACCESS_REMOTE_WRITE ? 1 : 0);
--
--				rc_sq_wqe->new_rkey = htole32(wr->bind_mw.rkey);
--				rc_sq_wqe->byte_16 =
--					  htole32(wr->bind_mw.bind_info.length &
--						  0xffffffff);
--				rc_sq_wqe->byte_20 =
--					 htole32(wr->bind_mw.bind_info.length >>
--						 32);
--				rc_sq_wqe->rkey =
--					htole32(wr->bind_mw.bind_info.mr->rkey);
--				rc_sq_wqe->va =
--					    htole64(wr->bind_mw.bind_info.addr);
--				break;
--
--			default:
--				roce_set_field(rc_sq_wqe->byte_4,
--					       RC_SQ_WQE_BYTE_4_OPCODE_M,
--					       RC_SQ_WQE_BYTE_4_OPCODE_S,
--					       HNS_ROCE_WQE_OP_MASK);
--				printf("Not supported transport opcode %d\n",
--				       wr->opcode);
--				break;
-+			ret = set_rc_wqe(wqe, qp, wr, nreq, &sge_info);
-+			if (ret) {
-+				*bad_wr = wr;
-+				goto out;
- 			}
--
- 			break;
- 		case IBV_QPT_UC:
- 		case IBV_QPT_UD:
- 		default:
--			break;
--		}
--
--		dseg = wqe;
--		if (wr->opcode == IBV_WR_ATOMIC_FETCH_AND_ADD ||
--		    wr->opcode == IBV_WR_ATOMIC_CMP_AND_SWP) {
--			set_data_seg_v2(dseg, wr->sg_list);
--			wqe += sizeof(struct hns_roce_v2_wqe_data_seg);
--			set_atomic_seg(wqe, wr);
--		} else if (wr->send_flags & IBV_SEND_INLINE && valid_num_sge) {
--			if (le32toh(rc_sq_wqe->msg_len) > qp->max_inline_data) {
--				ret = EINVAL;
--				*bad_wr = wr;
--				printf("data len=%d, send_flags = 0x%x!\r\n",
--					rc_sq_wqe->msg_len, wr->send_flags);
--				goto out;
--			}
--
--			if (wr->opcode == IBV_WR_RDMA_READ) {
--				ret = EINVAL;
--				*bad_wr = wr;
--				printf("Not supported inline data!\n");
--				goto out;
--			}
--
--			for (i = 0; i < wr->num_sge; i++) {
--				memcpy(wqe,
--				     ((void *) (uintptr_t) wr->sg_list[i].addr),
--				     wr->sg_list[i].length);
--				wqe = wqe + wr->sg_list[i].length;
--			}
--
--			roce_set_bit(rc_sq_wqe->byte_4,
--				     RC_SQ_WQE_BYTE_4_INLINE_S, 1);
--		} else {
--			/* set sge */
--			if (valid_num_sge <= HNS_ROCE_SGE_IN_WQE) {
--				for (i = 0; i < wr->num_sge; i++)
--					if (likely(wr->sg_list[i].length)) {
--						set_data_seg_v2(dseg,
--							       wr->sg_list + i);
--						dseg++;
--					}
--			} else {
--				roce_set_field(rc_sq_wqe->byte_20,
--					RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_M,
--					RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_S,
--					sge_idx & (qp->sge.sge_cnt - 1));
--
--				for (i = 0; i < wr->num_sge && j < 2; i++)
--					if (likely(wr->sg_list[i].length)) {
--						set_data_seg_v2(dseg,
--							       wr->sg_list + i);
--						dseg++;
--						j++;
--					}
--
--				for (; i < wr->num_sge; i++) {
--					if (likely(wr->sg_list[i].length)) {
--						dseg = get_send_sge_ex(qp,
--							sge_idx &
--							(qp->sge.sge_cnt - 1));
--						set_data_seg_v2(dseg,
--							   wr->sg_list + i);
--						sge_idx++;
--					}
--				}
--			}
-+			ret = -EINVAL;
-+			*bad_wr = wr;
-+			goto out;
- 		}
- 	}
- 
- out:
- 	if (likely(nreq)) {
- 		qp->sq.head += nreq;
-+		qp->next_sge = sge_info.start_idx;
- 
- 		hns_roce_update_sq_db(ctx, qp->ibv_qp.qp_num, qp->sl,
- 				     qp->sq.head & ((qp->sq.wqe_cnt << 1) - 1));
- 
- 		if (qp->flags & HNS_ROCE_SUPPORT_SQ_RECORD_DB)
- 			*(qp->sdb) = qp->sq.head & 0xffff;
--
--		qp->next_sge = sge_idx;
- 	}
- 
- 	pthread_spin_unlock(&qp->sq.lock);
--- 
-2.8.1
-
+Or.
