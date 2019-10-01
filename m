@@ -2,201 +2,155 @@ Return-Path: <SRS0=4noh=X2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0747BECE587
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 16:43:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C30C352AA
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 16:56:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DCF2521906
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 16:43:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 436B52168B
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 16:56:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1569948985;
+	bh=5rOmi/hQpmZC8qAgYpId4kUI81s/ozuuSGWHgczZ5BM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=GIuKDj6EPuPz+SqsCxB0Bw22ABfctkABNHJuhHYjRD21HCWKD4zmMS9sFhhoxK+B7
+	 8qEiIi0Ausm0XlR22Uj6y6CxnhrYpcSuZi5Ad7U4BM78ukuR53EAIwJptnTY/Sp33T
+	 200Y47v9s7+lBdTWMQqH1NSwqbzLK2vI9NkmuPvE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732939AbfJAQnm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Oct 2019 12:43:42 -0400
-Received: from stargate.chelsio.com ([12.32.117.8]:37988 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732926AbfJAQnl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Oct 2019 12:43:41 -0400
-Received: from localhost (budha.blr.asicdesigners.com [10.193.185.4])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id x91Ghaxl013190;
-        Tue, 1 Oct 2019 09:43:37 -0700
-Date:   Tue, 1 Oct 2019 22:13:36 +0530
-From:   Krishnamraju Eraparaju <krishna2@chelsio.com>
-To:     Bernard Metzler <BMT@zurich.ibm.com>
-Cc:     Bart Van Assche <bvanassche@acm.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>
-Subject: Re: BUG: KASAN: use-after-free in siw_qp_put_ref
-Message-ID: <20191001164334.GA28508@chelsio.com>
-References: <2b0ae7d3-0dc9-94c0-0092-e32fb2c9cb45@acm.org>
- <OF0B426945.C9BEAB54-ON00258486.00410759-00258486.0042AF87@notes.na.collabserv.com>
+        id S1732098AbfJAQ4S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Oct 2019 12:56:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39260 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731801AbfJAQ4O (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 1 Oct 2019 12:56:14 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0A147206BB;
+        Tue,  1 Oct 2019 16:56:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1569948973;
+        bh=5rOmi/hQpmZC8qAgYpId4kUI81s/ozuuSGWHgczZ5BM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=0tOVHOQwoEb0OxWlsUfzG6QSwR/67paORUCTvwb3UaFOhbnfzkMSlLGkYTRiIJQQ1
+         Xim6ULBJisHYLja++NzlTwlRQQ4o5CY4EdqD91HQhPrWDknDarp5s2rM63i9F87/eE
+         93URjYeeEg6jxTWkYLTulKf2l+yql5WIBEXxaAj0=
+Date:   Tue, 1 Oct 2019 18:56:11 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Potnuri Bharat Teja <bharat@chelsio.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Nicolas Waisman <nico@semmle.com>
+Subject: [PATCH v2] cxgb4: do not dma memory off of the stack
+Message-ID: <20191001165611.GA3542072@kroah.com>
+References: <20191001153917.GA3498459@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <OF0B426945.C9BEAB54-ON00258486.00410759-00258486.0042AF87@notes.na.collabserv.com>
-User-Agent: Mutt/1.9.3 (20180206.02d571c2)
+In-Reply-To: <20191001153917.GA3498459@kroah.com>
+User-Agent: Mutt/1.12.2 (2019-09-21)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tuesday, October 10/01/19, 2019 at 17:38:23 +0530, Bernard Metzler wrote:
-> -----"Bart Van Assche" <bvanassche@acm.org> wrote: -----
-> 
-> >To: "Bernard Metzler" <BMT@zurich.ibm.com>, "linux-rdma"
-> ><linux-rdma@vger.kernel.org>
-> >From: "Bart Van Assche" <bvanassche@acm.org>
-> >Date: 10/01/2019 12:49AM
-> >Subject: [EXTERNAL] BUG: KASAN: use-after-free in siw_qp_put_ref
-> >
-> >Hi Bernard,
-> >
-> >The complaint shown below was reported while I was running blktests 
-> >after having configured the siw driver. I'm not sure whether this is
-> >an 
-> >NVMe driver or siw driver bug. So far I have encountered this
-> >complaint 
-> >only with the siw driver but not yet with the rdma_rxe driver.
-> >
-> >Bart.
-> 
-> Hi Bart,
-> 
-> Many thanks for finding this. I expect this to be an siw issue.
-> Related/caused by the issue Krishna (on CC) reported recently.
-> siw provides specific drain functions for ib_drain_sq() and
-> ib_drain_rq(), but does not adhere to its intended semantics
-> - waiting until the SQ/RQ is completely drained to the CQ and
-> its completions are consumed by the application.
-> 
-> I see the NVME host calling nvme_rdma_teardown_io_queues()->
-> nvme_rdma_stop_io_queues()->nvme_rdma_stop_queue()->
-> __nvme_rdma_stop_queue->ib_drain_qp() , which calls
-> the driver specific drain routines. 
-> 
-> So let's fix that.
-This issue is due to early freeing of siw_base_qp' in destroy_qp.
-I just submitted patch for this
-issue(https://patchwork.kernel.org/patch/11169267/).
+Nicolas pointed out that the cxgb4 driver is doing dma off of the stack,
+which is generally considered a very bad thing.  On some architectures
+it could be a security problem, but odds are none of them actually run
+this driver, so it's just a "normal" bug.
 
-Thanks,
-Krishna.
-> 
-> Thanks
-> Bernard.
-> 
-> >
-> >==================================================================
-> >BUG: KASAN: use-after-free in siw_qp_put_ref+0x19/0x40 [siw]
-> >Read of size 8 at addr ffff8881024fe490 by task check/9926
-> >
-> >CPU: 1 PID: 9926 Comm: check Not tainted 5.4.0-rc1-dbg+ #13
-> >Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 
-> >04/01/2014
-> >Call Trace:
-> >  dump_stack+0x86/0xca
-> >  print_address_description.constprop.7+0x40/0x60
-> >  __kasan_report.cold.10+0x1b/0x39
-> >  kasan_report+0x12/0x20
-> >  __asan_load8+0x54/0x90
-> >  siw_qp_put_ref+0x19/0x40 [siw]
-> >  destroy_cm_id+0x181/0x330 [iw_cm]
-> >  iw_destroy_cm_id+0xe/0x10 [iw_cm]
-> >  rdma_destroy_id+0x3ee/0x460 [rdma_cm]
-> >  nvme_rdma_free_queue+0x3e/0x50 [nvme_rdma]
-> >  nvme_rdma_destroy_io_queues+0x55/0xb0 [nvme_rdma]
-> >  nvme_rdma_teardown_io_queues.part.32+0xca/0xe0 [nvme_rdma]
-> >  nvme_rdma_shutdown_ctrl+0x50/0xa0 [nvme_rdma]
-> >  nvme_rdma_delete_ctrl+0x1a/0x20 [nvme_rdma]
-> >  nvme_do_delete_ctrl+0x97/0xe1 [nvme_core]
-> >  nvme_sysfs_delete.cold.95+0x8/0xd [nvme_core]
-> >  dev_attr_store+0x3c/0x50
-> >  sysfs_kf_write+0x87/0xa0
-> >  kernfs_fop_write+0x186/0x240
-> >  __vfs_write+0x4d/0x90
-> >  vfs_write+0xfa/0x290
-> >  ksys_write+0xc3/0x160
-> >  __x64_sys_write+0x43/0x50
-> >  do_syscall_64+0x6b/0x2d0
-> >  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> >RIP: 0033:0x7f99db297024
-> >Code: 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b3 0f 1f 80 00 00 00
-> >00 
-> >48 8d 05 b9 d3 0d 00 8b 00 85 c0 75 13 b8 01 00 00 00 0f 05 <48> 3d
-> >00 
-> >f0 ff ff 77 54 c3 0f 1f 00 41 54 49 89 d4 55 48 89 f5 53
-> >RSP: 002b:00007ffe02f8b228 EFLAGS: 00000246 ORIG_RAX:
-> >0000000000000001
-> >RAX: ffffffffffffffda RBX: 0000000000000002 RCX: 00007f99db297024
-> >RDX: 0000000000000002 RSI: 00005615bb94ad80 RDI: 0000000000000001
-> >RBP: 00005615bb94ad80 R08: 000000000000000a R09: 00000000ffffffff
-> >R10: 000000000000000a R11: 0000000000000246 R12: 00007f99db36f760
-> >R13: 0000000000000002 R14: 00007f99db370560 R15: 00007f99db36f960
-> >
-> >Allocated by task 6360:
-> >  save_stack+0x21/0x90
-> >  __kasan_kmalloc.constprop.9+0xc7/0xd0
-> >  kasan_kmalloc+0x9/0x10
-> >  kmem_cache_alloc_trace+0x15a/0x3a0
-> >  siw_create_qp+0x206/0xe10 [siw]
-> >  ib_create_qp_user+0x11e/0x710 [ib_core]
-> >  rdma_create_qp+0x6c/0x140 [rdma_cm]
-> >  nvme_rdma_create_qp.constprop.58+0x130/0x180 [nvme_rdma]
-> >  nvme_rdma_cm_handler+0x716/0xdb0 [nvme_rdma]
-> >  addr_handler+0x181/0x2c0 [rdma_cm]
-> >  process_one_req+0x8c/0x280 [ib_core]
-> >  process_one_work+0x51a/0xa60
-> >  worker_thread+0x67/0x5b0
-> >  kthread+0x1dc/0x200
-> >  ret_from_fork+0x24/0x30
-> >
-> >Freed by task 9926:
-> >  save_stack+0x21/0x90
-> >  __kasan_slab_free+0x139/0x190
-> >  kasan_slab_free+0xe/0x10
-> >  kfree+0x101/0x3a0
-> >  siw_destroy_qp+0x1cd/0x290 [siw]
-> >  ib_destroy_qp_user+0x155/0x380 [ib_core]
-> >  nvme_rdma_destroy_queue_ib+0x78/0xe0 [nvme_rdma]
-> >  nvme_rdma_free_queue+0x2c/0x50 [nvme_rdma]
-> >  nvme_rdma_destroy_io_queues+0x55/0xb0 [nvme_rdma]
-> >  nvme_rdma_teardown_io_queues.part.32+0xca/0xe0 [nvme_rdma]
-> >  nvme_rdma_shutdown_ctrl+0x50/0xa0 [nvme_rdma]
-> >  nvme_rdma_delete_ctrl+0x1a/0x20 [nvme_rdma]
-> >  nvme_do_delete_ctrl+0x97/0xe1 [nvme_core]
-> >  nvme_sysfs_delete.cold.95+0x8/0xd [nvme_core]
-> >  dev_attr_store+0x3c/0x50
-> >  sysfs_kf_write+0x87/0xa0
-> >  kernfs_fop_write+0x186/0x240
-> >  __vfs_write+0x4d/0x90
-> >  vfs_write+0xfa/0x290
-> >  ksys_write+0xc3/0x160
-> >  __x64_sys_write+0x43/0x50
-> >  do_syscall_64+0x6b/0x2d0
-> >  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> >
-> >The buggy address belongs to the object at ffff8881024fe300
-> >  which belongs to the cache kmalloc-512 of size 512
-> >The buggy address is located 400 bytes inside of
-> >  512-byte region [ffff8881024fe300, ffff8881024fe500)
-> >The buggy address belongs to the page:
-> >page:ffffea0004093f00 refcount:1 mapcount:0 mapping:ffff88811a80e580 
-> >index:0xffff8881024fd680 compound_mapcount: 0
-> >flags: 0x2fff000000010200(slab|head)
-> >raw: 2fff000000010200 ffffea000406a300 0000000400000004
-> >ffff88811a80e580
-> >raw: ffff8881024fd680 0000000080190018 00000001ffffffff
-> >0000000000000000
-> >page dumped because: kasan: bad access detected
-> >
-> >Memory state around the buggy address:
-> >  ffff8881024fe380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> >  ffff8881024fe400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> > >ffff8881024fe480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> >                          ^
-> >  ffff8881024fe500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-> >  ffff8881024fe580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> >==================================================================
-> >
-> >
-> 
+Resolve this by allocating the memory for a message off of the heap
+instead of the stack.  kmalloc() always will give us a proper memory
+location that DMA will work correctly from.
+
+Reported-by: Nicolas Waisman <nico@semmle.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+ v2: clean up memory on error case, pointed out by Nicolas
+ v1: https://lore.kernel.org/r/20191001153917.GA3498459@kroah.com
+     Test-built only, I don't have this hardware to actually run this
+     code at all.
+
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index aa772ee0706f..35c284af574d 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -275,13 +275,17 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
+ 			   struct sk_buff *skb, struct c4iw_wr_wait *wr_waitp)
+ {
+ 	int err;
+-	struct fw_ri_tpte tpt;
++	struct fw_ri_tpte *tpt;
+ 	u32 stag_idx;
+ 	static atomic_t key;
+ 
+ 	if (c4iw_fatal_error(rdev))
+ 		return -EIO;
+ 
++	tpt = kmalloc(sizeof(*tpt), GFP_KERNEL);
++	if (!tpt)
++		return -ENOMEM;
++
+ 	stag_state = stag_state > 0;
+ 	stag_idx = (*stag) >> 8;
+ 
+@@ -291,6 +295,7 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
+ 			mutex_lock(&rdev->stats.lock);
+ 			rdev->stats.stag.fail++;
+ 			mutex_unlock(&rdev->stats.lock);
++			kfree(tpt);
+ 			return -ENOMEM;
+ 		}
+ 		mutex_lock(&rdev->stats.lock);
+@@ -305,28 +310,28 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
+ 
+ 	/* write TPT entry */
+ 	if (reset_tpt_entry)
+-		memset(&tpt, 0, sizeof(tpt));
++		memset(tpt, 0, sizeof(*tpt));
+ 	else {
+-		tpt.valid_to_pdid = cpu_to_be32(FW_RI_TPTE_VALID_F |
++		tpt->valid_to_pdid = cpu_to_be32(FW_RI_TPTE_VALID_F |
+ 			FW_RI_TPTE_STAGKEY_V((*stag & FW_RI_TPTE_STAGKEY_M)) |
+ 			FW_RI_TPTE_STAGSTATE_V(stag_state) |
+ 			FW_RI_TPTE_STAGTYPE_V(type) | FW_RI_TPTE_PDID_V(pdid));
+-		tpt.locread_to_qpid = cpu_to_be32(FW_RI_TPTE_PERM_V(perm) |
++		tpt->locread_to_qpid = cpu_to_be32(FW_RI_TPTE_PERM_V(perm) |
+ 			(bind_enabled ? FW_RI_TPTE_MWBINDEN_F : 0) |
+ 			FW_RI_TPTE_ADDRTYPE_V((zbva ? FW_RI_ZERO_BASED_TO :
+ 						      FW_RI_VA_BASED_TO))|
+ 			FW_RI_TPTE_PS_V(page_size));
+-		tpt.nosnoop_pbladdr = !pbl_size ? 0 : cpu_to_be32(
++		tpt->nosnoop_pbladdr = !pbl_size ? 0 : cpu_to_be32(
+ 			FW_RI_TPTE_PBLADDR_V(PBL_OFF(rdev, pbl_addr)>>3));
+-		tpt.len_lo = cpu_to_be32((u32)(len & 0xffffffffUL));
+-		tpt.va_hi = cpu_to_be32((u32)(to >> 32));
+-		tpt.va_lo_fbo = cpu_to_be32((u32)(to & 0xffffffffUL));
+-		tpt.dca_mwbcnt_pstag = cpu_to_be32(0);
+-		tpt.len_hi = cpu_to_be32((u32)(len >> 32));
++		tpt->len_lo = cpu_to_be32((u32)(len & 0xffffffffUL));
++		tpt->va_hi = cpu_to_be32((u32)(to >> 32));
++		tpt->va_lo_fbo = cpu_to_be32((u32)(to & 0xffffffffUL));
++		tpt->dca_mwbcnt_pstag = cpu_to_be32(0);
++		tpt->len_hi = cpu_to_be32((u32)(len >> 32));
+ 	}
+ 	err = write_adapter_mem(rdev, stag_idx +
+ 				(rdev->lldi.vr->stag.start >> 5),
+-				sizeof(tpt), &tpt, skb, wr_waitp);
++				sizeof(*tpt), tpt, skb, wr_waitp);
+ 
+ 	if (reset_tpt_entry) {
+ 		c4iw_put_resource(&rdev->resource.tpt_table, stag_idx);
+@@ -334,6 +339,7 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
+ 		rdev->stats.stag.cur -= 32;
+ 		mutex_unlock(&rdev->stats.lock);
+ 	}
++	kfree(tpt);
+ 	return err;
+ }
+ 
