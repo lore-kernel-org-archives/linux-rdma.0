@@ -2,101 +2,113 @@ Return-Path: <SRS0=4noh=X2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97023ECE587
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:01:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B2DC352AA
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:13:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5CDDF2054F
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:01:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569949302;
-	bh=6Bnatj/5Ub1pWlIo0rzxCNeZp/xLiby1b8UPWU8/Gvs=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=fV697Tb+KCMquEsXBzN8SMRDmQ9KaVZ7RBzdCOMjta9xpubWRmD2p270cYqjMwD79
-	 iNl7EdYnzOw/ndu+ERbdWfKEc0mqucrRxMFEnKUc0Vd4sE49XHKX6/VlntBa3fAv7Z
-	 YZs8rR0enxIsMBgcoXrTddafJtWvGasfrChX1OWg=
+	by mail.kernel.org (Postfix) with ESMTP id 535332086A
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:13:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726653AbfJARBb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Oct 2019 13:01:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51490 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729772AbfJAQkS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 1 Oct 2019 12:40:18 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5FCE21855;
-        Tue,  1 Oct 2019 16:40:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569948017;
-        bh=6Bnatj/5Ub1pWlIo0rzxCNeZp/xLiby1b8UPWU8/Gvs=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SjAMadA0znV+DjNJevRy+h/Jp/wlKY5htH7a/lE9TzX8rwRyo5Ws1sdjAADvkKwOl
-         uLKA4oj7X0Yld8DMDUfh5yWb5C9mdG5SzexRBrPb6KQsEoAMQQi3RMc3qo0rxBpqBM
-         N2z+7bRWEX5MbEIzCSGZ9jFRuVsGF2SxgZOWbUcs=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Saeed Mahameed <saeedm@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 38/71] net/mlx5e: Fix traffic duplication in ethtool steering
-Date:   Tue,  1 Oct 2019 12:38:48 -0400
-Message-Id: <20191001163922.14735-38-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191001163922.14735-1-sashal@kernel.org>
-References: <20191001163922.14735-1-sashal@kernel.org>
+        id S1725792AbfJARNf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Oct 2019 13:13:35 -0400
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:40438 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727113AbfJARNf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Oct 2019 13:13:35 -0400
+Received: by mail-pg1-f193.google.com with SMTP id d26so4629439pgl.7
+        for <linux-rdma@vger.kernel.org>; Tue, 01 Oct 2019 10:13:35 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=ZxjO+HtOVKXvqAkENLLGFzwcpu7kKnYCE0CmCRtE4p4=;
+        b=oU4pD/zD6BbhQSMipNfI3Ch/O8AvUw5PboY7d8uSBRUs37Ox4AtDJZmQuI2pK+dQsH
+         PDfgORHKuiBs58v0IeDhxH3CeDXwQBJ0dNm3cceu2AGkwzHMraxvI8mA08ZtCpfkilY1
+         /t+W004la1tc8GxkNE97XtbaCe5R50myGQH1nD3ujRhS92VQV0L21i6Jzrk5WTooYVJt
+         nUpl7Ij638Ec7AYd9AxpPJBfDMPXL/Fzxx7mMzVTg3kgxbNYVisStZ82cP2cLblVBzSQ
+         p4V/CZws4GQ+M3U+PAtPPIy/mJzpDp+bUBHtBqAcyoj4i9mgyO1AND3LOi9WMsq7px4A
+         lLWw==
+X-Gm-Message-State: APjAAAXgnWjURBB+qexmxAH46EqURZlBz0f3VwMgbWOGF0wNe96eWM12
+        a8vylkR7pG0odWW+11AwDwFC/kgSvD8=
+X-Google-Smtp-Source: APXvYqw4MkIZMhHhqmIHX6GMCMVUCMoINefwEX1RuktAaFPUC7UuVghp9kib5V4Joi9KJQlYV7lveQ==
+X-Received: by 2002:a62:e109:: with SMTP id q9mr28354672pfh.231.1569950014018;
+        Tue, 01 Oct 2019 10:13:34 -0700 (PDT)
+Received: from desktop-bart.svl.corp.google.com ([2620:15c:2cd:202:4308:52a3:24b6:2c60])
+        by smtp.gmail.com with ESMTPSA id g202sm23858687pfb.155.2019.10.01.10.13.32
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 01 Oct 2019 10:13:33 -0700 (PDT)
+Subject: Re: [PATCH 01/15] RDMA/ucma: Reduce the number of rdma_destroy_id()
+ calls
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+References: <20190930231707.48259-1-bvanassche@acm.org>
+ <20190930231707.48259-2-bvanassche@acm.org> <20191001150730.GD22532@ziepe.ca>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <0db953de-5f04-56a2-e020-d2bda0fcf1d6@acm.org>
+Date:   Tue, 1 Oct 2019 10:13:31 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20191001150730.GD22532@ziepe.ca>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
+On 10/1/19 8:07 AM, Jason Gunthorpe wrote:
+> On Mon, Sep 30, 2019 at 04:16:53PM -0700, Bart Van Assche wrote:
+>> Instead of calling rdma_destroy_id() after waiting for the context completion
+>> finished, call rdma_destroy_id() from inside the ucma_put_ctx() function.
+>> This patch reduces the number of rdma_destroy_id() calls but does not change
+>> the behavior of this code.
+>>
+>> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+>>   drivers/infiniband/core/ucma.c | 17 ++++++++---------
+>>   1 file changed, 8 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+>> index 0274e9b704be..30c09864fd9e 100644
+>> +++ b/drivers/infiniband/core/ucma.c
+>> @@ -160,8 +160,14 @@ static struct ucma_context *ucma_get_ctx(struct ucma_file *file, int id)
+>>   
+>>   static void ucma_put_ctx(struct ucma_context *ctx)
+>>   {
+>> -	if (atomic_dec_and_test(&ctx->ref))
+>> -		complete(&ctx->comp);
+>> +	if (!atomic_dec_and_test(&ctx->ref))
+>> +		return;
+>> +	/*
+>> +	 * rdma_destroy_id() ensures that no event handlers are inflight
+>> +	 * for that id before releasing it.
+>> +	 */
+>> +	rdma_destroy_id(ctx->cm_id);
+>> +	complete(&ctx->comp);
+>>   }
+> 
+> Since all the refcounting here is basically insane, you can't do this
+> without creating new kinds of bugs related to lifetime of ctx->cm_id
+> 
+> The call to rdma_destroy_id must be after the xa_erase as other
+> threads can continue to access the context despite its zero ref via
+> ucma_get_ctx(() as ucma_get_ctx() is not using refcounts properly.
+> 
+> The xa_erase provides the needed barrier.
+> 
+> Maybe this patch could be fixed if the ucma_get_ctx used an
+> atomic_inc_not_zero ?
 
-[ Upstream commit d22fcc806b84b9818de08b32e494f3c05dd236c7 ]
+Hi Jason,
 
-Before this patch, when adding multiple ethtool steering rules with
-identical classification, the driver used to append the new destination
-to the already existing hw rule, which caused the hw to forward the
-traffic to all destinations (rx queues).
+Since I'm not an ucma expert, maybe it's better that I drop this patch.
 
-Here we avoid this by setting the "no append" mlx5 fs core flag when
-adding a new ethtool rule.
+Thanks,
 
-Fixes: 6dc6071cfcde ("net/mlx5e: Add ethtool flow steering support")
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_fs_ethtool.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_fs_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_fs_ethtool.c
-index 94304abc49e98..39e90b8733192 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_fs_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_fs_ethtool.c
-@@ -399,10 +399,10 @@ add_ethtool_flow_rule(struct mlx5e_priv *priv,
- 		      struct mlx5_flow_table *ft,
- 		      struct ethtool_rx_flow_spec *fs)
- {
-+	struct mlx5_flow_act flow_act = { .flags = FLOW_ACT_NO_APPEND };
- 	struct mlx5_flow_destination *dst = NULL;
--	struct mlx5_flow_act flow_act = {0};
--	struct mlx5_flow_spec *spec;
- 	struct mlx5_flow_handle *rule;
-+	struct mlx5_flow_spec *spec;
- 	int err = 0;
- 
- 	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
--- 
-2.20.1
-
+Bart.
