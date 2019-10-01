@@ -2,202 +2,194 @@ Return-Path: <SRS0=4noh=X2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29B3BECE58A
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:00:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 336B1C352AA
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0811F21783
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:00:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3B222054F
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Oct 2019 17:01:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1569949292;
+	bh=2py4yvsg+8cjdkDAYD5Lyx1lM4YYJQqh+WS9ZrdrzDQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=KpW6BqoQKt52WVCljj6UCclTkpmgFjA1uiEBUOX+LT1T/3WgdqrUwwao93ZFPj3GJ
+	 NuLfi22UYpAut4lomItov0qtqBoHNc16mC2HnKqlxYAMEJzpfxxmmbx5dpTLwYbxQI
+	 dP2Th7sHCKTkPxtpYqGFCZWzkS/LKSILXk9fypG8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726225AbfJARAh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Oct 2019 13:00:37 -0400
-Received: from stargate.chelsio.com ([12.32.117.8]:33688 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727389AbfJARAe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Oct 2019 13:00:34 -0400
-Received: from localhost (budha.blr.asicdesigners.com [10.193.185.4])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id x91H0VbL013282;
-        Tue, 1 Oct 2019 10:00:32 -0700
-From:   Krishnamraju Eraparaju <krishna2@chelsio.com>
-To:     jgg@ziepe.ca, bmt@zurich.ibm.com
-Cc:     linux-rdma@vger.kernel.org, bharat@chelsio.com,
-        nirranjan@chelsio.com,
-        Krishnamraju Eraparaju <krishna2@chelsio.com>
-Subject: [PATCH for-rc] RDMA/siw: move iw_rem_ref() calls out of spinlocks
-Date:   Tue,  1 Oct 2019 22:30:25 +0530
-Message-Id: <20191001170025.31626-1-krishna2@chelsio.com>
-X-Mailer: git-send-email 2.23.0.rc0
+        id S1729783AbfJAQkS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Oct 2019 12:40:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51476 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729738AbfJAQkS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 1 Oct 2019 12:40:18 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7963B21906;
+        Tue,  1 Oct 2019 16:40:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1569948016;
+        bh=2py4yvsg+8cjdkDAYD5Lyx1lM4YYJQqh+WS9ZrdrzDQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=kf7X3A7d+1R0/ic7D3dZEXm74gT0VmprhZOoXrN4ln3MiEsKmL/mIA0Wridp5soxz
+         a/0FFFYlouZlBhPUYsCedepffjJ4YNCpyCoa2LSdf5Rt5/Ko1t0utZBciWE962LmIr
+         Qv7SU/PQBAL0iONAiTClDdq2BPMKhPI5W3xoqEwc=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Dmytro Linkin <dmitrolin@mellanox.com>,
+        Vlad Buslov <vladbu@mellanox.com>,
+        Eli Britstein <elibr@mellanox.com>,
+        Roi Dayan <roid@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.3 37/71] net/mlx5e: Fix matching on tunnel addresses type
+Date:   Tue,  1 Oct 2019 12:38:47 -0400
+Message-Id: <20191001163922.14735-37-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191001163922.14735-1-sashal@kernel.org>
+References: <20191001163922.14735-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-kref release routines usually perform memory release operations,
-so they should not be called with spinlocks held.
-one such case is: SIW release routine siw_free_qp() calls sleepable
-vfree() to release queue memory.
+From: Dmytro Linkin <dmitrolin@mellanox.com>
 
-Hence, all iw_rem_ref() calls in IWCM are moved out of spinlocks.
+[ Upstream commit fe1587a7de94912ed75ba5ddbfabf0741f9f8239 ]
 
-Signed-off-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
+In mlx5 parse_tunnel_attr() function dispatch on encap IP address type
+is performed by directly checking flow_rule_match_key() on
+FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS, and then on
+FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS. However, since those are stored in
+union, first check is always true if any type of encap address is set,
+which leads to IPv6 tunnel encap address being parsed as IPv4 by mlx5.
+Determine correct IP address type by checking control key first and if
+it set, take address type from match.key->addr_type.
+
+Fixes: d1bda7eecd88 ("net/mlx5e: Allow matching only enc_key_id/enc_dst_port for decapsulation action")
+Signed-off-by: Dmytro Linkin <dmitrolin@mellanox.com>
+Reviewed-by: Vlad Buslov <vladbu@mellanox.com>
+Reviewed-by: Eli Britstein <elibr@mellanox.com>
+Reviewed-by: Roi Dayan <roid@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/iwcm.c | 52 +++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 23 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   | 89 +++++++++++--------
+ 1 file changed, 53 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 72141c5b7c95..ade71823370f 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -372,6 +372,7 @@ EXPORT_SYMBOL(iw_cm_disconnect);
- static void destroy_cm_id(struct iw_cm_id *cm_id)
- {
- 	struct iwcm_id_private *cm_id_priv;
-+	struct ib_qp *qp;
- 	unsigned long flags;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 00b2d4a86159f..98be5fe336743 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -1369,46 +1369,63 @@ static int parse_tunnel_attr(struct mlx5e_priv *priv,
+ 		return err;
+ 	}
  
- 	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
-@@ -389,6 +390,9 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
- 	set_bit(IWCM_F_DROP_EVENTS, &cm_id_priv->flags);
+-	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS)) {
+-		struct flow_match_ipv4_addrs match;
++	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_CONTROL)) {
++		struct flow_match_control match;
++		u16 addr_type;
  
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
-+	qp = cm_id_priv->qp;
-+	cm_id_priv->qp = NULL;
+-		flow_rule_match_enc_ipv4_addrs(rule, &match);
+-		MLX5_SET(fte_match_set_lyr_2_4, headers_c,
+-			 src_ipv4_src_ipv6.ipv4_layout.ipv4,
+-			 ntohl(match.mask->src));
+-		MLX5_SET(fte_match_set_lyr_2_4, headers_v,
+-			 src_ipv4_src_ipv6.ipv4_layout.ipv4,
+-			 ntohl(match.key->src));
+-
+-		MLX5_SET(fte_match_set_lyr_2_4, headers_c,
+-			 dst_ipv4_dst_ipv6.ipv4_layout.ipv4,
+-			 ntohl(match.mask->dst));
+-		MLX5_SET(fte_match_set_lyr_2_4, headers_v,
+-			 dst_ipv4_dst_ipv6.ipv4_layout.ipv4,
+-			 ntohl(match.key->dst));
+-
+-		MLX5_SET_TO_ONES(fte_match_set_lyr_2_4, headers_c, ethertype);
+-		MLX5_SET(fte_match_set_lyr_2_4, headers_v, ethertype, ETH_P_IP);
+-	} else if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS)) {
+-		struct flow_match_ipv6_addrs match;
++		flow_rule_match_enc_control(rule, &match);
++		addr_type = match.key->addr_type;
+ 
+-		flow_rule_match_enc_ipv6_addrs(rule, &match);
+-		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
+-				    src_ipv4_src_ipv6.ipv6_layout.ipv6),
+-		       &match.mask->src, MLX5_FLD_SZ_BYTES(ipv6_layout, ipv6));
+-		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
+-				    src_ipv4_src_ipv6.ipv6_layout.ipv6),
+-		       &match.key->src, MLX5_FLD_SZ_BYTES(ipv6_layout, ipv6));
++		/* For tunnel addr_type used same key id`s as for non-tunnel */
++		if (addr_type == FLOW_DISSECTOR_KEY_IPV4_ADDRS) {
++			struct flow_match_ipv4_addrs match;
+ 
+-		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
+-				    dst_ipv4_dst_ipv6.ipv6_layout.ipv6),
+-		       &match.mask->dst, MLX5_FLD_SZ_BYTES(ipv6_layout, ipv6));
+-		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
+-				    dst_ipv4_dst_ipv6.ipv6_layout.ipv6),
+-		       &match.key->dst, MLX5_FLD_SZ_BYTES(ipv6_layout, ipv6));
++			flow_rule_match_enc_ipv4_addrs(rule, &match);
++			MLX5_SET(fte_match_set_lyr_2_4, headers_c,
++				 src_ipv4_src_ipv6.ipv4_layout.ipv4,
++				 ntohl(match.mask->src));
++			MLX5_SET(fte_match_set_lyr_2_4, headers_v,
++				 src_ipv4_src_ipv6.ipv4_layout.ipv4,
++				 ntohl(match.key->src));
+ 
+-		MLX5_SET_TO_ONES(fte_match_set_lyr_2_4, headers_c, ethertype);
+-		MLX5_SET(fte_match_set_lyr_2_4, headers_v, ethertype, ETH_P_IPV6);
++			MLX5_SET(fte_match_set_lyr_2_4, headers_c,
++				 dst_ipv4_dst_ipv6.ipv4_layout.ipv4,
++				 ntohl(match.mask->dst));
++			MLX5_SET(fte_match_set_lyr_2_4, headers_v,
++				 dst_ipv4_dst_ipv6.ipv4_layout.ipv4,
++				 ntohl(match.key->dst));
 +
- 	switch (cm_id_priv->state) {
- 	case IW_CM_STATE_LISTEN:
- 		cm_id_priv->state = IW_CM_STATE_DESTROYING;
-@@ -401,7 +405,7 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
- 		cm_id_priv->state = IW_CM_STATE_DESTROYING;
- 		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 		/* Abrupt close of the connection */
--		(void)iwcm_modify_qp_err(cm_id_priv->qp);
-+		(void)iwcm_modify_qp_err(qp);
- 		spin_lock_irqsave(&cm_id_priv->lock, flags);
- 		break;
- 	case IW_CM_STATE_IDLE:
-@@ -426,11 +430,9 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
- 		BUG();
- 		break;
++			MLX5_SET_TO_ONES(fte_match_set_lyr_2_4, headers_c,
++					 ethertype);
++			MLX5_SET(fte_match_set_lyr_2_4, headers_v, ethertype,
++				 ETH_P_IP);
++		} else if (addr_type == FLOW_DISSECTOR_KEY_IPV6_ADDRS) {
++			struct flow_match_ipv6_addrs match;
++
++			flow_rule_match_enc_ipv6_addrs(rule, &match);
++			memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
++					    src_ipv4_src_ipv6.ipv6_layout.ipv6),
++			       &match.mask->src, MLX5_FLD_SZ_BYTES(ipv6_layout,
++								   ipv6));
++			memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
++					    src_ipv4_src_ipv6.ipv6_layout.ipv6),
++			       &match.key->src, MLX5_FLD_SZ_BYTES(ipv6_layout,
++								  ipv6));
++
++			memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
++					    dst_ipv4_dst_ipv6.ipv6_layout.ipv6),
++			       &match.mask->dst, MLX5_FLD_SZ_BYTES(ipv6_layout,
++								   ipv6));
++			memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
++					    dst_ipv4_dst_ipv6.ipv6_layout.ipv6),
++			       &match.key->dst, MLX5_FLD_SZ_BYTES(ipv6_layout,
++								  ipv6));
++
++			MLX5_SET_TO_ONES(fte_match_set_lyr_2_4, headers_c,
++					 ethertype);
++			MLX5_SET(fte_match_set_lyr_2_4, headers_v, ethertype,
++				 ETH_P_IPV6);
++		}
  	}
--	if (cm_id_priv->qp) {
--		cm_id_priv->id.device->ops.iw_rem_ref(cm_id_priv->qp);
--		cm_id_priv->qp = NULL;
--	}
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-+	if (qp)
-+		cm_id_priv->id.device->ops.iw_rem_ref(qp);
  
- 	if (cm_id->mapped) {
- 		iwpm_remove_mapinfo(&cm_id->local_addr, &cm_id->m_local_addr);
-@@ -671,11 +673,11 @@ int iw_cm_accept(struct iw_cm_id *cm_id,
- 		BUG_ON(cm_id_priv->state != IW_CM_STATE_CONN_RECV);
- 		cm_id_priv->state = IW_CM_STATE_IDLE;
- 		spin_lock_irqsave(&cm_id_priv->lock, flags);
--		if (cm_id_priv->qp) {
--			cm_id->device->ops.iw_rem_ref(qp);
--			cm_id_priv->qp = NULL;
--		}
-+		qp = cm_id_priv->qp;
-+		cm_id_priv->qp = NULL;
- 		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-+		if (qp)
-+			cm_id->device->ops.iw_rem_ref(qp);
- 		clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
- 		wake_up_all(&cm_id_priv->connect_wait);
- 	}
-@@ -696,7 +698,7 @@ int iw_cm_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *iw_param)
- 	struct iwcm_id_private *cm_id_priv;
- 	int ret;
- 	unsigned long flags;
--	struct ib_qp *qp;
-+	struct ib_qp *qp = NULL;
- 
- 	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
- 
-@@ -730,13 +732,13 @@ int iw_cm_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *iw_param)
- 		return 0;	/* success */
- 
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
--	if (cm_id_priv->qp) {
--		cm_id->device->ops.iw_rem_ref(qp);
--		cm_id_priv->qp = NULL;
--	}
-+	qp = cm_id_priv->qp;
-+	cm_id_priv->qp = NULL;
- 	cm_id_priv->state = IW_CM_STATE_IDLE;
- err:
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-+	if (qp)
-+		cm_id->device->ops.iw_rem_ref(qp);
- 	clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
- 	wake_up_all(&cm_id_priv->connect_wait);
- 	return ret;
-@@ -878,6 +880,7 @@ static int cm_conn_est_handler(struct iwcm_id_private *cm_id_priv,
- static int cm_conn_rep_handler(struct iwcm_id_private *cm_id_priv,
- 			       struct iw_cm_event *iw_event)
- {
-+	struct ib_qp *qp = NULL;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -896,11 +899,13 @@ static int cm_conn_rep_handler(struct iwcm_id_private *cm_id_priv,
- 		cm_id_priv->state = IW_CM_STATE_ESTABLISHED;
- 	} else {
- 		/* REJECTED or RESET */
--		cm_id_priv->id.device->ops.iw_rem_ref(cm_id_priv->qp);
-+		qp = cm_id_priv->qp;
- 		cm_id_priv->qp = NULL;
- 		cm_id_priv->state = IW_CM_STATE_IDLE;
- 	}
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-+	if (qp)
-+		cm_id_priv->id.device->ops.iw_rem_ref(qp);
- 	ret = cm_id_priv->id.cm_handler(&cm_id_priv->id, iw_event);
- 
- 	if (iw_event->private_data_len)
-@@ -942,21 +947,18 @@ static void cm_disconnect_handler(struct iwcm_id_private *cm_id_priv,
- static int cm_close_handler(struct iwcm_id_private *cm_id_priv,
- 				  struct iw_cm_event *iw_event)
- {
-+	struct ib_qp *qp;
- 	unsigned long flags;
--	int ret = 0;
-+	int ret = 0, notify_event = 0;
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
-+	qp = cm_id_priv->qp;
-+	cm_id_priv->qp = NULL;
- 
--	if (cm_id_priv->qp) {
--		cm_id_priv->id.device->ops.iw_rem_ref(cm_id_priv->qp);
--		cm_id_priv->qp = NULL;
--	}
- 	switch (cm_id_priv->state) {
- 	case IW_CM_STATE_ESTABLISHED:
- 	case IW_CM_STATE_CLOSING:
- 		cm_id_priv->state = IW_CM_STATE_IDLE;
--		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--		ret = cm_id_priv->id.cm_handler(&cm_id_priv->id, iw_event);
--		spin_lock_irqsave(&cm_id_priv->lock, flags);
-+		notify_event = 1;
- 		break;
- 	case IW_CM_STATE_DESTROYING:
- 		break;
-@@ -965,6 +967,10 @@ static int cm_close_handler(struct iwcm_id_private *cm_id_priv,
- 	}
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 
-+	if (qp)
-+		cm_id_priv->id.device->ops.iw_rem_ref(qp);
-+	if (notify_event)
-+		ret = cm_id_priv->id.cm_handler(&cm_id_priv->id, iw_event);
- 	return ret;
- }
- 
+ 	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_IP)) {
 -- 
-2.23.0.rc0
+2.20.1
 
