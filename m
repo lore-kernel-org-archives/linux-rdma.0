@@ -2,122 +2,97 @@ Return-Path: <SRS0=/rP3=X3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 830C5C35280
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:38:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3399BC35280
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:39:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 612AA21783
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:38:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0804421783
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:39:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="o22pljnx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726223AbfJBOig convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Oct 2019 10:38:36 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:12360 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726000AbfJBOig (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Oct 2019 10:38:36 -0400
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x92EMD4s099708
-        for <linux-rdma@vger.kernel.org>; Wed, 2 Oct 2019 10:38:35 -0400
-Received: from smtp.notes.na.collabserv.com (smtp.notes.na.collabserv.com [158.85.210.104])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2vcuknvvdw-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-rdma@vger.kernel.org>; Wed, 02 Oct 2019 10:38:35 -0400
-Received: from localhost
-        by smtp.notes.na.collabserv.com with smtp.notes.na.collabserv.com ESMTP
-        for <linux-rdma@vger.kernel.org> from <BMT@zurich.ibm.com>;
-        Wed, 2 Oct 2019 14:38:34 -0000
-Received: from us1b3-smtp02.a3dr.sjc01.isc4sb.com (10.122.7.175)
-        by smtp.notes.na.collabserv.com (10.122.47.44) with smtp.notes.na.collabserv.com ESMTP;
-        Wed, 2 Oct 2019 14:38:27 -0000
-Received: from us1b3-mail162.a3dr.sjc03.isc4sb.com ([10.160.174.187])
-          by us1b3-smtp02.a3dr.sjc01.isc4sb.com
-          with ESMTP id 2019100214382718-518440 ;
-          Wed, 2 Oct 2019 14:38:27 +0000 
-In-Reply-To: <20191002133210.GD5855@unreal>
-From:   "Bernard Metzler" <BMT@zurich.ibm.com>
-To:     "Leon Romanovsky" <leon@kernel.org>
-Cc:     linux-rdma@vger.kernel.org, bharat@chelsio.com, jgg@ziepe.ca,
-        nirranjan@chelsio.com, krishna2@chelsio.com, bvanassche@acm.org
-Date:   Wed, 2 Oct 2019 14:38:26 +0000
+        id S1726081AbfJBOja (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Oct 2019 10:39:30 -0400
+Received: from mail-qt1-f195.google.com ([209.85.160.195]:33730 "EHLO
+        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726000AbfJBOja (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Oct 2019 10:39:30 -0400
+Received: by mail-qt1-f195.google.com with SMTP id r5so26685762qtd.0
+        for <linux-rdma@vger.kernel.org>; Wed, 02 Oct 2019 07:39:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=7YHqyUZD/8NIZ2SubBXQMgHPSS2u+oGKWBH9fMpoRow=;
+        b=o22pljnxja/9CD7V4C4Qn1J1tj1U0zcwxX6JKuoamq0XxWpooE+3q5sabL2Tr0Xnpi
+         RAgdb9V1d8Cf2nlx9omXQgRqcuUNyi7DSPpzZMqbVl9fQlRChMczEIX4NxHG4pt/ssFj
+         JLXaYAvVeTUVCRvGF1KeZQtcjEHHt0uO8zAnhjWqpFMkihfNgbUFxJsIJQ6qBrjncixs
+         DYMKAdWoT+0iIZcFjysj48v0tGVrwy4B3kkb3xZzU+8AKNS4OvGvNb1QA7Tbj5WB9GAl
+         yZQGxt4uWOHzYgkIJ4x6epYxkOxu1bor7+sG0j/gnqdQMq2b4fPSrDabCOtEPqImqCrt
+         XPhg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=7YHqyUZD/8NIZ2SubBXQMgHPSS2u+oGKWBH9fMpoRow=;
+        b=RA1zaxssxWmJOliNei6GKwLcn4HV8BeUyB35Fe5c8Y8mywL8VBvznpWeU2HJTxjHdT
+         /zUF19+mYZ0lB3YaLUYTkO4IgoIlfLgvW0rv/3GWNp+HK0JuT8tixJqLVRjonuGJLYhX
+         WYUZwmgkLGjwGXFeR/z2BtKeppSYRgSifB2JFKepyYyJEumd0fecgdGhkSbc94LLwOUd
+         mBH8UTl2tNY7lkLlFdHUvGOOVR2aEG6ccuEqY/Jx4ak1Hc21ug9jz5fbSAZvgXV8jSiO
+         GVTJH9coYHuiOxtFGJHMLmi/eX6OmTwRNJaQ8kq5XX5BJBVxcH+juk5vEat4DfWTUvlH
+         svKg==
+X-Gm-Message-State: APjAAAVVPXVsXQ7ItHZ1GLK8RYgM88lortRKWI+C0UwgvF1nRTMuCTTH
+        PZyVTkPR9Gci1shH6k/lpvJLeasnc+E=
+X-Google-Smtp-Source: APXvYqx2s77HtzscqetmzrgbU5wP2nVoy4k6FeFeTk/+TA557I+ojc6fH4KuDw1QpblX/+ZVpTYMcw==
+X-Received: by 2002:ac8:3267:: with SMTP id y36mr4360009qta.375.1570027169559;
+        Wed, 02 Oct 2019 07:39:29 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
+        by smtp.gmail.com with ESMTPSA id w9sm2483148qto.44.2019.10.02.07.39.28
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 02 Oct 2019 07:39:28 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1iFfmq-00070n-Hc; Wed, 02 Oct 2019 11:39:28 -0300
+Date:   Wed, 2 Oct 2019 11:39:28 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org, Artemy Kovalyov <artemyko@mellanox.com>
+Subject: Re: [PATCH 2/6] RDMA/mlx5: Fix a race with mlx5_ib_update_xlt on an
+ implicit MR
+Message-ID: <20191002143928.GE17152@ziepe.ca>
+References: <20191001153821.23621-1-jgg@ziepe.ca>
+ <20191001153821.23621-3-jgg@ziepe.ca>
+ <20191002081826.GA5855@unreal>
 MIME-Version: 1.0
-Sensitivity: 
-Importance: Normal
-X-Priority: 3 (Normal)
-References: <20191002133210.GD5855@unreal>,<20191002131423.4181-1-bmt@zurich.ibm.com>
-X-Mailer: IBM iNotes ($HaikuForm 1054) | IBM Domino Build
- SCN1812108_20180501T0841_FP57 August 05, 2019 at 12:42
-X-KeepSent: 0EB68DD7:BD098844-00258487:005068D7;
- type=4; name=$KeepSent
-X-LLNOutbound: False
-X-Disclaimed: 65023
-X-TNEFEvaluated: 1
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset=UTF-8
-x-cbid: 19100214-5525-0000-0000-000000F86860
-X-IBM-SpamModules-Scores: BY=0; FL=0; FP=0; FZ=0; HX=0; KW=0; PH=0;
- SC=0.399202; ST=0; TS=0; UL=0; ISC=; MB=0.013736
-X-IBM-SpamModules-Versions: BY=3.00011877; HX=3.00000242; KW=3.00000007;
- PH=3.00000004; SC=3.00000292; SDB=6.01269669; UDB=6.00672002; IPR=6.01051707;
- MB=3.00028915; MTD=3.00000008; XFM=3.00000015; UTC=2019-10-02 14:38:31
-X-IBM-AV-DETECTION: SAVI=unsuspicious REMOTE=unsuspicious XFE=unused
-X-IBM-AV-VERSION: SAVI=2019-10-02 09:30:44 - 6.00010477
-x-cbparentid: 19100214-5526-0000-0000-000062AF7268
-Message-Id: <OF0EB68DD7.BD098844-ON00258487.005068D7-00258487.00506C97@notes.na.collabserv.com>
-Subject: RE: [[PATCH v2 for-next]] RDMA/siw: Fix SQ/RQ drain logic
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-10-02_06:,,
- signatures=0
-X-Proofpoint-Spam-Reason: safe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191002081826.GA5855@unreal>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
------"Leon Romanovsky" <leon@kernel.org> wrote: -----
+On Wed, Oct 02, 2019 at 11:18:26AM +0300, Leon Romanovsky wrote:
+> > @@ -202,15 +225,22 @@ static void mr_leaf_free_action(struct work_struct *work)
+> >  	struct ib_umem_odp *odp = container_of(work, struct ib_umem_odp, work);
+> >  	int idx = ib_umem_start(odp) >> MLX5_IMR_MTT_SHIFT;
+> >  	struct mlx5_ib_mr *mr = odp->private, *imr = mr->parent;
+> > +	struct ib_umem_odp *odp_imr = to_ib_umem_odp(imr->umem);
+> > +	int srcu_key;
+> >
+> >  	mr->parent = NULL;
+> >  	synchronize_srcu(&mr->dev->mr_srcu);
+> 
+> Are you sure that this line is still needed?
 
->To: "Bernard Metzler" <bmt@zurich.ibm.com>
->From: "Leon Romanovsky" <leon@kernel.org>
->Date: 10/02/2019 03:32PM
->Cc: linux-rdma@vger.kernel.org, bharat@chelsio.com, jgg@ziepe.ca,
->nirranjan@chelsio.com, krishna2@chelsio.com, bvanassche@acm.org
->Subject: [EXTERNAL] Re: [[PATCH v2 for-next]] RDMA/siw: Fix SQ/RQ
->drain logic
->
->On Wed, Oct 02, 2019 at 03:14:23PM +0200, Bernard Metzler wrote:
->> Storage ULPs (e.g. iSER & NVMeOF) use ib_drain_qp() to
->> drain QP/CQ. Current SIW's own drain routines do not properly
->> wait until all SQ/RQ elements are completed and reaped
->> from the CQ. This may cause touch after free issues.
->> New logic relies on generic __ib_drain_sq()/__ib_drain_rq()
->> posting a final work request, which SIW immediately flushes
->> to CQ.
->>
->> Fixes: 303ae1cdfdf7 ("rdma/siw: application interface")
->> Signed-off-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
->> Signed-off-by: Bernard Metzler <bmt@zurich.ibm.com>
->> ---
->>  drivers/infiniband/sw/siw/siw_main.c  |  20 -----
->>  drivers/infiniband/sw/siw/siw_verbs.c | 103
->+++++++++++++++++++++-----
->>  2 files changed, 86 insertions(+), 37 deletions(-)
->>
->
->I didn't follow after v1 discussion and will be glad to see
->changelog,
->what is the reason for v2?
->
-Absolutely. Let me resend the patch with below change log.
+Yes, in this case the mr->parent is the SRCU 'update' and it blocks
+seeing this MR in the pagefault handler.
 
-Sorry & best regards,
-Bernard.
+It is necessary before calling ib_umem_odp_release below that frees
+the memory
 
-v1 -> v2:
-- Accept SQ and RQ work requests, if QP is in ERROR
-  state. In that case, immediately flush WR's to CQ.
-  This already provides needed functionality to
-  support ib_drain_sq()/ib_drain_rq() without extra
-  state checking in the fast path.
-
+Jason
