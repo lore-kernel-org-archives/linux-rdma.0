@@ -2,281 +2,133 @@ Return-Path: <SRS0=/rP3=X3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06F68C35280
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:39:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1797C352AA
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:58:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CEA4821783
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:39:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EE6E21783
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Oct 2019 14:58:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="MW2q0QIN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726378AbfJBOjr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Oct 2019 10:39:47 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:21772 "EHLO
-        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726000AbfJBOjr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Oct 2019 10:39:47 -0400
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x92EM3oj020080
-        for <linux-rdma@vger.kernel.org>; Wed, 2 Oct 2019 10:39:45 -0400
-Received: from e06smtp02.uk.ibm.com (e06smtp02.uk.ibm.com [195.75.94.98])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2vc71re9qs-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-rdma@vger.kernel.org>; Wed, 02 Oct 2019 10:39:45 -0400
-Received: from localhost
-        by e06smtp02.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-rdma@vger.kernel.org> from <bmt@zurich.ibm.com>;
-        Wed, 2 Oct 2019 15:39:42 +0100
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (9.149.109.197)
-        by e06smtp02.uk.ibm.com (192.168.101.132) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-        Wed, 2 Oct 2019 15:39:39 +0100
-Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
-        by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x92Edcra32047212
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 2 Oct 2019 14:39:38 GMT
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 67DF911C066;
-        Wed,  2 Oct 2019 14:39:38 +0000 (GMT)
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 18E0F11C04A;
-        Wed,  2 Oct 2019 14:39:38 +0000 (GMT)
-Received: from spoke.zurich.ibm.com (unknown [9.4.69.152])
-        by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Wed,  2 Oct 2019 14:39:38 +0000 (GMT)
-From:   Bernard Metzler <bmt@zurich.ibm.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     bharat@chelsio.com, jgg@ziepe.ca, nirranjan@chelsio.com,
-        krishna2@chelsio.com, bvanassche@acm.org, leon@kernel.org,
-        Bernard Metzler <bmt@zurich.ibm.com>
-Subject: [[PATCH v2 for-next]] RDMA/siw: Fix SQ/RQ drain logic
-Date:   Wed,  2 Oct 2019 16:38:58 +0200
-X-Mailer: git-send-email 2.17.2
-X-TM-AS-GCONF: 00
-x-cbid: 19100214-0008-0000-0000-0000031D5D04
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 19100214-0009-0000-0000-00004A3C60DA
-Message-Id: <20191002143858.4550-1-bmt@zurich.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-10-02_06:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=4 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=621 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1908290000 definitions=main-1910020137
+        id S1726905AbfJBO6t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Oct 2019 10:58:49 -0400
+Received: from mail-eopbgr70073.outbound.protection.outlook.com ([40.107.7.73]:47201
+        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726526AbfJBO6s (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Oct 2019 10:58:48 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=DMuBGFj6ATRFJ1OHSMYQiM0diecrML0GrZU4LNZtGOdArQBlSr66UYGiDryHoPrEK3QHJkn+VFRFaqinWiWVKSZYA8sxL1VOnU1XDfYF2kY0HLK3WcG6ato8a4fZmtmzTyPi3xXBYkwphRt9cpDcKeTld5EyXfySKMumVfgduLLLauxXOsVrUaMv71Ia6jtJIyjJH7dmit/+ZooSslMGPsVENtyUyUCPGCa8U0tSqZroaLDOk966jaP5lPwexzN+zV6LTPhKvehnW4zF655HgTtlhqX28fTZWLQrFqPV7vWEYdrJf8KkSPNJwOZw/8ZulyISIFpJ3iAMRXE7u/OgBw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=jXUym/xuwhoDcexefhpoInmz4TGvBFPZI9OONkmc1cY=;
+ b=VSNAXTQ/dJzEq3HnQX3MqXEyd+9VxvXTYJMd61h1gGd4cLlIfY8CohRaGr1Ivz3ie4Bo1EaSK6Bq+2bSFSe4FvNjEB1Y30KyUsVWZrkho1F0NnKaqjFFFP31q92EKLT9KmUVXffaPYw++sQItofaxL2u0lSJw5LeBrKyqPg1W7MG22ppMAOmrargPXWUTNUnfcUAYJM8WvUhexFagrgc/NxkTU5xy2MDznIrzGl0WdDA/sH+gFJ8gUHhfFbEXgutcU9cQdILC6OPfi21nvGcfYP4z+zIR+laVihLbmzSNtuRKhvVgnScU8KogR/rG2M5IRIGMjnSe6cWlJGSBRpvSg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=jXUym/xuwhoDcexefhpoInmz4TGvBFPZI9OONkmc1cY=;
+ b=MW2q0QINoEoSWFSvVo0bEb/wyim1IJE4WHHssEDsgGFMYqxbNvhHnpQ/iutTdckU5AWNQ4kwXU2uoMY5vrlY2lJVpfOlqRasl/28btZ+z1mat00iYETSamsvXrQ7hsHNY1lhYjaOZMLQz7iiQs8sd20ed6pY5sn++3FLLWIc5Os=
+Received: from AM6PR0502MB3768.eurprd05.prod.outlook.com (52.133.18.139) by
+ AM6PR0502MB3927.eurprd05.prod.outlook.com (52.133.19.151) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2305.15; Wed, 2 Oct 2019 14:58:44 +0000
+Received: from AM6PR0502MB3768.eurprd05.prod.outlook.com
+ ([fe80::8454:9da8:7be7:be0f]) by AM6PR0502MB3768.eurprd05.prod.outlook.com
+ ([fe80::8454:9da8:7be7:be0f%5]) with mapi id 15.20.2305.022; Wed, 2 Oct 2019
+ 14:58:44 +0000
+From:   Alex Vesker <valex@mellanox.com>
+To:     Michal Kubecek <mkubecek@suse.cz>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Leon Romanovsky <leon@kernel.org>
+CC:     Borislav Petkov <bp@alien8.de>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH net] mlx5: avoid 64-bit division in
+ dr_icm_pool_mr_create()
+Thread-Topic: [PATCH net] mlx5: avoid 64-bit division in
+ dr_icm_pool_mr_create()
+Thread-Index: AQHVeRqzMtt8mDGR6UGVxYBpTTGFrqdHcXwA
+Date:   Wed, 2 Oct 2019 14:58:44 +0000
+Message-ID: <57dc9ea7-e925-e8e8-af71-35326bb5c673@mellanox.com>
+References: <20191002121241.D74DAE04C7@unicorn.suse.cz>
+In-Reply-To: <20191002121241.D74DAE04C7@unicorn.suse.cz>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: AM4PR0902CA0021.eurprd09.prod.outlook.com
+ (2603:10a6:200:9b::31) To AM6PR0502MB3768.eurprd05.prod.outlook.com
+ (2603:10a6:209:5::11)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=valex@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [77.138.64.195]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 298a0d84-18e8-4940-9032-08d74749051d
+x-ms-office365-filtering-ht: Tenant
+x-ms-traffictypediagnostic: AM6PR0502MB3927:|AM6PR0502MB3927:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <AM6PR0502MB3927E1565C3B120297F57221C39C0@AM6PR0502MB3927.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:6430;
+x-forefront-prvs: 0178184651
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(366004)(376002)(39860400002)(136003)(396003)(189003)(199004)(71190400001)(71200400001)(36756003)(8676002)(186003)(6486002)(6436002)(6512007)(8936002)(81156014)(229853002)(6246003)(5660300002)(66066001)(305945005)(86362001)(316002)(76176011)(66556008)(81166006)(14454004)(64756008)(31696002)(25786009)(66946007)(478600001)(66476007)(7736002)(4326008)(54906003)(110136005)(486006)(446003)(14444005)(256004)(6116002)(3846002)(11346002)(2616005)(476003)(31686004)(102836004)(53546011)(2906002)(6506007)(26005)(386003)(52116002)(99286004)(66446008);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR0502MB3927;H:AM6PR0502MB3768.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: cSRHjFf2DUtSqL+Nydjye3qF4wQqiSW31VqOX5eTLsN3+PJ4mkwkxH2r76bLGeUOUMnuSh5M2ADZEB65QHxFb2KTx1U3EAIDl4Ol2ZtdH3GQHtEnXPm9ShlteaxCszFgFh4ccdEAJn9EtWhuK9K/BkbIWYPwHluaSDv+MUPD7VMP1WG8jGQ8lMrzbwH9T/8Lc2zJbJwvsWNBLRpUnSWxfg3bIo3g1F/WnaAHLvZUheVXnpCEtPX0DBZflWUQuFCn9LIHS58BU9ajTqWHXgncOZ3VW1AdjvdahbaRvIvmPBtvMbv3bZA74vdnxv/OwNeZBVcqcr3+So3lhux1kWzo+WOhR+xzoXDDGMaZ2NklVEhWfzCkHns8aLvWsWrr75dVD/4iiXLE7cPmq3iHmODWa4vqRgDAkk8RTJwVyCRuOm0=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <A256E41B2BDC73449F9B185365C9B66D@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 298a0d84-18e8-4940-9032-08d74749051d
+X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Oct 2019 14:58:44.3910
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: RhEnm3ZtZ7cuDs6Q5w9/QRBwIednAItCWrqcokkUDFlPEE3kFbf2Dolfma++9ltO83A14tDLQ+uj8KtUlOUgoQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR0502MB3927
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Storage ULPs (e.g. iSER & NVMeOF) use ib_drain_qp() to
-drain QP/CQ. Current SIW's own drain routines do not properly
-wait until all SQ/RQ elements are completed and reaped
-from the CQ. This may cause touch after free issues.
-New logic relies on generic __ib_drain_sq()/__ib_drain_rq()
-posting a final work request, which SIW immediately flushes
-to CQ.
-
-Fixes: 303ae1cdfdf7 ("rdma/siw: application interface")
-Signed-off-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
-Signed-off-by: Bernard Metzler <bmt@zurich.ibm.com>
----
-v1 -> v2:
-- Accept SQ and RQ work requests, if QP is in ERROR
-  state. In that case, immediately flush WR's to CQ.
-  This already provides needed functionality to
-  support ib_drain_sq()/ib_drain_rq() without extra
-  state checking in the fast path.
-
- drivers/infiniband/sw/siw/siw_main.c  |  20 -----
- drivers/infiniband/sw/siw/siw_verbs.c | 103 +++++++++++++++++++++-----
- 2 files changed, 86 insertions(+), 37 deletions(-)
-
-diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
-index 05a92f997f60..fb01407a310f 100644
---- a/drivers/infiniband/sw/siw/siw_main.c
-+++ b/drivers/infiniband/sw/siw/siw_main.c
-@@ -248,24 +248,6 @@ static struct ib_qp *siw_get_base_qp(struct ib_device *base_dev, int id)
- 	return NULL;
- }
- 
--static void siw_verbs_sq_flush(struct ib_qp *base_qp)
--{
--	struct siw_qp *qp = to_siw_qp(base_qp);
--
--	down_write(&qp->state_lock);
--	siw_sq_flush(qp);
--	up_write(&qp->state_lock);
--}
--
--static void siw_verbs_rq_flush(struct ib_qp *base_qp)
--{
--	struct siw_qp *qp = to_siw_qp(base_qp);
--
--	down_write(&qp->state_lock);
--	siw_rq_flush(qp);
--	up_write(&qp->state_lock);
--}
--
- static const struct ib_device_ops siw_device_ops = {
- 	.owner = THIS_MODULE,
- 	.uverbs_abi_ver = SIW_ABI_VERSION,
-@@ -284,8 +266,6 @@ static const struct ib_device_ops siw_device_ops = {
- 	.destroy_cq = siw_destroy_cq,
- 	.destroy_qp = siw_destroy_qp,
- 	.destroy_srq = siw_destroy_srq,
--	.drain_rq = siw_verbs_rq_flush,
--	.drain_sq = siw_verbs_sq_flush,
- 	.get_dma_mr = siw_get_dma_mr,
- 	.get_port_immutable = siw_get_port_immutable,
- 	.iw_accept = siw_accept,
-diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/siw/siw_verbs.c
-index 869e02b69a01..40e68e7a4f39 100644
---- a/drivers/infiniband/sw/siw/siw_verbs.c
-+++ b/drivers/infiniband/sw/siw/siw_verbs.c
-@@ -687,6 +687,47 @@ static int siw_copy_inline_sgl(const struct ib_send_wr *core_wr,
- 	return bytes;
- }
- 
-+/* Complete SQ WR's without processing */
-+static int siw_sq_flush_wr(struct siw_qp *qp, const struct ib_send_wr *wr,
-+			   const struct ib_send_wr **bad_wr)
-+{
-+	struct siw_sqe sqe = {};
-+	int rv = 0;
-+
-+	while (wr) {
-+		sqe.id = wr->wr_id;
-+		sqe.opcode = wr->opcode;
-+		rv = siw_sqe_complete(qp, &sqe, 0, SIW_WC_WR_FLUSH_ERR);
-+		if (rv) {
-+			if (bad_wr)
-+				*bad_wr = wr;
-+			break;
-+		}
-+		wr = wr->next;
-+	}
-+	return rv;
-+}
-+
-+/* Complete RQ WR's without processing */
-+static int siw_rq_flush_wr(struct siw_qp *qp, const struct ib_recv_wr *wr,
-+			   const struct ib_recv_wr **bad_wr)
-+{
-+	struct siw_rqe rqe = {};
-+	int rv = 0;
-+
-+	while (wr) {
-+		rqe.id = wr->wr_id;
-+		rv = siw_rqe_complete(qp, &rqe, 0, 0, SIW_WC_WR_FLUSH_ERR);
-+		if (rv) {
-+			if (bad_wr)
-+				*bad_wr = wr;
-+			break;
-+		}
-+		wr = wr->next;
-+	}
-+	return rv;
-+}
-+
- /*
-  * siw_post_send()
-  *
-@@ -705,6 +746,12 @@ int siw_post_send(struct ib_qp *base_qp, const struct ib_send_wr *wr,
- 	unsigned long flags;
- 	int rv = 0;
- 
-+	if (wr && !qp->kernel_verbs) {
-+		siw_dbg_qp(qp, "wr must be empty for user mapped sq\n");
-+		*bad_wr = wr;
-+		return -EINVAL;
-+	}
-+
- 	/*
- 	 * Try to acquire QP state lock. Must be non-blocking
- 	 * to accommodate kernel clients needs.
-@@ -715,16 +762,23 @@ int siw_post_send(struct ib_qp *base_qp, const struct ib_send_wr *wr,
- 		return -ENOTCONN;
- 	}
- 	if (unlikely(qp->attrs.state != SIW_QP_STATE_RTS)) {
-+		if (qp->attrs.state == SIW_QP_STATE_ERROR) {
-+			/*
-+			 * Immediately flush this WR to CQ, if QP
-+			 * is in ERROR state. SQ is guaranteed to
-+			 * be empty, so WR complets in-order.
-+			 *
-+			 * Typically triggered by ib_drain_sq().
-+			 */
-+			rv = siw_sq_flush_wr(qp, wr, bad_wr);
-+		} else {
-+			rv = -ENOTCONN;
-+			*bad_wr = wr;
-+			siw_dbg_qp(qp, "QP out of state %d\n",
-+				   qp->attrs.state);
-+		}
- 		up_read(&qp->state_lock);
--		*bad_wr = wr;
--		siw_dbg_qp(qp, "QP out of state %d\n", qp->attrs.state);
--		return -ENOTCONN;
--	}
--	if (wr && !qp->kernel_verbs) {
--		siw_dbg_qp(qp, "wr must be empty for user mapped sq\n");
--		up_read(&qp->state_lock);
--		*bad_wr = wr;
--		return -EINVAL;
-+		return rv;
- 	}
- 	spin_lock_irqsave(&qp->sq_lock, flags);
- 
-@@ -919,6 +973,13 @@ int siw_post_receive(struct ib_qp *base_qp, const struct ib_recv_wr *wr,
- 		*bad_wr = wr;
- 		return -EOPNOTSUPP; /* what else from errno.h? */
- 	}
-+	if (!qp->kernel_verbs) {
-+		siw_dbg_qp(qp, "no kernel post_recv for user mapped sq\n");
-+		up_read(&qp->state_lock);
-+		*bad_wr = wr;
-+		return -EINVAL;
-+	}
-+
- 	/*
- 	 * Try to acquire QP state lock. Must be non-blocking
- 	 * to accommodate kernel clients needs.
-@@ -927,16 +988,24 @@ int siw_post_receive(struct ib_qp *base_qp, const struct ib_recv_wr *wr,
- 		*bad_wr = wr;
- 		return -ENOTCONN;
- 	}
--	if (!qp->kernel_verbs) {
--		siw_dbg_qp(qp, "no kernel post_recv for user mapped sq\n");
--		up_read(&qp->state_lock);
--		*bad_wr = wr;
--		return -EINVAL;
--	}
- 	if (qp->attrs.state > SIW_QP_STATE_RTS) {
-+		if (qp->attrs.state == SIW_QP_STATE_ERROR) {
-+			/*
-+			 * Immediately flush this WR to CQ, if QP
-+			 * is in ERROR state. RQ is guaranteed to
-+			 * be empty, so WR complets in-order.
-+			 *
-+			 * Typically triggered by ib_drain_rq().
-+			 */
-+			rv = siw_rq_flush_wr(qp, wr, bad_wr);
-+		} else {
-+			rv = -ENOTCONN;
-+			*bad_wr = wr;
-+			siw_dbg_qp(qp, "QP out of state %d\n",
-+				   qp->attrs.state);
-+		}
- 		up_read(&qp->state_lock);
--		*bad_wr = wr;
--		return -EINVAL;
-+		return rv;
- 	}
- 	/*
- 	 * Serialize potentially multiple producers.
--- 
-2.17.2
-
+T24gMTAvMi8yMDE5IDM6MTIgUE0sIE1pY2hhbCBLdWJlY2VrIHdyb3RlOg0KPiBSZWNlbnRseSBh
+ZGRlZCBjb2RlIGludHJvZHVjZXMgNjQtYml0IGRpdmlzaW9uIGluIGRyX2ljbV9wb29sX21yX2Ny
+ZWF0ZSgpDQo+IHNvIHRoYXQgYnVpbGQgb24gMzItYml0IGFyY2hpdGVjdHVyZXMgZmFpbHMgd2l0
+aA0KPg0KPiAgICBFUlJPUjogIl9fdW1vZGRpMyIgW2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxh
+bm94L21seDUvY29yZS9tbHg1X2NvcmUua29dIHVuZGVmaW5lZCENCj4NCj4gQXMgdGhlIGRpdmlz
+b3IgaXMgYWx3YXlzIGEgcG93ZXIgb2YgMiwgd2UgY2FuIHVzZSBiaXR3aXNlIG9wZXJhdGlvbg0K
+PiBpbnN0ZWFkLg0KPg0KPiBGaXhlczogMjljZjhmZWJkMTg1ICgibmV0L21seDU6IERSLCBJQ00g
+cG9vbCBtZW1vcnkgYWxsb2NhdG9yIikNCj4gUmVwb3J0ZWQtYnk6IEJvcmlzbGF2IFBldGtvdiA8
+YnBAYWxpZW44LmRlPg0KPiBTaWduZWQtb2ZmLWJ5OiBNaWNoYWwgS3ViZWNlayA8bWt1YmVjZWtA
+c3VzZS5jej4NCj4gLS0tDQo+ICAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9j
+b3JlL3N0ZWVyaW5nL2RyX2ljbV9wb29sLmMgfCAzICsrLQ0KPiAgIDEgZmlsZSBjaGFuZ2VkLCAy
+IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+bmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9zdGVlcmluZy9kcl9pY21fcG9vbC5jIGIv
+ZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3N0ZWVyaW5nL2RyX2ljbV9w
+b29sLmMNCj4gaW5kZXggOTEzZjFlNWFhYWYyLi5kN2M3NDY3ZTJkNTMgMTAwNjQ0DQo+IC0tLSBh
+L2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9zdGVlcmluZy9kcl9pY21f
+cG9vbC5jDQo+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9z
+dGVlcmluZy9kcl9pY21fcG9vbC5jDQo+IEBAIC0xMzcsNyArMTM3LDggQEAgZHJfaWNtX3Bvb2xf
+bXJfY3JlYXRlKHN0cnVjdCBtbHg1ZHJfaWNtX3Bvb2wgKnBvb2wsDQo+ICAgDQo+ICAgCWljbV9t
+ci0+aWNtX3N0YXJ0X2FkZHIgPSBpY21fbXItPmRtLmFkZHI7DQo+ICAgDQo+IC0JYWxpZ25fZGlm
+ZiA9IGljbV9tci0+aWNtX3N0YXJ0X2FkZHIgJSBhbGlnbl9iYXNlOw0KPiArCS8qIGFsaWduX2Jh
+c2UgaXMgYWx3YXlzIGEgcG93ZXIgb2YgMiAqLw0KPiArCWFsaWduX2RpZmYgPSBpY21fbXItPmlj
+bV9zdGFydF9hZGRyICYgKGFsaWduX2Jhc2UgLSAxKTsNCj4gICAJaWYgKGFsaWduX2RpZmYpDQo+
+ICAgCQlpY21fbXItPnVzZWRfbGVuZ3RoID0gYWxpZ25fYmFzZSAtIGFsaWduX2RpZmY7DQo+ICAg
+DQoNCkFsaWduIGRpZmYgaXMgcG93ZXIgb2YgMizCoCBsb29rcyBnb29kIHRvIG1lLg0KVGhhbmtz
+IGZvciBmaXhpbmcgaXQgTWljaGFsLg0KDQo=
