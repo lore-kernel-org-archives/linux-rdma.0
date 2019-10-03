@@ -2,149 +2,134 @@ Return-Path: <SRS0=0boT=X4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B928CC10F14
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 16:31:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD08CC32792
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 17:04:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 85CC92054F
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 16:31:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="LRJ4iSOq"
+	by mail.kernel.org (Postfix) with ESMTP id AE62E20673
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 17:04:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403883AbfJCQbj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Oct 2019 12:31:39 -0400
-Received: from mail-eopbgr00050.outbound.protection.outlook.com ([40.107.0.50]:54918
-        "EHLO EUR02-AM5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2403868AbfJCQbf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 3 Oct 2019 12:31:35 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ABZh74Xl/auCWjwONH/CZHnG/QjaeSzBbtEcOUUXVsQpCDH6/TnYA5fgI7a7tlaCzPRXOKTsL5KtjwmDX278pOAebl/ETNM8/EcQMOnwVVCN8M/m+Ts2QGbjfGqj868wZL7KJALql9dpougg5/9qg0tZh5ioNrXys1WrjL01OPO0PcQqUvJaROGmbctd/icXWrnQ8KhOhjxshG7Qs4pwc6TL6HbxXmhe0l3TLcqziXZJ3uu13jtTRPo5xGZTMy1/Ie1KO2BABoC4jZSjaYsEhRBwO04mDR3RHfN6CWcUb+a3ucvgkerM8bIjXKjg6908wWpRw0HALBvENRW3tQ9R+Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=rJzOQE0sJ6AEU2DbjooMe6DAXYHTjodlUcDLZmnsJ2U=;
- b=IBgaR/X8O9QOplX1UFtKmPdFpVskwWKlHcPwELL/+9TXflCKD0zq5evGSP0ta5DXKtIz0xohYNWM4J6+GAzipcvid4WLwutnrc3bshdPoHaRS4Y8Ge5YIPz2oUaGe/xRrsytj7wv08RJ0vqd8X3Q4IysgrNfzk9y7DcDmx+RNnYZo53/rNYW9eY8lQ9gNtFj1ssklz3t0h6fkxquZU5E2grupho2DQeTo4O9Y9m3INvJMgVuVebu3UTmdXQG9fIgtb9ZGyy495u7Y5OJfPT67lG1L7/WVfSfV+kohlejM7HPCCEhL2PJEUdBdiDjYWtgqbDFYrFZhIfBdcewoD2TyQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=rJzOQE0sJ6AEU2DbjooMe6DAXYHTjodlUcDLZmnsJ2U=;
- b=LRJ4iSOqU0OrfwC2HLgO467Bklbw4RuS+baCYO7UobUAOn7ghJDf+muCl/jneMy2z4FRUdvVI08UcSCHvWI+R613v5SNsSBXajxB2FLI7HL+qIId+g2J5El2woiAZM88ORguB91XY76coPf//R2lcYqqkVQhtYuGfUpcQBW9m2Q=
-Received: from DB7PR05MB4138.eurprd05.prod.outlook.com (52.135.129.16) by
- DB7PR05MB4123.eurprd05.prod.outlook.com (52.135.129.14) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2305.20; Thu, 3 Oct 2019 16:31:32 +0000
-Received: from DB7PR05MB4138.eurprd05.prod.outlook.com
- ([fe80::18c2:3d9e:4f04:4043]) by DB7PR05MB4138.eurprd05.prod.outlook.com
- ([fe80::18c2:3d9e:4f04:4043%3]) with mapi id 15.20.2305.023; Thu, 3 Oct 2019
- 16:31:32 +0000
-From:   Jason Gunthorpe <jgg@mellanox.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Jonathan Toppins <jtoppins@redhat.com>,
-        Doug Ledford <dledford@redhat.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH rdma-core] kernel-boot: Tighten check if device is virtual
-Thread-Topic: [PATCH rdma-core] kernel-boot: Tighten check if device is
- virtual
-Thread-Index: AQHVdE7LmtT4Pt5d2kujr9uOMkraD6c95NqAgABalACAAxKtAIAH1UmA
-Date:   Thu, 3 Oct 2019 16:31:32 +0000
-Message-ID: <20191003163127.GE26151@mellanox.com>
-References: <20190926094253.31145-1-leon@kernel.org>
- <20190926123427.GD19509@mellanox.com>
- <9c582ae3-8214-f9b8-d403-cf443b70284e@redhat.com>
- <20190928165416.GL14368@unreal>
-In-Reply-To: <20190928165416.GL14368@unreal>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: YQBPR0101CA0014.CANPRD01.PROD.OUTLOOK.COM
- (2603:10b6:c00::27) To DB7PR05MB4138.eurprd05.prod.outlook.com
- (2603:10a6:5:23::16)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=jgg@mellanox.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [142.162.113.180]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 9a2e347f-ea76-4ea1-960a-08d7481f267a
-x-ms-office365-filtering-ht: Tenant
-x-ms-traffictypediagnostic: DB7PR05MB4123:
-x-ms-exchange-purlcount: 3
-x-microsoft-antispam-prvs: <DB7PR05MB41238484795FD3832FD60FA3CF9F0@DB7PR05MB4123.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8273;
-x-forefront-prvs: 01792087B6
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(376002)(346002)(39850400004)(396003)(366004)(136003)(189003)(199004)(2616005)(33656002)(386003)(6506007)(53546011)(476003)(14454004)(66446008)(26005)(66946007)(3846002)(81166006)(6486002)(81156014)(6116002)(186003)(8676002)(64756008)(36756003)(66556008)(66476007)(54906003)(305945005)(99286004)(102836004)(486006)(6916009)(7736002)(71200400001)(2906002)(71190400001)(316002)(4326008)(76176011)(6246003)(256004)(52116002)(25786009)(478600001)(66066001)(229853002)(5660300002)(11346002)(6436002)(446003)(6306002)(8936002)(86362001)(6512007)(966005)(1076003);DIR:OUT;SFP:1101;SCL:1;SRVR:DB7PR05MB4123;H:DB7PR05MB4138.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: wWYRE8iivrd2qmRI930l2usbxdm8Tw7AUEu7LKwvCO251IhRTvKEuaqA+V+FTHe0LrUHGgv3ZpVtGIC8vTA+heIPgDgi+KlJ5nB6pOcO3HmrTusmtDskoO6sDEV7IVi8rd02/yk+RypfuP5s1e0Zkn2xKO28qkzDMLx3TBWtiX8H15+0cMHUZ8poWtKoD0ey9ISnB9oHXeOiyu3j0G6W7tpCqd5/8Fl7E78hEAA0pl59k/mFgOleYJHNoZ6/RhOiKPSAuteDV1hVRZgPXGoGte2WOsX5XiOA2OvGejXaB8zDEdJoQNk4cAQvTXU+UqCTetvqXDNiuMGe5rKbT3igLTypdqoYwzDcNnvBayz6dS+GDKqbW2IqWrwKJS34eu6Ni8vdcn35YIdK5Pwc88v/gL+veOmghe5KAnInQLrFi3MKUvzKVIZdkz8A0iuDO84M6AzgAbHcHU6+b3vdQ08oPw==
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <5EE36EF0A25D834B9CC5913A307A1C81@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: quoted-printable
+        id S2390710AbfJCREE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Oct 2019 13:04:04 -0400
+Received: from stargate.chelsio.com ([12.32.117.8]:48549 "EHLO
+        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732998AbfJCREE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Oct 2019 13:04:04 -0400
+Received: from localhost (mehrangarh.blr.asicdesigners.com [10.193.185.169])
+        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id x93H3sMP028509;
+        Thu, 3 Oct 2019 10:03:55 -0700
+Date:   Thu, 3 Oct 2019 22:33:53 +0530
+From:   Potnuri Bharat Teja <bharat@chelsio.com>
+To:     Greg KH <gregkh@linuxfoundation.org>
+Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Nicolas Waisman <nico@semmle.com>
+Subject: Re: [PATCH] cxgb4: do not dma memory off of the stack
+Message-ID: <20191003170339.GA16190@chelsio.com>
+References: <20191001153917.GA3498459@kroah.com>
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9a2e347f-ea76-4ea1-960a-08d7481f267a
-X-MS-Exchange-CrossTenant-originalarrivaltime: 03 Oct 2019 16:31:32.5167
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: n7YS53Ndrw/t5QC7ayUB/lbSivhv5fqvzZxvMc5/szSx1ofjUl2XOwbSx3kaEHYmo+tEIgSqKMa/KtvKeWjU+w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB7PR05MB4123
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191001153917.GA3498459@kroah.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Sep 28, 2019 at 07:54:16PM +0300, Leon Romanovsky wrote:
-> On Thu, Sep 26, 2019 at 01:58:38PM -0400, Jonathan Toppins wrote:
-> > On 09/26/2019 08:34 AM, Jason Gunthorpe wrote:
-> > > On Thu, Sep 26, 2019 at 12:42:53PM +0300, Leon Romanovsky wrote:
-> > >> From: Leon Romanovsky <leonro@mellanox.com>
-> > >>
-> > >> Virtual devices like SIW or RXE don't set FW version because
-> > >> they don't have one, use that fact to rely on having empty
-> > >> fw_ver file to sense such virtual devices.
-> > >
-> > > Have you checked that every physical device does set fw version?
-> > >
-> > > Seems hacky
-> >
-> > agreed, how are tuntap devices handled, is there a similar handling tha=
-t
-> > can be applied here?
->=20
-> Unfortunately, we can't do the same, RDMA doesn't have notion of stacked =
-devices.
->=20
-> 1.
-> TUN devices are initialized with ARPHRD_NONE type.
-> https://elixir.bootlin.com/linux/latest/source/drivers/net/tun.c#L1396
->=20
-> It causes for systemd-udev to skip their rename.
-> https://github.com/systemd/systemd/blob/master/src/udev/udev-builtin-net_=
-id.c#L781
->=20
-> 2.
-> TAP devices are skipped due to the fact that iflink !=3D ifindex on such =
-devices.
-> https://github.com/systemd/systemd/blob/master/src/udev/udev-builtin-net_=
-id.c#L810
->=20
-> So, yes hacky, but the solution is tailored to RDMA subsystem where ALL
-> devices have FW and we can ensure that ALL future devices will report any
-> sort of string through fw_ver file.
+On Tuesday, October 10/01/19, 2019 at 21:09:17 +0530, Greg KH wrote:
+> Nicolas pointed out that the cxgb4 driver is doing dma off of the stack,
+> which is generally considered a very bad thing.  On some architectures
+> it could be a security problem, but odds are none of them actually run
+> this driver, so it's just a "normal" bug.
+> 
+> Resolve this by allocating the memory for a message off of the heap
+> instead of the stack.  kmalloc() always will give us a proper memory
+> location that DMA will work correctly from.
+> 
+> Reported-by: Nicolas Waisman <nico@semmle.com>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> 
+> ---
+> 
+> Note, test-built only, I don't have this hardware to actually run this
+> code at all.
+Thanks for the patch.
+Tests with HW ran fine.
+Tested-by: Potnuri Bharat Teja <bharat@chelsio.com>
 
-It still seems really hacky, why not add some device flag or something
-instead? Is this better because it works with old kernels?
-
-Jason
+> 
+> diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+> index aa772ee0706f..b2bd3de81dcd 100644
+> --- a/drivers/infiniband/hw/cxgb4/mem.c
+> +++ b/drivers/infiniband/hw/cxgb4/mem.c
+> @@ -275,13 +275,17 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
+>  			   struct sk_buff *skb, struct c4iw_wr_wait *wr_waitp)
+>  {
+>  	int err;
+> -	struct fw_ri_tpte tpt;
+> +	struct fw_ri_tpte *tpt;
+>  	u32 stag_idx;
+>  	static atomic_t key;
+>  
+>  	if (c4iw_fatal_error(rdev))
+>  		return -EIO;
+>  
+> +	tpt = kmalloc(sizeof(*tpt), GFP_KERNEL);
+> +	if (!tpt)
+> +		return -ENOMEM;
+> +
+>  	stag_state = stag_state > 0;
+>  	stag_idx = (*stag) >> 8;
+>  
+> @@ -305,28 +309,28 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
+>  
+>  	/* write TPT entry */
+>  	if (reset_tpt_entry)
+> -		memset(&tpt, 0, sizeof(tpt));
+> +		memset(tpt, 0, sizeof(*tpt));
+>  	else {
+> -		tpt.valid_to_pdid = cpu_to_be32(FW_RI_TPTE_VALID_F |
+> +		tpt->valid_to_pdid = cpu_to_be32(FW_RI_TPTE_VALID_F |
+>  			FW_RI_TPTE_STAGKEY_V((*stag & FW_RI_TPTE_STAGKEY_M)) |
+>  			FW_RI_TPTE_STAGSTATE_V(stag_state) |
+>  			FW_RI_TPTE_STAGTYPE_V(type) | FW_RI_TPTE_PDID_V(pdid));
+> -		tpt.locread_to_qpid = cpu_to_be32(FW_RI_TPTE_PERM_V(perm) |
+> +		tpt->locread_to_qpid = cpu_to_be32(FW_RI_TPTE_PERM_V(perm) |
+>  			(bind_enabled ? FW_RI_TPTE_MWBINDEN_F : 0) |
+>  			FW_RI_TPTE_ADDRTYPE_V((zbva ? FW_RI_ZERO_BASED_TO :
+>  						      FW_RI_VA_BASED_TO))|
+>  			FW_RI_TPTE_PS_V(page_size));
+> -		tpt.nosnoop_pbladdr = !pbl_size ? 0 : cpu_to_be32(
+> +		tpt->nosnoop_pbladdr = !pbl_size ? 0 : cpu_to_be32(
+>  			FW_RI_TPTE_PBLADDR_V(PBL_OFF(rdev, pbl_addr)>>3));
+> -		tpt.len_lo = cpu_to_be32((u32)(len & 0xffffffffUL));
+> -		tpt.va_hi = cpu_to_be32((u32)(to >> 32));
+> -		tpt.va_lo_fbo = cpu_to_be32((u32)(to & 0xffffffffUL));
+> -		tpt.dca_mwbcnt_pstag = cpu_to_be32(0);
+> -		tpt.len_hi = cpu_to_be32((u32)(len >> 32));
+> +		tpt->len_lo = cpu_to_be32((u32)(len & 0xffffffffUL));
+> +		tpt->va_hi = cpu_to_be32((u32)(to >> 32));
+> +		tpt->va_lo_fbo = cpu_to_be32((u32)(to & 0xffffffffUL));
+> +		tpt->dca_mwbcnt_pstag = cpu_to_be32(0);
+> +		tpt->len_hi = cpu_to_be32((u32)(len >> 32));
+>  	}
+>  	err = write_adapter_mem(rdev, stag_idx +
+>  				(rdev->lldi.vr->stag.start >> 5),
+> -				sizeof(tpt), &tpt, skb, wr_waitp);
+> +				sizeof(*tpt), tpt, skb, wr_waitp);
+>  
+>  	if (reset_tpt_entry) {
+>  		c4iw_put_resource(&rdev->resource.tpt_table, stag_idx);
+> @@ -334,6 +338,7 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
+>  		rdev->stats.stag.cur -= 32;
+>  		mutex_unlock(&rdev->stats.lock);
+>  	}
+> +	kfree(tpt);
+>  	return err;
+>  }
+>  
