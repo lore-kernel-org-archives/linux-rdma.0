@@ -2,139 +2,153 @@ Return-Path: <SRS0=0boT=X4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F2C3C32792
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 20:20:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E3F9C10F14
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 20:20:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E00E020862
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 20:20:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 797C22133F
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Oct 2019 20:20:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730390AbfJCUUL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Oct 2019 16:20:11 -0400
-Received: from mx2.suse.de ([195.135.220.15]:46344 "EHLO mx1.suse.de"
+        id S2388794AbfJCUUV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Oct 2019 16:20:21 -0400
+Received: from mx2.suse.de ([195.135.220.15]:46538 "EHLO mx1.suse.de"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725932AbfJCUUL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 3 Oct 2019 16:20:11 -0400
+        id S1733146AbfJCUUV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 3 Oct 2019 16:20:21 -0400
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 94374B03B;
-        Thu,  3 Oct 2019 20:20:08 +0000 (UTC)
+        by mx1.suse.de (Postfix) with ESMTP id 12463B052;
+        Thu,  3 Oct 2019 20:20:19 +0000 (UTC)
 From:   Davidlohr Bueso <dave@stgolabs.net>
 To:     akpm@linux-foundation.org
 Cc:     walken@google.com, peterz@infradead.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-        dave@stgolabs.net
-Subject: [PATCH -next 00/11] lib/interval-tree: move to half closed intervals
-Date:   Thu,  3 Oct 2019 13:18:47 -0700
-Message-Id: <20191003201858.11666-1-dave@stgolabs.net>
+        dave@stgolabs.net,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Maxime Ripard <mripard@kernel.org>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        intel-gfx@lists.freedesktop.org, Davidlohr Bueso <dbueso@suse.de>
+Subject: [PATCH 04/11] drm: convert drm_mm_interval_tree to half closed intervals
+Date:   Thu,  3 Oct 2019 13:18:51 -0700
+Message-Id: <20191003201858.11666-5-dave@stgolabs.net>
 X-Mailer: git-send-email 2.16.4
+In-Reply-To: <20191003201858.11666-1-dave@stgolabs.net>
+References: <20191003201858.11666-1-dave@stgolabs.net>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+The drm_mm interval tree really wants [a, b) intervals, not
+fully closed as it is now. As such convert it to use the new
+interval_tree_gen.h.
 
-It has been discussed[1,2] that almost all users of interval trees would better
-be served if the intervals were actually not [a,b], but instead [a, b). This
-series attempts to convert all callers by way of transitioning from using
-"interval_tree_generic.h" to "interval_tree_gen.h". Once all users are converted,
-we remove the former.
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: intel-gfx@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+---
+ drivers/gpu/drm/drm_mm.c                              | 8 ++++----
+ drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c | 2 +-
+ drivers/gpu/drm/selftests/test-drm_mm.c               | 2 +-
+ include/drm/drm_mm.h                                  | 6 +++---
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-Patch 1: adds a call that will make patch 8 easier to review by introducing stab
-         queries for the vma interval tree.
-
-Patch 2: adds the new interval_tree_gen.h which is the same as the old one but
-         uses [a,b) intervals.
-
-Patch 3-9: converts, in baby steps (as much as possible), each interval tree to
-	   the new [a,b) one. It is done this way also to maintain bisectability.
-	   Most conversions are pretty straightforward, however, there are some
-	   creative ways in which some callers use the interval 'end' when going
-	   through intersecting ranges within a tree. Ie: patch 3, 6 and 9.
-
-Patch 10: deletes the interval_tree_generic.h header; there are no longer any users.
-
-Patch 11: finally simplifies x86 pat tree to use the new interval tree machinery.
-
-This has been lightly tested, and certainly not on driver paths that do non
-trivial conversions. Also needs more eyeballs as conversions can be easily
-missed (even when I've tried mitigating this by renaming the endpoint from 'last'
-to 'end' in each corresponding structure).
-
-Because this touches a lot of drivers, I'm Cc'ing the whole thing to a couple of
-relevant lists (mm, dri, rdma); sorry if you consider this spam.
-
-Applies on top of today's linux-next tree. Please consider for v5.5.
-
-Thanks!
-
-[1] https://lore.kernel.org/lkml/CANN689HVDJXKEwB80yPAVwvRwnV4HfiucQVAho=dupKM_iKozw@mail.gmail.com/
-[2] https://lore.kernel.org/patchwork/patch/1114629/
-
-Davidlohr Bueso (11):
-  mm: introduce vma_interval_tree_foreach_stab()
-  lib/interval-tree: add an equivalent tree with [a,b) intervals
-  drm/amdgpu: convert amdgpu_vm_it to half closed intervals
-  drm: convert drm_mm_interval_tree to half closed intervals
-  IB/hfi1: convert __mmu_int_rb to half closed intervals
-  IB,usnic: convert usnic_uiom_interval_tree to half closed intervals
-  vhost: convert vhost_umem_interval_tree to half closed intervals
-  mm: convert vma_interval_tree to half closed intervals
-  lib/interval-tree: convert interval_tree to half closed intervals
-  lib: drop interval_tree_generic.h
-  x86/mm, pat: convert pat tree to generic interval tree
-
- arch/arm/mm/fault-armv.c                           |   2 +-
- arch/arm/mm/flush.c                                |   2 +-
- arch/nios2/mm/cacheflush.c                         |   2 +-
- arch/parisc/kernel/cache.c                         |   2 +-
- arch/x86/mm/pat.c                                  |  22 +--
- arch/x86/mm/pat_rbtree.c                           | 151 +++++----------------
- drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c             |   2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c             |  12 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_object.h         |   2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_trace.h          |  18 +--
- drivers/gpu/drm/amd/amdgpu/amdgpu_uvd.c            |   2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_vce.c            |   3 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c             |  47 ++++---
- drivers/gpu/drm/drm_mm.c                           |   8 +-
- drivers/gpu/drm/i915/gem/i915_gem_userptr.c        |   5 +-
- .../gpu/drm/i915/gem/selftests/i915_gem_context.c  |   2 +-
- drivers/gpu/drm/radeon/radeon_mn.c                 |  11 +-
- drivers/gpu/drm/radeon/radeon_trace.h              |   2 +-
- drivers/gpu/drm/radeon/radeon_vm.c                 |  26 ++--
- drivers/gpu/drm/selftests/test-drm_mm.c            |   2 +-
- drivers/infiniband/core/umem_odp.c                 |  21 +--
- drivers/infiniband/hw/hfi1/mmu_rb.c                |  15 +-
- drivers/infiniband/hw/usnic/usnic_uiom.c           |   8 +-
- .../infiniband/hw/usnic/usnic_uiom_interval_tree.c |  26 ++--
- .../infiniband/hw/usnic/usnic_uiom_interval_tree.h |   2 +-
- drivers/iommu/virtio-iommu.c                       |   6 +-
- drivers/vhost/vhost.c                              |  19 ++-
- drivers/vhost/vhost.h                              |   4 +-
- fs/dax.c                                           |   2 +-
- include/drm/drm_mm.h                               |   6 +-
- include/linux/interval_tree.h                      |   2 +-
- ...interval_tree_generic.h => interval_tree_gen.h} |  72 +++++-----
- include/linux/mm.h                                 |   6 +
- include/rdma/ib_umem_odp.h                         |   4 +-
- kernel/events/uprobes.c                            |   2 +-
- lib/interval_tree.c                                |   6 +-
- mm/hugetlb.c                                       |   4 +-
- mm/interval_tree.c                                 |   4 +-
- mm/khugepaged.c                                    |   2 +-
- mm/memory-failure.c                                |   6 +-
- mm/memory.c                                        |   2 +-
- mm/nommu.c                                         |   2 +-
- mm/rmap.c                                          |   6 +-
- 43 files changed, 217 insertions(+), 333 deletions(-)
- rename include/linux/{interval_tree_generic.h => interval_tree_gen.h} (72%)
-
+diff --git a/drivers/gpu/drm/drm_mm.c b/drivers/gpu/drm/drm_mm.c
+index 4581c5387372..17feb00e7d80 100644
+--- a/drivers/gpu/drm/drm_mm.c
++++ b/drivers/gpu/drm/drm_mm.c
+@@ -43,7 +43,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include <linux/interval_tree_generic.h>
++#include <linux/interval_tree_gen.h>
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/stacktrace.h>
+@@ -150,11 +150,11 @@ static void show_leaks(struct drm_mm *mm) { }
+ #endif
+ 
+ #define START(node) ((node)->start)
+-#define LAST(node)  ((node)->start + (node)->size - 1)
++#define END(node)   ((node)->start + (node)->size)
+ 
+ INTERVAL_TREE_DEFINE(struct drm_mm_node, rb,
+ 		     u64, __subtree_last,
+-		     START, LAST, static inline, drm_mm_interval_tree)
++		     START, END, static inline, drm_mm_interval_tree)
+ 
+ struct drm_mm_node *
+ __drm_mm_interval_first(const struct drm_mm *mm, u64 start, u64 last)
+@@ -172,7 +172,7 @@ static void drm_mm_interval_tree_add_node(struct drm_mm_node *hole_node,
+ 	struct drm_mm_node *parent;
+ 	bool leftmost;
+ 
+-	node->__subtree_last = LAST(node);
++	node->__subtree_last = END(node);
+ 
+ 	if (hole_node->allocated) {
+ 		rb = &hole_node->rb;
+diff --git a/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c b/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c
+index 3e6f4a65d356..af40d3bfa065 100644
+--- a/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c
++++ b/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c
+@@ -1150,7 +1150,7 @@ static int check_scratch(struct i915_gem_context *ctx, u64 offset)
+ {
+ 	struct drm_mm_node *node =
+ 		__drm_mm_interval_first(&ctx->vm->mm,
+-					offset, offset + sizeof(u32) - 1);
++					offset, offset + sizeof(u32));
+ 	if (!node || node->start > offset)
+ 		return 0;
+ 
+diff --git a/drivers/gpu/drm/selftests/test-drm_mm.c b/drivers/gpu/drm/selftests/test-drm_mm.c
+index 388f9844f4ba..f34f975c1570 100644
+--- a/drivers/gpu/drm/selftests/test-drm_mm.c
++++ b/drivers/gpu/drm/selftests/test-drm_mm.c
+@@ -853,7 +853,7 @@ static bool assert_contiguous_in_range(struct drm_mm *mm,
+ 	}
+ 
+ 	if (start > 0) {
+-		node = __drm_mm_interval_first(mm, 0, start - 1);
++		node = __drm_mm_interval_first(mm, 0, start);
+ 		if (node->allocated) {
+ 			pr_err("node before start: node=%llx+%llu, start=%llx\n",
+ 			       node->start, node->size, start);
+diff --git a/include/drm/drm_mm.h b/include/drm/drm_mm.h
+index 2c3bbb43c7d1..0eda6180e1ef 100644
+--- a/include/drm/drm_mm.h
++++ b/include/drm/drm_mm.h
+@@ -485,19 +485,19 @@ __drm_mm_interval_first(const struct drm_mm *mm, u64 start, u64 last);
+  * @node__: drm_mm_node structure to assign to in each iteration step
+  * @mm__: drm_mm allocator to walk
+  * @start__: starting offset, the first node will overlap this
+- * @end__: ending offset, the last node will start before this (but may overlap)
++ * @end__: ending offset, the last node will start before this
+  *
+  * This iterator walks over all nodes in the range allocator that lie
+  * between @start and @end. It is implemented similarly to list_for_each(),
+  * but using the internal interval tree to accelerate the search for the
+  * starting node, and so not safe against removal of elements. It assumes
+  * that @end is within (or is the upper limit of) the drm_mm allocator.
+- * If [@start, @end] are beyond the range of the drm_mm, the iterator may walk
++ * If [@start, @end) are beyond the range of the drm_mm, the iterator may walk
+  * over the special _unallocated_ &drm_mm.head_node, and may even continue
+  * indefinitely.
+  */
+ #define drm_mm_for_each_node_in_range(node__, mm__, start__, end__)	\
+-	for (node__ = __drm_mm_interval_first((mm__), (start__), (end__)-1); \
++	for (node__ = __drm_mm_interval_first((mm__), (start__), (end__)); \
+ 	     node__->start < (end__);					\
+ 	     node__ = list_next_entry(node__, node_list))
+ 
 -- 
 2.16.4
 
