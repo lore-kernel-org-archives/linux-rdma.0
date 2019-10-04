@@ -2,55 +2,141 @@ Return-Path: <SRS0=KgEB=X5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FSL_HELO_FAKE,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1,
+	USER_IN_DEF_DKIM_WL autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B351C4CED1
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Oct 2019 10:32:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB6A5C4360C
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Oct 2019 11:02:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B7E6207FF
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Oct 2019 10:32:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93E6920867
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Oct 2019 11:02:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="KPrEoUte"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729880AbfJDKcr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Oct 2019 06:32:47 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:36664 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729908AbfJDKcr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 4 Oct 2019 06:32:47 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 441D47DD740AC8AA3348;
-        Fri,  4 Oct 2019 18:32:45 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.439.0; Fri, 4 Oct 2019 18:32:36 +0800
-From:   Weihang Li <liweihang@hisilicon.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/2] RDMA/hns: Add support of net device event reporting to ULP
-Date:   Fri, 4 Oct 2019 18:29:12 +0800
-Message-ID: <1570184954-21384-1-git-send-email-liweihang@hisilicon.com>
-X-Mailer: git-send-email 2.8.1
+        id S1730582AbfJDLCb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Oct 2019 07:02:31 -0400
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:38823 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725788AbfJDLCb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Oct 2019 07:02:31 -0400
+Received: by mail-pf1-f196.google.com with SMTP id h195so3687590pfe.5
+        for <linux-rdma@vger.kernel.org>; Fri, 04 Oct 2019 04:02:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=Ku4z59GegrGG+Xfk9fGT7bfSHa3f5Py2+RMuhy3okDg=;
+        b=KPrEoUteCeYCa10uT2hn7fB1zM8Hfdoe38fSBpEFWdSxAeLJh80LvNzJLajpVpIDoX
+         /iX2Pc4h0WUlJw74gUqIYTXsd3aS3JpzDEJN4AKPyJDVadMhQMAhQX65rEm880pH42Hj
+         RDUPDWYlR7XhQrV5eNna2MGYLWZNX2T+y7fgeQXzM+Dxz/CZMJ4zE6dLWnRlkuz6PIRJ
+         3FMGaXriotJwSR+ciw2d7MTCGmzZXmNvIox5y5m5J6eI2pmx/Wl3u/ZnGWFP2CReGuxW
+         Si5R7xoklkhvvPqrnyQPM5XFBJBvVrldWYSS1IGnZHK7+jErRzs6Bi8Pzy9UgL1Nwh7H
+         RCsw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=Ku4z59GegrGG+Xfk9fGT7bfSHa3f5Py2+RMuhy3okDg=;
+        b=NL0/6H/mi6rSsepHD52+9EFEhy+ie7T1pHvVy9ln67k8AQHnd9JXNTsVq2CBwahF7J
+         WOMRIDbJx5OoA7Ey+w0K6Zq5pb716Bs8MfuJBuI9HYfhFbLblt7fafOO99lc2tCG8hol
+         m2zHRbHtDztK5B+VL1iWapl/iDepYFXXwV+lcFhB9hF9gprcJJ77EYIcIEvf790/PHhq
+         K0tkpFFrcsxz6ozMRJBmwDzXEC25LNjoyS9BPpnpDP437fzSkWy7Aic8pKBGUcc5/Rhb
+         jtPmBJPZSRhidkUEkZZhQFX9tsCaVTcOWj8l8dsKJnELgomR1GJ/1Qusi/MljckfJiHv
+         Pf2Q==
+X-Gm-Message-State: APjAAAW09pZr7TOcUPYn7mPvIU+4Kn98i2N3Vp+VoAB5ckDYc+fRLQ6b
+        sUzB4cbEot8Bn94pBSdu6kItgg==
+X-Google-Smtp-Source: APXvYqx4/60BB+JFHczOGrzL1Al0rm+OY0a+A9pZLRnWECaGlOjJLRWXCmf7DRnwimAuKwz5dG/Qgw==
+X-Received: by 2002:a65:5804:: with SMTP id g4mr14680236pgr.362.1570186948359;
+        Fri, 04 Oct 2019 04:02:28 -0700 (PDT)
+Received: from google.com ([2620:15c:2cd:202:668d:6035:b425:3a3a])
+        by smtp.gmail.com with ESMTPSA id v8sm8911794pje.6.2019.10.04.04.02.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Oct 2019 04:02:26 -0700 (PDT)
+Date:   Fri, 4 Oct 2019 04:02:24 -0700
+From:   Michel Lespinasse <walken@google.com>
+To:     Davidlohr Bueso <dave@stgolabs.net>
+Cc:     akpm@linux-foundation.org, peterz@infradead.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+        Davidlohr Bueso <dbueso@suse.de>
+Subject: Re: [PATCH 02/11] lib/interval-tree: add an equivalent tree with
+ [a,b) intervals
+Message-ID: <20191004110224.GA253758@google.com>
+References: <20191003201858.11666-1-dave@stgolabs.net>
+ <20191003201858.11666-3-dave@stgolabs.net>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191003201858.11666-3-dave@stgolabs.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When net link up/down, driver of hip08 will notify ULP.
+On Thu, Oct 03, 2019 at 01:18:49PM -0700, Davidlohr Bueso wrote:
+> +/*									      \
+> + * Iterate over intervals intersecting [start;end)			      \
+> + *									      \
+> + * Note that a node's interval intersects [start;end) iff:		      \
+> + *   Cond1: ITSTART(node) < end						      \
+> + * and									      \
+> + *   Cond2: start < ITEND(node)						      \
+> + */									      \
+> +									      \
+> +static ITSTRUCT *							      \
+> +ITPREFIX ## _subtree_search(ITSTRUCT *node, ITTYPE start, ITTYPE end)	      \
+> +{									      \
+> +	while (true) {							      \
+> +		/*							      \
+> +		 * Loop invariant: start <= node->ITSUBTREE		      \
+Should be start < node->ITSUBTREE
+> +		 * (Cond2 is satisfied by one of the subtree nodes)	      \
+> +		 */							      \
+> +		if (node->ITRB.rb_left) {				      \
+> +			ITSTRUCT *left = rb_entry(node->ITRB.rb_left,	      \
+> +						  ITSTRUCT, ITRB);	      \
+> +			if (start < left->ITSUBTREE) {			      \
+> +				/*					      \
+> +				 * Some nodes in left subtree satisfy Cond2.  \
+> +				 * Iterate to find the leftmost such node N.  \
+> +				 * If it also satisfies Cond1, that's the     \
+> +				 * match we are looking for. Otherwise, there \
+> +				 * is no matching interval as nodes to the    \
+> +				 * right of N can't satisfy Cond1 either.     \
+> +				 */					      \
+> +				node = left;				      \
+> +				continue;				      \
+> +			}						      \
+> +		}							      \
+> +		if (ITSTART(node) < end) {		/* Cond1 */	      \
+> +			if (start < ITEND(node))	/* Cond2 */	      \
+> +				return node;	/* node is leftmost match */  \
+> +			if (node->ITRB.rb_right) {			      \
+> +				node = rb_entry(node->ITRB.rb_right,	      \
+> +						ITSTRUCT, ITRB);	      \
+> +				if (start <= node->ITSUBTREE)		      \
+Should be start < node->ITSUBTREE
+> +					continue;			      \
+> +			}						      \
+> +		}							      \
+> +		return NULL;	/* No match */				      \
+> +	}								      \
+> +}									      \
 
-Lang Cheng (2):
-  {topost} RDMA/hns: Deliver net device event to ofed
-  {topost} RDMA/hns: Add support for sending port down event quickly
+Other than that, the change looks good to me.
 
- drivers/infiniband/hw/hns/hns_roce_device.h | 12 +++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 34 ++++++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_main.c   | 40 +++++++++++++++++++++--------
- 3 files changed, 76 insertions(+), 10 deletions(-)
+This is something I might use, regardless of the status of converting
+other current users.
+
+The name "interval_tree_gen.h" makes it ambiguous wether gen stands
+for "generic" or "generator". This may sounds like a criticism,
+but it's not - I think it really stands for both :)
+
+Reviewed-by: Michel Lespinasse <walken@google.com>
 
 -- 
-2.8.1
-
+Michel "Walken" Lespinasse
+A program is never fully debugged until the last user dies.
