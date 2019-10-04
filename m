@@ -2,24 +2,24 @@ Return-Path: <SRS0=KgEB=X5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 057F3C4360C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B351C4CED1
 	for <linux-rdma@archiver.kernel.org>; Fri,  4 Oct 2019 10:32:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D1FF9215EA
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Oct 2019 10:32:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B7E6207FF
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Oct 2019 10:32:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729891AbfJDKcr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1729880AbfJDKcr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 4 Oct 2019 06:32:47 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:49810 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:36664 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729880AbfJDKcr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1729908AbfJDKcr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 4 Oct 2019 06:32:47 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 16B7168EEB48804A1646;
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 441D47DD740AC8AA3348;
         Fri,  4 Oct 2019 18:32:45 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
@@ -27,12 +27,10 @@ Received: from localhost.localdomain (10.67.165.24) by
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/2] {topost} RDMA/hns: Add support for sending port down event quickly
-Date:   Fri, 4 Oct 2019 18:29:14 +0800
-Message-ID: <1570184954-21384-3-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH for-next 0/2] RDMA/hns: Add support of net device event reporting to ULP
+Date:   Fri, 4 Oct 2019 18:29:12 +0800
+Message-ID: <1570184954-21384-1-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1570184954-21384-1-git-send-email-liweihang@hisilicon.com>
-References: <1570184954-21384-1-git-send-email-liweihang@hisilicon.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -42,70 +40,17 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+When net link up/down, driver of hip08 will notify ULP.
 
-When the netdev port status changes, the roce driver sends a port down
-event by parsing the netdev event dispatched by IB_CORE, which takes about
-a few hundred milliseconds. It is not fast enough for ULP sometimes.
+Lang Cheng (2):
+  {topost} RDMA/hns: Deliver net device event to ofed
+  {topost} RDMA/hns: Add support for sending port down event quickly
 
-The HNS NIC driver can directly notify the ROCE driver to send port event
-via callback function, which will only take a few milliseconds.
-This patch implements above callback function.
+ drivers/infiniband/hw/hns/hns_roce_device.h | 12 +++++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 34 ++++++++++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 40 +++++++++++++++++++++--------
+ 3 files changed, 76 insertions(+), 10 deletions(-)
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 34 ++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 20918f8..3196a11 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6727,9 +6727,43 @@ static int hns_roce_hw_v2_reset_notify(struct hnae3_handle *handle,
- 	return ret;
- }
- 
-+static void hns_roce_hw_v2_link_status_change(struct hnae3_handle *handle,
-+					      bool linkup)
-+{
-+	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
-+	struct net_device *netdev = handle->rinfo.netdev;
-+	struct ib_event event;
-+	unsigned long flags;
-+	u8 phy_port;
-+
-+	if (linkup || !hr_dev)
-+		return;
-+
-+	for (phy_port = 0; phy_port < hr_dev->caps.num_ports; phy_port++)
-+		if (netdev == hr_dev->iboe.netdevs[phy_port])
-+			break;
-+
-+	if (phy_port == hr_dev->caps.num_ports)
-+		return;
-+
-+	spin_lock_irqsave(&hr_dev->iboe.lock, flags);
-+	if (hr_dev->iboe.port_state[phy_port] == IB_PORT_DOWN) {
-+		spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
-+		return;
-+	}
-+	hr_dev->iboe.port_state[phy_port] = IB_PORT_DOWN;
-+	spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
-+
-+	event.device = &hr_dev->ib_dev;
-+	event.element.port_num = to_rdma_port_num(phy_port);
-+	event.event = IB_EVENT_PORT_ERR;
-+	ib_dispatch_event(&event);
-+}
-+
- static const struct hnae3_client_ops hns_roce_hw_v2_ops = {
- 	.init_instance = hns_roce_hw_v2_init_instance,
- 	.uninit_instance = hns_roce_hw_v2_uninit_instance,
-+	.link_status_change = hns_roce_hw_v2_link_status_change,
- 	.reset_notify = hns_roce_hw_v2_reset_notify,
- };
- 
 -- 
 2.8.1
 
