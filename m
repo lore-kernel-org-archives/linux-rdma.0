@@ -2,71 +2,81 @@ Return-Path: <SRS0=zqf9=YA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3E3DC47404
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 15:00:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19363C47404
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 15:02:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 64EA42070B
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 15:00:43 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="BUH6xrb6"
+	by mail.kernel.org (Postfix) with ESMTP id DF6FC21479
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 15:02:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727589AbfJGPAm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Oct 2019 11:00:42 -0400
-Received: from bombadil.infradead.org ([198.137.202.133]:45282 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727490AbfJGPAm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Oct 2019 11:00:42 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=durQ/zIFS+d7BPv+c4GQQ5x/qr95LXTfrUb9U1/mljA=; b=BUH6xrb6tYI919QXCcEWKU2+t
-        qBCgtnESE5DuMl9Zl9hKF7kF4HSIQ55yJCHrVZih7d6eFGHHByZyjg0mErqoB4M5aVkTaHb9UMWDl
-        hE8tp6q72xQjUKE2V6nXU8Hlmej20kafZ8Ub0zuvWKeNbQd8FfFP1jhHVPmO8C/yOsCfSeW/tJTAk
-        5ImFwh4iDyK6+ZMXr/gFdXeW2wK08oIWb4V2twuNI0h1lel0XcGDIJlgy0x2yMQDiOg7LSugE5MXW
-        L/CnCggpvWyOUIYaPZxp0rzXlvpv4TpPYgE0O7B/OvtWWdvSoaJWQYmQyGgPt/qHiRCrwT8UOYqqd
-        /UHryC6mg==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.92.2 #3 (Red Hat Linux))
-        id 1iHUV7-0002nk-7M; Mon, 07 Oct 2019 15:00:41 +0000
-Date:   Mon, 7 Oct 2019 08:00:41 -0700
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
+        id S1727753AbfJGPCy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Oct 2019 11:02:54 -0400
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:45200 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727490AbfJGPCy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Oct 2019 11:02:54 -0400
+Received: by mail-pg1-f195.google.com with SMTP id q7so8352350pgi.12;
+        Mon, 07 Oct 2019 08:02:53 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=xo+F+lglD7YCqQaFkJ9g7GSCaFFC/m/5UdoVnBjWChY=;
+        b=rVdKdJT9p7TDvsBtlmAqzhvDSWKJ0xuP2lDmb2apbeoH3Q2HLw2JwT3siWGcVOorV9
+         ABpUmFPPIZKsq8lmvzJsaYBeQUTSLGMIIg+Nz3AZsujCcEVFAQz6A81Q0+Zp6/8O11e/
+         TMpkZg104WREkqCZCMihVl1OC9Cn5RUDtw+Pvj1F8HHE4vefao/maL9kKDtQjCLIGcMp
+         +Eb+NWAui5UX8ZAdj3i+67vQYuxDaUkB5rsr/uELMDNmxJqEXnHqPU+ZVl/CnsnpjGeM
+         ykcy3T/05On6PsZLTYArufphtTuc41717e1o9DrHgxka+ZEh+5D7YKuAs7jX1+5T6els
+         8jIw==
+X-Gm-Message-State: APjAAAXrR2o+k4DWKGElkJDQJk/KbcAit2qP5VBJiJ17IKmnHCQADh89
+        NkOKbrEugE/tBAw3eN/BK9a0Gkk/
+X-Google-Smtp-Source: APXvYqyADB27+A7ddOLl7/xfXJ084pwvX5TbaqmLHbYOz+xU3JEfwmUp1tu07Lg2aYx7hjn+QqPWlw==
+X-Received: by 2002:a65:628f:: with SMTP id f15mr31735662pgv.215.1570460572445;
+        Mon, 07 Oct 2019 08:02:52 -0700 (PDT)
+Received: from desktop-bart.svl.corp.google.com ([2620:15c:2cd:202:4308:52a3:24b6:2c60])
+        by smtp.gmail.com with ESMTPSA id a8sm15391634pff.5.2019.10.07.08.02.50
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 07 Oct 2019 08:02:51 -0700 (PDT)
+Subject: Re: [PATCH mlx5-next v2 1/3] net/mlx5: Expose optimal performance
+ scatter entries capability
+To:     Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        Leon Romanovsky <leonro@mellanox.com>,
+        Christoph Hellwig <hch@infradead.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Or Gerlitz <ogerlitz@mellanox.com>,
         Yamin Friedman <yaminf@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: Re: [PATCH rdma-next v2 2/3] RDMA/rw: Support threshold for
- registration vs scattering to local pages
-Message-ID: <20191007150041.GA3702@infradead.org>
 References: <20191007135933.12483-1-leon@kernel.org>
- <20191007135933.12483-3-leon@kernel.org>
+ <20191007135933.12483-2-leon@kernel.org>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <cfae2979-1ba4-e20d-ed20-1cb8f26b78f6@acm.org>
+Date:   Mon, 7 Oct 2019 08:02:50 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191007135933.12483-3-leon@kernel.org>
-User-Agent: Mutt/1.12.1 (2019-06-15)
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <20191007135933.12483-2-leon@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
->   */
-> +
->  static inline bool rdma_rw_io_needs_mr(struct ib_device *dev, u8 port_num,
+On 10/7/19 6:59 AM, Leon Romanovsky wrote:
+> -	u8         reserved_at_c0[0x8];
+> +	u8         max_sgl_for_optimized_performance[0x8];
 
-Same like an empty line sneaked in here.  Except for that the whole
-series looks fine:
+Should the name of this member variable perhaps be changed into 
+"max_sgl_for_optimal_performance"?
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Thanks,
+
+Bart.
