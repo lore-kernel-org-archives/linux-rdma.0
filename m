@@ -2,140 +2,95 @@ Return-Path: <SRS0=zqf9=YA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E9F5C47404
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 11:58:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0173ECE58C
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 12:12:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3046721721
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 11:58:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1570449515;
-	bh=urU0gpWLemuWerXs6TEo+8I0aCRLSnIPmOKzKmCpaIk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1RrWcxax8wtMLUZ7Yw0+kBEHwaiZNysuLCzv9UM8CCaEqrYsH7bwEpCVMteFX3SqO
-	 m0rB9Mskd8oDQFsO62fKQUuAUcQ/Q99DpQgugCRh8lKgNNKW0I0CigjkTCeWXgraXt
-	 cFMn70nO4cgRDwIxd9Zod3zS42HVUHf4SKKCThL0=
+	by mail.kernel.org (Postfix) with ESMTP id A0F9B20867
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Oct 2019 12:12:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="M5unEYoR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727763AbfJGL6e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Oct 2019 07:58:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56928 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727467AbfJGL6e (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 7 Oct 2019 07:58:34 -0400
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DDC63206C2;
-        Mon,  7 Oct 2019 11:58:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1570449513;
-        bh=urU0gpWLemuWerXs6TEo+8I0aCRLSnIPmOKzKmCpaIk=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=OWf7uG984/OJPvzCnpw8uYcq3k2+kksFRndAU/J63FqkTZ24NGGpcqstqEsnIUykt
-         q4Sv/otTz4EeGkWfqklUvMex8EGP71Lszo5w7spzJ9/b2lqdj5wzYyx53TT7IHztK3
-         y0hu2jD9FHvi9fKT+L6r+d0GUggS+dUQKY9bv8tg=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
+        id S1727716AbfJGMMr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Oct 2019 08:12:47 -0400
+Received: from bombadil.infradead.org ([198.137.202.133]:51504 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727467AbfJGMMq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Oct 2019 08:12:46 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=NqZCL9FFV5jxg5SgSyY7hAFsJqUG9yJ1eIIIYBNoz4I=; b=M5unEYoRvbqLicq7WjdHaoVUi
+        8hGurkSClm928w67S9VpITLU8TWdna7SA5MaLMKRABr84waLVuYTUNinFSeVQ6c3hvXrYfd6+3e5k
+        qF8cw1Gn1RzIIAnpan12O3lc9uOu6vk7Ym+ogEaXaDCLNYJtifUq9ClJu1HsMorJWJ9/7TbHF3qmf
+        LNLWHyVDfWtB4pAvc1/d4IMu6sCVAeiTiGFA/9ezlwk+bYa1kXB7DhaT2H8Pe5sW/Xtp6XDz04eC6
+        e7ZuMtoYNRw1cJlhzBaCKhV4t5RAFrPvwVhNXfF9/XQGVIVl5k9DLT+trkoLgBLVBoJWVW6MFlTw1
+        D40X8zR9Q==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.92.2 #3 (Red Hat Linux))
+        id 1iHRsa-0006vi-GH; Mon, 07 Oct 2019 12:12:44 +0000
+Date:   Mon, 7 Oct 2019 05:12:44 -0700
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Or Gerlitz <ogerlitz@mellanox.com>,
         Yamin Friedman <yaminf@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH rdma-next v1 2/3] RDMA/rw: Support threshold for registration vs scattering to local pages
-Date:   Mon,  7 Oct 2019 14:58:18 +0300
-Message-Id: <20191007115819.9211-3-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20191007115819.9211-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next v1 2/3] RDMA/rw: Support threshold for
+ registration vs scattering to local pages
+Message-ID: <20191007121244.GA19843@infradead.org>
 References: <20191007115819.9211-1-leon@kernel.org>
+ <20191007115819.9211-3-leon@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191007115819.9211-3-leon@kernel.org>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yamin Friedman <yaminf@mellanox.com>
+Sorry for nitpicking again, but..
 
-If there are more scatter entries than the recommended limit provided by
-the ib device, UMR registration is used. This will provide optimal
-performance when performing large RDMA READs over devices that advertise
-the threshold capability.
+On Mon, Oct 07, 2019 at 02:58:18PM +0300, Leon Romanovsky wrote:
+> @@ -37,15 +39,15 @@ static inline bool rdma_rw_can_use_mr(struct ib_device *dev, u8 port_num)
+>   * Check if the device will use memory registration for this RW operation.
+>   * We currently always use memory registrations for iWarp RDMA READs, and
+>   * have a debug option to force usage of MRs.
+> - *
+> - * XXX: In the future we can hopefully fine tune this based on HCA driver
+> - * input.
 
-With ConnectX-5 running NVMeoF RDMA with FIO single QP 128KB writes:
-Without use of cap: 70Gb/sec
-With use of cap: 84Gb/sec
+The above comment needs an updated a la:
 
-Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
-Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/rw.c | 14 ++++++++------
- include/rdma/ib_verbs.h      |  2 ++
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ * Check if the device will use memory registration for this RW operation.
+ * For RDMA READs we must use MRs on iWarp and can optionaly use them as an
+ * optimaztion otherwise.  Additionally we have a debug option to force usage
+ * of MRs to help testing this code path.
+	
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 5337393d4dfe..8739bd28232b 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -20,14 +20,16 @@ module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
- MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
+>  	if (rdma_protocol_iwarp(dev, port_num) && dir == DMA_FROM_DEVICE)
+>  		return true;
+> +	if (dev->attrs.max_sgl_rd && dir == DMA_FROM_DEVICE &&
+> +	    dma_nents > dev->attrs.max_sgl_rd)
+> +		return true;
 
- /*
-- * Check if the device might use memory registration.  This is currently only
-- * true for iWarp devices. In the future we can hopefully fine tune this based
-- * on HCA driver input.
-+ * Check if the device might use memory registration. This is currently
-+ * true for iWarp devices and devices that have optimized SGL registration
-+ * logic.
-  */
- static inline bool rdma_rw_can_use_mr(struct ib_device *dev, u8 port_num)
- {
- 	if (rdma_protocol_iwarp(dev, port_num))
- 		return true;
-+	if (dev->attrs.max_sgl_rd)
-+		return true;
- 	if (unlikely(rdma_rw_force_mr))
- 		return true;
- 	return false;
-@@ -37,15 +39,15 @@ static inline bool rdma_rw_can_use_mr(struct ib_device *dev, u8 port_num)
-  * Check if the device will use memory registration for this RW operation.
-  * We currently always use memory registrations for iWarp RDMA READs, and
-  * have a debug option to force usage of MRs.
-- *
-- * XXX: In the future we can hopefully fine tune this based on HCA driver
-- * input.
-  */
- static inline bool rdma_rw_io_needs_mr(struct ib_device *dev, u8 port_num,
- 		enum dma_data_direction dir, int dma_nents)
- {
- 	if (rdma_protocol_iwarp(dev, port_num) && dir == DMA_FROM_DEVICE)
- 		return true;
-+	if (dev->attrs.max_sgl_rd && dir == DMA_FROM_DEVICE &&
-+	    dma_nents > dev->attrs.max_sgl_rd)
-+		return true;
- 	if (unlikely(rdma_rw_force_mr))
- 		return true;
- 	return false;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 4f671378dbfc..60fd98a9b7e8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -445,6 +445,8 @@ struct ib_device_attr {
- 	struct ib_tm_caps	tm_caps;
- 	struct ib_cq_caps       cq_caps;
- 	u64			max_dm_size;
-+	/* Max entries for sgl for optimized performance per READ */
-+	u32			max_sgl_rd;
- };
+This can be simplified to:
 
- enum ib_mtu {
---
-2.20.1
+	if (dir == DMA_FROM_DEVICE &&
+	    (rdma_protocol_iwarp(dev, port_num) ||
+	     (dev->attrs.max_sgl_rd && dma_nents > dev->attrs.max_sgl_rd)))
+		return true;
 
