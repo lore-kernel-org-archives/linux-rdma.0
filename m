@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F27CC47404
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Oct 2019 16:10:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43F29ECE597
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Oct 2019 16:10:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 68B67218DE
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Oct 2019 16:10:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13434218DE
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Oct 2019 16:10:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="fgq1dJNZ"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ZSouc0ub"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731822AbfJIQKM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Oct 2019 12:10:12 -0400
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:37698 "EHLO
+        id S1731824AbfJIQKN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Oct 2019 12:10:13 -0400
+Received: from mail-qt1-f194.google.com ([209.85.160.194]:34580 "EHLO
         mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731824AbfJIQKL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Oct 2019 12:10:11 -0400
-Received: by mail-qt1-f194.google.com with SMTP id l51so3920443qtc.4
-        for <linux-rdma@vger.kernel.org>; Wed, 09 Oct 2019 09:10:11 -0700 (PDT)
+        with ESMTP id S1731831AbfJIQKM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Oct 2019 12:10:12 -0400
+Received: by mail-qt1-f194.google.com with SMTP id 3so4238895qta.1
+        for <linux-rdma@vger.kernel.org>; Wed, 09 Oct 2019 09:10:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=P46xjS9CLZDjZszRRlu1hhDzB49h4jVi+OHW0f74bg8=;
-        b=fgq1dJNZEtsC8Pw0pXWMlOFrlUjjUJRCzOrxX1/bgMMZVHH1c3cFGhpqBQu1gsQeYN
-         aZsyxF+Igk3GMa6lQi3LMQNHS5/oSO5PYhnb6SxbbqoLiiZtdyuM7PfxnKADsEu2QIT3
-         b3g3b9raGwkl0W4VHcPEKPRIMjp9mXZezzeH1q00H/OF/HqcCvfLjQvcrt+XZMZ1qYI1
-         utIozIWj5mSbeW8WG/HgtLcP9M4TzZ1ZiIsCop5V/Kbmdvjn6Iuf8YrqllQb2IitqFRY
-         XuytPKCcUW50imV8xBT2ZmOzpxx5LB9lWweYVpzCGek1c+4zFLN7DrgU8oqDwnIPRcke
-         SpcA==
+        bh=iKBfPaP4sKng1Mx+myKf9XOKZ0nm7yqf6cQo7BikLUM=;
+        b=ZSouc0ubUV6vKkzoJE/kb07sj2UYGS1YCW+bk16sshHL8aljKxgqXQ0xkaEo6IUg6p
+         m8Ct4Y5luE86Nf2EQ+4/tB2JuEdrt6FHUCOWQLyUzUj3phezseo5uptgViVhV3P/9Xcb
+         bLw2r5tHCwMLyrXSUrPMWmmC9GjIF+/ybINfV+w2mCDVBxondueWG9CfCIu38pmNcwai
+         +CNTWj/Hi4sxRze5jyDhVi29l6qUQ+dYyS3g3iDmcUXR1n1+n5h7GroTDWgDJhiOYYl6
+         y1jDlchd2ZU3yTYYQ7ItfQrM1jUS+mCqQ07k5Q40yvDF/CXZkJcMRYgCxHPTdnPzobpB
+         /OYg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=P46xjS9CLZDjZszRRlu1hhDzB49h4jVi+OHW0f74bg8=;
-        b=qVshRzr74TDlmKJ1d4lYqP+kR5nbXFvxVDMjiZ2M8OC1ILpyIJaRdsIOPIgdHkGI4s
-         g5NxiPRDyccNe2aqVT3kd7h1B5d3QiTKwbw6wCCUQIMpPgK3lFPlfh8eGJphGxsx+1tY
-         L6AP2gaDFQNnVkgkhqTSb9JTL9pTIt7aHivRQn4b2TgQb5xxolcFqynUqQNwlzEZQfJk
-         d7dT63JbUNGGZh8t0qucazDaQgKpEjDOOv9X2cL7Jdg87mGVTUwpbASlm5Ohm7TZjy2H
-         RIdGoiLQcE6sXVWX43bWz9V4baWrRPAY7jF8Ii4ps5kYkefsd0fxmqjq/gK/SgYhBGDz
-         adYw==
-X-Gm-Message-State: APjAAAVhulXgW06K6Z5XBQTiNwGccT4VqYB9HTdvinUf6dmyiXQj8Gxf
-        NDuc5+y9rszYXrofpsmO9xv3VvpdeVo=
-X-Google-Smtp-Source: APXvYqyeKTxLe8BccjwRhW/l3g23fbWBlmyanNpv3F3E/YpfGKwsTfyyY3Cfd3uH9AKpSkYSzkMf3A==
-X-Received: by 2002:ac8:534a:: with SMTP id d10mr4587533qto.349.1570637410814;
-        Wed, 09 Oct 2019 09:10:10 -0700 (PDT)
+        bh=iKBfPaP4sKng1Mx+myKf9XOKZ0nm7yqf6cQo7BikLUM=;
+        b=KcRGi228WOqJVxT/VeX5zjSJopX9Pj5gyONx5DPm4VKNVurPx/3vJOdJDWmuQ+RV7B
+         NHFEwPB4ZqmquEn48u956UVshN8GunB95prWTwsLjX6xwyXegFBO/xGKM9zW+2TAx1/4
+         zD55k/U2uwDr/NMnHtL5dnrbzkjwAMd6NsrcJmB+3LYWsnMpktzMbjM/Ffek7IZE/jnk
+         Iq7bU0mDfQRZ/4eiYq0p/rMnINGfFrSHhQnqJuxsf/PHmZelxGkAEh65I0jE2UMYhLPQ
+         U8f0o7w4QUbWv6hIbXBI0n7WomVEJhh1V1y9NLgTzO68r1D56HmIwy9C+noCtXdlcsoY
+         W18A==
+X-Gm-Message-State: APjAAAUaM/X09W/N5f+W8OOL7h5Q+nESTTGhRgmropDGbsIN+YEyd+i2
+        7E+D+o8GDIlGkCoKP1SZwdILf6zh7aU=
+X-Google-Smtp-Source: APXvYqzRC3pnj+KPI8WMIuwT/uaZSSEY3BTSvQs5wAHlxfmXvTWGvt4WyNGsURLjx2jeOmgZOdkSaQ==
+X-Received: by 2002:a05:6214:180a:: with SMTP id o10mr4430862qvw.91.1570637411181;
+        Wed, 09 Oct 2019 09:10:11 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id v12sm1465869qtb.5.2019.10.09.09.10.05
+        by smtp.gmail.com with ESMTPSA id g3sm1025898qkb.117.2019.10.09.09.10.05
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Wed, 09 Oct 2019 09:10:06 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iIEXN-0000rA-4O; Wed, 09 Oct 2019 13:10:05 -0300
+        id 1iIEXN-0000rZ-Ag; Wed, 09 Oct 2019 13:10:05 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@mellanox.com>,
         Artemy Kovalyov <artemyko@mellanox.com>
-Subject: [PATCH 10/15] RDMA/mlx5: Reduce locking in implicit_mr_get_data()
-Date:   Wed,  9 Oct 2019 13:09:30 -0300
-Message-Id: <20191009160934.3143-11-jgg@ziepe.ca>
+Subject: [PATCH 14/15] RDMA/mlx5: Do not race with mlx5_ib_invalidate_range during create and destroy
+Date:   Wed,  9 Oct 2019 13:09:34 -0300
+Message-Id: <20191009160934.3143-15-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191009160934.3143-1-jgg@ziepe.ca>
 References: <20191009160934.3143-1-jgg@ziepe.ca>
@@ -76,103 +76,315 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Now that the child MRs are stored in an xarray we can rely on the SRCU
-lock to protect the xa_load and use xa_cmpxchg on the slow allocation path
-to resolve races with concurrent page fault.
+For creation, as soon as the umem_odp is created the notifier can be
+called, however the underlying MR may not have been setup yet. This would
+cause problems if mlx5_ib_invalidate_range() runs. There is some
+confusing/ulocked/racy code that might by trying to solve this, but
+without locks it isn't going to work right.
 
-This reduces the scope of the critical section of umem_mutex for implicit
-MRs to only cover mlx5_ib_update_xlt, and avoids taking a lock at all if
-the child MR is already in the xarray. This makes it consistent with the
-normal ODP MR critical section for umem_lock, and the locking approach
-used for destroying an unusued implicit child MR.
+Instead trivially solve the problem by short-circuiting the invalidation
+if there are not yet any DMA mapped pages. By definition there is nothing
+to invalidate in this case.
 
-The MLX5_IB_UPD_XLT_ATOMIC is no longer needed in implicit_get_child_mr()
-since it is no longer called with any locks.
+The create code will have the umem fully setup before anything is DMA
+mapped, and npages is fully locked by the umem_mutex.
 
+For destroy, invalidate the entire MR at the HW to stop DMA then DMA unmap
+the pages before destroying the MR. This drives npages to zero and
+prevents similar racing with invalidate while the MR is undergoing
+destruction.
+
+Arguably it would be better if the umem was created after the MR and
+destroyed before, but that would require a big rework of the MR code.
+
+Fixes: 6aec21f6a832 ("IB/mlx5: Page faults handling infrastructure")
 Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 38 ++++++++++++++++++++++----------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  3 ++
+ drivers/infiniband/hw/mlx5/mr.c      | 74 +++++++++------------------
+ drivers/infiniband/hw/mlx5/odp.c     | 75 ++++++++++++++++++++++++----
+ 3 files changed, 93 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index d70cf02343a79f..e8413fd1b8c73b 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -381,8 +381,7 @@ static struct mlx5_ib_mr *implicit_get_child_mr(struct mlx5_ib_mr *imr,
- 				 MLX5_IMR_MTT_ENTRIES,
- 				 PAGE_SHIFT,
- 				 MLX5_IB_UPD_XLT_ZAP |
--				 MLX5_IB_UPD_XLT_ENABLE |
--				 MLX5_IB_UPD_XLT_ATOMIC);
-+				 MLX5_IB_UPD_XLT_ENABLE);
- 	if (err) {
- 		ret = ERR_PTR(err);
- 		goto out_release;
-@@ -392,9 +391,16 @@ static struct mlx5_ib_mr *implicit_get_child_mr(struct mlx5_ib_mr *imr,
- 	 * Once the store to either xarray completes any error unwind has to
- 	 * use synchronize_srcu(). Avoid this with xa_reserve()
- 	 */
--	err = xa_err(xa_store(&imr->implicit_children, idx, mr, GFP_KERNEL));
--	if (err) {
--		ret = ERR_PTR(err);
-+	ret = xa_cmpxchg(&imr->implicit_children, idx, NULL, mr, GFP_KERNEL);
-+	if (unlikely(ret)) {
-+		if (xa_is_err(ret)) {
-+			ret = ERR_PTR(xa_err(ret));
-+			goto out_release;
-+		}
-+		/*
-+		 * Another thread beat us to creating the child mr, use
-+		 * theirs.
-+		 */
- 		goto out_release;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b8c958f6262848..f61d4005c6c379 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1171,6 +1171,7 @@ struct mlx5_ib_mr *mlx5_ib_alloc_implicit_mr(struct mlx5_ib_pd *pd,
+ 					     struct ib_udata *udata,
+ 					     int access_flags);
+ void mlx5_ib_free_implicit_mr(struct mlx5_ib_mr *mr);
++void mlx5_ib_fence_odp_mr(struct mlx5_ib_mr *mr);
+ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 			  u64 length, u64 virt_addr, int access_flags,
+ 			  struct ib_pd *pd, struct ib_udata *udata);
+@@ -1232,6 +1233,8 @@ int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev);
  
-@@ -424,7 +430,8 @@ static struct mlx5_ib_mr *implicit_mr_get_data(struct mlx5_ib_mr *imr,
- 	struct mlx5_ib_mr *result = NULL;
- 	int ret;
- 
--	mutex_lock(&odp_imr->umem_mutex);
-+	lockdep_assert_held(&imr->dev->odp_srcu);
+ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, int entry);
+ void mlx5_mr_cache_free(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
++int mlx5_mr_cache_invalidate(struct mlx5_ib_mr *mr);
 +
- 	for (idx = idx; idx <= end_idx; idx++) {
- 		struct mlx5_ib_mr *mtt = xa_load(&imr->implicit_children, idx);
+ int mlx5_ib_check_mr_status(struct ib_mr *ibmr, u32 check_mask,
+ 			    struct ib_mr_status *mr_status);
+ struct ib_wq *mlx5_ib_create_wq(struct ib_pd *pd,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 1e91f61efa8a3e..199f7959aaa510 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -50,7 +50,6 @@ enum {
+ static void clean_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
+ static void dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
+ static int mr_cache_max_order(struct mlx5_ib_dev *dev);
+-static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
  
-@@ -450,20 +457,27 @@ static struct mlx5_ib_mr *implicit_mr_get_data(struct mlx5_ib_mr *imr,
- 	 */
- out:
- 	if (likely(!inv_len))
--		goto out_unlock;
-+		return result;
+ static bool umr_can_use_indirect_mkey(struct mlx5_ib_dev *dev)
+ {
+@@ -495,7 +494,7 @@ void mlx5_mr_cache_free(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ 	c = order2idx(dev, mr->order);
+ 	WARN_ON(c < 0 || c >= MAX_MR_CACHE_ENTRIES);
  
-+	/*
-+	 * Notice this is not strictly ordered right, the KSM is updated after
-+	 * the implicit_leaves is updated, so a parallel page fault could see
-+	 * a MR that is not yet visible in the KSM.  This is similar to a
-+	 * parallel page fault seeing a MR that is being concurrently removed
-+	 * from the KSM. Both of these improbable situations are resolved
-+	 * safely by resuming the HW and then taking another page fault. The
-+	 * next pagefault handler will see the new information.
-+	 */
-+	mutex_lock(&odp_imr->umem_mutex);
- 	ret = mlx5_ib_update_xlt(imr, inv_start_idx, inv_len, 0,
- 				 MLX5_IB_UPD_XLT_INDIRECT |
- 					 MLX5_IB_UPD_XLT_ATOMIC);
-+	mutex_unlock(&odp_imr->umem_mutex);
- 	if (ret) {
- 		mlx5_ib_err(to_mdev(imr->ibmr.pd->device),
- 			    "Failed to update PAS\n");
--		result = ERR_PTR(ret);
--		goto out_unlock;
-+		return ERR_PTR(ret);
- 	}
--
--out_unlock:
--	mutex_unlock(&odp_imr->umem_mutex);
- 	return result;
+-	if (unreg_umr(dev, mr)) {
++	if (mlx5_mr_cache_invalidate(mr)) {
+ 		mr->allocated_from_cache = false;
+ 		destroy_mkey(dev, mr);
+ 		ent = &cache->ent[c];
+@@ -1333,22 +1332,29 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	return ERR_PTR(err);
  }
  
+-static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
++/**
++ * mlx5_mr_cache_invalidate - Fence all DMA on the MR
++ * @mr: The MR to fence
++ *
++ * Upon return the NIC will not be doing any DMA to the pages under the MR,
++ * and any DMA inprogress will be completed. Failure of this function
++ * indicates the HW has failed catastrophically.
++ */
++int mlx5_mr_cache_invalidate(struct mlx5_ib_mr *mr)
+ {
+-	struct mlx5_core_dev *mdev = dev->mdev;
+ 	struct mlx5_umr_wr umrwr = {};
+ 
+-	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
++	if (mr->dev->mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
+ 		return 0;
+ 
+ 	umrwr.wr.send_flags = MLX5_IB_SEND_UMR_DISABLE_MR |
+ 			      MLX5_IB_SEND_UMR_UPDATE_PD_ACCESS;
+ 	umrwr.wr.opcode = MLX5_IB_WR_UMR;
+-	umrwr.pd = dev->umrc.pd;
++	umrwr.pd = mr->dev->umrc.pd;
+ 	umrwr.mkey = mr->mmkey.key;
+ 	umrwr.ignore_free_state = 1;
+ 
+-	return mlx5_ib_post_send_wait(dev, &umrwr);
++	return mlx5_ib_post_send_wait(mr->dev, &umrwr);
+ }
+ 
+ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr,
+@@ -1432,7 +1438,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		 * UMR can't be used - MKey needs to be replaced.
+ 		 */
+ 		if (mr->allocated_from_cache)
+-			err = unreg_umr(dev, mr);
++			err = mlx5_mr_cache_invalidate(mr);
+ 		else
+ 			err = destroy_mkey(dev, mr);
+ 		if (err)
+@@ -1561,52 +1567,20 @@ static void dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ 	int npages = mr->npages;
+ 	struct ib_umem *umem = mr->umem;
+ 
+-	if (is_odp_mr(mr)) {
+-		struct ib_umem_odp *umem_odp = to_ib_umem_odp(umem);
+-
+-		/* Prevent new page faults and
+-		 * prefetch requests from succeeding
+-		 */
+-		xa_erase(&dev->odp_mkeys, mlx5_base_mkey(mr->mmkey.key));
+-
+-		/* Wait for all running page-fault handlers to finish. */
+-		synchronize_srcu(&dev->odp_srcu);
+-
+-		/* dequeue pending prefetch requests for the mr */
+-		if (atomic_read(&mr->num_deferred_work)) {
+-			flush_workqueue(system_unbound_wq);
+-			WARN_ON(atomic_read(&mr->num_deferred_work));
+-		}
+-
+-		/* Destroy all page mappings */
+-		mlx5_ib_invalidate_range(umem_odp, ib_umem_start(umem_odp),
+-					 ib_umem_end(umem_odp));
+-
+-		/*
+-		 * We kill the umem before the MR for ODP,
+-		 * so that there will not be any invalidations in
+-		 * flight, looking at the *mr struct.
+-		 */
+-		ib_umem_odp_release(umem_odp);
+-		atomic_sub(npages, &dev->mdev->priv.reg_pages);
+-
+-		/* Avoid double-freeing the umem. */
+-		umem = NULL;
+-	}
++	/* Stop all DMA */
++	if (is_odp_mr(mr))
++		mlx5_ib_fence_odp_mr(mr);
++	else
++		clean_mr(dev, mr);
+ 
+-	clean_mr(dev, mr);
++	if (mr->allocated_from_cache)
++		mlx5_mr_cache_free(dev, mr);
++	else
++		kfree(mr);
+ 
+-	/*
+-	 * We should unregister the DMA address from the HCA before
+-	 * remove the DMA mapping.
+-	 */
+-	mlx5_mr_cache_free(dev, mr);
+ 	ib_umem_release(umem);
+-	if (umem)
+-		atomic_sub(npages, &dev->mdev->priv.reg_pages);
++	atomic_sub(npages, &dev->mdev->priv.reg_pages);
+ 
+-	if (!mr->allocated_from_cache)
+-		kfree(mr);
+ }
+ 
+ int mlx5_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 66523313c3e46c..fd2306aff78ad7 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -144,6 +144,32 @@ void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
+ 	}
+ }
+ 
++static void dma_fence_odp_mr(struct mlx5_ib_mr *mr)
++{
++	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
++
++	/* Ensure mlx5_ib_invalidate_range() will not touch the MR any more */
++	mutex_lock(&odp->umem_mutex);
++	if (odp->npages) {
++		/*
++		 * If not cached then the caller had to do clean_mrs first to
++		 * fence the mkey.
++		 */
++		if (mr->allocated_from_cache) {
++			mlx5_mr_cache_invalidate(mr);
++		} else {
++			/* clean_mr() */
++			mlx5_core_destroy_mkey(mr->dev->mdev, &mr->mmkey);
++			WARN_ON(mr->descs);
++		}
++		ib_umem_odp_unmap_dma_pages(odp, ib_umem_start(odp),
++					    ib_umem_end(odp));
++		WARN_ON(odp->npages);
++	}
++	odp->private = NULL;
++	mutex_unlock(&odp->umem_mutex);
++}
++
+ /*
+  * This must be called after the mr has been removed from implicit_children
+  * and the SRCU synchronized.  NOTE: The MR does not necessarily have to be
+@@ -171,6 +197,8 @@ static void free_implicit_child_mr(struct mlx5_ib_mr *mr, bool need_imr_xlt)
+ 		srcu_read_unlock(&mr->dev->odp_srcu, srcu_key);
+ 	}
+ 
++	dma_fence_odp_mr(mr);
++
+ 	mr->parent = NULL;
+ 	mlx5_mr_cache_free(mr->dev, mr);
+ 	ib_umem_odp_release(odp);
+@@ -228,16 +256,15 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+ 	int in_block = 0;
+ 	u64 addr;
+ 
+-	if (!umem_odp) {
+-		pr_err("invalidation called on NULL umem or non-ODP umem\n");
+-		return;
+-	}
+-
++	mutex_lock(&umem_odp->umem_mutex);
++	/*
++	 * If npages is zero then umem_odp->private may not be setup yet. This
++	 * does not complete until after the first page is mapped for DMA.
++	 */
++	if (!umem_odp->npages)
++		goto out;
+ 	mr = umem_odp->private;
+ 
+-	if (!mr || !mr->ibmr.pd)
+-		return;
+-
+ 	start = max_t(u64, ib_umem_start(umem_odp), start);
+ 	end = min_t(u64, ib_umem_end(umem_odp), end);
+ 
+@@ -247,7 +274,6 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+ 	 * overwrite the same MTTs.  Concurent invalidations might race us,
+ 	 * but they will write 0s as well, so no difference in the end result.
+ 	 */
+-	mutex_lock(&umem_odp->umem_mutex);
+ 	for (addr = start; addr < end; addr += BIT(umem_odp->page_shift)) {
+ 		idx = (addr - ib_umem_start(umem_odp)) >> umem_odp->page_shift;
+ 		/*
+@@ -289,6 +315,7 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+ 
+ 	if (unlikely(!umem_odp->npages && mr->parent))
+ 		destroy_unused_implicit_child_mr(mr);
++out:
+ 	mutex_unlock(&umem_odp->umem_mutex);
+ }
+ 
+@@ -536,6 +563,13 @@ void mlx5_ib_free_implicit_mr(struct mlx5_ib_mr *imr)
+ 		WARN_ON(atomic_read(&imr->num_deferred_work));
+ 	}
+ 
++	/*
++	 * Fence the imr before we destroy the children. This allows us to
++	 * skip updating the XLT of the imr during destroy of the child mkey
++	 * the imr points to.
++	 */
++	mlx5_mr_cache_invalidate(imr);
++
+ 	list_for_each_entry_safe (mtt, tmp, &destroy_list, odp_destroy.elm)
+ 		free_implicit_child_mr(mtt, false);
+ 
+@@ -543,6 +577,29 @@ void mlx5_ib_free_implicit_mr(struct mlx5_ib_mr *imr)
+ 	ib_umem_odp_release(odp_imr);
+ }
+ 
++/**
++ * mlx5_ib_fence_odp_mr - Stop all access to the ODP MR
++ * @mr: to fence
++ *
++ * On return no parallel threads will be touching this MR and no DMA will be
++ * active.
++ */
++void mlx5_ib_fence_odp_mr(struct mlx5_ib_mr *mr)
++{
++	/* Prevent new page faults and prefetch requests from succeeding */
++	xa_erase(&mr->dev->odp_mkeys, mlx5_base_mkey(mr->mmkey.key));
++
++	/* Wait for all running page-fault handlers to finish. */
++	synchronize_srcu(&mr->dev->odp_srcu);
++
++	if (atomic_read(&mr->num_deferred_work)) {
++		flush_workqueue(system_unbound_wq);
++		WARN_ON(atomic_read(&mr->num_deferred_work));
++	}
++
++	dma_fence_odp_mr(mr);
++}
++
+ #define MLX5_PF_FLAGS_DOWNGRADE BIT(1)
+ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
+ 			     u64 user_va, size_t bcnt, u32 *bytes_mapped,
 -- 
 2.23.0
 
