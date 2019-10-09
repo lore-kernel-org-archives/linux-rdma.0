@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84159ECE598
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Oct 2019 16:10:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E920ECE58D
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Oct 2019 16:10:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55E56218DE
+	by mail.kernel.org (Postfix) with ESMTP id EAB7D2190F
 	for <linux-rdma@archiver.kernel.org>; Wed,  9 Oct 2019 16:10:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="OqwyAGsl"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="c9H5aC5Z"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731830AbfJIQKL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1731828AbfJIQKL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 9 Oct 2019 12:10:11 -0400
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:41785 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731828AbfJIQKL (ORCPT
+Received: from mail-qt1-f195.google.com ([209.85.160.195]:40861 "EHLO
+        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731822AbfJIQKL (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Oct 2019 12:10:11 -0400
-Received: by mail-qk1-f194.google.com with SMTP id p10so2701310qkg.8
+Received: by mail-qt1-f195.google.com with SMTP id m61so4175883qte.7
         for <linux-rdma@vger.kernel.org>; Wed, 09 Oct 2019 09:10:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=lJG7hv+CyNvfYHoKUZ3QigHyCNK2PKFP5V5f0uI5xbg=;
-        b=OqwyAGslcIddishmgENs6rvQ7bNG/4d9YqXWGOcmEjJAZMYZ0w0w529inj+kA1aP1S
-         7jLhNug6CuanTN4EyMxpXbEgJYDZfXlYJ8VkLPhRdA/pZA3BvJS0LQE8183gdxSiwBg8
-         a/+fyAzjlN9sZkZa7KLMvnqguuhbkgQxQOFIExK4D4yQw6iJB3sworI8GsyqICIGemRd
-         6qZbotIOn73VIqHOhFtK6rNVLpKCObb+gSSAHgYJPclgSuI9tsSJOkqwv7pAFUnCTNwc
-         4ARIcXh3PgdZKc3LcPi0KUiahenxuDUU6lcrSt7YkEg4MfRCua9U/xxCKfuqfW/Fi72x
-         e4Gw==
+        bh=m6c1aoU1BPPfl3nQ0qYG7bB9Dkxz6YfifpPegfqhpSE=;
+        b=c9H5aC5Z2bziMdIow4dr3jOuPNwFGVJceiWK6nGntjumHLvgXEZK3ZUGaYjNUvJxWV
+         QIQlZcyGPxIlGHAk8D8kljMk3E3wuBVtZq+XiDC40v5PPEL60FYyDMJx5oCUCMSdaiMU
+         xg92xc+cRUyHsldLIHLGxc3dEmZNUa33sy3ZhScVmFz3e1h/3rIWtt4At/sGMpvvRl25
+         JGF7ef1Kc9AROtAIFb/fURIFJwkozqwfue3qzsGFOwyhwdiySmq8ECdAi2/zb9ZnbkAz
+         67zs4opPgu7ZCCAR/wBMDzVE+dIRwqcSWyfEJHC4MuS6xrwW/xseh8AHrCIVVbi8cGRR
+         kxTA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=lJG7hv+CyNvfYHoKUZ3QigHyCNK2PKFP5V5f0uI5xbg=;
-        b=mEg5lFvqzfaNrf9r6Xq1YebsgIB4Rd0bMlFZHVnmNHW7RIwOQRl5mE1zTXgeDCi2Zt
-         oLcwZaZ8gFF6MY1suLhq9lNxoZKSqKVzrIs1/jtZ4HSUYrMZ7XUuMMhlx4FdWbI3dLfa
-         IPghcNhdOoqT4IVf+1H/iGkNWB2Y1cHz45QqdhyLd+cRxPaFvYRVWDtesblBldBapkfn
-         0fby+Gm8VnXIj6lxqZNtBRDa48c66EEaBKCdbf38VVJd+xpFNYgLQFsPJ1CkMgH1Sw7I
-         AgDh+zHPChVSeXrSoGvLkvbw2wz46ty3je776hX7wo51RG1Bl1TlWV2FIMpjNP29XDL6
-         RY1w==
-X-Gm-Message-State: APjAAAV6rkLV+TTj9en/Q7ZiTdQGFWRa53IDg5tb/93jgcU7lIes26AD
-        K/cAnGFKGoODsBWA/9jTV0UyJmZzm00=
-X-Google-Smtp-Source: APXvYqznE2xKm303I+XK6HNIy/PdnAsyvwf/6LcuoM6qy+/g/QahLEc2FZ3k+0fI/GUYo52mkHXH6w==
-X-Received: by 2002:a37:396:: with SMTP id 144mr4368194qkd.479.1570637409813;
-        Wed, 09 Oct 2019 09:10:09 -0700 (PDT)
+        bh=m6c1aoU1BPPfl3nQ0qYG7bB9Dkxz6YfifpPegfqhpSE=;
+        b=REU6MYEKS/k2wS5ecYFnixDRPM2BlTCXfKt6Gbf81U4j0BN1sE9W5eht+Kie7/6ZSo
+         sSVsuFtYt2lek5NvgacIdKTRbSXzyDFesUEwgeRU0koDZ1wg/WZ1u6ygkA8LWN+QiZq3
+         0fb+FI1DIh7AfgudTjCrkVKc81DN2zc9Euql9w7/DfQbJcyMcFKWqsWDUNinteMldq44
+         pZTi6RqOcD1JnIeLiLJay48TJqL8+rwPPSknTfqhCe7qMR5FmuGvXPqkqwjpZVAqWofe
+         /l5iNPPvI8oxvT7sUFs9nmCuxgL9A3IFXfMEatywZHS4K3rdbU39L73bzyJH9MSWwgQm
+         nsVw==
+X-Gm-Message-State: APjAAAVefT46XpP3nWu83jEoxY/fMdvsXhwI0GrFRavF1rLrIXFgf9HN
+        S6cwyUrq2mJpETuaIBuy3GC/OjniCCI=
+X-Google-Smtp-Source: APXvYqxuiWTJsov4OxzYPLOlk3YxhiXgf/MWUsfyYBEpOgtnWO9CxJJURsrNMMhftz75RtuLe7MvSg==
+X-Received: by 2002:ac8:72cf:: with SMTP id o15mr2331567qtp.27.1570637410188;
+        Wed, 09 Oct 2019 09:10:10 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id c185sm1105216qkf.122.2019.10.09.09.10.05
+        by smtp.gmail.com with ESMTPSA id t199sm1128833qke.36.2019.10.09.09.10.05
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Wed, 09 Oct 2019 09:10:06 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iIEXN-0000qy-1j; Wed, 09 Oct 2019 13:10:05 -0300
+        id 1iIEXN-0000rG-6H; Wed, 09 Oct 2019 13:10:05 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@mellanox.com>,
         Artemy Kovalyov <artemyko@mellanox.com>
-Subject: [PATCH 08/15] RDMA/mlx5: Split implicit handling from pagefault_mr
-Date:   Wed,  9 Oct 2019 13:09:28 -0300
-Message-Id: <20191009160934.3143-9-jgg@ziepe.ca>
+Subject: [PATCH 11/15] RDMA/mlx5: Avoid double lookups on the pagefault path
+Date:   Wed,  9 Oct 2019 13:09:31 -0300
+Message-Id: <20191009160934.3143-12-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191009160934.3143-1-jgg@ziepe.ca>
 References: <20191009160934.3143-1-jgg@ziepe.ca>
@@ -76,188 +76,238 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-The single routine has a very confusing scheme to advance to the next
-child MR when working on an implicit parent. This scheme can only be used
-when working with an implicit parent and must not be triggered when
-working on a normal MR.
+Now that the locking is simplified combine pagefault_implicit_mr() with
+implicit_mr_get_data() so that we sweep over the idx range only once,
+and do the single xlt update at the end, after the child umems are
+setup.
 
-Re-arrange things by directly putting all the single-MR stuff into one
-function and calling it in a loop for the implicit case. Simplify some of
-the error handling in the new pagefault_real_mr() to remove unneeded gotos.
+This avoids double iteration/xa_loads plus the sketchy failure path if the
+xa_load() fails.
 
 Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 125 +++++++++++++++++++------------
- 1 file changed, 76 insertions(+), 49 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 186 +++++++++++++------------------
+ 1 file changed, 80 insertions(+), 106 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 74f7caa9c99fb9..aba4f17c235467 100644
+index e8413fd1b8c73b..1897ce6a25f693 100644
 --- a/drivers/infiniband/hw/mlx5/odp.c
 +++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -629,33 +629,18 @@ void mlx5_ib_free_implicit_mr(struct mlx5_ib_mr *imr)
- }
- 
- #define MLX5_PF_FLAGS_DOWNGRADE BIT(1)
--static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
--			u32 *bytes_mapped, u32 flags)
-+static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
-+			     u64 user_va, size_t bcnt, u32 *bytes_mapped,
-+			     u32 flags)
- {
--	int npages = 0, current_seq, page_shift, ret, np;
--	struct ib_umem_odp *odp_mr = to_ib_umem_odp(mr->umem);
-+	int current_seq, page_shift, ret, np;
- 	bool downgrade = flags & MLX5_PF_FLAGS_DOWNGRADE;
- 	u64 access_mask;
- 	u64 start_idx, page_mask;
--	struct ib_umem_odp *odp;
--	size_t size;
--
--	if (odp_mr->is_implicit_odp) {
--		odp = implicit_mr_get_data(mr, io_virt, bcnt);
--
--		if (IS_ERR(odp))
--			return PTR_ERR(odp);
--		mr = odp->private;
--	} else {
--		odp = odp_mr;
--	}
--
--next_mr:
--	size = min_t(size_t, bcnt, ib_umem_end(odp) - io_virt);
- 
- 	page_shift = odp->page_shift;
- 	page_mask = ~(BIT(page_shift) - 1);
--	start_idx = (io_virt - (mr->mmkey.iova & page_mask)) >> page_shift;
-+	start_idx = (user_va - (mr->mmkey.iova & page_mask)) >> page_shift;
- 	access_mask = ODP_READ_ALLOWED_BIT;
- 
- 	if (odp->umem.writable && !downgrade)
-@@ -668,13 +653,10 @@ static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
- 	 */
- 	smp_rmb();
- 
--	ret = ib_umem_odp_map_dma_pages(odp, io_virt, size, access_mask,
--					current_seq);
--
--	if (ret < 0)
--		goto out;
--
--	np = ret;
-+	np = ib_umem_odp_map_dma_pages(odp, user_va, bcnt, access_mask,
-+				       current_seq);
-+	if (np < 0)
-+		return np;
- 
- 	mutex_lock(&odp->umem_mutex);
- 	if (!ib_umem_mmu_notifier_retry(odp, current_seq)) {
-@@ -699,31 +681,12 @@ static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
- 
- 	if (bytes_mapped) {
- 		u32 new_mappings = (np << page_shift) -
--			(io_virt - round_down(io_virt, 1 << page_shift));
--		*bytes_mapped += min_t(u32, new_mappings, size);
--	}
--
--	npages += np << (page_shift - PAGE_SHIFT);
--	bcnt -= size;
-+			(user_va - round_down(user_va, 1 << page_shift));
- 
--	if (unlikely(bcnt)) {
--		struct ib_umem_odp *next;
--
--		io_virt += size;
--		next = odp_next(odp);
--		if (unlikely(!next || ib_umem_start(next) != io_virt)) {
--			mlx5_ib_dbg(
--				mr->dev,
--				"next implicit leaf removed at 0x%llx. got %p\n",
--				io_virt, next);
--			return -EAGAIN;
--		}
--		odp = next;
--		mr = odp->private;
--		goto next_mr;
-+		*bytes_mapped += min_t(u32, new_mappings, bcnt);
- 	}
- 
--	return npages;
-+	return np << (page_shift - PAGE_SHIFT);
- 
- out:
- 	if (ret == -EAGAIN) {
-@@ -742,6 +705,70 @@ static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
+@@ -419,68 +419,6 @@ static struct mlx5_ib_mr *implicit_get_child_mr(struct mlx5_ib_mr *imr,
  	return ret;
  }
  
-+/*
-+ * Returns:
-+ *  -EFAULT: The io_virt->bcnt is not within the MR, it covers pages that are
-+ *           not accessible, or the MR is no longer valid.
-+ *  -EAGAIN/-ENOMEM: The operation should be retried
-+ *
-+ *  -EINVAL/others: General internal malfunction
-+ *  >0: Number of pages mapped
-+ */
-+static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
-+			u32 *bytes_mapped, u32 flags)
+-static struct mlx5_ib_mr *implicit_mr_get_data(struct mlx5_ib_mr *imr,
+-						u64 io_virt, size_t bcnt)
+-{
+-	struct ib_umem_odp *odp_imr = to_ib_umem_odp(imr->umem);
+-	unsigned long end_idx = (io_virt + bcnt - 1) >> MLX5_IMR_MTT_SHIFT;
+-	unsigned long idx = io_virt >> MLX5_IMR_MTT_SHIFT;
+-	unsigned long inv_start_idx = end_idx + 1;
+-	unsigned long inv_len = 0;
+-	struct mlx5_ib_mr *result = NULL;
+-	int ret;
+-
+-	lockdep_assert_held(&imr->dev->odp_srcu);
+-
+-	for (idx = idx; idx <= end_idx; idx++) {
+-		struct mlx5_ib_mr *mtt = xa_load(&imr->implicit_children, idx);
+-
+-		if (unlikely(!mtt)) {
+-			mtt = implicit_get_child_mr(imr, idx);
+-			if (IS_ERR(mtt)) {
+-				result = mtt;
+-				goto out;
+-			}
+-			inv_start_idx = min(inv_start_idx, idx);
+-			inv_len = idx - inv_start_idx + 1;
+-		}
+-
+-		/* Return first odp if region not covered by single one */
+-		if (likely(!result))
+-			result = mtt;
+-	}
+-
+-	/*
+-	 * Any time the implicit_children are changed we must perform an
+-	 * update of the xlt before exiting to ensure the HW and the
+-	 * implicit_children remains synchronized.
+-	 */
+-out:
+-	if (likely(!inv_len))
+-		return result;
+-
+-	/*
+-	 * Notice this is not strictly ordered right, the KSM is updated after
+-	 * the implicit_leaves is updated, so a parallel page fault could see
+-	 * a MR that is not yet visible in the KSM.  This is similar to a
+-	 * parallel page fault seeing a MR that is being concurrently removed
+-	 * from the KSM. Both of these improbable situations are resolved
+-	 * safely by resuming the HW and then taking another page fault. The
+-	 * next pagefault handler will see the new information.
+-	 */
+-	mutex_lock(&odp_imr->umem_mutex);
+-	ret = mlx5_ib_update_xlt(imr, inv_start_idx, inv_len, 0,
+-				 MLX5_IB_UPD_XLT_INDIRECT |
+-					 MLX5_IB_UPD_XLT_ATOMIC);
+-	mutex_unlock(&odp_imr->umem_mutex);
+-	if (ret) {
+-		mlx5_ib_err(to_mdev(imr->ibmr.pd->device),
+-			    "Failed to update PAS\n");
+-		return ERR_PTR(ret);
+-	}
+-	return result;
+-}
+-
+ struct mlx5_ib_mr *mlx5_ib_alloc_implicit_mr(struct mlx5_ib_pd *pd,
+ 					     struct ib_udata *udata,
+ 					     int access_flags)
+@@ -647,6 +585,84 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
+ 	return ret;
+ }
+ 
++static int pagefault_implicit_mr(struct mlx5_ib_mr *imr,
++				 struct ib_umem_odp *odp_imr, u64 user_va,
++				 size_t bcnt, u32 *bytes_mapped, u32 flags)
 +{
-+	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
-+	struct ib_umem_odp *child;
-+	int npages = 0;
++	unsigned long end_idx = (user_va + bcnt - 1) >> MLX5_IMR_MTT_SHIFT;
++	unsigned long upd_start_idx = end_idx + 1;
++	unsigned long upd_len = 0;
++	unsigned long npages = 0;
++	int err;
++	int ret;
 +
-+	if (!odp->is_implicit_odp) {
-+		if (unlikely(io_virt < ib_umem_start(odp) ||
-+			     ib_umem_end(odp) - io_virt < bcnt))
-+			return -EFAULT;
-+		return pagefault_real_mr(mr, odp, io_virt, bcnt, bytes_mapped,
-+					 flags);
-+	}
-+
-+	if (unlikely(io_virt >= mlx5_imr_ksm_entries * MLX5_IMR_MTT_SIZE ||
-+		     mlx5_imr_ksm_entries * MLX5_IMR_MTT_SIZE - io_virt < bcnt))
++	if (unlikely(user_va >= mlx5_imr_ksm_entries * MLX5_IMR_MTT_SIZE ||
++		     mlx5_imr_ksm_entries * MLX5_IMR_MTT_SIZE - user_va < bcnt))
 +		return -EFAULT;
-+
-+	child = implicit_mr_get_data(mr, io_virt, bcnt);
-+	if (IS_ERR(child))
-+		return PTR_ERR(child);
 +
 +	/* Fault each child mr that intersects with our interval. */
 +	while (bcnt) {
-+		u64 end = min_t(u64, io_virt + bcnt, ib_umem_end(child));
-+		u64 len = end - io_virt;
-+		int ret;
++		unsigned long idx = user_va >> MLX5_IMR_MTT_SHIFT;
++		struct ib_umem_odp *umem_odp;
++		struct mlx5_ib_mr *mtt;
++		u64 len;
 +
-+		ret = pagefault_real_mr(child->private, child, io_virt, len,
++		mtt = xa_load(&imr->implicit_children, idx);
++		if (unlikely(!mtt)) {
++			mtt = implicit_get_child_mr(imr, idx);
++			if (IS_ERR(mtt)) {
++				ret = PTR_ERR(mtt);
++				goto out;
++			}
++			upd_start_idx = min(upd_start_idx, idx);
++			upd_len = idx - upd_start_idx + 1;
++		}
++
++		umem_odp = to_ib_umem_odp(mtt->umem);
++		len = min_t(u64, user_va + bcnt, ib_umem_end(umem_odp)) -
++		      user_va;
++
++		ret = pagefault_real_mr(mtt, umem_odp, user_va, len,
 +					bytes_mapped, flags);
 +		if (ret < 0)
-+			return ret;
-+		io_virt += len;
++			goto out;
++		user_va += len;
 +		bcnt -= len;
 +		npages += ret;
-+
-+		if (unlikely(bcnt)) {
-+			child = odp_next(child);
-+			/*
-+			 * implicit_mr_get_data sets up all the leaves, this
-+			 * means they got invalidated before we got to them.
-+			 */
-+			if (!child || ib_umem_start(child) != io_virt) {
-+				mlx5_ib_dbg(
-+					mr->dev,
-+					"next implicit leaf removed at 0x%llx.\n",
-+					io_virt);
-+				return -EAGAIN;
-+			}
-+		}
 +	}
-+	return npages;
++
++	ret = npages;
++
++	/*
++	 * Any time the implicit_children are changed we must perform an
++	 * update of the xlt before exiting to ensure the HW and the
++	 * implicit_children remains synchronized.
++	 */
++out:
++	if (likely(!upd_len))
++		return ret;
++
++	/*
++	 * Notice this is not strictly ordered right, the KSM is updated after
++	 * the implicit_children is updated, so a parallel page fault could
++	 * see a MR that is not yet visible in the KSM.  This is similar to a
++	 * parallel page fault seeing a MR that is being concurrently removed
++	 * from the KSM. Both of these improbable situations are resolved
++	 * safely by resuming the HW and then taking another page fault. The
++	 * next pagefault handler will see the new information.
++	 */
++	mutex_lock(&odp_imr->umem_mutex);
++	err = mlx5_ib_update_xlt(imr, upd_start_idx, upd_len, 0,
++				 MLX5_IB_UPD_XLT_INDIRECT |
++					 MLX5_IB_UPD_XLT_ATOMIC);
++	mutex_unlock(&odp_imr->umem_mutex);
++	if (err) {
++		mlx5_ib_err(imr->dev, "Failed to update PAS\n");
++		return err;
++	}
++	return ret;
 +}
 +
+ /*
+  * Returns:
+  *  -EFAULT: The io_virt->bcnt is not within the MR, it covers pages that are
+@@ -660,8 +676,6 @@ static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
+ 			u32 *bytes_mapped, u32 flags)
+ {
+ 	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
+-	struct mlx5_ib_mr *mtt;
+-	int npages = 0;
+ 
+ 	if (!odp->is_implicit_odp) {
+ 		if (unlikely(io_virt < ib_umem_start(odp) ||
+@@ -670,48 +684,8 @@ static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
+ 		return pagefault_real_mr(mr, odp, io_virt, bcnt, bytes_mapped,
+ 					 flags);
+ 	}
+-
+-	if (unlikely(io_virt >= mlx5_imr_ksm_entries * MLX5_IMR_MTT_SIZE ||
+-		     mlx5_imr_ksm_entries * MLX5_IMR_MTT_SIZE - io_virt < bcnt))
+-		return -EFAULT;
+-
+-	mtt = implicit_mr_get_data(mr, io_virt, bcnt);
+-	if (IS_ERR(mtt))
+-		return PTR_ERR(mtt);
+-
+-	/* Fault each child mr that intersects with our interval. */
+-	while (bcnt) {
+-		struct ib_umem_odp *umem_odp = to_ib_umem_odp(mtt->umem);
+-		u64 end = min_t(u64, io_virt + bcnt, ib_umem_end(umem_odp));
+-		u64 len = end - io_virt;
+-		int ret;
+-
+-		ret = pagefault_real_mr(mtt, umem_odp, io_virt, len,
+-					bytes_mapped, flags);
+-		if (ret < 0)
+-			return ret;
+-		io_virt += len;
+-		bcnt -= len;
+-		npages += ret;
+-
+-		if (unlikely(bcnt)) {
+-			mtt = xa_load(&mr->implicit_children,
+-				      io_virt >> MLX5_IMR_MTT_SHIFT);
+-
+-			/*
+-			 * implicit_mr_get_data sets up all the leaves, this
+-			 * means they got invalidated before we got to them.
+-			 */
+-			if (!mtt) {
+-				mlx5_ib_dbg(
+-					mr->dev,
+-					"next implicit leaf removed at 0x%llx.\n",
+-					io_virt);
+-				return -EAGAIN;
+-			}
+-		}
+-	}
+-	return npages;
++	return pagefault_implicit_mr(mr, odp, io_virt, bcnt, bytes_mapped,
++				     flags);
+ }
+ 
  struct pf_frame {
- 	struct pf_frame *next;
- 	u32 key;
 -- 
 2.23.0
 
