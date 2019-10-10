@@ -2,217 +2,157 @@ Return-Path: <SRS0=kv28=YD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B49BC4360C
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Oct 2019 12:05:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71BBBC10F14
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Oct 2019 14:27:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1FE0A206B6
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Oct 2019 12:05:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1570709148;
-	bh=WwG7hcF3+2Fb9Qquld+kqX/95MLz0nWTl/uORGzBk+A=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=Cf2ylgs1qsUinxztDMInuKdoussWvD7il9do/P/xQPaH/DTBixbgPSi06bG74o4Zi
-	 wtUlvlLxm5h3WOYQYCAsWoYFz7EBzKgwjyVboiGDlToSt7xjK9OcVXB1Ukz7x20Izp
-	 a4wRxV8dYgBBYWjv5z/OHvz+PCs3To/v5u06kcNA=
+	by mail.kernel.org (Postfix) with ESMTP id 3C67D206B6
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Oct 2019 14:27:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="xqjrpIDU";
+	dkim=pass (1024-bit key) header.d=marvell.onmicrosoft.com header.i=@marvell.onmicrosoft.com header.b="uiGxB+pv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727917AbfJJMFr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Oct 2019 08:05:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39428 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727320AbfJJMFr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Oct 2019 08:05:47 -0400
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1D6EE20650;
-        Thu, 10 Oct 2019 12:05:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1570709145;
-        bh=WwG7hcF3+2Fb9Qquld+kqX/95MLz0nWTl/uORGzBk+A=;
-        h=From:To:Cc:Subject:Date:From;
-        b=N3d82p/bF6w8K8rvM1Lczu1RNrzXwY9B2WxJThV4zBatOOVwcYwQHK1QML5TXQoMJ
-         18SdL04cJMPZMMk70aZylbGJ8iZ6WcCk+b7qGN8S3QgVN/Tnx+XxIEUZn1TtVgweQe
-         tvSlrAuHHB+p9Xjoc1d1oVu9fYuLKamaSLLP7Jo4=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Yishai Hadas <yishaih@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Leon Romanovsky <leonro@mellanox.com>
-Subject: [PATCH rdma-next] RDMA/uapi: Fix and re-organize the usage of rdma_driver_id
-Date:   Thu, 10 Oct 2019 15:05:41 +0300
-Message-Id: <20191010120541.30841-1-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
+        id S1726166AbfJJO07 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Oct 2019 10:26:59 -0400
+Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:55150 "EHLO
+        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726075AbfJJO07 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 10 Oct 2019 10:26:59 -0400
+Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
+        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x9AEOKOd008102;
+        Thu, 10 Oct 2019 07:26:41 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
+ subject : date : message-id : references : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pfpt0818;
+ bh=WdyZ8twsvf1GAt1dzMmRdybasXB64fWFwOn+6XWjGvg=;
+ b=xqjrpIDUA0eaf3WycI28oeyW5HY5BmxSS7mhxKbe2PM80Y7T8S8od1GduRYn6/jh9HE7
+ 8evWKMnmds5FiNegBDYFHZoVsew+z/Xtp6uPtqSN9hZf7EpFEUqXV9XiCHafs4n2jkgJ
+ mo9qyKURqhG9FkZan8ty9HaG+R39R475hxsd4zgbwfqmaE3sfqCj9I1JrPTHCcUkPHN9
+ gpKFRmK7ugnnt2Vi3MxsqEvAnYVmMPeKsGniRCSZQnSZT1xk6nKEcWx0TWDpZNQiny53
+ UlhNToORa7Iarar8+9uuAv/Xgc+YqAGGn/HXZbQCXIvXMgqEyll/1Sa0EJ7hd1DJQU+c Bw== 
+Received: from sc-exch04.marvell.com ([199.233.58.184])
+        by mx0a-0016f401.pphosted.com with ESMTP id 2vj66h01xb-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
+        Thu, 10 Oct 2019 07:26:41 -0700
+Received: from SC-EXCH01.marvell.com (10.93.176.81) by SC-EXCH04.marvell.com
+ (10.93.176.84) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Thu, 10 Oct
+ 2019 07:26:40 -0700
+Received: from NAM01-BN3-obe.outbound.protection.outlook.com (104.47.33.57) by
+ SC-EXCH01.marvell.com (10.93.176.81) with Microsoft SMTP Server (TLS) id
+ 15.0.1367.3 via Frontend Transport; Thu, 10 Oct 2019 07:26:39 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=jsfdTdlTYa0hnu054rUgQlXzoH9CGAV03sIpXU+kNwNL1O9b57DobtX/xAe2nWA7nlZY9FHRFJBF4NY0VH82deQVmd3zecAKsLS2HjfB1eGypqrzRn3y+i09moo8GdS8TpiYlA6C33YRg7q4Pd//7xoeYkYZcvfwRB+EB7AdWk9LyKxXNd0Kj5f411P5/MJj83Of1lhZTvSHj/mUhhD5APOwaRgr3F10/cEj+4oK3YAJzaTt/zoMxgDII3/DMappQc5oowYbcHqjry/aKmLupkb5c0IPUCY7WAvd120YtKSQAt3ILR/ZcInQXTRkF8sYQ6nI8+ItOP6wVepco4GgaA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=WdyZ8twsvf1GAt1dzMmRdybasXB64fWFwOn+6XWjGvg=;
+ b=ky5WOyTeSqXd8Ew/dn8u+zpCxWPhMlSDwKZwxDqeLI6TVjNKndV3g8jwP3yP0d+FYyXO+1zVGFPWFetZ76qBfhWdQuZYDv4+6qD5s2G1pb6sKOXIC9WurF7qhv4HOgFoLvhGDmcbsPn3WLkv6CJCHbIRa7vMzQBJB0wc+dWAWFn9OJ/G5awv/4VYoZ+MUh59z3tc7EKXAMywbFWHHbjQgYVKKYKngl9QjGDKZ53SLHI4XJsRcOQ/pzNQCvmQ8vdrRUQwvmnxvCCakTvNxXmTcS9CpQ5f3M3CDhZJvZAE8W5t6JwIWFLU98r7Z7xdFRApRy1QzOoAfNxaMGc4WXBcaA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=marvell.com; dmarc=pass action=none header.from=marvell.com;
+ dkim=pass header.d=marvell.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=marvell.onmicrosoft.com; s=selector2-marvell-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=WdyZ8twsvf1GAt1dzMmRdybasXB64fWFwOn+6XWjGvg=;
+ b=uiGxB+pvtFHWqsochK+GR3wppK6aytA5Mj3oj0amJM55/hbfxbR8dnRUtxlR0l95GfCAzmLsEnzBAnZzrY8W92+ZSPh+9O6bAn/vJr7lJLsaYbx1Vo3NG619CZ8B2JlLsxKfZooPop73PTQIQSSZXlotFIYeWa9n2IlSImoYrDc=
+Received: from MN2PR18MB3182.namprd18.prod.outlook.com (10.255.236.143) by
+ MN2PR18MB2686.namprd18.prod.outlook.com (20.179.81.94) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2347.18; Thu, 10 Oct 2019 14:26:37 +0000
+Received: from MN2PR18MB3182.namprd18.prod.outlook.com
+ ([fe80::4c1d:fb1e:ea9c:6811]) by MN2PR18MB3182.namprd18.prod.outlook.com
+ ([fe80::4c1d:fb1e:ea9c:6811%6]) with mapi id 15.20.2347.016; Thu, 10 Oct 2019
+ 14:26:37 +0000
+From:   Michal Kalderon <mkalderon@marvell.com>
+To:     Potnuri Bharat Teja <bharat@chelsio.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>,
+        "dledford@redhat.com" <dledford@redhat.com>
+CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "nirranjan@chelsio.com" <nirranjan@chelsio.com>
+Subject: RE: [PATCH for-next] iw_cxgb3: remove iw_cxgb3 module from kernel.
+Thread-Topic: [PATCH for-next] iw_cxgb3: remove iw_cxgb3 module from kernel.
+Thread-Index: AQHVd2LBspxQVNpDy0K/WJNXeeTMaqdT/PIA
+Date:   Thu, 10 Oct 2019 14:26:37 +0000
+Message-ID: <MN2PR18MB318268F5426A2FFD5AB6F014A1940@MN2PR18MB3182.namprd18.prod.outlook.com>
+References: <20190930074252.20133-1-bharat@chelsio.com>
+In-Reply-To: <20190930074252.20133-1-bharat@chelsio.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [79.178.84.141]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 226f93e3-eb51-49b3-d6ff-08d74d8ddc02
+x-ms-traffictypediagnostic: MN2PR18MB2686:
+x-microsoft-antispam-prvs: <MN2PR18MB26862C2F19EE0B95C2FE527FA1940@MN2PR18MB2686.namprd18.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:3968;
+x-forefront-prvs: 018632C080
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(366004)(39860400002)(346002)(396003)(136003)(376002)(199004)(189003)(71200400001)(305945005)(446003)(7736002)(25786009)(71190400001)(6436002)(86362001)(14454004)(74316002)(6246003)(11346002)(55016002)(5660300002)(478600001)(229853002)(9686003)(7696005)(81166006)(81156014)(64756008)(66446008)(66556008)(66476007)(76176011)(476003)(52536014)(2906002)(76116006)(2501003)(256004)(2201001)(3846002)(186003)(66066001)(6506007)(316002)(102836004)(54906003)(33656002)(66946007)(110136005)(8936002)(486006)(6116002)(99286004)(26005)(4326008)(8676002);DIR:OUT;SFP:1101;SCL:1;SRVR:MN2PR18MB2686;H:MN2PR18MB3182.namprd18.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: marvell.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: vitnlEx0d7rXF7E+qNdOtqRdQNuTzM/bAaxuO/rBLkipahvUqk9lg0S+QFEQRS8Nf4TlytSKZKbvjTYXof6fGC+AOU/n8nobmYYBUkS0BnOyphSciz+sF0nCFPNAGpkwFpkb9hhb5th/jJJGPm4lq+XGSo+bTW9X1KUhUAtcV7ay9qQT+LQ4BPzIxuaaXBWX8eigmN/zosnVslbhJtjrFqEgQ1fVpE2STXvMaw3v78e0ucQhJFxo2Uyr+WZsCrlGoj9cWrtfrr9PP8aMF/iBh0eR4CaZuJ0maIPRBPhrlL1HRN8rsz7MWnf7kSHQrOpTfAlCWyTVpbzBvVG+bURCnQrJ3fNw9EjBYzo6LZrpO+ev4YmzRJBcRZ1J8R1h9ftNtRWPclzTfs4wYFFxxqGruGlDNMSUQL4RsC1NH/nnV4g=
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-CrossTenant-Network-Message-Id: 226f93e3-eb51-49b3-d6ff-08d74d8ddc02
+X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Oct 2019 14:26:37.2136
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 70e1fb47-1155-421d-87fc-2e58f638b6e0
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 93J1RsMLsLWr/rbt2JEgjHM4JqjYSSKqRnrRtA+wri27/sqGlpMvxvEcUE6Bal8mUx1ravnfqkKzmHnuwMb4EA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR18MB2686
+X-OriginatorOrg: marvell.com
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,1.0.8
+ definitions=2019-10-10_05:2019-10-10,2019-10-10 signatures=0
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+> From: linux-rdma-owner@vger.kernel.org <linux-rdma-
+> owner@vger.kernel.org> On Behalf Of Potnuri Bharat Teja
+>=20
+> remove iw_cxgb3 module from kernel as the corresponding HW Chelsio T3
+> has
+> reached EOL.
+>=20
+> Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
+> ---
+>  include/uapi/rdma/rdma_user_ioctl_cmds.h      |    1 -
+>=20
+> diff --git a/include/uapi/rdma/rdma_user_ioctl_cmds.h
+> b/include/uapi/rdma/rdma_user_ioctl_cmds.h
+> index b8bb285f6b2a..b2680051047a 100644
+> --- a/include/uapi/rdma/rdma_user_ioctl_cmds.h
+> +++ b/include/uapi/rdma/rdma_user_ioctl_cmds.h
+> @@ -88,7 +88,6 @@ enum rdma_driver_id {
+>  	RDMA_DRIVER_UNKNOWN,
+>  	RDMA_DRIVER_MLX5,
+>  	RDMA_DRIVER_MLX4,
+> -	RDMA_DRIVER_CXGB3,
+>  	RDMA_DRIVER_CXGB4,
+>  	RDMA_DRIVER_MTHCA,
+>  	RDMA_DRIVER_BNXT_RE,
 
-Fix 'enum rdma_driver_id' to preserve other driver values before that
-RDMA_DRIVER_CXGB3 was deleted.  As this value is UAPI we can't affect
-other values as of a deletion of one driver id.
+This can't simply be removed, it breaks the drivers defined after this abi =
+with rdma-core which uses a different driver_id
+Removing this from rdma-core as well isn't sufficient due to backward / for=
+ward computability
+Perhaps modify this with RDMA_DRIVER_RESERVED ?=20
 
-In addition,
-- Expose 'enum rdma_driver_id' to user applications by moving it to
-  ib_user_ioctl_verbs.h which is exposed in rdma-core to applications.
+Thanks,
+Michal
 
-- Drop the dependency of ib_user_ioctl_verbs.h on ib_user_verbs.h which
-  is not really required.
 
-Fixes: 30e0f6cf5acb ("RDMA/iw_cxgb3: Remove the iw_cxgb3 module from kernel")
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- include/uapi/rdma/ib_user_ioctl_verbs.h  | 47 +++++++++++++++++++++++-
- include/uapi/rdma/ib_user_verbs.h        | 25 -------------
- include/uapi/rdma/rdma_user_ioctl_cmds.h | 21 -----------
- 3 files changed, 46 insertions(+), 47 deletions(-)
-
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 72c7fc75f960..3d703be40012 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -35,7 +35,6 @@
- #define IB_USER_IOCTL_VERBS_H
- 
- #include <linux/types.h>
--#include <rdma/ib_user_verbs.h>
- 
- #ifndef RDMA_UAPI_PTR
- #define RDMA_UAPI_PTR(_type, _name)	__aligned_u64 _name
-@@ -167,10 +166,56 @@ enum ib_uverbs_advise_mr_flag {
- 	IB_UVERBS_ADVISE_MR_FLAG_FLUSH = 1 << 0,
- };
- 
-+struct ib_uverbs_query_port_resp {
-+	__u32 port_cap_flags;		/* see ib_uverbs_query_port_cap_flags */
-+	__u32 max_msg_sz;
-+	__u32 bad_pkey_cntr;
-+	__u32 qkey_viol_cntr;
-+	__u32 gid_tbl_len;
-+	__u16 pkey_tbl_len;
-+	__u16 lid;
-+	__u16 sm_lid;
-+	__u8  state;
-+	__u8  max_mtu;
-+	__u8  active_mtu;
-+	__u8  lmc;
-+	__u8  max_vl_num;
-+	__u8  sm_sl;
-+	__u8  subnet_timeout;
-+	__u8  init_type_reply;
-+	__u8  active_width;
-+	__u8  active_speed;
-+	__u8  phys_state;
-+	__u8  link_layer;
-+	__u8  flags;			/* see ib_uverbs_query_port_flags */
-+	__u8  reserved;
-+};
-+
- struct ib_uverbs_query_port_resp_ex {
- 	struct ib_uverbs_query_port_resp legacy_resp;
- 	__u16 port_cap_flags2;
- 	__u8  reserved[6];
- };
- 
-+enum rdma_driver_id {
-+	RDMA_DRIVER_UNKNOWN,
-+	RDMA_DRIVER_MLX5,
-+	RDMA_DRIVER_MLX4,
-+	RDMA_DRIVER_CXGB4 = 4,
-+	RDMA_DRIVER_MTHCA,
-+	RDMA_DRIVER_BNXT_RE,
-+	RDMA_DRIVER_OCRDMA,
-+	RDMA_DRIVER_NES,
-+	RDMA_DRIVER_I40IW,
-+	RDMA_DRIVER_VMW_PVRDMA,
-+	RDMA_DRIVER_QEDR,
-+	RDMA_DRIVER_HNS,
-+	RDMA_DRIVER_USNIC,
-+	RDMA_DRIVER_RXE,
-+	RDMA_DRIVER_HFI1,
-+	RDMA_DRIVER_QIB,
-+	RDMA_DRIVER_EFA,
-+	RDMA_DRIVER_SIW,
-+};
-+
- #endif
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 0474c7400268..37450f133a07 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -281,31 +281,6 @@ struct ib_uverbs_query_port {
- 	__aligned_u64 driver_data[0];
- };
- 
--struct ib_uverbs_query_port_resp {
--	__u32 port_cap_flags;		/* see ib_uverbs_query_port_cap_flags */
--	__u32 max_msg_sz;
--	__u32 bad_pkey_cntr;
--	__u32 qkey_viol_cntr;
--	__u32 gid_tbl_len;
--	__u16 pkey_tbl_len;
--	__u16 lid;
--	__u16 sm_lid;
--	__u8  state;
--	__u8  max_mtu;
--	__u8  active_mtu;
--	__u8  lmc;
--	__u8  max_vl_num;
--	__u8  sm_sl;
--	__u8  subnet_timeout;
--	__u8  init_type_reply;
--	__u8  active_width;
--	__u8  active_speed;
--	__u8  phys_state;
--	__u8  link_layer;
--	__u8  flags;			/* see ib_uverbs_query_port_flags */
--	__u8  reserved;
--};
--
- struct ib_uverbs_alloc_pd {
- 	__aligned_u64 response;
- 	__aligned_u64 driver_data[0];
-diff --git a/include/uapi/rdma/rdma_user_ioctl_cmds.h b/include/uapi/rdma/rdma_user_ioctl_cmds.h
-index b2680051047a..7b1ec806f8f9 100644
---- a/include/uapi/rdma/rdma_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/rdma_user_ioctl_cmds.h
-@@ -84,25 +84,4 @@ struct ib_uverbs_ioctl_hdr {
- 	struct ib_uverbs_attr  attrs[0];
- };
- 
--enum rdma_driver_id {
--	RDMA_DRIVER_UNKNOWN,
--	RDMA_DRIVER_MLX5,
--	RDMA_DRIVER_MLX4,
--	RDMA_DRIVER_CXGB4,
--	RDMA_DRIVER_MTHCA,
--	RDMA_DRIVER_BNXT_RE,
--	RDMA_DRIVER_OCRDMA,
--	RDMA_DRIVER_NES,
--	RDMA_DRIVER_I40IW,
--	RDMA_DRIVER_VMW_PVRDMA,
--	RDMA_DRIVER_QEDR,
--	RDMA_DRIVER_HNS,
--	RDMA_DRIVER_USNIC,
--	RDMA_DRIVER_RXE,
--	RDMA_DRIVER_HFI1,
--	RDMA_DRIVER_QIB,
--	RDMA_DRIVER_EFA,
--	RDMA_DRIVER_SIW,
--};
--
- #endif
--- 
-2.20.1
+> --
+> 2.18.0.232.gb7bd9486b055
 
