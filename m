@@ -2,111 +2,135 @@ Return-Path: <SRS0=K+k5=YE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03F03C47404
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Oct 2019 11:04:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C021C47404
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Oct 2019 13:35:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9121206CD
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Oct 2019 11:04:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32B452084C
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Oct 2019 13:35:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="QR2q3QT9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727653AbfJKLEq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Oct 2019 07:04:46 -0400
-Received: from os.inf.tu-dresden.de ([141.76.48.99]:38610 "EHLO
-        os.inf.tu-dresden.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727592AbfJKLEq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Oct 2019 07:04:46 -0400
-X-Greylist: delayed 1372 seconds by postgrey-1.27 at vger.kernel.org; Fri, 11 Oct 2019 07:04:45 EDT
-Received: from [141.76.29.166] (helo=[172.26.144.86])
-        by os.inf.tu-dresden.de with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128) (Exim 4.92.3)
-        id 1iIsMq-0005eE-L3; Fri, 11 Oct 2019 12:41:52 +0200
-Subject: Re: [PATCH 10/10] Replace tasklets with workqueues
-From:   Maksym Planeta <mplaneta@os.inf.tu-dresden.de>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Moni Shoua <monis@mellanox.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20190722151426.5266-1-mplaneta@os.inf.tu-dresden.de>
- <20190722151426.5266-11-mplaneta@os.inf.tu-dresden.de>
- <20190722153205.GG7607@ziepe.ca>
- <21a4daf9-c77e-ec80-9da0-78ab512d248d@os.inf.tu-dresden.de>
- <20190725185006.GD7467@ziepe.ca>
- <385139f2-0d31-1148-95c0-a6e6768ab413@os.inf.tu-dresden.de>
-Message-ID: <995754de-5ec4-0a62-991e-2ea77a6bc622@os.inf.tu-dresden.de>
-Date:   Fri, 11 Oct 2019 12:41:50 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        id S1727709AbfJKNfE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Oct 2019 09:35:04 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:38084 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727589AbfJKNfE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Oct 2019 09:35:04 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x9BDYOnH180550;
+        Fri, 11 Oct 2019 13:34:35 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type : in-reply-to;
+ s=corp-2019-08-05; bh=zYRrN4ptli6lIkl9bheayVe/eW/vl9po/KIQvkCwEPw=;
+ b=QR2q3QT9nE/C5SJVUogQySBsIHkwgRTru8o3PblqA0s2xmQZD2aQ+2KWzA7H0tmWP8Ld
+ CNTmjFpg2WCBxgVXF1GUOkHUjI9kSs8cM+Pxch9Uii3FuR/36K39QFuZOiRrrF5wNNhI
+ t6OFc8bQGBhLUzlrJoialtemcVz4qEIJpjuV9qlPoId3jCBn8iToMVuvxyOTlqlaBonN
+ zGMnWxBSH0W34uxTG9ynNUQK435vH87WMhSbgom53FmonOWZgZUeN/775HeCSjX5cW7h
+ XwNhJ+r5SHMBkFwllA1vO3Yt1A0vlKK2/8in21ugj0RzcfSW3yyAwQ2GwzxaIvrSOHEt Hw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2120.oracle.com with ESMTP id 2vekts1h27-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 11 Oct 2019 13:34:33 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x9BDXZvk030182;
+        Fri, 11 Oct 2019 13:34:33 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by userp3020.oracle.com with ESMTP id 2vj9quvudy-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 11 Oct 2019 13:34:33 +0000
+Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x9BDYRkr029053;
+        Fri, 11 Oct 2019 13:34:27 GMT
+Received: from mwanda (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 11 Oct 2019 06:34:27 -0700
+Date:   Fri, 11 Oct 2019 16:34:19 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Doug Ledford <dledford@redhat.com>,
+        Matan Barak <matanb@mellanox.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Shamir Rabinovitch <shamir.rabinovitch@oracle.com>,
+        Michael Guralnik <michaelgur@mellanox.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH v2] uverbs: prevent potential underflow
+Message-ID: <20191011133419.GA22905@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <385139f2-0d31-1148-95c0-a6e6768ab413@os.inf.tu-dresden.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191008194425.GA28067@ziepe.ca>
+X-Mailer: git-send-email haha only kidding
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9406 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1908290000 definitions=main-1910110127
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9406 signatures=668684
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1908290000
+ definitions=main-1910110127
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+The issue is in drivers/infiniband/core/uverbs_std_types_cq.c in the
+UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE) function.  We check that:
 
-this is a kind reminder regarding the patchset. I added description of 
-races in the original email.
+        if (attr.comp_vector >= attrs->ufile->device->num_comp_vectors) {
 
-On 30/07/2019 21:20, Maksym Planeta wrote:
-> 
-> 
-> On 25/07/2019 20:50, Jason Gunthorpe wrote:
->> On Thu, Jul 25, 2019 at 04:36:20PM +0200, Maksym Planeta wrote:
->>> Is this one better?
->>>
->>> Replace tasklets with workqueues in rxe driver. The reason for this
->>> replacement is that tasklets are supposed to run atomically, although 
->>> the
->>> actual code may block.
->>>
->>> Modify the SKB destructor for outgoing SKB's to schedule QP tasks 
->>> only if
->>> the QP is not destroyed itself.
->>>
->>> Add a variable "pending_skb_down" to ensure that reference counting 
->>> for a QP
->>> is decremented only when QP access related to this skb is over.
->>>
->>> Separate part of pool element cleanup code to allow this code to be 
->>> called
->>> in the very end of cleanup, even if some of cleanup is scheduled for
->>> asynchronous execution. Example, when it was happening is destructor 
->>> for a
->>> QP.
->>>
->>> Disallow calling of task functions "directly". This allows to 
->>> simplify logic
->>> inside rxe_task.c
->>>
->>> Schedule rxe_qp_do_cleanup onto high-priority system workqueue, 
->>> because this
->>> function can be scheduled from normal system workqueue.
->>>
->>> Before destroying a QP, wait until all references to this QP are gone.
->>> Previously the problem was that outgoing SKBs could be freed after 
->>> the QP
->>> these SKBs refer to is destroyed.
->>>
->>> Add blocking rxe_run_task to replace __rxe_do_task that was calling task
->>> function directly.
->>
->> Mostly but it would also be good to describe the use after free and
->> races more specifically
->>
-> 
-> These situations are described in the cover letter (PATCH 00/10). Do you 
-> need a more detailed description than that?
-> 
->> Jason
->>
-> 
+But we don't check that "attr.comp_vector" whether negative.  It
+could potentially lead to an array underflow.  My concern would be where
+cq->vector is used in the create_cq() function from the cxgb4 driver.
 
+And really "attr.comp_vector" is appears as a u32 to user space so that's
+the right type to use.
+
+Fixes: 9ee79fce3642 ("IB/core: Add completion queue (cq) object actions")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: Change both types to u32
+
+ drivers/infiniband/core/uverbs.h | 2 +-
+ include/rdma/ib_verbs.h          | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 1e5aeb39f774..63f7f7db5902 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -98,7 +98,7 @@ ib_uverbs_init_udata_buf_or_null(struct ib_udata *udata,
+ 
+ struct ib_uverbs_device {
+ 	atomic_t				refcount;
+-	int					num_comp_vectors;
++	u32					num_comp_vectors;
+ 	struct completion			comp;
+ 	struct device				dev;
+ 	/* First group for device attributes, NULL terminated array */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 6a47ba85c54c..e7e733add99f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -366,7 +366,7 @@ struct ib_tm_caps {
+ 
+ struct ib_cq_init_attr {
+ 	unsigned int	cqe;
+-	int		comp_vector;
++	u32		comp_vector;
+ 	u32		flags;
+ };
+ 
 -- 
-Regards,
-Maksym Planeta
+2.20.1
+
