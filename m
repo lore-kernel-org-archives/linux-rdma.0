@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 958D7ECE59F
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E059ECE59A
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6843522459
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E69C82245A
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="WiNBwI0G"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="N4xJngJr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731849AbfJOSQh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Oct 2019 14:16:37 -0400
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:40745 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726597AbfJOSQh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:37 -0400
-Received: by mail-pf1-f194.google.com with SMTP id x127so12982791pfb.7
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:36 -0700 (PDT)
+        id S1731768AbfJOSQ0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Oct 2019 14:16:26 -0400
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:46235 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726597AbfJOSQ0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:26 -0400
+Received: by mail-pg1-f193.google.com with SMTP id e15so4613569pgu.13
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=MxqnjxtjZspeclsXsb8TqT2XAaJcx6OqXrPL9/3uTio=;
-        b=WiNBwI0GEvMvrWy1ehAPzHRxBZcfkJSDVZrcxckbtOPYt0vilEpIpP8MuNdNVhWXh/
-         SoU7AiEKzDV+QL81bsPgbpfq+LBhaGTtTP+QDOvoWJqBswnzIRdWSR+anuvJLw7gZoEz
-         MG2BHvGJ2xGRlTL7RhF6fFc30sLQFXJNGWjEm9KetbUqhrj/xaFnsKMGwsr42FtdSvLx
-         XqrWoiB1312d7qQdNj5TiQHX313Me5YQ0lbuuEp5CyhbguZepRaNWvZh8D2ULLwEGn8F
-         xAFRajXxsiJOuRNHlRfUZavKLGb1h6R5WAprKRtw1VwU9Pgku3H2/DtvLcTXlbyGYLGD
-         6i5w==
+        bh=jB/ndDNYI+4jh+CyWUF8UUfKQRLegAjGY1TRhiwKQXc=;
+        b=N4xJngJrShT1OxrKZbQG9x6/yIb5+79QBiXMj1lpmIcL+BJccHYhAJs9kTMIr+CtlM
+         wX90Z46B912pvyDptdl0AatmwpW5GMmcel8Labgi3qBpGf96/w/VoFYav9X0152CyVpb
+         5Tzuj4SUI/KJEjr/d+92doYCmzSDxQWYQ24Ez5JQGlY08HObkSo4R2WD86x6YtlIEFLw
+         jLMbUrbdK4SZKnAbYeaMSBA9CiTskJ0B2jxrt15tzXpQ0p1n+sHjuQQK/PhfEJOBE+W2
+         y+BkaJmtSv766ZBaY+cXiywFTwg+yrL4Ct6ojugqh5NLwR0mBvk37pN31PrbMjFdwGPv
+         Qc0w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=MxqnjxtjZspeclsXsb8TqT2XAaJcx6OqXrPL9/3uTio=;
-        b=r9PTBkYf4p2JjmawbjbgMBw7k9tofJMo5hVGxaPm67RPngQi0Z+zHl/synf5oc//0c
-         x+je6+eQ9CSe5GRa3nfI8fNWF1KsUgYL47J4IJ5QOCDTnym7UcB5Hhhub5fZZfROFSUD
-         EVwf/iDWq5LBHKi0qRXoFJcWC9jE3YMt+ocUZ3nStuES9SVsmmCOasRvMgio/xCbZacd
-         BMEkT4LJG4ktEzlOdyG3ilHdU4FBesEQVJUwfaMPGWZ23P0MoDmdtj4N4vIPIE9hcJ3a
-         4IMbM6J9JVLBArLxB6jr9SKsWTxtgqw3V+RyeWgCHBRAoWlZXM1O+/rCoexStj4dV7a/
-         BGuw==
-X-Gm-Message-State: APjAAAWGyodMRt8rUmB4wV4Bfb1m1ZnzTTLaXmBocKjd4q+M+lRND/b/
-        gjtzKF8//Hi0/TK22MVgpu7i5w==
-X-Google-Smtp-Source: APXvYqw20wAIkHWageKs4SNh5mkhjScT2YJ5H9fLuHv7ambuFgJzJJY4hoXPq9r1gGkqghcn4QMTOQ==
-X-Received: by 2002:a17:90a:fb92:: with SMTP id cp18mr45187520pjb.2.1571163395890;
-        Tue, 15 Oct 2019 11:16:35 -0700 (PDT)
+        bh=jB/ndDNYI+4jh+CyWUF8UUfKQRLegAjGY1TRhiwKQXc=;
+        b=j/8Fl9Td/qDQku5hOaMSZWsIJ500LpCOsmCVxXquHKxt+da/QpmZGBJwk0cBpCwWdW
+         rpdE6PHeXXeZ54uU3ARYCJ1rTs7Vj53bWVkvx/eldKsmWXJIoZi1xXoFb3LqpIrMj9El
+         tOou0FYmQbzKqPw/iQsV8v2QtxCMW2FsO514iT//IxqUArzW1vmO4ZecvHpZDrJ7NhaD
+         PSPpi+uESIjhs+68ZVhupn8+zOmSk+f1KtEEd6PewBKRPrZsKp0a913mCb5biiLCrhxD
+         nYtaPgM8ZtjYztb2f9ozRbXcsJu0ZDYrjBz6U6aLhjvATUuION1zMZz7arNkbVQAACNJ
+         izJg==
+X-Gm-Message-State: APjAAAWo/DW79HSe5UfIk8XZsvgFxRJzGf6ZAH5gO0E/DRqLU3ewrhMX
+        BXlTLcNrtJQCTpie8fkVLreCYA==
+X-Google-Smtp-Source: APXvYqzLw7qtOZsBkXKaKR/Fb8zQC8nnhEWIaTLX6At+LhdX97lMepUUiy2XZX4q9vCtVxZ/O5lS6Q==
+X-Received: by 2002:a63:df42:: with SMTP id h2mr37595089pgj.405.1571163384987;
+        Tue, 15 Oct 2019 11:16:24 -0700 (PDT)
 Received: from ziepe.ca ([24.114.26.129])
-        by smtp.gmail.com with ESMTPSA id o11sm19024878pgp.13.2019.10.15.11.16.35
+        by smtp.gmail.com with ESMTPSA id z23sm20143091pgu.16.2019.10.15.11.16.24
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 15 Oct 2019 11:16:35 -0700 (PDT)
+        Tue, 15 Oct 2019 11:16:24 -0700 (PDT)
 Received: from jgg by jggl.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iKRJT-0002CG-Gd; Tue, 15 Oct 2019 15:12:51 -0300
+        id 1iKRJT-0002CV-Kz; Tue, 15 Oct 2019 15:12:51 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Jerome Glisse <jglisse@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>,
@@ -66,18 +66,14 @@ Cc:     linux-rdma@vger.kernel.org, linux-mm@kvack.org,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Ben Skeggs <bskeggs@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        David Zhou <David1.Zhou@amd.com>,
-        Petr Cvek <petrcvekcz@gmail.com>
-Subject: [PATCH hmm 07/15] drm/radeon: use mmu_range_notifier_insert
-Date:   Tue, 15 Oct 2019 15:12:34 -0300
-Message-Id: <20191015181242.8343-8-jgg@ziepe.ca>
+        nouveau@lists.freedesktop.org
+Subject: [PATCH hmm 10/15] nouveau: use mmu_notifier directly for invalidate_range_start
+Date:   Tue, 15 Oct 2019 15:12:37 -0300
+Message-Id: <20191015181242.8343-11-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191015181242.8343-1-jgg@ziepe.ca>
 References: <20191015181242.8343-1-jgg@ziepe.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
@@ -86,313 +82,241 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-The new API is an exact match for the needs of radeon.
+There is no reason to get the invalidate_range_start() callback via an
+indirection through hmm_mirror, just register a normal notifier directly.
 
-For some reason radeon tries to remove overlapping ranges from the
-interval tree, but interval trees (and mmu_range_notifier_insert)
-support overlapping ranges directly. Simply delete all this code.
-
-Since this driver is missing a invalidate_range_end callback, but
-still calls get_user_pages(), it cannot be correct against all races.
-
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: David (ChunMing) Zhou <David1.Zhou@amd.com>
-Cc: amd-gfx@lists.freedesktop.org
-Cc: Petr Cvek <petrcvekcz@gmail.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: dri-devel@lists.freedesktop.org
+Cc: nouveau@lists.freedesktop.org
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/gpu/drm/radeon/radeon.h    |   9 +-
- drivers/gpu/drm/radeon/radeon_mn.c | 218 ++++++-----------------------
- 2 files changed, 51 insertions(+), 176 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_svm.c | 95 ++++++++++++++++++---------
+ 1 file changed, 63 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
-index d59b004f669583..27959f3ace1152 100644
---- a/drivers/gpu/drm/radeon/radeon.h
-+++ b/drivers/gpu/drm/radeon/radeon.h
-@@ -68,6 +68,10 @@
- #include <linux/hashtable.h>
- #include <linux/dma-fence.h>
- 
-+#ifdef CONFIG_MMU_NOTIFIER
-+#include <linux/mmu_notifier.h>
-+#endif
-+
- #include <drm/ttm/ttm_bo_api.h>
- #include <drm/ttm/ttm_bo_driver.h>
- #include <drm/ttm/ttm_placement.h>
-@@ -509,8 +513,9 @@ struct radeon_bo {
- 	struct ttm_bo_kmap_obj		dma_buf_vmap;
- 	pid_t				pid;
- 
--	struct radeon_mn		*mn;
--	struct list_head		mn_list;
-+#ifdef CONFIG_MMU_NOTIFIER
-+	struct mmu_range_notifier	notifier;
-+#endif
- };
- #define gem_to_radeon_bo(gobj) container_of((gobj), struct radeon_bo, tbo.base)
- 
-diff --git a/drivers/gpu/drm/radeon/radeon_mn.c b/drivers/gpu/drm/radeon/radeon_mn.c
-index dbab9a3a969b9e..2ea90874c535f5 100644
---- a/drivers/gpu/drm/radeon/radeon_mn.c
-+++ b/drivers/gpu/drm/radeon/radeon_mn.c
-@@ -36,131 +36,50 @@
- 
- #include "radeon.h"
- 
--struct radeon_mn {
--	struct mmu_notifier	mn;
--
--	/* objects protected by lock */
--	struct mutex		lock;
--	struct rb_root_cached	objects;
--};
--
--struct radeon_mn_node {
--	struct interval_tree_node	it;
--	struct list_head		bos;
--};
--
- /**
-- * radeon_mn_invalidate_range_start - callback to notify about mm change
-+ * radeon_mn_invalidate - callback to notify about mm change
-  *
-  * @mn: our notifier
-- * @mn: the mm this callback is about
-- * @start: start of updated range
-- * @end: end of updated range
-+ * @range: the VMA under invalidation
-  *
-  * We block for all BOs between start and end to be idle and
-  * unmap them by move them into system domain again.
-  */
--static int radeon_mn_invalidate_range_start(struct mmu_notifier *mn,
--				const struct mmu_notifier_range *range)
-+static bool radeon_mn_invalidate(struct mmu_range_notifier *mn,
-+				 const struct mmu_notifier_range *range)
- {
--	struct radeon_mn *rmn = container_of(mn, struct radeon_mn, mn);
-+	struct radeon_bo *bo = container_of(mn, struct radeon_bo, notifier);
- 	struct ttm_operation_ctx ctx = { false, false };
--	struct interval_tree_node *it;
--	unsigned long end;
--	int ret = 0;
--
--	/* notification is exclusive, but interval is inclusive */
--	end = range->end - 1;
--
--	/* TODO we should be able to split locking for interval tree and
--	 * the tear down.
--	 */
--	if (mmu_notifier_range_blockable(range))
--		mutex_lock(&rmn->lock);
--	else if (!mutex_trylock(&rmn->lock))
--		return -EAGAIN;
--
--	it = interval_tree_iter_first(&rmn->objects, range->start, end);
--	while (it) {
--		struct radeon_mn_node *node;
--		struct radeon_bo *bo;
--		long r;
--
--		if (!mmu_notifier_range_blockable(range)) {
--			ret = -EAGAIN;
--			goto out_unlock;
--		}
--
--		node = container_of(it, struct radeon_mn_node, it);
--		it = interval_tree_iter_next(it, range->start, end);
-+	long r;
- 
--		list_for_each_entry(bo, &node->bos, mn_list) {
-+	if (!bo->tbo.ttm || bo->tbo.ttm->state != tt_bound)
-+		return true;
- 
--			if (!bo->tbo.ttm || bo->tbo.ttm->state != tt_bound)
--				continue;
-+	if (!mmu_notifier_range_blockable(range))
-+		return false;
- 
--			r = radeon_bo_reserve(bo, true);
--			if (r) {
--				DRM_ERROR("(%ld) failed to reserve user bo\n", r);
--				continue;
--			}
--
--			r = dma_resv_wait_timeout_rcu(bo->tbo.base.resv,
--				true, false, MAX_SCHEDULE_TIMEOUT);
--			if (r <= 0)
--				DRM_ERROR("(%ld) failed to wait for user bo\n", r);
--
--			radeon_ttm_placement_from_domain(bo, RADEON_GEM_DOMAIN_CPU);
--			r = ttm_bo_validate(&bo->tbo, &bo->placement, &ctx);
--			if (r)
--				DRM_ERROR("(%ld) failed to validate user bo\n", r);
--
--			radeon_bo_unreserve(bo);
--		}
-+	r = radeon_bo_reserve(bo, true);
-+	if (r) {
-+		DRM_ERROR("(%ld) failed to reserve user bo\n", r);
-+		return true;
- 	}
--	
--out_unlock:
--	mutex_unlock(&rmn->lock);
--
--	return ret;
--}
--
--static void radeon_mn_release(struct mmu_notifier *mn, struct mm_struct *mm)
--{
--	struct mmu_notifier_range range = {
--		.mm = mm,
--		.start = 0,
--		.end = ULONG_MAX,
--		.flags = 0,
--		.event = MMU_NOTIFY_UNMAP,
--	};
--
--	radeon_mn_invalidate_range_start(mn, &range);
--}
--
--static struct mmu_notifier *radeon_mn_alloc_notifier(struct mm_struct *mm)
--{
--	struct radeon_mn *rmn;
- 
--	rmn = kzalloc(sizeof(*rmn), GFP_KERNEL);
--	if (!rmn)
--		return ERR_PTR(-ENOMEM);
-+	r = dma_resv_wait_timeout_rcu(bo->tbo.base.resv, true, false,
-+				      MAX_SCHEDULE_TIMEOUT);
-+	if (r <= 0)
-+		DRM_ERROR("(%ld) failed to wait for user bo\n", r);
- 
--	mutex_init(&rmn->lock);
--	rmn->objects = RB_ROOT_CACHED;
--	return &rmn->mn;
--}
-+	radeon_ttm_placement_from_domain(bo, RADEON_GEM_DOMAIN_CPU);
-+	r = ttm_bo_validate(&bo->tbo, &bo->placement, &ctx);
-+	if (r)
-+		DRM_ERROR("(%ld) failed to validate user bo\n", r);
- 
--static void radeon_mn_free_notifier(struct mmu_notifier *mn)
--{
--	kfree(container_of(mn, struct radeon_mn, mn));
-+	radeon_bo_unreserve(bo);
-+	return true;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
+index 668d4bd0c118f1..577f8811925a59 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
+@@ -88,6 +88,7 @@ nouveau_ivmm_find(struct nouveau_svm *svm, u64 inst)
  }
  
--static const struct mmu_notifier_ops radeon_mn_ops = {
--	.release = radeon_mn_release,
--	.invalidate_range_start = radeon_mn_invalidate_range_start,
--	.alloc_notifier = radeon_mn_alloc_notifier,
--	.free_notifier = radeon_mn_free_notifier,
-+static const struct mmu_range_notifier_ops radeon_mn_ops = {
-+	.invalidate = radeon_mn_invalidate,
+ struct nouveau_svmm {
++	struct mmu_notifier notifier;
+ 	struct nouveau_vmm *vmm;
+ 	struct {
+ 		unsigned long start;
+@@ -96,7 +97,6 @@ struct nouveau_svmm {
+ 
+ 	struct mutex mutex;
+ 
+-	struct mm_struct *mm;
+ 	struct hmm_mirror mirror;
  };
  
- /**
-@@ -174,51 +93,21 @@ static const struct mmu_notifier_ops radeon_mn_ops = {
-  */
- int radeon_mn_register(struct radeon_bo *bo, unsigned long addr)
+@@ -251,10 +251,11 @@ nouveau_svmm_invalidate(struct nouveau_svmm *svmm, u64 start, u64 limit)
+ }
+ 
+ static int
+-nouveau_svmm_sync_cpu_device_pagetables(struct hmm_mirror *mirror,
+-					const struct mmu_notifier_range *update)
++nouveau_svmm_invalidate_range_start(struct mmu_notifier *mn,
++				    const struct mmu_notifier_range *update)
  {
--	unsigned long end = addr + radeon_bo_size(bo) - 1;
--	struct mmu_notifier *mn;
--	struct radeon_mn *rmn;
--	struct radeon_mn_node *node = NULL;
--	struct list_head bos;
--	struct interval_tree_node *it;
--
--	mn = mmu_notifier_get(&radeon_mn_ops, current->mm);
--	if (IS_ERR(mn))
--		return PTR_ERR(mn);
--	rmn = container_of(mn, struct radeon_mn, mn);
--
--	INIT_LIST_HEAD(&bos);
--
--	mutex_lock(&rmn->lock);
--
--	while ((it = interval_tree_iter_first(&rmn->objects, addr, end))) {
--		kfree(node);
--		node = container_of(it, struct radeon_mn_node, it);
--		interval_tree_remove(&node->it, &rmn->objects);
--		addr = min(it->start, addr);
--		end = max(it->last, end);
--		list_splice(&node->bos, &bos);
--	}
--
--	if (!node) {
--		node = kmalloc(sizeof(struct radeon_mn_node), GFP_KERNEL);
--		if (!node) {
--			mutex_unlock(&rmn->lock);
--			return -ENOMEM;
--		}
--	}
--
--	bo->mn = rmn;
--
--	node->it.start = addr;
--	node->it.last = end;
--	INIT_LIST_HEAD(&node->bos);
--	list_splice(&bos, &node->bos);
--	list_add(&bo->mn_list, &node->bos);
--
--	interval_tree_insert(&node->it, &rmn->objects);
--
--	mutex_unlock(&rmn->lock);
--
-+	int ret;
+-	struct nouveau_svmm *svmm = container_of(mirror, typeof(*svmm), mirror);
++	struct nouveau_svmm *svmm =
++		container_of(mn, struct nouveau_svmm, notifier);
+ 	unsigned long start = update->start;
+ 	unsigned long limit = update->end;
+ 
+@@ -264,6 +265,9 @@ nouveau_svmm_sync_cpu_device_pagetables(struct hmm_mirror *mirror,
+ 	SVMM_DBG(svmm, "invalidate %016lx-%016lx", start, limit);
+ 
+ 	mutex_lock(&svmm->mutex);
++	if (unlikely(!svmm->vmm))
++		goto out;
 +
-+	bo->notifier.ops = &radeon_mn_ops;
-+	ret = mmu_range_notifier_insert(&bo->notifier, addr, radeon_bo_size(bo),
-+					current->mm);
-+	if (ret)
-+		return ret;
+ 	if (limit > svmm->unmanaged.start && start < svmm->unmanaged.limit) {
+ 		if (start < svmm->unmanaged.start) {
+ 			nouveau_svmm_invalidate(svmm, start,
+@@ -273,19 +277,31 @@ nouveau_svmm_sync_cpu_device_pagetables(struct hmm_mirror *mirror,
+ 	}
+ 
+ 	nouveau_svmm_invalidate(svmm, start, limit);
 +
-+	/*
-+	 * FIXME: radeon appears to allow get_user_pages to run during
-+	 * invalidate_range_start/end, which is not a safe way to read the
-+	 * PTEs. It should use the mmu_range_read_begin() scheme around the
-+	 * get_user_pages to ensure that the PTEs are read properly
-+	 */
-+	mmu_range_read_begin(&bo->notifier);
++out:
+ 	mutex_unlock(&svmm->mutex);
  	return 0;
  }
  
-@@ -231,27 +120,8 @@ int radeon_mn_register(struct radeon_bo *bo, unsigned long addr)
-  */
- void radeon_mn_unregister(struct radeon_bo *bo)
+-static void
+-nouveau_svmm_release(struct hmm_mirror *mirror)
++static void nouveau_svmm_free_notifier(struct mmu_notifier *mn)
++{
++	kfree(container_of(mn, struct nouveau_svmm, notifier));
++}
++
++static const struct mmu_notifier_ops nouveau_mn_ops = {
++	.invalidate_range_start = nouveau_svmm_invalidate_range_start,
++	.free_notifier = nouveau_svmm_free_notifier,
++};
++
++static int
++nouveau_svmm_sync_cpu_device_pagetables(struct hmm_mirror *mirror,
++					const struct mmu_notifier_range *update)
  {
--	struct radeon_mn *rmn = bo->mn;
--	struct list_head *head;
--
--	if (!rmn)
-+	if (!bo->notifier.mm)
- 		return;
--
--	mutex_lock(&rmn->lock);
--	/* save the next list entry for later */
--	head = bo->mn_list.next;
--
--	list_del(&bo->mn_list);
--
--	if (list_empty(head)) {
--		struct radeon_mn_node *node;
--		node = container_of(head, struct radeon_mn_node, bos);
--		interval_tree_remove(&node->it, &rmn->objects);
--		kfree(node);
--	}
--
--	mutex_unlock(&rmn->lock);
--
--	mmu_notifier_put(&rmn->mn);
--	bo->mn = NULL;
-+	mmu_range_notifier_remove(&bo->notifier);
-+	bo->notifier.mm = NULL;
++	return 0;
  }
+ 
+-static const struct hmm_mirror_ops
+-nouveau_svmm = {
++static const struct hmm_mirror_ops nouveau_svmm = {
+ 	.sync_cpu_device_pagetables = nouveau_svmm_sync_cpu_device_pagetables,
+-	.release = nouveau_svmm_release,
+ };
+ 
+ void
+@@ -294,7 +310,10 @@ nouveau_svmm_fini(struct nouveau_svmm **psvmm)
+ 	struct nouveau_svmm *svmm = *psvmm;
+ 	if (svmm) {
+ 		hmm_mirror_unregister(&svmm->mirror);
+-		kfree(*psvmm);
++		mutex_lock(&svmm->mutex);
++		svmm->vmm = NULL;
++		mutex_unlock(&svmm->mutex);
++		mmu_notifier_put(&svmm->notifier);
+ 		*psvmm = NULL;
+ 	}
+ }
+@@ -320,7 +339,7 @@ nouveau_svmm_init(struct drm_device *dev, void *data,
+ 	mutex_lock(&cli->mutex);
+ 	if (cli->svm.cli) {
+ 		ret = -EBUSY;
+-		goto done;
++		goto out_free;
+ 	}
+ 
+ 	/* Allocate a new GPU VMM that can support SVM (managed by the
+@@ -335,24 +354,33 @@ nouveau_svmm_init(struct drm_device *dev, void *data,
+ 				.fault_replay = true,
+ 			    }, sizeof(struct gp100_vmm_v0), &cli->svm.vmm);
+ 	if (ret)
+-		goto done;
++		goto out_free;
+ 
+-	/* Enable HMM mirroring of CPU address-space to VMM. */
+-	svmm->mm = get_task_mm(current);
+-	down_write(&svmm->mm->mmap_sem);
++	down_write(&current->mm->mmap_sem);
+ 	svmm->mirror.ops = &nouveau_svmm;
+-	ret = hmm_mirror_register(&svmm->mirror, svmm->mm);
+-	if (ret == 0) {
+-		cli->svm.svmm = svmm;
+-		cli->svm.cli = cli;
+-	}
+-	up_write(&svmm->mm->mmap_sem);
+-	mmput(svmm->mm);
++	ret = hmm_mirror_register(&svmm->mirror, current->mm);
++	if (ret)
++		goto out_mm_unlock;
+ 
+-done:
++	svmm->notifier.ops = &nouveau_mn_ops;
++	ret = __mmu_notifier_register(&svmm->notifier, current->mm);
+ 	if (ret)
+-		nouveau_svmm_fini(&svmm);
++		goto out_hmm_unregister;
++	/* Note, ownership of svmm transfers to mmu_notifier */
++
++	cli->svm.svmm = svmm;
++	cli->svm.cli = cli;
++	up_write(&current->mm->mmap_sem);
+ 	mutex_unlock(&cli->mutex);
++	return 0;
++
++out_hmm_unregister:
++	hmm_mirror_unregister(&svmm->mirror);
++out_mm_unlock:
++	up_write(&current->mm->mmap_sem);
++out_free:
++	mutex_unlock(&cli->mutex);
++	kfree(svmm);
+ 	return ret;
+ }
+ 
+@@ -494,12 +522,12 @@ nouveau_range_fault(struct nouveau_svmm *svmm, struct hmm_range *range)
+ 
+ 	ret = hmm_range_register(range, &svmm->mirror);
+ 	if (ret) {
+-		up_read(&svmm->mm->mmap_sem);
++		up_read(&svmm->notifier.mm->mmap_sem);
+ 		return (int)ret;
+ 	}
+ 
+ 	if (!hmm_range_wait_until_valid(range, HMM_RANGE_DEFAULT_TIMEOUT)) {
+-		up_read(&svmm->mm->mmap_sem);
++		up_read(&svmm->notifier.mm->mmap_sem);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -507,7 +535,7 @@ nouveau_range_fault(struct nouveau_svmm *svmm, struct hmm_range *range)
+ 	if (ret <= 0) {
+ 		if (ret == 0)
+ 			ret = -EBUSY;
+-		up_read(&svmm->mm->mmap_sem);
++		up_read(&svmm->notifier.mm->mmap_sem);
+ 		hmm_range_unregister(range);
+ 		return ret;
+ 	}
+@@ -587,12 +615,15 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 	args.i.p.version = 0;
+ 
+ 	for (fi = 0; fn = fi + 1, fi < buffer->fault_nr; fi = fn) {
++		struct mm_struct *mm;
++
+ 		/* Cancel any faults from non-SVM channels. */
+ 		if (!(svmm = buffer->fault[fi]->svmm)) {
+ 			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
+ 			continue;
+ 		}
+ 		SVMM_DBG(svmm, "addr %016llx", buffer->fault[fi]->addr);
++		mm = svmm->notifier.mm;
+ 
+ 		/* We try and group handling of faults within a small
+ 		 * window into a single update.
+@@ -609,11 +640,11 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 		/* Intersect fault window with the CPU VMA, cancelling
+ 		 * the fault if the address is invalid.
+ 		 */
+-		down_read(&svmm->mm->mmap_sem);
+-		vma = find_vma_intersection(svmm->mm, start, limit);
++		down_read(&mm->mmap_sem);
++		vma = find_vma_intersection(mm, start, limit);
+ 		if (!vma) {
+ 			SVMM_ERR(svmm, "wndw %016llx-%016llx", start, limit);
+-			up_read(&svmm->mm->mmap_sem);
++			up_read(&mm->mmap_sem);
+ 			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
+ 			continue;
+ 		}
+@@ -623,7 +654,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 
+ 		if (buffer->fault[fi]->addr != start) {
+ 			SVMM_ERR(svmm, "addr %016llx", buffer->fault[fi]->addr);
+-			up_read(&svmm->mm->mmap_sem);
++			up_read(&mm->mmap_sem);
+ 			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
+ 			continue;
+ 		}
+@@ -704,7 +735,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 						NULL);
+ 			svmm->vmm->vmm.object.client->super = false;
+ 			mutex_unlock(&svmm->mutex);
+-			up_read(&svmm->mm->mmap_sem);
++			up_read(&mm->mmap_sem);
+ 		}
+ 
+ 		/* Cancel any faults in the window whose pages didn't manage
 -- 
 2.23.0
 
