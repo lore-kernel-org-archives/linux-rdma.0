@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E805FECE59E
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26E58FA3728
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9FA122245A
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5DA52245A
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="kqRSyJAZ"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="k4hbQSPr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731784AbfJOSQc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Oct 2019 14:16:32 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:44774 "EHLO
+        id S1731873AbfJOSQl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Oct 2019 14:16:41 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:32927 "EHLO
         mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726597AbfJOSQb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:31 -0400
-Received: by mail-pg1-f194.google.com with SMTP id e10so8632242pgd.11
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:29 -0700 (PDT)
+        with ESMTP id S1726597AbfJOSQl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:41 -0400
+Received: by mail-pg1-f194.google.com with SMTP id i76so12636418pgc.0
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=LhsrwTYF5Hs5+xaYqnrF1aDXJkncmUn1XCWn3eOwVlo=;
-        b=kqRSyJAZYW9qV+JxDhuSt7/D+h3Kx+X6hbiT608Rj6KMXtesWZK7tSx6vs13+HijdW
-         89z4EckwqO1ck2klHSb9KeJq6PJ/PdJTUdgWmH09gVEjv8zM1CvwSh8JMRzUXntKjYJW
-         qqStCcRwIYi2r4tXbYJD++OZz7jWr4lQ0vyM68oT9LY7r/rPSf+6g2BL7PUeQ+DfZ5P7
-         cJi+RHhkbIG9Sa7xoauRM7eCISLP8vsJsc+8NNRjs2h46ukn2Pg/U5bbSLI5RN23kbvc
-         HKl7IQVQCEPVncP9EVh7h0uJR4C5WGSRgNzCNbDJkJ614FMVQMeDeyNdWoPOrJ9eJlAy
-         bO7Q==
+        bh=WFWRO10+feWff7r6fgmeh5w6Y3QPVjROWE9lwVqn/i8=;
+        b=k4hbQSPrqznVf/5ZnM7x5J4seFc1YAeDg8waTuZOs9CkrIPaaSVB71IIQKnkb+I9M8
+         YzXu6IJuH9tkROTv3YGUt/CV/lzAQb4zUFOtx9dDDURZ2bIwyQp42dPF1LsgD9TkSD1H
+         AZ5IMtwNJEOiu8aqymqw4AbNIvD0H0rRHH02mAQr8zBrSGpkhLZ58JRXwulRwBlPijkO
+         YoYURzkUOhAkBJbWVEkGhYtc32DOD+5VuPxKPwJkAnQoxaBzrB+c3XSFE833ZgvBIlqZ
+         fqWltqEnK7aPbVd3yTfCyTrSzLOv2IYndGxHZOparqhbPIKvqGdJWDc3TIY7UUgU9MDm
+         GiHw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=LhsrwTYF5Hs5+xaYqnrF1aDXJkncmUn1XCWn3eOwVlo=;
-        b=Mxrk6Bv21T5NetXnI6JDS+5WCdqkbIh8ITzdLsBERkR5vK4xY57LCl1PoKtAE3pdcS
-         EIFuQLnV16kRSVvRiMM5ZR+F9vM4HqGH0axp9oznd8oJE/74CZrN6wzN2Rv1i5WrWFMP
-         NjY2qnlBbNSgut14QcBOkpHh3PEpBPbF+JHNiPV8sWYZrNUA07xbxO3luG2L8FgEFmVs
-         u8fyHXafwunBv1K8PU6XuPg1x2zmRsywsBUhXKGU7z+CvAaD1r8Q9Ibr6u1Ezq0A7XgY
-         phBmjJLGLsRfo4lirJ6Ty5FDcCZhorBEkjEDEYpoXV4xvr+m087NRqNzoHlFYFe7Ii2Q
-         z0Ag==
-X-Gm-Message-State: APjAAAVcbTEnCAVSRBorRth8BcIOJMegooi6+9CS4MCwdnO427lAM0TL
-        AMu7PuEtG5U6vcpzJ0+W68XZFA==
-X-Google-Smtp-Source: APXvYqwTNt9Eonm7aD/OgnNnlRng5e5yjyqmkIorHuTKZRGz+GNBZAM9s/KJsVySlPCxPVzZ7SqvGA==
-X-Received: by 2002:a62:5ec6:: with SMTP id s189mr39679424pfb.169.1571163388735;
-        Tue, 15 Oct 2019 11:16:28 -0700 (PDT)
+        bh=WFWRO10+feWff7r6fgmeh5w6Y3QPVjROWE9lwVqn/i8=;
+        b=LTz1laUY9BMVICY2geAV/68+W5Z0HUs145YuDZvvWX0UcbzHzony2CYuykXVYG81KN
+         EBDV0z51oGujbjjEsgyJKR5meRV7iHmHl97Gr+kOtlgyqeZkWPx7CuZqwfrUIt2UCEIh
+         Xg6nLfScPyi9STIcpfZmhvbbE7tHpByJcNZ8jk9Vidhu+MIgFacbi23LYXB2fFo1+iXt
+         AA7lIQBDPZq9XGoXgHJwbiWUyw9A403Cy2+TvFu8dzvDRS48ekKZqJyWWGZox+jU0erR
+         9K7bHjk69kYL1rKEJvZYzZxZ3WquC0lvKl1UiRY6eBS2OoHQxOLrYwgluCXLJuHWHbCI
+         Hs1g==
+X-Gm-Message-State: APjAAAWZxHTJ7CoHDguHks5uPsTet2+6UlfWGRvBDiMEdCybP1qVucQp
+        NTb/0Ak29Lyg2JADV4cLuENu0w==
+X-Google-Smtp-Source: APXvYqwcBUTmMtfzkt7tzvsqtJbdQLE7/86WTaqOjVFBlbeV0uObGeL49nnNgpBmIxrl56Z9I63Gfw==
+X-Received: by 2002:aa7:9f9b:: with SMTP id z27mr39853337pfr.65.1571163399727;
+        Tue, 15 Oct 2019 11:16:39 -0700 (PDT)
 Received: from ziepe.ca ([24.114.26.129])
-        by smtp.gmail.com with ESMTPSA id w12sm8438765pfq.138.2019.10.15.11.16.27
+        by smtp.gmail.com with ESMTPSA id y6sm25518660pfp.82.2019.10.15.11.16.38
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 15 Oct 2019 11:16:28 -0700 (PDT)
+        Tue, 15 Oct 2019 11:16:39 -0700 (PDT)
 Received: from jgg by jggl.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iKRJT-0002Br-9R; Tue, 15 Oct 2019 15:12:51 -0300
+        id 1iKRJT-0002Cu-RH; Tue, 15 Oct 2019 15:12:51 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Jerome Glisse <jglisse@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>,
@@ -65,11 +65,10 @@ Cc:     linux-rdma@vger.kernel.org, linux-mm@kvack.org,
         Andrea Arcangeli <aarcange@redhat.com>,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Ben Skeggs <bskeggs@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Michal Hocko <mhocko@kernel.org>
-Subject: [PATCH hmm 02/15] mm/mmu_notifier: add an interval tree notifier
-Date:   Tue, 15 Oct 2019 15:12:29 -0300
-Message-Id: <20191015181242.8343-3-jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH hmm 15/15] mm/hmm: remove hmm_mirror and related
+Date:   Tue, 15 Oct 2019 15:12:42 -0300
+Message-Id: <20191015181242.8343-16-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191015181242.8343-1-jgg@ziepe.ca>
 References: <20191015181242.8343-1-jgg@ziepe.ca>
@@ -82,865 +81,749 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Of the 13 users of mmu_notifiers, 8 of them use only
-invalidate_range_start/end() and immediately intersect the
-mmu_notifier_range with some kind of internal list of VAs.  4 use an
-interval tree (i915_gem, radeon_mn, umem_odp, hfi1). 4 use a linked list
-of some kind (scif_dma, vhost, gntdev, hmm)
+The only two users of this are now converted to use mmu_range_notifier,
+delete all the code and update hmm.rst.
 
-And the remaining 5 either don't use invalidate_range_start() or do some
-special thing with it.
-
-It turns out that building a correct scheme with an interval tree is
-pretty complicated, particularly if the use case is synchronizing against
-another thread doing get_user_pages().  Many of these implementations have
-various subtle and difficult to fix races.
-
-This approach puts the interval tree as common code at the top of the mmu
-notifier call tree and implements a shareable locking scheme.
-
-It includes:
- - An interval tree tracking VA ranges, with per-range callbacks
- - A read/write locking scheme for the interval tree that avoids
-   sleeping in the notifier path (for OOM killer)
- - A sequence counter based collision-retry locking scheme to tell
-   device page fault that a VA range is being concurrently invalidated.
-
-This is based on various ideas:
-- hmm accumulates invalidated VA ranges and releases them when all
-  invalidates are done, via active_invalidate_ranges count.
-  This approach avoids having to intersect the interval tree twice (as
-  umem_odp does) at the potential cost of a longer device page fault.
-
-- kvm/umem_odp use a sequence counter to drive the collision retry,
-  via invalidate_seq
-
-- a deferred work todo list on unlock scheme like RTNL, via deferred_list.
-  This makes adding/removing interval tree members more deterministic
-
-- seqlock, except this version makes the seqlock idea multi-holder on the
-  write side by protecting it with active_invalidate_ranges and a spinlock
-
-To minimize MM overhead when only the interval tree is being used, the
-entire SRCU and hlist overheads are dropped using some simple
-branches. Similarly the interval tree overhead is dropped when in hlist
-mode.
-
-The overhead from the mandatory spinlock is broadly the same as most of
-existing users which already had a lock (or two) of some sort on the
-invalidation path.
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- include/linux/mmu_notifier.h |  78 ++++++
- mm/Kconfig                   |   1 +
- mm/mmu_notifier.c            | 529 +++++++++++++++++++++++++++++++++--
- 3 files changed, 583 insertions(+), 25 deletions(-)
+ Documentation/vm/hmm.rst | 105 ++++-----------
+ include/linux/hmm.h      | 183 +------------------------
+ mm/Kconfig               |   1 -
+ mm/hmm.c                 | 284 +--------------------------------------
+ 4 files changed, 33 insertions(+), 540 deletions(-)
 
-diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-index 12bd603d318ce7..bc2b12483de127 100644
---- a/include/linux/mmu_notifier.h
-+++ b/include/linux/mmu_notifier.h
-@@ -6,10 +6,12 @@
- #include <linux/spinlock.h>
- #include <linux/mm_types.h>
- #include <linux/srcu.h>
-+#include <linux/interval_tree.h>
- 
- struct mmu_notifier_mm;
- struct mmu_notifier;
- struct mmu_notifier_range;
-+struct mmu_range_notifier;
- 
- /**
-  * enum mmu_notifier_event - reason for the mmu notifier callback
-@@ -32,6 +34,9 @@ struct mmu_notifier_range;
-  * access flags). User should soft dirty the page in the end callback to make
-  * sure that anyone relying on soft dirtyness catch pages that might be written
-  * through non CPU mappings.
-+ *
-+ * @MMU_NOTIFY_RELEASE: used during mmu_range_notifier invalidate to signal that
-+ * the mm refcount is zero and the range is no longer accessible.
-  */
- enum mmu_notifier_event {
- 	MMU_NOTIFY_UNMAP = 0,
-@@ -39,6 +44,7 @@ enum mmu_notifier_event {
- 	MMU_NOTIFY_PROTECTION_VMA,
- 	MMU_NOTIFY_PROTECTION_PAGE,
- 	MMU_NOTIFY_SOFT_DIRTY,
-+	MMU_NOTIFY_RELEASE,
- };
- 
- #define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
-@@ -222,6 +228,25 @@ struct mmu_notifier {
- 	unsigned int users;
- };
- 
-+/**
-+ * struct mmu_range_notifier_ops
-+ * @invalidate: Upon return the caller must stop using any SPTEs within this
-+ *              range, this function can sleep. Return false if blocking was
-+ *              required but range is non-blocking
-+ */
-+struct mmu_range_notifier_ops {
-+	bool (*invalidate)(struct mmu_range_notifier *mrn,
-+			   const struct mmu_notifier_range *range);
-+};
+diff --git a/Documentation/vm/hmm.rst b/Documentation/vm/hmm.rst
+index 0a5960beccf76d..a247643035c4e2 100644
+--- a/Documentation/vm/hmm.rst
++++ b/Documentation/vm/hmm.rst
+@@ -147,49 +147,16 @@ Address space mirroring implementation and API
+ Address space mirroring's main objective is to allow duplication of a range of
+ CPU page table into a device page table; HMM helps keep both synchronized. A
+ device driver that wants to mirror a process address space must start with the
+-registration of an hmm_mirror struct::
+-
+- int hmm_mirror_register(struct hmm_mirror *mirror,
+-                         struct mm_struct *mm);
+-
+-The mirror struct has a set of callbacks that are used
+-to propagate CPU page tables::
+-
+- struct hmm_mirror_ops {
+-     /* release() - release hmm_mirror
+-      *
+-      * @mirror: pointer to struct hmm_mirror
+-      *
+-      * This is called when the mm_struct is being released.  The callback
+-      * must ensure that all access to any pages obtained from this mirror
+-      * is halted before the callback returns. All future access should
+-      * fault.
+-      */
+-     void (*release)(struct hmm_mirror *mirror);
+-
+-     /* sync_cpu_device_pagetables() - synchronize page tables
+-      *
+-      * @mirror: pointer to struct hmm_mirror
+-      * @update: update information (see struct mmu_notifier_range)
+-      * Return: -EAGAIN if update.blockable false and callback need to
+-      *         block, 0 otherwise.
+-      *
+-      * This callback ultimately originates from mmu_notifiers when the CPU
+-      * page table is updated. The device driver must update its page table
+-      * in response to this callback. The update argument tells what action
+-      * to perform.
+-      *
+-      * The device driver must not return from this callback until the device
+-      * page tables are completely updated (TLBs flushed, etc); this is a
+-      * synchronous call.
+-      */
+-     int (*sync_cpu_device_pagetables)(struct hmm_mirror *mirror,
+-                                       const struct hmm_update *update);
+- };
+-
+-The device driver must perform the update action to the range (mark range
+-read only, or fully unmap, etc.). The device must complete the update before
+-the driver callback returns.
++registration of a mmu_range_notifier::
 +
-+struct mmu_range_notifier {
-+	struct interval_tree_node interval_tree;
-+	const struct mmu_range_notifier_ops *ops;
-+	struct hlist_node deferred_item;
-+	unsigned long invalidate_seq;
-+	struct mm_struct *mm;
-+};
-+
- #ifdef CONFIG_MMU_NOTIFIER
- 
- #ifdef CONFIG_LOCKDEP
-@@ -263,6 +288,59 @@ extern int __mmu_notifier_register(struct mmu_notifier *mn,
- 				   struct mm_struct *mm);
- extern void mmu_notifier_unregister(struct mmu_notifier *mn,
- 				    struct mm_struct *mm);
-+
-+unsigned long mmu_range_read_begin(struct mmu_range_notifier *mrn);
-+int mmu_range_notifier_insert(struct mmu_range_notifier *mrn,
++ mrn->ops = &driver_ops;
++ int mmu_range_notifier_insert(struct mmu_range_notifier *mrn,
 +			      unsigned long start, unsigned long length,
 +			      struct mm_struct *mm);
-+int mmu_range_notifier_insert_locked(struct mmu_range_notifier *mrn,
-+				     unsigned long start, unsigned long length,
-+				     struct mm_struct *mm);
-+void mmu_range_notifier_remove(struct mmu_range_notifier *mrn);
 +
-+/**
-+ * mmu_range_read_retry - End a read side critical section against a VA range
-+ * mrn: The range under lock
-+ * seq: The return of the paired mmu_range_read_begin()
-+ *
-+ * This MUST be called under a user provided lock that is also held
-+ * unconditionally by op->invalidate(). That lock provides the required SMP
-+ * barrier for handling invalidate_seq.
-+ *
-+ * Each call should be paired with a single mmu_range_read_begin() and
-+ * should be used to conclude the read side.
-+ *
-+ * Returns true if an invalidation collided with this critical section, and
-+ * the caller should retry.
-+ */
-+static inline bool mmu_range_read_retry(struct mmu_range_notifier *mrn,
-+					unsigned long seq)
-+{
-+	return READ_ONCE(mrn->invalidate_seq) != seq;
-+}
-+
-+/**
-+ * mmu_range_check_retry - Test if a collision has occurred
-+ * mrn: The range under lock
-+ * seq: The return of the matching mmu_range_read_begin()
-+ *
-+ * This can be used in the critical section between mmu_range_read_begin() and
-+ * mmu_range_read_retry().  A return of true indicates an invalidation has
-+ * collided with this lock and a future mmu_range_read_retry() will return
-+ * true.
-+ *
-+ * False is not reliable and only suggests a collision has not happened. It
-+ * can be called many times and does not have to hold the user provided lock.
-+ *
-+ * This call can be used as part of loops and other expensive operations to
-+ * expedite a retry.
-+ */
-+static inline bool mmu_range_check_retry(struct mmu_range_notifier *mrn,
-+					 unsigned long seq)
-+{
-+	return READ_ONCE(mrn->invalidate_seq) != seq;
-+}
-+
- extern void __mmu_notifier_mm_destroy(struct mm_struct *mm);
- extern void __mmu_notifier_release(struct mm_struct *mm);
- extern int __mmu_notifier_clear_flush_young(struct mm_struct *mm,
-diff --git a/mm/Kconfig b/mm/Kconfig
-index a5dae9a7eb510a..d0b5046d9aeffd 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -284,6 +284,7 @@ config VIRT_TO_BUS
- config MMU_NOTIFIER
- 	bool
- 	select SRCU
-+	select INTERVAL_TREE
++During the driver_ops->invalidate() callback the device driver must perform
++the update action to the range (mark range read only, or fully unmap,
++etc.). The device must complete the update before the driver callback returns.
  
- config KSM
- 	bool "Enable KSM for page merging"
-diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
-index 367670cfd02b7b..5e5e75ebcde4af 100644
---- a/mm/mmu_notifier.c
-+++ b/mm/mmu_notifier.c
-@@ -12,6 +12,7 @@
- #include <linux/export.h>
- #include <linux/mm.h>
- #include <linux/err.h>
-+#include <linux/interval_tree.h>
- #include <linux/srcu.h>
- #include <linux/rcupdate.h>
- #include <linux/sched.h>
-@@ -36,10 +37,243 @@ struct lockdep_map __mmu_notifier_invalidate_range_start_map = {
- struct mmu_notifier_mm {
- 	/* all mmu notifiers registered in this mm are queued in this list */
- 	struct hlist_head list;
-+	bool has_interval;
- 	/* to serialize the list modifications and hlist_unhashed */
- 	spinlock_t lock;
-+	unsigned long invalidate_seq;
-+	unsigned long active_invalidate_ranges;
-+	struct rb_root_cached itree;
-+	wait_queue_head_t wq;
-+	struct hlist_head deferred_list;
+ When the device driver wants to populate a range of virtual addresses, it can
+ use::
+@@ -216,70 +183,46 @@ The usage pattern is::
+       struct hmm_range range;
+       ...
+ 
++      range.notifier = &mrn;
+       range.start = ...;
+       range.end = ...;
+       range.pfns = ...;
+       range.flags = ...;
+       range.values = ...;
+       range.pfn_shift = ...;
+-      hmm_range_register(&range, mirror);
+ 
+-      /*
+-       * Just wait for range to be valid, safe to ignore return value as we
+-       * will use the return value of hmm_range_fault() below under the
+-       * mmap_sem to ascertain the validity of the range.
+-       */
+-      hmm_range_wait_until_valid(&range, TIMEOUT_IN_MSEC);
++      if (!mmget_not_zero(mrn->notifier.mm))
++          return -EFAULT;
+ 
+  again:
++      range.notifier_seq = mmu_range_read_begin(&mrn);
+       down_read(&mm->mmap_sem);
+       ret = hmm_range_fault(&range, HMM_RANGE_SNAPSHOT);
+       if (ret) {
+           up_read(&mm->mmap_sem);
+-          if (ret == -EBUSY) {
+-            /*
+-             * No need to check hmm_range_wait_until_valid() return value
+-             * on retry we will get proper error with hmm_range_fault()
+-             */
+-            hmm_range_wait_until_valid(&range, TIMEOUT_IN_MSEC);
+-            goto again;
+-          }
+-          hmm_range_unregister(&range);
++          if (ret == -EBUSY)
++                 goto again;
+           return ret;
+       }
++      up_read(&mm->mmap_sem);
++
+       take_lock(driver->update);
+-      if (!hmm_range_valid(&range)) {
++      if (mmu_range_read_retry(&mrn, range.notifier_seq) {
+           release_lock(driver->update);
+-          up_read(&mm->mmap_sem);
+           goto again;
+       }
+ 
+-      // Use pfns array content to update device page table
++      /* Use pfns array content to update device page table,
++       * under the update lock */
+ 
+-      hmm_range_unregister(&range);
+       release_lock(driver->update);
+-      up_read(&mm->mmap_sem);
+       return 0;
+  }
+ 
+ The driver->update lock is the same lock that the driver takes inside its
+-sync_cpu_device_pagetables() callback. That lock must be held before calling
+-hmm_range_valid() to avoid any race with a concurrent CPU page table update.
+-
+-HMM implements all this on top of the mmu_notifier API because we wanted a
+-simpler API and also to be able to perform optimizations latter on like doing
+-concurrent device updates in multi-devices scenario.
+-
+-HMM also serves as an impedance mismatch between how CPU page table updates
+-are done (by CPU write to the page table and TLB flushes) and how devices
+-update their own page table. Device updates are a multi-step process. First,
+-appropriate commands are written to a buffer, then this buffer is scheduled for
+-execution on the device. It is only once the device has executed commands in
+-the buffer that the update is done. Creating and scheduling the update command
+-buffer can happen concurrently for multiple devices. Waiting for each device to
+-report commands as executed is serialized (there is no point in doing this
+-concurrently).
+-
++invalidate() callback. That lock must be held before calling
++mmu_range_read_retry() to avoid any race with a concurrent CPU page table
++update.
+ 
+ Leverage default_flags and pfn_flags_mask
+ =========================================
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 2666eb08a40615..b4af5173523232 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -68,29 +68,6 @@
+ #include <linux/completion.h>
+ #include <linux/mmu_notifier.h>
+ 
+-
+-/*
+- * struct hmm - HMM per mm struct
+- *
+- * @mm: mm struct this HMM struct is bound to
+- * @lock: lock protecting ranges list
+- * @ranges: list of range being snapshotted
+- * @mirrors: list of mirrors for this mm
+- * @mmu_notifier: mmu notifier to track updates to CPU page table
+- * @mirrors_sem: read/write semaphore protecting the mirrors list
+- * @wq: wait queue for user waiting on a range invalidation
+- * @notifiers: count of active mmu notifiers
+- */
+-struct hmm {
+-	struct mmu_notifier	mmu_notifier;
+-	spinlock_t		ranges_lock;
+-	struct list_head	ranges;
+-	struct list_head	mirrors;
+-	struct rw_semaphore	mirrors_sem;
+-	wait_queue_head_t	wq;
+-	long			notifiers;
+-};
+-
+ /*
+  * hmm_pfn_flag_e - HMM flag enums
+  *
+@@ -143,9 +120,8 @@ enum hmm_pfn_value_e {
+ /*
+  * struct hmm_range - track invalidation lock on virtual address range
+  *
+- * @notifier: an optional mmu_range_notifier
+- * @notifier_seq: when notifier is used this is the result of
+- *                mmu_range_read_begin()
++ * @notifier: a mmu_range_notifier that includes the start/end
++ * @notifier_seq: result of mmu_range_read_begin()
+  * @hmm: the core HMM structure this range is active against
+  * @vma: the vm area struct for the range
+  * @list: all range lock are on a list
+@@ -162,8 +138,6 @@ enum hmm_pfn_value_e {
+ struct hmm_range {
+ 	struct mmu_range_notifier *notifier;
+ 	unsigned long		notifier_seq;
+-	struct hmm		*hmm;
+-	struct list_head	list;
+ 	unsigned long		start;
+ 	unsigned long		end;
+ 	uint64_t		*pfns;
+@@ -172,32 +146,8 @@ struct hmm_range {
+ 	uint64_t		default_flags;
+ 	uint64_t		pfn_flags_mask;
+ 	uint8_t			pfn_shift;
+-	bool			valid;
  };
  
-+/*
-+ * This is a collision-retry read-side/write-side 'lock', a lot like a
-+ * seqcount, however this allows multiple write-sides to hold it at
-+ * once. Conceptually the write side is protecting the values of the PTEs in
-+ * this mm, such that PTES cannot be read into SPTEs while any writer exists.
-+ *
-+ * Note that the core mm creates nested invalidate_range_start()/end() regions
-+ * within the same thread, and runs invalidate_range_start()/end() in parallel
-+ * on multiple CPUs. This is designed to not reduce concurrency or block
-+ * progress on the mm side.
-+ *
-+ * As a secondary function, holding the full write side also serves to prevent
-+ * writers for the itree, this is an optimization to avoid extra locking
-+ * during invalidate_range_start/end notifiers.
-+ *
-+ * The write side has two states, fully excluded:
-+ *  - mm->active_invalidate_ranges != 0
-+ *  - mnn->invalidate_seq & 1 == True
-+ *  - some range on the mm_struct is being invalidated
-+ *  - the itree is not allowed to change
-+ *
-+ * And partially excluded:
-+ *  - mm->active_invalidate_ranges != 0
-+ *  - some range on the mm_struct is being invalidated
-+ *  - the itree is allowed to change
-+ *
-+ * The later state avoids some expensive work on inv_end in the common case of
-+ * no mrn monitoring the VA.
-+ */
-+static bool mn_itree_is_invalidating(struct mmu_notifier_mm *mmn_mm)
-+{
-+	lockdep_assert_held(&mmn_mm->lock);
-+	return mmn_mm->invalidate_seq & 1;
-+}
-+
-+static struct mmu_range_notifier *
-+mn_itree_inv_start_range(struct mmu_notifier_mm *mmn_mm,
-+			 const struct mmu_notifier_range *range,
-+			 unsigned long *seq)
-+{
-+	struct interval_tree_node *node;
-+	struct mmu_range_notifier *res = NULL;
-+
-+	spin_lock(&mmn_mm->lock);
-+	mmn_mm->active_invalidate_ranges++;
-+	node = interval_tree_iter_first(&mmn_mm->itree, range->start,
-+					range->end - 1);
-+	if (node) {
-+		mmn_mm->invalidate_seq |= 1;
-+		res = container_of(node, struct mmu_range_notifier,
-+				   interval_tree);
-+	}
-+
-+	*seq = mmn_mm->invalidate_seq;
-+	spin_unlock(&mmn_mm->lock);
-+	return res;
-+}
-+
-+static struct mmu_range_notifier *
-+mn_itree_inv_next(struct mmu_range_notifier *mrn,
-+		  const struct mmu_notifier_range *range)
-+{
-+	struct interval_tree_node *node;
-+
-+	node = interval_tree_iter_next(&mrn->interval_tree, range->start,
-+				       range->end - 1);
-+	if (!node)
-+		return NULL;
-+	return container_of(node, struct mmu_range_notifier, interval_tree);
-+}
-+
-+static void mn_itree_inv_end(struct mmu_notifier_mm *mmn_mm)
-+{
-+	struct mmu_range_notifier *mrn;
-+	struct hlist_node *next;
-+	bool need_wake = false;
-+
-+	spin_lock(&mmn_mm->lock);
-+	if (--mmn_mm->active_invalidate_ranges ||
-+	    !mn_itree_is_invalidating(mmn_mm)) {
-+		spin_unlock(&mmn_mm->lock);
-+		return;
-+	}
-+
-+	mmn_mm->invalidate_seq++;
-+	need_wake = true;
-+
-+	/*
-+	 * The inv_end incorporates a deferred mechanism like rtnl. Adds and
-+	 * removes are queued until the final inv_end happens then they are
-+	 * progressed. This arrangement for tree updates is used to avoid
-+	 * using a blocking lock during invalidate_range_start.
-+	 */
-+	hlist_for_each_entry_safe(mrn, next, &mmn_mm->deferred_list,
-+				  deferred_item) {
-+		if (RB_EMPTY_NODE(&mrn->interval_tree.rb))
-+			interval_tree_insert(&mrn->interval_tree,
-+					     &mmn_mm->itree);
-+		else
-+			interval_tree_remove(&mrn->interval_tree,
-+					     &mmn_mm->itree);
-+		hlist_del(&mrn->deferred_item);
-+	}
-+	spin_unlock(&mmn_mm->lock);
-+
-+	/*
-+	 * TODO: Since we already have a spinlock above, this would be faster
-+	 * as wake_up_q
-+	 */
-+	if (need_wake)
-+		wake_up_all(&mmn_mm->wq);
-+}
-+
-+/**
-+ * mmu_range_read_begin - Begin a read side critical section against a VA range
-+ * mrn: The range to lock
-+ *
-+ * mmu_range_read_begin()/mmu_range_read_retry() implement a collision-retry
-+ * locking scheme similar to seqcount for the VA range under mrn. If the mm
-+ * invokes invalidation during the critical section then
-+ * mmu_range_read_retry() will return true.
-+ *
-+ * This is useful to obtain shadow PTEs where teardown or setup of the SPTEs
-+ * require a blocking context.  The critical region formed by this lock can
-+ * sleep, and the required 'user_lock' can also be a sleeping lock.
-+ *
-+ * The caller is required to provide a 'user_lock' to serialize both teardown
-+ * and setup.
-+ *
-+ * The return value should be passed to mmu_range_read_retry().
-+ */
-+unsigned long mmu_range_read_begin(struct mmu_range_notifier *mrn)
-+{
-+	struct mmu_notifier_mm *mmn_mm = mrn->mm->mmu_notifier_mm;
-+	unsigned long seq;
-+	bool is_invalidating;
-+
-+	/*
-+	 * If the mrn has a different seq value under the user_lock than we
-+	 * started with then it has collided.
-+	 *
-+	 * If the mrn currently has the same seq value as the mmn_mm seq, then
-+	 * it is currently between invalidate_start/end and is colliding.
-+	 *
-+	 * The locking looks broadly like this:
-+	 *   mn_tree_invalidate_start():          mmu_range_read_begin():
-+	 *                                         spin_lock
-+	 *                                          seq = READ_ONCE(mrn->invalidate_seq);
-+	 *                                          seq == mmn_mm->invalidate_seq
-+	 *                                         spin_unlock
-+	 *    spin_lock
-+	 *     seq = ++mmn_mm->invalidate_seq
-+	 *    spin_unlock
-+	 *    mrn->invalidate_seq = seq
-+	 *     op->invalidate_range():
-+	 *       user_lock
-+	 *       user_unlock
-+	 *
-+	 *                          [Required: mmu_range_read_retry() == true]
-+	 *
-+	 *   mn_itree_inv_end():
-+	 *    spin_lock
-+	 *     seq = ++mmn_mm->invalidate_seq
-+	 *    spin_unlock
-+	 *
-+	 *                                        user_lock
-+	 *                                         mmu_range_read_retry():
-+	 *                                          READ_ONCE(mrn->invalidate_seq) != seq
-+	 *                                        user_unlock
-+	 *
-+	 * Logically mrn->invalidate_seq is locked under the user provided
-+	 * lock, however the write is placed before that lock due to the way
-+	 * the API is layered.
-+	 *
-+	 * Barriers are not needed as any races here are closed by an eventual
-+	 * mmu_range_read_retry(), which provides a barrier via the user_lock.
-+	 */
-+	spin_lock(&mmn_mm->lock);
-+	seq = READ_ONCE(mrn->invalidate_seq);
-+	is_invalidating = seq == mmn_mm->invalidate_seq;
-+	spin_unlock(&mmn_mm->lock);
-+
-+	/*
-+	 * mrn->invalidate_seq is always set to an odd value. This ensures
-+	 * that if seq does wrap we will always clear the below sleep in some
-+	 * reasonable time as mmn_mm->invalidate_seq is even in the idle
-+	 * state.
-+	 */
-+	lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
-+	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
-+	if (is_invalidating)
-+		wait_event(mmn_mm->wq,
-+			   READ_ONCE(mmn_mm->invalidate_seq) != seq);
-+
-+	/*
-+	 * Notice that mmu_range_read_retry() can already be true at this
-+	 * point, avoiding loops here allows the user of this lock to provide
-+	 * a global time bound.
-+	 */
-+
-+	return seq;
-+}
-+EXPORT_SYMBOL_GPL(mmu_range_read_begin);
-+
-+static void mn_itree_release(struct mmu_notifier_mm *mmn_mm,
-+			     struct mm_struct *mm)
-+{
-+	struct mmu_notifier_range range = {
-+		.flags = MMU_NOTIFIER_RANGE_BLOCKABLE,
-+		.event = MMU_NOTIFY_RELEASE,
-+		.mm = mm,
-+		.start = 0,
-+		.end = ULONG_MAX,
-+	};
-+	struct mmu_range_notifier *mrn;
-+	unsigned long cur_seq;
-+	bool ret;
-+
-+	for (mrn = mn_itree_inv_start_range(mmn_mm, &range, &cur_seq); mrn;
-+	     mrn = mn_itree_inv_next(mrn, &range)) {
-+		ret = mrn->ops->invalidate(mrn, &range);
-+		WARN_ON(ret);
-+	}
-+
-+	mn_itree_inv_end(mmn_mm);
-+}
-+
+-/*
+- * hmm_range_wait_until_valid() - wait for range to be valid
+- * @range: range affected by invalidation to wait on
+- * @timeout: time out for wait in ms (ie abort wait after that period of time)
+- * Return: true if the range is valid, false otherwise.
+- */
+-static inline bool hmm_range_wait_until_valid(struct hmm_range *range,
+-					      unsigned long timeout)
+-{
+-	return wait_event_timeout(range->hmm->wq, range->valid,
+-				  msecs_to_jiffies(timeout)) != 0;
+-}
+-
+-/*
+- * hmm_range_valid() - test if a range is valid or not
+- * @range: range
+- * Return: true if the range is valid, false otherwise.
+- */
+-static inline bool hmm_range_valid(struct hmm_range *range)
+-{
+-	return range->valid;
+-}
+-
  /*
-  * This function can't run concurrently against mmu_notifier_register
-  * because mm->mm_users > 0 during mmu_notifier_register and exit_mmap
-@@ -52,17 +286,24 @@ struct mmu_notifier_mm {
-  * can't go away from under us as exit_mmap holds an mm_count pin
-  * itself.
+  * hmm_device_entry_to_page() - return struct page pointed to by a device entry
+  * @range: range use to decode device entry value
+@@ -267,111 +217,6 @@ static inline uint64_t hmm_device_entry_from_pfn(const struct hmm_range *range,
+ 		range->flags[HMM_PFN_VALID];
+ }
+ 
+-/*
+- * Mirroring: how to synchronize device page table with CPU page table.
+- *
+- * A device driver that is participating in HMM mirroring must always
+- * synchronize with CPU page table updates. For this, device drivers can either
+- * directly use mmu_notifier APIs or they can use the hmm_mirror API. Device
+- * drivers can decide to register one mirror per device per process, or just
+- * one mirror per process for a group of devices. The pattern is:
+- *
+- *      int device_bind_address_space(..., struct mm_struct *mm, ...)
+- *      {
+- *          struct device_address_space *das;
+- *
+- *          // Device driver specific initialization, and allocation of das
+- *          // which contains an hmm_mirror struct as one of its fields.
+- *          ...
+- *
+- *          ret = hmm_mirror_register(&das->mirror, mm, &device_mirror_ops);
+- *          if (ret) {
+- *              // Cleanup on error
+- *              return ret;
+- *          }
+- *
+- *          // Other device driver specific initialization
+- *          ...
+- *      }
+- *
+- * Once an hmm_mirror is registered for an address space, the device driver
+- * will get callbacks through sync_cpu_device_pagetables() operation (see
+- * hmm_mirror_ops struct).
+- *
+- * Device driver must not free the struct containing the hmm_mirror struct
+- * before calling hmm_mirror_unregister(). The expected usage is to do that when
+- * the device driver is unbinding from an address space.
+- *
+- *
+- *      void device_unbind_address_space(struct device_address_space *das)
+- *      {
+- *          // Device driver specific cleanup
+- *          ...
+- *
+- *          hmm_mirror_unregister(&das->mirror);
+- *
+- *          // Other device driver specific cleanup, and now das can be freed
+- *          ...
+- *      }
+- */
+-
+-struct hmm_mirror;
+-
+-/*
+- * struct hmm_mirror_ops - HMM mirror device operations callback
+- *
+- * @update: callback to update range on a device
+- */
+-struct hmm_mirror_ops {
+-	/* release() - release hmm_mirror
+-	 *
+-	 * @mirror: pointer to struct hmm_mirror
+-	 *
+-	 * This is called when the mm_struct is being released.  The callback
+-	 * must ensure that all access to any pages obtained from this mirror
+-	 * is halted before the callback returns. All future access should
+-	 * fault.
+-	 */
+-	void (*release)(struct hmm_mirror *mirror);
+-
+-	/* sync_cpu_device_pagetables() - synchronize page tables
+-	 *
+-	 * @mirror: pointer to struct hmm_mirror
+-	 * @update: update information (see struct mmu_notifier_range)
+-	 * Return: -EAGAIN if mmu_notifier_range_blockable(update) is false
+-	 * and callback needs to block, 0 otherwise.
+-	 *
+-	 * This callback ultimately originates from mmu_notifiers when the CPU
+-	 * page table is updated. The device driver must update its page table
+-	 * in response to this callback. The update argument tells what action
+-	 * to perform.
+-	 *
+-	 * The device driver must not return from this callback until the device
+-	 * page tables are completely updated (TLBs flushed, etc); this is a
+-	 * synchronous call.
+-	 */
+-	int (*sync_cpu_device_pagetables)(
+-		struct hmm_mirror *mirror,
+-		const struct mmu_notifier_range *update);
+-};
+-
+-/*
+- * struct hmm_mirror - mirror struct for a device driver
+- *
+- * @hmm: pointer to struct hmm (which is unique per mm_struct)
+- * @ops: device driver callback for HMM mirror operations
+- * @list: for list of mirrors of a given mm
+- *
+- * Each address space (mm_struct) being mirrored by a device must register one
+- * instance of an hmm_mirror struct with HMM. HMM will track the list of all
+- * mirrors for each mm_struct.
+- */
+-struct hmm_mirror {
+-	struct hmm			*hmm;
+-	const struct hmm_mirror_ops	*ops;
+-	struct list_head		list;
+-};
+-
+ /*
+  * Retry fault if non-blocking, drop mmap_sem and return -EAGAIN in that case.
   */
--void __mmu_notifier_release(struct mm_struct *mm)
-+static void mn_hlist_release(struct mmu_notifier_mm *mmn_mm,
-+			     struct mm_struct *mm)
- {
- 	struct mmu_notifier *mn;
- 	int id;
+@@ -381,15 +226,9 @@ struct hmm_mirror {
+ #define HMM_FAULT_SNAPSHOT		(1 << 1)
  
-+	if (mmn_mm->has_interval)
-+		mn_itree_release(mmn_mm, mm);
-+
-+	if (hlist_empty(&mmn_mm->list))
-+		return;
-+
- 	/*
- 	 * SRCU here will block mmu_notifier_unregister until
- 	 * ->release returns.
- 	 */
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist)
-+	hlist_for_each_entry_rcu(mn, &mmn_mm->list, hlist)
- 		/*
- 		 * If ->release runs before mmu_notifier_unregister it must be
- 		 * handled, as it's the only way for the driver to flush all
-@@ -72,9 +313,9 @@ void __mmu_notifier_release(struct mm_struct *mm)
- 		if (mn->ops->release)
- 			mn->ops->release(mn, mm);
- 
--	spin_lock(&mm->mmu_notifier_mm->lock);
--	while (unlikely(!hlist_empty(&mm->mmu_notifier_mm->list))) {
--		mn = hlist_entry(mm->mmu_notifier_mm->list.first,
-+	spin_lock(&mmn_mm->lock);
-+	while (unlikely(!hlist_empty(&mmn_mm->list))) {
-+		mn = hlist_entry(mmn_mm->list.first,
- 				 struct mmu_notifier,
- 				 hlist);
- 		/*
-@@ -85,7 +326,7 @@ void __mmu_notifier_release(struct mm_struct *mm)
- 		 */
- 		hlist_del_init_rcu(&mn->hlist);
- 	}
--	spin_unlock(&mm->mmu_notifier_mm->lock);
-+	spin_unlock(&mmn_mm->lock);
- 	srcu_read_unlock(&srcu, id);
- 
- 	/*
-@@ -100,6 +341,17 @@ void __mmu_notifier_release(struct mm_struct *mm)
- 	synchronize_srcu(&srcu);
- }
- 
-+void __mmu_notifier_release(struct mm_struct *mm)
-+{
-+	struct mmu_notifier_mm *mmn_mm = mm->mmu_notifier_mm;
-+
-+	if (mmn_mm->has_interval)
-+		mn_itree_release(mmn_mm, mm);
-+
-+	if (!hlist_empty(&mmn_mm->list))
-+		mn_hlist_release(mmn_mm, mm);
-+}
-+
+ #ifdef CONFIG_HMM_MIRROR
+-int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm);
+-void hmm_mirror_unregister(struct hmm_mirror *mirror);
+-
  /*
-  * If no young bitflag is supported by the hardware, ->clear_flush_young can
-  * unmap the address and return 1 or 0 depending if the mapping previously
-@@ -172,14 +424,41 @@ void __mmu_notifier_change_pte(struct mm_struct *mm, unsigned long address,
- 	srcu_read_unlock(&srcu, id);
+  * Please see Documentation/vm/hmm.rst for how to use the range API.
+  */
+-int hmm_range_register(struct hmm_range *range, struct hmm_mirror *mirror);
+-void hmm_range_unregister(struct hmm_range *range);
+-
+ long hmm_range_fault(struct hmm_range *range, unsigned int flags);
+ 
+ long hmm_range_dma_map(struct hmm_range *range,
+@@ -401,24 +240,6 @@ long hmm_range_dma_unmap(struct hmm_range *range,
+ 			 dma_addr_t *daddrs,
+ 			 bool dirty);
+ #else
+-int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+-void hmm_mirror_unregister(struct hmm_mirror *mirror)
+-{
+-}
+-
+-int hmm_range_register(struct hmm_range *range, struct hmm_mirror *mirror)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+-void hmm_range_unregister(struct hmm_range *range)
+-{
+-}
+-
+ static inline long hmm_range_fault(struct hmm_range *range, unsigned int flags)
+ {
+ 	return -EOPNOTSUPP;
+diff --git a/mm/Kconfig b/mm/Kconfig
+index d0b5046d9aeffd..e38ff1d5968dbf 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -675,7 +675,6 @@ config DEV_PAGEMAP_OPS
+ config HMM_MIRROR
+ 	bool
+ 	depends on MMU
+-	depends on MMU_NOTIFIER
+ 
+ config DEVICE_PRIVATE
+ 	bool "Unaddressable device memory (GPU memory, ...)"
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 22ac3595771feb..75d15a820e182e 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -26,193 +26,6 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/memory_hotplug.h>
+ 
+-static struct mmu_notifier *hmm_alloc_notifier(struct mm_struct *mm)
+-{
+-	struct hmm *hmm;
+-
+-	hmm = kzalloc(sizeof(*hmm), GFP_KERNEL);
+-	if (!hmm)
+-		return ERR_PTR(-ENOMEM);
+-
+-	init_waitqueue_head(&hmm->wq);
+-	INIT_LIST_HEAD(&hmm->mirrors);
+-	init_rwsem(&hmm->mirrors_sem);
+-	INIT_LIST_HEAD(&hmm->ranges);
+-	spin_lock_init(&hmm->ranges_lock);
+-	hmm->notifiers = 0;
+-	return &hmm->mmu_notifier;
+-}
+-
+-static void hmm_free_notifier(struct mmu_notifier *mn)
+-{
+-	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+-
+-	WARN_ON(!list_empty(&hmm->ranges));
+-	WARN_ON(!list_empty(&hmm->mirrors));
+-	kfree(hmm);
+-}
+-
+-static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
+-{
+-	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+-	struct hmm_mirror *mirror;
+-
+-	/*
+-	 * Since hmm_range_register() holds the mmget() lock hmm_release() is
+-	 * prevented as long as a range exists.
+-	 */
+-	WARN_ON(!list_empty_careful(&hmm->ranges));
+-
+-	down_read(&hmm->mirrors_sem);
+-	list_for_each_entry(mirror, &hmm->mirrors, list) {
+-		/*
+-		 * Note: The driver is not allowed to trigger
+-		 * hmm_mirror_unregister() from this thread.
+-		 */
+-		if (mirror->ops->release)
+-			mirror->ops->release(mirror);
+-	}
+-	up_read(&hmm->mirrors_sem);
+-}
+-
+-static void notifiers_decrement(struct hmm *hmm)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&hmm->ranges_lock, flags);
+-	hmm->notifiers--;
+-	if (!hmm->notifiers) {
+-		struct hmm_range *range;
+-
+-		list_for_each_entry(range, &hmm->ranges, list) {
+-			if (range->valid)
+-				continue;
+-			range->valid = true;
+-		}
+-		wake_up_all(&hmm->wq);
+-	}
+-	spin_unlock_irqrestore(&hmm->ranges_lock, flags);
+-}
+-
+-static int hmm_invalidate_range_start(struct mmu_notifier *mn,
+-			const struct mmu_notifier_range *nrange)
+-{
+-	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+-	struct hmm_mirror *mirror;
+-	struct hmm_range *range;
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	spin_lock_irqsave(&hmm->ranges_lock, flags);
+-	hmm->notifiers++;
+-	list_for_each_entry(range, &hmm->ranges, list) {
+-		if (nrange->end < range->start || nrange->start >= range->end)
+-			continue;
+-
+-		range->valid = false;
+-	}
+-	spin_unlock_irqrestore(&hmm->ranges_lock, flags);
+-
+-	if (mmu_notifier_range_blockable(nrange))
+-		down_read(&hmm->mirrors_sem);
+-	else if (!down_read_trylock(&hmm->mirrors_sem)) {
+-		ret = -EAGAIN;
+-		goto out;
+-	}
+-
+-	list_for_each_entry(mirror, &hmm->mirrors, list) {
+-		int rc;
+-
+-		rc = mirror->ops->sync_cpu_device_pagetables(mirror, nrange);
+-		if (rc) {
+-			if (WARN_ON(mmu_notifier_range_blockable(nrange) ||
+-			    rc != -EAGAIN))
+-				continue;
+-			ret = -EAGAIN;
+-			break;
+-		}
+-	}
+-	up_read(&hmm->mirrors_sem);
+-
+-out:
+-	if (ret)
+-		notifiers_decrement(hmm);
+-	return ret;
+-}
+-
+-static void hmm_invalidate_range_end(struct mmu_notifier *mn,
+-			const struct mmu_notifier_range *nrange)
+-{
+-	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+-
+-	notifiers_decrement(hmm);
+-}
+-
+-static const struct mmu_notifier_ops hmm_mmu_notifier_ops = {
+-	.release		= hmm_release,
+-	.invalidate_range_start	= hmm_invalidate_range_start,
+-	.invalidate_range_end	= hmm_invalidate_range_end,
+-	.alloc_notifier		= hmm_alloc_notifier,
+-	.free_notifier		= hmm_free_notifier,
+-};
+-
+-/*
+- * hmm_mirror_register() - register a mirror against an mm
+- *
+- * @mirror: new mirror struct to register
+- * @mm: mm to register against
+- * Return: 0 on success, -ENOMEM if no memory, -EINVAL if invalid arguments
+- *
+- * To start mirroring a process address space, the device driver must register
+- * an HMM mirror struct.
+- *
+- * The caller cannot unregister the hmm_mirror while any ranges are
+- * registered.
+- *
+- * Callers using this function must put a call to mmu_notifier_synchronize()
+- * in their module exit functions.
+- */
+-int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm)
+-{
+-	struct mmu_notifier *mn;
+-
+-	lockdep_assert_held_write(&mm->mmap_sem);
+-
+-	/* Sanity check */
+-	if (!mm || !mirror || !mirror->ops)
+-		return -EINVAL;
+-
+-	mn = mmu_notifier_get_locked(&hmm_mmu_notifier_ops, mm);
+-	if (IS_ERR(mn))
+-		return PTR_ERR(mn);
+-	mirror->hmm = container_of(mn, struct hmm, mmu_notifier);
+-
+-	down_write(&mirror->hmm->mirrors_sem);
+-	list_add(&mirror->list, &mirror->hmm->mirrors);
+-	up_write(&mirror->hmm->mirrors_sem);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(hmm_mirror_register);
+-
+-/*
+- * hmm_mirror_unregister() - unregister a mirror
+- *
+- * @mirror: mirror struct to unregister
+- *
+- * Stop mirroring a process address space, and cleanup.
+- */
+-void hmm_mirror_unregister(struct hmm_mirror *mirror)
+-{
+-	struct hmm *hmm = mirror->hmm;
+-
+-	down_write(&hmm->mirrors_sem);
+-	list_del(&mirror->list);
+-	up_write(&hmm->mirrors_sem);
+-	mmu_notifier_put(&hmm->mmu_notifier);
+-}
+-EXPORT_SYMBOL(hmm_mirror_unregister);
+-
+ struct hmm_vma_walk {
+ 	struct hmm_range	*range;
+ 	struct dev_pagemap	*pgmap;
+@@ -779,87 +592,6 @@ static void hmm_pfns_clear(struct hmm_range *range,
+ 		*pfns = range->values[HMM_PFN_NONE];
  }
  
--int __mmu_notifier_invalidate_range_start(struct mmu_notifier_range *range)
-+static int mn_itree_invalidate(struct mmu_notifier_mm *mmn_mm,
-+				     const struct mmu_notifier_range *range)
-+{
-+	struct mmu_range_notifier *mrn;
-+	unsigned long cur_seq;
-+
-+	for (mrn = mn_itree_inv_start_range(mmn_mm, range, &cur_seq); mrn;
-+	     mrn = mn_itree_inv_next(mrn, range)) {
-+		bool ret;
-+
-+		WRITE_ONCE(mrn->invalidate_seq, cur_seq);
-+		ret = mrn->ops->invalidate(mrn, range);
-+		if (!ret && !WARN_ON(mmu_notifier_range_blockable(range)))
-+			goto out_would_block;
-+	}
-+	return 0;
-+
-+out_would_block:
-+	/*
-+	 * On -EAGAIN the non-blocking caller is not allowed to call
-+	 * invalidate_range_end()
-+	 */
-+	mn_itree_inv_end(mmn_mm);
-+	return -EAGAIN;
-+}
-+
-+static int mn_hlist_invalidate_range_start(struct mmu_notifier_mm *mmn_mm,
-+					   struct mmu_notifier_range *range)
- {
- 	struct mmu_notifier *mn;
- 	int ret = 0;
- 	int id;
+-/*
+- * hmm_range_register() - start tracking change to CPU page table over a range
+- * @range: range
+- * @mm: the mm struct for the range of virtual address
+- *
+- * Return: 0 on success, -EFAULT if the address space is no longer valid
+- *
+- * Track updates to the CPU page table see include/linux/hmm.h
+- */
+-int hmm_range_register(struct hmm_range *range, struct hmm_mirror *mirror)
+-{
+-	struct hmm *hmm = mirror->hmm;
+-	unsigned long flags;
+-
+-	range->valid = false;
+-	range->hmm = NULL;
+-
+-	if ((range->start & (PAGE_SIZE - 1)) || (range->end & (PAGE_SIZE - 1)))
+-		return -EINVAL;
+-	if (range->start >= range->end)
+-		return -EINVAL;
+-
+-	/* Prevent hmm_release() from running while the range is valid */
+-	if (!mmget_not_zero(hmm->mmu_notifier.mm))
+-		return -EFAULT;
+-
+-	/* Initialize range to track CPU page table updates. */
+-	spin_lock_irqsave(&hmm->ranges_lock, flags);
+-
+-	range->hmm = hmm;
+-	list_add(&range->list, &hmm->ranges);
+-
+-	/*
+-	 * If there are any concurrent notifiers we have to wait for them for
+-	 * the range to be valid (see hmm_range_wait_until_valid()).
+-	 */
+-	if (!hmm->notifiers)
+-		range->valid = true;
+-	spin_unlock_irqrestore(&hmm->ranges_lock, flags);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(hmm_range_register);
+-
+-/*
+- * hmm_range_unregister() - stop tracking change to CPU page table over a range
+- * @range: range
+- *
+- * Range struct is used to track updates to the CPU page table after a call to
+- * hmm_range_register(). See include/linux/hmm.h for how to use it.
+- */
+-void hmm_range_unregister(struct hmm_range *range)
+-{
+-	struct hmm *hmm = range->hmm;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&hmm->ranges_lock, flags);
+-	list_del_init(&range->list);
+-	spin_unlock_irqrestore(&hmm->ranges_lock, flags);
+-
+-	/* Drop reference taken by hmm_range_register() */
+-	mmput(hmm->mmu_notifier.mm);
+-
+-	/*
+-	 * The range is now invalid and the ref on the hmm is dropped, so
+-	 * poison the pointer.  Leave other fields in place, for the caller's
+-	 * use.
+-	 */
+-	range->valid = false;
+-	memset(&range->hmm, POISON_INUSE, sizeof(range->hmm));
+-}
+-EXPORT_SYMBOL(hmm_range_unregister);
+-
+-static bool needs_retry(struct hmm_range *range)
+-{
+-	if (range->notifier)
+-		return mmu_range_check_retry(range->notifier,
+-					     range->notifier_seq);
+-	return !range->valid;
+-}
+-
+ static const struct mm_walk_ops hmm_walk_ops = {
+ 	.pud_entry	= hmm_vma_walk_pud,
+ 	.pmd_entry	= hmm_vma_walk_pmd,
+@@ -900,20 +632,15 @@ long hmm_range_fault(struct hmm_range *range, unsigned int flags)
+ 	const unsigned long device_vma = VM_IO | VM_PFNMAP | VM_MIXEDMAP;
+ 	unsigned long start = range->start, end;
+ 	struct hmm_vma_walk hmm_vma_walk;
+-	struct mm_struct *mm;
++	struct mm_struct *mm = range->notifier->mm;
+ 	struct vm_area_struct *vma;
+ 	int ret;
  
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &range->mm->mmu_notifier_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &mmn_mm->list, hlist) {
- 		if (mn->ops->invalidate_range_start) {
- 			int _ret;
+-	if (range->notifier)
+-		mm = range->notifier->mm;
+-	else
+-		mm = range->hmm->mmu_notifier.mm;
+-
+ 	lockdep_assert_held(&mm->mmap_sem);
  
-@@ -203,15 +482,30 @@ int __mmu_notifier_invalidate_range_start(struct mmu_notifier_range *range)
- 	return ret;
- }
+ 	do {
+ 		/* If range is no longer valid force retry. */
+-		if (needs_retry(range))
++		if (mmu_range_check_retry(range->notifier, range->notifier_seq))
+ 			return -EBUSY;
  
--void __mmu_notifier_invalidate_range_end(struct mmu_notifier_range *range,
--					 bool only_end)
-+int __mmu_notifier_invalidate_range_start(struct mmu_notifier_range *range)
-+{
-+	struct mmu_notifier_mm *mmn_mm = range->mm->mmu_notifier_mm;
-+	int ret = 0;
-+
-+	if (mmn_mm->has_interval) {
-+		ret = mn_itree_invalidate(mmn_mm, range);
-+		if (ret)
-+			return ret;
-+	}
-+	if (!hlist_empty(&mmn_mm->list))
-+		return mn_hlist_invalidate_range_start(mmn_mm, range);
-+	return 0;
-+}
-+
-+static void mn_hlist_invalidate_end(struct mmu_notifier_mm *mmn_mm,
-+				    struct mmu_notifier_range *range,
-+				    bool only_end)
- {
- 	struct mmu_notifier *mn;
- 	int id;
+ 		vma = find_vma(mm, start);
+@@ -946,7 +673,9 @@ long hmm_range_fault(struct hmm_range *range, unsigned int flags)
+ 			start = hmm_vma_walk.last;
  
--	lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &range->mm->mmu_notifier_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &mmn_mm->list, hlist) {
- 		/*
- 		 * Call invalidate_range here too to avoid the need for the
- 		 * subsystem of having to register an invalidate_range_end
-@@ -238,6 +532,19 @@ void __mmu_notifier_invalidate_range_end(struct mmu_notifier_range *range,
+ 			/* Keep trying while the range is valid. */
+-		} while (ret == -EBUSY && !needs_retry(range));
++		} while (ret == -EBUSY &&
++			 !mmu_range_check_retry(range->notifier,
++						range->notifier_seq));
+ 
+ 		if (ret) {
+ 			unsigned long i;
+@@ -1004,7 +733,8 @@ long hmm_range_dma_map(struct hmm_range *range, struct device *device,
+ 			continue;
+ 
+ 		/* Check if range is being invalidated */
+-		if (needs_retry(range)) {
++		if (mmu_range_check_retry(range->notifier,
++					  range->notifier_seq)) {
+ 			ret = -EBUSY;
+ 			goto unmap;
  		}
- 	}
- 	srcu_read_unlock(&srcu, id);
-+}
-+
-+void __mmu_notifier_invalidate_range_end(struct mmu_notifier_range *range,
-+					 bool only_end)
-+{
-+	struct mmu_notifier_mm *mmn_mm = range->mm->mmu_notifier_mm;
-+
-+	lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
-+	if (mmn_mm->has_interval)
-+		mn_itree_inv_end(mmn_mm);
-+
-+	if (!hlist_empty(&mmn_mm->list))
-+		mn_hlist_invalidate_end(mmn_mm, range, only_end);
- 	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
- }
- 
-@@ -256,8 +563,9 @@ void __mmu_notifier_invalidate_range(struct mm_struct *mm,
- }
- 
- /*
-- * Same as mmu_notifier_register but here the caller must hold the
-- * mmap_sem in write mode.
-+ * Same as mmu_notifier_register but here the caller must hold the mmap_sem in
-+ * write mode. A NULL mn signals the notifier is being registered for itree
-+ * mode.
-  */
- int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- {
-@@ -274,9 +582,6 @@ int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- 		fs_reclaim_release(GFP_KERNEL);
- 	}
- 
--	mn->mm = mm;
--	mn->users = 1;
--
- 	if (!mm->mmu_notifier_mm) {
- 		/*
- 		 * kmalloc cannot be called under mm_take_all_locks(), but we
-@@ -284,21 +589,22 @@ int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- 		 * the write side of the mmap_sem.
- 		 */
- 		mmu_notifier_mm =
--			kmalloc(sizeof(struct mmu_notifier_mm), GFP_KERNEL);
-+			kzalloc(sizeof(struct mmu_notifier_mm), GFP_KERNEL);
- 		if (!mmu_notifier_mm)
- 			return -ENOMEM;
- 
- 		INIT_HLIST_HEAD(&mmu_notifier_mm->list);
- 		spin_lock_init(&mmu_notifier_mm->lock);
-+		mmu_notifier_mm->invalidate_seq = 2;
-+		mmu_notifier_mm->itree = RB_ROOT_CACHED;
-+		init_waitqueue_head(&mmu_notifier_mm->wq);
-+		INIT_HLIST_HEAD(&mmu_notifier_mm->deferred_list);
- 	}
- 
- 	ret = mm_take_all_locks(mm);
- 	if (unlikely(ret))
- 		goto out_clean;
- 
--	/* Pairs with the mmdrop in mmu_notifier_unregister_* */
--	mmgrab(mm);
--
- 	/*
- 	 * Serialize the update against mmu_notifier_unregister. A
- 	 * side note: mmu_notifier_release can't run concurrently with
-@@ -306,13 +612,26 @@ int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- 	 * current->mm or explicitly with get_task_mm() or similar).
- 	 * We can't race against any other mmu notifier method either
- 	 * thanks to mm_take_all_locks().
-+	 *
-+	 * release semantics are provided for users not inside a lock covered
-+	 * by mm_take_all_locks(). acquire can only be used while holding the
-+	 * mmgrab or mmget, and is safe because once created the
-+	 * mmu_notififer_mm is not freed until the mm is destroyed.
- 	 */
- 	if (mmu_notifier_mm)
--		mm->mmu_notifier_mm = mmu_notifier_mm;
-+		smp_store_release(&mm->mmu_notifier_mm, mmu_notifier_mm);
- 
--	spin_lock(&mm->mmu_notifier_mm->lock);
--	hlist_add_head_rcu(&mn->hlist, &mm->mmu_notifier_mm->list);
--	spin_unlock(&mm->mmu_notifier_mm->lock);
-+	if (mn) {
-+		/* Pairs with the mmdrop in mmu_notifier_unregister_* */
-+		mmgrab(mm);
-+		mn->mm = mm;
-+		mn->users = 1;
-+
-+		spin_lock(&mm->mmu_notifier_mm->lock);
-+		hlist_add_head_rcu(&mn->hlist, &mm->mmu_notifier_mm->list);
-+		spin_unlock(&mm->mmu_notifier_mm->lock);
-+	} else
-+		mm->mmu_notifier_mm->has_interval = true;
- 
- 	mm_drop_all_locks(mm);
- 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
-@@ -529,6 +848,166 @@ void mmu_notifier_put(struct mmu_notifier *mn)
- }
- EXPORT_SYMBOL_GPL(mmu_notifier_put);
- 
-+static int __mmu_range_notifier_insert(struct mmu_range_notifier *mrn,
-+				       unsigned long start,
-+				       unsigned long length,
-+				       struct mmu_notifier_mm *mmn_mm,
-+				       struct mm_struct *mm)
-+{
-+	mrn->mm = mm;
-+	RB_CLEAR_NODE(&mrn->interval_tree.rb);
-+	mrn->interval_tree.start = start;
-+	/*
-+	 * Note that the representation of the intervals in the interval tree
-+	 * considers the ending point as contained in the interval.
-+	 */
-+	if (length == 0 ||
-+	    check_add_overflow(start, length - 1, &mrn->interval_tree.last))
-+		return -EOVERFLOW;
-+
-+	/* pairs with mmdrop in mmu_range_notifier_remove() */
-+	mmgrab(mm);
-+
-+	/*
-+	 * If some invalidate_range_start/end region is going on in parallel
-+	 * we don't know what VA ranges are affected, so we must assume this
-+	 * new range is included.
-+	 *
-+	 * If the itree is invalidating then we are not allowed to change
-+	 * it. Retrying until invalidation is done is tricky due to the
-+	 * possibility for live lock, instead defer the add to the unlock so
-+	 * this algorithm is deterministic.
-+	 *
-+	 * In all cases the value for the mrn->mr_invalidate_seq should be
-+	 * odd, see mmu_range_read_begin()
-+	 */
-+	spin_lock(&mmn_mm->lock);
-+	if (mmn_mm->active_invalidate_ranges) {
-+		if (mn_itree_is_invalidating(mmn_mm))
-+			hlist_add_head(&mrn->deferred_item,
-+				       &mmn_mm->deferred_list);
-+		else {
-+			mmn_mm->invalidate_seq |= 1;
-+			interval_tree_insert(&mrn->interval_tree,
-+					     &mmn_mm->itree);
-+		}
-+		mrn->invalidate_seq = mmn_mm->invalidate_seq;
-+	} else {
-+		WARN_ON(mn_itree_is_invalidating(mmn_mm));
-+		mrn->invalidate_seq = mmn_mm->invalidate_seq - 1;
-+		interval_tree_insert(&mrn->interval_tree, &mmn_mm->itree);
-+	}
-+	spin_unlock(&mmn_mm->lock);
-+	return 0;
-+}
-+
-+/**
-+ * mmu_range_notifier_insert - Insert a range notifier
-+ * @mrn: Range notifier to register
-+ * @start: Starting virtual address to monitor
-+ * @length: Length of the range to monitor
-+ * @mm : mm_struct to attach to
-+ *
-+ * This function subscribes the range notifier for notifications from the mm.
-+ * Upon return the ops related to mmu_range_notifier will be called whenever
-+ * an event that intersects with the given range occurs.
-+ *
-+ * Upon return the range_notifier may not be present in the interval tree yet.
-+ * The caller must use the normal range notifier locking flow via
-+ * mmu_range_read_begin() to establish SPTEs for this range.
-+ */
-+int mmu_range_notifier_insert(struct mmu_range_notifier *mrn,
-+			      unsigned long start, unsigned long length,
-+			      struct mm_struct *mm)
-+{
-+	struct mmu_notifier_mm *mmn_mm;
-+	int ret;
-+
-+	might_lock(&mm->mmap_sem);
-+
-+	mmn_mm = smp_load_acquire(&mm->mmu_notifier_mm);
-+	if (!mmn_mm || !mmn_mm->has_interval) {
-+		ret = mmu_notifier_register(NULL, mm);
-+		if (ret)
-+			return ret;
-+		mmn_mm = mm->mmu_notifier_mm;
-+	}
-+	return __mmu_range_notifier_insert(mrn, start, length, mmn_mm, mm);
-+}
-+EXPORT_SYMBOL_GPL(mmu_range_notifier_insert);
-+
-+int mmu_range_notifier_insert_locked(struct mmu_range_notifier *mrn,
-+				     unsigned long start, unsigned long length,
-+				     struct mm_struct *mm)
-+{
-+	struct mmu_notifier_mm *mmn_mm;
-+	int ret;
-+
-+	lockdep_assert_held_write(&mm->mmap_sem);
-+
-+	mmn_mm = mm->mmu_notifier_mm;
-+	if (!mmn_mm || !mmn_mm->has_interval) {
-+		ret = __mmu_notifier_register(NULL, mm);
-+		if (ret)
-+			return ret;
-+		mmn_mm = mm->mmu_notifier_mm;
-+	}
-+	return __mmu_range_notifier_insert(mrn, start, length, mmn_mm, mm);
-+}
-+EXPORT_SYMBOL_GPL(mmu_range_notifier_insert_locked);
-+
-+/**
-+ * mmu_range_notifier_remove - Remove a range notifier
-+ * @mrn: Range notifier to unregister
-+ *
-+ * This function must be paired with mmu_range_notifier_insert(). It cannot be
-+ * called from any ops callback.
-+ *
-+ * Once this returns ops callbacks are no longer running on other CPUs and
-+ * will not be called in future.
-+ */
-+void mmu_range_notifier_remove(struct mmu_range_notifier *mrn)
-+{
-+	struct mm_struct *mm = mrn->mm;
-+	struct mmu_notifier_mm *mmn_mm = mm->mmu_notifier_mm;
-+	unsigned long seq = 0;
-+
-+	might_sleep();
-+
-+	spin_lock(&mmn_mm->lock);
-+	if (mn_itree_is_invalidating(mmn_mm)) {
-+		/*
-+		 * remove is being called after insert put this on the
-+		 * deferred list, but before the deferred list was processed.
-+		 */
-+		if (RB_EMPTY_NODE(&mrn->interval_tree.rb)) {
-+			hlist_del(&mrn->deferred_item);
-+		} else {
-+			hlist_add_head(&mrn->deferred_item,
-+				       &mmn_mm->deferred_list);
-+			seq = mmn_mm->invalidate_seq;
-+		}
-+	} else {
-+		WARN_ON(RB_EMPTY_NODE(&mrn->interval_tree.rb));
-+		interval_tree_remove(&mrn->interval_tree, &mmn_mm->itree);
-+	}
-+	spin_unlock(&mmn_mm->lock);
-+
-+	/*
-+	 * The possible sleep on progress in the invalidation requires the
-+	 * caller not hold any locks held by invalidation callbacks.
-+	 */
-+	lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
-+	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
-+	if (seq)
-+		wait_event(mmn_mm->wq,
-+			   READ_ONCE(mmn_mm->invalidate_seq) != seq);
-+
-+	/* pairs with mmgrab in mmu_range_notifier_insert() */
-+	mmdrop(mm);
-+}
-+EXPORT_SYMBOL_GPL(mmu_range_notifier_remove);
-+
- /**
-  * mmu_notifier_synchronize - Ensure all mmu_notifiers are freed
-  *
 -- 
 2.23.0
 
