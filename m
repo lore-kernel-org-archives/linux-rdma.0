@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35557ECE595
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E88ECE58F
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 021362245A
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C01BD22459
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="IY7PaWcE"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="gOR7v+Ma"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730499AbfJOSQR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Oct 2019 14:16:17 -0400
-Received: from mail-io1-f66.google.com ([209.85.166.66]:34285 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726597AbfJOSQR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:17 -0400
-Received: by mail-io1-f66.google.com with SMTP id q1so48260488ion.1
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:16 -0700 (PDT)
+        id S1727758AbfJOSQP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Oct 2019 14:16:15 -0400
+Received: from mail-io1-f68.google.com ([209.85.166.68]:40676 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726597AbfJOSQP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:15 -0400
+Received: by mail-io1-f68.google.com with SMTP id h144so48121883iof.7
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=E5hGScokWqPgLdbBrk4RHza3Svxdrvt3RelMxzxNGX0=;
-        b=IY7PaWcEoDxVF3RjzcFddJeqHnKCTQPHXfIpy/ZpttwuBMU0ukD62rv6NJn+q87jla
-         IXutZA2u26Vor+s0oQSuxsRNrCPfLDsESVJ589Opd1LZ0R+URK4YBD+kFwmLrLBoPU6/
-         QrUUkUIpST04E4tqDxJ+Jk1U4drJBIlnSZxYI4Bl4QDVhl0PK2MSM5oGR/kUL3z3tNDu
-         6o4NOh44rhJyXMoM/uAh1nLdvonpdj8vdasf+naCfwSj0CId6hBhiy07gmILqk/KgFay
-         UnZ7D83P4q5IJpWb+fT+I50stolQCQKdlumEuIxFdDr35X2DLJl56axpTHUNubqqx/HW
-         iEEg==
+        bh=XcVBi9ccgY4WcIiK7htGW9JC/41ZVBDU/dZyJbvS0oI=;
+        b=gOR7v+Magpr20tPpBhw3su5vwBWD1crfNwZ0Z9VwQerZXk4VmKtv7ZGa/jZLOy3+Gb
+         K/Q7dJA5LKZQavy+GhBoux2L8kxb3css4d9zN/qzJ6D9qjLAybfSGz5wAW9Oa8BkSVtJ
+         te/l388bPwiD/m6Mv210cwaQmHe4ZhGHpALba4ndH4+4j9LOZ5xQuVmuzT9Du8DYtThP
+         FU5+UPGU4MiMeGISYSD3jjKBdkSmM33uzAoSWwQ4tizM9raO+SKggS9Hv63dzChlpFDC
+         P9lGy5CTBdU2CwXQdDQ23RO44PDQ6aNgRYtT68MI+iv+KJ0S/ruk9IdofQwJd83rujzd
+         zcxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=E5hGScokWqPgLdbBrk4RHza3Svxdrvt3RelMxzxNGX0=;
-        b=K0Mtm2dbfadXiBBRYoMrIeik65mxu7ZR8fICxYei1GK/PMloCMHrxpRAlhUtLA+BEh
-         edlkGopFIVjG/XNzJe0r341/GTcjBLb1oyCeE9tZ3RC9NoMEGywkEi1LgeEw2hshfN6V
-         xwt5L6FxW25vLNds9vJ9kU8c1HLXkp6uXymn4aZjFElq0P0dC5/wEFoDuGFqiIHDVavC
-         9iXbYRTm4ht01jYDpTBGqGVTKlIcmq7997mEfnu92NLzTHH084zOm/J+J/hEay5T10eC
-         o+bHBMsH5HLSlAlp/7ZxvfahwAf7KmRbn8k6Nv6BOJaJwwI8G+9fgJ3KJX75nuxXLqew
-         R7AA==
-X-Gm-Message-State: APjAAAVsZp5DMUd56onyiXiE49n+1Tgavva+2Bi0K5YpDYSASSsHEPqb
-        IOgV9ggg3fRu5ASnvxbF3MOQIA==
-X-Google-Smtp-Source: APXvYqwCqiYZ3SkEMQblXOUCwi4JhQL5teRlUkU0KcRoGUDDLgO1heLLmHRP1RmYbHcG9FHn93aEFA==
-X-Received: by 2002:a92:5a9b:: with SMTP id b27mr7441321ilg.180.1571163376436;
-        Tue, 15 Oct 2019 11:16:16 -0700 (PDT)
+        bh=XcVBi9ccgY4WcIiK7htGW9JC/41ZVBDU/dZyJbvS0oI=;
+        b=bWloV91RmVz/Wdh3MkRkimlxYAkuLhrKzQJLmVOrvEtmDxDdgwEqRfFt4P19poVgR4
+         syjLjWsfPra3s5u5+8v5nYPToYJ9zpHzIfx+ZbQegVwSNjKL5YSLLXtISfvlgMb6l+N1
+         CS14RpPf/ZmZeKyxwA2VZuSLulaQlAW5o7L38xh/sEsmYRl/IHPRgn7NWx3rJVcZqCng
+         xSYcM4hPbhjYbbCoRTDHzRrtISqrlmCYJdgqRu0KswDEco3X7nDijDdr90aqg7i6AAH7
+         152W6Kfc9+jFAsyMDy1XLlTDBwIQxUGdpdpGXqa3iORK2Rs9XpOKF7iU64YWTU/r4q/8
+         BNow==
+X-Gm-Message-State: APjAAAVixVeOGALBV8izhjfmZ+m6AnSvwJgRfk6njVHqIt0fu8CCdtDT
+        ZR/fys7XwKe+yKc4/demJBOioA==
+X-Google-Smtp-Source: APXvYqyx9iOETMkWQM2sfKJTNRp/60e+N/aCImQtCZIAbTEsdBubG9IKWgw/xkcAPqe/1cFrooZISw==
+X-Received: by 2002:a5d:9e02:: with SMTP id h2mr26817595ioh.137.1571163374432;
+        Tue, 15 Oct 2019 11:16:14 -0700 (PDT)
 Received: from ziepe.ca ([24.114.26.129])
-        by smtp.gmail.com with ESMTPSA id b3sm2941671iln.42.2019.10.15.11.16.15
+        by smtp.gmail.com with ESMTPSA id m11sm14366395ioq.5.2019.10.15.11.16.13
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 15 Oct 2019 11:16:16 -0700 (PDT)
+        Tue, 15 Oct 2019 11:16:13 -0700 (PDT)
 Received: from jgg by jggl.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iKRJT-0002CL-IH; Tue, 15 Oct 2019 15:12:51 -0300
+        id 1iKRJT-0002C1-CW; Tue, 15 Oct 2019 15:12:51 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Jerome Glisse <jglisse@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>,
@@ -65,14 +65,10 @@ Cc:     linux-rdma@vger.kernel.org, linux-mm@kvack.org,
         Andrea Arcangeli <aarcange@redhat.com>,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Ben Skeggs <bskeggs@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>
-Subject: [PATCH hmm 08/15] xen/gntdev: Use select for DMA_SHARED_BUFFER
-Date:   Tue, 15 Oct 2019 15:12:35 -0300
-Message-Id: <20191015181242.8343-9-jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH hmm 04/15] mm/hmm: define the pre-processor related parts of hmm.h even if disabled
+Date:   Tue, 15 Oct 2019 15:12:31 -0300
+Message-Id: <20191015181242.8343-5-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191015181242.8343-1-jgg@ziepe.ca>
 References: <20191015181242.8343-1-jgg@ziepe.ca>
@@ -85,38 +81,124 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-DMA_SHARED_BUFFER can not be enabled by the user (it represents a library
-set in the kernel). The kconfig convention is to use select for such
-symbols so they are turned on implicitly when the user enables a kconfig
-that needs them.
+Only the function calls are stubbed out with static inlines that always
+fail. This is the standard way to write a header for an optional component
+and makes it easier for drivers that only optionally need HMM_MIRROR.
 
-Otherwise the XEN_GNTDEV_DMABUF kconfig is overly difficult to enable.
-
-Fixes: 932d6562179e ("xen/gntdev: Add initial support for dma-buf UAPI")
-Cc: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: xen-devel@lists.xenproject.org
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/xen/Kconfig | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/hmm.h | 59 ++++++++++++++++++++++++++++++++++++---------
+ kernel/fork.c       |  1 -
+ 2 files changed, 47 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
-index 79cc75096f4232..a50dadd0109336 100644
---- a/drivers/xen/Kconfig
-+++ b/drivers/xen/Kconfig
-@@ -141,7 +141,8 @@ config XEN_GNTDEV
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 8ac1fd6a81af8f..2666eb08a40615 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -62,8 +62,6 @@
+ #include <linux/kconfig.h>
+ #include <asm/pgtable.h>
  
- config XEN_GNTDEV_DMABUF
- 	bool "Add support for dma-buf grant access device driver extension"
--	depends on XEN_GNTDEV && XEN_GRANT_DMA_ALLOC && DMA_SHARED_BUFFER
-+	depends on XEN_GNTDEV && XEN_GRANT_DMA_ALLOC
-+	select DMA_SHARED_BUFFER
- 	help
- 	  Allows userspace processes and kernel modules to use Xen backed
- 	  dma-buf implementation. With this extension grant references to
+-#ifdef CONFIG_HMM_MIRROR
+-
+ #include <linux/device.h>
+ #include <linux/migrate.h>
+ #include <linux/memremap.h>
+@@ -374,6 +372,15 @@ struct hmm_mirror {
+ 	struct list_head		list;
+ };
+ 
++/*
++ * Retry fault if non-blocking, drop mmap_sem and return -EAGAIN in that case.
++ */
++#define HMM_FAULT_ALLOW_RETRY		(1 << 0)
++
++/* Don't fault in missing PTEs, just snapshot the current state. */
++#define HMM_FAULT_SNAPSHOT		(1 << 1)
++
++#ifdef CONFIG_HMM_MIRROR
+ int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm);
+ void hmm_mirror_unregister(struct hmm_mirror *mirror);
+ 
+@@ -383,14 +390,6 @@ void hmm_mirror_unregister(struct hmm_mirror *mirror);
+ int hmm_range_register(struct hmm_range *range, struct hmm_mirror *mirror);
+ void hmm_range_unregister(struct hmm_range *range);
+ 
+-/*
+- * Retry fault if non-blocking, drop mmap_sem and return -EAGAIN in that case.
+- */
+-#define HMM_FAULT_ALLOW_RETRY		(1 << 0)
+-
+-/* Don't fault in missing PTEs, just snapshot the current state. */
+-#define HMM_FAULT_SNAPSHOT		(1 << 1)
+-
+ long hmm_range_fault(struct hmm_range *range, unsigned int flags);
+ 
+ long hmm_range_dma_map(struct hmm_range *range,
+@@ -401,6 +400,44 @@ long hmm_range_dma_unmap(struct hmm_range *range,
+ 			 struct device *device,
+ 			 dma_addr_t *daddrs,
+ 			 bool dirty);
++#else
++int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm)
++{
++	return -EOPNOTSUPP;
++}
++
++void hmm_mirror_unregister(struct hmm_mirror *mirror)
++{
++}
++
++int hmm_range_register(struct hmm_range *range, struct hmm_mirror *mirror)
++{
++	return -EOPNOTSUPP;
++}
++
++void hmm_range_unregister(struct hmm_range *range)
++{
++}
++
++static inline long hmm_range_fault(struct hmm_range *range, unsigned int flags)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline long hmm_range_dma_map(struct hmm_range *range,
++				     struct device *device, dma_addr_t *daddrs,
++				     unsigned int flags)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline long hmm_range_dma_unmap(struct hmm_range *range,
++				       struct device *device,
++				       dma_addr_t *daddrs, bool dirty)
++{
++	return -EOPNOTSUPP;
++}
++#endif
+ 
+ /*
+  * HMM_RANGE_DEFAULT_TIMEOUT - default timeout (ms) when waiting for a range
+@@ -411,6 +448,4 @@ long hmm_range_dma_unmap(struct hmm_range *range,
+  */
+ #define HMM_RANGE_DEFAULT_TIMEOUT 1000
+ 
+-#endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+-
+ #endif /* LINUX_HMM_H */
+diff --git a/kernel/fork.c b/kernel/fork.c
+index f9572f41612628..4561a65d19db88 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -40,7 +40,6 @@
+ #include <linux/binfmts.h>
+ #include <linux/mman.h>
+ #include <linux/mmu_notifier.h>
+-#include <linux/hmm.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include <linux/vmacache.h>
 -- 
 2.23.0
 
