@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB05EECE596
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28872ECE59D
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C7622245A
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF39522459
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Oct 2019 18:17:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="SZTuPs+9"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="JuyClk7P"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731578AbfJOSQW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Oct 2019 14:16:22 -0400
-Received: from mail-io1-f65.google.com ([209.85.166.65]:46440 "EHLO
-        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726597AbfJOSQV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:21 -0400
-Received: by mail-io1-f65.google.com with SMTP id c6so48069576ioo.13
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:21 -0700 (PDT)
+        id S1728008AbfJOSQd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Oct 2019 14:16:33 -0400
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:39449 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726597AbfJOSQd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Oct 2019 14:16:33 -0400
+Received: by mail-pl1-f194.google.com with SMTP id s17so9965909plp.6
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2019 11:16:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=7bGBHV3XKTBYtn+s2VkOV5vFHFWD1VRFqgigxd7ES8s=;
-        b=SZTuPs+9wtwF5qdo+T04vL15d88nht4jzLRt2KERwlIlmEXkDIWhnd1ZVIaUcbfUHB
-         3lvX6T61iauTPcUGyedFFKgzQKx0qM38ovl5TsQiW8W9MlH3WDIMXXxhwPZA16J+FlJo
-         WOMlNrj+nWtDbfr2oeHLqKkqb9xCx0UH8UPZ8bMwWH9gjlfWyysteaZ05Dwrq+hI0Pj4
-         1AWgVI9R2WygWt6WGwALuiMdjbs0zn4/tZ+07Y+GvD+YCexEuaNFKnkovhprSZwmdMpJ
-         ndfHvsy43KtDTBSWgQzQDBvwJEzLL1K+mBJJ4RmV5O3OucQZuKa1aj5T3C9OZDphUkNa
-         QxDg==
+        bh=cpXvWgqC++htg5t4tfaxCh8tm+v/06g7WiSmKM05mvw=;
+        b=JuyClk7PKCaLwoQ+105chr3B4/YZVWePEMx44i+al/c0waHUPFVmcMJsk69iurM8xR
+         TqIwh/dWh7/bezrzPA7KI4qy1RM9p4IWVXMg7fLRvoeynPIE47WqsqslPXSo0Nocyp8b
+         S+/SYVDKWfxiXPCAFo7rRERONWIezL1LF4kOXzYqimZaG7E71vm9BsTxd6TJBsVwKqYW
+         LBpwbsRaDkCFam+Aap+a3+qNpe/qW0b8h9rg7ONtiZhkEE9NnE0x3yb081fUXtFapyMg
+         +2aW6MdXKqWTKPnnE77vavOkmbSBi9iBgcYZl0B6Q0XT/ieElII5zYsv38J1WN9BsZGN
+         t/2w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=7bGBHV3XKTBYtn+s2VkOV5vFHFWD1VRFqgigxd7ES8s=;
-        b=bPvZiDCPwAItq6bKncvpQCmwkqy6mVK74B1RefOKDl097mwWjrjVqjwMbTO5yQyboD
-         +FnvtgoosTS3jEh5rDmgKwg7xDGAinRbTidpCmVKu5BfRjL1ti6hgZaOwKRaeh8mdadW
-         qP3Yxv7Djs53AxtXc2yPRjuCuet4VUq4fl3LAAy7X/llMrTyf0b1z8R1A3EjXobaqK5M
-         hx1q7BukwvJZ6Fu7URxrZFFIXSsWX1gqlK+TIZ7iHAm5218vn+KWhaPucSJDLKCkDZTr
-         UjhTA7oYZNJHTWmghZ+BpRVNHtFNRtZIwO5Pw8XT6Q5EybEHDoB3LjpyG92n4HZE7Kw+
-         eQyQ==
-X-Gm-Message-State: APjAAAXa18a6Hzfa2wZvYnHzVbQwy50+L+L0MhXksYyvLj4Z4IUK4RwU
-        aViC92T5ZOvWwLuAKsxYKuJ60w==
-X-Google-Smtp-Source: APXvYqzXNjh0fKDKQEyiiqzBWh49cM4XsjfhBudT5whPmb8Cc0287ba+L/26Gqkm2bQl2N5jfKT/5w==
-X-Received: by 2002:a05:6e02:783:: with SMTP id q3mr7197819ils.33.1571163380758;
-        Tue, 15 Oct 2019 11:16:20 -0700 (PDT)
+        bh=cpXvWgqC++htg5t4tfaxCh8tm+v/06g7WiSmKM05mvw=;
+        b=XQ2GL/wVG/UvoOr20IWtnKJ9ys2HO8+Hd3FCToee8Rw3kc41PofXEqfAYxGXljJqej
+         MVNJVZ8LGAx9wMHRV13dxY1t7a8J8DI1Y2Iylz8ACT7OduyKPqs7puS5+aA8OoBduIq2
+         S7N0om9R21HGtW6HLVWvw21whxOy+YC2SWsQZQr5flDcqveOQi4HAghzvbU7XH7hpwMS
+         4A7lSPbWuEDZhCRS9FW7g4DNYD0UDrbloaGCjObC5OmQysg9QXnprpdZ2oWj33WTUQJj
+         h/MlN62rih9Z70AYPSwrFfd8hB17uUG81cfRx31vaaRKnvYaC2OYj2uTMHO0CHYobeXc
+         823g==
+X-Gm-Message-State: APjAAAWKc+ZF9SnRRywBjQyIICc29+JCytPm/jvV01V1HcM1waKGj6+c
+        BVsZzGcxp5jcmeaPDgwlZU8WrA==
+X-Google-Smtp-Source: APXvYqylDFeyHP+orjZdFPigy5QgoSehDBF4HXwVxw56pNjg/wm3jT8eRKmoaCJljZuzzdfaqS/x2A==
+X-Received: by 2002:a17:902:820f:: with SMTP id x15mr37595901pln.288.1571163392460;
+        Tue, 15 Oct 2019 11:16:32 -0700 (PDT)
 Received: from ziepe.ca ([24.114.26.129])
-        by smtp.gmail.com with ESMTPSA id r5sm2178117ill.12.2019.10.15.11.16.20
+        by smtp.gmail.com with ESMTPSA id u9sm19594pjb.4.2019.10.15.11.16.31
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 15 Oct 2019 11:16:20 -0700 (PDT)
+        Tue, 15 Oct 2019 11:16:32 -0700 (PDT)
 Received: from jgg by jggl.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iKRJT-0002Ca-M8; Tue, 15 Oct 2019 15:12:51 -0300
+        id 1iKRJT-0002Bw-Ay; Tue, 15 Oct 2019 15:12:51 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Jerome Glisse <jglisse@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>,
@@ -65,11 +65,10 @@ Cc:     linux-rdma@vger.kernel.org, linux-mm@kvack.org,
         Andrea Arcangeli <aarcange@redhat.com>,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Ben Skeggs <bskeggs@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        nouveau@lists.freedesktop.org
-Subject: [PATCH hmm 11/15] nouveau: use mmu_range_notifier instead of hmm_mirror
-Date:   Tue, 15 Oct 2019 15:12:38 -0300
-Message-Id: <20191015181242.8343-12-jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH hmm 03/15] mm/hmm: allow hmm_range to be used with a mmu_range_notifier or hmm_mirror
+Date:   Tue, 15 Oct 2019 15:12:30 -0300
+Message-Id: <20191015181242.8343-4-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191015181242.8343-1-jgg@ziepe.ca>
 References: <20191015181242.8343-1-jgg@ziepe.ca>
@@ -82,323 +81,122 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Remove the hmm_mirror object and use the mmu_range_notifier API instead
-for the range, and use the normal mmu_notifier API for the general
-invalidation callback.
+hmm_mirror's handling of ranges does not use a sequence count which
+results in this bug:
 
-While here re-organize the pagefault path so the locking pattern is clear.
+         CPU0                                   CPU1
+                                     hmm_range_wait_until_valid(range)
+                                         valid == true
+                                     hmm_range_fault(range)
+hmm_invalidate_range_start()
+   range->valid = false
+hmm_invalidate_range_end()
+   range->valid = true
+                                     hmm_range_valid(range)
+                                          valid == true
 
-nouveau is the only driver that uses a temporary range object and instead
-forwards nearly every invalidation range directly to the HW. While this is
-not how the mmu_range_notifier was intended to be used, the overheads on
-the pagefaulting path are similar to the existing hmm_mirror version.
-Particularly since the interval tree will be small.
+Where the hmm_range_valid should not have succeeded.
 
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: dri-devel@lists.freedesktop.org
-Cc: nouveau@lists.freedesktop.org
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Adding the required sequence count would make it nearly identical to the
+new mmu_range_notifier. Instead replace the hmm_mirror stuff with
+mmu_range_notifier.
+
+Co-existence of the two APIs is the first step.
+
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/gpu/drm/nouveau/nouveau_svm.c | 178 ++++++++++++++------------
- 1 file changed, 98 insertions(+), 80 deletions(-)
+ include/linux/hmm.h |  5 +++++
+ mm/hmm.c            | 25 +++++++++++++++++++------
+ 2 files changed, 24 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
-index 577f8811925a59..712c99918551bc 100644
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -96,8 +96,6 @@ struct nouveau_svmm {
- 	} unmanaged;
- 
- 	struct mutex mutex;
--
--	struct hmm_mirror mirror;
- };
- 
- #define SVMM_DBG(s,f,a...)                                                     \
-@@ -293,23 +291,11 @@ static const struct mmu_notifier_ops nouveau_mn_ops = {
- 	.free_notifier = nouveau_svmm_free_notifier,
- };
- 
--static int
--nouveau_svmm_sync_cpu_device_pagetables(struct hmm_mirror *mirror,
--					const struct mmu_notifier_range *update)
--{
--	return 0;
--}
--
--static const struct hmm_mirror_ops nouveau_svmm = {
--	.sync_cpu_device_pagetables = nouveau_svmm_sync_cpu_device_pagetables,
--};
--
- void
- nouveau_svmm_fini(struct nouveau_svmm **psvmm)
- {
- 	struct nouveau_svmm *svmm = *psvmm;
- 	if (svmm) {
--		hmm_mirror_unregister(&svmm->mirror);
- 		mutex_lock(&svmm->mutex);
- 		svmm->vmm = NULL;
- 		mutex_unlock(&svmm->mutex);
-@@ -357,15 +343,10 @@ nouveau_svmm_init(struct drm_device *dev, void *data,
- 		goto out_free;
- 
- 	down_write(&current->mm->mmap_sem);
--	svmm->mirror.ops = &nouveau_svmm;
--	ret = hmm_mirror_register(&svmm->mirror, current->mm);
--	if (ret)
--		goto out_mm_unlock;
--
- 	svmm->notifier.ops = &nouveau_mn_ops;
- 	ret = __mmu_notifier_register(&svmm->notifier, current->mm);
- 	if (ret)
--		goto out_hmm_unregister;
-+		goto out_mm_unlock;
- 	/* Note, ownership of svmm transfers to mmu_notifier */
- 
- 	cli->svm.svmm = svmm;
-@@ -374,8 +355,6 @@ nouveau_svmm_init(struct drm_device *dev, void *data,
- 	mutex_unlock(&cli->mutex);
- 	return 0;
- 
--out_hmm_unregister:
--	hmm_mirror_unregister(&svmm->mirror);
- out_mm_unlock:
- 	up_write(&current->mm->mmap_sem);
- out_free:
-@@ -503,43 +482,89 @@ nouveau_svm_fault_cache(struct nouveau_svm *svm,
- 		fault->inst, fault->addr, fault->access);
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 3fec513b9c00f1..8ac1fd6a81af8f 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -145,6 +145,9 @@ enum hmm_pfn_value_e {
+ /*
+  * struct hmm_range - track invalidation lock on virtual address range
+  *
++ * @notifier: an optional mmu_range_notifier
++ * @notifier_seq: when notifier is used this is the result of
++ *                mmu_range_read_begin()
+  * @hmm: the core HMM structure this range is active against
+  * @vma: the vm area struct for the range
+  * @list: all range lock are on a list
+@@ -159,6 +162,8 @@ enum hmm_pfn_value_e {
+  * @valid: pfns array did not change since it has been fill by an HMM function
+  */
+ struct hmm_range {
++	struct mmu_range_notifier *notifier;
++	unsigned long		notifier_seq;
+ 	struct hmm		*hmm;
+ 	struct list_head	list;
+ 	unsigned long		start;
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 902f5fa6bf93ad..22ac3595771feb 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -852,6 +852,14 @@ void hmm_range_unregister(struct hmm_range *range)
  }
+ EXPORT_SYMBOL(hmm_range_unregister);
  
--static inline bool
--nouveau_range_done(struct hmm_range *range)
-+struct svm_notifier {
-+	struct mmu_range_notifier notifier;
-+	struct nouveau_svmm *svmm;
-+};
++static bool needs_retry(struct hmm_range *range)
++{
++	if (range->notifier)
++		return mmu_range_check_retry(range->notifier,
++					     range->notifier_seq);
++	return !range->valid;
++}
 +
-+static bool nouveau_svm_range_invalidate(struct mmu_range_notifier *mrn,
-+					 const struct mmu_notifier_range *range)
- {
--	bool ret = hmm_range_valid(range);
-+	struct svm_notifier *sn =
-+		container_of(mrn, struct svm_notifier, notifier);
- 
--	hmm_range_unregister(range);
--	return ret;
-+	/*
-+	 * serializes the update to mrn->invalidate_seq done by caller and
-+	 * prevents invalidation of the PTE from progressing while HW is being
-+	 * programmed. This is very hacky and only works because the normal
-+	 * notifier that does invalidation is always called after the range
-+	 * notifier.
-+	 */
-+	if (mmu_notifier_range_blockable(range))
-+		mutex_lock(&sn->svmm->mutex);
-+	else if (!mutex_trylock(&sn->svmm->mutex))
-+		return false;
-+	mutex_unlock(&sn->svmm->mutex);
-+	return true;
- }
- 
--static int
--nouveau_range_fault(struct nouveau_svmm *svmm, struct hmm_range *range)
-+static const struct mmu_range_notifier_ops nouveau_svm_mrn_ops = {
-+	.invalidate = nouveau_svm_range_invalidate,
-+};
-+
-+static int nouveau_range_fault(struct nouveau_svmm *svmm,
-+			       struct nouveau_drm *drm, void *data, u32 size,
-+			       u64 *pfns,
-+			       struct svm_notifier *notifier)
- {
-+	unsigned long timeout =
-+		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	/* Have HMM fault pages within the fault window to the GPU. */
-+	struct hmm_range range = {
-+		.notifier = &notifier->notifier,
-+		.start = notifier->notifier.interval_tree.start,
-+		.end = notifier->notifier.interval_tree.last + 1,
-+		.pfns = pfns,
-+		.flags = nouveau_svm_pfn_flags,
-+		.values = nouveau_svm_pfn_values,
-+		.pfn_shift = NVIF_VMM_PFNMAP_V0_ADDR_SHIFT,
-+	};
-+	struct mm_struct *mm = notifier->notifier.mm;
- 	long ret;
- 
--	range->default_flags = 0;
--	range->pfn_flags_mask = -1UL;
-+	while (true) {
-+		if (time_after(jiffies, timeout))
-+			return -EBUSY;
- 
--	ret = hmm_range_register(range, &svmm->mirror);
--	if (ret) {
--		up_read(&svmm->notifier.mm->mmap_sem);
--		return (int)ret;
--	}
-+		range.notifier_seq = mmu_range_read_begin(range.notifier);
-+		range.default_flags = 0;
-+		range.pfn_flags_mask = -1UL;
-+		down_read(&mm->mmap_sem);
-+		ret = hmm_range_fault(&range, 0);
-+		up_read(&mm->mmap_sem);
-+		if (ret <= 0) {
-+			if (ret == 0 || ret == -EBUSY)
-+				continue;
-+			return ret;
-+		}
- 
--	if (!hmm_range_wait_until_valid(range, HMM_RANGE_DEFAULT_TIMEOUT)) {
--		up_read(&svmm->notifier.mm->mmap_sem);
--		return -EBUSY;
-+		mutex_lock(&svmm->mutex);
-+		if (mmu_range_read_retry(range.notifier,
-+					 range.notifier_seq)) {
-+			mutex_unlock(&svmm->mutex);
-+			continue;
-+		}
-+		break;
- 	}
- 
--	ret = hmm_range_fault(range, 0);
--	if (ret <= 0) {
--		if (ret == 0)
--			ret = -EBUSY;
--		up_read(&svmm->notifier.mm->mmap_sem);
--		hmm_range_unregister(range);
--		return ret;
--	}
--	return 0;
-+	nouveau_dmem_convert_pfn(drm, &range);
-+
-+	svmm->vmm->vmm.object.client->super = true;
-+	ret = nvif_object_ioctl(&svmm->vmm->vmm.object, data, size, NULL);
-+	svmm->vmm->vmm.object.client->super = false;
-+	mutex_unlock(&svmm->mutex);
-+
-+	return ret;
- }
- 
- static int
-@@ -559,7 +584,6 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 		} i;
- 		u64 phys[16];
- 	} args;
--	struct hmm_range range;
+ static const struct mm_walk_ops hmm_walk_ops = {
+ 	.pud_entry	= hmm_vma_walk_pud,
+ 	.pmd_entry	= hmm_vma_walk_pmd,
+@@ -892,18 +900,23 @@ long hmm_range_fault(struct hmm_range *range, unsigned int flags)
+ 	const unsigned long device_vma = VM_IO | VM_PFNMAP | VM_MIXEDMAP;
+ 	unsigned long start = range->start, end;
+ 	struct hmm_vma_walk hmm_vma_walk;
+-	struct hmm *hmm = range->hmm;
++	struct mm_struct *mm;
  	struct vm_area_struct *vma;
- 	u64 inst, start, limit;
- 	int fi, fn, pi, fill;
-@@ -615,6 +639,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 	args.i.p.version = 0;
+ 	int ret;
  
- 	for (fi = 0; fn = fi + 1, fi < buffer->fault_nr; fi = fn) {
-+		struct svm_notifier notifier;
- 		struct mm_struct *mm;
- 
- 		/* Cancel any faults from non-SVM channels. */
-@@ -623,7 +648,6 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 			continue;
- 		}
- 		SVMM_DBG(svmm, "addr %016llx", buffer->fault[fi]->addr);
--		mm = svmm->notifier.mm;
- 
- 		/* We try and group handling of faults within a small
- 		 * window into a single update.
-@@ -637,6 +661,12 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 			start = max_t(u64, start, svmm->unmanaged.limit);
- 		SVMM_DBG(svmm, "wndw %016llx-%016llx", start, limit);
- 
-+		mm = svmm->notifier.mm;
-+		if (!mmget_not_zero(mm)) {
-+			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
-+			continue;
-+		}
+-	lockdep_assert_held(&hmm->mmu_notifier.mm->mmap_sem);
++	if (range->notifier)
++		mm = range->notifier->mm;
++	else
++		mm = range->hmm->mmu_notifier.mm;
 +
- 		/* Intersect fault window with the CPU VMA, cancelling
- 		 * the fault if the address is invalid.
- 		 */
-@@ -645,16 +675,18 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 		if (!vma) {
- 			SVMM_ERR(svmm, "wndw %016llx-%016llx", start, limit);
- 			up_read(&mm->mmap_sem);
-+			mmput(mm);
- 			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
++	lockdep_assert_held(&mm->mmap_sem);
+ 
+ 	do {
+ 		/* If range is no longer valid force retry. */
+-		if (!range->valid)
++		if (needs_retry(range))
+ 			return -EBUSY;
+ 
+-		vma = find_vma(hmm->mmu_notifier.mm, start);
++		vma = find_vma(mm, start);
+ 		if (vma == NULL || (vma->vm_flags & device_vma))
+ 			return -EFAULT;
+ 
+@@ -933,7 +946,7 @@ long hmm_range_fault(struct hmm_range *range, unsigned int flags)
+ 			start = hmm_vma_walk.last;
+ 
+ 			/* Keep trying while the range is valid. */
+-		} while (ret == -EBUSY && range->valid);
++		} while (ret == -EBUSY && !needs_retry(range));
+ 
+ 		if (ret) {
+ 			unsigned long i;
+@@ -991,7 +1004,7 @@ long hmm_range_dma_map(struct hmm_range *range, struct device *device,
  			continue;
- 		}
- 		start = max_t(u64, start, vma->vm_start);
- 		limit = min_t(u64, limit, vma->vm_end);
-+		up_read(&mm->mmap_sem);
- 		SVMM_DBG(svmm, "wndw %016llx-%016llx", start, limit);
  
- 		if (buffer->fault[fi]->addr != start) {
- 			SVMM_ERR(svmm, "addr %016llx", buffer->fault[fi]->addr);
--			up_read(&mm->mmap_sem);
-+			mmput(mm);
- 			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
- 			continue;
+ 		/* Check if range is being invalidated */
+-		if (!range->valid) {
++		if (needs_retry(range)) {
+ 			ret = -EBUSY;
+ 			goto unmap;
  		}
-@@ -710,33 +742,19 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 			 args.i.p.addr,
- 			 args.i.p.addr + args.i.p.size, fn - fi);
- 
--		/* Have HMM fault pages within the fault window to the GPU. */
--		range.start = args.i.p.addr;
--		range.end = args.i.p.addr + args.i.p.size;
--		range.pfns = args.phys;
--		range.flags = nouveau_svm_pfn_flags;
--		range.values = nouveau_svm_pfn_values;
--		range.pfn_shift = NVIF_VMM_PFNMAP_V0_ADDR_SHIFT;
--again:
--		ret = nouveau_range_fault(svmm, &range);
--		if (ret == 0) {
--			mutex_lock(&svmm->mutex);
--			if (!nouveau_range_done(&range)) {
--				mutex_unlock(&svmm->mutex);
--				goto again;
--			}
--
--			nouveau_dmem_convert_pfn(svm->drm, &range);
--
--			svmm->vmm->vmm.object.client->super = true;
--			ret = nvif_object_ioctl(&svmm->vmm->vmm.object,
--						&args, sizeof(args.i) +
--						pi * sizeof(args.phys[0]),
--						NULL);
--			svmm->vmm->vmm.object.client->super = false;
--			mutex_unlock(&svmm->mutex);
--			up_read(&mm->mmap_sem);
-+		notifier.svmm = svmm;
-+		notifier.notifier.ops = &nouveau_svm_mrn_ops;
-+		ret = mmu_range_notifier_insert(&notifier.notifier,
-+						args.i.p.addr, args.i.p.size,
-+						svmm->notifier.mm);
-+		if (!ret) {
-+			ret = nouveau_range_fault(
-+				svmm, svm->drm, &args,
-+				sizeof(args.i) + pi * sizeof(args.phys[0]),
-+				args.phys, &notifier);
-+			mmu_range_notifier_remove(&notifier.notifier);
- 		}
-+		mmput(mm);
- 
- 		/* Cancel any faults in the window whose pages didn't manage
- 		 * to keep their valid bit, or stay writeable when required.
-@@ -745,10 +763,10 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 		 */
- 		while (fi < fn) {
- 			struct nouveau_svm_fault *fault = buffer->fault[fi++];
--			pi = (fault->addr - range.start) >> PAGE_SHIFT;
-+			pi = (fault->addr - args.i.p.addr) >> PAGE_SHIFT;
- 			if (ret ||
--			     !(range.pfns[pi] & NVIF_VMM_PFNMAP_V0_V) ||
--			    (!(range.pfns[pi] & NVIF_VMM_PFNMAP_V0_W) &&
-+			     !(args.phys[pi] & NVIF_VMM_PFNMAP_V0_V) ||
-+			    (!(args.phys[pi] & NVIF_VMM_PFNMAP_V0_W) &&
- 			     fault->access != 0 && fault->access != 3)) {
- 				nouveau_svm_fault_cancel_fault(svm, fault);
- 				continue;
 -- 
 2.23.0
 
