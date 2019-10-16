@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF2AAFA372B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED9EBFA372E
 	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 12:31:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A786D205F4
+	by mail.kernel.org (Postfix) with ESMTP id D0B5A21848
 	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 12:31:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733261AbfJPMbM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1732599AbfJPMbM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 16 Oct 2019 08:31:12 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:38976 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:38980 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1732599AbfJPMbL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1733106AbfJPMbL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 16 Oct 2019 08:31:11 -0400
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 71D25F062192483169F6;
+        by Forcepoint Email with ESMTP id 769169119992EB688DB1;
         Wed, 16 Oct 2019 20:31:09 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 16 Oct 2019 20:31:02 +0800
+ 14.3.439.0; Wed, 16 Oct 2019 20:31:01 +0800
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v5 rdma-core 4/4] libhns: Add UD support for hip08 in user mode
-Date:   Wed, 16 Oct 2019 20:27:36 +0800
-Message-ID: <1571228856-9573-5-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH v5 rdma-core 2/4] libhns: Simplify the calculation and usage of wqe idx for post verbs
+Date:   Wed, 16 Oct 2019 20:27:34 +0800
+Message-ID: <1571228856-9573-3-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1571228856-9573-1-git-send-email-liweihang@hisilicon.com>
 References: <1571228856-9573-1-git-send-email-liweihang@hisilicon.com>
@@ -42,259 +42,292 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Yixian Liu <liuyixian@huawei.com>
 
-User Application can use Unreliable Datagram on hip08 now.
+Currently, the wqe idx is calculated repeatly everywhere it is used.
+This patch defines wqe_idx and calculated it only once, then just use it
+as needed.
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
 Signed-off-by: Weihang Li <liweihang@hisilicon.com>
 ---
- providers/hns/hns_roce_u_hw_v2.c | 105 ++++++++++++++++++++++++++++++++++++++-
- providers/hns/hns_roce_u_hw_v2.h |  91 +++++++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_verbs.c |   6 +++
- 3 files changed, 201 insertions(+), 1 deletion(-)
+ providers/hns/hns_roce_u_hw_v1.c | 27 ++++++++-----------
+ providers/hns/hns_roce_u_hw_v2.c | 56 +++++++++++++++++++---------------------
+ 2 files changed, 37 insertions(+), 46 deletions(-)
 
+diff --git a/providers/hns/hns_roce_u_hw_v1.c b/providers/hns/hns_roce_u_hw_v1.c
+index fceb57a..c7689d6 100644
+--- a/providers/hns/hns_roce_u_hw_v1.c
++++ b/providers/hns/hns_roce_u_hw_v1.c
+@@ -462,7 +462,6 @@ static int hns_roce_u_v1_arm_cq(struct ibv_cq *ibvcq, int solicited)
+ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 				   struct ibv_send_wr **bad_wr)
+ {
+-	unsigned int ind;
+ 	void *wqe;
+ 	int nreq;
+ 	int ps_opcode, i;
+@@ -471,12 +470,10 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 	struct hns_roce_wqe_data_seg *dseg = NULL;
+ 	struct hns_roce_qp *qp = to_hr_qp(ibvqp);
+ 	struct hns_roce_context *ctx = to_hr_ctx(ibvqp->context);
++	unsigned int wqe_idx;
+ 
+ 	pthread_spin_lock(&qp->sq.lock);
+ 
+-	/* check that state is OK to post send */
+-	ind = qp->sq.head;
+-
+ 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
+ 		if (hns_roce_wq_overflow(&qp->sq, nreq,
+ 					 to_hr_cq(qp->ibv_qp.send_cq))) {
+@@ -484,6 +481,9 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
++
++		wqe_idx = (qp->sq.head + nreq) % qp->sq.wqe_cnt;
++
+ 		if (wr->num_sge > qp->sq.max_gs) {
+ 			ret = -1;
+ 			*bad_wr = wr;
+@@ -492,10 +492,10 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			goto out;
+ 		}
+ 
+-		ctrl = wqe = get_send_wqe(qp, ind & (qp->sq.wqe_cnt - 1));
++		ctrl = wqe = get_send_wqe(qp, wqe_idx);
+ 		memset(ctrl, 0, sizeof(struct hns_roce_wqe_ctrl_seg));
+ 
+-		qp->sq.wrid[ind & (qp->sq.wqe_cnt - 1)] = wr->wr_id;
++		qp->sq.wrid[wqe_idx] = wr->wr_id;
+ 		for (i = 0; i < wr->num_sge; i++)
+ 			ctrl->msg_length = htole32(le32toh(ctrl->msg_length) +
+ 						   wr->sg_list[i].length);
+@@ -578,8 +578,6 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			ctrl->flag |=
+ 			       htole32(wr->num_sge << HNS_ROCE_WQE_SGE_NUM_BIT);
+ 		}
+-
+-		ind++;
+ 	}
+ 
+ out:
+@@ -745,17 +743,14 @@ static int hns_roce_u_v1_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ {
+ 	int ret = 0;
+ 	int nreq;
+-	int ind;
+ 	struct ibv_sge *sg;
+ 	struct hns_roce_rc_rq_wqe *rq_wqe;
+ 	struct hns_roce_qp *qp = to_hr_qp(ibvqp);
+ 	struct hns_roce_context *ctx = to_hr_ctx(ibvqp->context);
++	unsigned int wqe_idx;
+ 
+ 	pthread_spin_lock(&qp->rq.lock);
+ 
+-	/* check that state is OK to post receive */
+-	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
+-
+ 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
+ 		if (hns_roce_wq_overflow(&qp->rq, nreq,
+ 					 to_hr_cq(qp->ibv_qp.recv_cq))) {
+@@ -764,13 +759,15 @@ static int hns_roce_u_v1_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 			goto out;
+ 		}
+ 
++		wqe_idx = (qp->rq.head + nreq) % qp->rq.wqe_cnt;
++
+ 		if (wr->num_sge > qp->rq.max_gs) {
+ 			ret = -1;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+ 
+-		rq_wqe = get_recv_wqe(qp, ind);
++		rq_wqe = get_recv_wqe(qp, wqe_idx);
+ 		if (wr->num_sge > HNS_ROCE_RC_RQ_WQE_MAX_SGE_NUM) {
+ 			ret = -1;
+ 			*bad_wr = wr;
+@@ -811,9 +808,7 @@ static int hns_roce_u_v1_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 				       HNS_ROCE_RC_RQ_WQE_MAX_SGE_NUM - 2);
+ 		}
+ 
+-		qp->rq.wrid[ind] = wr->wr_id;
+-
+-		ind = (ind + 1) & (qp->rq.wqe_cnt - 1);
++		qp->rq.wrid[wqe_idx] = wr->wr_id;
+ 	}
+ 
+ out:
 diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 4eb493c..208b2f1 100644
+index 931f59d..4dbbc7e 100644
 --- a/providers/hns/hns_roce_u_hw_v2.c
 +++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -639,6 +639,108 @@ static void set_sge(struct hns_roce_v2_wqe_data_seg *dseg,
- 	}
- }
- 
-+static void set_ud_wqe(void *wqe, struct hns_roce_qp *qp,
-+		       struct ibv_send_wr *wr, int nreq,
-+		       struct hns_roce_sge_info *sge_info)
-+{
-+	struct hns_roce_ah *ah = to_hr_ah(wr->wr.ud.ah);
-+	struct hns_roce_ud_sq_wqe *ud_sq_wqe = wqe;
-+	struct hns_roce_v2_wqe_data_seg *dseg;
-+	unsigned int hr_op;
-+
-+	memset(ud_sq_wqe, 0, sizeof(*ud_sq_wqe));
-+
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_CQE_S,
-+		     (wr->send_flags & IBV_SEND_SIGNALED) ? 1 : 0);
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_SE_S,
-+		     (wr->send_flags & IBV_SEND_SOLICITED) ? 1 : 0);
-+	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_OWNER_S,
-+		     ~(((qp->sq.head + nreq) >> qp->sq.shift) & 0x1));
-+
-+	switch (wr->opcode) {
-+	case IBV_WR_SEND:
-+		hr_op = HNS_ROCE_WQE_OP_SEND;
-+		break;
-+	case IBV_WR_SEND_WITH_IMM:
-+		hr_op = HNS_ROCE_WQE_OP_SEND_WITH_IMM;
-+		ud_sq_wqe->immtdata =
-+				htole32(be32toh(wr->imm_data));
-+		break;
-+	default:
-+		hr_op = HNS_ROCE_WQE_OP_MASK;
-+		break;
-+	}
-+
-+	roce_set_field(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_OPCODE_M,
-+		       UD_SQ_WQE_OPCODE_S, hr_op);
-+
-+	roce_set_field(ud_sq_wqe->sge_num_pd, UD_SQ_WQE_PD_M,
-+		       UD_SQ_WQE_PD_S, to_hr_pd(qp->ibv_qp.pd)->pdn);
-+
-+	roce_set_field(ud_sq_wqe->rsv_msg_start_sge_idx,
-+		       UD_SQ_WQE_MSG_START_SGE_IDX_M,
-+		       UD_SQ_WQE_MSG_START_SGE_IDX_S,
-+		       sge_info->start_idx & (qp->sge.sge_cnt - 1));
-+
-+	roce_set_field(ud_sq_wqe->udpspn_rsv, UD_SQ_WQE_UDP_SPN_M,
-+		       UD_SQ_WQE_UDP_SPN_S, 0);
-+
-+	ud_sq_wqe->qkey = htole32(wr->wr.ud.remote_qkey);
-+
-+	roce_set_field(ud_sq_wqe->rsv_dqpn, UD_SQ_WQE_DQPN_M,
-+		       UD_SQ_WQE_DQPN_S, wr->wr.ud.remote_qpn);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_VLAN_M,
-+		       UD_SQ_WQE_VLAN_S, ah->av.vlan_id);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_TCLASS_M,
-+		       UD_SQ_WQE_TCLASS_S, ah->av.tclass);
-+
-+	roce_set_field(ud_sq_wqe->tclass_vlan, UD_SQ_WQE_HOPLIMIT_M,
-+		       UD_SQ_WQE_HOPLIMIT_S, ah->av.hop_limit);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_FLOW_LABEL_M,
-+		       UD_SQ_WQE_FLOW_LABEL_S, ah->av.flowlabel);
-+
-+	roce_set_bit(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_VLAN_EN_S,
-+		     ah->av.vlan_en ? 1 : 0);
-+
-+	roce_set_bit(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_LBI_S, 0);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_SL_M,
-+		       UD_SQ_WQE_SL_S, ah->av.sl);
-+
-+	roce_set_field(ud_sq_wqe->lbi_flow_label, UD_SQ_WQE_PORTN_M,
-+		       UD_SQ_WQE_PORTN_S, qp->ibv_qp.qp_num);
-+
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_0_M,
-+		       UD_SQ_WQE_DMAC_0_S, ah->av.mac[0]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_1_M,
-+		       UD_SQ_WQE_DMAC_1_S, ah->av.mac[1]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_2_M,
-+		       UD_SQ_WQE_DMAC_2_S, ah->av.mac[2]);
-+	roce_set_field(ud_sq_wqe->dmac, UD_SQ_WQE_DMAC_3_M,
-+		       UD_SQ_WQE_DMAC_3_S, ah->av.mac[3]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac,
-+		       UD_SQ_WQE_DMAC_4_M, UD_SQ_WQE_DMAC_4_S,
-+		       to_hr_ah(wr->wr.ud.ah)->av.mac[4]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac,
-+		       UD_SQ_WQE_DMAC_5_M, UD_SQ_WQE_DMAC_5_S,
-+		       to_hr_ah(wr->wr.ud.ah)->av.mac[5]);
-+	roce_set_field(ud_sq_wqe->smac_index_dmac, UD_SQ_WQE_SGID_IDX_M,
-+		       UD_SQ_WQE_SGID_IDX_S, ah->av.gid_index);
-+
-+	memcpy(ud_sq_wqe->dgid, ah->av.dgid, HNS_ROCE_GID_SIZE);
-+
-+	dseg = wqe;
-+	set_sge(dseg, qp, wr, sge_info);
-+
-+	ud_sq_wqe->msg_len = htole32(sge_info->total_len);
-+
-+	roce_set_field(ud_sq_wqe->sge_num_pd, UD_SQ_WQE_SGE_NUM_M,
-+		       UD_SQ_WQE_SGE_NUM_S, sge_info->valid_num);
-+}
-+
- static int set_rc_wqe(void *wqe, struct hns_roce_qp *qp, struct ibv_send_wr *wr,
- 		      int nreq, struct hns_roce_sge_info *sge_info)
+@@ -612,27 +612,26 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
+ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			    struct ibv_send_wr **bad_wr)
  {
-@@ -827,8 +929,9 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 				goto out;
+-	unsigned int ind_sge;
+-	unsigned int ind;
+-	int nreq;
+-	void *wqe;
+-	int ret = 0;
+-	struct hns_roce_qp *qp = to_hr_qp(ibvqp);
+ 	struct hns_roce_context *ctx = to_hr_ctx(ibvqp->context);
+-	struct hns_roce_rc_sq_wqe *rc_sq_wqe;
++	struct hns_roce_qp *qp = to_hr_qp(ibvqp);
+ 	struct hns_roce_v2_wqe_data_seg *dseg;
++	struct hns_roce_rc_sq_wqe *rc_sq_wqe;
+ 	struct ibv_qp_attr attr;
++	unsigned int wqe_idx;
++	unsigned int sge_idx;
+ 	int valid_num_sge;
+ 	int attr_mask;
++	int ret = 0;
++	void *wqe;
++	int nreq;
+ 	int j;
+ 	int i;
+ 
+ 	pthread_spin_lock(&qp->sq.lock);
+ 
+-	/* check that state is OK to post send */
+-	ind = qp->sq.head;
+-	ind_sge = qp->next_sge;
++	sge_idx = qp->next_sge;
+ 
++	/* check that state is OK to post send */
+ 	if (ibvqp->state == IBV_QPS_RESET || ibvqp->state == IBV_QPS_INIT ||
+ 	    ibvqp->state == IBV_QPS_RTR) {
+ 		pthread_spin_unlock(&qp->sq.lock);
+@@ -648,18 +647,19 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			goto out;
+ 		}
+ 
++		wqe_idx = (qp->sq.head + nreq) % qp->sq.wqe_cnt;
++
+ 		if (wr->num_sge > qp->sq.max_gs) {
+ 			ret = EINVAL;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+ 
+-		wqe = get_send_wqe(qp, ind & (qp->sq.wqe_cnt - 1));
++		wqe = get_send_wqe(qp, wqe_idx);
+ 		rc_sq_wqe = wqe;
+ 
+ 		memset(rc_sq_wqe, 0, sizeof(struct hns_roce_rc_sq_wqe));
+-
+-		qp->sq.wrid[ind & (qp->sq.wqe_cnt - 1)] = wr->wr_id;
++		qp->sq.wrid[wqe_idx] = wr->wr_id;
+ 
+ 		valid_num_sge = wr->num_sge;
+ 		j = 0;
+@@ -880,7 +880,7 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 				roce_set_field(rc_sq_wqe->byte_20,
+ 					RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_M,
+ 					RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_S,
+-					ind_sge & (qp->sge.sge_cnt - 1));
++					sge_idx & (qp->sge.sge_cnt - 1));
+ 
+ 				for (i = 0; i < wr->num_sge && j < 2; i++)
+ 					if (likely(wr->sg_list[i].length)) {
+@@ -893,17 +893,15 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 				for (; i < wr->num_sge; i++) {
+ 					if (likely(wr->sg_list[i].length)) {
+ 						dseg = get_send_sge_ex(qp,
+-							ind_sge &
++							sge_idx &
+ 							(qp->sge.sge_cnt - 1));
+ 						set_data_seg_v2(dseg,
+ 							   wr->sg_list + i);
+-						ind_sge++;
++						sge_idx++;
+ 					}
+ 				}
  			}
- 			break;
--		case IBV_QPT_UC:
- 		case IBV_QPT_UD:
-+			set_ud_wqe(wqe, qp, wr, nreq, &sge_info);
-+			break;
- 		default:
+ 		}
+-
+-		ind++;
+ 	}
+ 
+ out:
+@@ -916,7 +914,7 @@ out:
+ 		if (qp->flags & HNS_ROCE_SUPPORT_SQ_RECORD_DB)
+ 			*(qp->sdb) = qp->sq.head & 0xffff;
+ 
+-		qp->next_sge = ind_sge;
++		qp->next_sge = sge_idx;
+ 	}
+ 
+ 	pthread_spin_unlock(&qp->sq.lock);
+@@ -936,23 +934,21 @@ out:
+ static int hns_roce_u_v2_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 				   struct ibv_recv_wr **bad_wr)
+ {
+-	int ret = 0;
+-	int nreq;
+-	int ind;
+ 	struct hns_roce_qp *qp = to_hr_qp(ibvqp);
+ 	struct hns_roce_context *ctx = to_hr_ctx(ibvqp->context);
+ 	struct hns_roce_v2_wqe_data_seg *dseg;
+ 	struct hns_roce_rinl_sge *sge_list;
+ 	struct ibv_qp_attr attr;
+ 	int attr_mask;
++	int ret = 0;
++	int wqe_idx;
+ 	void *wqe;
++	int nreq;
+ 	int i;
+ 
+ 	pthread_spin_lock(&qp->rq.lock);
+ 
+ 	/* check that state is OK to post receive */
+-	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
+-
+ 	if (ibvqp->state == IBV_QPS_RESET) {
+ 		pthread_spin_unlock(&qp->rq.lock);
+ 		*bad_wr = wr;
+@@ -967,13 +963,15 @@ static int hns_roce_u_v2_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 			goto out;
+ 		}
+ 
++		wqe_idx = (qp->rq.head + nreq) % qp->rq.wqe_cnt;
++
+ 		if (wr->num_sge > qp->rq.max_gs) {
  			ret = -EINVAL;
  			*bad_wr = wr;
-diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
-index 3eca1fd..84cf6c4 100644
---- a/providers/hns/hns_roce_u_hw_v2.h
-+++ b/providers/hns/hns_roce_u_hw_v2.h
-@@ -291,4 +291,95 @@ struct hns_roce_wqe_atomic_seg {
- int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			    struct ibv_send_wr **bad_wr);
- 
-+struct hns_roce_ud_sq_wqe {
-+	__le32		rsv_opcode;
-+	__le32		msg_len;
-+	__le32		immtdata;
-+	__le32		sge_num_pd;
-+	__le32		rsv_msg_start_sge_idx;
-+	__le32		udpspn_rsv;
-+	__le32		qkey;
-+	__le32		rsv_dqpn;
-+	__le32		tclass_vlan;
-+	__le32		lbi_flow_label;
-+	__le32		dmac;
-+	__le32		smac_index_dmac;
-+	uint8_t		dgid[HNS_ROCE_GID_SIZE];
-+};
-+
-+#define UD_SQ_WQE_OPCODE_S 0
-+#define UD_SQ_WQE_OPCODE_M  (((1UL << 5) - 1) << UD_SQ_WQE_OPCODE_S)
-+
-+#define UD_SQ_WQE_OWNER_S 7
-+
-+#define UD_SQ_WQE_CQE_S 8
-+
-+#define UD_SQ_WQE_SE_S 11
-+
-+#define UD_SQ_WQE_PD_S 0
-+#define UD_SQ_WQE_PD_M  (((1UL << 24) - 1) << UD_SQ_WQE_PD_S)
-+
-+#define UD_SQ_WQE_SGE_NUM_S 24
-+#define UD_SQ_WQE_SGE_NUM_M  (((1UL << 8) - 1) << UD_SQ_WQE_SGE_NUM_S)
-+
-+#define UD_SQ_WQE_MSG_START_SGE_IDX_S 0
-+#define UD_SQ_WQE_MSG_START_SGE_IDX_M \
-+	(((1UL << 24) - 1) << UD_SQ_WQE_MSG_START_SGE_IDX_S)
-+
-+#define UD_SQ_WQE_UDP_SPN_S 16
-+#define UD_SQ_WQE_UDP_SPN_M \
-+	(((1UL << 16) - 1) << UD_SQ_WQE_UDP_SPN_S)
-+
-+#define UD_SQ_WQE_DQPN_S 0
-+#define UD_SQ_WQE_DQPN_M (((1UL << 24) - 1) << UD_SQ_WQE_DQPN_S)
-+
-+#define UD_SQ_WQE_VLAN_S 0
-+#define UD_SQ_WQE_VLAN_M (((1UL << 16) - 1) << UD_SQ_WQE_VLAN_S)
-+
-+#define UD_SQ_WQE_HOPLIMIT_S 16
-+#define UD_SQ_WQE_HOPLIMIT_M (((1UL << 8) - 1) << UD_SQ_WQE_HOPLIMIT_S)
-+
-+#define UD_SQ_WQE_TCLASS_S 24
-+#define UD_SQ_WQE_TCLASS_M (((1UL << 8) - 1) << UD_SQ_WQE_TCLASS_S)
-+
-+#define UD_SQ_WQE_FLOW_LABEL_S 0
-+#define UD_SQ_WQE_FLOW_LABEL_M (((1UL << 20) - 1) << UD_SQ_WQE_FLOW_LABEL_S)
-+
-+#define UD_SQ_WQE_SL_S 20
-+#define UD_SQ_WQE_SL_M (((1UL << 4) - 1) << UD_SQ_WQE_SL_S)
-+
-+#define UD_SQ_WQE_PORTN_S 24
-+#define UD_SQ_WQE_PORTN_M (((1UL << 3) - 1) << UD_SQ_WQE_PORTN_S)
-+
-+#define UD_SQ_WQE_VLAN_EN_S 30
-+
-+#define UD_SQ_WQE_LBI_S 31
-+
-+#define UD_SQ_WQE_PORTN_S 24
-+#define UD_SQ_WQE_PORTN_M (((1UL << 3) - 1) << UD_SQ_WQE_PORTN_S)
-+
-+#define UD_SQ_WQE_DMAC_0_S 0
-+#define UD_SQ_WQE_DMAC_0_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_0_S)
-+
-+#define UD_SQ_WQE_DMAC_1_S 8
-+#define UD_SQ_WQE_DMAC_1_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_1_S)
-+
-+#define UD_SQ_WQE_DMAC_2_S 16
-+#define UD_SQ_WQE_DMAC_2_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_2_S)
-+
-+#define UD_SQ_WQE_DMAC_3_S 24
-+#define UD_SQ_WQE_DMAC_3_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_3_S)
-+
-+#define UD_SQ_WQE_DMAC_4_S 0
-+#define UD_SQ_WQE_DMAC_4_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_4_S)
-+
-+#define UD_SQ_WQE_DMAC_5_S 8
-+#define UD_SQ_WQE_DMAC_5_M (((1UL << 8) - 1) << UD_SQ_WQE_DMAC_5_S)
-+
-+#define UD_SQ_WQE_SGID_IDX_S 16
-+#define UD_SQ_WQE_SGID_IDX_M (((1UL << 8) - 1) << UD_SQ_WQE_SGID_IDX_S)
-+
-+#define UD_SQ_WQE_SMAC_IDX_S 24
-+#define UD_SQ_WQE_SMAC_IDX_M (((1UL << 8) - 1) << UD_SQ_WQE_SMAC_IDX_S)
-+
- #endif /* _HNS_ROCE_U_HW_V2_H */
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index ef4b9e0..e72df38 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -767,6 +767,12 @@ static void hns_roce_set_qp_params(struct ibv_pd *pd,
+ 			goto out;
  		}
+ 
+-		wqe = get_recv_wqe_v2(qp, ind);
++		wqe = get_recv_wqe_v2(qp, wqe_idx);
+ 		if (!wqe) {
+ 			ret = -EINVAL;
+ 			*bad_wr = wr;
+@@ -995,8 +993,8 @@ static int hns_roce_u_v2_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 		}
+ 
+ 		/* QP support receive inline wqe */
+-		sge_list = qp->rq_rinl_buf.wqe_list[ind].sg_list;
+-		qp->rq_rinl_buf.wqe_list[ind].sge_cnt =
++		sge_list = qp->rq_rinl_buf.wqe_list[wqe_idx].sg_list;
++		qp->rq_rinl_buf.wqe_list[wqe_idx].sge_cnt =
+ 						(unsigned int)wr->num_sge;
+ 
+ 		for (i = 0; i < wr->num_sge; i++) {
+@@ -1005,9 +1003,7 @@ static int hns_roce_u_v2_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 			sge_list[i].len = wr->sg_list[i].length;
+ 		}
+ 
+-		qp->rq.wrid[ind] = wr->wr_id;
+-
+-		ind = (ind + 1) & (qp->rq.wqe_cnt - 1);
++		qp->rq.wrid[wqe_idx] = wr->wr_id;
  	}
  
-+	if (attr->qp_type == IBV_QPT_UD)
-+		qp->sge.sge_cnt = roundup_pow_of_two(qp->sq.wqe_cnt *
-+						     qp->sq.max_gs);
-+
-+	qp->ibv_qp.qp_type = attr->qp_type;
-+
- 	/* limit by the context queried during alloc context */
- 	qp->rq.max_post = min(ctx->max_qp_wr, qp->rq.wqe_cnt);
- 	qp->sq.max_post = min(ctx->max_qp_wr, qp->sq.wqe_cnt);
+ out:
 -- 
 2.8.1
 
