@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B2D6C4360C
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65E71ECE599
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 19C21217D6
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CC07217D6
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571207016;
-	bh=wExeg08dnC9hjHSrh+fnDshufIpwyWOA6a0dutrid7g=;
+	s=default; t=1571207021;
+	bh=AuN27xd95CurJ72wjqYKq5zMYg45LvzPhaAkybiv6ig=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=UCHbWhNd0x+UWpcix1jOVxQUu8BY3vy9uqUsjDklVR1FLAw/FxZ6vCGVoHYrG/+7e
-	 WxEWR7N9iKoA6OqGEE3d4vv8KAGp8Nn8fcTRI51AnWsF6xu8RLAGjCBNswmxYYPlI3
-	 cVAfniA1t3LX3cBoDDKVp3fxSpcE3RM92IMGpjxk=
+	b=Ka3U4/DEyB0mrG1hDf/PKw8Grk++FX6xeDJQA/w5gBgfjv5FjayYO0A+bfwXGHW4g
+	 B0TN+pMNfizWPNvJmFcVmwoKPQh7ohFLWj4rimHEDQWhhFb/kcq+2XuzSb0eYvnnwg
+	 RVeyPBkmdtQcmtTj3/exbjZUmqBR3gizxAkirc/Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730748AbfJPGXf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Oct 2019 02:23:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57568 "EHLO mail.kernel.org"
+        id S1731020AbfJPGXk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Oct 2019 02:23:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727444AbfJPGXf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Oct 2019 02:23:35 -0400
+        id S1730793AbfJPGXk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 16 Oct 2019 02:23:40 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 023FF20873;
-        Wed, 16 Oct 2019 06:23:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 506DF20873;
+        Wed, 16 Oct 2019 06:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571207014;
-        bh=wExeg08dnC9hjHSrh+fnDshufIpwyWOA6a0dutrid7g=;
+        s=default; t=1571207019;
+        bh=AuN27xd95CurJ72wjqYKq5zMYg45LvzPhaAkybiv6ig=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=0RExWcdE4NXY72loIIg2TbU6cvBQRVFFBhUam2Sy6C2/uIjkDAbTJ9aPDufO+LXVM
-         NPDJRHEuB84Nc2lZ4EE3Eirz7S9ZZ9a2OLoqT/GTeGsfAzPOFn1TWUyZkIIMRQQptP
-         cvEMPvAR6l2DzwL1vVzTj68MzUVgarajDoTUmCHg=
+        b=qWa/xFtTsFZ4v6fEOl2Ie+v3ECpN0oCHkcod0Xhmc3WKARIb6UaZ7yutkXRJvU3pn
+         rwbVUkrtYpzK7lzQcvto9CIeaDncuA4xe/LR6ZAgArUvqdWRJPSv1ZLtBr+emWVCx9
+         Rk9XDct8yb5FanL0H/FOsyAEDGzrimy0TkKfpHGQ=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Erez Alfasi <ereza@mellanox.com>
-Subject: [PATCH rdma-next v3 4/4] RDMA/nldev: Provide MR statistics
-Date:   Wed, 16 Oct 2019 09:23:08 +0300
-Message-Id: <20191016062308.11886-5-leon@kernel.org>
+Subject: [PATCH rdma-next v3 1/4] IB/mlx5: Introduce ODP diagnostic counters
+Date:   Wed, 16 Oct 2019 09:23:05 +0300
+Message-Id: <20191016062308.11886-2-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20191016062308.11886-1-leon@kernel.org>
 References: <20191016062308.11886-1-leon@kernel.org>
@@ -59,240 +59,115 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Erez Alfasi <ereza@mellanox.com>
 
-Add RDMA nldev netlink interface for dumping MR
-statistics information.
-
-Output example:
-ereza@dev~$: ./ibv_rc_pingpong -o -P -s 500000000
-  local address:  LID 0x0001, QPN 0x00008a, PSN 0xf81096, GID ::
-
-ereza@dev~$: rdma stat show mr
-dev mlx5_0 mrn 2 page_faults 122071 page_invalidations 0
+Introduce ODP diagnostic counters and count the following
+per MR within IB/mlx5 driver:
+ 1) Page faults:
+	Total number of faulted pages.
+ 2) Page invalidations:
+	Total number of pages invalidated by the OS during all
+	invalidation events. The translations can be no longer
+	valid due to either non-present pages or mapping changes.
 
 Signed-off-by: Erez Alfasi <ereza@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/device.c      |  1 +
- drivers/infiniband/core/nldev.c       | 41 +++++++++++++++++++++++---
- drivers/infiniband/hw/mlx5/main.c     |  2 ++
- drivers/infiniband/hw/mlx5/mlx5_ib.h  |  2 ++
- drivers/infiniband/hw/mlx5/restrack.c | 42 +++++++++++++++++++++++++++
- include/rdma/ib_verbs.h               |  7 +++++
- include/rdma/restrack.h               |  3 ++
- 7 files changed, 94 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  4 ++++
+ drivers/infiniband/hw/mlx5/odp.c     | 15 +++++++++++++++
+ include/rdma/ib_verbs.h              |  5 +++++
+ 3 files changed, 24 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index a667636f74bf..2e53aa25f0c7 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2606,6 +2606,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, drain_sq);
- 	SET_DEVICE_OP(dev_ops, enable_driver);
- 	SET_DEVICE_OP(dev_ops, fill_res_entry);
-+	SET_DEVICE_OP(dev_ops, fill_stat_entry);
- 	SET_DEVICE_OP(dev_ops, get_dev_fw_str);
- 	SET_DEVICE_OP(dev_ops, get_dma_mr);
- 	SET_DEVICE_OP(dev_ops, get_hw_stats);
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index a38e7f5166fc..5e056d5e5be3 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -453,6 +453,14 @@ static bool fill_res_entry(struct ib_device *dev, struct sk_buff *msg,
- 	return dev->ops.fill_res_entry(msg, res);
- }
-
-+static bool fill_stat_entry(struct ib_device *dev, struct sk_buff *msg,
-+			    struct rdma_restrack_entry *res)
-+{
-+	if (!dev->ops.fill_stat_entry)
-+		return false;
-+	return dev->ops.fill_stat_entry(msg, res);
-+}
-+
- static int fill_res_qp_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 			     struct rdma_restrack_entry *res, uint32_t port)
- {
-@@ -750,8 +758,8 @@ static int fill_stat_counter_qps(struct sk_buff *msg,
- 	return ret;
- }
-
--static int fill_stat_hwcounter_entry(struct sk_buff *msg,
--				     const char *name, u64 value)
-+int fill_stat_hwcounter_entry(struct sk_buff *msg,
-+			      const char *name, u64 value)
- {
- 	struct nlattr *entry_attr;
-
-@@ -773,6 +781,25 @@ static int fill_stat_hwcounter_entry(struct sk_buff *msg,
- 	nla_nest_cancel(msg, entry_attr);
- 	return -EMSGSIZE;
- }
-+EXPORT_SYMBOL(fill_stat_hwcounter_entry);
-+
-+static int fill_stat_mr_entry(struct sk_buff *msg, bool has_cap_net_admin,
-+			      struct rdma_restrack_entry *res, uint32_t port)
-+{
-+	struct ib_mr *mr = container_of(res, struct ib_mr, res);
-+	struct ib_device *dev = mr->pd->device;
-+
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_MRN, res->id))
-+		goto err;
-+
-+	if (fill_stat_entry(dev, msg, res))
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	return -EMSGSIZE;
-+}
-
- static int fill_stat_counter_hwcounters(struct sk_buff *msg,
- 					struct rdma_counter *counter)
-@@ -2009,7 +2036,10 @@ static int nldev_stat_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	case RDMA_NLDEV_ATTR_RES_QP:
- 		ret = stat_get_doit_qp(skb, nlh, extack, tb);
- 		break;
--
-+	case RDMA_NLDEV_ATTR_RES_MR:
-+		ret = res_get_common_doit(skb, nlh, extack, RDMA_RESTRACK_MR,
-+					  fill_stat_mr_entry);
-+		break;
- 	default:
- 		ret = -EINVAL;
- 		break;
-@@ -2033,7 +2063,10 @@ static int nldev_stat_get_dumpit(struct sk_buff *skb,
- 	case RDMA_NLDEV_ATTR_RES_QP:
- 		ret = nldev_res_get_counter_dumpit(skb, cb);
- 		break;
--
-+	case RDMA_NLDEV_ATTR_RES_MR:
-+		ret = res_get_common_dumpit(skb, cb, RDMA_RESTRACK_MR,
-+					    fill_stat_mr_entry);
-+		break;
- 	default:
- 		ret = -EINVAL;
- 		break;
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 3c3c19129cdd..fa23c8e7043b 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -67,6 +67,7 @@
- #include <rdma/uverbs_std_types.h>
- #include <rdma/mlx5_user_ioctl_verbs.h>
- #include <rdma/mlx5_user_ioctl_cmds.h>
-+#include <rdma/ib_umem_odp.h>
-
- #define UVERBS_MODULE_NAME mlx5_ib
- #include <rdma/uverbs_named_ioctl.h>
-@@ -6270,6 +6271,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
- 	.drain_rq = mlx5_ib_drain_rq,
- 	.drain_sq = mlx5_ib_drain_sq,
- 	.fill_res_entry = mlx5_ib_fill_res_entry,
-+	.fill_stat_entry = mlx5_ib_fill_stat_entry,
- 	.get_dev_fw_str = get_dev_fw_str,
- 	.get_dma_mr = mlx5_ib_get_dma_mr,
- 	.get_link_layer = mlx5_ib_port_link_layer,
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index a0ca1ef16e4e..e9bdb48cf1d3 100644
+index bf30d53d94dc..5aae05ebf64b 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1342,6 +1342,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
- 				  u8 port_num);
- int mlx5_ib_fill_res_entry(struct sk_buff *msg,
- 			   struct rdma_restrack_entry *res);
-+int mlx5_ib_fill_stat_entry(struct sk_buff *msg,
-+			    struct rdma_restrack_entry *res);
+@@ -585,6 +585,9 @@ struct mlx5_ib_dm {
+ 					  IB_ACCESS_REMOTE_READ   |\
+ 					  IB_ZERO_BASED)
 
- #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
- int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user);
-diff --git a/drivers/infiniband/hw/mlx5/restrack.c b/drivers/infiniband/hw/mlx5/restrack.c
-index 065049f52b83..2b1f916570f9 100644
---- a/drivers/infiniband/hw/mlx5/restrack.c
-+++ b/drivers/infiniband/hw/mlx5/restrack.c
-@@ -8,6 +8,39 @@
- #include <rdma/restrack.h>
- #include "mlx5_ib.h"
++#define mlx5_update_odp_stats(mr, counter_name, value)		\
++	atomic64_add(value, &((mr)->odp_stats.counter_name))
++
+ struct mlx5_ib_mr {
+ 	struct ib_mr		ibmr;
+ 	void			*descs;
+@@ -622,6 +625,7 @@ struct mlx5_ib_mr {
+ 	wait_queue_head_t       q_leaf_free;
+ 	struct mlx5_async_work  cb_work;
+ 	atomic_t		num_pending_prefetch;
++	struct ib_odp_counters	odp_stats;
+ };
 
-+static int fill_stat_mr_entry(struct sk_buff *msg,
-+			      struct rdma_restrack_entry *res)
-+{
-+	struct ib_mr *ibmr = container_of(res, struct ib_mr, res);
-+	struct mlx5_ib_mr *mr = to_mmr(ibmr);
-+	struct nlattr *table_attr;
-+
-+	if (!(mr->access_flags & IB_ACCESS_ON_DEMAND))
-+		return 0;
-+
-+	table_attr = nla_nest_start(msg,
-+				    RDMA_NLDEV_ATTR_STAT_HWCOUNTERS);
-+
-+	if (!table_attr)
-+		goto err;
-+
-+	if (fill_stat_hwcounter_entry(msg, "page_faults",
-+				      atomic64_read(&mr->odp_stats.faults)))
-+		goto err_table;
-+	if (fill_stat_hwcounter_entry(
-+		    msg, "page_invalidations",
-+		    atomic64_read(&mr->odp_stats.invalidations)))
-+		goto err_table;
-+
-+	nla_nest_end(msg, table_attr);
-+	return 0;
-+
-+err_table:
-+	nla_nest_cancel(msg, table_attr);
-+err:
-+	return -EMSGSIZE;
-+}
-+
- static int fill_res_mr_entry(struct sk_buff *msg,
- 			     struct rdma_restrack_entry *res)
- {
-@@ -46,3 +79,12 @@ int mlx5_ib_fill_res_entry(struct sk_buff *msg,
+ static inline bool is_odp_mr(struct mlx5_ib_mr *mr)
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 95cf0249b015..3601c6ad96f9 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -224,6 +224,7 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+ 	const u64 umr_block_mask = (MLX5_UMR_MTT_ALIGNMENT /
+ 				    sizeof(struct mlx5_mtt)) - 1;
+ 	u64 idx = 0, blk_start_idx = 0;
++	u64 invalidations = 0;
+ 	int in_block = 0;
+ 	u64 addr;
 
- 	return 0;
- }
+@@ -261,6 +262,9 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+ 				blk_start_idx = idx;
+ 				in_block = 1;
+ 			}
 +
-+int mlx5_ib_fill_stat_entry(struct sk_buff *msg,
-+			    struct rdma_restrack_entry *res)
-+{
-+	if (res->type == RDMA_RESTRACK_MR)
-+		return fill_stat_mr_entry(msg, res);
++			/* Count page invalidations */
++			invalidations += idx - blk_start_idx + 1;
+ 		} else {
+ 			u64 umr_offset = idx & umr_block_mask;
+
+@@ -279,6 +283,9 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+ 				   MLX5_IB_UPD_XLT_ZAP |
+ 				   MLX5_IB_UPD_XLT_ATOMIC);
+ 	mutex_unlock(&umem_odp->umem_mutex);
 +
-+	return 0;
-+}
++	mlx5_update_odp_stats(mr, invalidations, invalidations);
++
+ 	/*
+ 	 * We are now sure that the device will not access the
+ 	 * memory. We can safely unmap it, and mark it as dirty if
+@@ -287,6 +294,7 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
+
+ 	ib_umem_odp_unmap_dma_pages(umem_odp, start, end);
+
++
+ 	if (unlikely(!umem_odp->npages && mr->parent &&
+ 		     !umem_odp->dying)) {
+ 		WRITE_ONCE(umem_odp->dying, 1);
+@@ -801,6 +809,13 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 		if (ret < 0)
+ 			goto srcu_unlock;
+
++		/*
++		 * When prefetching a page, page fault is generated
++		 * in order to bring the page to the main memory.
++		 * In the current flow, page faults are being counted.
++		 */
++		mlx5_update_odp_stats(mr, faults, ret);
++
+ 		npages += ret;
+ 		ret = 0;
+ 		break;
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 26600dfb345d..aa8306f9ad83 100644
+index 6a47ba85c54c..26600dfb345d 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2568,6 +2568,13 @@ struct ib_device_ops {
- 	 */
- 	int (*counter_update_stats)(struct rdma_counter *counter);
+@@ -2218,6 +2218,11 @@ struct rdma_netdev_alloc_params {
+ 				      struct net_device *netdev, void *param);
+ };
 
-+	/**
-+	 * Allows rdma drivers to add their own restrack attributes
-+	 * dumped via 'rdma stat' iproute2 command.
-+	 */
-+	int (*fill_stat_entry)(struct sk_buff *msg,
-+			       struct rdma_restrack_entry *entry);
++struct ib_odp_counters {
++	atomic64_t faults;
++	atomic64_t invalidations;
++};
 +
- 	DECLARE_RDMA_OBJ_SIZE(ib_ah);
- 	DECLARE_RDMA_OBJ_SIZE(ib_cq);
- 	DECLARE_RDMA_OBJ_SIZE(ib_pd);
-diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-index fe9b3c507a9c..90fdbe8a24a6 100644
---- a/include/rdma/restrack.h
-+++ b/include/rdma/restrack.h
-@@ -162,4 +162,7 @@ int rdma_nl_put_driver_string(struct sk_buff *msg, const char *name,
- struct rdma_restrack_entry *rdma_restrack_get_byid(struct ib_device *dev,
- 						   enum rdma_restrack_type type,
- 						   u32 id);
-+int fill_stat_hwcounter_entry(struct sk_buff *msg,
-+			      const char *name, u64 value);
-+
- #endif /* _RDMA_RESTRACK_H_ */
+ struct ib_counters {
+ 	struct ib_device	*device;
+ 	struct ib_uobject	*uobject;
 --
 2.20.1
 
