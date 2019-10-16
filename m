@@ -2,51 +2,54 @@ Return-Path: <SRS0=MLWl=YJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04EC1ECE599
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B88E6C4360C
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CF9242168B
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EA8420873
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571206997;
-	bh=Beg804sqWjD4XTvY9Sl/AIfBaz23PPcaTSMbpvfYNdw=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=n8UahuvQKzc5rjdZTYv4//okCnoTspxIMZ2XAdFQVeqhEeKMS7cMuapjPUXqUPHDX
-	 7ZoFykjbOZuwUW9zzHqmH/zhCjvXOoJHfOEkl2QoyEl1v0GiEByNRQIE9aFZNb91tr
-	 meOwaAGJ5/X6fJ3yV9dKgVY2jENOdWuSU/xKyGMk=
+	s=default; t=1571207004;
+	bh=jC3sdtn3A5+rtMuVhfvoDmUx9Vc1tAcaQFKUOdJMPhQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=ejyULS0siiIMhzrr7Nmki4Tn9XZDQ6dAcdH50gKwtUMsj6ZOFqNzRsWYI4M1picnd
+	 ZLNPRLzLVqFRIHj7dzdrzFRnyfKssNimFSgHOBs1Wg+AxqVa/n1hqF7C6aHkPXHg3m
+	 4Z830e2wrmbcww0s4hld+YdoWeXls8IBpk7P8Zu0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727417AbfJPGXR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Oct 2019 02:23:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57418 "EHLO mail.kernel.org"
+        id S1727796AbfJPGXY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Oct 2019 02:23:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727444AbfJPGXR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Oct 2019 02:23:17 -0400
+        id S1727444AbfJPGXY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 16 Oct 2019 02:23:24 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6649620873;
-        Wed, 16 Oct 2019 06:23:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DC49620873;
+        Wed, 16 Oct 2019 06:23:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571206996;
-        bh=Beg804sqWjD4XTvY9Sl/AIfBaz23PPcaTSMbpvfYNdw=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Td8+/aBTzHCrfCoSpp+p2aoti/fa6YBI5uTCxVhT1/4G3rXFlTRY4hR2fRM+cZQa7
-         VFgIzcQo0BVTIEFJ5xm3um2DWQRmB+tBb8XWaPlBOQ088M3KoO79aTlRsSjrXCHvF/
-         jxbcX5HLOiIY128NvzmFjXrBZP1kmznamRBSK7f4=
+        s=default; t=1571207002;
+        bh=jC3sdtn3A5+rtMuVhfvoDmUx9Vc1tAcaQFKUOdJMPhQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=g4Ye81jSMwByoYmgsgYG/eDy5TOLaceO/fHscBvmmb3fmCjnKLgDIrs9jYBRjhCa5
+         SBZBctTDrM0diJP+8WMRxcvBrsgLlSBYzTWdj9t5VRq2tAvbWdIECwOQ4osl5XADPB
+         OiqZQSzCZXU87D+5N1fJpouHsZa/lsN25Ui2FsM0=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Erez Alfasi <ereza@mellanox.com>
-Subject: [PATCH rdma-next v3 0/4] ODP information and statistics
-Date:   Wed, 16 Oct 2019 09:23:04 +0300
-Message-Id: <20191016062308.11886-1-leon@kernel.org>
+Subject: [PATCH rdma-next v3 2/4] RDMA/nldev: Allow different fill function per resource
+Date:   Wed, 16 Oct 2019 09:23:06 +0300
+Message-Id: <20191016062308.11886-3-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20191016062308.11886-1-leon@kernel.org>
+References: <20191016062308.11886-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -54,66 +57,162 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Erez Alfasi <ereza@mellanox.com>
 
-Changelog:
- v3:
- * Implement batch count of "invalidataions".
- * "prefetched" ounter is dropped, will be separated to two separate counters (RQ/SQ)
-  later once Jason's ODP rework will be finished.
- v2: https://lore.kernel.org/linux-rdma/20191006155139.30632-1-leon@kernel.org
- * Since umems can disappear during rereg flow and the fact that we
-   are not locking its during our counter usage (uverbs prevents this
-   by holding the uobject write lock), expose possible race bugs. Move
-   the counters into mlx5_ib_mr to avoid racing bugs (related patches
-   - #1, #3 & #4).
- * Fix page invalidation counting (Patch #1).
- * Make the code more elegant by defining fill_function type and use it
-   within res_common_{dumpit, doit} (Patch #2).
- * Put an ODP implicit indicator within mlx5 reg MR operation,
-   indicating when a given MR is ODP implicit registered and use
-   its indication when dumping ODP type.
- * Since the counters has been moved to mlx5_ib_mr, the ODP stats are now
-   filled with internal to mlx5 driver function. Remove the fill_odp_stats
-   device operation from the reason mentioned above.
- v1: https://lore.kernel.org/linux-rdma/20190830081612.2611-1-leon@kernel.org
- * Dropped umem patch, because it doesn't follow our IB model, where
-   UMEM is driver object and ib_core object (Jason).
- * Removed the ODP type indicator from ib_umem_odp not needed after
-   commit fd7dbf035edc ("RDMA/odp: Make it clearer when a umem is an implicit ODP umem")
- * Since umems are not part of core MR (from the reason mentioned
-   above) there is no way to access the odp type as was previously done via nldev
-   (old patch #3). Instead, patch #4 is adding mlx5 implementation for fill_res_entry
-   and dumping ODP type as part of the driver table entry, as its driver details.
- * Counter types are now atomic64_t instead of u64.
- v0: https://lore.kernel.org/linux-rdma/20190807103403.8102-1-leon@kernel.org
+So far res_get_common_{dumpit, doit} was using the default
+resource fill function which was defined as part of the
+nldev_fill_res_entry fill_entries.
 
------------------------------------------------------------------------------
-Hi,
+Add a fill function pointer as an argument allows us to use
+different fill function in case we want to dump different
+values then 'rdma resource' flow do, but still use the same
+existing general resources dumping flow.
 
-This series from Erez refactors exposes ODP type information (explicit,
-implicit) and statistics through netlink interface.
+Signed-off-by: Erez Alfasi <ereza@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/nldev.c | 44 +++++++++++++++++----------------
+ 1 file changed, 23 insertions(+), 21 deletions(-)
 
-Thanks
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 0ebe95c79ae0..01851467914a 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -42,6 +42,9 @@
+ #include "cma_priv.h"
+ #include "restrack.h"
 
-Erez Alfasi (4):
-  IB/mlx5: Introduce ODP diagnostic counters
-  RDMA/nldev: Allow different fill function per resource
-  RDMA/mlx5: Return ODP type per MR
-  RDMA/nldev: Provide MR statistics
++typedef int (*res_fill_func_t)(struct sk_buff*, bool,
++			       struct rdma_restrack_entry*, uint32_t);
++
+ /*
+  * Sort array elements by the netlink attribute name
+  */
+@@ -1128,8 +1131,6 @@ static int nldev_res_get_dumpit(struct sk_buff *skb,
+ }
 
- drivers/infiniband/core/device.c      |  1 +
- drivers/infiniband/core/nldev.c       | 98 ++++++++++++++++++++-------
- drivers/infiniband/hw/mlx5/Makefile   |  2 +-
- drivers/infiniband/hw/mlx5/main.c     |  3 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h  |  9 +++
- drivers/infiniband/hw/mlx5/odp.c      | 17 +++++
- drivers/infiniband/hw/mlx5/restrack.c | 90 ++++++++++++++++++++++++
- include/rdma/ib_verbs.h               | 12 ++++
- include/rdma/restrack.h               |  6 ++
- 9 files changed, 212 insertions(+), 26 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx5/restrack.c
+ struct nldev_fill_res_entry {
+-	int (*fill_res_func)(struct sk_buff *msg, bool has_cap_net_admin,
+-			     struct rdma_restrack_entry *res, u32 port);
+ 	enum rdma_nldev_attr nldev_attr;
+ 	enum rdma_nldev_command nldev_cmd;
+ 	u8 flags;
+@@ -1143,21 +1144,18 @@ enum nldev_res_flags {
 
+ static const struct nldev_fill_res_entry fill_entries[RDMA_RESTRACK_MAX] = {
+ 	[RDMA_RESTRACK_QP] = {
+-		.fill_res_func = fill_res_qp_entry,
+ 		.nldev_cmd = RDMA_NLDEV_CMD_RES_QP_GET,
+ 		.nldev_attr = RDMA_NLDEV_ATTR_RES_QP,
+ 		.entry = RDMA_NLDEV_ATTR_RES_QP_ENTRY,
+ 		.id = RDMA_NLDEV_ATTR_RES_LQPN,
+ 	},
+ 	[RDMA_RESTRACK_CM_ID] = {
+-		.fill_res_func = fill_res_cm_id_entry,
+ 		.nldev_cmd = RDMA_NLDEV_CMD_RES_CM_ID_GET,
+ 		.nldev_attr = RDMA_NLDEV_ATTR_RES_CM_ID,
+ 		.entry = RDMA_NLDEV_ATTR_RES_CM_ID_ENTRY,
+ 		.id = RDMA_NLDEV_ATTR_RES_CM_IDN,
+ 	},
+ 	[RDMA_RESTRACK_CQ] = {
+-		.fill_res_func = fill_res_cq_entry,
+ 		.nldev_cmd = RDMA_NLDEV_CMD_RES_CQ_GET,
+ 		.nldev_attr = RDMA_NLDEV_ATTR_RES_CQ,
+ 		.flags = NLDEV_PER_DEV,
+@@ -1165,7 +1163,6 @@ static const struct nldev_fill_res_entry fill_entries[RDMA_RESTRACK_MAX] = {
+ 		.id = RDMA_NLDEV_ATTR_RES_CQN,
+ 	},
+ 	[RDMA_RESTRACK_MR] = {
+-		.fill_res_func = fill_res_mr_entry,
+ 		.nldev_cmd = RDMA_NLDEV_CMD_RES_MR_GET,
+ 		.nldev_attr = RDMA_NLDEV_ATTR_RES_MR,
+ 		.flags = NLDEV_PER_DEV,
+@@ -1173,7 +1170,6 @@ static const struct nldev_fill_res_entry fill_entries[RDMA_RESTRACK_MAX] = {
+ 		.id = RDMA_NLDEV_ATTR_RES_MRN,
+ 	},
+ 	[RDMA_RESTRACK_PD] = {
+-		.fill_res_func = fill_res_pd_entry,
+ 		.nldev_cmd = RDMA_NLDEV_CMD_RES_PD_GET,
+ 		.nldev_attr = RDMA_NLDEV_ATTR_RES_PD,
+ 		.flags = NLDEV_PER_DEV,
+@@ -1181,7 +1177,6 @@ static const struct nldev_fill_res_entry fill_entries[RDMA_RESTRACK_MAX] = {
+ 		.id = RDMA_NLDEV_ATTR_RES_PDN,
+ 	},
+ 	[RDMA_RESTRACK_COUNTER] = {
+-		.fill_res_func = fill_res_counter_entry,
+ 		.nldev_cmd = RDMA_NLDEV_CMD_STAT_GET,
+ 		.nldev_attr = RDMA_NLDEV_ATTR_STAT_COUNTER,
+ 		.entry = RDMA_NLDEV_ATTR_STAT_COUNTER_ENTRY,
+@@ -1191,7 +1186,8 @@ static const struct nldev_fill_res_entry fill_entries[RDMA_RESTRACK_MAX] = {
+
+ static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			       struct netlink_ext_ack *extack,
+-			       enum rdma_restrack_type res_type)
++			       enum rdma_restrack_type res_type,
++			       res_fill_func_t fill_func)
+ {
+ 	const struct nldev_fill_res_entry *fe = &fill_entries[res_type];
+ 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
+@@ -1249,7 +1245,9 @@ static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	}
+
+ 	has_cap_net_admin = netlink_capable(skb, CAP_NET_ADMIN);
+-	ret = fe->fill_res_func(msg, has_cap_net_admin, res, port);
++
++	ret = fill_func(msg, has_cap_net_admin, res, port);
++
+ 	rdma_restrack_put(res);
+ 	if (ret)
+ 		goto err_free;
+@@ -1269,7 +1267,8 @@ static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+
+ static int res_get_common_dumpit(struct sk_buff *skb,
+ 				 struct netlink_callback *cb,
+-				 enum rdma_restrack_type res_type)
++				 enum rdma_restrack_type res_type,
++				 res_fill_func_t fill_func)
+ {
+ 	const struct nldev_fill_res_entry *fe = &fill_entries[res_type];
+ 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
+@@ -1354,7 +1353,8 @@ static int res_get_common_dumpit(struct sk_buff *skb,
+ 			goto msg_full;
+ 		}
+
+-		ret = fe->fill_res_func(skb, has_cap_net_admin, res, port);
++		ret = fill_func(skb, has_cap_net_admin, res, port);
++
+ 		rdma_restrack_put(res);
+
+ 		if (ret) {
+@@ -1397,17 +1397,19 @@ next:		idx++;
+ 	return ret;
+ }
+
+-#define RES_GET_FUNCS(name, type)                                              \
+-	static int nldev_res_get_##name##_dumpit(struct sk_buff *skb,          \
++#define RES_GET_FUNCS(name, type)					       \
++	static int nldev_res_get_##name##_dumpit(struct sk_buff *skb,	       \
+ 						 struct netlink_callback *cb)  \
+-	{                                                                      \
+-		return res_get_common_dumpit(skb, cb, type);                   \
+-	}                                                                      \
+-	static int nldev_res_get_##name##_doit(struct sk_buff *skb,            \
+-					       struct nlmsghdr *nlh,           \
++	{								       \
++		return res_get_common_dumpit(skb, cb, type,		       \
++					     fill_res_##name##_entry);	       \
++	}								       \
++	static int nldev_res_get_##name##_doit(struct sk_buff *skb,	       \
++					       struct nlmsghdr *nlh,	       \
+ 					       struct netlink_ext_ack *extack) \
+-	{                                                                      \
+-		return res_get_common_doit(skb, nlh, extack, type);            \
++	{								       \
++		return res_get_common_doit(skb, nlh, extack, type,	       \
++					   fill_res_##name##_entry);	       \
+ 	}
+
+ RES_GET_FUNCS(qp, RDMA_RESTRACK_QP);
 --
 2.20.1
 
