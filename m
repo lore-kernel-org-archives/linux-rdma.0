@@ -2,37 +2,35 @@ Return-Path: <SRS0=MLWl=YJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA20FFA3728
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 12:31:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10C3AFA372A
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 12:31:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9E1A20854
+	by mail.kernel.org (Postfix) with ESMTP id E825F21848
 	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 12:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387624AbfJPMbL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1733256AbfJPMbL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 16 Oct 2019 08:31:11 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:38940 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:38972 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1733256AbfJPMbK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1733261AbfJPMbK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 16 Oct 2019 08:31:10 -0400
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 647888F0B1AD2F8EA5E1;
+        by Forcepoint Email with ESMTP id 6E0FE6CE9F79A0B34DFA;
         Wed, 16 Oct 2019 20:31:09 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 16 Oct 2019 20:31:01 +0800
+ 14.3.439.0; Wed, 16 Oct 2019 20:31:00 +0800
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v5 rdma-core 1/4] libhns: Add support of handling AH for hip08
-Date:   Wed, 16 Oct 2019 20:27:33 +0800
-Message-ID: <1571228856-9573-2-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH v5 rdma-core 0/4] Support UD on hip08
+Date:   Wed, 16 Oct 2019 20:27:32 +0800
+Message-ID: <1571228856-9573-1-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1571228856-9573-1-git-send-email-liweihang@hisilicon.com>
-References: <1571228856-9573-1-git-send-email-liweihang@hisilicon.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -42,149 +40,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+Enables hip08 to support Unreliable Datagram.
 
-This patch achieves two verbs create_ah and destroy_ah to support
-allocation and destruction of Address Handle.
+PR: https://github.com/linux-rdma/rdma-core/pull/587
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
----
- providers/hns/hns_roce_u.c       |  2 ++
- providers/hns/hns_roce_u.h       | 29 ++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_verbs.c | 41 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 72 insertions(+)
+Changelog:
+v4->v5: Fix comments from Leon Romanovsky, including some code
+	optimizations and remove printf in library.
+v3->v4: Remove codes rely on kernel-headers changes about vlan and mac.
+v2->v3: Remove patch "libhns: Support configuring loopback mode by user"
+	from this patchset, it needs to be further considered.
+v1->v2: Fix comments from Leon Romanovsky and do some fixes in patch(3/4).
 
-diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index 5872599..8ba41de 100644
---- a/providers/hns/hns_roce_u.c
-+++ b/providers/hns/hns_roce_u.c
-@@ -81,6 +81,8 @@ static const struct verbs_context_ops hns_common_ops = {
- 	.modify_srq = hns_roce_u_modify_srq,
- 	.query_srq = hns_roce_u_query_srq,
- 	.destroy_srq = hns_roce_u_destroy_srq,
-+	.create_ah = hns_roce_u_create_ah,
-+	.destroy_ah = hns_roce_u_destroy_ah,
- };
- 
- static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 23e0f13..31664c1 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -42,6 +42,7 @@
- #include <infiniband/verbs.h>
- #include <ccan/bitmap.h>
- #include <ccan/container_of.h>
-+#include <linux/if_ether.h>
- 
- #define HNS_ROCE_HW_VER1		('h' << 24 | 'i' << 16 | '0' << 8 | '6')
- 
-@@ -244,6 +245,25 @@ struct hns_roce_qp {
- 	unsigned long			flags;
- };
- 
-+struct hns_roce_av {
-+	uint8_t				port;
-+	uint8_t				gid_index;
-+	uint8_t				static_rate;
-+	uint8_t				hop_limit;
-+	uint32_t			flowlabel;
-+	uint8_t				sl;
-+	uint8_t				tclass;
-+	uint8_t				dgid[HNS_ROCE_GID_SIZE];
-+	uint8_t				mac[ETH_ALEN];
-+	uint16_t			vlan_id;
-+	uint8_t				vlan_en;
-+};
-+
-+struct hns_roce_ah {
-+	struct ibv_ah			ibv_ah;
-+	struct hns_roce_av		av;
-+};
-+
- struct hns_roce_u_hw {
- 	uint32_t hw_version;
- 	struct verbs_context_ops hw_ops;
-@@ -280,6 +300,11 @@ static inline struct  hns_roce_qp *to_hr_qp(struct ibv_qp *ibv_qp)
- 	return container_of(ibv_qp, struct hns_roce_qp, ibv_qp);
- }
- 
-+static inline struct hns_roce_ah *to_hr_ah(struct ibv_ah *ibv_ah)
-+{
-+	return container_of(ibv_ah, struct hns_roce_ah, ibv_ah);
-+}
-+
- int hns_roce_u_query_device(struct ibv_context *context,
- 			    struct ibv_device_attr *attr);
- int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
-@@ -319,6 +344,10 @@ struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
- int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 			int attr_mask, struct ibv_qp_init_attr *init_attr);
- 
-+struct ibv_ah *hns_roce_u_create_ah(struct ibv_pd *pd,
-+				    struct ibv_ah_attr *attr);
-+int hns_roce_u_destroy_ah(struct ibv_ah *ah);
-+
- int hns_roce_alloc_buf(struct hns_roce_buf *buf, unsigned int size,
- 		       int page_size);
- void hns_roce_free_buf(struct hns_roce_buf *buf);
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index 9d222c0..ef4b9e0 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -38,6 +38,7 @@
- #include <sys/mman.h>
- #include <ccan/ilog.h>
- #include <ccan/minmax.h>
-+#include <ccan/array_size.h>
- #include <util/util.h>
- #include "hns_roce_u.h"
- #include "hns_roce_u_abi.h"
-@@ -952,3 +953,43 @@ int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 
- 	return ret;
- }
-+
-+struct ibv_ah *hns_roce_u_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
-+{
-+	struct hns_roce_ah *ah;
-+
-+	ah = calloc(1, sizeof(*ah));
-+	if (!ah)
-+		return NULL;
-+
-+	ah->av.port = attr->port_num;
-+	ah->av.sl = attr->sl;
-+
-+	if (attr->static_rate)
-+		ah->av.static_rate = IBV_RATE_10_GBPS;
-+
-+	if (attr->is_global) {
-+		ah->av.gid_index = attr->grh.sgid_index;
-+		ah->av.hop_limit = attr->grh.hop_limit;
-+		ah->av.tclass = attr->grh.traffic_class;
-+		ah->av.flowlabel = attr->grh.flow_label;
-+
-+		memcpy(ah->av.dgid, attr->grh.dgid.raw,
-+		       ARRAY_SIZE(ah->av.dgid));
-+	}
-+
-+	return &ah->ibv_ah;
-+}
-+
-+int hns_roce_u_destroy_ah(struct ibv_ah *ah)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_destroy_ah(ah);
-+	if (ret)
-+		return ret;
-+
-+	free(to_hr_ah(ah));
-+
-+	return 0;
-+}
+Lijun Ou (2):
+  libhns: Add support of handling AH for hip08
+  libhns: Add UD support for hip08 in user mode
+
+Yixian Liu (2):
+  libhns: Simplify the calculation and usage of wqe idx for post verbs
+  libhns: Refactor for post send
+
+ providers/hns/hns_roce_u.c       |   2 +
+ providers/hns/hns_roce_u.h       |  39 +++
+ providers/hns/hns_roce_u_hw_v1.c |  27 +-
+ providers/hns/hns_roce_u_hw_v2.c | 568 +++++++++++++++++++++------------------
+ providers/hns/hns_roce_u_hw_v2.h |  91 +++++++
+ providers/hns/hns_roce_u_verbs.c |  47 ++++
+ 6 files changed, 489 insertions(+), 285 deletions(-)
+
 -- 
 2.8.1
 
