@@ -2,172 +2,127 @@ Return-Path: <SRS0=MLWl=YJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65E71ECE599
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B87C4360C
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:35:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3CC07217D6
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:23:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571207021;
-	bh=AuN27xd95CurJ72wjqYKq5zMYg45LvzPhaAkybiv6ig=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Ka3U4/DEyB0mrG1hDf/PKw8Grk++FX6xeDJQA/w5gBgfjv5FjayYO0A+bfwXGHW4g
-	 B0TN+pMNfizWPNvJmFcVmwoKPQh7ohFLWj4rimHEDQWhhFb/kcq+2XuzSb0eYvnnwg
-	 RVeyPBkmdtQcmtTj3/exbjZUmqBR3gizxAkirc/Q=
+	by mail.kernel.org (Postfix) with ESMTP id B715D20872
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Oct 2019 06:35:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=epam.com header.i=@epam.com header.b="RSWGAmc1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731020AbfJPGXk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Oct 2019 02:23:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57612 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730793AbfJPGXk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Oct 2019 02:23:40 -0400
-Received: from localhost (unknown [77.137.89.37])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 506DF20873;
-        Wed, 16 Oct 2019 06:23:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571207019;
-        bh=AuN27xd95CurJ72wjqYKq5zMYg45LvzPhaAkybiv6ig=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qWa/xFtTsFZ4v6fEOl2Ie+v3ECpN0oCHkcod0Xhmc3WKARIb6UaZ7yutkXRJvU3pn
-         rwbVUkrtYpzK7lzQcvto9CIeaDncuA4xe/LR6ZAgArUvqdWRJPSv1ZLtBr+emWVCx9
-         Rk9XDct8yb5FanL0H/FOsyAEDGzrimy0TkKfpHGQ=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Erez Alfasi <ereza@mellanox.com>
-Subject: [PATCH rdma-next v3 1/4] IB/mlx5: Introduce ODP diagnostic counters
-Date:   Wed, 16 Oct 2019 09:23:05 +0300
-Message-Id: <20191016062308.11886-2-leon@kernel.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20191016062308.11886-1-leon@kernel.org>
-References: <20191016062308.11886-1-leon@kernel.org>
+        id S1728497AbfJPGfT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Oct 2019 02:35:19 -0400
+Received: from mail-eopbgr50074.outbound.protection.outlook.com ([40.107.5.74]:11910
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728228AbfJPGfT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 16 Oct 2019 02:35:19 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=JHjZja0kK75zVZJXN0obWJYCHFfg6D5jLTweSxqpoQN2RY4SsUkZ/YqbSf8vtDdlw7mbwmLPQG+VeuQhUR+GBSLx3+OO9O7MCpAPO4GpLc5h1ESC4SoXh9fla34jeujyKulYj/+RpiZi797ZWFkg9gYc6sEgOJ2fs/1x2W2+sK+QOmqv4nWJ2fX0reHHFBk54mvIknWHerkkVh9q3soHYt9ZFTOuy2hHcOoPex1vgG9fOPr7yS3whwi/VTjWTjvJbAgO9bk4lrjkNnvLU2xjZVJ7f/WLlqaOYFg+YW2303oUJ/tyGXfSVV9oaORx3MbEQUfBPckZPrtwaKN8A0Lm+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=oYW+YYY0n9I0d4d+DBl+KzHO2JXYaXPLNzGanMnC4f0=;
+ b=NSpSIslOBLCDAOB2Fl9LBVQHunHXX5857/2aJTlBYdzUw5Z409gAR1F+9G/nVG3SElIdiJe8/daFgR72ZilpMVaFQZrKhVj2ycMBoOxx+a4VBcE40oZGnXWah1HHKeub8ku/RbFsD8AXa+mC7od3zEbfQnS4KD2gExsrOhuAojcAm/B6ai3Pfb337pMZzt0QYENOMLMHs7yaShGw7uLknj2jPG0lSX1yBQS5YiHruWuWW1+xmKB98GYRtt/2XOZ/dlChaJb9SWLHleCA5dAQQraaWX9LiIn/Jj7CvPfxRo8QTeaE5jDu4WXRGbdrCxSODp9AvCzvYdAshYscGYT2TA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=epam.com; dmarc=pass action=none header.from=epam.com;
+ dkim=pass header.d=epam.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=epam.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=oYW+YYY0n9I0d4d+DBl+KzHO2JXYaXPLNzGanMnC4f0=;
+ b=RSWGAmc1BNzAGoAL3ebLlN1UsGkitAoaRvv6p1R2hwoOgMVK0i9ozmEyRJdqhIeu9kWSUkXq0z8Vr9zj26mv0AnMEJ827V+JQlaJ4baIW7j1L28itzK/JTpqNlP30wiLgaarJm/IZ7JXsUt5dExoDLF1sczhj9iBBsj1BlPbR7k=
+Received: from AM6PR03MB5958.eurprd03.prod.outlook.com (10.255.122.93) by
+ AM6PR03MB5313.eurprd03.prod.outlook.com (10.255.98.138) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2347.18; Wed, 16 Oct 2019 06:35:15 +0000
+Received: from AM6PR03MB5958.eurprd03.prod.outlook.com
+ ([fe80::21:60d7:a2a6:12f0]) by AM6PR03MB5958.eurprd03.prod.outlook.com
+ ([fe80::21:60d7:a2a6:12f0%5]) with mapi id 15.20.2347.023; Wed, 16 Oct 2019
+ 06:35:15 +0000
+From:   Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+To:     =?utf-8?B?SsO8cmdlbiBHcm/Dnw==?= <jgross@suse.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        "Felix.Kuehling@amd.com" <Felix.Kuehling@amd.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Jerome Glisse <jglisse@redhat.com>
+CC:     Stefano Stabellini <sstabellini@kernel.org>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>,
+        "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH hmm 08/15] xen/gntdev: Use select for DMA_SHARED_BUFFER
+Thread-Topic: [PATCH hmm 08/15] xen/gntdev: Use select for DMA_SHARED_BUFFER
+Thread-Index: AQHVg4SsfIDuaxZr3kiqa77y9Sk4sqdcuS2AgAAXhQA=
+Date:   Wed, 16 Oct 2019 06:35:15 +0000
+Message-ID: <91329d7d-9db5-057e-59d2-887254083da0@epam.com>
+References: <20191015181242.8343-1-jgg@ziepe.ca>
+ <20191015181242.8343-9-jgg@ziepe.ca>
+ <6f60f558-20db-1749-044d-a46697258c39@suse.com>
+In-Reply-To: <6f60f558-20db-1749-044d-a46697258c39@suse.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=Oleksandr_Andrushchenko@epam.com; 
+x-originating-ip: [85.223.209.22]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 66b699a0-3a97-4a2b-82d0-08d752030150
+x-ms-traffictypediagnostic: AM6PR03MB5313:
+x-microsoft-antispam-prvs: <AM6PR03MB5313F90F1EEB5E6DEBD51754E7920@AM6PR03MB5313.eurprd03.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:3383;
+x-forefront-prvs: 0192E812EC
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(376002)(136003)(366004)(346002)(39860400002)(199004)(189003)(6506007)(66946007)(71190400001)(7416002)(26005)(91956017)(64756008)(66556008)(55236004)(86362001)(71200400001)(229853002)(6436002)(66446008)(14454004)(53546011)(305945005)(31686004)(7736002)(36756003)(66066001)(76116006)(76176011)(99286004)(6486002)(102836004)(66476007)(6246003)(4326008)(316002)(25786009)(256004)(8676002)(8936002)(31696002)(186003)(110136005)(2906002)(4744005)(54906003)(81166006)(80792005)(478600001)(2501003)(446003)(5660300002)(486006)(476003)(11346002)(6116002)(3846002)(2616005)(6512007)(81156014);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR03MB5313;H:AM6PR03MB5958.eurprd03.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: epam.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 3t1DxRhWg8tp6PiI8rK8LhBReeNhGsp2iS0UCL+6eOgqGLdwyDNBFk0iGLbvP+aeW1AiAV0Pg5p3ZHEwNsonxwUJDv6LGl+rGZkqyIQ6tkHnBRKpNbwFgTi0DSUQYMwVnfqIDEYKl0/i+XSuwSlm8EUhjjhYdkazhnH/kzsw8U+kz8Ij6B9S/ks3f8+5hrxKefquu8wrv1uQclXPmIvw8fnkGPGQmg1Z3VeIdEhx57XCL/b1me5bdNXoc/B/Cg4uFosZw0SF69bKjiRQL60+Ky/YgTd4s1tkynePuuJH4dFatGJVLnUHgWj4VXWRDR5PFpZmn/3uCXYOtSjk4X6ZYYwuz0/p2qtgd+JxL06GbiilCsbt+nZ+hRfqIOFGkJOSjf2XP6pBeEGaLHsCx9XNyw2MIGrPrUkylE93jTWnOdY=
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <0DCA343868ACE14DBA74BEE632E7932A@eurprd03.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: epam.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 66b699a0-3a97-4a2b-82d0-08d752030150
+X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Oct 2019 06:35:15.6187
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: b41b72d0-4e9f-4c26-8a69-f949f367c91d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: Ep16Y0l+Y6mbwoA38ndtRwMPJkKUWVvkY8J2LB3y5JANKR7ATjFgM87ClAow1tZxjJ9dD2JcNAAT44VPEt9ItAh2IEAlL37A8sX/nUwyOh2vmgEmxIlnhj9umWgCthgE
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR03MB5313
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Erez Alfasi <ereza@mellanox.com>
-
-Introduce ODP diagnostic counters and count the following
-per MR within IB/mlx5 driver:
- 1) Page faults:
-	Total number of faulted pages.
- 2) Page invalidations:
-	Total number of pages invalidated by the OS during all
-	invalidation events. The translations can be no longer
-	valid due to either non-present pages or mapping changes.
-
-Signed-off-by: Erez Alfasi <ereza@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  4 ++++
- drivers/infiniband/hw/mlx5/odp.c     | 15 +++++++++++++++
- include/rdma/ib_verbs.h              |  5 +++++
- 3 files changed, 24 insertions(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index bf30d53d94dc..5aae05ebf64b 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -585,6 +585,9 @@ struct mlx5_ib_dm {
- 					  IB_ACCESS_REMOTE_READ   |\
- 					  IB_ZERO_BASED)
-
-+#define mlx5_update_odp_stats(mr, counter_name, value)		\
-+	atomic64_add(value, &((mr)->odp_stats.counter_name))
-+
- struct mlx5_ib_mr {
- 	struct ib_mr		ibmr;
- 	void			*descs;
-@@ -622,6 +625,7 @@ struct mlx5_ib_mr {
- 	wait_queue_head_t       q_leaf_free;
- 	struct mlx5_async_work  cb_work;
- 	atomic_t		num_pending_prefetch;
-+	struct ib_odp_counters	odp_stats;
- };
-
- static inline bool is_odp_mr(struct mlx5_ib_mr *mr)
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 95cf0249b015..3601c6ad96f9 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -224,6 +224,7 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
- 	const u64 umr_block_mask = (MLX5_UMR_MTT_ALIGNMENT /
- 				    sizeof(struct mlx5_mtt)) - 1;
- 	u64 idx = 0, blk_start_idx = 0;
-+	u64 invalidations = 0;
- 	int in_block = 0;
- 	u64 addr;
-
-@@ -261,6 +262,9 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
- 				blk_start_idx = idx;
- 				in_block = 1;
- 			}
-+
-+			/* Count page invalidations */
-+			invalidations += idx - blk_start_idx + 1;
- 		} else {
- 			u64 umr_offset = idx & umr_block_mask;
-
-@@ -279,6 +283,9 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
- 				   MLX5_IB_UPD_XLT_ZAP |
- 				   MLX5_IB_UPD_XLT_ATOMIC);
- 	mutex_unlock(&umem_odp->umem_mutex);
-+
-+	mlx5_update_odp_stats(mr, invalidations, invalidations);
-+
- 	/*
- 	 * We are now sure that the device will not access the
- 	 * memory. We can safely unmap it, and mark it as dirty if
-@@ -287,6 +294,7 @@ void mlx5_ib_invalidate_range(struct ib_umem_odp *umem_odp, unsigned long start,
-
- 	ib_umem_odp_unmap_dma_pages(umem_odp, start, end);
-
-+
- 	if (unlikely(!umem_odp->npages && mr->parent &&
- 		     !umem_odp->dying)) {
- 		WRITE_ONCE(umem_odp->dying, 1);
-@@ -801,6 +809,13 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
- 		if (ret < 0)
- 			goto srcu_unlock;
-
-+		/*
-+		 * When prefetching a page, page fault is generated
-+		 * in order to bring the page to the main memory.
-+		 * In the current flow, page faults are being counted.
-+		 */
-+		mlx5_update_odp_stats(mr, faults, ret);
-+
- 		npages += ret;
- 		ret = 0;
- 		break;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6a47ba85c54c..26600dfb345d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2218,6 +2218,11 @@ struct rdma_netdev_alloc_params {
- 				      struct net_device *netdev, void *param);
- };
-
-+struct ib_odp_counters {
-+	atomic64_t faults;
-+	atomic64_t invalidations;
-+};
-+
- struct ib_counters {
- 	struct ib_device	*device;
- 	struct ib_uobject	*uobject;
---
-2.20.1
-
+T24gMTAvMTYvMTkgODoxMSBBTSwgSsO8cmdlbiBHcm/DnyB3cm90ZToNCj4gT24gMTUuMTAuMTkg
+MjA6MTIsIEphc29uIEd1bnRob3JwZSB3cm90ZToNCj4+IEZyb206IEphc29uIEd1bnRob3JwZSA8
+amdnQG1lbGxhbm94LmNvbT4NCj4+DQo+PiBETUFfU0hBUkVEX0JVRkZFUiBjYW4gbm90IGJlIGVu
+YWJsZWQgYnkgdGhlIHVzZXIgKGl0IHJlcHJlc2VudHMgYSANCj4+IGxpYnJhcnkNCj4+IHNldCBp
+biB0aGUga2VybmVsKS4gVGhlIGtjb25maWcgY29udmVudGlvbiBpcyB0byB1c2Ugc2VsZWN0IGZv
+ciBzdWNoDQo+PiBzeW1ib2xzIHNvIHRoZXkgYXJlIHR1cm5lZCBvbiBpbXBsaWNpdGx5IHdoZW4g
+dGhlIHVzZXIgZW5hYmxlcyBhIGtjb25maWcNCj4+IHRoYXQgbmVlZHMgdGhlbS4NCj4+DQo+PiBP
+dGhlcndpc2UgdGhlIFhFTl9HTlRERVZfRE1BQlVGIGtjb25maWcgaXMgb3Zlcmx5IGRpZmZpY3Vs
+dCB0byBlbmFibGUuDQo+Pg0KPj4gRml4ZXM6IDkzMmQ2NTYyMTc5ZSAoInhlbi9nbnRkZXY6IEFk
+ZCBpbml0aWFsIHN1cHBvcnQgZm9yIGRtYS1idWYgVUFQSSIpDQo+PiBDYzogT2xla3NhbmRyIEFu
+ZHJ1c2hjaGVua28gPG9sZWtzYW5kcl9hbmRydXNoY2hlbmtvQGVwYW0uY29tPg0KPj4gQ2M6IEJv
+cmlzIE9zdHJvdnNreSA8Ym9yaXMub3N0cm92c2t5QG9yYWNsZS5jb20+DQo+PiBDYzogeGVuLWRl
+dmVsQGxpc3RzLnhlbnByb2plY3Qub3JnDQo+PiBDYzogSnVlcmdlbiBHcm9zcyA8amdyb3NzQHN1
+c2UuY29tPg0KPj4gQ2M6IFN0ZWZhbm8gU3RhYmVsbGluaSA8c3N0YWJlbGxpbmlAa2VybmVsLm9y
+Zz4NCj4+IFNpZ25lZC1vZmYtYnk6IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4N
+Cj4NCj4gUmV2aWV3ZWQtYnk6IEp1ZXJnZW4gR3Jvc3MgPGpncm9zc0BzdXNlLmNvbT4NCj4NClJl
+dmlld2VkLWJ5OiBPbGVrc2FuZHIgQW5kcnVzaGNoZW5rbyA8b2xla3NhbmRyX2FuZHJ1c2hjaGVu
+a29AZXBhbS5jb20+DQo+DQo+IEp1ZXJnZW4NCg==
