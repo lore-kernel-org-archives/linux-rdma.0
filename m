@@ -1,105 +1,113 @@
-Return-Path: <SRS0=eF5f=YK=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=nLh4=YL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFC5FA372A
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Oct 2019 20:34:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E40CA9ED0
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 04:57:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F38B520872
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Oct 2019 20:34:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48D0D2070B
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 04:57:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394628AbfJQUeq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Oct 2019 16:34:46 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:13041 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392669AbfJQUeq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Oct 2019 16:34:46 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 0E21E59465;
-        Thu, 17 Oct 2019 20:34:46 +0000 (UTC)
-Received: from linux-ws.nc.xsintricity.com (ovpn-112-37.rdu2.redhat.com [10.10.112.37])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id C1FE760A97;
-        Thu, 17 Oct 2019 20:34:44 +0000 (UTC)
-Message-ID: <fa266ca5e309a69f6d0762d88a8d1c13f93847b0.camel@redhat.com>
-Subject: Re: [PATCH for-rc 2/2] IB/hfi1: Use a common pad buffer for 9B and
- 16B packets
-From:   Doug Ledford <dledford@redhat.com>
-To:     Dennis Dalessandro <dennis.dalessandro@intel.com>, jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Kaike Wan <kaike.wan@intel.com>
-Date:   Thu, 17 Oct 2019 16:34:42 -0400
-In-Reply-To: <20191004204934.26838.13099.stgit@awfm-01.aw.intel.com>
-References: <20191004203739.26542.57060.stgit@awfm-01.aw.intel.com>
-         <20191004204934.26838.13099.stgit@awfm-01.aw.intel.com>
-Organization: Red Hat, Inc.
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-MsyWYZmzYNdbXYv92b0p"
-User-Agent: Evolution 3.32.4 (3.32.4-1.fc30) 
+        id S2387841AbfJRE5M (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Oct 2019 00:57:12 -0400
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:36202 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731903AbfJRE5M (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Oct 2019 00:57:12 -0400
+Received: by mail-pf1-f193.google.com with SMTP id y22so3079666pfr.3
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Oct 2019 21:57:11 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:autocrypt
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=xTDqaCFrDT/AH/JnoA0Ry1FR1MW8Gce+C0SSDSEjGao=;
+        b=BXZDpCVvmj//fuZW6gO2ClRYw9Qd9ikcet6K342AAswZk+QpdR6HqoedN4Q6ic0ic6
+         uxLi9mKaUBUHe5Z7kDDgG0tZ+I8kJIf8SaJThLE+0UcQA0oxfZR9KYXxizJUVaHz85Zl
+         9rY5eOKQfSV1h2NOMtLO2hXykcVL0wpGPeDuZPNoEQUoaUi1Gr+IhKZ633YEy3XZWT9F
+         6UVbLHLR4CjQPH/PA1ie616/TRIRjQqr28BEJ4aY2e9Ibg340+JYCaffmVGg7L+hYfix
+         R+WLKTz1kIAPY7mtbYK2UPLg7Y+Nlykw1nkhCafc4+kcqydltaWBGgQGARaPz+YJQb1i
+         fwZw==
+X-Gm-Message-State: APjAAAW5wuPbOcQL/eY7NGs5fs26HFP3RkRsl4qIhWvWJZzDmB26jEQr
+        9iMWRiRLZbfydDbwJfFob3QuKP4u
+X-Google-Smtp-Source: APXvYqwDw095wNjWMB5ZkXYYv69o6pf0gSwT8MJdAL4iL8ekOOJU/DGKX/yrhYC+4k7RQqk2SQsreg==
+X-Received: by 2002:a17:90a:cb88:: with SMTP id a8mr8693904pju.85.1571374630915;
+        Thu, 17 Oct 2019 21:57:10 -0700 (PDT)
+Received: from localhost.localdomain ([2601:647:4000:ce:84e0:ff05:5b17:3d9e])
+        by smtp.gmail.com with ESMTPSA id c62sm4822177pfa.92.2019.10.17.21.57.09
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 17 Oct 2019 21:57:09 -0700 (PDT)
+Subject: Re: [PATCH] srp_daemon: Use maximum initiator to target IU size
+To:     Honggang LI <honli@redhat.com>
+Cc:     linux-rdma@vger.kernel.org
+References: <20191018044104.21353-1-honli@redhat.com>
+From:   Bart Van Assche <bvanassche@acm.org>
+Autocrypt: addr=bvanassche@acm.org; prefer-encrypt=mutual; keydata=
+ mQENBFSOu4oBCADcRWxVUvkkvRmmwTwIjIJvZOu6wNm+dz5AF4z0FHW2KNZL3oheO3P8UZWr
+ LQOrCfRcK8e/sIs2Y2D3Lg/SL7qqbMehGEYcJptu6mKkywBfoYbtBkVoJ/jQsi2H0vBiiCOy
+ fmxMHIPcYxaJdXxrOG2UO4B60Y/BzE6OrPDT44w4cZA9DH5xialliWU447Bts8TJNa3lZKS1
+ AvW1ZklbvJfAJJAwzDih35LxU2fcWbmhPa7EO2DCv/LM1B10GBB/oQB5kvlq4aA2PSIWkqz4
+ 3SI5kCPSsygD6wKnbRsvNn2mIACva6VHdm62A7xel5dJRfpQjXj2snd1F/YNoNc66UUTABEB
+ AAG0JEJhcnQgVmFuIEFzc2NoZSA8YnZhbmFzc2NoZUBhY20ub3JnPokBOQQTAQIAIwUCVI67
+ igIbAwcLCQgHAwIBBhUIAgkKCwQWAgMBAh4BAheAAAoJEHFcPTXFzhAJ8QkH/1AdXblKL65M
+ Y1Zk1bYKnkAb4a98LxCPm/pJBilvci6boefwlBDZ2NZuuYWYgyrehMB5H+q+Kq4P0IBbTqTa
+ jTPAANn62A6jwJ0FnCn6YaM9TZQjM1F7LoDX3v+oAkaoXuq0dQ4hnxQNu792bi6QyVdZUvKc
+ macVFVgfK9n04mL7RzjO3f+X4midKt/s+G+IPr4DGlrq+WH27eDbpUR3aYRk8EgbgGKvQFdD
+ CEBFJi+5ZKOArmJVBSk21RHDpqyz6Vit3rjep7c1SN8s7NhVi9cjkKmMDM7KYhXkWc10lKx2
+ RTkFI30rkDm4U+JpdAd2+tP3tjGf9AyGGinpzE2XY1K5AQ0EVI67igEIAKiSyd0nECrgz+H5
+ PcFDGYQpGDMTl8MOPCKw/F3diXPuj2eql4xSbAdbUCJzk2ETif5s3twT2ER8cUTEVOaCEUY3
+ eOiaFgQ+nGLx4BXqqGewikPJCe+UBjFnH1m2/IFn4T9jPZkV8xlkKmDUqMK5EV9n3eQLkn5g
+ lco+FepTtmbkSCCjd91EfThVbNYpVQ5ZjdBCXN66CKyJDMJ85HVr5rmXG/nqriTh6cv1l1Js
+ T7AFvvPjUPknS6d+BETMhTkbGzoyS+sywEsQAgA+BMCxBH4LvUmHYhpS+W6CiZ3ZMxjO8Hgc
+ ++w1mLeRUvda3i4/U8wDT3SWuHcB3DWlcppECLkAEQEAAYkBHwQYAQIACQUCVI67igIbDAAK
+ CRBxXD01xc4QCZ4dB/0QrnEasxjM0PGeXK5hcZMT9Eo998alUfn5XU0RQDYdwp6/kMEXMdmT
+ oH0F0xB3SQ8WVSXA9rrc4EBvZruWQ+5/zjVrhhfUAx12CzL4oQ9Ro2k45daYaonKTANYG22y
+ //x8dLe2Fv1By4SKGhmzwH87uXxbTJAUxiWIi1np0z3/RDnoVyfmfbbL1DY7zf2hYXLLzsJR
+ mSsED/1nlJ9Oq5fALdNEPgDyPUerqHxcmIub+pF0AzJoYHK5punqpqfGmqPbjxrJLPJfHVKy
+ goMj5DlBMoYqEgpbwdUYkH6QdizJJCur4icy8GUNbisFYABeoJ91pnD4IGei3MTdvINSZI5e
+Message-ID: <1d811fc0-1f74-b546-b296-a4e9f8c33d86@acm.org>
+Date:   Thu, 17 Oct 2019 21:57:08 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.1.1
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.39]); Thu, 17 Oct 2019 20:34:46 +0000 (UTC)
+In-Reply-To: <20191018044104.21353-1-honli@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On 2019-10-17 21:41, Honggang LI wrote:
+> +	if (config->print_max_it_iu_size) {
+> +		len += snprintf(target_config_str+len,
+> +				sizeof(target_config_str) - len,
+> +				",max_it_iu_size=%d",
+> +				be32toh(target->ioc_prof.send_size));
+> +
+> +		if (len >= sizeof(target_config_str)) {
+> +			pr_err("Target config string is too long, ignoring target\n");
+> +			closedir(dir);
+> +			return -1;
+> +		}
+> +	}
 
---=-MsyWYZmzYNdbXYv92b0p
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Honggang,
 
-On Fri, 2019-10-04 at 16:49 -0400, Dennis Dalessandro wrote:
-> From: Mike Marciniszyn <mike.marciniszyn@intel.com>
->=20
-> There is no reason for a different pad buffer for the two
-> packet types.
->=20
-> Expand the current buffer allocation to allow for both
-> packet types.
->=20
-> Fixes: f8195f3b14a0 ("IB/hfi1: Eliminate allocation while atomic")
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Reviewed-by: Kaike Wan <kaike.wan@intel.com>
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+I think this patch will make srp_daemon incompatible with versions of
+the ib_srp kernel driver that do not support the max_it_iu_size
+parameter and also that that's unacceptable. How about the following
+approach:
+* Do not add a new command-line option.
+* Add max_it_iu_size at the end. I think that approach will trigger a
+warning with older versions of the SRP kernel driver but also that it
+won't break SRP login.
 
-Thanks, applied to for-rc.
+Thanks,
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---=-MsyWYZmzYNdbXYv92b0p
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl2o0GIACgkQuCajMw5X
-L92ZYg//fIwl33/UyRfej7nKR9kYog18C0kbyfyzdDvIaBWCp93pUQEIi9J9TsiF
-5LtCncwccAixCnKjzf/dfnF7XVwiKAErlDKhXnZI4jlrzviZ7s2DfE/CZ0OFq41Z
-t488zZZR21N9CbCoR2/w3wzALe6miglneKxv2o/WTgH1UWZfvd61zy4ory9yw7nh
-zCQyzifK4yKpIK78l/gwdKLADXrdbFWmlXlMkm72QM2PzBfEPsJL5DiXkCXuMHx9
-BbjKj6y3U4z4b33iAx/54nYEc4YXCfK011Ohkx10vKIXJIKpyNRfpRtw40DaWolI
-qnyVhgIyKHGopleyPmHQwEfzqotLZQfEeOS80nxG+nRatroAMQqb/0lWhvaJiRyw
-ckVOjTo/m+tsH16Vr4m3NEPTzCETE0lrb3aErO8zhRXXSlcDjxJSBucn2Xx6pRqy
-y4PKJvVvizcNDfl3pOI+79ZLudsOuYPJEGvsdAY0IyU2q/0VFjqtrWaSU2DdDP9b
-8o05pA4qliCEJq2PWgWRYIsFuyXyPS2PeeQ0rPEkRTU9Qcg8+2Jks/XEullLxmyk
-XmVSyieobJbe4UXd6GEGfRF14ejPsaZT88vO80/usuAL9cZyOucgezkQCJw6cXeO
-BbExU0AsYhEqmUjWtzSpssQBDOZtpv65Zbalp4rHNGNHYe218sw=
-=msZ4
------END PGP SIGNATURE-----
-
---=-MsyWYZmzYNdbXYv92b0p--
-
+Bart.
