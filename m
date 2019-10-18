@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 547E4CA9EA0
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:19:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C32E0CA9EA0
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1EA6220872
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:19:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C27620872
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571437169;
-	bh=m3eqnAyX7YQq/GZ/dsrQcZVOFLqUBgDqsTcp4cZvz+s=;
+	s=default; t=1571437601;
+	bh=ZsYsQjET2eBXHpj8p6+4hCJCBPZ/9D9ILF5vWY4Tb/w=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hkYHZJVN7E7vM2XSA+GDd4qpb8ut4V+jazVX+cD5m8AIWjK7ZqdvtTEDFba6Rt+cE
-	 YKgQa2BXBPHM7rOI2rCVbgwT6INQYiZRVd0OAcc5duJyQoBoZy/gzs7+5y0Z3UvlWI
-	 /hBCF9Lpv6pnrZxv9/DUq6/K3kRxIFCBBUJYIq3k=
+	b=tBnx1ICn9jm8d+ES7cR70ZhzSg9ov6+hNU805E75QzvNm+UqgH2+3buaL8zowwKGv
+	 IkCskdLX/C0ZYUYi/vtMOqm9zXmdb6Bv7mSbUGWIwMqmMK2+3d1qdo1DMsdGSlE6LV
+	 YrR5pPOiZIAZSuAnt1fFeZsrIbPbv2PI/euQljr4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388866AbfJRWTX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Oct 2019 18:19:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39132 "EHLO mail.kernel.org"
+        id S2406009AbfJRW0a (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Oct 2019 18:26:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732323AbfJRWHC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 18 Oct 2019 18:07:02 -0400
+        id S1727892AbfJRWEO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 18 Oct 2019 18:04:14 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4667D205F4;
-        Fri, 18 Oct 2019 22:07:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 67519222C5;
+        Fri, 18 Oct 2019 22:04:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571436422;
-        bh=m3eqnAyX7YQq/GZ/dsrQcZVOFLqUBgDqsTcp4cZvz+s=;
+        s=default; t=1571436254;
+        bh=ZsYsQjET2eBXHpj8p6+4hCJCBPZ/9D9ILF5vWY4Tb/w=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NMAYkhAvwMIZ+uq+ntEAM81MT8Ex5yPcly4mJkbVvvrnkilabSNeqxXys1T13tWrN
-         71FeK1vQCwrumtRkh9O2NAa2IiWGK2fdTHB1Yt5gpN1E1fep1Y6LbEYPHIrmGJmnrL
-         01lOBvBkk8guiLjJOpOfdBLDJb0MrNYueLMlqbmc=
+        b=sihkb84tWGRLulaBQrLLWsFR4vYB/fcBquZnhSvdspHWXabFXcb2aZkUCANtGG/Wm
+         9LuxElrnAJyJ8clmogaU4dOUDnfO0NYxkjbJKYI2eNU4iTWjlruGHki502WE/ZQjpo
+         JF2EVLp7aSbVIilgMO5h6TUa/YSrMxeaYVHmsdI8=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Navid Emamdoost <navid.emamdoost@gmail.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Artemy Kovalyov <artemyko@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 064/100] RDMA/hfi1: Prevent memory leak in sdma_init
-Date:   Fri, 18 Oct 2019 18:04:49 -0400
-Message-Id: <20191018220525.9042-64-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 37/89] RDMA/mlx5: Do not allow rereg of a ODP MR
+Date:   Fri, 18 Oct 2019 18:02:32 -0400
+Message-Id: <20191018220324.8165-37-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191018220525.9042-1-sashal@kernel.org>
-References: <20191018220525.9042-1-sashal@kernel.org>
+In-Reply-To: <20191018220324.8165-1-sashal@kernel.org>
+References: <20191018220324.8165-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,40 +58,54 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Navid Emamdoost <navid.emamdoost@gmail.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit 34b3be18a04ecdc610aae4c48e5d1b799d8689f6 ]
+[ Upstream commit 880505cfef1d086d18b59d2920eb2160429ffa1f ]
 
-In sdma_init if rhashtable_init fails the allocated memory for
-tmp_sdma_rht should be released.
+This code is completely broken, the umem of a ODP MR simply cannot be
+discarded without a lot more locking, nor can an ODP mkey be blithely
+destroyed via destroy_mkey().
 
-Fixes: 5a52a7acf7e2 ("IB/hfi1: NULL pointer dereference when freeing rhashtable")
-Link: https://lore.kernel.org/r/20190925144543.10141-1-navid.emamdoost@gmail.com
-Signed-off-by: Navid Emamdoost <navid.emamdoost@gmail.com>
-Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Fixes: 6aec21f6a832 ("IB/mlx5: Page faults handling infrastructure")
+Link: https://lore.kernel.org/r/20191001153821.23621-2-jgg@ziepe.ca
+Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/sdma.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/mr.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index d648a4167832c..64ab92f8a4a28 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -1518,8 +1518,11 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 3401f5f6792e6..c4ba8838d2c46 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1423,6 +1423,9 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 	if (!mr->umem)
+ 		return -EINVAL;
  
- 	ret = rhashtable_init(tmp_sdma_rht, &sdma_rht_params);
--	if (ret < 0)
-+	if (ret < 0) {
-+		kfree(tmp_sdma_rht);
- 		goto bail;
-+	}
++	if (is_odp_mr(mr))
++		return -EOPNOTSUPP;
 +
- 	dd->sdma_rht = tmp_sdma_rht;
+ 	if (flags & IB_MR_REREG_TRANS) {
+ 		addr = virt_addr;
+ 		len = length;
+@@ -1468,8 +1471,6 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		}
  
- 	dd_dev_info(dd, "SDMA num_sdma: %u\n", dd->num_sdma);
+ 		mr->allocated_from_cache = 0;
+-		if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING))
+-			mr->live = 1;
+ 	} else {
+ 		/*
+ 		 * Send a UMR WQE
+@@ -1498,7 +1499,6 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 
+ 	set_mr_fields(dev, mr, npages, len, access_flags);
+ 
+-	update_odp_mr(mr);
+ 	return 0;
+ 
+ err:
 -- 
 2.20.1
 
