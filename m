@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CC03CA9EA0
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:27:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C22CA9EA9
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:28:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D6FA20640
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:27:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58E65222C2
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:28:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571437672;
-	bh=Z8kNSpZKICsj64i1BK953BmpbaZEYmjCSvxuGKfVnTE=;
+	s=default; t=1571437681;
+	bh=p9C5sV/9RGDGSsR26ocpzESBcVa9EVNGwDLOF9hwdCM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=BJrBOPyolSyA4esYyu7E1xVeyYNd7//Hy3fo3miuO5rqmrtihUaH0K5ByFm7XBywy
-	 nczefwY8kukl/mbsJqyyfpL0XjQPOcIzGTMzLZY3gVwHo7x75iokPdcmG+QcCeW5Xr
-	 0mgDVt6N2A/uspCNnp25riDrqqFaoOsE166gRBGs=
+	b=tHvixQZEoWJ531IgshUUBYk88gHTgDFCmr0Kh5ilW5BFdt3Me1ZBfWjFEtFSnL4Mp
+	 ZUqh3ExjfOPnVsevMEtOQIQ3hu1ZPTYiGPLU9jEjNfBDsIXH25VOXtexwJ/e13yI0s
+	 DV4Ohs02QzbFYi+arQYD/snJsATqPTu9lhsURIR4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392220AbfJRW1n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Oct 2019 18:27:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35514 "EHLO mail.kernel.org"
+        id S1726259AbfJRW14 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Oct 2019 18:27:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727476AbfJRWDz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 18 Oct 2019 18:03:55 -0400
+        id S1727431AbfJRWDw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 18 Oct 2019 18:03:52 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 55FEE2245D;
-        Fri, 18 Oct 2019 22:03:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D5770222D4;
+        Fri, 18 Oct 2019 22:03:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571436235;
-        bh=Z8kNSpZKICsj64i1BK953BmpbaZEYmjCSvxuGKfVnTE=;
+        s=default; t=1571436231;
+        bh=p9C5sV/9RGDGSsR26ocpzESBcVa9EVNGwDLOF9hwdCM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=FwG0meJObO8KxVQtfNMVk2JdySkMg2+vGKEl8fvTr06uvyEYTm/V0d/aIFjX5QiEW
-         z2pPFK31mS3rDpz1nyiGRjXiYOhsgkvRn66oHNTrwKNnnjtW4W+TuFZBG7l/SHoog0
-         wYEs8VzhBx5ompKe4tauokwVuAip3Z/BE8+rZYM0=
+        b=KN+mpTQpXhXETZoM7l+m1SBa/z/LcwqgZ4e2Xf+sILWTxlIY1beh4A9qPwjLh0vCk
+         rMAZyWZlycttm/p6niXpR3hobCb5eks2Eno9qncjJmpiohwNzIH3uGhw51HjTdpqC1
+         Ky1a6sCg1b9Kc82MDCyaE24jx8KPHgXb/bqp9dKs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Bart Van Assche <bvanassche@acm.org>,
+Cc:     Krishnamraju Eraparaju <krishna2@chelsio.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 20/89] RDMA/iwcm: Fix a lock inversion issue
-Date:   Fri, 18 Oct 2019 18:02:15 -0400
-Message-Id: <20191018220324.8165-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 17/89] RDMA/siw: Fix serialization issue in write_space()
+Date:   Fri, 18 Oct 2019 18:02:12 -0400
+Message-Id: <20191018220324.8165-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191018220324.8165-1-sashal@kernel.org>
 References: <20191018220324.8165-1-sashal@kernel.org>
@@ -58,85 +59,107 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche@acm.org>
+From: Krishnamraju Eraparaju <krishna2@chelsio.com>
 
-[ Upstream commit b66f31efbdad95ec274345721d99d1d835e6de01 ]
+[ Upstream commit df791c54d627bae53c9be3be40a69594c55de487 ]
 
-This patch fixes the lock inversion complaint:
+In siw_qp_llp_write_space(), 'sock' members should be accessed with
+sk_callback_lock held, otherwise, it could race with
+siw_sk_restore_upcalls(). And this could cause "NULL deref" panic.  Below
+panic is due to the NULL cep returned from sk_to_cep(sk):
 
-============================================
-WARNING: possible recursive locking detected
-5.3.0-rc7-dbg+ #1 Not tainted
---------------------------------------------
-kworker/u16:6/171 is trying to acquire lock:
-00000000035c6e6c (&id_priv->handler_mutex){+.+.}, at: rdma_destroy_id+0x78/0x4a0 [rdma_cm]
+  Call Trace:
+   <IRQ>    siw_qp_llp_write_space+0x11/0x40 [siw]
+   tcp_check_space+0x4c/0xf0
+   tcp_rcv_established+0x52b/0x630
+   tcp_v4_do_rcv+0xf4/0x1e0
+   tcp_v4_rcv+0x9b8/0xab0
+   ip_protocol_deliver_rcu+0x2c/0x1c0
+   ip_local_deliver_finish+0x44/0x50
+   ip_local_deliver+0x6b/0xf0
+   ? ip_protocol_deliver_rcu+0x1c0/0x1c0
+   ip_rcv+0x52/0xd0
+   ? ip_rcv_finish_core.isra.14+0x390/0x390
+   __netif_receive_skb_one_core+0x83/0xa0
+   netif_receive_skb_internal+0x73/0xb0
+   napi_gro_frags+0x1ff/0x2b0
+   t4_ethrx_handler+0x4a7/0x740 [cxgb4]
+   process_responses+0x2c9/0x590 [cxgb4]
+   ? t4_sge_intr_msix+0x1d/0x30 [cxgb4]
+   ? handle_irq_event_percpu+0x51/0x70
+   ? handle_irq_event+0x41/0x60
+   ? handle_edge_irq+0x97/0x1a0
+   napi_rx_handler+0x14/0xe0 [cxgb4]
+   net_rx_action+0x2af/0x410
+   __do_softirq+0xda/0x2a8
+   do_softirq_own_stack+0x2a/0x40
+   </IRQ>
+   do_softirq+0x50/0x60
+   __local_bh_enable_ip+0x50/0x60
+   ip_finish_output2+0x18f/0x520
+   ip_output+0x6e/0xf0
+   ? __ip_finish_output+0x1f0/0x1f0
+   __ip_queue_xmit+0x14f/0x3d0
+   ? __slab_alloc+0x4b/0x58
+   __tcp_transmit_skb+0x57d/0xa60
+   tcp_write_xmit+0x23b/0xfd0
+   __tcp_push_pending_frames+0x2e/0xf0
+   tcp_sendmsg_locked+0x939/0xd50
+   tcp_sendmsg+0x27/0x40
+   sock_sendmsg+0x57/0x80
+   siw_tx_hdt+0x894/0xb20 [siw]
+   ? find_busiest_group+0x3e/0x5b0
+   ? common_interrupt+0xa/0xf
+   ? common_interrupt+0xa/0xf
+   ? common_interrupt+0xa/0xf
+   siw_qp_sq_process+0xf1/0xe60 [siw]
+   ? __wake_up_common_lock+0x87/0xc0
+   siw_sq_resume+0x33/0xe0 [siw]
+   siw_run_sq+0xac/0x190 [siw]
+   ? remove_wait_queue+0x60/0x60
+   kthread+0xf8/0x130
+   ? siw_sq_resume+0xe0/0xe0 [siw]
+   ? kthread_bind+0x10/0x10
+   ret_from_fork+0x35/0x40
 
-but task is already holding lock:
-00000000bc7c307d (&id_priv->handler_mutex){+.+.}, at: iw_conn_req_handler+0x151/0x680 [rdma_cm]
-
-other info that might help us debug this:
- Possible unsafe locking scenario:
-
-       CPU0
-       ----
-  lock(&id_priv->handler_mutex);
-  lock(&id_priv->handler_mutex);
-
- *** DEADLOCK ***
-
- May be due to missing lock nesting notation
-
-3 locks held by kworker/u16:6/171:
- #0: 00000000e2eaa773 ((wq_completion)iw_cm_wq){+.+.}, at: process_one_work+0x472/0xac0
- #1: 000000001efd357b ((work_completion)(&work->work)#3){+.+.}, at: process_one_work+0x476/0xac0
- #2: 00000000bc7c307d (&id_priv->handler_mutex){+.+.}, at: iw_conn_req_handler+0x151/0x680 [rdma_cm]
-
-stack backtrace:
-CPU: 3 PID: 171 Comm: kworker/u16:6 Not tainted 5.3.0-rc7-dbg+ #1
-Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-Workqueue: iw_cm_wq cm_work_handler [iw_cm]
-Call Trace:
- dump_stack+0x8a/0xd6
- __lock_acquire.cold+0xe1/0x24d
- lock_acquire+0x106/0x240
- __mutex_lock+0x12e/0xcb0
- mutex_lock_nested+0x1f/0x30
- rdma_destroy_id+0x78/0x4a0 [rdma_cm]
- iw_conn_req_handler+0x5c9/0x680 [rdma_cm]
- cm_work_handler+0xe62/0x1100 [iw_cm]
- process_one_work+0x56d/0xac0
- worker_thread+0x7a/0x5d0
- kthread+0x1bc/0x210
- ret_from_fork+0x24/0x30
-
-This is not a bug as there are actually two lock classes here.
-
-Link: https://lore.kernel.org/r/20190930231707.48259-3-bvanassche@acm.org
-Fixes: de910bd92137 ("RDMA/cma: Simplify locking needed for serialization of callbacks")
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
+Link: https://lore.kernel.org/r/20190923101112.32685-1-krishna2@chelsio.com
+Signed-off-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
+Reviewed-by: Bernard Metzler <bmt@zurich.ibm.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/cma.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/siw/siw_qp.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index a68d0ccf67a43..2e48b59926c19 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2396,9 +2396,10 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
- 		conn_id->cm_id.iw = NULL;
- 		cma_exch(conn_id, RDMA_CM_DESTROYING);
- 		mutex_unlock(&conn_id->handler_mutex);
-+		mutex_unlock(&listen_id->handler_mutex);
- 		cma_deref_id(conn_id);
- 		rdma_destroy_id(&conn_id->id);
--		goto out;
-+		return ret;
- 	}
+diff --git a/drivers/infiniband/sw/siw/siw_qp.c b/drivers/infiniband/sw/siw/siw_qp.c
+index 430314c8abd94..52d402f39df93 100644
+--- a/drivers/infiniband/sw/siw/siw_qp.c
++++ b/drivers/infiniband/sw/siw/siw_qp.c
+@@ -182,12 +182,19 @@ void siw_qp_llp_close(struct siw_qp *qp)
+  */
+ void siw_qp_llp_write_space(struct sock *sk)
+ {
+-	struct siw_cep *cep = sk_to_cep(sk);
++	struct siw_cep *cep;
  
- 	mutex_unlock(&conn_id->handler_mutex);
+-	cep->sk_write_space(sk);
++	read_lock(&sk->sk_callback_lock);
++
++	cep  = sk_to_cep(sk);
++	if (cep) {
++		cep->sk_write_space(sk);
+ 
+-	if (!test_bit(SOCK_NOSPACE, &sk->sk_socket->flags))
+-		(void)siw_sq_start(cep->qp);
++		if (!test_bit(SOCK_NOSPACE, &sk->sk_socket->flags))
++			(void)siw_sq_start(cep->qp);
++	}
++
++	read_unlock(&sk->sk_callback_lock);
+ }
+ 
+ static int siw_qp_readq_init(struct siw_qp *qp, int irq_size, int orq_size)
 -- 
 2.20.1
 
