@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5532ECA9EAC
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 187A7CA9EA9
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2A42720872
+	by mail.kernel.org (Postfix) with ESMTP id DFE4520872
 	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571437602;
-	bh=ZN/G0DCHvmoMD9ezTpP+BUSAzatO5A2Gky/EnJq3BiM=;
+	s=default; t=1571437603;
+	bh=rADQ7uRo/1bD2l2NSIcwTk6GrNhK79IgegKRNKf2DhA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=g9dEXg0ZvnZ5/XUXu/zGNPlPV0F+b4mWEeDSXeH9TfC5hl2mVi6bVBVf70FFAJW9Z
-	 oysJl3yH6ZUiWRJISTEZepDcHLUEDwUZJdnV2bNcAPmsnpThTJjIsQKGIn+3bT3NGy
-	 tu5VFxqFeQQwrgXR+0iYXl6iGi1hE7bOso37KV2c=
+	b=12WRfu6UKnsytoqCmNo0Fknv0XG7TtU6URMfBlbFpqyonbN3HKsiPjT8r7iIsEt83
+	 K+WwEBxspYVs3xlvJb4QlH/O+tHQZ412+qnW6iZLzlbIbD3sMFPI6yvZQve4XB4umG
+	 4loyU91w94wEYvCO9gTSDdon/BLxyPqQAgvZ1X0g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727967AbfJRW0a (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Oct 2019 18:26:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35898 "EHLO mail.kernel.org"
+        id S1727896AbfJRWEO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Oct 2019 18:04:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727924AbfJRWEP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 18 Oct 2019 18:04:15 -0400
+        id S1727868AbfJRWEN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 18 Oct 2019 18:04:13 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7033120679;
-        Fri, 18 Oct 2019 22:04:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F2AB222C3;
+        Fri, 18 Oct 2019 22:04:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571436255;
-        bh=ZN/G0DCHvmoMD9ezTpP+BUSAzatO5A2Gky/EnJq3BiM=;
+        s=default; t=1571436253;
+        bh=rADQ7uRo/1bD2l2NSIcwTk6GrNhK79IgegKRNKf2DhA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hsWxSdDwK+PvFfE1qh/kwbekwpXPI1ClrhtTEgiBzB/3MTFMm5FA/d/jSR5pdPTCz
-         VGyNQQTsOh3hJKQalifA3Qd3HzxLeH+eoBLvlO/2Q/36+RIZtiG4gmfjvgWXoP+lXD
-         Z8UCLEpaufK3MabXh2vaa67h4vn5kwfo6eHRquJU=
+        b=I0Ieb+RS4g3q4fhIN1sLMCQz3vyQ0TtQD7VjNo7dtA9fSLGGqeyuLf7D7p69cHcBa
+         8PeponsW//nR2r5H8TXOWMnhzs8v3dc5V415xQNjByu9bQU62CPkKDYe39MpfoquYo
+         TrkhVm6hb999r8EGWZGEy5/qeOhB3RdndHiE2UWw=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Artemy Kovalyov <artemyko@mellanox.com>,
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Mark Zhang <markz@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 38/89] RDMA/mlx5: Order num_pending_prefetch properly with synchronize_srcu
-Date:   Fri, 18 Oct 2019 18:02:33 -0400
-Message-Id: <20191018220324.8165-38-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 36/89] RDMA/nldev: Reshuffle the code to avoid need to rebind QP in error path
+Date:   Fri, 18 Oct 2019 18:02:31 -0400
+Message-Id: <20191018220324.8165-36-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191018220324.8165-1-sashal@kernel.org>
 References: <20191018220324.8165-1-sashal@kernel.org>
@@ -58,61 +59,59 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-[ Upstream commit aa116b810ac9077a263ed8679fb4d595f180e0eb ]
+[ Upstream commit 594e6c5d41ed2471ab0b90f3f0b66cdf618b7ac9 ]
 
-During destroy setting live = 0 and then synchronize_srcu() prevents
-num_pending_prefetch from incrementing, and also, ensures that all work
-holding that count is queued on the WQ. Testing before causes races of the
-form:
+Properly unwind QP counter rebinding in case of failure.
 
-    CPU0                                         CPU1
-  dereg_mr()
-                                          mlx5_ib_advise_mr_prefetch()
-            				   srcu_read_lock()
-                                            num_pending_prefetch_inc()
-					      if (!live)
-   live = 0
-   atomic_read() == 0
-     // skip flush_workqueue()
-                                              atomic_inc()
- 					      queue_work();
-            				   srcu_read_unlock()
-   WARN_ON(atomic_read())  // Fails
+Trying to rebind the counter after unbiding it is not going to work
+reliably, move the unbind to the end so it doesn't have to be unwound.
 
-Swap the order so that the synchronize_srcu() prevents this.
-
-Fixes: a6bc3875f176 ("IB/mlx5: Protect against prefetch of invalid MR")
-Link: https://lore.kernel.org/r/20191001153821.23621-5-jgg@ziepe.ca
-Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+Fixes: b389327df905 ("RDMA/nldev: Allow counter manual mode configration through RDMA netlink")
+Link: https://lore.kernel.org/r/20191002115627.16740-1-leon@kernel.org
+Reviewed-by: Mark Zhang <markz@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/nldev.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index c4ba8838d2c46..96c8a6835592d 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1591,13 +1591,14 @@ static void dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- 		 */
- 		mr->live = 0;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 91e2cc9ddb9f8..f42e856f30729 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -1787,10 +1787,6 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
  
-+		/* Wait for all running page-fault handlers to finish. */
-+		synchronize_srcu(&dev->mr_srcu);
+ 	cntn = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID]);
+ 	qpn = nla_get_u32(tb[RDMA_NLDEV_ATTR_RES_LQPN]);
+-	ret = rdma_counter_unbind_qpn(device, port, qpn, cntn);
+-	if (ret)
+-		goto err_unbind;
+-
+ 	if (fill_nldev_handle(msg, device) ||
+ 	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port) ||
+ 	    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_COUNTER_ID, cntn) ||
+@@ -1799,13 +1795,15 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		goto err_fill;
+ 	}
+ 
++	ret = rdma_counter_unbind_qpn(device, port, qpn, cntn);
++	if (ret)
++		goto err_fill;
 +
- 		/* dequeue pending prefetch requests for the mr */
- 		if (atomic_read(&mr->num_pending_prefetch))
- 			flush_workqueue(system_unbound_wq);
- 		WARN_ON(atomic_read(&mr->num_pending_prefetch));
+ 	nlmsg_end(msg, nlh);
+ 	ib_device_put(device);
+ 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
  
--		/* Wait for all running page-fault handlers to finish. */
--		synchronize_srcu(&dev->mr_srcu);
- 		/* Destroy all page mappings */
- 		if (umem_odp->page_list)
- 			mlx5_ib_invalidate_range(umem_odp,
+ err_fill:
+-	rdma_counter_bind_qpn(device, port, qpn, cntn);
+-err_unbind:
+ 	nlmsg_free(msg);
+ err:
+ 	ib_device_put(device);
 -- 
 2.20.1
 
