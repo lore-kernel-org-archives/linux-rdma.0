@@ -4,49 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 187A7CA9EA9
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0817BCA9EA9
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DFE4520872
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBD8220663
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:26:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571437603;
-	bh=rADQ7uRo/1bD2l2NSIcwTk6GrNhK79IgegKRNKf2DhA=;
+	s=default; t=1571437612;
+	bh=Q2r+wUblGCSZcJscrAMf78V19psDjFOH4jTfp5UiFkU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=12WRfu6UKnsytoqCmNo0Fknv0XG7TtU6URMfBlbFpqyonbN3HKsiPjT8r7iIsEt83
-	 K+WwEBxspYVs3xlvJb4QlH/O+tHQZ412+qnW6iZLzlbIbD3sMFPI6yvZQve4XB4umG
-	 4loyU91w94wEYvCO9gTSDdon/BLxyPqQAgvZ1X0g=
+	b=Lh/EI/U5KvOz+9wqQzyu6H1eojhN6bnF7xVc2sxQ/LCG3HEYGuaOr7aPcgWXwbSMy
+	 j1G9eQsruQGJHFQ1RFWAuQTEn1EfS9Lrrqk4zT9UMcJ+z0yamiB2l1cP0MojqRM/Z9
+	 RIjtbZNtz7HcPxHCYwYeAGRsBoPx9PJDkxBMmdms=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727896AbfJRWEO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Oct 2019 18:04:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35852 "EHLO mail.kernel.org"
+        id S2406137AbfJRW0n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Oct 2019 18:26:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35816 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727868AbfJRWEN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 18 Oct 2019 18:04:13 -0400
+        id S1727804AbfJRWEL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 18 Oct 2019 18:04:11 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4F2AB222C3;
-        Fri, 18 Oct 2019 22:04:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D80A6222C6;
+        Fri, 18 Oct 2019 22:04:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571436253;
-        bh=rADQ7uRo/1bD2l2NSIcwTk6GrNhK79IgegKRNKf2DhA=;
+        s=default; t=1571436250;
+        bh=Q2r+wUblGCSZcJscrAMf78V19psDjFOH4jTfp5UiFkU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=I0Ieb+RS4g3q4fhIN1sLMCQz3vyQ0TtQD7VjNo7dtA9fSLGGqeyuLf7D7p69cHcBa
-         8PeponsW//nR2r5H8TXOWMnhzs8v3dc5V415xQNjByu9bQU62CPkKDYe39MpfoquYo
-         TrkhVm6hb999r8EGWZGEy5/qeOhB3RdndHiE2UWw=
+        b=gjtXs+OMQ5DL4slE8rdGyUHtz0A3JOqyVvyOFxBErG5/K8ZJyeYwN3v03WSXOtbTz
+         Nm1oxeHYVlnhq9d1YXuxCdSK+rESgzGzkpcJ/7Q0oAX8L6nzvaJkKyZXeE22l/Vxo2
+         WtU/zUK43vcEBSfuShdsITzA0d4pOdn3tFjIKoWQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Mark Zhang <markz@mellanox.com>,
+Cc:     Jack Morgenstein <jackm@dev.mellanox.co.il>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 36/89] RDMA/nldev: Reshuffle the code to avoid need to rebind QP in error path
-Date:   Fri, 18 Oct 2019 18:02:31 -0400
-Message-Id: <20191018220324.8165-36-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 34/89] RDMA/cm: Fix memory leak in cm_add/remove_one
+Date:   Fri, 18 Oct 2019 18:02:29 -0400
+Message-Id: <20191018220324.8165-34-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191018220324.8165-1-sashal@kernel.org>
 References: <20191018220324.8165-1-sashal@kernel.org>
@@ -59,59 +59,67 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
-[ Upstream commit 594e6c5d41ed2471ab0b90f3f0b66cdf618b7ac9 ]
+[ Upstream commit 94635c36f3854934a46d9e812e028d4721bbb0e6 ]
 
-Properly unwind QP counter rebinding in case of failure.
+In the process of moving the debug counters sysfs entries, the commit
+mentioned below eliminated the cm_infiniband sysfs directory.
 
-Trying to rebind the counter after unbiding it is not going to work
-reliably, move the unbind to the end so it doesn't have to be unwound.
+This sysfs directory was tied to the cm_port object allocated in procedure
+cm_add_one().
 
-Fixes: b389327df905 ("RDMA/nldev: Allow counter manual mode configration through RDMA netlink")
-Link: https://lore.kernel.org/r/20191002115627.16740-1-leon@kernel.org
-Reviewed-by: Mark Zhang <markz@mellanox.com>
+Before the commit below, this cm_port object was freed via a call to
+kobject_put(port->kobj) in procedure cm_remove_port_fs().
+
+Since port no longer uses its kobj, kobject_put(port->kobj) was eliminated.
+This, however, meant that kfree was never called for the cm_port buffers.
+
+Fix this by adding explicit kfree(port) calls to functions cm_add_one()
+and cm_remove_one().
+
+Note: the kfree call in the first chunk below (in the cm_add_one error
+flow) fixes an old, undetected memory leak.
+
+Fixes: c87e65cfb97c ("RDMA/cm: Move debug counters to be under relevant IB device")
+Link: https://lore.kernel.org/r/20190916071154.20383-2-leon@kernel.org
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/nldev.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cm.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 91e2cc9ddb9f8..f42e856f30729 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -1787,10 +1787,6 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 
- 	cntn = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID]);
- 	qpn = nla_get_u32(tb[RDMA_NLDEV_ATTR_RES_LQPN]);
--	ret = rdma_counter_unbind_qpn(device, port, qpn, cntn);
--	if (ret)
--		goto err_unbind;
--
- 	if (fill_nldev_handle(msg, device) ||
- 	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port) ||
- 	    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_COUNTER_ID, cntn) ||
-@@ -1799,13 +1795,15 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		goto err_fill;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index da10e6ccb43cd..5920c0085d35b 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -4399,6 +4399,7 @@ static void cm_add_one(struct ib_device *ib_device)
+ error1:
+ 	port_modify.set_port_cap_mask = 0;
+ 	port_modify.clr_port_cap_mask = IB_PORT_CM_SUP;
++	kfree(port);
+ 	while (--i) {
+ 		if (!rdma_cap_ib_cm(ib_device, i))
+ 			continue;
+@@ -4407,6 +4408,7 @@ static void cm_add_one(struct ib_device *ib_device)
+ 		ib_modify_port(ib_device, port->port_num, 0, &port_modify);
+ 		ib_unregister_mad_agent(port->mad_agent);
+ 		cm_remove_port_fs(port);
++		kfree(port);
+ 	}
+ free:
+ 	kfree(cm_dev);
+@@ -4460,6 +4462,7 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
+ 		spin_unlock_irq(&cm.state_lock);
+ 		ib_unregister_mad_agent(cur_mad_agent);
+ 		cm_remove_port_fs(port);
++		kfree(port);
  	}
  
-+	ret = rdma_counter_unbind_qpn(device, port, qpn, cntn);
-+	if (ret)
-+		goto err_fill;
-+
- 	nlmsg_end(msg, nlh);
- 	ib_device_put(device);
- 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
- 
- err_fill:
--	rdma_counter_bind_qpn(device, port, qpn, cntn);
--err_unbind:
- 	nlmsg_free(msg);
- err:
- 	ib_device_put(device);
+ 	kfree(cm_dev);
 -- 
 2.20.1
 
