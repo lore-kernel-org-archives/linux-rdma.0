@@ -2,164 +2,99 @@ Return-Path: <SRS0=nLh4=YL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C22CA9EA9
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:28:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D848CA9EA0
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:50:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 58E65222C2
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:28:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571437681;
-	bh=p9C5sV/9RGDGSsR26ocpzESBcVa9EVNGwDLOF9hwdCM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=tHvixQZEoWJ531IgshUUBYk88gHTgDFCmr0Kh5ilW5BFdt3Me1ZBfWjFEtFSnL4Mp
-	 ZUqh3ExjfOPnVsevMEtOQIQ3hu1ZPTYiGPLU9jEjNfBDsIXH25VOXtexwJ/e13yI0s
-	 DV4Ohs02QzbFYi+arQYD/snJsATqPTu9lhsURIR4=
+	by mail.kernel.org (Postfix) with ESMTP id 3735E21925
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Oct 2019 22:50:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726259AbfJRW14 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Oct 2019 18:27:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35424 "EHLO mail.kernel.org"
+        id S2389936AbfJRWu0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Oct 2019 18:50:26 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:40376 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727431AbfJRWDw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 18 Oct 2019 18:03:52 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        id S1729622AbfJRWu0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 18 Oct 2019 18:50:26 -0400
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5770222D4;
-        Fri, 18 Oct 2019 22:03:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571436231;
-        bh=p9C5sV/9RGDGSsR26ocpzESBcVa9EVNGwDLOF9hwdCM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KN+mpTQpXhXETZoM7l+m1SBa/z/LcwqgZ4e2Xf+sILWTxlIY1beh4A9qPwjLh0vCk
-         rMAZyWZlycttm/p6niXpR3hobCb5eks2Eno9qncjJmpiohwNzIH3uGhw51HjTdpqC1
-         Ky1a6sCg1b9Kc82MDCyaE24jx8KPHgXb/bqp9dKs=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Krishnamraju Eraparaju <krishna2@chelsio.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 17/89] RDMA/siw: Fix serialization issue in write_space()
-Date:   Fri, 18 Oct 2019 18:02:12 -0400
-Message-Id: <20191018220324.8165-17-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191018220324.8165-1-sashal@kernel.org>
-References: <20191018220324.8165-1-sashal@kernel.org>
+        by mx1.redhat.com (Postfix) with ESMTPS id 14166308A9E0;
+        Fri, 18 Oct 2019 22:50:26 +0000 (UTC)
+Received: from [10.3.117.75] (ovpn-117-75.phx2.redhat.com [10.3.117.75])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3CBCC79AD;
+        Fri, 18 Oct 2019 22:50:25 +0000 (UTC)
+Subject: Re: [PATCH for-next] iw_cxgb3: remove iw_cxgb3 module from kernel.
+To:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Potnuri Bharat Teja <bharat@chelsio.com>,
+        linux-rdma@vger.kernel.org, nirranjan@chelsio.com
+References: <20190930074252.20133-1-bharat@chelsio.com>
+ <411c4ea1-4320-fa04-b014-7e5fe91869a8@redhat.com>
+ <20191018204647.GA6087@ziepe.ca>
+ <3b6fbc551c3a1c53e9365f6af5889ca38e141d3d.camel@redhat.com>
+From:   Don Dutile <ddutile@redhat.com>
+Message-ID: <aea0cf04-bcac-0422-f24a-0158aaac2537@redhat.com>
+Date:   Fri, 18 Oct 2019 18:50:24 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.9.1
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3b6fbc551c3a1c53e9365f6af5889ca38e141d3d.camel@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.41]); Fri, 18 Oct 2019 22:50:26 +0000 (UTC)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Krishnamraju Eraparaju <krishna2@chelsio.com>
+On 10/18/2019 04:51 PM, Doug Ledford wrote:
+> On Fri, 2019-10-18 at 17:46 -0300, Jason Gunthorpe wrote:
+>> On Wed, Oct 16, 2019 at 01:47:29PM -0400, Don Dutile wrote:
+>>
+>>> Isn't there a better way to mark a driver deprecated?
+>>>
+>>> This kind of removal makes long-term maintenance of such drivers
+>>> painful in downstream distros, as API changes that are rippled from
+>>> core through all the drivers, don't update these drivers, and when
+>>> backporting such API changes to downstream distros, we have to +1
+>>> removed drivers.
+>>
+>> You still have cxg3 as an enabled & supported driver? In RH8? Why?
+>>   
+>>> It's much easier if upstream continues to update the drivers for
+>>> such across-the-driver-patch-changes.  heck, add a separate patch
+>>> that punches out a printk stating DEPRECATED (dropping a patch to
+>>> backport is easy! :) ).
+>>
+>> The whole point of doing this is to avoid this work!
+> 
+> People don't quit *using* hardware just because a company has quit
+> selling it.  When we can quit supporting it is more about whether
+> customers ask for support (or our records indicate lots of systems use
+> the hardware) than about whether the vendors still care.
+> 
+> That said, we probably could have dropped cxgb3 from 8.0, but I'm not
+> positive about that.  Just a guess.
+> 
 
-[ Upstream commit df791c54d627bae53c9be3be40a69594c55de487 ]
+cxgb3 is dropped from rhel-8;
+yeah, we pruned the tree very closely on RHEL8, and many on this list know that all too well --
+b/c ... oh yeah, the vendors EOL'd their devices ... but they are in labs' (well-established) OEM servers everywhere, and now they can't run RHEL8. :(
 
-In siw_qp_llp_write_space(), 'sock' members should be accessed with
-sk_callback_lock held, otherwise, it could race with
-siw_sk_restore_upcalls(). And this could cause "NULL deref" panic.  Below
-panic is due to the NULL cep returned from sk_to_cep(sk):
+cxgb3 still quite alive in rhel-7 --> 10yr life cycle ! 7.0 shipped June 2014... so in 2024...
+RHEL7 has exited Phase I, where we update the RDMA base to upstream en-masse every RHEL-X.Y release,
+so the concern is less now, but some bug-fixes require a refactoring that breaks un-sourced drivers.
 
-  Call Trace:
-   <IRQ>    siw_qp_llp_write_space+0x11/0x40 [siw]
-   tcp_check_space+0x4c/0xf0
-   tcp_rcv_established+0x52b/0x630
-   tcp_v4_do_rcv+0xf4/0x1e0
-   tcp_v4_rcv+0x9b8/0xab0
-   ip_protocol_deliver_rcu+0x2c/0x1c0
-   ip_local_deliver_finish+0x44/0x50
-   ip_local_deliver+0x6b/0xf0
-   ? ip_protocol_deliver_rcu+0x1c0/0x1c0
-   ip_rcv+0x52/0xd0
-   ? ip_rcv_finish_core.isra.14+0x390/0x390
-   __netif_receive_skb_one_core+0x83/0xa0
-   netif_receive_skb_internal+0x73/0xb0
-   napi_gro_frags+0x1ff/0x2b0
-   t4_ethrx_handler+0x4a7/0x740 [cxgb4]
-   process_responses+0x2c9/0x590 [cxgb4]
-   ? t4_sge_intr_msix+0x1d/0x30 [cxgb4]
-   ? handle_irq_event_percpu+0x51/0x70
-   ? handle_irq_event+0x41/0x60
-   ? handle_edge_irq+0x97/0x1a0
-   napi_rx_handler+0x14/0xe0 [cxgb4]
-   net_rx_action+0x2af/0x410
-   __do_softirq+0xda/0x2a8
-   do_softirq_own_stack+0x2a/0x40
-   </IRQ>
-   do_softirq+0x50/0x60
-   __local_bh_enable_ip+0x50/0x60
-   ip_finish_output2+0x18f/0x520
-   ip_output+0x6e/0xf0
-   ? __ip_finish_output+0x1f0/0x1f0
-   __ip_queue_xmit+0x14f/0x3d0
-   ? __slab_alloc+0x4b/0x58
-   __tcp_transmit_skb+0x57d/0xa60
-   tcp_write_xmit+0x23b/0xfd0
-   __tcp_push_pending_frames+0x2e/0xf0
-   tcp_sendmsg_locked+0x939/0xd50
-   tcp_sendmsg+0x27/0x40
-   sock_sendmsg+0x57/0x80
-   siw_tx_hdt+0x894/0xb20 [siw]
-   ? find_busiest_group+0x3e/0x5b0
-   ? common_interrupt+0xa/0xf
-   ? common_interrupt+0xa/0xf
-   ? common_interrupt+0xa/0xf
-   siw_qp_sq_process+0xf1/0xe60 [siw]
-   ? __wake_up_common_lock+0x87/0xc0
-   siw_sq_resume+0x33/0xe0 [siw]
-   siw_run_sq+0xac/0x190 [siw]
-   ? remove_wait_queue+0x60/0x60
-   kthread+0xf8/0x130
-   ? siw_sq_resume+0xe0/0xe0 [siw]
-   ? kthread_bind+0x10/0x10
-   ret_from_fork+0x35/0x40
+Hey, this nut case named Doug Ledford wanted me to keep mthca enabled in RHEL8 for his private lab!
+hahahahahaha ....
 
-Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
-Link: https://lore.kernel.org/r/20190923101112.32685-1-krishna2@chelsio.com
-Signed-off-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
-Reviewed-by: Bernard Metzler <bmt@zurich.ibm.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/sw/siw/siw_qp.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+On the flip-side, I wish we could EOL & remove a whole lot of other code in the kernel (/me looking at old x86 compat code as a prime example...).  other old hw on arch's ... would make a lot of mm cleanup possible without the long, protracted effort that Mike Rappaport goes through!
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp.c b/drivers/infiniband/sw/siw/siw_qp.c
-index 430314c8abd94..52d402f39df93 100644
---- a/drivers/infiniband/sw/siw/siw_qp.c
-+++ b/drivers/infiniband/sw/siw/siw_qp.c
-@@ -182,12 +182,19 @@ void siw_qp_llp_close(struct siw_qp *qp)
-  */
- void siw_qp_llp_write_space(struct sock *sk)
- {
--	struct siw_cep *cep = sk_to_cep(sk);
-+	struct siw_cep *cep;
- 
--	cep->sk_write_space(sk);
-+	read_lock(&sk->sk_callback_lock);
-+
-+	cep  = sk_to_cep(sk);
-+	if (cep) {
-+		cep->sk_write_space(sk);
- 
--	if (!test_bit(SOCK_NOSPACE, &sk->sk_socket->flags))
--		(void)siw_sq_start(cep->qp);
-+		if (!test_bit(SOCK_NOSPACE, &sk->sk_socket->flags))
-+			(void)siw_sq_start(cep->qp);
-+	}
-+
-+	read_unlock(&sk->sk_callback_lock);
- }
- 
- static int siw_qp_readq_init(struct siw_qp *qp, int irq_size, int orq_size)
--- 
-2.20.1
+ok, I made my point.  Do as you wish.
+
+
 
