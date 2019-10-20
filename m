@@ -2,102 +2,148 @@ Return-Path: <SRS0=v0iq=YN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2546CCA9EA0
-	for <linux-rdma@archiver.kernel.org>; Sun, 20 Oct 2019 05:27:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D5CCCA9EA9
+	for <linux-rdma@archiver.kernel.org>; Sun, 20 Oct 2019 05:57:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E24F4222C3
-	for <linux-rdma@archiver.kernel.org>; Sun, 20 Oct 2019 05:27:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A207222C2
+	for <linux-rdma@archiver.kernel.org>; Sun, 20 Oct 2019 05:57:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571549263;
-	bh=nMGy5ZKAqnobkJtSBUgyJSZHhKzTTgjDHePuqK4mlgw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=fiNNYv1hABVML+++ESvBFchLToLcYtEo9ZDHsm+W/H4c+Or43UDzontLFTc8RawMD
-	 NvtsgbN5vk+vqxvomsIkOnLTvY8GHsuEbsGlzXyzr/PKq1RP9PrAv+aFzrdTWPbk+L
-	 t26sb3KpnfEKbF+8be0/d9rDWOuAVsZX9RQdbphw=
+	s=default; t=1571551053;
+	bh=jSCCZn/zejwH8ozlpnOfUOXb2fNDS5QcgTHcls+JWm0=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=nsALIVcojJgKNbJWKYVPbu12+tNTW4roNn77FYUXhyE1ieOGmt5RUlRe19fZlXMeV
+	 jy3ZExRIhPPYess6gNXDWKsfBM80jduyU8zI2fUMP1GIwa/0WD8lk1sOjyjILYpmIF
+	 EgfQzywD9liXtwnKZ7vApDMG7R0r2q+rZaaiuZmY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725851AbfJTF1m (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 20 Oct 2019 01:27:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47900 "EHLO mail.kernel.org"
+        id S1726190AbfJTF5c (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 20 Oct 2019 01:57:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51882 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725747AbfJTF1l (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 20 Oct 2019 01:27:41 -0400
+        id S1726125AbfJTF5c (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 20 Oct 2019 01:57:32 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 550EF21D80;
-        Sun, 20 Oct 2019 05:27:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 21C642064A;
+        Sun, 20 Oct 2019 05:57:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571549261;
-        bh=nMGy5ZKAqnobkJtSBUgyJSZHhKzTTgjDHePuqK4mlgw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=zm7eJMcezkLRn1iqjZ23DE6SVJMNTcWy6UA2bYLHKGByCsq9puM4oN19ABLGCF8Fg
-         vixfLM1bOZ8XO4ANdug2KRsumzJI9okGOCQN41aB3c2I0Wv5KgwHBDWdhy4zTSkCrW
-         NqTwKZkFdxYE75ZPWlJHlTdSkaVzqDq005Zs6vE0=
-Date:   Sun, 20 Oct 2019 08:27:17 +0300
+        s=default; t=1571551050;
+        bh=jSCCZn/zejwH8ozlpnOfUOXb2fNDS5QcgTHcls+JWm0=;
+        h=From:To:Cc:Subject:Date:From;
+        b=eFNEZf/Qk64aDJ42gGt3E9fBFzo5ZYd+FJmwNb902YSwF3BcWb/Mdck508SvRasZQ
+         +m6zluircoHR8Yo0C/Ba7W73fd6uzYQSUmJoLO7y036QY9B/L2o/u8lNP4w3dYuD6a
+         oJ9mXahQYPlvQs+QPD0f/9+CflqnUhS6Sou6x9io=
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Rafi Wiener <rafiw@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Bodong Wang <bodong@mellanox.com>,
-        Oleg Kuporosov <olegk@mellanox.com>
-Subject: Re: [PATCH rdma-rc] RDMA/mlx5: Clear old rate limit when closing QP
-Message-ID: <20191020052717.GA4853@unreal>
-References: <20191002120243.16971-1-leon@kernel.org>
- <cca910c4040961729f0f4d0ad248b6b5684c80eb.camel@redhat.com>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: [PATCH rdma-next] RDMA/rxe: Remove useless rxe_init_device_param assignments
+Date:   Sun, 20 Oct 2019 08:57:24 +0300
+Message-Id: <20191020055724.7410-1-leon@kernel.org>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cca910c4040961729f0f4d0ad248b6b5684c80eb.camel@redhat.com>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Oct 17, 2019 at 04:12:04PM -0400, Doug Ledford wrote:
-> On Wed, 2019-10-02 at 15:02 +0300, Leon Romanovsky wrote:
-> > From: Rafi Wiener <rafiw@mellanox.com>
-> >
-> > Before QP is closed it changes to ERROR state, when this happens
-> > the QP was left with old rate limit that was already removed from
-> > the table.
-> >
-> > Fixes: 7d29f349a4b9 ("IB/mlx5: Properly adjust rate limit on QP state
-> > transitions")
-> > Signed-off-by: Rafi Wiener <rafiw@mellanox.com>
-> > Signed-off-by: Oleg Kuporosov <olegk@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->
-> If you are in the process of closing the queue pair, does this solve
-> some sort of multi-close race, or is it just being pedantic before
-> freeing the qp struct?
+From: Leon Romanovsky <leonro@mellanox.com>
 
-It fixes real bug with panic, I didn't add splat, because it had debug
-info needed to find this problem.
+IB devices are allocated with kzalloc and don't need explicit zero
+assignments for their parameters. It can be removed safely.
 
-The nutshell of this bug is how we are storing rate limits:
-in one table of global mlx5_core_dev and struct (not pointer) of
-mlx5_rate_limit inside mlx5_ib_qp. Such combination still allows
-access to rate limit (old one) for ibqp, for example for compare
-(mlx5_rl_are_equal).
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/sw/rxe/rxe.c       | 13 -------------
+ drivers/infiniband/sw/rxe/rxe_param.h | 13 -------------
+ 2 files changed, 26 deletions(-)
 
-The best solution is to rewrite rl logic to use pointers, but it was too
-much to demand from Oleg and Rafi, who stepped on this bug with their
-user space application.
-
-Thanks
-
->
-> I took it regardless, just curious.
->
-> --
-> Doug Ledford <dledford@redhat.com>
->     GPG KeyID: B826A3330E572FDD
->     Fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index a8c11b5e1e94..0946a301a5c5 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -77,12 +77,8 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
+ {
+ 	rxe->max_inline_data			= RXE_MAX_INLINE_DATA;
+ 
+-	rxe->attr.fw_ver			= RXE_FW_VER;
+ 	rxe->attr.max_mr_size			= RXE_MAX_MR_SIZE;
+ 	rxe->attr.page_size_cap			= RXE_PAGE_SIZE_CAP;
+-	rxe->attr.vendor_id			= RXE_VENDOR_ID;
+-	rxe->attr.vendor_part_id		= RXE_VENDOR_PART_ID;
+-	rxe->attr.hw_ver			= RXE_HW_VER;
+ 	rxe->attr.max_qp			= RXE_MAX_QP;
+ 	rxe->attr.max_qp_wr			= RXE_MAX_QP_WR;
+ 	rxe->attr.device_cap_flags		= RXE_DEVICE_CAP_FLAGS;
+@@ -94,22 +90,13 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
+ 	rxe->attr.max_mr			= RXE_MAX_MR;
+ 	rxe->attr.max_pd			= RXE_MAX_PD;
+ 	rxe->attr.max_qp_rd_atom		= RXE_MAX_QP_RD_ATOM;
+-	rxe->attr.max_ee_rd_atom		= RXE_MAX_EE_RD_ATOM;
+ 	rxe->attr.max_res_rd_atom		= RXE_MAX_RES_RD_ATOM;
+ 	rxe->attr.max_qp_init_rd_atom		= RXE_MAX_QP_INIT_RD_ATOM;
+-	rxe->attr.max_ee_init_rd_atom		= RXE_MAX_EE_INIT_RD_ATOM;
+ 	rxe->attr.atomic_cap			= IB_ATOMIC_HCA;
+-	rxe->attr.max_ee			= RXE_MAX_EE;
+-	rxe->attr.max_rdd			= RXE_MAX_RDD;
+-	rxe->attr.max_mw			= RXE_MAX_MW;
+-	rxe->attr.max_raw_ipv6_qp		= RXE_MAX_RAW_IPV6_QP;
+-	rxe->attr.max_raw_ethy_qp		= RXE_MAX_RAW_ETHY_QP;
+ 	rxe->attr.max_mcast_grp			= RXE_MAX_MCAST_GRP;
+ 	rxe->attr.max_mcast_qp_attach		= RXE_MAX_MCAST_QP_ATTACH;
+ 	rxe->attr.max_total_mcast_qp_attach	= RXE_MAX_TOT_MCAST_QP_ATTACH;
+ 	rxe->attr.max_ah			= RXE_MAX_AH;
+-	rxe->attr.max_fmr			= RXE_MAX_FMR;
+-	rxe->attr.max_map_per_fmr		= RXE_MAX_MAP_PER_FMR;
+ 	rxe->attr.max_srq			= RXE_MAX_SRQ;
+ 	rxe->attr.max_srq_wr			= RXE_MAX_SRQ_WR;
+ 	rxe->attr.max_srq_sge			= RXE_MAX_SRQ_SGE;
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index fe5207386700..353c6668249e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -60,12 +60,8 @@ static inline enum ib_mtu eth_mtu_int_to_enum(int mtu)
+ 
+ /* default/initial rxe device parameter settings */
+ enum rxe_device_param {
+-	RXE_FW_VER			= 0,
+ 	RXE_MAX_MR_SIZE			= -1ull,
+ 	RXE_PAGE_SIZE_CAP		= 0xfffff000,
+-	RXE_VENDOR_ID			= 0,
+-	RXE_VENDOR_PART_ID		= 0,
+-	RXE_HW_VER			= 0,
+ 	RXE_MAX_QP			= 0x10000,
+ 	RXE_MAX_QP_WR			= 0x4000,
+ 	RXE_MAX_INLINE_DATA		= 400,
+@@ -87,21 +83,12 @@ enum rxe_device_param {
+ 	RXE_MAX_MR			= 256 * 1024,
+ 	RXE_MAX_PD			= 0x7ffc,
+ 	RXE_MAX_QP_RD_ATOM		= 128,
+-	RXE_MAX_EE_RD_ATOM		= 0,
+ 	RXE_MAX_RES_RD_ATOM		= 0x3f000,
+ 	RXE_MAX_QP_INIT_RD_ATOM		= 128,
+-	RXE_MAX_EE_INIT_RD_ATOM		= 0,
+-	RXE_MAX_EE			= 0,
+-	RXE_MAX_RDD			= 0,
+-	RXE_MAX_MW			= 0,
+-	RXE_MAX_RAW_IPV6_QP		= 0,
+-	RXE_MAX_RAW_ETHY_QP		= 0,
+ 	RXE_MAX_MCAST_GRP		= 8192,
+ 	RXE_MAX_MCAST_QP_ATTACH		= 56,
+ 	RXE_MAX_TOT_MCAST_QP_ATTACH	= 0x70000,
+ 	RXE_MAX_AH			= 100,
+-	RXE_MAX_FMR			= 0,
+-	RXE_MAX_MAP_PER_FMR		= 0,
+ 	RXE_MAX_SRQ			= 960,
+ 	RXE_MAX_SRQ_WR			= 0x4000,
+ 	RXE_MIN_SRQ_WR			= 1,
+-- 
+2.20.1
 
