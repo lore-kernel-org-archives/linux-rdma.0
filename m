@@ -2,48 +2,64 @@ Return-Path: <SRS0=rCJA=YO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFEC8CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 15:56:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77DE0CA9EB7
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 16:26:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ADDB32084B
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 15:56:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E36A205ED
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 16:26:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727355AbfJUP4L (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 21 Oct 2019 11:56:11 -0400
-Received: from mga09.intel.com ([134.134.136.24]:13436 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726332AbfJUP4L (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 21 Oct 2019 11:56:11 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 21 Oct 2019 08:56:10 -0700
-X-IronPort-AV: E=Sophos;i="5.67,324,1566889200"; 
-   d="scan'208";a="191149938"
-Received: from ddalessa-mobl.amr.corp.intel.com (HELO [10.254.201.232]) ([10.254.201.232])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/AES256-SHA; 21 Oct 2019 08:56:08 -0700
-Subject: Re: [PATCH hmm 00/15] Consolidate the mmu notifier interval_tree and
- locking
-To:     Jason Gunthorpe <jgg@ziepe.ca>, Jerome Glisse <jglisse@redhat.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com
-Cc:     linux-rdma@vger.kernel.org, linux-mm@kvack.org,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-References: <20191015181242.8343-1-jgg@ziepe.ca>
-From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
-Message-ID: <5fdbcda8-c6ec-70aa-3f89-147fe67152f2@intel.com>
-Date:   Mon, 21 Oct 2019 11:55:51 -0400
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+        id S1730071AbfJUQ0U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 21 Oct 2019 12:26:20 -0400
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:36685 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730064AbfJUQ0S (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Oct 2019 12:26:18 -0400
+Received: by mail-pf1-f193.google.com with SMTP id y22so8746846pfr.3
+        for <linux-rdma@vger.kernel.org>; Mon, 21 Oct 2019 09:26:17 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=770v9ht12vy3NdORZAJ6njsIlsObZJSKA5aEPY38vfs=;
+        b=NF4QjhQGt09axYaX6M4Q2UoTzKdDwLBWaLBQ5G6Z89PuoaI3dNz7sEO7qz/b32/4iB
+         RQUysBtkz3Je9j0iMbOIKfe3dgXlVkRa3vre+1muBtFSvekRD001P3Evfy+A7dsCTjZk
+         0Iu69/ejFyrbxRPUNO52x2A4RL635At1lJMAoqqb5Io5TsrlnjfLVFD/PnE93B/YaS38
+         v3wvJcg4XcTCmOV0Jp8CsRJLG3nfiM+hIdyNB4blvE3vJHs7dDr/jNr6XiV/RHHbFuOz
+         bHdsGUpl3tj2LaFZNCgQaxdVuezP8ys3WCtOrq4Q0hDOlQMpfhbDETHqClaNxVEcCDjy
+         8TNw==
+X-Gm-Message-State: APjAAAW6jeAIdyZJEkqWjBTJnfMOsxGgATGtu6Z3jEiYOTs+x/QIvZ1T
+        H53X2OGey5Z56wtdUBUiqHQ=
+X-Google-Smtp-Source: APXvYqzuYfzPm6N+/GWaoYN+KoWdgYRGNDYPdipVvkK8V4S5TCZfz4CxZftCbaj8R8jIAKkltE0JXg==
+X-Received: by 2002:a62:e90d:: with SMTP id j13mr24441991pfh.237.1571675177395;
+        Mon, 21 Oct 2019 09:26:17 -0700 (PDT)
+Received: from desktop-bart.svl.corp.google.com ([2620:15c:2cd:202:4308:52a3:24b6:2c60])
+        by smtp.gmail.com with ESMTPSA id w10sm13651081pjq.3.2019.10.21.09.26.14
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 21 Oct 2019 09:26:16 -0700 (PDT)
+Subject: Re: [PATCH 2/4] RDMA/core: Set DMA parameters correctly
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        "Michael J . Ruhl" <michael.j.ruhl@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Adit Ranadive <aditr@vmware.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Gal Pressman <galpress@amazon.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>
+References: <20191021021030.1037-1-bvanassche@acm.org>
+ <20191021021030.1037-3-bvanassche@acm.org> <20191021141039.GC25178@ziepe.ca>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <61d89948-de40-5e6b-f368-353476292093@acm.org>
+Date:   Mon, 21 Oct 2019 09:26:13 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.9.0
 MIME-Version: 1.0
-In-Reply-To: <20191015181242.8343-1-jgg@ziepe.ca>
+In-Reply-To: <20191021141039.GC25178@ziepe.ca>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -52,12 +68,109 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 10/15/2019 2:12 PM, Jason Gunthorpe wrote:
-> This is still being tested, but I figured to send it to start getting help
-> from the xen, amd and hfi drivers which I cannot test here.
+On 10/21/19 7:10 AM, Jason Gunthorpe wrote:
+> On Sun, Oct 20, 2019 at 07:10:28PM -0700, Bart Van Assche wrote:
+>> The effect of the dma_set_max_seg_size() call in setup_dma_device() is
+>> as follows:
+>> - If device->dev.dma_parms is NULL, that call has no effect at all.
+>> - If device->dev.dma_parms is not NULL, since that pointer points at
+>>    the DMA parameters of the parent device, modify the DMA limits of the
+>>    parent device.
+>>
+>> Both actions are wrong. Instead of changing the DMA parameters of the
+>> parent device, use the DMA parameters of the parent device if these
+>> parameters are available.
+>>
+>> Compile-tested only.
+>>
+>> Cc: Michael J. Ruhl <michael.j.ruhl@intel.com>
+>> Cc: Ira Weiny <ira.weiny@intel.com>
+>> Cc: Adit Ranadive <aditr@vmware.com>
+>> Cc: Shiraz Saleem <shiraz.saleem@intel.com>
+>> Cc: Gal Pressman <galpress@amazon.com>
+>> Cc: Selvin Xavier <selvin.xavier@broadcom.com>
+>> Fixes: d10bcf947a3e ("RDMA/umem: Combine contiguous PAGE_SIZE regions in SGEs")
+>> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+>>   drivers/infiniband/core/device.c | 13 +++++++++++--
+>>   1 file changed, 11 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+>> index 536310fb6510..b33d684a2a99 100644
+>> +++ b/drivers/infiniband/core/device.c
+>> @@ -1199,9 +1199,18 @@ static void setup_dma_device(struct ib_device *device)
+>>   		WARN_ON_ONCE(!parent);
+>>   		device->dma_device = parent;
+>>   	}
+>> -	/* Setup default max segment size for all IB devices */
+>> -	dma_set_max_seg_size(device->dma_device, SZ_2G);
+>>   
+>> +	if (!device->dev.dma_parms) {
+>> +		if (parent) {
+>> +			/*
+>> +			 * The caller did not provide DMA parameters. Use the
+>> +			 * DMA parameters of the parent device.
+>> +			 */
+>> +			device->dev.dma_parms = parent->dma_parms;
+>> +		} else {
+>> +			WARN_ON_ONCE(true);
+>> +		}
+>> +	}
+>>   }
+> 
+> We really do want to, by default, increase the max_seg_size above 64k
+> though, so this approach doesn't seem right either.
 
-Sorry for the delay, I never seen this. Was not on Cc list and didn't 
-register to me it impacted hfi. I'll take a look and run it through some 
-hfi1 tests.
+How about replacing this patch by the patch below and by moving this patch to
+the end of this series?
 
--Denny
+Thanks,
+
+Bart.
+
+
+Subject: [PATCH] RDMA/core: Set DMA parameters correctly
+
+The dma_set_max_seg_size() call in setup_dma_device() does not have any
+effect since device->dev.dma_parms is NULL. Fix this by initializing
+device->dev.dma_parms first.
+
+Cc: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Adit Ranadive <aditr@vmware.com>
+Cc: Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: Gal Pressman <galpress@amazon.com>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>
+Fixes: d10bcf947a3e ("RDMA/umem: Combine contiguous PAGE_SIZE regions in SGEs")
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+---
+  drivers/infiniband/core/device.c | 16 ++++++++++++++--
+  1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index a667636f74bf..a523d844ad9d 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1199,9 +1199,21 @@ static void setup_dma_device(struct ib_device *device)
+  		WARN_ON_ONCE(!parent);
+  		device->dma_device = parent;
+  	}
+-	/* Setup default max segment size for all IB devices */
+-	dma_set_max_seg_size(device->dma_device, SZ_2G);
+
++	if (!device->dev.dma_parms) {
++		if (parent) {
++			/*
++			 * The caller did not provide DMA parameters, so
++			 * 'parent' probably represents a PCI device. The PCI
++			 * core sets the maximum segment size to 64
++			 * KB. Increase this parameter to 2G.
++			 */
++			device->dev.dma_parms = parent->dma_parms;
++			dma_set_max_seg_size(device->dma_device, SZ_2G);
++		} else {
++			WARN_ON_ONCE(true);
++		}
++	}
+  }
+
+  /*
