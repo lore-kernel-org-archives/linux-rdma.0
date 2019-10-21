@@ -6,50 +6,49 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4D1BCA9EAE
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 02:10:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33926CA9EAE
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 02:10:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 867B721A4A
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 02:10:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1223021A4A
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Oct 2019 02:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726907AbfJUCKq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 20 Oct 2019 22:10:46 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:42421 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726881AbfJUCKq (ORCPT
+        id S1726799AbfJUCKy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 20 Oct 2019 22:10:54 -0400
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:34137 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726898AbfJUCKq (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sun, 20 Oct 2019 22:10:46 -0400
-Received: by mail-pg1-f193.google.com with SMTP id f14so6752410pgi.9
-        for <linux-rdma@vger.kernel.org>; Sun, 20 Oct 2019 19:10:45 -0700 (PDT)
+Received: by mail-pf1-f195.google.com with SMTP id b128so7411098pfa.1
+        for <linux-rdma@vger.kernel.org>; Sun, 20 Oct 2019 19:10:44 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=vTcerqeLx7y8275r+z3eE5hpmq6x0OzokQL0fWcQlL0=;
-        b=SfmwlF0C5OztLH/3cgW3AnKAUC1+bN2g1ElFpEdv8ddVACx3XVXnNI2m8VY1mqqBne
-         3d4/PKQJSky5gymJD4ySMowFwhzuBzXLiJsWFG0ZMqCjFJtW5wXz5a/kdmn7FNbba7T8
-         R8M6c8pfLW1iSsO+HuGfK6iEStNSJC+rlmDrak8HckX3EqJVc/H5SqIiNhI+tc/n5mzB
-         flVyEpdohg0JpJCylPbFJigUubVFrrxKKFhme8/8BOEpYeD2RXI1og3W6s3uq4CDLEdX
-         GhLqohk70D1J4pB1u9Wz6zC4MOdIcF/nYPwviVoa1kqaTuqPCWY0bUJAisCuwfToL1yq
-         oakw==
-X-Gm-Message-State: APjAAAVYriG8qKnVDgvG57L5sXgaGB2YA9Gmj43H0LBPr+M4/VnIQvQb
-        BgCFj5yRohgK44msFJ5Sm74=
-X-Google-Smtp-Source: APXvYqyM3Yo5vGVQytmZfJCX47BxpA+wlf02Uy9KrRYOZgttQBWa4phzFKLFd7tRwcAfdH9w42SpCQ==
-X-Received: by 2002:a17:90a:ba83:: with SMTP id t3mr25114993pjr.139.1571623845456;
-        Sun, 20 Oct 2019 19:10:45 -0700 (PDT)
-Received: from localhost.net ([2601:647:4000:ce:256c:d417:b24b:327f])
-        by smtp.gmail.com with ESMTPSA id k23sm12559333pgi.49.2019.10.20.19.10.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        bh=SnLq77cUzeET9qFjSSafFg8rd0sMDKKDrKhz/JXtqJs=;
+        b=ICv1K2YNCfesD2FqCMuU60pItseTs/hoJTVryRBvyQlOICLrJnj8KUDLKzshKITywy
+         ZMyWQG9k95tCtmWIFXGflOKja2OPfKL9Pajvc4quXF9h+uI/vCa7oAFfU7zqVgl1XFyv
+         kL850lgAqypOrbJBz6tSa7Jbw+/IsDmMuq3RGffxUf5snVnxTnN1wiJpKMgBvfCiybRy
+         V4BF815CprCDYyXGcUs0dNzwXfzxe2L5/SvktJkArWuEek/azBBwOf7+R8YpjT2kSXj+
+         K8j41sLEvIOyZ6yksB2QJNkufvoA+hh/Dtz73AIGbrNSKaTvFfBgIKZzRq1fHBcZGP1I
+         I7DA==
+X-Gm-Message-State: APjAAAUnHLwcaU9mRK9tyLaMPjsFn0fH87YUprbyMWhjofyi9FUl/4H7
+        q/e/XdqAua0ypueNAvfZlSo=
+X-Google-Smtp-Source: APXvYqy6PRYPXwatSD2dL+IQtbDk+t9CXT6nil/m1BS63Cjp1NDrUznqtqXvehkVlWTRgopW4pikZQ==
+X-Received: by 2002:a17:90a:17ad:: with SMTP id q42mr26119570pja.100.1571623844271;
         Sun, 20 Oct 2019 19:10:44 -0700 (PDT)
+Received: from localhost.net ([2601:647:4000:ce:256c:d417:b24b:327f])
+        by smtp.gmail.com with ESMTPSA id k23sm12559333pgi.49.2019.10.20.19.10.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 20 Oct 2019 19:10:43 -0700 (PDT)
 From:   Bart Van Assche <bvanassche@acm.org>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
         Bart Van Assche <bvanassche@acm.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Bernard Metzler <bmt@zurich.ibm.com>
-Subject: [PATCH 4/4] siw: Increase DMA max_segment_size parameter
-Date:   Sun, 20 Oct 2019 19:10:30 -0700
-Message-Id: <20191021021030.1037-5-bvanassche@acm.org>
+        Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 3/4] rdma_rxe: Increase DMA max_segment_size parameter
+Date:   Sun, 20 Oct 2019 19:10:29 -0700
+Message-Id: <20191021021030.1037-4-bvanassche@acm.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191021021030.1037-1-bvanassche@acm.org>
 References: <20191021021030.1037-1-bvanassche@acm.org>
@@ -63,39 +62,38 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 Increase the DMA max_segment_size parameter from 64 KB to UINT_MAX.
 
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Bernard Metzler <bmt@zurich.ibm.com>
 Signed-off-by: Bart Van Assche <bvanassche@acm.org>
 ---
- drivers/infiniband/sw/siw/siw.h      | 1 +
- drivers/infiniband/sw/siw/siw_main.c | 3 +++
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 3 +++
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 1 +
  2 files changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
-index dba4535494ab..1ea3ed249e7b 100644
---- a/drivers/infiniband/sw/siw/siw.h
-+++ b/drivers/infiniband/sw/siw/siw.h
-@@ -70,6 +70,7 @@ struct siw_pd {
- 
- struct siw_device {
- 	struct ib_device base_dev;
-+	struct device_dma_parameters dma_parms;
- 	struct net_device *netdev;
- 	struct siw_dev_cap attrs;
- 
-diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
-index d1a1b7aa7d83..041496376047 100644
---- a/drivers/infiniband/sw/siw/siw_main.c
-+++ b/drivers/infiniband/sw/siw/siw_main.c
-@@ -402,6 +402,9 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
- 	base_dev->phys_port_cnt = 1;
- 	base_dev->dev.parent = parent;
- 	base_dev->dev.dma_ops = &dma_virt_ops;
-+	base_dev->dev.dma_parms = &sdev->dma_parms;
-+	sdev->dma_parms = (struct device_dma_parameters)
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index fa47bdcc7f54..2ec085b53907 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1175,6 +1175,9 @@ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name)
+ 	addrconf_addr_eui48((unsigned char *)&dev->node_guid,
+ 			    rxe->ndev->dev_addr);
+ 	dev->dev.dma_ops = &dma_virt_ops;
++	dev->dev.dma_parms = &rxe->dma_parms;
++	rxe->dma_parms = (struct device_dma_parameters)
 +		{ .max_segment_size = UINT_MAX };
- 	base_dev->num_comp_vectors = num_possible_cpus();
+ 	dma_coerce_mask_and_coherent(&dev->dev,
+ 				     dma_get_required_mask(&dev->dev));
  
- 	ib_set_device_ops(base_dev, &siw_device_ops);
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 5c4b2239129c..95834206c80c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -384,6 +384,7 @@ struct rxe_port {
+ struct rxe_dev {
+ 	struct ib_device	ib_dev;
+ 	struct ib_device_attr	attr;
++	struct device_dma_parameters dma_parms;
+ 	int			max_ucontext;
+ 	int			max_inline_data;
+ 	struct mutex	usdev_lock;
 -- 
 2.23.0
 
