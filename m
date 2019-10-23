@@ -2,84 +2,96 @@ Return-Path: <SRS0=3BW3=YQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D5F6CA9EB6
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Oct 2019 12:03:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B354CA9EB9
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Oct 2019 14:01:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D30D0214B2
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Oct 2019 12:03:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 115DF21920
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Oct 2019 14:01:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TwcQb8Ux"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405178AbfJWMDY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Oct 2019 08:03:24 -0400
-Received: from mga11.intel.com ([192.55.52.93]:57027 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731954AbfJWMDY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 23 Oct 2019 08:03:24 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 23 Oct 2019 05:03:23 -0700
-X-IronPort-AV: E=Sophos;i="5.68,220,1569308400"; 
-   d="scan'208";a="210019720"
-Received: from ddalessa-mobl.amr.corp.intel.com (HELO [10.254.201.232]) ([10.254.201.232])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/AES256-SHA; 23 Oct 2019 05:03:21 -0700
-Subject: Re: [PATCH 05/12] infiniband: fix ulp/opa_vnic/opa_vnic_encap.h
- kernel-doc notation
-To:     Randy Dunlap <rdunlap@infradead.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>, rd.dunlab@gmail.com
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        linux-doc@vger.kernel.org
-References: <20191010035239.532908118@gmail.com>
- <20191010035239.890311169@gmail.com> <20191022175215.GA26528@ziepe.ca>
- <e6be1ddd-c32f-4f8a-4528-7393d5997755@infradead.org>
-From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
-Message-ID: <1909a6b4-ae13-7c00-ae24-22b3e717ebdd@intel.com>
-Date:   Wed, 23 Oct 2019 08:03:20 -0400
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        id S2406292AbfJWOBu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Oct 2019 10:01:50 -0400
+Received: from mail-io1-f68.google.com ([209.85.166.68]:43236 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2406291AbfJWOBu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Oct 2019 10:01:50 -0400
+Received: by mail-io1-f68.google.com with SMTP id c11so15949670iom.10;
+        Wed, 23 Oct 2019 07:01:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:date:message-id:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=i1onkp7tVbiousuoh/lKkPugrxCGZSa3fAT6ThfLs+M=;
+        b=TwcQb8Uxlfoe1qDM8UjrLSAHW2xTmVWWrLMJxPalhcsldntJ41pwdWKRFNBfYfXprU
+         V2v+cZOOCIs5hQs3qoLwFQd5Wx5h7uYacd+aqAIXQ34zoXR3b+A219tsZLZdfja3AxTJ
+         YFXgrZYFq3vrpHJsma5c92ygvz12KxA/trGeZmzjIqryw9EUQVxjryzTEWMu3xfgku0l
+         p0FKXuiUd6ROyJq9HapwiZcRL5wP+c4bji3uFhuHPnm/myQZhnivLMV8vXNW0NTzn53V
+         FFOslrI8Bhki8DxNxMGZ2oIq/2l0zJ7NiYHJmxqWMXQXoBS1V3c3/ErFQMUhjwyttIVp
+         1wXQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:from:to:date:message-id
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=i1onkp7tVbiousuoh/lKkPugrxCGZSa3fAT6ThfLs+M=;
+        b=QLli1vtgc0ubeYFw7XCQxhlmhTtaCSTi1edb2ZoTuyPKtMVGwoQyazj9CdShEh0x51
+         qsp6nhzPAN6VRS/YCNuSj69zjgxIX7GVmCYyqImdaIG9zoBx9NH5vgeF2u1l9b2f11tj
+         HFRw0n6raYeY+uPocRb+XauoIufmmUfRHiD4fmZ08pHdb2R5U34kL6oJ1WgMmXsf9Pxd
+         iF746K34IXgSl4aXaU8FJE5SA7xG0JV4A2yPb9MobtQWZAeQP+UaXmdQbAPjrGjIUHkU
+         qJ7Xt1h3tVFZpVFSkJ3MFLzPmM3Y/DFG/ZUewRWyHBu6Nv/2JI6+xULS6VVuhR5pNxIU
+         OG/Q==
+X-Gm-Message-State: APjAAAUV/P8KxgvSnlaUWFjYcMAcuEJ7A4q+NP8forZG6pHET/Jftlsz
+        gCzTtvUvAZ/YAiu9y9LG/VAJXqAJ
+X-Google-Smtp-Source: APXvYqzUcoHsSLIlE3ex18X4hONq3ohOj6A/4Z9zQ+WGq9pT6j/xLH2YSEo3rHUy0gxbGEgPa8PSgQ==
+X-Received: by 2002:a6b:37c6:: with SMTP id e189mr3195173ioa.61.1571839309248;
+        Wed, 23 Oct 2019 07:01:49 -0700 (PDT)
+Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
+        by smtp.gmail.com with ESMTPSA id 133sm5421899ila.25.2019.10.23.07.01.47
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 23 Oct 2019 07:01:48 -0700 (PDT)
+Received: from manet.1015granger.net (manet.1015granger.net [192.168.1.51])
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id x9NE1kDO012538;
+        Wed, 23 Oct 2019 14:01:47 GMT
+Subject: [PATCH v1 0/5] RPC/RDMA client connect-related fixes
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
+Date:   Wed, 23 Oct 2019 10:01:46 -0400
+Message-ID: <20191023135907.3992.69010.stgit@manet.1015granger.net>
+User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
-In-Reply-To: <e6be1ddd-c32f-4f8a-4528-7393d5997755@infradead.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 10/22/2019 3:51 PM, Randy Dunlap wrote:
-> On 10/22/19 10:52 AM, Jason Gunthorpe wrote:
->> On Wed, Oct 09, 2019 at 08:52:44PM -0700, rd.dunlab@gmail.com wrote:
->>> Make reserved struct fields "private:" so that they don't need to
->>> be added to the kernel-doc notation. This removes 24 warnings.
->>
->>> +++ linux-next-20191009/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
->>> @@ -129,21 +129,31 @@ struct opa_vesw_info {
->>>   	__be16  fabric_id;
->>>   	__be16  vesw_id;
->>>   
->>> +	/* private: */
->>>   	u8      rsvd0[6];
->>> +	/* public: */
->>>   	__be16  def_port_mask;
->>
->> This seems overly ugly, is there some other way to handle these
->> reserved fields? Maybe wire protocol structures shouldn't be kdoc?
-> 
-> I don't know of any other way to handle them with kernel-doc.
-> Sure, changing the /** to just /* would be one way to hide the
-> warnings.  Either this patch or not having them be kernel-doc
-> is needed just to "fix" 24 warnings.
-> 
+First patch fixes a problem with the logic that deals with failure
+to establish a connection. The others are trace point clean-ups that
+I found along the way to the fix.
 
-I would be in favor of just not including this in kernel-doc at this 
-time, but the mess of private/public tags while hard on the eyes doesn't 
-really bother me either.
+This is the final set of client patches I currently have ready for
+the v5.5 merge window.
 
-Also wouldn't take this as a statement that wire protocol structures not 
-be in kdoc, but just that this one doesn't need to be there.
+---
 
--Denny
+Chuck Lever (5):
+      xprtrdma: Wake tasks after connect worker fails
+      xprtrdma: Report the computed connect delay
+      xprtrdma: Refine trace_xprtrdma_fixup
+      xprtrdma: Replace dprintk() in rpcrdma_update_connect_private()
+      xprtrdma: Replace dprintk in xprt_rdma_set_port
+
+
+ include/trace/events/rpcrdma.h  |  164 ++++++++++++++++++++++++---------------
+ net/sunrpc/xprtrdma/rpc_rdma.c  |    9 --
+ net/sunrpc/xprtrdma/transport.c |   27 ++----
+ net/sunrpc/xprtrdma/verbs.c     |   34 +++-----
+ 4 files changed, 126 insertions(+), 108 deletions(-)
+
+--
+Chuck Lever
