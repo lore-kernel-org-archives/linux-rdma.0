@@ -7,52 +7,52 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 696D2CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 17:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52484CA9EAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 17:55:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3DD4820659
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 17:55:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24C2020659
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 17:55:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="pwZCNdaa"
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="X2KZlXfY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394078AbfJXRzb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 24 Oct 2019 13:55:31 -0400
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:56242 "EHLO
+        id S2394104AbfJXRzf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 24 Oct 2019 13:55:35 -0400
+Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:16590 "EHLO
         mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2391414AbfJXRzb (ORCPT
+        by vger.kernel.org with ESMTP id S2394091AbfJXRzf (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 24 Oct 2019 13:55:31 -0400
+        Thu, 24 Oct 2019 13:55:35 -0400
 Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x9OHoEvE028330;
-        Thu, 24 Oct 2019 10:55:28 -0700
+        by mx0b-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id x9OHoEvF028330;
+        Thu, 24 Oct 2019 10:55:32 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
- content-type; s=pfpt0818; bh=ldrdxchpXTqvITcQKjHUcBB5wrqB9uMT63eNHxDs0sg=;
- b=pwZCNdaaDk0DTujBSuIK9sOXSXnMv6MMCeElHT9JHQRcumqhmO0G3NQESuz+VEm4178W
- H+++DKla9FW3o2rTxHe5uTHo65xDMcs4l6NpDfLXX8y/pUVRRx250aLNGNtg7DJfbN5/
- W8wwOacfmndMpNTFfbP3EYJOdUGSMPrWs9gRWiSkdyE+XKM2JGhpKLh8+zEf0EKPgBBN
- Atyx2Rw3hkNfKubkWYU42DGD5CjsjfUMvsnQhnhTJTbby2+BikJdtCd5LmGuXHYpll1d
- xWkF/S6sVyG/N0ycwkjYbLPUcohc2fV9hLfAvNdDVnalhGhDelhCm4VOq65QhjN24JyA NQ== 
-Received: from sc-exch04.marvell.com ([199.233.58.184])
-        by mx0b-0016f401.pphosted.com with ESMTP id 2vt9ujrhhk-1
+ content-type; s=pfpt0818; bh=TERpucAj0h99GZfEjby9v3mtST9xrR0g5dl0nBI4N8g=;
+ b=X2KZlXfY17C3pyQzu/gv6aznb79fxRnlApp6d3sMXot4w+HJnViKYRMX6/FeR5lNUIb7
+ FWbAW8BT6i6wxg4Hgt0GOJiNwNVPK5759pIRhUWBBelXC+ObjH2SM9QHUA6Az+ke8nCH
+ o/hudPNBIet6bq9Snin6oVSIC/1bT/VomzlvG5Z41bgLW5lz2m6Sj4OMMQrSQ9HoGnQl
+ KBQnq1KRb8pUrOEnq3dTtzk36KRdrOAkDldQjXpwhsOA2qsDVLTUu0HdopxTEgW7bDkI
+ zhnTcbKwG/SYiaaDLRYeag5gLLAUwIlMziuzBQlLCgY9X2UbVPVgQSZOSp1Eu4p0g7ZU FA== 
+Received: from sc-exch03.marvell.com ([199.233.58.183])
+        by mx0b-0016f401.pphosted.com with ESMTP id 2vt9ujrhhy-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Thu, 24 Oct 2019 10:55:28 -0700
-Received: from SC-EXCH03.marvell.com (10.93.176.83) by SC-EXCH04.marvell.com
- (10.93.176.84) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Thu, 24 Oct
- 2019 10:55:26 -0700
-Received: from maili.marvell.com (10.93.176.43) by SC-EXCH03.marvell.com
- (10.93.176.83) with Microsoft SMTP Server id 15.0.1367.3 via Frontend
- Transport; Thu, 24 Oct 2019 10:55:26 -0700
+        Thu, 24 Oct 2019 10:55:32 -0700
+Received: from SC-EXCH01.marvell.com (10.93.176.81) by SC-EXCH03.marvell.com
+ (10.93.176.83) with Microsoft SMTP Server (TLS) id 15.0.1367.3; Thu, 24 Oct
+ 2019 10:55:30 -0700
+Received: from maili.marvell.com (10.93.176.43) by SC-EXCH01.marvell.com
+ (10.93.176.81) with Microsoft SMTP Server id 15.0.1367.3 via Frontend
+ Transport; Thu, 24 Oct 2019 10:55:30 -0700
 Received: from lb-tlvb-michal.il.qlogic.org (unknown [10.5.220.215])
-        by maili.marvell.com (Postfix) with ESMTP id CF28A3F7040;
-        Thu, 24 Oct 2019 10:55:24 -0700 (PDT)
+        by maili.marvell.com (Postfix) with ESMTP id 096EF3F7040;
+        Thu, 24 Oct 2019 10:55:28 -0700 (PDT)
 From:   Michal Kalderon <michal.kalderon@marvell.com>
 To:     <michal.kalderon@marvell.com>, <aelior@marvell.com>,
         <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, Ariel Elior <ariel.elior@marvell.com>
-Subject: [PATCH v3 rdma-next 1/3] RDMA/qedr: Fix qpids xarray api used
-Date:   Thu, 24 Oct 2019 20:52:51 +0300
-Message-ID: <20191024175253.26816-2-michal.kalderon@marvell.com>
+Subject: [PATCH v3 rdma-next 3/3] RDMA/qedr: Fix memory leak in user qp and mr
+Date:   Thu, 24 Oct 2019 20:52:53 +0300
+Message-ID: <20191024175253.26816-4-michal.kalderon@marvell.com>
 X-Mailer: git-send-email 2.14.5
 In-Reply-To: <20191024175253.26816-1-michal.kalderon@marvell.com>
 References: <20191024175253.26816-1-michal.kalderon@marvell.com>
@@ -65,66 +65,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The qpids xarray isn't accessed from irq context and therefore there
-is no need to use the xa_XXX_irq version of the apis.
-Remove the _irq.
+User QPs pbl's won't freed properly.
+MR pbls won't freed properly.
 
-Fixes: b6014f9e5f39 ("qedr: Convert qpidr to XArray")
+Fixes: e0290cce6ac0 ("qedr: Add support for memory registeration verbs")
 Signed-off-by: Ariel Elior <ariel.elior@marvell.com>
 Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
 ---
- drivers/infiniband/hw/qedr/main.c       | 1 -
- drivers/infiniband/hw/qedr/qedr_iw_cm.c | 2 +-
- drivers/infiniband/hw/qedr/verbs.c      | 4 ++--
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/qedr/verbs.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index 5136b835e1ba..432dff95a7aa 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -359,7 +359,6 @@ static int qedr_alloc_resources(struct qedr_dev *dev)
- 	spin_lock_init(&dev->sgid_lock);
- 
- 	if (IS_IWARP(dev)) {
--		xa_init_flags(&dev->qps, XA_FLAGS_LOCK_IRQ);
- 		dev->iwarp_wq = create_singlethread_workqueue("qedr_iwarpq");
- 	}
- 
-diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-index 22881d4442b9..7fea74739c1f 100644
---- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-@@ -739,7 +739,7 @@ void qedr_iw_qp_rem_ref(struct ib_qp *ibqp)
- 	struct qedr_qp *qp = get_qedr_qp(ibqp);
- 
- 	if (atomic_dec_and_test(&qp->refcnt)) {
--		xa_erase_irq(&qp->dev->qps, qp->qp_id);
-+		xa_erase(&qp->dev->qps, qp->qp_id);
- 		kfree(qp);
- 	}
- }
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 6f3ce86019b7..84b666c67cff 100644
+index a17b388ee3b3..8b4240c1cc76 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1918,7 +1918,7 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
- 	qp->ibqp.qp_num = qp->qp_id;
+@@ -1581,6 +1581,14 @@ static void qedr_cleanup_user(struct qedr_dev *dev, struct qedr_qp *qp)
  
- 	if (rdma_protocol_iwarp(&dev->ibdev, 1)) {
--		rc = xa_insert_irq(&dev->qps, qp->qp_id, qp, GFP_KERNEL);
-+		rc = xa_insert(&dev->qps, qp->qp_id, qp, GFP_KERNEL);
- 		if (rc)
- 			goto err;
- 	}
-@@ -2492,7 +2492,7 @@ int qedr_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 	ib_umem_release(qp->urq.umem);
+ 	qp->urq.umem = NULL;
++
++	if (rdma_protocol_roce(&dev->ibdev, 1)) {
++		qedr_free_pbl(dev, &qp->usq.pbl_info, qp->usq.pbl_tbl);
++		qedr_free_pbl(dev, &qp->urq.pbl_info, qp->urq.pbl_tbl);
++	} else {
++		kfree(qp->usq.pbl_tbl);
++		kfree(qp->urq.pbl_tbl);
++	}
+ }
  
- 	if (atomic_dec_and_test(&qp->refcnt) &&
- 	    rdma_protocol_iwarp(&dev->ibdev, 1)) {
--		xa_erase_irq(&dev->qps, qp->qp_id);
-+		xa_erase(&dev->qps, qp->qp_id);
- 		kfree(qp);
- 	}
- 	return 0;
+ static int qedr_create_user_qp(struct qedr_dev *dev,
+@@ -2689,8 +2697,8 @@ int qedr_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
+ 
+ 	dev->ops->rdma_free_tid(dev->rdma_ctx, mr->hw_mr.itid);
+ 
+-	if ((mr->type != QEDR_MR_DMA) && (mr->type != QEDR_MR_FRMR))
+-		qedr_free_pbl(dev, &mr->info.pbl_info, mr->info.pbl_table);
++	if (mr->type != QEDR_MR_DMA)
++		free_mr_info(dev, &mr->info);
+ 
+ 	/* it could be user registered memory. */
+ 	ib_umem_release(mr->umem);
 -- 
 2.14.5
 
