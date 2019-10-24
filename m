@@ -2,123 +2,115 @@ Return-Path: <SRS0=3B/L=YR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-7.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD63CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:08:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1F84CA9EAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:11:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA849205F4
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:08:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ipLcj3vq"
+	by mail.kernel.org (Postfix) with ESMTP id C32852166E
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:11:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1571933480;
+	bh=JHS9LfnI8mlY4v8BYnzXSqD1wlK1ORulPtiFocFLPio=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=kzv9vKN9B+8Rh/XT6R795CRdYLkd1lSLfuZPN1AqCw4jpeNZN9DPjXJ7LV2x8biQk
+	 mfBVMPdLFC49NqMIns9xA5+C2wV1zoE83XLs/KI4N81p6ve5utNpjqS+mFYylXwvkn
+	 8AmTDtaQIyord9KJX+yTEHGcqyjbRsv42YilsWVE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407757AbfJXQIM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 24 Oct 2019 12:08:12 -0400
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:36512 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2405863AbfJXQIM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 24 Oct 2019 12:08:12 -0400
-Received: by mail-qt1-f193.google.com with SMTP id d17so24039472qto.3
-        for <linux-rdma@vger.kernel.org>; Thu, 24 Oct 2019 09:08:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=s1fj8fwhXASvA5BcSEnuaym+AEP5F8vrCX6CqSoSzHE=;
-        b=ipLcj3vqSRvDkawQ84nEhQUdYOuFWhl+8+r4w/t271R3CMRcMqmd3xDKgI0v3RUIfw
-         0pZuoTB/6uXIbjMQnS22Mf4xeguRF7l5tiofGMv5nuDLnSGFHPVZO/y+9vxjd5Id0eek
-         2H1vArZabODJZDFiPOD6ihIpZGVcl9WnJxmYhSdbGU2IJwmJm94kE2C12ySZ2DeOqMJh
-         5XeeAWa4yDubLdRoBlzXBGlC9n6jiFuNO8It+eXFEVgZk1YYkrndG81IzTi/4l8fi8tw
-         RiMgn/erpd7vq6rkfjg3VsdFJRU70QXce+y/9Yk4W33KJPMSqvOIicC7GX7sfiNgTq+L
-         EIzA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=s1fj8fwhXASvA5BcSEnuaym+AEP5F8vrCX6CqSoSzHE=;
-        b=USvxdCOrwckWoo19+mHTdnBKzYJOKYysSUdURdzDO9s0DgXMb0I3WCICQxfZPC2sin
-         siYmg46IzH0kbf6HE7TQMHZ/MbSDbkfN1sIvn1JoqMqMIS0KbSkzxVK2D1AYQO7A+EvA
-         51UaHmrgL1mMlIfoOCCVu5k67feMBsrp1CqY85q7x8YuHyUWL6PJfcTTS9H+XDI9sqCT
-         YcSjxdX5vlGP5GyFOt0/s10Y+ZRCNOp/sLjybBDQaC5LBYfNpxQd1OSQD1i1pPJhiaqM
-         PTl+YsZnK1fbEV8cPNB5mApVTkmiw6u+6jskUep58mxCHYDu/zK5WzlibOqeimqQyYkC
-         dYLA==
-X-Gm-Message-State: APjAAAVdcNH5tDMY/OQGHspgH92WEJO6Awa5z5Qk9K1GJvhaa5na6NNX
-        P6nZm8zI60zmly1c9z1B2BLaEUGHVBg=
-X-Google-Smtp-Source: APXvYqxWKpcpuF7L6UlbLq/uff1A34fMdUx/u0mXPi6YKIBzvhtfZB+gMw1Kvmu6HEbnImc9BdXlUg==
-X-Received: by 2002:aed:2907:: with SMTP id s7mr4108459qtd.265.1571933291109;
-        Thu, 24 Oct 2019 09:08:11 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id k17sm21683561qtk.7.2019.10.24.09.08.10
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 24 Oct 2019 09:08:10 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1iNfek-0008Kl-1A; Thu, 24 Oct 2019 13:08:10 -0300
-Date:   Thu, 24 Oct 2019 13:08:10 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Parav Pandit <parav@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH rdma-next] IB/core: Avoid deadlock during netlink message
- handling
-Message-ID: <20191024160810.GV23952@ziepe.ca>
-References: <20191015080733.18625-1-leon@kernel.org>
- <20191024131743.GA24174@ziepe.ca>
- <20191024132607.GR4853@unreal>
- <20191024135017.GT23952@ziepe.ca>
- <20191024160252.GS4853@unreal>
+        id S2436820AbfJXQLU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 24 Oct 2019 12:11:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51044 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2436819AbfJXQLU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 24 Oct 2019 12:11:20 -0400
+Received: from localhost (unknown [77.137.89.37])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 96687205F4;
+        Thu, 24 Oct 2019 16:11:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1571933479;
+        bh=JHS9LfnI8mlY4v8BYnzXSqD1wlK1ORulPtiFocFLPio=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=mz/+JKVMzO+uhXo/fMBYiO9SFhYuHYENgQp4eqOU0oNndgR6SxwYCnBTR5GfK2L3U
+         5SQuTB/Mg5AtJ3VTz3+oJIE7jDDhxaSiubi9PW3OCeFjxAOSSHX/SzGbSC3ny5WKrP
+         RAlCCRKvnm+YnL7OVy1ZxMjCmKSwYKGdjGT6a670=
+Date:   Thu, 24 Oct 2019 19:11:15 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Kamal Heib <kamalheib1@gmail.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH for-next] selftests: rdma: Add rdma tests
+Message-ID: <20191024161115.GT4853@unreal>
+References: <20191023173954.29291-1-kamalheib1@gmail.com>
+ <20191023174219.GO23952@ziepe.ca>
+ <20191023201008.GA30186@kheib-workstation>
+ <20191024063909.GQ4853@unreal>
+ <20191024133944.GA20148@kheib-workstation>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191024160252.GS4853@unreal>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+In-Reply-To: <20191024133944.GA20148@kheib-workstation>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Oct 24, 2019 at 07:02:52PM +0300, Leon Romanovsky wrote:
-> On Thu, Oct 24, 2019 at 10:50:17AM -0300, Jason Gunthorpe wrote:
-> > On Thu, Oct 24, 2019 at 04:26:07PM +0300, Leon Romanovsky wrote:
-> > > On Thu, Oct 24, 2019 at 10:17:43AM -0300, Jason Gunthorpe wrote:
-> > > > On Tue, Oct 15, 2019 at 11:07:33AM +0300, Leon Romanovsky wrote:
+On Thu, Oct 24, 2019 at 04:39:44PM +0300, Kamal Heib wrote:
+> On Thu, Oct 24, 2019 at 09:39:09AM +0300, Leon Romanovsky wrote:
+> > On Wed, Oct 23, 2019 at 11:10:08PM +0300, Kamal Heib wrote:
+> > > On Wed, Oct 23, 2019 at 02:42:19PM -0300, Jason Gunthorpe wrote:
+> > > > On Wed, Oct 23, 2019 at 08:39:54PM +0300, Kamal Heib wrote:
+> > > > > Add a new directory to house the rdma specific tests and add the first
+> > > > > rdma_dev.sh test that checks the renaming and setting of adaptive
+> > > > > moderation using the rdma tool for the available RDMA devices in the
+> > > > > system.
 > > > >
-> > > > > diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-> > > > > index 81dbd5f41bed..a3507b8be569 100644
-> > > > > +++ b/drivers/infiniband/core/netlink.c
-> > > > > @@ -42,9 +42,12 @@
-> > > > >  #include <linux/module.h>
-> > > > >  #include "core_priv.h"
-> > > > >
-> > > > > -static DEFINE_MUTEX(rdma_nl_mutex);
-> > > > >  static struct {
-> > > > > -	const struct rdma_nl_cbs   *cb_table;
-> > > > > +	const struct rdma_nl_cbs __rcu *cb_table;
-> > > > > +	/* Synchronizes between ongoing netlink commands and netlink client
-> > > > > +	 * unregistration.
-> > > > > +	 */
-> > > > > +	struct srcu_struct unreg_srcu;
+> > > > What is this actually testing? rdmatool?
 > > > >
-> > > > A srcu in every index is serious overkill for this. Lets just us a
-> > > > rwsem:
 > > >
-> > > I liked previous variant more than rwsem, but it is Parav's patch.
+> > > This is a very basic test that uses the rdmatool for checking two of the
+> > > RDMA devices functionalities.
+> > >
+> > > > This seems like a very strange kselftest to me.
+> > > >
+> > >
+> > > Basically, you can take a look into other subsystems selftests (e.g.
+> > > net) to see that it not that strange :-).
 > >
-> > Why? srcu is a huge data structure and slow on unregister
-> 
-> The unregister time is not so important for those IB/core modules.
-> I liked SRCU because it doesn't have *_ONCE() macros and smb_* calls.
+> > Yeah, selftests is in-kernel dumpster, everything goes in. It doesn't
+> > mean we should follow this path too. The in-kernel tests are great to
+> > check interfaces and not external tools.
+> >
+>
+> OK, I see that you don't like the idea of using external/Userspace tools.
+>
+> So, what do you suggest?!
 
-It does, they are just hidden under other macros..
+You need to decide WHAT do you want to test.
+For rdma-core APIs, we have pyverbs, see this PR
+https://github.com/linux-rdma/rdma-core/pull/567
 
-> Maybe wrong here, but the extra advantage of SRCU is that we are already
-> using that mechanism in uverbs and my assumption that SRCU will greatly
-> enjoy shared grace period.
+For sysfs API, shell scripts in selftest is a good place.
+For netlink/verbs API, you will need to write C-programs. <-- don't recommend this path.
 
-Hm, I'm not sure it works like that, the grace periods would be consecutive
-
-Jason
+>
+> > >
+> > > Yes, the first test is very basic, but the idea behind it is to utilize
+> > > the kernel selftests infrastructure to test the rdma subsystem, I plan to
+> > > introduce more tests in the near future, hopefully other folks from the
+> > > community will join me too.
+> >
+> > You don't have any version checks, the idea that you can test latest
+> > kernel features with installed "rdmatool" in distro is a little bit over
+> > optimistic.
+> >
+> > >
+> > > Thanks,
+> > > Kamal
+> > >
+> > > > Jason
