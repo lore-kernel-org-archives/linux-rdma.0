@@ -2,99 +2,87 @@ Return-Path: <SRS0=3B/L=YR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14D17CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 10:19:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E0EECA9EAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 12:11:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B819F20684
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 10:19:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 711CE2166E
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 12:11:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="Lb9CnPqm"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="kzgW/Mfb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407546AbfJXKTU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 24 Oct 2019 06:19:20 -0400
-Received: from mail-ed1-f53.google.com ([209.85.208.53]:34030 "EHLO
-        mail-ed1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2407344AbfJXKTU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 24 Oct 2019 06:19:20 -0400
-Received: by mail-ed1-f53.google.com with SMTP id b72so9248665edf.1
-        for <linux-rdma@vger.kernel.org>; Thu, 24 Oct 2019 03:19:19 -0700 (PDT)
+        id S2439616AbfJXMLc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 24 Oct 2019 08:11:32 -0400
+Received: from mail-qk1-f169.google.com ([209.85.222.169]:46567 "EHLO
+        mail-qk1-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2439599AbfJXMLc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 24 Oct 2019 08:11:32 -0400
+Received: by mail-qk1-f169.google.com with SMTP id e66so23134682qkf.13
+        for <linux-rdma@vger.kernel.org>; Thu, 24 Oct 2019 05:11:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=message-id:subject:from:to:date:user-agent:mime-version
-         :content-transfer-encoding;
-        bh=uIkiLurxAG15B3r6RxO2ycm67eznuWcRvb08KCsAuRM=;
-        b=Lb9CnPqmaM7ZTnrwqi/T9wxqB2y2znvxCc2JVIBLBINY6beXKa+nW1MSdxba7ughjl
-         5oCtcCOEVhGreYJUUDHdCC646I3fbqcOCmMBxgM3MJhflbVI43u209PcajR24bVqjpg4
-         jtLbXT/oTJMTxHV2T1Pa+P+Tqp5xuWyRp5L5/LpusWKHQD9RQG8G/mdf5RT2Hk2CM4PP
-         s3JtiFahnCSEtfH99psn14tg6zGfAZ5/+oJnx/EeVNQ9DF0SbH490b85cG+nBGx+NjYV
-         tgifhjySURVq57mRoyZFAeH4xqM04idnXn8k7Nbc3qPp6KhtTlU8mqyg8ThhE0HEj/Ye
-         hZVg==
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=9nJ7GdDboztBKpIMLvkZZETxLlP6ZMhAopB9fsJFIak=;
+        b=kzgW/Mfb6r1fBDNfpe4ebe8ycecnFHpT9WGcJ+7qYudc2GMffh5IbwGmsyywmbk1Bu
+         7w0LCmpVSKWAjIgBU1QOpLIIWJ+VT5whHTElBX3ypcWYStHh8wu/Ct8Mm1uJtO9EEY5Q
+         wxo5d3Mlnt9HQcyJL0zLGieJ/Fa/n01CloSgAbeCeE7u0WoLMK9Y93LaCr7csVWZ3+tL
+         kZ65o/Rm9XK1wMAYtQcW4PuanGKqycrMcm6MBs1Cb1kNec/s6jqfrLTKBL3/LKTFIS3l
+         O7Sa5rjFwtuxE3ww1OLV/FmtPl/ui6BXGgOXnuT/f8ojOP+2aIg7MEeBA5H2AkSkxN85
+         y+AA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:date:user-agent
-         :mime-version:content-transfer-encoding;
-        bh=uIkiLurxAG15B3r6RxO2ycm67eznuWcRvb08KCsAuRM=;
-        b=FxkNgkRfzganPzePh7VCKPouEs5dFq9+1/9vddv9uOau4LbxpdyK3jzCY2xawKSlu1
-         ZcqhO1qXcKPrAfN8fhyWEyffx0kooSz1mKIVQge5LeKT9inxcZb07zCM/ywpUC8LBeXZ
-         Wvr8YpWgi89rWnUWhjGoyF4RYU5my+KnyjkYXupAEiiTbiIpbMNZiIxxLuEuVyUAQGNS
-         opsRUAkwLTQOyXdTixIH0I3oVkf8EQjqmIpmLPtHI11HaV9kuBXPrQrH1AkNGls27iX5
-         QFv89/sc22JhU/dai56GNUqmAaVY7+zRU8qaRkEWIddweKsmy40V9rid5hwN4yiDLXwV
-         98qQ==
-X-Gm-Message-State: APjAAAXbdspbqXyBy1U4Ra6C9Zpg928rTao/tFg3xdXlmPeq9xSUQkT5
-        G/A8/FmABlyiXaHgVzc3HOH+IbMBYDo=
-X-Google-Smtp-Source: APXvYqxlt/yEyuQiXiFnhovdpRGtsvZr6u9PG0SqAv0LVehCNmZNgCDnX8WYSkkgm6sIsY1ZuMwWow==
-X-Received: by 2002:a05:6402:8c9:: with SMTP id d9mr30530364edz.16.1571912358259;
-        Thu, 24 Oct 2019 03:19:18 -0700 (PDT)
-Received: from fiftytwodotfive ([2001:1438:4010:2558:9033:8018:ecb0:7d65])
-        by smtp.gmail.com with ESMTPSA id i63sm845581edi.65.2019.10.24.03.19.17
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Oct 2019 03:19:17 -0700 (PDT)
-Message-ID: <41d360c7e2a6db457f3d139a1b35507bc62ae321.camel@cloud.ionos.com>
-Subject: srp_daemon and ibacm in wrong man section
-From:   Benjamin Drung <benjamin.drung@cloud.ionos.com>
-To:     linux-rdma@vger.kernel.org
-Date:   Thu, 24 Oct 2019 12:19:23 +0200
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.34.1-2 
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=9nJ7GdDboztBKpIMLvkZZETxLlP6ZMhAopB9fsJFIak=;
+        b=hoj0RC0L8jybqlIu2YeuS+E6soblRYgJi01wzQrworYOL+jzVJUgfSr/374gJcqQaK
+         1wZcGXSR9fz2+5h/NyeyKxReXLbuMUg3JjbF0jN6lW9sFyhAWeR5EAdOP2fKsKR7Tdt7
+         xpR8/DjLshTMkscTEj9pZu3h10twuAKiKxjqRbpzs3EB4oknSPlmnZzvQIITOucV7y5p
+         yFLXcR2nvC55l7fcyk2PTiYuh32wUcMZHKWgR97JVvaMvKTaA2grnnUkjpiyHh3TiSVJ
+         D0NEJ3YB1/XBr4n/pG0DsM/4h86iPdUT0JeKkU17NwAKzCY5hmoPT+7rqsWCaPqRUYJV
+         zshw==
+X-Gm-Message-State: APjAAAXafbM19AcHtcnpDdSJG4T9vcSKYzZr1w6B8/z40/7AH9bk1q16
+        K8m8cvrWZunBTS1Z1CPyqQodrEmYYU0=
+X-Google-Smtp-Source: APXvYqwlOJXTat7vjEMaTvUzIzpmHXbS3HUQzX9D+lIbRkg9YAlL5c7jOIX0B8XC97EO7kaLs90TaQ==
+X-Received: by 2002:a05:620a:b16:: with SMTP id t22mr13747647qkg.235.1571919089548;
+        Thu, 24 Oct 2019 05:11:29 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
+        by smtp.gmail.com with ESMTPSA id t4sm714259qtq.49.2019.10.24.05.11.28
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 24 Oct 2019 05:11:29 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1iNbxg-0003vn-Bt; Thu, 24 Oct 2019 09:11:28 -0300
+Date:   Thu, 24 Oct 2019 09:11:28 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Benjamin Drung <benjamin.drung@cloud.ionos.com>
+Cc:     linux-rdma@vger.kernel.org
+Subject: Re: srp_daemon and ibacm in wrong man section
+Message-ID: <20191024121128.GS23952@ziepe.ca>
+References: <41d360c7e2a6db457f3d139a1b35507bc62ae321.camel@cloud.ionos.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <41d360c7e2a6db457f3d139a1b35507bc62ae321.camel@cloud.ionos.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+On Thu, Oct 24, 2019 at 12:19:23PM +0200, Benjamin Drung wrote:
+> Hi,
+> 
+> srp_daemon and ibacm are both installed in /usr/sbin. lintian complains
+> about command-in-sbin-has-manpage-in-incorrect-section:
+> 
+> The command in /sbin or /usr/sbin are system administration commands;
+> their manpages thus belong in section 8, not section 1.
 
-srp_daemon and ibacm are both installed in /usr/sbin. lintian complains
-about command-in-sbin-has-manpage-in-incorrect-section:
+Yes, srp_daemon should only be invoked by systemd, so it should be in
+8
 
-The command in /sbin or /usr/sbin are system administration commands;
-their manpages thus belong in section 8, not section 1.
-
-Please check whether the command is actually useful to non-privileged
-user in which case it should be moved to /bin or /usr/bin, or
-alternatively the manual page should be moved to section 8 instead,
-ie. /usr/share/man/man8.
-
-Refer to the hier(7) manual page for details.
-
--- 
-Benjamin Drung
-
-Debian & Ubuntu Developer
-Platform Engineering Compute (Enterprise Cloud)
-
-1&1 IONOS SE | Greifswalder Str. 207 | 10405 Berlin | Germany
-E-mail: benjamin.drung@cloud.ionos.com | Web: www.ionos.de
-
-Hauptsitz Montabaur, Amtsgericht Montabaur, HRB 24498
-Vorstand: Dr. Christian Böing, Hüseyin Dogan, Hans-Henning Kettler,
-Matthias Steinberg, Achim Weiß
-Aufsichtsratsvorsitzender: Markus Kadelke
-Member of United Internet
-
+Jason
