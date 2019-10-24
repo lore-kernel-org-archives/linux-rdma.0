@@ -2,99 +2,111 @@ Return-Path: <SRS0=3B/L=YR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F872CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:11:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE18CA9EAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:13:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D4AFE205F4
-	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:11:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="TQNWdZPw";
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="ad96iQEM"
+	by mail.kernel.org (Postfix) with ESMTP id 515952166E
+	for <linux-rdma@archiver.kernel.org>; Thu, 24 Oct 2019 16:13:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1571933590;
+	bh=O3p+jfTVvKhy0rJ4AQs5aB4bvLCcq0qw8rRUIQByXeI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=1li4f9e9zwFiiY7oEVsksAj8RWOsT861ccP1qVaiesejl6aUetiAuYsldDKkXA9Pj
+	 WGKiSbmnEzQhTO2lPzA5ysn2fNEReWmaqJJf2VXXfnoUNDnklWgtbFj0tUsUJUSUJP
+	 AlPWbUYskbK5MhZceUrpNnNxNThrOECYXYYO1JV0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439703AbfJXQLZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 24 Oct 2019 12:11:25 -0400
-Received: from smtp.codeaurora.org ([198.145.29.96]:40368 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2436655AbfJXQLZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 24 Oct 2019 12:11:25 -0400
-Received: by smtp.codeaurora.org (Postfix, from userid 1000)
-        id D22F5611AD; Thu, 24 Oct 2019 16:11:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1571933484;
-        bh=6BQeRd1YE343V3Pyn6bXhu7AVvclx5LyH+xiYk/mmsQ=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=TQNWdZPw1VNshMmWaBQj1Njknz4thr4uOvbL1s7+gUpZ2/S4Z6UPbwd/i0UR/Pl7b
-         Sp4caPzRIbVyjzYY/jo54suzPij6UtrkvF+XsYDXl1bDXeAvgT6m7F8e19ZDERebd7
-         vU/FhgsI3fyJCWKzlLamjK3sITo8j5Zub6XmHcBw=
-Received: from potku.adurom.net (unknown [88.114.240.156])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        id S2405953AbfJXQNJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 24 Oct 2019 12:13:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51796 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2405661AbfJXQNJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 24 Oct 2019 12:13:09 -0400
+Received: from localhost (unknown [77.137.89.37])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: kvalo@smtp.codeaurora.org)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id CE9586110A;
-        Thu, 24 Oct 2019 16:11:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1571933480;
-        bh=6BQeRd1YE343V3Pyn6bXhu7AVvclx5LyH+xiYk/mmsQ=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=ad96iQEMymUX4ygi/5GDCdgFnmUhXDrCv64tNVhd3dPGHxI4cDyjZzfjbCwrwUedx
-         /jnhJJswJ5dPo4LKE68u2uv2H7SAvEKEbExn15lSHN9CohgbLdjqfa6M8ApqgrEYzy
-         NJ7yZ41/UYNotjEG+4ToTSevM23sPyCLz9KkbYLk=
-DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org CE9586110A
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; spf=none smtp.mailfrom=kvalo@codeaurora.org
-From:   Kalle Valo <kvalo@codeaurora.org>
-To:     Geert Uytterhoeven <geert+renesas@glider.be>
-Cc:     "David S . Miller" <davem@davemloft.net>,
-        Jiri Kosina <trivial@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] [trivial] net: Fix misspellings of "configure" and "configuration"
-References: <20191024152201.29868-1-geert+renesas@glider.be>
-Date:   Thu, 24 Oct 2019 19:11:15 +0300
-In-Reply-To: <20191024152201.29868-1-geert+renesas@glider.be> (Geert
-        Uytterhoeven's message of "Thu, 24 Oct 2019 17:22:01 +0200")
-Message-ID: <878spaqg2k.fsf@kamboji.qca.qualcomm.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/24.5 (gnu/linux)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7D42320659;
+        Thu, 24 Oct 2019 16:13:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1571933589;
+        bh=O3p+jfTVvKhy0rJ4AQs5aB4bvLCcq0qw8rRUIQByXeI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=PEvbnJWqD0/2ODAmyYfizl1otx14YZWr9GGv8sw4S4ykt/CgBo2kQZgynxv3d2n8B
+         pFCQUE5U2ywZyE5UTyRv+eAkBvsOBCQ0Ae/SVxFRBXjJOYOwa4OMCmhX2vHHYUTYEn
+         j2tipkLXkt8HCC16ADjFJIRdAtsmXAYwG5+Jchvs=
+Date:   Thu, 24 Oct 2019 19:13:05 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Parav Pandit <parav@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH rdma-next] IB/core: Avoid deadlock during netlink message
+ handling
+Message-ID: <20191024161305.GU4853@unreal>
+References: <20191015080733.18625-1-leon@kernel.org>
+ <20191024131743.GA24174@ziepe.ca>
+ <20191024132607.GR4853@unreal>
+ <20191024135017.GT23952@ziepe.ca>
+ <20191024160252.GS4853@unreal>
+ <20191024160810.GV23952@ziepe.ca>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191024160810.GV23952@ziepe.ca>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Geert Uytterhoeven <geert+renesas@glider.be> writes:
-
-> Fix various misspellings of "configuration" and "configure".
+On Thu, Oct 24, 2019 at 01:08:10PM -0300, Jason Gunthorpe wrote:
+> On Thu, Oct 24, 2019 at 07:02:52PM +0300, Leon Romanovsky wrote:
+> > On Thu, Oct 24, 2019 at 10:50:17AM -0300, Jason Gunthorpe wrote:
+> > > On Thu, Oct 24, 2019 at 04:26:07PM +0300, Leon Romanovsky wrote:
+> > > > On Thu, Oct 24, 2019 at 10:17:43AM -0300, Jason Gunthorpe wrote:
+> > > > > On Tue, Oct 15, 2019 at 11:07:33AM +0300, Leon Romanovsky wrote:
+> > > > >
+> > > > > > diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+> > > > > > index 81dbd5f41bed..a3507b8be569 100644
+> > > > > > +++ b/drivers/infiniband/core/netlink.c
+> > > > > > @@ -42,9 +42,12 @@
+> > > > > >  #include <linux/module.h>
+> > > > > >  #include "core_priv.h"
+> > > > > >
+> > > > > > -static DEFINE_MUTEX(rdma_nl_mutex);
+> > > > > >  static struct {
+> > > > > > -	const struct rdma_nl_cbs   *cb_table;
+> > > > > > +	const struct rdma_nl_cbs __rcu *cb_table;
+> > > > > > +	/* Synchronizes between ongoing netlink commands and netlink client
+> > > > > > +	 * unregistration.
+> > > > > > +	 */
+> > > > > > +	struct srcu_struct unreg_srcu;
+> > > > >
+> > > > > A srcu in every index is serious overkill for this. Lets just us a
+> > > > > rwsem:
+> > > >
+> > > > I liked previous variant more than rwsem, but it is Parav's patch.
+> > >
+> > > Why? srcu is a huge data structure and slow on unregister
+> >
+> > The unregister time is not so important for those IB/core modules.
+> > I liked SRCU because it doesn't have *_ONCE() macros and smb_* calls.
 >
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> ---
-> v2:
->   - Merge
->     [trivial] net/mlx5e: Spelling s/configuraiton/configuration/
->     [trivial] qed: Spelling s/configuraiton/configuration/
->   - Fix typo in subject,
->   - Extend with various other similar misspellings.
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en/port_buffer.c | 2 +-
->  drivers/net/ethernet/qlogic/qed/qed_int.h                | 4 ++--
->  drivers/net/ethernet/qlogic/qed/qed_sriov.h              | 2 +-
->  drivers/net/ethernet/qlogic/qede/qede_filter.c           | 2 +-
->  drivers/net/wireless/ath/ath9k/ar9003_hw.c               | 2 +-
->  drivers/net/wireless/intel/iwlwifi/iwl-fh.h              | 2 +-
->  drivers/net/wireless/ti/wlcore/spi.c                     | 2 +-
->  include/uapi/linux/dcbnl.h                               | 2 +-
->  8 files changed, 9 insertions(+), 9 deletions(-)
+> It does, they are just hidden under other macros..
+>
+> > Maybe wrong here, but the extra advantage of SRCU is that we are already
+> > using that mechanism in uverbs and my assumption that SRCU will greatly
+> > enjoy shared grace period.
+>
+> Hm, I'm not sure it works like that, the grace periods would be consecutive
 
-I hope this goes to net-next? Easier to handle possible conflicts that
-way.
+Whatever, the most important part of Parav's patch that we removed
+global lock from RDMA netlink interface.
 
-For the wireless part:
+Thanks
 
-Acked-by: Kalle Valo <kvalo@codeaurora.org>
-
--- 
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+>
+> Jason
