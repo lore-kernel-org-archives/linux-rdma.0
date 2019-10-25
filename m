@@ -2,68 +2,125 @@ Return-Path: <SRS0=Cj4f=YS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6839CCA9EA0
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 12:34:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3478CA9EA0
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 12:34:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 471AB21D71
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 12:34:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8733521D7B
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 12:34:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="TWGvI2GM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391200AbfJYMeq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Oct 2019 08:34:46 -0400
-Received: from stargate.chelsio.com ([12.32.117.8]:24101 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726484AbfJYMeq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Oct 2019 08:34:46 -0400
-Received: from localhost (mehrangarh.blr.asicdesigners.com [10.193.185.169])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id x9PCYfbU013247;
-        Fri, 25 Oct 2019 05:34:42 -0700
-From:   Potnuri Bharat Teja <bharat@chelsio.com>
-To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     linux-rdma@vger.kernel.org, bharat@chelsio.com,
-        nirranjan@chelsio.com, Dakshaja Uppalapati <dakshaja@chelsio.com>
-Subject: [PATCH for-rc] iw_cxgb4: avoid freeing skb twice in arp failure case
-Date:   Fri, 25 Oct 2019 18:04:40 +0530
-Message-Id: <1572006880-5800-1-git-send-email-bharat@chelsio.com>
-X-Mailer: git-send-email 2.3.9
+        id S2438895AbfJYMe5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Oct 2019 08:34:57 -0400
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:41350 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726484AbfJYMe4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Oct 2019 08:34:56 -0400
+Received: by mail-qt1-f193.google.com with SMTP id o3so2927136qtj.8
+        for <linux-rdma@vger.kernel.org>; Fri, 25 Oct 2019 05:34:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=WWwBtHjsd9lFK9D6vD0wMnwL9mUJq3RPftczSuLJ2I0=;
+        b=TWGvI2GMAVijXXj+eBPSywdCDzB18HkFJ8gnyt/1mwNx3Q60U+F/F+8K1OleLkIw49
+         8s2m3eVQTVxrjj5kyWN4jEkZbobuucHcrobvXn8IgHlAjgkwvtYciNmk1bJDz+tX14ED
+         iDK/KRpqCyuNDXGJkueJO5HnIOFCqr/n6awBNc5ygGrRWWdkQm23CA9+PAmZksojRPVf
+         eeLZWOWjXStfeC+wiozR/UjPY33sqgy6t2rJ7aI3byqUtUnd5BYGuIP3emWrozN2rFjP
+         XpJEPYGSwY9Q5peQwK8DVY0JSao8fgsfnTcWkT5Dh/9YDwl6bhGFdDILJxWHKIEj3Dfz
+         PzSA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=WWwBtHjsd9lFK9D6vD0wMnwL9mUJq3RPftczSuLJ2I0=;
+        b=G4Z2wQhG01Ad8k0FIDtXa3U2rJ657pjNPkCXvCdlCQqFBbpyz/LgAh0w+cA1Rj4Zmz
+         ESMB3jv1ASDTc4bCfjRpxF2KDeHr/fE6F4RA7lecdS36ntS5knQJnOUtKKIfUo2G/bKV
+         /G/gLZzgIy9aksUJWZLsCaBBMK60QiQQAliZ8Q6Y3mu5Wcv4UMzexGAn6PmKt7SR/awm
+         KNCI0+qCRkFkHNJhRYIPEZt0ImZdStOkICfFTBC/tcH+LycFrfugWV/rxGnPLfZcvZvN
+         sOa5R8x6yBXT0s6tGARsmF0mwIENSQKwrWl7OWvYrlm+VOvZ0GRXoPhGMkOFAX/BMngc
+         HZwA==
+X-Gm-Message-State: APjAAAUqEt1pfCSleoUWjFSfEt3vf1eneoQY0V4x97+CYU2EB8WmmqMs
+        owfy3rIIwdXKK4bYYUnxeThsYQ==
+X-Google-Smtp-Source: APXvYqzvP5ARM6Tnd+DqSoCLMChDyjg2X8wNHEXs6O1yU+w+Pi0Gkayt+PZFGJ2EJLDrnYB5yWxORQ==
+X-Received: by 2002:ac8:1c03:: with SMTP id a3mr2700562qtk.31.1572006895166;
+        Fri, 25 Oct 2019 05:34:55 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
+        by smtp.gmail.com with ESMTPSA id z17sm1480301qtj.95.2019.10.25.05.34.54
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 25 Oct 2019 05:34:54 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1iNynu-0004zW-3m; Fri, 25 Oct 2019 09:34:54 -0300
+Date:   Fri, 25 Oct 2019 09:34:54 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Bernard Metzler <BMT@zurich.ibm.com>
+Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Subject: Re: [bug report] RDMA/siw: Fix SQ/RQ drain logic
+Message-ID: <20191025123454.GH23952@ziepe.ca>
+References: <20191024203841.GA7912@mwanda>
+ <OF9EE3BDCA.84D0CB33-ON0025849E.002C56C0-0025849E.002D6F03@notes.na.collabserv.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <OF9EE3BDCA.84D0CB33-ON0025849E.002C56C0-0025849E.002D6F03@notes.na.collabserv.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-_put_ep_safe() and _put_pass_ep_safe() free the skb before it is freed by
-process_work(). fix double free by freeing the skb only in process_work().
+On Fri, Oct 25, 2019 at 08:16:15AM +0000, Bernard Metzler wrote:
+> 
+> >To: bmt@zurich.ibm.com
+> >From: "Dan Carpenter" <dan.carpenter@oracle.com>
+> >Date: 10/24/2019 10:39PM
+> >Cc: linux-rdma@vger.kernel.org
+> >Subject: [EXTERNAL] [bug report] RDMA/siw: Fix SQ/RQ drain logic
+> >
+> >Hello Bernard Metzler,
+> >
+> >The patch cf049bb31f71: "RDMA/siw: Fix SQ/RQ drain logic" from Oct 4,
+> >2019, leads to the following static checker warning:
+> >
+> >	drivers/infiniband/sw/siw/siw_verbs.c:1079 siw_post_receive()
+> >	error: locking inconsistency.  We assume 'read_sem:&qp->state_lock'
+> >is both locked and unlocked at the start.
+> >
+> >drivers/infiniband/sw/siw/siw_verbs.c
+> >   978  int siw_post_receive(struct ib_qp *base_qp, const struct
+> >ib_recv_wr *wr,
+> >   979                       const struct ib_recv_wr **bad_wr)
+> >   980  {
+> >   981          struct siw_qp *qp = to_siw_qp(base_qp);
+> >   982          unsigned long flags;
+> >   983          int rv = 0;
+> >   984  
+> >   985          if (qp->srq) {
+> >   986                  *bad_wr = wr;
+> >   987                  return -EOPNOTSUPP; /* what else from
+> >errno.h? */
+> >   988          }
+> >   989          if (!qp->kernel_verbs) {
+> >   990                  siw_dbg_qp(qp, "no kernel post_recv for user
+> >mapped sq\n");
+> >   991                  up_read(&qp->state_lock);
+> >                        ^^^^^^^^^^^^^^^^^^^^^^^^
+> >The patch changes the locking so this isn't held here and should be
+> >released.  Should it be held, though?
+> 
+> Yes, this is a BUG. Thanks very much! There is no qp spinlock to 
+> be held here. I moved that down to state checking. No need to
+> hold the qp lock before. 
+> 
+> Shall I re-send, or can we just amend the patch,
+> removing that single 'up_read()' line?
 
-Fixes: 1dad0ebeea1c ("iw_cxgb4: Avoid touch after free error in ARP failure handlers")
-Signed-off-by: Dakshaja Uppalapati <dakshaja@chelsio.com>
-Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
----
- drivers/infiniband/hw/cxgb4/cm.c | 2 --
- 1 file changed, 2 deletions(-)
+You need to send a new patch against for-next to fix this
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index e87fc0408470..8333442380d5 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -495,7 +495,6 @@ static int _put_ep_safe(struct c4iw_dev *dev, struct sk_buff *skb)
- 
- 	ep = *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
- 	release_ep_resources(ep);
--	kfree_skb(skb);
- 	return 0;
- }
- 
-@@ -506,7 +505,6 @@ static int _put_pass_ep_safe(struct c4iw_dev *dev, struct sk_buff *skb)
- 	ep = *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
- 	c4iw_put_ep(&ep->parent_ep->com);
- 	release_ep_resources(ep);
--	kfree_skb(skb);
- 	return 0;
- }
- 
--- 
-2.3.9
-
+Jason
