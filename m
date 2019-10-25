@@ -2,124 +2,132 @@ Return-Path: <SRS0=Cj4f=YS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1102CCA9EA0
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 10:41:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9FBCCA9EA0
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 11:42:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D84882070B
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 10:41:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD1B221929
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 11:42:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="jpnQ3Dkj"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="ZOY5/hfp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2502510AbfJYKlW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Oct 2019 06:41:22 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:45996 "EHLO
+        id S2410349AbfJYLm1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Oct 2019 07:42:27 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:53822 "EHLO
         userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2502503AbfJYKlV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Oct 2019 06:41:21 -0400
+        with ESMTP id S1727283AbfJYLm1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Oct 2019 07:42:27 -0400
 Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x9PAd424000997;
-        Fri, 25 Oct 2019 10:41:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2019-08-05;
- bh=6U1uhVXVY7QsPnJK9+ZulDsRGC5bxfFeessMTgt2YR0=;
- b=jpnQ3DkjX9z7PidFqyxaU1qSjAiaO0PbVDv3MhK5kNlI0L5cAGiRMYZJ2CT7lVhvbJiq
- ypvOggOD7xNiRxTGyuDeCn90zHPHRkjLHDkuYzRIDcBjWp+BjqFPiHdMjPmeDoiUKxwj
- s7wn+U26qsEyEesBgM9albqys3QOSDpc7tWT8Nf5EmMftWmusczFq13/wdCS7HkMc8CJ
- lhsD9nHcSiigtZL25gPpqvXQ2Q6hoXFtdw6JYQknPadSak66fg57JL4nW2UlOhSDOPfK
- AoGAwC2HSGTzStWg2jSivrtBY11pRatnJqZ49uLjXTk3hygKxP3UyhXTytKzxz3Gr91P lw== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by userp2120.oracle.com with ESMTP id 2vqu4r9xer-1
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x9PBcvq1052730;
+        Fri, 25 Oct 2019 11:42:10 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-type :
+ content-transfer-encoding; s=corp-2019-08-05;
+ bh=O7w+ZyhYIJRus2QkwK5GMAVXf4qiZPD4foyde5oWwpg=;
+ b=ZOY5/hfp6zt3ObuTbn54E8Xa9Mzj4utgwY+mEpBiaNKbKDC9KA8QnLkNoM6tDmj3So6Y
+ LnpTy0bl+U4A+Byr/P77yyWMqpWdamsp5Hg43Vtlmrsu3q9BMk8qygClCtgvdcn/moUv
+ cBZio8iaSfzKKr/vzqT0KgsDFZrSCKlcugbtT9CUB7vvU0gVFzIRtvywhfhvuAmadhex
+ M05kXOQGhnhCoCat1jIhsIQNr4z2p/WF8ZxYJiRhLX8cjkrzfHeIaN2LQM7BRRDNOW1i
+ /Mvd50L0SkS3YRt5rGz45NomlpqUqjuKSe9B2CA3TwRqxA56XfdO/aMO5xEFP/Jz0cZr GQ== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by userp2120.oracle.com with ESMTP id 2vqu4ra8kh-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 25 Oct 2019 10:41:19 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x9PAYOnH124893;
-        Fri, 25 Oct 2019 10:41:18 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by aserp3020.oracle.com with ESMTP id 2vu0frbcnp-1
+        Fri, 25 Oct 2019 11:42:10 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x9PBcOAX047222;
+        Fri, 25 Oct 2019 11:42:09 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3030.oracle.com with ESMTP id 2vug0e4cnp-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 25 Oct 2019 10:41:18 +0000
-Received: from abhmp0021.oracle.com (abhmp0021.oracle.com [141.146.116.27])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x9PAfHAR016406;
-        Fri, 25 Oct 2019 10:41:17 GMT
-Received: from mwanda (/41.57.98.10)
+        Fri, 25 Oct 2019 11:42:09 +0000
+Received: from abhmp0007.oracle.com (abhmp0007.oracle.com [141.146.116.13])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x9PBg8G4020274;
+        Fri, 25 Oct 2019 11:42:08 GMT
+Received: from dm-oel.no.oracle.com (/10.172.157.165)
         by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Fri, 25 Oct 2019 10:41:17 +0000
-Date:   Fri, 25 Oct 2019 13:41:11 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     rajur@chelsio.com
-Cc:     linux-rdma@vger.kernel.org
-Subject: [bug report] RDMA/iw_cxgb4: Avoid touch after free error in ARP
- failure handlers
-Message-ID: <20191025104111.GA12120@mwanda>
+        with ESMTP ; Fri, 25 Oct 2019 04:42:07 -0700
+From:   Dag Moxnes <dag.moxnes@oracle.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
+        parav@mellanox.com
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dag.moxnes@oracle.com
+Subject: [PATCH rdma-next] RDMA/cma: Use ACK timeout for RoCE packetLifeTime
+Date:   Fri, 25 Oct 2019 13:42:01 +0200
+Message-Id: <1572003721-26368-1-git-send-email-dag.moxnes@oracle.com>
+X-Mailer: git-send-email 1.7.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9420 signatures=668684
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=3 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=693
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
  adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1908290000 definitions=main-1910250100
+ engine=8.0.1-1908290000 definitions=main-1910250112
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9420 signatures=668684
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=3 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=772 adultscore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1908290000
- definitions=main-1910250101
+ definitions=main-1910250112
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello Raju Rangoju,
+The cma is currently using a hard-coded value, CMA_IBOE_PACKET_LIFETIME,
+for the PacketLifeTime, as it can not be determined from the network.
+This value might not be optimal for all networks.
 
-The patch 1dad0ebeea1c: "RDMA/iw_cxgb4: Avoid touch after free error
-in ARP failure handlers" from May 15, 2017, leads to the following
-static checker warning:
+The cma module supports the function rdma_set_ack_timeout to set the
+ACK timeout for a QP associated with a connection. As per IBTA 12.7.34
+local ACK timeout = (2 * PacketLifeTime + Local CA’s ACK delay).
+Assuming a negligible local ACK delay, we can use
+PacketLifeTime = local ACK timeout/2
+as a reasonable approximation for RoCE networks.
 
-	drivers/infiniband/hw/cxgb4/cm.c:4310 process_work()
-	warn: 'skb' was already freed.
+Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
+Change-Id: I200eda9d54829184e556c3c55d6a8869558d76b2
+---
+ drivers/infiniband/core/cma.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-drivers/infiniband/hw/cxgb4/cm.c
-  4289  static void process_work(struct work_struct *work)
-  4290  {
-  4291          struct sk_buff *skb = NULL;
-  4292          struct c4iw_dev *dev;
-  4293          struct cpl_act_establish *rpl;
-  4294          unsigned int opcode;
-  4295          int ret;
-  4296  
-  4297          process_timedout_eps();
-  4298          while ((skb = skb_dequeue(&rxq))) {
-  4299                  rpl = cplhdr(skb);
-  4300                  dev = *((struct c4iw_dev **) (skb->cb + sizeof(void *)));
-  4301                  opcode = rpl->ot.opcode;
-  4302  
-  4303                  if (opcode >= ARRAY_SIZE(work_handlers) ||
-  4304                      !work_handlers[opcode]) {
-  4305                          pr_err("No handler for opcode 0x%x.\n", opcode);
-  4306                          kfree_skb(skb);
-  4307                  } else {
-  4308                          ret = work_handlers[opcode](dev, skb);
-  4309                          if (!ret)
-  4310                                  kfree_skb(skb);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index c8566a4237..2c1b08bde2 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2530,7 +2530,9 @@ EXPORT_SYMBOL(rdma_set_service_type);
+  * This function should be called before rdma_connect() on active side,
+  * and on passive side before rdma_accept(). It is applicable to primary
+  * path only. The timeout will affect the local side of the QP, it is not
+- * negotiated with remote side and zero disables the timer.
++ * negotiated with remote side and zero disables the timer. In case it is
++ * set before rdma_resolve_route, the value will also be used to determine
++ * PacketLifeTime for RoCE.
+  *
+  * Return: 0 for success
+  */
+@@ -2939,7 +2941,16 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	route->path_rec->rate = iboe_get_rate(ndev);
+ 	dev_put(ndev);
+ 	route->path_rec->packet_life_time_selector = IB_SA_EQ;
+-	route->path_rec->packet_life_time = CMA_IBOE_PACKET_LIFETIME;
++	/* In case ACK timeout is set, use this value to calculate
++	 * PacketLifeTime.  As per IBTA 12.7.34,
++	 * local ACK timeout = (2 * PacketLifeTime + Local CA’s ACK delay).
++	 * Assuming a negligible local ACK delay, we can use
++	 * PacketLifeTime = local ACK timeout/2
++	 * as a reasonable approximation for RoCE networks.
++	 */
++	route->path_rec->packet_life_time = id_priv->timeout_set ?
++		id_priv->timeout - 1 : CMA_IBOE_PACKET_LIFETIME;
++
+ 	if (!route->path_rec->mtu) {
+ 		ret = -EINVAL;
+ 		goto err2;
+-- 
+2.20.1
 
-I'm not sure why this warning didn't show up before... :(
-
-We added some kfree_skb() calls to _put_ep_safe() and _put_pass_ep_safe().
-The thing about kfree_skb() is that it's refcounted so it might not
-free anything so this could be a false positive.  I've looked at the
-code and it looks like it could be a bug?
-
-  4311                  }
-  4312                  process_timedout_eps();
-  4313          }
-  4314  }
-
-regards,
-dan carpenter
