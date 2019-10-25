@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A577C47E49
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 13:59:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE2DCCA9EBD
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 14:00:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5230A2245D
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 13:59:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5DDA21D7B
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 14:00:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572011960;
-	bh=WO055rew6vXiNWAIz24yB6BtLbtJIvjJYo9zKPqhmYY=;
+	s=default; t=1572012044;
+	bh=BT5g7okK7GOY7awUj1RlSha07wwJtV+TgL6wEfrCD0Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FvQcvqKgRj7plb10FOhqj9hJL2MeDslY/rW0KnYQTddnoqteTdfIMQdVR/+M59hob
-	 Wf9khUBLIZp7p8aJtuUs4C0tkPYNA2ADCEB123YiD5wknseepOE13sPd2SxMFugBt7
-	 bAEhfqFn171wOWFL6FUsEQm2vfPKQSCvflFMSRR4=
+	b=JC2SmLpwnGQ6aWDH7TkeWljMd5y2NOzXaky0oYGU6yJL2GlqEjONoPqNc3Dp+san2
+	 mpL/5hkAJJ5hS8PR60SDvJ3vhfiZmZpCVhVBvqK4kAbORA9k/dz6yBa0IE2aVx99ux
+	 2Zu1L9yWZA67Hg3/GF/3fT2Ofqdrlizz6iprFLiY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2632952AbfJYN7N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Oct 2019 09:59:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54932 "EHLO mail.kernel.org"
+        id S2505632AbfJYN6i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Oct 2019 09:58:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2632943AbfJYN7M (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 25 Oct 2019 09:59:12 -0400
+        id S2505583AbfJYN6h (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 25 Oct 2019 09:58:37 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 15DBE222BE;
-        Fri, 25 Oct 2019 13:59:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 669DE21E6F;
+        Fri, 25 Oct 2019 13:58:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572011951;
-        bh=WO055rew6vXiNWAIz24yB6BtLbtJIvjJYo9zKPqhmYY=;
+        s=default; t=1572011916;
+        bh=BT5g7okK7GOY7awUj1RlSha07wwJtV+TgL6wEfrCD0Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=elG18VWlZ35ElTF9UXtTdJqQi6PE6XUZFEBVMOAMrWMNdUpJ1WybccMgelOzrYNv9
-         MtyZKtUTmbr2JOX9U2oOdvKm87YflApSTE4Ml58VUHeiekMPMKo+L29EyvGm011Unl
-         eu6WH3lU6q2P8y0/ABi0cLGaDPEXc5gttlV1B0RY=
+        b=Stck5q1ZHkjU0IDHxuy5URfrRjszvgxku/x5scNMhlKuCHzuWxEMVcEpuowowHcW2
+         TgRUcSomHVTfItjjx00VQ8PmFDnHCk0WoTpI/yKMmhOuzzJu/CkUKyw0iUCBzWtmCX
+         hU1IwQCu2qpEWZ55XWl0YxPYE832b8Ucgwd1JBEU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Bart Van Assche <bvanassche@acm.org>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 15/16] RDMA/iwcm: Fix a lock inversion issue
-Date:   Fri, 25 Oct 2019 09:58:39 -0400
-Message-Id: <20191025135842.25977-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 18/20] RDMA/iwcm: Fix a lock inversion issue
+Date:   Fri, 25 Oct 2019 09:57:58 -0400
+Message-Id: <20191025135801.25739-18-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191025135842.25977-1-sashal@kernel.org>
-References: <20191025135842.25977-1-sashal@kernel.org>
+In-Reply-To: <20191025135801.25739-1-sashal@kernel.org>
+References: <20191025135801.25739-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -122,10 +122,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 1454290078def..8ad9c6b04769d 100644
+index 85d4ef319c905..dcfbf326f45c9 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -1976,9 +1976,10 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
+@@ -2119,9 +2119,10 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
  		conn_id->cm_id.iw = NULL;
  		cma_exch(conn_id, RDMA_CM_DESTROYING);
  		mutex_unlock(&conn_id->handler_mutex);
