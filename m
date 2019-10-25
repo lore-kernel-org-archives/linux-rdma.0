@@ -2,220 +2,92 @@ Return-Path: <SRS0=Cj4f=YS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2725BCA9EA0
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 14:06:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7260CA9EA0
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 14:29:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8CCC20663
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 14:06:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572012415;
-	bh=/5vZq0Extn35PLfohoeq1RAcB06TKXE2V7hZ+LfTC5U=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NA34FytHyUnMdp3jpFi3Y2DhMFwSxLTARZi5ovFVqxKmVsg5DpU660AUZ+cCKcJPa
-	 HIzSlvkN8BdDX5Eye13EHhR9SWn8QFKDGksxr968pYX+pB3GRc21Zn2nU6qIP1v3AH
-	 7eQvhS1pRo95A7avIONDpw2JPYJCz/0ZmC2yjMxE=
+	by mail.kernel.org (Postfix) with ESMTP id B538521D71
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 14:29:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2632724AbfJYNzk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Oct 2019 09:55:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49610 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2505131AbfJYNzj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 25 Oct 2019 09:55:39 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4D39A222BD;
-        Fri, 25 Oct 2019 13:55:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572011738;
-        bh=/5vZq0Extn35PLfohoeq1RAcB06TKXE2V7hZ+LfTC5U=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HSUS7naFH4Y/CPocVhj7wZ6T48Xo690eu+rAMcbZvURrqgGGFPRH2IxEb6buyFBhJ
-         6WaiGdOYsmZF+OpqOA3DoS4pMwYqKgXXI81tJLdQJMNRTai4cqH8MLCE1yepJ5RbAi
-         cOA7AzbNXNp7CfdRy0c87absZt6+gBVu1yDCHGSQ=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dag Moxnes <dag.moxnes@oracle.com>, Jenny <jenny.x.xu@oracle.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 19/33] net/rds: Whitelist rdma_cookie and rx_tstamp for usercopy
-Date:   Fri, 25 Oct 2019 09:54:51 -0400
-Message-Id: <20191025135505.24762-19-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191025135505.24762-1-sashal@kernel.org>
-References: <20191025135505.24762-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S2438311AbfJYO3O (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Oct 2019 10:29:14 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:8766 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2438034AbfJYO3N (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 25 Oct 2019 10:29:13 -0400
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x9PET5Yo032739
+        for <linux-rdma@vger.kernel.org>; Fri, 25 Oct 2019 10:29:12 -0400
+Received: from e06smtp07.uk.ibm.com (e06smtp07.uk.ibm.com [195.75.94.103])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2vv1ua2n36-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-rdma@vger.kernel.org>; Fri, 25 Oct 2019 10:29:11 -0400
+Received: from localhost
+        by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-rdma@vger.kernel.org> from <bmt@zurich.ibm.com>;
+        Fri, 25 Oct 2019 15:29:08 +0100
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (9.149.109.196)
+        by e06smtp07.uk.ibm.com (192.168.101.137) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+        Fri, 25 Oct 2019 15:29:07 +0100
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+        by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x9PET5Yl24772748
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 25 Oct 2019 14:29:06 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id C89BC52052;
+        Fri, 25 Oct 2019 14:29:05 +0000 (GMT)
+Received: from spoke.zurich.ibm.com (unknown [9.4.69.152])
+        by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 889035204F;
+        Fri, 25 Oct 2019 14:29:05 +0000 (GMT)
+From:   Bernard Metzler <bmt@zurich.ibm.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     dan.carpenter@oracle.com, Bernard Metzler <bmt@zurich.ibm.com>
+Subject: [PATCH for-next] RDMA/siw: Fix post_recv QP state locking
+Date:   Fri, 25 Oct 2019 16:29:03 +0200
+X-Mailer: git-send-email 2.17.2
+X-TM-AS-GCONF: 00
+x-cbid: 19102514-0028-0000-0000-000003AF827A
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 19102514-0029-0000-0000-00002471B914
+Message-Id: <20191025142903.20625-1-bmt@zurich.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-10-25_08:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=1 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1908290000 definitions=main-1910250138
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dag Moxnes <dag.moxnes@oracle.com>
+Do not release qp state lock if not previously acquired.
 
-[ Upstream commit bf1867db9b850fff2dd54a1a117a684a10b8cd90 ]
-
-Add the RDMA cookie and RX timestamp to the usercopy whitelist.
-
-After the introduction of hardened usercopy whitelisting
-(https://lwn.net/Articles/727322/), a warning is displayed when the
-RDMA cookie or RX timestamp is copied to userspace:
-
-kernel: WARNING: CPU: 3 PID: 5750 at
-mm/usercopy.c:81 usercopy_warn+0x8e/0xa6
-[...]
-kernel: Call Trace:
-kernel: __check_heap_object+0xb8/0x11b
-kernel: __check_object_size+0xe3/0x1bc
-kernel: put_cmsg+0x95/0x115
-kernel: rds_recvmsg+0x43d/0x620 [rds]
-kernel: sock_recvmsg+0x43/0x4a
-kernel: ___sys_recvmsg+0xda/0x1e6
-kernel: ? __handle_mm_fault+0xcae/0xf79
-kernel: __sys_recvmsg+0x51/0x8a
-kernel: SyS_recvmsg+0x12/0x1c
-kernel: do_syscall_64+0x79/0x1ae
-
-When the whitelisting feature was introduced, the memory for the RDMA
-cookie and RX timestamp in RDS was not added to the whitelist, causing
-the warning above.
-
-Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
-Tested-by: Jenny <jenny.x.xu@oracle.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: cf049bb31f71 ("RDMA/siw: Fix SQ/RQ drain logic")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Bernard Metzler <bmt@zurich.ibm.com>
 ---
- net/rds/ib_recv.c | 11 ++++++++---
- net/rds/rds.h     |  9 +++++++--
- net/rds/recv.c    | 22 ++++++++++++----------
- 3 files changed, 27 insertions(+), 15 deletions(-)
+ drivers/infiniband/sw/siw/siw_verbs.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index 3cae88cbdaa02..fecd0abdc7e8e 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -1038,9 +1038,14 @@ int rds_ib_recv_init(void)
- 	si_meminfo(&si);
- 	rds_ib_sysctl_max_recv_allocation = si.totalram / 3 * PAGE_SIZE / RDS_FRAG_SIZE;
- 
--	rds_ib_incoming_slab = kmem_cache_create("rds_ib_incoming",
--					sizeof(struct rds_ib_incoming),
--					0, SLAB_HWCACHE_ALIGN, NULL);
-+	rds_ib_incoming_slab =
-+		kmem_cache_create_usercopy("rds_ib_incoming",
-+					   sizeof(struct rds_ib_incoming),
-+					   0, SLAB_HWCACHE_ALIGN,
-+					   offsetof(struct rds_ib_incoming,
-+						    ii_inc.i_usercopy),
-+					   sizeof(struct rds_inc_usercopy),
-+					   NULL);
- 	if (!rds_ib_incoming_slab)
- 		goto out;
- 
-diff --git a/net/rds/rds.h b/net/rds/rds.h
-index f0066d1684993..e792a67dd5788 100644
---- a/net/rds/rds.h
-+++ b/net/rds/rds.h
-@@ -271,6 +271,12 @@ struct rds_ext_header_rdma_dest {
- #define	RDS_MSG_RX_END		2
- #define	RDS_MSG_RX_CMSG		3
- 
-+/* The following values are whitelisted for usercopy */
-+struct rds_inc_usercopy {
-+	rds_rdma_cookie_t	rdma_cookie;
-+	ktime_t			rx_tstamp;
-+};
-+
- struct rds_incoming {
- 	refcount_t		i_refcount;
- 	struct list_head	i_item;
-@@ -280,8 +286,7 @@ struct rds_incoming {
- 	unsigned long		i_rx_jiffies;
- 	struct in6_addr		i_saddr;
- 
--	rds_rdma_cookie_t	i_rdma_cookie;
--	ktime_t			i_rx_tstamp;
-+	struct rds_inc_usercopy i_usercopy;
- 	u64			i_rx_lat_trace[RDS_RX_MAX_TRACES];
- };
- 
-diff --git a/net/rds/recv.c b/net/rds/recv.c
-index a42ba7fa06d5d..c8404971d5ab3 100644
---- a/net/rds/recv.c
-+++ b/net/rds/recv.c
-@@ -47,8 +47,8 @@ void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
- 	INIT_LIST_HEAD(&inc->i_item);
- 	inc->i_conn = conn;
- 	inc->i_saddr = *saddr;
--	inc->i_rdma_cookie = 0;
--	inc->i_rx_tstamp = ktime_set(0, 0);
-+	inc->i_usercopy.rdma_cookie = 0;
-+	inc->i_usercopy.rx_tstamp = ktime_set(0, 0);
- 
- 	memset(inc->i_rx_lat_trace, 0, sizeof(inc->i_rx_lat_trace));
- }
-@@ -62,8 +62,8 @@ void rds_inc_path_init(struct rds_incoming *inc, struct rds_conn_path *cp,
- 	inc->i_conn = cp->cp_conn;
- 	inc->i_conn_path = cp;
- 	inc->i_saddr = *saddr;
--	inc->i_rdma_cookie = 0;
--	inc->i_rx_tstamp = ktime_set(0, 0);
-+	inc->i_usercopy.rdma_cookie = 0;
-+	inc->i_usercopy.rx_tstamp = ktime_set(0, 0);
- }
- EXPORT_SYMBOL_GPL(rds_inc_path_init);
- 
-@@ -186,7 +186,7 @@ static void rds_recv_incoming_exthdrs(struct rds_incoming *inc, struct rds_sock
- 		case RDS_EXTHDR_RDMA_DEST:
- 			/* We ignore the size for now. We could stash it
- 			 * somewhere and use it for error checking. */
--			inc->i_rdma_cookie = rds_rdma_make_cookie(
-+			inc->i_usercopy.rdma_cookie = rds_rdma_make_cookie(
- 					be32_to_cpu(buffer.rdma_dest.h_rdma_rkey),
- 					be32_to_cpu(buffer.rdma_dest.h_rdma_offset));
- 
-@@ -380,7 +380,7 @@ void rds_recv_incoming(struct rds_connection *conn, struct in6_addr *saddr,
- 				      be32_to_cpu(inc->i_hdr.h_len),
- 				      inc->i_hdr.h_dport);
- 		if (sock_flag(sk, SOCK_RCVTSTAMP))
--			inc->i_rx_tstamp = ktime_get_real();
-+			inc->i_usercopy.rx_tstamp = ktime_get_real();
- 		rds_inc_addref(inc);
- 		inc->i_rx_lat_trace[RDS_MSG_RX_END] = local_clock();
- 		list_add_tail(&inc->i_item, &rs->rs_recv_queue);
-@@ -540,16 +540,18 @@ static int rds_cmsg_recv(struct rds_incoming *inc, struct msghdr *msg,
- {
- 	int ret = 0;
- 
--	if (inc->i_rdma_cookie) {
-+	if (inc->i_usercopy.rdma_cookie) {
- 		ret = put_cmsg(msg, SOL_RDS, RDS_CMSG_RDMA_DEST,
--				sizeof(inc->i_rdma_cookie), &inc->i_rdma_cookie);
-+				sizeof(inc->i_usercopy.rdma_cookie),
-+				&inc->i_usercopy.rdma_cookie);
- 		if (ret)
- 			goto out;
+diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/siw/siw_verbs.c
+index c0574ddc98fa..726a5924ea13 100644
+--- a/drivers/infiniband/sw/siw/siw_verbs.c
++++ b/drivers/infiniband/sw/siw/siw_verbs.c
+@@ -990,7 +990,6 @@ int siw_post_receive(struct ib_qp *base_qp, const struct ib_recv_wr *wr,
  	}
- 
--	if ((inc->i_rx_tstamp != 0) &&
-+	if ((inc->i_usercopy.rx_tstamp != 0) &&
- 	    sock_flag(rds_rs_to_sk(rs), SOCK_RCVTSTAMP)) {
--		struct __kernel_old_timeval tv = ns_to_kernel_old_timeval(inc->i_rx_tstamp);
-+		struct __kernel_old_timeval tv =
-+			ns_to_kernel_old_timeval(inc->i_usercopy.rx_tstamp);
- 
- 		if (!sock_flag(rds_rs_to_sk(rs), SOCK_TSTAMP_NEW)) {
- 			ret = put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
+ 	if (!qp->kernel_verbs) {
+ 		siw_dbg_qp(qp, "no kernel post_recv for user mapped sq\n");
+-		up_read(&qp->state_lock);
+ 		*bad_wr = wr;
+ 		return -EINVAL;
+ 	}
 -- 
-2.20.1
+2.17.2
 
