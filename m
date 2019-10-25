@@ -2,48 +2,43 @@ Return-Path: <SRS0=Cj4f=YS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 436B8CA9EA0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADBCECA9EBE
 	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 19:58:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 17C7621D71
+	by mail.kernel.org (Postfix) with ESMTP id 820B121D71
 	for <linux-rdma@archiver.kernel.org>; Fri, 25 Oct 2019 19:58:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726482AbfJYT61 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727316AbfJYT61 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 25 Oct 2019 15:58:27 -0400
-Received: from mga03.intel.com ([134.134.136.65]:47281 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:34308 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
         id S1726189AbfJYT61 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 25 Oct 2019 15:58:27 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 12:58:26 -0700
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 12:58:22 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.68,229,1569308400"; 
-   d="scan'208";a="400217785"
+   d="scan'208";a="192641465"
 Received: from sedona.ch.intel.com ([10.2.136.157])
-  by fmsmga006.fm.intel.com with ESMTP; 25 Oct 2019 12:58:25 -0700
+  by orsmga008.jf.intel.com with ESMTP; 25 Oct 2019 12:58:21 -0700
 Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id x9PJwPaK024302;
-        Fri, 25 Oct 2019 12:58:25 -0700
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id x9PJwJ5d024299;
+        Fri, 25 Oct 2019 12:58:20 -0700
 Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id x9PJwOGT111965;
-        Fri, 25 Oct 2019 15:58:24 -0400
-Subject: [PATCH for-rc 1/4] IB/hfi1: Allow for all speeds higher than gen3
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id x9PJwHEF111946;
+        Fri, 25 Oct 2019 15:58:17 -0400
+Subject: [PATCH for-rc 0/4] Few more rc fixes
 From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Kaike Wan <kaike.wan@intel.com>, stable@vger.kernel.org,
-        James Erwin <james.erwin@intel.com>
-Date:   Fri, 25 Oct 2019 15:58:24 -0400
-Message-ID: <20191025195823.106825.63080.stgit@awfm-01.aw.intel.com>
-In-Reply-To: <20191025161717.106825.14421.stgit@awfm-01.aw.intel.com>
-References: <20191025161717.106825.14421.stgit@awfm-01.aw.intel.com>
+Cc:     linux-rdma@vger.kernel.org
+Date:   Fri, 25 Oct 2019 15:58:17 -0400
+Message-ID: <20191025161717.106825.14421.stgit@awfm-01.aw.intel.com>
 User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -53,39 +48,30 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: James Erwin <james.erwin@intel.com>
+Here we have 4 more bug fixing patches. These are all marked stable as well so
+it would be good to get these in to 5.4 if possible.
 
-The driver avoids the gen3 speed bump when the parent
-bus speed isn't identical to gen3, 8.0GT/s.  This is not
-compatible with gen4 and newer speeds.
+The allow for speeds patch is not a "feature" it is a bug that causes problems
+if the host comes up in gen4. Is very small. The other 3 from Kaike fix TID RDMA
+bugs. A few more lines of code here but all relegated to TID RDMA.
 
-Fix by relaxing the test to explicitly look for the lower
-capability speeds which inherently allows for all future speeds.
-
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Cc: <stable@vger.kernel.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: James Erwin <james.erwin@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/pcie.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 61aa550..61362bd 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -319,7 +319,9 @@ int pcie_speeds(struct hfi1_devdata *dd)
- 	/*
- 	 * bus->max_bus_speed is set from the bridge's linkcap Max Link Speed
- 	 */
--	if (parent && dd->pcidev->bus->max_bus_speed != PCIE_SPEED_8_0GT) {
-+	if (parent &&
-+	    (dd->pcidev->bus->max_bus_speed == PCIE_SPEED_2_5GT ||
-+	     dd->pcidev->bus->max_bus_speed == PCIE_SPEED_5_0GT)) {
- 		dd_dev_info(dd, "Parent PCIe bridge does not support Gen3\n");
- 		dd->link_gen3_capable = 0;
- 	}
+James Erwin (1):
+      IB/hfi1: Allow for all speeds higher than gen3
 
+Kaike Wan (3):
+      IB/hfi1: Ensure r_tid_ack is valid before building TID RDMA ACK packet
+      IB/hfi1: Calculate flow weight based on QP MTU for TID RDMA
+      IB/hfi1: TID RDMA WRITE should not return IB_WC_RNR_RETRY_EXC_ERR
+
+
+ drivers/infiniband/hw/hfi1/init.c     |    1 -
+ drivers/infiniband/hw/hfi1/pcie.c     |    4 ++
+ drivers/infiniband/hw/hfi1/rc.c       |   16 +++++----
+ drivers/infiniband/hw/hfi1/tid_rdma.c |   57 +++++++++++++++++++--------------
+ drivers/infiniband/hw/hfi1/tid_rdma.h |    3 +-
+ 5 files changed, 44 insertions(+), 37 deletions(-)
+
+--
+-Denny
