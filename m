@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9A38CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:08:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B483ECA9EAF
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:09:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7CBF221726
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:08:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8594821726
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:09:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572160138;
-	bh=BYqbF93yt5ZAm5wQzE/hcfBMONjE9GzYsjcqAhD5tis=;
+	s=default; t=1572160141;
+	bh=sntNoeAN7rmWlijidlWpsDAHI1eK5aV26XXnf41sZ04=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=fNUmgAUl0Q3BXhN+OjvuaXaO73sPTy8BY+0LHc0k4Mo1hwTW3bh2AxgMvt1eUFI3J
-	 tK2g+67R8z/ojxqj6UvE9Ie0mKiOP6lYsOzHpnvkfrxUaCZ3bxheJBOJxC3s9sops/
-	 K59WUaGZUnN1p3uJRqsSMH93fNhH65gMXcvYhXqQ=
+	b=ynbvHksIvFRDpLZA0RTcfpob4f7uAEF8yWX0K395fmwk3c16qh2ygqcCv6l44Er8U
+	 biSXEdjsIg+ZJlTWJ91dnqdOjGQ4C1fgnmpfqQQsw1vauYtiMmopbap9dHwGxnvFSH
+	 6ZcgMcxoVsZFEqd4tMjlxmHMDmtEjWqSxmBJe6rE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726682AbfJ0HI6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 27 Oct 2019 03:08:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35634 "EHLO mail.kernel.org"
+        id S1726683AbfJ0HJB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 27 Oct 2019 03:09:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725965AbfJ0HI5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 27 Oct 2019 03:08:57 -0400
+        id S1725965AbfJ0HJB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 27 Oct 2019 03:09:01 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E56A420578;
-        Sun, 27 Oct 2019 07:08:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7C10A20578;
+        Sun, 27 Oct 2019 07:08:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572160136;
-        bh=BYqbF93yt5ZAm5wQzE/hcfBMONjE9GzYsjcqAhD5tis=;
+        s=default; t=1572160140;
+        bh=sntNoeAN7rmWlijidlWpsDAHI1eK5aV26XXnf41sZ04=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SwjBt4DxSqAP/zZdS8yASdO+egJWrKBcJcSsN9/PAGU4mNzraBUUj2ZfkyP4dtlQL
-         Cty7Chp6VxlSESn/nBC0syR4jUChmBKiiSJr9nxg1zyjz/u1v3/EXs6L0LPLxtRlee
-         i1jJHyO39c+l1aNbvOBlTwXUAiUun2UU++4ykeow=
+        b=q7d1XDKZtcT25N+8NxJOmgo0gfV/Aev/0Gnjrk622brpYW7wYA38T+a3quRonwpJ9
+         m3gyrm2dz0UZ1bEqlUXtuYkt4TyG92qHtXQ7jZC3nZF4LAEU4GE951Q4iZZEF5gW2c
+         89L8TUuq4zd2I7Z0npoBDKw8jKsQzzv//+7to4CI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH rdma-next 43/43] RDMA/cm: Convert SIDR_REP to new scheme
-Date:   Sun, 27 Oct 2019 09:06:21 +0200
-Message-Id: <20191027070621.11711-44-leon@kernel.org>
+Subject: [PATCH rdma-next 41/43] RDMA/cm: Convert LAP fields
+Date:   Sun, 27 Oct 2019 09:06:19 +0200
+Message-Id: <20191027070621.11711-42-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20191027070621.11711-1-leon@kernel.org>
 References: <20191027070621.11711-1-leon@kernel.org>
@@ -58,72 +58,71 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Use new scheme to access SIDR_REP fields.
+Convert LAP fields to the new scheme.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      | 15 ++++++++-------
- drivers/infiniband/core/cm_msgs.h | 14 --------------
- 2 files changed, 8 insertions(+), 21 deletions(-)
+ drivers/infiniband/core/cm.c      |  9 +++++----
+ drivers/infiniband/core/cm_msgs.h | 20 --------------------
+ 2 files changed, 5 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index bc0535608bb5..beb67eef5fb4 100644
+index 2fe1e8908445..11dc6e2b7de2 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -3480,10 +3480,10 @@ static void cm_format_sidr_rep(struct cm_sidr_rep_msg *sidr_rep_msg,
- 	cm_format_mad_hdr(&sidr_rep_msg->hdr, CM_SIDR_REP_ATTR_ID,
- 			  cm_id_priv->tid);
- 	sidr_rep_msg->request_id = cm_id_priv->id.remote_id;
--	sidr_rep_msg->status = param->status;
--	cm_sidr_rep_set_qpn(sidr_rep_msg, cpu_to_be32(param->qp_num));
-+	CM_SET(SIDR_REP_STATUS, sidr_rep_msg, param->status);
-+	CM_SET(SIDR_REP_QPN, sidr_rep_msg, param->qp_num);
- 	sidr_rep_msg->service_id = cm_id_priv->id.service_id;
--	sidr_rep_msg->qkey = cpu_to_be32(param->qkey);
-+	CM_SET(SIDR_REP_Q_KEY, sidr_rep_msg, param->qkey);
- 
- 	if (param->info && param->info_length)
- 		memcpy(sidr_rep_msg->info, param->info, param->info_length);
-@@ -3551,11 +3551,12 @@ static void cm_format_sidr_rep_event(struct cm_work *work,
- 	sidr_rep_msg = (struct cm_sidr_rep_msg *)
- 				work->mad_recv_wc->recv_buf.mad;
- 	param = &work->cm_event.param.sidr_rep_rcvd;
--	param->status = sidr_rep_msg->status;
--	param->qkey = be32_to_cpu(sidr_rep_msg->qkey);
--	param->qpn = be32_to_cpu(cm_sidr_rep_get_qpn(sidr_rep_msg));
-+	param->status = CM_GET(SIDR_REP_STATUS, sidr_rep_msg);
-+	param->qkey = CM_GET(SIDR_REP_Q_KEY, sidr_rep_msg);
-+	param->qpn = CM_GET(SIDR_REP_QPN, sidr_rep_msg);
- 	param->info = &sidr_rep_msg->info;
--	param->info_len = sidr_rep_msg->info_length;
-+	param->info_len =
-+		CM_GET(SIDR_REP_ADDITIONAL_INFORMATION_LENGTH, sidr_rep_msg);
- 	param->sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
- 	work->cm_event.private_data = &sidr_rep_msg->private_data;
- 	work->cm_event.private_data_len = CM_SIDR_REP_PRIVATE_DATA_SIZE;
+@@ -3124,16 +3124,17 @@ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
+ 	path->flow_label =
+ 		cpu_to_be32(CM_GET(LAP_ALTERNATE_FLOW_LABEL, lap_msg));
+ 	path->hop_limit = lap_msg->alt_hop_limit;
+-	path->traffic_class = cm_lap_get_traffic_class(lap_msg);
++	path->traffic_class = CM_GET(LAP_ALTERNATE_TRAFFIC_CLASS, lap_msg);
+ 	path->reversible = 1;
+ 	path->pkey = cm_id_priv->pkey;
+-	path->sl = cm_lap_get_sl(lap_msg);
++	path->sl = CM_GET(LAP_ALTERNATE_SL, lap_msg);
+ 	path->mtu_selector = IB_SA_EQ;
+ 	path->mtu = cm_id_priv->path_mtu;
+ 	path->rate_selector = IB_SA_EQ;
+-	path->rate = cm_lap_get_packet_rate(lap_msg);
++	path->rate = CM_GET(LAP_ALTERNATE_PACKET_RATE, lap_msg);
+ 	path->packet_life_time_selector = IB_SA_EQ;
+-	path->packet_life_time = cm_lap_get_local_ack_timeout(lap_msg);
++	path->packet_life_time =
++		CM_GET(LAP_ALTERNATE_LOCAL_ACK_TIMEOUT, lap_msg);
+ 	path->packet_life_time -= (path->packet_life_time > 0);
+ 	cm_format_path_lid_from_lap(lap_msg, path);
+ }
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 0bf214a5f388..dba60f8dfafb 100644
+index fa475a59ed53..0bf214a5f388 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -562,18 +562,4 @@ struct cm_sidr_rep_msg {
- 
- 	u8 private_data[CM_SIDR_REP_PRIVATE_DATA_SIZE];
+@@ -522,26 +522,6 @@ struct cm_lap_msg {
+ 	u8 private_data[CM_LAP_PRIVATE_DATA_SIZE];
  } __packed;
--
--static inline __be32 cm_sidr_rep_get_qpn(struct cm_sidr_rep_msg *sidr_rep_msg)
+ 
+-static inline u8 cm_lap_get_traffic_class(struct cm_lap_msg *lap_msg)
 -{
--	return cpu_to_be32(be32_to_cpu(sidr_rep_msg->offset8) >> 8);
+-	return (u8) be32_to_cpu(lap_msg->offset56);
 -}
 -
--static inline void cm_sidr_rep_set_qpn(struct cm_sidr_rep_msg *sidr_rep_msg,
--				       __be32 qpn)
+-static inline u8 cm_lap_get_packet_rate(struct cm_lap_msg *lap_msg)
 -{
--	sidr_rep_msg->offset8 = cpu_to_be32((be32_to_cpu(qpn) << 8) |
--					(be32_to_cpu(sidr_rep_msg->offset8) &
--					 0x000000FF));
+-	return lap_msg->offset61 & 0x3F;
 -}
 -
- #endif /* CM_MSGS_H */
+-static inline u8 cm_lap_get_sl(struct cm_lap_msg *lap_msg)
+-{
+-	return lap_msg->offset62 >> 4;
+-}
+-
+-static inline u8 cm_lap_get_local_ack_timeout(struct cm_lap_msg *lap_msg)
+-{
+-	return lap_msg->offset63 >> 3;
+-}
+-
+ struct cm_apr_msg {
+ 	struct ib_mad_hdr hdr;
+ 
 -- 
 2.20.1
 
