@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91B84CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:08:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9351CA9EAF
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:08:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6467A21726
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:08:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E55A21726
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:08:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572160127;
-	bh=XqusfRdj7uXgS/d8ah+wT4az8aIxjBWgl8p5V35JQ4U=;
+	s=default; t=1572160130;
+	bh=eQLT6tcdC+M3RuGLUj9JzvVIzztohg+oXRZCLBhCJd0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=gX0aolT57IExvhiX9FhKrSeR+xOfeQhl35U2P+OYkduGfhVAWtRJqSmvNTuLdJ2BF
-	 qy9hATxALhyxWeqyXmAC9pxDwMqbxqjNUWUS7Vie1MCvhDA4dM1ZHWhqkfgT1gH/D7
-	 gE2bb+Lh1GOcm1wTvL4VwgeALOUrK8wetU0KJu80=
+	b=Gl42f54+4PK5px+IpB1J9GcYwCGgIibAsxXVkCtOspXXV+3hcVhPdWRa6h15YOJb9
+	 SWtR+EZeBHQD7dP5N+/ZfJ6T/MimZbDANYVXCRqgHI7ej1nztgvQm78F69qzerwb+k
+	 q0cRisqoU+oGSEony55W5zUTRBuId4D0Wt3K0pAQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726677AbfJ0HIr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 27 Oct 2019 03:08:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35556 "EHLO mail.kernel.org"
+        id S1726678AbfJ0HIu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 27 Oct 2019 03:08:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35588 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725965AbfJ0HIq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 27 Oct 2019 03:08:46 -0400
+        id S1725965AbfJ0HIu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 27 Oct 2019 03:08:50 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5390020578;
-        Sun, 27 Oct 2019 07:08:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D162220578;
+        Sun, 27 Oct 2019 07:08:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572160126;
-        bh=XqusfRdj7uXgS/d8ah+wT4az8aIxjBWgl8p5V35JQ4U=;
+        s=default; t=1572160129;
+        bh=eQLT6tcdC+M3RuGLUj9JzvVIzztohg+oXRZCLBhCJd0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=CfGFsWj8ZJHohoo32vN4uv50Yd9JmgrvNWtWVp9i7FLIVp7OYsUK6PWTXxMxk98hK
-         tJ+tdWM3SrOVLO6j6rJHSjWHp5CZHVjMTXcwKpw8WYXGgpUxzyHmeWFyWL2WaVKkea
-         3+RfHR+OMgRv4bcZd1JO4tU1mq6zaAjdbstros0s=
+        b=NN08vOrn5IvMW8SAwxKd7TorCxAUHm3mIE0DNqQf+YI91GL7MFITf7BOHgXRJGZEW
+         V05LWMyAgInGpSme/lxYkkUlblKRBWEKkCSvk7fHSremFMhVe8jLmfA8aWkgD51Hi3
+         kxhgfFSMvfhdropc+ZvqyQd5uV2dFKYCR3hEXnDQ=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH rdma-next 40/43] RDMA/cm: Convert LAP flow label field
-Date:   Sun, 27 Oct 2019 09:06:18 +0200
-Message-Id: <20191027070621.11711-41-leon@kernel.org>
+Subject: [PATCH rdma-next 35/43] RDMA/cm: Convert REP failover accepted field
+Date:   Sun, 27 Oct 2019 09:06:13 +0200
+Message-Id: <20191027070621.11711-36-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20191027070621.11711-1-leon@kernel.org>
 References: <20191027070621.11711-1-leon@kernel.org>
@@ -58,44 +58,58 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert LAP flow label field.
+Update REP failover accepted field to the new scheme.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      | 3 ++-
- drivers/infiniband/core/cm_msgs.h | 5 -----
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cm.c      |  4 ++--
+ drivers/infiniband/core/cm_msgs.h | 11 -----------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 25a20c04e07b..2fe1e8908445 100644
+index 596be796f7bc..4b1f90ba4ec9 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -3121,7 +3121,8 @@ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
- {
- 	path->dgid = lap_msg->alt_local_gid;
- 	path->sgid = lap_msg->alt_remote_gid;
--	path->flow_label = cm_lap_get_flow_label(lap_msg);
-+	path->flow_label =
-+		cpu_to_be32(CM_GET(LAP_ALTERNATE_FLOW_LABEL, lap_msg));
- 	path->hop_limit = lap_msg->alt_hop_limit;
- 	path->traffic_class = cm_lap_get_traffic_class(lap_msg);
- 	path->reversible = 1;
+@@ -2069,7 +2069,7 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+ 	rep_msg->resp_resources = param->responder_resources;
+ 	CM_SET(REP_TARGET_ACK_DELAY, rep_msg,
+ 	       cm_id_priv->av.port->cm_dev->ack_delay);
+-	cm_rep_set_failover(rep_msg, param->failover_accepted);
++	CM_SET(REP_FAILOVER_ACCEPTED, rep_msg, param->failover_accepted);
+ 	cm_rep_set_rnr_retry_count(rep_msg, param->rnr_retry_count);
+ 	rep_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
+ 
+@@ -2223,7 +2223,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
+ 	param->responder_resources = rep_msg->initiator_depth;
+ 	param->initiator_depth = rep_msg->resp_resources;
+ 	param->target_ack_delay = CM_GET(REP_TARGET_ACK_DELAY, rep_msg);
+-	param->failover_accepted = cm_rep_get_failover(rep_msg);
++	param->failover_accepted = CM_GET(REP_FAILOVER_ACCEPTED, rep_msg);
+ 	param->flow_control = cm_rep_get_flow_ctrl(rep_msg);
+ 	param->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
+ 	param->srq = cm_rep_get_srq(rep_msg);
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 41193dc44fee..fa475a59ed53 100644
+index a3207f984c32..fdc3cd9d2f88 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -522,11 +522,6 @@ struct cm_lap_msg {
- 	u8 private_data[CM_LAP_PRIVATE_DATA_SIZE];
+@@ -462,17 +462,6 @@ struct cm_rep_msg {
+ 
  } __packed;
  
--static inline __be32 cm_lap_get_flow_label(struct cm_lap_msg *lap_msg)
+-static inline u8 cm_rep_get_failover(struct cm_rep_msg *rep_msg)
 -{
--	return cpu_to_be32(be32_to_cpu(lap_msg->offset56) >> 12);
+-	return (u8) ((rep_msg->offset26 & 0x06) >> 1);
 -}
 -
- static inline u8 cm_lap_get_traffic_class(struct cm_lap_msg *lap_msg)
+-static inline void cm_rep_set_failover(struct cm_rep_msg *rep_msg, u8 failover)
+-{
+-	rep_msg->offset26 = (u8) ((rep_msg->offset26 & 0xF9) |
+-				  ((failover & 0x3) << 1));
+-}
+-
+ static inline u8 cm_rep_get_flow_ctrl(struct cm_rep_msg *rep_msg)
  {
- 	return (u8) be32_to_cpu(lap_msg->offset56);
+ 	return (u8) (rep_msg->offset26 & 0x01);
 -- 
 2.20.1
 
