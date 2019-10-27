@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1497CA9EAF
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFB61CA9EAF
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73ADD20873
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84C7A20873
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572160024;
-	bh=+HQAMgNxzGnv9PIUcRnRKXdm+lU+B6QJ/avE7vnlJbA=;
+	s=default; t=1572160027;
+	bh=M+HI2SDS6L+iUuIQnfHiL+UY8p79ekSXfhV+Phyqu0k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=MvEiUVEJC1sSI5sVpHY+WDFPA/Rq0/Y/m3ha2lM4qBbjdNtCfUylbuVLe2HYmgZT9
-	 fh9yIiKSliorFc17m50aOuWyrmfn7D4js86qnFpCgnHONQ4mAUQl1EIJK6MWkWs509
-	 PcUhX1zqHv6M3Vx97wQ87MZebMmxPSP7SoOB8AHk=
+	b=Ne4BhfEE0w9MmLefyw07XFTqWVXbmODnGmNC1DOjy1BsAFoPVTyeaLxXOOUFvQNF5
+	 S57EEIjVpkLMOZakg5B6sTCNmDB1Q3QhcnI0zYO4Hg50j3ph8PDcE6jnOUXhgzvaii
+	 tjU8xWVFM2qd1i/WI41ICtoWlE4KvGferyEru17w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726265AbfJ0HHE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 27 Oct 2019 03:07:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34880 "EHLO mail.kernel.org"
+        id S1726316AbfJ0HHH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 27 Oct 2019 03:07:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725965AbfJ0HHD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 27 Oct 2019 03:07:03 -0400
+        id S1725965AbfJ0HHG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 27 Oct 2019 03:07:06 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CB6EB20578;
-        Sun, 27 Oct 2019 07:07:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6C5F120578;
+        Sun, 27 Oct 2019 07:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572160022;
-        bh=+HQAMgNxzGnv9PIUcRnRKXdm+lU+B6QJ/avE7vnlJbA=;
+        s=default; t=1572160026;
+        bh=M+HI2SDS6L+iUuIQnfHiL+UY8p79ekSXfhV+Phyqu0k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=o57V9ZH14ZHoc76whViZhTh8wjiLU+vTBRZSyRMerE7Sdp+8GGeYFNUEPjqCdDhMU
-         6WlqcHn5SG+wMGAZcOkN9ixG4dqg7Bab2He27Q0KXzSDAsxTaBGuCzr0ui4fHznBq0
-         fa9PQ+uxl8+A0N6KcEbWFXwesdRkL2rHFYcfDB58=
+        b=y28mG/RKUd6LWcgAsryAU+sA+SDji4ShacuONdMOSo/GNprV1UVldCPFlrbYN6Zc9
+         l3bTNstmLzzER3EhWJsz6206ONoLI8AE9fWJ+kNEidIfExieW/+K7OvMoGx9uzGky0
+         QgMtJ0kOoed9nTDa7Z+tM5F7yDoKbTI+KZo479vE=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH rdma-next 11/43] RDMA/cm: Service ID Resolution Request (SIDR_REQ) definitions
-Date:   Sun, 27 Oct 2019 09:05:49 +0200
-Message-Id: <20191027070621.11711-12-leon@kernel.org>
+Subject: [PATCH rdma-next 06/43] RDMA/cm: Ready To Use (RTU) definitions
+Date:   Sun, 27 Oct 2019 09:05:44 +0200
+Message-Id: <20191027070621.11711-7-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20191027070621.11711-1-leon@kernel.org>
 References: <20191027070621.11711-1-leon@kernel.org>
@@ -58,94 +58,76 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Add SIDR_REQ message definitions as it is written
-in IBTA release 1.3 volume 1.
+Add RTU message definitions as it is written in IBTA release 1.3 volume 1.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  4 ++--
- drivers/infiniband/core/cm_msgs.h | 11 ++++++++++-
- drivers/infiniband/core/cma.c     |  2 +-
- include/rdma/ib_cm.h              |  2 --
- 4 files changed, 13 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cm.c      | 4 ++--
+ drivers/infiniband/core/cm_msgs.h | 9 ++++++++-
+ include/rdma/ib_cm.h              | 1 -
+ 3 files changed, 10 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index e72fc4071313..55a14acaa333 100644
+index 85836f8e5c67..41cf2a0de051 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -3465,7 +3465,7 @@ int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
+@@ -2132,7 +2132,7 @@ int ib_send_cm_rtu(struct ib_cm_id *cm_id,
+ 	void *data;
  	int ret;
  
- 	if (!param->path || (param->private_data &&
--	     param->private_data_len > IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE))
-+	     param->private_data_len > CM_SIDR_REQ_PRIVATE_DATA_SIZE))
+-	if (private_data && private_data_len > IB_CM_RTU_PRIVATE_DATA_SIZE)
++	if (private_data && private_data_len > CM_RTU_PRIVATE_DATA_SIZE)
  		return -EINVAL;
  
- 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
-@@ -3524,7 +3524,7 @@ static void cm_format_sidr_req_event(struct cm_work *work,
- 	param->port = work->port->port_num;
- 	param->sgid_attr = rx_cm_id->av.ah_attr.grh.sgid_attr;
- 	work->cm_event.private_data = &sidr_req_msg->private_data;
--	work->cm_event.private_data_len = IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE;
-+	work->cm_event.private_data_len = CM_SIDR_REQ_PRIVATE_DATA_SIZE;
- }
+ 	data = cm_copy_private_data(private_data, private_data_len);
+@@ -2397,7 +2397,7 @@ static int cm_rtu_handler(struct cm_work *work)
+ 		return -EINVAL;
  
- static int cm_sidr_req_handler(struct cm_work *work)
+ 	work->cm_event.private_data = &rtu_msg->private_data;
+-	work->cm_event.private_data_len = IB_CM_RTU_PRIVATE_DATA_SIZE;
++	work->cm_event.private_data_len = CM_RTU_PRIVATE_DATA_SIZE;
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	if (cm_id_priv->id.state != IB_CM_REP_SENT &&
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 656641e6f447..9d32b84bdcb0 100644
+index 39fcd1231378..6917e007c573 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -318,6 +318,15 @@
- #define CM_APR_PRIVATE_DATA_OFFSET 84
- #define CM_APR_PRIVATE_DATA_SIZE 148
+@@ -244,6 +244,13 @@
+ #define CM_REP_PRIVATE_DATA_OFFSET 36
+ #define CM_REP_PRIVATE_DATA_SIZE 196
  
-+#define CM_SIDR_REQ_REQUESTID_OFFSET 0
-+#define CM_SIDR_REQ_REQUESTID_MASK GENMASK(31, 0)
-+#define CM_SIDR_REQ_PARTITION_KEY_OFFSET 4
-+#define CM_SIDR_REQ_PARTITION_KEY_MASK GENMASK(15, 0)
-+#define CM_SIDR_REQ_SERVICEID_OFFSET 8
-+#define CM_SIDR_REQ_SERVICEID_MASK GENMASK_ULL(63, 0)
-+#define CM_SIDR_REQ_PRIVATE_DATA_OFFSET 16
-+#define CM_SIDR_REQ_PRIVATE_DATA_SIZE 216
++#define CM_RTU_LOCAL_COMM_ID_OFFSET 0
++#define CM_RTU_LOCAL_COMM_ID_MASK GENMASK(31, 0)
++#define CM_RTU_REMOTE_COMM_ID_OFFSET 4
++#define CM_RTU_REMOTE_COMM_ID_MASK GENMASK(31, 0)
++#define CM_RTU_PRIVATE_DATA_OFFSET 8
++#define CM_RTU_PRIVATE_DATA_SIZE 224
 +
  struct cm_req_msg {
  	struct ib_mad_hdr hdr;
  
-@@ -1068,7 +1077,7 @@ struct cm_sidr_req_msg {
- 	__be16 rsvd;
- 	__be64 service_id;
+@@ -812,7 +819,7 @@ struct cm_rtu_msg {
+ 	__be32 local_comm_id;
+ 	__be32 remote_comm_id;
  
--	u32 private_data[IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
-+	u32 private_data[CM_SIDR_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
+-	u8 private_data[IB_CM_RTU_PRIVATE_DATA_SIZE];
++	u8 private_data[CM_RTU_PRIVATE_DATA_SIZE];
+ 
  } __packed;
  
- struct cm_sidr_rep_msg {
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 997f8c29e34e..d3bbca5b61e3 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2137,7 +2137,7 @@ static int cma_ib_req_handler(struct ib_cm_id *cm_id,
- 		conn_id = cma_ib_new_udp_id(&listen_id->id, ib_event, net_dev);
- 		event.param.ud.private_data = ib_event->private_data + offset;
- 		event.param.ud.private_data_len =
--				IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE - offset;
-+			CM_SIDR_REQ_PRIVATE_DATA_SIZE - offset;
- 	} else {
- 		conn_id = cma_ib_new_conn_id(&listen_id->id, ib_event, net_dev);
- 		cma_set_req_event_data(&event, &ib_event->param.req_rcvd,
 diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 18a3e2ee0758..8f0c377ad250 100644
+index ebfbf63388de..34dc12b30399 100644
 --- a/include/rdma/ib_cm.h
 +++ b/include/rdma/ib_cm.h
-@@ -65,8 +65,6 @@ enum ib_cm_event_type {
+@@ -65,7 +65,6 @@ enum ib_cm_event_type {
  };
  
  enum ib_cm_data_size {
--	IB_CM_APR_INFO_LENGTH		 = 72,
--	IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE = 216,
- 	IB_CM_SIDR_REP_PRIVATE_DATA_SIZE = 136,
- 	IB_CM_SIDR_REP_INFO_LENGTH	 = 72,
- };
+-	IB_CM_RTU_PRIVATE_DATA_SIZE	 = 224,
+ 	IB_CM_DREQ_PRIVATE_DATA_SIZE	 = 220,
+ 	IB_CM_DREP_PRIVATE_DATA_SIZE	 = 224,
+ 	IB_CM_LAP_PRIVATE_DATA_SIZE	 = 168,
 -- 
 2.20.1
 
