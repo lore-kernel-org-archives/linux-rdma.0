@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC93DCA9EAF
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1CC3CA9EAF
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 920EF21726
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7375821726
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Oct 2019 07:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572160066;
-	bh=mv94RiCGAQj6xJE0UmRdHNjY+oI4hIqYVSpn3Bf60LE=;
+	s=default; t=1572160070;
+	bh=NHeoiD2v4BdbVujpzbtvJAde0EU+EdfCsi4ifOx5aZY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Me9kGBwiGv4oWeH3Bj4rqnOb7z/buJAYhw/XB2vvJ1VtBsWl1mQKD48IsYauNPOy7
-	 drus9I970Qaj+CtD8iAXEahTLAw9u9G0RQShbaB8Ye6w20/GpXB1/VTr/SA4lPvQez
-	 eTZqCbAIOqYpLZabPNcWXwgXHAf/isPNzvSGbexI=
+	b=yuPNSXuBRT2O66kuVNg5mpCAHIgHMntaQSbBRJK+RemKjRMVSoFYlFTcEmvHjXimx
+	 0KPXqJAPEPJStW1DrGCK1W72yaz3jbcJGY4TB8kmiL9lobf3UB0NfLb7FVJzvRFiFK
+	 q07AU8UO/gU2mpec0dCa91qgYEfjhA1vc9QZi4Dk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726536AbfJ0HHq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 27 Oct 2019 03:07:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35146 "EHLO mail.kernel.org"
+        id S1726552AbfJ0HHu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 27 Oct 2019 03:07:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35172 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725965AbfJ0HHq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 27 Oct 2019 03:07:46 -0400
+        id S1725965AbfJ0HHt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 27 Oct 2019 03:07:49 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DA77320578;
-        Sun, 27 Oct 2019 07:07:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6DD7A20578;
+        Sun, 27 Oct 2019 07:07:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572160065;
-        bh=mv94RiCGAQj6xJE0UmRdHNjY+oI4hIqYVSpn3Bf60LE=;
+        s=default; t=1572160069;
+        bh=NHeoiD2v4BdbVujpzbtvJAde0EU+EdfCsi4ifOx5aZY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=xE72sqAI9wsPYsXeA0mYsuGOvAOndLhwiBRiPUmWGflDAJh6tzR6XQixuS3c91Epq
-         1hTTWfxsPaBzrBOOVqtyOZ6MAv7UMZ9rQOmAC8DnZjrV6+cBarQq8rRO0g7djnwnKN
-         h67elQpt6PKfGvOdpu0ZGysmdeCxnpjl5DeIBPBo=
+        b=ewBBtWwry+7sWFuVGhUG3jYYPCPyp/Z9hdQAecM9Oh/zXJIXSHiz7t7tLoLtjP0PV
+         UWBBwzp9XKmWZzpT/c2OzGtVR8520U3GURSqaoKRTJwtlDKB3lOT3DYnmRgPh0pgD/
+         htoaAdu+sUnz8osKgGAL9KWmjXrFrizvuKvx4G4o=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH rdma-next 23/43] RDMA/cm: Convert REQ RNR retry timeout counter
-Date:   Sun, 27 Oct 2019 09:06:01 +0200
-Message-Id: <20191027070621.11711-24-leon@kernel.org>
+Subject: [PATCH rdma-next 18/43] RDMA/cm: Convert REQ flow control
+Date:   Sun, 27 Oct 2019 09:05:56 +0200
+Message-Id: <20191027070621.11711-19-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20191027070621.11711-1-leon@kernel.org>
 References: <20191027070621.11711-1-leon@kernel.org>
@@ -58,68 +58,60 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert REQ RNR retry timeout counter to new scheme.
+Use CM_GET/CM_SET for REQ flow control field.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  6 +++---
- drivers/infiniband/core/cm_msgs.h | 12 ------------
- 2 files changed, 3 insertions(+), 15 deletions(-)
+ drivers/infiniband/core/cm.c      |  4 ++--
+ drivers/infiniband/core/cm_msgs.h | 13 -------------
+ 2 files changed, 2 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 442fb4dee55b..64b416e7f183 100644
+index 17954b71cf09..3e2eb096b2f9 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1296,7 +1296,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 		CM_SET(REQ_RESPONDED_RESOURCES, req_msg,
- 		       param->responder_resources);
- 		CM_SET(REQ_RETRY_COUNT, req_msg, param->retry_count);
--		cm_req_set_rnr_retry_count(req_msg, param->rnr_retry_count);
-+		CM_SET(REQ_RNR_RETRY_COUNT, req_msg, param->rnr_retry_count);
- 		cm_req_set_srq(req_msg, param->srq);
- 	}
- 
-@@ -1703,7 +1703,7 @@ static void cm_format_req_event(struct cm_work *work,
+@@ -1284,7 +1284,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 	CM_SET(REQ_REMOTE_CM_RESPONSE_TIMEOUT, req_msg,
+ 	       param->remote_cm_response_timeout);
+ 	cm_req_set_qp_type(req_msg, param->qp_type);
+-	cm_req_set_flow_ctrl(req_msg, param->flow_control);
++	CM_SET(REQ_END_TO_END_FLOW_CONTROL, req_msg, param->flow_control);
+ 	cm_req_set_starting_psn(req_msg, cpu_to_be32(param->starting_psn));
+ 	cm_req_set_local_resp_timeout(req_msg,
+ 				      param->local_cm_response_timeout);
+@@ -1699,7 +1699,7 @@ static void cm_format_req_event(struct cm_work *work,
+ 	param->initiator_depth = CM_GET(REQ_RESPONDED_RESOURCES, req_msg);
+ 	param->local_cm_response_timeout =
+ 		CM_GET(REQ_REMOTE_CM_RESPONSE_TIMEOUT, req_msg);
+-	param->flow_control = cm_req_get_flow_ctrl(req_msg);
++	param->flow_control = CM_GET(REQ_END_TO_END_FLOW_CONTROL, req_msg);
  	param->remote_cm_response_timeout =
- 		CM_GET(REQ_LOCAL_CM_RESPONSE_TIMEOUT, req_msg);
- 	param->retry_count = CM_GET(REQ_RETRY_COUNT, req_msg);
--	param->rnr_retry_count = cm_req_get_rnr_retry_count(req_msg);
-+	param->rnr_retry_count = CM_GET(REQ_RNR_RETRY_COUNT, req_msg);
- 	param->srq = cm_req_get_srq(req_msg);
- 	param->ppath_sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
- 	work->cm_event.private_data = &req_msg->private_data;
-@@ -2036,7 +2036,7 @@ static int cm_req_handler(struct cm_work *work)
- 	cm_id_priv->pkey = req_msg->pkey;
- 	cm_id_priv->sq_psn = CM_GET(REQ_STARTING_PSN, req_msg);
- 	cm_id_priv->retry_count = CM_GET(REQ_RETRY_COUNT, req_msg);
--	cm_id_priv->rnr_retry_count = cm_req_get_rnr_retry_count(req_msg);
-+	cm_id_priv->rnr_retry_count = CM_GET(REQ_RNR_RETRY_COUNT, req_msg);
- 	cm_id_priv->qp_type = cm_req_get_qp_type(req_msg);
- 
- 	cm_format_req_event(work, cm_id_priv, &listen_cm_id_priv->id);
+ 					cm_req_get_local_resp_timeout(req_msg);
+ 	param->retry_count = cm_req_get_retry_count(req_msg);
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 485bfc523c64..37e9bf512940 100644
+index e073308dad09..538ce42b97c3 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -400,18 +400,6 @@ struct cm_req_msg {
+@@ -400,19 +400,6 @@ struct cm_req_msg {
  
  } __packed;
  
--static inline u8 cm_req_get_rnr_retry_count(struct cm_req_msg *req_msg)
+-static inline u8 cm_req_get_flow_ctrl(struct cm_req_msg *req_msg)
 -{
--	return req_msg->offset50 & 0x7;
+-	return be32_to_cpu(req_msg->offset40) & 0x1;
 -}
 -
--static inline void cm_req_set_rnr_retry_count(struct cm_req_msg *req_msg,
--					      u8 rnr_retry_count)
+-static inline void cm_req_set_flow_ctrl(struct cm_req_msg *req_msg,
+-					u8 flow_ctrl)
 -{
--	req_msg->offset50 = (u8) ((req_msg->offset50 & 0xF8) |
--				  (rnr_retry_count & 0x7));
+-	req_msg->offset40 = cpu_to_be32((flow_ctrl & 0x1) |
+-					 (be32_to_cpu(req_msg->offset40) &
+-					  0xFFFFFFFE));
 -}
 -
- static inline u8 cm_req_get_max_cm_retries(struct cm_req_msg *req_msg)
+ static inline __be32 cm_req_get_starting_psn(struct cm_req_msg *req_msg)
  {
- 	return req_msg->offset51 >> 4;
+ 	return cpu_to_be32(be32_to_cpu(req_msg->offset44) >> 8);
 -- 
 2.20.1
 
