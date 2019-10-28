@@ -7,57 +7,58 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4222ECA9EC0
-	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC39CA9EC0
+	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 07F4221479
-	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52EC321479
+	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="F4KF0FIr"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="aQBimRUu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732001AbfJ1Xfm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 28 Oct 2019 19:35:42 -0400
-Received: from mail-eopbgr150042.outbound.protection.outlook.com ([40.107.15.42]:38254
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        id S1731791AbfJ1Xf6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 28 Oct 2019 19:35:58 -0400
+Received: from mail-eopbgr60058.outbound.protection.outlook.com ([40.107.6.58]:42382
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1731587AbfJ1Xfl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 28 Oct 2019 19:35:41 -0400
+        id S1730930AbfJ1Xf6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 28 Oct 2019 19:35:58 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=aMnIRwnocpmx9qEB7Q8CsiCUEgWWg1cLqSI23WWpreuIsO1U5ed/V3Dyouu9SeTulTG12DZ4y1pq/X6xOWO+Lmy7fFsCKEpviURcZ6mADrDV7DiFUEU7kHfrIBd54vsfKpzcOt9ZEYrY9l67jkgBKQ4qW9FkM2K05Q1XDx10MwW3K5Uv0GWgf9T5vaEacnYQPpLTYJEI0v/iKdA0oO+pnz4qqU/VIR6R3Fn5Aip6DcM58UKnqxmr7GUghwK1T/S9ulUGtzG7IYxfoF5iE1/uMDM9hQnY0nI3PEbs2T+wt2PcKGhEHO16MBrXSxGF2IoP3mWXN6REyqZwXo6nhH8aHw==
+ b=j82lkbKPH0tPNgfQAoPLMSGZN6j1uZAAZcwIOtu/yT97tWJYgy07awt/jhsvXLY/s84nDC3qFpVxB3tQxtB4EfYWS2X1bgbL/H0sw5hWoW//Z4hoTYU2Znq5BrZ3qkqp8LD0ZY4lflwQVqK5SvwLzxMNXBKZ4pLV8pFfAsU8ZCeh/gDlgf0fdt0sDXdXxniqEmIA5GeMTCa+adfdXp/qjIjnmiVT0AxJj7YGRIyCQFV2+snNTFZsQWeIi7drce9qzqAubpRqCtgC+EcRqaM+lLC+Kw9t9PaAY9TxjG4E3aM6Qnv2vYbqkRe4lR28IHrvroAHP0sz5nfJzkNI2UesLA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Q42RVoyM1+uOE0nQal/Rqkqi45KQNRxXBWzwMcn5j6E=;
- b=LASbhpo1nWM/iYLFiFnzcp39f2t3Oa2zg0g0aOWBe1BD3gXzGntIUOqHV2K3OGAsB1L+N34AP0wlFMfhzhgN2aYqgFS4W2CvhhI0nM91Sh79HUk8Ba5LhahzjCOsSTh/8HHTO8R3yusEnV64n8iq2+MpeRBY+ymednnBo8d+rPWIhXO6ATV/KHfsKDawySLcE6TXP9GFPIQ/nYQxvchf6eyzWwR3eXpWmP/UlOckH5zltva8MFVxECMi0DueN0u+rgR3QQ8iN3EF00WL9St9QaKSmzXSSW4bT+vV08QlcOg2u6vLB8VgUd6kE0GA4WpauByRrnMgyQeUJZSpoPyYvg==
+ bh=pOeSJ5mWon/A2IL8uCyFzNrE6uZ9M2wQM6NVSLSw/os=;
+ b=YnSNJ9cbQlDFrznDPaljOCL2kp9cRATUmkVSlgHz49bKdwTCiFQZNrYxJxY2P2mzlIfP36BpYBhdShTo/s1kyfb+d0lJR8x5e2NEUxIoVSQHmIlhZgYOnAC+FvOo/oEpOvXIvuF0AHU4Cp8QJi6ImUg2GcvGnOUUEMUu1J87m1hDakRqpOWwNramBfV5PklK1EDHZcdAWrSHu8O7TezQrLbmgM1Odba5RjeBEQU9R1g6gnrmaT3L1hJbFZSy38FgQfXw/RtHgyGI6KS1/ya3S81Y4kKd5UpxyIh4SPsIxC5OKANgQZoNhvl08Aejdto3ESjNQEAlOZGsDx9TUjjWow==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
  dkim=pass header.d=mellanox.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Q42RVoyM1+uOE0nQal/Rqkqi45KQNRxXBWzwMcn5j6E=;
- b=F4KF0FIrN8U+7c0My1uCxLfJILQ9/h9qL0HWoMcsa5L5AK1iEl65kURIzabAPEQm5IbOFolMGr6GELXc+8mvAD4SHDyKCK54TYlAqAHfwhsvheaz5emHiA+lBCmm73GPL9wktQCYdWvvLrdNu5//GqJ8g5awer18UQ4gRJ/J6rI=
+ bh=pOeSJ5mWon/A2IL8uCyFzNrE6uZ9M2wQM6NVSLSw/os=;
+ b=aQBimRUuJEaxBxUl40cUh37nB3L2CHjZ6tipEeBzxsB5eBJ/Bor6zoVTwDHiiKuG2AOEisjrLU/42DeclElAkWxNPC8jlRNV2uACs3dtPOVEslrS6osfqBSMvL4VWw27S6+SgGH1NxKbrEZI+hFKWk5LVrAn2aWWUNX0DCSntvI=
 Received: from VI1PR05MB5102.eurprd05.prod.outlook.com (20.177.51.151) by
- VI1PR05MB4768.eurprd05.prod.outlook.com (20.176.7.157) with Microsoft SMTP
+ VI1PR05MB6448.eurprd05.prod.outlook.com (20.179.28.86) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2387.20; Mon, 28 Oct 2019 23:35:28 +0000
+ 15.20.2387.22; Mon, 28 Oct 2019 23:35:15 +0000
 Received: from VI1PR05MB5102.eurprd05.prod.outlook.com
  ([fe80::d41a:9a5d:5482:497e]) by VI1PR05MB5102.eurprd05.prod.outlook.com
  ([fe80::d41a:9a5d:5482:497e%5]) with mapi id 15.20.2387.027; Mon, 28 Oct 2019
- 23:35:28 +0000
+ 23:35:15 +0000
 From:   Saeed Mahameed <saeedm@mellanox.com>
 To:     Saeed Mahameed <saeedm@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>
 CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Parav Pandit <parav@mellanox.com>
-Subject: [PATCH mlx5-next 17/18] net/mlx5: E-switch, Enable metadata on own
- vport
-Thread-Topic: [PATCH mlx5-next 17/18] net/mlx5: E-switch, Enable metadata on
- own vport
-Thread-Index: AQHVjehh0jkvyvQY/kekC++Qyvhm0g==
-Date:   Mon, 28 Oct 2019 23:35:28 +0000
-Message-ID: <20191028233440.5564-18-saeedm@mellanox.com>
+        Parav Pandit <parav@mellanox.com>,
+        Vu Pham <vuhuong@mellanox.com>
+Subject: [PATCH mlx5-next 10/18] net/mlx5: E-switch, Prepare code to handle
+ vport enable error
+Thread-Topic: [PATCH mlx5-next 10/18] net/mlx5: E-switch, Prepare code to
+ handle vport enable error
+Thread-Index: AQHVjehZ3YM59CKYlEiD0DTDpVk/gA==
+Date:   Mon, 28 Oct 2019 23:35:15 +0000
+Message-ID: <20191028233440.5564-11-saeedm@mellanox.com>
 References: <20191028233440.5564-1-saeedm@mellanox.com>
 In-Reply-To: <20191028233440.5564-1-saeedm@mellanox.com>
 Accept-Language: en-US
@@ -74,30 +75,30 @@ authentication-results: spf=none (sender IP is )
 x-ms-exchange-messagesentrepresentingtype: 1
 x-ms-publictraffictype: Email
 x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: 51f36cab-eb30-49d6-c8a6-08d75bff83ea
-x-ms-traffictypediagnostic: VI1PR05MB4768:|VI1PR05MB4768:
+x-ms-office365-filtering-correlation-id: f01a18c7-df75-462b-8141-08d75bff7c22
+x-ms-traffictypediagnostic: VI1PR05MB6448:|VI1PR05MB6448:
 x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <VI1PR05MB47689CD7121E2D6E176FE66DBE660@VI1PR05MB4768.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8273;
+x-microsoft-antispam-prvs: <VI1PR05MB6448DC1FD76396BE75ED7C42BE660@VI1PR05MB6448.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:2089;
 x-forefront-prvs: 0204F0BDE2
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(39860400002)(346002)(366004)(136003)(376002)(396003)(189003)(199004)(186003)(2616005)(81166006)(446003)(476003)(1076003)(25786009)(14454004)(386003)(478600001)(6506007)(76176011)(52116002)(99286004)(102836004)(26005)(6636002)(11346002)(66446008)(36756003)(14444005)(256004)(305945005)(66066001)(8676002)(7736002)(107886003)(50226002)(4326008)(71200400001)(86362001)(8936002)(6486002)(71190400001)(6512007)(450100002)(6436002)(3846002)(6116002)(316002)(486006)(110136005)(54906003)(66946007)(5660300002)(66476007)(64756008)(66556008)(2906002)(81156014);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB4768;H:VI1PR05MB5102.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(136003)(376002)(366004)(346002)(396003)(39860400002)(189003)(199004)(3846002)(305945005)(8936002)(450100002)(316002)(478600001)(50226002)(86362001)(99286004)(71200400001)(81156014)(8676002)(81166006)(107886003)(71190400001)(186003)(66446008)(386003)(102836004)(6636002)(6506007)(14444005)(66476007)(66946007)(256004)(36756003)(52116002)(476003)(2616005)(11346002)(486006)(446003)(64756008)(6512007)(76176011)(6116002)(4326008)(26005)(7736002)(5660300002)(66066001)(14454004)(2906002)(110136005)(6436002)(6486002)(54906003)(1076003)(25786009)(66556008);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB6448;H:VI1PR05MB5102.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
 received-spf: None (protection.outlook.com: mellanox.com does not designate
  permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 68LmMSg2xb1czNHm5wvsdi0AUaHTafDWiDbU7h6cVf9KXpYr2y15R1FeCpGO56mLVDYkWsMHUxoefvJAU3mrUVdE/S4kYkg1IhfAsK3ADSPbSJQJjQogtlZIiIAMVsMUABvOr+XG2zJcBW/NQUJhrAqD4d7hCfOSqEMmvjimJy3iYT5WA5wVit8lUJYMjVV97jvy3/DsgrDFVO0YXC2hRdCB+6sz106Sm1wIZv2TVZSzEMdf1PUdnZaQAGOndmyf8bN0pRiXukuRbPP6rQwrgV3SYNqyGaEk/gbUBlfxM7rkC4DjzCrkbZUh5QWzK8bRzxNd2ZY9cNVZuXOxsLau0KvNYYignIGqrUpe8do9GA46/pfdIDvaYDaIApkUnlHs4gb36TaYefhvrAl6pxyITX1Rxq8VH+2MS4QhAVR1UnYa+XKMYZj9RLMqK3sOhjWJ
+x-microsoft-antispam-message-info: Y9YKlVVmJDE/+pBEG64tqSenSZvnWwCskeNdZu3zB3Zwo17a4cum9f6z76UwXMQk8ICSaeqPllKfa2KR8gYgPsxdcA+J3LpzxxEkk8Pl/pfjsZzJnxZsBvhxWqGCk4rFbWRnuFHEJij3yB54n9mqamDSHOENnKa39rnvlvzGC4qV13Cm9vPbH5kTc95h65lrq5jhtKwyqDt88ZBJgpHKlwPen4iTH3RKBoSKyE3s6jyI7ZQXdM3ihb4s5tIRpQHxhbA9OBIeROf4u6eO9X9MOVN1s30tKwU9UJ7u6LQwp1Kco4yqW/0MpugHr32ExsyVp99nXw88ayc/rvEHtRPWEgoBoy/igiMx2i//246b/88VU3JTQYSlf9e6SjRDkDr2ZIY8WvlBwxixqonLs+ctFSsmpmZ0ZUw6wyuGdfGezDVC+ddKX9ydw2LxG4WN9cCh
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 51f36cab-eb30-49d6-c8a6-08d75bff83ea
-X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Oct 2019 23:35:28.6533
+X-MS-Exchange-CrossTenant-Network-Message-Id: f01a18c7-df75-462b-8141-08d75bff7c22
+X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Oct 2019 23:35:15.5237
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: /OezYf/e+9SN20aeZNqr0sUZWnonjIyAQhhd9HLoU5vxSdpnqTi6tIReN+z53B6dO7/BWIYJZARliqjtABS05w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB4768
+X-MS-Exchange-CrossTenant-userprincipalname: 6/toJ+6jruKmy9xMvpTTa6nRg7wdMroI/2QR/Kr+GbGD+s5X1eD1/HtAJS1qSEqlKzfYCxN6YqTAF+3yKwY1Rw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB6448
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -105,155 +106,183 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@mellanox.com>
 
-Currently on ECPF, metadata is enabled on the ECPF vport =3D 0xfffe
-(manager vport).
-Metadata when supported, must be enabled on own vport which is
-used to pass metadata to vport of NIC Rx Flow Table.
+In subsequent patch, esw_enable_vport() could fail and return error.
+Prepare code to handle such error.
 
-Due to this error, traffic tagged by ingress ACL is not processed
-correctly at NIC rx flow table level which is supposed to work
-on metadata tag.
-
-Hence, instead of working on eswitch manager vport, always working on
-eswitch own vport regardless of PF or ECPF.
-
-Given that mlx5_eswitch_query/modify_esw_vport_context() is used to
-access other vport in legacy mode and own vport settings in switchdev mode,
-extend low level API to explicitly specify other_vport.
-
-Fixes: c1286050cf47 ("net/mlx5: E-Switch, Pass metadata from FDB to eswitch=
- manager")
 Signed-off-by: Parav Pandit <parav@mellanox.com>
+Reviewed-by: Vu Pham <vuhuong@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/eswitch.c | 29 +++++++------------
- .../net/ethernet/mellanox/mlx5/core/eswitch.h |  6 ++--
- .../mellanox/mlx5/core/eswitch_offloads.c     |  4 +--
- 3 files changed, 16 insertions(+), 23 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c | 62 ++++++++++++++-----
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h |  2 +-
+ .../mellanox/mlx5/core/eswitch_offloads.c     |  5 +-
+ 3 files changed, 50 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/ne=
 t/ethernet/mellanox/mlx5/core/eswitch.c
-index cc8d43d8c469..24c2217a4ce8 100644
+index f15ffb8f5cac..0bdaef508e74 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -111,42 +111,32 @@ static int arm_vport_context_events_cmd(struct mlx5_c=
-ore_dev *dev, u16 vport,
+@@ -452,6 +452,13 @@ static int esw_create_legacy_table(struct mlx5_eswitch=
+ *esw)
+ 	return err;
  }
 =20
- /* E-Switch vport context HW commands */
--static int modify_esw_vport_context_cmd(struct mlx5_core_dev *dev, u16 vpo=
-rt,
--					void *in, int inlen)
-+int mlx5_eswitch_modify_esw_vport_context(struct mlx5_core_dev *dev, u16 v=
++static void esw_destroy_legacy_table(struct mlx5_eswitch *esw)
++{
++	esw_cleanup_vepa_rules(esw);
++	esw_destroy_legacy_fdb_table(esw);
++	esw_destroy_legacy_vepa_table(esw);
++}
++
+ #define MLX5_LEGACY_SRIOV_VPORT_EVENTS (MLX5_VPORT_UC_ADDR_CHANGE | \
+ 					MLX5_VPORT_MC_ADDR_CHANGE | \
+ 					MLX5_VPORT_PROMISC_CHANGE)
+@@ -464,15 +471,10 @@ static int esw_legacy_enable(struct mlx5_eswitch *esw=
+)
+ 	if (ret)
+ 		return ret;
+=20
+-	mlx5_eswitch_enable_pf_vf_vports(esw, MLX5_LEGACY_SRIOV_VPORT_EVENTS);
+-	return 0;
+-}
+-
+-static void esw_destroy_legacy_table(struct mlx5_eswitch *esw)
+-{
+-	esw_cleanup_vepa_rules(esw);
+-	esw_destroy_legacy_fdb_table(esw);
+-	esw_destroy_legacy_vepa_table(esw);
++	ret =3D mlx5_eswitch_enable_pf_vf_vports(esw, MLX5_LEGACY_SRIOV_VPORT_EVE=
+NTS);
++	if (ret)
++		esw_destroy_legacy_table(esw);
++	return ret;
+ }
+=20
+ static void esw_legacy_disable(struct mlx5_eswitch *esw)
+@@ -1704,8 +1706,8 @@ static void esw_legacy_vport_destroy_drop_counters(st=
+ruct mlx5_vport *vport)
+ 		mlx5_fc_destroy(dev, vport->egress.legacy.drop_counter);
+ }
+=20
+-static void esw_enable_vport(struct mlx5_eswitch *esw, struct mlx5_vport *=
+vport,
+-			     enum mlx5_eswitch_vport_event enabled_events)
++static int esw_enable_vport(struct mlx5_eswitch *esw, struct mlx5_vport *v=
 port,
-+					  bool other_vport,
-+					  void *in, int inlen)
++			    enum mlx5_eswitch_vport_event enabled_events)
  {
- 	u32 out[MLX5_ST_SZ_DW(modify_esw_vport_context_out)] =3D {0};
+ 	u16 vport_num =3D vport->vport;
 =20
- 	MLX5_SET(modify_esw_vport_context_in, in, opcode,
- 		 MLX5_CMD_OP_MODIFY_ESW_VPORT_CONTEXT);
- 	MLX5_SET(modify_esw_vport_context_in, in, vport_number, vport);
--	MLX5_SET(modify_esw_vport_context_in, in, other_vport, 1);
-+	MLX5_SET(modify_esw_vport_context_in, in, other_vport, other_vport);
- 	return mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+@@ -1743,6 +1745,7 @@ static void esw_enable_vport(struct mlx5_eswitch *esw=
+, struct mlx5_vport *vport,
+ 	esw->enabled_vports++;
+ 	esw_debug(esw->dev, "Enabled VPORT(%d)\n", vport_num);
+ 	mutex_unlock(&esw->state_lock);
++	return 0;
  }
 =20
--int mlx5_eswitch_modify_esw_vport_context(struct mlx5_eswitch *esw, u16 vp=
-ort,
--					  void *in, int inlen)
--{
--	return modify_esw_vport_context_cmd(esw->dev, vport, in, inlen);
--}
--
--static int query_esw_vport_context_cmd(struct mlx5_core_dev *dev, u16 vpor=
-t,
--				       void *out, int outlen)
-+int mlx5_eswitch_query_esw_vport_context(struct mlx5_core_dev *dev, u16 vp=
-ort,
-+					 bool other_vport,
-+					 void *out, int outlen)
+ static void esw_disable_vport(struct mlx5_eswitch *esw,
+@@ -1856,26 +1859,51 @@ static void mlx5_eswitch_event_handlers_unregister(=
+struct mlx5_eswitch *esw)
+ /* mlx5_eswitch_enable_pf_vf_vports() enables vports of PF, ECPF and VFs
+  * whichever are present on the eswitch.
+  */
+-void
++int
+ mlx5_eswitch_enable_pf_vf_vports(struct mlx5_eswitch *esw,
+ 				 enum mlx5_eswitch_vport_event enabled_events)
  {
- 	u32 in[MLX5_ST_SZ_DW(query_esw_vport_context_in)] =3D {};
+ 	struct mlx5_vport *vport;
++	int num_vfs;
++	int ret;
+ 	int i;
 =20
- 	MLX5_SET(query_esw_vport_context_in, in, opcode,
- 		 MLX5_CMD_OP_QUERY_ESW_VPORT_CONTEXT);
- 	MLX5_SET(modify_esw_vport_context_in, in, vport_number, vport);
--	MLX5_SET(modify_esw_vport_context_in, in, other_vport, 1);
-+	MLX5_SET(modify_esw_vport_context_in, in, other_vport, other_vport);
- 	return mlx5_cmd_exec(dev, in, sizeof(in), out, outlen);
+ 	/* Enable PF vport */
+ 	vport =3D mlx5_eswitch_get_vport(esw, MLX5_VPORT_PF);
+-	esw_enable_vport(esw, vport, enabled_events);
++	ret =3D esw_enable_vport(esw, vport, enabled_events);
++	if (ret)
++		return ret;
+=20
+-	/* Enable ECPF vports */
++	/* Enable ECPF vport */
+ 	if (mlx5_ecpf_vport_exists(esw->dev)) {
+ 		vport =3D mlx5_eswitch_get_vport(esw, MLX5_VPORT_ECPF);
+-		esw_enable_vport(esw, vport, enabled_events);
++		ret =3D esw_enable_vport(esw, vport, enabled_events);
++		if (ret)
++			goto ecpf_err;
+ 	}
+=20
+ 	/* Enable VF vports */
+-	mlx5_esw_for_each_vf_vport(esw, i, vport, esw->esw_funcs.num_vfs)
+-		esw_enable_vport(esw, vport, enabled_events);
++	mlx5_esw_for_each_vf_vport(esw, i, vport, esw->esw_funcs.num_vfs) {
++		ret =3D esw_enable_vport(esw, vport, enabled_events);
++		if (ret)
++			goto vf_err;
++	}
++	return 0;
++
++vf_err:
++	num_vfs =3D i - 1;
++	mlx5_esw_for_each_vf_vport_reverse(esw, i, vport, num_vfs)
++		esw_disable_vport(esw, vport);
++
++	if (mlx5_ecpf_vport_exists(esw->dev)) {
++		vport =3D mlx5_eswitch_get_vport(esw, MLX5_VPORT_ECPF);
++		esw_disable_vport(esw, vport);
++	}
++
++ecpf_err:
++	vport =3D mlx5_eswitch_get_vport(esw, MLX5_VPORT_PF);
++	esw_disable_vport(esw, vport);
++	return ret;
  }
 =20
--int mlx5_eswitch_query_esw_vport_context(struct mlx5_eswitch *esw, u16 vpo=
-rt,
--					 void *out, int outlen)
--{
--	return query_esw_vport_context_cmd(esw->dev, vport, out, outlen);
--}
--
- static int modify_esw_vport_cvlan(struct mlx5_core_dev *dev, u16 vport,
- 				  u16 vlan, u8 qos, u8 set_flags)
- {
-@@ -179,7 +169,8 @@ static int modify_esw_vport_cvlan(struct mlx5_core_dev =
-*dev, u16 vport,
- 	MLX5_SET(modify_esw_vport_context_in, in,
- 		 field_select.vport_cvlan_insert, 1);
-=20
--	return modify_esw_vport_context_cmd(dev, vport, in, sizeof(in));
-+	return mlx5_eswitch_modify_esw_vport_context(dev, vport, true,
-+						     in, sizeof(in));
- }
-=20
- /* E-Switch FDB */
+ /* mlx5_eswitch_disable_pf_vf_vports() disables vports of PF, ECPF and VFs
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/ne=
 t/ethernet/mellanox/mlx5/core/eswitch.h
-index 5e91735726b7..a05b948a6287 100644
+index ec0ef7c5d539..36edee35f155 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -297,9 +297,11 @@ int mlx5_eswitch_get_vport_stats(struct mlx5_eswitch *=
-esw,
- 				 struct ifla_vf_stats *vf_stats);
- void mlx5_eswitch_del_send_to_vport_rule(struct mlx5_flow_handle *rule);
+@@ -609,7 +609,7 @@ bool mlx5_eswitch_is_vf_vport(const struct mlx5_eswitch=
+ *esw, u16 vport_num);
+ void mlx5_eswitch_update_num_of_vfs(struct mlx5_eswitch *esw, const int nu=
+m_vfs);
+ int mlx5_esw_funcs_changed_handler(struct notifier_block *nb, unsigned lon=
+g type, void *data);
 =20
--int mlx5_eswitch_modify_esw_vport_context(struct mlx5_eswitch *esw, u16 vp=
-ort,
-+int mlx5_eswitch_modify_esw_vport_context(struct mlx5_core_dev *dev, u16 v=
-port,
-+					  bool other_vport,
- 					  void *in, int inlen);
--int mlx5_eswitch_query_esw_vport_context(struct mlx5_eswitch *esw, u16 vpo=
-rt,
-+int mlx5_eswitch_query_esw_vport_context(struct mlx5_core_dev *dev, u16 vp=
-ort,
-+					 bool other_vport,
- 					 void *out, int outlen);
-=20
- struct mlx5_flow_spec;
+-void
++int
+ mlx5_eswitch_enable_pf_vf_vports(struct mlx5_eswitch *esw,
+ 				 enum mlx5_eswitch_vport_event enabled_events);
+ void mlx5_eswitch_disable_pf_vf_vports(struct mlx5_eswitch *esw);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/d=
 rivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 807372a7211b..59eebcae5df6 100644
+index 874e70e3792a..98df1eeee873 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -600,7 +600,7 @@ static int esw_set_passing_vport_metadata(struct mlx5_e=
-switch *esw, bool enable)
- 	if (!mlx5_eswitch_vport_match_metadata_enabled(esw))
- 		return 0;
-=20
--	err =3D mlx5_eswitch_query_esw_vport_context(esw, esw->manager_vport,
-+	err =3D mlx5_eswitch_query_esw_vport_context(esw->dev, 0, false,
- 						   out, sizeof(out));
+@@ -2139,7 +2139,9 @@ int esw_offloads_enable(struct mlx5_eswitch *esw)
  	if (err)
- 		return err;
-@@ -619,7 +619,7 @@ static int esw_set_passing_vport_metadata(struct mlx5_e=
-switch *esw, bool enable)
- 	MLX5_SET(modify_esw_vport_context_in, in,
- 		 field_select.fdb_to_vport_reg_c_id, 1);
+ 		goto err_vport_metadata;
 =20
--	return mlx5_eswitch_modify_esw_vport_context(esw, esw->manager_vport,
-+	return mlx5_eswitch_modify_esw_vport_context(esw->dev, 0, false,
- 						     in, sizeof(in));
- }
+-	mlx5_eswitch_enable_pf_vf_vports(esw, MLX5_VPORT_UC_ADDR_CHANGE);
++	err =3D mlx5_eswitch_enable_pf_vf_vports(esw, MLX5_VPORT_UC_ADDR_CHANGE);
++	if (err)
++		goto err_vports;
 =20
+ 	err =3D esw_offloads_load_all_reps(esw);
+ 	if (err)
+@@ -2152,6 +2154,7 @@ int esw_offloads_enable(struct mlx5_eswitch *esw)
+=20
+ err_reps:
+ 	mlx5_eswitch_disable_pf_vf_vports(esw);
++err_vports:
+ 	esw_set_passing_vport_metadata(esw, false);
+ err_vport_metadata:
+ 	esw_offloads_steering_cleanup(esw);
 --=20
 2.21.0
 
