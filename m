@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62B5DCA9EC0
-	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE751CA9EC0
+	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2544921479
-	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72F1A21479
+	for <linux-rdma@archiver.kernel.org>; Mon, 28 Oct 2019 23:35:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="LPQaAv5y"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="Hib6R2YM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731825AbfJ1XfX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 28 Oct 2019 19:35:23 -0400
-Received: from mail-eopbgr60074.outbound.protection.outlook.com ([40.107.6.74]:40107
-        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
+        id S1731755AbfJ1XfZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 28 Oct 2019 19:35:25 -0400
+Received: from mail-eopbgr140084.outbound.protection.outlook.com ([40.107.14.84]:57509
+        "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1731784AbfJ1XfX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 28 Oct 2019 19:35:23 -0400
+        id S1731587AbfJ1XfY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 28 Oct 2019 19:35:24 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=KnyMi5WJ9IUrWDMGKlF86MLi2NzCW0FN/UvtY1l/loGNML1yvEIJc0wKVRiDYH9uvKdOvEZs0xcMAO6rvSFHpjjtHuDZ4nrc14R7K0DH7Zw42FEHtKq2sFCqt6UwQv0LxNMR5/EQVxiuYhcj9Tza19vbGZw7DoLuVW9bAraFGXV/M9yF4KZAFe79dUuEeY/m4siJAJFtqZwGlAcH3H542OpQBsYFtlXgH8Z/30HBHvxYTH6VPG6Inuq1rYZdOhIzZ3fLtB7WcbXtVdk1CiN6nKnW7iVywPJzbL1G6uKwQ/qgruQ0anyv3hK35a3CJRNy0EKye05ZVFxTW3mSYabI7Q==
+ b=I5b19dtD5A3VJBj3qiKuNAOaHaiTtUXP/6afU/9lqb34duwYqkLRxMTahnzPAgAb1uDGcQklH2n7mRFSH+bbg2SbTxfyiEVaNSFWirIjqg+CilSlcr/JZ8QsX9GsxX4gv7zLrX+cOu5dWpmSmfxz/KWbxHqCdn6W2cDNQhUUzR52QmwsI9VsyWTyh5gwhNAYp7Ug8g+eIT0KxAJwHeTjbZ/4g4X9+lnkNraijD5raanRCsTb+BiIWT7wZf5hmwzRcvN1lbM1G6eqx0cywL84DzEPNZBsgJEIq2A80NKFi4yqqyqC8Lk5t/nFAu2FbkUhiN69P97QyULoOFBgoPgerQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=6Hlk1MNT5myx3tCO9ozh7nWan0feJa1lztbR0M8M0+U=;
- b=FqV5GUp6dyx8loKFUgfIjFWi8/E+7Ag2ZjTjH0xD74IN3dD9jcduzsuqmfQTWcocOdTc+0AFqNUw2TVJ4FAYPD/CetUwpq1ViE3RIUvSM2a19y+/jOMC7MWjf8N0XlQlTZRpeErBOvi3OdXkYVDMvjOqSxDj9FeBhFdGXIpomgfxCyu2peZ+eq41Rki/PycW5baO7y/8oISLtThVtMIGICVkD2mhQW3Iaed6ovTloRE5SXqvvKKxhRE5TflEE49L0+M7AajlDH2498lK4Y0U6Xb4MUaV6e7dXUv8Wb6/DoXIENgEls4kZfNVh0nPsMWcdlSx9Ji/cEVi0Z5OOGewyw==
+ bh=YAoBx6yP/c2kozxrmBWYSFG8897Mv3TohadV+GiG93o=;
+ b=S8GXxC4Q5v/D+xEMFnuFxLkVDRpFB6TLYWScsQQ3ndwLz97d5qzs3TAaKRRP01FNXMvMD8fZ+r1nb0mLuZQMtU5KQOPujQObjqLNCxUm51U+gwLRAkSiJxmfwi+JCAoghl51UHsj/e+3/2Ie7FhtU3XoLe+nVkymbMBTkXFUUDan+TF00EFLXne5s2UJO/lTHeZJ+1NpXvBkAtq0BBH0f4S78OQE646xPOwviY3AFfqV1hOv08QO+JkTHyhsMvv9ZTOpvfKf6z/AOR4IaGHfuPwsySyHUovGt1SowZ56iuzbQik5tj8X4h9n8+CFgSXHKNm7QJ1uz/RE9x8rFLb9ZA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
  dkim=pass header.d=mellanox.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=6Hlk1MNT5myx3tCO9ozh7nWan0feJa1lztbR0M8M0+U=;
- b=LPQaAv5yYkcPAfi/eB4JxOlEgqefpt14Yzrjj3sO2haLsOYB7uzgWoSbRb/JgLrV0TpMNBUItH/NR3pnETaRQOE0wGY3rPRo8uOI+sY3fmuJMICFWkLA6cSq9x+NMrBeNifLtrkifHF9famSsFkn4wOm2t4BfY0hRK81Y3fmz9w=
+ bh=YAoBx6yP/c2kozxrmBWYSFG8897Mv3TohadV+GiG93o=;
+ b=Hib6R2YMwwApXNX4/dJ/0WdqwJ7I9B4tZUnhqZmHguxkQ0DN1TSHeKh/eWvQoJVWtELm8qCx9i/L5OovGa9kym46uHzGllEXNR2v7jlVaW9TuS0G/yr15qH5YYRF9bVC7ea1gHBmXn2pJnnj/fav7Rc5SC0+IIDsyvD5vYza7pw=
 Received: from VI1PR05MB5102.eurprd05.prod.outlook.com (20.177.51.151) by
- VI1PR05MB6448.eurprd05.prod.outlook.com (20.179.28.86) with Microsoft SMTP
+ VI1PR05MB6413.eurprd05.prod.outlook.com (20.179.27.87) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2387.22; Mon, 28 Oct 2019 23:35:11 +0000
+ 15.20.2387.22; Mon, 28 Oct 2019 23:35:21 +0000
 Received: from VI1PR05MB5102.eurprd05.prod.outlook.com
  ([fe80::d41a:9a5d:5482:497e]) by VI1PR05MB5102.eurprd05.prod.outlook.com
  ([fe80::d41a:9a5d:5482:497e%5]) with mapi id 15.20.2387.027; Mon, 28 Oct 2019
- 23:35:11 +0000
+ 23:35:20 +0000
 From:   Saeed Mahameed <saeedm@mellanox.com>
 To:     Saeed Mahameed <saeedm@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>
 CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         Parav Pandit <parav@mellanox.com>
-Subject: [PATCH mlx5-next 08/18] net/mlx5: Move legacy drop counter and rule
- under legacy structure
-Thread-Topic: [PATCH mlx5-next 08/18] net/mlx5: Move legacy drop counter and
- rule under legacy structure
-Thread-Index: AQHVjehXLVTEJAfaB02FGRL5qyn+XQ==
-Date:   Mon, 28 Oct 2019 23:35:11 +0000
-Message-ID: <20191028233440.5564-9-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 13/18] net/mlx5: E-switch, Offloads introduce and
+ use per vport acl tables APIs
+Thread-Topic: [PATCH mlx5-next 13/18] net/mlx5: E-switch, Offloads introduce
+ and use per vport acl tables APIs
+Thread-Index: AQHVjehclrpTKlyG4U69a3oszO1Q5A==
+Date:   Mon, 28 Oct 2019 23:35:20 +0000
+Message-ID: <20191028233440.5564-14-saeedm@mellanox.com>
 References: <20191028233440.5564-1-saeedm@mellanox.com>
 In-Reply-To: <20191028233440.5564-1-saeedm@mellanox.com>
 Accept-Language: en-US
@@ -74,30 +74,30 @@ authentication-results: spf=none (sender IP is )
 x-ms-exchange-messagesentrepresentingtype: 1
 x-ms-publictraffictype: Email
 x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: 60db05e5-71cd-4a52-cb5d-08d75bff79e4
-x-ms-traffictypediagnostic: VI1PR05MB6448:|VI1PR05MB6448:
+x-ms-office365-filtering-correlation-id: fbac82cc-6786-4a0e-929d-08d75bff7f57
+x-ms-traffictypediagnostic: VI1PR05MB6413:|VI1PR05MB6413:
 x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <VI1PR05MB644894B2A1ABBC77777FFD77BE660@VI1PR05MB6448.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:37;
+x-microsoft-antispam-prvs: <VI1PR05MB64139B571E41F66F97600405BE660@VI1PR05MB6413.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:79;
 x-forefront-prvs: 0204F0BDE2
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(136003)(376002)(366004)(346002)(396003)(39860400002)(189003)(199004)(3846002)(305945005)(8936002)(450100002)(316002)(478600001)(50226002)(86362001)(99286004)(71200400001)(81156014)(8676002)(81166006)(107886003)(71190400001)(186003)(66446008)(386003)(102836004)(6636002)(6506007)(14444005)(66476007)(66946007)(256004)(36756003)(52116002)(476003)(2616005)(11346002)(486006)(446003)(64756008)(6512007)(76176011)(6116002)(4326008)(26005)(7736002)(5660300002)(66066001)(14454004)(2906002)(110136005)(6436002)(6486002)(54906003)(1076003)(25786009)(66556008);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB6448;H:VI1PR05MB5102.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(136003)(39860400002)(396003)(366004)(376002)(346002)(199004)(189003)(71200400001)(256004)(316002)(6636002)(2906002)(6436002)(446003)(8936002)(50226002)(11346002)(6486002)(8676002)(486006)(14454004)(110136005)(36756003)(81166006)(6116002)(81156014)(54906003)(3846002)(86362001)(7736002)(66066001)(99286004)(450100002)(102836004)(6512007)(1076003)(5660300002)(6506007)(4326008)(478600001)(386003)(476003)(186003)(26005)(66476007)(66556008)(64756008)(66946007)(66446008)(305945005)(76176011)(71190400001)(52116002)(107886003)(25786009)(2616005);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB6413;H:VI1PR05MB5102.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
 received-spf: None (protection.outlook.com: mellanox.com does not designate
  permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: YIYw5yt7tdZCXZXOkoBq1HdCfahBYIxU1YpUo6/xxV1+0pzhwnMJ8xBZaJjeHslHEL37EQqC2BMcD5Scc0YbfSMFG87DAwSCt/68sROg7oXHqIfSfd2KmV+tk1DhdtC3kjmTPUay8PRhBSb6oCfItiMH/EoeG9AH5scjFCxdjqfwp1FApv6qLxBuIgalbzBnsXC6clcDoxsfJ1UYajIw0cOsqBGKnwkoXGLTkDvvc8lAP2s2u3QagQG+1bmROshj0MvQ82TWLaUkVEu9Ou7/7r9CxOY+seAXkuQREynXOvRJ3fRFMR5n+4Dv/px5Asy7nGuhbStmdMvgeowYxpgPw800NZS8U/U6FdR1fl+MPhyn7+YMknVKvfJVFGdXzXiT/wab6wICHvWbMlvmvWXG+x08yA+qsQbgUGqH2KrndUc/rJLAPbDr1wsnExPuA2Tf
+x-microsoft-antispam-message-info: yT4dQBvkl5oLgG7otZv8LN1kQd3gdygJnxYuneiMumHpYeTDKYOiV/5W/J5E/I2cbksq7CP0VXMp5PBpubBZekIORnm1UVfYi0YRKIUeyxfnxR9vpBXdtdcc0s8kB3JZWjCwBh3tcTrEP13N7b9a9KVLceGbqpHHxP6yQC9yNqXwfUrXH2gG4IziQqL3PiEzXQN8WiGf7r5xbDY4CtHui7eKlgmd7q6t0jRi82tgANzaXS4vUHRpybMBOW+2RVkt+jUhknBgc3IdXxNUcZntzs0e/kc80NrMsqBsdT7f7HVVSIIvWaug17A/1WJ6t+P5W4L+lVkViq5wIBmYVA2WZFopzhYWNZcH9GHZYuB3jdp9/XsSF6bfckqOZcmlbXyNqAF/5QNn+kMWcDpKAP+uHHiVnEgSAvLc5XNa5uEhRgmhrF6xhWJvATy9dzi1CWnf
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 60db05e5-71cd-4a52-cb5d-08d75bff79e4
-X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Oct 2019 23:35:11.7649
+X-MS-Exchange-CrossTenant-Network-Message-Id: fbac82cc-6786-4a0e-929d-08d75bff7f57
+X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Oct 2019 23:35:20.8967
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: pe5JoIpFjls6wSqOaUsHWqRKHD3uytwJqX9mOou57VG9ukvvdvjYvHWLNGoQG6QUpst9t8rU+vMcfxZDNK67OQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB6448
+X-MS-Exchange-CrossTenant-userprincipalname: YnwItN7ney8ZKjK82Wa8FKniEuPetqgS1wIOT8yZCHXUquA+VjcdBiUpCYiLAwsTQ+av4pqYRsD47Szvjmfu3w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB6413
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -105,258 +105,104 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@mellanox.com>
 
-To improve code readability, move legacy drop counters and droup rule
-under legacy structure.
-
-While at it,
-(a) prefix drop flow counters helper with legacy_.
-(b) nullify the rule pointers only if they were valid.
+Introduce and use per vport ACL tables creation and destroy APIs, so that
+subsequently patch can use them during enabling/disabling a vport.
 
 Signed-off-by: Parav Pandit <parav@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/eswitch.c | 82 ++++++++++---------
- .../net/ethernet/mellanox/mlx5/core/eswitch.h | 12 ++-
- 2 files changed, 50 insertions(+), 44 deletions(-)
+ .../mellanox/mlx5/core/eswitch_offloads.c     | 49 ++++++++++++-------
+ 1 file changed, 32 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/ne=
-t/ethernet/mellanox/mlx5/core/eswitch.c
-index fa1228a8005f..0dd5e5d5ea35 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1040,14 +1040,15 @@ int esw_vport_enable_egress_acl(struct mlx5_eswitch=
- *esw,
- void esw_vport_cleanup_egress_rules(struct mlx5_eswitch *esw,
- 				    struct mlx5_vport *vport)
- {
--	if (!IS_ERR_OR_NULL(vport->egress.allowed_vlan))
-+	if (!IS_ERR_OR_NULL(vport->egress.allowed_vlan)) {
- 		mlx5_del_flow_rules(vport->egress.allowed_vlan);
-+		vport->egress.allowed_vlan =3D NULL;
-+	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/d=
+rivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 98df1eeee873..94eb18ae33a4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -1950,6 +1950,32 @@ esw_check_vport_match_metadata_supported(const struc=
+t mlx5_eswitch *esw)
+ 	return true;
+ }
 =20
--	if (!IS_ERR_OR_NULL(vport->egress.drop_rule))
--		mlx5_del_flow_rules(vport->egress.drop_rule);
++static int
++esw_vport_create_offloads_acl_tables(struct mlx5_eswitch *esw,
++				     struct mlx5_vport *vport)
++{
++	int err;
++
++	err =3D esw_vport_ingress_config(esw, vport);
++	if (err)
++		return err;
++
++	if (mlx5_eswitch_is_vf_vport(esw, vport->vport)) {
++		err =3D esw_vport_egress_config(esw, vport);
++		if (err)
++			esw_vport_disable_ingress_acl(esw, vport);
++	}
++	return err;
++}
++
++static void
++esw_vport_destroy_offloads_acl_tables(struct mlx5_eswitch *esw,
++				      struct mlx5_vport *vport)
++{
++	esw_vport_disable_egress_acl(esw, vport);
++	esw_vport_disable_ingress_acl(esw, vport);
++}
++
+ static int esw_create_offloads_acl_tables(struct mlx5_eswitch *esw)
+ {
+ 	struct mlx5_vport *vport;
+@@ -1960,15 +1986,9 @@ static int esw_create_offloads_acl_tables(struct mlx=
+5_eswitch *esw)
+ 		esw->flags |=3D MLX5_ESWITCH_VPORT_MATCH_METADATA;
+=20
+ 	mlx5_esw_for_all_vports(esw, i, vport) {
+-		err =3D esw_vport_ingress_config(esw, vport);
++		err =3D esw_vport_create_offloads_acl_tables(esw, vport);
+ 		if (err)
+-			goto err_ingress;
 -
--	vport->egress.allowed_vlan =3D NULL;
--	vport->egress.drop_rule =3D NULL;
-+	if (!IS_ERR_OR_NULL(vport->egress.legacy.drop_rule)) {
-+		mlx5_del_flow_rules(vport->egress.legacy.drop_rule);
-+		vport->egress.legacy.drop_rule =3D NULL;
-+	}
+-		if (mlx5_eswitch_is_vf_vport(esw, vport->vport)) {
+-			err =3D esw_vport_egress_config(esw, vport);
+-			if (err)
+-				goto err_egress;
+-		}
++			goto err_acl_table;
+ 	}
+=20
+ 	if (mlx5_eswitch_vport_match_metadata_enabled(esw))
+@@ -1976,13 +1996,10 @@ static int esw_create_offloads_acl_tables(struct ml=
+x5_eswitch *esw)
+=20
+ 	return 0;
+=20
+-err_egress:
+-	esw_vport_disable_ingress_acl(esw, vport);
+-err_ingress:
++err_acl_table:
+ 	for (j =3D MLX5_VPORT_PF; j < i; j++) {
+ 		vport =3D &esw->vports[j];
+-		esw_vport_disable_egress_acl(esw, vport);
+-		esw_vport_disable_ingress_acl(esw, vport);
++		esw_vport_destroy_offloads_acl_tables(esw, vport);
+ 	}
+=20
+ 	return err;
+@@ -1993,10 +2010,8 @@ static void esw_destroy_offloads_acl_tables(struct m=
+lx5_eswitch *esw)
+ 	struct mlx5_vport *vport;
+ 	int i;
+=20
+-	mlx5_esw_for_all_vports(esw, i, vport) {
+-		esw_vport_disable_egress_acl(esw, vport);
+-		esw_vport_disable_ingress_acl(esw, vport);
+-	}
++	mlx5_esw_for_all_vports(esw, i, vport)
++		esw_vport_destroy_offloads_acl_tables(esw, vport);
+=20
+ 	esw->flags &=3D ~MLX5_ESWITCH_VPORT_MATCH_METADATA;
  }
-=20
- void esw_vport_disable_egress_acl(struct mlx5_eswitch *esw,
-@@ -1202,14 +1203,15 @@ int esw_vport_enable_ingress_acl(struct mlx5_eswitc=
-h *esw,
- void esw_vport_cleanup_ingress_rules(struct mlx5_eswitch *esw,
- 				     struct mlx5_vport *vport)
- {
--	if (!IS_ERR_OR_NULL(vport->ingress.drop_rule))
--		mlx5_del_flow_rules(vport->ingress.drop_rule);
-+	if (!IS_ERR_OR_NULL(vport->ingress.legacy.drop_rule)) {
-+		mlx5_del_flow_rules(vport->ingress.legacy.drop_rule);
-+		vport->ingress.legacy.drop_rule =3D NULL;
-+	}
-=20
--	if (!IS_ERR_OR_NULL(vport->ingress.allow_rule))
-+	if (!IS_ERR_OR_NULL(vport->ingress.allow_rule)) {
- 		mlx5_del_flow_rules(vport->ingress.allow_rule);
--
--	vport->ingress.drop_rule =3D NULL;
--	vport->ingress.allow_rule =3D NULL;
-+		vport->ingress.allow_rule =3D NULL;
-+	}
-=20
- 	esw_vport_del_ingress_acl_modify_metadata(esw, vport);
- }
-@@ -1238,7 +1240,7 @@ void esw_vport_disable_ingress_acl(struct mlx5_eswitc=
-h *esw,
- static int esw_vport_ingress_config(struct mlx5_eswitch *esw,
- 				    struct mlx5_vport *vport)
- {
--	struct mlx5_fc *counter =3D vport->ingress.drop_counter;
-+	struct mlx5_fc *counter =3D vport->ingress.legacy.drop_counter;
- 	struct mlx5_flow_destination drop_ctr_dst =3D {0};
- 	struct mlx5_flow_destination *dst =3D NULL;
- 	struct mlx5_flow_act flow_act =3D {0};
-@@ -1309,15 +1311,15 @@ static int esw_vport_ingress_config(struct mlx5_esw=
-itch *esw,
- 		dst =3D &drop_ctr_dst;
- 		dest_num++;
- 	}
--	vport->ingress.drop_rule =3D
-+	vport->ingress.legacy.drop_rule =3D
- 		mlx5_add_flow_rules(vport->ingress.acl, spec,
- 				    &flow_act, dst, dest_num);
--	if (IS_ERR(vport->ingress.drop_rule)) {
--		err =3D PTR_ERR(vport->ingress.drop_rule);
-+	if (IS_ERR(vport->ingress.legacy.drop_rule)) {
-+		err =3D PTR_ERR(vport->ingress.legacy.drop_rule);
- 		esw_warn(esw->dev,
- 			 "vport[%d] configure ingress drop rule, err(%d)\n",
- 			 vport->vport, err);
--		vport->ingress.drop_rule =3D NULL;
-+		vport->ingress.legacy.drop_rule =3D NULL;
- 		goto out;
- 	}
-=20
-@@ -1368,7 +1370,7 @@ int mlx5_esw_create_vport_egress_acl_vlan(struct mlx5=
-_eswitch *esw,
- static int esw_vport_egress_config(struct mlx5_eswitch *esw,
- 				   struct mlx5_vport *vport)
- {
--	struct mlx5_fc *counter =3D vport->egress.drop_counter;
-+	struct mlx5_fc *counter =3D vport->egress.legacy.drop_counter;
- 	struct mlx5_flow_destination drop_ctr_dst =3D {0};
- 	struct mlx5_flow_destination *dst =3D NULL;
- 	struct mlx5_flow_act flow_act =3D {0};
-@@ -1416,15 +1418,15 @@ static int esw_vport_egress_config(struct mlx5_eswi=
-tch *esw,
- 		dst =3D &drop_ctr_dst;
- 		dest_num++;
- 	}
--	vport->egress.drop_rule =3D
-+	vport->egress.legacy.drop_rule =3D
- 		mlx5_add_flow_rules(vport->egress.acl, spec,
- 				    &flow_act, dst, dest_num);
--	if (IS_ERR(vport->egress.drop_rule)) {
--		err =3D PTR_ERR(vport->egress.drop_rule);
-+	if (IS_ERR(vport->egress.legacy.drop_rule)) {
-+		err =3D PTR_ERR(vport->egress.legacy.drop_rule);
- 		esw_warn(esw->dev,
- 			 "vport[%d] configure egress drop rule failed, err(%d)\n",
- 			 vport->vport, err);
--		vport->egress.drop_rule =3D NULL;
-+		vport->egress.legacy.drop_rule =3D NULL;
- 	}
- out:
- 	kvfree(spec);
-@@ -1667,39 +1669,39 @@ static void esw_apply_vport_conf(struct mlx5_eswitc=
-h *esw,
- 	}
- }
-=20
--static void esw_vport_create_drop_counters(struct mlx5_vport *vport)
-+static void esw_legacy_vport_create_drop_counters(struct mlx5_vport *vport=
-)
- {
- 	struct mlx5_core_dev *dev =3D vport->dev;
-=20
- 	if (MLX5_CAP_ESW_INGRESS_ACL(dev, flow_counter)) {
--		vport->ingress.drop_counter =3D mlx5_fc_create(dev, false);
--		if (IS_ERR(vport->ingress.drop_counter)) {
-+		vport->ingress.legacy.drop_counter =3D mlx5_fc_create(dev, false);
-+		if (IS_ERR(vport->ingress.legacy.drop_counter)) {
- 			esw_warn(dev,
- 				 "vport[%d] configure ingress drop rule counter failed\n",
- 				 vport->vport);
--			vport->ingress.drop_counter =3D NULL;
-+			vport->ingress.legacy.drop_counter =3D NULL;
- 		}
- 	}
-=20
- 	if (MLX5_CAP_ESW_EGRESS_ACL(dev, flow_counter)) {
--		vport->egress.drop_counter =3D mlx5_fc_create(dev, false);
--		if (IS_ERR(vport->egress.drop_counter)) {
-+		vport->egress.legacy.drop_counter =3D mlx5_fc_create(dev, false);
-+		if (IS_ERR(vport->egress.legacy.drop_counter)) {
- 			esw_warn(dev,
- 				 "vport[%d] configure egress drop rule counter failed\n",
- 				 vport->vport);
--			vport->egress.drop_counter =3D NULL;
-+			vport->egress.legacy.drop_counter =3D NULL;
- 		}
- 	}
- }
-=20
--static void esw_vport_destroy_drop_counters(struct mlx5_vport *vport)
-+static void esw_legacy_vport_destroy_drop_counters(struct mlx5_vport *vpor=
-t)
- {
- 	struct mlx5_core_dev *dev =3D vport->dev;
-=20
--	if (vport->ingress.drop_counter)
--		mlx5_fc_destroy(dev, vport->ingress.drop_counter);
--	if (vport->egress.drop_counter)
--		mlx5_fc_destroy(dev, vport->egress.drop_counter);
-+	if (vport->ingress.legacy.drop_counter)
-+		mlx5_fc_destroy(dev, vport->ingress.legacy.drop_counter);
-+	if (vport->egress.legacy.drop_counter)
-+		mlx5_fc_destroy(dev, vport->egress.legacy.drop_counter);
- }
-=20
- static void esw_enable_vport(struct mlx5_eswitch *esw, struct mlx5_vport *=
-vport,
-@@ -1715,7 +1717,7 @@ static void esw_enable_vport(struct mlx5_eswitch *esw=
-, struct mlx5_vport *vport,
- 	/* Create steering drop counters for ingress and egress ACLs */
- 	if (!mlx5_esw_is_manager_vport(esw, vport_num) &&
- 	    esw->mode =3D=3D MLX5_ESWITCH_LEGACY)
--		esw_vport_create_drop_counters(vport);
-+		esw_legacy_vport_create_drop_counters(vport);
-=20
- 	/* Restore old vport configuration */
- 	esw_apply_vport_conf(esw, vport);
-@@ -1775,7 +1777,7 @@ static void esw_disable_vport(struct mlx5_eswitch *es=
-w,
- 					      MLX5_VPORT_ADMIN_STATE_DOWN);
- 		esw_vport_disable_egress_acl(esw, vport);
- 		esw_vport_disable_ingress_acl(esw, vport);
--		esw_vport_destroy_drop_counters(vport);
-+		esw_legacy_vport_destroy_drop_counters(vport);
- 	}
- 	esw->enabled_vports--;
- 	mutex_unlock(&esw->state_lock);
-@@ -2495,12 +2497,12 @@ static int mlx5_eswitch_query_vport_drop_stats(stru=
-ct mlx5_core_dev *dev,
- 	if (!vport->enabled || esw->mode !=3D MLX5_ESWITCH_LEGACY)
- 		return 0;
-=20
--	if (vport->egress.drop_counter)
--		mlx5_fc_query(dev, vport->egress.drop_counter,
-+	if (vport->egress.legacy.drop_counter)
-+		mlx5_fc_query(dev, vport->egress.legacy.drop_counter,
- 			      &stats->rx_dropped, &bytes);
-=20
--	if (vport->ingress.drop_counter)
--		mlx5_fc_query(dev, vport->ingress.drop_counter,
-+	if (vport->ingress.legacy.drop_counter)
-+		mlx5_fc_query(dev, vport->ingress.legacy.drop_counter,
- 			      &stats->tx_dropped, &bytes);
-=20
- 	if (!MLX5_CAP_GEN(dev, receive_discard_vport_down) &&
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/ne=
-t/ethernet/mellanox/mlx5/core/eswitch.h
-index 5f862992b9c8..ec0ef7c5d539 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -70,8 +70,10 @@ struct vport_ingress {
- 	struct mlx5_flow_group *allow_untagged_only_grp;
- 	struct mlx5_flow_group *drop_grp;
- 	struct mlx5_flow_handle  *allow_rule;
--	struct mlx5_flow_handle  *drop_rule;
--	struct mlx5_fc           *drop_counter;
-+	struct {
-+		struct mlx5_flow_handle *drop_rule;
-+		struct mlx5_fc *drop_counter;
-+	} legacy;
- 	struct {
- 		struct mlx5_modify_hdr *modify_metadata;
- 		struct mlx5_flow_handle *modify_metadata_rule;
-@@ -83,8 +85,10 @@ struct vport_egress {
- 	struct mlx5_flow_group *allowed_vlans_grp;
- 	struct mlx5_flow_group *drop_grp;
- 	struct mlx5_flow_handle  *allowed_vlan;
--	struct mlx5_flow_handle  *drop_rule;
--	struct mlx5_fc           *drop_counter;
-+	struct {
-+		struct mlx5_flow_handle *drop_rule;
-+		struct mlx5_fc *drop_counter;
-+	} legacy;
- };
-=20
- struct mlx5_vport_drop_stats {
 --=20
 2.21.0
 
