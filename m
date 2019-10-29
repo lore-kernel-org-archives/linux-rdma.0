@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 926C9CA9EB9
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:28:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A628CA9EB9
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:28:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 651D120873
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:28:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D683D20873
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:28:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572330487;
-	bh=xO5+0Io3LgGT2CEDARDmC/N4PUalpN34PWFaMb/IKpA=;
+	s=default; t=1572330490;
+	bh=rH9N17oHRghNUA840rywTiRT9SNwB85XPSc4UwTJhAU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=H6vArjPKzCqxv4SH8/gCSbKLqBXrWeERjp5wMYxLJcF5Wx2nRHjwATcn5jIV2s6yK
-	 vUwIaLoHxwTVXXKvZxHaTjP/lmzX6G2LlRdK6quAMUXj2fw29CNFrxghSsEJywV+Lu
-	 7t/gOd24VmfkiZyC8wmA/vDxfMm47c7jewl7Ah3Y=
+	b=iq2tzCypELhXXlINst8t1m594Z0YGy4YSi1PzuGXNg9bK7aVDmbqSiz3vaRPeAvmA
+	 lE+5QB+lxLyXMwAKVTZRNP4UXSVTATK5m/zx12skqdnpaeRyhUryd3LmavFvpjOorN
+	 SnrGpOjVgnYJquDKTXAIF6n2xkH0PMw5/4//mj5M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732234AbfJ2G2G (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 29 Oct 2019 02:28:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58846 "EHLO mail.kernel.org"
+        id S1732278AbfJ2G2K (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 29 Oct 2019 02:28:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726067AbfJ2G2G (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 29 Oct 2019 02:28:06 -0400
+        id S1730814AbfJ2G2K (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 29 Oct 2019 02:28:10 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2BF0720862;
-        Tue, 29 Oct 2019 06:28:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B9AA020862;
+        Tue, 29 Oct 2019 06:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572330485;
-        bh=xO5+0Io3LgGT2CEDARDmC/N4PUalpN34PWFaMb/IKpA=;
+        s=default; t=1572330489;
+        bh=rH9N17oHRghNUA840rywTiRT9SNwB85XPSc4UwTJhAU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rJC/1WQQ8Vb5BrPuae8SGdRzuP5/Jh1nsp4dQEZnwECbumVgYwTLHbJyFKpt9Bfe0
-         RXAcKGxd0U89vBa3iu6BGNLOhB2s7JPT4iKqzUwLlPB3jBrS3seY0ismfmmclj9q+3
-         e0yGh+9DlYxPB46SVXljCDiGro/V/PqHQZE62qNY=
+        b=AyeNizjBz8H6FYoP2SsNL9NpaYjUq/ItE3bAr6jTsX+wvvb5VFq+jwti1qD9PJrCW
+         1PUXQ2OCBp0VXKQMmxJmyBsHouqj6fv1knpHXTW3lpW3W3M1imAu9K2f7M0KQB2u4I
+         6wwojW0kRTN9u5KD+Nh8IruJ5E/8S5e+Zldft5Ho=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Mike Marciniszyn <mike.marciniszyn@intel.com>,
         Ralph Campbell <ralph.campbell@qlogic.com>
-Subject: [PATCH rdma-next 05/16] RDMA/ocrdma: Clean MAD processing logic
-Date:   Tue, 29 Oct 2019 08:27:34 +0200
-Message-Id: <20191029062745.7932-6-leon@kernel.org>
+Subject: [PATCH rdma-next 01/16] RDMA/mad: Delete never implemented functions
+Date:   Tue, 29 Oct 2019 08:27:30 +0200
+Message-Id: <20191029062745.7932-2-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20191029062745.7932-1-leon@kernel.org>
 References: <20191029062745.7932-1-leon@kernel.org>
@@ -60,71 +60,95 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Remove redundant memset and useless return value.
+Delete never implemented and used MAD functions.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    | 6 ++----
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 5 +----
- drivers/infiniband/hw/ocrdma/ocrdma_stats.h | 3 +--
- 3 files changed, 4 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/mad.c | 19 -----------------
+ include/rdma/ib_mad.h         | 40 -----------------------------------
+ 2 files changed, 59 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index 8d3e36d548aa..f8ebdf7086a1 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -268,10 +268,8 @@ int ocrdma_process_mad(struct ib_device *ibdev,
- 	switch (in_mad->mad_hdr.mgmt_class) {
- 	case IB_MGMT_CLASS_PERF_MGMT:
- 		dev = get_ocrdma_dev(ibdev);
--		if (!ocrdma_pma_counters(dev, out_mad))
--			status = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
--		else
--			status = IB_MAD_RESULT_SUCCESS;
-+		ocrdma_pma_counters(dev, out_mad);
-+		status = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
- 		break;
- 	default:
- 		status = IB_MAD_RESULT_SUCCESS;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-index a902942adb5d..95e8c1560cc2 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-@@ -670,12 +670,10 @@ static ssize_t ocrdma_dbgfs_ops_write(struct file *filp,
- 	return -EFAULT;
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 9947d16edef2..8adb487eb314 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1397,25 +1397,6 @@ void ib_free_recv_mad(struct ib_mad_recv_wc *mad_recv_wc)
  }
+ EXPORT_SYMBOL(ib_free_recv_mad);
  
--int ocrdma_pma_counters(struct ocrdma_dev *dev,
--			struct ib_mad *out_mad)
-+void ocrdma_pma_counters(struct ocrdma_dev *dev, struct ib_mad *out_mad)
- {
- 	struct ib_pma_portcounters *pma_cnt;
- 
--	memset(out_mad->data, 0, sizeof out_mad->data);
- 	pma_cnt = (void *)(out_mad->data + 40);
- 	ocrdma_update_stats(dev);
- 
-@@ -683,7 +681,6 @@ int ocrdma_pma_counters(struct ocrdma_dev *dev,
- 	pma_cnt->port_rcv_data     = cpu_to_be32(ocrdma_sysfs_rcv_data(dev));
- 	pma_cnt->port_xmit_packets = cpu_to_be32(ocrdma_sysfs_xmit_pkts(dev));
- 	pma_cnt->port_rcv_packets  = cpu_to_be32(ocrdma_sysfs_rcv_pkts(dev));
+-struct ib_mad_agent *ib_redirect_mad_qp(struct ib_qp *qp,
+-					u8 rmpp_version,
+-					ib_mad_send_handler send_handler,
+-					ib_mad_recv_handler recv_handler,
+-					void *context)
+-{
+-	return ERR_PTR(-EINVAL);	/* XXX: for now */
+-}
+-EXPORT_SYMBOL(ib_redirect_mad_qp);
+-
+-int ib_process_mad_wc(struct ib_mad_agent *mad_agent,
+-		      struct ib_wc *wc)
+-{
+-	dev_err(&mad_agent->device->dev,
+-		"ib_process_mad_wc() not implemented yet\n");
 -	return 0;
- }
+-}
+-EXPORT_SYMBOL(ib_process_mad_wc);
+-
+ static int method_in_use(struct ib_mad_mgmt_method_table **method,
+ 			 struct ib_mad_reg_req *mad_reg_req)
+ {
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index eea946fcc819..4e62650e2127 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -814,46 +814,6 @@ void ib_cancel_mad(struct ib_mad_agent *mad_agent,
+ int ib_modify_mad(struct ib_mad_agent *mad_agent,
+ 		  struct ib_mad_send_buf *send_buf, u32 timeout_ms);
  
- static ssize_t ocrdma_dbgfs_ops_read(struct file *filp, char __user *buffer,
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.h b/drivers/infiniband/hw/ocrdma/ocrdma_stats.h
-index bba1fec4f11f..98feca26ac55 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.h
-@@ -69,7 +69,6 @@ bool ocrdma_alloc_stats_resources(struct ocrdma_dev *dev);
- void ocrdma_release_stats_resources(struct ocrdma_dev *dev);
- void ocrdma_rem_port_stats(struct ocrdma_dev *dev);
- void ocrdma_add_port_stats(struct ocrdma_dev *dev);
--int ocrdma_pma_counters(struct ocrdma_dev *dev,
--			struct ib_mad *out_mad);
-+void ocrdma_pma_counters(struct ocrdma_dev *dev, struct ib_mad *out_mad);
- 
- #endif	/* __OCRDMA_STATS_H__ */
+-/**
+- * ib_redirect_mad_qp - Registers a QP for MAD services.
+- * @qp: Reference to a QP that requires MAD services.
+- * @rmpp_version: If set, indicates that the client will send
+- *   and receive MADs that contain the RMPP header for the given version.
+- *   If set to 0, indicates that RMPP is not used by this client.
+- * @send_handler: The completion callback routine invoked after a send
+- *   request has completed.
+- * @recv_handler: The completion callback routine invoked for a received
+- *   MAD.
+- * @context: User specified context associated with the registration.
+- *
+- * Use of this call allows clients to use MAD services, such as RMPP,
+- * on user-owned QPs.  After calling this routine, users may send
+- * MADs on the specified QP by calling ib_mad_post_send.
+- */
+-struct ib_mad_agent *ib_redirect_mad_qp(struct ib_qp *qp,
+-					u8 rmpp_version,
+-					ib_mad_send_handler send_handler,
+-					ib_mad_recv_handler recv_handler,
+-					void *context);
+-
+-/**
+- * ib_process_mad_wc - Processes a work completion associated with a
+- *   MAD sent or received on a redirected QP.
+- * @mad_agent: Specifies the registered MAD service using the redirected QP.
+- * @wc: References a work completion associated with a sent or received
+- *   MAD segment.
+- *
+- * This routine is used to complete or continue processing on a MAD request.
+- * If the work completion is associated with a send operation, calling
+- * this routine is required to continue an RMPP transfer or to wait for a
+- * corresponding response, if it is a request.  If the work completion is
+- * associated with a receive operation, calling this routine is required to
+- * process an inbound or outbound RMPP transfer, or to match a response MAD
+- * with its corresponding request.
+- */
+-int ib_process_mad_wc(struct ib_mad_agent *mad_agent,
+-		      struct ib_wc *wc);
+-
+ /**
+  * ib_create_send_mad - Allocate and initialize a data buffer and work request
+  *   for sending a MAD.
 -- 
 2.20.1
 
