@@ -2,55 +2,51 @@ Return-Path: <SRS0=fADM=YW=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC0AECA9EC1
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:28:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09349CA9EC2
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:30:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C27F421835
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:28:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CAC0C218AC
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Oct 2019 06:30:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572330529;
-	bh=Ijfxze+D0d1gZ5+SJKYoRih6N+4P4TpA6LATaI8kDiA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FoW7nOy7gOKflDaEGWM+HGVDGcZ1PnZdplfZLTrRh9IP3jBiCLOzp/mkqUE6xWq8r
-	 YnzYlz/0eBhgCPl6fDeSjPDBgIggxl4TleXBjr708/trJy/gxuck7aHkS7zXRazi3p
-	 H9yDPudVSmMV+9AMb3BW3p0m9gs+Imu7xXOlf0hU=
+	s=default; t=1572330619;
+	bh=WRWKQ1Emfoh6cnSSrhJQSNRmwJk9YI/WUZKIEIy7Wyw=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=rD71lTnF5TCVW4eOwBfh8l2rpFwhDm2F+kDx5ulOCBxV6JZ6SwH798MUbLjP/nEyw
+	 sRA3MGcLFuhGLbkh6GWMGg7dlXAyRvu7Ctm2MV6gq3xdnzFOfbaom7pCLGULFYD9pv
+	 dW7jkpgf2eBQKFYifh1Jg/j7fG1PSovv0cUBRuLo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732550AbfJ2G2t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 29 Oct 2019 02:28:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59532 "EHLO mail.kernel.org"
+        id S1730321AbfJ2GaT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 29 Oct 2019 02:30:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732535AbfJ2G2t (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 29 Oct 2019 02:28:49 -0400
+        id S1730227AbfJ2GaT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 29 Oct 2019 02:30:19 -0400
 Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F391B217D9;
-        Tue, 29 Oct 2019 06:28:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9989121835;
+        Tue, 29 Oct 2019 06:30:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572330528;
-        bh=Ijfxze+D0d1gZ5+SJKYoRih6N+4P4TpA6LATaI8kDiA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lcf4Z4DDR5UVlqEK/L1XcDUkP1DNvzQZhJgWFHYDAC2fKYrGbYKX1/ZYYOLFRd6w/
-         JYPx8K4roJxRgzSFUQT4nR4ZX5TEyvpEuQpzoOgauBgnHT851L9GN2kBm3Ah1ghnh9
-         j53ZxXxCxC13NuN10Mh7CV2x5e7EPpn7OiGNzbgA=
+        s=default; t=1572330618;
+        bh=WRWKQ1Emfoh6cnSSrhJQSNRmwJk9YI/WUZKIEIy7Wyw=;
+        h=From:To:Cc:Subject:Date:From;
+        b=RFMFa1ky9ghj8dyHk5w1jmicbBn0QCZKwvIzBVK8YowoxnDhjaQYyDBb/DmJm9map
+         EMvL+ihflV8Fqf57tBSmhSDXstaOAditYjKiH7OP62gwCrrnpq2/VOhKSWOvxBaAZo
+         FcEduAx7kLpqfJzQK6Frg+5YQCDkeOg5MKeKcqNs=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Ralph Campbell <ralph.campbell@qlogic.com>
-Subject: [PATCH rdma-next 12/16] RDMA/qib: Delete unreachable code
-Date:   Tue, 29 Oct 2019 08:27:41 +0200
-Message-Id: <20191029062745.7932-13-leon@kernel.org>
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: [PATCH rdma-next] RDMA/cm: Add Enhanced Connection Establishment (ECE) bits
+Date:   Tue, 29 Oct 2019 08:30:14 +0200
+Message-Id: <20191029063014.10437-1-leon@kernel.org>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20191029062745.7932-1-leon@kernel.org>
-References: <20191029062745.7932-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -60,29 +56,74 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-All callers allocate MAD structures with proper sizes,
-there is no need to recheck it.
+Extend REQ (request for communications), REP (reply to request
+for communication), rejected reason and SIDR_REP (service ID
+resolution response) structures with hardware vendor ID bits
+according to approved IBA Comment #9434.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/qib/qib_mad.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/infiniband/core/cm_msgs.h | 12 ++++++++++++
+ include/rdma/ib_cm.h              |  3 ++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 5a1e6371ea57..ba8c81e486be 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -2397,10 +2397,6 @@ int qib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
- 	const struct ib_mad *in_mad = (const struct ib_mad *)in;
- 	struct ib_mad *out_mad = (struct ib_mad *)out;
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index dba60f8dfafb..8c92e71b55ca 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -91,6 +91,8 @@
  
--	if (WARN_ON_ONCE(in_mad_size != sizeof(*in_mad) ||
--			 *out_mad_size != sizeof(*out_mad)))
--		return IB_MAD_RESULT_FAILURE;
--
- 	switch (in_mad->mad_hdr.mgmt_class) {
- 	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
- 	case IB_MGMT_CLASS_SUBN_LID_ROUTED:
+ #define CM_REQ_LOCAL_COMM_ID_OFFSET 0
+ #define CM_REQ_LOCAL_COMM_ID_MASK GENMASK(31, 0)
++#define CM_REQ_VENDORID_OFFSET 5
++#define CM_REQ_VENDORID_MASK GENMASK(24, 0)
+ #define CM_REQ_SERVICE_ID_OFFSET 8
+ #define CM_REQ_SERVICE_ID_MASK GENMASK_ULL(63, 0)
+ #define CM_REQ_LOCAL_CA_GUID_OFFSET 16
+@@ -220,10 +222,16 @@
+ #define CM_REP_LOCAL_Q_KEY_MASK GENMASK(31, 0)
+ #define CM_REP_LOCAL_QPN_OFFSET 12
+ #define CM_REP_LOCAL_QPN_MASK GENMASK(23, 0)
++#define CM_REP_VENDORID_H_OFFSET 15
++#define CM_REP_VENDORID_H_MASK GENMASK(7, 0)
+ #define CM_REP_LOCAL_EE_CONTEXT_NUMBER_OFFSET 16
+ #define CM_REP_LOCAL_EE_CONTEXT_NUMBER_MASK GENMASK(23, 0)
++#define CM_REP_VENDORID_M_OFFSET 19
++#define CM_REP_VENDORID_M_MASK GENMASK(7, 0)
+ #define CM_REP_STARTING_PSN_OFFSET 20
+ #define CM_REP_STARTING_PSN_MASK GENMASK(23, 0)
++#define CM_REP_VENDORID_L_OFFSET 23
++#define CM_REP_VENDORID_L_MASK GENMASK(7, 0)
+ #define CM_REP_RESPONDER_RESOURCES_OFFSET 24
+ #define CM_REP_RESPONDED_RESOURCES_MASK GENMASK(7, 0)
+ #define CM_REP_INITIATOR_DEPTH_OFFSET 25
+@@ -333,8 +341,12 @@
+ #define CM_SIDR_REP_STATUS_MASK GENMASK(7, 0)
+ #define CM_SIDR_REP_ADDITIONAL_INFORMATION_LENGTH_OFFSET 5
+ #define CM_SIDR_REP_ADDITIONAL_INFORMATION_LENGTH_MASK GENMASK(7, 0)
++#define CM_SIDR_REP_VENDORID_H_OFFSET 6
++#define CM_SIDR_REP_VENDORID_H_MASK GENMASK(15, 0)
+ #define CM_SIDR_REP_QPN_OFFSET 8
+ #define CM_SIDR_REP_QPN_MASK GENMASK(23, 0)
++#define CM_SIDR_REP_VENDORID_L_OFFSET 11
++#define CM_SIDR_REP_VENDORID_L_MASK GENMASK(7, 0)
+ #define CM_SIDR_REP_SERVICEID_OFFSET 12
+ #define CM_SIDR_REP_SERVICEID_MASK GENMASK_ULL(63, 0)
+ #define CM_SIDR_REP_Q_KEY_OFFSET 20
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index adccdc12b8e3..72348475eee8 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -147,7 +147,8 @@ enum ib_cm_rej_reason {
+ 	IB_CM_REJ_DUPLICATE_LOCAL_COMM_ID	= 30,
+ 	IB_CM_REJ_INVALID_CLASS_VERSION		= 31,
+ 	IB_CM_REJ_INVALID_FLOW_LABEL		= 32,
+-	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
++	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33,
++	IB_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED	= 35
+ };
+ 
+ struct ib_cm_rej_event_param {
 -- 
 2.20.1
 
