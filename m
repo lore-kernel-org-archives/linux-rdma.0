@@ -2,110 +2,104 @@ Return-Path: <SRS0=iu+b=YZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFC4ACA9ECF
-	for <linux-rdma@archiver.kernel.org>; Fri,  1 Nov 2019 19:54:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 087AACA9ECF
+	for <linux-rdma@archiver.kernel.org>; Fri,  1 Nov 2019 20:48:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABCF021897
-	for <linux-rdma@archiver.kernel.org>; Fri,  1 Nov 2019 19:54:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="YeDYRdee"
+	by mail.kernel.org (Postfix) with ESMTP id D63EF218AC
+	for <linux-rdma@archiver.kernel.org>; Fri,  1 Nov 2019 20:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726701AbfKATyJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 1 Nov 2019 15:54:09 -0400
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:38826 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726477AbfKATyJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 1 Nov 2019 15:54:09 -0400
-Received: by mail-qt1-f196.google.com with SMTP id t26so14461325qtr.5
-        for <linux-rdma@vger.kernel.org>; Fri, 01 Nov 2019 12:54:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=z+FjZERGJpTwj4Fyw0MaJE9Sqa2BYsQ42uoE0CYrL0A=;
-        b=YeDYRdeeYeznofBfYHEGTgJUYYibnJM0tHbeYYbzhUa89eqWcwDFuoBvkqzuDcLc2T
-         ofUfxex6y2BB77lEIINYfCe3LRDUm2ccatiS5G5es+IEQBkayJMlTpCysQ5WVX1USGCS
-         jgTaU5H2sKmYyCCp5OAsj9y1/GibOpmNaDDE7+kpDMj1ch/KbEMGdmr4C8OACqF5MRIR
-         AUJyBIqsDG9vpkYNm8vhMLDcsm1loVPhr52oeBb6m4QlAeB/pAlZ5GeOmXDE0INv1FyD
-         pucRz+47DC7NbtxxhTdRuHewQn65NgI1RX8osOjLNPQ54S6sL1WB7AFJyClzypTR7d0s
-         bh6w==
+        id S1727488AbfKAUsE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 1 Nov 2019 16:48:04 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:38820 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727222AbfKAUsE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 1 Nov 2019 16:48:04 -0400
+Received: by mail-pg1-f194.google.com with SMTP id j30so3696737pgn.5
+        for <linux-rdma@vger.kernel.org>; Fri, 01 Nov 2019 13:48:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=z+FjZERGJpTwj4Fyw0MaJE9Sqa2BYsQ42uoE0CYrL0A=;
-        b=JC+Ob7Pvb3GTLlNSlD130Imjyie8yqBMdvDOV1lloAecq1RZ/hvJJqa751MDAA1XXI
-         mFKe3DKBpn1FAQzr+jicSveBjuhPXCM4v5CJrd1vsl33jDhm/aQ+o/3FYotpRt9pysFu
-         Eg2s0TbcDW5PxwNyv1+0dlOVR0LKxzyHY1J77LAzzQuEf1ulKUUJZPoLRkqqop/HVCRr
-         GM03//OzqHP8kYDPPb7f/2LbhuvKGpABoKrOvLPRJ4Mdm2Q4M5EOKqm6IUanJwslOhpd
-         jg0HAONXB8rVno8JSq6xRwqtao7O60US4Sw2FB4HbaiWjFh2+LxwVmfZxq3sSNd+3TCz
-         Vpdg==
-X-Gm-Message-State: APjAAAVhYQouj72qmX018h57G9yOKYitBCYowYRJmExTDlc2wyRL+XtA
-        8lzXqVQflCc/+Bi2UnvSWAUxvA==
-X-Google-Smtp-Source: APXvYqwugaF2JaYgADF6rOYRryDEd9+U+cO7L5fZ9F8hMoRL3wZJoN0ghN8hXeUNkkXowjkn9kbsRA==
-X-Received: by 2002:a0c:fdcc:: with SMTP id g12mr11930964qvs.104.1572638047703;
-        Fri, 01 Nov 2019 12:54:07 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id a18sm4727748qkc.2.2019.11.01.12.54.07
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 01 Nov 2019 12:54:07 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1iQczm-00025n-Ng; Fri, 01 Nov 2019 16:54:06 -0300
-Date:   Fri, 1 Nov 2019 16:54:06 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com
-Cc:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        amd-gfx@lists.freedesktop.org,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-        David Zhou <David1.Zhou@amd.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Juergen Gross <jgross@suse.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
-        Petr Cvek <petrcvekcz@gmail.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        nouveau@lists.freedesktop.org, xen-devel@lists.xenproject.org,
-        Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 00/15] Consolidate the mmu notifier interval_tree and
- locking
-Message-ID: <20191101195406.GA6732@ziepe.ca>
-References: <20191028201032.6352-1-jgg@ziepe.ca>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=EpE2IFb8QctisnAizWL4LsIRaRavHW7BAKNAzepFG3I=;
+        b=Lt10c5Mnw0BW0ihglqAiq82OeCVWML+Q/ZTi1NXdgJjxXyWlHspX6F7sjgOFfI0NUy
+         2uW3YNvsxtcwtASi9mVXA4F+nlxT//tCo2Qb4mB+Xe/pxwos19iuV7qDdBGsqsZQ4bHm
+         +TkrvmN1naH2BpG7YtMjmym3TEeQlkm3XSLdLG9tmz+2Wxk6/AuVPf5HdWCUThOGnQ9I
+         uX4d5qTWYK8JXF5UoLpA5nF3/iKAD8kn7NiLK+wc3Klk9bupP0IOkzEUAGg5MQWDCuri
+         Av8NLqYw6t0la8dx/d8SSk9MOx0yR13Pxb2HAK0Tf+0swfdquD3sfAdk8i5BRxHoWF27
+         4Lfg==
+X-Gm-Message-State: APjAAAXUawY9vkWTZh9dQ0NQmgunZgDZDh0OxTsgGnvyzoGLTdMFA2pz
+        bVnShthkwUkdBpTM6d1PdPI=
+X-Google-Smtp-Source: APXvYqz0vgYKVgN2s9WK3plNhKC2j4RFZuY9VZ4OFTk+hRRYFM2ObuLolW8lO/W+H5+hPqoHN+XuSw==
+X-Received: by 2002:a17:90a:23e2:: with SMTP id g89mr17111529pje.127.1572641283259;
+        Fri, 01 Nov 2019 13:48:03 -0700 (PDT)
+Received: from desktop-bart.svl.corp.google.com ([2620:15c:2cd:202:4308:52a3:24b6:2c60])
+        by smtp.gmail.com with ESMTPSA id c34sm7546057pgb.35.2019.11.01.13.48.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 01 Nov 2019 13:48:02 -0700 (PDT)
+From:   Bart Van Assche <bvanassche@acm.org>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        Bart Van Assche <bvanassche@acm.org>,
+        Honggang Li <honli@redhat.com>,
+        Laurence Oberman <loberman@redhat.com>
+Subject: [PATCH] Revert "RDMA/srpt: Postpone HCA removal until after configfs directory removal"
+Date:   Fri,  1 Nov 2019 13:47:56 -0700
+Message-Id: <20191101204756.182162-1-bvanassche@acm.org>
+X-Mailer: git-send-email 2.24.0.rc1.363.gb1bccd3e3d-goog
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191028201032.6352-1-jgg@ziepe.ca>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Oct 28, 2019 at 05:10:17PM -0300, Jason Gunthorpe wrote:
-> From: Jason Gunthorpe <jgg@mellanox.com>
-> 
-> 8 of the mmu_notifier using drivers (i915_gem, radeon_mn, umem_odp, hfi1,
-> scif_dma, vhost, gntdev, hmm) drivers are using a common pattern where
-> they only use invalidate_range_start/end and immediately check the
-> invalidating range against some driver data structure to tell if the
-> driver is interested. Half of them use an interval_tree, the others are
-> simple linear search lists.
+Although the mentioned patch fixes a use-after-free bug, it introduces a
+hang during shutdown. Since the latter is worse, revert this patch.
 
-Now that we have the most of the driver changes tested and reviewed
-I'm going to move this series into linux-next via the hmm tree, minus
-the xen gntdev patches as they are not working yet.
+Cc: Honggang Li <honli@redhat.com>
+Cc: Laurence Oberman <loberman@redhat.com>
+Reported-by: Honggang Li <honli@redhat.com>
+Fixes: 9b64f7d0bb0a ("RDMA/srpt: Postpone HCA removal until after configfs directory removal")
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-I will keep collecting acks and any additional changes.
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index c9972b686c27..53dec7d9829c 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2960,7 +2960,7 @@ static int srpt_release_sport(struct srpt_port *sport)
+ 
+ 	while (atomic_read(&sport->refcount) > 0 &&
+ 	       wait_for_completion_timeout(&c, 5 * HZ) <= 0) {
+-		pr_info("%s_%d: waiting for unregistration of %d sessions and configfs directories ...\n",
++		pr_info("%s_%d: waiting for unregistration of %d sessions ...\n",
+ 			dev_name(&sport->sdev->device->dev), sport->port,
+ 			atomic_read(&sport->refcount));
+ 		rcu_read_lock();
+@@ -3776,8 +3776,6 @@ static struct se_portal_group *srpt_make_tpg(struct se_wwn *wwn,
+ 	list_add_tail(&stpg->entry, &sport_id->tpg_list);
+ 	mutex_unlock(&sport_id->mutex);
+ 
+-	atomic_inc(&sport->refcount);
+-
+ 	return &stpg->tpg;
+ }
+ 
+@@ -3798,7 +3796,6 @@ static void srpt_drop_tpg(struct se_portal_group *tpg)
+ 	sport->enabled = false;
+ 	core_tpg_deregister(tpg);
+ 	kfree(stpg);
+-	srpt_drop_sport_ref(sport);
+ }
+ 
+ /**
+-- 
+2.24.0.rc1.363.gb1bccd3e3d-goog
 
-Thanks,
-Jason
