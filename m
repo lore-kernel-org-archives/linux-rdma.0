@@ -2,24 +2,24 @@ Return-Path: <SRS0=iu+b=YZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E7BEC47E49
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FBAFCA9ECB
 	for <linux-rdma@archiver.kernel.org>; Fri,  1 Nov 2019 02:37:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4FDEF208C0
+	by mail.kernel.org (Postfix) with ESMTP id 2E02A2083E
 	for <linux-rdma@archiver.kernel.org>; Fri,  1 Nov 2019 02:37:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727419AbfKAChM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727486AbfKAChM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 31 Oct 2019 22:37:12 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:5243 "EHLO huawei.com"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:5244 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726793AbfKAChM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727419AbfKAChM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 31 Oct 2019 22:37:12 -0400
 Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 5EFB8F6844416B2060A;
+        by Forcepoint Email with ESMTP id 628865E24FB6613E6C25;
         Fri,  1 Nov 2019 10:37:10 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
@@ -27,12 +27,10 @@ Received: from localhost.localdomain (10.67.165.24) by
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH for-rc 1/2] RDMA/hns: Correct the value of HNS_ROCE_HEM_CHUNK_LEN
-Date:   Fri, 1 Nov 2019 10:33:29 +0800
-Message-ID: <1572575610-52530-2-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH for-rc 0/2] RDMA/hns: Fix incorrect assignments
+Date:   Fri, 1 Nov 2019 10:33:28 +0800
+Message-ID: <1572575610-52530-1-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1572575610-52530-1-git-send-email-liweihang@hisilicon.com>
-References: <1572575610-52530-1-git-send-email-liweihang@hisilicon.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -42,32 +40,21 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Sirong Wang <wangsirong@huawei.com>
+1. HNS_ROCE_HEM_CHUNK_LEN in patch 1/2 is used to initialize sg table, its
+current value is larger than needed.
+2. srq_desc_size in patch 2/2 is used to allocate srq buffer, buffer size
+may be less than expected.
 
-Size of pointer to buf field of struct hns_roce_hem_chunk should be
-considered when calculating HNS_ROCE_HEM_CHUNK_LEN, or sg table size
-will be larger than expected when allocating hem.
+Sirong Wang (1):
+  RDMA/hns: Correct the value of HNS_ROCE_HEM_CHUNK_LEN
 
-Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
-Signed-off-by: Sirong Wang <wangsirong@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
----
+Wenpeng Liang (1):
+  RDMA/hns: Correct the value of srq_desc_size
+
  drivers/infiniband/hw/hns/hns_roce_hem.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_srq.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
-index 8678327..3bb8f78 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
-@@ -59,7 +59,7 @@ enum {
- 
- #define HNS_ROCE_HEM_CHUNK_LEN	\
- 	 ((256 - sizeof(struct list_head) - 2 * sizeof(int)) /	 \
--	 (sizeof(struct scatterlist)))
-+	 (sizeof(struct scatterlist) + sizeof(void *)))
- 
- #define check_whether_bt_num_3(type, hop_num) \
- 	(type < HEM_TYPE_MTT && hop_num == 2)
 -- 
 2.8.1
 
