@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A7F1CA9ED0
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 920C1CA9EB0
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:20:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 00396222C5
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:20:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BBA621A4A
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:20:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="OAyRSW4f"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="F+q+2Nm2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728431AbfKCVSW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 3 Nov 2019 16:18:22 -0500
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:17504 "EHLO
-        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728330AbfKCVSU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Nov 2019 16:18:20 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate15.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dbf441f0002>; Sun, 03 Nov 2019 13:18:23 -0800
+        id S1728421AbfKCVSV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 3 Nov 2019 16:18:21 -0500
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:10534 "EHLO
+        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728121AbfKCVSS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Nov 2019 16:18:18 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dbf441d0000>; Sun, 03 Nov 2019 13:18:22 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Sun, 03 Nov 2019 13:18:18 -0800
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Sun, 03 Nov 2019 13:18:15 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Sun, 03 Nov 2019 13:18:18 -0800
+        by hqpgpgate101.nvidia.com on Sun, 03 Nov 2019 13:18:15 -0800
 Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL105.nvidia.com
  (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 3 Nov
- 2019 21:18:18 +0000
+ 2019 21:18:15 +0000
 Received: from hqnvemgw01.nvidia.com (172.20.150.20) by HQMAIL101.nvidia.com
  (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sun, 3 Nov 2019 21:18:18 +0000
+ Transport; Sun, 3 Nov 2019 21:18:15 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dbf44190004>; Sun, 03 Nov 2019 13:18:17 -0800
+        id <B5dbf44160003>; Sun, 03 Nov 2019 13:18:14 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -66,10 +66,12 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v2 14/18] vfio, mm: pin_longterm_pages (FOLL_PIN) and put_user_page() conversion
-Date:   Sun, 3 Nov 2019 13:18:09 -0800
-Message-ID: <20191103211813.213227-15-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v2 02/18] mm/gup: factor out duplicate code from four routines
+Date:   Sun, 3 Nov 2019 13:17:57 -0800
+Message-ID: <20191103211813.213227-3-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191103211813.213227-1-jhubbard@nvidia.com>
 References: <20191103211813.213227-1-jhubbard@nvidia.com>
@@ -78,89 +80,231 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1572815904; bh=1iOGN4TRt8PvqjiLdwM6f6zOKk3A3b0FSz4UPjmoAC4=;
+        t=1572815902; bh=kaGNIHbfja+uY6cKXyOxb4P0f0fYoWBJW4uSclr3zkQ=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=OAyRSW4fz9UjixnJPOQaglpLfSXgi7hZ6p50OoOhrLZfb106XYVyWfNelOGyOefln
-         4Xf4SxQgL5HfXtUn5ZluPWd49rtAZPWLpP38mGIQrFtKjFzur2WF8ZuraePQI8ImgT
-         EGXdW1OXicEbqsELOmkgg2iKfHyO0JV2kCE6oBgl5EZnTOiPdBptLS0mRdNxS8xcbm
-         +PUEHlLAjGdEon1mRW51BRYPtc//WiHuZwc3shxSnuSODuNefZNmXSZ1aNdRq8tjjl
-         S+8nLOg7/Xt76GP87RNiwGivmY98faMDXIItZR+tvODSGWV/Ef1Gjiov8uMVg5dZCl
-         o1rjs1yN+iGCQ==
+        b=F+q+2Nm2ah/6kNgKZO4cO9APqojvmMVAYoNWjgqqiwuDdQ8AP4EoxEyVuWbTt8N2x
+         0+gD4dEhHTWFLjxwoxODmXiRboHOHRebRhnxK6rrF/aN6FezATSRMkoofDhN+Kuzhc
+         98lFHWFikPv2z7wfnG6mSw5YYZPL8XOTsZfY+FbjSEBKpSjlQnNQMjobgvNx0k8n70
+         il61zIlP+u2wVU/NhvddF6W54orHnMnHFeueINqCQkIh5mazHUKZlAPnI7TOBul3P0
+         2tFEv+/R43mvXKPVCaEFILRD5ZM9jAljSrGESHyz+w6X9AmZw/Frq+aOpSSUHsEtTl
+         ds+UW1ym+06oQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-1. Change vfio from get_user_pages(FOLL_LONGTERM), to
-pin_longterm_pages(), which sets both FOLL_LONGTERM and FOLL_PIN.
+There are four locations in gup.c that have a fair amount of code
+duplication. This means that changing one requires making the same
+changes in four places, not to mention reading the same code four
+times, and wondering if there are subtle differences.
 
-2. Because all FOLL_PIN-acquired pages must be released via
-put_user_page(), also convert the put_page() call over to
-put_user_pages().
+Factor out the common code into static functions, thus reducing the
+overall line count and the code's complexity.
 
-Note that this effectively changes the code's behavior in
-vfio_iommu_type1.c: put_pfn(): it now ultimately calls
-set_page_dirty_lock(), instead of set_page_dirty(). This is
-probably more accurate.
+Also, take the opportunity to slightly improve the efficiency of the
+error cases, by doing a mass subtraction of the refcount, surrounded
+by get_page()/put_page().
 
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
+Also, further simplify (slightly), by waiting until the the successful
+end of each routine, to increment *nr.
 
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
-Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/vfio/vfio_iommu_type1.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/gup.c | 104 ++++++++++++++++++++++++-------------------------------
+ 1 file changed, 45 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type=
-1.c
-index d864277ea16f..795e13f3ef08 100644
---- a/drivers/vfio/vfio_iommu_type1.c
-+++ b/drivers/vfio/vfio_iommu_type1.c
-@@ -327,9 +327,8 @@ static int put_pfn(unsigned long pfn, int prot)
- {
- 	if (!is_invalid_reserved_pfn(pfn)) {
- 		struct page *page =3D pfn_to_page(pfn);
--		if (prot & IOMMU_WRITE)
--			SetPageDirty(page);
--		put_page(page);
-+
-+		put_user_pages_dirty_lock(&page, 1, prot & IOMMU_WRITE);
- 		return 1;
- 	}
- 	return 0;
-@@ -349,11 +348,11 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsign=
-ed long vaddr,
+diff --git a/mm/gup.c b/mm/gup.c
+index 85caf76b3012..199da99e8ffc 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -1969,6 +1969,34 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *p=
+udp, unsigned long addr,
+ }
+ #endif
 =20
- 	down_read(&mm->mmap_sem);
- 	if (mm =3D=3D current->mm) {
--		ret =3D get_user_pages(vaddr, 1, flags | FOLL_LONGTERM, page,
--				     vmas);
-+		ret =3D pin_longterm_pages(vaddr, 1, flags, page, vmas);
- 	} else {
--		ret =3D get_user_pages_remote(NULL, mm, vaddr, 1, flags, page,
--					    vmas, NULL);
-+		ret =3D pin_longterm_pages_remote(NULL, mm, vaddr, 1,
-+						flags, page, vmas,
-+						NULL);
- 		/*
- 		 * The lifetime of a vaddr_get_pfn() page pin is
- 		 * userspace-controlled. In the fs-dax case this could
-@@ -363,7 +362,7 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned=
- long vaddr,
- 		 */
- 		if (ret > 0 && vma_is_fsdax(vmas[0])) {
- 			ret =3D -EOPNOTSUPP;
--			put_page(page[0]);
-+			put_user_page(page[0]);
- 		}
++static int __record_subpages(struct page *page, unsigned long addr,
++			     unsigned long end, struct page **pages, int nr)
++{
++	int nr_recorded_pages =3D 0;
++
++	do {
++		pages[nr] =3D page;
++		nr++;
++		page++;
++		nr_recorded_pages++;
++	} while (addr +=3D PAGE_SIZE, addr !=3D end);
++	return nr_recorded_pages;
++}
++
++static void put_compound_head(struct page *page, int refs)
++{
++	/* Do a get_page() first, in case refs =3D=3D page->_refcount */
++	get_page(page);
++	page_ref_sub(page, refs);
++	put_page(page);
++}
++
++static void __huge_pt_done(struct page *head, int nr_recorded_pages, int *=
+nr)
++{
++	*nr +=3D nr_recorded_pages;
++	SetPageReferenced(head);
++}
++
+ #ifdef CONFIG_ARCH_HAS_HUGEPD
+ static unsigned long hugepte_addr_end(unsigned long addr, unsigned long en=
+d,
+ 				      unsigned long sz)
+@@ -1998,33 +2026,20 @@ static int gup_hugepte(pte_t *ptep, unsigned long s=
+z, unsigned long addr,
+ 	/* hugepages are never "special" */
+ 	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+=20
+-	refs =3D 0;
+ 	head =3D pte_page(pte);
+-
+ 	page =3D head + ((addr & (sz-1)) >> PAGE_SHIFT);
+-	do {
+-		VM_BUG_ON(compound_head(page) !=3D head);
+-		pages[*nr] =3D page;
+-		(*nr)++;
+-		page++;
+-		refs++;
+-	} while (addr +=3D PAGE_SIZE, addr !=3D end);
++	refs =3D __record_subpages(page, addr, end, pages, *nr);
+=20
+ 	head =3D try_get_compound_head(head, refs);
+-	if (!head) {
+-		*nr -=3D refs;
++	if (!head)
+ 		return 0;
+-	}
+=20
+ 	if (unlikely(pte_val(pte) !=3D pte_val(*ptep))) {
+-		/* Could be optimized better */
+-		*nr -=3D refs;
+-		while (refs--)
+-			put_page(head);
++		put_compound_head(head, refs);
+ 		return 0;
  	}
- 	up_read(&mm->mmap_sem);
+=20
+-	SetPageReferenced(head);
++	__huge_pt_done(head, refs, nr);
+ 	return 1;
+ }
+=20
+@@ -2071,29 +2086,19 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, un=
+signed long addr,
+ 					     pages, nr);
+ 	}
+=20
+-	refs =3D 0;
+ 	page =3D pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	do {
+-		pages[*nr] =3D page;
+-		(*nr)++;
+-		page++;
+-		refs++;
+-	} while (addr +=3D PAGE_SIZE, addr !=3D end);
++	refs =3D __record_subpages(page, addr, end, pages, *nr);
+=20
+ 	head =3D try_get_compound_head(pmd_page(orig), refs);
+-	if (!head) {
+-		*nr -=3D refs;
++	if (!head)
+ 		return 0;
+-	}
+=20
+ 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
+-		*nr -=3D refs;
+-		while (refs--)
+-			put_page(head);
++		put_compound_head(head, refs);
+ 		return 0;
+ 	}
+=20
+-	SetPageReferenced(head);
++	__huge_pt_done(head, refs, nr);
+ 	return 1;
+ }
+=20
+@@ -2114,29 +2119,19 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, un=
+signed long addr,
+ 					     pages, nr);
+ 	}
+=20
+-	refs =3D 0;
+ 	page =3D pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	do {
+-		pages[*nr] =3D page;
+-		(*nr)++;
+-		page++;
+-		refs++;
+-	} while (addr +=3D PAGE_SIZE, addr !=3D end);
++	refs =3D __record_subpages(page, addr, end, pages, *nr);
+=20
+ 	head =3D try_get_compound_head(pud_page(orig), refs);
+-	if (!head) {
+-		*nr -=3D refs;
++	if (!head)
+ 		return 0;
+-	}
+=20
+ 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
+-		*nr -=3D refs;
+-		while (refs--)
+-			put_page(head);
++		put_compound_head(head, refs);
+ 		return 0;
+ 	}
+=20
+-	SetPageReferenced(head);
++	__huge_pt_done(head, refs, nr);
+ 	return 1;
+ }
+=20
+@@ -2151,29 +2146,20 @@ static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, un=
+signed long addr,
+ 		return 0;
+=20
+ 	BUILD_BUG_ON(pgd_devmap(orig));
+-	refs =3D 0;
++
+ 	page =3D pgd_page(orig) + ((addr & ~PGDIR_MASK) >> PAGE_SHIFT);
+-	do {
+-		pages[*nr] =3D page;
+-		(*nr)++;
+-		page++;
+-		refs++;
+-	} while (addr +=3D PAGE_SIZE, addr !=3D end);
++	refs =3D __record_subpages(page, addr, end, pages, *nr);
+=20
+ 	head =3D try_get_compound_head(pgd_page(orig), refs);
+-	if (!head) {
+-		*nr -=3D refs;
++	if (!head)
+ 		return 0;
+-	}
+=20
+ 	if (unlikely(pgd_val(orig) !=3D pgd_val(*pgdp))) {
+-		*nr -=3D refs;
+-		while (refs--)
+-			put_page(head);
++		put_compound_head(head, refs);
+ 		return 0;
+ 	}
+=20
+-	SetPageReferenced(head);
++	__huge_pt_done(head, refs, nr);
+ 	return 1;
+ }
+=20
 --=20
 2.23.0
 
