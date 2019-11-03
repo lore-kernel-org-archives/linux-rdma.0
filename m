@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF89CA9ED2
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:19:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 351B1CA9EBB
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:19:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AB6292067D
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:19:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09FC12067D
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:19:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="HJPTdVOA"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="FSs/6a7/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728809AbfKCVT2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 3 Nov 2019 16:19:28 -0500
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:10690 "EHLO
+        id S1728849AbfKCVTo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 3 Nov 2019 16:19:44 -0500
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:10691 "EHLO
         hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728484AbfKCVSZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Nov 2019 16:18:25 -0500
+        with ESMTP id S1728499AbfKCVSY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Nov 2019 16:18:24 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dbf44210001>; Sun, 03 Nov 2019 13:18:25 -0800
+        id <B5dbf441f0001>; Sun, 03 Nov 2019 13:18:23 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Sun, 03 Nov 2019 13:18:19 -0800
+  Sun, 03 Nov 2019 13:18:17 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Sun, 03 Nov 2019 13:18:19 -0800
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 3 Nov
- 2019 21:18:19 +0000
-Received: from hqnvemgw01.nvidia.com (172.20.150.20) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sun, 3 Nov 2019 21:18:19 +0000
+        by hqpgpgate101.nvidia.com on Sun, 03 Nov 2019 13:18:17 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 3 Nov
+ 2019 21:18:16 +0000
+Received: from hqnvemgw01.nvidia.com (172.20.150.20) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Sun, 3 Nov 2019 21:18:16 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dbf441a0002>; Sun, 03 Nov 2019 13:18:18 -0800
+        id <B5dbf44180001>; Sun, 03 Nov 2019 13:18:16 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -53,12 +53,11 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
+        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -67,9 +66,9 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v2 16/18] mm/gup_benchmark: support pin_user_pages() and related calls
-Date:   Sun, 3 Nov 2019 13:18:11 -0800
-Message-ID: <20191103211813.213227-17-jhubbard@nvidia.com>
+Subject: [PATCH v2 08/18] mm/process_vm_access: set FOLL_PIN via pin_user_pages_remote()
+Date:   Sun, 3 Nov 2019 13:18:03 -0800
+Message-ID: <20191103211813.213227-9-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191103211813.213227-1-jhubbard@nvidia.com>
 References: <20191103211813.213227-1-jhubbard@nvidia.com>
@@ -78,228 +77,104 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1572815905; bh=NEkIIi5tFETxHd5VvyaR+PvOubiu9ODuVDN+PrzJrb8=;
+        t=1572815903; bh=FTwkCs1YhXS+doYv4h//EitDAUbUBa+kiNR20RKCEDA=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=HJPTdVOAHIi/w5Wbmc1e/BCYoxRPAY5fl5VGqu8JGWvXvOKEBoLBotVwPT+lmnEO6
-         YkXub2gRZQ3InwDfHXynWtVeQQFPTOP6dZZEuNnueESyxRe9mrJRA+R3tDpQ3hYLZ+
-         c49M9p+e1BceJK3IwfGLHkooLmB/oD6x5SRIwvyoRxQyvlIx/qSOa+ECYlpzKpmU5O
-         UvHA1W4einTzslX0G/jzaNeGmG4M5MmU39Ram6wNYjfXciV8Q8kgegVEr68IqTZRhw
-         hw2PUjSVsz+WKT95BBR9SWFjbwJ2Ok3AynH6viGa3mIrOm3xzqKLYn0AZGtfKqIYUw
-         YXb6n/15BK5ZQ==
+        b=FSs/6a7/XHIxiw/oRnlkz0mzJbXDtPbd2OyX+cqSHSYo1En5eISmgjwW+yCV1P1Ox
+         c1hCSF4m1Wh26mUwp/cb5luzaxqXsVtLkaInfozjwl86infZnxvLzW3gezq8IVh0/N
+         GZ+ZWeZ9GB5uvdewqUWxCqGppZrugucGsG2tbStxRSHlPSzIfDauC7oKga4qYdQFPJ
+         TotQJyfNBhbRvI+sWsY3fcnbEhthgx1uC8tN4U6wCQaRu5Iz/5Ae6CkMQzLG8GIPz5
+         WAJK62+ep86ZPA/mewMdDbD57Ex3hWCFoXtIgVjTw0MkDvXgJHXuPEZ8MnYGeuyrQa
+         EuuK4zf4PA1QQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Up until now, gup_benchmark supported testing of the
-following kernel functions:
+Convert process_vm_access to use the new pin_user_pages_remote()
+call, which sets FOLL_PIN. Setting FOLL_PIN is now required for
+code that requires tracking of pinned pages.
 
-* get_user_pages(): via the '-U' command line option
-* get_user_pages_longterm(): via the '-L' command line option
-* get_user_pages_fast(): as the default (no options required)
+Also, release the pages via put_user_page*().
 
-Add test coverage for the new corresponding pin_*() functions:
+Also, rename "pages" to "pinned_pages", as this makes for
+easier reading of process_vm_rw_single_vec().
 
-* pin_user_pages(): via the '-c' command line option
-* pin_longterm_pages(): via the '-b' command line option
-* pin_user_pages_fast(): via the '-a' command line option
-
-Also, add an option for clarity: '-u' for what is now (still) the
-default choice: get_user_pages_fast().
-
-Also, for the three commands that set FOLL_PIN, verify that the pages
-really are dma-pinned, via the new is_dma_pinned() routine.
-Those commands are:
-
-    PIN_FAST_BENCHMARK     : calls pin_user_pages_fast()
-    PIN_LONGTERM_BENCHMARK : calls pin_longterm_pages()
-    PIN_BENCHMARK          : calls pin_user_pages()
-
-In between the calls to pin_*() and put_user_pages(),
-check each page: if page_dma_pinned() returns false, then
-WARN and return.
-
-Do this outside of the benchmark timestamps, so that it doesn't
-affect reported times.
-
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup_benchmark.c                         | 74 ++++++++++++++++++++--
- tools/testing/selftests/vm/gup_benchmark.c | 23 ++++++-
- 2 files changed, 91 insertions(+), 6 deletions(-)
+ mm/process_vm_access.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/mm/gup_benchmark.c b/mm/gup_benchmark.c
-index 7dd602d7f8db..2bb0f5df4803 100644
---- a/mm/gup_benchmark.c
-+++ b/mm/gup_benchmark.c
-@@ -8,6 +8,9 @@
- #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
- #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
- #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
-+#define PIN_BENCHMARK		_IOWR('g', 6, struct gup_benchmark)
+diff --git a/mm/process_vm_access.c b/mm/process_vm_access.c
+index 357aa7bef6c0..fd20ab675b85 100644
+--- a/mm/process_vm_access.c
++++ b/mm/process_vm_access.c
+@@ -42,12 +42,11 @@ static int process_vm_rw_pages(struct page **pages,
+ 		if (copy > len)
+ 			copy =3D len;
 =20
- struct gup_benchmark {
- 	__u64 get_delta_usec;
-@@ -19,6 +22,44 @@ struct gup_benchmark {
- 	__u64 expansion[10];	/* For future use */
- };
+-		if (vm_write) {
++		if (vm_write)
+ 			copied =3D copy_page_from_iter(page, offset, copy, iter);
+-			set_page_dirty_lock(page);
+-		} else {
++		else
+ 			copied =3D copy_page_to_iter(page, offset, copy, iter);
+-		}
++
+ 		len -=3D copied;
+ 		if (copied < copy && iov_iter_count(iter))
+ 			return -EFAULT;
+@@ -96,7 +95,7 @@ static int process_vm_rw_single_vec(unsigned long addr,
+ 		flags |=3D FOLL_WRITE;
 =20
-+static void put_back_pages(int cmd, struct page **pages, unsigned long nr_=
-pages)
-+{
-+	int i;
+ 	while (!rc && nr_pages && iov_iter_count(iter)) {
+-		int pages =3D min(nr_pages, max_pages_per_loop);
++		int pinned_pages =3D min(nr_pages, max_pages_per_loop);
+ 		int locked =3D 1;
+ 		size_t bytes;
+=20
+@@ -106,14 +105,15 @@ static int process_vm_rw_single_vec(unsigned long add=
+r,
+ 		 * current/current->mm
+ 		 */
+ 		down_read(&mm->mmap_sem);
+-		pages =3D get_user_pages_remote(task, mm, pa, pages, flags,
+-					      process_pages, NULL, &locked);
++		pinned_pages =3D pin_user_pages_remote(task, mm, pa, pinned_pages,
++						     flags, process_pages,
++						     NULL, &locked);
+ 		if (locked)
+ 			up_read(&mm->mmap_sem);
+-		if (pages <=3D 0)
++		if (pinned_pages <=3D 0)
+ 			return -EFAULT;
+=20
+-		bytes =3D pages * PAGE_SIZE - start_offset;
++		bytes =3D pinned_pages * PAGE_SIZE - start_offset;
+ 		if (bytes > len)
+ 			bytes =3D len;
+=20
+@@ -122,10 +122,12 @@ static int process_vm_rw_single_vec(unsigned long add=
+r,
+ 					 vm_write);
+ 		len -=3D bytes;
+ 		start_offset =3D 0;
+-		nr_pages -=3D pages;
+-		pa +=3D pages * PAGE_SIZE;
+-		while (pages)
+-			put_page(process_pages[--pages]);
++		nr_pages -=3D pinned_pages;
++		pa +=3D pinned_pages * PAGE_SIZE;
 +
-+	switch (cmd) {
-+	case GUP_FAST_BENCHMARK:
-+	case GUP_LONGTERM_BENCHMARK:
-+	case GUP_BENCHMARK:
-+		for (i =3D 0; i < nr_pages; i++)
-+			put_page(pages[i]);
-+		break;
-+
-+	case PIN_FAST_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
-+	case PIN_BENCHMARK:
-+		put_user_pages(pages, nr_pages);
-+		break;
-+	}
-+}
-+
-+static void verify_dma_pinned(int cmd, struct page **pages,
-+			      unsigned long nr_pages)
-+{
-+	int i;
-+
-+	switch (cmd) {
-+	case PIN_FAST_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
-+	case PIN_BENCHMARK:
-+		for (i =3D 0; i < nr_pages; i++) {
-+			if (WARN(!page_dma_pinned(pages[i]),
-+				 "pages[%d] is NOT dma-pinned\n", i))
-+				break;
-+		}
-+		break;
-+	}
-+}
-+
- static int __gup_benchmark_ioctl(unsigned int cmd,
- 		struct gup_benchmark *gup)
- {
-@@ -62,6 +103,19 @@ static int __gup_benchmark_ioctl(unsigned int cmd,
- 			nr =3D get_user_pages(addr, nr, gup->flags & 1, pages + i,
- 					    NULL);
- 			break;
-+		case PIN_FAST_BENCHMARK:
-+			nr =3D pin_user_pages_fast(addr, nr, gup->flags & 1,
-+						 pages + i);
-+			break;
-+		case PIN_LONGTERM_BENCHMARK:
-+			nr =3D pin_longterm_pages(addr, nr,
-+						(gup->flags & 1),
-+						pages + i, NULL);
-+			break;
-+		case PIN_BENCHMARK:
-+			nr =3D pin_user_pages(addr, nr, gup->flags & 1, pages + i,
-+					    NULL);
-+			break;
- 		default:
- 			return -1;
- 		}
-@@ -72,15 +126,22 @@ static int __gup_benchmark_ioctl(unsigned int cmd,
++		/* If vm_write is set, the pages need to be made dirty: */
++		put_user_pages_dirty_lock(process_pages, pinned_pages,
++					  vm_write);
  	}
- 	end_time =3D ktime_get();
 =20
-+	/* Shifting the meaning of nr_pages: now it is actual number pinned: */
-+	nr_pages =3D i;
-+
- 	gup->get_delta_usec =3D ktime_us_delta(end_time, start_time);
- 	gup->size =3D addr - gup->addr;
-=20
-+	/*
-+	 * Take an un-benchmark-timed moment to verify DMA pinned
-+	 * state: print a warning if any non-dma-pinned pages are found:
-+	 */
-+	verify_dma_pinned(cmd, pages, nr_pages);
-+
- 	start_time =3D ktime_get();
--	for (i =3D 0; i < nr_pages; i++) {
--		if (!pages[i])
--			break;
--		put_page(pages[i]);
--	}
-+
-+	put_back_pages(cmd, pages, nr_pages);
-+
- 	end_time =3D ktime_get();
- 	gup->put_delta_usec =3D ktime_us_delta(end_time, start_time);
-=20
-@@ -98,6 +159,9 @@ static long gup_benchmark_ioctl(struct file *filep, unsi=
-gned int cmd,
- 	case GUP_FAST_BENCHMARK:
- 	case GUP_LONGTERM_BENCHMARK:
- 	case GUP_BENCHMARK:
-+	case PIN_FAST_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
-+	case PIN_BENCHMARK:
- 		break;
- 	default:
- 		return -EINVAL;
-diff --git a/tools/testing/selftests/vm/gup_benchmark.c b/tools/testing/sel=
-ftests/vm/gup_benchmark.c
-index 485cf06ef013..c5c934c0f402 100644
---- a/tools/testing/selftests/vm/gup_benchmark.c
-+++ b/tools/testing/selftests/vm/gup_benchmark.c
-@@ -18,6 +18,15 @@
- #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
- #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
-=20
-+/*
-+ * Similar to above, but use FOLL_PIN instead of FOLL_GET. This is done
-+ * by calling pin_user_pages_fast(), pin_longterm_pages(), and pin_user_pa=
-ges(),
-+ * respectively.
-+ */
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
-+#define PIN_BENCHMARK		_IOWR('g', 6, struct gup_benchmark)
-+
- struct gup_benchmark {
- 	__u64 get_delta_usec;
- 	__u64 put_delta_usec;
-@@ -37,8 +46,17 @@ int main(int argc, char **argv)
- 	char *file =3D "/dev/zero";
- 	char *p;
-=20
--	while ((opt =3D getopt(argc, argv, "m:r:n:f:tTLUwSH")) !=3D -1) {
-+	while ((opt =3D getopt(argc, argv, "m:r:n:f:abctTLUuwSH")) !=3D -1) {
- 		switch (opt) {
-+		case 'a':
-+			cmd =3D PIN_FAST_BENCHMARK;
-+			break;
-+		case 'b':
-+			cmd =3D PIN_LONGTERM_BENCHMARK;
-+			break;
-+		case 'c':
-+			cmd =3D PIN_BENCHMARK;
-+			break;
- 		case 'm':
- 			size =3D atoi(optarg) * MB;
- 			break;
-@@ -60,6 +78,9 @@ int main(int argc, char **argv)
- 		case 'U':
- 			cmd =3D GUP_BENCHMARK;
- 			break;
-+		case 'u':
-+			cmd =3D GUP_FAST_BENCHMARK;
-+			break;
- 		case 'w':
- 			write =3D 1;
- 			break;
+ 	return rc;
 --=20
 2.23.0
 
