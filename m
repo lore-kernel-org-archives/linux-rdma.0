@@ -1,148 +1,125 @@
-Return-Path: <SRS0=Uwmw=Y3=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=M/HP=Y4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 944B6CA9EB0
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:21:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C20CA9EBB
+	for <linux-rdma@archiver.kernel.org>; Mon,  4 Nov 2019 01:14:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 623AA21A4A
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Nov 2019 21:21:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CE37222D1
+	for <linux-rdma@archiver.kernel.org>; Mon,  4 Nov 2019 01:14:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="CrZf2JZ8"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TpwjUXWR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728293AbfKCVSR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 3 Nov 2019 16:18:17 -0500
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:10547 "EHLO
-        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728237AbfKCVSR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Nov 2019 16:18:17 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dbf441e0000>; Sun, 03 Nov 2019 13:18:22 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Sun, 03 Nov 2019 13:18:15 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Sun, 03 Nov 2019 13:18:15 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 3 Nov
- 2019 21:18:15 +0000
-Received: from hqnvemgw01.nvidia.com (172.20.150.20) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sun, 3 Nov 2019 21:18:15 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dbf44170000>; Sun, 03 Nov 2019 13:18:15 -0800
-From:   John Hubbard <jhubbard@nvidia.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-CC:     Al Viro <viro@zeniv.linux.org.uk>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Dave Chinner <david@fromorbit.com>,
-        David Airlie <airlied@linux.ie>,
-        "David S . Miller" <davem@davemloft.net>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
-        Jonathan Corbet <corbet@lwn.net>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-        Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
-        <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v2 03/18] goldish_pipe: rename local pin_user_pages() routine
-Date:   Sun, 3 Nov 2019 13:17:58 -0800
-Message-ID: <20191103211813.213227-4-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20191103211813.213227-1-jhubbard@nvidia.com>
-References: <20191103211813.213227-1-jhubbard@nvidia.com>
+        id S1728106AbfKDBOs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 3 Nov 2019 20:14:48 -0500
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:52144 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728102AbfKDBOs (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Nov 2019 20:14:48 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1572830087;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=UaoCTzvOTf2LP1d0FA6CBx4+HQSgFMcCJDE8asle1HE=;
+        b=TpwjUXWRrNLtjT9EGBQn8VwO0vh6INFNOPT+MyO9DMQm/HWCrDGebWpOsXz/NgPJVeTNMJ
+        QyTeCsmaXnrMP5nhvj7qzDkODs4O+KOVPpYuW4qBNZYUfrjwkUy1iMDBaJlN29gwtQ+7d1
+        XHvrj5TxWqCXlUDHUsVKs/t3YIpHcj0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-2-SEID7YwDPgC_JXy3cFYdCQ-1; Sun, 03 Nov 2019 20:14:45 -0500
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5DB481005500;
+        Mon,  4 Nov 2019 01:14:44 +0000 (UTC)
+Received: from localhost (unknown [10.66.128.227])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id BE5E75D6C3;
+        Mon,  4 Nov 2019 01:14:43 +0000 (UTC)
+Date:   Mon, 4 Nov 2019 09:14:41 +0800
+From:   Honggang LI <honli@redhat.com>
+To:     Bart Van Assche <bvanassche@acm.org>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        Laurence Oberman <loberman@redhat.com>
+Subject: Re: [PATCH] Revert "RDMA/srpt: Postpone HCA removal until after
+ configfs directory removal"
+Message-ID: <20191104011441.GB26981@dhcp-128-227.nay.redhat.com>
+References: <20191101204756.182162-1-bvanassche@acm.org>
 MIME-Version: 1.0
-X-NVConfidentiality: public
+In-Reply-To: <20191101204756.182162-1-bvanassche@acm.org>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+X-MC-Unique: SEID7YwDPgC_JXy3cFYdCQ-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1572815902; bh=yxndnpa6bj0xuoqPqvRY6Qkte9w9GoWasaTzIgTLBt4=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=CrZf2JZ8Z1BYEcbLmYpFUD1ZNvhKRHAjpH0YXVbR2NxZF7sRz7rzdYCVUfbyeDKkX
-         2g2B6QpG23BEG3g/71RW3OuY9p0N3tXefMp1ZYbFTW1iz2PLwALdJ+mkuVyb1iqsZr
-         F8sWxJDJO54yzjEP4wU9YZdl8I/hsHy8pE37+OizFKv6wlKVuaPeh5mzoi0KCgmnBg
-         /Y00qBw+/btgnF7T7NnqeETOhIof/gF2HPnAs7yZ+7cxOlyZsmzW+pd420DMcmtwfZ
-         vgdXxoB17ve4yALSsXuszIbA5INhDD5JbZJUAmVEfJrKoaspcnukDpzoiq6VEYRf9+
-         tELlqsr98UjAA==
+Content-Disposition: inline
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-1. Avoid naming conflicts: rename local static function from
-"pin_user_pages()" to "pin_goldfish_pages()".
+On Fri, Nov 01, 2019 at 01:47:56PM -0700, Bart Van Assche wrote:
+> Although the mentioned patch fixes a use-after-free bug, it introduces a
+> hang during shutdown. Since the latter is worse, revert this patch.
+>=20
+> Cc: Honggang Li <honli@redhat.com>
+> Cc: Laurence Oberman <loberman@redhat.com>
+> Reported-by: Honggang Li <honli@redhat.com>
+> Fixes: 9b64f7d0bb0a ("RDMA/srpt: Postpone HCA removal until after configf=
+s directory removal")
+> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+> ---
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/u=
+lp/srpt/ib_srpt.c
+> index c9972b686c27..53dec7d9829c 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -2960,7 +2960,7 @@ static int srpt_release_sport(struct srpt_port *spo=
+rt)
+> =20
+>  =09while (atomic_read(&sport->refcount) > 0 &&
+>  =09       wait_for_completion_timeout(&c, 5 * HZ) <=3D 0) {
+> -=09=09pr_info("%s_%d: waiting for unregistration of %d sessions and conf=
+igfs directories ...\n",
+> +=09=09pr_info("%s_%d: waiting for unregistration of %d sessions ...\n",
+>  =09=09=09dev_name(&sport->sdev->device->dev), sport->port,
+>  =09=09=09atomic_read(&sport->refcount));
+>  =09=09rcu_read_lock();
+> @@ -3776,8 +3776,6 @@ static struct se_portal_group *srpt_make_tpg(struct=
+ se_wwn *wwn,
+>  =09list_add_tail(&stpg->entry, &sport_id->tpg_list);
+>  =09mutex_unlock(&sport_id->mutex);
+> =20
+> -=09atomic_inc(&sport->refcount);
+> -
+>  =09return &stpg->tpg;
+>  }
+> =20
+> @@ -3798,7 +3796,6 @@ static void srpt_drop_tpg(struct se_portal_group *t=
+pg)
+>  =09sport->enabled =3D false;
+>  =09core_tpg_deregister(tpg);
+>  =09kfree(stpg);
+> -=09srpt_drop_sport_ref(sport);
+>  }
+> =20
 
-An upcoming patch will introduce a global pin_user_pages()
-function.
+Acked-by: Honggang Li <honli@redhat.com>
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- drivers/platform/goldfish/goldfish_pipe.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/g=
-oldfish/goldfish_pipe.c
-index cef0133aa47a..7ed2a21a0bac 100644
---- a/drivers/platform/goldfish/goldfish_pipe.c
-+++ b/drivers/platform/goldfish/goldfish_pipe.c
-@@ -257,12 +257,12 @@ static int goldfish_pipe_error_convert(int status)
- 	}
- }
-=20
--static int pin_user_pages(unsigned long first_page,
--			  unsigned long last_page,
--			  unsigned int last_page_size,
--			  int is_write,
--			  struct page *pages[MAX_BUFFERS_PER_COMMAND],
--			  unsigned int *iter_last_page_size)
-+static int pin_goldfish_pages(unsigned long first_page,
-+			      unsigned long last_page,
-+			      unsigned int last_page_size,
-+			      int is_write,
-+			      struct page *pages[MAX_BUFFERS_PER_COMMAND],
-+			      unsigned int *iter_last_page_size)
- {
- 	int ret;
- 	int requested_pages =3D ((last_page - first_page) >> PAGE_SHIFT) + 1;
-@@ -354,9 +354,9 @@ static int transfer_max_buffers(struct goldfish_pipe *p=
-ipe,
- 	if (mutex_lock_interruptible(&pipe->lock))
- 		return -ERESTARTSYS;
-=20
--	pages_count =3D pin_user_pages(first_page, last_page,
--				     last_page_size, is_write,
--				     pipe->pages, &iter_last_page_size);
-+	pages_count =3D pin_goldfish_pages(first_page, last_page,
-+					 last_page_size, is_write,
-+					 pipe->pages, &iter_last_page_size);
- 	if (pages_count < 0) {
- 		mutex_unlock(&pipe->lock);
- 		return pages_count;
---=20
-2.23.0
+>  /**
+> --=20
+> 2.24.0.rc1.363.gb1bccd3e3d-goog
+>=20
 
