@@ -2,62 +2,60 @@ Return-Path: <SRS0=M/HP=Y4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32FB8CA9EA0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0A57CA9EB5
 	for <linux-rdma@archiver.kernel.org>; Mon,  4 Nov 2019 10:37:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E81BB21D7D
-	for <linux-rdma@archiver.kernel.org>; Mon,  4 Nov 2019 10:37:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7E7821D7D
+	for <linux-rdma@archiver.kernel.org>; Mon,  4 Nov 2019 10:37:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="lv8NX5qp"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="R8z0Hxu0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727500AbfKDKh3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 4 Nov 2019 05:37:29 -0500
-Received: from mail-eopbgr80089.outbound.protection.outlook.com ([40.107.8.89]:44166
-        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
+        id S1727236AbfKDKha (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 4 Nov 2019 05:37:30 -0500
+Received: from mail-eopbgr150084.outbound.protection.outlook.com ([40.107.15.84]:57608
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727236AbfKDKh3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 4 Nov 2019 05:37:29 -0500
+        id S1726441AbfKDKha (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 4 Nov 2019 05:37:30 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=NmKAHkmzMxFtIW+s7hU4T4DpjwVqarzQ8QgSPaa44uWL0HsB8QYTRZGSy1z+p2ICoyZRLzDQlxDbuDEW22Iu2OHnPoQ6sKZ6kzMy0+UPwRktsAzlXZi1SGdsXtPm9zGhU8I2kdOHqXW6pErIoX0vkV3/6q8zi9ZR0cTi0/+anFRC2dtMzcdiqZJ27bW6Rk8ORBpG6OomIIZo94XsXTA8IbH/sAdwJpx0H0zX8gjoKiMHbrFDx0VNnsrzr4ykvnVcm1Ja7PfgSwi0sbFGqyKkc+WuriduzLEfFb5jhYk6dVS/aHprhDb5bEX8SxE+pSRq4o3V4B8X+Liim8rdIw98/A==
+ b=k5Ptr9x5GVwTSvtyJU3me6wED7YR4JPY+3d1dy6I88f4wsq69VUYcyFm6pln3tiTyFMagNiHBRdZNByxhg2m3pie1/COAGoBA8oKOzHqkmBJ+7FDaDXcV0hRzZbXENnaPpk4STKKUay8Aevmqs39BJsRBcyeHGNDaEFpJA/qPAjLu9UPTetGGRCklRBCD55VddxMzUBUDZWGKXwOP2BRgaHLtB9PiYjqQKnKmwkw77ZdayPQYBaxrwQ7EYdo+ri15Mf0SNgfGHMtSAED1Y5mW5BekhOKkIT9SYwdH3El4Em7pAwVLBz4egau8a/y9rG6GwLJdEcUILU3FfIfsOXj5Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=a1FUTBOHaypDNLokkCZPgekc9bZo3lA15tMsPk1Kems=;
- b=C8VjnG8gLLFXFq+zMY3cfIEp2DxYP+xUKGpKTdtdIjXHn6L+jQ6zqv4brj50VY6Fqcsb26xu0r977ImbysR0tC9uMXdFFe67U00NIkB9+C+cE+opxP/C+iomybAbbzlYcqL63iwZU6t++AmohmdSt8IddsezGt6A8jP1pkjjtbJ8Njo3qS7aimcVVUvGJPVMCGpF/tC7w4xj5eeTJP7sUlPCmA5B6ujkY4vHLySGkZBGv48oFDzG1bF8ol3C+Qt0y5RVhFgzA63+lUoK3Plx0zN7v0p+1nU+mIslcGWoXERUiqLDoHyuz6PpAq2VaoKuuO15Fyu+HWWlyvrSJ9F27w==
+ bh=CWsoJEh5wWHvyFi5zZcvYn8IuYj2g+tdlbSINEB0Eys=;
+ b=nv7ptxJnwKUXvs8AejQcgKsoOZks8+1OfrlJtL6VA3KmH2dP1vStxcZaPWjpAxYKYXTTKMmNu15lwbdWqEtY5UbkdxWl2kU6vTDb92A9gqvOz5k9vTK/HcrwtmKtQx6LSWdO0Tl+WDIRnxJ/C6AoyeN2rMJ/wMlpS3u/LY+CcNyW0CdzAoEyxA0H3krkraaS9rSCqzDDcC1ZPKvNc3BvReX0ML9lpOU/9/RpiKfZbbmga1qUzNySj/FRoNOIXLq3+/GKnbqxGfoxORqTkJThJ6GEwPGRljOFfuqQycqMkY3KGk5BQz/bXfXfBSrX6uNLQkhoybXma6BZ3xzASI9ppg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
  dkim=pass header.d=mellanox.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=a1FUTBOHaypDNLokkCZPgekc9bZo3lA15tMsPk1Kems=;
- b=lv8NX5qp0bSAo4a+sDUVNIEl8SNfyTqA+8pkNDLyMx+Yr6885uTCe1fYdcxC38UDsPUdoikyPlOCtVElUOvsO3e5usP35Qog7GI3W5UgFzudKDwXPPYSB/WqS6ygq67ZJ+KAwALoqejBYUKvIiROaX3P/vHrSgTOmHlULE+B0Gc=
+ bh=CWsoJEh5wWHvyFi5zZcvYn8IuYj2g+tdlbSINEB0Eys=;
+ b=R8z0Hxu0V5MxKG/WwZZPeBucvsmhtbhTHrJEtZp5UEPwPnEf63iCC+PLUBy4NmITaLJwXFI+rhHQH1DTKBGRM9Ck8VFyeghKI6A0ZsozMyKXHI14ObtWIW562qeyFPkyRfHstNklloZYOidI5BXZRPegkR4F4cz6uB9hMoyWkJA=
 Received: from AM6PR05MB4968.eurprd05.prod.outlook.com (20.177.33.17) by
- AM6PR05MB5366.eurprd05.prod.outlook.com (20.177.191.30) with Microsoft SMTP
+ AM6PR05MB6232.eurprd05.prod.outlook.com (20.178.86.19) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2408.24; Mon, 4 Nov 2019 10:37:26 +0000
+ 15.20.2408.24; Mon, 4 Nov 2019 10:37:25 +0000
 Received: from AM6PR05MB4968.eurprd05.prod.outlook.com
  ([fe80::505f:e3f8:3f87:e3ff]) by AM6PR05MB4968.eurprd05.prod.outlook.com
  ([fe80::505f:e3f8:3f87:e3ff%7]) with mapi id 15.20.2408.024; Mon, 4 Nov 2019
- 10:37:26 +0000
+ 10:37:24 +0000
 From:   Noa Osherovich <noaos@mellanox.com>
 To:     "dledford@redhat.com" <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>
 CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Maxim Chicherin <maximc@mellanox.com>
-Subject: [PATCH rdma-core 2/5] tests: Fix PD API test
-Thread-Topic: [PATCH rdma-core 2/5] tests: Fix PD API test
-Thread-Index: AQHVkvvZTm52QF1ahkqonM2eoGSorg==
-Date:   Mon, 4 Nov 2019 10:37:26 +0000
-Message-ID: <20191104103710.11196-3-noaos@mellanox.com>
-References: <20191104103710.11196-1-noaos@mellanox.com>
-In-Reply-To: <20191104103710.11196-1-noaos@mellanox.com>
+        Noa Osherovich <noaos@mellanox.com>
+Subject: [PATCH rdma-core 0/5] Introducing RDMACM support in pyverbs
+Thread-Topic: [PATCH rdma-core 0/5] Introducing RDMACM support in pyverbs
+Thread-Index: AQHVkvvYxWkFX3LlMU+guc/HuoS1tQ==
+Date:   Mon, 4 Nov 2019 10:37:24 +0000
+Message-ID: <20191104103710.11196-1-noaos@mellanox.com>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
@@ -72,63 +70,75 @@ x-ms-exchange-messagesentrepresentingtype: 1
 x-originating-ip: [94.188.199.18]
 x-ms-publictraffictype: Email
 x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: 7c8de083-6224-46b5-ca08-08d76112fc35
-x-ms-traffictypediagnostic: AM6PR05MB5366:|AM6PR05MB5366:
+x-ms-office365-filtering-correlation-id: 367949a7-ecb3-4cc7-3bfd-08d76112fb1e
+x-ms-traffictypediagnostic: AM6PR05MB6232:|AM6PR05MB6232:
 x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <AM6PR05MB53666BF8156619BAC44F4329D97F0@AM6PR05MB5366.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:5236;
+x-microsoft-antispam-prvs: <AM6PR05MB623201EBFB8F68D0E102F012D97F0@AM6PR05MB6232.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:2958;
 x-forefront-prvs: 0211965D06
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(376002)(396003)(39860400002)(136003)(346002)(366004)(189003)(199004)(14454004)(76176011)(66066001)(6636002)(305945005)(7736002)(186003)(86362001)(6486002)(446003)(11346002)(6436002)(102836004)(6512007)(2616005)(476003)(486006)(316002)(8676002)(478600001)(4326008)(8936002)(4744005)(6116002)(81156014)(81166006)(110136005)(99286004)(54906003)(25786009)(6506007)(52116002)(26005)(50226002)(107886003)(14444005)(386003)(36756003)(256004)(66446008)(64756008)(66556008)(66946007)(66476007)(5660300002)(2501003)(2906002)(71200400001)(71190400001)(1076003)(3846002);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR05MB5366;H:AM6PR05MB4968.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(39860400002)(376002)(136003)(366004)(346002)(396003)(199004)(189003)(25786009)(8676002)(2501003)(66066001)(386003)(6506007)(71200400001)(71190400001)(99286004)(6436002)(8936002)(2616005)(476003)(107886003)(1076003)(5660300002)(50226002)(6636002)(316002)(6512007)(54906003)(81166006)(81156014)(110136005)(4326008)(14454004)(6116002)(186003)(3846002)(86362001)(256004)(36756003)(6486002)(52116002)(486006)(478600001)(66446008)(64756008)(66556008)(66476007)(66946007)(102836004)(305945005)(26005)(2906002)(7736002);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR05MB6232;H:AM6PR05MB4968.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
 received-spf: None (protection.outlook.com: mellanox.com does not designate
  permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 5mImW9dZz6WyFKTH2xRNjJrFben6c1rjyp/2CNUSo7Y7QYq9SO9ASyumiTjYqfqgRcW2PYr3r/vvo7ITPmjs934eVetYjBn1gmPl0jXr99p2YgqUUvZU7w13nOXcqZYwCZardnpYO+Kf+84/y9nNWEPKLNgjZ4zXjkfQ/imAOcsKNCd56ByenouxOmtGOC+3e20pevcUQAnIyjzw8e7tpYogZt0b+HYN+Ih1CsQPFEqVKpyEO0UHgK+5gr+cEBpMzPFHTDWPF+vRMeKpL6cHoIa+tyETb7Ph82i+KfKXWRl/NywfPGrCv8xOZPZMk9YVDSfuvTmTTy8ZtC4P9p+o6p+gNqndJpPhlSCX78VbE7lcbeCJy+2VpPN/8pWhqXCutdRCfMwuLmR4kx5xqS1MnNTvF7mhjdmrS0ZYOFN5sbzAFmWPyxlfRYwGWWVIORFd
+x-microsoft-antispam-message-info: ptc+N71+B0tZpzGWmgAfXsN5NVZSbdvgrMY687opsjz2cDFyEn64tz3Fuqo3WUfplPsHdTgRVHubzL/K9MyDJvorp904kvOnHRWQ5So394v7+aDGbnuP9CkZ+0bn7mABR34cfLk893fobGwuYylOWm7XFM+igVPsn3Br6DscbCs9L33urWJAZNrzguhoAEVu8+9h+wZd5WXq8qL2g/Z0qKGBMnThSYLSebdeVod7s1EAIL/jtzVcXHlYy/w/8kKDNJgzlMbe6vn13eTBzk/cwVXWHId/HtJAzLabjMMk68nrjW7zLBMA4C4IifkPY3nEWT47wmh1ikY07HH/e+p0NBnAq0uqHqLPZ75CkSLVFOIaWELSjbIX2Av1Zd/NiubAptNfJfG1Qvtdyn2f+LbuNMdb197CW1/rRUG3XjSyNHFjGvy4D5vvUOSGYISndtXa
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7c8de083-6224-46b5-ca08-08d76112fc35
-X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Nov 2019 10:37:26.7189
+X-MS-Exchange-CrossTenant-Network-Message-Id: 367949a7-ecb3-4cc7-3bfd-08d76112fb1e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Nov 2019 10:37:24.8753
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: ydAmfeHJhl2/ILhNX+7+VwNxxNLGJAgFJG9o3jpMTxd/3x1hJcaiYCnYiV8y+phYCCoPJ+5nHKzVZekS4SzTRA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB5366
+X-MS-Exchange-CrossTenant-userprincipalname: 1sounFERB4cLZBkAIyPAeXkpLdISx7hIH3+40kJFHj2VormdCmjjeUKpkEpS6UhRhl6e4TbJ6nMyWH6HUyB1cQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB6232
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maxim Chicherin <maximc@mellanox.com>
+The following patches add support for RDMACM in pyverbs. Currently
+only synchronous data path is supported (creation using rdma_create_ep).
+Testing infrastructure for RDMACM is also added as well as a synchronous
+traffic test.
 
-In order to support PD class in CMID, modifications was made in PD
-constructor, as a result one of test_pd's cases broke.
-Fix it to create PD properly.
 
-Signed-off-by: Maxim Chicherin <maximc@mellanox.com>
----
- tests/test_pd.py | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Maxim Chicherin (5):
+  pyverbs: New CMID class
+  tests: Fix PD API test
+  tests: New CMResources Class
+  tests: Add RDMACM synchronous traffic test
+  Documentation: Document creation of CMID
+
+ Documentation/pyverbs.md         |  30 ++++
+ buildlib/pyverbs_functions.cmake |   2 +-
+ pyverbs/CMakeLists.txt           |   2 +
+ pyverbs/cm_enums.pyx             |   1 +
+ pyverbs/cmid.pxd                 |  25 +++
+ pyverbs/cmid.pyx                 | 285 +++++++++++++++++++++++++++++++
+ pyverbs/device.pyx               |  15 +-
+ pyverbs/librdmacm.pxd            | 106 ++++++++++++
+ pyverbs/librdmacm_enums.pxd      |  32 ++++
+ pyverbs/pd.pyx                   |  24 ++-
+ tests/CMakeLists.txt             |   2 +
+ tests/base.py                    |  52 ++++++
+ tests/rdmacm_utils.py            |  43 +++++
+ tests/test_pd.py                 |   3 +-
+ tests/test_rdmacm.py             |  57 +++++++
+ 15 files changed, 668 insertions(+), 11 deletions(-)
+ create mode 120000 pyverbs/cm_enums.pyx
+ create mode 100755 pyverbs/cmid.pxd
+ create mode 100755 pyverbs/cmid.pyx
+ create mode 100755 pyverbs/librdmacm.pxd
+ create mode 100755 pyverbs/librdmacm_enums.pxd
+ mode change 100644 =3D> 100755 pyverbs/pd.pyx
+ mode change 100644 =3D> 100755 tests/CMakeLists.txt
+ create mode 100755 tests/rdmacm_utils.py
  mode change 100644 =3D> 100755 tests/test_pd.py
+ create mode 100755 tests/test_rdmacm.py
 
-diff --git a/tests/test_pd.py b/tests/test_pd.py
-old mode 100644
-new mode 100755
-index 978cf4900146..a8d6eb2fb69f
---- a/tests/test_pd.py
-+++ b/tests/test_pd.py
-@@ -48,8 +48,7 @@ class PDTest(PyverbsAPITestCase):
-         try:
-             PD(None)
-         except TypeError as te:
--            assert 'expected pyverbs.device.Context' in te.args[0]
--            assert 'got NoneType' in te.args[0]
-+            assert 'must not be None' in te.args[0]
-         else:
-             raise PyverbsRDMAErrno('Created a PD with None context')
-=20
 --=20
 2.21.0
 
