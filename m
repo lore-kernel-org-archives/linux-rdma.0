@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8538CC010A2
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABEBDC010BC
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 650EB21D71
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8AFF420869
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388636AbfKELLt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Nov 2019 06:11:49 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:5724 "EHLO huawei.com"
+        id S2388735AbfKELLw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Nov 2019 06:11:52 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6155 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2388734AbfKELLs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 5 Nov 2019 06:11:48 -0500
-Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 8AD8CEE6EF40B63FA101;
-        Tue,  5 Nov 2019 19:11:44 +0800 (CST)
+        id S2388734AbfKELLv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 5 Nov 2019 06:11:51 -0500
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 6F17D9AF5CE12CF98B65;
+        Tue,  5 Nov 2019 19:11:49 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 5 Nov 2019 19:11:37 +0800
+ 14.3.439.0; Tue, 5 Nov 2019 19:11:38 +0800
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 2/9] RDMA/hns: Remove unnecessary structure hns_roce_sqp
-Date:   Tue, 5 Nov 2019 19:07:55 +0800
-Message-ID: <1572952082-6681-3-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH v2 for-next 8/9] RDMA/hns: Fix non-standard error codes
+Date:   Tue, 5 Nov 2019 19:08:01 +0800
+Message-ID: <1572952082-6681-9-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
 References: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
@@ -42,115 +42,127 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+From: Yixian Liu <liuyixian@huawei.com>
 
-Special QP have no differences with normal qp in data structure, so
-definition of struct hns_roce_sqp should be removed and replaced by
-struct hns_roce_qp.
+It is better to return a linux error code than define a private constant.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h | 9 ---------
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 5 +----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 5 +----
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 8 +++-----
- 4 files changed, 5 insertions(+), 22 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_alloc.c |  4 ++--
+ drivers/infiniband/hw/hns/hns_roce_cq.c    |  4 ++--
+ drivers/infiniband/hw/hns/hns_roce_mr.c    | 15 ++++++++-------
+ drivers/infiniband/hw/hns/hns_roce_pd.c    |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_srq.c   |  2 +-
+ 5 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 3ed6b9e..3529e27 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -694,10 +694,6 @@ struct hns_roce_qp {
- 	struct hns_roce_rinl_buf rq_inl_buf;
- };
- 
--struct hns_roce_sqp {
--	struct hns_roce_qp	hr_qp;
--};
--
- struct hns_roce_ib_iboe {
- 	spinlock_t		lock;
- 	struct net_device      *netdevs[HNS_ROCE_MAX_PORTS];
-@@ -1091,11 +1087,6 @@ static inline struct hns_roce_srq *to_hr_srq(struct ib_srq *ibsrq)
- 	return container_of(ibsrq, struct hns_roce_srq, ibsrq);
- }
- 
--static inline struct hns_roce_sqp *hr_to_hr_sqp(struct hns_roce_qp *hr_qp)
--{
--	return container_of(hr_qp, struct hns_roce_sqp, hr_qp);
--}
--
- static inline void hns_roce_write64_k(__le32 val[2], void __iomem *dest)
- {
- 	__raw_writeq(*(u64 *) val, dest);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 5f74bf5..bfe9cee 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3644,10 +3644,7 @@ int hns_roce_v1_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+index 8c063c5..da574c2 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
++++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+@@ -55,7 +55,7 @@ int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, unsigned long *obj)
+ 			bitmap->last = 0;
+ 		*obj |= bitmap->top;
+ 	} else {
+-		ret = -1;
++		ret = -EINVAL;
  	}
  
--	if (hr_qp->ibqp.qp_type == IB_QPT_RC)
--		kfree(hr_qp);
--	else
--		kfree(hr_to_hr_sqp(hr_qp));
-+	kfree(hr_qp);
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 14e24b4..9b6b046 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4727,10 +4727,7 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 		ibdev_err(&hr_dev->ib_dev, "Destroy qp 0x%06lx failed(%d)\n",
- 			  hr_qp->qpn, ret);
- 
--	if (hr_qp->ibqp.qp_type == IB_QPT_GSI)
--		kfree(hr_to_hr_sqp(hr_qp));
--	else
--		kfree(hr_qp);
-+	kfree(hr_qp);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 071e9bc..ecfa875 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -1017,7 +1017,6 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
--	struct hns_roce_sqp *hr_sqp;
- 	struct hns_roce_qp *hr_qp;
- 	int ret;
- 
-@@ -1047,11 +1046,10 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 			return ERR_PTR(-EINVAL);
+ 	spin_unlock(&bitmap->lock);
+@@ -100,7 +100,7 @@ int hns_roce_bitmap_alloc_range(struct hns_roce_bitmap *bitmap, int cnt,
  		}
+ 		*obj |= bitmap->top;
+ 	} else {
+-		ret = -1;
++		ret = -EINVAL;
+ 	}
  
--		hr_sqp = kzalloc(sizeof(*hr_sqp), GFP_KERNEL);
--		if (!hr_sqp)
-+		hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
-+		if (!hr_qp)
- 			return ERR_PTR(-ENOMEM);
+ 	spin_unlock(&bitmap->lock);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 713df1f..699c987 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -116,9 +116,9 @@ static int hns_roce_cq_alloc(struct hns_roce_dev *hr_dev, int nent,
+ 	hr_cq->vector = vector;
  
--		hr_qp = &hr_sqp->hr_qp;
- 		hr_qp->port = init_attr->port_num - 1;
- 		hr_qp->phy_port = hr_dev->iboe.phy_port[hr_qp->port];
+ 	ret = hns_roce_bitmap_alloc(&cq_table->bitmap, &hr_cq->cqn);
+-	if (ret == -1) {
++	if (ret) {
+ 		dev_err(dev, "CQ alloc.Failed to alloc index.\n");
+-		return -ENOMEM;
++		return ret;
+ 	}
  
-@@ -1066,7 +1064,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 						hr_qp->ibqp.qp_num, hr_qp);
- 		if (ret) {
- 			ibdev_err(ibdev, "Create GSI QP failed!\n");
--			kfree(hr_sqp);
-+			kfree(hr_qp);
- 			return ERR_PTR(ret);
+ 	/* Get CQC memory HEM(Hardware Entry Memory) table */
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 577946b..6589e28 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -83,7 +83,7 @@ static int hns_roce_buddy_alloc(struct hns_roce_buddy *buddy, int order,
  		}
+ 	}
+ 	spin_unlock(&buddy->lock);
+-	return -1;
++	return -EINVAL;
  
+  found:
+ 	clear_bit(*seg, buddy->bits[o]);
+@@ -206,13 +206,14 @@ static int hns_roce_alloc_mtt_range(struct hns_roce_dev *hr_dev, int order,
+ 	}
+ 
+ 	ret = hns_roce_buddy_alloc(buddy, order, seg);
+-	if (ret == -1)
+-		return -1;
++	if (ret)
++		return ret;
+ 
+-	if (hns_roce_table_get_range(hr_dev, table, *seg,
+-				     *seg + (1 << order) - 1)) {
++	ret = hns_roce_table_get_range(hr_dev, table, *seg,
++				       *seg + (1 << order) - 1);
++	if (ret) {
+ 		hns_roce_buddy_free(buddy, *seg, order);
+-		return -1;
++		return ret;
+ 	}
+ 
+ 	return 0;
+@@ -578,7 +579,7 @@ static int hns_roce_mr_alloc(struct hns_roce_dev *hr_dev, u32 pd, u64 iova,
+ 
+ 	/* Allocate a key for mr from mr_table */
+ 	ret = hns_roce_bitmap_alloc(&hr_dev->mr_table.mtpt_bitmap, &index);
+-	if (ret == -1)
++	if (ret)
+ 		return -ENOMEM;
+ 
+ 	mr->iova = iova;			/* MR va starting addr */
+diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
+index 912b89b4..780c780 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_pd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
+@@ -96,7 +96,7 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
+ 
+ 	/* Using bitmap to manager UAR index */
+ 	ret = hns_roce_bitmap_alloc(&hr_dev->uar_table.bitmap, &uar->logic_idx);
+-	if (ret == -1)
++	if (ret)
+ 		return -ENOMEM;
+ 
+ 	if (uar->logic_idx > 0 && hr_dev->caps.phy_num_uars > 1)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index d275818..96ff782 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -111,7 +111,7 @@ static int hns_roce_srq_alloc(struct hns_roce_dev *hr_dev, u32 pdn, u32 cqn,
+ 	}
+ 
+ 	ret = hns_roce_bitmap_alloc(&srq_table->bitmap, &srq->srqn);
+-	if (ret == -1) {
++	if (ret) {
+ 		dev_err(hr_dev->dev, "SRQ alloc.Failed to alloc index.\n");
+ 		return -ENOMEM;
+ 	}
 -- 
 2.8.1
 
