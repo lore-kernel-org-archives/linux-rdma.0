@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE93BC010BD
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8538CC010A2
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A65D020869
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 650EB21D71
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388716AbfKELLs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Nov 2019 06:11:48 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:5725 "EHLO huawei.com"
+        id S2388636AbfKELLt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Nov 2019 06:11:49 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:5724 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2388494AbfKELLs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S2388734AbfKELLs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 5 Nov 2019 06:11:48 -0500
 Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 8609ECBDA2BA2F1673C8;
+        by Forcepoint Email with ESMTP id 8AD8CEE6EF40B63FA101;
         Tue,  5 Nov 2019 19:11:44 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
@@ -27,9 +27,9 @@ Received: from localhost.localdomain (10.67.165.24) by
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 4/9] RDMA/hns: Modify fields of struct hns_roce_srq
-Date:   Tue, 5 Nov 2019 19:07:57 +0800
-Message-ID: <1572952082-6681-5-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH v2 for-next 2/9] RDMA/hns: Remove unnecessary structure hns_roce_sqp
+Date:   Tue, 5 Nov 2019 19:07:55 +0800
+Message-ID: <1572952082-6681-3-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
 References: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
@@ -42,193 +42,115 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+From: Lang Cheng <chenglang@huawei.com>
 
-Use wqe_cnt instead of max which means the queue size of srq, and remove
-wqe_ctr which is not used.
+Special QP have no differences with normal qp in data structure, so
+definition of struct hns_roce_sqp should be removed and replaced by
+struct hns_roce_qp.
 
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 12 ++++++------
- drivers/infiniband/hw/hns/hns_roce_srq.c    | 26 +++++++++++++-------------
- 3 files changed, 21 insertions(+), 22 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 9 ---------
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 5 +----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 5 +----
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 8 +++-----
+ 4 files changed, 5 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 3800fea..5b499a9 100644
+index 3ed6b9e..3529e27 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -519,9 +519,8 @@ struct hns_roce_idx_que {
- 
- struct hns_roce_srq {
- 	struct ib_srq		ibsrq;
--	void (*event)(struct hns_roce_srq *srq, enum hns_roce_event event);
- 	unsigned long		srqn;
--	int			max;
-+	u32			wqe_cnt;
- 	int			max_gs;
- 	int			wqe_shift;
- 	void __iomem		*db_reg_l;
-@@ -537,8 +536,8 @@ struct hns_roce_srq {
- 	spinlock_t		lock;
- 	int			head;
- 	int			tail;
--	u16			wqe_ctr;
- 	struct mutex		mutex;
-+	void (*event)(struct hns_roce_srq *srq, enum hns_roce_event event);
+@@ -694,10 +694,6 @@ struct hns_roce_qp {
+ 	struct hns_roce_rinl_buf rq_inl_buf;
  };
  
- struct hns_roce_uar_table {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 9b6b046..266d746d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6040,7 +6040,7 @@ static void hns_roce_v2_write_srqc(struct hns_roce_dev *hr_dev,
- 		       hr_dev->caps.srqwqe_hop_num));
- 	roce_set_field(srq_context->byte_4_srqn_srqst,
- 		       SRQC_BYTE_4_SRQ_SHIFT_M, SRQC_BYTE_4_SRQ_SHIFT_S,
--		       ilog2(srq->max));
-+		       ilog2(srq->wqe_cnt));
- 
- 	roce_set_field(srq_context->byte_4_srqn_srqst, SRQC_BYTE_4_SRQN_M,
- 		       SRQC_BYTE_4_SRQN_S, srq->srqn);
-@@ -6126,7 +6126,7 @@ static int hns_roce_v2_modify_srq(struct ib_srq *ibsrq,
- 	int ret;
- 
- 	if (srq_attr_mask & IB_SRQ_LIMIT) {
--		if (srq_attr->srq_limit >= srq->max)
-+		if (srq_attr->srq_limit >= srq->wqe_cnt)
- 			return -EINVAL;
- 
- 		mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
-@@ -6186,7 +6186,7 @@ static int hns_roce_v2_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
- 				  SRQC_BYTE_8_SRQ_LIMIT_WL_S);
- 
- 	attr->srq_limit = limit_wl;
--	attr->max_wr    = srq->max - 1;
-+	attr->max_wr    = srq->wqe_cnt - 1;
- 	attr->max_sge   = srq->max_gs;
- 
- 	memcpy(srq_context, mailbox->buf, sizeof(*srq_context));
-@@ -6239,7 +6239,7 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
- 
- 	spin_lock_irqsave(&srq->lock, flags);
- 
--	ind = srq->head & (srq->max - 1);
-+	ind = srq->head & (srq->wqe_cnt - 1);
- 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
- 		if (unlikely(wr->num_sge > srq->max_gs)) {
-@@ -6254,7 +6254,7 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
- 			break;
- 		}
- 
--		wqe_idx = find_empty_entry(&srq->idx_que, srq->max);
-+		wqe_idx = find_empty_entry(&srq->idx_que, srq->wqe_cnt);
- 		if (wqe_idx < 0) {
- 			ret = -ENOMEM;
- 			*bad_wr = wr;
-@@ -6278,7 +6278,7 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
- 		}
- 
- 		srq->wrid[wqe_idx] = wr->wr_id;
--		ind = (ind + 1) & (srq->max - 1);
-+		ind = (ind + 1) & (srq->wqe_cnt - 1);
- 	}
- 
- 	if (likely(nreq)) {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index d96041d..6f9d1d2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -255,7 +255,7 @@ static int hns_roce_create_idx_que(struct ib_pd *pd, struct hns_roce_srq *srq,
- 	struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
- 	struct hns_roce_idx_que *idx_que = &srq->idx_que;
- 
--	idx_que->bitmap = bitmap_zalloc(srq->max, GFP_KERNEL);
-+	idx_que->bitmap = bitmap_zalloc(srq->wqe_cnt, GFP_KERNEL);
- 	if (!idx_que->bitmap)
- 		return -ENOMEM;
- 
-@@ -281,7 +281,7 @@ static int create_kernel_srq(struct hns_roce_srq *srq, int srq_buf_size)
- 		return -ENOMEM;
- 
- 	srq->head = 0;
--	srq->tail = srq->max - 1;
-+	srq->tail = srq->wqe_cnt - 1;
- 
- 	ret = hns_roce_mtt_init(hr_dev, srq->buf.npages, srq->buf.page_shift,
- 				&srq->mtt);
-@@ -312,7 +312,7 @@ static int create_kernel_srq(struct hns_roce_srq *srq, int srq_buf_size)
- 	if (ret)
- 		goto err_kernel_idx_buf;
- 
--	srq->wrid = kvmalloc_array(srq->max, sizeof(u64), GFP_KERNEL);
-+	srq->wrid = kvmalloc_array(srq->wqe_cnt, sizeof(u64), GFP_KERNEL);
- 	if (!srq->wrid) {
- 		ret = -ENOMEM;
- 		goto err_kernel_idx_buf;
-@@ -358,7 +358,7 @@ static void destroy_kernel_srq(struct hns_roce_dev *hr_dev,
+-struct hns_roce_sqp {
+-	struct hns_roce_qp	hr_qp;
+-};
+-
+ struct hns_roce_ib_iboe {
+ 	spinlock_t		lock;
+ 	struct net_device      *netdevs[HNS_ROCE_MAX_PORTS];
+@@ -1091,11 +1087,6 @@ static inline struct hns_roce_srq *to_hr_srq(struct ib_srq *ibsrq)
+ 	return container_of(ibsrq, struct hns_roce_srq, ibsrq);
  }
  
- int hns_roce_create_srq(struct ib_srq *ib_srq,
--			struct ib_srq_init_attr *srq_init_attr,
-+			struct ib_srq_init_attr *init_attr,
- 			struct ib_udata *udata)
+-static inline struct hns_roce_sqp *hr_to_hr_sqp(struct hns_roce_qp *hr_qp)
+-{
+-	return container_of(hr_qp, struct hns_roce_sqp, hr_qp);
+-}
+-
+ static inline void hns_roce_write64_k(__le32 val[2], void __iomem *dest)
  {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_srq->device);
-@@ -370,24 +370,24 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	u32 cqn;
+ 	__raw_writeq(*(u64 *) val, dest);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 5f74bf5..bfe9cee 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -3644,10 +3644,7 @@ int hns_roce_v1_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
+ 	}
  
- 	/* Check the actual SRQ wqe and SRQ sge num */
--	if (srq_init_attr->attr.max_wr >= hr_dev->caps.max_srq_wrs ||
--	    srq_init_attr->attr.max_sge > hr_dev->caps.max_srq_sges)
-+	if (init_attr->attr.max_wr >= hr_dev->caps.max_srq_wrs ||
-+	    init_attr->attr.max_sge > hr_dev->caps.max_srq_sges)
- 		return -EINVAL;
+-	if (hr_qp->ibqp.qp_type == IB_QPT_RC)
+-		kfree(hr_qp);
+-	else
+-		kfree(hr_to_hr_sqp(hr_qp));
++	kfree(hr_qp);
+ 	return 0;
+ }
  
- 	mutex_init(&srq->mutex);
- 	spin_lock_init(&srq->lock);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 14e24b4..9b6b046 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4727,10 +4727,7 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 		ibdev_err(&hr_dev->ib_dev, "Destroy qp 0x%06lx failed(%d)\n",
+ 			  hr_qp->qpn, ret);
  
--	srq->max = roundup_pow_of_two(srq_init_attr->attr.max_wr + 1);
--	srq->max_gs = srq_init_attr->attr.max_sge;
-+	srq->wqe_cnt = roundup_pow_of_two(init_attr->attr.max_wr + 1);
-+	srq->max_gs = init_attr->attr.max_sge;
+-	if (hr_qp->ibqp.qp_type == IB_QPT_GSI)
+-		kfree(hr_to_hr_sqp(hr_qp));
+-	else
+-		kfree(hr_qp);
++	kfree(hr_qp);
  
- 	srq_desc_size = max(16, 16 * srq->max_gs);
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 071e9bc..ecfa875 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1017,7 +1017,6 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	struct hns_roce_sqp *hr_sqp;
+ 	struct hns_roce_qp *hr_qp;
+ 	int ret;
  
- 	srq->wqe_shift = ilog2(srq_desc_size);
- 
--	srq_buf_size = srq->max * srq_desc_size;
-+	srq_buf_size = srq->wqe_cnt * srq_desc_size;
- 
- 	srq->idx_que.entry_sz = HNS_ROCE_IDX_QUE_ENTRY_SZ;
--	srq->idx_que.buf_size = srq->max * srq->idx_que.entry_sz;
-+	srq->idx_que.buf_size = srq->wqe_cnt * srq->idx_que.entry_sz;
- 	srq->mtt.mtt_type = MTT_TYPE_SRQWQE;
- 	srq->idx_que.mtt.mtt_type = MTT_TYPE_IDX;
- 
-@@ -405,8 +405,8 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
+@@ -1047,11 +1046,10 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 			return ERR_PTR(-EINVAL);
  		}
- 	}
  
--	cqn = ib_srq_has_cq(srq_init_attr->srq_type) ?
--	      to_hr_cq(srq_init_attr->ext.cq)->cqn : 0;
-+	cqn = ib_srq_has_cq(init_attr->srq_type) ?
-+	      to_hr_cq(init_attr->ext.cq)->cqn : 0;
+-		hr_sqp = kzalloc(sizeof(*hr_sqp), GFP_KERNEL);
+-		if (!hr_sqp)
++		hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
++		if (!hr_qp)
+ 			return ERR_PTR(-ENOMEM);
  
- 	srq->db_reg_l = hr_dev->reg_base + SRQ_DB_REG;
+-		hr_qp = &hr_sqp->hr_qp;
+ 		hr_qp->port = init_attr->port_num - 1;
+ 		hr_qp->phy_port = hr_dev->iboe.phy_port[hr_qp->port];
  
-@@ -453,7 +453,7 @@ void hns_roce_destroy_srq(struct ib_srq *ibsrq, struct ib_udata *udata)
- 		hns_roce_mtt_cleanup(hr_dev, &srq->idx_que.mtt);
- 	} else {
- 		kvfree(srq->wrid);
--		hns_roce_buf_free(hr_dev, srq->max << srq->wqe_shift,
-+		hns_roce_buf_free(hr_dev, srq->wqe_cnt << srq->wqe_shift,
- 				  &srq->buf);
- 	}
- 	ib_umem_release(srq->idx_que.umem);
+@@ -1066,7 +1064,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 						hr_qp->ibqp.qp_num, hr_qp);
+ 		if (ret) {
+ 			ibdev_err(ibdev, "Create GSI QP failed!\n");
+-			kfree(hr_sqp);
++			kfree(hr_qp);
+ 			return ERR_PTR(ret);
+ 		}
+ 
 -- 
 2.8.1
 
