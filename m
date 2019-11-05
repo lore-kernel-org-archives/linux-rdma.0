@@ -2,35 +2,37 @@ Return-Path: <SRS0=rIHD=Y5=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18C25C010B9
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4DADC010BC
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E23BB21D7D
+	by mail.kernel.org (Postfix) with ESMTP id 84ECD21D7D
 	for <linux-rdma@archiver.kernel.org>; Tue,  5 Nov 2019 11:11:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388721AbfKELLs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Nov 2019 06:11:48 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:5721 "EHLO huawei.com"
+        id S2388737AbfKELLr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Nov 2019 06:11:47 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:5720 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2388716AbfKELLp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S2388721AbfKELLp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 5 Nov 2019 06:11:45 -0500
 Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 73349F6E46C93444E3C6;
+        by Forcepoint Email with ESMTP id 77A31E8EECF42A68F246;
         Tue,  5 Nov 2019 19:11:44 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 5 Nov 2019 19:11:36 +0800
+ 14.3.439.0; Tue, 5 Nov 2019 19:11:38 +0800
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 0/9] RDMA/hns: Cleanups for hip08
-Date:   Tue, 5 Nov 2019 19:07:53 +0800
-Message-ID: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH v2 for-next 6/9] RDMA/hns: Simplify doorbell initialization code
+Date:   Tue, 5 Nov 2019 19:07:59 +0800
+Message-ID: <1572952082-6681-7-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
+References: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -40,47 +42,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-These series just make cleanups without changing code logic.
+From: Lang Cheng <chenglang@huawei.com>
 
-[patch 1/9 ~ 3/9] remove unused variables and structures.
-[patch 4/9 ~ 5/9] modify field and function names.
-[patch 6/9 ~ 7/9] remove dead codes to simplify functions.
-[patch 8/9] replaces non-standard return value with linux error codes.
-[patch 9/9] does some fixes on printings.
+If a variable needs to be set to 0 before use, it can be directly
+initialized to 0.
 
-Changelog
-v1->v2: Remove "{topost}" in titles.
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Lang Cheng (3):
-  RDMA/hns: Remove unnecessary structure hns_roce_sqp
-  RDMA/hns: Simplify doorbell initialization code
-  RDMA/hns: Modify hns_roce_hw_v2_get_cfg to simplify the code
-
-Wenpeng Liang (1):
-  RDMA/hns: Modify appropriate printings
-
-Yixian Liu (4):
-  RDMA/hns: Delete unnecessary variable max_post
-  RDMA/hns: Delete unnecessary uar from hns_roce_cq
-  RDMA/hns: Modify fields of struct hns_roce_srq
-  RDMA/hns: Fix non-standard error codes
-
-Yixing Liu (1):
-  RDMA/hns: Replace not intuitive function/macro names
-
- drivers/infiniband/hw/hns/hns_roce_alloc.c  |  4 +-
- drivers/infiniband/hw/hns/hns_roce_cmd.h    | 14 +++----
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 51 +++++++++++-----------
- drivers/infiniband/hw/hns/hns_roce_device.h | 22 +++-------
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 12 +++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 37 ++++++----------
- drivers/infiniband/hw/hns/hns_roce_main.c   |  4 +-
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 65 +++++++++++++++--------------
- drivers/infiniband/hw/hns/hns_roce_pd.c     |  2 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 18 ++++----
- drivers/infiniband/hw/hns/hns_roce_srq.c    | 58 ++++++++++++-------------
- 11 files changed, 132 insertions(+), 155 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 266d746d..f65bd7a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4944,10 +4944,7 @@ static void hns_roce_v2_init_irq_work(struct hns_roce_dev *hr_dev,
+ static void set_eq_cons_index_v2(struct hns_roce_eq *eq)
+ {
+ 	struct hns_roce_dev *hr_dev = eq->hr_dev;
+-	__le32 doorbell[2];
+-
+-	doorbell[0] = 0;
+-	doorbell[1] = 0;
++	__le32 doorbell[2] = {};
+ 
+ 	if (eq->type_flag == HNS_ROCE_AEQ) {
+ 		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
 -- 
 2.8.1
 
