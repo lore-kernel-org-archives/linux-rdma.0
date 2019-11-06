@@ -2,134 +2,69 @@ Return-Path: <SRS0=/r8L=Y6=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E47CC5DF62
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Nov 2019 03:13:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E02EC5DF64
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Nov 2019 03:17:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12D58217F4
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Nov 2019 03:13:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VW5uuCnb"
+	by mail.kernel.org (Postfix) with ESMTP id ED1562053B
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Nov 2019 03:17:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730638AbfKFDNT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Nov 2019 22:13:19 -0500
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:49656 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1730562AbfKFDNT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Nov 2019 22:13:19 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1573009997;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=yE2eIUXdqdudVs+qffegETSnB3E0tBJaLpPFv6yibjg=;
-        b=VW5uuCnbHiDGKsnDGknTYFopTcPoJBeaOyR14u81xcF/hWGvAwXF2y+exRqd10PA4ahS7K
-        eFRnUFMp40RMT9T5WvvZONQnRWc4uqCmFPc8tOrwk/gF8hN4PL5fJQU4NfsrEeMx0RL4B3
-        ek7dBrLs0kr/DOMEfpHDEepj1r4uyw0=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-409-feb-qndZODWUZGdP2HyWIQ-1; Tue, 05 Nov 2019 22:13:16 -0500
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3D658107ACC3;
-        Wed,  6 Nov 2019 03:13:15 +0000 (UTC)
-Received: from localhost (unknown [10.66.128.227])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 9675B600C4;
-        Wed,  6 Nov 2019 03:13:14 +0000 (UTC)
-Date:   Wed, 6 Nov 2019 11:13:11 +0800
-From:   Honggang LI <honli@redhat.com>
-To:     Bart Van Assche <bvanassche@acm.org>
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Laurence Oberman <loberman@redhat.com>
-Subject: Re: [PATCH] RDMA/srpt: Report the SCSI residual to the initiator
-Message-ID: <20191106031311.GA19586@dhcp-128-227.nay.redhat.com>
-References: <20191105214632.183302-1-bvanassche@acm.org>
+        id S1730562AbfKFDRS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Nov 2019 22:17:18 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:47980 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1730576AbfKFDRS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 5 Nov 2019 22:17:18 -0500
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 9E6DAB69401FDE45F494;
+        Wed,  6 Nov 2019 11:17:12 +0800 (CST)
+Received: from huawei.com (10.90.53.225) by DGGEMS414-HUB.china.huawei.com
+ (10.3.19.214) with Microsoft SMTP Server id 14.3.439.0; Wed, 6 Nov 2019
+ 11:17:05 +0800
+From:   zhengbin <zhengbin13@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>,
+        <michal.kalderon@marvell.com>, <ariel.elior@marvell.com>,
+        <linux-rdma@vger.kernel.org>
+CC:     <zhengbin13@huawei.com>
+Subject: [PATCH] RDMA/core: make function rdma_user_mmap_entry_free static
+Date:   Wed, 6 Nov 2019 11:24:17 +0800
+Message-ID: <1573010657-11997-1-git-send-email-zhengbin13@huawei.com>
+X-Mailer: git-send-email 2.7.4
 MIME-Version: 1.0
-In-Reply-To: <20191105214632.183302-1-bvanassche@acm.org>
-User-Agent: Mutt/1.12.1 (2019-06-15)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-X-MC-Unique: feb-qndZODWUZGdP2HyWIQ-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Content-Type: text/plain
+X-Originating-IP: [10.90.53.225]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Nov 05, 2019 at 01:46:32PM -0800, Bart Van Assche wrote:
-> The code added by this patch is similar to the code that already exists
-> in ibmvscsis_determine_resid(). This patch has been tested by running
-> the following command:
->=20
-> strace sg_raw -r 1k /dev/sdb 12 00 00 00 60 00 -o inquiry.bin |&
->     grep resid=3D
->=20
-> Cc: Honggang LI <honli@redhat.com>
-> Cc: Laurence Oberman <loberman@redhat.com>
-> Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
-> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-> ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
->=20
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/u=
-lp/srpt/ib_srpt.c
-> index 653de1583cf9..23c782e3d49a 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -1362,9 +1362,11 @@ static int srpt_build_cmd_rsp(struct srpt_rdma_ch =
-*ch,
->  =09=09=09      struct srpt_send_ioctx *ioctx, u64 tag,
->  =09=09=09      int status)
->  {
-> +=09struct se_cmd *cmd =3D &ioctx->cmd;
->  =09struct srp_rsp *srp_rsp;
->  =09const u8 *sense_data;
->  =09int sense_data_len, max_sense_len;
-> +=09u32 resid =3D cmd->residual_count;
-> =20
->  =09/*
->  =09 * The lowest bit of all SAM-3 status codes is zero (see also
-> @@ -1386,6 +1388,28 @@ static int srpt_build_cmd_rsp(struct srpt_rdma_ch =
-*ch,
->  =09srp_rsp->tag =3D tag;
->  =09srp_rsp->status =3D status;
-> =20
-> +=09if (cmd->se_cmd_flags & SCF_UNDERFLOW_BIT) {
-> +=09=09if (cmd->data_direction =3D=3D DMA_TO_DEVICE) {
-> +=09=09=09/* residual data from an underflow write */
-> +=09=09=09srp_rsp->flags =3D SRP_RSP_FLAG_DOUNDER;
-> +=09=09=09srp_rsp->data_out_res_cnt =3D cpu_to_be32(resid);
-> +=09=09} else if (cmd->data_direction =3D=3D DMA_FROM_DEVICE) {
-> +=09=09=09/* residual data from an underflow read */
-> +=09=09=09srp_rsp->flags =3D SRP_RSP_FLAG_DIUNDER;
-> +=09=09=09srp_rsp->data_in_res_cnt =3D cpu_to_be32(resid);
-> +=09=09}
-> +=09} else if (cmd->se_cmd_flags & SCF_OVERFLOW_BIT) {
-> +=09=09if (cmd->data_direction =3D=3D DMA_TO_DEVICE) {
-> +=09=09=09/* residual data from an overflow write */
-> +=09=09=09srp_rsp->flags =3D SRP_RSP_FLAG_DOOVER;
-> +=09=09=09srp_rsp->data_out_res_cnt =3D cpu_to_be32(resid);
-> +=09=09} else if (cmd->data_direction =3D=3D DMA_FROM_DEVICE) {
-> +=09=09=09/* residual data from an overflow read */
-> +=09=09=09srp_rsp->flags =3D SRP_RSP_FLAG_DIOVER;
-> +=09=09=09srp_rsp->data_in_res_cnt =3D cpu_to_be32(resid);
-> +=09=09}
-> +=09}
-> +
->  =09if (sense_data_len) {
->  =09=09BUILD_BUG_ON(MIN_MAX_RSP_SIZE <=3D sizeof(*srp_rsp));
->  =09=09max_sense_len =3D ch->max_ti_iu_len - sizeof(*srp_rsp);
+Fix sparse warnings:
 
-Acked-by: Honggang Li <honli@redhat.com>
+drivers/infiniband/core/ib_core_uverbs.c:149:6: warning: symbol 'rdma_user_mmap_entry_free' was not declared. Should it be static?
+
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: zhengbin <zhengbin13@huawei.com>
+---
+ drivers/infiniband/core/ib_core_uverbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/ib_core_uverbs.c b/drivers/infiniband/core/ib_core_uverbs.c
+index 88d9d47..62eebad 100644
+--- a/drivers/infiniband/core/ib_core_uverbs.c
++++ b/drivers/infiniband/core/ib_core_uverbs.c
+@@ -146,7 +146,7 @@ rdma_user_mmap_entry_get(struct ib_ucontext *ucontext, u64 key,
+ }
+ EXPORT_SYMBOL(rdma_user_mmap_entry_get);
+
+-void rdma_user_mmap_entry_free(struct kref *kref)
++static void rdma_user_mmap_entry_free(struct kref *kref)
+ {
+ 	struct rdma_user_mmap_entry *entry =
+ 		container_of(kref, struct rdma_user_mmap_entry, ref);
+--
+2.7.4
 
