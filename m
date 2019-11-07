@@ -2,37 +2,37 @@ Return-Path: <SRS0=yP1V=Y7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9EB5C5DF60
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8800C5DF60
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C55F3218AE
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8990218AE
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389689AbfKGQJh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Nov 2019 11:09:37 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53663 "EHLO
+        id S2389660AbfKGQJo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Nov 2019 11:09:44 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53690 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389684AbfKGQJe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Nov 2019 11:09:34 -0500
+        with ESMTP id S2389700AbfKGQJh (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Nov 2019 11:09:37 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from parav@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 7 Nov 2019 18:09:29 +0200
+        with ESMTPS (AES256-SHA encrypted); 7 Nov 2019 18:09:34 +0200
 Received: from sw-mtx-036.mtx.labs.mlnx (sw-mtx-036.mtx.labs.mlnx [10.9.150.149])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id xA7G8d4Q007213;
-        Thu, 7 Nov 2019 18:09:27 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id xA7G8d4S007213;
+        Thu, 7 Nov 2019 18:09:32 +0200
 From:   Parav Pandit <parav@mellanox.com>
 To:     alex.williamson@redhat.com, davem@davemloft.net,
         kvm@vger.kernel.org, netdev@vger.kernel.org
 Cc:     saeedm@mellanox.com, kwankhede@nvidia.com, leon@kernel.org,
         cohuck@redhat.com, jiri@mellanox.com, linux-rdma@vger.kernel.org,
         Parav Pandit <parav@mellanox.com>
-Subject: [PATCH net-next 16/19] net/mlx5: Implement dma ops and params for mediated device
-Date:   Thu,  7 Nov 2019 10:08:31 -0600
-Message-Id: <20191107160834.21087-16-parav@mellanox.com>
+Subject: [PATCH net-next 18/19] Documentation: net: mlx5: Add mdev usage documentation
+Date:   Thu,  7 Nov 2019 10:08:33 -0600
+Message-Id: <20191107160834.21087-18-parav@mellanox.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20191107160834.21087-1-parav@mellanox.com>
 References: <20191107160448.20962-1-parav@mellanox.com>
@@ -44,184 +44,156 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement dma ops wrapper to divert dma ops to its parent PCI device
-because Intel IOMMU (and may be other IOMMU) is limited to PCI devices.
-
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Parav Pandit <parav@mellanox.com>
 ---
- .../ethernet/mellanox/mlx5/core/meddev/sf.c   | 151 ++++++++++++++++++
- 1 file changed, 151 insertions(+)
+ .../device_drivers/mellanox/mlx5.rst          | 122 ++++++++++++++++++
+ 1 file changed, 122 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/meddev/sf.c b/drivers/net/ethernet/mellanox/mlx5/core/meddev/sf.c
-index cfbbb2d32aca..4b0718418bc5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/meddev/sf.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/meddev/sf.c
-@@ -207,6 +207,156 @@ u16 mlx5_core_max_sfs(const struct mlx5_core_dev *dev,
- 	return mlx5_core_is_sf_supported(dev) ? sf_table->max_sfs : 0;
- }
+diff --git a/Documentation/networking/device_drivers/mellanox/mlx5.rst b/Documentation/networking/device_drivers/mellanox/mlx5.rst
+index d071c6b49e1f..cbdf0a37205b 100644
+--- a/Documentation/networking/device_drivers/mellanox/mlx5.rst
++++ b/Documentation/networking/device_drivers/mellanox/mlx5.rst
+@@ -14,6 +14,7 @@ Contents
+ - `Devlink parameters`_
+ - `Devlink health reporters`_
+ - `mlx5 tracepoints`_
++- `Mediated devices`_
  
-+static void *mlx5_sf_dma_alloc(struct device *dev, size_t size,
-+			       dma_addr_t *dma_handle, gfp_t gfp,
-+			       unsigned long attrs)
-+{
-+	return dma_alloc_attrs(dev->parent, size, dma_handle, gfp, attrs);
-+}
-+
-+static void
-+mlx5_sf_dma_free(struct device *dev, size_t size,
-+		 void *vaddr, dma_addr_t dma_handle,
-+		 unsigned long attrs)
-+{
-+	dma_free_attrs(dev->parent, size, vaddr, dma_handle, attrs);
-+}
-+
-+static int
-+mlx5_sf_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-+		 void *cpu_addr, dma_addr_t dma_addr, size_t size,
-+		 unsigned long attrs)
-+{
-+	return dma_mmap_attrs(dev->parent, vma, cpu_addr,
-+			      dma_addr, size, attrs);
-+}
-+
-+static int
-+mlx5_sf_dma_get_sgtable(struct device *dev, struct sg_table *sgt,
-+			void *cpu_addr, dma_addr_t dma_addr, size_t size,
-+			unsigned long attrs)
-+{
-+	return dma_get_sgtable_attrs(dev->parent, sgt, cpu_addr,
-+				     dma_addr, size, attrs);
-+}
-+
-+static dma_addr_t
-+mlx5_sf_dma_map_page(struct device *dev, struct page *page,
-+		     unsigned long offset, size_t size,
-+		     enum dma_data_direction dir,
-+		     unsigned long attrs)
-+{
-+	return dma_map_page_attrs(dev->parent, page, offset, size, dir, attrs);
-+}
-+
-+static void
-+mlx5_sf_dma_unmap_page(struct device *dev, dma_addr_t dma_handle,
-+		       size_t size, enum dma_data_direction dir,
-+		       unsigned long attrs)
-+{
-+	dma_unmap_page_attrs(dev->parent, dma_handle, size, dir, attrs);
-+}
-+
-+static int
-+mlx5_sf_dma_map_sg(struct device *dev, struct scatterlist *sg,
-+		   int nents, enum dma_data_direction dir,
-+		   unsigned long attrs)
-+{
-+	return dma_map_sg_attrs(dev->parent, sg, nents, dir, attrs);
-+}
-+
-+static void
-+mlx5_sf_dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		     enum dma_data_direction dir, unsigned long attrs)
-+{
-+	dma_unmap_sg_attrs(dev->parent, sg, nents, dir, attrs);
-+}
-+
-+static dma_addr_t
-+mlx5_sf_dma_map_resource(struct device *dev, phys_addr_t phys_addr,
-+			 size_t size, enum dma_data_direction dir,
-+			 unsigned long attrs)
-+{
-+	return dma_map_resource(dev->parent, phys_addr, size, dir, attrs);
-+}
-+
-+static void
-+mlx5_sf_dma_unmap_resource(struct device *dev, dma_addr_t dma_handle,
-+			   size_t size, enum dma_data_direction dir,
-+			   unsigned long attrs)
-+{
-+	dma_unmap_resource(dev->parent, dma_handle, size, dir, attrs);
-+}
-+
-+static void
-+mlx5_sf_dma_sync_single_for_cpu(struct device *dev,
-+				dma_addr_t dma_handle, size_t size,
-+				enum dma_data_direction dir)
-+{
-+	dma_sync_single_for_cpu(dev->parent, dma_handle, size, dir);
-+}
-+
-+static void
-+mlx5_sf_dma_sync_single_for_device(struct device *dev,
-+				   dma_addr_t dma_handle, size_t size,
-+				   enum dma_data_direction dir)
-+{
-+	dma_sync_single_for_device(dev->parent, dma_handle, size, dir);
-+}
-+
-+static void
-+mlx5_sf_dma_sync_sg_for_cpu(struct device *dev,
-+			    struct scatterlist *sg, int nents,
-+			    enum dma_data_direction dir)
-+{
-+	dma_sync_sg_for_cpu(dev->parent, sg, nents, dir);
-+}
-+
-+static void
-+mlx5_sf_dma_sync_sg_for_device(struct device *dev,
-+			       struct scatterlist *sg, int nents,
-+			       enum dma_data_direction dir)
-+{
-+	dma_sync_sg_for_device(dev->parent, sg, nents, dir);
-+}
-+
-+static void
-+mlx5_sf_dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-+		       enum dma_data_direction dir)
-+{
-+	dma_cache_sync(dev->parent, vaddr, size, dir);
-+}
-+
-+static const struct dma_map_ops mlx5_sf_dma_ops = {
-+	.alloc = mlx5_sf_dma_alloc,
-+	.free = mlx5_sf_dma_free,
-+	.mmap = mlx5_sf_dma_mmap,
-+	.get_sgtable = mlx5_sf_dma_get_sgtable,
-+	.map_page = mlx5_sf_dma_map_page,
-+	.unmap_page = mlx5_sf_dma_unmap_page,
-+	.map_sg = mlx5_sf_dma_map_sg,
-+	.unmap_sg = mlx5_sf_dma_unmap_sg,
-+	.map_resource = mlx5_sf_dma_map_resource,
-+	.unmap_resource = mlx5_sf_dma_unmap_resource,
-+	.sync_single_for_cpu = mlx5_sf_dma_sync_single_for_cpu,
-+	.sync_sg_for_cpu = mlx5_sf_dma_sync_sg_for_cpu,
-+	.sync_sg_for_device = mlx5_sf_dma_sync_sg_for_device,
-+	.sync_single_for_device = mlx5_sf_dma_sync_single_for_device,
-+	.cache_sync = mlx5_sf_dma_cache_sync,
-+};
-+
-+static void
-+set_dma_params(struct device *dev, const struct mlx5_core_dev *coredev)
-+{
-+	struct pci_dev *pdev = coredev->pdev;
-+
-+	dev->dma_ops = &mlx5_sf_dma_ops;
-+	dev->dma_mask = pdev->dev.dma_mask;
-+	dev->dma_parms = pdev->dev.dma_parms;
-+	dma_set_coherent_mask(dev, pdev->dev.coherent_dma_mask);
-+	dma_set_max_seg_size(dev, dma_get_max_seg_size(&pdev->dev));
-+}
-+
- int mlx5_sf_load(struct mlx5_sf *sf, struct device *device,
- 		 const struct mlx5_core_dev *parent_dev)
- {
-@@ -231,6 +381,7 @@ int mlx5_sf_load(struct mlx5_sf *sf, struct device *device,
- 		err = -ENOMEM;
- 		goto remap_err;
- 	}
-+	set_dma_params(dev->device, parent_dev);
+ Enabling the driver and kconfig options
+ ================================================
+@@ -97,6 +98,10 @@ Enabling the driver and kconfig options
  
- 	err = mlx5_mdev_init(dev, MLX5_DEFAULT_PROF);
- 	if (err) {
+ |   Provides low-level InfiniBand/RDMA and `RoCE <https://community.mellanox.com/s/article/recommended-network-configuration-examples-for-roce-deployment>`_ support.
+ 
++**CONFIG_MLX5_MDEV(y/n)** (module mlx5_core.ko)
++
++|   Provides support for Sub Functions using mediated devices.
++
+ 
+ **External options** ( Choose if the corresponding mlx5 feature is required )
+ 
+@@ -298,3 +303,120 @@ tc and eswitch offloads tracepoints:
+     $ cat /sys/kernel/debug/tracing/trace
+     ...
+     kworker/u48:7-2221  [009] ...1  1475.387435: mlx5e_rep_neigh_update: netdev: ens1f0 MAC: 24:8a:07:9a:17:9a IPv4: 1.1.1.10 IPv6: ::ffff:1.1.1.10 neigh_connected=1
++
++Mediated devices
++================
++
++Overview
++--------
++mlx5 mediated device (mdev) enables users to create multiple netdevices
++and/or RDMA devices from single PCI function.
++
++Each mdev maps to a mlx5 sub function.
++mlx5 sub function is similar to PCI VF. However it doesn't have its own
++PCI function and MSI-X vectors.
++mlx5 sub function has several less low level device capabilities
++as compare to PCI function.
++
++Each mlx5 sub function has its own resource namespace for RDMA resources.
++
++mlx5 mdevs share common PCI resources such as PCI BAR region,
++MSI-X interrupts.
++
++Each mdev has its own window in the PCI BAR region, which is
++accessible only to that mdev and applications using it.
++
++mdevs are supported when eswitch mode of the devlink instance
++is in switchdev mode described in 'http://man7.org/linux/man-pages/man8/devlink-dev.8.html'.
++
++mdev uses mediated device subsystem 'https://www.kernel.org/doc/Documentation/vfio-mediated-device.txt' of the kernel for its life cycle.
++
++mdev is identified using a UUID defined by RFC 4122.
++
++Each created mdev has unique 12 letters alias. This alias is used to
++derive phys_port_name attribute of the corresponding representor
++netdevice.
++
++User commands examples
++----------------------
++
++- Set eswitch mode as switchdev mode::
++
++    $ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
++
++- Create a mdev::
++
++    Generate a UUID
++    $ UUID=$(uuidgen)
++    Create the mdev using UUID
++    $ echo $UUID > /sys/class/net/ens2f0_p0/device/mdev_supported_types/mlx5_core-local/create
++
++- Unbind a mdev from vfio_mdev driver::
++
++    $ echo $UUID > /sys/bus/mdev/drivers/vfio_mdev/unbind
++
++- Bind a mdev to mlx5_core driver::
++
++    $ echo $UUID > /sys/bus/mdev/drivers/mlx5_core/bind
++
++- View netdevice and (optionally) RDMA device in sysfs tree::
++
++    $ ls -l /sys/bus/mdev/devices/$UUID/net/
++    $ ls -l /sys/bus/mdev/devices/$UUID/infiniband/
++
++- View netdevice and (optionally) RDMA device using iproute2 tools::
++
++    $ ip link show
++    $ rdma dev show
++
++- Query maximum number of mdevs that can be created::
++
++    $ cat /sys/class/net/ens2f0_p0/device/mdev_supported_types/mlx5_core-local/max_mdevs
++
++- Query remaining number of mdevs that can be created::
++
++    $ cat /sys/class/net/ens2f0_p0/device/mdev_supported_types/mlx5_core-local/available_instances
++
++- Query an alias of the mdev::
++
++    $ cat /sys/bus/mdev/devices/$UUID/alias
++
++Security model
++--------------
++This section covers security aspects of mlx5 mediated devices at
++host level and at network level.
++
++Host side:
++- At present mlx5 mdev is meant to be used only in a host.
++It is not meant to be mapped to a VM or access by userspace application
++using VFIO framework.
++Hence, mlx5_core driver doesn't implement any of the VFIO device specific
++callback routines.
++Hence, mlx5 mediated device cannot be mapped to a VM or to a userspace
++application via VFIO framework.
++
++- At present an mlx5 mdev can be accessed by an application through
++its netdevice and/or RDMA device.
++
++- mlx5 mdev does not share PCI BAR with its parent PCI function.
++
++- All mlx5 mdevs of a given parent device share a single PCI BAR.
++However each mdev device has a small dedicated window of the PCI BAR.
++Hence, one mdev device cannot access PCI BAR or any of the resources
++of another mdev device.
++
++- Each mlx5 mdev has its own dedicated event queue through which interrupt
++notifications are delivered. Hence, one mlx5 mdev cannot enable/disable
++interrupts of other mlx5 mdev. mlx5 mdev cannot enable/disable interrupts
++of the parent PCI function.
++
++Network side:
++- By default the netdevice and the rdma device of mlx5 mdev cannot send or
++receive any packets over the network or to any other mlx5 mdev.
++
++- mlx5 mdev follows devlink eswitch and vport model of PCI SR-IOV PF and VFs.
++All traffic is dropped by default in this eswitch model.
++
++- Each mlx5 mdev has one eswitch vport representor netdevice and rdma port.
++The user must do necessary configuration through such representor to enable
++mlx5 mdev to send and/or receive packets.
 -- 
 2.19.2
 
