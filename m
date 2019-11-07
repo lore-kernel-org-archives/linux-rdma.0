@@ -4,35 +4,35 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71D85C5DF60
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D7AEC5DF60
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48E9721D7E
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19175218AE
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389662AbfKGQJr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Nov 2019 11:09:47 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53729 "EHLO
+        id S1730043AbfKGQJy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Nov 2019 11:09:54 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53613 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389742AbfKGQJm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Nov 2019 11:09:42 -0500
+        with ESMTP id S2389567AbfKGQJX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Nov 2019 11:09:23 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from parav@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 7 Nov 2019 18:09:37 +0200
+        with ESMTPS (AES256-SHA encrypted); 7 Nov 2019 18:09:18 +0200
 Received: from sw-mtx-036.mtx.labs.mlnx (sw-mtx-036.mtx.labs.mlnx [10.9.150.149])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id xA7G8d4T007213;
-        Thu, 7 Nov 2019 18:09:34 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id xA7G8d4M007213;
+        Thu, 7 Nov 2019 18:09:16 +0200
 From:   Parav Pandit <parav@mellanox.com>
 To:     alex.williamson@redhat.com, davem@davemloft.net,
         kvm@vger.kernel.org, netdev@vger.kernel.org
 Cc:     saeedm@mellanox.com, kwankhede@nvidia.com, leon@kernel.org,
         cohuck@redhat.com, jiri@mellanox.com, linux-rdma@vger.kernel.org,
         Parav Pandit <parav@mellanox.com>
-Subject: [PATCH net-next 19/19] mtty: Optionally support mtty alias
-Date:   Thu,  7 Nov 2019 10:08:34 -0600
-Message-Id: <20191107160834.21087-19-parav@mellanox.com>
+Subject: [PATCH net-next 12/19] devlink: Introduce mdev port flavour
+Date:   Thu,  7 Nov 2019 10:08:27 -0600
+Message-Id: <20191107160834.21087-12-parav@mellanox.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20191107160834.21087-1-parav@mellanox.com>
 References: <20191107160448.20962-1-parav@mellanox.com>
@@ -44,64 +44,138 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Provide a module parameter to set alias length to optionally generate
-mdev alias.
+Introduce a new mdev port flavour for mdev devices.
+PF.
+Prepare such port's phys_port_name using unique mdev alias.
 
-Example to request mdev alias.
-$ modprobe mtty alias_length=12
+An example output for eswitch ports with one physical port and
+one mdev port:
 
-Make use of mtty_alias() API when alias_length module parameter is set.
+$ devlink port show
+pci/0000:06:00.0/65535: type eth netdev p0 flavour physical port 0
+pci/0000:06:00.0/32768: type eth netdev p1b0348cf880a flavour mdev alias 1b0348cf880a
 
 Signed-off-by: Parav Pandit <parav@mellanox.com>
 ---
- samples/vfio-mdev/mtty.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/net/devlink.h        |  9 +++++++++
+ include/uapi/linux/devlink.h |  5 +++++
+ net/core/devlink.c           | 32 ++++++++++++++++++++++++++++++++
+ 3 files changed, 46 insertions(+)
 
-diff --git a/samples/vfio-mdev/mtty.c b/samples/vfio-mdev/mtty.c
-index ce84a300a4da..5a69121ed5ec 100644
---- a/samples/vfio-mdev/mtty.c
-+++ b/samples/vfio-mdev/mtty.c
-@@ -150,6 +150,10 @@ static const struct file_operations vd_fops = {
- 	.owner          = THIS_MODULE,
+diff --git a/include/net/devlink.h b/include/net/devlink.h
+index 6bf3b9e0595a..fcffc7f7cff2 100644
+--- a/include/net/devlink.h
++++ b/include/net/devlink.h
+@@ -60,6 +60,10 @@ struct devlink_port_pci_vf_attrs {
+ 	u16 vf;	/* Associated PCI VF for of the PCI PF for this port. */
  };
  
-+static unsigned int mtty_alias_length;
-+module_param_named(alias_length, mtty_alias_length, uint, 0444);
-+MODULE_PARM_DESC(alias_length, "mdev alias length; default=0");
++struct devlink_port_mdev_attrs {
++	const char *mdev_alias; /* Unique mdev alias used for this port. */
++};
 +
- /* function prototypes */
+ struct devlink_port_attrs {
+ 	u8 set:1,
+ 	   split:1,
+@@ -70,6 +74,7 @@ struct devlink_port_attrs {
+ 		struct devlink_port_phys_attrs phys;
+ 		struct devlink_port_pci_pf_attrs pci_pf;
+ 		struct devlink_port_pci_vf_attrs pci_vf;
++		struct devlink_port_mdev_attrs mdev;
+ 	};
+ };
  
- static int mtty_trigger_interrupt(struct mdev_state *mdev_state);
-@@ -755,6 +759,9 @@ static int mtty_create(struct kobject *kobj, struct mdev_device *mdev)
- 	list_add(&mdev_state->next, &mdev_devices_list);
- 	mutex_unlock(&mdev_list_lock);
+@@ -802,6 +807,10 @@ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port,
+ 				   const unsigned char *switch_id,
+ 				   unsigned char switch_id_len,
+ 				   u16 pf, u16 vf);
++void devlink_port_attrs_mdev_set(struct devlink_port *devlink_port,
++				 const unsigned char *switch_id,
++				 unsigned char switch_id_len,
++				 const char *mdev_alias);
+ int devlink_sb_register(struct devlink *devlink, unsigned int sb_index,
+ 			u32 size, u16 ingress_pools_count,
+ 			u16 egress_pools_count, u16 ingress_tc_count,
+diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
+index b558ea88b766..db803c0d0e9f 100644
+--- a/include/uapi/linux/devlink.h
++++ b/include/uapi/linux/devlink.h
+@@ -187,6 +187,10 @@ enum devlink_port_flavour {
+ 				      * for the PCI VF. It is an internal
+ 				      * port that faces the PCI VF.
+ 				      */
++	DEVLINK_PORT_FLAVOUR_MDEV, /* Represents eswitch port for the
++				    * mdev device. It is an internal
++				    * port that faces the mdev device.
++				    */
+ };
  
-+	if (mtty_alias_length)
-+		dev_dbg(mdev_dev(mdev), "alias is %s\n", mdev_alias(mdev));
-+
- 	return 0;
+ enum devlink_param_cmode {
+@@ -424,6 +428,7 @@ enum devlink_attr {
+ 	DEVLINK_ATTR_NETNS_FD,			/* u32 */
+ 	DEVLINK_ATTR_NETNS_PID,			/* u32 */
+ 	DEVLINK_ATTR_NETNS_ID,			/* u32 */
++	DEVLINK_ATTR_PORT_MDEV_ALIAS,		/* string */
+ 
+ 	/* add new attributes above here, update the policy in devlink.c */
+ 
+diff --git a/net/core/devlink.c b/net/core/devlink.c
+index 97e9a2246929..cb7b6ef5d520 100644
+--- a/net/core/devlink.c
++++ b/net/core/devlink.c
+@@ -542,6 +542,11 @@ static int devlink_nl_port_attrs_put(struct sk_buff *msg,
+ 				attrs->pci_vf.vf))
+ 			return -EMSGSIZE;
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_MDEV:
++		if (nla_put_string(msg, DEVLINK_ATTR_PORT_MDEV_ALIAS,
++				   attrs->mdev.mdev_alias))
++			return -EMSGSIZE;
++		break;
+ 	case DEVLINK_PORT_FLAVOUR_PHYSICAL:
+ 	case DEVLINK_PORT_FLAVOUR_CPU:
+ 	case DEVLINK_PORT_FLAVOUR_DSA:
+@@ -6617,6 +6622,30 @@ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port,
  }
+ EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_vf_set);
  
-@@ -1387,6 +1394,11 @@ static struct attribute_group *mdev_type_groups[] = {
- 	NULL,
- };
- 
-+static unsigned int mtty_get_alias_length(void)
++/**
++ *	devlink_port_attrs_mdev_set - Set mdev port attributes
++ *
++ *	@devlink_port: devlink port
++ *	@switch_id: if the port is part of switch, this is buffer with ID,
++ *	            otherwise this is NULL
++ *	@switch_id_len: length of the switch_id buffer
++ *	@mdev_alias: unique mdev alias for this port used to form phys_port_name
++ */
++void devlink_port_attrs_mdev_set(struct devlink_port *devlink_port,
++				 const unsigned char *switch_id,
++				 unsigned char switch_id_len,
++				 const char *mdev_alias)
 +{
-+	return mtty_alias_length;
-+}
++	struct devlink_port_attrs *attrs = &devlink_port->attrs;
 +
- static const struct mdev_parent_ops mdev_fops = {
- 	.owner                  = THIS_MODULE,
- 	.dev_attr_groups        = mtty_dev_groups,
-@@ -1399,6 +1411,7 @@ static const struct mdev_parent_ops mdev_fops = {
- 	.read                   = mtty_read,
- 	.write                  = mtty_write,
- 	.ioctl		        = mtty_ioctl,
-+	.get_alias_length	= mtty_get_alias_length
- };
++	if (__devlink_port_attrs_set(devlink_port,
++				     DEVLINK_PORT_FLAVOUR_MDEV,
++				     switch_id, switch_id_len))
++		return;
++	attrs->mdev.mdev_alias = mdev_alias;
++}
++EXPORT_SYMBOL_GPL(devlink_port_attrs_mdev_set);
++
+ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
+ 					     char *name, size_t len)
+ {
+@@ -6649,6 +6678,9 @@ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
+ 		n = snprintf(name, len, "pf%uvf%u",
+ 			     attrs->pci_vf.pf, attrs->pci_vf.vf);
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_MDEV:
++		n = snprintf(name, len, "p%s", attrs->mdev.mdev_alias);
++		break;
+ 	}
  
- static void mtty_device_release(struct device *dev)
+ 	if (n >= len)
 -- 
 2.19.2
 
