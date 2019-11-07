@@ -2,199 +2,530 @@ Return-Path: <SRS0=yP1V=Y7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C10C5DF60
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 20:52:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FB40C43331
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 20:54:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0EE2C21D6C
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 20:52:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 188F82166E
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 20:54:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="OmhXCYgV"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ppoTxlSm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726866AbfKGUwf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Nov 2019 15:52:35 -0500
-Received: from mail-eopbgr130052.outbound.protection.outlook.com ([40.107.13.52]:60546
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725828AbfKGUwf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 Nov 2019 15:52:35 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=dd+4zqFIsJ+6JGges9S9lWsZpSKs/di8/0wdMD/8ETXD0g586uI+d6FPC4rFy56uP3oqWOOQLXJKE1lhlt+vnM76J58/Aqre5CtAH0CWtnUN/uMEZ5rXtVUCuRpwIYIlpXAz+X+6lmDeBKVg16+OCmDZHQEARlS017CdSTklp6RzUvk3YYC6E1uQTzv2O/kHb2szOuFp6dyNduJScwN+G1NEXoEg0moXpMcx+TEzRzzOaSgINUwuHniMyc2xM4ZdWalkvex5QkzbY2yezM6c+sBh+VUwEaEh7Gs4Py85VzowSUaeN42d0sxMw6LyrmnN8qApa0USHz0rjgsuS594Jw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=S2Sr56WRkvdvzwe6gTU9LptHwaa7D7XCjyUcQSRc0Gs=;
- b=g/0y1w/2h5u+ONMj45iRgM/AKsX5vO7UYMNE+s1U2LflKg6Re6I+DDBFuAQEfgxUQhzid4ymwJuc6qbz/ttR63n0Efm0D81k96QhlUKuqAVsLuVI3gJ2+F3Bp7CszsGsqypqpTbFz4P2OPI0C7z0I4Kf4HNb8Fam8bGNYCx9OiR5IZEtulqUtizf/ZCQo7R+aBFDJ2Rrl83JYO13sktK7SrEs9MYAvdqwkMNf/A44UY745EU3oQbNJ/vd5pbntX/uHn7pcZdCu4skDr+f2EuGmXZQ63fcTI1HboKecUkgd48RWbIqsy0ecoRRUDZQi2hLW4AWZ2YJ4U1am6G076ONg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=S2Sr56WRkvdvzwe6gTU9LptHwaa7D7XCjyUcQSRc0Gs=;
- b=OmhXCYgVER63Kin7FJV3HU1Uo72oIs/L7H+YDCk5dLPFycJ8xsUXNkwyJ7mIoHhfoFa7nSQekjDwht5LoOGereA+2tjGI2nRrTl3FYoazcBVfkToMtKu3WbTeHco6GNHSQwbt3YTXfX41Zysqgi3qszCbUbrWJbjzojRHbLNMCY=
-Received: from AM0PR05MB4866.eurprd05.prod.outlook.com (20.176.214.160) by
- AM0PR05MB4625.eurprd05.prod.outlook.com (52.133.59.17) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2408.24; Thu, 7 Nov 2019 20:52:29 +0000
-Received: from AM0PR05MB4866.eurprd05.prod.outlook.com
- ([fe80::e5c2:b650:f89:12d4]) by AM0PR05MB4866.eurprd05.prod.outlook.com
- ([fe80::e5c2:b650:f89:12d4%7]) with mapi id 15.20.2430.020; Thu, 7 Nov 2019
- 20:52:29 +0000
-From:   Parav Pandit <parav@mellanox.com>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-CC:     "alex.williamson@redhat.com" <alex.williamson@redhat.com>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "kvm@vger.kernel.org" <kvm@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        "kwankhede@nvidia.com" <kwankhede@nvidia.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "cohuck@redhat.com" <cohuck@redhat.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Or Gerlitz <gerlitz.or@gmail.com>
-Subject: RE: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
-Thread-Topic: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
-Thread-Index: AQHVlYUoVUzzBv4k4UmQHUerp08scaeAKe4AgAAC5uA=
-Date:   Thu, 7 Nov 2019 20:52:29 +0000
-Message-ID: <AM0PR05MB4866A2B92A64DDF345DB14F5D1780@AM0PR05MB4866.eurprd05.prod.outlook.com>
-References: <20191107160448.20962-1-parav@mellanox.com>
- <20191107153234.0d735c1f@cakuba.netronome.com>
-In-Reply-To: <20191107153234.0d735c1f@cakuba.netronome.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=parav@mellanox.com; 
-x-originating-ip: [208.176.44.194]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: 8f77a231-010a-4ad7-a30a-08d763c46757
-x-ms-traffictypediagnostic: AM0PR05MB4625:|AM0PR05MB4625:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <AM0PR05MB462531B7A36B69110041812BD1780@AM0PR05MB4625.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:10000;
-x-forefront-prvs: 0214EB3F68
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(366004)(396003)(346002)(136003)(39850400004)(376002)(189003)(199004)(13464003)(76116006)(86362001)(7696005)(99286004)(76176011)(305945005)(102836004)(71190400001)(55016002)(71200400001)(486006)(74316002)(7736002)(5660300002)(316002)(6506007)(53546011)(2906002)(33656002)(52536014)(66066001)(6116002)(186003)(54906003)(7416002)(229853002)(66556008)(26005)(446003)(4326008)(25786009)(6916009)(3846002)(256004)(6436002)(81166006)(9686003)(8676002)(66946007)(476003)(11346002)(6246003)(66476007)(8936002)(66446008)(64756008)(81156014)(14454004)(478600001);DIR:OUT;SFP:1101;SCL:1;SRVR:AM0PR05MB4625;H:AM0PR05MB4866.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: SThPQhkXjMwZKWFn399OtNp3Uj2JLU+pCoXTj4cinXzHQ6IuPln5i2UktyHeU3xHFPaaRVgHHWuTb9GtQ5C+McvgcN77Fikl1pDrx8pDxFEh79XgiUBDfSre9f+Vbl3ir34zlKKVJ7UA+P0cJt8f+UtEel3OJquS+aLMbwUMFoZhmcld6CfwUDmt/jviROEHCdvzYcoLhFgLXQ69m4jPKKJxfnE8xfxhB+B+ujJAa76U+YrJAiItW9VPaYwLMe+KNq+zrTzS4wCkND25peHkrfYbFQBKa6WI2o/+WzdHoFEaGf4JhH7+OuESQvBTqecODoZ9AYGYQ65x48Fig4gPfEeTCDzoZmAkz+ecXWUPB8LE8mRpJ3oFpn996OxMkzvURfUxHSXvZ04j6+IpDtwozeH4uGNPBd5bON+X0e/I0zJojvqWAl35lsn+h6d5ki5d
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S1725940AbfKGUyi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Nov 2019 15:54:38 -0500
+Received: from mail-yb1-f195.google.com ([209.85.219.195]:40339 "EHLO
+        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725906AbfKGUyi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Nov 2019 15:54:38 -0500
+Received: by mail-yb1-f195.google.com with SMTP id y18so1536893ybs.7
+        for <linux-rdma@vger.kernel.org>; Thu, 07 Nov 2019 12:54:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:date:message-id:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=ykFgiXqVjnr5mw2m0/nC+cCgmXNAH+bIwNbsQ76oE9U=;
+        b=ppoTxlSmMg5dsl3hi1poL7T5LPhCDSfiNC/FB8kFhm9htKFlCkj0VFy5aEGQ+Iq5ie
+         lzlgflh75Kj4YffeKjh+YF7Q+FQPCfUhQPRtMfhaSWTtCk5UEdcr3UVTGnYcvIPo1dOy
+         GUBTUErPRQXyy27o0RdkI1aWPzoY3rIw4Vvno0OQL233i69DVoPCbZizTtRM2IbGQQM8
+         lE8LXnlTwXWkDiqjqkpz8ch/fpKvN6cy7LXKviv1hRLT19r4NIau+0ESeoHQTh6uKXoN
+         6Egz6Xcp7/G+4Mz8EmGHUCVNda7ClYi6kNpuqlgdysXVjRgS00K1XAcvPa/sDFW186HF
+         Hfaw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:from:to:date:message-id
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=ykFgiXqVjnr5mw2m0/nC+cCgmXNAH+bIwNbsQ76oE9U=;
+        b=iNsFem85Bk7u493FK5bSL+4NeY+EEtP6GqN/B+jlXmbAEGRHRRpLTNf13Ja9ccPqtz
+         rqNfinIhw5/1wFNL0dDmoma6TOF8GA81U+/k/zxAykTdr8QJpYwNPV8+ClJjMKOTENkq
+         7ZiDnR5oIv6Wd9p8iv7s6XUT1puEuCs2azqkgrukLTo5RPVyCFeZVizRVgwojDFeo8v+
+         SLPEBkydpXHeJNNqaZdk6zUfhPC5RWgmMrFwKAR13eQ1QyWGy5YEue9H8JqF8qEh6qQu
+         UcWXgC2qnTsi++sOm9lRFqU5nriiW1pPH1BT6hZHlrR5Q6fOHgbADZ31uXWIju5P4uv+
+         Mvvw==
+X-Gm-Message-State: APjAAAX648wGj5Bfck1VfUrPhuFT+20oFx6kttW2K3hTvGCm0jSfYfu6
+        AUup5Vdrv0nY9aeGuNiKLfwyxxfQnCI=
+X-Google-Smtp-Source: APXvYqxTGNHy+y8iZdjuGrzC8BsqyKEn9XAhl5d9OVPjzGCm+dZwNMTi43oNlTK0KTIppu6qmml8Uw==
+X-Received: by 2002:a25:4202:: with SMTP id p2mr5683680yba.422.1573160076808;
+        Thu, 07 Nov 2019 12:54:36 -0800 (PST)
+Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
+        by smtp.gmail.com with ESMTPSA id z196sm3800287ywz.30.2019.11.07.12.54.35
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 07 Nov 2019 12:54:36 -0800 (PST)
+Received: from manet.1015granger.net (manet.1015granger.net [192.168.1.51])
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id xA7KsYJ3022784
+        for <linux-rdma@vger.kernel.org>; Thu, 7 Nov 2019 20:54:35 GMT
+Subject: [PATCH v5] IB/core: Trace points for diagnosing completion queue
+ issues
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     linux-rdma@vger.kernel.org
+Date:   Thu, 07 Nov 2019 15:54:34 -0500
+Message-ID: <20191107205239.23193.69879.stgit@manet.1015granger.net>
+User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8f77a231-010a-4ad7-a30a-08d763c46757
-X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Nov 2019 20:52:29.3841
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: utv8xU2HIf2h/oclo96JzSGgubr7WRftuj77MA+mmWxxzBWtfOimBaGTSDXiIC66mvGh5tDqmGWDMvnjDHdc0w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB4625
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jakub,
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+Reviewed-by: Parav Pandit <parav@mellanox.com>
+---
+ drivers/infiniband/core/Makefile |    2 
+ drivers/infiniband/core/cq.c     |   36 +++++
+ drivers/infiniband/core/trace.c  |   14 ++
+ include/rdma/ib_verbs.h          |   11 +-
+ include/trace/events/rdma_core.h |  251 ++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 307 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/infiniband/core/trace.c
+ create mode 100644 include/trace/events/rdma_core.h
 
-> -----Original Message-----
-> From: Jakub Kicinski <jakub.kicinski@netronome.com>
-> Sent: Thursday, November 7, 2019 2:33 PM
-> To: Parav Pandit <parav@mellanox.com>
-> Cc: alex.williamson@redhat.com; davem@davemloft.net;
-> kvm@vger.kernel.org; netdev@vger.kernel.org; Saeed Mahameed
-> <saeedm@mellanox.com>; kwankhede@nvidia.com; leon@kernel.org;
-> cohuck@redhat.com; Jiri Pirko <jiri@mellanox.com>; linux-
-> rdma@vger.kernel.org; Or Gerlitz <gerlitz.or@gmail.com>
-> Subject: Re: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
->=20
-> On Thu,  7 Nov 2019 10:04:48 -0600, Parav Pandit wrote:
-> > Mellanox sub function capability allows users to create several
-> > hundreds of networking and/or rdma devices without depending on PCI SR-
-> IOV support.
->=20
-> You call the new port type "sub function" but the devlink port flavour is=
- mdev.
->=20
-Sub function is the internal driver structure. The abstract entity at user =
-and stack level is mdev.
-Hence the port flavour is mdev.
-=20
-> As I'm sure you remember you nacked my patches exposing NFP's PCI sub
-> functions which are just regions of the BAR without any mdev capability. =
-Am I
-> in the clear to repost those now? Jiri?
->=20
-For sure I didn't nack it. :-)
-What I remember discussing offline/mailing list is=20
-(a) exposing mdev/sub fuctions as devlink sub ports is not so good abstract=
-ion
-(b) user creating/deleting eswitch sub ports would be hard to fit in the wh=
-ole usage model
+Changes since v4:
+- Removed __ib_poll_cq, uninlined ib_poll_cq
 
-> > Overview:
-> > ---------
-> > Mellanox ConnectX sub functions are exposed to user as a mediated
-> > device (mdev) [2] as discussed in RFC [3] and further during
-> > netdevconf0x13 at [4].
-> >
-> > mlx5 mediated device (mdev) enables users to create multiple
-> > netdevices and/or RDMA devices from single PCI function.
-> >
-> > Each mdev maps to a mlx5 sub function.
-> > mlx5 sub function is similar to PCI VF. However it doesn't have its
-> > own PCI function and MSI-X vectors.
-> >
-> > mlx5 mdevs share common PCI resources such as PCI BAR region, MSI-X
-> > interrupts.
-> >
-> > Each mdev has its own window in the PCI BAR region, which is
-> > accessible only to that mdev and applications using it.
-> >
-> > Each mlx5 sub function has its own resource namespace for RDMA resource=
-s.
-> >
-> > mdevs are supported when eswitch mode of the devlink instance is in
-> > switchdev mode described in devlink documentation [5].
->=20
-> So presumably the mdevs don't spawn their own devlink instance today, but
-> once mapped via VIRTIO to a VM they will create one?
->=20
-mdev doesn't spawn the devlink instance today when mdev is created by user,=
- like PCI.
-When PCI bus driver enumerates and creates PCI device, there isn't a devlin=
-k instance for it.
+Changes since v3:
+- Reverted unnecessary behavior change in __ib_process_cq
+- Clarified what "id" is in trace point output
+- Added comment before new fields in struct ib_cq
+- New trace point that fires when there is a CQ allocation failure
 
-But, mdev's devlink instance is created when mlx5_core driver binds to the =
-mdev device.
-(again similar to PCI, when mlx5_core driver binds to PCI, its devlink inst=
-ance is created ).
+Changes since v2:
+- Removed extraneous changes to include/trace/events/rdma.h
 
-I should have put the example in patch-15 which creates/deletes devlink ins=
-tance of mdev.
-I will revise the commit log of patch-15 to include that.
-Good point.
+Changes since RFC:
+- Display CQ's global resource ID instead of it's pointer address
 
-> It could be useful to specify.
->=20
-Yes, its certainly useful. I missed to put the example in commit log of pat=
-ch-15.
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index 09881bd5f12d..68d9e27c3c61 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -11,7 +11,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				device.o fmr_pool.o cache.o netlink.o \
+ 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+-				nldev.o restrack.o counters.o
++				nldev.o restrack.o counters.o trace.o
+ 
+ ib_core-$(CONFIG_SECURITY_INFINIBAND) += security.o
+ ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index bbfded6d5d3d..98931472eaa0 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -7,6 +7,8 @@
+ #include <linux/slab.h>
+ #include <rdma/ib_verbs.h>
+ 
++#include <trace/events/rdma_core.h>
++
+ /* # of WCs to poll for with a single call to ib_poll_cq */
+ #define IB_POLL_BATCH			16
+ #define IB_POLL_BATCH_DIRECT		8
+@@ -41,6 +43,7 @@ static void ib_cq_rdma_dim_work(struct work_struct *w)
+ 
+ 	dim->state = DIM_START_MEASURE;
+ 
++	trace_cq_modify(cq, comps, usec);
+ 	cq->device->ops.modify_cq(cq, comps, usec);
+ }
+ 
+@@ -65,11 +68,35 @@ static void rdma_dim_init(struct ib_cq *cq)
+ 	INIT_WORK(&dim->work, ib_cq_rdma_dim_work);
+ }
+ 
++/**
++ * ib_poll_cq - poll a CQ for completion(s)
++ * @cq: the CQ being polled
++ * @num_entries: maximum number of completions to return
++ * @wc: array of at least @num_entries &struct ib_wc where completions
++ *      will be returned
++ *
++ * Poll a CQ for (possibly multiple) completions.  If the return value
++ * is < 0, an error occurred.  If the return value is >= 0, it is the
++ * number of completions returned.  If the return value is
++ * non-negative and < num_entries, then the CQ was emptied.
++ */
++int ib_poll_cq(struct ib_cq *cq, int num_entries, struct ib_wc *wc)
++{
++	int rc;
++
++	rc = cq->device->ops.poll_cq(cq, num_entries, wc);
++	trace_cq_poll(cq, num_entries, rc);
++	return rc;
++}
++EXPORT_SYMBOL(ib_poll_cq);
++
+ static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc *wcs,
+ 			   int batch)
+ {
+ 	int i, n, completed = 0;
+ 
++	trace_cq_process(cq);
++
+ 	/*
+ 	 * budget might be (-1) if the caller does not
+ 	 * want to bound this call, thus we need unsigned
+@@ -131,8 +158,10 @@ static int ib_poll_handler(struct irq_poll *iop, int budget)
+ 	completed = __ib_process_cq(cq, budget, cq->wc, IB_POLL_BATCH);
+ 	if (completed < budget) {
+ 		irq_poll_complete(&cq->iop);
+-		if (ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
++		if (ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0) {
++			trace_cq_reschedule(cq);
+ 			irq_poll_sched(&cq->iop);
++		}
+ 	}
+ 
+ 	if (dim)
+@@ -143,6 +172,7 @@ static int ib_poll_handler(struct irq_poll *iop, int budget)
+ 
+ static void ib_cq_completion_softirq(struct ib_cq *cq, void *private)
+ {
++	trace_cq_schedule(cq);
+ 	irq_poll_sched(&cq->iop);
+ }
+ 
+@@ -162,6 +192,7 @@ static void ib_cq_poll_work(struct work_struct *work)
+ 
+ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+ {
++	trace_cq_schedule(cq);
+ 	queue_work(cq->comp_wq, &cq->work);
+ }
+ 
+@@ -239,6 +270,7 @@ struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+ 		goto out_destroy_cq;
+ 	}
+ 
++	trace_cq_alloc(cq, nr_cqe, comp_vector, poll_ctx);
+ 	return cq;
+ 
+ out_destroy_cq:
+@@ -248,6 +280,7 @@ struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+ 	kfree(cq->wc);
+ out_free_cq:
+ 	kfree(cq);
++	trace_cq_alloc_error(nr_cqe, comp_vector, poll_ctx, ret);
+ 	return ERR_PTR(ret);
+ }
+ EXPORT_SYMBOL(__ib_alloc_cq_user);
+@@ -304,6 +337,7 @@ void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ 		WARN_ON_ONCE(1);
+ 	}
+ 
++	trace_cq_free(cq);
+ 	rdma_restrack_del(&cq->res);
+ 	cq->device->ops.destroy_cq(cq, udata);
+ 	if (cq->dim)
+diff --git a/drivers/infiniband/core/trace.c b/drivers/infiniband/core/trace.c
+new file mode 100644
+index 000000000000..6c3514beac4d
+--- /dev/null
++++ b/drivers/infiniband/core/trace.c
+@@ -0,0 +1,14 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Trace points for core RDMA functions.
++ *
++ * Author: Chuck Lever <chuck.lever@oracle.com>
++ *
++ * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
++ */
++
++#define CREATE_TRACE_POINTS
++
++#include <rdma/ib_verbs.h>
++
++#include <trace/events/rdma_core.h>
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e7e733add99f..71353f81caf1 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1555,6 +1555,11 @@ struct ib_cq {
+ 	};
+ 	struct workqueue_struct *comp_wq;
+ 	struct dim *dim;
++
++	/* updated only by trace points */
++	ktime_t timestamp;
++	bool interrupt;
++
+ 	/*
+ 	 * Implementation details of the RDMA core, don't use in drivers:
+ 	 */
+@@ -3868,11 +3873,7 @@ static inline void ib_destroy_cq(struct ib_cq *cq)
+  * number of completions returned.  If the return value is
+  * non-negative and < num_entries, then the CQ was emptied.
+  */
+-static inline int ib_poll_cq(struct ib_cq *cq, int num_entries,
+-			     struct ib_wc *wc)
+-{
+-	return cq->device->ops.poll_cq(cq, num_entries, wc);
+-}
++int ib_poll_cq(struct ib_cq *cq, int num_entries, struct ib_wc *wc);
+ 
+ /**
+  * ib_req_notify_cq - Request completion notification on a CQ.
+diff --git a/include/trace/events/rdma_core.h b/include/trace/events/rdma_core.h
+new file mode 100644
+index 000000000000..0d56065fbbc3
+--- /dev/null
++++ b/include/trace/events/rdma_core.h
+@@ -0,0 +1,251 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Trace point definitions for core RDMA functions.
++ *
++ * Author: Chuck Lever <chuck.lever@oracle.com>
++ *
++ * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
++ */
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rdma_core
++
++#if !defined(_TRACE_RDMA_CORE_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_RDMA_CORE_H
++
++#include <linux/tracepoint.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/restrack.h>
++
++/*
++ * enum ib_poll_context, from include/rdma/ib_verbs.h
++ */
++#define IB_POLL_CTX_LIST			\
++	ib_poll_ctx(DIRECT)			\
++	ib_poll_ctx(SOFTIRQ)			\
++	ib_poll_ctx(WORKQUEUE)			\
++	ib_poll_ctx_end(UNBOUND_WORKQUEUE)
++
++#undef ib_poll_ctx
++#undef ib_poll_ctx_end
++
++#define ib_poll_ctx(x)		TRACE_DEFINE_ENUM(IB_POLL_##x);
++#define ib_poll_ctx_end(x)	TRACE_DEFINE_ENUM(IB_POLL_##x);
++
++IB_POLL_CTX_LIST
++
++#undef ib_poll_ctx
++#undef ib_poll_ctx_end
++
++#define ib_poll_ctx(x)		{ IB_POLL_##x, #x },
++#define ib_poll_ctx_end(x)	{ IB_POLL_##x, #x }
++
++#define rdma_show_ib_poll_ctx(x) \
++		__print_symbolic(x, IB_POLL_CTX_LIST)
++
++/**
++ ** Completion Queue events
++ **/
++
++TRACE_EVENT(cq_schedule,
++	TP_PROTO(
++		struct ib_cq *cq
++	),
++
++	TP_ARGS(cq),
++
++	TP_STRUCT__entry(
++		__field(u32, id)
++	),
++
++	TP_fast_assign(
++		cq->timestamp = ktime_get();
++		cq->interrupt = true;
++
++		__entry->id = cq->res.id;
++	),
++
++	TP_printk("cq.id=%u", __entry->id)
++);
++
++TRACE_EVENT(cq_reschedule,
++	TP_PROTO(
++		struct ib_cq *cq
++	),
++
++	TP_ARGS(cq),
++
++	TP_STRUCT__entry(
++		__field(u32, id)
++	),
++
++	TP_fast_assign(
++		cq->timestamp = ktime_get();
++		cq->interrupt = false;
++
++		__entry->id = cq->res.id;
++	),
++
++	TP_printk("cq.id=%u", __entry->id)
++);
++
++TRACE_EVENT(cq_process,
++	TP_PROTO(
++		const struct ib_cq *cq
++	),
++
++	TP_ARGS(cq),
++
++	TP_STRUCT__entry(
++		__field(s64, latency)
++		__field(u32, id)
++		__field(bool, interrupt)
++	),
++
++	TP_fast_assign(
++		ktime_t latency = ktime_sub(ktime_get(), cq->timestamp);
++
++		__entry->id = cq->res.id;
++		__entry->latency = ktime_to_us(latency);
++		__entry->interrupt = cq->interrupt;
++	),
++
++	TP_printk("cq.id=%u wake-up took %lld [us] from %s",
++		__entry->id, __entry->latency,
++		__entry->interrupt ? "interrupt" : "reschedule"
++	)
++);
++
++TRACE_EVENT(cq_poll,
++	TP_PROTO(
++		const struct ib_cq *cq,
++		int requested,
++		int rc
++	),
++
++	TP_ARGS(cq, requested, rc),
++
++	TP_STRUCT__entry(
++		__field(u32, id)
++		__field(int, requested)
++		__field(int, rc)
++	),
++
++	TP_fast_assign(
++		__entry->id = cq->res.id;
++		__entry->requested = requested;
++		__entry->rc = rc;
++	),
++
++	TP_printk("cq.id=%u requested %d, returned %d",
++		__entry->id, __entry->requested, __entry->rc
++	)
++);
++
++TRACE_EVENT(cq_modify,
++	TP_PROTO(
++		const struct ib_cq *cq,
++		u16 comps,
++		u16 usec
++	),
++
++	TP_ARGS(cq, comps, usec),
++
++	TP_STRUCT__entry(
++		__field(u32, id)
++		__field(unsigned int, comps)
++		__field(unsigned int, usec)
++	),
++
++	TP_fast_assign(
++		__entry->id = cq->res.id;
++		__entry->comps = comps;
++		__entry->usec = usec;
++	),
++
++	TP_printk("cq.id=%u comps=%u usec=%u",
++		__entry->id, __entry->comps, __entry->usec
++	)
++);
++
++TRACE_EVENT(cq_alloc,
++	TP_PROTO(
++		const struct ib_cq *cq,
++		int nr_cqe,
++		int comp_vector,
++		enum ib_poll_context poll_ctx
++	),
++
++	TP_ARGS(cq, nr_cqe, comp_vector, poll_ctx),
++
++	TP_STRUCT__entry(
++		__field(u32, id)
++		__field(int, nr_cqe)
++		__field(int, comp_vector)
++		__field(unsigned long, poll_ctx)
++	),
++
++	TP_fast_assign(
++		__entry->id = cq->res.id;
++		__entry->nr_cqe = nr_cqe;
++		__entry->comp_vector = comp_vector;
++		__entry->poll_ctx = poll_ctx;
++	),
++
++	TP_printk("cq.id=%u nr_cqe=%d comp_vector=%d poll_ctx=%s",
++		__entry->id, __entry->nr_cqe, __entry->comp_vector,
++		rdma_show_ib_poll_ctx(__entry->poll_ctx)
++	)
++);
++
++TRACE_EVENT(cq_alloc_error,
++	TP_PROTO(
++		int nr_cqe,
++		int comp_vector,
++		enum ib_poll_context poll_ctx,
++		int rc
++	),
++
++	TP_ARGS(nr_cqe, comp_vector, poll_ctx, rc),
++
++	TP_STRUCT__entry(
++		__field(int, rc)
++		__field(int, nr_cqe)
++		__field(int, comp_vector)
++		__field(unsigned long, poll_ctx)
++	),
++
++	TP_fast_assign(
++		__entry->rc = rc;
++		__entry->nr_cqe = nr_cqe;
++		__entry->comp_vector = comp_vector;
++		__entry->poll_ctx = poll_ctx;
++	),
++
++	TP_printk("nr_cqe=%d comp_vector=%d poll_ctx=%s rc=%d",
++		__entry->nr_cqe, __entry->comp_vector,
++		rdma_show_ib_poll_ctx(__entry->poll_ctx), __entry->rc
++	)
++);
++
++TRACE_EVENT(cq_free,
++	TP_PROTO(
++		const struct ib_cq *cq
++	),
++
++	TP_ARGS(cq),
++
++	TP_STRUCT__entry(
++		__field(u32, id)
++	),
++
++	TP_fast_assign(
++		__entry->id = cq->res.id;
++	),
++
++	TP_printk("cq.id=%u", __entry->id)
++);
++
++#endif /* _TRACE_RDMA_CORE_H */
++
++#include <trace/define_trace.h>
 
-> > Network side:
-> > - By default the netdevice and the rdma device of mlx5 mdev cannot
-> > send or receive any packets over the network or to any other mlx5 mdev.
->=20
-> Does this mean the frames don't fall back to the repr by default?
-Probably I wasn't clear.
-What I wanted to say is, that frames transmitted by mdev's netdevice and rd=
-ma devices don't go to network.
-These frames goes to representor device.
-User must configure representor to send/receive/steer traffic to mdev.
