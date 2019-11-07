@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0024EC43331
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1173C5DF60
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C56EE218AE
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C88A6218AE
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Nov 2019 16:09:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389517AbfKGQJQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Nov 2019 11:09:16 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53526 "EHLO
+        id S2389574AbfKGQJS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Nov 2019 11:09:18 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53584 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389285AbfKGQJO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Nov 2019 11:09:14 -0500
+        with ESMTP id S2389546AbfKGQJS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Nov 2019 11:09:18 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from parav@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 7 Nov 2019 18:09:07 +0200
+        with ESMTPS (AES256-SHA encrypted); 7 Nov 2019 18:09:16 +0200
 Received: from sw-mtx-036.mtx.labs.mlnx (sw-mtx-036.mtx.labs.mlnx [10.9.150.149])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id xA7G8d4H007213;
-        Thu, 7 Nov 2019 18:09:04 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id xA7G8d4L007213;
+        Thu, 7 Nov 2019 18:09:14 +0200
 From:   Parav Pandit <parav@mellanox.com>
 To:     alex.williamson@redhat.com, davem@davemloft.net,
         kvm@vger.kernel.org, netdev@vger.kernel.org
 Cc:     saeedm@mellanox.com, kwankhede@nvidia.com, leon@kernel.org,
         cohuck@redhat.com, jiri@mellanox.com, linux-rdma@vger.kernel.org,
         Parav Pandit <parav@mellanox.com>
-Subject: [PATCH net-next 07/19] vfio/mdev: Introduce sha1 based mdev alias
-Date:   Thu,  7 Nov 2019 10:08:22 -0600
-Message-Id: <20191107160834.21087-7-parav@mellanox.com>
+Subject: [PATCH net-next 11/19] vfio/mdev: Improvise mdev life cycle and parent removal scheme
+Date:   Thu,  7 Nov 2019 10:08:26 -0600
+Message-Id: <20191107160834.21087-11-parav@mellanox.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20191107160834.21087-1-parav@mellanox.com>
 References: <20191107160448.20962-1-parav@mellanox.com>
@@ -44,302 +44,279 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Some vendor drivers want an identifier for an mdev device that is
-shorter than the UUID, due to length restrictions in the consumers of
-that identifier.
+mdev creation and removal sequence synchronization with parent device
+removal is improved in [1].
 
-Add a callback that allows a vendor driver to request an alias of a
-specified length to be generated for an mdev device. If generated,
-that alias is checked for collisions.
+However such improvement using semaphore either limiting or leads to
+complex locking scheme when used across multiple subsystem such as mdev
+and devlink.
 
-It is an optional attribute.
-mdev alias is generated using sha1 from the mdev name.
+When mdev devices are used with devlink eswitch device, following
+deadlock sequence can be witnessed.
 
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
+mlx5_core 0000:06:00.0: E-Switch: Disable: mode(OFFLOADS), nvfs(4), active vports(5)
+mlx5_core 0000:06:00.0: MDEV: Unregistering
+
+WARNING: possible circular locking dependency detected
+------------------------------------------------------
+devlink/42094 is trying to acquire lock:
+00000000eb6fb4c7 (&parent->unreg_sem){++++}, at: mdev_unregister_device+0xf1/0x160 [mdev]
+012but task is already holding lock:
+00000000efcd208e (devlink_mutex){+.+.}, at: devlink_nl_pre_doit+0x1d/0x170
+012which lock already depends on the new lock.
+012the existing dependency chain (in reverse order) is:
+012-> #1 (devlink_mutex){+.+.}:
+      lock_acquire+0xbd/0x1a0
+      __mutex_lock+0x84/0x8b0
+      devlink_unregister+0x17/0x60
+      mlx5_sf_unload+0x21/0x60 [mlx5_core]
+      mdev_remove+0x1e/0x40 [mdev]
+      device_release_driver_internal+0xdc/0x1a0
+      bus_remove_device+0xef/0x160
+      device_del+0x163/0x360
+      mdev_device_remove_common+0x1e/0xa0 [mdev]
+      mdev_device_remove+0x8d/0xd0 [mdev]
+      remove_store+0x71/0x90 [mdev]
+      kernfs_fop_write+0x113/0x1a0
+      vfs_write+0xad/0x1b0
+      ksys_write+0x5c/0xd0
+      do_syscall_64+0x5a/0x270
+      entry_SYSCALL_64_after_hwframe+0x49/0xbe
+012-> #0 (&parent->unreg_sem){++++}:
+      check_prev_add+0xb0/0x810
+      __lock_acquire+0xd4b/0x1090
+      lock_acquire+0xbd/0x1a0
+      down_write+0x33/0x70
+      mdev_unregister_device+0xf1/0x160 [mdev]
+      esw_offloads_disable+0xe/0x70 [mlx5_core]
+      mlx5_eswitch_disable+0x149/0x190 [mlx5_core]
+      mlx5_devlink_eswitch_mode_set+0xd0/0x180 [mlx5_core]
+      devlink_nl_cmd_eswitch_set_doit+0x3e/0xb0
+      genl_family_rcv_msg+0x3a2/0x420
+      genl_rcv_msg+0x47/0x90
+      netlink_rcv_skb+0xc9/0x100
+      genl_rcv+0x24/0x40
+      netlink_unicast+0x179/0x220
+      netlink_sendmsg+0x2f6/0x3f0
+      sock_sendmsg+0x30/0x40
+      __sys_sendto+0xdc/0x160
+      __x64_sys_sendto+0x24/0x30
+      do_syscall_64+0x5a/0x270
+      entry_SYSCALL_64_after_hwframe+0x49/0xbe
+Possible unsafe locking scenario:
+      CPU0                    CPU1
+      ----                    ----
+ lock(devlink_mutex);
+                              lock(&parent->unreg_sem);
+                              lock(devlink_mutex);
+ lock(&parent->unreg_sem);
+012 *** DEADLOCK ***
+3 locks held by devlink/42094:
+0: 0000000097a0c4aa (cb_lock){++++}, at: genl_rcv+0x15/0x40
+1: 00000000baf61ad2 (genl_mutex){+.+.}, at: genl_rcv_msg+0x66/0x90
+2: 00000000efcd208e (devlink_mutex){+.+.}, at: devlink_nl_pre_doit+0x1d/0x170
+
+To summarize,
+mdev_remove()
+  read locks -> unreg_sem [ lock-A ]
+  [..]
+  devlink_unregister();
+    mutex lock devlink_mutex [ lock-B ]
+
+devlink eswitch->switchdev-legacy mode change.
+ devlink_nl_cmd_eswitch_set_doit()
+   mutex lock devlink_mutex [ lock-B ]
+   mdev_unregister_device()
+   write locks -> unreg_sem [ lock-A]
+
+Hence, instead of using semaphore, such synchronization is achieved
+using srcu which is more flexible that eliminates nested locking.
+
+SRCU based solution is already proposed before at [2].
+
+[1] commit 5715c4dd66a3 ("vfio/mdev: Synchronize device create/remove with parent removal")
+[2] https://lore.kernel.org/patchwork/patch/1055254/
+
 Signed-off-by: Parav Pandit <parav@mellanox.com>
 ---
- drivers/vfio/mdev/mdev_core.c    | 123 ++++++++++++++++++++++++++++++-
- drivers/vfio/mdev/mdev_private.h |   5 +-
- drivers/vfio/mdev/mdev_sysfs.c   |  13 ++--
- include/linux/mdev.h             |   4 +
- 4 files changed, 135 insertions(+), 10 deletions(-)
+ drivers/vfio/mdev/mdev_core.c    | 56 +++++++++++++++++++++++---------
+ drivers/vfio/mdev/mdev_private.h |  3 +-
+ 2 files changed, 43 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/vfio/mdev/mdev_core.c b/drivers/vfio/mdev/mdev_core.c
-index b558d4cfd082..3bdff0469607 100644
+index 9eec556fbdd4..41225e6ccc20 100644
 --- a/drivers/vfio/mdev/mdev_core.c
 +++ b/drivers/vfio/mdev/mdev_core.c
-@@ -10,9 +10,11 @@
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/uuid.h>
- #include <linux/sysfs.h>
- #include <linux/mdev.h>
-+#include <crypto/hash.h>
+@@ -85,6 +85,7 @@ static void mdev_release_parent(struct kref *kref)
+ 						  ref);
+ 	struct device *dev = parent->dev;
  
- #include "mdev_private.h"
- 
-@@ -27,6 +29,8 @@ static struct class_compat *mdev_bus_compat_class;
- static LIST_HEAD(mdev_list);
- static DEFINE_MUTEX(mdev_list_lock);
- 
-+static struct crypto_shash *alias_hash;
-+
- struct device *mdev_parent_dev(struct mdev_device *mdev)
- {
- 	return mdev->parent->dev;
-@@ -150,6 +154,16 @@ int mdev_register_device(struct device *dev, const struct mdev_parent_ops *ops)
- 	if (!ops || !ops->create || !ops->remove || !ops->supported_type_groups)
- 		return -EINVAL;
- 
-+	if (ops->get_alias_length) {
-+		unsigned int digest_size;
-+		unsigned int aligned_len;
-+
-+		aligned_len = roundup(ops->get_alias_length(), 2);
-+		digest_size = crypto_shash_digestsize(alias_hash);
-+		if (aligned_len / 2 > digest_size)
-+			return -EINVAL;
-+	}
-+
- 	dev = get_device(dev);
- 	if (!dev)
- 		return -EINVAL;
-@@ -259,6 +273,7 @@ static void mdev_device_free(struct mdev_device *mdev)
- 	mutex_unlock(&mdev_list_lock);
- 
- 	dev_dbg(&mdev->dev, "MDEV: destroying\n");
-+	kfree(mdev->alias);
- 	kfree(mdev);
++	cleanup_srcu_struct(&parent->unreg_srcu);
+ 	kfree(parent);
+ 	put_device(dev);
  }
+@@ -114,7 +115,6 @@ static void mdev_device_remove_common(struct mdev_device *mdev)
+ 	mdev_remove_sysfs_files(&mdev->dev, type);
+ 	device_del(&mdev->dev);
+ 	parent = mdev->parent;
+-	lockdep_assert_held(&parent->unreg_sem);
+ 	ret = parent->ops->remove(mdev);
+ 	if (ret)
+ 		dev_err(&mdev->dev, "Remove failed: err=%d\n", ret);
+@@ -185,7 +185,7 @@ int mdev_register_device(struct device *dev, const struct mdev_parent_ops *ops)
+ 	}
  
-@@ -269,18 +284,101 @@ static void mdev_device_release(struct device *dev)
- 	mdev_device_free(mdev);
- }
+ 	kref_init(&parent->ref);
+-	init_rwsem(&parent->unreg_sem);
++	init_srcu_struct(&parent->unreg_srcu);
  
--int mdev_device_create(struct kobject *kobj,
--		       struct device *dev, const guid_t *uuid)
-+static const char *
-+generate_alias(const char *uuid, unsigned int max_alias_len)
-+{
-+	struct shash_desc *hash_desc;
-+	unsigned int digest_size;
-+	unsigned char *digest;
-+	unsigned int alias_len;
-+	char *alias;
-+	int ret;
+ 	parent->dev = dev;
+ 	parent->ops = ops;
+@@ -207,6 +207,7 @@ int mdev_register_device(struct device *dev, const struct mdev_parent_ops *ops)
+ 		dev_warn(dev, "Failed to create compatibility class link\n");
+ 
+ 	list_add(&parent->next, &parent_list);
++	rcu_assign_pointer(parent->self, parent);
+ 	mutex_unlock(&parent_list_lock);
+ 
+ 	dev_info(dev, "MDEV: Registered\n");
+@@ -250,14 +251,29 @@ void mdev_unregister_device(struct device *dev)
+ 	list_del(&parent->next);
+ 	mutex_unlock(&parent_list_lock);
+ 
+-	down_write(&parent->unreg_sem);
++	/*
++	 * Publish that this mdev parent is unregistering. So any new
++	 * create/remove cannot start on this parent anymore by user.
++	 */
++	rcu_assign_pointer(parent->self, NULL);
 +
 +	/*
-+	 * Align to multiple of 2 as bin2hex will generate
-+	 * even number of bytes.
++	 * Wait for any active create() or remove() mdev ops on the parent
++	 * to complete.
 +	 */
-+	alias_len = roundup(max_alias_len, 2);
-+	alias = kzalloc(alias_len + 1, GFP_KERNEL);
-+	if (!alias)
-+		return ERR_PTR(-ENOMEM);
++	synchronize_srcu(&parent->unreg_srcu);
 +
-+	/* Allocate and init descriptor */
-+	hash_desc = kvzalloc(sizeof(*hash_desc) +
-+			     crypto_shash_descsize(alias_hash),
-+			     GFP_KERNEL);
-+	if (!hash_desc) {
-+		ret = -ENOMEM;
-+		goto desc_err;
-+	}
-+
-+	hash_desc->tfm = alias_hash;
-+
-+	digest_size = crypto_shash_digestsize(alias_hash);
-+
-+	digest = kzalloc(digest_size, GFP_KERNEL);
-+	if (!digest) {
-+		ret = -ENOMEM;
-+		goto digest_err;
-+	}
-+	ret = crypto_shash_init(hash_desc);
-+	if (ret)
-+		goto hash_err;
-+
-+	ret = crypto_shash_update(hash_desc, uuid, UUID_STRING_LEN);
-+	if (ret)
-+		goto hash_err;
-+
-+	ret = crypto_shash_final(hash_desc, digest);
-+	if (ret)
-+		goto hash_err;
-+
-+	bin2hex(alias, digest, min_t(unsigned int, digest_size, alias_len / 2));
 +	/*
-+	 * When alias length is odd, zero out an additional last byte
-+	 * that bin2hex has copied.
++	 * At this point it is confirmed that any pending user initiated
++	 * create or remove callbacks accessing the parent are completed.
++	 * It is safe to remove the parent now.
 +	 */
-+	if (max_alias_len % 2)
-+		alias[max_alias_len] = 0;
-+
-+	kfree(digest);
-+	kvfree(hash_desc);
-+	return alias;
-+
-+hash_err:
-+	kfree(digest);
-+digest_err:
-+	kvfree(hash_desc);
-+desc_err:
-+	kfree(alias);
-+	return ERR_PTR(ret);
-+}
-+
-+int mdev_device_create(struct kobject *kobj, struct device *dev,
-+		       const char *uuid_str, const guid_t *uuid)
+ 
+ 	class_compat_remove_link(mdev_bus_compat_class, dev, NULL);
+ 
+ 	device_for_each_child(dev, NULL, mdev_device_remove_cb);
+ 
+ 	parent_remove_sysfs_files(parent);
+-	up_write(&parent->unreg_sem);
+ 
+ 	mdev_put_parent(parent);
+ 
+@@ -358,15 +374,25 @@ int mdev_device_create(struct kobject *kobj, struct device *dev,
+ 		       const char *uuid_str, const guid_t *uuid)
  {
  	int ret;
++	struct mdev_parent *valid_parent;
  	struct mdev_device *mdev, *tmp;
  	struct mdev_parent *parent;
  	struct mdev_type *type = to_mdev_type(kobj);
-+	const char *alias = NULL;
+ 	const char *alias = NULL;
++	int srcu_idx;
  
  	parent = mdev_get_parent(type->parent);
  	if (!parent)
  		return -EINVAL;
  
-+	if (parent->ops->get_alias_length) {
-+		unsigned int alias_len;
-+
-+		alias_len = parent->ops->get_alias_length();
-+		if (alias_len) {
-+			alias = generate_alias(uuid_str, alias_len);
-+			if (IS_ERR(alias)) {
-+				ret = PTR_ERR(alias);
-+				goto alias_fail;
-+			}
-+		}
++	srcu_idx = srcu_read_lock(&parent->unreg_srcu);
++	valid_parent = srcu_dereference(parent->self, &parent->unreg_srcu);
++	if (!valid_parent) {
++		/* Parent is undergoing unregistration */
++		ret = -ENODEV;
++		goto alias_fail;
 +	}
- 	mutex_lock(&mdev_list_lock);
++
+ 	if (parent->ops->get_alias_length) {
+ 		unsigned int alias_len;
  
- 	/* Check for duplicate */
-@@ -300,6 +398,12 @@ int mdev_device_create(struct kobject *kobj,
- 	}
+@@ -416,13 +442,6 @@ int mdev_device_create(struct kobject *kobj, struct device *dev,
  
- 	guid_copy(&mdev->uuid, uuid);
-+	mdev->alias = alias;
-+	/*
-+	 * At this point alias memory is owned by the mdev.
-+	 * Mark it NULL, so that only mdev can free it.
-+	 */
-+	alias = NULL;
- 	list_add(&mdev->next, &mdev_list);
- 	mutex_unlock(&mdev_list_lock);
+ 	mdev->parent = parent;
  
-@@ -346,6 +450,8 @@ int mdev_device_create(struct kobject *kobj,
- 	up_read(&parent->unreg_sem);
+-	/* Check if parent unregistration has started */
+-	if (!down_read_trylock(&parent->unreg_sem)) {
+-		mdev_device_free(mdev);
+-		ret = -ENODEV;
+-		goto mdev_fail;
+-	}
+-
+ 	device_initialize(&mdev->dev);
+ 	mdev->dev.parent  = dev;
+ 	mdev->dev.bus     = &mdev_bus_type;
+@@ -445,7 +464,7 @@ int mdev_device_create(struct kobject *kobj, struct device *dev,
+ 
+ 	mdev->active = true;
+ 	dev_dbg(&mdev->dev, "MDEV: created\n");
+-	up_read(&parent->unreg_sem);
++	srcu_read_unlock(&parent->unreg_srcu, srcu_idx);
+ 
+ 	return 0;
+ 
+@@ -454,19 +473,21 @@ int mdev_device_create(struct kobject *kobj, struct device *dev,
+ add_fail:
+ 	parent->ops->remove(mdev);
+ ops_create_fail:
+-	up_read(&parent->unreg_sem);
  	put_device(&mdev->dev);
  mdev_fail:
-+	kfree(alias);
-+alias_fail:
+ 	kfree(alias);
+ alias_fail:
++	srcu_read_unlock(&parent->unreg_srcu, srcu_idx);
  	mdev_put_parent(parent);
  	return ret;
  }
-@@ -406,7 +512,17 @@ EXPORT_SYMBOL(mdev_get_iommu_device);
  
- static int __init mdev_init(void)
+ int mdev_device_remove(struct device *dev)
  {
--	return mdev_bus_register();
-+	int ret;
-+
-+	alias_hash = crypto_alloc_shash("sha1", 0, 0);
-+	if (!alias_hash)
-+		return -ENOMEM;
-+
-+	ret = mdev_bus_register();
-+	if (ret)
-+		crypto_free_shash(alias_hash);
-+
-+	return ret;
++	struct mdev_parent *valid_parent;
+ 	struct mdev_device *mdev, *tmp;
+ 	struct mdev_parent *parent;
++	int srcu_idx;
+ 
+ 	mdev = to_mdev_device(dev);
+ 
+@@ -491,11 +512,16 @@ int mdev_device_remove(struct device *dev)
+ 
+ 	parent = mdev->parent;
+ 	/* Check if parent unregistration has started */
+-	if (!down_read_trylock(&parent->unreg_sem))
++	srcu_idx = srcu_read_lock(&parent->unreg_srcu);
++	valid_parent = srcu_dereference(parent->self, &parent->unreg_srcu);
++	if (!valid_parent) {
++		srcu_read_unlock(&parent->unreg_srcu, srcu_idx);
++		/* Parent is undergoing unregistration */
+ 		return -ENODEV;
++	}
+ 
+ 	mdev_device_remove_common(mdev);
+-	up_read(&parent->unreg_sem);
++	srcu_read_unlock(&parent->unreg_srcu, srcu_idx);
+ 	return 0;
  }
  
- static void __exit mdev_exit(void)
-@@ -415,6 +531,7 @@ static void __exit mdev_exit(void)
- 		class_compat_unregister(mdev_bus_compat_class);
- 
- 	mdev_bus_unregister();
-+	crypto_free_shash(alias_hash);
- }
- 
- module_init(mdev_init)
 diff --git a/drivers/vfio/mdev/mdev_private.h b/drivers/vfio/mdev/mdev_private.h
-index 7d922950caaf..078fdaf7836e 100644
+index 078fdaf7836e..730b1cb24cbc 100644
 --- a/drivers/vfio/mdev/mdev_private.h
 +++ b/drivers/vfio/mdev/mdev_private.h
-@@ -32,6 +32,7 @@ struct mdev_device {
- 	struct list_head next;
- 	struct kobject *type_kobj;
- 	struct device *iommu_device;
-+	const char *alias;
- 	bool active;
+@@ -21,7 +21,8 @@ struct mdev_parent {
+ 	struct kset *mdev_types_kset;
+ 	struct list_head type_list;
+ 	/* Synchronize device creation/removal with parent unregistration */
+-	struct rw_semaphore unreg_sem;
++	struct srcu_struct unreg_srcu;
++	struct mdev_parent __rcu *self;
  };
  
-@@ -57,8 +58,8 @@ void parent_remove_sysfs_files(struct mdev_parent *parent);
- int  mdev_create_sysfs_files(struct device *dev, struct mdev_type *type);
- void mdev_remove_sysfs_files(struct device *dev, struct mdev_type *type);
- 
--int  mdev_device_create(struct kobject *kobj,
--			struct device *dev, const guid_t *uuid);
-+int mdev_device_create(struct kobject *kobj, struct device *dev,
-+		       const char *uuid_str, const guid_t *uuid);
- int  mdev_device_remove(struct device *dev);
- 
- #endif /* MDEV_PRIVATE_H */
-diff --git a/drivers/vfio/mdev/mdev_sysfs.c b/drivers/vfio/mdev/mdev_sysfs.c
-index 7570c7602ab4..43afe0e80b76 100644
---- a/drivers/vfio/mdev/mdev_sysfs.c
-+++ b/drivers/vfio/mdev/mdev_sysfs.c
-@@ -63,15 +63,18 @@ static ssize_t create_store(struct kobject *kobj, struct device *dev,
- 		return -ENOMEM;
- 
- 	ret = guid_parse(str, &uuid);
--	kfree(str);
- 	if (ret)
--		return ret;
-+		goto err;
- 
--	ret = mdev_device_create(kobj, dev, &uuid);
-+	ret = mdev_device_create(kobj, dev, str, &uuid);
- 	if (ret)
--		return ret;
-+		goto err;
- 
--	return count;
-+	ret = count;
-+
-+err:
-+	kfree(str);
-+	return ret;
- }
- 
- MDEV_TYPE_ATTR_WO(create);
-diff --git a/include/linux/mdev.h b/include/linux/mdev.h
-index 0ce30ca78db0..06e162361df9 100644
---- a/include/linux/mdev.h
-+++ b/include/linux/mdev.h
-@@ -72,6 +72,9 @@ struct device *mdev_get_iommu_device(struct device *dev);
-  * @mmap:		mmap callback
-  *			@mdev: mediated device structure
-  *			@vma: vma structure
-+ * @get_alias_length:	Optional: If a non-zero alias length is returned,
-+ *			generate an alias for this parent's mdevs based upon
-+ *			the mdev device name.
-  * Parent device that support mediated device should be registered with mdev
-  * module with mdev_parent_ops structure.
-  **/
-@@ -92,6 +95,7 @@ struct mdev_parent_ops {
- 	long	(*ioctl)(struct mdev_device *mdev, unsigned int cmd,
- 			 unsigned long arg);
- 	int	(*mmap)(struct mdev_device *mdev, struct vm_area_struct *vma);
-+	unsigned int (*get_alias_length)(void);
- };
- 
- /* interface for exporting mdev supported type attributes */
+ struct mdev_device {
 -- 
 2.19.2
 
