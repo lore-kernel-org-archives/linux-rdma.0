@@ -2,125 +2,121 @@ Return-Path: <SRS0=fYhk=ZA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_SBL,URIBL_SBL_A,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48A96FC6195
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 18:34:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D054FC6195
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 19:06:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 218672075C
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 18:34:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E2F3206A3
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 19:06:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="GBKXo9ZR"
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="ltgYL9JD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726394AbfKHSeP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Nov 2019 13:34:15 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:37930 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728852AbfKHSeP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 Nov 2019 13:34:15 -0500
-Received: by mail-wr1-f68.google.com with SMTP id i12so1239853wro.5
-        for <linux-rdma@vger.kernel.org>; Fri, 08 Nov 2019 10:34:13 -0800 (PST)
+        id S1732130AbfKHTGx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Nov 2019 14:06:53 -0500
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:41780 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391340AbfKHTGw (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 Nov 2019 14:06:52 -0500
+Received: by mail-lj1-f193.google.com with SMTP id m9so7312029ljh.8
+        for <linux-rdma@vger.kernel.org>; Fri, 08 Nov 2019 11:06:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=lDOuVdyU/NGOBA/NOIi8OTDcCGXKckSDWCSgU9rLWOY=;
-        b=GBKXo9ZRoH0e4wUtSlIUb3jLlN2tyv9jvO1lXk+hjiCvbGNWQclRoE+DnjB/QX5s41
-         n5jw9WlfRYPle46v3JyStnKYvmiB68HHm8MwEc3LtJM1565Q1c29Wy5nndmi1oxHjKOQ
-         e7gd9wD8Ru/6hhdn7UBLdZGgDSRNNPxEUGue3/3568fVQ2SrfWs0EqyFeSGE11HwoaMs
-         LO6A3HRwfGUZBpn1zOYHoo+pC/UlzOfXuxJ0mUntwb/fEO/PP6PPwhCtZzRzMcMPLzbL
-         Osn7dwCJpldAT3RahOhb3EB8blyvIRKuPLxwioaGSwTuP2RiKOFctQJMUk2muhn7Xofs
-         yOwQ==
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :organization:mime-version:content-transfer-encoding;
+        bh=8FLmVV2Nn1i56ToXPb/ssVwCCAPCGG8SAnZ1P+H/kmw=;
+        b=ltgYL9JDHmVrRQ7ImtLOdrrO0GhgDKUSRvdRUwKDvKqK7SWEHFUZQ9fQ0liohDkYXs
+         Ja9LKNtRqy+MCgvYJn0mKx2Blay+VFrzpqPiMhqYe5vUZryDym4LN+PeEdY/r/6S3ct+
+         dGOsWwb5OqYZB57PwQBPwVZTZWypVtd1FRhhsEXfiC0vAi6ubsIzWjq2EaitLTwTW76l
+         YTzhiFvf5D+hROXM/GU3OBsH50TOEl02VjNQcOGDAGyO5UzLxYmY4RbeAPTRnB6upie5
+         d+f4ir9k2/uYLd89q/zytaKQiooEOYwfcGjL+MSzrKKJ8W5KEj31Ecma431qqWEecwdd
+         CKxA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=lDOuVdyU/NGOBA/NOIi8OTDcCGXKckSDWCSgU9rLWOY=;
-        b=a1GthNGuvUZtG6BhWRJZfaEuNM6ip+SdcmEWy7HyeTbA9mmjt4c63lRs/aqSelHyl5
-         CxI0cyeVpNXbo8tRydR/BZx0vxk3S8UBOvsiIxHCtG9qsoPhlysI09oGD+LbtkDzCeYv
-         cCx5qYr5LyP+zrCvjZsV9OhEddx8RG4Gu5XuZsfmds3irfpAwt5uXOFpg/8JHUppYalR
-         KN0InB9MFl4nzPr41UBGjM8sb12MRl3MIs06Y9VBi4VotNC8LBuPuxM+Qix4QAWhOkym
-         FvLEkUU4R8OWUxLIV4W8MzC5couJGChKWU+jdEjXpdAMc9H9bOPupKzWX2cgwCuP3g3Y
-         kfhw==
-X-Gm-Message-State: APjAAAViGArRSCANBoymepLqmcg/kB76aWlYcZV3yiR+TjROgyDsw7ox
-        PfQL3VjojTAv6TrOTdCiXLwq1g==
-X-Google-Smtp-Source: APXvYqxLI+jBORt6enjDcoO/Lv3XygiUH9GQ1c32a7/0zht8rn1PTzF2lBpOGDEQ2Gc6QciF69dDcA==
-X-Received: by 2002:adf:c401:: with SMTP id v1mr9446418wrf.375.1573238053124;
-        Fri, 08 Nov 2019 10:34:13 -0800 (PST)
-Received: from localhost (ip-94-113-220-175.net.upcbroadband.cz. [94.113.220.175])
-        by smtp.gmail.com with ESMTPSA id p25sm3094919wma.20.2019.11.08.10.34.12
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:organization:mime-version:content-transfer-encoding;
+        bh=8FLmVV2Nn1i56ToXPb/ssVwCCAPCGG8SAnZ1P+H/kmw=;
+        b=LYx6bi/w2RLLcil1cTZW5RLfRHjBWKIPp81Ly+azn/Ik4VQxuqpz1Y8Rcy248KyEPK
+         Q2PwVK5URheUx0pL6G/+aVYfiHsUi6jSrzqj32BDdNgXN/fwR0Zi1q/KR6EqPfK0BkES
+         FVwwKgKXi8rRPp6sL6rI+IypVFEy7EoRScoNPgCo2u+dgYCR6s+j9+np8Nbv8E3ZQqCU
+         05Sx3M3YHbEzGLGLuimg6b/IwxsbbRFS04MshdfK/ND5miyyxMkOUH7kWz3+dzMPWReY
+         r3wFjEi5iIEeWAmT8R5uiqYH17CcMMEcu8ZaiU7JhqCywacPbfOvhwy9lB1JWqE4yDoz
+         eWAA==
+X-Gm-Message-State: APjAAAXgnQVy57Kuu+W8qNnF01tpTABL1SL1KWMLX+dojD1oaSbsnEER
+        dViQUMov6wXgM8SXwsbt36dTKA==
+X-Google-Smtp-Source: APXvYqx/wv0yk/AJ+E1ZtDOZUsLSUi6YPh4XUZ58UPIYFssoxtB+Qv88gMeho+YLrmJwsFzO7v7/Wg==
+X-Received: by 2002:a2e:b4ba:: with SMTP id q26mr7849587ljm.60.1573240010398;
+        Fri, 08 Nov 2019 11:06:50 -0800 (PST)
+Received: from cakuba ([66.60.152.14])
+        by smtp.gmail.com with ESMTPSA id t8sm2932484lfl.51.2019.11.08.11.06.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 Nov 2019 10:34:12 -0800 (PST)
-Date:   Fri, 8 Nov 2019 19:34:11 +0100
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Parav Pandit <parav@mellanox.com>
-Cc:     Jakub Kicinski <jakub.kicinski@netronome.com>,
-        "alex.williamson@redhat.com" <alex.williamson@redhat.com>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "kvm@vger.kernel.org" <kvm@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        "kwankhede@nvidia.com" <kwankhede@nvidia.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "cohuck@redhat.com" <cohuck@redhat.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH net-next 12/19] devlink: Introduce mdev port flavour
-Message-ID: <20191108183411.GW6990@nanopsycho>
-References: <20191107201750.6ac54aed@cakuba>
- <AM0PR05MB4866BEC2A2B586AA72BAA9ABD17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
- <20191107212024.61926e11@cakuba>
- <AM0PR05MB4866C0798EA5746EE23F2D2BD17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
- <20191108094646.GB6990@nanopsycho>
- <AM0PR05MB4866969D18877C7AAD19D236D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
- <20191108163139.GQ6990@nanopsycho>
- <AM0PR05MB48669A9AE494CCCE8E07C367D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
- <20191108181119.GT6990@nanopsycho>
- <AM0PR05MB48667057857062CB24DD57D2D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+        Fri, 08 Nov 2019 11:06:50 -0800 (PST)
+Date:   Fri, 8 Nov 2019 11:06:40 -0800
+From:   Jakub Kicinski <jakub.kicinski@netronome.com>
+To:     Jiri Pirko <jiri@resnulli.us>
+Cc:     Parav Pandit <parav@mellanox.com>, alex.williamson@redhat.com,
+        davem@davemloft.net, kvm@vger.kernel.org, netdev@vger.kernel.org,
+        saeedm@mellanox.com, kwankhede@nvidia.com, leon@kernel.org,
+        cohuck@redhat.com, jiri@mellanox.com, linux-rdma@vger.kernel.org,
+        Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
+Message-ID: <20191108110640.225b2724@cakuba>
+In-Reply-To: <20191108121233.GJ6990@nanopsycho>
+References: <20191107160448.20962-1-parav@mellanox.com>
+        <20191107153234.0d735c1f@cakuba.netronome.com>
+        <20191108121233.GJ6990@nanopsycho>
+Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AM0PR05MB48667057857062CB24DD57D2D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Fri, Nov 08, 2019 at 07:23:44PM CET, parav@mellanox.com wrote:
->
->
->> -----Original Message-----
->> From: Jiri Pirko <jiri@resnulli.us>
->
->[..]
->> Well, I don't really need those in the phys_port_name, mainly simply because
->> they would not fit. However, I believe that you should fillup the PF/VF devlink
->> netlink attrs.
->> 
->> Note that we are not talking here about the actual mdev, but rather
->> devlink_port associated with this mdev. And devlink port should have this info.
->> 
->> 
->> >
->> >> >What in hypothetical case, mdev is not on top of PCI...
->> >>
->> >> Okay, let's go hypothetical. In that case, it is going to be on top
->> >> of something else, wouldn't it?
->> >Yes, it will be. But just because it is on top of something, doesn't mean we
->> include the whole parent dev, its bridge, its rc hierarchy here.
->> >There should be a need.
->> >It was needed in PF/VF case due to overlapping numbers of VFs via single
->> devlink instance. You probably missed my reply to Jakub.
->> 
->> Sure. Again, I don't really care about having that in phys_port_name.
->> But please fillup the attrs.
->> 
->Ah ok. but than that would be optional attribute?
->Because you can have non pci based mdev, though it doesn't exist today along with devlink to my knowledge.
+On Fri, 8 Nov 2019 13:12:33 +0100, Jiri Pirko wrote:
+> Thu, Nov 07, 2019 at 09:32:34PM CET, jakub.kicinski@netronome.com wrote:
+> >On Thu,  7 Nov 2019 10:04:48 -0600, Parav Pandit wrote:  
+> >> Mellanox sub function capability allows users to create several hundreds
+> >> of networking and/or rdma devices without depending on PCI SR-IOV support.  
+> >
+> >You call the new port type "sub function" but the devlink port flavour
+> >is mdev.
+> >
+> >As I'm sure you remember you nacked my patches exposing NFP's PCI 
+> >sub functions which are just regions of the BAR without any mdev
+> >capability. Am I in the clear to repost those now? Jiri?  
+> 
+> Well question is, if it makes sense to have SFs without having them as
+> mdev? I mean, we discussed the modelling thoroughtly and eventually we
+> realized that in order to model this correctly, we need SFs on "a bus".
+> Originally we were thinking about custom bus, but mdev is already there
+> to handle this.
 
-Non-optional now. We can always change the code to not fill it up or
-fill up another attr instead. no UAPI harm.
+But the "main/real" port is not a mdev in your case. NFP is like mlx4. 
+It has one PCI PF for multiple ports.
+
+> Our SFs are also just regions of the BAR, same thing as you have.
+> 
+> Can't you do the same for nfp SFs?
+> Then the "mdev" flavour is enough for all.
+
+Absolutely not. 
+
+Why not make the main device of mlx5 a mdev, too, if that's acceptable.
+There's (a) long precedence for multiple ports on one PCI PF in
+networking devices, (b) plenty deployed software 
+which depend on the main devices hanging off the PCI PF directly.
+
+The point of mdevs is being able to sign them to VFs or run DPDK on
+them (map to user space).
+
+For normal devices existing sysfs hierarchy were one device has
+multiple children of a certain class, without a bus and a separate
+driver is perfectly fine. Do you think we should also slice all serial
+chips into mdevs if they have multiple lines.
+
+Exactly as I predicted much confusion about what's being achieved here,
+heh :)
