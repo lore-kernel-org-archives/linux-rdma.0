@@ -7,50 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 604A4FC6194
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B0D9FA372C
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:54:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3742422473
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:44:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2252A2084D
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:54:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573213458;
-	bh=9H/S9MZdf5+9c4GFaI7HTfzDZGkIWEQ1oZwuu/OMqMw=;
+	s=default; t=1573214088;
+	bh=TqqrcKleofOp6WEaP0GxHanALfR3V+fgwguyLNso3HY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=m2U1gSEbj0tJ4uPu8+BMj/0MMIY0S6PJ5FJJtqK3WHAbavDJdbySOU5jA5HOZrYRW
-	 E+WDhmlzL3FIBsV+MvXE3kJBa1i6C0jIapzGjX/bHBlZg1TWhSYR1F1uxfkwip0qJ/
-	 JzFPCl8b1Dq8EMJP1X2ayahht9ShTzRAUfFkhfw0=
+	b=Zi7NPSvBsSQmcWMHpWrUaKtNsjoQh1WADbornHEUPe1w49V7+XzsWAlGixck0hIAz
+	 120PyB93uxzmIBRU2nlucheHvStUKo89yK/Y9mtDHxcNI3eatmf/jjU4PAHowAaIl0
+	 iL/JPLahrRVXoeq5eaN7Zr0cVdP0ZamBocFMVQXA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390719AbfKHLoR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Nov 2019 06:44:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59122 "EHLO mail.kernel.org"
+        id S2391274AbfKHLqL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Nov 2019 06:46:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390713AbfKHLoP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 8 Nov 2019 06:44:15 -0500
+        id S2391265AbfKHLqL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 Nov 2019 06:46:11 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2A9A621D6C;
-        Fri,  8 Nov 2019 11:44:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CF76C22480;
+        Fri,  8 Nov 2019 11:46:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573213454;
-        bh=9H/S9MZdf5+9c4GFaI7HTfzDZGkIWEQ1oZwuu/OMqMw=;
+        s=default; t=1573213569;
+        bh=TqqrcKleofOp6WEaP0GxHanALfR3V+fgwguyLNso3HY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Qfe6yz7iJIhnc2MJv4JeVZY4kxPxFIlGy/aqK2j/u61oFcDiAp9f3O7tHm/3LlSxI
-         JY5FLG23dPZF9OIedbMsu8Bq+5TVbiUBo9fFFdaZANwGCbsppOdwduaHdNKl8E2qOO
-         bEjX+S3YfEm7UbTGpMVG+kysK0xPVzj7IpipVRgQ=
+        b=MAb8b+93SDiaFQo4RA3voeaLCQy+MoistUTHaS0V/CYbJkQSugEyzI9HgYtKJS+va
+         RxwJPmzs5lIICEvuZV+ggcg4+m/b9FVIxW6KylG6uhSTCHbs+LVW03oBNu94GP0qrT
+         kBf4iMP/aWt2EYuyrICeZk7U4V8HNUpu5BAH4LEA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Parav Pandit <parav@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Vijay Immanuel <vijayi@attalasystems.com>,
+        Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 044/103] RDMA/core: Rate limit MAD error messages
-Date:   Fri,  8 Nov 2019 06:42:09 -0500
-Message-Id: <20191108114310.14363-44-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 17/64] IB/rxe: fixes for rdma read retry
+Date:   Fri,  8 Nov 2019 06:44:58 -0500
+Message-Id: <20191108114545.15351-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191108114310.14363-1-sashal@kernel.org>
-References: <20191108114310.14363-1-sashal@kernel.org>
+In-Reply-To: <20191108114545.15351-1-sashal@kernel.org>
+References: <20191108114545.15351-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,174 +58,125 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+From: Vijay Immanuel <vijayi@attalasystems.com>
 
-[ Upstream commit f9d08f1e1939ad4d92e38bd3dee6842512f5bee6 ]
+[ Upstream commit 030e46e495af855a13964a0aab9753ea82a96edc ]
 
-While registering a mad agent, a user space can trigger various errors
-and flood the logs.
+When a read request is retried for the remaining partial
+data, the response may restart from read response first
+or read response only. So support those cases.
 
-Therefore, decrease verbosity and rate limit such error messages.
-While we are at it, use __func__ to print function name.
+Do not advance the comp psn beyond the current wqe's last_psn
+as that could skip over an entire read wqe and will cause the
+req_retry() logic to set an incorrect req psn.
+An example sequence is as follows:
+Write        PSN 40 -- this is the current WQE.
+Read request PSN 41
+Write        PSN 42
+Receive ACK  PSN 42 -- this will complete the current WQE
+for PSN 40, and set the comp psn to 42 which is a problem
+because the read request at PSN 41 has been skipped over.
+So when req_retry() tries to retransmit the read request,
+it sets the req psn to 42 which is incorrect.
 
-Signed-off-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+When retrying a read request, calculate the number of psns
+completed based on the dma resid instead of the wqe first_psn.
+The wqe first_psn could have moved if the read request was
+retried multiple times.
+
+Set the reth length to the dma resid to handle read retries for
+the remaining partial data.
+
+Signed-off-by: Vijay Immanuel <vijayi@attalasystems.com>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/mad.c | 72 ++++++++++++++++++-----------------
- 1 file changed, 37 insertions(+), 35 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_comp.c | 21 ++++++++++++++++-----
+ drivers/infiniband/sw/rxe/rxe_req.c  | 15 +++++++++------
+ 2 files changed, 25 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index e4339b9e43a54..6072ac7023cb7 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -217,30 +217,30 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 	/* Validate parameters */
- 	qpn = get_spl_qp_index(qp_type);
- 	if (qpn == -1) {
--		dev_notice(&device->dev,
--			   "ib_register_mad_agent: invalid QP Type %d\n",
--			   qp_type);
-+		dev_dbg_ratelimited(&device->dev, "%s: invalid QP Type %d\n",
-+				    __func__, qp_type);
- 		goto error1;
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index df15b6d7b645e..b03a6206d9be7 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -250,6 +250,17 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
+ 	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
+ 		if (pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE &&
+ 		    pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST) {
++			/* read retries of partial data may restart from
++			 * read response first or response only.
++			 */
++			if ((pkt->psn == wqe->first_psn &&
++			     pkt->opcode ==
++			     IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST) ||
++			    (wqe->first_psn == wqe->last_psn &&
++			     pkt->opcode ==
++			     IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY))
++				break;
++
+ 			return COMPST_ERROR;
+ 		}
+ 		break;
+@@ -486,11 +497,11 @@ static inline enum comp_state complete_wqe(struct rxe_qp *qp,
+ 					   struct rxe_pkt_info *pkt,
+ 					   struct rxe_send_wqe *wqe)
+ {
+-	qp->comp.opcode = -1;
+-
+-	if (pkt) {
+-		if (psn_compare(pkt->psn, qp->comp.psn) >= 0)
+-			qp->comp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
++	if (pkt && wqe->state == wqe_state_pending) {
++		if (psn_compare(wqe->last_psn, qp->comp.psn) >= 0) {
++			qp->comp.psn = (wqe->last_psn + 1) & BTH_PSN_MASK;
++			qp->comp.opcode = -1;
++		}
+ 
+ 		if (qp->req.wait_psn) {
+ 			qp->req.wait_psn = 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 0f9fe2ca2a91a..6fb771290c566 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -72,9 +72,6 @@ static void req_retry(struct rxe_qp *qp)
+ 	int npsn;
+ 	int first = 1;
+ 
+-	wqe = queue_head(qp->sq.queue);
+-	npsn = (qp->comp.psn - wqe->first_psn) & BTH_PSN_MASK;
+-
+ 	qp->req.wqe_index	= consumer_index(qp->sq.queue);
+ 	qp->req.psn		= qp->comp.psn;
+ 	qp->req.opcode		= -1;
+@@ -106,11 +103,17 @@ static void req_retry(struct rxe_qp *qp)
+ 		if (first) {
+ 			first = 0;
+ 
+-			if (mask & WR_WRITE_OR_SEND_MASK)
++			if (mask & WR_WRITE_OR_SEND_MASK) {
++				npsn = (qp->comp.psn - wqe->first_psn) &
++					BTH_PSN_MASK;
+ 				retry_first_write_send(qp, wqe, mask, npsn);
++			}
+ 
+-			if (mask & WR_READ_MASK)
++			if (mask & WR_READ_MASK) {
++				npsn = (wqe->dma.length - wqe->dma.resid) /
++					qp->mtu;
+ 				wqe->iova += npsn * qp->mtu;
++			}
+ 		}
+ 
+ 		wqe->state = wqe_state_posted;
+@@ -439,7 +442,7 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
+ 	if (pkt->mask & RXE_RETH_MASK) {
+ 		reth_set_rkey(pkt, ibwr->wr.rdma.rkey);
+ 		reth_set_va(pkt, wqe->iova);
+-		reth_set_len(pkt, wqe->dma.length);
++		reth_set_len(pkt, wqe->dma.resid);
  	}
  
- 	if (rmpp_version && rmpp_version != IB_MGMT_RMPP_VERSION) {
--		dev_notice(&device->dev,
--			   "ib_register_mad_agent: invalid RMPP Version %u\n",
--			   rmpp_version);
-+		dev_dbg_ratelimited(&device->dev,
-+				    "%s: invalid RMPP Version %u\n",
-+				    __func__, rmpp_version);
- 		goto error1;
- 	}
- 
- 	/* Validate MAD registration request if supplied */
- 	if (mad_reg_req) {
- 		if (mad_reg_req->mgmt_class_version >= MAX_MGMT_VERSION) {
--			dev_notice(&device->dev,
--				   "ib_register_mad_agent: invalid Class Version %u\n",
--				   mad_reg_req->mgmt_class_version);
-+			dev_dbg_ratelimited(&device->dev,
-+					    "%s: invalid Class Version %u\n",
-+					    __func__,
-+					    mad_reg_req->mgmt_class_version);
- 			goto error1;
- 		}
- 		if (!recv_handler) {
--			dev_notice(&device->dev,
--				   "ib_register_mad_agent: no recv_handler\n");
-+			dev_dbg_ratelimited(&device->dev,
-+					    "%s: no recv_handler\n", __func__);
- 			goto error1;
- 		}
- 		if (mad_reg_req->mgmt_class >= MAX_MGMT_CLASS) {
-@@ -250,9 +250,9 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 			 */
- 			if (mad_reg_req->mgmt_class !=
- 			    IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) {
--				dev_notice(&device->dev,
--					   "ib_register_mad_agent: Invalid Mgmt Class 0x%x\n",
--					   mad_reg_req->mgmt_class);
-+				dev_dbg_ratelimited(&device->dev,
-+					"%s: Invalid Mgmt Class 0x%x\n",
-+					__func__, mad_reg_req->mgmt_class);
- 				goto error1;
- 			}
- 		} else if (mad_reg_req->mgmt_class == 0) {
-@@ -260,8 +260,9 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 			 * Class 0 is reserved in IBA and is used for
- 			 * aliasing of IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE
- 			 */
--			dev_notice(&device->dev,
--				   "ib_register_mad_agent: Invalid Mgmt Class 0\n");
-+			dev_dbg_ratelimited(&device->dev,
-+					    "%s: Invalid Mgmt Class 0\n",
-+					    __func__);
- 			goto error1;
- 		} else if (is_vendor_class(mad_reg_req->mgmt_class)) {
- 			/*
-@@ -269,18 +270,19 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 			 * ensure supplied OUI is not zero
- 			 */
- 			if (!is_vendor_oui(mad_reg_req->oui)) {
--				dev_notice(&device->dev,
--					   "ib_register_mad_agent: No OUI specified for class 0x%x\n",
--					   mad_reg_req->mgmt_class);
-+				dev_dbg_ratelimited(&device->dev,
-+					"%s: No OUI specified for class 0x%x\n",
-+					__func__,
-+					mad_reg_req->mgmt_class);
- 				goto error1;
- 			}
- 		}
- 		/* Make sure class supplied is consistent with RMPP */
- 		if (!ib_is_mad_class_rmpp(mad_reg_req->mgmt_class)) {
- 			if (rmpp_version) {
--				dev_notice(&device->dev,
--					   "ib_register_mad_agent: RMPP version for non-RMPP class 0x%x\n",
--					   mad_reg_req->mgmt_class);
-+				dev_dbg_ratelimited(&device->dev,
-+					"%s: RMPP version for non-RMPP class 0x%x\n",
-+					__func__, mad_reg_req->mgmt_class);
- 				goto error1;
- 			}
- 		}
-@@ -291,9 +293,9 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 					IB_MGMT_CLASS_SUBN_LID_ROUTED) &&
- 			    (mad_reg_req->mgmt_class !=
- 					IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
--				dev_notice(&device->dev,
--					   "ib_register_mad_agent: Invalid SM QP type: class 0x%x\n",
--					   mad_reg_req->mgmt_class);
-+				dev_dbg_ratelimited(&device->dev,
-+					"%s: Invalid SM QP type: class 0x%x\n",
-+					__func__, mad_reg_req->mgmt_class);
- 				goto error1;
- 			}
- 		} else {
-@@ -301,9 +303,9 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 					IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
- 			    (mad_reg_req->mgmt_class ==
- 					IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
--				dev_notice(&device->dev,
--					   "ib_register_mad_agent: Invalid GS QP type: class 0x%x\n",
--					   mad_reg_req->mgmt_class);
-+				dev_dbg_ratelimited(&device->dev,
-+					"%s: Invalid GS QP type: class 0x%x\n",
-+					__func__, mad_reg_req->mgmt_class);
- 				goto error1;
- 			}
- 		}
-@@ -318,18 +320,18 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 	/* Validate device and port */
- 	port_priv = ib_get_mad_port(device, port_num);
- 	if (!port_priv) {
--		dev_notice(&device->dev,
--			   "ib_register_mad_agent: Invalid port %d\n",
--			   port_num);
-+		dev_dbg_ratelimited(&device->dev, "%s: Invalid port %d\n",
-+				    __func__, port_num);
- 		ret = ERR_PTR(-ENODEV);
- 		goto error1;
- 	}
- 
--	/* Verify the QP requested is supported.  For example, Ethernet devices
--	 * will not have QP0 */
-+	/* Verify the QP requested is supported. For example, Ethernet devices
-+	 * will not have QP0.
-+	 */
- 	if (!port_priv->qp_info[qpn].qp) {
--		dev_notice(&device->dev,
--			   "ib_register_mad_agent: QP %d not supported\n", qpn);
-+		dev_dbg_ratelimited(&device->dev, "%s: QP %d not supported\n",
-+				    __func__, qpn);
- 		ret = ERR_PTR(-EPROTONOSUPPORT);
- 		goto error1;
- 	}
+ 	if (pkt->mask & RXE_IMMDT_MASK)
 -- 
 2.20.1
 
