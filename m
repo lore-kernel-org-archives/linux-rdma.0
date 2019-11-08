@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD171FA372C
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:58:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3394FFC6194
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:59:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9BE06207FA
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:58:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B38D207FA
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:59:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573214310;
-	bh=2r/7d/Sc8DThkpnLSjdpMTmBLQ8df60SDATgIW/Q+m4=;
+	s=default; t=1573214367;
+	bh=1YNBzt0jbY+niUzO7ze/IcroOlW0T0+ZDdhYKHwxpCk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LpVkV0moJMrd58ciTpQsCYLGZedMBMj1ZE7da8v4SzBMRqMu7ew8gsciybPb0RXnb
-	 +qtabMlWNXEdsg4l8Vktjaiqnssy3WUZTSidHRHtQmzal+2RKLjo37g4jjK6apsPCJ
-	 /snMmiKSebsWCyXo/dmKHaJxTkDUr2OxuIm5oHX4=
+	b=iOaTSEni1k4/z40Ii0bc6hwYX3YQIf970EG8h8GTiUGJTSKc+he94mB99ybFeSZKT
+	 B5O7y9bXhCKS7XX1eS7Mg+nDQLg+tVhT4vQ3/l0LrKLpgCLkg6ogNkBc1RTHaSzznK
+	 LgfInT+LHTZUNeZ3Pb3/mgQKFJIHdy16Tg6lQDvE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390884AbfKHLop (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Nov 2019 06:44:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59704 "EHLO mail.kernel.org"
+        id S2388842AbfKHL7V (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Nov 2019 06:59:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59174 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390859AbfKHLom (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 8 Nov 2019 06:44:42 -0500
+        id S1733257AbfKHLoR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 Nov 2019 06:44:17 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BFEFF222CF;
-        Fri,  8 Nov 2019 11:44:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D4F0421D82;
+        Fri,  8 Nov 2019 11:44:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573213481;
-        bh=2r/7d/Sc8DThkpnLSjdpMTmBLQ8df60SDATgIW/Q+m4=;
+        s=default; t=1573213456;
+        bh=1YNBzt0jbY+niUzO7ze/IcroOlW0T0+ZDdhYKHwxpCk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NnwKsLti07kcCiB6ocV4pYNJxPLEzRw6Zq7TuCTPTM6eNoJRuxKNnl7zkjC6Qnmam
-         QgaZnqeMAeVWhVvffGsXyssU2ndSwFvk78vq6nBa63Rl5Mdw+6k20B+qYUi371uLRO
-         FS/K8oFoDRXj0+id4edgFJqrt0+dkavNfGV8afNw=
+        b=zOe4V7J2CzbeZvMog1hLkQtsxx0r03ebsklcq5rVDi15kbhAyFe6yURPv2tcKepxc
+         /2DARTKKzRS7Tf8CspV64Zf2nlheyorB+tQAAK3bt5ngY+xXHGrr4RTy1Y1YQbvY3S
+         TA71Pesm7R5jXY1oe8a4y/bdFvEK7ImMiKB8qoWk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Michael J. Ruhl" <michael.j.ruhl@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+Cc:     Parav Pandit <parav@mellanox.com>,
+        Daniel Jurgens <danielj@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 063/103] IB/hfi1: Missing return value in error path for user sdma
-Date:   Fri,  8 Nov 2019 06:42:28 -0500
-Message-Id: <20191108114310.14363-63-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 045/103] RDMA/core: Follow correct unregister order between sysfs and cgroup
+Date:   Fri,  8 Nov 2019 06:42:10 -0500
+Message-Id: <20191108114310.14363-45-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191108114310.14363-1-sashal@kernel.org>
 References: <20191108114310.14363-1-sashal@kernel.org>
@@ -59,42 +60,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+From: Parav Pandit <parav@mellanox.com>
 
-[ Upstream commit 2bf4b33f83dfe521c4c7c407b6b150aeec04d69c ]
+[ Upstream commit c715a39541bb399eb03d728a996b224d90ce1336 ]
 
-If the set_txreq_header_agh() function returns an error, the exit path
-is chosen.
+During register_device() init sequence is,
+(a) register with rdma cgroup followed by
+(b) register with sysfs
 
-In this path, the code fails to set the return value.  This will cause
-the caller to not realize an error has occurred.
+Therefore, unregister_device() sequence should follow the reverse order.
 
-Set the return value correctly in the error path.
-
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 75275f9e363de..4854a4a453b5f 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -856,8 +856,10 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 61ade4b3e7bb5..6b0d1d8609cad 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -599,8 +599,8 @@ void ib_unregister_device(struct ib_device *device)
+ 	}
+ 	up_read(&lists_rwsem);
  
- 				changes = set_txreq_header_ahg(req, tx,
- 							       datalen);
--				if (changes < 0)
-+				if (changes < 0) {
-+					ret = changes;
- 					goto free_tx;
-+				}
- 			}
- 		} else {
- 			ret = sdma_txinit(&tx->txreq, 0, sizeof(req->hdr) +
+-	ib_device_unregister_rdmacg(device);
+ 	ib_device_unregister_sysfs(device);
++	ib_device_unregister_rdmacg(device);
+ 
+ 	mutex_unlock(&device_mutex);
+ 
 -- 
 2.20.1
 
