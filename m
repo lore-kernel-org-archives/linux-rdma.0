@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 630B5C5DF60
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:59:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC86DC5DF60
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 12:00:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3AC412084D
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 11:59:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4F88222C4
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 12:00:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573214372;
-	bh=5y7jySM1EY7FEWm+rSzD2iseCEIB0/ban7fS0k4+TEA=;
+	s=default; t=1573214453;
+	bh=82XU3aU5ABFzGlRmWBE0XT+9t7AA0CAjUdCcZDInlf8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Ay9OjtZOXI5qRN+IYN6CKXe+RnWnf7Ue/o2esxiwU1gvreOPsbmN7sa9/cXeFLuj+
-	 HzxBfjxBwYfiYLPeXwBCCx9f6fC6KwFivAqCDAhvpZdT5G2LJ6pDilqOGAi7K/E21y
-	 RapNzOdp8GGc+069rIDNUQ2pS+6amuUpRB0seAOg=
+	b=RLvGJtruBv/r28xSeFJiaoybI/YSYQBZpHDGCqQAtIEIgq+qG/8+xYlXxsVY9BnU5
+	 +KcV5oz+X8AgbmYxpq37z1I0D7QWvvxUtB0rKwrgxgGEa7IKKh4fOc/I6mLE5QnFnu
+	 I95hjkOUeBIyi1O/I0F8v+069wEqmzzpZTf6YDTU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733257AbfKHL71 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Nov 2019 06:59:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59050 "EHLO mail.kernel.org"
+        id S2390558AbfKHLnr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Nov 2019 06:43:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58412 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389081AbfKHLoM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 8 Nov 2019 06:44:12 -0500
+        id S2387894AbfKHLnq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 Nov 2019 06:43:46 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A5FDF21D82;
-        Fri,  8 Nov 2019 11:44:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 01774222D1;
+        Fri,  8 Nov 2019 11:43:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573213451;
-        bh=5y7jySM1EY7FEWm+rSzD2iseCEIB0/ban7fS0k4+TEA=;
+        s=default; t=1573213425;
+        bh=82XU3aU5ABFzGlRmWBE0XT+9t7AA0CAjUdCcZDInlf8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=xB5ZKhuEwLL3DvBsRxoo7BG7So4ogzWgNAd/1nvlmBepbMEsmy85UeJ6/rT7zR0Or
-         aq4e7TPHLk8Q1hpBKQCECp5/wgkL815betMAZbXnk+QhKrIVtYS4t2dpz+I7cPPGk/
-         dOeH0jgDa4HbxfZGudeiGcw09kJUNl9xaosq0Q00=
+        b=gkz5WHSCqHAmbSgX4EFUjNChyHI4mnMDaG72ojPGCwVKo6xVwWGqK3AMbcxMD/Qlq
+         5X/pWHxY1PV4ctjC4DSwuS6QqiiLZ/8DSliz3k3sVcg0upemXUbpp31bsuTV4m0iKZ
+         acF69kEdhJkSJb9PbMQtWt2N9br40kytcGvfpveU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Muhammad Sammar <muhammads@mellanox.com>,
-        Feras Daoud <ferasda@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Vijay Immanuel <vijayi@attalasystems.com>,
+        Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 043/103] IB/ipoib: Ensure that MTU isn't less than minimum permitted
-Date:   Fri,  8 Nov 2019 06:42:08 -0500
-Message-Id: <20191108114310.14363-43-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 027/103] IB/rxe: fixes for rdma read retry
+Date:   Fri,  8 Nov 2019 06:41:52 -0500
+Message-Id: <20191108114310.14363-27-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191108114310.14363-1-sashal@kernel.org>
 References: <20191108114310.14363-1-sashal@kernel.org>
@@ -60,39 +58,125 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Muhammad Sammar <muhammads@mellanox.com>
+From: Vijay Immanuel <vijayi@attalasystems.com>
 
-[ Upstream commit 142a9c287613560edf5a03c8d142c8b6ebc1995b ]
+[ Upstream commit 030e46e495af855a13964a0aab9753ea82a96edc ]
 
-It is illegal to change MTU to a value lower than the minimum MTU
-stated in ethernet spec. In addition to that we need to add 4 bytes
-for encapsulation header (IPOIB_ENCAP_LEN).
+When a read request is retried for the remaining partial
+data, the response may restart from read response first
+or read response only. So support those cases.
 
-Before "ifconfig ib0 mtu 0" command, succeeds while it obviously shouldn't.
+Do not advance the comp psn beyond the current wqe's last_psn
+as that could skip over an entire read wqe and will cause the
+req_retry() logic to set an incorrect req psn.
+An example sequence is as follows:
+Write        PSN 40 -- this is the current WQE.
+Read request PSN 41
+Write        PSN 42
+Receive ACK  PSN 42 -- this will complete the current WQE
+for PSN 40, and set the comp psn to 42 which is a problem
+because the read request at PSN 41 has been skipped over.
+So when req_retry() tries to retransmit the read request,
+it sets the req psn to 42 which is incorrect.
 
-Signed-off-by: Muhammad Sammar <muhammads@mellanox.com>
-Reviewed-by: Feras Daoud <ferasda@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+When retrying a read request, calculate the number of psns
+completed based on the dma resid instead of the wqe first_psn.
+The wqe first_psn could have moved if the read request was
+retried multiple times.
+
+Set the reth length to the dma resid to handle read retries for
+the remaining partial data.
+
+Signed-off-by: Vijay Immanuel <vijayi@attalasystems.com>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_comp.c | 21 ++++++++++++++++-----
+ drivers/infiniband/sw/rxe/rxe_req.c  | 15 +++++++++------
+ 2 files changed, 25 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 1a93d3d58c8a4..caae4bfab950d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -249,7 +249,8 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
- 		return 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 83cfe44f070ec..fd9ce03dbd292 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -253,6 +253,17 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
+ 	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
+ 		if (pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE &&
+ 		    pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST) {
++			/* read retries of partial data may restart from
++			 * read response first or response only.
++			 */
++			if ((pkt->psn == wqe->first_psn &&
++			     pkt->opcode ==
++			     IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST) ||
++			    (wqe->first_psn == wqe->last_psn &&
++			     pkt->opcode ==
++			     IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY))
++				break;
++
+ 			return COMPST_ERROR;
+ 		}
+ 		break;
+@@ -501,11 +512,11 @@ static inline enum comp_state complete_wqe(struct rxe_qp *qp,
+ 					   struct rxe_pkt_info *pkt,
+ 					   struct rxe_send_wqe *wqe)
+ {
+-	qp->comp.opcode = -1;
+-
+-	if (pkt) {
+-		if (psn_compare(pkt->psn, qp->comp.psn) >= 0)
+-			qp->comp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
++	if (pkt && wqe->state == wqe_state_pending) {
++		if (psn_compare(wqe->last_psn, qp->comp.psn) >= 0) {
++			qp->comp.psn = (wqe->last_psn + 1) & BTH_PSN_MASK;
++			qp->comp.opcode = -1;
++		}
+ 
+ 		if (qp->req.wait_psn) {
+ 			qp->req.wait_psn = 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 08ae4f3a6a379..9fd4f04df3b33 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -73,9 +73,6 @@ static void req_retry(struct rxe_qp *qp)
+ 	int npsn;
+ 	int first = 1;
+ 
+-	wqe = queue_head(qp->sq.queue);
+-	npsn = (qp->comp.psn - wqe->first_psn) & BTH_PSN_MASK;
+-
+ 	qp->req.wqe_index	= consumer_index(qp->sq.queue);
+ 	qp->req.psn		= qp->comp.psn;
+ 	qp->req.opcode		= -1;
+@@ -107,11 +104,17 @@ static void req_retry(struct rxe_qp *qp)
+ 		if (first) {
+ 			first = 0;
+ 
+-			if (mask & WR_WRITE_OR_SEND_MASK)
++			if (mask & WR_WRITE_OR_SEND_MASK) {
++				npsn = (qp->comp.psn - wqe->first_psn) &
++					BTH_PSN_MASK;
+ 				retry_first_write_send(qp, wqe, mask, npsn);
++			}
+ 
+-			if (mask & WR_READ_MASK)
++			if (mask & WR_READ_MASK) {
++				npsn = (wqe->dma.length - wqe->dma.resid) /
++					qp->mtu;
+ 				wqe->iova += npsn * qp->mtu;
++			}
+ 		}
+ 
+ 		wqe->state = wqe_state_posted;
+@@ -435,7 +438,7 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
+ 	if (pkt->mask & RXE_RETH_MASK) {
+ 		reth_set_rkey(pkt, ibwr->wr.rdma.rkey);
+ 		reth_set_va(pkt, wqe->iova);
+-		reth_set_len(pkt, wqe->dma.length);
++		reth_set_len(pkt, wqe->dma.resid);
  	}
  
--	if (new_mtu > IPOIB_UD_MTU(priv->max_ib_mtu))
-+	if (new_mtu < (ETH_MIN_MTU + IPOIB_ENCAP_LEN) ||
-+	    new_mtu > IPOIB_UD_MTU(priv->max_ib_mtu))
- 		return -EINVAL;
- 
- 	priv->admin_mtu = new_mtu;
+ 	if (pkt->mask & RXE_IMMDT_MASK)
 -- 
 2.20.1
 
