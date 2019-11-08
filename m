@@ -2,64 +2,51 @@ Return-Path: <SRS0=fYhk=ZA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_SBL,URIBL_SBL_A autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA19CC5DF60
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 19:12:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17A0FC5DF60
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 19:21:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD169206A3
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 19:12:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D992820656
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 19:21:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="XsWkOZw9"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="p7OJoQTd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387873AbfKHTMw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Nov 2019 14:12:52 -0500
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:44490 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729286AbfKHTMt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 Nov 2019 14:12:49 -0500
-Received: by mail-lj1-f194.google.com with SMTP id g3so7323545ljl.11
-        for <linux-rdma@vger.kernel.org>; Fri, 08 Nov 2019 11:12:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=a3vQFiEAfh9O9XwA5nMCqQFpZlYhBVLvt3EKilq7WEg=;
-        b=XsWkOZw9Z0Y7qCN47gcDax4OqwdSp9/YhlQscYqBMmTJ553+p82rkIvUjhb9aNYF9q
-         toLEgr6V0GHfJeaziDghaVmu4BIfxLLuf7DosBNbHWLOLCG5lCTIxWTGWzMIK9HpPjUr
-         6IZ4UTeo0RHmOQrt60OfSnUN71Gw8FjomeNFFZVOOAGeM/fXzljV3OBP+yT7nY7+8U2o
-         wVBLTBsxjxj2jbFOhxkqCFi3+qeOHc497DKeGMqhKfzH/2R+dlbC2gK7d37c/K+yfqQL
-         d2nTBFqX8kJcKatUN+Rj8hvv9FdMBN8wAFfEjGkew01aSza2E76roz1r/R5ZvmhZ9tr2
-         OcHQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=a3vQFiEAfh9O9XwA5nMCqQFpZlYhBVLvt3EKilq7WEg=;
-        b=KqiwlbSrj5BlZwGDzFHQOQ8xtCKsZ4wdslmiA7GMq07K+KqvOpBE52Z9Zqn1O789g8
-         AbGtP+UeNq96JXa4l/ggr7gsw48oTg1Xk43UhqbXD/I94NtSscr/U/SqkymeHzlyLi9m
-         utxYZD/OfJcdvPyBhxf478FQt0ErouyDnwzQa2otYnZ49OoXWCawKkDrCSz9jNcaJpe8
-         DDHdOR34SXK+em/jEcRygn+GWPzGzuXq2laZvwVCv/wAGcn6ASZUauFWvhkP5QXJ5Hsa
-         xU9LEVnaPZXlStfoau9/5AaePAc+/E52wJAi396qXrme74YxtIkDyce1SMxF4KUyOGot
-         e6SQ==
-X-Gm-Message-State: APjAAAVDgtUuu3vANf0EdariN43Vm+D4pY+HM+MglbSr/TbKEB5AV9nR
-        +ee9/nlaPYegx7z8PzlZ4E/hCg==
-X-Google-Smtp-Source: APXvYqwjsmXBIWFCeW8Ftdb12MTBChBoMUmD3dhCSqIssd0i5LdWV+oLQuBUuHRvOGqHVeE09iymWg==
-X-Received: by 2002:a2e:b5a2:: with SMTP id f2mr7768671ljn.108.1573240367183;
-        Fri, 08 Nov 2019 11:12:47 -0800 (PST)
-Received: from cakuba ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id z20sm2690798ljj.85.2019.11.08.11.12.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 Nov 2019 11:12:46 -0800 (PST)
-Date:   Fri, 8 Nov 2019 11:12:38 -0800
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     Parav Pandit <parav@mellanox.com>
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>,
-        "Ertman@ziepe.ca" <Ertman@ziepe.ca>,
-        David M <david.m.ertman@intel.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        id S2388658AbfKHS5G (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Nov 2019 13:57:06 -0500
+Received: from mail-eopbgr10053.outbound.protection.outlook.com ([40.107.1.53]:38727
+        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2388592AbfKHS5E (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 Nov 2019 13:57:04 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=MXMVFLi8DFFe405sWwSFf0XsJVWo8/MAG8lflqXYduUT6UbsmN5SfS/2Iu9E1CBhG5M0jeaEluhFxakJguw6tGaFTAetzrLymBPjUwcXstwnyVMj5WqIUPB9RjoZx05qflTIyXWTeHByp78JY9+NUxH6T6RvPmMcd+/j+pt63gT5OMZzeLmQmzIKnGBVuWB2HjLcdzUlkXK8gYDACiVNU1aabuq+lakKmxfvgUQpEqSw9ykF964HiDpVUuFMcnGvxv/jmSoBaIGVDor0VgdM8Fte67XyhIHvpOxUBzmBf9oZjUp6YyqsptvzqTvM+VZmII0WIerXwW7Vn7vj9HTLZg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=gmOYtdjMjRMKI+YXdD13xaeqU88JMh/8ZJqlS2JCOkA=;
+ b=oFozGGkLl+TR36obAJpZ8557j9IUdg5dm1An1r5e63cWwEh64cNE4/M94hZ7K0J+rZoWlqmMBthS2vO05ZD5XQQyb64jmfmVsnYgzynF9chAGXSvZ4vpUrXjGjGQbXp4aOAYN6LD1lmRwmS78FLxcZbgN3N2nk8tEYt8ZZ3C3oyWxpa+2WELjsc2697F1MoIaMEUBHVOcZLwm3d7t31dK5gigtAXoYYhfQFCqJ1ipl9fMNpTVy7vN3jpjWWNKvVEIAXVU1ot5x8N2OGLq1cUdlpjsILROWM1adp+QhWP1QWNYq6md3h4Sv5QDVIhVAUG5n+ibe4GD8KYlttlBLgifg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=gmOYtdjMjRMKI+YXdD13xaeqU88JMh/8ZJqlS2JCOkA=;
+ b=p7OJoQTdtrIQLBQ6OjsXSg9xKNxxLkaouodRZTwjYnPuoamhbyhnxek3EA45Rz/SAyTL/eWjgpl+9zPInpEoJIdrEbFKe1DHeeg3LKj9fSRgf0JXnRKjRzArKeZgaBIN/HyQh5aXEAC9KTADRi0JVzMW1PytMhVoeQJ6vUjLoVU=
+Received: from AM0PR05MB4866.eurprd05.prod.outlook.com (20.176.214.160) by
+ AM0PR05MB4354.eurprd05.prod.outlook.com (52.134.90.30) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2430.20; Fri, 8 Nov 2019 18:56:59 +0000
+Received: from AM0PR05MB4866.eurprd05.prod.outlook.com
+ ([fe80::e5c2:b650:f89:12d4]) by AM0PR05MB4866.eurprd05.prod.outlook.com
+ ([fe80::e5c2:b650:f89:12d4%7]) with mapi id 15.20.2430.020; Fri, 8 Nov 2019
+ 18:56:59 +0000
+From:   Parav Pandit <parav@mellanox.com>
+To:     Jiri Pirko <jiri@resnulli.us>
+CC:     Jakub Kicinski <jakub.kicinski@netronome.com>,
         "alex.williamson@redhat.com" <alex.williamson@redhat.com>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "kvm@vger.kernel.org" <kvm@vger.kernel.org>,
@@ -69,58 +56,115 @@ Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>,
         "leon@kernel.org" <leon@kernel.org>,
         "cohuck@redhat.com" <cohuck@redhat.com>,
         Jiri Pirko <jiri@mellanox.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
-Message-ID: <20191108111238.578f44f1@cakuba>
-In-Reply-To: <AM0PR05MB486658D1D2A4F3999ED95D45D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
-References: <20191107160448.20962-1-parav@mellanox.com>
-        <20191107153234.0d735c1f@cakuba.netronome.com>
-        <20191108121233.GJ6990@nanopsycho>
-        <20191108144054.GC10956@ziepe.ca>
-        <AM0PR05MB486658D1D2A4F3999ED95D45D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
-Organization: Netronome Systems, Ltd.
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: RE: [PATCH net-next 12/19] devlink: Introduce mdev port flavour
+Thread-Topic: [PATCH net-next 12/19] devlink: Introduce mdev port flavour
+Thread-Index: AQHVlYW+5ckj7/tyDUu1ocZ3bBFvo6eAK5wAgAAEe2CAAEmKAIAAA1+ggAAOHACAAAFAIIAAe3YAgABjcxCAAA2tgIAAAeXAgAAZ84CAAALlcIAAA3+AgAAGPcA=
+Date:   Fri, 8 Nov 2019 18:56:57 +0000
+Message-ID: <AM0PR05MB486663979B27ABD9B0281EBDD17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+References: <20191107201750.6ac54aed@cakuba>
+ <AM0PR05MB4866BEC2A2B586AA72BAA9ABD17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <20191107212024.61926e11@cakuba>
+ <AM0PR05MB4866C0798EA5746EE23F2D2BD17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <20191108094646.GB6990@nanopsycho>
+ <AM0PR05MB4866969D18877C7AAD19D236D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <20191108163139.GQ6990@nanopsycho>
+ <AM0PR05MB48669A9AE494CCCE8E07C367D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <20191108181119.GT6990@nanopsycho>
+ <AM0PR05MB48667057857062CB24DD57D2D17B0@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <20191108183411.GW6990@nanopsycho>
+In-Reply-To: <20191108183411.GW6990@nanopsycho>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=parav@mellanox.com; 
+x-originating-ip: [208.176.44.194]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: d195eb83-c0b0-47b7-17eb-08d7647d6f27
+x-ms-traffictypediagnostic: AM0PR05MB4354:|AM0PR05MB4354:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <AM0PR05MB43540DA75618DFD0FAAD8E52D17B0@AM0PR05MB4354.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:9508;
+x-forefront-prvs: 0215D7173F
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(39860400002)(376002)(136003)(366004)(346002)(13464003)(199004)(189003)(71200400001)(81166006)(33656002)(14454004)(6436002)(76176011)(53546011)(6506007)(102836004)(54906003)(5660300002)(76116006)(186003)(86362001)(52536014)(6246003)(4326008)(9686003)(305945005)(66946007)(7416002)(26005)(66446008)(64756008)(66556008)(99286004)(7736002)(66476007)(74316002)(446003)(8676002)(229853002)(256004)(316002)(2906002)(55016002)(476003)(3846002)(66066001)(81156014)(6916009)(7696005)(478600001)(6116002)(71190400001)(25786009)(486006)(8936002)(11346002);DIR:OUT;SFP:1101;SCL:1;SRVR:AM0PR05MB4354;H:AM0PR05MB4866.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: WygO6pM+feE3qEyPE9r7646Wfz7VdANfR55DRs9shgaaOgQkxuwQ+jTXHo6ax/iddfNVwq5DeMkG+UsX2s7eLJ8XD/ORkeO9ijCdF7ZnAgjhYOvjGM4ehkw5alyXNRIJMP0NEZQAgOA/COEg4mwwlL2iAee6K9hN5GPYqEHC2ddZBn+JwkvTc9qpyfKRSUEtkG3LfXqBdkoNoveHvQkRzNDsEI7rEeQnl/NyJDBQdIsIznkOUxH9swtuMdxYcIRtv4/Y0piq/ztKT/PQ0ZqnLLVFFRAsCRwHp7UcaYOKiWaQKqs9Xfs6ZuQw/q6PppwFWClwx57PusoSXsQwbiJQctygwtf5f3NuZyf+rLh4hfd5QZNoY9tVoayEDP30bu/IcQuKLZx7KWI0YaQ6UlkgiyRWSfPrHMqY/osCg67f60DVcjyByKVZqcww7xG0Incx
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d195eb83-c0b0-47b7-17eb-08d7647d6f27
+X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Nov 2019 18:56:58.2264
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 5mEPCsU/PCGGH+r5p7Vlvn+R9MUZoS0szQe46tde5WgBLMjL4BOj7ZxEtYqaQHG0zNk5vdbMIkCxKlNJ+CHTkQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB4354
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, 8 Nov 2019 15:40:22 +0000, Parav Pandit wrote:
-> > The new intel driver has been having a very similar discussion about how to
-> > model their 'multi function device' ie to bind RDMA and other drivers to a
-> > shared PCI function, and I think that discussion settled on adding a new bus?
-> > 
-> > Really these things are all very similar, it would be nice to have a clear
-> > methodology on how to use the device core if a single PCI device is split by
-> > software into multiple different functional units and attached to different
-> > driver instances.
-> > 
-> > Currently there is alot of hacking in this area.. And a consistent scheme
-> > might resolve the ugliness with the dma_ops wrappers.
-> > 
-> > We already have the 'mfd' stuff to support splitting platform devices, maybe
-> > we need to create a 'pci-mfd' to support splitting PCI devices?
-> > 
-> > I'm not really clear how mfd and mdev relate, I always thought mdev was
-> > strongly linked to vfio.
-> >   
-> Mdev at beginning was strongly linked to vfio, but as I mentioned above it is addressing more use case.
-> 
-> I observed that discussion, but was not sure of extending mdev further.
-> 
-> One way to do for Intel drivers to do is after series [9].
-> Where PCI driver says, MDEV_CLASS_ID_I40_FOO
-> RDMA driver mdev_register_driver(), matches on it and does the probe().
 
-Yup, FWIW to me the benefit of reusing mdevs for the Intel case vs
-muddying the purpose of mdevs is not a clear trade off.
 
-IMHO MFD should be of more natural use for Intel, since it's about
-providing different functionality rather than virtual slices of the
-same device.
-
-> > At the very least if it is agreed mdev should be the vehicle here, then it
-> > should also be able to solve the netdev/rdma hookup problem too.
+> -----Original Message-----
+> From: Jiri Pirko <jiri@resnulli.us>
+> Sent: Friday, November 8, 2019 12:34 PM
+> To: Parav Pandit <parav@mellanox.com>
+> Cc: Jakub Kicinski <jakub.kicinski@netronome.com>;
+> alex.williamson@redhat.com; davem@davemloft.net; kvm@vger.kernel.org;
+> netdev@vger.kernel.org; Saeed Mahameed <saeedm@mellanox.com>;
+> kwankhede@nvidia.com; leon@kernel.org; cohuck@redhat.com; Jiri Pirko
+> <jiri@mellanox.com>; linux-rdma@vger.kernel.org
+> Subject: Re: [PATCH net-next 12/19] devlink: Introduce mdev port flavour
+>=20
+> Fri, Nov 08, 2019 at 07:23:44PM CET, parav@mellanox.com wrote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: Jiri Pirko <jiri@resnulli.us>
+> >
+> >[..]
+> >> Well, I don't really need those in the phys_port_name, mainly simply
+> >> because they would not fit. However, I believe that you should fillup
+> >> the PF/VF devlink netlink attrs.
+> >>
+> >> Note that we are not talking here about the actual mdev, but rather
+> >> devlink_port associated with this mdev. And devlink port should have t=
+his
+> info.
+> >>
+> >>
+> >> >
+> >> >> >What in hypothetical case, mdev is not on top of PCI...
+> >> >>
+> >> >> Okay, let's go hypothetical. In that case, it is going to be on
+> >> >> top of something else, wouldn't it?
+> >> >Yes, it will be. But just because it is on top of something, doesn't
+> >> >mean we
+> >> include the whole parent dev, its bridge, its rc hierarchy here.
+> >> >There should be a need.
+> >> >It was needed in PF/VF case due to overlapping numbers of VFs via
+> >> >single
+> >> devlink instance. You probably missed my reply to Jakub.
+> >>
+> >> Sure. Again, I don't really care about having that in phys_port_name.
+> >> But please fillup the attrs.
+> >>
+> >Ah ok. but than that would be optional attribute?
+> >Because you can have non pci based mdev, though it doesn't exist today a=
+long
+> with devlink to my knowledge.
+>=20
+> Non-optional now. We can always change the code to not fill it up or fill=
+ up
+> another attr instead. no UAPI harm.
+Ok. sounds good.
+Will implement this in the respin.
