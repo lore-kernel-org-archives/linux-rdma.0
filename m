@@ -2,143 +2,144 @@ Return-Path: <SRS0=fYhk=ZA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3251EFC6194
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 12:11:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15146C5DF60
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 12:12:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0755D20656
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 12:11:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573215114;
-	bh=9+wXAdScMRLLd2ki2eKbU2z5dqGISXkxKwkNjAfpYFg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ASN3G9ln9OYmz0OAc+bbeHrXXBYVTVeGTjkLX0OiDQfInvrekarNjNCUyA0WHMkod
-	 AT3jwmtDPhVVxFaL502VM0ycbT6xosYcY1mWvlRCtkpjmflSolsqxJRT862bZbBPL+
-	 rZsAoo/EadjlBsTD5r++zcaBX0G2LOTV3CPGpJ4A=
+	by mail.kernel.org (Postfix) with ESMTP id DD89221848
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Nov 2019 12:12:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="k63tbg3C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732982AbfKHLi5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Nov 2019 06:38:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51934 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732968AbfKHLi5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 8 Nov 2019 06:38:57 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EA4E721D7B;
-        Fri,  8 Nov 2019 11:38:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573213136;
-        bh=9+wXAdScMRLLd2ki2eKbU2z5dqGISXkxKwkNjAfpYFg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Mb5HqADSRdIBKuobVMDovx8oaseO7lu1woWs52Hg8x1oSrU3z/rXUkiSFey9TLtxp
-         Z2GkRnJF48ofUW+mufqcLBk9RvV0JnGbDKW1rVWLuGBI5C3IR0B+5bA6wgIqzIQHIL
-         8AWl381tey6DW7qKOXgfkZaYSrHrE+W42hnJOyWo=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Vijay Immanuel <vijayi@attalasystems.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 054/205] IB/rxe: avoid back-to-back retries
-Date:   Fri,  8 Nov 2019 06:35:21 -0500
-Message-Id: <20191108113752.12502-54-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191108113752.12502-1-sashal@kernel.org>
-References: <20191108113752.12502-1-sashal@kernel.org>
+        id S2391270AbfKHMMg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Nov 2019 07:12:36 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:56267 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732830AbfKHMMg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 Nov 2019 07:12:36 -0500
+Received: by mail-wm1-f67.google.com with SMTP id b11so5938608wmb.5
+        for <linux-rdma@vger.kernel.org>; Fri, 08 Nov 2019 04:12:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=vi0FXEb1SaKZF+1W08jxMvHKOZ5OFQySHO0NRC440W8=;
+        b=k63tbg3ComKTwLI7+A1lutM9sDSJqb95sZk2Bbq4O05Sg5yWeq5zkkNHdIw6xvDmrC
+         euJGRWxMCSlcwjvNTfZ82ueGzCQiYa/6POan1a/f9HsxbcNhsse+bqBFXUzBDt8Xnibi
+         qGce4fdYovXckgOKtMI9rFnE4e1ZP6pR9xvGLIIcsHGQvaXCpYSz1tq4MSGpnsJo2XFu
+         B5PAbUZ/RW2h0cwPeCDqssLxNgKzGiFEv8CikCvCb+NBCLtjIghXvVI7ZSI2Ux13+XH9
+         iygblYqwJLz0u3VZyjVQI8qDa7ftROqQ/SROAdW6SHeXdGYvixBnp4LQC7k5hfdEBohT
+         RqKA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=vi0FXEb1SaKZF+1W08jxMvHKOZ5OFQySHO0NRC440W8=;
+        b=rb5ixPAe55NO4ly+NEJymHUVgcBYg7wkKt9kGWYij1I+Dy1FZYzcCV/xYK/4YrXiH8
+         Zt5veQviDr7wSpBjFPIElLDC2SiDkmXN8LDxeno0aj61tsuttH/IvYXNSpw3WQWr1N3t
+         i59w/vpJI7pt6emxXInyWL+iYLmr9F3xmhE+uUkyOIkiAG71hhCSnp+likx4iaoWM0ih
+         7S7bPH02h41xw0PuAHCdqvKQLgEfpzOGpfH2z2o3ogw4RnFtco7vcg+WQEE1gIB0vgmK
+         In6Uej4kMvHjUEsa76kxLAgsbNFH7/sFJ2qc+xe1DATxZ3RPg7qoo0pHsMi4iIXvHRpI
+         ksug==
+X-Gm-Message-State: APjAAAXQp5hUQn1oxhYRLbC/JaNoYhIJOgFIJrhVLpVKfhkIeh/zxCCH
+        pie8ASDMIQBN4FUg0ld76qcDwQ==
+X-Google-Smtp-Source: APXvYqyaVvcyf53tsacNRyq5/ftg7f45Rs1oRCuUUTHNz0pnl3bHqejbD4wPXM08nTvMBhQQvwJoOw==
+X-Received: by 2002:a05:600c:2945:: with SMTP id n5mr8532196wmd.80.1573215154142;
+        Fri, 08 Nov 2019 04:12:34 -0800 (PST)
+Received: from localhost (ip-94-113-220-175.net.upcbroadband.cz. [94.113.220.175])
+        by smtp.gmail.com with ESMTPSA id p10sm6917186wmi.44.2019.11.08.04.12.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 08 Nov 2019 04:12:33 -0800 (PST)
+Date:   Fri, 8 Nov 2019 13:12:33 +0100
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc:     Parav Pandit <parav@mellanox.com>, alex.williamson@redhat.com,
+        davem@davemloft.net, kvm@vger.kernel.org, netdev@vger.kernel.org,
+        saeedm@mellanox.com, kwankhede@nvidia.com, leon@kernel.org,
+        cohuck@redhat.com, jiri@mellanox.com, linux-rdma@vger.kernel.org,
+        Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
+Message-ID: <20191108121233.GJ6990@nanopsycho>
+References: <20191107160448.20962-1-parav@mellanox.com>
+ <20191107153234.0d735c1f@cakuba.netronome.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191107153234.0d735c1f@cakuba.netronome.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Vijay Immanuel <vijayi@attalasystems.com>
+Thu, Nov 07, 2019 at 09:32:34PM CET, jakub.kicinski@netronome.com wrote:
+>On Thu,  7 Nov 2019 10:04:48 -0600, Parav Pandit wrote:
+>> Mellanox sub function capability allows users to create several hundreds
+>> of networking and/or rdma devices without depending on PCI SR-IOV support.
+>
+>You call the new port type "sub function" but the devlink port flavour
+>is mdev.
+>
+>As I'm sure you remember you nacked my patches exposing NFP's PCI 
+>sub functions which are just regions of the BAR without any mdev
+>capability. Am I in the clear to repost those now? Jiri?
 
-[ Upstream commit 4e4c53df567714b3d08b2b5d8ccb1d175fc9be01 ]
+Well question is, if it makes sense to have SFs without having them as
+mdev? I mean, we discussed the modelling thoroughtly and eventually we
+realized that in order to model this correctly, we need SFs on "a bus".
+Originally we were thinking about custom bus, but mdev is already there
+to handle this.
 
-Error retries can occur due to timeouts, NAKs or receiving
-packets beyond the current read request. Avoid back-to-back
-retries due to packet processing, by only retrying the initial
-attempt immediately. Subsequent retries must be due to timeouts.
+Our SFs are also just regions of the BAR, same thing as you have.
 
-Continue to process completion packets after scheduling a retry.
+Can't you do the same for nfp SFs?
+Then the "mdev" flavour is enough for all.
 
-Signed-off-by: Vijay Immanuel <vijayi@attalasystems.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/sw/rxe/rxe_comp.c  | 18 +++++++++++++++++-
- drivers/infiniband/sw/rxe/rxe_verbs.h |  1 +
- 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 83311dd07019b..ed96441595d81 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -191,6 +191,7 @@ static inline void reset_retry_counters(struct rxe_qp *qp)
- {
- 	qp->comp.retry_cnt = qp->attr.retry_cnt;
- 	qp->comp.rnr_retry = qp->attr.rnr_retry;
-+	qp->comp.started_retry = 0;
- }
- 
- static inline enum comp_state check_psn(struct rxe_qp *qp,
-@@ -676,6 +677,20 @@ int rxe_completer(void *arg)
- 				goto exit;
- 			}
- 
-+			/* if we've started a retry, don't start another
-+			 * retry sequence, unless this is a timeout.
-+			 */
-+			if (qp->comp.started_retry &&
-+			    !qp->comp.timeout_retry) {
-+				if (pkt) {
-+					rxe_drop_ref(pkt->qp);
-+					kfree_skb(skb);
-+					skb = NULL;
-+				}
-+
-+				goto done;
-+			}
-+
- 			if (qp->comp.retry_cnt > 0) {
- 				if (qp->comp.retry_cnt != 7)
- 					qp->comp.retry_cnt--;
-@@ -692,6 +707,7 @@ int rxe_completer(void *arg)
- 					rxe_counter_inc(rxe,
- 							RXE_CNT_COMP_RETRY);
- 					qp->req.need_retry = 1;
-+					qp->comp.started_retry = 1;
- 					rxe_run_task(&qp->req.task, 1);
- 				}
- 
-@@ -701,7 +717,7 @@ int rxe_completer(void *arg)
- 					skb = NULL;
- 				}
- 
--				goto exit;
-+				goto done;
- 
- 			} else {
- 				rxe_counter_inc(rxe, RXE_CNT_RETRY_EXCEEDED);
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 3b731c7682e5b..a0ec28d2b71a4 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -158,6 +158,7 @@ struct rxe_comp_info {
- 	int			opcode;
- 	int			timeout;
- 	int			timeout_retry;
-+	int			started_retry;
- 	u32			retry_cnt;
- 	u32			rnr_retry;
- 	struct rxe_task		task;
--- 
-2.20.1
+>
+>> Overview:
+>> ---------
+>> Mellanox ConnectX sub functions are exposed to user as a mediated
+>> device (mdev) [2] as discussed in RFC [3] and further during
+>> netdevconf0x13 at [4].
+>> 
+>> mlx5 mediated device (mdev) enables users to create multiple netdevices
+>> and/or RDMA devices from single PCI function.
+>> 
+>> Each mdev maps to a mlx5 sub function.
+>> mlx5 sub function is similar to PCI VF. However it doesn't have its own
+>> PCI function and MSI-X vectors.
+>> 
+>> mlx5 mdevs share common PCI resources such as PCI BAR region,
+>> MSI-X interrupts.
+>> 
+>> Each mdev has its own window in the PCI BAR region, which is
+>> accessible only to that mdev and applications using it.
+>> 
+>> Each mlx5 sub function has its own resource namespace for RDMA resources.
+>> 
+>> mdevs are supported when eswitch mode of the devlink instance
+>> is in switchdev mode described in devlink documentation [5].
+>
+>So presumably the mdevs don't spawn their own devlink instance today,
+>but once mapped via VIRTIO to a VM they will create one?
 
+I don't think it is needed for anything. Maybe one day if there is a
+need to create devlink instance for VF or SF, we can add it. But
+currently, I don't see the need.
+
+
+>
+>It could be useful to specify.
+>
+>> Network side:
+>> - By default the netdevice and the rdma device of mlx5 mdev cannot send or
+>> receive any packets over the network or to any other mlx5 mdev.
+>
+>Does this mean the frames don't fall back to the repr by default?
+
+That would be the sane default. If I up the representor, I should see
+packets coming in from SF/VF and I should be able to send packets back.
