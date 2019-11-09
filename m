@@ -2,96 +2,94 @@ Return-Path: <SRS0=JC7s=ZB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE77C17441
-	for <linux-rdma@archiver.kernel.org>; Sat,  9 Nov 2019 02:04:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14068C17440
+	for <linux-rdma@archiver.kernel.org>; Sat,  9 Nov 2019 02:18:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A48DB21924
-	for <linux-rdma@archiver.kernel.org>; Sat,  9 Nov 2019 02:04:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="YOCyGKxW"
+	by mail.kernel.org (Postfix) with ESMTP id D4AE4214DA
+	for <linux-rdma@archiver.kernel.org>; Sat,  9 Nov 2019 02:18:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726099AbfKICEk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Nov 2019 21:04:40 -0500
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:16412 "EHLO
-        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726227AbfKICEj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 Nov 2019 21:04:39 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate15.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dc61e7a0002>; Fri, 08 Nov 2019 18:03:38 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Fri, 08 Nov 2019 18:04:39 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Fri, 08 Nov 2019 18:04:39 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 9 Nov
- 2019 02:04:35 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sat, 9 Nov 2019 02:04:35 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dc61eb30000>; Fri, 08 Nov 2019 18:04:35 -0800
-From:   John Hubbard <jhubbard@nvidia.com>
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>
-CC:     Ira Weiny <ira.weiny@intel.com>, <linux-rdma@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH 0/1] IB/umem: use get_user_pages_fast() to pin DMA pages
-Date:   Fri, 8 Nov 2019 18:04:33 -0800
-Message-ID: <20191109020434.389855-1-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.24.0
+        id S1725990AbfKICSb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Nov 2019 21:18:31 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:38728 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725817AbfKICSb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 Nov 2019 21:18:31 -0500
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 9E4F293805FCD8D51633;
+        Sat,  9 Nov 2019 10:18:29 +0800 (CST)
+Received: from [127.0.0.1] (10.40.168.149) by DGGEMS401-HUB.china.huawei.com
+ (10.3.19.201) with Microsoft SMTP Server id 14.3.439.0; Sat, 9 Nov 2019
+ 10:18:19 +0800
+Subject: Re: [PATCH v2 for-next 0/9] RDMA/hns: Cleanups for hip08
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+CC:     <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+References: <1572952082-6681-1-git-send-email-liweihang@hisilicon.com>
+ <20191108204512.GA28649@ziepe.ca>
+From:   Weihang Li <liweihang@hisilicon.com>
+Message-ID: <fb0ab6c4-c0db-b331-fe27-bfb191c1428e@hisilicon.com>
+Date:   Sat, 9 Nov 2019 10:18:19 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1573265018; bh=OqJk4HwxLFuiZxdO7FdtWiG3lR2+WoDbxn35lzBPFEw=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
-         Content-Type;
-        b=YOCyGKxWMrdneUTApO1JO0AD8WOGde1bL/i2yAwWv9uB/2L10471+O5wB9x8Z0fw/
-         TpmNgOUBtwduig9BYJ5LfK9tDpHgLYbDqeegbLVsY4krqNGwM7Q4uvSibNlFQdzjQ/
-         CZ6bRrmWwfOzM3KDmnDSpJm74cIlI7Nm89IaJa8SnX46RBO0WvJ9dlG0squYSR4AGT
-         Fb4HYE4t/Y+1VfG8lpweNGrsEL2MvOnQ/oHyThXUXDsj+qGbS48d21+vj55/jo+Os8
-         pAc5nVyWGSsQT8FiD75YWNFQvVRFdiDwFZoHaFYiIE9lHwIvmu8QXlWwvsfL4ixkj9
-         LqCoDBxhGIvCw==
+In-Reply-To: <20191108204512.GA28649@ziepe.ca>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.40.168.149]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason, Andrew,
-
-Jason: Here is the change to get_user_pages_fast(), that you requested
-during the review of "mm/gup: track dma-pinned pages: FOLL_PIN,
-FOLL_LONGTERM" [1].
-
-This is a stand-alone patch that applies to today's 5.4.0-rc6 linux.git.
-
-If anyone could please provide any run-time testing (and of course,
-Reviewed-by's), that would be huge. I've compiled and run it, but
-bpftrace tells me (as I already knew) that my current anemic IB setup
-is not actually exercising this code path.
-
-Andrew: unless instructed otherwise, I plan to also re-post this as part
-of the next (v3) version of [1], and hopefully have the whole series go
-through your tree. That would avoid merge conflicts, and as I understand
-it, there is no particular urgency for this patch, so we might as well
-do it the easy way.
 
 
-John Hubbard (1):
-  IB/umem: use get_user_pages_fast() to pin DMA pages
+On 2019/11/9 4:45, Jason Gunthorpe wrote:
+> On Tue, Nov 05, 2019 at 07:07:53PM +0800, Weihang Li wrote:
+>> These series just make cleanups without changing code logic.
+>>
+>> [patch 1/9 ~ 3/9] remove unused variables and structures.
+>> [patch 4/9 ~ 5/9] modify field and function names.
+>> [patch 6/9 ~ 7/9] remove dead codes to simplify functions.
+>> [patch 8/9] replaces non-standard return value with linux error codes.
+>> [patch 9/9] does some fixes on printings.
+>>
+>> Changelog
+>> v1->v2: Remove "{topost}" in titles.
+>>
+>> Lang Cheng (3):
+>>   RDMA/hns: Remove unnecessary structure hns_roce_sqp
+>>   RDMA/hns: Simplify doorbell initialization code
+>>   RDMA/hns: Modify hns_roce_hw_v2_get_cfg to simplify the code
+>>
+>> Wenpeng Liang (1):
+>>   RDMA/hns: Modify appropriate printings
+>>
+>> Yixian Liu (4):
+>>   RDMA/hns: Delete unnecessary variable max_post
+>>   RDMA/hns: Delete unnecessary uar from hns_roce_cq
+>>   RDMA/hns: Modify fields of struct hns_roce_srq
+>>   RDMA/hns: Fix non-standard error codes
+>>
+>> Yixing Liu (1):
+>>   RDMA/hns: Replace not intuitive function/macro names
+> 
+> Something should probably be done about that custom bitmap stuff Leon
+> noted, but that isn't related to these patches, so applied to for-next
+> 
 
- drivers/infiniband/core/umem.c | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+Thank you, Jason. We will continue to pay attention to this bitmap stuff
+and discuss further with Leon.
 
---=20
-2.24.0
+Weihang
+
+> Thanks,
+> Jason
+> 
+> 
 
