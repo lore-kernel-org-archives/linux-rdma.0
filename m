@@ -7,47 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E81EEC17440
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:07:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63DF5C43331
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:10:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA36D208C3
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:07:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38D2A21924
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:10:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573355238;
-	bh=rUWE+gCpVtyvviHYp6lEwaLES4+niP2PfE8w5mXRyp4=;
+	s=default; t=1573355444;
+	bh=DirF3562ki04v3whOy7FclNbip8VciH5wUPKy5FLgs4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=j9E8fFXFXV2tEgt79MdIrA7BjEf6zMVt9FgnGClkxTbKd9cPviLWrw6yQQ5VlchDm
-	 7/T4YfR8/aqmWZL16VG77Ay2dozDoLWBIOQiEGpx6u8QKKWOCh+hiYebCWz5Rn6gek
-	 9IdVAxgbQeW/UurNvCz/ZA58qOcSQTCzd1N9Oofk=
+	b=dBsl7yy6xgkvymK1LleCa6+KcXO0TVdds1xVVzg5tP4hInbBkh3U979YgXECzOSPn
+	 TjLtBkP90E0CjAYp1tD9FSmjUDmEvxrs/YF1Jhf1xMe77QwYGUQQ2Q/1LIEui3a/N6
+	 2c9omQnO9L+Mb8ZDAvTNOEe+lGC9h2IikPHLIxb8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727339AbfKJDHN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 9 Nov 2019 22:07:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46922 "EHLO mail.kernel.org"
+        id S1728458AbfKJDKi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 9 Nov 2019 22:10:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726927AbfKJCp0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 9 Nov 2019 21:45:26 -0500
+        id S1728444AbfKJCn4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 9 Nov 2019 21:43:56 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5D1A6222BE;
-        Sun, 10 Nov 2019 02:45:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 698AA21655;
+        Sun, 10 Nov 2019 02:43:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573353926;
-        bh=rUWE+gCpVtyvviHYp6lEwaLES4+niP2PfE8w5mXRyp4=;
+        s=default; t=1573353835;
+        bh=DirF3562ki04v3whOy7FclNbip8VciH5wUPKy5FLgs4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=CzHEndCmfNr+gQOfabqjAdPxDWom2yz3sVW4GRxL7R7fY7ZtMUj3HKS5WWqhInNd4
-         B8MMS7B8WhfNyr1auYIUvVF0j29t7HvBl/XNppHCiXndHbyp3bQ6bHviVa+BRTtgK1
-         xtLelJglcOtF3ILRH9xauAsGNWL9FU5KC3Etxv2Q=
+        b=iec/aUPwi3HQ0mAUm4gYEl/kua9d7yQZOmuH4HQ5fxDBaevKKe327OTKuMGxaqZNU
+         HxUFIUgeHqeEiH3oiLAQuyCUvMNz5xGXFybsZWamP5JS9dIHbXTaE1VM8Qv2QB9Sgx
+         mz9F/JKM3mAYvuDJzftsTQ0LjLnTvCQaCqnrxeYw=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Israel Rukshin <israelr@mellanox.com>,
-        Max Gurtovoy <maxg@mellanox.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
+Cc:     Nathan Chancellor <natechancellor@gmail.com>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Steve Wise <swise@opengridcomputing.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 187/191] IB/iser: Fix possible NULL deref at iser_inv_desc()
-Date:   Sat,  9 Nov 2019 21:40:09 -0500
-Message-Id: <20191110024013.29782-187-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org,
+        clang-built-linux@googlegroups.com
+Subject: [PATCH AUTOSEL 4.19 126/191] iw_cxgb4: Use proper enumerated type in c4iw_bar2_addrs
+Date:   Sat,  9 Nov 2019 21:39:08 -0500
+Message-Id: <20191110024013.29782-126-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191110024013.29782-1-sashal@kernel.org>
 References: <20191110024013.29782-1-sashal@kernel.org>
@@ -60,69 +61,77 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Israel Rukshin <israelr@mellanox.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
 
-[ Upstream commit 65f07f5a09dacf3b60619f196f096ea3671a5eda ]
+[ Upstream commit 1b571086e869395b6a11ab24186b0104fe05c057 ]
 
-In case target remote invalidates bogus rkey and signature is not used,
-pi_ctx is NULL deref.
+Clang warns when one enumerated type is implicitly converted to another.
 
-The commit also fails the connection on bogus remote invalidation.
+drivers/infiniband/hw/cxgb4/qp.c:287:8: warning: implicit conversion
+from enumeration type 'enum t4_bar2_qtype' to different enumeration type
+'enum cxgb4_bar2_qtype' [-Wenum-conversion]
+                                                 T4_BAR2_QTYPE_EGRESS,
+                                                 ^~~~~~~~~~~~~~~~~~~~
 
-Fixes: 59caaed7a72a ("IB/iser: Support the remote invalidation exception")
-Signed-off-by: Israel Rukshin <israelr@mellanox.com>
-Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+c4iw_bar2_addrs expects a value from enum cxgb4_bar2_qtype so use the
+corresponding values from that type so Clang is satisfied without changing
+the meaning of the code.
+
+T4_BAR2_QTYPE_EGRESS = CXGB4_BAR2_QTYPE_EGRESS = 0
+T4_BAR2_QTYPE_INGRESS = CXGB4_BAR2_QTYPE_INGRESS = 1
+
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Acked-by: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/ulp/iser/iser_initiator.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/cxgb4/cq.c | 2 +-
+ drivers/infiniband/hw/cxgb4/qp.c | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 2f6388596f886..96af06cfe0afd 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -589,13 +589,19 @@ void iser_login_rsp(struct ib_cq *cq, struct ib_wc *wc)
- 	ib_conn->post_recv_buf_count--;
- }
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index 6d30427940942..1fd8798d91a73 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -161,7 +161,7 @@ static int create_cq(struct c4iw_rdev *rdev, struct t4_cq *cq,
+ 	cq->gts = rdev->lldi.gts_reg;
+ 	cq->rdev = rdev;
  
--static inline void
-+static inline int
- iser_inv_desc(struct iser_fr_desc *desc, u32 rkey)
- {
--	if (likely(rkey == desc->rsc.mr->rkey))
-+	if (likely(rkey == desc->rsc.mr->rkey)) {
- 		desc->rsc.mr_valid = 0;
--	else if (likely(rkey == desc->pi_ctx->sig_mr->rkey))
-+	} else if (likely(desc->pi_ctx && rkey == desc->pi_ctx->sig_mr->rkey)) {
- 		desc->pi_ctx->sig_mr_valid = 0;
-+	} else {
-+		iser_err("Bogus remote invalidation for rkey %#x\n", rkey);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
- }
+-	cq->bar2_va = c4iw_bar2_addrs(rdev, cq->cqid, T4_BAR2_QTYPE_INGRESS,
++	cq->bar2_va = c4iw_bar2_addrs(rdev, cq->cqid, CXGB4_BAR2_QTYPE_INGRESS,
+ 				      &cq->bar2_qid,
+ 				      user ? &cq->bar2_pa : NULL);
+ 	if (user && !cq->bar2_pa) {
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 347fe18b1a41c..a9e3a11bea54a 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -279,12 +279,13 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
  
- static int
-@@ -623,12 +629,14 @@ iser_check_remote_inv(struct iser_conn *iser_conn,
+ 	wq->db = rdev->lldi.db_reg;
  
- 			if (iser_task->dir[ISER_DIR_IN]) {
- 				desc = iser_task->rdma_reg[ISER_DIR_IN].mem_h;
--				iser_inv_desc(desc, rkey);
-+				if (unlikely(iser_inv_desc(desc, rkey)))
-+					return -EINVAL;
- 			}
+-	wq->sq.bar2_va = c4iw_bar2_addrs(rdev, wq->sq.qid, T4_BAR2_QTYPE_EGRESS,
++	wq->sq.bar2_va = c4iw_bar2_addrs(rdev, wq->sq.qid,
++					 CXGB4_BAR2_QTYPE_EGRESS,
+ 					 &wq->sq.bar2_qid,
+ 					 user ? &wq->sq.bar2_pa : NULL);
+ 	if (need_rq)
+ 		wq->rq.bar2_va = c4iw_bar2_addrs(rdev, wq->rq.qid,
+-						 T4_BAR2_QTYPE_EGRESS,
++						 CXGB4_BAR2_QTYPE_EGRESS,
+ 						 &wq->rq.bar2_qid,
+ 						 user ? &wq->rq.bar2_pa : NULL);
  
- 			if (iser_task->dir[ISER_DIR_OUT]) {
- 				desc = iser_task->rdma_reg[ISER_DIR_OUT].mem_h;
--				iser_inv_desc(desc, rkey);
-+				if (unlikely(iser_inv_desc(desc, rkey)))
-+					return -EINVAL;
- 			}
- 		} else {
- 			iser_err("failed to get task for itt=%d\n", hdr->itt);
+@@ -2572,7 +2573,7 @@ static int alloc_srq_queue(struct c4iw_srq *srq, struct c4iw_dev_ucontext *uctx,
+ 	memset(wq->queue, 0, wq->memsize);
+ 	pci_unmap_addr_set(wq, mapping, wq->dma_addr);
+ 
+-	wq->bar2_va = c4iw_bar2_addrs(rdev, wq->qid, T4_BAR2_QTYPE_EGRESS,
++	wq->bar2_va = c4iw_bar2_addrs(rdev, wq->qid, CXGB4_BAR2_QTYPE_EGRESS,
+ 				      &wq->bar2_qid,
+ 			user ? &wq->bar2_pa : NULL);
+ 
 -- 
 2.20.1
 
