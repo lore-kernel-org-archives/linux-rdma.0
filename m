@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 913DCC17444
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:06:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E81EEC17440
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:07:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5944A208C3
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:06:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA36D208C3
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 03:07:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573355173;
-	bh=2nG+f6/8R2SGBJCEGEqoz1aBXB5qp42nEOs/chALn5Q=;
+	s=default; t=1573355238;
+	bh=rUWE+gCpVtyvviHYp6lEwaLES4+niP2PfE8w5mXRyp4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=yN1s0gJhC+BSDNd0QxKFgxQASby3jupaRhydSsExW9yOeXRV/DfEdsTOliNhMN4v+
-	 Xw8HLt6yyh/wAdZYJFTYrPllL7AQYKJ2va3hFjEw1zBIujgNkVyaLNaU9LOlapGDRE
-	 Pom8zv4jQelG7oNId86WZDX24e4n2P4HYWFgTe2I=
+	b=j9E8fFXFXV2tEgt79MdIrA7BjEf6zMVt9FgnGClkxTbKd9cPviLWrw6yQQ5VlchDm
+	 7/T4YfR8/aqmWZL16VG77Ay2dozDoLWBIOQiEGpx6u8QKKWOCh+hiYebCWz5Rn6gek
+	 9IdVAxgbQeW/UurNvCz/ZA58qOcSQTCzd1N9Oofk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728965AbfKJCqC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 9 Nov 2019 21:46:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48704 "EHLO mail.kernel.org"
+        id S1727339AbfKJDHN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 9 Nov 2019 22:07:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728172AbfKJCqB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 9 Nov 2019 21:46:01 -0500
+        id S1726927AbfKJCp0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 9 Nov 2019 21:45:26 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C6A2E2085B;
-        Sun, 10 Nov 2019 02:45:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5D1A6222BE;
+        Sun, 10 Nov 2019 02:45:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573353960;
-        bh=2nG+f6/8R2SGBJCEGEqoz1aBXB5qp42nEOs/chALn5Q=;
+        s=default; t=1573353926;
+        bh=rUWE+gCpVtyvviHYp6lEwaLES4+niP2PfE8w5mXRyp4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=St736J5rjWNZsmsMD9S6YwrQt/fx2JUfe2bv7q2sn5oNfZCFcc2YKYxpy9OISuKjg
-         8tqFLEJIUlJ3KYpK1DEJ21YKAHXoU3HSoEpI+tTxYheTSjcw/iyVsGdnSNnh1wAz8h
-         LDkWf3Zsinei4txSaHP32DaOA7kOLJ2tFyHU8RR0=
+        b=CzHEndCmfNr+gQOfabqjAdPxDWom2yz3sVW4GRxL7R7fY7ZtMUj3HKS5WWqhInNd4
+         B8MMS7B8WhfNyr1auYIUvVF0j29t7HvBl/XNppHCiXndHbyp3bQ6bHviVa+BRTtgK1
+         xtLelJglcOtF3ILRH9xauAsGNWL9FU5KC3Etxv2Q=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>,
-        =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
+Cc:     Israel Rukshin <israelr@mellanox.com>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 014/109] RDMA/i40iw: Fix incorrect iterator type
-Date:   Sat,  9 Nov 2019 21:44:06 -0500
-Message-Id: <20191110024541.31567-14-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 187/191] IB/iser: Fix possible NULL deref at iser_inv_desc()
+Date:   Sat,  9 Nov 2019 21:40:09 -0500
+Message-Id: <20191110024013.29782-187-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191110024541.31567-1-sashal@kernel.org>
-References: <20191110024541.31567-1-sashal@kernel.org>
+In-Reply-To: <20191110024013.29782-1-sashal@kernel.org>
+References: <20191110024013.29782-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -60,35 +60,69 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Håkon Bugge <Haakon.Bugge@oracle.com>
+From: Israel Rukshin <israelr@mellanox.com>
 
-[ Upstream commit 802fa45cd320de319e86c93bca72abec028ba059 ]
+[ Upstream commit 65f07f5a09dacf3b60619f196f096ea3671a5eda ]
 
-Commit f27b4746f378 ("i40iw: add connection management code") uses an
-incorrect rcu iterator, whilst holding the rtnl_lock. Since the
-critical region invokes i40iw_manage_qhash(), which is a sleeping
-function, the rcu locking and traversal cannot be used.
+In case target remote invalidates bogus rkey and signature is not used,
+pi_ctx is NULL deref.
 
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+The commit also fails the connection on bogus remote invalidation.
+
+Fixes: 59caaed7a72a ("IB/iser: Support the remote invalidation exception")
+Signed-off-by: Israel Rukshin <israelr@mellanox.com>
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/iser/iser_initiator.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index b7f1ce5333cb8..880c63579ba88 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -1667,7 +1667,7 @@ static enum i40iw_status_code i40iw_add_mqh_6(struct i40iw_device *iwdev,
- 	unsigned long flags;
+diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
+index 2f6388596f886..96af06cfe0afd 100644
+--- a/drivers/infiniband/ulp/iser/iser_initiator.c
++++ b/drivers/infiniband/ulp/iser/iser_initiator.c
+@@ -589,13 +589,19 @@ void iser_login_rsp(struct ib_cq *cq, struct ib_wc *wc)
+ 	ib_conn->post_recv_buf_count--;
+ }
  
- 	rtnl_lock();
--	for_each_netdev_rcu(&init_net, ip_dev) {
-+	for_each_netdev(&init_net, ip_dev) {
- 		if ((((rdma_vlan_dev_vlan_id(ip_dev) < I40IW_NO_VLAN) &&
- 		      (rdma_vlan_dev_real_dev(ip_dev) == iwdev->netdev)) ||
- 		     (ip_dev == iwdev->netdev)) && (ip_dev->flags & IFF_UP)) {
+-static inline void
++static inline int
+ iser_inv_desc(struct iser_fr_desc *desc, u32 rkey)
+ {
+-	if (likely(rkey == desc->rsc.mr->rkey))
++	if (likely(rkey == desc->rsc.mr->rkey)) {
+ 		desc->rsc.mr_valid = 0;
+-	else if (likely(rkey == desc->pi_ctx->sig_mr->rkey))
++	} else if (likely(desc->pi_ctx && rkey == desc->pi_ctx->sig_mr->rkey)) {
+ 		desc->pi_ctx->sig_mr_valid = 0;
++	} else {
++		iser_err("Bogus remote invalidation for rkey %#x\n", rkey);
++		return -EINVAL;
++	}
++
++	return 0;
+ }
+ 
+ static int
+@@ -623,12 +629,14 @@ iser_check_remote_inv(struct iser_conn *iser_conn,
+ 
+ 			if (iser_task->dir[ISER_DIR_IN]) {
+ 				desc = iser_task->rdma_reg[ISER_DIR_IN].mem_h;
+-				iser_inv_desc(desc, rkey);
++				if (unlikely(iser_inv_desc(desc, rkey)))
++					return -EINVAL;
+ 			}
+ 
+ 			if (iser_task->dir[ISER_DIR_OUT]) {
+ 				desc = iser_task->rdma_reg[ISER_DIR_OUT].mem_h;
+-				iser_inv_desc(desc, rkey);
++				if (unlikely(iser_inv_desc(desc, rkey)))
++					return -EINVAL;
+ 			}
+ 		} else {
+ 			iser_err("failed to get task for itt=%d\n", hdr->itt);
 -- 
 2.20.1
 
