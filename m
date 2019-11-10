@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 666A3C17443
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 02:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC2D1C17440
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 02:58:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D54F21019
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 02:54:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC11D21019
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Nov 2019 02:58:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573354498;
-	bh=pxt1YofAycmysn7tu9QwKJyk9fK/iiHWj7DixH23XiM=;
+	s=default; t=1573354709;
+	bh=gjsQgDA0Yi/U7t3UzquNBahrZVVvipDwiouj+8LHZNU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=OCubpg9hmZqcwqmfAg/5wFw59k/w9lbxy6z1XfYk96JDxNR3dMGpKeQkhwD67gAMs
-	 cyCGHMACOl+wkEw6Aysb/6pG0Fl67mnlTJwzW3JpvlGRhDAQD8SjaQIi/rRpwobHIf
-	 SU3o+LQIj8G2N23OZEW46Zj6IfZkqnrgEczCFqmU=
+	b=K8O8g3SoDzAse5VfQ68QcAoLFH2C7ia3kEuOUkRZ3mWeqJ6INnedjsLllRzuFBQsz
+	 YrfRklRO4FHbxVGWE6Pd1xs2WS9jf5fjh+3n3Dmf4fGaB8NcmSkd6s/pgUyzRBIgTi
+	 r2eyiGujGtFmvCb3ZoviQ6MLumCEKuilZdS6G6rs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726877AbfKJCys (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 9 Nov 2019 21:54:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34018 "EHLO mail.kernel.org"
+        id S1727025AbfKJC62 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 9 Nov 2019 21:58:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728638AbfKJCua (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 9 Nov 2019 21:50:30 -0500
+        id S1729444AbfKJC4s (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 9 Nov 2019 21:56:48 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BFCC522594;
-        Sun, 10 Nov 2019 02:50:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8C62D22571;
+        Sun, 10 Nov 2019 02:48:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573354229;
-        bh=pxt1YofAycmysn7tu9QwKJyk9fK/iiHWj7DixH23XiM=;
+        s=default; t=1573354120;
+        bh=gjsQgDA0Yi/U7t3UzquNBahrZVVvipDwiouj+8LHZNU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lIXDJeeLx5Qhbj8fzTYTocgihy1dSvx3dKT3vb1l99k17RpG9UUqMQA8FwazqAdNF
-         MwOGcfwzYtdCu7wXizZTkiZuYRcC5H3QHd8/kw304pH5Tx3akWuYJ3SYevEyRtStVE
-         IfrxINz1D1sl7nCVR4HpRGJ33f4fklpVfRlwESug=
+        b=1qGOsQgA5I5df/wesIIlCndt+/D3dce7Xz+MPmcWP5dZi/7Nq31Vxl77XjSqbr/uE
+         RgJc5H3utOksvgH1MiI+LWA9Lfc2z6oeYw5V+8yWyywy1LcVfPUmvQs1BGoWwA4/Y8
+         Hd0qjmdyQ0zW37yDZNfevYGP56/o5leqjPrD445A=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Israel Rukshin <israelr@mellanox.com>,
@@ -45,12 +45,12 @@ Cc:     Israel Rukshin <israelr@mellanox.com>,
         Sagi Grimberg <sagi@grimberg.me>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 66/66] IB/iser: Fix possible NULL deref at iser_inv_desc()
-Date:   Sat,  9 Nov 2019 21:48:45 -0500
-Message-Id: <20191110024846.32598-66-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 108/109] IB/iser: Fix possible NULL deref at iser_inv_desc()
+Date:   Sat,  9 Nov 2019 21:45:40 -0500
+Message-Id: <20191110024541.31567-108-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191110024846.32598-1-sashal@kernel.org>
-References: <20191110024846.32598-1-sashal@kernel.org>
+In-Reply-To: <20191110024541.31567-1-sashal@kernel.org>
+References: <20191110024541.31567-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -80,10 +80,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 13 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 81ae2e30dd125..27a7e4406f343 100644
+index 2a07692007bdd..a126750b65a92 100644
 --- a/drivers/infiniband/ulp/iser/iser_initiator.c
 +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -590,13 +590,19 @@ void iser_login_rsp(struct ib_cq *cq, struct ib_wc *wc)
+@@ -592,13 +592,19 @@ void iser_login_rsp(struct ib_cq *cq, struct ib_wc *wc)
  	ib_conn->post_recv_buf_count--;
  }
  
@@ -106,7 +106,7 @@ index 81ae2e30dd125..27a7e4406f343 100644
  }
  
  static int
-@@ -624,12 +630,14 @@ iser_check_remote_inv(struct iser_conn *iser_conn,
+@@ -626,12 +632,14 @@ iser_check_remote_inv(struct iser_conn *iser_conn,
  
  			if (iser_task->dir[ISER_DIR_IN]) {
  				desc = iser_task->rdma_reg[ISER_DIR_IN].mem_h;
