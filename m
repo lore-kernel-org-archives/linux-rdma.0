@@ -2,63 +2,53 @@ Return-Path: <SRS0=ofNZ=ZD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14AE7C17441
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 Nov 2019 03:57:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E77C1C43331
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 Nov 2019 05:19:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D4A022084F
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 Nov 2019 03:57:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFC6920869
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 Nov 2019 05:19:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="tY6Ijl+1"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="j3GkzlLW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726924AbfKKD5T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 10 Nov 2019 22:57:19 -0500
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:36005 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726910AbfKKD5T (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 10 Nov 2019 22:57:19 -0500
-Received: by mail-pf1-f194.google.com with SMTP id v19so9764343pfm.3
-        for <linux-rdma@vger.kernel.org>; Sun, 10 Nov 2019 19:57:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=YfVuYLgFsEpOGQu1iZTYuor2PUz6WFlFBUTHRR4RFJc=;
-        b=tY6Ijl+10E8NFBSUq4NC/e+tVpwHxHp2wAIO1EaR1ll/30Q7sQWqPL8Kq/YaNvRQWI
-         te7LKUAkkoXlPSkKUaUUj+FUj309hiozjm4ozWAIHBrLQm0RApwb7377lycP/xEcgyRV
-         O7qXArYDpns/P1zo16U36ifxA1rlTf/jw6F/NG/xAPlri1c0xpNGVmEfWBH4TqIEYPfG
-         3auQKxYiWmr9VKheTpUGuNqFNJuAkhSUpXwiG42sauUCSmnJ0pEcXSgXzcvcgN9x7IGg
-         sjv8IUrtdU0Eo92qu6Q3ODm/+J1yAYor+673i/pbPDNTEQJtq0j5fITVm/rCIWIJKpdW
-         2Ntg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=YfVuYLgFsEpOGQu1iZTYuor2PUz6WFlFBUTHRR4RFJc=;
-        b=lSRcG8b5gcYL6Cc9FhF/qFQuvfhxEygU2hW+dcfXIe6D14jH/2eZJUAm3T3fz/ijnN
-         8GhcGf2RCso6ivAMmjQhoNaVIqjgizO9Es7nq7yUTqFlap3bQGDZzaOvv7kteggTtX6g
-         O/xzB9P4KUHKp//cKHh+uOOTDSkYtg2Lal1d1oaFylfJebpYzRnHsWhEISqCag+YcMFP
-         Np4Hw7XYxAMlkr14ds4McHM90yH1YrXi6UtfNkXmqnX/H+TXiuiGE8/m9xxXS9LTzHsH
-         Xfl3be7Kzi0C3CRpPJ2MtE1yCsEwp3hbW7YQ8d2+d3x2KwYxznU5XWi9tKdh32Db3p1F
-         +zcg==
-X-Gm-Message-State: APjAAAX7WEkp7dLyfqZS9AnjXUKdQkeuhWlgI2tLqxaNbv8jTMnXXmG5
-        nM/bgY9UEvIzfxjwqyk3aFkifg==
-X-Google-Smtp-Source: APXvYqymJTQdz+0DhInHQ6YlXFk7bO6AC+TYf7u51PP59HFRwi4q8qAsu6FIpFAQzXxrgx7gj5IfLg==
-X-Received: by 2002:a17:90a:2064:: with SMTP id n91mr31812895pjc.41.1573444638273;
-        Sun, 10 Nov 2019 19:57:18 -0800 (PST)
-Received: from cakuba (c-73-202-202-92.hsd1.ca.comcast.net. [73.202.202.92])
-        by smtp.gmail.com with ESMTPSA id w7sm14911956pfb.101.2019.11.10.19.57.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 10 Nov 2019 19:57:18 -0800 (PST)
-Date:   Sun, 10 Nov 2019 19:57:14 -0800
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Parav Pandit <parav@mellanox.com>, Jiri Pirko <jiri@resnulli.us>,
+        id S1726167AbfKKFTn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 Nov 2019 00:19:43 -0500
+Received: from mail-eopbgr40041.outbound.protection.outlook.com ([40.107.4.41]:48755
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725892AbfKKFTm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 11 Nov 2019 00:19:42 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HDLSpkGhuf8LeQwr2mWD3Ktsn9o++NTQmD9kdp10VOrA3CPqclw2JugUwsPXsJsjQ0lfB8J8l2fLnIeVR0ELo4spLtvFyMarhhx0IZHa0ETfkSN0fzYtP2EOEGCjJXGdzH9RRgbMGTC0LFAghgWhnnMiM3tqR/pzX1KcfIIPpY/UdS+A/NkfVx3UnwSg/kNraBDNQeG2KPODwYwoTSURFUz6ilXbOMLYyixogy8OcBEow7ke5Tpb4vuFdgKd7NFWnNaEVuyB3fBc6m8Yvw8uxtBKucy2Ij6gGn5r7bcPQZ4MqTvB2tPvViJuxzIefVj9jisEafsisHeyPdjHksCq3w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=1SyIajGS12HV+NllRtfSqg1osLj0YsoumuKnMN8eFHk=;
+ b=h0zUUIlNYegm1H2ffA7SDI/hW9zjCPukMoQpk6yx/llmxeNssaVuLFGjs8SxwBgJ9twAfE4hNxTljlnHnzJ6zkEhPtoy+lM93Krugdmzjmba0tfZI2wEhKettPg21G+vIAWMpU3tIlDqyC7I9CBt2QMaSYeu9uzsRlf7ITAJ8K9qte3GoNNjn3RTpGMkNgVjHPGvVvXir4PetqhoIW9XY/AMMjo7caYrbsytRp8No1O4ywUyOiMzNRJlBpHPLL1BNQxU4CAKdYf5Hhe7HIDZbfQ/YWnCaKLMmG3AfjdDfUfTm80NE0wQTO2SQVu/lhj8TVX8iZ8ZexuVveRnX7yMdA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=1SyIajGS12HV+NllRtfSqg1osLj0YsoumuKnMN8eFHk=;
+ b=j3GkzlLWvarPeBGnlgSYlfEx0Q8d5UNOf0MzxjWbjfVXCuQNDLp2S+wxAejUyHrYzz5UYfohbVtWkOs6DnpGHFJ1TQ1dcPoro23EqKr5sfVDVFZ671YBjp84NWZBPd2izP8qkOGbcKBSH4oPcaU8Z4UhBmhCwG6HNpZMpNPAfwQ=
+Received: from AM0PR05MB4866.eurprd05.prod.outlook.com (20.176.214.160) by
+ AM0PR05MB6148.eurprd05.prod.outlook.com (20.178.115.22) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2430.24; Mon, 11 Nov 2019 05:18:58 +0000
+Received: from AM0PR05MB4866.eurprd05.prod.outlook.com
+ ([fe80::e5c2:b650:f89:12d4]) by AM0PR05MB4866.eurprd05.prod.outlook.com
+ ([fe80::e5c2:b650:f89:12d4%7]) with mapi id 15.20.2430.027; Mon, 11 Nov 2019
+ 05:18:58 +0000
+From:   Parav Pandit <parav@mellanox.com>
+To:     Jakub Kicinski <jakub.kicinski@netronome.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+CC:     Jason Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>,
         David M <david.m.ertman@intel.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
         "alex.williamson@redhat.com" <alex.williamson@redhat.com>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "kvm@vger.kernel.org" <kvm@vger.kernel.org>,
@@ -70,9 +60,11 @@ Cc:     Parav Pandit <parav@mellanox.com>, Jiri Pirko <jiri@resnulli.us>,
         Jiri Pirko <jiri@mellanox.com>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
-Message-ID: <20191110195714.6c42ad77@cakuba>
-In-Reply-To: <20191110193759.GE31761@ziepe.ca>
+Subject: RE: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
+Thread-Topic: [PATCH net-next 00/19] Mellanox, mlx5 sub function support
+Thread-Index: AQHVlYUoVUzzBv4k4UmQHUerp08scaeAKe4AgAEGoYCAAClyAIAADgnAgAA94wCAABDWgIAAGgOAgAAx3ACAARhVgIABCb6AgAE1UoCAABjPkA==
+Date:   Mon, 11 Nov 2019 05:18:57 +0000
+Message-ID: <AM0PR05MB48661B4BA4906D90F7969BA5D1740@AM0PR05MB4866.eurprd05.prod.outlook.com>
 References: <20191107160448.20962-1-parav@mellanox.com>
         <20191107153234.0d735c1f@cakuba.netronome.com>
         <20191108121233.GJ6990@nanopsycho>
@@ -83,104 +75,81 @@ References: <20191107160448.20962-1-parav@mellanox.com>
         <20191108134559.42fbceff@cakuba>
         <20191109004426.GB31761@ziepe.ca>
         <20191109092747.26a1a37e@cakuba>
-        <20191110193759.GE31761@ziepe.ca>
-Organization: Netronome Systems, Ltd.
+        <20191110091855.GE1435668@kroah.com> <20191110194601.0d6ed1a0@cakuba>
+In-Reply-To: <20191110194601.0d6ed1a0@cakuba>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=parav@mellanox.com; 
+x-originating-ip: [2605:6000:ec82:1c00:61ca:c318:74fc:4df4]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 83df0e5f-0424-43bd-e3a1-08d76666a790
+x-ms-traffictypediagnostic: AM0PR05MB6148:|AM0PR05MB6148:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <AM0PR05MB6148860488EA4A17C90B87CFD1740@AM0PR05MB6148.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8273;
+x-forefront-prvs: 0218A015FA
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(39860400002)(396003)(376002)(366004)(136003)(199004)(13464003)(189003)(14454004)(478600001)(25786009)(2906002)(6116002)(81156014)(81166006)(76116006)(86362001)(64756008)(66946007)(561944003)(33656002)(66556008)(14444005)(66476007)(66446008)(8676002)(256004)(8936002)(7736002)(52536014)(6246003)(9686003)(6436002)(55016002)(2501003)(229853002)(11346002)(446003)(46003)(74316002)(305945005)(7416002)(476003)(486006)(71200400001)(54906003)(110136005)(4326008)(316002)(99286004)(102836004)(5660300002)(71190400001)(76176011)(7696005)(6506007)(186003);DIR:OUT;SFP:1101;SCL:1;SRVR:AM0PR05MB6148;H:AM0PR05MB4866.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: GgxN1e0dZ9gFNVUnPs7YLpIOfi+7sibczaSCpMnFhlcIpd3/K+yWVa+txJfzAxc822We0x+x/oQzOgo4cng8bEVaTBcsZFznIMU8LLqXvcv8G1HpFT+LNyh/inEUbcmT42rD8XPbOJCCp9bOX2rcLXg3BAqzYzc5aEQzz+tB0ZQ0zFWEuIdZbGZrv5OGe8IOtg3MVJ0GxpdNMvZkrGbsyat5L4V1uxlh3sTeZ9VU3wXuT9QxUlxt65aN4d0QHAv7R6ziWjdrjx/iuankusGAuQ1UvJBTeFWJ8k8vxFGWbmvhau7KfLbTzM/kjq7VsA4cbF2DA1oy0D7HGJzktjAEedAlIlod9t7ipReYgON5a6CsSdOr5DWpxfHOZt+690K7XSM1ltFz9K714CJ0NAhsW+SRfa6WDzxvCbcAZKo11Gu2o+3rjJQeRrVFntulKrHh
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 83df0e5f-0424-43bd-e3a1-08d76666a790
+X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Nov 2019 05:18:57.8953
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 5s6K9nWPHA5GszhMspx4HCB2mEq/nczksQ55zOwnZkPrHgXmjugy2vDPyXS8tUjDBDf+kAsBZQfv4q9Fekurng==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB6148
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, 10 Nov 2019 15:37:59 -0400, Jason Gunthorpe wrote:
-> On Sat, Nov 09, 2019 at 09:27:47AM -0800, Jakub Kicinski wrote:
-> > On Fri, 8 Nov 2019 20:44:26 -0400, Jason Gunthorpe wrote:  
-> > > On Fri, Nov 08, 2019 at 01:45:59PM -0800, Jakub Kicinski wrote:  
-> > > > Yes, my suggestion to use mdev was entirely based on the premise that
-> > > > the purpose of this work is to get vfio working.. otherwise I'm unclear
-> > > > as to why we'd need a bus in the first place. If this is just for
-> > > > containers - we have macvlan offload for years now, with no need for a
-> > > > separate device.    
-> > > 
-> > > This SF thing is a full fledged VF function, it is not at all like
-> > > macvlan. This is perhaps less important for the netdev part of the
-> > > world, but the difference is very big for the RDMA side, and should
-> > > enable VFIO too..  
-> > 
-> > Well, macvlan used VMDq so it was pretty much a "legacy SR-IOV" VF.
-> > I'd perhaps need to learn more about RDMA to appreciate the difference.  
-> 
-> It has a lot to do with the how the RDMA functionality works in the
-> HW.. At least for mlx the RDMA is 'below' all the netdev stuff, so
-> even though netdev has some offloaded vlan RDMA sees, essentially, the
-> union of all the vlan's on the system.
-> 
-> Which at least breaks the security model of a macvlan device for
-> net-namespaces.
-> 
-> Maybe with new HW something could be done, but today, the HW is
-> limited.
+> -----Original Message-----
+> From: kvm-owner@vger.kernel.org <kvm-owner@vger.kernel.org> On Behalf
+> Of Jakub Kicinski
+> Sent: Sunday, November 10, 2019 9:46 PM
+> On Sun, 10 Nov 2019 10:18:55 +0100, gregkh@linuxfoundation.org wrote:
 
-Oh, I think we sort of talked past each other there.
+[..]
+> The nice thing about having a fake bus is you can load out-of-tree driver=
+s to
+> operate extra protocols quite cleanly.
+>=20
+This series does NOT intent to do any out of tree driver.
+Please do not think in that direction for this series.
 
-I was just pointing to the fact that Intel's macvlan offload did well
-without any fake bus or devices. I'm not saying anything about the
-particulars of the virtualization from the networking perspective.
+> I'm not saying that's what the code in question is doing, I'm saying I'd
+> personally like to understand the motivation more clearly before every
+> networking driver out there starts spawning buses. The only argument I've
+> heard so far for the separate devices is reloading subset of the drivers,=
+ which
+> I'd rate as moderately convincing.
 
-> > > > On the RDMA/Intel front, would you mind explaining what the main
-> > > > motivation for the special buses is? I'm a little confurious.    
-> > > 
-> > > Well, the issue is driver binding. For years we have had these
-> > > multi-function netdev drivers that have a single PCI device which must
-> > > bind into multiple subsystems, ie mlx5 does netdev and RDMA, the cxgb
-> > > drivers do netdev, RDMA, SCSI initiator, SCSI target, etc. [And I
-> > > expect when NVMe over TCP rolls out we will have drivers like cxgb4
-> > > binding to 6 subsytems in total!]  
-> > 
-> > What I'm missing is why is it so bad to have a driver register to
-> > multiple subsystems.  
-> 
-> Well, for example, if you proposed to have a RDMA driver in
-> drivers/net/ethernet/foo/, I would NAK it, and I hope Dave would
-> too. Same for SCSI and nvme.
-> 
-> This Linux process is that driver code for a subsystem lives in the
-> subsystem and should be in a subsystem specific module. While it is
-> technically possible to have a giant driver, it distorts our process
-> in a way I don't think is good.
-> 
-> So, we have software layers between the large Linux subsystems just to
-> make the development side manageable and practical.
-> 
-> .. once the code lives in another subsystem, it is in a new module. A
-> new module requires some way to connect them all together, the driver
-> core is the logical way to do this connection.
-> 
-> I don't think a driver should be split beyond that. Even my suggestion
-> of a 'core' may in practice just be the netdev driver as most of the
-> other modules can't function without netdev. ie you can't do iSCSI
-> without an IP stack.
+Primary objectives behind using a bus in this series is:
 
-Okay, yes, that's what I was expecting you'd say. I'm not 100%
-convinced a bus is necessary, we lived long enough with drivers 
-split across the tree...
+1. get same level of device view as PF/VF/SF by devlink instance
+2. to not re-invent already matured pm (suspend/resume) in devlink and/or v=
+endor driver
+3. ability to bind a sub-function to different drivers depending on use cas=
+e based on 'in-kernel' defined class-id
+(mdev/virtio/kernel) - just like vfio-pci and regular PF driver, by followi=
+ng standard driver model
+(Ofcourse, It can be done using 3 or more buses as one virtual mdev bus app=
+ears an abuse)
+4. create->configure->bind process of an sub function (just like a VF)
+5. persistent naming of sf's netdev and rdmadev (again like PF and VF)
 
-> > > What is a generation? Mellanox has had a stable RDMA driver across
-> > > many sillicon generations. Intel looks like their new driver will
-> > > support at least the last two or more sillicon generations..
-> > > 
-> > > RDMA drivers are monstrous complex things, there is a big incentive to
-> > > not respin them every time a new chip comes out.  
-> > 
-> > Ack, but then again none of the drivers gets rewritten from scratch,
-> > right? It's not that some "sub-drivers" get reused and some not, no?  
-> 
-> Remarkably Intel is saying their new RDMA 'sub-driver' will be compatible
-> with their ICE and pre-ICE (sorry, forget the names) netdev core
-> drivers. 
-> 
-> netdev will get a different driver for each, but RDMA will use the
-> same driver.
-
-I see :)
+I will wait for Jason's and Jiri's view on the alternative proposal I sent =
+few hours back to omit bus for in-kernel use of sf; and see how far can we =
+run without a bus :-)
