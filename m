@@ -2,126 +2,272 @@ Return-Path: <SRS0=MKZB=ZE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52578C17440
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 15:25:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55B65C17448
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 16:00:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 337E621E6F
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 15:25:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 291EC222BD
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 16:00:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726977AbfKLPZZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Nov 2019 10:25:25 -0500
-Received: from verein.lst.de ([213.95.11.211]:56403 "EHLO verein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726896AbfKLPZZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 12 Nov 2019 10:25:25 -0500
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id 1C20F68BE1; Tue, 12 Nov 2019 16:25:22 +0100 (CET)
-Date:   Tue, 12 Nov 2019 16:25:21 +0100
-From:   Christoph Hellwig <hch@lst.de>
-To:     Ralph Campbell <rcampbell@nvidia.com>
-Cc:     Jerome Glisse <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
+        id S1727044AbfKLP7o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Nov 2019 10:59:44 -0500
+Received: from mx2.suse.de ([195.135.220.15]:56940 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725954AbfKLP7n (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 12 Nov 2019 10:59:43 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id 32F7DB3C9;
+        Tue, 12 Nov 2019 15:59:40 +0000 (UTC)
+From:   Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+To:     andrew.murray@arm.com, maz@kernel.org,
+        linux-kernel@vger.kernel.org, Tariq Toukan <tariqt@mellanox.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Shawn Lin <shawn.lin@rock-chips.com>,
+        Heiko Stuebner <heiko@sntech.de>,
         Christoph Hellwig <hch@lst.de>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Shuah Khan <shuah@kernel.org>, linux-rdma@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH v4 2/2] mm/hmm/test: add self tests for HMM
-Message-ID: <20191112152521.GC12550@lst.de>
-References: <20191104222141.5173-1-rcampbell@nvidia.com> <20191104222141.5173-3-rcampbell@nvidia.com>
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>
+Cc:     james.quinlan@broadcom.com, mbrugger@suse.com,
+        f.fainelli@gmail.com, phil@raspberrypi.org, wahrenst@gmx.net,
+        jeremy.linton@arm.com,
+        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Bjorn Helgaas <bhelgaas@google.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-rockchip@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        iommu@lists.linux-foundation.org
+Subject: [PATCH v2 1/6] linux/log2.h: Add roundup/rounddown_pow_two64() family of functions
+Date:   Tue, 12 Nov 2019 16:59:20 +0100
+Message-Id: <20191112155926.16476-2-nsaenzjulienne@suse.de>
+X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191112155926.16476-1-nsaenzjulienne@suse.de>
+References: <20191112155926.16476-1-nsaenzjulienne@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191104222141.5173-3-rcampbell@nvidia.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Shouldn't this go into mm/ instead? It certainly doesn't seem
-like a library.
+Some users need to make sure their rounding function accepts and returns
+64bit long variables regardless of the architecture. Sadly
+roundup/rounddown_pow_two() takes and returns unsigned longs. Create a
+new generic 64bit variant of the function and cleanup rougue custom
+implementations.
 
-> +static int dmirror_bounce_copy_from(struct dmirror_bounce *bounce,
-> +				    unsigned long addr)
-> +{
-> +	unsigned long end = addr + bounce->size;
-> +	char __user *uptr = (void __user *)addr;
-> +	void *ptr = bounce->ptr;
-> +
-> +	for (; addr < end; addr += PAGE_SIZE, ptr += PAGE_SIZE,
-> +					      uptr += PAGE_SIZE) {
-> +		int ret;
-> +
-> +		ret = copy_from_user(ptr, uptr, PAGE_SIZE);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	return 0;
-> +}
+Signed-off-by: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+---
+ drivers/net/ethernet/mellanox/mlx4/en_clock.c |  3 +-
+ drivers/pci/controller/pcie-cadence-ep.c      |  7 +--
+ drivers/pci/controller/pcie-cadence.c         |  7 +--
+ drivers/pci/controller/pcie-rockchip-ep.c     |  9 ++--
+ include/linux/log2.h                          | 52 +++++++++++++++++++
+ kernel/dma/direct.c                           |  3 +-
+ 6 files changed, 63 insertions(+), 18 deletions(-)
 
-Why does this iterate in page sized chunks?  I don't remember a page
-size limit on copy_{from,to}_user.
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_clock.c b/drivers/net/ethernet/mellanox/mlx4/en_clock.c
+index 024788549c25..027bd72505e2 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_clock.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_clock.c
+@@ -33,6 +33,7 @@
+ 
+ #include <linux/mlx4/device.h>
+ #include <linux/clocksource.h>
++#include <linux/log2.h>
+ 
+ #include "mlx4_en.h"
+ 
+@@ -252,7 +253,7 @@ static u32 freq_to_shift(u16 freq)
+ {
+ 	u32 freq_khz = freq * 1000;
+ 	u64 max_val_cycles = freq_khz * 1000 * MLX4_EN_WRAP_AROUND_SEC;
+-	u64 max_val_cycles_rounded = 1ULL << fls64(max_val_cycles - 1);
++	u64 max_val_cycles_rounded = roundup_pow_of_two64(max_val_cycles);
+ 	/* calculate max possible multiplier in order to fit in 64bit */
+ 	u64 max_mul = div64_u64(ULLONG_MAX, max_val_cycles_rounded);
+ 
+diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
+index def7820cb824..26ff424b16f5 100644
+--- a/drivers/pci/controller/pcie-cadence-ep.c
++++ b/drivers/pci/controller/pcie-cadence-ep.c
+@@ -10,6 +10,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/sizes.h>
++#include <linux/log2.h>
+ 
+ #include "pcie-cadence.h"
+ 
+@@ -90,11 +91,7 @@ static int cdns_pcie_ep_set_bar(struct pci_epc *epc, u8 fn,
+ 
+ 	/* BAR size is 2^(aperture + 7) */
+ 	sz = max_t(size_t, epf_bar->size, CDNS_PCIE_EP_MIN_APERTURE);
+-	/*
+-	 * roundup_pow_of_two() returns an unsigned long, which is not suited
+-	 * for 64bit values.
+-	 */
+-	sz = 1ULL << fls64(sz - 1);
++	sz = roundup_pow_of_two64(sz);
+ 	aperture = ilog2(sz) - 7; /* 128B -> 0, 256B -> 1, 512B -> 2, ... */
+ 
+ 	if ((flags & PCI_BASE_ADDRESS_SPACE) == PCI_BASE_ADDRESS_SPACE_IO) {
+diff --git a/drivers/pci/controller/pcie-cadence.c b/drivers/pci/controller/pcie-cadence.c
+index cd795f6fc1e2..b2278e6b955c 100644
+--- a/drivers/pci/controller/pcie-cadence.c
++++ b/drivers/pci/controller/pcie-cadence.c
+@@ -4,6 +4,7 @@
+ // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
+ 
+ #include <linux/kernel.h>
++#include <linux/log2.h>
+ 
+ #include "pcie-cadence.h"
+ 
+@@ -11,11 +12,7 @@ void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 fn,
+ 				   u32 r, bool is_io,
+ 				   u64 cpu_addr, u64 pci_addr, size_t size)
+ {
+-	/*
+-	 * roundup_pow_of_two() returns an unsigned long, which is not suited
+-	 * for 64bit values.
+-	 */
+-	u64 sz = 1ULL << fls64(size - 1);
++	u64 sz = roundup_pow_of_two64(size);
+ 	int nbits = ilog2(sz);
+ 	u32 addr0, addr1, desc0, desc1;
+ 
+diff --git a/drivers/pci/controller/pcie-rockchip-ep.c b/drivers/pci/controller/pcie-rockchip-ep.c
+index d743b0a48988..ed50aaf27784 100644
+--- a/drivers/pci/controller/pcie-rockchip-ep.c
++++ b/drivers/pci/controller/pcie-rockchip-ep.c
+@@ -16,6 +16,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pci-epf.h>
+ #include <linux/sizes.h>
++#include <linux/log2.h>
+ 
+ #include "pcie-rockchip.h"
+ 
+@@ -70,7 +71,7 @@ static void rockchip_pcie_prog_ep_ob_atu(struct rockchip_pcie *rockchip, u8 fn,
+ 					 u32 r, u32 type, u64 cpu_addr,
+ 					 u64 pci_addr, size_t size)
+ {
+-	u64 sz = 1ULL << fls64(size - 1);
++	u64 sz = roundup_pow_of_two64(size);
+ 	int num_pass_bits = ilog2(sz);
+ 	u32 addr0, addr1, desc0, desc1;
+ 	bool is_nor_msg = (type == AXI_WRAPPER_NOR_MSG);
+@@ -172,11 +173,7 @@ static int rockchip_pcie_ep_set_bar(struct pci_epc *epc, u8 fn,
+ 	/* BAR size is 2^(aperture + 7) */
+ 	sz = max_t(size_t, epf_bar->size, MIN_EP_APERTURE);
+ 
+-	/*
+-	 * roundup_pow_of_two() returns an unsigned long, which is not suited
+-	 * for 64bit values.
+-	 */
+-	sz = 1ULL << fls64(sz - 1);
++	sz = roundup_pow_of_two64(sz);
+ 	aperture = ilog2(sz) - 7; /* 128B -> 0, 256B -> 1, 512B -> 2, ... */
+ 
+ 	if ((flags & PCI_BASE_ADDRESS_SPACE) == PCI_BASE_ADDRESS_SPACE_IO) {
+diff --git a/include/linux/log2.h b/include/linux/log2.h
+index 83a4a3ca3e8a..db12d92ab6eb 100644
+--- a/include/linux/log2.h
++++ b/include/linux/log2.h
+@@ -67,6 +67,24 @@ unsigned long __rounddown_pow_of_two(unsigned long n)
+ 	return 1UL << (fls_long(n) - 1);
+ }
+ 
++/**
++ * __roundup_pow_of_two64() - round 64bit value up to nearest power of two
++ * @n: value to round up
++ */
++static inline __attribute__((const)) __u64 __roundup_pow_of_two64(__u64 n)
++{
++	return 1UL << fls64(n - 1);
++}
++
++/**
++ * __rounddown_pow_of_two64() - round 64bit value down to nearest power of two
++ * @n: value to round down
++ */
++static inline __attribute__((const)) __u64 __rounddown_pow_of_two64(__u64 n)
++{
++	return 1UL << (fls64(n) - 1);
++}
++
+ /**
+  * const_ilog2 - log base 2 of 32-bit or a 64-bit constant unsigned value
+  * @n: parameter
+@@ -194,6 +212,40 @@ unsigned long __rounddown_pow_of_two(unsigned long n)
+ 	__rounddown_pow_of_two(n)		\
+  )
+ 
++/**
++ * roundup_pow_of_two64 - round the given 64bit value up to nearest power of
++ * two
++ * @n: parameter
++ *
++ * round the given value up to the nearest power of two
++ * - the result is undefined when n == 0
++ * - this can be used to initialise global variables from constant data
++ */
++#define roundup_pow_of_two64(n)			\
++(						\
++	__builtin_constant_p(n) ? (		\
++		(n == 1) ? 1 :			\
++		(1UL << (ilog2((n) - 1) + 1))	\
++				   ) :		\
++	__roundup_pow_of_two64(n)		\
++)
++
++/**
++ * rounddown_pow_of_two64 - round the given 64bit value down to nearest power
++ * of two
++ * @n: parameter
++ *
++ * round the given value down to the nearest power of two
++ * - the result is undefined when n == 0
++ * - this can be used to initialise global variables from constant data
++ */
++#define rounddown_pow_of_two64(n)		\
++(						\
++	__builtin_constant_p(n) ? (		\
++		(1UL << ilog2(n))) :		\
++	__rounddown_pow_of_two64(n)		\
++)
++
+ static inline __attribute_const__
+ int __order_base_2(unsigned long n)
+ {
+diff --git a/kernel/dma/direct.c b/kernel/dma/direct.c
+index b9e1744999d9..a419530abd3e 100644
+--- a/kernel/dma/direct.c
++++ b/kernel/dma/direct.c
+@@ -15,6 +15,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/set_memory.h>
+ #include <linux/swiotlb.h>
++#include <linux/log2.h>
+ 
+ /*
+  * Most architectures use ZONE_DMA for the first 16 Megabytes, but some use it
+@@ -53,7 +54,7 @@ u64 dma_direct_get_required_mask(struct device *dev)
+ {
+ 	u64 max_dma = phys_to_dma_direct(dev, (max_pfn - 1) << PAGE_SHIFT);
+ 
+-	return (1ULL << (fls64(max_dma) - 1)) * 2 - 1;
++	return rounddown_pow_of_two64(max_dma) * 2 - 1;
+ }
+ 
+ static gfp_t __dma_direct_optimal_gfp_mask(struct device *dev, u64 dma_mask,
+-- 
+2.24.0
 
-> +static int dmirror_invalidate_range_start(struct mmu_notifier *mn,
-> +				const struct mmu_notifier_range *update)
-> +{
-> +	struct dmirror *dmirror = container_of(mn, struct dmirror, notifier);
-> +
-> +	if (mmu_notifier_range_blockable(update))
-> +		mutex_lock(&dmirror->mutex);
-> +	else if (!mutex_trylock(&dmirror->mutex))
-> +		return -EAGAIN;
-> +
-> +	dmirror_do_update(dmirror, update->start, update->end);
-> +	mutex_unlock(&dmirror->mutex);
-> +	return 0;
-> +}
-
-Can we adopts this to Jasons new interval tree invalidate?
-
-> +static int dmirror_fops_open(struct inode *inode, struct file *filp)
-> +{
-> +	struct cdev *cdev = inode->i_cdev;
-> +	struct dmirror_device *mdevice;
-> +	struct dmirror *dmirror;
-> +
-> +	/* No exclusive opens. */
-> +	if (filp->f_flags & O_EXCL)
-> +		return -EINVAL;
-
-Device files usually just ignore O_EXCL, I don't see why this one
-would be any different.
-
-> +	mdevice = container_of(cdev, struct dmirror_device, cdevice);
-> +	dmirror = dmirror_new(mdevice);
-> +	if (!dmirror)
-> +		return -ENOMEM;
-> +
-> +	/* Only the first open registers the address space. */
-> +	mutex_lock(&mdevice->devmem_lock);
-> +	if (filp->private_data)
-> +		goto err_busy;
-> +	filp->private_data = dmirror;
-> +	mutex_unlock(&mdevice->devmem_lock);
-
-->open is only called for the first open of a given file structure..
-
-> +static int dmirror_fops_release(struct inode *inode, struct file *filp)
-> +{
-> +	struct dmirror *dmirror = filp->private_data;
-> +
-> +	if (!dmirror)
-> +		return 0;
-
-This can't happen if your ->open never returns 0 without setting the
-private data.
-
-> +	filp->private_data = NULL;
-
-The file is feed afterwards, no need to clear the private data.
