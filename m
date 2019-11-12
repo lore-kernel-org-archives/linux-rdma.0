@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D514C17448
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24182C1744D
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4FBDC2196E
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECA8421783
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="N5sdBv6B"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="U5tMGzDo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726953AbfKLUWz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Nov 2019 15:22:55 -0500
-Received: from mail-qv1-f67.google.com ([209.85.219.67]:42490 "EHLO
-        mail-qv1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726896AbfKLUWz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 15:22:55 -0500
-Received: by mail-qv1-f67.google.com with SMTP id c9so6939441qvz.9
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Nov 2019 12:22:54 -0800 (PST)
+        id S1726659AbfKLUWy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Nov 2019 15:22:54 -0500
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:39883 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726896AbfKLUWx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 15:22:53 -0500
+Received: by mail-qt1-f196.google.com with SMTP id t8so21258889qtc.6
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Nov 2019 12:22:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=PZrtIQ1CqQ3aV6eDiT4AIT6dNu/ovkVG0MAXXUVRQPA=;
-        b=N5sdBv6BsoyFRqhiisu/umdYUbVy9Q0vhIpmeXK0k1Z2n976NtwEGSe4f6xaVeM9aI
-         0iie8PeQxU6Pzl7PaExiv5wXSdCmcakfQQYqtL301GS/N6tmsTuOCxyh5Z4J2Bx5LI9m
-         hZ4ACJgY65YwCw1ca0bak+o9en98SxP+zjmcbIJZPCTLYUFbr1VHsequPzlbRw2PEpUT
-         2Ckc1P6jvX312NS5kcr5DuEEPeQLvwDvBBXNW4q4UHyiDRaRhTqT9pCJpwlIbkJ6jBE4
-         8jvzjAPKLI0LwepsLvXIgFWuCUpUgBzKcRXeCAmU8vxboEVzSYCAKwi2mLcjpWBsqfMs
-         WaVw==
+        bh=BSFUg/W9A6HnwsbPbuDzq/9L6ti4sGNMmL25wGbaBxI=;
+        b=U5tMGzDohM88Dhb5OT+KNGasGrxJPURV3VJCgcEbLNaNLggNPtNvaJWNxh0oGCxd+G
+         e1TTaZrAQm6MtqEffeVMDJceNyB8NHz11Rhj2PRrGCd72azzt1/3JDGtzA2cy4YX6/0u
+         mAW2VzEiinIlE+wrNwjawDIV7wV6QvRGUW8Ksp2RYkql90eX+Syq6crGDA8ezIa/znBG
+         nlMhQqdyxhN7pb6Jafd7qjYQ0G5GzVjTbGXchwZj6vkoj/p7ny/lKxLlNyJPBZEnc930
+         TG5K5USOVXpcnWbR/x/G0Wx3Ef54r2hr8Dpu4fajLIw10HvmTDAD5WQT4pVIm1hLNM6F
+         P6MA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=PZrtIQ1CqQ3aV6eDiT4AIT6dNu/ovkVG0MAXXUVRQPA=;
-        b=Bu+sZXBKIGlHUTlwobET5eXkEBAOic/EMm+AY7sKGYB2JofFRr086I9jkP0/GAwLWP
-         PppqtlBdJyL7QAsp3GgQ6c2BfDhq8TicH3B+WGzY2B/oeMSSAm7iAIuYMgWUsi0u6h9R
-         fBP35PWRYzJXR5dkedcB7XadtNOdOqkLS6qPy2NlKTWukJudb01zzxZJnbFZfa2vAHz1
-         oyeIJg4qqEVsTngDMb8LtPiX07HtaDPEl9e+thlZbfwV+wFKuLA3AxfcIXgD6hjtRgvw
-         5IQ5eZiQAOF2BIcJm6T+fdfibw6gypbh+tlLP8MfXCRYj3zxvT9NM0B7N7xsZK2Hqc2d
-         PJSA==
-X-Gm-Message-State: APjAAAViltnsSmY6rU7fLfpIY0lbCdf3qbU54SQuCgSEC/eBN3/XTCYl
-        V6H10AQw6TD5bC9vLcDhNiA2KPOA9Sc=
-X-Google-Smtp-Source: APXvYqwjHVASiImpnLd/ILwe5StdJi3zozsyC3ebdiRQZc5AWQDBgQKjG4QUL+HhygmNxsbKFK0SMQ==
-X-Received: by 2002:ad4:53ab:: with SMTP id j11mr5278002qvv.47.1573590173518;
-        Tue, 12 Nov 2019 12:22:53 -0800 (PST)
+        bh=BSFUg/W9A6HnwsbPbuDzq/9L6ti4sGNMmL25wGbaBxI=;
+        b=SBOFhr4hx8hokjmLzN1b7nyPhvRtTvFd9Hg0DEKPuaVk8K8R/20N/znVlmw/tkwoSu
+         TmSQ7hrRWQmKsXF6LeYaS7r5XXl6UCE5by5YrenMZuKwTrJjmz4uCOUJZuXKJZLsZ3Kg
+         qPgcAeeFsZOOBBC6Vuy/3s9h49V3by7QDrnWb9NM5Mcoo6gS0trGgtp5DpN4d3RBjWry
+         EMQ3OHR2XnSt35aClNnQ4b97VjnfTZDSX143zeDpGQv2zIdWuBKTvnec+svOTitKgZ9U
+         EsbGxdKy2BKcEXsLJnr7p+uW+HlPXSQHtahwGUf/uiR9vjhWTDGCY4i1XD/G0xMusz6o
+         hjKw==
+X-Gm-Message-State: APjAAAUG644K2XVG8PjWJs8XahmWpA/5Xg1mNr9QZX8m/p+UYuUdtVWq
+        iCb4L3PJ6j5/AuToepAYOtrdPg==
+X-Google-Smtp-Source: APXvYqyh7GmjUHdAPkfQnL2h1rs4I1Aq/QuqAEqebx0t7FVTldSAgXXVkrqtZm6Vk74H36QsCmVYvg==
+X-Received: by 2002:ac8:f88:: with SMTP id b8mr33625110qtk.382.1573590172345;
+        Tue, 12 Nov 2019 12:22:52 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id y33sm14091065qta.18.2019.11.12.12.22.48
+        by smtp.gmail.com with ESMTPSA id q16sm7487987qkm.27.2019.11.12.12.22.47
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Tue, 12 Nov 2019 12:22:48 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iUcgZ-0003kZ-Kj; Tue, 12 Nov 2019 16:22:47 -0400
+        id 1iUcgZ-0003k4-DE; Tue, 12 Nov 2019 16:22:47 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>,
@@ -76,11 +76,10 @@ Cc:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
         Stefano Stabellini <sstabellini@kernel.org>,
         nouveau@lists.freedesktop.org, xen-devel@lists.xenproject.org,
         Christoph Hellwig <hch@infradead.org>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Philip Yang <Philip.Yang@amd.com>
-Subject: [PATCH v3 11/14] drm/amdgpu: Use mmu_interval_insert instead of hmm_mirror
-Date:   Tue, 12 Nov 2019 16:22:28 -0400
-Message-Id: <20191112202231.3856-12-jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH v3 06/14] RDMA/hfi1: Use mmu_interval_notifier_insert for user_exp_rcv
+Date:   Tue, 12 Nov 2019 16:22:23 -0400
+Message-Id: <20191112202231.3856-7-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191112202231.3856-1-jgg@ziepe.ca>
 References: <20191112202231.3856-1-jgg@ziepe.ca>
@@ -93,568 +92,321 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Remove the interval tree in the driver and rely on the tree maintained by
-the mmu_notifier for delivering mmu_notifier invalidation callbacks.
+This converts one of the two users of mmu_notifiers to use the new API.
+The conversion is fairly straightforward, however the existing use of
+notifiers here seems to be racey.
 
-For some reason amdgpu has a very complicated arrangement where it tries
-to prevent duplicate entries in the interval_tree, this is not necessary,
-each amdgpu_bo can be its own stand alone entry. interval_tree already
-allows duplicates and overlaps in the tree.
-
-Also, there is no need to remove entries upon a release callback, the
-mmu_interval API safely allows objects to remain registered beyond the
-lifetime of the mm. The driver only has to stop touching the pages during
-release.
-
-Reviewed-by: Philip Yang <Philip.Yang@amd.com>
-Tested-by: Philip Yang <Philip.Yang@amd.com>
+Tested-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu.h           |   2 +
- .../gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c  |   5 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c    |   1 +
- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c        | 333 ++++--------------
- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.h        |   4 -
- drivers/gpu/drm/amd/amdgpu/amdgpu_object.h    |  13 +-
- 6 files changed, 77 insertions(+), 281 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c     |   2 +-
+ drivers/infiniband/hw/hfi1/hfi.h          |   2 +-
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c | 146 +++++++++-------------
+ drivers/infiniband/hw/hfi1/user_exp_rcv.h |   3 +-
+ 4 files changed, 60 insertions(+), 93 deletions(-)
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-index bd37df5dd6d048..60591a5d420021 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-@@ -1006,6 +1006,8 @@ struct amdgpu_device {
- 	struct mutex  lock_reset;
- 	struct amdgpu_doorbell_index doorbell_index;
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index f9a7e9d29c8ba2..7c5e3fb224139a 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -1138,7 +1138,7 @@ static int get_ctxt_info(struct hfi1_filedata *fd, unsigned long arg, u32 len)
+ 			HFI1_CAP_UGET_MASK(uctxt->flags, MASK) |
+ 			HFI1_CAP_KGET_MASK(uctxt->flags, K2U);
+ 	/* adjust flag if this fd is not able to cache */
+-	if (!fd->handler)
++	if (!fd->use_mn)
+ 		cinfo.runtime_flags |= HFI1_CAP_TID_UNMAP; /* no caching */
  
-+	struct mutex			notifier_lock;
-+
- 	int asic_reset_res;
- 	struct work_struct		xgmi_reset_work;
+ 	cinfo.num_active = hfi1_count_active_units();
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index fa45350a9a1d32..fc10d65fc3e13c 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1444,7 +1444,7 @@ struct hfi1_filedata {
+ 	/* for cpu affinity; -1 if none */
+ 	int rec_cpu_num;
+ 	u32 tid_n_pinned;
+-	struct mmu_rb_handler *handler;
++	bool use_mn;
+ 	struct tid_rb_node **entry_to_rb;
+ 	spinlock_t tid_lock; /* protect tid_[limit,used] counters */
+ 	u32 tid_limit;
+diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+index 3592a9ec155e85..75a378162162d3 100644
+--- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
++++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+@@ -59,11 +59,11 @@ static int set_rcvarray_entry(struct hfi1_filedata *fd,
+ 			      struct tid_user_buf *tbuf,
+ 			      u32 rcventry, struct tid_group *grp,
+ 			      u16 pageidx, unsigned int npages);
+-static int tid_rb_insert(void *arg, struct mmu_rb_node *node);
+ static void cacheless_tid_rb_remove(struct hfi1_filedata *fdata,
+ 				    struct tid_rb_node *tnode);
+-static void tid_rb_remove(void *arg, struct mmu_rb_node *node);
+-static int tid_rb_invalidate(void *arg, struct mmu_rb_node *mnode);
++static bool tid_rb_invalidate(struct mmu_interval_notifier *mni,
++			      const struct mmu_notifier_range *range,
++			      unsigned long cur_seq);
+ static int program_rcvarray(struct hfi1_filedata *fd, struct tid_user_buf *,
+ 			    struct tid_group *grp,
+ 			    unsigned int start, u16 count,
+@@ -73,10 +73,8 @@ static int unprogram_rcvarray(struct hfi1_filedata *fd, u32 tidinfo,
+ 			      struct tid_group **grp);
+ static void clear_tid_node(struct hfi1_filedata *fd, struct tid_rb_node *node);
  
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-index 6d021ecc8d598f..47700302a08b7f 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-@@ -481,8 +481,7 @@ static void remove_kgd_mem_from_kfd_bo_list(struct kgd_mem *mem,
-  *
-  * Returns 0 for success, negative errno for errors.
-  */
--static int init_user_pages(struct kgd_mem *mem, struct mm_struct *mm,
--			   uint64_t user_addr)
-+static int init_user_pages(struct kgd_mem *mem, uint64_t user_addr)
+-static struct mmu_rb_ops tid_rb_ops = {
+-	.insert = tid_rb_insert,
+-	.remove = tid_rb_remove,
+-	.invalidate = tid_rb_invalidate
++static const struct mmu_interval_notifier_ops tid_mn_ops = {
++	.invalidate = tid_rb_invalidate,
+ };
+ 
+ /*
+@@ -87,7 +85,6 @@ static struct mmu_rb_ops tid_rb_ops = {
+ int hfi1_user_exp_rcv_init(struct hfi1_filedata *fd,
+ 			   struct hfi1_ctxtdata *uctxt)
  {
- 	struct amdkfd_process_info *process_info = mem->process_info;
- 	struct amdgpu_bo *bo = mem->bo;
-@@ -1195,7 +1194,7 @@ int amdgpu_amdkfd_gpuvm_alloc_memory_of_gpu(
- 	add_kgd_mem_to_kfd_bo_list(*mem, avm->process_info, user_addr);
+-	struct hfi1_devdata *dd = uctxt->dd;
+ 	int ret = 0;
  
- 	if (user_addr) {
--		ret = init_user_pages(*mem, current->mm, user_addr);
-+		ret = init_user_pages(*mem, user_addr);
- 		if (ret)
- 			goto allocate_init_user_pages_failed;
+ 	spin_lock_init(&fd->tid_lock);
+@@ -109,20 +106,7 @@ int hfi1_user_exp_rcv_init(struct hfi1_filedata *fd,
+ 			fd->entry_to_rb = NULL;
+ 			return -ENOMEM;
+ 		}
+-
+-		/*
+-		 * Register MMU notifier callbacks. If the registration
+-		 * fails, continue without TID caching for this context.
+-		 */
+-		ret = hfi1_mmu_rb_register(fd, fd->mm, &tid_rb_ops,
+-					   dd->pport->hfi1_wq,
+-					   &fd->handler);
+-		if (ret) {
+-			dd_dev_info(dd,
+-				    "Failed MMU notifier registration %d\n",
+-				    ret);
+-			ret = 0;
+-		}
++		fd->use_mn = true;
  	}
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 5a1939dbd4e3e6..38f97998aaddb2 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-@@ -2633,6 +2633,7 @@ int amdgpu_device_init(struct amdgpu_device *adev,
- 	mutex_init(&adev->virt.vf_errors.lock);
- 	hash_init(adev->mn_hash);
- 	mutex_init(&adev->lock_reset);
-+	mutex_init(&adev->notifier_lock);
- 	mutex_init(&adev->virt.dpm_mutex);
- 	mutex_init(&adev->psp.mutex);
  
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
-index 31d4deb5d29484..9fe1c31ce17a30 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
-@@ -50,66 +50,6 @@
- #include "amdgpu.h"
- #include "amdgpu_amdkfd.h"
+ 	/*
+@@ -139,7 +123,7 @@ int hfi1_user_exp_rcv_init(struct hfi1_filedata *fd,
+ 	 * init.
+ 	 */
+ 	spin_lock(&fd->tid_lock);
+-	if (uctxt->subctxt_cnt && fd->handler) {
++	if (uctxt->subctxt_cnt && fd->use_mn) {
+ 		u16 remainder;
  
--/**
-- * struct amdgpu_mn_node
-- *
-- * @it: interval node defining start-last of the affected address range
-- * @bos: list of all BOs in the affected address range
-- *
-- * Manages all BOs which are affected of a certain range of address space.
-- */
--struct amdgpu_mn_node {
--	struct interval_tree_node	it;
--	struct list_head		bos;
--};
--
--/**
-- * amdgpu_mn_destroy - destroy the HMM mirror
-- *
-- * @work: previously sheduled work item
-- *
-- * Lazy destroys the notifier from a work item
-- */
--static void amdgpu_mn_destroy(struct work_struct *work)
--{
--	struct amdgpu_mn *amn = container_of(work, struct amdgpu_mn, work);
--	struct amdgpu_device *adev = amn->adev;
--	struct amdgpu_mn_node *node, *next_node;
--	struct amdgpu_bo *bo, *next_bo;
--
--	mutex_lock(&adev->mn_lock);
--	down_write(&amn->lock);
--	hash_del(&amn->node);
--	rbtree_postorder_for_each_entry_safe(node, next_node,
--					     &amn->objects.rb_root, it.rb) {
--		list_for_each_entry_safe(bo, next_bo, &node->bos, mn_list) {
--			bo->mn = NULL;
--			list_del_init(&bo->mn_list);
--		}
--		kfree(node);
--	}
--	up_write(&amn->lock);
--	mutex_unlock(&adev->mn_lock);
--
--	hmm_mirror_unregister(&amn->mirror);
--	kfree(amn);
--}
--
--/**
-- * amdgpu_hmm_mirror_release - callback to notify about mm destruction
-- *
-- * @mirror: the HMM mirror (mm) this callback is about
-- *
-- * Shedule a work item to lazy destroy HMM mirror.
-- */
--static void amdgpu_hmm_mirror_release(struct hmm_mirror *mirror)
--{
--	struct amdgpu_mn *amn = container_of(mirror, struct amdgpu_mn, mirror);
--
--	INIT_WORK(&amn->work, amdgpu_mn_destroy);
--	schedule_work(&amn->work);
--}
--
- /**
-  * amdgpu_mn_lock - take the write side lock for this notifier
-  *
-@@ -133,157 +73,80 @@ void amdgpu_mn_unlock(struct amdgpu_mn *mn)
- }
- 
- /**
-- * amdgpu_mn_read_lock - take the read side lock for this notifier
-- *
-- * @amn: our notifier
-- */
--static int amdgpu_mn_read_lock(struct amdgpu_mn *amn, bool blockable)
--{
--	if (blockable)
--		down_read(&amn->lock);
--	else if (!down_read_trylock(&amn->lock))
--		return -EAGAIN;
--
--	return 0;
--}
--
--/**
-- * amdgpu_mn_read_unlock - drop the read side lock for this notifier
-- *
-- * @amn: our notifier
-- */
--static void amdgpu_mn_read_unlock(struct amdgpu_mn *amn)
--{
--	up_read(&amn->lock);
--}
--
--/**
-- * amdgpu_mn_invalidate_node - unmap all BOs of a node
-+ * amdgpu_mn_invalidate_gfx - callback to notify about mm change
-  *
-- * @node: the node with the BOs to unmap
-- * @start: start of address range affected
-- * @end: end of address range affected
-+ * @mni: the range (mm) is about to update
-+ * @range: details on the invalidation
-+ * @cur_seq: Value to pass to mmu_interval_set_seq()
-  *
-  * Block for operations on BOs to finish and mark pages as accessed and
-  * potentially dirty.
-  */
--static void amdgpu_mn_invalidate_node(struct amdgpu_mn_node *node,
--				      unsigned long start,
--				      unsigned long end)
-+static bool amdgpu_mn_invalidate_gfx(struct mmu_interval_notifier *mni,
-+				     const struct mmu_notifier_range *range,
-+				     unsigned long cur_seq)
+ 		fd->tid_limit = uctxt->expected_count / uctxt->subctxt_cnt;
+@@ -158,18 +142,10 @@ void hfi1_user_exp_rcv_free(struct hfi1_filedata *fd)
  {
--	struct amdgpu_bo *bo;
-+	struct amdgpu_bo *bo = container_of(mni, struct amdgpu_bo, notifier);
-+	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
- 	long r;
+ 	struct hfi1_ctxtdata *uctxt = fd->uctxt;
  
--	list_for_each_entry(bo, &node->bos, mn_list) {
--
--		if (!amdgpu_ttm_tt_affect_userptr(bo->tbo.ttm, start, end))
--			continue;
-+	if (!mmu_notifier_range_blockable(range))
-+		return false;
- 
--		r = dma_resv_wait_timeout_rcu(bo->tbo.base.resv,
--			true, false, MAX_SCHEDULE_TIMEOUT);
--		if (r <= 0)
--			DRM_ERROR("(%ld) failed to wait for user bo\n", r);
--	}
-+	mutex_lock(&adev->notifier_lock);
-+	r = dma_resv_wait_timeout_rcu(bo->tbo.base.resv, true, false,
-+				      MAX_SCHEDULE_TIMEOUT);
-+	mutex_unlock(&adev->notifier_lock);
-+	if (r <= 0)
-+		DRM_ERROR("(%ld) failed to wait for user bo\n", r);
-+	return true;
- }
- 
-+static const struct mmu_interval_notifier_ops amdgpu_mn_gfx_ops = {
-+	.invalidate = amdgpu_mn_invalidate_gfx,
-+};
-+
- /**
-- * amdgpu_mn_sync_pagetables_gfx - callback to notify about mm change
-+ * amdgpu_mn_invalidate_hsa - callback to notify about mm change
-  *
-- * @mirror: the hmm_mirror (mm) is about to update
-- * @update: the update start, end address
-+ * @mni: the range (mm) is about to update
-+ * @range: details on the invalidation
-+ * @cur_seq: Value to pass to mmu_interval_set_seq()
-  *
-- * Block for operations on BOs to finish and mark pages as accessed and
-- * potentially dirty.
-+ * We temporarily evict the BO attached to this range. This necessitates
-+ * evicting all user-mode queues of the process.
-  */
--static int
--amdgpu_mn_sync_pagetables_gfx(struct hmm_mirror *mirror,
--			      const struct mmu_notifier_range *update)
-+static bool amdgpu_mn_invalidate_hsa(struct mmu_interval_notifier *mni,
-+				     const struct mmu_notifier_range *range,
-+				     unsigned long cur_seq)
- {
--	struct amdgpu_mn *amn = container_of(mirror, struct amdgpu_mn, mirror);
--	unsigned long start = update->start;
--	unsigned long end = update->end;
--	bool blockable = mmu_notifier_range_blockable(update);
--	struct interval_tree_node *it;
--
--	/* notification is exclusive, but interval is inclusive */
--	end -= 1;
--
--	/* TODO we should be able to split locking for interval tree and
--	 * amdgpu_mn_invalidate_node
+-	/*
+-	 * The notifier would have been removed when the process'es mm
+-	 * was freed.
 -	 */
--	if (amdgpu_mn_read_lock(amn, blockable))
--		return -EAGAIN;
--
--	it = interval_tree_iter_first(&amn->objects, start, end);
--	while (it) {
--		struct amdgpu_mn_node *node;
--
--		if (!blockable) {
--			amdgpu_mn_read_unlock(amn);
--			return -EAGAIN;
--		}
--
--		node = container_of(it, struct amdgpu_mn_node, it);
--		it = interval_tree_iter_next(it, start, end);
-+	struct amdgpu_bo *bo = container_of(mni, struct amdgpu_bo, notifier);
-+	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
- 
--		amdgpu_mn_invalidate_node(node, start, end);
+-	if (fd->handler) {
+-		hfi1_mmu_rb_unregister(fd->handler);
+-	} else {
+-		if (!EXP_TID_SET_EMPTY(uctxt->tid_full_list))
+-			unlock_exp_tids(uctxt, &uctxt->tid_full_list, fd);
+-		if (!EXP_TID_SET_EMPTY(uctxt->tid_used_list))
+-			unlock_exp_tids(uctxt, &uctxt->tid_used_list, fd);
 -	}
-+	if (!mmu_notifier_range_blockable(range))
-+		return false;
++	if (!EXP_TID_SET_EMPTY(uctxt->tid_full_list))
++		unlock_exp_tids(uctxt, &uctxt->tid_full_list, fd);
++	if (!EXP_TID_SET_EMPTY(uctxt->tid_used_list))
++		unlock_exp_tids(uctxt, &uctxt->tid_used_list, fd);
  
--	amdgpu_mn_read_unlock(amn);
-+	mutex_lock(&adev->notifier_lock);
-+	amdgpu_amdkfd_evict_userptr(bo->kfd_bo, bo->notifier.mm);
-+	mutex_unlock(&adev->notifier_lock);
+ 	kfree(fd->invalid_tids);
+ 	fd->invalid_tids = NULL;
+@@ -201,7 +177,7 @@ static void unpin_rcv_pages(struct hfi1_filedata *fd,
  
--	return 0;
-+	return true;
+ 	if (mapped) {
+ 		pci_unmap_single(dd->pcidev, node->dma_addr,
+-				 node->mmu.len, PCI_DMA_FROMDEVICE);
++				 node->npages * PAGE_SIZE, PCI_DMA_FROMDEVICE);
+ 		pages = &node->pages[idx];
+ 	} else {
+ 		pages = &tidbuf->pages[idx];
+@@ -777,8 +753,8 @@ static int set_rcvarray_entry(struct hfi1_filedata *fd,
+ 		return -EFAULT;
+ 	}
+ 
+-	node->mmu.addr = tbuf->vaddr + (pageidx * PAGE_SIZE);
+-	node->mmu.len = npages * PAGE_SIZE;
++	node->notifier.ops = &tid_mn_ops;
++	node->fdata = fd;
+ 	node->phys = page_to_phys(pages[0]);
+ 	node->npages = npages;
+ 	node->rcventry = rcventry;
+@@ -787,23 +763,34 @@ static int set_rcvarray_entry(struct hfi1_filedata *fd,
+ 	node->freed = false;
+ 	memcpy(node->pages, pages, sizeof(struct page *) * npages);
+ 
+-	if (!fd->handler)
+-		ret = tid_rb_insert(fd, &node->mmu);
+-	else
+-		ret = hfi1_mmu_rb_insert(fd->handler, &node->mmu);
+-
+-	if (ret) {
+-		hfi1_cdbg(TID, "Failed to insert RB node %u 0x%lx, 0x%lx %d",
+-			  node->rcventry, node->mmu.addr, node->phys, ret);
+-		pci_unmap_single(dd->pcidev, phys, npages * PAGE_SIZE,
+-				 PCI_DMA_FROMDEVICE);
+-		kfree(node);
+-		return -EFAULT;
++	if (fd->use_mn) {
++		ret = mmu_interval_notifier_insert(
++			&node->notifier, tbuf->vaddr + (pageidx * PAGE_SIZE),
++			npages * PAGE_SIZE, fd->mm);
++		if (ret)
++			goto out_unmap;
++		/*
++		 * FIXME: This is in the wrong order, the notifier should be
++		 * established before the pages are pinned by pin_rcv_pages.
++		 */
++		mmu_interval_read_begin(&node->notifier);
+ 	}
++	fd->entry_to_rb[node->rcventry - uctxt->expected_base] = node;
++
+ 	hfi1_put_tid(dd, rcventry, PT_EXPECTED, phys, ilog2(npages) + 1);
+ 	trace_hfi1_exp_tid_reg(uctxt->ctxt, fd->subctxt, rcventry, npages,
+-			       node->mmu.addr, node->phys, phys);
++			       node->notifier.interval_tree.start, node->phys,
++			       phys);
+ 	return 0;
++
++out_unmap:
++	hfi1_cdbg(TID, "Failed to insert RB node %u 0x%lx, 0x%lx %d",
++		  node->rcventry, node->notifier.interval_tree.start,
++		  node->phys, ret);
++	pci_unmap_single(dd->pcidev, phys, npages * PAGE_SIZE,
++			 PCI_DMA_FROMDEVICE);
++	kfree(node);
++	return -EFAULT;
  }
  
--/**
-- * amdgpu_mn_sync_pagetables_hsa - callback to notify about mm change
-- *
-- * @mirror: the hmm_mirror (mm) is about to update
-- * @update: the update start, end address
-- *
-- * We temporarily evict all BOs between start and end. This
-- * necessitates evicting all user-mode queues of the process. The BOs
-- * are restorted in amdgpu_mn_invalidate_range_end_hsa.
-- */
--static int
--amdgpu_mn_sync_pagetables_hsa(struct hmm_mirror *mirror,
--			      const struct mmu_notifier_range *update)
-+static const struct mmu_interval_notifier_ops amdgpu_mn_hsa_ops = {
-+	.invalidate = amdgpu_mn_invalidate_hsa,
-+};
-+
-+static int amdgpu_mn_sync_pagetables(struct hmm_mirror *mirror,
-+				     const struct mmu_notifier_range *update)
- {
- 	struct amdgpu_mn *amn = container_of(mirror, struct amdgpu_mn, mirror);
--	unsigned long start = update->start;
--	unsigned long end = update->end;
--	bool blockable = mmu_notifier_range_blockable(update);
--	struct interval_tree_node *it;
+ static int unprogram_rcvarray(struct hfi1_filedata *fd, u32 tidinfo,
+@@ -833,10 +820,9 @@ static int unprogram_rcvarray(struct hfi1_filedata *fd, u32 tidinfo,
+ 	if (grp)
+ 		*grp = node->grp;
  
--	/* notification is exclusive, but interval is inclusive */
--	end -= 1;
--
--	if (amdgpu_mn_read_lock(amn, blockable))
-+	if (!mmu_notifier_range_blockable(update))
- 		return -EAGAIN;
+-	if (!fd->handler)
+-		cacheless_tid_rb_remove(fd, node);
+-	else
+-		hfi1_mmu_rb_remove(fd->handler, &node->mmu);
++	if (fd->use_mn)
++		mmu_interval_notifier_remove(&node->notifier);
++	cacheless_tid_rb_remove(fd, node);
  
--	it = interval_tree_iter_first(&amn->objects, start, end);
--	while (it) {
--		struct amdgpu_mn_node *node;
--		struct amdgpu_bo *bo;
--
--		if (!blockable) {
--			amdgpu_mn_read_unlock(amn);
--			return -EAGAIN;
--		}
--
--		node = container_of(it, struct amdgpu_mn_node, it);
--		it = interval_tree_iter_next(it, start, end);
--
--		list_for_each_entry(bo, &node->bos, mn_list) {
--			struct kgd_mem *mem = bo->kfd_bo;
--
--			if (amdgpu_ttm_tt_affect_userptr(bo->tbo.ttm,
--							 start, end))
--				amdgpu_amdkfd_evict_userptr(mem, amn->mm);
--		}
--	}
--
--	amdgpu_mn_read_unlock(amn);
--
-+	down_read(&amn->lock);
-+	up_read(&amn->lock);
  	return 0;
  }
+@@ -847,7 +833,8 @@ static void clear_tid_node(struct hfi1_filedata *fd, struct tid_rb_node *node)
+ 	struct hfi1_devdata *dd = uctxt->dd;
  
-@@ -295,12 +158,10 @@ amdgpu_mn_sync_pagetables_hsa(struct hmm_mirror *mirror,
+ 	trace_hfi1_exp_tid_unreg(uctxt->ctxt, fd->subctxt, node->rcventry,
+-				 node->npages, node->mmu.addr, node->phys,
++				 node->npages,
++				 node->notifier.interval_tree.start, node->phys,
+ 				 node->dma_addr);
  
- static struct hmm_mirror_ops amdgpu_hmm_mirror_ops[] = {
- 	[AMDGPU_MN_TYPE_GFX] = {
--		.sync_cpu_device_pagetables = amdgpu_mn_sync_pagetables_gfx,
--		.release = amdgpu_hmm_mirror_release
-+		.sync_cpu_device_pagetables = amdgpu_mn_sync_pagetables,
- 	},
- 	[AMDGPU_MN_TYPE_HSA] = {
--		.sync_cpu_device_pagetables = amdgpu_mn_sync_pagetables_hsa,
--		.release = amdgpu_hmm_mirror_release
-+		.sync_cpu_device_pagetables = amdgpu_mn_sync_pagetables,
- 	},
- };
+ 	/*
+@@ -894,30 +881,29 @@ static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt,
+ 				if (!node || node->rcventry != rcventry)
+ 					continue;
  
-@@ -327,7 +188,8 @@ struct amdgpu_mn *amdgpu_mn_get(struct amdgpu_device *adev,
++				if (fd->use_mn)
++					mmu_interval_notifier_remove(
++						&node->notifier);
+ 				cacheless_tid_rb_remove(fd, node);
+ 			}
+ 		}
  	}
+ }
  
- 	hash_for_each_possible(adev->mn_hash, amn, node, key)
--		if (AMDGPU_MN_KEY(amn->mm, amn->type) == key)
-+		if (AMDGPU_MN_KEY(amn->mirror.hmm->mmu_notifier.mm,
-+				  amn->type) == key)
- 			goto release_locks;
- 
- 	amn = kzalloc(sizeof(*amn), GFP_KERNEL);
-@@ -337,10 +199,8 @@ struct amdgpu_mn *amdgpu_mn_get(struct amdgpu_device *adev,
- 	}
- 
- 	amn->adev = adev;
--	amn->mm = mm;
- 	init_rwsem(&amn->lock);
- 	amn->type = type;
--	amn->objects = RB_ROOT_CACHED;
- 
- 	amn->mirror.ops = &amdgpu_hmm_mirror_ops[type];
- 	r = hmm_mirror_register(&amn->mirror, mm);
-@@ -369,100 +229,33 @@ struct amdgpu_mn *amdgpu_mn_get(struct amdgpu_device *adev,
-  * @bo: amdgpu buffer object
-  * @addr: userptr addr we should monitor
-  *
-- * Registers an HMM mirror for the given BO at the specified address.
-+ * Registers a mmu_notifier for the given BO at the specified address.
-  * Returns 0 on success, -ERRNO if anything goes wrong.
-  */
- int amdgpu_mn_register(struct amdgpu_bo *bo, unsigned long addr)
+-/*
+- * Always return 0 from this function.  A non-zero return indicates that the
+- * remove operation will be called and that memory should be unpinned.
+- * However, the driver cannot unpin out from under PSM.  Instead, retain the
+- * memory (by returning 0) and inform PSM that the memory is going away.  PSM
+- * will call back later when it has removed the memory from its list.
+- */
+-static int tid_rb_invalidate(void *arg, struct mmu_rb_node *mnode)
++static bool tid_rb_invalidate(struct mmu_interval_notifier *mni,
++			      const struct mmu_notifier_range *range,
++			      unsigned long cur_seq)
  {
--	unsigned long end = addr + amdgpu_bo_size(bo) - 1;
--	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
--	enum amdgpu_mn_type type =
--		bo->kfd_bo ? AMDGPU_MN_TYPE_HSA : AMDGPU_MN_TYPE_GFX;
--	struct amdgpu_mn *amn;
--	struct amdgpu_mn_node *node = NULL, *new_node;
--	struct list_head bos;
--	struct interval_tree_node *it;
--
--	amn = amdgpu_mn_get(adev, type);
--	if (IS_ERR(amn))
--		return PTR_ERR(amn);
--
--	new_node = kmalloc(sizeof(*new_node), GFP_KERNEL);
--	if (!new_node)
--		return -ENOMEM;
--
--	INIT_LIST_HEAD(&bos);
--
--	down_write(&amn->lock);
--
--	while ((it = interval_tree_iter_first(&amn->objects, addr, end))) {
--		kfree(node);
--		node = container_of(it, struct amdgpu_mn_node, it);
--		interval_tree_remove(&node->it, &amn->objects);
--		addr = min(it->start, addr);
--		end = max(it->last, end);
--		list_splice(&node->bos, &bos);
--	}
--
--	if (!node)
--		node = new_node;
-+	if (bo->kfd_bo)
-+		bo->notifier.ops = &amdgpu_mn_hsa_ops;
- 	else
--		kfree(new_node);
--
--	bo->mn = amn;
--
--	node->it.start = addr;
--	node->it.last = end;
--	INIT_LIST_HEAD(&node->bos);
--	list_splice(&bos, &node->bos);
--	list_add(&bo->mn_list, &node->bos);
-+		bo->notifier.ops = &amdgpu_mn_gfx_ops;
+-	struct hfi1_filedata *fdata = arg;
+-	struct hfi1_ctxtdata *uctxt = fdata->uctxt;
+ 	struct tid_rb_node *node =
+-		container_of(mnode, struct tid_rb_node, mmu);
++		container_of(mni, struct tid_rb_node, notifier);
++	struct hfi1_filedata *fdata = node->fdata;
++	struct hfi1_ctxtdata *uctxt = fdata->uctxt;
  
--	interval_tree_insert(&node->it, &amn->objects);
--
--	up_write(&amn->lock);
--
+ 	if (node->freed)
+-		return 0;
++		return true;
+ 
+-	trace_hfi1_exp_tid_inval(uctxt->ctxt, fdata->subctxt, node->mmu.addr,
++	trace_hfi1_exp_tid_inval(uctxt->ctxt, fdata->subctxt,
++				 node->notifier.interval_tree.start,
+ 				 node->rcventry, node->npages, node->dma_addr);
+ 	node->freed = true;
+ 
+@@ -946,18 +932,7 @@ static int tid_rb_invalidate(void *arg, struct mmu_rb_node *mnode)
+ 		fdata->invalid_tid_idx++;
+ 	}
+ 	spin_unlock(&fdata->invalid_lock);
 -	return 0;
-+	return mmu_interval_notifier_insert(&bo->notifier, addr,
-+					    amdgpu_bo_size(bo), current->mm);
+-}
+-
+-static int tid_rb_insert(void *arg, struct mmu_rb_node *node)
+-{
+-	struct hfi1_filedata *fdata = arg;
+-	struct tid_rb_node *tnode =
+-		container_of(node, struct tid_rb_node, mmu);
+-	u32 base = fdata->uctxt->expected_base;
+-
+-	fdata->entry_to_rb[tnode->rcventry - base] = tnode;
+-	return 0;
++	return true;
  }
  
- /**
-- * amdgpu_mn_unregister - unregister a BO for HMM mirror updates
-+ * amdgpu_mn_unregister - unregister a BO for notifier updates
-  *
-  * @bo: amdgpu buffer object
-  *
-- * Remove any registration of HMM mirror updates from the buffer object.
-+ * Remove any registration of mmu notifier updates from the buffer object.
-  */
- void amdgpu_mn_unregister(struct amdgpu_bo *bo)
- {
--	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
--	struct amdgpu_mn *amn;
--	struct list_head *head;
--
--	mutex_lock(&adev->mn_lock);
--
--	amn = bo->mn;
--	if (amn == NULL) {
--		mutex_unlock(&adev->mn_lock);
-+	if (!bo->notifier.mm)
- 		return;
--	}
--
--	down_write(&amn->lock);
--
--	/* save the next list entry for later */
--	head = bo->mn_list.next;
--
--	bo->mn = NULL;
--	list_del_init(&bo->mn_list);
--
--	if (list_empty(head)) {
--		struct amdgpu_mn_node *node;
--
--		node = container_of(head, struct amdgpu_mn_node, bos);
--		interval_tree_remove(&node->it, &amn->objects);
--		kfree(node);
--	}
--
--	up_write(&amn->lock);
--	mutex_unlock(&adev->mn_lock);
-+	mmu_interval_notifier_remove(&bo->notifier);
-+	bo->notifier.mm = NULL;
+ static void cacheless_tid_rb_remove(struct hfi1_filedata *fdata,
+@@ -968,12 +943,3 @@ static void cacheless_tid_rb_remove(struct hfi1_filedata *fdata,
+ 	fdata->entry_to_rb[tnode->rcventry - base] = NULL;
+ 	clear_tid_node(fdata, tnode);
  }
- 
- /* flags used by HMM internal, not related to CPU/GPU PTE flags */
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.h b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.h
-index b8ed68943625c2..d73ab2947b22b2 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.h
-@@ -39,12 +39,10 @@ enum amdgpu_mn_type {
-  * struct amdgpu_mn
-  *
-  * @adev: amdgpu device pointer
-- * @mm: process address space
-  * @type: type of MMU notifier
-  * @work: destruction work item
-  * @node: hash table node to find structure by adev and mn
-  * @lock: rw semaphore protecting the notifier nodes
-- * @objects: interval tree containing amdgpu_mn_nodes
-  * @mirror: HMM mirror function support
-  *
-  * Data for each amdgpu device and process address space.
-@@ -52,7 +50,6 @@ enum amdgpu_mn_type {
- struct amdgpu_mn {
- 	/* constant after initialisation */
- 	struct amdgpu_device	*adev;
--	struct mm_struct	*mm;
- 	enum amdgpu_mn_type	type;
- 
- 	/* only used on destruction */
-@@ -63,7 +60,6 @@ struct amdgpu_mn {
- 
- 	/* objects protected by lock */
- 	struct rw_semaphore	lock;
--	struct rb_root_cached	objects;
- 
- #ifdef CONFIG_HMM_MIRROR
- 	/* HMM mirror */
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.h b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.h
-index 658f4c9779b704..2792c5c70fd10d 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.h
-@@ -30,6 +30,9 @@
- 
- #include <drm/amdgpu_drm.h>
- #include "amdgpu.h"
-+#ifdef CONFIG_MMU_NOTIFIER
-+#include <linux/mmu_notifier.h>
-+#endif
- 
- #define AMDGPU_BO_INVALID_OFFSET	LONG_MAX
- #define AMDGPU_BO_MAX_PLACEMENTS	3
-@@ -100,10 +103,12 @@ struct amdgpu_bo {
- 	struct ttm_bo_kmap_obj		dma_buf_vmap;
- 	struct amdgpu_mn		*mn;
- 
--	union {
--		struct list_head	mn_list;
--		struct list_head	shadow_list;
--	};
-+
-+#ifdef CONFIG_MMU_NOTIFIER
-+	struct mmu_interval_notifier	notifier;
-+#endif
-+
-+	struct list_head		shadow_list;
- 
- 	struct kgd_mem                  *kfd_bo;
+-
+-static void tid_rb_remove(void *arg, struct mmu_rb_node *node)
+-{
+-	struct hfi1_filedata *fdata = arg;
+-	struct tid_rb_node *tnode =
+-		container_of(node, struct tid_rb_node, mmu);
+-
+-	cacheless_tid_rb_remove(fdata, tnode);
+-}
+diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.h b/drivers/infiniband/hw/hfi1/user_exp_rcv.h
+index 43b105de1d5427..6257eee083a1a3 100644
+--- a/drivers/infiniband/hw/hfi1/user_exp_rcv.h
++++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.h
+@@ -65,7 +65,8 @@ struct tid_user_buf {
  };
+ 
+ struct tid_rb_node {
+-	struct mmu_rb_node mmu;
++	struct mmu_interval_notifier notifier;
++	struct hfi1_filedata *fdata;
+ 	unsigned long phys;
+ 	struct tid_group *grp;
+ 	u32 rcventry;
 -- 
 2.24.0
 
