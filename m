@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 430FEC1744A
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40239C17450
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 15C6121872
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1304821872
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="j2l7IUJd"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="PCWQFtRm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726912AbfKLUW4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Nov 2019 15:22:56 -0500
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:34918 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726932AbfKLUWz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 15:22:55 -0500
-Received: by mail-qt1-f193.google.com with SMTP id n4so16618118qte.2
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Nov 2019 12:22:53 -0800 (PST)
+        id S1726936AbfKLUW6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Nov 2019 15:22:58 -0500
+Received: from mail-qk1-f196.google.com ([209.85.222.196]:47061 "EHLO
+        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726896AbfKLUW6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 15:22:58 -0500
+Received: by mail-qk1-f196.google.com with SMTP id h15so15650878qka.13
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Nov 2019 12:22:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=LnkAv+iMLBMvlxFpCUEV0XkR28K5MHEmxHckti3wqpM=;
-        b=j2l7IUJdqB5K/eDQVUavlGzX7aJ/ZiPkS1yEN2IJtHVZrrCehSLhfQr7M+8cMjxgCr
-         ZscponRTH+KICL748W2mp4Sqz3kyUnHh62I2CS0yQvwd24pGk5OnQ3+I/QxcyS7voy6J
-         GvhBrTWztilOuY+S2RfoGj+IE1GYk7niaam0rTVWWRk2c/xKYBa3LSRGpsqijaidDvht
-         qXeYOwWb+eFndzehMcQtUDxSnuQAzllrqQMMQa/pIhD5iEHz9mX5deTKSKMKCEXrTIFD
-         ZjwFpobxsN/NtOgIGZiooNAHBZUyhl3c/c1AvOqey8/ZP0YvuN7STvUkXVmoCwyCq0j3
-         iOJg==
+        bh=ag74A03ltWPnoMqcDguSbvV42NCeKy/4wLDNRWFWC64=;
+        b=PCWQFtRmX6dvCHfSMOkkkcPKeSnrHz8krN1hlyUDdwuQyPsVYOmzLQC5Yc41QZZP85
+         B2NGMnss1hJMDxF9lI+niLqo+82kQlnomIjzm0A0i+pJUKE0GqVpYK2MOn66QPGThGqX
+         NS94OqyNlUtJgXLAoouud6q++7BxD+vQdqXjziXP0GXKbwlkyF9M+ndNZkMoy7I1rJmB
+         ToKMX/nJPIpUEiHM9uVporsmySIGzEMSqaRCthLMgEJFbQ6MTWATLpKUViLlGqYMFEmk
+         /0gOYuaOZHlcHNsUM5RxvixV9NteWANqq9+eCto0TKyqtpfm3yeZNMfikTuU5wGo+s69
+         K8UQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=LnkAv+iMLBMvlxFpCUEV0XkR28K5MHEmxHckti3wqpM=;
-        b=nwhzcuHkKIJ4H1ZZ76I+q9ZPj53RVbzGENY0Tgvb1JPUOC/WjWPUTvEutg3FrQICO9
-         nnHURDm+Oa0sxfIh7u0H5hHWYV/a3J6kUqjoPLFwSnylWO7Es8a7N0RRh0UraPmBQhGY
-         xhVFEWsDXfJEa4bnVEugTbSRHr39Y0rBsj18nyUefwQavx7Ikd/oBVNn4x/mHIw7CFhP
-         LT3/cSMWQ9//+uPiek83NBrOwnt3oldkbT8HvbIBIXcPNZbrO0xQIPLs6x94mCD3DjXA
-         gIqq8dUs1eo48JfUzIMoi86GhA2otaa/H+WRu2lQZFC3onTnLualWvUxqrImmoN9ajU7
-         rHZw==
-X-Gm-Message-State: APjAAAXSukWw2fVQbFD8dBLTnsgBdFc2UgWMOkv3zPyH1t7BLDZQXzIH
-        4gEtkPkyCyx63909CzYpPuvIEg==
-X-Google-Smtp-Source: APXvYqw6qliK2wZJ/FUk7ArzuqacA0YzehJQI0koFeIUELWZpshcb9zAxOBz88vcUQ7sqd+EHHHmrw==
-X-Received: by 2002:ac8:60da:: with SMTP id i26mr34434892qtm.43.1573590173007;
-        Tue, 12 Nov 2019 12:22:53 -0800 (PST)
+        bh=ag74A03ltWPnoMqcDguSbvV42NCeKy/4wLDNRWFWC64=;
+        b=Aa9/m0Z9dBAUSd7cQrI6s/KZtXZBGFZpRpcePL2wc49C8B0rormV4CpBkHLuc7dhzn
+         HG0Whb+jgxhEeXCjtac0nZfsDeOlNlP/oPRn3apRHMM+YROmE3yzxTNDYoLrtpnRo/Xr
+         wofyltPjzKIySYLlaEv8xQBom/OQijVymh/cR6AdRuJnKM0QXXEJB+/wbg5lE57JoQN6
+         fGLKjLAqWWrk77NuKcJ8HZkAmHLglGiiO7UbnWEziqtgVtqcZ4gYK1VLi+YHVP5eXZ1N
+         8VdgpkzZufpee18/Odr3HNF/93mhiJdq1LNGu+V82OG3rUXOffL6+eUFhiBW8DBg4S9O
+         MCtg==
+X-Gm-Message-State: APjAAAVGoglD4ArclgrNlNZoFibuNGzsXCKHnv7NMQvj5VoFYogWjEqd
+        3duEy2m7FEwp+3yM6rjGom1SdIGB1WY=
+X-Google-Smtp-Source: APXvYqzFb8GUByDgUwOTbZF3caBu1zPVFacaHYNI0Y/7i1YxdoOa6W+iBbg13cRpLZGHNCe94hp2sw==
+X-Received: by 2002:a05:620a:1645:: with SMTP id c5mr7466381qko.22.1573590176249;
+        Tue, 12 Nov 2019 12:22:56 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id a70sm4290549qkg.1.2019.11.12.12.22.47
+        by smtp.gmail.com with ESMTPSA id x30sm9613099qtc.7.2019.11.12.12.22.48
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 12 Nov 2019 12:22:48 -0800 (PST)
+        Tue, 12 Nov 2019 12:22:49 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iUcgZ-0003kT-JQ; Tue, 12 Nov 2019 16:22:47 -0400
+        id 1iUcgZ-0003ks-QH; Tue, 12 Nov 2019 16:22:47 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>,
@@ -76,16 +76,14 @@ Cc:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
         Stefano Stabellini <sstabellini@kernel.org>,
         nouveau@lists.freedesktop.org, xen-devel@lists.xenproject.org,
         Christoph Hellwig <hch@infradead.org>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Philip Yang <Philip.Yang@amd.com>
-Subject: [PATCH v3 10/14] drm/amdgpu: Call find_vma under mmap_sem
-Date:   Tue, 12 Nov 2019 16:22:27 -0400
-Message-Id: <20191112202231.3856-11-jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH v3 14/14] xen/gntdev: use mmu_interval_notifier_insert
+Date:   Tue, 12 Nov 2019 16:22:31 -0400
+Message-Id: <20191112202231.3856-15-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191112202231.3856-1-jgg@ziepe.ca>
 References: <20191112202231.3856-1-jgg@ziepe.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
@@ -94,114 +92,343 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-find_vma() must be called under the mmap_sem, reorganize this code to
-do the vma check after entering the lock.
+gntdev simply wants to monitor a specific VMA for any notifier events,
+this can be done straightforwardly using mmu_interval_notifier_insert()
+over the VMA's VA range.
 
-Further, fix the unlocked use of struct task_struct's mm, instead use
-the mm from hmm_mirror which has an active mm_grab. Also the mm_grab
-must be converted to a mm_get before acquiring mmap_sem or calling
-find_vma().
+The notifier should be attached until the original VMA is destroyed.
 
-Fixes: 66c45500bfdc ("drm/amdgpu: use new HMM APIs and helpers")
-Fixes: 0919195f2b0d ("drm/amdgpu: Enable amdgpu_ttm_tt_get_user_pages in worker threads")
-Acked-by: Christian König <christian.koenig@amd.com>
-Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Reviewed-by: Philip Yang <Philip.Yang@amd.com>
-Tested-by: Philip Yang <Philip.Yang@amd.com>
+It is unclear if any of this is even sane, but at least a lot of duplicate
+code is removed.
+
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c | 37 ++++++++++++++-----------
- 1 file changed, 21 insertions(+), 16 deletions(-)
+ drivers/xen/gntdev-common.h |   8 +-
+ drivers/xen/gntdev.c        | 179 ++++++++++--------------------------
+ 2 files changed, 49 insertions(+), 138 deletions(-)
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-index dff41d0a85fe96..c0e41f1f0c2365 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -35,6 +35,7 @@
- #include <linux/hmm.h>
- #include <linux/pagemap.h>
- #include <linux/sched/task.h>
-+#include <linux/sched/mm.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/swap.h>
-@@ -788,7 +789,7 @@ int amdgpu_ttm_tt_get_user_pages(struct amdgpu_bo *bo, struct page **pages)
- 	struct hmm_mirror *mirror = bo->mn ? &bo->mn->mirror : NULL;
- 	struct ttm_tt *ttm = bo->tbo.ttm;
- 	struct amdgpu_ttm_tt *gtt = (void *)ttm;
--	struct mm_struct *mm = gtt->usertask->mm;
-+	struct mm_struct *mm;
- 	unsigned long start = gtt->userptr;
+diff --git a/drivers/xen/gntdev-common.h b/drivers/xen/gntdev-common.h
+index 2f8b949c3eeb14..91e44c04f7876c 100644
+--- a/drivers/xen/gntdev-common.h
++++ b/drivers/xen/gntdev-common.h
+@@ -21,15 +21,8 @@ struct gntdev_dmabuf_priv;
+ struct gntdev_priv {
+ 	/* Maps with visible offsets in the file descriptor. */
+ 	struct list_head maps;
+-	/*
+-	 * Maps that are not visible; will be freed on munmap.
+-	 * Only populated if populate_freeable_maps == 1
+-	 */
+-	struct list_head freeable_maps;
+ 	/* lock protects maps and freeable_maps. */
+ 	struct mutex lock;
+-	struct mm_struct *mm;
+-	struct mmu_notifier mn;
+ 
+ #ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+ 	/* Device for which DMA memory is allocated. */
+@@ -49,6 +42,7 @@ struct gntdev_unmap_notify {
+ };
+ 
+ struct gntdev_grant_map {
++	struct mmu_interval_notifier notifier;
+ 	struct list_head next;
  	struct vm_area_struct *vma;
- 	struct hmm_range *range;
-@@ -796,25 +797,14 @@ int amdgpu_ttm_tt_get_user_pages(struct amdgpu_bo *bo, struct page **pages)
- 	uint64_t *pfns;
- 	int r = 0;
+ 	int index;
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 81401f386c9ce0..a04ddf2a68afa5 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -63,7 +63,6 @@ MODULE_PARM_DESC(limit, "Maximum number of grants that may be mapped by "
+ static atomic_t pages_mapped = ATOMIC_INIT(0);
  
--	if (!mm) /* Happens during process shutdown */
--		return -ESRCH;
+ static int use_ptemod;
+-#define populate_freeable_maps use_ptemod
+ 
+ static int unmap_grant_pages(struct gntdev_grant_map *map,
+ 			     int offset, int pages);
+@@ -249,12 +248,6 @@ void gntdev_put_map(struct gntdev_priv *priv, struct gntdev_grant_map *map)
+ 		evtchn_put(map->notify.event);
+ 	}
+ 
+-	if (populate_freeable_maps && priv) {
+-		mutex_lock(&priv->lock);
+-		list_del(&map->next);
+-		mutex_unlock(&priv->lock);
+-	}
 -
- 	if (unlikely(!mirror)) {
- 		DRM_DEBUG_DRIVER("Failed to get hmm_mirror\n");
--		r = -EFAULT;
--		goto out;
-+		return -EFAULT;
+ 	if (map->pages && !use_ptemod)
+ 		unmap_grant_pages(map, 0, map->count);
+ 	gntdev_free_map(map);
+@@ -444,16 +437,9 @@ static void gntdev_vma_close(struct vm_area_struct *vma)
+ 
+ 	pr_debug("gntdev_vma_close %p\n", vma);
+ 	if (use_ptemod) {
+-		/* It is possible that an mmu notifier could be running
+-		 * concurrently, so take priv->lock to ensure that the vma won't
+-		 * vanishing during the unmap_grant_pages call, since we will
+-		 * spin here until that completes. Such a concurrent call will
+-		 * not do any unmapping, since that has been done prior to
+-		 * closing the vma, but it may still iterate the unmap_ops list.
+-		 */
+-		mutex_lock(&priv->lock);
++		WARN_ON(map->vma != vma);
++		mmu_interval_notifier_remove(&map->notifier);
+ 		map->vma = NULL;
+-		mutex_unlock(&priv->lock);
  	}
+ 	vma->vm_private_data = NULL;
+ 	gntdev_put_map(priv, map);
+@@ -475,109 +461,44 @@ static const struct vm_operations_struct gntdev_vmops = {
  
--	vma = find_vma(mm, start);
--	if (unlikely(!vma || start < vma->vm_start)) {
--		r = -EFAULT;
--		goto out;
+ /* ------------------------------------------------------------------ */
+ 
+-static bool in_range(struct gntdev_grant_map *map,
+-			      unsigned long start, unsigned long end)
+-{
+-	if (!map->vma)
+-		return false;
+-	if (map->vma->vm_start >= end)
+-		return false;
+-	if (map->vma->vm_end <= start)
+-		return false;
+-
+-	return true;
+-}
+-
+-static int unmap_if_in_range(struct gntdev_grant_map *map,
+-			      unsigned long start, unsigned long end,
+-			      bool blockable)
++static bool gntdev_invalidate(struct mmu_interval_notifier *mn,
++			      const struct mmu_notifier_range *range,
++			      unsigned long cur_seq)
+ {
++	struct gntdev_grant_map *map =
++		container_of(mn, struct gntdev_grant_map, notifier);
+ 	unsigned long mstart, mend;
+ 	int err;
+ 
+-	if (!in_range(map, start, end))
+-		return 0;
++	if (!mmu_notifier_range_blockable(range))
++		return false;
+ 
+-	if (!blockable)
+-		return -EAGAIN;
++	/*
++	 * If the VMA is split or otherwise changed the notifier is not
++	 * updated, but we don't want to process VA's outside the modified
++	 * VMA. FIXME: It would be much more understandable to just prevent
++	 * modifying the VMA in the first place.
++	 */
++	if (map->vma->vm_start >= range->end ||
++	    map->vma->vm_end <= range->start)
++		return true;
+ 
+-	mstart = max(start, map->vma->vm_start);
+-	mend   = min(end,   map->vma->vm_end);
++	mstart = max(range->start, map->vma->vm_start);
++	mend = min(range->end, map->vma->vm_end);
+ 	pr_debug("map %d+%d (%lx %lx), range %lx %lx, mrange %lx %lx\n",
+ 			map->index, map->count,
+ 			map->vma->vm_start, map->vma->vm_end,
+-			start, end, mstart, mend);
++			range->start, range->end, mstart, mend);
+ 	err = unmap_grant_pages(map,
+ 				(mstart - map->vma->vm_start) >> PAGE_SHIFT,
+ 				(mend - mstart) >> PAGE_SHIFT);
+ 	WARN_ON(err);
+ 
+-	return 0;
+-}
+-
+-static int mn_invl_range_start(struct mmu_notifier *mn,
+-			       const struct mmu_notifier_range *range)
+-{
+-	struct gntdev_priv *priv = container_of(mn, struct gntdev_priv, mn);
+-	struct gntdev_grant_map *map;
+-	int ret = 0;
+-
+-	if (mmu_notifier_range_blockable(range))
+-		mutex_lock(&priv->lock);
+-	else if (!mutex_trylock(&priv->lock))
+-		return -EAGAIN;
+-
+-	list_for_each_entry(map, &priv->maps, next) {
+-		ret = unmap_if_in_range(map, range->start, range->end,
+-					mmu_notifier_range_blockable(range));
+-		if (ret)
+-			goto out_unlock;
 -	}
--	if (unlikely((gtt->userflags & AMDGPU_GEM_USERPTR_ANONONLY) &&
--		vma->vm_file)) {
--		r = -EPERM;
--		goto out;
+-	list_for_each_entry(map, &priv->freeable_maps, next) {
+-		ret = unmap_if_in_range(map, range->start, range->end,
+-					mmu_notifier_range_blockable(range));
+-		if (ret)
+-			goto out_unlock;
 -	}
-+	mm = mirror->hmm->mmu_notifier.mm;
-+	if (!mmget_not_zero(mm)) /* Happens during process shutdown */
-+		return -ESRCH;
- 
- 	range = kzalloc(sizeof(*range), GFP_KERNEL);
- 	if (unlikely(!range)) {
-@@ -847,6 +837,17 @@ int amdgpu_ttm_tt_get_user_pages(struct amdgpu_bo *bo, struct page **pages)
- 	hmm_range_wait_until_valid(range, HMM_RANGE_DEFAULT_TIMEOUT);
- 
- 	down_read(&mm->mmap_sem);
-+	vma = find_vma(mm, start);
-+	if (unlikely(!vma || start < vma->vm_start)) {
-+		r = -EFAULT;
-+		goto out_unlock;
-+	}
-+	if (unlikely((gtt->userflags & AMDGPU_GEM_USERPTR_ANONONLY) &&
-+		vma->vm_file)) {
-+		r = -EPERM;
-+		goto out_unlock;
-+	}
-+
- 	r = hmm_range_fault(range, 0);
- 	up_read(&mm->mmap_sem);
- 
-@@ -865,15 +866,19 @@ int amdgpu_ttm_tt_get_user_pages(struct amdgpu_bo *bo, struct page **pages)
- 	}
- 
- 	gtt->range = range;
-+	mmput(mm);
- 
- 	return 0;
- 
-+out_unlock:
-+	up_read(&mm->mmap_sem);
- out_free_pfns:
- 	hmm_range_unregister(range);
- 	kvfree(pfns);
- out_free_ranges:
- 	kfree(range);
- out:
-+	mmput(mm);
- 	return r;
+-
+-out_unlock:
+-	mutex_unlock(&priv->lock);
+-
+-	return ret;
+-}
+-
+-static void mn_release(struct mmu_notifier *mn,
+-		       struct mm_struct *mm)
+-{
+-	struct gntdev_priv *priv = container_of(mn, struct gntdev_priv, mn);
+-	struct gntdev_grant_map *map;
+-	int err;
+-
+-	mutex_lock(&priv->lock);
+-	list_for_each_entry(map, &priv->maps, next) {
+-		if (!map->vma)
+-			continue;
+-		pr_debug("map %d+%d (%lx %lx)\n",
+-				map->index, map->count,
+-				map->vma->vm_start, map->vma->vm_end);
+-		err = unmap_grant_pages(map, /* offset */ 0, map->count);
+-		WARN_ON(err);
+-	}
+-	list_for_each_entry(map, &priv->freeable_maps, next) {
+-		if (!map->vma)
+-			continue;
+-		pr_debug("map %d+%d (%lx %lx)\n",
+-				map->index, map->count,
+-				map->vma->vm_start, map->vma->vm_end);
+-		err = unmap_grant_pages(map, /* offset */ 0, map->count);
+-		WARN_ON(err);
+-	}
+-	mutex_unlock(&priv->lock);
++	return true;
  }
  
+-static const struct mmu_notifier_ops gntdev_mmu_ops = {
+-	.release                = mn_release,
+-	.invalidate_range_start = mn_invl_range_start,
++static const struct mmu_interval_notifier_ops gntdev_mmu_ops = {
++	.invalidate = gntdev_invalidate,
+ };
+ 
+ /* ------------------------------------------------------------------ */
+@@ -592,7 +513,6 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+ 		return -ENOMEM;
+ 
+ 	INIT_LIST_HEAD(&priv->maps);
+-	INIT_LIST_HEAD(&priv->freeable_maps);
+ 	mutex_init(&priv->lock);
+ 
+ #ifdef CONFIG_XEN_GNTDEV_DMABUF
+@@ -604,17 +524,6 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+ 	}
+ #endif
+ 
+-	if (use_ptemod) {
+-		priv->mm = get_task_mm(current);
+-		if (!priv->mm) {
+-			kfree(priv);
+-			return -ENOMEM;
+-		}
+-		priv->mn.ops = &gntdev_mmu_ops;
+-		ret = mmu_notifier_register(&priv->mn, priv->mm);
+-		mmput(priv->mm);
+-	}
+-
+ 	if (ret) {
+ 		kfree(priv);
+ 		return ret;
+@@ -644,16 +553,12 @@ static int gntdev_release(struct inode *inode, struct file *flip)
+ 		list_del(&map->next);
+ 		gntdev_put_map(NULL /* already removed */, map);
+ 	}
+-	WARN_ON(!list_empty(&priv->freeable_maps));
+ 	mutex_unlock(&priv->lock);
+ 
+ #ifdef CONFIG_XEN_GNTDEV_DMABUF
+ 	gntdev_dmabuf_fini(priv->dmabuf_priv);
+ #endif
+ 
+-	if (use_ptemod)
+-		mmu_notifier_unregister(&priv->mn, priv->mm);
+-
+ 	kfree(priv);
+ 	return 0;
+ }
+@@ -714,8 +619,6 @@ static long gntdev_ioctl_unmap_grant_ref(struct gntdev_priv *priv,
+ 	map = gntdev_find_map_index(priv, op.index >> PAGE_SHIFT, op.count);
+ 	if (map) {
+ 		list_del(&map->next);
+-		if (populate_freeable_maps)
+-			list_add_tail(&map->next, &priv->freeable_maps);
+ 		err = 0;
+ 	}
+ 	mutex_unlock(&priv->lock);
+@@ -1087,11 +990,6 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 		goto unlock_out;
+ 	if (use_ptemod && map->vma)
+ 		goto unlock_out;
+-	if (use_ptemod && priv->mm != vma->vm_mm) {
+-		pr_warn("Huh? Other mm?\n");
+-		goto unlock_out;
+-	}
+-
+ 	refcount_inc(&map->users);
+ 
+ 	vma->vm_ops = &gntdev_vmops;
+@@ -1102,10 +1000,6 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 		vma->vm_flags |= VM_DONTCOPY;
+ 
+ 	vma->vm_private_data = map;
+-
+-	if (use_ptemod)
+-		map->vma = vma;
+-
+ 	if (map->flags) {
+ 		if ((vma->vm_flags & VM_WRITE) &&
+ 				(map->flags & GNTMAP_readonly))
+@@ -1116,8 +1010,28 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 			map->flags |= GNTMAP_readonly;
+ 	}
+ 
++	if (use_ptemod) {
++		map->vma = vma;
++		err = mmu_interval_notifier_insert_locked(
++			&map->notifier, vma->vm_mm, vma->vm_start,
++			vma->vm_end - vma->vm_start, &gntdev_mmu_ops);
++		if (err)
++			goto out_unlock_put;
++	}
+ 	mutex_unlock(&priv->lock);
+ 
++	/*
++	 * gntdev takes the address of the PTE in find_grant_ptes() and passes
++	 * it to the hypervisor in gntdev_map_grant_pages(). The purpose of
++	 * the notifier is to prevent the hypervisor pointer to the PTE from
++	 * going stale.
++	 *
++	 * Since this vma's mappings can't be touched without the mmap_sem,
++	 * and we are holding it now, there is no need for the notifier_range
++	 * locking pattern.
++	 */
++	mmu_interval_read_begin(&map->notifier);
++
+ 	if (use_ptemod) {
+ 		map->pages_vm_start = vma->vm_start;
+ 		err = apply_to_page_range(vma->vm_mm, vma->vm_start,
+@@ -1166,8 +1080,11 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 	mutex_unlock(&priv->lock);
+ out_put_map:
+ 	if (use_ptemod) {
+-		map->vma = NULL;
+ 		unmap_grant_pages(map, 0, map->count);
++		if (map->vma) {
++			mmu_interval_notifier_remove(&map->notifier);
++			map->vma = NULL;
++		}
+ 	}
+ 	gntdev_put_map(priv, map);
+ 	return err;
 -- 
 2.24.0
 
