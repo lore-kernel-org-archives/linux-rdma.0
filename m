@@ -2,61 +2,61 @@ Return-Path: <SRS0=MKZB=ZE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 336E7C17448
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65C08C1744A
 	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EF2A621783
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 366B121A49
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Nov 2019 20:22:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="SdP44dA/"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="mSX+wJ+8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726697AbfKLUWv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726645AbfKLUWv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 12 Nov 2019 15:22:51 -0500
-Received: from mail-qv1-f65.google.com ([209.85.219.65]:42484 "EHLO
-        mail-qv1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726645AbfKLUWv (ORCPT
+Received: from mail-qk1-f195.google.com ([209.85.222.195]:35959 "EHLO
+        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726376AbfKLUWv (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 15:22:51 -0500
-Received: by mail-qv1-f65.google.com with SMTP id c9so6939347qvz.9
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Nov 2019 12:22:48 -0800 (PST)
+Received: by mail-qk1-f195.google.com with SMTP id d13so15696239qko.3
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Nov 2019 12:22:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=GWMSOcigcFkvS1mXDN4UZKv/Sz4qJBz/Xw1txpllC58=;
-        b=SdP44dA/qt3Cafkmp5tDYwUfTKua1RYFbjfub38WMqp1Vetd5HDAMxGgKpbA4Ao+oK
-         gsEL1oHkgBYSL5wAFUvGW4WL3U/pvufnqzGsum5CGpKAJYB+qH5Upt6hHPp0oyUiUVZQ
-         luFJjPDkpYMu/LEwn7P4i1KvQc3sG0kQARArCClpXMObiDqr/9YyrAyqL0dxb++bMYDb
-         XbTfpT4OBOBeoefNdIfWJ+fDQI8fjcFqTYyS9qXYt67Hx6qKRVE8+RXhoDoz1lpBwD/V
-         slDxBVQ6lEnBCWWDRENPVOvt6nSoUCSoIGfYhgVkElAgGx2oznQ/Ekwnr6eHH2zAzayA
-         jOxw==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=RW58zr8YTNVHuTBfIVxZyU6EJd/oHLVvWKcypECtMjs=;
+        b=mSX+wJ+8VUX1382IHhLVx6fBdAWs6gXvU0I32j+wK2yrM6ZkKGtovH1/NPjehZ8ovE
+         1T0Z0w4CHSgxOjOWg78rUMLlihvA2VQuqm44HX3C/1ZLAMQjsARlaHNBCW9gz6N48wKJ
+         y9PM2onSIWQgFDrhE8sOQPU0nJxnAlm4dGvf735qGtY5kABa7ifc2bFJa2gjCHgJHDWB
+         H9uN853ltamgQii1TxpifGWrSt8UcwbEHZ/zxACuyEsslH7wGCXdsqUB6pj/D0T30D1q
+         5KfZ1V6veRSoxZqHsr/Z2Op+C435uIf2bvVnVSct0GKZjzoJD+J9DajjzRnO10FRijpY
+         fRpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=GWMSOcigcFkvS1mXDN4UZKv/Sz4qJBz/Xw1txpllC58=;
-        b=E8mqlJe+wBaDD8eUkjp07S3WHUOw+V+6/5pu06EX09JGIyzh+LhFF7mf7nIefSqMwO
-         ewDPS29z+HZ9lFmCK025bDXtjRp0iSzzqoeyKIQGfR+xeW4xvheqp2WZDFygobRRhb2J
-         oaLliTqhUOpTw1+JtOuG0kQ50jLjQbUuxecpTs8f5FUivHouDyL4QZ5dCF7fCo37LoR6
-         TSqoR+q1K64sXh7fmywmbElZI3aILmEM/g7ADFmT6PxG5OPXRABbCjVZB9DQFY0I5Utt
-         oIMBzSUJjZwd7fk99fdWhVlur9emO6FgjHOp8uplx3Rk+2/ATHdcGwpQ4/80o4lOdi2M
-         nkzg==
-X-Gm-Message-State: APjAAAXUTbcRschTYBsFC/cQkdwkfqiOLy3UkS1SAbOm7WeeeGzBPZlN
-        VrU1NvHgYOqrhqIfSWFvtHioSQ==
-X-Google-Smtp-Source: APXvYqyZGwIPop6xwsfhsv3DLyXXAOZa8Eq5KSgCu6w55310PeMbie/nmCz5Pj6znsHarv3wD6pCCQ==
-X-Received: by 2002:a05:6214:14b2:: with SMTP id bo18mr30642652qvb.72.1573590168105;
-        Tue, 12 Nov 2019 12:22:48 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=RW58zr8YTNVHuTBfIVxZyU6EJd/oHLVvWKcypECtMjs=;
+        b=NZLD/1ZnfqTE22GfAnKROoM2tinYz1582upX4r79rMC3Jq2gGdX9IK//6J/YV+d0Th
+         jPlwCsXYhE0oG70zE7L7sYEFG0ZHKOcQ2Qc5XxaeafdtCY2bsrxLpYsZ68Wl5uDpnyr+
+         MbZaZEoZ7SRgOIP4FD8SCtbMaLCtnkqcUwZAvwJJ5/d7urO1P+hvf/z4qqQyzk+hj5vN
+         g63ZWQwmp11EG+oAEho4jvmGMgrK8DJ619BCRLO2Qy5EmfdHGmhBTuO4P/vVfO2zZcU+
+         aMG8lzEMvP7JeUl/6Vj23f1n7Jau5JlJ6wJZcDt6gU8c8eEfN8ASC71qkKtLKbP8LTbm
+         1SUA==
+X-Gm-Message-State: APjAAAWTAysi/Oowam6IKZR+5ZT4RalQSQgtgcMnIfFNSNrP9sbhCoKN
+        jPXZ2H7ccYtyXOx4yeR3rYH8jsNny5c=
+X-Google-Smtp-Source: APXvYqwQcC+LL9E9LKfiZNHrcVJ95fvA4RxWhxexVl340jx3LOfHzjk66AKsaYtFFr6K39s9sLHHzA==
+X-Received: by 2002:a05:620a:110f:: with SMTP id o15mr14029771qkk.127.1573590169690;
+        Tue, 12 Nov 2019 12:22:49 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id j71sm10881994qke.90.2019.11.12.12.22.47
+        by smtp.gmail.com with ESMTPSA id p33sm13643736qtf.80.2019.11.12.12.22.47
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 12 Nov 2019 12:22:47 -0800 (PST)
+        Tue, 12 Nov 2019 12:22:48 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1iUcgZ-0003jU-35; Tue, 12 Nov 2019 16:22:47 -0400
+        id 1iUcgZ-0003jm-8M; Tue, 12 Nov 2019 16:22:47 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>,
@@ -76,11 +76,14 @@ Cc:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
         Stefano Stabellini <sstabellini@kernel.org>,
         nouveau@lists.freedesktop.org, xen-devel@lists.xenproject.org,
         Christoph Hellwig <hch@infradead.org>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH hmm v3 00/14] Consolidate the mmu notifier interval_tree and locking
-Date:   Tue, 12 Nov 2019 16:22:17 -0400
-Message-Id: <20191112202231.3856-1-jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Philip Yang <Philip.Yang@amd.com>
+Subject: [PATCH v3 03/14] mm/hmm: allow hmm_range to be used with a mmu_interval_notifier or hmm_mirror
+Date:   Tue, 12 Nov 2019 16:22:20 -0400
+Message-Id: <20191112202231.3856-4-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191112202231.3856-1-jgg@ziepe.ca>
+References: <20191112202231.3856-1-jgg@ziepe.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -91,109 +94,125 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-8 of the mmu_notifier using drivers (i915_gem, radeon_mn, umem_odp, hfi1,
-scif_dma, vhost, gntdev, hmm) drivers are using a common pattern where
-they only use invalidate_range_start/end and immediately check the
-invalidating range against some driver data structure to tell if the
-driver is interested. Half of them use an interval_tree, the others are
-simple linear search lists.
+hmm_mirror's handling of ranges does not use a sequence count which
+results in this bug:
 
-Of the ones I checked they largely seem to have various kinds of races,
-bugs and poor implementation. This is a result of the complexity in how
-the notifier interacts with get_user_pages(). It is extremely difficult to
-use it correctly.
+         CPU0                                   CPU1
+                                     hmm_range_wait_until_valid(range)
+                                         valid == true
+                                     hmm_range_fault(range)
+hmm_invalidate_range_start()
+   range->valid = false
+hmm_invalidate_range_end()
+   range->valid = true
+                                     hmm_range_valid(range)
+                                          valid == true
 
-Consolidate all of this code together into the core mmu_notifier and
-provide a locking scheme similar to hmm_mirror that allows the user to
-safely use get_user_pages() and reliably know if the page list still
-matches the mm.
+Where the hmm_range_valid() should not have succeeded.
 
-This new arrangment plays nicely with the !blockable mode for
-OOM. Scanning the interval tree is done such that the intersection test
-will always succeed, and since there is no invalidate_range_end exposed to
-drivers the scheme safely allows multiple drivers to be subscribed.
+Adding the required sequence count would make it nearly identical to the
+new mmu_interval_notifier. Instead replace the hmm_mirror stuff with
+mmu_interval_notifier.
 
-Four places are converted as an example of how the new API is used.
-Four are left for future patches:
- - i915_gem has complex locking around destruction of a registration,
-   needs more study
- - hfi1 (2nd user) needs access to the rbtree
- - scif_dma has a complicated logic flow
- - vhost's mmu notifiers are already being rewritten
+Co-existence of the two APIs is the first step.
 
-This is already in linux-next, a git tree is available here:
+Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
+Tested-by: Philip Yang <Philip.Yang@amd.com>
+Tested-by: Ralph Campbell <rcampbell@nvidia.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ include/linux/hmm.h |  5 +++++
+ mm/hmm.c            | 25 +++++++++++++++++++------
+ 2 files changed, 24 insertions(+), 6 deletions(-)
 
- https://github.com/jgunthorpe/linux/commits/mmu_notifier
-
-v3:
-- Rename mmu_range_notifier to mmu_interval_notifier for clarity
-  Avoids confusion with struct mmu_notifier_range
-- Fix bugs in odp, amdgpu and xen gntdev from testing
-- Make ops an argument to mmu_interval_notifier_insert() to make it
-  harder to misuse
-- Update many comments
-- Add testing of mm_count during insertion
-
-v2: https://lore.kernel.org/r/20191028201032.6352-1-jgg@ziepe.ca
-v1: https://lore.kernel.org/r/20191015181242.8343-1-jgg@ziepe.ca
-
-Absent any new discussion I think this will go to Linus at the next merge
-window.
-
-Thanks to everyone to helped!
-
-Jason Gunthorpe (14):
-  mm/mmu_notifier: define the header pre-processor parts even if
-    disabled
-  mm/mmu_notifier: add an interval tree notifier
-  mm/hmm: allow hmm_range to be used with a mmu_interval_notifier or
-    hmm_mirror
-  mm/hmm: define the pre-processor related parts of hmm.h even if
-    disabled
-  RDMA/odp: Use mmu_interval_notifier_insert()
-  RDMA/hfi1: Use mmu_interval_notifier_insert for user_exp_rcv
-  drm/radeon: use mmu_interval_notifier_insert
-  nouveau: use mmu_notifier directly for invalidate_range_start
-  nouveau: use mmu_interval_notifier instead of hmm_mirror
-  drm/amdgpu: Call find_vma under mmap_sem
-  drm/amdgpu: Use mmu_interval_insert instead of hmm_mirror
-  drm/amdgpu: Use mmu_interval_notifier instead of hmm_mirror
-  mm/hmm: remove hmm_mirror and related
-  xen/gntdev: use mmu_interval_notifier_insert
-
- Documentation/vm/hmm.rst                      | 105 +---
- drivers/gpu/drm/amd/amdgpu/amdgpu.h           |   2 +
- .../gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c  |   9 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c        |  14 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c    |   1 +
- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c        | 443 ++------------
- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.h        |  53 --
- drivers/gpu/drm/amd/amdgpu/amdgpu_object.h    |  13 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c       | 145 +++--
- drivers/gpu/drm/nouveau/nouveau_svm.c         | 230 ++++---
- drivers/gpu/drm/radeon/radeon.h               |   9 +-
- drivers/gpu/drm/radeon/radeon_mn.c            | 218 ++-----
- drivers/infiniband/core/device.c              |   1 -
- drivers/infiniband/core/umem_odp.c            | 303 ++--------
- drivers/infiniband/hw/hfi1/file_ops.c         |   2 +-
- drivers/infiniband/hw/hfi1/hfi.h              |   2 +-
- drivers/infiniband/hw/hfi1/user_exp_rcv.c     | 146 ++---
- drivers/infiniband/hw/hfi1/user_exp_rcv.h     |   3 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |   7 +-
- drivers/infiniband/hw/mlx5/mr.c               |   3 +-
- drivers/infiniband/hw/mlx5/odp.c              |  50 +-
- drivers/xen/gntdev-common.h                   |   8 +-
- drivers/xen/gntdev.c                          | 179 ++----
- include/linux/hmm.h                           | 195 +-----
- include/linux/mmu_notifier.h                  | 147 ++++-
- include/rdma/ib_umem_odp.h                    |  68 +--
- include/rdma/ib_verbs.h                       |   2 -
- kernel/fork.c                                 |   1 -
- mm/Kconfig                                    |   2 +-
- mm/hmm.c                                      | 276 +--------
- mm/mmu_notifier.c                             | 565 +++++++++++++++++-
- 31 files changed, 1271 insertions(+), 1931 deletions(-)
-
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 3fec513b9c00f1..fbb35c78637e57 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -145,6 +145,9 @@ enum hmm_pfn_value_e {
+ /*
+  * struct hmm_range - track invalidation lock on virtual address range
+  *
++ * @notifier: an optional mmu_interval_notifier
++ * @notifier_seq: when notifier is used this is the result of
++ *                mmu_interval_read_begin()
+  * @hmm: the core HMM structure this range is active against
+  * @vma: the vm area struct for the range
+  * @list: all range lock are on a list
+@@ -159,6 +162,8 @@ enum hmm_pfn_value_e {
+  * @valid: pfns array did not change since it has been fill by an HMM function
+  */
+ struct hmm_range {
++	struct mmu_interval_notifier *notifier;
++	unsigned long		notifier_seq;
+ 	struct hmm		*hmm;
+ 	struct list_head	list;
+ 	unsigned long		start;
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 6b0136665407a3..8d060c5dabe37b 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -858,6 +858,14 @@ void hmm_range_unregister(struct hmm_range *range)
+ }
+ EXPORT_SYMBOL(hmm_range_unregister);
+ 
++static bool needs_retry(struct hmm_range *range)
++{
++	if (range->notifier)
++		return mmu_interval_check_retry(range->notifier,
++						range->notifier_seq);
++	return !range->valid;
++}
++
+ static const struct mm_walk_ops hmm_walk_ops = {
+ 	.pud_entry	= hmm_vma_walk_pud,
+ 	.pmd_entry	= hmm_vma_walk_pmd,
+@@ -898,18 +906,23 @@ long hmm_range_fault(struct hmm_range *range, unsigned int flags)
+ 	const unsigned long device_vma = VM_IO | VM_PFNMAP | VM_MIXEDMAP;
+ 	unsigned long start = range->start, end;
+ 	struct hmm_vma_walk hmm_vma_walk;
+-	struct hmm *hmm = range->hmm;
++	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 	int ret;
+ 
+-	lockdep_assert_held(&hmm->mmu_notifier.mm->mmap_sem);
++	if (range->notifier)
++		mm = range->notifier->mm;
++	else
++		mm = range->hmm->mmu_notifier.mm;
++
++	lockdep_assert_held(&mm->mmap_sem);
+ 
+ 	do {
+ 		/* If range is no longer valid force retry. */
+-		if (!range->valid)
++		if (needs_retry(range))
+ 			return -EBUSY;
+ 
+-		vma = find_vma(hmm->mmu_notifier.mm, start);
++		vma = find_vma(mm, start);
+ 		if (vma == NULL || (vma->vm_flags & device_vma))
+ 			return -EFAULT;
+ 
+@@ -939,7 +952,7 @@ long hmm_range_fault(struct hmm_range *range, unsigned int flags)
+ 			start = hmm_vma_walk.last;
+ 
+ 			/* Keep trying while the range is valid. */
+-		} while (ret == -EBUSY && range->valid);
++		} while (ret == -EBUSY && !needs_retry(range));
+ 
+ 		if (ret) {
+ 			unsigned long i;
+@@ -997,7 +1010,7 @@ long hmm_range_dma_map(struct hmm_range *range, struct device *device,
+ 			continue;
+ 
+ 		/* Check if range is being invalidated */
+-		if (!range->valid) {
++		if (needs_retry(range)) {
+ 			ret = -EBUSY;
+ 			goto unmap;
+ 		}
 -- 
 2.24.0
 
