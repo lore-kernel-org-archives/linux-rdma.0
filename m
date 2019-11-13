@@ -2,594 +2,208 @@ Return-Path: <SRS0=Aeev=ZF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C662C43331
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 11:17:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B582C1744C
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 11:43:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 40383222D3
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 11:17:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F5F22245B
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 11:43:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="C0Dbe7TC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727815AbfKMLRb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 Nov 2019 06:17:31 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:35730 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727898AbfKMLRb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 13 Nov 2019 06:17:31 -0500
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 781FD3C8C250989E760D;
-        Wed, 13 Nov 2019 19:17:28 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.439.0; Wed, 13 Nov 2019 19:17:22 +0800
-From:   Weihang Li <liweihang@hisilicon.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next] RDMA/hns: Add support for reporting wc as software mode
-Date:   Wed, 13 Nov 2019 19:14:03 +0800
-Message-ID: <1573643643-42956-1-git-send-email-liweihang@hisilicon.com>
-X-Mailer: git-send-email 2.8.1
+        id S1727899AbfKMLnS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 Nov 2019 06:43:18 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:44270 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727834AbfKMLnS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 Nov 2019 06:43:18 -0500
+Received: by mail-wr1-f65.google.com with SMTP id f2so1959882wrs.11
+        for <linux-rdma@vger.kernel.org>; Wed, 13 Nov 2019 03:43:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ffwll.ch; s=google;
+        h=sender:date:from:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to:user-agent;
+        bh=NWmx5zlrVzI636UV5zn7jwNNYyPpT2kzazOSeqZFCPQ=;
+        b=C0Dbe7TCduZqSim4I/9b7E74bGQO34GH/iKoO+dE+3EHLfWv1lLPGbvorBCoaRGMDb
+         48v7HTSQHP1LaVgvLNGy/yOxyJTlvTeKuq2CZR/Q7GIgmnQIbkvYhHi8TV/Ec+0WSA8P
+         awH+k+k5IQBNK5RO6uqKbJl7dFmz19ED4sy2I=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to:user-agent;
+        bh=NWmx5zlrVzI636UV5zn7jwNNYyPpT2kzazOSeqZFCPQ=;
+        b=J3YMiSqz/Z1vBd8MTHT6rWgwMFjpdC8klfVm8nCV6utGRTsWPbFV21MCLPylk1kWTn
+         DTUYuShDu5jYZ6/vKT8ZdvV2WcXeFcJLYvmxMHN73WcsqW2EIE4X6GMoGvxcD2JLvmRu
+         eGFu1bion8mlqDNf5PHQZ8QDy1AjJfmd9axZ2Rp02CweqJyYN01xfApxMXzuk+I4Ka2X
+         JJiz92DvpHWocPQax3B+a+aZ6/LjtKJw+b8VmaqQDiwXMvQjgBwt+rhtRWVkgVT+4l1Y
+         5MurBxUcNO7TAG8wMIFlMLyIFKyfYrdsRrO/UgKoba6MHIIvIDOmDC8MFKVNLdnYKn/z
+         S99A==
+X-Gm-Message-State: APjAAAVeSGxek468wcQVjRtrprPulGWyru9ce7qANwafLwDgLGmc1hc/
+        0aSX+AmgW9v/WGUR1S2I/uKMhQ==
+X-Google-Smtp-Source: APXvYqw4ALVmGTh9KFISsJCvLVpFEzXuyu2WMWEkcAdM7khXUlUWKA93QR1nKFP8k/o5YdLFIE0ItA==
+X-Received: by 2002:a5d:50ce:: with SMTP id f14mr2625324wrt.219.1573645394576;
+        Wed, 13 Nov 2019 03:43:14 -0800 (PST)
+Received: from phenom.ffwll.local (212-51-149-96.fiber7.init7.net. [212.51.149.96])
+        by smtp.gmail.com with ESMTPSA id w4sm2544060wrs.1.2019.11.13.03.43.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 13 Nov 2019 03:43:13 -0800 (PST)
+Date:   Wed, 13 Nov 2019 12:43:11 +0100
+From:   Daniel Vetter <daniel@ffwll.ch>
+To:     Jan Kara <jack@suse.cz>
+Cc:     John Hubbard <jhubbard@nvidia.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn.topel@intel.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Chinner <david@fromorbit.com>,
+        David Airlie <airlied@linux.ie>,
+        "David S . Miller" <davem@davemloft.net>,
+        Ira Weiny <ira.weiny@intel.com>, Jens Axboe <axboe@kernel.dk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
+        Magnus Karlsson <magnus.karlsson@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Paul Mackerras <paulus@samba.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>, bpf <bpf@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>, kvm@vger.kernel.org,
+        linux-block@vger.kernel.org,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-fsdevel@vger.kernel.org,
+        "open list:KERNEL SELFTEST FRAMEWORK" 
+        <linux-kselftest@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" 
+        <linux-media@vger.kernel.org>, linux-rdma@vger.kernel.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        netdev <netdev@vger.kernel.org>, Linux MM <linux-mm@kvack.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 00/23] mm/gup: track dma-pinned pages: FOLL_PIN,
+ FOLL_LONGTERM
+Message-ID: <20191113114311.GP23790@phenom.ffwll.local>
+Mail-Followup-To: Jan Kara <jack@suse.cz>,
+        John Hubbard <jhubbard@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn.topel@intel.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Chinner <david@fromorbit.com>, David Airlie <airlied@linux.ie>,
+        "David S . Miller" <davem@davemloft.net>,
+        Ira Weiny <ira.weiny@intel.com>, Jens Axboe <axboe@kernel.dk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
+        Magnus Karlsson <magnus.karlsson@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Paul Mackerras <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>, bpf <bpf@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>, kvm@vger.kernel.org,
+        linux-block@vger.kernel.org,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-fsdevel@vger.kernel.org,
+        "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" <linux-media@vger.kernel.org>,
+        linux-rdma@vger.kernel.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        netdev <netdev@vger.kernel.org>, Linux MM <linux-mm@kvack.org>,
+        LKML <linux-kernel@vger.kernel.org>
+References: <20191112000700.3455038-1-jhubbard@nvidia.com>
+ <20191112203802.GD5584@ziepe.ca>
+ <02fa935c-3469-b766-b691-5660084b60b9@nvidia.com>
+ <CAKMK7uHvk+ti00mCCF2006U003w1dofFg9nSfmZ4bS2Z2pEDNQ@mail.gmail.com>
+ <7b671bf9-4d94-f2cc-8453-863acd5a1115@nvidia.com>
+ <20191113101210.GD6367@quack2.suse.cz>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191113101210.GD6367@quack2.suse.cz>
+X-Operating-System: Linux phenom 5.2.0-3-amd64 
+User-Agent: Mutt/1.12.2 (2019-09-21)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xi Wang <wangxi11@huawei.com>
+On Wed, Nov 13, 2019 at 11:12:10AM +0100, Jan Kara wrote:
+> On Wed 13-11-19 01:02:02, John Hubbard wrote:
+> > On 11/13/19 12:22 AM, Daniel Vetter wrote:
+> > ...
+> > > > > Why are we doing this? I think things got confused here someplace, as
+> > > > 
+> > > > 
+> > > > Because:
+> > > > 
+> > > > a) These need put_page() calls,  and
+> > > > 
+> > > > b) there is no put_pages() call, but there is a release_pages() call that
+> > > > is, arguably, what put_pages() would be.
+> > > > 
+> > > > 
+> > > > > the comment still says:
+> > > > > 
+> > > > > /**
+> > > > >   * put_user_page() - release a gup-pinned page
+> > > > >   * @page:            pointer to page to be released
+> > > > >   *
+> > > > >   * Pages that were pinned via get_user_pages*() must be released via
+> > > > >   * either put_user_page(), or one of the put_user_pages*() routines
+> > > > >   * below.
+> > > > 
+> > > > 
+> > > > Ohhh, I missed those comments. They need to all be changed over to
+> > > > say "pages that were pinned via pin_user_pages*() or
+> > > > pin_longterm_pages*() must be released via put_user_page*()."
+> > > > 
+> > > > The get_user_pages*() pages must still be released via put_page.
+> > > > 
+> > > > The churn is due to a fairly significant change in strategy, whis
+> > > > is: instead of changing all get_user_pages*() sites to call
+> > > > put_user_page(), change selected sites to call pin_user_pages*() or
+> > > > pin_longterm_pages*(), plus put_user_page().
+> > > 
+> > > Can't we call this unpin_user_page then, for some symmetry? Or is that
+> > > even more churn?
+> > > 
+> > > Looking from afar the naming here seems really confusing.
+> > 
+> > 
+> > That look from afar is valuable, because I'm too close to the problem to see
+> > how the naming looks. :)
+> > 
+> > unpin_user_page() sounds symmetrical. It's true that it would cause more
+> > churn (which is why I started off with a proposal that avoids changing the
+> > names of put_user_page*() APIs). But OTOH, the amount of churn is proportional
+> > to the change in direction here, and it's really only 10 or 20 lines changed,
+> > in the end.
+> > 
+> > So I'm open to changing to that naming. It would be nice to hear what others
+> > prefer, too...
+> 
+> FWIW I'd find unpin_user_page() also better than put_user_page() as a
+> counterpart to pin_user_pages().
 
-When hardware is in resetting stage, we may can't poll back all the
-expected work completions as the hardware won't generate cqe anymore.
-
-This patch allows the driver to compose the expected wc instead of the
-hardware during resetting stage. Once the hardware finished resetting, we
-can poll cq from hardware again.
-
-Signed-off-by: Xi Wang <wangxi11@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
----
-Changelog
-v1->v2: Remove a deplicate cq_clean statement and rebase to the latest
-	code.
----
- drivers/infiniband/hw/hns/hns_roce_cq.c     |   2 +
- drivers/infiniband/hw/hns/hns_roce_device.h |  17 +++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  14 ++-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 161 +++++++++++++++++++++++-----
- drivers/infiniband/hw/hns/hns_roce_main.c   |  47 ++++++++
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  48 ++++++++-
- 6 files changed, 254 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index e25fa19..85e55a0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -433,6 +433,8 @@ int hns_roce_ib_create_cq(struct ib_cq *ib_cq,
- 	cq_entries = roundup_pow_of_two((unsigned int)cq_entries);
- 	hr_cq->ib_cq.cqe = cq_entries - 1;
- 	spin_lock_init(&hr_cq->lock);
-+	INIT_LIST_HEAD(&hr_cq->sq_list);
-+	INIT_LIST_HEAD(&hr_cq->rq_list);
- 
- 	if (udata) {
- 		ret = create_user_cq(hr_dev, hr_cq, udata, &resp, cq_entries);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index a1b712e..63299ca 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -504,6 +504,10 @@ struct hns_roce_cq {
- 	u32				vector;
- 	atomic_t			refcount;
- 	struct completion		free;
-+	struct list_head		sq_list; /* all qps on this send cq */
-+	struct list_head		rq_list; /* all qps on this recv cq */
-+	bool				is_armed; /* cq is armed */
-+	struct list_head		node; /* all armed cqs are on a list */
- };
- 
- struct hns_roce_idx_que {
-@@ -688,6 +692,9 @@ struct hns_roce_qp {
- 	u32			next_sge;
- 
- 	struct hns_roce_rinl_buf rq_inl_buf;
-+	struct list_head	node;		/* all qps are on a list */
-+	struct list_head	rq_node;	/* all recv qps are on a list */
-+	struct list_head	sq_node;	/* all send qps are on a list */
- };
- 
- struct hns_roce_ib_iboe {
-@@ -917,6 +924,12 @@ struct hns_roce_dfx_hw {
- 			      int *buffer);
- };
- 
-+enum hns_roce_device_state {
-+	HNS_ROCE_DEVICE_STATE_INITED,
-+	HNS_ROCE_DEVICE_STATE_RST_DOWN,
-+	HNS_ROCE_DEVICE_STATE_UNINIT,
-+};
-+
- struct hns_roce_hw {
- 	int (*reset)(struct hns_roce_dev *hr_dev, bool enable);
- 	int (*cmq_init)(struct hns_roce_dev *hr_dev);
-@@ -999,6 +1012,9 @@ struct hns_roce_dev {
- 	bool			dis_db;
- 	unsigned long		reset_cnt;
- 	struct hns_roce_ib_iboe iboe;
-+	enum hns_roce_device_state state;
-+	struct list_head	qp_list; /* list of all qps on this dev */
-+	spinlock_t		qp_list_lock; /* protect qp_list */
- 
- 	struct list_head        pgdir_list;
- 	struct mutex            pgdir_mutex;
-@@ -1264,6 +1280,7 @@ void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type);
- void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type);
- void hns_roce_srq_event(struct hns_roce_dev *hr_dev, u32 srqn, int event_type);
- int hns_get_gid_index(struct hns_roce_dev *hr_dev, u8 port, int gid_index);
-+void hns_roce_handle_device_err(struct hns_roce_dev *hr_dev);
- int hns_roce_init(struct hns_roce_dev *hr_dev);
- void hns_roce_exit(struct hns_roce_dev *hr_dev);
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 89a4c3a..cbbe4e7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3616,14 +3616,18 @@ int hns_roce_v1_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	if (ret)
- 		return ret;
- 
--	send_cq = to_hr_cq(hr_qp->ibqp.send_cq);
--	recv_cq = to_hr_cq(hr_qp->ibqp.recv_cq);
-+	send_cq = hr_qp->ibqp.send_cq ? to_hr_cq(hr_qp->ibqp.send_cq) : NULL;
-+	recv_cq = hr_qp->ibqp.recv_cq ? to_hr_cq(hr_qp->ibqp.recv_cq) : NULL;
- 
- 	hns_roce_lock_cqs(send_cq, recv_cq);
- 	if (!udata) {
--		__hns_roce_v1_cq_clean(recv_cq, hr_qp->qpn, hr_qp->ibqp.srq ?
--				       to_hr_srq(hr_qp->ibqp.srq) : NULL);
--		if (send_cq != recv_cq)
-+		if (recv_cq)
-+			__hns_roce_v1_cq_clean(recv_cq, hr_qp->qpn,
-+					       (hr_qp->ibqp.srq ?
-+						to_hr_srq(hr_qp->ibqp.srq) :
-+						NULL));
-+
-+		if (send_cq && send_cq != recv_cq)
- 			__hns_roce_v1_cq_clean(send_cq, hr_qp->qpn, NULL);
- 	}
- 	hns_roce_unlock_cqs(send_cq, recv_cq);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 907c951..31ac969 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -226,6 +226,30 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 				 int attr_mask, enum ib_qp_state cur_state,
- 				 enum ib_qp_state new_state);
- 
-+static int check_send_valid(struct hns_roce_dev *hr_dev,
-+			    struct hns_roce_qp *hr_qp)
-+{
-+	struct ib_qp *ibqp = &hr_qp->ibqp;
-+	struct device *dev = hr_dev->dev;
-+
-+	if (unlikely(ibqp->qp_type != IB_QPT_RC &&
-+		     ibqp->qp_type != IB_QPT_GSI &&
-+		     ibqp->qp_type != IB_QPT_UD)) {
-+		dev_err(dev, "Not supported QP(0x%x)type!\n", ibqp->qp_type);
-+		return -EOPNOTSUPP;
-+	} else if (unlikely(hr_qp->state == IB_QPS_RESET ||
-+		   hr_qp->state == IB_QPS_INIT ||
-+		   hr_qp->state == IB_QPS_RTR)) {
-+		dev_err(dev, "Post WQE fail, QP state %d!\n", hr_qp->state);
-+		return -EINVAL;
-+	} else if (unlikely(hr_dev->state >= HNS_ROCE_DEVICE_STATE_RST_DOWN)) {
-+		dev_err(dev, "Post WQE fail, dev state %d!\n", hr_dev->state);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
- static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 				 const struct ib_send_wr *wr,
- 				 const struct ib_send_wr **bad_wr)
-@@ -247,28 +271,21 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 	bool loopback;
- 	int attr_mask;
- 	u32 tmp_len;
--	int ret = 0;
- 	u32 hr_op;
- 	u8 *smac;
- 	int nreq;
-+	int ret;
- 	int i;
- 
--	if (unlikely(ibqp->qp_type != IB_QPT_RC &&
--		     ibqp->qp_type != IB_QPT_GSI &&
--		     ibqp->qp_type != IB_QPT_UD)) {
--		dev_err(dev, "Not supported QP(0x%x)type!\n", ibqp->qp_type);
--		*bad_wr = wr;
--		return -EOPNOTSUPP;
--	}
-+	spin_lock_irqsave(&qp->sq.lock, flags);
- 
--	if (unlikely(qp->state == IB_QPS_RESET || qp->state == IB_QPS_INIT ||
--		     qp->state == IB_QPS_RTR)) {
--		dev_err(dev, "Post WQE fail, QP state %d err!\n", qp->state);
-+	ret = check_send_valid(hr_dev, qp);
-+	if (ret) {
- 		*bad_wr = wr;
--		return -EINVAL;
-+		nreq = 0;
-+		goto out;
- 	}
- 
--	spin_lock_irqsave(&qp->sq.lock, flags);
- 	ind = qp->sq_next_wqe;
- 	sge_ind = qp->next_sge;
- 
-@@ -610,6 +627,17 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 	return ret;
- }
- 
-+static int check_recv_valid(struct hns_roce_dev *hr_dev,
-+			    struct hns_roce_qp *hr_qp)
-+{
-+	if (unlikely(hr_dev->state >= HNS_ROCE_DEVICE_STATE_RST_DOWN))
-+		return -EIO;
-+	else if (hr_qp->state == IB_QPS_RESET)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
- 				 const struct ib_recv_wr *wr,
- 				 const struct ib_recv_wr **bad_wr)
-@@ -623,20 +651,22 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
- 	unsigned long flags;
- 	void *wqe = NULL;
- 	int attr_mask;
--	int ret = 0;
- 	int nreq;
- 	int ind;
-+	int ret;
- 	int i;
- 
- 	spin_lock_irqsave(&hr_qp->rq.lock, flags);
--	ind = hr_qp->rq.head & (hr_qp->rq.wqe_cnt - 1);
- 
--	if (hr_qp->state == IB_QPS_RESET) {
--		spin_unlock_irqrestore(&hr_qp->rq.lock, flags);
-+	ret = check_recv_valid(hr_dev, hr_qp);
-+	if (ret) {
- 		*bad_wr = wr;
--		return -EINVAL;
-+		nreq = 0;
-+		goto out;
- 	}
- 
-+	ind = hr_qp->rq.head & (hr_qp->rq.wqe_cnt - 1);
-+
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
- 		if (hns_roce_wq_overflow(&hr_qp->rq, nreq,
- 			hr_qp->ibqp.recv_cq)) {
-@@ -2688,6 +2718,55 @@ static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
- 	return 0;
- }
- 
-+static int sw_comp(struct hns_roce_qp *hr_qp, struct hns_roce_wq *wq,
-+		   int num_entries, struct ib_wc *wc)
-+{
-+	unsigned int left;
-+	int npolled = 0;
-+
-+	left = wq->head - wq->tail;
-+	if (left == 0)
-+		return 0;
-+
-+	left = min_t(unsigned int, (unsigned int)num_entries, left);
-+	while (npolled < left) {
-+		wc->wr_id = wq->wrid[wq->tail & (wq->wqe_cnt - 1)];
-+		wc->status = IB_WC_WR_FLUSH_ERR;
-+		wc->vendor_err = 0;
-+		wc->qp = &hr_qp->ibqp;
-+
-+		wq->tail++;
-+		wc++;
-+		npolled++;
-+	}
-+
-+	return npolled;
-+}
-+
-+static int hns_roce_v2_sw_poll_cq(struct hns_roce_cq *hr_cq, int num_entries,
-+				  struct ib_wc *wc)
-+{
-+	struct hns_roce_qp *hr_qp;
-+	int npolled = 0;
-+
-+	list_for_each_entry(hr_qp, &hr_cq->sq_list, sq_node) {
-+		npolled += sw_comp(hr_qp, &hr_qp->sq,
-+				   num_entries - npolled, wc + npolled);
-+		if (npolled >= num_entries)
-+			goto out;
-+	}
-+
-+	list_for_each_entry(hr_qp, &hr_cq->rq_list, rq_node) {
-+		npolled += sw_comp(hr_qp, &hr_qp->rq,
-+				   num_entries - npolled, wc + npolled);
-+		if (npolled >= num_entries)
-+			goto out;
-+	}
-+
-+out:
-+	return npolled;
-+}
-+
- static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 				struct hns_roce_qp **cur_qp, struct ib_wc *wc)
- {
-@@ -2968,6 +3047,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- static int hns_roce_v2_poll_cq(struct ib_cq *ibcq, int num_entries,
- 			       struct ib_wc *wc)
- {
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ibcq->device);
- 	struct hns_roce_cq *hr_cq = to_hr_cq(ibcq);
- 	struct hns_roce_qp *cur_qp = NULL;
- 	unsigned long flags;
-@@ -2975,6 +3055,18 @@ static int hns_roce_v2_poll_cq(struct ib_cq *ibcq, int num_entries,
- 
- 	spin_lock_irqsave(&hr_cq->lock, flags);
- 
-+	/*
-+	 * When the device starts to reset, the state is RST_DOWN. At this time,
-+	 * there may still be some valid CQEs in the hardware that are not
-+	 * polled. Therefore, it is not allowed to switch to the software mode
-+	 * immediately. When the state changes to UNINIT, CQE no longer exists
-+	 * in the hardware, and then switch to software mode.
-+	 */
-+	if (hr_dev->state == HNS_ROCE_DEVICE_STATE_UNINIT) {
-+		npolled = hns_roce_v2_sw_poll_cq(hr_cq, num_entries, wc);
-+		goto out;
-+	}
-+
- 	for (npolled = 0; npolled < num_entries; ++npolled) {
- 		if (hns_roce_v2_poll_one(hr_cq, &cur_qp, wc + npolled))
- 			break;
-@@ -2986,6 +3078,7 @@ static int hns_roce_v2_poll_cq(struct ib_cq *ibcq, int num_entries,
- 		hns_roce_v2_cq_set_ci(hr_cq, hr_cq->cons_index);
- 	}
- 
-+out:
- 	spin_unlock_irqrestore(&hr_cq->lock, flags);
- 
- 	return npolled;
-@@ -4650,6 +4743,7 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- {
- 	struct hns_roce_cq *send_cq, *recv_cq;
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	unsigned long flags;
- 	int ret = 0;
- 
- 	if (hr_qp->ibqp.qp_type == IB_QPT_RC && hr_qp->state != IB_QPS_RESET) {
-@@ -4660,21 +4754,32 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- 			ibdev_err(ibdev, "modify QP to Reset failed.\n");
- 	}
- 
--	send_cq = to_hr_cq(hr_qp->ibqp.send_cq);
--	recv_cq = to_hr_cq(hr_qp->ibqp.recv_cq);
-+	send_cq = hr_qp->ibqp.send_cq ? to_hr_cq(hr_qp->ibqp.send_cq) : NULL;
-+	recv_cq = hr_qp->ibqp.recv_cq ? to_hr_cq(hr_qp->ibqp.recv_cq) : NULL;
- 
-+	spin_lock_irqsave(&hr_dev->qp_list_lock, flags);
- 	hns_roce_lock_cqs(send_cq, recv_cq);
- 
-+	list_del(&hr_qp->node);
-+	list_del(&hr_qp->sq_node);
-+	list_del(&hr_qp->rq_node);
-+
- 	if (!udata) {
--		__hns_roce_v2_cq_clean(recv_cq, hr_qp->qpn, hr_qp->ibqp.srq ?
--				       to_hr_srq(hr_qp->ibqp.srq) : NULL);
--		if (send_cq != recv_cq)
-+		if (recv_cq)
-+			__hns_roce_v2_cq_clean(recv_cq, hr_qp->qpn,
-+					       (hr_qp->ibqp.srq ?
-+						to_hr_srq(hr_qp->ibqp.srq) :
-+						NULL));
-+
-+		if (send_cq && send_cq != recv_cq)
- 			__hns_roce_v2_cq_clean(send_cq, hr_qp->qpn, NULL);
-+
- 	}
- 
- 	hns_roce_qp_remove(hr_dev, hr_qp);
- 
- 	hns_roce_unlock_cqs(send_cq, recv_cq);
-+	spin_unlock_irqrestore(&hr_dev->qp_list_lock, flags);
- 
- 	hns_roce_qp_free(hr_dev, hr_qp);
- 
-@@ -6449,6 +6554,9 @@ static void __hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
- 		return;
- 
- 	handle->priv = NULL;
-+
-+	hr_dev->state = HNS_ROCE_DEVICE_STATE_UNINIT;
-+
- 	hns_roce_exit(hr_dev);
- 	kfree(hr_dev->priv);
- 	ib_dealloc_device(&hr_dev->ib_dev);
-@@ -6510,7 +6618,6 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
- static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
- {
- 	struct hns_roce_dev *hr_dev;
--	struct ib_event event;
- 
- 	if (handle->rinfo.instance_state != HNS_ROCE_STATE_INITED) {
- 		set_bit(HNS_ROCE_RST_DIRECT_RETURN, &handle->rinfo.state);
-@@ -6528,10 +6635,8 @@ static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
- 	hr_dev->active = false;
- 	hr_dev->dis_db = true;
- 
--	event.event = IB_EVENT_DEVICE_FATAL;
--	event.device = &hr_dev->ib_dev;
--	event.element.port_num = 1;
--	ib_dispatch_event(&event);
-+	hr_dev->state = HNS_ROCE_DEVICE_STATE_RST_DOWN;
-+	hns_roce_handle_device_err(hr_dev);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 066f01c..badc5f0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -863,6 +863,50 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
- 	return ret;
- }
- 
-+static void check_and_get_armed_cq(struct list_head *cq_list, struct ib_cq *cq)
-+{
-+	struct hns_roce_cq *hr_cq = to_hr_cq(cq);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hr_cq->lock, flags);
-+	if (hr_cq->comp && cq->comp_handler) {
-+		if (!hr_cq->is_armed) {
-+			hr_cq->is_armed = true;
-+			list_add_tail(&hr_cq->node, cq_list);
-+		}
-+	}
-+	spin_unlock_irqrestore(&hr_cq->lock, flags);
-+}
-+
-+void hns_roce_handle_device_err(struct hns_roce_dev *hr_dev)
-+{
-+	struct hns_roce_qp *hr_qp;
-+	struct hns_roce_cq *hr_cq;
-+	struct list_head cq_list;
-+	unsigned long flags_qp;
-+	unsigned long flags;
-+
-+	INIT_LIST_HEAD(&cq_list);
-+
-+	spin_lock_irqsave(&hr_dev->qp_list_lock, flags);
-+	list_for_each_entry(hr_qp, &hr_dev->qp_list, node) {
-+		spin_lock_irqsave(&hr_qp->sq.lock, flags_qp);
-+		if (hr_qp->sq.tail != hr_qp->sq.head)
-+			check_and_get_armed_cq(&cq_list, hr_qp->ibqp.send_cq);
-+		spin_unlock_irqrestore(&hr_qp->sq.lock, flags_qp);
-+
-+		spin_lock_irqsave(&hr_qp->rq.lock, flags_qp);
-+		if ((!hr_qp->ibqp.srq) && (hr_qp->rq.tail != hr_qp->rq.head))
-+			check_and_get_armed_cq(&cq_list, hr_qp->ibqp.recv_cq);
-+		spin_unlock_irqrestore(&hr_qp->rq.lock, flags_qp);
-+	}
-+
-+	list_for_each_entry(hr_cq, &cq_list, node)
-+		hr_cq->comp(hr_cq);
-+
-+	spin_unlock_irqrestore(&hr_dev->qp_list_lock, flags);
-+}
-+
- int hns_roce_init(struct hns_roce_dev *hr_dev)
- {
- 	int ret;
-@@ -933,6 +977,9 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
- 		}
- 	}
- 
-+	INIT_LIST_HEAD(&hr_dev->qp_list);
-+	spin_lock_init(&hr_dev->qp_list_lock);
-+
- 	ret = hns_roce_register_device(hr_dev);
- 	if (ret)
- 		goto error_failed_register_device;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 9442f01..9a40710 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -681,6 +681,29 @@ static void free_rq_inline_buf(struct hns_roce_qp *hr_qp)
- 	kfree(hr_qp->rq_inl_buf.wqe_list);
- }
- 
-+static void add_qp_to_list(struct hns_roce_dev *hr_dev,
-+			   struct hns_roce_qp *hr_qp,
-+			   struct ib_cq *send_cq, struct ib_cq *recv_cq)
-+{
-+	struct hns_roce_cq *hr_send_cq, *hr_recv_cq;
-+	unsigned long flags;
-+
-+	hr_send_cq = send_cq ? to_hr_cq(send_cq) : NULL;
-+	hr_recv_cq = recv_cq ? to_hr_cq(recv_cq) : NULL;
-+
-+	spin_lock_irqsave(&hr_dev->qp_list_lock, flags);
-+	hns_roce_lock_cqs(hr_send_cq, hr_recv_cq);
-+
-+	list_add_tail(&hr_qp->node, &hr_dev->qp_list);
-+	if (hr_send_cq)
-+		list_add_tail(&hr_qp->sq_node, &hr_send_cq->sq_list);
-+	if (hr_recv_cq)
-+		list_add_tail(&hr_qp->rq_node, &hr_recv_cq->rq_list);
-+
-+	hns_roce_unlock_cqs(hr_send_cq, hr_recv_cq);
-+	spin_unlock_irqrestore(&hr_dev->qp_list_lock, flags);
-+}
-+
- static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 				     struct ib_pd *ib_pd,
- 				     struct ib_qp_init_attr *init_attr,
-@@ -950,6 +973,9 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	hr_qp->event = hns_roce_ib_qp_event;
-+
-+	add_qp_to_list(hr_dev, hr_qp, init_attr->send_cq, init_attr->recv_cq);
-+
- 	hns_roce_free_buf_list(buf_list, hr_qp->region_cnt);
- 
- 	return 0;
-@@ -1232,7 +1258,16 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- void hns_roce_lock_cqs(struct hns_roce_cq *send_cq, struct hns_roce_cq *recv_cq)
- 		       __acquires(&send_cq->lock) __acquires(&recv_cq->lock)
- {
--	if (send_cq == recv_cq) {
-+	if (unlikely(send_cq == NULL && recv_cq == NULL)) {
-+		__acquire(&send_cq->lock);
-+		__acquire(&recv_cq->lock);
-+	} else if (unlikely(send_cq != NULL && recv_cq == NULL)) {
-+		spin_lock_irq(&send_cq->lock);
-+		__acquire(&recv_cq->lock);
-+	} else if (unlikely(send_cq == NULL && recv_cq != NULL)) {
-+		spin_lock_irq(&recv_cq->lock);
-+		__acquire(&send_cq->lock);
-+	} else if (send_cq == recv_cq) {
- 		spin_lock_irq(&send_cq->lock);
- 		__acquire(&recv_cq->lock);
- 	} else if (send_cq->cqn < recv_cq->cqn) {
-@@ -1248,7 +1283,16 @@ void hns_roce_unlock_cqs(struct hns_roce_cq *send_cq,
- 			 struct hns_roce_cq *recv_cq) __releases(&send_cq->lock)
- 			 __releases(&recv_cq->lock)
- {
--	if (send_cq == recv_cq) {
-+	if (unlikely(send_cq == NULL && recv_cq == NULL)) {
-+		__release(&recv_cq->lock);
-+		__release(&send_cq->lock);
-+	} else if (unlikely(send_cq != NULL && recv_cq == NULL)) {
-+		__release(&recv_cq->lock);
-+		spin_unlock(&send_cq->lock);
-+	} else if (unlikely(send_cq == NULL && recv_cq != NULL)) {
-+		__release(&send_cq->lock);
-+		spin_unlock(&recv_cq->lock);
-+	} else if (send_cq == recv_cq) {
- 		__release(&recv_cq->lock);
- 		spin_unlock_irq(&send_cq->lock);
- 	} else if (send_cq->cqn < recv_cq->cqn) {
+One more point from afar on pin/unpin: We use that a lot in graphics for
+permanently pinned graphics buffer objects. Which really only should be
+used for scanout. So at least graphics folks should have an appropriate
+mindset and try to make sure we don't overuse this stuff.
+-Daniel
 -- 
-2.8.1
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
