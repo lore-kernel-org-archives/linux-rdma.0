@@ -2,46 +2,42 @@ Return-Path: <SRS0=Aeev=ZF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-7.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB57FC43331
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:31:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE4DC43331
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:32:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A3A852245A
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:31:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E6F02245A
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:32:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="XdT+9xtN"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="EwP/5K+3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728062AbfKMEbP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Nov 2019 23:31:15 -0500
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:3956 "EHLO
+        id S1727659AbfKMEcW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Nov 2019 23:32:22 -0500
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:4350 "EHLO
         hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727189AbfKME1Q (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 23:27:16 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dcb85ea0003>; Tue, 12 Nov 2019 20:26:18 -0800
+        with ESMTP id S1727189AbfKMEcV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 23:32:21 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dcb87190000>; Tue, 12 Nov 2019 20:31:22 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Tue, 12 Nov 2019 20:27:14 -0800
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Tue, 12 Nov 2019 20:32:17 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Tue, 12 Nov 2019 20:27:14 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 13 Nov
- 2019 04:27:13 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Wed, 13 Nov 2019 04:27:13 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dcb86210005>; Tue, 12 Nov 2019 20:27:13 -0800
-From:   John Hubbard <jhubbard@nvidia.com>
+        by hqpgpgate101.nvidia.com on Tue, 12 Nov 2019 20:32:17 -0800
+Received: from [10.110.48.28] (10.124.1.5) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 13 Nov
+ 2019 04:32:17 +0000
+Subject: Re: [PATCH v4 00/23] mm/gup: track dma-pinned pages: FOLL_PIN,
+ FOLL_LONGTERM
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Alex Williamson <alex.williamson@redhat.com>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>,
+        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn.topel@intel.com>,
         Christoph Hellwig <hch@infradead.org>,
         Dan Williams <dan.j.williams@intel.com>,
         Daniel Vetter <daniel@ffwll.ch>,
@@ -51,7 +47,7 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
         Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
         Jonathan Corbet <corbet@lwn.net>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
+        =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
@@ -65,103 +61,50 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v4 19/23] powerpc: book3s64: convert to pin_longterm_pages() and put_user_page()
-Date:   Tue, 12 Nov 2019 20:27:06 -0800
-Message-ID: <20191113042710.3997854-20-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191113042710.3997854-1-jhubbard@nvidia.com>
+        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>
 References: <20191113042710.3997854-1-jhubbard@nvidia.com>
+From:   John Hubbard <jhubbard@nvidia.com>
+X-Nvconfidentiality: public
+Message-ID: <a5643f32-8042-e15c-79d4-e0bc33ac1b2a@nvidia.com>
+Date:   Tue, 12 Nov 2019 20:32:16 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
+In-Reply-To: <20191113042710.3997854-1-jhubbard@nvidia.com>
+X-Originating-IP: [10.124.1.5]
+X-ClientProxiedBy: HQMAIL105.nvidia.com (172.20.187.12) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1573619178; bh=jP0+G7EUrJzRbss/H6wqbMhvj/DAmG+WrBPGAFIWqJ8=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=XdT+9xtNgQ1XHKD+Ac7dyAYaM8yJJoUfb+7ysHR4ZchEmOg8iGZ3OAYhhHQBi/Kbx
-         UltPHZY9SFVfUJjeMZwf4R1aOCsKKLD1du/k7QznDkCr42xziGVH6hiHpJ7tRz9qzC
-         Yz6AwUWWS3DBM3hsBO5bNhYB1KGOiSZm7sFvl0rLjrb1Av2GbfUxoIFgNnjnBxozni
-         AYAi0jjIgUv8xQkbkzVbW/kpGs42hmNEzXbHglfB8yYeMV2SHe/v3hW3K+sX+DUiqj
-         i6mDziB1Vy5Pr1o65Egq6j/c0CeZMBouTG4wBzUOxwvIkyqPxzpZrrACOnkABDSMNW
-         PG72/FqvOdGmg==
+        t=1573619482; bh=9MYVN1A24F5KMhsTpe2jh2+1l84haCmmXioa968HG3Y=;
+        h=X-PGP-Universal:Subject:To:CC:References:From:X-Nvconfidentiality:
+         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
+         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
+         Content-Transfer-Encoding;
+        b=EwP/5K+3axBrG9EQOUg4jsbXDRbQDPqrNar3/oXYxw5NAT2tOuIKfR/eL/VUzARMl
+         QJrOiU2d/1m6JosvwxhX/JacNsmyZG5rUp/Qs79iYaNa9HKhPMWBWvQBG1vOriSa3h
+         MDF50VmkLPo09BZBrA1YUsgNitEaGzypJkC6UBbCw145jP32bANHIqLfetZ5Icqetb
+         ewLKckxEU0ktL027LZfwyssgGodt3o1mvuEHITquD4KZ9bP8YjWtRhZXeB5Wung03P
+         Iw87DVEOcp/IvTeRqpg2L4nQJZ96wyFEpbFlKtfCRdODk9mvuk0cAAWNOsTw5mhiqN
+         DZB1rRUH2zj3w==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-1. Convert from get_user_pages(FOLL_LONGTERM) to pin_longterm_pages().
+On 11/12/19 8:26 PM, John Hubbard wrote:
+> OK, here we go. Any VFIO and Infiniband runtime testing from anyone, is
+> especially welcome here.
+> 
 
-2. As required by pin_user_pages(), release these pages via
-put_user_page(). In this case, do so via put_user_pages_dirty_lock().
+Oh, and to make that easier, there is a git repo and branch, here:
 
-That has the side effect of calling set_page_dirty_lock(), instead
-of set_page_dirty(). This is probably more accurate.
+    git@github.com:johnhubbard/linux.git pin_user_pages_tracking_v4
 
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
 
-3. Release each page in mem->hpages[] (instead of mem->hpas[]), because
-that is the array that pin_longterm_pages() filled in. This is more
-accurate and should be a little safer from a maintenance point of
-view.
-
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- arch/powerpc/mm/book3s64/iommu_api.c | 15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
-
-diff --git a/arch/powerpc/mm/book3s64/iommu_api.c b/arch/powerpc/mm/book3s6=
-4/iommu_api.c
-index 56cc84520577..69d79cb50d47 100644
---- a/arch/powerpc/mm/book3s64/iommu_api.c
-+++ b/arch/powerpc/mm/book3s64/iommu_api.c
-@@ -103,9 +103,8 @@ static long mm_iommu_do_alloc(struct mm_struct *mm, uns=
-igned long ua,
- 	for (entry =3D 0; entry < entries; entry +=3D chunk) {
- 		unsigned long n =3D min(entries - entry, chunk);
-=20
--		ret =3D get_user_pages(ua + (entry << PAGE_SHIFT), n,
--				FOLL_WRITE | FOLL_LONGTERM,
--				mem->hpages + entry, NULL);
-+		ret =3D pin_longterm_pages(ua + (entry << PAGE_SHIFT), n,
-+					 FOLL_WRITE, mem->hpages + entry, NULL);
- 		if (ret =3D=3D n) {
- 			pinned +=3D n;
- 			continue;
-@@ -167,9 +166,8 @@ static long mm_iommu_do_alloc(struct mm_struct *mm, uns=
-igned long ua,
- 	return 0;
-=20
- free_exit:
--	/* free the reference taken */
--	for (i =3D 0; i < pinned; i++)
--		put_page(mem->hpages[i]);
-+	/* free the references taken */
-+	put_user_pages(mem->hpages, pinned);
-=20
- 	vfree(mem->hpas);
- 	kfree(mem);
-@@ -212,10 +210,9 @@ static void mm_iommu_unpin(struct mm_iommu_table_group=
-_mem_t *mem)
- 		if (!page)
- 			continue;
-=20
--		if (mem->hpas[i] & MM_IOMMU_TABLE_GROUP_PAGE_DIRTY)
--			SetPageDirty(page);
-+		put_user_pages_dirty_lock(&mem->hpages[i], 1,
-+					  MM_IOMMU_TABLE_GROUP_PAGE_DIRTY);
-=20
--		put_page(page);
- 		mem->hpas[i] =3D 0;
- 	}
- }
---=20
-2.24.0
-
+thanks,
+-- 
+John Hubbard
+NVIDIA
