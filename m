@@ -2,75 +2,51 @@ Return-Path: <SRS0=Aeev=ZF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18369C43331
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 14:02:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 846DAC4741D
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 16:21:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC472222CA
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 14:02:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="KG/qQUL4"
+	by mail.kernel.org (Postfix) with ESMTP id 8383E23788
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 16:03:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727485AbfKMOCG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 Nov 2019 09:02:06 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:33802 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727482AbfKMOCG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 Nov 2019 09:02:06 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=M7NmYC/Iylm9myghHwqILim55SAUt9QrM+UZYk0eJlw=; b=KG/qQUL4DZQXYc1pMyWSalewO
-        CUe5XZ5XQZJBjvlnGDv3m9jaSmO0vPBGoit4xOCMLlvtv3hjDiS1iw2zCZKDV9ssM6jOqZ5803/A6
-        KzmLgUh7agfIIISBu471c4+mFOQBn/9MasTqV+bAwWBzhsZzLGWZWQmOX3RQTzM0EO4wFm2RNzTTZ
-        TQ2EkrBT1m9oXFdRC2754qZkN9hXg8y5kZHMSX6TntGmx3W4pPSprL/uWqIfxoPneS+BMUWte+5NJ
-        Vh7KYj/Mjgx8OWU4aUhuwcq0TUgL9pA/6azzf3rbf3Pr+3kX/4XaD5XkIKkqa1tcHaMefMIiSwTTB
-        EkuelBDAQ==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1iUtDf-0003BY-2B; Wed, 13 Nov 2019 14:02:03 +0000
-Date:   Wed, 13 Nov 2019 06:02:03 -0800
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com,
-        linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        amd-gfx@lists.freedesktop.org,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        David Zhou <David1.Zhou@amd.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Juergen Gross <jgross@suse.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
-        Petr Cvek <petrcvekcz@gmail.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        nouveau@lists.freedesktop.org, xen-devel@lists.xenproject.org,
-        Christoph Hellwig <hch@infradead.org>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH v3 13/14] mm/hmm: remove hmm_mirror and related
-Message-ID: <20191113140203.GE20531@infradead.org>
-References: <20191112202231.3856-1-jgg@ziepe.ca>
- <20191112202231.3856-14-jgg@ziepe.ca>
+        id S1728250AbfKMQDr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 Nov 2019 11:03:47 -0500
+Received: from verein.lst.de ([213.95.11.211]:34866 "EHLO verein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728249AbfKMQDq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 13 Nov 2019 11:03:46 -0500
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id 830D068AFE; Wed, 13 Nov 2019 17:03:44 +0100 (CET)
+Date:   Wed, 13 Nov 2019 17:03:44 +0100
+From:   Christoph Hellwig <hch@lst.de>
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: remove DMA_ATTR_WRITE_BARRIER
+Message-ID: <20191113160344.GA12853@lst.de>
+References: <20191113073214.9514-1-hch@lst.de> <20191113154712.GF21728@mellanox.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191112202231.3856-14-jgg@ziepe.ca>
-User-Agent: Mutt/1.12.1 (2019-06-15)
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <20191113154712.GF21728@mellanox.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Looks good:
+On Wed, Nov 13, 2019 at 03:47:18PM +0000, Jason Gunthorpe wrote:
+> On Wed, Nov 13, 2019 at 08:32:12AM +0100, Christoph Hellwig wrote:
+> > There is no implementation of the DMA_ATTR_WRITE_BARRIER flag left
+> > now that the ia64 sn2 code has been removed.  Drop the flag and
+> > the calling convention to set it in the RDMA code.
+> 
+> This looks OK, do you want it to go through the RDMA tree?
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Either the dma-mapping or rdma tree is fine with me.  I guess
+there are more potential conflicts with rdma changes, so tht might
+be the better choice.
