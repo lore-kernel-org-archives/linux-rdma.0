@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 226D5C43215
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 20:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75FFEC43215
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 20:27:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA05D206EC
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 20:22:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D61C206F0
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 20:27:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="n1t9MMHi"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="blBmwo40"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727080AbfKMUWi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 Nov 2019 15:22:38 -0500
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:3801 "EHLO
-        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726548AbfKMUWh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 Nov 2019 15:22:37 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate15.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dcc660b0000>; Wed, 13 Nov 2019 12:22:35 -0800
+        id S1727068AbfKMU1Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 Nov 2019 15:27:24 -0500
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:11058 "EHLO
+        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726363AbfKMU1X (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 Nov 2019 15:27:23 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dcc66ef0001>; Wed, 13 Nov 2019 12:26:23 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate102.nvidia.com (PGP Universal service);
-  Wed, 13 Nov 2019 12:22:36 -0800
+  Wed, 13 Nov 2019 12:27:19 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Wed, 13 Nov 2019 12:22:36 -0800
+        by hqpgpgate102.nvidia.com on Wed, 13 Nov 2019 12:27:19 -0800
 Received: from [10.2.160.107] (172.20.13.39) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 13 Nov
- 2019 20:22:35 +0000
-Subject: Re: [PATCH v4 08/23] vfio, mm: fix get_user_pages_remote() and
- FOLL_LONGTERM
-To:     Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>
+ 2019 20:27:18 +0000
+Subject: Re: [PATCH v4 09/23] mm/gup: introduce pin_user_pages*() and FOLL_PIN
+To:     Ira Weiny <ira.weiny@intel.com>
 CC:     Andrew Morton <akpm@linux-foundation.org>,
         Al Viro <viro@zeniv.linux.org.uk>,
         Alex Williamson <alex.williamson@redhat.com>,
@@ -45,7 +44,8 @@ CC:     Andrew Morton <akpm@linux-foundation.org>,
         Dave Chinner <david@fromorbit.com>,
         David Airlie <airlied@linux.ie>,
         "David S . Miller" <davem@davemloft.net>, Jan Kara <jack@suse.cz>,
-        Jens Axboe <axboe@kernel.dk>, Jonathan Corbet <corbet@lwn.net>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -60,19 +60,20 @@ CC:     Andrew Morton <akpm@linux-foundation.org>,
         <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>
+        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
+        Mike Rapoport <rppt@linux.ibm.com>,
+        Daniel Vetter <daniel@ffwll.ch>
 References: <20191113042710.3997854-1-jhubbard@nvidia.com>
- <20191113042710.3997854-9-jhubbard@nvidia.com>
- <20191113130202.GA26068@ziepe.ca>
- <20191113191705.GE12947@iweiny-DESK2.sc.intel.com>
+ <20191113042710.3997854-10-jhubbard@nvidia.com>
+ <20191113185902.GB12915@iweiny-DESK2.sc.intel.com>
 From:   John Hubbard <jhubbard@nvidia.com>
 X-Nvconfidentiality: public
-Message-ID: <290ba4aa-247e-6570-9eff-ccf2087e1120@nvidia.com>
-Date:   Wed, 13 Nov 2019 12:19:50 -0800
+Message-ID: <d5b14492-45a9-914e-92db-29592c3634e5@nvidia.com>
+Date:   Wed, 13 Nov 2019 12:24:32 -0800
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <20191113191705.GE12947@iweiny-DESK2.sc.intel.com>
+In-Reply-To: <20191113185902.GB12915@iweiny-DESK2.sc.intel.com>
 X-Originating-IP: [172.20.13.39]
 X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
  HQMAIL107.nvidia.com (172.20.187.13)
@@ -80,65 +81,56 @@ Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1573676555; bh=FW0krwPwWqciO/Z2LS4wGz5Cikl4rg4mIFXWQ1mXpqU=;
+        t=1573676784; bh=ZP9QEqV97zzS7vyaMLJBGQGSKGW2tyNWtWpkiSoCJc4=;
         h=X-PGP-Universal:Subject:To:CC:References:From:X-Nvconfidentiality:
          Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
          X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
          Content-Transfer-Encoding;
-        b=n1t9MMHier43EuFZpftpwQVDKG8oSo9TdOvV+OMzrOIN0Kprv6dkR4Jpu6/PqCqXm
-         /jCxLMJDxPPXF7oklQ45MeW/Fl3jyAJJ4cfyLvk1YJ3ZXQloakTUN/6QsjTZ2e8wLd
-         Vi5ItQz0+ykvg9G6LEUGgX0gLMaFmq2awJU2Kk5qVpihlMSAmAuGK9LjnFEEtlsHOE
-         JOaWrzJR8vtoHRO1QeIa0YnKmF32io8xAGlhrbiuGj5eUhM/rh5jJ0AdTIvnBhqGbA
-         tSsPrYCj4XsKBHj/d5S4XMsaWdBoBg5n+7WnTPKexUFAUitbBsugmf2TNoS/6cs3Dr
-         dZibHSHNj0z1Q==
+        b=blBmwo40hUXWDReswYBJ9TKWl7H2L/k0XDDTqLc9LkITedj/TfVhMrycxbdicryg9
+         h3wCNANbDFiVSj6oyHjfFnRbLVuCRi3pWpRJRe/jbCLOFnYnWP5+VYQpU1VxmX02Oe
+         x63ynn9Lg49xuQZl/cSCofyxC/5cUmsD/0Qztzy4aTmtjHXl5koB/p/oGnI3O50jC6
+         JimPfnxSS5Hd9PocW7OekFWFS3ot4vxXyyvMqqBzeRQ9mC6jlTWwR4/WgqeBc/ncw1
+         PM3rgjSIKR9vLy74nuxe2z7dV2iTNewdvjl7FyfEINYcs/7W4YGwW/FeVW7CmMMCVV
+         2lZpQK+CR/Twg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 11/13/19 11:17 AM, Ira Weiny wrote:
-...
->>> @@ -348,33 +347,13 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned long vaddr,
->>>   		flags |= FOLL_WRITE;
->>>   
->>>   	down_read(&mm->mmap_sem);
->>> -	if (mm == current->mm) {
->>> -		ret = get_user_pages(vaddr, 1, flags | FOLL_LONGTERM, page,
->>> -				     vmas);
->>> -	} else {
->>> -		ret = get_user_pages_remote(NULL, mm, vaddr, 1, flags, page,
->>> -					    vmas, NULL);
->>> -		/*
->>> -		 * The lifetime of a vaddr_get_pfn() page pin is
->>> -		 * userspace-controlled. In the fs-dax case this could
->>> -		 * lead to indefinite stalls in filesystem operations.
->>> -		 * Disallow attempts to pin fs-dax pages via this
->>> -		 * interface.
->>> -		 */
->>> -		if (ret > 0 && vma_is_fsdax(vmas[0])) {
->>> -			ret = -EOPNOTSUPP;
->>> -			put_page(page[0]);
->>> -		}
->>> -	}
->>> -	up_read(&mm->mmap_sem);
->>> -
->>> +	ret = get_user_pages_remote(NULL, mm, vaddr, 1, flags | FOLL_LONGTERM,
->>> +				    page, NULL, NULL);
->>>   	if (ret == 1) {
->>>   		*pfn = page_to_pfn(page[0]);
->>>   		return 0;
+On 11/13/19 10:59 AM, Ira Weiny wrote:
+> On Tue, Nov 12, 2019 at 08:26:56PM -0800, John Hubbard wrote:
+>> Introduce pin_user_pages*() variations of get_user_pages*() calls,
+>> and also pin_longterm_pages*() variations.
 >>
->> Mind the return with the lock held this needs some goto unwind
+>> These variants all set FOLL_PIN, which is also introduced, and
+>> thoroughly documented.
+>>
+>> The pin_longterm*() variants also set FOLL_LONGTERM, in addition
+>> to FOLL_PIN:
+>>
+>>      pin_user_pages()
+>>      pin_user_pages_remote()
+>>      pin_user_pages_fast()
+>>
+>>      pin_longterm_pages()
+>>      pin_longterm_pages_remote()
+>>      pin_longterm_pages_fast()
 > 
-> Ah yea...  retract my reviewed by...  :-(
+> At some point in this conversation I thought we were going to put in "unpin_*"
+> versions of these.
+> 
+> Is that still in the plans?
 > 
 
-ooops, embarrassed that I missed that, good catch. Will repost with it fixed.
+Why yes it is! :)  Daniel Vetter and Jan Kara both already weighed in [1],
+in favor of "unpin_user_page*()", rather than "put_user_page*()".
 
+I'll change those names.
+
+[1] https://lore.kernel.org/r/20191113101210.GD6367@quack2.suse.cz
 
 
 thanks,
 -- 
 John Hubbard
 NVIDIA
-
