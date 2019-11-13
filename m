@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 332B1C17449
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:29:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B12C17447
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:29:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0B7D72245A
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:29:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F80F2245A
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Nov 2019 04:29:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="XpYxGOXJ"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="aDYRJ65E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728197AbfKME30 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728183AbfKME30 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 12 Nov 2019 23:29:26 -0500
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:4026 "EHLO
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:4025 "EHLO
         hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727659AbfKME1V (ORCPT
+        with ESMTP id S1727647AbfKME1V (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Nov 2019 23:27:21 -0500
 Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dcb85ea0000>; Tue, 12 Nov 2019 20:26:18 -0800
+        id <B5dcb85e80002>; Tue, 12 Nov 2019 20:26:17 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate102.nvidia.com (PGP Universal service);
-  Tue, 12 Nov 2019 20:27:13 -0800
+  Tue, 12 Nov 2019 20:27:12 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Tue, 12 Nov 2019 20:27:13 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 13 Nov
- 2019 04:27:13 +0000
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 13 Nov
- 2019 04:27:13 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Wed, 13 Nov 2019 04:27:13 +0000
+        by hqpgpgate102.nvidia.com on Tue, 12 Nov 2019 20:27:12 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 13 Nov
+ 2019 04:27:12 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Wed, 13 Nov 2019 04:27:12 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dcb86200009>; Tue, 12 Nov 2019 20:27:13 -0800
+        id <B5dcb861f0004>; Tue, 12 Nov 2019 20:27:11 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -56,11 +53,12 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -68,69 +66,95 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Daniel Vetter" <daniel.vetter@ffwll.ch>
-Subject: [PATCH v4 13/23] drm/via: set FOLL_PIN via pin_user_pages_fast()
-Date:   Tue, 12 Nov 2019 20:27:00 -0800
-Message-ID: <20191113042710.3997854-14-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v4 03/23] mm/gup: move try_get_compound_head() to top, fix minor issues
+Date:   Tue, 12 Nov 2019 20:26:50 -0800
+Message-ID: <20191113042710.3997854-4-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191113042710.3997854-1-jhubbard@nvidia.com>
 References: <20191113042710.3997854-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1573619178; bh=ky7gpstoQdJr5rtxFEQnjpS0lvKe5L6cg7jiu/68ipE=;
+        t=1573619177; bh=5vGfYGjp3s6bW36xq9/Bb46iugaNKE7HlOm7HXQ5wWg=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Type:Content-Transfer-Encoding;
-        b=XpYxGOXJvl67li91ydgttoc35JlbNWPF4KXVS9rN0OiKaWngZgIuk0xVrLvBFJWwy
-         pMq4K0qS1kTD2gyKT2tBwoKQ8+csmSPYVaQQRmhY+eCilH2bjw7tPI3mA72uT9eI4c
-         BLXZFaEFg64gtiZ8300xDoruV6IhIxUSQzdw22a2xOWdAhq0UALO96CmzNSENEtkiS
-         qFzzlQAn2DkP7KkZ6lpvMvli/uwEYlVNtC2GnAm3Frfs4u+TawUNeJH3HY5G3akXpZ
-         P8IeCkgzSpJ4tHroCKs68TjzeCclkypuDp8x5gzZR6qrgB6mW/vrCdEmhd500Q9Nn4
-         IDu5fZt7cbMgg==
+         Content-Transfer-Encoding:Content-Type;
+        b=aDYRJ65EWmsQXhIyoPNVlHMD4XaFMBDq9LhgDXzW3aeFZfWy/Umcf5WRXDosDuh/C
+         Iguhvy6SdlWXbY0WQjgw75hqMELpFHBnuPhbUvyAdqmayZmFc0Ct5foXKr3lPnLr+d
+         esLMwBoHbkb26V/3ZUMFdroJGbVsaYxlKpFruYZixcKAmYyaw0fCepkJKyZkd1IU2V
+         ppZPKWqoduOZ3GQs4Vyf4PzpXrvMc1ELWDe3m5R6RE3VW58raBfYW6U3xggAC1eZ6/
+         Lm/GsrbCgbneT8v1BAHTg2YkK4CqTMioEziPnv2fP9F0ZUAyu9Ds/eOiHLazgPpxN3
+         cSreApeYiYlgQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Convert drm/via to use the new pin_user_pages_fast() call, which sets
-FOLL_PIN. Setting FOLL_PIN is now required for code that requires
-tracking of pinned pages, and therefore for any code that calls
-put_user_page().
+An upcoming patch uses try_get_compound_head() more widely,
+so move it to the top of gup.c.
 
-In partial anticipation of this work, the drm/via driver was already
-calling put_user_page() instead of put_page(). Therefore, in order to
-convert from the get_user_pages()/put_page() model, to the
-pin_user_pages()/put_user_page() model, the only change required
-is to change get_user_pages() to pin_user_pages().
+Also fix a tiny spelling error and a checkpatch.pl warning.
 
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/gpu/drm/via/via_dmablit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c | 29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/gpu/drm/via/via_dmablit.c b/drivers/gpu/drm/via/via_dm=
-ablit.c
-index 3db000aacd26..37c5e572993a 100644
---- a/drivers/gpu/drm/via/via_dmablit.c
-+++ b/drivers/gpu/drm/via/via_dmablit.c
-@@ -239,7 +239,7 @@ via_lock_all_dma_pages(drm_via_sg_info_t *vsg,  drm_via=
-_dmablit_t *xfer)
- 	vsg->pages =3D vzalloc(array_size(sizeof(struct page *), vsg->num_pages))=
-;
- 	if (NULL =3D=3D vsg->pages)
- 		return -ENOMEM;
--	ret =3D get_user_pages_fast((unsigned long)xfer->mem_addr,
-+	ret =3D pin_user_pages_fast((unsigned long)xfer->mem_addr,
- 			vsg->num_pages,
- 			vsg->direction =3D=3D DMA_FROM_DEVICE ? FOLL_WRITE : 0,
- 			vsg->pages);
+diff --git a/mm/gup.c b/mm/gup.c
+index 199da99e8ffc..933524de6249 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -29,6 +29,21 @@ struct follow_page_context {
+ 	unsigned int page_mask;
+ };
+=20
++/*
++ * Return the compound head page with ref appropriately incremented,
++ * or NULL if that failed.
++ */
++static inline struct page *try_get_compound_head(struct page *page, int re=
+fs)
++{
++	struct page *head =3D compound_head(page);
++
++	if (WARN_ON_ONCE(page_ref_count(head) < 0))
++		return NULL;
++	if (unlikely(!page_cache_add_speculative(head, refs)))
++		return NULL;
++	return head;
++}
++
+ /**
+  * put_user_pages_dirty_lock() - release and optionally dirty gup-pinned p=
+ages
+  * @pages:  array of pages to be maybe marked dirty, and definitely releas=
+ed.
+@@ -1793,20 +1808,6 @@ static void __maybe_unused undo_dev_pagemap(int *nr,=
+ int nr_start,
+ 	}
+ }
+=20
+-/*
+- * Return the compund head page with ref appropriately incremented,
+- * or NULL if that failed.
+- */
+-static inline struct page *try_get_compound_head(struct page *page, int re=
+fs)
+-{
+-	struct page *head =3D compound_head(page);
+-	if (WARN_ON_ONCE(page_ref_count(head) < 0))
+-		return NULL;
+-	if (unlikely(!page_cache_add_speculative(head, refs)))
+-		return NULL;
+-	return head;
+-}
+-
+ #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
+ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 			 unsigned int flags, struct page **pages, int *nr)
 --=20
 2.24.0
 
