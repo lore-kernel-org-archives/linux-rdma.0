@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBA6EC43141
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D79F2C43141
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9F48C206DA
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE018205C9
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573738311;
-	bh=oK6Brk56uaaFwLmfDGa8yz13wg8Fvxx4WygZXRjHuMs=;
+	s=default; t=1573738316;
+	bh=DY1NJIYWIGWG99+4n8+vknfj2UfNByQ/y9ppYdflykE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=fR8deNFeUtLzq1kVJl2YQgSb9E8tCdfKjM3qHeAX3ucx5FwJeIwqRIbE5qxucSEYm
-	 l/oaWtoMoUzbHUyqzrTU9qX6eek5vQFaCWPRD482wdTr+ZUX1uC3bxla15HUakbtXL
-	 atMd6mc6827jtaUnUWi4YMBCqRt53XLKDymbwl+w=
+	b=oKhlQGuLmRCe+zsbLsSwBb4jJAjTtgXF7ixj456KYKbr3V8e95dqokooYjGhpTfTJ
+	 t3GjUwqZveYUvYnXZYYlnKqy/55FkP8Cds8QyttzkFIaathn2dDiOABALwNMl2hD92
+	 xalytN+x4nJWAH+ny5qsVzzAksp8bqiKaG+0AdAQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727180AbfKNNbt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Nov 2019 08:31:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45214 "EHLO mail.kernel.org"
+        id S1727142AbfKNNbq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Nov 2019 08:31:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727133AbfKNNbs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 14 Nov 2019 08:31:48 -0500
+        id S1727134AbfKNNbp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 Nov 2019 08:31:45 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B8AD206DC;
-        Thu, 14 Nov 2019 13:31:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D827B205C9;
+        Thu, 14 Nov 2019 13:31:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573738307;
-        bh=oK6Brk56uaaFwLmfDGa8yz13wg8Fvxx4WygZXRjHuMs=;
+        s=default; t=1573738304;
+        bh=DY1NJIYWIGWG99+4n8+vknfj2UfNByQ/y9ppYdflykE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=D7oynUVRMFwy9qOdn3FQvH5VNtHe195sRhItif+caxleRe5+aKH/7Ejka/OU8teU5
-         BwO0S/41xahlKB6CBa4JdxxYdAsuHYioe0UoWomRIQEDZB2MDg8NrXz8iQYdPAmggs
-         QPJlxMTlemZz0l5BncnebR7uwEwkGjYinB6+z7nE=
+        b=K4wCtEeMw37H/72DEy/NWBiPZ44KV8KeqVkiLEZktfgQMP2ac2TvOzChWO8HMLB8k
+         EvrWYZ/lGxrGk+SpjQsDH0E9yiWq9GIFRZqTN/o5DfeLe/eC14izuVhS/N5Run394t
+         xcemia1z2wkcPaM4iY0Yps6l+tfbXaTpDF8+nZuw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
@@ -46,9 +46,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Danit Goldberg <danitg@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH rdma-next 2/4] IB/core: Add interfaces to get VF node and port GUIDs
-Date:   Thu, 14 Nov 2019 15:31:24 +0200
-Message-Id: <20191114133126.238128-4-leon@kernel.org>
+Subject: [PATCH rdma-next 4/4] IB/mlx5: Implement callbacks for getting VFs GUID attributes
+Date:   Thu, 14 Nov 2019 15:31:26 +0200
+Message-Id: <20191114133126.238128-6-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191114133126.238128-1-leon@kernel.org>
 References: <20191114133126.238128-1-leon@kernel.org>
@@ -61,74 +61,74 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Danit Goldberg <danitg@mellanox.com>
 
-
-Provide ability to get node and port GUIDs of VFs to be symmetrical
-to already existing set option.
+Implement the IB defined callback mlx5_ib_get_vf_guid used to query FW
+for VFs attributes and return node and port GUIDs.
 
 Signed-off-by: Danit Goldberg <danitg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/device.c |  1 +
- drivers/infiniband/core/verbs.c  | 10 ++++++++++
- include/rdma/ib_verbs.h          |  6 ++++++
- 3 files changed, 17 insertions(+)
+ drivers/infiniband/hw/mlx5/ib_virt.c | 24 ++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c    |  1 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  3 +++
+ 3 files changed, 28 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 1a789d2f7a38..e2229bab304a 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2618,6 +2618,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, get_port_immutable);
- 	SET_DEVICE_OP(dev_ops, get_vector_affinity);
- 	SET_DEVICE_OP(dev_ops, get_vf_config);
-+	SET_DEVICE_OP(dev_ops, get_vf_guid);
- 	SET_DEVICE_OP(dev_ops, get_vf_stats);
- 	SET_DEVICE_OP(dev_ops, init_port);
- 	SET_DEVICE_OP(dev_ops, invalidate_range);
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 5cf32bf484b7..da77057bfe69 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2460,6 +2460,16 @@ int ib_set_vf_guid(struct ib_device *device, int vf, u8 port, u64 guid,
+diff --git a/drivers/infiniband/hw/mlx5/ib_virt.c b/drivers/infiniband/hw/mlx5/ib_virt.c
+index 649a3364f838..4f0edd4832bd 100644
+--- a/drivers/infiniband/hw/mlx5/ib_virt.c
++++ b/drivers/infiniband/hw/mlx5/ib_virt.c
+@@ -201,3 +201,27 @@ int mlx5_ib_set_vf_guid(struct ib_device *device, int vf, u8 port,
+
+ 	return -EINVAL;
  }
- EXPORT_SYMBOL(ib_set_vf_guid);
-
-+int ib_get_vf_guid(struct ib_device *device, int vf, u8 port,
-+		   struct ifla_vf_guid *node_guid,
-+		   struct ifla_vf_guid *port_guid)
-+{
-+	if (!device->ops.get_vf_guid)
-+		return -EOPNOTSUPP;
 +
-+	return device->ops.get_vf_guid(device, vf, port, node_guid, port_guid);
++int mlx5_ib_get_vf_guid(struct ib_device *device, int vf, u8 port,
++			struct ifla_vf_guid *node_guid,
++			struct ifla_vf_guid *port_guid)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_hca_vport_context *rep;
++	int err;
++
++	rep = kzalloc(sizeof(*rep), GFP_KERNEL);
++	if (!rep)
++		return -ENOMEM;
++
++	err = mlx5_query_hca_vport_context(mdev, 1, 1, vf+1, rep);
++	if (err)
++		goto ex;
++
++	port_guid->guid = rep->port_guid;
++	node_guid->guid = rep->node_guid;
++ex:
++	kfree(rep);
++	return err;
 +}
-+EXPORT_SYMBOL(ib_get_vf_guid);
- /**
-  * ib_map_mr_sg_pi() - Map the dma mapped SG lists for PI (protection
-  *     information) and set an appropriate memory region for registration.
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f9e121b03158..d8b73a89ca1a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2472,6 +2472,9 @@ struct ib_device_ops {
- 			     struct ifla_vf_info *ivf);
- 	int (*get_vf_stats)(struct ib_device *device, int vf, u8 port,
- 			    struct ifla_vf_stats *stats);
-+	int (*get_vf_guid)(struct ib_device *device, int vf, u8 port,
-+			    struct ifla_vf_guid *node_guid,
-+			    struct ifla_vf_guid *port_guid);
- 	int (*set_vf_guid)(struct ib_device *device, int vf, u8 port, u64 guid,
- 			   int type);
- 	struct ib_wq *(*create_wq)(struct ib_pd *pd,
-@@ -3342,6 +3345,9 @@ int ib_get_vf_config(struct ib_device *device, int vf, u8 port,
- 		     struct ifla_vf_info *info);
- int ib_get_vf_stats(struct ib_device *device, int vf, u8 port,
- 		    struct ifla_vf_stats *stats);
-+int ib_get_vf_guid(struct ib_device *device, int vf, u8 port,
-+		    struct ifla_vf_guid *node_guid,
-+		    struct ifla_vf_guid *port_guid);
- int ib_set_vf_guid(struct ib_device *device, int vf, u8 port, u64 guid,
- 		   int type);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 2d83f8c1d7ba..7127cdd313c1 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6313,6 +6313,7 @@ static const struct ib_device_ops mlx5_ib_dev_ipoib_enhanced_ops = {
+
+ static const struct ib_device_ops mlx5_ib_dev_sriov_ops = {
+ 	.get_vf_config = mlx5_ib_get_vf_config,
++	.get_vf_guid = mlx5_ib_get_vf_guid,
+ 	.get_vf_stats = mlx5_ib_get_vf_stats,
+ 	.set_vf_guid = mlx5_ib_set_vf_guid,
+ 	.set_vf_link_state = mlx5_ib_set_vf_link_state,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 00fd412ef686..3ad20b120bf4 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1315,6 +1315,9 @@ int mlx5_ib_set_vf_link_state(struct ib_device *device, int vf,
+ 			      u8 port, int state);
+ int mlx5_ib_get_vf_stats(struct ib_device *device, int vf,
+ 			 u8 port, struct ifla_vf_stats *stats);
++int mlx5_ib_get_vf_guid(struct ib_device *device, int vf, u8 port,
++			struct ifla_vf_guid *node_guid,
++			struct ifla_vf_guid *port_guid);
+ int mlx5_ib_set_vf_guid(struct ib_device *device, int vf, u8 port,
+ 			u64 guid, int type);
 
 --
 2.20.1
