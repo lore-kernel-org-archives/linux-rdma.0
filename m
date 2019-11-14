@@ -2,53 +2,58 @@ Return-Path: <SRS0=+ait=ZG=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DA19C432C3
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71E19C432C3
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E9B2A206E6
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45619206E6
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Nov 2019 13:31:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573738293;
-	bh=QF+fHe0v5Oofj+xUEKThEQAMjIFpiBA4YQCqiDR1jMo=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=MwT352pVjwQxF+Q4HIojxndEOSyAFqR0uhFeY/WyXHFCxJEu3JKk3WtAeScExSNSD
-	 6S1C2Jqz61AC2EmqAI+kCNHGXjx/FfO+BnEynSVbkwgR/k+7zGdwbxzN6fCjuA7tzk
-	 wy97n2BtJbp61qPYm1nSe0/yan1stR9Z5HC9e+J8=
+	s=default; t=1573738296;
+	bh=L45WqGw5ivivRWY7YJ0O0/P39yCd9Dc12TSmZY/rTSc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=JrxqnbogaxjYW846QIJMpiBhl+y4tquiZtVilVMtC5fC7Nm/ngB+/g8Bwy3QOe871
+	 cX9Z8LrjD3/FpNmsuS6H1LCh6OIIyATjYsI0s4J6fNVPvUz7J55XjXnRveEO3ttopo
+	 u8Iy+gUxuLENXW4Gj6Gy7dXV2FzTGTLix7vrAgCI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726254AbfKNNbc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Nov 2019 08:31:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44916 "EHLO mail.kernel.org"
+        id S1726628AbfKNNbf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Nov 2019 08:31:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726190AbfKNNbc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 14 Nov 2019 08:31:32 -0500
+        id S1726528AbfKNNbf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 Nov 2019 08:31:35 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5797206DC;
-        Thu, 14 Nov 2019 13:31:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 520C7206DC;
+        Thu, 14 Nov 2019 13:31:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573738291;
-        bh=QF+fHe0v5Oofj+xUEKThEQAMjIFpiBA4YQCqiDR1jMo=;
-        h=From:To:Cc:Subject:Date:From;
-        b=rNOlX+/hzg0LJ1tVW0Lj2a5ogVCnBhfbSy7l4YVDcsR4Hn/8Qdt60bS3PIc5+S6rD
-         125TXc1amK8BKXhQNCG5Kf606ty8rvKzkeLMs10KuAbwAyqLWlDSkkHnybDlWjpOlS
-         haJ15V95wG2c/eZ4ZbaXvJVOnPA5Zb0PV7or35QE=
+        s=default; t=1573738294;
+        bh=L45WqGw5ivivRWY7YJ0O0/P39yCd9Dc12TSmZY/rTSc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=0vRobFaUuUPnHeRUhai6ud8DiogCQLmyIOALPnX8bPuBi5oCIWBHUaAkXkTBAMcJv
+         Lk9zqxyZ7V2vHoH9hXsea7qZyuG78jMSuvc3h+RjTH560v4CafcOCXMi51lCq9axEQ
+         B3k+FurfxN68sI7tlUmmDH9ZdyRamTDXO908C9eY=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
-        "David S . Miller" <davem@davemloft.net>
+        "David S . Miller" <davem@davemloft.net>,
+        David Ahern <dsahern@gmail.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Danit Goldberg <danitg@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH rdma-next 0/4] Get IB port and node GUIDs through rtnetlink
-Date:   Thu, 14 Nov 2019 15:31:21 +0200
-Message-Id: <20191114133126.238128-1-leon@kernel.org>
+        linux-netdev <netdev@vger.kernel.org>,
+        Stephen Hemminger <stephen@networkplumber.org>
+Subject: [PATCH iproute2-next] ip link: Add support to get SR-IOV VF node GUID and port GUID
+Date:   Thu, 14 Nov 2019 15:31:22 +0200
+Message-Id: <20191114133126.238128-2-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191114133126.238128-1-leon@kernel.org>
+References: <20191114133126.238128-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -56,54 +61,64 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Danit Goldberg <danitg@mellanox.com>
 
-Hi,
+Extend iplink to show VF GUIDs (IFLA_VF_IB_NODE_GUID, IFLA_VF_IB_PORT_GUID),
+giving the ability for user-space application to print GUID values.
+This ability is added to the one of setting new node GUID and port GUID values.
 
-This series from Danit extends RTNETLINK to provide IB port and node
-GUIDs, which were configured for Infiniband VFs.
-
-The functionality to set VF GUIDs already existed for a long time, and here
-we are adding the missing "get" so that netlink will be symmetric
-and various cloud orchestration tools will be able to manage such
-VFs more naturally.
-
-The iproute2 was extended too to present those GUIDs.
-
+Suitable ip link command:
 - ip link show <device>
 
 For example:
 - ip link set ib4 vf 0 node_guid 22:44:33:00:33:11:00:33
 - ip link set ib4 vf 0 port_guid 10:21:33:12:00:11:22:10
 - ip link show ib4
-    ib4: <BROADCAST,MULTICAST> mtu 4092 qdisc noop state DOWN mode DEFAULT group default qlen 256
-    link/infiniband 00:00:0a:2d:fe:80:00:00:00:00:00:00:ec:0d:9a:03:00:44:36:8d brd 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
-    vf 0     link/infiniband 00:00:0a:2d:fe:80:00:00:00:00:00:00:ec:0d:9a:03:00:44:36:8d brd 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff,
-    spoof checking off, NODE_GUID 22:44:33:00:33:11:00:33, PORT_GUID 10:21:33:12:00:11:22:10, link-state disable, trust off, query_rss off
+ib4: <BROADCAST,MULTICAST> mtu 4092 qdisc noop state DOWN mode DEFAULT group default qlen 256
+link/infiniband 00:00:0a:2d:fe:80:00:00:00:00:00:00:ec:0d:9a:03:00:44:36:8d brd 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+vf 0     link/infiniband 00:00:0a:2d:fe:80:00:00:00:00:00:00:ec:0d:9a:03:00:44:36:8d brd 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff,
+spoof checking off, NODE_GUID 22:44:33:00:33:11:00:33, PORT_GUID 10:21:33:12:00:11:22:10, link-state disable, trust off, query_rss off
 
-Due to the fact that this series touches both net and RDMA, we assume
-that it needs to be applied to our shared branch (mlx5-next) and pulled
-later by Dave and Doug/Jason.
+Signed-off-by: Danit Goldberg <danitg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ ip/ipaddress.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-Thanks
-
-Danit Goldberg (4):
-  net/core: Add support for getting VF GUIDs
-  IB/core: Add interfaces to get VF node and port GUIDs
-  IB/ipoib: Add ndo operation for getting VFs GUID attributes
-  IB/mlx5: Implement callbacks for getting VFs GUID attributes
-
- drivers/infiniband/core/device.c          |  1 +
- drivers/infiniband/core/verbs.c           | 10 ++++++++++
- drivers/infiniband/hw/mlx5/ib_virt.c      | 24 +++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/main.c         |  1 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h      |  3 +++
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 10 ++++++++++
- include/linux/netdevice.h                 |  4 ++++
- include/rdma/ib_verbs.h                   |  6 ++++++
- net/core/rtnetlink.c                      | 11 +++++++++++
- 9 files changed, 70 insertions(+)
-
---
+diff --git a/ip/ipaddress.c b/ip/ipaddress.c
+index b72eb7a1..ed72d0bd 100644
+--- a/ip/ipaddress.c
++++ b/ip/ipaddress.c
+@@ -484,6 +484,29 @@ static void print_vfinfo(FILE *fp, struct ifinfomsg *ifi, struct rtattr *vfinfo)
+ 				   vf_spoofchk->setting);
+ 	}
+ 
++#define GUID_STR_LEN 24
++	if (vf[IFLA_VF_IB_NODE_GUID]) {
++		char buf[GUID_STR_LEN];
++		struct ifla_vf_guid *guid = RTA_DATA(vf[IFLA_VF_IB_NODE_GUID]);
++		uint64_t node_guid = ntohll(guid->guid);
++
++		print_string(PRINT_ANY, "node guid", ", NODE_GUID %s",
++				ll_addr_n2a((const unsigned char *)&node_guid,
++					 RTA_PAYLOAD(vf[IFLA_VF_IB_NODE_GUID]),
++					 ARPHRD_INFINIBAND,
++					 buf, sizeof(buf)));
++	}
++	if (vf[IFLA_VF_IB_PORT_GUID]) {
++		char buf[GUID_STR_LEN];
++		struct ifla_vf_guid *guid = RTA_DATA(vf[IFLA_VF_IB_PORT_GUID]);
++		uint64_t port_guid = ntohll(guid->guid);
++
++		print_string(PRINT_ANY, "port guid", ", PORT_GUID %s",
++				ll_addr_n2a((const unsigned char *)&port_guid,
++					 RTA_PAYLOAD(vf[IFLA_VF_IB_PORT_GUID]),
++					 ARPHRD_INFINIBAND,
++					 buf, sizeof(buf)));
++	}
+ 	if (vf[IFLA_VF_LINK_STATE]) {
+ 		struct ifla_vf_link_state *vf_linkstate =
+ 			RTA_DATA(vf[IFLA_VF_LINK_STATE]);
+-- 
 2.20.1
 
