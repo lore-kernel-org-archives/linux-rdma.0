@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C03CC43141
-	for <linux-rdma@archiver.kernel.org>; Fri, 15 Nov 2019 05:58:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C02C43141
+	for <linux-rdma@archiver.kernel.org>; Fri, 15 Nov 2019 05:58:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 563712072D
-	for <linux-rdma@archiver.kernel.org>; Fri, 15 Nov 2019 05:58:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABC9C2075E
+	for <linux-rdma@archiver.kernel.org>; Fri, 15 Nov 2019 05:58:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Lr98RhG1"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="QB7rz/OL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727118AbfKOFxv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 15 Nov 2019 00:53:51 -0500
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:10609 "EHLO
-        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726553AbfKOFxu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 15 Nov 2019 00:53:50 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dce3d690002>; Thu, 14 Nov 2019 21:53:45 -0800
+        id S1727994AbfKOF6D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 15 Nov 2019 00:58:03 -0500
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:4987 "EHLO
+        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726196AbfKOFxv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 15 Nov 2019 00:53:51 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate14.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dce3d6c0000>; Thu, 14 Nov 2019 21:53:48 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
+  by hqpgpgate102.nvidia.com (PGP Universal service);
   Thu, 14 Nov 2019 21:53:45 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Thu, 14 Nov 2019 21:53:45 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 15 Nov
- 2019 05:53:45 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Fri, 15 Nov 2019 05:53:45 +0000
+        by hqpgpgate102.nvidia.com on Thu, 14 Nov 2019 21:53:45 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 15 Nov
+ 2019 05:53:43 +0000
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 15 Nov
+ 2019 05:53:43 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Fri, 15 Nov 2019 05:53:43 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dce3d680009>; Thu, 14 Nov 2019 21:53:44 -0800
+        id <B5dce3d670004>; Thu, 14 Nov 2019 21:53:43 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -53,12 +56,11 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
+        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -67,61 +69,96 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v5 16/24] net/xdp: set FOLL_PIN via pin_user_pages()
-Date:   Thu, 14 Nov 2019 21:53:32 -0800
-Message-ID: <20191115055340.1825745-17-jhubbard@nvidia.com>
+Subject: [PATCH v5 03/24] mm/gup: move try_get_compound_head() to top, fix minor issues
+Date:   Thu, 14 Nov 2019 21:53:19 -0800
+Message-ID: <20191115055340.1825745-4-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191115055340.1825745-1-jhubbard@nvidia.com>
 References: <20191115055340.1825745-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1573797225; bh=JiuMSIu1KROGnYN0FUrQmmZholMbEQnfhCSo9iAG4Tw=;
+        t=1573797228; bh=d/evUCgyh4jJdY5ueaFF83lqRKs0ktjGRjtkREPwHjI=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Type:Content-Transfer-Encoding;
-        b=Lr98RhG1tdsqYwnbXMSzbUdWbL674VZdXLsVAgHvVfrs4Hk6lBTc3JKG4tmaUMzLY
-         kKWmn4CVywlkea7GLWF9HCnCy7Gso6hbPQdfdShqQR98JvMhWr14DCr28YVtKSVlyp
-         mlrhJHBEKkELIhKp0qvI07yd+HzJVN465g8cV1i24T75NYzIiLnddO57oL0PJf6Euu
-         UgY7fTW+AmvxU2v6ggU/PG38PrfXJEOPKksOfyIK8rtfga23etn94AgtGUIjiFFemY
-         YTEr1+qk02/Z9sYgvFOmjbA67wdpIEaTZNwTfDa7KHdoB3wMLyk7xhocHeBYEGu8nk
-         igvLkkjfoocbw==
+         Content-Transfer-Encoding:Content-Type;
+        b=QB7rz/OLZU9ZWRQo12u7PAgDCtQ74XPmIH/aL6txgqpbr2Qa5qC6IuKjaG0Flwl/S
+         T6pB7Kos8jG8bN8Ac0Qc4rydLSuRDis71LxJiynKerPFEnwpVIqBF+n/LiC2QCDn5B
+         A64ahgTCmsYHx+ddsl95NmdxhtB5diD3x6CBgGAgsuvuplOvHpf56wICN5EohFleLE
+         WWapMkPsiqWSikj2RW4bzHxTJvOkRSoGQwh9Uxcf5g87AONOzNZyp87gT7smahdAdO
+         3pSKKFMQRi70fVPADRAtmPbLAit2nPzJYUdM3IYHiNEPbFf6eQsb7LMmsvPWpaYdZX
+         dAqvgtjG+2SoA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Convert net/xdp to use the new pin_longterm_pages() call, which sets
-FOLL_PIN. Setting FOLL_PIN is now required for code that requires
-tracking of pinned pages.
+An upcoming patch uses try_get_compound_head() more widely,
+so move it to the top of gup.c.
 
-In partial anticipation of this work, the net/xdp code was already
-calling put_user_page() instead of put_page(). Therefore, in order to
-convert from the get_user_pages()/put_page() model, to the
-pin_user_pages()/put_user_page() model, the only change required
-here is to change get_user_pages() to pin_user_pages().
+Also fix a tiny spelling error and a checkpatch.pl warning.
 
-Acked-by: Bj=C3=B6rn T=C3=B6pel <bjorn.topel@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- net/xdp/xdp_umem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c | 29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
-index 3049af269fbf..d071003b5e76 100644
---- a/net/xdp/xdp_umem.c
-+++ b/net/xdp/xdp_umem.c
-@@ -291,7 +291,7 @@ static int xdp_umem_pin_pages(struct xdp_umem *umem)
- 		return -ENOMEM;
+diff --git a/mm/gup.c b/mm/gup.c
+index 858541ea30ce..b859bd4da4d7 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -29,6 +29,21 @@ struct follow_page_context {
+ 	unsigned int page_mask;
+ };
 =20
- 	down_read(&current->mm->mmap_sem);
--	npgs =3D get_user_pages(umem->address, umem->npgs,
-+	npgs =3D pin_user_pages(umem->address, umem->npgs,
- 			      gup_flags | FOLL_LONGTERM, &umem->pgs[0], NULL);
- 	up_read(&current->mm->mmap_sem);
++/*
++ * Return the compound head page with ref appropriately incremented,
++ * or NULL if that failed.
++ */
++static inline struct page *try_get_compound_head(struct page *page, int re=
+fs)
++{
++	struct page *head =3D compound_head(page);
++
++	if (WARN_ON_ONCE(page_ref_count(head) < 0))
++		return NULL;
++	if (unlikely(!page_cache_add_speculative(head, refs)))
++		return NULL;
++	return head;
++}
++
+ /**
+  * put_user_pages_dirty_lock() - release and optionally dirty gup-pinned p=
+ages
+  * @pages:  array of pages to be maybe marked dirty, and definitely releas=
+ed.
+@@ -1793,20 +1808,6 @@ static void __maybe_unused undo_dev_pagemap(int *nr,=
+ int nr_start,
+ 	}
+ }
 =20
+-/*
+- * Return the compund head page with ref appropriately incremented,
+- * or NULL if that failed.
+- */
+-static inline struct page *try_get_compound_head(struct page *page, int re=
+fs)
+-{
+-	struct page *head =3D compound_head(page);
+-	if (WARN_ON_ONCE(page_ref_count(head) < 0))
+-		return NULL;
+-	if (unlikely(!page_cache_add_speculative(head, refs)))
+-		return NULL;
+-	return head;
+-}
+-
+ #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
+ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 			 unsigned int flags, struct page **pages, int *nr)
 --=20
 2.24.0
 
