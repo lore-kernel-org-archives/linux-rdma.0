@@ -2,119 +2,63 @@ Return-Path: <SRS0=zL3b=ZI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 144A5C43141
-	for <linux-rdma@archiver.kernel.org>; Sat, 16 Nov 2019 16:26:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11768C432C0
+	for <linux-rdma@archiver.kernel.org>; Sat, 16 Nov 2019 21:11:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E234621847
-	for <linux-rdma@archiver.kernel.org>; Sat, 16 Nov 2019 16:26:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573921587;
-	bh=5Rj1jG5AzJgIvv4KhlSc3ZZrRvnb6Sthh2t/XsVj9iQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=wzAxIDu7H2nr5mT7ZgKVyFoA6LqjSwFicafsYCU/IaRQA65zRCoV9zRXJ4GTxCkcg
-	 HoCBL0ygJaVh89cLLqASS2ZpR59w2yGH2WQICIjjVYEG28n3QGFOHJNC4k4WfCgfGd
-	 w/xM0tLzUNF4LeX8IpKN4WYzD0AeMBrPeHFfD+iY=
+	by mail.kernel.org (Postfix) with ESMTP id DDFB520729
+	for <linux-rdma@archiver.kernel.org>; Sat, 16 Nov 2019 21:10:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728054AbfKPPl4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 16 Nov 2019 10:41:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45292 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728042AbfKPPl4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 16 Nov 2019 10:41:56 -0500
-Received: from sasha-vm.mshome.net (unknown [50.234.116.4])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1CF9020740;
-        Sat, 16 Nov 2019 15:41:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573918915;
-        bh=5Rj1jG5AzJgIvv4KhlSc3ZZrRvnb6Sthh2t/XsVj9iQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AohsvXIIBUS/tAuy7LCnQk6sL3NRTht3UKmgkX9Q7TDlvXx78jTlR8sFSrDJsEgLi
-         8egeh5iaXqjKbQ3ozGNK/kTtbLfpyQnpGlOSGoFnuhr7Nub2bUsJl0vD7XQ3nIwV/9
-         OjIVHO9GyZdgqpQ7PRsevsWFsHcM2k/aMQOMcv2c=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Selvin Xavier <selvin.xavier@broadcom.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 038/237] RDMA/bnxt_re: Avoid NULL check after accessing the pointer
-Date:   Sat, 16 Nov 2019 10:37:53 -0500
-Message-Id: <20191116154113.7417-38-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191116154113.7417-1-sashal@kernel.org>
-References: <20191116154113.7417-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S1727505AbfKPVK7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 16 Nov 2019 16:10:59 -0500
+Received: from shards.monkeyblade.net ([23.128.96.9]:53888 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727485AbfKPVK7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 16 Nov 2019 16:10:59 -0500
+Received: from localhost (unknown [IPv6:2601:601:9f00:1e2::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 8FE22151A2092;
+        Sat, 16 Nov 2019 13:10:58 -0800 (PST)
+Date:   Sat, 16 Nov 2019 13:10:58 -0800 (PST)
+Message-Id: <20191116.131058.1856199123293908506.davem@davemloft.net>
+To:     lrizzo@google.com
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, tariqt@mellanox.com
+Subject: Re: [PATCH] net/mlx4_en: fix mlx4 ethtool -N insertion
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20191115201225.92888-1-lrizzo@google.com>
+References: <20191115201225.92888-1-lrizzo@google.com>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Sat, 16 Nov 2019 13:10:58 -0800 (PST)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Selvin Xavier <selvin.xavier@broadcom.com>
+From: Luigi Rizzo <lrizzo@google.com>
+Date: Fri, 15 Nov 2019 12:12:25 -0800
 
-[ Upstream commit eae4ad1b0c9a77ef0cbac212d58d46976eaacfc1 ]
+> ethtool expects ETHTOOL_GRXCLSRLALL to set ethtool_rxnfc->data with the
+> total number of entries in the rx classifier table.  Surprisingly, mlx4
+> is missing this part (in principle ethtool could still move forward and
+> try the insert).
+> 
+> Tested: compiled and run command:
+> 	phh13:~# ethtool -N eth1 flow-type udp4  queue 4
+> 	Added rule with ID 255
+> 
+> Signed-off-by: Luigi Rizzo <lrizzo@google.com>
+> Change-Id: I18a72f08dfcfb6b9f6aa80fbc12d58553e1fda76
 
-This is reported by smatch check.  rcfw->creq_bar_reg_iomem is accessed in
-bnxt_qplib_rcfw_stop_irq and this variable check afterwards doesn't make
-sense.  Also, rcfw->creq_bar_reg_iomem will never be NULL.  So Removing
-this check.
+Luigi, _always_ CC: the appropriate maintainer when making changes to the
+kernel, as per the top-level MAINTAINERS file.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Fixes: 6e04b1035689 ("RDMA/bnxt_re: Fix broken RoCE driver due to recent L2 driver changes")
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-index 6637df77d2365..8b3b5fdc19bbb 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-@@ -614,13 +614,8 @@ void bnxt_qplib_disable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
- 
- 	bnxt_qplib_rcfw_stop_irq(rcfw, true);
- 
--	if (rcfw->cmdq_bar_reg_iomem)
--		iounmap(rcfw->cmdq_bar_reg_iomem);
--	rcfw->cmdq_bar_reg_iomem = NULL;
--
--	if (rcfw->creq_bar_reg_iomem)
--		iounmap(rcfw->creq_bar_reg_iomem);
--	rcfw->creq_bar_reg_iomem = NULL;
-+	iounmap(rcfw->cmdq_bar_reg_iomem);
-+	iounmap(rcfw->creq_bar_reg_iomem);
- 
- 	indx = find_first_bit(rcfw->cmdq_bitmap, rcfw->bmap_size);
- 	if (indx != rcfw->bmap_size)
-@@ -629,6 +624,8 @@ void bnxt_qplib_disable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
- 	kfree(rcfw->cmdq_bitmap);
- 	rcfw->bmap_size = 0;
- 
-+	rcfw->cmdq_bar_reg_iomem = NULL;
-+	rcfw->creq_bar_reg_iomem = NULL;
- 	rcfw->aeq_handler = NULL;
- 	rcfw->vector = 0;
- }
-@@ -714,6 +711,8 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
- 		dev_err(&rcfw->pdev->dev,
- 			"QPLIB: CREQ BAR region %d mapping failed",
- 			rcfw->creq_bar_reg);
-+		iounmap(rcfw->cmdq_bar_reg_iomem);
-+		rcfw->cmdq_bar_reg_iomem = NULL;
- 		return -ENOMEM;
- 	}
- 	rcfw->creq_qp_event_processed = 0;
--- 
-2.20.1
-
+Tariq et al., please review.
