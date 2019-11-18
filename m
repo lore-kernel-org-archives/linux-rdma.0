@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C867FC432C0
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B2DC43141
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A8ABF2084D
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:01:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 364FB20857
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727299AbfKRMBs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Nov 2019 07:01:48 -0500
-Received: from mx2.suse.de ([195.135.220.15]:37574 "EHLO mx1.suse.de"
+        id S1727114AbfKRMB0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Nov 2019 07:01:26 -0500
+Received: from mx2.suse.de ([195.135.220.15]:37310 "EHLO mx1.suse.de"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726895AbfKRMB1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 Nov 2019 07:01:27 -0500
+        id S1726518AbfKRMBZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 18 Nov 2019 07:01:25 -0500
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id E731CB061;
+        by mx1.suse.de (Postfix) with ESMTP id 8ECD9AFF6;
         Mon, 18 Nov 2019 12:01:20 +0000 (UTC)
 Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 7EC421E4B09; Mon, 18 Nov 2019 11:16:58 +0100 (CET)
-Date:   Mon, 18 Nov 2019 11:16:58 +0100
+        id CAC881E4AFE; Mon, 18 Nov 2019 10:47:37 +0100 (CET)
+Date:   Mon, 18 Nov 2019 10:47:37 +0100
 From:   Jan Kara <jack@suse.cz>
 To:     John Hubbard <jhubbard@nvidia.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -57,41 +57,30 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
         linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v5 11/24] goldish_pipe: convert to pin_user_pages() and
- put_user_page()
-Message-ID: <20191118101658.GG17319@quack2.suse.cz>
+Subject: Re: [PATCH v5 06/24] goldish_pipe: rename local pin_user_pages()
+ routine
+Message-ID: <20191118094737.GD17319@quack2.suse.cz>
 References: <20191115055340.1825745-1-jhubbard@nvidia.com>
- <20191115055340.1825745-12-jhubbard@nvidia.com>
+ <20191115055340.1825745-7-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20191115055340.1825745-12-jhubbard@nvidia.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20191115055340.1825745-7-jhubbard@nvidia.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu 14-11-19 21:53:27, John Hubbard wrote:
-> 1. Call the new global pin_user_pages_fast(), from pin_goldfish_pages().
+On Thu 14-11-19 21:53:22, John Hubbard wrote:
+> 1. Avoid naming conflicts: rename local static function from
+> "pin_user_pages()" to "pin_goldfish_pages()".
 > 
-> 2. As required by pin_user_pages(), release these pages via
-> put_user_page(). In this case, do so via put_user_pages_dirty_lock().
+> An upcoming patch will introduce a global pin_user_pages()
+> function.
 > 
-> That has the side effect of calling set_page_dirty_lock(), instead
-> of set_page_dirty(). This is probably more accurate.
-> 
-> As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-> dealing with a file backed page where we have reference on the inode it
-> hangs off." [1]
-> 
-> Another side effect is that the release code is simplified because
-> the page[] loop is now in gup.c instead of here, so just delete the
-> local release_user_pages() entirely, and call
-> put_user_pages_dirty_lock() directly, instead.
-> 
-> [1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-> 
+> Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
 > Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 
@@ -102,51 +91,45 @@ Reviewed-by: Jan Kara <jack@suse.cz>
 								Honza
 
 > ---
->  drivers/platform/goldfish/goldfish_pipe.c | 17 +++--------------
->  1 file changed, 3 insertions(+), 14 deletions(-)
+>  drivers/platform/goldfish/goldfish_pipe.c | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
 > 
 > diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
-> index 7ed2a21a0bac..635a8bc1b480 100644
+> index cef0133aa47a..7ed2a21a0bac 100644
 > --- a/drivers/platform/goldfish/goldfish_pipe.c
 > +++ b/drivers/platform/goldfish/goldfish_pipe.c
-> @@ -274,7 +274,7 @@ static int pin_goldfish_pages(unsigned long first_page,
->  		*iter_last_page_size = last_page_size;
+> @@ -257,12 +257,12 @@ static int goldfish_pipe_error_convert(int status)
 >  	}
->  
-> -	ret = get_user_pages_fast(first_page, requested_pages,
-> +	ret = pin_user_pages_fast(first_page, requested_pages,
->  				  !is_write ? FOLL_WRITE : 0,
->  				  pages);
->  	if (ret <= 0)
-> @@ -285,18 +285,6 @@ static int pin_goldfish_pages(unsigned long first_page,
->  	return ret;
 >  }
 >  
-> -static void release_user_pages(struct page **pages, int pages_count,
-> -			       int is_write, s32 consumed_size)
-> -{
-> -	int i;
-> -
-> -	for (i = 0; i < pages_count; i++) {
-> -		if (!is_write && consumed_size > 0)
-> -			set_page_dirty(pages[i]);
-> -		put_page(pages[i]);
-> -	}
-> -}
-> -
->  /* Populate the call parameters, merging adjacent pages together */
->  static void populate_rw_params(struct page **pages,
->  			       int pages_count,
-> @@ -372,7 +360,8 @@ static int transfer_max_buffers(struct goldfish_pipe *pipe,
+> -static int pin_user_pages(unsigned long first_page,
+> -			  unsigned long last_page,
+> -			  unsigned int last_page_size,
+> -			  int is_write,
+> -			  struct page *pages[MAX_BUFFERS_PER_COMMAND],
+> -			  unsigned int *iter_last_page_size)
+> +static int pin_goldfish_pages(unsigned long first_page,
+> +			      unsigned long last_page,
+> +			      unsigned int last_page_size,
+> +			      int is_write,
+> +			      struct page *pages[MAX_BUFFERS_PER_COMMAND],
+> +			      unsigned int *iter_last_page_size)
+>  {
+>  	int ret;
+>  	int requested_pages = ((last_page - first_page) >> PAGE_SHIFT) + 1;
+> @@ -354,9 +354,9 @@ static int transfer_max_buffers(struct goldfish_pipe *pipe,
+>  	if (mutex_lock_interruptible(&pipe->lock))
+>  		return -ERESTARTSYS;
 >  
->  	*consumed_size = pipe->command_buffer->rw_params.consumed_size;
->  
-> -	release_user_pages(pipe->pages, pages_count, is_write, *consumed_size);
-> +	put_user_pages_dirty_lock(pipe->pages, pages_count,
-> +				  !is_write && *consumed_size > 0);
->  
->  	mutex_unlock(&pipe->lock);
->  	return 0;
+> -	pages_count = pin_user_pages(first_page, last_page,
+> -				     last_page_size, is_write,
+> -				     pipe->pages, &iter_last_page_size);
+> +	pages_count = pin_goldfish_pages(first_page, last_page,
+> +					 last_page_size, is_write,
+> +					 pipe->pages, &iter_last_page_size);
+>  	if (pages_count < 0) {
+>  		mutex_unlock(&pipe->lock);
+>  		return pages_count;
 > -- 
 > 2.24.0
 > 
