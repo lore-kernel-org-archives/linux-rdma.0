@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E25DFC43141
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE472C432C0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C230120857
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE0BB20862
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727364AbfKRMCN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Nov 2019 07:02:13 -0500
-Received: from mx2.suse.de ([195.135.220.15]:37464 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726760AbfKRMBZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727075AbfKRMBZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 18 Nov 2019 07:01:25 -0500
+Received: from mx2.suse.de ([195.135.220.15]:37228 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726506AbfKRMBX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 18 Nov 2019 07:01:23 -0500
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id BB66FB02C;
+        by mx1.suse.de (Postfix) with ESMTP id 956F2B021;
         Mon, 18 Nov 2019 12:01:20 +0000 (UTC)
 Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 7DE191E4B03; Mon, 18 Nov 2019 10:49:18 +0100 (CET)
-Date:   Mon, 18 Nov 2019 10:49:18 +0100
+        id 2A7271E4AF8; Mon, 18 Nov 2019 10:46:04 +0100 (CET)
+Date:   Mon, 18 Nov 2019 10:46:04 +0100
 From:   Jan Kara <jack@suse.cz>
 To:     John Hubbard <jhubbard@nvidia.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -57,81 +57,83 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
         linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH v5 07/24] IB/umem: use get_user_pages_fast() to pin DMA
- pages
-Message-ID: <20191118094918.GE17319@quack2.suse.cz>
+        Christoph Hellwig <hch@lst.de>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: [PATCH v5 02/24] mm/gup: factor out duplicate code from four
+ routines
+Message-ID: <20191118094604.GC17319@quack2.suse.cz>
 References: <20191115055340.1825745-1-jhubbard@nvidia.com>
- <20191115055340.1825745-8-jhubbard@nvidia.com>
+ <20191115055340.1825745-3-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20191115055340.1825745-8-jhubbard@nvidia.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20191115055340.1825745-3-jhubbard@nvidia.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu 14-11-19 21:53:23, John Hubbard wrote:
-> And get rid of the mmap_sem calls, as part of that. Note
-> that get_user_pages_fast() will, if necessary, fall back to
-> __gup_longterm_unlocked(), which takes the mmap_sem as needed.
+On Thu 14-11-19 21:53:18, John Hubbard wrote:
+> There are four locations in gup.c that have a fair amount of code
+> duplication. This means that changing one requires making the same
+> changes in four places, not to mention reading the same code four
+> times, and wondering if there are subtle differences.
 > 
-> Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> Factor out the common code into static functions, thus reducing the
+> overall line count and the code's complexity.
+> 
+> Also, take the opportunity to slightly improve the efficiency of the
+> error cases, by doing a mass subtraction of the refcount, surrounded
+> by get_page()/put_page().
+> 
+> Also, further simplify (slightly), by waiting until the the successful
+> end of each routine, to increment *nr.
+> 
+> Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Ira Weiny <ira.weiny@intel.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> ---
+>  mm/gup.c | 95 ++++++++++++++++++++++++--------------------------------
+>  1 file changed, 40 insertions(+), 55 deletions(-)
+> 
+> diff --git a/mm/gup.c b/mm/gup.c
+> index 85caf76b3012..858541ea30ce 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -1969,6 +1969,29 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
+>  }
+>  #endif
+>  
+> +static int __record_subpages(struct page *page, unsigned long addr,
+> +			     unsigned long end, struct page **pages)
+> +{
+> +	int nr = 0;
+> +	int nr_recorded_pages = 0;
+> +
+> +	do {
+> +		pages[nr] = page;
+> +		nr++;
+> +		page++;
+> +		nr_recorded_pages++;
+> +	} while (addr += PAGE_SIZE, addr != end);
+> +	return nr_recorded_pages;
 
-Looks good to me. You can add:
+nr == nr_recorded_pages so no need for both... BTW, structuring this as a
+for loop would be probably more logical and shorter now:
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+	for (nr = 0; addr != end; addr += PAGE_SIZE)
+		pages[nr++] = page++;
+	return nr;
+
+The rest of the patch looks good to me.
 
 								Honza
 
-
-> ---
->  drivers/infiniband/core/umem.c | 17 ++++++-----------
->  1 file changed, 6 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> index 24244a2f68cc..3d664a2539eb 100644
-> --- a/drivers/infiniband/core/umem.c
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -271,16 +271,13 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
->  	sg = umem->sg_head.sgl;
->  
->  	while (npages) {
-> -		down_read(&mm->mmap_sem);
-> -		ret = get_user_pages(cur_base,
-> -				     min_t(unsigned long, npages,
-> -					   PAGE_SIZE / sizeof (struct page *)),
-> -				     gup_flags | FOLL_LONGTERM,
-> -				     page_list, NULL);
-> -		if (ret < 0) {
-> -			up_read(&mm->mmap_sem);
-> +		ret = get_user_pages_fast(cur_base,
-> +					  min_t(unsigned long, npages,
-> +						PAGE_SIZE /
-> +						sizeof(struct page *)),
-> +					  gup_flags | FOLL_LONGTERM, page_list);
-> +		if (ret < 0)
->  			goto umem_release;
-> -		}
->  
->  		cur_base += ret * PAGE_SIZE;
->  		npages   -= ret;
-> @@ -288,8 +285,6 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
->  		sg = ib_umem_add_sg_table(sg, page_list, ret,
->  			dma_get_max_seg_size(context->device->dma_device),
->  			&umem->sg_nents);
-> -
-> -		up_read(&mm->mmap_sem);
->  	}
->  
->  	sg_mark_end(sg);
-> -- 
-> 2.24.0
-> 
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
