@@ -2,30 +2,29 @@ Return-Path: <SRS0=0J7V=ZK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE472C432C0
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF76C43215
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE0BB20862
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 702BF2084D
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727075AbfKRMBZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Nov 2019 07:01:25 -0500
-Received: from mx2.suse.de ([195.135.220.15]:37228 "EHLO mx1.suse.de"
+        id S1727423AbfKRMC2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Nov 2019 07:02:28 -0500
+Received: from mx2.suse.de ([195.135.220.15]:37408 "EHLO mx1.suse.de"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726506AbfKRMBX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 Nov 2019 07:01:23 -0500
+        id S1726490AbfKRMBY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 18 Nov 2019 07:01:24 -0500
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 956F2B021;
+        by mx1.suse.de (Postfix) with ESMTP id 8CBC2AFDB;
         Mon, 18 Nov 2019 12:01:20 +0000 (UTC)
 Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 2A7271E4AF8; Mon, 18 Nov 2019 10:46:04 +0100 (CET)
-Date:   Mon, 18 Nov 2019 10:46:04 +0100
+        id BE4051E4B05; Mon, 18 Nov 2019 11:16:01 +0100 (CET)
+Date:   Mon, 18 Nov 2019 11:16:01 +0100
 From:   Jan Kara <jack@suse.cz>
 To:     John Hubbard <jhubbard@nvidia.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -57,83 +56,42 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
         linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
-        Christoph Hellwig <hch@lst.de>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Subject: Re: [PATCH v5 02/24] mm/gup: factor out duplicate code from four
- routines
-Message-ID: <20191118094604.GC17319@quack2.suse.cz>
+        Mike Rapoport <rppt@linux.ibm.com>
+Subject: Re: [PATCH v5 10/24] mm/gup: introduce pin_user_pages*() and FOLL_PIN
+Message-ID: <20191118101601.GF17319@quack2.suse.cz>
 References: <20191115055340.1825745-1-jhubbard@nvidia.com>
- <20191115055340.1825745-3-jhubbard@nvidia.com>
+ <20191115055340.1825745-11-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20191115055340.1825745-3-jhubbard@nvidia.com>
+In-Reply-To: <20191115055340.1825745-11-jhubbard@nvidia.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu 14-11-19 21:53:18, John Hubbard wrote:
-> There are four locations in gup.c that have a fair amount of code
-> duplication. This means that changing one requires making the same
-> changes in four places, not to mention reading the same code four
-> times, and wondering if there are subtle differences.
-> 
-> Factor out the common code into static functions, thus reducing the
-> overall line count and the code's complexity.
-> 
-> Also, take the opportunity to slightly improve the efficiency of the
-> error cases, by doing a mass subtraction of the refcount, surrounded
-> by get_page()/put_page().
-> 
-> Also, further simplify (slightly), by waiting until the the successful
-> end of each routine, to increment *nr.
-> 
-> Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-> ---
->  mm/gup.c | 95 ++++++++++++++++++++++++--------------------------------
->  1 file changed, 40 insertions(+), 55 deletions(-)
-> 
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 85caf76b3012..858541ea30ce 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -1969,6 +1969,29 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
->  }
->  #endif
->  
-> +static int __record_subpages(struct page *page, unsigned long addr,
-> +			     unsigned long end, struct page **pages)
-> +{
-> +	int nr = 0;
-> +	int nr_recorded_pages = 0;
-> +
-> +	do {
-> +		pages[nr] = page;
-> +		nr++;
-> +		page++;
-> +		nr_recorded_pages++;
-> +	} while (addr += PAGE_SIZE, addr != end);
-> +	return nr_recorded_pages;
+On Thu 14-11-19 21:53:26, John Hubbard wrote:
+>  /*
+> - * NOTE on FOLL_LONGTERM:
+> + * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
+> + * other. Here is what they mean, and how to use them:
+>   *
+>   * FOLL_LONGTERM indicates that the page will be held for an indefinite time
+> - * period _often_ under userspace control.  This is contrasted with
+> - * iov_iter_get_pages() where usages which are transient.
+> + * period _often_ under userspace control.  This is in contrast to
+> + * iov_iter_get_pages(), where usages which are transient.
+                          ^^^ when you touch this, please fix also the
+second sentense. It doesn't quite make sense to me... I'd probably write
+there "whose usages are transient" but maybe you can come up with something
+even better.
 
-nr == nr_recorded_pages so no need for both... BTW, structuring this as a
-for loop would be probably more logical and shorter now:
+Otherwise the patch looks good to me so feel free to add:
 
-	for (nr = 0; addr != end; addr += PAGE_SIZE)
-		pages[nr++] = page++;
-	return nr;
-
-The rest of the patch looks good to me.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
 								Honza
-
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
