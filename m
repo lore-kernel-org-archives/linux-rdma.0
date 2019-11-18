@@ -2,322 +2,116 @@ Return-Path: <SRS0=0J7V=ZK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FDEBC33C9A
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 02:38:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 384ACC432C0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 04:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5939E206DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 02:38:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E749420727
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 04:59:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ryussi-com.20150623.gappssmtp.com header.i=@ryussi-com.20150623.gappssmtp.com header.b="XzKqzgTF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726266AbfKRCi3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 17 Nov 2019 21:38:29 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6689 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726068AbfKRCi3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 17 Nov 2019 21:38:29 -0500
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 765AC31DA5A4C0243FBC;
-        Mon, 18 Nov 2019 10:38:24 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 18 Nov 2019 10:38:14 +0800
-From:   Weihang Li <liweihang@hisilicon.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/4] RDMA/hns: Redefine the member of hns_roce_cq struct
-Date:   Mon, 18 Nov 2019 10:34:51 +0800
-Message-ID: <1574044493-46984-3-git-send-email-liweihang@hisilicon.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1574044493-46984-1-git-send-email-liweihang@hisilicon.com>
-References: <1574044493-46984-1-git-send-email-liweihang@hisilicon.com>
+        id S1726328AbfKRE7i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 17 Nov 2019 23:59:38 -0500
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:42281 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726314AbfKRE7i (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 17 Nov 2019 23:59:38 -0500
+Received: by mail-pl1-f196.google.com with SMTP id j12so9035482plt.9
+        for <linux-rdma@vger.kernel.org>; Sun, 17 Nov 2019 20:59:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ryussi-com.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=7CVKJX4iKY/TyW+AjcBFkCW+JCWb9TO+uAsM/3K11s0=;
+        b=XzKqzgTFDiAjJsqjbko2C8EtVXoL9hlbcC4IzsRAXtyiFzdKvvRHI2BryEjrm4b2YO
+         /S+0+QIdyQ4AkqXsugG4wCIAVVaoX1UtS2ruDuJjC+7mft1sj+0B4WMagWSf6xMmrdOJ
+         dXLP81WTShGVAoRsUGhNTR6cPAqgeMEvnQbezcRZMKlgDYkrQFcgzV1w5E7ELsKwGZX2
+         2JQQEDFHf0UD6hQzTr3I4I0ctiiG2uZ2nJM8INyIniNUREPhNpul42Ks2MktoH/xUw6M
+         0irvj2TOi2DtKXHzHE67AgvBVrlxM/ZuUAXHikYzmObTovfxkEevexHk6Mo3BdNF26Rt
+         vpBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=7CVKJX4iKY/TyW+AjcBFkCW+JCWb9TO+uAsM/3K11s0=;
+        b=HYMvZ2XOywArjgUsrlk28c8HknffTtUkhX3bQo50sJqyIvPZTPk0lv8PWPEB1dIf65
+         KKzUAB0QLMiXdbu3ESVMtlIUSn2jqsw1kacxvYTjJN8+/RczlWzhaVL3Q/HEixi7UeFi
+         RHcafYCslNV4PNVnRQHOMJOpGTzRCxk3njK0Bx5q0uksR3zRDuWdEjXzBbDVhFbz3vrc
+         pigq7zZRKXW0XwAZRXg28AC4sW99RQ5FOdVYqUC+sf+uLxCx71usK9rCiZZ0LkUdRrFR
+         eNJSP+PYz9TezZl8wJVMmUA9DsFTncBWotdRDWsxfGhnUjZIKo2EiUHqKprs2JwN/6d2
+         aoig==
+X-Gm-Message-State: APjAAAXeLEqCWC/wmqyo6Sup7AITf9E01uicz1ZumrE9nEKV4FSYGdYh
+        o6ncyJd9//NKbVm5/UXhXvKCd5OE7jQ=
+X-Google-Smtp-Source: APXvYqyxO645VOu0HSClxidfDJSaXFFaUcHtuyt/g9x68hTallClJdTcATiab5fRVaiV+iRc9HfDJw==
+X-Received: by 2002:a17:90a:a58b:: with SMTP id b11mr37417244pjq.46.1574053176883;
+        Sun, 17 Nov 2019 20:59:36 -0800 (PST)
+Received: from [172.31.254.84] ([182.73.204.74])
+        by smtp.gmail.com with ESMTPSA id p3sm20238000pfb.163.2019.11.17.20.59.34
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 17 Nov 2019 20:59:36 -0800 (PST)
+Subject: Re: [question] ibv_reg_mr() returning EACCESS
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org
+References: <141f4c07-b7f1-1355-7ff7-d62605ee63b5@ryussi.com>
+ <20191115141210.GC4055@ziepe.ca>
+From:   Vinit Agnihotri <vinita@ryussi.com>
+Message-ID: <cc6543bd-0c8d-40e3-f384-68a847b873b3@ryussi.com>
+Date:   Mon, 18 Nov 2019 10:29:33 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+In-Reply-To: <20191115141210.GC4055@ziepe.ca>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+Thank you Jason.
 
-There is no need to package buf and mtt into hns_roce_cq_buf,
-which will make code more complex, just delete this struct
-and move buf and mtt into hns_roce_cq. Furthermore, we add
-size member for hns_roce_buf to avoid repeatly calculating
-where needed it.
+I did went through archives for the same.
 
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 73 ++++++++++++-----------------
- drivers/infiniband/hw/hns/hns_roce_device.h |  9 ++--
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  9 ++--
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  3 +-
- 4 files changed, 38 insertions(+), 56 deletions(-)
+Can you please provide pointer towards documentation or
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 87d9b0f..e9c9453 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -101,9 +101,9 @@ static int hns_roce_cq_alloc(struct hns_roce_dev *hr_dev,
- 	else
- 		mtt_table = &hr_dev->mr_table.mtt_table;
- 
--	mtts = hns_roce_table_find(hr_dev, mtt_table,
--				   hr_cq->hr_buf.hr_mtt.first_seg,
-+	mtts = hns_roce_table_find(hr_dev, mtt_table, hr_cq->mtt.first_seg,
- 				   &dma_handle);
-+
- 	if (!mtts) {
- 		dev_err(dev, "Failed to find mtt for CQ buf.\n");
- 		return -EINVAL;
-@@ -207,45 +207,36 @@ static int hns_roce_ib_get_cq_umem(struct hns_roce_dev *hr_dev,
- 				   struct hns_roce_ib_create_cq ucmd,
- 				   struct ib_udata *udata)
- {
--	struct hns_roce_cq_buf *buf = &hr_cq->hr_buf;
-+	struct hns_roce_buf *buf = &hr_cq->buf;
-+	struct hns_roce_mtt *mtt = &hr_cq->mtt;
- 	struct ib_umem **umem = &hr_cq->umem;
--	u32 page_shift;
- 	u32 npages;
- 	int ret;
- 
--	*umem = ib_umem_get(udata, ucmd.buf_addr,
--			    hr_cq->cq_depth * hr_dev->caps.cq_entry_sz,
-+	*umem = ib_umem_get(udata, ucmd.buf_addr, buf->size,
- 			    IB_ACCESS_LOCAL_WRITE);
- 	if (IS_ERR(*umem))
- 		return PTR_ERR(*umem);
- 
- 	if (hns_roce_check_whether_mhop(hr_dev, HEM_TYPE_CQE))
--		buf->hr_mtt.mtt_type = MTT_TYPE_CQE;
-+		mtt->mtt_type = MTT_TYPE_CQE;
- 	else
--		buf->hr_mtt.mtt_type = MTT_TYPE_WQE;
--
--	if (hr_dev->caps.cqe_buf_pg_sz) {
--		npages = (ib_umem_page_count(*umem) +
--			(1 << hr_dev->caps.cqe_buf_pg_sz) - 1) /
--			(1 << hr_dev->caps.cqe_buf_pg_sz);
--		page_shift = PAGE_SHIFT + hr_dev->caps.cqe_buf_pg_sz;
--		ret = hns_roce_mtt_init(hr_dev, npages, page_shift,
--					&buf->hr_mtt);
--	} else {
--		ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(*umem),
--					PAGE_SHIFT, &buf->hr_mtt);
--	}
-+		mtt->mtt_type = MTT_TYPE_WQE;
-+
-+	npages = DIV_ROUND_UP(ib_umem_page_count(*umem),
-+			      1 << hr_dev->caps.cqe_buf_pg_sz);
-+	ret = hns_roce_mtt_init(hr_dev, npages, buf->page_shift, mtt);
- 	if (ret)
- 		goto err_buf;
- 
--	ret = hns_roce_ib_umem_write_mtt(hr_dev, &buf->hr_mtt, *umem);
-+	ret = hns_roce_ib_umem_write_mtt(hr_dev, mtt, *umem);
- 	if (ret)
- 		goto err_mtt;
- 
- 	return 0;
- 
- err_mtt:
--	hns_roce_mtt_cleanup(hr_dev, &buf->hr_mtt);
-+	hns_roce_mtt_cleanup(hr_dev, mtt);
- 
- err_buf:
- 	ib_umem_release(*umem);
-@@ -255,39 +246,36 @@ static int hns_roce_ib_get_cq_umem(struct hns_roce_dev *hr_dev,
- static int hns_roce_ib_alloc_cq_buf(struct hns_roce_dev *hr_dev,
- 				    struct hns_roce_cq *hr_cq)
- {
--	struct hns_roce_cq_buf *buf = &hr_cq->hr_buf;
--	u32 page_shift = PAGE_SHIFT + hr_dev->caps.cqe_buf_pg_sz;
--	u32 nent = hr_cq->cq_depth;
-+	struct hns_roce_buf *buf = &hr_cq->buf;
-+	struct hns_roce_mtt *mtt = &hr_cq->mtt;
- 	int ret;
- 
--	ret = hns_roce_buf_alloc(hr_dev, nent * hr_dev->caps.cq_entry_sz,
--				 (1 << page_shift) * 2, &buf->hr_buf,
--				 page_shift);
-+	ret = hns_roce_buf_alloc(hr_dev, buf->size, (1 << buf->page_shift) * 2,
-+				 buf, buf->page_shift);
- 	if (ret)
- 		goto out;
- 
- 	if (hns_roce_check_whether_mhop(hr_dev, HEM_TYPE_CQE))
--		buf->hr_mtt.mtt_type = MTT_TYPE_CQE;
-+		mtt->mtt_type = MTT_TYPE_CQE;
- 	else
--		buf->hr_mtt.mtt_type = MTT_TYPE_WQE;
-+		mtt->mtt_type = MTT_TYPE_WQE;
- 
--	ret = hns_roce_mtt_init(hr_dev, buf->hr_buf.npages,
--				buf->hr_buf.page_shift, &buf->hr_mtt);
-+	ret = hns_roce_mtt_init(hr_dev, buf->npages, buf->page_shift, mtt);
- 	if (ret)
- 		goto err_buf;
- 
--	ret = hns_roce_buf_write_mtt(hr_dev, &buf->hr_mtt, &buf->hr_buf);
-+	ret = hns_roce_buf_write_mtt(hr_dev, mtt, buf);
- 	if (ret)
- 		goto err_mtt;
- 
- 	return 0;
- 
- err_mtt:
--	hns_roce_mtt_cleanup(hr_dev, &buf->hr_mtt);
-+	hns_roce_mtt_cleanup(hr_dev, mtt);
- 
- err_buf:
--	hns_roce_buf_free(hr_dev, nent * hr_dev->caps.cq_entry_sz,
--			  &buf->hr_buf);
-+	hns_roce_buf_free(hr_dev, buf->size, buf);
-+
- out:
- 	return ret;
- }
-@@ -295,8 +283,7 @@ static int hns_roce_ib_alloc_cq_buf(struct hns_roce_dev *hr_dev,
- static void hns_roce_ib_free_cq_buf(struct hns_roce_dev *hr_dev,
- 				    struct hns_roce_cq *hr_cq)
- {
--	hns_roce_buf_free(hr_dev, hr_cq->cq_depth * hr_dev->caps.cq_entry_sz,
--			  &hr_cq->hr_buf.hr_buf);
-+	hns_roce_buf_free(hr_dev, hr_cq->buf.size, &hr_cq->buf);
- }
- 
- static int create_user_cq(struct hns_roce_dev *hr_dev,
-@@ -337,7 +324,7 @@ static int create_user_cq(struct hns_roce_dev *hr_dev,
- 	return 0;
- 
- err_mtt:
--	hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
-+	hns_roce_mtt_cleanup(hr_dev, &hr_cq->mtt);
- 	ib_umem_release(hr_cq->umem);
- 
- 	return ret;
-@@ -390,14 +377,14 @@ static void destroy_user_cq(struct hns_roce_dev *hr_dev,
- 	    (udata->outlen >= sizeof(*resp)))
- 		hns_roce_db_unmap_user(context, &hr_cq->db);
- 
--	hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
-+	hns_roce_mtt_cleanup(hr_dev, &hr_cq->mtt);
- 	ib_umem_release(hr_cq->umem);
- }
- 
- static void destroy_kernel_cq(struct hns_roce_dev *hr_dev,
- 			      struct hns_roce_cq *hr_cq)
- {
--	hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
-+	hns_roce_mtt_cleanup(hr_dev, &hr_cq->mtt);
- 	hns_roce_ib_free_cq_buf(hr_dev, hr_cq);
- 
- 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB)
-@@ -433,6 +420,8 @@ int hns_roce_ib_create_cq(struct ib_cq *ib_cq,
- 	hr_cq->ib_cq.cqe = cq_entries - 1; /* used as cqe index */
- 	hr_cq->cq_depth = cq_entries;
- 	hr_cq->vector = vector;
-+	hr_cq->buf.size = hr_cq->cq_depth * hr_dev->caps.cq_entry_sz;
-+	hr_cq->buf.page_shift = PAGE_SHIFT + hr_dev->caps.cqe_buf_pg_sz;
- 	spin_lock_init(&hr_cq->lock);
- 
- 	if (udata) {
-@@ -502,7 +491,7 @@ void hns_roce_ib_destroy_cq(struct ib_cq *ib_cq, struct ib_udata *udata)
- 	}
- 
- 	hns_roce_free_cq(hr_dev, hr_cq);
--	hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
-+	hns_roce_mtt_cleanup(hr_dev, &hr_cq->mtt);
- 
- 	ib_umem_release(hr_cq->umem);
- 	if (udata) {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 8f628a7..608ec59 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -448,6 +448,7 @@ struct hns_roce_buf {
- 	struct hns_roce_buf_list	*page_list;
- 	int				nbufs;
- 	u32				npages;
-+	u32				size;
- 	int				page_shift;
- };
- 
-@@ -479,14 +480,10 @@ struct hns_roce_db {
- 	int		order;
- };
- 
--struct hns_roce_cq_buf {
--	struct hns_roce_buf hr_buf;
--	struct hns_roce_mtt hr_mtt;
--};
--
- struct hns_roce_cq {
- 	struct ib_cq			ib_cq;
--	struct hns_roce_cq_buf		hr_buf;
-+	struct hns_roce_buf		buf;
-+	struct hns_roce_mtt		mtt;
- 	struct hns_roce_db		db;
- 	u8				db_en;
- 	spinlock_t			lock;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 600d9f9..9a00361 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1980,8 +1980,7 @@ static int hns_roce_v1_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
- 
- static void *get_cqe(struct hns_roce_cq *hr_cq, int n)
- {
--	return hns_roce_buf_offset(&hr_cq->hr_buf.hr_buf,
--				   n * HNS_ROCE_V1_CQE_ENTRY_SIZE);
-+	return hns_roce_buf_offset(&hr_cq->buf, n * HNS_ROCE_V1_CQE_ENTRY_SIZE);
- }
- 
- static void *get_sw_cqe(struct hns_roce_cq *hr_cq, int n)
-@@ -3655,7 +3654,6 @@ static void hns_roce_v1_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- 	struct device *dev = &hr_dev->pdev->dev;
- 	u32 cqe_cnt_ori;
- 	u32 cqe_cnt_cur;
--	u32 cq_buf_size;
- 	int wait_time = 0;
- 
- 	hns_roce_free_cq(hr_dev, hr_cq);
-@@ -3683,13 +3681,12 @@ static void hns_roce_v1_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- 		wait_time++;
- 	}
- 
--	hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
-+	hns_roce_mtt_cleanup(hr_dev, &hr_cq->mtt);
- 
- 	ib_umem_release(hr_cq->umem);
- 	if (!udata) {
- 		/* Free the buff of stored cq */
--		cq_buf_size = (ibcq->cqe + 1) * hr_dev->caps.cq_entry_sz;
--		hns_roce_buf_free(hr_dev, cq_buf_size, &hr_cq->hr_buf.hr_buf);
-+		hns_roce_buf_free(hr_dev, hr_cq->buf.size, &hr_cq->buf);
- 	}
- }
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 77c9d7f..1026ac6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2447,8 +2447,7 @@ static int hns_roce_v2_mw_write_mtpt(void *mb_buf, struct hns_roce_mw *mw)
- 
- static void *get_cqe_v2(struct hns_roce_cq *hr_cq, int n)
- {
--	return hns_roce_buf_offset(&hr_cq->hr_buf.hr_buf,
--				   n * HNS_ROCE_V2_CQE_ENTRY_SIZE);
-+	return hns_roce_buf_offset(&hr_cq->buf, n * HNS_ROCE_V2_CQE_ENTRY_SIZE);
- }
- 
- static void *get_sw_cqe_v2(struct hns_roce_cq *hr_cq, int n)
--- 
-2.8.1
+sample userspace usage for the same? Or which kernel version to be 
+looked into?
 
+
+Thanks & Regards,
+
+Vinit.
+
+On 15/11/19 7:42 PM, Jason Gunthorpe wrote:
+> On Fri, Nov 15, 2019 at 09:27:40AM +0530, Vinit Agnihotri wrote:
+>> Hi,
+>>
+>> I am trying to use setfsgid()/setfssid() calls to ensure proper access check
+>> for linux users.
+>>
+>> However if user is non-root then ibv_reg_mr() returns EACCESS. While I am
+>> sure I am calling ibv_reg_mr()
+>>
+>> as root user, not sure why it still returns EACCESS.
+>>
+>> While going through libibverbs sources I realize EACCESS might be returned
+>> by this call:
+>>
+>> if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+>>          return errno;
+>>
+>> Can anyone provide any insight into this behavior? Does calling these
+>> systems calls in threads can affect
+>>
+>> entire process? I checked /dev/infiniband/* has appropriate privileges.
+> This is a security limitation, if you want do this flow you need a new
+> enough kernel and rdma-core to support the ioctl() scheme for calling
+> verbs
+>
+> Jason
