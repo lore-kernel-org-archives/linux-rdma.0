@@ -2,96 +2,176 @@ Return-Path: <SRS0=0J7V=ZK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF76C43215
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B8AAC432C0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:28:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 702BF2084D
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6BD020730
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:28:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1574080089;
+	bh=b8dGrX1AjOOO09fr5u7/cuA8/eFbYkSXoAbLF2tmW0k=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=trEw0YxXiLVEsq08u96uG69UNgCPtNwSlcFzSSnsjOXleruNaPGU+SdnGVVdhWaBK
+	 exoDb3tZ3oMGxao2Jt7h54/x+4f/K9+7+oy6mwGoYbSvM4REZxOq00+d+2iBvKsxJp
+	 BB0P1tV+1z6rRW606ZAh4w+qprWIFP21mO/MbYug=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727423AbfKRMC2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Nov 2019 07:02:28 -0500
-Received: from mx2.suse.de ([195.135.220.15]:37408 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726490AbfKRMBY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 Nov 2019 07:01:24 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 8CBC2AFDB;
-        Mon, 18 Nov 2019 12:01:20 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id BE4051E4B05; Mon, 18 Nov 2019 11:16:01 +0100 (CET)
-Date:   Mon, 18 Nov 2019 11:16:01 +0100
-From:   Jan Kara <jack@suse.cz>
-To:     John Hubbard <jhubbard@nvidia.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn.topel@intel.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Dave Chinner <david@fromorbit.com>,
-        David Airlie <airlied@linux.ie>,
-        "David S . Miller" <davem@davemloft.net>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
-        Jonathan Corbet <corbet@lwn.net>,
-        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
-        Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>, bpf@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, kvm@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
-        linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
-        Mike Rapoport <rppt@linux.ibm.com>
-Subject: Re: [PATCH v5 10/24] mm/gup: introduce pin_user_pages*() and FOLL_PIN
-Message-ID: <20191118101601.GF17319@quack2.suse.cz>
-References: <20191115055340.1825745-1-jhubbard@nvidia.com>
- <20191115055340.1825745-11-jhubbard@nvidia.com>
+        id S1726464AbfKRM2I (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Nov 2019 07:28:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51994 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726490AbfKRM2I (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 18 Nov 2019 07:28:08 -0500
+Received: from localhost (unknown [5.29.147.182])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2BC5C206F4;
+        Mon, 18 Nov 2019 12:28:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1574080086;
+        bh=b8dGrX1AjOOO09fr5u7/cuA8/eFbYkSXoAbLF2tmW0k=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=lKmTQutLXkoktktKmhQlBB20gcgjTiGK5h5t0V78QLx8qOMv347OpGBwMm13tBrC2
+         dFLvvrVioUduY9Fbo8bmnOcXrMgDsl7AiHBeZpGwH5gws2zFuBecTQkhTAERlzcQ+r
+         j6VtR0Gj3rS4eAbyyReo86GenZXqi4CGvxM99ZvA=
+Date:   Mon, 18 Nov 2019 14:28:03 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     wangqi <3100102071@zju.edu.cn>
+Cc:     linux-rdma@vger.kernel.org
+Subject: Re: [question]Why our soft-RoCE throughput is quite low compared
+ with TCP
+Message-ID: <20191118122803.GC52766@unreal>
+References: <f97b72b6-4def-2970-c9f6-f11b97d5378e@zju.edu.cn>
+ <20191115160707.GG6763@unreal>
+ <df9fb9b8-4b1f-2cf7-2498-648627556006@zju.edu.cn>
+ <20191118094924.GA52766@unreal>
+ <0bb80672-3980-04e7-5cf1-846b517ad53e@zju.edu.cn>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20191115055340.1825745-11-jhubbard@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <0bb80672-3980-04e7-5cf1-846b517ad53e@zju.edu.cn>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu 14-11-19 21:53:26, John Hubbard wrote:
->  /*
-> - * NOTE on FOLL_LONGTERM:
-> + * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
-> + * other. Here is what they mean, and how to use them:
->   *
->   * FOLL_LONGTERM indicates that the page will be held for an indefinite time
-> - * period _often_ under userspace control.  This is contrasted with
-> - * iov_iter_get_pages() where usages which are transient.
-> + * period _often_ under userspace control.  This is in contrast to
-> + * iov_iter_get_pages(), where usages which are transient.
-                          ^^^ when you touch this, please fix also the
-second sentense. It doesn't quite make sense to me... I'd probably write
-there "whose usages are transient" but maybe you can come up with something
-even better.
+On Mon, Nov 18, 2019 at 06:13:07PM +0800, wangqi wrote:
+>
+> On 2019/11/18 下午5:49, Leon Romanovsky wrote:
+> > On Mon, Nov 18, 2019 at 02:38:19PM +0800, wangqi wrote:
+> >> On 2019/11/16 上午12:07, Leon Romanovsky wrote:
+> >>
+> >>> On Fri, Nov 15, 2019 at 09:26:41PM +0800, QWang wrote:
+> >>>> Dear experts on RDMA,
+> >>>>       We are sorry to disturb you. Because of a project, we need to
+> >>>> integrate soft-RoCE in our system. However ,we are very confused by our
+> >>>> soft-RoCE throughput results, which are quite low compared with TCP
+> >>>> throughput. The throughput of soft-RoCE in our tests measured by ib_send_bw
+> >>>> and ib_read_bw is only 2 Gbps (the net link bandwidth is 100 Gbps and the
+> >>>> two Xeon E5 servers with Mellanox ConnectX-4 cards are connected via
+> >>>> back-to-back, the OS is ubuntu16.04 with kernel 4.15.0-041500-generic). The
+> >>>> throughput of hard-RoCE and TCP are normal, which are 100 Gbps and 20 Gbps,
+> >>>> respectively. But in the figure 6 in the attached paper "A Performance
+> >>>> Comparison of Container Networking Alternatives", the throughput of
+> >>>> soft-RoCE can be up to 23 Gbps.  In our tests, we get the open-source
+> >>>> soft-RoCE from github in https://github.com/linux-rdma. Do you know how can
+> >>>> we get such high bandwidth? Do we need to configure some OS system settings?
+> >>>>       We find that in 2017, someone finds the same problem and he posts all
+> >>>> his detailed results on https://bugzilla.kernel.org/show_bug.cgi?id=190951  
+> >>>> . But it remains unsolved. His results are nearly the same with our's. For
+> >>>> simplicity,  we do not post our results in this email. You can get very
+> >>>> detailed information in the web page listed above.
+> >>>>       We are very confused by our results. We will very appreciate it if we
+> >>>> can receive your early reply. Best wishes,
+> >>>> Wang Qi
+> >>> Can you please fix your email client?
+> >>> The email text looks like one big sentence.
+> >>>
+> >>> From the perf report attached to this bugzilla, looks like RXE does a
+> >>> lot of CRC32 calculations and it is consistent with what Matan said
+> >>> a long time ago, RXE "stuck" in ICRC calculations required by spec.
+> >>>
+> >>> I'm curios what are your CONFIG_CRYPTO_* configs?
+> >>>
+> >>> ThanksCONFIG_CRYPTO_* configs
+> >>>
+> >>>
+> >>
+> >> I'm sorry for the editor problem in my last email. Now I use another editor.
+> > Now your email has extra line between lines.
+> >
+> >> We get our rdma-core and perftest from
+> >>
+> >> https://github.com/linux-rdma/rdma-core/archive/v25.0.tar.gz
+> >> and https://github.com/linux-rdma/perftest/archive/4.4-0.8.tar.gz, respectively.
+> >>
+> >> We attach five files to clarify our problem.
+> >>
+> >> * The first file "server_tcp_vs_softroce_performance.txt" is the results of TCP
+> >>
+> >> and softroce throughput in our two servers (connected via back to back).
+> >>
+> >> * The second file "server_CONFIG_CRYPTO_result.txt" is the
+> >>
+> >> CONFIG_CRYPTO_* config results in the two servers..
+> >>
+> >> * The third file "server_perf.txt" is the "ib_send_bw - n 10000 192.168.0.20
+> >>
+> >> & perf record -ags sleep 10 & wait" results in our two servers (we use
+> >>
+> >> "perf report --header >perf" to make the file).
+> >>
+> >> * The fourth file "vm_tcp_vs_softroce_performance.txt" is the results of TCP
+> >>
+> >> and softroce throughput in two virtual machines with the latest linux kernel
+> >>
+> >> 5.4.0-rc7
+> >>
+> >> (we get the kernel from https://github.com/torvalds/linux/archive/v5.4-rc7.zip).
+> >>
+> >> * The fifth  file "vm_CONFIG_CRYPTO_result.txt" is the result in two virtual
+> >>
+> >> machines.
+> >>
+> >> * The sixth file "vm_perf.txt" is the "ib_send_bw - n 10000 192.168.122.228
+> >>
+> >> & perf record -ags sleep 10 & wait " result in the two virtual machines.
+> >>
+> >> On the other side, we tried to use the rxe command "rxe_cfg crc disable"
+> > I don't see any parsing of "crc disable" in upstream variant of rxe_cfg
+> > and there is no such module parameter in the kernel.
+> >
+> > Thanks
+>
+>
+> We get the command "rxe_cfg crc disable" from the following webpages:
+>
+> https://www.systutorials.com/docs/linux/man/8-rxe_cfg/
+>
+> https://www.reflectionsofthevoid.com/2011/08/
+>
+> It may be removed in the present soft-roce edition.
 
-Otherwise the patch looks good to me so feel free to add:
+It was never existed in upstream variant and in the kernel you are testing.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+>
+> Can you figure out why our softroce throughput is so low from the six
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+According to the logs, it is ICRC.
+
+>
+> files in our last email? We hope to get a much higher softroce throughput,
+>
+> like 20 Gbps in our systems (now it's only 2 Gbps, and hard-roce can be
+>
+> up to 100 Gbps in our system).
+>
+> Qi
+>
+>
