@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B2DC43141
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E25DFC43141
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 364FB20857
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C230120857
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Nov 2019 12:02:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727114AbfKRMB0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Nov 2019 07:01:26 -0500
-Received: from mx2.suse.de ([195.135.220.15]:37310 "EHLO mx1.suse.de"
+        id S1727364AbfKRMCN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Nov 2019 07:02:13 -0500
+Received: from mx2.suse.de ([195.135.220.15]:37464 "EHLO mx1.suse.de"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726518AbfKRMBZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726760AbfKRMBZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 18 Nov 2019 07:01:25 -0500
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 8ECD9AFF6;
+        by mx1.suse.de (Postfix) with ESMTP id BB66FB02C;
         Mon, 18 Nov 2019 12:01:20 +0000 (UTC)
 Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id CAC881E4AFE; Mon, 18 Nov 2019 10:47:37 +0100 (CET)
-Date:   Mon, 18 Nov 2019 10:47:37 +0100
+        id 7DE191E4B03; Mon, 18 Nov 2019 10:49:18 +0100 (CET)
+Date:   Mon, 18 Nov 2019 10:49:18 +0100
 From:   Jan Kara <jack@suse.cz>
 To:     John Hubbard <jhubbard@nvidia.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -56,31 +56,29 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-fsdevel@vger.kernel.org, linux-kselftest@vger.kernel.org,
         linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
-        linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v5 06/24] goldish_pipe: rename local pin_user_pages()
- routine
-Message-ID: <20191118094737.GD17319@quack2.suse.cz>
+        linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH v5 07/24] IB/umem: use get_user_pages_fast() to pin DMA
+ pages
+Message-ID: <20191118094918.GE17319@quack2.suse.cz>
 References: <20191115055340.1825745-1-jhubbard@nvidia.com>
- <20191115055340.1825745-7-jhubbard@nvidia.com>
+ <20191115055340.1825745-8-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20191115055340.1825745-7-jhubbard@nvidia.com>
+In-Reply-To: <20191115055340.1825745-8-jhubbard@nvidia.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu 14-11-19 21:53:22, John Hubbard wrote:
-> 1. Avoid naming conflicts: rename local static function from
-> "pin_user_pages()" to "pin_goldfish_pages()".
+On Thu 14-11-19 21:53:23, John Hubbard wrote:
+> And get rid of the mmap_sem calls, as part of that. Note
+> that get_user_pages_fast() will, if necessary, fall back to
+> __gup_longterm_unlocked(), which takes the mmap_sem as needed.
 > 
-> An upcoming patch will introduce a global pin_user_pages()
-> function.
-> 
-> Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
+> Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 > Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 
@@ -90,46 +88,47 @@ Reviewed-by: Jan Kara <jack@suse.cz>
 
 								Honza
 
+
 > ---
->  drivers/platform/goldfish/goldfish_pipe.c | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
+>  drivers/infiniband/core/umem.c | 17 ++++++-----------
+>  1 file changed, 6 insertions(+), 11 deletions(-)
 > 
-> diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
-> index cef0133aa47a..7ed2a21a0bac 100644
-> --- a/drivers/platform/goldfish/goldfish_pipe.c
-> +++ b/drivers/platform/goldfish/goldfish_pipe.c
-> @@ -257,12 +257,12 @@ static int goldfish_pipe_error_convert(int status)
+> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> index 24244a2f68cc..3d664a2539eb 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -271,16 +271,13 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+>  	sg = umem->sg_head.sgl;
+>  
+>  	while (npages) {
+> -		down_read(&mm->mmap_sem);
+> -		ret = get_user_pages(cur_base,
+> -				     min_t(unsigned long, npages,
+> -					   PAGE_SIZE / sizeof (struct page *)),
+> -				     gup_flags | FOLL_LONGTERM,
+> -				     page_list, NULL);
+> -		if (ret < 0) {
+> -			up_read(&mm->mmap_sem);
+> +		ret = get_user_pages_fast(cur_base,
+> +					  min_t(unsigned long, npages,
+> +						PAGE_SIZE /
+> +						sizeof(struct page *)),
+> +					  gup_flags | FOLL_LONGTERM, page_list);
+> +		if (ret < 0)
+>  			goto umem_release;
+> -		}
+>  
+>  		cur_base += ret * PAGE_SIZE;
+>  		npages   -= ret;
+> @@ -288,8 +285,6 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+>  		sg = ib_umem_add_sg_table(sg, page_list, ret,
+>  			dma_get_max_seg_size(context->device->dma_device),
+>  			&umem->sg_nents);
+> -
+> -		up_read(&mm->mmap_sem);
 >  	}
->  }
 >  
-> -static int pin_user_pages(unsigned long first_page,
-> -			  unsigned long last_page,
-> -			  unsigned int last_page_size,
-> -			  int is_write,
-> -			  struct page *pages[MAX_BUFFERS_PER_COMMAND],
-> -			  unsigned int *iter_last_page_size)
-> +static int pin_goldfish_pages(unsigned long first_page,
-> +			      unsigned long last_page,
-> +			      unsigned int last_page_size,
-> +			      int is_write,
-> +			      struct page *pages[MAX_BUFFERS_PER_COMMAND],
-> +			      unsigned int *iter_last_page_size)
->  {
->  	int ret;
->  	int requested_pages = ((last_page - first_page) >> PAGE_SHIFT) + 1;
-> @@ -354,9 +354,9 @@ static int transfer_max_buffers(struct goldfish_pipe *pipe,
->  	if (mutex_lock_interruptible(&pipe->lock))
->  		return -ERESTARTSYS;
->  
-> -	pages_count = pin_user_pages(first_page, last_page,
-> -				     last_page_size, is_write,
-> -				     pipe->pages, &iter_last_page_size);
-> +	pages_count = pin_goldfish_pages(first_page, last_page,
-> +					 last_page_size, is_write,
-> +					 pipe->pages, &iter_last_page_size);
->  	if (pages_count < 0) {
->  		mutex_unlock(&pipe->lock);
->  		return pages_count;
+>  	sg_mark_end(sg);
 > -- 
 > 2.24.0
 > 
