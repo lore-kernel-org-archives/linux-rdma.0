@@ -2,130 +2,222 @@ Return-Path: <SRS0=4UPP=ZL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0FBCC432C0
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:05:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 830FBC43215
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:16:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89EC22230F
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:05:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5229F22313
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:16:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gNvTuQkQ"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="BeFB+A+E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725784AbfKSIFD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Nov 2019 03:05:03 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:55176 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727080AbfKSIFD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Nov 2019 03:05:03 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1574150701;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=1MlTih8cCQ4S/hqFZ1/WTgoAoxUoAz6EyWx3ksJycWc=;
-        b=gNvTuQkQ3smjtYEp9fEd+i+05A2cxj0GAY9HZG3wqKW3ozPJNVBrBXPv5IHenTOYl6NjwG
-        n/2mH3AapXl9icqJWszGK5zl4r2uTUuS64IpK0s/rlKSsixjR3EIavQWsDT1goCU5yWdvU
-        MsoJ2eZOE62CDixGovwjEFNAFpA0iks=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-184-h9I2qfHvO1OqTNLBkQCu4Q-1; Tue, 19 Nov 2019 03:04:58 -0500
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DEFAB107ACC4;
-        Tue, 19 Nov 2019 08:04:56 +0000 (UTC)
-Received: from [10.72.12.74] (ovpn-12-74.pek2.redhat.com [10.72.12.74])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A5FF166074;
-        Tue, 19 Nov 2019 08:04:52 +0000 (UTC)
-Subject: Re: [net-next v2 1/1] virtual-bus: Implementation of Virtual Bus
-To:     Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-        Dave Ertman <david.m.ertman@intel.com>
-Cc:     Greg KH <gregkh@linuxfoundation.org>, davem@davemloft.net,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        nhorman@redhat.com, sassmann@redhat.com, jgg@ziepe.ca,
-        parav@mellanox.com, Kiran Patil <kiran.patil@intel.com>
-References: <20191115223355.1277139-1-jeffrey.t.kirsher@intel.com>
- <20191118074834.GA130507@kroah.com>
-From:   Jason Wang <jasowang@redhat.com>
-Message-ID: <d3ee845d-cc9f-a4f7-2f21-511fde61dd5e@redhat.com>
-Date:   Tue, 19 Nov 2019 16:04:49 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        id S1727007AbfKSIQv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Nov 2019 03:16:51 -0500
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:15357 "EHLO
+        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725784AbfKSIQu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Nov 2019 03:16:50 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate14.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dd3a4f30000>; Tue, 19 Nov 2019 00:16:51 -0800
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Tue, 19 Nov 2019 00:16:48 -0800
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Tue, 19 Nov 2019 00:16:48 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 19 Nov
+ 2019 08:16:47 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Tue, 19 Nov 2019 08:16:47 +0000
+Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5dd3a4ed0008>; Tue, 19 Nov 2019 00:16:46 -0800
+From:   John Hubbard <jhubbard@nvidia.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+CC:     Al Viro <viro@zeniv.linux.org.uk>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Dave Chinner <david@fromorbit.com>,
+        David Airlie <airlied@linux.ie>,
+        "David S . Miller" <davem@davemloft.net>,
+        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
+        Magnus Karlsson <magnus.karlsson@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Paul Mackerras <paulus@samba.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
+        <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
+        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
+        John Hubbard <jhubbard@nvidia.com>,
+        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: [PATCH v6 01/24] mm/gup: pass flags arg to __gup_device_* functions
+Date:   Tue, 19 Nov 2019 00:16:20 -0800
+Message-ID: <20191119081643.1866232-2-jhubbard@nvidia.com>
+X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191119081643.1866232-1-jhubbard@nvidia.com>
+References: <20191119081643.1866232-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <20191118074834.GA130507@kroah.com>
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-X-MC-Unique: h9I2qfHvO1OqTNLBkQCu4Q-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+X-NVConfidentiality: public
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1574151411; bh=shQdk3aSV65MVp9nCFIR9V5hifAIbJq1aZuVoQR8zJ0=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Type:Content-Transfer-Encoding;
+        b=BeFB+A+EJ4mKjCv+/UFQ4KvRmvqdyjoWqtWaibjOPbCpARHJdf2BQCQj0Y5VYK2SK
+         l4yZ90D68hdTXPCnOTR8pAtb21gqPg1SGtOTRMOm/B8hMOaAZ8dQS5wTi9dsLxXPtb
+         i4va/2iA6HIzBf+9wQW4kJJSQzMfFSUs0Vou9prfpmaND6CYavsinow28ibfv30yph
+         C2EC8doSqu/g7/B76TfjNUMReCFcBZbpy3XTq7OjKJ68xEUTnNhNMwBRjlxjIwGFoJ
+         MN1jgXaLuV6UcOdOZI0IPuf9eOnbuFZglMCLrUVLgvDJQp6pjEehLD+NYHX/nNFExC
+         Ho6R0samwlY6w==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+A subsequent patch requires access to gup flags, so
+pass the flags argument through to the __gup_device_*
+functions.
 
-On 2019/11/18 =E4=B8=8B=E5=8D=883:48, Greg KH wrote:
-> +Virtbus drivers
-> +~~~~~~~~~~~~~~~
-> +Virtbus drivers register with the virtual bus to be matched with virtbus
-> +devices.  They expect to be registered with a probe and remove callback,
-> +and also support shutdown, suspend, and resume callbacks.  They otherwis=
-e
-> +follow the standard driver behavior of having discovery and enumeration
-> +handled in the bus infrastructure.
-> +
-> +Virtbus drivers register themselves with the API entry point virtbus_drv=
-_reg
-> +and unregister with virtbus_drv_unreg.
-> +
-> +Device Enumeration
-> +~~~~~~~~~~~~~~~~~~
-> +Enumeration is handled automatically by the bus infrastructure via the
-> +ida_simple methods.
-> +
-> +Device naming and driver binding
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> +The virtbus_device.dev.name is the canonical name for the device. It is
-> +built from two other parts:
-> +
-> +        - virtbus_device.name (also used for matching).
-> +        - virtbus_device.id (generated automatically from ida_simple cal=
-ls)
-> +
-> +This allows for multiple virtbus_devices with the same name, which will =
-all
-> +be matched to the same virtbus_driver. Driver binding is performed by th=
-e
-> +driver core, invoking driver probe() after finding a match between devic=
-e and driver.
-> +
-> +Virtual Bus API entry points
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> +struct virtbus_device *virtbus_dev_alloc(const char *name, void *data)
+Also placate checkpatch.pl by shortening a nearby line.
 
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ mm/gup.c | 28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-Hi:
-
-Several questions about the name parameter here:
-
-- If we want to have multiple types of device to be attached, some=20
-convention is needed to avoid confusion during the match. But if we had=20
-such one (e.g prefix or suffix), it basically another bus?
-- Who decides the name of this virtbus dev, is it under the control of=20
-userspace? If yes, a management interface is required.
-
-Thanks
-
-
-> +int virtbus_dev_register(struct virtbus_device *vdev)
-> +void virtbus_dev_unregister(struct virtbus_device *vdev)
-> +int virtbus_drv_register(struct virtbus_driver *vdrv, struct module *own=
-er)
-> +void virtbus_drv_unregister(struct virtbus_driver *vdrv)
+diff --git a/mm/gup.c b/mm/gup.c
+index 8f236a335ae9..85caf76b3012 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -1890,7 +1890,8 @@ static int gup_pte_range(pmd_t pmd, unsigned long add=
+r, unsigned long end,
+=20
+ #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGE=
+PAGE)
+ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+-		unsigned long end, struct page **pages, int *nr)
++			     unsigned long end, unsigned int flags,
++			     struct page **pages, int *nr)
+ {
+ 	int nr_start =3D *nr;
+ 	struct dev_pagemap *pgmap =3D NULL;
+@@ -1916,13 +1917,14 @@ static int __gup_device_huge(unsigned long pfn, uns=
+igned long addr,
+ }
+=20
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
+dr,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start =3D *nr;
+=20
+ 	fault_pfn =3D pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
++	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
+ 		return 0;
+=20
+ 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
+@@ -1933,13 +1935,14 @@ static int __gup_device_huge_pmd(pmd_t orig, pmd_t =
+*pmdp, unsigned long addr,
+ }
+=20
+ static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long ad=
+dr,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start =3D *nr;
+=20
+ 	fault_pfn =3D pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
++	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
+ 		return 0;
+=20
+ 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
+@@ -1950,14 +1953,16 @@ static int __gup_device_huge_pud(pud_t orig, pud_t =
+*pudp, unsigned long addr,
+ }
+ #else
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
+dr,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+ }
+=20
+ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long add=
+r,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+@@ -2062,7 +2067,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsi=
+gned long addr,
+ 	if (pmd_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
++		return __gup_device_huge_pmd(orig, pmdp, addr, end, flags,
++					     pages, nr);
+ 	}
+=20
+ 	refs =3D 0;
+@@ -2092,7 +2098,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsi=
+gned long addr,
+ }
+=20
+ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages, int *nr)
++			unsigned long end, unsigned int flags,
++			struct page **pages, int *nr)
+ {
+ 	struct page *head, *page;
+ 	int refs;
+@@ -2103,7 +2110,8 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsi=
+gned long addr,
+ 	if (pud_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
++		return __gup_device_huge_pud(orig, pudp, addr, end, flags,
++					     pages, nr);
+ 	}
+=20
+ 	refs =3D 0;
+--=20
+2.24.0
 
