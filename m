@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4F40C33CAB
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:18:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A0BBC33CA6
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:18:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8CA2C20878
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:18:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0183722302
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Nov 2019 08:18:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="E+Yz3k9T"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="cu1QxwuG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727820AbfKSIRO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Nov 2019 03:17:14 -0500
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:12835 "EHLO
-        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727626AbfKSIRK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Nov 2019 03:17:10 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dd3a5030000>; Tue, 19 Nov 2019 00:17:07 -0800
+        id S1728083AbfKSISa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Nov 2019 03:18:30 -0500
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:15513 "EHLO
+        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727753AbfKSIRN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Nov 2019 03:17:13 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate14.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dd3a50a0000>; Tue, 19 Nov 2019 00:17:14 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate102.nvidia.com (PGP Universal service);
-  Tue, 19 Nov 2019 00:17:06 -0800
+  Tue, 19 Nov 2019 00:17:11 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Tue, 19 Nov 2019 00:17:06 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 19 Nov
- 2019 08:17:06 +0000
-Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 19 Nov 2019 08:17:05 +0000
+        by hqpgpgate102.nvidia.com on Tue, 19 Nov 2019 00:17:11 -0800
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 19 Nov
+ 2019 08:17:11 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Tue, 19 Nov 2019 08:17:10 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dd3a4ff000a>; Tue, 19 Nov 2019 00:17:04 -0800
+        id <B5dd3a5050002>; Tue, 19 Nov 2019 00:17:10 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -67,61 +67,101 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v6 16/24] net/xdp: set FOLL_PIN via pin_user_pages()
-Date:   Tue, 19 Nov 2019 00:16:35 -0800
-Message-ID: <20191119081643.1866232-17-jhubbard@nvidia.com>
+Subject: [PATCH v6 21/24] mm/gup_benchmark: use proper FOLL_WRITE flags instead of hard-coding "1"
+Date:   Tue, 19 Nov 2019 00:16:40 -0800
+Message-ID: <20191119081643.1866232-22-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191119081643.1866232-1-jhubbard@nvidia.com>
 References: <20191119081643.1866232-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1574151427; bh=JiuMSIu1KROGnYN0FUrQmmZholMbEQnfhCSo9iAG4Tw=;
+        t=1574151434; bh=zwwITV4l72pt0LmhAqpHWuQbAhr06rUfgov5x98Cdpc=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Type:Content-Transfer-Encoding;
-        b=E+Yz3k9Tb3BonSy5d/Nuhn2kIX1HBasopQoLdVGIR8xnTMa7Zels5qrgRHpJ0MP0C
-         clMVdIRbRl0xHAYx2q+yfOEmAnBlDi/qgI16t1SW+lozkqI2o2p1D9FwQIz8lM67Rd
-         L6LDoA6m4egg9P6qCH7anrEQ3HylDCUGNwSfebZIH4rHO81UvaDwTZqgEA1tr7TgWK
-         G8lgqyNIipOWXvWijmd0lAYuoyUbeiwfcwt7c1Fz/yVQmrkKHHbWNCpPpCot/CJAqK
-         freDDzMlM+oMpRD/GXBpZNMjJa70TTlDYVRw1e6rO7s7eNQM02kwwL1+BJ8vHgWxNH
-         juOvX1Pn8RaPA==
+         Content-Transfer-Encoding:Content-Type;
+        b=cu1QxwuGJ3PGmLytC6DKYH72wSXbEKAbDmZ2FONTwN/DdQKbLjGmMtVQANCHQpCho
+         MjqMrgkdE4k662185N/H3HZUem40Y6aqslWOSr1b1rzoGJUiszvQiP+X4s8sQKo53Y
+         VX9EeyNgPLRzMXZsZFmIQjzh1L0Vad9B+XJywpuZfxPPGT0JE3I87wnovtz6h1zGwg
+         eTTwNUtA23OUkkCSQcI8QI1g+C1y8E1bqr8gXUaDDtgDgk43qyDnqQRIn4QfI7BmgN
+         7X+g5QRc667V4mo8kMYmW+xqk6MVUMMpV+gycVTAmi25yovoD7rzcBJ30PkZoBL2v/
+         zWnEh36cIsfUg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Convert net/xdp to use the new pin_longterm_pages() call, which sets
-FOLL_PIN. Setting FOLL_PIN is now required for code that requires
-tracking of pinned pages.
+Fix the gup benchmark flags to use the symbolic FOLL_WRITE,
+instead of a hard-coded "1" value.
 
-In partial anticipation of this work, the net/xdp code was already
-calling put_user_page() instead of put_page(). Therefore, in order to
-convert from the get_user_pages()/put_page() model, to the
-pin_user_pages()/put_user_page() model, the only change required
-here is to change get_user_pages() to pin_user_pages().
+Also, clean up the filtering of gup flags a little, by just doing
+it once before issuing any of the get_user_pages*() calls. This
+makes it harder to overlook, instead of having little "gup_flags & 1"
+phrases in the function calls.
 
-Acked-by: Bj=C3=B6rn T=C3=B6pel <bjorn.topel@intel.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- net/xdp/xdp_umem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup_benchmark.c                         | 9 ++++++---
+ tools/testing/selftests/vm/gup_benchmark.c | 6 +++++-
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
-index 3049af269fbf..d071003b5e76 100644
---- a/net/xdp/xdp_umem.c
-+++ b/net/xdp/xdp_umem.c
-@@ -291,7 +291,7 @@ static int xdp_umem_pin_pages(struct xdp_umem *umem)
- 		return -ENOMEM;
+diff --git a/mm/gup_benchmark.c b/mm/gup_benchmark.c
+index 7dd602d7f8db..7fc44d25eca7 100644
+--- a/mm/gup_benchmark.c
++++ b/mm/gup_benchmark.c
+@@ -48,18 +48,21 @@ static int __gup_benchmark_ioctl(unsigned int cmd,
+ 			nr =3D (next - addr) / PAGE_SIZE;
+ 		}
 =20
- 	down_read(&current->mm->mmap_sem);
--	npgs =3D get_user_pages(umem->address, umem->npgs,
-+	npgs =3D pin_user_pages(umem->address, umem->npgs,
- 			      gup_flags | FOLL_LONGTERM, &umem->pgs[0], NULL);
- 	up_read(&current->mm->mmap_sem);
++		/* Filter out most gup flags: only allow a tiny subset here: */
++		gup->flags &=3D FOLL_WRITE;
++
+ 		switch (cmd) {
+ 		case GUP_FAST_BENCHMARK:
+-			nr =3D get_user_pages_fast(addr, nr, gup->flags & 1,
++			nr =3D get_user_pages_fast(addr, nr, gup->flags,
+ 						 pages + i);
+ 			break;
+ 		case GUP_LONGTERM_BENCHMARK:
+ 			nr =3D get_user_pages(addr, nr,
+-					    (gup->flags & 1) | FOLL_LONGTERM,
++					    gup->flags | FOLL_LONGTERM,
+ 					    pages + i, NULL);
+ 			break;
+ 		case GUP_BENCHMARK:
+-			nr =3D get_user_pages(addr, nr, gup->flags & 1, pages + i,
++			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
+ 					    NULL);
+ 			break;
+ 		default:
+diff --git a/tools/testing/selftests/vm/gup_benchmark.c b/tools/testing/sel=
+ftests/vm/gup_benchmark.c
+index 485cf06ef013..389327e9b30a 100644
+--- a/tools/testing/selftests/vm/gup_benchmark.c
++++ b/tools/testing/selftests/vm/gup_benchmark.c
+@@ -18,6 +18,9 @@
+ #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
+ #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
 =20
++/* Just the flags we need, copied from mm.h: */
++#define FOLL_WRITE	0x01	/* check pte is writable */
++
+ struct gup_benchmark {
+ 	__u64 get_delta_usec;
+ 	__u64 put_delta_usec;
+@@ -85,7 +88,8 @@ int main(int argc, char **argv)
+ 	}
+=20
+ 	gup.nr_pages_per_call =3D nr_pages;
+-	gup.flags =3D write;
++	if (write)
++		gup.flags |=3D FOLL_WRITE;
+=20
+ 	fd =3D open("/sys/kernel/debug/gup_benchmark", O_RDWR);
+ 	if (fd =3D=3D -1)
 --=20
 2.24.0
 
