@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D82E7C43215
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 616B0C432C0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:16:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B0D24206EC
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38A34206CB
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:16:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574360157;
-	bh=DJ8/kJXIvWG+Zf8Z/2F02cp8ZNsgRgljaw3PwouWbGI=;
+	s=default; t=1574360161;
+	bh=7hNskEVNwc6LhuevTICnnP/BERfwGilqWLZ2zaR4xmo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=wHfBTZ9S6sllwUcfFY2bI4nmTs58hW8+NNO+35nYizaZU5niR8Daljdpd4+hOWa5g
-	 Yr//vXzjPRUfB8gvjUD7qO6WX5PEB4IvYbxebAyMMYScN03KlXecBKQXfW45fA8aWI
-	 KtufLts8e1D3lIPG4zYFaAw3E/SEyCQrN+s0TWJY=
+	b=pW+80iSQTwHCCw16USCvQPZNLA3WxjJ44tMvpDMR4ZMx5J0m/tXoLEDU2w0O7oj0s
+	 QOVKkArGjz4KRfxa0Dl8u+hbXK3WP2NoFY3cPCNBDvaJYMyiHUaQko/5nv3H+JLWse
+	 6LVxilmq8Bx0jyO9bOkqtDCTSdWRRcWk5En/ntc0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727176AbfKUSP5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 13:15:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54472 "EHLO mail.kernel.org"
+        id S1727188AbfKUSQA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 13:16:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54558 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727187AbfKUSP5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 13:15:57 -0500
+        id S1727187AbfKUSQA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Nov 2019 13:16:00 -0500
 Received: from localhost (unknown [5.29.147.182])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 96C5B206CC;
-        Thu, 21 Nov 2019 18:15:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3E4242068E;
+        Thu, 21 Nov 2019 18:15:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574360156;
-        bh=DJ8/kJXIvWG+Zf8Z/2F02cp8ZNsgRgljaw3PwouWbGI=;
+        s=default; t=1574360159;
+        bh=7hNskEVNwc6LhuevTICnnP/BERfwGilqWLZ2zaR4xmo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VPQTDwC4G7IFN6YBteZY1tR38mJ9i3o/Jsqj1rhi86YssNPh0lt3GxN/fwh8MMn/m
-         tWgqONRl0iYH6ztgTN8SkUMfgoP4TLPDZk7eukU8d1+DftCS9oGLTY53oGdCirfLrB
-         rIEIKwnCjpoHWkim662xIYFDjrxallMclh9wLlWg=
+        b=uSAxCB7RFQBCq9Pid1SeoeDPaBx4X0XCFKG3MSJbFdIp3PDlnUGn4vjXBQin1Wz1L
+         Awqx8NiD5QBeVGvfQe+DBbUfpXPjD/LmYWQTbo1Y1/OsgvTmCrqGvXA0wWhH0VbvhT
+         oZSWFynVRIyxNUHNXeZUBh5z5NqTXWJYOCQJ5jlA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v1 39/48] RDMA/cm: Convert REP flow control field
-Date:   Thu, 21 Nov 2019 20:13:04 +0200
-Message-Id: <20191121181313.129430-40-leon@kernel.org>
+Subject: [PATCH rdma-next v1 47/48] RDMA/cm: Add Enhanced Connection Establishment (ECE) bits
+Date:   Thu, 21 Nov 2019 20:13:12 +0200
+Message-Id: <20191121181313.129430-48-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191121181313.129430-1-leon@kernel.org>
 References: <20191121181313.129430-1-leon@kernel.org>
@@ -60,60 +60,57 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert REP flow control field.
+Extend REQ (request for communications), REP (reply to request
+for communication), rejected reason and SIDR_REP (service ID
+resolution response) structures with hardware vendor ID bits
+according to approved IBA Comment #9434.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  5 +++--
- drivers/infiniband/core/cm_msgs.h | 12 ------------
- 2 files changed, 3 insertions(+), 14 deletions(-)
+ include/rdma/ib_cm.h         | 3 ++-
+ include/rdma/ibta_vol1_c12.h | 5 +++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 23e2c54d51dd..4c27465df6a1 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -2075,7 +2075,8 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index adccdc12b8e3..72348475eee8 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -147,7 +147,8 @@ enum ib_cm_rej_reason {
+ 	IB_CM_REJ_DUPLICATE_LOCAL_COMM_ID	= 30,
+ 	IB_CM_REJ_INVALID_CLASS_VERSION		= 31,
+ 	IB_CM_REJ_INVALID_FLOW_LABEL		= 32,
+-	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
++	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33,
++	IB_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED	= 35
+ };
  
- 	if (cm_id_priv->qp_type != IB_QPT_XRC_TGT) {
- 		rep_msg->initiator_depth = param->initiator_depth;
--		cm_rep_set_flow_ctrl(rep_msg, param->flow_control);
-+		IBA_SET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg,
-+		       param->flow_control);
- 		cm_rep_set_srq(rep_msg, param->srq);
- 		IBA_SET(CM_REP_LOCAL_QPN, rep_msg, param->qp_num);
- 	} else {
-@@ -2227,7 +2228,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
- 	param->initiator_depth = rep_msg->resp_resources;
- 	param->target_ack_delay = IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
- 	param->failover_accepted = IBA_GET(CM_REP_FAILOVER_ACCEPTED, rep_msg);
--	param->flow_control = cm_rep_get_flow_ctrl(rep_msg);
-+	param->flow_control = IBA_GET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg);
- 	param->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
- 	param->srq = cm_rep_get_srq(rep_msg);
- 	work->cm_event.private_data = &rep_msg->private_data;
-diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 566bc868e120..953f6a9f868b 100644
---- a/drivers/infiniband/core/cm_msgs.h
-+++ b/drivers/infiniband/core/cm_msgs.h
-@@ -132,18 +132,6 @@ struct cm_rep_msg {
- 
- } __packed;
- 
--static inline u8 cm_rep_get_flow_ctrl(struct cm_rep_msg *rep_msg)
--{
--	return (u8) (rep_msg->offset26 & 0x01);
--}
--
--static inline void cm_rep_set_flow_ctrl(struct cm_rep_msg *rep_msg,
--					    u8 flow_ctrl)
--{
--	rep_msg->offset26 = (u8) ((rep_msg->offset26 & 0xFE) |
--				  (flow_ctrl & 0x1));
--}
--
- static inline u8 cm_rep_get_rnr_retry_count(struct cm_rep_msg *rep_msg)
- {
- 	return (u8) (rep_msg->offset27 >> 5);
+ struct ib_cm_rej_event_param {
+diff --git a/include/rdma/ibta_vol1_c12.h b/include/rdma/ibta_vol1_c12.h
+index 9fd19ccb993f..a3056903a3c4 100644
+--- a/include/rdma/ibta_vol1_c12.h
++++ b/include/rdma/ibta_vol1_c12.h
+@@ -109,8 +109,11 @@
+ #define CM_REP_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_rep_msg, 4, 32)
+ #define CM_REP_LOCAL_Q_KEY CM_FIELD32_LOC(struct cm_rep_msg, 8, 32)
+ #define CM_REP_LOCAL_QPN CM_FIELD32_LOC(struct cm_rep_msg, 12, 24)
++#define CM_REP_VENDORID_H CM_FIELD8_LOC(struct cm_rep_msg, 15, 8)
+ #define CM_REP_LOCAL_EE_CONTEXT_NUMBER CM_FIELD32_LOC(struct cm_rep_msg, 16, 24)
++#define CM_REP_VENDORID_M CM_FIELD8_LOC(struct cm_rep_msg, 19, 8)
+ #define CM_REP_STARTING_PSN CM_FIELD32_LOC(struct cm_rep_msg, 20, 24)
++#define CM_REP_VENDORID_L CM_FIELD8_LOC(struct cm_rep_msg, 23, 8)
+ #define CM_REP_RESPONDER_RESOURCES CM_FIELD8_LOC(struct cm_rep_msg, 24, 8)
+ #define CM_REP_INITIATOR_DEPTH CM_FIELD8_LOC(struct cm_rep_msg, 25, 8)
+ #define CM_REP_TARGET_ACK_DELAY CM_FIELD8_LOC(struct cm_rep_msg, 26, 5)
+@@ -191,7 +194,9 @@
+ #define CM_SIDR_REP_STATUS CM_FIELD8_LOC(struct cm_sidr_rep_msg, 4, 8)
+ #define CM_SIDR_REP_ADDITIONAL_INFORMATION_LENGTH                              \
+ 	CM_FIELD8_LOC(struct cm_sidr_rep_msg, 5, 8)
++#define CM_SIDR_REP_VENDORID_H CM_FIELD16_LOC(struct cm_sidr_rep_msg, 6, 16)
+ #define CM_SIDR_REP_QPN CM_FIELD32_LOC(struct cm_sidr_rep_msg, 8, 24)
++#define CM_SIDR_REP_VENDORID_L CM_FIELD8_LOC(struct cm_sidr_rep_msg, 11, 8)
+ #define CM_SIDR_REP_SERVICEID CM_FIELD64_LOC(struct cm_sidr_rep_msg, 12, 64)
+ #define CM_SIDR_REP_Q_KEY CM_FIELD32_LOC(struct cm_sidr_rep_msg, 20, 32)
+ #define CM_SIDR_REP_ADDITIONAL_INFORMATION                                     \
 -- 
 2.20.1
 
