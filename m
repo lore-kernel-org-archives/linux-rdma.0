@@ -2,204 +2,151 @@ Return-Path: <SRS0=NZET=ZN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC059C432C0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:00:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01C14C432C0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:14:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89F592088F
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:00:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF73A20872
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:14:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="chJSycfN"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="XWyvFHkO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726346AbfKUHAM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 02:00:12 -0500
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:53492 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726270AbfKUHAL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 02:00:11 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1574319610;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=TrA6ZZ9fc0nOiyybZ3qw9GSB/SFjjjnD7WifT7HPzyA=;
-        b=chJSycfNxuwoqIJ1Fa+mUiHQM6ysWFO/5LgCSCNyH+Se0mjJmQaE44yiG7BcbtABkfwHir
-        /Ztx64yAu8gfKT2QatsRHzfE68r55vOg9kFQ0ez1QYJxiUYRmiwFPyr8+I4cS2m4TcdBSb
-        FLi/huX7R83kD4LfGRZ7jy0Tws+Xi5I=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-391-af1PrbSGOuee2H3YR5VRLg-1; Thu, 21 Nov 2019 02:00:07 -0500
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9BC80801E58;
-        Thu, 21 Nov 2019 07:00:05 +0000 (UTC)
-Received: from [10.72.12.204] (ovpn-12-204.pek2.redhat.com [10.72.12.204])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8D40360BC2;
-        Thu, 21 Nov 2019 06:59:53 +0000 (UTC)
-Subject: Re: [net-next v2 1/1] virtual-bus: Implementation of Virtual Bus
-To:     Jason Gunthorpe <jgg@ziepe.ca>,
-        Alex Williamson <alex.williamson@redhat.com>
-Cc:     "Michael S. Tsirkin" <mst@redhat.com>,
-        Parav Pandit <parav@mellanox.com>,
-        Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-        davem@davemloft.net, gregkh@linuxfoundation.org,
-        Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, nhorman@redhat.com,
-        sassmann@redhat.com, Kiran Patil <kiran.patil@intel.com>,
-        Tiwei Bie <tiwei.bie@intel.com>
-References: <20191119164632.GA4991@ziepe.ca>
- <20191119134822-mutt-send-email-mst@kernel.org>
- <20191119191547.GL4991@ziepe.ca>
- <20191119163147-mutt-send-email-mst@kernel.org>
- <20191119231023.GN4991@ziepe.ca>
- <20191119191053-mutt-send-email-mst@kernel.org>
- <20191120014653.GR4991@ziepe.ca>
- <134058913.35624136.1574222360435.JavaMail.zimbra@redhat.com>
- <20191120133835.GC22515@ziepe.ca> <20191120102856.7e01e2e2@x1.home>
- <20191120181108.GJ22515@ziepe.ca>
-From:   Jason Wang <jasowang@redhat.com>
-Message-ID: <3f20ca5d-29d5-1075-510e-d5193bb6cc14@redhat.com>
-Date:   Thu, 21 Nov 2019 14:59:51 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        id S1727533AbfKUHO0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 02:14:26 -0500
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:4493 "EHLO
+        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727442AbfKUHOO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Nov 2019 02:14:14 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dd6393a0000>; Wed, 20 Nov 2019 23:14:02 -0800
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Wed, 20 Nov 2019 23:14:01 -0800
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Wed, 20 Nov 2019 23:14:01 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Nov
+ 2019 07:14:00 +0000
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Nov
+ 2019 07:13:55 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Thu, 21 Nov 2019 07:13:55 +0000
+Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5dd639330009>; Wed, 20 Nov 2019 23:13:55 -0800
+From:   John Hubbard <jhubbard@nvidia.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+CC:     Al Viro <viro@zeniv.linux.org.uk>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Dave Chinner <david@fromorbit.com>,
+        David Airlie <airlied@linux.ie>,
+        "David S . Miller" <davem@davemloft.net>,
+        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
+        Magnus Karlsson <magnus.karlsson@intel.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
+        <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
+        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
+        John Hubbard <jhubbard@nvidia.com>,
+        "Jason Gunthorpe" <jgg@mellanox.com>
+Subject: [PATCH v7 07/24] IB/umem: use get_user_pages_fast() to pin DMA pages
+Date:   Wed, 20 Nov 2019 23:13:37 -0800
+Message-ID: <20191121071354.456618-8-jhubbard@nvidia.com>
+X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191121071354.456618-1-jhubbard@nvidia.com>
+References: <20191121071354.456618-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <20191120181108.GJ22515@ziepe.ca>
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-X-MC-Unique: af1PrbSGOuee2H3YR5VRLg-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1574320442; bh=qyPjlUl206QVQFHI7iGgz2aRN3LekupswNOi4m6XHTs=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=XWyvFHkOVO1okwySDaJ3ggfbjP4DOuRf96LBPW5EPPVdUGRxB78SxXJsnJksS2DGz
+         nvlh9Dj078w3JduJGegpHK5aInIU+jEPY5vZz6dQE6tl8KbCsXuDjDAHNh2HiCj7Vy
+         7UGZiM0N9XtyCm36gAVeqe6WnNAjMnb8Ogh9zu1AeSpJChkFJU+Ryzxyqpu2K/3itH
+         0UfkEcGHpGKeKme7S8gkyhtrjv6dtMlANoEXGhSnoM+jUByzI034bR6JkE+hh0y5HS
+         XvRi2qeu2ccXeonWlADI+P58jx117FGKdSCECfKL9BPKKnKOk0PkFxvApX3cVwSlNO
+         GKJ0UkFxj0rIA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+And get rid of the mmap_sem calls, as part of that. Note
+that get_user_pages_fast() will, if necessary, fall back to
+__gup_longterm_unlocked(), which takes the mmap_sem as needed.
 
-On 2019/11/21 =E4=B8=8A=E5=8D=882:11, Jason Gunthorpe wrote:
-> On Wed, Nov 20, 2019 at 10:28:56AM -0700, Alex Williamson wrote:
->>>> Are you objecting the mdev_set_iommu_deivce() stuffs here?
->>> I'm questioning if it fits the vfio PCI device security model, yes.
->> The mdev IOMMU backing device model is for when an mdev device has
->> IOMMU based isolation, either via the PCI requester ID or via requester
->> ID + PASID.  For example, an SR-IOV VF may be used by a vendor to
->> provide IOMMU based translation and isolation, but the VF may not be
->> complete otherwise to provide a self contained device.  It might
->> require explicit coordination and interaction with the PF driver, ie.
->> mediation.
-> In this case the PF does not look to be involved, the ICF kernel
-> driver is only manipulating registers in the same VF that the vfio
-> owns the IOMMU for.
->
-> This is why I keep calling it a "so-called mediated device" because it
-> is absolutely not clear what the kernel driver is mediating.
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/infiniband/core/umem.c | 17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-
-It tries to do mediation between virtio commands and real device. It=20
-works similar to mdev PCI device that do mediation between PCI commands=20
-and real device. This is exact what mediator pattern[1] did, no?
-
-[1] https://en.wikipedia.org/wiki/Mediator_pattern
-
-
-> Nearly
-> all its work is providing a subsystem-style IOCTL interface under the
-> existing vfio multiplexer unrelated to vfio requirements for DMA.
-
-
-What do you mean by "unrelated to vfio", the ioctl() interface belongs=20
-its device ops is pretty device specific. And for IFC VF driver, it=20
-doesn't see ioctl, it can only see virtio commands.
-
-
->
->> The IOMMU backing device is certainly not meant to share an IOMMU
->> address space with host drivers, except as necessary for the
->> mediation of the device.  The vfio model manages the IOMMU domain of
->> the backing device exclusively, any attempt to dual-host the device
->> respective to the IOMMU should fault in the dma/iommu-ops.  Thanks,
-> Sounds more reasonable if the kernel dma_ops are prevented while vfio
-> is using the device.
->
-> However, to me it feels wrong that just because a driver wishes to use
-> PASID or IOMMU features it should go through vfio and mediated
-> devices.
->
-> It is not even necessary as we have several examples already of
-> drivers using these features without vfio.
-
-
-Confused, are you suggesting a new module to support fine grain DMA=20
-isolation to userspace driver? How different would it looks compared=20
-with exist VFIO then?
-
-
->
-> I feel like mdev is suffering from mission creep. I see people
-> proposing to use mdev for many wild things, the Mellanox SF stuff in
-> the other thread and this 'virtio subsystem' being the two that have
-> come up publicly this month.
->
-> Putting some boundaries on mdev usage would really help people know
-> when to use it.
-
-
-And forbid people to extend it? Do you agree that there are lots of=20
-common requirements between:
-
-- mediation between virtio and real device
-- mediation between PCI and real device
-
-?
-
-
-> My top two from this discussion would be:
->
-> - mdev devices should only bind to vfio. It is not a general kernel
->    driver matcher mechanism. It is not 'virtual-bus'.
-
-
-It's still unclear to me why mdev must bind to vfio. Though they are=20
-coupled but the pretty loosely. I would argue that any device that is=20
-doing mediation between drivers and device could be done through mdev.=20
-Bind mdev to vfio means you need invent other things to support kernel=20
-driver and your parent need to be prepared for those two different APIs.=20
-Mdev devices it self won't be a bus, but it could provide helpers to=20
-build a mediated bus.
-
-
->
-> - mdev & vfio are not a substitute for a proper kernel subsystem. We
->    shouldn't export a complex subsystem-like ioctl API through
->    vfio ioctl extensions.
-
-
-I would say though e.g the regions based VFIO device API looks generic,=20
-it carries device/bus specific information there. It would be rather=20
-simple to switch back to region API and build vhost protocol on top. But=20
-does it really have a lot of differences?
-
-
->   Make a proper subsystem, it is not so hard.
-
-
-Vhost is the subsystem bu then how to abstract the DMA there? It would=20
-be more than 99% similar to VFIO then.
-
-Thanks
-
-
->
-> Maybe others agree?
->
-> Thanks,
-> Jason
->
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.=
+c
+index 24244a2f68cc..3d664a2539eb 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -271,16 +271,13 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, u=
+nsigned long addr,
+ 	sg =3D umem->sg_head.sgl;
+=20
+ 	while (npages) {
+-		down_read(&mm->mmap_sem);
+-		ret =3D get_user_pages(cur_base,
+-				     min_t(unsigned long, npages,
+-					   PAGE_SIZE / sizeof (struct page *)),
+-				     gup_flags | FOLL_LONGTERM,
+-				     page_list, NULL);
+-		if (ret < 0) {
+-			up_read(&mm->mmap_sem);
++		ret =3D get_user_pages_fast(cur_base,
++					  min_t(unsigned long, npages,
++						PAGE_SIZE /
++						sizeof(struct page *)),
++					  gup_flags | FOLL_LONGTERM, page_list);
++		if (ret < 0)
+ 			goto umem_release;
+-		}
+=20
+ 		cur_base +=3D ret * PAGE_SIZE;
+ 		npages   -=3D ret;
+@@ -288,8 +285,6 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, uns=
+igned long addr,
+ 		sg =3D ib_umem_add_sg_table(sg, page_list, ret,
+ 			dma_get_max_seg_size(context->device->dma_device),
+ 			&umem->sg_nents);
+-
+-		up_read(&mm->mmap_sem);
+ 	}
+=20
+ 	sg_mark_end(sg);
+--=20
+2.24.0
 
