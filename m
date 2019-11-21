@@ -2,42 +2,42 @@ Return-Path: <SRS0=NZET=ZN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE9E2C432C0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:13:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F34ACC432C0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:13:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 82C5B206CB
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:13:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C733D2068F
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:13:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574360027;
-	bh=cBF5EzpRLP8zba3+uMC181Ty7ovdm1c/rDN73Kw60aE=;
+	s=default; t=1574360031;
+	bh=tHxX0JxhwQglJUniJaDcvKFcos7WIuebbT/9LMNUnjI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=EBdMoUbJAk7XGi9IkZJ5OzDCY30/BgHrIal4JzwZp+0sMGfMpl02/RpQqFt+mWoMv
-	 YYp+h1fwPYGlsJYDKrOXFi1mieDSj5GFtChgjk94NMLwT1qXjS676s16WnnFLvtViT
-	 K+Ij4S+78vkxE13Eun77Ti7oIhNvP39h3+AfgI/4=
+	b=spLfAmnAaKbpSudQpxvEMLYE6EuvuWCLowB7jz6bLCyw3znltXDZs2ocZVeQ9xkat
+	 dc4r0tDXj74D1B/+89ugS6PFJZMr2UeeCXp/UOUaHhzVoJUs66xXPw439oXHqyjwJF
+	 yIljGAWPZYwD8JdMp7yUcYpjaC4urI+CzFPLUXQU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726658AbfKUSNr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 13:13:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52274 "EHLO mail.kernel.org"
+        id S1726689AbfKUSNv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 13:13:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726279AbfKUSNq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 13:13:46 -0500
+        id S1726279AbfKUSNv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Nov 2019 13:13:51 -0500
 Received: from localhost (unknown [5.29.147.182])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B8D232068E;
-        Thu, 21 Nov 2019 18:13:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 49B362068E;
+        Thu, 21 Nov 2019 18:13:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574360026;
-        bh=cBF5EzpRLP8zba3+uMC181Ty7ovdm1c/rDN73Kw60aE=;
+        s=default; t=1574360030;
+        bh=tHxX0JxhwQglJUniJaDcvKFcos7WIuebbT/9LMNUnjI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uemhXWQJG5KbNFMUIX/vcC8VJjQAOkan/w9qydDVbc3UHZ3h4CSlhHQARagDMS/SO
-         w3lOqvm8sxSGwCoD8hOqM/D9SFAFFXjxqjhanI7wZcJI0RgQ7KJ5nHiqjgGSck9YmN
-         Za7FSK/pwJMbVjCHJERbdFUa5TyDPyQ0r2FNhGE4=
+        b=VvRIR49x6kmNFS+cdvjV36FYCTiiLtpIiSXXHrzBDnHY0ov4cAcP0+7tBwyW0l7gO
+         TQm5wbaWSPwIE8vqYNEvnZImVc/vm3E2opRO9uU5O6k66Dv2iLFZodMspN4Me1n8Fh
+         cHT5vS/KT2OJQySXTNaBJvw70EhDqzMkcW/kPz3Y=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v1 02/48] RDMA/srpt: Use private_data_len instead of hardcoded value
-Date:   Thu, 21 Nov 2019 20:12:27 +0200
-Message-Id: <20191121181313.129430-3-leon@kernel.org>
+Subject: [PATCH rdma-next v1 10/48] RDMA/cm: Request For Communication Release (DREQ) definitions
+Date:   Thu, 21 Nov 2019 20:12:35 +0200
+Message-Id: <20191121181313.129430-11-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191121181313.129430-1-leon@kernel.org>
 References: <20191121181313.129430-1-leon@kernel.org>
@@ -60,28 +60,79 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Reuse recently introduced private_data_len to get IBTA REJ message
-private data size.
+Add DREQ definitions as it is written in IBTA release 1.3 volume 1.
 
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/cm.c      | 4 ++--
+ drivers/infiniband/core/cm_msgs.h | 2 +-
+ include/rdma/ib_cm.h              | 1 -
+ include/rdma/ibta_vol1_c12.h      | 7 +++++++
+ 4 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 23c782e3d49a..a0dd17f90861 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2648,7 +2648,7 @@ static int srpt_cm_handler(struct ib_cm_id *cm_id,
- 	case IB_CM_REJ_RECEIVED:
- 		srpt_cm_rej_recv(ch, event->param.rej_rcvd.reason,
- 				 event->private_data,
--				 IB_CM_REJ_PRIVATE_DATA_SIZE);
-+				 event->private_data_len);
- 		break;
- 	case IB_CM_RTU_RECEIVED:
- 	case IB_CM_USER_ESTABLISHED:
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 73f93e354d8b..57e35d2f657f 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -2452,7 +2452,7 @@ int ib_send_cm_dreq(struct ib_cm_id *cm_id,
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	if (private_data && private_data_len > IB_CM_DREQ_PRIVATE_DATA_SIZE)
++	if (private_data && private_data_len > CM_DREQ_PRIVATE_DATA_SIZE)
+ 		return -EINVAL;
+ 
+ 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
+@@ -2603,7 +2603,7 @@ static int cm_dreq_handler(struct cm_work *work)
+ 	}
+ 
+ 	work->cm_event.private_data = &dreq_msg->private_data;
+-	work->cm_event.private_data_len = IB_CM_DREQ_PRIVATE_DATA_SIZE;
++	work->cm_event.private_data_len = CM_DREQ_PRIVATE_DATA_SIZE;
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	if (cm_id_priv->local_qpn != cm_dreq_get_remote_qpn(dreq_msg))
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index d36e90ccaeb7..c2b19d21fbe6 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -594,7 +594,7 @@ struct cm_dreq_msg {
+ 	/* remote QPN/EECN:24, rsvd:8 */
+ 	__be32 offset8;
+ 
+-	u8 private_data[IB_CM_DREQ_PRIVATE_DATA_SIZE];
++	u8 private_data[CM_DREQ_PRIVATE_DATA_SIZE];
+ 
+ } __packed;
+ 
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 34dc12b30399..77f4818aaf10 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -65,7 +65,6 @@ enum ib_cm_event_type {
+ };
+ 
+ enum ib_cm_data_size {
+-	IB_CM_DREQ_PRIVATE_DATA_SIZE	 = 220,
+ 	IB_CM_DREP_PRIVATE_DATA_SIZE	 = 224,
+ 	IB_CM_LAP_PRIVATE_DATA_SIZE	 = 168,
+ 	IB_CM_APR_PRIVATE_DATA_SIZE	 = 148,
+diff --git a/include/rdma/ibta_vol1_c12.h b/include/rdma/ibta_vol1_c12.h
+index 5df31e88235e..815373932c41 100644
+--- a/include/rdma/ibta_vol1_c12.h
++++ b/include/rdma/ibta_vol1_c12.h
+@@ -129,4 +129,11 @@
+ #define CM_RTU_PRIVATE_DATA CM_FIELD_MLOC(struct cm_rtu_msg, 8, 1792)
+ #define CM_RTU_PRIVATE_DATA_SIZE 224
+ 
++/* Table 112 DREQ Message Contents */
++#define CM_DREQ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_dreq_msg, 0, 32)
++#define CM_DREQ_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_dreq_msg, 4, 32)
++#define CM_DREQ_REMOTE_QPN_EECN CM_FIELD32_LOC(struct cm_dreq_msg, 8, 24)
++#define CM_DREQ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_dreq_msg, 12, 1760)
++#define CM_DREQ_PRIVATE_DATA_SIZE 220
++
+ #endif /* _IBTA_VOL1_C12_H_ */
 -- 
 2.20.1
 
