@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE68C432C0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73044C432C0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5012A206CB
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49965206CC
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574360129;
-	bh=PtbjPcOwG9K2QireNN2IoOKfh/9B32K6y+mvcdupIwg=;
+	s=default; t=1574360137;
+	bh=JXQIJ2oCpQsbwB0JVKwGvo3FKo2KbuW+hghl+Yumujw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=zZ9Nqm8QFHQnbqlrinryKnxq97o5vjpnL9Wu6yd6R7V9JsbdroeVvq3YVqYj2uTTH
-	 ran1z1e1d+BzbzUi3ECfhTtKP0L6WosI4scEzZuxNosZ2JB62aZ4t6BCFxoj6Gxns/
-	 yVcO0g40c5b1EUGZfTshOoKfXuRtCOO11HdU/H4A=
+	b=l5kumUq9fCnIVZ+VunsfTQbjP54hoHOXtaeLf50PxIq5ZOFCW1GhUNWREiWuD7RP7
+	 CMmUUcGyn21rWE3fXebo7udjfk5NwYHgXLmdnvxrJY/vnJo1knpBixZaBFvd1alhpa
+	 GMtdrQ4FmuHv3Afd8+FfSYEMySz8Gpt2XhVtlFyM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727031AbfKUSP2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 13:15:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53832 "EHLO mail.kernel.org"
+        id S1727102AbfKUSPg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 13:15:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53982 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726279AbfKUSP2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 13:15:28 -0500
+        id S1727135AbfKUSPf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Nov 2019 13:15:35 -0500
 Received: from localhost (unknown [5.29.147.182])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8319B2068E;
-        Thu, 21 Nov 2019 18:15:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 88BC02068E;
+        Thu, 21 Nov 2019 18:15:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574360128;
-        bh=PtbjPcOwG9K2QireNN2IoOKfh/9B32K6y+mvcdupIwg=;
+        s=default; t=1574360135;
+        bh=JXQIJ2oCpQsbwB0JVKwGvo3FKo2KbuW+hghl+Yumujw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=iTAWP1eYysYv1wCpcV6qZL4HECtfRG2DIdt/6+gud6aX0APYRYzyB4SJyL1BF/WGg
-         jf6frRWK52WV71WFwv+ZNw9/r6XJ0HkDxgJOakwCtLbsLG6qwVJgfn37U/LxWJ5xUT
-         NCZTpXXDZhRgOX0v/DuYMJzehvWsaPBm3lRHDLII=
+        b=pKgJzFcLu0P0H/dAwtTP4tj5mDPuhqfisC14Mzb8bm53UndUxgNlqbf7/IPaVlAv9
+         Xj7/AQsB+hFPo4AStExOUH3NocAW+nBpCaDcM7fLaLjrT0dkNT/28Bbe3BaqybXOPa
+         ck2kA3fUoNJmT1gTQ6x980lTAmH27Zz5Mx9e0/pk=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v1 38/48] RDMA/cm: Convert REP failover accepted field
-Date:   Thu, 21 Nov 2019 20:13:03 +0200
-Message-Id: <20191121181313.129430-39-leon@kernel.org>
+Subject: [PATCH rdma-next v1 40/48] RDMA/cm: Convert REP RNR retry count field
+Date:   Thu, 21 Nov 2019 20:13:05 +0200
+Message-Id: <20191121181313.129430-41-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191121181313.129430-1-leon@kernel.org>
 References: <20191121181313.129430-1-leon@kernel.org>
@@ -60,58 +60,68 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Update REP failover accepted field to the new scheme.
+Convert REP RNR retry count field.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  4 ++--
- drivers/infiniband/core/cm_msgs.h | 11 -----------
- 2 files changed, 2 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/cm.c      |  6 +++---
+ drivers/infiniband/core/cm_msgs.h | 12 ------------
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index ca2d50a3c7da..23e2c54d51dd 100644
+index 4c27465df6a1..77199078d276 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -2069,7 +2069,7 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 	rep_msg->resp_resources = param->responder_resources;
+@@ -2070,7 +2070,7 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
  	IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg,
  	       cm_id_priv->av.port->cm_dev->ack_delay);
--	cm_rep_set_failover(rep_msg, param->failover_accepted);
-+	IBA_SET(CM_REP_FAILOVER_ACCEPTED, rep_msg, param->failover_accepted);
- 	cm_rep_set_rnr_retry_count(rep_msg, param->rnr_retry_count);
+ 	IBA_SET(CM_REP_FAILOVER_ACCEPTED, rep_msg, param->failover_accepted);
+-	cm_rep_set_rnr_retry_count(rep_msg, param->rnr_retry_count);
++	IBA_SET(CM_REP_RNR_RETRY_COUNT, rep_msg, param->rnr_retry_count);
  	rep_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
  
-@@ -2226,7 +2226,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
- 	param->responder_resources = rep_msg->initiator_depth;
- 	param->initiator_depth = rep_msg->resp_resources;
+ 	if (cm_id_priv->qp_type != IB_QPT_XRC_TGT) {
+@@ -2229,7 +2229,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
  	param->target_ack_delay = IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
--	param->failover_accepted = cm_rep_get_failover(rep_msg);
-+	param->failover_accepted = IBA_GET(CM_REP_FAILOVER_ACCEPTED, rep_msg);
- 	param->flow_control = cm_rep_get_flow_ctrl(rep_msg);
- 	param->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
+ 	param->failover_accepted = IBA_GET(CM_REP_FAILOVER_ACCEPTED, rep_msg);
+ 	param->flow_control = IBA_GET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg);
+-	param->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
++	param->rnr_retry_count = IBA_GET(CM_REP_RNR_RETRY_COUNT, rep_msg);
  	param->srq = cm_rep_get_srq(rep_msg);
+ 	work->cm_event.private_data = &rep_msg->private_data;
+ 	work->cm_event.private_data_len = CM_REP_PRIVATE_DATA_SIZE;
+@@ -2371,7 +2371,7 @@ static int cm_rep_handler(struct cm_work *work)
+ 	cm_id_priv->initiator_depth = rep_msg->resp_resources;
+ 	cm_id_priv->responder_resources = rep_msg->initiator_depth;
+ 	cm_id_priv->sq_psn = IBA_GET(CM_REP_STARTING_PSN, rep_msg);
+-	cm_id_priv->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
++	cm_id_priv->rnr_retry_count = IBA_GET(CM_REP_RNR_RETRY_COUNT, rep_msg);
+ 	cm_id_priv->target_ack_delay = IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
+ 	cm_id_priv->av.timeout =
+ 			cm_ack_timeout(cm_id_priv->target_ack_delay,
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 0536f827fd8e..566bc868e120 100644
+index 953f6a9f868b..209e19197693 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -132,17 +132,6 @@ struct cm_rep_msg {
+@@ -132,18 +132,6 @@ struct cm_rep_msg {
  
  } __packed;
  
--static inline u8 cm_rep_get_failover(struct cm_rep_msg *rep_msg)
+-static inline u8 cm_rep_get_rnr_retry_count(struct cm_rep_msg *rep_msg)
 -{
--	return (u8) ((rep_msg->offset26 & 0x06) >> 1);
+-	return (u8) (rep_msg->offset27 >> 5);
 -}
 -
--static inline void cm_rep_set_failover(struct cm_rep_msg *rep_msg, u8 failover)
+-static inline void cm_rep_set_rnr_retry_count(struct cm_rep_msg *rep_msg,
+-					      u8 rnr_retry_count)
 -{
--	rep_msg->offset26 = (u8) ((rep_msg->offset26 & 0xF9) |
--				  ((failover & 0x3) << 1));
+-	rep_msg->offset27 = (u8) ((rep_msg->offset27 & 0x1F) |
+-				  (rnr_retry_count << 5));
 -}
 -
- static inline u8 cm_rep_get_flow_ctrl(struct cm_rep_msg *rep_msg)
+ static inline u8 cm_rep_get_srq(struct cm_rep_msg *rep_msg)
  {
- 	return (u8) (rep_msg->offset26 & 0x01);
+ 	return (u8) ((rep_msg->offset27 >> 4) & 0x1);
 -- 
 2.20.1
 
