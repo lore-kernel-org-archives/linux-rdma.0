@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8665C432C0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:14:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D4CC432C0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:14:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C3AD2068E
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:14:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A8B3206D7
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:14:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574360084;
-	bh=I+UjwzleSz+069wAm3s0vncKS044UhY+KCLGn27Ba50=;
+	s=default; t=1574360087;
+	bh=+LsPaH2jIxW7nbre660RK1jeEaE+IL/OO5bq7xQ7tO8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xg0HHOzr/4YK5xs3kDneAJq0RWuJg85cqIiugntxBMstV6JlJP8tmB9YOHgFobUsM
-	 gshMAGgoM3fOdCgRqWyhhDy2Gh0+sDrA1q7w0M2kv+vxP5lO9WmP8+gv1J8eyja1yo
-	 O7LZripueVLcAE425NkLriqCQIDeyEK49zvTZ3Cg=
+	b=UOhVDiCrTKRgDLD9eNLGG4tc60VegCNCkjMI/THZksNjiRBAJJI0eXhryuhLprjAz
+	 kT8+GUxSKghAQI9LZLYkbiY1C+DP4/qDYoxZd/hiCS+gml1smDng5YB5XYqpB8bnwH
+	 VyR0GGaaXowodOcIy4khdE7kWgK7+hcsAmFyzWC4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726970AbfKUSOo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 13:14:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53096 "EHLO mail.kernel.org"
+        id S1726975AbfKUSOq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 13:14:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726279AbfKUSOn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 13:14:43 -0500
+        id S1726279AbfKUSOq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Nov 2019 13:14:46 -0500
 Received: from localhost (unknown [5.29.147.182])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CA041206CB;
-        Thu, 21 Nov 2019 18:14:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 484982068E;
+        Thu, 21 Nov 2019 18:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574360082;
-        bh=I+UjwzleSz+069wAm3s0vncKS044UhY+KCLGn27Ba50=;
+        s=default; t=1574360086;
+        bh=+LsPaH2jIxW7nbre660RK1jeEaE+IL/OO5bq7xQ7tO8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WHAuofc+aRoYfU47TTERb+JHEQCGHELriN6UWJuP1WPFOG4Pxm6iq6Eu4VSbhCvnO
-         PmbYIJ7cpnYI/7ZYZm7Bp+GJGNnu0YOg4vOfygzLHrHB2ETur99aVwIqfvDm+gzHiN
-         jwF2H4QwszqJn4VNlMdsQHRQN7q2+ATlFbzPE66k=
+        b=gqntwRyqLjirjbqQB/9TRFjBOYEeO9EVHxOYrMdW2x0tHTQq1PN3uZX/x6ZYUKXe+
+         lhZra9oPRSjNEKsfb7wr9QGL2Z6BSZg+P/vh7kuMUjsluaRS4qvjaaSXtqEhURTxDA
+         qkHcBzBYbhQZaoXFOaf+waYboIQk7UitoIR+dFs8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v1 25/48] RDMA/cm: Update REQ path MTU field
-Date:   Thu, 21 Nov 2019 20:12:50 +0200
-Message-Id: <20191121181313.129430-26-leon@kernel.org>
+Subject: [PATCH rdma-next v1 26/48] RDMA/cm: Convert REQ RNR retry timeout counter
+Date:   Thu, 21 Nov 2019 20:12:51 +0200
+Message-Id: <20191121181313.129430-27-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191121181313.129430-1-leon@kernel.org>
 References: <20191121181313.129430-1-leon@kernel.org>
@@ -60,75 +60,68 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert REQ path MTU field to use IBA_GET/IBA_SET macros.
+Convert REQ RNR retry timeout counter to new scheme.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  8 ++++----
- drivers/infiniband/core/cm_msgs.h | 10 ----------
- 2 files changed, 4 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/cm.c      |  6 +++---
+ drivers/infiniband/core/cm_msgs.h | 12 ------------
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 3e5b06c98808..d7f0b929147b 100644
+index d7f0b929147b..549ea886f0de 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1289,7 +1289,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 	IBA_SET(CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT, req_msg,
- 		param->local_cm_response_timeout);
- 	req_msg->pkey = param->primary_path->pkey;
--	cm_req_set_path_mtu(req_msg, param->primary_path->mtu);
-+	IBA_SET(CM_REQ_PATH_PACKET_PAYLOAD_MTU, req_msg, param->primary_path->mtu);
- 	cm_req_set_max_cm_retries(req_msg, param->max_cm_retries);
+@@ -1296,7 +1296,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 		IBA_SET(CM_REQ_RESPONDED_RESOURCES, req_msg,
+ 		       param->responder_resources);
+ 		IBA_SET(CM_REQ_RETRY_COUNT, req_msg, param->retry_count);
+-		cm_req_set_rnr_retry_count(req_msg, param->rnr_retry_count);
++		IBA_SET(CM_REQ_RNR_RETRY_COUNT, req_msg, param->rnr_retry_count);
+ 		cm_req_set_srq(req_msg, param->srq);
+ 	}
  
- 	if (param->qp_type != IB_QPT_XRC_INI) {
-@@ -1576,7 +1576,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 	primary_path->pkey = req_msg->pkey;
- 	primary_path->sl = cm_req_get_primary_sl(req_msg);
- 	primary_path->mtu_selector = IB_SA_EQ;
--	primary_path->mtu = cm_req_get_path_mtu(req_msg);
-+	primary_path->mtu = IBA_GET(CM_REQ_PATH_PACKET_PAYLOAD_MTU, req_msg);
- 	primary_path->rate_selector = IB_SA_EQ;
- 	primary_path->rate = cm_req_get_primary_packet_rate(req_msg);
- 	primary_path->packet_life_time_selector = IB_SA_EQ;
-@@ -1597,7 +1597,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 		alt_path->pkey = req_msg->pkey;
- 		alt_path->sl = cm_req_get_alt_sl(req_msg);
- 		alt_path->mtu_selector = IB_SA_EQ;
--		alt_path->mtu = cm_req_get_path_mtu(req_msg);
-+		alt_path->mtu = IBA_GET(CM_REQ_PATH_PACKET_PAYLOAD_MTU, req_msg);
- 		alt_path->rate_selector = IB_SA_EQ;
- 		alt_path->rate = cm_req_get_alt_packet_rate(req_msg);
- 		alt_path->packet_life_time_selector = IB_SA_EQ;
-@@ -2032,7 +2032,7 @@ static int cm_req_handler(struct cm_work *work)
- 	cm_id_priv->remote_qpn = IBA_GET(CM_REQ_LOCAL_QPN, req_msg);
- 	cm_id_priv->initiator_depth = IBA_GET(CM_REQ_RESPONDED_RESOURCES, req_msg);
- 	cm_id_priv->responder_resources = IBA_GET(CM_REQ_INITIATOR_DEPTH, req_msg);
--	cm_id_priv->path_mtu = cm_req_get_path_mtu(req_msg);
-+	cm_id_priv->path_mtu = IBA_GET(CM_REQ_PATH_PACKET_PAYLOAD_MTU, req_msg);
+@@ -1703,7 +1703,7 @@ static void cm_format_req_event(struct cm_work *work,
+ 	param->remote_cm_response_timeout =
+ 		IBA_GET(CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT, req_msg);
+ 	param->retry_count = IBA_GET(CM_REQ_RETRY_COUNT, req_msg);
+-	param->rnr_retry_count = cm_req_get_rnr_retry_count(req_msg);
++	param->rnr_retry_count = IBA_GET(CM_REQ_RNR_RETRY_COUNT, req_msg);
+ 	param->srq = cm_req_get_srq(req_msg);
+ 	param->ppath_sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
+ 	work->cm_event.private_data = &req_msg->private_data;
+@@ -2036,7 +2036,7 @@ static int cm_req_handler(struct cm_work *work)
  	cm_id_priv->pkey = req_msg->pkey;
  	cm_id_priv->sq_psn = IBA_GET(CM_REQ_STARTING_PSN, req_msg);
  	cm_id_priv->retry_count = IBA_GET(CM_REQ_RETRY_COUNT, req_msg);
+-	cm_id_priv->rnr_retry_count = cm_req_get_rnr_retry_count(req_msg);
++	cm_id_priv->rnr_retry_count = IBA_GET(CM_REQ_RNR_RETRY_COUNT, req_msg);
+ 	cm_id_priv->qp_type = cm_req_get_qp_type(req_msg);
+ 
+ 	cm_format_req_event(work, cm_id_priv, &listen_cm_id_priv->id);
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index d3f1caf07db5..dbc5acdd7a71 100644
+index dbc5acdd7a71..a754c7fa4fc0 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -70,16 +70,6 @@ struct cm_req_msg {
+@@ -70,18 +70,6 @@ struct cm_req_msg {
  
  } __packed;
  
--static inline u8 cm_req_get_path_mtu(struct cm_req_msg *req_msg)
+-static inline u8 cm_req_get_rnr_retry_count(struct cm_req_msg *req_msg)
 -{
--	return req_msg->offset50 >> 4;
+-	return req_msg->offset50 & 0x7;
 -}
 -
--static inline void cm_req_set_path_mtu(struct cm_req_msg *req_msg, u8 path_mtu)
+-static inline void cm_req_set_rnr_retry_count(struct cm_req_msg *req_msg,
+-					      u8 rnr_retry_count)
 -{
--	req_msg->offset50 = (u8) ((req_msg->offset50 & 0xF) | (path_mtu << 4));
+-	req_msg->offset50 = (u8) ((req_msg->offset50 & 0xF8) |
+-				  (rnr_retry_count & 0x7));
 -}
 -
- static inline u8 cm_req_get_rnr_retry_count(struct cm_req_msg *req_msg)
+ static inline u8 cm_req_get_max_cm_retries(struct cm_req_msg *req_msg)
  {
- 	return req_msg->offset50 & 0x7;
+ 	return req_msg->offset51 >> 4;
 -- 
 2.20.1
 
