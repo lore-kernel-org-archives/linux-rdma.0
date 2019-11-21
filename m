@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6B5C432C3
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:15:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4A4C43215
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:15:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2FEE2089D
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:15:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31A002089D
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 07:15:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ae5eh6US"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="gfwggRsJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727333AbfKUHOH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 02:14:07 -0500
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:13095 "EHLO
-        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727175AbfKUHOF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Nov 2019 02:14:05 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate14.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dd6393b0000>; Wed, 20 Nov 2019 23:14:03 -0800
+        id S1727669AbfKUHPb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 02:15:31 -0500
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:4377 "EHLO
+        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727297AbfKUHOH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Nov 2019 02:14:07 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5dd639350004>; Wed, 20 Nov 2019 23:13:57 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Wed, 20 Nov 2019 23:14:00 -0800
+  by hqpgpgate102.nvidia.com (PGP Universal service);
+  Wed, 20 Nov 2019 23:13:56 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Wed, 20 Nov 2019 23:14:00 -0800
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Nov
- 2019 07:13:56 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Thu, 21 Nov 2019 07:13:56 +0000
+        by hqpgpgate102.nvidia.com on Wed, 20 Nov 2019 23:13:56 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Nov
+ 2019 07:13:55 +0000
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Nov
+ 2019 07:13:55 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Thu, 21 Nov 2019 07:13:55 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dd639340005>; Wed, 20 Nov 2019 23:13:56 -0800
+        id <B5dd639330005>; Wed, 20 Nov 2019 23:13:55 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -53,12 +56,11 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
+        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -66,65 +68,180 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v7 15/24] fs/io_uring: set FOLL_PIN via pin_user_pages()
-Date:   Wed, 20 Nov 2019 23:13:45 -0800
-Message-ID: <20191121071354.456618-16-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>,
+        "Christoph Hellwig" <hch@lst.de>
+Subject: [PATCH v7 04/24] mm: Cleanup __put_devmap_managed_page() vs ->page_free()
+Date:   Wed, 20 Nov 2019 23:13:34 -0800
+Message-ID: <20191121071354.456618-5-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191121071354.456618-1-jhubbard@nvidia.com>
 References: <20191121071354.456618-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1574320443; bh=/H9b+aFChAqx04E818JcymcP2r9Q91gVxUQ0f1y3FiI=;
+        t=1574320438; bh=tsex47R2BQW/HRhxz4q5zTudp/GozzJHGnDF0/waCbA=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=ae5eh6USUeLSTBA3O+2eYU5oJ3XYCWbHe/Atk9InBjJQPAiJ2wQqIfoYw9wA8OMtn
-         h3do92KKTz0rl9Tepf6TWe96vAmLS338kH0quLHfmcbMtuCZuR2iXw8vZZvi1SPmjb
-         HltRLeLOAwa3jsD5QpzamQ67sDkFEXNsUDkn0lXposvPhEgLQuwo0s4fotTM5sLPRg
-         c60VUD+66DCi96WxpG6Z4X/QHJmppYMBgWg8Ghav1bAvtyAlpo5RFlealsnzwOYydQ
-         sHRYpoPL2ANz4vgyhxnqLGgOJ+X6yMO33VkURFctks1LV+tbHvRAqHkZR/Q/J6vgZT
-         0tUDHRblYyXuw==
+         Content-Type:Content-Transfer-Encoding;
+        b=gfwggRsJX15HyLSxiO9JeEm1RWoATKK265yUsN85e8iLy27pg6fyKg9KrtNqpkKHB
+         pYxMmtdlGr8fm55K3Lo7oiUUqMuqZdT2wTKMfESw00kzlUkmLBAMM0N09bGPTMTXZo
+         qUUB9amn+kirK0+cMEBfzReIUodICUm5NBnecIpYgQww89jxbaXcq6ZeMZSiZQ5PqZ
+         vVpn2BOVQrstMRjhkxBCQcUbFHE3abRCKbvjDyxLtLWZszMkxtIvQ0YsnATbK4MyII
+         wH6MEWLkC+vQaHZGt1P24EC/HT0NhvDY9b0ibJ9NV53mmbU05ZDtJX/RiQ5IZOrFih
+         FzYpBNJXrBOzg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Convert fs/io_uring to use the new pin_user_pages() call, which sets
-FOLL_PIN. Setting FOLL_PIN is now required for code that requires
-tracking of pinned pages, and therefore for any code that calls
-put_user_page().
+From: Dan Williams <dan.j.williams@intel.com>
 
-In partial anticipation of this work, the io_uring code was already
-calling put_user_page() instead of put_page(). Therefore, in order to
-convert from the get_user_pages()/put_page() model, to the
-pin_user_pages()/put_user_page() model, the only change required
-here is to change get_user_pages() to pin_user_pages().
+After the removal of the device-public infrastructure there are only 2
+->page_free() call backs in the kernel. One of those is a device-private
+callback in the nouveau driver, the other is a generic wakeup needed in
+the DAX case. In the hopes that all ->page_free() callbacks can be
+migrated to common core kernel functionality, move the device-private
+specific actions in __put_devmap_managed_page() under the
+is_device_private_page() conditional, including the ->page_free()
+callback. For the other page types just open-code the generic wakeup.
 
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Yes, the wakeup is only needed in the MEMORY_DEVICE_FSDAX case, but it
+does no harm in the MEMORY_DEVICE_DEVDAX and MEMORY_DEVICE_PCI_P2PDMA
+case.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- fs/io_uring.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/nvdimm/pmem.c |  6 ----
+ mm/memremap.c         | 80 ++++++++++++++++++++++++-------------------
+ 2 files changed, 44 insertions(+), 42 deletions(-)
 
-diff --git a/fs/io_uring.c b/fs/io_uring.c
-index 2c819c3c855d..15715eeebaec 100644
---- a/fs/io_uring.c
-+++ b/fs/io_uring.c
-@@ -3449,7 +3449,7 @@ static int io_sqe_buffer_register(struct io_ring_ctx =
-*ctx, void __user *arg,
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index f9f76f6ba07b..21db1ce8c0ae 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -338,13 +338,7 @@ static void pmem_release_disk(void *__pmem)
+ 	put_disk(pmem->disk);
+ }
 =20
- 		ret =3D 0;
- 		down_read(&current->mm->mmap_sem);
--		pret =3D get_user_pages(ubuf, nr_pages,
-+		pret =3D pin_user_pages(ubuf, nr_pages,
- 				      FOLL_WRITE | FOLL_LONGTERM,
- 				      pages, vmas);
- 		if (pret =3D=3D nr_pages) {
+-static void pmem_pagemap_page_free(struct page *page)
+-{
+-	wake_up_var(&page->_refcount);
+-}
+-
+ static const struct dev_pagemap_ops fsdax_pagemap_ops =3D {
+-	.page_free		=3D pmem_pagemap_page_free,
+ 	.kill			=3D pmem_pagemap_kill,
+ 	.cleanup		=3D pmem_pagemap_cleanup,
+ };
+diff --git a/mm/memremap.c b/mm/memremap.c
+index 03ccbdfeb697..e899fa876a62 100644
+--- a/mm/memremap.c
++++ b/mm/memremap.c
+@@ -27,7 +27,8 @@ static void devmap_managed_enable_put(void)
+=20
+ static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
+ {
+-	if (!pgmap->ops || !pgmap->ops->page_free) {
++	if (pgmap->type =3D=3D MEMORY_DEVICE_PRIVATE &&
++	    (!pgmap->ops || !pgmap->ops->page_free)) {
+ 		WARN(1, "Missing page_free method\n");
+ 		return -EINVAL;
+ 	}
+@@ -414,44 +415,51 @@ void __put_devmap_managed_page(struct page *page)
+ {
+ 	int count =3D page_ref_dec_return(page);
+=20
+-	/*
+-	 * If refcount is 1 then page is freed and refcount is stable as nobody
+-	 * holds a reference on the page.
+-	 */
+-	if (count =3D=3D 1) {
+-		/* Clear Active bit in case of parallel mark_page_accessed */
+-		__ClearPageActive(page);
+-		__ClearPageWaiters(page);
++	/* still busy */
++	if (count > 1)
++		return;
+=20
+-		mem_cgroup_uncharge(page);
++	/* only triggered by the dev_pagemap shutdown path */
++	if (count =3D=3D 0) {
++		__put_page(page);
++		return;
++	}
+=20
+-		/*
+-		 * When a device_private page is freed, the page->mapping field
+-		 * may still contain a (stale) mapping value. For example, the
+-		 * lower bits of page->mapping may still identify the page as
+-		 * an anonymous page. Ultimately, this entire field is just
+-		 * stale and wrong, and it will cause errors if not cleared.
+-		 * One example is:
+-		 *
+-		 *  migrate_vma_pages()
+-		 *    migrate_vma_insert_page()
+-		 *      page_add_new_anon_rmap()
+-		 *        __page_set_anon_rmap()
+-		 *          ...checks page->mapping, via PageAnon(page) call,
+-		 *            and incorrectly concludes that the page is an
+-		 *            anonymous page. Therefore, it incorrectly,
+-		 *            silently fails to set up the new anon rmap.
+-		 *
+-		 * For other types of ZONE_DEVICE pages, migration is either
+-		 * handled differently or not done at all, so there is no need
+-		 * to clear page->mapping.
+-		 */
+-		if (is_device_private_page(page))
+-			page->mapping =3D NULL;
++	/* notify page idle for dax */
++	if (!is_device_private_page(page)) {
++		wake_up_var(&page->_refcount);
++		return;
++	}
+=20
+-		page->pgmap->ops->page_free(page);
+-	} else if (!count)
+-		__put_page(page);
++	/* Clear Active bit in case of parallel mark_page_accessed */
++	__ClearPageActive(page);
++	__ClearPageWaiters(page);
++
++	mem_cgroup_uncharge(page);
++
++	/*
++	 * When a device_private page is freed, the page->mapping field
++	 * may still contain a (stale) mapping value. For example, the
++	 * lower bits of page->mapping may still identify the page as an
++	 * anonymous page. Ultimately, this entire field is just stale
++	 * and wrong, and it will cause errors if not cleared.  One
++	 * example is:
++	 *
++	 *  migrate_vma_pages()
++	 *    migrate_vma_insert_page()
++	 *      page_add_new_anon_rmap()
++	 *        __page_set_anon_rmap()
++	 *          ...checks page->mapping, via PageAnon(page) call,
++	 *            and incorrectly concludes that the page is an
++	 *            anonymous page. Therefore, it incorrectly,
++	 *            silently fails to set up the new anon rmap.
++	 *
++	 * For other types of ZONE_DEVICE pages, migration is either
++	 * handled differently or not done at all, so there is no need
++	 * to clear page->mapping.
++	 */
++	page->mapping =3D NULL;
++	page->pgmap->ops->page_free(page);
+ }
+ EXPORT_SYMBOL(__put_devmap_managed_page);
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
 --=20
 2.24.0
 
