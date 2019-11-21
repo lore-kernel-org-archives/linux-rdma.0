@@ -2,36 +2,38 @@ Return-Path: <SRS0=NZET=ZN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 643C7C432C0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 01:23:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05658C43141
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 01:23:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 46AAA20898
+	by mail.kernel.org (Postfix) with ESMTP id CF83820878
 	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 01:23:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727117AbfKUBXB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 Nov 2019 20:23:01 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:7156 "EHLO huawei.com"
+        id S1726784AbfKUBXC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 Nov 2019 20:23:02 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:45174 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726774AbfKUBXB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727113AbfKUBXB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 20 Nov 2019 20:23:01 -0500
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 2E5A687227D10FA0088C;
+        by Forcepoint Email with ESMTP id 4F8C9D96115A2BE551D7;
         Thu, 21 Nov 2019 09:22:59 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 21 Nov 2019 09:22:51 +0800
+ 14.3.439.0; Thu, 21 Nov 2019 09:22:52 +0800
 From:   Weihang Li <liweihang@hisilicon.com>
 To:     <jgg@ziepe.ca>, <leon@kernel.org>
 CC:     <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH rdma-core 0/7] libhns: Bugfix for hip08
-Date:   Thu, 21 Nov 2019 09:19:22 +0800
-Message-ID: <1574299169-31457-1-git-send-email-liweihang@hisilicon.com>
+Subject: [PATCH rdma-core 3/7] libhns: Bugfix for assigning sl
+Date:   Thu, 21 Nov 2019 09:19:25 +0800
+Message-ID: <1574299169-31457-4-git-send-email-liweihang@hisilicon.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1574299169-31457-1-git-send-email-liweihang@hisilicon.com>
+References: <1574299169-31457-1-git-send-email-liweihang@hisilicon.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,29 +43,49 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Various fixes on library of hip08.
+From: Lijun Ou <oulijun@huawei.com>
 
-PR: https://github.com/linux-rdma/rdma-core/pull/623
+Only the field that corresponding mask is set can be modified, or its
+original value may be covered.
 
-Lijun Ou (4):
-  libhns: Bugfix for assigning sl
-  libhns: Bugfix for cleaning cq
-  libhns: Bugfix for updating qp params
-  libhns: Avoid null pointer operation
+Fixes: c24583975044 ("libhns: Add verbs of qp support")
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+---
+ providers/hns/hns_roce_u_hw_v2.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-Weihang Li (1):
-  libhns: Fix calculation errors with ilog32()
-
-Xi Wang (1):
-  libhns: Optimize bind_mw for fixing null pointer access
-
-Yangyang Li (1):
-  libhns: Return correct value of cqe num when flushing cqe failed
-
- providers/hns/hns_roce_u_hw_v2.c | 33 +++++++++++++++++++++++----------
- providers/hns/hns_roce_u_verbs.c | 32 +++++++++++++++++++-------------
- 2 files changed, 42 insertions(+), 23 deletions(-)
-
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index 931f59d..b473f07 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -1103,8 +1103,10 @@ static int hns_roce_u_v2_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		pthread_spin_unlock(&hr_qp->sq.lock);
+ 	}
+ 
+-	if (!ret && (attr_mask & IBV_QP_STATE) &&
+-	    attr->qp_state == IBV_QPS_RESET) {
++	if (ret)
++		return ret;
++
++	if ((attr_mask & IBV_QP_STATE) && attr->qp_state == IBV_QPS_RESET) {
+ 		hns_roce_v2_cq_clean(to_hr_cq(qp->recv_cq), qp->qp_num,
+ 				     qp->srq ? to_hr_srq(qp->srq) : NULL);
+ 		if (qp->send_cq != qp->recv_cq)
+@@ -1114,10 +1116,11 @@ static int hns_roce_u_v2_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		hns_roce_init_qp_indices(to_hr_qp(qp));
+ 	}
+ 
+-	if (!ret && (attr_mask & IBV_QP_PORT))
++	if (attr_mask & IBV_QP_PORT)
+ 		hr_qp->port_num = attr->port_num;
+ 
+-	hr_qp->sl = attr->ah_attr.sl;
++	if (attr_mask & IBV_QP_AV)
++		hr_qp->sl = attr->ah_attr.sl;
+ 
+ 	return ret;
+ }
 -- 
 2.8.1
 
