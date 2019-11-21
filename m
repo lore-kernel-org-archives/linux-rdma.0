@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D27A9C432C0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D58AC43215
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A77CF206CB
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3722D2068E
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574360140;
-	bh=dOmbbPy5eqEY8uq+xCGP7R8L5pYgsNAXl3fTRVuICks=;
+	s=default; t=1574360141;
+	bh=1MUaeCQCqDeb3pyieL5IHACYtN3paRyQK9IRSQC418I=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=UuuNIArz7Q8sjW5tc6lMa/ycyhma1V8NhiBwaSfvOilXf/ykAMOcSw4VNU88Q6c0E
-	 +EuOv6OaxMxL5xiedj2XuKYRHhgPs5wMTDTr1J/r+mzumA4419KJzC3/FZOuibTkxo
-	 M/G4lf+3NPX3rRFyg4FEJdUkjNACsgQ2Gd3b78b8=
+	b=F6qya8x67CdisH8l08C0qejhouqhJXD/3O7oAGv3ByEmXLbd5OqEPTfWxeLaGgPeP
+	 uf///O6TPzoY/sF14KEC6XKa/+wbdIo2OIfjytbmzDP6LO3ZhntFbVDpDikHbZzhP2
+	 5KppQ7dYOvgthyYvIdAl823Ja80rdyPtucza0fLo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727149AbfKUSPj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 13:15:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54074 "EHLO mail.kernel.org"
+        id S1727104AbfKUSPd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 13:15:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727135AbfKUSPj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 13:15:39 -0500
+        id S1727040AbfKUSPc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Nov 2019 13:15:32 -0500
 Received: from localhost (unknown [5.29.147.182])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1898D206CC;
-        Thu, 21 Nov 2019 18:15:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 133502068E;
+        Thu, 21 Nov 2019 18:15:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574360138;
-        bh=dOmbbPy5eqEY8uq+xCGP7R8L5pYgsNAXl3fTRVuICks=;
+        s=default; t=1574360131;
+        bh=1MUaeCQCqDeb3pyieL5IHACYtN3paRyQK9IRSQC418I=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=V2cRxOLpVTD+Xnj6W5ohyMXel6XSNnZbebRaNsznKrBA/5gutYp9Oqs63iay8lmP2
-         qEDu3SLEQgGLK+uTgjevFDlRuFW/xEN/42XO519i+18Lfdl8cn1svwuGurHwpvJ0jm
-         k3a+izpaBm8i9/USbzK3mt4F6hgkTfWwYuAb6xsY=
+        b=C6gdfGFIZ34ngZ5VzeTpWNm45cCcU5Yhon4/dhbi3RnPyx/rZE4vmTsdaRQYlJ0/c
+         TVj+hMCJlWmOgzyiqqr3N50QSenBLOp1js7cCWjVdaFXUv3QzzY7zLaMym28ZtJyhL
+         Zpez4cEzW7+ajxR3r2EpEpUah4erMr0voyoMZjO8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v1 41/48] RDMA/cm: Convert REP SRQ field
-Date:   Thu, 21 Nov 2019 20:13:06 +0200
-Message-Id: <20191121181313.129430-42-leon@kernel.org>
+Subject: [PATCH rdma-next v1 32/48] RDMA/cm: Convert REQ subnet local fields
+Date:   Thu, 21 Nov 2019 20:12:57 +0200
+Message-Id: <20191121181313.129430-33-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191121181313.129430-1-leon@kernel.org>
 References: <20191121181313.129430-1-leon@kernel.org>
@@ -60,62 +60,97 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert REP SRQ field.
+Convert REQ subnet local fields.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  6 +++---
- drivers/infiniband/core/cm_msgs.h | 11 -----------
- 2 files changed, 3 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/cm.c      |  9 +++++----
+ drivers/infiniband/core/cm_msgs.h | 24 ------------------------
+ 2 files changed, 5 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 77199078d276..454650f3ec7d 100644
+index b6da28d43b46..1a5d5d401c72 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -2077,10 +2077,10 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 		rep_msg->initiator_depth = param->initiator_depth;
- 		IBA_SET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg,
- 		       param->flow_control);
--		cm_rep_set_srq(rep_msg, param->srq);
-+		IBA_SET(CM_REP_SRQ, rep_msg, param->srq);
- 		IBA_SET(CM_REP_LOCAL_QPN, rep_msg, param->qp_num);
- 	} else {
--		cm_rep_set_srq(rep_msg, 1);
-+		IBA_SET(CM_REP_SRQ, rep_msg, 1);
- 		IBA_SET(CM_REP_LOCAL_EE_CONTEXT_NUMBER, rep_msg, param->qp_num);
+@@ -1324,7 +1324,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 	req_msg->primary_traffic_class = pri_path->traffic_class;
+ 	req_msg->primary_hop_limit = pri_path->hop_limit;
+ 	IBA_SET(CM_REQ_PRIMARY_SL, req_msg, pri_path->sl);
+-	cm_req_set_primary_subnet_local(req_msg, (pri_path->hop_limit <= 1));
++	IBA_SET(CM_REQ_PRIMARY_SUBNET_LOCAL, req_msg, (pri_path->hop_limit <= 1));
+ 	cm_req_set_primary_local_ack_timeout(req_msg,
+ 		cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
+ 			       pri_path->packet_life_time));
+@@ -1359,7 +1359,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 		req_msg->alt_traffic_class = alt_path->traffic_class;
+ 		req_msg->alt_hop_limit = alt_path->hop_limit;
+ 		IBA_SET(CM_REQ_ALTERNATE_SL, req_msg, alt_path->sl);
+-		cm_req_set_alt_subnet_local(req_msg, (alt_path->hop_limit <= 1));
++		IBA_SET(CM_REQ_ALTERNATE_SUBNET_LOCAL, req_msg,
++			(alt_path->hop_limit <= 1));
+ 		cm_req_set_alt_local_ack_timeout(req_msg,
+ 			cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
+ 				       alt_path->packet_life_time));
+@@ -1907,7 +1908,7 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
+  */
+ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+ {
+-	if (!cm_req_get_primary_subnet_local(req_msg)) {
++	if (!IBA_GET(CM_REQ_PRIMARY_SUBNET_LOCAL, req_msg)) {
+ 		if (req_msg->primary_local_lid == IB_LID_PERMISSIVE) {
+ 			req_msg->primary_local_lid = ib_lid_be16(wc->slid);
+ 			IBA_SET(CM_REQ_PRIMARY_SL, req_msg, wc->sl);
+@@ -1917,7 +1918,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+ 			req_msg->primary_remote_lid = cpu_to_be16(wc->dlid_path_bits);
  	}
  
-@@ -2230,7 +2230,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
- 	param->failover_accepted = IBA_GET(CM_REP_FAILOVER_ACCEPTED, rep_msg);
- 	param->flow_control = IBA_GET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg);
- 	param->rnr_retry_count = IBA_GET(CM_REP_RNR_RETRY_COUNT, rep_msg);
--	param->srq = cm_rep_get_srq(rep_msg);
-+	param->srq = IBA_GET(CM_REP_SRQ, rep_msg);
- 	work->cm_event.private_data = &rep_msg->private_data;
- 	work->cm_event.private_data_len = CM_REP_PRIVATE_DATA_SIZE;
- }
+-	if (!cm_req_get_alt_subnet_local(req_msg)) {
++	if (!IBA_GET(CM_REQ_ALTERNATE_SUBNET_LOCAL, req_msg)) {
+ 		if (req_msg->alt_local_lid == IB_LID_PERMISSIVE) {
+ 			req_msg->alt_local_lid = ib_lid_be16(wc->slid);
+ 			IBA_SET(CM_REQ_ALTERNATE_SL, req_msg, wc->sl);
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 209e19197693..cdd7e96e6355 100644
+index b82eb10e22f6..3933c29b569b 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -132,17 +132,6 @@ struct cm_rep_msg {
+@@ -70,18 +70,6 @@ struct cm_req_msg {
  
  } __packed;
  
--static inline u8 cm_rep_get_srq(struct cm_rep_msg *rep_msg)
+-static inline u8 cm_req_get_primary_subnet_local(struct cm_req_msg *req_msg)
 -{
--	return (u8) ((rep_msg->offset27 >> 4) & 0x1);
+-	return (u8) ((req_msg->primary_offset94 & 0x08) >> 3);
 -}
 -
--static inline void cm_rep_set_srq(struct cm_rep_msg *rep_msg, u8 srq)
+-static inline void cm_req_set_primary_subnet_local(struct cm_req_msg *req_msg,
+-						   u8 subnet_local)
 -{
--	rep_msg->offset27 = (u8) ((rep_msg->offset27 & 0xEF) |
--				  ((srq & 0x1) << 4));
+-	req_msg->primary_offset94 = (u8) ((req_msg->primary_offset94 & 0xF7) |
+-					  ((subnet_local & 0x1) << 3));
 -}
 -
- struct cm_rtu_msg {
- 	struct ib_mad_hdr hdr;
+ static inline u8 cm_req_get_primary_local_ack_timeout(struct cm_req_msg *req_msg)
+ {
+ 	return (u8) (req_msg->primary_offset95 >> 3);
+@@ -94,18 +82,6 @@ static inline void cm_req_set_primary_local_ack_timeout(struct cm_req_msg *req_m
+ 					  (local_ack_timeout << 3));
+ }
  
+-static inline u8 cm_req_get_alt_subnet_local(struct cm_req_msg *req_msg)
+-{
+-	return (u8) ((req_msg->alt_offset138 & 0x08) >> 3);
+-}
+-
+-static inline void cm_req_set_alt_subnet_local(struct cm_req_msg *req_msg,
+-					       u8 subnet_local)
+-{
+-	req_msg->alt_offset138 = (u8) ((req_msg->alt_offset138 & 0xF7) |
+-				       ((subnet_local & 0x1) << 3));
+-}
+-
+ static inline u8 cm_req_get_alt_local_ack_timeout(struct cm_req_msg *req_msg)
+ {
+ 	return (u8) (req_msg->alt_offset139 >> 3);
 -- 
 2.20.1
 
