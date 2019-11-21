@@ -2,115 +2,251 @@ Return-Path: <SRS0=NZET=ZN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB074C43215
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 13:44:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0597C432C0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 14:15:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A35FE2070A
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 13:44:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C2BB206DA
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 14:15:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="aD0tG2KM"
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="s7W1p0a3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726546AbfKUNol (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 08:44:41 -0500
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:45135 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726676AbfKUNol (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Nov 2019 08:44:41 -0500
-Received: by mail-qk1-f194.google.com with SMTP id q70so2992238qke.12
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Nov 2019 05:44:40 -0800 (PST)
+        id S1726983AbfKUOPb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 09:15:31 -0500
+Received: from smtp-fw-9101.amazon.com ([207.171.184.25]:29156 "EHLO
+        smtp-fw-9101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726852AbfKUOPa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Nov 2019 09:15:30 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=sfhj/BSpAXObGx+Uv9hTYzsrf84iVXtz5oXZyiZdeuk=;
-        b=aD0tG2KM+cuLPXFQVDIolHb83uQBvoIv6SUHiABQp0tUGCUKg8utJnNZCBA0Ny6YT1
-         bUkfqKhY8qGK8GmIcS+uubUZ8tcOnuG43Hhah64TPdrqISKZrLfvf1vf1u7jBWxP/Awn
-         4jyaYiatRdPnvmqxPe0Y6usPOyGiwVPocK1+BTJcwhErQDxSQl7JM4Y2Gc2knN6FJK+Y
-         8pzXexyHb1IElwZVk8C1MVn+NKHGIafiaFtGPmM+DYtlh/B/RWu6AOZGc9UOjA6ltWAN
-         Gk6Rx9q+FAug6ZidnXXrYcoea0y2rIiJiUHUZA5//CxfZLTWGJfqidpje/5nFV3uVbge
-         /ilw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=sfhj/BSpAXObGx+Uv9hTYzsrf84iVXtz5oXZyiZdeuk=;
-        b=hCNiqz7dMafy0kfsQWm8P8FhY8jem+MfHUI1/m7LcG2zUEC6sVH1Om3Dk8puyKMLJa
-         5NubfBBWpCgRm8e/9sqFVVvaZPGVrppmFUMKMLfCpQfYaHV5FBPJpbvt7N69nykhDM+e
-         mvqXVEtpO82BMV9cYi8qd92JgoMm9DBFZHQTsBJiAkroanrPhukYEIQLpksBkEokruKJ
-         Pux/3vUh+3SMaxOJ6oTwT9ZBv7por7/rDQfPzwQUMKfkt11L9dmiaMJtbQEMvndPd565
-         /1BD+qLQ0kRgSRpwMq6YbXHhIXk41CkMb4ZPI1zqPMCX7NhrJRbk78/ghOCKPlbUVwCR
-         AKGw==
-X-Gm-Message-State: APjAAAV4O+ky/wMeEl32xLQJ6sz4hCT0+hUoBAKu5SSt4+0fP+wwiSKg
-        QUM/BlHAxCUjA/CXj4nL74PBwQ==
-X-Google-Smtp-Source: APXvYqwWIbMyx3iFrKk95JWvSl6/fsnsiqMLBdbVXS3zWSqrU5zmc0Ff5bmuvBhA5/C3CTAOexD04g==
-X-Received: by 2002:a05:620a:2185:: with SMTP id g5mr8024518qka.129.1574343879984;
-        Thu, 21 Nov 2019 05:44:39 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
-        by smtp.gmail.com with ESMTPSA id o201sm1395090qka.17.2019.11.21.05.44.38
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 21 Nov 2019 05:44:38 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1iXmlC-0002Gd-Fz; Thu, 21 Nov 2019 09:44:38 -0400
-Date:   Thu, 21 Nov 2019 09:44:38 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     "Michael S. Tsirkin" <mst@redhat.com>
-Cc:     Alex Williamson <alex.williamson@redhat.com>,
-        Jason Wang <jasowang@redhat.com>,
-        Parav Pandit <parav@mellanox.com>,
-        Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-        davem@davemloft.net, gregkh@linuxfoundation.org,
-        Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, nhorman@redhat.com,
-        sassmann@redhat.com, Kiran Patil <kiran.patil@intel.com>,
-        Tiwei Bie <tiwei.bie@intel.com>
-Subject: Re: [net-next v2 1/1] virtual-bus: Implementation of Virtual Bus
-Message-ID: <20191121134438.GA7448@ziepe.ca>
-References: <20191119231023.GN4991@ziepe.ca>
- <20191119191053-mutt-send-email-mst@kernel.org>
- <20191120014653.GR4991@ziepe.ca>
- <134058913.35624136.1574222360435.JavaMail.zimbra@redhat.com>
- <20191120133835.GC22515@ziepe.ca>
- <20191120102856.7e01e2e2@x1.home>
- <20191120181108.GJ22515@ziepe.ca>
- <20191120150732.2fffa141@x1.home>
- <20191121030357.GB16914@ziepe.ca>
- <20191120232320-mutt-send-email-mst@kernel.org>
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1574345729; x=1605881729;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=LOpbCiNbMzKA8sBSWqUck70Q10ULzfBCb4dDUM4FRJ0=;
+  b=s7W1p0a3+6+TkDIas9M/Be5PIjHAyLC3HqpxfOXtpCFJ3j/HWpMfQxfC
+   FMmVxa3lyg8XZ0y22rdwHBBwxk9xHlFKvp9tr/if1aPF3WpJ7+0Ks7Uzf
+   2G21urDeaBaxDAno+UFwGCclFfCvWAfAjps9q9SSaji5BDxNaanocorp+
+   o=;
+IronPort-SDR: 3Ndn06UURtIN01LvKT1cyGreyf6X5xKRN3ef8rkG25UPpcuH+nXirtsexBjWDcb4XWZ3FFGF/6
+ m4pVi+ZGQiSA==
+X-IronPort-AV: E=Sophos;i="5.69,226,1571702400"; 
+   d="scan'208";a="647611"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2b-a7fdc47a.us-west-2.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-9101.sea19.amazon.com with ESMTP; 21 Nov 2019 14:15:20 +0000
+Received: from EX13MTAUEA001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
+        by email-inbound-relay-2b-a7fdc47a.us-west-2.amazon.com (Postfix) with ESMTPS id C1C40C5A0F;
+        Thu, 21 Nov 2019 14:15:19 +0000 (UTC)
+Received: from EX13D13EUB002.ant.amazon.com (10.43.166.205) by
+ EX13MTAUEA001.ant.amazon.com (10.43.61.82) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Thu, 21 Nov 2019 14:15:19 +0000
+Received: from EX13MTAUEB001.ant.amazon.com (10.43.60.96) by
+ EX13D13EUB002.ant.amazon.com (10.43.166.205) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Thu, 21 Nov 2019 14:15:18 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.218.69.146) by
+ mail-relay.amazon.com (10.43.60.129) with Microsoft SMTP Server id
+ 15.0.1367.3 via Frontend Transport; Thu, 21 Nov 2019 14:15:16 +0000
+From:   Gal Pressman <galpress@amazon.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
+CC:     <linux-rdma@vger.kernel.org>,
+        Alexander Matushevsky <matua@amazon.com>,
+        Gal Pressman <galpress@amazon.com>,
+        Daniel Kranzdorf <dkkranzd@amazon.com>,
+        Yossi Leybovich <sleybo@amazon.com>
+Subject: [PATCH for-next v2 1/3] RDMA/efa: Store network attributes in device attributes
+Date:   Thu, 21 Nov 2019 16:15:07 +0200
+Message-ID: <20191121141509.59297-2-galpress@amazon.com>
+X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191121141509.59297-1-galpress@amazon.com>
+References: <20191121141509.59297-1-galpress@amazon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191120232320-mutt-send-email-mst@kernel.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Nov 20, 2019 at 11:24:03PM -0500, Michael S. Tsirkin wrote:
-> On Wed, Nov 20, 2019 at 11:03:57PM -0400, Jason Gunthorpe wrote:
-> > Frankly, when I look at what this virtio stuff is doing I see RDMA:
-> >  - Both have a secure BAR pages for mmaping to userspace (or VM)
-> >  - Both are prevented from interacting with the device at a register
-> >    level and must call to the kernel - ie creating resources is a
-> >    kernel call - for security.
-> >  - Both create command request/response rings in userspace controlled
-> >    memory and have HW DMA to read requests and DMA to generate responses
-> >  - Both allow the work on the rings to DMA outside the ring to
-> >    addresses controlled by userspace.
-> >  - Both have to support a mixture of HW that uses on-device security
-> >    or IOMMU based security.
-> 
-> The main difference is userspace/drivers need to be portable with
-> virtio.
+There's no reason to separate the network attributes from all other
+device attributes. Embed the fields inside the device attributes and
+query them all in one function.
 
-rdma also has a stable/portable user space library API that is
-portable to multiple operating systems.
+Reviewed-by: Daniel Kranzdorf <dkkranzd@amazon.com>
+Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
+Signed-off-by: Gal Pressman <galpress@amazon.com>
+---
+ drivers/infiniband/hw/efa/efa.h         |  2 --
+ drivers/infiniband/hw/efa/efa_com_cmd.c | 34 +++++++++----------------
+ drivers/infiniband/hw/efa/efa_com_cmd.h |  9 ++-----
+ drivers/infiniband/hw/efa/efa_main.c    | 16 ------------
+ drivers/infiniband/hw/efa/efa_verbs.c   |  8 +++---
+ 5 files changed, 18 insertions(+), 51 deletions(-)
 
-What you don't like is that RDMA userspace has driver-specific
-code. Ie the kernel interface is not fully hardware independent.
+diff --git a/drivers/infiniband/hw/efa/efa.h b/drivers/infiniband/hw/efa/efa.h
+index 2bda07078b97..aa7396a1588a 100644
+--- a/drivers/infiniband/hw/efa/efa.h
++++ b/drivers/infiniband/hw/efa/efa.h
+@@ -60,8 +60,6 @@ struct efa_dev {
+ 	u64 mem_bar_len;
+ 	u64 db_bar_addr;
+ 	u64 db_bar_len;
+-	u8 addr[EFA_GID_SIZE];
+-	u32 mtu;
+ 
+ 	int admin_msix_vector_idx;
+ 	struct efa_irq admin_irq;
+diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.c b/drivers/infiniband/hw/efa/efa_com_cmd.c
+index c079f1332082..4713c2756ad3 100644
+--- a/drivers/infiniband/hw/efa/efa_com_cmd.c
++++ b/drivers/infiniband/hw/efa/efa_com_cmd.c
+@@ -423,28 +423,6 @@ static int efa_com_get_feature(struct efa_com_dev *edev,
+ 	return efa_com_get_feature_ex(edev, get_resp, feature_id, 0, 0);
+ }
+ 
+-int efa_com_get_network_attr(struct efa_com_dev *edev,
+-			     struct efa_com_get_network_attr_result *result)
+-{
+-	struct efa_admin_get_feature_resp resp;
+-	int err;
+-
+-	err = efa_com_get_feature(edev, &resp,
+-				  EFA_ADMIN_NETWORK_ATTR);
+-	if (err) {
+-		ibdev_err_ratelimited(edev->efa_dev,
+-				      "Failed to get network attributes %d\n",
+-				      err);
+-		return err;
+-	}
+-
+-	memcpy(result->addr, resp.u.network_attr.addr,
+-	       sizeof(resp.u.network_attr.addr));
+-	result->mtu = resp.u.network_attr.mtu;
+-
+-	return 0;
+-}
+-
+ int efa_com_get_device_attr(struct efa_com_dev *edev,
+ 			    struct efa_com_get_device_attr_result *result)
+ {
+@@ -501,6 +479,18 @@ int efa_com_get_device_attr(struct efa_com_dev *edev,
+ 	result->max_llq_size = resp.u.queue_attr.max_llq_size;
+ 	result->sub_cqs_per_cq = resp.u.queue_attr.sub_cqs_per_cq;
+ 
++	err = efa_com_get_feature(edev, &resp, EFA_ADMIN_NETWORK_ATTR);
++	if (err) {
++		ibdev_err_ratelimited(edev->efa_dev,
++				      "Failed to get network attributes %d\n",
++				      err);
++		return err;
++	}
++
++	memcpy(result->addr, resp.u.network_attr.addr,
++	       sizeof(resp.u.network_attr.addr));
++	result->mtu = resp.u.network_attr.mtu;
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.h b/drivers/infiniband/hw/efa/efa_com_cmd.h
+index 7f6c13052f49..6134d13ecc6f 100644
+--- a/drivers/infiniband/hw/efa/efa_com_cmd.h
++++ b/drivers/infiniband/hw/efa/efa_com_cmd.h
+@@ -100,14 +100,11 @@ struct efa_com_destroy_ah_params {
+ 	u16 pdn;
+ };
+ 
+-struct efa_com_get_network_attr_result {
+-	u8 addr[EFA_GID_SIZE];
+-	u32 mtu;
+-};
+-
+ struct efa_com_get_device_attr_result {
++	u8 addr[EFA_GID_SIZE];
+ 	u64 page_size_cap;
+ 	u64 max_mr_pages;
++	u32 mtu;
+ 	u32 fw_version;
+ 	u32 admin_api_version;
+ 	u32 device_version;
+@@ -271,8 +268,6 @@ int efa_com_create_ah(struct efa_com_dev *edev,
+ 		      struct efa_com_create_ah_result *result);
+ int efa_com_destroy_ah(struct efa_com_dev *edev,
+ 		       struct efa_com_destroy_ah_params *params);
+-int efa_com_get_network_attr(struct efa_com_dev *edev,
+-			     struct efa_com_get_network_attr_result *result);
+ int efa_com_get_device_attr(struct efa_com_dev *edev,
+ 			    struct efa_com_get_device_attr_result *result);
+ int efa_com_get_hw_hints(struct efa_com_dev *edev,
+diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
+index 0e3050d01b75..faf3ff1bca2a 100644
+--- a/drivers/infiniband/hw/efa/efa_main.c
++++ b/drivers/infiniband/hw/efa/efa_main.c
+@@ -30,15 +30,6 @@ MODULE_DEVICE_TABLE(pci, efa_pci_tbl);
+ 	(BIT(EFA_ADMIN_FATAL_ERROR) | BIT(EFA_ADMIN_WARNING) | \
+ 	 BIT(EFA_ADMIN_NOTIFICATION) | BIT(EFA_ADMIN_KEEP_ALIVE))
+ 
+-static void efa_update_network_attr(struct efa_dev *dev,
+-				    struct efa_com_get_network_attr_result *network_attr)
+-{
+-	memcpy(dev->addr, network_attr->addr, sizeof(network_attr->addr));
+-	dev->mtu = network_attr->mtu;
+-
+-	dev_dbg(&dev->pdev->dev, "Full address %pI6\n", dev->addr);
+-}
+-
+ /* This handler will called for unknown event group or unimplemented handlers */
+ static void unimplemented_aenq_handler(void *data,
+ 				       struct efa_admin_aenq_entry *aenq_e)
+@@ -234,7 +225,6 @@ static const struct ib_device_ops efa_dev_ops = {
+ 
+ static int efa_ib_device_add(struct efa_dev *dev)
+ {
+-	struct efa_com_get_network_attr_result network_attr;
+ 	struct efa_com_get_hw_hints_result hw_hints;
+ 	struct pci_dev *pdev = dev->pdev;
+ 	int err;
+@@ -250,12 +240,6 @@ static int efa_ib_device_add(struct efa_dev *dev)
+ 	if (err)
+ 		return err;
+ 
+-	err = efa_com_get_network_attr(&dev->edev, &network_attr);
+-	if (err)
+-		goto err_release_doorbell_bar;
+-
+-	efa_update_network_attr(dev, &network_attr);
+-
+ 	err = efa_com_get_hw_hints(&dev->edev, &hw_hints);
+ 	if (err)
+ 		goto err_release_doorbell_bar;
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index 657baa63faec..e1f1c1495da1 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -232,9 +232,9 @@ int efa_query_port(struct ib_device *ibdev, u8 port,
+ 	props->pkey_tbl_len = 1;
+ 	props->active_speed = IB_SPEED_EDR;
+ 	props->active_width = IB_WIDTH_4X;
+-	props->max_mtu = ib_mtu_int_to_enum(dev->mtu);
+-	props->active_mtu = ib_mtu_int_to_enum(dev->mtu);
+-	props->max_msg_sz = dev->mtu;
++	props->max_mtu = ib_mtu_int_to_enum(dev->dev_attr.mtu);
++	props->active_mtu = ib_mtu_int_to_enum(dev->dev_attr.mtu);
++	props->max_msg_sz = dev->dev_attr.mtu;
+ 	props->max_vl_num = 1;
+ 
+ 	return 0;
+@@ -295,7 +295,7 @@ int efa_query_gid(struct ib_device *ibdev, u8 port, int index,
+ {
+ 	struct efa_dev *dev = to_edev(ibdev);
+ 
+-	memcpy(gid->raw, dev->addr, sizeof(dev->addr));
++	memcpy(gid->raw, dev->dev_attr.addr, sizeof(dev->dev_attr.addr));
+ 
+ 	return 0;
+ }
+-- 
+2.24.0
 
-Jason
