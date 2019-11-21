@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0529CC432C0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D82E7C43215
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC6A4206EC
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0D24206EC
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Nov 2019 18:15:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574360154;
-	bh=yc1DwBpFalJ1L0F08H1FGhIh6TYw+bXEDBqhVhhRwdQ=;
+	s=default; t=1574360157;
+	bh=DJ8/kJXIvWG+Zf8Z/2F02cp8ZNsgRgljaw3PwouWbGI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xE9v8MRVgdiWFsGnJOeg3AVmJCPVpvA10G+aLT7iML29gqV3SjC8OdfW59utzCLfA
-	 ZfRTip2Eld3jEdHEIlOewJiiQgPC6XtNixX+bcv+TBFbJbJ6DsNcpWTcjAsIxSKniB
-	 jkqjfwQCATF/n4jeFgVKFdpewZNlI2Q/uah7PSA0=
+	b=wHfBTZ9S6sllwUcfFY2bI4nmTs58hW8+NNO+35nYizaZU5niR8Daljdpd4+hOWa5g
+	 Yr//vXzjPRUfB8gvjUD7qO6WX5PEB4IvYbxebAyMMYScN03KlXecBKQXfW45fA8aWI
+	 KtufLts8e1D3lIPG4zYFaAw3E/SEyCQrN+s0TWJY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727165AbfKUSPy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 13:15:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54374 "EHLO mail.kernel.org"
+        id S1727176AbfKUSP5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Nov 2019 13:15:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726279AbfKUSPx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 13:15:53 -0500
+        id S1727187AbfKUSP5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Nov 2019 13:15:57 -0500
 Received: from localhost (unknown [5.29.147.182])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1D24A2068E;
-        Thu, 21 Nov 2019 18:15:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 96C5B206CC;
+        Thu, 21 Nov 2019 18:15:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574360152;
-        bh=yc1DwBpFalJ1L0F08H1FGhIh6TYw+bXEDBqhVhhRwdQ=;
+        s=default; t=1574360156;
+        bh=DJ8/kJXIvWG+Zf8Z/2F02cp8ZNsgRgljaw3PwouWbGI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=pCnThXodrM3VuZfH3zGyR6K+ljemxv18mZf5OgwhVH9MSeIMAZFX87wI33y3Ym8li
-         9p8C3xM6baIkqpKqPOAU4eoj3Leo0ifnmGVzuSFUAWdJnBvOrHiINQRIntaRa6NmY+
-         8uDPFXO3e7XX1edvr/xp9i9vyxujma8oHfPYgHmE=
+        b=VPQTDwC4G7IFN6YBteZY1tR38mJ9i3o/Jsqj1rhi86YssNPh0lt3GxN/fwh8MMn/m
+         tWgqONRl0iYH6ztgTN8SkUMfgoP4TLPDZk7eukU8d1+DftCS9oGLTY53oGdCirfLrB
+         rIEIKwnCjpoHWkim662xIYFDjrxallMclh9wLlWg=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v1 45/48] RDMA/cm: Delete unused CM ARP functions
-Date:   Thu, 21 Nov 2019 20:13:10 +0200
-Message-Id: <20191121181313.129430-46-leon@kernel.org>
+Subject: [PATCH rdma-next v1 39/48] RDMA/cm: Convert REP flow control field
+Date:   Thu, 21 Nov 2019 20:13:04 +0200
+Message-Id: <20191121181313.129430-40-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191121181313.129430-1-leon@kernel.org>
 References: <20191121181313.129430-1-leon@kernel.org>
@@ -60,143 +60,60 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Clean the code by deleting ARP functions, which are not called anyway.
+Convert REP flow control field.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c | 66 ------------------------------------
- include/rdma/ib_cm.h         | 34 -------------------
- 2 files changed, 100 deletions(-)
+ drivers/infiniband/core/cm.c      |  5 +++--
+ drivers/infiniband/core/cm_msgs.h | 12 ------------
+ 2 files changed, 3 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 0db15799969f..41422bf13279 100644
+index 23e2c54d51dd..4c27465df6a1 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -3238,72 +3238,6 @@ deref:	cm_deref_id(cm_id_priv);
- 	return -EINVAL;
- }
+@@ -2075,7 +2075,8 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
  
--static void cm_format_apr(struct cm_apr_msg *apr_msg,
--			  struct cm_id_private *cm_id_priv,
--			  enum ib_cm_apr_status status,
--			  void *info,
--			  u8 info_length,
--			  const void *private_data,
--			  u8 private_data_len)
+ 	if (cm_id_priv->qp_type != IB_QPT_XRC_TGT) {
+ 		rep_msg->initiator_depth = param->initiator_depth;
+-		cm_rep_set_flow_ctrl(rep_msg, param->flow_control);
++		IBA_SET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg,
++		       param->flow_control);
+ 		cm_rep_set_srq(rep_msg, param->srq);
+ 		IBA_SET(CM_REP_LOCAL_QPN, rep_msg, param->qp_num);
+ 	} else {
+@@ -2227,7 +2228,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
+ 	param->initiator_depth = rep_msg->resp_resources;
+ 	param->target_ack_delay = IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
+ 	param->failover_accepted = IBA_GET(CM_REP_FAILOVER_ACCEPTED, rep_msg);
+-	param->flow_control = cm_rep_get_flow_ctrl(rep_msg);
++	param->flow_control = IBA_GET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg);
+ 	param->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
+ 	param->srq = cm_rep_get_srq(rep_msg);
+ 	work->cm_event.private_data = &rep_msg->private_data;
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index 566bc868e120..953f6a9f868b 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -132,18 +132,6 @@ struct cm_rep_msg {
+ 
+ } __packed;
+ 
+-static inline u8 cm_rep_get_flow_ctrl(struct cm_rep_msg *rep_msg)
 -{
--	cm_format_mad_hdr(&apr_msg->hdr, CM_APR_ATTR_ID, cm_id_priv->tid);
--	apr_msg->local_comm_id = cm_id_priv->id.local_id;
--	apr_msg->remote_comm_id = cm_id_priv->id.remote_id;
--	apr_msg->ap_status = (u8) status;
--
--	if (info && info_length) {
--		apr_msg->info_length = info_length;
--		memcpy(apr_msg->info, info, info_length);
--	}
--
--	if (private_data && private_data_len)
--		memcpy(apr_msg->private_data, private_data, private_data_len);
+-	return (u8) (rep_msg->offset26 & 0x01);
 -}
 -
--int ib_send_cm_apr(struct ib_cm_id *cm_id,
--		   enum ib_cm_apr_status status,
--		   void *info,
--		   u8 info_length,
--		   const void *private_data,
--		   u8 private_data_len)
+-static inline void cm_rep_set_flow_ctrl(struct cm_rep_msg *rep_msg,
+-					    u8 flow_ctrl)
 -{
--	struct cm_id_private *cm_id_priv;
--	struct ib_mad_send_buf *msg;
--	unsigned long flags;
--	int ret;
--
--	if ((private_data && private_data_len > CM_APR_PRIVATE_DATA_SIZE) ||
--	    (info && info_length > CM_APR_ADDITIONAL_INFORMATION_SIZE))
--		return -EINVAL;
--
--	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
--	spin_lock_irqsave(&cm_id_priv->lock, flags);
--	if (cm_id->state != IB_CM_ESTABLISHED ||
--	    (cm_id->lap_state != IB_CM_LAP_RCVD &&
--	     cm_id->lap_state != IB_CM_MRA_LAP_SENT)) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	ret = cm_alloc_msg(cm_id_priv, &msg);
--	if (ret)
--		goto out;
--
--	cm_format_apr((struct cm_apr_msg *) msg->mad, cm_id_priv, status,
--		      info, info_length, private_data, private_data_len);
--	ret = ib_post_send_mad(msg, NULL);
--	if (ret) {
--		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--		cm_free_msg(msg);
--		return ret;
--	}
--
--	cm_id->lap_state = IB_CM_LAP_IDLE;
--out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--	return ret;
+-	rep_msg->offset26 = (u8) ((rep_msg->offset26 & 0xFE) |
+-				  (flow_ctrl & 0x1));
 -}
--EXPORT_SYMBOL(ib_send_cm_apr);
 -
- static int cm_apr_handler(struct cm_work *work)
+ static inline u8 cm_rep_get_rnr_retry_count(struct cm_rep_msg *rep_msg)
  {
- 	struct cm_id_private *cm_id_priv;
-diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 6237c369dbd6..adccdc12b8e3 100644
---- a/include/rdma/ib_cm.h
-+++ b/include/rdma/ib_cm.h
-@@ -483,21 +483,6 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
- 		   const void *private_data,
- 		   u8 private_data_len);
- 
--/**
-- * ib_send_cm_lap - Sends a load alternate path request.
-- * @cm_id: Connection identifier associated with the load alternate path
-- *   message.
-- * @alternate_path: A path record that identifies the alternate path to
-- *   load.
-- * @private_data: Optional user-defined private data sent with the
-- *   load alternate path message.
-- * @private_data_len: Size of the private data buffer, in bytes.
-- */
--int ib_send_cm_lap(struct ib_cm_id *cm_id,
--		   struct sa_path_rec *alternate_path,
--		   const void *private_data,
--		   u8 private_data_len);
--
- /**
-  * ib_cm_init_qp_attr - Initializes the QP attributes for use in transitioning
-  *   to a specified QP state.
-@@ -518,25 +503,6 @@ int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
- 		       struct ib_qp_attr *qp_attr,
- 		       int *qp_attr_mask);
- 
--/**
-- * ib_send_cm_apr - Sends an alternate path response message in response to
-- *   a load alternate path request.
-- * @cm_id: Connection identifier associated with the alternate path response.
-- * @status: Reply status sent with the alternate path response.
-- * @info: Optional additional information sent with the alternate path
-- *   response.
-- * @info_length: Size of the additional information, in bytes.
-- * @private_data: Optional user-defined private data sent with the
-- *   alternate path response message.
-- * @private_data_len: Size of the private data buffer, in bytes.
-- */
--int ib_send_cm_apr(struct ib_cm_id *cm_id,
--		   enum ib_cm_apr_status status,
--		   void *info,
--		   u8 info_length,
--		   const void *private_data,
--		   u8 private_data_len);
--
- struct ib_cm_sidr_req_param {
- 	struct sa_path_rec	*path;
- 	const struct ib_gid_attr *sgid_attr;
+ 	return (u8) (rep_msg->offset27 >> 5);
 -- 
 2.20.1
 
