@@ -4,48 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD58CC43215
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:02:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAB9DC432C0
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:02:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A5DEF2077B
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:02:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E81620715
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:02:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574402530;
-	bh=NeGNlvD4uAxrKBCUgf82c57Y6tijqlSLF42AuaAvVwI=;
+	s=default; t=1574402537;
+	bh=scB8O+eVXyBPc4/vjx0Hl/m2poIpD1+Ps8hKHZnlgZ0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kr5p0xsE886wpnhmP5RcRbI0AKs8D4fccf7W4OFArcuGgp0dnQbysu7oo/NCPZuSc
-	 1sg5zrCLpE7tvkdKTxi8etgw/YcBWKuHXl5GKLT+YrQFwjPehyyQ8gSvBsa1bC4bw1
-	 9as9B+WRYqeRLI7FL657uSMMy1Pgk4F5fTDlVEyE=
+	b=CtrrTbVzqZ8HrgxvWrqUNG3irP/DCAXwUuJ2JQpP7QmotZYa/EtaMPDMhiDlcVLVb
+	 VB3+KQZJ/VS52xg6x5+e6PIJD0a492YLBJXbr1j3USjZLWm8XeAWs/Hd3SZVX4TdG0
+	 yG4HTfbiEA9Td0G7ko5ZJDR79i9xO+gvLvq9m8kY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727909AbfKVGCJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Nov 2019 01:02:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40612 "EHLO mail.kernel.org"
+        id S1728812AbfKVGCQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Nov 2019 01:02:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40784 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729602AbfKVGCJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 Nov 2019 01:02:09 -0500
+        id S1726685AbfKVGCP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 Nov 2019 01:02:15 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C38892068E;
-        Fri, 22 Nov 2019 06:02:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1ED062068F;
+        Fri, 22 Nov 2019 06:02:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574402528;
-        bh=NeGNlvD4uAxrKBCUgf82c57Y6tijqlSLF42AuaAvVwI=;
+        s=default; t=1574402535;
+        bh=scB8O+eVXyBPc4/vjx0Hl/m2poIpD1+Ps8hKHZnlgZ0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ekRR5QPFBbmkft+TrpqXTMXHwKPaw3OC615OXAMX/JEWVgkyekmD3W0QBJNXXQgnS
-         wo43XQKDRnvC0mrCKcV/X5cJjEw7o74ZH5MEzx3spqAAYZCEB2iuk535Iesh+k826g
-         7iQz3t7O4qlQJQL2C9UF03lJzLBe8GI0RKbGmIVA=
+        b=BP6fwWhwvnIer2N2dK3TUVZO1XAPxDjcwLJuLN3BcebS0dyFU/6fwQB+7006n0+WN
+         uN40P3SmTkaylgp7U1EzAr3Mm5bCK3WmcIm0fCNihXCMUT6R91903G9niyjxmYF9VJ
+         b/S2PcOXYxEFU2Mxu/OJFkDmaHBU5dqhYU6EsK/A=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Bart Van Assche <bvanassche@acm.org>,
+        Sergey Gorenko <sergeygo@mellanox.com>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        Laurence Oberman <loberman@redhat.com>,
+        Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 36/91] IB/qib: Fix an error code in qib_sdma_verbs_send()
-Date:   Fri, 22 Nov 2019 01:00:34 -0500
-Message-Id: <20191122060129.4239-35-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 42/91] RDMA/srp: Propagate ib_post_send() failures to the SCSI mid-layer
+Date:   Fri, 22 Nov 2019 01:00:40 -0500
+Message-Id: <20191122060129.4239-41-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191122060129.4239-1-sashal@kernel.org>
 References: <20191122060129.4239-1-sashal@kernel.org>
@@ -58,36 +61,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
+From: Bart Van Assche <bvanassche@acm.org>
 
-[ Upstream commit 5050ae5fa3d54c8e83e1e447cc7e3591110a7f57 ]
+[ Upstream commit 2ee00f6a98c36f7e4ba07cc33f24cc5a69060cc9 ]
 
-We accidentally return success on this error path.
+This patch avoids that the SCSI mid-layer keeps retrying forever if
+ib_post_send() fails. This was discovered while testing immediate
+data support and passing a too large num_sge value to ib_post_send().
 
-Fixes: f931551bafe1 ("IB/qib: Add new qib driver for QLogic PCIe InfiniBand adapters")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Sergey Gorenko <sergeygo@mellanox.com>
+Cc: Max Gurtovoy <maxg@mellanox.com>
+Cc: Laurence Oberman <loberman@redhat.com>
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/qib/qib_sdma.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
-index 891873b38a1e6..5f3f197678b78 100644
---- a/drivers/infiniband/hw/qib/qib_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_sdma.c
-@@ -600,8 +600,10 @@ int qib_sdma_verbs_send(struct qib_pportdata *ppd,
- 		dw = (len + 3) >> 2;
- 		addr = dma_map_single(&ppd->dd->pcidev->dev, sge->vaddr,
- 				      dw << 2, DMA_TO_DEVICE);
--		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr))
-+		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr)) {
-+			ret = -ENOMEM;
- 			goto unmap;
-+		}
- 		sdmadesc[0] = 0;
- 		make_sdma_desc(ppd, sdmadesc, (u64) addr, dw, dwoffset);
- 		/* SDmaUseLargeBuf has to be set in every descriptor */
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 74de1ae48d4f7..af68be201c299 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2180,6 +2180,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 
+ 	if (srp_post_send(ch, iu, len)) {
+ 		shost_printk(KERN_ERR, target->scsi_host, PFX "Send failed\n");
++		scmnd->result = DID_ERROR << 16;
+ 		goto err_unmap;
+ 	}
+ 
 -- 
 2.20.1
 
