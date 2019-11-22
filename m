@@ -7,47 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B58BCC43215
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:29:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1733C43215
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:30:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 83F342053B
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:29:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7066120674
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:30:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574404196;
-	bh=F3GGm7t3WHwYNXVgUb+L8W3UBg8MBtvEOZG23w1T2JQ=;
+	s=default; t=1574404213;
+	bh=cWK1kp03Or15lWIONAwKQIPs6G7BvNiBb99QgZGfv+E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FGt9TQvblDyRFwz5opniaAoD9dhQjDb1TQdrl0VkOqsCKrUD2fVB2Sr9GQUqj4GGC
-	 Dp9ldbda+SRR81rHyK4j5TBsBjhMZbu9K1GF4DsSPaYyzpJDzgwYLRnjA+MArqRD97
-	 07rSsTvQAcMo2kT1XAOaFYAKTqTjbgjI8fJrbe2w=
+	b=i3C5sNSch8ORLt0DhgurarQrr1NR7SOG0FRcBoblH7U8O1iyOsj2umctcw3BVM0Sp
+	 iTVGR61gVrUHE6g/T6jLWzjcNECl8pICANYgLk7OqZfmbzXWiu0z0ooZeaPxRu8TJu
+	 xBkdUMqxuWW7EteBA/QrrQW5h5bM/kGfAkxirNT8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727171AbfKVFtp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Nov 2019 00:49:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53960 "EHLO mail.kernel.org"
+        id S1727198AbfKVGaI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Nov 2019 01:30:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53894 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727227AbfKVFto (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 Nov 2019 00:49:44 -0500
+        id S1727187AbfKVFtl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 Nov 2019 00:49:41 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DDDF820708;
-        Fri, 22 Nov 2019 05:49:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 950EF2068F;
+        Fri, 22 Nov 2019 05:49:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574401783;
-        bh=F3GGm7t3WHwYNXVgUb+L8W3UBg8MBtvEOZG23w1T2JQ=;
+        s=default; t=1574401781;
+        bh=cWK1kp03Or15lWIONAwKQIPs6G7BvNiBb99QgZGfv+E=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mh3JeGh7AnLMLr45Ae0KwNw0KeuNy+BjnqPrhWR3fdMVRX+ZgkbtPNNVibAYdsX8M
-         FXSlEhIzpXQImJP+/X6yzO3wBOx7osCfpBaUeeqfjUWMG8RxnblXuROUgn2pUTNrmm
-         JvUIHs6J0ji9hr54zOM6tg1KljIWZuYmD+h79zw4=
+        b=U1Zq/gUady675QHBAsgz8mYGjpDqTpQ3Ri7R08Ey2N4oZVy/Pj/CILrCh37rfif7T
+         9ueabRrMTg5D9tkKRCuiSJPRrj67Riwq6GjWG6s1tQ4ED6pzA7WI/YoxAPBOVgmEhr
+         ut7fq7XXTSgyFbj/PRlHGWg0ysBBFAucvzgNr0pk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Gal Pressman <galpress@amazon.com>,
-        Adit Ranadive <aditr@vmware.com>,
-        Yuval Shaia <yuval.shaia@oracle.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Lijun Ou <oulijun@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 032/219] RDMA/vmw_pvrdma: Use atomic memory allocation in create AH
-Date:   Fri, 22 Nov 2019 00:46:04 -0500
-Message-Id: <20191122054911.1750-25-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 030/219] RDMA/hns: Fix the bug while use multi-hop of pbl
+Date:   Fri, 22 Nov 2019 00:46:02 -0500
+Message-Id: <20191122054911.1750-23-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
 References: <20191122054911.1750-1-sashal@kernel.org>
@@ -60,36 +57,40 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gal Pressman <galpress@amazon.com>
+From: Lijun Ou <oulijun@huawei.com>
 
-[ Upstream commit a276a4d93bf1580d737f38d1810e5f4b166f3edd ]
+[ Upstream commit 4af07f01f7a787ba5158352b98c9e3cb74995a1c ]
 
-Create address handle callback should not sleep, use GFP_ATOMIC instead of
-GFP_KERNEL for memory allocation.
+It will prevent multiply overflow when defines the pbl for u64 type.
 
-Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-Cc: Adit Ranadive <aditr@vmware.com>
-Signed-off-by: Gal Pressman <galpress@amazon.com>
-Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_mr.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-index b65d10b0a8759..f4cb5cf26006f 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-@@ -555,7 +555,7 @@ struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 	if (!atomic_add_unless(&dev->num_ahs, 1, dev->dsr->caps.max_ah))
- 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 41a538d23b802..c68596d4e8037 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -1017,14 +1017,14 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 			goto err_umem;
+ 		}
+ 	} else {
+-		int pbl_size = 1;
++		u64 pbl_size = 1;
  
--	ah = kzalloc(sizeof(*ah), GFP_KERNEL);
-+	ah = kzalloc(sizeof(*ah), GFP_ATOMIC);
- 	if (!ah) {
- 		atomic_dec(&dev->num_ahs);
- 		return ERR_PTR(-ENOMEM);
+ 		bt_size = (1 << (hr_dev->caps.pbl_ba_pg_sz + PAGE_SHIFT)) / 8;
+ 		for (i = 0; i < hr_dev->caps.pbl_hop_num; i++)
+ 			pbl_size *= bt_size;
+ 		if (n > pbl_size) {
+ 			dev_err(dev,
+-			    " MR len %lld err. MR page num is limited to %d!\n",
++			    " MR len %lld err. MR page num is limited to %lld!\n",
+ 			    length, pbl_size);
+ 			ret = -EINVAL;
+ 			goto err_umem;
 -- 
 2.20.1
 
