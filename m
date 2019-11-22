@@ -2,95 +2,118 @@ Return-Path: <SRS0=yC1B=ZO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1733C43215
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:30:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6C38C432C0
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:40:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7066120674
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:30:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574404213;
-	bh=cWK1kp03Or15lWIONAwKQIPs6G7BvNiBb99QgZGfv+E=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=i3C5sNSch8ORLt0DhgurarQrr1NR7SOG0FRcBoblH7U8O1iyOsj2umctcw3BVM0Sp
-	 iTVGR61gVrUHE6g/T6jLWzjcNECl8pICANYgLk7OqZfmbzXWiu0z0ooZeaPxRu8TJu
-	 xBkdUMqxuWW7EteBA/QrrQW5h5bM/kGfAkxirNT8=
+	by mail.kernel.org (Postfix) with ESMTP id 992B12068E
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:40:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727198AbfKVGaI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Nov 2019 01:30:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53894 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727187AbfKVFtl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 Nov 2019 00:49:41 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 950EF2068F;
-        Fri, 22 Nov 2019 05:49:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574401781;
-        bh=cWK1kp03Or15lWIONAwKQIPs6G7BvNiBb99QgZGfv+E=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=U1Zq/gUady675QHBAsgz8mYGjpDqTpQ3Ri7R08Ey2N4oZVy/Pj/CILrCh37rfif7T
-         9ueabRrMTg5D9tkKRCuiSJPRrj67Riwq6GjWG6s1tQ4ED6pzA7WI/YoxAPBOVgmEhr
-         ut7fq7XXTSgyFbj/PRlHGWg0ysBBFAucvzgNr0pk=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Lijun Ou <oulijun@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 030/219] RDMA/hns: Fix the bug while use multi-hop of pbl
-Date:   Fri, 22 Nov 2019 00:46:02 -0500
-Message-Id: <20191122054911.1750-23-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
-References: <20191122054911.1750-1-sashal@kernel.org>
+        id S1726540AbfKVGk6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Nov 2019 01:40:58 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7164 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726500AbfKVGk5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 Nov 2019 01:40:57 -0500
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 97D993C022C9085C666F;
+        Fri, 22 Nov 2019 14:40:55 +0800 (CST)
+Received: from [127.0.0.1] (10.40.168.149) by DGGEMS402-HUB.china.huawei.com
+ (10.3.19.202) with Microsoft SMTP Server id 14.3.439.0; Fri, 22 Nov 2019
+ 14:40:49 +0800
+Subject: Re: [PATCH rdma-core 2/7] libhns: Optimize bind_mw for fixing null
+ pointer access
+To:     "Zengtao (B)" <prime.zeng@hisilicon.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>
+References: <1574299169-31457-1-git-send-email-liweihang@hisilicon.com>
+ <1574299169-31457-3-git-send-email-liweihang@hisilicon.com>
+ <678F3D1BB717D949B966B68EAEB446ED300CC8B9@dggemm526-mbx.china.huawei.com>
+From:   Weihang Li <liweihang@hisilicon.com>
+Message-ID: <2564c679-8df9-6fec-487f-b3d614dca5a4@hisilicon.com>
+Date:   Fri, 22 Nov 2019 14:40:49 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <678F3D1BB717D949B966B68EAEB446ED300CC8B9@dggemm526-mbx.china.huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.40.168.149]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
 
-[ Upstream commit 4af07f01f7a787ba5158352b98c9e3cb74995a1c ]
 
-It will prevent multiply overflow when defines the pbl for u64 type.
+On 2019/11/22 11:02, Zengtao (B) wrote:
+>> -----Original Message-----
+>> From: linux-rdma-owner@vger.kernel.org
+>> [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Weihang Li
+>> Sent: Thursday, November 21, 2019 9:19 AM
+>> To: jgg@ziepe.ca; leon@kernel.org
+>> Cc: dledford@redhat.com; linux-rdma@vger.kernel.org; Linuxarm
+>> Subject: [PATCH rdma-core 2/7] libhns: Optimize bind_mw for fixing null
+>> pointer access
+>>
+>> From: Xi Wang <wangxi11@huawei.com>
+>>
+>> The argument checking flow in hns_roce_u_bind_mw() will leads to access
+>> on
+>> a null address when the mr is not initialized in mw_bind.
+>>
+>> Fixes: 47eff6e8624d ("libhns: Adjust the order of parameter checking")
+>> Signed-off-by: Xi Wang <wangxi11@huawei.com>
+>> Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+>> ---
+>>  providers/hns/hns_roce_u_verbs.c | 5 ++++-
+>>  1 file changed, 4 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/providers/hns/hns_roce_u_verbs.c
+>> b/providers/hns/hns_roce_u_verbs.c
+>> index bd5060d..0acfd9a 100644
+>> --- a/providers/hns/hns_roce_u_verbs.c
+>> +++ b/providers/hns/hns_roce_u_verbs.c
+>> @@ -186,7 +186,10 @@ int hns_roce_u_bind_mw(struct ibv_qp *qp,
+>> struct ibv_mw *mw,
+>>  	if (!bind_info->mr && bind_info->length)
+>>  		return EINVAL;
+>>
+>> -	if ((mw->pd != qp->pd) || (mw->pd != bind_info->mr->pd))
+>> +	if (mw->pd != qp->pd)
+>> +		return EINVAL;
+>> +
+>> +	if (bind_info->mr && (mw->pd != bind_info->mr->pd))
+>>  		return EINVAL;
+>>
+> Errno should also be set properly in this function, please refer to:
+> http://man7.org/linux/man-pages/man3/ibv_bind_mw.3.html
+> 
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/hns/hns_roce_mr.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Hi Zengtao,
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 41a538d23b802..c68596d4e8037 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -1017,14 +1017,14 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 			goto err_umem;
- 		}
- 	} else {
--		int pbl_size = 1;
-+		u64 pbl_size = 1;
- 
- 		bt_size = (1 << (hr_dev->caps.pbl_ba_pg_sz + PAGE_SHIFT)) / 8;
- 		for (i = 0; i < hr_dev->caps.pbl_hop_num; i++)
- 			pbl_size *= bt_size;
- 		if (n > pbl_size) {
- 			dev_err(dev,
--			    " MR len %lld err. MR page num is limited to %d!\n",
-+			    " MR len %lld err. MR page num is limited to %lld!\n",
- 			    length, pbl_size);
- 			ret = -EINVAL;
- 			goto err_umem;
--- 
-2.20.1
+Do you mean that all these conditions should return errno different
+with each other?
+
+IMHO, EINVAL is OK here, because all these returns is caused by "Invalid
+Argument"
+
+Thank you
+Weihang
+
+
+>>  	if (mw->type != IBV_MW_TYPE_1)
+>> --
+>> 2.8.1
+> 
+> 
+> .
+> 
 
