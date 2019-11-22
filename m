@@ -4,52 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89FA4C43215
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:11:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B8EC432C3
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:13:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5A2F32068E
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:11:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D58CA2071B
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:13:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574403108;
-	bh=i4Xx5F79MHChszdl6RDWs7gnrpV4iNMdBKz68TMk6oA=;
+	s=default; t=1574403225;
+	bh=2FKCwtfQ/zR6VWzJaxtMgHi64PjCKJ4x79baPcmlda4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=L7T49JdVLk86H1K8N7ABXKZzFYAXs14tpVTpkCBc1lValtG7nIQzp9q390I02/e+9
-	 FQnKtHpfuy0NEptKkTErmlL5FYHbrCm1R9vuVY/ijqpRyRafFn484RrZ/jnu5/kv/G
-	 0wTr8vQRU5cLiH7L8FhmJ9Lyg64PBv68wBhclXWA=
+	b=Mjgxnr5t47cRaQ95czPMMyAer9GqWA2gMRAmumHMz0pbJWgoULU9WFoSygAok/dBG
+	 5N5sdZwY/GsNkdKspKN4+64MqH01RU6QXNWdQN3EFx9pmVdmjNnItPYT2PcrnP1qFj
+	 NiKqfwnXWZxZPk4bubWfv8yW1Nhg0VN0mEcrKS9A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728670AbfKVGLh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Nov 2019 01:11:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34270 "EHLO mail.kernel.org"
+        id S1729452AbfKVGNm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Nov 2019 01:13:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729154AbfKVF42 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 Nov 2019 00:56:28 -0500
+        id S1728156AbfKVGNl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 Nov 2019 01:13:41 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 34F4A2070A;
-        Fri, 22 Nov 2019 05:56:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2015920708;
+        Fri, 22 Nov 2019 06:13:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574402188;
-        bh=i4Xx5F79MHChszdl6RDWs7gnrpV4iNMdBKz68TMk6oA=;
+        s=default; t=1574403221;
+        bh=2FKCwtfQ/zR6VWzJaxtMgHi64PjCKJ4x79baPcmlda4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hD80ndJAdrT+iXwul9IVB5iIOrce72E9PGFcJuM0gLzyU1noH92fwYeFtp1gX5piJ
-         xlIak9ogJQ8Qxz/FLr9IaRl/iCwAzRb079rwvXjxG3RiApP3xPgy5aoXGLuOWl5Y+H
-         gqfCx/fxFmtL864YsyxKzrw+qWLfNMDBreEbEGNk=
+        b=GOtnlqnscfEYvv+RJpeukhgxpHnppSpxddaZuIYAVoFNKtLHn6l/5jkJz5KeuI62B
+         EW1HE3tdFTj9iMlo9Xr8PAWouuVQkiKG8Z7Oj6ZhoGy81bWGNJd15rARKRU1G9OWCj
+         zkIcp08X/SBFmJdc0c8ecfsC5cezKA3TTt89tAUk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 038/127] net/mlx5: Continue driver initialization despite debugfs failure
-Date:   Fri, 22 Nov 2019 00:54:16 -0500
-Message-Id: <20191122055544.3299-37-sashal@kernel.org>
+Cc:     Bart Van Assche <bvanassche@acm.org>,
+        Sergey Gorenko <sergeygo@mellanox.com>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        Laurence Oberman <loberman@redhat.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.4 35/68] RDMA/srp: Propagate ib_post_send() failures to the SCSI mid-layer
+Date:   Fri, 22 Nov 2019 01:12:28 -0500
+Message-Id: <20191122061301.4947-34-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191122055544.3299-1-sashal@kernel.org>
-References: <20191122055544.3299-1-sashal@kernel.org>
+In-Reply-To: <20191122061301.4947-1-sashal@kernel.org>
+References: <20191122061301.4947-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,42 +61,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Bart Van Assche <bvanassche@acm.org>
 
-[ Upstream commit 199fa087dc6b503baad06712716fac645a983e8a ]
+[ Upstream commit 2ee00f6a98c36f7e4ba07cc33f24cc5a69060cc9 ]
 
-The failure to create debugfs entry is unpleasant event, but not enough
-to abort drier initialization. Align the mlx5_core code to debugfs design
-and continue execution whenever debugfs_create_dir() successes or not.
+This patch avoids that the SCSI mid-layer keeps retrying forever if
+ib_post_send() fails. This was discovered while testing immediate
+data support and passing a too large num_sge value to ib_post_send().
 
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Sergey Gorenko <sergeygo@mellanox.com>
+Cc: Max Gurtovoy <maxg@mellanox.com>
+Cc: Laurence Oberman <loberman@redhat.com>
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 97874c2568fc9..1ac0e173da12c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -838,11 +838,9 @@ static int mlx5_pci_init(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 3dbc3ed263c21..3b4188efc2835 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2135,6 +2135,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
  
- 	priv->numa_node = dev_to_node(&dev->pdev->dev);
+ 	if (srp_post_send(ch, iu, len)) {
+ 		shost_printk(KERN_ERR, target->scsi_host, PFX "Send failed\n");
++		scmnd->result = DID_ERROR << 16;
+ 		goto err_unmap;
+ 	}
  
--	priv->dbg_root = debugfs_create_dir(dev_name(&pdev->dev), mlx5_debugfs_root);
--	if (!priv->dbg_root) {
--		dev_err(&pdev->dev, "Cannot create debugfs dir, aborting\n");
--		return -ENOMEM;
--	}
-+	if (mlx5_debugfs_root)
-+		priv->dbg_root =
-+			debugfs_create_dir(pci_name(pdev), mlx5_debugfs_root);
- 
- 	err = mlx5_pci_enable_device(dev);
- 	if (err) {
 -- 
 2.20.1
 
