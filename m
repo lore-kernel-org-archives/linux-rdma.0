@@ -2,154 +2,92 @@ Return-Path: <SRS0=yC1B=ZO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFB96C43215
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:16:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE78CC43141
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:17:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A1D682068F
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:16:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD09E20707
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:17:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1574403439;
+	bh=hADzEZR+GoHra9Qlw7/1Zj86PwIXDDqRV07xPIbmuOo=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=gCei/Mo7Wj4LN8RcWjz1AmpbAN0mZcys/2VWHz8UipJra/68eDAli6mgUwMR6Jftf
+	 BsGtVh8uSCsCEjp+yCv3aPC695473cyyGQha9F2lL80it5L1P/ZLmY+JoGdUY+0RK8
+	 R3Lsoqmzd9uxt6IIWQFTvOLcFqB/yAs5zcvt4BUI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727803AbfKVGQc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Nov 2019 01:16:32 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:48642 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728876AbfKVGQc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 Nov 2019 01:16:32 -0500
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id C1F602431A90A63BEA94;
-        Fri, 22 Nov 2019 14:16:26 +0800 (CST)
-Received: from [127.0.0.1] (10.40.168.149) by DGGEMS414-HUB.china.huawei.com
- (10.3.19.214) with Microsoft SMTP Server id 14.3.439.0; Fri, 22 Nov 2019
- 14:16:16 +0800
-Subject: Re: [PATCH rdma-core 1/7] libhns: Fix calculation errors with
- ilog32()
-To:     "Zengtao (B)" <prime.zeng@hisilicon.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-References: <1574299169-31457-1-git-send-email-liweihang@hisilicon.com>
- <1574299169-31457-2-git-send-email-liweihang@hisilicon.com>
- <678F3D1BB717D949B966B68EAEB446ED300CC8A5@dggemm526-mbx.china.huawei.com>
-From:   Weihang Li <liweihang@hisilicon.com>
-Message-ID: <d4047ae3-0952-8c74-9185-af5c36a38b65@hisilicon.com>
-Date:   Fri, 22 Nov 2019 14:16:16 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        id S1729007AbfKVGNf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Nov 2019 01:13:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50860 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729144AbfKVGNe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 Nov 2019 01:13:34 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id AEC5220718;
+        Fri, 22 Nov 2019 06:13:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1574403214;
+        bh=hADzEZR+GoHra9Qlw7/1Zj86PwIXDDqRV07xPIbmuOo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=eRrFjx1tHtmXYl70g2X1K1JPOB6ghaP4Nl1f7IdXa2MYeNe8caDk4FQMGOpjvj7Er
+         UmHPJnVJRCvj6v9F+fh3gyWoSxJQTiGn/2UehBMEuRCi4ekacJBKsyOm2HCa/EcVed
+         mCseiWH2KbpJkI9OkTvJFd6NR6ysls+84qGMFNsQ=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.4 29/68] IB/qib: Fix an error code in qib_sdma_verbs_send()
+Date:   Fri, 22 Nov 2019 01:12:22 -0500
+Message-Id: <20191122061301.4947-28-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191122061301.4947-1-sashal@kernel.org>
+References: <20191122061301.4947-1-sashal@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <678F3D1BB717D949B966B68EAEB446ED300CC8A5@dggemm526-mbx.china.huawei.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.40.168.149]
-X-CFilter-Loop: Reflected
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
+[ Upstream commit 5050ae5fa3d54c8e83e1e447cc7e3591110a7f57 ]
 
-On 2019/11/22 10:58, Zengtao (B) wrote:
->> -----Original Message-----
->> From: linux-rdma-owner@vger.kernel.org
->> [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Weihang Li
->> Sent: Thursday, November 21, 2019 9:19 AM
->> To: jgg@ziepe.ca; leon@kernel.org
->> Cc: dledford@redhat.com; linux-rdma@vger.kernel.org; Linuxarm
->> Subject: [PATCH rdma-core 1/7] libhns: Fix calculation errors with ilog32()
->>
->> Current calculation results using ilog32() is larger than expected, which
->> will lead to driver broken. The following is the log when QP creations
->> fails:
->>
->> [   81.294844] hns3 0000:7d:00.0 hns_0: check SQ size error!
->> [   81.294848] hns3 0000:7d:00.0 hns_0: check SQ size error!
->> [   81.300225] hns3 0000:7d:00.0 hns_0: Sanity check sq size failed
->> [   81.300227] hns3 0000:7d:00.0: hns_roce_set_user_sq_size error for
->> create qp
->> [   81.305602] hns3 0000:7d:00.0 hns_0: Sanity check sq size failed
->> [   81.305603] hns3 0000:7d:00.0: hns_roce_set_user_sq_size error for
->> create qp
->> [   81.311589] hns3 0000:7d:00.0 hns_0: Create RC QP 0x000000
->> failed(-22)
->> [   81.318603] hns3 0000:7d:00.0 hns_0: Create RC QP 0x000000
->> failed(-22)
->>
->> Fixes: b6cd213b276f ("libhns: Refactor for creating qp")
->> Signed-off-by: Weihang Li <liweihang@hisilicon.com>
->> ---
->>  providers/hns/hns_roce_u_verbs.c | 11 ++++++-----
->>  1 file changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/providers/hns/hns_roce_u_verbs.c
->> b/providers/hns/hns_roce_u_verbs.c
->> index 9d222c0..bd5060d 100644
->> --- a/providers/hns/hns_roce_u_verbs.c
->> +++ b/providers/hns/hns_roce_u_verbs.c
->> @@ -645,7 +645,8 @@ static int hns_roce_calc_qp_buff_size(struct
->> ibv_pd *pd, struct ibv_qp_cap *cap,
->>  	int page_size = to_hr_dev(pd->context->device)->page_size;
->>
->>  	if (to_hr_dev(pd->context->device)->hw_version ==
->> HNS_ROCE_HW_VER1) {
->> -		qp->rq.wqe_shift = ilog32(sizeof(struct hns_roce_rc_rq_wqe));
->> +		qp->rq.wqe_shift =
->> +				ilog32(sizeof(struct hns_roce_rc_rq_wqe)) - 1;
->>
->>  		qp->buf_size = align((qp->sq.wqe_cnt << qp->sq.wqe_shift),
->>  				     page_size) +
->> @@ -662,7 +663,7 @@ static int hns_roce_calc_qp_buff_size(struct
->> ibv_pd *pd, struct ibv_qp_cap *cap,
->>  	} else {
->>  		unsigned int rqwqe_size = HNS_ROCE_SGE_SIZE *
->> cap->max_recv_sge;
->>
->> -		qp->rq.wqe_shift = ilog32(rqwqe_size);
->> +		qp->rq.wqe_shift = ilog32(rqwqe_size) - 1;
->>
->>  		if (qp->sq.max_gs > HNS_ROCE_SGE_IN_WQE || type ==
->> IBV_QPT_UD)
->>  			qp->sge.sge_shift = HNS_ROCE_SGE_SHIFT;
->> @@ -747,8 +748,8 @@ static void hns_roce_set_qp_params(struct
->> ibv_pd *pd,
->>  		qp->rq.wqe_cnt =
->> roundup_pow_of_two(attr->cap.max_recv_wr);
->>  	}
->>
->> -	qp->sq.wqe_shift = ilog32(sizeof(struct hns_roce_rc_send_wqe));
->> -	qp->sq.shift = ilog32(qp->sq.wqe_cnt);
->> +	qp->sq.wqe_shift = ilog32(sizeof(struct hns_roce_rc_send_wqe)) - 1;
->> +	qp->sq.shift = ilog32(qp->sq.wqe_cnt) - 1;
-> 
-> One suggestion, it's better to introduce a new micro instead of ilog32(x) -1.
+We accidentally return success on this error path.
 
-OK, thank you for your advice.
+Fixes: f931551bafe1 ("IB/qib: Add new qib driver for QLogic PCIe InfiniBand adapters")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/hw/qib/qib_sdma.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Weihang
-
-> 
->>  	qp->rq.max_gs = attr->cap.max_recv_sge;
->>
->>  	if (to_hr_dev(pd->context->device)->hw_version ==
->> HNS_ROCE_HW_VER1) {
->> @@ -884,7 +885,7 @@ struct ibv_qp *hns_roce_u_create_qp(struct
->> ibv_pd *pd,
->>
->>  	cmd.buf_addr = (uintptr_t) qp->buf.buf;
->>  	cmd.log_sq_stride = qp->sq.wqe_shift;
->> -	cmd.log_sq_bb_count = ilog32(qp->sq.wqe_cnt);
->> +	cmd.log_sq_bb_count = ilog32(qp->sq.wqe_cnt) - 1;
->>
->>  	pthread_mutex_lock(&context->qp_table_mutex);
->>
->> --
->> 2.8.1
-> 
-> 
-> .
-> 
+diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
+index c6d6a54d2e19d..1c9a3e8752012 100644
+--- a/drivers/infiniband/hw/qib/qib_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_sdma.c
+@@ -597,8 +597,10 @@ int qib_sdma_verbs_send(struct qib_pportdata *ppd,
+ 		dw = (len + 3) >> 2;
+ 		addr = dma_map_single(&ppd->dd->pcidev->dev, sge->vaddr,
+ 				      dw << 2, DMA_TO_DEVICE);
+-		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr))
++		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr)) {
++			ret = -ENOMEM;
+ 			goto unmap;
++		}
+ 		sdmadesc[0] = 0;
+ 		make_sdma_desc(ppd, sdmadesc, (u64) addr, dw, dwoffset);
+ 		/* SDmaUseLargeBuf has to be set in every descriptor */
+-- 
+2.20.1
 
