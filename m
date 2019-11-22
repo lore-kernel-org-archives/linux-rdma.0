@@ -4,50 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8AFAC432C3
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 05:54:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD58CC43215
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:02:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7302F20659
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 05:54:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5DEF2077B
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 06:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574402048;
-	bh=pfDGKXJw3nG4tZ0fJyMwmMdPCGBmkSkiDYf0U28/+5w=;
+	s=default; t=1574402530;
+	bh=NeGNlvD4uAxrKBCUgf82c57Y6tijqlSLF42AuaAvVwI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=SFkASEzcR0WwZycTTxAUv3KXYP7aFhgKqKyeuiVrwCZ5xlJsn/MhhNTGu5uXHWjgU
-	 114WGDGZBHApRW6/P/Ux2jE1R/z1j1vUYCfNk7uu0EQG/EwU8DSu815dEE6rQ6Dv5V
-	 /QAWHoOUzbwEijAvG+FsLoswUH+fb/q102J4Dwl0=
+	b=kr5p0xsE886wpnhmP5RcRbI0AKs8D4fccf7W4OFArcuGgp0dnQbysu7oo/NCPZuSc
+	 1sg5zrCLpE7tvkdKTxi8etgw/YcBWKuHXl5GKLT+YrQFwjPehyyQ8gSvBsa1bC4bw1
+	 9as9B+WRYqeRLI7FL657uSMMy1Pgk4F5fTDlVEyE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727455AbfKVFyH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Nov 2019 00:54:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59212 "EHLO mail.kernel.org"
+        id S1727909AbfKVGCJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Nov 2019 01:02:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728809AbfKVFxN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 Nov 2019 00:53:13 -0500
+        id S1729602AbfKVGCJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 Nov 2019 01:02:09 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C76352072E;
-        Fri, 22 Nov 2019 05:53:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C38892068E;
+        Fri, 22 Nov 2019 06:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574401993;
-        bh=pfDGKXJw3nG4tZ0fJyMwmMdPCGBmkSkiDYf0U28/+5w=;
+        s=default; t=1574402528;
+        bh=NeGNlvD4uAxrKBCUgf82c57Y6tijqlSLF42AuaAvVwI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TEQKB8S+UPTX9SKUywy2aoKmBsgdPHIPDnK47g5Pn/UBjv1nqJfCsmpFdumwp2OTZ
-         ugq3tPWvS0xp6b3bnnKbA9EzAMUk0anCIccCtyQMehd4gYckzASW1OTkO3BPoSzieI
-         H47nARJX8Vd4F38xfFrXuuJ47UC6zNTRt9p+6mLA=
+        b=ekRR5QPFBbmkft+TrpqXTMXHwKPaw3OC615OXAMX/JEWVgkyekmD3W0QBJNXXQgnS
+         wo43XQKDRnvC0mrCKcV/X5cJjEw7o74ZH5MEzx3spqAAYZCEB2iuk535Iesh+k826g
+         7iQz3t7O4qlQJQL2C9UF03lJzLBe8GI0RKbGmIVA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Lijun Ou <oulijun@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 211/219] RDMA/hns: Fix the bug with updating rq head pointer when flush cqe
-Date:   Fri, 22 Nov 2019 00:49:02 -0500
-Message-Id: <20191122054911.1750-203-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 36/91] IB/qib: Fix an error code in qib_sdma_verbs_send()
+Date:   Fri, 22 Nov 2019 01:00:34 -0500
+Message-Id: <20191122060129.4239-35-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
-References: <20191122054911.1750-1-sashal@kernel.org>
+In-Reply-To: <20191122060129.4239-1-sashal@kernel.org>
+References: <20191122060129.4239-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -57,53 +58,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-[ Upstream commit 9c6ccc035c209dda07685e8dba829a203ba17499 ]
+[ Upstream commit 5050ae5fa3d54c8e83e1e447cc7e3591110a7f57 ]
 
-When flush cqe with srq, the driver disable to update the rq head pointer
-into the hardware.
+We accidentally return success on this error path.
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Fixes: f931551bafe1 ("IB/qib: Add new qib driver for QLogic PCIe InfiniBand adapters")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/qib/qib_sdma.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index cf878e1b71fc1..587db5cf3be15 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3499,13 +3499,16 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 		roce_set_field(qpc_mask->byte_160_sq_ci_pi,
- 			       V2_QPC_BYTE_160_SQ_PRODUCER_IDX_M,
- 			       V2_QPC_BYTE_160_SQ_PRODUCER_IDX_S, 0);
--		roce_set_field(context->byte_84_rq_ci_pi,
-+
-+		if (!ibqp->srq) {
-+			roce_set_field(context->byte_84_rq_ci_pi,
- 			       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
- 			       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S,
- 			       hr_qp->rq.head);
--		roce_set_field(qpc_mask->byte_84_rq_ci_pi,
-+			roce_set_field(qpc_mask->byte_84_rq_ci_pi,
- 			       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
- 			       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S, 0);
+diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
+index 891873b38a1e6..5f3f197678b78 100644
+--- a/drivers/infiniband/hw/qib/qib_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_sdma.c
+@@ -600,8 +600,10 @@ int qib_sdma_verbs_send(struct qib_pportdata *ppd,
+ 		dw = (len + 3) >> 2;
+ 		addr = dma_map_single(&ppd->dd->pcidev->dev, sge->vaddr,
+ 				      dw << 2, DMA_TO_DEVICE);
+-		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr))
++		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr)) {
++			ret = -ENOMEM;
+ 			goto unmap;
 +		}
- 	}
- 
- 	if (attr_mask & IB_QP_AV) {
-@@ -3967,7 +3970,8 @@ static void hns_roce_set_qps_to_err(struct hns_roce_dev *hr_dev, u32 qpn)
- 	if (hr_qp->ibqp.uobject) {
- 		if (hr_qp->sdb_en == 1) {
- 			hr_qp->sq.head = *(int *)(hr_qp->sdb.virt_addr);
--			hr_qp->rq.head = *(int *)(hr_qp->rdb.virt_addr);
-+			if (hr_qp->rdb_en == 1)
-+				hr_qp->rq.head = *(int *)(hr_qp->rdb.virt_addr);
- 		} else {
- 			dev_warn(hr_dev->dev, "flush cqe is unsupported in userspace!\n");
- 			return;
+ 		sdmadesc[0] = 0;
+ 		make_sdma_desc(ppd, sdmadesc, (u64) addr, dw, dwoffset);
+ 		/* SDmaUseLargeBuf has to be set in every descriptor */
 -- 
 2.20.1
 
