@@ -2,102 +2,90 @@ Return-Path: <SRS0=yC1B=ZO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EA9BC432C0
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 03:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFD2FC432C0
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 05:53:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CEE94206B6
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 03:02:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E44320870
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Nov 2019 05:53:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1574401998;
+	bh=vcbbtx5fa7hoC405k+4mun5v2mhS5aagt5+8weXXYMo=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=1RmqEyjid3B/Pn0g8T9ZL66M+7XJMmMY7w5HtVfEqR1auvjYxSrQRsxWH29FX/9Z3
+	 MjhzJX2A9gx6tMsrYeT7d9+G5EOhcxV1HZxLeRuTt94FXUdhgOoCd6UodQg7u6M04C
+	 Z59Yzry5sPHbAEY7M1SUuPV4Pe3Yz9E279hkKCuM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726343AbfKVDCR convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Nov 2019 22:02:17 -0500
-Received: from szxga02-in.huawei.com ([45.249.212.188]:2519 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726335AbfKVDCR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Nov 2019 22:02:17 -0500
-Received: from DGGEMM404-HUB.china.huawei.com (unknown [172.30.72.53])
-        by Forcepoint Email with ESMTP id 6D4EAD9C3EE80349DEDF;
-        Fri, 22 Nov 2019 11:02:10 +0800 (CST)
-Received: from DGGEMM526-MBX.china.huawei.com ([169.254.8.127]) by
- DGGEMM404-HUB.china.huawei.com ([10.3.20.212]) with mapi id 14.03.0439.000;
- Fri, 22 Nov 2019 11:02:03 +0800
-From:   "Zengtao (B)" <prime.zeng@hisilicon.com>
-To:     liweihang <liweihang@hisilicon.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>,
-        "leon@kernel.org" <leon@kernel.org>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-Subject: RE: [PATCH rdma-core 2/7] libhns: Optimize bind_mw for fixing null
- pointer access
-Thread-Topic: [PATCH rdma-core 2/7] libhns: Optimize bind_mw for fixing null
- pointer access
-Thread-Index: AQHVoAo+j8+fx7N7IEC0P/jm/KoNN6eWgXsw
-Date:   Fri, 22 Nov 2019 03:02:03 +0000
-Message-ID: <678F3D1BB717D949B966B68EAEB446ED300CC8B9@dggemm526-mbx.china.huawei.com>
-References: <1574299169-31457-1-git-send-email-liweihang@hisilicon.com>
- <1574299169-31457-3-git-send-email-liweihang@hisilicon.com>
-In-Reply-To: <1574299169-31457-3-git-send-email-liweihang@hisilicon.com>
-Accept-Language: zh-CN, en-US
-Content-Language: zh-CN
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.74.221.187]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1728823AbfKVFxR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Nov 2019 00:53:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59318 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728818AbfKVFxQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 Nov 2019 00:53:16 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id DDEB220855;
+        Fri, 22 Nov 2019 05:53:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1574401995;
+        bh=vcbbtx5fa7hoC405k+4mun5v2mhS5aagt5+8weXXYMo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=OOuvu0jeE5lq6VwHMnnXCG0SY51Z6Z1Vnytt53aFqSgPqIAlqw0r+P0JxMllVK1JV
+         xkPlQzUeIOzeTadFao+YElWk7gVGZcAUKcQ9gdO3d3F9WvSITb0R/gxVQjuv1zrn51
+         K8nD5pSaFeN344uXdgxl3foLpruruAGB43PbMw1w=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Yixian Liu <liuyixian@huawei.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 213/219] RDMA/hns: Fix the state of rereg mr
+Date:   Fri, 22 Nov 2019 00:49:04 -0500
+Message-Id: <20191122054911.1750-205-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
+References: <20191122054911.1750-1-sashal@kernel.org>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org
-> [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Weihang Li
-> Sent: Thursday, November 21, 2019 9:19 AM
-> To: jgg@ziepe.ca; leon@kernel.org
-> Cc: dledford@redhat.com; linux-rdma@vger.kernel.org; Linuxarm
-> Subject: [PATCH rdma-core 2/7] libhns: Optimize bind_mw for fixing null
-> pointer access
-> 
-> From: Xi Wang <wangxi11@huawei.com>
-> 
-> The argument checking flow in hns_roce_u_bind_mw() will leads to access
-> on
-> a null address when the mr is not initialized in mw_bind.
-> 
-> Fixes: 47eff6e8624d ("libhns: Adjust the order of parameter checking")
-> Signed-off-by: Xi Wang <wangxi11@huawei.com>
-> Signed-off-by: Weihang Li <liweihang@hisilicon.com>
-> ---
->  providers/hns/hns_roce_u_verbs.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/providers/hns/hns_roce_u_verbs.c
-> b/providers/hns/hns_roce_u_verbs.c
-> index bd5060d..0acfd9a 100644
-> --- a/providers/hns/hns_roce_u_verbs.c
-> +++ b/providers/hns/hns_roce_u_verbs.c
-> @@ -186,7 +186,10 @@ int hns_roce_u_bind_mw(struct ibv_qp *qp,
-> struct ibv_mw *mw,
->  	if (!bind_info->mr && bind_info->length)
->  		return EINVAL;
-> 
-> -	if ((mw->pd != qp->pd) || (mw->pd != bind_info->mr->pd))
-> +	if (mw->pd != qp->pd)
-> +		return EINVAL;
-> +
-> +	if (bind_info->mr && (mw->pd != bind_info->mr->pd))
->  		return EINVAL;
-> 
-Errno should also be set properly in this function, please refer to:
-http://man7.org/linux/man-pages/man3/ibv_bind_mw.3.html
+From: Yixian Liu <liuyixian@huawei.com>
 
->  	if (mw->type != IBV_MW_TYPE_1)
-> --
-> 2.8.1
+[ Upstream commit ab22bf05216a6bb4812448f3a8609489047cf311 ]
+
+The state of mr after reregister operation should be set to valid
+state. Otherwise, it will keep the same as the state before reregistered.
+
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 587db5cf3be15..9ab3ab3c4219f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1773,6 +1773,9 @@ static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
+ 	struct hns_roce_v2_mpt_entry *mpt_entry = mb_buf;
+ 	int ret = 0;
+ 
++	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_MPT_ST_M,
++		       V2_MPT_BYTE_4_MPT_ST_S, V2_MPT_ST_VALID);
++
+ 	if (flags & IB_MR_REREG_PD) {
+ 		roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
+ 			       V2_MPT_BYTE_4_PD_S, pdn);
+-- 
+2.20.1
 
