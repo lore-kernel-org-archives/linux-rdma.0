@@ -2,104 +2,139 @@ Return-Path: <SRS0=BvA6=ZR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55CA5C432C0
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 02:07:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DABAC432C0
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 04:15:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1E7A22071A
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 02:07:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DC9520815
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 04:15:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Q6JG///7"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="M4fqXeoV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726861AbfKYCHV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 24 Nov 2019 21:07:21 -0500
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:14181 "EHLO
-        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726855AbfKYCHV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 24 Nov 2019 21:07:21 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate14.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5ddb375b0000>; Sun, 24 Nov 2019 18:07:24 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Sun, 24 Nov 2019 18:07:20 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Sun, 24 Nov 2019 18:07:20 -0800
-Received: from [10.110.48.28] (10.124.1.5) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Nov
- 2019 02:07:20 +0000
-Subject: Re: [PATCH 0/2] mm/gup + IB: allow FOLL_FORCE for gup_fast and use in
- IB
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>
-CC:     Ira Weiny <ira.weiny@intel.com>, <linux-rdma@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>
-References: <20191125003715.516290-1-jhubbard@nvidia.com>
-From:   John Hubbard <jhubbard@nvidia.com>
-X-Nvconfidentiality: public
-Message-ID: <25e8092a-3a5c-b75b-9ee8-940fece25389@nvidia.com>
-Date:   Sun, 24 Nov 2019 18:07:19 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
-MIME-Version: 1.0
-In-Reply-To: <20191125003715.516290-1-jhubbard@nvidia.com>
-X-Originating-IP: [10.124.1.5]
-X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
- HQMAIL107.nvidia.com (172.20.187.13)
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1574647644; bh=VSqCxdntvMfhdiFrZMqW5HdafdMIAWDFCnXZR+sYDKY=;
-        h=X-PGP-Universal:Subject:To:CC:References:From:X-Nvconfidentiality:
-         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
-         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
-         Content-Transfer-Encoding;
-        b=Q6JG///7ts3uN8kdWM/tTfdwCyxVNMDg64zNzAkJ0Jn+wf9RufTjn+kXhllGQof/i
-         JkyfF3O9d0tqzeMwaPgZFP7CoHp07w40zI+58KIi0q9SjLi/jubvyW74+I+xnc9brB
-         fxQwMl8I7h2X/ve77uG5U8quInmaT6oqJB+8ZP4ZYIc9AWy7BjSRTILPzZY5IGnGoA
-         kv+KmH3vGBiuz/BPZPSM3iDs5BYditxB5ymKkwMKrmK9In7JRDwHncbi7UQW/uQXpM
-         ooPymYDaxwUXZGWHNwXGcONNKDGu7bDRpkwDULsGfiIUy+XF+H7c1b1zQrU8CgbZIU
-         wr40GLvZX+dsg==
+        id S1726994AbfKYEPM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 24 Nov 2019 23:15:12 -0500
+Received: from userp2120.oracle.com ([156.151.31.85]:54812 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726977AbfKYEPM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 24 Nov 2019 23:15:12 -0500
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id xAP4DqEO088720;
+        Mon, 25 Nov 2019 04:14:36 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
+ date : message-id; s=corp-2019-08-05;
+ bh=WJrw8pBLZhnlfqOpopMiV5myCWZu7hP0u3UDVZxLG2o=;
+ b=M4fqXeoVB2XJnS2oDi780MiTHoJygnkXoPvLe4N8AdO1c20H8rJSsdmRL7cmLgNvFCOI
+ 5UtrYW/uh8RRZ2lTZWzAYx7WdoOttLnLNLLU1u7bee3G3HgB0+Xhb0FOHUXTGGa1fzQU
+ NjeEwdSMfp6gayCO6btlWlBf3nYoBzBWP55be/K5092+QuY4cQv6A4mhS2CK4gxQJCA1
+ t+SaTC5LlpLPw5G+pLNyz3kXQ+3CLhCQ4Kg/1q5nSbLdWIM+zZgZWfUeicfRMYw72NLj
+ Y9VYXrrdjfzSKX2ZDhSzLzfA5FeHNYk6en9ha3+GQS60laAzFvaY5NQCk+yaS6o5GFLo xA== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by userp2120.oracle.com with ESMTP id 2wewdqvw9w-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 25 Nov 2019 04:14:36 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id xAP4Cser012107;
+        Mon, 25 Nov 2019 04:14:35 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by userp3030.oracle.com with ESMTP id 2wfe7y886q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 25 Nov 2019 04:14:35 +0000
+Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id xAP4EXSe026863;
+        Mon, 25 Nov 2019 04:14:33 GMT
+Received: from shipfan.cn.oracle.com (/10.113.210.105)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Sun, 24 Nov 2019 20:14:33 -0800
+From:   Zhu Yanjun <yanjun.zhu@oracle.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, michael.j.ruhl@intel.com,
+        ira.weiny@intel.com, rostedt@goodmis.org, leon@kernel.org,
+        kamalheib1@gmail.com, zyjzyj2000@gmail.com,
+        linux-rdma@vger.kernel.org
+Subject: [PATCHv2 1/1] RDMA/core: avoid kernel NULL pointer error
+Date:   Sun, 24 Nov 2019 23:24:35 -0500
+Message-Id: <1574655875-3475-1-git-send-email-yanjun.zhu@oracle.com>
+X-Mailer: git-send-email 2.7.4
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9451 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1911140001 definitions=main-1911250037
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9451 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-1911250037
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 11/24/19 4:37 PM, John Hubbard wrote:
-> Hi Leon, Jason, Christoph,
-> 
-> Maybe I'm overlooking something, but as I wrote in patch 1, it looks
-> like we can simply allow FOLL_FORCE to be passed to gup_fast().
-> 
-> This should fix Leon's reported RDMA failure [1]  when using patch 2 by
-> itself. (I've compile- and boot-tested these, and also did short LTP
-> and fio with direct IO tests, but I don't have an Infiniband runtime
-> setup that exercises the umem.c code.)
-> 
-> [1] https://lore.kernel.org/r/20191124100724.GH136476@unreal
-> 
-> John Hubbard (2):
->   mm/gup: allow FOLL_FORCE for get_user_pages_fast()
->   IB/umem: use get_user_pages_fast() to pin DMA pages
-> 
->  drivers/infiniband/core/umem.c | 17 ++++++-----------
->  mm/gup.c                       |  3 ++-
->  2 files changed, 8 insertions(+), 12 deletions(-)
-> 
+When the interface related with IB device is set to down/up over and
+over again, the following call trace will pop out.
+"
+ Call Trace:
+  [<ffffffffa039ff8d>] ib_mad_completion_handler+0x7d/0xa0 [ib_mad]
+  [<ffffffff810a1a41>] process_one_work+0x151/0x4b0
+  [<ffffffff810a1ec0>] worker_thread+0x120/0x480
+  [<ffffffff810a709e>] kthread+0xce/0xf0
+  [<ffffffff816e9962>] ret_from_fork+0x42/0x70
 
-OK, based on Jason's response [1] that it's too late to put this into
-5.5, let's withdraw this, and I'll resend when it's time to send out
-patches for 5.6.
+ RIP  [<ffffffffa039f926>] ib_mad_recv_done_handler+0x26/0x610 [ib_mad]
+"
+From vmcore, we can find the following:
+"
+crash7lates> struct ib_mad_list_head ffff881fb3713400
+struct ib_mad_list_head {
+  list = {
+    next = 0xffff881fb3713800,
+    prev = 0xffff881fe01395c0
+  },
+  mad_queue = 0x0
+}
+"
 
-[1] https://lore.kernel.org/r/20191125005339.GC5634@ziepe.ca
+Before the call trace, a lot of ib_cancel_mad is sent to the sender.
+So it is necessary to check mad_queue in struct ib_mad_list_head to avoid
+"kernel NULL pointer" error.
 
-thanks,
+From the new customer report, when there is something wrong with IB HW/FW,
+the above call trace will appear. It seems that bad IB HW/FW will cause
+this problem.
+
+Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+---
+V1->V2: Add new bug symptoms.
+---
+ drivers/infiniband/core/mad.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 9947d16..43f596c 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2279,6 +2279,17 @@ static void ib_mad_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		return;
+ 	}
+ 
++	if (unlikely(!mad_list->mad_queue)) {
++		/*
++		 * When the interface related with IB device is set to down/up,
++		 * a lot of ib_cancel_mad packets are sent to the sender. In
++		 * sender, the mad packets are cancelled.  The receiver will
++		 * find mad_queue NULL. If the receiver does not test mad_queue,
++		 * the receiver will crash with "kernel NULL pointer" error.
++		 */
++		return;
++	}
++
+ 	qp_info = mad_list->mad_queue->qp_info;
+ 	dequeue_mad(mad_list);
+ 
 -- 
-John Hubbard
-NVIDIA
+2.7.4
+
