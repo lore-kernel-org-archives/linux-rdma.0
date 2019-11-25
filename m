@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11894C432C3
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 04:22:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1E41C33C9A
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 04:22:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB18D20815
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 04:22:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 793EE20823
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Nov 2019 04:22:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="gNTBO2iB"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="OabQzUG/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727698AbfKYEWB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 24 Nov 2019 23:22:01 -0500
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:9229 "EHLO
+        id S1727784AbfKYEWk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 24 Nov 2019 23:22:40 -0500
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:9228 "EHLO
         hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727266AbfKYEUV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 24 Nov 2019 23:20:21 -0500
+        with ESMTP id S1727263AbfKYEUU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 24 Nov 2019 23:20:20 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate15.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5ddb56790002>; Sun, 24 Nov 2019 20:20:10 -0800
+        id <B5ddb56790001>; Sun, 24 Nov 2019 20:20:09 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
   Sun, 24 Nov 2019 20:20:15 -0800
 X-PGP-Universal: processed;
         by hqpgpgate101.nvidia.com on Sun, 24 Nov 2019 20:20:15 -0800
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL111.nvidia.com
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL111.nvidia.com
  (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Nov
  2019 04:20:14 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Nov
+ 2019 04:20:14 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
  Transport; Mon, 25 Nov 2019 04:20:14 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5ddb567e0009>; Sun, 24 Nov 2019 20:20:14 -0800
+        id <B5ddb567e0003>; Sun, 24 Nov 2019 20:20:14 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -53,12 +56,11 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
+        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -66,10 +68,13 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH 17/19] powerpc: book3s64: convert to pin_user_pages() and put_user_page()
-Date:   Sun, 24 Nov 2019 20:20:09 -0800
-Message-ID: <20191125042011.3002372-18-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>,
+        "Christoph Hellwig" <hch@lst.de>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        <stable@vger.kernel.org>
+Subject: [PATCH 14/19] media/v4l2-core: set pages dirty upon releasing DMA buffers
+Date:   Sun, 24 Nov 2019 20:20:06 -0800
+Message-ID: <20191125042011.3002372-15-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191125042011.3002372-1-jhubbard@nvidia.com>
 References: <20191125042011.3002372-1-jhubbard@nvidia.com>
@@ -78,87 +83,56 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1574655610; bh=IJJb9r+CEPs17zzIv7S9Yy1snV6WhIVmX2ftMMVKd1c=;
+        t=1574655610; bh=icmjko9fP8b/hMTtebs5M97o7j6aV8LjauIhhN3vqys=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=gNTBO2iB4EBi3rbOQgTZAr8HuUuxejicGMXpfQWBvr+E1GHmXHRYN1eOEszl2gv+m
-         gR3lV2gCwOi9NaE81WhakqlTipHB7/mvKCI3w6DvY34MAGIm8WU4vRo8RhFv1UYtZD
-         INWOtS24SMMW0tLnBt5oZYzOjj0KiG7S3j+hYwsYiifL5dSlPEPJs+rJIjM22Fpw/q
-         wYUm5pZaJxU9jcScUxED86Rx+QTEjoRIN+iB2tSFqS6y6PUdeaU5NtphIlgGWR3Ld2
-         2g7Wax85rKNNiRFmPcPZYRpe9l4zZ9pSX+1HAUJyJaQEAt3w7Ch3zovn0myUcpFUoe
-         mzOla/x/79qtA==
+        b=OabQzUG/c8sYZAKVTWw4YHjKsTJS2EWInMguAk8OGFN3QBO8kjwioyNHlby5cE1nq
+         HnGCLReC/ZArtZzkh2ks1O79ycNqzsSCWvqQJGMInP0LBid4cB746ASrvmvMxv5bmo
+         U7X8hD+0MEZJs6ifZ+6HJb41KBVcZ+OtJfyvFwNl9wygfOqJ5aZYTmk3uDuytDx2ts
+         HLlh36moFcSUAfu/XfPRWd8OucSiaex+dWtb1gtZ0Ebz8PYwq36bBDF72hv91mphtj
+         w3JHdugcMP4JAFU1Q9MYcrnDW76vOawQbHqguq98JVV7jPG3xr3i89sUYcmHMv3KbW
+         EOdN9TmhRB/DA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-1. Convert from get_user_pages() to pin_user_pages().
+After DMA is complete, and the device and CPU caches are synchronized,
+it's still required to mark the CPU pages as dirty, if the data was
+coming from the device. However, this driver was just issuing a
+bare put_page() call, without any set_page_dirty*() call.
 
-2. As required by pin_user_pages(), release these pages via
-put_user_page(). In this case, do so via put_user_pages_dirty_lock().
+Fix the problem, by calling set_page_dirty_lock() if the CPU pages
+were potentially receiving data from the device.
 
-That has the side effect of calling set_page_dirty_lock(), instead
-of set_page_dirty(). This is probably more accurate.
-
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
-
-3. Release each page in mem->hpages[] (instead of mem->hpas[]), because
-that is the array that pin_longterm_pages() filled in. This is more
-accurate and should be a little safer from a maintenance point of
-view.
-
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- arch/powerpc/mm/book3s64/iommu_api.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/powerpc/mm/book3s64/iommu_api.c b/arch/powerpc/mm/book3s6=
-4/iommu_api.c
-index 56cc84520577..196383e8e5a9 100644
---- a/arch/powerpc/mm/book3s64/iommu_api.c
-+++ b/arch/powerpc/mm/book3s64/iommu_api.c
-@@ -103,7 +103,7 @@ static long mm_iommu_do_alloc(struct mm_struct *mm, uns=
-igned long ua,
- 	for (entry =3D 0; entry < entries; entry +=3D chunk) {
- 		unsigned long n =3D min(entries - entry, chunk);
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2=
+-core/videobuf-dma-sg.c
+index 66a6c6c236a7..28262190c3ab 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -349,8 +349,11 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
+ 	BUG_ON(dma->sglen);
 =20
--		ret =3D get_user_pages(ua + (entry << PAGE_SHIFT), n,
-+		ret =3D pin_user_pages(ua + (entry << PAGE_SHIFT), n,
- 				FOLL_WRITE | FOLL_LONGTERM,
- 				mem->hpages + entry, NULL);
- 		if (ret =3D=3D n) {
-@@ -167,9 +167,8 @@ static long mm_iommu_do_alloc(struct mm_struct *mm, uns=
-igned long ua,
- 	return 0;
-=20
- free_exit:
--	/* free the reference taken */
--	for (i =3D 0; i < pinned; i++)
--		put_page(mem->hpages[i]);
-+	/* free the references taken */
-+	put_user_pages(mem->hpages, pinned);
-=20
- 	vfree(mem->hpas);
- 	kfree(mem);
-@@ -212,10 +211,9 @@ static void mm_iommu_unpin(struct mm_iommu_table_group=
-_mem_t *mem)
- 		if (!page)
- 			continue;
-=20
--		if (mem->hpas[i] & MM_IOMMU_TABLE_GROUP_PAGE_DIRTY)
--			SetPageDirty(page);
-+		put_user_pages_dirty_lock(&mem->hpages[i], 1,
-+					  MM_IOMMU_TABLE_GROUP_PAGE_DIRTY);
-=20
--		put_page(page);
- 		mem->hpas[i] =3D 0;
+ 	if (dma->pages) {
+-		for (i =3D 0; i < dma->nr_pages; i++)
++		for (i =3D 0; i < dma->nr_pages; i++) {
++			if (dma->direction =3D=3D DMA_FROM_DEVICE)
++				set_page_dirty_lock(dma->pages[i]);
+ 			put_page(dma->pages[i]);
++		}
+ 		kfree(dma->pages);
+ 		dma->pages =3D NULL;
  	}
- }
 --=20
 2.24.0
 
