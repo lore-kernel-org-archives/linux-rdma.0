@@ -2,295 +2,82 @@ Return-Path: <SRS0=4adU=ZS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 834E6C432C3
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 14:13:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1B81C432C0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 15:31:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 509B72071A
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 14:13:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7173520678
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 15:31:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="aXkORBr8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728120AbfKZONY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Nov 2019 09:13:24 -0500
-Received: from mga05.intel.com ([192.55.52.43]:41954 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726536AbfKZONY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 26 Nov 2019 09:13:24 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Nov 2019 06:12:35 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.69,246,1571727600"; 
-   d="scan'208";a="383160082"
-Received: from sedona.ch.intel.com ([10.2.136.157])
-  by orsmga005.jf.intel.com with ESMTP; 26 Nov 2019 06:12:35 -0800
-Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id xAQECYTd042039;
-        Tue, 26 Nov 2019 07:12:34 -0700
-Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id xAQECWIC059073;
-        Tue, 26 Nov 2019 09:12:33 -0500
-Subject: [PATCH for-next v2 04/11] IB/hfi1: Add fast and slow handlers for
- receive context
-From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
-To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>,
-        linux-rdma@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>,
-        "Michael J. Ruhl" <michael.j.ruhl@intel.com>,
-        Sadanand Warrier <sadanand.warrier@intel.com>
-Date:   Tue, 26 Nov 2019 09:12:32 -0500
-Message-ID: <20191126141232.58836.58520.stgit@awfm-01.aw.intel.com>
-In-Reply-To: <20191126141055.58836.79452.stgit@awfm-01.aw.intel.com>
+        id S1728497AbfKZPbF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Nov 2019 10:31:05 -0500
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:33680 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727135AbfKZPbF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Nov 2019 10:31:05 -0500
+Received: by mail-qt1-f196.google.com with SMTP id y39so21842356qty.0
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Nov 2019 07:31:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=E0QXTcdGclJHmY0IhySTzDmgalYL7d+JAlqWZ8C6dKQ=;
+        b=aXkORBr8r4JD5dpbmSVX9M/wF4iZWRlkrFm7JKNoG+VGaG5YLC6PhTq0vAp+nevZZQ
+         U/XzGnqASx6OIPBsDZ6CsaCAgRlJwazlPzNa3u4mN11kJdZJUukne7bwQYOJcIGX+I9Z
+         pQLoW/JyYWsBQ5sfMgIPdfB4rU8nIvWUM1h7neUIGzhpKmZeYzCT0rN0IaVAdtC7yee5
+         BbqeSto7SsjR6Tn/Y6jgX7tnRz/D5slBrCAEmgedpGQwED37RBh85FzG1Ks4t7la9kYp
+         MKlZbNm8bowJspIMQ9FNF80gUaY4Je8sbcTHvGf1oFnGu1+OFJfr35RSl4NQGabTrHE4
+         dd6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=E0QXTcdGclJHmY0IhySTzDmgalYL7d+JAlqWZ8C6dKQ=;
+        b=EuGr2UZqkjaehk9k9j0+b+On1W0fo6g6xXSAlSOgcBVTJOhyNQ9bTVd/l0ihR7tTLw
+         6kIkjRqbDmtCNCFq6B8oxICuUOx6OjQXPnK9KSoff0PWFTVlknjE2KMKRKBopxjZIFHB
+         4oP5bCl/UtdXy8rfP24xf4iwZpHr9H5VdJoDJMi1WUFbApKF4Qqe0K5aaP+o7sI0cq/C
+         yLuoolqMvD86mAv4d6d2ezPPZIglVCT/z7HPET4p0mKD7SbP220Pj4R54mFOvAzx8qvx
+         fGH9fPCORMkXB/6h+xgyGngCvAZ7ZxyyPPrh96TF1dSrqriNQy+4hZuRC3oJFDZgsgCN
+         9vWQ==
+X-Gm-Message-State: APjAAAWMN6e6KlhaUP1pBJZNdrDP775zJbTLqSviInPr0RVGSGhwpVYL
+        JvwlYqT7tD1JjhM2yCLrMWZw5bRm1us=
+X-Google-Smtp-Source: APXvYqylezzMwQsizYJjP29qt7TnGHAehA85pj4Iz93Zlv4Y5TG6RZ4q8du1tqwC9bVWc0ChD1Zgdg==
+X-Received: by 2002:ac8:4158:: with SMTP id e24mr19366359qtm.97.1574782264463;
+        Tue, 26 Nov 2019 07:31:04 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-180.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.180])
+        by smtp.gmail.com with ESMTPSA id u67sm5174575qkf.115.2019.11.26.07.31.03
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 26 Nov 2019 07:31:03 -0800 (PST)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1iZcnv-00055W-6K; Tue, 26 Nov 2019 11:31:03 -0400
+Date:   Tue, 26 Nov 2019 11:31:03 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc:     dledford@redhat.com, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH for-next v2 00/11] rdmavt/hfi1 updates for next
+Message-ID: <20191126153103.GG11270@ziepe.ca>
 References: <20191126141055.58836.79452.stgit@awfm-01.aw.intel.com>
-User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191126141055.58836.79452.stgit@awfm-01.aw.intel.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+On Tue, Nov 26, 2019 at 09:12:07AM -0500, Dennis Dalessandro wrote:
+> Here are some refactoring and code reorg patches for the merge window. Nothing
+> too scary, no new features. This lays the ground work for stuff coming in
+> future merge cycles.
 
-This patch eliminate special cases by adding a fast_handler member to
-the receive context and changes to the fast handler as specified in the
-new variable. Initialize the variable as soon as the setting for dma
-tail is known when the context is created.
+This is far too late for this cycle
 
-Setting fast path is called every time when any context has entered
-slow path. Add function to check if contexts is using fast path and do
-not set fast path when it is already done to improve RCD fastpath
-setting.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
-Signed-off-by: Sadanand Warrier <sadanand.warrier@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/driver.c   |   66 ++++++---------------------------
- drivers/infiniband/hw/hfi1/hfi.h      |   41 ++++++++++++++++++++-
- drivers/infiniband/hw/hfi1/init.c     |    5 +++
- drivers/infiniband/hw/hfi1/trace_rx.h |    6 +--
- 4 files changed, 58 insertions(+), 60 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 8374922..3671191 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -883,9 +883,8 @@ int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd, int thread)
- 	return last;
- }
- 
--static inline void set_nodma_rtail(struct hfi1_devdata *dd, u16 ctxt)
-+static void set_all_fastpath(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- {
--	struct hfi1_ctxtdata *rcd;
- 	u16 i;
- 
- 	/*
-@@ -893,50 +892,17 @@ static inline void set_nodma_rtail(struct hfi1_devdata *dd, u16 ctxt)
- 	 * interrupt handler only for that context. Otherwise, switch
- 	 * interrupt handler for all statically allocated kernel contexts.
- 	 */
--	if (ctxt >= dd->first_dyn_alloc_ctxt) {
--		rcd = hfi1_rcd_get_by_index_safe(dd, ctxt);
--		if (rcd) {
--			rcd->do_interrupt =
--				&handle_receive_interrupt_nodma_rtail;
--			hfi1_rcd_put(rcd);
--		}
--		return;
--	}
--
--	for (i = HFI1_CTRL_CTXT + 1; i < dd->first_dyn_alloc_ctxt; i++) {
--		rcd = hfi1_rcd_get_by_index(dd, i);
--		if (rcd)
--			rcd->do_interrupt =
--				&handle_receive_interrupt_nodma_rtail;
-+	if (rcd->ctxt >= dd->first_dyn_alloc_ctxt && !rcd->is_vnic) {
-+		hfi1_rcd_get(rcd);
-+		hfi1_set_fast(rcd);
- 		hfi1_rcd_put(rcd);
--	}
--}
--
--static inline void set_dma_rtail(struct hfi1_devdata *dd, u16 ctxt)
--{
--	struct hfi1_ctxtdata *rcd;
--	u16 i;
--
--	/*
--	 * For dynamically allocated kernel contexts (like vnic) switch
--	 * interrupt handler only for that context. Otherwise, switch
--	 * interrupt handler for all statically allocated kernel contexts.
--	 */
--	if (ctxt >= dd->first_dyn_alloc_ctxt) {
--		rcd = hfi1_rcd_get_by_index_safe(dd, ctxt);
--		if (rcd) {
--			rcd->do_interrupt =
--				&handle_receive_interrupt_dma_rtail;
--			hfi1_rcd_put(rcd);
--		}
- 		return;
- 	}
- 
--	for (i = HFI1_CTRL_CTXT + 1; i < dd->first_dyn_alloc_ctxt; i++) {
-+	for (i = HFI1_CTRL_CTXT + 1; i < dd->num_rcv_contexts; i++) {
- 		rcd = hfi1_rcd_get_by_index(dd, i);
--		if (rcd)
--			rcd->do_interrupt =
--				&handle_receive_interrupt_dma_rtail;
-+		if (rcd && (i < dd->first_dyn_alloc_ctxt || rcd->is_vnic))
-+			hfi1_set_fast(rcd);
- 		hfi1_rcd_put(rcd);
- 	}
- }
-@@ -952,7 +918,7 @@ void set_all_slowpath(struct hfi1_devdata *dd)
- 		if (!rcd)
- 			continue;
- 		if (i < dd->first_dyn_alloc_ctxt || rcd->is_vnic)
--			rcd->do_interrupt = &handle_receive_interrupt;
-+			rcd->do_interrupt = rcd->slow_handler;
- 
- 		hfi1_rcd_put(rcd);
- 	}
-@@ -1065,11 +1031,6 @@ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
- 		if (!get_dma_rtail_setting(rcd)) {
- 			if (hfi1_seq_incr(rcd, rhf_rcv_seq(packet.rhf)))
- 				last = RCV_PKT_DONE;
--			if (needset) {
--				dd_dev_info(dd, "Switching to NO_DMA_RTAIL\n");
--				set_nodma_rtail(dd, rcd->ctxt);
--				needset = 0;
--			}
- 		} else {
- 			if (packet.rhqoff == hdrqtail)
- 				last = RCV_PKT_DONE;
-@@ -1085,15 +1046,12 @@ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
- 				if (!last && lseq)
- 					skip_pkt = 1;
- 			}
--
--			if (needset) {
--				dd_dev_info(dd,
--					    "Switching to DMA_RTAIL\n");
--				set_dma_rtail(dd, rcd->ctxt);
--				needset = 0;
--			}
- 		}
- 
-+		if (needset) {
-+			needset = false;
-+			set_all_fastpath(dd, rcd);
-+		}
- 		process_rcv_update(last, &packet);
- 	}
- 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index a5d8b62..b819d7d 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -197,6 +197,8 @@ struct exp_tid_set {
- 	u32 count;
- };
- 
-+struct hfi1_ctxtdata;
-+typedef int (*intr_handler)(struct hfi1_ctxtdata *rcd, int data);
- typedef int (*rhf_rcv_function_ptr)(struct hfi1_packet *packet);
- 
- struct tid_queue {
-@@ -226,7 +228,11 @@ struct hfi1_ctxtdata {
- 	 * be valid. Worst case is we process an extra interrupt and up to 64
- 	 * packets with the wrong interrupt handler.
- 	 */
--	int (*do_interrupt)(struct hfi1_ctxtdata *rcd, int threaded);
-+	intr_handler do_interrupt;
-+	/** fast handler after autoactive */
-+	intr_handler fast_handler;
-+	/** slow handler */
-+	intr_handler slow_handler;
- 	/* verbs rx_stats per rcd */
- 	struct hfi1_opcode_stats_perctx *opstats;
- 	/* clear interrupt mask */
-@@ -1616,6 +1622,39 @@ static inline u16 get_hdrq_cnt(struct hfi1_ctxtdata *rcd)
- 	return rcd->rcvhdrq_cnt;
- }
- 
-+/**
-+ * hfi1_is_slowpath - check if this context is slow path
-+ * @rcd: the receive context
-+ */
-+static inline bool hfi1_is_slowpath(struct hfi1_ctxtdata *rcd)
-+{
-+	return rcd->do_interrupt == rcd->slow_handler;
-+}
-+
-+/**
-+ * hfi1_is_fastpath - check if this context is fast path
-+ * @rcd: the receive context
-+ */
-+static inline bool hfi1_is_fastpath(struct hfi1_ctxtdata *rcd)
-+{
-+	if (rcd->ctxt == HFI1_CTRL_CTXT)
-+		return false;
-+
-+	return rcd->do_interrupt == rcd->fast_handler;
-+}
-+
-+/**
-+ * hfi1_set_fast - change to the fast handler
-+ * @rcd: the receive context
-+ */
-+static inline void hfi1_set_fast(struct hfi1_ctxtdata *rcd)
-+{
-+	if (unlikely(!rcd))
-+		return;
-+	if (unlikely(!hfi1_is_fastpath(rcd)))
-+		rcd->do_interrupt = rcd->fast_handler;
-+}
-+
- int hfi1_reset_device(int);
- 
- void receive_interrupt_work(struct work_struct *work);
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 821e6fe..55adc97 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -150,6 +150,11 @@ static int hfi1_create_kctxt(struct hfi1_devdata *dd,
- 	/* Control context must use DMA_RTAIL */
- 	if (rcd->ctxt == HFI1_CTRL_CTXT)
- 		rcd->flags |= HFI1_CAP_DMA_RTAIL;
-+	rcd->fast_handler = get_dma_rtail_setting(rcd) ?
-+				handle_receive_interrupt_dma_rtail :
-+				handle_receive_interrupt_nodma_rtail;
-+	rcd->slow_handler = handle_receive_interrupt;
-+
- 	hfi1_set_seq_cnt(rcd, 1);
- 
- 	rcd->sc = sc_alloc(dd, SC_ACK, rcd->rcvhdrqentsize, dd->node);
-diff --git a/drivers/infiniband/hw/hfi1/trace_rx.h b/drivers/infiniband/hw/hfi1/trace_rx.h
-index ebce81c..168079e 100644
---- a/drivers/infiniband/hw/hfi1/trace_rx.h
-+++ b/drivers/infiniband/hw/hfi1/trace_rx.h
-@@ -106,11 +106,7 @@
- 			     ),
- 	    TP_fast_assign(DD_DEV_ASSIGN(dd);
- 			__entry->ctxt = rcd->ctxt;
--			if (rcd->do_interrupt ==
--			    &handle_receive_interrupt)
--				__entry->slow_path = 1;
--			else
--				__entry->slow_path = 0;
-+			__entry->slow_path = hfi1_is_slowpath(rcd);
- 			__entry->dma_rtail = get_dma_rtail_setting(rcd);
- 			),
- 	    TP_printk("[%s] ctxt %d SlowPath: %d DmaRtail: %d",
-
+Jason
