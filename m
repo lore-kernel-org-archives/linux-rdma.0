@@ -6,43 +6,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00BF4C432C0
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 14:12:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E10C432C0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 14:12:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C59BB2071A
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 14:12:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 022022071A
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Nov 2019 14:12:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727709AbfKZOMa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Nov 2019 09:12:30 -0500
-Received: from mga12.intel.com ([192.55.52.136]:45543 "EHLO mga12.intel.com"
+        id S1727716AbfKZOMm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Nov 2019 09:12:42 -0500
+Received: from mga06.intel.com ([134.134.136.31]:29194 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726536AbfKZOMa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 26 Nov 2019 09:12:30 -0500
+        id S1726536AbfKZOMm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 Nov 2019 09:12:42 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Nov 2019 06:12:29 -0800
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Nov 2019 06:12:41 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.69,246,1571727600"; 
-   d="scan'208";a="220635558"
+   d="scan'208";a="408673215"
 Received: from sedona.ch.intel.com ([10.2.136.157])
-  by orsmga002.jf.intel.com with ESMTP; 26 Nov 2019 06:12:28 -0800
+  by fmsmga005.fm.intel.com with ESMTP; 26 Nov 2019 06:12:42 -0800
 Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id xAQECShr042036;
-        Tue, 26 Nov 2019 07:12:28 -0700
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id xAQECeew042056;
+        Tue, 26 Nov 2019 07:12:41 -0700
 Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id xAQECQVC059059;
-        Tue, 26 Nov 2019 09:12:26 -0500
-Subject: [PATCH for-next v2 03/11] IB/hfi1: Move chip specific functions to
- chip.c
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id xAQECd2H059088;
+        Tue, 26 Nov 2019 09:12:39 -0500
+Subject: [PATCH for-next v2 05/11] IB/hfi1: Move common receive IRQ code to
+ function
 From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
 Cc:     linux-rdma@vger.kernel.org,
-        "Michael J. Ruhl" <michael.j.ruhl@intel.com>,
         Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>,
         Kaike Wan <kaike.wan@intel.com>
-Date:   Tue, 26 Nov 2019 09:12:26 -0500
-Message-ID: <20191126141226.58836.4327.stgit@awfm-01.aw.intel.com>
+Date:   Tue, 26 Nov 2019 09:12:39 -0500
+Message-ID: <20191126141239.58836.99861.stgit@awfm-01.aw.intel.com>
 In-Reply-To: <20191126141055.58836.79452.stgit@awfm-01.aw.intel.com>
 References: <20191126141055.58836.79452.stgit@awfm-01.aw.intel.com>
 User-Agent: StGit/0.17.1-dirty
@@ -54,267 +54,140 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 
-Move routines and defines associated with hdrq size validation
-to a chip specific routine since the limits are specific to
-the device.
+Tracing interrupts, incrementing interrupt counter and ASPM
+are part that will be reused by HFI1 receive IRQ handlers.
 
-Fix incorrect value for min size 2 -> 32
-
-CSR writes should also be in chip.c.
-
-Create a chip routine to write the hdrq specific CSRs and call as
-appropriate.
+Create common function to have shared code in one place.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 Signed-off-by: Kaike Wan <kaike.wan@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/chip.c |   78 +++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/chip.h |    6 +++
- drivers/infiniband/hw/hfi1/init.c |   72 +---------------------------------
- 3 files changed, 87 insertions(+), 69 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |   82 +++++++++++++++++++++++--------------
+ 1 file changed, 52 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index b4fe37a..860615d 100644
+index 860615d..9e2bf99 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -11858,6 +11858,84 @@ static u32 encoded_size(u32 size)
- 	return 0x1;	/* if invalid, go with the minimum size */
+@@ -8403,6 +8403,55 @@ static inline int check_packet_present(struct hfi1_ctxtdata *rcd)
+ 	return hfi1_rcd_head(rcd) != tail;
  }
  
 +/**
-+ * encode_rcv_header_entry_size - return chip specific encoding for size
-+ * @size: size in dwords
++ * Common code for receive contexts interrupt handlers.
++ * Update traces, increment kernel IRQ counter and
++ * setup ASPM when needed.
++ */
++static void receive_interrupt_common(struct hfi1_ctxtdata *rcd)
++{
++	struct hfi1_devdata *dd = rcd->dd;
++
++	trace_hfi1_receive_interrupt(dd, rcd);
++	this_cpu_inc(*dd->int_counter);
++	aspm_ctx_disable(rcd);
++}
++
++/**
++ * __hfi1_rcd_eoi_intr() - Make HW issue receive interrupt
++ * when there are packets present in the queue. When calling
++ * with interrupts enabled please use hfi1_rcd_eoi_intr.
 + *
-+ * Convert a receive header entry size that to the encoding used in the CSR.
++ * @rcd: valid receive context
++ */
++static void __hfi1_rcd_eoi_intr(struct hfi1_ctxtdata *rcd)
++{
++	clear_recv_intr(rcd);
++	if (check_packet_present(rcd))
++		force_recv_intr(rcd);
++}
++
++/**
++ * hfi1_rcd_eoi_intr() - End of Interrupt processing action
 + *
-+ * Return a zero if the given size is invalid, otherwise the encoding.
++ * @rcd: Ptr to hfi1_ctxtdata of receive context
++ *
++ *  Hold IRQs so we can safely clear the interrupt and
++ *  recheck for a packet that may have arrived after the previous
++ *  check and the interrupt clear.  If a packet arrived, force another
++ *  interrupt. This routine can be called at the end of receive packet
++ *  processing in interrupt service routines, interrupt service thread
++ *  and softirqs
 + */
-+u8 encode_rcv_header_entry_size(u8 size)
++static void hfi1_rcd_eoi_intr(struct hfi1_ctxtdata *rcd)
 +{
-+	/* there are only 3 valid receive header entry sizes */
-+	if (size == 2)
-+		return 1;
-+	if (size == 16)
-+		return 2;
-+	if (size == 32)
-+		return 4;
-+	return 0; /* invalid */
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__hfi1_rcd_eoi_intr(rcd);
++	local_irq_restore(flags);
 +}
 +
-+/**
-+ * hfi1_validate_rcvhdrcnt - validate hdrcnt
-+ * @dd: the device data
-+ * @thecnt: the header count
-+ */
-+int hfi1_validate_rcvhdrcnt(struct hfi1_devdata *dd, uint thecnt)
-+{
-+	if (thecnt <= HFI1_MIN_HDRQ_EGRBUF_CNT) {
-+		dd_dev_err(dd, "Receive header queue count too small\n");
-+		return -EINVAL;
-+	}
-+
-+	if (thecnt > HFI1_MAX_HDRQ_EGRBUF_CNT) {
-+		dd_dev_err(dd,
-+			   "Receive header queue count cannot be greater than %u\n",
-+			   HFI1_MAX_HDRQ_EGRBUF_CNT);
-+		return -EINVAL;
-+	}
-+
-+	if (thecnt % HDRQ_INCREMENT) {
-+		dd_dev_err(dd, "Receive header queue count %d must be divisible by %lu\n",
-+			   thecnt, HDRQ_INCREMENT);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * set_hdrq_regs - set header queue registers for context
-+ * @dd: the device data
-+ * @ctxt: the context
-+ * @entsize: the dword entry size
-+ * @hdrcnt: the number of header entries
-+ */
-+void set_hdrq_regs(struct hfi1_devdata *dd, u8 ctxt, u8 entsize, u16 hdrcnt)
-+{
-+	u64 reg;
-+
-+	reg = (((u64)hdrcnt >> HDRQ_SIZE_SHIFT) & RCV_HDR_CNT_CNT_MASK) <<
-+	      RCV_HDR_CNT_CNT_SHIFT;
-+	write_kctxt_csr(dd, ctxt, RCV_HDR_CNT, reg);
-+	reg = ((u64)encode_rcv_header_entry_size(entsize) &
-+	       RCV_HDR_ENT_SIZE_ENT_SIZE_MASK) <<
-+	      RCV_HDR_ENT_SIZE_ENT_SIZE_SHIFT;
-+	write_kctxt_csr(dd, ctxt, RCV_HDR_ENT_SIZE, reg);
-+	reg = ((u64)DEFAULT_RCVHDRSIZE & RCV_HDR_SIZE_HDR_SIZE_MASK) <<
-+	      RCV_HDR_SIZE_HDR_SIZE_SHIFT;
-+	write_kctxt_csr(dd, ctxt, RCV_HDR_SIZE, reg);
-+
-+	/*
-+	 * Program dummy tail address for every receive context
-+	 * before enabling any receive context
-+	 */
-+	write_kctxt_csr(dd, ctxt, RCV_HDR_TAIL_ADDR,
-+			dd->rcvhdrtail_dummy_dma);
-+}
-+
- void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op,
- 		  struct hfi1_ctxtdata *rcd)
- {
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 4ca5ac8..05b7130 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -358,6 +358,8 @@
- #define MAX_EAGER_BUFFER       (256 * 1024)
- #define MAX_EAGER_BUFFER_TOTAL (64 * (1 << 20)) /* max per ctxt 64MB */
- #define MAX_EXPECTED_BUFFER    (2048 * 1024)
-+#define HFI1_MIN_HDRQ_EGRBUF_CNT 32
-+#define HFI1_MAX_HDRQ_EGRBUF_CNT 16352
- 
  /*
-  * Receive expected base and count and eager base and count increment -
-@@ -699,6 +701,10 @@ static inline u32 chip_rcv_array_count(struct hfi1_devdata *dd)
- 	return read_csr(dd, RCV_ARRAY_CNT);
- }
- 
-+u8 encode_rcv_header_entry_size(u8 size);
-+int hfi1_validate_rcvhdrcnt(struct hfi1_devdata *dd, uint thecnt);
-+void set_hdrq_regs(struct hfi1_devdata *dd, u8 ctxt, u8 entsize, u16 hdrcnt);
-+
- u64 create_pbc(struct hfi1_pportdata *ppd, u64 flags, int srate_mbs, u32 vl,
- 	       u32 dw_len);
- 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index f547a17..821e6fe 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -78,8 +78,6 @@
-  */
- #define HFI1_MIN_USER_CTXT_BUFCNT 7
- 
--#define HFI1_MIN_HDRQ_EGRBUF_CNT 2
--#define HFI1_MAX_HDRQ_EGRBUF_CNT 16352
- #define HFI1_MIN_EAGER_BUFFER_SIZE (4 * 1024) /* 4KB */
- #define HFI1_MAX_EAGER_BUFFER_SIZE (256 * 1024) /* 256KB */
- 
-@@ -122,8 +120,6 @@
- module_param(user_credit_return_threshold, uint, S_IRUGO);
- MODULE_PARM_DESC(user_credit_return_threshold, "Credit return threshold for user send contexts, return when unreturned credits passes this many blocks (in percent of allocated blocks, 0 is off)");
- 
--static inline u64 encode_rcv_header_entry_size(u16 size);
--
- DEFINE_XARRAY_FLAGS(hfi1_dev_table, XA_FLAGS_ALLOC | XA_FLAGS_LOCK_IRQ);
- 
- static int hfi1_create_kctxt(struct hfi1_devdata *dd,
-@@ -511,23 +507,6 @@ void hfi1_free_ctxt(struct hfi1_ctxtdata *rcd)
- }
- 
- /*
-- * Convert a receive header entry size that to the encoding used in the CSR.
-- *
-- * Return a zero if the given size is invalid.
-- */
--static inline u64 encode_rcv_header_entry_size(u16 size)
--{
--	/* there are only 3 valid receive header entry sizes */
--	if (size == 2)
--		return 1;
--	if (size == 16)
--		return 2;
--	else if (size == 32)
--		return 4;
--	return 0; /* invalid */
--}
--
--/*
-  * Select the largest ccti value over all SLs to determine the intra-
-  * packet gap for the link.
-  *
-@@ -1612,29 +1591,6 @@ static void postinit_cleanup(struct hfi1_devdata *dd)
- 	hfi1_free_devdata(dd);
- }
- 
--static int init_validate_rcvhdrcnt(struct hfi1_devdata *dd, uint thecnt)
--{
--	if (thecnt <= HFI1_MIN_HDRQ_EGRBUF_CNT) {
--		dd_dev_err(dd, "Receive header queue count too small\n");
--		return -EINVAL;
--	}
--
--	if (thecnt > HFI1_MAX_HDRQ_EGRBUF_CNT) {
--		dd_dev_err(dd,
--			   "Receive header queue count cannot be greater than %u\n",
--			   HFI1_MAX_HDRQ_EGRBUF_CNT);
--		return -EINVAL;
--	}
--
--	if (thecnt % HDRQ_INCREMENT) {
--		dd_dev_err(dd, "Receive header queue count %d must be divisible by %lu\n",
--			   thecnt, HDRQ_INCREMENT);
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
- static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+  * Receive packet IRQ handler.  This routine expects to be on its own IRQ.
+  * This routine will try to handle packets immediately (latency), but if
+@@ -8414,13 +8463,9 @@ static inline int check_packet_present(struct hfi1_ctxtdata *rcd)
+ irqreturn_t receive_context_interrupt(int irq, void *data)
  {
- 	int ret = 0, j, pidx, initfail;
-@@ -1662,7 +1618,7 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	}
+ 	struct hfi1_ctxtdata *rcd = data;
+-	struct hfi1_devdata *dd = rcd->dd;
+ 	int disposition;
+-	int present;
  
- 	/* Validate some global module parameters */
--	ret = init_validate_rcvhdrcnt(dd, rcvhdrcnt);
-+	ret = hfi1_validate_rcvhdrcnt(dd, rcvhdrcnt);
- 	if (ret)
- 		goto bail;
+-	trace_hfi1_receive_interrupt(dd, rcd);
+-	this_cpu_inc(*dd->int_counter);
+-	aspm_ctx_disable(rcd);
++	receive_interrupt_common(rcd);
  
-@@ -1843,7 +1799,6 @@ static void shutdown_one(struct pci_dev *pdev)
- int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- {
- 	unsigned amt;
--	u64 reg;
- 
- 	if (!rcd->rcvhdrq) {
- 		gfp_t gfp_flags;
-@@ -1875,30 +1830,9 @@ int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 				goto bail_free;
- 		}
- 	}
--	/*
--	 * These values are per-context:
--	 *	RcvHdrCnt
--	 *	RcvHdrEntSize
--	 *	RcvHdrSize
--	 */
--	reg = ((u64)(rcd->rcvhdrq_cnt >> HDRQ_SIZE_SHIFT)
--			& RCV_HDR_CNT_CNT_MASK)
--		<< RCV_HDR_CNT_CNT_SHIFT;
--	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_CNT, reg);
--	reg = (encode_rcv_header_entry_size(rcd->rcvhdrqentsize)
--			& RCV_HDR_ENT_SIZE_ENT_SIZE_MASK)
--		<< RCV_HDR_ENT_SIZE_ENT_SIZE_SHIFT;
--	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_ENT_SIZE, reg);
--	reg = ((u64)DEFAULT_RCVHDRSIZE & RCV_HDR_SIZE_HDR_SIZE_MASK)
--		<< RCV_HDR_SIZE_HDR_SIZE_SHIFT;
--	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_SIZE, reg);
+ 	/* receive interrupt remains blocked while processing packets */
+ 	disposition = rcd->do_interrupt(rcd, 0);
+@@ -8433,17 +8478,7 @@ irqreturn_t receive_context_interrupt(int irq, void *data)
+ 	if (disposition == RCV_PKT_LIMIT)
+ 		return IRQ_WAKE_THREAD;
  
 -	/*
--	 * Program dummy tail address for every receive context
--	 * before enabling any receive context
+-	 * The packet processor detected no more packets.  Clear the receive
+-	 * interrupt and recheck for a packet packet that may have arrived
+-	 * after the previous check and interrupt clear.  If a packet arrived,
+-	 * force another interrupt.
 -	 */
--	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_TAIL_ADDR,
--			dd->rcvhdrtail_dummy_dma);
-+	set_hdrq_regs(rcd->dd, rcd->ctxt, rcd->rcvhdrqentsize,
-+		      rcd->rcvhdrq_cnt);
+-	clear_recv_intr(rcd);
+-	present = check_packet_present(rcd);
+-	if (present)
+-		force_recv_intr(rcd);
+-
++	__hfi1_rcd_eoi_intr(rcd);
+ 	return IRQ_HANDLED;
+ }
  
- 	return 0;
+@@ -8454,24 +8489,11 @@ irqreturn_t receive_context_interrupt(int irq, void *data)
+ irqreturn_t receive_context_thread(int irq, void *data)
+ {
+ 	struct hfi1_ctxtdata *rcd = data;
+-	int present;
  
+ 	/* receive interrupt is still blocked from the IRQ handler */
+ 	(void)rcd->do_interrupt(rcd, 1);
+ 
+-	/*
+-	 * The packet processor will only return if it detected no more
+-	 * packets.  Hold IRQs here so we can safely clear the interrupt and
+-	 * recheck for a packet that may have arrived after the previous
+-	 * check and the interrupt clear.  If a packet arrived, force another
+-	 * interrupt.
+-	 */
+-	local_irq_disable();
+-	clear_recv_intr(rcd);
+-	present = check_packet_present(rcd);
+-	if (present)
+-		force_recv_intr(rcd);
+-	local_irq_enable();
++	hfi1_rcd_eoi_intr(rcd);
+ 
+ 	return IRQ_HANDLED;
+ }
 
