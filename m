@@ -2,148 +2,235 @@ Return-Path: <SRS0=/a3O=ZZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 778E0C432C3
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 11:48:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FF52C43215
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 12:46:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5A6FB20684
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 11:48:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E112C20684
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 12:46:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UTOT7yWb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726098AbfLCLrx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 3 Dec 2019 06:47:53 -0500
-Received: from mx2.suse.de ([195.135.220.15]:49394 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725773AbfLCLrw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 3 Dec 2019 06:47:52 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 6C137B183;
-        Tue,  3 Dec 2019 11:47:49 +0000 (UTC)
-From:   Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
-To:     andrew.murray@arm.com, maz@kernel.org, linux-kernel@vger.kernel.org
-Cc:     james.quinlan@broadcom.com, mbrugger@suse.com,
-        f.fainelli@gmail.com, phil@raspberrypi.org, wahrenst@gmx.net,
-        jeremy.linton@arm.com, linux-pci@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
-        Robin Murphy <robin.murphy@arm.com>,
-        linux-arm-kernel@lists.infradead.org,
-        bcm-kernel-feedback-list@broadcom.com, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-clk@vger.kernel.org,
-        linux-rdma@vger.kernel.org, iommu@lists.linux-foundation.org,
-        netdev@vger.kernel.org, linux-rockchip@lists.infradead.org,
-        kexec@lists.infradead.org, linux-nfs@vger.kernel.org
-Subject: [PATCH v4 0/8] Raspberry Pi 4 PCIe support
-Date:   Tue,  3 Dec 2019 12:47:33 +0100
-Message-Id: <20191203114743.1294-1-nsaenzjulienne@suse.de>
-X-Mailer: git-send-email 2.24.0
+        id S1726086AbfLCMqf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 3 Dec 2019 07:46:35 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:39073 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726017AbfLCMqf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 3 Dec 2019 07:46:35 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1575377193;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=bY3tu33uM0AN7ABx5DnYQhbsOL7dFeYwJWHS5k7Rwgc=;
+        b=UTOT7yWbaHQ44XHKI1W33R275sCstLYRRsALy1GzLipI8g5stfbwBWZ7T8Ybokqk7Kl2Iz
+        V2MUnGe32wFVtrU6KUzdUK/c68TeuCSROgA3w1lkUcW8sg0J4amQoEClf5d9+Vlxq1AcpN
+        +9eOSWwm/oX5YKXYemPTEA0tzBbhEHk=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-291-ThT0QIs4MXqG05REW0bKFA-1; Tue, 03 Dec 2019 07:46:29 -0500
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 53CB9800EB8;
+        Tue,  3 Dec 2019 12:46:27 +0000 (UTC)
+Received: from ming.t460p (ovpn-8-36.pek2.redhat.com [10.72.8.36])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 39AFA19C68;
+        Tue,  3 Dec 2019 12:46:08 +0000 (UTC)
+Date:   Tue, 3 Dec 2019 20:45:58 +0800
+From:   Ming Lei <ming.lei@redhat.com>
+To:     Stephen Rust <srust@blockbridge.com>
+Cc:     Rob Townley <rob.townley@gmail.com>,
+        Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
+        linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-scsi@vger.kernel.org, martin.petersen@oracle.com,
+        target-devel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: Data corruption in kernel 5.1+ with iSER attached ramdisk
+Message-ID: <20191203124558.GA22805@ming.t460p>
+References: <CA+VdTb_-CGaPjKUQteKVFSGqDz-5o-tuRRkJYqt8B9iOQypiwQ@mail.gmail.com>
+ <20191128025822.GC3277@ming.t460p>
+ <CAAFE1bfsXsKGyw7SU_z4NanT+wmtuJT=XejBYbHHMCDQwm73sw@mail.gmail.com>
+ <20191128091210.GC15549@ming.t460p>
+ <CAAFE1beMkvyRctGqpffd3o_QtDH0CrmQSb=fV4GzqMUXWzPyOw@mail.gmail.com>
+ <20191203005849.GB25002@ming.t460p>
+ <CAAFE1bcG8c1Q3iwh-LUjruBMAuFTJ4qWxNGsnhfKvGWHNLAeEQ@mail.gmail.com>
+ <20191203031444.GB6245@ming.t460p>
+ <CAAFE1besnb=HV4C_buORYpWbkXecmtybwX8d_Ka2NsKmiym53w@mail.gmail.com>
+ <CAAFE1bfpUWCZrtR8v3S++0-+gi8DJ79X3e0XqDe93i8nuGTnNg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAAFE1bfpUWCZrtR8v3S++0-+gi8DJ79X3e0XqDe93i8nuGTnNg@mail.gmail.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-MC-Unique: ThT0QIs4MXqG05REW0bKFA-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series aims at providing support for Raspberry Pi 4's PCIe
-controller, which is also shared with the Broadcom STB family of
-devices.
+On Mon, Dec 02, 2019 at 10:50:32PM -0500, Stephen Rust wrote:
+> Hi,
+>=20
+> Another datapoint.
+>=20
+> I enabled "isert_debug" tracing and re-ran the test. Here is a small
+> snippet of the debug data. FWIW, the "length of 76" in the "lkey
+> mismatch" is a pattern that repeats quite often during the exchange.
 
-There was a previous attempt to upstream this some years ago[1] but was
-blocked as most STB PCIe integrations have a sparse DMA mapping[2] which
-is something currently not supported by the kernel.  Luckily this is not
-the case for the Raspberry Pi 4.
+That is because ISER_HEADERS_LEN is 76.
 
-Note that the driver code is to be based on top of Rob Herring's series
-simplifying inbound and outbound range parsing.
+From our trace, 76 is bvec->bv_offset, is it possible that IO buffer
+just follows the ISER HEADER suppose that iser applies zero-copy?
 
-[1] https://patchwork.kernel.org/cover/10605933/
-[2] https://patchwork.kernel.org/patch/10605957/
+BTW, you may try the attached test patch. If the issue can be fixed by
+this patch, that means it is really caused by un-aligned buffer, and
+the iser driver needs to be fixed.
 
+From 0368ee8a756384116fa1d0415f51389d438a6e40 Mon Sep 17 00:00:00 2001
+From: Ming Lei <ming.lei@redhat.com>
+Date: Tue, 3 Dec 2019 20:00:53 +0800
+Subject: [PATCH] brd: handle un-aligned bvec->bv_len
+
+Signed-off-by: Ming Lei <ming.lei@redhat.com>
 ---
+ drivers/block/brd.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-Changes since v3:
-  - Moved all the log2.h related changes at the end of the series, as I
-    presume they will be contentious and I don't want the PCIe patches
-    to depend on them. Ultimately I think I'll respin them on their own
-    series but wanted to keep them in for this submission just for the
-    sake of continuity.
-  - Addressed small nits here and there.
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index c548a5a6c1a0..9ea1894c820d 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -190,13 +190,15 @@ static int copy_to_brd_setup(struct brd_device *brd, =
+sector_t sector, size_t n)
+  * Copy n bytes from src to the brd starting at sector. Does not sleep.
+  */
+ static void copy_to_brd(struct brd_device *brd, const void *src,
+-=09=09=09sector_t sector, size_t n)
++=09=09=09sector_t sector, unsigned off_in_sec, size_t n)
+ {
+ =09struct page *page;
+ =09void *dst;
+ =09unsigned int offset =3D (sector & (PAGE_SECTORS-1)) << SECTOR_SHIFT;
+ =09size_t copy;
+=20
++=09offset +=3D off_in_sec;
++
+ =09copy =3D min_t(size_t, n, PAGE_SIZE - offset);
+ =09page =3D brd_lookup_page(brd, sector);
+ =09BUG_ON(!page);
+@@ -207,7 +209,7 @@ static void copy_to_brd(struct brd_device *brd, const v=
+oid *src,
+=20
+ =09if (copy < n) {
+ =09=09src +=3D copy;
+-=09=09sector +=3D copy >> SECTOR_SHIFT;
++=09=09sector +=3D (copy + off_in_sec) >> SECTOR_SHIFT;
+ =09=09copy =3D n - copy;
+ =09=09page =3D brd_lookup_page(brd, sector);
+ =09=09BUG_ON(!page);
+@@ -222,13 +224,15 @@ static void copy_to_brd(struct brd_device *brd, const=
+ void *src,
+  * Copy n bytes to dst from the brd starting at sector. Does not sleep.
+  */
+ static void copy_from_brd(void *dst, struct brd_device *brd,
+-=09=09=09sector_t sector, size_t n)
++=09=09=09sector_t sector, unsigned off_in_sec, size_t n)
+ {
+ =09struct page *page;
+ =09void *src;
+ =09unsigned int offset =3D (sector & (PAGE_SECTORS-1)) << SECTOR_SHIFT;
+ =09size_t copy;
+=20
++=09offset +=3D off_in_sec;
++
+ =09copy =3D min_t(size_t, n, PAGE_SIZE - offset);
+ =09page =3D brd_lookup_page(brd, sector);
+ =09if (page) {
+@@ -240,7 +244,7 @@ static void copy_from_brd(void *dst, struct brd_device =
+*brd,
+=20
+ =09if (copy < n) {
+ =09=09dst +=3D copy;
+-=09=09sector +=3D copy >> SECTOR_SHIFT;
++=09=09sector +=3D (copy + off_in_sec) >> SECTOR_SHIFT;
+ =09=09copy =3D n - copy;
+ =09=09page =3D brd_lookup_page(brd, sector);
+ =09=09if (page) {
+@@ -257,7 +261,7 @@ static void copy_from_brd(void *dst, struct brd_device =
+*brd,
+  */
+ static int brd_do_bvec(struct brd_device *brd, struct page *page,
+ =09=09=09unsigned int len, unsigned int off, unsigned int op,
+-=09=09=09sector_t sector)
++=09=09=09sector_t sector, unsigned int off_in_sec)
+ {
+ =09void *mem;
+ =09int err =3D 0;
+@@ -270,11 +274,11 @@ static int brd_do_bvec(struct brd_device *brd, struct=
+ page *page,
+=20
+ =09mem =3D kmap_atomic(page);
+ =09if (!op_is_write(op)) {
+-=09=09copy_from_brd(mem + off, brd, sector, len);
++=09=09copy_from_brd(mem + off, brd, sector, off_in_sec, len);
+ =09=09flush_dcache_page(page);
+ =09} else {
+ =09=09flush_dcache_page(page);
+-=09=09copy_to_brd(brd, mem + off, sector, len);
++=09=09copy_to_brd(brd, mem + off, sector, off_in_sec, len);
+ =09}
+ =09kunmap_atomic(mem);
+=20
+@@ -287,6 +291,7 @@ static blk_qc_t brd_make_request(struct request_queue *=
+q, struct bio *bio)
+ =09struct brd_device *brd =3D bio->bi_disk->private_data;
+ =09struct bio_vec bvec;
+ =09sector_t sector;
++=09unsigned offset_in_sec =3D 0;
+ =09struct bvec_iter iter;
+=20
+ =09sector =3D bio->bi_iter.bi_sector;
+@@ -296,12 +301,14 @@ static blk_qc_t brd_make_request(struct request_queue=
+ *q, struct bio *bio)
+ =09bio_for_each_segment(bvec, bio, iter) {
+ =09=09unsigned int len =3D bvec.bv_len;
+ =09=09int err;
++=09=09unsigned int secs =3D len >> SECTOR_SHIFT;
+=20
+ =09=09err =3D brd_do_bvec(brd, bvec.bv_page, len, bvec.bv_offset,
+-=09=09=09=09  bio_op(bio), sector);
++=09=09=09=09  bio_op(bio), sector, offset_in_sec);
+ =09=09if (err)
+ =09=09=09goto io_error;
+-=09=09sector +=3D len >> SECTOR_SHIFT;
++=09=09sector +=3D secs;
++=09=09offset_in_sec =3D len - (secs << SECTOR_SHIFT);
+ =09}
+=20
+ =09bio_endio(bio);
+@@ -319,7 +326,7 @@ static int brd_rw_page(struct block_device *bdev, secto=
+r_t sector,
+=20
+ =09if (PageTransHuge(page))
+ =09=09return -ENOTSUPP;
+-=09err =3D brd_do_bvec(brd, page, PAGE_SIZE, 0, op, sector);
++=09err =3D brd_do_bvec(brd, page, PAGE_SIZE, 0, op, sector, 0);
+ =09page_endio(page, op_is_write(op), err);
+ =09return err;
+ }
+--=20
+2.20.1
 
-Changes since v2:
-  - Redo register access in driver avoiding indirection while keeping
-    the naming intact
-  - Add patch editing ARM64's config
-  - Last MSI cleanups, notably removing MSIX flag
-  - Got rid of all _RB writes
-  - Got rid of all of_data
-  - Overall churn removal
-  - Address the rest of Andrew's comments
 
-Changes since v1:
-  - add generic rounddown/roundup_pow_two64() patch
-  - Add MAINTAINERS patch
-  - Fix Kconfig
-  - Cleanup probe, use up to date APIs, exit on MSI failure
-  - Get rid of linux,pci-domain and other unused constructs
-  - Use edge triggered setup for MSI
-  - Cleanup MSI implementation
-  - Fix multiple cosmetic issues
-  - Remove supend/resume code
-
-Jim Quinlan (3):
-  dt-bindings: PCI: Add bindings for brcmstb's PCIe device
-  PCI: brcmstb: Add Broadcom STB PCIe host controller driver
-  PCI: brcmstb: Add MSI support
-
-Nicolas Saenz Julienne (5):
-  ARM: dts: bcm2711: Enable PCIe controller
-  MAINTAINERS: Add brcmstb PCIe controller
-  arm64: defconfig: Enable Broadcom's STB PCIe controller
-  linux/log2.h: Fix 64bit calculations in roundup/down_pow_two()
-  linux/log2.h: Use roundup/dow_pow_two() on 64bit calculations
-
- .../bindings/pci/brcm,stb-pcie.yaml           |   97 ++
- MAINTAINERS                                   |    4 +
- arch/arm/boot/dts/bcm2711.dtsi                |   37 +
- arch/arm64/configs/defconfig                  |    1 +
- drivers/acpi/arm64/iort.c                     |    2 +-
- drivers/clk/clk-divider.c                     |    8 +-
- drivers/clk/sunxi/clk-sunxi.c                 |    2 +-
- drivers/infiniband/hw/hfi1/chip.c             |    4 +-
- drivers/infiniband/hw/hfi1/init.c             |    4 +-
- drivers/infiniband/hw/mlx4/srq.c              |    2 +-
- drivers/infiniband/hw/mthca/mthca_srq.c       |    2 +-
- drivers/infiniband/sw/rxe/rxe_qp.c            |    4 +-
- drivers/iommu/intel-iommu.c                   |    4 +-
- drivers/iommu/intel-svm.c                     |    4 +-
- drivers/iommu/intel_irq_remapping.c           |    2 +-
- drivers/net/ethernet/amd/xgbe/xgbe-ethtool.c  |    4 +-
- drivers/net/ethernet/marvell/sky2.c           |    2 +-
- drivers/net/ethernet/mellanox/mlx4/en_clock.c |    3 +-
- drivers/net/ethernet/rocker/rocker_hw.h       |    4 +-
- drivers/net/ethernet/sfc/ef10.c               |    2 +-
- drivers/net/ethernet/sfc/efx.h                |    2 +-
- drivers/net/ethernet/sfc/falcon/efx.h         |    2 +-
- drivers/of/device.c                           |    3 +-
- drivers/pci/controller/Kconfig                |    9 +
- drivers/pci/controller/Makefile               |    1 +
- .../pci/controller/cadence/pcie-cadence-ep.c  |    3 +-
- drivers/pci/controller/cadence/pcie-cadence.c |    3 +-
- drivers/pci/controller/pcie-brcmstb.c         | 1008 +++++++++++++++++
- drivers/pci/controller/pcie-rockchip-ep.c     |    5 +-
- drivers/pci/msi.c                             |    2 +-
- include/linux/log2.h                          |   44 +-
- kernel/dma/direct.c                           |    2 +-
- kernel/kexec_core.c                           |    3 +-
- lib/rhashtable.c                              |    2 +-
- net/sunrpc/xprtrdma/verbs.c                   |    2 +-
- 35 files changed, 1211 insertions(+), 72 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/pci/brcm,stb-pcie.yaml
- create mode 100644 drivers/pci/controller/pcie-brcmstb.c
-
--- 
-2.24.0
+Thanks,
+Ming
 
