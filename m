@@ -2,99 +2,105 @@ Return-Path: <SRS0=/a3O=ZZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 927ADC432C0
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 01:57:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7BD0C43215
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 02:30:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5227920684
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 01:57:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EyFMpOYa"
+	by mail.kernel.org (Postfix) with ESMTP id B08D62068E
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Dec 2019 02:30:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725939AbfLCB5Z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 2 Dec 2019 20:57:25 -0500
-Received: from mail-il1-f170.google.com ([209.85.166.170]:41759 "EHLO
-        mail-il1-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725899AbfLCB5Z (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 2 Dec 2019 20:57:25 -0500
-Received: by mail-il1-f170.google.com with SMTP id q15so1648850ils.8
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Dec 2019 17:57:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=q5fm9WjIUCh0oGj+s2hCs1nSQVBbY/KUXsTXRFZUqJs=;
-        b=EyFMpOYax1oiF0nSR+e2thFxICoEipITxssDjRTYfC7KhD6b7O8lxMp1dgNmBZIFnt
-         Y9YMTTGEZCjeByMKBwgoAWSQGBvzJNuKVXXmxmZIqbhMu+Ubbt+9PhwDDHTS+xFjUG/f
-         niPaR4BiQaQoVP1WfA4TYRnRptt4VB4o6LA7R4yZNtEZ5c+eblIgBI8dH8rOGAbRaDg1
-         Mr26cBRIe0QJj7nvFlckqHlMW8tgo3E6lb3WeggT3N06NODyn4fZi7fcWTeGvy4vOgNN
-         gen6aX/3ineYXg3JaVDQNgcKuvz91BYPIF6SQonDLDf2O7PvpOxxbiz9mQOcSIuwG0Kd
-         3WVg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=q5fm9WjIUCh0oGj+s2hCs1nSQVBbY/KUXsTXRFZUqJs=;
-        b=c10cDf9ROf/mAmUjOruiCTr5Su2Wh83s0+l9lCa4o43UE0RBoRjfyW8vhtpp8XiGZl
-         DBpQGt3Jwl3J+XQHI2goKTfovshhHwVKe7dxLKt03Z0h4u/iHb3k2fA3m6rDWKfNdZ/U
-         D3gX1ROUtkDyl0vgJ4Sgh+wxmUmD1eVBAR6yKDf2BLYef/kYxwKGdijXF/2JqqH/5oZT
-         kMdti+dhGk9ZX7fBsMPU9AhkX4st6MMlR2HyC/IuYRoVibsVnGlueoKrVl3uiW5FNZ/o
-         LsZL8jR1slJjh/ae84ZDaCC9FBB2Fo+aCPMjujCLyY82Ym8Gy52STYoLI0qZM/w4ir72
-         opNA==
-X-Gm-Message-State: APjAAAUeHUtLv6NLFaKvn3fCbxbc7gEs0/Y0wXVc2hb4HGrhJqDqlHTj
-        B3xZ7MLzK4yBI2b+h5wzFbi4T5xGwzPSYYB6rnw=
-X-Google-Smtp-Source: APXvYqxzifjhj2wEY9k9Oedz1kDp9ni/ptjsv+bkU+d8YVMZcDMSTTcoo6LLuAlaLn3Vt3tAgUXe1LOIE/MRplCKaM4=
-X-Received: by 2002:a92:3a58:: with SMTP id h85mr2363654ila.245.1575338244778;
- Mon, 02 Dec 2019 17:57:24 -0800 (PST)
-MIME-Version: 1.0
-References: <53ed2e18-c58e-1e9c-55f8-60b14dfa2052@zju.edu.cn>
- <4433c97d-218a-294e-3c03-214e0ef1379f@acm.org> <20191127111008.GC10331@unreal>
- <CADmRdJfEr405W1+m=jYDYV=MZtk_0mEamUA7UXt6rKangnAC1g@mail.gmail.com> <8e8d9ecc-9406-11b3-242b-3a84f3702f79@acm.org>
-In-Reply-To: <8e8d9ecc-9406-11b3-242b-3a84f3702f79@acm.org>
+        id S1726024AbfLCCa7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 2 Dec 2019 21:30:59 -0500
+Received: from linode.aoot.com ([69.164.194.13]:59736 "EHLO linode.aoot.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725941AbfLCCa6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 2 Dec 2019 21:30:58 -0500
+X-Greylist: delayed 1733 seconds by postgrey-1.27 at vger.kernel.org; Mon, 02 Dec 2019 21:30:58 EST
+Received: from work.aoot.com.com (li1110-136.members.linode.com [45.79.11.136])
+        by linode.aoot.com (Postfix) with ESMTP id 3A0998772;
+        Mon,  2 Dec 2019 20:02:46 -0600 (CST)
 From:   Steve Wise <larrystevenwise@gmail.com>
-Date:   Mon, 2 Dec 2019 19:57:13 -0600
-Message-ID: <CADmRdJcQV3hOObZXSQMgJynmFyeWietWb2gffo3T0o5NBPOfNQ@mail.gmail.com>
-Subject: Re: [question]can hard roce and soft roce communicate with each other?
-To:     Bart Van Assche <bvanassche@acm.org>
-Cc:     Leon Romanovsky <leon@kernel.org>, wangqi <3100102071@zju.edu.cn>,
-        linux-rdma <linux-rdma@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+To:     linux-rdma@vger.kernel.org
+Cc:     Steve Wise <larrystevenwise@gmail.com>, bvanassche@acm.org
+Subject: [PATCH 2/2] rxe: correctly calculate iCRC for unaligned payloads
+Date:   Mon,  2 Dec 2019 20:03:20 -0600
+Message-Id: <20191203020319.15036-2-larrystevenwise@gmail.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191203020319.15036-1-larrystevenwise@gmail.com>
+References: <20191203020319.15036-1-larrystevenwise@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hey Bart,
+If RoCE PDUs being sent or received contain pad bytes, then the iCRC
+is miscalculated resulting PDUs being emitted by RXE with an incorrect
+iCRC, as well as ingress PDUs being dropped due to erroneously detecting
+a bad iCRC in the PDU.  The fix is to include the pad bytes, if any,
+in iCRC computations.
 
-Well, as long as every implementation supports proper iCRC and RoCE
-standards, I don't see how there could be a problem...
+CC: bvanassche@acm.org,3100102071@zju.edu.cn,leon@kernel.org
+Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
+ drivers/infiniband/sw/rxe/rxe_req.c  | 6 ++++++
+ drivers/infiniband/sw/rxe/rxe_resp.c | 7 +++++++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
 
-Let me send my patch out now...
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index f9a492ed900b..831ad578a7b2 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -389,7 +389,7 @@ void rxe_rcv(struct sk_buff *skb)
+ 
+ 	calc_icrc = rxe_icrc_hdr(pkt, skb);
+ 	calc_icrc = rxe_crc32(rxe, calc_icrc, (u8 *)payload_addr(pkt),
+-			      payload_size(pkt));
++			      payload_size(pkt) + bth_pad(pkt));
+ 	calc_icrc = (__force u32)cpu_to_be32(~calc_icrc);
+ 	if (unlikely(calc_icrc != pack_icrc)) {
+ 		if (skb->protocol == htons(ETH_P_IPV6))
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index c5d9b558fa90..e5031172c019 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -500,6 +500,12 @@ static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 			if (err)
+ 				return err;
+ 		}
++		if (bth_pad(pkt)) {
++			u8 *pad = payload_addr(pkt) + paylen;
++
++			memset(pad, 0, bth_pad(pkt));
++			crc = rxe_crc32(rxe, crc, pad, bth_pad(pkt));
++		}
+ 	}
+ 	p = payload_addr(pkt) + paylen + bth_pad(pkt);
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 1cbfbd98eb22..c4a8195bf670 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -732,6 +732,13 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ 	if (err)
+ 		pr_err("Failed copying memory\n");
+ 
++	if (bth_pad(&ack_pkt)) {
++		struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++		u8 *pad = payload_addr(&ack_pkt) + payload;
++
++		memset(pad, 0, bth_pad(&ack_pkt));
++		icrc = rxe_crc32(rxe, icrc, pad, bth_pad(&ack_pkt));
++	}
+ 	p = payload_addr(&ack_pkt) + payload + bth_pad(&ack_pkt);
+ 	*p = ~icrc;
+ 
+-- 
+2.20.1
 
-
-On Mon, Dec 2, 2019 at 6:57 PM Bart Van Assche <bvanassche@acm.org> wrote:
->
-> On 11/27/19 6:24 AM, Steve Wise wrote:
-> > I've recently uncovered a bug in RXE that causes iCRC errors when
-> > running between RXE and a correct RoCE implementation.  The bug is
-> > that RXE is not including pad bytes in its iCRC calculations.  So if
-> > the application payload is not 4B aligned then you'll hit this bug.
-> > You can see this by running ib_write_bw, for example, between mlnx_ib
-> > and rxe.
-> >
-> > works:  ib_write_bw -s 32 -n 5
-> > fails: ib_write_bw -s 33 -n 5
-> >
-> > I'll post a patch this coming weekend hopefully.
->   Hi Steve,
->
-> Will that patch support coexistence of softRoCE implementations that use
-> different CRC calculation methods?
->
-> Thanks,
->
-> Bart.
