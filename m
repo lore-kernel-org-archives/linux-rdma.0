@@ -2,40 +2,40 @@ Return-Path: <SRS0=+E86=Z2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94C74C43603
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Dec 2019 21:36:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADAE3C2D0B1
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Dec 2019 21:36:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 63DE8206DF
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Dec 2019 21:36:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F1AF21826
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Dec 2019 21:36:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="eCFl7oV6"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Owenzduc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728030AbfLDVgG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Dec 2019 16:36:06 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:3151 "EHLO
+        id S1728121AbfLDVgI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Dec 2019 16:36:08 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:3149 "EHLO
         hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728011AbfLDVgF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Dec 2019 16:36:05 -0500
+        with ESMTP id S1727982AbfLDVgG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Dec 2019 16:36:06 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5de826c10000>; Wed, 04 Dec 2019 13:36:01 -0800
+        id <B5de826c00000>; Wed, 04 Dec 2019 13:36:00 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Wed, 04 Dec 2019 13:36:05 -0800
+  Wed, 04 Dec 2019 13:36:04 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Wed, 04 Dec 2019 13:36:05 -0800
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL101.nvidia.com
+        by hqpgpgate101.nvidia.com on Wed, 04 Dec 2019 13:36:04 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL101.nvidia.com
  (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 4 Dec
  2019 21:36:04 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
  Transport; Wed, 4 Dec 2019 21:36:04 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5de826c40003>; Wed, 04 Dec 2019 13:36:04 -0800
+        id <B5de826c40002>; Wed, 04 Dec 2019 13:36:04 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>,
         Jason Gunthorpe <jgg@ziepe.ca>,
@@ -43,68 +43,73 @@ To:     Andrew Morton <akpm@linux-foundation.org>,
         Christoph Hellwig <hch@infradead.org>
 CC:     Ira Weiny <ira.weiny@intel.com>, <linux-rdma@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v2 1/2] mm/gup: allow FOLL_FORCE for get_user_pages_fast()
-Date:   Wed, 4 Dec 2019 13:36:02 -0800
-Message-ID: <20191204213603.464373-2-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v2 0/2] IB/umem: use get_user_pages_fast() to pin DMA pages
+Date:   Wed, 4 Dec 2019 13:36:01 -0800
+Message-ID: <20191204213603.464373-1-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191204213603.464373-1-jhubbard@nvidia.com>
-References: <20191204213603.464373-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1575495361; bh=D5FKf6o88yrnam68mO83xEuXphYTA3McnnbS0GFu5aA=;
+        t=1575495361; bh=Nnc1MC2/LMUzNv7k8FsJhkVnIIlePIHcyFpDrOinfto=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=eCFl7oV6N1zFHWhmaXu9MCkZmrub7KXbOYWLH/D/jUkygF0DtjswPT2qe+aARAZFH
-         jalNYGfDUmDPJZcLuaNkfZQs5g8cxMa8gn/wgOSGkjteGuJH6rxi6NZuRw1Vlaqb2E
-         7uzMo7yCYyx1ZuotG2ThIsFANYlKuS2hdorpsuhz/r8JOAo/QWLOsWH+ytGPxUtk/8
-         Ge1jG58RtT9eRllOlBhF4qIJXXoZlK8xvAZ47WoMzWeGx9KoUM3NYZ65MgiySrtka4
-         w41lEaiz0oliyAhaKRxPeLlCM2bWfLxMhWhwnoW+cxAjJU3TqbQlXWqq9wKural0c/
-         P45ahLYmbnzlA==
+         MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
+         Content-Type;
+        b=OwenzducFKmfsuvf5HLZY+As5/XTqa/6XBIa+n8pLfv5mttxQ+V1yvNFPbiA/qx93
+         WBxiaXr8MsNomOAVZYqsTI9HRKZ+8M6QG+rBEoz+RELZcCsfn/WWIFWThWj7kYk9M1
+         Vr9H/49oqEcTUc2rEIObV2Ko/E1DQVtnTyUQTUEGrL0yI6jDp7uk9M/um8y2viyxt0
+         VOmWWnZahe9xzuyx4rAcJTUrZYjdDtOw4+EADjFH3EQ3tVuqF9r8ZUHbmL4pH2d9ti
+         +ymLDMHGiiK+hRkVVqEZLlyWItKUPf52CZbMGZKSW1hLVajRKs3dIW+1CJCXvUU9qu
+         shKiLnXHQ8F2A==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Commit 817be129e6f2 ("mm: validate get_user_pages_fast flags") allowed
-only FOLL_WRITE and FOLL_LONGTERM to be passed to get_user_pages_fast().
-This, combined with the fact that get_user_pages_fast() falls back to
-"slow gup", which *does* accept FOLL_FORCE, leads to an odd situation:
-if you need FOLL_FORCE, you cannot call get_user_pages_fast().
+Hi,
 
-There does not appear to be any reason for filtering out FOLL_FORCE.
-There is nothing in the _fast() implementation that requires that we
-avoid writing to the pages. So it appears to have been an oversight.
+The reason I'm posting this is to request a review for patch 1. Once
+everything seems OK, these two patches are going to be part of a larger
+set (again, destined for linux-mm) that introduces FOLL_PIN and renames
+some get_user_pages() cases to pin_user_pages(). I'm doing this a little
+before -rc1, because it's a small and easy thing to get out of the way
+early.
 
-Fix by allowing FOLL_FORCE to be set for get_user_pages_fast().
+These are ultimately destined to go in via linux-mm (as opposed to
+linux-rdma), in order to change some names in just one kernel release
+cycle.
 
-Fixes: 817be129e6f2 ("mm: validate get_user_pages_fast flags")
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- mm/gup.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+The first version of this patchset only had the IB/umem changes
+(patch 2), and I also lacked a runtime Infiniband test, so
+Leon Romanovsky reported a failure [1]. Patch 1 fixes that failure.
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 7646bf993b25..5244b8090440 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -2415,7 +2415,8 @@ int get_user_pages_fast(unsigned long start, int nr_p=
-ages,
- 	unsigned long addr, len, end;
- 	int nr =3D 0, ret =3D 0;
-=20
--	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM)))
-+	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
-+				       FOLL_FORCE)))
- 		return -EINVAL;
-=20
- 	start =3D untagged_addr(start) & PAGE_MASK;
+Since v1, I have (finally!) set up a basic two-node Infiniband system,
+and as a result, I've reproduced the failure that Leon saw, via a
+trivial run of "ib_write_bw", and confirmed that it's fixed in this
+new patchset. Sorry it took me so long to do that; I am going to vaguely
+blame "OFED" for the delay. :)
+
+Entertaining IB side note: Jason: sure enough, as you mentioned, the
+OFED installation did in fact hopelessly mangle my system. Once I went
+back to a clean distro installation without all those OFED goodies,
+everything Just Worked on the first try. Much simpler to understand,
+too. ha.
+
+This applies to today's linux.git: commit aedc0650f913 ("Merge tag
+'for-linus' of git://git.kernel.org/pub/scm/virt/kvm/kvm").
+
+[1] https://lore.kernel.org/r/20191124100724.GH136476@unreal
+
+John Hubbard (2):
+  mm/gup: allow FOLL_FORCE for get_user_pages_fast()
+  IB/umem: use get_user_pages_fast() to pin DMA pages
+
+ drivers/infiniband/core/umem.c | 17 ++++++-----------
+ mm/gup.c                       |  3 ++-
+ 2 files changed, 8 insertions(+), 12 deletions(-)
+
 --=20
 2.24.0
 
