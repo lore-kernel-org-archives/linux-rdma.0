@@ -6,37 +6,37 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3430C00454
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E19B1C43603
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7EBD5206E0
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B661C206E0
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727066AbfLIWtj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Dec 2019 17:49:39 -0500
-Received: from mga12.intel.com ([192.55.52.136]:33714 "EHLO mga12.intel.com"
+        id S1727083AbfLIWtm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Dec 2019 17:49:42 -0500
+Received: from mga12.intel.com ([192.55.52.136]:33717 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727043AbfLIWtj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 9 Dec 2019 17:49:39 -0500
+        id S1727077AbfLIWtk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 9 Dec 2019 17:49:40 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Dec 2019 14:49:38 -0800
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Dec 2019 14:49:39 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.69,296,1571727600"; 
-   d="scan'208";a="237912278"
+   d="scan'208";a="237912293"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.74])
-  by fmsmga004.fm.intel.com with ESMTP; 09 Dec 2019 14:49:37 -0800
+  by fmsmga004.fm.intel.com with ESMTP; 09 Dec 2019 14:49:39 -0800
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
-Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
+Cc:     Shiraz Saleem <shiraz.saleem@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
         sassmann@redhat.com, jgg@ziepe.ca, parav@mellanox.com,
-        Kiran Patil <kiran.patil@intel.com>,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [PATCH v3 01/20] virtual-bus: Implementation of Virtual Bus
-Date:   Mon,  9 Dec 2019 14:49:16 -0800
-Message-Id: <20191209224935.1780117-2-jeffrey.t.kirsher@intel.com>
+Subject: [PATCH v3 04/20] i40e: Register a virtbus device to provide RDMA
+Date:   Mon,  9 Dec 2019 14:49:19 -0800
+Message-Id: <20191209224935.1780117-5-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191209224935.1780117-1-jeffrey.t.kirsher@intel.com>
 References: <20191209224935.1780117-1-jeffrey.t.kirsher@intel.com>
@@ -47,783 +47,366 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dave Ertman <david.m.ertman@intel.com>
+From: Shiraz Saleem <shiraz.saleem@intel.com>
 
-This is the initial implementation of the virtual bus,
-virtbus_device and virtbus_driver.  The virtual bus is
-a software based bus intended to support registering
-virtbus_devices and virtbus_drivers and provide matching
-between them and probing of the registered drivers.
+Register client virtbus device on the virtbus for the RDMA
+virtbus driver (irdma) to bind to. It allows to realize a
+single RDMA driver capable of working with multiple netdev
+drivers over multi-generation Intel HW supporting RDMA.
+There is also no load ordering dependencies between i40e and
+irdma.
 
-The primary purpose of the virtual bus is to provide
-matching services to allow the use of a container_of
-to get access to a piece of desired data.  This will
-allow two separate kernel objects to match up and
-start communication.
+Summary of changes:
+* Support to add/remove virtbus devices
+* Add 2 new client ops.
+	* i40e_client_device_register() which is called during RDMA
+	  probe() per PF. Validate client drv OPs and schedule service
+	  task to call open()
+	* i40e_client_device_unregister() called during RDMA remove()
+	  per PF. Call client close() and release_qvlist.
+* The global register/unregister calls exported for i40iw are retained
+  until i40iw is removed from the kernel.
 
-The bus will support probe/remove shutdown and
-suspend/resume callbacks.
-
-Kconfig and Makefile alterations are included
-
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
-Signed-off-by: Kiran Patil <kiran.patil@intel.com>
+Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- Documentation/driver-api/virtual_bus.rst      |  76 +++++
- drivers/bus/Kconfig                           |  12 +
- drivers/bus/Makefile                          |   1 +
- drivers/bus/virtual_bus.c                     | 295 ++++++++++++++++++
- include/linux/mod_devicetable.h               |   8 +
- include/linux/virtual_bus.h                   |  45 +++
- scripts/mod/devicetable-offsets.c             |   3 +
- scripts/mod/file2alias.c                      |   8 +
- .../virtual_bus/virtual_bus_dev/Makefile      |   7 +
- .../virtual_bus_dev/virtual_bus_dev.c         |  60 ++++
- .../virtual_bus/virtual_bus_drv/Makefile      |   7 +
- .../virtual_bus_drv/virtual_bus_drv.c         | 115 +++++++
- 12 files changed, 637 insertions(+)
- create mode 100644 Documentation/driver-api/virtual_bus.rst
- create mode 100644 drivers/bus/virtual_bus.c
- create mode 100644 include/linux/virtual_bus.h
- create mode 100644 tools/testing/selftests/virtual_bus/virtual_bus_dev/Makefile
- create mode 100644 tools/testing/selftests/virtual_bus/virtual_bus_dev/virtual_bus_dev.c
- create mode 100644 tools/testing/selftests/virtual_bus/virtual_bus_drv/Makefile
- create mode 100644 tools/testing/selftests/virtual_bus/virtual_bus_drv/virtual_bus_drv.c
+ drivers/infiniband/hw/i40iw/Makefile          |   1 -
+ drivers/infiniband/hw/i40iw/i40iw.h           |   2 +-
+ drivers/net/ethernet/intel/Kconfig            |   1 +
+ drivers/net/ethernet/intel/i40e/i40e.h        |   3 +-
+ drivers/net/ethernet/intel/i40e/i40e_client.c | 109 +++++++++++++++---
+ .../linux/net/intel}/i40e_client.h            |  20 +++-
+ 6 files changed, 112 insertions(+), 24 deletions(-)
+ rename {drivers/net/ethernet/intel/i40e => include/linux/net/intel}/i40e_client.h (92%)
 
-diff --git a/Documentation/driver-api/virtual_bus.rst b/Documentation/driver-api/virtual_bus.rst
-new file mode 100644
-index 000000000000..db8c34fcafe8
---- /dev/null
-+++ b/Documentation/driver-api/virtual_bus.rst
-@@ -0,0 +1,76 @@
-+===============================
-+Virtual Bus Devices and Drivers
-+===============================
-+
-+See <linux/virtual_bus.h> for the models for virtbus_device and virtbus_driver.
-+This bus is meant to be a lightweight software based bus to attach generic
-+devices and drivers to so that a chunk of data can be passed between them.
-+
-+One use case example is an rdma driver needing to connect with several
-+different types of PCI LAN devices to be able to request resources from
-+them (queue sets).  Each LAN driver that supports rdma will register a
-+virtbus_device on the virtual bus for each physical function.  The rdma
-+driver will register as a virtbus_driver on the virtual bus to be
-+matched up with multiple virtbus_devices and receive a pointer to a
-+struct containing the callbacks that the PCI LAN drivers support for
-+registering with them.
-+
-+Sections in this document:
-+        Virtbus devices
-+        Virtbus drivers
-+        Device Enumeration
-+        Device naming and driver binding
-+        Virtual Bus API entry points
-+
-+Virtbus devices
-+~~~~~~~~~~~~~~~
-+Virtbus_devices are lightweight objects that support the minimal device
-+functionality.  Devices will accept a name, and then an automatically
-+generated index is concatenated onto it for the virtbus_device->name.
-+
-+The virtbus_driver and virtbus_device creators need to both have access
-+to a predefined virtbus_device_object struct that will look like the
-+following:
-+     struct virtbus_object {
-+          struct virtbus_device vdev;
-+          struct foo_type foo;
-+     }
-+
-+Then when the virtbus_driver's probe is called with the virtbus_device
-+as a parameter, it can do a container_of on the virtbus_device to get
-+to the struct foo_type foo that it cares about.
-+
-+Virtbus drivers
-+~~~~~~~~~~~~~~~
-+Virtbus drivers register with the virtual bus to be matched with virtbus
-+devices.  They expect to be registered with a probe and remove callback,
-+and also support shutdown, suspend, and resume callbacks.  They otherwise
-+follow the standard driver behavior of having discovery and enumeration
-+handled in the bus infrastructure.
-+
-+Virtbus drivers register themselves with the API entry point virtbus_drv_reg
-+and unregister with virtbus_drv_unreg.
-+
-+Device Enumeration
-+~~~~~~~~~~~~~~~~~~
-+Enumeration is handled automatically by the bus infrastructure via the
-+ida_simple methods.
-+
-+Device naming and driver binding
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The virtbus_device.dev.name is the canonical name for the device. It is
-+built from two other parts:
-+
-+        - virtbus_device.name (also used for matching).
-+        - virtbus_device.id (generated automatically from ida_simple calls)
-+
-+This allows for multiple virtbus_devices with the same name, which will all
-+be matched to the same virtbus_driver. Driver binding is performed by the
-+driver core, invoking driver probe() after finding a match between device and driver.
-+
-+Virtual Bus API entry points
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+int virtbus_dev_register(struct virtbus_device *vdev)
-+void virtbus_dev_unregister(struct virtbus_device *vdev)
-+int virtbus_drv_register(struct virtbus_driver *vdrv, struct module *owner)
-+void virtbus_drv_unregister(struct virtbus_driver *vdrv)
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-index 50200d1c06ea..770519d16d43 100644
---- a/drivers/bus/Kconfig
-+++ b/drivers/bus/Kconfig
-@@ -203,4 +203,16 @@ config DA8XX_MSTPRI
+diff --git a/drivers/infiniband/hw/i40iw/Makefile b/drivers/infiniband/hw/i40iw/Makefile
+index 8942f8229945..34da9eba8a7c 100644
+--- a/drivers/infiniband/hw/i40iw/Makefile
++++ b/drivers/infiniband/hw/i40iw/Makefile
+@@ -1,5 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0
+-ccflags-y :=  -I $(srctree)/drivers/net/ethernet/intel/i40e
  
- source "drivers/bus/fsl-mc/Kconfig"
+ obj-$(CONFIG_INFINIBAND_I40IW) += i40iw.o
  
-+config VIRTUAL_BUS
-+       tristate "lightweight Virtual Bus"
-+       depends on PM
-+       help
-+         Provides a software bus for virtbus_devices to be added to it
-+         and virtbus_drivers to be registered on it.  Will create a match
-+         between the driver and device, then call the driver's probe with
-+         the virtbus_device's struct.
-+         One example is the irdma driver needing to connect with various
-+         PCI LAN drivers to request resources (queues) to be able to perform
-+         its function.
-+
- endmenu
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-index 1320bcf9fa9d..6721c77dc71b 100644
---- a/drivers/bus/Makefile
-+++ b/drivers/bus/Makefile
-@@ -34,3 +34,4 @@ obj-$(CONFIG_UNIPHIER_SYSTEM_BUS)	+= uniphier-system-bus.o
- obj-$(CONFIG_VEXPRESS_CONFIG)	+= vexpress-config.o
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+index 8feec35f95a7..3197e3536d5c 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw.h
++++ b/drivers/infiniband/hw/i40iw/i40iw.h
+@@ -57,7 +57,7 @@
+ #include "i40iw_d.h"
+ #include "i40iw_hmc.h"
  
- obj-$(CONFIG_DA8XX_MSTPRI)	+= da8xx-mstpri.o
-+obj-$(CONFIG_VIRTUAL_BUS)	+= virtual_bus.o
-diff --git a/drivers/bus/virtual_bus.c b/drivers/bus/virtual_bus.c
-new file mode 100644
-index 000000000000..6bc986659e4b
---- /dev/null
-+++ b/drivers/bus/virtual_bus.c
-@@ -0,0 +1,295 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * virtual_bus.c - lightweight software based bus for virtual devices
-+ *
-+ * Copyright (c) 2019-20 Intel Corporation
-+ *
-+ * Please see Documentation/driver-api/virtual_bus.rst for
-+ * more information
-+ */
-+
-+#include <linux/string.h>
-+#include <linux/virtual_bus.h>
-+#include <linux/of_irq.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/pm_domain.h>
-+#include <linux/acpi.h>
-+#include <linux/device.h>
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("Lightweight Virtual Bus");
-+MODULE_AUTHOR("David Ertman <david.m.ertman@intel.com>");
-+MODULE_AUTHOR("Kiran Patil <kiran.patil@intel.com>");
-+
-+static DEFINE_IDA(virtbus_dev_ida);
-+
-+static const
-+struct virtbus_dev_id *virtbus_match_id(const struct virtbus_dev_id *id,
-+					struct virtbus_device *vdev)
-+{
-+	while (id->name[0]) {
-+		if (!strcmp(vdev->name, id->name)) {
-+			vdev->matched_element = id;
-+			return id;
-+		}
-+		id++;
-+	}
-+	return NULL;
-+}
-+
-+#define to_virtbus_dev(x)	(container_of((x), struct virtbus_device, dev))
-+#define to_virtbus_drv(x)	(container_of((x), struct virtbus_driver, \
-+				 driver))
-+
-+/**
-+ * virtbus_match - bind virtbus device to virtbus driver
-+ * @dev: device
-+ * @drv: driver
-+ *
-+ * Virtbus device IDs are always in "<name>.<instance>" format.
-+ * Instances are automatically selected through an ida_simple_get so
-+ * are positive integers. Names are taken from the device name field.
-+ * Driver IDs are simple <name>.  Need to extract the name from the
-+ * Virtual Device compare to name of the driver.
-+ */
-+static int virtbus_match(struct device *dev, struct device_driver *drv)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(drv);
-+	struct virtbus_device *vdev = to_virtbus_dev(dev);
-+
-+	if (vdrv->id_table)
-+		return virtbus_match_id(vdrv->id_table, vdev) != NULL;
-+
-+	return !strcmp(vdev->name, drv->name);
-+}
-+
-+/**
-+ * virtbus_probe - call probe of the virtbus_drv
-+ * @dev: device struct
-+ */
-+static int virtbus_probe(struct device *dev)
-+{
-+	if (dev->driver->probe)
-+		return dev->driver->probe(dev);
-+
-+	return 0;
-+}
-+
-+static int virtbus_remove(struct device *dev)
-+{
-+	if (dev->driver->remove)
-+		return dev->driver->remove(dev);
-+
-+	return 0;
-+}
-+
-+static void virtbus_shutdown(struct device *dev)
-+{
-+	if (dev->driver->shutdown)
-+		dev->driver->shutdown(dev);
-+}
-+
-+static int virtbus_suspend(struct device *dev, pm_message_t state)
-+{
-+	if (dev->driver->suspend)
-+		return dev->driver->suspend(dev, state);
-+
-+	return 0;
-+}
-+
-+static int virtbus_resume(struct device *dev)
-+{
-+	if (dev->driver->resume)
-+		return dev->driver->resume(dev);
-+
-+	return 0;
-+}
-+
-+struct bus_type virtual_bus_type = {
-+	.name = "virtbus",
-+	.match = virtbus_match,
-+	.probe = virtbus_probe,
-+	.remove = virtbus_remove,
-+	.shutdown = virtbus_shutdown,
-+	.suspend = virtbus_suspend,
-+	.resume = virtbus_resume,
-+};
-+
-+/**
-+ * virtbus_dev_register - add a virtual bus device
-+ * @vdev: virtual bus device to add
-+ */
-+int virtbus_dev_register(struct virtbus_device *vdev)
-+{
-+	int ret;
-+
-+	device_initialize(&vdev->dev);
-+
-+	vdev->dev.bus = &virtual_bus_type;
-+	/* All device IDs are automatically allocated */
-+	ret = ida_simple_get(&virtbus_dev_ida, 0, 0, GFP_KERNEL);
-+	if (ret < 0)
-+		return ret;
-+
-+	vdev->id = ret;
-+	dev_set_name(&vdev->dev, "%s.%d", vdev->name, vdev->id);
-+
-+	dev_dbg(&vdev->dev, "Registering virtbus device '%s'\n",
-+		dev_name(&vdev->dev));
-+
-+	ret = device_add(&vdev->dev);
-+	if (ret)
-+		goto device_add_err;
-+
-+	return 0;
-+
-+device_add_err:
-+	/* Error adding virtual device */
-+	put_device(&vdev->dev);
-+	ida_simple_remove(&virtbus_dev_ida, vdev->id);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(virtbus_dev_register);
-+
-+/**
-+ * virtbus_dev_unregister - remove a virtual bus device
-+ * vdev: virtual bus device we are removing
-+ */
-+void virtbus_dev_unregister(struct virtbus_device *vdev)
-+{
-+	put_device(&vdev->dev);
-+}
-+EXPORT_SYMBOL_GPL(virtbus_dev_unregister);
-+
-+struct virtbus_object {
-+	struct virtbus_device vdev;
-+	char name[];
-+};
-+
-+/**
-+ * virtbus_dev_release - Destroy a virtbus device
-+ * @vdev: virtual device to release
-+ *
-+ * Note that the vdev->data which is separately allocated needs to be
-+ * separately freed on it own.
-+ */
-+static void virtbus_dev_release(struct device *dev)
-+{
-+	struct virtbus_object *vo = container_of(dev, struct virtbus_object,
-+						 vdev.dev);
-+
-+	ida_simple_remove(&virtbus_dev_ida, vo->vdev.id);
-+	kfree(vo);
-+}
-+
-+static int virtbus_drv_probe(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	int ret;
-+
-+	ret = dev_pm_domain_attach(_dev, true);
-+	if (ret) {
-+		dev_warn(_dev, "Failed to attatch to PM Domain : %d\n", ret);
-+		return ret;
-+	}
-+
-+	if (vdrv->probe) {
-+		ret = vdrv->probe(vdev);
-+		if (ret)
-+			dev_pm_domain_detach(_dev, true);
-+	}
-+
-+	return ret;
-+}
-+
-+static int virtbus_drv_remove(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	int ret = 0;
-+
-+	if (vdrv->remove)
-+		ret = vdrv->remove(vdev);
-+
-+	dev_pm_domain_detach(_dev, true);
-+
-+	return ret;
-+}
-+
-+static void virtbus_drv_shutdown(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+
-+	if (vdrv->shutdown)
-+		vdrv->shutdown(vdev);
-+}
-+
-+static int virtbus_drv_suspend(struct device *_dev, pm_message_t state)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+
-+	if (vdrv->suspend)
-+		return vdrv->suspend(vdev, state);
-+
-+	return 0;
-+}
-+
-+static int virtbus_drv_resume(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+
-+	if (vdrv->resume)
-+		return vdrv->resume(vdev);
-+
-+	return 0;
-+}
-+
-+/**
-+ * __virtbus_drv_register - register a driver for virtual bus devices
-+ * @vdrv: virtbus_driver structure
-+ * @owner: owning module/driver
-+ */
-+int __virtbus_drv_register(struct virtbus_driver *vdrv, struct module *owner)
-+{
-+	vdrv->driver.owner = owner;
-+	vdrv->driver.bus = &virtual_bus_type;
-+	vdrv->driver.probe = virtbus_drv_probe;
-+	vdrv->driver.remove = virtbus_drv_remove;
-+	vdrv->driver.shutdown = virtbus_drv_shutdown;
-+	vdrv->driver.suspend = virtbus_drv_suspend;
-+	vdrv->driver.resume = virtbus_drv_resume;
-+
-+	return driver_register(&vdrv->driver);
-+}
-+EXPORT_SYMBOL_GPL(__virtbus_drv_register);
-+
-+/**
-+ * virtbus_drv_unregister - unregister a driver for virtual bus devices
-+ * @drv: virtbus_driver structure
-+ */
-+void virtbus_drv_unregister(struct virtbus_driver *vdrv)
-+{
-+	driver_unregister(&vdrv->driver);
-+}
-+EXPORT_SYMBOL_GPL(virtbus_drv_unregister);
-+
-+static int __init virtual_bus_init(void)
-+{
-+	return bus_register(&virtual_bus_type);
-+}
-+
-+static void __exit virtual_bus_exit(void)
-+{
-+	bus_unregister(&virtual_bus_type);
-+	ida_destroy(&virtbus_dev_ida);
-+}
-+
-+module_init(virtual_bus_init);
-+module_exit(virtual_bus_exit);
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 5714fd35a83c..e19214f84c98 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -821,4 +821,12 @@ struct wmi_device_id {
- 	const void *context;
+-#include <i40e_client.h>
++#include <linux/net/intel/i40e_client.h>
+ #include "i40iw_type.h"
+ #include "i40iw_p.h"
+ #include <rdma/i40iw-abi.h>
+diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
+index b88328fea1d0..8595f578fbe7 100644
+--- a/drivers/net/ethernet/intel/Kconfig
++++ b/drivers/net/ethernet/intel/Kconfig
+@@ -241,6 +241,7 @@ config I40E
+ 	tristate "Intel(R) Ethernet Controller XL710 Family support"
+ 	imply PTP_1588_CLOCK
+ 	depends on PCI
++	select VIRTUAL_BUS
+ 	---help---
+ 	  This driver supports Intel(R) Ethernet Controller XL710 Family of
+ 	  devices.  For more information on how to identify your adapter, go
+diff --git a/drivers/net/ethernet/intel/i40e/i40e.h b/drivers/net/ethernet/intel/i40e/i40e.h
+index cb6367334ca7..4321e81d347c 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e.h
++++ b/drivers/net/ethernet/intel/i40e/i40e.h
+@@ -38,7 +38,7 @@
+ #include <net/xdp_sock.h>
+ #include "i40e_type.h"
+ #include "i40e_prototype.h"
+-#include "i40e_client.h"
++#include <linux/net/intel/i40e_client.h>
+ #include <linux/avf/virtchnl.h>
+ #include "i40e_virtchnl_pf.h"
+ #include "i40e_txrx.h"
+@@ -655,6 +655,7 @@ struct i40e_pf {
+ 	u16 last_sw_conf_valid_flags;
+ 	/* List to keep previous DDP profiles to be rolled back in the future */
+ 	struct list_head ddp_old_prof;
++	int peer_idx;
  };
  
-+#define VIRTBUS_NAME_SIZE 20
-+#define VIRTBUS_MODULE_PREFIX "virtbus:"
-+
-+struct virtbus_dev_id {
-+	char name[VIRTBUS_NAME_SIZE];
-+	kernel_ulong_t driver_data;
-+};
-+
- #endif /* LINUX_MOD_DEVICETABLE_H */
-diff --git a/include/linux/virtual_bus.h b/include/linux/virtual_bus.h
-new file mode 100644
-index 000000000000..fe4725b1e6b1
---- /dev/null
-+++ b/include/linux/virtual_bus.h
-@@ -0,0 +1,45 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * virtual_bus.h - lightweight software bus
-+ *
-+ * Copyright (c) 2019-20 Intel Corporation
-+ *
-+ * Please see Documentation/driver-api/virtual_bus.rst for more information
-+ */
-+
-+#ifndef _VIRTUAL_BUS_H_
-+#define _VIRTUAL_BUS_H_
-+
-+#include <linux/device.h>
-+
-+struct virtbus_device {
-+	const char *name;
-+	int id;
-+	const struct virtbus_dev_id *matched_element;
-+	struct device dev;
-+};
-+
-+/* If the driver uses a id_table to match with virtbus_devices, then the
-+ * memory for the table is expected to remain allocated for the duration
-+ * of the pairing between driver and device.  The pointer for the matching
-+ * element will be copied to the dev_id field of the virtbus_device.
-+ */
-+struct virtbus_driver {
-+	int (*probe)(struct virtbus_device *);
-+	int (*remove)(struct virtbus_device *);
-+	void (*shutdown)(struct virtbus_device *);
-+	int (*suspend)(struct virtbus_device *, pm_message_t);
-+	int (*resume)(struct virtbus_device *);
-+	struct device_driver driver;
-+	const struct virtbus_dev_id *id_table;
-+};
-+
-+int virtbus_dev_register(struct virtbus_device *vdev);
-+void virtbus_dev_unregister(struct virtbus_device *vdev);
-+int __virtbus_drv_register(struct virtbus_driver *vdrv, struct module *owner);
-+void virtbus_drv_unregister(struct virtbus_driver *vdrv);
-+
-+#define virtbus_drv_register(vdrv) \
-+	__virtbus_drv_register(vdrv, THIS_MODULE)
-+
-+#endif /* _VIRTUAL_BUS_H_ */
-diff --git a/scripts/mod/devicetable-offsets.c b/scripts/mod/devicetable-offsets.c
-index 054405b90ba4..9a6099bf90c8 100644
---- a/scripts/mod/devicetable-offsets.c
-+++ b/scripts/mod/devicetable-offsets.c
-@@ -231,5 +231,8 @@ int main(void)
- 	DEVID(wmi_device_id);
- 	DEVID_FIELD(wmi_device_id, guid_string);
+ /**
+diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.c b/drivers/net/ethernet/intel/i40e/i40e_client.c
+index e81530ca08d0..a3dee729719b 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e_client.c
++++ b/drivers/net/ethernet/intel/i40e/i40e_client.c
+@@ -1,12 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /* Copyright(c) 2013 - 2018 Intel Corporation. */
  
-+	DEVID(virtbus_dev_id);
-+	DEVID_FIELD(virtbus_dev_id, name);
++#include <linux/net/intel/i40e_client.h>
+ #include <linux/list.h>
+ #include <linux/errno.h>
+ 
+ #include "i40e.h"
+ #include "i40e_prototype.h"
+-#include "i40e_client.h"
+ 
+ static const char i40e_client_interface_version_str[] = I40E_CLIENT_VERSION_STR;
+ static struct i40e_client *registered_client;
+@@ -30,11 +30,17 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
+ 				       bool is_vf, u32 vf_id,
+ 				       u32 flag, u32 valid_flag);
+ 
++static int i40e_client_device_register(struct i40e_info *ldev);
 +
- 	return 0;
- }
-diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
-index c91eba751804..713fdfe010b0 100644
---- a/scripts/mod/file2alias.c
-+++ b/scripts/mod/file2alias.c
-@@ -1335,6 +1335,13 @@ static int do_wmi_entry(const char *filename, void *symval, char *alias)
- 	return 1;
++static void i40e_client_device_unregister(struct i40e_info *ldev);
++
+ static struct i40e_ops i40e_lan_ops = {
+ 	.virtchnl_send = i40e_client_virtchnl_send,
+ 	.setup_qvlist = i40e_client_setup_qvlist,
+ 	.request_reset = i40e_client_request_reset,
+ 	.update_vsi_ctxt = i40e_client_update_vsi_ctxt,
++	.client_device_register = i40e_client_device_register,
++	.client_device_unregister = i40e_client_device_unregister,
+ };
+ 
+ /**
+@@ -275,6 +281,27 @@ void i40e_client_update_msix_info(struct i40e_pf *pf)
+ 	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
  }
  
-+static int do_virtbus_entry(const char *filename, void *symval, char *alias)
++static int i40e_init_client_virtdev(struct i40e_pf *pf)
 +{
-+	DEF_FIELD_ADDR(symval, virtbus_dev_id, name);
-+	sprintf(alias, VIRTBUS_MODULE_PREFIX "%s", *name);
-+	return 1;
++	struct i40e_info *ldev = &pf->cinst->lan_info;
++	struct pci_dev *pdev = pf->pdev;
++	struct virtbus_device *vdev;
++	int ret;
++
++	vdev = &ldev->vdev;
++	vdev->name = I40E_PEER_RDMA_NAME;
++	vdev->dev.parent = &pf->pdev->dev;
++
++	ret = virtbus_dev_register(vdev);
++	if (ret) {
++		dev_err(&pdev->dev, "Failure adding client virtbus dev %s %d\n",
++			I40E_PEER_RDMA_NAME, ret);
++		return ret;
++	}
++
++	return 0;
 +}
 +
- /* Does namelen bytes of name exactly match the symbol? */
- static bool sym_is(const char *name, unsigned namelen, const char *symbol)
+ /**
+  * i40e_client_add_instance - add a client instance struct to the instance list
+  * @pf: pointer to the board struct
+@@ -288,9 +315,6 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
+ 	struct netdev_hw_addr *mac = NULL;
+ 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
+ 
+-	if (!registered_client || pf->cinst)
+-		return;
+-
+ 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
+ 	if (!cdev)
+ 		return;
+@@ -326,7 +350,11 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
+ 	cdev->client = registered_client;
+ 	pf->cinst = cdev;
+ 
+-	i40e_client_update_msix_info(pf);
++	cdev->lan_info.msix_count = pf->num_iwarp_msix;
++	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
++
++	i40e_init_client_virtdev(pf);
++	set_bit(__I40E_CLIENT_INSTANCE_NONE, &cdev->state);
+ }
+ 
+ /**
+@@ -347,7 +375,7 @@ void i40e_client_del_instance(struct i40e_pf *pf)
+  **/
+ void i40e_client_subtask(struct i40e_pf *pf)
  {
-@@ -1407,6 +1414,7 @@ static const struct devtable devtable[] = {
- 	{"typec", SIZE_typec_device_id, do_typec_entry},
- 	{"tee", SIZE_tee_client_device_id, do_tee_entry},
- 	{"wmi", SIZE_wmi_device_id, do_wmi_entry},
-+	{"virtbus", SIZE_virtbus_dev_id, do_virtbus_entry},
+-	struct i40e_client *client = registered_client;
++	struct i40e_client *client;
+ 	struct i40e_client_instance *cdev;
+ 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
+ 	int ret = 0;
+@@ -361,9 +389,11 @@ void i40e_client_subtask(struct i40e_pf *pf)
+ 	    test_bit(__I40E_CONFIG_BUSY, pf->state))
+ 		return;
+ 
+-	if (!client || !cdev)
++	if (!cdev || !cdev->client)
+ 		return;
+ 
++	client = cdev->client;
++
+ 	/* Here we handle client opens. If the client is down, and
+ 	 * the netdev is registered, then open the client.
+ 	 */
+@@ -424,16 +454,8 @@ int i40e_lan_add_device(struct i40e_pf *pf)
+ 		 pf->hw.pf_id, pf->hw.bus.bus_id,
+ 		 pf->hw.bus.device, pf->hw.bus.func);
+ 
+-	/* If a client has already been registered, we need to add an instance
+-	 * of it to our new LAN device.
+-	 */
+-	if (registered_client)
+-		i40e_client_add_instance(pf);
++	i40e_client_add_instance(pf);
+ 
+-	/* Since in some cases register may have happened before a device gets
+-	 * added, we can schedule a subtask to go initiate the clients if
+-	 * they can be launched at probe time.
+-	 */
+ 	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
+ 	i40e_service_event_schedule(pf);
+ 
+@@ -453,6 +475,8 @@ int i40e_lan_del_device(struct i40e_pf *pf)
+ 	struct i40e_device *ldev, *tmp;
+ 	int ret = -ENODEV;
+ 
++	virtbus_dev_unregister(&pf->cinst->lan_info.vdev);
++
+ 	/* First, remove any client instance. */
+ 	i40e_client_del_instance(pf);
+ 
+@@ -733,6 +757,59 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
+ 	return err;
+ }
+ 
++static int i40e_client_device_register(struct i40e_info *ldev)
++{
++	struct i40e_client *client;
++	struct i40e_pf *pf;
++
++	if (!ldev) {
++		pr_err("Failed to reg client dev: ldev ptr NULL\n");
++		return -EINVAL;
++	}
++
++	client = ldev->client;
++	pf = ldev->pf;
++	if (!client) {
++		pr_err("Failed to reg client dev: client ptr NULL\n");
++		return -EINVAL;
++	}
++
++	if (!ldev->ops || !client->ops) {
++		pr_err("Failed to reg client dev: client dev peer_ops/ops NULL\n");
++		return -EINVAL;
++	}
++
++	pf->cinst->client = ldev->client;
++	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
++	i40e_service_event_schedule(pf);
++
++	return 0;
++}
++
++static void i40e_client_device_unregister(struct i40e_info *ldev)
++{
++	struct i40e_pf *pf = ldev->pf;
++	struct i40e_client_instance *cdev = pf->cinst;
++
++	while (test_and_set_bit(__I40E_SERVICE_SCHED, pf->state))
++		usleep_range(500, 1000);
++
++	if (!cdev || !cdev->client || !cdev->client->ops ||
++	    !cdev->client->ops->close) {
++		dev_err(&pf->pdev->dev, "Cannot close client device\n");
++		return;
++	}
++	cdev->client->ops->close(&cdev->lan_info, cdev->client, false);
++	clear_bit(__I40E_CLIENT_INSTANCE_OPENED, &cdev->state);
++	i40e_client_release_qvlist(&cdev->lan_info);
++	pf->cinst->client = NULL;
++	clear_bit(__I40E_SERVICE_SCHED, pf->state);
++}
++
++/* Retain legacy global registration/unregistration calls till i40iw is
++ * deprecated from the kernel. The irdma unified driver does not use these
++ * exported symbols.
++ */
+ /**
+  * i40e_register_client - Register a i40e client driver with the L2 driver
+  * @client: pointer to the i40e_client struct
+diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.h b/include/linux/net/intel/i40e_client.h
+similarity index 92%
+rename from drivers/net/ethernet/intel/i40e/i40e_client.h
+rename to include/linux/net/intel/i40e_client.h
+index 72994baf4941..1ca9c1eae60e 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e_client.h
++++ b/include/linux/net/intel/i40e_client.h
+@@ -4,6 +4,9 @@
+ #ifndef _I40E_CLIENT_H_
+ #define _I40E_CLIENT_H_
+ 
++#include <linux/virtual_bus.h>
++
++#define I40E_PEER_RDMA_NAME	"i40e_rdma"
+ #define I40E_CLIENT_STR_LENGTH 10
+ 
+ /* Client interface version should be updated anytime there is a change in the
+@@ -41,8 +44,8 @@ struct i40e_client;
+  * In order for us to keep the interface simple, SW will define a
+  * unique type value for AEQ.
+  */
+-#define I40E_QUEUE_TYPE_PE_AEQ  0x80
+-#define I40E_QUEUE_INVALID_IDX	0xFFFF
++#define I40E_QUEUE_TYPE_PE_AEQ 0x80
++#define I40E_QUEUE_INVALID_IDX 0xFFFF
+ 
+ struct i40e_qv_info {
+ 	u32 v_idx; /* msix_vector */
+@@ -67,7 +70,7 @@ struct i40e_prio_qos_params {
+ 	u8 reserved;
  };
  
- /* Create MODULE_ALIAS() statements.
-diff --git a/tools/testing/selftests/virtual_bus/virtual_bus_dev/Makefile b/tools/testing/selftests/virtual_bus/virtual_bus_dev/Makefile
-new file mode 100644
-index 000000000000..ddd5088eb26b
---- /dev/null
-+++ b/tools/testing/selftests/virtual_bus/virtual_bus_dev/Makefile
-@@ -0,0 +1,7 @@
-+obj-m += virtual_bus_dev.o
-+
-+all:
-+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-+
-+clean:
-+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-diff --git a/tools/testing/selftests/virtual_bus/virtual_bus_dev/virtual_bus_dev.c b/tools/testing/selftests/virtual_bus/virtual_bus_dev/virtual_bus_dev.c
-new file mode 100644
-index 000000000000..966e882452d2
---- /dev/null
-+++ b/tools/testing/selftests/virtual_bus/virtual_bus_dev/virtual_bus_dev.c
-@@ -0,0 +1,60 @@
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/module.h>
-+#include <linux/virtual_bus.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Dave Ertman");
-+MODULE_DESCRIPTION("Test to create a device on virtual bus");
-+MODULE_VERSION("1.0");
-+
-+struct virtbus_data {
-+	int numb;
-+};
-+
-+struct virtbus_object {
+-#define I40E_CLIENT_MAX_USER_PRIORITY        8
++#define I40E_CLIENT_MAX_USER_PRIORITY 8
+ /* Struct to hold Client QoS */
+ struct i40e_qos_params {
+ 	struct i40e_prio_qos_params prio_qos[I40E_CLIENT_MAX_USER_PRIORITY];
+@@ -80,12 +83,13 @@ struct i40e_params {
+ 
+ /* Structure to hold Lan device info for a client device */
+ struct i40e_info {
 +	struct virtbus_device vdev;
-+	struct virtbus_data vd;
-+};
+ 	struct i40e_client_version version;
+ 	u8 lanmac[6];
+ 	struct net_device *netdev;
+ 	struct pci_dev *pcidev;
+ 	u8 __iomem *hw_addr;
+-	u8 fid;	/* function id, PF id or VF id */
++	u8 fid; /* function id, PF id or VF id */
+ #define I40E_CLIENT_FTYPE_PF 0
+ #define I40E_CLIENT_FTYPE_VF 1
+ 	u8 ftype; /* function type, PF or VF */
+@@ -97,8 +101,9 @@ struct i40e_info {
+ 	struct i40e_qvlist_info *qvlist_info;
+ 	struct i40e_params params;
+ 	struct i40e_ops *ops;
++	struct i40e_client *client;
+ 
+-	u16 msix_count;	 /* number of msix vectors*/
++	u16 msix_count;  /* number of msix vectors*/
+ 	/* Array down below will be dynamically allocated based on msix_count */
+ 	struct msix_entry *msix_entries;
+ 	u16 itr_index; /* Which ITR index the PE driver is suppose to use */
+@@ -132,6 +137,11 @@ struct i40e_ops {
+ 			       struct i40e_client *client,
+ 			       bool is_vf, u32 vf_id,
+ 			       u32 flag, u32 valid_flag);
 +
-+static struct virtbus_object vo = {
-+	.vdev = {
-+		.name = "virtual_bus_dev",
-+		},
-+	.vd = {
-+		.numb = 789,
-+	},
-+};
++	int (*client_device_register)(struct i40e_info *ldev);
 +
-+static int __init test_dev_init(void)
-+{
-+	int ret = 0;
++	void (*client_device_unregister)(struct i40e_info *ldev);
 +
-+	printk(KERN_INFO "Loading Virtual Bus Test Device\n");
-+
-+	printk(KERN_ERR "Virtbus Device values:\n\t%s\n\t%d\n", vo.vdev.name,
-+	       vo.vd.numb);
-+
-+	ret = virtbus_dev_register(&vo.vdev);
-+	if (ret) {
-+		printk(KERN_ERR "FAILED TO ADD VIRTBUS DEVICE %d\n", ret);
-+		return ret;
-+	}
-+
-+	printk(KERN_INFO "Virtual Device created\n");
-+	return ret;
-+}
-+
-+static void __exit test_dev_exit(void)
-+{
-+	printk(KERN_INFO "Exiting Virtual Bus Test Device");
-+
-+	virtbus_dev_unregister(&vo.vdev);
-+
-+	printk(KERN_INFO "Virtual Bus Test Device removed\n");
-+}
-+
-+module_init(test_dev_init);
-+module_exit(test_dev_exit);
-diff --git a/tools/testing/selftests/virtual_bus/virtual_bus_drv/Makefile b/tools/testing/selftests/virtual_bus/virtual_bus_drv/Makefile
-new file mode 100644
-index 000000000000..a4b7467f7878
---- /dev/null
-+++ b/tools/testing/selftests/virtual_bus/virtual_bus_drv/Makefile
-@@ -0,0 +1,7 @@
-+obj-m += virtual_bus_drv.o
-+
-+all:
-+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-+
-+clean:
-+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-diff --git a/tools/testing/selftests/virtual_bus/virtual_bus_drv/virtual_bus_drv.c b/tools/testing/selftests/virtual_bus/virtual_bus_drv/virtual_bus_drv.c
-new file mode 100644
-index 000000000000..13e2e3d686ab
---- /dev/null
-+++ b/tools/testing/selftests/virtual_bus/virtual_bus_drv/virtual_bus_drv.c
-@@ -0,0 +1,115 @@
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/module.h>
-+#include <linux/virtual_bus.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
-+#include <linux/mod_devicetable.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Dave Ertman");
-+MODULE_DESCRIPTION("Test to register a driver on virtual bus");
-+MODULE_VERSION("1.0");
-+
-+struct virtbus_data {
-+	int numb;
-+};
-+
-+struct virtbus_object {
-+	struct virtbus_device vdev;
-+	struct virtbus_data vd;
-+};
-+
-+static int td_probe(struct virtbus_device *vdev)
-+{
-+	struct virtbus_object *vo;
-+
-+	printk(KERN_ERR "VIRTBUS DRIVER PROBED\n");
-+
-+	vo = container_of(vdev, struct virtbus_object, vdev);
-+
-+	if (vdev->matched_element) {
-+		printk(KERN_ERR "DEV_ID->DATA 0x%08x\n",
-+			(uint)vdev->matched_element->driver_data);
-+		if (vdev->matched_element->driver_data == 1)
-+			printk(KERN_ERR "NUMB: %d\n",
-+			       vo->vd.numb);
-+	} else {
-+		printk(KERN_ERR "MATCHED_ELEMENT->DATA is NULL\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int td_remove(struct virtbus_device *vdev)
-+{
-+	printk(KERN_ERR "VIRTBUS DRIVER REMOVED\n");
-+	return 0;
-+}
-+
-+static void td_shutdown(struct virtbus_device *vdev)
-+{
-+	printk(KERN_ERR "VIRTBUS DRIVER SHUTDOWN\n");
-+}
-+
-+static const struct virtbus_dev_id vdev_id_table[] = {
-+
-+	{
-+		.name = "NOT THE NAME",
-+		.driver_data = 0x00000000,
-+	},
-+	{
-+		.name = "virtual_bus_dev",
-+		.driver_data = 0x00000001,
-+	},
-+	{
-+		.name = "ice_rdma",
-+		.driver_data = 0x00000002,
-+	},
-+	{
-+		.name = "YET AGAIN NOT NAME",
-+		.driver_data = 0x00000003,
-+	},
-+};
-+
-+static struct virtbus_driver vdrv = {
-+	.probe = td_probe,
-+	.remove = td_remove,
-+	.shutdown = td_shutdown,
-+	.driver = {
-+		.name = "virtual_bus_dev",
-+	},
-+};
-+
-+static int __init test_drv_init(void)
-+{
-+	int ret;
-+
-+	printk(KERN_INFO "Registering Virtual Bus Test Driver\n");
-+
-+	/* To do a simple match, leave the id_table as NULL */
-+	vdrv.id_table = &vdev_id_table[0];
-+
-+	printk(KERN_ERR "name of 0 is %s\n", vdrv.id_table->name);
-+
-+	ret = virtbus_drv_register(&vdrv);
-+
-+	if (!ret)
-+		printk(KERN_INFO "Virtual Driver registered\n");
-+	else
-+		printk(KERN_INFO "Virtual Driver FAILED!!\n");
-+
-+	return ret;
-+}
-+
-+static void __exit test_drv_exit(void)
-+{
-+	printk(KERN_INFO "Exiting Virtual Bus Test Driver");
-+
-+	virtbus_drv_unregister(&vdrv);
-+
-+	printk(KERN_INFO "Virtual Bus Test Driver removed\n");
-+}
-+
-+module_init(test_drv_init);
-+module_exit(test_drv_exit);
+ };
+ 
+ struct i40e_client_ops {
 -- 
 2.23.0
 
