@@ -4,39 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E19B1C43603
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8467AC2D0BE
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B661C206E0
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 478DA206E0
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:49:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727083AbfLIWtm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Dec 2019 17:49:42 -0500
-Received: from mga12.intel.com ([192.55.52.136]:33717 "EHLO mga12.intel.com"
+        id S1727120AbfLIWtp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Dec 2019 17:49:45 -0500
+Received: from mga12.intel.com ([192.55.52.136]:33715 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727077AbfLIWtk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 9 Dec 2019 17:49:40 -0500
+        id S1727111AbfLIWtp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 9 Dec 2019 17:49:45 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Dec 2019 14:49:39 -0800
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Dec 2019 14:49:42 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.69,296,1571727600"; 
-   d="scan'208";a="237912293"
+   d="scan'208";a="237912319"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.74])
-  by fmsmga004.fm.intel.com with ESMTP; 09 Dec 2019 14:49:39 -0800
+  by fmsmga004.fm.intel.com with ESMTP; 09 Dec 2019 14:49:41 -0800
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
-Cc:     Shiraz Saleem <shiraz.saleem@intel.com>, netdev@vger.kernel.org,
+Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
         sassmann@redhat.com, jgg@ziepe.ca, parav@mellanox.com,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [PATCH v3 04/20] i40e: Register a virtbus device to provide RDMA
-Date:   Mon,  9 Dec 2019 14:49:19 -0800
-Message-Id: <20191209224935.1780117-5-jeffrey.t.kirsher@intel.com>
+Subject: [PATCH v3 08/20] RDMA/irdma: Add HMC backing store setup functions
+Date:   Mon,  9 Dec 2019 14:49:23 -0800
+Message-Id: <20191209224935.1780117-9-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191209224935.1780117-1-jeffrey.t.kirsher@intel.com>
 References: <20191209224935.1780117-1-jeffrey.t.kirsher@intel.com>
@@ -47,366 +47,961 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem@intel.com>
+From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Register client virtbus device on the virtbus for the RDMA
-virtbus driver (irdma) to bind to. It allows to realize a
-single RDMA driver capable of working with multiple netdev
-drivers over multi-generation Intel HW supporting RDMA.
-There is also no load ordering dependencies between i40e and
-irdma.
+HW uses host memory as a backing store for a number of
+protocol context objects and queue state tracking.
+The Host Memory Cache (HMC) is a component responsible for
+managing these objects stored in host memory.
 
-Summary of changes:
-* Support to add/remove virtbus devices
-* Add 2 new client ops.
-	* i40e_client_device_register() which is called during RDMA
-	  probe() per PF. Validate client drv OPs and schedule service
-	  task to call open()
-	* i40e_client_device_unregister() called during RDMA remove()
-	  per PF. Call client close() and release_qvlist.
-* The global register/unregister calls exported for i40iw are retained
-  until i40iw is removed from the kernel.
+Add the functions and data structures to manage the allocation
+of backing pages used by the HMC for the various objects
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- drivers/infiniband/hw/i40iw/Makefile          |   1 -
- drivers/infiniband/hw/i40iw/i40iw.h           |   2 +-
- drivers/net/ethernet/intel/Kconfig            |   1 +
- drivers/net/ethernet/intel/i40e/i40e.h        |   3 +-
- drivers/net/ethernet/intel/i40e/i40e_client.c | 109 +++++++++++++++---
- .../linux/net/intel}/i40e_client.h            |  20 +++-
- 6 files changed, 112 insertions(+), 24 deletions(-)
- rename {drivers/net/ethernet/intel/i40e => include/linux/net/intel}/i40e_client.h (92%)
+ drivers/infiniband/hw/irdma/hmc.c | 705 ++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/irdma/hmc.h | 218 +++++++++
+ 2 files changed, 923 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.c
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.h
 
-diff --git a/drivers/infiniband/hw/i40iw/Makefile b/drivers/infiniband/hw/i40iw/Makefile
-index 8942f8229945..34da9eba8a7c 100644
---- a/drivers/infiniband/hw/i40iw/Makefile
-+++ b/drivers/infiniband/hw/i40iw/Makefile
-@@ -1,5 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--ccflags-y :=  -I $(srctree)/drivers/net/ethernet/intel/i40e
- 
- obj-$(CONFIG_INFINIBAND_I40IW) += i40iw.o
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index 8feec35f95a7..3197e3536d5c 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -57,7 +57,7 @@
- #include "i40iw_d.h"
- #include "i40iw_hmc.h"
- 
--#include <i40e_client.h>
-+#include <linux/net/intel/i40e_client.h>
- #include "i40iw_type.h"
- #include "i40iw_p.h"
- #include <rdma/i40iw-abi.h>
-diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
-index b88328fea1d0..8595f578fbe7 100644
---- a/drivers/net/ethernet/intel/Kconfig
-+++ b/drivers/net/ethernet/intel/Kconfig
-@@ -241,6 +241,7 @@ config I40E
- 	tristate "Intel(R) Ethernet Controller XL710 Family support"
- 	imply PTP_1588_CLOCK
- 	depends on PCI
-+	select VIRTUAL_BUS
- 	---help---
- 	  This driver supports Intel(R) Ethernet Controller XL710 Family of
- 	  devices.  For more information on how to identify your adapter, go
-diff --git a/drivers/net/ethernet/intel/i40e/i40e.h b/drivers/net/ethernet/intel/i40e/i40e.h
-index cb6367334ca7..4321e81d347c 100644
---- a/drivers/net/ethernet/intel/i40e/i40e.h
-+++ b/drivers/net/ethernet/intel/i40e/i40e.h
-@@ -38,7 +38,7 @@
- #include <net/xdp_sock.h>
- #include "i40e_type.h"
- #include "i40e_prototype.h"
--#include "i40e_client.h"
-+#include <linux/net/intel/i40e_client.h>
- #include <linux/avf/virtchnl.h>
- #include "i40e_virtchnl_pf.h"
- #include "i40e_txrx.h"
-@@ -655,6 +655,7 @@ struct i40e_pf {
- 	u16 last_sw_conf_valid_flags;
- 	/* List to keep previous DDP profiles to be rolled back in the future */
- 	struct list_head ddp_old_prof;
-+	int peer_idx;
- };
- 
- /**
-diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.c b/drivers/net/ethernet/intel/i40e/i40e_client.c
-index e81530ca08d0..a3dee729719b 100644
---- a/drivers/net/ethernet/intel/i40e/i40e_client.c
-+++ b/drivers/net/ethernet/intel/i40e/i40e_client.c
-@@ -1,12 +1,12 @@
- // SPDX-License-Identifier: GPL-2.0
- /* Copyright(c) 2013 - 2018 Intel Corporation. */
- 
-+#include <linux/net/intel/i40e_client.h>
- #include <linux/list.h>
- #include <linux/errno.h>
- 
- #include "i40e.h"
- #include "i40e_prototype.h"
--#include "i40e_client.h"
- 
- static const char i40e_client_interface_version_str[] = I40E_CLIENT_VERSION_STR;
- static struct i40e_client *registered_client;
-@@ -30,11 +30,17 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
- 				       bool is_vf, u32 vf_id,
- 				       u32 flag, u32 valid_flag);
- 
-+static int i40e_client_device_register(struct i40e_info *ldev);
+diff --git a/drivers/infiniband/hw/irdma/hmc.c b/drivers/infiniband/hw/irdma/hmc.c
+new file mode 100644
+index 000000000000..a5928030947c
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/hmc.c
+@@ -0,0 +1,705 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (c) 2015 - 2019 Intel Corporation */
++#include "osdep.h"
++#include "status.h"
++#include "hmc.h"
++#include "defs.h"
++#include "type.h"
++#include "protos.h"
 +
-+static void i40e_client_device_unregister(struct i40e_info *ldev);
-+
- static struct i40e_ops i40e_lan_ops = {
- 	.virtchnl_send = i40e_client_virtchnl_send,
- 	.setup_qvlist = i40e_client_setup_qvlist,
- 	.request_reset = i40e_client_request_reset,
- 	.update_vsi_ctxt = i40e_client_update_vsi_ctxt,
-+	.client_device_register = i40e_client_device_register,
-+	.client_device_unregister = i40e_client_device_unregister,
- };
- 
- /**
-@@ -275,6 +281,27 @@ void i40e_client_update_msix_info(struct i40e_pf *pf)
- 	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
- }
- 
-+static int i40e_init_client_virtdev(struct i40e_pf *pf)
-+{
-+	struct i40e_info *ldev = &pf->cinst->lan_info;
-+	struct pci_dev *pdev = pf->pdev;
-+	struct virtbus_device *vdev;
-+	int ret;
-+
-+	vdev = &ldev->vdev;
-+	vdev->name = I40E_PEER_RDMA_NAME;
-+	vdev->dev.parent = &pf->pdev->dev;
-+
-+	ret = virtbus_dev_register(vdev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failure adding client virtbus dev %s %d\n",
-+			I40E_PEER_RDMA_NAME, ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- /**
-  * i40e_client_add_instance - add a client instance struct to the instance list
-  * @pf: pointer to the board struct
-@@ -288,9 +315,6 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
- 	struct netdev_hw_addr *mac = NULL;
- 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
- 
--	if (!registered_client || pf->cinst)
--		return;
--
- 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
- 	if (!cdev)
- 		return;
-@@ -326,7 +350,11 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
- 	cdev->client = registered_client;
- 	pf->cinst = cdev;
- 
--	i40e_client_update_msix_info(pf);
-+	cdev->lan_info.msix_count = pf->num_iwarp_msix;
-+	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
-+
-+	i40e_init_client_virtdev(pf);
-+	set_bit(__I40E_CLIENT_INSTANCE_NONE, &cdev->state);
- }
- 
- /**
-@@ -347,7 +375,7 @@ void i40e_client_del_instance(struct i40e_pf *pf)
-  **/
- void i40e_client_subtask(struct i40e_pf *pf)
- {
--	struct i40e_client *client = registered_client;
-+	struct i40e_client *client;
- 	struct i40e_client_instance *cdev;
- 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
- 	int ret = 0;
-@@ -361,9 +389,11 @@ void i40e_client_subtask(struct i40e_pf *pf)
- 	    test_bit(__I40E_CONFIG_BUSY, pf->state))
- 		return;
- 
--	if (!client || !cdev)
-+	if (!cdev || !cdev->client)
- 		return;
- 
-+	client = cdev->client;
-+
- 	/* Here we handle client opens. If the client is down, and
- 	 * the netdev is registered, then open the client.
- 	 */
-@@ -424,16 +454,8 @@ int i40e_lan_add_device(struct i40e_pf *pf)
- 		 pf->hw.pf_id, pf->hw.bus.bus_id,
- 		 pf->hw.bus.device, pf->hw.bus.func);
- 
--	/* If a client has already been registered, we need to add an instance
--	 * of it to our new LAN device.
--	 */
--	if (registered_client)
--		i40e_client_add_instance(pf);
-+	i40e_client_add_instance(pf);
- 
--	/* Since in some cases register may have happened before a device gets
--	 * added, we can schedule a subtask to go initiate the clients if
--	 * they can be launched at probe time.
--	 */
- 	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
- 	i40e_service_event_schedule(pf);
- 
-@@ -453,6 +475,8 @@ int i40e_lan_del_device(struct i40e_pf *pf)
- 	struct i40e_device *ldev, *tmp;
- 	int ret = -ENODEV;
- 
-+	virtbus_dev_unregister(&pf->cinst->lan_info.vdev);
-+
- 	/* First, remove any client instance. */
- 	i40e_client_del_instance(pf);
- 
-@@ -733,6 +757,59 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
- 	return err;
- }
- 
-+static int i40e_client_device_register(struct i40e_info *ldev)
-+{
-+	struct i40e_client *client;
-+	struct i40e_pf *pf;
-+
-+	if (!ldev) {
-+		pr_err("Failed to reg client dev: ldev ptr NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	client = ldev->client;
-+	pf = ldev->pf;
-+	if (!client) {
-+		pr_err("Failed to reg client dev: client ptr NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!ldev->ops || !client->ops) {
-+		pr_err("Failed to reg client dev: client dev peer_ops/ops NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	pf->cinst->client = ldev->client;
-+	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
-+	i40e_service_event_schedule(pf);
-+
-+	return 0;
-+}
-+
-+static void i40e_client_device_unregister(struct i40e_info *ldev)
-+{
-+	struct i40e_pf *pf = ldev->pf;
-+	struct i40e_client_instance *cdev = pf->cinst;
-+
-+	while (test_and_set_bit(__I40E_SERVICE_SCHED, pf->state))
-+		usleep_range(500, 1000);
-+
-+	if (!cdev || !cdev->client || !cdev->client->ops ||
-+	    !cdev->client->ops->close) {
-+		dev_err(&pf->pdev->dev, "Cannot close client device\n");
-+		return;
-+	}
-+	cdev->client->ops->close(&cdev->lan_info, cdev->client, false);
-+	clear_bit(__I40E_CLIENT_INSTANCE_OPENED, &cdev->state);
-+	i40e_client_release_qvlist(&cdev->lan_info);
-+	pf->cinst->client = NULL;
-+	clear_bit(__I40E_SERVICE_SCHED, pf->state);
-+}
-+
-+/* Retain legacy global registration/unregistration calls till i40iw is
-+ * deprecated from the kernel. The irdma unified driver does not use these
-+ * exported symbols.
++/**
++ * irdma_find_sd_index_limit - finds segment descriptor index limit
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @type: type of HMC resources we're searching
++ * @idx: starting index for the object
++ * @cnt: number of objects we're trying to create
++ * @sd_idx: pointer to return index of the segment descriptor in question
++ * @sd_limit: pointer to return the maximum number of segment descriptors
++ *
++ * This function calculates the segment descriptor index and index limit
++ * for the resource defined by irdma_hmc_rsrc_type.
 + */
- /**
-  * i40e_register_client - Register a i40e client driver with the L2 driver
-  * @client: pointer to the i40e_client struct
-diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.h b/include/linux/net/intel/i40e_client.h
-similarity index 92%
-rename from drivers/net/ethernet/intel/i40e/i40e_client.h
-rename to include/linux/net/intel/i40e_client.h
-index 72994baf4941..1ca9c1eae60e 100644
---- a/drivers/net/ethernet/intel/i40e/i40e_client.h
-+++ b/include/linux/net/intel/i40e_client.h
-@@ -4,6 +4,9 @@
- #ifndef _I40E_CLIENT_H_
- #define _I40E_CLIENT_H_
- 
-+#include <linux/virtual_bus.h>
 +
-+#define I40E_PEER_RDMA_NAME	"i40e_rdma"
- #define I40E_CLIENT_STR_LENGTH 10
- 
- /* Client interface version should be updated anytime there is a change in the
-@@ -41,8 +44,8 @@ struct i40e_client;
-  * In order for us to keep the interface simple, SW will define a
-  * unique type value for AEQ.
-  */
--#define I40E_QUEUE_TYPE_PE_AEQ  0x80
--#define I40E_QUEUE_INVALID_IDX	0xFFFF
-+#define I40E_QUEUE_TYPE_PE_AEQ 0x80
-+#define I40E_QUEUE_INVALID_IDX 0xFFFF
- 
- struct i40e_qv_info {
- 	u32 v_idx; /* msix_vector */
-@@ -67,7 +70,7 @@ struct i40e_prio_qos_params {
- 	u8 reserved;
- };
- 
--#define I40E_CLIENT_MAX_USER_PRIORITY        8
-+#define I40E_CLIENT_MAX_USER_PRIORITY 8
- /* Struct to hold Client QoS */
- struct i40e_qos_params {
- 	struct i40e_prio_qos_params prio_qos[I40E_CLIENT_MAX_USER_PRIORITY];
-@@ -80,12 +83,13 @@ struct i40e_params {
- 
- /* Structure to hold Lan device info for a client device */
- struct i40e_info {
-+	struct virtbus_device vdev;
- 	struct i40e_client_version version;
- 	u8 lanmac[6];
- 	struct net_device *netdev;
- 	struct pci_dev *pcidev;
- 	u8 __iomem *hw_addr;
--	u8 fid;	/* function id, PF id or VF id */
-+	u8 fid; /* function id, PF id or VF id */
- #define I40E_CLIENT_FTYPE_PF 0
- #define I40E_CLIENT_FTYPE_VF 1
- 	u8 ftype; /* function type, PF or VF */
-@@ -97,8 +101,9 @@ struct i40e_info {
- 	struct i40e_qvlist_info *qvlist_info;
- 	struct i40e_params params;
- 	struct i40e_ops *ops;
-+	struct i40e_client *client;
- 
--	u16 msix_count;	 /* number of msix vectors*/
-+	u16 msix_count;  /* number of msix vectors*/
- 	/* Array down below will be dynamically allocated based on msix_count */
- 	struct msix_entry *msix_entries;
- 	u16 itr_index; /* Which ITR index the PE driver is suppose to use */
-@@ -132,6 +137,11 @@ struct i40e_ops {
- 			       struct i40e_client *client,
- 			       bool is_vf, u32 vf_id,
- 			       u32 flag, u32 valid_flag);
++static void irdma_find_sd_index_limit(struct irdma_hmc_info *hmc_info, u32 type,
++				      u32 idx, u32 cnt, u32 *sd_idx,
++				      u32 *sd_limit)
++{
++	u64 fpm_addr, fpm_limit;
 +
-+	int (*client_device_register)(struct i40e_info *ldev);
++	fpm_addr = hmc_info->hmc_obj[(type)].base +
++		   hmc_info->hmc_obj[type].size * idx;
++	fpm_limit = fpm_addr + hmc_info->hmc_obj[type].size * cnt;
++	*sd_idx = (u32)(fpm_addr / IRDMA_HMC_DIRECT_BP_SIZE);
++	*sd_limit = (u32)((fpm_limit - 1) / IRDMA_HMC_DIRECT_BP_SIZE);
++	*sd_limit += 1;
++}
 +
-+	void (*client_device_unregister)(struct i40e_info *ldev);
++/**
++ * irdma_find_pd_index_limit - finds page descriptor index limit
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @type: HMC resource type we're examining
++ * @idx: starting index for the object
++ * @cnt: number of objects we're trying to create
++ * @pd_idx: pointer to return page descriptor index
++ * @pd_limit: pointer to return page descriptor index limit
++ *
++ * Calculates the page descriptor index and index limit for the resource
++ * defined by irdma_hmc_rsrc_type.
++ */
 +
- };
- 
- struct i40e_client_ops {
++static void irdma_find_pd_index_limit(struct irdma_hmc_info *hmc_info, u32 type,
++				      u32 idx, u32 cnt, u32 *pd_idx,
++				      u32 *pd_limit)
++{
++	u64 fpm_adr, fpm_limit;
++
++	fpm_adr = hmc_info->hmc_obj[type].base +
++		  hmc_info->hmc_obj[type].size * idx;
++	fpm_limit = fpm_adr + (hmc_info)->hmc_obj[(type)].size * (cnt);
++	*pd_idx = (u32)(fpm_adr / IRDMA_HMC_PAGED_BP_SIZE);
++	*pd_limit = (u32)((fpm_limit - 1) / IRDMA_HMC_PAGED_BP_SIZE);
++	*pd_limit += 1;
++}
++
++/**
++ * irdma_set_sd_entry - setup entry for sd programming
++ * @pa: physical addr
++ * @idx: sd index
++ * @type: paged or direct sd
++ * @entry: sd entry ptr
++ */
++static void irdma_set_sd_entry(u64 pa, u32 idx, enum irdma_sd_entry_type type,
++			       struct irdma_update_sd_entry *entry)
++{
++	entry->data = pa | (IRDMA_HMC_MAX_BP_COUNT << IRDMA_PFHMC_SDDATALOW_PMSDBPCOUNT_S) |
++		      (((type == IRDMA_SD_TYPE_PAGED) ? 0 : 1) << IRDMA_PFHMC_SDDATALOW_PMSDTYPE_S) |
++		      (1 << IRDMA_PFHMC_SDDATALOW_PMSDVALID_S);
++	entry->cmd = (idx | (1 << IRDMA_PFHMC_SDCMD_PMSDWR_S) | (1 << 15));
++}
++
++/**
++ * irdma_clr_sd_entry - setup entry for sd clear
++ * @idx: sd index
++ * @type: paged or direct sd
++ * @entry: sd entry ptr
++ */
++static void irdma_clr_sd_entry(u32 idx, enum irdma_sd_entry_type type,
++			       struct irdma_update_sd_entry *entry)
++{
++	entry->data = (IRDMA_HMC_MAX_BP_COUNT << IRDMA_PFHMC_SDDATALOW_PMSDBPCOUNT_S) |
++		      (((type == IRDMA_SD_TYPE_PAGED) ? 0 : 1) << IRDMA_PFHMC_SDDATALOW_PMSDTYPE_S);
++	entry->cmd = (idx | (1 << IRDMA_PFHMC_SDCMD_PMSDWR_S) | (1 << 15));
++}
++
++/**
++ * irdma_hmc_sd_one - setup 1 sd entry for cqp
++ * @dev: pointer to the device structure
++ * @hmc_fn_id: hmc's function id
++ * @pa: physical addr
++ * @sd_idx: sd index
++ * @type: paged or direct sd
++ * @setsd: flag to set or clear sd
++ */
++enum irdma_status_code irdma_hmc_sd_one(struct irdma_sc_dev *dev, u8 hmc_fn_id,
++					u64 pa, u32 sd_idx,
++					enum irdma_sd_entry_type type,
++					bool setsd)
++{
++	struct irdma_update_sds_info sdinfo;
++
++	sdinfo.cnt = 1;
++	sdinfo.hmc_fn_id = hmc_fn_id;
++	if (setsd)
++		irdma_set_sd_entry(pa, sd_idx, type, sdinfo.entry);
++	else
++		irdma_clr_sd_entry(sd_idx, type, sdinfo.entry);
++	return dev->cqp->process_cqp_sds(dev, &sdinfo);
++}
++
++/**
++ * irdma_hmc_sd_grp - setup group of sd entries for cqp
++ * @dev: pointer to the device structure
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @sd_index: sd index
++ * @sd_cnt: number of sd entries
++ * @setsd: flag to set or clear sd
++ */
++static enum irdma_status_code irdma_hmc_sd_grp(struct irdma_sc_dev *dev,
++					       struct irdma_hmc_info *hmc_info,
++					       u32 sd_index, u32 sd_cnt,
++					       bool setsd)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	struct irdma_update_sds_info sdinfo = {};
++	u64 pa;
++	u32 i;
++	enum irdma_status_code ret_code = 0;
++
++	sdinfo.hmc_fn_id = hmc_info->hmc_fn_id;
++	for (i = sd_index; i < sd_index + sd_cnt; i++) {
++		sd_entry = &hmc_info->sd_table.sd_entry[i];
++		if (!sd_entry || (!sd_entry->valid && setsd) ||
++		    (sd_entry->valid && !setsd))
++			continue;
++		if (setsd) {
++			pa = (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED) ?
++				     sd_entry->u.pd_table.pd_page_addr.pa :
++				     sd_entry->u.bp.addr.pa;
++			irdma_set_sd_entry(pa, i, sd_entry->entry_type,
++					   &sdinfo.entry[sdinfo.cnt]);
++		} else {
++			irdma_clr_sd_entry(i, sd_entry->entry_type,
++					   &sdinfo.entry[sdinfo.cnt]);
++		}
++		sdinfo.cnt++;
++		if (sdinfo.cnt == IRDMA_MAX_SD_ENTRIES) {
++			ret_code = dev->cqp->process_cqp_sds(dev, &sdinfo);
++			if (ret_code) {
++				dev_dbg(rfdev_to_dev(dev),
++					"HMC: sd_programming failed err=%d\n",
++					ret_code);
++				return ret_code;
++			}
++
++			sdinfo.cnt = 0;
++		}
++	}
++	if (sdinfo.cnt)
++		ret_code = dev->cqp->process_cqp_sds(dev, &sdinfo);
++
++	return ret_code;
++}
++
++/**
++ * irdma_hmc_finish_add_sd_reg - program sd entries for objects
++ * @dev: pointer to the device structure
++ * @info: create obj info
++ */
++static enum irdma_status_code
++irdma_hmc_finish_add_sd_reg(struct irdma_sc_dev *dev,
++			    struct irdma_hmc_create_obj_info *info)
++{
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++
++	if (!info->add_sd_cnt)
++		return 0;
++	return irdma_hmc_sd_grp(dev, info->hmc_info,
++				info->hmc_info->sd_indexes[0], info->add_sd_cnt,
++				true);
++}
++
++/**
++ * irdma_sc_create_hmc_obj - allocate backing store for hmc objects
++ * @dev: pointer to the device structure
++ * @info: pointer to irdma_hmc_create_obj_info struct
++ *
++ * This will allocate memory for PDs and backing pages and populate
++ * the sd and pd entries.
++ */
++enum irdma_status_code
++irdma_sc_create_hmc_obj(struct irdma_sc_dev *dev,
++			struct irdma_hmc_create_obj_info *info)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	u32 sd_idx, sd_lmt;
++	u32 pd_idx = 0, pd_lmt = 0;
++	u32 pd_idx1 = 0, pd_lmt1 = 0;
++	u32 i, j;
++	bool pd_error = false;
++	enum irdma_status_code ret_code = 0;
++
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		dev_dbg(rfdev_to_dev(dev),
++			"HMC: error type %u, start = %u, req cnt %u, cnt = %u\n",
++			info->rsrc_type, info->start_idx, info->count,
++			info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++	}
++
++	irdma_find_sd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &sd_idx,
++				  &sd_lmt);
++	if (sd_idx >= info->hmc_info->sd_table.sd_cnt ||
++	    sd_lmt > info->hmc_info->sd_table.sd_cnt) {
++		return IRDMA_ERR_INVALID_SD_INDEX;
++	}
++
++	irdma_find_pd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &pd_idx,
++				  &pd_lmt);
++
++	for (j = sd_idx; j < sd_lmt; j++) {
++		ret_code = irdma_add_sd_table_entry(dev->hw, info->hmc_info, j,
++						    info->entry_type,
++						    IRDMA_HMC_DIRECT_BP_SIZE);
++		if (ret_code)
++			goto exit_sd_error;
++
++		sd_entry = &info->hmc_info->sd_table.sd_entry[j];
++		if (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED &&
++		    (dev->hmc_info == info->hmc_info &&
++		     info->rsrc_type != IRDMA_HMC_IW_PBLE)) {
++			pd_idx1 = max(pd_idx, (j * IRDMA_HMC_MAX_BP_COUNT));
++			pd_lmt1 = min(pd_lmt, (j + 1) * IRDMA_HMC_MAX_BP_COUNT);
++			for (i = pd_idx1; i < pd_lmt1; i++) {
++				/* update the pd table entry */
++				ret_code = irdma_add_pd_table_entry(dev,
++								    info->hmc_info,
++								    i, NULL);
++				if (ret_code) {
++					pd_error = true;
++					break;
++				}
++			}
++			if (pd_error) {
++				while (i && (i > pd_idx1)) {
++					irdma_remove_pd_bp(dev, info->hmc_info,
++							   i - 1);
++					i--;
++				}
++			}
++		}
++		if (sd_entry->valid)
++			continue;
++
++		info->hmc_info->sd_indexes[info->add_sd_cnt] = (u16)j;
++		info->add_sd_cnt++;
++		sd_entry->valid = true;
++	}
++	return irdma_hmc_finish_add_sd_reg(dev, info);
++
++exit_sd_error:
++	while (j && (j > sd_idx)) {
++		sd_entry = &info->hmc_info->sd_table.sd_entry[j - 1];
++		switch (sd_entry->entry_type) {
++		case IRDMA_SD_TYPE_PAGED:
++			pd_idx1 = max(pd_idx, (j - 1) * IRDMA_HMC_MAX_BP_COUNT);
++			pd_lmt1 = min(pd_lmt, (j * IRDMA_HMC_MAX_BP_COUNT));
++			for (i = pd_idx1; i < pd_lmt1; i++)
++				irdma_prep_remove_pd_page(info->hmc_info, i);
++			break;
++		case IRDMA_SD_TYPE_DIRECT:
++			irdma_prep_remove_pd_page(info->hmc_info, (j - 1));
++			break;
++		default:
++			ret_code = IRDMA_ERR_INVALID_SD_TYPE;
++			break;
++		}
++		j--;
++	}
++
++	return ret_code;
++}
++
++/**
++ * irdma_finish_del_sd_reg - delete sd entries for objects
++ * @dev: pointer to the device structure
++ * @info: dele obj info
++ * @reset: true if called before reset
++ */
++static enum irdma_status_code
++irdma_finish_del_sd_reg(struct irdma_sc_dev *dev,
++			struct irdma_hmc_del_obj_info *info, bool reset)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	enum irdma_status_code ret_code = 0;
++	u32 i, sd_idx;
++	struct irdma_dma_mem *mem;
++
++	if (dev->privileged && !reset)
++		ret_code = irdma_hmc_sd_grp(dev, info->hmc_info,
++					    info->hmc_info->sd_indexes[0],
++					    info->del_sd_cnt, false);
++
++	if (ret_code)
++		dev_dbg(rfdev_to_dev(dev), "HMC: error cqp sd sd_grp\n");
++	for (i = 0; i < info->del_sd_cnt; i++) {
++		sd_idx = info->hmc_info->sd_indexes[i];
++		sd_entry = &info->hmc_info->sd_table.sd_entry[sd_idx];
++		if (!sd_entry)
++			continue;
++		mem = (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED) ?
++			      &sd_entry->u.pd_table.pd_page_addr :
++			      &sd_entry->u.bp.addr;
++
++		if (!mem || !mem->va) {
++			dev_dbg(rfdev_to_dev(dev), "HMC: error cqp sd mem\n");
++		} else {
++			dma_free_coherent(hw_to_dev(dev->hw), mem->size,
++					  mem->va, mem->pa);
++			mem->va = NULL;
++		}
++	}
++
++	return ret_code;
++}
++
++/**
++ * irdma_sc_del_hmc_obj - remove pe hmc objects
++ * @dev: pointer to the device structure
++ * @info: pointer to irdma_hmc_del_obj_info struct
++ * @reset: true if called before reset
++ *
++ * This will de-populate the SDs and PDs.  It frees
++ * the memory for PDS and backing storage.  After this function is returned,
++ * caller should deallocate memory allocated previously for
++ * book-keeping information about PDs and backing storage.
++ */
++enum irdma_status_code irdma_sc_del_hmc_obj(struct irdma_sc_dev *dev,
++					    struct irdma_hmc_del_obj_info *info,
++					    bool reset)
++{
++	struct irdma_hmc_pd_table *pd_table;
++	u32 sd_idx, sd_lmt;
++	u32 pd_idx, pd_lmt, rel_pd_idx;
++	u32 i, j;
++	enum irdma_status_code ret_code = 0;
++
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		dev_dbg(rfdev_to_dev(dev),
++			"HMC: error start_idx[%04d]  >= [type %04d].cnt[%04d]\n",
++			info->start_idx, info->rsrc_type,
++			info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++	}
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		dev_dbg(rfdev_to_dev(dev),
++			"HMC: error start_idx[%04d] + count %04d  >= [type %04d].cnt[%04d]\n",
++			info->start_idx, info->count, info->rsrc_type,
++			info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++	}
++
++	irdma_find_pd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &pd_idx,
++				  &pd_lmt);
++
++	for (j = pd_idx; j < pd_lmt; j++) {
++		sd_idx = j / IRDMA_HMC_PD_CNT_IN_SD;
++
++		if (!info->hmc_info->sd_table.sd_entry[sd_idx].valid)
++			continue;
++
++		if (info->hmc_info->sd_table.sd_entry[sd_idx].entry_type !=
++		    IRDMA_SD_TYPE_PAGED)
++			continue;
++
++		rel_pd_idx = j % IRDMA_HMC_PD_CNT_IN_SD;
++		pd_table = &info->hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++		if (pd_table->pd_entry &&
++		    pd_table->pd_entry[rel_pd_idx].valid) {
++			ret_code = irdma_remove_pd_bp(dev, info->hmc_info, j);
++			if (ret_code) {
++				dev_dbg(rfdev_to_dev(dev),
++					"HMC: remove_pd_bp error\n");
++				return ret_code;
++			}
++		}
++	}
++
++	irdma_find_sd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &sd_idx,
++				  &sd_lmt);
++	if (sd_idx >= info->hmc_info->sd_table.sd_cnt ||
++	    sd_lmt > info->hmc_info->sd_table.sd_cnt) {
++		dev_dbg(rfdev_to_dev(dev), "HMC: invalid sd_idx\n");
++		return IRDMA_ERR_INVALID_SD_INDEX;
++	}
++
++	for (i = sd_idx; i < sd_lmt; i++) {
++		pd_table = &info->hmc_info->sd_table.sd_entry[i].u.pd_table;
++		if (!info->hmc_info->sd_table.sd_entry[i].valid)
++			continue;
++		switch (info->hmc_info->sd_table.sd_entry[i].entry_type) {
++		case IRDMA_SD_TYPE_DIRECT:
++			ret_code = irdma_prep_remove_sd_bp(info->hmc_info, i);
++			if (!ret_code) {
++				info->hmc_info->sd_indexes[info->del_sd_cnt] =
++					(u16)i;
++				info->del_sd_cnt++;
++			}
++			break;
++		case IRDMA_SD_TYPE_PAGED:
++			ret_code = irdma_prep_remove_pd_page(info->hmc_info, i);
++			if (ret_code)
++				break;
++			if (dev->hmc_info != info->hmc_info &&
++			    info->rsrc_type == IRDMA_HMC_IW_PBLE &&
++			    pd_table->pd_entry) {
++				kfree(pd_table->pd_entry_virt_mem.va);
++				pd_table->pd_entry = NULL;
++			}
++			info->hmc_info->sd_indexes[info->del_sd_cnt] = (u16)i;
++			info->del_sd_cnt++;
++			break;
++		default:
++			break;
++		}
++	}
++	return irdma_finish_del_sd_reg(dev, info, reset);
++}
++
++/**
++ * irdma_add_sd_table_entry - Adds a segment descriptor to the table
++ * @hw: pointer to our hw struct
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @sd_index: segment descriptor index to manipulate
++ * @type: what type of segment descriptor we're manipulating
++ * @direct_mode_sz: size to alloc in direct mode
++ */
++enum irdma_status_code irdma_add_sd_table_entry(struct irdma_hw *hw,
++						struct irdma_hmc_info *hmc_info,
++						u32 sd_index,
++						enum irdma_sd_entry_type type,
++						u64 direct_mode_sz)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	struct irdma_dma_mem dma_mem;
++	u64 alloc_len;
++
++	sd_entry = &hmc_info->sd_table.sd_entry[sd_index];
++	if (!sd_entry->valid) {
++		if (type == IRDMA_SD_TYPE_PAGED)
++			alloc_len = IRDMA_HMC_PAGED_BP_SIZE;
++		else
++			alloc_len = direct_mode_sz;
++
++		/* allocate a 4K pd page or 2M backing page */
++		dma_mem.size = ALIGN(alloc_len, IRDMA_HMC_PD_BP_BUF_ALIGNMENT);
++		dma_mem.va = dma_alloc_coherent(hw_to_dev(hw),
++						dma_mem.size, &dma_mem.pa,
++						GFP_ATOMIC);
++		if (!dma_mem.va)
++			return IRDMA_ERR_NO_MEMORY;
++
++		if (type == IRDMA_SD_TYPE_PAGED) {
++			struct irdma_virt_mem *vmem =
++				&sd_entry->u.pd_table.pd_entry_virt_mem;
++
++			vmem->size = sizeof(struct irdma_hmc_pd_entry) * 512;
++			vmem->va = kzalloc(vmem->size, GFP_ATOMIC);
++			if (!vmem->va) {
++				dma_free_coherent(hw_to_dev(hw), dma_mem.size,
++						  dma_mem.va, dma_mem.pa);
++				dma_mem.va = NULL;
++				return IRDMA_ERR_NO_MEMORY;
++			}
++			sd_entry->u.pd_table.pd_entry = vmem->va;
++
++			memcpy(&sd_entry->u.pd_table.pd_page_addr, &dma_mem,
++			       sizeof(sd_entry->u.pd_table.pd_page_addr));
++		} else {
++			memcpy(&sd_entry->u.bp.addr, &dma_mem,
++			       sizeof(sd_entry->u.bp.addr));
++
++			sd_entry->u.bp.sd_pd_index = sd_index;
++		}
++
++		hmc_info->sd_table.sd_entry[sd_index].entry_type = type;
++		IRDMA_INC_SD_REFCNT(&hmc_info->sd_table);
++	}
++	if (sd_entry->entry_type == IRDMA_SD_TYPE_DIRECT)
++		IRDMA_INC_BP_REFCNT(&sd_entry->u.bp);
++
++	return 0;
++}
++
++/**
++ * irdma_add_pd_table_entry - Adds page descriptor to the specified table
++ * @dev: pointer to our device structure
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @pd_index: which page descriptor index to manipulate
++ * @rsrc_pg: if not NULL, use preallocated page instead of allocating new one.
++ *
++ * This function:
++ *	1. Initializes the pd entry
++ *	2. Adds pd_entry in the pd_table
++ *	3. Mark the entry valid in irdma_hmc_pd_entry structure
++ *	4. Initializes the pd_entry's ref count to 1
++ * assumptions:
++ *	1. The memory for pd should be pinned down, physically contiguous and
++ *	   aligned on 4K boundary and zeroed memory.
++ *	2. It should be 4K in size.
++ */
++enum irdma_status_code irdma_add_pd_table_entry(struct irdma_sc_dev *dev,
++						struct irdma_hmc_info *hmc_info,
++						u32 pd_index,
++						struct irdma_dma_mem *rsrc_pg)
++{
++	struct irdma_hmc_pd_table *pd_table;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_dma_mem mem;
++	struct irdma_dma_mem *page = &mem;
++	u32 sd_idx, rel_pd_idx;
++	u64 *pd_addr;
++	u64 page_desc;
++
++	if (pd_index / IRDMA_HMC_PD_CNT_IN_SD >= hmc_info->sd_table.sd_cnt)
++		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
++
++	sd_idx = (pd_index / IRDMA_HMC_PD_CNT_IN_SD);
++	if (hmc_info->sd_table.sd_entry[sd_idx].entry_type !=
++	    IRDMA_SD_TYPE_PAGED)
++		return 0;
++
++	rel_pd_idx = (pd_index % IRDMA_HMC_PD_CNT_IN_SD);
++	pd_table = &hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++	pd_entry = &pd_table->pd_entry[rel_pd_idx];
++	if (!pd_entry->valid) {
++		if (rsrc_pg) {
++			pd_entry->rsrc_pg = true;
++			page = rsrc_pg;
++		} else {
++			page->size = ALIGN(IRDMA_HMC_PAGED_BP_SIZE,
++					   IRDMA_HMC_PD_BP_BUF_ALIGNMENT);
++			page->va = dma_alloc_coherent(hw_to_dev(dev->hw),
++						      page->size, &page->pa,
++						      GFP_KERNEL);
++			if (!page->va)
++				return IRDMA_ERR_NO_MEMORY;
++
++			pd_entry->rsrc_pg = false;
++		}
++
++		memcpy(&pd_entry->bp.addr, page, sizeof(pd_entry->bp.addr));
++		pd_entry->bp.sd_pd_index = pd_index;
++		pd_entry->bp.entry_type = IRDMA_SD_TYPE_PAGED;
++		page_desc = page->pa | 0x1;
++		pd_addr = pd_table->pd_page_addr.va;
++		pd_addr += rel_pd_idx;
++		memcpy(pd_addr, &page_desc, sizeof(*pd_addr));
++		pd_entry->sd_index = sd_idx;
++		pd_entry->valid = true;
++		IRDMA_INC_PD_REFCNT(pd_table);
++		if (hmc_info->hmc_fn_id < dev->hw_attrs.first_hw_vf_fpm_id)
++			IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, rel_pd_idx);
++		else if (dev->hw->hmc.hmc_fn_id != hmc_info->hmc_fn_id)
++			IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, rel_pd_idx,
++						   hmc_info->hmc_fn_id);
++	}
++	IRDMA_INC_BP_REFCNT(&pd_entry->bp);
++
++	return 0;
++}
++
++/**
++ * irdma_remove_pd_bp - remove a backing page from a page descriptor
++ * @dev: pointer to our HW structure
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: the page index
++ *
++ * This function:
++ *	1. Marks the entry in pd table (for paged address mode) or in sd table
++ *	   (for direct address mode) invalid.
++ *	2. Write to register PMPDINV to invalidate the backing page in FV cache
++ *	3. Decrement the ref count for the pd _entry
++ * assumptions:
++ *	1. Caller can deallocate the memory used by backing storage after this
++ *	   function returns.
++ */
++enum irdma_status_code irdma_remove_pd_bp(struct irdma_sc_dev *dev,
++					  struct irdma_hmc_info *hmc_info,
++					  u32 idx)
++{
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_hmc_pd_table *pd_table;
++	struct irdma_hmc_sd_entry *sd_entry;
++	u32 sd_idx, rel_pd_idx;
++	struct irdma_dma_mem *mem;
++	u64 *pd_addr;
++
++	sd_idx = idx / IRDMA_HMC_PD_CNT_IN_SD;
++	rel_pd_idx = idx % IRDMA_HMC_PD_CNT_IN_SD;
++	if (sd_idx >= hmc_info->sd_table.sd_cnt)
++		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
++
++	sd_entry = &hmc_info->sd_table.sd_entry[sd_idx];
++	if (sd_entry->entry_type != IRDMA_SD_TYPE_PAGED)
++		return IRDMA_ERR_INVALID_SD_TYPE;
++
++	pd_table = &hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++	pd_entry = &pd_table->pd_entry[rel_pd_idx];
++	IRDMA_DEC_BP_REFCNT(&pd_entry->bp);
++	if (pd_entry->bp.ref_cnt)
++		return 0;
++
++	pd_entry->valid = false;
++	IRDMA_DEC_PD_REFCNT(pd_table);
++	pd_addr = pd_table->pd_page_addr.va;
++	pd_addr += rel_pd_idx;
++	memset(pd_addr, 0, sizeof(u64));
++	if (dev->privileged) {
++		if (dev->hmc_fn_id == hmc_info->hmc_fn_id)
++			IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, idx);
++		else
++			IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, idx,
++						   hmc_info->hmc_fn_id);
++	}
++
++	if (!pd_entry->rsrc_pg) {
++		mem = &pd_entry->bp.addr;
++		if (!mem || !mem->va)
++			return IRDMA_ERR_PARAM;
++
++		dma_free_coherent(hw_to_dev(dev->hw), mem->size, mem->va,
++				  mem->pa);
++		mem->va = NULL;
++	}
++	if (!pd_table->ref_cnt)
++		kfree(pd_table->pd_entry_virt_mem.va);
++
++	return 0;
++}
++
++/**
++ * irdma_prep_remove_sd_bp - Prepares to remove a backing page from a sd entry
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: the page index
++ */
++enum irdma_status_code irdma_prep_remove_sd_bp(struct irdma_hmc_info *hmc_info,
++					       u32 idx)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++
++	sd_entry = &hmc_info->sd_table.sd_entry[idx];
++	IRDMA_DEC_BP_REFCNT(&sd_entry->u.bp);
++	if (sd_entry->u.bp.ref_cnt)
++		return IRDMA_ERR_NOT_READY;
++
++	IRDMA_DEC_SD_REFCNT(&hmc_info->sd_table);
++	sd_entry->valid = false;
++
++	return 0;
++}
++
++/**
++ * irdma_prep_remove_pd_page - Prepares to remove a PD page from sd entry.
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: segment descriptor index to find the relevant page descriptor
++ */
++enum irdma_status_code
++irdma_prep_remove_pd_page(struct irdma_hmc_info *hmc_info, u32 idx)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++
++	sd_entry = &hmc_info->sd_table.sd_entry[idx];
++
++	if (sd_entry->u.pd_table.ref_cnt)
++		return IRDMA_ERR_NOT_READY;
++
++	sd_entry->valid = false;
++	IRDMA_DEC_SD_REFCNT(&hmc_info->sd_table);
++
++	return 0;
++}
+diff --git a/drivers/infiniband/hw/irdma/hmc.h b/drivers/infiniband/hw/irdma/hmc.h
+new file mode 100644
+index 000000000000..1c3f19a6b231
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/hmc.h
+@@ -0,0 +1,218 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2019 Intel Corporation */
++#ifndef IRDMA_HMC_H
++#define IRDMA_HMC_H
++
++#include "defs.h"
++
++#define IRDMA_HMC_MAX_BP_COUNT			512
++#define IRDMA_MAX_SD_ENTRIES			11
++#define IRDMA_HW_DBG_HMC_INVALID_BP_MARK	0xca
++#define IRDMA_HMC_INFO_SIGNATURE		0x484d5347
++#define IRDMA_HMC_PD_CNT_IN_SD			512
++#define IRDMA_HMC_DIRECT_BP_SIZE		0x200000
++#define IRDMA_HMC_MAX_SD_COUNT			8192
++#define IRDMA_HMC_PAGED_BP_SIZE			4096
++#define IRDMA_HMC_PD_BP_BUF_ALIGNMENT		4096
++#define IRDMA_FIRST_VF_FPM_ID			8
++#define FPM_MULTIPLIER				1024
++
++#define IRDMA_INC_SD_REFCNT(sd_table)	((sd_table)->ref_cnt++)
++#define IRDMA_INC_PD_REFCNT(pd_table)	((pd_table)->ref_cnt++)
++#define IRDMA_INC_BP_REFCNT(bp)		((bp)->ref_cnt++)
++
++#define IRDMA_DEC_SD_REFCNT(sd_table)	((sd_table)->ref_cnt--)
++#define IRDMA_DEC_PD_REFCNT(pd_table)	((pd_table)->ref_cnt--)
++#define IRDMA_DEC_BP_REFCNT(bp)		((bp)->ref_cnt--)
++
++/**
++ * IRDMA_INVALIDATE_PF_HMC_PD - Invalidates the pd cache in the hardware
++ * @hw: pointer to our hw struct
++ * @sd_idx: segment descriptor index
++ * @pd_idx: page descriptor index
++ */
++#define IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, pd_idx)			\
++	wr32((dev)->hw, (dev)->hw_regs[IRDMA_PFHMC_PDINV],		\
++		(((sd_idx) << IRDMA_PFHMC_PDINV_PMSDIDX_S) |		\
++		(0x1 << IRDMA_PFHMC_PDINV_PMSDPARTSEL_S) |		\
++		((pd_idx) << IRDMA_PFHMC_PDINV_PMPDIDX_S)))
++
++/**
++ * IRDMA_INVALIDATE_VF_HMC_PD - Invalidates the pd cache in the hardware
++ * @hw: pointer to our hw struct
++ * @sd_idx: segment descriptor index
++ * @pd_idx: page descriptor index
++ * @hmc_fn_id: VF's function id
++ */
++#define IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, pd_idx, hmc_fn_id)	\
++	wr32((dev)->hw,							\
++	     (dev)->hw_regs[IRDMA_GLHMC_VFPDINV] +			\
++	     4 * ((hmc_fn_id) - (dev)->hw_attrs.first_hw_vf_fpm_id),	\
++	     (((sd_idx) << IRDMA_PFHMC_PDINV_PMSDIDX_S) |		\
++	      ((pd_idx) << IRDMA_PFHMC_PDINV_PMPDIDX_S)))
++
++enum irdma_hmc_rsrc_type {
++	IRDMA_HMC_IW_QP		 = 0,
++	IRDMA_HMC_IW_CQ		 = 1,
++	IRDMA_HMC_IW_RESERVED	 = 2,
++	IRDMA_HMC_IW_HTE	 = 3,
++	IRDMA_HMC_IW_ARP	 = 4,
++	IRDMA_HMC_IW_APBVT_ENTRY = 5,
++	IRDMA_HMC_IW_MR		 = 6,
++	IRDMA_HMC_IW_XF		 = 7,
++	IRDMA_HMC_IW_XFFL	 = 8,
++	IRDMA_HMC_IW_Q1		 = 9,
++	IRDMA_HMC_IW_Q1FL	 = 10,
++	IRDMA_HMC_IW_TIMER       = 11,
++	IRDMA_HMC_IW_FSIMC       = 12,
++	IRDMA_HMC_IW_FSIAV       = 13,
++	IRDMA_HMC_IW_PBLE	 = 14,
++	IRDMA_HMC_IW_RRF	 = 15,
++	IRDMA_HMC_IW_RRFFL       = 16,
++	IRDMA_HMC_IW_HDR	 = 17,
++	IRDMA_HMC_IW_MD		 = 18,
++	IRDMA_HMC_IW_OOISC       = 19,
++	IRDMA_HMC_IW_OOISCFFL    = 20,
++	IRDMA_HMC_IW_MAX, /* Must be last entry */
++};
++
++enum irdma_sd_entry_type {
++	IRDMA_SD_TYPE_INVALID = 0,
++	IRDMA_SD_TYPE_PAGED   = 1,
++	IRDMA_SD_TYPE_DIRECT  = 2,
++};
++
++struct irdma_hmc_obj_info {
++	u64 base;
++	u32 max_cnt;
++	u32 cnt;
++	u64 size;
++};
++
++struct irdma_hmc_bp {
++	enum irdma_sd_entry_type entry_type;
++	struct irdma_dma_mem addr;
++	u32 sd_pd_index;
++	u32 ref_cnt;
++};
++
++struct irdma_hmc_pd_entry {
++	struct irdma_hmc_bp bp;
++	u32 sd_index;
++	bool rsrc_pg;
++	bool valid;
++};
++
++struct irdma_hmc_pd_table {
++	struct irdma_dma_mem pd_page_addr;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_virt_mem pd_entry_virt_mem;
++	u32 ref_cnt;
++	u32 sd_index;
++};
++
++struct irdma_hmc_sd_entry {
++	enum irdma_sd_entry_type entry_type;
++	bool valid;
++	union {
++		struct irdma_hmc_pd_table pd_table;
++		struct irdma_hmc_bp bp;
++	} u;
++};
++
++struct irdma_hmc_sd_table {
++	struct irdma_virt_mem addr;
++	u32 sd_cnt;
++	u32 ref_cnt;
++	struct irdma_hmc_sd_entry *sd_entry;
++};
++
++struct irdma_hmc_info {
++	u32 signature;
++	u8 hmc_fn_id;
++	u16 first_sd_index;
++	struct irdma_hmc_obj_info *hmc_obj;
++	struct irdma_virt_mem hmc_obj_virt_mem;
++	struct irdma_hmc_sd_table sd_table;
++	u16 sd_indexes[IRDMA_HMC_MAX_SD_COUNT];
++};
++
++struct irdma_update_sd_entry {
++	u64 cmd;
++	u64 data;
++};
++
++struct irdma_update_sds_info {
++	u32 cnt;
++	u8 hmc_fn_id;
++	struct irdma_update_sd_entry entry[IRDMA_MAX_SD_ENTRIES];
++};
++
++struct irdma_ccq_cqe_info;
++struct irdma_hmc_fcn_info {
++	void (*callback_fcn)(struct irdma_sc_dev *dev, void *cqp_callback_param,
++			     struct irdma_ccq_cqe_info *ccq_cqe_info);
++	void *cqp_callback_param;
++	u32 vf_id;
++	u16 iw_vf_idx;
++	bool free_fcn;
++};
++
++struct irdma_hmc_create_obj_info {
++	struct irdma_hmc_info *hmc_info;
++	struct irdma_virt_mem add_sd_virt_mem;
++	u32 rsrc_type;
++	u32 start_idx;
++	u32 count;
++	u32 add_sd_cnt;
++	enum irdma_sd_entry_type entry_type;
++	bool privileged;
++};
++
++struct irdma_hmc_del_obj_info {
++	struct irdma_hmc_info *hmc_info;
++	struct irdma_virt_mem del_sd_virt_mem;
++	u32 rsrc_type;
++	u32 start_idx;
++	u32 count;
++	u32 del_sd_cnt;
++	bool privileged;
++};
++
++enum irdma_status_code irdma_copy_dma_mem(struct irdma_hw *hw, void *dest_buf,
++					  struct irdma_dma_mem *src_mem,
++					  u64 src_offset, u64 size);
++enum irdma_status_code
++irdma_sc_create_hmc_obj(struct irdma_sc_dev *dev,
++			struct irdma_hmc_create_obj_info *info);
++enum irdma_status_code irdma_sc_del_hmc_obj(struct irdma_sc_dev *dev,
++					    struct irdma_hmc_del_obj_info *info,
++					    bool reset);
++enum irdma_status_code irdma_hmc_sd_one(struct irdma_sc_dev *dev, u8 hmc_fn_id,
++					u64 pa, u32 sd_idx,
++					enum irdma_sd_entry_type type,
++					bool setsd);
++enum irdma_status_code
++irdma_update_sds_noccq(struct irdma_sc_dev *dev,
++		       struct irdma_update_sds_info *info);
++struct irdma_vfdev *irdma_vfdev_from_fpm(struct irdma_sc_dev *dev,
++					 u8 hmc_fn_id);
++struct irdma_hmc_info *irdma_vf_hmcinfo_from_fpm(struct irdma_sc_dev *dev,
++						 u8 hmc_fn_id);
++enum irdma_status_code irdma_add_sd_table_entry(struct irdma_hw *hw,
++						struct irdma_hmc_info *hmc_info,
++						u32 sd_index,
++						enum irdma_sd_entry_type type,
++						u64 direct_mode_sz);
++enum irdma_status_code irdma_add_pd_table_entry(struct irdma_sc_dev *dev,
++						struct irdma_hmc_info *hmc_info,
++						u32 pd_index,
++						struct irdma_dma_mem *rsrc_pg);
++enum irdma_status_code irdma_remove_pd_bp(struct irdma_sc_dev *dev,
++					  struct irdma_hmc_info *hmc_info,
++					  u32 idx);
++enum irdma_status_code irdma_prep_remove_sd_bp(struct irdma_hmc_info *hmc_info,
++					       u32 idx);
++enum irdma_status_code
++irdma_prep_remove_pd_page(struct irdma_hmc_info *hmc_info, u32 idx);
++#endif /* IRDMA_HMC_H */
 -- 
 2.23.0
 
