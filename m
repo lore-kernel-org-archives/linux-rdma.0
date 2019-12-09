@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A39FBC43603
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:57:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BE35C2BD09
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:57:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E3CC2071E
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:57:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61BA02071E
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:57:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="UcYzdLzw"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Yr7rnMyP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727733AbfLIW5o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Dec 2019 17:57:44 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:10202 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727312AbfLIWyB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Dec 2019 17:54:01 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5deed0820000>; Mon, 09 Dec 2019 14:53:54 -0800
+        id S1727314AbfLIWyA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Dec 2019 17:54:00 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:19760 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727269AbfLIWx6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Dec 2019 17:53:58 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5deed07f0002>; Mon, 09 Dec 2019 14:53:52 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate102.nvidia.com (PGP Universal service);
-  Mon, 09 Dec 2019 14:54:00 -0800
+  Mon, 09 Dec 2019 14:53:57 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Mon, 09 Dec 2019 14:54:00 -0800
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 9 Dec
- 2019 22:53:59 +0000
-Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Mon, 9 Dec 2019 22:53:59 +0000
+        by hqpgpgate102.nvidia.com on Mon, 09 Dec 2019 14:53:57 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 9 Dec
+ 2019 22:53:57 +0000
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 9 Dec
+ 2019 22:53:56 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Mon, 9 Dec 2019 22:53:56 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5deed0860000>; Mon, 09 Dec 2019 14:53:59 -0800
+        id <B5deed0830002>; Mon, 09 Dec 2019 14:53:55 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -53,12 +56,11 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
+        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -66,10 +68,11 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v8 11/26] goldish_pipe: convert to pin_user_pages() and put_user_page()
-Date:   Mon, 9 Dec 2019 14:53:29 -0800
-Message-ID: <20191209225344.99740-12-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>,
+        "Jason Gunthorpe" <jgg@mellanox.com>
+Subject: [PATCH v8 07/26] vfio: fix FOLL_LONGTERM use, simplify get_user_pages_remote() call
+Date:   Mon, 9 Dec 2019 14:53:25 -0800
+Message-ID: <20191209225344.99740-8-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191209225344.99740-1-jhubbard@nvidia.com>
 References: <20191209225344.99740-1-jhubbard@nvidia.com>
@@ -78,92 +81,110 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1575932034; bh=TksWTeRqb2e65v/kOUv6DZsbenXYEnzjjPNzfVXQEtw=;
+        t=1575932032; bh=8L6xDPC0B530xp/MTT0aA3xB5v7i2RtCewyab6Z4Hgg=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=UcYzdLzwymLV5Q9eNb1godxX+IYCxmNrBl5d0tWUa7scpysWqSwUbqg/CUOfn3pFH
-         y0Boj/PN8WnIzT8heYvOoGdHrmv9kxQ8hhZfxv3pE10Ga2//YxXNiQhe/1LXXkHeiO
-         K/uljJvildkTJmq/4WOP9jWwdp3GqmXghcFoCBKym9N6t8qQdSvntKXhsh+OicT6Jh
-         svE/uWvuynLaCF0UuN4Iaip/UGkTTrT4XR6hMyMASQW7tSes9wzPlJWl3kzGz5gaPx
-         Qe+qEO0kmEci9mTWMPxftwNmBECXbm9uZqRZ4kZ0RkheTbFQbE6Y+GjdwNe483UiPM
-         w8ZpFynYU0oFA==
+        b=Yr7rnMyP9nuJBW/roKy+70R1QH1xPYt7cT5b3NmcMit5wvFElqNAZ7Snz2sWvvVy7
+         6Yh3d6zgXNGmtvZqjsmA6es64h9a8u6TMyLPhBHDlW3o5G5JGlJZUzT4G2YQN0ElhJ
+         M74Lu94G7MHDwiXBP5nzKgBnvuwLPWrxJzr7w/VhBmvI+iYPpkH1Oe2UoxZusyZWW8
+         dxWo9gbaLViTIo2IDCzCFGedH7Tm1vD787dlT3Ez73wIHQ1uuw+4NEad9sRDLADDLO
+         NV7lshKCHkEyy8n9++u3nJk2vzho4m56YWzJMlqbY9aI5KV88eqDR10FBgoMHHIPkv
+         ETlsss72YMETA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-1. Call the new global pin_user_pages_fast(), from pin_goldfish_pages().
+Update VFIO to take advantage of the recently loosened restriction on
+FOLL_LONGTERM with get_user_pages_remote(). Also, now it is possible to
+fix a bug: the VFIO caller is logically a FOLL_LONGTERM user, but it
+wasn't setting FOLL_LONGTERM.
 
-2. As required by pin_user_pages(), release these pages via
-put_user_page(). In this case, do so via put_user_pages_dirty_lock().
+Also, remove an unnessary pair of calls that were releasing and
+reacquiring the mmap_sem. There is no need to avoid holding mmap_sem
+just in order to call page_to_pfn().
 
-That has the side effect of calling set_page_dirty_lock(), instead
-of set_page_dirty(). This is probably more accurate.
+Also, now that the the DAX check ("if a VMA is DAX, don't allow long
+term pinning") is in the internals of get_user_pages_remote() and
+__gup_longterm_locked(), there's no need for it at the VFIO call site.
+So remove it.
 
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
-
-Another side effect is that the release code is simplified because
-the page[] loop is now in gup.c instead of here, so just delete the
-local release_user_pages() entirely, and call
-put_user_pages_dirty_lock() directly, instead.
-
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
-Reviewed-by: Jan Kara <jack@suse.cz>
+Tested-by: Alex Williamson <alex.williamson@redhat.com>
+Acked-by: Alex Williamson <alex.williamson@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/platform/goldfish/goldfish_pipe.c | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/vfio/vfio_iommu_type1.c | 30 +++++-------------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/g=
-oldfish/goldfish_pipe.c
-index ef50c264db71..2a5901efecde 100644
---- a/drivers/platform/goldfish/goldfish_pipe.c
-+++ b/drivers/platform/goldfish/goldfish_pipe.c
-@@ -274,7 +274,7 @@ static int goldfish_pin_pages(unsigned long first_page,
- 		*iter_last_page_size =3D last_page_size;
+diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type=
+1.c
+index 2ada8e6cdb88..b800fc9a0251 100644
+--- a/drivers/vfio/vfio_iommu_type1.c
++++ b/drivers/vfio/vfio_iommu_type1.c
+@@ -322,7 +322,6 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned=
+ long vaddr,
+ {
+ 	struct page *page[1];
+ 	struct vm_area_struct *vma;
+-	struct vm_area_struct *vmas[1];
+ 	unsigned int flags =3D 0;
+ 	int ret;
+=20
+@@ -330,33 +329,14 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsign=
+ed long vaddr,
+ 		flags |=3D FOLL_WRITE;
+=20
+ 	down_read(&mm->mmap_sem);
+-	if (mm =3D=3D current->mm) {
+-		ret =3D get_user_pages(vaddr, 1, flags | FOLL_LONGTERM, page,
+-				     vmas);
+-	} else {
+-		ret =3D get_user_pages_remote(NULL, mm, vaddr, 1, flags, page,
+-					    vmas, NULL);
+-		/*
+-		 * The lifetime of a vaddr_get_pfn() page pin is
+-		 * userspace-controlled. In the fs-dax case this could
+-		 * lead to indefinite stalls in filesystem operations.
+-		 * Disallow attempts to pin fs-dax pages via this
+-		 * interface.
+-		 */
+-		if (ret > 0 && vma_is_fsdax(vmas[0])) {
+-			ret =3D -EOPNOTSUPP;
+-			put_page(page[0]);
+-		}
+-	}
+-	up_read(&mm->mmap_sem);
+-
++	ret =3D get_user_pages_remote(NULL, mm, vaddr, 1, flags | FOLL_LONGTERM,
++				    page, NULL, NULL);
+ 	if (ret =3D=3D 1) {
+ 		*pfn =3D page_to_pfn(page[0]);
+-		return 0;
++		ret =3D 0;
++		goto done;
  	}
 =20
--	ret =3D get_user_pages_fast(first_page, requested_pages,
-+	ret =3D pin_user_pages_fast(first_page, requested_pages,
- 				  !is_write ? FOLL_WRITE : 0,
- 				  pages);
- 	if (ret <=3D 0)
-@@ -285,18 +285,6 @@ static int goldfish_pin_pages(unsigned long first_page=
-,
+-	down_read(&mm->mmap_sem);
+-
+ 	vaddr =3D untagged_addr(vaddr);
+=20
+ 	vma =3D find_vma_intersection(mm, vaddr, vaddr + 1);
+@@ -366,7 +346,7 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned=
+ long vaddr,
+ 		if (is_invalid_reserved_pfn(*pfn))
+ 			ret =3D 0;
+ 	}
+-
++done:
+ 	up_read(&mm->mmap_sem);
  	return ret;
  }
-=20
--static void release_user_pages(struct page **pages, int pages_count,
--			       int is_write, s32 consumed_size)
--{
--	int i;
--
--	for (i =3D 0; i < pages_count; i++) {
--		if (!is_write && consumed_size > 0)
--			set_page_dirty(pages[i]);
--		put_page(pages[i]);
--	}
--}
--
- /* Populate the call parameters, merging adjacent pages together */
- static void populate_rw_params(struct page **pages,
- 			       int pages_count,
-@@ -372,7 +360,8 @@ static int transfer_max_buffers(struct goldfish_pipe *p=
-ipe,
-=20
- 	*consumed_size =3D pipe->command_buffer->rw_params.consumed_size;
-=20
--	release_user_pages(pipe->pages, pages_count, is_write, *consumed_size);
-+	put_user_pages_dirty_lock(pipe->pages, pages_count,
-+				  !is_write && *consumed_size > 0);
-=20
- 	mutex_unlock(&pipe->lock);
- 	return 0;
 --=20
 2.24.0
 
