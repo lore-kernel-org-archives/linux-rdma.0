@@ -2,31 +2,32 @@ Return-Path: <SRS0=Vz8M=Z7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88A56C00454
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:50:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC63C2D0BE
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:50:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5BB95206E0
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:50:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD8C0206E0
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:50:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727142AbfLIWtu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Dec 2019 17:49:50 -0500
-Received: from mga12.intel.com ([192.55.52.136]:33715 "EHLO mga12.intel.com"
+        id S1727196AbfLIWuT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Dec 2019 17:50:19 -0500
+Received: from mga12.intel.com ([192.55.52.136]:33717 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727113AbfLIWtp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 9 Dec 2019 17:49:45 -0500
+        id S1727161AbfLIWtv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 9 Dec 2019 17:49:51 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Dec 2019 14:49:43 -0800
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 09 Dec 2019 14:49:45 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.69,296,1571727600"; 
-   d="scan'208";a="237912325"
+   d="scan'208";a="237912346"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.74])
-  by fmsmga004.fm.intel.com with ESMTP; 09 Dec 2019 14:49:42 -0800
+  by fmsmga004.fm.intel.com with ESMTP; 09 Dec 2019 14:49:45 -0800
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
 Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
@@ -34,9 +35,9 @@ Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
         sassmann@redhat.com, jgg@ziepe.ca, parav@mellanox.com,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [PATCH v3 10/20] RDMA/irdma: Add QoS definitions
-Date:   Mon,  9 Dec 2019 14:49:25 -0800
-Message-Id: <20191209224935.1780117-11-jeffrey.t.kirsher@intel.com>
+Subject: [PATCH v3 14/20] RDMA/irdma: Add RoCEv2 UD OP support
+Date:   Mon,  9 Dec 2019 14:49:29 -0800
+Message-Id: <20191209224935.1780117-15-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191209224935.1780117-1-jeffrey.t.kirsher@intel.com>
 References: <20191209224935.1780117-1-jeffrey.t.kirsher@intel.com>
@@ -49,30 +50,28 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Add definitions for managing the RDMA HW work scheduler (WS) tree.
-
-A WS node is created via a control QP operation with the bandwidth
-allocation, arbitration scheme, and traffic class of the QP specified.
-The Qset handle returned associates the QoS parameters for the QP.
-The Qset is registered with the LAN and a equivalent node is created
-in the LAN packet scheduler tree.
+Add the header, data structures and functions
+to populate the WQE descriptors and issue the
+Control QP commands that support RoCEv2 UD operations.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- drivers/infiniband/hw/irdma/ws.c | 395 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/ws.h |  39 +++
- 2 files changed, 434 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/ws.c
- create mode 100644 drivers/infiniband/hw/irdma/ws.h
+ drivers/infiniband/hw/irdma/uda.c   | 390 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/irdma/uda.h   |  64 +++++
+ drivers/infiniband/hw/irdma/uda_d.h | 382 +++++++++++++++++++++++++++
+ 3 files changed, 836 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/uda.c
+ create mode 100644 drivers/infiniband/hw/irdma/uda.h
+ create mode 100644 drivers/infiniband/hw/irdma/uda_d.h
 
-diff --git a/drivers/infiniband/hw/irdma/ws.c b/drivers/infiniband/hw/irdma/ws.c
+diff --git a/drivers/infiniband/hw/irdma/uda.c b/drivers/infiniband/hw/irdma/uda.c
 new file mode 100644
-index 000000000000..4828d7b0aee6
+index 000000000000..08c9f486491e
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.c
-@@ -0,0 +1,395 @@
++++ b/drivers/infiniband/hw/irdma/uda.c
+@@ -0,0 +1,390 @@
 +// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
 +/* Copyright (c) 2019 Intel Corporation */
 +#include "osdep.h"
@@ -81,438 +80,846 @@ index 000000000000..4828d7b0aee6
 +#include "defs.h"
 +#include "type.h"
 +#include "protos.h"
-+
-+#include "ws.h"
++#include "uda.h"
++#include "uda_d.h"
 +
 +/**
-+ * irdma_alloc_node - Allocate a WS node and init
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ * @node_type: Type of node, leaf or parent
-+ * @parent: parent node pointer
++ * irdma_sc_ah_init - initialize sc ah struct
++ * @dev: sc device struct
++ * @ah: sc ah ptr
 + */
-+static struct irdma_ws_node *irdma_alloc_node(struct irdma_sc_vsi *vsi,
-+					      u8 user_pri,
-+					      enum irdma_ws_node_type node_type,
-+					      struct irdma_ws_node *parent)
++static void irdma_sc_init_ah(struct irdma_sc_dev *dev, struct irdma_sc_ah *ah)
 +{
-+	struct irdma_virt_mem ws_mem;
-+	struct irdma_ws_node *node;
-+	u16 node_index = 0;
++	ah->dev = dev;
++}
 +
-+	ws_mem.size = sizeof(struct irdma_ws_node);
-+	ws_mem.va = kzalloc(ws_mem.size, GFP_ATOMIC);
-+	if (!ws_mem.va)
-+		return NULL;
++/**
++ * irdma_sc_access_ah() - Create, modify or delete AH
++ * @cqp: struct for cqp hw
++ * @info: ah information
++ * @op: Operation
++ * @scratch: u64 saved to be used during cqp completion
++ */
++static enum irdma_status_code irdma_sc_access_ah(struct irdma_sc_cqp *cqp,
++						 struct irdma_ah_info *info,
++						 u32 op, u64 scratch)
++{
++	__le64 *wqe;
++	u64 qw1, qw2;
 +
-+	if (parent || vsi->vm_vf_type == IRDMA_VF_TYPE) {
-+		node_index = irdma_alloc_ws_node_id(vsi->dev);
-+		if (node_index == IRDMA_WS_NODE_INVALID) {
-+			kfree(ws_mem.va);
-+			return NULL;
-+		}
-+	}
++	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
++	if (!wqe)
++		return IRDMA_ERR_RING_FULL;
 +
-+	node = ws_mem.va;
-+	node->index = node_index;
-+	node->vsi_index = vsi->vsi_idx;
-+	INIT_LIST_HEAD(&node->child_list_head);
-+	if (node_type == WS_NODE_TYPE_LEAF) {
-+		node->type_leaf = true;
-+		node->traffic_class = vsi->qos[user_pri].traffic_class;
-+		node->user_pri = user_pri;
-+		node->rel_bw = vsi->qos[user_pri].rel_bw;
-+		if (!node->rel_bw)
-+			node->rel_bw = 1;
++	set_64bit_val(wqe, 0, LS_64_1(info->mac_addr[5], 16) |
++					 LS_64_1(info->mac_addr[4], 24) |
++					 LS_64_1(info->mac_addr[3], 32) |
++					 LS_64_1(info->mac_addr[2], 40) |
++					 LS_64_1(info->mac_addr[1], 48) |
++					 LS_64_1(info->mac_addr[0], 56));
 +
-+		node->lan_qs_handle = vsi->qos[user_pri].lan_qos_handle;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
++	qw1 = LS_64(info->pd_idx, IRDMA_UDA_CQPSQ_MAV_PDINDEXLO) |
++	      LS_64(info->tc_tos, IRDMA_UDA_CQPSQ_MAV_TC) |
++	      LS_64(info->vlan_tag, IRDMA_UDAQPC_VLANTAG);
++
++	qw2 = LS_64(info->dst_arpindex, IRDMA_UDA_CQPSQ_MAV_ARPINDEX) |
++	      LS_64(info->flow_label, IRDMA_UDA_CQPSQ_MAV_FLOWLABEL) |
++	      LS_64(info->hop_ttl, IRDMA_UDA_CQPSQ_MAV_HOPLIMIT) |
++	      LS_64(info->pd_idx >> 16, IRDMA_UDA_CQPSQ_MAV_PDINDEXHI);
++
++	if (!info->ipv4_valid) {
++		set_64bit_val(wqe, 40,
++			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR0) |
++			      LS_64(info->dest_ip_addr[1], IRDMA_UDA_CQPSQ_MAV_ADDR1));
++		set_64bit_val(wqe, 32,
++			      LS_64(info->dest_ip_addr[2], IRDMA_UDA_CQPSQ_MAV_ADDR2) |
++			      LS_64(info->dest_ip_addr[3], IRDMA_UDA_CQPSQ_MAV_ADDR3));
++
++		set_64bit_val(wqe, 56,
++			      LS_64(info->src_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR0) |
++			      LS_64(info->src_ip_addr[1], IRDMA_UDA_CQPSQ_MAV_ADDR1));
++		set_64bit_val(wqe, 48,
++			      LS_64(info->src_ip_addr[2], IRDMA_UDA_CQPSQ_MAV_ADDR2) |
++			      LS_64(info->src_ip_addr[3], IRDMA_UDA_CQPSQ_MAV_ADDR3));
 +	} else {
-+		node->rel_bw = 1;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
++		set_64bit_val(wqe, 32,
++			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR3));
++
++		set_64bit_val(wqe, 48,
++			      LS_64(info->src_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR3));
 +	}
 +
-+	node->parent = parent;
++	set_64bit_val(wqe, 8, qw1);
++	set_64bit_val(wqe, 16, qw2);
 +
-+	return node;
++	dma_wmb(); /* need write block before writing WQE header */
++
++	set_64bit_val(
++		wqe, 24,
++		LS_64(cqp->polarity, IRDMA_UDA_CQPSQ_MAV_WQEVALID) |
++		LS_64(op, IRDMA_UDA_CQPSQ_MAV_OPCODE) |
++		LS_64(info->do_lpbk, IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK) |
++		LS_64(info->ipv4_valid, IRDMA_UDA_CQPSQ_MAV_IPV4VALID) |
++		LS_64(info->ah_idx, IRDMA_UDA_CQPSQ_MAV_AVIDX) |
++		LS_64(info->insert_vlan_tag,
++		      IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG));
++
++	irdma_debug_buf(cqp->dev, IRDMA_DEBUG_WQE, "MANAGE_AH WQE", wqe,
++			IRDMA_CQP_WQE_SIZE * 8);
++	irdma_sc_cqp_post_sq(cqp);
++
++	return 0;
 +}
 +
 +/**
-+ * irdma_free_node - Free a WS node
-+ * @vsi: VSI stricture of device
-+ * @node: Pointer to node to free
++ * irdma_sc_create_ah() - Create AH
++ * @cqp: struct for cqp hw
++ * @info: ah information
++ * @scratch: u64 saved to be used during cqp completion
 + */
-+static void irdma_free_node(struct irdma_sc_vsi *vsi,
-+			    struct irdma_ws_node *node)
++static enum irdma_status_code irdma_sc_create_ah(struct irdma_sc_cqp *cqp,
++						 struct irdma_ah_info *info,
++						 u64 scratch)
 +{
-+	struct irdma_virt_mem ws_mem;
-+
-+	if (node->index)
-+		irdma_free_ws_node_id(vsi->dev, node->index);
-+
-+	ws_mem.va = node;
-+	ws_mem.size = sizeof(struct irdma_ws_node);
-+	kfree(ws_mem.va);
++	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_CREATE_ADDR_HANDLE,
++				  scratch);
 +}
 +
 +/**
-+ * irdma_ws_cqp_cmd - Post CQP work scheduler node cmd
-+ * @vsi: vsi pointer
-+ * @node: pointer to node
-+ * @cmd: add, remove or modify
++ * irdma_sc_modify_ah() - Modify AH
++ * @cqp: struct for cqp hw
++ * @info: ah information
++ * @scratch: u64 saved to be used during cqp completion
++ */
++static enum irdma_status_code irdma_sc_modify_ah(struct irdma_sc_cqp *cqp,
++						 struct irdma_ah_info *info,
++						 u64 scratch)
++{
++	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_MODIFY_ADDR_HANDLE,
++				  scratch);
++}
++
++/**
++ * irdma_sc_destroy_ah() - Delete AH
++ * @cqp: struct for cqp hw
++ * @info: ah information
++ * @scratch: u64 saved to be used during cqp completion
++ */
++static enum irdma_status_code irdma_sc_destroy_ah(struct irdma_sc_cqp *cqp,
++						  struct irdma_ah_info *info,
++						  u64 scratch)
++{
++	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_DESTROY_ADDR_HANDLE,
++				  scratch);
++}
++
++/**
++ * create_mg_ctx() - create a mcg context
++ * @info: multicast group context info
 + */
 +static enum irdma_status_code
-+irdma_ws_cqp_cmd(struct irdma_sc_vsi *vsi, struct irdma_ws_node *node, u8 cmd)
++irdma_create_mg_ctx(struct irdma_mcast_grp_info *info)
 +{
-+	struct irdma_ws_node_info node_info = {};
++	struct irdma_mcast_grp_ctx_entry_info *entry_info = NULL;
++	u8 idx = 0; /* index in the array */
++	u8 ctx_idx = 0; /* index in the MG context */
 +
-+	node_info.id = node->index;
-+	node_info.vsi = node->vsi_index;
-+	if (node->parent)
-+		node_info.parent_id = node->parent->index;
-+	else
-+		node_info.parent_id = node_info.id;
++	memset(info->dma_mem_mc.va, 0, IRDMA_MAX_MGS_PER_CTX * sizeof(u64));
 +
-+	node_info.weight = node->rel_bw;
-+	node_info.tc = node->traffic_class;
-+	node_info.prio_type = node->prio_type;
-+	node_info.type_leaf = node->type_leaf;
-+	node_info.enable = node->enable;
-+	if (irdma_cqp_ws_node_cmd(vsi->dev, cmd, &node_info)) {
-+		dev_dbg(rfdev_to_dev(vsi->dev), "WS: CQP WS CMD failed\n");
-+		return IRDMA_ERR_NO_MEMORY;
-+	}
-+
-+	if (node->type_leaf && cmd == IRDMA_OP_WS_ADD_NODE) {
-+		node->qs_handle = node_info.qs_handle;
-+		vsi->qos[node->user_pri].qs_handle = node_info.qs_handle;
++	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
++		entry_info = &info->mg_ctx_info[idx];
++		if (entry_info->valid_entry) {
++			set_64bit_val((__le64 *)info->dma_mem_mc.va,
++				      ctx_idx * sizeof(u64),
++				      LS_64(entry_info->dest_port, IRDMA_UDA_MGCTX_DESTPORT) |
++				      LS_64(entry_info->valid_entry, IRDMA_UDA_MGCTX_VALIDENT) |
++				      LS_64(entry_info->qp_id, IRDMA_UDA_MGCTX_QPID));
++			ctx_idx++;
++		}
 +	}
 +
 +	return 0;
 +}
 +
 +/**
-+ * ws_find_node - Find SC WS node based on VSI id or TC
-+ * @parent: parent node of First VSI or TC node
-+ * @match_val: value to match
-+ * @type: match type VSI/TC
++ * irdma_access_mcast_grp() - Access mcast group based on op
++ * @cqp: Control QP
++ * @info: multicast group context info
++ * @op: operation to perform
++ * @scratch: u64 saved to be used during cqp completion
 + */
-+static struct irdma_ws_node *ws_find_node(struct irdma_ws_node *parent,
-+					  u16 match_val,
-+					  enum irdma_ws_match_type type)
++static enum irdma_status_code
++irdma_access_mcast_grp(struct irdma_sc_cqp *cqp,
++		       struct irdma_mcast_grp_info *info, u32 op, u64 scratch)
 +{
-+	struct irdma_ws_node *node;
++	__le64 *wqe;
++	enum irdma_status_code ret_code = 0;
 +
-+	switch (type) {
-+	case WS_MATCH_TYPE_VSI:
-+		list_for_each_entry(node, &parent->child_list_head, siblings) {
-+			if (node->vsi_index == match_val)
-+				return node;
-+		}
-+		break;
-+	case WS_MATCH_TYPE_TC:
-+		list_for_each_entry(node, &parent->child_list_head, siblings) {
-+			if (node->traffic_class == match_val)
-+				return node;
-+		}
-+		break;
-+	default:
-+		break;
++	if (info->mg_id >= IRDMA_UDA_MAX_FSI_MGS) {
++		dev_dbg(rfdev_to_dev(cqp->dev), "WQE: mg_id out of range\n");
++		return IRDMA_ERR_PARAM;
 +	}
 +
-+	return NULL;
++	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
++	if (!wqe) {
++		dev_dbg(rfdev_to_dev(cqp->dev), "WQE: ring full\n");
++		return IRDMA_ERR_RING_FULL;
++	}
++
++	ret_code = irdma_create_mg_ctx(info);
++	if (ret_code)
++		return ret_code;
++
++	set_64bit_val(wqe, 32, info->dma_mem_mc.pa);
++	set_64bit_val(wqe, 16,
++		      LS_64(info->vlan_id, IRDMA_UDA_CQPSQ_MG_VLANID) |
++		      LS_64(info->qs_handle, IRDMA_UDA_CQPSQ_QS_HANDLE));
++	set_64bit_val(wqe, 0, LS_64_1(info->dest_mac_addr[5], 0) |
++					 LS_64_1(info->dest_mac_addr[4], 8) |
++					 LS_64_1(info->dest_mac_addr[3], 16) |
++					 LS_64_1(info->dest_mac_addr[2], 24) |
++					 LS_64_1(info->dest_mac_addr[1], 32) |
++					 LS_64_1(info->dest_mac_addr[0], 40));
++	set_64bit_val(wqe, 8,
++		      LS_64(info->hmc_fcn_id, IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID));
++
++	if (!info->ipv4_valid) {
++		set_64bit_val(wqe, 56,
++			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR0) |
++			      LS_64(info->dest_ip_addr[1], IRDMA_UDA_CQPSQ_MAV_ADDR1));
++		set_64bit_val(wqe, 48,
++			      LS_64(info->dest_ip_addr[2], IRDMA_UDA_CQPSQ_MAV_ADDR2) |
++			      LS_64(info->dest_ip_addr[3], IRDMA_UDA_CQPSQ_MAV_ADDR3));
++	} else {
++		set_64bit_val(wqe, 48,
++			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR3));
++	}
++
++	dma_wmb(); /* need write memory block before writing the WQE header. */
++
++	set_64bit_val(wqe, 24,
++		      LS_64(cqp->polarity, IRDMA_UDA_CQPSQ_MG_WQEVALID) |
++		      LS_64(op, IRDMA_UDA_CQPSQ_MG_OPCODE) |
++		      LS_64(info->mg_id, IRDMA_UDA_CQPSQ_MG_MGIDX) |
++		      LS_64(info->vlan_valid, IRDMA_UDA_CQPSQ_MG_VLANVALID) |
++		      LS_64(info->ipv4_valid, IRDMA_UDA_CQPSQ_MG_IPV4VALID));
++
++	irdma_debug_buf(cqp->dev, IRDMA_DEBUG_WQE, "MANAGE_MCG WQE", wqe,
++			IRDMA_CQP_WQE_SIZE * 8);
++	irdma_debug_buf(cqp->dev, IRDMA_DEBUG_WQE, "MCG_HOST CTX WQE",
++			info->dma_mem_mc.va, IRDMA_MAX_MGS_PER_CTX * 8);
++	irdma_sc_cqp_post_sq(cqp);
++
++	return 0;
 +}
 +
 +/**
-+ * irdma_tc_in_use - Checks to see if a leaf node is in use
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
++ * irdma_sc_create_mcast_grp() - Create mcast group.
++ * @cqp: Control QP
++ * @info: multicast group context info
++ * @scratch: u64 saved to be used during cqp completion
 + */
-+static bool irdma_tc_in_use(struct irdma_sc_vsi *vsi, u8 user_pri)
++static enum irdma_status_code
++irdma_sc_create_mcast_grp(struct irdma_sc_cqp *cqp,
++			  struct irdma_mcast_grp_info *info, u64 scratch)
 +{
-+	unsigned long flags;
-+	int i;
++	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_CREATE_MCAST_GRP,
++				      scratch);
++}
 +
-+	spin_lock_irqsave(&vsi->qos[user_pri].lock, flags);
-+	if (!list_empty(&vsi->qos[user_pri].qplist)) {
-+		spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
++/**
++ * irdma_sc_modify_mcast_grp() - Modify mcast group
++ * @cqp: Control QP
++ * @info: multicast group context info
++ * @scratch: u64 saved to be used during cqp completion
++ */
++static enum irdma_status_code
++irdma_sc_modify_mcast_grp(struct irdma_sc_cqp *cqp,
++			  struct irdma_mcast_grp_info *info, u64 scratch)
++{
++	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_MODIFY_MCAST_GRP,
++				      scratch);
++}
++
++/**
++ * irdma_sc_destroy_mcast_grp() - Destroys mcast group
++ * @cqp: Control QP
++ * @info: multicast group context info
++ * @scratch: u64 saved to be used during cqp completion
++ */
++static enum irdma_status_code
++irdma_sc_destroy_mcast_grp(struct irdma_sc_cqp *cqp,
++			   struct irdma_mcast_grp_info *info, u64 scratch)
++{
++	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_DESTROY_MCAST_GRP,
++				      scratch);
++}
++
++/**
++ * irdma_compare_mgs - Compares two multicast group structures
++ * @entry1: Multcast group info
++ * @entry2: Multcast group info in context
++ */
++static bool irdma_compare_mgs(struct irdma_mcast_grp_ctx_entry_info *entry1,
++			      struct irdma_mcast_grp_ctx_entry_info *entry2)
++{
++	if (entry1->dest_port == entry2->dest_port &&
++	    entry1->qp_id == entry2->qp_id)
 +		return true;
-+	}
-+
-+	/* Check if the traffic class associated with the given user priority
-+	 * is in use by any other user priority. If so, nothing left to do
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == vsi->qos[user_pri].traffic_class &&
-+		    !list_empty(&vsi->qos[i].qplist)) {
-+			spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+			return true;
-+		}
-+	}
-+	spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
 +
 +	return false;
 +}
 +
 +/**
-+ * irdma_remove_leaf - Remove leaf node unconditionally
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
++ * irdma_sc_add_mcast_grp - Allocates mcast group entry in ctx
++ * @ctx: Multcast group context
++ * @mg: Multcast group info
 + */
-+static void irdma_remove_leaf(struct irdma_sc_vsi *vsi, u8 user_pri)
++static enum irdma_status_code
++irdma_sc_add_mcast_grp(struct irdma_mcast_grp_info *ctx,
++		       struct irdma_mcast_grp_ctx_entry_info *mg)
 +{
-+	struct irdma_ws_node *ws_tree_root, *vsi_node, *tc_node;
++	u32 idx;
++	bool free_entry_found = false;
++	u32 free_entry_idx = 0;
 +
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root)
-+		return;
-+
-+	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+	if (!vsi_node)
-+		return;
-+
-+	tc_node = ws_find_node(vsi_node,
-+			       vsi->qos[user_pri].traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node)
-+		return;
-+
-+	irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_DELETE_NODE);
-+	vsi->unregister_qset(vsi, tc_node);
-+	list_del(&tc_node->siblings);
-+	irdma_free_node(vsi, tc_node);
-+	/* Check if VSI node can be freed */
-+	if (list_empty(&vsi_node->child_list_head)) {
-+		irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE);
-+		list_del(&vsi_node->siblings);
-+		irdma_free_node(vsi, vsi_node);
-+		/* Free head node there are no remaining VSI nodes */
-+		if (list_empty(&ws_tree_root->child_list_head)) {
-+			irdma_ws_cqp_cmd(vsi, ws_tree_root,
-+					 IRDMA_OP_WS_DELETE_NODE);
-+			irdma_free_node(vsi, ws_tree_root);
-+			vsi->dev->ws_tree_root = NULL;
++	/* find either an identical or a free entry for a multicast group */
++	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
++		if (ctx->mg_ctx_info[idx].valid_entry) {
++			if (irdma_compare_mgs(&ctx->mg_ctx_info[idx], mg)) {
++				ctx->mg_ctx_info[idx].use_cnt++;
++				return 0;
++			}
++			continue;
++		}
++		if (!free_entry_found) {
++			free_entry_found = true;
++			free_entry_idx = idx;
 +		}
 +	}
++
++	if (free_entry_found) {
++		ctx->mg_ctx_info[free_entry_idx] = *mg;
++		ctx->mg_ctx_info[free_entry_idx].valid_entry = true;
++		ctx->mg_ctx_info[free_entry_idx].use_cnt = 1;
++		ctx->no_of_mgs++;
++		return 0;
++	}
++
++	return IRDMA_ERR_NO_MEMORY;
 +}
 +
 +/**
-+ * irdma_ws_add - Build work scheduler tree, set RDMA qs_handle
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
++ * irdma_sc_del_mcast_grp - Delete mcast group
++ * @ctx: Multcast group context
++ * @mg: Multcast group info
++ *
++ * Finds and removes a specific mulicast group from context, all
++ * parameters must match to remove a multicast group.
 + */
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri)
++static enum irdma_status_code
++irdma_sc_del_mcast_grp(struct irdma_mcast_grp_info *ctx,
++		       struct irdma_mcast_grp_ctx_entry_info *mg)
 +{
-+	struct irdma_ws_node *ws_tree_root;
-+	struct irdma_ws_node *vsi_node;
-+	struct irdma_ws_node *tc_node;
-+	u16 traffic_class;
-+	enum irdma_status_code ret = 0;
-+	int i;
++	u32 idx;
 +
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (vsi->tc_change_pending) {
-+		ret = IRDMA_ERR_NOT_READY;
-+		goto exit;
-+	}
++	/* find an entry in multicast group context */
++	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
++		if (!ctx->mg_ctx_info[idx].valid_entry)
++			continue;
 +
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root) {
-+		dev_dbg(rfdev_to_dev(vsi->dev), "WS: Creating root node\n");
-+		ws_tree_root = irdma_alloc_node(vsi, user_pri,
-+						WS_NODE_TYPE_PARENT, NULL);
-+		if (!ws_tree_root) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto exit;
-+		}
++		if (irdma_compare_mgs(mg, &ctx->mg_ctx_info[idx])) {
++			ctx->mg_ctx_info[idx].use_cnt--;
 +
-+		ret = irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, ws_tree_root);
-+			goto exit;
-+		}
++			if (!ctx->mg_ctx_info[idx].use_cnt) {
++				ctx->mg_ctx_info[idx].valid_entry = false;
++				ctx->no_of_mgs--;
++				/* Remove gap if element was not the last */
++				if (idx != ctx->no_of_mgs &&
++				    ctx->no_of_mgs > 0) {
++					memcpy(&ctx->mg_ctx_info[idx],
++					       &ctx->mg_ctx_info[ctx->no_of_mgs - 1],
++					       sizeof(ctx->mg_ctx_info[idx]));
++					ctx->mg_ctx_info[ctx->no_of_mgs - 1].valid_entry = false;
++				}
++			}
 +
-+		vsi->dev->ws_tree_root = ws_tree_root;
-+	}
-+
-+	/* Find a second tier node that matches the VSI */
-+	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+
-+	/* If VSI node doesn't exist, add one */
-+	if (!vsi_node) {
-+		dev_dbg(rfdev_to_dev(vsi->dev),
-+			"WS: Node not found matching VSI %d\n", vsi->vsi_idx);
-+		vsi_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_PARENT,
-+					    ws_tree_root);
-+		if (!vsi_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto vsi_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, vsi_node);
-+			goto vsi_add_err;
-+		}
-+
-+		list_add(&vsi_node->siblings, &ws_tree_root->child_list_head);
-+	}
-+
-+	dev_dbg(rfdev_to_dev(vsi->dev),
-+		"WS: Using node %d which represents VSI %d\n",
-+		vsi_node->index, vsi->vsi_idx);
-+	traffic_class = vsi->qos[user_pri].traffic_class;
-+	tc_node = ws_find_node(vsi_node, traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node) {
-+		/* Add leaf node */
-+		dev_dbg(rfdev_to_dev(vsi->dev),
-+			"WS: Node not found matching VSI %d and TC %d\n",
-+			vsi->vsi_idx, traffic_class);
-+		tc_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_LEAF,
-+					   vsi_node);
-+		if (!tc_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto leaf_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, tc_node);
-+			goto leaf_add_err;
-+		}
-+
-+		list_add(&tc_node->siblings, &vsi_node->child_list_head);
-+		/*
-+		 * callback to LAN to update the LAN tree with our node
-+		 */
-+		ret = vsi->register_qset(vsi, tc_node);
-+		if (ret)
-+			goto reg_err;
-+
-+		tc_node->enable = true;
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_MODIFY_NODE);
-+		if (ret)
-+			goto reg_err;
-+	}
-+	dev_dbg(rfdev_to_dev(vsi->dev),
-+		"WS: Using node %d which represents VSI %d TC %d\n",
-+		tc_node->index, vsi->vsi_idx, traffic_class);
-+	/*
-+	 * Iterate through other UPs and update the QS handle if they have
-+	 * a matching traffic class.
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == traffic_class) {
-+			vsi->qos[i].qs_handle = tc_node->qs_handle;
-+			vsi->qos[i].lan_qos_handle = tc_node->lan_qs_handle;
-+			vsi->qos[i].l2_sched_node_id = tc_node->l2_sched_node_id;
++			return 0;
 +		}
 +	}
-+	goto exit;
 +
-+leaf_add_err:
-+	if (list_empty(&vsi_node->child_list_head)) {
-+		if (irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE))
-+			goto exit;
-+		list_del(&vsi_node->siblings);
-+		irdma_free_node(vsi, vsi_node);
-+	}
-+
-+vsi_add_err:
-+	/* Free head node there are no remaining VSI nodes */
-+	if (list_empty(&ws_tree_root->child_list_head)) {
-+		irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_DELETE_NODE);
-+		vsi->dev->ws_tree_root = NULL;
-+		irdma_free_node(vsi, ws_tree_root);
-+	}
-+
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	return ret;
-+
-+reg_err:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	irdma_ws_remove(vsi, user_pri);
-+	return ret;
++	return IRDMA_ERR_PARAM;
 +}
 +
-+/**
-+ * irdma_ws_remove - Free WS scheduler node, update WS tree
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (irdma_tc_in_use(vsi, user_pri))
-+		goto exit;
-+
-+	irdma_remove_leaf(vsi, user_pri);
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+}
-+
-+/**
-+ * irdma_ws_reset - Reset entire WS tree
-+ * @vsi: vsi pointer
-+ */
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi)
-+{
-+	u8 i;
-+
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; ++i)
-+		irdma_remove_leaf(vsi, i);
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+}
-diff --git a/drivers/infiniband/hw/irdma/ws.h b/drivers/infiniband/hw/irdma/ws.h
++struct irdma_uda_ops irdma_uda_ops = {
++	.create_ah = irdma_sc_create_ah,
++	.destroy_ah = irdma_sc_destroy_ah,
++	.init_ah = irdma_sc_init_ah,
++	.mcast_grp_add = irdma_sc_add_mcast_grp,
++	.mcast_grp_create = irdma_sc_create_mcast_grp,
++	.mcast_grp_del = irdma_sc_del_mcast_grp,
++	.mcast_grp_destroy = irdma_sc_destroy_mcast_grp,
++	.mcast_grp_modify = irdma_sc_modify_mcast_grp,
++	.modify_ah = irdma_sc_modify_ah,
++};
+diff --git a/drivers/infiniband/hw/irdma/uda.h b/drivers/infiniband/hw/irdma/uda.h
 new file mode 100644
-index 000000000000..e05feb8a5f9e
+index 000000000000..4f2e87b2f2e6
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.h
-@@ -0,0 +1,39 @@
++++ b/drivers/infiniband/hw/irdma/uda.h
+@@ -0,0 +1,64 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2015 - 2019 Intel Corporation */
-+#ifndef IRDMA_WS_H
-+#define IRDMA_WS_H
++/* Copyright (c) 2019 Intel Corporation */
++#ifndef IRDMA_UDA_H
++#define IRDMA_UDA_H
 +
-+#include "osdep.h"
++extern struct irdma_uda_ops irdma_uda_ops;
 +
-+enum irdma_ws_node_type {
-+	WS_NODE_TYPE_PARENT,
-+	WS_NODE_TYPE_LEAF,
++#define IRDMA_UDA_MAX_FSI_MGS	4096
++#define IRDMA_UDA_MAX_PFS	16
++#define IRDMA_UDA_MAX_VFS	128
++
++struct irdma_sc_cqp;
++
++struct irdma_ah_info {
++	struct irdma_sc_ah *ah;
++	struct irdma_sc_vsi *vsi;
++	u32 pd_idx;
++	u32 dst_arpindex;
++	u32 dest_ip_addr[4];
++	u32 src_ip_addr[4];
++	u32 flow_label;
++	u32 ah_idx;
++	bool ipv4_valid;
++	bool do_lpbk;
++	u16 vlan_tag;
++	u8 insert_vlan_tag;
++	u8 tc_tos;
++	u8 hop_ttl;
++	u8 mac_addr[ETH_ALEN];
++	bool ah_valid;
 +};
 +
-+enum irdma_ws_match_type {
-+	WS_MATCH_TYPE_VSI,
-+	WS_MATCH_TYPE_TC,
++struct irdma_sc_ah {
++	struct irdma_sc_dev *dev;
++	struct irdma_ah_info ah_info;
 +};
 +
-+struct irdma_ws_node {
-+	struct list_head siblings;
-+	struct list_head child_list_head;
-+	struct irdma_ws_node *parent;
-+	u64 lan_qs_handle; /* opaque handle used by LAN */
-+	u32 l2_sched_node_id;
-+	u16 index;
-+	u16 qs_handle;
-+	u16 vsi_index;
-+	u8 traffic_class;
-+	u8 user_pri;
-+	u8 rel_bw;
-+	u8 abstraction_layer; /* used for splitting a TC */
-+	u8 prio_type;
-+	bool type_leaf;
-+	bool enable;
++struct irdma_uda_ops {
++	void (*init_ah)(struct irdma_sc_dev *dev, struct irdma_sc_ah *ah);
++	enum irdma_status_code (*create_ah)(struct irdma_sc_cqp *cqp,
++					    struct irdma_ah_info *info,
++					    u64 scratch);
++	enum irdma_status_code (*modify_ah)(struct irdma_sc_cqp *cqp,
++					    struct irdma_ah_info *info,
++					    u64 scratch);
++	enum irdma_status_code (*destroy_ah)(struct irdma_sc_cqp *cqp,
++					     struct irdma_ah_info *info,
++					     u64 scratch);
++	/* multicast */
++	enum irdma_status_code (*mcast_grp_create)(struct irdma_sc_cqp *cqp,
++						   struct irdma_mcast_grp_info *info,
++						   u64 scratch);
++	enum irdma_status_code (*mcast_grp_modify)(struct irdma_sc_cqp *cqp,
++						   struct irdma_mcast_grp_info *info,
++						   u64 scratch);
++	enum irdma_status_code (*mcast_grp_destroy)(struct irdma_sc_cqp *cqp,
++						    struct irdma_mcast_grp_info *info,
++						    u64 scratch);
++	enum irdma_status_code (*mcast_grp_add)(struct irdma_mcast_grp_info *ctx,
++						struct irdma_mcast_grp_ctx_entry_info *mg);
++	enum irdma_status_code (*mcast_grp_del)(struct irdma_mcast_grp_info *ctx,
++						struct irdma_mcast_grp_ctx_entry_info *mg);
 +};
++#endif /* IRDMA_UDA_H */
+diff --git a/drivers/infiniband/hw/irdma/uda_d.h b/drivers/infiniband/hw/irdma/uda_d.h
+new file mode 100644
+index 000000000000..266e9ed567c0
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/uda_d.h
+@@ -0,0 +1,382 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2019 Intel Corporation */
++#ifndef IRDMA_UDA_D_H
++#define IRDMA_UDA_D_H
 +
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi);
-+#endif /* IRDMA_WS_H */
++/* L4 packet type */
++#define IRDMA_E_UDA_SQ_L4T_UNKNOWN	0
++#define IRDMA_E_UDA_SQ_L4T_TCP		1
++#define IRDMA_E_UDA_SQ_L4T_SCTP		2
++#define IRDMA_E_UDA_SQ_L4T_UDP		3
++
++/* Inner IP header type */
++#define IRDMA_E_UDA_SQ_IIPT_UNKNOWN		0
++#define IRDMA_E_UDA_SQ_IIPT_IPV6		1
++#define IRDMA_E_UDA_SQ_IIPT_IPV4_NO_CSUM	2
++#define IRDMA_E_UDA_SQ_IIPT_IPV4_CSUM		3
++
++/* UDA defined fields for transmit descriptors */
++#define IRDMA_UDA_QPSQ_PUSHWQE_S 56
++#define IRDMA_UDA_QPSQ_PUSHWQE_M BIT_ULL(IRDMA_UDA_QPSQ_PUSHWQE_S)
++
++#define IRDMA_UDA_QPSQ_INLINEDATAFLAG_S 57
++#define IRDMA_UDA_QPSQ_INLINEDATAFLAG_M \
++	BIT_ULL(IRDMA_UDA_QPSQ_INLINEDATAFLAG_S)
++
++#define IRDMA_UDA_QPSQ_INLINEDATALEN_S 48
++#define IRDMA_UDA_QPSQ_INLINEDATALEN_M \
++	((u64)0xff << IRDMA_UDA_QPSQ_INLINEDATALEN_S)
++
++#define IRDMA_UDA_QPSQ_ADDFRAGCNT_S 38
++#define IRDMA_UDA_QPSQ_ADDFRAGCNT_M \
++	((u64)0x0F << IRDMA_UDA_QPSQ_ADDFRAGCNT_S)
++
++#define IRDMA_UDA_QPSQ_IPFRAGFLAGS_S 42
++#define IRDMA_UDA_QPSQ_IPFRAGFLAGS_M \
++	((u64)0x3 << IRDMA_UDA_QPSQ_IPFRAGFLAGS_S)
++
++#define IRDMA_UDA_QPSQ_NOCHECKSUM_S 45
++#define IRDMA_UDA_QPSQ_NOCHECKSUM_M \
++	BIT_ULL(IRDMA_UDA_QPSQ_NOCHECKSUM_S)
++
++#define IRDMA_UDA_QPSQ_AHIDXVALID_S 46
++#define IRDMA_UDA_QPSQ_AHIDXVALID_M \
++	BIT_ULL(IRDMA_UDA_QPSQ_AHIDXVALID_S)
++
++#define IRDMA_UDA_QPSQ_LOCAL_FENCE_S 61
++#define IRDMA_UDA_QPSQ_LOCAL_FENCE_M \
++	BIT_ULL(IRDMA_UDA_QPSQ_LOCAL_FENCE_S)
++
++#define IRDMA_UDA_QPSQ_AHIDX_S 0
++#define IRDMA_UDA_QPSQ_AHIDX_M ((u64)0x1ffff << IRDMA_UDA_QPSQ_AHIDX_S)
++
++#define IRDMA_UDA_QPSQ_PROTOCOL_S 16
++#define IRDMA_UDA_QPSQ_PROTOCOL_M \
++	((u64)0xff << IRDMA_UDA_QPSQ_PROTOCOL_S)
++
++#define IRDMA_UDA_QPSQ_EXTHDRLEN_S 32
++#define IRDMA_UDA_QPSQ_EXTHDRLEN_M \
++	((u64)0x1ff << IRDMA_UDA_QPSQ_EXTHDRLEN_S)
++
++#define IRDMA_UDA_QPSQ_MULTICAST_S 63
++#define IRDMA_UDA_QPSQ_MULTICAST_M \
++	BIT_ULL(IRDMA_UDA_QPSQ_MULTICAST_S)
++
++#define IRDMA_UDA_QPSQ_MACLEN_S 56
++#define IRDMA_UDA_QPSQ_MACLEN_M \
++	((u64)0x7f << IRDMA_UDA_QPSQ_MACLEN_S)
++#define IRDMA_UDA_QPSQ_MACLEN_LINE 2
++
++#define IRDMA_UDA_QPSQ_IPLEN_S 48
++#define IRDMA_UDA_QPSQ_IPLEN_M \
++	((u64)0x7f << IRDMA_UDA_QPSQ_IPLEN_S)
++#define IRDMA_UDA_QPSQ_IPLEN_LINE 2
++
++#define IRDMA_UDA_QPSQ_L4T_S 30
++#define IRDMA_UDA_QPSQ_L4T_M ((u64)0x3 << IRDMA_UDA_QPSQ_L4T_S)
++#define IRDMA_UDA_QPSQ_L4T_LINE 2
++
++#define IRDMA_UDA_QPSQ_IIPT_S 28
++#define IRDMA_UDA_QPSQ_IIPT_M ((u64)0x3 << IRDMA_UDA_QPSQ_IIPT_S)
++#define IRDMA_UDA_QPSQ_IIPT_LINE 2
++
++#define IRDMA_UDA_QPSQ_DO_LPB_LINE 3
++
++#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_S 45
++#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_M \
++	BIT_ULL(IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_S)
++#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_LINE 3
++
++#define IRDMA_UDA_QPSQ_IMMDATA_S 0
++#define IRDMA_UDA_QPSQ_IMMDATA_M \
++	((u64)0xffffffffffffffff << IRDMA_UDA_QPSQ_IMMDATA_S)
++
++/* Byte Offset 0 */
++#define IRDMA_UDAQPC_IPV4_S 3
++#define IRDMA_UDAQPC_IPV4_M BIT_ULL(IRDMAQPC_IPV4_S)
++
++#define IRDMA_UDAQPC_INSERTVLANTAG_S 5
++#define IRDMA_UDAQPC_INSERTVLANTAG_M BIT_ULL(IRDMA_UDAQPC_INSERTVLANTAG_S)
++
++#define IRDMA_UDAQPC_ISQP1_S 6
++#define IRDMA_UDAQPC_ISQP1_M BIT_ULL(IRDMA_UDAQPC_ISQP1_S)
++
++#define IRDMA_UDAQPC_RQWQESIZE_S IRDMAQPC_RQWQESIZE_S
++#define IRDMA_UDAQPC_RQWQESIZE_M IRDMAQPC_RQWQESIZE_M
++
++#define IRDMA_UDAQPC_ECNENABLE_S 14
++#define IRDMA_UDAQPC_ECNENABLE_M BIT_ULL(IRDMA_UDAQPC_ECNENABLE_S)
++
++#define IRDMA_UDAQPC_PDINDEXHI_S 20
++#define IRDMA_UDAQPC_PDINDEXHI_M ((u64)3 << IRDMA_UDAQPC_PDINDEXHI_S)
++
++#define IRDMA_UDAQPC_DCTCPENABLE_S 25
++#define IRDMA_UDAQPC_DCTCPENABLE_M BIT_ULL(IRDMA_UDAQPC_DCTCPENABLE_S)
++
++#define IRDMA_UDAQPC_RCVTPHEN_S IRDMAQPC_RCVTPHEN_S
++#define IRDMA_UDAQPC_RCVTPHEN_M IRDMAQPC_RCVTPHEN_M
++
++#define IRDMA_UDAQPC_XMITTPHEN_S IRDMAQPC_XMITTPHEN_S
++#define IRDMA_UDAQPC_XMITTPHEN_M IRDMAQPC_XMITTPHEN_M
++
++#define IRDMA_UDAQPC_RQTPHEN_S IRDMAQPC_RQTPHEN_S
++#define IRDMA_UDAQPC_RQTPHEN_M IRDMAQPC_RQTPHEN_M
++
++#define IRDMA_UDAQPC_SQTPHEN_S IRDMAQPC_SQTPHEN_S
++#define IRDMA_UDAQPC_SQTPHEN_M IRDMAQPC_SQTPHEN_M
++
++#define IRDMA_UDAQPC_PPIDX_S IRDMAQPC_PPIDX_S
++#define IRDMA_UDAQPC_PPIDX_M IRDMAQPC_PPIDX_M
++
++#define IRDMA_UDAQPC_PMENA_S IRDMAQPC_PMENA_S
++#define IRDMA_UDAQPC_PMENA_M IRDMAQPC_PMENA_M
++
++#define IRDMA_UDAQPC_INSERTTAG2_S 11
++#define IRDMA_UDAQPC_INSERTTAG2_M BIT_ULL(IRDMA_UDAQPC_INSERTTAG2_S)
++
++#define IRDMA_UDAQPC_INSERTTAG3_S 14
++#define IRDMA_UDAQPC_INSERTTAG3_M BIT_ULL(IRDMA_UDAQPC_INSERTTAG3_S)
++
++#define IRDMA_UDAQPC_RQSIZE_S IRDMAQPC_RQSIZE_S
++#define IRDMA_UDAQPC_RQSIZE_M IRDMAQPC_RQSIZE_M
++
++#define IRDMA_UDAQPC_SQSIZE_S IRDMAQPC_SQSIZE_S
++#define IRDMA_UDAQPC_SQSIZE_M IRDMAQPC_SQSIZE_M
++
++#define IRDMA_UDAQPC_TXCQNUM_S IRDMAQPC_TXCQNUM_S
++#define IRDMA_UDAQPC_TXCQNUM_M IRDMAQPC_TXCQNUM_M
++
++#define IRDMA_UDAQPC_RXCQNUM_S IRDMAQPC_RXCQNUM_S
++#define IRDMA_UDAQPC_RXCQNUM_M IRDMAQPC_RXCQNUM_M
++
++#define IRDMA_UDAQPC_QPCOMPCTX_S IRDMAQPC_QPCOMPCTX_S
++#define IRDMA_UDAQPC_QPCOMPCTX_M IRDMAQPC_QPCOMPCTX_M
++
++#define IRDMA_UDAQPC_SQTPHVAL_S IRDMAQPC_SQTPHVAL_S
++#define IRDMA_UDAQPC_SQTPHVAL_M IRDMAQPC_SQTPHVAL_M
++
++#define IRDMA_UDAQPC_RQTPHVAL_S IRDMAQPC_RQTPHVAL_S
++#define IRDMA_UDAQPC_RQTPHVAL_M IRDMAQPC_RQTPHVAL_M
++
++#define IRDMA_UDAQPC_QSHANDLE_S IRDMAQPC_QSHANDLE_S
++#define IRDMA_UDAQPC_QSHANDLE_M IRDMAQPC_QSHANDLE_M
++
++#define IRDMA_UDAQPC_RQHDRRINGBUFSIZE_S 48
++#define IRDMA_UDAQPC_RQHDRRINGBUFSIZE_M \
++	((u64)0x3 << IRDMA_UDAQPC_RQHDRRINGBUFSIZE_S)
++
++#define IRDMA_UDAQPC_SQHDRRINGBUFSIZE_S 32
++#define IRDMA_UDAQPC_SQHDRRINGBUFSIZE_M \
++	((u64)0x3 << IRDMA_UDAQPC_SQHDRRINGBUFSIZE_S)
++
++#define IRDMA_UDAQPC_PRIVILEGEENABLE_S 25
++#define IRDMA_UDAQPC_PRIVILEGEENABLE_M \
++	BIT_ULL(IRDMA_UDAQPC_PRIVILEGEENABLE_S)
++
++#define IRDMA_UDAQPC_USE_STATISTICS_INSTANCE_S 26
++#define IRDMA_UDAQPC_USE_STATISTICS_INSTANCE_M \
++	BIT_ULL(IRDMA_UDAQPC_USE_STATISTICS_INSTANCE_S)
++
++#define IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX_S 0
++#define IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX_M \
++	((u64)0x7F << IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX_S)
++
++#define IRDMA_UDAQPC_PRIVHDRGENENABLE_S 0
++#define IRDMA_UDAQPC_PRIVHDRGENENABLE_M \
++	BIT_ULL(IRDMA_UDAQPC_PRIVHDRGENENABLE_S)
++
++#define IRDMA_UDAQPC_RQHDRSPLITENABLE_S 3
++#define IRDMA_UDAQPC_RQHDRSPLITENABLE_M \
++	BIT_ULL(IRDMA_UDAQPC_RQHDRSPLITENABLE_S)
++
++#define IRDMA_UDAQPC_RQHDRRINGBUFENABLE_S 2
++#define IRDMA_UDAQPC_RQHDRRINGBUFENABLE_M \
++	BIT_ULL(IRDMA_UDAQPC_RQHDRRINGBUFENABLE_S)
++
++#define IRDMA_UDAQPC_SQHDRRINGBUFENABLE_S 1
++#define IRDMA_UDAQPC_SQHDRRINGBUFENABLE_M \
++	BIT_ULL(IRDMA_UDAQPC_SQHDRRINGBUFENABLE_S)
++
++#define IRDMA_UDAQPC_IPID_S 32
++#define IRDMA_UDAQPC_IPID_M ((u64)0xffff << IRDMA_UDAQPC_IPID_S)
++
++#define IRDMA_UDAQPC_SNDMSS_S 16
++#define IRDMA_UDAQPC_SNDMSS_M ((u64)0x3fff << IRDMA_UDAQPC_SNDMSS_S)
++
++#define IRDMA_UDAQPC_VLANTAG_S 0
++#define IRDMA_UDAQPC_VLANTAG_M  ((u64)0xffff << IRDMA_UDAQPC_VLANTAG_S)
++
++/* Address Handle */
++#define IRDMA_UDA_CQPSQ_MAV_PDINDEXHI_S 20
++#define IRDMA_UDA_CQPSQ_MAV_PDINDEXHI_M \
++	((u64)0x3 << IRDMA_UDA_CQPSQ_MAV_PDINDEXHI_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_PDINDEXLO_S 48
++#define IRDMA_UDA_CQPSQ_MAV_PDINDEXLO_M \
++	((u64)0xffff << IRDMA_UDA_CQPSQ_MAV_PDINDEXLO_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX_S 24
++#define IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX_M \
++	((u64)0x3f << IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_ARPINDEX_S 48
++#define IRDMA_UDA_CQPSQ_MAV_ARPINDEX_M \
++	((u64)0xffff << IRDMA_UDA_CQPSQ_MAV_ARPINDEX_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_TC_S 32
++#define IRDMA_UDA_CQPSQ_MAV_TC_M ((u64)0xff << IRDMA_UDA_CQPSQ_MAV_TC_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_HOPLIMIT_S 32
++#define IRDMA_UDA_CQPSQ_MAV_HOPLIMIT_M \
++	((u64)0xff << IRDMA_UDA_CQPSQ_MAV_HOPLIMIT_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_FLOWLABEL_S 0
++#define IRDMA_UDA_CQPSQ_MAV_FLOWLABEL_M \
++	((u64)0xfffff << IRDMA_UDA_CQPSQ_MAV_FLOWLABEL_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_ADDR0_S 32
++#define IRDMA_UDA_CQPSQ_MAV_ADDR0_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR0_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_ADDR1_S 0
++#define IRDMA_UDA_CQPSQ_MAV_ADDR1_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR1_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_ADDR2_S 32
++#define IRDMA_UDA_CQPSQ_MAV_ADDR2_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR2_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_ADDR3_S 0
++#define IRDMA_UDA_CQPSQ_MAV_ADDR3_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR3_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_WQEVALID_S 63
++#define IRDMA_UDA_CQPSQ_MAV_WQEVALID_M \
++	BIT_ULL(IRDMA_UDA_CQPSQ_MAV_WQEVALID_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_OPCODE_S 32
++#define IRDMA_UDA_CQPSQ_MAV_OPCODE_M \
++	((u64)0x3f << IRDMA_UDA_CQPSQ_MAV_OPCODE_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK_S 62
++#define IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK_M \
++	BIT_ULL(IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_IPV4VALID_S 59
++#define IRDMA_UDA_CQPSQ_MAV_IPV4VALID_M \
++	BIT_ULL(IRDMA_UDA_CQPSQ_MAV_IPV4VALID_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_AVIDX_S 0
++#define IRDMA_UDA_CQPSQ_MAV_AVIDX_M \
++	((u64)0x1ffff << IRDMA_UDA_CQPSQ_MAV_AVIDX_S)
++
++#define IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG_S 60
++#define IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG_M BIT_ULL(IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG_S)
++
++/* UDA multicast group */
++
++#define IRDMA_UDA_MGCTX_VFFLAG_S 29
++#define IRDMA_UDA_MGCTX_VFFLAG_M BIT_ULL(IRDMA_UDA_MGCTX_VFFLAG_S)
++
++#define IRDMA_UDA_MGCTX_DESTPORT_S 32
++#define IRDMA_UDA_MGCTX_DESTPORT_M ((u64)0xffff << IRDMA_UDA_MGCTX_DESTPORT_S)
++
++#define IRDMA_UDA_MGCTX_VFID_S 22
++#define IRDMA_UDA_MGCTX_VFID_M ((u64)0x7f << IRDMA_UDA_MGCTX_VFID_S)
++
++#define IRDMA_UDA_MGCTX_VALIDENT_S 31
++#define IRDMA_UDA_MGCTX_VALIDENT_M BIT_ULL(IRDMA_UDA_MGCTX_VALIDENT_S)
++
++#define IRDMA_UDA_MGCTX_PFID_S 18
++#define IRDMA_UDA_MGCTX_PFID_M ((u64)0xf << IRDMA_UDA_MGCTX_PFID_S)
++
++#define IRDMA_UDA_MGCTX_FLAGIGNOREDPORT_S 30
++#define IRDMA_UDA_MGCTX_FLAGIGNOREDPORT_M \
++	BIT_ULL(IRDMA_UDA_MGCTX_FLAGIGNOREDPORT_S)
++
++#define IRDMA_UDA_MGCTX_QPID_S 0
++#define IRDMA_UDA_MGCTX_QPID_M ((u64)0x3ffff << IRDMA_UDA_MGCTX_QPID_S)
++
++/* multicast group create CQP command */
++
++#define IRDMA_UDA_CQPSQ_MG_WQEVALID_S 63
++#define IRDMA_UDA_CQPSQ_MG_WQEVALID_M \
++	BIT_ULL(IRDMA_UDA_CQPSQ_MG_WQEVALID_S)
++
++#define IRDMA_UDA_CQPSQ_MG_OPCODE_S 32
++#define IRDMA_UDA_CQPSQ_MG_OPCODE_M ((u64)0x3f << IRDMA_UDA_CQPSQ_MG_OPCODE_S)
++
++#define IRDMA_UDA_CQPSQ_MG_MGIDX_S 0
++#define IRDMA_UDA_CQPSQ_MG_MGIDX_M ((u64)0x1fff << IRDMA_UDA_CQPSQ_MG_MGIDX_S)
++
++#define IRDMA_UDA_CQPSQ_MG_IPV4VALID_S 60
++#define IRDMA_UDA_CQPSQ_MG_IPV4VALID_M BIT_ULL(IRDMA_UDA_CQPSQ_MG_IPV4VALID_S)
++
++#define IRDMA_UDA_CQPSQ_MG_VLANVALID_S 59
++#define IRDMA_UDA_CQPSQ_MG_VLANVALID_M BIT_ULL(IRDMA_UDA_CQPSQ_MG_VLANVALID_S)
++
++#define IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID_S 0
++#define IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID_M ((u64)0x3F << IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID_S)
++
++#define IRDMA_UDA_CQPSQ_MG_VLANID_S 32
++#define IRDMA_UDA_CQPSQ_MG_VLANID_M ((u64)0xFFF << IRDMA_UDA_CQPSQ_MG_VLANID_S)
++
++#define IRDMA_UDA_CQPSQ_QS_HANDLE_S 0
++#define IRDMA_UDA_CQPSQ_QS_HANDLE_M ((u64)0x3FF << IRDMA_UDA_CQPSQ_QS_HANDLE_S)
++
++/* Quad hash table */
++#define IRDMA_UDA_CQPSQ_QHASH_QPN_S 32
++#define IRDMA_UDA_CQPSQ_QHASH_QPN_M \
++	((u64)0x3ffff << IRDMA_UDA_CQPSQ_QHASH_QPN_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH__S 0
++#define IRDMA_UDA_CQPSQ_QHASH__M BIT_ULL(IRDMA_UDA_CQPSQ_QHASH__S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_SRC_PORT_S 16
++#define IRDMA_UDA_CQPSQ_QHASH_SRC_PORT_M \
++	((u64)0xffff << IRDMA_UDA_CQPSQ_QHASH_SRC_PORT_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_DEST_PORT_S 0
++#define IRDMA_UDA_CQPSQ_QHASH_DEST_PORT_M \
++	((u64)0xffff << IRDMA_UDA_CQPSQ_QHASH_DEST_PORT_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR0_S 32
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR0_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR0_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR1_S 0
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR1_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR1_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR2_S 32
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR2_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR2_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR3_S 0
++#define IRDMA_UDA_CQPSQ_QHASH_ADDR3_M \
++	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR3_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_WQEVALID_S 63
++#define IRDMA_UDA_CQPSQ_QHASH_WQEVALID_M \
++	BIT_ULL(IRDMA_UDA_CQPSQ_QHASH_WQEVALID_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_OPCODE_S 32
++#define IRDMA_UDA_CQPSQ_QHASH_OPCODE_M \
++	((u64)0x3f << IRDMA_UDA_CQPSQ_QHASH_OPCODE_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_MANAGE_S 61
++#define IRDMA_UDA_CQPSQ_QHASH_MANAGE_M \
++	((u64)0x3 << IRDMA_UDA_CQPSQ_QHASH_MANAGE_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_IPV4VALID_S 60
++#define IRDMA_UDA_CQPSQ_QHASH_IPV4VALID_M \
++	((u64)0x1 << IRDMA_UDA_CQPSQ_QHASH_IPV4VALID_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_LANFWD_S 59
++#define IRDMA_UDA_CQPSQ_QHASH_LANFWD_M \
++	((u64)0x1 << IRDMA_UDA_CQPSQ_QHASH_LANFWD_S)
++
++#define IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE_S 42
++#define IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE_M \
++	((u64)0x7 << IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE_S)
++#endif /* IRDMA_UDA_D_H */
 -- 
 2.23.0
 
