@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74A02C04E30
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:56:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF11FC2D0C9
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:56:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 49DBF20726
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:56:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 908452071E
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Dec 2019 22:56:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="C/fTUzxT"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ZstvwMy5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727773AbfLIWz6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Dec 2019 17:55:58 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:19895 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727493AbfLIWyK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Dec 2019 17:54:10 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5deed0890000>; Mon, 09 Dec 2019 14:54:01 -0800
+        id S1727558AbfLIW4N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Dec 2019 17:56:13 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:9206 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727435AbfLIWyJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Dec 2019 17:54:09 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5deed0780000>; Mon, 09 Dec 2019 14:53:44 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Mon, 09 Dec 2019 14:54:06 -0800
+  Mon, 09 Dec 2019 14:54:04 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Mon, 09 Dec 2019 14:54:06 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 9 Dec
- 2019 22:54:06 +0000
+        by hqpgpgate101.nvidia.com on Mon, 09 Dec 2019 14:54:04 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 9 Dec
+ 2019 22:54:04 +0000
 Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
  (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Mon, 9 Dec 2019 22:54:06 +0000
+ Transport; Mon, 9 Dec 2019 22:54:02 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5deed08d0001>; Mon, 09 Dec 2019 14:54:05 -0800
+        id <B5deed0890006>; Mon, 09 Dec 2019 14:54:02 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -67,9 +67,9 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v8 19/26] vfio, mm: pin_user_pages (FOLL_PIN) and put_user_page() conversion
-Date:   Mon, 9 Dec 2019 14:53:37 -0800
-Message-ID: <20191209225344.99740-20-jhubbard@nvidia.com>
+Subject: [PATCH v8 15/26] fs/io_uring: set FOLL_PIN via pin_user_pages()
+Date:   Mon, 9 Dec 2019 14:53:33 -0800
+Message-ID: <20191209225344.99740-16-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191209225344.99740-1-jhubbard@nvidia.com>
 References: <20191209225344.99740-1-jhubbard@nvidia.com>
@@ -78,73 +78,53 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1575932041; bh=wk2NwG+UPRzhGeGA4o6oMgrCb1pvQrHxv3rBUNt8i3I=;
+        t=1575932024; bh=XZAOBQ7h8B5KuSGqfEguVKa+axV7H4s2lXE+fnR+eEc=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=C/fTUzxTzc3p4YYS/Nv5gvqXhsAxxoWv8tZ974VATw38uiWGEbLNaDGmwbNqYtLK1
-         K59KCCk/dyawtHZe5FCoi/kvtcW4tuPSy7Y/1aWeU93Ir6XhWJweBeyDa6HOSUR7Mt
-         9ZlEDQlQeMhgvVQC7Ax4Htw9EfR2wJmO49/8vDlTMQQsyJc+VQSQNddYpablP3ZCSe
-         UCSPMjSZHDwfu46LDOlrFiKiyN3j+N9FuQDUdnf7LKiQ9XM83hMEstSKoHfrGDbtKw
-         M7fn1Bq5IxACM89YgHuTaBgLNc2aX9ruMDTWtsGw6NIfxaiiHBwfAv8XXXEt9BBtqm
-         im/CQZKpFUklQ==
+        b=ZstvwMy5//7eRqfCaIeF7d/lBq6H9RWFaWzNtmXVockpAcP7ymJE14CHUmHA6oJeZ
+         zxi42siTha5YKR1YTh4f/uEDOdM868evF01gaJbyn+YsiG2zS3kwQ58X+owbPzvJl5
+         BrwkzLr4gIL5aq7kj6va0Tgfshdm72XKQMcVJPs/27eAUeWNA1e/Bwno/AJp1DOM82
+         tsOnpv/+R2rJ7VOQouW1phVgR7hnMGs6sbfAhL2lp89b5X2doTf9I21eRd9mQOazmz
+         KPOBixPI58rBrscv1dzyyA6InPKTOrpmpZUje4q/TU5YALAn5q4f8FB68oM6c016uT
+         OKBhr7Okk1xww==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-1. Change vfio from get_user_pages_remote(), to
-pin_user_pages_remote().
+Convert fs/io_uring to use the new pin_user_pages() call, which sets
+FOLL_PIN. Setting FOLL_PIN is now required for code that requires
+tracking of pinned pages, and therefore for any code that calls
+put_user_page().
 
-2. Because all FOLL_PIN-acquired pages must be released via
-put_user_page(), also convert the put_page() call over to
-put_user_pages_dirty_lock().
+In partial anticipation of this work, the io_uring code was already
+calling put_user_page() instead of put_page(). Therefore, in order to
+convert from the get_user_pages()/put_page() model, to the
+pin_user_pages()/put_user_page() model, the only change required
+here is to change get_user_pages() to pin_user_pages().
 
-Note that this effectively changes the code's behavior in
-vfio_iommu_type1.c: put_pfn(): it now ultimately calls
-set_page_dirty_lock(), instead of set_page_dirty(). This is
-probably more accurate.
-
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
-
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
-Tested-by: Alex Williamson <alex.williamson@redhat.com>
-Acked-by: Alex Williamson <alex.williamson@redhat.com>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/vfio/vfio_iommu_type1.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/io_uring.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type=
-1.c
-index b800fc9a0251..18bfc2fc8e6d 100644
---- a/drivers/vfio/vfio_iommu_type1.c
-+++ b/drivers/vfio/vfio_iommu_type1.c
-@@ -309,9 +309,8 @@ static int put_pfn(unsigned long pfn, int prot)
- {
- 	if (!is_invalid_reserved_pfn(pfn)) {
- 		struct page *page =3D pfn_to_page(pfn);
--		if (prot & IOMMU_WRITE)
--			SetPageDirty(page);
--		put_page(page);
-+
-+		put_user_pages_dirty_lock(&page, 1, prot & IOMMU_WRITE);
- 		return 1;
- 	}
- 	return 0;
-@@ -329,7 +328,7 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned=
- long vaddr,
- 		flags |=3D FOLL_WRITE;
+diff --git a/fs/io_uring.c b/fs/io_uring.c
+index 405be10da73d..9639ebc21e8a 100644
+--- a/fs/io_uring.c
++++ b/fs/io_uring.c
+@@ -4521,7 +4521,7 @@ static int io_sqe_buffer_register(struct io_ring_ctx =
+*ctx, void __user *arg,
 =20
- 	down_read(&mm->mmap_sem);
--	ret =3D get_user_pages_remote(NULL, mm, vaddr, 1, flags | FOLL_LONGTERM,
-+	ret =3D pin_user_pages_remote(NULL, mm, vaddr, 1, flags | FOLL_LONGTERM,
- 				    page, NULL, NULL);
- 	if (ret =3D=3D 1) {
- 		*pfn =3D page_to_pfn(page[0]);
+ 		ret =3D 0;
+ 		down_read(&current->mm->mmap_sem);
+-		pret =3D get_user_pages(ubuf, nr_pages,
++		pret =3D pin_user_pages(ubuf, nr_pages,
+ 				      FOLL_WRITE | FOLL_LONGTERM,
+ 				      pages, vmas);
+ 		if (pret =3D=3D nr_pages) {
 --=20
 2.24.0
 
