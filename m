@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA6EC2D0BF
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:26:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AC3BC00454
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 44DEA205C9
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:26:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 118E3206D5
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576013183;
-	bh=pFS7/13JJX6dO6lO1moac4r+EqYfl0x/LCkLPyn44F0=;
+	s=default; t=1576013314;
+	bh=UYvC9jLuPEh47VxapmE3mo4NpQmSajDfTpdi2gU7HcI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Gc6rYkCwI1wjhYcWLDeHINmdnNA/nZwyYigb5WAysx5kTZz/QAvKoNSyjPFgd4QVI
-	 nkNmiLAjFBAbjgijw5gjbQVXnA/JexZXHbB5S2/c8qd0fyGHc3jKe2GEu5nEDd0PEl
-	 xl0krDoWdkCPZFTfIzjP7bJGGr03gW6jBZv15ukE=
+	b=u3EiuWitc2xWhxsGJ2UcOomgusAGOFfchU8ka5khuMQWW0/vGekZCcABEUIAhs4pa
+	 WQkmyGOcqQFVr9VvZDCkn7FDIcL9WhXwKZZ5Pou2rK34Jk2HPZh/CnmfHETMp3Qdiy
+	 LqyVicwMExvxVDOnWdJckwZU+X775dk01DyI/ZqI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728649AbfLJV0I (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Dec 2019 16:26:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57030 "EHLO mail.kernel.org"
+        id S1728481AbfLJVKZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Dec 2019 16:10:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60266 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727805AbfLJVZm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Dec 2019 16:25:42 -0500
+        id S1726741AbfLJVKZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Dec 2019 16:10:25 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2917020836;
-        Tue, 10 Dec 2019 21:25:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B208C246AE;
+        Tue, 10 Dec 2019 21:10:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576013141;
-        bh=pFS7/13JJX6dO6lO1moac4r+EqYfl0x/LCkLPyn44F0=;
+        s=default; t=1576012224;
+        bh=UYvC9jLuPEh47VxapmE3mo4NpQmSajDfTpdi2gU7HcI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=nwhAXtJa6KWw/XyFMap3oikMC2KgQKdTrFxRvCYKQW9Zw96/KjaSmZiQyEUDU6Cfr
-         AMlHHTupMJeyv+rfHVlDfPzFOAaD77HaaH/bFUXdBmtc7CgYVNT8Cznp+WB37SFShq
-         KqTflBQStgimyKtHwL/pvqvwhbZz1RoUiuM9QlXc=
+        b=njKjWHYH4nLbaaevFHVD7nx2a4l4F09yCZmB1a7x3Bz0d8pErOIJgFjOaXqK8frRt
+         v2LiPEIeOaWTJla2igiiThhd+kTEyAAR6Lgxz4CwTO/2QaryrvRgQjAJp2eAAXVWn7
+         /aLmfiCAgOJ/0HX2V4oMTdAqzG2bBo2flB4V1x8Q=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Max Gurtovoy <maxg@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>,
+Cc:     Bart Van Assche <bvanassche@acm.org>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 025/292] IB/iser: bound protection_sg size by data_sg size
-Date:   Tue, 10 Dec 2019 16:20:44 -0500
-Message-Id: <20191210212511.11392-25-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 174/350] RDMA/core: Set DMA parameters correctly
+Date:   Tue, 10 Dec 2019 16:04:39 -0500
+Message-Id: <20191210210735.9077-135-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191210212511.11392-1-sashal@kernel.org>
-References: <20191210212511.11392-1-sashal@kernel.org>
+In-Reply-To: <20191210210735.9077-1-sashal@kernel.org>
+References: <20191210210735.9077-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -58,38 +58,52 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Max Gurtovoy <maxg@mellanox.com>
+From: Bart Van Assche <bvanassche@acm.org>
 
-[ Upstream commit 7718cf03c3ce4b6ebd90107643ccd01c952a1fce ]
+[ Upstream commit c9121262d57b8a3be4f08073546436ba0128ca6a ]
 
-In case we don't set the sg_prot_tablesize, the scsi layer assign the
-default size (65535 entries). We should limit this size since we should
-take into consideration the underlaying device capability. This cap is
-considered when calculating the sg_tablesize. Otherwise, for example,
-we can get that /sys/block/sdb/queue/max_segments is 128 and
-/sys/block/sdb/queue/max_integrity_segments is 65535.
+The dma_set_max_seg_size() call in setup_dma_device() does not have any
+effect since device->dev.dma_parms is NULL. Fix this by initializing
+device->dev.dma_parms first.
 
-Link: https://lore.kernel.org/r/1569359027-10987-1-git-send-email-maxg@mellanox.com
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Link: https://lore.kernel.org/r/20191025225830.257535-5-bvanassche@acm.org
+Fixes: d10bcf947a3e ("RDMA/umem: Combine contiguous PAGE_SIZE regions in SGEs")
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/device.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 2e72fc5af1573..c4c015c604465 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -646,6 +646,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 		if (ib_conn->pi_support) {
- 			u32 sig_caps = ib_dev->attrs.sig_prot_cap;
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 50a92442c4f7c..e6327d8f5b79a 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1199,9 +1199,21 @@ static void setup_dma_device(struct ib_device *device)
+ 		WARN_ON_ONCE(!parent);
+ 		device->dma_device = parent;
+ 	}
+-	/* Setup default max segment size for all IB devices */
+-	dma_set_max_seg_size(device->dma_device, SZ_2G);
  
-+			shost->sg_prot_tablesize = shost->sg_tablesize;
- 			scsi_host_set_prot(shost, iser_dif_prot_caps(sig_caps));
- 			scsi_host_set_guard(shost, SHOST_DIX_GUARD_IP |
- 						   SHOST_DIX_GUARD_CRC);
++	if (!device->dev.dma_parms) {
++		if (parent) {
++			/*
++			 * The caller did not provide DMA parameters, so
++			 * 'parent' probably represents a PCI device. The PCI
++			 * core sets the maximum segment size to 64
++			 * KB. Increase this parameter to 2 GB.
++			 */
++			device->dev.dma_parms = parent->dma_parms;
++			dma_set_max_seg_size(device->dma_device, SZ_2G);
++		} else {
++			WARN_ON_ONCE(true);
++		}
++	}
+ }
+ 
+ /*
 -- 
 2.20.1
 
