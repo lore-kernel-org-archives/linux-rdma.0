@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30A7BC43603
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:09:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9E2FC2D0C5
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:12:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0364D246AE
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:09:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FEE7222C4
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576012181;
-	bh=TXOjcJ55rsjrjIq01c8fBm2rN0iwB/1z+jhNZ8jUdSw=;
+	s=default; t=1576012360;
+	bh=TRwGKMpNMAvDMTxkNkuhEWzAfg0IAMCbSfX9dgiBUaA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=I/Oq/+CVXpdL2itP4R+/iNVkXFdBhw5G5o3yldbMRY5OP2ETW4eTGuojDuc3NiTX5
-	 TvhsdeTvO7BCQsxd/pYsvWu/flGYvUbkTJTZxYSrLCvIU3JkbLrqmtad2FzyCBqNst
-	 7wjOphyCOemqwIAVgEkUU9e/zu7RnaGVfds/U3xE=
+	b=1oA0uwMbniDdxzRoMUpx1dUj35QoA7t61a/XsTi3ZcJUPc6+q8RhxSwuBCtNyR4wg
+	 UZAI7MyuXQ93s86HQlsn00RwU7mUNwZTCjVOci9Y3Z0DJhHvcVxc1XxvEyfyEeE4Gt
+	 Gj7OoOxs23klx9FNdvanFmCSPMiWPzpdfwsw9XdA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728249AbfLJVJj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Dec 2019 16:09:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58422 "EHLO mail.kernel.org"
+        id S1729045AbfLJVMj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Dec 2019 16:12:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37302 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728245AbfLJVJi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Dec 2019 16:09:38 -0500
+        id S1729037AbfLJVMi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Dec 2019 16:12:38 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 02C8D246AB;
-        Tue, 10 Dec 2019 21:09:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 99A3D208C3;
+        Tue, 10 Dec 2019 21:12:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576012177;
-        bh=TXOjcJ55rsjrjIq01c8fBm2rN0iwB/1z+jhNZ8jUdSw=;
+        s=default; t=1576012358;
+        bh=TRwGKMpNMAvDMTxkNkuhEWzAfg0IAMCbSfX9dgiBUaA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=j8yYXpWJEw09QAcLlHyrVpjp+ngtc1qfoECVmPmJasshLGqoJ0dw9nTFqNVUr3Xtp
-         V7ZQ3NfjKwJClpcLVmXkFQ+20seSh/JErFHATaYBJLcJpaN35SwN+sBMA2I2aFQ9tT
-         wmvD+zvR9RcSdPBml0N9OqKv+mPNGlOp0f1RNKa8=
+        b=IsY0KZh1JFaZUWBabwhX1b9egKpM+hW6a+UeGCr71ww1JIhK7A3T6HLWhWlpE9+gf
+         avfYq07ptdPuqNkfRFMHZaf7PAItraq4W0pO5mNhvnzVdMqC5kmbhVOP0XZsKAVIJR
+         Lwqr0diP0Qq1NK2jSMbLsz/2VHmaLjJka5oKMeYc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Weihang Li <liweihang@hisilicon.com>,
-        Doug Ledford <dledford@redhat.com>,
+Cc:     Gal Pressman <galpress@amazon.com>,
+        Daniel Kranzdorf <dkkranzd@amazon.com>,
+        Firas JahJah <firasj@amazon.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 135/350] RDMA/hns: Fix wrong parameters when initial mtt of srq->idx_que
-Date:   Tue, 10 Dec 2019 16:04:00 -0500
-Message-Id: <20191210210735.9077-96-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 286/350] RDMA/efa: Clear the admin command buffer prior to its submission
+Date:   Tue, 10 Dec 2019 16:06:31 -0500
+Message-Id: <20191210210735.9077-247-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191210210735.9077-1-sashal@kernel.org>
 References: <20191210210735.9077-1-sashal@kernel.org>
@@ -58,74 +60,52 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Weihang Li <liweihang@hisilicon.com>
+From: Gal Pressman <galpress@amazon.com>
 
-[ Upstream commit e8a07de57ea4ca7c2d604871c52826e66899fc70 ]
+[ Upstream commit 64c264872b8879e2ab9017eefe9514d4c045c60e ]
 
-The parameters npages used to initial mtt of srq->idx_que shouldn't be
-same with srq's. And page_shift should be calculated from idx_buf_pg_sz.
-This patch fixes above issues and use field named npage and page_shift
-in hns_roce_buf instead of two temporary variables to let us use them
-anywhere.
+We cannot rely on the entry memcpy as we only copy the actual size of the
+command, the rest of the bytes must be memset to zero.
 
-Fixes: 18df508c7970 ("RDMA/hns: Remove if-else judgment statements for creating srq")
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
-Link: https://lore.kernel.org/r/1567566885-23088-3-git-send-email-liweihang@hisilicon.com
-Signed-off-by: Doug Ledford <dledford@redhat.com>
+Currently providing non-zero memory will not have any user visible impact.
+However, since admin commands are extendable (in a backwards compatible
+way) everything beyond the size of the command must be cleared to prevent
+issues in the future.
+
+Fixes: 0420e542569b ("RDMA/efa: Implement functions that submit and complete admin commands")
+Link: https://lore.kernel.org/r/20191112092608.46964-1-galpress@amazon.com
+Reviewed-by: Daniel Kranzdorf <dkkranzd@amazon.com>
+Reviewed-by: Firas JahJah <firasj@amazon.com>
+Signed-off-by: Gal Pressman <galpress@amazon.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_srq.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/efa/efa_com.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index 43ea2c13b2122..108667ae6b14c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -180,8 +180,7 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
+diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
+index 3c412bc5b94f1..0778f4f7dccd7 100644
+--- a/drivers/infiniband/hw/efa/efa_com.c
++++ b/drivers/infiniband/hw/efa/efa_com.c
+@@ -317,6 +317,7 @@ static struct efa_comp_ctx *__efa_com_submit_admin_cmd(struct efa_com_admin_queu
+ 						       struct efa_admin_acq_entry *comp,
+ 						       size_t comp_size_in_bytes)
  {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(srq->ibsrq.device);
- 	struct hns_roce_ib_create_srq  ucmd;
--	u32 page_shift;
--	u32 npages;
-+	struct hns_roce_buf *buf;
- 	int ret;
++	struct efa_admin_aq_entry *aqe;
+ 	struct efa_comp_ctx *comp_ctx;
+ 	u16 queue_size_mask;
+ 	u16 cmd_id;
+@@ -350,7 +351,9 @@ static struct efa_comp_ctx *__efa_com_submit_admin_cmd(struct efa_com_admin_queu
  
- 	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd)))
-@@ -191,11 +190,13 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
- 	if (IS_ERR(srq->umem))
- 		return PTR_ERR(srq->umem);
+ 	reinit_completion(&comp_ctx->wait_event);
  
--	npages = (ib_umem_page_count(srq->umem) +
--		(1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
--		(1 << hr_dev->caps.srqwqe_buf_pg_sz);
--	page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
--	ret = hns_roce_mtt_init(hr_dev, npages, page_shift, &srq->mtt);
-+	buf = &srq->buf;
-+	buf->npages = (ib_umem_page_count(srq->umem) +
-+		       (1 << hr_dev->caps.srqwqe_buf_pg_sz) - 1) /
-+		      (1 << hr_dev->caps.srqwqe_buf_pg_sz);
-+	buf->page_shift = PAGE_SHIFT + hr_dev->caps.srqwqe_buf_pg_sz;
-+	ret = hns_roce_mtt_init(hr_dev, buf->npages, buf->page_shift,
-+				&srq->mtt);
- 	if (ret)
- 		goto err_user_buf;
+-	memcpy(&aq->sq.entries[pi], cmd, cmd_size_in_bytes);
++	aqe = &aq->sq.entries[pi];
++	memset(aqe, 0, sizeof(*aqe));
++	memcpy(aqe, cmd, cmd_size_in_bytes);
  
-@@ -212,9 +213,12 @@ static int create_user_srq(struct hns_roce_srq *srq, struct ib_udata *udata,
- 		goto err_user_srq_mtt;
- 	}
- 
--	ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(srq->idx_que.umem),
--				PAGE_SHIFT, &srq->idx_que.mtt);
--
-+	buf = &srq->idx_que.idx_buf;
-+	buf->npages = DIV_ROUND_UP(ib_umem_page_count(srq->idx_que.umem),
-+				   1 << hr_dev->caps.idx_buf_pg_sz);
-+	buf->page_shift = PAGE_SHIFT + hr_dev->caps.idx_buf_pg_sz;
-+	ret = hns_roce_mtt_init(hr_dev, buf->npages, buf->page_shift,
-+				&srq->idx_que.mtt);
- 	if (ret) {
- 		dev_err(hr_dev->dev, "hns_roce_mtt_init error for idx que\n");
- 		goto err_user_idx_mtt;
+ 	aq->sq.pc++;
+ 	atomic64_inc(&aq->stats.submitted_cmd);
 -- 
 2.20.1
 
