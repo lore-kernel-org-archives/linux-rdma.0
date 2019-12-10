@@ -2,111 +2,94 @@ Return-Path: <SRS0=zY9Z=2A=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB4BC43603
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:11:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C74C43603
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:33:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E15F207FF
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:11:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="H6mwJP3s"
+	by mail.kernel.org (Postfix) with ESMTP id 3F3712464B
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:33:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1576017210;
+	bh=0paNQ3KtIheJ2LxxBgv2LUM89tiwChRj4J8wYO41Q68=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=aVA1MJR5ALz+1Je3Srhm0aJCa2gT1yxXnJ2t9LBfOw9fQiWlEmzmGoTzSXoMahfU9
+	 GFQnxjvRlgyhEPg4NcFDfDa/AslcnD/fMw/8erZy8VWf3Uxm4RXqt1LpfNx1w7pzC7
+	 yQhKUx2iHqTcsuHYd/gf1KWuBDv5WFN12hjKeJMo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728159AbfLJWLF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Dec 2019 17:11:05 -0500
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:38910 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728880AbfLJWLE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Dec 2019 17:11:04 -0500
-Received: by mail-ot1-f68.google.com with SMTP id h20so17008122otn.5
-        for <linux-rdma@vger.kernel.org>; Tue, 10 Dec 2019 14:11:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=jSKHjYgVXPlCtWKcNtNTh1vGxe8+YnF4aFxtCgHQkqI=;
-        b=H6mwJP3szbcrHV0L5CCnmkWCAoaddD0zQE1e/J1v2E8TO1Xq67ygQDZE6pEjP3j762
-         Qve11GKLwOMxQOKTrO0xVM+pI9CKkl/N6E0YRtkgH6mL+zByb0WURtxXTMcWlwvh9ZjZ
-         dqDfkvmxnNukVuIlBdlHurgCdj7jFCU7wEyFOrK8UyY6X5+Zu9F22DTWLRDKWSIYdkJ7
-         ahKrFJ7bkhLvfRXYZY86Ko6/OBPFhEo/zgpN4Wk/LrpmtOihqDs/HqAQdP0KeyAO3xCv
-         vIn3ugrDALs/rHuA2Kq4CNzYtQGGwqYb3uRUHAXIii7cx89V4DARWheEwMmXky+ejX+w
-         XKgw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=jSKHjYgVXPlCtWKcNtNTh1vGxe8+YnF4aFxtCgHQkqI=;
-        b=MlKr6sVymbtmnO9eMSlCBzMG/4Y4ItugOppNWmnHOASXFu2LgtUV4MlNkcJopbxjBx
-         tFrv/053YjdWM62H+wvONbgVYSzjb9EXQZgi1MrRZENSxLRtJdk1p+sLVZ0RSqaOhhiE
-         ExAOo4A/OE6J7kq9bokwzZzDeBuar7gbybYO+w9Dy5vH0+j7x72qhMunjJbIS9qZN3BR
-         jR9aJaIRtDLQJ300w9KDSSRzgWq6Zuarg6X/LgWUqnmSmQnQwjLXw6gSX9TrZ0LJtEVM
-         4Gf+VTW3KQPaOJHyN1uuJoB6x/ZwlxIfEug7t6WqnCDiWvpsZ5iTLnjCpASjJlMNbMMS
-         FGsg==
-X-Gm-Message-State: APjAAAV/m9eon53EqpWTWHNJboHvxKpcSdUYVmBJ0KGQOTLwjwj5nzIw
-        pn+F2tW3pZ/bBtkuFZ5Mh5xQVw==
-X-Google-Smtp-Source: APXvYqx3dsMqGrQ9+KOyqrcwDpDXDa7GifVMgMbRs2EWOTfWSKiuA9uSWVcTGCCbC0kx2MHZI9ytcg==
-X-Received: by 2002:a9d:6a4c:: with SMTP id h12mr22065otn.81.1576015863860;
-        Tue, 10 Dec 2019 14:11:03 -0800 (PST)
-Received: from ziepe.ca ([217.140.111.136])
-        by smtp.gmail.com with ESMTPSA id t7sm64608otk.6.2019.12.10.14.11.03
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 10 Dec 2019 14:11:03 -0800 (PST)
-Received: from jgg by LT-JGG-7470.mtl.com with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1ienif-00002g-QL; Tue, 10 Dec 2019 18:11:01 -0400
-Date:   Tue, 10 Dec 2019 18:11:01 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     syzbot <syzbot+68dce7caebd8543121de@syzkaller.appspotmail.com>
-Cc:     akpm@linux-foundation.org, ast@kernel.org, boqun.feng@gmail.com,
-        byungchul.park@lge.com, daniel@iogearbox.net, davem@davemloft.net,
-        dledford@redhat.com, kernel-team@lge.com, kirill@shutemov.name,
-        kuznet@ms2.inr.ac.ru, leon@kernel.org, leonro@mellanox.com,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-rdma@vger.kernel.org, mingo@kernel.org,
-        netdev@vger.kernel.org, npiggin@gmail.com, parav@mellanox.com,
-        peterz@infradead.org, syzkaller-bugs@googlegroups.com,
-        tglx@linutronix.de, torvalds@linux-foundation.org,
-        walken@google.com, willy@infradead.org, yoshfuji@linux-ipv6.org
-Subject: Re: KASAN: slab-out-of-bounds Read in ip6_tnl_parse_tlv_enc_lim
-Message-ID: <20191210221101.GA147@ziepe.ca>
-References: <0000000000005175bf057617c71d@google.com>
- <000000000000e22b3c059960bebd@google.com>
+        id S1729773AbfLJWd2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Dec 2019 17:33:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54216 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729766AbfLJWd0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Dec 2019 17:33:26 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id ABCCA20836;
+        Tue, 10 Dec 2019 22:33:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1576017205;
+        bh=0paNQ3KtIheJ2LxxBgv2LUM89tiwChRj4J8wYO41Q68=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=P2JDpTQoArIpq4JnHWPOLC/woo9QTPZk1b0DVOFXcJrrKZcNAQ8jjmA+YFXa75V2A
+         9necBXsufCkyxHpKXch0LBP7bB+agaq5OXHcxQngMEHBdWZcxRrZg0kyvoz5uXvdbK
+         VBl2Iu4cZppQ8ztmdrmhnzzvHO6aDQvZo2WMn0R4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Max Gurtovoy <maxg@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.4 07/71] IB/iser: bound protection_sg size by data_sg size
+Date:   Tue, 10 Dec 2019 17:32:12 -0500
+Message-Id: <20191210223316.14988-7-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191210223316.14988-1-sashal@kernel.org>
+References: <20191210223316.14988-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000000000000e22b3c059960bebd@google.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Dec 10, 2019 at 02:08:01PM -0800, syzbot wrote:
-> syzbot suspects this bug was fixed by commit:
-> 
-> commit 30471d4b20335d9bd9ae9b2382a1e1e97d18d86d
-> Author: Leon Romanovsky <leonro@mellanox.com>
-> Date:   Sun Feb 3 12:55:50 2019 +0000
-> 
->     RDMA/core: Share driver structure size with core
-> 
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=16b7bb7ae00000
-> start commit:   3a5af36b Merge tag '4.19-rc3-smb3-cifs' of git://git.samba..
-> git tree:       upstream
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=9c4a80625153107e
-> dashboard link: https://syzkaller.appspot.com/bug?extid=68dce7caebd8543121de
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1068a44e400000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=146386c6400000
-> 
-> If the result looks correct, please mark the bug fixed by replying with:
-> 
-> #syz fix: RDMA/core: Share driver structure size with core
-> 
-> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+From: Max Gurtovoy <maxg@mellanox.com>
 
-Seems pretty unlikely
+[ Upstream commit 7718cf03c3ce4b6ebd90107643ccd01c952a1fce ]
 
-Jason
+In case we don't set the sg_prot_tablesize, the scsi layer assign the
+default size (65535 entries). We should limit this size since we should
+take into consideration the underlaying device capability. This cap is
+considered when calculating the sg_tablesize. Otherwise, for example,
+we can get that /sys/block/sdb/queue/max_segments is 128 and
+/sys/block/sdb/queue/max_integrity_segments is 65535.
+
+Link: https://lore.kernel.org/r/1569359027-10987-1-git-send-email-maxg@mellanox.com
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 9080161e01af1..edb064f9f0f14 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -646,6 +646,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 		if (ib_conn->pi_support) {
+ 			u32 sig_caps = ib_conn->device->dev_attr.sig_prot_cap;
+ 
++			shost->sg_prot_tablesize = shost->sg_tablesize;
+ 			scsi_host_set_prot(shost, iser_dif_prot_caps(sig_caps));
+ 			scsi_host_set_guard(shost, SHOST_DIX_GUARD_IP |
+ 						   SHOST_DIX_GUARD_CRC);
+-- 
+2.20.1
+
