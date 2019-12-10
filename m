@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AC3BC00454
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19CCFC2D0BF
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 118E3206D5
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8797206D5
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:28:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576013314;
-	bh=UYvC9jLuPEh47VxapmE3mo4NpQmSajDfTpdi2gU7HcI=;
+	s=default; t=1576013316;
+	bh=aAj3r6xUGwA2FINnoCCGc93gGYj8y6FveUN6IWYk78I=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=u3EiuWitc2xWhxsGJ2UcOomgusAGOFfchU8ka5khuMQWW0/vGekZCcABEUIAhs4pa
-	 WQkmyGOcqQFVr9VvZDCkn7FDIcL9WhXwKZZ5Pou2rK34Jk2HPZh/CnmfHETMp3Qdiy
-	 LqyVicwMExvxVDOnWdJckwZU+X775dk01DyI/ZqI=
+	b=2g5GSoJjUDLX9H6dpVbgeT34ICTm+Y7NGtc+Pei7w8O3AZlC6ae1WcD6jTzaQWJVH
+	 PuSTBsnOAgZbwQ4UJcvyop4gvfVTG+D7XbIQuS+TnsRVj3Qj0rX5zJFvKV8eBv+e4Y
+	 CHHiHuZ5K8aCfsLXik8PFuQ3tFICcQ/yZfZ9bqKw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728481AbfLJVKZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Dec 2019 16:10:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60266 "EHLO mail.kernel.org"
+        id S1728145AbfLJVKY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Dec 2019 16:10:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60224 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726741AbfLJVKZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Dec 2019 16:10:25 -0500
+        id S1728389AbfLJVKW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Dec 2019 16:10:22 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B208C246AE;
-        Tue, 10 Dec 2019 21:10:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 991C6246A2;
+        Tue, 10 Dec 2019 21:10:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576012224;
-        bh=UYvC9jLuPEh47VxapmE3mo4NpQmSajDfTpdi2gU7HcI=;
+        s=default; t=1576012222;
+        bh=aAj3r6xUGwA2FINnoCCGc93gGYj8y6FveUN6IWYk78I=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=njKjWHYH4nLbaaevFHVD7nx2a4l4F09yCZmB1a7x3Bz0d8pErOIJgFjOaXqK8frRt
-         v2LiPEIeOaWTJla2igiiThhd+kTEyAAR6Lgxz4CwTO/2QaryrvRgQjAJp2eAAXVWn7
-         /aLmfiCAgOJ/0HX2V4oMTdAqzG2bBo2flB4V1x8Q=
+        b=egTTdvliojQlTfDrefP9oJ66IBji/6VZmMcKtVY5ycI0P4qhEs945tjx6+5GVGGWo
+         bHDNZH52k/MCOUrV/Pxg6kEj0pwiYxTXadRuhmQqup1oDoEZOpHg1ltJpBGS/296x7
+         5LEYXztLhRjIyNcfoU9uPPUsNkvIW6t4L3ALb0DM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Bart Van Assche <bvanassche@acm.org>,
+Cc:     Colin Ian King <colin.king@canonical.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 174/350] RDMA/core: Set DMA parameters correctly
-Date:   Tue, 10 Dec 2019 16:04:39 -0500
-Message-Id: <20191210210735.9077-135-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 172/350] RDMA/hns: Fix memory leak on 'context' on error return path
+Date:   Tue, 10 Dec 2019 16:04:37 -0500
+Message-Id: <20191210210735.9077-133-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191210210735.9077-1-sashal@kernel.org>
 References: <20191210210735.9077-1-sashal@kernel.org>
@@ -58,52 +58,59 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche@acm.org>
+From: Colin Ian King <colin.king@canonical.com>
 
-[ Upstream commit c9121262d57b8a3be4f08073546436ba0128ca6a ]
+[ Upstream commit 994195e1537074f56df216a9309f6e366cb35b67 ]
 
-The dma_set_max_seg_size() call in setup_dma_device() does not have any
-effect since device->dev.dma_parms is NULL. Fix this by initializing
-device->dev.dma_parms first.
+Currently, the error return path when the call to function
+dev->dfx->query_cqc_info fails will leak object 'context'. Fix this by
+making the error return path via 'err' return return codes rather than
+-EMSGSIZE, set ret appropriately for all error return paths and for the
+memory leak now return via 'err' rather than just returning without
+freeing context.
 
-Link: https://lore.kernel.org/r/20191025225830.257535-5-bvanassche@acm.org
-Fixes: d10bcf947a3e ("RDMA/umem: Combine contiguous PAGE_SIZE regions in SGEs")
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Link: https://lore.kernel.org/r/20191024131034.19989-1-colin.king@canonical.com
+Addresses-Coverity: ("Resource leak")
+Fixes: e1c9a0dc2939 ("RDMA/hns: Dump detailed driver-specific CQ")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/device.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_restrack.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 50a92442c4f7c..e6327d8f5b79a 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1199,9 +1199,21 @@ static void setup_dma_device(struct ib_device *device)
- 		WARN_ON_ONCE(!parent);
- 		device->dma_device = parent;
- 	}
--	/* Setup default max segment size for all IB devices */
--	dma_set_max_seg_size(device->dma_device, SZ_2G);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_restrack.c b/drivers/infiniband/hw/hns/hns_roce_restrack.c
+index 0a31d0a3d657c..06871731ac43a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_restrack.c
++++ b/drivers/infiniband/hw/hns/hns_roce_restrack.c
+@@ -98,11 +98,15 @@ static int hns_roce_fill_res_cq_entry(struct sk_buff *msg,
+ 		goto err;
  
-+	if (!device->dev.dma_parms) {
-+		if (parent) {
-+			/*
-+			 * The caller did not provide DMA parameters, so
-+			 * 'parent' probably represents a PCI device. The PCI
-+			 * core sets the maximum segment size to 64
-+			 * KB. Increase this parameter to 2 GB.
-+			 */
-+			device->dev.dma_parms = parent->dma_parms;
-+			dma_set_max_seg_size(device->dma_device, SZ_2G);
-+		} else {
-+			WARN_ON_ONCE(true);
-+		}
+ 	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_DRIVER);
+-	if (!table_attr)
++	if (!table_attr) {
++		ret = -EMSGSIZE;
+ 		goto err;
 +	}
+ 
+-	if (hns_roce_fill_cq(msg, context))
++	if (hns_roce_fill_cq(msg, context)) {
++		ret = -EMSGSIZE;
+ 		goto err_cancel_table;
++	}
+ 
+ 	nla_nest_end(msg, table_attr);
+ 	kfree(context);
+@@ -113,7 +117,7 @@ static int hns_roce_fill_res_cq_entry(struct sk_buff *msg,
+ 	nla_nest_cancel(msg, table_attr);
+ err:
+ 	kfree(context);
+-	return -EMSGSIZE;
++	return ret;
  }
  
- /*
+ int hns_roce_fill_res_entry(struct sk_buff *msg,
 -- 
 2.20.1
 
