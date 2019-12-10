@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EA3EC00454
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:46:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9943BC43603
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:03:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 384372073B
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 21:46:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CF9E222C4
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:03:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576014400;
-	bh=GjyKW6Mhw/GVEuSLoNKK5okQw9ut/zuaQPA7AR84V1w=;
+	s=default; t=1576015398;
+	bh=pbEEKNe0yfQkmTbWDuSYCbSukHWLxDoDJ88g7/If6C4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hQPN5WCI5qtUyVo624EpzDBlDZ106HZNyjHoyPgalQEM/t77JMx15y08QDeQEeqef
-	 kL9LDVz2wpZ+5t6mhobJyzu+1GJQ10II836oWGxi7BbEEUb4jFuDj4W2/bnseTcTbx
-	 +IIlg/3eTirExpH1rq9CYiyLkJimQfwdSk+0mW+s=
+	b=cM/Js1zDdBNaRjfRVDmpfP9jUrwbmiCMmRTWovPQTUMfob0qS1gWcLEPLT5b0Kvem
+	 9C9mp68vrXTZ/fgCXbJpO8Z8nWwOG3LMYGajXgsU6T/LLNM0na0rjjQiD/UF0Qdfre
+	 amwM+klxXGhIpfqerCbxI2nZsWWoT/l8E8bx1sa0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728409AbfLJVqg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Dec 2019 16:46:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36312 "EHLO mail.kernel.org"
+        id S1727453AbfLJWDR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Dec 2019 17:03:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728401AbfLJVcj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Dec 2019 16:32:39 -0500
+        id S1726877AbfLJWDQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Dec 2019 17:03:16 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0C917208C3;
-        Tue, 10 Dec 2019 21:32:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CC3C924655;
+        Tue, 10 Dec 2019 22:03:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576013558;
-        bh=GjyKW6Mhw/GVEuSLoNKK5okQw9ut/zuaQPA7AR84V1w=;
+        s=default; t=1576015395;
+        bh=pbEEKNe0yfQkmTbWDuSYCbSukHWLxDoDJ88g7/If6C4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=xkBT4B6srQUNAZnmU0xjmqbu2OiVR2Bo51EGV6wcfaT9bXO45kbyoZawXNwXAoi6y
-         CW8QnEUOo7VGw9bgVFOOZur0SURvvCwAZ8KhHSFaK72lXenG/aK1BnGz5/YeLhtPC7
-         7V7h2/nJWvTKT7UpuM1zUf8Dgp7Wn84N5ZqdqVoY=
+        b=NTPiyDTUNcvElgjbjJQtvjiEQki9PVFGEwVd0tV6puT5ia4BWHGrs/EMUTvaQf/Ij
+         bd9xYLx3XPeJOsg44GeGu5A+qRm3835Iq6x59yzbS1J8CVoGLMQ1LLPZXQDbBgspDo
+         SZAooKXpRg+3/jqJyWVUE0aDmfCpaD77mdM/al+g=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Max Gurtovoy <maxg@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 014/177] IB/iser: bound protection_sg size by data_sg size
-Date:   Tue, 10 Dec 2019 16:29:38 -0500
-Message-Id: <20191210213221.11921-14-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 011/130] IB/iser: bound protection_sg size by data_sg size
+Date:   Tue, 10 Dec 2019 17:01:02 -0500
+Message-Id: <20191210220301.13262-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191210213221.11921-1-sashal@kernel.org>
-References: <20191210213221.11921-1-sashal@kernel.org>
+In-Reply-To: <20191210220301.13262-1-sashal@kernel.org>
+References: <20191210220301.13262-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -79,10 +79,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 3fecd87c9f2bd..b4e0ae0245754 100644
+index 19624e023ebd9..b5a789567b4ed 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -646,6 +646,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+@@ -648,6 +648,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
  		if (ib_conn->pi_support) {
  			u32 sig_caps = ib_conn->device->ib_device->attrs.sig_prot_cap;
  
