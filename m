@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B700AC3F68F
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 Dec 2019 02:56:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D93D2C2D0C4
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Dec 2019 02:57:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B1412077B
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 Dec 2019 02:56:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFBBC206EC
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Dec 2019 02:57:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="UPqQjkK/"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="BecF8y3J"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727875AbfLKCxa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Dec 2019 21:53:30 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:17048 "EHLO
+        id S1727921AbfLKC45 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Dec 2019 21:56:57 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:17054 "EHLO
         hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727804AbfLKCx2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Dec 2019 21:53:28 -0500
+        with ESMTP id S1727742AbfLKCx3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Dec 2019 21:53:29 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5df05a120000>; Tue, 10 Dec 2019 18:53:06 -0800
+        id <B5df05a120001>; Tue, 10 Dec 2019 18:53:06 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Tue, 10 Dec 2019 18:53:27 -0800
+  Tue, 10 Dec 2019 18:53:28 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 10 Dec 2019 18:53:27 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
+        by hqpgpgate101.nvidia.com on Tue, 10 Dec 2019 18:53:28 -0800
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL105.nvidia.com
  (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 11 Dec
- 2019 02:53:26 +0000
-Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Wed, 11 Dec 2019 02:53:26 +0000
+ 2019 02:53:24 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Wed, 11 Dec 2019 02:53:24 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5df05a250000>; Tue, 10 Dec 2019 18:53:25 -0800
+        id <B5df05a230001>; Tue, 10 Dec 2019 18:53:24 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -66,11 +66,10 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>,
-        "Christoph Hellwig" <hch@lst.de>,
-        Leon Romanovsky <leonro@mellanox.com>
-Subject: [PATCH v9 08/25] mm/gup: allow FOLL_FORCE for get_user_pages_fast()
-Date:   Tue, 10 Dec 2019 18:53:01 -0800
-Message-ID: <20191211025318.457113-9-jhubbard@nvidia.com>
+        "Jason Gunthorpe" <jgg@mellanox.com>
+Subject: [PATCH v9 06/25] mm: fix get_user_pages_remote()'s handling of FOLL_LONGTERM
+Date:   Tue, 10 Dec 2019 18:52:59 -0800
+Message-ID: <20191211025318.457113-7-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191211025318.457113-1-jhubbard@nvidia.com>
 References: <20191211025318.457113-1-jhubbard@nvidia.com>
@@ -79,57 +78,103 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576032786; bh=KXwnEbWhVaRHKdwtzhXl2hLDTEIimFSZSBiRhq5T8UI=;
+        t=1576032786; bh=l4ZzqtVW71Fwvoz1qyCbd1xWWEz8EY4C2cUJdAbaFHs=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=UPqQjkK/nlKT/mwWi3a+c21leu6XLZYf+GQ2AOOe/g6ypWDLQVF19mA0gPijIv9XH
-         JqUGHh7tEBDYwUygflM88BZxTnng5MUQFMYh5sb++BTCFxIzwgCmdDYt4oleOnZFP9
-         fMZsleRpjZAXmHeduRsQPWtgTYPXEg4YUZbmfhDriW68xcf+grAG6XVHmsjNr4HNF6
-         k1efsehrvjmTnm3bRd448cdmVz1dAJsSZ39f9fOAu+eotBerXXqpMBPc2eLwOL4TDL
-         PNB/fYUfLbMEDv0p6HXvRlJG03f9hxYv0QJhojShlrGkmSusOGZZtBEQSSuTOc6tMS
-         q+frBdyepzhmg==
+        b=BecF8y3J28EulwmGh+7gKpl2VBZBlPRiEDGZB0dm0ZSAy1lUo2aEjTmeGKWhDlc6a
+         DStdxxq1ymNU4wTzZ8WnP7GSz9Xg6ijpLqyj54uVcV9wWVEXCqEhf7BAzVbe6ffGTL
+         IydfNytGW3gFul8FFhDFDFylf+nYnsjaVMGym0Sl26FCpyMl6D0a2B5Ac2lwplD9tA
+         9g45uPFwI8GwyCrGASyFADGNnbP4/JY8a67o2v9xRRs/DRx3summTETQCtv9l/iWEZ
+         yXOfkRTu1q0tM9x9VfCQYvnyjv5uVvNUN48G8h5KIRtmQYcEZgMnuQ/ySFMxt/BrJ9
+         35beYnH4A1ftw==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Commit 817be129e6f2 ("mm: validate get_user_pages_fast flags") allowed
-only FOLL_WRITE and FOLL_LONGTERM to be passed to get_user_pages_fast().
-This, combined with the fact that get_user_pages_fast() falls back to
-"slow gup", which *does* accept FOLL_FORCE, leads to an odd situation:
-if you need FOLL_FORCE, you cannot call get_user_pages_fast().
+As it says in the updated comment in gup.c: current FOLL_LONGTERM
+behavior is incompatible with FAULT_FLAG_ALLOW_RETRY because of the
+FS DAX check requirement on vmas.
 
-There does not appear to be any reason for filtering out FOLL_FORCE.
-There is nothing in the _fast() implementation that requires that we
-avoid writing to the pages. So it appears to have been an oversight.
+However, the corresponding restriction in get_user_pages_remote() was
+slightly stricter than is actually required: it forbade all
+FOLL_LONGTERM callers, but we can actually allow FOLL_LONGTERM callers
+that do not set the "locked" arg.
 
-Fix by allowing FOLL_FORCE to be set for get_user_pages_fast().
+Update the code and comments to loosen the restriction, allowing
+FOLL_LONGTERM in some cases.
 
-Fixes: 817be129e6f2 ("mm: validate get_user_pages_fast flags")
-Cc: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Also, copy the DAX check ("if a VMA is DAX, don't allow long term
+pinning") from the VFIO call site, all the way into the internals
+of get_user_pages_remote() and __gup_longterm_locked(). That is:
+get_user_pages_remote() calls __gup_longterm_locked(), which in turn
+calls check_dax_vmas(). This check will then be removed from the VFIO
+call site in a subsequent patch.
+
+Thanks to Jason Gunthorpe for pointing out a clean way to fix this,
+and to Dan Williams for helping clarify the DAX refactoring.
+
+Tested-by: Alex Williamson <alex.williamson@redhat.com>
+Acked-by: Alex Williamson <alex.williamson@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/gup.c | 27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
 diff --git a/mm/gup.c b/mm/gup.c
-index c0c56888e7cc..958ab0757389 100644
+index 3ecce297a47f..c0c56888e7cc 100644
 --- a/mm/gup.c
 +++ b/mm/gup.c
-@@ -2414,7 +2414,8 @@ int get_user_pages_fast(unsigned long start, int nr_p=
-ages,
- 	unsigned long addr, len, end;
- 	int nr =3D 0, ret =3D 0;
+@@ -29,6 +29,13 @@ struct follow_page_context {
+ 	unsigned int page_mask;
+ };
 =20
--	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM)))
-+	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
-+				       FOLL_FORCE)))
- 		return -EINVAL;
++static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
++						  struct mm_struct *mm,
++						  unsigned long start,
++						  unsigned long nr_pages,
++						  struct page **pages,
++						  struct vm_area_struct **vmas,
++						  unsigned int flags);
+ /*
+  * Return the compound head page with ref appropriately incremented,
+  * or NULL if that failed.
+@@ -1179,13 +1186,23 @@ long get_user_pages_remote(struct task_struct *tsk,=
+ struct mm_struct *mm,
+ 		struct vm_area_struct **vmas, int *locked)
+ {
+ 	/*
+-	 * FIXME: Current FOLL_LONGTERM behavior is incompatible with
++	 * Parts of FOLL_LONGTERM behavior are incompatible with
+ 	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
+-	 * vmas.  As there are no users of this flag in this call we simply
+-	 * disallow this option for now.
++	 * vmas. However, this only comes up if locked is set, and there are
++	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
++	 * allow what we can.
+ 	 */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
+-		return -EINVAL;
++	if (gup_flags & FOLL_LONGTERM) {
++		if (WARN_ON_ONCE(locked))
++			return -EINVAL;
++		/*
++		 * This will check the vmas (even if our vmas arg is NULL)
++		 * and return -ENOTSUPP if DAX isn't allowed in this case:
++		 */
++		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
++					     vmas, gup_flags | FOLL_TOUCH |
++					     FOLL_REMOTE);
++	}
 =20
- 	start =3D untagged_addr(start) & PAGE_MASK;
+ 	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
+ 				       locked,
 --=20
 2.24.0
 
