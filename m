@@ -1,95 +1,202 @@
-Return-Path: <SRS0=zY9Z=2A=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=YjSL=2B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C8B2C00454
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:44:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B06C2D0C4
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Dec 2019 00:27:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EBC1E2053B
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Dec 2019 22:44:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576017861;
-	bh=kEw65JPUeeeLdPYT7MjEL5X1pmo845/HjvaBh46ctSY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=fccAX9cvC0acoW+d9zdHrVHd0jYBWzeX3rkogIAtaIapTs9L8PUahksGgVeQqEWPb
-	 jnfF22iBFMWOToMlSiXQESSrJ1dUhBZtFH/cptIXMwByPY5LBHPzcB2sgysf6OUWT6
-	 mbBqyQEEmTiOQCfb5i9wAYqQaGITm/Ru1dtCdnqU=
+	by mail.kernel.org (Postfix) with ESMTP id CDFD12073D
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Dec 2019 00:27:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="mtQrj5I0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727513AbfLJWav (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Dec 2019 17:30:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50612 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727489AbfLJWau (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Dec 2019 17:30:50 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 925CB2077B;
-        Tue, 10 Dec 2019 22:30:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576017049;
-        bh=kEw65JPUeeeLdPYT7MjEL5X1pmo845/HjvaBh46ctSY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IHvTleinE6/YSzB2MPBSle2EZhjy9SPoA/3qJPeAHTLnHBRDKL8/h81bJu5jSzqGG
-         o0dRF3XufgrxFalYCZjo9DpH0ajr1KwCt6RV4TOxU9AQRfUl2m8dMP3aHm0HBnFAJ5
-         108PYDZgiW2vMLBE3EXOCAF0osyEfIT48srlGDBc=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Max Gurtovoy <maxg@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 11/91] IB/iser: bound protection_sg size by data_sg size
-Date:   Tue, 10 Dec 2019 17:29:15 -0500
-Message-Id: <20191210223035.14270-11-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191210223035.14270-1-sashal@kernel.org>
-References: <20191210223035.14270-1-sashal@kernel.org>
+        id S1727114AbfLKA1F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Dec 2019 19:27:05 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:13888 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725999AbfLKA1F (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Dec 2019 19:27:05 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5df037d10000>; Tue, 10 Dec 2019 16:26:57 -0800
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Tue, 10 Dec 2019 16:27:03 -0800
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Tue, 10 Dec 2019 16:27:03 -0800
+Received: from DRHQMAIL107.nvidia.com (10.27.9.16) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 11 Dec
+ 2019 00:27:03 +0000
+Received: from [10.110.48.28] (10.124.1.5) by DRHQMAIL107.nvidia.com
+ (10.27.9.16) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 11 Dec
+ 2019 00:27:02 +0000
+Subject: Re: [PATCH v8 24/26] mm/gup: track FOLL_PIN pages
+To:     Jan Kara <jack@suse.cz>
+CC:     Andrew Morton <akpm@linux-foundation.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn.topel@intel.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Dave Chinner <david@fromorbit.com>,
+        David Airlie <airlied@linux.ie>,
+        "David S . Miller" <davem@davemloft.net>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>,
+        Magnus Karlsson <magnus.karlsson@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Hocko <mhocko@suse.com>,
+        "Mike Kravetz" <mike.kravetz@oracle.com>,
+        Paul Mackerras <paulus@samba.org>,
+        "Shuah Khan" <shuah@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
+        <bpf@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        <kvm@vger.kernel.org>, <linux-block@vger.kernel.org>,
+        <linux-doc@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+        <linux-kselftest@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-rdma@vger.kernel.org>, <linuxppc-dev@lists.ozlabs.org>,
+        <netdev@vger.kernel.org>, <linux-mm@kvack.org>,
+        LKML <linux-kernel@vger.kernel.org>
+References: <20191209225344.99740-1-jhubbard@nvidia.com>
+ <20191209225344.99740-25-jhubbard@nvidia.com>
+ <20191210133932.GH1551@quack2.suse.cz>
+From:   John Hubbard <jhubbard@nvidia.com>
+X-Nvconfidentiality: public
+Message-ID: <918e9f4b-d1bc-95b4-3768-f6a28d625d58@nvidia.com>
+Date:   Tue, 10 Dec 2019 16:27:02 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.0
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20191210133932.GH1551@quack2.suse.cz>
+X-Originating-IP: [10.124.1.5]
+X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
+ DRHQMAIL107.nvidia.com (10.27.9.16)
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1576024017; bh=qZMhuX1AH+ipTqKh5IOl5OAO53v7INQFJxlKSWfldSI=;
+        h=X-PGP-Universal:Subject:To:CC:References:From:X-Nvconfidentiality:
+         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
+         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
+         Content-Transfer-Encoding;
+        b=mtQrj5I0dTbE0p+0Duy/yLLURBp189gBz9/n7w24993utz/qyGtSs7PPQAv+iIImb
+         JZ8mcjPAxzh+nh7PkxaNbrLb3BrJ2IB5TLP1oCbepwYNd9zP8BSYgamyM4DvGzILi8
+         XQkGoEiIlVo58hcTQukHAefGfROo8agytuwS+0sfjZ1Jg7ij7PU3d1I4gxsqVd70Fa
+         GkNwTpmVy0rbDSvIttlOcb1nzarUHfrPPIMHBT+ByVSSyhRxc5/lScetmOjddYAdyE
+         GT/eTQw2K0oKAfFgOT8KfXo08uqKjO85NJPryhNn/fDyZhmI4MaNcIcj91kNrcZeuR
+         Z4qb08ZWAeRjQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Max Gurtovoy <maxg@mellanox.com>
+On 12/10/19 5:39 AM, Jan Kara wrote:
+...
+>> +void grab_page(struct page *page, unsigned int flags)
+>> +{
+>> +	if (flags & FOLL_GET)
+>> +		get_page(page);
+>> +	else if (flags & FOLL_PIN) {
+>> +		get_page(page);
+>> +		WARN_ON_ONCE(flags & FOLL_GET);
+>> +		/*
+>> +		 * Use get_page(), above, to do the refcount error
+>> +		 * checking. Then just add in the remaining references:
+>> +		 */
+>> +		page_ref_add(page, GUP_PIN_COUNTING_BIAS - 1);
+> 
+> This is wrong for two reasons:
+> 
+> 1) You miss compound_head() indirection from get_page() for this
+> page_ref_add().
 
-[ Upstream commit 7718cf03c3ce4b6ebd90107643ccd01c952a1fce ]
+whoops, yes that is missing.
 
-In case we don't set the sg_prot_tablesize, the scsi layer assign the
-default size (65535 entries). We should limit this size since we should
-take into consideration the underlaying device capability. This cap is
-considered when calculating the sg_tablesize. Otherwise, for example,
-we can get that /sys/block/sdb/queue/max_segments is 128 and
-/sys/block/sdb/queue/max_integrity_segments is 65535.
+> 
+> 2) page_ref_add() could overflow the counter without noticing.
+> 
+> Especially with GUP_PIN_COUNTING_BIAS being non-trivial, it is realistic
+> that an attacker might try to overflow the page refcount and we have to
+> protect the kernel against that. So I think that all the places that would
+> use grab_page() actually need to use try_grab_page() and then gracefully
+> deal with the failure.
+> 
 
-Link: https://lore.kernel.org/r/1569359027-10987-1-git-send-email-maxg@mellanox.com
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.c | 1 +
- 1 file changed, 1 insertion(+)
+OK, I've replaced grab_page() everywhere with try_grab_page(), with the
+above issues fixed. The v7 patchset had error handling for grab_page() failures,
+that had been reviewed, so relevants parts of that have reappeared.
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index e46e2b095c184..fdf5179a81c10 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -649,6 +649,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 		if (ib_conn->pi_support) {
- 			u32 sig_caps = ib_conn->device->ib_device->attrs.sig_prot_cap;
- 
-+			shost->sg_prot_tablesize = shost->sg_tablesize;
- 			scsi_host_set_prot(shost, iser_dif_prot_caps(sig_caps));
- 			scsi_host_set_guard(shost, SHOST_DIX_GUARD_IP |
- 						   SHOST_DIX_GUARD_CRC);
+I had initially hesitated to do this, but now I've gone ahead and added:
+
+#define page_ref_zero_or_close_to_bias_overflow(page) \
+	((unsigned int) page_ref_count(page) + \
+		GUP_PIN_COUNTING_BIAS <= GUP_PIN_COUNTING_BIAS)
+
+...which is used in the new try_grab_page() for protection.
+
+
+>> @@ -278,11 +425,23 @@ static struct page *follow_page_pte(struct vm_area_struct *vma,
+>>  		goto retry;
+>>  	}
+>>  
+>> -	if (flags & FOLL_GET) {
+>> +	if (flags & (FOLL_PIN | FOLL_GET)) {
+>> +		/*
+>> +		 * Allow try_get_page() to take care of error handling, for
+>> +		 * both cases: FOLL_GET or FOLL_PIN:
+>> +		 */
+>>  		if (unlikely(!try_get_page(page))) {
+>>  			page = ERR_PTR(-ENOMEM);
+>>  			goto out;
+>>  		}
+>> +
+>> +		if (flags & FOLL_PIN) {
+>> +			WARN_ON_ONCE(flags & FOLL_GET);
+>> +
+>> +			/* We got a +1 refcount from try_get_page(), above. */
+>> +			page_ref_add(page, GUP_PIN_COUNTING_BIAS - 1);
+>> +			__update_proc_vmstat(page, NR_FOLL_PIN_REQUESTED, 1);
+>> +		}
+>>  	}
+> 
+> The same problem here as above, plus this place should use the same
+> try_grab..() helper, shouldn't it?
+
+
+Yes, now that the new try_grab_page() has behavior that matches what
+this call site needs. Done.
+
+
+> 
+>> @@ -544,8 +703,8 @@ static struct page *follow_page_mask(struct vm_area_struct *vma,
+>>  	/* make this handle hugepd */
+>>  	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
+>>  	if (!IS_ERR(page)) {
+>> -		BUG_ON(flags & FOLL_GET);
+>> -		return page;
+>> +		WARN_ON_ONCE(flags & (FOLL_GET | FOLL_PIN));
+>> +		return NULL;
+> 
+> I agree with the change to WARN_ON_ONCE but why is correct the change of
+> the return value? Note that this is actually a "success branch".
+> 
+
+Good catch, thanks! I worked through the logic...correctly at first, but then I must 
+have become temporarily dazed by the raw destructive power of the pre-existing 
+BUG_ON() statement, and screwed it up after all. :)
+
+
+thanks,
 -- 
-2.20.1
+John Hubbard
+NVIDIA
 
