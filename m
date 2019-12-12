@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A3F8C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA0EC43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 671CA227BF
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2D312173E
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576148977;
-	bh=MvisZKE3fQ9pCAz1fK6Id/ZEvkKfYo8rpMJV8XdDzG4=;
+	s=default; t=1576148980;
+	bh=E5dfRrxP+7Q9Hb6wTtFwVFVtFkeTB9X7d+7CThz+1ZE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=pvoQRmCz0Waew500nSiAoLbV3ICyZnnom4T2Y6m8oIFsPauurF5+1Y/nUbZjUHeex
-	 UQNFiEONpKlHfI/yYaeg5jIQmdFqZTfvubXSHMNXI8xnaYxGqk/T0dvUkazyjCYBKW
-	 fGt9H8htD8KhEfyleN7m1RwnG9ZOsh/9jfbUlLYQ=
+	b=Fs2D2zD9VK8NddJ/9Sjl/Q3IQ4VewgGvbVjuua4kaX9eqflioInjfTqxETWQbtxQN
+	 bmDRnO9uybcQOSgJpCb/7DfqQ5oP4Rrn/pg4ao8Jw1Paa/K64aGOEvDWpVGmSmKsa4
+	 jF8KHaT5zqMscgYmf3Ql/qSj23HZczlvLelMYUV8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728950AbfLLLJg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 06:09:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56768 "EHLO mail.kernel.org"
+        id S1728864AbfLLLJk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 06:09:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728613AbfLLLJg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 06:09:36 -0500
+        id S1728613AbfLLLJj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 06:09:39 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 536AB2173E;
-        Thu, 12 Dec 2019 11:09:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7BC88227BF;
+        Thu, 12 Dec 2019 11:09:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576148975;
-        bh=MvisZKE3fQ9pCAz1fK6Id/ZEvkKfYo8rpMJV8XdDzG4=;
+        s=default; t=1576148979;
+        bh=E5dfRrxP+7Q9Hb6wTtFwVFVtFkeTB9X7d+7CThz+1ZE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=11D6+dLlaU8ojcrOZ0mLr0KkmOou0RsJ+RQ2Va+xbgpcvTmiqdxVDkn+UF53eAASy
-         /lPRTcKNcU0vUVFR8rU06Qo6kbVztNBU98YYusgmyEecQ/oQa3DJ6JW67CQ9B9iOb3
-         U1wFzXJXS17ZYRjZJn/ntaYi2hSwTiaYkMZqKtMs=
+        b=nl/CQC/CjHoWLG2bsnKgW4p1A3GGevZxwDj8K/REMzJ+F08SC40FxomYry4AF5wvg
+         cjQg99BsE+uG5MMae4lZXHQZVxPW4gNQTUlot0hB5QCZ9eZY6bCfskh308m3RnFAL7
+         5kkNqo9fAVPSAM/i0oD8vynMFWO18dAyFZuorTw4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,9 +47,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH mlx5-next 1/5] net/mlx5: Add Virtio Emulation related device capabilities
-Date:   Thu, 12 Dec 2019 13:09:24 +0200
-Message-Id: <20191212110928.334995-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/5] IB/mlx5: Extend caps stage to handle VAR capabilities
+Date:   Thu, 12 Dec 2019 13:09:26 +0200
+Message-Id: <20191212110928.334995-4-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212110928.334995-1-leon@kernel.org>
 References: <20191212110928.334995-1-leon@kernel.org>
@@ -62,58 +62,115 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Add Virtio Emulation related fields to the device capabilities.
-
-It includes a general bit to indicate whether Virtio Emulation is
-supported and the capabilities structure itself.
+Extend caps stage to handle VAR capabilities.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Shahaf Shuler <shahafs@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c    | 40 ++++++++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 10 +++++++
+ 2 files changed, 48 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 5d54fccf87fc..c6abaf4f1c55 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -87,6 +87,7 @@ enum {
- enum {
- 	MLX5_GENERAL_OBJ_TYPES_CAP_SW_ICM = (1ULL << MLX5_OBJ_TYPE_SW_ICM),
- 	MLX5_GENERAL_OBJ_TYPES_CAP_GENEVE_TLV_OPT = (1ULL << 11),
-+	MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q = (1ULL << 13),
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 4d89d85226c2..79a5b8824b9d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6335,6 +6335,35 @@ static const struct ib_device_ops mlx5_ib_dev_dm_ops = {
+ 	.reg_dm_mr = mlx5_ib_reg_dm_mr,
  };
  
- enum {
-@@ -953,6 +954,19 @@ struct mlx5_ifc_device_event_cap_bits {
- 	u8         user_unaffiliated_events[4][0x40];
++static int mlx5_ib_init_var_table(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_var_table *var_table = &dev->var_table;
++	u8 log_doorbell_bar_size;
++	u8 log_doorbell_stride;
++	u64 bar_size;
++
++	log_doorbell_bar_size = MLX5_CAP_DEV_VDPA_EMULATION(mdev,
++					log_doorbell_bar_size);
++	log_doorbell_stride = MLX5_CAP_DEV_VDPA_EMULATION(mdev,
++					log_doorbell_stride);
++	var_table->hw_start_addr = dev->mdev->bar_addr +
++				MLX5_CAP64_DEV_VDPA_EMULATION(mdev,
++					doorbell_bar_offset);
++	bar_size = (1ULL << log_doorbell_bar_size) * 4096;
++	var_table->stride_size = 1ULL << log_doorbell_stride;
++	var_table->num_var_hw_entries = bar_size / var_table->stride_size;
++	mutex_init(&var_table->bitmap_lock);
++	var_table->bitmap = bitmap_zalloc(var_table->num_var_hw_entries,
++					  GFP_KERNEL);
++	return (var_table->bitmap) ? 0 : -ENOMEM;
++}
++
++static void mlx5_ib_stage_caps_cleanup(struct mlx5_ib_dev *dev)
++{
++	bitmap_free(dev->var_table.bitmap);
++}
++
+ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ {
+ 	struct mlx5_core_dev *mdev = dev->mdev;
+@@ -6422,6 +6451,13 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 	     MLX5_CAP_GEN(dev->mdev, disable_local_lb_mc)))
+ 		mutex_init(&dev->lb.mutex);
+ 
++	if (MLX5_CAP_GEN_64(dev->mdev, general_obj_types) &
++			MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q) {
++		err = mlx5_ib_init_var_table(dev);
++		if (err)
++			return err;
++	}
++
+ 	dev->ib_dev.use_cq_dim = true;
+ 
+ 	return 0;
+@@ -6770,7 +6806,7 @@ static const struct mlx5_ib_profile pf_profile = {
+ 		     mlx5_ib_stage_flow_db_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_CAPS,
+ 		     mlx5_ib_stage_caps_init,
+-		     NULL),
++		     mlx5_ib_stage_caps_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_NON_DEFAULT_CB,
+ 		     mlx5_ib_stage_non_default_cb,
+ 		     NULL),
+@@ -6827,7 +6863,7 @@ const struct mlx5_ib_profile raw_eth_profile = {
+ 		     mlx5_ib_stage_flow_db_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_CAPS,
+ 		     mlx5_ib_stage_caps_init,
+-		     NULL),
++		     mlx5_ib_stage_caps_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_NON_DEFAULT_CB,
+ 		     mlx5_ib_stage_raw_eth_non_default_cb,
+ 		     NULL),
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b06f32ff5748..23ad949e247f 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -959,6 +959,15 @@ struct mlx5_devx_event_table {
+ 	struct xarray event_xa;
  };
  
-+struct mlx5_ifc_device_virtio_emulation_cap_bits {
-+	u8         reserved_at_0[0x20];
-+
-+	u8         reserved_at_20[0x13];
-+	u8         log_doorbell_stride[0x5];
-+	u8         reserved_at_38[0x3];
-+	u8         log_doorbell_bar_size[0x5];
-+
-+	u8         doorbell_bar_offset[0x40];
-+
-+	u8         reserved_at_80[0x780];
++struct mlx5_var_table {
++	/* serialize updating the bitmap */
++	struct mutex bitmap_lock;
++	unsigned long *bitmap;
++	u64 hw_start_addr;
++	u32 stride_size;
++	u64 num_var_hw_entries;
 +};
 +
- enum {
- 	MLX5_ATOMIC_CAPS_ATOMIC_SIZE_QP_1_BYTE     = 0x0,
- 	MLX5_ATOMIC_CAPS_ATOMIC_SIZE_QP_2_BYTES    = 0x2,
-@@ -2751,6 +2765,7 @@ union mlx5_ifc_hca_cap_union_bits {
- 	struct mlx5_ifc_fpga_cap_bits fpga_cap;
- 	struct mlx5_ifc_tls_cap_bits tls_cap;
- 	struct mlx5_ifc_device_mem_cap_bits device_mem_cap;
-+	struct mlx5_ifc_device_virtio_emulation_cap_bits virtio_emulation_cap;
- 	u8         reserved_at_0[0x8000];
- };
+ struct mlx5_ib_dev {
+ 	struct ib_device		ib_dev;
+ 	struct mlx5_core_dev		*mdev;
+@@ -1013,6 +1022,7 @@ struct mlx5_ib_dev {
+ 	struct mlx5_srq_table   srq_table;
+ 	struct mlx5_async_ctx   async_ctx;
+ 	struct mlx5_devx_event_table devx_event_table;
++	struct mlx5_var_table var_table;
  
+ 	struct xarray sig_mrs;
+ };
 -- 
 2.20.1
 
