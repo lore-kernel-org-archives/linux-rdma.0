@@ -2,42 +2,42 @@ Return-Path: <SRS0=BWFQ=2C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36FB3C2D0C8
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA224C2D0C8
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 081DA214D8
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC6AE214D8
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143552;
-	bh=aSy8KPLa2NxDpkFwiOcxe7vOLkC+swyd2gyIIrqLNrc=;
+	s=default; t=1576143553;
+	bh=4oSh45tk7GMq9y7eBVzjTgs4Wa2Ozwau6RsA6aDNDi0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kt1Ytfa/oJI0ALeseQuVU/q73rBg6N4v5UlGGNE85sCXYtiK3Kud5NATtVgLAHQiF
-	 uchDFZC5W6cB9e7d91sNH4nCjnuLPPoFrwg5EmifNeSgmXg1LP/takjrkKsKVHmR2B
-	 E49lRmPZ0mhyneKF94GZJ9fS2UxRfPwjeXgj1ya8=
+	b=0Ngr1AVW44tt8uRWddKi3Zk+2YxmI97xNzut9Ih3Rfk6ePcJK5ZZz7Cg6k1CbavMT
+	 8kIqvA+BgUNGaVhIWUlge8A7ZdU5RWl8pAij96JFEIqyOfQX87YGvujYh9/fjn0xck
+	 OudBTtEhaSNxkrSnYAqrnz//RRDuhsngP+MeAFuo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728391AbfLLJjL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:39:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39314 "EHLO mail.kernel.org"
+        id S1728495AbfLLJjN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:39:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728427AbfLLJjK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:39:10 -0500
+        id S1728427AbfLLJjN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:39:13 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 42DFE22527;
-        Thu, 12 Dec 2019 09:39:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 64FFD24658;
+        Thu, 12 Dec 2019 09:39:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143548;
-        bh=aSy8KPLa2NxDpkFwiOcxe7vOLkC+swyd2gyIIrqLNrc=;
+        s=default; t=1576143552;
+        bh=4oSh45tk7GMq9y7eBVzjTgs4Wa2Ozwau6RsA6aDNDi0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=l2GD2FHCBbOYGnhVDwSK0cbGeHCnbOHCcuHudDP5pd6ZvuNy4A5iLTyfsmnCKTY3Z
-         ZeOTdnU0RSvCx/WXjuZ4jK0uABYOUK6b593ab05JytmrVwBCydYk+0YQbzeHkEFLaV
-         8gzq+A9Fd10ImoGFoQTvQUIWsY+TfXlQkBecOers=
+        b=iErSsLikqSsyapbUHe+DQIvbBZmFk9JIZOy0/IBVuxOGXPWyLXDUQWY1gMTxP/zMP
+         ZGEU6kmeILEccP8a+WnhMfo23cHkWmoOTXRlP9tGaqR+NkFQcWzPj77KoSKAzWlKIw
+         v5YUpuO0jRXwyEXZlF8x47Ox/TvndS/Lsj7JoGfY=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 10/48] RDMA/cm: Request For Communication Release (DREQ) definitions
-Date:   Thu, 12 Dec 2019 11:37:52 +0200
-Message-Id: <20191212093830.316934-11-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 07/48] RDMA/cm: Reject (REJ) message definitions
+Date:   Thu, 12 Dec 2019 11:37:49 +0200
+Message-Id: <20191212093830.316934-8-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
 References: <20191212093830.316934-1-leon@kernel.org>
@@ -60,77 +60,106 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Add DREQ definitions as it is written in IBTA release 1.3 volume 1.
+Add Reject (REJ) definitions as it is written
+in IBTA release 1.3 volume 1.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      | 4 ++--
- drivers/infiniband/core/cm_msgs.h | 2 +-
- include/rdma/ib_cm.h              | 1 -
- include/rdma/ibta_vol1_c12.h      | 7 +++++++
- 4 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/cm.c      |  6 +++---
+ drivers/infiniband/core/cm_msgs.h |  4 ++--
+ drivers/infiniband/core/cma.c     |  2 +-
+ include/rdma/ib_cm.h              |  2 --
+ include/rdma/ibta_vol1_c12.h      | 11 +++++++++++
+ 5 files changed, 17 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 73f93e354d8b..57e35d2f657f 100644
+index 5a0ee9e46ff9..f19c817ac99f 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -2452,7 +2452,7 @@ int ib_send_cm_dreq(struct ib_cm_id *cm_id,
+@@ -2716,8 +2716,8 @@ int ib_send_cm_rej(struct ib_cm_id *cm_id,
  	unsigned long flags;
  	int ret;
  
--	if (private_data && private_data_len > IB_CM_DREQ_PRIVATE_DATA_SIZE)
-+	if (private_data && private_data_len > CM_DREQ_PRIVATE_DATA_SIZE)
+-	if ((private_data && private_data_len > IB_CM_REJ_PRIVATE_DATA_SIZE) ||
+-	    (ari && ari_length > IB_CM_REJ_ARI_LENGTH))
++	if ((private_data && private_data_len > CM_REJ_PRIVATE_DATA_SIZE) ||
++	    (ari && ari_length > CM_REJ_ARI_SIZE))
  		return -EINVAL;
  
  	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
-@@ -2603,7 +2603,7 @@ static int cm_dreq_handler(struct cm_work *work)
- 	}
+@@ -2778,7 +2778,7 @@ static void cm_format_rej_event(struct cm_work *work)
+ 	param->ari_length = cm_rej_get_reject_info_len(rej_msg);
+ 	param->reason = __be16_to_cpu(rej_msg->reason);
+ 	work->cm_event.private_data = &rej_msg->private_data;
+-	work->cm_event.private_data_len = IB_CM_REJ_PRIVATE_DATA_SIZE;
++	work->cm_event.private_data_len = CM_REJ_PRIVATE_DATA_SIZE;
+ }
  
- 	work->cm_event.private_data = &dreq_msg->private_data;
--	work->cm_event.private_data_len = IB_CM_DREQ_PRIVATE_DATA_SIZE;
-+	work->cm_event.private_data_len = CM_DREQ_PRIVATE_DATA_SIZE;
- 
- 	spin_lock_irq(&cm_id_priv->lock);
- 	if (cm_id_priv->local_qpn != cm_dreq_get_remote_qpn(dreq_msg))
+ static struct cm_id_private * cm_acquire_rejected_id(struct cm_rej_msg *rej_msg)
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index d36e90ccaeb7..c2b19d21fbe6 100644
+index 888209ec058d..48c97ec4ae13 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -594,7 +594,7 @@ struct cm_dreq_msg {
- 	/* remote QPN/EECN:24, rsvd:8 */
- 	__be32 offset8;
+@@ -427,9 +427,9 @@ struct cm_rej_msg {
+ 	/* reject info length:7, rsvd:1. */
+ 	u8 offset9;
+ 	__be16 reason;
+-	u8 ari[IB_CM_REJ_ARI_LENGTH];
++	u8 ari[CM_REJ_ARI_SIZE];
  
--	u8 private_data[IB_CM_DREQ_PRIVATE_DATA_SIZE];
-+	u8 private_data[CM_DREQ_PRIVATE_DATA_SIZE];
+-	u8 private_data[IB_CM_REJ_PRIVATE_DATA_SIZE];
++	u8 private_data[CM_REJ_PRIVATE_DATA_SIZE];
  
  } __packed;
  
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 02490a3c11f3..8495ad001e92 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1951,7 +1951,7 @@ static int cma_ib_handler(struct ib_cm_id *cm_id,
+ 		event.status = ib_event->param.rej_rcvd.reason;
+ 		event.event = RDMA_CM_EVENT_REJECTED;
+ 		event.param.conn.private_data = ib_event->private_data;
+-		event.param.conn.private_data_len = IB_CM_REJ_PRIVATE_DATA_SIZE;
++		event.param.conn.private_data_len = CM_REJ_PRIVATE_DATA_SIZE;
+ 		break;
+ 	default:
+ 		pr_err("RDMA CMA: unexpected IB CM event: %d\n",
 diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 34dc12b30399..77f4818aaf10 100644
+index 6d73316be651..a5b9bd49041b 100644
 --- a/include/rdma/ib_cm.h
 +++ b/include/rdma/ib_cm.h
-@@ -65,7 +65,6 @@ enum ib_cm_event_type {
+@@ -65,12 +65,10 @@ enum ib_cm_event_type {
  };
  
  enum ib_cm_data_size {
--	IB_CM_DREQ_PRIVATE_DATA_SIZE	 = 220,
+-	IB_CM_REJ_PRIVATE_DATA_SIZE	 = 148,
+ 	IB_CM_REP_PRIVATE_DATA_SIZE	 = 196,
+ 	IB_CM_RTU_PRIVATE_DATA_SIZE	 = 224,
+ 	IB_CM_DREQ_PRIVATE_DATA_SIZE	 = 220,
  	IB_CM_DREP_PRIVATE_DATA_SIZE	 = 224,
+-	IB_CM_REJ_ARI_LENGTH		 = 72,
  	IB_CM_LAP_PRIVATE_DATA_SIZE	 = 168,
  	IB_CM_APR_PRIVATE_DATA_SIZE	 = 148,
+ 	IB_CM_APR_INFO_LENGTH		 = 72,
 diff --git a/include/rdma/ibta_vol1_c12.h b/include/rdma/ibta_vol1_c12.h
-index 892d3122023c..e3116b62d7ba 100644
+index 52dbc80a0d1b..08378eb4d6df 100644
 --- a/include/rdma/ibta_vol1_c12.h
 +++ b/include/rdma/ibta_vol1_c12.h
-@@ -132,4 +132,11 @@
- #define CM_RTU_PRIVATE_DATA CM_FIELD_MLOC(struct cm_rtu_msg, 8, 1792)
- #define CM_RTU_PRIVATE_DATA_SIZE 224
+@@ -96,4 +96,15 @@
+ #define CM_MRA_PRIVATE_DATA CM_FIELD_MLOC(struct cm_mra_msg, 10, 1776)
+ #define CM_MRA_PRIVATE_DATA_SIZE 222
  
-+/* Table 112 DREQ Message Contents */
-+#define CM_DREQ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_dreq_msg, 0, 32)
-+#define CM_DREQ_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_dreq_msg, 4, 32)
-+#define CM_DREQ_REMOTE_QPN_EECN CM_FIELD32_LOC(struct cm_dreq_msg, 8, 24)
-+#define CM_DREQ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_dreq_msg, 12, 1760)
-+#define CM_DREQ_PRIVATE_DATA_SIZE 220
++/* Table 108 REJ Message Contents */
++#define CM_REJ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_rej_msg, 0, 32)
++#define CM_REJ_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_rej_msg, 4, 32)
++#define CM_REJ_MESSAGE_REJECTED CM_FIELD8_LOC(struct cm_rej_msg, 8, 2)
++#define CM_REJ_REJECTED_INFO_LENGTH CM_FIELD8_LOC(struct cm_rej_msg, 9, 7)
++#define CM_REJ_REASON CM_FIELD16_LOC(struct cm_rej_msg, 10, 16)
++#define CM_REJ_ARI CM_FIELD_MLOC(struct cm_rej_msg, 12, 576)
++#define CM_REJ_ARI_SIZE 72
++#define CM_REJ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_rej_msg, 84, 1184)
++#define CM_REJ_PRIVATE_DATA_SIZE 148
 +
  #endif /* _IBTA_VOL1_C12_H_ */
 -- 
