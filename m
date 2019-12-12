@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66263C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D72C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3841C24658
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C15F12465A
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:39:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143595;
-	bh=XNIcEkgdkUhvB6T6uLyH4IJFxWIqk5KheXhuulsxMjg=;
+	s=default; t=1576143598;
+	bh=/hI0qvoQZqSwGz4lSCnw2joMweNIw+eAqLivtUx6nWs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=jSwi70u8PdWm9F5Z/qp4xLRMFW5jfQuiziDGU15NWuJORlsInmAOVcAseGEXBF743
-	 3CFkoKH6qV35r4XzoEM7X0NjBTLKNKaAfOd1WA8LoH0ydZF/dNpMqhNx0YUgvnTaqK
-	 0NNP/+XPHPhis3Koaox4ZBYx2Qu6oXvM7gB5jqIs=
+	b=pNvnQlE/ZVdneSE1q0WeodOld6A3B8ylnQMcvmaOSSbLB1aOkyv6KgfpfQpoSZFg+
+	 NN7Bm+t3KvarOlR4QStGO/6VTnTRxxHDjeO5n+Bq0WPpLkMhegho5i4KCdd1/9Kmoi
+	 I0DqvN019NX/6sXAIDEQtGk58+P9ERkAY8YeHIig=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728371AbfLLJjy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:39:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40244 "EHLO mail.kernel.org"
+        id S1728404AbfLLJj6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:39:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40306 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728349AbfLLJjy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:39:54 -0500
+        id S1728349AbfLLJj6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:39:58 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 142762173E;
-        Thu, 12 Dec 2019 09:39:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A0ED722527;
+        Thu, 12 Dec 2019 09:39:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143593;
-        bh=XNIcEkgdkUhvB6T6uLyH4IJFxWIqk5KheXhuulsxMjg=;
+        s=default; t=1576143597;
+        bh=/hI0qvoQZqSwGz4lSCnw2joMweNIw+eAqLivtUx6nWs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=c2vtzqoLXgkrDFfqev8gMjqHI6z/401CqgfwMLM/CnrUQ5fTYBR49p6Yc/J++MjN0
-         /j11Z9A3WW1tzE5e6nxVNBeKHZz43LrDoOg5Fguz5dc9J66TRMOMnJbrT9A3imSf2r
-         YXrwOsG4A/BVcvauTMDGFDxvfoq+mVRSH9/R/rB8=
+        b=IHALQjVkOVeit4W/wOmYlIeBagltuDoAjHfWvzrOii406oHR8eTvxnxhhWugvZ1BO
+         mC4DmDjos1lnLsJYX5ZPtAsImD0m9rGULc1T5tGC3lEuMjJOof6luFJsXJGEUFV+U0
+         qK2105yQYcpM0dJgaifzgE2B/Ao8kIz52I/vF3bQ=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 24/48] RDMA/cm: Convert REQ retry count to use new scheme
-Date:   Thu, 12 Dec 2019 11:38:06 +0200
-Message-Id: <20191212093830.316934-25-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 20/48] RDMA/cm: Simplify QP type to wire protocol translation
+Date:   Thu, 12 Dec 2019 11:38:02 +0200
+Message-Id: <20191212093830.316934-21-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
 References: <20191212093830.316934-1-leon@kernel.org>
@@ -60,68 +60,106 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert REQ retry count to new IBA_GET/IBA_SET macros.
+Simplify QP type to/from wire protocol logic and move it to be near
+implementation and not in header file.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  6 +++---
- drivers/infiniband/core/cm_msgs.h | 12 ------------
- 2 files changed, 3 insertions(+), 15 deletions(-)
+ drivers/infiniband/core/cm.c      | 25 +++++++++++++++++++++
+ drivers/infiniband/core/cm_msgs.h | 37 -------------------------------
+ 2 files changed, 25 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 062579d43c56..3e5b06c98808 100644
+index 34654aba638e..f7ed4067743f 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1295,7 +1295,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 	if (param->qp_type != IB_QPT_XRC_INI) {
- 		IBA_SET(CM_REQ_RESPONDED_RESOURCES, req_msg,
- 		       param->responder_resources);
--		cm_req_set_retry_count(req_msg, param->retry_count);
-+		IBA_SET(CM_REQ_RETRY_COUNT, req_msg, param->retry_count);
- 		cm_req_set_rnr_retry_count(req_msg, param->rnr_retry_count);
- 		cm_req_set_srq(req_msg, param->srq);
- 	}
-@@ -1702,7 +1702,7 @@ static void cm_format_req_event(struct cm_work *work,
- 	param->flow_control = IBA_GET(CM_REQ_END_TO_END_FLOW_CONTROL, req_msg);
- 	param->remote_cm_response_timeout =
- 		IBA_GET(CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT, req_msg);
--	param->retry_count = cm_req_get_retry_count(req_msg);
-+	param->retry_count = IBA_GET(CM_REQ_RETRY_COUNT, req_msg);
- 	param->rnr_retry_count = cm_req_get_rnr_retry_count(req_msg);
- 	param->srq = cm_req_get_srq(req_msg);
- 	param->ppath_sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
-@@ -2035,7 +2035,7 @@ static int cm_req_handler(struct cm_work *work)
- 	cm_id_priv->path_mtu = cm_req_get_path_mtu(req_msg);
- 	cm_id_priv->pkey = req_msg->pkey;
- 	cm_id_priv->sq_psn = IBA_GET(CM_REQ_STARTING_PSN, req_msg);
--	cm_id_priv->retry_count = cm_req_get_retry_count(req_msg);
-+	cm_id_priv->retry_count = IBA_GET(CM_REQ_RETRY_COUNT, req_msg);
- 	cm_id_priv->rnr_retry_count = cm_req_get_rnr_retry_count(req_msg);
- 	cm_id_priv->qp_type = cm_req_get_qp_type(req_msg);
+@@ -1247,6 +1247,20 @@ static void cm_format_mad_hdr(struct ib_mad_hdr *hdr,
+ 	hdr->tid	   = tid;
+ }
  
++static void cm_req_set_qp_type(struct cm_req_msg *req_msg,
++			       enum ib_qp_type qp_type)
++{
++	static const u8 qp_types[IB_QPT_MAX] = {
++		[IB_QPT_UC] = 1,
++		[IB_QPT_XRC_INI] = 3,
++	};
++
++	if (qp_type == IB_QPT_XRC_INI)
++		IBA_SET(CM_REQ_EXTENDED_TRANSPORT_TYPE, req_msg, 0x1);
++
++	IBA_SET(CM_REQ_TRANSPORT_SERVICE_TYPE, req_msg, qp_types[qp_type]);
++}
++
+ static void cm_format_req(struct cm_req_msg *req_msg,
+ 			  struct cm_id_private *cm_id_priv,
+ 			  struct ib_cm_req_param *param)
+@@ -1645,6 +1659,17 @@ static void cm_opa_to_ib_sgid(struct cm_work *work,
+ 	}
+ }
+ 
++static enum ib_qp_type cm_req_get_qp_type(struct cm_req_msg *req_msg)
++{
++	static const enum ib_qp_type qp_type[] = { IB_QPT_RC, IB_QPT_UC, 0, 0 };
++	u8 transport_type = IBA_GET(CM_REQ_TRANSPORT_SERVICE_TYPE, req_msg);
++
++	if (transport_type == 3 &&
++	    (IBA_GET(CM_REQ_EXTENDED_TRANSPORT_TYPE, req_msg) == 1))
++		return IB_QPT_XRC_TGT;
++	return qp_type[transport_type];
++}
++
+ static void cm_format_req_event(struct cm_work *work,
+ 				struct cm_id_private *cm_id_priv,
+ 				struct ib_cm_id *listen_id)
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 56832e9a0692..d3f1caf07db5 100644
+index c348521040a6..5e6dd00c6018 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -70,18 +70,6 @@ struct cm_req_msg {
+@@ -70,43 +70,6 @@ struct cm_req_msg {
  
  } __packed;
  
--static inline u8 cm_req_get_retry_count(struct cm_req_msg *req_msg)
+-static inline enum ib_qp_type cm_req_get_qp_type(struct cm_req_msg *req_msg)
 -{
--	return (u8) (be32_to_cpu(req_msg->offset44) & 0x7);
+-	u8 transport_type = (u8) (be32_to_cpu(req_msg->offset40) & 0x06) >> 1;
+-	switch(transport_type) {
+-	case 0: return IB_QPT_RC;
+-	case 1: return IB_QPT_UC;
+-	case 3:
+-		switch (req_msg->offset51 & 0x7) {
+-		case 1: return IB_QPT_XRC_TGT;
+-		default: return 0;
+-		}
+-	default: return 0;
+-	}
 -}
 -
--static inline void cm_req_set_retry_count(struct cm_req_msg *req_msg,
--					  u8 retry_count)
+-static inline void cm_req_set_qp_type(struct cm_req_msg *req_msg,
+-				      enum ib_qp_type qp_type)
 -{
--	req_msg->offset44 = cpu_to_be32((retry_count & 0x7) |
--			    (be32_to_cpu(req_msg->offset44) & 0xFFFFFFF8));
+-	switch(qp_type) {
+-	case IB_QPT_UC:
+-		req_msg->offset40 = cpu_to_be32((be32_to_cpu(
+-						  req_msg->offset40) &
+-						   0xFFFFFFF9) | 0x2);
+-		break;
+-	case IB_QPT_XRC_INI:
+-		req_msg->offset40 = cpu_to_be32((be32_to_cpu(
+-						 req_msg->offset40) &
+-						   0xFFFFFFF9) | 0x6);
+-		req_msg->offset51 = (req_msg->offset51 & 0xF8) | 1;
+-		break;
+-	default:
+-		req_msg->offset40 = cpu_to_be32(be32_to_cpu(
+-						 req_msg->offset40) &
+-						  0xFFFFFFF9);
+-	}
 -}
 -
- static inline u8 cm_req_get_path_mtu(struct cm_req_msg *req_msg)
+ static inline u8 cm_req_get_flow_ctrl(struct cm_req_msg *req_msg)
  {
- 	return req_msg->offset50 >> 4;
+ 	return be32_to_cpu(req_msg->offset40) & 0x1;
 -- 
 2.20.1
 
