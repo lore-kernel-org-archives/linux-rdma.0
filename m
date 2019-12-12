@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EBBEC43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F4CFC43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32E6422B48
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 119E82173E
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:09:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576148987;
-	bh=TzwtMqb4TA5NrCoAHwMIif22JuuxfMAOrgLgDLiN1iA=;
+	s=default; t=1576148996;
+	bh=K0OHM1apI/1aRyyNvhqVG/F9HzYrAWuhoWs6bqrHGf8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kglBy87XQgRoyl5aGmI+I5YCuWlyd8FFYGvqrw/NP/5ntl6rdtVwU0M99wvXP8rPH
-	 U7nKc+T9ZBbb0TadfeC2RkaKQBM5Dz+ivfpBA57X4KeRIJIaxZAmf/cqQ4jFus1VJ7
-	 2zXjEp879sRwF5M90yEYYEGMniX5NvIhEd3BAW14=
+	b=F5a5mNkD1e5edKsKUH8fkwvTVhXD9tuRbjOfcTvds1fPExYsEoDFCFOE/YFlttV9a
+	 Lko6vQlzKd6Aqh/0XCgRGyFOkDh04qqpl/bPrDXPU9D5gtJa4Llz3bXcgCWIbM/pCo
+	 pAYe3OJoDeqymyFT1I5fMPgXVFj+YCIGt+ppVqYE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728968AbfLLLJq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 06:09:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56874 "EHLO mail.kernel.org"
+        id S1728725AbfLLLJt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 06:09:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728613AbfLLLJp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 06:09:45 -0500
+        id S1728648AbfLLLJs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 06:09:48 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C226A227BF;
-        Thu, 12 Dec 2019 11:09:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E25AE2464B;
+        Thu, 12 Dec 2019 11:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576148985;
-        bh=TzwtMqb4TA5NrCoAHwMIif22JuuxfMAOrgLgDLiN1iA=;
+        s=default; t=1576148988;
+        bh=K0OHM1apI/1aRyyNvhqVG/F9HzYrAWuhoWs6bqrHGf8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dT/aYXKCojly1+IUBxWLdzu2K6Z1UPWypjGPuproAf02otIRVBEFggv3cXD6UWD7k
-         yS2lI+439C3+C1TEx+Nn8NnMhnS4T7W7o0jLCHlHA0JWMcLm/+OFbzlDVdCv8w++NL
-         YiV/3IzBfsoJw0vMiNxA0XaMsVDHYLdfPjnrhp8s=
+        b=zmU0NCLIyXpbIYBirbxn+VF8JNI6rv/Q9eUgv0FZtNw4umVr4q826y3O3E9jBHoaB
+         lmE3O66FTI1YPJx+R12Mx0Oclt4BGOaDvp3rQF4J/Z2rgJ0NKF7xm5rK6cdWSILvqC
+         ICy0PcEvdwCqOaZffmbYhhcemeVUibzUCxjSHryc=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,9 +47,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH rdma-next 5/5] IB/mlx5: Add mmap support for VAR
-Date:   Thu, 12 Dec 2019 13:09:28 +0200
-Message-Id: <20191212110928.334995-6-leon@kernel.org>
+Subject: [PATCH mlx5-next 2/5] net/mlx5: Expose vDPA emulation device capabilities
+Date:   Thu, 12 Dec 2019 13:09:25 +0200
+Message-Id: <20191212110928.334995-3-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212110928.334995-1-leon@kernel.org>
 References: <20191212110928.334995-1-leon@kernel.org>
@@ -62,31 +62,63 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Add mmap support for VAR, it uses the 'offset' command mode with
-involvement of IB core APIs to find the previously allocated mmap entry.
+Expose vDPA emulation device capabilities from the core layer.
+It includes reading the capabilities from the firmware and exposing
+helper functions to access the data.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Shahaf Shuler <shahafs@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c | 7 +++++++
+ include/linux/mlx5/device.h                  | 9 +++++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 873480b07686..52bc86ab9490 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2253,7 +2253,10 @@ static int mlx5_ib_mmap_offset(struct mlx5_ib_dev *dev,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+index a19790dee7b2..c375edfe528c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+@@ -245,6 +245,13 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
+ 			return err;
+ 	}
  
- 	mentry = to_mmmap(entry);
- 	pfn = (mentry->address >> PAGE_SHIFT);
--	prot = pgprot_writecombine(vma->vm_page_prot);
-+	if (mentry->mmap_flag == MLX5_IB_MMAP_TYPE_VAR)
-+		prot = pgprot_noncached(vma->vm_page_prot);
-+	else
-+		prot = pgprot_writecombine(vma->vm_page_prot);
- 	ret = rdma_user_mmap_io(ucontext, vma, pfn,
- 				entry->npages * PAGE_SIZE,
- 				prot,
++	if (MLX5_CAP_GEN_64(dev, general_obj_types) &
++		MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q) {
++		err = mlx5_core_get_caps(dev, MLX5_CAP_VDPA_EMULATION);
++		if (err)
++			return err;
++	}
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index cc1c230f10ee..1a1c53f0262d 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -1105,6 +1105,7 @@ enum mlx5_cap_type {
+ 	MLX5_CAP_DEV_MEM,
+ 	MLX5_CAP_RESERVED_16,
+ 	MLX5_CAP_TLS,
++	MLX5_CAP_VDPA_EMULATION = 0x13,
+ 	MLX5_CAP_DEV_EVENT = 0x14,
+ 	/* NUM OF CAP Types */
+ 	MLX5_CAP_NUM
+@@ -1297,6 +1298,14 @@ enum mlx5_qcam_feature_groups {
+ #define MLX5_CAP_DEV_EVENT(mdev, cap)\
+ 	MLX5_ADDR_OF(device_event_cap, (mdev)->caps.hca_cur[MLX5_CAP_DEV_EVENT], cap)
+ 
++#define MLX5_CAP_DEV_VDPA_EMULATION(mdev, cap)\
++	MLX5_GET(device_virtio_emulation_cap, \
++		(mdev)->caps.hca_cur[MLX5_CAP_VDPA_EMULATION], cap)
++
++#define MLX5_CAP64_DEV_VDPA_EMULATION(mdev, cap)\
++	MLX5_GET64(device_virtio_emulation_cap, \
++		(mdev)->caps.hca_cur[MLX5_CAP_VDPA_EMULATION], cap)
++
+ enum {
+ 	MLX5_CMD_STAT_OK			= 0x0,
+ 	MLX5_CMD_STAT_INT_ERR			= 0x1,
 -- 
 2.20.1
 
