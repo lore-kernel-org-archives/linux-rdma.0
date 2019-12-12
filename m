@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7603C2D0D5
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:21:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AACAEC2D0CE
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:22:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9A45D2077B
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:21:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81823214D8
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:22:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="GrZoEGcf"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="IUVN9KAQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728727AbfLLIVn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 03:21:43 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:8661 "EHLO
+        id S1728496AbfLLIWT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 03:22:19 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:8609 "EHLO
         hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728421AbfLLITa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Dec 2019 03:19:30 -0500
+        with ESMTP id S1728369AbfLLIT2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Dec 2019 03:19:28 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5df1f8030002>; Thu, 12 Dec 2019 00:19:15 -0800
+        id <B5df1f8020001>; Thu, 12 Dec 2019 00:19:14 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Thu, 12 Dec 2019 00:19:22 -0800
+  Thu, 12 Dec 2019 00:19:21 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Thu, 12 Dec 2019 00:19:22 -0800
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Dec
- 2019 08:19:19 +0000
+        by hqpgpgate101.nvidia.com on Thu, 12 Dec 2019 00:19:21 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Dec
+ 2019 08:19:20 +0000
 Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
  (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Thu, 12 Dec 2019 08:19:19 +0000
+ Transport; Thu, 12 Dec 2019 08:19:20 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5df1f8070004>; Thu, 12 Dec 2019 00:19:19 -0800
+        id <B5df1f8080002>; Thu, 12 Dec 2019 00:19:20 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -53,11 +53,12 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -66,11 +67,12 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>,
-        "Christoph Hellwig" <hch@lst.de>,
-        Leon Romanovsky <leonro@mellanox.com>
-Subject: [PATCH v10 08/25] mm/gup: allow FOLL_FORCE for get_user_pages_fast()
-Date:   Thu, 12 Dec 2019 00:19:00 -0800
-Message-ID: <20191212081917.1264184-9-jhubbard@nvidia.com>
+        Christoph Hellwig <hch@lst.de>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        <stable@vger.kernel.org>
+Subject: [PATCH v10 17/25] media/v4l2-core: set pages dirty upon releasing DMA buffers
+Date:   Thu, 12 Dec 2019 00:19:09 -0800
+Message-ID: <20191212081917.1264184-18-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191212081917.1264184-1-jhubbard@nvidia.com>
 References: <20191212081917.1264184-1-jhubbard@nvidia.com>
@@ -79,57 +81,56 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576138755; bh=KXwnEbWhVaRHKdwtzhXl2hLDTEIimFSZSBiRhq5T8UI=;
+        t=1576138755; bh=icmjko9fP8b/hMTtebs5M97o7j6aV8LjauIhhN3vqys=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=GrZoEGcfkJMBvBpFMdCYM+dtxFTFFVBR6tJvPrGKWzq20+YYQf+EIU5fn6PtSO6SB
-         e1QPpMISWuj9t5U1rU3zHwpHW0muycu9wLzK0TjVBcqQ9/Hmbq5Q3Zw2ufmbiGZWrs
-         PDAeOPJddHEvTupEZ5PhD21y/wPixP1kDIMmgv1Gs4Yx1SJZxvFWZoVZ5HghPSPybv
-         RzayjAjBOZfdoQRKm8aBUYgRlAKAfxK9Dgs/yFhEXpISknWb5gwIlyPNsnHJALHSEf
-         EYqZFGWf+ih1svYLc3D3CnHI7HXpMB4V2Dexq2I0l3uBpKGVRArADTlG4waj3Ia+OD
-         E1rzyx9RQL7vw==
+        b=IUVN9KAQc/ua1UftCrMfxs6ic7rqDuo8saHSK0rOnt8QFL+p5U7xnLO4OWTcsJQ5g
+         KzAB96enaN31aXkS8+f71s9ylBvpflj1Dqjmts4ESEaJJy4ux9T5NBoVJxTE30UJPs
+         fgC5KcMrbPVqAbqApWQ6+6ZucWPambwU3ugVL5mUUZmTYOwjcfbPvc1RIp4ZSzno/g
+         95r3b/nua4VtY9hfFkWlDb4dIk6iWLOAPp9gTV3VcjoHFq6FUkXVU4hLY+rLUDmpy2
+         4BE8dgFLltoDsFS8fkBUbZUu/l4SUpoywark/5N9ORkKdUqAC2/X8rAJiToa+HjSur
+         ihYzAG+jFQ+sg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Commit 817be129e6f2 ("mm: validate get_user_pages_fast flags") allowed
-only FOLL_WRITE and FOLL_LONGTERM to be passed to get_user_pages_fast().
-This, combined with the fact that get_user_pages_fast() falls back to
-"slow gup", which *does* accept FOLL_FORCE, leads to an odd situation:
-if you need FOLL_FORCE, you cannot call get_user_pages_fast().
+After DMA is complete, and the device and CPU caches are synchronized,
+it's still required to mark the CPU pages as dirty, if the data was
+coming from the device. However, this driver was just issuing a
+bare put_page() call, without any set_page_dirty*() call.
 
-There does not appear to be any reason for filtering out FOLL_FORCE.
-There is nothing in the _fast() implementation that requires that we
-avoid writing to the pages. So it appears to have been an oversight.
+Fix the problem, by calling set_page_dirty_lock() if the CPU pages
+were potentially receiving data from the device.
 
-Fix by allowing FOLL_FORCE to be set for get_user_pages_fast().
-
-Fixes: 817be129e6f2 ("mm: validate get_user_pages_fast flags")
-Cc: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index c0c56888e7cc..958ab0757389 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -2414,7 +2414,8 @@ int get_user_pages_fast(unsigned long start, int nr_p=
-ages,
- 	unsigned long addr, len, end;
- 	int nr =3D 0, ret =3D 0;
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2=
+-core/videobuf-dma-sg.c
+index 66a6c6c236a7..28262190c3ab 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -349,8 +349,11 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
+ 	BUG_ON(dma->sglen);
 =20
--	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM)))
-+	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
-+				       FOLL_FORCE)))
- 		return -EINVAL;
-=20
- 	start =3D untagged_addr(start) & PAGE_MASK;
+ 	if (dma->pages) {
+-		for (i =3D 0; i < dma->nr_pages; i++)
++		for (i =3D 0; i < dma->nr_pages; i++) {
++			if (dma->direction =3D=3D DMA_FROM_DEVICE)
++				set_page_dirty_lock(dma->pages[i]);
+ 			put_page(dma->pages[i]);
++		}
+ 		kfree(dma->pages);
+ 		dma->pages =3D NULL;
+ 	}
 --=20
 2.24.0
 
