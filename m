@@ -2,219 +2,125 @@ Return-Path: <SRS0=BWFQ=2C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C838C2D0C8
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:30:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA5F3C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:40:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D8431227BF
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:30:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DAB6214D8
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 11:40:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576150246;
-	bh=2djQXSFKlErn/wsEyFiORI5yqaCzda0Xon3WsItaM4M=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kxQ5cKuAWQetYPrKg09034OhBJMVOqc+qVLT5eAH2ZxeLHWgQ6W6fbOx1+tOqRB1V
-	 dgR+5kFd88psfpvJp0wU2HSPoUJivQz+PLREim9IXJHFhEokGk7kyvW2+zEwdu+Hfx
-	 CVOt5TqjsJdki+cCLZEgy6W2HG8AxSfqsNJlDYX0=
+	s=default; t=1576150842;
+	bh=pEu+Cc1QNs0QUWXgdqZjPhTXKBGcvxYkhrWHAllck8Y=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=Bz8xiNjSZPq23U2S6TPf/omsTu9ualVIqv/QFzK1B/P3CZQXyXyeHLVDHKGHJQAgp
+	 +1Riy6EC4RC9jbl5NZmENc9TPJ9Zzm0G0aC9oONOrT+EWMrSygcUM0N8eI/TmuLPM/
+	 2xvwKX5IrCnTqcggmhkvFGhJEoW2dE/mAlUNx+8Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728997AbfLLLaq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 06:30:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36622 "EHLO mail.kernel.org"
+        id S1728999AbfLLLkm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 06:40:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728501AbfLLLaq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 06:30:46 -0500
+        id S1728920AbfLLLkl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 06:40:41 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7E07D22B48;
-        Thu, 12 Dec 2019 11:30:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 80B5720663;
+        Thu, 12 Dec 2019 11:40:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576150245;
-        bh=2djQXSFKlErn/wsEyFiORI5yqaCzda0Xon3WsItaM4M=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=yYnDhlVzNmiSV5rOQXKmiKSbFArllyxzwFRMKlVjrvcodR0EFok4Snx2pOoBoKkjx
-         NtlkR7htOE2o3VaWaTPJCltAqzbWGinn/LfNe/l4/KjndTbl/rXv6qbD2hDWuO7xkw
-         5vYYlcTry1msJNeirmI5pk2yuRNAKyyIFbyBjJVI=
+        s=default; t=1576150841;
+        bh=pEu+Cc1QNs0QUWXgdqZjPhTXKBGcvxYkhrWHAllck8Y=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ySfmO0XaN6to3xCbTNWSJaLodUSRvO4NQqzJwuIJtzDNuVMIP3E336aLngSdWPLXr
+         8xcZGMxMQ7mZZBcVojYV8Lr4UiWgIqmrQaNu+pPnRaRa6OcJi1RKoKDGZ6joIikSYl
+         N1Q9CUzsMRYxsZkq6jRnIsABvoUDwXHpPZRWUAJs=
+Date:   Thu, 12 Dec 2019 13:40:38 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Parav Pandit <parav@mellanox.com>
-Subject: [PATCH rdma-next v1 3/4] IB/core: Cut down single member ib_cache structure
-Date:   Thu, 12 Dec 2019 13:30:23 +0200
-Message-Id: <20191212113024.336702-4-leon@kernel.org>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20191212113024.336702-1-leon@kernel.org>
-References: <20191212113024.336702-1-leon@kernel.org>
+To:     =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        OFED mailing list <linux-rdma@vger.kernel.org>,
+        Mark Haywood <mark.haywood@oracle.com>
+Subject: Re: [PATCH RDMA/netlink] RDMA/netlink: Adhere to returning zero on
+ success
+Message-ID: <20191212114038.GX67461@unreal>
+References: <20191211103400.2949140-1-haakon.bugge@oracle.com>
+ <20191211123955.GS67461@unreal>
+ <75D5DC74-A39B-425F-BCF7-E0AEBBE464CD@oracle.com>
+ <697DC4C7-223E-4321-A304-C950EB93D2B1@oracle.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <697DC4C7-223E-4321-A304-C950EB93D2B1@oracle.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+On Wed, Dec 11, 2019 at 08:31:18PM +0100, Håkon Bugge wrote:
+>
+>
+> > On 11 Dec 2019, at 14:13, Håkon Bugge <haakon.bugge@oracle.com> wrote:
+> >
+> >
+> >
+> >> On 11 Dec 2019, at 13:39, Leon Romanovsky <leon@kernel.org> wrote:
+> >>
+> >> On Wed, Dec 11, 2019 at 11:34:00AM +0100, Håkon Bugge wrote:
+> >>> In rdma_nl_rcv_skb(), the local variable err is assigned the return
+> >>> value of the supplied callback function, which could be one of
+> >>> ib_nl_handle_resolve_resp(), ib_nl_handle_set_timeout(), or
+> >>> ib_nl_handle_ip_res_resp(). These three functions all return skb->len
+> >>> on success.
+> >>>
+> >>> rdma_nl_rcv_skb() is merely a copy of netlink_rcv_skb(). The callback
+> >>> functions used by the latter have the convention: "Returns 0 on
+> >>> success or a negative error code".
+> >>>
+> >>> In particular, the statement (equal for both functions):
+> >>>
+> >>>  if (nlh->nlmsg_flags & NLM_F_ACK || err)
+> >>>
+> >>> implies that rdma_nl_rcv_skb() always will ack a message, independent
+> >>> of the NLM_F_ACK being set in nlmsg_flags or not.
+> >>
+> >> The more accurate description is that rdma_nl_rcv_skb() always generates
+> >> NLMSG_ERROR without relation to NLM_F_ACK flag. The NLM_F_ACK flag is
+> >> requested to get acknowledges for the success.
+>
+>
+> Yes. And when, lets say a legitimate path record response, containing N positive bytes, is sent back from ibacm to the kernel, rdma_nl_rcv_skb() think this is an error, due to "if (nlh->nlmsg_flags & NLM_F_ACK || err)" _and_ ib_nl_handle_resolve_resp() returning N.
 
-Given that ib_cache structure has only single member now, merge the
-cache lock directly in the ib_device.
+How did you test this patch?
+Do we have open-source applications which don't set NLM_F_ACK for
+ib_nl_*() calls?
 
-Signed-off-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/cache.c | 30 +++++++++++++++---------------
- include/rdma/ib_verbs.h         |  7 ++-----
- 2 files changed, 17 insertions(+), 20 deletions(-)
+Thanks
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index e55f345799e4..17bfedd24cc3 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1033,7 +1033,7 @@ int ib_get_cached_pkey(struct ib_device *device,
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
-
--	read_lock_irqsave(&device->cache.lock, flags);
-+	read_lock_irqsave(&device->cache_lock, flags);
-
- 	cache = device->port_data[port_num].cache.pkey;
-
-@@ -1042,7 +1042,7 @@ int ib_get_cached_pkey(struct ib_device *device,
- 	else
- 		*pkey = cache->table[index];
-
--	read_unlock_irqrestore(&device->cache.lock, flags);
-+	read_unlock_irqrestore(&device->cache_lock, flags);
-
- 	return ret;
- }
-@@ -1057,9 +1057,9 @@ int ib_get_cached_subnet_prefix(struct ib_device *device,
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
-
--	read_lock_irqsave(&device->cache.lock, flags);
-+	read_lock_irqsave(&device->cache_lock, flags);
- 	*sn_pfx = device->port_data[port_num].cache.subnet_prefix;
--	read_unlock_irqrestore(&device->cache.lock, flags);
-+	read_unlock_irqrestore(&device->cache_lock, flags);
-
- 	return 0;
- }
-@@ -1079,7 +1079,7 @@ int ib_find_cached_pkey(struct ib_device *device,
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
-
--	read_lock_irqsave(&device->cache.lock, flags);
-+	read_lock_irqsave(&device->cache_lock, flags);
-
- 	cache = device->port_data[port_num].cache.pkey;
-
-@@ -1100,7 +1100,7 @@ int ib_find_cached_pkey(struct ib_device *device,
- 		ret = 0;
- 	}
-
--	read_unlock_irqrestore(&device->cache.lock, flags);
-+	read_unlock_irqrestore(&device->cache_lock, flags);
-
- 	return ret;
- }
-@@ -1119,7 +1119,7 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
-
--	read_lock_irqsave(&device->cache.lock, flags);
-+	read_lock_irqsave(&device->cache_lock, flags);
-
- 	cache = device->port_data[port_num].cache.pkey;
-
-@@ -1132,7 +1132,7 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
- 			break;
- 		}
-
--	read_unlock_irqrestore(&device->cache.lock, flags);
-+	read_unlock_irqrestore(&device->cache_lock, flags);
-
- 	return ret;
- }
-@@ -1148,9 +1148,9 @@ int ib_get_cached_lmc(struct ib_device *device,
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
-
--	read_lock_irqsave(&device->cache.lock, flags);
-+	read_lock_irqsave(&device->cache_lock, flags);
- 	*lmc = device->port_data[port_num].cache.lmc;
--	read_unlock_irqrestore(&device->cache.lock, flags);
-+	read_unlock_irqrestore(&device->cache_lock, flags);
-
- 	return ret;
- }
-@@ -1166,9 +1166,9 @@ int ib_get_cached_port_state(struct ib_device   *device,
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
-
--	read_lock_irqsave(&device->cache.lock, flags);
-+	read_lock_irqsave(&device->cache_lock, flags);
- 	*port_state = device->port_data[port_num].cache.port_state;
--	read_unlock_irqrestore(&device->cache.lock, flags);
-+	read_unlock_irqrestore(&device->cache_lock, flags);
-
- 	return ret;
- }
-@@ -1428,7 +1428,7 @@ ib_cache_update(struct ib_device *device, u8 port, bool enforce_security)
- 		}
- 	}
-
--	write_lock_irq(&device->cache.lock);
-+	write_lock_irq(&device->cache_lock);
-
- 	old_pkey_cache = device->port_data[port].cache.pkey;
-
-@@ -1437,7 +1437,7 @@ ib_cache_update(struct ib_device *device, u8 port, bool enforce_security)
- 	device->port_data[port].cache.port_state = tprops->state;
-
- 	device->port_data[port].cache.subnet_prefix = tprops->subnet_prefix;
--	write_unlock_irq(&device->cache.lock);
-+	write_unlock_irq(&device->cache_lock);
-
- 	if (enforce_security)
- 		ib_security_cache_change(device,
-@@ -1530,7 +1530,7 @@ int ib_cache_setup_one(struct ib_device *device)
- 	unsigned int p;
- 	int err;
-
--	rwlock_init(&device->cache.lock);
-+	rwlock_init(&device->cache_lock);
-
- 	err = gid_table_setup_one(device);
- 	if (err)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index cb02d36d41d2..eaf9c948ff9b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2147,10 +2147,6 @@ struct ib_port_cache {
- 	enum ib_port_state     port_state;
- };
-
--struct ib_cache {
--	rwlock_t                lock;
--};
--
- struct ib_port_immutable {
- 	int                           pkey_tbl_len;
- 	int                           gid_tbl_len;
-@@ -2636,7 +2632,8 @@ struct ib_device {
- 	struct xarray                 client_data;
- 	struct mutex                  unregistration_lock;
-
--	struct ib_cache               cache;
-+	/* Synchronize GID, Pkey cache entries, subnet prefix, LMC */
-+	rwlock_t cache_lock;
- 	/**
- 	 * port_data is indexed by port number
- 	 */
---
-2.20.1
-
+>
+> Thxs, Håkon
+>
+>
+> >>
+> >>>
+> >>> The fix could be to change the above statement, but it is better to
+> >>> keep the two *_rcv_skb() functions equal in this respect and instead
+> >>> change the callback functions in the rdma subsystem to the correct
+> >>> convention.
+> >>
+> >> AFAIR, RTNETLINK has the same implementation as RDMA netlink.
+> >
+> > With the exception of the callback functions, as noted above.
+> >
+> >
+> > Thxs, Håkon
+> >
+> >>
+> >> Thanks
+> >
+>
