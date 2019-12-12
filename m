@@ -2,42 +2,42 @@ Return-Path: <SRS0=BWFQ=2C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F4EFC2D0C9
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3B31C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B87022527
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9ABD92467A
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143537;
-	bh=isWG08aPpLtMetL3wpIGsC/lLXgv4w1eyMK8B++ELhI=;
+	s=default; t=1576143538;
+	bh=RJ8ovtWVIjgYEChcnekyOvkAKNJp82pTOXXoMemOO7o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=rIZOXqndXIwpxzRfWZyb7geAUxNmip8jHPFlliVEUhMeWoPVevvP/vHabT52wGDGd
-	 13fkbSxLS9glfL8UxjRmZwj9P0t4z3eDpqI0WCvW+a61e63uKIhZCFv5pss1jCVzHy
-	 hmzDuBwm/ovKi0yEBIbai6forDg73+qinaG9bAPA=
+	b=GrUnJv8Bht0QKwzNgx5RD2eUUeCak3Jx70fynjOhC36kMEa4vC6L+A8YFwlOpWf0F
+	 FjQCKq2cKtMdziylyyq2XbW1tOdE4v/9+bLoI1SX89n1o0EplIDK0kNalgp+6ryfrW
+	 Ih6HxzmV94HXbMG4wVk68HfSjPrm61Nq97Qj440s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728329AbfLLJi4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:38:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38688 "EHLO mail.kernel.org"
+        id S1728431AbfLLJi5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:38:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728391AbfLLJiu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:38:50 -0500
+        id S1728391AbfLLJi5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:38:57 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6ADC72467A;
-        Thu, 12 Dec 2019 09:38:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AE32424654;
+        Thu, 12 Dec 2019 09:38:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143530;
-        bh=isWG08aPpLtMetL3wpIGsC/lLXgv4w1eyMK8B++ELhI=;
+        s=default; t=1576143536;
+        bh=RJ8ovtWVIjgYEChcnekyOvkAKNJp82pTOXXoMemOO7o=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ToJSHS8MuqhIivxjEActRn05XclbQYUpRNyOi3RsnyUYdJ/hx3DuCXeNqhwBgq56I
-         PvD8Y8h5iviLJQmDN+3OU0ROdfjqZBBvoigvAPeYZgZu/PCXOeS90kJF36sHWSgoQK
-         QvewiKOOA7C5ljRphvuTkh8F6473SKsmNxAfxESI=
+        b=rr3dXomSwpro26vSfbFCzsjCyYW+PPWp7O7lzLorfaWpTkxLKAGet1powI/+eLh9d
+         1sbF9WhSNdN1xzl5K2WrVMkYu6Ulfy88Y1ZwoPCEsfN5dmv1KGRnSrM7EQML8ABoth
+         FstT2keknYSWi+HFzcq/ntw1lOXpa1wD9gN7CE5Y=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 04/48] RDMA/cm: Add SET/GET implementations to hide IBA wire format
-Date:   Thu, 12 Dec 2019 11:37:46 +0200
-Message-Id: <20191212093830.316934-5-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 06/48] RDMA/cm: Message Receipt Acknowledgment (MRA) message definitions
+Date:   Thu, 12 Dec 2019 11:37:48 +0200
+Message-Id: <20191212093830.316934-7-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
 References: <20191212093830.316934-1-leon@kernel.org>
@@ -60,186 +60,81 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-There is no separation between RDMA-CM wire format as it is declared in
-IBTA and kernel logic which implements needed support. Such situation
-causes to many mistakes in conversion between big-endian (wire format)
-and CPU format used by kernel. It also mixes RDMA core code with
-combination of uXX and beXX variables.
-
-The idea that all accesses to IBA definitions will go through special
-GET/SET macros to ensure that no conversion mistakes are done.
+Add Message Receipt Acknowledgment (MRA) definitions as it is written
+in IBTA release 1.3 volume 1.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm_msgs.h |   6 +-
- include/rdma/iba.h                | 138 ++++++++++++++++++++++++++++++
- 2 files changed, 139 insertions(+), 5 deletions(-)
- create mode 100644 include/rdma/iba.h
+ drivers/infiniband/core/cm.c      | 4 ++--
+ drivers/infiniband/core/cm_msgs.h | 2 +-
+ include/rdma/ib_cm.h              | 1 -
+ include/rdma/ibta_vol1_c12.h      | 8 ++++++++
+ 4 files changed, 11 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 3c0cbdc748ac..5a0ee9e46ff9 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -2897,7 +2897,7 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	if (private_data && private_data_len > IB_CM_MRA_PRIVATE_DATA_SIZE)
++	if (private_data && private_data_len > CM_MRA_PRIVATE_DATA_SIZE)
+ 		return -EINVAL;
+ 
+ 	data = cm_copy_private_data(private_data, private_data_len);
+@@ -2991,7 +2991,7 @@ static int cm_mra_handler(struct cm_work *work)
+ 		return -EINVAL;
+ 
+ 	work->cm_event.private_data = &mra_msg->private_data;
+-	work->cm_event.private_data_len = IB_CM_MRA_PRIVATE_DATA_SIZE;
++	work->cm_event.private_data_len = CM_MRA_PRIVATE_DATA_SIZE;
+ 	work->cm_event.param.mra_rcvd.service_timeout =
+ 					cm_mra_get_service_timeout(mra_msg);
+ 	timeout = cm_convert_to_ms(cm_mra_get_service_timeout(mra_msg)) +
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 92d7260ac913..9bc468833831 100644
+index 9e50da044c43..888209ec058d 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -8,14 +8,10 @@
- #ifndef CM_MSGS_H
- #define CM_MSGS_H
+@@ -391,7 +391,7 @@ enum cm_msg_response {
+ 	/* service timeout:5, rsvd:3 */
+ 	u8 offset9;
  
-+#include <rdma/iba.h>
- #include <rdma/ib_mad.h>
- #include <rdma/ib_cm.h>
+-	u8 private_data[IB_CM_MRA_PRIVATE_DATA_SIZE];
++	u8 private_data[CM_MRA_PRIVATE_DATA_SIZE];
  
--/*
-- * Parameters to routines below should be in network-byte order, and values
-- * are returned in network-byte order.
-- */
--
- #define IB_CM_CLASS_VERSION	2 /* IB specification 1.2 */
+ } __packed;
  
- struct cm_req_msg {
-diff --git a/include/rdma/iba.h b/include/rdma/iba.h
-new file mode 100644
-index 000000000000..a77cc89f9f3f
---- /dev/null
-+++ b/include/rdma/iba.h
-@@ -0,0 +1,138 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/*
-+ * Copyright (c) 2019, Mellanox Technologies inc.  All rights reserved.
-+ */
-+#ifndef _IBA_DEFS_H_
-+#define _IBA_DEFS_H_
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 956256b2fc5d..6d73316be651 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -65,7 +65,6 @@ enum ib_cm_event_type {
+ };
+ 
+ enum ib_cm_data_size {
+-	IB_CM_MRA_PRIVATE_DATA_SIZE	 = 222,
+ 	IB_CM_REJ_PRIVATE_DATA_SIZE	 = 148,
+ 	IB_CM_REP_PRIVATE_DATA_SIZE	 = 196,
+ 	IB_CM_RTU_PRIVATE_DATA_SIZE	 = 224,
+diff --git a/include/rdma/ibta_vol1_c12.h b/include/rdma/ibta_vol1_c12.h
+index 2db7f736379e..52dbc80a0d1b 100644
+--- a/include/rdma/ibta_vol1_c12.h
++++ b/include/rdma/ibta_vol1_c12.h
+@@ -88,4 +88,12 @@
+ #define CM_REQ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_req_msg, 140, 736)
+ #define CM_REQ_PRIVATE_DATA_SIZE 92
+ 
++/* Table 107 MRA Message Contents */
++#define CM_MRA_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_mra_msg, 0, 32)
++#define CM_MRA_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_mra_msg, 4, 32)
++#define CM_MRA_MESSAGE_MRAED CM_FIELD8_LOC(struct cm_mra_msg, 8, 2)
++#define CM_MRA_SERVICE_TIMEOUT CM_FIELD8_LOC(struct cm_mra_msg, 9, 5)
++#define CM_MRA_PRIVATE_DATA CM_FIELD_MLOC(struct cm_mra_msg, 10, 1776)
++#define CM_MRA_PRIVATE_DATA_SIZE 222
 +
-+#include <linux/kernel.h>
-+#include <linux/bitfield.h>
-+#include <asm/unaligned.h>
-+
-+static inline u32 _iba_get8(const u8 *ptr)
-+{
-+	return *ptr;
-+}
-+
-+static inline void _iba_set8(u8 *ptr, u32 mask, u32 prep_value)
-+{
-+	*ptr = (*ptr & ~mask) | prep_value;
-+}
-+
-+static inline u16 _iba_get16(const __be16 *ptr)
-+{
-+	return be16_to_cpu(*ptr);
-+}
-+
-+static inline void _iba_set16(__be16 *ptr, u16 mask, u16 prep_value)
-+{
-+	*ptr = cpu_to_be16((be16_to_cpu(*ptr) & ~mask) | prep_value);
-+}
-+
-+static inline u32 _iba_get32(const __be32 *ptr)
-+{
-+	return be32_to_cpu(*ptr);
-+}
-+
-+static inline void _iba_set32(__be32 *ptr, u32 mask, u32 prep_value)
-+{
-+	*ptr = cpu_to_be32((be32_to_cpu(*ptr) & ~mask) | prep_value);
-+}
-+
-+static inline u64 _iba_get64(const __be64 *ptr)
-+{
-+	/*
-+	 * The mads are constructed so that 32 bit and smaller are naturally
-+	 * aligned, everything larger has a max alignment of 4 bytes.
-+	 */
-+	return be64_to_cpu(get_unaligned(ptr));
-+}
-+
-+static inline void _iba_set64(__be64 *ptr, u64 mask, u64 prep_value)
-+{
-+	put_unaligned(cpu_to_be64((_iba_get64(ptr) & ~mask) | prep_value), ptr);
-+}
-+
-+#define _IBA_SET(field_struct, field_offset, field_mask, mask_width, ptr,      \
-+		 value)                                                        \
-+	({                                                                     \
-+		field_struct *_ptr = ptr;                                      \
-+		_iba_set##mask_width((void *)_ptr + (field_offset),            \
-+				     field_mask,                               \
-+				     FIELD_PREP(field_mask, value));           \
-+	})
-+#define IBA_SET(field, ptr, value) _IBA_SET(field, ptr, value)
-+
-+#define _IBA_SET_MEM(field_struct, field_offset, byte_size, ptr, in, bytes)    \
-+	({                                                                     \
-+		WARN_ON(bytes > byte_size);                                    \
-+		if (in && bytes) {                                             \
-+			field_struct *_ptr = ptr;                              \
-+			memcpy((void *)_ptr + (field_offset), in, bytes);      \
-+		}                                                              \
-+	})
-+#define IBA_SET_MEM(field, ptr, in, bytes) _IBA_SET_MEM(field, ptr, in, bytes)
-+
-+#define _IBA_GET(field_struct, field_offset, field_mask, mask_width, ptr)      \
-+	({                                                                     \
-+		const field_struct *_ptr = ptr;                                \
-+		(u##mask_width) FIELD_GET(                                     \
-+			field_mask, _iba_get##mask_width((const void *)_ptr +  \
-+							 (field_offset)));     \
-+	})
-+#define IBA_GET(field, ptr) _IBA_GET(field, ptr)
-+
-+#define _IBA_GET_MEM(field_struct, field_offset, byte_size, ptr, out, bytes)   \
-+	({                                                                     \
-+		WARN_ON(bytes > byte_size);                                    \
-+		if (out && bytes) {                                            \
-+			const field_struct *_ptr = ptr;                        \
-+			memcpy(out, (void *)_ptr + (field_offset), bytes);     \
-+		}                                                              \
-+	})
-+#define IBA_GET_MEM(field, ptr, out, bytes) _IBA_GET_MEM(field, ptr, out, bytes)
-+
-+/*
-+ * The generated list becomes the parameters to the macros, the order is:
-+ *  - struct this applies to
-+ *  - starting offset of the max
-+ *  - GENMASK or GENMASK_ULL in CPU order
-+ *  - The width of data the mask operations should work on, in bits
-+ */
-+
-+/*
-+ * Extraction using a tabular description like table 106. bit_offset is from
-+ * the Byte[Bit] notation.
-+ */
-+#define IBA_FIELD_BLOC(field_struct, byte_offset, bit_offset, num_bits)        \
-+	field_struct, byte_offset,                                             \
-+		GENMASK(7 - (bit_offset), 7 - (bit_offset) - (num_bits - 1)),  \
-+		8
-+#define IBA_FIELD8_LOC(field_struct, byte_offset, num_bits)                    \
-+	IBA_FIELD_BLOC(field_struct, byte_offset, 0, num_bits)
-+
-+#define IBA_FIELD16_LOC(field_struct, byte_offset, num_bits)                   \
-+	field_struct, (byte_offset)&0xFFFE,                                    \
-+		GENMASK(15 - (((byte_offset) % 2) * 8),                        \
-+			15 - (((byte_offset) % 2) * 8) - (num_bits - 1)),      \
-+		16
-+
-+#define IBA_FIELD32_LOC(field_struct, byte_offset, num_bits)                   \
-+	field_struct, (byte_offset)&0xFFFC,                                    \
-+		GENMASK(31 - (((byte_offset) % 4) * 8),                        \
-+			31 - (((byte_offset) % 4) * 8) - (num_bits - 1)),      \
-+		32
-+
-+#define IBA_FIELD64_LOC(field_struct, byte_offset, num_bits)                   \
-+	field_struct, (byte_offset)&0xFFF8,                                    \
-+		GENMASK_ULL(63 - (((byte_offset) % 8) * 8),                    \
-+			    63 - (((byte_offset) % 8) * 8) - (num_bits - 1)),  \
-+		64
-+/*
-+ * In IBTA spec, everything that is more than 64bits is multiple
-+ * of bytes without leftover bits.
-+ */
-+#define IBA_FIELD_MLOC(field_struct, byte_offset, num_bits)                    \
-+	field_struct, (byte_offset)&0xFFFC, (num_bits / 8)
-+
-+#endif /* _IBA_DEFS_H_ */
+ #endif /* _IBTA_VOL1_C12_H_ */
 -- 
 2.20.1
 
