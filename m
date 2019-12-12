@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CAC6C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EF4BC43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2ED6F22527
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D945824654
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143627;
-	bh=mdZ/svik/ZnMyMqdHBHNFHOQLjbJv3j/pdNqOQQ3wKU=;
+	s=default; t=1576143629;
+	bh=QwJroHYyDSD2YVXDm/sHAlDiTjnTE9tubeIRfc6ghjQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=H3aklcgzHFUkENEbbhzdm4lJnZge8m5KPQF19TQ5DOJ+Yuxj12fUcico+Yadjq9/x
-	 6QCcznKL9yP0y0xiHtR4opNcUAXMNeJlcgNdwrRkkSmXc9a/af93ClRbY8tjKWovJR
-	 UkJv1JCNUkbjrPRn3j6BED43C91L4CRIN6FL6Nxw=
+	b=Xfnf+SEUvhgVtKuKcMuBi6dy8SeAJ4PsJkVK11FnwhXflQqKPWimRk7yTMlwoiqTP
+	 W8s5sVf+yiAGb5jdTl/CRyHbQbp9gfBDyhwGYwN22Kzs6GXKfpc8cKqE+Dyl4tVb2l
+	 fnz5NvhGS4Afqx+xbRqRZFKWyoKpqDG6Xbl2lS1k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728355AbfLLJk0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:40:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40948 "EHLO mail.kernel.org"
+        id S1728419AbfLLJk3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:40:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728465AbfLLJk0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:40:26 -0500
+        id S1728422AbfLLJk3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:40:29 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DE9432173E;
-        Thu, 12 Dec 2019 09:40:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1078222527;
+        Thu, 12 Dec 2019 09:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143625;
-        bh=mdZ/svik/ZnMyMqdHBHNFHOQLjbJv3j/pdNqOQQ3wKU=;
+        s=default; t=1576143628;
+        bh=QwJroHYyDSD2YVXDm/sHAlDiTjnTE9tubeIRfc6ghjQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Fy4za8CkXeX3J+x2bMO6CMYN9HY7nz4cvjgVV700s4cQ9lLGvke11D6YrQqBTfH5v
-         ca+INKmj67CsrYtIyWt9uJmG3vE6e7Sh8plwN7qPOuxvu11Ul+kpNFmzBSY21SOzuw
-         BDyBWNwuQs2VbES7oUQXMCzCF2PAiN6wTCe0scbI=
+        b=cZoy8Guz/meQ2EQgp7ykP1m44j6kI1psa6aiwD7Gis8fvqZXGezeQEt3EoIfExpYE
+         8pBERYeEFLe+Gy0kQPgFKYJnqx5NfAcm4YFVIPuNWCjbkB+ZvQUUYoHxsvMV1sOAZj
+         g0I+M7JdPwk3Jtz4DMTl+l0kXQ/i/fSgXsj9+wjY=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 29/48] RDMA/cm: Convert REQ flow label field
-Date:   Thu, 12 Dec 2019 11:38:11 +0200
-Message-Id: <20191212093830.316934-30-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 35/48] RDMA/cm: Convert MRA service timeout
+Date:   Thu, 12 Dec 2019 11:38:17 +0200
+Message-Id: <20191212093830.316934-36-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
 References: <20191212093830.316934-1-leon@kernel.org>
@@ -60,105 +60,61 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Use new IBA_GET/IBA_SET macros.
+Convert MRA service timeout field.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      | 13 ++++++++-----
- drivers/infiniband/core/cm_msgs.h | 28 ----------------------------
- 2 files changed, 8 insertions(+), 33 deletions(-)
+ drivers/infiniband/core/cm.c      |  6 +++---
+ drivers/infiniband/core/cm_msgs.h | 12 ------------
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 673ff1da05bd..eebb98b48ec4 100644
+index 080c4411ae16..a5fc328d6d23 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1318,7 +1318,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 		req_msg->primary_local_lid = IB_LID_PERMISSIVE;
- 		req_msg->primary_remote_lid = IB_LID_PERMISSIVE;
- 	}
--	cm_req_set_primary_flow_label(req_msg, pri_path->flow_label);
-+	IBA_SET(CM_REQ_PRIMARY_FLOW_LABEL, req_msg,
-+	       be32_to_cpu(pri_path->flow_label));
- 	cm_req_set_primary_packet_rate(req_msg, pri_path->rate);
- 	req_msg->primary_traffic_class = pri_path->traffic_class;
- 	req_msg->primary_hop_limit = pri_path->hop_limit;
-@@ -1352,8 +1353,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 			req_msg->alt_local_lid = IB_LID_PERMISSIVE;
- 			req_msg->alt_remote_lid = IB_LID_PERMISSIVE;
- 		}
--		cm_req_set_alt_flow_label(req_msg,
--					  alt_path->flow_label);
-+		IBA_SET(CM_REQ_ALTERNATE_FLOW_LABEL, req_msg,
-+		       be32_to_cpu(alt_path->flow_label));
- 		cm_req_set_alt_packet_rate(req_msg, alt_path->rate);
- 		req_msg->alt_traffic_class = alt_path->traffic_class;
- 		req_msg->alt_hop_limit = alt_path->hop_limit;
-@@ -1569,7 +1570,8 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- {
- 	primary_path->dgid = req_msg->primary_local_gid;
- 	primary_path->sgid = req_msg->primary_remote_gid;
--	primary_path->flow_label = cm_req_get_primary_flow_label(req_msg);
-+	primary_path->flow_label =
-+		cpu_to_be32(IBA_GET(CM_REQ_PRIMARY_FLOW_LABEL, req_msg));
- 	primary_path->hop_limit = req_msg->primary_hop_limit;
- 	primary_path->traffic_class = req_msg->primary_traffic_class;
- 	primary_path->reversible = 1;
-@@ -1590,7 +1592,8 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 	if (cm_req_has_alt_path(req_msg)) {
- 		alt_path->dgid = req_msg->alt_local_gid;
- 		alt_path->sgid = req_msg->alt_remote_gid;
--		alt_path->flow_label = cm_req_get_alt_flow_label(req_msg);
-+		alt_path->flow_label = cpu_to_be32(
-+			IBA_GET(CM_REQ_ALTERNATE_FLOW_LABEL, req_msg));
- 		alt_path->hop_limit = req_msg->alt_hop_limit;
- 		alt_path->traffic_class = req_msg->alt_traffic_class;
- 		alt_path->reversible = 1;
+@@ -1748,7 +1748,7 @@ static void cm_format_mra(struct cm_mra_msg *mra_msg,
+ 	IBA_SET(CM_MRA_MESSAGE_MRAED, mra_msg, msg_mraed);
+ 	mra_msg->local_comm_id = cm_id_priv->id.local_id;
+ 	mra_msg->remote_comm_id = cm_id_priv->id.remote_id;
+-	cm_mra_set_service_timeout(mra_msg, service_timeout);
++	IBA_SET(CM_MRA_SERVICE_TIMEOUT, mra_msg, service_timeout);
+ 
+ 	if (private_data && private_data_len)
+ 		memcpy(mra_msg->private_data, private_data, private_data_len);
+@@ -3036,8 +3036,8 @@ static int cm_mra_handler(struct cm_work *work)
+ 	work->cm_event.private_data = &mra_msg->private_data;
+ 	work->cm_event.private_data_len = CM_MRA_PRIVATE_DATA_SIZE;
+ 	work->cm_event.param.mra_rcvd.service_timeout =
+-					cm_mra_get_service_timeout(mra_msg);
+-	timeout = cm_convert_to_ms(cm_mra_get_service_timeout(mra_msg)) +
++		IBA_GET(CM_MRA_SERVICE_TIMEOUT, mra_msg);
++	timeout = cm_convert_to_ms(IBA_GET(CM_MRA_SERVICE_TIMEOUT, mra_msg)) +
+ 		  cm_convert_to_ms(cm_id_priv->av.timeout);
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 23a48211d15e..09c6a393b6a1 100644
+index e096b1f572bc..601b0fd2c86c 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -70,20 +70,6 @@ struct cm_req_msg {
+@@ -91,18 +91,6 @@ enum cm_msg_response {
  
  } __packed;
  
--static inline __be32 cm_req_get_primary_flow_label(struct cm_req_msg *req_msg)
+-static inline u8 cm_mra_get_service_timeout(struct cm_mra_msg *mra_msg)
 -{
--	return cpu_to_be32(be32_to_cpu(req_msg->primary_offset88) >> 12);
+-	return (u8) (mra_msg->offset9 >> 3);
 -}
 -
--static inline void cm_req_set_primary_flow_label(struct cm_req_msg *req_msg,
--						 __be32 flow_label)
+-static inline void cm_mra_set_service_timeout(struct cm_mra_msg *mra_msg,
+-					      u8 service_timeout)
 -{
--	req_msg->primary_offset88 = cpu_to_be32(
--				    (be32_to_cpu(req_msg->primary_offset88) &
--				     0x00000FFF) |
--				     (be32_to_cpu(flow_label) << 12));
+-	mra_msg->offset9 = (u8) ((mra_msg->offset9 & 0x07) |
+-				 (service_timeout << 3));
 -}
 -
- static inline u8 cm_req_get_primary_packet_rate(struct cm_req_msg *req_msg)
- {
- 	return (u8) (be32_to_cpu(req_msg->primary_offset88) & 0x3F);
-@@ -132,20 +118,6 @@ static inline void cm_req_set_primary_local_ack_timeout(struct cm_req_msg *req_m
- 					  (local_ack_timeout << 3));
- }
+ struct cm_rej_msg {
+ 	struct ib_mad_hdr hdr;
  
--static inline __be32 cm_req_get_alt_flow_label(struct cm_req_msg *req_msg)
--{
--	return cpu_to_be32(be32_to_cpu(req_msg->alt_offset132) >> 12);
--}
--
--static inline void cm_req_set_alt_flow_label(struct cm_req_msg *req_msg,
--					     __be32 flow_label)
--{
--	req_msg->alt_offset132 = cpu_to_be32(
--				 (be32_to_cpu(req_msg->alt_offset132) &
--				  0x00000FFF) |
--				  (be32_to_cpu(flow_label) << 12));
--}
--
- static inline u8 cm_req_get_alt_packet_rate(struct cm_req_msg *req_msg)
- {
- 	return (u8) (be32_to_cpu(req_msg->alt_offset132) & 0x3F);
 -- 
 2.20.1
 
