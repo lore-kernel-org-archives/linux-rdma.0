@@ -2,42 +2,42 @@ Return-Path: <SRS0=BWFQ=2C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BD12C2D0CA
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE7CC2D0C8
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 66A5F2173E
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40AF024658
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143528;
-	bh=KgjoelqVhEOaIDgNkKTIDlSDroSND8RxZdzw6cH0C4E=;
+	s=default; t=1576143536;
+	bh=Z7sAxmI/gCKYL9O+Sh07OeB9+39/2BkV0zdmdmFLjBA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xtTjaiqIyVHyE4jvate5oma9s8Xs11ngJcKjuoVkh8Je9OL80ZPG5KY5T8Av1kSSw
-	 WaiN09+vtv5qK7sz1UoCD5qJ1vG7JG0Qrc5ecuAdi5/13mApeVjdpzX+fSXlJyHeDn
-	 IA4qe87NuSee59/VFnu2w/YzwGGwgtkZh3jyFFyg=
+	b=fwmXCDGCcb7/Hb9MWS76syyp5FSgbg2fdj9Wsa1pUVO5ooegTakR3D4yG07xzwkUU
+	 xH6uKOPj4YpTpIeVtSvjPjQGWmtV0yR598VOv1BBBFA1DVgntAXloGyrB7EDqKvo0S
+	 /IVTdD3ALAbT4zjD1l91h52KzYO6tJ3hRStm0XXM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728348AbfLLJir (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:38:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38548 "EHLO mail.kernel.org"
+        id S1728410AbfLLJiz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:38:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728329AbfLLJir (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:38:47 -0500
+        id S1728561AbfLLJiy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:38:54 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4642322527;
-        Thu, 12 Dec 2019 09:38:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8CCC722527;
+        Thu, 12 Dec 2019 09:38:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143526;
-        bh=KgjoelqVhEOaIDgNkKTIDlSDroSND8RxZdzw6cH0C4E=;
+        s=default; t=1576143533;
+        bh=Z7sAxmI/gCKYL9O+Sh07OeB9+39/2BkV0zdmdmFLjBA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YFuK5/UIWc8e6B5MtVUqL+9kquyZJRnFGm8ryg8m3VDR6haFBkj8G93iNnGG3oxu4
-         m1JTNdDBHUgaCywXtBjDCKfrNWLBKf9lKVt4BJeltjHMqH4zPktTQVzXfK4SnidwsH
-         lpNvGnUz2AhHNVwBzb45awO3d6YGzynpEMzlGCDg=
+        b=VY3h2ZS6syYvRieEEO8YP0EFijJe2efnBQ2i7Mt9n1LSUUfxGVhiBsoRve8ftgMpW
+         TExivww+6STyOZPyYgLqVwoRHmRuPa/XwQjaVGftF+nnAcMT9XgovHRZT4li8+zFOm
+         99uuBxWpZ85o87g7QJjUGY9RFjcf8OGKaMyXHdcs=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 03/48] RDMA/ucma: Mask QPN to be 24 bits according to IBTA
-Date:   Thu, 12 Dec 2019 11:37:45 +0200
-Message-Id: <20191212093830.316934-4-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 05/48] RDMA/cm: Request For Communication (REQ) message definitions
+Date:   Thu, 12 Dec 2019 11:37:47 +0200
+Message-Id: <20191212093830.316934-6-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
 References: <20191212093830.316934-1-leon@kernel.org>
@@ -60,46 +60,198 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-IBTA declares QPN as 24bits, mask input to ensure that kernel
-doesn't get higher bits and ensure by adding WANR_ONCE() that
-other CM users do the same.
+Add Request For Communication (REQ) message definitions as it is written
+in IBTA release 1.3 volume 1.
 
-Fixes: 75216638572f ("RDMA/cma: Export rdma cm interface to userspace")
+There are three types of definitions:
+1. Regular ones with offset and mask, they will be accessible
+   by IBA_GET()/IBA_SET().
+2. GIDs and private data will be accessible by IBA_GET_MEM()/IBA_SET_MEM().
+
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c   | 5 ++++-
- drivers/infiniband/core/ucma.c | 2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cm.c      |  4 +-
+ drivers/infiniband/core/cm_msgs.h |  4 +-
+ drivers/infiniband/core/cma.c     |  3 +-
+ include/rdma/ib_cm.h              |  1 -
+ include/rdma/ibta_vol1_c12.h      | 91 +++++++++++++++++++++++++++++++
+ 5 files changed, 97 insertions(+), 6 deletions(-)
+ create mode 100644 include/rdma/ibta_vol1_c12.h
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index c341a68b6f97..efa2d329da30 100644
+index efa2d329da30..3c0cbdc748ac 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -2102,7 +2102,10 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
- 	cm_id_priv->initiator_depth = param->initiator_depth;
- 	cm_id_priv->responder_resources = param->responder_resources;
- 	cm_id_priv->rq_psn = cm_rep_get_starting_psn(rep_msg);
--	cm_id_priv->local_qpn = cpu_to_be32(param->qp_num & 0xFFFFFF);
-+	WARN_ONCE(param->qp_num & 0xFF000000,
-+		  "IBTA declares QPN to be 24 bits, but it is 0x%X\n",
-+		  param->qp_num);
-+	cm_id_priv->local_qpn = cpu_to_be32(param->qp_num);
+@@ -1368,7 +1368,7 @@ static int cm_validate_req_param(struct ib_cm_req_param *param)
+ 		return -EINVAL;
  
- out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 	return ret;
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 0274e9b704be..57e68491a2fd 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1045,7 +1045,7 @@ static void ucma_copy_conn_param(struct rdma_cm_id *id,
- 	dst->retry_count = src->retry_count;
- 	dst->rnr_retry_count = src->rnr_retry_count;
- 	dst->srq = src->srq;
--	dst->qp_num = src->qp_num;
-+	dst->qp_num = src->qp_num & 0xFFFFFF;
- 	dst->qkey = (id->route.addr.src_addr.ss_family == AF_IB) ? src->qkey : 0;
+ 	if (param->private_data &&
+-	    param->private_data_len > IB_CM_REQ_PRIVATE_DATA_SIZE)
++	    param->private_data_len > CM_REQ_PRIVATE_DATA_SIZE)
+ 		return -EINVAL;
+ 
+ 	if (param->alternate_path &&
+@@ -1681,7 +1681,7 @@ static void cm_format_req_event(struct cm_work *work,
+ 	param->srq = cm_req_get_srq(req_msg);
+ 	param->ppath_sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
+ 	work->cm_event.private_data = &req_msg->private_data;
+-	work->cm_event.private_data_len = IB_CM_REQ_PRIVATE_DATA_SIZE;
++	work->cm_event.private_data_len = CM_REQ_PRIVATE_DATA_SIZE;
  }
  
+ static void cm_process_work(struct cm_id_private *cm_id_priv,
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index 9bc468833831..9e50da044c43 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -8,7 +8,7 @@
+ #ifndef CM_MSGS_H
+ #define CM_MSGS_H
+ 
+-#include <rdma/iba.h>
++#include <rdma/ibta_vol1_c12.h>
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_cm.h>
+ 
+@@ -66,7 +66,7 @@ struct cm_req_msg {
+ 	/* local ACK timeout:5, rsvd:3 */
+ 	u8 alt_offset139;
+ 
+-	u32 private_data[IB_CM_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
++	u32 private_data[CM_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
+ 
+ } __packed;
+ 
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 25f2b70fd8ef..02490a3c11f3 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -36,6 +36,7 @@
+ 
+ #include "core_priv.h"
+ #include "cma_priv.h"
++#include "cm_msgs.h"
+ 
+ MODULE_AUTHOR("Sean Hefty");
+ MODULE_DESCRIPTION("Generic RDMA CM Agent");
+@@ -2085,7 +2086,7 @@ static void cma_set_req_event_data(struct rdma_cm_event *event,
+ 				   void *private_data, int offset)
+ {
+ 	event->param.conn.private_data = private_data + offset;
+-	event->param.conn.private_data_len = IB_CM_REQ_PRIVATE_DATA_SIZE - offset;
++	event->param.conn.private_data_len = CM_REQ_PRIVATE_DATA_SIZE - offset;
+ 	event->param.conn.responder_resources = req_data->responder_resources;
+ 	event->param.conn.initiator_depth = req_data->initiator_depth;
+ 	event->param.conn.flow_control = req_data->flow_control;
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index b476e0e27ec9..956256b2fc5d 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -65,7 +65,6 @@ enum ib_cm_event_type {
+ };
+ 
+ enum ib_cm_data_size {
+-	IB_CM_REQ_PRIVATE_DATA_SIZE	 = 92,
+ 	IB_CM_MRA_PRIVATE_DATA_SIZE	 = 222,
+ 	IB_CM_REJ_PRIVATE_DATA_SIZE	 = 148,
+ 	IB_CM_REP_PRIVATE_DATA_SIZE	 = 196,
+diff --git a/include/rdma/ibta_vol1_c12.h b/include/rdma/ibta_vol1_c12.h
+new file mode 100644
+index 000000000000..2db7f736379e
+--- /dev/null
++++ b/include/rdma/ibta_vol1_c12.h
+@@ -0,0 +1,91 @@
++/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
++/*
++ * Copyright (c) 2019, Mellanox Technologies inc. All rights reserved.
++ *
++ * This file is IBTA volume 1, chapter 12 declarations:
++ * * CHAPTER 12: C OMMUNICATION MANAGEMENT
++ */
++#ifndef _IBTA_VOL1_C12_H_
++#define _IBTA_VOL1_C12_H_
++
++#include <rdma/iba.h>
++
++#define CM_FIELD_BLOC(field_struct, byte_offset, bits_offset, width)           \
++	IBA_FIELD_BLOC(field_struct,                                           \
++		       (byte_offset + sizeof(struct ib_mad_hdr)), bits_offset, \
++		       width)
++#define CM_FIELD8_LOC(field_struct, byte_offset, width)                        \
++	IBA_FIELD8_LOC(field_struct,                                           \
++		       (byte_offset + sizeof(struct ib_mad_hdr)), width)
++#define CM_FIELD16_LOC(field_struct, byte_offset, width)                       \
++	IBA_FIELD16_LOC(field_struct,                                          \
++			(byte_offset + sizeof(struct ib_mad_hdr)), width)
++#define CM_FIELD32_LOC(field_struct, byte_offset, width)                       \
++	IBA_FIELD32_LOC(field_struct,                                          \
++			(byte_offset + sizeof(struct ib_mad_hdr)), width)
++#define CM_FIELD64_LOC(field_struct, byte_offset, width)                       \
++	IBA_FIELD64_LOC(field_struct,                                          \
++			(byte_offset + sizeof(struct ib_mad_hdr)), width)
++#define CM_FIELD_MLOC(field_struct, byte_offset, width)                        \
++	IBA_FIELD_MLOC(field_struct,                                           \
++		       (byte_offset + sizeof(struct ib_mad_hdr)), width)
++
++/* Table 106 REQ Message Contents */
++#define CM_REQ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_req_msg, 0, 32)
++#define CM_REQ_SERVICE_ID CM_FIELD64_LOC(struct cm_req_msg, 8, 64)
++#define CM_REQ_LOCAL_CA_GUID CM_FIELD64_LOC(struct cm_req_msg, 16, 64)
++#define CM_REQ_LOCAL_Q_KEY CM_FIELD32_LOC(struct cm_req_msg, 28, 32)
++#define CM_REQ_LOCAL_QPN CM_FIELD32_LOC(struct cm_req_msg, 32, 24)
++#define CM_REQ_RESPONDED_RESOURCES CM_FIELD8_LOC(struct cm_req_msg, 35, 8)
++#define CM_REQ_LOCAL_EECN CM_FIELD32_LOC(struct cm_req_msg, 36, 24)
++#define CM_REQ_INITIATOR_DEPTH CM_FIELD8_LOC(struct cm_req_msg, 39, 8)
++#define CM_REQ_REMOTE_EECN CM_FIELD32_LOC(struct cm_req_msg, 40, 24)
++#define CM_REQ_REMOTE_CM_RESPONSE_TIMEOUT                                      \
++	CM_FIELD8_LOC(struct cm_req_msg, 43, 5)
++#define CM_REQ_TRANSPORT_SERVICE_TYPE CM_FIELD_BLOC(struct cm_req_msg, 43, 5, 2)
++#define CM_REQ_END_TO_END_FLOW_CONTROL                                         \
++	CM_FIELD_BLOC(struct cm_req_msg, 43, 7, 1)
++#define CM_REQ_STARTING_PSN CM_FIELD32_LOC(struct cm_req_msg, 44, 24)
++#define CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT CM_FIELD8_LOC(struct cm_req_msg, 47, 5)
++#define CM_REQ_RETRY_COUNT CM_FIELD_BLOC(struct cm_req_msg, 47, 5, 3)
++#define CM_REQ_PARTITION_KEY CM_FIELD16_LOC(struct cm_req_msg, 48, 16)
++#define CM_REQ_PATH_PACKET_PAYLOAD_MTU CM_FIELD8_LOC(struct cm_req_msg, 50, 4)
++#define CM_REQ_RDC_EXISTS CM_FIELD_BLOC(struct cm_req_msg, 50, 4, 1)
++#define CM_REQ_RNR_RETRY_COUNT CM_FIELD_BLOC(struct cm_req_msg, 50, 5, 3)
++#define CM_REQ_MAX_CM_RETRIES CM_FIELD8_LOC(struct cm_req_msg, 51, 4)
++#define CM_REQ_SRQ CM_FIELD_BLOC(struct cm_req_msg, 51, 4, 1)
++#define CM_REQ_EXTENDED_TRANSPORT_TYPE                                         \
++	CM_FIELD_BLOC(struct cm_req_msg, 51, 5, 3)
++#define CM_REQ_PRIMARY_LOCAL_PORT_LID CM_FIELD16_LOC(struct cm_req_msg, 52, 16)
++#define CM_REQ_PRIMARY_REMOTE_PORT_LID CM_FIELD16_LOC(struct cm_req_msg, 54, 16)
++#define CM_REQ_PRIMARY_LOCAL_PORT_GID CM_FIELD_MLOC(struct cm_req_msg, 56, 128)
++#define CM_REQ_PRIMARY_REMOTE_PORT_GID CM_FIELD_MLOC(struct cm_req_msg, 72, 128)
++#define CM_REQ_PRIMARY_FLOW_LABEL CM_FIELD32_LOC(struct cm_req_msg, 88, 20)
++#define CM_REQ_PRIMARY_PACKET_RATE CM_FIELD_BLOC(struct cm_req_msg, 91, 2, 2)
++#define CM_REQ_PRIMARY_TRAFFIC_CLASS CM_FIELD8_LOC(struct cm_req_msg, 92, 8)
++#define CM_REQ_PRIMARY_HOP_LIMIT CM_FIELD8_LOC(struct cm_req_msg, 93, 8)
++#define CM_REQ_PRIMARY_SL CM_FIELD8_LOC(struct cm_req_msg, 94, 4)
++#define CM_REQ_PRIMARY_SUBNET_LOCAL CM_FIELD_BLOC(struct cm_req_msg, 94, 4, 1)
++#define CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT CM_FIELD8_LOC(struct cm_req_msg, 95, 5)
++#define CM_REQ_ALTERNATE_LOCAL_PORT_LID                                        \
++	CM_FIELD16_LOC(struct cm_req_msg, 96, 16)
++#define CM_REQ_ALTERNATE_REMOTE_PORT_LID                                       \
++	CM_FIELD16_LOC(struct cm_req_msg, 98, 16)
++#define CM_REQ_ALTERNATE_LOCAL_PORT_GID                                        \
++	CM_FIELD_MLOC(struct cm_req_msg, 100, 128)
++#define CM_REQ_ALTERNATE_REMOTE_PORT_GID                                       \
++	CM_FIELD_MLOC(struct cm_req_msg, 116, 128)
++#define CM_REQ_ALTERNATE_FLOW_LABEL CM_FIELD32_LOC(struct cm_req_msg, 132, 20)
++#define CM_REQ_ALTERNATE_PACKET_RATE CM_FIELD_BLOC(struct cm_req_msg, 135, 2, 6)
++#define CM_REQ_ALTERNATE_TRAFFIC_CLASS CM_FIELD8_LOC(struct cm_req_msg, 136, 8)
++#define CM_REQ_ALTERNATE_HOP_LIMIT CM_FIELD8_LOC(struct cm_req_msg, 137, 8)
++#define CM_REQ_ALTERNATE_SL CM_FIELD8_LOC(struct cm_req_msg, 138, 4)
++#define CM_REQ_ALTERNATE_SUBNET_LOCAL                                          \
++	CM_FIELD_BLOC(struct cm_req_msg, 138, 4, 1)
++#define CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT                                     \
++	CM_FIELD8_LOC(struct cm_req_msg, 139, 5)
++#define CM_REQ_SAP_SUPPORTED CM_FIELD_BLOC(struct cm_req_msg, 139, 5, 1)
++#define CM_REQ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_req_msg, 140, 736)
++#define CM_REQ_PRIVATE_DATA_SIZE 92
++
++#endif /* _IBTA_VOL1_C12_H_ */
 -- 
 2.20.1
 
