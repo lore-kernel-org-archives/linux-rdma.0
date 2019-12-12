@@ -2,43 +2,40 @@ Return-Path: <SRS0=BWFQ=2C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5881C2D0CC
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:19:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F770C2D0D7
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:19:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABFE7214AF
+	by mail.kernel.org (Postfix) with ESMTP id D80942173E
 	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:19:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="WWDMGVYO"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="MvIn7JxY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728497AbfLLITi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 03:19:38 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:4024 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728457AbfLLITf (ORCPT
+        id S1728503AbfLLITj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 03:19:39 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:8747 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728453AbfLLITf (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Dec 2019 03:19:35 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5df1f8040002>; Thu, 12 Dec 2019 00:19:16 -0800
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5df1f8020003>; Thu, 12 Dec 2019 00:19:15 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Thu, 12 Dec 2019 00:19:23 -0800
+  Thu, 12 Dec 2019 00:19:22 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Thu, 12 Dec 2019 00:19:23 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Dec
- 2019 08:19:21 +0000
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Dec
- 2019 08:19:21 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Thu, 12 Dec 2019 08:19:21 +0000
+        by hqpgpgate101.nvidia.com on Thu, 12 Dec 2019 00:19:22 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Dec
+ 2019 08:19:19 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Thu, 12 Dec 2019 08:19:20 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5df1f8090001>; Thu, 12 Dec 2019 00:19:21 -0800
+        id <B5df1f8070009>; Thu, 12 Dec 2019 00:19:19 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -56,11 +53,12 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -69,92 +67,117 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v10 25/25] selftests/vm: run_vmtests: invoke gup_benchmark with basic FOLL_PIN coverage
-Date:   Thu, 12 Dec 2019 00:19:17 -0800
-Message-ID: <20191212081917.1264184-26-jhubbard@nvidia.com>
+Subject: [PATCH v10 13/25] mm/process_vm_access: set FOLL_PIN via pin_user_pages_remote()
+Date:   Thu, 12 Dec 2019 00:19:05 -0800
+Message-ID: <20191212081917.1264184-14-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191212081917.1264184-1-jhubbard@nvidia.com>
 References: <20191212081917.1264184-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576138757; bh=efjW/rF0EGuRthlOGEU05IQnyHi57jZRzyopoxtDk8c=;
+        t=1576138755; bh=P8nVR+kV72iD6sM0eEn6ntwngrRbmURGxrL6qNBlbv8=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=WWDMGVYOnHd3iWE+NQQYwhBWbPaghrkNlNIExThbsN/YXyZZxolHhixKxcf8GqE/k
-         zF9jZ17Pvol2P/BjE3xhCV/rhnk5thJMSeLFQqOfOazFqY5oolm1j6pVo0cd95tKbN
-         F31zukDFvOKYBV2dvENEhMUn1B91vbhd3i4wJGjJ4RPIwCJFToXC8m4sBIBpz2px5U
-         F9hMccp4L8YeXaEKmlNprmiR65S6O7E7EzTLOutDvfCdRwF9rvkBaMisYbAmbMtoYZ
-         vv3yw+6/SqlvDkIXoOmGW7/OgE7PrZmOTmWZH9P9/nHXXZF5hmGt2C7TTl7TTSsXNI
-         G9Ljkzb2cb+0w==
+         Content-Type:Content-Transfer-Encoding;
+        b=MvIn7JxYckFlYX8qbf14DoVI+n5QUXUO+KWODHbNVA+IVx6MbobQIXA5Oh2UTMVDI
+         dRWRYcAKrV2uSPXfH9r9bA2K1l5ppFULpwLoubFEMLRQsU5vmOdYFT3+F16FzzSSkG
+         YEaFDSHr6dwNYogifTOemGgDAheAAVXPo1E++N0OoHoiKdB7xXNWqhY6zY7SmMLebj
+         vKzMlZJL85yKnUPumtq+6n95Qokeo7uQcQLm7PN053x5/7FKyD9v0J3P7aR9acP1Lf
+         qFLvDlSpDeHMIeE8TCr/S+okJmLLSWCeBjiutBLhgaEHKzdjvBhVKhDl6hovTozm5T
+         rLt7CJREcXzlA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-It's good to have basic unit test coverage of the new FOLL_PIN
-behavior. Fortunately, the gup_benchmark unit test is extremely
-fast (a few milliseconds), so adding it the the run_vmtests suite
-is going to cause no noticeable change in running time.
+Convert process_vm_access to use the new pin_user_pages_remote()
+call, which sets FOLL_PIN. Setting FOLL_PIN is now required for
+code that requires tracking of pinned pages.
 
-So, add two new invocations to run_vmtests:
+Also, release the pages via put_user_page*().
 
-1) Run gup_benchmark with normal get_user_pages().
+Also, rename "pages" to "pinned_pages", as this makes for
+easier reading of process_vm_rw_single_vec().
 
-2) Run gup_benchmark with pin_user_pages(). This is much like
-the first call, except that it sets FOLL_PIN.
-
-Running these two in quick succession also provide a visual
-comparison of the running times, which is convenient.
-
-The new invocations are fairly early in the run_vmtests script,
-because with test suites, it's usually preferable to put the
-shorter, faster tests first, all other things being equal.
-
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- tools/testing/selftests/vm/run_vmtests | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ mm/process_vm_access.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/tools/testing/selftests/vm/run_vmtests b/tools/testing/selftes=
-ts/vm/run_vmtests
-index a692ea828317..df6a6bf3f238 100755
---- a/tools/testing/selftests/vm/run_vmtests
-+++ b/tools/testing/selftests/vm/run_vmtests
-@@ -112,6 +112,28 @@ echo "NOTE: The above hugetlb tests provide minimal co=
-verage.  Use"
- echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
- echo "      hugetlb regression testing."
+diff --git a/mm/process_vm_access.c b/mm/process_vm_access.c
+index 357aa7bef6c0..fd20ab675b85 100644
+--- a/mm/process_vm_access.c
++++ b/mm/process_vm_access.c
+@@ -42,12 +42,11 @@ static int process_vm_rw_pages(struct page **pages,
+ 		if (copy > len)
+ 			copy =3D len;
 =20
-+echo "--------------------------------------------"
-+echo "running 'gup_benchmark -U' (normal/slow gup)"
-+echo "--------------------------------------------"
-+./gup_benchmark -U
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=3D1
-+else
-+	echo "[PASS]"
-+fi
+-		if (vm_write) {
++		if (vm_write)
+ 			copied =3D copy_page_from_iter(page, offset, copy, iter);
+-			set_page_dirty_lock(page);
+-		} else {
++		else
+ 			copied =3D copy_page_to_iter(page, offset, copy, iter);
+-		}
 +
-+echo "------------------------------------------"
-+echo "running gup_benchmark -b (pin_user_pages)"
-+echo "------------------------------------------"
-+./gup_benchmark -b
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=3D1
-+else
-+	echo "[PASS]"
-+fi
+ 		len -=3D copied;
+ 		if (copied < copy && iov_iter_count(iter))
+ 			return -EFAULT;
+@@ -96,7 +95,7 @@ static int process_vm_rw_single_vec(unsigned long addr,
+ 		flags |=3D FOLL_WRITE;
+=20
+ 	while (!rc && nr_pages && iov_iter_count(iter)) {
+-		int pages =3D min(nr_pages, max_pages_per_loop);
++		int pinned_pages =3D min(nr_pages, max_pages_per_loop);
+ 		int locked =3D 1;
+ 		size_t bytes;
+=20
+@@ -106,14 +105,15 @@ static int process_vm_rw_single_vec(unsigned long add=
+r,
+ 		 * current/current->mm
+ 		 */
+ 		down_read(&mm->mmap_sem);
+-		pages =3D get_user_pages_remote(task, mm, pa, pages, flags,
+-					      process_pages, NULL, &locked);
++		pinned_pages =3D pin_user_pages_remote(task, mm, pa, pinned_pages,
++						     flags, process_pages,
++						     NULL, &locked);
+ 		if (locked)
+ 			up_read(&mm->mmap_sem);
+-		if (pages <=3D 0)
++		if (pinned_pages <=3D 0)
+ 			return -EFAULT;
+=20
+-		bytes =3D pages * PAGE_SIZE - start_offset;
++		bytes =3D pinned_pages * PAGE_SIZE - start_offset;
+ 		if (bytes > len)
+ 			bytes =3D len;
+=20
+@@ -122,10 +122,12 @@ static int process_vm_rw_single_vec(unsigned long add=
+r,
+ 					 vm_write);
+ 		len -=3D bytes;
+ 		start_offset =3D 0;
+-		nr_pages -=3D pages;
+-		pa +=3D pages * PAGE_SIZE;
+-		while (pages)
+-			put_page(process_pages[--pages]);
++		nr_pages -=3D pinned_pages;
++		pa +=3D pinned_pages * PAGE_SIZE;
 +
- echo "-------------------"
- echo "running userfaultfd"
- echo "-------------------"
++		/* If vm_write is set, the pages need to be made dirty: */
++		put_user_pages_dirty_lock(process_pages, pinned_pages,
++					  vm_write);
+ 	}
+=20
+ 	return rc;
 --=20
 2.24.0
 
