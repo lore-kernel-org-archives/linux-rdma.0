@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A786C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC92C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 71E0024654
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E129022527
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143636;
-	bh=q0/YF26BON0iMMz4vVwdz2zwBXq9pn+iJkbp2AqNCaQ=;
+	s=default; t=1576143640;
+	bh=ifNojsfKCtNpTk2w/LKvUybkISqNnunGuoNgrB38J7c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kw4mOY08YK/l0Q22h801KwpRs4pZ5A02Nro3V0s4XVg/wg3SVhAB8kS1ruvRjH7hn
-	 BKTVIwMvxS39jWwowBEvJwQGUq7XR9vmE657cL9lbf92awNkauR+yegzHuQ9lFFcMz
-	 GbXkyb87NbDTetj1QdCFNkM3cI2TgczRqpipwQ+I=
+	b=glo7D/CTGoV1ekab3r/3WCgEllN8x2isFBOVMVsu+tus+2qchKMMBKLqO5M1dq3R3
+	 BxpfNqn8uGCJh9WO1zRLMm7Eeq1MD0x34BAZo7sYuKnh0UsAvpIvkkqK9hysdqRNDk
+	 0Vul0rF9UbImcdLrFJJ/5xdV7005sLnp8iNn4qKk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728461AbfLLJkg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:40:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41250 "EHLO mail.kernel.org"
+        id S1728435AbfLLJkj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:40:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728436AbfLLJkf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:40:35 -0500
+        id S1728282AbfLLJkj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:40:39 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 57C9E22527;
-        Thu, 12 Dec 2019 09:40:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CDBB42173E;
+        Thu, 12 Dec 2019 09:40:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143634;
-        bh=q0/YF26BON0iMMz4vVwdz2zwBXq9pn+iJkbp2AqNCaQ=;
+        s=default; t=1576143638;
+        bh=ifNojsfKCtNpTk2w/LKvUybkISqNnunGuoNgrB38J7c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=s9PEZgQEKAfeMICRjBaalbqq5wDhDpzV9S62qFbbxaS/Sm4bhaof2+TfpMPbGlbdl
-         z5JUn5kQzCDlhOzQG1e8iX4kYRIAbOAyamyt5xFEaLrzxxEVjw+0JfZB0AelCiGTA/
-         xnqRGmQ7AhnYKOu4AjIV99DOmyVHHbu39LjuLPSs=
+        b=nMQQXNfJMQo+NH5xR2mUyojExaX6zys9Suz1ZTO/U75C/R6ub1vJhc/BYqpQmRsP6
+         J6AgExBqNIPsqF1UdtNzW6HrHcNO7I+S0XGlJ/jvRsG7S1aqnbcZ05gu8HQYUuS4qD
+         N/xNKl6IUZVSE+8X61zlwsKABhwcO811s8cdPdOg=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 37/48] RDMA/cm: Convert REP target ack delay field
-Date:   Thu, 12 Dec 2019 11:38:19 +0200
-Message-Id: <20191212093830.316934-38-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 34/48] RDMA/cm: Convert MRA MRAed field
+Date:   Thu, 12 Dec 2019 11:38:16 +0200
+Message-Id: <20191212093830.316934-35-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
 References: <20191212093830.316934-1-leon@kernel.org>
@@ -60,70 +60,83 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert REP target ack delay field.
+Convert MRA MRAed field.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      |  8 ++++----
- drivers/infiniband/core/cm_msgs.h | 12 ------------
- 2 files changed, 4 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/cm.c      | 11 ++++++-----
+ drivers/infiniband/core/cm_msgs.h | 10 ----------
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index b69611c088b8..ca2d50a3c7da 100644
+index e25629a910f0..080c4411ae16 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -2067,8 +2067,8 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 	rep_msg->remote_comm_id = cm_id_priv->id.remote_id;
- 	IBA_SET(CM_REP_STARTING_PSN, rep_msg, param->starting_psn);
- 	rep_msg->resp_resources = param->responder_resources;
--	cm_rep_set_target_ack_delay(rep_msg,
--				    cm_id_priv->av.port->cm_dev->ack_delay);
-+	IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg,
-+	       cm_id_priv->av.port->cm_dev->ack_delay);
- 	cm_rep_set_failover(rep_msg, param->failover_accepted);
- 	cm_rep_set_rnr_retry_count(rep_msg, param->rnr_retry_count);
- 	rep_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
-@@ -2225,7 +2225,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
- 	param->starting_psn = IBA_GET(CM_REP_STARTING_PSN, rep_msg);
- 	param->responder_resources = rep_msg->initiator_depth;
- 	param->initiator_depth = rep_msg->resp_resources;
--	param->target_ack_delay = cm_rep_get_target_ack_delay(rep_msg);
-+	param->target_ack_delay = IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
- 	param->failover_accepted = cm_rep_get_failover(rep_msg);
- 	param->flow_control = cm_rep_get_flow_ctrl(rep_msg);
- 	param->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
-@@ -2371,7 +2371,7 @@ static int cm_rep_handler(struct cm_work *work)
- 	cm_id_priv->responder_resources = rep_msg->initiator_depth;
- 	cm_id_priv->sq_psn = IBA_GET(CM_REP_STARTING_PSN, rep_msg);
- 	cm_id_priv->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
--	cm_id_priv->target_ack_delay = cm_rep_get_target_ack_delay(rep_msg);
-+	cm_id_priv->target_ack_delay = IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
- 	cm_id_priv->av.timeout =
- 			cm_ack_timeout(cm_id_priv->target_ack_delay,
- 				       cm_id_priv->av.timeout - 1);
+@@ -1745,7 +1745,7 @@ static void cm_format_mra(struct cm_mra_msg *mra_msg,
+ 			  const void *private_data, u8 private_data_len)
+ {
+ 	cm_format_mad_hdr(&mra_msg->hdr, CM_MRA_ATTR_ID, cm_id_priv->tid);
+-	cm_mra_set_msg_mraed(mra_msg, msg_mraed);
++	IBA_SET(CM_MRA_MESSAGE_MRAED, mra_msg, msg_mraed);
+ 	mra_msg->local_comm_id = cm_id_priv->id.local_id;
+ 	mra_msg->remote_comm_id = cm_id_priv->id.remote_id;
+ 	cm_mra_set_service_timeout(mra_msg, service_timeout);
+@@ -3010,7 +3010,7 @@ EXPORT_SYMBOL(ib_send_cm_mra);
+ 
+ static struct cm_id_private * cm_acquire_mraed_id(struct cm_mra_msg *mra_msg)
+ {
+-	switch (cm_mra_get_msg_mraed(mra_msg)) {
++	switch (IBA_GET(CM_MRA_MESSAGE_MRAED, mra_msg)) {
+ 	case CM_MSG_RESPONSE_REQ:
+ 		return cm_acquire_id(mra_msg->remote_comm_id, 0);
+ 	case CM_MSG_RESPONSE_REP:
+@@ -3043,21 +3043,22 @@ static int cm_mra_handler(struct cm_work *work)
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	switch (cm_id_priv->id.state) {
+ 	case IB_CM_REQ_SENT:
+-		if (cm_mra_get_msg_mraed(mra_msg) != CM_MSG_RESPONSE_REQ ||
++		if (IBA_GET(CM_MRA_MESSAGE_MRAED, mra_msg) != CM_MSG_RESPONSE_REQ ||
+ 		    ib_modify_mad(cm_id_priv->av.port->mad_agent,
+ 				  cm_id_priv->msg, timeout))
+ 			goto out;
+ 		cm_id_priv->id.state = IB_CM_MRA_REQ_RCVD;
+ 		break;
+ 	case IB_CM_REP_SENT:
+-		if (cm_mra_get_msg_mraed(mra_msg) != CM_MSG_RESPONSE_REP ||
++		if (IBA_GET(CM_MRA_MESSAGE_MRAED, mra_msg) != CM_MSG_RESPONSE_REP ||
+ 		    ib_modify_mad(cm_id_priv->av.port->mad_agent,
+ 				  cm_id_priv->msg, timeout))
+ 			goto out;
+ 		cm_id_priv->id.state = IB_CM_MRA_REP_RCVD;
+ 		break;
+ 	case IB_CM_ESTABLISHED:
+-		if (cm_mra_get_msg_mraed(mra_msg) != CM_MSG_RESPONSE_OTHER ||
++		if (IBA_GET(CM_MRA_MESSAGE_MRAED, mra_msg) !=
++			    CM_MSG_RESPONSE_OTHER ||
+ 		    cm_id_priv->id.lap_state != IB_CM_LAP_SENT ||
+ 		    ib_modify_mad(cm_id_priv->av.port->mad_agent,
+ 				  cm_id_priv->msg, timeout)) {
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 5a76b63dde12..0536f827fd8e 100644
+index 6f52a8f0bee3..e096b1f572bc 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -132,18 +132,6 @@ struct cm_rep_msg {
+@@ -91,16 +91,6 @@ enum cm_msg_response {
  
  } __packed;
  
--static inline u8 cm_rep_get_target_ack_delay(struct cm_rep_msg *rep_msg)
+-static inline u8 cm_mra_get_msg_mraed(struct cm_mra_msg *mra_msg)
 -{
--	return (u8) (rep_msg->offset26 >> 3);
+-	return (u8) (mra_msg->offset8 >> 6);
 -}
 -
--static inline void cm_rep_set_target_ack_delay(struct cm_rep_msg *rep_msg,
--					       u8 target_ack_delay)
+-static inline void cm_mra_set_msg_mraed(struct cm_mra_msg *mra_msg, u8 msg)
 -{
--	rep_msg->offset26 = (u8) ((rep_msg->offset26 & 0x07) |
--				  (target_ack_delay << 3));
+-	mra_msg->offset8 = (u8) ((mra_msg->offset8 & 0x3F) | (msg << 6));
 -}
 -
- static inline u8 cm_rep_get_failover(struct cm_rep_msg *rep_msg)
+ static inline u8 cm_mra_get_service_timeout(struct cm_mra_msg *mra_msg)
  {
- 	return (u8) ((rep_msg->offset26 & 0x06) >> 1);
+ 	return (u8) (mra_msg->offset9 >> 3);
 -- 
 2.20.1
 
