@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88957C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CAC6C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E1BC22527
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2ED6F22527
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143624;
-	bh=ChyQy0qHh6OLei+VapxDBfb7hdq0L4HelfN63CaWDew=;
+	s=default; t=1576143627;
+	bh=mdZ/svik/ZnMyMqdHBHNFHOQLjbJv3j/pdNqOQQ3wKU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=PiNJ+R8ZvC5Sz/DG+06VRybgJaRoibYx4qxjW4oHxYXIOS7SiGbgZzMw80Aey39W4
-	 CibO53OlvV/iiJhi00Nv3mWd3YRC3BL4ToPXJnsogIfDCL9YfgVShiLqZtRbT6eZEE
-	 LGOut5RZ+biDqP50zLEjr6Rv5jDpQp2Jrwj8/GE0=
+	b=H3aklcgzHFUkENEbbhzdm4lJnZge8m5KPQF19TQ5DOJ+Yuxj12fUcico+Yadjq9/x
+	 6QCcznKL9yP0y0xiHtR4opNcUAXMNeJlcgNdwrRkkSmXc9a/af93ClRbY8tjKWovJR
+	 UkJv1JCNUkbjrPRn3j6BED43C91L4CRIN6FL6Nxw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728373AbfLLJkX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:40:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40878 "EHLO mail.kernel.org"
+        id S1728355AbfLLJk0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:40:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728422AbfLLJkX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:40:23 -0500
+        id S1728465AbfLLJk0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:40:26 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BFD3D2465B;
-        Thu, 12 Dec 2019 09:40:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE9432173E;
+        Thu, 12 Dec 2019 09:40:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143622;
-        bh=ChyQy0qHh6OLei+VapxDBfb7hdq0L4HelfN63CaWDew=;
+        s=default; t=1576143625;
+        bh=mdZ/svik/ZnMyMqdHBHNFHOQLjbJv3j/pdNqOQQ3wKU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=1xcz0sDDAobwlergLYZbyDn5N+pGMjoxszzv5GcZcm5nKAsyicWn2zeIm348toQ/d
-         8/rVzG1xxCHdw4YnLRWWf6BfmHC2Bvzt052Kfk3sefVZ+btA0ZEpTMHn9d6gHOMIGO
-         Ae2PghmgRUCQwO4t9d2jjFoHf2i2I5LXBUbidb1g=
+        b=Fy4za8CkXeX3J+x2bMO6CMYN9HY7nz4cvjgVV700s4cQ9lLGvke11D6YrQqBTfH5v
+         ca+INKmj67CsrYtIyWt9uJmG3vE6e7Sh8plwN7qPOuxvu11Ul+kpNFmzBSY21SOzuw
+         BDyBWNwuQs2VbES7oUQXMCzCF2PAiN6wTCe0scbI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -45,9 +45,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 33/48] RDMA/cm: Convert REQ local ack timeout
-Date:   Thu, 12 Dec 2019 11:38:15 +0200
-Message-Id: <20191212093830.316934-34-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 29/48] RDMA/cm: Convert REQ flow label field
+Date:   Thu, 12 Dec 2019 11:38:11 +0200
+Message-Id: <20191212093830.316934-30-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
 References: <20191212093830.316934-1-leon@kernel.org>
@@ -60,99 +60,105 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Convert REQ local ack timeout fields.
+Use new IBA_GET/IBA_SET macros.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      | 18 +++++++++---------
- drivers/infiniband/core/cm_msgs.h | 24 ------------------------
- 2 files changed, 9 insertions(+), 33 deletions(-)
+ drivers/infiniband/core/cm.c      | 13 ++++++++-----
+ drivers/infiniband/core/cm_msgs.h | 28 ----------------------------
+ 2 files changed, 8 insertions(+), 33 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 1a5d5d401c72..e25629a910f0 100644
+index 673ff1da05bd..eebb98b48ec4 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1325,9 +1325,9 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 	req_msg->primary_hop_limit = pri_path->hop_limit;
- 	IBA_SET(CM_REQ_PRIMARY_SL, req_msg, pri_path->sl);
- 	IBA_SET(CM_REQ_PRIMARY_SUBNET_LOCAL, req_msg, (pri_path->hop_limit <= 1));
--	cm_req_set_primary_local_ack_timeout(req_msg,
--		cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
--			       pri_path->packet_life_time));
-+	IBA_SET(CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT, req_msg,
-+	       cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
-+			      pri_path->packet_life_time));
- 
- 	if (alt_path) {
- 		bool alt_ext = false;
-@@ -1360,10 +1360,10 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 		req_msg->alt_hop_limit = alt_path->hop_limit;
- 		IBA_SET(CM_REQ_ALTERNATE_SL, req_msg, alt_path->sl);
- 		IBA_SET(CM_REQ_ALTERNATE_SUBNET_LOCAL, req_msg,
--			(alt_path->hop_limit <= 1));
--		cm_req_set_alt_local_ack_timeout(req_msg,
--			cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
--				       alt_path->packet_life_time));
-+		       (alt_path->hop_limit <= 1));
-+		IBA_SET(CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT, req_msg,
-+		       cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
-+				      alt_path->packet_life_time));
+@@ -1318,7 +1318,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 		req_msg->primary_local_lid = IB_LID_PERMISSIVE;
+ 		req_msg->primary_remote_lid = IB_LID_PERMISSIVE;
  	}
- 
- 	if (param->private_data && param->private_data_len)
-@@ -1584,7 +1584,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 	primary_path->rate = IBA_GET(CM_REQ_PRIMARY_PACKET_RATE, req_msg);
- 	primary_path->packet_life_time_selector = IB_SA_EQ;
- 	primary_path->packet_life_time =
--		cm_req_get_primary_local_ack_timeout(req_msg);
-+		IBA_GET(CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT, req_msg);
- 	primary_path->packet_life_time -= (primary_path->packet_life_time > 0);
- 	primary_path->service_id = req_msg->service_id;
- 	if (sa_path_is_roce(primary_path))
-@@ -1606,7 +1606,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 		alt_path->rate = IBA_GET(CM_REQ_ALTERNATE_PACKET_RATE, req_msg);
- 		alt_path->packet_life_time_selector = IB_SA_EQ;
- 		alt_path->packet_life_time =
--			cm_req_get_alt_local_ack_timeout(req_msg);
-+			IBA_GET(CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT, req_msg);
- 		alt_path->packet_life_time -= (alt_path->packet_life_time > 0);
- 		alt_path->service_id = req_msg->service_id;
- 
+-	cm_req_set_primary_flow_label(req_msg, pri_path->flow_label);
++	IBA_SET(CM_REQ_PRIMARY_FLOW_LABEL, req_msg,
++	       be32_to_cpu(pri_path->flow_label));
+ 	cm_req_set_primary_packet_rate(req_msg, pri_path->rate);
+ 	req_msg->primary_traffic_class = pri_path->traffic_class;
+ 	req_msg->primary_hop_limit = pri_path->hop_limit;
+@@ -1352,8 +1353,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 			req_msg->alt_local_lid = IB_LID_PERMISSIVE;
+ 			req_msg->alt_remote_lid = IB_LID_PERMISSIVE;
+ 		}
+-		cm_req_set_alt_flow_label(req_msg,
+-					  alt_path->flow_label);
++		IBA_SET(CM_REQ_ALTERNATE_FLOW_LABEL, req_msg,
++		       be32_to_cpu(alt_path->flow_label));
+ 		cm_req_set_alt_packet_rate(req_msg, alt_path->rate);
+ 		req_msg->alt_traffic_class = alt_path->traffic_class;
+ 		req_msg->alt_hop_limit = alt_path->hop_limit;
+@@ -1569,7 +1570,8 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ {
+ 	primary_path->dgid = req_msg->primary_local_gid;
+ 	primary_path->sgid = req_msg->primary_remote_gid;
+-	primary_path->flow_label = cm_req_get_primary_flow_label(req_msg);
++	primary_path->flow_label =
++		cpu_to_be32(IBA_GET(CM_REQ_PRIMARY_FLOW_LABEL, req_msg));
+ 	primary_path->hop_limit = req_msg->primary_hop_limit;
+ 	primary_path->traffic_class = req_msg->primary_traffic_class;
+ 	primary_path->reversible = 1;
+@@ -1590,7 +1592,8 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ 	if (cm_req_has_alt_path(req_msg)) {
+ 		alt_path->dgid = req_msg->alt_local_gid;
+ 		alt_path->sgid = req_msg->alt_remote_gid;
+-		alt_path->flow_label = cm_req_get_alt_flow_label(req_msg);
++		alt_path->flow_label = cpu_to_be32(
++			IBA_GET(CM_REQ_ALTERNATE_FLOW_LABEL, req_msg));
+ 		alt_path->hop_limit = req_msg->alt_hop_limit;
+ 		alt_path->traffic_class = req_msg->alt_traffic_class;
+ 		alt_path->reversible = 1;
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 3933c29b569b..6f52a8f0bee3 100644
+index 23a48211d15e..09c6a393b6a1 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -70,30 +70,6 @@ struct cm_req_msg {
+@@ -70,20 +70,6 @@ struct cm_req_msg {
  
  } __packed;
  
--static inline u8 cm_req_get_primary_local_ack_timeout(struct cm_req_msg *req_msg)
+-static inline __be32 cm_req_get_primary_flow_label(struct cm_req_msg *req_msg)
 -{
--	return (u8) (req_msg->primary_offset95 >> 3);
+-	return cpu_to_be32(be32_to_cpu(req_msg->primary_offset88) >> 12);
 -}
 -
--static inline void cm_req_set_primary_local_ack_timeout(struct cm_req_msg *req_msg,
--							u8 local_ack_timeout)
+-static inline void cm_req_set_primary_flow_label(struct cm_req_msg *req_msg,
+-						 __be32 flow_label)
 -{
--	req_msg->primary_offset95 = (u8) ((req_msg->primary_offset95 & 0x07) |
--					  (local_ack_timeout << 3));
+-	req_msg->primary_offset88 = cpu_to_be32(
+-				    (be32_to_cpu(req_msg->primary_offset88) &
+-				     0x00000FFF) |
+-				     (be32_to_cpu(flow_label) << 12));
 -}
 -
--static inline u8 cm_req_get_alt_local_ack_timeout(struct cm_req_msg *req_msg)
+ static inline u8 cm_req_get_primary_packet_rate(struct cm_req_msg *req_msg)
+ {
+ 	return (u8) (be32_to_cpu(req_msg->primary_offset88) & 0x3F);
+@@ -132,20 +118,6 @@ static inline void cm_req_set_primary_local_ack_timeout(struct cm_req_msg *req_m
+ 					  (local_ack_timeout << 3));
+ }
+ 
+-static inline __be32 cm_req_get_alt_flow_label(struct cm_req_msg *req_msg)
 -{
--	return (u8) (req_msg->alt_offset139 >> 3);
+-	return cpu_to_be32(be32_to_cpu(req_msg->alt_offset132) >> 12);
 -}
 -
--static inline void cm_req_set_alt_local_ack_timeout(struct cm_req_msg *req_msg,
--						    u8 local_ack_timeout)
+-static inline void cm_req_set_alt_flow_label(struct cm_req_msg *req_msg,
+-					     __be32 flow_label)
 -{
--	req_msg->alt_offset139 = (u8) ((req_msg->alt_offset139 & 0x07) |
--				       (local_ack_timeout << 3));
+-	req_msg->alt_offset132 = cpu_to_be32(
+-				 (be32_to_cpu(req_msg->alt_offset132) &
+-				  0x00000FFF) |
+-				  (be32_to_cpu(flow_label) << 12));
 -}
 -
- /* Message REJected or MRAed */
- enum cm_msg_response {
- 	CM_MSG_RESPONSE_REQ = 0x0,
+ static inline u8 cm_req_get_alt_packet_rate(struct cm_req_msg *req_msg)
+ {
+ 	return (u8) (be32_to_cpu(req_msg->alt_offset132) & 0x3F);
 -- 
 2.20.1
 
