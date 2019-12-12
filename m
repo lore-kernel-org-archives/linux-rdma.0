@@ -2,41 +2,42 @@ Return-Path: <SRS0=BWFQ=2C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BA5EC2D0CB
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 770CBC2D0CA
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0270024654
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CC0D22527
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 09:38:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576143522;
-	bh=XJWd2DS4SZ4kowUBQn2qHZtJw5N3g/Z3dJmXDcAH+hI=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=BTjQV1kjL6l3UGCMTHzgMxCtONS60owLypxrOfivVXS9u+d34vXfi9xvYYhRTsjw/
-	 jxuLwvfljJmDq5/LL3TaIPT3Mmr6F4z7lAY/yI9zfM6UzObqle2sdBawwE2+nchh6b
-	 0CwR3m6HaW3044oLCCPqmfZFXLawkkYixvN8aM7E=
+	s=default; t=1576143525;
+	bh=7VSap/pDkZCJ2HaTTu0ygwqILaPsiLNK7bYS+hXyIiE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=TjURhWSy8jZt2hX3XI2nNVaP+yBVptqrmys2h9ZncFR4KlXeUyjIh/5nLRPn9Ia+K
+	 A9ZiqdWSC8T7zFe/W3rh8/Pe8SI6wtH1v8F6Q5Y1vxhQvyqvntYlR/zNZCeu5SC7v7
+	 MzRgnn5Qo66ciaoSHkkdToWUaBpEA2PfmD7N/wrY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728400AbfLLJil (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 04:38:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38350 "EHLO mail.kernel.org"
+        id S1728389AbfLLJio (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 04:38:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728348AbfLLJil (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Dec 2019 04:38:41 -0500
+        id S1728348AbfLLJio (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 12 Dec 2019 04:38:44 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E7A9F2173E;
-        Thu, 12 Dec 2019 09:38:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 26BD82173E;
+        Thu, 12 Dec 2019 09:38:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576143520;
-        bh=XJWd2DS4SZ4kowUBQn2qHZtJw5N3g/Z3dJmXDcAH+hI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=DYxgiOQ/Ueiy7842+aSgpInYOA6/rbTv2YWUjx4EWXl4ZA0ouFtywLG5oERlFGrIf
-         v4laDQBjQT+kuI72RqnimRuOBgBv3J3rb1Ue5ZJfpNXCZO6ZsHDG6TF3igu+Ane2W9
-         YQ3cUuJBm2Q8M0pgpxKUXDoXbRlfqa/mfXoh6RC4=
+        s=default; t=1576143523;
+        bh=7VSap/pDkZCJ2HaTTu0ygwqILaPsiLNK7bYS+hXyIiE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=XBFaGD9U0V1FzAHqSaEfDgFZwFyd6+obBMYk7JB55rXopRa3+NaZ24wH4FLtsLNoL
+         kry37KtgTLkEbuIY1MRy1RHPZ9kJpjDsqYisJLP6YSadaPEqmYg/qxypC1Dp7IKVVj
+         UGgL+qv4mo7t3mSiVbMjom+EyDl/b/3UD6VZeXDk=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -44,10 +45,12 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-rc v2 00/48] Organize code according to IBTA layout
-Date:   Thu, 12 Dec 2019 11:37:42 +0200
-Message-Id: <20191212093830.316934-1-leon@kernel.org>
+Subject: [PATCH rdma-rc v2 01/48] RDMA/cm: Provide private data size to CM users
+Date:   Thu, 12 Dec 2019 11:37:43 +0200
+Message-Id: <20191212093830.316934-2-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191212093830.316934-1-leon@kernel.org>
+References: <20191212093830.316934-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,102 +60,119 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Changelog:
-v1->v2: https://lore.kernel.org/linux-rdma/20191121181313.129430-1-leon@kernel.org
- * Added forgotten CM_FIELD64_LOC().
-v0->v1: https://lore.kernel.org/linux-rdma/20191027070621.11711-1-leon@kernel.org
- * Used Jason's macros as a basis for all get/set operation for wire protocol.
- * Fixed wrong offsets.
- * Grouped all CM related patches in one patchset bomb.
-----------------------------------------------------------------------
-Hi,
+Prepare code to removal IB_CM_*_PRIVATE_DATA_SIZE enum so we will store
+such size in adjacent to actual data.
 
-This series continues already started task to clean up CM related code.
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/cm.c | 11 +++++++++++
+ include/rdma/ib_cm.h         |  1 +
+ 2 files changed, 12 insertions(+)
 
-Over the years, the IB/core gained a number of anti-patterns which
-led to mistakes. First and most distracting is spread of hardware
-specification types (e.g. __beXX) to the core logic. Second, endless
-copy/paste to access IBTA binary blobs, which made any IBTA extensions
-not an easy task.
-In this series, we add Enhance Connection Establishment bits which
-were added recently to IBTA and will continue to convert rest of the CM
-code to propose macros by eliminating __beXX variables from core code.
-
-All IBTA CM declarations are places into new header
-file: include/rdma/ibta_vol1_c12.h and the idea that every
-spec chapter will have separate header file, so we will see
-immediately the relations between declarations and values.
-
-Thanks
-
-BTW,
-1. The whole area near private_data looks sketchy to me and needs
-   separate cleanup.
-2. I know that it is more than 15 patches, but they are small and
-   self-contained.
-
-Leon Romanovsky (48):
-  RDMA/cm: Provide private data size to CM users
-  RDMA/srpt: Use private_data_len instead of hardcoded value
-  RDMA/ucma: Mask QPN to be 24 bits according to IBTA
-  RDMA/cm: Add SET/GET implementations to hide IBA wire format
-  RDMA/cm: Request For Communication (REQ) message definitions
-  RDMA/cm: Message Receipt Acknowledgment (MRA) message definitions
-  RDMA/cm: Reject (REJ) message definitions
-  RDMA/cm: Reply To Request for communication (REP) definitions
-  RDMA/cm: Ready To Use (RTU) definitions
-  RDMA/cm: Request For Communication Release (DREQ) definitions
-  RDMA/cm: Reply To Request For Communication Release (DREP) definitions
-  RDMA/cm: Load Alternate Path (LAP) definitions
-  RDMA/cm: Alternate Path Response (APR) message definitions
-  RDMA/cm: Service ID Resolution Request (SIDR_REQ) definitions
-  RDMA/cm: Service ID Resolution Response (SIDR_REP) definitions
-  RDMA/cm: Convert QPN and EECN to be u32 variables
-  RDMA/cm: Convert REQ responded resources to the new scheme
-  RDMA/cm: Convert REQ initiator depth to the new scheme
-  RDMA/cm: Convert REQ remote response timeout
-  RDMA/cm: Simplify QP type to wire protocol translation
-  RDMA/cm: Convert REQ flow control
-  RDMA/cm: Convert starting PSN to be u32 variable
-  RDMA/cm: Update REQ local response timeout
-  RDMA/cm: Convert REQ retry count to use new scheme
-  RDMA/cm: Update REQ path MTU field
-  RDMA/cm: Convert REQ RNR retry timeout counter
-  RDMA/cm: Convert REQ MAX CM retries
-  RDMA/cm: Convert REQ SRQ field
-  RDMA/cm: Convert REQ flow label field
-  RDMA/cm: Convert REQ packet rate
-  RDMA/cm: Convert REQ SL fields
-  RDMA/cm: Convert REQ subnet local fields
-  RDMA/cm: Convert REQ local ack timeout
-  RDMA/cm: Convert MRA MRAed field
-  RDMA/cm: Convert MRA service timeout
-  RDMA/cm: Update REJ struct to use new scheme
-  RDMA/cm: Convert REP target ack delay field
-  RDMA/cm: Convert REP failover accepted field
-  RDMA/cm: Convert REP flow control field
-  RDMA/cm: Convert REP RNR retry count field
-  RDMA/cm: Convert REP SRQ field
-  RDMA/cm: Delete unused CM LAP functions
-  RDMA/cm: Convert LAP flow label field
-  RDMA/cm: Convert LAP fields
-  RDMA/cm: Delete unused CM ARP functions
-  RDMA/cm: Convert SIDR_REP to new scheme
-  RDMA/cm: Add Enhanced Connection Establishment (ECE) bits
-  RDMA/cm: Convert private_date access
-
- drivers/infiniband/core/cm.c          | 554 ++++++++++--------------
- drivers/infiniband/core/cm_msgs.h     | 600 +-------------------------
- drivers/infiniband/core/cma.c         |  11 +-
- drivers/infiniband/core/ucma.c        |   2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c |   2 +-
- include/rdma/ib_cm.h                  |  55 +--
- include/rdma/iba.h                    | 138 ++++++
- include/rdma/ibta_vol1_c12.h          | 211 +++++++++
- 8 files changed, 599 insertions(+), 974 deletions(-)
- create mode 100644 include/rdma/iba.h
- create mode 100644 include/rdma/ibta_vol1_c12.h
-
---
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 455b3659d84b..c341a68b6f97 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1681,6 +1681,7 @@ static void cm_format_req_event(struct cm_work *work,
+ 	param->srq = cm_req_get_srq(req_msg);
+ 	param->ppath_sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
+ 	work->cm_event.private_data = &req_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_REQ_PRIVATE_DATA_SIZE;
+ }
+ 
+ static void cm_process_work(struct cm_id_private *cm_id_priv,
+@@ -2193,6 +2194,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
+ 	param->rnr_retry_count = cm_rep_get_rnr_retry_count(rep_msg);
+ 	param->srq = cm_rep_get_srq(rep_msg);
+ 	work->cm_event.private_data = &rep_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_REP_PRIVATE_DATA_SIZE;
+ }
+ 
+ static void cm_dup_rep_handler(struct cm_work *work)
+@@ -2395,6 +2397,7 @@ static int cm_rtu_handler(struct cm_work *work)
+ 		return -EINVAL;
+ 
+ 	work->cm_event.private_data = &rtu_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_RTU_PRIVATE_DATA_SIZE;
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	if (cm_id_priv->id.state != IB_CM_REP_SENT &&
+@@ -2597,6 +2600,7 @@ static int cm_dreq_handler(struct cm_work *work)
+ 	}
+ 
+ 	work->cm_event.private_data = &dreq_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_DREQ_PRIVATE_DATA_SIZE;
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	if (cm_id_priv->local_qpn != cm_dreq_get_remote_qpn(dreq_msg))
+@@ -2671,6 +2675,7 @@ static int cm_drep_handler(struct cm_work *work)
+ 		return -EINVAL;
+ 
+ 	work->cm_event.private_data = &drep_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_DREP_PRIVATE_DATA_SIZE;
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	if (cm_id_priv->id.state != IB_CM_DREQ_SENT &&
+@@ -2770,6 +2775,7 @@ static void cm_format_rej_event(struct cm_work *work)
+ 	param->ari_length = cm_rej_get_reject_info_len(rej_msg);
+ 	param->reason = __be16_to_cpu(rej_msg->reason);
+ 	work->cm_event.private_data = &rej_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_REJ_PRIVATE_DATA_SIZE;
+ }
+ 
+ static struct cm_id_private * cm_acquire_rejected_id(struct cm_rej_msg *rej_msg)
+@@ -2982,6 +2988,7 @@ static int cm_mra_handler(struct cm_work *work)
+ 		return -EINVAL;
+ 
+ 	work->cm_event.private_data = &mra_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_MRA_PRIVATE_DATA_SIZE;
+ 	work->cm_event.param.mra_rcvd.service_timeout =
+ 					cm_mra_get_service_timeout(mra_msg);
+ 	timeout = cm_convert_to_ms(cm_mra_get_service_timeout(mra_msg)) +
+@@ -3214,6 +3221,7 @@ static int cm_lap_handler(struct cm_work *work)
+ 	param->alternate_path = &work->path[0];
+ 	cm_format_path_from_lap(cm_id_priv, param->alternate_path, lap_msg);
+ 	work->cm_event.private_data = &lap_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_LAP_PRIVATE_DATA_SIZE;
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	if (cm_id_priv->id.state != IB_CM_ESTABLISHED)
+@@ -3367,6 +3375,7 @@ static int cm_apr_handler(struct cm_work *work)
+ 	work->cm_event.param.apr_rcvd.apr_info = &apr_msg->info;
+ 	work->cm_event.param.apr_rcvd.info_len = apr_msg->info_length;
+ 	work->cm_event.private_data = &apr_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_APR_PRIVATE_DATA_SIZE;
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	if (cm_id_priv->id.state != IB_CM_ESTABLISHED ||
+@@ -3515,6 +3524,7 @@ static void cm_format_sidr_req_event(struct cm_work *work,
+ 	param->port = work->port->port_num;
+ 	param->sgid_attr = rx_cm_id->av.ah_attr.grh.sgid_attr;
+ 	work->cm_event.private_data = &sidr_req_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE;
+ }
+ 
+ static int cm_sidr_req_handler(struct cm_work *work)
+@@ -3664,6 +3674,7 @@ static void cm_format_sidr_rep_event(struct cm_work *work,
+ 	param->info_len = sidr_rep_msg->info_length;
+ 	param->sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
+ 	work->cm_event.private_data = &sidr_rep_msg->private_data;
++	work->cm_event.private_data_len = IB_CM_SIDR_REP_PRIVATE_DATA_SIZE;
+ }
+ 
+ static int cm_sidr_rep_handler(struct cm_work *work)
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index b01a8a8d4de9..b476e0e27ec9 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -254,6 +254,7 @@ struct ib_cm_event {
+ 	} param;
+ 
+ 	void			*private_data;
++	u8			private_data_len;
+ };
+ 
+ #define CM_REQ_ATTR_ID		cpu_to_be16(0x0010)
+-- 
 2.20.1
 
