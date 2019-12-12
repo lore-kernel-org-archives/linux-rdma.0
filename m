@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C189C2D0DD
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:21:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE934C2D0D2
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:22:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6B2C2077B
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:21:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8453A2077B
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Dec 2019 08:22:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="elg+sSRR"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="BDIImglJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728184AbfLLIVW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Dec 2019 03:21:22 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:3914 "EHLO
+        id S1728761AbfLLIWE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Dec 2019 03:22:04 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:3915 "EHLO
         hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728362AbfLLITb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Dec 2019 03:19:31 -0500
+        with ESMTP id S1728415AbfLLITa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Dec 2019 03:19:30 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5df1f8020002>; Thu, 12 Dec 2019 00:19:15 -0800
+        id <B5df1f8030000>; Thu, 12 Dec 2019 00:19:15 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Thu, 12 Dec 2019 00:19:21 -0800
+  Thu, 12 Dec 2019 00:19:22 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Thu, 12 Dec 2019 00:19:21 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+        by hqpgpgate101.nvidia.com on Thu, 12 Dec 2019 00:19:22 -0800
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Dec
  2019 08:19:19 +0000
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Dec
- 2019 08:19:19 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
  Transport; Thu, 12 Dec 2019 08:19:19 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5df1f8060006>; Thu, 12 Dec 2019 00:19:18 -0800
+        id <B5df1f8070007>; Thu, 12 Dec 2019 00:19:19 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -56,11 +53,12 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -68,187 +66,104 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Christoph Hellwig" <hch@lst.de>
-Subject: [PATCH v10 04/25] mm: devmap: refactor 1-based refcounting for ZONE_DEVICE pages
-Date:   Thu, 12 Dec 2019 00:18:56 -0800
-Message-ID: <20191212081917.1264184-5-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v10 11/25] goldish_pipe: convert to pin_user_pages() and put_user_page()
+Date:   Thu, 12 Dec 2019 00:19:03 -0800
+Message-ID: <20191212081917.1264184-12-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191212081917.1264184-1-jhubbard@nvidia.com>
 References: <20191212081917.1264184-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576138755; bh=r3XA8lSkA5Bnz921S0tMCXc9LaTJg03zUmdbkjLWRbI=;
+        t=1576138755; bh=TksWTeRqb2e65v/kOUv6DZsbenXYEnzjjPNzfVXQEtw=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Type:Content-Transfer-Encoding;
-        b=elg+sSRRzUJLWxg7pEMGo1TjXJDPNYbJwAkjvScwBISUPDcaOwt3JsejxGsKxLFUi
-         qBagTKwhdnMYBIkqRIOG581MOnXxwQINdcFFkxRsWxujnFNbIRfalulU1S2D8c/gZ9
-         upqBAINw7s4lLJtYFHDFXIeb+beNVFgNf2XU06fnSFm1r4Q1URuF9uFYqCv1KxnaM4
-         CiXBKa3U+CMEo8sUhfxanTzS+S669s8HkKaEu5xLpbot4NbK1xzSpz6kFNdTbdLI2w
-         aubectHeigApixn4Ccg0/UbmY3RraK/s1yzlGHN9vn38p0PHoottu5mw00BJWl4csT
-         3K09shusUckgg==
+         Content-Transfer-Encoding:Content-Type;
+        b=BDIImglJjgwmkon10uFJrMUcq1FrawvSSc7M/n5THjPRiJxUFZt8MSD158KOw6HMV
+         rh2HKwrcUo/qI8Z4DkbZr/njaFynjuej3FPCKQtQBj0PnXHR5pHRdfg6+0Lktf6VRz
+         maklEWp5mrFd+e7ilYTSbTMlozCex2H3YVgonQjJU8livo7KL7LqIiZbxjQjs2+YKZ
+         4r7NTue2ODJ19r8IvGhqWw2UgATqxSgZ4EaKQTb83SWsCOTtCpu/ZuJhb/T/ltF79V
+         /cHocG75gDYZH4OMohCzbLciCoyzbyKfqKWmZJ4gAGTgo/kN63d9+TwHZ+000grOl0
+         hROu8ymdWzH1w==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-An upcoming patch changes and complicates the refcounting and
-especially the "put page" aspects of it. In order to keep
-everything clean, refactor the devmap page release routines:
+1. Call the new global pin_user_pages_fast(), from pin_goldfish_pages().
 
-* Rename put_devmap_managed_page() to page_is_devmap_managed(),
-  and limit the functionality to "read only": return a bool,
-  with no side effects.
+2. As required by pin_user_pages(), release these pages via
+put_user_page(). In this case, do so via put_user_pages_dirty_lock().
 
-* Add a new routine, put_devmap_managed_page(), to handle checking
-  what kind of page it is, and what kind of refcount handling it
-  requires.
+That has the side effect of calling set_page_dirty_lock(), instead
+of set_page_dirty(). This is probably more accurate.
 
-* Rename __put_devmap_managed_page() to free_devmap_managed_page(),
-  and limit the functionality to unconditionally freeing a devmap
-  page.
+As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
+dealing with a file backed page where we have reference on the inode it
+hangs off." [1]
 
-This is originally based on a separate patch by Ira Weiny, which
-applied to an early version of the put_user_page() experiments.
-Since then, J=C3=A9r=C3=B4me Glisse suggested the refactoring described abo=
-ve.
+Another side effect is that the release code is simplified because
+the page[] loop is now in gup.c instead of here, so just delete the
+local release_user_pages() entirely, and call
+put_user_pages_dirty_lock() directly, instead.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Suggested-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
+
 Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- include/linux/mm.h | 17 +++++++++++++----
- mm/memremap.c      | 16 ++--------------
- mm/swap.c          | 24 ++++++++++++++++++++++++
- 3 files changed, 39 insertions(+), 18 deletions(-)
+ drivers/platform/goldfish/goldfish_pipe.c | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c97ea3b694e6..77a4df06c8a7 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -952,9 +952,10 @@ static inline bool is_zone_device_page(const struct pa=
-ge *page)
- #endif
+diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/g=
+oldfish/goldfish_pipe.c
+index ef50c264db71..2a5901efecde 100644
+--- a/drivers/platform/goldfish/goldfish_pipe.c
++++ b/drivers/platform/goldfish/goldfish_pipe.c
+@@ -274,7 +274,7 @@ static int goldfish_pin_pages(unsigned long first_page,
+ 		*iter_last_page_size =3D last_page_size;
+ 	}
 =20
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void __put_devmap_managed_page(struct page *page);
-+void free_devmap_managed_page(struct page *page);
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
--static inline bool put_devmap_managed_page(struct page *page)
-+
-+static inline bool page_is_devmap_managed(struct page *page)
- {
- 	if (!static_branch_unlikely(&devmap_managed_key))
- 		return false;
-@@ -963,7 +964,6 @@ static inline bool put_devmap_managed_page(struct page =
-*page)
- 	switch (page->pgmap->type) {
- 	case MEMORY_DEVICE_PRIVATE:
- 	case MEMORY_DEVICE_FS_DAX:
--		__put_devmap_managed_page(page);
- 		return true;
- 	default:
- 		break;
-@@ -971,7 +971,14 @@ static inline bool put_devmap_managed_page(struct page=
- *page)
- 	return false;
+-	ret =3D get_user_pages_fast(first_page, requested_pages,
++	ret =3D pin_user_pages_fast(first_page, requested_pages,
+ 				  !is_write ? FOLL_WRITE : 0,
+ 				  pages);
+ 	if (ret <=3D 0)
+@@ -285,18 +285,6 @@ static int goldfish_pin_pages(unsigned long first_page=
+,
+ 	return ret;
  }
 =20
-+bool put_devmap_managed_page(struct page *page);
-+
- #else /* CONFIG_DEV_PAGEMAP_OPS */
-+static inline bool page_is_devmap_managed(struct page *page)
-+{
-+	return false;
-+}
-+
- static inline bool put_devmap_managed_page(struct page *page)
- {
- 	return false;
-@@ -1028,8 +1035,10 @@ static inline void put_page(struct page *page)
- 	 * need to inform the device driver through callback. See
- 	 * include/linux/memremap.h and HMM for details.
- 	 */
--	if (put_devmap_managed_page(page))
-+	if (page_is_devmap_managed(page)) {
-+		put_devmap_managed_page(page);
- 		return;
-+	}
-=20
- 	if (put_page_testzero(page))
- 		__put_page(page);
-diff --git a/mm/memremap.c b/mm/memremap.c
-index e899fa876a62..2ba773859031 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -411,20 +411,8 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- EXPORT_SYMBOL_GPL(get_dev_pagemap);
-=20
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void __put_devmap_managed_page(struct page *page)
-+void free_devmap_managed_page(struct page *page)
- {
--	int count =3D page_ref_dec_return(page);
+-static void release_user_pages(struct page **pages, int pages_count,
+-			       int is_write, s32 consumed_size)
+-{
+-	int i;
 -
--	/* still busy */
--	if (count > 1)
--		return;
--
--	/* only triggered by the dev_pagemap shutdown path */
--	if (count =3D=3D 0) {
--		__put_page(page);
--		return;
+-	for (i =3D 0; i < pages_count; i++) {
+-		if (!is_write && consumed_size > 0)
+-			set_page_dirty(pages[i]);
+-		put_page(pages[i]);
 -	}
+-}
 -
- 	/* notify page idle for dax */
- 	if (!is_device_private_page(page)) {
- 		wake_up_var(&page->_refcount);
-@@ -461,5 +449,5 @@ void __put_devmap_managed_page(struct page *page)
- 	page->mapping =3D NULL;
- 	page->pgmap->ops->page_free(page);
- }
--EXPORT_SYMBOL(__put_devmap_managed_page);
-+EXPORT_SYMBOL(free_devmap_managed_page);
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
-diff --git a/mm/swap.c b/mm/swap.c
-index 5341ae93861f..49f7c2eea0ba 100644
---- a/mm/swap.c
-+++ b/mm/swap.c
-@@ -1102,3 +1102,27 @@ void __init swap_setup(void)
- 	 * _really_ don't want to cluster much more
- 	 */
- }
-+
-+#ifdef CONFIG_DEV_PAGEMAP_OPS
-+bool put_devmap_managed_page(struct page *page)
-+{
-+	bool is_devmap =3D page_is_devmap_managed(page);
-+
-+	if (is_devmap) {
-+		int count =3D page_ref_dec_return(page);
-+
-+		/*
-+		 * devmap page refcounts are 1-based, rather than 0-based: if
-+		 * refcount is 1, then the page is free and the refcount is
-+		 * stable because nobody holds a reference on the page.
-+		 */
-+		if (count =3D=3D 1)
-+			free_devmap_managed_page(page);
-+		else if (!count)
-+			__put_page(page);
-+	}
-+
-+	return is_devmap;
-+}
-+EXPORT_SYMBOL(put_devmap_managed_page);
-+#endif
+ /* Populate the call parameters, merging adjacent pages together */
+ static void populate_rw_params(struct page **pages,
+ 			       int pages_count,
+@@ -372,7 +360,8 @@ static int transfer_max_buffers(struct goldfish_pipe *p=
+ipe,
+=20
+ 	*consumed_size =3D pipe->command_buffer->rw_params.consumed_size;
+=20
+-	release_user_pages(pipe->pages, pages_count, is_write, *consumed_size);
++	put_user_pages_dirty_lock(pipe->pages, pages_count,
++				  !is_write && *consumed_size > 0);
+=20
+ 	mutex_unlock(&pipe->lock);
+ 	return 0;
 --=20
 2.24.0
 
