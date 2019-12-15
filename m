@@ -1,180 +1,133 @@
-Return-Path: <SRS0=KYxz=2E=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=v+Vh=2F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5840C2D0C5
-	for <linux-rdma@archiver.kernel.org>; Sat, 14 Dec 2019 08:38:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29EEDC43603
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Dec 2019 18:55:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AE74324125
-	for <linux-rdma@archiver.kernel.org>; Sat, 14 Dec 2019 08:38:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576312682;
-	bh=bBqXNqepPrUnfTEsgIJIVQE60S3PLIE7bqcl+SWbyf0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=PWQG9FUnINbiIi7lKfpj4uonJ7Dy8SQO3SzQIXCIWn7Uiol/0fr/1mb5HgZx2HysV
-	 bFLJt2WoGpjpV5utDJsMdkTPlZ2Rd61ubvmUbfRG2OnNdIkch5nhyufqbShOIqeYni
-	 /en7BUbh04OWCEVoMFmzLE6anAP/PGj4DCjtZB4I=
+	by mail.kernel.org (Postfix) with ESMTP id E4DEB206D8
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Dec 2019 18:55:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="Ls67Ybx/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726148AbfLNIh6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 14 Dec 2019 03:37:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51836 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725895AbfLNIh6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 14 Dec 2019 03:37:58 -0500
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2349B24125;
-        Sat, 14 Dec 2019 08:37:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576312676;
-        bh=bBqXNqepPrUnfTEsgIJIVQE60S3PLIE7bqcl+SWbyf0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=2B1MmkBN2XkZO/EHfDdd0M5ZuY81cL9M8usKucsCiVupHXMYl1oJZT8nyWkt0Y9BK
-         zJZ1IZliqNl7dCFC2Z9pi193DcRNnNO02Mkr6lplLFJOvsxJ84e8Vqz8IjsmVxC4y5
-         8wXiE2RiWPPdXkDxnkHM6RDn1ROdwhFu7ZAgWD4Q=
-Date:   Sat, 14 Dec 2019 09:37:53 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Cc:     "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "nhorman@redhat.com" <nhorman@redhat.com>,
-        "sassmann@redhat.com" <sassmann@redhat.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>,
-        "parav@mellanox.com" <parav@mellanox.com>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>
-Subject: Re: [PATCH v3 04/20] i40e: Register a virtbus device to provide RDMA
-Message-ID: <20191214083753.GB3318534@kroah.com>
-References: <20191209224935.1780117-1-jeffrey.t.kirsher@intel.com>
- <20191209224935.1780117-5-jeffrey.t.kirsher@intel.com>
- <20191210153959.GD4053085@kroah.com>
- <9DD61F30A802C4429A01CA4200E302A7B6B9345E@fmsmsx124.amr.corp.intel.com>
+        id S1726462AbfLOSzJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 15 Dec 2019 13:55:09 -0500
+Received: from mail-eopbgr50056.outbound.protection.outlook.com ([40.107.5.56]:18567
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726219AbfLOSzJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 15 Dec 2019 13:55:09 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=jHOX937v8CSTUMdEptYPG89h8ZluEfXhEtwPgJ5ZMOAy3flfwQogt95PYoxw6wQQN0NSXyCfO79OBt4gGl8y5AVQUAgJOBOTfm6me6v/qJ1slWSL2KS+U3UvmDlNgwKD/3p+CXbsRFE2fZxC5CTfjG7yv83+3XtYVB7OHFtJz8F9k35PddNapb821tpR3y/ZG2L0evrHRWLw2lxg1ar8n7KVXnuommOerBEQCXt6XiXdfAGjzUMB7mtvRA7xBeke+5vA5vUTuNsvNCu7+WGrey8hPavciZV5eQShcr9VbW88ToRilvziOmYQhxV01RmTm1llEDphBBvhOijOeCFFyQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=l/M/EXavw3gSI10r2slrUnYZB0lQtspVx6dsvh/uJDE=;
+ b=BTGflVH41Ge3Vw8OGnZzfagRzKb/A4ujvR2ojW+0wvXMmu6zetfLDMuMT6k2CFJxYcQ3uP+GW6UHDH5PvNEZXUsJWkVDUrw6nTbGbJECTPgfflOzMshlVcHTFkaX1FyLaGul/v4q2kw7gZVdn5kO3GvHZfS1GnbwrRRlxAt3Zc75n6jnS6EvPRxp59by+VW4njPXgZyRZ7K4gSuce2WMkGBJ8HbkOmEJGqg3oFUE32NS7ri3MXUwtjAjGap5FFAmNimDwhFPSbp9xPsgB4RdYvZ+5X7D2lniR5lScKtVsznyZWSZsuqISG6G5gJMB4nCUWTFTAlAigRlwTwyf1/sRg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=l/M/EXavw3gSI10r2slrUnYZB0lQtspVx6dsvh/uJDE=;
+ b=Ls67Ybx/TJIzuw1SZZiCNwidmX1HZvajSbTpGoJu6LMWSSmm4rpCVYR7kI4mWt79ZzEcR5qEoQ2orRpNqgGgPhI04Yrzv8D3YKsOzj2w7vC3rfEvL2LlAJkN647MhTpJXMW4OVgRsW6ITwlO14Mc4YvWPUwkGmdr7CmqE/F1qkU=
+Received: from AM4PR05MB3137.eurprd05.prod.outlook.com (10.171.188.155) by
+ AM4PR05MB3204.eurprd05.prod.outlook.com (10.171.186.33) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2538.16; Sun, 15 Dec 2019 18:55:05 +0000
+Received: from AM4PR05MB3137.eurprd05.prod.outlook.com
+ ([fe80::e5c3:58e:7e9:d398]) by AM4PR05MB3137.eurprd05.prod.outlook.com
+ ([fe80::e5c3:58e:7e9:d398%7]) with mapi id 15.20.2538.017; Sun, 15 Dec 2019
+ 18:55:05 +0000
+From:   Leon Romanovsky <leonro@mellanox.com>
+To:     Doug Ledford <dledford@redhat.com>
+CC:     Jason Gunthorpe <jgg@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Ariel Levkovich <lariel@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>
+Subject: Re: [PATCH rdma-rc 2/2] IB/mlx5: Fix device memory flows
+Thread-Topic: [PATCH rdma-rc 2/2] IB/mlx5: Fix device memory flows
+Thread-Index: AQHVsNNPQtlOwkoNwEy8CNbUEyEWTqe2WR+AgAAB5QCAALKPgIAD0G+A
+Date:   Sun, 15 Dec 2019 18:55:04 +0000
+Message-ID: <20191215081537.GD67461@unreal>
+References: <20191212100237.330654-1-leon@kernel.org>
+ <20191212100237.330654-3-leon@kernel.org> <20191212111457.GV67461@unreal>
+ <20191212112144.GW67461@unreal>
+ <2e16247d69f4c2ab924b67ae85757184f6bcc741.camel@redhat.com>
+In-Reply-To: <2e16247d69f4c2ab924b67ae85757184f6bcc741.camel@redhat.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: AM3PR05CA0093.eurprd05.prod.outlook.com
+ (2603:10a6:207:1::19) To AM4PR05MB3137.eurprd05.prod.outlook.com
+ (2603:10a6:205:8::27)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=leonro@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [2a00:a040:183:2d:5ee0:c5ff:fe5a:b5a9]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 7e57a767-d829-4c84-7886-08d781904c10
+x-ms-traffictypediagnostic: AM4PR05MB3204:|AM4PR05MB3204:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <AM4PR05MB32048B2626DFC42066CFEF80B0560@AM4PR05MB3204.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8882;
+x-forefront-prvs: 02524402D6
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(7916004)(4636009)(366004)(136003)(39860400002)(396003)(376002)(346002)(189003)(199004)(316002)(478600001)(6916009)(86362001)(4326008)(107886003)(4744005)(33656002)(4001150100001)(66946007)(54906003)(1076003)(66446008)(186003)(81156014)(81166006)(33716001)(8936002)(8676002)(5660300002)(64756008)(66556008)(66476007)(6486002)(2906002)(71200400001)(6506007)(6512007)(9686003)(52116002);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR05MB3204;H:AM4PR05MB3137.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: GlnAN4OpEqDdgfdGe6n4DmPbIayCIS7/W7orDlrHO75dEZmpUBwPuO1lPV01ePLCTz1gtCZ4JlR1RPNy99YAVE91kNevG0/wE9KzTYrKvGFWmiH0SFwP+AAiP+BpDGmGexcGiecqOX+Uq3xMdasWUW/cuoZ9XG/mLvthImH3eeFP9A5S5yP+V4BB+ALlUNwMPJggxhWyg0ISpTBAj2z9Ckz3hYWAq+zzjZTaLK4ZzWD/x6/DSGgEFUWFiB0ZzjQ29//U6jyEwDu1KiAa4QX4W5iNhresmb41owMNTUkSJSmvQ1XUFGLH3cEjOR9matgm1ymQ5ojOsiwEHI2bHElOlW8YmTbUN35ZG0hMRIWg8shMCkZ04Ou3X8YSNFvPsLSFtQSjfxZX4B6Ec7js714a2uxSwKjrjKHIRSA6QGVBR4+pjpcfF0suQWRaVL+GJ3sM
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <857744C40FFD654D86E64CC3E7D67D3E@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7B6B9345E@fmsmsx124.amr.corp.intel.com>
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7e57a767-d829-4c84-7886-08d781904c10
+X-MS-Exchange-CrossTenant-originalarrivaltime: 15 Dec 2019 18:55:04.9864
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: +PH+OBIDE2x28RDRi9GaSuoeiWv5FyM8OgIse9Ne+STjUwNhGNY6gr25VcSgwW9m+Y5LSUMEm2SFP8Xfs23iJw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR05MB3204
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Dec 13, 2019 at 11:08:34PM +0000, Saleem, Shiraz wrote:
-> > Subject: Re: [PATCH v3 04/20] i40e: Register a virtbus device to provide RDMA
-> > 
-> 
-> [....]
-> 
-> > >  /**
-> > > @@ -275,6 +281,27 @@ void i40e_client_update_msix_info(struct i40e_pf *pf)
-> > >  	cdev->lan_info.msix_entries =
-> > > &pf->msix_entries[pf->iwarp_base_vector];
-> > >  }
+On Thu, Dec 12, 2019 at 05:00:49PM -0500, Doug Ledford wrote:
+> On Thu, 2019-12-12 at 11:21 +0000, Leon Romanovsky wrote:
+> > > > @@ -2288,8 +2332,9 @@ static int handle_alloc_dm_memic(struct
+> > > > ib_ucontext *ctx,
+> > > >   {
+> > > >      struct mlx5_dm *dm_db =3D &to_mdev(ctx->device)->dm;
+> > > >      u64 start_offset;
+> > > > -   u32 page_idx;
+> > > > +   u16 page_idx =3D 0;
 > > >
-> > > +static int i40e_init_client_virtdev(struct i40e_pf *pf) {
-> > > +	struct i40e_info *ldev = &pf->cinst->lan_info;
-> > > +	struct pci_dev *pdev = pf->pdev;
-> > > +	struct virtbus_device *vdev;
-> > > +	int ret;
-> > > +
-> > > +	vdev = &ldev->vdev;
-> > > +	vdev->name = I40E_PEER_RDMA_NAME;
-> > > +	vdev->dev.parent = &pf->pdev->dev;
-> > 
-> > What a total and complete mess of a tangled web you just wove here.
-> > 
-> > Ok, so you pass in a single pointer, that then dereferences 3 pointers deep to find
-> > the pointer to the virtbus_device structure, but then you point the parent of that
-> > device, back at the original structure's sub-pointer's device itself.
-> > 
-> > WTF?
-> 
-> OK. This is convoluted. Passing a pointer to the i40e_info object should suffice. So something like,
-> 
-> +static int i40e_init_client_virtdev(struct i40e_info *ldev) {
-> +       struct pci_dev *pdev = ldev->pcidev;
-> +       struct virtbus_device *vdev = &ldev->vdev;
-> +       int ret;
-> +
-> +       vdev->name = I40E_PEER_RDMA_NAME;
-> +       vdev->dev.parent = &pdev->dev;
-> +       ret = virtbus_dev_register(vdev);
-> +       if (ret)
-> +               return ret;
-> +
-> +       return 0;
-> +}
-> +
-> 
-> > 
-> > And who owns the memory of this thing that is supposed to be dynamically
-> > controlled by something OUTSIDE of this driver?  Who created that thing 3
-> > pointers deep?  What happens when you leak the memory below (hint, you did),
-> > and who is supposed to clean it up if you need to properly clean it up if something
-> > bad happens?
-> 
-> The i40e_info object memory is tied to the PF driver.
+> > > This hunk is not needed.
+> >
+> > To be clear, I wanted to say this about "=3D 0" part. The change of the
+> > type is still needed.
+> >
+> > Thanks
+>
+> I fixed it up when I took the two patches.  Applied to for-rc, thanks.
 
-What is a "PF"?
+Thanks a lot.
 
-> The object hierarchy is,
-> 
-> i40e_pf: pointer to i40e_client_instance 
-> 	----- i40e_client_instance: i40e_info
-> 		----- i40e_info: virtbus_device
+>
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG KeyID: B826A3330E572FDD
+>     Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-So you are 3 pointers deep to get a structure that is dynamically
-controlled?  Why are those "3 pointers" not also represented in sysfs?
-You have a heiarchy within the kernel that is not being represented that
-way to userspace, why?
 
-Hint, I think this is totally wrong, you need to rework this to be sane.
-
-> For each PF, there is a client_instance object allocated.
-
-Great, make it dynamic and in the device tree.
-
-> The i40e_info object is populated and the virtbus_device hanging off this object is registered.
-
-Great, make that dynamic and inthe device tree.
-
-If you think this is too much, then your whole mess here is too much and
-needs to be made a lot simpler.
-
-> In irdma probe(), we use the container_of macro to get to this i40e_info object from the
-> virtbus_device. It contains all the ops/info which RDMA driver needs from the PCI function driver.
-
-Ok, that's what you are supposed to do, but why walk back 3 levels?
-
-> The lifetime of the i40e_info object (and the virtbus device) is tied to the PF.
-
-Careful, these are dynamic structures, you don't get to fully "tie"
-anything here.
-
-> When PF goes away, virtbus_device is unregistered and the client_instance object memory
-> is freed.
-
-Hopefully, if no one else has a reference (hint, you never know this.)
-If you are relying on this, then you are not using the driver model
-correctly.
-
-> > Also, what ever happened to my "YOU ALL MUST AGREE TO WORK TOGETHER"
-> > requirement between this group, and the other group trying to do the same thing?  I
-> > want to see signed-off-by from EVERYONE involved before we are going to
-> > consider this thing.
-> > 
-> We will have all parties cc'ed in the next submission. Would encourage folks to review
-> and hopefully we can get some consensus.
-
-Then when you post your patches, do so to be obvious that is what you
-are asking for, don't try to do a "here's a pull request to take!" type
-request like you did here, that's not nice.
-
-thanks,
-
-greg k-h
