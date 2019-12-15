@@ -2,89 +2,176 @@ Return-Path: <SRS0=v+Vh=2F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A61C43603
-	for <linux-rdma@archiver.kernel.org>; Sun, 15 Dec 2019 18:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B5CAC43603
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Dec 2019 21:57:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CDACD2467A
-	for <linux-rdma@archiver.kernel.org>; Sun, 15 Dec 2019 18:55:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576436113;
-	bh=qxCq1Eg94Bm5MYZwDFLzvHbmo6W6Stbi9CbdFj0Q4jU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=rnFniM0rjaEmQifAfG/RSrBvqRPb4uURXueDeD/gB3kU99W0dH6dbaG1hoxYf2pqr
-	 ZZEv6o8KIDDy9wVqsy42lQm9EPA4mSx/nl8m9b5TZY7gKoMUmc//XsEBe3ko5rSSqw
-	 DNw4NmoyPk2lfzC7KLN0a06ZRy0MAs8mnNaZ9/zI=
+	by mail.kernel.org (Postfix) with ESMTP id 424D624676
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Dec 2019 21:57:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PRZKcLeh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726437AbfLOSzN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 15 Dec 2019 13:55:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58476 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726260AbfLOSzN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 15 Dec 2019 13:55:13 -0500
-Received: from localhost (unknown [5.29.147.182])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1726219AbfLOV5N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 15 Dec 2019 16:57:13 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:40843 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726146AbfLOV5N (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 15 Dec 2019 16:57:13 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1576447031;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+        bh=Msvls+smTfugP8yTYOgGlNZxBRCNhGv5tqO3Bav8AAc=;
+        b=PRZKcLehVrACUEDU0lSyn7JvrzOot4ynkPHAjRyIeooT5ycBTiAdVgER3AEuxNC6T9xsBu
+        XDhE6pF4mZhpNbnygK2OhgVxa8YPFIytCZZAjiP2ehNu3qaOG1PyB15PZ60XnflLAVMst7
+        aX++zXyL7IPk1aD+4npHFxvmzUciGUQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-174-H4Fh0ThbPd6aRqu5P2-VWg-1; Sun, 15 Dec 2019 16:57:07 -0500
+X-MC-Unique: H4Fh0ThbPd6aRqu5P2-VWg-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 81F55206D8;
-        Sun, 15 Dec 2019 18:55:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576436112;
-        bh=qxCq1Eg94Bm5MYZwDFLzvHbmo6W6Stbi9CbdFj0Q4jU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Wj09b1guP/gt7Byo70cXSasaHvLkF5hTReDDqJsPfA/4wRaouCOrqgmYhQRde/Cqc
-         saXLnyJ/1jTtLbmgEjr1t57KJeT56+WAo052IH+M7Dor2ofLRtE9DjSNVlJuM3a02P
-         bBypbr1vd0XFSJxeVbShKqmthLUyDdepkci5W3zg=
-Date:   Sun, 15 Dec 2019 20:55:00 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Prabhath Sajeepa <psajeepa@purestorage.com>
-Cc:     dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, roland@purestorage.com
-Subject: Re: [PATCH] IB/mlx5: Fix outstanding_pi index for GSI qps
-Message-ID: <20191215185500.GA6097@unreal>
-References: <1576195889-23527-1-git-send-email-psajeepa@purestorage.com>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id A3BE410509A0;
+        Sun, 15 Dec 2019 21:57:06 +0000 (UTC)
+Received: from linux-ws.nc.xsintricity.com (ovpn-112-42.rdu2.redhat.com [10.10.112.42])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id EAF0A28D00;
+        Sun, 15 Dec 2019 21:57:05 +0000 (UTC)
+Message-ID: <9249797ff05697261e7bc1f3fa42d43d184a44ac.camel@redhat.com>
+Subject: [PULL REQUEST] Please pull rdma.git
+From:   Doug Ledford <dledford@redhat.com>
+To:     "Torvalds, Linus" <torvalds@linux-foundation.org>
+Cc:     "Gunthorpe, Jason" <jgg@ziepe.ca>,
+        linux-rdma <linux-rdma@vger.kernel.org>
+Date:   Sun, 15 Dec 2019 16:57:03 -0500
+Organization: Red Hat, Inc.
+User-Agent: Evolution 3.32.5 (3.32.5-1.fc30)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1576195889-23527-1-git-send-email-psajeepa@purestorage.com>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Mimecast-Spam-Score: 0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-+J9pf77DtowpWYxy4Ysj"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Dec 12, 2019 at 05:11:29PM -0700, Prabhath Sajeepa wrote:
-> b0ffeb537f3a changed the way how outstanding WRs are tracked for GSI QP. But the
-> fix did not cover the case when a call to ib_post_send fails and index
-> to track outstanding WRs need to be updated correctly.
->
-> Fixes: b0ffeb537f3a ('IB/mlx5: Fix iteration overrun in GSI qps ')
-> Signed-off-by: Prabhath Sajeepa <psajeepa@purestorage.com>
-> ---
->  drivers/infiniband/hw/mlx5/gsi.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-> index ac4d8d1..1ae6fd9 100644
-> --- a/drivers/infiniband/hw/mlx5/gsi.c
-> +++ b/drivers/infiniband/hw/mlx5/gsi.c
-> @@ -507,8 +507,7 @@ int mlx5_ib_gsi_post_send(struct ib_qp *qp, const struct ib_send_wr *wr,
->  		ret = ib_post_send(tx_qp, &cur_wr.wr, bad_wr);
->  		if (ret) {
->  			/* Undo the effect of adding the outstanding wr */
-> -			gsi->outstanding_pi = (gsi->outstanding_pi - 1) %
-> -					      gsi->cap.max_send_wr;
-> +			gsi->outstanding_pi--;
+--=-+J9pf77DtowpWYxy4Ysj
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I'm a little bit confused, what is the difference before and after
-except dropping "gsi->cap.max_send_wr"?
+Hi Linus,
 
-Thanks
+A small collection of -rc fixes.  Mostly.  One API addition, but that's
+because we wanted to use it in a fix.  There's also a bug fix that is
+going to render the 5.5 kernel's soft-RoCE driver incompatible with all
+soft-RoCE versions prior, but it's required to actually implement the
+protocol according to the RoCE spec and required in order for the soft-
+RoCE driver to be able to successfully work with actual RoCE hardware. =20
+Commit log message has more details of what's in the pull request.
 
->  			goto err;
->  		}
->  		spin_unlock_irqrestore(&gsi->lock, flags);
-> --
-> 2.7.4
->
+Here's the git boilerplate:
+
+The following changes since commit e42617b825f8073569da76dc4510bfa019b1c35a=
+:
+
+  Linux 5.5-rc1 (2019-12-08 14:57:55 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linu=
+s
+
+for you to fetch changes up to dc2316eba73ff03da6dde082a372c6b5209304c5:
+
+  IB/mlx5: Fix device memory flows (2019-12-12 16:55:36 -0500)
+
+----------------------------------------------------------------
+Pull request for 5.5-rc2
+
+- Update Steve Wise info
+- Fix for soft-RoCE crc calculations (will break back compatibility, but
+  only with the soft-RoCE driver, which has had this bug since it was
+  introduced and it is an on-the-wire bug, but will make soft-RoCE fully
+  compatible with real RoCE hardware)
+- cma init fixup
+- counters oops fix
+- fix for mlx4 init/teardown sequence
+- fix for mkx5 steering rules
+- introduce a cleanup API, which isn't a fix, but we want to use it in
+  the next fix
+- fix for mlx5 memory management that uses API in previous patch
+
+Signed-off-by: Doug Ledford <dledford@redhat.com>
+
+----------------------------------------------------------------
+Chuhong Yuan (1):
+      RDMA/cma: add missed unregister_pernet_subsys in init failure
+
+Maor Gottlieb (1):
+      IB/mlx5: Fix steering rule of drop and count
+
+Mark Zhang (1):
+      RDMA/counter: Prevent auto-binding a QP which are not tracked with re=
+s
+
+Parav Pandit (1):
+      IB/mlx4: Follow mirror sequence of device add during device removal
+
+Steve Wise (2):
+      Update mailmap info for Steve Wise
+      rxe: correctly calculate iCRC for unaligned payloads
+
+Yishai Hadas (2):
+      IB/core: Introduce rdma_user_mmap_entry_insert_range() API
+      IB/mlx5: Fix device memory flows
+
+ .mailmap                                 |   2 +
+ drivers/infiniband/core/cma.c            |   1 +
+ drivers/infiniband/core/counters.c       |   3 +
+ drivers/infiniband/core/ib_core_uverbs.c |  48 ++++++++---
+ drivers/infiniband/hw/mlx4/main.c        |   9 ++-
+ drivers/infiniband/hw/mlx5/cmd.c         |  16 ++--
+ drivers/infiniband/hw/mlx5/cmd.h         |   2 +-
+ drivers/infiniband/hw/mlx5/main.c        | 133 ++++++++++++++++++++-------=
+----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h     |  19 ++++-
+ drivers/infiniband/sw/rxe/rxe_recv.c     |   2 +-
+ drivers/infiniband/sw/rxe/rxe_req.c      |   6 ++
+ drivers/infiniband/sw/rxe/rxe_resp.c     |   7 ++
+ include/rdma/ib_verbs.h                  |   5 ++
+ 13 files changed, 180 insertions(+), 73 deletions(-)
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--=-+J9pf77DtowpWYxy4Ysj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAl32rC8ACgkQuCajMw5X
+L90KjQ/+L8Ne7l4eH+h35uQJ43FHtoarJy8Jlqv40SFP9SWfwWJLkcWX3lQm6kVO
+CpYFfCjRB6H6QLmZAPYAYliJAy7Ar5zZpZOKBG/RH6ZHZl5902kW9i4zGMzGpKoE
+SE7Z67B6CHZbd6884zMk4OvI329fUH62Dx5SmQL6yNPOGZ68Z1NIkOWtXV5nxQwF
+3ANAcuYO2n6LRRlgHPj1Dy+Z/7cCoGP5z8wn7dk/Y4JrfHC8IvmNrYXDuRDy5nyR
+WQALS9aGIwxAg6jdWRWvGnWyP1wmMjRC/SKpVRpEqakoV0vg3Xn85XbTd9QB8744
+exEemi3mw6x89D0kT4URr2C9sTDn2s/AWdLubeAyllwo9l4oAj5QYWBl6wUmI28P
+TuTnTe0pzghGp3OOinFJ7/TAaAnzec7AYGSXhb8Zl0WafglN67AzmKLSxY8j8ifh
+Y4ldx+cdZvLeYqUX0MI1AC1cAcrBi2UMi02itUGt4hEbxESWibveTdQXdioWiZVC
+MLXcTIqWoLRC7hhegiCfvqiyUKYQZ8smCd1HcQb2X2codYPPOwootFXBGNFTBqAP
+qjwl0dwkug07S1zGs2Bu73CBT/MVkochNahcVHJ9lL3bNogfbDoY/Mgl1YL9HzPn
+RgxLNKM/2RtlkrwwDIck2HV/7Tel4oL/RSxpBISl0YsCnEZNdSM=
+=Ko19
+-----END PGP SIGNATURE-----
+
+--=-+J9pf77DtowpWYxy4Ysj--
+
