@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6224C2D0DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:26:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 832E3C3276E
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:26:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBA2421835
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:26:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DDB322464
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:26:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="eMTKxTCp"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ogWxGwdU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728212AbfLPW0A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Dec 2019 17:26:00 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:11980 "EHLO
+        id S1728278AbfLPW0J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Dec 2019 17:26:09 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12169 "EHLO
         hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727802AbfLPWZ6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Dec 2019 17:25:58 -0500
+        with ESMTP id S1728141AbfLPW0A (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Dec 2019 17:26:00 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5df8045b0002>; Mon, 16 Dec 2019 14:25:31 -0800
+        id <B5df804600000>; Mon, 16 Dec 2019 14:25:36 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Mon, 16 Dec 2019 14:25:40 -0800
+  Mon, 16 Dec 2019 14:25:45 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Mon, 16 Dec 2019 14:25:40 -0800
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Dec
- 2019 22:25:39 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Mon, 16 Dec 2019 22:25:39 +0000
+        by hqpgpgate101.nvidia.com on Mon, 16 Dec 2019 14:25:45 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Dec
+ 2019 22:25:40 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Mon, 16 Dec 2019 22:25:40 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5df804630005>; Mon, 16 Dec 2019 14:25:39 -0800
+        id <B5df804640003>; Mon, 16 Dec 2019 14:25:40 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -53,12 +53,11 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         Jonathan Corbet <corbet@lwn.net>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
+        "Paul Mackerras" <paulus@samba.org>, Shuah Khan <shuah@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
         <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
         <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
@@ -67,186 +66,215 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v11 04/25] mm: devmap: refactor 1-based refcounting for ZONE_DEVICE pages
-Date:   Mon, 16 Dec 2019 14:25:16 -0800
-Message-ID: <20191216222537.491123-5-jhubbard@nvidia.com>
+        "Jason Gunthorpe" <jgg@mellanox.com>
+Subject: [PATCH v11 12/25] IB/{core,hw,umem}: set FOLL_PIN via pin_user_pages*(), fix up ODP
+Date:   Mon, 16 Dec 2019 14:25:24 -0800
+Message-ID: <20191216222537.491123-13-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20191216222537.491123-1-jhubbard@nvidia.com>
 References: <20191216222537.491123-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576535131; bh=nSaKGePGStF9C3ZQr6nzxOSALkvlbj6EZdgW6MYIJiE=;
+        t=1576535137; bh=ks0zMQ8Fa4uDP9qSTDwPM2WpKzomM+TOyh6Abujcc5E=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Type:Content-Transfer-Encoding;
-        b=eMTKxTCpkkek4H9i8wEGy/GiFSYBR+onVYB9kKAFeedEwaga8NiRqIBa+WPLvIOQl
-         WHrhWL/0lC/NaMLi6+E7DcWTB86whWfdFAvDS7EYvtUFm3HrqGMsb8wWoMHnMbl+Vw
-         QwjJVJE0wqcnDX6qfNJ89iokoUZ0MBDvHWkTK3aVMDFsO8i/tqcn4hrL/wBFiJ/mJ7
-         PMnFtqYZ7mvFXmWTH+Dx9kZjdlbi1HYptQU3AmdKFvE7rBosNA0tP/b9AYA0aE+JEU
-         S3/xSjZf+byRB6NHpQcvI2SP0rKxVKUosPe7sxh0BWv02epXDJ96T/NrbcuesfjxLa
-         WozKtw0V/w01Q==
+         Content-Transfer-Encoding:Content-Type;
+        b=ogWxGwdUMYx8yQajNtI22yeULG6rOV7ifkDrwOQl3xOAzcvhDnTIbwWsHLFQbsGl2
+         GaffobVWUlj+B2Vff50upAoXjK4kVZjH9o4Qbn6T0+gBD9T9tP63gzqlJv2GW9K5j8
+         hYOYacSJhtzBdDy0SNeqnBkkkiiDY/Mlb27NulRbJhRWUyGq62M1anFNSDVBV0BTmi
+         kS2sjPiiR1ebtNdQecKZH9alhgExxBVo9IJnffueeeZ07JMx1KE16r88N/eGhzhZTu
+         ADNYAh5lV7rW/vj2V0nDvOWJg5nIvBil3acNmdfVZOEKYVxvEzZ+XypGBKSGFvnFSP
+         s9zJdT8juqqew==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-An upcoming patch changes and complicates the refcounting and
-especially the "put page" aspects of it. In order to keep
-everything clean, refactor the devmap page release routines:
+Convert infiniband to use the new pin_user_pages*() calls.
 
-* Rename put_devmap_managed_page() to page_is_devmap_managed(),
-  and limit the functionality to "read only": return a bool,
-  with no side effects.
+Also, revert earlier changes to Infiniband ODP that had it using
+put_user_page(). ODP is "Case 3" in
+Documentation/core-api/pin_user_pages.rst, which is to say, normal
+get_user_pages() and put_page() is the API to use there.
 
-* Add a new routine, put_devmap_managed_page(), to handle checking
-  what kind of page it is, and what kind of refcount handling it
-  requires.
+The new pin_user_pages*() calls replace corresponding get_user_pages*()
+calls, and set the FOLL_PIN flag. The FOLL_PIN flag requires that the
+caller must return the pages via put_user_page*() calls, but infiniband
+was already doing that as part of an earlier commit.
 
-* Rename __put_devmap_managed_page() to free_devmap_managed_page(),
-  and limit the functionality to unconditionally freeing a devmap
-  page.
-
-This is originally based on a separate patch by Ira Weiny, which
-applied to an early version of the put_user_page() experiments.
-Since then, J=C3=A9r=C3=B4me Glisse suggested the refactoring described abo=
-ve.
-
-Cc: Christoph Hellwig <hch@lst.de>
-Suggested-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- include/linux/mm.h | 17 +++++++++++++----
- mm/memremap.c      | 16 ++--------------
- mm/swap.c          | 24 ++++++++++++++++++++++++
- 3 files changed, 39 insertions(+), 18 deletions(-)
+ drivers/infiniband/core/umem.c              |  2 +-
+ drivers/infiniband/core/umem_odp.c          | 13 ++++++-------
+ drivers/infiniband/hw/hfi1/user_pages.c     |  2 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |  2 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |  2 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |  2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |  2 +-
+ drivers/infiniband/sw/siw/siw_mem.c         |  2 +-
+ 8 files changed, 13 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c97ea3b694e6..77a4df06c8a7 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -952,9 +952,10 @@ static inline bool is_zone_device_page(const struct pa=
-ge *page)
- #endif
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.=
+c
+index 214e87aa609d..55daefaa9b88 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -266,7 +266,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, uns=
+igned long addr,
+ 	sg =3D umem->sg_head.sgl;
 =20
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void __put_devmap_managed_page(struct page *page);
-+void free_devmap_managed_page(struct page *page);
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
--static inline bool put_devmap_managed_page(struct page *page)
-+
-+static inline bool page_is_devmap_managed(struct page *page)
- {
- 	if (!static_branch_unlikely(&devmap_managed_key))
- 		return false;
-@@ -963,7 +964,6 @@ static inline bool put_devmap_managed_page(struct page =
-*page)
- 	switch (page->pgmap->type) {
- 	case MEMORY_DEVICE_PRIVATE:
- 	case MEMORY_DEVICE_FS_DAX:
--		__put_devmap_managed_page(page);
- 		return true;
- 	default:
- 		break;
-@@ -971,7 +971,14 @@ static inline bool put_devmap_managed_page(struct page=
- *page)
- 	return false;
+ 	while (npages) {
+-		ret =3D get_user_pages_fast(cur_base,
++		ret =3D pin_user_pages_fast(cur_base,
+ 					  min_t(unsigned long, npages,
+ 						PAGE_SIZE /
+ 						sizeof(struct page *)),
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/u=
+mem_odp.c
+index e42d44e501fd..abc3bb6578cc 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -308,9 +308,8 @@ EXPORT_SYMBOL(ib_umem_odp_release);
+  * The function returns -EFAULT if the DMA mapping operation fails. It ret=
+urns
+  * -EAGAIN if a concurrent invalidation prevents us from updating the page=
+.
+  *
+- * The page is released via put_user_page even if the operation failed. Fo=
+r
+- * on-demand pinning, the page is released whenever it isn't stored in the
+- * umem.
++ * The page is released via put_page even if the operation failed. For on-=
+demand
++ * pinning, the page is released whenever it isn't stored in the umem.
+  */
+ static int ib_umem_odp_map_dma_single_page(
+ 		struct ib_umem_odp *umem_odp,
+@@ -363,7 +362,7 @@ static int ib_umem_odp_map_dma_single_page(
+ 	}
+=20
+ out:
+-	put_user_page(page);
++	put_page(page);
+ 	return ret;
  }
 =20
-+bool put_devmap_managed_page(struct page *page);
-+
- #else /* CONFIG_DEV_PAGEMAP_OPS */
-+static inline bool page_is_devmap_managed(struct page *page)
-+{
-+	return false;
-+}
-+
- static inline bool put_devmap_managed_page(struct page *page)
- {
- 	return false;
-@@ -1028,8 +1035,10 @@ static inline void put_page(struct page *page)
- 	 * need to inform the device driver through callback. See
- 	 * include/linux/memremap.h and HMM for details.
- 	 */
--	if (put_devmap_managed_page(page))
-+	if (page_is_devmap_managed(page)) {
-+		put_devmap_managed_page(page);
- 		return;
-+	}
+@@ -473,7 +472,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_=
+odp, u64 user_virt,
+ 					ret =3D -EFAULT;
+ 					break;
+ 				}
+-				put_user_page(local_page_list[j]);
++				put_page(local_page_list[j]);
+ 				continue;
+ 			}
 =20
- 	if (put_page_testzero(page))
- 		__put_page(page);
-diff --git a/mm/memremap.c b/mm/memremap.c
-index e899fa876a62..2ba773859031 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -411,20 +411,8 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- EXPORT_SYMBOL_GPL(get_dev_pagemap);
+@@ -500,8 +499,8 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_=
+odp, u64 user_virt,
+ 			 * ib_umem_odp_map_dma_single_page().
+ 			 */
+ 			if (npages - (j + 1) > 0)
+-				put_user_pages(&local_page_list[j+1],
+-					       npages - (j + 1));
++				release_pages(&local_page_list[j+1],
++					      npages - (j + 1));
+ 			break;
+ 		}
+ 	}
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/h=
+w/hfi1/user_pages.c
+index 469acb961fbd..9a94761765c0 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -106,7 +106,7 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsig=
+ned long vaddr, size_t np
+ 	int ret;
+ 	unsigned int gup_flags =3D FOLL_LONGTERM | (writable ? FOLL_WRITE : 0);
 =20
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void __put_devmap_managed_page(struct page *page)
-+void free_devmap_managed_page(struct page *page)
- {
--	int count =3D page_ref_dec_return(page);
--
--	/* still busy */
--	if (count > 1)
--		return;
--
--	/* only triggered by the dev_pagemap shutdown path */
--	if (count =3D=3D 0) {
--		__put_page(page);
--		return;
--	}
--
- 	/* notify page idle for dax */
- 	if (!is_device_private_page(page)) {
- 		wake_up_var(&page->_refcount);
-@@ -461,5 +449,5 @@ void __put_devmap_managed_page(struct page *page)
- 	page->mapping =3D NULL;
- 	page->pgmap->ops->page_free(page);
- }
--EXPORT_SYMBOL(__put_devmap_managed_page);
-+EXPORT_SYMBOL(free_devmap_managed_page);
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
-diff --git a/mm/swap.c b/mm/swap.c
-index 5341ae93861f..49f7c2eea0ba 100644
---- a/mm/swap.c
-+++ b/mm/swap.c
-@@ -1102,3 +1102,27 @@ void __init swap_setup(void)
- 	 * _really_ don't want to cluster much more
- 	 */
- }
-+
-+#ifdef CONFIG_DEV_PAGEMAP_OPS
-+bool put_devmap_managed_page(struct page *page)
-+{
-+	bool is_devmap =3D page_is_devmap_managed(page);
-+
-+	if (is_devmap) {
-+		int count =3D page_ref_dec_return(page);
-+
-+		/*
-+		 * devmap page refcounts are 1-based, rather than 0-based: if
-+		 * refcount is 1, then the page is free and the refcount is
-+		 * stable because nobody holds a reference on the page.
-+		 */
-+		if (count =3D=3D 1)
-+			free_devmap_managed_page(page);
-+		else if (!count)
-+			__put_page(page);
-+	}
-+
-+	return is_devmap;
-+}
-+EXPORT_SYMBOL(put_devmap_managed_page);
-+#endif
+-	ret =3D get_user_pages_fast(vaddr, npages, gup_flags, pages);
++	ret =3D pin_user_pages_fast(vaddr, npages, gup_flags, pages);
+ 	if (ret < 0)
+ 		return ret;
+=20
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniba=
+nd/hw/mthca/mthca_memfree.c
+index edccfd6e178f..8269ab040c21 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -472,7 +472,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mth=
+ca_uar *uar,
+ 		goto out;
+ 	}
+=20
+-	ret =3D get_user_pages_fast(uaddr & PAGE_MASK, 1,
++	ret =3D pin_user_pages_fast(uaddr & PAGE_MASK, 1,
+ 				  FOLL_WRITE | FOLL_LONGTERM, pages);
+ 	if (ret < 0)
+ 		goto out;
+diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniban=
+d/hw/qib/qib_user_pages.c
+index 6bf764e41891..7fc4b5f81fcd 100644
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c
++++ b/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -108,7 +108,7 @@ int qib_get_user_pages(unsigned long start_page, size_t=
+ num_pages,
+=20
+ 	down_read(&current->mm->mmap_sem);
+ 	for (got =3D 0; got < num_pages; got +=3D ret) {
+-		ret =3D get_user_pages(start_page + got * PAGE_SIZE,
++		ret =3D pin_user_pages(start_page + got * PAGE_SIZE,
+ 				     num_pages - got,
+ 				     FOLL_LONGTERM | FOLL_WRITE | FOLL_FORCE,
+ 				     p + got, NULL);
+diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband=
+/hw/qib/qib_user_sdma.c
+index 05190edc2611..1a3cc2957e3a 100644
+--- a/drivers/infiniband/hw/qib/qib_user_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+@@ -670,7 +670,7 @@ static int qib_user_sdma_pin_pages(const struct qib_dev=
+data *dd,
+ 		else
+ 			j =3D npages;
+=20
+-		ret =3D get_user_pages_fast(addr, j, FOLL_LONGTERM, pages);
++		ret =3D pin_user_pages_fast(addr, j, FOLL_LONGTERM, pages);
+ 		if (ret !=3D j) {
+ 			i =3D 0;
+ 			j =3D ret;
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/=
+hw/usnic/usnic_uiom.c
+index 62e6ffa9ad78..600896727d34 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -141,7 +141,7 @@ static int usnic_uiom_get_pages(unsigned long addr, siz=
+e_t size, int writable,
+ 	ret =3D 0;
+=20
+ 	while (npages) {
+-		ret =3D get_user_pages(cur_base,
++		ret =3D pin_user_pages(cur_base,
+ 				     min_t(unsigned long, npages,
+ 				     PAGE_SIZE / sizeof(struct page *)),
+ 				     gup_flags | FOLL_LONGTERM,
+diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/si=
+w/siw_mem.c
+index e99983f07663..e53b07dcfed5 100644
+--- a/drivers/infiniband/sw/siw/siw_mem.c
++++ b/drivers/infiniband/sw/siw/siw_mem.c
+@@ -426,7 +426,7 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool =
+writable)
+ 		while (nents) {
+ 			struct page **plist =3D &umem->page_chunk[i].plist[got];
+=20
+-			rv =3D get_user_pages(first_page_va, nents,
++			rv =3D pin_user_pages(first_page_va, nents,
+ 					    foll_flags | FOLL_LONGTERM,
+ 					    plist, NULL);
+ 			if (rv < 0)
 --=20
 2.24.1
 
