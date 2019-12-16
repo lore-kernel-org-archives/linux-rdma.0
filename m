@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36371C43603
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:28:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49804C43603
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:28:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0807521D7D
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:28:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E4D221D7D
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:28:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ipUKROua"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="HJKa2G72"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728465AbfLPW22 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728402AbfLPW22 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 16 Dec 2019 17:28:28 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12079 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727967AbfLPWZv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Dec 2019 17:25:51 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5df8045d0002>; Mon, 16 Dec 2019 14:25:33 -0800
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:11960 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727884AbfLPWZt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Dec 2019 17:25:49 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5df8044a0002>; Mon, 16 Dec 2019 14:25:14 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Mon, 16 Dec 2019 14:25:42 -0800
+  by hqpgpgate102.nvidia.com (PGP Universal service);
+  Mon, 16 Dec 2019 14:25:41 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Mon, 16 Dec 2019 14:25:42 -0800
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Dec
+        by hqpgpgate102.nvidia.com on Mon, 16 Dec 2019 14:25:41 -0800
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Dec
  2019 22:25:41 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Mon, 16 Dec 2019 22:25:41 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Mon, 16 Dec 2019 22:25:40 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5df804650004>; Mon, 16 Dec 2019 14:25:41 -0800
+        id <B5df804640009>; Mon, 16 Dec 2019 14:25:40 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -66,10 +66,13 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v11 21/25] mm/gup_benchmark: use proper FOLL_WRITE flags instead of hard-coding "1"
-Date:   Mon, 16 Dec 2019 14:25:33 -0800
-Message-ID: <20191216222537.491123-22-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        <stable@vger.kernel.org>
+Subject: [PATCH v11 17/25] media/v4l2-core: set pages dirty upon releasing DMA buffers
+Date:   Mon, 16 Dec 2019 14:25:29 -0800
+Message-ID: <20191216222537.491123-18-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20191216222537.491123-1-jhubbard@nvidia.com>
 References: <20191216222537.491123-1-jhubbard@nvidia.com>
@@ -78,90 +81,56 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576535133; bh=QtH6vY6OEO3Be/+XPl0nLNSuin0ZowwCu4OyNgllrWs=;
+        t=1576535114; bh=ih2RO+T8DQuTrGlz/x5x738AinQPu7ycFnqRacKU5Ds=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=ipUKROuaRhOUwigc8Y92jCYwr+O2agysriz835cn/x0NmJMR2VX8WJlN1HjP0wEoC
-         yHatSg9uf87R8hOvY/JCyOt6sc2Sw064NFUeptqY4N0z9GF81AWMlv31QiMcszYM02
-         xqs5QshE1UlrtM3wJtWlJr5zVSEA+mKyJLWipnuy50YYNLPtbfKSgRgp75TTWlic2H
-         8O+1YKA6bJZIjnQrd1yIYT4xuwRatSLHmPWSDkSC8T0g+XDTKrEBbEckofkJB+hBMD
-         3OuehKJnQnrTyX7MJJHSY0GcfD35B8a1rjjBumii4TMVVxaFDpX1ctCh4+x0gYI82l
-         yvPWHTxZCWsuQ==
+        b=HJKa2G72FcQuhTQJ0lZuWCjkYujvexVO1EnKEkHRidK/EUwXZMWz8Hsbwd5b/CNWT
+         U8GpRhY21I0zmMF/Nk/Yu5NxBrGR0d+ksMEmIHnXK1SJwezw6ZVjuShMC+4A/AC+M7
+         d7diItZZH5C+UUSKDbySYGgm2WszHJPVhrO9bAN828EFg85AjozPnSKgQkZyOlT78m
+         pSD9wcKrGBXR+pMFGxsZW3TW8YV08EqK9c7cB5nEyO8Xyi4uesaqgvpLs/aVOMJYuX
+         XUp22cpPNOyCkovC8kPESB/pJkd/ThCbIDMSXltk8V3x6RIZP/xelq4guwjaps7ku5
+         XTA3lc3aRbYpg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Fix the gup benchmark flags to use the symbolic FOLL_WRITE,
-instead of a hard-coded "1" value.
+After DMA is complete, and the device and CPU caches are synchronized,
+it's still required to mark the CPU pages as dirty, if the data was
+coming from the device. However, this driver was just issuing a
+bare put_page() call, without any set_page_dirty*() call.
 
-Also, clean up the filtering of gup flags a little, by just doing
-it once before issuing any of the get_user_pages*() calls. This
-makes it harder to overlook, instead of having little "gup_flags & 1"
-phrases in the function calls.
+Fix the problem, by calling set_page_dirty_lock() if the CPU pages
+were potentially receiving data from the device.
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup_benchmark.c                         | 9 ++++++---
- tools/testing/selftests/vm/gup_benchmark.c | 6 +++++-
- 2 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/mm/gup_benchmark.c b/mm/gup_benchmark.c
-index 7dd602d7f8db..7fc44d25eca7 100644
---- a/mm/gup_benchmark.c
-+++ b/mm/gup_benchmark.c
-@@ -48,18 +48,21 @@ static int __gup_benchmark_ioctl(unsigned int cmd,
- 			nr =3D (next - addr) / PAGE_SIZE;
- 		}
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2=
+-core/videobuf-dma-sg.c
+index 66a6c6c236a7..28262190c3ab 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -349,8 +349,11 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
+ 	BUG_ON(dma->sglen);
 =20
-+		/* Filter out most gup flags: only allow a tiny subset here: */
-+		gup->flags &=3D FOLL_WRITE;
-+
- 		switch (cmd) {
- 		case GUP_FAST_BENCHMARK:
--			nr =3D get_user_pages_fast(addr, nr, gup->flags & 1,
-+			nr =3D get_user_pages_fast(addr, nr, gup->flags,
- 						 pages + i);
- 			break;
- 		case GUP_LONGTERM_BENCHMARK:
- 			nr =3D get_user_pages(addr, nr,
--					    (gup->flags & 1) | FOLL_LONGTERM,
-+					    gup->flags | FOLL_LONGTERM,
- 					    pages + i, NULL);
- 			break;
- 		case GUP_BENCHMARK:
--			nr =3D get_user_pages(addr, nr, gup->flags & 1, pages + i,
-+			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
- 			break;
- 		default:
-diff --git a/tools/testing/selftests/vm/gup_benchmark.c b/tools/testing/sel=
-ftests/vm/gup_benchmark.c
-index 485cf06ef013..389327e9b30a 100644
---- a/tools/testing/selftests/vm/gup_benchmark.c
-+++ b/tools/testing/selftests/vm/gup_benchmark.c
-@@ -18,6 +18,9 @@
- #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
- #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
-=20
-+/* Just the flags we need, copied from mm.h: */
-+#define FOLL_WRITE	0x01	/* check pte is writable */
-+
- struct gup_benchmark {
- 	__u64 get_delta_usec;
- 	__u64 put_delta_usec;
-@@ -85,7 +88,8 @@ int main(int argc, char **argv)
+ 	if (dma->pages) {
+-		for (i =3D 0; i < dma->nr_pages; i++)
++		for (i =3D 0; i < dma->nr_pages; i++) {
++			if (dma->direction =3D=3D DMA_FROM_DEVICE)
++				set_page_dirty_lock(dma->pages[i]);
+ 			put_page(dma->pages[i]);
++		}
+ 		kfree(dma->pages);
+ 		dma->pages =3D NULL;
  	}
-=20
- 	gup.nr_pages_per_call =3D nr_pages;
--	gup.flags =3D write;
-+	if (write)
-+		gup.flags |=3D FOLL_WRITE;
-=20
- 	fd =3D open("/sys/kernel/debug/gup_benchmark", O_RDWR);
- 	if (fd =3D=3D -1)
 --=20
 2.24.1
 
