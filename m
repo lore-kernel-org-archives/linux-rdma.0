@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D954CC2D0BF
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:29:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE6E4C2D0C3
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:30:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A244E206E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:29:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B481A22464
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Dec 2019 22:30:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="JXf9WyI8"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="SwZptVKs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728256AbfLPW33 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Dec 2019 17:29:29 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:11979 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727801AbfLPWZt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Dec 2019 17:25:49 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5df8045b0001>; Mon, 16 Dec 2019 14:25:31 -0800
+        id S1728659AbfLPW3t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Dec 2019 17:29:49 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:11878 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727728AbfLPWZo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Dec 2019 17:25:44 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5df8044a0000>; Mon, 16 Dec 2019 14:25:14 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate102.nvidia.com (PGP Universal service);
-  Mon, 16 Dec 2019 14:25:40 -0800
+  Mon, 16 Dec 2019 14:25:41 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Mon, 16 Dec 2019 14:25:40 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Dec
- 2019 22:25:39 +0000
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL109.nvidia.com
+        by hqpgpgate102.nvidia.com on Mon, 16 Dec 2019 14:25:41 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Dec
+ 2019 22:25:41 +0000
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
  (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Dec
- 2019 22:25:39 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Mon, 16 Dec 2019 22:25:39 +0000
+ 2019 22:25:40 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Mon, 16 Dec 2019 22:25:40 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5df804630002>; Mon, 16 Dec 2019 14:25:39 -0800
+        id <B5df804640005>; Mon, 16 Dec 2019 14:25:40 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -68,12 +68,10 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Christoph Hellwig" <hch@lst.de>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v11 01/25] mm/gup: factor out duplicate code from four routines
-Date:   Mon, 16 Dec 2019 14:25:13 -0800
-Message-ID: <20191216222537.491123-2-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v11 13/25] mm/process_vm_access: set FOLL_PIN via pin_user_pages_remote()
+Date:   Mon, 16 Dec 2019 14:25:25 -0800
+Message-ID: <20191216222537.491123-14-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20191216222537.491123-1-jhubbard@nvidia.com>
 References: <20191216222537.491123-1-jhubbard@nvidia.com>
@@ -82,220 +80,106 @@ X-NVConfidentiality: public
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576535131; bh=HWyNjs6ywGvdqZPFXTnFG85letSRuTmGeFnSWXnBMB0=;
+        t=1576535114; bh=kDX8Nc6MeGUSG1gZLdpe1GJZUoittrssGXDLg9QnS08=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Type:Content-Transfer-Encoding;
-        b=JXf9WyI84yLWm1KspnvQLa5nDdAOS6RuWp1sE0TvmP1FtTCq2PQxdNrB19hslAYa/
-         NIsH/oLIq/YgsSflPBxJ/2530usBGdFv0BrfVUWaPVWxeNnWcWwDifcQlXGSiHyOFf
-         ZW27GWt0ji60B6wfH4TfJ55oeagB+3WKWcw1kQ8P5Jtwre220oYwf3/qMVbLwWFL3Z
-         UNmg5YpbxjZpyGozuGfQzxe4wyOm8tDVs5A9vsedBOg4KAEK/wxfief6tmAyrjRzbN
-         bZ3IjOBm03aIJ/nyS+rDYvR5t0iZsx++4h1lgWxcWFfYomIts7kuBaRihCxUbseFlP
-         uMogSAUw7CkxQ==
+        b=SwZptVKsys0/AWWifskfMyyoF2XT9B2IByk8YKc06RHDzd+SEmWSuEN9Fq04oBl8P
+         ZlQWHuJkphTXr1iuWlFRn8wBsPzKZmg8kwdr3ecPO637v0BkfTfK/jOIC5gdkom38R
+         B2VZHq3XQaY+gaTVXCAYWhsl4Hmp+S0XT4Adymc0bXu5ypfGmjwcpmtKJY2+UCH4lN
+         N2R9R6EEmxzfY/k4ZxHmfBsctAZ5M+YvJgGgV+zrnw47A9G9SELIrFon9MaLit8Wmo
+         XU5sG69sspRTN3xfuGziK82GyBToVpBQBWdl5KaVPQUx4uzzwLkmH/4FYI+SmS36df
+         OXkgQaW6Oyn6A==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There are four locations in gup.c that have a fair amount of code
-duplication. This means that changing one requires making the same
-changes in four places, not to mention reading the same code four
-times, and wondering if there are subtle differences.
+Convert process_vm_access to use the new pin_user_pages_remote()
+call, which sets FOLL_PIN. Setting FOLL_PIN is now required for
+code that requires tracking of pinned pages.
 
-Factor out the common code into static functions, thus reducing the
-overall line count and the code's complexity.
+Also, release the pages via put_user_page*().
 
-Also, take the opportunity to slightly improve the efficiency of the
-error cases, by doing a mass subtraction of the refcount, surrounded
-by get_page()/put_page().
+Also, rename "pages" to "pinned_pages", as this makes for
+easier reading of process_vm_rw_single_vec().
 
-Also, further simplify (slightly), by waiting until the the successful
-end of each routine, to increment *nr.
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup.c | 91 ++++++++++++++++++++++----------------------------------
- 1 file changed, 36 insertions(+), 55 deletions(-)
+ mm/process_vm_access.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 7646bf993b25..f764432914c4 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1978,6 +1978,25 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *p=
-udp, unsigned long addr,
- }
- #endif
+diff --git a/mm/process_vm_access.c b/mm/process_vm_access.c
+index 357aa7bef6c0..fd20ab675b85 100644
+--- a/mm/process_vm_access.c
++++ b/mm/process_vm_access.c
+@@ -42,12 +42,11 @@ static int process_vm_rw_pages(struct page **pages,
+ 		if (copy > len)
+ 			copy =3D len;
 =20
-+static int record_subpages(struct page *page, unsigned long addr,
-+			   unsigned long end, struct page **pages)
-+{
-+	int nr;
+-		if (vm_write) {
++		if (vm_write)
+ 			copied =3D copy_page_from_iter(page, offset, copy, iter);
+-			set_page_dirty_lock(page);
+-		} else {
++		else
+ 			copied =3D copy_page_to_iter(page, offset, copy, iter);
+-		}
 +
-+	for (nr =3D 0; addr !=3D end; addr +=3D PAGE_SIZE)
-+		pages[nr++] =3D page++;
+ 		len -=3D copied;
+ 		if (copied < copy && iov_iter_count(iter))
+ 			return -EFAULT;
+@@ -96,7 +95,7 @@ static int process_vm_rw_single_vec(unsigned long addr,
+ 		flags |=3D FOLL_WRITE;
+=20
+ 	while (!rc && nr_pages && iov_iter_count(iter)) {
+-		int pages =3D min(nr_pages, max_pages_per_loop);
++		int pinned_pages =3D min(nr_pages, max_pages_per_loop);
+ 		int locked =3D 1;
+ 		size_t bytes;
+=20
+@@ -106,14 +105,15 @@ static int process_vm_rw_single_vec(unsigned long add=
+r,
+ 		 * current/current->mm
+ 		 */
+ 		down_read(&mm->mmap_sem);
+-		pages =3D get_user_pages_remote(task, mm, pa, pages, flags,
+-					      process_pages, NULL, &locked);
++		pinned_pages =3D pin_user_pages_remote(task, mm, pa, pinned_pages,
++						     flags, process_pages,
++						     NULL, &locked);
+ 		if (locked)
+ 			up_read(&mm->mmap_sem);
+-		if (pages <=3D 0)
++		if (pinned_pages <=3D 0)
+ 			return -EFAULT;
+=20
+-		bytes =3D pages * PAGE_SIZE - start_offset;
++		bytes =3D pinned_pages * PAGE_SIZE - start_offset;
+ 		if (bytes > len)
+ 			bytes =3D len;
+=20
+@@ -122,10 +122,12 @@ static int process_vm_rw_single_vec(unsigned long add=
+r,
+ 					 vm_write);
+ 		len -=3D bytes;
+ 		start_offset =3D 0;
+-		nr_pages -=3D pages;
+-		pa +=3D pages * PAGE_SIZE;
+-		while (pages)
+-			put_page(process_pages[--pages]);
++		nr_pages -=3D pinned_pages;
++		pa +=3D pinned_pages * PAGE_SIZE;
 +
-+	return nr;
-+}
-+
-+static void put_compound_head(struct page *page, int refs)
-+{
-+	/* Do a get_page() first, in case refs =3D=3D page->_refcount */
-+	get_page(page);
-+	page_ref_sub(page, refs);
-+	put_page(page);
-+}
-+
- #ifdef CONFIG_ARCH_HAS_HUGEPD
- static unsigned long hugepte_addr_end(unsigned long addr, unsigned long en=
-d,
- 				      unsigned long sz)
-@@ -2007,32 +2026,20 @@ static int gup_hugepte(pte_t *ptep, unsigned long s=
-z, unsigned long addr,
- 	/* hugepages are never "special" */
- 	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
-=20
--	refs =3D 0;
- 	head =3D pte_page(pte);
--
- 	page =3D head + ((addr & (sz-1)) >> PAGE_SHIFT);
--	do {
--		VM_BUG_ON(compound_head(page) !=3D head);
--		pages[*nr] =3D page;
--		(*nr)++;
--		page++;
--		refs++;
--	} while (addr +=3D PAGE_SIZE, addr !=3D end);
-+	refs =3D record_subpages(page, addr, end, pages + *nr);
-=20
- 	head =3D try_get_compound_head(head, refs);
--	if (!head) {
--		*nr -=3D refs;
-+	if (!head)
- 		return 0;
--	}
-=20
- 	if (unlikely(pte_val(pte) !=3D pte_val(*ptep))) {
--		/* Could be optimized better */
--		*nr -=3D refs;
--		while (refs--)
--			put_page(head);
-+		put_compound_head(head, refs);
- 		return 0;
++		/* If vm_write is set, the pages need to be made dirty: */
++		put_user_pages_dirty_lock(process_pages, pinned_pages,
++					  vm_write);
  	}
 =20
-+	*nr +=3D refs;
- 	SetPageReferenced(head);
- 	return 1;
- }
-@@ -2079,28 +2086,19 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, un=
-signed long addr,
- 		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
- 	}
-=20
--	refs =3D 0;
- 	page =3D pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
--	do {
--		pages[*nr] =3D page;
--		(*nr)++;
--		page++;
--		refs++;
--	} while (addr +=3D PAGE_SIZE, addr !=3D end);
-+	refs =3D record_subpages(page, addr, end, pages + *nr);
-=20
- 	head =3D try_get_compound_head(pmd_page(orig), refs);
--	if (!head) {
--		*nr -=3D refs;
-+	if (!head)
- 		return 0;
--	}
-=20
- 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
--		*nr -=3D refs;
--		while (refs--)
--			put_page(head);
-+		put_compound_head(head, refs);
- 		return 0;
- 	}
-=20
-+	*nr +=3D refs;
- 	SetPageReferenced(head);
- 	return 1;
- }
-@@ -2120,28 +2118,19 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, un=
-signed long addr,
- 		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
- 	}
-=20
--	refs =3D 0;
- 	page =3D pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
--	do {
--		pages[*nr] =3D page;
--		(*nr)++;
--		page++;
--		refs++;
--	} while (addr +=3D PAGE_SIZE, addr !=3D end);
-+	refs =3D record_subpages(page, addr, end, pages + *nr);
-=20
- 	head =3D try_get_compound_head(pud_page(orig), refs);
--	if (!head) {
--		*nr -=3D refs;
-+	if (!head)
- 		return 0;
--	}
-=20
- 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
--		*nr -=3D refs;
--		while (refs--)
--			put_page(head);
-+		put_compound_head(head, refs);
- 		return 0;
- 	}
-=20
-+	*nr +=3D refs;
- 	SetPageReferenced(head);
- 	return 1;
- }
-@@ -2157,28 +2146,20 @@ static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, un=
-signed long addr,
- 		return 0;
-=20
- 	BUILD_BUG_ON(pgd_devmap(orig));
--	refs =3D 0;
-+
- 	page =3D pgd_page(orig) + ((addr & ~PGDIR_MASK) >> PAGE_SHIFT);
--	do {
--		pages[*nr] =3D page;
--		(*nr)++;
--		page++;
--		refs++;
--	} while (addr +=3D PAGE_SIZE, addr !=3D end);
-+	refs =3D record_subpages(page, addr, end, pages + *nr);
-=20
- 	head =3D try_get_compound_head(pgd_page(orig), refs);
--	if (!head) {
--		*nr -=3D refs;
-+	if (!head)
- 		return 0;
--	}
-=20
- 	if (unlikely(pgd_val(orig) !=3D pgd_val(*pgdp))) {
--		*nr -=3D refs;
--		while (refs--)
--			put_page(head);
-+		put_compound_head(head, refs);
- 		return 0;
- 	}
-=20
-+	*nr +=3D refs;
- 	SetPageReferenced(head);
- 	return 1;
- }
+ 	return rc;
 --=20
 2.24.1
 
