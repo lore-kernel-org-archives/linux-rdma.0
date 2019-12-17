@@ -2,32 +2,39 @@ Return-Path: <SRS0=a2x3=2H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB5D8C43603
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Dec 2019 07:40:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06CDAC2D0C8
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Dec 2019 08:05:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 97326206D8
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Dec 2019 07:40:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DAEC821739
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Dec 2019 08:05:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728168AbfLQHj4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Dec 2019 02:39:56 -0500
-Received: from mx2.suse.de ([195.135.220.15]:45328 "EHLO mx2.suse.de"
+        id S1727050AbfLQIFG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Dec 2019 03:05:06 -0500
+Received: from mga09.intel.com ([134.134.136.24]:26948 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726072AbfLQHj4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 17 Dec 2019 02:39:56 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx2.suse.de (Postfix) with ESMTP id CC5EBADB3;
-        Tue, 17 Dec 2019 07:39:52 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 937DF1E0B35; Tue, 17 Dec 2019 08:39:51 +0100 (CET)
-Date:   Tue, 17 Dec 2019 08:39:51 +0100
-From:   Jan Kara <jack@suse.cz>
+        id S1726401AbfLQIFF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Dec 2019 03:05:05 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 17 Dec 2019 00:05:04 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,324,1571727600"; 
+   d="scan'208";a="217691035"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga003.jf.intel.com with ESMTP; 17 Dec 2019 00:04:57 -0800
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1ih7qi-0006Px-ST; Tue, 17 Dec 2019 16:04:56 +0800
+Date:   Tue, 17 Dec 2019 16:03:58 +0800
+From:   kbuild test robot <lkp@intel.com>
 To:     John Hubbard <jhubbard@nvidia.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+Cc:     kbuild-all@lists.01.org, Andrew Morton <akpm@linux-foundation.org>,
         Al Viro <viro@zeniv.linux.org.uk>,
         Alex Williamson <alex.williamson@redhat.com>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
@@ -55,37 +62,40 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-fsdevel@vger.kernel.org, linux-kselftest@vger.kernel.org,
         linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
-        linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v11 00/25] mm/gup: track dma-pinned pages: FOLL_PIN
-Message-ID: <20191217073951.GC16051@quack2.suse.cz>
-References: <20191216222537.491123-1-jhubbard@nvidia.com>
+        linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
+        John Hubbard <jhubbard@nvidia.com>,
+        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: [RFC PATCH] mm/gup: try_pin_compound_head() can be static
+Message-ID: <20191217080358.q3k57ta62txvip5h@4978f4969bb8>
+References: <20191211025318.457113-24-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191216222537.491123-1-jhubbard@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20191211025318.457113-24-jhubbard@nvidia.com>
+X-Patchwork-Hint: ignore
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi!
 
-On Mon 16-12-19 14:25:12, John Hubbard wrote:
-> Hi,
-> 
-> This implements an API naming change (put_user_page*() -->
-> unpin_user_page*()), and also implements tracking of FOLL_PIN pages. It
-> extends that tracking to a few select subsystems. More subsystems will
-> be added in follow up work.
+Fixes: 8086d1c61970 ("mm/gup: track FOLL_PIN pages")
+Signed-off-by: kbuild test robot <lkp@intel.com>
+---
+ gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Just a note for Andrew and others watching this series: At this point I'm fine
-with the series so if someone still has some review feedback or wants to
-check the series, now is the right time. Otherwise I think Andrew can push
-the series to MM tree so that it will get wider testing exposure and is
-prepared for the next merge window.
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+diff --git a/mm/gup.c b/mm/gup.c
+index 038b71165a761..849a6f55938e6 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -75,7 +75,7 @@ static inline struct page *try_get_compound_head(struct page *page, int refs)
+  * @Return:	the compound head page, with ref appropriately incremented,
+  * or NULL upon failure.
+  */
+-__must_check struct page *try_pin_compound_head(struct page *page, int refs)
++static __must_check struct page *try_pin_compound_head(struct page *page, int refs)
+ {
+ 	struct page *head = try_get_compound_head(page,
+ 						  GUP_PIN_COUNTING_BIAS * refs);
