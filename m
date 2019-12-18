@@ -2,160 +2,125 @@ Return-Path: <SRS0=iKbm=2I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9043DC2D0C3
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Dec 2019 14:59:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DA3BC2D0BF
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Dec 2019 15:52:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5D38F2146E
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Dec 2019 14:59:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2427A2146E
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Dec 2019 15:52:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="fmlMWkkh"
+	dkim=pass (2048-bit key) header.d=shutemov-name.20150623.gappssmtp.com header.i=@shutemov-name.20150623.gappssmtp.com header.b="KDdHHJJR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726996AbfLRO7U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Dec 2019 09:59:20 -0500
-Received: from mail-eopbgr50053.outbound.protection.outlook.com ([40.107.5.53]:54912
-        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727181AbfLRO7U (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 18 Dec 2019 09:59:20 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=aBhz6Xt/VwnL3LaV6C4ftnUv/Lo76F8bWxzl7vVKs3iNNEhOrMiBeiZVfaJTJwVamySrSxdyOVgvgMwaTeI/tuy13chTRWq7ZuAXqIaYqY4J414NlekkA6pNsrMP1uF4DXX97t1XXUoQB4XNOCy6LzyhdXhanekjv9C1vyn5eIXORn6ODwj6p/p2/Rxc34YPw0lTKZLnxOi5fIkhawyef7hLGTCCtdUeaNZqvQfefFpoMXkrwHj2kXx56vq4xGPrNIbDnNi1pe/0683/wTsjLzDH265o4d4OeZ87KoB2J9KyiHccH1yQyivt4UumoQa1GJFp54n2ZspyOTQnIvLMcQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9nQM+trVujHI3Qoc/dgMx+kQgATSWF4kZScyp+AAMWU=;
- b=OHqBzZ+mrohdkVNKDkHYLn07QcauNAfXhjIyx4wTRHEI7IfNW2oZQHRrWitOF+KNy6+U3tg06F1+OvfkgLk+t/q4GJiSA4DLoso0XxpcTv4GJLkbqEm/g3R71RF7EoyNAv3JOat5CXZc8zueRvOgeIfMqsd3iO8Pl7ZYGTs6U5AJT8tsGwPNu03d49gl91B1yleVbzdtJ/wBUHXlQszoHTwcrrj4MGAGo1Psx4/pnS7zFg5VXWJtP2eaHuJFo0hevgpNemwswHAkGge6nQDtoeoFir8rZuFmy1/ejqBUUq9eNib7n1KYgx35k3bQ2QAIe7DrOUgCkq86Fj67hOEzTg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9nQM+trVujHI3Qoc/dgMx+kQgATSWF4kZScyp+AAMWU=;
- b=fmlMWkkh5G4KHjVttSNopPJ00jsiNUkfJin3ufl+05LQgdc07Oq0p6DXq+MWMwUirGg9oq1h+prj8WvTzIoJp17lZ31If8dc/FujCXOWmF2/A5mzvwiczj/E2vozfkUOeEBiuewOIcRYMvpIDiI+nhEWsZPaR2sNho8tc7ItOEk=
-Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (52.133.14.15) by
- VI1PR05MB3471.eurprd05.prod.outlook.com (10.170.239.25) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2538.19; Wed, 18 Dec 2019 14:59:16 +0000
-Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
- ([fe80::18df:a0fe:18eb:a96b]) by VI1PR05MB4141.eurprd05.prod.outlook.com
- ([fe80::18df:a0fe:18eb:a96b%6]) with mapi id 15.20.2559.012; Wed, 18 Dec 2019
- 14:59:16 +0000
-From:   Jason Gunthorpe <jgg@mellanox.com>
-To:     Jerome Glisse <jglisse@redhat.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        David Airlie <airlied@linux.ie>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        id S1727257AbfLRPwO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Dec 2019 10:52:14 -0500
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:46212 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727021AbfLRPwO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Dec 2019 10:52:14 -0500
+Received: by mail-lj1-f194.google.com with SMTP id m26so250543ljc.13
+        for <linux-rdma@vger.kernel.org>; Wed, 18 Dec 2019 07:52:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=shutemov-name.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=9SaCbmKz1ngtAKjewhoah2l6ODU7+VciCnZ7nlhe26A=;
+        b=KDdHHJJR0qVpHZqAH81m6HqiNucHS6+DyOVljs3zJhGM2FtVdbdAm0v2Xxx2kkMzcc
+         COndoaW+YFAjiesHFNY+QGvBhkVduyh7QLCQeLwcNzFcgoRSyGgSLcKxln6/f1EUD6yP
+         0y/6+ZumAIbzC9iZaVPFSydS1BkjYoeUFSafS/fB2OWFlpyQaG5ZPEXYvAMbIqCKuFSL
+         vWtk3rEHKc5uyahuOPC2nUQfw14PqKcbFsQXhuikgf46s/H3eDyiCMpavZwnwbAsy3mj
+         YXZ/SZZpNe1V4549MQIslp0gnIgv8CLO8jjGejFKXWpzPMIfXWxDiYo5N9hhWPoVV8yK
+         Z+eQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=9SaCbmKz1ngtAKjewhoah2l6ODU7+VciCnZ7nlhe26A=;
+        b=dUIyFqYdm8wTIUKicLpCIgQmur2+Jzlga44V4krrDbJWP7SQz0MkhT3i6jgEfOkXDa
+         R/KXghoWmBshMJq5aaDxitW8s/gU6fZq5BWNd2B0BGxwOxKOZckQzHN3vv9c56nJ3ueQ
+         0oRJWVlAhKS+y74Yi3zMM3P/nmeOfqqOY2KnSvTcxkrFac5PNbTYtsax9RYAK6LgNdj+
+         xbj4+cimqW8Wb7na3D/KXEPjKIb8DrUOQfD382hyGm33vzW+7FHCYAAB5CMOqg/4aFA6
+         EZEZp3ZRrE5Q0EfxKsuZ8n9E4Zf9G7xy7DrJnrOBC8pNGNAYt6uVrCJfC5oJAVyL1ne1
+         g7sg==
+X-Gm-Message-State: APjAAAUV67L2ZMmsFzy3dMRHwQxSAiiKbD9J3+bjtoWx/UzBoMXK7Kcm
+        iMj/26cOhsef5V3kiMPjHTbNWQ==
+X-Google-Smtp-Source: APXvYqwSmzkDxFfUqfRx+ol+ctreHSER3AZEkxHGbqQ5sNtLr5I/0+mwtD90Owb4uveY0c44Ujy5Kw==
+X-Received: by 2002:a2e:3312:: with SMTP id d18mr2333248ljc.222.1576684332255;
+        Wed, 18 Dec 2019 07:52:12 -0800 (PST)
+Received: from box.localdomain ([86.57.175.117])
+        by smtp.gmail.com with ESMTPSA id s16sm1351312lfc.35.2019.12.18.07.52.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 18 Dec 2019 07:52:11 -0800 (PST)
+Received: by box.localdomain (Postfix, from userid 1000)
+        id 66C2E1012CF; Wed, 18 Dec 2019 18:52:11 +0300 (+03)
+Date:   Wed, 18 Dec 2019 18:52:11 +0300
+From:   "Kirill A. Shutemov" <kirill@shutemov.name>
+To:     John Hubbard <jhubbard@nvidia.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn.topel@intel.com>,
+        Christoph Hellwig <hch@infradead.org>,
         Dan Williams <dan.j.williams@intel.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Dave Chinner <david@fromorbit.com>,
+        David Airlie <airlied@linux.ie>,
+        "David S . Miller" <davem@davemloft.net>,
+        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>,
+        Magnus Karlsson <magnus.karlsson@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Paul Mackerras <paulus@samba.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>, bpf@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
+        linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
         Christoph Hellwig <hch@lst.de>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: [GIT PULL] Please pull hmm changes
-Thread-Topic: [GIT PULL] Please pull hmm changes
-Thread-Index: AQHVo9Dog/MtwM8aJU6I/7345tJKuKekCWkAgAAFfoCAA6/3AIAEBIsAgAnhkICAAlDwAIAIKeCA
-Date:   Wed, 18 Dec 2019 14:59:16 +0000
-Message-ID: <20191218145913.GO16762@mellanox.com>
-References: <20191125204248.GA2485@ziepe.ca>
- <CAHk-=wiqguF5NakpL4L9XCmmYr4wY0wk__+6+wHVReF2sVVZhA@mail.gmail.com>
- <CAHk-=wiQtTsZfgTwLYgfV8Gr_0JJiboZOzVUTAgJ2xTdf5bMiw@mail.gmail.com>
- <20191203024206.GC5795@mellanox.com> <20191205160324.GB5819@redhat.com>
- <20191211225703.GE3434@mellanox.com>
- <20191213101916.GD624164@phenom.ffwll.local>
-In-Reply-To: <20191213101916.GD624164@phenom.ffwll.local>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: MN2PR07CA0026.namprd07.prod.outlook.com
- (2603:10b6:208:1a0::36) To VI1PR05MB4141.eurprd05.prod.outlook.com
- (2603:10a6:803:44::15)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=jgg@mellanox.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [142.68.57.212]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: 1a27aaff-284f-43c2-60f4-08d783cada23
-x-ms-traffictypediagnostic: VI1PR05MB3471:
-x-microsoft-antispam-prvs: <VI1PR05MB34718FC1BC216A7489BA16F0CF530@VI1PR05MB3471.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:7219;
-x-forefront-prvs: 0255DF69B9
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(39860400002)(346002)(376002)(366004)(136003)(396003)(199004)(189003)(1076003)(7416002)(81166006)(186003)(5660300002)(36756003)(8936002)(26005)(6506007)(2906002)(8676002)(6486002)(52116002)(33656002)(81156014)(86362001)(64756008)(66446008)(66556008)(110136005)(66946007)(66476007)(316002)(2616005)(6512007)(71200400001)(478600001)(921003)(1121003);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB3471;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: YFsKJi3o+DFtc1adYty2n8ozGQozHR6/e2CYa3A3ET4WBHrq3ofdX2qWppElBG9I5VEWG+nM4nsk+Shtap+lkqvdOm4mlXNv9fcty5qFV4abEiuxriIoDF+HVoXWR43obPelf3GLBbigEHh4BQv9czHO9DxNT1pDiD20kLCt4k85Q9ZQGYxQ6EoHBPJ9GTXJ5aT2UBkpih5yPEat3yaVk4eLCYPtUbnHBmG3GdnCCQmoxJMm2gZRCCAJSycJB+X5HDC72ps7PcMSMYD/H6zmC9m6VeJvBUXo/Ah0O49Vrr2AGinYTA7tkLAO8I264wkz4/SoFNzNUKLsHwYINbEJAWAstBJRFUGhP0vNt2E88l2izg4il0m8rSPLt8qrST2atrUPjNifCODyXWqirHkN3T/jva8GWotiF6Bh9KSvHRp2181+CS8VGjryCDCh0FSljjCBwldRhsKUetiUYQsVN/oh0vDZeisnYWsD5tcHC680BnFmVnC6HNQdnRDqsMQi
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <992CF74742407543825A7104C3898395@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: quoted-printable
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: [PATCH v11 01/25] mm/gup: factor out duplicate code from four
+ routines
+Message-ID: <20191218155211.emcegdp5uqgorfwe@box>
+References: <20191216222537.491123-1-jhubbard@nvidia.com>
+ <20191216222537.491123-2-jhubbard@nvidia.com>
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1a27aaff-284f-43c2-60f4-08d783cada23
-X-MS-Exchange-CrossTenant-originalarrivaltime: 18 Dec 2019 14:59:16.8325
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: ujlj0Eul7WyBl6CVrl1kbsMBy6FDBXGRJFsC4dqgK6rD7TyFTQWnMpVYLAq8EIdqtcVEvx8g3SbHFT5VHqXbQg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB3471
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191216222537.491123-2-jhubbard@nvidia.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Dec 13, 2019 at 11:19:16AM +0100, Daniel Vetter wrote:
-> On Wed, Dec 11, 2019 at 10:57:13PM +0000, Jason Gunthorpe wrote:
-> > On Thu, Dec 05, 2019 at 11:03:24AM -0500, Jerome Glisse wrote:
-> >=20
-> > > > struct mmu_notifier_mm (ie the mm->mmu_notifier_mm)
-> > > >    -> mmn_mm
-> > > > struct mm_struct=20
-> > > >    -> mm
-> > > > struct mmu_notifier (ie the user subscription to the mm_struct)
-> > > >    -> mn
-> > > > struct mmu_interval_notifier (the other kind of user subscription)
-> > > >    -> mni
-> > >=20
-> > > What about "interval" the context should already tell people
-> > > it is related to mmu notifier and thus a notifier. I would
-> > > just remove the notifier suffix, this would match the below
-> > > range.
-> >=20
-> > Interval could be a good replacement for mni in the mm/mmu_notififer
-> > file if we don't do the wholesale rename
-> >=20
-> > > > I think it would be overall nicer with better names for the origina=
-l
-> > > > structs. Perhaps:
-> > > >=20
-> > > >  mmn_* - MMU notifier prefix
-> > > >  mmn_state <- struct mmu_notifier_mm
-> > > >  mmn_subscription (mmn_sub) <- struct mmu_notifier
-> > > >  mmn_range_subscription (mmn_range_sub) <- struct mmu_interval_noti=
-fier
-> > > >  mmn_invalidate_desc <- struct mmu_notifier_range
-> > >=20
-> > > This looks good.
-> >=20
-> > Well, lets just bite the bullet then and switch it. Do you like
-> > 'state'? I thought that was the weakest one
->=20
-> Since you're asking, here's my bikeshed. I kinda agree _state looks a bit
-> strange for this, what about a _link suffix in the spirit of
+On Mon, Dec 16, 2019 at 02:25:13PM -0800, John Hubbard wrote:
+> +static void put_compound_head(struct page *page, int refs)
+> +{
+> +	/* Do a get_page() first, in case refs == page->_refcount */
+> +	get_page(page);
+> +	page_ref_sub(page, refs);
+> +	put_page(page);
+> +}
 
-Do you think calling it 'mmn_subscriptions' is clear?
+It's not terribly efficient. Maybe something like:
 
-Ie a struct mmn_subscriptions holds the lists of struct
-mmn_subscription and struct mmn_range_subscription?
+	VM_BUG_ON_PAGE(page_ref_count(page) < ref, page);
+	if (refs > 2)
+		page_ref_sub(page, refs - 1);
+	put_page(page);
 
-Jason
+?
+
+-- 
+ Kirill A. Shutemov
