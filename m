@@ -2,61 +2,62 @@ Return-Path: <SRS0=QLb8=2J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD6F9C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 18:32:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83A29C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 19:05:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7CC85222C2
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 18:32:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59745222C2
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 19:05:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="c0z6n6wI"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="d/mBc3Li"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726836AbfLSSck (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Dec 2019 13:32:40 -0500
-Received: from mail-qv1-f66.google.com ([209.85.219.66]:45808 "EHLO
-        mail-qv1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726797AbfLSScj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Dec 2019 13:32:39 -0500
-Received: by mail-qv1-f66.google.com with SMTP id l14so2593913qvu.12
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Dec 2019 10:32:39 -0800 (PST)
+        id S1727691AbfLSTF1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Dec 2019 14:05:27 -0500
+Received: from mail-qv1-f65.google.com ([209.85.219.65]:39378 "EHLO
+        mail-qv1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728832AbfLSTF0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Dec 2019 14:05:26 -0500
+Received: by mail-qv1-f65.google.com with SMTP id y8so2655274qvk.6
+        for <linux-rdma@vger.kernel.org>; Thu, 19 Dec 2019 11:05:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=KxcAK175SXL4s98mUKxTuuJ7ApUPNEwbeHFqCNm/gdI=;
-        b=c0z6n6wI2C7woz0UNzkhmPm0PQzVoP6JePPgWqUEQJp/GYy6Pr7Qt3gLsT1KXppodC
-         2Q90ACexm58xXPm6CEdV4ZoxOxDlTl7Ybn/8wQ/8KkcPIil4E6OyGjIz56nkIsn+U6YI
-         SXn8Ksce1W3RHcxY3HxAOMiYsqqAShluqVumGtJVLPDS3itUVXN4jpGUfCuwcTfJFXKU
-         3LAEqaS2YHQmVaa/bGtia6dJVXhEqHD8yucH3TCrYpxmq3KtF0F8jlUEQYSCKV8jMhmf
-         +B3YzHJqjuy/abeb1Fi+mZz3fdl5cciXDftUMHUOgWbKuiyO4ZN1ioXA4Ikjt1ZR4FYH
-         N6mQ==
+        bh=VcLf0PpAPAd1IHJ13fsnv6shotyecohWMRh7Z3bTqKQ=;
+        b=d/mBc3LicY9SCzrvkMADKbZdgapJ1lDCPbcScqZUW6R1w7Uu00huC9IxYuaTC/0dsB
+         Pt5ypF/Ub5vhWCrb62lASt9sE0M/J+awas7SJuWCgLGGi95+R6gXF70xVpa1IAVg+Hv/
+         SrYsFVR0WNUXhPpE3TLFfVAMbQtqfbbDInlgDB2YAD829fFAWCQ9vHn7kyFeLi19LDbC
+         Lbv38XbuXjvkmjLInvfiJRk7eh0d46Fz9ZCCCZulEITwUkAYkgfZMbaXjN8wgKpDHcy+
+         hhx2MaruVUo6a7IS1WgYRIGb0fNT+xxFb9t6QjSwDf6qYT1PU2GwpGGv7A0P7cpBgDc5
+         WczA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=KxcAK175SXL4s98mUKxTuuJ7ApUPNEwbeHFqCNm/gdI=;
-        b=YaI3GhizjetM2wkLD/PnnnWr+TfbbFdwK2A0x7pqIAcZL3ERzspa182ZKe4ZmWfbq3
-         RqYoLYQBR5/jKTvWcZs3LxdbLuLDg5aymsTOfhNlVUGi1l3VdOZBAE8A1S8wTF3n44sW
-         FbK4YQrhO87CKfw/Y4Gh3G/8pq+qx/RAscSWmtzTwsG7cUI/Heogggeuepz6zcvNUyTu
-         y6aWLXO+Osp+SXADVaLbVxTjzwzVgU+pMKOSJ8isofai8LkRrjWAwS0I8VZRBSF13Y8n
-         DWDOUB2Oqzijgb3/MMweKRcNV3J5qwouRIewo1QZTMXMTU2Wl2i6jgnfBn8Gfk4JFC90
-         0xyg==
-X-Gm-Message-State: APjAAAW5I5ScE/gGusnTVAaNBKiY370JKKeETg3yJ06MBTw3vo8t7Rrp
-        IgnjJ6NxsoQqYMxyBEH4CwLaYg==
-X-Google-Smtp-Source: APXvYqwq0vZcEKpwsnjKVJ+KNGjmOXo8T/Hj3JN0Hf2BVg5OetervvdcnHhSZLCFy3X8/01pKuL9TA==
-X-Received: by 2002:a0c:8a93:: with SMTP id 19mr9084450qvv.157.1576780358913;
-        Thu, 19 Dec 2019 10:32:38 -0800 (PST)
+        bh=VcLf0PpAPAd1IHJ13fsnv6shotyecohWMRh7Z3bTqKQ=;
+        b=PO7vDifqXeWBiixdQN3PNJyVQm8y9trBwcTnTqKGT3A531TrDi/yRsJZKGp62KthTd
+         5MDIuMBuXQhtKHv8MYPgRI/1HLhQKdOi7Dr1SFGy18JvP68kyFRUbKpuBMuYWRAGqRW1
+         JZ0u5nQwp8pWHbMyu4XyNpy68Nu8lOfRkHonGU8UerjpiQdc9wr8/vOb/YMO2SIVhFbJ
+         /Ch/5F5TgM4ZFpAAUAKTS+LtOiESXKW7B2D3fd9SnqwivkTLoir8YAN4vvjQuNJNOJNy
+         cNdjL/OGdEF5X/gs1TdeEuo1ED6KqeRWz0WdUWtxTUuz25hJAsgcJqkQi6EkvXzCp5me
+         Vf9Q==
+X-Gm-Message-State: APjAAAVVm/EaOXFBArD/oNXfNvv2BMMCv5FtT8DRAx2rWiny3+nh5vuE
+        vncurdma1EhYtLxTREbsEJ9EMg==
+X-Google-Smtp-Source: APXvYqxyzHRQCJaD5fn7y0ZIwbKOF8w9ZNfqkuULkeRsPueILiH9lTyLIAlj6FGDEbfb+Fs94S4hZw==
+X-Received: by 2002:a0c:961a:: with SMTP id 26mr9130243qvx.241.1576782325397;
+        Thu, 19 Dec 2019 11:05:25 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id s27sm1922474qkm.97.2019.12.19.10.32.38
+        by smtp.gmail.com with ESMTPSA id d143sm2007517qke.123.2019.12.19.11.05.24
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 19 Dec 2019 10:32:38 -0800 (PST)
+        Thu, 19 Dec 2019 11:05:24 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1ii0bF-0007fP-W7; Thu, 19 Dec 2019 14:32:38 -0400
-Date:   Thu, 19 Dec 2019 14:32:37 -0400
+        id 1ii16y-00088z-DO; Thu, 19 Dec 2019 15:05:24 -0400
+Date:   Thu, 19 Dec 2019 15:05:24 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Leon Romanovsky <leon@kernel.org>
 Cc:     Doug Ledford <dledford@redhat.com>,
@@ -65,59 +66,37 @@ Cc:     Doug Ledford <dledford@redhat.com>,
         Artemy Kovalyov <artemyko@mellanox.com>,
         Aviad Yehezkel <aviadye@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>
-Subject: Re: [PATCH rdma-rc 3/3] IB/core: Fix ODP with IB_ACCESS_HUGETLB
- handling
-Message-ID: <20191219183237.GJ17227@ziepe.ca>
+Subject: Re: [PATCH rdma-rc 2/3] IB/core: Fix ODP get user pages flow
+Message-ID: <20191219190524.GK17227@ziepe.ca>
 References: <20191219134646.413164-1-leon@kernel.org>
- <20191219134646.413164-4-leon@kernel.org>
+ <20191219134646.413164-3-leon@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191219134646.413164-4-leon@kernel.org>
+In-Reply-To: <20191219134646.413164-3-leon@kernel.org>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Dec 19, 2019 at 03:46:46PM +0200, Leon Romanovsky wrote:
+On Thu, Dec 19, 2019 at 03:46:45PM +0200, Leon Romanovsky wrote:
+> From: Yishai Hadas <yishaih@mellanox.com>
+> 
+> When calling get_user_pages_remote() need to work with granularity of
+> PAGE_SIZE.
+> 
+> Fix the calculation of how many entries can be read in one call to
+> consider that.
+> 
+> Fixes: 403cd12e2cf7 ("IB/umem: Add contiguous ODP support")
+> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+> Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  drivers/infiniband/core/umem_odp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-> @@ -403,6 +390,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
->  	int j, k, ret = 0, start_idx, npages = 0;
->  	unsigned int flags = 0, page_shift;
->  	phys_addr_t p = 0;
-> +	struct vm_area_struct **vmas;
->  
->  	if (access_mask == 0)
->  		return -EINVAL;
-> @@ -415,6 +403,12 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
->  	if (!local_page_list)
->  		return -ENOMEM;
->  
-> +	vmas = (struct vm_area_struct **)__get_free_page(GFP_KERNEL);
-> +	if (!vmas) {
-> +		ret = -ENOMEM;
-> +		goto out_free_page_list;
-> +	}
-
-I'd rather not do this on the fast path
-
-> +			if ((1 << page_shift) > vma_kernel_pagesize(vmas[j])) {
-> +				ret = -EFAULT;
-> +				break;
-> +			}
-
-And vma's cannot be de-refenced outside the mmap_sem
-
-There is already logic checking for linear contiguous pages:
-
-                        if (user_virt & ~page_mask) {
-                                p += PAGE_SIZE;
-                                if (page_to_phys(local_page_list[j]) != p) {
-                                        ret = -EFAULT;
-                                        break;
-                                }
-
-Why do we need to add the vma check?
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 
 Jason
