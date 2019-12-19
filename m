@@ -7,52 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1171C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:47:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFBD4C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:47:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A9D6A227BF
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:47:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80AA7227BF
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576763222;
-	bh=SWseV0SwhscVojU+/u74MpEcPn6pw45oOXZTnDWuu88=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=SqbUWeIZtYaEC1tSJWF6DZuY1xOrh/5FygvHTHgEOUkA3zy7szb5DyD1ljmbg0ihF
-	 ncwWoqNdcmq4VhhlK/Y2f72ObKhXbSbLo816b7AtlVwULdAfK7IEeOrLujsabBwHL9
-	 Syx4B2/eqlrEcrePycYKxTPUf15ytfwA1xCVS/YA=
+	s=default; t=1576763275;
+	bh=2BijuLgfuM1PhL0ovkHwVTOglSF+z/jBP3VaE8vScmg=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=N8WSHCZNpLAK7PMVqk9jKxB94UJzpsLpfn1rfFI+ZSWr5qwjhjI+Z4Y9S2REIv6/2
+	 c2WK3R0oaOys/SMJRfO3PhoRJl2yhpJ4+xLvHh+Cjl6sB3QM8Ms/Vo3TA4Rerwuh1V
+	 XoJH/XqN+Cf6Fxqbja1HC3IlnIhTObnWwTSNFvS0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726754AbfLSNrC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Dec 2019 08:47:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42522 "EHLO mail.kernel.org"
+        id S1726751AbfLSNrz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Dec 2019 08:47:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726752AbfLSNrC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Dec 2019 08:47:02 -0500
+        id S1726712AbfLSNry (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Dec 2019 08:47:54 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2F7902146E;
-        Thu, 19 Dec 2019 13:47:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 777BB2146E;
+        Thu, 19 Dec 2019 13:47:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576763220;
-        bh=SWseV0SwhscVojU+/u74MpEcPn6pw45oOXZTnDWuu88=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=B2l8tf9zG7ytHG+9A95nFe+tldNrEWYMGQ8Kw82EqbII9bfy8ePiensaC+NhpyT4K
-         +0JOJ3RlCeQq+ulWELSe7Z3ohllOKY4vfERqhgxedSmmawTLu914HWCzirSI+bBvFR
-         8r3+5dRSfoNA6Aiq6VkxXEQyMTOqYyzxfXOAk46Y=
+        s=default; t=1576763274;
+        bh=2BijuLgfuM1PhL0ovkHwVTOglSF+z/jBP3VaE8vScmg=;
+        h=From:To:Cc:Subject:Date:From;
+        b=ijyqlJ3jv3S8BJ//wL7w+64QkELoaWb3i+7+CXPcax9Z1t9kOSrkVwd701e+fhCtf
+         8Lubhk5v3DTgEmxl++8XwLJGerTuObf8ZEOk1jzeCayhr1x9A0An7h4nSkHXeStp8q
+         /hsJrHiFEmD1v8jH5goJt1qinT1y/bb0V1gryi9Y=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Danit Goldberg <danitg@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Artemy Kovalyov <artemyko@mellanox.com>,
-        Aviad Yehezkel <aviadye@mellanox.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-rc 1/3] IB/mlx5: Unify ODP MR code paths to allow extra flexibility
-Date:   Thu, 19 Dec 2019 15:46:44 +0200
-Message-Id: <20191219134646.413164-2-leon@kernel.org>
+        Leon Romanovsky <leonro@mellanox.com>
+Subject: [PATCH rdma-next] RDMA/cm: Use RCU synchronization mechanism to protect cm_id_private xa_load()
+Date:   Thu, 19 Dec 2019 15:47:50 +0200
+Message-Id: <20191219134750.413429-1-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20191219134646.413164-1-leon@kernel.org>
-References: <20191219134646.413164-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -60,245 +55,126 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Artemy Kovalyov <artemyko@mellanox.com>
+From: Danit Goldberg <danitg@mellanox.com>
 
-Building MR translation table in ODP case requires additional flexibility,
-namely random access to DMA addresses. Make both direct and indirect ODP MR
-use same code path, separated from non-ODP MR code path.
+The RCU mechanism is optimized for read-mostly scenarios and therefore
+more suitable to protect the cm_id_private to decrease "cm.lock"
+congestion.
 
-Fixes: d2183c6f1958 ("RDMA/umem: Move page_shift from ib_umem to ib_odp_umem")
-Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
+This patch replaces the existing spinlock locking mechanism
+and kfree with RCU mechanism in places where spinlock(cm.lock)
+protected cm_id_priv xa_load.
+
+In addition, deletes cm_get_id function and use cm_acquire_id directly
+with the correct locking. The patch also removes an open coded version
+of cm_get_id, and replaces it with a call to cm_acquire_id.
+
+Signed-off-by: Danit Goldberg <danitg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/mem.c     | 25 ------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  9 ++---
- drivers/infiniband/hw/mlx5/mr.c      | 58 +++++++++++-----------------
- drivers/infiniband/hw/mlx5/odp.c     | 42 +++++++++++++++++++-
- 4 files changed, 67 insertions(+), 67 deletions(-)
+ drivers/infiniband/core/cm.c | 43 +++++++++++-------------------------
+ 1 file changed, 13 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
-index 048f4e974a61..b90a3649e7d1 100644
---- a/drivers/infiniband/hw/mlx5/mem.c
-+++ b/drivers/infiniband/hw/mlx5/mem.c
-@@ -101,18 +101,6 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
- 	*count = i;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index d42a3887057b..0ed69e213bf8 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -241,6 +241,7 @@ struct cm_id_private {
+ 	/* Number of clients sharing this ib_cm_id. Only valid for listeners.
+ 	 * Protected by the cm.lock spinlock. */
+ 	int listen_sharecount;
++	struct rcu_head rcu;
+ 
+ 	struct ib_mad_send_buf *msg;
+ 	struct cm_timewait_info *timewait_info;
+@@ -593,28 +594,16 @@ static void cm_free_id(__be32 local_id)
+ 	xa_erase_irq(&cm.local_id_table, cm_local_id(local_id));
  }
  
--static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
--{
--	u64 mtt_entry = umem_dma & ODP_DMA_ADDR_MASK;
+-static struct cm_id_private * cm_get_id(__be32 local_id, __be32 remote_id)
++static struct cm_id_private *cm_acquire_id(__be32 local_id, __be32 remote_id)
+ {
+ 	struct cm_id_private *cm_id_priv;
+ 
++	rcu_read_lock();
+ 	cm_id_priv = xa_load(&cm.local_id_table, cm_local_id(local_id));
+-	if (cm_id_priv) {
+-		if (cm_id_priv->id.remote_id == remote_id)
+-			refcount_inc(&cm_id_priv->refcount);
+-		else
+-			cm_id_priv = NULL;
+-	}
 -
--	if (umem_dma & ODP_READ_ALLOWED_BIT)
--		mtt_entry |= MLX5_IB_MTT_READ;
--	if (umem_dma & ODP_WRITE_ALLOWED_BIT)
--		mtt_entry |= MLX5_IB_MTT_WRITE;
--
--	return mtt_entry;
+-	return cm_id_priv;
 -}
 -
- /*
-  * Populate the given array with bus addresses from the umem.
-  *
-@@ -139,19 +127,6 @@ void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
- 	struct scatterlist *sg;
- 	int entry;
+-static struct cm_id_private * cm_acquire_id(__be32 local_id, __be32 remote_id)
+-{
+-	struct cm_id_private *cm_id_priv;
+-
+-	spin_lock_irq(&cm.lock);
+-	cm_id_priv = cm_get_id(local_id, remote_id);
+-	spin_unlock_irq(&cm.lock);
++	if (!cm_id_priv || cm_id_priv->id.remote_id != remote_id ||
++	    !refcount_inc_not_zero(&cm_id_priv->refcount))
++		cm_id_priv = NULL;
++	rcu_read_unlock();
  
--	if (umem->is_odp) {
--		WARN_ON(shift != 0);
--		WARN_ON(access_flags != (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE));
--
--		for (i = 0; i < num_pages; ++i) {
--			dma_addr_t pa =
--				to_ib_umem_odp(umem)->dma_list[offset + i];
--
--			pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
+ 	return cm_id_priv;
+ }
+@@ -1089,7 +1078,7 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
+ 	rdma_destroy_ah_attr(&cm_id_priv->av.ah_attr);
+ 	rdma_destroy_ah_attr(&cm_id_priv->alt_av.ah_attr);
+ 	kfree(cm_id_priv->private_data);
+-	kfree(cm_id_priv);
++	kfree_rcu(cm_id_priv, rcu);
+ }
+ 
+ void ib_destroy_cm_id(struct ib_cm_id *cm_id)
+@@ -1851,7 +1840,7 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
+ 	spin_lock_irq(&cm.lock);
+ 	timewait_info = cm_insert_remote_id(cm_id_priv->timewait_info);
+ 	if (timewait_info) {
+-		cur_cm_id_priv = cm_get_id(timewait_info->work.local_id,
++		cur_cm_id_priv = cm_acquire_id(timewait_info->work.local_id,
+ 					   timewait_info->work.remote_id);
+ 		spin_unlock_irq(&cm.lock);
+ 		if (cur_cm_id_priv) {
+@@ -1865,7 +1854,7 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
+ 	timewait_info = cm_insert_remote_qpn(cm_id_priv->timewait_info);
+ 	if (timewait_info) {
+ 		cm_cleanup_timewait(cm_id_priv->timewait_info);
+-		cur_cm_id_priv = cm_get_id(timewait_info->work.local_id,
++		cur_cm_id_priv = cm_acquire_id(timewait_info->work.local_id,
+ 					   timewait_info->work.remote_id);
+ 
+ 		spin_unlock_irq(&cm.lock);
+@@ -2336,7 +2325,7 @@ static int cm_rep_handler(struct cm_work *work)
+ 		rb_erase(&cm_id_priv->timewait_info->remote_id_node,
+ 			 &cm.remote_id_table);
+ 		cm_id_priv->timewait_info->inserted_remote_id = 0;
+-		cur_cm_id_priv = cm_get_id(timewait_info->work.local_id,
++		cur_cm_id_priv = cm_acquire_id(timewait_info->work.local_id,
+ 					   timewait_info->work.remote_id);
+ 
+ 		spin_unlock(&cm.lock);
+@@ -2837,14 +2826,8 @@ static struct cm_id_private * cm_acquire_rejected_id(struct cm_rej_msg *rej_msg)
+ 			spin_unlock_irq(&cm.lock);
+ 			return NULL;
+ 		}
+-		cm_id_priv = xa_load(&cm.local_id_table,
+-				cm_local_id(timewait_info->work.local_id));
+-		if (cm_id_priv) {
+-			if (cm_id_priv->id.remote_id == remote_id)
+-				refcount_inc(&cm_id_priv->refcount);
+-			else
+-				cm_id_priv = NULL;
 -		}
--		return;
--	}
--
- 	i = 0;
- 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
- 		len = sg_dma_len(sg) >> PAGE_SHIFT;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index b06f32ff5748..927948328184 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1276,8 +1276,8 @@ void mlx5_ib_odp_cleanup_one(struct mlx5_ib_dev *ibdev);
- int __init mlx5_ib_odp_init(void);
- void mlx5_ib_odp_cleanup(void);
- void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent);
--void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t offset,
--			   size_t nentries, struct mlx5_ib_mr *mr, int flags);
-+void mlx5_odp_populate_xlt(void *xlt, size_t idx, size_t nentries,
-+			   struct mlx5_ib_mr *mr, int flags);
- 
- int mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
- 			       enum ib_uverbs_advise_mr_advice advice,
-@@ -1293,9 +1293,8 @@ static inline void mlx5_ib_odp_cleanup_one(struct mlx5_ib_dev *ibdev) {}
- static inline int mlx5_ib_odp_init(void) { return 0; }
- static inline void mlx5_ib_odp_cleanup(void)				    {}
- static inline void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent) {}
--static inline void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t offset,
--					 size_t nentries, struct mlx5_ib_mr *mr,
--					 int flags) {}
-+static inline void mlx5_odp_populate_xlt(void *xlt, size_t idx, size_t nentries,
-+					 struct mlx5_ib_mr *mr, int flags) {}
- 
- static inline int
- mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index ea8bfc3e2d8d..1e38ba0da16a 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -868,36 +868,6 @@ static struct mlx5_ib_mr *alloc_mr_from_cache(
- 	return mr;
- }
- 
--static inline int populate_xlt(struct mlx5_ib_mr *mr, int idx, int npages,
--			       void *xlt, int page_shift, size_t size,
--			       int flags)
--{
--	struct mlx5_ib_dev *dev = mr->dev;
--	struct ib_umem *umem = mr->umem;
--
--	if (flags & MLX5_IB_UPD_XLT_INDIRECT) {
--		if (!umr_can_use_indirect_mkey(dev))
--			return -EPERM;
--		mlx5_odp_populate_klm(xlt, idx, npages, mr, flags);
--		return npages;
--	}
--
--	npages = min_t(size_t, npages, ib_umem_num_pages(umem) - idx);
--
--	if (!(flags & MLX5_IB_UPD_XLT_ZAP)) {
--		__mlx5_ib_populate_pas(dev, umem, page_shift,
--				       idx, npages, xlt,
--				       MLX5_IB_MTT_PRESENT);
--		/* Clear padding after the pages
--		 * brought from the umem.
--		 */
--		memset(xlt + (npages * sizeof(struct mlx5_mtt)), 0,
--		       size - npages * sizeof(struct mlx5_mtt));
--	}
--
--	return npages;
--}
--
- #define MLX5_MAX_UMR_CHUNK ((1 << (MLX5_MAX_UMR_SHIFT + 4)) - \
- 			    MLX5_UMR_MTT_ALIGNMENT)
- #define MLX5_SPARE_UMR_CHUNK 0x10000
-@@ -921,6 +891,7 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
- 	size_t pages_mapped = 0;
- 	size_t pages_to_map = 0;
- 	size_t pages_iter = 0;
-+	size_t size_to_map = 0;
- 	gfp_t gfp;
- 	bool use_emergency_page = false;
- 
-@@ -967,6 +938,15 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
- 		goto free_xlt;
- 	}
- 
-+	if (mr->umem->is_odp) {
-+		if (!(flags & MLX5_IB_UPD_XLT_INDIRECT)) {
-+			struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
-+			size_t max_pages = ib_umem_odp_num_pages(odp) - idx;
-+
-+			pages_to_map = min_t(size_t, pages_to_map, max_pages);
-+		}
-+	}
-+
- 	sg.addr = dma;
- 	sg.lkey = dev->umrc.pd->local_dma_lkey;
- 
-@@ -989,14 +969,22 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
- 	     pages_mapped < pages_to_map && !err;
- 	     pages_mapped += pages_iter, idx += pages_iter) {
- 		npages = min_t(int, pages_iter, pages_to_map - pages_mapped);
-+		size_to_map = npages * desc_size;
- 		dma_sync_single_for_cpu(ddev, dma, size, DMA_TO_DEVICE);
--		npages = populate_xlt(mr, idx, npages, xlt,
--				      page_shift, size, flags);
--
-+		if (mr->umem->is_odp) {
-+			mlx5_odp_populate_xlt(xlt, idx, npages, mr, flags);
-+		} else {
-+			__mlx5_ib_populate_pas(dev, mr->umem, page_shift, idx,
-+					       npages, xlt,
-+					       MLX5_IB_MTT_PRESENT);
-+			/* Clear padding after the pages
-+			 * brought from the umem.
-+			 */
-+			memset(xlt + size_to_map, 0, size - size_to_map);
-+		}
- 		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
- 
--		sg.length = ALIGN(npages * desc_size,
--				  MLX5_UMR_MTT_ALIGNMENT);
-+		sg.length = ALIGN(size_to_map, MLX5_UMR_MTT_ALIGNMENT);
- 
- 		if (pages_mapped + pages_iter >= pages_to_map) {
- 			if (flags & MLX5_IB_UPD_XLT_ENABLE)
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index f924250f80c2..92da6c4f7ddd 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -93,8 +93,8 @@ struct mlx5_pagefault {
- 
- static u64 mlx5_imr_ksm_entries;
- 
--void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
--			   struct mlx5_ib_mr *imr, int flags)
-+static void populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
-+			struct mlx5_ib_mr *imr, int flags)
- {
- 	struct mlx5_klm *end = pklm + nentries;
- 
-@@ -144,6 +144,44 @@ void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
- 	}
- }
- 
-+static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
-+{
-+	u64 mtt_entry = umem_dma & ODP_DMA_ADDR_MASK;
-+
-+	if (umem_dma & ODP_READ_ALLOWED_BIT)
-+		mtt_entry |= MLX5_IB_MTT_READ;
-+	if (umem_dma & ODP_WRITE_ALLOWED_BIT)
-+		mtt_entry |= MLX5_IB_MTT_WRITE;
-+
-+	return mtt_entry;
-+}
-+
-+static void populate_mtt(__be64 *pas, size_t idx, size_t nentries,
-+			 struct mlx5_ib_mr *mr, int flags)
-+{
-+	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
-+	dma_addr_t pa;
-+	size_t i;
-+
-+	if (flags & MLX5_IB_UPD_XLT_ZAP)
-+		return;
-+
-+	for (i = 0; i < nentries; i++) {
-+		pa = odp->dma_list[idx + i];
-+		pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
-+	}
-+}
-+
-+void mlx5_odp_populate_xlt(void *xlt, size_t idx, size_t nentries,
-+			   struct mlx5_ib_mr *mr, int flags)
-+{
-+	if (flags & MLX5_IB_UPD_XLT_INDIRECT) {
-+		populate_klm(xlt, idx, nentries, mr, flags);
-+	} else {
-+		populate_mtt(xlt, idx, nentries, mr, flags);
-+	}
-+}
-+
- static void dma_fence_odp_mr(struct mlx5_ib_mr *mr)
- {
- 	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
++		cm_id_priv =
++			cm_acquire_id(timewait_info->work.local_id, remote_id);
+ 		spin_unlock_irq(&cm.lock);
+ 	} else if (IBA_GET(CM_REJ_MESSAGE_REJECTED, rej_msg) == CM_MSG_RESPONSE_REQ)
+ 		cm_id_priv = cm_acquire_id(rej_msg->remote_comm_id, 0);
 -- 
 2.20.1
 
