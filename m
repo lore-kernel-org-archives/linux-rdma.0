@@ -2,43 +2,48 @@ Return-Path: <SRS0=QLb8=2J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1659C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 21:19:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3391C2D0D1
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 21:19:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B279222C2
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 21:19:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D48F9222C2
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 21:19:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726967AbfLSVTT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Dec 2019 16:19:19 -0500
-Received: from mga05.intel.com ([192.55.52.43]:36839 "EHLO mga05.intel.com"
+        id S1727097AbfLSVTc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Dec 2019 16:19:32 -0500
+Received: from mga04.intel.com ([192.55.52.120]:24350 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726908AbfLSVTT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Dec 2019 16:19:19 -0500
+        id S1726984AbfLSVTc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Dec 2019 16:19:32 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Dec 2019 13:19:19 -0800
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Dec 2019 13:19:31 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.69,333,1571727600"; 
-   d="scan'208";a="241296903"
+   d="scan'208";a="206338290"
 Received: from sedona.ch.intel.com ([10.2.136.157])
-  by fmsmga004.fm.intel.com with ESMTP; 19 Dec 2019 13:19:19 -0800
+  by orsmga007.jf.intel.com with ESMTP; 19 Dec 2019 13:19:30 -0800
 Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id xBJLJHhW002704;
-        Thu, 19 Dec 2019 14:19:18 -0700
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id xBJLJUA2002711;
+        Thu, 19 Dec 2019 14:19:30 -0700
 Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id xBJLJFGB058604;
-        Thu, 19 Dec 2019 16:19:15 -0500
-Subject: [PATCH for-rc 0/4] Patches for 5.5 rc
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id xBJLJSf5058635;
+        Thu, 19 Dec 2019 16:19:28 -0500
+Subject: [PATCH for-rc 2/4] IB/hfi1: List all receive contexts from debugfs
 From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     linux-rdma@vger.kernel.org
-Date:   Thu, 19 Dec 2019 16:19:15 -0500
-Message-ID: <20191219211609.58387.86077.stgit@awfm-01.aw.intel.com>
+Cc:     linux-rdma@vger.kernel.org,
+        "Michael J. Ruhl" <michael.j.ruhl@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Kaike Wan <kaike.wan@intel.com>
+Date:   Thu, 19 Dec 2019 16:19:28 -0500
+Message-ID: <20191219211928.58387.20737.stgit@awfm-01.aw.intel.com>
+In-Reply-To: <20191219211609.58387.86077.stgit@awfm-01.aw.intel.com>
+References: <20191219211609.58387.86077.stgit@awfm-01.aw.intel.com>
 User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -48,39 +53,77 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The first two patches I wouldn't ordinarily have sent for -rc but I noticed we
-did this in the previous -rc post, add an API because we use it in the next fix.
-That's what the first two patches here do. It's understandable if you are
-skeptical that those are OK for -rc and in which case you can drop and we can
-send for next.
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
+The current debugfs output for receive contexts (rcds), stops after
+the kernel receive contexts have been displayed.  This is not enough
+information to fully diagnose packet drops.
+
+Display all of the receive contexts.
+
+Augment the output with some more context information.
+
+Limit the ring buffer header output to 5 entries to avoid
+overextending the sequential file output.
+
+Fixes: bf808b5039c ("IB/hfi1: Add kernel receive context info to debugfs")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Kaike Wan <kaike.wan@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
+ drivers/infiniband/hw/hfi1/debugfs.c |    2 +-
+ drivers/infiniband/hw/hfi1/driver.c  |   12 +++++++++---
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-Kaike Wan (1):
-      IB/hfi1: Don't cancel unused work item
+diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
+index d268bf9..4633a0c 100644
+--- a/drivers/infiniband/hw/hfi1/debugfs.c
++++ b/drivers/infiniband/hw/hfi1/debugfs.c
+@@ -379,7 +379,7 @@ static void *_rcds_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ 	struct hfi1_devdata *dd = dd_from_dev(ibd);
+ 
+ 	++*pos;
+-	if (!dd->rcd || *pos >= dd->n_krcv_queues)
++	if (!dd->rcd || *pos >= dd->num_rcv_contexts)
+ 		return NULL;
+ 	return pos;
+ }
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index cbc5219..8374922 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -1726,23 +1726,29 @@ static int process_receive_invalid(struct hfi1_packet *packet)
+ 	return RHF_RCV_CONTINUE;
+ }
+ 
++#define HFI1_RCVHDR_DUMP_MAX	5
++
+ void seqfile_dump_rcd(struct seq_file *s, struct hfi1_ctxtdata *rcd)
+ {
+ 	struct hfi1_packet packet;
+ 	struct ps_mdata mdata;
++	int i;
+ 
+-	seq_printf(s, "Rcd %u: RcvHdr cnt %u entsize %u %s head %llu tail %llu\n",
++	seq_printf(s, "Rcd %u: RcvHdr cnt %u entsize %u %s ctrl 0x%08llx status 0x%08llx, head %llu tail %llu  sw head %u\n",
+ 		   rcd->ctxt, get_hdrq_cnt(rcd), get_hdrqentsize(rcd),
+ 		   get_dma_rtail_setting(rcd) ?
+ 		   "dma_rtail" : "nodma_rtail",
++		   read_kctxt_csr(rcd->dd, rcd->ctxt, RCV_CTXT_CTRL),
++		   read_kctxt_csr(rcd->dd, rcd->ctxt, RCV_CTXT_STATUS),
+ 		   read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_HEAD) &
+ 		   RCV_HDR_HEAD_HEAD_MASK,
+-		   read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_TAIL));
++		   read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_TAIL),
++		   rcd->head);
+ 
+ 	init_packet(rcd, &packet);
+ 	init_ps_mdata(&mdata, &packet);
+ 
+-	while (1) {
++	for (i = 0; i < HFI1_RCVHDR_DUMP_MAX; i++) {
+ 		__le32 *rhf_addr = (__le32 *)rcd->rcvhdrq + mdata.ps_head +
+ 					 rcd->rhf_offset;
+ 		struct ib_header *hdr;
 
-Michael J. Ruhl (1):
-      IB/hfi1: List all receive contexts from debugfs
-
-Mike Marciniszyn (2):
-      IB/hfi1: Add accessor API routines to access context members
-      IB/rdmavt: Correct comments in rdmavt_qp.h header
-
-
- drivers/infiniband/hw/hfi1/chip.c        |   27 ++----
- drivers/infiniband/hw/hfi1/common.h      |    3 +
- drivers/infiniband/hw/hfi1/debugfs.c     |    2 
- drivers/infiniband/hw/hfi1/driver.c      |   86 +++++++++-----------
- drivers/infiniband/hw/hfi1/file_ops.c    |   12 +--
- drivers/infiniband/hw/hfi1/hfi.h         |  129 ++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/init.c        |    6 +
- drivers/infiniband/hw/hfi1/iowait.c      |    4 +
- drivers/infiniband/hw/hfi1/trace_ctxts.h |    2 
- drivers/infiniband/hw/hfi1/trace_rx.h    |   13 +--
- drivers/infiniband/hw/hfi1/vnic_main.c   |    2 
- drivers/infiniband/sw/rdmavt/rc.c        |    9 ++
- include/rdma/rdmavt_qp.h                 |   22 -----
- 13 files changed, 205 insertions(+), 112 deletions(-)
-
---
--Denny
