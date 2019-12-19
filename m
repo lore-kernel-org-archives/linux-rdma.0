@@ -2,84 +2,109 @@ Return-Path: <SRS0=QLb8=2J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1FF7C2D0C1
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 19:08:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D56DC2D0C1
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 19:12:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C1D79227BF
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 19:08:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1155224680
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 19:12:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="JC76XHHt"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="nP0dp7dl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728445AbfLSTIB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Dec 2019 14:08:01 -0500
-Received: from mail-qk1-f193.google.com ([209.85.222.193]:36652 "EHLO
-        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728685AbfLSTIB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Dec 2019 14:08:01 -0500
-Received: by mail-qk1-f193.google.com with SMTP id a203so5908695qkc.3
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Dec 2019 11:08:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=2GFska7E8A0Yz3vjbXjkTBLzR9urC71UZqWIyJZEn1k=;
-        b=JC76XHHtOJ5yfICHoHYpjZl/VXSQHbckS2zh0FIJXUS7DA3SVQr1lam6W7VIVgKlUR
-         xG8K/rUJ0a5OcrD9A08ckYue3RGwO42qmvOFdie9YGu7Y754+wXVkp/QmFJF4bOXxE0t
-         imEbrY3vHhMolBSBE3kW09x5jcQjHvWVaJIanDMVxaDv77rerUGDjcqpqMuIIJjqWe/X
-         ErD+oS897ZJ9f+vH622ebftYaPMungd6KeNzuABKu8PlZYok6cR0pxFD209qZ9LQ90BK
-         BzLHtSMrD/RCbJW4J7pFoXcYKpsJcEEtXRBH+n1yJWRoYKnboxb6ScR9RDVQcb+CCA2m
-         2s1w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=2GFska7E8A0Yz3vjbXjkTBLzR9urC71UZqWIyJZEn1k=;
-        b=lBZ8WP5PU5Xa+noUoxeOsAF+Nn5Icj08TPVPizJj5gxBR9rdC9YF9Y/ZT41KeKI81x
-         b9Y+n1sw1AEl34lZHPzVFUN9KpXFPfuog84YKLZR5Ci4geBQFf9vApFaG4iwkMlQ/PpS
-         DUUcv8rIU4BUgKiWvTvyA7c7ZD5QRYzT48y9JfQcsbCPUqF8KmwP7mytW7bX6HEp7pM1
-         x+4hunoSLfaeMD3eCB19ylu60Hovec8tLkPbaTe5d1ojzhGCchLGEgCXU2/BC0xY+Oy+
-         1tkrFFjgIxytnie2HMSDbD2F0MaDPX807JpcqW8HsziUamjk015XuL+Gg0/6IRq8uOCP
-         ya0A==
-X-Gm-Message-State: APjAAAVOfmGqW02Wh1vwl+Q1SqZv/TRLIHfeksG6Gxo6hGA2E7MwbdWj
-        PCP18UCi5fEknqMM6EQGVuCFmg==
-X-Google-Smtp-Source: APXvYqyXZTzIJVewp3JPbDcjEoXZN4V7dL44LskPt/w44ITuI8EE312t6PsPeSDFD5V3/FwIBfT8eA==
-X-Received: by 2002:a05:620a:98f:: with SMTP id x15mr9637632qkx.462.1576782480499;
-        Thu, 19 Dec 2019 11:08:00 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id g62sm2000490qkd.25.2019.12.19.11.08.00
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 19 Dec 2019 11:08:00 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1ii19T-0008Cb-M1; Thu, 19 Dec 2019 15:07:59 -0400
-Date:   Thu, 19 Dec 2019 15:07:59 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Weihang Li <liweihang@hisilicon.com>
-Cc:     dledford@redhat.com, linux-rdma@vger.kernel.org,
-        linuxarm@huawei.com
-Subject: Re: [PATCH for-next] RDMA/hns: Add support for extended atomic
-Message-ID: <20191219190759.GM17227@ziepe.ca>
-References: <1573781966-45800-1-git-send-email-liweihang@hisilicon.com>
- <d48e1f2c-4a2e-42ee-08d6-69eab4aacde0@hisilicon.com>
+        id S1727918AbfLSTL5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Dec 2019 14:11:57 -0500
+Received: from userp2120.oracle.com ([156.151.31.85]:60540 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727419AbfLSSh3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Dec 2019 13:37:29 -0500
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id xBJIRKut040429;
+        Thu, 19 Dec 2019 18:37:18 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2019-08-05;
+ bh=6VMYi03ucpKRxaK+aRiAulrKES+92kJ5vwbETKnXJTg=;
+ b=nP0dp7dl8t4EUJQ7Fi36v526PnHIr5hBJ1CC4MzOPmHOjnffyiYdVCZ5CP3OGWfYn6IZ
+ XRwFksgGgXkNjofQI2nKX+5hAmif8v5PQx1v8WFHFlR+B5f22yQbc7S+1Hp/CDtHJNJD
+ rW4+zELA/c+zkuO0QwUXNcG5/R4YGqzk5YGqMwL0AI+rsvDiyJk2DAmMb4EfU6LXWUSB
+ AH2O5oMrzYSOSJTrQVVoNFYoiT47iHdhq13u6HFghFj6h7D9TYCJUrhnzbFr/Qn/Q4sD
+ NQPrX1MBqADjqBFDvzjTVYG3TBM1p23/zJT2wkDqi2W9FCCji9nClagDdctNA38M3/50 ag== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by userp2120.oracle.com with ESMTP id 2x0ag11p43-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 19 Dec 2019 18:37:18 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id xBJGEKcj035094;
+        Thu, 19 Dec 2019 18:37:18 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by userp3030.oracle.com with ESMTP id 2wyxqj3x8h-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 19 Dec 2019 18:37:17 +0000
+Received: from abhmp0003.oracle.com (abhmp0003.oracle.com [141.146.116.9])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id xBJIbGuk032674;
+        Thu, 19 Dec 2019 18:37:16 GMT
+Received: from [192.168.1.2] (/98.210.179.99)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 19 Dec 2019 10:37:16 -0800
+Subject: Re: [PATCH v2 1/2] Introduce maximum WQE size to check limits
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     monis@mellanox.com, dledford@redhat.com, sean.hefty@intel.com,
+        hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1574106879-19211-1-git-send-email-rao.shoaib@oracle.com>
+ <1574106879-19211-2-git-send-email-rao.shoaib@oracle.com>
+ <20191119203138.GA13145@ziepe.ca>
+ <44d1242a-fc32-9918-dd53-cd27ebf61811@oracle.com>
+ <20191119231334.GO4991@ziepe.ca>
+ <dff3da9b-06a3-3904-e9eb-7feaa1ae9e01@oracle.com>
+ <20191120000840.GQ4991@ziepe.ca>
+ <ccceac68-db4f-77a3-500d-12f60a8a1354@oracle.com>
+ <20191219182511.GI17227@ziepe.ca>
+From:   Rao Shoaib <rao.shoaib@oracle.com>
+Message-ID: <91987df4-8853-a087-97a0-a2f09f906340@oracle.com>
+Date:   Thu, 19 Dec 2019 10:37:15 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d48e1f2c-4a2e-42ee-08d6-69eab4aacde0@hisilicon.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+In-Reply-To: <20191219182511.GI17227@ziepe.ca>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9476 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=707
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1911140001 definitions=main-1912190135
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9476 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=746 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-1912190135
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Dec 10, 2019 at 09:10:24PM +0800, Weihang Li wrote:
-> Hi Jason and Doug,
-> 
-> Do you have some comments on this patch?
+Hi Jason,
 
-It seemed OK to me
+I thought I had addressed the comments and literally did what you 
+suggested. Sorry if I missed something, can you please point it out.
 
-Jason
+Shoaib
+
+On 12/19/19 10:25 AM, Jason Gunthorpe wrote:
+> On Tue, Dec 17, 2019 at 11:38:52AM -0800, Rao Shoaib wrote:
+>> Any update on my patch?
+>>
+>> If there is some change needed please let me know.
+> You need to repost it with the comments addressed
+>
+> https://patchwork.kernel.org/patch/11250179/
+>
+> Jason
+>
