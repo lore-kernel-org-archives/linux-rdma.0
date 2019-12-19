@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4790C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:46:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1171C43603
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:47:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7B44227BF
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:46:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9D6A227BF
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:47:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576763218;
-	bh=VsLfTUku33zvot5WYdZcbWRLK6vVEOoRivEr+ORl5z8=;
+	s=default; t=1576763222;
+	bh=SWseV0SwhscVojU+/u74MpEcPn6pw45oOXZTnDWuu88=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=U1Mf2qsCremE2TTIRpUOBHFBQZuyBcpvsSuFP7FhrE4XBZv274Ft6Eqnsvrfp3DUy
-	 UQtihlAvCFqJAvS0pQbxFOuRIr+PtjuR+9Wflv4nFnBpsSS/xu0R84uHCkk9dPyVbD
-	 Bi7O40mS3l7xs0D8a59MWys9vNxrIF4TQ1xUeaaY=
+	b=SqbUWeIZtYaEC1tSJWF6DZuY1xOrh/5FygvHTHgEOUkA3zy7szb5DyD1ljmbg0ihF
+	 ncwWoqNdcmq4VhhlK/Y2f72ObKhXbSbLo816b7AtlVwULdAfK7IEeOrLujsabBwHL9
+	 Syx4B2/eqlrEcrePycYKxTPUf15ytfwA1xCVS/YA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726778AbfLSNq6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Dec 2019 08:46:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42498 "EHLO mail.kernel.org"
+        id S1726754AbfLSNrC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Dec 2019 08:47:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726760AbfLSNq6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Dec 2019 08:46:58 -0500
+        id S1726752AbfLSNrC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Dec 2019 08:47:02 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E77AF2146E;
-        Thu, 19 Dec 2019 13:46:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2F7902146E;
+        Thu, 19 Dec 2019 13:47:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576763217;
-        bh=VsLfTUku33zvot5WYdZcbWRLK6vVEOoRivEr+ORl5z8=;
+        s=default; t=1576763220;
+        bh=SWseV0SwhscVojU+/u74MpEcPn6pw45oOXZTnDWuu88=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=OrwxMG5muJIV8GXT4TU3Yc+1VhoszsXk0ySvDTAyT4xGwgsVzaDelFOKh29RHS3Sy
-         okeRlBTy6HxsToqZibRYVJuI9Bh5Zhl/LDb+RdRkHzNZp0UO2/0Zr37168XFwutHCa
-         RHl7gMDIDgmsDKG/3yM+JaKMwjaOGzvyoyk6M6Qs=
+        b=B2l8tf9zG7ytHG+9A95nFe+tldNrEWYMGQ8Kw82EqbII9bfy8ePiensaC+NhpyT4K
+         +0JOJ3RlCeQq+ulWELSe7Z3ohllOKY4vfERqhgxedSmmawTLu914HWCzirSI+bBvFR
+         8r3+5dRSfoNA6Aiq6VkxXEQyMTOqYyzxfXOAk46Y=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -47,9 +47,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Aviad Yehezkel <aviadye@mellanox.com>,
         Jason Gunthorpe <jgg@ziepe.ca>,
         Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-rc 3/3] IB/core: Fix ODP with IB_ACCESS_HUGETLB handling
-Date:   Thu, 19 Dec 2019 15:46:46 +0200
-Message-Id: <20191219134646.413164-4-leon@kernel.org>
+Subject: [PATCH rdma-rc 1/3] IB/mlx5: Unify ODP MR code paths to allow extra flexibility
+Date:   Thu, 19 Dec 2019 15:46:44 +0200
+Message-Id: <20191219134646.413164-2-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191219134646.413164-1-leon@kernel.org>
 References: <20191219134646.413164-1-leon@kernel.org>
@@ -60,115 +60,245 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+From: Artemy Kovalyov <artemyko@mellanox.com>
 
-As VMAs for a given range might not be available as part of the
-registration phase in ODP, IB_ACCESS_HUGETLB/page_shift must be checked
-as part of the page fault flow.
+Building MR translation table in ODP case requires additional flexibility,
+namely random access to DMA addresses. Make both direct and indirect ODP MR
+use same code path, separated from non-ODP MR code path.
 
-If the application didn't mmap the backed memory with huge pages or
-released part of that hugepage area, an error will be set as part of the
-page fault flow once be detected.
-
-Fixes: 0008b84ea9af ("IB/umem: Add support to huge ODP")
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
-Reviewed-by: Aviad Yehezkel <aviadye@mellanox.com>
+Fixes: d2183c6f1958 ("RDMA/umem: Move page_shift from ib_umem to ib_odp_umem")
+Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/umem_odp.c | 37 +++++++++++++++---------------
- 1 file changed, 19 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/mlx5/mem.c     | 25 ------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  9 ++---
+ drivers/infiniband/hw/mlx5/mr.c      | 58 +++++++++++-----------------
+ drivers/infiniband/hw/mlx5/odp.c     | 42 +++++++++++++++++++-
+ 4 files changed, 67 insertions(+), 67 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 2e9ee7adab13..533271897908 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -241,22 +241,10 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_udata *udata, unsigned long addr,
- 	umem_odp->umem.owning_mm = mm = current->mm;
- 	umem_odp->notifier.ops = ops;
- 
--	umem_odp->page_shift = PAGE_SHIFT;
--	if (access & IB_ACCESS_HUGETLB) {
--		struct vm_area_struct *vma;
--		struct hstate *h;
--
--		down_read(&mm->mmap_sem);
--		vma = find_vma(mm, ib_umem_start(umem_odp));
--		if (!vma || !is_vm_hugetlb_page(vma)) {
--			up_read(&mm->mmap_sem);
--			ret = -EINVAL;
--			goto err_free;
--		}
--		h = hstate_vma(vma);
--		umem_odp->page_shift = huge_page_shift(h);
--		up_read(&mm->mmap_sem);
--	}
-+	if (access & IB_ACCESS_HUGETLB)
-+		umem_odp->page_shift = HPAGE_SHIFT;
-+	else
-+		umem_odp->page_shift = PAGE_SHIFT;
- 
- 	umem_odp->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
- 	ret = ib_init_umem_odp(umem_odp, ops);
-@@ -266,7 +254,6 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_udata *udata, unsigned long addr,
- 
- err_put_pid:
- 	put_pid(umem_odp->tgid);
--err_free:
- 	kfree(umem_odp);
- 	return ERR_PTR(ret);
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index 048f4e974a61..b90a3649e7d1 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -101,18 +101,6 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
+ 	*count = i;
  }
-@@ -403,6 +390,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 	int j, k, ret = 0, start_idx, npages = 0;
- 	unsigned int flags = 0, page_shift;
- 	phys_addr_t p = 0;
-+	struct vm_area_struct **vmas;
  
- 	if (access_mask == 0)
- 		return -EINVAL;
-@@ -415,6 +403,12 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 	if (!local_page_list)
- 		return -ENOMEM;
+-static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
+-{
+-	u64 mtt_entry = umem_dma & ODP_DMA_ADDR_MASK;
+-
+-	if (umem_dma & ODP_READ_ALLOWED_BIT)
+-		mtt_entry |= MLX5_IB_MTT_READ;
+-	if (umem_dma & ODP_WRITE_ALLOWED_BIT)
+-		mtt_entry |= MLX5_IB_MTT_WRITE;
+-
+-	return mtt_entry;
+-}
+-
+ /*
+  * Populate the given array with bus addresses from the umem.
+  *
+@@ -139,19 +127,6 @@ void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 	struct scatterlist *sg;
+ 	int entry;
  
-+	vmas = (struct vm_area_struct **)__get_free_page(GFP_KERNEL);
-+	if (!vmas) {
-+		ret = -ENOMEM;
-+		goto out_free_page_list;
+-	if (umem->is_odp) {
+-		WARN_ON(shift != 0);
+-		WARN_ON(access_flags != (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE));
+-
+-		for (i = 0; i < num_pages; ++i) {
+-			dma_addr_t pa =
+-				to_ib_umem_odp(umem)->dma_list[offset + i];
+-
+-			pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
+-		}
+-		return;
+-	}
+-
+ 	i = 0;
+ 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+ 		len = sg_dma_len(sg) >> PAGE_SHIFT;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b06f32ff5748..927948328184 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1276,8 +1276,8 @@ void mlx5_ib_odp_cleanup_one(struct mlx5_ib_dev *ibdev);
+ int __init mlx5_ib_odp_init(void);
+ void mlx5_ib_odp_cleanup(void);
+ void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent);
+-void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t offset,
+-			   size_t nentries, struct mlx5_ib_mr *mr, int flags);
++void mlx5_odp_populate_xlt(void *xlt, size_t idx, size_t nentries,
++			   struct mlx5_ib_mr *mr, int flags);
+ 
+ int mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
+ 			       enum ib_uverbs_advise_mr_advice advice,
+@@ -1293,9 +1293,8 @@ static inline void mlx5_ib_odp_cleanup_one(struct mlx5_ib_dev *ibdev) {}
+ static inline int mlx5_ib_odp_init(void) { return 0; }
+ static inline void mlx5_ib_odp_cleanup(void)				    {}
+ static inline void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent) {}
+-static inline void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t offset,
+-					 size_t nentries, struct mlx5_ib_mr *mr,
+-					 int flags) {}
++static inline void mlx5_odp_populate_xlt(void *xlt, size_t idx, size_t nentries,
++					 struct mlx5_ib_mr *mr, int flags) {}
+ 
+ static inline int
+ mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index ea8bfc3e2d8d..1e38ba0da16a 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -868,36 +868,6 @@ static struct mlx5_ib_mr *alloc_mr_from_cache(
+ 	return mr;
+ }
+ 
+-static inline int populate_xlt(struct mlx5_ib_mr *mr, int idx, int npages,
+-			       void *xlt, int page_shift, size_t size,
+-			       int flags)
+-{
+-	struct mlx5_ib_dev *dev = mr->dev;
+-	struct ib_umem *umem = mr->umem;
+-
+-	if (flags & MLX5_IB_UPD_XLT_INDIRECT) {
+-		if (!umr_can_use_indirect_mkey(dev))
+-			return -EPERM;
+-		mlx5_odp_populate_klm(xlt, idx, npages, mr, flags);
+-		return npages;
+-	}
+-
+-	npages = min_t(size_t, npages, ib_umem_num_pages(umem) - idx);
+-
+-	if (!(flags & MLX5_IB_UPD_XLT_ZAP)) {
+-		__mlx5_ib_populate_pas(dev, umem, page_shift,
+-				       idx, npages, xlt,
+-				       MLX5_IB_MTT_PRESENT);
+-		/* Clear padding after the pages
+-		 * brought from the umem.
+-		 */
+-		memset(xlt + (npages * sizeof(struct mlx5_mtt)), 0,
+-		       size - npages * sizeof(struct mlx5_mtt));
+-	}
+-
+-	return npages;
+-}
+-
+ #define MLX5_MAX_UMR_CHUNK ((1 << (MLX5_MAX_UMR_SHIFT + 4)) - \
+ 			    MLX5_UMR_MTT_ALIGNMENT)
+ #define MLX5_SPARE_UMR_CHUNK 0x10000
+@@ -921,6 +891,7 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ 	size_t pages_mapped = 0;
+ 	size_t pages_to_map = 0;
+ 	size_t pages_iter = 0;
++	size_t size_to_map = 0;
+ 	gfp_t gfp;
+ 	bool use_emergency_page = false;
+ 
+@@ -967,6 +938,15 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ 		goto free_xlt;
+ 	}
+ 
++	if (mr->umem->is_odp) {
++		if (!(flags & MLX5_IB_UPD_XLT_INDIRECT)) {
++			struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
++			size_t max_pages = ib_umem_odp_num_pages(odp) - idx;
++
++			pages_to_map = min_t(size_t, pages_to_map, max_pages);
++		}
 +	}
 +
- 	page_shift = umem_odp->page_shift;
- 	page_mask = ~(BIT(page_shift) - 1);
- 	off = user_virt & (~page_mask);
-@@ -453,7 +447,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 		 */
- 		npages = get_user_pages_remote(owning_process, owning_mm,
- 				user_virt, gup_num_pages,
--				flags, local_page_list, NULL, NULL);
-+				flags, local_page_list, vmas, NULL);
- 		up_read(&owning_mm->mmap_sem);
+ 	sg.addr = dma;
+ 	sg.lkey = dev->umrc.pd->local_dma_lkey;
  
- 		if (npages < 0) {
-@@ -477,6 +471,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 				continue;
- 			}
+@@ -989,14 +969,22 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ 	     pages_mapped < pages_to_map && !err;
+ 	     pages_mapped += pages_iter, idx += pages_iter) {
+ 		npages = min_t(int, pages_iter, pages_to_map - pages_mapped);
++		size_to_map = npages * desc_size;
+ 		dma_sync_single_for_cpu(ddev, dma, size, DMA_TO_DEVICE);
+-		npages = populate_xlt(mr, idx, npages, xlt,
+-				      page_shift, size, flags);
+-
++		if (mr->umem->is_odp) {
++			mlx5_odp_populate_xlt(xlt, idx, npages, mr, flags);
++		} else {
++			__mlx5_ib_populate_pas(dev, mr->umem, page_shift, idx,
++					       npages, xlt,
++					       MLX5_IB_MTT_PRESENT);
++			/* Clear padding after the pages
++			 * brought from the umem.
++			 */
++			memset(xlt + size_to_map, 0, size - size_to_map);
++		}
+ 		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
  
-+			if ((1 << page_shift) > vma_kernel_pagesize(vmas[j])) {
-+				ret = -EFAULT;
-+				break;
-+			}
-+
- 			ret = ib_umem_odp_map_dma_single_page(
- 					umem_odp, k, local_page_list[j],
- 					access_mask, current_seq);
-@@ -517,6 +516,8 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- out_put_task:
- 	if (owning_process)
- 		put_task_struct(owning_process);
-+	free_page((unsigned long)vmas);
-+out_free_page_list:
- 	free_page((unsigned long)local_page_list);
- 	return ret;
+-		sg.length = ALIGN(npages * desc_size,
+-				  MLX5_UMR_MTT_ALIGNMENT);
++		sg.length = ALIGN(size_to_map, MLX5_UMR_MTT_ALIGNMENT);
+ 
+ 		if (pages_mapped + pages_iter >= pages_to_map) {
+ 			if (flags & MLX5_IB_UPD_XLT_ENABLE)
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index f924250f80c2..92da6c4f7ddd 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -93,8 +93,8 @@ struct mlx5_pagefault {
+ 
+ static u64 mlx5_imr_ksm_entries;
+ 
+-void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
+-			   struct mlx5_ib_mr *imr, int flags)
++static void populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
++			struct mlx5_ib_mr *imr, int flags)
+ {
+ 	struct mlx5_klm *end = pklm + nentries;
+ 
+@@ -144,6 +144,44 @@ void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
+ 	}
  }
+ 
++static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
++{
++	u64 mtt_entry = umem_dma & ODP_DMA_ADDR_MASK;
++
++	if (umem_dma & ODP_READ_ALLOWED_BIT)
++		mtt_entry |= MLX5_IB_MTT_READ;
++	if (umem_dma & ODP_WRITE_ALLOWED_BIT)
++		mtt_entry |= MLX5_IB_MTT_WRITE;
++
++	return mtt_entry;
++}
++
++static void populate_mtt(__be64 *pas, size_t idx, size_t nentries,
++			 struct mlx5_ib_mr *mr, int flags)
++{
++	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
++	dma_addr_t pa;
++	size_t i;
++
++	if (flags & MLX5_IB_UPD_XLT_ZAP)
++		return;
++
++	for (i = 0; i < nentries; i++) {
++		pa = odp->dma_list[idx + i];
++		pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
++	}
++}
++
++void mlx5_odp_populate_xlt(void *xlt, size_t idx, size_t nentries,
++			   struct mlx5_ib_mr *mr, int flags)
++{
++	if (flags & MLX5_IB_UPD_XLT_INDIRECT) {
++		populate_klm(xlt, idx, nentries, mr, flags);
++	} else {
++		populate_mtt(xlt, idx, nentries, mr, flags);
++	}
++}
++
+ static void dma_fence_odp_mr(struct mlx5_ib_mr *mr)
+ {
+ 	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
 -- 
 2.20.1
 
