@@ -2,41 +2,42 @@ Return-Path: <SRS0=QLb8=2J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DFE0C43603
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:46:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6CFDC2D0C0
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:46:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32767227BF
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:46:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B11A72467B
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Dec 2019 13:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576763214;
-	bh=dDUtTgXzHtKl3/y9Qxgqmda71eNaXErw4VOyD1sF6VU=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=cp8MxpJklD204wJpo5Nu3TcnyWkrRNDCTAi03gjYK7yr7RDaOSbKE7BEWzg6UpuOt
-	 sQ6X5ZLXtw/agcWke022159UTzg1ffFjHoa2QvHnWFcuuF1VpF0wQMe5/d1806Cc0w
-	 s6CiS1vFZLUL03MuY/PF7lgaF0OvXWfS8XAg2W/U=
+	s=default; t=1576763215;
+	bh=KvuAOUW/odbDstYc5juVDpIOPTsOC0GL38VCt7xGbCY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=z3p3DYaArRyHZR7HGpUmcHacSRDBmqCQM+G5ANhTb6t+xXakhfYSgEu+nLGuEm6FX
+	 5IySa3zSvtjwFjf+JkLuSvY2InRTg4Q5NY2VocGm4BL+wcqopFTB8EpqO6POvUU+eQ
+	 fEiyw/URwfsqZncQiE5yYJnrOlkABGTUBsvStOtY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726744AbfLSNqx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Dec 2019 08:46:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42402 "EHLO mail.kernel.org"
+        id S1726767AbfLSNqz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Dec 2019 08:46:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726897AbfLSNqv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Dec 2019 08:46:51 -0500
+        id S1726760AbfLSNqy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Dec 2019 08:46:54 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 652232146E;
-        Thu, 19 Dec 2019 13:46:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BB3862146E;
+        Thu, 19 Dec 2019 13:46:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576763210;
-        bh=dDUtTgXzHtKl3/y9Qxgqmda71eNaXErw4VOyD1sF6VU=;
-        h=From:To:Cc:Subject:Date:From;
-        b=uzvPmWx58guY2IZ2dsjbnANUUxdhAGSSt8j0ne9W431Zi/qRHLDqXp0m59bmIN9qF
-         uchrVnIrPiZCTlAl+sb52wi6ZeEP97bjqhudjiLe+fgt2QJOUn+7O/Y5+yCKdWMXOh
-         W88ojNNeM4r5D98ujSDhWv7bt2BHD97rL8hcNdKQ=
+        s=default; t=1576763214;
+        bh=KvuAOUW/odbDstYc5juVDpIOPTsOC0GL38VCt7xGbCY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ACgYtm5daWJQhEYsKJ/SV4xQ4uZhizhxicIM+S+5d1SZLvHSd4rnaQ2vNqHVyG4Mb
+         ftmXW3DXdHVOq145wWMgW1F3CxMlaXi0ppitRraC3pUozNdIp9UNJlheHE1cVebdiJ
+         J0VjuOsrPWWgYEcFhYsEC2LiJ1c0xz5ktxE6UjpM=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -46,10 +47,12 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Aviad Yehezkel <aviadye@mellanox.com>,
         Jason Gunthorpe <jgg@ziepe.ca>,
         Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-rc 0/3] ODP Fixes
-Date:   Thu, 19 Dec 2019 15:46:43 +0200
-Message-Id: <20191219134646.413164-1-leon@kernel.org>
+Subject: [PATCH rdma-rc 2/3] IB/core: Fix ODP get user pages flow
+Date:   Thu, 19 Dec 2019 15:46:45 +0200
+Message-Id: <20191219134646.413164-3-leon@kernel.org>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191219134646.413164-1-leon@kernel.org>
+References: <20191219134646.413164-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,31 +60,35 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Yishai Hadas <yishaih@mellanox.com>
 
-Hi,
+When calling get_user_pages_remote() need to work with granularity of
+PAGE_SIZE.
 
-Please find below three patches that fix ODP flow. The title of first
-patch seems not -rc material, but implementation yes. The fact that we
-unified code paths allowed us to fix some of the corner cases at the
-same time.
+Fix the calculation of how many entries can be read in one call to
+consider that.
 
-Thanks
+Fixes: 403cd12e2cf7 ("IB/umem: Add contiguous ODP support")
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/umem_odp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Artemy Kovalyov (1):
-  IB/mlx5: Unify ODP MR code paths to allow extra flexibility
-
-Yishai Hadas (2):
-  IB/core: Fix ODP get user pages flow
-  IB/core: Fix ODP with IB_ACCESS_HUGETLB handling
-
- drivers/infiniband/core/umem_odp.c   | 39 ++++++++++---------
- drivers/infiniband/hw/mlx5/mem.c     | 25 ------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  9 ++---
- drivers/infiniband/hw/mlx5/mr.c      | 58 +++++++++++-----------------
- drivers/infiniband/hw/mlx5/odp.c     | 42 +++++++++++++++++++-
- 5 files changed, 87 insertions(+), 86 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index e42d44e501fd..2e9ee7adab13 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -440,7 +440,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 
+ 	while (bcnt > 0) {
+ 		const size_t gup_num_pages = min_t(size_t,
+-				(bcnt + BIT(page_shift) - 1) >> page_shift,
++				ALIGN(bcnt, PAGE_SIZE) / PAGE_SIZE,
+ 				PAGE_SIZE / sizeof(struct page *));
+ 
+ 		down_read(&owning_mm->mmap_sem);
+-- 
 2.20.1
 
