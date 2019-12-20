@@ -7,49 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78870C2D0C0
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:39:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4415C2D0D4
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:47:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 467AF218AC
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:39:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76DD0222C2
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:47:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576852753;
-	bh=pUkK7ZuOxoCr48VAptZqwfKY5fwthB1NlNFbykjYfvw=;
+	s=default; t=1576853253;
+	bh=+DaVvfO99JAJfFS1lRQb5Sdvz/o2T3GbRSLO0P1lpjQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=sVMZtZu5CEG0x96AMkZw22HpljNDX/qi6Bck0+xwM/LGSRvhRqzA42o8/fvcUIu+9
-	 SLkQo91nBcJXWbMRBLp6YFZIxGdatTIoHLBcGAfkSWDzfbU6miNVYQrZ8TpWQKlQHR
-	 7O8RQ32anwNxZqaDK0anubhyyDDxgk9UrLJy5sYM=
+	b=xKeTyqaeH1gvcbJBnb3zNWKFA6t/0xDMfv0illArGfTH3VkLKyYGH27J6VMZWGetP
+	 Vm+UGwuY5A/WwQ8TXdPaSy6tP5k/nPI1vY4ZXRcd081wWKGiQj0VfpQySIShhUFWMa
+	 bjw5nY/bGmtjKxO16no9bJV6wdqkvA7I1L6hRtQw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727709AbfLTOhs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Dec 2019 09:37:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41930 "EHLO mail.kernel.org"
+        id S1727725AbfLTOrO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Dec 2019 09:47:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45382 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727857AbfLTOhs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 20 Dec 2019 09:37:48 -0500
+        id S1727710AbfLTOrN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 20 Dec 2019 09:47:13 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B201121D7E;
-        Fri, 20 Dec 2019 14:37:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 22C8A2465E;
+        Fri, 20 Dec 2019 14:47:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576852667;
-        bh=pUkK7ZuOxoCr48VAptZqwfKY5fwthB1NlNFbykjYfvw=;
+        s=default; t=1576853233;
+        bh=+DaVvfO99JAJfFS1lRQb5Sdvz/o2T3GbRSLO0P1lpjQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=egttra93VbthcwR91ovsmdT8E0usoo6wGSIvMRASvuGriwI2b7U+rN7PDXvrwZGZT
-         41Jqjp4m7WNUSf/FMcmucw0SJ688XjN59Gn3Rq45iwv08Rzxj2Coc7I5VUWtYPQuEn
-         ZJehYboYO7xvgWqONlK3AfXWckcEO/Fqtt6lq1Ko=
+        b=2myjXAiciubhc0RhTe3yvgGdAlSb3pBkQF1AWjb9IKHTHu5A68iM434cMO+YLRBHY
+         vZ4EXUmebMr8DqnwqRB4qfnExRMJH4AruvsEwvr5yvBq8piS5CNF529uuoiORqoYA7
+         0VGfwuvfB30okAygX6TtVwQ0+Dh2gxoaVt9rruJU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Chuhong Yuan <hslester96@gmail.com>,
-        Parav Pandit <parav@mellanox.com>,
+Cc:     Parav Pandit <parav@mellanox.com>,
+        Maor Gottlieb <maorg@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 04/19] RDMA/cma: add missed unregister_pernet_subsys in init failure
-Date:   Fri, 20 Dec 2019 09:37:25 -0500
-Message-Id: <20191220143741.10220-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 11/14] IB/mlx4: Follow mirror sequence of device add during device removal
+Date:   Fri, 20 Dec 2019 09:46:55 -0500
+Message-Id: <20191220144658.10414-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191220143741.10220-1-sashal@kernel.org>
-References: <20191220143741.10220-1-sashal@kernel.org>
+In-Reply-To: <20191220144658.10414-1-sashal@kernel.org>
+References: <20191220144658.10414-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,36 +60,64 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Chuhong Yuan <hslester96@gmail.com>
+From: Parav Pandit <parav@mellanox.com>
 
-[ Upstream commit 44a7b6759000ac51b92715579a7bba9e3f9245c2 ]
+[ Upstream commit 89f988d93c62384758b19323c886db917a80c371 ]
 
-The driver forgets to call unregister_pernet_subsys() in the error path
-of cma_init().
-Add the missed call to fix it.
+Current code device add sequence is:
 
-Fixes: 4be74b42a6d0 ("IB/cma: Separate port allocation to network namespaces")
-Signed-off-by: Chuhong Yuan <hslester96@gmail.com>
-Reviewed-by: Parav Pandit <parav@mellanox.com>
-Link: https://lore.kernel.org/r/20191206012426.12744-1-hslester96@gmail.com
+ib_register_device()
+ib_mad_init()
+init_sriov_init()
+register_netdev_notifier()
+
+Therefore, the remove sequence should be,
+
+unregister_netdev_notifier()
+close_sriov()
+mad_cleanup()
+ib_unregister_device()
+
+However it is not above.
+Hence, make do above remove sequence.
+
+Fixes: fa417f7b520ee ("IB/mlx4: Add support for IBoE")
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Link: https://lore.kernel.org/r/20191212091214.315005-3-leon@kernel.org
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/cma.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/mlx4/main.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index f698c6a28c142..fc4630e4acdd6 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4568,6 +4568,7 @@ static int __init cma_init(void)
- 	unregister_netdevice_notifier(&cma_nb);
- 	rdma_addr_unregister_client(&addr_client);
- 	ib_sa_unregister_client(&sa_client);
-+	unregister_pernet_subsys(&cma_pernet_operations);
- err_wq:
- 	destroy_workqueue(cma_wq);
- 	return ret;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 7ccf7225f75a7..adc46b809ef2a 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -3031,16 +3031,17 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 	ibdev->ib_active = false;
+ 	flush_workqueue(wq);
+ 
+-	mlx4_ib_close_sriov(ibdev);
+-	mlx4_ib_mad_cleanup(ibdev);
+-	ib_unregister_device(&ibdev->ib_dev);
+-	mlx4_ib_diag_cleanup(ibdev);
+ 	if (ibdev->iboe.nb.notifier_call) {
+ 		if (unregister_netdevice_notifier(&ibdev->iboe.nb))
+ 			pr_warn("failure unregistering notifier\n");
+ 		ibdev->iboe.nb.notifier_call = NULL;
+ 	}
+ 
++	mlx4_ib_close_sriov(ibdev);
++	mlx4_ib_mad_cleanup(ibdev);
++	ib_unregister_device(&ibdev->ib_dev);
++	mlx4_ib_diag_cleanup(ibdev);
++
+ 	mlx4_qp_release_range(dev, ibdev->steer_qpn_base,
+ 			      ibdev->steer_qpn_count);
+ 	kfree(ibdev->ib_uc_qpns_bitmap);
 -- 
 2.20.1
 
