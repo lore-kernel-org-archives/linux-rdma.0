@@ -5,64 +5,64 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32E2AC4741C
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 614EFC47409
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 004F12465E
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3851324680
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WtcLXYvl"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bY9ralaS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727511AbfLTPvc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Dec 2019 10:51:32 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:51730 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727508AbfLTPvb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Dec 2019 10:51:31 -0500
-Received: by mail-wm1-f65.google.com with SMTP id d73so9426878wmd.1;
-        Fri, 20 Dec 2019 07:51:30 -0800 (PST)
+        id S1727526AbfLTPv2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Dec 2019 10:51:28 -0500
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:45743 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727511AbfLTPv1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Dec 2019 10:51:27 -0500
+Received: by mail-wr1-f66.google.com with SMTP id j42so9834987wrj.12;
+        Fri, 20 Dec 2019 07:51:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=Dlz8/r2lAq9MWwGVb3islQaFajiPDRixzWoG7/v0iOw=;
-        b=WtcLXYvl54Ko7uvFlvX/DkrNexc1Q4PulwEHOmUx/6Kuy6CtDoN9W5du/fcCEpS7u3
-         SIf7uqO92fdd2wfFWwXCbbqCOm8vrU+pseGKqM1neHph5PmzLPNzhH/b9jRZL+26QuL9
-         +JqMkxPdm2WzpSC73wEyutWezL3u30Ajic5BtpPX3vFlLWEdl2nB6lANiworZ1BAnGFu
-         zuw4uHCnasKkHGkv8ICc9U043U+dUQgPhVtH3xw7Swfu99xBznA9kQLG1L3jak8rc5BP
-         fQhm6Rq69JiJa8j/oqDEjbXY+OrJEB/HFhkhXSaMYN3UpNX3XBu3OeRUhCUzw6l0dUEb
-         3Wbw==
+        bh=HMX8oZWgChS/yXnesgab3T5EmxicN6WhvU2EKC1ejME=;
+        b=bY9ralaS5hicnckz8/hX0Rf6lwGUcDeZzQZwjbYByu+b4zceFrqPkGUo3ICzCyv+34
+         W2wQto4+LhfRDrrDpuwGXr+cM0GCbE9t9L3iHFgbaHx7mnyiJF3fztPXK+O1Eaz/NQPP
+         s1qbKMmjSo9usyxMvMr4ZcQNFiVzQP+UMroMjHlLvFOINJsTxRMwib6zslVBj6HHrazC
+         5DMrNaJbMOpUvyynQ6r4ti5XAkQSKjYgc+5IDCF6Kkq5g8Bf9QZnDM3NESJ42A3DVTQC
+         EZ5doamMc36UOfADAKVgaAQCDvcB6oW4J2x+qeV5QlNvN/yKsXtOsA2ikATSIQiTsuvw
+         LU+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=Dlz8/r2lAq9MWwGVb3islQaFajiPDRixzWoG7/v0iOw=;
-        b=fJfYVfdBDvW5rHhwT/JnlLpifBzaR6AOHTfe9wsFs5Bb5f4pmgdxRunxVwiBcFL2pp
-         +ArQHfN6TdEQSb6iUpMJnhlKsTxw77aImCrlBo+BThNS42Xvm2cRnv+qR3VG/a6okmG9
-         OyWLm8lxnJbN0vKQeO/YWI4WmQqYdUGapzToJcvb00UJqEItHqDB5vnDFCd46V1oieZl
-         RXqsgvpHknuBbKvMmIxK/DwFpbYz/w5pEXKQPfMb+RYplyxoOSAldAsLTGl6OnwUH0sw
-         SdZ5MibfiM0fUej4v84ozi9jRkK14TLhoV0PEK0ejPd9bXyaQ0Z53t/NCDZypNyXpcP5
-         3f3A==
-X-Gm-Message-State: APjAAAWn0ny5MFbACmGGgemT48y79F0QJyzkKubnWKoS97HzgRBjkrBK
-        I+Mvcp5GgtcRR1AxFWhZVcbmygzL/JI=
-X-Google-Smtp-Source: APXvYqzVjWCenMOIPzYwgeekHXI7V8nucmmZNvKDlzGRLjUia5I1nPUldPb7t+UaftYSwigyRvdLuw==
-X-Received: by 2002:a1c:4d18:: with SMTP id o24mr17069689wmh.35.1576857089402;
-        Fri, 20 Dec 2019 07:51:29 -0800 (PST)
+        bh=HMX8oZWgChS/yXnesgab3T5EmxicN6WhvU2EKC1ejME=;
+        b=dwADcMCD7c1bbLSdNri94C9UBkm4bvwbgASDZtdtCJW8wDwKbz8sTAcKrFj+TiyqXU
+         Wgxvvu1sQEudfDIKjMZHERYNdz8Rc+Kteqttp7o727YJt9B6EjRVJ+1OmoPJQ1cu8kHH
+         EnRfKDRHdHTYwf31UPaM7T/b8UdbiJVQeNugIHwJMPmGqIDLF8wht11Dp4PoQPAhBbFh
+         rgfFvIZTyCKBDAdYlsqsAgf/KJjFhj3OuoRFgC4mgAvsSTdP6pfqjcr3w1F31Q4tXvBb
+         cd6tbqdOw+sQSDh7pI0nkXsSjyfg4kr7VwpZGWfcfyD+fGkh3GDHrWa28iMPJbkFHH8/
+         WEZg==
+X-Gm-Message-State: APjAAAWXUkJj4HPzC8hyk2bQOMMtyg2DtomGnYJBdr6iR/BMUZC0TI9w
+        6kMdgXp4jPnXPOn9lefJUdThF1klY8I=
+X-Google-Smtp-Source: APXvYqyBb+sGF+wN0YLqMUOL/a03yFcvBIxdTRp0eoYBNhDgL9XoJ2/cD9kb77QLHZ1sYw3aZxz1fw==
+X-Received: by 2002:adf:cd0a:: with SMTP id w10mr15624197wrm.107.1576857082758;
+        Fri, 20 Dec 2019 07:51:22 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4972:cc00:b9e0:6ef7:286d:4897])
-        by smtp.gmail.com with ESMTPSA id u14sm10372139wrm.51.2019.12.20.07.51.28
+        by smtp.gmail.com with ESMTPSA id u14sm10372139wrm.51.2019.12.20.07.51.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Dec 2019 07:51:28 -0800 (PST)
+        Fri, 20 Dec 2019 07:51:22 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com,
         rpenyaev@suse.de
-Subject: [PATCH v5 13/25] rtrs: include client and server modules into kernel compilation
-Date:   Fri, 20 Dec 2019 16:50:57 +0100
-Message-Id: <20191220155109.8959-14-jinpuwang@gmail.com>
+Subject: [PATCH v5 08/25] rtrs: client: sysfs interface functions
+Date:   Fri, 20 Dec 2019 16:50:52 +0100
+Message-Id: <20191220155109.8959-9-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20191220155109.8959-1-jinpuwang@gmail.com>
 References: <20191220155109.8959-1-jinpuwang@gmail.com>
@@ -73,97 +73,581 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-Add rtrs Makefile, Kconfig and also corresponding lines into upper
-layer infiniband/ulp files.
+This is the sysfs interface to rtrs sessions on client side:
+
+  /sys/devices/virtual/rtrs-client/<SESS-NAME>/
+    *** rtrs session created by rtrs_clt_open() API call
+    |
+    |- max_reconnect_attempts
+    |  *** number of reconnect attempts for session
+    |
+    |- add_path
+    |  *** adds another connection path into rtrs session
+    |
+    |- paths/<SRC@DST>/
+       *** established paths to server in a session
+       |
+       |- disconnect
+       |  *** disconnect path
+       |
+       |- reconnect
+       |  *** reconnect path
+       |
+       |- remove_path
+       |  *** remove current path
+       |
+       |- state
+       |  *** retrieve current path state
+       |
+       |- hca_port
+       |  *** HCA port number
+       |
+       |- hca_name
+       |  *** HCA name
+       |
+       |- stats/
+          *** current path statistics
+          |
+	  |- cpu_migration
+	  |- rdma
+	  |- rdma_lat
+	  |- reconnects
+	  |- reset_all
+	  |- sg_entries
+	  |- wc_completions
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/Kconfig           |  1 +
- drivers/infiniband/ulp/Makefile      |  1 +
- drivers/infiniband/ulp/rtrs/Kconfig  | 27 +++++++++++++++++++++++++++
- drivers/infiniband/ulp/rtrs/Makefile | 17 +++++++++++++++++
- 4 files changed, 46 insertions(+)
- create mode 100644 drivers/infiniband/ulp/rtrs/Kconfig
- create mode 100644 drivers/infiniband/ulp/rtrs/Makefile
+ drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 519 +++++++++++++++++++
+ 1 file changed, 519 insertions(+)
+ create mode 100644 drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index ade86388434f..477418b37786 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -107,6 +107,7 @@ source "drivers/infiniband/ulp/srpt/Kconfig"
- 
- source "drivers/infiniband/ulp/iser/Kconfig"
- source "drivers/infiniband/ulp/isert/Kconfig"
-+source "drivers/infiniband/ulp/rtrs/Kconfig"
- 
- source "drivers/infiniband/ulp/opa_vnic/Kconfig"
- 
-diff --git a/drivers/infiniband/ulp/Makefile b/drivers/infiniband/ulp/Makefile
-index 437813c7b481..4d0004b58377 100644
---- a/drivers/infiniband/ulp/Makefile
-+++ b/drivers/infiniband/ulp/Makefile
-@@ -5,3 +5,4 @@ obj-$(CONFIG_INFINIBAND_SRPT)		+= srpt/
- obj-$(CONFIG_INFINIBAND_ISER)		+= iser/
- obj-$(CONFIG_INFINIBAND_ISERT)		+= isert/
- obj-$(CONFIG_INFINIBAND_OPA_VNIC)	+= opa_vnic/
-+obj-$(CONFIG_INFINIBAND_RTRS)		+= rtrs/
-diff --git a/drivers/infiniband/ulp/rtrs/Kconfig b/drivers/infiniband/ulp/rtrs/Kconfig
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
 new file mode 100644
-index 000000000000..1d6c670a4504
+index 000000000000..bc2cb7638e3f
 --- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/Kconfig
-@@ -0,0 +1,27 @@
-+# SPDX-License-Identifier: GPL-2.0-or-later
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+@@ -0,0 +1,519 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * InfiniBand Transport Layer
++ *
++ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
++ * Authors: Fabian Holler <mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *          Kleber Souza <kleber.souza@profitbricks.com>
++ *          Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ *
++ * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
++ * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ *
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ * Authors: Roman Penyaev <roman.penyaev@profitbricks.com>
++ *          Jinpu Wang <jinpu.wang@cloud.ionos.com>
++ *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
++ */
 +
-+config INFINIBAND_RTRS
-+	tristate
-+	depends on INFINIBAND_ADDR_TRANS
++/* Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
++ * Authors: Jack Wang <jinpu.wang@cloud.ionos.com>
++ *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
++ *          Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
++ *          Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
++ */
++#undef pr_fmt
++#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
-+config INFINIBAND_RTRS_CLIENT
-+	tristate "RTRS client module"
-+	depends on INFINIBAND_ADDR_TRANS
-+	select INFINIBAND_RTRS
-+	help
-+	  RDMA transport client module.
++#include "rtrs-pri.h"
++#include "rtrs-clt.h"
++#include "rtrs-log.h"
 +
-+	  RTRS client allows for simplified data transfer and connection
-+	  establishment over RDMA (InfiniBand, RoCE, iWarp). Uses BIO-like
-+	  READ/WRITE semantics and provides multipath capabilities.
++#define MIN_MAX_RECONN_ATT -1
++#define MAX_MAX_RECONN_ATT 9999
 +
-+config INFINIBAND_RTRS_SERVER
-+	tristate "RTRS server module"
-+	depends on INFINIBAND_ADDR_TRANS
-+	select INFINIBAND_RTRS
-+	help
-+	  RDMA transport server module.
++static struct kobj_type ktype = {
++	.sysfs_ops = &kobj_sysfs_ops,
++};
 +
-+	  RTRS server module processing connection and IO requests received
-+	  from the RTRS client module, it will pass the IO requests to its
-+	  user eg. RNBD_server.
-diff --git a/drivers/infiniband/ulp/rtrs/Makefile b/drivers/infiniband/ulp/rtrs/Makefile
-new file mode 100644
-index 000000000000..89332be15c9e
---- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/Makefile
-@@ -0,0 +1,17 @@
-+# SPDX-License-Identifier: GPL-2.0-or-later
++static ssize_t max_reconnect_attempts_show(struct device *dev,
++					   struct device_attribute *attr,
++					   char *page)
++{
++	struct rtrs_clt *clt;
 +
-+rtrs-client-y := rtrs-clt.o \
-+		  rtrs-clt-stats.o \
-+		  rtrs-clt-sysfs.o
++	clt = container_of(dev, struct rtrs_clt, dev);
 +
-+rtrs-server-y := rtrs-srv.o \
-+		  rtrs-srv-stats.o \
-+		  rtrs-srv-sysfs.o
++	return sprintf(page, "%d\n", rtrs_clt_get_max_reconnect_attempts(clt));
++}
 +
-+rtrs-core-y := rtrs.o
++static ssize_t max_reconnect_attempts_store(struct device *dev,
++					    struct device_attribute *attr,
++					    const char *buf,
++					    size_t count)
++{
++	struct rtrs_clt *clt;
++	int value;
++	int ret;
 +
-+obj-$(CONFIG_INFINIBAND_RTRS)        += rtrs-core.o
-+obj-$(CONFIG_INFINIBAND_RTRS_CLIENT) += rtrs-client.o
-+obj-$(CONFIG_INFINIBAND_RTRS_SERVER) += rtrs-server.o
++	clt = container_of(dev, struct rtrs_clt, dev);
 +
-+-include $(src)/compat/compat.mk
++	ret = kstrtoint(buf, 10, &value);
++	if (unlikely(ret)) {
++		rtrs_err(clt, "%s: failed to convert string '%s' to int\n",
++			  attr->attr.name, buf);
++		return ret;
++	}
++	if (unlikely(value > MAX_MAX_RECONN_ATT ||
++		     value < MIN_MAX_RECONN_ATT)) {
++		rtrs_err(clt,
++			  "%s: invalid range (provided: '%s', accepted: min: %d, max: %d)\n",
++			  attr->attr.name, buf, MIN_MAX_RECONN_ATT,
++			  MAX_MAX_RECONN_ATT);
++		return -EINVAL;
++	}
++	rtrs_clt_set_max_reconnect_attempts(clt, value);
++
++	return count;
++}
++
++static DEVICE_ATTR_RW(max_reconnect_attempts);
++
++static ssize_t mpath_policy_show(struct device *dev,
++				 struct device_attribute *attr,
++				 char *page)
++{
++	struct rtrs_clt *clt;
++
++	clt = container_of(dev, struct rtrs_clt, dev);
++
++	switch (clt->mp_policy) {
++	case MP_POLICY_RR:
++		return sprintf(page, "round-robin (RR: %d)\n", clt->mp_policy);
++	case MP_POLICY_MIN_INFLIGHT:
++		return sprintf(page, "min-inflight (MI: %d)\n", clt->mp_policy);
++	default:
++		return sprintf(page, "Unknown (%d)\n", clt->mp_policy);
++	}
++}
++
++static ssize_t mpath_policy_store(struct device *dev,
++				  struct device_attribute *attr,
++				  const char *buf,
++				  size_t count)
++{
++	struct rtrs_clt *clt;
++	int value;
++	int ret;
++
++	clt = container_of(dev, struct rtrs_clt, dev);
++
++	ret = kstrtoint(buf, 10, &value);
++	if (!ret && (value == MP_POLICY_RR ||
++		     value == MP_POLICY_MIN_INFLIGHT)) {
++		clt->mp_policy = value;
++		return count;
++	}
++
++	if (!strncasecmp(buf, "round-robin", 11) ||
++	    !strncasecmp(buf, "rr", 2))
++		clt->mp_policy = MP_POLICY_RR;
++	else if (!strncasecmp(buf, "min-inflight", 12) ||
++		 !strncasecmp(buf, "mi", 2))
++		clt->mp_policy = MP_POLICY_MIN_INFLIGHT;
++	else
++		return -EINVAL;
++
++	return count;
++}
++
++static DEVICE_ATTR_RW(mpath_policy);
++
++static ssize_t add_path_show(struct device *dev,
++			     struct device_attribute *attr, char *page)
++{
++	return scnprintf(page, PAGE_SIZE,
++			 "Usage: echo [<source addr>@]<destination addr> > %s\n\n*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]\n",
++			 attr->attr.name);
++}
++
++static ssize_t add_path_store(struct device *dev,
++			      struct device_attribute *attr,
++			      const char *buf, size_t count)
++{
++	struct sockaddr_storage srcaddr, dstaddr;
++	struct rtrs_addr addr = {
++		.src = &srcaddr,
++		.dst = &dstaddr
++	};
++	struct rtrs_clt *clt;
++	const char *nl;
++	size_t len;
++	int err;
++
++	clt = container_of(dev, struct rtrs_clt, dev);
++
++	nl = strchr(buf, '\n');
++	if (nl)
++		len = nl - buf;
++	else
++		len = count;
++	err = rtrs_addr_to_sockaddr(buf, len, clt->port, &addr);
++	if (unlikely(err))
++		return -EINVAL;
++
++	err = rtrs_clt_create_path_from_sysfs(clt, &addr);
++	if (unlikely(err))
++		return err;
++
++	return count;
++}
++
++static DEVICE_ATTR_RW(add_path);
++
++static ssize_t rtrs_clt_state_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *page)
++{
++	struct rtrs_clt_sess *sess;
++
++	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
++	if (sess->state == RTRS_CLT_CONNECTED)
++		return sprintf(page, "connected\n");
++
++	return sprintf(page, "disconnected\n");
++}
++
++static struct kobj_attribute rtrs_clt_state_attr =
++	__ATTR(state, 0444, rtrs_clt_state_show, NULL);
++
++static ssize_t rtrs_clt_reconnect_show(struct kobject *kobj,
++					struct kobj_attribute *attr,
++					char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t rtrs_clt_reconnect_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf, size_t count)
++{
++	struct rtrs_clt_sess *sess;
++	int ret;
++
++	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
++	if (!sysfs_streq(buf, "1")) {
++		rtrs_err(sess->clt, "%s: unknown value: '%s'\n",
++			  attr->attr.name, buf);
++		return -EINVAL;
++	}
++	ret = rtrs_clt_reconnect_from_sysfs(sess);
++	if (unlikely(ret))
++		return ret;
++
++	return count;
++}
++
++static struct kobj_attribute rtrs_clt_reconnect_attr =
++	__ATTR(reconnect, 0644, rtrs_clt_reconnect_show,
++	       rtrs_clt_reconnect_store);
++
++static ssize_t rtrs_clt_disconnect_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t rtrs_clt_disconnect_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
++{
++	struct rtrs_clt_sess *sess;
++	int ret;
++
++	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
++	if (!sysfs_streq(buf, "1")) {
++		rtrs_err(sess->clt, "%s: unknown value: '%s'\n",
++			  attr->attr.name, buf);
++		return -EINVAL;
++	}
++	ret = rtrs_clt_disconnect_from_sysfs(sess);
++	if (unlikely(ret))
++		return ret;
++
++	return count;
++}
++
++static struct kobj_attribute rtrs_clt_disconnect_attr =
++	__ATTR(disconnect, 0644, rtrs_clt_disconnect_show,
++	       rtrs_clt_disconnect_store);
++
++static ssize_t rtrs_clt_remove_path_show(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t rtrs_clt_remove_path_store(struct kobject *kobj,
++					   struct kobj_attribute *attr,
++					   const char *buf, size_t count)
++{
++	struct rtrs_clt_sess *sess;
++	int ret;
++
++	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
++	if (!sysfs_streq(buf, "1")) {
++		rtrs_err(sess->clt, "%s: unknown value: '%s'\n",
++			  attr->attr.name, buf);
++		return -EINVAL;
++	}
++	ret = rtrs_clt_remove_path_from_sysfs(sess, &attr->attr);
++	if (unlikely(ret))
++		return ret;
++
++	return count;
++}
++
++static struct kobj_attribute rtrs_clt_remove_path_attr =
++	__ATTR(remove_path, 0644, rtrs_clt_remove_path_show,
++	       rtrs_clt_remove_path_store);
++
++STAT_ATTR(struct rtrs_clt_sess, cpu_migration,
++	  rtrs_clt_stats_migration_cnt_to_str,
++	  rtrs_clt_reset_cpu_migr_stats);
++
++STAT_ATTR(struct rtrs_clt_sess, sg_entries,
++	  rtrs_clt_stats_sg_list_distr_to_str,
++	  rtrs_clt_reset_sg_list_distr_stats);
++
++STAT_ATTR(struct rtrs_clt_sess, reconnects,
++	  rtrs_clt_stats_reconnects_to_str,
++	  rtrs_clt_reset_reconnects_stat);
++
++STAT_ATTR(struct rtrs_clt_sess, rdma_lat,
++	  rtrs_clt_stats_rdma_lat_distr_to_str,
++	  rtrs_clt_reset_rdma_lat_distr_stats);
++
++STAT_ATTR(struct rtrs_clt_sess, wc_completion,
++	  rtrs_clt_stats_wc_completion_to_str,
++	  rtrs_clt_reset_wc_comp_stats);
++
++STAT_ATTR(struct rtrs_clt_sess, rdma,
++	  rtrs_clt_stats_rdma_to_str,
++	  rtrs_clt_reset_rdma_stats);
++
++STAT_ATTR(struct rtrs_clt_sess, reset_all,
++	  rtrs_clt_reset_all_help,
++	  rtrs_clt_reset_all_stats);
++
++static struct attribute *rtrs_clt_stats_attrs[] = {
++	&sg_entries_attr.attr,
++	&cpu_migration_attr.attr,
++	&reconnects_attr.attr,
++	&rdma_lat_attr.attr,
++	&wc_completion_attr.attr,
++	&rdma_attr.attr,
++	&reset_all_attr.attr,
++	NULL,
++};
++
++static struct attribute_group rtrs_clt_stats_attr_group = {
++	.attrs = rtrs_clt_stats_attrs,
++};
++
++static int rtrs_clt_create_stats_files(struct kobject *kobj,
++					struct kobject *kobj_stats)
++{
++	int ret;
++
++	ret = kobject_init_and_add(kobj_stats, &ktype, kobj, "stats");
++	if (ret) {
++		pr_err("Failed to init and add stats kobject, err: %d\n",
++		       ret);
++		return ret;
++	}
++
++	ret = sysfs_create_group(kobj_stats, &rtrs_clt_stats_attr_group);
++	if (ret) {
++		pr_err("failed to create stats sysfs group, err: %d\n",
++		       ret);
++		goto err;
++	}
++
++	return 0;
++
++err:
++	kobject_del(kobj_stats);
++	kobject_put(kobj_stats);
++
++	return ret;
++}
++
++static ssize_t rtrs_clt_hca_port_show(struct kobject *kobj,
++				       struct kobj_attribute *attr,
++				       char *page)
++{
++	struct rtrs_clt_sess *sess;
++
++	sess = container_of(kobj, typeof(*sess), kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%u\n", sess->hca_port);
++}
++
++static struct kobj_attribute rtrs_clt_hca_port_attr =
++	__ATTR(hca_port, 0444, rtrs_clt_hca_port_show, NULL);
++
++static ssize_t rtrs_clt_hca_name_show(struct kobject *kobj,
++				       struct kobj_attribute *attr,
++				       char *page)
++{
++	struct rtrs_clt_sess *sess;
++
++	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%s\n", sess->hca_name);
++}
++
++static struct kobj_attribute rtrs_clt_hca_name_attr =
++	__ATTR(hca_name, 0444, rtrs_clt_hca_name_show, NULL);
++
++static ssize_t rtrs_clt_src_addr_show(struct kobject *kobj,
++				       struct kobj_attribute *attr,
++				       char *page)
++{
++	struct rtrs_clt_sess *sess;
++	int cnt;
++
++	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
++	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.src_addr,
++			      page, PAGE_SIZE);
++	return cnt + scnprintf(page + cnt, PAGE_SIZE - cnt, "\n");
++}
++
++static struct kobj_attribute rtrs_clt_src_addr_attr =
++	__ATTR(src_addr, 0444, rtrs_clt_src_addr_show, NULL);
++
++static ssize_t rtrs_clt_dst_addr_show(struct kobject *kobj,
++				       struct kobj_attribute *attr,
++				       char *page)
++{
++	struct rtrs_clt_sess *sess;
++	int cnt;
++
++	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
++	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr,
++			      page, PAGE_SIZE);
++	return cnt + scnprintf(page + cnt, PAGE_SIZE - cnt, "\n");
++}
++
++static struct kobj_attribute rtrs_clt_dst_addr_attr =
++	__ATTR(dst_addr, 0444, rtrs_clt_dst_addr_show, NULL);
++
++static struct attribute *rtrs_clt_sess_attrs[] = {
++	&rtrs_clt_hca_name_attr.attr,
++	&rtrs_clt_hca_port_attr.attr,
++	&rtrs_clt_src_addr_attr.attr,
++	&rtrs_clt_dst_addr_attr.attr,
++	&rtrs_clt_state_attr.attr,
++	&rtrs_clt_reconnect_attr.attr,
++	&rtrs_clt_disconnect_attr.attr,
++	&rtrs_clt_remove_path_attr.attr,
++	NULL,
++};
++
++static struct attribute_group rtrs_clt_sess_attr_group = {
++	.attrs = rtrs_clt_sess_attrs,
++};
++
++int rtrs_clt_create_sess_files(struct rtrs_clt_sess *sess)
++{
++	struct rtrs_clt *clt = sess->clt;
++	char str[NAME_MAX];
++	int err, cnt;
++
++	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.src_addr,
++			      str, sizeof(str));
++	cnt += scnprintf(str + cnt, sizeof(str) - cnt, "@");
++	sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr,
++			str + cnt, sizeof(str) - cnt);
++
++	err = kobject_init_and_add(&sess->kobj, &ktype, &clt->kobj_paths,
++				   "%s", str);
++	if (unlikely(err)) {
++		pr_err("kobject_init_and_add: %d\n", err);
++		return err;
++	}
++	err = sysfs_create_group(&sess->kobj, &rtrs_clt_sess_attr_group);
++	if (unlikely(err)) {
++		pr_err("sysfs_create_group(): %d\n", err);
++		goto put_kobj;
++	}
++	err = rtrs_clt_create_stats_files(&sess->kobj, &sess->kobj_stats);
++	if (unlikely(err))
++		goto put_kobj;
++
++	return 0;
++
++put_kobj:
++	kobject_del(&sess->kobj);
++	kobject_put(&sess->kobj);
++
++	return err;
++}
++
++void rtrs_clt_destroy_sess_files(struct rtrs_clt_sess *sess,
++				  const struct attribute *sysfs_self)
++{
++	if (sess->kobj.state_in_sysfs) {
++		kobject_del(&sess->kobj_stats);
++		kobject_put(&sess->kobj_stats);
++		if (sysfs_self)
++			/* To avoid deadlock firstly commit suicide */
++			sysfs_remove_file_self(&sess->kobj, sysfs_self);
++		kobject_del(&sess->kobj);
++		kobject_put(&sess->kobj);
++	}
++}
++
++static struct attribute *rtrs_clt_attrs[] = {
++	&dev_attr_max_reconnect_attempts.attr,
++	&dev_attr_mpath_policy.attr,
++	&dev_attr_add_path.attr,
++	NULL,
++};
++
++static struct attribute_group rtrs_clt_attr_group = {
++	.attrs = rtrs_clt_attrs,
++};
++
++int rtrs_clt_create_sysfs_root_folders(struct rtrs_clt *clt)
++{
++	return kobject_init_and_add(&clt->kobj_paths, &ktype,
++				    &clt->dev.kobj, "paths");
++}
++
++int rtrs_clt_create_sysfs_root_files(struct rtrs_clt *clt)
++{
++	return sysfs_create_group(&clt->dev.kobj, &rtrs_clt_attr_group);
++}
++
++void rtrs_clt_destroy_sysfs_root_folders(struct rtrs_clt *clt)
++{
++	if (clt->kobj_paths.state_in_sysfs) {
++		kobject_del(&clt->kobj_paths);
++		kobject_put(&clt->kobj_paths);
++	}
++}
++
++void rtrs_clt_destroy_sysfs_root_files(struct rtrs_clt *clt)
++{
++	sysfs_remove_group(&clt->dev.kobj, &rtrs_clt_attr_group);
++}
 -- 
 2.17.1
 
