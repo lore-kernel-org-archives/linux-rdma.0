@@ -2,94 +2,73 @@ Return-Path: <SRS0=CiuV=2K=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41671C43603
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 00:15:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31912C43603
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 02:25:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1454C24672
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 00:15:41 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=lixom-net.20150623.gappssmtp.com header.i=@lixom-net.20150623.gappssmtp.com header.b="NNy98T7d"
+	by mail.kernel.org (Postfix) with ESMTP id F2F7E2068F
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 02:25:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726992AbfLTAPk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Dec 2019 19:15:40 -0500
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:38826 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726964AbfLTAPk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Dec 2019 19:15:40 -0500
-Received: by mail-pf1-f194.google.com with SMTP id x185so4211644pfc.5
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Dec 2019 16:15:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=lixom-net.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id;
-        bh=Xza35VKEvSvjMP8PzRVZ35j7UizUwWQ11TtoEWfsA3Q=;
-        b=NNy98T7dz4IUNnNLaJQft6RAEhtwCcTFXv02GozymvM1Ea1jNkJFQv2PQ+QRRXSLFk
-         Mk5zTLKbBusvQPv+bg/u7qv8XzRqAPNTtdH+4maUWOK8PwJVrv6imA3+TuoGotcjr/rq
-         WeaXXWd19uZ6bdYkMrnQAJmo+Q55zv1IfdYygUO/CGVTxuS5zngvmsySsLuWoGoKa2zG
-         PxqsjNI4ya8KxN5qjphBTmkxJTPQoMpLZ6fLFikgoG2+MMx6ywYVBEYidrg7wqU/s40N
-         8g6m8CfYBp5/K3xC38QRkgsNQ2VUJEBe9gbcJJnF5RGAFwvBjneY+pxLSV0c3juCFZnW
-         T5JQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=Xza35VKEvSvjMP8PzRVZ35j7UizUwWQ11TtoEWfsA3Q=;
-        b=JobzISjRGTK2xztlvvDHTGlqjeeXOspLT62XDId7VbIi3BYGatZk89gvK5SU5x8n9q
-         abSz3qW0G2hCLjQryn8duUBPShFnYqOZmYfr/IhWrm5+zDG3j/dMb1hfboBzyyjXgxaO
-         GwtqgZIbNmbCI1H/XLKM0K/XsijaSXM7Sq9yhY/GRuxggfH6u0mbbWYxiVafHqBM4OwF
-         qR9Dtolc/zun1zo+wXlMesVHqpcxA9fpdt14mPw+EnNmERi7aBg7d0oK10xtuX3W0vSx
-         BurFnipyLaNsgtxQxfwmDnFgmuBm7bJayUD4KdiDryO4QB/WFcXNTPN9yZQYEPwKWeDe
-         +orA==
-X-Gm-Message-State: APjAAAUryaCibYrBUHolUh9FWpjzT3mfNGDDXQY2uZdQkZmEiAXTq1aA
-        6GmLNhWUffcynNtILztYP8pirw==
-X-Google-Smtp-Source: APXvYqzHTcFOfPjIOzxBXsbVb01FSma/OGljIvD3S6xqG+A2sFrTNEZIUktiv1IzutARjpJbzkpXRg==
-X-Received: by 2002:a65:58ce:: with SMTP id e14mr11807199pgu.153.1576800939356;
-        Thu, 19 Dec 2019 16:15:39 -0800 (PST)
-Received: from rip.lixom.net (99-152-116-91.lightspeed.sntcca.sbcglobal.net. [99.152.116.91])
-        by smtp.gmail.com with ESMTPSA id e16sm8603679pgk.77.2019.12.19.16.15.37
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 19 Dec 2019 16:15:37 -0800 (PST)
-From:   Olof Johansson <olof@lixom.net>
-To:     Saeed Mahameed <saeedm@mellanox.com>,
+        id S1727016AbfLTCZC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Dec 2019 21:25:02 -0500
+Received: from smtprelay0207.hostedemail.com ([216.40.44.207]:50293 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726964AbfLTCZC (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Dec 2019 21:25:02 -0500
+X-Greylist: delayed 1043 seconds by postgrey-1.27 at vger.kernel.org; Thu, 19 Dec 2019 21:25:01 EST
+Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
+        by smtpgrave01.hostedemail.com (Postfix) with ESMTP id 1E6A718016BD0
+        for <linux-rdma@vger.kernel.org>; Fri, 20 Dec 2019 02:07:39 +0000 (UTC)
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay03.hostedemail.com (Postfix) with ESMTP id 94152837F24D;
+        Fri, 20 Dec 2019 02:07:37 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: bag50_5f8a9fc957d61
+X-Filterd-Recvd-Size: 1672
+Received: from XPS-9350.home (unknown [47.151.135.224])
+        (Authenticated sender: joe@perches.com)
+        by omf09.hostedemail.com (Postfix) with ESMTPA;
+        Fri, 20 Dec 2019 02:07:36 +0000 (UTC)
+Message-ID: <ff6dc8997083c5d8968df48cc191e5b9e8797618.camel@perches.com>
+Subject: Re: [PATCH] net/mlx5e: Fix printk format warning
+From:   Joe Perches <joe@perches.com>
+To:     Olof Johansson <olof@lixom.net>,
+        Saeed Mahameed <saeedm@mellanox.com>,
         Leon Romanovsky <leon@kernel.org>
 Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Olof Johansson <olof@lixom.net>
-Subject: [PATCH] net/mlx5e: Fix printk format warning
-Date:   Thu, 19 Dec 2019 16:15:17 -0800
-Message-Id: <20191220001517.105297-1-olof@lixom.net>
-X-Mailer: git-send-email 2.11.0
+        linux-kernel@vger.kernel.org
+Date:   Thu, 19 Dec 2019 18:06:57 -0800
+In-Reply-To: <20191220001517.105297-1-olof@lixom.net>
+References: <20191220001517.105297-1-olof@lixom.net>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.34.1-2 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use "%zu" for size_t. Seen on ARM allmodconfig:
+On Thu, 2019-12-19 at 16:15 -0800, Olof Johansson wrote:
+> Use "%zu" for size_t. Seen on ARM allmodconfig:
+[]
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/wq.c b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
+[]
+> @@ -89,7 +89,7 @@ void mlx5_wq_cyc_wqe_dump(struct mlx5_wq_cyc *wq, u16 ix, u8 nstrides)
+>  	len = nstrides << wq->fbc.log_stride;
+>  	wqe = mlx5_wq_cyc_get_wqe(wq, ix);
+>  
+> -	pr_info("WQE DUMP: WQ size %d WQ cur size %d, WQE index 0x%x, len: %ld\n",
+> +	pr_info("WQE DUMP: WQ size %d WQ cur size %d, WQE index 0x%x, len: %zu\n",
+>  		mlx5_wq_cyc_get_size(wq), wq->cur_sz, ix, len);
+>  	print_hex_dump(KERN_WARNING, "", DUMP_PREFIX_OFFSET, 16, 1, wqe, len, false);
+>  }
 
-drivers/net/ethernet/mellanox/mlx5/core/wq.c: In function 'mlx5_wq_cyc_wqe_dump':
-include/linux/kern_levels.h:5:18: warning: format '%ld' expects argument of type 'long int', but argument 5 has type 'size_t' {aka 'unsigned int'} [-Wformat=]
+One might expect these 2 outputs to be at the same KERN_<LEVEL> too.
+One is KERN_INFO the other KERN_WARNING
 
-Fixes: 130c7b46c93d ("net/mlx5e: TX, Dump WQs wqe descriptors on CQE with error events")
-Signed-off-by: Olof Johansson <olof@lixom.net>
----
- drivers/net/ethernet/mellanox/mlx5/core/wq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/wq.c b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-index f2a0e72285bac..02f7e4a39578a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-@@ -89,7 +89,7 @@ void mlx5_wq_cyc_wqe_dump(struct mlx5_wq_cyc *wq, u16 ix, u8 nstrides)
- 	len = nstrides << wq->fbc.log_stride;
- 	wqe = mlx5_wq_cyc_get_wqe(wq, ix);
- 
--	pr_info("WQE DUMP: WQ size %d WQ cur size %d, WQE index 0x%x, len: %ld\n",
-+	pr_info("WQE DUMP: WQ size %d WQ cur size %d, WQE index 0x%x, len: %zu\n",
- 		mlx5_wq_cyc_get_size(wq), wq->cur_sz, ix, len);
- 	print_hex_dump(KERN_WARNING, "", DUMP_PREFIX_OFFSET, 16, 1, wqe, len, false);
- }
--- 
-2.11.0
 
