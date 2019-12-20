@@ -5,64 +5,64 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19CAEC2D0D6
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89AB5C2D0D2
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BCCF421D7E
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 574AB24679
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NGEbQTjl"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iUDgQpUt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727600AbfLTPvk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Dec 2019 10:51:40 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:37566 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727551AbfLTPvj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Dec 2019 10:51:39 -0500
-Received: by mail-wr1-f66.google.com with SMTP id w15so9905110wru.4;
-        Fri, 20 Dec 2019 07:51:37 -0800 (PST)
+        id S1727608AbfLTPvo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Dec 2019 10:51:44 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:54696 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727551AbfLTPvo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Dec 2019 10:51:44 -0500
+Received: by mail-wm1-f65.google.com with SMTP id b19so9404247wmj.4;
+        Fri, 20 Dec 2019 07:51:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=/4wq1UNenJT5Ow48NITan4F3N6GDJXmWUGxf2T4UrMg=;
-        b=NGEbQTjlcA9pi4FCI5c0Gng7dhgOMtoiCf6nJGWI7JxjIUw+laR3Vdw4k2axhGvWLP
-         vR0dtMoBcm5d3fuxPeGo0hdb4adt2vmlZZttvz0GLQc0X7ucD3lKvQS2M6I0/6+h3R3Y
-         JXXF3st3pgfwgpM/4j6Yso3Kz8ff54CT54ParDf2wz6DiYMsuZWp7eZNwCsokb3WBkri
-         +XP+HwWzzJoQE8/i13uq7fSOvPEVqmwaUPDYdG0nEDwJWz0DiKiUE8RH6inukhqUh5JV
-         feGDLg901M5x1butEDiHpWkWsnKRjhou+f4ArIyyGBhFvjfo5iAs9S++gjBtE/7u9Bhq
-         hWMw==
+        bh=f1sZGpHUFcqW+saRVuN41DkxdjViE620F61SSWGrB+k=;
+        b=iUDgQpUtVcQX7pRWtyRUgT4liWQCZ+QQUruKGO5T7cIj6d3MXG4gZQBJL9qxpm2f/C
+         15haMfzS3eN6j4ISt68reqFnMmz2lVZvRW3y4hoRcwbwQ1Vad+D7WBmokRHsh4G2lA7O
+         9NW1jhOv/vlSPaVTf8n0KS3Ht8eEpUfXHnFvbACIJDe/MQi7AZ5gFCfOC6o6EXS3H+bQ
+         /0L3iySRLwAULPqPHJXg0Sq9dF4Gs0YKmehsKKHkW7pJdlApZ2Xc97vNy2ebnMWggruU
+         DXCsqPSjZXNdz7GwW19gBs0eIPyxEQhqdTSZmnE7sN4+mDmfvizMgOS7Z79bn9z+vbiI
+         2DVw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=/4wq1UNenJT5Ow48NITan4F3N6GDJXmWUGxf2T4UrMg=;
-        b=uZc79kVkObOIAmuoJpuKrnIArLyvigBPx+iZoTrDXOqPQwNPJUNXVE1RMP2TBIluvS
-         rrLKC7rH9g2BVuR7ysEZ9vXVBNUdNWjO43oHLfuYO3GqLArJsynhJSRQgRrG1CasKMi+
-         0hgAPbFFznC0vK9a6RmqkhAIgNVoBva/+OFORQoRgUaM8Evoz0mRjQctO8ZR4Om8xM/U
-         /D7PHdxxvo3Kwp7K6etq+4O2n6+4tvIksJ829mkuKiQvP0qpGBcV1HWOYqocQKVqTMDf
-         /Z4NcwCG+3jDaxQkMyFlusc/pP+FbfPHmXaXCbEsxFNm5+gkSKo6nk0xisUIeHGfqo8f
-         LVCg==
-X-Gm-Message-State: APjAAAWcnzIRr72vCxjOv0F9UTyIPAsAe6+DVEGuzFoU3br1595dLsJF
-        UTqr1EMVPxbIYIpZp8HFVFZA/YGH9oU=
-X-Google-Smtp-Source: APXvYqwJojZTu/0SOpx7kI3KJkoSLwFPg+ly3ziWq8ZlCAj4zO7pkYuPYM1H7jcO2RmpJElcq1ij3Q==
-X-Received: by 2002:adf:8bde:: with SMTP id w30mr15659367wra.124.1576857095600;
-        Fri, 20 Dec 2019 07:51:35 -0800 (PST)
+        bh=f1sZGpHUFcqW+saRVuN41DkxdjViE620F61SSWGrB+k=;
+        b=Mt3MyU4CEWckxKMBwb5UVuu+1sLsTmG5roWe0h2o6Ex6r08o5UeZ87PZSqkx7CIho+
+         16eWf0YNVp6pomp9XyT6y/u5xUE8cxasE0uQJYs9yvPiMKfiZaT4jF5S8s1b/WSTqSub
+         g1idJbUutDmEzPg/z+No7bfGQHDX0vxgogxKKDwHJLByEJsa/PdTi2GrPmSggkO+J5Q/
+         YAdc7o5eTa7UPV6S1fKNwbLPEKTloM+enBgdklbUivnHQiTP4BONMtLNiWEefn0zEWhd
+         /1WQj3VdE20ji9nTxysysAajjHNTtafURnGKBOyq2QDoKzFd2HKeGoo1y+ES/vtk98Gw
+         XJnA==
+X-Gm-Message-State: APjAAAWLuTeMqw5dWXgJCnKd5zhRtAxnmYWleAr06/WtMaxNkW9IPl28
+        Vx3CX72zSlXib83Xz1p5vP3Ngqaz
+X-Google-Smtp-Source: APXvYqwxjtdXnHlNCXZ2ihxYm+sb95eIR26SPKHwHEbbsqKpq1lY3hmlG6BlyMeJ2NRUvp/kCbTSrg==
+X-Received: by 2002:a1c:2187:: with SMTP id h129mr11505599wmh.44.1576857099756;
+        Fri, 20 Dec 2019 07:51:39 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4972:cc00:b9e0:6ef7:286d:4897])
-        by smtp.gmail.com with ESMTPSA id u14sm10372139wrm.51.2019.12.20.07.51.34
+        by smtp.gmail.com with ESMTPSA id u14sm10372139wrm.51.2019.12.20.07.51.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Dec 2019 07:51:35 -0800 (PST)
+        Fri, 20 Dec 2019 07:51:39 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com,
         rpenyaev@suse.de
-Subject: [PATCH v5 17/25] rnbd: client: main functionality
-Date:   Fri, 20 Dec 2019 16:51:01 +0100
-Message-Id: <20191220155109.8959-18-jinpuwang@gmail.com>
+Subject: [PATCH v5 20/25] rnbd: server: main functionality
+Date:   Fri, 20 Dec 2019 16:51:04 +0100
+Message-Id: <20191220155109.8959-21-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20191220155109.8959-1-jinpuwang@gmail.com>
 References: <20191220155109.8959-1-jinpuwang@gmail.com>
@@ -73,23 +73,24 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-This is main functionality of rnbd-client module, which provides
-interface to map remote device as local block device /dev/rnbd<N>
-and feeds RTRS with IO requests.
+This is main functionality of rnbd-server module, which handles IBTRS
+events and rnbd protocol requests, like map (open) or unmap (close)
+device.  Also server side is responsible for processing incoming IBTRS
+IO requests and forward them to local mapped devices.
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/block/rnbd/rnbd-clt.c | 1761 +++++++++++++++++++++++++++++++++
- 1 file changed, 1761 insertions(+)
- create mode 100644 drivers/block/rnbd/rnbd-clt.c
+ drivers/block/rnbd/rnbd-srv.c | 882 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 882 insertions(+)
+ create mode 100644 drivers/block/rnbd/rnbd-srv.c
 
-diff --git a/drivers/block/rnbd/rnbd-clt.c b/drivers/block/rnbd/rnbd-clt.c
+diff --git a/drivers/block/rnbd/rnbd-srv.c b/drivers/block/rnbd/rnbd-srv.c
 new file mode 100644
-index 000000000000..cddaa6632286
+index 000000000000..706918848d95
 --- /dev/null
-+++ b/drivers/block/rnbd/rnbd-clt.c
-@@ -0,0 +1,1761 @@
++++ b/drivers/block/rnbd/rnbd-srv.c
+@@ -0,0 +1,882 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * InfiniBand Network Block Driver
@@ -105,1752 +106,873 @@ index 000000000000..cddaa6632286
 + * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
 + * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
 + *          Roman Penyaev <roman.penyaev@profitbricks.com>
-+ *          Swapnil Ingle <swapnil.ingle@profitbricks.com>
 + *
 + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
 + * Authors: Roman Penyaev <roman.penyaev@profitbricks.com>
 + *          Jack Wang <jinpu.wang@cloud.ionos.com>
 + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
 + */
++
 +/* Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
 + * Authors: Jack Wang <jinpu.wang@cloud.ionos.com>
 + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
 + *          Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 + *          Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
 + */
-+
 +#undef pr_fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
 +#include <linux/module.h>
 +#include <linux/blkdev.h>
-+#include <linux/hdreg.h>
-+#include <linux/scatterlist.h>
-+#include <linux/idr.h>
 +
-+#include "rnbd-clt.h"
++#include "rnbd-srv.h"
++#include "rnbd-srv-dev.h"
 +
-+MODULE_DESCRIPTION("InfiniBand Network Block Device Client");
++MODULE_DESCRIPTION("InfiniBand Network Block Device Server");
 +MODULE_LICENSE("GPL");
 +
-+static int rnbd_client_major;
-+static DEFINE_IDA(index_ida);
-+static DEFINE_MUTEX(ida_lock);
-+static DEFINE_MUTEX(sess_lock);
-+static LIST_HEAD(sess_list);
++static int __read_mostly port_nr = RTRS_PORT;
 +
-+/*
-+ * Maximum number of partitions an instance can have.
-+ * 6 bits = 64 minors = 63 partitions (one minor is used for the device itself)
-+ */
-+#define RNBD_PART_BITS		6
++module_param_named(port_nr, port_nr, int, 0444);
++MODULE_PARM_DESC(port_nr,
++		 "The port number server is listening on (default: "
++		 __stringify(RTRS_PORT)")");
 +
-+static inline bool rnbd_clt_get_sess(struct rnbd_clt_session *sess)
++#define DEFAULT_DEV_SEARCH_PATH "/"
++
++static char dev_search_path[PATH_MAX] = DEFAULT_DEV_SEARCH_PATH;
++
++static int dev_search_path_set(const char *val, const struct kernel_param *kp)
 +{
-+	return refcount_inc_not_zero(&sess->refcount);
-+}
++	char *dup;
 +
-+static void free_sess(struct rnbd_clt_session *sess);
-+
-+static void rnbd_clt_put_sess(struct rnbd_clt_session *sess)
-+{
-+	might_sleep();
-+
-+	if (refcount_dec_and_test(&sess->refcount))
-+		free_sess(sess);
-+}
-+
-+static inline bool rnbd_clt_dev_is_mapped(struct rnbd_clt_dev *dev)
-+{
-+	return dev->dev_state == DEV_STATE_MAPPED;
-+}
-+
-+static void rnbd_clt_put_dev(struct rnbd_clt_dev *dev)
-+{
-+	might_sleep();
-+
-+	if (refcount_dec_and_test(&dev->refcount)) {
-+		mutex_lock(&ida_lock);
-+		ida_simple_remove(&index_ida, dev->clt_device_id);
-+		mutex_unlock(&ida_lock);
-+		kfree(dev->hw_queues);
-+		rnbd_clt_put_sess(dev->sess);
-+		kfree(dev);
-+	}
-+}
-+
-+static inline bool rnbd_clt_get_dev(struct rnbd_clt_dev *dev)
-+{
-+	return refcount_inc_not_zero(&dev->refcount);
-+}
-+
-+static int rnbd_clt_set_dev_attr(struct rnbd_clt_dev *dev,
-+				  const struct rnbd_msg_open_rsp *rsp)
-+{
-+	struct rnbd_clt_session *sess = dev->sess;
-+
-+	if (unlikely(!rsp->logical_block_size))
++	if (strlen(val) >= sizeof(dev_search_path))
 +		return -EINVAL;
 +
-+	dev->device_id		    = le32_to_cpu(rsp->device_id);
-+	dev->nsectors		    = le64_to_cpu(rsp->nsectors);
-+	dev->logical_block_size	    = le16_to_cpu(rsp->logical_block_size);
-+	dev->physical_block_size    = le16_to_cpu(rsp->physical_block_size);
-+	dev->max_write_same_sectors = le32_to_cpu(rsp->max_write_same_sectors);
-+	dev->max_discard_sectors    = le32_to_cpu(rsp->max_discard_sectors);
-+	dev->discard_granularity    = le32_to_cpu(rsp->discard_granularity);
-+	dev->discard_alignment	    = le32_to_cpu(rsp->discard_alignment);
-+	dev->secure_discard	    = le16_to_cpu(rsp->secure_discard);
-+	dev->rotational		    = rsp->rotational;
++	dup = kstrdup(val, GFP_KERNEL);
 +
-+	dev->max_hw_sectors = sess->max_io_size / dev->logical_block_size;
-+	dev->max_segments = BMAX_SEGMENTS;
++	if (dup[strlen(dup) - 1] == '\n')
++		dup[strlen(dup) - 1] = '\0';
 +
-+	dev->max_hw_sectors = min_t(u32, dev->max_hw_sectors,
-+				    le32_to_cpu(rsp->max_hw_sectors));
-+	dev->max_segments = min_t(u16, dev->max_segments,
-+				  le16_to_cpu(rsp->max_segments));
++	strlcpy(dev_search_path, dup, sizeof(dev_search_path));
++
++	kfree(dup);
++	pr_info("dev_search_path changed to '%s'\n", dev_search_path);
 +
 +	return 0;
 +}
 +
-+static int rnbd_clt_change_capacity(struct rnbd_clt_dev *dev,
-+				     size_t new_nsectors)
-+{
-+	int err = 0;
++static struct kparam_string dev_search_path_kparam_str = {
++	.maxlen	= sizeof(dev_search_path),
++	.string	= dev_search_path
++};
 +
-+	rnbd_clt_info(dev, "Device size changed from %zu to %zu sectors\n",
-+		       dev->nsectors, new_nsectors);
-+	dev->nsectors = new_nsectors;
-+	set_capacity(dev->gd,
-+		     dev->nsectors * (dev->logical_block_size /
-+				      SECTOR_SIZE));
-+	err = revalidate_disk(dev->gd);
-+	if (err)
-+		rnbd_clt_err(dev,
-+			      "Failed to change device size from %zu to %zu, err: %d\n",
-+			      dev->nsectors, new_nsectors, err);
-+	return err;
++static const struct kernel_param_ops dev_search_path_ops = {
++	.set	= dev_search_path_set,
++	.get	= param_get_string,
++};
++
++module_param_cb(dev_search_path, &dev_search_path_ops,
++		&dev_search_path_kparam_str, 0444);
++MODULE_PARM_DESC(dev_search_path,
++		 "Sets the dev_search_path. When a device is mapped this path is prepended to the device path from the map device operation.  If %SESSNAME% is specified in a path, then device will be searched in a session namespace. (default: "
++		 DEFAULT_DEV_SEARCH_PATH ")");
++
++static DEFINE_MUTEX(sess_lock);
++static DEFINE_SPINLOCK(dev_lock);
++
++static LIST_HEAD(sess_list);
++static LIST_HEAD(dev_list);
++
++struct rnbd_io_private {
++	struct rtrs_srv_op		*id;
++	struct rnbd_srv_sess_dev	*sess_dev;
++};
++
++static void rnbd_sess_dev_release(struct kref *kref)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
++
++	sess_dev = container_of(kref, struct rnbd_srv_sess_dev, kref);
++	complete(sess_dev->destroy_comp);
 +}
 +
-+static int process_msg_open_rsp(struct rnbd_clt_dev *dev,
-+				struct rnbd_msg_open_rsp *rsp)
++static inline void rnbd_put_sess_dev(struct rnbd_srv_sess_dev *sess_dev)
 +{
-+	int err = 0;
-+
-+	mutex_lock(&dev->lock);
-+	if (dev->dev_state == DEV_STATE_UNMAPPED) {
-+		rnbd_clt_info(dev,
-+			       "Ignoring Open-Response message from server for  unmapped device\n");
-+		err = -ENOENT;
-+		goto out;
-+	}
-+	if (dev->dev_state == DEV_STATE_MAPPED_DISCONNECTED) {
-+		u64 nsectors = le64_to_cpu(rsp->nsectors);
-+
-+		/*
-+		 * If the device was remapped and the size changed in the
-+		 * meantime we need to revalidate it
-+		 */
-+		if (dev->nsectors != nsectors)
-+			rnbd_clt_change_capacity(dev, nsectors);
-+		rnbd_clt_info(dev, "Device online, device remapped successfully\n");
-+	}
-+	err = rnbd_clt_set_dev_attr(dev, rsp);
-+	if (unlikely(err))
-+		goto out;
-+	dev->dev_state = DEV_STATE_MAPPED;
-+
-+out:
-+	mutex_unlock(&dev->lock);
-+
-+	return err;
++	kref_put(&sess_dev->kref, rnbd_sess_dev_release);
 +}
 +
-+int rnbd_clt_resize_disk(struct rnbd_clt_dev *dev, size_t newsize)
++static void rnbd_endio(void *priv, int error)
 +{
++	struct rnbd_io_private *rnbd_priv = priv;
++	struct rnbd_srv_sess_dev *sess_dev = rnbd_priv->sess_dev;
++
++	rnbd_put_sess_dev(sess_dev);
++
++	rtrs_srv_resp_rdma(rnbd_priv->id, error);
++
++	kfree(priv);
++}
++
++static struct rnbd_srv_sess_dev *
++rnbd_get_sess_dev(int dev_id, struct rnbd_srv_session *srv_sess)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
 +	int ret = 0;
 +
-+	mutex_lock(&dev->lock);
-+	if (dev->dev_state != DEV_STATE_MAPPED) {
-+		pr_err("Failed to set new size of the device, device is not opened\n");
-+		ret = -ENOENT;
-+		goto out;
++	read_lock(&srv_sess->index_lock);
++	sess_dev = idr_find(&srv_sess->index_idr, dev_id);
++	if (likely(sess_dev))
++		ret = kref_get_unless_zero(&sess_dev->kref);
++	read_unlock(&srv_sess->index_lock);
++
++	if (unlikely(!sess_dev || !ret))
++		return ERR_PTR(-ENXIO);
++
++	return sess_dev;
++}
++
++static int process_rdma(struct rtrs_srv *sess,
++			struct rnbd_srv_session *srv_sess,
++			struct rtrs_srv_op *id, void *data, u32 datalen,
++			const void *usr, size_t usrlen)
++{
++	const struct rnbd_msg_io *msg = usr;
++	struct rnbd_io_private *priv;
++	struct rnbd_srv_sess_dev *sess_dev;
++	u32 dev_id;
++	int err;
++
++	priv = kmalloc(sizeof(*priv), GFP_KERNEL);
++	if (unlikely(!priv))
++		return -ENOMEM;
++
++	dev_id = le32_to_cpu(msg->device_id);
++
++	sess_dev = rnbd_get_sess_dev(dev_id, srv_sess);
++	if (IS_ERR(sess_dev)) {
++		pr_err_ratelimited("Got I/O request on session %s for unknown device id %d\n",
++				   srv_sess->sessname, dev_id);
++		err = -ENOTCONN;
++		goto err;
 +	}
-+	ret = rnbd_clt_change_capacity(dev, newsize);
++
++	priv->sess_dev = sess_dev;
++	priv->id = id;
++
++	err = rnbd_dev_submit_io(sess_dev->rnbd_dev, le64_to_cpu(msg->sector),
++				  data, datalen, le32_to_cpu(msg->bi_size),
++				  le32_to_cpu(msg->rw),
++				  srv_sess->ver < RNBD_PROTO_VER_MAJOR ||
++				  usrlen < sizeof(*msg) ?
++				  0 : le16_to_cpu(msg->prio), priv);
++	if (unlikely(err)) {
++		rnbd_srv_err(sess_dev, "Submitting I/O to device failed, err: %d\n",
++			      err);
++		goto sess_dev_put;
++	}
++
++	return 0;
++
++sess_dev_put:
++	rnbd_put_sess_dev(sess_dev);
++err:
++	kfree(priv);
++	return err;
++}
++
++static void destroy_device(struct rnbd_srv_dev *dev)
++{
++	WARN(!list_empty(&dev->sess_dev_list),
++	     "Device %s is being destroyed but still in use!\n",
++	     dev->id);
++
++	spin_lock(&dev_lock);
++	list_del(&dev->list);
++	spin_unlock(&dev_lock);
++
++	if (dev->dev_kobj.state_in_sysfs)
++		/*
++		 * Destroy kobj only if it was really created.
++		 * The following call should be sync, because
++		 *  we free the memory afterwards.
++		 */
++		rnbd_srv_destroy_dev_sysfs(dev);
++
++	kfree(dev);
++}
++
++static void destroy_device_cb(struct kref *kref)
++{
++	struct rnbd_srv_dev *dev;
++
++	dev = container_of(kref, struct rnbd_srv_dev, kref);
++
++	destroy_device(dev);
++}
++
++static void rnbd_put_srv_dev(struct rnbd_srv_dev *dev)
++{
++	kref_put(&dev->kref, destroy_device_cb);
++}
++
++static void rnbd_destroy_sess_dev(struct rnbd_srv_sess_dev *sess_dev)
++{
++	DECLARE_COMPLETION_ONSTACK(dc);
++
++	write_lock(&sess_dev->sess->index_lock);
++	idr_remove(&sess_dev->sess->index_idr, sess_dev->device_id);
++	write_unlock(&sess_dev->sess->index_lock);
++
++	sess_dev->destroy_comp = &dc;
++	rnbd_put_sess_dev(sess_dev);
++	wait_for_completion(&dc);
++
++	rnbd_dev_close(sess_dev->rnbd_dev);
++	list_del(&sess_dev->sess_list);
++	mutex_lock(&sess_dev->dev->lock);
++	list_del(&sess_dev->dev_list);
++	if (sess_dev->open_flags & FMODE_WRITE)
++		sess_dev->dev->open_write_cnt--;
++	mutex_unlock(&sess_dev->dev->lock);
++
++	rnbd_put_srv_dev(sess_dev->dev);
++
++	rnbd_srv_info(sess_dev, "Device closed\n");
++	kfree(sess_dev);
++}
++
++static void destroy_sess(struct rnbd_srv_session *srv_sess)
++{
++	struct rnbd_srv_sess_dev *sess_dev, *tmp;
++
++	if (list_empty(&srv_sess->sess_dev_list))
++		goto out;
++
++	mutex_lock(&srv_sess->lock);
++	list_for_each_entry_safe(sess_dev, tmp, &srv_sess->sess_dev_list,
++				 sess_list) {
++		rnbd_srv_destroy_dev_session_sysfs(sess_dev);
++		rnbd_destroy_sess_dev(sess_dev);
++	}
++	mutex_unlock(&srv_sess->lock);
 +
 +out:
-+	mutex_unlock(&dev->lock);
++	idr_destroy(&srv_sess->index_idr);
++	bioset_exit(&srv_sess->sess_bio_set);
 +
-+	return ret;
++	pr_info("RTRS Session %s disconnected\n", srv_sess->sessname);
++
++	mutex_lock(&sess_lock);
++	list_del(&srv_sess->list);
++	mutex_unlock(&sess_lock);
++
++	kfree(srv_sess);
 +}
 +
-+static inline void rnbd_clt_dev_requeue(struct rnbd_queue *q)
++static int create_sess(struct rtrs_srv *rtrs)
 +{
-+	if (WARN_ON(!q->hctx))
-+		return;
-+
-+	/* We can come here from interrupt, thus async=true */
-+	blk_mq_run_hw_queue(q->hctx, true);
-+}
-+
-+enum {
-+	RNBD_DELAY_10ms   = 10,
-+	RNBD_DELAY_IFBUSY = -1,
-+};
-+
-+/**
-+ * rnbd_get_cpu_qlist() - finds a list with HW queues to be rerun
-+ * @sess:	Session to find a queue for
-+ * @cpu:	Cpu to start the search from
-+ *
-+ * Description:
-+ *     Each CPU has a list of HW queues, which needs to be rerun.  If a list
-+ *     is not empty - it is marked with a bit.  This function finds first
-+ *     set bit in a bitmap and returns corresponding CPU list.
-+ */
-+static struct rnbd_cpu_qlist *
-+rnbd_get_cpu_qlist(struct rnbd_clt_session *sess, int cpu)
-+{
-+	int bit;
-+
-+	/* First half */
-+	bit = find_next_bit(sess->cpu_queues_bm, nr_cpu_ids, cpu);
-+	if (bit < nr_cpu_ids) {
-+		return per_cpu_ptr(sess->cpu_queues, bit);
-+	} else if (cpu != 0) {
-+		/* Second half */
-+		bit = find_next_bit(sess->cpu_queues_bm, cpu, 0);
-+		if (bit < cpu)
-+			return per_cpu_ptr(sess->cpu_queues, bit);
-+	}
-+
-+	return NULL;
-+}
-+
-+static inline int nxt_cpu(int cpu)
-+{
-+	return (cpu + 1) % nr_cpu_ids;
-+}
-+
-+/**
-+ * rnbd_rerun_if_needed() - rerun next queue marked as stopped
-+ * @sess:	Session to rerun a queue on
-+ *
-+ * Description:
-+ *     Each CPU has it's own list of HW queues, which should be rerun.
-+ *     Function finds such list with HW queues, takes a list lock, picks up
-+ *     the first HW queue out of the list and requeues it.
-+ *
-+ * Return:
-+ *     True if the queue was requeued, false otherwise.
-+ *
-+ * Context:
-+ *     Does not matter.
-+ */
-+static inline bool rnbd_rerun_if_needed(struct rnbd_clt_session *sess)
-+{
-+	struct rnbd_queue *q = NULL;
-+	struct rnbd_cpu_qlist *cpu_q;
-+	unsigned long flags;
-+	int *cpup;
-+
-+	/*
-+	 * To keep fairness and not to let other queues starve we always
-+	 * try to wake up someone else in round-robin manner.  That of course
-+	 * increases latency but queues always have a chance to be executed.
-+	 */
-+	cpup = get_cpu_ptr(sess->cpu_rr);
-+	for (cpu_q = rnbd_get_cpu_qlist(sess, nxt_cpu(*cpup)); cpu_q;
-+	     cpu_q = rnbd_get_cpu_qlist(sess, nxt_cpu(cpu_q->cpu))) {
-+		if (!spin_trylock_irqsave(&cpu_q->requeue_lock, flags))
-+			continue;
-+		if (likely(test_bit(cpu_q->cpu, sess->cpu_queues_bm))) {
-+			q = list_first_entry_or_null(&cpu_q->requeue_list,
-+						     typeof(*q), requeue_list);
-+			if (WARN_ON(!q))
-+				goto clear_bit;
-+			list_del_init(&q->requeue_list);
-+			clear_bit_unlock(0, &q->in_list);
-+
-+			if (list_empty(&cpu_q->requeue_list)) {
-+				/* Clear bit if nothing is left */
-+clear_bit:
-+				clear_bit(cpu_q->cpu, sess->cpu_queues_bm);
-+			}
-+		}
-+		spin_unlock_irqrestore(&cpu_q->requeue_lock, flags);
-+
-+		if (q)
-+			break;
-+	}
-+
-+	/**
-+	 * Saves the CPU that is going to be requeued on the per-cpu var. Just
-+	 * incrementing it doesn't work because rnbd_get_cpu_qlist() will
-+	 * always return the first CPU with something on the queue list when the
-+	 * value stored on the var is greater than the last CPU with something
-+	 * on the list.
-+	 */
-+	if (cpu_q)
-+		*cpup = cpu_q->cpu;
-+	put_cpu_var(sess->cpu_rr);
-+
-+	if (q)
-+		rnbd_clt_dev_requeue(q);
-+
-+	return !!q;
-+}
-+
-+/**
-+ * rnbd_rerun_all_if_idle() - rerun all queues left in the list if
-+ *				 session is idling (there are no requests
-+ *				 in-flight).
-+ * @sess:	Session to rerun the queues on
-+ *
-+ * Description:
-+ *     This function tries to rerun all stopped queues if there are no
-+ *     requests in-flight anymore.  This function tries to solve an obvious
-+ *     problem, when number of tags < than number of queues (hctx), which
-+ *     are stopped and put to sleep.  If last permit, which has been just put,
-+ *     does not wake up all left queues (hctxs), IO requests hang forever.
-+ *
-+ *     That can happen when all number of permits, say N, have been exhausted
-+ *     from one CPU, and we have many block devices per session, say M.
-+ *     Each block device has it's own queue (hctx) for each CPU, so eventually
-+ *     we can put that number of queues (hctxs) to sleep: M x nr_cpu_ids.
-+ *     If number of permits N < M x nr_cpu_ids finally we will get an IO hang.
-+ *
-+ *     To avoid this hang last caller of rnbd_put_permit() (last caller is the
-+ *     one who observes sess->busy == 0) must wake up all remaining queues.
-+ *
-+ * Context:
-+ *     Does not matter.
-+ */
-+static inline void rnbd_rerun_all_if_idle(struct rnbd_clt_session *sess)
-+{
-+	bool requeued;
-+
-+	do {
-+		requeued = rnbd_rerun_if_needed(sess);
-+	} while (atomic_read(&sess->busy) == 0 && requeued);
-+}
-+
-+static struct rtrs_permit *rnbd_get_permit(struct rnbd_clt_session *sess,
-+					     enum rtrs_clt_con_type con_type,
-+					     int wait)
-+{
-+	struct rtrs_permit *permit;
-+
-+	permit = rtrs_clt_get_permit(sess->rtrs, con_type,
-+				      wait ? RTRS_PERMIT_WAIT :
-+				      RTRS_PERMIT_NOWAIT);
-+	if (likely(permit))
-+		/* We have a subtle rare case here, when all permits can be
-+		 * consumed before busy counter increased.  This is safe,
-+		 * because loser will get NULL as a permit, observe 0 busy
-+		 * counter and immediately restart the queue himself.
-+		 */
-+		atomic_inc(&sess->busy);
-+
-+	return permit;
-+}
-+
-+static void rnbd_put_permit(struct rnbd_clt_session *sess,
-+			     struct rtrs_permit *permit)
-+{
-+	rtrs_clt_put_permit(sess->rtrs, permit);
-+	atomic_dec(&sess->busy);
-+	/* Paired with rnbd_clt_dev_add_to_requeue().  Decrement first
-+	 * and then check queue bits.
-+	 */
-+	smp_mb__after_atomic();
-+	rnbd_rerun_all_if_idle(sess);
-+}
-+
-+static struct rnbd_iu *rnbd_get_iu(struct rnbd_clt_session *sess,
-+				     enum rtrs_clt_con_type con_type,
-+				     int wait)
-+{
-+	struct rnbd_iu *iu;
-+	struct rtrs_permit *permit;
-+
-+	permit = rnbd_get_permit(sess, con_type,
-+				  wait ? RTRS_PERMIT_WAIT :
-+				  RTRS_PERMIT_NOWAIT);
-+	if (unlikely(!permit))
-+		return NULL;
-+	iu = rtrs_permit_to_pdu(permit);
-+	iu->permit = permit;
-+	/* yes, rtrs_permit_from_pdu() can be nice here,
-+	 * but also we have to think about MQ mode
-+	 */
-+	/*
-+	 * 1st reference is dropped after finishing sending a "user" message,
-+	 * 2nd reference is dropped after confirmation with the response is
-+	 * returned.
-+	 * 1st and 2nd can happen in any order, so the rnbd_iu should be
-+	 * released (rtrs_permit returned to ibbtrs) only leased after both
-+	 * are finished.
-+	 */
-+	atomic_set(&iu->refcount, 2);
-+	init_waitqueue_head(&iu->comp.wait);
-+	iu->comp.errno = INT_MAX;
-+
-+	return iu;
-+}
-+
-+static void rnbd_put_iu(struct rnbd_clt_session *sess, struct rnbd_iu *iu)
-+{
-+	if (atomic_dec_and_test(&iu->refcount))
-+		rnbd_put_permit(sess, iu->permit);
-+}
-+
-+static void rnbd_softirq_done_fn(struct request *rq)
-+{
-+	struct rnbd_clt_dev *dev	= rq->rq_disk->private_data;
-+	struct rnbd_clt_session *sess	= dev->sess;
-+	struct rnbd_iu *iu;
-+
-+	iu = blk_mq_rq_to_pdu(rq);
-+	rnbd_put_permit(sess, iu->permit);
-+	blk_mq_end_request(rq, iu->status);
-+}
-+
-+static void msg_io_conf(void *priv, int errno)
-+{
-+	struct rnbd_iu *iu = priv;
-+	struct rnbd_clt_dev *dev = iu->dev;
-+	struct request *rq = iu->rq;
-+
-+	iu->status = errno ? BLK_STS_IOERR : BLK_STS_OK;
-+
-+	blk_mq_complete_request(rq);
-+
-+	if (errno)
-+		rnbd_clt_info_rl(dev, "%s I/O failed with err: %d\n",
-+				  rq_data_dir(rq) == READ ? "read" : "write",
-+				  errno);
-+}
-+
-+static void wake_up_iu_comp(struct rnbd_iu *iu, int errno)
-+{
-+	iu->comp.errno = errno;
-+	wake_up(&iu->comp.wait);
-+}
-+
-+static void msg_conf(void *priv, int errno)
-+{
-+	struct rnbd_iu *iu = priv;
-+
-+	iu->errno = errno;
-+	schedule_work(&iu->work);
-+}
-+
-+enum {
-+	NO_WAIT = 0,
-+	WAIT    = 1
-+};
-+
-+static int send_usr_msg(struct rtrs_clt *rtrs, int dir,
-+			struct rnbd_iu *iu, struct kvec *vec, size_t nr,
-+			size_t len, struct scatterlist *sg, unsigned int sg_len,
-+			void (*conf)(struct work_struct *work),
-+			int *errno, bool wait)
-+{
++	struct rnbd_srv_session *srv_sess;
++	char sessname[NAME_MAX];
 +	int err;
 +
-+	INIT_WORK(&iu->work, conf);
-+	err = rtrs_clt_request(dir, msg_conf, rtrs, iu->permit,
-+				iu, vec, nr, len, sg, sg_len);
-+	if (!err && wait) {
-+		wait_event(iu->comp.wait, iu->comp.errno != INT_MAX);
-+		*errno = iu->comp.errno;
-+	} else {
-+		*errno = 0;
-+	}
-+
-+	return err;
-+}
-+
-+static void msg_close_conf(struct work_struct *work)
-+{
-+	struct rnbd_iu *iu = container_of(work, struct rnbd_iu, work);
-+	struct rnbd_clt_dev *dev = iu->dev;
-+
-+	wake_up_iu_comp(iu, iu->errno);
-+	rnbd_put_iu(dev->sess, iu);
-+	rnbd_clt_put_dev(dev);
-+}
-+
-+static int send_msg_close(struct rnbd_clt_dev *dev, u32 device_id, bool wait)
-+{
-+	struct rnbd_clt_session *sess = dev->sess;
-+	struct rnbd_msg_close msg;
-+	struct rnbd_iu *iu;
-+	struct kvec vec = {
-+		.iov_base = &msg,
-+		.iov_len  = sizeof(msg)
-+	};
-+	int err, errno;
-+
-+	iu = rnbd_get_iu(sess, RTRS_USR_CON, RTRS_PERMIT_WAIT);
-+	if (unlikely(!iu))
-+		return -ENOMEM;
-+
-+	iu->buf = NULL;
-+	iu->dev = dev;
-+
-+	sg_mark_end(&iu->sglist[0]);
-+
-+	msg.hdr.type	= cpu_to_le16(RNBD_MSG_CLOSE);
-+	msg.device_id	= cpu_to_le32(device_id);
-+
-+	WARN_ON(!rnbd_clt_get_dev(dev));
-+	err = send_usr_msg(sess->rtrs, WRITE, iu, &vec, 1, 0, NULL, 0,
-+			   msg_close_conf, &errno, wait);
++	err = rtrs_srv_get_sess_name(rtrs, sessname, sizeof(sessname));
 +	if (unlikely(err)) {
-+		rnbd_clt_put_dev(dev);
-+		rnbd_put_iu(sess, iu);
-+	} else {
-+		err = errno;
++		pr_err("rtrs_srv_get_sess_name(%s): %d\n", sessname, err);
++
++		return err;
 +	}
-+
-+	rnbd_put_iu(sess, iu);
-+	return err;
-+}
-+
-+static void msg_open_conf(struct work_struct *work)
-+{
-+	struct rnbd_iu *iu = container_of(work, struct rnbd_iu, work);
-+	struct rnbd_msg_open_rsp *rsp = iu->buf;
-+	struct rnbd_clt_dev *dev = iu->dev;
-+	int errno = iu->errno;
-+
-+	if (errno) {
-+		rnbd_clt_err(dev,
-+			      "Opening failed, server responded: %d\n",
-+			      errno);
-+	} else {
-+		errno = process_msg_open_rsp(dev, rsp);
-+		if (unlikely(errno)) {
-+			u32 device_id = le32_to_cpu(rsp->device_id);
-+			/*
-+			 * If server thinks its fine, but we fail to process
-+			 * then be nice and send a close to server.
-+			 */
-+			(void)send_msg_close(dev, device_id, NO_WAIT);
-+		}
-+	}
-+	kfree(rsp);
-+	wake_up_iu_comp(iu, errno);
-+	rnbd_put_iu(dev->sess, iu);
-+	rnbd_clt_put_dev(dev);
-+}
-+
-+static void msg_sess_info_conf(struct work_struct *work)
-+{
-+	struct rnbd_iu *iu = container_of(work, struct rnbd_iu, work);
-+	struct rnbd_msg_sess_info_rsp *rsp = iu->buf;
-+	struct rnbd_clt_session *sess = iu->sess;
-+
-+	if (likely(!iu->errno))
-+		sess->ver = min_t(u8, rsp->ver, RNBD_PROTO_VER_MAJOR);
-+
-+	kfree(rsp);
-+	wake_up_iu_comp(iu, iu->errno);
-+	rnbd_put_iu(sess, iu);
-+	rnbd_clt_put_sess(sess);
-+}
-+
-+static int send_msg_open(struct rnbd_clt_dev *dev, bool wait)
-+{
-+	struct rnbd_clt_session *sess = dev->sess;
-+	struct rnbd_msg_open_rsp *rsp;
-+	struct rnbd_msg_open msg;
-+	struct rnbd_iu *iu;
-+	struct kvec vec = {
-+		.iov_base = &msg,
-+		.iov_len  = sizeof(msg)
-+	};
-+	int err, errno;
-+
-+	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
-+	if (unlikely(!rsp))
++	srv_sess = kzalloc(sizeof(*srv_sess), GFP_KERNEL);
++	if (!srv_sess)
 +		return -ENOMEM;
++	srv_sess->queue_depth = rtrs_srv_get_queue_depth(rtrs);
 +
-+	iu = rnbd_get_iu(sess, RTRS_USR_CON, RTRS_PERMIT_WAIT);
-+	if (unlikely(!iu)) {
-+		kfree(rsp);
-+		return -ENOMEM;
++	err = bioset_init(&srv_sess->sess_bio_set, srv_sess->queue_depth,
++			  offsetof(struct rnbd_dev_blk_io, bio),
++			  BIOSET_NEED_BVECS);
++	if (err) {
++		pr_err("Allocating srv_session for session %s failed\n",
++		       sessname);
++		kfree(srv_sess);
++		return err;
 +	}
 +
-+	iu->buf = rsp;
-+	iu->dev = dev;
++	idr_init(&srv_sess->index_idr);
++	rwlock_init(&srv_sess->index_lock);
++	INIT_LIST_HEAD(&srv_sess->sess_dev_list);
++	mutex_init(&srv_sess->lock);
++	mutex_lock(&sess_lock);
++	list_add(&srv_sess->list, &sess_list);
++	mutex_unlock(&sess_lock);
 +
-+	sg_init_one(iu->sglist, rsp, sizeof(*rsp));
++	srv_sess->rtrs = rtrs;
++	strlcpy(srv_sess->sessname, sessname, sizeof(srv_sess->sessname));
 +
-+	msg.hdr.type	= cpu_to_le16(RNBD_MSG_OPEN);
-+	msg.access_mode	= dev->access_mode;
-+	strlcpy(msg.dev_name, dev->pathname, sizeof(msg.dev_name));
++	rtrs_srv_set_sess_priv(rtrs, srv_sess);
 +
-+	WARN_ON(!rnbd_clt_get_dev(dev));
-+	err = send_usr_msg(sess->rtrs, READ, iu,
-+			   &vec, 1, sizeof(*rsp), iu->sglist, 1,
-+			   msg_open_conf, &errno, wait);
-+	if (unlikely(err)) {
-+		rnbd_clt_put_dev(dev);
-+		rnbd_put_iu(sess, iu);
-+		kfree(rsp);
-+	} else {
-+		err = errno;
-+	}
-+
-+	rnbd_put_iu(sess, iu);
-+	return err;
++	return 0;
 +}
 +
-+static int send_msg_sess_info(struct rnbd_clt_session *sess, bool wait)
++static int rnbd_srv_link_ev(struct rtrs_srv *rtrs,
++			     enum rtrs_srv_link_ev ev, void *priv)
 +{
-+	struct rnbd_msg_sess_info_rsp *rsp;
-+	struct rnbd_msg_sess_info msg;
-+	struct rnbd_iu *iu;
-+	struct kvec vec = {
-+		.iov_base = &msg,
-+		.iov_len  = sizeof(msg)
-+	};
-+	int err, errno;
-+
-+	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
-+	if (unlikely(!rsp))
-+		return -ENOMEM;
-+
-+	iu = rnbd_get_iu(sess, RTRS_USR_CON, RTRS_PERMIT_WAIT);
-+	if (unlikely(!iu)) {
-+		kfree(rsp);
-+		return -ENOMEM;
-+	}
-+
-+	iu->buf = rsp;
-+	iu->sess = sess;
-+
-+	sg_init_one(iu->sglist, rsp, sizeof(*rsp));
-+
-+	msg.hdr.type = cpu_to_le16(RNBD_MSG_SESS_INFO);
-+	msg.ver      = RNBD_PROTO_VER_MAJOR;
-+
-+	if (unlikely(!rnbd_clt_get_sess(sess))) {
-+		/*
-+		 * That can happen only in one case, when RTRS has restablished
-+		 * the connection and link_ev() is called, but session is almost
-+		 * dead, last reference on session is put and caller is waiting
-+		 * for RTRS to close everything.
-+		 */
-+		err = -ENODEV;
-+		goto put_iu;
-+	}
-+	err = send_usr_msg(sess->rtrs, READ, iu,
-+			   &vec, 1, sizeof(*rsp), iu->sglist, 1,
-+			   msg_sess_info_conf, &errno, wait);
-+	if (unlikely(err)) {
-+		rnbd_clt_put_sess(sess);
-+put_iu:
-+		rnbd_put_iu(sess, iu);
-+		kfree(rsp);
-+	} else {
-+		err = errno;
-+	}
-+
-+	rnbd_put_iu(sess, iu);
-+	return err;
-+}
-+
-+static void set_dev_states_to_disconnected(struct rnbd_clt_session *sess)
-+{
-+	struct rnbd_clt_dev *dev;
-+
-+	mutex_lock(&sess->lock);
-+	list_for_each_entry(dev, &sess->devs_list, list) {
-+		rnbd_clt_err(dev, "Device disconnected.\n");
-+
-+		mutex_lock(&dev->lock);
-+		if (dev->dev_state == DEV_STATE_MAPPED)
-+			dev->dev_state = DEV_STATE_MAPPED_DISCONNECTED;
-+		mutex_unlock(&dev->lock);
-+	}
-+	mutex_unlock(&sess->lock);
-+}
-+
-+static void remap_devs(struct rnbd_clt_session *sess)
-+{
-+	struct rnbd_clt_dev *dev;
-+	struct rtrs_attrs attrs;
-+	int err;
-+
-+	/*
-+	 * Careful here: we are called from RTRS link event directly,
-+	 * thus we can't send any RTRS request and wait for response
-+	 * or RTRS will not be able to complete request with failure
-+	 * if something goes wrong (failing of outstanding requests
-+	 * happens exactly from the context where we are blocking now).
-+	 *
-+	 * So to avoid deadlocks each usr message sent from here must
-+	 * be asynchronous.
-+	 */
-+
-+	err = send_msg_sess_info(sess, NO_WAIT);
-+	if (unlikely(err)) {
-+		pr_err("send_msg_sess_info(\"%s\"): %d\n", sess->sessname, err);
-+		return;
-+	}
-+
-+	rtrs_clt_query(sess->rtrs, &attrs);
-+	mutex_lock(&sess->lock);
-+	sess->max_io_size = attrs.max_io_size;
-+
-+	list_for_each_entry(dev, &sess->devs_list, list) {
-+		bool skip;
-+
-+		mutex_lock(&dev->lock);
-+		skip = (dev->dev_state == DEV_STATE_INIT);
-+		mutex_unlock(&dev->lock);
-+		if (skip)
-+			/*
-+			 * When device is establishing connection for the first
-+			 * time - do not remap, it will be closed soon.
-+			 */
-+			continue;
-+
-+		rnbd_clt_info(dev, "session reconnected, remapping device\n");
-+		err = send_msg_open(dev, NO_WAIT);
-+		if (unlikely(err)) {
-+			rnbd_clt_err(dev, "send_msg_open(): %d\n", err);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&sess->lock);
-+}
-+
-+static void rnbd_clt_link_ev(void *priv, enum rtrs_clt_link_ev ev)
-+{
-+	struct rnbd_clt_session *sess = priv;
++	struct rnbd_srv_session *srv_sess = priv;
 +
 +	switch (ev) {
-+	case RTRS_CLT_LINK_EV_DISCONNECTED:
-+		set_dev_states_to_disconnected(sess);
++	case RTRS_SRV_LINK_EV_CONNECTED:
++		return create_sess(rtrs);
++
++	case RTRS_SRV_LINK_EV_DISCONNECTED:
++		if (WARN_ON(!srv_sess))
++			return -EINVAL;
++
++		destroy_sess(srv_sess);
++		return 0;
++
++	default:
++		pr_warn("Received unknown RTRS session event %d from session %s\n",
++			ev, srv_sess->sessname);
++		return -EINVAL;
++	}
++}
++
++static int process_msg_close(struct rtrs_srv *rtrs,
++			     struct rnbd_srv_session *srv_sess,
++			     void *data, size_t datalen, const void *usr,
++			     size_t usrlen)
++{
++	const struct rnbd_msg_close *close_msg = usr;
++	struct rnbd_srv_sess_dev *sess_dev;
++
++	sess_dev = rnbd_get_sess_dev(le32_to_cpu(close_msg->device_id),
++				      srv_sess);
++	if (IS_ERR(sess_dev))
++		return 0;
++
++	rnbd_srv_destroy_dev_session_sysfs(sess_dev);
++	rnbd_put_sess_dev(sess_dev);
++	mutex_lock(&srv_sess->lock);
++	rnbd_destroy_sess_dev(sess_dev);
++	mutex_unlock(&srv_sess->lock);
++	return 0;
++}
++
++static int process_msg_open(struct rtrs_srv *rtrs,
++			    struct rnbd_srv_session *srv_sess,
++			    const void *msg, size_t len,
++			    void *data, size_t datalen);
++
++static int process_msg_sess_info(struct rtrs_srv *rtrs,
++				 struct rnbd_srv_session *srv_sess,
++				 const void *msg, size_t len,
++				 void *data, size_t datalen);
++
++static int rnbd_srv_rdma_ev(struct rtrs_srv *rtrs, void *priv,
++			     struct rtrs_srv_op *id, int dir,
++			     void *data, size_t datalen, const void *usr,
++			     size_t usrlen)
++{
++	struct rnbd_srv_session *srv_sess = priv;
++	const struct rnbd_msg_hdr *hdr = usr;
++	int ret = 0;
++	u16 type;
++
++	if (WARN_ON(!srv_sess))
++		return -ENODEV;
++
++	type = le16_to_cpu(hdr->type);
++
++	switch (type) {
++	case RNBD_MSG_IO:
++		return process_rdma(rtrs, srv_sess, id, data, datalen, usr,
++				    usrlen);
++	case RNBD_MSG_CLOSE:
++		ret = process_msg_close(rtrs, srv_sess, data, datalen,
++					usr, usrlen);
 +		break;
-+	case RTRS_CLT_LINK_EV_RECONNECTED:
-+		remap_devs(sess);
++	case RNBD_MSG_OPEN:
++		ret = process_msg_open(rtrs, srv_sess, usr, usrlen,
++				       data, datalen);
++		break;
++	case RNBD_MSG_SESS_INFO:
++		ret = process_msg_sess_info(rtrs, srv_sess, usr, usrlen,
++					    data, datalen);
 +		break;
 +	default:
-+		pr_err("Unknown session event received (%d), session: %s\n",
-+		       ev, sess->sessname);
++		pr_warn("Received unexpected message type %d with dir %d from session %s\n",
++			type, dir, srv_sess->sessname);
++		return -EINVAL;
 +	}
++
++	rtrs_srv_resp_rdma(id, ret);
++	return 0;
 +}
 +
-+static void rnbd_init_cpu_qlists(struct rnbd_cpu_qlist __percpu *cpu_queues)
++static struct rnbd_srv_sess_dev
++*rnbd_sess_dev_alloc(struct rnbd_srv_session *srv_sess)
 +{
-+	unsigned int cpu;
-+	struct rnbd_cpu_qlist *cpu_q;
++	struct rnbd_srv_sess_dev *sess_dev;
++	int error;
 +
-+	for_each_possible_cpu(cpu) {
-+		cpu_q = per_cpu_ptr(cpu_queues, cpu);
-+
-+		cpu_q->cpu = cpu;
-+		INIT_LIST_HEAD(&cpu_q->requeue_list);
-+		spin_lock_init(&cpu_q->requeue_lock);
-+	}
-+}
-+
-+static void destroy_mq_tags(struct rnbd_clt_session *sess)
-+{
-+	if (sess->tag_set.tags)
-+		blk_mq_free_tag_set(&sess->tag_set);
-+}
-+
-+static inline void wake_up_rtrs_waiters(struct rnbd_clt_session *sess)
-+{
-+	sess->rtrs_ready = true;
-+	wake_up_all(&sess->rtrs_waitq);
-+}
-+
-+static void close_rtrs(struct rnbd_clt_session *sess)
-+{
-+	might_sleep();
-+
-+	if (!IS_ERR_OR_NULL(sess->rtrs)) {
-+		rtrs_clt_close(sess->rtrs);
-+		sess->rtrs = NULL;
-+		wake_up_rtrs_waiters(sess);
-+	}
-+}
-+
-+static void free_sess(struct rnbd_clt_session *sess)
-+{
-+	WARN_ON(!list_empty(&sess->devs_list));
-+
-+	might_sleep();
-+
-+	close_rtrs(sess);
-+	destroy_mq_tags(sess);
-+	if (!list_empty(&sess->list)) {
-+		mutex_lock(&sess_lock);
-+		list_del(&sess->list);
-+		mutex_unlock(&sess_lock);
-+	}
-+	free_percpu(sess->cpu_queues);
-+	free_percpu(sess->cpu_rr);
-+	kfree(sess);
-+}
-+
-+static struct rnbd_clt_session *alloc_sess(const char *sessname)
-+{
-+	struct rnbd_clt_session *sess;
-+	int err, cpu;
-+
-+	sess = kzalloc_node(sizeof(*sess), GFP_KERNEL, NUMA_NO_NODE);
-+	if (unlikely(!sess)) {
-+		pr_err("Failed to create session %s, allocating session struct failed\n",
-+		       sessname);
++	sess_dev = kzalloc(sizeof(*sess_dev), GFP_KERNEL);
++	if (!sess_dev)
 +		return ERR_PTR(-ENOMEM);
-+	}
-+	strlcpy(sess->sessname, sessname, sizeof(sess->sessname));
-+	atomic_set(&sess->busy, 0);
-+	mutex_init(&sess->lock);
-+	INIT_LIST_HEAD(&sess->devs_list);
-+	INIT_LIST_HEAD(&sess->list);
-+	bitmap_zero(sess->cpu_queues_bm, NR_CPUS);
-+	init_waitqueue_head(&sess->rtrs_waitq);
-+	refcount_set(&sess->refcount, 1);
 +
-+	sess->cpu_queues = alloc_percpu(struct rnbd_cpu_qlist);
-+	if (unlikely(!sess->cpu_queues)) {
-+		pr_err("Failed to create session to %s, alloc of percpu var (cpu_queues) failed\n",
-+		       sessname);
-+		err = -ENOMEM;
-+		goto err;
-+	}
-+	rnbd_init_cpu_qlists(sess->cpu_queues);
++	idr_preload(GFP_KERNEL);
++	write_lock(&srv_sess->index_lock);
 +
-+	/**
-+	 * That is simple percpu variable which stores cpu indeces, which are
-+	 * incremented on each access.  We need that for the sake of fairness
-+	 * to wake up queues in a round-robin manner.
-+	 */
-+	sess->cpu_rr = alloc_percpu(int);
-+	if (unlikely(!sess->cpu_rr)) {
-+		pr_err("Failed to create session %s, alloc of percpu var (cpu_rr) failed\n",
-+		       sessname);
-+		err = -ENOMEM;
-+		goto err;
-+	}
-+	for_each_possible_cpu(cpu)
-+		* per_cpu_ptr(sess->cpu_rr, cpu) = cpu;
-+
-+	return sess;
-+
-+err:
-+	free_sess(sess);
-+
-+	return ERR_PTR(err);
-+}
-+
-+static int wait_for_rtrs_connection(struct rnbd_clt_session *sess)
-+{
-+	wait_event(sess->rtrs_waitq, sess->rtrs_ready);
-+	if (IS_ERR_OR_NULL(sess->rtrs))
-+		return -ECONNRESET;
-+
-+	return 0;
-+}
-+
-+static void wait_for_rtrs_disconnection(struct rnbd_clt_session *sess)
-+__releases(&sess_lock)
-+__acquires(&sess_lock)
-+{
-+	DEFINE_WAIT_FUNC(wait, autoremove_wake_function);
-+
-+	prepare_to_wait(&sess->rtrs_waitq, &wait, TASK_UNINTERRUPTIBLE);
-+	if (IS_ERR_OR_NULL(sess->rtrs)) {
-+		finish_wait(&sess->rtrs_waitq, &wait);
-+		return;
-+	}
-+	mutex_unlock(&sess_lock);
-+	/* After unlock session can be freed, so careful */
-+	schedule();
-+	mutex_lock(&sess_lock);
-+}
-+
-+static struct rnbd_clt_session *__find_and_get_sess(const char *sessname)
-+__releases(&sess_lock)
-+__acquires(&sess_lock)
-+{
-+	struct rnbd_clt_session *sess;
-+	int err;
-+
-+again:
-+	list_for_each_entry(sess, &sess_list, list) {
-+		if (strcmp(sessname, sess->sessname))
-+			continue;
-+
-+		if (unlikely(sess->rtrs_ready && IS_ERR_OR_NULL(sess->rtrs)))
-+			/*
-+			 * No RTRS connection, session is dying.
-+			 */
-+			continue;
-+
-+		if (likely(rnbd_clt_get_sess(sess))) {
-+			/*
-+			 * Alive session is found, wait for RTRS connection.
-+			 */
-+			mutex_unlock(&sess_lock);
-+			err = wait_for_rtrs_connection(sess);
-+			if (unlikely(err))
-+				rnbd_clt_put_sess(sess);
-+			mutex_lock(&sess_lock);
-+
-+			if (unlikely(err))
-+				/* Session is dying, repeat the loop */
-+				goto again;
-+
-+			return sess;
-+		}
-+		/*
-+		 * Ref is 0, session is dying, wait for RTRS disconnect
-+		 * in order to avoid session names clashes.
-+		 */
-+		wait_for_rtrs_disconnection(sess);
-+		/*
-+		 * RTRS is disconnected and soon session will be freed,
-+		 * so repeat a loop.
-+		 */
-+		goto again;
++	error = idr_alloc(&srv_sess->index_idr, sess_dev, 0, -1, GFP_NOWAIT);
++	if (error < 0) {
++		pr_warn("Allocating idr failed, err: %d\n", error);
++		goto out_unlock;
 +	}
 +
-+	return NULL;
-+}
++	sess_dev->device_id = error;
++	error = 0;
 +
-+static struct rnbd_clt_session *find_and_get_sess(const char *sessname)
-+{
-+	struct rnbd_clt_session *sess;
-+
-+	mutex_lock(&sess_lock);
-+	sess = __find_and_get_sess(sessname);
-+	mutex_unlock(&sess_lock);
-+
-+	return sess;
-+}
-+
-+static struct rnbd_clt_session *
-+find_and_get_or_insert_sess(struct rnbd_clt_session *sess)
-+{
-+	struct rnbd_clt_session *found;
-+
-+	mutex_lock(&sess_lock);
-+	found = __find_and_get_sess(sess->sessname);
-+	if (!found)
-+		list_add(&sess->list, &sess_list);
-+	mutex_unlock(&sess_lock);
-+
-+	return found;
-+}
-+
-+static int rnbd_client_open(struct block_device *block_device, fmode_t mode)
-+{
-+	struct rnbd_clt_dev *dev = block_device->bd_disk->private_data;
-+
-+	if (dev->read_only && (mode & FMODE_WRITE))
-+		return -EPERM;
-+
-+	if (dev->dev_state == DEV_STATE_UNMAPPED ||
-+	    !rnbd_clt_get_dev(dev))
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+static void rnbd_client_release(struct gendisk *gen, fmode_t mode)
-+{
-+	struct rnbd_clt_dev *dev = gen->private_data;
-+
-+	rnbd_clt_put_dev(dev);
-+}
-+
-+static int rnbd_client_getgeo(struct block_device *block_device,
-+			       struct hd_geometry *geo)
-+{
-+	u64 size;
-+	struct rnbd_clt_dev *dev;
-+
-+	dev = block_device->bd_disk->private_data;
-+	size = dev->size * (dev->logical_block_size / SECTOR_SIZE);
-+	geo->cylinders	= (size & ~0x3f) >> 6;	/* size/64 */
-+	geo->heads	= 4;
-+	geo->sectors	= 16;
-+	geo->start	= 0;
-+
-+	return 0;
-+}
-+
-+static const struct block_device_operations rnbd_client_ops = {
-+	.owner		= THIS_MODULE,
-+	.open		= rnbd_client_open,
-+	.release	= rnbd_client_release,
-+	.getgeo		= rnbd_client_getgeo
-+};
-+
-+static size_t rnbd_clt_get_sg_size(struct scatterlist *sglist, u32 len)
-+{
-+	struct scatterlist *sg;
-+	size_t tsize = 0;
-+	int i;
-+
-+	for_each_sg(sglist, sg, len, i)
-+		tsize += sg->length;
-+	return tsize;
-+}
-+
-+static int rnbd_client_xfer_request(struct rnbd_clt_dev *dev,
-+				     struct request *rq,
-+				     struct rnbd_iu *iu)
-+{
-+	struct rtrs_clt *rtrs = dev->sess->rtrs;
-+	struct rtrs_permit *permit = iu->permit;
-+	struct rnbd_msg_io msg;
-+	unsigned int sg_cnt = 0;
-+	struct kvec vec;
-+	size_t size;
-+	int err;
-+
-+	iu->rq		= rq;
-+	iu->dev		= dev;
-+	msg.sector	= cpu_to_le64(blk_rq_pos(rq));
-+	msg.bi_size	= cpu_to_le32(blk_rq_bytes(rq));
-+	msg.rw		= cpu_to_le32(rq_to_rnbd_flags(rq));
-+	msg.prio	= cpu_to_le16(req_get_ioprio(rq));
-+
-+	/*
-+	 * We only support discards with single segment for now.
-+	 * See queue limits.
-+	 */
-+	if (req_op(rq) != REQ_OP_DISCARD)
-+		sg_cnt = blk_rq_map_sg(dev->queue, rq, iu->sglist);
-+
-+	if (sg_cnt == 0)
-+		/* Do not forget to mark the end */
-+		sg_mark_end(&iu->sglist[0]);
-+
-+	msg.hdr.type	= cpu_to_le16(RNBD_MSG_IO);
-+	msg.device_id	= cpu_to_le32(dev->device_id);
-+
-+	vec = (struct kvec) {
-+		.iov_base = &msg,
-+		.iov_len  = sizeof(msg)
-+	};
-+	size = rnbd_clt_get_sg_size(iu->sglist, sg_cnt);
-+	err = rtrs_clt_request(rq_data_dir(rq), msg_io_conf, rtrs, permit,
-+				iu, &vec, 1, size, iu->sglist, sg_cnt);
-+	if (unlikely(err)) {
-+		rnbd_clt_err_rl(dev, "RTRS failed to transfer IO, err: %d\n",
-+				 err);
-+		return err;
++out_unlock:
++	write_unlock(&srv_sess->index_lock);
++	idr_preload_end();
++	if (error) {
++		kfree(sess_dev);
++		return ERR_PTR(error);
 +	}
 +
-+	return 0;
++	return sess_dev;
 +}
 +
-+/**
-+ * rnbd_clt_dev_add_to_requeue() - add device to requeue if session is busy
-+ * @dev:	Device to be checked
-+ * @q:		Queue to be added to the requeue list if required
-+ *
-+ * Description:
-+ *     If session is busy, that means someone will requeue us when resources
-+ *     are freed.  If session is not doing anything - device is not added to
-+ *     the list and @false is returned.
-+ */
-+static inline bool rnbd_clt_dev_add_to_requeue(struct rnbd_clt_dev *dev,
-+						struct rnbd_queue *q)
++static struct rnbd_srv_dev *rnbd_srv_init_srv_dev(const char *id)
 +{
-+	struct rnbd_clt_session *sess = dev->sess;
-+	struct rnbd_cpu_qlist *cpu_q;
-+	unsigned long flags;
-+	bool added = true;
-+	bool need_set;
++	struct rnbd_srv_dev *dev;
 +
-+	cpu_q = get_cpu_ptr(sess->cpu_queues);
-+	spin_lock_irqsave(&cpu_q->requeue_lock, flags);
-+
-+	if (likely(!test_and_set_bit_lock(0, &q->in_list))) {
-+		if (WARN_ON(!list_empty(&q->requeue_list)))
-+			goto unlock;
-+
-+		need_set = !test_bit(cpu_q->cpu, sess->cpu_queues_bm);
-+		if (need_set) {
-+			set_bit(cpu_q->cpu, sess->cpu_queues_bm);
-+			/* Paired with rnbd_put_permit().	 Set a bit first
-+			 * and then observe the busy counter.
-+			 */
-+			smp_mb__before_atomic();
-+		}
-+		if (likely(atomic_read(&sess->busy))) {
-+			list_add_tail(&q->requeue_list, &cpu_q->requeue_list);
-+		} else {
-+			/* Very unlikely, but possible: busy counter was
-+			 * observed as zero.  Drop all bits and return
-+			 * false to restart the queue by ourselves.
-+			 */
-+			if (need_set)
-+				clear_bit(cpu_q->cpu, sess->cpu_queues_bm);
-+			clear_bit_unlock(0, &q->in_list);
-+			added = false;
-+		}
-+	}
-+unlock:
-+	spin_unlock_irqrestore(&cpu_q->requeue_lock, flags);
-+	put_cpu_ptr(sess->cpu_queues);
-+
-+	return added;
-+}
-+
-+static void rnbd_clt_dev_kick_mq_queue(struct rnbd_clt_dev *dev,
-+					struct blk_mq_hw_ctx *hctx,
-+					int delay)
-+{
-+	struct rnbd_queue *q = hctx->driver_data;
-+
-+	if (delay != RNBD_DELAY_IFBUSY)
-+		blk_mq_delay_run_hw_queue(hctx, delay);
-+	else if (unlikely(!rnbd_clt_dev_add_to_requeue(dev, q)))
-+		/*
-+		 * If session is not busy we have to restart
-+		 * the queue ourselves.
-+		 */
-+		blk_mq_delay_run_hw_queue(hctx, RNBD_DELAY_10ms);
-+}
-+
-+static blk_status_t rnbd_queue_rq(struct blk_mq_hw_ctx *hctx,
-+				   const struct blk_mq_queue_data *bd)
-+{
-+	struct request *rq = bd->rq;
-+	struct rnbd_clt_dev *dev = rq->rq_disk->private_data;
-+	struct rnbd_iu *iu = blk_mq_rq_to_pdu(rq);
-+	int err;
-+
-+	if (unlikely(!rnbd_clt_dev_is_mapped(dev)))
-+		return BLK_STS_IOERR;
-+
-+	iu->permit = rnbd_get_permit(dev->sess, RTRS_IO_CON,
-+				      RTRS_PERMIT_NOWAIT);
-+	if (unlikely(!iu->permit)) {
-+		rnbd_clt_dev_kick_mq_queue(dev, hctx, RNBD_DELAY_IFBUSY);
-+		return BLK_STS_RESOURCE;
-+	}
-+
-+	blk_mq_start_request(rq);
-+	err = rnbd_client_xfer_request(dev, rq, iu);
-+	if (likely(err == 0))
-+		return BLK_STS_OK;
-+	if (unlikely(err == -EAGAIN || err == -ENOMEM)) {
-+		rnbd_clt_dev_kick_mq_queue(dev, hctx, RNBD_DELAY_10ms);
-+		rnbd_put_permit(dev->sess, iu->permit);
-+		return BLK_STS_RESOURCE;
-+	}
-+
-+	rnbd_put_permit(dev->sess, iu->permit);
-+	return BLK_STS_IOERR;
-+}
-+
-+static int rnbd_init_request(struct blk_mq_tag_set *set, struct request *rq,
-+			      unsigned int hctx_idx, unsigned int numa_node)
-+{
-+	struct rnbd_iu *iu = blk_mq_rq_to_pdu(rq);
-+
-+	sg_init_table(iu->sglist, BMAX_SEGMENTS);
-+	return 0;
-+}
-+
-+static struct blk_mq_ops rnbd_mq_ops = {
-+	.queue_rq	= rnbd_queue_rq,
-+	.init_request	= rnbd_init_request,
-+	.complete	= rnbd_softirq_done_fn,
-+};
-+
-+static int setup_mq_tags(struct rnbd_clt_session *sess)
-+{
-+	struct blk_mq_tag_set *tags = &sess->tag_set;
-+
-+	memset(tags, 0, sizeof(*tags));
-+	tags->ops		= &rnbd_mq_ops;
-+	tags->queue_depth	= sess->queue_depth;
-+	tags->numa_node		= NUMA_NO_NODE;
-+	tags->flags		= BLK_MQ_F_SHOULD_MERGE |
-+				  BLK_MQ_F_TAG_SHARED;
-+	tags->cmd_size		= sizeof(struct rnbd_iu);
-+	tags->nr_hw_queues	= num_online_cpus();
-+
-+	return blk_mq_alloc_tag_set(tags);
-+}
-+
-+static struct rnbd_clt_session *
-+find_and_get_or_create_sess(const char *sessname,
-+			    const struct rtrs_addr *paths,
-+			    size_t path_cnt)
-+{
-+	struct rnbd_clt_session *sess, *found;
-+	struct rtrs_attrs attrs;
-+	int err;
-+
-+	sess = find_and_get_sess(sessname);
-+	if (sess)
-+		return sess;
-+
-+	sess = alloc_sess(sessname);
-+	if (IS_ERR(sess))
-+		return sess;
-+
-+	found = find_and_get_or_insert_sess(sess);
-+	if (unlikely(found)) {
-+		free_sess(sess);
-+
-+		return found;
-+	}
-+	/*
-+	 * Nothing was found, establish rtrs connection and proceed further.
-+	 */
-+	sess->rtrs = rtrs_clt_open(sess, rnbd_clt_link_ev, sessname,
-+				     paths, path_cnt, RTRS_PORT,
-+				     sizeof(struct rnbd_iu),
-+				     RECONNECT_DELAY, BMAX_SEGMENTS,
-+				     MAX_RECONNECTS);
-+	if (IS_ERR(sess->rtrs)) {
-+		err = PTR_ERR(sess->rtrs);
-+		goto wake_up_and_put;
-+	}
-+	rtrs_clt_query(sess->rtrs, &attrs);
-+	sess->max_io_size = attrs.max_io_size;
-+	sess->queue_depth = attrs.queue_depth;
-+
-+	err = setup_mq_tags(sess);
-+	if (unlikely(err))
-+		goto close_rtrs;
-+
-+	err = send_msg_sess_info(sess, WAIT);
-+	if (unlikely(err))
-+		goto close_rtrs;
-+
-+	wake_up_rtrs_waiters(sess);
-+
-+	return sess;
-+
-+close_rtrs:
-+	close_rtrs(sess);
-+put_sess:
-+	rnbd_clt_put_sess(sess);
-+
-+	return ERR_PTR(err);
-+
-+wake_up_and_put:
-+	wake_up_rtrs_waiters(sess);
-+	goto put_sess;
-+}
-+
-+static inline void rnbd_init_hw_queue(struct rnbd_clt_dev *dev,
-+				       struct rnbd_queue *q,
-+				       struct blk_mq_hw_ctx *hctx)
-+{
-+	INIT_LIST_HEAD(&q->requeue_list);
-+	q->dev  = dev;
-+	q->hctx = hctx;
-+}
-+
-+static void rnbd_init_mq_hw_queues(struct rnbd_clt_dev *dev)
-+{
-+	int i;
-+	struct blk_mq_hw_ctx *hctx;
-+	struct rnbd_queue *q;
-+
-+	queue_for_each_hw_ctx(dev->queue, hctx, i) {
-+		q = &dev->hw_queues[i];
-+		rnbd_init_hw_queue(dev, q, hctx);
-+		hctx->driver_data = q;
-+	}
-+}
-+
-+static int index_to_minor(int index)
-+{
-+	return index << RNBD_PART_BITS;
-+}
-+
-+static int minor_to_index(int minor)
-+{
-+	return minor >> RNBD_PART_BITS;
-+}
-+
-+static int setup_mq_dev(struct rnbd_clt_dev *dev)
-+{
-+	dev->queue = blk_mq_init_queue(&dev->sess->tag_set);
-+	if (IS_ERR(dev->queue)) {
-+		rnbd_clt_err(dev, "Initializing multiqueue queue failed, err: %ld\n",
-+			      PTR_ERR(dev->queue));
-+		return PTR_ERR(dev->queue);
-+	}
-+	rnbd_init_mq_hw_queues(dev);
-+	return 0;
-+}
-+
-+static void setup_request_queue(struct rnbd_clt_dev *dev)
-+{
-+	blk_queue_logical_block_size(dev->queue, dev->logical_block_size);
-+	blk_queue_physical_block_size(dev->queue, dev->physical_block_size);
-+	blk_queue_max_hw_sectors(dev->queue, dev->max_hw_sectors);
-+	blk_queue_max_write_same_sectors(dev->queue,
-+					 dev->max_write_same_sectors);
-+
-+	/*
-+	 * we don't support discards to "discontiguous" segments
-+	 * in on request
-+	 */
-+	blk_queue_max_discard_segments(dev->queue, 1);
-+
-+	blk_queue_max_discard_sectors(dev->queue, dev->max_discard_sectors);
-+	dev->queue->limits.discard_granularity	= dev->discard_granularity;
-+	dev->queue->limits.discard_alignment	= dev->discard_alignment;
-+	if (dev->max_discard_sectors)
-+		blk_queue_flag_set(QUEUE_FLAG_DISCARD, dev->queue);
-+	if (dev->secure_discard)
-+		blk_queue_flag_set(QUEUE_FLAG_SECERASE, dev->queue);
-+
-+	blk_queue_flag_set(QUEUE_FLAG_SAME_COMP, dev->queue);
-+	blk_queue_flag_set(QUEUE_FLAG_SAME_FORCE, dev->queue);
-+	blk_queue_max_segments(dev->queue, dev->max_segments);
-+	blk_queue_io_opt(dev->queue, dev->sess->max_io_size);
-+	blk_queue_virt_boundary(dev->queue, 4095);
-+	blk_queue_write_cache(dev->queue, true, true);
-+	dev->queue->queuedata = dev;
-+}
-+
-+static void rnbd_clt_setup_gen_disk(struct rnbd_clt_dev *dev, int idx)
-+{
-+	dev->gd->major		= rnbd_client_major;
-+	dev->gd->first_minor	= index_to_minor(idx);
-+	dev->gd->fops		= &rnbd_client_ops;
-+	dev->gd->queue		= dev->queue;
-+	dev->gd->private_data	= dev;
-+	snprintf(dev->gd->disk_name, sizeof(dev->gd->disk_name), "rnbd%d",
-+		 idx);
-+	pr_debug("disk_name=%s, capacity=%zu\n",
-+		 dev->gd->disk_name,
-+		 dev->nsectors * (dev->logical_block_size / SECTOR_SIZE)
-+		 );
-+
-+	set_capacity(dev->gd, dev->nsectors * (dev->logical_block_size /
-+					       SECTOR_SIZE));
-+
-+	if (dev->access_mode == RNBD_ACCESS_RO) {
-+		dev->read_only = true;
-+		set_disk_ro(dev->gd, true);
-+	} else {
-+		dev->read_only = false;
-+	}
-+
-+	if (!dev->rotational)
-+		blk_queue_flag_set(QUEUE_FLAG_NONROT, dev->queue);
-+}
-+
-+static void rnbd_clt_add_gen_disk(struct rnbd_clt_dev *dev)
-+{
-+	add_disk(dev->gd);
-+}
-+
-+static int rnbd_client_setup_device(struct rnbd_clt_session *sess,
-+				     struct rnbd_clt_dev *dev, int idx)
-+{
-+	int err;
-+
-+	dev->size = dev->nsectors * dev->logical_block_size;
-+
-+	err = setup_mq_dev(dev);
-+	if (err)
-+		return err;
-+
-+	setup_request_queue(dev);
-+
-+	dev->gd = alloc_disk_node(1 << RNBD_PART_BITS,	NUMA_NO_NODE);
-+	if (!dev->gd) {
-+		rnbd_clt_err(dev, "Failed to allocate disk node\n");
-+		blk_cleanup_queue(dev->queue);
-+		return -ENOMEM;
-+	}
-+
-+	rnbd_clt_setup_gen_disk(dev, idx);
-+
-+	return 0;
-+}
-+
-+static struct rnbd_clt_dev *init_dev(struct rnbd_clt_session *sess,
-+				      enum rnbd_access_mode access_mode,
-+				      const char *pathname)
-+{
-+	struct rnbd_clt_dev *dev;
-+	int ret;
-+
-+	dev = kzalloc_node(sizeof(*dev), GFP_KERNEL, NUMA_NO_NODE);
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 +	if (!dev)
 +		return ERR_PTR(-ENOMEM);
 +
-+	dev->hw_queues = kcalloc(nr_cpu_ids, sizeof(*dev->hw_queues),
-+				 GFP_KERNEL);
-+	if (unlikely(!dev->hw_queues)) {
-+		pr_err("Failed to initialize device '%s' from session %s, allocating hw_queues failed.",
-+		       pathname, sess->sessname);
-+		ret = -ENOMEM;
-+		goto out_alloc;
-+	}
-+
-+	mutex_lock(&ida_lock);
-+	ret = ida_simple_get(&index_ida, 0, minor_to_index(1 << MINORBITS),
-+			     GFP_KERNEL);
-+	mutex_unlock(&ida_lock);
-+	if (ret < 0) {
-+		pr_err("Failed to initialize device '%s' from session %s, allocating idr failed, err: %d\n",
-+		       pathname, sess->sessname, ret);
-+		goto out_queues;
-+	}
-+	dev->clt_device_id	= ret;
-+	dev->sess		= sess;
-+	dev->access_mode	= access_mode;
-+	strlcpy(dev->pathname, pathname, sizeof(dev->pathname));
++	strlcpy(dev->id, id, sizeof(dev->id));
++	kref_init(&dev->kref);
++	INIT_LIST_HEAD(&dev->sess_dev_list);
 +	mutex_init(&dev->lock);
-+	refcount_set(&dev->refcount, 1);
-+	dev->dev_state = DEV_STATE_INIT;
-+
-+	/*
-+	 * Here we called from sysfs entry, thus clt-sysfs is
-+	 * responsible that session will not disappear.
-+	 */
-+	WARN_ON(!rnbd_clt_get_sess(sess));
 +
 +	return dev;
-+
-+out_queues:
-+	kfree(dev->hw_queues);
-+out_alloc:
-+	kfree(dev);
-+	return ERR_PTR(ret);
 +}
 +
-+static bool __exists_dev(const char *pathname)
++static struct rnbd_srv_dev *
++rnbd_srv_find_or_add_srv_dev(struct rnbd_srv_dev *new_dev)
 +{
-+	struct rnbd_clt_session *sess;
-+	struct rnbd_clt_dev *dev;
-+	bool found = false;
++	struct rnbd_srv_dev *dev;
 +
-+	list_for_each_entry(sess, &sess_list, list) {
-+		mutex_lock(&sess->lock);
-+		list_for_each_entry(dev, &sess->devs_list, list) {
-+			if (!strncmp(dev->pathname, pathname,
-+				     sizeof(dev->pathname))) {
-+				found = true;
-+				break;
-+			}
++	spin_lock(&dev_lock);
++	list_for_each_entry(dev, &dev_list, list) {
++		if (!strncmp(dev->id, new_dev->id, sizeof(dev->id))) {
++			if (!kref_get_unless_zero(&dev->kref))
++				/*
++				 * We lost the race, device is almost dead.
++				 *  Continue traversing to find a valid one.
++				 */
++				continue;
++			spin_unlock(&dev_lock);
++			return dev;
 +		}
-+		mutex_unlock(&sess->lock);
-+		if (found)
-+			break;
 +	}
++	list_add(&new_dev->list, &dev_list);
++	spin_unlock(&dev_lock);
 +
-+	return found;
++	return new_dev;
 +}
 +
-+static bool exists_devpath(const char *pathname)
++static int rnbd_srv_check_update_open_perm(struct rnbd_srv_dev *srv_dev,
++					    struct rnbd_srv_session *srv_sess,
++					    enum rnbd_access_mode access_mode)
 +{
-+	bool found;
++	int ret = -EPERM;
 +
-+	mutex_lock(&sess_lock);
-+	found = __exists_dev(pathname);
-+	mutex_unlock(&sess_lock);
++	mutex_lock(&srv_dev->lock);
 +
-+	return found;
-+}
-+
-+static bool insert_dev_if_not_exists_devpath(const char *pathname,
-+					     struct rnbd_clt_session *sess,
-+					     struct rnbd_clt_dev *dev)
-+{
-+	bool found;
-+
-+	mutex_lock(&sess_lock);
-+	found = __exists_dev(pathname);
-+	if (!found) {
-+		mutex_lock(&sess->lock);
-+		list_add_tail(&dev->list, &sess->devs_list);
-+		mutex_unlock(&sess->lock);
-+	}
-+	mutex_unlock(&sess_lock);
-+
-+	return found;
-+}
-+
-+static void delete_dev(struct rnbd_clt_dev *dev)
-+{
-+	struct rnbd_clt_session *sess = dev->sess;
-+
-+	mutex_lock(&sess->lock);
-+	list_del(&dev->list);
-+	mutex_unlock(&sess->lock);
-+}
-+
-+struct rnbd_clt_dev *rnbd_clt_map_device(const char *sessname,
-+					   struct rtrs_addr *paths,
-+					   size_t path_cnt,
-+					   const char *pathname,
-+					   enum rnbd_access_mode access_mode)
-+{
-+	struct rnbd_clt_session *sess;
-+	struct rnbd_clt_dev *dev;
-+	int ret;
-+
-+	if (unlikely(exists_devpath(pathname)))
-+		return ERR_PTR(-EEXIST);
-+
-+	sess = find_and_get_or_create_sess(sessname, paths, path_cnt);
-+	if (IS_ERR(sess))
-+		return ERR_CAST(sess);
-+
-+	dev = init_dev(sess, access_mode, pathname);
-+	if (IS_ERR(dev)) {
-+		pr_err("map_device: failed to map device '%s' from session %s, can't initialize device, err: %ld\n",
-+		       pathname, sess->sessname, PTR_ERR(dev));
-+		ret = PTR_ERR(dev);
-+		goto put_sess;
-+	}
-+	if (unlikely(insert_dev_if_not_exists_devpath(pathname, sess, dev))) {
-+		ret = -EEXIST;
-+		goto put_dev;
-+	}
-+	ret = send_msg_open(dev, WAIT);
-+	if (unlikely(ret)) {
-+		rnbd_clt_err(dev,
-+			      "map_device: failed, can't open remote device, err: %d\n",
-+			      ret);
-+		goto del_dev;
-+	}
-+	mutex_lock(&dev->lock);
-+	pr_debug("Opened remote device: session=%s, path='%s'\n",
-+		 sess->sessname, pathname);
-+	ret = rnbd_client_setup_device(sess, dev, dev->clt_device_id);
-+	if (ret) {
-+		rnbd_clt_err(dev,
-+			      "map_device: Failed to configure device, err: %d\n",
-+			      ret);
-+		mutex_unlock(&dev->lock);
-+		goto del_dev;
++	switch (access_mode) {
++	case RNBD_ACCESS_RO:
++		ret = 0;
++		break;
++	case RNBD_ACCESS_RW:
++		if (srv_dev->open_write_cnt == 0)  {
++			srv_dev->open_write_cnt++;
++			ret = 0;
++		} else {
++			pr_err("Mapping device '%s' for session %s with RW permissions failed. Device already opened as 'RW' by %d client(s), access mode %s.\n",
++			       srv_dev->id, srv_sess->sessname,
++			       srv_dev->open_write_cnt,
++			       rnbd_access_mode_str(access_mode));
++		}
++		break;
++	case RNBD_ACCESS_MIGRATION:
++		if (srv_dev->open_write_cnt < 2) {
++			srv_dev->open_write_cnt++;
++			ret = 0;
++		} else {
++			pr_err("Mapping device '%s' for session %s with migration permissions failed. Device already opened as 'RW' by %d client(s), access mode %s.\n",
++			       srv_dev->id, srv_sess->sessname,
++			       srv_dev->open_write_cnt,
++			       rnbd_access_mode_str(access_mode));
++		}
++		break;
++	default:
++		pr_err("Received mapping request for device '%s' on session %s with invalid access mode: %d\n",
++		       srv_dev->id, srv_sess->sessname, access_mode);
++		ret = -EINVAL;
 +	}
 +
-+	rnbd_clt_info(dev,
-+		       "map_device: Device mapped as %s (nsectors: %zu, logical_block_size: %d, physical_block_size: %d, max_write_same_sectors: %d, max_discard_sectors: %d, discard_granularity: %d, discard_alignment: %d, secure_discard: %d, max_segments: %d, max_hw_sectors: %d, rotational: %d)\n",
-+		       dev->gd->disk_name, dev->nsectors,
-+		       dev->logical_block_size, dev->physical_block_size,
-+		       dev->max_write_same_sectors, dev->max_discard_sectors,
-+		       dev->discard_granularity, dev->discard_alignment,
-+		       dev->secure_discard, dev->max_segments,
-+		       dev->max_hw_sectors, dev->rotational);
-+
-+	mutex_unlock(&dev->lock);
-+
-+	rnbd_clt_add_gen_disk(dev);
-+	rnbd_clt_put_sess(sess);
-+
-+	return dev;
-+
-+del_dev:
-+	delete_dev(dev);
-+put_dev:
-+	rnbd_clt_put_dev(dev);
-+put_sess:
-+	rnbd_clt_put_sess(sess);
-+
-+	return ERR_PTR(ret);
-+}
-+
-+static void destroy_gen_disk(struct rnbd_clt_dev *dev)
-+{
-+	del_gendisk(dev->gd);
-+	blk_cleanup_queue(dev->queue);
-+	put_disk(dev->gd);
-+}
-+
-+static void destroy_sysfs(struct rnbd_clt_dev *dev,
-+			  const struct attribute *sysfs_self)
-+{
-+	rnbd_clt_remove_dev_symlink(dev);
-+	if (dev->kobj.state_initialized) {
-+		if (sysfs_self)
-+			/* To avoid deadlock firstly remove itself */
-+			sysfs_remove_file_self(&dev->kobj, sysfs_self);
-+		kobject_del(&dev->kobj);
-+		kobject_put(&dev->kobj);
-+	}
-+}
-+
-+int rnbd_clt_unmap_device(struct rnbd_clt_dev *dev, bool force,
-+			   const struct attribute *sysfs_self)
-+{
-+	struct rnbd_clt_session *sess = dev->sess;
-+	int refcount, ret = 0;
-+	bool was_mapped;
-+
-+	mutex_lock(&dev->lock);
-+	if (dev->dev_state == DEV_STATE_UNMAPPED) {
-+		rnbd_clt_info(dev, "Device is already being unmapped\n");
-+		ret = -EALREADY;
-+		goto err;
-+	}
-+	refcount = refcount_read(&dev->refcount);
-+	if (!force && refcount > 1) {
-+		rnbd_clt_err(dev,
-+			      "Closing device failed, device is in use, (%d device users)\n",
-+			      refcount - 1);
-+		ret = -EBUSY;
-+		goto err;
-+	}
-+	was_mapped = (dev->dev_state == DEV_STATE_MAPPED);
-+	dev->dev_state = DEV_STATE_UNMAPPED;
-+	mutex_unlock(&dev->lock);
-+
-+	delete_dev(dev);
-+	destroy_sysfs(dev, sysfs_self);
-+	destroy_gen_disk(dev);
-+	if (was_mapped && sess->rtrs)
-+		send_msg_close(dev, dev->device_id, WAIT);
-+
-+	rnbd_clt_info(dev, "Device is unmapped\n");
-+
-+	/* Likely last reference put */
-+	rnbd_clt_put_dev(dev);
-+
-+	/*
-+	 * Here device and session can be vanished!
-+	 */
-+
-+	return 0;
-+err:
-+	mutex_unlock(&dev->lock);
++	mutex_unlock(&srv_dev->lock);
 +
 +	return ret;
 +}
 +
-+int rnbd_clt_remap_device(struct rnbd_clt_dev *dev)
++static struct rnbd_srv_dev *
++rnbd_srv_get_or_create_srv_dev(struct rnbd_dev *rnbd_dev,
++				struct rnbd_srv_session *srv_sess,
++				enum rnbd_access_mode access_mode)
++{
++	int ret;
++	struct rnbd_srv_dev *new_dev, *dev;
++
++	new_dev = rnbd_srv_init_srv_dev(rnbd_dev->name);
++	if (IS_ERR(new_dev))
++		return new_dev;
++
++	dev = rnbd_srv_find_or_add_srv_dev(new_dev);
++	if (dev != new_dev)
++		kfree(new_dev);
++
++	ret = rnbd_srv_check_update_open_perm(dev, srv_sess, access_mode);
++	if (ret) {
++		rnbd_put_srv_dev(dev);
++		return ERR_PTR(ret);
++	}
++
++	return dev;
++}
++
++static void rnbd_srv_fill_msg_open_rsp(struct rnbd_msg_open_rsp *rsp,
++					struct rnbd_srv_sess_dev *sess_dev)
++{
++	struct rnbd_dev *rnbd_dev = sess_dev->rnbd_dev;
++
++	rsp->hdr.type = cpu_to_le16(RNBD_MSG_OPEN_RSP);
++	rsp->device_id =
++		cpu_to_le32(sess_dev->device_id);
++	rsp->nsectors =
++		cpu_to_le64(get_capacity(rnbd_dev->bdev->bd_disk));
++	rsp->logical_block_size	=
++		cpu_to_le16(rnbd_dev_get_logical_bsize(rnbd_dev));
++	rsp->physical_block_size =
++		cpu_to_le16(rnbd_dev_get_phys_bsize(rnbd_dev));
++	rsp->max_segments =
++		cpu_to_le16(rnbd_dev_get_max_segs(rnbd_dev));
++	rsp->max_hw_sectors =
++		cpu_to_le32(rnbd_dev_get_max_hw_sects(rnbd_dev));
++	rsp->max_write_same_sectors =
++		cpu_to_le32(rnbd_dev_get_max_write_same_sects(rnbd_dev));
++	rsp->max_discard_sectors =
++		cpu_to_le32(rnbd_dev_get_max_discard_sects(rnbd_dev));
++	rsp->discard_granularity =
++		cpu_to_le32(rnbd_dev_get_discard_granularity(rnbd_dev));
++	rsp->discard_alignment =
++		cpu_to_le32(rnbd_dev_get_discard_alignment(rnbd_dev));
++	rsp->secure_discard =
++		cpu_to_le16(rnbd_dev_get_secure_discard(rnbd_dev));
++	rsp->rotational =
++		!blk_queue_nonrot(bdev_get_queue(rnbd_dev->bdev));
++}
++
++static struct rnbd_srv_sess_dev *
++rnbd_srv_create_set_sess_dev(struct rnbd_srv_session *srv_sess,
++			      const struct rnbd_msg_open *open_msg,
++			      struct rnbd_dev *rnbd_dev, fmode_t open_flags,
++			      struct rnbd_srv_dev *srv_dev)
++{
++	struct rnbd_srv_sess_dev *sdev = rnbd_sess_dev_alloc(srv_sess);
++
++	if (IS_ERR(sdev))
++		return sdev;
++
++	kref_init(&sdev->kref);
++
++	strlcpy(sdev->pathname, open_msg->dev_name, sizeof(sdev->pathname));
++
++	sdev->rnbd_dev		= rnbd_dev;
++	sdev->sess		= srv_sess;
++	sdev->dev		= srv_dev;
++	sdev->open_flags	= open_flags;
++	sdev->access_mode	= open_msg->access_mode;
++
++	return sdev;
++}
++
++static char *rnbd_srv_get_full_path(struct rnbd_srv_session *srv_sess,
++				     const char *dev_name)
++{
++	char *full_path;
++	char *a, *b;
++
++	full_path = kmalloc(PATH_MAX, GFP_KERNEL);
++	if (!full_path)
++		return ERR_PTR(-ENOMEM);
++
++	/*
++	 * Replace %SESSNAME% with a real session name in order to
++	 * create device namespace.
++	 */
++	a = strnstr(dev_search_path, "%SESSNAME%", sizeof(dev_search_path));
++	if (a) {
++		int len = a - dev_search_path;
++
++		len = snprintf(full_path, PATH_MAX, "%.*s/%s/%s", len,
++			       dev_search_path, srv_sess->sessname, dev_name);
++		if (len >= PATH_MAX) {
++			pr_err("Tooooo looong path: %s, %s, %s\n",
++			       dev_search_path, srv_sess->sessname, dev_name);
++			kfree(full_path);
++			return ERR_PTR(-EINVAL);
++		}
++	} else {
++		snprintf(full_path, PATH_MAX, "%s/%s",
++			 dev_search_path, dev_name);
++	}
++
++	/* eliminitate duplicated slashes */
++	a = strchr(full_path, '/');
++	b = a;
++	while (*b != '\0') {
++		if (*b == '/' && *a == '/') {
++			b++;
++		} else {
++			a++;
++			*a = *b;
++			b++;
++		}
++	}
++	a++;
++	*a = '\0';
++
++	return full_path;
++}
++
++static int process_msg_sess_info(struct rtrs_srv *rtrs,
++				 struct rnbd_srv_session *srv_sess,
++				 const void *msg, size_t len,
++				 void *data, size_t datalen)
++{
++	const struct rnbd_msg_sess_info *sess_info_msg = msg;
++	struct rnbd_msg_sess_info_rsp *rsp = data;
++
++	srv_sess->ver = min_t(u8, sess_info_msg->ver, RNBD_PROTO_VER_MAJOR);
++	pr_debug("Session %s using protocol version %d (client version: %d, server version: %d)\n",
++		 srv_sess->sessname, srv_sess->ver,
++		 sess_info_msg->ver, RNBD_PROTO_VER_MAJOR);
++
++	rsp->hdr.type = cpu_to_le16(RNBD_MSG_SESS_INFO_RSP);
++	rsp->ver = srv_sess->ver;
++
++	return 0;
++}
++
++/**
++ * find_srv_sess_dev() - a dev is already opened by this name
++ * @srv_sess	the session to search.
++ * @dev_name	string containing the name of the device.
++ *
++ * Return struct rnbd_srv_sess_dev if srv_sess already opened the dev_name
++ * NULL if the session didn't open the device yet.
++ */
++static struct rnbd_srv_sess_dev *
++find_srv_sess_dev(struct rnbd_srv_session *srv_sess, const char *dev_name)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
++
++	if (list_empty(&srv_sess->sess_dev_list))
++		return NULL;
++
++	list_for_each_entry(sess_dev, &srv_sess->sess_dev_list, sess_list)
++		if (!strcmp(sess_dev->pathname, dev_name))
++			return sess_dev;
++
++	return NULL;
++}
++
++static int process_msg_open(struct rtrs_srv *rtrs,
++			    struct rnbd_srv_session *srv_sess,
++			    const void *msg, size_t len,
++			    void *data, size_t datalen)
++{
++	int ret;
++	struct rnbd_srv_dev *srv_dev;
++	struct rnbd_srv_sess_dev *srv_sess_dev;
++	const struct rnbd_msg_open *open_msg = msg;
++	fmode_t open_flags;
++	char *full_path;
++	struct rnbd_dev *rnbd_dev;
++	struct rnbd_msg_open_rsp *rsp = data;
++
++	pr_debug("Open message received: session='%s' path='%s' access_mode=%d\n",
++		 srv_sess->sessname, open_msg->dev_name,
++		 open_msg->access_mode);
++	open_flags = FMODE_READ;
++	if (open_msg->access_mode != RNBD_ACCESS_RO)
++		open_flags |= FMODE_WRITE;
++
++	mutex_lock(&srv_sess->lock);
++
++	srv_sess_dev = find_srv_sess_dev(srv_sess, open_msg->dev_name);
++	if (srv_sess_dev)
++		goto fill_response;
++
++	if ((strlen(dev_search_path) + strlen(open_msg->dev_name))
++	    >= PATH_MAX) {
++		pr_err("Opening device for session %s failed, device path too long. '%s/%s' is longer than PATH_MAX (%d)\n",
++		       srv_sess->sessname, dev_search_path, open_msg->dev_name,
++		       PATH_MAX);
++		ret = -EINVAL;
++		goto reject;
++	}
++	if (strstr(open_msg->dev_name, "..")) {
++		pr_err("Opening device for session %s failed, device path %s contains relative path ..\n",
++		       srv_sess->sessname, open_msg->dev_name);
++		ret = -EINVAL;
++		goto reject;
++	}
++	full_path = rnbd_srv_get_full_path(srv_sess, open_msg->dev_name);
++	if (IS_ERR(full_path)) {
++		ret = PTR_ERR(full_path);
++		pr_err("Opening device '%s' for client %s failed, failed to get device full path, err: %d\n",
++		       open_msg->dev_name, srv_sess->sessname, ret);
++		goto reject;
++	}
++
++	rnbd_dev = rnbd_dev_open(full_path, open_flags,
++				   &srv_sess->sess_bio_set, rnbd_endio);
++	if (IS_ERR(rnbd_dev)) {
++		pr_err("Opening device '%s' on session %s failed, failed to open the block device, err: %ld\n",
++		       full_path, srv_sess->sessname, PTR_ERR(rnbd_dev));
++		ret = PTR_ERR(rnbd_dev);
++		goto free_path;
++	}
++
++	srv_dev = rnbd_srv_get_or_create_srv_dev(rnbd_dev, srv_sess,
++						  open_msg->access_mode);
++	if (IS_ERR(srv_dev)) {
++		pr_err("Opening device '%s' on session %s failed, creating srv_dev failed, err: %ld\n",
++		       full_path, srv_sess->sessname, PTR_ERR(srv_dev));
++		ret = PTR_ERR(srv_dev);
++		goto rnbd_dev_close;
++	}
++
++	srv_sess_dev = rnbd_srv_create_set_sess_dev(srv_sess, open_msg,
++						     rnbd_dev, open_flags,
++						     srv_dev);
++	if (IS_ERR(srv_sess_dev)) {
++		pr_err("Opening device '%s' on session %s failed, creating sess_dev failed, err: %ld\n",
++		       full_path, srv_sess->sessname, PTR_ERR(srv_sess_dev));
++		ret = PTR_ERR(srv_sess_dev);
++		goto srv_dev_put;
++	}
++
++	/* Create the srv_dev sysfs files if they haven't been created yet. The
++	 * reason to delay the creation is not to create the sysfs files before
++	 * we are sure the device can be opened.
++	 */
++	mutex_lock(&srv_dev->lock);
++	if (!srv_dev->dev_kobj.state_in_sysfs) {
++		ret = rnbd_srv_create_dev_sysfs(srv_dev, rnbd_dev->bdev,
++						 rnbd_dev->name);
++		if (ret) {
++			mutex_unlock(&srv_dev->lock);
++			rnbd_srv_err(srv_sess_dev,
++				      "Opening device failed, failed to create device sysfs files, err: %d\n",
++				      ret);
++			goto free_srv_sess_dev;
++		}
++	}
++
++	ret = rnbd_srv_create_dev_session_sysfs(srv_sess_dev);
++	if (ret) {
++		mutex_unlock(&srv_dev->lock);
++		rnbd_srv_err(srv_sess_dev,
++			      "Opening device failed, failed to create dev client sysfs files, err: %d\n",
++			      ret);
++		goto free_srv_sess_dev;
++	}
++
++	list_add(&srv_sess_dev->dev_list, &srv_dev->sess_dev_list);
++	mutex_unlock(&srv_dev->lock);
++
++	list_add(&srv_sess_dev->sess_list, &srv_sess->sess_dev_list);
++
++	rnbd_srv_info(srv_sess_dev, "Opened device '%s'\n", srv_dev->id);
++
++	kfree(full_path);
++
++fill_response:
++	rnbd_srv_fill_msg_open_rsp(rsp, srv_sess_dev);
++	mutex_unlock(&srv_sess->lock);
++	return 0;
++
++free_srv_sess_dev:
++	write_lock(&srv_sess->index_lock);
++	idr_remove(&srv_sess->index_idr, srv_sess_dev->device_id);
++	write_unlock(&srv_sess->index_lock);
++	kfree(srv_sess_dev);
++srv_dev_put:
++	if (open_msg->access_mode != RNBD_ACCESS_RO) {
++		mutex_lock(&srv_dev->lock);
++		srv_dev->open_write_cnt--;
++		mutex_unlock(&srv_dev->lock);
++	}
++	rnbd_put_srv_dev(srv_dev);
++rnbd_dev_close:
++	rnbd_dev_close(rnbd_dev);
++free_path:
++	kfree(full_path);
++reject:
++	mutex_unlock(&srv_sess->lock);
++	return ret;
++}
++
++static struct rtrs_srv_ctx *rtrs_ctx;
++
++static int __init rnbd_srv_init_module(void)
 +{
 +	int err;
 +
-+	mutex_lock(&dev->lock);
-+	if (likely(dev->dev_state == DEV_STATE_MAPPED_DISCONNECTED))
-+		err = 0;
-+	else if (dev->dev_state == DEV_STATE_UNMAPPED)
-+		err = -ENODEV;
-+	else if (dev->dev_state == DEV_STATE_MAPPED)
-+		err = -EALREADY;
-+	else
-+		err = -EBUSY;
-+	mutex_unlock(&dev->lock);
-+	if (likely(!err)) {
-+		rnbd_clt_info(dev, "Remapping device.\n");
-+		err = send_msg_open(dev, WAIT);
-+		if (unlikely(err))
-+			rnbd_clt_err(dev, "remap_device: %d\n", err);
-+	}
-+
-+	return err;
-+}
-+
-+static void unmap_device_work(struct work_struct *work)
-+{
-+	struct rnbd_clt_dev *dev;
-+
-+	dev = container_of(work, typeof(*dev), unmap_on_rmmod_work);
-+	rnbd_clt_unmap_device(dev, true, NULL);
-+}
-+
-+static void rnbd_destroy_sessions(void)
-+{
-+	struct rnbd_clt_session *sess, *sn;
-+	struct rnbd_clt_dev *dev, *tn;
-+
-+	/* Firstly forbid access through sysfs interface */
-+	rnbd_clt_destroy_default_group();
-+	rnbd_clt_destroy_sysfs_files();
-+
-+	/*
-+	 * Here at this point there is no any concurrent access to sessions
-+	 * list and devices list:
-+	 *   1. New session or device can'be be created - session sysfs files
-+	 *      are removed.
-+	 *   2. Device or session can't be removed - module reference is taken
-+	 *      into account in unmap device sysfs callback.
-+	 *   3. No IO requests inflight - each file open of block_dev increases
-+	 *      module reference in get_disk().
-+	 *
-+	 * But still there can be user requests inflights, which are sent by
-+	 * asynchronous send_msg_*() functions, thus before unmapping devices
-+	 * RTRS session must be explicitly closed.
-+	 */
-+
-+	list_for_each_entry_safe(sess, sn, &sess_list, list) {
-+		WARN_ON(!rnbd_clt_get_sess(sess));
-+		close_rtrs(sess);
-+		list_for_each_entry_safe(dev, tn, &sess->devs_list, list) {
-+			/*
-+			 * Here unmap happens in parallel for only one reason:
-+			 * blk_cleanup_queue() takes around half a second, so
-+			 * on huge amount of devices the whole module unload
-+			 * procedure takes minutes.
-+			 */
-+			INIT_WORK(&dev->unmap_on_rmmod_work, unmap_device_work);
-+			queue_work(system_long_wq, &dev->unmap_on_rmmod_work);
-+		}
-+		rnbd_clt_put_sess(sess);
-+	}
-+	/* Wait for all scheduled unmap works */
-+	flush_workqueue(system_long_wq);
-+	WARN_ON(!list_empty(&sess_list));
-+}
-+
-+static int __init rnbd_client_init(void)
-+{
-+	int err = 0;
-+
-+	pr_info("Loading module %s, proto %s:\n",
++	pr_info("Loading module %s, proto %s\n",
 +		KBUILD_MODNAME, RNBD_PROTO_VER_STRING);
 +
-+	rnbd_client_major = register_blkdev(rnbd_client_major, "rnbd");
-+	if (rnbd_client_major <= 0) {
-+		pr_err("Failed to load module, block device registration failed\n");
-+		return -EBUSY;
++	rtrs_ctx = rtrs_srv_open(rnbd_srv_rdma_ev, rnbd_srv_link_ev,
++				   port_nr);
++	if (IS_ERR(rtrs_ctx)) {
++		err = PTR_ERR(rtrs_ctx);
++		pr_err("rtrs_srv_open(), err: %d\n", err);
++		return err;
 +	}
 +
-+	err = rnbd_clt_create_sysfs_files();
++	err = rnbd_srv_create_sysfs_files();
 +	if (err) {
-+		pr_err("Failed to load module, creating sysfs device files failed, err: %d\n",
-+		       err);
-+		unregister_blkdev(rnbd_client_major, "rnbd");
++		pr_err("rnbd_srv_create_sysfs_files(), err: %d\n", err);
++		rtrs_srv_close(rtrs_ctx);
++		return err;
 +	}
 +
-+	return err;
++	return 0;
 +}
 +
-+static void __exit rnbd_client_exit(void)
++static void __exit rnbd_srv_cleanup_module(void)
 +{
-+	pr_info("Unloading module\n");
-+	rnbd_destroy_sessions();
-+	unregister_blkdev(rnbd_client_major, "rnbd");
-+	ida_destroy(&index_ida);
++	rtrs_srv_close(rtrs_ctx);
++	WARN_ON(!list_empty(&sess_list));
++	rnbd_srv_destroy_sysfs_files();
 +	pr_info("Module unloaded\n");
 +}
 +
-+module_init(rnbd_client_init);
-+module_exit(rnbd_client_exit);
++module_init(rnbd_srv_init_module);
++module_exit(rnbd_srv_cleanup_module);
 -- 
 2.17.1
 
