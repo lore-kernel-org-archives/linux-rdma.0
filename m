@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37FB5C2D0C0
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:48:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B5DFC43603
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:48:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 04CF4222C2
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:48:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 481BE218AC
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:48:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576853310;
-	bh=SujEwJFHF1vo1d0pe7hFH3Lkq5rGKZCFmgyxuCNPRTA=;
+	s=default; t=1576853334;
+	bh=JXTV5rA+VR9UgylwUbsmCMZjorEv2/sD5C3a50xkd4Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=An/sVG9beqp8f6hZ5o+anD6JMxIO6YzR+86DFzcgRRQOhJg74szOzhmEA9czKUASp
-	 wKdYhnpXlRyJZO/I4kpuGbmN7by0yRWva95YdaJwWXyfwUe2Mz6LP0LVhHZh/y1YW6
-	 t7LuTN2agubwJCYG0MizuSDKUnZ4ItOF/EZzD8bQ=
+	b=h0atisgLwP79LdrE7EomGB7m+hbw951xg9vCNYXWnUdqJe9GklSE8blRYVZwPwTHz
+	 7CMmMzoTSEeXN22ZgHJkUnKrXni68w1cwM8r/0JF3oGyHCBRuxUMy97sPGu+6V/Qzx
+	 30DDIhMSqeRPElqH4uyDnuQqhVwb0L72K329t+m0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728029AbfLTOs2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Dec 2019 09:48:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46150 "EHLO mail.kernel.org"
+        id S1727499AbfLTOrD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Dec 2019 09:47:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45166 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727384AbfLTOrr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 20 Dec 2019 09:47:47 -0500
+        id S1727381AbfLTOrC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 20 Dec 2019 09:47:02 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 70AD724683;
-        Fri, 20 Dec 2019 14:47:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 33BDD2465E;
+        Fri, 20 Dec 2019 14:47:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576853267;
-        bh=SujEwJFHF1vo1d0pe7hFH3Lkq5rGKZCFmgyxuCNPRTA=;
+        s=default; t=1576853222;
+        bh=JXTV5rA+VR9UgylwUbsmCMZjorEv2/sD5C3a50xkd4Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ZloGS0Jp6KRBxpZ4UlbT+S5zc/RYY/kfbHSLn4HBw9u7JQsruvGNTQdJmzBluVER3
-         Yd8jkR2pVMEm7pUh+9nF2q9WYIyBFderlRwV6Joym4IFPbQhCB1rEiy2MqY0dky9fl
-         kXGj89wPQMUv3FHxTDwctcowLq6nDez/t9yKarX4=
+        b=Q2g2SlNF0cbRiANpB4trWQKWIdTGYRjt3yO1jJfZn78GuID5rASs1tuAIeEB2UX2r
+         /r+uCr60/wBu9SsKO7CXi8pFdfQLgRmDLdVegyGF+uLabfV8NEMfk8wJ7TNNul1azm
+         dkXe/ijTC8pUxshqa0x+ZbLj/8dIbk7v7XSvf6oQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Chuhong Yuan <hslester96@gmail.com>,
         Parav Pandit <parav@mellanox.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 02/11] RDMA/cma: add missed unregister_pernet_subsys in init failure
-Date:   Fri, 20 Dec 2019 09:47:34 -0500
-Message-Id: <20191220144744.10565-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 02/14] RDMA/cma: add missed unregister_pernet_subsys in init failure
+Date:   Fri, 20 Dec 2019 09:46:46 -0500
+Message-Id: <20191220144658.10414-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191220144744.10565-1-sashal@kernel.org>
-References: <20191220144744.10565-1-sashal@kernel.org>
+In-Reply-To: <20191220144658.10414-1-sashal@kernel.org>
+References: <20191220144658.10414-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -78,10 +78,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 8ad9c6b04769d..5ed9b5f8a0377 100644
+index dcfbf326f45c9..27653aad8f218 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -4109,6 +4109,7 @@ static int __init cma_init(void)
+@@ -4440,6 +4440,7 @@ static int __init cma_init(void)
  	unregister_netdevice_notifier(&cma_nb);
  	rdma_addr_unregister_client(&addr_client);
  	ib_sa_unregister_client(&sa_client);
