@@ -4,51 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BE5AC43603
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:34:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B877AC43603
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:35:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E9A921D7D
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:34:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D78C206CB
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 14:35:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1576852469;
-	bh=FDtr2mn+6VzBS6ydVoBBe90J2KyAi6JKvNtaBCBC2o4=;
+	s=default; t=1576852547;
+	bh=0UPq0ADHUVi3H1HGjyjp01QlhJ9fHqauFQflmudCk+Q=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=oxnm0ThT+FTClgeaYLyLKcILv/9rtPIAHxtT9AHqfyuTAlgziGDbq2SNg1CYCsfPn
-	 IR928JtB3VDZa/0MZVKyttHUCEpac2f5zbcuIdKrH90Jd3fvKOY2EPGMiXdvlHJtyO
-	 ZDOPb0m1CzUj4+WgV5EJyuSM6mOmX8MaRwg0yghk=
+	b=LH4XMBhHDqVQOaemsuS73hJNWgKiPu6uFZ+63R2ZkxNv3dQehJ72cVhXEZqpCAAyR
+	 EQg6tYwNwSyw7z6DdWWJMjXeYt6DL4kf4XqwFzryuyHrCZ8D26Kbd/aN32R9U0UA7z
+	 LkefuAFSvQMWicbr4KrlkJS6tCgx3gSAdJtAiOLw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727955AbfLTOe2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Dec 2019 09:34:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33986 "EHLO mail.kernel.org"
+        id S1727855AbfLTOfn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Dec 2019 09:35:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727669AbfLTOaZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 20 Dec 2019 09:30:25 -0500
+        id S1728379AbfLTOfO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 20 Dec 2019 09:35:14 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DF21524680;
-        Fri, 20 Dec 2019 14:30:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 22EE52467F;
+        Fri, 20 Dec 2019 14:35:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1576852224;
-        bh=FDtr2mn+6VzBS6ydVoBBe90J2KyAi6JKvNtaBCBC2o4=;
+        s=default; t=1576852514;
+        bh=0UPq0ADHUVi3H1HGjyjp01QlhJ9fHqauFQflmudCk+Q=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=FdvTPJDDVtxrP2hDrEko3LrFC4nSUzNTtNUmWmEum5K3uNHuvqZKZ4doiLjeNO+Nx
-         j5zu7xenHjCZmsEC+yHdxvoj7SK41Taa2tIkMXh1az19PQ7Q97SnQJrONjXcMd1jkt
-         vgw6yyqH0St9LxIxoPOn09sFq7wCpXANwW8/vcUU=
+        b=SngIBtMuoxFTKtQyHeC+/67ICSZjwTcs1fK3WUoS6JgXsvvuccXs1Zs5fKB+v5ozH
+         wZTI+Sr/Zdbs2RA7779UxlgtTnkUNcaQeMRh7w3y40MoIlcl7EFduZtYN4FJvrqvxN
+         zxw6nlWyt5aZ6/rbSODYs+G1piI6R6c+I3pefqBY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Steve Wise <larrystevenwise@gmail.com>,
+Cc:     Maor Gottlieb <maorg@mellanox.com>,
+        Raed Salem <raeds@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 22/52] rxe: correctly calculate iCRC for unaligned payloads
-Date:   Fri, 20 Dec 2019 09:29:24 -0500
-Message-Id: <20191220142954.9500-22-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 31/34] IB/mlx5: Fix steering rule of drop and count
+Date:   Fri, 20 Dec 2019 09:34:30 -0500
+Message-Id: <20191220143433.9922-31-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191220142954.9500-1-sashal@kernel.org>
-References: <20191220142954.9500-1-sashal@kernel.org>
+In-Reply-To: <20191220143433.9922-1-sashal@kernel.org>
+References: <20191220143433.9922-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -58,81 +60,63 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Steve Wise <larrystevenwise@gmail.com>
+From: Maor Gottlieb <maorg@mellanox.com>
 
-[ Upstream commit 2030abddec6884aaf5892f5724c48fc340e6826f ]
+[ Upstream commit ed9085fed9d95d5921582e3c8474f3736c5d2782 ]
 
-If RoCE PDUs being sent or received contain pad bytes, then the iCRC
-is miscalculated, resulting in PDUs being emitted by RXE with an incorrect
-iCRC, as well as ingress PDUs being dropped due to erroneously detecting
-a bad iCRC in the PDU.  The fix is to include the pad bytes, if any,
-in iCRC computations.
+There are two flow rule destinations: QP and packet. While users are
+setting DROP packet rule, the QP should not be set as a destination.
 
-Note: This bug has caused broken on-the-wire compatibility with actual
-hardware RoCE devices since the soft-RoCE driver was first put into the
-mainstream kernel.  Fixing it will create an incompatibility with the
-original soft-RoCE devices, but is necessary to be compatible with real
-hardware devices.
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
-Link: https://lore.kernel.org/r/20191203020319.15036-2-larrystevenwise@gmail.com
+Fixes: 3b3233fbf02e ("IB/mlx5: Add flow counters binding support")
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Reviewed-by: Raed Salem <raeds@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Link: https://lore.kernel.org/r/20191212091214.315005-4-leon@kernel.org
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
- drivers/infiniband/sw/rxe/rxe_req.c  | 6 ++++++
- drivers/infiniband/sw/rxe/rxe_resp.c | 7 +++++++
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index f9a492ed900b9..831ad578a7b29 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -389,7 +389,7 @@ void rxe_rcv(struct sk_buff *skb)
- 
- 	calc_icrc = rxe_icrc_hdr(pkt, skb);
- 	calc_icrc = rxe_crc32(rxe, calc_icrc, (u8 *)payload_addr(pkt),
--			      payload_size(pkt));
-+			      payload_size(pkt) + bth_pad(pkt));
- 	calc_icrc = (__force u32)cpu_to_be32(~calc_icrc);
- 	if (unlikely(calc_icrc != pack_icrc)) {
- 		if (skb->protocol == htons(ETH_P_IPV6))
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index c5d9b558fa90a..e5031172c0193 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -500,6 +500,12 @@ static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 			if (err)
- 				return err;
- 		}
-+		if (bth_pad(pkt)) {
-+			u8 *pad = payload_addr(pkt) + paylen;
-+
-+			memset(pad, 0, bth_pad(pkt));
-+			crc = rxe_crc32(rxe, crc, pad, bth_pad(pkt));
-+		}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index f4ffdc588ea07..df5be462dd281 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3286,10 +3286,6 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
  	}
- 	p = payload_addr(pkt) + paylen + bth_pad(pkt);
  
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 1cbfbd98eb221..c4a8195bf6709 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -732,6 +732,13 @@ static enum resp_states read_reply(struct rxe_qp *qp,
- 	if (err)
- 		pr_err("Failed copying memory\n");
+ 	INIT_LIST_HEAD(&handler->list);
+-	if (dst) {
+-		memcpy(&dest_arr[0], dst, sizeof(*dst));
+-		dest_num++;
+-	}
  
-+	if (bth_pad(&ack_pkt)) {
-+		struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+		u8 *pad = payload_addr(&ack_pkt) + payload;
-+
-+		memset(pad, 0, bth_pad(&ack_pkt));
-+		icrc = rxe_crc32(rxe, icrc, pad, bth_pad(&ack_pkt));
+ 	for (spec_index = 0; spec_index < flow_attr->num_of_specs; spec_index++) {
+ 		err = parse_flow_attr(dev->mdev, spec->match_criteria,
+@@ -3303,6 +3299,11 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
+ 		ib_flow += ((union ib_flow_spec *)ib_flow)->size;
+ 	}
+ 
++	if (dst && !(flow_act.action & MLX5_FLOW_CONTEXT_ACTION_DROP)) {
++		memcpy(&dest_arr[0], dst, sizeof(*dst));
++		dest_num++;
 +	}
- 	p = payload_addr(&ack_pkt) + payload + bth_pad(&ack_pkt);
- 	*p = ~icrc;
++
+ 	if (!flow_is_multicast_only(flow_attr))
+ 		set_underlay_qp(dev, spec, underlay_qpn);
  
+@@ -3340,10 +3341,8 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
+ 	}
+ 
+ 	if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_DROP) {
+-		if (!(flow_act.action & MLX5_FLOW_CONTEXT_ACTION_COUNT)) {
++		if (!dest_num)
+ 			rule_dst = NULL;
+-			dest_num = 0;
+-		}
+ 	} else {
+ 		if (is_egress)
+ 			flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_ALLOW;
 -- 
 2.20.1
 
