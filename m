@@ -5,64 +5,64 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72DE3C2D0D7
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C55E7C2D0D3
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48A7B24679
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 926A221D7E
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Dec 2019 15:51:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GC9ZOzDa"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UIPsPGvQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727605AbfLTPvl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Dec 2019 10:51:41 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:37786 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727508AbfLTPvk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Dec 2019 10:51:40 -0500
-Received: by mail-wm1-f65.google.com with SMTP id f129so9721920wmf.2;
-        Fri, 20 Dec 2019 07:51:38 -0800 (PST)
+        id S1727594AbfLTPvi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Dec 2019 10:51:38 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:36554 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727508AbfLTPvg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Dec 2019 10:51:36 -0500
+Received: by mail-wr1-f67.google.com with SMTP id z3so9894909wru.3;
+        Fri, 20 Dec 2019 07:51:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=uczIf8wl7NtPkUeKJLOllYreCbtFd4vfgmCVdW8TWc8=;
-        b=GC9ZOzDago+wV+X0UVwyKiBizEVsTq6Ch+prIaIF1NpQeXerGVTnAtWC7UhMzYPY2V
-         Ad8FT7qI4J8c+GgHyj93xwbC/vsAc5qLK0klUVtiXco4w1Xclvoq79Cm/l3EI/VGKYRd
-         WifLcnGqVGhv66+Qnjhip7aoOUeDX7+5z1Jyub0hG1AndiS2/y0deklLkCJ+gGJdxJCp
-         jRDbyA99HAkGblN0UE0EWmRhnE/eRpeamTxl9hysWFpwd48g5utNSvg9UmaMAaN4qbn8
-         yBPJRWTfhYtYS2oDqCWtBeW2VNCrlI4BRCTXh69JM65hLz71u0xIXvjHvd7JMTRMO5hi
-         4Xew==
+        bh=nkP4w98AtoDHX5keZyBHATpNs1UFV8kOi9qzkCSeNHM=;
+        b=UIPsPGvQLgkR/YcD+WX+kB2e9bYEqblGvKdhb38YcOc7OYLgrvvYANQW0KjWSme5Mi
+         GeK+8z0dCQ+s89vcqwa4gQAPQJXDSK8FDqyEIzGlSV18+VyPeIE1f5J4AMEkgr3VMN6o
+         63B/zD/pJ6CozsCBzB5IG8ShUvHdts1efdXMoRwez9oWMYV5U5qBWJuzgXd9bJt4ZqZg
+         t1iqz+Hf+wi+2F3L6+qH7p+z0rWMBMRBbA7O8v73mUBG28a8sbbAvtVSqWjY+NFGsA/X
+         9b/aBVZQZsLBMd0IXhNYSzG9yXc5eiSolfHOL6NNt3Vejks90UnYAwt8GJZuBPXzgqDN
+         ajCw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=uczIf8wl7NtPkUeKJLOllYreCbtFd4vfgmCVdW8TWc8=;
-        b=QnNQ3XBN4buOtKwJ05QLyA8jsu6yBHUbZkYMX78gcR6lK4qleigxqsRtUVuWSiHezq
-         K12LQtMElH5+vxDqUQery23ClrV+zVCByOdrWAz6wrjdEGPNvCBW6CwzvTgxTekKTf85
-         tH1FfHxs9jPS1hDjrknNhfQKEpYT1jn/T0Me1pHecDu8uqzXaE8YIXrPXpYJtnyOjm6Z
-         YEd5bqmzaNVuv295ISzk25cVx4OhbD5bhKsTZ3XVrbUl9xDHfBwbYZ/j2nAqlCNtJtPG
-         MJPIHI6TyoFQoUTDpSRX5AuIktxVC5xfh04KGKgStpq5adPV91IUiLzj9s7AM3JhJxIS
-         2Qsw==
-X-Gm-Message-State: APjAAAUlXGlhAytm/18tApRo3BJ4LetMJgdxmDZNAKgj8feWSKU+YviC
-        6L5Tgt04JswyRUMOhTXw7MAvvn8k
-X-Google-Smtp-Source: APXvYqxFyyqDBnHsWQR/CAteTwJMJqRTIJRGsYtwDQK6f1Ev5j5C7dNrTb1mZtGSCt1UbYq90m8pQA==
-X-Received: by 2002:a7b:c847:: with SMTP id c7mr17158504wml.3.1576857098155;
-        Fri, 20 Dec 2019 07:51:38 -0800 (PST)
+        bh=nkP4w98AtoDHX5keZyBHATpNs1UFV8kOi9qzkCSeNHM=;
+        b=t0gJST8v30eXu5fNPql23NzF1ksQllNhzoMUcZMDl6ZI7IA7fMKeRLDws2SNqT+//g
+         iDcAQVQ0nUuaV3NRnazibaJHOM7FwKe3X5BpeWuHMpwIkwQOUDKtld/4+MSh0O+J/VSh
+         lhCT5ll7nE13vgtgSbIrztg3AnATpFXTsqPCYNa8Y6fIGU/WLmsWsDyZqZtbwxtG37+f
+         TgN/2V+0EinLWG4LmJXVgGwgUohdCf3Kq+Bdr+rEwDra4kHjl3MT4nfHEXyw6G+T68cf
+         uIXWY56JzrJhD0uxsLBKjkMG7HA/op7gXulAosbw8DfKeQpEFTjB7lXc9cD7Z//LCjL0
+         XA3Q==
+X-Gm-Message-State: APjAAAWYdIEbeyhP0dlEbGXhktrcePw0Zgepowt7LWo0aCfC2JHRDHGd
+        Calg6+JhlcqHlXmlYpm2oDHvJJLhASY=
+X-Google-Smtp-Source: APXvYqwLm70qIc1uRVe05LXWWhDS6eiSOoWs51WhvXIcTuVtTJ/xwD03dTb9a8z7LUoldWXqi1n8ZA==
+X-Received: by 2002:adf:814c:: with SMTP id 70mr15373226wrm.157.1576857094227;
+        Fri, 20 Dec 2019 07:51:34 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4972:cc00:b9e0:6ef7:286d:4897])
-        by smtp.gmail.com with ESMTPSA id u14sm10372139wrm.51.2019.12.20.07.51.36
+        by smtp.gmail.com with ESMTPSA id u14sm10372139wrm.51.2019.12.20.07.51.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Dec 2019 07:51:37 -0800 (PST)
+        Fri, 20 Dec 2019 07:51:32 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com,
         rpenyaev@suse.de
-Subject: [PATCH v5 19/25] rnbd: server: private header with server structs and functions
-Date:   Fri, 20 Dec 2019 16:51:03 +0100
-Message-Id: <20191220155109.8959-20-jinpuwang@gmail.com>
+Subject: [PATCH v5 16/25] rnbd: client: private header with client structs and functions
+Date:   Fri, 20 Dec 2019 16:51:00 +0100
+Message-Id: <20191220155109.8959-17-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20191220155109.8959-1-jinpuwang@gmail.com>
 References: <20191220155109.8959-1-jinpuwang@gmail.com>
@@ -73,23 +73,23 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-This header describes main structs and functions used by rnbd-server
-module, namely structs for managing sessions from different clients
-and mapped (opened) devices.
+This header describes main structs and functions used by rnbd-client
+module, mainly for managing RNBD sessions and mapped block devices,
+creating and destroying sysfs entries.
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/block/rnbd/rnbd-srv.h | 99 +++++++++++++++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
- create mode 100644 drivers/block/rnbd/rnbd-srv.h
+ drivers/block/rnbd/rnbd-clt.h | 169 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 169 insertions(+)
+ create mode 100644 drivers/block/rnbd/rnbd-clt.h
 
-diff --git a/drivers/block/rnbd/rnbd-srv.h b/drivers/block/rnbd/rnbd-srv.h
+diff --git a/drivers/block/rnbd/rnbd-clt.h b/drivers/block/rnbd/rnbd-clt.h
 new file mode 100644
-index 000000000000..770181e36f15
+index 000000000000..b8b51a41af8e
 --- /dev/null
-+++ b/drivers/block/rnbd/rnbd-srv.h
-@@ -0,0 +1,99 @@
++++ b/drivers/block/rnbd/rnbd-clt.h
+@@ -0,0 +1,169 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +/*
 + * InfiniBand Network Block Driver
@@ -105,90 +105,160 @@ index 000000000000..770181e36f15
 + * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
 + * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
 + *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ *          Swapnil Ingle <swapnil.ingle@profitbricks.com>
 + *
 + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
 + * Authors: Roman Penyaev <roman.penyaev@profitbricks.com>
 + *          Jack Wang <jinpu.wang@cloud.ionos.com>
 + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
 + */
-+
 +/* Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
 + * Authors: Jack Wang <jinpu.wang@cloud.ionos.com>
 + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
 + *          Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 + *          Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
 + */
-+#ifndef RNBD_SRV_H
-+#define RNBD_SRV_H
 +
-+#include <linux/types.h>
-+#include <linux/idr.h>
-+#include <linux/kref.h>
++#ifndef RNBD_CLT_H
++#define RNBD_CLT_H
++
++#include <linux/wait.h>
++#include <linux/in.h>
++#include <linux/inet.h>
++#include <linux/blk-mq.h>
++#include <linux/refcount.h>
 +
 +#include "rtrs.h"
 +#include "rnbd-proto.h"
 +#include "rnbd-log.h"
 +
-+struct rnbd_srv_session {
-+	/* Entry inside global sess_list */
++#define BMAX_SEGMENTS 29
++#define RECONNECT_DELAY 30
++#define MAX_RECONNECTS -1
++
++enum rnbd_clt_dev_state {
++	DEV_STATE_INIT,
++	DEV_STATE_MAPPED,
++	DEV_STATE_MAPPED_DISCONNECTED,
++	DEV_STATE_UNMAPPED,
++};
++
++struct rnbd_iu_comp {
++	wait_queue_head_t wait;
++	int errno;
++};
++
++struct rnbd_iu {
++	union {
++		struct request *rq; /* for block io */
++		void *buf; /* for user messages */
++	};
++	struct rtrs_permit	*permit;
++	union {
++		/* use to send msg associated with a dev */
++		struct rnbd_clt_dev *dev;
++		/* use to send msg associated with a sess */
++		struct rnbd_clt_session *sess;
++	};
++	blk_status_t		status;
++	struct scatterlist	sglist[BMAX_SEGMENTS];
++	struct work_struct	work;
++	int			errno;
++	struct rnbd_iu_comp	comp;
++	atomic_t		refcount;
++};
++
++struct rnbd_cpu_qlist {
++	struct list_head	requeue_list;
++	spinlock_t		requeue_lock;
++	unsigned int		cpu;
++};
++
++struct rnbd_clt_session {
 +	struct list_head        list;
-+	struct rtrs_srv	*rtrs;
-+	char			sessname[NAME_MAX];
++	struct rtrs_clt        *rtrs;
++	wait_queue_head_t       rtrs_waitq;
++	bool                    rtrs_ready;
++	struct rnbd_cpu_qlist	__percpu
++				*cpu_queues;
++	DECLARE_BITMAP(cpu_queues_bm, NR_CPUS);
++	int	__percpu	*cpu_rr; /* per-cpu var for CPU round-robin */
++	atomic_t		busy;
 +	int			queue_depth;
-+	struct bio_set		sess_bio_set;
++	u32			max_io_size;
++	struct blk_mq_tag_set	tag_set;
++	struct mutex		lock; /* protects state and devs_list */
++	struct list_head        devs_list; /* list of struct rnbd_clt_dev */
++	refcount_t		refcount;
++	char			sessname[NAME_MAX];
++	u8			ver; /* protocol version */
++};
 +
-+	rwlock_t                index_lock ____cacheline_aligned;
-+	struct idr              index_idr;
-+	/* List of struct rnbd_srv_sess_dev */
-+	struct list_head        sess_dev_list;
++/**
++ * Submission queues.
++ */
++struct rnbd_queue {
++	struct list_head	requeue_list;
++	unsigned long		in_list;
++	struct rnbd_clt_dev	*dev;
++	struct blk_mq_hw_ctx	*hctx;
++};
++
++struct rnbd_clt_dev {
++	struct rnbd_clt_session	*sess;
++	struct request_queue	*queue;
++	struct rnbd_queue	*hw_queues;
++	u32			device_id;
++	/* local Idr index - used to track minor number allocations. */
++	u32			clt_device_id;
 +	struct mutex		lock;
-+	u8			ver;
++	enum rnbd_clt_dev_state	dev_state;
++	char			pathname[NAME_MAX];
++	enum rnbd_access_mode	access_mode;
++	bool			read_only;
++	bool			rotational;
++	u32			max_hw_sectors;
++	u32			max_write_same_sectors;
++	u32			max_discard_sectors;
++	u32			discard_granularity;
++	u32			discard_alignment;
++	u16			secure_discard;
++	u16			physical_block_size;
++	u16			logical_block_size;
++	u16			max_segments;
++	size_t			nsectors;
++	u64			size;		/* device size in bytes */
++	struct list_head        list;
++	struct gendisk		*gd;
++	struct kobject		kobj;
++	char			blk_symlink_name[NAME_MAX];
++	refcount_t		refcount;
++	struct work_struct	unmap_on_rmmod_work;
 +};
 +
-+struct rnbd_srv_dev {
-+	/* Entry inside global dev_list */
-+	struct list_head                list;
-+	struct kobject                  dev_kobj;
-+	struct kobject                  dev_sessions_kobj;
-+	struct kref                     kref;
-+	char				id[NAME_MAX];
-+	/* List of rnbd_srv_sess_dev structs */
-+	struct list_head		sess_dev_list;
-+	struct mutex			lock;
-+	int				open_write_cnt;
-+};
++/* rnbd-clt.c */
 +
-+/* Structure which binds N devices and N sessions */
-+struct rnbd_srv_sess_dev {
-+	/* Entry inside rnbd_srv_dev struct */
-+	struct list_head		dev_list;
-+	/* Entry inside rnbd_srv_session struct */
-+	struct list_head		sess_list;
-+	struct rnbd_dev		*rnbd_dev;
-+	struct rnbd_srv_session        *sess;
-+	struct rnbd_srv_dev		*dev;
-+	struct kobject                  kobj;
-+	struct completion		*sysfs_release_compl;
-+	u32                             device_id;
-+	fmode_t                         open_flags;
-+	struct kref			kref;
-+	struct completion               *destroy_comp;
-+	char				pathname[NAME_MAX];
-+	enum rnbd_access_mode		access_mode;
-+};
++struct rnbd_clt_dev *rnbd_clt_map_device(const char *sessname,
++					   struct rtrs_addr *paths,
++					   size_t path_cnt,
++					   const char *pathname,
++					   enum rnbd_access_mode access_mode);
++int rnbd_clt_unmap_device(struct rnbd_clt_dev *dev, bool force,
++			   const struct attribute *sysfs_self);
 +
-+/* rnbd-srv-sysfs.c */
++int rnbd_clt_remap_device(struct rnbd_clt_dev *dev);
++int rnbd_clt_resize_disk(struct rnbd_clt_dev *dev, size_t newsize);
 +
-+int rnbd_srv_create_dev_sysfs(struct rnbd_srv_dev *dev,
-+			       struct block_device *bdev,
-+			       const char *dir_name);
-+void rnbd_srv_destroy_dev_sysfs(struct rnbd_srv_dev *dev);
-+int rnbd_srv_create_dev_session_sysfs(struct rnbd_srv_sess_dev *sess_dev);
-+void rnbd_srv_destroy_dev_session_sysfs(struct rnbd_srv_sess_dev *sess_dev);
-+int rnbd_srv_create_sysfs_files(void);
-+void rnbd_srv_destroy_sysfs_files(void);
++/* rnbd-clt-sysfs.c */
 +
-+#endif /* RNBD_SRV_H */
++int rnbd_clt_create_sysfs_files(void);
++
++void rnbd_clt_destroy_sysfs_files(void);
++void rnbd_clt_destroy_default_group(void);
++
++void rnbd_clt_remove_dev_symlink(struct rnbd_clt_dev *dev);
++
++#endif /* RNBD_CLT_H */
 -- 
 2.17.1
 
