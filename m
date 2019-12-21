@@ -2,99 +2,80 @@ Return-Path: <SRS0=4HyS=2L=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A17EEC3F68F
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Dec 2019 01:33:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F144CC2D0C0
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Dec 2019 10:03:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 781762070C
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Dec 2019 01:33:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="O55iA6Gb"
+	by mail.kernel.org (Postfix) with ESMTP id C52F621927
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Dec 2019 10:03:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1576922631;
+	bh=OJKVmOzGS0dRkw63VB5sXhHxpo5CLU19L+wUpn5sJ1w=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=mNB2aYa3BacD1v0hEVp0b9qlJSq0Td81DVo3vmTmlC6IGA6UJHPm/aQX4Vjr5nEED
+	 LV3xuuoL3YwiqKJbtbfLWv+CPN1VBnHdIsYwx3HIJSahujZ/plzz/gk4wN9tTll2g2
+	 pBMODB6wIeuE5LtH19iiu45bno0R/kwL+m+lTKdc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726462AbfLUBdD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Dec 2019 20:33:03 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:1863 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726598AbfLUBdD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Dec 2019 20:33:03 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5dfd76440000>; Fri, 20 Dec 2019 17:32:52 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Fri, 20 Dec 2019 17:33:02 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Fri, 20 Dec 2019 17:33:02 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 21 Dec
- 2019 01:32:57 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sat, 21 Dec 2019 01:32:57 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5dfd76490003>; Fri, 20 Dec 2019 17:32:57 -0800
-From:   John Hubbard <jhubbard@nvidia.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Jason Gunthorpe <jgg@ziepe.ca>,
-        Noa Osherovich <noaos@mellanox.com>,
-        <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH 1/1] pyverbs: fix speed_to_str(), to handle disabled links
-Date:   Fri, 20 Dec 2019 17:32:56 -0800
-Message-ID: <20191221013256.100409-2-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20191221013256.100409-1-jhubbard@nvidia.com>
+        id S1726024AbfLUKDv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 21 Dec 2019 05:03:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36674 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725944AbfLUKDv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 21 Dec 2019 05:03:51 -0500
+Received: from localhost (unknown [5.29.147.182])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id D0BFE21655;
+        Sat, 21 Dec 2019 10:03:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1576922630;
+        bh=OJKVmOzGS0dRkw63VB5sXhHxpo5CLU19L+wUpn5sJ1w=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=vqaevg3VQNlv1dZ6Wk8wlXvI0urRLeYeTlCknYS9LRod69UoxuLgNXap7PNSzF+Gj
+         vghRZt/rviehQDKqIDl5rKs+a5RZMd09Qy3hqjoGzQyWxQCid8xRfXOT39msqRch3R
+         yeDz1jrK7eBYNc4eDw16I7n3j8xwaO0FCYjDz1DA=
+Date:   Sat, 21 Dec 2019 12:03:46 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     John Hubbard <jhubbard@nvidia.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Noa Osherovich <noaos@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH 0/1] pyverbs: fix speed_to_str(), to handle disabled links
+Message-ID: <20191221100346.GA13335@unreal>
 References: <20191221013256.100409-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1576891972; bh=15uHeEx+BUrKTkjhLcSO/RSQ9/iF69A3ke7v6PTPl/0=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=O55iA6GbVAA+8QqdCczSozP6QKGtlN5eMJNskelsCsjvwVIhdr3/mjllIp+keQnDd
-         zuTFYDHm15f5NBTfNV1d0LMLkYlCyARvEulpd2FsDE1BkhOSlWiVP3lNl3dq3WwT0j
-         UcbyZZHRcagmt4/MI+xs53T6VbkLUIg5HoxwIiFiSbU8c0Nocm6+26VdSJdrNVboI1
-         hnk/82TzgoQ1E+UiuT29kmVHBOndOtHMi0jp2eMy5yKfuzoNBur/6ajySFm4FSW446
-         Vlip5P1miINTbFhrgX6p05pMfA8GDNv/gBN+zSmKmoLQ4DcRFs874KuGTfZ0yLSWq6
-         6kYaN+FGEBGfw==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191221013256.100409-1-jhubbard@nvidia.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-For disabled links, the raw speed token is 0. However, speed_to_str()
-doesn't have that in the list. This leads to an assertion when running
-tests (test_query_port) when one link is down and other link(s) are up.
+On Fri, Dec 20, 2019 at 05:32:55PM -0800, John Hubbard wrote:
+> Hi,
+>
+> This came up when I was running rdma-core tests on a two-machine setup,
+> where each card had two ports, but there was only one cable. So only
+> one port on each end was connected.
+>
+> The main thing I expect to be up for debate is, what string to return
+> for speed, when a port is disabled or down? I initially thought about
+> returning  '(Disabled/down)', but it seems more accurate to just report
+> '0.0 Gbps', so that's what I settled on.
+>
+> Background: here's what I wrote when discussing this over on linux-mm
+> with Leon [1]:
+>
+> It looks like this test suite assumes that every link is connected!
+> (Probably in most test systems, they are.)
 
-Fix this by returning '0.0 Gbps' for the zero speed case.
+I don't remember whenever the expectation of connection is by design or outcome
+of mine and Jason's setups, where our cards are being connected in loopback mode
+(port 0 to port 1 of the same card).
 
-Cc: Noa Osherovich <noaos@mellanox.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- pyverbs/device.pyx | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The loopback mode simplifies our kernel testing and development.
 
-diff --git a/pyverbs/device.pyx b/pyverbs/device.pyx
-index 33d133fd..cf7b75de 100755
---- a/pyverbs/device.pyx
-+++ b/pyverbs/device.pyx
-@@ -923,8 +923,8 @@ def width_to_str(width):
-=20
-=20
- def speed_to_str(speed):
--    l =3D {1: '2.5 Gbps', 2: '5.0 Gbps', 4: '5.0 Gbps', 8: '10.0 Gbps',
--         16: '14.0 Gbps', 32: '25.0 Gbps', 64: '50.0 Gbps'}
-+    l =3D {0: '0.0 Gbps', 1: '2.5 Gbps', 2: '5.0 Gbps', 4: '5.0 Gbps',
-+         8: '10.0 Gbps', 16: '14.0 Gbps', 32: '25.0 Gbps', 64: '50.0 Gbps'=
-}
-     try:
-         return '{s} ({n})'.format(s=3Dl[speed], n=3Dspeed)
-     except KeyError:
---=20
-2.24.1
-
+Thanks
