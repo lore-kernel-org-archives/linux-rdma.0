@@ -2,116 +2,176 @@ Return-Path: <SRS0=91Dd=2N=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6273C3F68F
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 08:04:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61CF3C2D0D4
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 08:14:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9BC622084D
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 08:04:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3803A208C3
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 08:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1577088283;
-	bh=12Lem5kTP0ACozOQWuKJKgKhBPPaTf/FkiLbh5f4WmA=;
+	s=default; t=1577088857;
+	bh=69bEfNVqv2+4Y+j3HsOHsujrZAikbG5YBwXZhBWLy2U=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=OAAlyQhL/aN1+oVqM7a71wkjwcCm9g5/bYw9xHawJr5PawMp7vENIx9oPGvA7SD37
-	 L8KCOfvC44SgNH7b/ZNao2Yg3ZuRTJEiFrEQt0ugk2HE6N363QnUqlsmK6RVSYqlvc
-	 ESVoYlwHk2jMCNtk8WEtIwF3QL2ny43m0eLhC2xA=
+	b=kVAuHm2Sy7zkifMaB9WztGCXqHolYzi5tUVq7h9H54jypdb5+Gghwur3ppFMITzMV
+	 l89z36rakh12njXo4vxS+tDziWN0AuB5AntVzdURMpaiixGxdJ+jhLPIJe++Ry8mjV
+	 TbsSdo0I0GrCh/6zv3QK80AVSER6jLid1p0VXzz0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725867AbfLWIEm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Dec 2019 03:04:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60688 "EHLO mail.kernel.org"
+        id S1725947AbfLWIOQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Dec 2019 03:14:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725810AbfLWIEm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 23 Dec 2019 03:04:42 -0500
+        id S1725912AbfLWIOQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 23 Dec 2019 03:14:16 -0500
 Received: from localhost (unknown [5.29.147.182])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8BFA0206B7;
-        Mon, 23 Dec 2019 08:04:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C719620715;
+        Mon, 23 Dec 2019 08:14:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1577088282;
-        bh=12Lem5kTP0ACozOQWuKJKgKhBPPaTf/FkiLbh5f4WmA=;
+        s=default; t=1577088855;
+        bh=69bEfNVqv2+4Y+j3HsOHsujrZAikbG5YBwXZhBWLy2U=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ATYeaKn2CYuJO9zEtqq5BRF7+VSGzvTRjtACEsMMpqvNtBHaBPCb+/84KjXxErHCY
-         6hJm7ok0GhPPBNFAC78qg1vOrlZgPGWhJiGbwSZvj9El2xm3Uv5bAoChnzijitgigJ
-         QTZPr4R+1wkMDQPNNI1ZecsilVYH9yHCizhn3/SU=
-Date:   Mon, 23 Dec 2019 10:04:38 +0200
+        b=yviDCdGCsQJ7+aTbvdZw00hU9QYmTFlrYsZ0K24MSwTm1GBI2VqILYIShgmkBL0il
+         xp6HLcN+oX6ruO8DTgGKehu2xPaVBb6Q1NcUMNEqCsxDo/GZn2tuFbGfEUH3lzlJOa
+         ytheN2nkkSSHEktAwQOmFiUw1X1szOO3x3Gsp8iQ=
+Date:   Mon, 23 Dec 2019 10:14:12 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Cc:     Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Doug Ledford <dledford@redhat.com>, rpenyaev@suse.de
-Subject: Re: [PATCH v5 02/25] rtrs: public interface header to establish RDMA
- connections
-Message-ID: <20191223080438.GL13335@unreal>
+To:     Jack Wang <jinpuwang@gmail.com>
+Cc:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+        axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
+        bvanassche@acm.org, dledford@redhat.com,
+        danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com,
+        rpenyaev@suse.de
+Subject: Re: [PATCH v5 22/25] rnbd: server: sysfs interface functions
+Message-ID: <20191223081412.GM13335@unreal>
 References: <20191220155109.8959-1-jinpuwang@gmail.com>
- <20191220155109.8959-3-jinpuwang@gmail.com>
- <20191221101530.GC13335@unreal>
- <CAHg0HuxC9b+E9CRKuw4qDeEfz7=rwUceG+fFGfNHK5=H2aQMGw@mail.gmail.com>
- <20191222073629.GE13335@unreal>
- <CAMGffEn9xcBO0661AXCfv0KDnZBX6meCaT07ZutHykSxM4aGaQ@mail.gmail.com>
+ <20191220155109.8959-23-jinpuwang@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAMGffEn9xcBO0661AXCfv0KDnZBX6meCaT07ZutHykSxM4aGaQ@mail.gmail.com>
+In-Reply-To: <20191220155109.8959-23-jinpuwang@gmail.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Dec 23, 2019 at 08:38:54AM +0100, Jinpu Wang wrote:
-> On Sun, Dec 22, 2019 at 8:36 AM Leon Romanovsky <leon@kernel.org> wrote:
-> >
-> > On Sat, Dec 21, 2019 at 03:27:55PM +0100, Danil Kipnis wrote:
-> > > Hi Leon,
-> > >
-> > > On Sat, Dec 21, 2019 at 11:15 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > > >
-> > > > Perhaps it is normal practice to write half a company as authors,
-> > > > and I'm wrong in the following, but code authorship is determined by
-> > > > multiple tags in the commit messages.
-> > >
-> > > Different developers contributed to the driver over the last several
-> > > years. Currently they are not working any more on this code. What tags
-> > > in the commit message do you think would be appropriate to give those
-> > > people credit for their work?
-> >
-> > Signed-of-by/Co-developed-../e.t.c
-> >
-> > But honestly without looking in your company contract, I'm pretty sure
-> > that those people are not eligible for special authorship rights and
-> > credits beyond already payed by the employer.
-> >
-> Hi, Leon,
+On Fri, Dec 20, 2019 at 04:51:06PM +0100, Jack Wang wrote:
+> From: Jack Wang <jinpu.wang@cloud.ionos.com>
 >
-> Thanks for the suggestion, how about only remove the authors for the
-> new entry, only keep the company copyright?
-> > +/* Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
-> > + * Authors: Jack Wang <jinpu.wang@cloud.ionos.com>
-> > + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
-> > + *          Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-> > + *          Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
-> > + */
+> This is the sysfs interface to rnbd mapped devices on server side:
 >
-> The older entries were there, I think it's not polite to remove them.
+>   /sys/devices/virtual/rnbd-server/ctl/devices/<device_name>/
+>     |- block_dev
+>     |  *** link pointing to the corresponding block device sysfs entry
+>     |
+>     |- sessions/<session-name>/
+>     |  *** sessions directory
+>        |
+>        |- read_only
+>        |  *** is devices mapped as read only
+>        |
+>        |- mapping_path
+>           *** relative device path provided by the client during mapping
+>
+> Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
+> Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+> ---
+>  drivers/block/rnbd/rnbd-srv-sysfs.c | 234 ++++++++++++++++++++++++++++
+>  1 file changed, 234 insertions(+)
+>  create mode 100644 drivers/block/rnbd/rnbd-srv-sysfs.c
+>
+> diff --git a/drivers/block/rnbd/rnbd-srv-sysfs.c b/drivers/block/rnbd/rnbd-srv-sysfs.c
+> new file mode 100644
+> index 000000000000..17258156cdf2
+> --- /dev/null
+> +++ b/drivers/block/rnbd/rnbd-srv-sysfs.c
+> @@ -0,0 +1,234 @@
+> +// SPDX-License-Identifier: GPL-2.0-or-later
+> +/*
+> + * InfiniBand Network Block Driver
+> + *
+> + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
+> + * Authors: Fabian Holler <mail@fholler.de>
+> + *          Jack Wang <jinpu.wang@profitbricks.com>
+> + *          Kleber Souza <kleber.souza@profitbricks.com>
+> + *          Danil Kipnis <danil.kipnis@profitbricks.com>
+> + *          Roman Penyaev <roman.penyaev@profitbricks.com>
+> + *          Milind Dumbare <Milind.dumbare@gmail.com>
+> + *
+> + * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
+> + * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
+> + *          Roman Penyaev <roman.penyaev@profitbricks.com>
+> + *
+> + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
+> + * Authors: Roman Penyaev <roman.penyaev@profitbricks.com>
+> + *          Jack Wang <jinpu.wang@cloud.ionos.com>
+> + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
+> + */
+> +
+> +/* Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
+> + * Authors: Jack Wang <jinpu.wang@cloud.ionos.com>
+> + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
+> + *          Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+> + *          Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
+> + */
+> +#undef pr_fmt
+> +#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
+> +
+> +#include <uapi/linux/limits.h>
+> +#include <linux/kobject.h>
+> +#include <linux/sysfs.h>
+> +#include <linux/stat.h>
+> +#include <linux/genhd.h>
+> +#include <linux/list.h>
+> +#include <linux/moduleparam.h>
+> +#include <linux/device.h>
+> +
+> +#include "rnbd-srv.h"
+> +
+> +static struct device *rnbd_dev;
+> +static struct class *rnbd_dev_class;
+> +static struct kobject *rnbd_devs_kobj;
+> +
+> +static struct kobj_type ktype = {
+> +	.sysfs_ops	= &kobj_sysfs_ops,
+> +};
+> +
+> +int rnbd_srv_create_dev_sysfs(struct rnbd_srv_dev *dev,
+> +			       struct block_device *bdev,
+> +			       const char *dir_name)
+> +{
+> +	struct kobject *bdev_kobj;
+> +	int ret;
+> +
+> +	ret = kobject_init_and_add(&dev->dev_kobj, &ktype,
+> +				   rnbd_devs_kobj, dir_name);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = kobject_init_and_add(&dev->dev_sessions_kobj,
+> +				   &ktype,
+> +				   &dev->dev_kobj, "sessions");
+> +	if (ret)
+> +		goto err;
+> +
+> +	bdev_kobj = &disk_to_dev(bdev->bd_disk)->kobj;
+> +	ret = sysfs_create_link(&dev->dev_kobj, bdev_kobj, "block_dev");
+> +	if (ret)
+> +		goto err2;
+> +
+> +	return 0;
+> +
+> +err2:
+> +	kobject_del(&dev->dev_sessions_kobj);
+> +	kobject_put(&dev->dev_sessions_kobj);
+> +err:
+> +	kobject_del(&dev->dev_kobj);
+> +	kobject_put(&dev->dev_kobj);
 
-From our point of view, this is brand new code and it doesn't matter how
-many internal iterations you had prior submission. If you want to be
-polite, your company shall issue official press release and mention
-all those names there as main contributors for RTRS success.
-
-You can find a lot of examples of "Authors:" in the kernel code, but
-they one of two: code from pre-git era or copy/paste multiplied by
-cargo cult.
+You are using this _del/_put pattern a lot, from what I see
+kobject_put() is the only is needed.
 
 Thanks
-
->
-> Regards,
-> Jack
