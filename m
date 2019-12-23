@@ -2,112 +2,126 @@ Return-Path: <SRS0=91Dd=2N=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4646BC2D0C0
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 09:40:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E2F0C2D0C0
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 10:31:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1470420709
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 09:40:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4FCE206CB
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Dec 2019 10:31:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="akhPY9hl"
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="ZJDHLQVm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726257AbfLWJkZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Dec 2019 04:40:25 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:46071 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726243AbfLWJkZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Dec 2019 04:40:25 -0500
-Received: by mail-wr1-f66.google.com with SMTP id j42so15899674wrj.12
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Dec 2019 01:40:23 -0800 (PST)
+        id S1726861AbfLWKbk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Dec 2019 05:31:40 -0500
+Received: from mail-il1-f196.google.com ([209.85.166.196]:41458 "EHLO
+        mail-il1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726744AbfLWKbk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Dec 2019 05:31:40 -0500
+Received: by mail-il1-f196.google.com with SMTP id f10so13628376ils.8
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Dec 2019 02:31:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=BkBz/E8KQ76qHoClTca4FdmApceDdenDANy6D6hh9wM=;
-        b=akhPY9hly2NdklEh09ztfyJthXzcNmdfhJoIpbCBE9zUN/Dx6suKH1CfcZKKIt1HH5
-         D56Vh/tyM2xp38nhrULwyapQXLjRkIjWKo7smmAyWsj6jMOQvvrYpP/NCxliC+p6fzvK
-         ZLrw1QiGooHh7MEebWh9lvKSMaegHVsq0zJTk/gjz35cL5EP8N0tV4m1o2OA7VlHiOVG
-         Wm0mk5aYLmA7ywzKuEUUueRqGHeYcLP6SomNmR2x25YBqjW7TXwFTvoyNnCH2eWVn92P
-         l7SC1y4lrL9t7MHwoBPeJLr4ivxNxqGAao4jT9dmcu5L257aZO5WQuujkAYO6iTgc3go
-         xSuQ==
+        d=cloud.ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=k2KG3qxeHruibpXGsVIa4Wl/ThA0sLV8fQC/MJrjy0s=;
+        b=ZJDHLQVmWJg9pubaWSGVw5+bzHZEsCdrO8rLoMCYF5cD2/uIjAhCvjh/B0MzplTmY+
+         gtYzoWO8Z3eIjCu0cHNk9EAVPcLtQFGo7fHT1e+KoySOm2KJKZ5VEfqOEa33YGiasb1j
+         K5TZb9CnawjfJDnE9su1egPT1920OGfeqEId3x0Jm5nv+rEo5F/nVnWGqWiaH9ePM+Ju
+         4Y68emC8fzscXHq4v9YeQb9wCJ87GOHzhJVFu3j5T8UAHjzNRloZBMAe66I0lcVxCu3l
+         7QQMSP5YEKJsFftAR5etS/D3AjqVOxUhtuI6u3+bsyNGGIMb5CteVoNWaJibSTo13nmU
+         ETzQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=BkBz/E8KQ76qHoClTca4FdmApceDdenDANy6D6hh9wM=;
-        b=qoKsP6mOLSRSj9hv1jJECiw4cLk2riWqf7pVrbPEO7fwmsbJ8hIcukzz1XlBwNAWg8
-         KZvZjxwdrjjoz/DcaIuX+3KXpMbNCWQGCS86DPDyhVaCG9lMUlc0b6bGrUeLCdzU7St7
-         C6NQU852fk43FTAoQVYtYkVG2ES2wyjfMPYCK1Df1KOREyMlkLgduzdtwcQHrbWXr/17
-         3u1e6PnNqajIP5VLmXg5n90+mS3mtx9wWxV9OW7miw+mdrIAEmh8HIefR/YqdfODeXwi
-         dALYe2N0VOKeAxGHhYiVEiAi2d9T2CBBiQ1gEgp9N3C+IY0pXl43iCLsTMwYeJV9dNH8
-         owbQ==
-X-Gm-Message-State: APjAAAXq3XnvWMXNaZIQn02H/4DVk89s202WM3gN/oFfTze8/709f///
-        P0ukO+jUmJRn5AcjY5Mn1InnWaee
-X-Google-Smtp-Source: APXvYqylwofZ4dIlaz7jSLkGcWOG4crM5zQoQ7IVXzIVO8foxbWOstjDfofBw0ieQe7j+iRs/45zvw==
-X-Received: by 2002:adf:e3c1:: with SMTP id k1mr28090570wrm.151.1577094022886;
-        Mon, 23 Dec 2019 01:40:22 -0800 (PST)
-Received: from kheib-workstation.redhat.com (bzq-109-66-66-12.red.bezeqint.net. [109.66.66.12])
-        by smtp.gmail.com with ESMTPSA id j12sm20006191wrt.55.2019.12.23.01.40.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Dec 2019 01:40:22 -0800 (PST)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next] RDMA/core: Fix storing node_desc
-Date:   Mon, 23 Dec 2019 11:39:43 +0200
-Message-Id: <20191223093943.17883-1-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.21.0
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=k2KG3qxeHruibpXGsVIa4Wl/ThA0sLV8fQC/MJrjy0s=;
+        b=HAdoQukrNodoG7JB8iZ4oOZFyYfkcv2SfJEi5LUlIxpbh3LPZEB+XzZyXSWxwgNt9O
+         j4DRq6enqT4Xd2wu1zktnxTWVV5iRXUZ4eSl6ecykYIZDinTmSrnL22n8yisRiR6rt/i
+         0iHNgr0a2Ih4l6nEZXpaC9JcU5hb1Rjj8C7FquF6c+XU7W4uZqAv/hsA5ErHxm+7Tps7
+         N9TZeF76DQN6K8N5ca4vCkpm2xOmzK3cS9oME+MgkMIoEPnzE6dF3Aap9YXcGEh0HM6r
+         C+Ri7qBvuWKeFw5dQwjC9mBBqId4qSFBO9fqp7Vj8yNEf/RAzt1luvj1wWrPsyPbt3Ke
+         kM1g==
+X-Gm-Message-State: APjAAAVkIoe9xUxUm1txeomOspeduavptJWVK/neUuM2CA1D+TVNG6/p
+        qJ4xdZBPblbANnGWhVq4Rw6nei3DLz5fLCJxjCVuNZg6
+X-Google-Smtp-Source: APXvYqx8puoUeQ/1rOf+Mmdibf48OOGKRlBiWxu0EI9nTQSX7vkl6dvMqzS+1T4ybMe+KUcJ7VJoPM0eqZwQ/TUzLtM=
+X-Received: by 2002:a92:d2:: with SMTP id 201mr25608188ila.22.1577097099298;
+ Mon, 23 Dec 2019 02:31:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20191220155109.8959-1-jinpuwang@gmail.com> <20191220155109.8959-3-jinpuwang@gmail.com>
+ <20191221101530.GC13335@unreal> <CAHg0HuxC9b+E9CRKuw4qDeEfz7=rwUceG+fFGfNHK5=H2aQMGw@mail.gmail.com>
+ <20191222073629.GE13335@unreal> <CAMGffEn9xcBO0661AXCfv0KDnZBX6meCaT07ZutHykSxM4aGaQ@mail.gmail.com>
+ <20191223080438.GL13335@unreal>
+In-Reply-To: <20191223080438.GL13335@unreal>
+From:   Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Date:   Mon, 23 Dec 2019 11:31:28 +0100
+Message-ID: <CAMGffEk_3QYzj6MoSh_06fmvJzvv5qLKJXJ3d-m4oQRhH5ZyGg@mail.gmail.com>
+Subject: Re: [PATCH v5 02/25] rtrs: public interface header to establish RDMA connections
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Doug Ledford <dledford@redhat.com>, rpenyaev@suse.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When writing to node_desc sysfs using echo a new line symbol will be
-stored at the end of the string, avoid that by dropping the new line
-symbol and also make sure to return -EINVAL when the supplied string is
-bigger then IB_DEVICE_NODE_DESC_MAX.
+On Mon, Dec 23, 2019 at 9:04 AM Leon Romanovsky <leon@kernel.org> wrote:
+>
+> On Mon, Dec 23, 2019 at 08:38:54AM +0100, Jinpu Wang wrote:
+> > On Sun, Dec 22, 2019 at 8:36 AM Leon Romanovsky <leon@kernel.org> wrote:
+> > >
+> > > On Sat, Dec 21, 2019 at 03:27:55PM +0100, Danil Kipnis wrote:
+> > > > Hi Leon,
+> > > >
+> > > > On Sat, Dec 21, 2019 at 11:15 AM Leon Romanovsky <leon@kernel.org> wrote:
+> > > > >
+> > > > > Perhaps it is normal practice to write half a company as authors,
+> > > > > and I'm wrong in the following, but code authorship is determined by
+> > > > > multiple tags in the commit messages.
+> > > >
+> > > > Different developers contributed to the driver over the last several
+> > > > years. Currently they are not working any more on this code. What tags
+> > > > in the commit message do you think would be appropriate to give those
+> > > > people credit for their work?
+> > >
+> > > Signed-of-by/Co-developed-../e.t.c
+> > >
+> > > But honestly without looking in your company contract, I'm pretty sure
+> > > that those people are not eligible for special authorship rights and
+> > > credits beyond already payed by the employer.
+> > >
+> > Hi, Leon,
+> >
+> > Thanks for the suggestion, how about only remove the authors for the
+> > new entry, only keep the company copyright?
+> > > +/* Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
+> > > + * Authors: Jack Wang <jinpu.wang@cloud.ionos.com>
+> > > + *          Danil Kipnis <danil.kipnis@cloud.ionos.com>
+> > > + *          Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+> > > + *          Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
+> > > + */
+> >
+> > The older entries were there, I think it's not polite to remove them.
+>
+> From our point of view, this is brand new code and it doesn't matter how
+> many internal iterations you had prior submission. If you want to be
+> polite, your company shall issue official press release and mention
+> all those names there as main contributors for RTRS success.
+>
+> You can find a lot of examples of "Authors:" in the kernel code, but
+> they one of two: code from pre-git era or copy/paste multiplied by
+> cargo cult.
+>
+> Thanks
+>
+Ok, will only keep the copyright lines, and remove Authors.
 
-Fixes: c5bcbbb9fe00 ("IB: Allow userspace to set node description")
-Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
----
- drivers/infiniband/core/sysfs.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 087682e6969e..2de5f6710c0b 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1263,12 +1263,21 @@ static ssize_t node_desc_store(struct device *device,
- {
- 	struct ib_device *dev = rdma_device_to_ibdev(device);
- 	struct ib_device_modify desc = {};
-+	size_t len;
- 	int ret;
- 
- 	if (!dev->ops.modify_device)
- 		return -EOPNOTSUPP;
- 
--	memcpy(desc.node_desc, buf, min_t(int, count, IB_DEVICE_NODE_DESC_MAX));
-+	if (count > IB_DEVICE_NODE_DESC_MAX)
-+		return -EINVAL;
-+
-+	len = strlen(buf);
-+	if (buf[len - 1] == '\n')
-+		len--;
-+
-+	strncpy(desc.node_desc, buf, len);
-+	desc.node_desc[len] = 0;
- 	ret = ib_modify_device(dev, IB_DEVICE_MODIFY_NODE_DESC, &desc);
- 	if (ret)
- 		return ret;
--- 
-2.21.0
-
+Thanks
