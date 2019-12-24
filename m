@@ -2,86 +2,164 @@ Return-Path: <SRS0=52Hh=2O=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39386C2D0CF
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 09:50:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65847C2D0CF
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 13:10:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EF7D420706
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 09:50:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1577181054;
-	bh=VVgs2tO7LIN86tacpClBg6g3oNKBjk1Z4pbfQe3WIx4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=Xg3xEXfhAFxPue8lIcGAiQ2QawCKL5zFtreK8+INoH/D7O+3HJCw+sVFpviAGBtx9
-	 qNOT53KxbtvtcaRr0QomABN4dWCmdn8Y87hPlk8VE3QbqOeuWJ+Y7OP6C8l6YrQki3
-	 2yjifoXQOkgEUd5bfwbbd+4fA/BvbW7m0gfzGgwE=
+	by mail.kernel.org (Postfix) with ESMTP id 4128F206D3
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 13:10:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726091AbfLXJux (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Dec 2019 04:50:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35700 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726084AbfLXJux (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 24 Dec 2019 04:50:53 -0500
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 35318206CB;
-        Tue, 24 Dec 2019 09:50:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1577181052;
-        bh=VVgs2tO7LIN86tacpClBg6g3oNKBjk1Z4pbfQe3WIx4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=V4hWRfijJ1+kq/Iw5zlZCxvlvAA+n01PUGuOxR8Pox8Ng/i/gqG6us/+34kR5bmKA
-         TcZgpTtUjLMUN2BpiDjrtkETjvK1lTkz5zQV4bYNYSekGodYIO8GMgus6QfZTncJU0
-         2xjds2W+9TOspN/2ClooRXx6IPOq1A6ezRmhDAS0=
-Date:   Tue, 24 Dec 2019 11:50:49 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     zhengbin <zhengbin13@huawei.com>
-Cc:     bmt@zurich.ibm.com, dledford@redhat.com, jgg@ziepe.ca,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 1/5] RDMA/siw: use true,false for bool variable
-Message-ID: <20191224095049.GE120310@unreal>
-References: <1577176812-2238-1-git-send-email-zhengbin13@huawei.com>
- <1577176812-2238-2-git-send-email-zhengbin13@huawei.com>
+        id S1726216AbfLXNKK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Dec 2019 08:10:10 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:8177 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726124AbfLXNKK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 24 Dec 2019 08:10:10 -0500
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id DBDE15FDE5B9CBC1AE96;
+        Tue, 24 Dec 2019 21:10:08 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.56) by
+ DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
+ 14.3.439.0; Tue, 24 Dec 2019 21:10:01 +0800
+From:   Yixian Liu <liuyixian@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
+Subject: [PATCH v4 for-next 1/2] RDMA/hns: Add the workqueue framework for flush cqe handler
+Date:   Tue, 24 Dec 2019 21:10:13 +0800
+Message-ID: <1577193014-42646-2-git-send-email-liuyixian@huawei.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1577193014-42646-1-git-send-email-liuyixian@huawei.com>
+References: <1577193014-42646-1-git-send-email-liuyixian@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1577176812-2238-2-git-send-email-zhengbin13@huawei.com>
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.56]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Dec 24, 2019 at 04:40:08PM +0800, zhengbin wrote:
-> Fixes coccicheck warning:
->
-> drivers/infiniband/sw/siw/siw_cm.c:32:18-41: WARNING: Assignment of 0/1 to bool variable
->
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: zhengbin <zhengbin13@huawei.com>
-> ---
->  drivers/infiniband/sw/siw/siw_cm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-> index 3bccfef4..0c3f058 100644
-> --- a/drivers/infiniband/sw/siw/siw_cm.c
-> +++ b/drivers/infiniband/sw/siw/siw_cm.c
-> @@ -29,7 +29,7 @@
->   * MPA_V2_RDMA_NO_RTR, MPA_V2_RDMA_READ_RTR, MPA_V2_RDMA_WRITE_RTR
->   */
->  static __be16 rtr_type = MPA_V2_RDMA_READ_RTR | MPA_V2_RDMA_WRITE_RTR;
-> -static const bool relaxed_ird_negotiation = 1;
-> +static const bool relaxed_ird_negotiation = true;
+HiP08 RoCE hardware lacks ability(a known hardware problem) to flush
+outstanding WQEs if QP state gets into errored mode for some reason.
+To overcome this hardware problem and as a workaround, when QP is
+detected to be in errored state during various legs like post send,
+post receive etc [1], flush needs to be performed from the driver.
 
-It is worth to simply delete this variable.
+The earlier patch[1] sent to solve the hardware limitation explained
+in the cover-letter had a bug in the software flushing leg. It
+acquired mutex while modifying QP state to errored state and while
+conveying it to the hardware using the mailbox. This caused leg to
+sleep while holding spin-lock and caused crash.
 
->
->  static void siw_cm_llp_state_change(struct sock *s);
->  static void siw_cm_llp_data_ready(struct sock *s);
-> --
-> 2.7.4
->
+Suggested Solution:
+we have proposed to defer the flushing of the QP in the Errored state
+using the workqueue to get around with the limitation of our hardware.
+
+This patch adds the framework of the workqueue and the flush handler
+function.
+
+[1] https://patchwork.kernel.org/patch/10534271/
+
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Reviewed-by: Salil Mehta <salil.mehta@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_device.h |  2 ++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  4 +--
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 43 +++++++++++++++++++++++++++++
+ 3 files changed, 47 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index a1b712e..292b712 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -906,6 +906,7 @@ struct hns_roce_caps {
+ struct hns_roce_work {
+ 	struct hns_roce_dev *hr_dev;
+ 	struct work_struct work;
++	struct hns_roce_qp *hr_qp;
+ 	u32 qpn;
+ 	u32 cqn;
+ 	int event_type;
+@@ -1226,6 +1227,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *ib_pd,
+ 				 struct ib_udata *udata);
+ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		       int attr_mask, struct ib_udata *udata);
++void init_flush_work(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp);
+ void *get_recv_wqe(struct hns_roce_qp *hr_qp, int n);
+ void *get_send_wqe(struct hns_roce_qp *hr_qp, int n);
+ void *get_send_extend_sge(struct hns_roce_qp *hr_qp, int n);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 907c951..ec48e7e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5967,8 +5967,8 @@ static int hns_roce_v2_init_eq_table(struct hns_roce_dev *hr_dev)
+ 		goto err_request_irq_fail;
+ 	}
+ 
+-	hr_dev->irq_workq =
+-		create_singlethread_workqueue("hns_roce_irq_workqueue");
++	hr_dev->irq_workq = alloc_workqueue("hns_roce_irq_workqueue",
++					    WQ_MEM_RECLAIM, 0);
+ 	if (!hr_dev->irq_workq) {
+ 		dev_err(dev, "Create irq workqueue failed!\n");
+ 		ret = -ENOMEM;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index a6565b6..0c1e74a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -43,6 +43,49 @@
+ 
+ #define SQP_NUM				(2 * HNS_ROCE_MAX_PORTS)
+ 
++static void flush_work_handle(struct work_struct *work)
++{
++	struct hns_roce_work *flush_work = container_of(work,
++					struct hns_roce_work, work);
++	struct hns_roce_qp *hr_qp = flush_work->hr_qp;
++	struct device *dev = flush_work->hr_dev->dev;
++	struct ib_qp_attr attr;
++	int attr_mask;
++	int ret;
++
++	attr_mask = IB_QP_STATE;
++	attr.qp_state = IB_QPS_ERR;
++
++	ret = hns_roce_modify_qp(&hr_qp->ibqp, &attr, attr_mask, NULL);
++	if (ret)
++		dev_err(dev, "Modify QP to error state failed(%d) during CQE flush\n",
++			ret);
++
++	kfree(flush_work);
++
++	/*
++	 * make sure we signal QP destroy leg that flush QP was completed
++	 * so that it can safely proceed ahead now and destroy QP
++	 */
++	if (atomic_dec_and_test(&hr_qp->refcount))
++		complete(&hr_qp->free);
++}
++
++void init_flush_work(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
++{
++	struct hns_roce_work *flush_work;
++
++	flush_work = kzalloc(sizeof(struct hns_roce_work), GFP_ATOMIC);
++	if (!flush_work)
++		return;
++
++	flush_work->hr_dev = hr_dev;
++	flush_work->hr_qp = hr_qp;
++	INIT_WORK(&flush_work->work, flush_work_handle);
++	atomic_inc(&hr_qp->refcount);
++	queue_work(hr_dev->irq_workq, &flush_work->work);
++}
++
+ void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type)
+ {
+ 	struct device *dev = hr_dev->dev;
+-- 
+2.7.4
+
