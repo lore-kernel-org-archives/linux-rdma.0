@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6B12C2D0D2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 748A4C2D0CF
 	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 08:33:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C5D0B206B7
+	by mail.kernel.org (Postfix) with ESMTP id 45E65206B7
 	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 08:33:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726171AbfLXIdE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Dec 2019 03:33:04 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7749 "EHLO huawei.com"
+        id S1726246AbfLXIdD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Dec 2019 03:33:03 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7748 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726244AbfLXIdD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726234AbfLXIdD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 24 Dec 2019 03:33:03 -0500
 Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 8753CC2E9674B212CE81;
+        by Forcepoint Email with ESMTP id 833B62E7F00952D3E518;
         Tue, 24 Dec 2019 16:33:01 +0800 (CST)
 Received: from huawei.com (10.90.53.225) by DGGEMS402-HUB.china.huawei.com
  (10.3.19.202) with Microsoft SMTP Server id 14.3.439.0; Tue, 24 Dec 2019
- 16:32:52 +0800
+ 16:32:53 +0800
 From:   zhengbin <zhengbin13@huawei.com>
 To:     <bmt@zurich.ibm.com>, <dledford@redhat.com>, <jgg@ziepe.ca>,
         <linux-rdma@vger.kernel.org>
 CC:     <zhengbin13@huawei.com>
-Subject: [PATCH 2/5] IB/hfi1: use true,false for bool variable
-Date:   Tue, 24 Dec 2019 16:40:09 +0800
-Message-ID: <1577176812-2238-3-git-send-email-zhengbin13@huawei.com>
+Subject: [PATCH 5/5] RDMA/mlx5: use true,false for bool variable
+Date:   Tue, 24 Dec 2019 16:40:12 +0800
+Message-ID: <1577176812-2238-6-git-send-email-zhengbin13@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1577176812-2238-1-git-send-email-zhengbin13@huawei.com>
 References: <1577176812-2238-1-git-send-email-zhengbin13@huawei.com>
@@ -45,27 +45,52 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes coccicheck warning:
 
-drivers/infiniband/hw/hfi1/rc.c:2602:1-8: WARNING: Assignment of 0/1 to bool variable
+drivers/infiniband/hw/mlx5/mr.c:150:2-26: WARNING: Assignment of 0/1 to bool variable
+drivers/infiniband/hw/mlx5/mr.c:1455:2-26: WARNING: Assignment of 0/1 to bool variable
+drivers/infiniband/hw/mlx5/qp.c:1874:6-20: WARNING: Assignment of 0/1 to bool variable
 
 Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: zhengbin <zhengbin13@huawei.com>
 ---
- drivers/infiniband/hw/hfi1/rc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/mr.c | 4 ++--
+ drivers/infiniband/hw/mlx5/qp.c | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 1a3c647..f1734e5 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -2599,7 +2599,7 @@ static noinline int rc_rcv_error(struct ib_other_headers *ohdr, void *data,
- 	 * to be sent before sending this one.
- 	 */
- 	e = NULL;
--	old_req = 1;
-+	old_req = true;
- 	ibp->rvp.n_rc_dupreq++;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index ea8bfc3..3f6c177 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -147,7 +147,7 @@ static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
+ 			break;
+ 		}
+ 		mr->order = ent->order;
+-		mr->allocated_from_cache = 1;
++		mr->allocated_from_cache = true;
+ 		mr->dev = dev;
 
- 	spin_lock_irqsave(&qp->s_lock, flags);
+ 		MLX5_SET(mkc, mkc, free, 1);
+@@ -1452,7 +1452,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 			goto err;
+ 		}
+
+-		mr->allocated_from_cache = 0;
++		mr->allocated_from_cache = false;
+ 	} else {
+ 		/*
+ 		 * Send a UMR WQE
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 7e51870..04126ef 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1871,7 +1871,7 @@ static void configure_requester_scat_cqe(struct mlx5_ib_dev *dev,
+ {
+ 	enum ib_qp_type qpt = init_attr->qp_type;
+ 	int scqe_sz;
+-	bool allow_scat_cqe = 0;
++	bool allow_scat_cqe = false;
+
+ 	if (qpt == IB_QPT_UC || qpt == IB_QPT_UD)
+ 		return;
 --
 2.7.4
 
