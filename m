@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A70BC2D0D0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE593C3F68F
 	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 08:33:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EE266206B7
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 08:33:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C57D3206B7
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 08:33:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726244AbfLXIdE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726237AbfLXIdE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 24 Dec 2019 03:33:04 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7747 "EHLO huawei.com"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7746 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726237AbfLXIdE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726124AbfLXIdE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 24 Dec 2019 03:33:04 -0500
 Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 7F2ABEB75AD3285691C0;
+        by Forcepoint Email with ESMTP id 77297572CD44CBE6B03C;
         Tue, 24 Dec 2019 16:33:01 +0800 (CST)
 Received: from huawei.com (10.90.53.225) by DGGEMS402-HUB.china.huawei.com
  (10.3.19.202) with Microsoft SMTP Server id 14.3.439.0; Tue, 24 Dec 2019
- 16:32:51 +0800
+ 16:32:52 +0800
 From:   zhengbin <zhengbin13@huawei.com>
 To:     <bmt@zurich.ibm.com>, <dledford@redhat.com>, <jgg@ziepe.ca>,
         <linux-rdma@vger.kernel.org>
 CC:     <zhengbin13@huawei.com>
-Subject: [PATCH 1/5] RDMA/siw: use true,false for bool variable
-Date:   Tue, 24 Dec 2019 16:40:08 +0800
-Message-ID: <1577176812-2238-2-git-send-email-zhengbin13@huawei.com>
+Subject: [PATCH 4/5] RDMA/mlx4: use true,false for bool variable
+Date:   Tue, 24 Dec 2019 16:40:11 +0800
+Message-ID: <1577176812-2238-5-git-send-email-zhengbin13@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1577176812-2238-1-git-send-email-zhengbin13@huawei.com>
 References: <1577176812-2238-1-git-send-email-zhengbin13@huawei.com>
@@ -45,27 +45,37 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes coccicheck warning:
 
-drivers/infiniband/sw/siw/siw_cm.c:32:18-41: WARNING: Assignment of 0/1 to bool variable
+drivers/infiniband/hw/mlx4/qp.c:852:2-14: WARNING: Assignment of 0/1 to bool variable
+drivers/infiniband/hw/mlx4/qp.c:3087:3-10: WARNING: Assignment of 0/1 to bool variable
 
 Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: zhengbin <zhengbin13@huawei.com>
 ---
- drivers/infiniband/sw/siw/siw_cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/qp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index 3bccfef4..0c3f058 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -29,7 +29,7 @@
-  * MPA_V2_RDMA_NO_RTR, MPA_V2_RDMA_READ_RTR, MPA_V2_RDMA_WRITE_RTR
-  */
- static __be16 rtr_type = MPA_V2_RDMA_READ_RTR | MPA_V2_RDMA_WRITE_RTR;
--static const bool relaxed_ird_negotiation = 1;
-+static const bool relaxed_ird_negotiation = true;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 85f57b7..8d240bc 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -849,7 +849,7 @@ static void mlx4_ib_release_wqn(struct mlx4_ib_ucontext *context,
+ 	 * reused for further WQN allocations.
+ 	 * The next created WQ will allocate a new range.
+ 	 */
+-		range->dirty = 1;
++		range->dirty = true;
+ 	}
 
- static void siw_cm_llp_state_change(struct sock *s);
- static void siw_cm_llp_data_ready(struct sock *s);
+ 	mutex_unlock(&context->wqn_ranges_mutex);
+@@ -3084,7 +3084,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, const struct ib_ud_wr *wr,
+ 		}
+ 		if (ah->av.eth.vlan != cpu_to_be16(0xffff)) {
+ 			vlan = be16_to_cpu(ah->av.eth.vlan) & 0x0fff;
+-			is_vlan = 1;
++			is_vlan = true;
+ 		}
+ 	}
+ 	err = ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh,
 --
 2.7.4
 
