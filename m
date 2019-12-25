@@ -1,104 +1,102 @@
-Return-Path: <SRS0=52Hh=2O=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=8qIv=2P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D336C2D0D0
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 13:10:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1650C2D0C3
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Dec 2019 01:43:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55566206D3
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Dec 2019 13:10:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84F0320663
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Dec 2019 01:43:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="UCsgZimO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726183AbfLXNKL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Dec 2019 08:10:11 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8176 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726213AbfLXNKL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 24 Dec 2019 08:10:11 -0500
-Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id D76909E1F0072F25B993;
-        Tue, 24 Dec 2019 21:10:08 +0800 (CST)
-Received: from localhost.localdomain (10.69.192.56) by
- DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 24 Dec 2019 21:10:01 +0800
-From:   Yixian Liu <liuyixian@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v4 for-next 0/2] Fix crash due to sleepy mutex while holding lock in post_{send|recv|poll}
-Date:   Tue, 24 Dec 2019 21:10:12 +0800
-Message-ID: <1577193014-42646-1-git-send-email-liuyixian@huawei.com>
-X-Mailer: git-send-email 2.7.4
+        id S1726256AbfLYBnL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Dec 2019 20:43:11 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:8269 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726251AbfLYBnL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 24 Dec 2019 20:43:11 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e02be8b0000>; Tue, 24 Dec 2019 17:42:36 -0800
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Tue, 24 Dec 2019 17:43:10 -0800
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Tue, 24 Dec 2019 17:43:10 -0800
+Received: from [10.2.174.185] (172.20.13.39) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 25 Dec
+ 2019 01:43:09 +0000
+Subject: Re: [PATCH 1/1] pyverbs: fix speed_to_str(), to handle disabled links
+To:     Noa Osherovich <noaos@mellanox.com>,
+        Leon Romanovsky <leon@kernel.org>
+CC:     Jason Gunthorpe <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+References: <20191221013256.100409-1-jhubbard@nvidia.com>
+ <20191221013256.100409-2-jhubbard@nvidia.com>
+ <fefd5386-d54b-a58e-29df-91a6dd94ccf0@mellanox.com>
+X-Nvconfidentiality: public
+From:   John Hubbard <jhubbard@nvidia.com>
+Message-ID: <6fa745c5-dc74-aae0-c3be-6564e146b068@nvidia.com>
+Date:   Tue, 24 Dec 2019 17:40:15 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.69.192.56]
-X-CFilter-Loop: Reflected
+In-Reply-To: <fefd5386-d54b-a58e-29df-91a6dd94ccf0@mellanox.com>
+X-Originating-IP: [172.20.13.39]
+X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1577238156; bh=D7JQpiAYYmZ1q8B5dq6c/FNn5WNecZogCYfvYiqEUc8=;
+        h=X-PGP-Universal:Subject:To:CC:References:X-Nvconfidentiality:From:
+         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
+         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
+         Content-Transfer-Encoding;
+        b=UCsgZimOPDROFUxrU0HvpCcRhh4TjBXDRTX22tiZm8S7rmzD+QzQXvcPkD7S/U5mb
+         2jVg17jv9AO/7vYMnKiGSlQu3+YWx4n8S/hHFnqpEmLF/0HvtF1qGB0L2HY0UUKJgp
+         p9rEV3za24mvQ0z5msXcBSkVjwmqY/ELu2nSMM9HNftSR24mCxoB/XPZXypnZtWod9
+         ZWsWjYljqQQaTjvL7KqlMpC2R7ApTwiTUfUNMZEjCckfp8EiN0w5aVVpw8IO0IcCp6
+         Vz82AhBUjj82RDHCF6c+Fe6lMe+zUy9GH82WdLseIDTWHv+doKdWGjgYicC7IeCWTM
+         MaL+0bPWjwP8w==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Earlier Background:
-HiP08 RoCE hardware lacks ability(a known hardware problem) to flush
-outstanding WQEs if QP state gets into errored mode for some reason.
-To overcome this hardware problem and as a workaround, when QP is
-detected to be in errored state during various legs like post send,
-post receive etc [1], flush needs to be performed from the driver.
+On 12/23/19 6:39 AM, Noa Osherovich wrote:
+...
+>> diff --git a/pyverbs/device.pyx b/pyverbs/device.pyx
+>> index 33d133fd..cf7b75de 100755
+>> --- a/pyverbs/device.pyx
+>> +++ b/pyverbs/device.pyx
+>> @@ -923,8 +923,8 @@ def width_to_str(width):
+>>    
+>>    
+>>    def speed_to_str(speed):
+>> -    l = {1: '2.5 Gbps', 2: '5.0 Gbps', 4: '5.0 Gbps', 8: '10.0 Gbps',
+>> -         16: '14.0 Gbps', 32: '25.0 Gbps', 64: '50.0 Gbps'}
+>> +    l = {0: '0.0 Gbps', 1: '2.5 Gbps', 2: '5.0 Gbps', 4: '5.0 Gbps',
+>> +         8: '10.0 Gbps', 16: '14.0 Gbps', 32: '25.0 Gbps', 64: '50.0 Gbps'}
+>>        try:
+>>            return '{s} ({n})'.format(s=l[speed], n=speed)
+>>        except KeyError:
+> 
+> This seems OK to me. BTW, what's the reported active_width for disabled links?
+> Maybe width_to_str could use a similar fix.
+> 
 
-These data-path legs might get called concurrently from various context,
-like thread and interrupt as well (like NVMe driver). Hence, these need
-to be protected with spin-locks for the concurrency. This code exists
-within the driver.
+Thanks for reviewing this! The reported active_width for disabled links on my
+systems is showing up the same as for active links ("4X" in this case). So I don't
+think we need a fix for width_to_str().
 
-Problem:
-Earlier The patch[1] sent to solve the hardware limitation explained
-in the background section had a bug in the software flushing leg. It
-acquired mutex while modifying QP state to errored state and while
-conveying it to the hardware using the mailbox. This caused leg to
-sleep while holding spin-lock and caused crash.
-
-Suggested Solution:
-In this patch, we have proposed to defer the flushing of the QP in
-Errored state using the workqueue.
-
-We do understand that this might have an impact on the recovery times
-as scheduling of the workqueue handler depends upon the occupancy of
-the system. Therefore to roughly mitigate this affect we have tried
-to use Concurrency Managed workqueue to give worker thread (and
-hence handler) a chance to run over more than one core.
-
-
-[1] https://patchwork.kernel.org/patch/10534271/
-
-
-This patch-set consists of:
-[Patch 001] Introduce workqueue based WQE Flush Handler
-[Patch 002] Call WQE flush handler in post {send|receive|poll}
-
-v4 changes:
-1. Add flag for PI is being pushed according to Jason's suggestion
-   to reduce unnecessary works submitted to workqueue.
-
-v3 changes:
-1. Fall back to dynamically allocate flush_work.
-
-v2 changes:
-1. Remove new created workqueue according to Jason's comment
-2. Remove dynamic allocation for flush_work according to Jason's comment
-3. Change current irq singlethread workqueue to concurrency management
-   workqueue to ensure work unblocked.
-
-Yixian Liu (2):
-  RDMA/hns: Add the workqueue framework for flush cqe handler
-  RDMA/hns: Delayed flush cqe process with workqueue
-
- drivers/infiniband/hw/hns/hns_roce_device.h |  4 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 98 +++++++++++++++--------------
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 45 +++++++++++++
- 3 files changed, 99 insertions(+), 48 deletions(-)
-
+thanks,
 -- 
-2.7.4
-
+John Hubbard
+NVIDIA
