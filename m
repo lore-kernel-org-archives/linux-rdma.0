@@ -2,107 +2,145 @@ Return-Path: <SRS0=Q7jl=2S=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FE8AC3F68F
-	for <linux-rdma@archiver.kernel.org>; Sat, 28 Dec 2019 03:28:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37D7BC2D0C8
+	for <linux-rdma@archiver.kernel.org>; Sat, 28 Dec 2019 19:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E588820CC7
-	for <linux-rdma@archiver.kernel.org>; Sat, 28 Dec 2019 03:28:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4D6B20838
+	for <linux-rdma@archiver.kernel.org>; Sat, 28 Dec 2019 19:50:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=web.de header.i=@web.de header.b="IK/iM2Rd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725957AbfL1D26 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 27 Dec 2019 22:28:58 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8637 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726359AbfL1D25 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 27 Dec 2019 22:28:57 -0500
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 99D495325DF5659DA89E;
-        Sat, 28 Dec 2019 11:28:55 +0800 (CST)
-Received: from localhost.localdomain (10.69.192.56) by
- DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.439.0; Sat, 28 Dec 2019 11:28:45 +0800
-From:   Yixian Liu <liuyixian@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v5 for-next 0/2] RDMA/hns: Add the workqueue framework for flush cqe handler
-Date:   Sat, 28 Dec 2019 11:28:53 +0800
-Message-ID: <1577503735-26685-1-git-send-email-liuyixian@huawei.com>
-X-Mailer: git-send-email 2.7.4
+        id S1726425AbfL1Tui (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 28 Dec 2019 14:50:38 -0500
+Received: from mout.web.de ([217.72.192.78]:60589 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726371AbfL1Tui (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 28 Dec 2019 14:50:38 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de;
+        s=dbaedf251592; t=1577562613;
+        bh=gVkocQ6dvTlNJZDA/nSvVYaaGzqc+Yg6goCIHCtEybU=;
+        h=X-UI-Sender-Class:To:Cc:References:Subject:From:Date:In-Reply-To;
+        b=IK/iM2RdPP17FqTKtrt4sJJamY+cLhiGPYGkaR/dTKAgZDJpOAfJO+l7qH+6bjsmH
+         +/NfZBaWlYCOeR4Sz8T4XXsXo7LeC4rncb7++aGJf6tbZdq4oetkUtJdieNFQMrofz
+         caJqPPfFX5YAe2xdNjCGgv/+Y73++0pMRlcmMqDM=
+X-UI-Sender-Class: c548c8c5-30a9-4db5-a2e7-cb6cb037b8f9
+Received: from [192.168.1.2] ([78.48.3.151]) by smtp.web.de (mrweb101
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 0M5fsK-1jiboj0Hlo-00xdaw; Sat, 28
+ Dec 2019 20:50:13 +0100
+To:     Xiyu Yang <xiyuyang19@fudan.edu.cn>,
+        Xin Tan <tanxin.ctf@gmail.com>, linux-rdma@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+        Faisal Latif <faisal.latif@intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Kangjie Lu <kjlu@umn.edu>,
+        Leon Romanovsky <leon@kernel.org>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Yuan Zhang <yuanxzhang@fudan.edu.cn>
+References: <1577366516-19556-1-git-send-email-xiyuyang19@fudan.edu.cn>
+Subject: Re: [PATCH v3] infiniband: i40iw: fix a potential NULL pointer
+ dereference
+From:   Markus Elfring <Markus.Elfring@web.de>
+Autocrypt: addr=Markus.Elfring@web.de; prefer-encrypt=mutual; keydata=
+ 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 FEE=
+Message-ID: <29610962-92d4-2989-f18c-fa4a0a13ccb4@web.de>
+Date:   Sat, 28 Dec 2019 20:50:07 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.1
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.69.192.56]
-X-CFilter-Loop: Reflected
+In-Reply-To: <1577366516-19556-1-git-send-email-xiyuyang19@fudan.edu.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:AO7i+cISfLt0FtG3yWD5ETpUfo9By9c5U4OWdLtgUG3d+SwnNk5
+ l6WTaX7cts+YkFWnSaBqLVo8moascvEpCvxVavDViHA3tUM3wU1irGPrWSfH6XSiRnpAHT+
+ CM1XkeRh9mPLJ1V8BP1OR2BfT9ZfaCkf5YvBJgz9/Ef7jjwhuqa5CaW3eni0jlAzx28PEV+
+ OHQUDarsV8jKUprsYH6Sg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:SCp/jdZ6XDE=:j+xW+fQYZjEhM/nmz8N0Ee
+ T6j/u1XAQGWNNJLTYptcM9yhnWfgGIRJodNZTSeLby3iauIIRE6ku8FtX+TeeXYtP+dFKJyAN
+ fxErf3tvDNRm0GQOBY813AB9b60AsSDOvzsRNw/1tebPQcmj1Q54ZCsOt5SqqXaLLMBUiGmER
+ c9uN7/isvMNfe7bKyzPN06Oc6CjtvPlvwRTzVUDpX2PTpYaR33MHpz3Q8VSQw2J0dPnHlNYtb
+ Ry0s+wiWQF4TbDqIVC1ItY4AxksiaOogwpLbqvdtnWCVh4PZBnSu0KCe1rs9DDYzSu+YKTIDd
+ zBEoK26M3w0X9FkMQRkFEPbCrujz4t2MT5j/sqF0gb3dT0HJUNCuYN3M4VjIJ2MAoCrZHFFvd
+ uUVfDxiYYFcbjSsOKbodMJa89pCGA//9VywKqIxrIebe56VnCyu5DsQMxXO0rTKtGrxsys2aG
+ 0ruFAnqjOxQOW5OWhe6v/L5bPxzyJiOSFf4J6wFhW8R7q5VL70h1uOu+ncxFWaxtKFHYhIQmM
+ +YtI/7+J2yAA7LitvSvpJ+vAu6iE9+vDPkIu6eMTKB6J/e7Raa/7taskrzNUKXnaYXrLIcdq3
+ BLbYMwOqv5YlD+Uuu+wBO9x37aG0cZu4UfrUBHOwxQi6+LKvSEzG5DerNz8jgtwpGLVghJQZS
+ 7u/w17EJQVFQPpy11PEAsH3a1XEG8Db01BImVNpl77uQB9Q2VQueXh5+g3zG/2GgGwzAfLP2l
+ RwV0aVSW9Psf9ZviEZueFXKH6Pha36uW/Gt3OY3rAb1XGYH/kyF9eaMWwZoznwODtS7S/MaPr
+ a9+IwJ8XEmw6FbLZoc98dAzh3MxSQXBGymWPLS3VS+jwugzvp7t9V5/tpa0Mgw9galo60mJ/G
+ rliJiC2DTfH0kicb9GGNCbOr23cd0gZwMnYSpWnkwf6ebULkd4rUvYc2g0gvJkOq8OMEaIl4B
+ 1qqMRqg2LJJp22iCcqiEZas0Lf3Q+EnBGD7s43n+cSysJq8D+lFJUoRJTT++LbRnMhJTvM/3b
+ mj7g/Tt8Ta6QjBjSvcbggEQwXL138LuayyHjiNm4WBG2rXy53fpQawPGV9BX0kiJ2VosUd8Ib
+ WgemnZHsDxEj96RDuSuH28Sj+6wZHVvfKO2WVZBS5ern//+yO+l8nt9OVrWYw66H4zJ2kke1e
+ ONkFlKpFOM4Bnqc/Fj7qb4HwXJ4umwmstQUBl4BRP3+rmVaGfz7UhSupxPwBePtq84Zz4WFE+
+ /fzCBWQaqmjlZh72VyLXLVhQItpcJPXLq+RJNq6Vq+RM2xXWj9MOx2pqgL7Q=
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Earlier Background:
-HiP08 RoCE hardware lacks ability(a known hardware problem) to flush
-outstanding WQEs if QP state gets into errored mode for some reason.
-To overcome this hardware problem and as a workaround, when QP is
-detected to be in errored state during various legs like post send,
-post receive etc [1], flush needs to be performed from the driver.
+> in_dev_get may return a NULL object.
 
-These data-path legs might get called concurrently from various context,
-like thread and interrupt as well (like NVMe driver). Hence, these need
-to be protected with spin-locks for the concurrency. This code exists
-within the driver.
-
-Problem:
-Earlier The patch[1] sent to solve the hardware limitation explained
-in the background section had a bug in the software flushing leg. It
-acquired mutex while modifying QP state to errored state and while
-conveying it to the hardware using the mailbox. This caused leg to
-sleep while holding spin-lock and caused crash.
-
-Suggested Solution:
-In this patch, we have proposed to defer the flushing of the QP in
-Errored state using the workqueue.
-
-We do understand that this might have an impact on the recovery times
-as scheduling of the workqueue handler depends upon the occupancy of
-the system. Therefore to roughly mitigate this affect we have tried
-to use Concurrency Managed workqueue to give worker thread (and
-hence handler) a chance to run over more than one core.
+I would prefer a wording like =E2=80=9CA null pointer can be returned by i=
+n_dev_get().=E2=80=9D.
 
 
-[1] https://patchwork.kernel.org/patch/10534271/
+> The fix handles the situation
+> by adding a check to avoid NULL pointer dereference on idev,
+> as pick_local_ipaddrs does.
 
+How do you think about the wording suggestion =E2=80=9CThus add a correspo=
+nding check
+so that a null pointer dereference will be avoided at this place.=E2=80=9D=
+?
 
-This patch-set consists of:
-[Patch 001] Introduce workqueue based WQE Flush Handler
-[Patch 002] Call WQE flush handler in post {send|receive|poll}
+Please add also the tag =E2=80=9CFixes=E2=80=9D to your change description=
+.
 
-v5 changes:
-1. Remove WQ_MEM_RECLAIM flag according to Leon's suggestion.
-2. Change to ordered workqueue for the requirement of flush work.
-
-v4 changes:
-1. Add flag for PI is being pushed according to Jason's suggestion
-   to reduce unnecessary works submitted to workqueue.
-
-v3 changes:
-1. Fall back to dynamically allocate flush_work.
-
-v2 changes:
-1. Remove new created workqueue according to Jason's comment
-2. Remove dynamic allocation for flush_work according to Jason's comment
-3. Change current irq singlethread workqueue to concurrency management
-   workqueue to ensure work unblocked.
-
-Yixian Liu (2):
-  RDMA/hns: Add the workqueue framework for flush cqe handler
-  RDMA/hns: Delayed flush cqe process with workqueue
-
- drivers/infiniband/hw/hns/hns_roce_device.h |  4 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 97 +++++++++++++++--------------
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 45 +++++++++++++
- 3 files changed, 98 insertions(+), 48 deletions(-)
-
--- 
-2.7.4
-
+Regards,
+Markus
