@@ -1,168 +1,96 @@
-Return-Path: <SRS0=Yl53=2T=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=vP/8=2U=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	HK_RANDOM_FROM,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA8BC2D0D1
-	for <linux-rdma@archiver.kernel.org>; Sun, 29 Dec 2019 04:33:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73FE9C2D0C0
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 02:25:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B1737208E4
-	for <linux-rdma@archiver.kernel.org>; Sun, 29 Dec 2019 04:33:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="n7iOptnw"
+	by mail.kernel.org (Postfix) with ESMTP id 51C2E207FD
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 02:25:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726425AbfL2Edg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 28 Dec 2019 23:33:36 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:1482 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726293AbfL2Edf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 28 Dec 2019 23:33:35 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e082c900000>; Sat, 28 Dec 2019 20:33:21 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Sat, 28 Dec 2019 20:33:34 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Sat, 28 Dec 2019 20:33:34 -0800
-Received: from [10.110.48.28] (10.124.1.5) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 29 Dec
- 2019 04:33:33 +0000
-Subject: Re: [PATCH v11 00/25] mm/gup: track dma-pinned pages: FOLL_PIN
-From:   John Hubbard <jhubbard@nvidia.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Jason Gunthorpe <jgg@ziepe.ca>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn.topel@intel.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Dave Chinner <david@fromorbit.com>,
-        David Airlie <airlied@linux.ie>,
-        "David S . Miller" <davem@davemloft.net>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jens Axboe <axboe@kernel.dk>, Jonathan Corbet <corbet@lwn.net>,
-        =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>,
-        Magnus Karlsson <magnus.karlsson@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Paul Mackerras <paulus@samba.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>, <bpf@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <kvm@vger.kernel.org>,
-        <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        "Ran Rozenstein" <ranro@mellanox.com>
-References: <20191216222537.491123-1-jhubbard@nvidia.com>
- <20191219132607.GA410823@unreal>
- <a4849322-8e17-119e-a664-80d9f95d850b@nvidia.com>
- <20191219210743.GN17227@ziepe.ca> <20191220182939.GA10944@unreal>
- <1001a5fc-a71d-9c0f-1090-546c4913d8a2@nvidia.com>
- <20191222132357.GF13335@unreal>
- <49d57efe-85e1-6910-baf5-c18df1382206@nvidia.com>
- <20191225052612.GA212002@unreal>
- <b879d191-a07c-e808-e48f-2b9bd8ba4fa3@nvidia.com>
-X-Nvconfidentiality: public
-Message-ID: <612aa292-ec45-295c-b56c-c622876620fa@nvidia.com>
-Date:   Sat, 28 Dec 2019 20:33:32 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.3.1
-MIME-Version: 1.0
-In-Reply-To: <b879d191-a07c-e808-e48f-2b9bd8ba4fa3@nvidia.com>
-X-Originating-IP: [10.124.1.5]
-X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
- HQMAIL107.nvidia.com (172.20.187.13)
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1577594001; bh=CS/Y1CGyDS+9QLfc4LRardH5VS56W/PAJOyfRY2LjTc=;
-        h=X-PGP-Universal:Subject:From:To:CC:References:X-Nvconfidentiality:
-         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
-         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
-         Content-Transfer-Encoding;
-        b=n7iOptnwN3ZVsCu/0DXie5ShRcR4/jOzIn6W7P3uTBxVaZt8ko4Dms+OE9l2tNSxe
-         95GOtrfVtIDr0VsAlD/d/zPWSpFCkJY5UP5Eb2ss2F3NEgv4iTUN6NL2VHU+RtQqVi
-         nFPi4CTJq0hll0B94/tPBP/T736se/ycwi7dWWtNiIfcgsX/aG2ZU9RUFFoSuSYe5B
-         fwPDB3yWJZmxzNFs+zKaKVZ1e+/lnxSIdtwRl5XP/Vm1rz2l41lunDXgCSZTy/8O/h
-         ByGzcgSVg+SF9TRzjsSZ/pWRsIBTO2VIGDe+IjvB1qU+Q0EIsH+JijQJxdtnLBWoeO
-         bb0/oQMKrQ56Q==
+        id S1726729AbfL3CZh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 29 Dec 2019 21:25:37 -0500
+Received: from mail.fudan.edu.cn ([61.129.42.10]:35169 "EHLO fudan.edu.cn"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726726AbfL3CZh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 29 Dec 2019 21:25:37 -0500
+Received: from localhost.localdomain (unknown [10.222.182.212])
+        by app2 (Coremail) with SMTP id XQUFCgC3vJgGYAlejTybAA--.686S3;
+        Mon, 30 Dec 2019 10:25:10 +0800 (CST)
+From:   Xiyu Yang <xiyuyang19@fudan.edu.cn>
+To:     xiyuyang19@fudan.edu.cn
+Cc:     yuanxzhang@fudan.edu.cn, kjlu@umn.edu, leon@kernel.org,
+        Markus.Elfring@web.de, Xin Tan <tanxin.ctf@gmail.com>,
+        Faisal Latif <faisal.latif@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Shannon Nelson <shannon.nelson@intel.com>,
+        Anjali Singhai Jain <anjali.singhai@intel.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v4] infiniband: i40iw: fix a potential NULL pointer dereference
+Date:   Mon, 30 Dec 2019 10:24:28 +0800
+Message-Id: <1577672668-46499-1-git-send-email-xiyuyang19@fudan.edu.cn>
+X-Mailer: git-send-email 2.7.4
+X-CM-TRANSID: XQUFCgC3vJgGYAlejTybAA--.686S3
+X-Coremail-Antispam: 1UD129KBjvJXoWrKF48tw47uw48CFWkur4fGrg_yoW8Jr1Dpw
+        48JF9FkrWrAF1UZa18Kw42vFyfJas8Jw1qvr1ktwn8urn8GFZrtryrKFnrWFW8ZrW5Cw4I
+        vFs0gF4kCF4rWw7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUUvI1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l8cAvFVAK
+        0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVWDJVCq3wA2z4
+        x0Y4vE2Ix0cI8IcVCY1x0267AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28E
+        F7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzx
+        vE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VCjz48v1sIEY20_Xry5
+        Jr1UJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5c
+        I20VAGYxC7M4IIrI8v6xkF7I0E8cxan2IY04v7MxkIecxEwVCm-wCF04k20xvY0x0EwIxG
+        rwCF04k20xvE74AGY7Cv6cx26ry5Xr1UJr1l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxV
+        Aqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q
+        6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6x
+        kF7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWrZr1j6s0DMIIF0xvEx4A2jsIE
+        14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf
+        9x0JjaSoXUUUUU=
+X-CM-SenderInfo: irzsiiysuqikmy6i3vldqovvfxof0/
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 12/27/19 1:56 PM, John Hubbard wrote:
-...
->> It is ancient verification test (~10y) which is not an easy task to
->> make it understandable and standalone :).
->>
->=20
-> Is this the only test that fails, btw? No other test failures or hints of
-> problems?
->=20
-> (Also, maybe hopeless, but can *anyone* on the RDMA list provide some
-> characterization of the test, such as how many pins per page, what page
-> sizes are used? I'm still hoping to write a test to trigger something
-> close to this...)
->=20
-> I do have a couple more ideas for test runs:
->=20
-> 1. Reduce GUP_PIN_COUNTING_BIAS to 1. That would turn the whole override =
-of
-> page->_refcount into a no-op, and so if all is well (it may not be!) with=
- the
-> rest of the patch, then we'd expect this problem to not reappear.
->=20
-> 2. Active /proc/vmstat *foll_pin* statistics unconditionally (just for th=
-ese
-> tests, of course), so we can see if there is a get/put mismatch. However,=
- that
-> will change the timing, and so it must be attempted independently of (1),=
- in
-> order to see if it ends up hiding the repro.
->=20
-> I've updated this branch to implement (1), but not (2), hoping you can gi=
-ve
-> this one a spin?
->=20
-> =C2=A0=C2=A0=C2=A0 git@github.com:johnhubbard/linux.git=C2=A0 pin_user_pa=
-ges_tracking_v11_with_diags
->=20
->=20
+A NULL pointer can be returned by in_dev_get(). Thus add
+a corresponding check so that a NULL pointer dereference
+will be avoided at this place.
 
-Also, looking ahead:
+Fixes: 8e06af711bf2 ("i40iw: add main, hdr, status")
+Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+---
+Changes in v2:
+- Release rtnl lock when in_dev_get return NULL
+Changes in v3:
+- Continue the next loop when in_dev_get return NULL
+Changes in v4:
+- Change commit message
 
-a) if the problem disappears with the latest above test, then we likely hav=
-e
-   a huge page refcount overflow, and there are a couple of different ways =
-to
-   fix it.=20
+ drivers/infiniband/hw/i40iw/i40iw_main.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-b) if it still reproduces with the above, then it's some other random mista=
-ke,
-   and in that case I'd be inclined to do a sort of guided (or classic, ung=
-uided)
-   git bisect of the series. Because it could be any of several patches.
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index d44cf33df81a..238614370927 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1225,6 +1225,8 @@ static void i40iw_add_ipv4_addr(struct i40iw_device *iwdev)
+ 			const struct in_ifaddr *ifa;
+ 
+ 			idev = in_dev_get(dev);
++			if (!idev)
++				continue;
+ 			in_dev_for_each_ifa_rtnl(ifa, idev) {
+ 				i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_CM,
+ 					    "IP=%pI4, vlan_id=%d, MAC=%pM\n", &ifa->ifa_address,
+-- 
+2.7.4
 
-   If that's too much trouble, then I'd have to fall back to submitting a f=
-ew
-   patches at a time and working my way up to the tracking patch...
-
-
-thanks,
---=20
-John Hubbard
-NVIDIA
