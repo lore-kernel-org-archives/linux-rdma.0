@@ -8,61 +8,61 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 031A7C2D0DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68487C2D0DC
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C28E8206DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E2A620748
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tUVKPSzI"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qWIeuvuM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727435AbfL3KaB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 30 Dec 2019 05:30:01 -0500
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:35299 "EHLO
+        id S1727412AbfL3K37 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 30 Dec 2019 05:29:59 -0500
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:45809 "EHLO
         mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727416AbfL3KaA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 30 Dec 2019 05:30:00 -0500
-Received: by mail-ed1-f65.google.com with SMTP id f8so32223776edv.2;
-        Mon, 30 Dec 2019 02:29:59 -0800 (PST)
+        with ESMTP id S1727416AbfL3K37 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 30 Dec 2019 05:29:59 -0500
+Received: by mail-ed1-f65.google.com with SMTP id v28so32139497edw.12;
+        Mon, 30 Dec 2019 02:29:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=Dlz8/r2lAq9MWwGVb3islQaFajiPDRixzWoG7/v0iOw=;
-        b=tUVKPSzIcyBSbU+ZcNgA6JL0FNhHiDRv4IturjwwDWUc6I3tq2VPgdYtF8bCRiD2PL
-         B+cODzITK6/KzFPueB89wVUkoRjA1LkbyfVjejw6mbsQAY8ryhrTpkmBiLY+2U1rGBDh
-         6GMSwNFOaIdVU+6dMyAZh66fyIou/GKdNU8xmJx2KdgxjU28EDufnoUaJ95DF55jqfC+
-         /CqRkJ3VDEkm9kBVf7Ec/FCyAuClY6DklF8EgUFV99hpN/eqCgfuMJlwW8gBZ3JiCS0z
-         rCmtSRnTR3jHFuBuP/rsVtvdEQN0BVo+VtYAHTEH9PbwS2XDcAO8OdPhcVSTMZmt4D4v
-         vbtg==
+        bh=QY0EiQFrTAmxLGS2oP6RvDNkVaiVsAETX8WwWC04eWE=;
+        b=qWIeuvuMvjRgxBG+yQfp9XzDxn4Ag7E6s9Y7U+HPpNU1dQMdczX4haPuOMfmBDFs/o
+         CVuH6J7sBh/kMkrrKuAhSHCydwbxGjm3eHcrMEZ1YxtDA65J6AbDUUfYjBW9tmUGXepb
+         fOih+qFmFUHvy9D3Ksm2b0TNPYXkqE6TS/31699BXU32laU4fkOzeExEbZ7dQAyyVB6G
+         07DUBJYP1p1PJ+JlpkNrzfG/hqdJLIK3MiA7AtgNzWES9nkln9adF45VjJbduEg4+pq+
+         mBl2tw7C+sWc2zFr4TO4pRlnLit0e/qxbyUiDGirLuKkjgV2CgEAHnQs6pBB/f136iMS
+         utwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=Dlz8/r2lAq9MWwGVb3islQaFajiPDRixzWoG7/v0iOw=;
-        b=AIPCVXYyDVXxhmvCbtIU8nSNiBqF4uYZmPTSrGw/nTY1nIUtV7CC1BE6oC7BeudAoC
-         4l2WOtgQjcqdNmFMejpSUlQjoUveG1yf1G9PDJMJLBZ5Er01oPEnvls+FCm2MV6c7rzr
-         oV+nXdLaOhrZ9Tcc+XJ1mAyqXefycwmmAsurBK0YzNk6KxsWZotNbTi/usAD15wenHpQ
-         phOBIz8703GKlPS1sGQBHbA8bl7CseIQJjY36kto3ZSSIiuWh7SE35MzxboMUBW1Z+3A
-         WBYCyWxMmUN4RvCmVYww3fyshyijxqU8hWXWkCA2oC4KWtRfzMo2luBoo3h5itufKcp0
-         ZW9g==
-X-Gm-Message-State: APjAAAWkK0MuOsNIvZPtx17fXPGdUnWnISOuHObgRQjmZHRzSQrkVZfo
-        3sPnCVL2zpnQ46YULfwPtkmsNQjD
-X-Google-Smtp-Source: APXvYqy8DrjIELpqVtO818qRhKKqxMlQOhtUUMtK50895YmtPLeceQ538bIAb66p5ffRnVP3LvDIVQ==
-X-Received: by 2002:a17:906:d0c9:: with SMTP id bq9mr69725042ejb.56.1577701799032;
-        Mon, 30 Dec 2019 02:29:59 -0800 (PST)
+        bh=QY0EiQFrTAmxLGS2oP6RvDNkVaiVsAETX8WwWC04eWE=;
+        b=R75zWdFKIONmszX7E2588K6QpAUOhyANaBRu934FfhWmtgmP1wQ7atfALJCeyMQq1Y
+         t8nBD0enXnhQeugGzj09GlAF4t0AjaG2fmCi2i1qGqAw4YpUqLX8csMF542LPNucCOoK
+         oGtUjijPo2eRrSOcJ9tGHTX4cWfW/tuBvNRxhMY3mxu86CF6LseNG55pg3z3oE17jiI9
+         jv+frCquwvrolRDgJSHfSeV888moRDvq6LDSLSlrFbNsF74oMGi/e/fvOqBJPHTJ6CcV
+         fxOOQ8s6lYD6xZIvk3jxlHEbZPyDRqWaGwFApTxeD5ooMgWgzcmT5njlJiCugYQy4ImU
+         Cu9Q==
+X-Gm-Message-State: APjAAAV5vMWFkr1acBgd5R8DkrGuilGJzSQqr58JhwlDMkb7wp2HPApd
+        tzS5EJfNhshWnWcPye0v68BhASkM
+X-Google-Smtp-Source: APXvYqzkn8RC/3UXvZEuSBnHrh04zpko/pd0IlxrdQ+AOFxfX7oiW2zt51FPKBQGiPDPcWsLWEPTWQ==
+X-Received: by 2002:a17:906:3796:: with SMTP id n22mr68481881ejc.222.1577701797041;
+        Mon, 30 Dec 2019 02:29:57 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4955:5100:b9e0:6ef7:286d:4897])
-        by smtp.gmail.com with ESMTPSA id v8sm5246630edw.21.2019.12.30.02.29.58
+        by smtp.gmail.com with ESMTPSA id v8sm5246630edw.21.2019.12.30.02.29.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Dec 2019 02:29:58 -0800 (PST)
+        Mon, 30 Dec 2019 02:29:56 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com,
         rpenyaev@suse.de
-Subject: [PATCH v6 13/25] rtrs: include client and server modules into kernel compilation
-Date:   Mon, 30 Dec 2019 11:29:30 +0100
-Message-Id: <20191230102942.18395-14-jinpuwang@gmail.com>
+Subject: [PATCH v6 11/25] rtrs: server: statistics functions
+Date:   Mon, 30 Dec 2019 11:29:28 +0100
+Message-Id: <20191230102942.18395-12-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20191230102942.18395-1-jinpuwang@gmail.com>
 References: <20191230102942.18395-1-jinpuwang@gmail.com>
@@ -73,97 +73,113 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-Add rtrs Makefile, Kconfig and also corresponding lines into upper
-layer infiniband/ulp files.
+This introduces set of functions used on server side to account
+statistics of RDMA data sent/received.
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/Kconfig           |  1 +
- drivers/infiniband/ulp/Makefile      |  1 +
- drivers/infiniband/ulp/rtrs/Kconfig  | 27 +++++++++++++++++++++++++++
- drivers/infiniband/ulp/rtrs/Makefile | 17 +++++++++++++++++
- 4 files changed, 46 insertions(+)
- create mode 100644 drivers/infiniband/ulp/rtrs/Kconfig
- create mode 100644 drivers/infiniband/ulp/rtrs/Makefile
+ drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c | 91 ++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
+ create mode 100644 drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index ade86388434f..477418b37786 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -107,6 +107,7 @@ source "drivers/infiniband/ulp/srpt/Kconfig"
- 
- source "drivers/infiniband/ulp/iser/Kconfig"
- source "drivers/infiniband/ulp/isert/Kconfig"
-+source "drivers/infiniband/ulp/rtrs/Kconfig"
- 
- source "drivers/infiniband/ulp/opa_vnic/Kconfig"
- 
-diff --git a/drivers/infiniband/ulp/Makefile b/drivers/infiniband/ulp/Makefile
-index 437813c7b481..4d0004b58377 100644
---- a/drivers/infiniband/ulp/Makefile
-+++ b/drivers/infiniband/ulp/Makefile
-@@ -5,3 +5,4 @@ obj-$(CONFIG_INFINIBAND_SRPT)		+= srpt/
- obj-$(CONFIG_INFINIBAND_ISER)		+= iser/
- obj-$(CONFIG_INFINIBAND_ISERT)		+= isert/
- obj-$(CONFIG_INFINIBAND_OPA_VNIC)	+= opa_vnic/
-+obj-$(CONFIG_INFINIBAND_RTRS)		+= rtrs/
-diff --git a/drivers/infiniband/ulp/rtrs/Kconfig b/drivers/infiniband/ulp/rtrs/Kconfig
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c
 new file mode 100644
-index 000000000000..1d6c670a4504
+index 000000000000..515f7088db71
 --- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/Kconfig
-@@ -0,0 +1,27 @@
-+# SPDX-License-Identifier: GPL-2.0-or-later
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c
+@@ -0,0 +1,91 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * InfiniBand Transport Layer
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ *
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ *
++ * Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
++ */
++#undef pr_fmt
++#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
-+config INFINIBAND_RTRS
-+	tristate
-+	depends on INFINIBAND_ADDR_TRANS
++#include "rtrs-srv.h"
 +
-+config INFINIBAND_RTRS_CLIENT
-+	tristate "RTRS client module"
-+	depends on INFINIBAND_ADDR_TRANS
-+	select INFINIBAND_RTRS
-+	help
-+	  RDMA transport client module.
++void rtrs_srv_update_rdma_stats(struct rtrs_srv_stats *s,
++				 size_t size, int d)
++{
++	atomic64_inc(&s->rdma_stats.dir[d].cnt);
++	atomic64_add(size, &s->rdma_stats.dir[d].size_total);
++}
 +
-+	  RTRS client allows for simplified data transfer and connection
-+	  establishment over RDMA (InfiniBand, RoCE, iWarp). Uses BIO-like
-+	  READ/WRITE semantics and provides multipath capabilities.
++void rtrs_srv_update_wc_stats(struct rtrs_srv_stats *s)
++{
++	atomic64_inc(&s->wc_comp.calls);
++	atomic64_inc(&s->wc_comp.total_wc_cnt);
++}
 +
-+config INFINIBAND_RTRS_SERVER
-+	tristate "RTRS server module"
-+	depends on INFINIBAND_ADDR_TRANS
-+	select INFINIBAND_RTRS
-+	help
-+	  RDMA transport server module.
++int rtrs_srv_reset_rdma_stats(struct rtrs_srv_stats *stats, bool enable)
++{
++	if (enable) {
++		struct rtrs_srv_stats_rdma_stats *r = &stats->rdma_stats;
 +
-+	  RTRS server module processing connection and IO requests received
-+	  from the RTRS client module, it will pass the IO requests to its
-+	  user eg. RNBD_server.
-diff --git a/drivers/infiniband/ulp/rtrs/Makefile b/drivers/infiniband/ulp/rtrs/Makefile
-new file mode 100644
-index 000000000000..89332be15c9e
---- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/Makefile
-@@ -0,0 +1,17 @@
-+# SPDX-License-Identifier: GPL-2.0-or-later
++		memset(r, 0, sizeof(*r));
++		return 0;
++	}
 +
-+rtrs-client-y := rtrs-clt.o \
-+		  rtrs-clt-stats.o \
-+		  rtrs-clt-sysfs.o
++	return -EINVAL;
++}
 +
-+rtrs-server-y := rtrs-srv.o \
-+		  rtrs-srv-stats.o \
-+		  rtrs-srv-sysfs.o
++ssize_t rtrs_srv_stats_rdma_to_str(struct rtrs_srv_stats *stats,
++				    char *page, size_t len)
++{
++	struct rtrs_srv_stats_rdma_stats *r = &stats->rdma_stats;
++	struct rtrs_srv_sess *sess;
 +
-+rtrs-core-y := rtrs.o
++	sess = container_of(stats, typeof(*sess), stats);
 +
-+obj-$(CONFIG_INFINIBAND_RTRS)        += rtrs-core.o
-+obj-$(CONFIG_INFINIBAND_RTRS_CLIENT) += rtrs-client.o
-+obj-$(CONFIG_INFINIBAND_RTRS_SERVER) += rtrs-server.o
++	return scnprintf(page, len, "%lld %lld %lld %lld %u\n",
++			 (s64)atomic64_read(&r->dir[READ].cnt),
++			 (s64)atomic64_read(&r->dir[READ].size_total),
++			 (s64)atomic64_read(&r->dir[WRITE].cnt),
++			 (s64)atomic64_read(&r->dir[WRITE].size_total),
++			 atomic_read(&sess->ids_inflight));
++}
 +
-+-include $(src)/compat/compat.mk
++int rtrs_srv_reset_wc_completion_stats(struct rtrs_srv_stats *stats,
++					bool enable)
++{
++	if (enable) {
++		memset(&stats->wc_comp, 0, sizeof(stats->wc_comp));
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++int rtrs_srv_stats_wc_completion_to_str(struct rtrs_srv_stats *stats,
++					 char *buf, size_t len)
++{
++	return snprintf(buf, len, "%lld %lld\n",
++			(s64)atomic64_read(&stats->wc_comp.total_wc_cnt),
++			(s64)atomic64_read(&stats->wc_comp.calls));
++}
++
++ssize_t rtrs_srv_reset_all_help(struct rtrs_srv_stats *stats,
++				 char *page, size_t len)
++{
++	return scnprintf(page, PAGE_SIZE, "echo 1 to reset all statistics\n");
++}
++
++int rtrs_srv_reset_all_stats(struct rtrs_srv_stats *stats, bool enable)
++{
++	if (enable) {
++		rtrs_srv_reset_wc_completion_stats(stats, enable);
++		rtrs_srv_reset_rdma_stats(stats, enable);
++		return 0;
++	}
++
++	return -EINVAL;
++}
 -- 
 2.17.1
 
