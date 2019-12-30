@@ -5,64 +5,64 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29BB4C32767
-	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BF89C2D0D4
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D4808206DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6576207E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Dec 2019 10:30:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="No2S3hGb"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vSzZ+1Br"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727439AbfL3KaE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 30 Dec 2019 05:30:04 -0500
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:37131 "EHLO
-        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727422AbfL3KaD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 30 Dec 2019 05:30:03 -0500
-Received: by mail-ed1-f65.google.com with SMTP id cy15so32203728edb.4;
-        Mon, 30 Dec 2019 02:30:01 -0800 (PST)
+        id S1727454AbfL3KaL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 30 Dec 2019 05:30:11 -0500
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:46406 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727422AbfL3KaL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 30 Dec 2019 05:30:11 -0500
+Received: by mail-ed1-f68.google.com with SMTP id m8so32177965edi.13;
+        Mon, 30 Dec 2019 02:30:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=hreyxnCg+IeGTut4YfAP5dLECflCjH66OAEPvnUnIOs=;
-        b=No2S3hGbSwUBRY7NMKTjY50V6on1+0msg7SFKMPGQBPip5Sbs4h7kGkWrM5jCHdN6u
-         cgpVL6YKYfCwRdyTokmZGLQwg52QqWnAu/BToOBF7u+gCfo6/g9SbHE2olykkvSlq9tE
-         LzeXhXkchtgF2J/yr839wMt77acZFsAUBlbwMP7SlYdoWx8Y5h146Ohz5R6w7/wBrs0v
-         U6WXzJ7fuIk9lfPRm1qX6Lt2fnWfbgtbkbElT5VOtIJrlcd6B6hbjh8dvHAVzJXkBNTd
-         Gm3LMNqe6F5cz+RE+Vv4Jhq6rQBOOfq8GOQ3MoYJUAFHNPQHgwP8f5rqdNaWMIvkbiqp
-         1Qyg==
+        bh=oZa2bj/+htcNbMNrqbimU6vzq/MqaghjVfdFooZ4/tw=;
+        b=vSzZ+1Brhz2Cg3crgfBCkfiuq/odT8XtUHNtvS/uUljPTikA/iPWA7Kv54IPUch9vS
+         kCvP2Zm8FW5AfYpDjEhkUD5ME8cImtna94BnhpVm3AAVHpFzWUHaUS3cBCxN8+ujwltc
+         Cep1RA76o/GCubRj9Aolw2teZpp83VH71y47bTxH6xIhgOuchZISIFk5ohPp5dF0Qo6T
+         PKFZsMNpYqpE2q9YU65abtv88ozVMx5i97n7x2iXnqbDN8EkjvU4DqLjeD666zbrM7tw
+         W49OIrVgWzJsxRe4f9SP9f7rYO8IFuPxG2U+P822ghMavFxZss5+4XLpgxPRZYU9mP/y
+         PAEA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=hreyxnCg+IeGTut4YfAP5dLECflCjH66OAEPvnUnIOs=;
-        b=M/EaNrurwmS2Kj6gpDGrflxkjwP6BTlpyUtZaSKcIy9TCHxYuQsGpDPFfyTcGSNVt9
-         W45LepMtHyfztYFNwB9vk/rizKqrz3b5UxRSvIr3dayCRTk5Y/xHPklvSN17qGk+UqEK
-         uJ4NQAakPFlS5opLuvDTjyieBVhaALSu0gVfCyMKKJ7PZTzCnLl/ol86lsIuiE9/QH0f
-         TkvO1W2v3+eSb+OnkiDrkPBRCckDnO6y/Iru5mam4chHwUExcQZoEAL++Zlp8TchepbI
-         p/JZeb8zdY7NL3HeiZTyEzW9m8/qJkLGtP36E83S01fyWJhKiVi0GAWqid4SF+g0MePY
-         DwcQ==
-X-Gm-Message-State: APjAAAWQNG7VRZWmZch929+STWa6S2/actj9hPiFiedsosOzoOFyxIN1
-        z5NIz3ZhWMCW3YoL8FBnV5olrsAY
-X-Google-Smtp-Source: APXvYqybxWKFv3b6PhY4XZHI3BLzBJh+w/an7xrPYZnLm8wMW03maeLxa+esOQ6DovZR9JMTjfO2nw==
-X-Received: by 2002:a17:906:260b:: with SMTP id h11mr69023890ejc.327.1577701800074;
-        Mon, 30 Dec 2019 02:30:00 -0800 (PST)
+        bh=oZa2bj/+htcNbMNrqbimU6vzq/MqaghjVfdFooZ4/tw=;
+        b=CSd2E2JrhOq9FO/Nrtx2bb43Li4DonyNwbYArAUXorJQF9GWYLPKxrRMLqfItjQQJj
+         1HVzENatXqy5RIMuFoUybM6aE1/EtIgFafrajnSHRpsZTK6MZs5inyrWqp2w660fgQlP
+         Uu8ceOaxIJtkiTzirlHcDgQMj8NusJd3DAyL9t6hn4P0ePrAL6/MwK2wUWHAeP5Ozhjn
+         ZWoJJRmwl1ULogiyWXnAUZf2iGNdm0K7K0dzzesRcIDUI58xCBdDZB3buitKSrqcVOoc
+         +GBak4SQQusgGZ0SCH7IgioXDZsXZU4AW5qeo8XFJFYp5JHXAbGV1D1pInWFpT+lJ/mT
+         1Saw==
+X-Gm-Message-State: APjAAAUSFrnbIADo4aFWqmCiEAYFLx9WAnJtAu+npT+w8AtL3vIdKlTN
+        zNMdH5PEyoAA6B9uoKO2e6OwUNpV
+X-Google-Smtp-Source: APXvYqykykUPeHEbqwNJ+TML9FxodVIDVcyH7dwxz4JcIpdaaixx7Cu62O3uuZHiDSqgc3RwDw9KCA==
+X-Received: by 2002:aa7:c74f:: with SMTP id c15mr71250684eds.304.1577701808864;
+        Mon, 30 Dec 2019 02:30:08 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4955:5100:b9e0:6ef7:286d:4897])
-        by smtp.gmail.com with ESMTPSA id v8sm5246630edw.21.2019.12.30.02.29.59
+        by smtp.gmail.com with ESMTPSA id v8sm5246630edw.21.2019.12.30.02.30.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Dec 2019 02:29:59 -0800 (PST)
+        Mon, 30 Dec 2019 02:30:08 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com,
-        rpenyaev@suse.de, linux-kernel@vger.kernel.org
-Subject: [PATCH v6 14/25] rtrs: a bit of documentation
-Date:   Mon, 30 Dec 2019 11:29:31 +0100
-Message-Id: <20191230102942.18395-15-jinpuwang@gmail.com>
+        rpenyaev@suse.de
+Subject: [PATCH v6 22/25] rnbd: server: sysfs interface functions
+Date:   Mon, 30 Dec 2019 11:29:39 +0100
+Message-Id: <20191230102942.18395-23-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20191230102942.18395-1-jinpuwang@gmail.com>
 References: <20191230102942.18395-1-jinpuwang@gmail.com>
@@ -73,459 +73,247 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-README with description of major sysfs entries, sysfs documentation
-has been moved to ABI dir as suggested by Bart.
+This is the sysfs interface to rnbd mapped devices on server side:
+
+  /sys/devices/virtual/rnbd-server/ctl/devices/<device_name>/
+    |- block_dev
+    |  *** link pointing to the corresponding block device sysfs entry
+    |
+    |- sessions/<session-name>/
+    |  *** sessions directory
+       |
+       |- read_only
+       |  *** is devices mapped as read only
+       |
+       |- mapping_path
+          *** relative device path provided by the client during mapping
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-Cc: linux-kernel@vger.kernel.org
 ---
- .../ABI/testing/sysfs-class-rtrs-client       | 190 ++++++++++++++++++
- .../ABI/testing/sysfs-class-rtrs-server       |  81 ++++++++
- drivers/infiniband/ulp/rtrs/README            | 149 ++++++++++++++
- 3 files changed, 420 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-class-rtrs-client
- create mode 100644 Documentation/ABI/testing/sysfs-class-rtrs-server
- create mode 100644 drivers/infiniband/ulp/rtrs/README
+ drivers/block/rnbd/rnbd-srv-sysfs.c | 213 ++++++++++++++++++++++++++++
+ 1 file changed, 213 insertions(+)
+ create mode 100644 drivers/block/rnbd/rnbd-srv-sysfs.c
 
-diff --git a/Documentation/ABI/testing/sysfs-class-rtrs-client b/Documentation/ABI/testing/sysfs-class-rtrs-client
+diff --git a/drivers/block/rnbd/rnbd-srv-sysfs.c b/drivers/block/rnbd/rnbd-srv-sysfs.c
 new file mode 100644
-index 000000000000..8b219cf6c5c4
+index 000000000000..31d0ff520b3b
 --- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rtrs-client
-@@ -0,0 +1,190 @@
-+What:		/sys/class/rtrs-client
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+When a user of RTRS API creates a new session, a directory entry with
-+the name of that session is created under /sys/class/rtrs-client/<session-name>/
++++ b/drivers/block/rnbd/rnbd-srv-sysfs.c
+@@ -0,0 +1,213 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * InfiniBand Network Block Driver
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ *
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ *
++ * Copyright (c) 2019 1&1 IONOS SE. All rights reserved.
++ */
++#undef pr_fmt
++#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
-+What:		/sys/class/rtrs-client/<session-name>/add_path
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RW, adds a new path (connection) to an existing session. Expected format is the
-+following:
++#include <uapi/linux/limits.h>
++#include <linux/kobject.h>
++#include <linux/sysfs.h>
++#include <linux/stat.h>
++#include <linux/genhd.h>
++#include <linux/list.h>
++#include <linux/moduleparam.h>
++#include <linux/device.h>
 +
-+  <[source addr,]destination addr>
++#include "rnbd-srv.h"
 +
-+  *addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]
++static struct device *rnbd_dev;
++static struct class *rnbd_dev_class;
++static struct kobject *rnbd_devs_kobj;
 +
-+What:		/sys/class/rtrs-client/<session-name>/max_reconnect_attempts
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Maximum number reconnect attempts the client should make before giving up
-+after connection breaks unexpectedly.
++static struct kobj_type ktype = {
++	.sysfs_ops	= &kobj_sysfs_ops,
++};
 +
-+What:		/sys/class/rtrs-client/<session-name>/mp_policy
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Multipath policy specifies which path should be selected on each IO:
++int rnbd_srv_create_dev_sysfs(struct rnbd_srv_dev *dev,
++			       struct block_device *bdev,
++			       const char *dir_name)
++{
++	struct kobject *bdev_kobj;
++	int ret;
 +
-+   round-robin (0):
-+       select path in per CPU round-robin manner.
++	ret = kobject_init_and_add(&dev->dev_kobj, &ktype,
++				   rnbd_devs_kobj, dir_name);
++	if (ret)
++		return ret;
 +
-+   min-inflight (1):
-+       select path with minimum inflights.
++	ret = kobject_init_and_add(&dev->dev_sessions_kobj,
++				   &ktype,
++				   &dev->dev_kobj, "sessions");
++	if (ret)
++		goto err;
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Each path belonging to a given session is listed here by its source and
-+destination address. When a new path is added to a session by writing to
-+the "add_path" entry, a directory <src@dst> is created.
++	bdev_kobj = &disk_to_dev(bdev->bd_disk)->kobj;
++	ret = sysfs_create_link(&dev->dev_kobj, bdev_kobj, "block_dev");
++	if (ret)
++		goto err2;
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/state
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains "connected" if the session is connected to the peer and fully
-+functional.  Otherwise the file contains "disconnected"
++	return 0;
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/reconnect
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Write "1" to the file in order to reconnect the path.
-+Operation is blocking and returns 0 if reconnect was successful.
++err2:
++	kobject_put(&dev->dev_sessions_kobj);
++err:
++	kobject_put(&dev->dev_kobj);
++	return ret;
++}
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/disconnect
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Write "1" to the file in order to disconnect the path.
-+Operation blocks until RTRS path is disconnected.
++void rnbd_srv_destroy_dev_sysfs(struct rnbd_srv_dev *dev)
++{
++	sysfs_remove_link(&dev->dev_kobj, "block_dev");
++	kobject_del(&dev->dev_sessions_kobj);
++	kobject_put(&dev->dev_sessions_kobj);
++	kobject_del(&dev->dev_kobj);
++	kobject_put(&dev->dev_kobj);
++}
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/remove_path
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Write "1" to the file in order to disconnected and remove the path
-+from the session.  Operation blocks until the path is disconnected
-+and removed from the session.
++static ssize_t read_only_show(struct kobject *kobj, struct kobj_attribute *attr,
++			      char *page)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/hca_name
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the the name of HCA the connection established on.
++	sess_dev = container_of(kobj, struct rnbd_srv_sess_dev, kobj);
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/hca_port
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the port number of active port traffic is going through.
++	return scnprintf(page, PAGE_SIZE, "%s\n",
++			 (sess_dev->open_flags & FMODE_WRITE) ? "0" : "1");
++}
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/src_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the source address of the path
++static struct kobj_attribute rnbd_srv_dev_session_ro_attr =
++	__ATTR_RO(read_only);
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/dst_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the destination address of the path
++static ssize_t access_mode_show(struct kobject *kobj,
++				struct kobj_attribute *attr,
++				char *page)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
 +
++	sess_dev = container_of(kobj, struct rnbd_srv_sess_dev, kobj);
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/reset_all
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RW, Read will return usage help, write 0 will clear all the statistics.
++	return scnprintf(page, PAGE_SIZE, "%s\n",
++			 rnbd_access_mode_str(sess_dev->access_mode));
++}
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/sg_entries
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Data to be transferred via RDMA is passed to RTRS as scatter-gather
-+list. A scatter-gather list can contain multiple entries.
-+Scatter-gather list with less entries require less processing power
-+and can therefore transferred faster. The file sg_entries outputs a
-+per-CPU distribution table for the number of entries in the
-+scatter-gather lists, that were passed to the RTRS API function
-+rtrs_clt_request (READ or WRITE).
++static struct kobj_attribute rnbd_srv_dev_session_access_mode_attr =
++	__ATTR_RO(access_mode);
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/cpu_migration
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RTRS expects that each HCA IRQ is pinned to a separate CPU. If it's
-+not the case, the processing of an I/O response could be processed on a
-+different CPU than where it was originally submitted.  This file shows
-+how many interrupts where generated on a non expected CPU.
-+"from:" is the CPU on which the IRQ was expected, but not generated.
-+"to:" is the CPU on which the IRQ was generated, but not expected.
++static ssize_t mapping_path_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *page)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/reconnects
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Contains 2 unsigned int values, the first one records number of successful
-+reconnects in the path lifetime, the second one records number of failed
-+reconnects in the path lifetime.
++	sess_dev = container_of(kobj, struct rnbd_srv_sess_dev, kobj);
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/rdma_lat
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Latency distribution of RTRS requests.
-+The format is:
-+   1 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+   2 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+   4 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+   8 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+  16 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+  ...
-+  65536 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+  >= 65536 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+  maximum ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++	return scnprintf(page, PAGE_SIZE, "%s\n", sess_dev->pathname);
++}
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/wc_completion
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Contains 2 unsigned int values, the first one records max number of work
-+requests processed in work_completion in session lifetime, the second
-+one records average number of work requests processed in work_completion
-+in session lifetime.
++static struct kobj_attribute rnbd_srv_dev_session_mapping_path_attr =
++	__ATTR_RO(mapping_path);
 +
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/rdma
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Contains statistics regarding rdma operations and inflight operations.
-+The output consists of 6 values:
++static struct attribute *rnbd_srv_default_dev_sessions_attrs[] = {
++	&rnbd_srv_dev_session_access_mode_attr.attr,
++	&rnbd_srv_dev_session_ro_attr.attr,
++	&rnbd_srv_dev_session_mapping_path_attr.attr,
++	NULL,
++};
 +
-+<read-count> <read-total-size> <write-count> <write-total-size> \
-+<inflights> <failovered>
-diff --git a/Documentation/ABI/testing/sysfs-class-rtrs-server b/Documentation/ABI/testing/sysfs-class-rtrs-server
-new file mode 100644
-index 000000000000..cac2a093d56f
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rtrs-server
-@@ -0,0 +1,81 @@
-+What:		/sys/class/rtrs-server
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+When a user of RTRS API creates a new session on a client side, a
-+directory entry with the name of that session is created in here.
++static struct attribute_group rnbd_srv_default_dev_session_attr_group = {
++	.attrs = rnbd_srv_default_dev_sessions_attrs,
++};
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+When new path is created by writing to "add_path" entry on client side,
-+a directory entry named as <source address>@<destination address> is created
-+on server.
++void rnbd_srv_destroy_dev_session_sysfs(struct rnbd_srv_sess_dev *sess_dev)
++{
++	DECLARE_COMPLETION_ONSTACK(sysfs_compl);
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/disconnect
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+When "1" is written to the file, the RTRS session is being disconnected.
-+Operations is non-blocking and returns control immediately to the caller.
++	sysfs_remove_group(&sess_dev->kobj,
++			   &rnbd_srv_default_dev_session_attr_group);
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/hca_name
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the the name of HCA the connection established on.
++	sess_dev->sysfs_release_compl = &sysfs_compl;
++	kobject_del(&sess_dev->kobj);
++	kobject_put(&sess_dev->kobj);
++	wait_for_completion(&sysfs_compl);
++}
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/hca_port
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the port number of active port traffic is going through.
++static void rnbd_srv_sess_dev_release(struct kobject *kobj)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/src_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the source address of the path
++	sess_dev = container_of(kobj, struct rnbd_srv_sess_dev, kobj);
++	if (sess_dev->sysfs_release_compl)
++		complete_all(sess_dev->sysfs_release_compl);
++}
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/dst_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RO, Contains the destination address of the path
++static struct kobj_type rnbd_srv_sess_dev_ktype = {
++	.sysfs_ops	= &kobj_sysfs_ops,
++	.release	= rnbd_srv_sess_dev_release,
++};
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/stats/reset_all
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+RW, Read will return usage help, write 0 will clear all the statistics.
++int rnbd_srv_create_dev_session_sysfs(struct rnbd_srv_sess_dev *sess_dev)
++{
++	int ret;
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/stats/rdma
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Contains statistics regarding rdma operations and inflight operations.
-+The output consists of 5 values:
-+<read-count> <read-total-size> <write-count> <write-total-size> <inflights>
++	ret = kobject_init_and_add(&sess_dev->kobj, &rnbd_srv_sess_dev_ktype,
++				   &sess_dev->dev->dev_sessions_kobj, "%s",
++				   sess_dev->sess->sessname);
++	if (ret)
++		return ret;
 +
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/stats/wc_completion
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:
-+Contains 3 values, the first one is int, records max number of work
-+requests processed in work_completion in session lifetime, the second
-+one long int records total number of work requests processed in
-+work_completion in session lifetime and the 3rd one long int records
-+total number of calls to the cq completion handler. Division of 2nd
-+number through 3rd gives the average number of completions processed
-+in completion handler.
-diff --git a/drivers/infiniband/ulp/rtrs/README b/drivers/infiniband/ulp/rtrs/README
-new file mode 100644
-index 000000000000..59ad60318a18
---- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/README
-@@ -0,0 +1,149 @@
-+****************************
-+InfiniBand Transport (RTRS)
-+****************************
++	ret = sysfs_create_group(&sess_dev->kobj,
++				 &rnbd_srv_default_dev_session_attr_group);
++	if (ret)
++		goto err;
 +
-+RTRS (InfiniBand Transport) is a reliable high speed transport library
-+which provides support to establish optimal number of connections
-+between client and server machines using RDMA (InfiniBand, RoCE, iWarp)
-+transport. It is optimized to transfer (read/write) IO blocks.
++	return 0;
 +
-+In its core interface it follows the BIO semantics of providing the
-+possibility to either write data from an sg list to the remote side
-+or to request ("read") data transfer from the remote side into a given
-+sg list.
++err:
++	kobject_put(&sess_dev->kobj);
 +
-+RTRS provides I/O fail-over and load-balancing capabilities by using
-+multipath I/O (see "add_path" and "mp_policy" configuration entries).
++	return ret;
++}
 +
-+RTRS is used by the RNBD (Infiniband Network Block Device) modules.
++int rnbd_srv_create_sysfs_files(void)
++{
++	int err;
 +
-+==================
-+Transport protocol
-+==================
++	rnbd_dev_class = class_create(THIS_MODULE, "rnbd-server");
++	if (IS_ERR(rnbd_dev_class))
++		return PTR_ERR(rnbd_dev_class);
 +
-+Overview
-+--------
-+An established connection between a client and a server is called rtrs
-+session. A session is associated with a set of memory chunks reserved on the
-+server side for a given client for rdma transfer. A session
-+consists of multiple paths, each representing a separate physical link
-+between client and server. Those are used for load balancing and failover.
-+Each path consists of as many connections (QPs) as there are cpus on
-+the client.
++	rnbd_dev = device_create(rnbd_dev_class, NULL,
++				  MKDEV(0, 0), NULL, "ctl");
++	if (IS_ERR(rnbd_dev)) {
++		err = PTR_ERR(rnbd_dev);
++		goto cls_destroy;
++	}
++	rnbd_devs_kobj = kobject_create_and_add("devices", &rnbd_dev->kobj);
++	if (unlikely(!rnbd_devs_kobj)) {
++		err = -ENOMEM;
++		goto dev_destroy;
++	}
 +
-+When processing an incoming rdma write or read request rtrs client uses memory
-+chunks reserved for him on the server side. Their number, size and addresses
-+need to be exchanged between client and server during the connection
-+establishment phase. Apart from the memory related information client needs to
-+inform the server about the session name and identify each path and connection
-+individually.
++	return 0;
 +
-+On an established session client sends to server write or read messages.
-+Server uses immediate field to tell the client which request is being
-+acknowledged and for errno. Client uses immediate field to tell the server
-+which of the memory chunks has been accessed and at which offset the message
-+can be found.
++dev_destroy:
++	device_destroy(rnbd_dev_class, MKDEV(0, 0));
++cls_destroy:
++	class_destroy(rnbd_dev_class);
 +
-+Connection establishment
-+------------------------
++	return err;
++}
 +
-+1. Client starts establishing connections belonging to a path of a session one
-+by one via attaching RTRS_MSG_CON_REQ messages to the rdma_connect requests.
-+Those include uuid of the session and uuid of the path to be
-+established. They are used by the server to find a persisting session/path or
-+to create a new one when necessary. The message also contains the protocol
-+version and magic for compatibility, total number of connections per session
-+(as many as cpus on the client), the id of the current connection and
-+the reconnect counter, which is used to resolve the situations where
-+client is trying to reconnect a path, while server is still destroying the old
-+one.
-+
-+2. Server accepts the connection requests one by one and attaches
-+RTRS_MSG_CONN_RSP messages to the rdma_accept. Apart from magic and
-+protocol version, the messages include error code, queue depth supported by
-+the server (number of memory chunks which are going to be allocated for that
-+session) and the maximum size of one io.
-+
-+3. After all connections of a path are established client sends to server the
-+RTRS_MSG_INFO_REQ message, containing the name of the session. This message
-+requests the address information from the server.
-+
-+4. Server replies to the session info request message with RTRS_MSG_INFO_RSP,
-+which contains the addresses and keys of the RDMA buffers allocated for that
-+session.
-+
-+5. Session becomes connected after all paths to be established are connected
-+(i.e. steps 1-4 finished for all paths requested for a session)
-+
-+6. Server and client exchange periodically heartbeat messages (empty rdma
-+messages with an immediate field) which are used to detect a crash on remote
-+side or network outage in an absence of IO.
-+
-+7. On any RDMA related error or in the case of a heartbeat timeout, the
-+corresponding path is disconnected, all the inflight IO are failed over to a
-+healthy path, if any, and the reconnect mechanism is triggered.
-+
-+CLT                                     SRV
-+*for each connection belonging to a path and for each path:
-+RTRS_MSG_CON_REQ  ------------------->
-+                   <------------------- RTRS_MSG_CON_RSP
-+...
-+*after all connections are established:
-+RTRS_MSG_INFO_REQ ------------------->
-+                   <------------------- RTRS_MSG_INFO_RSP
-+*heartbeat is started from both sides:
-+                   -------------------> [RTRS_HB_MSG_IMM]
-+[RTRS_HB_MSG_ACK] <-------------------
-+[RTRS_HB_MSG_IMM] <-------------------
-+                   -------------------> [RTRS_HB_MSG_ACK]
-+
-+IO path
-+-------
-+
-+* Write *
-+
-+1. When processing a write request client selects one of the memory chunks
-+on the server side and rdma writes there the user data, user header and the
-+RTRS_MSG_RDMA_WRITE message. Apart from the type (write), the message only
-+contains size of the user header. The client tells the server which chunk has
-+been accessed and at what offset the RTRS_MSG_RDMA_WRITE can be found by
-+using the IMM field.
-+
-+2. When confirming a write request server sends an "empty" rdma message with
-+an immediate field. The 32 bit field is used to specify the outstanding
-+inflight IO and for the error code.
-+
-+CLT                                                          SRV
-+usr_data + usr_hdr + rtrs_msg_rdma_write -----------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]                        <----------------- (id + errno)
-+
-+* Read *
-+
-+1. When processing a read request client selects one of the memory chunks
-+on the server side and rdma writes there the user header and the
-+RTRS_MSG_RDMA_READ message. This message contains the type (read), size of
-+the user header, flags (specifying if memory invalidation is necessary) and the
-+list of addresses along with keys for the data to be read into.
-+
-+2. When confirming a read request server transfers the requested data first,
-+attaches an invalidation message if requested and finally an "empty" rdma
-+message with an immediate field. The 32 bit field is used to specify the
-+outstanding inflight IO and the error code.
-+
-+CLT                                           SRV
-+usr_hdr + rtrs_msg_rdma_read --------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]            <-------------- usr_data + (id + errno)
-+or in case client requested invalidation:
-+[RTRS_IO_RSP_IMM_W_INV]      <-------------- usr_data + (INV) + (id + errno)
-+
-+=========================================
-+Contributors List(in alphabetical order)
-+=========================================
-+Danil Kipnis <danil.kipnis@profitbricks.com>
-+Fabian Holler <mail@fholler.de>
-+Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-+Jack Wang <jinpu.wang@profitbricks.com>
-+Kleber Souza <kleber.souza@profitbricks.com>
-+Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
-+Milind Dumbare <Milind.dumbare@gmail.com>
-+Roman Penyaev <roman.penyaev@profitbricks.com>
++void rnbd_srv_destroy_sysfs_files(void)
++{
++	kobject_del(rnbd_devs_kobj);
++	kobject_put(rnbd_devs_kobj);
++	device_destroy(rnbd_dev_class, MKDEV(0, 0));
++	class_destroy(rnbd_dev_class);
++}
 -- 
 2.17.1
 
