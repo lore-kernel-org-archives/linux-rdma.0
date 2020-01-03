@@ -7,115 +7,91 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96082C2D0C2
-	for <linux-rdma@archiver.kernel.org>; Fri,  3 Jan 2020 20:18:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D5CC2D0C2
+	for <linux-rdma@archiver.kernel.org>; Fri,  3 Jan 2020 20:23:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5081F222C4
-	for <linux-rdma@archiver.kernel.org>; Fri,  3 Jan 2020 20:18:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0F9D20866
+	for <linux-rdma@archiver.kernel.org>; Fri,  3 Jan 2020 20:23:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Kt2ACKby"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="YTiWrOb5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726528AbgACUSU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 3 Jan 2020 15:18:20 -0500
-Received: from mail-qk1-f195.google.com ([209.85.222.195]:40492 "EHLO
-        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726181AbgACUSU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Jan 2020 15:18:20 -0500
-Received: by mail-qk1-f195.google.com with SMTP id c17so34724534qkg.7
-        for <linux-rdma@vger.kernel.org>; Fri, 03 Jan 2020 12:18:19 -0800 (PST)
+        id S1726528AbgACUXZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 3 Jan 2020 15:23:25 -0500
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:34983 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727406AbgACUXZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Jan 2020 15:23:25 -0500
+Received: by mail-qt1-f196.google.com with SMTP id e12so37751209qto.2
+        for <linux-rdma@vger.kernel.org>; Fri, 03 Jan 2020 12:23:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to
-         :user-agent;
-        bh=/SuMkHj7+ThlVsdmv0RHwqpRTcGZVz19UjyYDmvGlZg=;
-        b=Kt2ACKby1vQQzWvNU6nyh7PaIPULNuiPXpeiJtXNc44W8+PyQVbzyOG//QTnlNniYk
-         cQxv4GFKA4fzJxIMRha6UWO3tK9GZKFuX/QiC468WCwYBwUso4NT1cvukLbqOfrRzmkt
-         Tcw12xCxY8Xa/ZJja4TwEowEeZXcm7vaU2mksvLMt0IdLtP6fNE+IkbVhkXB+R74azQy
-         q1XorcdF+C/kHTw85Zp6QLvCleOAm1u1KVoY43pl7Znr9lbbIDWeOr7TgPSP/9olkXw9
-         vjdVxT3ffQBnBlPTBiwqucYjZuyzSK55XArPxHhi/o3ik9cvK1hiKaEuK6z58zzJM36g
-         KV9g==
+         :content-disposition:in-reply-to:user-agent;
+        bh=2Eh1yQkvu28vzyYRDiVcQwSW+SUklb8lMZ4DpMKEnY4=;
+        b=YTiWrOb56a1ZHIaSf9O1wVNbS19lXhKtyLknLuzFJx77TN9chzR0h/NE0jPdefQVKN
+         YlDU+Z6Z1GO5iLxvZenhQO/P1FszjgWeD+IeraEzD38TNudMORVNtJDUz4eL+ILvOOZt
+         /sTzBavh0R4suV3EcHnPQAj0BTBZ6aKNK+A48gwqPlbK6X2PHv1qjQSYQnnX91TnF4jk
+         7B+Fo2XNfybeccmk9/U+j53rZjHC/ZTbes07YToLu+tHhLpG6roLycovloDH0klYvpvl
+         a96tuQL+sP3DDA/f0kwXdsqelAsLzsUYlkrcvGtBPtCn5gs/MKnRtzDSDN+eySr3sVu9
+         p3hQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to:user-agent;
-        bh=/SuMkHj7+ThlVsdmv0RHwqpRTcGZVz19UjyYDmvGlZg=;
-        b=naVUiEEfOSqVRQ6zezIKc6pTKzot3Xz3iqKNPTBrjwOgqzCHPye5vkl5/dX9WlUyZI
-         Vo+IhbIVR+yHHxv/N/kDm0vRQ9rQWMt0uoSpHygm60g3wQAW40un84yAV9x7eXE76E6Z
-         epopEFBWE9GRWKRzHtWn/rLPBqM0UM3zfkhTZmfaP1wmvjSKwNBv6yBmR3isgMy7AAwi
-         7PAJ4tt5F73Q2IBjCxpW1Mu6yxxbGrEZzBXx7/9Ye7rt1jhNuuKuXnCWSEDtXAYC7ow/
-         USOYIn9XiSRKVG6isWg4BKhccxqKUj/Sbu7mNiWpRJWftNuiqghjn+fz/Kyozve/xBon
-         uxTw==
-X-Gm-Message-State: APjAAAX8JQbgkZQIuw0JJdr91mn4wjnEAkHy09bqhRk5OMsrCVNvNSd6
-        1PzlSaXGMczs1Qcu7Md5fnZHFLxUm8Y=
-X-Google-Smtp-Source: APXvYqzIciOXmDJz/atH2y8JfHvAGNsqTnk9qIQJGU657CBZQXyYMrbcZvVbeQiItB82q/2tpDjUKw==
-X-Received: by 2002:a05:620a:1666:: with SMTP id d6mr73503848qko.379.1578082228523;
-        Fri, 03 Jan 2020 12:10:28 -0800 (PST)
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=2Eh1yQkvu28vzyYRDiVcQwSW+SUklb8lMZ4DpMKEnY4=;
+        b=qgjfAzc89/dycsb+Ys50U+Ga9+zLmFa+c7BVXs8+9xcCpbBOwe5DzB1KOWYQdUGUDb
+         08D2ZBaD+V+2E3b9KQGPCwoSwSdKphJW1nCyrW3z+AkyH/wf5va8LfeYy/glzCWyNEVO
+         k7/nm2nG8i9MO8ZFy4xJcUdqTkQYFra/ii97ytoAdzF37morjlZPyvUawsLcjU1oB6sv
+         Diphqam3RMB4484GXeHvS33hEFcvzA5f/7EePG61dN6wayMLFmShMTMYX7sSECGX9SEd
+         2E9iWHTC/i0m5ZsrsIWDGicPmFJp/RSIXbn50yPH4u/O1jpAzfeXiAR90WbZBEF2MEKA
+         3Iow==
+X-Gm-Message-State: APjAAAU0NCF+sgJq7XGlfdeA5h/fvCjYjzZ7Mlb4t14uJGWuPUnrSGBH
+        z8vLHPUrRJU0szmA2dJLZk8C9A==
+X-Google-Smtp-Source: APXvYqxy1Faz1t5NblybFE11de0p8ag9hlUiNxnTiTsaHJhdsIDTGMwllYn8llwMRaRMp/npH4bmGw==
+X-Received: by 2002:ac8:1aeb:: with SMTP id h40mr66103001qtk.269.1578083004353;
+        Fri, 03 Jan 2020 12:23:24 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id e3sm17485353qtj.30.2020.01.03.12.10.27
+        by smtp.gmail.com with ESMTPSA id d143sm16960386qke.123.2020.01.03.12.23.23
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 03 Jan 2020 12:10:27 -0800 (PST)
+        Fri, 03 Jan 2020 12:23:23 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1inTH9-00031e-Cl; Fri, 03 Jan 2020 16:10:27 -0400
-Date:   Fri, 3 Jan 2020 16:10:27 -0400
+        id 1inTTf-00043e-Dx; Fri, 03 Jan 2020 16:23:23 -0400
+Date:   Fri, 3 Jan 2020 16:23:23 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
-Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Mark Haywood <mark.haywood@oracle.com>
-Subject: Re: [PATCH RDMA/netlink v2] RDMA/netlink: Adhere to returning zero
- on success
-Message-ID: <20200103201027.GA11554@ziepe.ca>
-References: <20191216120436.3204814-1-haakon.bugge@oracle.com>
+To:     Aditya Pakki <pakki001@umn.edu>
+Cc:     kjlu@umn.edu, Bart Van Assche <bvanassche@acm.org>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] scsi: RDMA/srpt: remove unnecessary assertion in
+ srpt_queue_response
+Message-ID: <20200103202323.GA15557@ziepe.ca>
+References: <20191217194437.25568-1-pakki001@umn.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20191216120436.3204814-1-haakon.bugge@oracle.com>
+In-Reply-To: <20191217194437.25568-1-pakki001@umn.edu>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Dec 16, 2019 at 01:04:36PM +0100, Håkon Bugge wrote:
-> In rdma_nl_rcv_skb(), the local variable err is assigned the return
-> value of the supplied callback function, which could be one of
-> ib_nl_handle_resolve_resp(), ib_nl_handle_set_timeout(), or
-> ib_nl_handle_ip_res_resp(). These three functions all return skb->len
-> on success.
+On Tue, Dec 17, 2019 at 01:44:37PM -0600, Aditya Pakki wrote:
+> Currently, BUG_ON in srpt_queue_response, is used as an assertion for
+> empty rdma channel. However, if the channel is NULL, the call trace
+> on console is sufficient for diagnosis.
 > 
-> rdma_nl_rcv_skb() is merely a copy of netlink_rcv_skb(). The callback
-> functions used by the latter have the convention: "Returns 0 on
-> success or a negative error code".
-> 
-> In particular, the statement (equal for both functions):
-> 
->    if (nlh->nlmsg_flags & NLM_F_ACK || err)
-> 
-> implies that rdma_nl_rcv_skb() always will ack a message, independent
-> of the NLM_F_ACK being set in nlmsg_flags or not.
-> 
-> The fix could be to change the above statement, but it is better to
-> keep the two *_rcv_skb() functions equal in this respect and instead
-> change the callback functions in the rdma subsystem to the correct
-> convention.
-> 
-> Suggested-by: Mark Haywood <mark.haywood@oracle.com>
-> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-> Tested-by: Mark Haywood <mark.haywood@oracle.com>
-> Fixes: 2ca546b92a02 ("IB/sa: Route SA pathrecord query through netlink")
-> Fixes: ae43f8286730 ("IB/core: Add IP to GID netlink offload")
+> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 > ---
->     v1 -> v2:
->        * Realized sk_buff::len is unsigned, hence simply returning
->          zero in the good case
+> v1: Avoid potential NULL pointer derefernce of ch. Current fix
+> suggested by Bart Van Assche
 > ---
->  drivers/infiniband/core/addr.c     | 2 +-
->  drivers/infiniband/core/sa_query.c | 4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 2 --
+>  1 file changed, 2 deletions(-)
 
-Applied to for-next, thanks
+Applied to for-next with the reworked commit message Bart suggested
 
+Thanks,
 Jason
