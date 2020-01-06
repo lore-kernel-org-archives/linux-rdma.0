@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D8BC33C8C
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3073AC33C9E
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E8172146E
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09D392071A
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726422AbgAFMZL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726307AbgAFMZL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 6 Jan 2020 07:25:11 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8225 "EHLO huawei.com"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8222 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726307AbgAFMZK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 6 Jan 2020 07:25:10 -0500
+        id S1726383AbgAFMZL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 6 Jan 2020 07:25:11 -0500
 Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 9FB2D77007F40C9931D9;
+        by Forcepoint Email with ESMTP id 976DE9B2FF0D7B41129C;
         Mon,  6 Jan 2020 20:25:09 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
@@ -28,9 +28,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 6/7] RDMA/hns: Replace custom macros HNS_ROCE_ALIGN_UP
-Date:   Mon, 6 Jan 2020 20:21:15 +0800
-Message-ID: <1578313276-29080-7-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 5/7] RDMA/hns: Remove redundant print information
+Date:   Mon, 6 Jan 2020 20:21:14 +0800
+Message-ID: <1578313276-29080-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1578313276-29080-1-git-send-email-liweihang@huawei.com>
 References: <1578313276-29080-1-git-send-email-liweihang@huawei.com>
@@ -43,117 +43,29 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+From: Yixing Liu <liuyixing1@huawei.com>
 
-HNS_ROCE_ALIGN_UP can be replaced by round_up() which is defined in
-kernel.h.
+There are already necessary prints in outer function, prints in
+hns_roce_function_clear() may confuse users. So these prints is removed.
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 --
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 44 +++++++++++++----------------
- 2 files changed, 20 insertions(+), 26 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 19366a5..0a716f5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -45,8 +45,6 @@
- 
- #define HNS_ROCE_MAX_MSG_LEN			0x80000000
- 
--#define HNS_ROCE_ALIGN_UP(a, b) ((((a) + (b) - 1) / (b)) * (b))
--
- #define HNS_ROCE_IB_MIN_SQ_STRIDE		6
- 
- #define HNS_ROCE_BA_SIZE			(32 * 4096)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index a6565b6..c5b01ec 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -393,40 +393,38 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
- 
- 	/* Get buf size, SQ and RQ  are aligned to page_szie */
- 	if (hr_dev->caps.max_sq_sg <= 2) {
--		hr_qp->buff_size = HNS_ROCE_ALIGN_UP((hr_qp->rq.wqe_cnt <<
-+		hr_qp->buff_size = round_up((hr_qp->rq.wqe_cnt <<
- 					     hr_qp->rq.wqe_shift), PAGE_SIZE) +
--				   HNS_ROCE_ALIGN_UP((hr_qp->sq.wqe_cnt <<
-+				   round_up((hr_qp->sq.wqe_cnt <<
- 					     hr_qp->sq.wqe_shift), PAGE_SIZE);
- 
- 		hr_qp->sq.offset = 0;
--		hr_qp->rq.offset = HNS_ROCE_ALIGN_UP((hr_qp->sq.wqe_cnt <<
-+		hr_qp->rq.offset = round_up((hr_qp->sq.wqe_cnt <<
- 					     hr_qp->sq.wqe_shift), PAGE_SIZE);
- 	} else {
- 		page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
- 		hr_qp->sge.sge_cnt = ex_sge_num ?
- 		   max(page_size / (1 << hr_qp->sge.sge_shift), ex_sge_num) : 0;
--		hr_qp->buff_size = HNS_ROCE_ALIGN_UP((hr_qp->rq.wqe_cnt <<
-+		hr_qp->buff_size = round_up((hr_qp->rq.wqe_cnt <<
- 					     hr_qp->rq.wqe_shift), page_size) +
--				   HNS_ROCE_ALIGN_UP((hr_qp->sge.sge_cnt <<
-+				   round_up((hr_qp->sge.sge_cnt <<
- 					     hr_qp->sge.sge_shift), page_size) +
--				   HNS_ROCE_ALIGN_UP((hr_qp->sq.wqe_cnt <<
-+				   round_up((hr_qp->sq.wqe_cnt <<
- 					     hr_qp->sq.wqe_shift), page_size);
- 
- 		hr_qp->sq.offset = 0;
- 		if (ex_sge_num) {
--			hr_qp->sge.offset = HNS_ROCE_ALIGN_UP(
--							(hr_qp->sq.wqe_cnt <<
--							hr_qp->sq.wqe_shift),
--							page_size);
-+			hr_qp->sge.offset = round_up((hr_qp->sq.wqe_cnt <<
-+						      hr_qp->sq.wqe_shift),
-+						     page_size);
- 			hr_qp->rq.offset = hr_qp->sge.offset +
--					HNS_ROCE_ALIGN_UP((hr_qp->sge.sge_cnt <<
--						hr_qp->sge.sge_shift),
--						page_size);
-+					   round_up((hr_qp->sge.sge_cnt <<
-+						     hr_qp->sge.sge_shift),
-+						    page_size);
- 		} else {
--			hr_qp->rq.offset = HNS_ROCE_ALIGN_UP(
--							(hr_qp->sq.wqe_cnt <<
--							hr_qp->sq.wqe_shift),
--							page_size);
-+			hr_qp->rq.offset = round_up((hr_qp->sq.wqe_cnt <<
-+						     hr_qp->sq.wqe_shift),
-+						    page_size);
- 		}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index b0faef8..be2e114 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1254,7 +1254,6 @@ static void hns_roce_function_clear(struct hns_roce_dev *hr_dev)
  	}
  
-@@ -593,20 +591,18 @@ static int hns_roce_set_kernel_sq_size(struct hns_roce_dev *hr_dev,
- 	/* Get buf size, SQ and RQ are aligned to PAGE_SIZE */
- 	page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
- 	hr_qp->sq.offset = 0;
--	size = HNS_ROCE_ALIGN_UP(hr_qp->sq.wqe_cnt << hr_qp->sq.wqe_shift,
--				 page_size);
-+	size = round_up(hr_qp->sq.wqe_cnt << hr_qp->sq.wqe_shift, page_size);
+ out:
+-	dev_err(hr_dev->dev, "Func clear fail.\n");
+ 	hns_roce_func_clr_rst_prc(hr_dev, ret, fclr_write_fail_flag);
+ }
  
- 	if (hr_dev->caps.max_sq_sg > 2 && hr_qp->sge.sge_cnt) {
- 		hr_qp->sge.sge_cnt = max(page_size/(1 << hr_qp->sge.sge_shift),
--					(u32)hr_qp->sge.sge_cnt);
-+					 (u32)hr_qp->sge.sge_cnt);
- 		hr_qp->sge.offset = size;
--		size += HNS_ROCE_ALIGN_UP(hr_qp->sge.sge_cnt <<
--					  hr_qp->sge.sge_shift, page_size);
-+		size += round_up(hr_qp->sge.sge_cnt << hr_qp->sge.sge_shift,
-+				 page_size);
- 	}
- 
- 	hr_qp->rq.offset = size;
--	size += HNS_ROCE_ALIGN_UP((hr_qp->rq.wqe_cnt << hr_qp->rq.wqe_shift),
--				  page_size);
-+	size += round_up((hr_qp->rq.wqe_cnt << hr_qp->rq.wqe_shift), page_size);
- 	hr_qp->buff_size = size;
- 
- 	/* Get wr and sge number which send */
 -- 
 2.8.1
 
