@@ -2,24 +2,24 @@ Return-Path: <SRS0=0bz2=23=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 143A0C33C9B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 552B6C33C9E
 	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E287D2071A
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3113A207FF
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726300AbgAFMZH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726294AbgAFMZH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 6 Jan 2020 07:25:07 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8221 "EHLO huawei.com"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8220 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726294AbgAFMZH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726080AbgAFMZH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 6 Jan 2020 07:25:07 -0500
 Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 8BD17F300172EA8AECC4;
+        by Forcepoint Email with ESMTP id 8FD68BE0D3F985F4339D;
         Mon,  6 Jan 2020 20:25:04 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
@@ -28,10 +28,12 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/7] RDMA/hns: Various cleanups
-Date:   Mon, 6 Jan 2020 20:21:09 +0800
-Message-ID: <1578313276-29080-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 1/7] RDMA/hns: Avoid printing address of mtt page
+Date:   Mon, 6 Jan 2020 20:21:10 +0800
+Message-ID: <1578313276-29080-2-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1578313276-29080-1-git-send-email-liweihang@huawei.com>
+References: <1578313276-29080-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,32 +43,31 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-No logic of code was changed by these patches, all of them are tiny
-cleanups.
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-By the way, this series has nothing to do with the series I sent a PR to
-rdma-core recently.
+Address of a page shouldn't be printed in case of security issues.
 
-Lijun Ou (4):
-  RDMA/hns: Remove unused function hns_roce_init_eq_table()
-  RDMA/hns: Update the value of qp type
-  RDMA/hns: Delete unnessary parameters in hns_roce_v2_qp_modify()
-  RDMA/hns: Fix coding style issues
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_mr.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Wenpeng Liang (2):
-  RDMA/hns: Avoid printing address of mtt page
-  RDMA/hns: Replace custom macros HNS_ROCE_ALIGN_UP
-
-Yixing Liu (1):
-  RDMA/hns: Remove redundant print information
-
- drivers/infiniband/hw/hns/hns_roce_device.h |  15 ++-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 172 ++++++++++------------------
- drivers/infiniband/hw/hns/hns_roce_main.c   |  56 +++++----
- drivers/infiniband/hw/hns/hns_roce_mr.c     |   4 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  44 ++++---
- 5 files changed, 116 insertions(+), 175 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 9ad1917..9576556 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -1064,8 +1064,8 @@ int hns_roce_ib_umem_write_mtt(struct hns_roce_dev *hr_dev,
+ 		if (!(npage % (1 << (mtt->page_shift - PAGE_SHIFT)))) {
+ 			if (page_addr & ((1 << mtt->page_shift) - 1)) {
+ 				dev_err(dev,
+-					"page_addr 0x%llx is not page_shift %d alignment!\n",
+-					page_addr, mtt->page_shift);
++					"page_addr is not page_shift %d alignment!\n",
++					mtt->page_shift);
+ 				ret = -EINVAL;
+ 				goto out;
+ 			}
 -- 
 2.8.1
 
