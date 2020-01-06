@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 552B6C33C9E
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D8BC33C8C
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3113A207FF
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E8172146E
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jan 2020 12:25:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726294AbgAFMZH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 6 Jan 2020 07:25:07 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8220 "EHLO huawei.com"
+        id S1726422AbgAFMZL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 6 Jan 2020 07:25:11 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8225 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726080AbgAFMZH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 6 Jan 2020 07:25:07 -0500
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 8FD68BE0D3F985F4339D;
-        Mon,  6 Jan 2020 20:25:04 +0800 (CST)
+        id S1726307AbgAFMZK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 6 Jan 2020 07:25:10 -0500
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 9FB2D77007F40C9931D9;
+        Mon,  6 Jan 2020 20:25:09 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 6 Jan 2020 20:24:58 +0800
+ 14.3.439.0; Mon, 6 Jan 2020 20:25:00 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 1/7] RDMA/hns: Avoid printing address of mtt page
-Date:   Mon, 6 Jan 2020 20:21:10 +0800
-Message-ID: <1578313276-29080-2-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 6/7] RDMA/hns: Replace custom macros HNS_ROCE_ALIGN_UP
+Date:   Mon, 6 Jan 2020 20:21:15 +0800
+Message-ID: <1578313276-29080-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1578313276-29080-1-git-send-email-liweihang@huawei.com>
 References: <1578313276-29080-1-git-send-email-liweihang@huawei.com>
@@ -45,29 +45,115 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Address of a page shouldn't be printed in case of security issues.
+HNS_ROCE_ALIGN_UP can be replaced by round_up() which is defined in
+kernel.h.
 
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_mr.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  2 --
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 44 +++++++++++++----------------
+ 2 files changed, 20 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 9ad1917..9576556 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -1064,8 +1064,8 @@ int hns_roce_ib_umem_write_mtt(struct hns_roce_dev *hr_dev,
- 		if (!(npage % (1 << (mtt->page_shift - PAGE_SHIFT)))) {
- 			if (page_addr & ((1 << mtt->page_shift) - 1)) {
- 				dev_err(dev,
--					"page_addr 0x%llx is not page_shift %d alignment!\n",
--					page_addr, mtt->page_shift);
-+					"page_addr is not page_shift %d alignment!\n",
-+					mtt->page_shift);
- 				ret = -EINVAL;
- 				goto out;
- 			}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 19366a5..0a716f5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -45,8 +45,6 @@
+ 
+ #define HNS_ROCE_MAX_MSG_LEN			0x80000000
+ 
+-#define HNS_ROCE_ALIGN_UP(a, b) ((((a) + (b) - 1) / (b)) * (b))
+-
+ #define HNS_ROCE_IB_MIN_SQ_STRIDE		6
+ 
+ #define HNS_ROCE_BA_SIZE			(32 * 4096)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index a6565b6..c5b01ec 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -393,40 +393,38 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+ 
+ 	/* Get buf size, SQ and RQ  are aligned to page_szie */
+ 	if (hr_dev->caps.max_sq_sg <= 2) {
+-		hr_qp->buff_size = HNS_ROCE_ALIGN_UP((hr_qp->rq.wqe_cnt <<
++		hr_qp->buff_size = round_up((hr_qp->rq.wqe_cnt <<
+ 					     hr_qp->rq.wqe_shift), PAGE_SIZE) +
+-				   HNS_ROCE_ALIGN_UP((hr_qp->sq.wqe_cnt <<
++				   round_up((hr_qp->sq.wqe_cnt <<
+ 					     hr_qp->sq.wqe_shift), PAGE_SIZE);
+ 
+ 		hr_qp->sq.offset = 0;
+-		hr_qp->rq.offset = HNS_ROCE_ALIGN_UP((hr_qp->sq.wqe_cnt <<
++		hr_qp->rq.offset = round_up((hr_qp->sq.wqe_cnt <<
+ 					     hr_qp->sq.wqe_shift), PAGE_SIZE);
+ 	} else {
+ 		page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
+ 		hr_qp->sge.sge_cnt = ex_sge_num ?
+ 		   max(page_size / (1 << hr_qp->sge.sge_shift), ex_sge_num) : 0;
+-		hr_qp->buff_size = HNS_ROCE_ALIGN_UP((hr_qp->rq.wqe_cnt <<
++		hr_qp->buff_size = round_up((hr_qp->rq.wqe_cnt <<
+ 					     hr_qp->rq.wqe_shift), page_size) +
+-				   HNS_ROCE_ALIGN_UP((hr_qp->sge.sge_cnt <<
++				   round_up((hr_qp->sge.sge_cnt <<
+ 					     hr_qp->sge.sge_shift), page_size) +
+-				   HNS_ROCE_ALIGN_UP((hr_qp->sq.wqe_cnt <<
++				   round_up((hr_qp->sq.wqe_cnt <<
+ 					     hr_qp->sq.wqe_shift), page_size);
+ 
+ 		hr_qp->sq.offset = 0;
+ 		if (ex_sge_num) {
+-			hr_qp->sge.offset = HNS_ROCE_ALIGN_UP(
+-							(hr_qp->sq.wqe_cnt <<
+-							hr_qp->sq.wqe_shift),
+-							page_size);
++			hr_qp->sge.offset = round_up((hr_qp->sq.wqe_cnt <<
++						      hr_qp->sq.wqe_shift),
++						     page_size);
+ 			hr_qp->rq.offset = hr_qp->sge.offset +
+-					HNS_ROCE_ALIGN_UP((hr_qp->sge.sge_cnt <<
+-						hr_qp->sge.sge_shift),
+-						page_size);
++					   round_up((hr_qp->sge.sge_cnt <<
++						     hr_qp->sge.sge_shift),
++						    page_size);
+ 		} else {
+-			hr_qp->rq.offset = HNS_ROCE_ALIGN_UP(
+-							(hr_qp->sq.wqe_cnt <<
+-							hr_qp->sq.wqe_shift),
+-							page_size);
++			hr_qp->rq.offset = round_up((hr_qp->sq.wqe_cnt <<
++						     hr_qp->sq.wqe_shift),
++						    page_size);
+ 		}
+ 	}
+ 
+@@ -593,20 +591,18 @@ static int hns_roce_set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+ 	/* Get buf size, SQ and RQ are aligned to PAGE_SIZE */
+ 	page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
+ 	hr_qp->sq.offset = 0;
+-	size = HNS_ROCE_ALIGN_UP(hr_qp->sq.wqe_cnt << hr_qp->sq.wqe_shift,
+-				 page_size);
++	size = round_up(hr_qp->sq.wqe_cnt << hr_qp->sq.wqe_shift, page_size);
+ 
+ 	if (hr_dev->caps.max_sq_sg > 2 && hr_qp->sge.sge_cnt) {
+ 		hr_qp->sge.sge_cnt = max(page_size/(1 << hr_qp->sge.sge_shift),
+-					(u32)hr_qp->sge.sge_cnt);
++					 (u32)hr_qp->sge.sge_cnt);
+ 		hr_qp->sge.offset = size;
+-		size += HNS_ROCE_ALIGN_UP(hr_qp->sge.sge_cnt <<
+-					  hr_qp->sge.sge_shift, page_size);
++		size += round_up(hr_qp->sge.sge_cnt << hr_qp->sge.sge_shift,
++				 page_size);
+ 	}
+ 
+ 	hr_qp->rq.offset = size;
+-	size += HNS_ROCE_ALIGN_UP((hr_qp->rq.wqe_cnt << hr_qp->rq.wqe_shift),
+-				  page_size);
++	size += round_up((hr_qp->rq.wqe_cnt << hr_qp->rq.wqe_shift), page_size);
+ 	hr_qp->buff_size = size;
+ 
+ 	/* Get wr and sge number which send */
 -- 
 2.8.1
 
