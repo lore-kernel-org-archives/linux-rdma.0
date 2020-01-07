@@ -6,101 +6,84 @@ X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 042C0C282DD
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 19:37:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5A23C282DD
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 20:23:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C8D5920848
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 19:37:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4CB92077B
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 20:23:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="fOHBidA1"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Doz4MA8f"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728519AbgAGThq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jan 2020 14:37:46 -0500
-Received: from mail-qv1-f67.google.com ([209.85.219.67]:35392 "EHLO
-        mail-qv1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728440AbgAGThp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jan 2020 14:37:45 -0500
-Received: by mail-qv1-f67.google.com with SMTP id u10so388600qvi.2
-        for <linux-rdma@vger.kernel.org>; Tue, 07 Jan 2020 11:37:45 -0800 (PST)
+        id S1728451AbgAGUXy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jan 2020 15:23:54 -0500
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:35268 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728358AbgAGUXy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jan 2020 15:23:54 -0500
+Received: by mail-qk1-f193.google.com with SMTP id z76so642834qka.2
+        for <linux-rdma@vger.kernel.org>; Tue, 07 Jan 2020 12:23:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=2Ck4pUpVOy7SW33RXzc7snzdHuEICisJeXljpgSs0is=;
-        b=fOHBidA15ZfXrVOmUb6YbyhZGDvKfP7UeoRzD0WVn80aej+o65Gci4Cw2cjgdc1JV6
-         sEslNgV6EuvX0MJHQ6YBUdtJxlysPCav8d+qe8oBLmmxNDRoR67/hVbJ03Y77RqeTx0F
-         +Aq8mvAGOt8Gd12VpIsBQKJrVPCwLRNK30PSIcLREmhcAucXIkDqpOHVsOapwNU3L0ZH
-         6n3ryoOnvzn49+wepy+SrsOKOm/o20hullKpVJ5i2AFWNpuWxAZ6HP6UMCeLYv8EHkFh
-         EAa9cjqYDjZexa2owSAzLC+5Mmqv/S5qnkd360+uOwjjZipaqjAR16YmvchIUCm2H4mF
-         32kQ==
+        bh=xIjbjwGa0UziofRw9YF/QtTcvxpNHpN43AfHat1IW8o=;
+        b=Doz4MA8fXlcX7J35klGxIMxaIn8niIK+CgeY5BQl1nRtLJ1A+x/bk39CqG/LKq9JKn
+         3ek/zoIP2sHAnAKGR8xWmTRCSkzQ8TT24UE6y4lFR89fKwRI96yERd+NnHYlxNvKjmAv
+         BEbPQ+SKSKdyREDMVFinmt5AwQWrE0qd8oyFCzgqN7FBpzffQQl9cNIoHKttgVMT6Owq
+         qeOdBR32+nx/Pp3SMIYw1w4+PqzAK5E74nWm/6rqcrLCoVMjxQ/fn1Xt5ROZh1xJvtHi
+         nR11G7HXfhFWbLGJosuAH1RTv6leWHm8sFrr1tpweNxMlOvpTDjG1e/D3y2kaIX1qWXb
+         AADA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=2Ck4pUpVOy7SW33RXzc7snzdHuEICisJeXljpgSs0is=;
-        b=kwYs8oAgXdF+NnMrCKqUM3YIC/rQBpg8WwStg/ZsQj88JMICHMhzVFGhQFHIaZTTa0
-         Fc+bHxahhYSv2FsFaFHr0ENghgeKwCBcQQYwFDjLLt0+2FGvDLPlbAA7eWirEr2Sfjw6
-         DM5D84oe9+/+mKNrQPiStcCGTfACKpMaj0a06ixiWvTwDfzbTg6DhCJQ0YhtYRjgAXj/
-         RYaURnBoiUgbKjyfX31XQ8GivzDBkQFBviNXlK9YXKAfY9++LYLZybSNhwADqUwVFbzB
-         +pXSFKiiZ4c4ZZiU2cPFgfrqngXOH9nhw5YlwJb+R02DadXwT5HByplJ7RwzL1bgamff
-         jmUg==
-X-Gm-Message-State: APjAAAVWIH1eHJbEtHXLctwVYGMOZKUgqbNzZnMuqM20byfnAOYwO5di
-        sRcD93FwtLn7uI0c4VSVPktgtw==
-X-Google-Smtp-Source: APXvYqwDaCqepnfZmA8I+9XCtRX1PuflUuZN3/mO9DaS9sR8LLZT/W94NdlHKMTKkW6lbU6fd10Ytw==
-X-Received: by 2002:ad4:5562:: with SMTP id w2mr949745qvy.147.1578425864935;
-        Tue, 07 Jan 2020 11:37:44 -0800 (PST)
+        bh=xIjbjwGa0UziofRw9YF/QtTcvxpNHpN43AfHat1IW8o=;
+        b=XktxsI618gc3b3ZDD5MuAxrkuuk8P4fmQxBdMYKHypt9z0D62wBzemS9xbMuzQUxAa
+         su5CWfhnVfo5CpOyrqm6xlLG0q0ogPfxgxnR6SsAWbzl3YCfeXDNrRHu1+nNZcejhUVt
+         yHRb3Sn4mFCLYyz0uzZS03lKkl0fKf+Mx6c6FCM0ToeS3TKP6hMsdgNvhplPuP7shz8R
+         clrXOdn+tT3HGTQ/Z3egjTgiFfm1gbmUb1XvQYBIHrJC7Xnc3JiNEh/9jlaKPyprem6g
+         OSr0pmrT7VhphHfUywB/7agrOGvMtD/T3OkwH2+Svp25egx//rXX9fIsUQWSjZemvaXX
+         qaVA==
+X-Gm-Message-State: APjAAAV/QWsYjuJjDZ5Aw45LkaFwAgomG5JUrbUz017xNtsIdlm+Sv41
+        OX6VLAAV+wZnoEpY5Qds9P309/KnO7k=
+X-Google-Smtp-Source: APXvYqzAzjHs2WDUjv9YqwoHmrkGxRNJx5jC8xbokldD8K2AUuKqzeYafxyTyxiASQE4O87KHvopFw==
+X-Received: by 2002:a05:620a:1249:: with SMTP id a9mr1130344qkl.147.1578428632978;
+        Tue, 07 Jan 2020 12:23:52 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id d5sm367760qtk.96.2020.01.07.11.37.44
+        by smtp.gmail.com with ESMTPSA id f23sm324121qke.104.2020.01.07.12.23.52
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 07 Jan 2020 11:37:44 -0800 (PST)
+        Tue, 07 Jan 2020 12:23:52 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1ioufg-0004nS-4H; Tue, 07 Jan 2020 15:37:44 -0400
-Date:   Tue, 7 Jan 2020 15:37:44 -0400
+        id 1iovOJ-0001Cx-V7; Tue, 07 Jan 2020 16:23:51 -0400
+Date:   Tue, 7 Jan 2020 16:23:51 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Leon Romanovsky <leon@kernel.org>,
-        Saeed Mahameed <saeedm@mellanox.com>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Shahaf Shuler <shahafs@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>
-Subject: Re: [PATCH rdma-next 0/5] VIRTIO_NET Emulation Offload
-Message-ID: <20200107193744.GB18256@ziepe.ca>
-References: <20191212110928.334995-1-leon@kernel.org>
+To:     Chuck Lever <chuck.lever@oracle.com>
+Cc:     dledford@redhat.com, leon@kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH v10 0/3] Proposed trace points for RDMA/core
+Message-ID: <20200107202351.GA4573@ziepe.ca>
+References: <20191218201631.30584.53987.stgit@manet.1015granger.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191212110928.334995-1-leon@kernel.org>
+In-Reply-To: <20191218201631.30584.53987.stgit@manet.1015granger.net>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Dec 12, 2019 at 01:09:23PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> Hi,
-> 
-> In this series, we introduce VIRTIO_NET_Q HW offload capability, so SW will
-> be able to create special general object with relevant virtqueue properties.
-> 
-> This series is based on -rc patches:
-> https://lore.kernel.org/linux-rdma/20191212100237.330654-1-leon@kernel.org
-> 
-> Thanks
-> 
-> Yishai Hadas (5):
->   net/mlx5: Add Virtio Emulation related device capabilities
->   net/mlx5: Expose vDPA emulation device capabilities
+On Wed, Dec 18, 2019 at 03:18:04PM -0500, Chuck Lever wrote:
 
-This series looks OK enough to me. Saeed can you update the share
-branch with the two patches?
+> Chuck Lever (3):
+>       RDMA/cma: Add trace points in RDMA Connection Manager
+>       RDMA/core: Trace points for diagnosing completion queue issues
+>       RDMA/core: Add trace points to follow MR allocation
 
-https://patchwork.kernel.org/patch/11287947/
-https://patchwork.kernel.org/patch/11287955/
+Well, it looks reasonable, lets try it. Applied to for-next
+
+The usual warning applies, we don't consider trace points ABI in rdma
+so please don't build tools on top of these.
 
 Thanks,
 Jason
