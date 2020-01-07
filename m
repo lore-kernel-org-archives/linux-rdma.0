@@ -2,40 +2,40 @@ Return-Path: <SRS0=bcuK=24=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8635FC33C9E
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 22:49:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37772C33CA6
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 22:49:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 53D8C2075A
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 22:49:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAEC02077B
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jan 2020 22:49:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Z6iaSSFX"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="q07jqBkO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727471AbgAGWqE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jan 2020 17:46:04 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:4716 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727103AbgAGWqD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jan 2020 17:46:03 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e150a170002>; Tue, 07 Jan 2020 14:45:44 -0800
+        id S1727772AbgAGWsx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jan 2020 17:48:53 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:5120 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727174AbgAGWqF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jan 2020 17:46:05 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e150a160001>; Tue, 07 Jan 2020 14:45:42 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Tue, 07 Jan 2020 14:46:01 -0800
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Tue, 07 Jan 2020 14:46:00 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Tue, 07 Jan 2020 14:46:01 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL101.nvidia.com
+        by hqpgpgate101.nvidia.com on Tue, 07 Jan 2020 14:46:00 -0800
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL101.nvidia.com
  (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 7 Jan
- 2020 22:46:00 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 7 Jan 2020 22:46:00 +0000
+ 2020 22:45:59 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Tue, 7 Jan 2020 22:45:59 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e150a280007>; Tue, 07 Jan 2020 14:46:00 -0800
+        id <B5e150a270002>; Tue, 07 Jan 2020 14:45:59 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -67,71 +67,220 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-media@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxppc-dev@lists.ozlabs.org>, <netdev@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        <stable@vger.kernel.org>
-Subject: [PATCH v12 10/22] media/v4l2-core: set pages dirty upon releasing DMA buffers
-Date:   Tue, 7 Jan 2020 14:45:46 -0800
-Message-ID: <20200107224558.2362728-11-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v12 00/22] mm/gup: prereqs to track dma-pinned pages: FOLL_PIN
+Date:   Tue, 7 Jan 2020 14:45:36 -0800
+Message-ID: <20200107224558.2362728-1-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200107224558.2362728-1-jhubbard@nvidia.com>
-References: <20200107224558.2362728-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1578437144; bh=ih2RO+T8DQuTrGlz/x5x738AinQPu7ycFnqRacKU5Ds=;
+        t=1578437143; bh=e35VbuH+5Gvq6hzdX1wkd7Gwo0Ev1/RydrM5ojZBtqQ=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=Z6iaSSFXRTiTLxjLrxhrEaa0/tAGwJGuO7v6Qb8loV87rWCn7DiimksAoTrXGmy7D
-         aLEA8f/JmbsKhLgk8lTsPFz0O3sCcoy1PSoTPy9FU2tXz5tt70uFYGv+WlF9U/RpZF
-         JtbGuneHFXqBRmppkWdDYqYyuHFET9k+x5LLGyVyrY+71pJIaR4QQHK+6OcX/JE9R0
-         X00B+3pdI5LEygwgSgCldMIMSTLJw56mpMFzfMjgocM3r11nzzxVV33rFTdkzHV75S
-         dMR3V5/vZt/Jr+zVW8KVJ0gcWh8D3XxEVtG1wEGG/FgtzwtNVWgoViKM0MWWqfPV92
-         Yp4tivnwNOCuA==
+         MIME-Version:X-NVConfidentiality:Content-Type:
+         Content-Transfer-Encoding;
+        b=q07jqBkOQ+8W+FWIGxHzDq9+K2aqK0l1baYh9tHJ5YgbVqzpzGrCVUbh8IIOz9ivr
+         N8DeNKRxsksmaQmBj8DLUTfJNvVvliRP3A7UvdrQSBrUtqohAPvBbP6gW+d+uir7zj
+         N71u+jUUFG3a29ne3zY3zxuWMeCOBJOlbx0/C+htFPSQNDX+WeFBXBUo/FQBTcKPK+
+         fsKaVOXRA1UshywnsPhWCDuIhCymH6YPuMQwJ7/7x7UJimvasG4+G3pmoTyD3poYdy
+         39n4NbY3ownCfiBLFE6x3ANsClgsjxgyIpUe1k8mz3p84SQo7eboSdCD6jky2z1c7L
+         WmXHM0fQFkghw==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-After DMA is complete, and the device and CPU caches are synchronized,
-it's still required to mark the CPU pages as dirty, if the data was
-coming from the device. However, this driver was just issuing a
-bare put_page() call, without any set_page_dirty*() call.
+Hi,
 
-Fix the problem, by calling set_page_dirty_lock() if the CPU pages
-were potentially receiving data from the device.
+The "track FOLL_PIN pages" would have been the very next patch, but it is
+not included here because I'm still debugging a bug report from Leon.
+Let's get all of the prerequisite work (it's been reviewed) into the tree
+so that future reviews are easier. It's clear that any fixes that are
+required to the tracking patch, won't affect these patches here.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+This implements an API naming change (put_user_page*() -->
+unpin_user_page*()), and also adds FOLL_PIN page support, up to
+*but not including* actually tracking FOLL_PIN pages. It extends
+the FOLL_PIN support to a few select subsystems. More subsystems will
+be added in follow up work.
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2=
--core/videobuf-dma-sg.c
-index 66a6c6c236a7..28262190c3ab 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -349,8 +349,11 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
- 	BUG_ON(dma->sglen);
-=20
- 	if (dma->pages) {
--		for (i =3D 0; i < dma->nr_pages; i++)
-+		for (i =3D 0; i < dma->nr_pages; i++) {
-+			if (dma->direction =3D=3D DMA_FROM_DEVICE)
-+				set_page_dirty_lock(dma->pages[i]);
- 			put_page(dma->pages[i]);
-+		}
- 		kfree(dma->pages);
- 		dma->pages =3D NULL;
- 	}
+Christoph Hellwig, a point of interest:
+
+a) I've moved the bulk of the code out of the inline functions, as
+   requested, for the devmap changes (patch 4: "mm: devmap: refactor
+   1-based refcounting for ZONE_DEVICE pages").
+
+Changes since v11: Fixes resulting from Kirill Shutemov's review, plus
+a fix for a kbuild robot-reported warning.
+
+* Only include the first 22 patches: up to, but not including, the "track
+  FOLL_PIN pages" patch.
+
+* Improved the efficiency of put_compound_head(), by avoiding get_page()
+  entirely, and instead doing the mass subtraction on one less than
+  refs, followed by a final put_page().
+
+* Got rid of the forward declaration of __gup_longterm_locked(), by
+  moving get_user_pages_remote() further down in gup.c
+
+* Got rid of a redundant page_is_devmap_managed() call, and simplified
+  put_devmap_managed_page() as part of that small cleanup.
+
+* Changed put_devmap_managed_page() to do an early out if the page is
+  not devmap managed. This saves an indentation level.
+
+* Applied the same type of change to __unpin_devmap_managed_user_page(),
+  which has the same checks.
+
+* Changed release_pages() to handle the changed put_devmap_managed_page()
+  API.
+
+* Removed EXPORT_SYMBOL(free_devmap_managed_page), as it is not required,
+  after the other refactoring.
+
+* Fixed a kbuild robot sparse warning: added "static" to
+  try_pin_compound_head()'s declaration.
+
+There is a git repo and branch, for convenience:
+
+    git@github.com:johnhubbard/linux.git pin_user_pages_tracking_v8
+
+For the remaining list of "changes since version N", those are all in
+v11, which is here:
+
+  https://lore.kernel.org/r/20191216222537.491123-1-jhubbard@nvidia.com
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Overview:
+
+This is a prerequisite to solving the problem of proper interactions
+between file-backed pages, and [R]DMA activities, as discussed in [1],
+[2], [3], and in a remarkable number of email threads since about
+2017. :)
+
+A new internal gup flag, FOLL_PIN is introduced, and thoroughly
+documented in the last patch's Documentation/vm/pin_user_pages.rst.
+
+I believe that this will provide a good starting point for doing the
+layout lease work that Ira Weiny has been working on. That's because
+these new wrapper functions provide a clean, constrained, systematically
+named set of functionality that, again, is required in order to even
+know if a page is "dma-pinned".
+
+In contrast to earlier approaches, the page tracking can be
+incrementally applied to the kernel call sites that, until now, have
+been simply calling get_user_pages() ("gup"). In other words, opt-in by
+changing from this:
+
+    get_user_pages() (sets FOLL_GET)
+    put_page()
+
+to this:
+    pin_user_pages() (sets FOLL_PIN)
+    unpin_user_page()
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Testing:
+
+* I've done some overall kernel testing (LTP, and a few other goodies),
+  and some directed testing to exercise some of the changes. And as you
+  can see, gup_benchmark is enhanced to exercise this. Basically, I've
+  been able to runtime test the core get_user_pages() and
+  pin_user_pages() and related routines, but not so much on several of
+  the call sites--but those are generally just a couple of lines
+  changed, each.
+
+  Not much of the kernel is actually using this, which on one hand
+  reduces risk quite a lot. But on the other hand, testing coverage
+  is low. So I'd love it if, in particular, the Infiniband and PowerPC
+  folks could do a smoke test of this series for me.
+
+  Runtime testing for the call sites so far is pretty light:
+
+    * io_uring: Some directed tests from liburing exercise this, and
+                they pass.
+    * process_vm_access.c: A small directed test passes.
+    * gup_benchmark: the enhanced version hits the new gup.c code, and
+                     passes.
+    * infiniband: Ran rdma-core tests: rdma-core/build/bin/run_tests.py
+    * VFIO: compiles (I'm vowing to set up a run time test soon, but it's
+                      not ready just yet)
+    * powerpc: it compiles...
+    * drm/via: compiles...
+    * goldfish: compiles...
+    * net/xdp: compiles...
+    * media/v4l2: compiles...
+
+[1] Some slow progress on get_user_pages() (Apr 2, 2019): https://lwn.net/A=
+rticles/784574/
+[2] DMA and get_user_pages() (LPC: Dec 12, 2018): https://lwn.net/Articles/=
+774411/
+[3] The trouble with get_user_pages() (Apr 30, 2018): https://lwn.net/Artic=
+les/753027/
+
+
+Dan Williams (1):
+  mm: Cleanup __put_devmap_managed_page() vs ->page_free()
+
+John Hubbard (21):
+  mm/gup: factor out duplicate code from four routines
+  mm/gup: move try_get_compound_head() to top, fix minor issues
+  mm: devmap: refactor 1-based refcounting for ZONE_DEVICE pages
+  goldish_pipe: rename local pin_user_pages() routine
+  mm: fix get_user_pages_remote()'s handling of FOLL_LONGTERM
+  vfio: fix FOLL_LONGTERM use, simplify get_user_pages_remote() call
+  mm/gup: allow FOLL_FORCE for get_user_pages_fast()
+  IB/umem: use get_user_pages_fast() to pin DMA pages
+  media/v4l2-core: set pages dirty upon releasing DMA buffers
+  mm/gup: introduce pin_user_pages*() and FOLL_PIN
+  goldish_pipe: convert to pin_user_pages() and put_user_page()
+  IB/{core,hw,umem}: set FOLL_PIN via pin_user_pages*(), fix up ODP
+  mm/process_vm_access: set FOLL_PIN via pin_user_pages_remote()
+  drm/via: set FOLL_PIN via pin_user_pages_fast()
+  fs/io_uring: set FOLL_PIN via pin_user_pages()
+  net/xdp: set FOLL_PIN via pin_user_pages()
+  media/v4l2-core: pin_user_pages (FOLL_PIN) and put_user_page()
+    conversion
+  vfio, mm: pin_user_pages (FOLL_PIN) and put_user_page() conversion
+  powerpc: book3s64: convert to pin_user_pages() and put_user_page()
+  mm/gup_benchmark: use proper FOLL_WRITE flags instead of hard-coding
+    "1"
+  mm, tree-wide: rename put_user_page*() to unpin_user_page*()
+
+ Documentation/core-api/index.rst            |   1 +
+ Documentation/core-api/pin_user_pages.rst   | 232 +++++++++
+ arch/powerpc/mm/book3s64/iommu_api.c        |  10 +-
+ drivers/gpu/drm/via/via_dmablit.c           |   6 +-
+ drivers/infiniband/core/umem.c              |  19 +-
+ drivers/infiniband/core/umem_odp.c          |  13 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     |   4 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   8 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |   4 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |   8 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |   4 +-
+ drivers/infiniband/sw/siw/siw_mem.c         |   4 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c   |   8 +-
+ drivers/nvdimm/pmem.c                       |   6 -
+ drivers/platform/goldfish/goldfish_pipe.c   |  35 +-
+ drivers/vfio/vfio_iommu_type1.c             |  35 +-
+ fs/io_uring.c                               |   6 +-
+ include/linux/mm.h                          |  95 +++-
+ mm/gup.c                                    | 495 ++++++++++++--------
+ mm/gup_benchmark.c                          |   9 +-
+ mm/memremap.c                               |  75 ++-
+ mm/process_vm_access.c                      |  28 +-
+ mm/swap.c                                   |  27 +-
+ net/xdp/xdp_umem.c                          |   4 +-
+ tools/testing/selftests/vm/gup_benchmark.c  |   6 +-
+ 25 files changed, 762 insertions(+), 380 deletions(-)
+ create mode 100644 Documentation/core-api/pin_user_pages.rst
+
 --=20
 2.24.1
 
