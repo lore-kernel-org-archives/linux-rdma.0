@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1568C282DD
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B168C33CA2
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D1966205F4
+	by mail.kernel.org (Postfix) with ESMTP id F2C3820705
 	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729774AbgAHRWh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1729773AbgAHRWh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 8 Jan 2020 12:22:37 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41791 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41799 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729773AbgAHRWh (ORCPT
+        with ESMTP id S1729760AbgAHRWh (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 12:22:37 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 19:22:31 +0200
+        with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 19:22:32 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008HMVj4009596;
-        Wed, 8 Jan 2020 19:22:31 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008HMWO8009625;
+        Wed, 8 Jan 2020 19:22:32 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008HMVjb009535;
-        Wed, 8 Jan 2020 19:22:31 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008HMW8d009562;
+        Wed, 8 Jan 2020 19:22:32 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008HMVaL009534;
-        Wed, 8 Jan 2020 19:22:31 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008HMWff009561;
+        Wed, 8 Jan 2020 19:22:32 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
 Cc:     yishaih@mellanox.com, maorg@mellanox.com, michaelgur@mellanox.com
-Subject: [PATCH rdma-next 03/14] RDMA/mlx5: Simplify devx async commands
-Date:   Wed,  8 Jan 2020 19:21:55 +0200
-Message-Id: <1578504126-9400-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 09/14] RDMA/core: Do not erase the type of ib_wq.uobject
+Date:   Wed,  8 Jan 2020 19:22:01 +0200
+Message-Id: <1578504126-9400-10-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
 References: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
@@ -46,88 +46,104 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-With the new FD structure the async commands do not need to hold any
-references while running. The existing mlx5_cmd_exec_cb() and
-mlx5_cmd_cleanup_async_ctx() provide enough synchronization to ensure
-that all outstanding commands are completed before the uobject can be
-destructed.
-
-Remove the now confusing get_file() and the type erasure of the
-devx_async_cmd_event_file.
+This is a struct ib_uwq_object pointer, instead of using container_of()
+all over the place just store it with its actual type.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c | 24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c  | 13 ++++++++-----
+ drivers/infiniband/core/uverbs_main.c |  3 +--
+ include/rdma/ib_verbs.h               |  3 ++-
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 02125d8..7bb91d2 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -30,7 +30,7 @@ enum devx_obj_flags {
- struct devx_async_data {
- 	struct mlx5_ib_dev *mdev;
- 	struct list_head list;
--	struct ib_uobject *fd_uobj;
-+	struct devx_async_cmd_event_file *ev_file;
- 	struct mlx5_async_work cb_work;
- 	u16 cmd_out_len;
- 	/* must be last field in this structure */
-@@ -1673,21 +1673,20 @@ static void devx_query_callback(int status, struct mlx5_async_work *context)
- {
- 	struct devx_async_data *async_data =
- 		container_of(context, struct devx_async_data, cb_work);
--	struct ib_uobject *fd_uobj = async_data->fd_uobj;
--	struct devx_async_cmd_event_file *ev_file;
--	struct devx_async_event_queue *ev_queue;
-+	struct devx_async_cmd_event_file *ev_file = async_data->ev_file;
-+	struct devx_async_event_queue *ev_queue = &ev_file->ev_queue;
- 	unsigned long flags;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 8350e02..66f86b4 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2971,7 +2971,7 @@ static int ib_uverbs_ex_create_wq(struct uverbs_attr_bundle *attrs)
+ 		goto err_put_cq;
+ 	}
  
--	ev_file = container_of(fd_uobj, struct devx_async_cmd_event_file,
--			       uobj);
--	ev_queue = &ev_file->ev_queue;
--
-+	/*
-+	 * Note that if the struct devx_async_cmd_event_file uobj begins to be
-+	 * destroyed it will block at mlx5_cmd_cleanup_async_ctx() until this
-+	 * routine returns, ensuring that it always remains valid here.
-+	 */
- 	spin_lock_irqsave(&ev_queue->lock, flags);
- 	list_add_tail(&async_data->list, &ev_queue->event_list);
- 	spin_unlock_irqrestore(&ev_queue->lock, flags);
+-	wq->uobject = &obj->uevent.uobject;
++	wq->uobject = obj;
+ 	obj->uevent.uobject.object = wq;
+ 	wq->wq_type = wq_init_attr.wq_type;
+ 	wq->cq = cq;
+@@ -2981,7 +2981,7 @@ static int ib_uverbs_ex_create_wq(struct uverbs_attr_bundle *attrs)
+ 	atomic_set(&wq->usecnt, 0);
+ 	atomic_inc(&pd->usecnt);
+ 	atomic_inc(&cq->usecnt);
+-	wq->uobject = &obj->uevent.uobject;
++	wq->uobject = obj;
+ 	obj->uevent.uobject.object = wq;
  
- 	wake_up_interruptible(&ev_queue->poll_wait);
--	fput(fd_uobj->object);
+ 	memset(&resp, 0, sizeof(resp));
+@@ -3070,7 +3070,8 @@ static int ib_uverbs_ex_modify_wq(struct uverbs_attr_bundle *attrs)
+ 	}
+ 	ret = wq->device->ops.modify_wq(wq, &wq_attr, cmd.attr_mask,
+ 					&attrs->driver_udata);
+-	uobj_put_obj_read(wq);
++	rdma_lookup_put_uobject(&wq->uobject->uevent.uobject,
++				UVERBS_LOOKUP_READ);
+ 	return ret;
  }
  
- #define MAX_ASYNC_BYTES_IN_USE (1024 * 1024) /* 1MB */
-@@ -1756,9 +1755,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY)(
+@@ -3171,7 +3172,8 @@ static int ib_uverbs_ex_create_rwq_ind_table(struct uverbs_attr_bundle *attrs)
+ 	kfree(wqs_handles);
  
- 	async_data->cmd_out_len = cmd_out_len;
- 	async_data->mdev = mdev;
--	async_data->fd_uobj = fd_uobj;
-+	async_data->ev_file = ev_file;
+ 	for (j = 0; j < num_read_wqs; j++)
+-		uobj_put_obj_read(wqs[j]);
++		rdma_lookup_put_uobject(&wqs[j]->uobject->uevent.uobject,
++					UVERBS_LOOKUP_READ);
  
--	get_file(fd_uobj->object);
- 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
- 	err = mlx5_cmd_exec_cb(&ev_file->async_ctx, cmd_in,
- 		    uverbs_attr_get_len(attrs,
-@@ -1768,12 +1766,10 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY)(
- 		    devx_query_callback, &async_data->cb_work);
- 
- 	if (err)
--		goto cb_err;
-+		goto free_async;
- 
+ 	rdma_alloc_commit_uobject(uobj, attrs);
  	return 0;
+@@ -3182,7 +3184,8 @@ static int ib_uverbs_ex_create_rwq_ind_table(struct uverbs_attr_bundle *attrs)
+ 	uobj_alloc_abort(uobj, attrs);
+ put_wqs:
+ 	for (j = 0; j < num_read_wqs; j++)
+-		uobj_put_obj_read(wqs[j]);
++		rdma_lookup_put_uobject(&wqs[j]->uobject->uevent.uobject,
++					UVERBS_LOOKUP_READ);
+ err_free:
+ 	kfree(wqs_handles);
+ 	kfree(wqs);
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index b7bee1f..b0aad2e 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -485,8 +485,7 @@ void ib_uverbs_qp_event_handler(struct ib_event *event, void *context_ptr)
  
--cb_err:
--	fput(fd_uobj->object);
- free_async:
- 	kvfree(async_data);
- sub_bytes:
+ void ib_uverbs_wq_event_handler(struct ib_event *event, void *context_ptr)
+ {
+-	struct ib_uevent_object *uobj = container_of(event->element.wq->uobject,
+-						  struct ib_uevent_object, uobject);
++	struct ib_uevent_object *uobj = &event->element.wq->uobject->uevent;
+ 
+ 	ib_uverbs_async_handler(context_ptr, uobj->uobject.user_handle,
+ 				event->event, &uobj->event_list,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index cfa871b..08cc7dc 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -74,6 +74,7 @@
+ struct ib_umem_odp;
+ struct ib_uqp_object;
+ struct ib_usrq_object;
++struct ib_uwq_object;
+ 
+ extern struct workqueue_struct *ib_wq;
+ extern struct workqueue_struct *ib_comp_wq;
+@@ -1616,7 +1617,7 @@ enum ib_wq_state {
+ 
+ struct ib_wq {
+ 	struct ib_device       *device;
+-	struct ib_uobject      *uobject;
++	struct ib_uwq_object   *uobject;
+ 	void		    *wq_context;
+ 	void		    (*event_handler)(struct ib_event *, void *);
+ 	struct ib_pd	       *pd;
 -- 
 1.8.3.1
 
