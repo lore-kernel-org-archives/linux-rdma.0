@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5FD1C47409
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43A1BC33CA4
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 981A1205F4
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28142205F4
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729766AbgAHRWh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jan 2020 12:22:37 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41796 "EHLO
+        id S1729767AbgAHRWi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jan 2020 12:22:38 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41829 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729769AbgAHRWh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 12:22:37 -0500
+        with ESMTP id S1729765AbgAHRWi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 12:22:38 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 19:22:31 +0200
+        with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 19:22:32 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008HMVlM009612;
-        Wed, 8 Jan 2020 19:22:31 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008HMW3l009640;
+        Wed, 8 Jan 2020 19:22:32 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008HMVkH009549;
-        Wed, 8 Jan 2020 19:22:31 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008HMWR3009583;
+        Wed, 8 Jan 2020 19:22:32 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008HMVuG009548;
-        Wed, 8 Jan 2020 19:22:31 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008HMWif009582;
+        Wed, 8 Jan 2020 19:22:32 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
 Cc:     yishaih@mellanox.com, maorg@mellanox.com, michaelgur@mellanox.com
-Subject: [PATCH rdma-next 06/14] RDMA/core: Do not erase the type of ib_cq.uobject
-Date:   Wed,  8 Jan 2020 19:21:58 +0200
-Message-Id: <1578504126-9400-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 14/14] RDMA/core: Use READ_ONCE for ib_ufile.async_file
+Date:   Wed,  8 Jan 2020 19:22:06 +0200
+Message-Id: <1578504126-9400-15-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
 References: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
@@ -46,223 +46,188 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-This is a struct ib_ucq_object pointer, instead of using container_of()
-all over the place just store it with its actual type.
+The writer for async_file holds the ucontext_lock, while the readers are
+left unlocked. Most readers rely on an implicit locking, either by having
+a uobject (which cannot be created before a context) or by holding the
+ib_ufile kref.
+
+However ib_uverbs_free_hw_resources() has no implicit lock and has a
+possible race. Make this all clear and sane by using READ_ONCE
+consistently.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/core/nldev.c               |  3 +-
- drivers/infiniband/core/uverbs_cmd.c          | 40 +++++++++++++++++----------
- drivers/infiniband/core/uverbs_main.c         |  7 ++---
- drivers/infiniband/core/uverbs_std_types_cq.c |  2 +-
- include/rdma/ib_verbs.h                       |  4 ++-
- 5 files changed, 34 insertions(+), 22 deletions(-)
+ drivers/infiniband/core/uverbs.h              |  6 ++----
+ drivers/infiniband/core/uverbs_cmd.c          |  2 +-
+ drivers/infiniband/core/uverbs_main.c         | 29 +++++++++++----------------
+ drivers/infiniband/core/uverbs_std_types.c    |  6 +++---
+ drivers/infiniband/core/uverbs_std_types_cq.c |  1 -
+ 5 files changed, 18 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index cbf6041..37b433aa 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -41,6 +41,7 @@
- #include "core_priv.h"
- #include "cma_priv.h"
- #include "restrack.h"
-+#include "uverbs.h"
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index ccde5d2..aaa5c75 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -220,11 +220,9 @@ struct ib_ucq_object {
+ void ib_uverbs_free_event_queue(struct ib_uverbs_event_queue *event_queue);
+ void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res);
  
- typedef int (*res_fill_func_t)(struct sk_buff*, bool,
- 			       struct rdma_restrack_entry*, uint32_t);
-@@ -599,7 +600,7 @@ static int fill_res_cq_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 		goto err;
- 	if (!rdma_is_kernel_res(res) &&
- 	    nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CTXN,
--			cq->uobject->context->res.id))
-+			cq->uobject->uevent.uobject.context->res.id))
- 		goto err;
+-void ib_uverbs_release_ucq(struct ib_uverbs_file *file,
+-			   struct ib_uverbs_completion_event_file *ev_file,
++void ib_uverbs_release_ucq(struct ib_uverbs_completion_event_file *ev_file,
+ 			   struct ib_ucq_object *uobj);
+-void ib_uverbs_release_uevent(struct ib_uverbs_file *file,
+-			      struct ib_uevent_object *uobj);
++void ib_uverbs_release_uevent(struct ib_uevent_object *uobj);
+ void ib_uverbs_release_file(struct kref *ref);
  
- 	if (fill_res_name_pid(msg, res))
+ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context);
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 3a2a278..b08679a 100644
+index ced1384..29b1b5a 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1029,7 +1029,7 @@ static struct ib_ucq_object *create_cq(struct uverbs_attr_bundle *attrs,
- 		goto err_file;
- 	}
- 	cq->device        = ib_dev;
--	cq->uobject       = &obj->uevent.uobject;
-+	cq->uobject       = obj;
- 	cq->comp_handler  = ib_uverbs_comp_handler;
- 	cq->event_handler = ib_uverbs_cq_event_handler;
- 	cq->cq_context    = ev_file ? &ev_file->ev_queue : NULL;
-@@ -1134,7 +1134,8 @@ static int ib_uverbs_resize_cq(struct uverbs_attr_bundle *attrs)
+@@ -1056,7 +1056,7 @@ static struct ib_ucq_object *create_cq(struct uverbs_attr_bundle *attrs,
+ 	kfree(cq);
+ err_file:
+ 	if (ev_file)
+-		ib_uverbs_release_ucq(attrs->ufile, ev_file, obj);
++		ib_uverbs_release_ucq(ev_file, obj);
  
- 	ret = uverbs_response(attrs, &resp, sizeof(resp));
- out:
--	uobj_put_obj_read(cq);
-+	rdma_lookup_put_uobject(&cq->uobject->uevent.uobject,
-+				UVERBS_LOOKUP_READ);
- 
- 	return ret;
- }
-@@ -1217,7 +1218,8 @@ static int ib_uverbs_poll_cq(struct uverbs_attr_bundle *attrs)
- 		ret = uverbs_output_written(attrs, UVERBS_ATTR_CORE_OUT);
- 
- out_put:
--	uobj_put_obj_read(cq);
-+	rdma_lookup_put_uobject(&cq->uobject->uevent.uobject,
-+				UVERBS_LOOKUP_READ);
- 	return ret;
- }
- 
-@@ -1238,8 +1240,8 @@ static int ib_uverbs_req_notify_cq(struct uverbs_attr_bundle *attrs)
- 	ib_req_notify_cq(cq, cmd.solicited_only ?
- 			 IB_CQ_SOLICITED : IB_CQ_NEXT_COMP);
- 
--	uobj_put_obj_read(cq);
--
-+	rdma_lookup_put_uobject(&cq->uobject->uevent.uobject,
-+				UVERBS_LOOKUP_READ);
- 	return 0;
- }
- 
-@@ -1484,9 +1486,11 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
- 	if (pd)
- 		uobj_put_obj_read(pd);
- 	if (scq)
--		uobj_put_obj_read(scq);
-+		rdma_lookup_put_uobject(&scq->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- 	if (rcq && rcq != scq)
--		uobj_put_obj_read(rcq);
-+		rdma_lookup_put_uobject(&rcq->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- 	if (srq)
- 		uobj_put_obj_read(srq);
- 	if (ind_tbl)
-@@ -1503,9 +1507,11 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
- 	if (pd)
- 		uobj_put_obj_read(pd);
- 	if (scq)
--		uobj_put_obj_read(scq);
-+		rdma_lookup_put_uobject(&scq->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- 	if (rcq && rcq != scq)
--		uobj_put_obj_read(rcq);
-+		rdma_lookup_put_uobject(&rcq->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- 	if (srq)
- 		uobj_put_obj_read(srq);
- 	if (ind_tbl)
-@@ -2980,14 +2986,16 @@ static int ib_uverbs_ex_create_wq(struct uverbs_attr_bundle *attrs)
- 		goto err_copy;
- 
- 	uobj_put_obj_read(pd);
--	uobj_put_obj_read(cq);
-+	rdma_lookup_put_uobject(&cq->uobject->uevent.uobject,
-+				UVERBS_LOOKUP_READ);
- 	rdma_alloc_commit_uobject(&obj->uevent.uobject, attrs);
- 	return 0;
- 
- err_copy:
- 	ib_destroy_wq(wq, uverbs_get_cleared_udata(attrs));
- err_put_cq:
--	uobj_put_obj_read(cq);
-+	rdma_lookup_put_uobject(&cq->uobject->uevent.uobject,
-+				UVERBS_LOOKUP_READ);
- err_put_pd:
- 	uobj_put_obj_read(pd);
- err_uobj:
-@@ -3481,7 +3489,8 @@ static int __uverbs_create_xsrq(struct uverbs_attr_bundle *attrs,
- 		uobj_put_read(xrcd_uobj);
- 
- 	if (ib_srq_has_cq(cmd->srq_type))
--		uobj_put_obj_read(attr.ext.cq);
-+		rdma_lookup_put_uobject(&attr.ext.cq->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- 
- 	uobj_put_obj_read(pd);
- 	rdma_alloc_commit_uobject(&obj->uevent.uobject, attrs);
-@@ -3498,7 +3507,8 @@ static int __uverbs_create_xsrq(struct uverbs_attr_bundle *attrs,
- 
- err_put_cq:
- 	if (ib_srq_has_cq(cmd->srq_type))
--		uobj_put_obj_read(attr.ext.cq);
-+		rdma_lookup_put_uobject(&attr.ext.cq->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- 
- err_put_xrcd:
- 	if (cmd->srq_type == IB_SRQT_XRC) {
-@@ -3714,8 +3724,8 @@ static int ib_uverbs_ex_modify_cq(struct uverbs_attr_bundle *attrs)
- 
- 	ret = rdma_set_cq_moderation(cq, cmd.attr.cq_count, cmd.attr.cq_period);
- 
--	uobj_put_obj_read(cq);
--
-+	rdma_lookup_put_uobject(&cq->uobject->uevent.uobject,
-+				UVERBS_LOOKUP_READ);
- 	return ret;
- }
- 
+ err:
+ 	uobj_alloc_abort(&obj->uevent.uobject, attrs);
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 8fd8b48..bf13591 100644
+index 121e65f..1f279b0a 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -412,9 +412,9 @@ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context)
- 		return;
+@@ -125,9 +125,8 @@ static void ib_uverbs_release_dev(struct device *device)
+ 	kfree(dev);
+ }
+ 
+-void ib_uverbs_release_ucq(struct ib_uverbs_file *file,
+-			  struct ib_uverbs_completion_event_file *ev_file,
+-			  struct ib_ucq_object *uobj)
++void ib_uverbs_release_ucq(struct ib_uverbs_completion_event_file *ev_file,
++			   struct ib_ucq_object *uobj)
+ {
+ 	struct ib_uverbs_event *evt, *tmp;
+ 
+@@ -142,20 +141,21 @@ void ib_uverbs_release_ucq(struct ib_uverbs_file *file,
+ 		uverbs_uobject_put(&ev_file->uobj);
  	}
  
--	uobj = container_of(cq->uobject, struct ib_ucq_object, uevent.uobject);
-+	uobj = cq->uobject;
+-	ib_uverbs_release_uevent(file, &uobj->uevent);
++	ib_uverbs_release_uevent(&uobj->uevent);
+ }
  
--	entry->desc.comp.cq_handle = cq->uobject->user_handle;
-+	entry->desc.comp.cq_handle = cq->uobject->uevent.uobject.user_handle;
- 	entry->counter		   = &uobj->comp_events_reported;
- 
- 	list_add_tail(&entry->list, &ev_queue->event_list);
-@@ -461,8 +461,7 @@ static void ib_uverbs_async_handler(struct ib_uverbs_file *file,
- 
- void ib_uverbs_cq_event_handler(struct ib_event *event, void *context_ptr)
+-void ib_uverbs_release_uevent(struct ib_uverbs_file *file,
+-			      struct ib_uevent_object *uobj)
++void ib_uverbs_release_uevent(struct ib_uevent_object *uobj)
  {
--	struct ib_uevent_object *uobj = container_of(
--		event->element.cq->uobject, struct ib_uevent_object, uobject);
-+	struct ib_uevent_object *uobj = &event->element.cq->uobject->uevent;
++	struct ib_uverbs_async_event_file *async_file =
++		READ_ONCE(uobj->uobject.ufile->async_file);
+ 	struct ib_uverbs_event *evt, *tmp;
  
- 	ib_uverbs_async_handler(uobj->uobject.ufile, uobj->uobject.user_handle,
- 				event->event, &uobj->event_list,
+-	spin_lock_irq(&file->async_file->ev_queue.lock);
++	spin_lock_irq(&async_file->ev_queue.lock);
+ 	list_for_each_entry_safe(evt, tmp, &uobj->event_list, obj_list) {
+ 		list_del(&evt->list);
+ 		kfree(evt);
+ 	}
+-	spin_unlock_irq(&file->async_file->ev_queue.lock);
++	spin_unlock_irq(&async_file->ev_queue.lock);
+ }
+ 
+ void ib_uverbs_detach_umcast(struct ib_qp *qp,
+@@ -420,7 +420,7 @@ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context)
+ static void uverbs_uobj_event(struct ib_uevent_object *eobj,
+ 			      struct ib_event *event)
+ {
+-	ib_uverbs_async_handler(eobj->uobject.ufile->async_file,
++	ib_uverbs_async_handler(READ_ONCE(eobj->uobject.ufile->async_file),
+ 				eobj->uobject.user_handle, event->event,
+ 				&eobj->event_list, &eobj->events_reported);
+ }
+@@ -476,9 +476,9 @@ void ib_uverbs_init_async_event_file(
+ 	ib_uverbs_init_event_queue(&async_file->ev_queue);
+ 
+ 	if (!WARN_ON(uverbs_file->async_file)) {
+-		uverbs_file->async_file = async_file;
+ 		/* Pairs with the put in ib_uverbs_release_file */
+ 		uverbs_uobject_get(&async_file->uobj);
++		smp_store_release(&uverbs_file->async_file, async_file);
+ 	}
+ 
+ 	INIT_IB_EVENT_HANDLER(&async_file->event_handler, ib_dev,
+@@ -1156,13 +1156,9 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 					struct ib_device *ib_dev)
+ {
+ 	struct ib_uverbs_file *file;
+-	struct ib_event event;
+ 
+ 	/* Pending running commands to terminate */
+ 	uverbs_disassociate_api_pre(uverbs_dev);
+-	event.event = IB_EVENT_DEVICE_FATAL;
+-	event.element.port_num = 0;
+-	event.device = ib_dev;
+ 
+ 	mutex_lock(&uverbs_dev->lists_mutex);
+ 	while (!list_empty(&uverbs_dev->uverbs_file_list)) {
+@@ -1178,9 +1174,8 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 		 */
+ 		mutex_unlock(&uverbs_dev->lists_mutex);
+ 
+-		if (file->async_file)
+-			ib_uverbs_event_handler(
+-				&file->async_file->event_handler, &event);
++		ib_uverbs_async_handler(READ_ONCE(file->async_file), 0,
++					IB_EVENT_DEVICE_FATAL, NULL, NULL);
+ 
+ 		uverbs_destroy_ufile_hw(file, RDMA_REMOVE_DRIVER_REMOVE);
+ 		kref_put(&file->ref, ib_uverbs_release_file);
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index efe70bc..994d874 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -105,7 +105,7 @@ static int uverbs_free_qp(struct ib_uobject *uobject,
+ 	if (uqp->uxrcd)
+ 		atomic_dec(&uqp->uxrcd->refcnt);
+ 
+-	ib_uverbs_release_uevent(attrs->ufile, &uqp->uevent);
++	ib_uverbs_release_uevent(&uqp->uevent);
+ 	return ret;
+ }
+ 
+@@ -138,7 +138,7 @@ static int uverbs_free_wq(struct ib_uobject *uobject,
+ 	if (ib_is_destroy_retryable(ret, why, uobject))
+ 		return ret;
+ 
+-	ib_uverbs_release_uevent(attrs->ufile, &uwq->uevent);
++	ib_uverbs_release_uevent(&uwq->uevent);
+ 	return ret;
+ }
+ 
+@@ -163,7 +163,7 @@ static int uverbs_free_srq(struct ib_uobject *uobject,
+ 		atomic_dec(&us->uxrcd->refcnt);
+ 	}
+ 
+-	ib_uverbs_release_uevent(attrs->ufile, uevent);
++	ib_uverbs_release_uevent(uevent);
+ 	return ret;
+ }
+ 
 diff --git a/drivers/infiniband/core/uverbs_std_types_cq.c b/drivers/infiniband/core/uverbs_std_types_cq.c
-index fbc605a..a41c758 100644
+index a41c758..da4110a 100644
 --- a/drivers/infiniband/core/uverbs_std_types_cq.c
 +++ b/drivers/infiniband/core/uverbs_std_types_cq.c
-@@ -116,7 +116,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(
- 	}
+@@ -49,7 +49,6 @@ static int uverbs_free_cq(struct ib_uobject *uobject,
+ 		return ret;
  
- 	cq->device        = ib_dev;
--	cq->uobject       = &obj->uevent.uobject;
-+	cq->uobject       = obj;
- 	cq->comp_handler  = ib_uverbs_comp_handler;
- 	cq->event_handler = ib_uverbs_cq_event_handler;
- 	cq->cq_context    = ev_file ? &ev_file->ev_queue : NULL;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5608e14..81bc259 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -77,6 +77,8 @@
- extern struct workqueue_struct *ib_comp_wq;
- extern struct workqueue_struct *ib_comp_unbound_wq;
- 
-+struct ib_ucq_object;
-+
- __printf(3, 4) __cold
- void ibdev_printk(const char *level, const struct ib_device *ibdev,
- 		  const char *format, ...);
-@@ -1544,7 +1546,7 @@ enum ib_poll_context {
- 
- struct ib_cq {
- 	struct ib_device       *device;
--	struct ib_uobject      *uobject;
-+	struct ib_ucq_object   *uobject;
- 	ib_comp_handler   	comp_handler;
- 	void                  (*event_handler)(struct ib_event *, void *);
- 	void                   *cq_context;
+ 	ib_uverbs_release_ucq(
+-		attrs->ufile,
+ 		ev_queue ? container_of(ev_queue,
+ 					struct ib_uverbs_completion_event_file,
+ 					ev_queue) :
 -- 
 1.8.3.1
 
