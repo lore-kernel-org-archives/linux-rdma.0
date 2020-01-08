@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B168C33CA2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76CC6C33CA1
 	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2C3820705
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A5CA20705
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729773AbgAHRWh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1729760AbgAHRWh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 8 Jan 2020 12:22:37 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41799 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41822 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729760AbgAHRWh (ORCPT
+        with ESMTP id S1729766AbgAHRWh (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 12:22:37 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 19:22:32 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008HMWO8009625;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008HMWZM009634;
         Wed, 8 Jan 2020 19:22:32 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008HMW8d009562;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008HMWmP009575;
         Wed, 8 Jan 2020 19:22:32 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008HMWff009561;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008HMWrd009574;
         Wed, 8 Jan 2020 19:22:32 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
 Cc:     yishaih@mellanox.com, maorg@mellanox.com, michaelgur@mellanox.com
-Subject: [PATCH rdma-next 09/14] RDMA/core: Do not erase the type of ib_wq.uobject
-Date:   Wed,  8 Jan 2020 19:22:01 +0200
-Message-Id: <1578504126-9400-10-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 12/14] RDMA/core: Remove the ufile arg from rdma_alloc_begin_uobject
+Date:   Wed,  8 Jan 2020 19:22:04 +0200
+Message-Id: <1578504126-9400-13-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
 References: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
@@ -46,104 +46,178 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-This is a struct ib_uwq_object pointer, instead of using container_of()
-all over the place just store it with its actual type.
+Now that all callers provide a non-NULL attrs the ufile is redundant.
+Adjust things so that the context handling is done inside alloc_uobj,
+and the ib_uverbs_get_ucontext_file() is avoided if we already have the
+context.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c  | 13 ++++++++-----
- drivers/infiniband/core/uverbs_main.c |  3 +--
- include/rdma/ib_verbs.h               |  3 ++-
- 3 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/infiniband/core/rdma_core.c | 36 +++++++++++++++++++-----------------
+ include/rdma/uverbs_std_types.h     |  3 +--
+ include/rdma/uverbs_types.h         |  3 +--
+ 3 files changed, 21 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 8350e02..66f86b4 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2971,7 +2971,7 @@ static int ib_uverbs_ex_create_wq(struct uverbs_attr_bundle *attrs)
- 		goto err_put_cq;
- 	}
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 8ad6883..f839b93 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -262,15 +262,20 @@ int __uobj_perform_destroy(const struct uverbs_api_object *obj, u32 id,
+ }
  
--	wq->uobject = &obj->uevent.uobject;
-+	wq->uobject = obj;
- 	obj->uevent.uobject.object = wq;
- 	wq->wq_type = wq_init_attr.wq_type;
- 	wq->cq = cq;
-@@ -2981,7 +2981,7 @@ static int ib_uverbs_ex_create_wq(struct uverbs_attr_bundle *attrs)
- 	atomic_set(&wq->usecnt, 0);
- 	atomic_inc(&pd->usecnt);
- 	atomic_inc(&cq->usecnt);
--	wq->uobject = &obj->uevent.uobject;
-+	wq->uobject = obj;
- 	obj->uevent.uobject.object = wq;
+ /* alloc_uobj must be undone by uverbs_destroy_uobject() */
+-static struct ib_uobject *alloc_uobj(struct ib_uverbs_file *ufile,
++static struct ib_uobject *alloc_uobj(struct uverbs_attr_bundle *attrs,
+ 				     const struct uverbs_api_object *obj)
+ {
++	struct ib_uverbs_file *ufile = attrs->ufile;
+ 	struct ib_uobject *uobj;
+-	struct ib_ucontext *ucontext;
  
- 	memset(&resp, 0, sizeof(resp));
-@@ -3070,7 +3070,8 @@ static int ib_uverbs_ex_modify_wq(struct uverbs_attr_bundle *attrs)
+-	ucontext = ib_uverbs_get_ucontext_file(ufile);
+-	if (IS_ERR(ucontext))
+-		return ERR_CAST(ucontext);
++	if (!attrs->context) {
++		struct ib_ucontext *ucontext =
++			ib_uverbs_get_ucontext_file(ufile);
++
++		if (IS_ERR(ucontext))
++			return ERR_CAST(ucontext);
++		attrs->context = ucontext;
++	}
+ 
+ 	uobj = kzalloc(obj->type_attrs->obj_size, GFP_KERNEL);
+ 	if (!uobj)
+@@ -280,7 +285,7 @@ static struct ib_uobject *alloc_uobj(struct ib_uverbs_file *ufile,
+ 	 * The object is added to the list in the commit stage.
+ 	 */
+ 	uobj->ufile = ufile;
+-	uobj->context = ucontext;
++	uobj->context = attrs->context;
+ 	INIT_LIST_HEAD(&uobj->list);
+ 	uobj->uapi_object = obj;
+ 	/*
+@@ -423,12 +428,12 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
+ 
+ static struct ib_uobject *
+ alloc_begin_idr_uobject(const struct uverbs_api_object *obj,
+-			struct ib_uverbs_file *ufile)
++			struct uverbs_attr_bundle *attrs)
+ {
+ 	int ret;
+ 	struct ib_uobject *uobj;
+ 
+-	uobj = alloc_uobj(ufile, obj);
++	uobj = alloc_uobj(attrs, obj);
+ 	if (IS_ERR(uobj))
+ 		return uobj;
+ 
+@@ -444,7 +449,7 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
+ 	return uobj;
+ 
+ remove:
+-	xa_erase(&ufile->idr, uobj->id);
++	xa_erase(&attrs->ufile->idr, uobj->id);
+ uobj_put:
+ 	uverbs_uobject_put(uobj);
+ 	return ERR_PTR(ret);
+@@ -452,7 +457,7 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
+ 
+ static struct ib_uobject *
+ alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
+-		       struct ib_uverbs_file *ufile)
++		       struct uverbs_attr_bundle *attrs)
+ {
+ 	const struct uverbs_obj_fd_type *fd_type =
+ 		container_of(obj->type_attrs, struct uverbs_obj_fd_type, type);
+@@ -467,7 +472,7 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
+ 	if (new_fd < 0)
+ 		return ERR_PTR(new_fd);
+ 
+-	uobj = alloc_uobj(ufile, obj);
++	uobj = alloc_uobj(attrs, obj);
+ 	if (IS_ERR(uobj))
+ 		goto err_fd;
+ 
+@@ -481,7 +486,6 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
+ 	uobj->object = filp;
+ 
+ 	uobj->id = new_fd;
+-	uobj->ufile = ufile;
+ 	return uobj;
+ 
+ err_uobj:
+@@ -492,9 +496,9 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
+ }
+ 
+ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_api_object *obj,
+-					    struct ib_uverbs_file *ufile,
+ 					    struct uverbs_attr_bundle *attrs)
+ {
++	struct ib_uverbs_file *ufile = attrs->ufile;
+ 	struct ib_uobject *ret;
+ 
+ 	if (IS_ERR(obj))
+@@ -508,13 +512,11 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_api_object *obj,
+ 	if (!down_read_trylock(&ufile->hw_destroy_rwsem))
+ 		return ERR_PTR(-EIO);
+ 
+-	ret = obj->type_class->alloc_begin(obj, ufile);
++	ret = obj->type_class->alloc_begin(obj, attrs);
+ 	if (IS_ERR(ret)) {
+ 		up_read(&ufile->hw_destroy_rwsem);
+ 		return ret;
  	}
- 	ret = wq->device->ops.modify_wq(wq, &wq_attr, cmd.attr_mask,
- 					&attrs->driver_udata);
--	uobj_put_obj_read(wq);
-+	rdma_lookup_put_uobject(&wq->uobject->uevent.uobject,
-+				UVERBS_LOOKUP_READ);
+-	if (attrs)
+-		attrs->context = ret->context;
  	return ret;
  }
  
-@@ -3171,7 +3172,8 @@ static int ib_uverbs_ex_create_rwq_ind_table(struct uverbs_attr_bundle *attrs)
- 	kfree(wqs_handles);
- 
- 	for (j = 0; j < num_read_wqs; j++)
--		uobj_put_obj_read(wqs[j]);
-+		rdma_lookup_put_uobject(&wqs[j]->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- 
- 	rdma_alloc_commit_uobject(uobj, attrs);
- 	return 0;
-@@ -3182,7 +3184,8 @@ static int ib_uverbs_ex_create_rwq_ind_table(struct uverbs_attr_bundle *attrs)
- 	uobj_alloc_abort(uobj, attrs);
- put_wqs:
- 	for (j = 0; j < num_read_wqs; j++)
--		uobj_put_obj_read(wqs[j]);
-+		rdma_lookup_put_uobject(&wqs[j]->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
- err_free:
- 	kfree(wqs_handles);
- 	kfree(wqs);
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index b7bee1f..b0aad2e 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -485,8 +485,7 @@ void ib_uverbs_qp_event_handler(struct ib_event *event, void *context_ptr)
- 
- void ib_uverbs_wq_event_handler(struct ib_event *event, void *context_ptr)
+@@ -949,7 +951,7 @@ struct ib_uobject *
+ 		return rdma_lookup_get_uobject(obj, attrs->ufile, id,
+ 					       UVERBS_LOOKUP_WRITE, attrs);
+ 	case UVERBS_ACCESS_NEW:
+-		return rdma_alloc_begin_uobject(obj, attrs->ufile, attrs);
++		return rdma_alloc_begin_uobject(obj, attrs);
+ 	default:
+ 		WARN_ON(true);
+ 		return ERR_PTR(-EOPNOTSUPP);
+diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
+index c6bcaad..1b28ce1 100644
+--- a/include/rdma/uverbs_std_types.h
++++ b/include/rdma/uverbs_std_types.h
+@@ -114,8 +114,7 @@ static inline void uobj_alloc_abort(struct ib_uobject *uobj,
+ __uobj_alloc(const struct uverbs_api_object *obj,
+ 	     struct uverbs_attr_bundle *attrs, struct ib_device **ib_dev)
  {
--	struct ib_uevent_object *uobj = container_of(event->element.wq->uobject,
--						  struct ib_uevent_object, uobject);
-+	struct ib_uevent_object *uobj = &event->element.wq->uobject->uevent;
+-	struct ib_uobject *uobj =
+-		rdma_alloc_begin_uobject(obj, attrs->ufile, attrs);
++	struct ib_uobject *uobj = rdma_alloc_begin_uobject(obj, attrs);
  
- 	ib_uverbs_async_handler(context_ptr, uobj->uobject.user_handle,
- 				event->event, &uobj->event_list,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index cfa871b..08cc7dc 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -74,6 +74,7 @@
- struct ib_umem_odp;
- struct ib_uqp_object;
- struct ib_usrq_object;
-+struct ib_uwq_object;
- 
- extern struct workqueue_struct *ib_wq;
- extern struct workqueue_struct *ib_comp_wq;
-@@ -1616,7 +1617,7 @@ enum ib_wq_state {
- 
- struct ib_wq {
- 	struct ib_device       *device;
--	struct ib_uobject      *uobject;
-+	struct ib_uwq_object   *uobject;
- 	void		    *wq_context;
- 	void		    (*event_handler)(struct ib_event *, void *);
- 	struct ib_pd	       *pd;
+ 	if (!IS_ERR(uobj))
+ 		*ib_dev = attrs->context->device;
+diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+index 0532588..ded608b 100644
+--- a/include/rdma/uverbs_types.h
++++ b/include/rdma/uverbs_types.h
+@@ -83,7 +83,7 @@ enum rdma_lookup_mode {
+  */
+ struct uverbs_obj_type_class {
+ 	struct ib_uobject *(*alloc_begin)(const struct uverbs_api_object *obj,
+-					  struct ib_uverbs_file *ufile);
++					  struct uverbs_attr_bundle *attrs);
+ 	/* This consumes the kref on uobj */
+ 	void (*alloc_commit)(struct ib_uobject *uobj);
+ 	/* This does not consume the kref on uobj */
+@@ -138,7 +138,6 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
+ void rdma_lookup_put_uobject(struct ib_uobject *uobj,
+ 			     enum rdma_lookup_mode mode);
+ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_api_object *obj,
+-					    struct ib_uverbs_file *ufile,
+ 					    struct uverbs_attr_bundle *attrs);
+ void rdma_alloc_abort_uobject(struct ib_uobject *uobj,
+ 			      struct uverbs_attr_bundle *attrs);
 -- 
 1.8.3.1
 
