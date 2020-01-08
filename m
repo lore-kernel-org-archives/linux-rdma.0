@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CDD2C33CA2
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45878C282DD
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 382662067D
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20DFF2067D
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730107AbgAHSGM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1730105AbgAHSGM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 8 Jan 2020 13:06:12 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45120 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45106 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730096AbgAHSGM (ORCPT
+        with ESMTP id S1730094AbgAHSGM (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 13:06:12 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 20:06:05 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65NX030041;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65WQ030036;
         Wed, 8 Jan 2020 20:06:05 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I65R3022350;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I6587022346;
         Wed, 8 Jan 2020 20:06:05 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I65Hf022349;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I65Bx022345;
         Wed, 8 Jan 2020 20:06:05 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
 Cc:     saeedm@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
         michaelgur@mellanox.com, netdev@vger.kernel.org
-Subject: [PATCH rdma-next 08/10] RDMA/uverbs: Add new relaxed ordering memory region access flag
-Date:   Wed,  8 Jan 2020 20:05:38 +0200
-Message-Id: <1578506740-22188-9-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 07/10] RDMA/efa: Allow passing of optional access flags for MR registration
+Date:   Wed,  8 Jan 2020 20:05:37 +0200
+Message-Id: <1578506740-22188-8-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
 References: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
@@ -47,43 +47,29 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Michael Guralnik <michaelgur@mellanox.com>
 
-Adding new relaxed ordering access flag for memory regions.
-Using memory regions with relaxed ordeing set can enhance performance.
-
-This access flag is handled in a best-effort manner, drivers should
-ignore if they don't support setting relaxed ordering.
+As part of adding a range of optional access flags that drivers need to
+be able to accept, mask this range inside efa driver.
+This will prevent the driver from failing when an access flag from
+that range is passed.
 
 Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 ---
- include/rdma/ib_verbs.h                 | 1 +
- include/uapi/rdma/ib_user_ioctl_verbs.h | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/infiniband/hw/efa/efa_verbs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ffb358f..2b3c16f 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1418,6 +1418,7 @@ enum ib_access_flags {
- 	IB_ZERO_BASED = IB_UVERBS_ACCESS_ZERO_BASED,
- 	IB_ACCESS_ON_DEMAND = IB_UVERBS_ACCESS_ON_DEMAND,
- 	IB_ACCESS_HUGETLB = IB_UVERBS_ACCESS_HUGETLB,
-+	IB_ACCESS_RELAXED_ORDERING = IB_UVERBS_ACCESS_RELAXED_ORDERING,
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index 50c2257..b6b936c 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -1370,6 +1370,7 @@ struct ib_mr *efa_reg_mr(struct ib_pd *ibpd, u64 start, u64 length,
+ 		IB_ACCESS_LOCAL_WRITE |
+ 		(is_rdma_read_cap(dev) ? IB_ACCESS_REMOTE_READ : 0);
  
- 	IB_ACCESS_OPTIONAL = IB_UVERBS_ACCESS_OPTIONAL_RANGE,
- 	IB_ACCESS_SUPPORTED =
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 76dbbd9..2a165f4 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -54,6 +54,7 @@ enum ib_uverbs_access_flags {
- 	IB_UVERBS_ACCESS_ON_DEMAND = 1 << 6,
- 	IB_UVERBS_ACCESS_HUGETLB = 1 << 7,
- 
-+	IB_UVERBS_ACCESS_RELAXED_ORDERING = IB_UVERBS_ACCESS_OPTIONAL_FIRST,
- 	IB_UVERBS_ACCESS_OPTIONAL_RANGE =
- 		((IB_UVERBS_ACCESS_OPTIONAL_LAST << 1) - 1) &
- 		~(IB_UVERBS_ACCESS_OPTIONAL_FIRST - 1)
++	access_flags &= ~IB_UVERBS_ACCESS_OPTIONAL_RANGE;
+ 	if (access_flags & ~supp_access_flags) {
+ 		ibdev_dbg(&dev->ibdev,
+ 			  "Unsupported access flags[%#x], supported[%#x]\n",
 -- 
 1.8.3.1
 
