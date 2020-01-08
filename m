@@ -4,39 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8045C33CA1
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F376C33CA3
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBDDB2067D
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6669320720
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728485AbgAHSGT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jan 2020 13:06:19 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45088 "EHLO
+        id S1730119AbgAHSGU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jan 2020 13:06:20 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45131 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730090AbgAHSGM (ORCPT
+        with ESMTP id S1730101AbgAHSGM (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 13:06:12 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 20:06:05 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65kH030027;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65Eu030047;
         Wed, 8 Jan 2020 20:06:05 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I657r022330;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I65u4022359;
         Wed, 8 Jan 2020 20:06:05 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I65eZ022329;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I65xB022357;
         Wed, 8 Jan 2020 20:06:05 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
 Cc:     saeedm@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
         michaelgur@mellanox.com, netdev@vger.kernel.org
-Subject: [PATCH rdma-next 04/10] RDMA/uverbs: Add ioctl command to get a device context
-Date:   Wed,  8 Jan 2020 20:05:34 +0200
-Message-Id: <1578506740-22188-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 10/10] RDMA/mlx5: Set relaxed ordering when requested
+Date:   Wed,  8 Jan 2020 20:05:40 +0200
+Message-Id: <1578506740-22188-11-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
 References: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
@@ -45,346 +45,127 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Michael Guralnik <michaelgur@mellanox.com>
 
-Allow future extensions of the get context command through the uverbs
-ioctl kabi.
+Enable relaxed ordering in mkey context when requested.
+As relaxed ordering is not currently supported in UMR, disable UMR usage
+for relaxed ordering MRs.
 
-Unlike the uverbs version this does not return an async_fd as well,
-that has to be done with another command.
-
+Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/core/uverbs.h                   |   3 +
- drivers/infiniband/core/uverbs_cmd.c               | 132 ++++++++++++---------
- drivers/infiniband/core/uverbs_main.c              |   9 +-
- .../infiniband/core/uverbs_std_types_async_fd.c    |   2 -
- drivers/infiniband/core/uverbs_std_types_device.c  |  30 +++++
- include/uapi/rdma/ib_user_ioctl_cmds.h             |   5 +
- 6 files changed, 119 insertions(+), 62 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  5 ++++-
+ drivers/infiniband/hw/mlx5/mr.c      | 19 +++++++++++++++++--
+ drivers/infiniband/hw/mlx5/odp.c     |  2 +-
+ drivers/infiniband/hw/mlx5/qp.c      |  2 +-
+ 4 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index aaa5c75..4d4cec4 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -220,6 +220,9 @@ struct ib_ucq_object {
- void ib_uverbs_free_event_queue(struct ib_uverbs_event_queue *event_queue);
- void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b06f32f..3f0a55c 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1507,7 +1507,7 @@ int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
+ u16 mlx5_ib_get_counters_id(struct mlx5_ib_dev *dev, u8 port_num);
  
-+int ib_alloc_ucontext(struct uverbs_attr_bundle *attrs);
-+int ib_init_ucontext(struct uverbs_attr_bundle *attrs);
-+
- void ib_uverbs_release_ucq(struct ib_uverbs_completion_event_file *ev_file,
- 			   struct ib_ucq_object *uobj);
- void ib_uverbs_release_uevent(struct ib_uevent_object *uobj);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index d71ffe4..c8693f5 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -203,104 +203,118 @@ struct ib_udata *uverbs_get_cleared_udata(struct uverbs_attr_bundle *attrs)
- #define ib_uverbs_lookup_comp_file(_fd, _ufile)                                \
- 	_ib_uverbs_lookup_comp_file((_fd)*typecheck(s32, _fd), _ufile)
- 
--static int ib_uverbs_get_context(struct uverbs_attr_bundle *attrs)
-+int ib_alloc_ucontext(struct uverbs_attr_bundle *attrs)
+ static inline bool mlx5_ib_can_use_umr(struct mlx5_ib_dev *dev,
+-				       bool do_modify_atomic)
++				       bool do_modify_atomic, int access_flags)
  {
--	struct ib_uverbs_file *file = attrs->ufile;
--	struct ib_uverbs_get_context      cmd;
--	struct ib_uverbs_get_context_resp resp;
--	struct ib_ucontext		 *ucontext;
--	struct ib_rdmacg_object		 cg_obj;
-+	struct ib_uverbs_file *ufile = attrs->ufile;
-+	struct ib_ucontext *ucontext;
- 	struct ib_device *ib_dev;
--	struct ib_uobject *uobj;
--	int ret;
+ 	if (MLX5_CAP_GEN(dev->mdev, umr_modify_entity_size_disabled))
+ 		return false;
+@@ -1517,6 +1517,9 @@ static inline bool mlx5_ib_can_use_umr(struct mlx5_ib_dev *dev,
+ 	    MLX5_CAP_GEN(dev->mdev, umr_modify_atomic_disabled))
+ 		return false;
  
--	ret = uverbs_request(attrs, &cmd, sizeof(cmd));
--	if (ret)
--		return ret;
-+	ib_dev = srcu_dereference(ufile->device->ib_dev,
-+				  &ufile->device->disassociate_srcu);
-+	if (!ib_dev)
-+		return -EIO;
++	if (access_flags & IB_ACCESS_RELAXED_ORDERING)
++		return false;
 +
-+	ucontext = rdma_zalloc_drv_obj(ib_dev, ib_ucontext);
-+	if (!ucontext)
-+		return -ENOMEM;
-+
-+	ucontext->res.type = RDMA_RESTRACK_CTX;
-+	ucontext->device = ib_dev;
-+	ucontext->ufile = ufile;
-+	xa_init_flags(&ucontext->mmap_xa, XA_FLAGS_ALLOC);
-+	attrs->context = ucontext;
-+	return 0;
-+}
-+
-+int ib_init_ucontext(struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_ucontext *ucontext = attrs->context;
-+	struct ib_uverbs_file *file = attrs->ufile;
-+	int ret;
- 
- 	if (!down_read_trylock(&file->hw_destroy_rwsem))
- 		return -EIO;
- 	mutex_lock(&file->ucontext_lock);
--	ib_dev = srcu_dereference(file->device->ib_dev,
--				  &file->device->disassociate_srcu);
--	if (!ib_dev) {
--		ret = -EIO;
--		goto err;
--	}
--
- 	if (file->ucontext) {
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	ret = ib_rdmacg_try_charge(&cg_obj, ib_dev, RDMACG_RESOURCE_HCA_HANDLE);
-+	ret = ib_rdmacg_try_charge(&ucontext->cg_obj, ucontext->device,
-+				   RDMACG_RESOURCE_HCA_HANDLE);
- 	if (ret)
- 		goto err;
- 
--	ucontext = rdma_zalloc_drv_obj(ib_dev, ib_ucontext);
--	if (!ucontext) {
--		ret = -ENOMEM;
--		goto err_alloc;
--	}
-+	ret = ucontext->device->ops.alloc_ucontext(ucontext,
-+						   &attrs->driver_udata);
-+	if (ret)
-+		goto err_uncharge;
- 
--	attrs->context = ucontext;
-+	rdma_restrack_uadd(&ucontext->res);
- 
--	ucontext->res.type = RDMA_RESTRACK_CTX;
--	ucontext->device = ib_dev;
--	ucontext->cg_obj = cg_obj;
--	/* ufile is required when some objects are released */
--	ucontext->ufile = file;
-+	/*
-+	 * Make sure that ib_uverbs_get_ucontext() sees the pointer update
-+	 * only after all writes to setup the ucontext have completed
-+	 */
-+	smp_store_release(&file->ucontext, ucontext);
-+
-+	mutex_unlock(&file->ucontext_lock);
-+	up_read(&file->hw_destroy_rwsem);
-+	return 0;
- 
--	ucontext->closing = false;
--	ucontext->cleanup_retryable = false;
-+err_uncharge:
-+	ib_rdmacg_uncharge(&ucontext->cg_obj, ucontext->device,
-+			   RDMACG_RESOURCE_HCA_HANDLE);
-+err:
-+	mutex_unlock(&file->ucontext_lock);
-+	up_read(&file->hw_destroy_rwsem);
-+	return ret;
-+}
- 
--	xa_init_flags(&ucontext->mmap_xa, XA_FLAGS_ALLOC);
-+static int ib_uverbs_get_context(struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_uverbs_get_context_resp resp;
-+	struct ib_uverbs_get_context cmd;
-+	struct ib_device *ib_dev;
-+	struct ib_uobject *uobj;
-+	int ret;
-+
-+	ret = uverbs_request(attrs, &cmd, sizeof(cmd));
-+	if (ret)
-+		return ret;
-+
-+	ret = ib_alloc_ucontext(attrs);
-+	if (ret)
-+		return ret;
- 
- 	uobj = uobj_alloc(UVERBS_OBJECT_ASYNC_EVENT, attrs, &ib_dev);
- 	if (IS_ERR(uobj)) {
- 		ret = PTR_ERR(uobj);
--		goto err_free;
-+		goto err_ucontext;
- 	}
- 
--	resp.async_fd = uobj->id;
--	resp.num_comp_vectors = file->device->num_comp_vectors;
--
-+	resp = (struct ib_uverbs_get_context_resp){
-+		.num_comp_vectors = attrs->ufile->device->num_comp_vectors,
-+		.async_fd = uobj->id,
-+	};
- 	ret = uverbs_response(attrs, &resp, sizeof(resp));
- 	if (ret)
- 		goto err_uobj;
- 
--	ret = ib_dev->ops.alloc_ucontext(ucontext, &attrs->driver_udata);
-+	ret = ib_init_ucontext(attrs);
- 	if (ret)
- 		goto err_uobj;
- 
--	rdma_restrack_uadd(&ucontext->res);
--
- 	ib_uverbs_init_async_event_file(
- 		container_of(uobj, struct ib_uverbs_async_event_file, uobj));
- 	rdma_alloc_commit_uobject(uobj, attrs);
--
--	/*
--	 * Make sure that ib_uverbs_get_ucontext() sees the pointer update
--	 * only after all writes to setup the ucontext have completed
--	 */
--	smp_store_release(&file->ucontext, ucontext);
--
--	mutex_unlock(&file->ucontext_lock);
--	up_read(&file->hw_destroy_rwsem);
- 	return 0;
- 
- err_uobj:
- 	rdma_alloc_abort_uobject(uobj, attrs);
--
--err_free:
--	kfree(ucontext);
--
--err_alloc:
--	ib_rdmacg_uncharge(&cg_obj, ib_dev, RDMACG_RESOURCE_HCA_HANDLE);
--
--err:
--	mutex_unlock(&file->ucontext_lock);
--	up_read(&file->hw_destroy_rwsem);
-+err_ucontext:
-+	kfree(attrs->context);
-+	attrs->context = NULL;
- 	return ret;
+ 	return true;
  }
  
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index fb9e752..2d4083b 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -150,6 +150,9 @@ void ib_uverbs_release_uevent(struct ib_uevent_object *uobj)
- 		READ_ONCE(uobj->uobject.ufile->async_file);
- 	struct ib_uverbs_event *evt, *tmp;
- 
-+	if (!async_file)
-+		return;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index ea8bfc3..75b825a 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -661,12 +661,21 @@ int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev)
+ static void set_mkc_access_pd_addr_fields(void *mkc, int acc, u64 start_addr,
+ 					  struct ib_pd *pd)
+ {
++	struct mlx5_ib_dev *dev = to_mdev(pd->device);
 +
- 	spin_lock_irq(&async_file->ev_queue.lock);
- 	list_for_each_entry_safe(evt, tmp, &uobj->event_list, obj_list) {
- 		list_del(&evt->list);
-@@ -391,6 +394,9 @@ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context)
- 	struct ib_uverbs_event *entry;
- 	unsigned long flags;
+ 	MLX5_SET(mkc, mkc, a, !!(acc & IB_ACCESS_REMOTE_ATOMIC));
+ 	MLX5_SET(mkc, mkc, rw, !!(acc & IB_ACCESS_REMOTE_WRITE));
+ 	MLX5_SET(mkc, mkc, rr, !!(acc & IB_ACCESS_REMOTE_READ));
+ 	MLX5_SET(mkc, mkc, lw, !!(acc & IB_ACCESS_LOCAL_WRITE));
+ 	MLX5_SET(mkc, mkc, lr, 1);
  
-+	if (!async_file)
-+		return;
++	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write))
++		MLX5_SET(mkc, mkc, relaxed_ordering_write,
++			 !!(acc & IB_ACCESS_RELAXED_ORDERING));
++	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read))
++		MLX5_SET(mkc, mkc, relaxed_ordering_read,
++			 !!(acc & IB_ACCESS_RELAXED_ORDERING));
 +
- 	spin_lock_irqsave(&async_file->ev_queue.lock, flags);
- 	if (async_file->ev_queue.is_closed) {
- 		spin_unlock_irqrestore(&async_file->ev_queue.lock, flags);
-@@ -476,12 +482,13 @@ void ib_uverbs_init_async_event_file(
- 	ib_uverbs_init_event_queue(&async_file->ev_queue);
+ 	MLX5_SET(mkc, mkc, pd, to_mpd(pd)->pdn);
+ 	MLX5_SET(mkc, mkc, qpn, 0xffffff);
+ 	MLX5_SET64(mkc, mkc, start_addr, start_addr);
+@@ -1075,6 +1084,12 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
+ 	MLX5_SET(mkc, mkc, free, !populate);
+ 	MLX5_SET(mkc, mkc, access_mode_1_0, MLX5_MKC_ACCESS_MODE_MTT);
++	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write))
++		MLX5_SET(mkc, mkc, relaxed_ordering_write,
++			 !!(access_flags & IB_ACCESS_RELAXED_ORDERING));
++	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read))
++		MLX5_SET(mkc, mkc, relaxed_ordering_read,
++			 !!(access_flags & IB_ACCESS_RELAXED_ORDERING));
+ 	MLX5_SET(mkc, mkc, a, !!(access_flags & IB_ACCESS_REMOTE_ATOMIC));
+ 	MLX5_SET(mkc, mkc, rw, !!(access_flags & IB_ACCESS_REMOTE_WRITE));
+ 	MLX5_SET(mkc, mkc, rr, !!(access_flags & IB_ACCESS_REMOTE_READ));
+@@ -1263,7 +1278,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	if (err < 0)
+ 		return ERR_PTR(err);
  
- 	/* The first async_event_file becomes the default one for the file. */
--	lockdep_assert_held(&uverbs_file->ucontext_lock);
-+	mutex_lock(&uverbs_file->ucontext_lock);
- 	if (!uverbs_file->async_file) {
- 		/* Pairs with the put in ib_uverbs_release_file */
- 		uverbs_uobject_get(&async_file->uobj);
- 		smp_store_release(&uverbs_file->async_file, async_file);
+-	use_umr = mlx5_ib_can_use_umr(dev, true);
++	use_umr = mlx5_ib_can_use_umr(dev, true, access_flags);
+ 
+ 	if (order <= mr_cache_max_order(dev) && use_umr) {
+ 		mr = alloc_mr_from_cache(pd, umem, virt_addr, length, ncont,
+@@ -1431,7 +1446,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 			goto err;
  	}
-+	mutex_unlock(&uverbs_file->ucontext_lock);
  
- 	INIT_IB_EVENT_HANDLER(&async_file->event_handler, ib_dev,
- 			      ib_uverbs_event_handler);
-diff --git a/drivers/infiniband/core/uverbs_std_types_async_fd.c b/drivers/infiniband/core/uverbs_std_types_async_fd.c
-index 484dba1..82ec080 100644
---- a/drivers/infiniband/core/uverbs_std_types_async_fd.c
-+++ b/drivers/infiniband/core/uverbs_std_types_async_fd.c
-@@ -14,10 +14,8 @@ static int UVERBS_HANDLER(UVERBS_METHOD_ASYNC_EVENT_ALLOC)(
- 	struct ib_uobject *uobj =
- 		uverbs_attr_get_uobject(attrs, UVERBS_METHOD_ASYNC_EVENT_ALLOC);
+-	if (!mlx5_ib_can_use_umr(dev, true) ||
++	if (!mlx5_ib_can_use_umr(dev, true, access_flags) ||
+ 	    (flags & IB_MR_REREG_TRANS && !use_umr_mtt_update(mr, addr, len))) {
+ 		/*
+ 		 * UMR can't be used - MKey needs to be replaced.
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index f924250..bed81dc 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -342,7 +342,7 @@ void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev)
+ 	memset(caps, 0, sizeof(*caps));
  
--	mutex_lock(&attrs->ufile->ucontext_lock);
- 	ib_uverbs_init_async_event_file(
- 		container_of(uobj, struct ib_uverbs_async_event_file, uobj));
--	mutex_unlock(&attrs->ufile->ucontext_lock);
- 	return 0;
- }
+ 	if (!MLX5_CAP_GEN(dev->mdev, pg) ||
+-	    !mlx5_ib_can_use_umr(dev, true))
++	    !mlx5_ib_can_use_umr(dev, true, 0))
+ 		return;
  
-diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
-index 2a3f2f0..2c59435 100644
---- a/drivers/infiniband/core/uverbs_std_types_device.c
-+++ b/drivers/infiniband/core/uverbs_std_types_device.c
-@@ -200,6 +200,35 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_PORT)(
- 					     &resp, sizeof(resp));
- }
+ 	caps->general_caps = IB_ODP_SUPPORT;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 7e51870..76e30ad 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4823,7 +4823,7 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
+ 	bool atomic = wr->access & IB_ACCESS_REMOTE_ATOMIC;
+ 	u8 flags = 0;
  
-+static int UVERBS_HANDLER(UVERBS_METHOD_GET_CONTEXT)(
-+	struct uverbs_attr_bundle *attrs)
-+{
-+	u32 num_comp = attrs->ufile->device->num_comp_vectors;
-+	int ret;
-+
-+	ret = uverbs_copy_to(attrs, UVERBS_ATTR_GET_CONTEXT_NUM_COMP_VECTORS,
-+			     &num_comp, sizeof(num_comp));
-+	if (IS_UVERBS_COPY_ERR(ret))
-+		return ret;
-+
-+	ret = ib_alloc_ucontext(attrs);
-+	if (ret)
-+		return ret;
-+	ret = ib_init_ucontext(attrs);
-+	if (ret) {
-+		kfree(attrs->context);
-+		attrs->context = NULL;
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_GET_CONTEXT,
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_GET_CONTEXT_NUM_COMP_VECTORS,
-+			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL),
-+	UVERBS_ATTR_UHW());
-+
- DECLARE_UVERBS_NAMED_METHOD(
- 	UVERBS_METHOD_INFO_HANDLES,
- 	/* Also includes any device specific object ids */
-@@ -220,6 +249,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_PORT)(
- 		UA_MANDATORY));
- 
- DECLARE_UVERBS_GLOBAL_METHODS(UVERBS_OBJECT_DEVICE,
-+			      &UVERBS_METHOD(UVERBS_METHOD_GET_CONTEXT),
- 			      &UVERBS_METHOD(UVERBS_METHOD_INVOKE_WRITE),
- 			      &UVERBS_METHOD(UVERBS_METHOD_INFO_HANDLES),
- 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_PORT));
-diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 498955c..da6c63c 100644
---- a/include/uapi/rdma/ib_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -68,6 +68,7 @@ enum uverbs_methods_device {
- 	UVERBS_METHOD_INVOKE_WRITE,
- 	UVERBS_METHOD_INFO_HANDLES,
- 	UVERBS_METHOD_QUERY_PORT,
-+	UVERBS_METHOD_GET_CONTEXT,
- };
- 
- enum uverbs_attrs_invoke_write_cmd_attr_ids {
-@@ -81,6 +82,10 @@ enum uverbs_attrs_query_port_cmd_attr_ids {
- 	UVERBS_ATTR_QUERY_PORT_RESP,
- };
- 
-+enum uverbs_attrs_get_context_attr_ids {
-+	UVERBS_ATTR_GET_CONTEXT_NUM_COMP_VECTORS,
-+};
-+
- enum uverbs_attrs_create_cq_cmd_attr_ids {
- 	UVERBS_ATTR_CREATE_CQ_HANDLE,
- 	UVERBS_ATTR_CREATE_CQ_CQE,
+-	if (!mlx5_ib_can_use_umr(dev, atomic)) {
++	if (!mlx5_ib_can_use_umr(dev, atomic, wr->access)) {
+ 		mlx5_ib_warn(to_mdev(qp->ibqp.device),
+ 			     "Fast update of %s for MR is disabled\n",
+ 			     (MLX5_CAP_GEN(dev->mdev,
 -- 
 1.8.3.1
 
