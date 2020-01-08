@@ -2,118 +2,132 @@ Return-Path: <SRS0=JeJO=25=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97EECC33CA2
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 16:51:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1568C282DD
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F9A720678
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 16:51:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="MnKZjVac"
+	by mail.kernel.org (Postfix) with ESMTP id D1966205F4
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 17:22:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729328AbgAHQvl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jan 2020 11:51:41 -0500
-Received: from mail-il1-f194.google.com ([209.85.166.194]:43366 "EHLO
-        mail-il1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726401AbgAHQvl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 11:51:41 -0500
-Received: by mail-il1-f194.google.com with SMTP id v69so3198312ili.10
-        for <linux-rdma@vger.kernel.org>; Wed, 08 Jan 2020 08:51:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=co7/buqnJ+QAQFW/aPPMtw9NyE3ymeGSAXf7J8t8yZg=;
-        b=MnKZjVacH0zMQk7STp7Vj/S3ld9XtAL8X25Ad/RB6AF374jBqQNA3OsVh5ceb9VnRv
-         M3V0K39I6Xt4YPmohA0nu03BkOW/WjgcG8ZxnaGiChs4oFKpQqba2nLBEQfJEWzuPUUG
-         JJPFWdhH1jMHRhrz+/sHRrWXFEZMEr2eWyWtWL4vfFLjP1OXVi7FRgX8qq8r7gwURcEI
-         hFpd4mOtYnh58haYR97vIOO8u00fHRj8UfDwFJZOw+MR98ciSf1G7imETXA0Mrv2KZHX
-         ZeWDMA57GPXiV8BqLZg7HEi6E1ZAxSgQh8ZV1X7rYzj9RPSBrgXHdT+7n9v9qx4gIxTS
-         qFfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=co7/buqnJ+QAQFW/aPPMtw9NyE3ymeGSAXf7J8t8yZg=;
-        b=cU37R7WggoLZapnwmrTqbFzmZcKSUQUWDsabotLEwQplW8jRuG5mc5TDzrRPce+Ufn
-         qDyLf8ZxqmM6yXkbnrhgIm7vTEJoL4EZIt2BTcQMMdO61uErm2tLy6HnO4Q3cioVY23G
-         3FZsbr3Vzm0edAne7Rp1BeLEpDnRNNdup9syNlcU1YedjtqQqRk//WEratXcJin6Kdf2
-         704zAZsBS9stqvpMVjvFu9e4vsjV2JWkd/pmt5dFBUdH192r/vas1LqdzroNVyQDmsO6
-         aBp70z3pfd6aU5VAt7i97HeTDx1D+CrR0uGvtg4ByqROu0fbpsaHwq/E+GHpHxI6fCKu
-         3Ujg==
-X-Gm-Message-State: APjAAAWRPyuV/57kS0NERNit5Vvm+rAAg4nXMT2IQlcSB2+fLWBRqzxG
-        sOZxKf9g5lntYCqFV/LzuhN7m6CVZluQDuOCHpp96A==
-X-Google-Smtp-Source: APXvYqzDNtn52z8BtswfS55RdLo1Ou4FfHpSAEHRnHXIJdAKCjg9h7lXV7dcihgcpxR6QupYLI91uvnSuhC76rN/5hU=
-X-Received: by 2002:a92:1090:: with SMTP id 16mr4531190ilq.298.1578502300812;
- Wed, 08 Jan 2020 08:51:40 -0800 (PST)
-MIME-Version: 1.0
-References: <20191230102942.18395-1-jinpuwang@gmail.com> <20191230102942.18395-19-jinpuwang@gmail.com>
- <e0816733-89c0-87a5-bc86-6013a6c96df2@acm.org> <CAMGffEmRF+2SZ5Nf3at9SohZXTT3siakBYoZpErN=Tr_PCA9uw@mail.gmail.com>
- <a2748915-b88e-cc91-2ab8-1a95f678e444@acm.org>
-In-Reply-To: <a2748915-b88e-cc91-2ab8-1a95f678e444@acm.org>
-From:   Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Date:   Wed, 8 Jan 2020 17:51:30 +0100
-Message-ID: <CAMGffE=XKHnKSE9orD=TMhq5j0rikfpoOx5mEwRO4oLxEfHMPA@mail.gmail.com>
-Subject: Re: [PATCH v6 18/25] rnbd: client: sysfs interface functions
-To:     Bart Van Assche <bvanassche@acm.org>
-Cc:     Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Leon Romanovsky <leon@kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>, rpenyaev@suse.de
-Content-Type: text/plain; charset="UTF-8"
+        id S1729774AbgAHRWh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jan 2020 12:22:37 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41791 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729773AbgAHRWh (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 12:22:37 -0500
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 19:22:31 +0200
+Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008HMVj4009596;
+        Wed, 8 Jan 2020 19:22:31 +0200
+Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008HMVjb009535;
+        Wed, 8 Jan 2020 19:22:31 +0200
+Received: (from yishaih@localhost)
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008HMVaL009534;
+        Wed, 8 Jan 2020 19:22:31 +0200
+From:   Yishai Hadas <yishaih@mellanox.com>
+To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
+Cc:     yishaih@mellanox.com, maorg@mellanox.com, michaelgur@mellanox.com
+Subject: [PATCH rdma-next 03/14] RDMA/mlx5: Simplify devx async commands
+Date:   Wed,  8 Jan 2020 19:21:55 +0200
+Message-Id: <1578504126-9400-4-git-send-email-yishaih@mellanox.com>
+X-Mailer: git-send-email 1.8.2.3
+In-Reply-To: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
+References: <1578504126-9400-1-git-send-email-yishaih@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Jan 8, 2020 at 5:39 PM Bart Van Assche <bvanassche@acm.org> wrote:
->
-> On 1/8/20 5:06 AM, Jinpu Wang wrote:
-> > On Fri, Jan 3, 2020 at 1:03 AM Bart Van Assche <bvanassche@acm.org> wrote:
-> >> On 12/30/19 2:29 AM, Jack Wang wrote:
-> >>> +/* remove new line from string */
-> >>> +static void strip(char *s)
-> >>> +{
-> >>> +     char *p = s;
-> >>> +
-> >>> +     while (*s != '\0') {
-> >>> +             if (*s != '\n')
-> >>> +                     *p++ = *s++;
-> >>> +             else
-> >>> +                     ++s;
-> >>> +     }
-> >>> +     *p = '\0';
-> >>> +}
-> >>
-> >> Does this function change a multiline string into a single line? I'm not
-> >> sure that is how sysfs input should be processed ... Is this perhaps
-> >> what you want?
-> >>
-> >> static inline void kill_final_newline(char *str)
-> >> {
-> >>          char *newline = strrchr(str, '\n');
-> >>
-> >>          if (newline && !newline[1])
-> >>                  *newline = 0;
-> > probably you meant "*newline = '\0'"
-> >
-> > Your version only removes the last newline, our version removes all
-> > the newlines in the string.
->
-> Removing all newlines seems dubious to me. I am not aware of any other
-> sysfs code that does that.
->
-> Thanks,
->
-> Bart.
-I agree writing a string with many newlines is not common. We can
-require the user to write a single line.
-I will drop it after verify with our regression tests.
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-Thanks Bart
+With the new FD structure the async commands do not need to hold any
+references while running. The existing mlx5_cmd_exec_cb() and
+mlx5_cmd_cleanup_async_ctx() provide enough synchronization to ensure
+that all outstanding commands are completed before the uobject can be
+destructed.
+
+Remove the now confusing get_file() and the type erasure of the
+devx_async_cmd_event_file.
+
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/devx.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 02125d8..7bb91d2 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -30,7 +30,7 @@ enum devx_obj_flags {
+ struct devx_async_data {
+ 	struct mlx5_ib_dev *mdev;
+ 	struct list_head list;
+-	struct ib_uobject *fd_uobj;
++	struct devx_async_cmd_event_file *ev_file;
+ 	struct mlx5_async_work cb_work;
+ 	u16 cmd_out_len;
+ 	/* must be last field in this structure */
+@@ -1673,21 +1673,20 @@ static void devx_query_callback(int status, struct mlx5_async_work *context)
+ {
+ 	struct devx_async_data *async_data =
+ 		container_of(context, struct devx_async_data, cb_work);
+-	struct ib_uobject *fd_uobj = async_data->fd_uobj;
+-	struct devx_async_cmd_event_file *ev_file;
+-	struct devx_async_event_queue *ev_queue;
++	struct devx_async_cmd_event_file *ev_file = async_data->ev_file;
++	struct devx_async_event_queue *ev_queue = &ev_file->ev_queue;
+ 	unsigned long flags;
+ 
+-	ev_file = container_of(fd_uobj, struct devx_async_cmd_event_file,
+-			       uobj);
+-	ev_queue = &ev_file->ev_queue;
+-
++	/*
++	 * Note that if the struct devx_async_cmd_event_file uobj begins to be
++	 * destroyed it will block at mlx5_cmd_cleanup_async_ctx() until this
++	 * routine returns, ensuring that it always remains valid here.
++	 */
+ 	spin_lock_irqsave(&ev_queue->lock, flags);
+ 	list_add_tail(&async_data->list, &ev_queue->event_list);
+ 	spin_unlock_irqrestore(&ev_queue->lock, flags);
+ 
+ 	wake_up_interruptible(&ev_queue->poll_wait);
+-	fput(fd_uobj->object);
+ }
+ 
+ #define MAX_ASYNC_BYTES_IN_USE (1024 * 1024) /* 1MB */
+@@ -1756,9 +1755,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY)(
+ 
+ 	async_data->cmd_out_len = cmd_out_len;
+ 	async_data->mdev = mdev;
+-	async_data->fd_uobj = fd_uobj;
++	async_data->ev_file = ev_file;
+ 
+-	get_file(fd_uobj->object);
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	err = mlx5_cmd_exec_cb(&ev_file->async_ctx, cmd_in,
+ 		    uverbs_attr_get_len(attrs,
+@@ -1768,12 +1766,10 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY)(
+ 		    devx_query_callback, &async_data->cb_work);
+ 
+ 	if (err)
+-		goto cb_err;
++		goto free_async;
+ 
+ 	return 0;
+ 
+-cb_err:
+-	fput(fd_uobj->object);
+ free_async:
+ 	kvfree(async_data);
+ sub_bytes:
+-- 
+1.8.3.1
+
