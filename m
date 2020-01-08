@@ -4,39 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2BE0C33CA2
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CDD2C33CA2
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C75A62067D
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 382662067D
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730079AbgAHSGH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jan 2020 13:06:07 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45051 "EHLO
+        id S1730107AbgAHSGM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jan 2020 13:06:12 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45120 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730068AbgAHSGG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 13:06:06 -0500
+        with ESMTP id S1730096AbgAHSGM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 13:06:12 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 20:06:05 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65pn030021;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65NX030041;
         Wed, 8 Jan 2020 20:06:05 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I64eC022322;
-        Wed, 8 Jan 2020 20:06:04 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I65R3022350;
+        Wed, 8 Jan 2020 20:06:05 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I643O022321;
-        Wed, 8 Jan 2020 20:06:04 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I65Hf022349;
+        Wed, 8 Jan 2020 20:06:05 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
 Cc:     saeedm@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
         michaelgur@mellanox.com, netdev@vger.kernel.org
-Subject: [PATCH rdma-next 02/10] RDMA/core: Add UVERBS_METHOD_ASYNC_EVENT_ALLOC
-Date:   Wed,  8 Jan 2020 20:05:32 +0200
-Message-Id: <1578506740-22188-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 08/10] RDMA/uverbs: Add new relaxed ordering memory region access flag
+Date:   Wed,  8 Jan 2020 20:05:38 +0200
+Message-Id: <1578506740-22188-9-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
 References: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
@@ -45,104 +45,45 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Michael Guralnik <michaelgur@mellanox.com>
 
-Allow the async FD to be allocated separately from the context.
+Adding new relaxed ordering access flag for memory regions.
+Using memory regions with relaxed ordeing set can enhance performance.
 
-This is necessary to introduce the ioctl to create a context, as an ioctl
-should only ever create a single uobject at a time.
+This access flag is handled in a best-effort manner, drivers should
+ignore if they don't support setting relaxed ordering.
 
-If multiple async FDs are created then the first one is used to deliver
-affiliated events from any ib_uevent_object, with all subsequent ones will
-receive only unaffiliated events.
-
+Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_main.c              |  4 +++-
- .../infiniband/core/uverbs_std_types_async_fd.c    | 23 +++++++++++++++++++++-
- include/uapi/rdma/ib_user_ioctl_cmds.h             |  8 ++++++++
- 3 files changed, 33 insertions(+), 2 deletions(-)
+ include/rdma/ib_verbs.h                 | 1 +
+ include/uapi/rdma/ib_user_ioctl_verbs.h | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 1f279b0a..fb9e752 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -475,7 +475,9 @@ void ib_uverbs_init_async_event_file(
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ffb358f..2b3c16f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1418,6 +1418,7 @@ enum ib_access_flags {
+ 	IB_ZERO_BASED = IB_UVERBS_ACCESS_ZERO_BASED,
+ 	IB_ACCESS_ON_DEMAND = IB_UVERBS_ACCESS_ON_DEMAND,
+ 	IB_ACCESS_HUGETLB = IB_UVERBS_ACCESS_HUGETLB,
++	IB_ACCESS_RELAXED_ORDERING = IB_UVERBS_ACCESS_RELAXED_ORDERING,
  
- 	ib_uverbs_init_event_queue(&async_file->ev_queue);
+ 	IB_ACCESS_OPTIONAL = IB_UVERBS_ACCESS_OPTIONAL_RANGE,
+ 	IB_ACCESS_SUPPORTED =
+diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
+index 76dbbd9..2a165f4 100644
+--- a/include/uapi/rdma/ib_user_ioctl_verbs.h
++++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+@@ -54,6 +54,7 @@ enum ib_uverbs_access_flags {
+ 	IB_UVERBS_ACCESS_ON_DEMAND = 1 << 6,
+ 	IB_UVERBS_ACCESS_HUGETLB = 1 << 7,
  
--	if (!WARN_ON(uverbs_file->async_file)) {
-+	/* The first async_event_file becomes the default one for the file. */
-+	lockdep_assert_held(&uverbs_file->ucontext_lock);
-+	if (!uverbs_file->async_file) {
- 		/* Pairs with the put in ib_uverbs_release_file */
- 		uverbs_uobject_get(&async_file->uobj);
- 		smp_store_release(&uverbs_file->async_file, async_file);
-diff --git a/drivers/infiniband/core/uverbs_std_types_async_fd.c b/drivers/infiniband/core/uverbs_std_types_async_fd.c
-index 31ff968..484dba1 100644
---- a/drivers/infiniband/core/uverbs_std_types_async_fd.c
-+++ b/drivers/infiniband/core/uverbs_std_types_async_fd.c
-@@ -8,6 +8,19 @@
- #include "rdma_core.h"
- #include "uverbs.h"
- 
-+static int UVERBS_HANDLER(UVERBS_METHOD_ASYNC_EVENT_ALLOC)(
-+	struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_uobject *uobj =
-+		uverbs_attr_get_uobject(attrs, UVERBS_METHOD_ASYNC_EVENT_ALLOC);
-+
-+	mutex_lock(&attrs->ufile->ucontext_lock);
-+	ib_uverbs_init_async_event_file(
-+		container_of(uobj, struct ib_uverbs_async_event_file, uobj));
-+	mutex_unlock(&attrs->ufile->ucontext_lock);
-+	return 0;
-+}
-+
- static int uverbs_async_event_destroy_uobj(struct ib_uobject *uobj,
- 					   enum rdma_remove_reason why)
- {
-@@ -19,13 +32,21 @@ static int uverbs_async_event_destroy_uobj(struct ib_uobject *uobj,
- 	return 0;
- }
- 
-+DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_ASYNC_EVENT_ALLOC,
-+	UVERBS_ATTR_FD(UVERBS_ATTR_ASYNC_EVENT_ALLOC_FD_HANDLE,
-+		       UVERBS_OBJECT_ASYNC_EVENT,
-+		       UVERBS_ACCESS_NEW,
-+		       UA_MANDATORY));
-+
- DECLARE_UVERBS_NAMED_OBJECT(
- 	UVERBS_OBJECT_ASYNC_EVENT,
- 	UVERBS_TYPE_ALLOC_FD(sizeof(struct ib_uverbs_async_event_file),
- 			     uverbs_async_event_destroy_uobj,
- 			     &uverbs_async_event_fops,
- 			     "[infinibandevent]",
--			     O_RDONLY));
-+			     O_RDONLY),
-+	&UVERBS_METHOD(UVERBS_METHOD_ASYNC_EVENT_ALLOC));
- 
- const struct uapi_definition uverbs_def_obj_async_fd[] = {
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_ASYNC_EVENT),
-diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 9cfadb5..498955c 100644
---- a/include/uapi/rdma/ib_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -242,4 +242,12 @@ enum uverbs_attrs_flow_destroy_ids {
- 	UVERBS_ATTR_DESTROY_FLOW_HANDLE,
- };
- 
-+enum uverbs_method_async_event {
-+	UVERBS_METHOD_ASYNC_EVENT_ALLOC,
-+};
-+
-+enum uverbs_attrs_async_event_create {
-+	UVERBS_ATTR_ASYNC_EVENT_ALLOC_FD_HANDLE,
-+};
-+
- #endif
++	IB_UVERBS_ACCESS_RELAXED_ORDERING = IB_UVERBS_ACCESS_OPTIONAL_FIRST,
+ 	IB_UVERBS_ACCESS_OPTIONAL_RANGE =
+ 		((IB_UVERBS_ACCESS_OPTIONAL_LAST << 1) - 1) &
+ 		~(IB_UVERBS_ACCESS_OPTIONAL_FIRST - 1)
 -- 
 1.8.3.1
 
