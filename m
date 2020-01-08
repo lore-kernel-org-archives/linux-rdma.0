@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 981A1C3F68F
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A92DC282DD
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E71920656
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 280BA20656
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730129AbgAHSG0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jan 2020 13:06:26 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45104 "EHLO
+        id S1728905AbgAHSGH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jan 2020 13:06:07 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45048 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730093AbgAHSGL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 13:06:11 -0500
+        with ESMTP id S1730069AbgAHSGG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 13:06:06 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 20:06:05 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65Oc030033;
-        Wed, 8 Jan 2020 20:06:05 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I64YB030018;
+        Wed, 8 Jan 2020 20:06:04 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I65SH022338;
-        Wed, 8 Jan 2020 20:06:05 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I64I4022318;
+        Wed, 8 Jan 2020 20:06:04 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I65TY022337;
-        Wed, 8 Jan 2020 20:06:05 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I64rF022317;
+        Wed, 8 Jan 2020 20:06:04 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
 Cc:     saeedm@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
         michaelgur@mellanox.com, netdev@vger.kernel.org
-Subject: [PATCH rdma-next 06/10] RDMA/core: Add optional access flags range
-Date:   Wed,  8 Jan 2020 20:05:36 +0200
-Message-Id: <1578506740-22188-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 01/10] net/mlx5: Expose relaxed ordering bits
+Date:   Wed,  8 Jan 2020 20:05:31 +0200
+Message-Id: <1578506740-22188-2-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
 References: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
@@ -47,60 +47,39 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Michael Guralnik <michaelgur@mellanox.com>
 
-Define a range of access flags that are defined to be optional, both
-uverbs and drivers should enable getting them and use if they are
-applicable
+Expose relaxed ordering bits in HCA capability and mkey context structs.
 
-This will be used, for example, for the relaxed ordering access flag
-which unsupporting drivers can ignore.
-
-Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 ---
- include/rdma/ib_verbs.h                 | 4 +++-
- include/uapi/rdma/ib_user_ioctl_verbs.h | 7 +++++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ include/linux/mlx5/mlx5_ifc.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a104e1c..ffb358f 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1419,7 +1419,9 @@ enum ib_access_flags {
- 	IB_ACCESS_ON_DEMAND = IB_UVERBS_ACCESS_ON_DEMAND,
- 	IB_ACCESS_HUGETLB = IB_UVERBS_ACCESS_HUGETLB,
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 5d54fcc..8edcca4 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1160,7 +1160,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         log_max_cq[0x5];
  
--	IB_ACCESS_SUPPORTED = ((IB_ACCESS_HUGETLB << 1) - 1)
-+	IB_ACCESS_OPTIONAL = IB_UVERBS_ACCESS_OPTIONAL_RANGE,
-+	IB_ACCESS_SUPPORTED =
-+		((IB_ACCESS_HUGETLB << 1) - 1) | IB_ACCESS_OPTIONAL,
- };
+ 	u8         log_max_eq_sz[0x8];
+-	u8         reserved_at_e8[0x2];
++	u8         relaxed_ordering_write[0x1];
++	u8         relaxed_ordering_read[0x1];
+ 	u8         log_max_mkey[0x6];
+ 	u8         reserved_at_f0[0x8];
+ 	u8         dump_fill_mkey[0x1];
+@@ -3271,7 +3272,9 @@ struct mlx5_ifc_mkc_bits {
  
- /*
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 9019b2d..76dbbd9 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -41,6 +41,9 @@
- #define RDMA_UAPI_PTR(_type, _name)	__aligned_u64 _name
- #endif
+ 	u8         translations_octword_size[0x20];
  
-+#define IB_UVERBS_ACCESS_OPTIONAL_FIRST (1 << 20)
-+#define IB_UVERBS_ACCESS_OPTIONAL_LAST (1 << 29)
-+
- enum ib_uverbs_access_flags {
- 	IB_UVERBS_ACCESS_LOCAL_WRITE = 1 << 0,
- 	IB_UVERBS_ACCESS_REMOTE_WRITE = 1 << 1,
-@@ -50,6 +53,10 @@ enum ib_uverbs_access_flags {
- 	IB_UVERBS_ACCESS_ZERO_BASED = 1 << 5,
- 	IB_UVERBS_ACCESS_ON_DEMAND = 1 << 6,
- 	IB_UVERBS_ACCESS_HUGETLB = 1 << 7,
-+
-+	IB_UVERBS_ACCESS_OPTIONAL_RANGE =
-+		((IB_UVERBS_ACCESS_OPTIONAL_LAST << 1) - 1) &
-+		~(IB_UVERBS_ACCESS_OPTIONAL_FIRST - 1)
- };
+-	u8         reserved_at_1c0[0x1b];
++	u8         reserved_at_1c0[0x19];
++	u8         relaxed_ordering_read[0x1];
++	u8         reserved_at_1d9[0x1];
+ 	u8         log_page_size[0x5];
  
- enum ib_uverbs_query_port_cap_flags {
+ 	u8         reserved_at_1e0[0x20];
 -- 
 1.8.3.1
 
