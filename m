@@ -1,141 +1,99 @@
-Return-Path: <SRS0=JeJO=25=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=Tn76=26=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 334E1C282DD
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C21AC32771
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 08:48:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 165E020656
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jan 2020 18:06:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74892206ED
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 08:48:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728247AbgAHSG3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jan 2020 13:06:29 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45057 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730071AbgAHSGH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jan 2020 13:06:07 -0500
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 8 Jan 2020 20:06:05 +0200
-Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 008I65nP030024;
-        Wed, 8 Jan 2020 20:06:05 +0200
-Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 008I65tD022326;
-        Wed, 8 Jan 2020 20:06:05 +0200
-Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 008I6557022325;
-        Wed, 8 Jan 2020 20:06:05 +0200
-From:   Yishai Hadas <yishaih@mellanox.com>
-To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
-Cc:     saeedm@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
-        michaelgur@mellanox.com, netdev@vger.kernel.org
-Subject: [PATCH rdma-next 03/10] RDMA/core: Remove ucontext_lock from the uverbs_destry_ufile_hw() path
-Date:   Wed,  8 Jan 2020 20:05:33 +0200
-Message-Id: <1578506740-22188-4-git-send-email-yishaih@mellanox.com>
-X-Mailer: git-send-email 1.8.2.3
-In-Reply-To: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
-References: <1578506740-22188-1-git-send-email-yishaih@mellanox.com>
+        id S1728565AbgAIIsB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Jan 2020 03:48:01 -0500
+Received: from mout.kundenserver.de ([212.227.126.131]:47331 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728448AbgAIIsB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Jan 2020 03:48:01 -0500
+Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
+ (mreue010 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1Mw99Y-1jey8c0CyC-00s2rY; Thu, 09 Jan 2020 09:47:46 +0100
+From:   Arnd Bergmann <arnd@arndb.de>
+To:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Artemy Kovalyov <artemyko@mellanox.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Moni Shoua <monis@mellanox.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] IB/core: Fix build failure without hugepages
+Date:   Thu,  9 Jan 2020 09:47:30 +0100
+Message-Id: <20200109084740.2872079-1-arnd@arndb.de>
+X-Mailer: git-send-email 2.20.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:mkrhrw40NErOvP8CxwUXSW4llRsS42HydBRTLlnckgzOAZHs4E/
+ hAw/7GSlComduAO87UIxsrWBEWcIF+7ft/buqQtfeeqxApMdprqOpGlFDlfIhDQNy1E1LEd
+ 2Q9J9QMoA8Lp7KAaqUzbTAxbc2w0PjVgVJZEnlMdjvNGiewGek9MojVygyqKU2Zpmx+rZW7
+ 7C0RDFSmDuAbfH6Rn18MA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:03kATHjJVDc=:OV0JtzVoDE39MIMzD9tJrj
+ IYkYlVS89skmK73I+iAs19WcYvxf9Z3w+YV/Ly32JQYhnaTysEDXIRG85ttV280GphHPno7A9
+ 3PW7EbmUUQJPqSFUyVfjJ/P4WnmW4i4SN4iSDyJgP7cowHA9cyTtQTeDYN9xArJwqXuHp0GA4
+ LdK+cF8PEE1b03EtnlVrhibhltwQm+zEG/RI8fLHpv8GMRdRB4SjN/M5+acPjjwnirz1sHU9O
+ mb8hDzwVWeI6jP/52JbUbyOV4RRoITZkIC1BKNkCWO7/AI+1hwxAevhCO6Htqy7R1HV+WqHzq
+ Ruq174DQRlJuJxTHTJnylvvjr2pC1UAKFQcD4s8VqiVgnJK9t4NrtblGD3tNP/Zj0Fhi1fK2p
+ NJkTKkMWoojSKEFeSKrvLgtAGJl1LCHM8wuWeK1142iS1f20/rF0+VPldBCkJZjFtvagAkucB
+ KePnVLLnAjgjR44CI1Op9TGJSzd2ndiwVrl7hdgYJ0LtmvlIrPnPhExQ86wJ248dtRTYng6Bt
+ sD0+tdqXMuEQo5Hk/6KcuoRZiwj3O9jWKE/OwLNiDb/vfzaeUw4vEfdGsY3nkxD5FsuEMQx28
+ HRYnUBRCaiWan6Ikit6MNNwROhFc1m2EAW72evrSNRuu4CyL1kT6XOlAFiiCFBq8srPZaum1C
+ bUOoouGoI3+15NHBpOBq58N6eqWzMzjVvHLwdYnBlUYKTAbFCigx2iBzS0P4N7CIrbjH1V+ue
+ v+/LDRj2iLUivulKIWDOtN9fM6AAbBSHEM9rldw1UXeTz8lSM9IfBr5KkeNAg3nrdslG5BlCn
+ FZhY52Vgf+zP4b2XZgIrgxxqfYFlIvJdnFFlDFIB6w206b8OEh2tDP31rfqCl2hnRZL8wwK2J
+ xMKRZdN0K9IHPNvz8lfg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+HPAGE_SHIFT is only defined on architectures that support hugepages:
 
-This lock only serializes ucontext creation. Instead of checking the
-ucontext_lock during destruction hold the existing hw_destroy_rwsem
-during creation, which is the standard pattern for object creation.
+drivers/infiniband/core/umem_odp.c: In function 'ib_umem_odp_get':
+drivers/infiniband/core/umem_odp.c:245:26: error: 'HPAGE_SHIFT' undeclared (first use in this function); did you mean 'PAGE_SHIFT'?
 
-The simplification of locking is needed for the next patch.
+Enclose this in an #ifdef.
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: 9ff1b6466a29 ("IB/core: Fix ODP with IB_ACCESS_HUGETLB handling")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/infiniband/core/rdma_core.c  | 21 +--------------------
- drivers/infiniband/core/uverbs_cmd.c |  5 ++++-
- 2 files changed, 5 insertions(+), 21 deletions(-)
+ drivers/infiniband/core/umem_odp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index f839b93..58af6a7 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -863,9 +863,7 @@ static int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
- }
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index f42fa31c24a2..b9baf7d0a5cb 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -241,10 +241,11 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_udata *udata, unsigned long addr,
+ 	umem_odp->umem.owning_mm = mm = current->mm;
+ 	umem_odp->notifier.ops = ops;
  
- /*
-- * Destroy the uncontext and every uobject associated with it. If called with
-- * reason != RDMA_REMOVE_CLOSE this will not return until the destruction has
-- * been completed and ufile->ucontext is NULL.
-+ * Destroy the uncontext and every uobject associated with it.
-  *
-  * This is internally locked and can be called in parallel from multiple
-  * contexts.
-@@ -873,22 +871,6 @@ static int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
- void uverbs_destroy_ufile_hw(struct ib_uverbs_file *ufile,
- 			     enum rdma_remove_reason reason)
- {
--	if (reason == RDMA_REMOVE_CLOSE) {
--		/*
--		 * During destruction we might trigger something that
--		 * synchronously calls release on any file descriptor. For
--		 * this reason all paths that come from file_operations
--		 * release must use try_lock. They can progress knowing that
--		 * there is an ongoing uverbs_destroy_ufile_hw that will clean
--		 * up the driver resources.
--		 */
--		if (!mutex_trylock(&ufile->ucontext_lock))
--			return;
--
--	} else {
--		mutex_lock(&ufile->ucontext_lock);
--	}
--
- 	down_write(&ufile->hw_destroy_rwsem);
++	umem_odp->page_shift = PAGE_SHIFT;
++#ifdef CONFIG_HUGETLB_PAGE
+ 	if (access & IB_ACCESS_HUGETLB)
+ 		umem_odp->page_shift = HPAGE_SHIFT;
+-	else
+-		umem_odp->page_shift = PAGE_SHIFT;
++#endif
  
- 	/*
-@@ -917,7 +899,6 @@ void uverbs_destroy_ufile_hw(struct ib_uverbs_file *ufile,
- 
- done:
- 	up_write(&ufile->hw_destroy_rwsem);
--	mutex_unlock(&ufile->ucontext_lock);
- }
- 
- const struct uverbs_obj_type_class uverbs_fd_class = {
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 29b1b5a..d71ffe4 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -218,6 +218,8 @@ static int ib_uverbs_get_context(struct uverbs_attr_bundle *attrs)
- 	if (ret)
- 		return ret;
- 
-+	if (!down_read_trylock(&file->hw_destroy_rwsem))
-+		return -EIO;
- 	mutex_lock(&file->ucontext_lock);
- 	ib_dev = srcu_dereference(file->device->ib_dev,
- 				  &file->device->disassociate_srcu);
-@@ -284,7 +286,7 @@ static int ib_uverbs_get_context(struct uverbs_attr_bundle *attrs)
- 	smp_store_release(&file->ucontext, ucontext);
- 
- 	mutex_unlock(&file->ucontext_lock);
--
-+	up_read(&file->hw_destroy_rwsem);
- 	return 0;
- 
- err_uobj:
-@@ -298,6 +300,7 @@ static int ib_uverbs_get_context(struct uverbs_attr_bundle *attrs)
- 
- err:
- 	mutex_unlock(&file->ucontext_lock);
-+	up_read(&file->hw_destroy_rwsem);
- 	return ret;
- }
- 
+ 	umem_odp->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
+ 	ret = ib_init_umem_odp(umem_odp, ops);
 -- 
-1.8.3.1
+2.20.0
 
