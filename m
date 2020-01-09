@@ -2,115 +2,142 @@ Return-Path: <SRS0=Tn76=26=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D178CC33CA4
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 14:05:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 628C7C33CA5
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 14:05:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B0092206ED
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 14:05:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42C75206ED
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 14:05:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727738AbgAIOFY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Jan 2020 09:05:24 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33795 "EHLO
+        id S1729891AbgAIOFZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Jan 2020 09:05:25 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33793 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729007AbgAIOFX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Jan 2020 09:05:23 -0500
+        with ESMTP id S1728770AbgAIOFY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Jan 2020 09:05:24 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 9 Jan 2020 16:05:15 +0200
+        with ESMTPS (AES256-SHA encrypted); 9 Jan 2020 16:05:16 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 009E5F5V016589;
-        Thu, 9 Jan 2020 16:05:15 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 009E5Guo016625;
+        Thu, 9 Jan 2020 16:05:16 +0200
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 009E5FR2001321;
-        Thu, 9 Jan 2020 16:05:15 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 009E5Gnb001350;
+        Thu, 9 Jan 2020 16:05:16 +0200
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 009E5Dnw001309;
-        Thu, 9 Jan 2020 16:05:13 +0200
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 009E5Ge4001349;
+        Thu, 9 Jan 2020 16:05:16 +0200
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, dledford@redhat.com, yishaih@mellanox.com,
-        maorg@mellanox.com, michaelgur@mellanox.com
-Subject: [PATCH rdma-core 0/7] verbs: Relaxed ordering memory regions
-Date:   Thu,  9 Jan 2020 16:04:29 +0200
-Message-Id: <1578578676-752-1-git-send-email-yishaih@mellanox.com>
+        maorg@mellanox.com, michaelgur@mellanox.com,
+        Edward Srouji <edwards@mellanox.com>
+Subject: [PATCH rdma-core 7/7] tests: Add relaxed ordering access test
+Date:   Thu,  9 Jan 2020 16:04:36 +0200
+Message-Id: <1578578676-752-8-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
+In-Reply-To: <1578578676-752-1-git-send-email-yishaih@mellanox.com>
+References: <1578578676-752-1-git-send-email-yishaih@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series exposes an IBV_ACCESS_RELAXED_ORDERING optional MR access flag.
-This optional flag allows creation of relaxed ordering memory regions.
-Access through such MRs can improve performance by allowing the system to reorder
-certain accesses.
+From: Michael Guralnik <michaelgur@mellanox.com>
 
-The series uses the new ioctl command to get a device context, this command
-enables reading some core generic capabilities such as supporting an optional
-MR access flags by IB core and its related drivers.
+Test traffic with MRs with relaxed ordering access set.
 
-This capability enables transparent masking of the optional flags in libibverbs
-when the kernel doesn't support the MR optional access mode.
-
-The series is based on an RFC that was sent to the ML [1], the matching kernel
-series was sent to 'for-next'.
-[1] https://www.spinics.net/lists/linux-rdma/msg86188.html
-
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/660
-
-Yishai
-
-Michael Guralnik (6):
-  verbs: Move free_context from verbs_device_ops to verbs_context_ops
-  verbs: Move alloc_context to ioctl
-  verbs: Relaxed ordering memory regions
-  mlx5: Add optional access flags range to DM
-  pyverbs: Add relaxed ordering access flag
-  tests: Add relaxed ordering access test
-
-Yishai Hadas (1):
-  Update kernel headers
-
- debian/libibverbs1.symbols                |  2 +
- kernel-headers/rdma/ib_user_ioctl_cmds.h  | 15 ++++++
- kernel-headers/rdma/ib_user_ioctl_verbs.h | 12 +++++
- libibverbs/CMakeLists.txt                 |  2 +-
- libibverbs/cmd.c                          | 18 -------
- libibverbs/cmd_device.c                   | 79 +++++++++++++++++++++++++++++++
- libibverbs/device.c                       |  5 +-
- libibverbs/driver.h                       |  3 +-
- libibverbs/dummy_ops.c                    |  7 +++
- libibverbs/libibverbs.map.in              |  5 ++
- libibverbs/man/ibv_reg_mr.3               |  2 +
- libibverbs/verbs.c                        | 13 +++++
- libibverbs/verbs.h                        | 51 +++++++++++++++++++-
- libibverbs/verbs_api.h                    |  2 +
- providers/bnxt_re/main.c                  |  6 ++-
- providers/cxgb4/dev.c                     |  4 +-
- providers/efa/efa.c                       |  4 +-
- providers/hfi1verbs/hfiverbs.c            |  4 +-
- providers/hns/hns_roce_u.c                |  4 +-
- providers/i40iw/i40iw_umain.c             |  6 ++-
- providers/ipathverbs/ipathverbs.c         |  4 +-
- providers/mlx4/mlx4.c                     |  4 +-
- providers/mlx5/mlx5.c                     |  4 +-
- providers/mlx5/verbs.c                    |  3 +-
- providers/mthca/mthca.c                   |  6 ++-
- providers/ocrdma/ocrdma_main.c            |  6 ++-
- providers/qedr/qelr_main.c                |  4 +-
- providers/rxe/rxe.c                       |  6 ++-
- providers/siw/siw.c                       |  3 +-
- providers/vmw_pvrdma/pvrdma_main.c        |  4 +-
- pyverbs/libibverbs_enums.pxd              |  1 +
- tests/CMakeLists.txt                      |  5 +-
- tests/test_relaxed_ordering.py            | 55 +++++++++++++++++++++
- 33 files changed, 301 insertions(+), 48 deletions(-)
+Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
+Signed-off-by: Edward Srouji <edwards@mellanox.com>
+---
+ tests/CMakeLists.txt           |  5 ++--
+ tests/test_relaxed_ordering.py | 55 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+), 2 deletions(-)
  create mode 100644 tests/test_relaxed_ordering.py
 
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 6d70242..cacfc52 100755
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -10,11 +10,12 @@ rdma_python_test(tests
+   test_cqex.py
+   test_device.py
+   test_mr.py
+-  test_pd.py
+-  test_qp.py
+   test_odp.py
++  test_pd.py
+   test_parent_domain.py
++  test_qp.py
+   test_rdmacm.py
++  test_relaxed_ordering.py
+   utils.py
+   )
+ 
+diff --git a/tests/test_relaxed_ordering.py b/tests/test_relaxed_ordering.py
+new file mode 100644
+index 0000000..27af992
+--- /dev/null
++++ b/tests/test_relaxed_ordering.py
+@@ -0,0 +1,55 @@
++from tests.base import RCResources, UDResources, XRCResources
++from tests.utils import traffic, xrc_traffic
++from tests.base import RDMATestCase
++from pyverbs.mr import MR
++import pyverbs.enums as e
++
++
++class RoUD(UDResources):
++    def create_mr(self):
++        self.mr = MR(self.pd, self.msg_size + self.GRH_SIZE,
++                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_RELAXED_ORDERING)
++
++
++class RoRC(RCResources):
++    def create_mr(self):
++        self.mr = MR(self.pd, self.msg_size,
++                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_RELAXED_ORDERING)
++
++
++class RoXRC(XRCResources):
++    def create_mr(self):
++        self.mr = MR(self.pd, self.msg_size,
++                     e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_RELAXED_ORDERING)
++
++
++class RoTestCase(RDMATestCase):
++    def setUp(self):
++        super(RoTestCase, self).setUp()
++        self.iters = 100
++        self.qp_dict = {'rc': RoRC, 'ud': RoUD, 'xrc': RoXRC}
++
++    def create_players(self, qp_type):
++        client = self.qp_dict[qp_type](self.dev_name, self.ib_port,
++                                       self.gid_index)
++        server = self.qp_dict[qp_type](self.dev_name, self.ib_port,
++                                       self.gid_index)
++        if qp_type == 'xrc':
++            client.pre_run(server.psns, server.qps_num)
++            server.pre_run(client.psns, client.qps_num)
++        else:
++            client.pre_run(server.psn, server.qpn)
++            server.pre_run(client.psn, client.qpn)
++        return client, server
++
++    def test_ro_rc_traffic(self):
++        client, server = self.create_players('rc')
++        traffic(client, server, self.iters, self.gid_index, self.ib_port)
++
++    def test_ro_ud_traffic(self):
++        client, server = self.create_players('ud')
++        traffic(client, server, self.iters, self.gid_index, self.ib_port)
++
++    def test_ro_xrc_traffic(self):
++        client, server = self.create_players('xrc')
++        xrc_traffic(client, server)
 -- 
 1.8.3.1
 
