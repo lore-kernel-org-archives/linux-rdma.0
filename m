@@ -2,106 +2,193 @@ Return-Path: <SRS0=Tn76=26=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56E8BC282DD
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 13:40:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D47A5C282DD
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 14:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 257EB20661
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 13:40:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="s1YHS6g6"
+	by mail.kernel.org (Postfix) with ESMTP id AFEDD206ED
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jan 2020 14:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727701AbgAINkw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Jan 2020 08:40:52 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:35980 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725839AbgAINkw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Jan 2020 08:40:52 -0500
-Received: by mail-wm1-f68.google.com with SMTP id p17so2890075wma.1
-        for <linux-rdma@vger.kernel.org>; Thu, 09 Jan 2020 05:40:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=ufoH4CuzkpxM6n+q4ckr88nWRTkIm5SyTnAZnRVL6mc=;
-        b=s1YHS6g6x2YbH5bkd6UECymZGx6pIommMfBB/zGfDgLE5FNCl+NKufTPecfp6Y6in0
-         5a8SCP7cHRKFfQ7SvRxfla+ABbE7k2XJd8XvH6BTY7hsW5K6Sr3ruYj2uFT5Q8Iih0Gh
-         roAMzhY8pXbqN0qJvJBmKDODEr7k/4pUj0wh8mmsxySKgLXW2oSxXCzXL3IwGKCB76rk
-         d+ABFQHnFRhItNQwl6WnRXh8UO/7o495uypDvORUJgNSX5ghIN3JUh8u9Iz2pY6o8FUD
-         Fgvcsm6bWMgEF1UEmP5eLaPZcvroGbRg7ZYjIllTfKEFpyL6zBRJ3M3B1rHML2ZeAgvJ
-         R8DA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=ufoH4CuzkpxM6n+q4ckr88nWRTkIm5SyTnAZnRVL6mc=;
-        b=Fu37ue5TAl+L3iPjf9WK+5MNtBzunreHkOJZosnbsFN4jM/LYOE0CoZx8Pcj5Gvqyx
-         t2jKZLt4Ye0W95gTAxkpd8f1bzB/6R+LrPU+Ff6BOnlBUF+8rxHYgEgNkmMX7EyLKN/Y
-         NK8WwFfXiImOwM2dyWw/gAU8Q8S7dt8haz+GbRJssskF+RRH3CRjXA0fgsuUcQSmtpXq
-         QJRx6jjY2/I2o61xxTqej9BxkJ6fm0AG6irMSgei8qUkACOv4qCTCgH0Dg0y93hMFBG9
-         rvDie4x4VA+C+JU3xqJZIhJTwjgmGgSbnQvWne1OeD8PBB/ezZ49KQY/2QQg0qsdLmsA
-         Yk7A==
-X-Gm-Message-State: APjAAAUtchC5rqHzs1P7aUl/7RW8hTqllWyQxqHADt0aAL7sAE+GATyf
-        adJyHJ35TFW2KK1SPHFhzDgd7CZjO4A=
-X-Google-Smtp-Source: APXvYqy/b76w2ItCd1/CQl3T89k59gxmgfVF2er445bVciBY1ApPostCN+lebjnIu3HSbSk4fxKjiA==
-X-Received: by 2002:a7b:c936:: with SMTP id h22mr4812789wml.115.1578577250501;
-        Thu, 09 Jan 2020 05:40:50 -0800 (PST)
-Received: from ls00508.pb.local ([2001:1438:4010:2540:3044:9fa7:85f1:9686])
-        by smtp.gmail.com with ESMTPSA id a9sm2825738wmm.15.2020.01.09.05.40.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Jan 2020 05:40:49 -0800 (PST)
-From:   jgq516@gmail.com
-X-Google-Original-From: guoqing.jiang@cloud.ionos.com
-To:     dledford@redhat.com, jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org,
-        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: [PATCH] RDMA/core: remove err in iw_query_port
-Date:   Thu,  9 Jan 2020 14:40:43 +0100
-Message-Id: <20200109134043.15568-1-guoqing.jiang@cloud.ionos.com>
-X-Mailer: git-send-email 2.17.1
+        id S1730066AbgAIOFX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Jan 2020 09:05:23 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33792 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728319AbgAIOFX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Jan 2020 09:05:23 -0500
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 9 Jan 2020 16:05:16 +0200
+Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 009E5GLt016609;
+        Thu, 9 Jan 2020 16:05:16 +0200
+Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 009E5FCQ001334;
+        Thu, 9 Jan 2020 16:05:15 +0200
+Received: (from yishaih@localhost)
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 009E5FoX001333;
+        Thu, 9 Jan 2020 16:05:15 +0200
+From:   Yishai Hadas <yishaih@mellanox.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     jgg@mellanox.com, dledford@redhat.com, yishaih@mellanox.com,
+        maorg@mellanox.com, michaelgur@mellanox.com
+Subject: [PATCH rdma-core 3/7] verbs: Move alloc_context to ioctl
+Date:   Thu,  9 Jan 2020 16:04:32 +0200
+Message-Id: <1578578676-752-4-git-send-email-yishaih@mellanox.com>
+X-Mailer: git-send-email 1.8.2.3
+In-Reply-To: <1578578676-752-1-git-send-email-yishaih@mellanox.com>
+References: <1578578676-752-1-git-send-email-yishaih@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+From: Michael Guralnik <michaelgur@mellanox.com>
 
-Since we can return device->ops.query_port directly, so no need
-to keep those lines.
+Execute alloc_context using ioctl mechanism with fallback to write
+method.
 
-Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+In the ioctl flow split the aync_fd allocation to a new ioctl call and
+get the 'core_support' field returned from the kernel.
+
+Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 ---
- drivers/infiniband/core/device.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ libibverbs/cmd.c        | 18 -----------
+ libibverbs/cmd_device.c | 79 +++++++++++++++++++++++++++++++++++++++++++++++++
+ libibverbs/driver.h     |  1 +
+ 3 files changed, 80 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 2dd2cfe9b561..51ab6d31fbf4 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1979,7 +1979,6 @@ static int iw_query_port(struct ib_device *device,
- {
- 	struct in_device *inetdev;
- 	struct net_device *netdev;
--	int err;
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 26eaa47..b68f3e3 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -47,24 +47,6 @@
  
- 	memset(port_attr, 0, sizeof(*port_attr));
+ bool verbs_allow_disassociate_destroy;
  
-@@ -2010,11 +2009,7 @@ static int iw_query_port(struct ib_device *device,
- 	}
- 
- 	dev_put(netdev);
--	err = device->ops.query_port(device, port_num, port_attr);
--	if (err)
--		return err;
+-int ibv_cmd_get_context(struct verbs_context *context_ex,
+-			struct ibv_get_context *cmd, size_t cmd_size,
+-			struct ib_uverbs_get_context_resp *resp, size_t resp_size)
+-{
+-	int ret;
+-
+-	ret = execute_cmd_write(&context_ex->context,
+-				IB_USER_VERBS_CMD_GET_CONTEXT, cmd, cmd_size,
+-				resp, resp_size);
+-	if (ret)
+-		return ret;
+-
+-	context_ex->context.async_fd = resp->async_fd;
+-	context_ex->context.num_comp_vectors = resp->num_comp_vectors;
 -
 -	return 0;
-+	return device->ops.query_port(device, port_num, port_attr);
+-}
+-
+ static void copy_query_dev_fields(struct ibv_device_attr *device_attr,
+ 				  struct ib_uverbs_query_device_resp *resp,
+ 				  uint64_t *raw_fw_ver)
+diff --git a/libibverbs/cmd_device.c b/libibverbs/cmd_device.c
+index d806351..4de59c0 100644
+--- a/libibverbs/cmd_device.c
++++ b/libibverbs/cmd_device.c
+@@ -99,3 +99,82 @@ int ibv_cmd_query_port(struct ibv_context *context, uint8_t port_num,
+ 	return 0;
  }
  
- static int __ib_query_port(struct ib_device *device,
++static int cmd_alloc_async_fd(struct ibv_context *context)
++{
++	DECLARE_COMMAND_BUFFER(cmdb, UVERBS_OBJECT_ASYNC_EVENT,
++			       UVERBS_METHOD_ASYNC_EVENT_ALLOC, 1);
++	struct ib_uverbs_attr *handle;
++	int ret;
++
++	handle = fill_attr_out_fd(cmdb, UVERBS_ATTR_ASYNC_EVENT_ALLOC_FD_HANDLE,
++				  0);
++
++	ret = execute_ioctl(context, cmdb);
++	if (ret)
++		return ret;
++
++	context->async_fd =
++		read_attr_fd(UVERBS_ATTR_ASYNC_EVENT_ALLOC_FD_HANDLE, handle);
++	return 0;
++}
++
++static int cmd_get_context(struct verbs_context *context_ex,
++				struct ibv_command_buffer *link)
++{
++	DECLARE_FBCMD_BUFFER(cmdb, UVERBS_OBJECT_DEVICE,
++			     UVERBS_METHOD_GET_CONTEXT, 2, link);
++
++	struct ibv_context *context = &context_ex->context;
++	struct verbs_device *verbs_device;
++	uint64_t core_support;
++	uint32_t num_comp_vectors;
++	int ret;
++
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_GET_CONTEXT_NUM_COMP_VECTORS,
++			  &num_comp_vectors);
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_GET_CONTEXT_CORE_SUPPORT,
++			  &core_support);
++
++	/* Using free_context cmd_name as alloc context is not in
++	 * verbs_context_ops while free_context is and doesn't use ioctl
++	 */
++	switch (execute_ioctl_fallback(context, free_context, cmdb, &ret)) {
++	case TRY_WRITE: {
++		DECLARE_LEGACY_UHW_BUFS(link, IB_USER_VERBS_CMD_GET_CONTEXT);
++
++		ret = execute_write_bufs(context, IB_USER_VERBS_CMD_GET_CONTEXT,
++					 req, resp);
++		if (ret)
++			return ret;
++
++		context->async_fd = resp->async_fd;
++		context->num_comp_vectors = resp->num_comp_vectors;
++
++		return 0;
++	}
++	case SUCCESS:
++		ret = cmd_alloc_async_fd(context);
++		if (ret)
++			return ret;
++		break;
++	default:
++		return ret;
++	};
++
++	context->num_comp_vectors = num_comp_vectors;
++	verbs_device = verbs_get_device(context->device);
++	verbs_device->core_support = core_support;
++	return 0;
++}
++
++int ibv_cmd_get_context(struct verbs_context *context_ex,
++			struct ibv_get_context *cmd, size_t cmd_size,
++			struct ib_uverbs_get_context_resp *resp,
++			size_t resp_size)
++{
++	DECLARE_CMD_BUFFER_COMPAT(cmdb, UVERBS_OBJECT_DEVICE,
++				  UVERBS_METHOD_GET_CONTEXT, cmd, cmd_size,
++				  resp, resp_size);
++
++	return cmd_get_context(context_ex, cmdb);
++}
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index 88603ce..09974d9 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -230,6 +230,7 @@ struct verbs_device {
+ 	atomic_int refcount;
+ 	struct list_node entry;
+ 	struct verbs_sysfs_dev *sysfs;
++	uint64_t core_support;
+ };
+ 
+ struct verbs_counters {
 -- 
-2.17.1
+1.8.3.1
 
