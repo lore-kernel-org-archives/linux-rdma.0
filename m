@@ -1,112 +1,144 @@
-Return-Path: <SRS0=2fwD=3B=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=tE8X=3C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86BFAC33CA9
-	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jan 2020 23:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3FF8C33CAE
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 07:31:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5027821744
-	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jan 2020 23:54:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="SpLegbzO"
+	by mail.kernel.org (Postfix) with ESMTP id C15212073D
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 07:31:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387474AbgALXy4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 12 Jan 2020 18:54:56 -0500
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:40042 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727323AbgALXy4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Jan 2020 18:54:56 -0500
-Received: by mail-qt1-f194.google.com with SMTP id v25so7656928qto.7
-        for <linux-rdma@vger.kernel.org>; Sun, 12 Jan 2020 15:54:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=QECIxvXldhkMJFt0djz6qtJ/uPYPO1s9x56W6TJ6wzo=;
-        b=SpLegbzOveTbs+ZOtT+k6RWf2vdDMJuG3gB5bR8kFxxQdenmqVPhSDBN9SvMhuA62K
-         F6D1CPtyMpVMDV89mgv9eQsutM0RHdE04KAEBzkh6q7pdoyK638sBTLxQHFga5MsKuYU
-         B/UNe+ziZlxnKPic7vK1qcgU/Yul1zMlxqTsgyZz4f03Wk8JV3wWtm6PBbXEfhS22fKK
-         Yn7R4FCKp6lTZXMmprhQUGkMgbCniLoVTEYuNQWjtD3+5rixwfeIP5x9fYCPfbRVAwMt
-         +GnbCRtm+qecsJSsBx0sGZoQ6HdO8gOignRD6rJjG7m3PTGOee02y0x827zvmSN5SrCh
-         NVfA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=QECIxvXldhkMJFt0djz6qtJ/uPYPO1s9x56W6TJ6wzo=;
-        b=NFHos+bIP75yWvAl+tAjDSp4yxUl++48DcCU6wybZZfQFBE4B9Z4IvKtBjEIesIDAI
-         GTiZlk/TxhCY8jB5f8tNnEtkGo4X1Oiik5Fl5CbP/1w7Y3ZOUedIgQVQ26e8Z/VFg14D
-         JRpix11QNZhnhQk2bTDbBKrpurGJGo5z+Ga0pBLzMSeDbyuse0Pp4IEkgU39q4AxJWAS
-         vVz2NzdHhby0UTBjbrrxhD8z/4KzVpkFdB/ZxiGddxpqiktcQt6bPdMAJbE+DKPavr56
-         ma/r3z0yHyuZWQ/EqTTj+5f41YdwOcYJ1qXY4XR+Vdk80GO2MueQ3ryY2E+0V1RvD8Hs
-         Jm3g==
-X-Gm-Message-State: APjAAAWAzT7Z5zzn3bcc9Fzdx1WptvH3wyn10ZWundSh5tzRpfcVsdoK
-        oiPlqGZqjMprWIQvY8k3hpk0Ng==
-X-Google-Smtp-Source: APXvYqw0HF3THv3cEhFsjUx4gokaXgXA4wvGXQ/CnZgRdvb3tRdwInZCk1qTVjtITXmqbxoLhnkEIg==
-X-Received: by 2002:ac8:1aeb:: with SMTP id h40mr8262135qtk.269.1578873295622;
-        Sun, 12 Jan 2020 15:54:55 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id f5sm4192976qke.109.2020.01.12.15.54.54
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Sun, 12 Jan 2020 15:54:55 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1iqn4I-0008Ht-8U; Sun, 12 Jan 2020 19:54:54 -0400
-Date:   Sun, 12 Jan 2020 19:54:54 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Saeed Mahameed <saeedm@mellanox.com>,
-        Doug Ledford <dledford@redhat.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Shahaf Shuler <shahafs@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>
-Subject: Re: [PATCH rdma-next 0/5] VIRTIO_NET Emulation Offload
-Message-ID: <20200112235454.GA20866@ziepe.ca>
-References: <20191212110928.334995-1-leon@kernel.org>
- <20200107193744.GB18256@ziepe.ca>
- <20200110183041.GA6871@unreal>
+        id S1728731AbgAMHbl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Jan 2020 02:31:41 -0500
+Received: from smtprelay0033.hostedemail.com ([216.40.44.33]:40108 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728646AbgAMHbl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Jan 2020 02:31:41 -0500
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay07.hostedemail.com (Postfix) with ESMTP id 0D0DF181D3417;
+        Mon, 13 Jan 2020 07:31:39 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: fear63_658d484eb9418
+X-Filterd-Recvd-Size: 5014
+Received: from XPS-9350.home (unknown [47.151.135.224])
+        (Authenticated sender: joe@perches.com)
+        by omf08.hostedemail.com (Postfix) with ESMTPA;
+        Mon, 13 Jan 2020 07:31:37 +0000 (UTC)
+Message-ID: <3b91c274164d1ae9d81dce9f3b398d691cc6765e.camel@perches.com>
+Subject: [PATCH net-next] mlx5: Use proper logging and tracing line
+ terminations
+From:   Joe Perches <joe@perches.com>
+To:     Saeed Mahameed <saeedm@mellanox.com>,
+        Leon Romanovsky <leon@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Sun, 12 Jan 2020 23:30:43 -0800
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.34.1-2 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200110183041.GA6871@unreal>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jan 10, 2020 at 08:30:41PM +0200, Leon Romanovsky wrote:
-> On Tue, Jan 07, 2020 at 03:37:44PM -0400, Jason Gunthorpe wrote:
-> > On Thu, Dec 12, 2019 at 01:09:23PM +0200, Leon Romanovsky wrote:
-> > > From: Leon Romanovsky <leonro@mellanox.com>
-> > >
-> > > Hi,
-> > >
-> > > In this series, we introduce VIRTIO_NET_Q HW offload capability, so SW will
-> > > be able to create special general object with relevant virtqueue properties.
-> > >
-> > > This series is based on -rc patches:
-> > > https://lore.kernel.org/linux-rdma/20191212100237.330654-1-leon@kernel.org
-> > >
-> > > Thanks
-> > >
-> > > Yishai Hadas (5):
-> > >   net/mlx5: Add Virtio Emulation related device capabilities
-> > >   net/mlx5: Expose vDPA emulation device capabilities
-> >
-> > This series looks OK enough to me. Saeed can you update the share
-> > branch with the two patches?
-> 
-> Merged, thanks,
-> 
-> ca1992c62cad net/mlx5: Expose vDPA emulation device capabilities
-> 90fbca595243 net/mlx5: Add Virtio Emulation related device capabilities
+netdev_err should use newline termination but mlx5_health_report
+is used in a trace output function devlink_health_report where
+no newline should be used.
 
-Done, thanks
+Remove the newlines from a couple formats and add a format string
+of "%s\n" to the netdev_err call to not directly output the
+logging string.
 
-Jason
+Also use snprintf to avoid any possible output string overrun.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en/health.c      |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en/reporter_rx.c |  9 +++++----
+ drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c | 10 +++++-----
+ 3 files changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/health.c b/drivers/net/ethernet/mellanox/mlx5/core/en/health.c
+index 3a9756..75a35f1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/health.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/health.c
+@@ -197,7 +197,7 @@ int mlx5e_health_report(struct mlx5e_priv *priv,
+ 			struct devlink_health_reporter *reporter, char *err_str,
+ 			struct mlx5e_err_ctx *err_ctx)
+ {
+-	netdev_err(priv->netdev, err_str);
++	netdev_err(priv->netdev, "%s\n", err_str);
+ 
+ 	if (!reporter)
+ 		return err_ctx->recover(&err_ctx->ctx);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_rx.c
+index 6c72b59..67d2f70 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_rx.c
+@@ -110,7 +110,7 @@ void mlx5e_reporter_icosq_cqe_err(struct mlx5e_icosq *icosq)
+ 
+ 	err_ctx.ctx = icosq;
+ 	err_ctx.recover = mlx5e_rx_reporter_err_icosq_cqe_recover;
+-	sprintf(err_str, "ERR CQE on ICOSQ: 0x%x", icosq->sqn);
++	snprintf(err_str, sizeof(err_str), "ERR CQE on ICOSQ: 0x%x", icosq->sqn);
+ 
+ 	mlx5e_health_report(priv, priv->rx_reporter, err_str, &err_ctx);
+ }
+@@ -179,7 +179,7 @@ void mlx5e_reporter_rq_cqe_err(struct mlx5e_rq *rq)
+ 
+ 	err_ctx.ctx = rq;
+ 	err_ctx.recover = mlx5e_rx_reporter_err_rq_cqe_recover;
+-	sprintf(err_str, "ERR CQE on RQ: 0x%x", rq->rqn);
++	snprintf(err_str, sizeof(err_str), "ERR CQE on RQ: 0x%x", rq->rqn);
+ 
+ 	mlx5e_health_report(priv, priv->rx_reporter, err_str, &err_ctx);
+ }
+@@ -210,8 +210,9 @@ void mlx5e_reporter_rx_timeout(struct mlx5e_rq *rq)
+ 
+ 	err_ctx.ctx = rq;
+ 	err_ctx.recover = mlx5e_rx_reporter_timeout_recover;
+-	sprintf(err_str, "RX timeout on channel: %d, ICOSQ: 0x%x RQ: 0x%x, CQ: 0x%x\n",
+-		icosq->channel->ix, icosq->sqn, rq->rqn, rq->cq.mcq.cqn);
++	snprintf(err_str, sizeof(err_str),
++		 "RX timeout on channel: %d, ICOSQ: 0x%x RQ: 0x%x, CQ: 0x%x",
++		 icosq->channel->ix, icosq->sqn, rq->rqn, rq->cq.mcq.cqn);
+ 
+ 	mlx5e_health_report(priv, priv->rx_reporter, err_str, &err_ctx);
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c
+index b46854..5ecb986 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c
+@@ -90,7 +90,7 @@ void mlx5e_reporter_tx_err_cqe(struct mlx5e_txqsq *sq)
+ 
+ 	err_ctx.ctx = sq;
+ 	err_ctx.recover = mlx5e_tx_reporter_err_cqe_recover;
+-	sprintf(err_str, "ERR CQE on SQ: 0x%x", sq->sqn);
++	snprintf(err_str, sizeof(err_str), "ERR CQE on SQ: 0x%x", sq->sqn);
+ 
+ 	mlx5e_health_report(priv, priv->tx_reporter, err_str, &err_ctx);
+ }
+@@ -118,10 +118,10 @@ int mlx5e_reporter_tx_timeout(struct mlx5e_txqsq *sq)
+ 
+ 	err_ctx.ctx = sq;
+ 	err_ctx.recover = mlx5e_tx_reporter_timeout_recover;
+-	sprintf(err_str,
+-		"TX timeout on queue: %d, SQ: 0x%x, CQ: 0x%x, SQ Cons: 0x%x SQ Prod: 0x%x, usecs since last trans: %u\n",
+-		sq->channel->ix, sq->sqn, sq->cq.mcq.cqn, sq->cc, sq->pc,
+-		jiffies_to_usecs(jiffies - sq->txq->trans_start));
++	snprintf(err_str, sizeof(err_str),
++		 "TX timeout on queue: %d, SQ: 0x%x, CQ: 0x%x, SQ Cons: 0x%x SQ Prod: 0x%x, usecs since last trans: %u",
++		 sq->channel->ix, sq->sqn, sq->cq.mcq.cqn, sq->cc, sq->pc,
++		 jiffies_to_usecs(jiffies - sq->txq->trans_start));
+ 
+ 	return mlx5e_health_report(priv, priv->tx_reporter, err_str, &err_ctx);
+ }
+
+
+
