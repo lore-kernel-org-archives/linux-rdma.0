@@ -2,177 +2,188 @@ Return-Path: <SRS0=tE8X=3C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DCE2C33CA9
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 22:44:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 021FDC33CA9
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 22:47:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 361A220678
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 22:44:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2CF520678
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 22:47:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="nCIqkg8K"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="T1gTwrUm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728838AbgAMWo5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Jan 2020 17:44:57 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:8219 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728733AbgAMWo5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Jan 2020 17:44:57 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e1cf2d40000>; Mon, 13 Jan 2020 14:44:36 -0800
+        id S1728829AbgAMWrM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Jan 2020 17:47:12 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:16354 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728714AbgAMWrM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Jan 2020 17:47:12 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e1cf3390001>; Mon, 13 Jan 2020 14:46:17 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Mon, 13 Jan 2020 14:44:56 -0800
+  Mon, 13 Jan 2020 14:47:11 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Mon, 13 Jan 2020 14:44:56 -0800
-Received: from rcampbell-dev.nvidia.com (10.124.1.5) by HQMAIL107.nvidia.com
+        by hqpgpgate101.nvidia.com on Mon, 13 Jan 2020 14:47:11 -0800
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 13 Jan
- 2020 22:44:52 +0000
-Subject: Re: [PATCH v5 1/2] mm/mmu_notifier: make interval notifier updates
- safe
-To:     Jason Gunthorpe <jgg@mellanox.com>
-CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        "John Hubbard" <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Shuah Khan <shuah@kernel.org>
-References: <20191216195733.28353-1-rcampbell@nvidia.com>
- <20191216195733.28353-2-rcampbell@nvidia.com>
- <20200109194805.GK20978@mellanox.com>
- <73225ded-c22d-33f2-ebcb-b9e9aa95266b@nvidia.com>
- <20200109232548.GO20978@mellanox.com>
+ 2020 22:47:09 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Mon, 13 Jan 2020 22:47:09 +0000
+Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5e1cf36d0001>; Mon, 13 Jan 2020 14:47:09 -0800
 From:   Ralph Campbell <rcampbell@nvidia.com>
-X-Nvconfidentiality: public
-Message-ID: <633a3dda-d4d7-1233-b290-53d36fb8fda1@nvidia.com>
-Date:   Mon, 13 Jan 2020 14:44:52 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.1.0
+To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
+        <linux-kernel@vger.kernel.org>, <nouveau@lists.freedesktop.org>,
+        <linux-kselftest@vger.kernel.org>
+CC:     Jerome Glisse <jglisse@redhat.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        "Andrew Morton" <akpm@linux-foundation.org>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        "Shuah Khan" <shuah@kernel.org>,
+        Ralph Campbell <rcampbell@nvidia.com>
+Subject: [PATCH v6 1/6] mm/mmu_notifier: add mmu_interval_notifier_insert_safe()
+Date:   Mon, 13 Jan 2020 14:46:58 -0800
+Message-ID: <20200113224703.5917-2-rcampbell@nvidia.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200113224703.5917-1-rcampbell@nvidia.com>
+References: <20200113224703.5917-1-rcampbell@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <20200109232548.GO20978@mellanox.com>
-X-Originating-IP: [10.124.1.5]
-X-ClientProxiedBy: HQMAIL101.nvidia.com (172.20.187.10) To
- HQMAIL107.nvidia.com (172.20.187.13)
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-NVConfidentiality: public
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1578955476; bh=7TMyQAyBFp1DtzmW42ZsabWDd5djN+Ro8smtOwxU9Io=;
-        h=X-PGP-Universal:Subject:To:CC:References:From:X-Nvconfidentiality:
-         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
-         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
-         Content-Transfer-Encoding;
-        b=nCIqkg8KqZuotUvu9Aohq0Eqq1R11k/IujyaARjsUtTmEQ+oJFnZSznlQL3rSn3cc
-         ck/eSXnhIskrTlONTXLdl+xOh/MrdimK0KW7NfqJda9zFw6QDqXrZfnU2TSO+vkd05
-         az4WyUQFkBEUE44bnRtJVpDnV8GrLIyOp/suwFfQy4twnc6wDIuKmfKFU0Q/SPVtqi
-         IePaGmTg5Qa14Uzyt0sHQ/ALx1JrlbL3PFBrZ4fornOqXG58M3PWtnvlwNHb4Jr4Bf
-         2wnuwAFo2iHk3P8Pgq2ZVriDZI9aYnXIBzWYLd9cdKi4OvDPvlU7q+kxacwLHv8AoM
-         VQhn5irDhqygA==
+        t=1578955577; bh=usqCLSpPHPIcP3XBGGSE1vwQGADMCClZ0wXkTAqd5L8=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=T1gTwrUmup3ZAEIwku7WzU48gEGGQkY5/8zH66sUmLJsia3qUt8h/xqKhhNkzzn2K
+         QHYAnUchESxsa9ZLy+gtRHXOfTK2y4l9PZ+8lMlIpfbAEXhLaC/bQaOZhEZRkfW/bf
+         3qpD8AyAoeWumC9R1qN8MMjxHJVK7Jcgyezqq3VS38eOVWFphCf59dnuSJyitsWN1e
+         XTQHL1uBiW2NE/96aZHHcA3hAv9e8M2n+zPJ6EQ9hCosTuZLveYbMawMbTtqPuIRSy
+         ILbZThymZz+UIchn1qmzWDSoyeDERjiQmAx18duaOZPAl9y0r+zHZ/Eh93zrNQsyXS
+         nspOfXPhiVM+Q==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+mmu_interval_notifier_insert() can't be called safely from inside the
+invalidate() callback because it can acquire the mmap_sem lock which
+might already be held. Insertion might be needed when the invalidate()
+callback creates a "hole" in the interval being tracked (i.e., the event
+type MMU_NOTIFY_UNMAP) and the interval needs to be split in order to
+continue receiving callbacks for the remaining left and right intervals.
 
-On 1/9/20 3:25 PM, Jason Gunthorpe wrote:
-> On Thu, Jan 09, 2020 at 02:01:21PM -0800, Ralph Campbell wrote:
-> 
->>> I'd write it more like
->>>
->>> if (mni->updated_start == mni->updated_end)
->>>       insert
->>> else
->>>       remove
->>
->> OK, but I'm using updated_end == 0, not updated_start, and the end can't be zero.
-> 
-> Tricky..
->   
->>> ie an empty interval can't get a notification so it should be removed
->>> from the tree.
->>>
->>> I also like the name 'updated' better than deferred, it is a bit
->>> clearer..
->>
->> OK.
->>
->>> Adding release should it's own patch.
->>
->> The release callback is associated with mmu_interval_notifier_put()
->> (i.e., async remove). Otherwise, there is no way to know when the
->> interval can be freed.
-> 
-> Okay, but this patch is just trying to add update?
-> 
->>> So why do we need this? You can't call hmm_range_fault from a
->>> notifier. You just can't.
->>>
->>> So there should be no reason to create an interval from the notifier,
->>> do it from where you call hmm_range_fault, and it must be safe to
->>> obtain the mmap_sem from that thread.
->>
->> I was thinking of the case where munmap() creates a hole in the interval.
->> The invalidate callback would need to update the interval to cover the
->> left side of the remaining interval and an insert to cover the right
->> side. Otherwise, the HW invalidation has to be extended to cover the
->> right side and rely on a fault to re-establish the right side interval.
-> 
-> This is very tricky because this algorithm can only work correctly if
-> done atomically as a batch entirely under the spinlock. Forcing it
-> into the defered list while holding the lock is the only way to do
-> something like that sensibly..
-> 
-> So 'update' is not some generic API you can call, it can only be done
-> while the interval tree is locked for reading. Thus 'safe' is probably
-> the wrong name, it is actually 'interval tree locked for read'
-> 
-> At the minimum this needs to be comprehensively documented and we need
-> a lockdep style assertion that we are locked when doing it..
-> 
-> And if we are defining things like that then it might as well be
-> expressed as a remove/insert/insert batch operation rather than
-> a somewhat confusing update.
-> 
->> Now the plan for v6 is to leave mmu_interval_notifier_remove() unchanged,
->> add mmu_interval_notifier_put() for async/safe removal and make 'update'
->> be asynchronous only and, as you say, rely on mmu_interval_read_begin()
->> to be sure all delayed add/remove/updates are complete.
-> 
-> Hm, we can see what injecting reference counts would look like.
-> 
->> I'm also planning to add a mmu_interval_notifier_find() so that nouveau
->> and the self tests don't need to create a duplicate interval range tree
->> to track the intervals that they have registered. There isn't an existing
->> structure that the struct mmu_interval_notifier can just be added to so
->> it ends up being a separately allocated structure and would need to be
->> stored in some sort of table so I thought why not just use the itree.
-> 
-> Okay, but for locking reasons find is also a little tricky. I suppose
-> find can obtain the read side lock on the interval tree and then the
-> caller would have to find_unlock once it has refcounted or finished
-> accessing the object. Much like how the invalidate callback is locked.
-> 
->> This is all useful feedback. I am working on v6 which addresses your concerns
->> and updates nouveau to use the new API. I'm somewhat sidetracked by the lockdep
->> issue I posted about nouveau calling kmalloc(GFP_KERNEL) from the invalidation
->> callback so it may take me awhile to sort that out.
->> Since we are at -rc5, I'm guessing this won't have enough soak time to make 5.6.
-> 
-> Yes, sorry for the delay, lots of travel and a mountain of emails. I
-> am almost caught up now. But you can post it at least.
-> 
-> Jason
-> 
-I'm using the device driver lock to serialize find/insert/update/remove
-changes to the interval tree. The important thing is to have a registered
-interval covering any shadow PTEs in the hardware and the driver lock that
-protects the updates to the HW and sequence number also protects updates
-to the registered intervals.
-Hopefully, this will be easier to understand with v6 which I'm posting
-for review.
+Add a new function mmu_interval_notifier_insert_safe() which can be called
+from the invalidate() callback.
+
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+---
+ include/linux/mmu_notifier.h |  4 ++++
+ mm/mmu_notifier.c            | 45 ++++++++++++++++++++++++++++++++----
+ 2 files changed, 45 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
+index 9e6caa8ecd19..027c9c8f3a69 100644
+--- a/include/linux/mmu_notifier.h
++++ b/include/linux/mmu_notifier.h
+@@ -299,6 +299,10 @@ int mmu_interval_notifier_insert_locked(
+ 	struct mmu_interval_notifier *mni, struct mm_struct *mm,
+ 	unsigned long start, unsigned long length,
+ 	const struct mmu_interval_notifier_ops *ops);
++int mmu_interval_notifier_insert_safe(
++	struct mmu_interval_notifier *mni, struct mm_struct *mm,
++	unsigned long start, unsigned long length,
++	const struct mmu_interval_notifier_ops *ops);
+ void mmu_interval_notifier_remove(struct mmu_interval_notifier *mni);
+=20
+ /**
+diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
+index f76ea05b1cb0..a5ff19cd1bc5 100644
+--- a/mm/mmu_notifier.c
++++ b/mm/mmu_notifier.c
+@@ -913,16 +913,17 @@ static int __mmu_interval_notifier_insert(
+ /**
+  * mmu_interval_notifier_insert - Insert an interval notifier
+  * @mni: Interval notifier to register
++ * @mm: mm_struct to attach to
+  * @start: Starting virtual address to monitor
+  * @length: Length of the range to monitor
+- * @mm : mm_struct to attach to
++ * @ops: Interval notifier callback operations
+  *
+  * This function subscribes the interval notifier for notifications from t=
+he
+- * mm.  Upon return the ops related to mmu_interval_notifier will be calle=
+d
++ * mm.  Upon return, the ops related to mmu_interval_notifier will be call=
+ed
+  * whenever an event that intersects with the given range occurs.
+  *
+- * Upon return the range_notifier may not be present in the interval tree =
+yet.
+- * The caller must use the normal interval notifier read flow via
++ * Upon return, the mmu_interval_notifier may not be present in the interv=
+al
++ * tree yet.  The caller must use the normal interval notifier read flow v=
+ia
+  * mmu_interval_read_begin() to establish SPTEs for this range.
+  */
+ int mmu_interval_notifier_insert(struct mmu_interval_notifier *mni,
+@@ -969,6 +970,42 @@ int mmu_interval_notifier_insert_locked(
+ }
+ EXPORT_SYMBOL_GPL(mmu_interval_notifier_insert_locked);
+=20
++/**
++ * mmu_interval_notifier_insert_safe - Insert an interval notifier
++ * @mni: Interval notifier to register
++ * @mm: mm_struct to attach to
++ * @start: Starting virtual address to monitor
++ * @length: Length of the range to monitor
++ * @ops: Interval notifier callback operations
++ *
++ * Return: -EINVAL if @mm hasn't been initialized for interval notifiers
++ *	by calling mmu_notifier_register(NULL, mm) or
++ *	__mmu_notifier_register(NULL, mm).
++ *
++ * This function subscribes the interval notifier for notifications from t=
+he
++ * mm.  Upon return, the ops related to mmu_interval_notifier will be call=
+ed
++ * whenever an event that intersects with the given range occurs.
++ *
++ * This function is safe to call from the ops->invalidate() function.
++ * Upon return, the mmu_interval_notifier may not be present in the interv=
+al
++ * tree yet.  The caller must use the normal interval notifier read flow v=
+ia
++ * mmu_interval_read_begin() to establish SPTEs for this range.
++ */
++int mmu_interval_notifier_insert_safe(
++	struct mmu_interval_notifier *mni, struct mm_struct *mm,
++	unsigned long start, unsigned long length,
++	const struct mmu_interval_notifier_ops *ops)
++{
++	struct mmu_notifier_mm *mmn_mm;
++
++	mmn_mm =3D mm->mmu_notifier_mm;
++	if (!mmn_mm || !mmn_mm->has_itree)
++		return -EINVAL;
++	return __mmu_interval_notifier_insert(mni, mm, mmn_mm, start, length,
++					      ops);
++}
++EXPORT_SYMBOL_GPL(mmu_interval_notifier_insert_safe);
++
+ /**
+  * mmu_interval_notifier_remove - Remove a interval notifier
+  * @mni: Interval notifier to unregister
+--=20
+2.20.1
+
