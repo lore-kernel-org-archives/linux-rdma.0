@@ -1,280 +1,90 @@
-Return-Path: <SRS0=tE8X=3C=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=Cfzb=3D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 548BAC33CAE
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 22:47:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C994C33CA9
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jan 2020 00:41:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 294CE207FD
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jan 2020 22:47:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8849207FD
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jan 2020 00:41:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="dqY0jK7e"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Btp5Nfuf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729019AbgAMWrP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Jan 2020 17:47:15 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:8371 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728994AbgAMWrP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Jan 2020 17:47:15 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e1cf35d0000>; Mon, 13 Jan 2020 14:46:53 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Mon, 13 Jan 2020 14:47:13 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Mon, 13 Jan 2020 14:47:13 -0800
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 13 Jan
- 2020 22:47:10 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Mon, 13 Jan 2020 22:47:10 +0000
-Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e1cf36e0000>; Mon, 13 Jan 2020 14:47:10 -0800
-From:   Ralph Campbell <rcampbell@nvidia.com>
-To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
-        <linux-kernel@vger.kernel.org>, <nouveau@lists.freedesktop.org>,
-        <linux-kselftest@vger.kernel.org>
-CC:     Jerome Glisse <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        "Andrew Morton" <akpm@linux-foundation.org>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        "Shuah Khan" <shuah@kernel.org>,
-        Ralph Campbell <rcampbell@nvidia.com>
-Subject: [PATCH v6 2/6] mm/mmu_notifier: add mmu_interval_notifier_put()
-Date:   Mon, 13 Jan 2020 14:46:59 -0800
-Message-ID: <20200113224703.5917-3-rcampbell@nvidia.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200113224703.5917-1-rcampbell@nvidia.com>
-References: <20200113224703.5917-1-rcampbell@nvidia.com>
-MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1578955614; bh=SFOHAESIv9tXjesCFOs4ndM/OwOZqhr4ej7VPHTD1e4=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=dqY0jK7e8sxIFDIAcf8rRj7kcgBLXqVMIUAEvSaIz0mg7UItoNwrSqEWxTfs274AO
-         LeS/Ug1yElj2TO7ygasIoV8XEmDl6qUeYz0MY4ll8VJOU0Rmudafx6myR7LlDP31X3
-         nN90TdfTBD3J7xWHe7qnQibmd11+FQiUoiBdN9Vrl56/09I+rFjtxR/m8qpS4VBOqh
-         hFZz5KioalPlWoDz7j+xqVdL2DIVxLFROKatzcE5rk0ixo0pa0wzeAjSt4dI186xVD
-         1RcwKHgqTfLvRF6tOP/sf6w+bP7mqGDDVImapU61NV01+NXd+MpBpxBKXt8tDi94VX
-         oMtSRAYRX+1UQ==
+        id S1728928AbgANAlq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Jan 2020 19:41:46 -0500
+Received: from aserp2120.oracle.com ([141.146.126.78]:44170 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727382AbgANAlq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Jan 2020 19:41:46 -0500
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00E0cqwv065758;
+        Tue, 14 Jan 2020 00:41:39 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id; s=corp-2019-08-05;
+ bh=xqsf6ckW2iSZpQMx8EIfUWF7V/K4/38oY1N43NbDuV0=;
+ b=Btp5NfufyotUpB3sCKItejZ9pGvhrFM9OUUVsiXtqV0+6jh9wI3DVlmcyUqFPFQ3EkjN
+ W0dpoCfP63n1c0rn1VgFzTiG37JLwWkbkIxw9orDWteUrn1gfQ2uK6R2/zO3yWeY5Jm+
+ iQHd30s0nX62DvRd4o/VF9kGcqAkPdcfd8DLeKf61vG9s9xFQcOBJHhdj8zufJ3+4Q6K
+ L3zUtAxpbWhOzrq0qxGKTRa4QPVZxTihdprPMCV40RpB9r1Vp9hYWb7T/3m2LxbfoRz9
+ 2FjSwtapsQ6MNoB9Pb9jIrGxl5BY/6y54VuQsf6GrIL3A5dqYpHWagZd6wf9aGclxo76 qA== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by aserp2120.oracle.com with ESMTP id 2xf73tjfn4-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 14 Jan 2020 00:41:39 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00E0d6sl057212;
+        Tue, 14 Jan 2020 00:41:38 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+        by userp3020.oracle.com with ESMTP id 2xfrgjmaek-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 14 Jan 2020 00:41:38 +0000
+Received: from userp3020.oracle.com (userp3020.oracle.com [127.0.0.1])
+        by pps.reinject (8.16.0.27/8.16.0.27) with SMTP id 00E0fbfh067024;
+        Tue, 14 Jan 2020 00:41:37 GMT
+Received: from ca-dev107.us.oracle.com (ca-dev107.us.oracle.com [10.129.135.36])
+        by userp3020.oracle.com with ESMTP id 2xfrgjmae0-1;
+        Tue, 14 Jan 2020 00:41:37 +0000
+From:   rao Shoaib <rao.shoaib@oracle.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     jgg@ziepe.ca, monis@mellanox.com, dledford@redhat.com,
+        sean.hefty@intel.com, hal.rosenstock@gmail.com,
+        linux-kernel@vger.kernel.org, Rao Shoaib <rao.shoaib@oracle.com>
+Subject: [PATCH v3 0/2] rxe should use same buffer size for SGE's and inline data
+Date:   Mon, 13 Jan 2020 16:41:18 -0800
+Message-Id: <1578962480-17814-1-git-send-email-rao.shoaib@oracle.com>
+X-Mailer: git-send-email 1.8.3.1
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9499 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=1 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=880 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-2001140003
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-mmu_interval_notifier_remove() can't be called safely from inside the
-invalidate() callback because it sleeps waiting for invalidate callbacks
-to finish. Removals might be needed when the invalidate() callback is
-for munmap() (i.e., the event type MMU_NOTIFY_UNMAP), and the interval
-being tracked is no longer needed.
+From: Rao Shoaib <rao.shoaib@oracle.com>
 
-Add a new function mmu_interval_notifier_put() which is safe to call from
-the invalidate() callback. The ops->release() function will be called when
-all callbacks are finished and no CPUs are accessing the
-mmu_interval_notifier.
+I have incorportaed suggestions from Jason. There are two patches.
+Patch #1 introduces max WQE size as suggested by Jason
+Patch #2 allocates resources requested and makes sure that the buffer size
+         is same for SG entries and inline data, maximum of the two values
+	 requested is used.
 
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
----
- include/linux/mmu_notifier.h |  6 +++
- mm/mmu_notifier.c            | 86 ++++++++++++++++++++++++++++--------
- 2 files changed, 74 insertions(+), 18 deletions(-)
+Rao Shoaib (2):
+  Introduce maximum WQE size to check limits
+  SGE buffer and max_inline data must have same size
 
-diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-index 027c9c8f3a69..6dcaa632eef7 100644
---- a/include/linux/mmu_notifier.h
-+++ b/include/linux/mmu_notifier.h
-@@ -233,11 +233,16 @@ struct mmu_notifier {
-  * @invalidate: Upon return the caller must stop using any SPTEs within th=
-is
-  *              range. This function can sleep. Return false only if sleep=
-ing
-  *              was required but mmu_notifier_range_blockable(range) is fa=
-lse.
-+ * @release:	This function should be defined when using
-+ *		mmu_interval_notifier_put(). It will be called when the
-+ *		mmu_interval_notifier is removed from the interval tree.
-+ *		No other callbacks will be generated after this returns.
-  */
- struct mmu_interval_notifier_ops {
- 	bool (*invalidate)(struct mmu_interval_notifier *mni,
- 			   const struct mmu_notifier_range *range,
- 			   unsigned long cur_seq);
-+	void (*release)(struct mmu_interval_notifier *mni);
- };
-=20
- struct mmu_interval_notifier {
-@@ -304,6 +309,7 @@ int mmu_interval_notifier_insert_safe(
- 	unsigned long start, unsigned long length,
- 	const struct mmu_interval_notifier_ops *ops);
- void mmu_interval_notifier_remove(struct mmu_interval_notifier *mni);
-+void mmu_interval_notifier_put(struct mmu_interval_notifier *mni);
-=20
- /**
-  * mmu_interval_set_seq - Save the invalidation sequence
-diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
-index a5ff19cd1bc5..40c837ae8d90 100644
---- a/mm/mmu_notifier.c
-+++ b/mm/mmu_notifier.c
-@@ -129,6 +129,7 @@ static void mn_itree_inv_end(struct mmu_notifier_mm *mm=
-n_mm)
- {
- 	struct mmu_interval_notifier *mni;
- 	struct hlist_node *next;
-+	struct hlist_head removed_list;
-=20
- 	spin_lock(&mmn_mm->lock);
- 	if (--mmn_mm->active_invalidate_ranges ||
-@@ -144,20 +145,35 @@ static void mn_itree_inv_end(struct mmu_notifier_mm *=
-mmn_mm)
- 	 * The inv_end incorporates a deferred mechanism like rtnl_unlock().
- 	 * Adds and removes are queued until the final inv_end happens then
- 	 * they are progressed. This arrangement for tree updates is used to
--	 * avoid using a blocking lock during invalidate_range_start.
-+	 * avoid using a blocking lock while walking the interval tree.
- 	 */
-+	INIT_HLIST_HEAD(&removed_list);
- 	hlist_for_each_entry_safe(mni, next, &mmn_mm->deferred_list,
- 				  deferred_item) {
-+		hlist_del(&mni->deferred_item);
- 		if (RB_EMPTY_NODE(&mni->interval_tree.rb))
- 			interval_tree_insert(&mni->interval_tree,
- 					     &mmn_mm->itree);
--		else
-+		else {
- 			interval_tree_remove(&mni->interval_tree,
- 					     &mmn_mm->itree);
--		hlist_del(&mni->deferred_item);
-+			if (mni->ops->release)
-+				hlist_add_head(&mni->deferred_item,
-+					       &removed_list);
-+		}
- 	}
- 	spin_unlock(&mmn_mm->lock);
-=20
-+	hlist_for_each_entry_safe(mni, next, &removed_list, deferred_item) {
-+		struct mm_struct *mm =3D mni->mm;
-+
-+		hlist_del(&mni->deferred_item);
-+		mni->ops->release(mni);
-+
-+		/* pairs with mmgrab() in __mmu_interval_notifier_insert() */
-+		mmdrop(mm);
-+	}
-+
- 	wake_up_all(&mmn_mm->wq);
- }
-=20
-@@ -1006,24 +1022,13 @@ int mmu_interval_notifier_insert_safe(
- }
- EXPORT_SYMBOL_GPL(mmu_interval_notifier_insert_safe);
-=20
--/**
-- * mmu_interval_notifier_remove - Remove a interval notifier
-- * @mni: Interval notifier to unregister
-- *
-- * This function must be paired with mmu_interval_notifier_insert(). It ca=
-nnot
-- * be called from any ops callback.
-- *
-- * Once this returns ops callbacks are no longer running on other CPUs and
-- * will not be called in future.
-- */
--void mmu_interval_notifier_remove(struct mmu_interval_notifier *mni)
-+static unsigned long __mmu_interval_notifier_put(
-+					struct mmu_interval_notifier *mni)
- {
- 	struct mm_struct *mm =3D mni->mm;
- 	struct mmu_notifier_mm *mmn_mm =3D mm->mmu_notifier_mm;
- 	unsigned long seq =3D 0;
-=20
--	might_sleep();
--
- 	spin_lock(&mmn_mm->lock);
- 	if (mn_itree_is_invalidating(mmn_mm)) {
- 		/*
-@@ -1043,6 +1048,28 @@ void mmu_interval_notifier_remove(struct mmu_interva=
-l_notifier *mni)
- 	}
- 	spin_unlock(&mmn_mm->lock);
-=20
-+	return seq;
-+}
-+
-+/**
-+ * mmu_interval_notifier_remove - Remove an interval notifier
-+ * @mni: Interval notifier to unregister
-+ *
-+ * This function must be paired with one of the mmu_interval_notifier_inse=
-rt()
-+ * functions. It cannot be called from any ops callback.
-+ * Once this returns, ops callbacks are no longer running on other CPUs an=
-d
-+ * will not be called in future.
-+ */
-+void mmu_interval_notifier_remove(struct mmu_interval_notifier *mni)
-+{
-+	struct mm_struct *mm =3D mni->mm;
-+	struct mmu_notifier_mm *mmn_mm =3D mm->mmu_notifier_mm;
-+	unsigned long seq;
-+
-+	might_sleep();
-+
-+	seq =3D __mmu_interval_notifier_put(mni);
-+
- 	/*
- 	 * The possible sleep on progress in the invalidation requires the
- 	 * caller not hold any locks held by invalidation callbacks.
-@@ -1053,11 +1080,34 @@ void mmu_interval_notifier_remove(struct mmu_interv=
-al_notifier *mni)
- 		wait_event(mmn_mm->wq,
- 			   READ_ONCE(mmn_mm->invalidate_seq) !=3D seq);
-=20
--	/* pairs with mmgrab in mmu_interval_notifier_insert() */
--	mmdrop(mm);
-+	/* pairs with mmgrab() in __mmu_interval_notifier_insert() */
-+	if (!mni->ops->release)
-+		mmdrop(mm);
- }
- EXPORT_SYMBOL_GPL(mmu_interval_notifier_remove);
-=20
-+/**
-+ * mmu_interval_notifier_put - Unregister an interval notifier
-+ * @mni: Interval notifier to unregister
-+ *
-+ * This function must be paired with one of the mmu_interval_notifier_inse=
-rt()
-+ * functions. It is safe to call from the invalidate() callback.
-+ * Once this returns, ops callbacks may still be running on other CPUs and
-+ * the release() callback will be called when they finish.
-+ */
-+void mmu_interval_notifier_put(struct mmu_interval_notifier *mni)
-+{
-+	struct mm_struct *mm =3D mni->mm;
-+
-+	if (!__mmu_interval_notifier_put(mni)) {
-+		mni->ops->release(mni);
-+
-+		/* pairs with mmgrab() in __mmu_interval_notifier_insert() */
-+		mmdrop(mm);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(mmu_interval_notifier_put);
-+
- /**
-  * mmu_notifier_synchronize - Ensure all mmu_notifiers are freed
-  *
---=20
-2.20.1
+ drivers/infiniband/sw/rxe/rxe_param.h |  7 ++++++-
+ drivers/infiniband/sw/rxe/rxe_qp.c    | 23 +++++++++++------------
+ 2 files changed, 17 insertions(+), 13 deletions(-)
+
+-- 
+1.8.3.1
 
