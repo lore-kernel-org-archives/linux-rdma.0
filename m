@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21F17C33CB2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8F29C33CB1
 	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jan 2020 08:57:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC4202075B
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jan 2020 08:57:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 800AD2084D
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jan 2020 08:57:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="P8bBEyDY"
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="psWwJZn1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728828AbgANI5h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Jan 2020 03:57:37 -0500
+        id S1725820AbgANI5i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Jan 2020 03:57:38 -0500
 Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:21800 "EHLO
         smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728819AbgANI5h (ORCPT
+        with ESMTP id S1726452AbgANI5h (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jan 2020 03:57:37 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1578992255; x=1610528255;
+  t=1578992257; x=1610528257;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Lx3CAt/fJZnCz4dE0drf+aoWRjXuGfTay6KGE6hoztY=;
-  b=P8bBEyDYYX3mPA3mMsLi0OPGdREIM1Tv1LnKsgGHUUmf4hzHncHDZHdS
-   bHQWXlrXzs09dKzb8oS6DZcl2HtDgdhTAluct4BDVghdjQjsEjBGb8zr4
-   ewzxiISQSSe6NxWKfFnkIRTXvMSne1Ts4jDQhfrxn/KCXHI4My4W0/iNT
-   8=;
-IronPort-SDR: Fi9jxnNHblmtBAEEP2AOMK1/Cm0Rgcr3lw6tuemFhMsizZQxr/BmHT4p3Ist+L/cRfi3v1j39T
- Gk5DW7q0NXCw==
+  bh=K+2EtPHFChTSVRnONr9ltb8bldATgz35fPILfjutqIY=;
+  b=psWwJZn1QF0V7l71Ntco0hOkL7uvE6Q5lo2eGCuqRXN0uUtWGX5K2SlR
+   477iXyzWvNHN4z9W43onLRyp9C7dtIXM//uAUfYlvUnXxWX+hwNWDYvSo
+   ErAmyestWYzPDQ9EVDdffMik2nOW1UdsNtBbQ2UFGLari+opythfuPMdv
+   g=;
+IronPort-SDR: onx6C8ZSSReraTjnKDfzgmoEDEFA9q/SOZBanXrywrpva6mO0dmKeR5bj1C8k7uV3qCTQgh6Jy
+ OxB0V/IqoL8Q==
 X-IronPort-AV: E=Sophos;i="5.69,432,1571702400"; 
-   d="scan'208";a="18572453"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2a-53356bf6.us-west-2.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 14 Jan 2020 08:57:25 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
-        by email-inbound-relay-2a-53356bf6.us-west-2.amazon.com (Postfix) with ESMTPS id 2B7F1A2887;
-        Tue, 14 Jan 2020 08:57:25 +0000 (UTC)
-Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
- EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
- id 15.0.1236.3; Tue, 14 Jan 2020 08:57:24 +0000
+   d="scan'208";a="18572469"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-1e-57e1d233.us-east-1.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 14 Jan 2020 08:57:32 +0000
+Received: from EX13MTAUEA001.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan3.iad.amazon.com [10.40.159.166])
+        by email-inbound-relay-1e-57e1d233.us-east-1.amazon.com (Postfix) with ESMTPS id 1162D1417E1;
+        Tue, 14 Jan 2020 08:57:30 +0000 (UTC)
+Received: from EX13D19EUA001.ant.amazon.com (10.43.165.74) by
+ EX13MTAUEA001.ant.amazon.com (10.43.61.82) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Tue, 14 Jan 2020 08:57:30 +0000
 Received: from EX13MTAUEE002.ant.amazon.com (10.43.62.24) by
- EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1367.3; Tue, 14 Jan 2020 08:57:23 +0000
+ EX13D19EUA001.ant.amazon.com (10.43.165.74) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Tue, 14 Jan 2020 08:57:29 +0000
 Received: from 8c85908914bf.ant.amazon.com (10.218.69.133) by
  mail-relay.amazon.com (10.43.62.224) with Microsoft SMTP Server id
- 15.0.1367.3 via Frontend Transport; Tue, 14 Jan 2020 08:57:20 +0000
+ 15.0.1367.3 via Frontend Transport; Tue, 14 Jan 2020 08:57:26 +0000
 From:   Gal Pressman <galpress@amazon.com>
 To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
 CC:     <linux-rdma@vger.kernel.org>,
@@ -56,9 +56,9 @@ CC:     <linux-rdma@vger.kernel.org>,
         Gal Pressman <galpress@amazon.com>,
         Firas JahJah <firasj@amazon.com>,
         "Yossi Leybovich" <sleybo@amazon.com>
-Subject: [PATCH for-next 3/6] RDMA/efa: Device definitions documentation updates
-Date:   Tue, 14 Jan 2020 10:57:03 +0200
-Message-ID: <20200114085706.82229-4-galpress@amazon.com>
+Subject: [PATCH for-next 5/6] RDMA/efa: Remove unused ucontext parameter from efa_qp_user_mmap_entries_remove
+Date:   Tue, 14 Jan 2020 10:57:05 +0200
+Message-ID: <20200114085706.82229-6-galpress@amazon.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200114085706.82229-1-galpress@amazon.com>
 References: <20200114085706.82229-1-galpress@amazon.com>
@@ -70,152 +70,65 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Various clarifications and updates to the documentation of the device
-definitions.
-No functional changes in this patch.
+The ucontext parameter is unused, remove it.
 
 Reviewed-by: Firas JahJah <firasj@amazon.com>
 Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
 Signed-off-by: Gal Pressman <galpress@amazon.com>
 ---
- .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 37 ++++++++++++-------
- 1 file changed, 24 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/efa/efa_verbs.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-index a589a471d122..d5f3d8795ac0 100644
---- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-+++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-@@ -160,10 +160,16 @@ struct efa_admin_create_qp_resp {
- 	/* Common Admin Queue completion descriptor */
- 	struct efa_admin_acq_common_desc acq_common_desc;
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index ce89c0b9c315..9a6cff718c49 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -387,8 +387,7 @@ static int efa_destroy_qp_handle(struct efa_dev *dev, u32 qp_handle)
+ 	return efa_com_destroy_qp(&dev->edev, &params);
+ }
  
--	/* Opaque handle to be used for consequent operations on the QP */
-+	/*
-+	 * Opaque handle to be used for consequent admin operations on the
-+	 * QP
-+	 */
- 	u32 qp_handle;
+-static void efa_qp_user_mmap_entries_remove(struct efa_ucontext *uctx,
+-					    struct efa_qp *qp)
++static void efa_qp_user_mmap_entries_remove(struct efa_qp *qp)
+ {
+ 	rdma_user_mmap_entry_remove(qp->rq_mmap_entry);
+ 	rdma_user_mmap_entry_remove(qp->rq_db_mmap_entry);
+@@ -398,8 +397,6 @@ static void efa_qp_user_mmap_entries_remove(struct efa_ucontext *uctx,
  
--	/* QP number in the given EFA virtual device */
-+	/*
-+	 * QP number in the given EFA virtual device. Least-significant bits
-+	 *    (as needed according to max_qp) carry unique QP ID
-+	 */
- 	u16 qp_num;
+ int efa_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ {
+-	struct efa_ucontext *ucontext = rdma_udata_to_drv_context(udata,
+-		struct efa_ucontext, ibucontext);
+ 	struct efa_dev *dev = to_edev(ibqp->pd->device);
+ 	struct efa_qp *qp = to_eqp(ibqp);
+ 	int err;
+@@ -418,7 +415,7 @@ int efa_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 				 DMA_TO_DEVICE);
+ 	}
  
- 	/* MBZ */
-@@ -286,6 +292,7 @@ struct efa_admin_create_ah_cmd {
- 	/* PD number */
- 	u16 pd;
+-	efa_qp_user_mmap_entries_remove(ucontext, qp);
++	efa_qp_user_mmap_entries_remove(qp);
+ 	kfree(qp);
+ 	return 0;
+ }
+@@ -510,7 +507,7 @@ static int qp_mmap_entries_setup(struct efa_qp *qp,
+ 	return 0;
  
-+	/* MBZ */
- 	u16 reserved;
- };
+ err_remove_mmap:
+-	efa_qp_user_mmap_entries_remove(ucontext, qp);
++	efa_qp_user_mmap_entries_remove(qp);
  
-@@ -296,6 +303,7 @@ struct efa_admin_create_ah_resp {
- 	/* Target interface address handle (opaque) */
- 	u16 ah;
+ 	return -ENOMEM;
+ }
+@@ -719,7 +716,7 @@ struct ib_qp *efa_create_qp(struct ib_pd *ibpd,
+ 	return &qp->ibqp;
  
-+	/* MBZ */
- 	u16 reserved;
- };
- 
-@@ -372,6 +380,7 @@ struct efa_admin_reg_mr_cmd {
- 	 */
- 	u8 permissions;
- 
-+	/* MBZ */
- 	u16 reserved16_w5;
- 
- 	/* number of pages in PBL (redundant, could be calculated) */
-@@ -419,20 +428,20 @@ struct efa_admin_create_cq_cmd {
- 	struct efa_admin_aq_common_desc aq_common_desc;
- 
- 	/*
--	 * 4:0 : reserved5
-+	 * 4:0 : reserved5 - MBZ
- 	 * 5 : interrupt_mode_enabled - if set, cq operates
- 	 *    in interrupt mode (i.e. CQ events and MSI-X are
- 	 *    generated), otherwise - polling
- 	 * 6 : virt - If set, ring base address is virtual
- 	 *    (IOVA returned by MR registration)
--	 * 7 : reserved6
-+	 * 7 : reserved6 - MBZ
- 	 */
- 	u8 cq_caps_1;
- 
- 	/*
- 	 * 4:0 : cq_entry_size_words - size of CQ entry in
- 	 *    32-bit words, valid values: 4, 8.
--	 * 7:5 : reserved7
-+	 * 7:5 : reserved7 - MBZ
- 	 */
- 	u8 cq_caps_2;
- 
-@@ -478,6 +487,7 @@ struct efa_admin_destroy_cq_cmd {
- 
- 	u16 cq_idx;
- 
-+	/* MBZ */
- 	u16 reserved1;
- };
- 
-@@ -530,7 +540,7 @@ struct efa_admin_get_set_feature_common_desc {
- 	/*
- 	 * 1:0 : select - 0x1 - current value; 0x3 - default
- 	 *    value
--	 * 7:3 : reserved3
-+	 * 7:3 : reserved3 - MBZ
- 	 */
- 	u8 flags;
- 
-@@ -557,10 +567,10 @@ struct efa_admin_feature_device_attr_desc {
- 	/* Bar used for SQ and RQ doorbells */
- 	u16 db_bar;
- 
--	/* Indicates how many bits are used physical address access */
-+	/* Indicates how many bits are used on physical address access */
- 	u8 phys_addr_width;
- 
--	/* Indicates how many bits are used virtual address access */
-+	/* Indicates how many bits are used on virtual address access */
- 	u8 virt_addr_width;
- 
- 	/*
-@@ -578,27 +588,28 @@ struct efa_admin_feature_queue_attr_desc {
- 	/* The maximum number of queue pairs supported */
- 	u32 max_qp;
- 
-+	/* Maximum number of WQEs per Send Queue */
- 	u32 max_sq_depth;
- 
--	/* max send wr used in inline-buf */
-+	/* Maximum size of data that can be sent inline in a Send WQE */
- 	u32 inline_buf_size;
- 
-+	/* Maximum number of buffer descriptors per Recv Queue */
- 	u32 max_rq_depth;
- 
- 	/* The maximum number of completion queues supported per VF */
- 	u32 max_cq;
- 
-+	/* Maximum number of CQEs per Completion Queue */
- 	u32 max_cq_depth;
- 
- 	/* Number of sub-CQs to be created for each CQ */
- 	u16 sub_cqs_per_cq;
- 
-+	/* MBZ */
- 	u16 reserved;
- 
--	/*
--	 * Maximum number of SGEs (buffs) allowed for a single send work
--	 *    queue element (WQE)
--	 */
-+	/* Maximum number of SGEs (buffers) allowed for a single send WQE */
- 	u16 max_wr_send_sges;
- 
- 	/* Maximum number of SGEs allowed for a single recv WQE */
+ err_remove_mmap_entries:
+-	efa_qp_user_mmap_entries_remove(ucontext, qp);
++	efa_qp_user_mmap_entries_remove(qp);
+ err_destroy_qp:
+ 	efa_destroy_qp_handle(dev, create_qp_resp.qp_handle);
+ err_free_mapped:
 -- 
 2.24.1
 
