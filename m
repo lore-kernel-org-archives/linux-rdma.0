@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E1CFC33CB1
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 12:44:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4A6FC33CB1
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 12:44:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 10ED42465A
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 12:44:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DA3B222C3
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 12:44:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579092246;
-	bh=HMU3TpihDFu9dCAIxh/lvjlcCOKgEoXnyTCX47FJGHQ=;
+	s=default; t=1579092248;
+	bh=Vx7YqZ/k22cc8K5Q83ICDc15J5HPJf1Ilju5QsfJpH0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xwn/WOBevj6yuLj5nJrw3fmlG+IZBGL6+6h2x2eJKIlW/9k5LINlkpQZeOsqitIoL
-	 b5SE4XCjEw23DRyihqESoVf25ul3uW4dkXjYyb4/pq+EbRb/OpaNrsb3Yu18s7uhlI
-	 mwe6jqLlURxd2cbeU9f6oudXwXeCHFa2erPI3cps=
+	b=n6FDGlcddTH7AkxMy2NeMOYR8QuotXlV0vV4NGqGtLc1gpLBvkiJu8bpgI0mGuHTb
+	 b4g3OOhblUQBnAwiUOLNrYeYZTf0FW9XXkx17svaf0EpXUI7h4Gg4v9L3Oaj+UXh/R
+	 2fMhOsQhsGR1iF3twt5kpWOobOE4LxCP+9nXuUvg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726220AbgAOMoF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jan 2020 07:44:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57432 "EHLO mail.kernel.org"
+        id S1729113AbgAOMoI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jan 2020 07:44:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725999AbgAOMoF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Jan 2020 07:44:05 -0500
+        id S1725999AbgAOMoH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Jan 2020 07:44:07 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 91185222C3;
-        Wed, 15 Jan 2020 12:44:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A414F2465A;
+        Wed, 15 Jan 2020 12:44:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579092244;
-        bh=HMU3TpihDFu9dCAIxh/lvjlcCOKgEoXnyTCX47FJGHQ=;
+        s=default; t=1579092247;
+        bh=Vx7YqZ/k22cc8K5Q83ICDc15J5HPJf1Ilju5QsfJpH0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DeF5Wj2uv1lXEzf0O0dmB5u7mJIxR4Adda5G1RzEyeBaf/ENgS3q0G8rurnTqLhm4
-         VK2fenj18GD1dH7SyOp/R+TdjgnCTMpV+XsdMyroFP91XhES+jP4s7hw7eTjjhMHMp
-         PEFDehUYMn7gAbuNmBOYmoQrCG1G0+9TYwj2f/Hg=
+        b=wn+xJQ8bN1Vq262yJ+ALIMQbBXA2jvdUB7daXmdKTCanSMwhZIZdeOKF5c+LNgzFL
+         HZoGYJqwwa4xSXZesnGagrEbsX5i1SR/mjEyrK1nvHJyZeTDYh+FL/YxvqEHRJ4SQ9
+         YAOalELfroimSCw3AQHwo+DzHXzmQn2kcsA6H7QI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
@@ -48,9 +48,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Hans Westgaard Ry <hans.westgaard.ry@oracle.com>,
         Moni Shoua <monis@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH mlx5-next 05/10] RDMA/mlx5: Don't fake udata for kernel path
-Date:   Wed, 15 Jan 2020 14:43:35 +0200
-Message-Id: <20200115124340.79108-6-leon@kernel.org>
+Subject: [PATCH mlx5-next 08/10] net/rds: Detect need of On-Demand-Paging memory registration
+Date:   Wed, 15 Jan 2020 14:43:38 +0200
+Message-Id: <20200115124340.79108-9-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200115124340.79108-1-leon@kernel.org>
 References: <20200115124340.79108-1-leon@kernel.org>
@@ -61,164 +61,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
 
-Kernel paths must not set udata and provide NULL pointer,
-instead of faking zeroed udata struct.
+Add code to check if memory intended for RDMA is FS-DAX-memory. RDS
+will fail with error code EOPNOTSUPP if FS-DAX-memory is detected.
 
+Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 34 +++++++++++++++----------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+ net/rds/rdma.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 5d41a2c69400..e34531d5c806 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -815,6 +815,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 				struct ib_device_attr *props,
- 				struct ib_udata *uhw)
+diff --git a/net/rds/rdma.c b/net/rds/rdma.c
+index 916f5ec373d8..eb23c38ce2b3 100644
+--- a/net/rds/rdma.c
++++ b/net/rds/rdma.c
+@@ -156,11 +156,13 @@ void rds_rdma_drop_keys(struct rds_sock *rs)
+ static int rds_pin_pages(unsigned long user_addr, unsigned int nr_pages,
+ 			struct page **pages, int write)
  {
-+	size_t uhw_outlen = (uhw) ? uhw->outlen : 0;
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 	struct mlx5_core_dev *mdev = dev->mdev;
- 	int err = -ENOMEM;
-@@ -828,12 +829,12 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	u64 max_tso;
++	unsigned int gup_flags = FOLL_LONGTERM;
+ 	int ret;
 
- 	resp_len = sizeof(resp.comp_mask) + sizeof(resp.response_length);
--	if (uhw->outlen && uhw->outlen < resp_len)
-+	if (uhw_outlen && uhw_outlen < resp_len)
- 		return -EINVAL;
+-	ret = get_user_pages_fast(user_addr, nr_pages, write ? FOLL_WRITE : 0,
+-				  pages);
++	if (write)
++		gup_flags |= FOLL_WRITE;
 
- 	resp.response_length = resp_len;
-
--	if (uhw->inlen && !ib_is_udata_cleared(uhw, 0, uhw->inlen))
-+	if (uhw && uhw->inlen && !ib_is_udata_cleared(uhw, 0, uhw->inlen))
- 		return -EINVAL;
-
- 	memset(props, 0, sizeof(*props));
-@@ -897,7 +898,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			props->raw_packet_caps |=
- 				IB_RAW_PACKET_CAP_CVLAN_STRIPPING;
-
--		if (field_avail(typeof(resp), tso_caps, uhw->outlen)) {
-+		if (field_avail(typeof(resp), tso_caps, uhw_outlen)) {
- 			max_tso = MLX5_CAP_ETH(mdev, max_lso_cap);
- 			if (max_tso) {
- 				resp.tso_caps.max_tso = 1 << max_tso;
-@@ -907,7 +908,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			}
- 		}
-
--		if (field_avail(typeof(resp), rss_caps, uhw->outlen)) {
-+		if (field_avail(typeof(resp), rss_caps, uhw_outlen)) {
- 			resp.rss_caps.rx_hash_function =
- 						MLX5_RX_HASH_FUNC_TOEPLITZ;
- 			resp.rss_caps.rx_hash_fields_mask =
-@@ -927,9 +928,9 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			resp.response_length += sizeof(resp.rss_caps);
- 		}
- 	} else {
--		if (field_avail(typeof(resp), tso_caps, uhw->outlen))
-+		if (field_avail(typeof(resp), tso_caps, uhw_outlen))
- 			resp.response_length += sizeof(resp.tso_caps);
--		if (field_avail(typeof(resp), rss_caps, uhw->outlen))
-+		if (field_avail(typeof(resp), rss_caps, uhw_outlen))
- 			resp.response_length += sizeof(resp.rss_caps);
- 	}
-
-@@ -1054,7 +1055,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 						MLX5_MAX_CQ_PERIOD;
- 	}
-
--	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
-+	if (field_avail(typeof(resp), cqe_comp_caps, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.cqe_comp_caps);
-
- 		if (MLX5_CAP_GEN(dev->mdev, cqe_compression)) {
-@@ -1072,7 +1073,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
-
--	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen) &&
-+	if (field_avail(typeof(resp), packet_pacing_caps, uhw_outlen) &&
- 	    raw_support) {
- 		if (MLX5_CAP_QOS(mdev, packet_pacing) &&
- 		    MLX5_CAP_GEN(mdev, qos)) {
-@@ -1091,7 +1092,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	}
-
- 	if (field_avail(typeof(resp), mlx5_ib_support_multi_pkt_send_wqes,
--			uhw->outlen)) {
-+			uhw_outlen)) {
- 		if (MLX5_CAP_ETH(mdev, multi_pkt_send_wqe))
- 			resp.mlx5_ib_support_multi_pkt_send_wqes =
- 				MLX5_IB_ALLOW_MPW;
-@@ -1104,7 +1105,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			sizeof(resp.mlx5_ib_support_multi_pkt_send_wqes);
- 	}
-
--	if (field_avail(typeof(resp), flags, uhw->outlen)) {
-+	if (field_avail(typeof(resp), flags, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.flags);
-
- 		if (MLX5_CAP_GEN(mdev, cqe_compression_128))
-@@ -1120,8 +1121,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		resp.flags |= MLX5_IB_QUERY_DEV_RESP_FLAGS_SCAT2CQE_DCT;
- 	}
-
--	if (field_avail(typeof(resp), sw_parsing_caps,
--			uhw->outlen)) {
-+	if (field_avail(typeof(resp), sw_parsing_caps, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.sw_parsing_caps);
- 		if (MLX5_CAP_ETH(mdev, swp)) {
- 			resp.sw_parsing_caps.sw_parsing_offloads |=
-@@ -1141,7 +1141,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
-
--	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen) &&
-+	if (field_avail(typeof(resp), striding_rq_caps, uhw_outlen) &&
- 	    raw_support) {
- 		resp.response_length += sizeof(resp.striding_rq_caps);
- 		if (MLX5_CAP_GEN(mdev, striding_rq)) {
-@@ -1164,8 +1164,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
-
--	if (field_avail(typeof(resp), tunnel_offloads_caps,
--			uhw->outlen)) {
-+	if (field_avail(typeof(resp), tunnel_offloads_caps, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.tunnel_offloads_caps);
- 		if (MLX5_CAP_ETH(mdev, tunnel_stateless_vxlan))
- 			resp.tunnel_offloads_caps |=
-@@ -1186,7 +1185,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 				MLX5_IB_TUNNELED_OFFLOADS_MPLS_UDP;
- 	}
-
--	if (uhw->outlen) {
-+	if (uhw_outlen) {
- 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
-
- 		if (err)
-@@ -4790,7 +4789,6 @@ static int __get_port_caps(struct mlx5_ib_dev *dev, u8 port)
- 	struct ib_device_attr *dprops = NULL;
- 	struct ib_port_attr *pprops = NULL;
- 	int err = -ENOMEM;
--	struct ib_udata uhw = {.inlen = 0, .outlen = 0};
-
- 	pprops = kzalloc(sizeof(*pprops), GFP_KERNEL);
- 	if (!pprops)
-@@ -4800,7 +4798,7 @@ static int __get_port_caps(struct mlx5_ib_dev *dev, u8 port)
- 	if (!dprops)
- 		goto out;
-
--	err = mlx5_ib_query_device(&dev->ib_dev, dprops, &uhw);
-+	err = mlx5_ib_query_device(&dev->ib_dev, dprops, NULL);
- 	if (err) {
- 		mlx5_ib_warn(dev, "query_device failed %d\n", err);
- 		goto out;
++	ret = get_user_pages_fast(user_addr, nr_pages, gup_flags, pages);
+ 	if (ret >= 0 && ret < nr_pages) {
+ 		while (ret--)
+ 			put_page(pages[ret]);
 --
 2.20.1
 
