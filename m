@@ -2,108 +2,119 @@ Return-Path: <SRS0=S6Iu=3E=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF010C33CB1
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 14:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C234C33CB1
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 15:19:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7AC2214AF
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 14:55:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579100111;
-	bh=zEtCaIfBqmoKo7CziV4rVfVf6VUiH3FkU5d24cGqwR0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Wi60mVGQp/eHFip9qSXOVDmFYyDIBngGgxI5JIlkhgcXlIuc3qsf3Ph/rEU80iOlQ
-	 yEmBaXF05v7EkxDXc2jIwdVA2LYQEt6VGuU+uSfppW0RKfwAhbhs8MFBgFfScecH06
-	 iMEHCLUe6urQhMb/Fb4uZPm4L0pe4/hInc4EfRxY=
+	by mail.kernel.org (Postfix) with ESMTP id 1D8EC24671
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jan 2020 15:19:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="F69sbxVl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728978AbgAOOzL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jan 2020 09:55:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59260 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726165AbgAOOzK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Jan 2020 09:55:10 -0500
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1729008AbgAOPS7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jan 2020 10:18:59 -0500
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:51089 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728963AbgAOPS7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Jan 2020 10:18:59 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1579101538;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=O28pugdE3ji8Z7d58Dp1KejMSWnJ7EsYgUczW6n+9NY=;
+        b=F69sbxVl2NEsx/ned4ezVnMKCxGPSrNFIiYJ/XZoSnTdymVkEJF/LdY0lMfcbTVUobZo3g
+        H0OWjArCJGolmqd/hXkUbqyvFEWjap7E+Cnue/czGNmt5tFitwkBxSErAeB+mmtFKIYLvV
+        u381+/3cNNLHk0FNETQoFkxhZATMfqw=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-177-q6bYgGs4Pb6_ldebLaXl3g-1; Wed, 15 Jan 2020 10:18:54 -0500
+X-MC-Unique: q6bYgGs4Pb6_ldebLaXl3g-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B577624671;
-        Wed, 15 Jan 2020 14:55:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579100110;
-        bh=zEtCaIfBqmoKo7CziV4rVfVf6VUiH3FkU5d24cGqwR0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Y/waZDFJGlwTeQZ/Qgnt5lT8+t+tILXkLnpFAxI/LrfFO/WZ1qmNO/ZxVMEUd3BcE
-         jklv8EiVlZn+NLa/T8RHmHvyKKQ01OfCDsZcKUWAz8LRTY1N+I5LJn7MjYYUXEdORW
-         AfblSg6yinqyi3m2fMdd2W/aQc54uMB4VFcLpXhY=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Avihai Horon <avihaih@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>
-Subject: [PATCH mlx5-next 1/2] net/mlx5: Add RoCE accelerator counters
-Date:   Wed, 15 Jan 2020 16:54:58 +0200
-Message-Id: <20200115145459.83280-2-leon@kernel.org>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200115145459.83280-1-leon@kernel.org>
-References: <20200115145459.83280-1-leon@kernel.org>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F20318F8A0F;
+        Wed, 15 Jan 2020 15:18:49 +0000 (UTC)
+Received: from carbon (ovpn-200-25.brq.redhat.com [10.40.200.25])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A1E6A66842;
+        Wed, 15 Jan 2020 15:18:26 +0000 (UTC)
+Date:   Wed, 15 Jan 2020 16:18:25 +0100
+From:   Jesper Dangaard Brouer <brouer@redhat.com>
+To:     Toke =?UTF-8?B?SMO4aWxhbmQtSsO4cmdlbnNlbg==?= <toke@redhat.com>
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        Andrii Nakryiko <andriin@fb.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <jakub.kicinski@netronome.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
+        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        clang-built-linux@googlegroups.com, brouer@redhat.com
+Subject: Re: [PATCH bpf-next v2 07/10] samples/bpf: Use consistent include
+ paths for libbpf
+Message-ID: <20200115161825.351ebf23@carbon>
+In-Reply-To: <157909757639.1192265.16930011370158657444.stgit@toke.dk>
+References: <157909756858.1192265.6657542187065456112.stgit@toke.dk>
+        <157909757639.1192265.16930011370158657444.stgit@toke.dk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Wed, 15 Jan 2020 15:12:56 +0100
+Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com> wrote:
 
-Add RoCE accelerator definitions.
+> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
+>=20
+> Fix all files in samples/bpf to include libbpf header files with the bpf/
+> prefix, to be consistent with external users of the library. Also ensure
+> that all includes of exported libbpf header files (those that are exported
+> on 'make install' of the library) use bracketed includes instead of quote=
+d.
+>=20
+> To make sure no new files are introduced that doesn't include the bpf/
+> prefix in its include, remove tools/lib/bpf from the include path entirel=
+y,
+> and use tools/lib instead.
+>=20
+> Fixes: 6910d7d3867a ("selftests/bpf: Ensure bpf_helper_defs.h are taken f=
+rom selftests dir")
+> Signed-off-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- include/linux/mlx5/mlx5_ifc.h | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+I like this change. Maybe the reason so many samples/bpf/ files
+still included "libbpf.h" was that once-upon-a-time we had a "eBPF mini
+library" in the file samples/bpf/libbpf.h that were included.
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index c6abaf4f1c55..73d1a6a049fb 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1197,7 +1197,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         reserved_at_130[0xa];
- 	u8         log_max_ra_res_dc[0x6];
- 
--	u8         reserved_at_140[0xa];
-+	u8         reserved_at_140[0x9];
-+	u8         roce_accl[0x1];
- 	u8         log_max_ra_req_qp[0x6];
- 	u8         reserved_at_150[0xa];
- 	u8         log_max_ra_res_qp[0x6];
-@@ -4746,7 +4747,19 @@ struct mlx5_ifc_query_q_counter_out_bits {
- 
- 	u8         req_cqe_flush_error[0x20];
- 
--	u8         reserved_at_620[0x1e0];
-+	u8         reserved_at_620[0x20];
-+
-+	u8         roce_adp_retrans[0x20];
-+
-+	u8         roce_adp_retrans_to[0x20];
-+
-+	u8         roce_slow_restart[0x20];
-+
-+	u8         roce_slow_restart_cnps[0x20];
-+
-+	u8         roce_slow_restart_trans[0x20];
-+
-+	u8         reserved_at_6e0[0x120];
- };
- 
- struct mlx5_ifc_query_q_counter_in_bits {
--- 
-2.20.1
+The file was removed/renamed in:
+ https://git.kernel.org/torvalds/c/8d93045077ae
+
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+
+--=20
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Principal Kernel Engineer at Red Hat
+  LinkedIn: http://www.linkedin.com/in/brouer
 
