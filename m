@@ -2,158 +2,138 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AC20C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:09:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC933C33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:11:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3352E206E6
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:09:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="MUp3rAeM"
+	by mail.kernel.org (Postfix) with ESMTP id B7ADD206E6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:11:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579201912;
+	bh=HhTOEnfVPXjkdgMI5j2Rj7f81dghYJkTfY6kVie9fZE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=hFoVmSvmgSBwFQxoc9tFgEKHDioDOo+AYK8uznpNaQ/MiKphUrXiHnzWTkXq0LT+K
+	 nqNmpk/nOI4zUC7kkOPBVV0jmjRXsLsH6vPO79OpMahsvqqcNlp3V0BKWy1FS8ApXS
+	 5tIcLByzCmQDtRauNgPfdIUE1mLkvtQu8zJTERtA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387869AbgAPRAm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:00:42 -0500
-Received: from mail-qk1-f195.google.com ([209.85.222.195]:34532 "EHLO
-        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387755AbgAPRAm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 12:00:42 -0500
-Received: by mail-qk1-f195.google.com with SMTP id j9so19801726qkk.1
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 09:00:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=yAP9aIk3c5NMaapOVqo6z/tT/AGa3MeVYb9/qNNc5SA=;
-        b=MUp3rAeMzXOD77fiPB+7XRCUSS3m3sVqCyrPtKYrLeiqQDPwiSgj1fMdwtmnXYAIxo
-         OVKlJhb3DErwP/N2+tfpdQ+S8Wnt8E4LjxsrAe39hR60hkwz/aX24yQ6FWxZpnFHYhgP
-         cp58f07YsyIVmS6nOHO+CPmDcsb9NZDE0eVijYilH4UaTMIHFRcGkwirV2GcO2DWUsV5
-         ozYF/E5Qhcbbipv9Vc2aP6y3qoAbQOgREjtsLniB8uf8XUB4SMb8e5DYUwcvpdhQiWMS
-         kbFyK5sBJk4yBzoDi4D0uTPpmpgP+ia/5iX2tB4UA9sMZ0JzlKcKePaLLayoS4NRdNaD
-         AGRA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=yAP9aIk3c5NMaapOVqo6z/tT/AGa3MeVYb9/qNNc5SA=;
-        b=Dc7XH+aw1bsSeClvgif21AGFktVAh5swYIoUV0o5AbMzomFQKfnMj+NZbc+nDC4T4O
-         ncBeyT6Ys056iH9aZUJiu/RmuZe6XVCh3u1qBz23ZZFJegmdr8ulO0RnCQASa2834qF4
-         ZYMX7qrj0OnSqvnvuSoWq68k9Dhna4kKkFNg1rRzC6XFwQTsCBkHvUVmzWulB961iUGk
-         HrqMu0QFQ6AuXC1etP75PAcyRH6g/6IKJJob+BPf85JgRzkLz/cxK9DU6hCZZ4iV+NAh
-         4JI5Z+Lf4QE04GvQxYFX5KJRDb6Rsn67lIRJvNLEpBytItHpuOIE4BkcTdWtJR7FeyDe
-         4diw==
-X-Gm-Message-State: APjAAAVzZ/xkCnJT1RfkYFfCEoEU/iLfskbL/Pd7h20ZtcTRUO3rVUuF
-        6HelhRKJnQkOezYaXscNoK7PTaCIOH0=
-X-Google-Smtp-Source: APXvYqxq4+lPHdMhWebea4Mbynr3sHA449RYpDwdHVJHFet3toiK8e+pRehhz9Ck4rfhB6Un3+x0WQ==
-X-Received: by 2002:a37:bf82:: with SMTP id p124mr33886553qkf.337.1579194040982;
-        Thu, 16 Jan 2020 09:00:40 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id i19sm10153517qki.124.2020.01.16.09.00.40
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 16 Jan 2020 09:00:40 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1is8Vc-0007tB-04; Thu, 16 Jan 2020 13:00:40 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>
-Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH 1/7] RDMA/cm: Add accessors for CM_REQ transport_type
-Date:   Thu, 16 Jan 2020 13:00:31 -0400
-Message-Id: <20200116170037.30109-2-jgg@ziepe.ca>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200116170037.30109-1-jgg@ziepe.ca>
-References: <20200116170037.30109-1-jgg@ziepe.ca>
+        id S2387683AbgAPRAK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:00:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49578 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387676AbgAPRAJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:00:09 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7CD6624686;
+        Thu, 16 Jan 2020 17:00:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579194008;
+        bh=HhTOEnfVPXjkdgMI5j2Rj7f81dghYJkTfY6kVie9fZE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=DhjDfcP4eTcGSP5jAbPvpQSQibbmMz/2JbyYcM2bXtWx598RB7tyL+NMkp2QC9LEH
+         TQL53P+c/angnZ9Izpw3u5E4Po4euHD/PkV5FVffy34n6f6pCBxBT6pSAnM86TZMcn
+         N+67QuqMHr5xKLtEQj0XjL5BrP72vym8Yq5EEniQ=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Moni Shoua <monis@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 133/671] net/mlx5: Take lock with IRQs disabled to avoid deadlock
+Date:   Thu, 16 Jan 2020 11:50:42 -0500
+Message-Id: <20200116165940.10720-16-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200116165940.10720-1-sashal@kernel.org>
+References: <20200116165940.10720-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Moni Shoua <monis@mellanox.com>
 
-Access the two fields through wrappers, like all other fields, to make it
-clearer what is happening.
+[ Upstream commit 33814e5d127e21f53b52e17b0722c1b57d4f4d29 ]
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Tested-by: Leon Romanovsky <leonro@mellanox.com>
+The lock in qp_table might be taken from process context or from
+interrupt context. This may lead to a deadlock unless it is taken with
+IRQs disabled.
+
+Discovered by lockdep
+
+================================
+WARNING: inconsistent lock state
+4.20.0-rc6
+--------------------------------
+inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W}
+
+python/12572 [HC1[1]:SC0[0]:HE0:SE1] takes:
+00000000052a4df4 (&(&table->lock)->rlock#2){?.+.}, /0x50 [mlx5_core]
+{HARDIRQ-ON-W} state was registered at:
+  _raw_spin_lock+0x33/0x70
+  mlx5_get_rsc+0x1a/0x50 [mlx5_core]
+  mlx5_ib_eqe_pf_action+0x493/0x1be0 [mlx5_ib]
+  process_one_work+0x90c/0x1820
+  worker_thread+0x87/0xbb0
+  kthread+0x320/0x3e0
+  ret_from_fork+0x24/0x30
+irq event stamp: 103928
+hardirqs last  enabled at (103927): [] nk+0x1a/0x1c
+hardirqs last disabled at (103928): [] unk+0x1a/0x1c
+softirqs last  enabled at (103924): [] tcp_sendmsg+0x31/0x40
+softirqs last disabled at (103922): [] 80
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&(&table->lock)->rlock#2);
+
+    lock(&(&table->lock)->rlock#2);
+
+ *** DEADLOCK ***
+
+Fixes: 032080ab43ac ("IB/mlx5: Lock QP during page fault handling")
+Signed-off-by: Moni Shoua <monis@mellanox.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/cm_msgs.h | 41 ++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 23e3d0c6a67c3c..9af9a321207423 100644
---- a/drivers/infiniband/core/cm_msgs.h
-+++ b/drivers/infiniband/core/cm_msgs.h
-@@ -124,14 +124,37 @@ static inline void cm_req_set_remote_resp_timeout(struct cm_req_msg *req_msg,
- 					  0xFFFFFF07));
- }
- 
-+static inline u8 cm_req_get_transport_type(struct cm_req_msg *req_msg)
-+{
-+	return (u8) ((be32_to_cpu(req_msg->offset40) & 0x06) >> 1);
-+}
-+
-+static inline void cm_req_set_transport_type(struct cm_req_msg *req_msg, u8 val)
-+{
-+	req_msg->offset40 =
-+		cpu_to_be32((be32_to_cpu(req_msg->offset40) & 0xFFFFFFF9) |
-+		(val << 1));
-+}
-+
-+static inline u8 cm_req_get_transport_type_ex(struct cm_req_msg *req_msg)
-+{
-+	return req_msg->offset51 & 0x7;
-+}
-+
-+static inline void cm_req_set_transport_type_ex(struct cm_req_msg *req_msg,
-+						u8 val)
-+{
-+	req_msg->offset51 = (req_msg->offset51 & 0xF8) | val;
-+}
-+
- static inline enum ib_qp_type cm_req_get_qp_type(struct cm_req_msg *req_msg)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+index f33707ce8b6b..479ac21cdbc6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+@@ -44,14 +44,15 @@ static struct mlx5_core_rsc_common *mlx5_get_rsc(struct mlx5_core_dev *dev,
  {
--	u8 transport_type = (u8) (be32_to_cpu(req_msg->offset40) & 0x06) >> 1;
-+	u8 transport_type = cm_req_get_transport_type(req_msg);
- 	switch(transport_type) {
- 	case 0: return IB_QPT_RC;
- 	case 1: return IB_QPT_UC;
- 	case 3:
--		switch (req_msg->offset51 & 0x7) {
-+		switch (cm_req_get_transport_type_ex(req_msg)) {
- 		case 1: return IB_QPT_XRC_TGT;
- 		default: return 0;
- 		}
-@@ -144,20 +167,14 @@ static inline void cm_req_set_qp_type(struct cm_req_msg *req_msg,
- {
- 	switch(qp_type) {
- 	case IB_QPT_UC:
--		req_msg->offset40 = cpu_to_be32((be32_to_cpu(
--						  req_msg->offset40) &
--						   0xFFFFFFF9) | 0x2);
-+		cm_req_set_transport_type(req_msg, 1);
- 		break;
- 	case IB_QPT_XRC_INI:
--		req_msg->offset40 = cpu_to_be32((be32_to_cpu(
--						 req_msg->offset40) &
--						   0xFFFFFFF9) | 0x6);
--		req_msg->offset51 = (req_msg->offset51 & 0xF8) | 1;
-+		cm_req_set_transport_type(req_msg, 3);
-+		cm_req_set_transport_type_ex(req_msg, 1);
- 		break;
- 	default:
--		req_msg->offset40 = cpu_to_be32(be32_to_cpu(
--						 req_msg->offset40) &
--						  0xFFFFFFF9);
-+		cm_req_set_transport_type(req_msg, 0);
- 	}
- }
+ 	struct mlx5_qp_table *table = &dev->priv.qp_table;
+ 	struct mlx5_core_rsc_common *common;
++	unsigned long flags;
  
+-	spin_lock(&table->lock);
++	spin_lock_irqsave(&table->lock, flags);
+ 
+ 	common = radix_tree_lookup(&table->tree, rsn);
+ 	if (common)
+ 		atomic_inc(&common->refcount);
+ 
+-	spin_unlock(&table->lock);
++	spin_unlock_irqrestore(&table->lock, flags);
+ 
+ 	if (!common) {
+ 		mlx5_core_warn(dev, "Async event for bogus resource 0x%x\n",
 -- 
-2.24.1
+2.20.1
 
