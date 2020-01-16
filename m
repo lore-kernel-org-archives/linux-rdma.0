@@ -2,166 +2,150 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0589C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:54:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E436C33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:55:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A769B2053B
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:54:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a0BZb1Cf"
+	by mail.kernel.org (Postfix) with ESMTP id DD7642053B
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:55:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579200910;
+	bh=ODcoQ+mY2oLja9c28nzGREyEoh/V0uG1n+lF7bN44zc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=pRIjllaZLltCytGoJ23vTZHZc8yzv98BTlhlzsTKg4uXj1ELB1vbDfp5b/Q0FM7ni
+	 5Qr1OC5I+7VkVxdVbAf14FkHhERheTIYMAba4fmcHvQq4pTlwM9+9YnzeCqyzaYCZv
+	 1WYjVVdUmiIxaymyhnZd/98LXyUc2ZnAJhUZdjxo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437153AbgAPSy6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:54:58 -0500
-Received: from mail-qk1-f193.google.com ([209.85.222.193]:34492 "EHLO
-        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389222AbgAPSy5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 13:54:57 -0500
-Received: by mail-qk1-f193.google.com with SMTP id j9so20229236qkk.1;
-        Thu, 16 Jan 2020 10:54:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=P69NeR3xJbxZLi5K91OSnj1oflfK13tq5qYKZgVnyUA=;
-        b=a0BZb1CfHyVu6ryJUT4hyIFQr6IXepVmsN06Yv90dQQ2V2tiLXqGrpc9pU3y1CMp3X
-         nFQABfi7O8zu3NW3d9er05dy3Y3ksxfMI6sZtSCG5qxgpZvegTuVbCOF9HaiEjav0l+/
-         tP/vhsnQMIsMI+1SNEwJdAONbkkLS/9leyhm0EBxYf3dD9kxEA10fjakQ1o34C81UIVy
-         YkcSr1AZwlVc1FHjvRIk+gUIsauAZvUD0VpqdNrgqiKsEY66cs23/ps+cVCmRtU527wL
-         z9sgvpVclLD6jX01OreJixuBjrsOOlVmLqRphtE0BPOenKUmgh1DsKyl+JjN6jv+i/sc
-         j7qA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=P69NeR3xJbxZLi5K91OSnj1oflfK13tq5qYKZgVnyUA=;
-        b=S3oOEdZSmO0uffbXEOzoZqyk02tl68NnEiuegt9TpgxzIhhzi4EgasZ6mw607ASVp6
-         HjLx9B6AiP0fLS2KyHUMuUYoaGUxu6f0zWoMcvFk+ynUFn5UlA1E1S/jkAkXLHbMWyG6
-         AlvS7nMQrBYA42nruZRrFKoVIobp6wp+cytaDb1QjI948ciFELzQ7faD0mw07Ua14gah
-         ZtJYmLVcwUjB1F0b2/Xvh+6dzBNS5wRNMLjq7/4e+nxDmDTLnsxBvigUoOgPIH0tufe+
-         F1LkbMV3SZe6c2YZqbY8JWXWIpP0qdGYHZ7qUG7FSk0LBjrmaJ92WjUoqUTiR+Ha9hFP
-         GSEA==
-X-Gm-Message-State: APjAAAVirlQE6lBoSUkbJog9/V5Tm5GDQjslwhoPG1ICYbvzLj/sii4g
-        68ePWMllIDf7YPenuVXAP9z0OxJlbPSMcQKD9Gw=
-X-Google-Smtp-Source: APXvYqzNWrYYAnZWogF+vDlCQ/krgmXOKSWASg7iizqummxNvC02kf/Ha3rlJBGEuZ5RkdjxLtxnZTctetiAYRvq/j0=
-X-Received: by 2002:a37:a685:: with SMTP id p127mr31044074qke.449.1579200895688;
- Thu, 16 Jan 2020 10:54:55 -0800 (PST)
+        id S2388909AbgAPRHo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:07:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40058 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729996AbgAPRHn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:07:43 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 46AFC2081E;
+        Thu, 16 Jan 2020 17:07:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579194462;
+        bh=ODcoQ+mY2oLja9c28nzGREyEoh/V0uG1n+lF7bN44zc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=Rval7wWWdkG1B/h2o8/fKezagDJXFH1GnT9K3kOeqm+VPxlN8ruhQU6oWYuJmsdd/
+         n3CXidFihLamu1BUF10kPsSMhpFtcL/ATu3EVuYAXTvzr6G3QNY9czatRJC/4O8tLv
+         y8xk1UK7oNTaDums2YL6JArSk2irSGi/7LmaqcsQ=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Sagiv Ozeri <sagiv.ozeri@marvell.com>,
+        Michal Kalderon <michal.kalderon@marvell.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 369/671] RDMA/qedr: Fix incorrect device rate.
+Date:   Thu, 16 Jan 2020 12:00:07 -0500
+Message-Id: <20200116170509.12787-106-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
+References: <20200116170509.12787-1-sashal@kernel.org>
 MIME-Version: 1.0
-References: <157918093154.1357254.7616059374996162336.stgit@toke.dk> <157918093389.1357254.10041649215380772130.stgit@toke.dk>
-In-Reply-To: <157918093389.1357254.10041649215380772130.stgit@toke.dk>
-From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Date:   Thu, 16 Jan 2020 10:54:44 -0800
-Message-ID: <CAEf4Bzbz47nFh4tPBn2PTi3+YiYpMDxymgf36P=ZjbuBPoCrZg@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v3 02/11] tools/bpf/runqslower: Fix override
- option for VMLINUX_BTF
-To:     =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        Andrii Nakryiko <andriin@fb.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Networking <netdev@vger.kernel.org>, bpf <bpf@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        linux-rdma@vger.kernel.org,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>,
-        clang-built-linux@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 16, 2020 at 5:23 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@redh=
-at.com> wrote:
->
-> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
->
-> The runqslower tool refuses to build without a file to read vmlinux BTF
-> from. The build fails with an error message to override the location by
-> setting the VMLINUX_BTF variable if autodetection fails. However, the
-> Makefile doesn't actually work with that override - the error message is
-> still emitted.
->
-> Fix this by including the value of VMLINUX_BTF in the expansion, and only
-> emitting the error message if the *result* is empty. Also permit running
-> 'make clean' even though no VMLINUX_BTF is set.
->
-> Fixes: 9c01546d26d2 ("tools/bpf: Add runqslower tool to tools/bpf")
-> Signed-off-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
-> ---
->  tools/bpf/runqslower/Makefile |   18 ++++++++++--------
->  1 file changed, 10 insertions(+), 8 deletions(-)
->
-> diff --git a/tools/bpf/runqslower/Makefile b/tools/bpf/runqslower/Makefil=
-e
-> index cff2fbcd29a8..89fb7cd30f1a 100644
-> --- a/tools/bpf/runqslower/Makefile
-> +++ b/tools/bpf/runqslower/Makefile
-> @@ -10,12 +10,14 @@ CFLAGS :=3D -g -Wall
->
->  # Try to detect best kernel BTF source
->  KERNEL_REL :=3D $(shell uname -r)
-> -ifneq ("$(wildcard /sys/kernel/btf/vmlinux)","")
-> -VMLINUX_BTF :=3D /sys/kernel/btf/vmlinux
-> -else ifneq ("$(wildcard /boot/vmlinux-$(KERNEL_REL))","")
-> -VMLINUX_BTF :=3D /boot/vmlinux-$(KERNEL_REL)
-> -else
-> -$(error "Can't detect kernel BTF, use VMLINUX_BTF to specify it explicit=
-ly")
-> +VMLINUX_BTF_PATHS :=3D $(VMLINUX_BTF) /sys/kernel/btf/vmlinux /boot/vmli=
-nux-$(KERNEL_REL)
-> +VMLINUX_BTF_PATH :=3D $(firstword $(wildcard $(VMLINUX_BTF_PATHS)))
+From: Sagiv Ozeri <sagiv.ozeri@marvell.com>
 
-If user specifies VMLINUX_BTF pointing to non-existing file, but the
-system has /sys/kernel/btf/vmlinux, the latter will still be used,
-which is a very surprising behavior.
+[ Upstream commit 69054666df0a9b4e8331319f98b6b9a88bc3fcc4 ]
 
-Also MAKECMDGOALS feels like a fragile hack to me. How about we move
-this VMLINUX_BTF guessing (without $(error)) into vmlinux.h rule
-itself and use shell if conditional after it to check for file
-existance and print nice error. That way we'll be checking VMLINUX_BTF
-only when it's really needed.
+Use the correct enum value introduced in commit 12113a35ada6 ("IB/core:
+Add HDR speed enum") Prior to this change a 50Gbps port would show 40Gbps.
 
-> +
-> +ifeq ("$(VMLINUX_BTF_PATH)","")
-> +ifneq ($(MAKECMDGOALS),clean)
-> +$(error Could not find kernel BTF file (tried: $(VMLINUX_BTF_PATHS)). \
-> +       Try setting $$VMLINUX_BTF)
-> +endif
->  endif
->
->  abs_out :=3D $(abspath $(OUTPUT))
-> @@ -67,9 +69,9 @@ $(OUTPUT):
->         $(call msg,MKDIR,$@)
->         $(Q)mkdir -p $(OUTPUT)
->
-> -$(OUTPUT)/vmlinux.h: $(VMLINUX_BTF) | $(OUTPUT) $(BPFTOOL)
-> +$(OUTPUT)/vmlinux.h: $(VMLINUX_BTF_PATH) | $(OUTPUT) $(BPFTOOL)
->         $(call msg,GEN,$@)
-> -       $(Q)$(BPFTOOL) btf dump file $(VMLINUX_BTF) format c > $@
-> +       $(Q)$(BPFTOOL) btf dump file $(VMLINUX_BTF_PATH) format c > $@
->
->  $(OUTPUT)/libbpf.a: | $(OUTPUT)
->         $(Q)$(MAKE) $(submake_extras) -C $(LIBBPF_SRC)                   =
-      \
->
+This patch also cleaned up the redundant redefiniton of ib speeds for
+qedr.
+
+Fixes: 12113a35ada6 ("IB/core: Add HDR speed enum")
+Signed-off-by: Sagiv Ozeri <sagiv.ozeri@marvell.com>
+Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/hw/qedr/verbs.c | 25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 8fd8b97348bf..38fe2f741375 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -158,54 +158,47 @@ int qedr_query_device(struct ib_device *ibdev,
+ 	return 0;
+ }
+ 
+-#define QEDR_SPEED_SDR		(1)
+-#define QEDR_SPEED_DDR		(2)
+-#define QEDR_SPEED_QDR		(4)
+-#define QEDR_SPEED_FDR10	(8)
+-#define QEDR_SPEED_FDR		(16)
+-#define QEDR_SPEED_EDR		(32)
+-
+ static inline void get_link_speed_and_width(int speed, u8 *ib_speed,
+ 					    u8 *ib_width)
+ {
+ 	switch (speed) {
+ 	case 1000:
+-		*ib_speed = QEDR_SPEED_SDR;
++		*ib_speed = IB_SPEED_SDR;
+ 		*ib_width = IB_WIDTH_1X;
+ 		break;
+ 	case 10000:
+-		*ib_speed = QEDR_SPEED_QDR;
++		*ib_speed = IB_SPEED_QDR;
+ 		*ib_width = IB_WIDTH_1X;
+ 		break;
+ 
+ 	case 20000:
+-		*ib_speed = QEDR_SPEED_DDR;
++		*ib_speed = IB_SPEED_DDR;
+ 		*ib_width = IB_WIDTH_4X;
+ 		break;
+ 
+ 	case 25000:
+-		*ib_speed = QEDR_SPEED_EDR;
++		*ib_speed = IB_SPEED_EDR;
+ 		*ib_width = IB_WIDTH_1X;
+ 		break;
+ 
+ 	case 40000:
+-		*ib_speed = QEDR_SPEED_QDR;
++		*ib_speed = IB_SPEED_QDR;
+ 		*ib_width = IB_WIDTH_4X;
+ 		break;
+ 
+ 	case 50000:
+-		*ib_speed = QEDR_SPEED_QDR;
+-		*ib_width = IB_WIDTH_4X;
++		*ib_speed = IB_SPEED_HDR;
++		*ib_width = IB_WIDTH_1X;
+ 		break;
+ 
+ 	case 100000:
+-		*ib_speed = QEDR_SPEED_EDR;
++		*ib_speed = IB_SPEED_EDR;
+ 		*ib_width = IB_WIDTH_4X;
+ 		break;
+ 
+ 	default:
+ 		/* Unsupported */
+-		*ib_speed = QEDR_SPEED_SDR;
++		*ib_speed = IB_SPEED_SDR;
+ 		*ib_width = IB_WIDTH_1X;
+ 	}
+ }
+-- 
+2.20.1
+
