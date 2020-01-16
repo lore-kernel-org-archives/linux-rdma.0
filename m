@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D947BC33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1922C33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:18:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AFB2D207E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:17:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7978A2077C
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579202242;
-	bh=MGeSLlY5TsMsrM4CMCU6nTzFUKELvmTkU0CYxuigBdQ=;
+	s=default; t=1579202329;
+	bh=SyAiXWfVg46pD08w1xZSzZgC3r0KM/T5sI+w/77cPaA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=s8YluIIAVqdWzEYrgCbpvOLl9XzVfYnzp4gwrbngh4HAiPgyVnh1wnua3N+hPkvXt
-	 Y0wEEn9JUIWHCPsiC8AkGbJBqzZUmxgpcNdPSokU6pPWUcTr8Wd74+wRYhfkez01dy
-	 uubdy/9k4X4MlcV4XYMt/u9K5xKShg7CB5m7OD9I=
+	b=IhiivfleYzx3ZVIi/HTaicNpcBeKXnmYgdgYQ59kt7F0MO+Y2E8Im3R76oJom3H0u
+	 WEtMmiiX9vTnglgBpWsnNs/ykYZrZjSF9Nr5uBRkodhr3uQGAUD19USOlIxkNawBe3
+	 BlPwo+AGWBvBriZuZfkcqDAuTiZusozdihIC0Gv8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731596AbgAPQz1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:55:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40666 "EHLO mail.kernel.org"
+        id S1731940AbgAPQya (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:54:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39126 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732866AbgAPQz0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:55:26 -0500
+        id S1731921AbgAPQya (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:54:30 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1B3E0205F4;
-        Thu, 16 Jan 2020 16:55:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BDFCF20730;
+        Thu, 16 Jan 2020 16:54:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193725;
-        bh=MGeSLlY5TsMsrM4CMCU6nTzFUKELvmTkU0CYxuigBdQ=;
+        s=default; t=1579193669;
+        bh=SyAiXWfVg46pD08w1xZSzZgC3r0KM/T5sI+w/77cPaA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oIaJjdIT+k5c3NBwORmIthTI4l2RoDce9vyxmBJsyU4HYmPkMuHJ2Ht+t7l+8rEwm
-         GLI0/f0N3DxHhiBFKKfgaOI4CakJNmdE/q0FuDiEYvpLgH9ce0/lw6OrVa2QKl/U4A
-         jKCnWAyXQBgGw4oK+rdrLu0cP8dVduDGMfE7GbZY=
+        b=zqbn4MGnB+/ceJc7SACNTa2lgIP48E9HxKnFn9SeVmRnRT+4WuyyV1HdVo3ptJRK6
+         uDhfoXeLvR47HK1PjyXiAHdDcy4E8nwIgc1FIpJPh6qwMZ8FsMWt6xZ+dryaSWF4ku
+         c1rh87O2vtSbRWwrgjLsATQaG9MijQWSx8Rj3GaM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Zhu Yanjun <yanjun.zhu@oracle.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 019/671] IB/rxe: replace kvfree with vfree
-Date:   Thu, 16 Jan 2020 11:44:10 -0500
-Message-Id: <20200116165502.8838-19-sashal@kernel.org>
+Cc:     Roi Dayan <roid@mellanox.com>, Eli Britstein <elibr@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 195/205] net/mlx5e: Fix free peer_flow when refcount is 0
+Date:   Thu, 16 Jan 2020 11:42:50 -0500
+Message-Id: <20200116164300.6705-195-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116165502.8838-1-sashal@kernel.org>
-References: <20200116165502.8838-1-sashal@kernel.org>
+In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
+References: <20200116164300.6705-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,75 +59,41 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
+From: Roi Dayan <roid@mellanox.com>
 
-[ Upstream commit 721ad7e643f7002efa398838693f90284ea216d1 ]
+[ Upstream commit eb252c3a24fc5856fa62140c2f8269ddce6ce4e5 ]
 
-The buf is allocated by vmalloc_user in the function rxe_queue_init.
-So it is better to free it by vfree.
+It could be neigh update flow took a refcount on peer flow so
+sometimes we cannot release peer flow even if parent flow is
+being freed now.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: 5a7e5bcb663d ("net/mlx5e: Extend tc flow struct with reference counter")
+Signed-off-by: Roi Dayan <roid@mellanox.com>
+Reviewed-by: Eli Britstein <elibr@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_cq.c | 4 ++--
- drivers/infiniband/sw/rxe/rxe_qp.c | 5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
-index 2ee4b08b00ea..a57276f2cb84 100644
---- a/drivers/infiniband/sw/rxe/rxe_cq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_cq.c
-@@ -30,7 +30,7 @@
-  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  * SOFTWARE.
-  */
--
-+#include <linux/vmalloc.h>
- #include "rxe.h"
- #include "rxe_loc.h"
- #include "rxe_queue.h"
-@@ -97,7 +97,7 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
- 	err = do_mmap_info(rxe, uresp ? &uresp->mi : NULL, context,
- 			   cq->queue->buf, cq->queue->buf_size, &cq->queue->ip);
- 	if (err) {
--		kvfree(cq->queue->buf);
-+		vfree(cq->queue->buf);
- 		kfree(cq->queue);
- 		return err;
- 	}
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index c58452daffc7..230697fa31fe 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -34,6 +34,7 @@
- #include <linux/skbuff.h>
- #include <linux/delay.h>
- #include <linux/sched.h>
-+#include <linux/vmalloc.h>
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 947122c68493..96711e34d248 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -1615,8 +1615,11 @@ static void __mlx5e_tc_del_fdb_peer_flow(struct mlx5e_tc_flow *flow)
  
- #include "rxe.h"
- #include "rxe_loc.h"
-@@ -247,7 +248,7 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
- 			   &qp->sq.queue->ip);
+ 	flow_flag_clear(flow, DUP);
  
- 	if (err) {
--		kvfree(qp->sq.queue->buf);
-+		vfree(qp->sq.queue->buf);
- 		kfree(qp->sq.queue);
- 		return err;
- 	}
-@@ -300,7 +301,7 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
- 				   qp->rq.queue->buf, qp->rq.queue->buf_size,
- 				   &qp->rq.queue->ip);
- 		if (err) {
--			kvfree(qp->rq.queue->buf);
-+			vfree(qp->rq.queue->buf);
- 			kfree(qp->rq.queue);
- 			return err;
- 		}
+-	mlx5e_tc_del_fdb_flow(flow->peer_flow->priv, flow->peer_flow);
+-	kfree(flow->peer_flow);
++	if (refcount_dec_and_test(&flow->peer_flow->refcnt)) {
++		mlx5e_tc_del_fdb_flow(flow->peer_flow->priv, flow->peer_flow);
++		kfree(flow->peer_flow);
++	}
++
+ 	flow->peer_flow = NULL;
+ }
+ 
 -- 
 2.20.1
 
