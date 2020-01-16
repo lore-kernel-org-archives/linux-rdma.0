@@ -2,134 +2,183 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67691C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:05:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 715BDC33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:14:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 45350207E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:05:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CCF920723
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:14:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729431AbgAPEFX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jan 2020 23:05:23 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:9628 "EHLO huawei.com"
+        id S1730061AbgAPEOl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jan 2020 23:14:41 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:50776 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729110AbgAPEFX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Jan 2020 23:05:23 -0500
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 68372C71EE946BDA8BB8;
-        Thu, 16 Jan 2020 12:05:21 +0800 (CST)
-Received: from [127.0.0.1] (10.40.168.149) by DGGEMS411-HUB.china.huawei.com
- (10.3.19.211) with Microsoft SMTP Server id 14.3.439.0; Thu, 16 Jan 2020
- 12:05:13 +0800
-Subject: Re: [PATCH for-next] RDMA/hns: Add support for extended atomic in
- userspace
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-CC:     <dledford@redhat.com>, <leon@kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-References: <1579052546-11746-1-git-send-email-liweihang@huawei.com>
- <20200115205611.GG25201@ziepe.ca>
+        id S1729293AbgAPEOl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Jan 2020 23:14:41 -0500
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 82D4A181944CDB1185D8;
+        Thu, 16 Jan 2020 12:14:39 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
+ 14.3.439.0; Thu, 16 Jan 2020 12:14:33 +0800
 From:   Weihang Li <liweihang@huawei.com>
-Message-ID: <9b7a3629-0564-6643-f6e7-c2f098afd010@huawei.com>
-Date:   Thu, 16 Jan 2020 12:05:13 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <shiraz.saleem@intel.com>, <aditr@vmware.com>,
+        <mkalderon@marvell.com>, <aelior@marvell.com>,
+        <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
+Subject: [PATCH RFC for-next 2/6] RDMA/mlx5: remove deliver net device event
+Date:   Thu, 16 Jan 2020 12:10:43 +0800
+Message-ID: <1579147847-12158-3-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1579147847-12158-1-git-send-email-liweihang@huawei.com>
+References: <1579147847-12158-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20200115205611.GG25201@ziepe.ca>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.40.168.149]
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Lang Cheng <chenglang@huawei.com>
 
+The code that handles the link event of the net device has been moved
+into the core, and the related processing should been removed from the
+provider's driver.
 
-On 2020/1/16 4:56, Jason Gunthorpe wrote:
-> On Wed, Jan 15, 2020 at 09:42:26AM +0800, Weihang Li wrote:
->> From: Jiaran Zhang <zhangjiaran@huawei.com>
->>
->> To support extended atomic operations including cmp & swap and fetch & add
->> of 8 bytes, 16 bytes, 32 bytes, 64 bytes in userspace, some field in qpc
->> should be configured.
->>
->> Signed-off-by: Jiaran Zhang <zhangjiaran@huawei.com>
->> Signed-off-by: Weihang Li <liweihang@huawei.com>
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 16 +++++++++++++++-
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  3 ++-
->>  2 files changed, 17 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> index f1e0ba6..7edf3d8 100644
->> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> @@ -1692,7 +1692,7 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
->>  	caps->max_srq_desc_sz	= HNS_ROCE_V2_MAX_SRQ_DESC_SZ;
->>  	caps->qpc_entry_sz	= HNS_ROCE_V2_QPC_ENTRY_SZ;
->>  	caps->irrl_entry_sz	= HNS_ROCE_V2_IRRL_ENTRY_SZ;
->> -	caps->trrl_entry_sz	= HNS_ROCE_V2_TRRL_ENTRY_SZ;
->> +	caps->trrl_entry_sz	= HNS_ROCE_V2_EXT_ATOMIC_TRRL_ENTRY_SZ;
->>  	caps->cqc_entry_sz	= HNS_ROCE_V2_CQC_ENTRY_SZ;
->>  	caps->srqc_entry_sz	= HNS_ROCE_V2_SRQC_ENTRY_SZ;
->>  	caps->mtpt_entry_sz	= HNS_ROCE_V2_MTPT_ENTRY_SZ;
->> @@ -3286,6 +3286,9 @@ static void set_access_flags(struct hns_roce_qp *hr_qp,
->>  	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
->>  		     !!(access_flags & IB_ACCESS_REMOTE_ATOMIC));
->>  	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S, 0);
->> +	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_EXT_ATE_S,
->> +		     !!(access_flags & IB_ACCESS_REMOTE_ATOMIC));
->> +	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_EXT_ATE_S, 0);
->>  }
->>  
->>  static void set_qpc_wqe_cnt(struct hns_roce_qp *hr_qp,
->> @@ -3653,6 +3656,12 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
->>  			     IB_ACCESS_REMOTE_ATOMIC));
->>  		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
->>  			     0);
->> +		roce_set_bit(context->byte_76_srqn_op_en,
->> +			     V2_QPC_BYTE_76_EXT_ATE_S,
->> +			     !!(attr->qp_access_flags &
->> +				IB_ACCESS_REMOTE_ATOMIC));
->> +		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
->> +			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
->>  	} else {
->>  		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
->>  			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_READ));
->> @@ -3668,6 +3677,11 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
->>  			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
->>  		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
->>  			     0);
->> +		roce_set_bit(context->byte_76_srqn_op_en,
->> +			     V2_QPC_BYTE_76_EXT_ATE_S,
->> +			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
->> +		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
->> +			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
->>  	}
-> 
-> What happens to your userspace if it runs on an old kernel and tries
-> to use extended atomic?
-> 
-> Jason
->
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/mlx5/main.c | 95 ++++-----------------------------------
+ 1 file changed, 9 insertions(+), 86 deletions(-)
 
-Hi Jason,
-
-If the hns userspace runs with old kernel, the hardware will report a asynchronous
-event for the extended atomic operation and modify the qp to error state because
-the enable bit in this qp's context hasn't been set.
-
-The driver will print like this:
-
-[ 1252.240921] hns3 0000:7d:00.0: Invalid request local work queue 0x9 error.
-[ 1252.247772] hns3 0000:7d:00.0: no hr_qp can be found!
-
-Thanks
-Weihang
-
-> .
-> 
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 97bcf01..bb0dbfb 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -144,48 +144,6 @@ mlx5_ib_port_link_layer(struct ib_device *device, u8 port_num)
+ 	return mlx5_port_type_cap_to_rdma_ll(port_type_cap);
+ }
+ 
+-static int get_port_state(struct ib_device *ibdev,
+-			  u8 port_num,
+-			  enum ib_port_state *state)
+-{
+-	struct ib_port_attr attr;
+-	int ret;
+-
+-	memset(&attr, 0, sizeof(attr));
+-	ret = ibdev->ops.query_port(ibdev, port_num, &attr);
+-	if (!ret)
+-		*state = attr.state;
+-	return ret;
+-}
+-
+-static struct mlx5_roce *mlx5_get_rep_roce(struct mlx5_ib_dev *dev,
+-					   struct net_device *ndev,
+-					   u8 *port_num)
+-{
+-	struct mlx5_eswitch *esw = dev->mdev->priv.eswitch;
+-	struct net_device *rep_ndev;
+-	struct mlx5_ib_port *port;
+-	int i;
+-
+-	for (i = 0; i < dev->num_ports; i++) {
+-		port  = &dev->port[i];
+-		if (!port->rep)
+-			continue;
+-
+-		read_lock(&port->roce.netdev_lock);
+-		rep_ndev = mlx5_ib_get_rep_netdev(esw,
+-						  port->rep->vport);
+-		if (rep_ndev == ndev) {
+-			read_unlock(&port->roce.netdev_lock);
+-			*port_num = i + 1;
+-			return &port->roce;
+-		}
+-		read_unlock(&port->roce.netdev_lock);
+-	}
+-
+-	return NULL;
+-}
+-
+ static int mlx5_netdev_event(struct notifier_block *this,
+ 			     unsigned long event, void *ptr)
+ {
+@@ -219,52 +177,10 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 		write_unlock(&roce->netdev_lock);
+ 		break;
+ 
+-	case NETDEV_CHANGE:
+-	case NETDEV_UP:
+-	case NETDEV_DOWN: {
+-		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(mdev);
+-		struct net_device *upper = NULL;
+-
+-		if (lag_ndev) {
+-			upper = netdev_master_upper_dev_get(lag_ndev);
+-			dev_put(lag_ndev);
+-		}
+-
+-		if (ibdev->is_rep)
+-			roce = mlx5_get_rep_roce(ibdev, ndev, &port_num);
+-		if (!roce)
+-			return NOTIFY_DONE;
+-		if ((upper == ndev || (!upper && ndev == roce->netdev))
+-		    && ibdev->ib_active) {
+-			struct ib_event ibev = { };
+-			enum ib_port_state port_state;
+-
+-			if (get_port_state(&ibdev->ib_dev, port_num,
+-					   &port_state))
+-				goto done;
+-
+-			if (roce->last_port_state == port_state)
+-				goto done;
+-
+-			roce->last_port_state = port_state;
+-			ibev.device = &ibdev->ib_dev;
+-			if (port_state == IB_PORT_DOWN)
+-				ibev.event = IB_EVENT_PORT_ERR;
+-			else if (port_state == IB_PORT_ACTIVE)
+-				ibev.event = IB_EVENT_PORT_ACTIVE;
+-			else
+-				goto done;
+-
+-			ibev.element.port_num = port_num;
+-			ib_dispatch_event(&ibev);
+-		}
+-		break;
+-	}
+-
+ 	default:
+ 		break;
+ 	}
+-done:
++
+ 	mlx5_ib_put_native_port_mdev(ibdev, port_num);
+ 	return NOTIFY_DONE;
+ }
+@@ -569,7 +485,14 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 
+ 	dev_put(ndev);
+ 
+-	props->active_mtu	= min(props->max_mtu, ndev_ib_mtu);
++	props->active_mtu = min(props->max_mtu, ndev_ib_mtu);
++
++	if ((dev->lag_active && ndev != mlx5_lag_get_roce_netdev(mdev)) ||
++	    (!dev->lag_active && port_num != mdev_port_num))
++		props->port_event_flags = IB_PORT_BONDING_SLAVE;
++	else
++		props->port_event_flags &= ~IB_PORT_BONDING_SLAVE;
++
+ out:
+ 	if (put_mdev)
+ 		mlx5_ib_put_native_port_mdev(dev, port_num);
+-- 
+2.8.1
 
