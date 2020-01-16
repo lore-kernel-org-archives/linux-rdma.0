@@ -2,204 +2,168 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81C4AC33CB6
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:49:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48461C33CB8
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:51:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 41B57206B7
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:49:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23F5D206D7
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:51:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579200680;
+	bh=3kO+qp8JvkBpLkZkOcNexrYO7Q5vC0JuClMqjGEwdvY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=Ey+6fBCtANoBdPiQ7iZX4PdWl3wQBfZeUXH0G6BzxPr00pABhwq5y3DFnHanxdKTu
+	 7toLvLit7Sf4RiI50TuAMTgF8Ioiyb9KTouuQ+E3arbOPFPI893JXYY6NVL39h/Oyq
+	 gxxpj9j67h5CzED1ozJtY+EzaFT6c9rJJsMecmhs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389881AbgAPStE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:49:04 -0500
-Received: from mga02.intel.com ([134.134.136.20]:54545 "EHLO mga02.intel.com"
+        id S2388910AbgAPSvO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 13:51:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43352 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389705AbgAPRJe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:09:34 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Jan 2020 09:09:33 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.70,326,1574150400"; 
-   d="scan'208";a="226037242"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 16 Jan 2020 09:09:32 -0800
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1is8eB-000IBf-NT; Fri, 17 Jan 2020 01:09:31 +0800
-Date:   Fri, 17 Jan 2020 01:08:39 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- 0fbb37dd82998b5c83355997b3bdba2806968ac7
-Message-ID: <5e209897.B1M+HqivnwqSFk51%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S2389507AbgAPRIu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:08:50 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id A6DA420663;
+        Thu, 16 Jan 2020 17:08:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579194529;
+        bh=3kO+qp8JvkBpLkZkOcNexrYO7Q5vC0JuClMqjGEwdvY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=u5ybyT2oRy8TYww/8ZK07fcr/vHbEB7cTBFItvVFsFLJwL+HH5IkRtH5t55yWJye7
+         tWhrT2cMeOJpkTub+7tbR0n8pb4d19DnoAnO4vMBlzF4XfLuSbJiUPibgla9O0HUEN
+         YISnMsCUPhUowfp8jYqqCl9GI7M+SI8g32DOCNHA=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 418/671] IB/hfi1: Handle port down properly in pio
+Date:   Thu, 16 Jan 2020 12:00:56 -0500
+Message-Id: <20200116170509.12787-155-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
+References: <20200116170509.12787-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
-branch HEAD: 0fbb37dd82998b5c83355997b3bdba2806968ac7  IB/srp: Never use immediate data if it is disabled by a user
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-elapsed time: 646m
+[ Upstream commit 942a899335707fc9cfc97cb382a60734b2ff4e03 ]
 
-configs tested: 142
-configs skipped: 0
+The call to sc_buffer_alloc currently returns NULL (no buffer) or
+a buffer descriptor.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+There is a third case when the port is down.  Currently that
+returns NULL and this prevents the caller from properly handling the
+sc_buffer_alloc() failure.  A verbs code link test after the call is
+racy so the indication needs to come from the state check inside the allocation
+routine to be valid.
 
-sh                               allmodconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-c6x                              allyesconfig
-c6x                        evmc6678_defconfig
-nios2                         10m50_defconfig
-nios2                         3c120_defconfig
-openrisc                    or1ksim_defconfig
-openrisc                 simple_smp_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-um                                  defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-alpha                               defconfig
-csky                                defconfig
-nds32                             allnoconfig
-nds32                               defconfig
-x86_64               randconfig-c001-20200116
-x86_64               randconfig-c002-20200116
-x86_64               randconfig-c003-20200116
-i386                 randconfig-c001-20200116
-i386                 randconfig-c002-20200116
-i386                 randconfig-c003-20200116
-parisc                            allnoconfig
-parisc                            allyesonfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-parisc                              defconfig
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                             allmodconfig
-mips                              allnoconfig
-mips                             allyesconfig
-mips                      fuloong2e_defconfig
-mips                      malta_kvm_defconfig
-sparc                            allyesconfig
-sparc                               defconfig
-sparc64                          allmodconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                             defconfig
-h8300                     edosk2674_defconfig
-h8300                    h8300h-sim_defconfig
-h8300                       h8s-sim_defconfig
-m68k                             allmodconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-alpha                randconfig-a001-20200116
-m68k                 randconfig-a001-20200116
-mips                 randconfig-a001-20200116
-nds32                randconfig-a001-20200116
-parisc               randconfig-a001-20200116
-riscv                randconfig-a001-20200116
-arc                              allyesconfig
-arc                                 defconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-powerpc                          rhel-kconfig
-arc                  randconfig-a001-20200116
-arm                  randconfig-a001-20200116
-arm64                randconfig-a001-20200116
-ia64                 randconfig-a001-20200116
-powerpc              randconfig-a001-20200116
-sparc                randconfig-a001-20200116
-x86_64                              fedora-25
-x86_64                                  kexec
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                               rhel-7.6
-i386                             alldefconfig
-i386                              allnoconfig
-i386                             allyesconfig
-i386                                defconfig
-riscv                            allmodconfig
-riscv                             allnoconfig
-riscv                            allyesconfig
-riscv                               defconfig
-riscv                    nommu_virt_defconfig
-riscv                          rv32_defconfig
-s390                             alldefconfig
-s390                             allmodconfig
-s390                              allnoconfig
-s390                             allyesconfig
-s390                          debug_defconfig
-s390                                defconfig
-s390                       zfcpdump_defconfig
-x86_64               randconfig-d001-20200116
-x86_64               randconfig-d002-20200116
-x86_64               randconfig-d003-20200116
-i386                 randconfig-d001-20200116
-i386                 randconfig-d002-20200116
-i386                 randconfig-d003-20200116
-ia64                             alldefconfig
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-ia64                                defconfig
-x86_64               randconfig-a001-20200116
-x86_64               randconfig-a002-20200116
-x86_64               randconfig-a003-20200116
-i386                 randconfig-a001-20200116
-i386                 randconfig-a002-20200116
-i386                 randconfig-a003-20200116
-arc                  randconfig-a001-20200117
-arm                  randconfig-a001-20200117
-arm64                randconfig-a001-20200117
-ia64                 randconfig-a001-20200117
-powerpc              randconfig-a001-20200117
-sparc                randconfig-a001-20200117
-arm                              allmodconfig
-arm                               allnoconfig
-arm                              allyesconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-arm64                            allyesconfig
-arm64                               defconfig
-x86_64               randconfig-b001-20200116
-x86_64               randconfig-b002-20200116
-x86_64               randconfig-b003-20200116
-i386                 randconfig-b001-20200116
-i386                 randconfig-b002-20200116
-i386                 randconfig-b003-20200116
-x86_64               randconfig-e001-20200116
-x86_64               randconfig-e002-20200116
-x86_64               randconfig-e003-20200116
-i386                 randconfig-e001-20200116
-i386                 randconfig-e002-20200116
-i386                 randconfig-e003-20200116
+Fix by encoding the ECOMM failure like SDMA.   IS_ERR_OR_NULL() tests
+are added at all call sites.  For verbs send, this needs to treat any
+error by returning a completion without any MMIO copy.
 
+Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
-0-DAY kernel test infrastructure                 Open Source Technology Center
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org Intel Corporation
+ drivers/infiniband/hw/hfi1/pio.c   | 5 +++--
+ drivers/infiniband/hw/hfi1/rc.c    | 2 +-
+ drivers/infiniband/hw/hfi1/ud.c    | 4 ++--
+ drivers/infiniband/hw/hfi1/verbs.c | 4 ++--
+ 4 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index 752057647f09..3fcbf56f8be2 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -1434,7 +1434,8 @@ void sc_stop(struct send_context *sc, int flag)
+  * @cb: optional callback to call when the buffer is finished sending
+  * @arg: argument for cb
+  *
+- * Return a pointer to a PIO buffer if successful, NULL if not enough room.
++ * Return a pointer to a PIO buffer, NULL if not enough room, -ECOMM
++ * when link is down.
+  */
+ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+ 				pio_release_cb cb, void *arg)
+@@ -1450,7 +1451,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+ 	spin_lock_irqsave(&sc->alloc_lock, flags);
+ 	if (!(sc->flags & SCF_ENABLED)) {
+ 		spin_unlock_irqrestore(&sc->alloc_lock, flags);
+-		goto done;
++		return ERR_PTR(-ECOMM);
+ 	}
+ 
+ retry:
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 980168a56707..7ed6fb407a68 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -914,7 +914,7 @@ void hfi1_send_rc_ack(struct hfi1_packet *packet, bool is_fecn)
+ 	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps,
+ 			 sc_to_vlt(ppd->dd, sc5), plen);
+ 	pbuf = sc_buffer_alloc(rcd->sc, plen, NULL, NULL);
+-	if (!pbuf) {
++	if (IS_ERR_OR_NULL(pbuf)) {
+ 		/*
+ 		 * We have no room to send at the moment.  Pass
+ 		 * responsibility for sending the ACK to the send engine
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index ef5b3ffd3888..839593641e3f 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -703,7 +703,7 @@ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+ 	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps, vl, plen);
+ 	if (ctxt) {
+ 		pbuf = sc_buffer_alloc(ctxt, plen, NULL, NULL);
+-		if (pbuf) {
++		if (!IS_ERR_OR_NULL(pbuf)) {
+ 			trace_pio_output_ibhdr(ppd->dd, &hdr, sc5);
+ 			ppd->dd->pio_inline_send(ppd->dd, pbuf, pbc,
+ 						 &hdr, hwords);
+@@ -758,7 +758,7 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+ 	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps, vl, plen);
+ 	if (ctxt) {
+ 		pbuf = sc_buffer_alloc(ctxt, plen, NULL, NULL);
+-		if (pbuf) {
++		if (!IS_ERR_OR_NULL(pbuf)) {
+ 			trace_pio_output_ibhdr(ppd->dd, &hdr, sc5);
+ 			ppd->dd->pio_inline_send(ppd->dd, pbuf, pbc,
+ 						 &hdr, hwords);
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 4e7b3c027901..90e12f9433a3 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1096,10 +1096,10 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 	if (cb)
+ 		iowait_pio_inc(&priv->s_iowait);
+ 	pbuf = sc_buffer_alloc(sc, plen, cb, qp);
+-	if (unlikely(!pbuf)) {
++	if (unlikely(IS_ERR_OR_NULL(pbuf))) {
+ 		if (cb)
+ 			verbs_pio_complete(qp, 0);
+-		if (ppd->host_link_state != HLS_UP_ACTIVE) {
++		if (IS_ERR(pbuf)) {
+ 			/*
+ 			 * If we have filled the PIO buffers to capacity and are
+ 			 * not in an active state this request is not going to
+-- 
+2.20.1
+
