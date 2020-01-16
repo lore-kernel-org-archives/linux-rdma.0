@@ -5,65 +5,64 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87425C33CB1
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 12:59:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 016DCC33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 12:59:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3F3882081E
+	by mail.kernel.org (Postfix) with ESMTP id B79A02081E
 	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 12:59:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ezvhY0jc"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vanILJJN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727030AbgAPM7l (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 07:59:41 -0500
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:37858 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726935AbgAPM7k (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 07:59:40 -0500
-Received: by mail-ed1-f66.google.com with SMTP id cy15so18848945edb.4;
-        Thu, 16 Jan 2020 04:59:37 -0800 (PST)
+        id S1728897AbgAPM7s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 07:59:48 -0500
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:35495 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727002AbgAPM7r (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 07:59:47 -0500
+Received: by mail-ed1-f68.google.com with SMTP id f8so18832712edv.2;
+        Thu, 16 Jan 2020 04:59:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=kislsjdbCue0j8+Wz/XHJJIB7ljF+rVGniqbQe9N+p4=;
-        b=ezvhY0jcaN6fF3OQDKmciRqcB7Vu5NYVFcLakSTW83XjfTY90WC/m3YCOvsxnTT2/w
-         zOtFivlZ6xO7BsXguZw4+OAL4ASfzdJtc4Y338W0WsLZ33DmOnPPYSSsfuqbax2c4iZ+
-         3kLkDfbn3kZmuOW8Vx7xMhxrOzGOjwvEjHxIU8nnlXADGNZG6MIJRZc3jyvZFKkjqyVs
-         jUmG9wu6MAYw3EHVWz3LwAv7yCtriPWuEjVYEnjlVXotWdIcygkixBR6BGDPMPw8FCs6
-         3YljKl7E80RaYzLL/gszoRlALQXg39J6uc+/VQ98k6EjiFtJ31MOS+k/HnLN4p53YrEK
-         uY7w==
+        bh=gzuRoRfZA9WlYNt2TYm3ZromhWH01cCqT0pW/4Rm8rE=;
+        b=vanILJJN5NSpGUiANVd9smQvEgonSAnE1Nz1G6UcnnhTTveP4v1b9wBptz1QE+a2Il
+         onsFAJhARIzvhGrqWJeG2T40A+d9RviZBwnQ+4UFz/mTeQFEJBfHeDqOW8TOoUTAnPsq
+         qpqW890kQ/OaL0bJEdPKQwHWfPTJx4bvX12BVRSZXjNJ5oxd0OsTogjm3uci6n3Lj9VH
+         O94Cfwu6zwlSw/Rmc13deTEVxOfPecqsooyW9wsH4bJSD7fZenFfGW0CgEPborYQrXtB
+         ph5WGVCqvQNpfAYvBTtCC3HF+Tl6MXkNtHySDUWKkooodTsgCaRqfd+7LDtT3pd6UKsZ
+         kN7A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=kislsjdbCue0j8+Wz/XHJJIB7ljF+rVGniqbQe9N+p4=;
-        b=elU4VgZERiMxqyKlp6dPRGjwYx+aYo5I7OJq9LWn6I1S8xezPfBs8epNfKCMCR/43e
-         MZICISrLrYgGmLOESEcIj0nXlOAJ8AvNTq8KjsraguOso1Lqef44OXf4NJti69GX7aL5
-         BHdcA/Oksgxud3zohlPM/+taJxRy9lZ3SMC7Qde//iZyVc+RWsoUV47bLO1UtDQMfWjC
-         LKbZO4Xh9IFKhGDzf2ZM442fDL+wN5jUJ/DZXrabTenJJKSGmnSMdTwSLx42T3GJOk8k
-         jEK6ZebyftG7iFNUhLnsT+HtJIp68Vu5yd7coBDi2pWHv8e8WcLWOwPjC2oJAij3sfo5
-         JYzQ==
-X-Gm-Message-State: APjAAAUGK/sSnau0/kLIHlM7O2Z1yt5gHEJZ/9g9/izwLOA54lgjsGDZ
-        /9ZLToqtvTTPnkDOUQGX+viKriCh
-X-Google-Smtp-Source: APXvYqwq4MviiuNg9cKy1N4rnOttQm9ycWh7ZRdkzzWzsvvHiGD/sPJJRnJwfd8NYMB9fcSrYeXU9w==
-X-Received: by 2002:a17:906:814a:: with SMTP id z10mr2831836ejw.62.1579179576347;
-        Thu, 16 Jan 2020 04:59:36 -0800 (PST)
+        bh=gzuRoRfZA9WlYNt2TYm3ZromhWH01cCqT0pW/4Rm8rE=;
+        b=kLrovcycFl0NMfKaDoqqeeonWEjz/zwxOUDam3foSsh1mbkzXnuy8jOdetTTTQJeFL
+         RWZBE/KFMvmJKjGwg4XQFepNDQpWzWspb8p3wuUtC+wMSuNZ6DDa2mkN4+UTo/NaWc30
+         yfL+XiHw/aWo2sfW0sS1tfgy4/WlcQsOftJw7wJX3CFdftuzTv9QGqfNlsqLZXHLCHuc
+         KntrvvckdIlzeS6vzrzZ78TxMIYeZCMzECk11xIk3lZQmjE9RI5DZMGu7KPJDVW4m1gE
+         QdBms0jECU054Hrc9WtX9KEC5k5tO5suYcrGx/iVkt2PwOb03kMim/5Sdw7/JbfIQPwv
+         l6Dg==
+X-Gm-Message-State: APjAAAWar3hzsYvr/6ESEx4cizaDi/o4fjYkqFnfqONLz8O3zNS/OcBW
+        lnu5LizR0utiPGTZ1Zo3M3j7RMZ0
+X-Google-Smtp-Source: APXvYqxIbYI0Iq5gbHi/FVzr2l3dURji0nQjwgj3jZXq9c58LrnpxWWR0tXwAal1hZaeQ1XUPNdEhg==
+X-Received: by 2002:a17:906:934d:: with SMTP id p13mr2714609ejw.303.1579179584081;
+        Thu, 16 Jan 2020 04:59:44 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4956:1800:d464:b0ea:3ef4:abbb])
-        by smtp.gmail.com with ESMTPSA id b13sm697289ejl.5.2020.01.16.04.59.35
+        by smtp.gmail.com with ESMTPSA id b13sm697289ejl.5.2020.01.16.04.59.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jan 2020 04:59:35 -0800 (PST)
+        Thu, 16 Jan 2020 04:59:43 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
-        jinpu.wang@cloud.ionos.com, rpenyaev@suse.de,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v7 14/25] RDMA/rtrs: a bit of documentation
-Date:   Thu, 16 Jan 2020 13:59:04 +0100
-Message-Id: <20200116125915.14815-15-jinpuwang@gmail.com>
+        jinpu.wang@cloud.ionos.com, rpenyaev@suse.de
+Subject: [PATCH v7 20/25] block/rnbd: server: main functionality
+Date:   Thu, 16 Jan 2020 13:59:10 +0100
+Message-Id: <20200116125915.14815-21-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200116125915.14815-1-jinpuwang@gmail.com>
 References: <20200116125915.14815-1-jinpuwang@gmail.com>
@@ -74,479 +73,888 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-README with description of major sysfs entries, sysfs documentation
-has been moved to ABI dir as suggested by Bart.
+This is main functionality of rnbd-server module, which handles RTRS
+events and rnbd protocol requests, like map (open) or unmap (close)
+device.  Also server side is responsible for processing incoming IBTRS
+IO requests and forward them to local mapped devices.
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-Cc: linux-kernel@vger.kernel.org
 ---
- .../ABI/testing/sysfs-class-rtrs-client       | 156 +++++++++++++
- .../ABI/testing/sysfs-class-rtrs-server       |  71 ++++++
- drivers/infiniband/ulp/rtrs/README            | 213 ++++++++++++++++++
- 3 files changed, 440 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-class-rtrs-client
- create mode 100644 Documentation/ABI/testing/sysfs-class-rtrs-server
- create mode 100644 drivers/infiniband/ulp/rtrs/README
+ drivers/block/rnbd/rnbd-srv.c | 864 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 864 insertions(+)
+ create mode 100644 drivers/block/rnbd/rnbd-srv.c
 
-diff --git a/Documentation/ABI/testing/sysfs-class-rtrs-client b/Documentation/ABI/testing/sysfs-class-rtrs-client
+diff --git a/drivers/block/rnbd/rnbd-srv.c b/drivers/block/rnbd/rnbd-srv.c
 new file mode 100644
-index 000000000000..e6047a85bde4
+index 000000000000..293a39f79f16
 --- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rtrs-client
-@@ -0,0 +1,156 @@
-+What:		/sys/class/rtrs-client
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When a user of RTRS API creates a new session, a directory entry with
-+		the name of that session is created under /sys/class/rtrs-client/<session-name>/
-+
-+What:		/sys/class/rtrs-client/<session-name>/add_path
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RW, adds a new path (connection) to an existing session. Expected format is the
-+		following:
-+
-+		<[source addr,]destination addr>
-+		*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]
-+
-+What:		/sys/class/rtrs-client/<session-name>/max_reconnect_attempts
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Maximum number reconnect attempts the client should make before giving up
-+		after connection breaks unexpectedly.
-+
-+What:		/sys/class/rtrs-client/<session-name>/mp_policy
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Multipath policy specifies which path should be selected on each IO:
-+
-+		round-robin (0):
-+		select path in per CPU round-robin manner.
-+
-+		min-inflight (1):
-+		select path with minimum inflights.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Each path belonging to a given session is listed here by its source and
-+		destination address. When a new path is added to a session by writing to
-+		the "add_path" entry, a directory <src@dst> is created.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/state
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains "connected" if the session is connected to the peer and fully
-+		functional.  Otherwise the file contains "disconnected"
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/reconnect
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Write "1" to the file in order to reconnect the path.
-+		Operation is blocking and returns 0 if reconnect was successful.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/disconnect
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Write "1" to the file in order to disconnect the path.
-+		Operation blocks until RTRS path is disconnected.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/remove_path
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Write "1" to the file in order to disconnected and remove the path
-+		from the session.  Operation blocks until the path is disconnected
-+		and removed from the session.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/hca_name
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the the name of HCA the connection established on.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/hca_port
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the port number of active port traffic is going through.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/src_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the source address of the path
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/dst_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the destination address of the path
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/reset_all
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RW, Read will return usage help, write 0 will clear all the statistics.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/cpu_migration
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RTRS expects that each HCA IRQ is pinned to a separate CPU. If it's
-+		not the case, the processing of an I/O response could be processed on a
-+		different CPU than where it was originally submitted.  This file shows
-+		how many interrupts where generated on a non expected CPU.
-+		"from:" is the CPU on which the IRQ was expected, but not generated.
-+		"to:" is the CPU on which the IRQ was generated, but not expected.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/reconnects
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains 2 unsigned int values, the first one records number of successful
-+		reconnects in the path lifetime, the second one records number of failed
-+		reconnects in the path lifetime.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/rdma_lat
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Latency distribution of RTRS requests.
-+		The format is:
-+		1 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+		2 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+		4 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+		8 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+		16 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+		...
-+		65536 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+		>= 65536 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+		maximum ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/wc_completion
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains 2 unsigned int values, the first one records max number of work
-+		requests processed in work_completion in session lifetime, the second
-+		one records average number of work requests processed in work_completion
-+		in session lifetime.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/rdma
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains statistics regarding rdma operations and inflight operations.
-+		The output consists of 6 values:
-+
-+		<read-count> <read-total-size> <write-count> <write-total-size> \
-+		<inflights> <failovered>
-diff --git a/Documentation/ABI/testing/sysfs-class-rtrs-server b/Documentation/ABI/testing/sysfs-class-rtrs-server
-new file mode 100644
-index 000000000000..7c02cc9f0cb2
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rtrs-server
-@@ -0,0 +1,71 @@
-+What:		/sys/class/rtrs-server
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When a user of RTRS API creates a new session on a client side, a
-+		directory entry with the name of that session is created in here.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When new path is created by writing to "add_path" entry on client side,
-+		a directory entry named as <source address>@<destination address> is created
-+		on server.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/disconnect
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When "1" is written to the file, the RTRS session is being disconnected.
-+		Operations is non-blocking and returns control immediately to the caller.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/hca_name
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the the name of HCA the connection established on.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/hca_port
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the port number of active port traffic is going through.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/src_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the source address of the path
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/dst_addr
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the destination address of the path
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/stats/reset_all
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RW, Read will return usage help, write 0 will clear all the statistics.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/stats/rdma
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains statistics regarding rdma operations and inflight operations.
-+		The output consists of 5 values:
-+		<read-count> <read-total-size> <write-count> <write-total-size> <inflights>
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/stats/wc_completion
-+Date:		Jan 2020
-+KernelVersion:	5.6
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains 3 values, the first one is int, records max number of work
-+		requests processed in work_completion in session lifetime, the second
-+		one long int records total number of work requests processed in
-+		work_completion in session lifetime and the 3rd one long int records
-+		total number of calls to the cq completion handler. Division of 2nd
-+		number through 3rd gives the average number of completions processed
-+		in completion handler.
-diff --git a/drivers/infiniband/ulp/rtrs/README b/drivers/infiniband/ulp/rtrs/README
-new file mode 100644
-index 000000000000..5d9ea142e5dd
---- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/README
-@@ -0,0 +1,213 @@
-+****************************
-+RDMA Transport (RTRS)
-+****************************
-+
-+RTRS (RDMA Transport) is a reliable high speed transport library
-+which provides support to establish optimal number of connections
-+between client and server machines using RDMA (InfiniBand, RoCE, iWarp)
-+transport. It is optimized to transfer (read/write) IO blocks.
-+
-+In its core interface it follows the BIO semantics of providing the
-+possibility to either write data from an sg list to the remote side
-+or to request ("read") data transfer from the remote side into a given
-+sg list.
-+
-+RTRS provides I/O fail-over and load-balancing capabilities by using
-+multipath I/O (see "add_path" and "mp_policy" configuration entries in
-+Documentation/ABI/testing/sysfs-class-rtrs-client).
-+
-+RTRS is used by the RNBD (RDMA Network Block Device) modules.
-+
-+==================
-+Transport protocol
-+==================
-+
-+Overview
-+--------
-+An established connection between a client and a server is called rtrs
-+session. A session is associated with a set of memory chunks reserved on the
-+server side for a given client for rdma transfer. A session
-+consists of multiple paths, each representing a separate physical link
-+between client and server. Those are used for load balancing and failover.
-+Each path consists of as many connections (QPs) as there are cpus on
-+the client.
-+
-+When processing an incoming write or read request, rtrs client uses memory
-+chunks reserved for him on the server side. Their number, size and addresses
-+need to be exchanged between client and server during the connection
-+establishment phase. Apart from the memory related information client needs to
-+inform the server about the session name and identify each path and connection
-+individually.
-+
-+On an established session client sends to server write or read messages.
-+Server uses immediate field to tell the client which request is being
-+acknowledged and for errno. Client uses immediate field to tell the server
-+which of the memory chunks has been accessed and at which offset the message
-+can be found.
-+
-+Module parameter always_invalidate is introduced for the security problem
-+discussed in LPC RDMA MC 2019. When always_invalidate=Y, on the server side we
-+invalidate each rdma buffer before we hand it over to RNBD server and
-+then pass it to the block layer. A new rkey is generated and registered for the
-+buffer after it returns back from the block layer and RNBD server.
-+The new rkey is sent back to the client along with the IO result.
-+The procedure is the default behaviour of the driver. This invalidation and
-+registration on each IO causes performance drop of up to 20%. A user of the
-+driver may choose to load the modules with this mechanism switched off
-+(always_invalidate=N), if he understands and can take the risk of a malicious
-+client being able to corrupt memory of a server it is connected to. This might
-+be a reasonable option in a scenario where all the clients and all the servers
-+are located within a secure datacenter.
-+
-+
-+Connection establishment
-+------------------------
-+
-+1. Client starts establishing connections belonging to a path of a session one
-+by one via attaching RTRS_MSG_CON_REQ messages to the rdma_connect requests.
-+Those include uuid of the session and uuid of the path to be
-+established. They are used by the server to find a persisting session/path or
-+to create a new one when necessary. The message also contains the protocol
-+version and magic for compatibility, total number of connections per session
-+(as many as cpus on the client), the id of the current connection and
-+the reconnect counter, which is used to resolve the situations where
-+client is trying to reconnect a path, while server is still destroying the old
-+one.
-+
-+2. Server accepts the connection requests one by one and attaches
-+RTRS_MSG_CONN_RSP messages to the rdma_accept. Apart from magic and
-+protocol version, the messages include error code, queue depth supported by
-+the server (number of memory chunks which are going to be allocated for that
-+session) and the maximum size of one io, RTRS_MSG_NEW_RKEY_F flags is set
-+when always_invalidate=Y.
-+
-+3. After all connections of a path are established client sends to server the
-+RTRS_MSG_INFO_REQ message, containing the name of the session. This message
-+requests the address information from the server.
-+
-+4. Server replies to the session info request message with RTRS_MSG_INFO_RSP,
-+which contains the addresses and keys of the RDMA buffers allocated for that
-+session.
-+
-+5. Session becomes connected after all paths to be established are connected
-+(i.e. steps 1-4 finished for all paths requested for a session)
-+
-+6. Server and client exchange periodically heartbeat messages (empty rdma
-+messages with an immediate field) which are used to detect a crash on remote
-+side or network outage in an absence of IO.
-+
-+7. On any RDMA related error or in the case of a heartbeat timeout, the
-+corresponding path is disconnected, all the inflight IO are failed over to a
-+healthy path, if any, and the reconnect mechanism is triggered.
-+
-+CLT                                     SRV
-+*for each connection belonging to a path and for each path:
-+RTRS_MSG_CON_REQ  ------------------->
-+                   <------------------- RTRS_MSG_CON_RSP
-+...
-+*after all connections are established:
-+RTRS_MSG_INFO_REQ ------------------->
-+                   <------------------- RTRS_MSG_INFO_RSP
-+*heartbeat is started from both sides:
-+                   -------------------> [RTRS_HB_MSG_IMM]
-+[RTRS_HB_MSG_ACK] <-------------------
-+[RTRS_HB_MSG_IMM] <-------------------
-+                   -------------------> [RTRS_HB_MSG_ACK]
-+
-+IO path
-+-------
-+
-+* Write (always_invalidate=N) *
-+
-+1. When processing a write request client selects one of the memory chunks
-+on the server side and rdma writes there the user data, user header and the
-+RTRS_MSG_RDMA_WRITE message. Apart from the type (write), the message only
-+contains size of the user header. The client tells the server which chunk has
-+been accessed and at what offset the RTRS_MSG_RDMA_WRITE can be found by
-+using the IMM field.
-+
-+2. When confirming a write request server sends an "empty" rdma message with
-+an immediate field. The 32 bit field is used to specify the outstanding
-+inflight IO and for the error code.
-+
-+CLT                                                          SRV
-+usr_data + usr_hdr + rtrs_msg_rdma_write -----------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]                        <----------------- (id + errno)
-+
-+* Write (always_invalidate=Y) *
-+
-+1. When processing a write request client selects one of the memory chunks
-+on the server side and rdma writes there the user data, user header and the
-+RTRS_MSG_RDMA_WRITE message. Apart from the type (write), the message only
-+contains size of the user header. The client tells the server which chunk has
-+been accessed and at what offset the RTRS_MSG_RDMA_WRITE can be found by
-+using the IMM field, Server invalidate rkey associated to the memory chunks
-+first, when it finishes, pass the IO to RNBD server module.
-+
-+2. When confirming a write request server sends an "empty" rdma message with
-+an immediate field. The 32 bit field is used to specify the outstanding
-+inflight IO and for the error code. The new rkey is sent back using
-+SEND_WITH_IMM WR, client When it recived new rkey message, it validates
-+the message and finished IO after update rkey for the rbuffer, then post
-+back the recv buffer for later use.
-+
-+CLT                                                          SRV
-+usr_data + usr_hdr + rtrs_msg_rdma_write -----------------> [RTRS_IO_REQ_IMM]
-+[RTRS_MSG_RKEY_RSP]                     <----------------- (RTRS_MSG_RKEY_RSP)
-+[RTRS_IO_RSP_IMM]                        <----------------- (id + errno)
-+
-+
-+* Read (always_invalidate=N)*
-+
-+1. When processing a read request client selects one of the memory chunks
-+on the server side and rdma writes there the user header and the
-+RTRS_MSG_RDMA_READ message. This message contains the type (read), size of
-+the user header, flags (specifying if memory invalidation is necessary) and the
-+list of addresses along with keys for the data to be read into.
-+
-+2. When confirming a read request server transfers the requested data first,
-+attaches an invalidation message if requested and finally an "empty" rdma
-+message with an immediate field. The 32 bit field is used to specify the
-+outstanding inflight IO and the error code.
-+
-+CLT                                           SRV
-+usr_hdr + rtrs_msg_rdma_read --------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]            <-------------- usr_data + (id + errno)
-+or in case client requested invalidation:
-+[RTRS_IO_RSP_IMM_W_INV]      <-------------- usr_data + (INV) + (id + errno)
-+
-+* Read (always_invalidate=Y)*
-+
-+1. When processing a read request client selects one of the memory chunks
-+on the server side and rdma writes there the user header and the
-+RTRS_MSG_RDMA_READ message. This message contains the type (read), size of
-+the user header, flags (specifying if memory invalidation is necessary) and the
-+list of addresses along with keys for the data to be read into.
-+Server invalidate rkey associated to the memory chunks first, when it finishes,
-+passes the IO to RNBD server module.
-+
-+2. When confirming a read request server transfers the requested data first,
-+attaches an invalidation message if requested and finally an "empty" rdma
-+message with an immediate field. The 32 bit field is used to specify the
-+outstanding inflight IO and the error code. The new rkey is sent back using
-+SEND_WITH_IMM WR, client When it recived new rkey message, it validates
-+the message and finished IO after update rkey for the rbuffer, then post
-+back the recv buffer for later use.
-+
-+CLT                                           SRV
-+usr_hdr + rtrs_msg_rdma_read --------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]            <-------------- usr_data + (id + errno)
-+[RTRS_MSG_RKEY_RSP]	     <----------------- (RTRS_MSG_RKEY_RSP)
-+or in case client requested invalidation:
-+[RTRS_IO_RSP_IMM_W_INV]      <-------------- usr_data + (INV) + (id + errno)
-+=========================================
-+Contributors List(in alphabetical order)
-+=========================================
-+Danil Kipnis <danil.kipnis@profitbricks.com>
-+Fabian Holler <mail@fholler.de>
-+Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-+Jack Wang <jinpu.wang@profitbricks.com>
-+Kleber Souza <kleber.souza@profitbricks.com>
-+Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
-+Milind Dumbare <Milind.dumbare@gmail.com>
-+Roman Penyaev <roman.penyaev@profitbricks.com>
++++ b/drivers/block/rnbd/rnbd-srv.c
+@@ -0,0 +1,864 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * RDMA Network Block Driver
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ *
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ *
++ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
++ */
++#undef pr_fmt
++#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
++
++#include <linux/module.h>
++#include <linux/blkdev.h>
++
++#include "rnbd-srv.h"
++#include "rnbd-srv-dev.h"
++
++MODULE_DESCRIPTION("RDMA Network Block Device Server");
++MODULE_LICENSE("GPL");
++
++static int __read_mostly port_nr = RTRS_PORT;
++
++module_param_named(port_nr, port_nr, int, 0444);
++MODULE_PARM_DESC(port_nr,
++		 "The port number server is listening on (default: "
++		 __stringify(RTRS_PORT)")");
++
++#define DEFAULT_DEV_SEARCH_PATH "/"
++
++static char dev_search_path[PATH_MAX] = DEFAULT_DEV_SEARCH_PATH;
++
++static int dev_search_path_set(const char *val, const struct kernel_param *kp)
++{
++	char *dup;
++
++	if (strlen(val) >= sizeof(dev_search_path))
++		return -EINVAL;
++
++	dup = kstrdup(val, GFP_KERNEL);
++
++	if (dup[strlen(dup) - 1] == '\n')
++		dup[strlen(dup) - 1] = '\0';
++
++	strlcpy(dev_search_path, dup, sizeof(dev_search_path));
++
++	kfree(dup);
++	pr_info("dev_search_path changed to '%s'\n", dev_search_path);
++
++	return 0;
++}
++
++static struct kparam_string dev_search_path_kparam_str = {
++	.maxlen	= sizeof(dev_search_path),
++	.string	= dev_search_path
++};
++
++static const struct kernel_param_ops dev_search_path_ops = {
++	.set	= dev_search_path_set,
++	.get	= param_get_string,
++};
++
++module_param_cb(dev_search_path, &dev_search_path_ops,
++		&dev_search_path_kparam_str, 0444);
++MODULE_PARM_DESC(dev_search_path,
++		 "Sets the dev_search_path. When a device is mapped this path is prepended to the device path from the map device operation.  If %SESSNAME% is specified in a path, then device will be searched in a session namespace. (default: "
++		 DEFAULT_DEV_SEARCH_PATH ")");
++
++static DEFINE_MUTEX(sess_lock);
++static DEFINE_SPINLOCK(dev_lock);
++
++static LIST_HEAD(sess_list);
++static LIST_HEAD(dev_list);
++
++struct rnbd_io_private {
++	struct rtrs_srv_op		*id;
++	struct rnbd_srv_sess_dev	*sess_dev;
++};
++
++static void rnbd_sess_dev_release(struct kref *kref)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
++
++	sess_dev = container_of(kref, struct rnbd_srv_sess_dev, kref);
++	complete(sess_dev->destroy_comp);
++}
++
++static inline void rnbd_put_sess_dev(struct rnbd_srv_sess_dev *sess_dev)
++{
++	kref_put(&sess_dev->kref, rnbd_sess_dev_release);
++}
++
++static void rnbd_endio(void *priv, int error)
++{
++	struct rnbd_io_private *rnbd_priv = priv;
++	struct rnbd_srv_sess_dev *sess_dev = rnbd_priv->sess_dev;
++
++	rnbd_put_sess_dev(sess_dev);
++
++	rtrs_srv_resp_rdma(rnbd_priv->id, error);
++
++	kfree(priv);
++}
++
++static struct rnbd_srv_sess_dev *
++rnbd_get_sess_dev(int dev_id, struct rnbd_srv_session *srv_sess)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
++	int ret = 0;
++
++	read_lock(&srv_sess->index_lock);
++	sess_dev = idr_find(&srv_sess->index_idr, dev_id);
++	if (likely(sess_dev))
++		ret = kref_get_unless_zero(&sess_dev->kref);
++	read_unlock(&srv_sess->index_lock);
++
++	if (unlikely(!sess_dev || !ret))
++		return ERR_PTR(-ENXIO);
++
++	return sess_dev;
++}
++
++static int process_rdma(struct rtrs_srv *sess,
++			struct rnbd_srv_session *srv_sess,
++			struct rtrs_srv_op *id, void *data, u32 datalen,
++			const void *usr, size_t usrlen)
++{
++	const struct rnbd_msg_io *msg = usr;
++	struct rnbd_io_private *priv;
++	struct rnbd_srv_sess_dev *sess_dev;
++	u32 dev_id;
++	int err;
++
++	priv = kmalloc(sizeof(*priv), GFP_KERNEL);
++	if (unlikely(!priv))
++		return -ENOMEM;
++
++	dev_id = le32_to_cpu(msg->device_id);
++
++	sess_dev = rnbd_get_sess_dev(dev_id, srv_sess);
++	if (IS_ERR(sess_dev)) {
++		pr_err_ratelimited("Got I/O request on session %s for unknown device id %d\n",
++				   srv_sess->sessname, dev_id);
++		err = -ENOTCONN;
++		goto err;
++	}
++
++	priv->sess_dev = sess_dev;
++	priv->id = id;
++
++	err = rnbd_dev_submit_io(sess_dev->rnbd_dev, le64_to_cpu(msg->sector),
++				  data, datalen, le32_to_cpu(msg->bi_size),
++				  le32_to_cpu(msg->rw),
++				  srv_sess->ver < RNBD_PROTO_VER_MAJOR ||
++				  usrlen < sizeof(*msg) ?
++				  0 : le16_to_cpu(msg->prio), priv);
++	if (unlikely(err)) {
++		rnbd_srv_err(sess_dev, "Submitting I/O to device failed, err: %d\n",
++			      err);
++		goto sess_dev_put;
++	}
++
++	return 0;
++
++sess_dev_put:
++	rnbd_put_sess_dev(sess_dev);
++err:
++	kfree(priv);
++	return err;
++}
++
++static void destroy_device(struct rnbd_srv_dev *dev)
++{
++	WARN(!list_empty(&dev->sess_dev_list),
++	     "Device %s is being destroyed but still in use!\n",
++	     dev->id);
++
++	spin_lock(&dev_lock);
++	list_del(&dev->list);
++	spin_unlock(&dev_lock);
++
++	if (dev->dev_kobj.state_in_sysfs)
++		/*
++		 * Destroy kobj only if it was really created.
++		 * The following call should be sync, because
++		 *  we free the memory afterwards.
++		 */
++		rnbd_srv_destroy_dev_sysfs(dev);
++
++	kfree(dev);
++}
++
++static void destroy_device_cb(struct kref *kref)
++{
++	struct rnbd_srv_dev *dev;
++
++	dev = container_of(kref, struct rnbd_srv_dev, kref);
++
++	destroy_device(dev);
++}
++
++static void rnbd_put_srv_dev(struct rnbd_srv_dev *dev)
++{
++	kref_put(&dev->kref, destroy_device_cb);
++}
++
++static void rnbd_destroy_sess_dev(struct rnbd_srv_sess_dev *sess_dev)
++{
++	DECLARE_COMPLETION_ONSTACK(dc);
++
++	write_lock(&sess_dev->sess->index_lock);
++	idr_remove(&sess_dev->sess->index_idr, sess_dev->device_id);
++	write_unlock(&sess_dev->sess->index_lock);
++
++	sess_dev->destroy_comp = &dc;
++	rnbd_put_sess_dev(sess_dev);
++	wait_for_completion(&dc);
++
++	rnbd_dev_close(sess_dev->rnbd_dev);
++	list_del(&sess_dev->sess_list);
++	mutex_lock(&sess_dev->dev->lock);
++	list_del(&sess_dev->dev_list);
++	if (sess_dev->open_flags & FMODE_WRITE)
++		sess_dev->dev->open_write_cnt--;
++	mutex_unlock(&sess_dev->dev->lock);
++
++	rnbd_put_srv_dev(sess_dev->dev);
++
++	rnbd_srv_info(sess_dev, "Device closed\n");
++	kfree(sess_dev);
++}
++
++static void destroy_sess(struct rnbd_srv_session *srv_sess)
++{
++	struct rnbd_srv_sess_dev *sess_dev, *tmp;
++
++	if (list_empty(&srv_sess->sess_dev_list))
++		goto out;
++
++	mutex_lock(&srv_sess->lock);
++	list_for_each_entry_safe(sess_dev, tmp, &srv_sess->sess_dev_list,
++				 sess_list) {
++		rnbd_srv_destroy_dev_session_sysfs(sess_dev);
++		rnbd_destroy_sess_dev(sess_dev);
++	}
++	mutex_unlock(&srv_sess->lock);
++
++out:
++	idr_destroy(&srv_sess->index_idr);
++	bioset_exit(&srv_sess->sess_bio_set);
++
++	pr_info("RTRS Session %s disconnected\n", srv_sess->sessname);
++
++	mutex_lock(&sess_lock);
++	list_del(&srv_sess->list);
++	mutex_unlock(&sess_lock);
++
++	kfree(srv_sess);
++}
++
++static int create_sess(struct rtrs_srv *rtrs)
++{
++	struct rnbd_srv_session *srv_sess;
++	char sessname[NAME_MAX];
++	int err;
++
++	err = rtrs_srv_get_sess_name(rtrs, sessname, sizeof(sessname));
++	if (unlikely(err)) {
++		pr_err("rtrs_srv_get_sess_name(%s): %d\n", sessname, err);
++
++		return err;
++	}
++	srv_sess = kzalloc(sizeof(*srv_sess), GFP_KERNEL);
++	if (!srv_sess)
++		return -ENOMEM;
++	srv_sess->queue_depth = rtrs_srv_get_queue_depth(rtrs);
++
++	err = bioset_init(&srv_sess->sess_bio_set, srv_sess->queue_depth,
++			  offsetof(struct rnbd_dev_blk_io, bio),
++			  BIOSET_NEED_BVECS);
++	if (err) {
++		pr_err("Allocating srv_session for session %s failed\n",
++		       sessname);
++		kfree(srv_sess);
++		return err;
++	}
++
++	idr_init(&srv_sess->index_idr);
++	rwlock_init(&srv_sess->index_lock);
++	INIT_LIST_HEAD(&srv_sess->sess_dev_list);
++	mutex_init(&srv_sess->lock);
++	mutex_lock(&sess_lock);
++	list_add(&srv_sess->list, &sess_list);
++	mutex_unlock(&sess_lock);
++
++	srv_sess->rtrs = rtrs;
++	strlcpy(srv_sess->sessname, sessname, sizeof(srv_sess->sessname));
++
++	rtrs_srv_set_sess_priv(rtrs, srv_sess);
++
++	return 0;
++}
++
++static int rnbd_srv_link_ev(struct rtrs_srv *rtrs,
++			     enum rtrs_srv_link_ev ev, void *priv)
++{
++	struct rnbd_srv_session *srv_sess = priv;
++
++	switch (ev) {
++	case RTRS_SRV_LINK_EV_CONNECTED:
++		return create_sess(rtrs);
++
++	case RTRS_SRV_LINK_EV_DISCONNECTED:
++		if (WARN_ON(!srv_sess))
++			return -EINVAL;
++
++		destroy_sess(srv_sess);
++		return 0;
++
++	default:
++		pr_warn("Received unknown RTRS session event %d from session %s\n",
++			ev, srv_sess->sessname);
++		return -EINVAL;
++	}
++}
++
++static int process_msg_close(struct rtrs_srv *rtrs,
++			     struct rnbd_srv_session *srv_sess,
++			     void *data, size_t datalen, const void *usr,
++			     size_t usrlen)
++{
++	const struct rnbd_msg_close *close_msg = usr;
++	struct rnbd_srv_sess_dev *sess_dev;
++
++	sess_dev = rnbd_get_sess_dev(le32_to_cpu(close_msg->device_id),
++				      srv_sess);
++	if (IS_ERR(sess_dev))
++		return 0;
++
++	rnbd_srv_destroy_dev_session_sysfs(sess_dev);
++	rnbd_put_sess_dev(sess_dev);
++	mutex_lock(&srv_sess->lock);
++	rnbd_destroy_sess_dev(sess_dev);
++	mutex_unlock(&srv_sess->lock);
++	return 0;
++}
++
++static int process_msg_open(struct rtrs_srv *rtrs,
++			    struct rnbd_srv_session *srv_sess,
++			    const void *msg, size_t len,
++			    void *data, size_t datalen);
++
++static int process_msg_sess_info(struct rtrs_srv *rtrs,
++				 struct rnbd_srv_session *srv_sess,
++				 const void *msg, size_t len,
++				 void *data, size_t datalen);
++
++static int rnbd_srv_rdma_ev(struct rtrs_srv *rtrs, void *priv,
++			     struct rtrs_srv_op *id, int dir,
++			     void *data, size_t datalen, const void *usr,
++			     size_t usrlen)
++{
++	struct rnbd_srv_session *srv_sess = priv;
++	const struct rnbd_msg_hdr *hdr = usr;
++	int ret = 0;
++	u16 type;
++
++	if (WARN_ON(!srv_sess))
++		return -ENODEV;
++
++	type = le16_to_cpu(hdr->type);
++
++	switch (type) {
++	case RNBD_MSG_IO:
++		return process_rdma(rtrs, srv_sess, id, data, datalen, usr,
++				    usrlen);
++	case RNBD_MSG_CLOSE:
++		ret = process_msg_close(rtrs, srv_sess, data, datalen,
++					usr, usrlen);
++		break;
++	case RNBD_MSG_OPEN:
++		ret = process_msg_open(rtrs, srv_sess, usr, usrlen,
++				       data, datalen);
++		break;
++	case RNBD_MSG_SESS_INFO:
++		ret = process_msg_sess_info(rtrs, srv_sess, usr, usrlen,
++					    data, datalen);
++		break;
++	default:
++		pr_warn("Received unexpected message type %d with dir %d from session %s\n",
++			type, dir, srv_sess->sessname);
++		return -EINVAL;
++	}
++
++	rtrs_srv_resp_rdma(id, ret);
++	return 0;
++}
++
++static struct rnbd_srv_sess_dev
++*rnbd_sess_dev_alloc(struct rnbd_srv_session *srv_sess)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
++	int error;
++
++	sess_dev = kzalloc(sizeof(*sess_dev), GFP_KERNEL);
++	if (!sess_dev)
++		return ERR_PTR(-ENOMEM);
++
++	idr_preload(GFP_KERNEL);
++	write_lock(&srv_sess->index_lock);
++
++	error = idr_alloc(&srv_sess->index_idr, sess_dev, 0, -1, GFP_NOWAIT);
++	if (error < 0) {
++		pr_warn("Allocating idr failed, err: %d\n", error);
++		goto out_unlock;
++	}
++
++	sess_dev->device_id = error;
++	error = 0;
++
++out_unlock:
++	write_unlock(&srv_sess->index_lock);
++	idr_preload_end();
++	if (error) {
++		kfree(sess_dev);
++		return ERR_PTR(error);
++	}
++
++	return sess_dev;
++}
++
++static struct rnbd_srv_dev *rnbd_srv_init_srv_dev(const char *id)
++{
++	struct rnbd_srv_dev *dev;
++
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev)
++		return ERR_PTR(-ENOMEM);
++
++	strlcpy(dev->id, id, sizeof(dev->id));
++	kref_init(&dev->kref);
++	INIT_LIST_HEAD(&dev->sess_dev_list);
++	mutex_init(&dev->lock);
++
++	return dev;
++}
++
++static struct rnbd_srv_dev *
++rnbd_srv_find_or_add_srv_dev(struct rnbd_srv_dev *new_dev)
++{
++	struct rnbd_srv_dev *dev;
++
++	spin_lock(&dev_lock);
++	list_for_each_entry(dev, &dev_list, list) {
++		if (!strncmp(dev->id, new_dev->id, sizeof(dev->id))) {
++			if (!kref_get_unless_zero(&dev->kref))
++				/*
++				 * We lost the race, device is almost dead.
++				 *  Continue traversing to find a valid one.
++				 */
++				continue;
++			spin_unlock(&dev_lock);
++			return dev;
++		}
++	}
++	list_add(&new_dev->list, &dev_list);
++	spin_unlock(&dev_lock);
++
++	return new_dev;
++}
++
++static int rnbd_srv_check_update_open_perm(struct rnbd_srv_dev *srv_dev,
++					    struct rnbd_srv_session *srv_sess,
++					    enum rnbd_access_mode access_mode)
++{
++	int ret = -EPERM;
++
++	mutex_lock(&srv_dev->lock);
++
++	switch (access_mode) {
++	case RNBD_ACCESS_RO:
++		ret = 0;
++		break;
++	case RNBD_ACCESS_RW:
++		if (srv_dev->open_write_cnt == 0)  {
++			srv_dev->open_write_cnt++;
++			ret = 0;
++		} else {
++			pr_err("Mapping device '%s' for session %s with RW permissions failed. Device already opened as 'RW' by %d client(s), access mode %s.\n",
++			       srv_dev->id, srv_sess->sessname,
++			       srv_dev->open_write_cnt,
++			       rnbd_access_mode_str(access_mode));
++		}
++		break;
++	case RNBD_ACCESS_MIGRATION:
++		if (srv_dev->open_write_cnt < 2) {
++			srv_dev->open_write_cnt++;
++			ret = 0;
++		} else {
++			pr_err("Mapping device '%s' for session %s with migration permissions failed. Device already opened as 'RW' by %d client(s), access mode %s.\n",
++			       srv_dev->id, srv_sess->sessname,
++			       srv_dev->open_write_cnt,
++			       rnbd_access_mode_str(access_mode));
++		}
++		break;
++	default:
++		pr_err("Received mapping request for device '%s' on session %s with invalid access mode: %d\n",
++		       srv_dev->id, srv_sess->sessname, access_mode);
++		ret = -EINVAL;
++	}
++
++	mutex_unlock(&srv_dev->lock);
++
++	return ret;
++}
++
++static struct rnbd_srv_dev *
++rnbd_srv_get_or_create_srv_dev(struct rnbd_dev *rnbd_dev,
++				struct rnbd_srv_session *srv_sess,
++				enum rnbd_access_mode access_mode)
++{
++	int ret;
++	struct rnbd_srv_dev *new_dev, *dev;
++
++	new_dev = rnbd_srv_init_srv_dev(rnbd_dev->name);
++	if (IS_ERR(new_dev))
++		return new_dev;
++
++	dev = rnbd_srv_find_or_add_srv_dev(new_dev);
++	if (dev != new_dev)
++		kfree(new_dev);
++
++	ret = rnbd_srv_check_update_open_perm(dev, srv_sess, access_mode);
++	if (ret) {
++		rnbd_put_srv_dev(dev);
++		return ERR_PTR(ret);
++	}
++
++	return dev;
++}
++
++static void rnbd_srv_fill_msg_open_rsp(struct rnbd_msg_open_rsp *rsp,
++					struct rnbd_srv_sess_dev *sess_dev)
++{
++	struct rnbd_dev *rnbd_dev = sess_dev->rnbd_dev;
++
++	rsp->hdr.type = cpu_to_le16(RNBD_MSG_OPEN_RSP);
++	rsp->device_id =
++		cpu_to_le32(sess_dev->device_id);
++	rsp->nsectors =
++		cpu_to_le64(get_capacity(rnbd_dev->bdev->bd_disk));
++	rsp->logical_block_size	=
++		cpu_to_le16(rnbd_dev_get_logical_bsize(rnbd_dev));
++	rsp->physical_block_size =
++		cpu_to_le16(rnbd_dev_get_phys_bsize(rnbd_dev));
++	rsp->max_segments =
++		cpu_to_le16(rnbd_dev_get_max_segs(rnbd_dev));
++	rsp->max_hw_sectors =
++		cpu_to_le32(rnbd_dev_get_max_hw_sects(rnbd_dev));
++	rsp->max_write_same_sectors =
++		cpu_to_le32(rnbd_dev_get_max_write_same_sects(rnbd_dev));
++	rsp->max_discard_sectors =
++		cpu_to_le32(rnbd_dev_get_max_discard_sects(rnbd_dev));
++	rsp->discard_granularity =
++		cpu_to_le32(rnbd_dev_get_discard_granularity(rnbd_dev));
++	rsp->discard_alignment =
++		cpu_to_le32(rnbd_dev_get_discard_alignment(rnbd_dev));
++	rsp->secure_discard =
++		cpu_to_le16(rnbd_dev_get_secure_discard(rnbd_dev));
++	rsp->rotational =
++		!blk_queue_nonrot(bdev_get_queue(rnbd_dev->bdev));
++}
++
++static struct rnbd_srv_sess_dev *
++rnbd_srv_create_set_sess_dev(struct rnbd_srv_session *srv_sess,
++			      const struct rnbd_msg_open *open_msg,
++			      struct rnbd_dev *rnbd_dev, fmode_t open_flags,
++			      struct rnbd_srv_dev *srv_dev)
++{
++	struct rnbd_srv_sess_dev *sdev = rnbd_sess_dev_alloc(srv_sess);
++
++	if (IS_ERR(sdev))
++		return sdev;
++
++	kref_init(&sdev->kref);
++
++	strlcpy(sdev->pathname, open_msg->dev_name, sizeof(sdev->pathname));
++
++	sdev->rnbd_dev		= rnbd_dev;
++	sdev->sess		= srv_sess;
++	sdev->dev		= srv_dev;
++	sdev->open_flags	= open_flags;
++	sdev->access_mode	= open_msg->access_mode;
++
++	return sdev;
++}
++
++static char *rnbd_srv_get_full_path(struct rnbd_srv_session *srv_sess,
++				     const char *dev_name)
++{
++	char *full_path;
++	char *a, *b;
++
++	full_path = kmalloc(PATH_MAX, GFP_KERNEL);
++	if (!full_path)
++		return ERR_PTR(-ENOMEM);
++
++	/*
++	 * Replace %SESSNAME% with a real session name in order to
++	 * create device namespace.
++	 */
++	a = strnstr(dev_search_path, "%SESSNAME%", sizeof(dev_search_path));
++	if (a) {
++		int len = a - dev_search_path;
++
++		len = snprintf(full_path, PATH_MAX, "%.*s/%s/%s", len,
++			       dev_search_path, srv_sess->sessname, dev_name);
++		if (len >= PATH_MAX) {
++			pr_err("Tooooo looong path: %s, %s, %s\n",
++			       dev_search_path, srv_sess->sessname, dev_name);
++			kfree(full_path);
++			return ERR_PTR(-EINVAL);
++		}
++	} else {
++		snprintf(full_path, PATH_MAX, "%s/%s",
++			 dev_search_path, dev_name);
++	}
++
++	/* eliminitate duplicated slashes */
++	a = strchr(full_path, '/');
++	b = a;
++	while (*b != '\0') {
++		if (*b == '/' && *a == '/') {
++			b++;
++		} else {
++			a++;
++			*a = *b;
++			b++;
++		}
++	}
++	a++;
++	*a = '\0';
++
++	return full_path;
++}
++
++static int process_msg_sess_info(struct rtrs_srv *rtrs,
++				 struct rnbd_srv_session *srv_sess,
++				 const void *msg, size_t len,
++				 void *data, size_t datalen)
++{
++	const struct rnbd_msg_sess_info *sess_info_msg = msg;
++	struct rnbd_msg_sess_info_rsp *rsp = data;
++
++	srv_sess->ver = min_t(u8, sess_info_msg->ver, RNBD_PROTO_VER_MAJOR);
++	pr_debug("Session %s using protocol version %d (client version: %d, server version: %d)\n",
++		 srv_sess->sessname, srv_sess->ver,
++		 sess_info_msg->ver, RNBD_PROTO_VER_MAJOR);
++
++	rsp->hdr.type = cpu_to_le16(RNBD_MSG_SESS_INFO_RSP);
++	rsp->ver = srv_sess->ver;
++
++	return 0;
++}
++
++/**
++ * find_srv_sess_dev() - a dev is already opened by this name
++ * @srv_sess:	the session to search.
++ * @dev_name:	string containing the name of the device.
++ *
++ * Return struct rnbd_srv_sess_dev if srv_sess already opened the dev_name
++ * NULL if the session didn't open the device yet.
++ */
++static struct rnbd_srv_sess_dev *
++find_srv_sess_dev(struct rnbd_srv_session *srv_sess, const char *dev_name)
++{
++	struct rnbd_srv_sess_dev *sess_dev;
++
++	if (list_empty(&srv_sess->sess_dev_list))
++		return NULL;
++
++	list_for_each_entry(sess_dev, &srv_sess->sess_dev_list, sess_list)
++		if (!strcmp(sess_dev->pathname, dev_name))
++			return sess_dev;
++
++	return NULL;
++}
++
++static int process_msg_open(struct rtrs_srv *rtrs,
++			    struct rnbd_srv_session *srv_sess,
++			    const void *msg, size_t len,
++			    void *data, size_t datalen)
++{
++	int ret;
++	struct rnbd_srv_dev *srv_dev;
++	struct rnbd_srv_sess_dev *srv_sess_dev;
++	const struct rnbd_msg_open *open_msg = msg;
++	fmode_t open_flags;
++	char *full_path;
++	struct rnbd_dev *rnbd_dev;
++	struct rnbd_msg_open_rsp *rsp = data;
++
++	pr_debug("Open message received: session='%s' path='%s' access_mode=%d\n",
++		 srv_sess->sessname, open_msg->dev_name,
++		 open_msg->access_mode);
++	open_flags = FMODE_READ;
++	if (open_msg->access_mode != RNBD_ACCESS_RO)
++		open_flags |= FMODE_WRITE;
++
++	mutex_lock(&srv_sess->lock);
++
++	srv_sess_dev = find_srv_sess_dev(srv_sess, open_msg->dev_name);
++	if (srv_sess_dev)
++		goto fill_response;
++
++	if ((strlen(dev_search_path) + strlen(open_msg->dev_name))
++	    >= PATH_MAX) {
++		pr_err("Opening device for session %s failed, device path too long. '%s/%s' is longer than PATH_MAX (%d)\n",
++		       srv_sess->sessname, dev_search_path, open_msg->dev_name,
++		       PATH_MAX);
++		ret = -EINVAL;
++		goto reject;
++	}
++	if (strstr(open_msg->dev_name, "..")) {
++		pr_err("Opening device for session %s failed, device path %s contains relative path ..\n",
++		       srv_sess->sessname, open_msg->dev_name);
++		ret = -EINVAL;
++		goto reject;
++	}
++	full_path = rnbd_srv_get_full_path(srv_sess, open_msg->dev_name);
++	if (IS_ERR(full_path)) {
++		ret = PTR_ERR(full_path);
++		pr_err("Opening device '%s' for client %s failed, failed to get device full path, err: %d\n",
++		       open_msg->dev_name, srv_sess->sessname, ret);
++		goto reject;
++	}
++
++	rnbd_dev = rnbd_dev_open(full_path, open_flags,
++				   &srv_sess->sess_bio_set, rnbd_endio);
++	if (IS_ERR(rnbd_dev)) {
++		pr_err("Opening device '%s' on session %s failed, failed to open the block device, err: %ld\n",
++		       full_path, srv_sess->sessname, PTR_ERR(rnbd_dev));
++		ret = PTR_ERR(rnbd_dev);
++		goto free_path;
++	}
++
++	srv_dev = rnbd_srv_get_or_create_srv_dev(rnbd_dev, srv_sess,
++						  open_msg->access_mode);
++	if (IS_ERR(srv_dev)) {
++		pr_err("Opening device '%s' on session %s failed, creating srv_dev failed, err: %ld\n",
++		       full_path, srv_sess->sessname, PTR_ERR(srv_dev));
++		ret = PTR_ERR(srv_dev);
++		goto rnbd_dev_close;
++	}
++
++	srv_sess_dev = rnbd_srv_create_set_sess_dev(srv_sess, open_msg,
++						     rnbd_dev, open_flags,
++						     srv_dev);
++	if (IS_ERR(srv_sess_dev)) {
++		pr_err("Opening device '%s' on session %s failed, creating sess_dev failed, err: %ld\n",
++		       full_path, srv_sess->sessname, PTR_ERR(srv_sess_dev));
++		ret = PTR_ERR(srv_sess_dev);
++		goto srv_dev_put;
++	}
++
++	/* Create the srv_dev sysfs files if they haven't been created yet. The
++	 * reason to delay the creation is not to create the sysfs files before
++	 * we are sure the device can be opened.
++	 */
++	mutex_lock(&srv_dev->lock);
++	if (!srv_dev->dev_kobj.state_in_sysfs) {
++		ret = rnbd_srv_create_dev_sysfs(srv_dev, rnbd_dev->bdev,
++						 rnbd_dev->name);
++		if (ret) {
++			mutex_unlock(&srv_dev->lock);
++			rnbd_srv_err(srv_sess_dev,
++				      "Opening device failed, failed to create device sysfs files, err: %d\n",
++				      ret);
++			goto free_srv_sess_dev;
++		}
++	}
++
++	ret = rnbd_srv_create_dev_session_sysfs(srv_sess_dev);
++	if (ret) {
++		mutex_unlock(&srv_dev->lock);
++		rnbd_srv_err(srv_sess_dev,
++			      "Opening device failed, failed to create dev client sysfs files, err: %d\n",
++			      ret);
++		goto free_srv_sess_dev;
++	}
++
++	list_add(&srv_sess_dev->dev_list, &srv_dev->sess_dev_list);
++	mutex_unlock(&srv_dev->lock);
++
++	list_add(&srv_sess_dev->sess_list, &srv_sess->sess_dev_list);
++
++	rnbd_srv_info(srv_sess_dev, "Opened device '%s'\n", srv_dev->id);
++
++	kfree(full_path);
++
++fill_response:
++	rnbd_srv_fill_msg_open_rsp(rsp, srv_sess_dev);
++	mutex_unlock(&srv_sess->lock);
++	return 0;
++
++free_srv_sess_dev:
++	write_lock(&srv_sess->index_lock);
++	idr_remove(&srv_sess->index_idr, srv_sess_dev->device_id);
++	write_unlock(&srv_sess->index_lock);
++	kfree(srv_sess_dev);
++srv_dev_put:
++	if (open_msg->access_mode != RNBD_ACCESS_RO) {
++		mutex_lock(&srv_dev->lock);
++		srv_dev->open_write_cnt--;
++		mutex_unlock(&srv_dev->lock);
++	}
++	rnbd_put_srv_dev(srv_dev);
++rnbd_dev_close:
++	rnbd_dev_close(rnbd_dev);
++free_path:
++	kfree(full_path);
++reject:
++	mutex_unlock(&srv_sess->lock);
++	return ret;
++}
++
++static struct rtrs_srv_ctx *rtrs_ctx;
++
++static int __init rnbd_srv_init_module(void)
++{
++	int err;
++
++	pr_info("Loading module %s, proto %s\n",
++		KBUILD_MODNAME, RNBD_PROTO_VER_STRING);
++
++	rtrs_ctx = rtrs_srv_open(rnbd_srv_rdma_ev, rnbd_srv_link_ev,
++				   port_nr);
++	if (IS_ERR(rtrs_ctx)) {
++		err = PTR_ERR(rtrs_ctx);
++		pr_err("rtrs_srv_open(), err: %d\n", err);
++		return err;
++	}
++
++	err = rnbd_srv_create_sysfs_files();
++	if (err) {
++		pr_err("rnbd_srv_create_sysfs_files(), err: %d\n", err);
++		rtrs_srv_close(rtrs_ctx);
++		return err;
++	}
++
++	return 0;
++}
++
++static void __exit rnbd_srv_cleanup_module(void)
++{
++	rtrs_srv_close(rtrs_ctx);
++	WARN_ON(!list_empty(&sess_list));
++	rnbd_srv_destroy_sysfs_files();
++	pr_info("Module unloaded\n");
++}
++
++module_init(rnbd_srv_init_module);
++module_exit(rnbd_srv_cleanup_module);
 -- 
 2.17.1
 
