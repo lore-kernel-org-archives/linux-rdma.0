@@ -2,103 +2,120 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A66D3C33CB7
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:00:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9C4BC33CB1
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:05:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C1742081E
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:00:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB5C220730
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:05:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uvRrgWRu"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="OXqcMDvc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726714AbgAPM7W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 07:59:22 -0500
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:39765 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726688AbgAPM7V (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 07:59:21 -0500
-Received: by mail-ed1-f68.google.com with SMTP id t17so18825612eds.6;
-        Thu, 16 Jan 2020 04:59:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=JU7gxEFwqK+Oxre///Ayp0+fP1f8xI82V+ZomELLvp4=;
-        b=uvRrgWRu7I86qKQ0Eh/qfeUUD9OLgTi++Ou/RhfFmXQjCXrOX8QDv22J1TqxwM/Wlp
-         niVoBjPZRgj8tNLCdLAJpQ2iVfWF/llODq/ZeOrv/cfXCwIIVUzHhsSEkBDS2K475/ho
-         9TSVe8mCOB8Bidp0Pvt3wJFnPSbjdSxSQqjN6Li313HIOOxImQy8pP3waJdKs8htJSG9
-         DnaoqS9TYiv7GxyqD4tDYM3AU9Tmh2oTBFtJ6w4VdfznHWqX0czUlLtCBaw1MHjijrfg
-         Ta3EB3PL6V0llGOgmQrSDOysAnbQJmkKVHXkKOQcFSBRTlDCg2hP7NPFVH8KPPlWJLds
-         IqTA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=JU7gxEFwqK+Oxre///Ayp0+fP1f8xI82V+ZomELLvp4=;
-        b=DoVPCpQal6hg7tyOXz9ROX2D9plM6l//1BGWX5HQnuUjeCFmwt0GH3Ry18Q/o7biDg
-         QrgdCq7LdF8lK6MUMEawHc37FuaO6H7K+wBhKqaI8RfwGPbu2kZFvHmIPOAofKDvFHzi
-         5gHE6HRgRgUXxFOq9yQYCf0LkFNZZGlJGxXq9MySB1xFfzCveBBG859mUqJWxZd1oCFK
-         8iDkidGmw0QNqfvJUHVU5aGzwFYHQdWIGx7REsoZrU2FkQ6rh4Y3jMTtueqIUB/WuDOT
-         ZjN5ALKUjggckgtmtF4kbdtZYTscmB8NL5IpAt94zi+e7v0yPU6/aiDXphS2kWTFgMCp
-         MNlA==
-X-Gm-Message-State: APjAAAWaBOTv7gY18TphmUQoI04kJQItdRaZPNbdCzzM3SOVhD6kZLf+
-        mqzJJthP6ezx5P9lz4Ltcm8dA9lo
-X-Google-Smtp-Source: APXvYqyfBsE5jck3bw/VdTRhjo4kKjLHjrj51wfpyyBP+3PS7KhsSZxgaEYUA5oUGV8GEx8FoPdYIg==
-X-Received: by 2002:a17:906:86d7:: with SMTP id j23mr2843204ejy.89.1579179559263;
-        Thu, 16 Jan 2020 04:59:19 -0800 (PST)
-Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4956:1800:d464:b0ea:3ef4:abbb])
-        by smtp.gmail.com with ESMTPSA id b13sm697289ejl.5.2020.01.16.04.59.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jan 2020 04:59:18 -0800 (PST)
-From:   Jack Wang <jinpuwang@gmail.com>
-To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
-        bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
-        jinpu.wang@cloud.ionos.com, rpenyaev@suse.de,
-        Roman Pen <roman.penyaev@profitbricks.com>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v7 01/25] sysfs: export sysfs_remove_file_self()
-Date:   Thu, 16 Jan 2020 13:58:51 +0100
-Message-Id: <20200116125915.14815-2-jinpuwang@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200116125915.14815-1-jinpuwang@gmail.com>
-References: <20200116125915.14815-1-jinpuwang@gmail.com>
+        id S1726160AbgAPNFf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 08:05:35 -0500
+Received: from mail-eopbgr10058.outbound.protection.outlook.com ([40.107.1.58]:13699
+        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726084AbgAPNFf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 08:05:35 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=MXbRukHf4eZN5yBNqWGsFrmE/+BVJt7nl3IZdsd1M2+3HLQhc7fFy4zaQuzUTMLHz8yyrxL+atZqSWE2mrgkmtKKhcaM2kaFK3UN2SmO2Y4PGwQs48pxbPkHxt2sSdDQK8JwbjEPNz8nK3S3fMMz3R77ThfXsSa+SHwOrdwA7mH+5jqyVrndP9ySPwCyvWKO4NzxJMRwILZOZZMESDUMvMgg0UBgVwW5Lts3FxFAuWvXAF6rVAM7kJD1058WGKmYo6X+9Z8rWrr71ybWffmXeV3GuMtHcAB0L/2Y+TO+s9GTJAYHQ3rHb4hl/tGYqP7N99pLrr0WE17Cf9ErK4/bPw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9OQA59j2EPWddLjUFs97ujEQ7H1lmV6eIc3C2dOmHDw=;
+ b=CNQqLZBfPiBZHIXd/uUhZUTeOiILdZF5cGT538xmxK1oEaAcFHyDCSbYOQDIHc4CT3kk+464PeiQGEs0Ou4vAG/Bboxk/kPNFtbgl+EpX1pJ7WiFm7eL5VKs7USZ48mD4qnG0hIqNWcIXpCEaQK5cmSr9IscwFKUzz/kmlQAYh4qqm4y2N746vvd49F67BKgAFJt0yYXDaVBFGrz4uhfUQ9ihGkrjtRQiY2PuLpnAZn4DSxp0/wUcMgu3Ei1ABWU26aW0XtbsDT/qo1ET+Itnvuf4oronkOo5CYPidawjwOj6p7nP9raYtI9KPYkZRfytyiKXo5FlBlh5mGM5iVhDA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9OQA59j2EPWddLjUFs97ujEQ7H1lmV6eIc3C2dOmHDw=;
+ b=OXqcMDvcgKTjs2DBLbDYNQZIGv9Dkgo4djSm8wwXXZD0qRVoHhEFCCyDj+LLHwcXyja+zAtr0Thl6ue4Gew5eyssB800FEWDAMVv6NbNvdbWJ9BpuQ1ENZfinSsryNOtDe50+lNp8GDMH9WLYZBH5AYqF29hPIsfETS4Xg4M7Gk=
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (52.133.14.15) by
+ VI1PR05MB3182.eurprd05.prod.outlook.com (10.175.244.150) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2623.13; Thu, 16 Jan 2020 13:05:30 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d%7]) with mapi id 15.20.2644.015; Thu, 16 Jan 2020
+ 13:05:30 +0000
+Received: from mlx.ziepe.ca (142.68.57.212) by BL0PR02CA0004.namprd02.prod.outlook.com (2603:10b6:207:3c::17) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2644.19 via Frontend Transport; Thu, 16 Jan 2020 13:05:30 +0000
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)     (envelope-from <jgg@mellanox.com>)      id 1is4pz-0002g6-69; Thu, 16 Jan 2020 09:05:27 -0400
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Gal Pressman <galpress@amazon.com>
+CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Michal Kalderon <michal.kalderon@marvell.com>
+Subject: Re: [PATCH] RDMA/core: Ensure that rdma_user_mmap_entry_remove() is a
+ fence
+Thread-Topic: [PATCH] RDMA/core: Ensure that rdma_user_mmap_entry_remove() is
+ a fence
+Thread-Index: AQHVy+FEjDSjACX4D0WvK+XBwBxvV6fs/KEAgABG2oA=
+Date:   Thu, 16 Jan 2020 13:05:30 +0000
+Message-ID: <20200116130527.GD20978@mellanox.com>
+References: <20200115202041.GA17199@ziepe.ca>
+ <558b9eac-ce28-a0b7-9830-5416d0a0f7ca@amazon.com>
+In-Reply-To: <558b9eac-ce28-a0b7-9830-5416d0a0f7ca@amazon.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: BL0PR02CA0004.namprd02.prod.outlook.com
+ (2603:10b6:207:3c::17) To VI1PR05MB4141.eurprd05.prod.outlook.com
+ (2603:10a6:803:44::15)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [142.68.57.212]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: a30dcf84-491e-4c32-13a1-08d79a84c37c
+x-ms-traffictypediagnostic: VI1PR05MB3182:
+x-microsoft-antispam-prvs: <VI1PR05MB31822400FD4D0954867B12D7CF360@VI1PR05MB3182.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:5236;
+x-forefront-prvs: 02843AA9E0
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(39860400002)(396003)(136003)(366004)(346002)(376002)(199004)(189003)(4744005)(8676002)(81166006)(36756003)(316002)(54906003)(9746002)(8936002)(66946007)(9786002)(81156014)(64756008)(26005)(478600001)(53546011)(33656002)(66446008)(71200400001)(2616005)(66476007)(86362001)(4326008)(5660300002)(6666004)(2906002)(186003)(52116002)(1076003)(6916009)(66556008)(24400500001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB3182;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: FwW3v+PPKQo7P2s/LyHUQ8usJMxHkZ95sNJBqt2bwDYHCSkyvjfDFdqB80kjSNwj7hj6IuVtknFpbI+kR/mMQdiHhzZLwRClQHrzkkZdRy0jHZB5CfNW0qVqPAMrDRPHAbIHpW6oDxzhZjJaz1CF4gzcRH7iZE66mW9Um/TA0A4U+1BdLpJUlaq9Lhap9kHY3EIlRr/Th9ru9oJOD4m4/A3PtoM8tCfdl0KUS/254EqwZ91ZV7GqiNekxB6EN41Th20SYkcNfpXB4WddZAPhTF2+bYEMAaZ3AQKEdWks7qVauoxm8DfJEOjnQRP5aPZ4VIMX01InVtR5AOWqrxbUY1EGgAGOVH9C8A1bXNhc1Z4BMz7YykOEsbkiImUeOLz4qn/QupVO53GDNZRV41n9rP90zZHHediFadVQn9sfoKvcVLTvHI45xTtPHggU9rznpb5sMER9ObzfxRimeudES2lDDxROrx/wsmQZrRAe3gU29pMOK9GLpKhLg9p4L9nw
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <C107E506D01376469308FDC542686E32@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a30dcf84-491e-4c32-13a1-08d79a84c37c
+X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Jan 2020 13:05:30.4882
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: Fhvk7Fa983dUw8TWHK9dpcJOQ10YOLsre+S7eBwRC3ieLw6LhSMzjiVCSjE9+qbBfR40IwPTJCIJKv/fijFBWw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB3182
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang@cloud.ionos.com>
+On Thu, Jan 16, 2020 at 10:51:52AM +0200, Gal Pressman wrote:
+> On 15/01/2020 22:20, Jason Gunthorpe wrote:
+> > The set of entry->driver_removed is missing locking, protect it with
+> > xa_lock() which is held by the only reader.
+> >=20
+> > Otherwise readers may continue to see driver_removed =3D false after
+> > rdma_user_mmap_entry_remove() returns and may continue to try and
+> > establish new mmaps.
+>=20
+> That's kind of an inherent race regardless, isn't it?
 
-Function is going to be used in transport over RDMA module
-in subsequent patches, so export it to GPL modules.
+How do you mean? Once rdma_user_mmap_entry_remove() returns no new
+mmaps can be established, existing mmaps remain. The driver can rely
+on this, by, for instance, calling free_page
 
-Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org
-[jwang: extend the commit message]
-Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
----
- fs/sysfs/file.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/fs/sysfs/file.c b/fs/sysfs/file.c
-index 130fc6fbcc03..1ff4672d7746 100644
---- a/fs/sysfs/file.c
-+++ b/fs/sysfs/file.c
-@@ -492,6 +492,7 @@ bool sysfs_remove_file_self(struct kobject *kobj, const struct attribute *attr)
- 	kernfs_put(kn);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(sysfs_remove_file_self);
- 
- void sysfs_remove_files(struct kobject *kobj, const struct attribute * const *ptr)
- {
--- 
-2.17.1
-
+Jason
