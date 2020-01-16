@@ -2,179 +2,98 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D73C3F68F
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:15:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3E34C33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:15:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48A4D246BD
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:15:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DujDkG5W"
+	by mail.kernel.org (Postfix) with ESMTP id 8120D246A7
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:15:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579194925;
+	bh=neRMrMZOSpRAzPxFlLtbh0wI0c2ycl3m/dsT9nRIn9Q=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=hIeYgBBuHODsgjiytPi5Ygv5Vw1s19Dlrzy+px0k/IE/q8DdgyWxfkUdLJUyA798f
+	 EAYFEMtDx/MZBKMZ23h+RS3PR6FQzTKw/RxzOVJfN0uS9LHc5dZTz7h3OBybD0VFR8
+	 /T3hs6ykAe3yqpxhbQ/GYPwr/lETMB/sSVlzbALc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391106AbgAPRPA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:15:00 -0500
-Received: from mail-qk1-f196.google.com ([209.85.222.196]:43600 "EHLO
-        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391101AbgAPRO7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 12:14:59 -0500
-Received: by mail-qk1-f196.google.com with SMTP id t129so19796598qke.10;
-        Thu, 16 Jan 2020 09:14:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=qbPesbI6+o4JGTWaTpLZljTSTXaCbDPO7M6CK9Z7jy0=;
-        b=DujDkG5W3ILpYM8qyT0dAcZJClk1ACfv/flsghX/egJkq4WsWkCtz+kypqB1mcFslN
-         uDXKIvfdULD4F80JGgtROcDeW1eHH825VujncNlxJoLvi91ZMb7rGYi6KoVPXitLX6ty
-         u90XUpHcsUCTK0dKYWhkjIb6zzFW7fRHX5we0nzj8d/clbEcl4H3OrL3VGB1gXmxorEK
-         KYfP0As9yW35L0kqcdFLDRmRNbtk0tdGhY5Dkni8Pv2sjPewW92s1Vl0SKCEQiEkkYZI
-         aQEnAchcYdP+TGnVTg0I81U5jTnEQj3onFKb9erpdMhab2+L4nNJXpnIewRzpj+eFbsQ
-         0CLQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=qbPesbI6+o4JGTWaTpLZljTSTXaCbDPO7M6CK9Z7jy0=;
-        b=EdVXhet3OBYS+raDRU+w0vw7BHT6JkYr+Z/760/yxGUPWp1S+vvd9sA40D3i2FaDJr
-         0MxD19pPOdSBjmj1cfSVPt2stTGenOZxrUMh2c8YEJGVGN5EFXy9U6uvuhN0SrngvVvl
-         ecvly5J14MBF9XeR9gWtYAlMbyljGc+dPULe3aCFfi6BRBribLPv/uthlHKw97X2S3lc
-         Wbj0K2lWAdshNLLtxFmCCG5LsQuchA7TbYlVn8yI0DzHo/HuWwP66ifekuVAImQAPJZL
-         mm6vDiJzxiNhHmrVr0clRaS6R3+X16Jf8IVU7eLY+j1Tz3hLlNWF/V/JbkLyMtQNLTCz
-         C8gg==
-X-Gm-Message-State: APjAAAUBNF+Ur4sOO6yAvDQr2mKsdWlAIx5t/V9o9xO97pgKhn8O5pWf
-        PVAQKdsZVq6i6QUM1bvwOyYHWonPacr+ITcD+j0=
-X-Google-Smtp-Source: APXvYqye2xzTJ5xPc92metlBwExlrGUNWRrkmB/ybM14ARqiI3YrIFXjSAmln3PIxwPT0fU+QKgzeO269EhwuJ8/F3g=
-X-Received: by 2002:a05:620a:5ae:: with SMTP id q14mr29954210qkq.437.1579194898228;
- Thu, 16 Jan 2020 09:14:58 -0800 (PST)
+        id S2391070AbgAPROm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:14:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34274 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2391065AbgAPROl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:14:41 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 802A5246AC;
+        Thu, 16 Jan 2020 17:14:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579194880;
+        bh=neRMrMZOSpRAzPxFlLtbh0wI0c2ycl3m/dsT9nRIn9Q=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=JhZObM5vuV337AmsGa30ZeZc4LnYLTQGVxth5AlnydRajIuq6EXrYhv5JM5+Whe4y
+         gMaUaM3Fros7vZ0WzojLyvZGF3SUbGtQMOlpw03kPJCWFzcFJ6N9dyYb25SqMjntPE
+         pk0HMHfuV4JZHbnzlT4urOiy8FgAIG5dfY19rl48=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Max Gurtovoy <maxg@mellanox.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Israel Rukshin <israelr@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 669/671] IB/iser: Fix dma_nents type definition
+Date:   Thu, 16 Jan 2020 12:05:07 -0500
+Message-Id: <20200116170509.12787-406-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
+References: <20200116170509.12787-1-sashal@kernel.org>
 MIME-Version: 1.0
-References: <157909756858.1192265.6657542187065456112.stgit@toke.dk>
- <157909757089.1192265.9038866294345740126.stgit@toke.dk> <CAEf4BzbqY8zivZy637Xy=iTECzBAYQ7vo=M7TvsLM2Yp12bJpg@mail.gmail.com>
- <87v9pctlvn.fsf@toke.dk> <CAEf4BzZpGe-1S5_iwS8GBw9iiyFJmDUkOaO+2qaftRn_iy5cNA@mail.gmail.com>
- <87a76nu5yo.fsf@toke.dk>
-In-Reply-To: <87a76nu5yo.fsf@toke.dk>
-From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Date:   Thu, 16 Jan 2020 09:14:47 -0800
-Message-ID: <CAEf4BzYLycZb+DBkao-jt+5sGgi3vbmzQ4Ogq9eRXZ+Jvew-ZA@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v2 02/10] tools/bpf/runqslower: Fix override
- option for VMLINUX_BTF
-To:     =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        Andrii Nakryiko <andriin@fb.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <jakub.kicinski@netronome.com>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Networking <netdev@vger.kernel.org>, bpf <bpf@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        linux-rdma@vger.kernel.org,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>,
-        clang-built-linux@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 16, 2020 at 1:05 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@redh=
-at.com> wrote:
->
-> Andrii Nakryiko <andrii.nakryiko@gmail.com> writes:
->
-> > On Wed, Jan 15, 2020 at 2:06 PM Toke H=C3=B8iland-J=C3=B8rgensen <toke@=
-redhat.com> wrote:
-> >>
-> >> Andrii Nakryiko <andrii.nakryiko@gmail.com> writes:
-> >>
-> >> > On Wed, Jan 15, 2020 at 6:13 AM Toke H=C3=B8iland-J=C3=B8rgensen <to=
-ke@redhat.com> wrote:
-> >> >>
-> >> >> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
-> >> >>
-> >> >> The runqslower tool refuses to build without a file to read vmlinux=
- BTF
-> >> >> from. The build fails with an error message to override the locatio=
-n by
-> >> >> setting the VMLINUX_BTF variable if autodetection fails. However, t=
-he
-> >> >> Makefile doesn't actually work with that override - the error messa=
-ge is
-> >> >> still emitted.
-> >> >
-> >> > Do you have example command with VMLINUX_BTF override that didn't wo=
-rk
-> >> > (and what error message was emitted)?
-> >>
-> >> Before this patch:
-> >>
-> >> $ cd ~/build/linux/tools/bpf/runqslower
-> >> $ make
-> >> Makefile:18: *** "Can't detect kernel BTF, use VMLINUX_BTF to specify =
-it explicitly".  Stop.
-> >>
-> >> $ make VMLINUX_BTF=3D~/build/linux/vmlinux
-> >> Makefile:18: *** "Can't detect kernel BTF, use VMLINUX_BTF to specify =
-it explicitly".  Stop.
-> >
-> > Ok, so this is strange. Try make clean and run with V=3D1, it might hel=
-p
-> > to debug this. This could happen if ~/build/linux/vmlinux doesn't
-> > exist, but I assume you double-checked that. It works for me just fine
-> > (Makefile won't do VMLINUX_BTF :=3D assignment, if it's defined through
-> > make invocation, so your change should be a no-op in that regard):
-> >
-> > $ make clean
-> > $ make VMLINUX_BTF=3D~/linux-build/default/vmlinux V=3D1
-> > ...
-> > .output/sbin/bpftool btf dump file ~/linux-build/default/vmlinux
-> > format c > .output/vmlinux.h
-> > ...
-> >
-> > Wonder what your output looks like?
->
-> $ make clean
-> Makefile:18: *** "Can't detect kernel BTF, use VMLINUX_BTF to specify it =
-explicitly".  Stop.
-> $ make VMLINUX_BTF=3D~/build/linux/vmlinux V=3D1
-> Makefile:18: *** "Can't detect kernel BTF, use VMLINUX_BTF to specify it =
-explicitly".  Stop.
->
-> Take another look at the relevant part of the makefile:
->
->   ifneq ("$(wildcard /sys/kernel/btf/vmlinux)","")
->   VMLINUX_BTF :=3D /sys/kernel/btf/vmlinux
->   else ifneq ("$(wildcard /boot/vmlinux-$(KERNEL_REL))","")
->   VMLINUX_BTF :=3D /boot/vmlinux-$(KERNEL_REL)
->   else
->   $(error "Can't detect kernel BTF, use VMLINUX_BTF to specify it explici=
-tly")
->   endif
->
-> That if/else doesn't actually consider the value of VMLINUX_BTF; so the
-> override only works if one of the files being considered by the
-> auto-detection actually exists... :)
+From: Max Gurtovoy <maxg@mellanox.com>
 
-Ah, right, unconditional $(error), completely missed that few times, thanks=
-!
+[ Upstream commit c1545f1a200f4adc4ef8dd534bf33e2f1aa22c2f ]
 
->
-> -Toke
->
+The retured value from ib_dma_map_sg saved in dma_nents variable. To avoid
+future mismatch between types, define dma_nents as an integer instead of
+unsigned.
+
+Fixes: 57b26497fabe ("IB/iser: Pass the correct number of entries for dma mapped SGL")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Israel Rukshin <israelr@mellanox.com>
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Acked-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 120b40829560..a7aeaa0c6fbc 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -197,7 +197,7 @@ struct iser_data_buf {
+ 	struct scatterlist *sg;
+ 	int                size;
+ 	unsigned long      data_len;
+-	unsigned int       dma_nents;
++	int                dma_nents;
+ };
+ 
+ /* fwd declarations */
+-- 
+2.20.1
+
