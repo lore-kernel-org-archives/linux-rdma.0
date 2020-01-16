@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDF06C33CB1
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:48:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D43D8C33CB6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:49:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C59A1214AF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:48:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB18720663
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:49:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579193338;
-	bh=ldgK0vmdqGkt21vjEpPeGPXwCAigCvSw3+YNv/leJ3I=;
+	s=default; t=1579193366;
+	bh=uBTz12lQjeNl6dqBlW6oEs/XlN8UvzzRTnlsXC4CCzA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=em8Rwb9iiD66LwzJ+dre6zWlvfI6QnCS1DDmkxhBMckn4Ge6e5HzGqwmT3dF01EhC
-	 zKG/wpK69rD6K/ojXew1oZkRCGY7zxLQMV/fpgsJ9xHSWYepu6v7DnmYPgWUabib24
-	 Uqp5JH8NCD7xn3g7CaWZ7zFAupj1BQT1MYTA8OWI=
+	b=wexIv6iXca8EutzK9BEQ3OSezdOxpb6RZGc140B89VMAhFVlAHw+iSNvZRLa8NSMP
+	 kedrBlbGZWcjmXE6WULHajDzCef0OK39wLfojmrfe6RaDfdQ0pnuhPQ/jO10LJ4hEt
+	 HrTGDH8w/POz6TpNxka8DRykFjdZ9zgnWpOdieGo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728988AbgAPQsn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:48:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59090 "EHLO mail.kernel.org"
+        id S1730328AbgAPQtR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:49:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60142 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727022AbgAPQsm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:48:42 -0500
+        id S1730321AbgAPQtR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:49:17 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 84D0A2073A;
-        Thu, 16 Jan 2020 16:48:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C9F66207FF;
+        Thu, 16 Jan 2020 16:49:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193321;
-        bh=ldgK0vmdqGkt21vjEpPeGPXwCAigCvSw3+YNv/leJ3I=;
+        s=default; t=1579193355;
+        bh=uBTz12lQjeNl6dqBlW6oEs/XlN8UvzzRTnlsXC4CCzA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=B9PxOpnAVjs0K3x5xU1KIchh1vSKpKX+ok6VCwBOZC646Z7nZWcW4hrf7Hl1IAUkd
-         /GzOHXLejlwq5J3XbBuB+7SQn0rKe6gY0SeIqTRzwhRQfbeReddlpUJcby1akXGDZU
-         U+sblKF0fA1WmVCRZ1JDwp4MphE/vPEo4qSkg2xU=
+        b=iuXCNmOKNc6sLRch5zf7VzEAAz1uvEjyn79GMaqqWJWux9KMMBTBWXO1Q+FFXWp//
+         uJ8PtJ60D7x1emq8QR4HSzICm/FbRXHVdvCI4oC28ZQobuK8diuBsSo2TBxldy0nfS
+         Zn6tlOTQiTMdKEOrFpQOMjRSVo0FRUBY64/+NUSM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
+Cc:     Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 074/205] RDMA/hns: Prevent undefined behavior in hns_roce_set_user_sq_size()
-Date:   Thu, 16 Jan 2020 11:40:49 -0500
-Message-Id: <20200116164300.6705-74-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 081/205] RDMA/hns: Fix build error again
+Date:   Thu, 16 Jan 2020 11:40:56 -0500
+Message-Id: <20200116164300.6705-81-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
 References: <20200116164300.6705-1-sashal@kernel.org>
@@ -58,59 +57,98 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Arnd Bergmann <arnd@arndb.de>
 
-[ Upstream commit 515f60004ed985d2b2f03659365752e0b6142986 ]
+[ Upstream commit d5b60e26e86a463ca83bb5ec502dda6ea685159e ]
 
-The "ucmd->log_sq_bb_count" variable is a user controlled variable in the
-0-255 range.  If we shift more than then number of bits in an int then
-it's undefined behavior (it shift wraps), and potentially the int could
-become negative.
+This is not the first attempt to fix building random configurations,
+unfortunately the attempt in commit a07fc0bb483e ("RDMA/hns: Fix build
+error") caused a new problem when CONFIG_INFINIBAND_HNS_HIP06=m and
+CONFIG_INFINIBAND_HNS_HIP08=y:
 
-Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
-Link: https://lore.kernel.org/r/20190608092514.GC28890@mwanda
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+drivers/infiniband/hw/hns/hns_roce_main.o:(.rodata+0xe60): undefined reference to `__this_module'
+
+Revert commits a07fc0bb483e ("RDMA/hns: Fix build error") and
+a3e2d4c7e766 ("RDMA/hns: remove obsolete Kconfig comment") to get back to
+the previous state, then fix the issues described there differently, by
+adding more specific dependencies: INFINIBAND_HNS can now only be built-in
+if at least one of HNS or HNS3 are built-in, and the individual back-ends
+are only available if that code is reachable from the main driver.
+
+Fixes: a07fc0bb483e ("RDMA/hns: Fix build error")
+Fixes: a3e2d4c7e766 ("RDMA/hns: remove obsolete Kconfig comment")
+Fixes: dd74282df573 ("RDMA/hns: Initialize the PCI device for hip08 RoCE")
+Fixes: 08805fdbeb2d ("RDMA/hns: Split hw v1 driver from hns roce driver")
+Link: https://lore.kernel.org/r/20191007211826.3361202-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/Kconfig  | 17 ++++++++++++++---
+ drivers/infiniband/hw/hns/Makefile |  8 ++++++--
+ 2 files changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index bd78ff90d998..8dd2d666f687 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -332,9 +332,8 @@ static int check_sq_size_with_integrity(struct hns_roce_dev *hr_dev,
- 	u8 max_sq_stride = ilog2(roundup_sq_stride);
+diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
+index d602b698b57e..4921c1e40ccd 100644
+--- a/drivers/infiniband/hw/hns/Kconfig
++++ b/drivers/infiniband/hw/hns/Kconfig
+@@ -1,23 +1,34 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ config INFINIBAND_HNS
+-	bool "HNS RoCE Driver"
++	tristate "HNS RoCE Driver"
+ 	depends on NET_VENDOR_HISILICON
+ 	depends on ARM64 || (COMPILE_TEST && 64BIT)
++	depends on (HNS_DSAF && HNS_ENET) || HNS3
+ 	---help---
+ 	  This is a RoCE/RDMA driver for the Hisilicon RoCE engine. The engine
+ 	  is used in Hisilicon Hip06 and more further ICT SoC based on
+ 	  platform device.
  
- 	/* Sanity check SQ size before proceeding */
--	if ((u32)(1 << ucmd->log_sq_bb_count) > hr_dev->caps.max_wqes ||
--	     ucmd->log_sq_stride > max_sq_stride ||
--	     ucmd->log_sq_stride < HNS_ROCE_IB_MIN_SQ_STRIDE) {
-+	if (ucmd->log_sq_stride > max_sq_stride ||
-+	    ucmd->log_sq_stride < HNS_ROCE_IB_MIN_SQ_STRIDE) {
- 		ibdev_err(&hr_dev->ib_dev, "check SQ size error!\n");
- 		return -EINVAL;
- 	}
-@@ -358,13 +357,16 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
- 	u32 max_cnt;
- 	int ret;
- 
-+	if (check_shl_overflow(1, ucmd->log_sq_bb_count, &hr_qp->sq.wqe_cnt) ||
-+	    hr_qp->sq.wqe_cnt > hr_dev->caps.max_wqes)
-+		return -EINVAL;
++	  To compile HIP06 or HIP08 driver as module, choose M here.
 +
- 	ret = check_sq_size_with_integrity(hr_dev, cap, ucmd);
- 	if (ret) {
- 		ibdev_err(&hr_dev->ib_dev, "Sanity check sq size failed\n");
- 		return ret;
- 	}
+ config INFINIBAND_HNS_HIP06
+-	tristate "Hisilicon Hip06 Family RoCE support"
++	bool "Hisilicon Hip06 Family RoCE support"
+ 	depends on INFINIBAND_HNS && HNS && HNS_DSAF && HNS_ENET
++	depends on INFINIBAND_HNS=m || (HNS_DSAF=y && HNS_ENET=y)
+ 	---help---
+ 	  RoCE driver support for Hisilicon RoCE engine in Hisilicon Hip06 and
+ 	  Hip07 SoC. These RoCE engines are platform devices.
  
--	hr_qp->sq.wqe_cnt = 1 << ucmd->log_sq_bb_count;
- 	hr_qp->sq.wqe_shift = ucmd->log_sq_stride;
++	  To compile this driver, choose Y here: if INFINIBAND_HNS is m, this
++	  module will be called hns-roce-hw-v1
++
+ config INFINIBAND_HNS_HIP08
+-	tristate "Hisilicon Hip08 Family RoCE support"
++	bool "Hisilicon Hip08 Family RoCE support"
+ 	depends on INFINIBAND_HNS && PCI && HNS3
++	depends on INFINIBAND_HNS=m || HNS3=y
+ 	---help---
+ 	  RoCE driver support for Hisilicon RoCE engine in Hisilicon Hip08 SoC.
+ 	  The RoCE engine is a PCI device.
++
++	  To compile this driver, choose Y here: if INFINIBAND_HNS is m, this
++	  module will be called hns-roce-hw-v2.
+diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
+index 449a2d81319d..e105945b94a1 100644
+--- a/drivers/infiniband/hw/hns/Makefile
++++ b/drivers/infiniband/hw/hns/Makefile
+@@ -9,8 +9,12 @@ hns-roce-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_pd.o \
+ 	hns_roce_ah.o hns_roce_hem.o hns_roce_mr.o hns_roce_qp.o \
+ 	hns_roce_cq.o hns_roce_alloc.o hns_roce_db.o hns_roce_srq.o hns_roce_restrack.o
  
- 	max_cnt = max(1U, cap->max_send_sge);
++ifdef CONFIG_INFINIBAND_HNS_HIP06
+ hns-roce-hw-v1-objs := hns_roce_hw_v1.o $(hns-roce-objs)
+-obj-$(CONFIG_INFINIBAND_HNS_HIP06) += hns-roce-hw-v1.o
++obj-$(CONFIG_INFINIBAND_HNS) += hns-roce-hw-v1.o
++endif
+ 
++ifdef CONFIG_INFINIBAND_HNS_HIP08
+ hns-roce-hw-v2-objs := hns_roce_hw_v2.o hns_roce_hw_v2_dfx.o $(hns-roce-objs)
+-obj-$(CONFIG_INFINIBAND_HNS_HIP08) += hns-roce-hw-v2.o
++obj-$(CONFIG_INFINIBAND_HNS) += hns-roce-hw-v2.o
++endif
 -- 
 2.20.1
 
