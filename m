@@ -2,51 +2,60 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71EE9C3F68F
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 10:07:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF0B0C33CB1
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 11:15:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 51CB2214AF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 10:07:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C28E92077B
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 11:15:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579173342;
+	bh=oK+Fu2D+nIK8zD3hKNrHzyMz2PhnQGsKTg/aLtV3khs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=vSVWrgaivHWEyGSXIJCoQ/llYMYL8K46Dtfnzkre2t945a8g0ee66Cn7aT0oXK8L0
+	 G7ncKpKplnYaWfSIHEEjWfXVVTzXIAoEYfqXbfUGUYBCLrQCUAGZ+n3a+JSEiL/3Fn
+	 8n0JsN7npawPCZMCJzufLNt0ThNqz3SusWWcN2B0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729532AbgAPKH6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 05:07:58 -0500
-Received: from verein.lst.de ([213.95.11.211]:55148 "EHLO verein.lst.de"
+        id S1725973AbgAPLPm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 06:15:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726329AbgAPKH6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 05:07:58 -0500
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id B6DD468BE1; Thu, 16 Jan 2020 11:07:54 +0100 (CET)
-Date:   Thu, 16 Jan 2020 11:07:54 +0100
-From:   Christoph Hellwig <hch@lst.de>
-To:     Ralph Campbell <rcampbell@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, nouveau@lists.freedesktop.org,
-        linux-kselftest@vger.kernel.org,
-        Jerome Glisse <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Ben Skeggs <bskeggs@redhat.com>, Shuah Khan <shuah@kernel.org>
-Subject: Re: [PATCH v6 1/6] mm/mmu_notifier: add
- mmu_interval_notifier_insert_safe()
-Message-ID: <20200116100754.GA16347@lst.de>
-References: <20200113224703.5917-1-rcampbell@nvidia.com> <20200113224703.5917-2-rcampbell@nvidia.com>
+        id S1725800AbgAPLPm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 06:15:42 -0500
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id BE4CA2072B;
+        Thu, 16 Jan 2020 11:15:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579173341;
+        bh=oK+Fu2D+nIK8zD3hKNrHzyMz2PhnQGsKTg/aLtV3khs=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=wW+m1fd3lUcCAmJEVUt2/1zXn4ADMOoGCqJ2ELl52em5Pq/al5HsbV/KU7GfqO9IX
+         dxlwETpAjBqPiybPx3eIUOaOwW5EbngC29cJOWDNfF66TYfELbr6esk8XT04OzH/3n
+         9dRpu6/YrX7lXcrPg4CattDjDTBSK5AseQBvkAUU=
+Date:   Thu, 16 Jan 2020 13:15:37 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Weihang Li <liweihang@huawei.com>
+Cc:     dledford@redhat.com, jgg@ziepe.ca, shiraz.saleem@intel.com,
+        aditr@vmware.com, mkalderon@marvell.com, aelior@marvell.com,
+        linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Subject: Re: [PATCH RFC for-next 0/6] ofed support to send ib port link event
+Message-ID: <20200116111537.GC6853@unreal>
+References: <1579147847-12158-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200113224703.5917-2-rcampbell@nvidia.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <1579147847-12158-1-git-send-email-liweihang@huawei.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The name is weird, normally we call functions like this _locked.
+On Thu, Jan 16, 2020 at 12:10:41PM +0800, Weihang Li wrote:
+> Some provider's driver has supported to send port link event to ofed, but
 
-Additionally it will need a lockdep_assert_held to ensure the caller
-actually holds the lock.
+How is "ofed" related here?
