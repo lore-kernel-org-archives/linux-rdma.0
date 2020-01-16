@@ -2,117 +2,100 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46617C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:32:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE983C33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:33:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F9B2206D7
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:32:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="gAhyUALY"
+	by mail.kernel.org (Postfix) with ESMTP id B17A0206D7
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:33:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579199630;
+	bh=i5c+aZC1cSbxesexqnQKRgEPDNtvqLGBWgzftqcetSc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=1irCgMj/+xBhikLmMV+UDNFXzZhM5TWlactwOPJ1JQ/7yTp5OWN20ByaHQ21KbDOI
+	 sDOqzoKcOsEsJf9Y5Fsv3Aw4Sf2De6i9CU13WSRYvvYAcDdLuTsCHVNetFaRLd8DLf
+	 W8Avd0zhCYEpjj0JOjeeAt1lhNHI5JXTZwcsxDAQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404885AbgAPScn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:32:43 -0500
-Received: from userp2130.oracle.com ([156.151.31.86]:39086 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404304AbgAPSck (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 13:32:40 -0500
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00GI8ZCg056130;
-        Thu, 16 Jan 2020 18:32:31 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references; s=corp-2019-08-05;
- bh=Y7GYug0Y8XatejflsaiCwFHDIXRQgLFG06sMutgJGzc=;
- b=gAhyUALYvQYG/zDXlYZ3mvsab23rl3qGeP7/7OQVldBgergTPHSrMcEjEUFvIq4R7DEg
- 3Gjuaacl3ZByuSErbpcdUm7WJhdj1ODv4cPtyclAoM9Y0Fc0cT3uJ11LyMZkrVmgllv2
- KyHHaEmtxuo0kd/JQnaQoN8sIBSjejjIuoa/a3SroS2ddygA+dHw1OaaT+1g2l/qvhdc
- 8w+Hp/LSZzjahXtQjuYlmuz4QCr3bpBuTyE9si5CgUTfLusknBHAC/F7ZLhn/bs//Mgk
- dY9wJtjGnEFNqJmd6dJbsj1QfplvqlaPaSNoel6JFviqzSW1JFMKbTFy4RUigE5/VI2q mw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2130.oracle.com with ESMTP id 2xf74sm9r3-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 16 Jan 2020 18:32:31 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00GI9PML124446;
-        Thu, 16 Jan 2020 18:30:31 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-        by userp3020.oracle.com with ESMTP id 2xj1ptje07-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 16 Jan 2020 18:30:31 +0000
-Received: from userp3020.oracle.com (userp3020.oracle.com [127.0.0.1])
-        by pps.reinject (8.16.0.27/8.16.0.27) with SMTP id 00GIU9ew190457;
-        Thu, 16 Jan 2020 18:30:30 GMT
-Received: from ca-dev107.us.oracle.com (ca-dev107.us.oracle.com [10.129.135.36])
-        by userp3020.oracle.com with ESMTP id 2xj1ptjdxt-2;
-        Thu, 16 Jan 2020 18:30:30 +0000
-From:   rao Shoaib <rao.shoaib@oracle.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     jgg@ziepe.ca, monis@mellanox.com, dledford@redhat.com,
-        sean.hefty@intel.com, hal.rosenstock@gmail.com,
-        linux-kernel@vger.kernel.org, Rao Shoaib <rao.shoaib@oracle.com>
-Subject: [PATCH v4 1/2] RDMA/rxe: use RXE_MAX_WQE_SIZE to enforce limits
-Date:   Thu, 16 Jan 2020 10:30:11 -0800
-Message-Id: <1579199412-15741-2-git-send-email-rao.shoaib@oracle.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1579199412-15741-1-git-send-email-rao.shoaib@oracle.com>
-References: <1579199412-15741-1-git-send-email-rao.shoaib@oracle.com>
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9502 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=1 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=983 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
- definitions=main-2001160147
+        id S2391806AbgAPRYt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:24:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59882 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2403817AbgAPRYs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:24:48 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E1A9424683;
+        Thu, 16 Jan 2020 17:24:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579195487;
+        bh=i5c+aZC1cSbxesexqnQKRgEPDNtvqLGBWgzftqcetSc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=Abejdd7JuwzhZ63c1rMMvDPPufVTPWmhFg6a/guy/0CMBt4rOMOVA5KDZz0Usl8hH
+         aocwOTorhNfDhH4OVrF6Kuew2OT8Oz9TBGkek0BHEaXENnSwgxdlO6KtwfBZPSy0Rt
+         n6fntAoLBFjpLPdJ6CsivwjT+Vp5jRTPQTVCmjdQ=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Steve Wise <swise@opengridcomputing.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.14 091/371] iw_cxgb4: use tos when finding ipv6 routes
+Date:   Thu, 16 Jan 2020 12:19:23 -0500
+Message-Id: <20200116172403.18149-34-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200116172403.18149-1-sashal@kernel.org>
+References: <20200116172403.18149-1-sashal@kernel.org>
+MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Rao Shoaib <rao.shoaib@oracle.com>
+From: Steve Wise <swise@opengridcomputing.com>
 
-Introduce RXE_MAX_WQE_SIZE to impose limits on max SGE's and inline data
-size
+[ Upstream commit c8a7eb554a83214c3d8ee5cb322da8c72810d2dc ]
 
-Signed-off-by: Rao Shoaib <rao.shoaib@oracle.com>
+When IPv6 support was added, the correct tos was not passed to
+cxgb_find_route6(). This potentially results in the wrong route entry.
+
+Fixes: 830662f6f032 ("RDMA/cxgb4: Add support for active and passive open connection with IPv6 address")
+Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_param.h | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
-index 353c666..f59616b 100644
---- a/drivers/infiniband/sw/rxe/rxe_param.h
-+++ b/drivers/infiniband/sw/rxe/rxe_param.h
-@@ -34,6 +34,8 @@
- #ifndef RXE_PARAM_H
- #define RXE_PARAM_H
- 
-+#include <uapi/rdma/rdma_user_rxe.h>
-+
- static inline enum ib_mtu rxe_mtu_int_to_enum(int mtu)
- {
- 	if (mtu < 256)
-@@ -64,7 +66,6 @@ enum rxe_device_param {
- 	RXE_PAGE_SIZE_CAP		= 0xfffff000,
- 	RXE_MAX_QP			= 0x10000,
- 	RXE_MAX_QP_WR			= 0x4000,
--	RXE_MAX_INLINE_DATA		= 400,
- 	RXE_DEVICE_CAP_FLAGS		= IB_DEVICE_BAD_PKEY_CNTR
- 					| IB_DEVICE_BAD_QKEY_CNTR
- 					| IB_DEVICE_AUTO_PATH_MIG
-@@ -77,6 +78,10 @@ enum rxe_device_param {
- 					| IB_DEVICE_MEM_MGT_EXTENSIONS
- 					| IB_DEVICE_ALLOW_USER_UNREG,
- 	RXE_MAX_SGE			= 32,
-+	RXE_MAX_WQE_SIZE		= sizeof(struct rxe_send_wqe) +
-+					  sizeof(struct ib_sge) * RXE_MAX_SGE,
-+	RXE_MAX_INLINE_DATA		= RXE_MAX_WQE_SIZE -
-+					  sizeof(struct rxe_send_wqe),
- 	RXE_MAX_SGE_RD			= 32,
- 	RXE_MAX_CQ			= 16384,
- 	RXE_MAX_LOG_CQE			= 15,
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 942403e42dd0..7eb1cc1b1aa0 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -2147,7 +2147,8 @@ static int c4iw_reconnect(struct c4iw_ep *ep)
+ 					   laddr6->sin6_addr.s6_addr,
+ 					   raddr6->sin6_addr.s6_addr,
+ 					   laddr6->sin6_port,
+-					   raddr6->sin6_port, 0,
++					   raddr6->sin6_port,
++					   ep->com.cm_id->tos,
+ 					   raddr6->sin6_scope_id);
+ 		iptype = 6;
+ 		ra = (__u8 *)&raddr6->sin6_addr;
+@@ -3298,7 +3299,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 					   laddr6->sin6_addr.s6_addr,
+ 					   raddr6->sin6_addr.s6_addr,
+ 					   laddr6->sin6_port,
+-					   raddr6->sin6_port, 0,
++					   raddr6->sin6_port, cm_id->tos,
+ 					   raddr6->sin6_scope_id);
+ 	}
+ 	if (!ep->dst) {
 -- 
-1.8.3.1
+2.20.1
 
