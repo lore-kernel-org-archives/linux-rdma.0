@@ -7,50 +7,51 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28C0AC33CB6
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:49:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D0F4C3F68F
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:00:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EE918246A0
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:49:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F0762464B
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:00:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579196976;
-	bh=UR/xs8Pbt9OMHAuW7zjuk+dFaFAxWSUVzTduei3wAg4=;
+	s=default; t=1579197619;
+	bh=iaYM8yr6l8gDQemWgAjVPFMFQoyPaBfA/0vFKhM6ELY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FDASFyAOZokbr1gYMC1Y4ocnuhwKDVEyTIB3XsHtshffluSFTtAycsR9tBQyq5Z+p
-	 bFW0BObcKYpc4slM7CzpxonYsd81A++2PCsDMJ+EhIeYYHyYECbEK8vWQfvcnOlRaj
-	 Y5N0WkSmLsE/y2K/o3Gg/MP96dCFR/cQwrDO1kQU=
+	b=rcsPAQsI8dqbzNA353bNa8NKyVshpJiD7zuutUrBGi77T+ckjJ3Cu6ReWO4DJwv8r
+	 5o9XnS2Q+0klN+JHNe95ve3mNcJFvDRdH/YngDVUQAK6jHLPKc8crcqgR4aWRT+Zn7
+	 Xtgc6XdtoOl7G6VOEZuSiqkueScK+mE7sT1FKGHs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394215AbgAPRqH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:46:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38528 "EHLO mail.kernel.org"
+        id S2405819AbgAPRly (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:41:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59796 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394208AbgAPRqF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:46:05 -0500
+        id S2405813AbgAPRly (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:41:54 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 41826246DB;
-        Thu, 16 Jan 2020 17:46:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 57C95246A4;
+        Thu, 16 Jan 2020 17:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579196765;
-        bh=UR/xs8Pbt9OMHAuW7zjuk+dFaFAxWSUVzTduei3wAg4=;
+        s=default; t=1579196513;
+        bh=iaYM8yr6l8gDQemWgAjVPFMFQoyPaBfA/0vFKhM6ELY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RAEzCtZbRmQv7N/B6X0BCkdG7vOh7rKDzii2JP28TzTz0Rctz3sp2mTftfV5ChpMP
-         xblLrIguUOhSBkOohq2V74pn4t+J6o78bqg9V2S83ql/1EWMyPu9+dR7/GN1OzbIiV
-         60oS7Am0fbYUkaCi93MN+/25gOsJhwTCAlgjjvkw=
+        b=oZqRovVXZNK7KSBjGDF0P+oXin15069m5aK7EHb3h5ATyKSKanKD4L6nL9ore9m/z
+         +VC3x24kM+Am+34FjDquWyqFSudLzVsR8WNx79NoEb0NthLt/6ggC/QFOls3luiRe8
+         e+sSP2tUUnGZMO+dsZWwKUKHgXOkdRW1l7Uhpp4M=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: [PATCH AUTOSEL 4.4 138/174] net/rds: Fix 'ib_evt_handler_call' element in 'rds_ib_stat_names'
-Date:   Thu, 16 Jan 2020 12:42:15 -0500
-Message-Id: <20200116174251.24326-138-sashal@kernel.org>
+Cc:     Max Gurtovoy <maxg@mellanox.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Israel Rukshin <israelr@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.9 251/251] IB/iser: Fix dma_nents type definition
+Date:   Thu, 16 Jan 2020 12:36:40 -0500
+Message-Id: <20200116173641.22137-211-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116174251.24326-1-sashal@kernel.org>
-References: <20200116174251.24326-1-sashal@kernel.org>
+In-Reply-To: <20200116173641.22137-1-sashal@kernel.org>
+References: <20200116173641.22137-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,38 +61,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gerd Rausch <gerd.rausch@oracle.com>
+From: Max Gurtovoy <maxg@mellanox.com>
 
-[ Upstream commit 05a82481a3024b94db00b8c816bb3d526b5209e0 ]
+[ Upstream commit c1545f1a200f4adc4ef8dd534bf33e2f1aa22c2f ]
 
-All entries in 'rds_ib_stat_names' are stringified versions
-of the corresponding "struct rds_ib_statistics" element
-without the "s_"-prefix.
+The retured value from ib_dma_map_sg saved in dma_nents variable. To avoid
+future mismatch between types, define dma_nents as an integer instead of
+unsigned.
 
-Fix entry 'ib_evt_handler_call' to do the same.
-
-Fixes: f4f943c958a2 ("RDS: IB: ack more receive completions to improve performance")
-Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Fixes: 57b26497fabe ("IB/iser: Pass the correct number of entries for dma mapped SGL")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Israel Rukshin <israelr@mellanox.com>
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Acked-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/rds/ib_stats.c | 2 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/rds/ib_stats.c b/net/rds/ib_stats.c
-index d77e04473056..a88460058185 100644
---- a/net/rds/ib_stats.c
-+++ b/net/rds/ib_stats.c
-@@ -42,7 +42,7 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
- static const char *const rds_ib_stat_names[] = {
- 	"ib_connect_raced",
- 	"ib_listen_closed_stale",
--	"s_ib_evt_handler_call",
-+	"ib_evt_handler_call",
- 	"ib_tasklet_call",
- 	"ib_tx_cq_event",
- 	"ib_tx_ring_full",
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index cb48e22afff7..a3614f7f0007 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -197,7 +197,7 @@ struct iser_data_buf {
+ 	struct scatterlist *sg;
+ 	int                size;
+ 	unsigned long      data_len;
+-	unsigned int       dma_nents;
++	int                dma_nents;
+ };
+ 
+ /* fwd declarations */
 -- 
 2.20.1
 
