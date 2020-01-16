@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE983C33CB3
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:33:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFC40C33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:33:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B17A0206D7
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:33:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B69F206D7
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:33:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579199630;
-	bh=i5c+aZC1cSbxesexqnQKRgEPDNtvqLGBWgzftqcetSc=;
+	s=default; t=1579199631;
+	bh=hxpdLvO6UKAuakXwvmsgeuSBLao07IE25tdYjVr2xl4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1irCgMj/+xBhikLmMV+UDNFXzZhM5TWlactwOPJ1JQ/7yTp5OWN20ByaHQ21KbDOI
-	 sDOqzoKcOsEsJf9Y5Fsv3Aw4Sf2De6i9CU13WSRYvvYAcDdLuTsCHVNetFaRLd8DLf
-	 W8Avd0zhCYEpjj0JOjeeAt1lhNHI5JXTZwcsxDAQ=
+	b=QWgTJt6nHroK+d/5/+FLFIMzjS1HZ689XLmItyIUQXFAZy5s/PoN9lWwoN5YLmHq+
+	 wZoFATbrSxQdnW7GqlIbU6cWbcM67cM7WeXzI/UAn+lbMBdQ4oNZeLpHDZYynFKwD+
+	 Hyv7wUpJC5bvHutgvxqC5GHEnG3yQUp6PtF8kAsg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391806AbgAPRYt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:24:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59882 "EHLO mail.kernel.org"
+        id S2403815AbgAPRYr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:24:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2403817AbgAPRYs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:24:48 -0500
+        id S2403812AbgAPRYr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:24:47 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E1A9424683;
-        Thu, 16 Jan 2020 17:24:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C2CDC2468C;
+        Thu, 16 Jan 2020 17:24:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579195487;
-        bh=i5c+aZC1cSbxesexqnQKRgEPDNtvqLGBWgzftqcetSc=;
+        s=default; t=1579195486;
+        bh=hxpdLvO6UKAuakXwvmsgeuSBLao07IE25tdYjVr2xl4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Abejdd7JuwzhZ63c1rMMvDPPufVTPWmhFg6a/guy/0CMBt4rOMOVA5KDZz0Usl8hH
-         aocwOTorhNfDhH4OVrF6Kuew2OT8Oz9TBGkek0BHEaXENnSwgxdlO6KtwfBZPSy0Rt
-         n6fntAoLBFjpLPdJ6CsivwjT+Vp5jRTPQTVCmjdQ=
+        b=bWxtZ/pXwj8JB3+lGnbkaiwZ6alTSd6bJrvmS+ykhcLijIV/llU/22RvzRVNomYre
+         9zg1P0pl9v3AvTUF56z53sDKQTCsvslnn1G716aSXiRXsNzWAnBZEFsb9rGW9oohOC
+         91DGoWlQJ8ajKi/qBcOPjI27unUe/LkfV+oqowVI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Steve Wise <swise@opengridcomputing.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 091/371] iw_cxgb4: use tos when finding ipv6 routes
-Date:   Thu, 16 Jan 2020 12:19:23 -0500
-Message-Id: <20200116172403.18149-34-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 090/371] iw_cxgb4: use tos when importing the endpoint
+Date:   Thu, 16 Jan 2020 12:19:22 -0500
+Message-Id: <20200116172403.18149-33-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116172403.18149-1-sashal@kernel.org>
 References: <20200116172403.18149-1-sashal@kernel.org>
@@ -60,42 +60,31 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Steve Wise <swise@opengridcomputing.com>
 
-[ Upstream commit c8a7eb554a83214c3d8ee5cb322da8c72810d2dc ]
+[ Upstream commit cb3ba0bde881f0cb7e3945d2a266901e2bd18c92 ]
 
-When IPv6 support was added, the correct tos was not passed to
-cxgb_find_route6(). This potentially results in the wrong route entry.
+import_ep() is passed the correct tos, but doesn't use it correctly.
 
-Fixes: 830662f6f032 ("RDMA/cxgb4: Add support for active and passive open connection with IPv6 address")
+Fixes: ac8e4c69a021 ("cxgb4/iw_cxgb4: TOS support")
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 942403e42dd0..7eb1cc1b1aa0 100644
+index 3668cc71b47e..942403e42dd0 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2147,7 +2147,8 @@ static int c4iw_reconnect(struct c4iw_ep *ep)
- 					   laddr6->sin6_addr.s6_addr,
- 					   raddr6->sin6_addr.s6_addr,
- 					   laddr6->sin6_port,
--					   raddr6->sin6_port, 0,
-+					   raddr6->sin6_port,
-+					   ep->com.cm_id->tos,
- 					   raddr6->sin6_scope_id);
- 		iptype = 6;
- 		ra = (__u8 *)&raddr6->sin6_addr;
-@@ -3298,7 +3299,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 					   laddr6->sin6_addr.s6_addr,
- 					   raddr6->sin6_addr.s6_addr,
- 					   laddr6->sin6_port,
--					   raddr6->sin6_port, 0,
-+					   raddr6->sin6_port, cm_id->tos,
- 					   raddr6->sin6_scope_id);
- 	}
- 	if (!ep->dst) {
+@@ -2056,7 +2056,7 @@ static int import_ep(struct c4iw_ep *ep, int iptype, __u8 *peer_ip,
+ 	} else {
+ 		pdev = get_real_dev(n->dev);
+ 		ep->l2t = cxgb4_l2t_get(cdev->rdev.lldi.l2t,
+-					n, pdev, 0);
++					n, pdev, rt_tos2priority(tos));
+ 		if (!ep->l2t)
+ 			goto out;
+ 		ep->mtu = dst_mtu(dst);
 -- 
 2.20.1
 
