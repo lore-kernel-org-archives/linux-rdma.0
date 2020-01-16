@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0ACFC33CB1
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:49:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C427DC33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:50:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 942EB2081E
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:49:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AE072073A
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:50:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579193388;
-	bh=916/oBZbFyQnQb/trEdwn873etr5gyTJUe4RmsYa2K4=;
+	s=default; t=1579193436;
+	bh=Nh1lPVksc84cfRqDmjNinvlnaUTlHFl1OIphF9v5p9U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=VwsC6QWJgVc8jyxdBRXsqvA4+FR+rLZf98uesm5Bn4g1JJY/bYT2LOfWmysmGLkzT
-	 5Zu5UVt0k+SMLrx6dseXFKyUo6NPVcFMeS++BfNM/YfYIKRQg+BVGfp0i3xix4GuDg
-	 Ef+CmBzpj7w7Qvs1IH9ZC14TZAQOIawn813iErO8=
+	b=B0P5odqMd8HGXHi3AvAR3hKAVYOLjD8n9ziwl5nT+Bagg24mEpCJC9YtCYXDKQBfG
+	 VTXp/XvEJM+BhO9Zz3JoXE+0P3PhVTH7/rRqLMLjNrQ8U6jURnElTSXwWKDDQs9WOb
+	 n5RD4HDUTVIGWtDV/y6mt9UY9oyrZnrcT8gLlTkY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730375AbgAPQto (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:49:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60674 "EHLO mail.kernel.org"
+        id S1729927AbgAPQr3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:47:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57366 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730366AbgAPQtn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:49:43 -0500
+        id S1729923AbgAPQr3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:47:29 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A2B1B20663;
-        Thu, 16 Jan 2020 16:49:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0FA7B2176D;
+        Thu, 16 Jan 2020 16:47:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193383;
-        bh=916/oBZbFyQnQb/trEdwn873etr5gyTJUe4RmsYa2K4=;
+        s=default; t=1579193248;
+        bh=Nh1lPVksc84cfRqDmjNinvlnaUTlHFl1OIphF9v5p9U=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ymcF9jSGHUXickf+FyLNjprJcWLHfmx9ryv0qqHFG6Zb+lYveckFX7dMNLJHZFsoA
-         c4sgeBaW0VqVQvo8im8m0o8nVGgNDdXTHLpIGCrdH7HVWXuYvKskuXoEB03tLdKlCj
-         38jqBuHpCgnI74/Ei1P0jBnbAf7ycvHs0fz/M1sw=
+        b=j6FQj2Lo3fGrfFqXZ2oHMqVUzxIg2Dsu2EzX9dR/6lZuMMmZGtkwqjAgm28sZGUUd
+         TneuxG9iimgjgdco0R2rTdBNxq32HmxoC+WBt4jiR2+jXUKNaP360g3taadFhDxUnJ
+         UjGoEHDLL/FMK13b5MnTvf961jXVCYPmIxiBZanY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Yangyang Li <liyangyang20@huawei.com>,
+        Weihang Li <liweihang@hisilicon.com>,
+        Doug Ledford <dledford@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 086/205] RDMA/mlx5: Return proper error value
-Date:   Thu, 16 Jan 2020 11:41:01 -0500
-Message-Id: <20200116164300.6705-86-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 054/205] RDMA/hns: Release qp resources when failed to destroy qp
+Date:   Thu, 16 Jan 2020 11:40:29 -0500
+Message-Id: <20200116164300.6705-54-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
 References: <20200116164300.6705-1-sashal@kernel.org>
@@ -58,37 +59,68 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Yangyang Li <liyangyang20@huawei.com>
 
-[ Upstream commit 546d30099ed204792083f043cd7e016de86016a3 ]
+[ Upstream commit d302c6e3a6895608a5856bc708c47bda1770b24d ]
 
-Returned value from mlx5_mr_cache_alloc() is checked to be error or real
-pointer. Return proper error code instead of NULL which is not checked
-later.
+Even if no response from hardware, we should make sure that qp related
+resources are released to avoid memory leaks.
 
-Fixes: 81713d3788d2 ("IB/mlx5: Add implicit MR support")
-Link: https://lore.kernel.org/r/20191029055721.7192-1-leon@kernel.org
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+Link: https://lore.kernel.org/r/1570584110-3659-1-git-send-email-liweihang@hisilicon.com
+Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 7019c12005f4..99d563dba91b 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -428,7 +428,7 @@ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, int entry)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index e82567fcdeb7..926cb97483f9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4650,16 +4650,14 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ {
+ 	struct hns_roce_cq *send_cq, *recv_cq;
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	int ret;
++	int ret = 0;
  
- 	if (entry < 0 || entry >= MAX_MR_CACHE_ENTRIES) {
- 		mlx5_ib_err(dev, "cache entry %d is out of range\n", entry);
--		return NULL;
-+		return ERR_PTR(-EINVAL);
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_RC && hr_qp->state != IB_QPS_RESET) {
+ 		/* Modify qp to reset before destroying qp */
+ 		ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, NULL, 0,
+ 					    hr_qp->state, IB_QPS_RESET);
+-		if (ret) {
++		if (ret)
+ 			ibdev_err(ibdev, "modify QP to Reset failed.\n");
+-			return ret;
+-		}
  	}
  
- 	ent = &cache->ent[entry];
+ 	send_cq = to_hr_cq(hr_qp->ibqp.send_cq);
+@@ -4715,7 +4713,7 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 		kfree(hr_qp->rq_inl_buf.wqe_list);
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+@@ -4725,11 +4723,9 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 	int ret;
+ 
+ 	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
+-	if (ret) {
++	if (ret)
+ 		ibdev_err(&hr_dev->ib_dev, "Destroy qp 0x%06lx failed(%d)\n",
+ 			  hr_qp->qpn, ret);
+-		return ret;
+-	}
+ 
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_GSI)
+ 		kfree(hr_to_hr_sqp(hr_qp));
 -- 
 2.20.1
 
