@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F0BBC33CB3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDF06C33CB1
 	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:48:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1C975208C3
+	by mail.kernel.org (Postfix) with ESMTP id C59A1214AF
 	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:48:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1579193338;
-	bh=B6DUPrTdQ9hfcdz+6dm4drQdGXJjR4qDpjWxewy2T2w=;
+	bh=ldgK0vmdqGkt21vjEpPeGPXwCAigCvSw3+YNv/leJ3I=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=bH9dlVprEkXyXsezh3d4Rc84KIjGX5iWevaBGPjoCYFhYKHC78tp2JUsY+eg2jM6g
-	 +SaK94gGhtRSgHxOdgxgOa+NMdUmKzjSYS3WLjUvIZCU376WYWEJtv3MYbySeYw9fJ
-	 ec56V1I7JNKq1XsWRkgWfq9OLhAEJhnxF9dARdK0=
+	b=em8Rwb9iiD66LwzJ+dre6zWlvfI6QnCS1DDmkxhBMckn4Ge6e5HzGqwmT3dF01EhC
+	 zKG/wpK69rD6K/ojXew1oZkRCGY7zxLQMV/fpgsJ9xHSWYepu6v7DnmYPgWUabib24
+	 Uqp5JH8NCD7xn3g7CaWZ7zFAupj1BQT1MYTA8OWI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729159AbgAPQsx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:48:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59432 "EHLO mail.kernel.org"
+        id S1728988AbgAPQsn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:48:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59090 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729099AbgAPQsv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:48:51 -0500
+        id S1727022AbgAPQsm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:48:42 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 93F63214AF;
-        Thu, 16 Jan 2020 16:48:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 84D0A2073A;
+        Thu, 16 Jan 2020 16:48:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193330;
-        bh=B6DUPrTdQ9hfcdz+6dm4drQdGXJjR4qDpjWxewy2T2w=;
+        s=default; t=1579193321;
+        bh=ldgK0vmdqGkt21vjEpPeGPXwCAigCvSw3+YNv/leJ3I=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EodHKl7uOG0S8+rfSZ1qA9jN3/Lala6mDKselRE35iM7Lbqx/ZZfS86SAlcMXvltj
-         GNtDyU/V8eDYPqZTdjW2ENLS+bdSlzEaJg7cHmUKOBNcizxUewqHhnoDvYVP4cMrtD
-         E+cV1Qf6GSq/2/HL1X6LNWJGwtyyLLLMMPrxNyPo=
+        b=B9PxOpnAVjs0K3x5xU1KIchh1vSKpKX+ok6VCwBOZC646Z7nZWcW4hrf7Hl1IAUkd
+         /GzOHXLejlwq5J3XbBuB+7SQn0rKe6gY0SeIqTRzwhRQfbeReddlpUJcby1akXGDZU
+         U+sblKF0fA1WmVCRZ1JDwp4MphE/vPEo4qSkg2xU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Yangyang Li <liyangyang20@huawei.com>,
-        Weihang Li <liweihang@hisilicon.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 076/205] RDMA/hns: Bugfix for qpc/cqc timer configuration
-Date:   Thu, 16 Jan 2020 11:40:51 -0500
-Message-Id: <20200116164300.6705-76-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 074/205] RDMA/hns: Prevent undefined behavior in hns_roce_set_user_sq_size()
+Date:   Thu, 16 Jan 2020 11:40:49 -0500
+Message-Id: <20200116164300.6705-74-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
 References: <20200116164300.6705-1-sashal@kernel.org>
@@ -59,39 +58,59 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit 887803db866a7a4e1817a3cb8a3eee4e9879fed2 ]
+[ Upstream commit 515f60004ed985d2b2f03659365752e0b6142986 ]
 
-qpc/cqc timer entry size needs one page, but currently they are fixedly
-configured to 4096, which is not appropriate in 64K page scenarios. So
-they should be modified to PAGE_SIZE.
+The "ucmd->log_sq_bb_count" variable is a user controlled variable in the
+0-255 range.  If we shift more than then number of bits in an int then
+it's undefined behavior (it shift wraps), and potentially the int could
+become negative.
 
-Fixes: 0e40dc2f70cd ("RDMA/hns: Add timer allocation support for hip08")
-Link: https://lore.kernel.org/r/1571908917-16220-3-git-send-email-liweihang@hisilicon.com
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Link: https://lore.kernel.org/r/20190608092514.GC28890@mwanda
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 43219d2f7de0..76a14db7028d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -87,8 +87,8 @@
- #define HNS_ROCE_V2_MTT_ENTRY_SZ		64
- #define HNS_ROCE_V2_CQE_ENTRY_SIZE		32
- #define HNS_ROCE_V2_SCCC_ENTRY_SZ		32
--#define HNS_ROCE_V2_QPC_TIMER_ENTRY_SZ		4096
--#define HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ		4096
-+#define HNS_ROCE_V2_QPC_TIMER_ENTRY_SZ		PAGE_SIZE
-+#define HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ		PAGE_SIZE
- #define HNS_ROCE_V2_PAGE_SIZE_SUPPORTED		0xFFFFF000
- #define HNS_ROCE_V2_MAX_INNER_MTPT_NUM		2
- #define HNS_ROCE_INVALID_LKEY			0x100
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index bd78ff90d998..8dd2d666f687 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -332,9 +332,8 @@ static int check_sq_size_with_integrity(struct hns_roce_dev *hr_dev,
+ 	u8 max_sq_stride = ilog2(roundup_sq_stride);
+ 
+ 	/* Sanity check SQ size before proceeding */
+-	if ((u32)(1 << ucmd->log_sq_bb_count) > hr_dev->caps.max_wqes ||
+-	     ucmd->log_sq_stride > max_sq_stride ||
+-	     ucmd->log_sq_stride < HNS_ROCE_IB_MIN_SQ_STRIDE) {
++	if (ucmd->log_sq_stride > max_sq_stride ||
++	    ucmd->log_sq_stride < HNS_ROCE_IB_MIN_SQ_STRIDE) {
+ 		ibdev_err(&hr_dev->ib_dev, "check SQ size error!\n");
+ 		return -EINVAL;
+ 	}
+@@ -358,13 +357,16 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+ 	u32 max_cnt;
+ 	int ret;
+ 
++	if (check_shl_overflow(1, ucmd->log_sq_bb_count, &hr_qp->sq.wqe_cnt) ||
++	    hr_qp->sq.wqe_cnt > hr_dev->caps.max_wqes)
++		return -EINVAL;
++
+ 	ret = check_sq_size_with_integrity(hr_dev, cap, ucmd);
+ 	if (ret) {
+ 		ibdev_err(&hr_dev->ib_dev, "Sanity check sq size failed\n");
+ 		return ret;
+ 	}
+ 
+-	hr_qp->sq.wqe_cnt = 1 << ucmd->log_sq_bb_count;
+ 	hr_qp->sq.wqe_shift = ucmd->log_sq_stride;
+ 
+ 	max_cnt = max(1U, cap->max_send_sge);
 -- 
 2.20.1
 
