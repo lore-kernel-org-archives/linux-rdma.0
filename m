@@ -2,262 +2,127 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CA9CC47409
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:28:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B807C3F68F
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:57:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 53972207E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:28:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 150152075B
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 13:57:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="M1d/iEYR"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="b+pUCymp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726406AbgAPN2C (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 08:28:02 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:20331 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729045AbgAPN1r (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 08:27:47 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579181265;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=XuvIyltLM6t6CmNPpq0TOwT0hr9nkt4psYwYZFChnPA=;
-        b=M1d/iEYRLYcaRSyd1/WUP54IlSPnhZyhBCrzWg+Ftv3plcuavOhluayjxUb0uftG0PVlqM
-        Mmtmk42HkRnWXI5CaITtLmdzUv5SOHj1THX8vVCaYk/Ox189VEFAmlRNTjWsPsAo/m6DLr
-        Ct0njPEkxW3UAygFv1l/Ox0bXtvPBL8=
-Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
- [209.85.167.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-45-Y7hVqLgpOx-pFIeDt_GVnA-1; Thu, 16 Jan 2020 08:27:43 -0500
-X-MC-Unique: Y7hVqLgpOx-pFIeDt_GVnA-1
-Received: by mail-lf1-f72.google.com with SMTP id f18so3821789lfm.2
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 05:27:43 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=XuvIyltLM6t6CmNPpq0TOwT0hr9nkt4psYwYZFChnPA=;
-        b=e/n9yqWYtIbsA3OFBbzeLEPBiHKHhQ4kdr+7HmnamyIXomyUzhMx5j3kbKaLRBIFvz
-         u6b9Se7BLH2Y1eifsEdmU7AQvKwzHIlxo95QZBc157qoLb70A8bfB+jeSqNaFM4Nlyv+
-         QDvofXHubeDJR70ltARHpqsh612i3PxTShJYcSSXtrU/O/2ZOlDnYb3mwII5vhAhYP7Z
-         e1QzmSGMYKeaYUei10tQ4FOdyoxO8TZ75+duRQl4axDYAfveOW2zptbAL/8TfPKfjABk
-         TMQl2U8MS4a0GL0b2z9KlbP9Swyk+r3TnSd14smgvhg4BTMg39BBguy/6ngjz8QTsns1
-         EguQ==
-X-Gm-Message-State: APjAAAVAiB1fonfOUrweADpMijziTNTT7EeBLTDnqSdrdBKakgFuiyO5
-        coL3KOr9bmWzZP2SeKP8pqFmzWc4ErbQcg2+xh88EEtalIAuIG4izztldLUFuGXVLv+NwcA7t+q
-        tJ+OiCqt1QXImhZtZgKgwPQ==
-X-Received: by 2002:a2e:7e05:: with SMTP id z5mr2143929ljc.99.1579181262221;
-        Thu, 16 Jan 2020 05:27:42 -0800 (PST)
-X-Google-Smtp-Source: APXvYqwV2vEACriaMxMYq1+Yurp2SBRFnsPX7bITYsC6orHg17S25R+Ekjo1mt4jcs0IEhr7VeKwYg==
-X-Received: by 2002:a2e:7e05:: with SMTP id z5mr2143893ljc.99.1579181261819;
-        Thu, 16 Jan 2020 05:27:41 -0800 (PST)
-Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
-        by smtp.gmail.com with ESMTPSA id g27sm10722135lfj.49.2020.01.16.05.27.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jan 2020 05:27:41 -0800 (PST)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id E326A1804D7; Thu, 16 Jan 2020 14:22:21 +0100 (CET)
-Subject: [PATCH bpf-next v3 09/11] selftests: Remove tools/lib/bpf from
- include path
-From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-To:     Alexei Starovoitov <ast@kernel.org>
-Cc:     Daniel Borkmann <daniel@iogearbox.net>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        Andrii Nakryiko <andriin@fb.com>,
+        id S1726084AbgAPN5J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 08:57:09 -0500
+Received: from mail-eopbgr00064.outbound.protection.outlook.com ([40.107.0.64]:4149
+        "EHLO EUR02-AM5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726362AbgAPN5J (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 08:57:09 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HrRaiU8QOzCgb9ZzHf70RnhwnScsrNGifl5g7E1kykZfgihLJ//B1zg8Lidzb9uw/L4Epe3m8Apck2lBygv3w/eMdganL0dOL017/DF5sIjJL1KPxpjY+VzpXNGJ1YFDSGfmxqf9tbgj+RuxApurw4v/9b/2BRfdxNlblHbV9EsglGMAgvvcvxnLO5vhlHJixs4mEQdKTY/ev3ru05vbZtnugSbTGg+tx5RDTKgUsUk+3Tuzrf7OnFKb4JP41ZohyCbGOWRUNy1+yvgrSsPPwVFYVjQkNj651nhuM1ShW4X/L9VuK5u4lIE3a2bxg2B2DZ1xVPQdgACxr3dsw67j2Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=tOwLcVZKc8TbUbZwLicV1NV74FPSo9TATICmKUrjOUw=;
+ b=hBqLKSvvFH7I1MaK6kD6knLdk/cOmp8a63BpwUaUOq7BZCcpz21gdmVn/GtjYPI7jnYpYhb3G0OTzwCM9d4AhGvhNcWhuyro+cTMoSPdPqHYxbwcFdCMPYD73eOQI7cBjxNgh8ighetJYY+Zi5UzAFf6nReQ4we4xqi9Fi+vs7VhtWBt2SMpu2bItmlbByIs5NPJRc2bScf5wrk9Q+34MzLudsioH4WH2H3MU1chJn9CcjlKlxcvCbwDM6lnIR3JvQXL7SgP1U6eAKrgfjV3/LTshICzCXyu2pXMnYIQ2Ax4xziJy6rX39F+fzOsEUsAf1YMUIEURwhQMjKmVaPb6A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=tOwLcVZKc8TbUbZwLicV1NV74FPSo9TATICmKUrjOUw=;
+ b=b+pUCympriR7KxWXpHNezAmvIP4tlv5djHxkMRfzG8q+RcChhjZWpi9/W1XGLT0ffdFoKnC1Pzf9M5rBHcOSNWewyN5cKTVDUEQpfDwMH3XepNkyfFoJ0VxKzhCUjZ9W0S5OcIWGlSruDa0aTM0zzxEXxI6XafJMzXd8ax3eYgg=
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (52.133.14.15) by
+ VI1PR05MB4669.eurprd05.prod.outlook.com (20.176.3.10) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2623.10; Thu, 16 Jan 2020 13:57:05 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d%7]) with mapi id 15.20.2644.015; Thu, 16 Jan 2020
+ 13:57:05 +0000
+Received: from mlx.ziepe.ca (142.68.57.212) by MN2PR17CA0022.namprd17.prod.outlook.com (2603:10b6:208:15e::35) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2644.18 via Frontend Transport; Thu, 16 Jan 2020 13:57:05 +0000
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)     (envelope-from <jgg@mellanox.com>)      id 1is5dt-0003ix-Sm; Thu, 16 Jan 2020 09:57:01 -0400
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Leon Romanovsky <leonro@mellanox.com>
+CC:     "David S . Miller" <davem@davemloft.net>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
-        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        clang-built-linux@googlegroups.com
-Date:   Thu, 16 Jan 2020 14:22:21 +0100
-Message-ID: <157918094179.1357254.14428494370073273452.stgit@toke.dk>
-In-Reply-To: <157918093154.1357254.7616059374996162336.stgit@toke.dk>
-References: <157918093154.1357254.7616059374996162336.stgit@toke.dk>
-User-Agent: StGit/0.21
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Hans Westgaard Ry <hans.westgaard.ry@oracle.com>,
+        Moni Shoua <monis@mellanox.com>,
+        linux-netdev <netdev@vger.kernel.org>
+Subject: Re: [PATCH mlx5-next 00/10] Use ODP MRs for kernel ULPs
+Thread-Topic: [PATCH mlx5-next 00/10] Use ODP MRs for kernel ULPs
+Thread-Index: AQHVy6FvxnMGsXYFhEqsZB6HjluKCafs3buAgAB0qIA=
+Date:   Thu, 16 Jan 2020 13:57:05 +0000
+Message-ID: <20200116135701.GG20978@mellanox.com>
+References: <20200115124340.79108-1-leon@kernel.org>
+ <20200116065926.GD76932@unreal>
+In-Reply-To: <20200116065926.GD76932@unreal>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: MN2PR17CA0022.namprd17.prod.outlook.com
+ (2603:10b6:208:15e::35) To VI1PR05MB4141.eurprd05.prod.outlook.com
+ (2603:10a6:803:44::15)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [142.68.57.212]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: c417e9c6-b2c5-444f-46b0-08d79a8bf87a
+x-ms-traffictypediagnostic: VI1PR05MB4669:|VI1PR05MB4669:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <VI1PR05MB4669D267A60F9DDEFF522EEECF360@VI1PR05MB4669.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8273;
+x-forefront-prvs: 02843AA9E0
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(39860400002)(136003)(376002)(396003)(366004)(346002)(189003)(199004)(37006003)(186003)(36756003)(4326008)(81166006)(8676002)(81156014)(71200400001)(316002)(26005)(66946007)(66446008)(66556008)(64756008)(1076003)(66476007)(4744005)(478600001)(6862004)(54906003)(2616005)(86362001)(6636002)(5660300002)(8936002)(33656002)(9786002)(2906002)(52116002)(9746002)(24400500001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB4669;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: K9Dnyaq6FiEa5LdZvTmO6KVG42aYQAvgpKf7OFiNlZUk8SDqF1ZUWDMBQKGtbWzT2PSVcoswULY4rNS02xmH2U/WQKEwjlbpQmgWBfk/xC5cfXVFevbzro8j07qOWR7AHWtiXn/D6PzztRbUOHN8ElGtqqnukQzQgvC05gXDD+JeKaTJ4fdTCJzzKEh6ZEvlyI9dYjdFAqAIEznjlurpCBd+s4Mc5OFPK8qudfHz8TndUr9ZmHJQTV+dDPv9SK0zt8jeDJ7IVr6HhWvTZ5aC2OiEnrKzBjhgEJweUrhPo8XneHwEEFGWopmClp/KBy0FRCdnFtqGRdCq7nLA3JQikYGtZ/AwCSNhHfN/pPaTO93bHvtqgTHeSI/cdu2THESB3i6/YC8o4I3TtVMw57Xf9gYxShWzCKLHMH+f4Ll0GjAOjB+Fwi3kSf2HCwDOEvow1RUhDfc4RoAKhv/cOaCnvOrFRixNNzPIVbB2av/eIfCFDJkbY8iei0ezqLa/03B6
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <0C06D25BBED1E84C900B1F1185314F17@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c417e9c6-b2c5-444f-46b0-08d79a8bf87a
+X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Jan 2020 13:57:05.7748
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: P+gXIiM+5Yk5MmHQe278av0Yc7Ub8RxzxzBr0XPeZpz8mAjllrF8DdaaKH9G9Z7SdtgK9+Gx0n8fTDVRrFB7jQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB4669
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Toke Høiland-Jørgensen <toke@redhat.com>
+On Thu, Jan 16, 2020 at 06:59:29AM +0000, Leon Romanovsky wrote:
+> >  45 files changed, 559 insertions(+), 256 deletions(-)
+>=20
+> Thanks Santosh for your review.
+>=20
+> David,
+> Is it ok to route those patches through RDMA tree given the fact that
+> we are touching a lot of files in drivers/infiniband/* ?
+>=20
+> There is no conflict between netdev and RDMA versions of RDS, but to be
+> on safe side, I'll put all this code to mlx5-next tree.
 
-To make sure no new files are introduced that doesn't include the bpf/
-prefix in its #include, remove tools/lib/bpf from the include path
-entirely.
+Er, lets not contaminate the mlx5-next with this..
 
-Instead, we introduce a new header files directory under the scratch tools/
-dir, and add a rule to run the 'install_headers' rule from libbpf to have a
-full set of consistent libbpf headers in $(OUTPUT)/tools/include/bpf, and
-then use $(OUTPUT)/tools/include as the include path for selftests.
+It looks like it applies clean to -rc6 so if it has to be in both
+trees a clean PR against -rc5/6 is the way to do it.
 
-For consistency we also make sure we put all the scratch build files from
-other bpftool and libbpf into tools/build/, so everything stays within
-selftests/.
+Santos, do you anticipate more RDS patches this cycle?
 
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
----
- tools/testing/selftests/bpf/.gitignore |    1 +
- tools/testing/selftests/bpf/Makefile   |   50 +++++++++++++++++++-------------
- 2 files changed, 31 insertions(+), 20 deletions(-)
-
-diff --git a/tools/testing/selftests/bpf/.gitignore b/tools/testing/selftests/bpf/.gitignore
-index 1d14e3ab70be..849be9990ad2 100644
---- a/tools/testing/selftests/bpf/.gitignore
-+++ b/tools/testing/selftests/bpf/.gitignore
-@@ -40,3 +40,4 @@ test_cpp
- /bpf_gcc
- /tools
- bpf_helper_defs.h
-+/include/bpf
-diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests/bpf/Makefile
-index 1fd7da49bd56..c3fa695bb028 100644
---- a/tools/testing/selftests/bpf/Makefile
-+++ b/tools/testing/selftests/bpf/Makefile
-@@ -20,8 +20,8 @@ CLANG		?= clang
- LLC		?= llc
- LLVM_OBJCOPY	?= llvm-objcopy
- BPF_GCC		?= $(shell command -v bpf-gcc;)
--CFLAGS += -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR) -I$(LIBDIR)  \
--	  -I$(BPFDIR) -I$(GENDIR) -I$(TOOLSINCDIR)			\
-+CFLAGS += -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR)		 \
-+	  -I$(INCLUDE_DIR) -I$(GENDIR) -I$(LIBDIR) -I$(TOOLSINCDIR)	\
- 	  -Dbpf_prog_load=bpf_prog_test_load				\
- 	  -Dbpf_load_program=bpf_test_load_program
- LDLIBS += -lcap -lelf -lz -lrt -lpthread
-@@ -97,11 +97,15 @@ OVERRIDE_TARGETS := 1
- override define CLEAN
- 	$(call msg,CLEAN)
- 	$(RM) -r $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) $(TEST_GEN_FILES) $(EXTRA_CLEAN)
--	$(MAKE) -C $(BPFDIR) OUTPUT=$(OUTPUT)/ clean
- endef
- 
- include ../lib.mk
- 
-+SCRATCH_DIR := $(OUTPUT)/tools
-+BUILD_DIR := $(SCRATCH_DIR)/build
-+INCLUDE_DIR := $(SCRATCH_DIR)/include
-+INCLUDE_BPF := $(INCLUDE_DIR)/bpf/bpf.h
-+
- # Define simple and short `make test_progs`, `make test_sysctl`, etc targets
- # to build individual tests.
- # NOTE: Semicolon at the end is critical to override lib.mk's default static
-@@ -120,7 +124,7 @@ $(OUTPUT)/urandom_read: urandom_read.c
- 	$(call msg,BINARY,,$@)
- 	$(CC) -o $@ $< -Wl,--build-id
- 
--$(OUTPUT)/test_stub.o: test_stub.c
-+$(OUTPUT)/test_stub.o: test_stub.c $(INCLUDE_BPF)
- 	$(call msg,CC,,$@)
- 	$(CC) -c $(CFLAGS) -o $@ $<
- 
-@@ -129,7 +133,7 @@ $(OUTPUT)/runqslower: force
- 	$(Q)$(MAKE) $(submake_extras) -C $(TOOLSDIR)/bpf/runqslower	      \
- 		    OUTPUT=$(CURDIR)/tools/ VMLINUX_BTF=$(abspath ../../../../vmlinux)
- 
--BPFOBJ := $(OUTPUT)/libbpf.a
-+BPFOBJ := $(BUILD_DIR)/libbpf/libbpf.a
- 
- $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED): $(OUTPUT)/test_stub.o $(BPFOBJ)
- 
-@@ -155,17 +159,23 @@ force:
- DEFAULT_BPFTOOL := $(OUTPUT)/tools/sbin/bpftool
- BPFTOOL ?= $(DEFAULT_BPFTOOL)
- 
--$(DEFAULT_BPFTOOL): force
--	$(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)			      \
-+$(BUILD_DIR)/libbpf $(BUILD_DIR)/bpftool $(INCLUDE_DIR):
-+	$(call msg,MKDIR,,$@)
-+	mkdir -p $@
-+
-+$(DEFAULT_BPFTOOL): force $(BUILD_DIR)/bpftool
-+	$(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)		\
-+		    OUTPUT=$(BUILD_DIR)/bpftool/			\
- 		    prefix= DESTDIR=$(OUTPUT)/tools/ install
- 
--$(BPFOBJ): force
--	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) OUTPUT=$(OUTPUT)/
-+$(BPFOBJ): force $(BUILD_DIR)/libbpf
-+	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) \
-+		OUTPUT=$(BUILD_DIR)/libbpf/
- 
--BPF_HELPERS := $(OUTPUT)/bpf_helper_defs.h $(wildcard $(BPFDIR)/bpf_*.h)
--$(OUTPUT)/bpf_helper_defs.h: $(BPFOBJ)
--	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR)			      \
--		    OUTPUT=$(OUTPUT)/ $(OUTPUT)/bpf_helper_defs.h
-+BPF_HELPERS := $(wildcard $(BPFDIR)/bpf_*.h) $(INCLUDE_BPF)
-+$(INCLUDE_BPF): force $(BPFOBJ)
-+	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) install_headers \
-+		OUTPUT=$(BUILD_DIR)/libbpf/ DESTDIR=$(SCRATCH_DIR) prefix=
- 
- # Get Clang's default includes on this system, as opposed to those seen by
- # '-target bpf'. This fixes "missing" files on some architectures/distros,
-@@ -185,8 +195,8 @@ MENDIAN=$(if $(IS_LITTLE_ENDIAN),-mlittle-endian,-mbig-endian)
- 
- CLANG_SYS_INCLUDES = $(call get_sys_includes,$(CLANG))
- BPF_CFLAGS = -g -D__TARGET_ARCH_$(SRCARCH) $(MENDIAN) 			\
--	     -I$(OUTPUT) -I$(CURDIR) -I$(CURDIR)/include/uapi		\
--	     -I$(APIDIR) -I$(LIBDIR) -I$(BPFDIR) -I$(abspath $(OUTPUT)/../usr/include)
-+	     -I$(INCLUDE_DIR) -I$(CURDIR) -I$(CURDIR)/include/uapi	\
-+	     -I$(APIDIR) -I$(abspath $(OUTPUT)/../usr/include)
- 
- CLANG_CFLAGS = $(CLANG_SYS_INCLUDES) \
- 	       -Wno-compare-distinct-pointer-types
-@@ -306,7 +316,7 @@ $(TRUNNER_TEST_OBJS): $(TRUNNER_OUTPUT)/%.test.o:			\
- 		      $(TRUNNER_EXTRA_HDRS)				\
- 		      $(TRUNNER_BPF_OBJS)				\
- 		      $(TRUNNER_BPF_SKELS)				\
--		      $$(BPFOBJ) | $(TRUNNER_OUTPUT)
-+		      $$(BPFOBJ) $$(INCLUDE_BPF) | $(TRUNNER_OUTPUT)
- 	$$(call msg,TEST-OBJ,$(TRUNNER_BINARY),$$@)
- 	cd $$(@D) && $$(CC) $$(CFLAGS) -c $(CURDIR)/$$< $$(LDLIBS) -o $$(@F)
- 
-@@ -314,7 +324,7 @@ $(TRUNNER_EXTRA_OBJS): $(TRUNNER_OUTPUT)/%.o:				\
- 		       %.c						\
- 		       $(TRUNNER_EXTRA_HDRS)				\
- 		       $(TRUNNER_TESTS_HDR)				\
--		       $$(BPFOBJ) | $(TRUNNER_OUTPUT)
-+		       $$(BPFOBJ) $$(INCLUDE_BPF) | $(TRUNNER_OUTPUT)
- 	$$(call msg,EXT-OBJ,$(TRUNNER_BINARY),$$@)
- 	$$(CC) $$(CFLAGS) -c $$< $$(LDLIBS) -o $$@
- 
-@@ -326,7 +336,7 @@ ifneq ($2,)
- endif
- 
- $(OUTPUT)/$(TRUNNER_BINARY): $(TRUNNER_TEST_OBJS)			\
--			     $(TRUNNER_EXTRA_OBJS) $$(BPFOBJ)		\
-+			     $(TRUNNER_EXTRA_OBJS) $$(BPFOBJ) $$(INCLUDE_BPF)		\
- 			     | $(TRUNNER_BINARY)-extras
- 	$$(call msg,BINARY,,$$@)
- 	$$(CC) $$(CFLAGS) $$(filter %.a %.o,$$^) $$(LDLIBS) -o $$@
-@@ -388,7 +398,7 @@ $(OUTPUT)/test_cpp: test_cpp.cpp $(OUTPUT)/test_core_extern.skel.h $(BPFOBJ)
- 	$(call msg,CXX,,$@)
- 	$(CXX) $(CFLAGS) $^ $(LDLIBS) -o $@
- 
--EXTRA_CLEAN := $(TEST_CUSTOM_PROGS)					\
-+EXTRA_CLEAN := $(TEST_CUSTOM_PROGS) $(SCRATCH_DIR)			\
- 	prog_tests/tests.h map_tests/tests.h verifier/tests.h		\
- 	feature								\
--	$(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc tools)
-+	$(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc)
-
+Jason
