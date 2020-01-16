@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9DDCC33CB7
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:09:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08BECC33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:09:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 91F1E2072E
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:09:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9DAB206E6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:09:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="XdClobSU"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="OJTJ9mmo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387916AbgAPRAt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:00:49 -0500
-Received: from mail-qk1-f195.google.com ([209.85.222.195]:45538 "EHLO
-        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733277AbgAPRAs (ORCPT
+        id S1730353AbgAPTJW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 14:09:22 -0500
+Received: from mail-qt1-f194.google.com ([209.85.160.194]:41984 "EHLO
+        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387904AbgAPRAs (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 12:00:48 -0500
-Received: by mail-qk1-f195.google.com with SMTP id x1so19721201qkl.12
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 09:00:48 -0800 (PST)
+Received: by mail-qt1-f194.google.com with SMTP id j5so19399590qtq.9
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 09:00:47 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=yZYacYwa9ckXtiCq/Q0DVSTukqFW2RfQsiEsPfWTHK4=;
-        b=XdClobSUrFLkpNmKB8qeCbb+fApCsR+lHQLim/lABRd4Sqb3fBlxBL2S0PzPmixgfu
-         nLTByHeweBUODJs5fQQDpdHbC5aIfPnTZjnqFdji47zVFMTvVJgajxAM0G5e7aepQ0Ic
-         K801z0jc3aW8l/qJuH0e12tt7naLW9Bie2Fo4aun8xHsGA7cCqwuUF+Rwy94/WTaKnLJ
-         KxVyZC1WjDxSCXkcKHkWJwxlJBTqT9eeDUCe5dwdIePDGK9RlC38D5dnGSAXPco8AmxP
-         Phf7p3jCTb5cLuUIeCRdBPHLIUj8kFVo8vuEm8Rsg3gkiT++S71PwEvonwWgnk9lmF4P
-         EA+A==
+        bh=Nn/Ez0Q6O2BFBa/MAL0WJl6l0h/Lk6sHECx9PnZNXyg=;
+        b=OJTJ9mmoYHWOhIKGOu47PxmwT9mggRj9zr3uxSaMBifDJq5wn5hS7RD57WJwXh59xP
+         LQRnHsHj7fHBamRuEfY+cfpvdiXKw4Qq2J09+rnex532EedLd1CXjatKX3ObaoBGh+4a
+         CMqSeKEhxpAa43hh1PAVrrZdPuIqPr3eFkLPftjBVXdAJw+xW9EV/emv03lV0ycY5/sC
+         MPlbtQWDwsubu86r7TVfTJ7Uhns215cOmx6gUfP/KTThHFj58iw2Sx3mOpicpIpDWnbz
+         iB6+yOTbv19gbBMzfmdvMiZR3ep2h4q4NMtblo1DeXMlKxL6Ji11mX+QxjOLRRE0cIXi
+         0m9g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=yZYacYwa9ckXtiCq/Q0DVSTukqFW2RfQsiEsPfWTHK4=;
-        b=tpaH8RrdR+YVV2lnB14OedtkDtzT6m9AgMVoPgbklC1MfQmCIn96bx1aotLRPHyrYC
-         MXiEfMjMaCUjmthQiuKPMzA2ow0xwMlgRFtl3Ud6MuYO3cSOW8d/o6FeZlEq+eSbVzVt
-         aDm/OEAfx00Ct7Vy6B5He/OOJR3yM3yHrFsDqLEEkJEhSmixZHh2J91MlFupE2qSZ/Ec
-         buiEdGAnPwLCdob/MfRXluj9WYH25wglw+GZ2ms1jAlVP+G3UJlyGsmrgLrVWV3smA+X
-         r0CZCheHfUkLA8berwlseAQy5tkFVYBdOowrvMpIUjuUkanIeoR/7GtY341zaAZXGnGx
-         dByA==
-X-Gm-Message-State: APjAAAX8vQHn7iu13k+RD8/rcu/f37A0WVxLWuAXE4L6tFLK4+8aSVDS
-        5XF1Ybr1ucUnoWcAHWXHdjkf+KL4Eo4=
-X-Google-Smtp-Source: APXvYqz3uhOWtQjH94NbvM+Fchq/61HWgLuqgu1VcGGIWJUnlPTfGizyJixQZwayoijdexTC4Xxkuw==
-X-Received: by 2002:a05:620a:a5b:: with SMTP id j27mr33930629qka.286.1579194046569;
-        Thu, 16 Jan 2020 09:00:46 -0800 (PST)
+        bh=Nn/Ez0Q6O2BFBa/MAL0WJl6l0h/Lk6sHECx9PnZNXyg=;
+        b=JN8BM3zRnF9iuzsoL75hKcNUMoUQYZ8KK9hIv7FJD2KBOFYTP2YdqS0LczXsuT5pXp
+         ECzp/kKi8tV82XgoVQCcmkwSkqb+EMpCTpO1pSjHaWgA/vOga3MIgd5mVJL+vXB8JXw9
+         GDn0myjExdL/s+bgZoZ0HykHt1/8A97YUJqp3inEX+6CetT6cB8iezw/XOONG9qlPper
+         QCQXUj/mzRT5HgSmgHvceLjvoahVVH0jFcezHpTbWqXV5oOfRAtfOcTLbQqvy21iQsNK
+         lkhlo2KJIEAc1OUvmuyfrZrtqW1Pq7dPhgXhSblyqGPRBrIzRQgNTdVJNFdSp0+kkyy1
+         gHtg==
+X-Gm-Message-State: APjAAAXROkqKaxLpwvfGzS+5lNZaYyBNbuWQPmHHSFqDp9uhnSzkj/ov
+        aAaxlNShcT9sVJshe14ab1Z/mHX1spU=
+X-Google-Smtp-Source: APXvYqwAb9Q5QeK3hEFttfZu6Z17KmxsanaxZmvnWCQ9iL2/nxBeGnIg5ag0j1hj9Dj9dMT/qY9tBQ==
+X-Received: by 2002:ac8:2afb:: with SMTP id c56mr3461579qta.112.1579194045510;
+        Thu, 16 Jan 2020 09:00:45 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id d184sm10463220qkb.128.2020.01.16.09.00.40
+        by smtp.gmail.com with ESMTPSA id h32sm11763601qth.2.2020.01.16.09.00.40
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
         Thu, 16 Jan 2020 09:00:41 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1is8Vc-0007tU-59; Thu, 16 Jan 2020 13:00:40 -0400
+        id 1is8Vc-0007tI-1E; Thu, 16 Jan 2020 13:00:40 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>
 Cc:     Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH 4/7] RDMA/cm: Use IBA functions for swapping get/set acessors
-Date:   Thu, 16 Jan 2020 13:00:34 -0400
-Message-Id: <20200116170037.30109-5-jgg@ziepe.ca>
+Subject: [PATCH 2/7] RDMA/cm: Add SET/GET implementations to hide IBA wire format
+Date:   Thu, 16 Jan 2020 13:00:32 -0400
+Message-Id: <20200116170037.30109-3-jgg@ziepe.ca>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200116170037.30109-1-jgg@ziepe.ca>
 References: <20200116170037.30109-1-jgg@ziepe.ca>
@@ -73,563 +73,712 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Use a Coccinelle spatch script to replace CM helper functions that
-return/accept BE values with IBA_GET/SET versions. Applied with
+There is no separation between RDMA-CM wire format as it is declared in
+IBTA and kernel logic which implements needed support. Such situation
+causes to many mistakes in conversion between big-endian (wire format)
+and CPU format used by kernel. It also mixes RDMA core code with
+combination of uXX and beXX variables.
 
-$ spatch --sp-file edits.sp --in-place drivers/infiniband/core/cm.c
+The idea that all accesses to IBA definitions will go through special
+GET/SET macros to ensure that no conversion mistakes are made. The
+shifting and masking required to read the value is automatically deduced
+using the field offset description from the tables in the IBA
+specification.
 
-The spatch file was generated using the template pattern:
+This starts with the CM MADs described in IBTA release 1.3 volume 1.
 
-@@
-expression val;
-{struct} *msg;
-@@
-- {old_setter}(msg, val)
-+ IBA_SET({new_name}, msg, be{bits}_to_cpu(val))
-@@
-{struct} *msg;
-@@
-- {old_getter}(msg)
-+ cpu_to_be{bits}(IBA_GET({new_name}, msg))
+To confirm that the new macros behave the same as the old accessors a
+self-test is included in this patch.
 
-Iterated for every IBA_CHECK_GET_BE()/IBA_CHECK_SET_BE() pairing.
+Each macro replacing a straightforward struct field compile-time tests
+that the new field has the same offsetof() and width as the old field.
 
-And the below iterated over all byte sizes to remove doubled byte swaps:
+For the fields with accessor functions a runtime test, the 'all ones'
+value is placed in a dummy message and read back in several ways to
+confirm that both approaches give identical results.
 
-@@
-expression val;
-@@
--be{bits}_to_cpu(cpu_to_be{bits}(val))
-+val
+Later patches in this series delete the self test.
 
-(and __be_to_cpu and ntoh varients)
+This creates a tested table of new field name, old field name(s) and some
+meta information like BE coding for the functions which will be used in
+the next patches.
 
-Touched up with clang-format after.
-
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Link: https://lore.kernel.org/r/20191212093830.316934-5-leon@kernel.org
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Tested-by: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/core/cm.c      | 186 ++++++------------------------
- drivers/infiniband/core/cm_msgs.h | 119 +------------------
- 2 files changed, 36 insertions(+), 269 deletions(-)
+ drivers/infiniband/core/cm.c      | 267 ++++++++++++++++++++++++++++++
+ drivers/infiniband/core/cm_msgs.h |   1 +
+ include/rdma/iba.h                | 146 ++++++++++++++++
+ include/rdma/ibta_vol1_c12.h      | 208 +++++++++++++++++++++++
+ 4 files changed, 622 insertions(+)
+ create mode 100644 include/rdma/iba.h
+ create mode 100644 include/rdma/ibta_vol1_c12.h
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index a1a9681601329a..976bb85b6aa6a4 100644
+index d396b987b0f2d4..7f609979e4debf 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1254,13 +1254,13 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 	req_msg->local_comm_id = cm_id_priv->id.local_id;
- 	req_msg->service_id = param->service_id;
- 	req_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
--	cm_req_set_local_qpn(req_msg, cpu_to_be32(param->qp_num));
-+	IBA_SET(CM_REQ_LOCAL_QPN, req_msg, param->qp_num);
- 	IBA_SET(CM_REQ_INITIATOR_DEPTH, req_msg, param->initiator_depth);
- 	IBA_SET(CM_REQ_REMOTE_CM_RESPONSE_TIMEOUT, req_msg,
- 		param->remote_cm_response_timeout);
- 	cm_req_set_qp_type(req_msg, param->qp_type);
- 	IBA_SET(CM_REQ_END_TO_END_FLOW_CONTROL, req_msg, param->flow_control);
--	cm_req_set_starting_psn(req_msg, cpu_to_be32(param->starting_psn));
-+	IBA_SET(CM_REQ_STARTING_PSN, req_msg, param->starting_psn);
- 	IBA_SET(CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT, req_msg,
- 		param->local_cm_response_timeout);
- 	req_msg->pkey = param->primary_path->pkey;
-@@ -1295,7 +1295,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 		req_msg->primary_local_lid = IB_LID_PERMISSIVE;
- 		req_msg->primary_remote_lid = IB_LID_PERMISSIVE;
- 	}
--	cm_req_set_primary_flow_label(req_msg, pri_path->flow_label);
-+	IBA_SET(CM_REQ_PRIMARY_FLOW_LABEL, req_msg,
-+		be32_to_cpu(pri_path->flow_label));
- 	IBA_SET(CM_REQ_PRIMARY_PACKET_RATE, req_msg, pri_path->rate);
- 	req_msg->primary_traffic_class = pri_path->traffic_class;
- 	req_msg->primary_hop_limit = pri_path->hop_limit;
-@@ -1330,8 +1331,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 			req_msg->alt_local_lid = IB_LID_PERMISSIVE;
- 			req_msg->alt_remote_lid = IB_LID_PERMISSIVE;
- 		}
--		cm_req_set_alt_flow_label(req_msg,
--					  alt_path->flow_label);
-+		IBA_SET(CM_REQ_ALTERNATE_FLOW_LABEL, req_msg,
-+			be32_to_cpu(alt_path->flow_label));
- 		IBA_SET(CM_REQ_ALTERNATE_PACKET_RATE, req_msg, alt_path->rate);
- 		req_msg->alt_traffic_class = alt_path->traffic_class;
- 		req_msg->alt_hop_limit = alt_path->hop_limit;
-@@ -1437,8 +1438,8 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
- 	cm_id_priv->msg->timeout_ms = cm_id_priv->timeout_ms;
- 	cm_id_priv->msg->context[1] = (void *) (unsigned long) IB_CM_REQ_SENT;
+@@ -4253,10 +4253,277 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
+ 	kfree(cm_dev);
+ }
  
--	cm_id_priv->local_qpn = cm_req_get_local_qpn(req_msg);
--	cm_id_priv->rq_psn = cm_req_get_starting_psn(req_msg);
-+	cm_id_priv->local_qpn = cpu_to_be32(IBA_GET(CM_REQ_LOCAL_QPN, req_msg));
-+	cm_id_priv->rq_psn = cpu_to_be32(IBA_GET(CM_REQ_STARTING_PSN, req_msg));
- 
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
- 	ret = ib_post_send_mad(cm_id_priv->msg, NULL);
-@@ -1548,7 +1549,8 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- {
- 	primary_path->dgid = req_msg->primary_local_gid;
- 	primary_path->sgid = req_msg->primary_remote_gid;
--	primary_path->flow_label = cm_req_get_primary_flow_label(req_msg);
-+	primary_path->flow_label =
-+		cpu_to_be32(IBA_GET(CM_REQ_PRIMARY_FLOW_LABEL, req_msg));
- 	primary_path->hop_limit = req_msg->primary_hop_limit;
- 	primary_path->traffic_class = req_msg->primary_traffic_class;
- 	primary_path->reversible = 1;
-@@ -1569,7 +1571,8 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 	if (cm_req_has_alt_path(req_msg)) {
- 		alt_path->dgid = req_msg->alt_local_gid;
- 		alt_path->sgid = req_msg->alt_remote_gid;
--		alt_path->flow_label = cm_req_get_alt_flow_label(req_msg);
-+		alt_path->flow_label = cpu_to_be32(
-+			IBA_GET(CM_REQ_ALTERNATE_FLOW_LABEL, req_msg));
- 		alt_path->hop_limit = req_msg->alt_hop_limit;
- 		alt_path->traffic_class = req_msg->alt_traffic_class;
- 		alt_path->reversible = 1;
-@@ -1661,9 +1664,9 @@ static void cm_format_req_event(struct cm_work *work,
- 	}
- 	param->remote_ca_guid = req_msg->local_ca_guid;
- 	param->remote_qkey = be32_to_cpu(req_msg->local_qkey);
--	param->remote_qpn = be32_to_cpu(cm_req_get_local_qpn(req_msg));
-+	param->remote_qpn = IBA_GET(CM_REQ_LOCAL_QPN, req_msg);
- 	param->qp_type = cm_req_get_qp_type(req_msg);
--	param->starting_psn = be32_to_cpu(cm_req_get_starting_psn(req_msg));
-+	param->starting_psn = IBA_GET(CM_REQ_STARTING_PSN, req_msg);
- 	param->responder_resources = IBA_GET(CM_REQ_INITIATOR_DEPTH, req_msg);
- 	param->initiator_depth = IBA_GET(CM_REQ_RESPONDER_RESOURCES, req_msg);
- 	param->local_cm_response_timeout =
-@@ -1924,7 +1927,8 @@ static int cm_req_handler(struct cm_work *work)
- 	}
- 	cm_id_priv->timewait_info->work.remote_id = req_msg->local_comm_id;
- 	cm_id_priv->timewait_info->remote_ca_guid = req_msg->local_ca_guid;
--	cm_id_priv->timewait_info->remote_qpn = cm_req_get_local_qpn(req_msg);
-+	cm_id_priv->timewait_info->remote_qpn =
-+		cpu_to_be32(IBA_GET(CM_REQ_LOCAL_QPN, req_msg));
- 
- 	listen_cm_id_priv = cm_match_req(work, cm_id_priv);
- 	if (!listen_cm_id_priv) {
-@@ -1998,14 +2002,15 @@ static int cm_req_handler(struct cm_work *work)
- 	cm_id_priv->timeout_ms = cm_convert_to_ms(
- 		IBA_GET(CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT, req_msg));
- 	cm_id_priv->max_cm_retries = IBA_GET(CM_REQ_MAX_CM_RETRIES, req_msg);
--	cm_id_priv->remote_qpn = cm_req_get_local_qpn(req_msg);
-+	cm_id_priv->remote_qpn =
-+		cpu_to_be32(IBA_GET(CM_REQ_LOCAL_QPN, req_msg));
- 	cm_id_priv->initiator_depth =
- 		IBA_GET(CM_REQ_RESPONDER_RESOURCES, req_msg);
- 	cm_id_priv->responder_resources =
- 		IBA_GET(CM_REQ_INITIATOR_DEPTH, req_msg);
- 	cm_id_priv->path_mtu = IBA_GET(CM_REQ_PATH_PACKET_PAYLOAD_MTU, req_msg);
- 	cm_id_priv->pkey = req_msg->pkey;
--	cm_id_priv->sq_psn = cm_req_get_starting_psn(req_msg);
-+	cm_id_priv->sq_psn = cpu_to_be32(IBA_GET(CM_REQ_STARTING_PSN, req_msg));
- 	cm_id_priv->retry_count = IBA_GET(CM_REQ_RETRY_COUNT, req_msg);
- 	cm_id_priv->rnr_retry_count = IBA_GET(CM_REQ_RNR_RETRY_COUNT, req_msg);
- 	cm_id_priv->qp_type = cm_req_get_qp_type(req_msg);
-@@ -2032,7 +2037,7 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 	cm_format_mad_hdr(&rep_msg->hdr, CM_REP_ATTR_ID, cm_id_priv->tid);
- 	rep_msg->local_comm_id = cm_id_priv->id.local_id;
- 	rep_msg->remote_comm_id = cm_id_priv->id.remote_id;
--	cm_rep_set_starting_psn(rep_msg, cpu_to_be32(param->starting_psn));
-+	IBA_SET(CM_REP_STARTING_PSN, rep_msg, param->starting_psn);
- 	rep_msg->resp_resources = param->responder_resources;
- 	IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg,
- 		cm_id_priv->av.port->cm_dev->ack_delay);
-@@ -2045,10 +2050,10 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 		IBA_SET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg,
- 			param->flow_control);
- 		IBA_SET(CM_REP_SRQ, rep_msg, param->srq);
--		cm_rep_set_local_qpn(rep_msg, cpu_to_be32(param->qp_num));
-+		IBA_SET(CM_REP_LOCAL_QPN, rep_msg, param->qp_num);
- 	} else {
- 		IBA_SET(CM_REP_SRQ, rep_msg, 1);
--		cm_rep_set_local_eecn(rep_msg, cpu_to_be32(param->qp_num));
-+		IBA_SET(CM_REP_LOCAL_EE_CONTEXT_NUMBER, rep_msg, param->qp_num);
- 	}
- 
- 	if (param->private_data && param->private_data_len)
-@@ -2099,7 +2104,7 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
- 	cm_id_priv->msg = msg;
- 	cm_id_priv->initiator_depth = param->initiator_depth;
- 	cm_id_priv->responder_resources = param->responder_resources;
--	cm_id_priv->rq_psn = cm_rep_get_starting_psn(rep_msg);
-+	cm_id_priv->rq_psn = cpu_to_be32(IBA_GET(CM_REP_STARTING_PSN, rep_msg));
- 	cm_id_priv->local_qpn = cpu_to_be32(param->qp_num & 0xFFFFFF);
- 
- out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-@@ -2183,7 +2188,7 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
- 	param->remote_ca_guid = rep_msg->local_ca_guid;
- 	param->remote_qkey = be32_to_cpu(rep_msg->local_qkey);
- 	param->remote_qpn = be32_to_cpu(cm_rep_get_qpn(rep_msg, qp_type));
--	param->starting_psn = be32_to_cpu(cm_rep_get_starting_psn(rep_msg));
-+	param->starting_psn = IBA_GET(CM_REP_STARTING_PSN, rep_msg);
- 	param->responder_resources = rep_msg->initiator_depth;
- 	param->initiator_depth = rep_msg->resp_resources;
- 	param->target_ack_delay = IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
-@@ -2320,7 +2325,7 @@ static int cm_rep_handler(struct cm_work *work)
- 	cm_id_priv->remote_qpn = cm_rep_get_qpn(rep_msg, cm_id_priv->qp_type);
- 	cm_id_priv->initiator_depth = rep_msg->resp_resources;
- 	cm_id_priv->responder_resources = rep_msg->initiator_depth;
--	cm_id_priv->sq_psn = cm_rep_get_starting_psn(rep_msg);
-+	cm_id_priv->sq_psn = cpu_to_be32(IBA_GET(CM_REP_STARTING_PSN, rep_msg));
- 	cm_id_priv->rnr_retry_count = IBA_GET(CM_REP_RNR_RETRY_COUNT, rep_msg);
- 	cm_id_priv->target_ack_delay =
- 		IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
-@@ -2431,7 +2436,8 @@ static void cm_format_dreq(struct cm_dreq_msg *dreq_msg,
- 			  cm_form_tid(cm_id_priv));
- 	dreq_msg->local_comm_id = cm_id_priv->id.local_id;
- 	dreq_msg->remote_comm_id = cm_id_priv->id.remote_id;
--	cm_dreq_set_remote_qpn(dreq_msg, cm_id_priv->remote_qpn);
-+	IBA_SET(CM_DREQ_REMOTE_QPN_EECN, dreq_msg,
-+		be32_to_cpu(cm_id_priv->remote_qpn));
- 
- 	if (private_data && private_data_len)
- 		memcpy(dreq_msg->private_data, private_data, private_data_len);
-@@ -2599,7 +2605,8 @@ static int cm_dreq_handler(struct cm_work *work)
- 	work->cm_event.private_data = &dreq_msg->private_data;
- 
- 	spin_lock_irq(&cm_id_priv->lock);
--	if (cm_id_priv->local_qpn != cm_dreq_get_remote_qpn(dreq_msg))
-+	if (cm_id_priv->local_qpn !=
-+	    cpu_to_be32(IBA_GET(CM_DREQ_REMOTE_QPN_EECN, dreq_msg)))
- 		goto unlock;
- 
- 	switch (cm_id_priv->id.state) {
-@@ -3067,7 +3074,8 @@ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
- {
- 	path->dgid = lap_msg->alt_local_gid;
- 	path->sgid = lap_msg->alt_remote_gid;
--	path->flow_label = cm_lap_get_flow_label(lap_msg);
-+	path->flow_label =
-+		cpu_to_be32(IBA_GET(CM_LAP_ALTERNATE_FLOW_LABEL, lap_msg));
- 	path->hop_limit = lap_msg->alt_hop_limit;
- 	path->traffic_class = IBA_GET(CM_LAP_ALTERNATE_TRAFFIC_CLASS, lap_msg);
- 	path->reversible = 1;
-@@ -3423,7 +3431,7 @@ static void cm_format_sidr_rep(struct cm_sidr_rep_msg *sidr_rep_msg,
- 			  cm_id_priv->tid);
- 	sidr_rep_msg->request_id = cm_id_priv->id.remote_id;
- 	sidr_rep_msg->status = param->status;
--	cm_sidr_rep_set_qpn(sidr_rep_msg, cpu_to_be32(param->qp_num));
-+	IBA_SET(CM_SIDR_REP_QPN, sidr_rep_msg, param->qp_num);
- 	sidr_rep_msg->service_id = cm_id_priv->id.service_id;
- 	sidr_rep_msg->qkey = cpu_to_be32(param->qkey);
- 
-@@ -3494,7 +3502,7 @@ static void cm_format_sidr_rep_event(struct cm_work *work,
- 	param = &work->cm_event.param.sidr_rep_rcvd;
- 	param->status = sidr_rep_msg->status;
- 	param->qkey = be32_to_cpu(sidr_rep_msg->qkey);
--	param->qpn = be32_to_cpu(cm_sidr_rep_get_qpn(sidr_rep_msg));
-+	param->qpn = IBA_GET(CM_SIDR_REP_QPN, sidr_rep_msg);
- 	param->info = &sidr_rep_msg->info;
- 	param->info_len = sidr_rep_msg->info_length;
- 	param->sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
-@@ -4346,138 +4354,10 @@ IBA_CHECK_OFF(CM_SIDR_REP_Q_KEY, qkey);
- IBA_CHECK_OFF(CM_SIDR_REP_ADDITIONAL_INFORMATION, info);
- IBA_CHECK_OFF(CM_SIDR_REP_PRIVATE_DATA, private_data);
- 
--/*
-- * Check that the new macro gets the same bits as the old get function.
-- *  - IBA_SET() IBA_GET and old get_fn all agree on the field width.
-- *    The field width should match what IBA_SET truncates to
-- *  - Reading from an all ones data should not return extra bits
-- *  - Setting '1' should be the same (ie no endian problems)
-- */
--/* defeat builtin_constant checks */
--u64 cm_global_all_ones = 0xffffffffffffffffULL;
--#define _IBA_CHECK_GET(fn, field_struct, field_offset, mask, bits)             \
--	({                                                                     \
--		field_struct *lmsg = (field_struct *)msg;                      \
--		unsigned long long all_ones;                                   \
--		static_assert(sizeof(*lmsg) <= sizeof(msg));                   \
--                                                                               \
--		bitmap_zero(msg, nbits);                                       \
--		_IBA_SET(field_struct, field_offset, mask, bits, lmsg,         \
--			 cm_global_all_ones);                                  \
--		all_ones = (1ULL << bitmap_weight(msg, nbits)) - 1;            \
--		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
--		    all_ones) {                                                \
--			printk("Failed #1 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--		if (fn != all_ones) {                                          \
--			printk("Failed #2 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--                                                                               \
--		bitmap_fill(msg, nbits);                                       \
--		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
--		    all_ones) {                                                \
--			printk("Failed #3 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--		if (fn != all_ones) {                                          \
--			printk("Failed #4 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--                                                                               \
--		_IBA_SET(field_struct, field_offset, mask, bits, lmsg, 0);     \
--		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
--		    0) {                                                       \
--			printk("Failed #5 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--		if (fn != 0) {                                                 \
--			printk("Failed #6 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--		_IBA_SET(field_struct, field_offset, mask, bits, lmsg, 1);     \
--		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
--		    1) {                                                       \
--			printk("Failed #7 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--		if (fn != 1) {                                                 \
--			printk("Failed #8 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--	})
--#define IBA_CHECK_GET(field, fn_name) _IBA_CHECK_GET(fn_name(lmsg), field)
--#define IBA_CHECK_GET_BE(field, fn_name) _IBA_CHECK_GET(be32_to_cpu(fn_name(lmsg)), field)
--
--/*
-- * Write the all ones value using the old setter and check that the new getter
-- * reads it back.
-- */
--#define _IBA_CHECK_SET(fn, field_struct, field_offset, mask, bits)             \
--	({                                                                     \
--		field_struct *lmsg = (field_struct *)msg;                      \
--		unsigned long long all_ones;                                   \
--		static_assert(sizeof(*lmsg) <= sizeof(msg));                   \
--                                                                               \
--		bitmap_zero(msg, nbits);                                       \
--		_IBA_SET(field_struct, field_offset, mask, bits, lmsg,         \
--			 cm_global_all_ones);                                  \
--		all_ones = (1ULL << bitmap_weight(msg, nbits)) - 1;            \
--		bitmap_zero(msg, nbits);                                       \
--		fn;                                                            \
--		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
--		    all_ones) {                                                \
--			printk("Failed #9 line=%u\n", __LINE__);               \
--			return;                                                \
--		}                                                              \
--		all_ones = 1;                                                  \
--		fn;                                                            \
--		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
--		    1) {                                                       \
--			printk("Failed #10 line=%u\n", __LINE__);              \
--			return;                                                \
--		}                                                              \
--	})
--
--#define IBA_CHECK_SET(field, fn_name) _IBA_CHECK_SET(fn_name(lmsg, all_ones), field)
--#define IBA_CHECK_SET_BE(field, fn_name)                                       \
--	_IBA_CHECK_SET(fn_name(lmsg, cpu_to_be32(all_ones)), field)
--
--static void self_test(void)
--{
--	unsigned long msg[256/4];
--	const unsigned int nbits = sizeof(msg) * 8;
--
--	printk("Running CM extractor self test\n");
--	IBA_CHECK_GET_BE(CM_REQ_LOCAL_QPN, cm_req_get_local_qpn);
--	IBA_CHECK_SET_BE(CM_REQ_LOCAL_QPN, cm_req_set_local_qpn);
--	IBA_CHECK_GET_BE(CM_REQ_STARTING_PSN, cm_req_get_starting_psn);
--	IBA_CHECK_SET_BE(CM_REQ_STARTING_PSN, cm_req_set_starting_psn);
--	IBA_CHECK_GET_BE(CM_REQ_PRIMARY_FLOW_LABEL, cm_req_get_primary_flow_label);
--	IBA_CHECK_SET_BE(CM_REQ_PRIMARY_FLOW_LABEL, cm_req_set_primary_flow_label);
--	IBA_CHECK_GET_BE(CM_REQ_ALTERNATE_FLOW_LABEL, cm_req_get_alt_flow_label);
--	IBA_CHECK_SET_BE(CM_REQ_ALTERNATE_FLOW_LABEL, cm_req_set_alt_flow_label);
--	IBA_CHECK_GET_BE(CM_REP_LOCAL_QPN, cm_rep_get_local_qpn);
--	IBA_CHECK_SET_BE(CM_REP_LOCAL_QPN, cm_rep_set_local_qpn);
--	IBA_CHECK_GET_BE(CM_REP_LOCAL_EE_CONTEXT_NUMBER, cm_rep_get_local_eecn);
--	IBA_CHECK_SET_BE(CM_REP_LOCAL_EE_CONTEXT_NUMBER, cm_rep_set_local_eecn);
--	IBA_CHECK_GET_BE(CM_REP_STARTING_PSN, cm_rep_get_starting_psn);
--	IBA_CHECK_SET_BE(CM_REP_STARTING_PSN, cm_rep_set_starting_psn);
--	IBA_CHECK_GET_BE(CM_DREQ_REMOTE_QPN_EECN, cm_dreq_get_remote_qpn);
--	IBA_CHECK_SET_BE(CM_DREQ_REMOTE_QPN_EECN, cm_dreq_set_remote_qpn);
--	IBA_CHECK_GET_BE(CM_LAP_ALTERNATE_FLOW_LABEL, cm_lap_get_flow_label);
--	IBA_CHECK_GET_BE(CM_SIDR_REP_QPN, cm_sidr_rep_get_qpn);
--	IBA_CHECK_SET_BE(CM_SIDR_REP_QPN, cm_sidr_rep_set_qpn);
--	printk("Success!\n");
--}
--
++/*
++ * Check at compile time that the byte offset and length of field old_name in
++ * the struct matches the byte offset and length in the new macro.
++ */
++#define _IBA_CHECK_OFF(old_name, field_struct, field_offset, mask, bits) \
++	static_assert(offsetof(field_struct, old_name) == (field_offset));     \
++	static_assert(bits == sizeof(((field_struct *)0)->old_name) * 8)
++#define IBA_CHECK_OFF(field, old_name) _IBA_CHECK_OFF(old_name, field)
++
++IBA_CHECK_OFF(CM_REQ_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_REQ_SERVICE_ID, service_id);
++IBA_CHECK_OFF(CM_REQ_LOCAL_CA_GUID, local_ca_guid);
++IBA_CHECK_OFF(CM_REQ_LOCAL_Q_KEY, local_qkey);
++IBA_CHECK_OFF(CM_REQ_PARTITION_KEY, pkey);
++IBA_CHECK_OFF(CM_REQ_PRIMARY_LOCAL_PORT_LID, primary_local_lid);
++IBA_CHECK_OFF(CM_REQ_PRIMARY_REMOTE_PORT_LID, primary_remote_lid);
++IBA_CHECK_OFF(CM_REQ_PRIMARY_LOCAL_PORT_GID, primary_local_gid);
++IBA_CHECK_OFF(CM_REQ_PRIMARY_REMOTE_PORT_GID, primary_remote_gid);
++IBA_CHECK_OFF(CM_REQ_PRIMARY_TRAFFIC_CLASS, primary_traffic_class);
++IBA_CHECK_OFF(CM_REQ_PRIMARY_HOP_LIMIT, primary_hop_limit);
++IBA_CHECK_OFF(CM_REQ_ALTERNATE_LOCAL_PORT_LID, alt_local_lid);
++IBA_CHECK_OFF(CM_REQ_ALTERNATE_REMOTE_PORT_LID, alt_remote_lid);
++IBA_CHECK_OFF(CM_REQ_ALTERNATE_LOCAL_PORT_GID, alt_local_gid);
++IBA_CHECK_OFF(CM_REQ_ALTERNATE_REMOTE_PORT_GID, alt_remote_gid);
++IBA_CHECK_OFF(CM_REQ_ALTERNATE_TRAFFIC_CLASS, alt_traffic_class);
++IBA_CHECK_OFF(CM_REQ_ALTERNATE_HOP_LIMIT, alt_hop_limit);
++IBA_CHECK_OFF(CM_REQ_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_MRA_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_MRA_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_MRA_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_REJ_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_REJ_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_REJ_REASON, reason);
++IBA_CHECK_OFF(CM_REJ_ARI, ari);
++IBA_CHECK_OFF(CM_REJ_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_REP_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_REP_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_REP_LOCAL_Q_KEY, local_qkey);
++IBA_CHECK_OFF(CM_REP_RESPONDER_RESOURCES, resp_resources);
++IBA_CHECK_OFF(CM_REP_INITIATOR_DEPTH, initiator_depth);
++IBA_CHECK_OFF(CM_REP_LOCAL_CA_GUID, local_ca_guid);
++IBA_CHECK_OFF(CM_REP_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_RTU_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_RTU_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_RTU_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_DREQ_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_DREQ_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_DREQ_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_DREP_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_DREP_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_DREP_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_LAP_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_LAP_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_LAP_ALTERNATE_LOCAL_PORT_LID, alt_local_lid);
++IBA_CHECK_OFF(CM_LAP_ALTERNATE_REMOTE_PORT_LID, alt_remote_lid);
++IBA_CHECK_OFF(CM_LAP_ALTERNATE_LOCAL_PORT_GID, alt_local_gid);
++IBA_CHECK_OFF(CM_LAP_ALTERNATE_REMOTE_PORT_GID, alt_remote_gid);
++IBA_CHECK_OFF(CM_LAP_ALTERNATE_HOP_LIMIT, alt_hop_limit);
++IBA_CHECK_OFF(CM_LAP_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_APR_LOCAL_COMM_ID, local_comm_id);
++IBA_CHECK_OFF(CM_APR_REMOTE_COMM_ID, remote_comm_id);
++IBA_CHECK_OFF(CM_APR_ADDITIONAL_INFORMATION_LENGTH, info_length);
++IBA_CHECK_OFF(CM_APR_AR_STATUS, ap_status);
++IBA_CHECK_OFF(CM_APR_ADDITIONAL_INFORMATION, info);
++IBA_CHECK_OFF(CM_APR_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_SIDR_REQ_REQUESTID, request_id);
++IBA_CHECK_OFF(CM_SIDR_REQ_PARTITION_KEY, pkey);
++IBA_CHECK_OFF(CM_SIDR_REQ_SERVICEID, service_id);
++IBA_CHECK_OFF(CM_SIDR_REQ_PRIVATE_DATA, private_data);
++IBA_CHECK_OFF(CM_SIDR_REP_REQUESTID, request_id);
++IBA_CHECK_OFF(CM_SIDR_REP_STATUS, status);
++IBA_CHECK_OFF(CM_SIDR_REP_ADDITIONAL_INFORMATION_LENGTH, info_length);
++IBA_CHECK_OFF(CM_SIDR_REP_SERVICEID, service_id);
++IBA_CHECK_OFF(CM_SIDR_REP_Q_KEY, qkey);
++IBA_CHECK_OFF(CM_SIDR_REP_ADDITIONAL_INFORMATION, info);
++IBA_CHECK_OFF(CM_SIDR_REP_PRIVATE_DATA, private_data);
++
++/*
++ * Check that the new macro gets the same bits as the old get function.
++ *  - IBA_SET() IBA_GET and old get_fn all agree on the field width.
++ *    The field width should match what IBA_SET truncates to
++ *  - Reading from an all ones data should not return extra bits
++ *  - Setting '1' should be the same (ie no endian problems)
++ */
++/* defeat builtin_constant checks */
++u64 cm_global_all_ones = 0xffffffffffffffffULL;
++#define _IBA_CHECK_GET(fn, field_struct, field_offset, mask, bits)             \
++	({                                                                     \
++		field_struct *lmsg = (field_struct *)msg;                      \
++		unsigned long long all_ones;                                   \
++		static_assert(sizeof(*lmsg) <= sizeof(msg));                   \
++                                                                               \
++		bitmap_zero(msg, nbits);                                       \
++		_IBA_SET(field_struct, field_offset, mask, bits, lmsg,         \
++			 cm_global_all_ones);                                  \
++		all_ones = (1ULL << bitmap_weight(msg, nbits)) - 1;            \
++		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
++		    all_ones) {                                                \
++			printk("Failed #1 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++		if (fn != all_ones) {                                          \
++			printk("Failed #2 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++                                                                               \
++		bitmap_fill(msg, nbits);                                       \
++		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
++		    all_ones) {                                                \
++			printk("Failed #3 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++		if (fn != all_ones) {                                          \
++			printk("Failed #4 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++                                                                               \
++		_IBA_SET(field_struct, field_offset, mask, bits, lmsg, 0);     \
++		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
++		    0) {                                                       \
++			printk("Failed #5 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++		if (fn != 0) {                                                 \
++			printk("Failed #6 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++		_IBA_SET(field_struct, field_offset, mask, bits, lmsg, 1);     \
++		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
++		    1) {                                                       \
++			printk("Failed #7 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++		if (fn != 1) {                                                 \
++			printk("Failed #8 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++	})
++#define IBA_CHECK_GET(field, fn_name) _IBA_CHECK_GET(fn_name(lmsg), field)
++#define IBA_CHECK_GET_BE(field, fn_name) _IBA_CHECK_GET(be32_to_cpu(fn_name(lmsg)), field)
++
++/*
++ * Write the all ones value using the old setter and check that the new getter
++ * reads it back.
++ */
++#define _IBA_CHECK_SET(fn, field_struct, field_offset, mask, bits)             \
++	({                                                                     \
++		field_struct *lmsg = (field_struct *)msg;                      \
++		unsigned long long all_ones;                                   \
++		static_assert(sizeof(*lmsg) <= sizeof(msg));                   \
++                                                                               \
++		bitmap_zero(msg, nbits);                                       \
++		_IBA_SET(field_struct, field_offset, mask, bits, lmsg,         \
++			 cm_global_all_ones);                                  \
++		all_ones = (1ULL << bitmap_weight(msg, nbits)) - 1;            \
++		bitmap_zero(msg, nbits);                                       \
++		fn;                                                            \
++		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
++		    all_ones) {                                                \
++			printk("Failed #9 line=%u\n", __LINE__);               \
++			return;                                                \
++		}                                                              \
++		all_ones = 1;                                                  \
++		fn;                                                            \
++		if (_IBA_GET(field_struct, field_offset, mask, bits, lmsg) !=  \
++		    1) {                                                       \
++			printk("Failed #10 line=%u\n", __LINE__);              \
++			return;                                                \
++		}                                                              \
++	})
++
++#define IBA_CHECK_SET(field, fn_name) _IBA_CHECK_SET(fn_name(lmsg, all_ones), field)
++#define IBA_CHECK_SET_BE(field, fn_name)                                       \
++	_IBA_CHECK_SET(fn_name(lmsg, cpu_to_be32(all_ones)), field)
++
++static void self_test(void)
++{
++	unsigned long msg[256/4];
++	const unsigned int nbits = sizeof(msg) * 8;
++
++	printk("Running CM extractor self test\n");
++	IBA_CHECK_GET_BE(CM_REQ_LOCAL_QPN, cm_req_get_local_qpn);
++	IBA_CHECK_SET_BE(CM_REQ_LOCAL_QPN, cm_req_set_local_qpn);
++	IBA_CHECK_GET(CM_REQ_RESPONDER_RESOURCES, cm_req_get_resp_res);
++	IBA_CHECK_SET(CM_REQ_RESPONDER_RESOURCES, cm_req_set_resp_res);
++	IBA_CHECK_GET(CM_REQ_INITIATOR_DEPTH, cm_req_get_init_depth);
++	IBA_CHECK_SET(CM_REQ_INITIATOR_DEPTH, cm_req_set_init_depth);
++	IBA_CHECK_GET(CM_REQ_REMOTE_CM_RESPONSE_TIMEOUT, cm_req_get_remote_resp_timeout);
++	IBA_CHECK_SET(CM_REQ_REMOTE_CM_RESPONSE_TIMEOUT, cm_req_set_remote_resp_timeout);
++	IBA_CHECK_GET(CM_REQ_TRANSPORT_SERVICE_TYPE, cm_req_get_transport_type);
++	IBA_CHECK_SET(CM_REQ_TRANSPORT_SERVICE_TYPE, cm_req_set_transport_type);
++	IBA_CHECK_GET(CM_REQ_END_TO_END_FLOW_CONTROL, cm_req_get_flow_ctrl);
++	IBA_CHECK_SET(CM_REQ_END_TO_END_FLOW_CONTROL, cm_req_set_flow_ctrl);
++	IBA_CHECK_GET_BE(CM_REQ_STARTING_PSN, cm_req_get_starting_psn);
++	IBA_CHECK_SET_BE(CM_REQ_STARTING_PSN, cm_req_set_starting_psn);
++	IBA_CHECK_GET(CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT, cm_req_get_local_resp_timeout);
++	IBA_CHECK_SET(CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT, cm_req_set_local_resp_timeout);
++	IBA_CHECK_GET(CM_REQ_RETRY_COUNT, cm_req_get_retry_count);
++	IBA_CHECK_SET(CM_REQ_RETRY_COUNT, cm_req_set_retry_count);
++	IBA_CHECK_GET(CM_REQ_PATH_PACKET_PAYLOAD_MTU, cm_req_get_path_mtu);
++	IBA_CHECK_SET(CM_REQ_PATH_PACKET_PAYLOAD_MTU, cm_req_set_path_mtu);
++	IBA_CHECK_GET(CM_REQ_RNR_RETRY_COUNT, cm_req_get_rnr_retry_count);
++	IBA_CHECK_SET(CM_REQ_RNR_RETRY_COUNT, cm_req_set_rnr_retry_count);
++	IBA_CHECK_GET(CM_REQ_MAX_CM_RETRIES, cm_req_get_max_cm_retries);
++	IBA_CHECK_SET(CM_REQ_MAX_CM_RETRIES, cm_req_set_max_cm_retries);
++	IBA_CHECK_GET(CM_REQ_SRQ, cm_req_get_srq);
++	IBA_CHECK_SET(CM_REQ_SRQ, cm_req_set_srq);
++	IBA_CHECK_GET(CM_REQ_EXTENDED_TRANSPORT_TYPE, cm_req_get_transport_type_ex);
++	IBA_CHECK_SET(CM_REQ_EXTENDED_TRANSPORT_TYPE, cm_req_set_transport_type_ex);
++	IBA_CHECK_GET_BE(CM_REQ_PRIMARY_FLOW_LABEL, cm_req_get_primary_flow_label);
++	IBA_CHECK_SET_BE(CM_REQ_PRIMARY_FLOW_LABEL, cm_req_set_primary_flow_label);
++	IBA_CHECK_GET(CM_REQ_PRIMARY_PACKET_RATE, cm_req_get_primary_packet_rate);
++	IBA_CHECK_SET(CM_REQ_PRIMARY_PACKET_RATE, cm_req_set_primary_packet_rate);
++	IBA_CHECK_GET(CM_REQ_PRIMARY_SL, cm_req_get_primary_sl);
++	IBA_CHECK_SET(CM_REQ_PRIMARY_SL, cm_req_set_primary_sl);
++	IBA_CHECK_GET(CM_REQ_PRIMARY_SUBNET_LOCAL, cm_req_get_primary_subnet_local);
++	IBA_CHECK_SET(CM_REQ_PRIMARY_SUBNET_LOCAL, cm_req_set_primary_subnet_local);
++	IBA_CHECK_GET(CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT, cm_req_get_primary_local_ack_timeout);
++	IBA_CHECK_SET(CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT, cm_req_set_primary_local_ack_timeout);
++	IBA_CHECK_GET_BE(CM_REQ_ALTERNATE_FLOW_LABEL, cm_req_get_alt_flow_label);
++	IBA_CHECK_SET_BE(CM_REQ_ALTERNATE_FLOW_LABEL, cm_req_set_alt_flow_label);
++	IBA_CHECK_GET(CM_REQ_ALTERNATE_PACKET_RATE, cm_req_get_alt_packet_rate);
++	IBA_CHECK_SET(CM_REQ_ALTERNATE_PACKET_RATE, cm_req_set_alt_packet_rate);
++	IBA_CHECK_GET(CM_REQ_ALTERNATE_SL, cm_req_get_alt_sl);
++	IBA_CHECK_SET(CM_REQ_ALTERNATE_SL, cm_req_set_alt_sl);
++	IBA_CHECK_GET(CM_REQ_ALTERNATE_SUBNET_LOCAL, cm_req_get_alt_subnet_local);
++	IBA_CHECK_SET(CM_REQ_ALTERNATE_SUBNET_LOCAL, cm_req_set_alt_subnet_local);
++	IBA_CHECK_GET(CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT, cm_req_get_alt_local_ack_timeout);
++	IBA_CHECK_SET(CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT, cm_req_set_alt_local_ack_timeout);
++	IBA_CHECK_GET(CM_MRA_MESSAGE_MRAED, cm_mra_get_msg_mraed);
++	IBA_CHECK_SET(CM_MRA_MESSAGE_MRAED, cm_mra_set_msg_mraed);
++	IBA_CHECK_GET(CM_MRA_SERVICE_TIMEOUT, cm_mra_get_service_timeout);
++	IBA_CHECK_SET(CM_MRA_SERVICE_TIMEOUT, cm_mra_set_service_timeout);
++	IBA_CHECK_GET(CM_REJ_MESSAGE_REJECTED, cm_rej_get_msg_rejected);
++	IBA_CHECK_SET(CM_REJ_MESSAGE_REJECTED, cm_rej_set_msg_rejected);
++	IBA_CHECK_GET(CM_REJ_REJECTED_INFO_LENGTH, cm_rej_get_reject_info_len);
++	IBA_CHECK_SET(CM_REJ_REJECTED_INFO_LENGTH, cm_rej_set_reject_info_len);
++	IBA_CHECK_GET_BE(CM_REP_LOCAL_QPN, cm_rep_get_local_qpn);
++	IBA_CHECK_SET_BE(CM_REP_LOCAL_QPN, cm_rep_set_local_qpn);
++	IBA_CHECK_GET_BE(CM_REP_LOCAL_EE_CONTEXT_NUMBER, cm_rep_get_local_eecn);
++	IBA_CHECK_SET_BE(CM_REP_LOCAL_EE_CONTEXT_NUMBER, cm_rep_set_local_eecn);
++	IBA_CHECK_GET_BE(CM_REP_STARTING_PSN, cm_rep_get_starting_psn);
++	IBA_CHECK_SET_BE(CM_REP_STARTING_PSN, cm_rep_set_starting_psn);
++	IBA_CHECK_GET(CM_REP_TARGET_ACK_DELAY, cm_rep_get_target_ack_delay);
++	IBA_CHECK_SET(CM_REP_TARGET_ACK_DELAY, cm_rep_set_target_ack_delay);
++	IBA_CHECK_GET(CM_REP_FAILOVER_ACCEPTED, cm_rep_get_failover);
++	IBA_CHECK_SET(CM_REP_FAILOVER_ACCEPTED, cm_rep_set_failover);
++	IBA_CHECK_GET(CM_REP_END_TO_END_FLOW_CONTROL, cm_rep_get_flow_ctrl);
++	IBA_CHECK_SET(CM_REP_END_TO_END_FLOW_CONTROL, cm_rep_set_flow_ctrl);
++	IBA_CHECK_GET(CM_REP_RNR_RETRY_COUNT, cm_rep_get_rnr_retry_count);
++	IBA_CHECK_SET(CM_REP_RNR_RETRY_COUNT, cm_rep_set_rnr_retry_count);
++	IBA_CHECK_GET(CM_REP_SRQ, cm_rep_get_srq);
++	IBA_CHECK_SET(CM_REP_SRQ, cm_rep_set_srq);
++	IBA_CHECK_GET_BE(CM_DREQ_REMOTE_QPN_EECN, cm_dreq_get_remote_qpn);
++	IBA_CHECK_SET_BE(CM_DREQ_REMOTE_QPN_EECN, cm_dreq_set_remote_qpn);
++	IBA_CHECK_GET_BE(CM_LAP_ALTERNATE_FLOW_LABEL, cm_lap_get_flow_label);
++	IBA_CHECK_GET(CM_LAP_ALTERNATE_TRAFFIC_CLASS, cm_lap_get_traffic_class);
++	IBA_CHECK_GET(CM_LAP_ALTERNATE_PACKET_RATE, cm_lap_get_packet_rate);
++	IBA_CHECK_GET(CM_LAP_ALTERNATE_SL, cm_lap_get_sl);
++	IBA_CHECK_GET(CM_LAP_ALTERNATE_LOCAL_ACK_TIMEOUT, cm_lap_get_local_ack_timeout);
++	IBA_CHECK_GET_BE(CM_SIDR_REP_QPN, cm_sidr_rep_get_qpn);
++	IBA_CHECK_SET_BE(CM_SIDR_REP_QPN, cm_sidr_rep_set_qpn);
++	printk("Success!\n");
++}
++
  static int __init ib_cm_init(void)
  {
  	int ret;
  
--	self_test();
--
++	self_test();
++
  	INIT_LIST_HEAD(&cm.device_list);
  	rwlock_init(&cm.device_lock);
  	spin_lock_init(&cm.lock);
 diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index d30586b1b8a475..86ab6952d5d80a 100644
+index 9af9a321207423..bf62461d801fa3 100644
 --- a/drivers/infiniband/core/cm_msgs.h
 +++ b/drivers/infiniband/core/cm_msgs.h
-@@ -75,18 +75,6 @@ struct cm_req_msg {
+@@ -8,6 +8,7 @@
+ #ifndef CM_MSGS_H
+ #define CM_MSGS_H
  
- } __packed;
++#include <rdma/ibta_vol1_c12.h>
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_cm.h>
  
--static inline __be32 cm_req_get_local_qpn(struct cm_req_msg *req_msg)
--{
--	return cpu_to_be32(be32_to_cpu(req_msg->offset32) >> 8);
--}
--
--static inline void cm_req_set_local_qpn(struct cm_req_msg *req_msg, __be32 qpn)
--{
--	req_msg->offset32 = cpu_to_be32((be32_to_cpu(qpn) << 8) |
--					 (be32_to_cpu(req_msg->offset32) &
--					  0x000000FF));
--}
--
- static inline enum ib_qp_type cm_req_get_qp_type(struct cm_req_msg *req_msg)
- {
- 	u8 transport_type = IBA_GET(CM_REQ_TRANSPORT_SERVICE_TYPE, req_msg);
-@@ -118,46 +106,6 @@ static inline void cm_req_set_qp_type(struct cm_req_msg *req_msg,
- 	}
- }
- 
--static inline __be32 cm_req_get_starting_psn(struct cm_req_msg *req_msg)
--{
--	return cpu_to_be32(be32_to_cpu(req_msg->offset44) >> 8);
--}
--
--static inline void cm_req_set_starting_psn(struct cm_req_msg *req_msg,
--					   __be32 starting_psn)
--{
--	req_msg->offset44 = cpu_to_be32((be32_to_cpu(starting_psn) << 8) |
--			    (be32_to_cpu(req_msg->offset44) & 0x000000FF));
--}
--
--static inline __be32 cm_req_get_primary_flow_label(struct cm_req_msg *req_msg)
--{
--	return cpu_to_be32(be32_to_cpu(req_msg->primary_offset88) >> 12);
--}
--
--static inline void cm_req_set_primary_flow_label(struct cm_req_msg *req_msg,
--						 __be32 flow_label)
--{
--	req_msg->primary_offset88 = cpu_to_be32(
--				    (be32_to_cpu(req_msg->primary_offset88) &
--				     0x00000FFF) |
--				     (be32_to_cpu(flow_label) << 12));
--}
--
--static inline __be32 cm_req_get_alt_flow_label(struct cm_req_msg *req_msg)
--{
--	return cpu_to_be32(be32_to_cpu(req_msg->alt_offset132) >> 12);
--}
--
--static inline void cm_req_set_alt_flow_label(struct cm_req_msg *req_msg,
--					     __be32 flow_label)
--{
--	req_msg->alt_offset132 = cpu_to_be32(
--				 (be32_to_cpu(req_msg->alt_offset132) &
--				  0x00000FFF) |
--				  (be32_to_cpu(flow_label) << 12));
--}
--
- /* Message REJected or MRAed */
- enum cm_msg_response {
- 	CM_MSG_RESPONSE_REQ = 0x0,
-@@ -219,44 +167,12 @@ struct cm_rep_msg {
- 
- } __packed;
- 
--static inline __be32 cm_rep_get_local_qpn(struct cm_rep_msg *rep_msg)
--{
--	return cpu_to_be32(be32_to_cpu(rep_msg->offset12) >> 8);
--}
--
--static inline void cm_rep_set_local_qpn(struct cm_rep_msg *rep_msg, __be32 qpn)
--{
--	rep_msg->offset12 = cpu_to_be32((be32_to_cpu(qpn) << 8) |
--			    (be32_to_cpu(rep_msg->offset12) & 0x000000FF));
--}
--
--static inline __be32 cm_rep_get_local_eecn(struct cm_rep_msg *rep_msg)
--{
--	return cpu_to_be32(be32_to_cpu(rep_msg->offset16) >> 8);
--}
--
--static inline void cm_rep_set_local_eecn(struct cm_rep_msg *rep_msg, __be32 eecn)
--{
--	rep_msg->offset16 = cpu_to_be32((be32_to_cpu(eecn) << 8) |
--			    (be32_to_cpu(rep_msg->offset16) & 0x000000FF));
--}
--
- static inline __be32 cm_rep_get_qpn(struct cm_rep_msg *rep_msg, enum ib_qp_type qp_type)
- {
- 	return (qp_type == IB_QPT_XRC_INI) ?
--		cm_rep_get_local_eecn(rep_msg) : cm_rep_get_local_qpn(rep_msg);
--}
--
--static inline __be32 cm_rep_get_starting_psn(struct cm_rep_msg *rep_msg)
--{
--	return cpu_to_be32(be32_to_cpu(rep_msg->offset20) >> 8);
--}
--
--static inline void cm_rep_set_starting_psn(struct cm_rep_msg *rep_msg,
--					   __be32 starting_psn)
--{
--	rep_msg->offset20 = cpu_to_be32((be32_to_cpu(starting_psn) << 8) |
--			    (be32_to_cpu(rep_msg->offset20) & 0x000000FF));
-+		       cpu_to_be32(IBA_GET(CM_REP_LOCAL_EE_CONTEXT_NUMBER,
-+					   rep_msg)) :
-+		       cpu_to_be32(IBA_GET(CM_REP_LOCAL_QPN, rep_msg));
- }
- 
- struct cm_rtu_msg {
-@@ -281,17 +197,6 @@ struct cm_dreq_msg {
- 
- } __packed;
- 
--static inline __be32 cm_dreq_get_remote_qpn(struct cm_dreq_msg *dreq_msg)
--{
--	return cpu_to_be32(be32_to_cpu(dreq_msg->offset8) >> 8);
--}
--
--static inline void cm_dreq_set_remote_qpn(struct cm_dreq_msg *dreq_msg, __be32 qpn)
--{
--	dreq_msg->offset8 = cpu_to_be32((be32_to_cpu(qpn) << 8) |
--			    (be32_to_cpu(dreq_msg->offset8) & 0x000000FF));
--}
--
- struct cm_drep_msg {
- 	struct ib_mad_hdr hdr;
- 
-@@ -330,11 +235,6 @@ struct cm_lap_msg {
- 	u8 private_data[IB_CM_LAP_PRIVATE_DATA_SIZE];
- } __packed;
- 
--static inline __be32 cm_lap_get_flow_label(struct cm_lap_msg *lap_msg)
--{
--	return cpu_to_be32(be32_to_cpu(lap_msg->offset56) >> 12);
--}
--
- struct cm_apr_msg {
- 	struct ib_mad_hdr hdr;
- 
-@@ -376,17 +276,4 @@ struct cm_sidr_rep_msg {
- 	u8 private_data[IB_CM_SIDR_REP_PRIVATE_DATA_SIZE];
- } __packed;
- 
--static inline __be32 cm_sidr_rep_get_qpn(struct cm_sidr_rep_msg *sidr_rep_msg)
--{
--	return cpu_to_be32(be32_to_cpu(sidr_rep_msg->offset8) >> 8);
--}
--
--static inline void cm_sidr_rep_set_qpn(struct cm_sidr_rep_msg *sidr_rep_msg,
--				       __be32 qpn)
--{
--	sidr_rep_msg->offset8 = cpu_to_be32((be32_to_cpu(qpn) << 8) |
--					(be32_to_cpu(sidr_rep_msg->offset8) &
--					 0x000000FF));
--}
--
- #endif /* CM_MSGS_H */
+diff --git a/include/rdma/iba.h b/include/rdma/iba.h
+new file mode 100644
+index 00000000000000..6a1115b02a0db8
+--- /dev/null
++++ b/include/rdma/iba.h
+@@ -0,0 +1,146 @@
++/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
++/*
++ * Copyright (c) 2020, Mellanox Technologies inc.  All rights reserved.
++ */
++#ifndef _IBA_DEFS_H_
++#define _IBA_DEFS_H_
++
++#include <linux/kernel.h>
++#include <linux/bitfield.h>
++#include <asm/unaligned.h>
++
++static inline u32 _iba_get8(const u8 *ptr)
++{
++	return *ptr;
++}
++
++static inline void _iba_set8(u8 *ptr, u32 mask, u32 prep_value)
++{
++	*ptr = (*ptr & ~mask) | prep_value;
++}
++
++static inline u16 _iba_get16(const __be16 *ptr)
++{
++	return be16_to_cpu(*ptr);
++}
++
++static inline void _iba_set16(__be16 *ptr, u16 mask, u16 prep_value)
++{
++	*ptr = cpu_to_be16((be16_to_cpu(*ptr) & ~mask) | prep_value);
++}
++
++static inline u32 _iba_get32(const __be32 *ptr)
++{
++	return be32_to_cpu(*ptr);
++}
++
++static inline void _iba_set32(__be32 *ptr, u32 mask, u32 prep_value)
++{
++	*ptr = cpu_to_be32((be32_to_cpu(*ptr) & ~mask) | prep_value);
++}
++
++static inline u64 _iba_get64(const __be64 *ptr)
++{
++	/*
++	 * The mads are constructed so that 32 bit and smaller are naturally
++	 * aligned, everything larger has a max alignment of 4 bytes.
++	 */
++	return be64_to_cpu(get_unaligned(ptr));
++}
++
++static inline void _iba_set64(__be64 *ptr, u64 mask, u64 prep_value)
++{
++	put_unaligned(cpu_to_be64((_iba_get64(ptr) & ~mask) | prep_value), ptr);
++}
++
++#define _IBA_SET(field_struct, field_offset, field_mask, num_bits, ptr, value) \
++	({                                                                     \
++		field_struct *_ptr = ptr;                                      \
++		_iba_set##num_bits((void *)_ptr + (field_offset), field_mask,  \
++				   FIELD_PREP(field_mask, value));             \
++	})
++#define IBA_SET(field, ptr, value) _IBA_SET(field, ptr, value)
++
++#define _IBA_GET_MEM_PTR(field_struct, field_offset, type, num_bits, ptr)      \
++	({                                                                     \
++		field_struct *_ptr = ptr;                                      \
++		(type *)((void *)_ptr + (field_offset));                       \
++	})
++#define IBA_GET_MEM_PTR(field, ptr) _IBA_GET_MEM_PTR(field, ptr)
++
++/* FIXME: A set should always set the entire field, meaning we should zero the trailing bytes */
++#define _IBA_SET_MEM(field_struct, field_offset, type, num_bits, ptr, in,      \
++		     bytes)                                                    \
++	({                                                                     \
++		const type *_in_ptr = in;                                      \
++		WARN_ON(bytes * 8 > num_bits);                                 \
++		if (in && bytes)                                               \
++			memcpy(_IBA_GET_MEM_PTR(field_struct, field_offset,    \
++						type, num_bits, ptr),          \
++			       _in_ptr, bytes);                                \
++	})
++#define IBA_SET_MEM(field, ptr, in, bytes) _IBA_SET_MEM(field, ptr, in, bytes)
++
++#define _IBA_GET(field_struct, field_offset, field_mask, num_bits, ptr)        \
++	({                                                                     \
++		const field_struct *_ptr = ptr;                                \
++		(u##num_bits) FIELD_GET(                                       \
++			field_mask, _iba_get##num_bits((const void *)_ptr +    \
++						       (field_offset)));       \
++	})
++#define IBA_GET(field, ptr) _IBA_GET(field, ptr)
++
++#define _IBA_GET_MEM(field_struct, field_offset, type, num_bits, ptr, out,     \
++		     bytes)                                                    \
++	({                                                                     \
++		type *_out_ptr = out;                                          \
++		WARN_ON(bytes * 8 > num_bits);                                 \
++		if (out && bytes)                                              \
++			memcpy(_out_ptr,                                       \
++			       _IBA_GET_MEM_PTR(field_struct, field_offset,    \
++						type, num_bits, ptr),          \
++			       bytes);                                         \
++	})
++#define IBA_GET_MEM(field, ptr, out, bytes) _IBA_GET_MEM(field, ptr, out, bytes)
++
++/*
++ * The generated list becomes the parameters to the macros, the order is:
++ *  - struct this applies to
++ *  - starting offset of the max
++ *  - GENMASK or GENMASK_ULL in CPU order
++ *  - The width of data the mask operations should work on, in bits
++ */
++
++/*
++ * Extraction using a tabular description like table 106. bit_offset is from
++ * the Byte[Bit] notation.
++ */
++#define IBA_FIELD_BLOC(field_struct, byte_offset, bit_offset, num_bits)        \
++	field_struct, byte_offset,                                             \
++		GENMASK(7 - (bit_offset), 7 - (bit_offset) - (num_bits - 1)),  \
++		8
++#define IBA_FIELD8_LOC(field_struct, byte_offset, num_bits)                    \
++	IBA_FIELD_BLOC(field_struct, byte_offset, 0, num_bits)
++
++#define IBA_FIELD16_LOC(field_struct, byte_offset, num_bits)                   \
++	field_struct, (byte_offset)&0xFFFE,                                    \
++		GENMASK(15 - (((byte_offset) % 2) * 8),                        \
++			15 - (((byte_offset) % 2) * 8) - (num_bits - 1)),      \
++		16
++
++#define IBA_FIELD32_LOC(field_struct, byte_offset, num_bits)                   \
++	field_struct, (byte_offset)&0xFFFC,                                    \
++		GENMASK(31 - (((byte_offset) % 4) * 8),                        \
++			31 - (((byte_offset) % 4) * 8) - (num_bits - 1)),      \
++		32
++
++#define IBA_FIELD64_LOC(field_struct, byte_offset)                             \
++	field_struct, byte_offset, GENMASK_ULL(63, 0), 64
++/*
++ * In IBTA spec, everything that is more than 64bits is multiple
++ * of bytes without leftover bits.
++ */
++#define IBA_FIELD_MLOC(field_struct, byte_offset, num_bits, type)              \
++	field_struct, byte_offset, type, num_bits
++
++#endif /* _IBA_DEFS_H_ */
+diff --git a/include/rdma/ibta_vol1_c12.h b/include/rdma/ibta_vol1_c12.h
+new file mode 100644
+index 00000000000000..916db5c27dc5d2
+--- /dev/null
++++ b/include/rdma/ibta_vol1_c12.h
+@@ -0,0 +1,208 @@
++/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
++/*
++ * Copyright (c) 2020, Mellanox Technologies inc. All rights reserved.
++ *
++ * This file is IBTA volume 1, chapter 12 declarations:
++ *  CHAPTER 12: COMMUNICATION MANAGEMENT
++ */
++#ifndef _IBTA_VOL1_C12_H_
++#define _IBTA_VOL1_C12_H_
++
++#include <rdma/iba.h>
++
++#define CM_FIELD_BLOC(field_struct, byte_offset, bits_offset, width)           \
++	IBA_FIELD_BLOC(field_struct,                                           \
++		       (byte_offset + sizeof(struct ib_mad_hdr)), bits_offset, \
++		       width)
++#define CM_FIELD8_LOC(field_struct, byte_offset, width)                        \
++	IBA_FIELD8_LOC(field_struct,                                           \
++		       (byte_offset + sizeof(struct ib_mad_hdr)), width)
++#define CM_FIELD16_LOC(field_struct, byte_offset, width)                       \
++	IBA_FIELD16_LOC(field_struct,                                          \
++			(byte_offset + sizeof(struct ib_mad_hdr)), width)
++#define CM_FIELD32_LOC(field_struct, byte_offset, width)                       \
++	IBA_FIELD32_LOC(field_struct,                                          \
++			(byte_offset + sizeof(struct ib_mad_hdr)), width)
++#define CM_FIELD64_LOC(field_struct, byte_offset)                              \
++	IBA_FIELD64_LOC(field_struct, (byte_offset + sizeof(struct ib_mad_hdr)))
++#define CM_FIELD_MLOC(field_struct, byte_offset, width, type)                  \
++	IBA_FIELD_MLOC(field_struct,                                           \
++		       (byte_offset + sizeof(struct ib_mad_hdr)), width, type)
++#define CM_STRUCT(field_struct, total_len)                                     \
++	static_assert((total_len) % 32 == 0);
++
++/* Table 106 REQ Message Contents */
++#define CM_REQ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_req_msg, 0, 32)
++#define CM_REQ_SERVICE_ID CM_FIELD64_LOC(struct cm_req_msg, 8)
++#define CM_REQ_LOCAL_CA_GUID CM_FIELD64_LOC(struct cm_req_msg, 16)
++#define CM_REQ_LOCAL_Q_KEY CM_FIELD32_LOC(struct cm_req_msg, 28, 32)
++#define CM_REQ_LOCAL_QPN CM_FIELD32_LOC(struct cm_req_msg, 32, 24)
++#define CM_REQ_RESPONDER_RESOURCES CM_FIELD8_LOC(struct cm_req_msg, 35, 8)
++#define CM_REQ_LOCAL_EECN CM_FIELD32_LOC(struct cm_req_msg, 36, 24)
++#define CM_REQ_INITIATOR_DEPTH CM_FIELD8_LOC(struct cm_req_msg, 39, 8)
++#define CM_REQ_REMOTE_EECN CM_FIELD32_LOC(struct cm_req_msg, 40, 24)
++#define CM_REQ_REMOTE_CM_RESPONSE_TIMEOUT                                      \
++	CM_FIELD8_LOC(struct cm_req_msg, 43, 5)
++#define CM_REQ_TRANSPORT_SERVICE_TYPE CM_FIELD_BLOC(struct cm_req_msg, 43, 5, 2)
++#define CM_REQ_END_TO_END_FLOW_CONTROL                                         \
++	CM_FIELD_BLOC(struct cm_req_msg, 43, 7, 1)
++#define CM_REQ_STARTING_PSN CM_FIELD32_LOC(struct cm_req_msg, 44, 24)
++#define CM_REQ_LOCAL_CM_RESPONSE_TIMEOUT CM_FIELD8_LOC(struct cm_req_msg, 47, 5)
++#define CM_REQ_RETRY_COUNT CM_FIELD_BLOC(struct cm_req_msg, 47, 5, 3)
++#define CM_REQ_PARTITION_KEY CM_FIELD16_LOC(struct cm_req_msg, 48, 16)
++#define CM_REQ_PATH_PACKET_PAYLOAD_MTU CM_FIELD8_LOC(struct cm_req_msg, 50, 4)
++#define CM_REQ_RDC_EXISTS CM_FIELD_BLOC(struct cm_req_msg, 50, 4, 1)
++#define CM_REQ_RNR_RETRY_COUNT CM_FIELD_BLOC(struct cm_req_msg, 50, 5, 3)
++#define CM_REQ_MAX_CM_RETRIES CM_FIELD8_LOC(struct cm_req_msg, 51, 4)
++#define CM_REQ_SRQ CM_FIELD_BLOC(struct cm_req_msg, 51, 4, 1)
++#define CM_REQ_EXTENDED_TRANSPORT_TYPE                                         \
++	CM_FIELD_BLOC(struct cm_req_msg, 51, 5, 3)
++#define CM_REQ_PRIMARY_LOCAL_PORT_LID CM_FIELD16_LOC(struct cm_req_msg, 52, 16)
++#define CM_REQ_PRIMARY_REMOTE_PORT_LID CM_FIELD16_LOC(struct cm_req_msg, 54, 16)
++#define CM_REQ_PRIMARY_LOCAL_PORT_GID                                          \
++	CM_FIELD_MLOC(struct cm_req_msg, 56, 128, union ib_gid)
++#define CM_REQ_PRIMARY_REMOTE_PORT_GID                                         \
++	CM_FIELD_MLOC(struct cm_req_msg, 72, 128, union ib_gid)
++#define CM_REQ_PRIMARY_FLOW_LABEL CM_FIELD32_LOC(struct cm_req_msg, 88, 20)
++#define CM_REQ_PRIMARY_PACKET_RATE CM_FIELD_BLOC(struct cm_req_msg, 91, 2, 6)
++#define CM_REQ_PRIMARY_TRAFFIC_CLASS CM_FIELD8_LOC(struct cm_req_msg, 92, 8)
++#define CM_REQ_PRIMARY_HOP_LIMIT CM_FIELD8_LOC(struct cm_req_msg, 93, 8)
++#define CM_REQ_PRIMARY_SL CM_FIELD8_LOC(struct cm_req_msg, 94, 4)
++#define CM_REQ_PRIMARY_SUBNET_LOCAL CM_FIELD_BLOC(struct cm_req_msg, 94, 4, 1)
++#define CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT CM_FIELD8_LOC(struct cm_req_msg, 95, 5)
++#define CM_REQ_ALTERNATE_LOCAL_PORT_LID                                        \
++	CM_FIELD16_LOC(struct cm_req_msg, 96, 16)
++#define CM_REQ_ALTERNATE_REMOTE_PORT_LID                                       \
++	CM_FIELD16_LOC(struct cm_req_msg, 98, 16)
++#define CM_REQ_ALTERNATE_LOCAL_PORT_GID                                        \
++	CM_FIELD_MLOC(struct cm_req_msg, 100, 128, union ib_gid)
++#define CM_REQ_ALTERNATE_REMOTE_PORT_GID                                       \
++	CM_FIELD_MLOC(struct cm_req_msg, 116, 128, union ib_gid)
++#define CM_REQ_ALTERNATE_FLOW_LABEL CM_FIELD32_LOC(struct cm_req_msg, 132, 20)
++#define CM_REQ_ALTERNATE_PACKET_RATE CM_FIELD_BLOC(struct cm_req_msg, 135, 2, 6)
++#define CM_REQ_ALTERNATE_TRAFFIC_CLASS CM_FIELD8_LOC(struct cm_req_msg, 136, 8)
++#define CM_REQ_ALTERNATE_HOP_LIMIT CM_FIELD8_LOC(struct cm_req_msg, 137, 8)
++#define CM_REQ_ALTERNATE_SL CM_FIELD8_LOC(struct cm_req_msg, 138, 4)
++#define CM_REQ_ALTERNATE_SUBNET_LOCAL                                          \
++	CM_FIELD_BLOC(struct cm_req_msg, 138, 4, 1)
++#define CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT                                     \
++	CM_FIELD8_LOC(struct cm_req_msg, 139, 5)
++#define CM_REQ_SAP_SUPPORTED CM_FIELD_BLOC(struct cm_req_msg, 139, 5, 1)
++#define CM_REQ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_req_msg, 140, 736, void)
++CM_STRUCT(struct cm_req_msg, 140 * 8 + 736);
++
++/* Table 107 MRA Message Contents */
++#define CM_MRA_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_mra_msg, 0, 32)
++#define CM_MRA_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_mra_msg, 4, 32)
++#define CM_MRA_MESSAGE_MRAED CM_FIELD8_LOC(struct cm_mra_msg, 8, 2)
++#define CM_MRA_SERVICE_TIMEOUT CM_FIELD8_LOC(struct cm_mra_msg, 9, 5)
++#define CM_MRA_PRIVATE_DATA CM_FIELD_MLOC(struct cm_mra_msg, 10, 1776, void)
++CM_STRUCT(struct cm_mra_msg, 10 * 8 + 1776);
++
++/* Table 108 REJ Message Contents */
++#define CM_REJ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_rej_msg, 0, 32)
++#define CM_REJ_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_rej_msg, 4, 32)
++#define CM_REJ_MESSAGE_REJECTED CM_FIELD8_LOC(struct cm_rej_msg, 8, 2)
++#define CM_REJ_REJECTED_INFO_LENGTH CM_FIELD8_LOC(struct cm_rej_msg, 9, 7)
++#define CM_REJ_REASON CM_FIELD16_LOC(struct cm_rej_msg, 10, 16)
++#define CM_REJ_ARI CM_FIELD_MLOC(struct cm_rej_msg, 12, 576, void)
++#define CM_REJ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_rej_msg, 84, 1184, void)
++CM_STRUCT(struct cm_rej_msg, 84 * 8 + 1184);
++
++/* Table 110 REP Message Contents */
++#define CM_REP_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_rep_msg, 0, 32)
++#define CM_REP_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_rep_msg, 4, 32)
++#define CM_REP_LOCAL_Q_KEY CM_FIELD32_LOC(struct cm_rep_msg, 8, 32)
++#define CM_REP_LOCAL_QPN CM_FIELD32_LOC(struct cm_rep_msg, 12, 24)
++#define CM_REP_LOCAL_EE_CONTEXT_NUMBER CM_FIELD32_LOC(struct cm_rep_msg, 16, 24)
++#define CM_REP_STARTING_PSN CM_FIELD32_LOC(struct cm_rep_msg, 20, 24)
++#define CM_REP_RESPONDER_RESOURCES CM_FIELD8_LOC(struct cm_rep_msg, 24, 8)
++#define CM_REP_INITIATOR_DEPTH CM_FIELD8_LOC(struct cm_rep_msg, 25, 8)
++#define CM_REP_TARGET_ACK_DELAY CM_FIELD8_LOC(struct cm_rep_msg, 26, 5)
++#define CM_REP_FAILOVER_ACCEPTED CM_FIELD_BLOC(struct cm_rep_msg, 26, 5, 2)
++#define CM_REP_END_TO_END_FLOW_CONTROL                                         \
++	CM_FIELD_BLOC(struct cm_rep_msg, 26, 7, 1)
++#define CM_REP_RNR_RETRY_COUNT CM_FIELD8_LOC(struct cm_rep_msg, 27, 3)
++#define CM_REP_SRQ CM_FIELD_BLOC(struct cm_rep_msg, 27, 3, 1)
++#define CM_REP_LOCAL_CA_GUID CM_FIELD64_LOC(struct cm_rep_msg, 28)
++#define CM_REP_PRIVATE_DATA CM_FIELD_MLOC(struct cm_rep_msg, 36, 1568, void)
++CM_STRUCT(struct cm_rep_msg, 36 * 8 + 1568);
++
++/* Table 111 RTU Message Contents */
++#define CM_RTU_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_rtu_msg, 0, 32)
++#define CM_RTU_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_rtu_msg, 4, 32)
++#define CM_RTU_PRIVATE_DATA CM_FIELD_MLOC(struct cm_rtu_msg, 8, 1792, void)
++CM_STRUCT(struct cm_rtu_msg, 8 * 8 + 1792);
++
++/* Table 112 DREQ Message Contents */
++#define CM_DREQ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_dreq_msg, 0, 32)
++#define CM_DREQ_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_dreq_msg, 4, 32)
++#define CM_DREQ_REMOTE_QPN_EECN CM_FIELD32_LOC(struct cm_dreq_msg, 8, 24)
++#define CM_DREQ_PRIVATE_DATA CM_FIELD_MLOC(struct cm_dreq_msg, 12, 1760, void)
++CM_STRUCT(struct cm_dreq_msg, 12 * 8 + 1760);
++
++/* Table 113 DREP Message Contents */
++#define CM_DREP_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_drep_msg, 0, 32)
++#define CM_DREP_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_drep_msg, 4, 32)
++#define CM_DREP_PRIVATE_DATA CM_FIELD_MLOC(struct cm_drep_msg, 8, 1792, void)
++CM_STRUCT(struct cm_drep_msg, 8 * 8 + 1792);
++
++/* Table 115 LAP Message Contents */
++#define CM_LAP_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_lap_msg, 0, 32)
++#define CM_LAP_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_lap_msg, 4, 32)
++#define CM_LAP_REMOTE_QPN_EECN CM_FIELD32_LOC(struct cm_lap_msg, 12, 24)
++#define CM_LAP_REMOTE_CM_RESPONSE_TIMEOUT                                      \
++	CM_FIELD8_LOC(struct cm_lap_msg, 15, 5)
++#define CM_LAP_ALTERNATE_LOCAL_PORT_LID                                        \
++	CM_FIELD16_LOC(struct cm_lap_msg, 20, 16)
++#define CM_LAP_ALTERNATE_REMOTE_PORT_LID                                       \
++	CM_FIELD16_LOC(struct cm_lap_msg, 22, 16)
++#define CM_LAP_ALTERNATE_LOCAL_PORT_GID                                        \
++	CM_FIELD_MLOC(struct cm_lap_msg, 24, 128, union ib_gid)
++#define CM_LAP_ALTERNATE_REMOTE_PORT_GID                                       \
++	CM_FIELD_MLOC(struct cm_lap_msg, 40, 128, union ib_gid)
++#define CM_LAP_ALTERNATE_FLOW_LABEL CM_FIELD32_LOC(struct cm_lap_msg, 56, 20)
++#define CM_LAP_ALTERNATE_TRAFFIC_CLASS CM_FIELD8_LOC(struct cm_lap_msg, 59, 8)
++#define CM_LAP_ALTERNATE_HOP_LIMIT CM_FIELD8_LOC(struct cm_lap_msg, 60, 8)
++#define CM_LAP_ALTERNATE_PACKET_RATE CM_FIELD_BLOC(struct cm_lap_msg, 61, 2, 6)
++#define CM_LAP_ALTERNATE_SL CM_FIELD8_LOC(struct cm_lap_msg, 62, 4)
++#define CM_LAP_ALTERNATE_SUBNET_LOCAL CM_FIELD_BLOC(struct cm_lap_msg, 62, 4, 1)
++#define CM_LAP_ALTERNATE_LOCAL_ACK_TIMEOUT                                     \
++	CM_FIELD8_LOC(struct cm_lap_msg, 63, 5)
++#define CM_LAP_PRIVATE_DATA CM_FIELD_MLOC(struct cm_lap_msg, 64, 1344, void)
++CM_STRUCT(struct cm_lap_msg, 64 * 8 + 1344);
++
++/* Table 116 APR Message Contents */
++#define CM_APR_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_apr_msg, 0, 32)
++#define CM_APR_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_apr_msg, 4, 32)
++#define CM_APR_ADDITIONAL_INFORMATION_LENGTH                                   \
++	CM_FIELD8_LOC(struct cm_apr_msg, 8, 8)
++#define CM_APR_AR_STATUS CM_FIELD8_LOC(struct cm_apr_msg, 9, 8)
++#define CM_APR_ADDITIONAL_INFORMATION                                          \
++	CM_FIELD_MLOC(struct cm_apr_msg, 12, 576, void)
++#define CM_APR_PRIVATE_DATA CM_FIELD_MLOC(struct cm_apr_msg, 84, 1184, void)
++CM_STRUCT(struct cm_apr_msg, 84 * 8 + 1184);
++
++/* Table 119 SIDR_REQ Message Contents */
++#define CM_SIDR_REQ_REQUESTID CM_FIELD32_LOC(struct cm_sidr_req_msg, 0, 32)
++#define CM_SIDR_REQ_PARTITION_KEY CM_FIELD16_LOC(struct cm_sidr_req_msg, 4, 16)
++#define CM_SIDR_REQ_SERVICEID CM_FIELD64_LOC(struct cm_sidr_req_msg, 8)
++#define CM_SIDR_REQ_PRIVATE_DATA                                               \
++	CM_FIELD_MLOC(struct cm_sidr_req_msg, 16, 1728, void)
++CM_STRUCT(struct cm_sidr_req_msg, 16 * 8 + 1728);
++
++/* Table 120 SIDR_REP Message Contents */
++#define CM_SIDR_REP_REQUESTID CM_FIELD32_LOC(struct cm_sidr_rep_msg, 0, 32)
++#define CM_SIDR_REP_STATUS CM_FIELD8_LOC(struct cm_sidr_rep_msg, 4, 8)
++#define CM_SIDR_REP_ADDITIONAL_INFORMATION_LENGTH                              \
++	CM_FIELD8_LOC(struct cm_sidr_rep_msg, 5, 8)
++#define CM_SIDR_REP_QPN CM_FIELD32_LOC(struct cm_sidr_rep_msg, 8, 24)
++#define CM_SIDR_REP_SERVICEID CM_FIELD64_LOC(struct cm_sidr_rep_msg, 12)
++#define CM_SIDR_REP_Q_KEY CM_FIELD32_LOC(struct cm_sidr_rep_msg, 20, 32)
++#define CM_SIDR_REP_ADDITIONAL_INFORMATION                                     \
++	CM_FIELD_MLOC(struct cm_sidr_rep_msg, 24, 576, void)
++#define CM_SIDR_REP_PRIVATE_DATA                                               \
++	CM_FIELD_MLOC(struct cm_sidr_rep_msg, 96, 1088, void)
++CM_STRUCT(struct cm_sidr_rep_msg, 96 * 8 + 1088);
++
++#endif /* _IBTA_VOL1_C12_H_ */
 -- 
 2.24.1
 
