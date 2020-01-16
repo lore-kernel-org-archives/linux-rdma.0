@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28139C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09BF1C33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F219720684
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D440920684
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579195275;
-	bh=pVwNJTS267s0DwV6idTs9NtxVWaFw9mF8KkJysJqDvQ=;
+	s=default; t=1579195310;
+	bh=OV4Gj3iKYNmpIhjM+5ujw1W1RlqHOngGDq3bXFJQo6A=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NeC9Y84L9q+ZW79A9dr7HQcVOqpEcwEN3gs7hIydBLZnsEHUpJbhtXMxIF2bi0Qz7
-	 Zm74Y1LUkM9/fmbcgPYkYyATxN/6xDeFzMKFWaErwYBFKIIXCm/Q16C8QNiUQX1QxJ
-	 3XoewSmpC+y7pSwstD3HdvTXiTv4m35R8DC1EfSQ=
+	b=QdEvyLN+C4Wh+Q5imnkasYJKgMPzz9Qzpf34IclJV4SAProBiOWdrCSivHwfS8RVX
+	 LBjoDYkgEr0cKj63Cr2WETaTc6TWp+kKMxssB/wkX+zqtam5FuylmDVecqH6PhPiOn
+	 tU/e+MdfizhT5/FkZYrvPfA1oNyul7hLOqQ7Z2Jg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391455AbgAPRVK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:21:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43708 "EHLO mail.kernel.org"
+        id S2391218AbgAPRRc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:17:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391249AbgAPRRs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:17:48 -0500
+        id S2390838AbgAPRRb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:17:31 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7509822522;
-        Thu, 16 Jan 2020 17:17:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B68C620728;
+        Thu, 16 Jan 2020 17:17:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579195067;
-        bh=pVwNJTS267s0DwV6idTs9NtxVWaFw9mF8KkJysJqDvQ=;
+        s=default; t=1579195050;
+        bh=OV4Gj3iKYNmpIhjM+5ujw1W1RlqHOngGDq3bXFJQo6A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=vF5LgtYKaVoZQhUUikUtq3Bs+zc3ci3wcvAqwnm3Ff8X/NaJv7PmOqO9b3varnS2E
-         kjdvPVjgrTqK3h5NxtyTxIsIZVBx2xHAWbux026+MUrw0VTibMSvgPNXfvlVO2BuA0
-         4d5KeI8iyhzObv0OIxs5zmT9lX6+0bdSKexxLY8s=
+        b=limpOP8CqrDorPDHGTcjkojbeIoD0w8CDFpHB6wcpqkmnJHwtVV/8x1yDLVFfBAEz
+         q6UswCAjIVqhmU74RA1ErsJwa+Vf22WzAK6O8WZumBgp7aNqeSLRQVBfsCM/wnJF+U
+         lfuvn+5DIyAVIuNGD1LrejJSdLQq06jAbTdOTYT4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Yuval Shaia <yuval.shaia@oracle.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Zhu Yanjun <yanjun.zhu@oracle.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Alex Estrin <alex.estrin@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        "Michael J . Ruhl" <michael.j.ruhl@intel.com>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 021/371] IB/rxe: Fix incorrect cache cleanup in error flow
-Date:   Thu, 16 Jan 2020 12:11:29 -0500
-Message-Id: <20200116171719.16965-21-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 008/371] IB/hfi1: Add mtu check for operational data VLs
+Date:   Thu, 16 Jan 2020 12:11:16 -0500
+Message-Id: <20200116171719.16965-8-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116171719.16965-1-sashal@kernel.org>
 References: <20200116171719.16965-1-sashal@kernel.org>
@@ -61,73 +61,72 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yuval Shaia <yuval.shaia@oracle.com>
+From: Alex Estrin <alex.estrin@intel.com>
 
-[ Upstream commit 6db21d8986e14e2e86573a3b055b05296188bd2c ]
+[ Upstream commit eb50130964e8c1379f37c3d3bab33a411ec62e98 ]
 
-Array iterator stays at the same slot, fix it.
+Since Virtual Lanes BCT credits and MTU are set through separate MADs, we
+have to ensure both are valid, and data VLs are ready for transmission
+before we allow port transition to Armed state.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 5e2d6764a729 ("IB/hfi1: Verify port data VLs credits on transition to Armed")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Alex Estrin <alex.estrin@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_pool.c | 26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index b4a8acc7bb7d..0e2425f28233 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -112,6 +112,18 @@ static inline struct kmem_cache *pool_cache(struct rxe_pool *pool)
- 	return rxe_type_info[pool->type].cache;
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 9f78bb07744c..4a0b7c003477 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -10552,12 +10552,29 @@ void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
+ 	}
  }
  
-+static void rxe_cache_clean(size_t cnt)
-+{
+-/*
+- * Verify if BCT for data VLs is non-zero.
++/**
++ * data_vls_operational() - Verify if data VL BCT credits and MTU
++ *			    are both set.
++ * @ppd: pointer to hfi1_pportdata structure
++ *
++ * Return: true - Ok, false -otherwise.
+  */
+ static inline bool data_vls_operational(struct hfi1_pportdata *ppd)
+ {
+-	return !!ppd->actual_vls_operational;
 +	int i;
-+	struct rxe_type_info *type;
++	u64 reg;
 +
-+	for (i = 0; i < cnt; i++) {
-+		type = &rxe_type_info[i];
-+		kmem_cache_destroy(type->cache);
-+		type->cache = NULL;
++	if (!ppd->actual_vls_operational)
++		return false;
++
++	for (i = 0; i < ppd->vls_supported; i++) {
++		reg = read_csr(ppd->dd, SEND_CM_CREDIT_VL + (8 * i));
++		if ((reg && !ppd->dd->vld[i].mtu) ||
++		    (!reg && ppd->dd->vld[i].mtu))
++			return false;
 +	}
-+}
 +
- int rxe_cache_init(void)
- {
- 	int err;
-@@ -136,24 +148,14 @@ int rxe_cache_init(void)
- 	return 0;
- 
- err1:
--	while (--i >= 0) {
--		kmem_cache_destroy(type->cache);
--		type->cache = NULL;
--	}
-+	rxe_cache_clean(i);
- 
- 	return err;
++	return true;
  }
  
- void rxe_cache_exit(void)
- {
--	int i;
--	struct rxe_type_info *type;
--
--	for (i = 0; i < RXE_NUM_TYPES; i++) {
--		type = &rxe_type_info[i];
--		kmem_cache_destroy(type->cache);
--		type->cache = NULL;
--	}
-+	rxe_cache_clean(RXE_NUM_TYPES);
- }
+ /*
+@@ -10662,7 +10679,8 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
  
- static int rxe_pool_init_index(struct rxe_pool *pool, u32 max, u32 min)
+ 		if (!data_vls_operational(ppd)) {
+ 			dd_dev_err(dd,
+-				   "%s: data VLs not operational\n", __func__);
++				   "%s: Invalid data VL credits or mtu\n",
++				   __func__);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
 -- 
 2.20.1
 
