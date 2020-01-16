@@ -7,49 +7,51 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C427DC33CB3
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:50:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F397C33CB6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:55:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9AE072073A
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:50:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D62EC214AF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579193436;
-	bh=Nh1lPVksc84cfRqDmjNinvlnaUTlHFl1OIphF9v5p9U=;
+	s=default; t=1579193730;
+	bh=2xRJRWDQlQ6lgY7clO/7aQlHd9NaMYeMsWsqynNKo3s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=B0P5odqMd8HGXHi3AvAR3hKAVYOLjD8n9ziwl5nT+Bagg24mEpCJC9YtCYXDKQBfG
-	 VTXp/XvEJM+BhO9Zz3JoXE+0P3PhVTH7/rRqLMLjNrQ8U6jURnElTSXwWKDDQs9WOb
-	 n5RD4HDUTVIGWtDV/y6mt9UY9oyrZnrcT8gLlTkY=
+	b=FCY1wswnZ7sGV+srk1m9iconkxPKf+Ef/QHb1+ojla/nPEupMlMXKfHZMQ9v9d1nE
+	 ebWiIYYD2qAM3YWC877UFWh0Xng13yYr8aLthdc/Pp0O0tvMpL6LbV4HTnc3GduimQ
+	 1kaZUoZNDI8xGQMrPilKp6abPDtpe+zEZoJPgSG0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729927AbgAPQr3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:47:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57366 "EHLO mail.kernel.org"
+        id S1730715AbgAPQz3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:55:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729923AbgAPQr3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:47:29 -0500
+        id S1729368AbgAPQz2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:55:28 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0FA7B2176D;
-        Thu, 16 Jan 2020 16:47:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 492852176D;
+        Thu, 16 Jan 2020 16:55:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193248;
-        bh=Nh1lPVksc84cfRqDmjNinvlnaUTlHFl1OIphF9v5p9U=;
+        s=default; t=1579193727;
+        bh=2xRJRWDQlQ6lgY7clO/7aQlHd9NaMYeMsWsqynNKo3s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=j6FQj2Lo3fGrfFqXZ2oHMqVUzxIg2Dsu2EzX9dR/6lZuMMmZGtkwqjAgm28sZGUUd
-         TneuxG9iimgjgdco0R2rTdBNxq32HmxoC+WBt4jiR2+jXUKNaP360g3taadFhDxUnJ
-         UjGoEHDLL/FMK13b5MnTvf961jXVCYPmIxiBZanY=
+        b=cknxyQGl+PdMwEB1PSUAey06jw/z+vNIrTqFiLzOs/KFFIql5aE3fsVcbwIq7LmN2
+         CgK+c1pJfYKpV9TovmA1hO69Tj7AfwXWhXXkucZ3ZMd/aXCDZzYZF4YnZq0N9SHoYp
+         6r2DE/e6f4i05lXxx15QiNdFvCyv6roDPdYDb0Xs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Yangyang Li <liyangyang20@huawei.com>,
-        Weihang Li <liweihang@hisilicon.com>,
-        Doug Ledford <dledford@redhat.com>,
+Cc:     Alex Estrin <alex.estrin@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        "Michael J . Ruhl" <michael.j.ruhl@intel.com>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 054/205] RDMA/hns: Release qp resources when failed to destroy qp
-Date:   Thu, 16 Jan 2020 11:40:29 -0500
-Message-Id: <20200116164300.6705-54-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 020/671] IB/hfi1: Add mtu check for operational data VLs
+Date:   Thu, 16 Jan 2020 11:44:11 -0500
+Message-Id: <20200116165502.8838-20-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
-References: <20200116164300.6705-1-sashal@kernel.org>
+In-Reply-To: <20200116165502.8838-1-sashal@kernel.org>
+References: <20200116165502.8838-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,68 +61,72 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
+From: Alex Estrin <alex.estrin@intel.com>
 
-[ Upstream commit d302c6e3a6895608a5856bc708c47bda1770b24d ]
+[ Upstream commit eb50130964e8c1379f37c3d3bab33a411ec62e98 ]
 
-Even if no response from hardware, we should make sure that qp related
-resources are released to avoid memory leaks.
+Since Virtual Lanes BCT credits and MTU are set through separate MADs, we
+have to ensure both are valid, and data VLs are ready for transmission
+before we allow port transition to Armed state.
 
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
-Signed-off-by: Weihang Li <liweihang@hisilicon.com>
-Link: https://lore.kernel.org/r/1570584110-3659-1-git-send-email-liweihang@hisilicon.com
-Signed-off-by: Doug Ledford <dledford@redhat.com>
+Fixes: 5e2d6764a729 ("IB/hfi1: Verify port data VLs credits on transition to Armed")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Alex Estrin <alex.estrin@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index e82567fcdeb7..926cb97483f9 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4650,16 +4650,14 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- {
- 	struct hns_roce_cq *send_cq, *recv_cq;
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
--	int ret;
-+	int ret = 0;
- 
- 	if (hr_qp->ibqp.qp_type == IB_QPT_RC && hr_qp->state != IB_QPS_RESET) {
- 		/* Modify qp to reset before destroying qp */
- 		ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, NULL, 0,
- 					    hr_qp->state, IB_QPS_RESET);
--		if (ret) {
-+		if (ret)
- 			ibdev_err(ibdev, "modify QP to Reset failed.\n");
--			return ret;
--		}
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 6b8935361133..b09a4b1cf397 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -10580,12 +10580,29 @@ void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
  	}
- 
- 	send_cq = to_hr_cq(hr_qp->ibqp.send_cq);
-@@ -4715,7 +4713,7 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- 		kfree(hr_qp->rq_inl_buf.wqe_list);
- 	}
- 
--	return 0;
-+	return ret;
  }
  
- static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
-@@ -4725,11 +4723,9 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	int ret;
+-/*
+- * Verify if BCT for data VLs is non-zero.
++/**
++ * data_vls_operational() - Verify if data VL BCT credits and MTU
++ *			    are both set.
++ * @ppd: pointer to hfi1_pportdata structure
++ *
++ * Return: true - Ok, false -otherwise.
+  */
+ static inline bool data_vls_operational(struct hfi1_pportdata *ppd)
+ {
+-	return !!ppd->actual_vls_operational;
++	int i;
++	u64 reg;
++
++	if (!ppd->actual_vls_operational)
++		return false;
++
++	for (i = 0; i < ppd->vls_supported; i++) {
++		reg = read_csr(ppd->dd, SEND_CM_CREDIT_VL + (8 * i));
++		if ((reg && !ppd->dd->vld[i].mtu) ||
++		    (!reg && ppd->dd->vld[i].mtu))
++			return false;
++	}
++
++	return true;
+ }
  
- 	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
--	if (ret) {
-+	if (ret)
- 		ibdev_err(&hr_dev->ib_dev, "Destroy qp 0x%06lx failed(%d)\n",
- 			  hr_qp->qpn, ret);
--		return ret;
--	}
+ /*
+@@ -10698,7 +10715,8 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
  
- 	if (hr_qp->ibqp.qp_type == IB_QPT_GSI)
- 		kfree(hr_to_hr_sqp(hr_qp));
+ 		if (!data_vls_operational(ppd)) {
+ 			dd_dev_err(dd,
+-				   "%s: data VLs not operational\n", __func__);
++				   "%s: Invalid data VL credits or mtu\n",
++				   __func__);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
 -- 
 2.20.1
 
