@@ -2,1013 +2,176 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B8CAC33CB1
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:40:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AA5FC33CB6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:41:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 305FB2073A
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:40:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="hiwH/wQb"
+	by mail.kernel.org (Postfix) with ESMTP id 4C52B2077C
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:41:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726752AbgAPQkD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:40:03 -0500
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:39759 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726706AbgAPQkD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 11:40:03 -0500
-Received: by mail-qt1-f193.google.com with SMTP id e5so19358203qtm.6
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 08:40:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=cDhiBrUgPwlgR6dHXR2CNiM9Zn9GWYSbb6mRnuxcS0s=;
-        b=hiwH/wQbZIwd8UtJftp/7MwRoQsOhrv8JcM6UJ1+PO4zRRKtSR4ntD0x2tdunXaXoN
-         LI4izDMUfFUR6z/04n5R2UyNhfve5IIrYtTjKLyxwz+uInXSgCFSzlz7OYnG3a/AVL0h
-         KRRp+kVysVehZ6/AHrXmy03sD65Hk0K9W9v/9qo1gZZS9dz4lX+GnkRog8Z7ENgPQ+s8
-         /UKxuA20YT1MdA1fVAVKBmvOMkrL7McrHNr70qSbIuVWTezwSlD/0aCVxGqsGj1W6d2c
-         fX+sgBvZGAKUCOqeLjnvM6bPf8mhRExOpzZtxOSaai58w/LHGBcP3yobkXarNgn0Glx+
-         7YVQ==
+        id S1726876AbgAPQlH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:41:07 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:46592 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726785AbgAPQlH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 11:41:07 -0500
+Received: by mail-pg1-f193.google.com with SMTP id z124so10136564pgb.13;
+        Thu, 16 Jan 2020 08:41:06 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=cDhiBrUgPwlgR6dHXR2CNiM9Zn9GWYSbb6mRnuxcS0s=;
-        b=Hpv/6srsZE2VLtfUPO10e/B7RdrHOsRyN4RSBvLzglTifcbL7QkaBIpHCOE3Q8pGrs
-         7mBLWH3ufYIKprU2fP+5Blc2UMdiDNToIeAbArws3kuhxZSC8mbDmJHmEy22xiO2lWNP
-         W9+2kVsQ5Mr2pu5MIaGX/q2wqBSBiQsOIoZRGZ/3o2H2I/zszKUgCnpAKtMxcv8LQeud
-         fwchM2ecW+kzNDfBDsSI6/RA96QmBe9cnzp5t6pLnsWcyhzggDPBrCiLMkkPjCjFpO/A
-         zbX5v1i8rYjFWgO53N0WZl6F/rycb6VoiZ68nShLCjbPTNrt1mF2VwIwMGJa3J2E904Q
-         7Z/g==
-X-Gm-Message-State: APjAAAW4X4MEoT9c05Ia4OCjwmGBmtN6XC9tVe0eCGrydE6cBHnGIB/1
-        4LfySKpjPbg1gsWJqXyBPM4OQw==
-X-Google-Smtp-Source: APXvYqwxKob1abIRH0qXxuaInrVBH/w+n4dpPtk6mnO5Nu87VGcxtwkRau7GKbJRyhx6SLJ6SklglQ==
-X-Received: by 2002:aed:3022:: with SMTP id 31mr3254268qte.282.1579192800519;
-        Thu, 16 Jan 2020 08:40:00 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id r44sm11736873qta.26.2020.01.16.08.39.55
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 16 Jan 2020 08:39:57 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1is8BW-00072v-Mi; Thu, 16 Jan 2020 12:39:54 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     linux-mm@kvack.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Jerome Glisse <jglisse@redhat.com>,
-        Ralph Campbell <rcampbell@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
-Subject: [PATCH 1/3] mm/mmu_notifier: Rename struct mmu_notifier_mm to mmu_notifier_subscriptions
-Date:   Thu, 16 Jan 2020 12:39:43 -0400
-Message-Id: <20200116163945.26956-2-jgg@ziepe.ca>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200116163945.26956-1-jgg@ziepe.ca>
-References: <20200116163945.26956-1-jgg@ziepe.ca>
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=k0Id4Clg1ftIoxJ/BWAT25mN758+UEydrwdSsgMjlqk=;
+        b=ERd61KLRdyNqdI24JKJBUR/8UPfSHzPsG3t8tC8MlB1lKE13s7L00knzwL1gZPgNp9
+         brasRMrMHiQkF9tsPrKQEuMMLUFBcrGlk8go2evsreFB0uzwR851blPJS6bH6wx91n2R
+         AyibHSHwv0xj6LvZ6kc5MOOxmgaK9wgP2Wu9Lr/s3lj117e7WODDA3Hv7qr0BZFKtsLm
+         sYLHHoHy6pQx5v8dlU4ac+9L604gccph7aZsDbhrs1upMgMAZloA+bL38rQ1mE293tVY
+         j1ebmR6hgyE1/7LFVDlbHWftgzwyRj5OU9u1sl/Y/Gbivm5RN1btLnRZuTuU+fOYEDzt
+         xnBQ==
+X-Gm-Message-State: APjAAAUlQgAuj6/2NcEFHxo5KLVpX1/lTILy1fDdTW9B7rfP84PqI+d0
+        uke3DPJ/u+Oo1/g6nDiWZqc=
+X-Google-Smtp-Source: APXvYqxb863dQg1qm+Wl5XNuNZQvk+Oe813NsAAICA7AGZfiAUxcKhreFaU17zhTToyJgmiUcnz5FQ==
+X-Received: by 2002:a63:3f4f:: with SMTP id m76mr39223349pga.353.1579192866365;
+        Thu, 16 Jan 2020 08:41:06 -0800 (PST)
+Received: from desktop-bart.svl.corp.google.com ([2620:15c:2cd:202:4308:52a3:24b6:2c60])
+        by smtp.gmail.com with ESMTPSA id 3sm26023303pfi.13.2020.01.16.08.41.05
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 16 Jan 2020 08:41:05 -0800 (PST)
+Subject: Re: [PATCH v5 00/25] RTRS (former IBTRS) rdma transport library and
+ the corresponding RNBD (former IBNBD) rdma network block device
+To:     Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Jack Wang <jinpuwang@gmail.com>,
+        linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Jens Axboe <axboe@kernel.dk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>, rpenyaev@suse.de
+References: <20191220155109.8959-1-jinpuwang@gmail.com>
+ <20200102181859.GC9282@ziepe.ca>
+ <CAMGffE=h24jmi0RnYks_rur71qrXCxJnPB5+cCACR50hKF6QRA@mail.gmail.com>
+ <d5be42e2-94d4-ad13-43ac-fcc1bb108ad0@acm.org>
+ <CAMGffEntYmFfGD8BGEtykoFXD_3DvNWQ8hrRmDoLtdr9ykTwug@mail.gmail.com>
+ <CAMGffEm=1ai=vkxLV7Qp0z3M-98BDej4mpc4WnsOpSHUJWuPeA@mail.gmail.com>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <c0c05209-1f43-c242-96d6-1944e43d207c@acm.org>
+Date:   Thu, 16 Jan 2020 08:41:04 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMGffEm=1ai=vkxLV7Qp0z3M-98BDej4mpc4WnsOpSHUJWuPeA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+On 1/7/20 2:56 AM, Jinpu Wang wrote:
+> On Mon, Jan 6, 2020 at 6:07 PM Jinpu Wang <jinpu.wang@cloud.ionos.com> wrote:
+>>
+>> On Fri, Jan 3, 2020 at 5:29 PM Bart Van Assche <bvanassche@acm.org> wrote:
+>>>
+>>> On 1/3/20 4:39 AM, Jinpu Wang wrote:
+>>>> Performance results for the v5.5-rc1 kernel are here:
+>>>>     link: https://github.com/ionos-enterprise/ibnbd/tree/develop/performance/v5-v5.5-rc1
+>>>>
+>>>> Some workloads RNBD are faster, some workloads NVMeoF are faster.
+>>>
+>>> Thank you for having shared these graphs.
+>>>
+>>> Do the graphs in RNBD-SinglePath.pdf show that NVMeOF achieves similar
+>>> or higher IOPS, higher bandwidth and lower latency than RNBD for
+>>> workloads with a block size of 4 KB and also for mixed workloads with
+>>> less than 20 disks, whether or not invalidation is enabled for RNBD?
+>> Hi Bart,
+>>
+>> Yes, that's the result on one pair of Server with Connect X4 HCA, I
+>> did another test on another
+>> 2 servers with Connect X5 HCA, results are quite different, we will
+>> double-check the
+>> performance results also on old machines, will share new results later.
+>>
+> here are the results with ConnectX5 HCA MT4119 + Intel(R) Xeon(R) Gold
+> 6130 CPU @ 2.10GHz, sorry no graph for now,
+> will prepare the next round.
+> 
+>   disks   4k nvme dual  4k nvme single    4k rnbd dual  4k rnbd single
+> 4k rnbd-inv dual  4k rnbd-inv single
+>     x1  251637.436256   254312.068793   270886.311369   260934.306569
+>    218632.336766       190800.519948
+>     x2  460894.610539   463925.907409   496318.068193   466374.862514
+>     418960.30397       372848.815118
+>     x3  603263.673633    605004.49955   675073.892611   614552.144786
+>    586223.077692       524221.977802
+>     x4  731648.935106   733174.482552   850245.575442   743062.493751
+>    744380.361964       656861.813819
+>     x5  827732.326767   827444.855514  1026939.306069   840515.548445
+>    897801.719828       762707.329267
+>     x6  876705.329467     873963.0037  1142399.960004    876974.70253
+>   1037773.522648       834073.892611
+>     x7  893808.719128   893268.073193  1239282.471753   892728.027197
+>   1135570.742926       871336.966303
+>     x8  906589.741026   905938.006199  1287178.964207   906189.381062
+>     1225040.9959       895292.070793
+>     x9   912048.09519   912400.259974  1386211.878812   913885.311469
+>   1302472.964884       910176.282372
+>    x10  915566.243376   915602.739726   1442959.70403   916288.871113
+>   1350296.325879        914966.40336
+>    x11  917116.188381   916905.809419  1418574.942506   916264.373563
+>   1370438.698083       915255.874413
+>    x12  915852.814719   917710.128987  1423534.546545   916348.386452
+>   1352357.364264       914966.656684
+>    x13   919042.69573   918819.536093  1429697.830217   917631.036896
+>   1378083.824558       916519.161677
+>    x14   920000.49995    920031.59684  1443317.268273   917562.843716
+>    1395023.56936       918935.706429
+>    x15  920160.883912   920367.363264  1445306.425863   918278.472153
+>   1440776.944611       916352.265921
+>    x16  920652.869426   920673.832617  1454705.229477   917902.948526
+>     1455708.2501       918198.001998
+>    x17  916892.310769   916883.623275  1491071.841948   918936.706329
+>   1436507.428457       917182.934132
+>    x18  917247.775222   917762.523748  1612129.058036   918546.835949
+>   1488716.583417       919521.095781
+>    x19  920084.791521   920349.930014   1615690.87821   915371.496958
+>    1406747.32954       918347.248577
+>    x20  922339.232154   922208.058388  1591415.958404   917922.631526
+>   1343806.744488       918903.393214
+>    x21  923141.771646   923297.040592  1581547.169811   919371.025795
+>   1342568.406347       919157.752944
+>    x22  923063.787243   924072.385523  1574972.846162   919173.713143
+>   1340318.639673       920577.995403
+>    x23  923549.490102   924643.471306  1573597.440256   918705.060385
+>   1333047.771337       917469.027431
+>    x24  925584.483103   925224.955009  1578143.485651    921744.15117
+>   1321494.708466       920001.498352
+>    x25  926165.366927   926842.031594  1579288.271173   921845.392764
+>   1319902.568202       920448.830702
+>    x26  926852.729454   927382.123575  1585351.318945    922669.59912
+>   1325670.791338       919137.796847
+>    x27  928196.260748   928093.981204  1581427.557244   921379.155436
+>   1325009.972078       919017.550858
+>    x28  929330.433913   929606.778644  1581726.527347   924325.834833
+>   1331721.074174       919557.761373
+>    x29  929885.522895   929876.924615  1578317.436513   922977.240966
+>    1333612.86783       921094.386736
+>    x30  930635.972805   930599.520144  1583537.946205   922746.107784
+>   1333446.651362       922821.171531
 
-The name mmu_notifier_mm implies that the thing is a mm_struct pointer,
-and is difficult to abbreviate. The struct is actually holding the
-interval tree and hlist containing the notifiers subscribed to a mm.
+Hi Jack,
 
-Use 'subscriptions' as the variable name for this struct instead of the
-really terrible and misleading 'mmn_mm'.
+What does "dual" mean? What explains the big difference between the NVMe 
+and RNBD results for the "dual" columns?
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
----
- include/linux/mm_types.h     |   2 +-
- include/linux/mmu_notifier.h |  18 +-
- kernel/fork.c                |   4 +-
- mm/debug.c                   |   4 +-
- mm/mmu_notifier.c            | 326 ++++++++++++++++++-----------------
- 5 files changed, 184 insertions(+), 170 deletions(-)
+Thanks,
 
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 270aa8fd2800b4..e87bb864bdb29a 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -490,7 +490,7 @@ struct mm_struct {
- 		/* store ref to file /proc/<pid>/exe symlink points to */
- 		struct file __rcu *exe_file;
- #ifdef CONFIG_MMU_NOTIFIER
--		struct mmu_notifier_mm *mmu_notifier_mm;
-+		struct mmu_notifier_subscriptions *notifier_subscriptions;
- #endif
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
- 		pgtable_t pmd_huge_pte; /* protected by page_table_lock */
-diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-index 9e6caa8ecd1938..a302925fbc6177 100644
---- a/include/linux/mmu_notifier.h
-+++ b/include/linux/mmu_notifier.h
-@@ -8,7 +8,7 @@
- #include <linux/srcu.h>
- #include <linux/interval_tree.h>
- 
--struct mmu_notifier_mm;
-+struct mmu_notifier_subscriptions;
- struct mmu_notifier;
- struct mmu_notifier_range;
- struct mmu_interval_notifier;
-@@ -265,7 +265,7 @@ struct mmu_notifier_range {
- 
- static inline int mm_has_notifiers(struct mm_struct *mm)
- {
--	return unlikely(mm->mmu_notifier_mm);
-+	return unlikely(mm->notifier_subscriptions);
- }
- 
- struct mmu_notifier *mmu_notifier_get_locked(const struct mmu_notifier_ops *ops,
-@@ -364,7 +364,7 @@ static inline bool mmu_interval_check_retry(struct mmu_interval_notifier *mni,
- 	return READ_ONCE(mni->invalidate_seq) != seq;
- }
- 
--extern void __mmu_notifier_mm_destroy(struct mm_struct *mm);
-+extern void __mmu_notifier_subscriptions_destroy(struct mm_struct *mm);
- extern void __mmu_notifier_release(struct mm_struct *mm);
- extern int __mmu_notifier_clear_flush_young(struct mm_struct *mm,
- 					  unsigned long start,
-@@ -480,15 +480,15 @@ static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
- 		__mmu_notifier_invalidate_range(mm, start, end);
- }
- 
--static inline void mmu_notifier_mm_init(struct mm_struct *mm)
-+static inline void mmu_notifier_subscriptions_init(struct mm_struct *mm)
- {
--	mm->mmu_notifier_mm = NULL;
-+	mm->notifier_subscriptions = NULL;
- }
- 
--static inline void mmu_notifier_mm_destroy(struct mm_struct *mm)
-+static inline void mmu_notifier_subscriptions_destroy(struct mm_struct *mm)
- {
- 	if (mm_has_notifiers(mm))
--		__mmu_notifier_mm_destroy(mm);
-+		__mmu_notifier_subscriptions_destroy(mm);
- }
- 
- 
-@@ -692,11 +692,11 @@ static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
- {
- }
- 
--static inline void mmu_notifier_mm_init(struct mm_struct *mm)
-+static inline void mmu_notifier_subscriptions_init(struct mm_struct *mm)
- {
- }
- 
--static inline void mmu_notifier_mm_destroy(struct mm_struct *mm)
-+static inline void mmu_notifier_subscriptions_destroy(struct mm_struct *mm)
- {
- }
- 
-diff --git a/kernel/fork.c b/kernel/fork.c
-index 2508a4f238a3f3..047865086cdf74 100644
---- a/kernel/fork.c
-+++ b/kernel/fork.c
-@@ -692,7 +692,7 @@ void __mmdrop(struct mm_struct *mm)
- 	WARN_ON_ONCE(mm == current->active_mm);
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
--	mmu_notifier_mm_destroy(mm);
-+	mmu_notifier_subscriptions_destroy(mm);
- 	check_mm(mm);
- 	put_user_ns(mm->user_ns);
- 	free_mm(mm);
-@@ -1025,7 +1025,7 @@ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
- 	mm_init_aio(mm);
- 	mm_init_owner(mm, p);
- 	RCU_INIT_POINTER(mm->exe_file, NULL);
--	mmu_notifier_mm_init(mm);
-+	mmu_notifier_subscriptions_init(mm);
- 	init_tlb_flush_pending(mm);
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
- 	mm->pmd_huge_pte = NULL;
-diff --git a/mm/debug.c b/mm/debug.c
-index 0461df1207cb09..74ee73cf7079a5 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -153,7 +153,7 @@ void dump_mm(const struct mm_struct *mm)
- #endif
- 		"exe_file %px\n"
- #ifdef CONFIG_MMU_NOTIFIER
--		"mmu_notifier_mm %px\n"
-+		"notifier_subscriptions %px\n"
- #endif
- #ifdef CONFIG_NUMA_BALANCING
- 		"numa_next_scan %lu numa_scan_offset %lu numa_scan_seq %d\n"
-@@ -185,7 +185,7 @@ void dump_mm(const struct mm_struct *mm)
- #endif
- 		mm->exe_file,
- #ifdef CONFIG_MMU_NOTIFIER
--		mm->mmu_notifier_mm,
-+		mm->notifier_subscriptions,
- #endif
- #ifdef CONFIG_NUMA_BALANCING
- 		mm->numa_next_scan, mm->numa_scan_offset, mm->numa_scan_seq,
-diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
-index f76ea05b1cb011..a409abfb9f2652 100644
---- a/mm/mmu_notifier.c
-+++ b/mm/mmu_notifier.c
-@@ -29,12 +29,12 @@ struct lockdep_map __mmu_notifier_invalidate_range_start_map = {
- #endif
- 
- /*
-- * The mmu notifier_mm structure is allocated and installed in
-- * mm->mmu_notifier_mm inside the mm_take_all_locks() protected
-+ * The mmu_notifier_subscriptions structure is allocated and installed in
-+ * mm->notifier_subscriptions inside the mm_take_all_locks() protected
-  * critical section and it's released only when mm_count reaches zero
-  * in mmdrop().
-  */
--struct mmu_notifier_mm {
-+struct mmu_notifier_subscriptions {
- 	/* all mmu notifiers registered in this mm are queued in this list */
- 	struct hlist_head list;
- 	bool has_itree;
-@@ -65,17 +65,17 @@ struct mmu_notifier_mm {
-  *
-  * The write side has two states, fully excluded:
-  *  - mm->active_invalidate_ranges != 0
-- *  - mnn->invalidate_seq & 1 == True (odd)
-+ *  - subscriptions->invalidate_seq & 1 == True (odd)
-  *  - some range on the mm_struct is being invalidated
-  *  - the itree is not allowed to change
-  *
-  * And partially excluded:
-  *  - mm->active_invalidate_ranges != 0
-- *  - mnn->invalidate_seq & 1 == False (even)
-+ *  - subscriptions->invalidate_seq & 1 == False (even)
-  *  - some range on the mm_struct is being invalidated
-  *  - the itree is allowed to change
-  *
-- * Operations on mmu_notifier_mm->invalidate_seq (under spinlock):
-+ * Operations on notifier_subscriptions->invalidate_seq (under spinlock):
-  *    seq |= 1  # Begin writing
-  *    seq++     # Release the writing state
-  *    seq & 1   # True if a writer exists
-@@ -83,32 +83,33 @@ struct mmu_notifier_mm {
-  * The later state avoids some expensive work on inv_end in the common case of
-  * no mni monitoring the VA.
-  */
--static bool mn_itree_is_invalidating(struct mmu_notifier_mm *mmn_mm)
-+static bool
-+mn_itree_is_invalidating(struct mmu_notifier_subscriptions *subscriptions)
- {
--	lockdep_assert_held(&mmn_mm->lock);
--	return mmn_mm->invalidate_seq & 1;
-+	lockdep_assert_held(&subscriptions->lock);
-+	return subscriptions->invalidate_seq & 1;
- }
- 
- static struct mmu_interval_notifier *
--mn_itree_inv_start_range(struct mmu_notifier_mm *mmn_mm,
-+mn_itree_inv_start_range(struct mmu_notifier_subscriptions *subscriptions,
- 			 const struct mmu_notifier_range *range,
- 			 unsigned long *seq)
- {
- 	struct interval_tree_node *node;
- 	struct mmu_interval_notifier *res = NULL;
- 
--	spin_lock(&mmn_mm->lock);
--	mmn_mm->active_invalidate_ranges++;
--	node = interval_tree_iter_first(&mmn_mm->itree, range->start,
-+	spin_lock(&subscriptions->lock);
-+	subscriptions->active_invalidate_ranges++;
-+	node = interval_tree_iter_first(&subscriptions->itree, range->start,
- 					range->end - 1);
- 	if (node) {
--		mmn_mm->invalidate_seq |= 1;
-+		subscriptions->invalidate_seq |= 1;
- 		res = container_of(node, struct mmu_interval_notifier,
- 				   interval_tree);
- 	}
- 
--	*seq = mmn_mm->invalidate_seq;
--	spin_unlock(&mmn_mm->lock);
-+	*seq = subscriptions->invalidate_seq;
-+	spin_unlock(&subscriptions->lock);
- 	return res;
- }
- 
-@@ -125,20 +126,20 @@ mn_itree_inv_next(struct mmu_interval_notifier *mni,
- 	return container_of(node, struct mmu_interval_notifier, interval_tree);
- }
- 
--static void mn_itree_inv_end(struct mmu_notifier_mm *mmn_mm)
-+static void mn_itree_inv_end(struct mmu_notifier_subscriptions *subscriptions)
- {
- 	struct mmu_interval_notifier *mni;
- 	struct hlist_node *next;
- 
--	spin_lock(&mmn_mm->lock);
--	if (--mmn_mm->active_invalidate_ranges ||
--	    !mn_itree_is_invalidating(mmn_mm)) {
--		spin_unlock(&mmn_mm->lock);
-+	spin_lock(&subscriptions->lock);
-+	if (--subscriptions->active_invalidate_ranges ||
-+	    !mn_itree_is_invalidating(subscriptions)) {
-+		spin_unlock(&subscriptions->lock);
- 		return;
- 	}
- 
- 	/* Make invalidate_seq even */
--	mmn_mm->invalidate_seq++;
-+	subscriptions->invalidate_seq++;
- 
- 	/*
- 	 * The inv_end incorporates a deferred mechanism like rtnl_unlock().
-@@ -146,19 +147,19 @@ static void mn_itree_inv_end(struct mmu_notifier_mm *mmn_mm)
- 	 * they are progressed. This arrangement for tree updates is used to
- 	 * avoid using a blocking lock during invalidate_range_start.
- 	 */
--	hlist_for_each_entry_safe(mni, next, &mmn_mm->deferred_list,
-+	hlist_for_each_entry_safe(mni, next, &subscriptions->deferred_list,
- 				  deferred_item) {
- 		if (RB_EMPTY_NODE(&mni->interval_tree.rb))
- 			interval_tree_insert(&mni->interval_tree,
--					     &mmn_mm->itree);
-+					     &subscriptions->itree);
- 		else
- 			interval_tree_remove(&mni->interval_tree,
--					     &mmn_mm->itree);
-+					     &subscriptions->itree);
- 		hlist_del(&mni->deferred_item);
- 	}
--	spin_unlock(&mmn_mm->lock);
-+	spin_unlock(&subscriptions->lock);
- 
--	wake_up_all(&mmn_mm->wq);
-+	wake_up_all(&subscriptions->wq);
- }
- 
- /**
-@@ -182,7 +183,8 @@ static void mn_itree_inv_end(struct mmu_notifier_mm *mmn_mm)
-  */
- unsigned long mmu_interval_read_begin(struct mmu_interval_notifier *mni)
- {
--	struct mmu_notifier_mm *mmn_mm = mni->mm->mmu_notifier_mm;
-+	struct mmu_notifier_subscriptions *subscriptions =
-+		mni->mm->notifier_subscriptions;
- 	unsigned long seq;
- 	bool is_invalidating;
- 
-@@ -190,17 +192,18 @@ unsigned long mmu_interval_read_begin(struct mmu_interval_notifier *mni)
- 	 * If the mni has a different seq value under the user_lock than we
- 	 * started with then it has collided.
- 	 *
--	 * If the mni currently has the same seq value as the mmn_mm seq, then
--	 * it is currently between invalidate_start/end and is colliding.
-+	 * If the mni currently has the same seq value as the subscriptions
-+	 * seq, then it is currently between invalidate_start/end and is
-+	 * colliding.
- 	 *
- 	 * The locking looks broadly like this:
- 	 *   mn_tree_invalidate_start():          mmu_interval_read_begin():
- 	 *                                         spin_lock
- 	 *                                          seq = READ_ONCE(mni->invalidate_seq);
--	 *                                          seq == mmn_mm->invalidate_seq
-+	 *                                          seq == subs->invalidate_seq
- 	 *                                         spin_unlock
- 	 *    spin_lock
--	 *     seq = ++mmn_mm->invalidate_seq
-+	 *     seq = ++subscriptions->invalidate_seq
- 	 *    spin_unlock
- 	 *     op->invalidate_range():
- 	 *       user_lock
-@@ -212,7 +215,7 @@ unsigned long mmu_interval_read_begin(struct mmu_interval_notifier *mni)
- 	 *
- 	 *   mn_itree_inv_end():
- 	 *    spin_lock
--	 *     seq = ++mmn_mm->invalidate_seq
-+	 *     seq = ++subscriptions->invalidate_seq
- 	 *    spin_unlock
- 	 *
- 	 *                                        user_lock
-@@ -224,24 +227,24 @@ unsigned long mmu_interval_read_begin(struct mmu_interval_notifier *mni)
- 	 * eventual mmu_interval_read_retry(), which provides a barrier via the
- 	 * user_lock.
- 	 */
--	spin_lock(&mmn_mm->lock);
-+	spin_lock(&subscriptions->lock);
- 	/* Pairs with the WRITE_ONCE in mmu_interval_set_seq() */
- 	seq = READ_ONCE(mni->invalidate_seq);
--	is_invalidating = seq == mmn_mm->invalidate_seq;
--	spin_unlock(&mmn_mm->lock);
-+	is_invalidating = seq == subscriptions->invalidate_seq;
-+	spin_unlock(&subscriptions->lock);
- 
- 	/*
- 	 * mni->invalidate_seq must always be set to an odd value via
- 	 * mmu_interval_set_seq() using the provided cur_seq from
- 	 * mn_itree_inv_start_range(). This ensures that if seq does wrap we
- 	 * will always clear the below sleep in some reasonable time as
--	 * mmn_mm->invalidate_seq is even in the idle state.
-+	 * subscriptions->invalidate_seq is even in the idle state.
- 	 */
- 	lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
- 	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
- 	if (is_invalidating)
--		wait_event(mmn_mm->wq,
--			   READ_ONCE(mmn_mm->invalidate_seq) != seq);
-+		wait_event(subscriptions->wq,
-+			   READ_ONCE(subscriptions->invalidate_seq) != seq);
- 
- 	/*
- 	 * Notice that mmu_interval_read_retry() can already be true at this
-@@ -253,7 +256,7 @@ unsigned long mmu_interval_read_begin(struct mmu_interval_notifier *mni)
- }
- EXPORT_SYMBOL_GPL(mmu_interval_read_begin);
- 
--static void mn_itree_release(struct mmu_notifier_mm *mmn_mm,
-+static void mn_itree_release(struct mmu_notifier_subscriptions *subscriptions,
- 			     struct mm_struct *mm)
- {
- 	struct mmu_notifier_range range = {
-@@ -267,13 +270,13 @@ static void mn_itree_release(struct mmu_notifier_mm *mmn_mm,
- 	unsigned long cur_seq;
- 	bool ret;
- 
--	for (mni = mn_itree_inv_start_range(mmn_mm, &range, &cur_seq); mni;
--	     mni = mn_itree_inv_next(mni, &range)) {
-+	for (mni = mn_itree_inv_start_range(subscriptions, &range, &cur_seq);
-+	     mni; mni = mn_itree_inv_next(mni, &range)) {
- 		ret = mni->ops->invalidate(mni, &range, cur_seq);
- 		WARN_ON(!ret);
- 	}
- 
--	mn_itree_inv_end(mmn_mm);
-+	mn_itree_inv_end(subscriptions);
- }
- 
- /*
-@@ -283,12 +286,12 @@ static void mn_itree_release(struct mmu_notifier_mm *mmn_mm,
-  * in parallel despite there being no task using this mm any more,
-  * through the vmas outside of the exit_mmap context, such as with
-  * vmtruncate. This serializes against mmu_notifier_unregister with
-- * the mmu_notifier_mm->lock in addition to SRCU and it serializes
-- * against the other mmu notifiers with SRCU. struct mmu_notifier_mm
-+ * the notifier_subscriptions->lock in addition to SRCU and it serializes
-+ * against the other mmu notifiers with SRCU. struct mmu_notifier_subscriptions
-  * can't go away from under us as exit_mmap holds an mm_count pin
-  * itself.
-  */
--static void mn_hlist_release(struct mmu_notifier_mm *mmn_mm,
-+static void mn_hlist_release(struct mmu_notifier_subscriptions *subscriptions,
- 			     struct mm_struct *mm)
- {
- 	struct mmu_notifier *mn;
-@@ -299,7 +302,7 @@ static void mn_hlist_release(struct mmu_notifier_mm *mmn_mm,
- 	 * ->release returns.
- 	 */
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mmn_mm->list, hlist)
-+	hlist_for_each_entry_rcu(mn, &subscriptions->list, hlist)
- 		/*
- 		 * If ->release runs before mmu_notifier_unregister it must be
- 		 * handled, as it's the only way for the driver to flush all
-@@ -309,9 +312,9 @@ static void mn_hlist_release(struct mmu_notifier_mm *mmn_mm,
- 		if (mn->ops->release)
- 			mn->ops->release(mn, mm);
- 
--	spin_lock(&mmn_mm->lock);
--	while (unlikely(!hlist_empty(&mmn_mm->list))) {
--		mn = hlist_entry(mmn_mm->list.first, struct mmu_notifier,
-+	spin_lock(&subscriptions->lock);
-+	while (unlikely(!hlist_empty(&subscriptions->list))) {
-+		mn = hlist_entry(subscriptions->list.first, struct mmu_notifier,
- 				 hlist);
- 		/*
- 		 * We arrived before mmu_notifier_unregister so
-@@ -321,7 +324,7 @@ static void mn_hlist_release(struct mmu_notifier_mm *mmn_mm,
- 		 */
- 		hlist_del_init_rcu(&mn->hlist);
- 	}
--	spin_unlock(&mmn_mm->lock);
-+	spin_unlock(&subscriptions->lock);
- 	srcu_read_unlock(&srcu, id);
- 
- 	/*
-@@ -330,21 +333,22 @@ static void mn_hlist_release(struct mmu_notifier_mm *mmn_mm,
- 	 * until the ->release method returns, if it was invoked by
- 	 * mmu_notifier_unregister.
- 	 *
--	 * The mmu_notifier_mm can't go away from under us because one mm_count
--	 * is held by exit_mmap.
-+	 * The notifier_subscriptions can't go away from under us because
-+	 * one mm_count is held by exit_mmap.
- 	 */
- 	synchronize_srcu(&srcu);
- }
- 
- void __mmu_notifier_release(struct mm_struct *mm)
- {
--	struct mmu_notifier_mm *mmn_mm = mm->mmu_notifier_mm;
-+	struct mmu_notifier_subscriptions *subscriptions =
-+		mm->notifier_subscriptions;
- 
--	if (mmn_mm->has_itree)
--		mn_itree_release(mmn_mm, mm);
-+	if (subscriptions->has_itree)
-+		mn_itree_release(subscriptions, mm);
- 
--	if (!hlist_empty(&mmn_mm->list))
--		mn_hlist_release(mmn_mm, mm);
-+	if (!hlist_empty(&subscriptions->list))
-+		mn_hlist_release(subscriptions, mm);
- }
- 
- /*
-@@ -360,7 +364,7 @@ int __mmu_notifier_clear_flush_young(struct mm_struct *mm,
- 	int young = 0, id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &mm->notifier_subscriptions->list, hlist) {
- 		if (mn->ops->clear_flush_young)
- 			young |= mn->ops->clear_flush_young(mn, mm, start, end);
- 	}
-@@ -377,7 +381,7 @@ int __mmu_notifier_clear_young(struct mm_struct *mm,
- 	int young = 0, id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &mm->notifier_subscriptions->list, hlist) {
- 		if (mn->ops->clear_young)
- 			young |= mn->ops->clear_young(mn, mm, start, end);
- 	}
-@@ -393,7 +397,7 @@ int __mmu_notifier_test_young(struct mm_struct *mm,
- 	int young = 0, id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &mm->notifier_subscriptions->list, hlist) {
- 		if (mn->ops->test_young) {
- 			young = mn->ops->test_young(mn, mm, address);
- 			if (young)
-@@ -412,21 +416,22 @@ void __mmu_notifier_change_pte(struct mm_struct *mm, unsigned long address,
- 	int id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &mm->notifier_subscriptions->list,
-+				 hlist) {
- 		if (mn->ops->change_pte)
- 			mn->ops->change_pte(mn, mm, address, pte);
- 	}
- 	srcu_read_unlock(&srcu, id);
- }
- 
--static int mn_itree_invalidate(struct mmu_notifier_mm *mmn_mm,
-+static int mn_itree_invalidate(struct mmu_notifier_subscriptions *subscriptions,
- 			       const struct mmu_notifier_range *range)
- {
- 	struct mmu_interval_notifier *mni;
- 	unsigned long cur_seq;
- 
--	for (mni = mn_itree_inv_start_range(mmn_mm, range, &cur_seq); mni;
--	     mni = mn_itree_inv_next(mni, range)) {
-+	for (mni = mn_itree_inv_start_range(subscriptions, range, &cur_seq);
-+	     mni; mni = mn_itree_inv_next(mni, range)) {
- 		bool ret;
- 
- 		ret = mni->ops->invalidate(mni, range, cur_seq);
-@@ -443,19 +448,20 @@ static int mn_itree_invalidate(struct mmu_notifier_mm *mmn_mm,
- 	 * On -EAGAIN the non-blocking caller is not allowed to call
- 	 * invalidate_range_end()
- 	 */
--	mn_itree_inv_end(mmn_mm);
-+	mn_itree_inv_end(subscriptions);
- 	return -EAGAIN;
- }
- 
--static int mn_hlist_invalidate_range_start(struct mmu_notifier_mm *mmn_mm,
--					   struct mmu_notifier_range *range)
-+static int mn_hlist_invalidate_range_start(
-+	struct mmu_notifier_subscriptions *subscriptions,
-+	struct mmu_notifier_range *range)
- {
- 	struct mmu_notifier *mn;
- 	int ret = 0;
- 	int id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mmn_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &subscriptions->list, hlist) {
- 		if (mn->ops->invalidate_range_start) {
- 			int _ret;
- 
-@@ -481,28 +487,29 @@ static int mn_hlist_invalidate_range_start(struct mmu_notifier_mm *mmn_mm,
- 
- int __mmu_notifier_invalidate_range_start(struct mmu_notifier_range *range)
- {
--	struct mmu_notifier_mm *mmn_mm = range->mm->mmu_notifier_mm;
-+	struct mmu_notifier_subscriptions *subscriptions =
-+		range->mm->notifier_subscriptions;
- 	int ret;
- 
--	if (mmn_mm->has_itree) {
--		ret = mn_itree_invalidate(mmn_mm, range);
-+	if (subscriptions->has_itree) {
-+		ret = mn_itree_invalidate(subscriptions, range);
- 		if (ret)
- 			return ret;
- 	}
--	if (!hlist_empty(&mmn_mm->list))
--		return mn_hlist_invalidate_range_start(mmn_mm, range);
-+	if (!hlist_empty(&subscriptions->list))
-+		return mn_hlist_invalidate_range_start(subscriptions, range);
- 	return 0;
- }
- 
--static void mn_hlist_invalidate_end(struct mmu_notifier_mm *mmn_mm,
--				    struct mmu_notifier_range *range,
--				    bool only_end)
-+static void
-+mn_hlist_invalidate_end(struct mmu_notifier_subscriptions *subscriptions,
-+			struct mmu_notifier_range *range, bool only_end)
- {
- 	struct mmu_notifier *mn;
- 	int id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mmn_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &subscriptions->list, hlist) {
- 		/*
- 		 * Call invalidate_range here too to avoid the need for the
- 		 * subsystem of having to register an invalidate_range_end
-@@ -534,14 +541,15 @@ static void mn_hlist_invalidate_end(struct mmu_notifier_mm *mmn_mm,
- void __mmu_notifier_invalidate_range_end(struct mmu_notifier_range *range,
- 					 bool only_end)
- {
--	struct mmu_notifier_mm *mmn_mm = range->mm->mmu_notifier_mm;
-+	struct mmu_notifier_subscriptions *subscriptions =
-+		range->mm->notifier_subscriptions;
- 
- 	lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
--	if (mmn_mm->has_itree)
--		mn_itree_inv_end(mmn_mm);
-+	if (subscriptions->has_itree)
-+		mn_itree_inv_end(subscriptions);
- 
--	if (!hlist_empty(&mmn_mm->list))
--		mn_hlist_invalidate_end(mmn_mm, range, only_end);
-+	if (!hlist_empty(&subscriptions->list))
-+		mn_hlist_invalidate_end(subscriptions, range, only_end);
- 	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
- }
- 
-@@ -552,7 +560,7 @@ void __mmu_notifier_invalidate_range(struct mm_struct *mm,
- 	int id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-+	hlist_for_each_entry_rcu(mn, &mm->notifier_subscriptions->list, hlist) {
- 		if (mn->ops->invalidate_range)
- 			mn->ops->invalidate_range(mn, mm, start, end);
- 	}
-@@ -566,7 +574,7 @@ void __mmu_notifier_invalidate_range(struct mm_struct *mm,
-  */
- int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- {
--	struct mmu_notifier_mm *mmu_notifier_mm = NULL;
-+	struct mmu_notifier_subscriptions *subscriptions = NULL;
- 	int ret;
- 
- 	lockdep_assert_held_write(&mm->mmap_sem);
-@@ -579,23 +587,23 @@ int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- 		fs_reclaim_release(GFP_KERNEL);
- 	}
- 
--	if (!mm->mmu_notifier_mm) {
-+	if (!mm->notifier_subscriptions) {
- 		/*
- 		 * kmalloc cannot be called under mm_take_all_locks(), but we
--		 * know that mm->mmu_notifier_mm can't change while we hold
--		 * the write side of the mmap_sem.
-+		 * know that mm->notifier_subscriptions can't change while we
-+		 * hold the write side of the mmap_sem.
- 		 */
--		mmu_notifier_mm =
--			kzalloc(sizeof(struct mmu_notifier_mm), GFP_KERNEL);
--		if (!mmu_notifier_mm)
-+		subscriptions = kzalloc(
-+			sizeof(struct mmu_notifier_subscriptions), GFP_KERNEL);
-+		if (!subscriptions)
- 			return -ENOMEM;
- 
--		INIT_HLIST_HEAD(&mmu_notifier_mm->list);
--		spin_lock_init(&mmu_notifier_mm->lock);
--		mmu_notifier_mm->invalidate_seq = 2;
--		mmu_notifier_mm->itree = RB_ROOT_CACHED;
--		init_waitqueue_head(&mmu_notifier_mm->wq);
--		INIT_HLIST_HEAD(&mmu_notifier_mm->deferred_list);
-+		INIT_HLIST_HEAD(&subscriptions->list);
-+		spin_lock_init(&subscriptions->lock);
-+		subscriptions->invalidate_seq = 2;
-+		subscriptions->itree = RB_ROOT_CACHED;
-+		init_waitqueue_head(&subscriptions->wq);
-+		INIT_HLIST_HEAD(&subscriptions->deferred_list);
- 	}
- 
- 	ret = mm_take_all_locks(mm);
-@@ -610,15 +618,16 @@ int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- 	 * We can't race against any other mmu notifier method either
- 	 * thanks to mm_take_all_locks().
- 	 *
--	 * release semantics on the initialization of the mmu_notifier_mm's
--	 * contents are provided for unlocked readers.  acquire can only be
--	 * used while holding the mmgrab or mmget, and is safe because once
--	 * created the mmu_notififer_mm is not freed until the mm is
--	 * destroyed.  As above, users holding the mmap_sem or one of the
-+	 * release semantics on the initialization of the
-+	 * mmu_notifier_subscriptions's contents are provided for unlocked
-+	 * readers.  acquire can only be used while holding the mmgrab or
-+	 * mmget, and is safe because once created the
-+	 * mmu_notifier_subscriptions is not freed until the mm is destroyed.
-+	 * As above, users holding the mmap_sem or one of the
- 	 * mm_take_all_locks() do not need to use acquire semantics.
- 	 */
--	if (mmu_notifier_mm)
--		smp_store_release(&mm->mmu_notifier_mm, mmu_notifier_mm);
-+	if (subscriptions)
-+		smp_store_release(&mm->notifier_subscriptions, subscriptions);
- 
- 	if (mn) {
- 		/* Pairs with the mmdrop in mmu_notifier_unregister_* */
-@@ -626,18 +635,19 @@ int __mmu_notifier_register(struct mmu_notifier *mn, struct mm_struct *mm)
- 		mn->mm = mm;
- 		mn->users = 1;
- 
--		spin_lock(&mm->mmu_notifier_mm->lock);
--		hlist_add_head_rcu(&mn->hlist, &mm->mmu_notifier_mm->list);
--		spin_unlock(&mm->mmu_notifier_mm->lock);
-+		spin_lock(&mm->notifier_subscriptions->lock);
-+		hlist_add_head_rcu(&mn->hlist,
-+				   &mm->notifier_subscriptions->list);
-+		spin_unlock(&mm->notifier_subscriptions->lock);
- 	} else
--		mm->mmu_notifier_mm->has_itree = true;
-+		mm->notifier_subscriptions->has_itree = true;
- 
- 	mm_drop_all_locks(mm);
- 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
- 	return 0;
- 
- out_clean:
--	kfree(mmu_notifier_mm);
-+	kfree(subscriptions);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(__mmu_notifier_register);
-@@ -677,8 +687,9 @@ find_get_mmu_notifier(struct mm_struct *mm, const struct mmu_notifier_ops *ops)
- {
- 	struct mmu_notifier *mn;
- 
--	spin_lock(&mm->mmu_notifier_mm->lock);
--	hlist_for_each_entry_rcu (mn, &mm->mmu_notifier_mm->list, hlist) {
-+	spin_lock(&mm->notifier_subscriptions->lock);
-+	hlist_for_each_entry_rcu(mn, &mm->notifier_subscriptions->list,
-+				 hlist) {
- 		if (mn->ops != ops)
- 			continue;
- 
-@@ -686,10 +697,10 @@ find_get_mmu_notifier(struct mm_struct *mm, const struct mmu_notifier_ops *ops)
- 			mn->users++;
- 		else
- 			mn = ERR_PTR(-EOVERFLOW);
--		spin_unlock(&mm->mmu_notifier_mm->lock);
-+		spin_unlock(&mm->notifier_subscriptions->lock);
- 		return mn;
- 	}
--	spin_unlock(&mm->mmu_notifier_mm->lock);
-+	spin_unlock(&mm->notifier_subscriptions->lock);
- 	return NULL;
- }
- 
-@@ -718,7 +729,7 @@ struct mmu_notifier *mmu_notifier_get_locked(const struct mmu_notifier_ops *ops,
- 
- 	lockdep_assert_held_write(&mm->mmap_sem);
- 
--	if (mm->mmu_notifier_mm) {
-+	if (mm->notifier_subscriptions) {
- 		mn = find_get_mmu_notifier(mm, ops);
- 		if (mn)
- 			return mn;
-@@ -739,11 +750,11 @@ struct mmu_notifier *mmu_notifier_get_locked(const struct mmu_notifier_ops *ops,
- EXPORT_SYMBOL_GPL(mmu_notifier_get_locked);
- 
- /* this is called after the last mmu_notifier_unregister() returned */
--void __mmu_notifier_mm_destroy(struct mm_struct *mm)
-+void __mmu_notifier_subscriptions_destroy(struct mm_struct *mm)
- {
--	BUG_ON(!hlist_empty(&mm->mmu_notifier_mm->list));
--	kfree(mm->mmu_notifier_mm);
--	mm->mmu_notifier_mm = LIST_POISON1; /* debug */
-+	BUG_ON(!hlist_empty(&mm->notifier_subscriptions->list));
-+	kfree(mm->notifier_subscriptions);
-+	mm->notifier_subscriptions = LIST_POISON1; /* debug */
- }
- 
- /*
-@@ -776,13 +787,13 @@ void mmu_notifier_unregister(struct mmu_notifier *mn, struct mm_struct *mm)
- 			mn->ops->release(mn, mm);
- 		srcu_read_unlock(&srcu, id);
- 
--		spin_lock(&mm->mmu_notifier_mm->lock);
-+		spin_lock(&mm->notifier_subscriptions->lock);
- 		/*
- 		 * Can not use list_del_rcu() since __mmu_notifier_release
- 		 * can delete it before we hold the lock.
- 		 */
- 		hlist_del_init_rcu(&mn->hlist);
--		spin_unlock(&mm->mmu_notifier_mm->lock);
-+		spin_unlock(&mm->notifier_subscriptions->lock);
- 	}
- 
- 	/*
-@@ -833,23 +844,23 @@ void mmu_notifier_put(struct mmu_notifier *mn)
- {
- 	struct mm_struct *mm = mn->mm;
- 
--	spin_lock(&mm->mmu_notifier_mm->lock);
-+	spin_lock(&mm->notifier_subscriptions->lock);
- 	if (WARN_ON(!mn->users) || --mn->users)
- 		goto out_unlock;
- 	hlist_del_init_rcu(&mn->hlist);
--	spin_unlock(&mm->mmu_notifier_mm->lock);
-+	spin_unlock(&mm->notifier_subscriptions->lock);
- 
- 	call_srcu(&srcu, &mn->rcu, mmu_notifier_free_rcu);
- 	return;
- 
- out_unlock:
--	spin_unlock(&mm->mmu_notifier_mm->lock);
-+	spin_unlock(&mm->notifier_subscriptions->lock);
- }
- EXPORT_SYMBOL_GPL(mmu_notifier_put);
- 
- static int __mmu_interval_notifier_insert(
- 	struct mmu_interval_notifier *mni, struct mm_struct *mm,
--	struct mmu_notifier_mm *mmn_mm, unsigned long start,
-+	struct mmu_notifier_subscriptions *subscriptions, unsigned long start,
- 	unsigned long length, const struct mmu_interval_notifier_ops *ops)
- {
- 	mni->mm = mm;
-@@ -884,29 +895,30 @@ static int __mmu_interval_notifier_insert(
- 	 * In all cases the value for the mni->invalidate_seq should be
- 	 * odd, see mmu_interval_read_begin()
- 	 */
--	spin_lock(&mmn_mm->lock);
--	if (mmn_mm->active_invalidate_ranges) {
--		if (mn_itree_is_invalidating(mmn_mm))
-+	spin_lock(&subscriptions->lock);
-+	if (subscriptions->active_invalidate_ranges) {
-+		if (mn_itree_is_invalidating(subscriptions))
- 			hlist_add_head(&mni->deferred_item,
--				       &mmn_mm->deferred_list);
-+				       &subscriptions->deferred_list);
- 		else {
--			mmn_mm->invalidate_seq |= 1;
-+			subscriptions->invalidate_seq |= 1;
- 			interval_tree_insert(&mni->interval_tree,
--					     &mmn_mm->itree);
-+					     &subscriptions->itree);
- 		}
--		mni->invalidate_seq = mmn_mm->invalidate_seq;
-+		mni->invalidate_seq = subscriptions->invalidate_seq;
- 	} else {
--		WARN_ON(mn_itree_is_invalidating(mmn_mm));
-+		WARN_ON(mn_itree_is_invalidating(subscriptions));
- 		/*
- 		 * The starting seq for a mni not under invalidation should be
- 		 * odd, not equal to the current invalidate_seq and
- 		 * invalidate_seq should not 'wrap' to the new seq any time
- 		 * soon.
- 		 */
--		mni->invalidate_seq = mmn_mm->invalidate_seq - 1;
--		interval_tree_insert(&mni->interval_tree, &mmn_mm->itree);
-+		mni->invalidate_seq = subscriptions->invalidate_seq - 1;
-+		interval_tree_insert(&mni->interval_tree,
-+				     &subscriptions->itree);
- 	}
--	spin_unlock(&mmn_mm->lock);
-+	spin_unlock(&subscriptions->lock);
- 	return 0;
- }
- 
-@@ -930,20 +942,20 @@ int mmu_interval_notifier_insert(struct mmu_interval_notifier *mni,
- 				 unsigned long length,
- 				 const struct mmu_interval_notifier_ops *ops)
- {
--	struct mmu_notifier_mm *mmn_mm;
-+	struct mmu_notifier_subscriptions *subscriptions;
- 	int ret;
- 
- 	might_lock(&mm->mmap_sem);
- 
--	mmn_mm = smp_load_acquire(&mm->mmu_notifier_mm);
--	if (!mmn_mm || !mmn_mm->has_itree) {
-+	subscriptions = smp_load_acquire(&mm->notifier_subscriptions);
-+	if (!subscriptions || !subscriptions->has_itree) {
- 		ret = mmu_notifier_register(NULL, mm);
- 		if (ret)
- 			return ret;
--		mmn_mm = mm->mmu_notifier_mm;
-+		subscriptions = mm->notifier_subscriptions;
- 	}
--	return __mmu_interval_notifier_insert(mni, mm, mmn_mm, start, length,
--					      ops);
-+	return __mmu_interval_notifier_insert(mni, mm, subscriptions, start,
-+					      length, ops);
- }
- EXPORT_SYMBOL_GPL(mmu_interval_notifier_insert);
- 
-@@ -952,20 +964,20 @@ int mmu_interval_notifier_insert_locked(
- 	unsigned long start, unsigned long length,
- 	const struct mmu_interval_notifier_ops *ops)
- {
--	struct mmu_notifier_mm *mmn_mm;
-+	struct mmu_notifier_subscriptions *subscriptions =
-+		mm->notifier_subscriptions;
- 	int ret;
- 
- 	lockdep_assert_held_write(&mm->mmap_sem);
- 
--	mmn_mm = mm->mmu_notifier_mm;
--	if (!mmn_mm || !mmn_mm->has_itree) {
-+	if (!subscriptions || !subscriptions->has_itree) {
- 		ret = __mmu_notifier_register(NULL, mm);
- 		if (ret)
- 			return ret;
--		mmn_mm = mm->mmu_notifier_mm;
-+		subscriptions = mm->notifier_subscriptions;
- 	}
--	return __mmu_interval_notifier_insert(mni, mm, mmn_mm, start, length,
--					      ops);
-+	return __mmu_interval_notifier_insert(mni, mm, subscriptions, start,
-+					      length, ops);
- }
- EXPORT_SYMBOL_GPL(mmu_interval_notifier_insert_locked);
- 
-@@ -982,13 +994,14 @@ EXPORT_SYMBOL_GPL(mmu_interval_notifier_insert_locked);
- void mmu_interval_notifier_remove(struct mmu_interval_notifier *mni)
- {
- 	struct mm_struct *mm = mni->mm;
--	struct mmu_notifier_mm *mmn_mm = mm->mmu_notifier_mm;
-+	struct mmu_notifier_subscriptions *subscriptions =
-+		mm->notifier_subscriptions;
- 	unsigned long seq = 0;
- 
- 	might_sleep();
- 
--	spin_lock(&mmn_mm->lock);
--	if (mn_itree_is_invalidating(mmn_mm)) {
-+	spin_lock(&subscriptions->lock);
-+	if (mn_itree_is_invalidating(subscriptions)) {
- 		/*
- 		 * remove is being called after insert put this on the
- 		 * deferred list, but before the deferred list was processed.
-@@ -997,14 +1010,15 @@ void mmu_interval_notifier_remove(struct mmu_interval_notifier *mni)
- 			hlist_del(&mni->deferred_item);
- 		} else {
- 			hlist_add_head(&mni->deferred_item,
--				       &mmn_mm->deferred_list);
--			seq = mmn_mm->invalidate_seq;
-+				       &subscriptions->deferred_list);
-+			seq = subscriptions->invalidate_seq;
- 		}
- 	} else {
- 		WARN_ON(RB_EMPTY_NODE(&mni->interval_tree.rb));
--		interval_tree_remove(&mni->interval_tree, &mmn_mm->itree);
-+		interval_tree_remove(&mni->interval_tree,
-+				     &subscriptions->itree);
- 	}
--	spin_unlock(&mmn_mm->lock);
-+	spin_unlock(&subscriptions->lock);
- 
- 	/*
- 	 * The possible sleep on progress in the invalidation requires the
-@@ -1013,8 +1027,8 @@ void mmu_interval_notifier_remove(struct mmu_interval_notifier *mni)
- 	lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
- 	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
- 	if (seq)
--		wait_event(mmn_mm->wq,
--			   READ_ONCE(mmn_mm->invalidate_seq) != seq);
-+		wait_event(subscriptions->wq,
-+			   READ_ONCE(subscriptions->invalidate_seq) != seq);
- 
- 	/* pairs with mmgrab in mmu_interval_notifier_insert() */
- 	mmdrop(mm);
--- 
-2.24.1
+Bart.
+
 
