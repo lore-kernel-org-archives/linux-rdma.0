@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED35BC47409
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38E32C3F68F
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:22:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C4EEC20684
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03A7124690
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579195311;
-	bh=N6Y8PkCQnIedDcnf0oyyx/ToavtI/AovlyPF64X9BKo=;
+	s=default; t=1579195330;
+	bh=0YFaWcb15ye1CrXZgnwX8z1XFUDrX3MGS2VAo9jXphY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=CdNsZfb3F/aRKjPQ3mZT6vxNAewURsa52/7e2MPI5ENMIHTI+3Bhx0f2nfVYTL6hm
-	 zaJiQwfyKSLJdrmCIByr8sYyGgnu/FfLed+IKKlOkSFj4spuDvXnyVb++W9y4mJD+r
-	 RyWbnLfoWaeKWskI+0N/9HsOcg0uQhCKjKwyo9UY=
+	b=imGL0VMDpO0WEu8TVFIHKsDOXVY4TcWqE2K20hnseIsAa7qfDal4WavcvX5StDuAx
+	 EiROssmZ6pQDiue2wKpe/YUTq0JtL9NubVmNFbUHF0Y1CUh1K0yt3Y9zSGknAFHIJf
+	 Yfb+AXxBSDm9gE9O8qloM2pmS3ol5ms7aX6lkTrA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391216AbgAPRRb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:17:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42770 "EHLO mail.kernel.org"
+        id S2390822AbgAPRNq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:13:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391134AbgAPRR3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:17:29 -0500
+        id S2390818AbgAPRNp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:13:45 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 842472081E;
-        Thu, 16 Jan 2020 17:17:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BB3AF246A5;
+        Thu, 16 Jan 2020 17:13:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579195049;
-        bh=N6Y8PkCQnIedDcnf0oyyx/ToavtI/AovlyPF64X9BKo=;
+        s=default; t=1579194825;
+        bh=0YFaWcb15ye1CrXZgnwX8z1XFUDrX3MGS2VAo9jXphY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BlSv6jhYmhw/enHhdU5eawmTD3QAoqx8k9uASJHKN5JgeAqR0UmrR4sp5X1l8Xlgv
-         iVkPVyDk2fhyrbpEf+vlwq0KOSpKqKwlxOVNaR1YAg2IDSxc7Rlp2b+DPIhI/84oQa
-         bTG2OomkqhI2ND2bWW3YnrpPAs925m6HRIXqNSQE=
+        b=u86rZRpTkpCHd66AgrPZwZUw9zqD0dlCkmjJbt47euW5tD+nF08pYxbOSZeq19OEA
+         +8bBBSY1ZwQMpihol0qF8PsUxs3eJYlmH5Sk35bJACjPcB7JZB+7ibYMENP/p9fwnq
+         48MfaJD35OAsTkBzhwpmcEmVEy9qCuzu9Egbat9c=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Zhu Yanjun <yanjun.zhu@oracle.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 007/371] IB/rxe: replace kvfree with vfree
-Date:   Thu, 16 Jan 2020 12:11:15 -0500
-Message-Id: <20200116171719.16965-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 629/671] RDMA/mlx5: Return proper error value
+Date:   Thu, 16 Jan 2020 12:04:27 -0500
+Message-Id: <20200116170509.12787-366-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116171719.16965-1-sashal@kernel.org>
-References: <20200116171719.16965-1-sashal@kernel.org>
+In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
+References: <20200116170509.12787-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,75 +58,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-[ Upstream commit 721ad7e643f7002efa398838693f90284ea216d1 ]
+[ Upstream commit 546d30099ed204792083f043cd7e016de86016a3 ]
 
-The buf is allocated by vmalloc_user in the function rxe_queue_init.
-So it is better to free it by vfree.
+Returned value from mlx5_mr_cache_alloc() is checked to be error or real
+pointer. Return proper error code instead of NULL which is not checked
+later.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+Fixes: 81713d3788d2 ("IB/mlx5: Add implicit MR support")
+Link: https://lore.kernel.org/r/20191029055721.7192-1-leon@kernel.org
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_cq.c | 4 ++--
- drivers/infiniband/sw/rxe/rxe_qp.c | 5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
-index c4aabf78dc90..f6e036ded046 100644
---- a/drivers/infiniband/sw/rxe/rxe_cq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_cq.c
-@@ -30,7 +30,7 @@
-  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  * SOFTWARE.
-  */
--
-+#include <linux/vmalloc.h>
- #include "rxe.h"
- #include "rxe_loc.h"
- #include "rxe_queue.h"
-@@ -97,7 +97,7 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
- 	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
- 			   cq->queue->buf_size, &cq->queue->ip);
- 	if (err) {
--		kvfree(cq->queue->buf);
-+		vfree(cq->queue->buf);
- 		kfree(cq->queue);
- 		return err;
- 	}
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index aeea994b04c4..25055a68a2c0 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -34,6 +34,7 @@
- #include <linux/skbuff.h>
- #include <linux/delay.h>
- #include <linux/sched.h>
-+#include <linux/vmalloc.h>
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index bd1fdadf7ba0..18fd9aa6510f 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -457,7 +457,7 @@ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, int entry)
  
- #include "rxe.h"
- #include "rxe_loc.h"
-@@ -255,7 +256,7 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
- 			   qp->sq.queue->buf_size, &qp->sq.queue->ip);
- 
- 	if (err) {
--		kvfree(qp->sq.queue->buf);
-+		vfree(qp->sq.queue->buf);
- 		kfree(qp->sq.queue);
- 		return err;
+ 	if (entry < 0 || entry >= MAX_MR_CACHE_ENTRIES) {
+ 		mlx5_ib_err(dev, "cache entry %d is out of range\n", entry);
+-		return NULL;
++		return ERR_PTR(-EINVAL);
  	}
-@@ -308,7 +309,7 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
- 				   qp->rq.queue->buf_size,
- 				   &qp->rq.queue->ip);
- 		if (err) {
--			kvfree(qp->rq.queue->buf);
-+			vfree(qp->rq.queue->buf);
- 			kfree(qp->rq.queue);
- 			return err;
- 		}
+ 
+ 	ent = &cache->ent[entry];
 -- 
 2.20.1
 
