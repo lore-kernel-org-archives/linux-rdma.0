@@ -4,53 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F12AC33CB3
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:14:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF194C3F68F
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:15:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D7D520684
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:14:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8360A24673
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:15:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579198477;
-	bh=YjIDkagu2Kjrfvvq4dv7nIQnTBUOitovsfwiIT4GZvg=;
+	s=default; t=1579198557;
+	bh=AJxd5Nq/0m8HyyS0sFd0JNlFDTh7G9lKgm0h3v4rbLA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=f3xtDTUixZu03Nj0wRX0U9cJy8MUaXoWx2zW2WHYRtlG3hZgm+ww2Db0iUzUCbQXu
-	 saciZRJZ4pQsq2m0xJileXd9HaBehkjoz1lzoCm2K09f1/k3+gezDashzeczEN/XEN
-	 drjjreIbrJEO3MI5ZutV13sNuH/l2xRt3UAw0HKU=
+	b=AdQVLCi05SnzsIHpmPrzpDeQTl6rmVh9VyZasdzVAEzZoH7beRIyGdx+ozlEQ9a3x
+	 SJUhwkwZZXoo2XJo+8MHctVnc1W1kq4m6SBCxhk70nLz1a/fDzmSZCcWjU6RDjybaG
+	 4gPRuqNg/c3UtJM6Pj7Pprr2/qMJwa0IrbaLD4kw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2395317AbgAPSOg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:14:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48758 "EHLO mail.kernel.org"
+        id S2392426AbgAPR3g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:29:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393027AbgAPRev (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:34:51 -0500
+        id S2392762AbgAPR3f (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:29:35 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CA93524683;
-        Thu, 16 Jan 2020 17:34:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D3B1024722;
+        Thu, 16 Jan 2020 17:29:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579196090;
-        bh=YjIDkagu2Kjrfvvq4dv7nIQnTBUOitovsfwiIT4GZvg=;
+        s=default; t=1579195774;
+        bh=AJxd5Nq/0m8HyyS0sFd0JNlFDTh7G9lKgm0h3v4rbLA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=XBTcagQys3ANPmkJrob8WnAabBr+O71Ug0vrXOuo9GL5dkJTSPce1E1veC2ENwH5g
-         Zopj38gnQzE6qHVQYRynJyXHkYKSvelqqs0+XdgA3THeaAAVsa3IiR+hY4IKQujHKn
-         mTgM2sxswvpWtYByh0RvxiMRTdGh0QkgcsLE3FF4=
+        b=2Ahf2VNztURjX49QOJEMm3iXyhG/Uqmo9QznelnKYFrdhObcRRVG4EjFc658qhHVD
+         Qd5qH5WQFvldc7s95VJppjpXEPfbOGmaEhaWGbmdLVHD8uCeCbYl9nRWF+7ZdgJk1y
+         HfEyyyWG4Ac8Mjr6E8iVlHrU6a1AqjdCvSc3oNDU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Zhu Yanjun <yanjun.zhu@oracle.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
+Cc:     =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 004/251] IB/rxe: replace kvfree with vfree
-Date:   Thu, 16 Jan 2020 12:30:38 -0500
-Message-Id: <20200116173445.21385-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 300/371] RDMA/cma: Fix false error message
+Date:   Thu, 16 Jan 2020 12:22:52 -0500
+Message-Id: <20200116172403.18149-243-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116173445.21385-1-sashal@kernel.org>
-References: <20200116173445.21385-1-sashal@kernel.org>
+In-Reply-To: <20200116172403.18149-1-sashal@kernel.org>
+References: <20200116172403.18149-1-sashal@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -59,75 +59,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
+From: Håkon Bugge <haakon.bugge@oracle.com>
 
-[ Upstream commit 721ad7e643f7002efa398838693f90284ea216d1 ]
+[ Upstream commit a6e4d254c19b541a58caced322111084b27a7788 ]
 
-The buf is allocated by vmalloc_user in the function rxe_queue_init.
-So it is better to free it by vfree.
+In addr_handler(), assuming status == 0 and the device already has been
+acquired (id_priv->cma_dev != NULL), we get the following incorrect
+"error" message:
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+RDMA CM: ADDR_ERROR: failed to resolve IP. status 0
+
+Fixes: 498683c6a7ee ("IB/cma: Add debug messages to error flows")
+Link: https://lore.kernel.org/r/20190902092731.1055757-1-haakon.bugge@oracle.com
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_cq.c | 4 ++--
- drivers/infiniband/sw/rxe/rxe_qp.c | 5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/cma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
-index e5e6a5e7dee9..5ac88412f1ff 100644
---- a/drivers/infiniband/sw/rxe/rxe_cq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_cq.c
-@@ -30,7 +30,7 @@
-  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  * SOFTWARE.
-  */
--
-+#include <linux/vmalloc.h>
- #include "rxe.h"
- #include "rxe_loc.h"
- #include "rxe_queue.h"
-@@ -89,7 +89,7 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
- 	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
- 			   cq->queue->buf_size, &cq->queue->ip);
- 	if (err) {
--		kvfree(cq->queue->buf);
-+		vfree(cq->queue->buf);
- 		kfree(cq->queue);
- 		return err;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index fc4630e4acdd..1614f6f3677c 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2789,7 +2789,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 		if (status)
+ 			pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to acquire device. status %d\n",
+ 					     status);
+-	} else {
++	} else if (status) {
+ 		pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to resolve IP. status %d\n", status);
  	}
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index 44b2108253bd..d6672127808b 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -34,6 +34,7 @@
- #include <linux/skbuff.h>
- #include <linux/delay.h>
- #include <linux/sched.h>
-+#include <linux/vmalloc.h>
  
- #include "rxe.h"
- #include "rxe_loc.h"
-@@ -255,7 +256,7 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
- 			   qp->sq.queue->buf_size, &qp->sq.queue->ip);
- 
- 	if (err) {
--		kvfree(qp->sq.queue->buf);
-+		vfree(qp->sq.queue->buf);
- 		kfree(qp->sq.queue);
- 		return err;
- 	}
-@@ -312,7 +313,7 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
- 				   qp->rq.queue->buf_size,
- 				   &qp->rq.queue->ip);
- 		if (err) {
--			kvfree(qp->rq.queue->buf);
-+			vfree(qp->rq.queue->buf);
- 			kfree(qp->rq.queue);
- 			return err;
- 		}
 -- 
 2.20.1
 
