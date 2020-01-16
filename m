@@ -4,50 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FF8C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:07:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67431C33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:08:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B044E217F4
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:07:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4407F2073A
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:08:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579198054;
-	bh=ft/Gf4e9WeUKeYmGFSjphd1Rd3xP5s4bOnB/kT1kyoU=;
+	s=default; t=1579198111;
+	bh=YXwEQI5JMci/hGOk9y58JJmQluDIMuFT/4wVYdl73Do=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LIoGO6THXQ/a1qM5R0zGIjktMp/P/DRk8t8yT608ESJWoPSLxWLspP5zpI0WtkgS+
-	 g+bgDSS9+CjzrRSpgjDVqDCDTOvICTJMTgE1ojBoaI76hbp43of2Il4hafGnbBCe9V
-	 eHjz+NGECwftkFP+rtjOeWYEbZEQ2PyHX4rGCRYw=
+	b=Q/n4nJkdn8Zm17MVQ4rPVbp5/Wkkqhj05DxhbaDxGqQnJoXAR9iRFyp4aaRvpxgNv
+	 mrB/fO92hLpG73P1UkYF2CYwJ0Rtw3fSRG5C6krP8SZeyj4CaVCelHv0dQnn54UYW7
+	 o4nlwNAl/bayHhEMI1arqR/5XUCUzKeh0vTkx/ds=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393439AbgAPSH0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:07:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56790 "EHLO mail.kernel.org"
+        id S2393529AbgAPSI3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 13:08:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393562AbgAPRj7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:39:59 -0500
+        id S2393367AbgAPRio (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:38:44 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4C33C246FC;
-        Thu, 16 Jan 2020 17:39:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5697024702;
+        Thu, 16 Jan 2020 17:38:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579196399;
-        bh=ft/Gf4e9WeUKeYmGFSjphd1Rd3xP5s4bOnB/kT1kyoU=;
+        s=default; t=1579196323;
+        bh=YXwEQI5JMci/hGOk9y58JJmQluDIMuFT/4wVYdl73Do=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SZeQ5vU45RjgwdVOjcdQfb/32GbVTZQzXvigkV5fC1IGP/0Hhef4XXjsKuoT4jtQj
-         qE37xe+/b2zCrwdmKUu6fR9uSZtpYAU8peBDBnvu/5X0UU+M3aF2FSL7J/cuj+4qC3
-         glEcOKxQXybWcxiwImlUf+KvbcSvb2xy36kjT4/Y=
+        b=o0dLW2XlehWBxW2jvOPFzhwzaSlz6Ze17x4e7z9w3b0B+twI8SQ1QgKCAxc2BP1PD
+         0uadFLuKeu1rpGC3DZYJBvhfp8BA0PhVnN8Dn90etipUIBf7Csgg6ARXTIEh8uYKsz
+         4gS3dDTdyun+2qi9Bh4NaCeSeCR/Chu5Urlh6FK4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mark Zhang <markz@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
+Cc:     Jack Morgenstein <jackm@dev.mellanox.co.il>,
         Leon Romanovsky <leonro@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 176/251] net/mlx5: Fix mlx5_ifc_query_lag_out_bits
-Date:   Thu, 16 Jan 2020 12:35:25 -0500
-Message-Id: <20200116173641.22137-136-sashal@kernel.org>
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.9 126/251] IB/mlx5: Add missing XRC options to QP optional params mask
+Date:   Thu, 16 Jan 2020 12:34:35 -0500
+Message-Id: <20200116173641.22137-86-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116173641.22137-1-sashal@kernel.org>
 References: <20200116173641.22137-1-sashal@kernel.org>
@@ -60,34 +59,88 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markz@mellanox.com>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
-[ Upstream commit ea77388b02270b0af8dc57f668f311235ea068f0 ]
+[ Upstream commit 8f4426aa19fcdb9326ac44154a117b1a3a5ae126 ]
 
-Remove the "reserved_at_40" field to match the device specification.
+The QP transition optional parameters for the various transition for XRC
+QPs are identical to those for RC QPs.
 
-Fixes: 84df61ebc69b ("net/mlx5: Add HW interfaces used by LAG")
-Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+Many of the XRC QP transition optional parameter bits are missing from the
+QP optional mask table.  These omissions caused failures when doing XRC QP
+state transitions.
+
+For example, when trying to change the response timer of an XRC receive QP
+via the RTS2RTS transition, the new timer value was ignored because
+MLX5_QP_OPTPAR_RNR_TIMEOUT bit was missing from the optional params mask
+for XRC qps for the RTS2RTS transition.
+
+Fix this by adding the missing XRC optional parameters for all QP
+transitions to the opt_mask table.
+
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Fixes: a4774e9095de ("IB/mlx5: Fix opt param mask according to firmware spec")
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/mlx5/mlx5_ifc.h | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 20ee90c47cd5..6dd276227217 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -7909,8 +7909,6 @@ struct mlx5_ifc_query_lag_out_bits {
- 
- 	u8         syndrome[0x20];
- 
--	u8         reserved_at_40[0x40];
--
- 	struct mlx5_ifc_lagc_bits ctx;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index a7bc89f5dae7..4d906a790481 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2324,6 +2324,11 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_PKEY_INDEX	|
+ 					  MLX5_QP_OPTPAR_Q_KEY		|
+ 					  MLX5_QP_OPTPAR_PRI_PORT,
++			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_RRE		|
++					  MLX5_QP_OPTPAR_RAE		|
++					  MLX5_QP_OPTPAR_RWE		|
++					  MLX5_QP_OPTPAR_PKEY_INDEX	|
++					  MLX5_QP_OPTPAR_PRI_PORT,
+ 		},
+ 		[MLX5_QP_STATE_RTR] = {
+ 			[MLX5_QP_ST_RC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH  |
+@@ -2357,6 +2362,12 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 					  MLX5_QP_OPTPAR_RWE		|
+ 					  MLX5_QP_OPTPAR_PM_STATE,
+ 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_Q_KEY,
++			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH	|
++					  MLX5_QP_OPTPAR_RRE		|
++					  MLX5_QP_OPTPAR_RAE		|
++					  MLX5_QP_OPTPAR_RWE		|
++					  MLX5_QP_OPTPAR_PM_STATE	|
++					  MLX5_QP_OPTPAR_RNR_TIMEOUT,
+ 		},
+ 	},
+ 	[MLX5_QP_STATE_RTS] = {
+@@ -2373,6 +2384,12 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_Q_KEY		|
+ 					  MLX5_QP_OPTPAR_SRQN		|
+ 					  MLX5_QP_OPTPAR_CQN_RCV,
++			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_RRE		|
++					  MLX5_QP_OPTPAR_RAE		|
++					  MLX5_QP_OPTPAR_RWE		|
++					  MLX5_QP_OPTPAR_RNR_TIMEOUT	|
++					  MLX5_QP_OPTPAR_PM_STATE	|
++					  MLX5_QP_OPTPAR_ALT_ADDR_PATH,
+ 		},
+ 	},
+ 	[MLX5_QP_STATE_SQER] = {
+@@ -2384,6 +2401,10 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 					   MLX5_QP_OPTPAR_RWE		|
+ 					   MLX5_QP_OPTPAR_RAE		|
+ 					   MLX5_QP_OPTPAR_RRE,
++			[MLX5_QP_ST_XRC]  = MLX5_QP_OPTPAR_RNR_TIMEOUT	|
++					   MLX5_QP_OPTPAR_RWE		|
++					   MLX5_QP_OPTPAR_RAE		|
++					   MLX5_QP_OPTPAR_RRE,
+ 		},
+ 	},
  };
- 
 -- 
 2.20.1
 
