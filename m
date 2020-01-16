@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9865C33CB3
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:19:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28139C33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 861232467A
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:19:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F219720684
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579195162;
-	bh=Y89DntmdLJBUYHynvLLmDTJ4+cBSFegH8ylUeW2/lQc=;
+	s=default; t=1579195275;
+	bh=pVwNJTS267s0DwV6idTs9NtxVWaFw9mF8KkJysJqDvQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=qiCIhtFCXhpxfj0AZ2ctAJvn4A+VuU9WREhb0gZ8S6VEnrmO0nUUxNhYw9KPxhyOr
-	 RCdtSbU9VuU0OyLa1TfkErNG8hCyDfNSglSUePFIgMDbuWfpsv2p+vVifaliOxtOoE
-	 iH/jdXaMIwQLXTCudWjwhpm9NJiqljUuK7I5FWAQ=
+	b=NeC9Y84L9q+ZW79A9dr7HQcVOqpEcwEN3gs7hIydBLZnsEHUpJbhtXMxIF2bi0Qz7
+	 Zm74Y1LUkM9/fmbcgPYkYyATxN/6xDeFzMKFWaErwYBFKIIXCm/Q16C8QNiUQX1QxJ
+	 3XoewSmpC+y7pSwstD3HdvTXiTv4m35R8DC1EfSQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388990AbgAPRTV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:19:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45980 "EHLO mail.kernel.org"
+        id S2391455AbgAPRVK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:21:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43708 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391472AbgAPRS2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:18:28 -0500
+        id S2391249AbgAPRRs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:17:48 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4F61D246B1;
-        Thu, 16 Jan 2020 17:18:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7509822522;
+        Thu, 16 Jan 2020 17:17:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579195108;
-        bh=Y89DntmdLJBUYHynvLLmDTJ4+cBSFegH8ylUeW2/lQc=;
+        s=default; t=1579195067;
+        bh=pVwNJTS267s0DwV6idTs9NtxVWaFw9mF8KkJysJqDvQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ZKxiqBMeCZG0P5C34C/qK8Cxmyx+jIzztlTkJ2k/LyDY67TeADprTamxzMsfvcz9E
-         GuF5mpQDs58y3puR3S424DkfVvir+xWif0bVOQzhAgpq4A1VzWTqrSkyzS4q929JdG
-         AootbgOQdV92weP1AuSupVncBRL/iiW+zq8YA2os=
+        b=vF5LgtYKaVoZQhUUikUtq3Bs+zc3ci3wcvAqwnm3Ff8X/NaJv7PmOqO9b3varnS2E
+         kjdvPVjgrTqK3h5NxtyTxIsIZVBx2xHAWbux026+MUrw0VTibMSvgPNXfvlVO2BuA0
+         4d5KeI8iyhzObv0OIxs5zmT9lX6+0bdSKexxLY8s=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Gal Pressman <galpress@amazon.com>,
-        Parvi Kaustubhi <pkaustub@cisco.com>,
+Cc:     Yuval Shaia <yuval.shaia@oracle.com>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Zhu Yanjun <yanjun.zhu@oracle.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 050/371] IB/usnic: Fix out of bounds index check in query pkey
-Date:   Thu, 16 Jan 2020 12:11:58 -0500
-Message-Id: <20200116171719.16965-50-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 021/371] IB/rxe: Fix incorrect cache cleanup in error flow
+Date:   Thu, 16 Jan 2020 12:11:29 -0500
+Message-Id: <20200116171719.16965-21-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116171719.16965-1-sashal@kernel.org>
 References: <20200116171719.16965-1-sashal@kernel.org>
@@ -59,35 +61,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gal Pressman <galpress@amazon.com>
+From: Yuval Shaia <yuval.shaia@oracle.com>
 
-[ Upstream commit 4959d5da5737dd804255c75b8cea0a2929ce279a ]
+[ Upstream commit 6db21d8986e14e2e86573a3b055b05296188bd2c ]
 
-The pkey table size is one element, index should be tested for > 0 instead
-of > 1.
+Array iterator stays at the same slot, fix it.
 
-Fixes: e3cf00d0a87f ("IB/usnic: Add Cisco VIC low-level hardware driver")
-Signed-off-by: Gal Pressman <galpress@amazon.com>
-Acked-by: Parvi Kaustubhi <pkaustub@cisco.com>
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_pool.c | 26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index fdfa25059723..2602c7375d58 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -423,7 +423,7 @@ struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num)
- int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 				u16 *pkey)
- {
--	if (index > 1)
-+	if (index > 0)
- 		return -EINVAL;
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index b4a8acc7bb7d..0e2425f28233 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -112,6 +112,18 @@ static inline struct kmem_cache *pool_cache(struct rxe_pool *pool)
+ 	return rxe_type_info[pool->type].cache;
+ }
  
- 	*pkey = 0xffff;
++static void rxe_cache_clean(size_t cnt)
++{
++	int i;
++	struct rxe_type_info *type;
++
++	for (i = 0; i < cnt; i++) {
++		type = &rxe_type_info[i];
++		kmem_cache_destroy(type->cache);
++		type->cache = NULL;
++	}
++}
++
+ int rxe_cache_init(void)
+ {
+ 	int err;
+@@ -136,24 +148,14 @@ int rxe_cache_init(void)
+ 	return 0;
+ 
+ err1:
+-	while (--i >= 0) {
+-		kmem_cache_destroy(type->cache);
+-		type->cache = NULL;
+-	}
++	rxe_cache_clean(i);
+ 
+ 	return err;
+ }
+ 
+ void rxe_cache_exit(void)
+ {
+-	int i;
+-	struct rxe_type_info *type;
+-
+-	for (i = 0; i < RXE_NUM_TYPES; i++) {
+-		type = &rxe_type_info[i];
+-		kmem_cache_destroy(type->cache);
+-		type->cache = NULL;
+-	}
++	rxe_cache_clean(RXE_NUM_TYPES);
+ }
+ 
+ static int rxe_pool_init_index(struct rxe_pool *pool, u32 max, u32 min)
 -- 
 2.20.1
 
