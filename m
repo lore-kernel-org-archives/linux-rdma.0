@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 150D9C33CB6
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:19:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9865C33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:19:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D5FCE22522
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:19:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 861232467A
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579195142;
-	bh=KPnjpl96N2d7rCs0uOIvKJYlAl/Kz6G527NiVyU+Zlg=;
+	s=default; t=1579195162;
+	bh=Y89DntmdLJBUYHynvLLmDTJ4+cBSFegH8ylUeW2/lQc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=aVl80HkirijrMseN0Ve5/lN3WBX9LD4BGssTU+3M1UZlCy+RhVFYrHWFEE6SNvnjJ
-	 5xd+gVFcb+3cFCm/5x8cK/BhE/EVksskYDuFrBa6EfcTaonqJEVPJBlAov3TeoJA/5
-	 Rv2Va/cuLTDbYpEpqgrEvEcXzoiJsxZS2I8sMyI0=
+	b=qiCIhtFCXhpxfj0AZ2ctAJvn4A+VuU9WREhb0gZ8S6VEnrmO0nUUxNhYw9KPxhyOr
+	 RCdtSbU9VuU0OyLa1TfkErNG8hCyDfNSglSUePFIgMDbuWfpsv2p+vVifaliOxtOoE
+	 iH/jdXaMIwQLXTCudWjwhpm9NJiqljUuK7I5FWAQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391521AbgAPRSh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:18:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46452 "EHLO mail.kernel.org"
+        id S2388990AbgAPRTV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:19:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391515AbgAPRSg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:18:36 -0500
+        id S2391472AbgAPRS2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:18:28 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 71418246B1;
-        Thu, 16 Jan 2020 17:18:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F61D246B1;
+        Thu, 16 Jan 2020 17:18:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579195116;
-        bh=KPnjpl96N2d7rCs0uOIvKJYlAl/Kz6G527NiVyU+Zlg=;
+        s=default; t=1579195108;
+        bh=Y89DntmdLJBUYHynvLLmDTJ4+cBSFegH8ylUeW2/lQc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AUVs8Kr5pijvoV+Sz2eqpm7DraNWkDrU7Cj7Dp1fBKV+1/kV+rBhVAQPF7GYhPZR7
-         0UWsSYYDaWmdRI2BI4MuyIe5/JqVn3M7ffnqTAvb32WhHRvl9aeDX0EEO4SV0R26kV
-         CrFYg5Tq42AH2ygLzoZx1lOIn9LSpGMSzfK/PT1E=
+        b=ZKxiqBMeCZG0P5C34C/qK8Cxmyx+jIzztlTkJ2k/LyDY67TeADprTamxzMsfvcz9E
+         GuF5mpQDs58y3puR3S424DkfVvir+xWif0bVOQzhAgpq4A1VzWTqrSkyzS4q929JdG
+         AootbgOQdV92weP1AuSupVncBRL/iiW+zq8YA2os=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Raju Rangoju <rajur@chelsio.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
+Cc:     Gal Pressman <galpress@amazon.com>,
+        Parvi Kaustubhi <pkaustub@cisco.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 056/371] RDMA/iw_cxgb4: Fix the unchecked ep dereference
-Date:   Thu, 16 Jan 2020 12:12:04 -0500
-Message-Id: <20200116171719.16965-56-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 050/371] IB/usnic: Fix out of bounds index check in query pkey
+Date:   Thu, 16 Jan 2020 12:11:58 -0500
+Message-Id: <20200116171719.16965-50-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116171719.16965-1-sashal@kernel.org>
 References: <20200116171719.16965-1-sashal@kernel.org>
@@ -59,55 +59,35 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Raju Rangoju <rajur@chelsio.com>
+From: Gal Pressman <galpress@amazon.com>
 
-[ Upstream commit 3352976c892301fd576a2e9ff0ac7337b2e2ca48 ]
+[ Upstream commit 4959d5da5737dd804255c75b8cea0a2929ce279a ]
 
-The patch 944661dd97f4: "RDMA/iw_cxgb4: atomically lookup ep and get a
-reference" from May 6, 2016, leads to the following Smatch complaint:
+The pkey table size is one element, index should be tested for > 0 instead
+of > 1.
 
-    drivers/infiniband/hw/cxgb4/cm.c:2953 terminate()
-    error: we previously assumed 'ep' could be null (see line 2945)
-
-Fixes: 944661dd97f4 ("RDMA/iw_cxgb4: atomically lookup ep and get a reference")
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Raju Rangoju <rajur@chelsio.com>
+Fixes: e3cf00d0a87f ("IB/usnic: Add Cisco VIC low-level hardware driver")
+Signed-off-by: Gal Pressman <galpress@amazon.com>
+Acked-by: Parvi Kaustubhi <pkaustub@cisco.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index bb36cdf82a8d..3668cc71b47e 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2923,15 +2923,18 @@ static int terminate(struct c4iw_dev *dev, struct sk_buff *skb)
- 	ep = get_ep_from_tid(dev, tid);
- 	BUG_ON(!ep);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index fdfa25059723..2602c7375d58 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -423,7 +423,7 @@ struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num)
+ int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+ 				u16 *pkey)
+ {
+-	if (index > 1)
++	if (index > 0)
+ 		return -EINVAL;
  
--	if (ep && ep->com.qp) {
--		pr_warn("TERM received tid %u qpid %u\n",
--			tid, ep->com.qp->wq.sq.qid);
--		attrs.next_state = C4IW_QP_STATE_TERMINATE;
--		c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
--			       C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
-+	if (ep) {
-+		if (ep->com.qp) {
-+			pr_warn("TERM received tid %u qpid %u\n", tid,
-+				ep->com.qp->wq.sq.qid);
-+			attrs.next_state = C4IW_QP_STATE_TERMINATE;
-+			c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
-+				       C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
-+		}
-+
-+		c4iw_put_ep(&ep->com);
- 	} else
- 		pr_warn("TERM received tid %u no ep/qp\n", tid);
--	c4iw_put_ep(&ep->com);
- 
- 	return 0;
- }
+ 	*pkey = 0xffff;
 -- 
 2.20.1
 
