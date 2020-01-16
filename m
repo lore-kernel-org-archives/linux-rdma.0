@@ -6,143 +6,121 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2BC8C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:14:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A971DC33CB1
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8FFE820723
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:14:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87D2E206B7
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 04:47:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729551AbgAPEOr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jan 2020 23:14:47 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8734 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730434AbgAPEOr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Jan 2020 23:14:47 -0500
-Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id A0BE39CF337B353AFFFF;
-        Thu, 16 Jan 2020 12:14:44 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 16 Jan 2020 12:14:34 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <shiraz.saleem@intel.com>, <aditr@vmware.com>,
-        <mkalderon@marvell.com>, <aelior@marvell.com>,
-        <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH RFC for-next 3/6] RDMA/i40iw: remove deliver net device event
-Date:   Thu, 16 Jan 2020 12:10:44 +0800
-Message-ID: <1579147847-12158-4-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1579147847-12158-1-git-send-email-liweihang@huawei.com>
-References: <1579147847-12158-1-git-send-email-liweihang@huawei.com>
+        id S1729388AbgAPEro (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jan 2020 23:47:44 -0500
+Received: from mail-pj1-f67.google.com ([209.85.216.67]:34316 "EHLO
+        mail-pj1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729138AbgAPEro (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jan 2020 23:47:44 -0500
+Received: by mail-pj1-f67.google.com with SMTP id s94so2671554pjc.1;
+        Wed, 15 Jan 2020 20:47:44 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=C8K92N6Wm09L11+pWle56w1bj7a3AtfPt0806DIP60o=;
+        b=Qo3zIbVpQFtvkYcvZvkEVnRTia9/dRBW3IWnh+dAD5IDh23ezCuBPFKYPq8I+P/gIT
+         zjywzFZUFqcqYLMOW3dtBIMIIUfe45+HhxmP9dngZ4ZEWXgL5/IRXi9QBpvU2qhX63zC
+         UGnpRGamhyap+CY05vvhw+RPhR79Gk3985y/o/Lk+u6Ut4D2UWZqKTAQSRefRmefqMRL
+         UQSbQg9/ArD17pd8gVJoAQdT4iaYFtMFPP0vDGZ8gaQ49PvAoVWkdCBDQdA602//ZYHl
+         tWtC1u6fyVRlePRni/d25gOBjrRm5R6im8Lzh1bjRxgdQg/6mGfE72eVTv592uHQIVzq
+         lgqQ==
+X-Gm-Message-State: APjAAAX1TWNB/ThKkJiNmaI3TT9r84J/oa2v6PRlcXD+va3kE+mRoOq2
+        NkTTxrnsMsJP7YAEGdctz4M=
+X-Google-Smtp-Source: APXvYqwtU3eWhZAVhZezyPLinkOToEc3068Tn5JlAZJ34vbhSg/i/k8NRtEdNo5lwQrGx9LHQNf+qQ==
+X-Received: by 2002:a17:902:82c9:: with SMTP id u9mr29838905plz.264.1579150063542;
+        Wed, 15 Jan 2020 20:47:43 -0800 (PST)
+Received: from asus.hsd1.ca.comcast.net ([2601:647:4000:d7:e955:e36b:c3d8:ecb2])
+        by smtp.gmail.com with ESMTPSA id j94sm1495228pje.8.2020.01.15.20.47.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Jan 2020 20:47:42 -0800 (PST)
+From:   Bart Van Assche <bvanassche@acm.org>
+To:     "Martin K . Petersen" <martin.petersen@oracle.com>
+Cc:     target-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Bart Van Assche <bvanassche@acm.org>,
+        Rahul Kundu <rahul.kundu@chelsio.com>
+Subject: [PATCH] RDMA/isert: Fix a recently introduced regression related to logout
+Date:   Wed, 15 Jan 2020 20:47:37 -0800
+Message-Id: <20200116044737.19507-1-bvanassche@acm.org>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+iscsit_close_connection() calls isert_wait_conn(). Due to commit
+e9d3009cb936 both functions call target_wait_for_sess_cmds() although
+that last function should be called only once. Fix this by removing
+the target_wait_for_sess_cmds() call from isert_wait_conn() and by
+only calling isert_wait_conn() after target_wait_for_sess_cmds().
 
-The code that handles the link event of the net device has been moved
-into the core, and the related processing should been removed from the
-provider's driver.
-
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
+Reported-by: Rahul Kundu <rahul.kundu@chelsio.com>
+Fixes: e9d3009cb936 ("scsi: target: iscsi: Wait for all commands to finish before freeing a session").
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_main.c  |  6 -----
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 44 -------------------------------
- 2 files changed, 50 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 12 ------------
+ drivers/target/iscsi/iscsi_target.c     |  6 +++---
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 2386143..6c41458e 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -99,10 +99,6 @@ static struct notifier_block i40iw_net_notifier = {
- 	.notifier_call = i40iw_net_event
- };
- 
--static struct notifier_block i40iw_netdevice_notifier = {
--	.notifier_call = i40iw_netdevice_event
--};
--
- /**
-  * i40iw_find_i40e_handler - find a handler given a client info
-  * @ldev: pointer to a client info
-@@ -1401,7 +1397,6 @@ static void i40iw_register_notifiers(void)
- 	register_inetaddr_notifier(&i40iw_inetaddr_notifier);
- 	register_inet6addr_notifier(&i40iw_inetaddr6_notifier);
- 	register_netevent_notifier(&i40iw_net_notifier);
--	register_netdevice_notifier(&i40iw_netdevice_notifier);
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index a1a035270cab..b273e421e910 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -2575,17 +2575,6 @@ isert_wait4logout(struct isert_conn *isert_conn)
+ 	}
  }
  
- /**
-@@ -1413,7 +1408,6 @@ static void i40iw_unregister_notifiers(void)
- 	unregister_netevent_notifier(&i40iw_net_notifier);
- 	unregister_inetaddr_notifier(&i40iw_inetaddr_notifier);
- 	unregister_inet6addr_notifier(&i40iw_inetaddr6_notifier);
--	unregister_netdevice_notifier(&i40iw_netdevice_notifier);
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 0165246..09171e6 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -311,50 +311,6 @@ int i40iw_net_event(struct notifier_block *notifier, unsigned long event, void *
- }
- 
- /**
-- * i40iw_netdevice_event - system notifier for netdev events
-- * @notfier: not used
-- * @event: event for notifier
-- * @ptr: netdev
-- */
--int i40iw_netdevice_event(struct notifier_block *notifier,
--			  unsigned long event,
--			  void *ptr)
+-static void
+-isert_wait4cmds(struct iscsi_conn *conn)
 -{
--	struct net_device *event_netdev;
--	struct net_device *netdev;
--	struct i40iw_device *iwdev;
--	struct i40iw_handler *hdl;
+-	isert_info("iscsi_conn %p\n", conn);
 -
--	event_netdev = netdev_notifier_info_to_dev(ptr);
--
--	hdl = i40iw_find_netdev(event_netdev);
--	if (!hdl)
--		return NOTIFY_DONE;
--
--	iwdev = &hdl->device;
--	if (iwdev->init_state < RDMA_DEV_REGISTERED || iwdev->closing)
--		return NOTIFY_DONE;
--
--	netdev = iwdev->ldev->netdev;
--	if (netdev != event_netdev)
--		return NOTIFY_DONE;
--
--	iwdev->iw_status = 1;
--
--	switch (event) {
--	case NETDEV_DOWN:
--		iwdev->iw_status = 0;
--		/* Fall through */
--	case NETDEV_UP:
--		i40iw_port_ibevent(iwdev);
--		break;
--	default:
--		break;
+-	if (conn->sess) {
+-		target_sess_cmd_list_set_waiting(conn->sess->se_sess);
+-		target_wait_for_sess_cmds(conn->sess->se_sess);
 -	}
--	return NOTIFY_DONE;
 -}
 -
--/**
-  * i40iw_get_cqp_request - get cqp struct
-  * @cqp: device cqp ptr
-  * @wait: cqp to be used in wait mode
--- 
-2.8.1
-
+ /**
+  * isert_put_unsol_pending_cmds() - Drop commands waiting for
+  *     unsolicitate dataout
+@@ -2633,7 +2622,6 @@ static void isert_wait_conn(struct iscsi_conn *conn)
+ 
+ 	ib_drain_qp(isert_conn->qp);
+ 	isert_put_unsol_pending_cmds(conn);
+-	isert_wait4cmds(conn);
+ 	isert_wait4logout(isert_conn);
+ 
+ 	queue_work(isert_release_wq, &isert_conn->release_work);
+diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
+index 7251a87bb576..b94ed4e30770 100644
+--- a/drivers/target/iscsi/iscsi_target.c
++++ b/drivers/target/iscsi/iscsi_target.c
+@@ -4149,9 +4149,6 @@ int iscsit_close_connection(
+ 	iscsit_stop_nopin_response_timer(conn);
+ 	iscsit_stop_nopin_timer(conn);
+ 
+-	if (conn->conn_transport->iscsit_wait_conn)
+-		conn->conn_transport->iscsit_wait_conn(conn);
+-
+ 	/*
+ 	 * During Connection recovery drop unacknowledged out of order
+ 	 * commands for this connection, and prepare the other commands
+@@ -4237,6 +4234,9 @@ int iscsit_close_connection(
+ 	target_sess_cmd_list_set_waiting(sess->se_sess);
+ 	target_wait_for_sess_cmds(sess->se_sess);
+ 
++	if (conn->conn_transport->iscsit_wait_conn)
++		conn->conn_transport->iscsit_wait_conn(conn);
++
+ 	ahash_request_free(conn->conn_tx_hash);
+ 	if (conn->conn_rx_hash) {
+ 		struct crypto_ahash *tfm;
