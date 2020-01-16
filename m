@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F397C33CB6
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:55:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ABE7C33CB7
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:58:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D62EC214AF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:55:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2346221582
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:58:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579193730;
-	bh=2xRJRWDQlQ6lgY7clO/7aQlHd9NaMYeMsWsqynNKo3s=;
+	s=default; t=1579193900;
+	bh=iQaqarOnsYefb85HkAU/PcRkM1Wu80tYmegtL2PbKtM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FCY1wswnZ7sGV+srk1m9iconkxPKf+Ef/QHb1+ojla/nPEupMlMXKfHZMQ9v9d1nE
-	 ebWiIYYD2qAM3YWC877UFWh0Xng13yYr8aLthdc/Pp0O0tvMpL6LbV4HTnc3GduimQ
-	 1kaZUoZNDI8xGQMrPilKp6abPDtpe+zEZoJPgSG0=
+	b=qRb8cdT7fuLhwA9xXxi/cr7mywtlrVEo2iK/OBc6DhUhuQL+pNlFcOgrZhHc5d765
+	 A8XYG/bkxiwwPlYyZk6bNe//M0GU26oVtn4lNX43NPMbkGfHFZRRlheLdXGPxeFAzV
+	 XxHPcn+QKc6moSfR+sc30e8r24UIB0BFKb8qYE8Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730715AbgAPQz3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:55:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40680 "EHLO mail.kernel.org"
+        id S1728903AbgAPQ6S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:58:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45396 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729368AbgAPQz2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:55:28 -0500
+        id S2387557AbgAPQ5t (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:57:49 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 492852176D;
-        Thu, 16 Jan 2020 16:55:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4388D24684;
+        Thu, 16 Jan 2020 16:57:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193727;
-        bh=2xRJRWDQlQ6lgY7clO/7aQlHd9NaMYeMsWsqynNKo3s=;
+        s=default; t=1579193869;
+        bh=iQaqarOnsYefb85HkAU/PcRkM1Wu80tYmegtL2PbKtM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cknxyQGl+PdMwEB1PSUAey06jw/z+vNIrTqFiLzOs/KFFIql5aE3fsVcbwIq7LmN2
-         CgK+c1pJfYKpV9TovmA1hO69Tj7AfwXWhXXkucZ3ZMd/aXCDZzYZF4YnZq0N9SHoYp
-         6r2DE/e6f4i05lXxx15QiNdFvCyv6roDPdYDb0Xs=
+        b=UfhSDU4EjfERfQMG5HVKvxb+ZlDoG+Pi/zFoEr439Hg/9WBd+1bWD6rg038K9V22a
+         crcuOk49yjF5/Ysk1ksXn1WXeM8ghKxrFVr80MkRVZCfSYgUtX4AEgeuIG6wsZUcLD
+         QkUlrFI2S/XVIFVtZ2rzSoocpof5V49F08aOgETk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Alex Estrin <alex.estrin@intel.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        "Michael J . Ruhl" <michael.j.ruhl@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+Cc:     Raju Rangoju <rajur@chelsio.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 020/671] IB/hfi1: Add mtu check for operational data VLs
-Date:   Thu, 16 Jan 2020 11:44:11 -0500
-Message-Id: <20200116165502.8838-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 114/671] RDMA/iw_cxgb4: Fix the unchecked ep dereference
+Date:   Thu, 16 Jan 2020 11:45:45 -0500
+Message-Id: <20200116165502.8838-114-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116165502.8838-1-sashal@kernel.org>
 References: <20200116165502.8838-1-sashal@kernel.org>
@@ -61,72 +59,55 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin@intel.com>
+From: Raju Rangoju <rajur@chelsio.com>
 
-[ Upstream commit eb50130964e8c1379f37c3d3bab33a411ec62e98 ]
+[ Upstream commit 3352976c892301fd576a2e9ff0ac7337b2e2ca48 ]
 
-Since Virtual Lanes BCT credits and MTU are set through separate MADs, we
-have to ensure both are valid, and data VLs are ready for transmission
-before we allow port transition to Armed state.
+The patch 944661dd97f4: "RDMA/iw_cxgb4: atomically lookup ep and get a
+reference" from May 6, 2016, leads to the following Smatch complaint:
 
-Fixes: 5e2d6764a729 ("IB/hfi1: Verify port data VLs credits on transition to Armed")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Alex Estrin <alex.estrin@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+    drivers/infiniband/hw/cxgb4/cm.c:2953 terminate()
+    error: we previously assumed 'ep' could be null (see line 2945)
+
+Fixes: 944661dd97f4 ("RDMA/iw_cxgb4: atomically lookup ep and get a reference")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Raju Rangoju <rajur@chelsio.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 6b8935361133..b09a4b1cf397 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -10580,12 +10580,29 @@ void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
- 	}
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 4dcc92d11609..1b3d014fa1d6 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -2947,15 +2947,18 @@ static int terminate(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ 	ep = get_ep_from_tid(dev, tid);
+ 
+-	if (ep && ep->com.qp) {
+-		pr_warn("TERM received tid %u qpid %u\n",
+-			tid, ep->com.qp->wq.sq.qid);
+-		attrs.next_state = C4IW_QP_STATE_TERMINATE;
+-		c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
+-			       C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
++	if (ep) {
++		if (ep->com.qp) {
++			pr_warn("TERM received tid %u qpid %u\n", tid,
++				ep->com.qp->wq.sq.qid);
++			attrs.next_state = C4IW_QP_STATE_TERMINATE;
++			c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
++				       C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
++		}
++
++		c4iw_put_ep(&ep->com);
+ 	} else
+ 		pr_warn("TERM received tid %u no ep/qp\n", tid);
+-	c4iw_put_ep(&ep->com);
+ 
+ 	return 0;
  }
- 
--/*
-- * Verify if BCT for data VLs is non-zero.
-+/**
-+ * data_vls_operational() - Verify if data VL BCT credits and MTU
-+ *			    are both set.
-+ * @ppd: pointer to hfi1_pportdata structure
-+ *
-+ * Return: true - Ok, false -otherwise.
-  */
- static inline bool data_vls_operational(struct hfi1_pportdata *ppd)
- {
--	return !!ppd->actual_vls_operational;
-+	int i;
-+	u64 reg;
-+
-+	if (!ppd->actual_vls_operational)
-+		return false;
-+
-+	for (i = 0; i < ppd->vls_supported; i++) {
-+		reg = read_csr(ppd->dd, SEND_CM_CREDIT_VL + (8 * i));
-+		if ((reg && !ppd->dd->vld[i].mtu) ||
-+		    (!reg && ppd->dd->vld[i].mtu))
-+			return false;
-+	}
-+
-+	return true;
- }
- 
- /*
-@@ -10698,7 +10715,8 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
- 
- 		if (!data_vls_operational(ppd)) {
- 			dd_dev_err(dd,
--				   "%s: data VLs not operational\n", __func__);
-+				   "%s: Invalid data VL credits or mtu\n",
-+				   __func__);
- 			ret = -EINVAL;
- 			break;
- 		}
 -- 
 2.20.1
 
