@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF15C33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEA9EC33CB6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:06:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7648520663
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:58:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0F4C2072E
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579201134;
-	bh=G7QWAhHlmc5ZheBORETdChgk5Ie7dO9owpOgebpVdNE=;
+	s=default; t=1579201578;
+	bh=GhkAe2zMQTLuD474ErZ/Me1pHST6ZgL9D3RwQAoHn7Q=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=pDkEZgybRs/HqMRIWQGDJNkLCH1Qygcx3B5WVer45C5/HIUf0FAlLVgG8rxbP+ByF
-	 jMi68yh5+kp8JbmptuJCHmxbzf2VxTnAzQ0b1CpCofJBB86O3SgFHd2p4gRisR6fxX
-	 FiDBSvDWjo0O80RXFT6RF1WK9UWC/1GOKUpPlJBI=
+	b=omdbha1zr3iGUNg9r0oGP0ZiyanDXuMLWGVAlyAzsZhF8CngnL1QXdrl8kRo9doiT
+	 WBtkL8qNtiurfMzuuxUmsH2rUyihSfGjxxTG7bZbAVjVLRQN9dcUXAe/4SwTwKNmbn
+	 qJkRmLCPwUqEevPReTow6wjJ2qAhqtXLGaBuxI/Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392886AbgAPS6u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:58:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37382 "EHLO mail.kernel.org"
+        id S2388331AbgAPTGI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 14:06:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388978AbgAPRGo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:06:44 -0500
+        id S2388146AbgAPRBl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:01:41 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DF8FB20663;
-        Thu, 16 Jan 2020 17:06:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 78DDE207FF;
+        Thu, 16 Jan 2020 17:01:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194403;
-        bh=G7QWAhHlmc5ZheBORETdChgk5Ie7dO9owpOgebpVdNE=;
+        s=default; t=1579194100;
+        bh=GhkAe2zMQTLuD474ErZ/Me1pHST6ZgL9D3RwQAoHn7Q=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=1Gxyq5KwWQkhTRUYIf9Uqu1nGBnDJInMz8OT66oLc2t/mQxz9Pw2h9kTQ88bYyr9P
-         u9lalDLyWU53G6B5znefvSlTWKbjHJj+WbUNZby4RLNT2yMouj4rgI714RnKY7TsfS
-         xyXizDHM33ZnWsh6ERkmaovDbXMEjAMuuOOqPZ1I=
+        b=LO7eXqfRYz59eZLpguPf6nWIiHEUdQZV0ywtvDTnzInYBFyCHuE7ww3zuo6nNIIoS
+         /ozFr2lnb77ev3iUKkRJn+Y3n955N/pL/dacG7hB13ROAFNo3RG31pdlmmgTPgF5ww
+         3Rmubpy8gaTDlg6MBbUKy6yCs5SMbRnq+B7Yj6gM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Parav Pandit <parav@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 328/671] RDMA/rxe: Consider skb reserve space based on netdev of GID
-Date:   Thu, 16 Jan 2020 11:59:26 -0500
-Message-Id: <20200116170509.12787-65-sashal@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 201/671] net/mlx5: Delete unused FPGA QPN variable
+Date:   Thu, 16 Jan 2020 11:51:50 -0500
+Message-Id: <20200116165940.10720-84-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
-References: <20200116170509.12787-1-sashal@kernel.org>
+In-Reply-To: <20200116165940.10720-1-sashal@kernel.org>
+References: <20200116165940.10720-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,37 +59,47 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-[ Upstream commit 3bf3e2b881c1412d0329ce9376dfe1518489b8fc ]
+[ Upstream commit 566428375a53619196e31803130dd1a7010c4d7f ]
 
-Always consider the skb reserve space based on netdevice of the GID
-attribute, regardless of vlan or non vlan netdevice.
+fpga_qpn was assigned but never used and compilation with W=1
+produced the following warning:
 
-Fixes: 43c9fc509fa5 ("rdma_rxe: make rxe work over 802.1q VLAN devices")
-Signed-off-by: Parav Pandit <parav@mellanox.com>
+drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c: In function _mlx5_fpga_event_:
+drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c:320:6: warning:
+variable _fpga_qpn_ set but not used [-Wunused-but-set-variable]
+  u32 fpga_qpn;
+      ^~~~~~~~
+
+Fixes: 98db16bab59f ("net/mlx5: FPGA, Handle QP error event")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_net.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 8094cbaa54a9..54add70c22b5 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -533,8 +533,9 @@ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
- 	if (unlikely(!skb))
- 		goto out;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c
+index 436a8136f26f..310f9e7d8320 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c
+@@ -289,7 +289,6 @@ void mlx5_fpga_event(struct mlx5_core_dev *mdev, u8 event, void *data)
+ 	const char *event_name;
+ 	bool teardown = false;
+ 	unsigned long flags;
+-	u32 fpga_qpn;
+ 	u8 syndrome;
  
--	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(rxe->ndev));
-+	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(ndev));
- 
-+	/* FIXME: hold reference to this netdev until life of this skb. */
- 	skb->dev	= ndev;
- 	if (av->network_type == RDMA_NETWORK_IPV4)
- 		skb->protocol = htons(ETH_P_IP);
+ 	switch (event) {
+@@ -300,7 +299,6 @@ void mlx5_fpga_event(struct mlx5_core_dev *mdev, u8 event, void *data)
+ 	case MLX5_EVENT_TYPE_FPGA_QP_ERROR:
+ 		syndrome = MLX5_GET(fpga_qp_error_event, data, syndrome);
+ 		event_name = mlx5_fpga_qp_syndrome_to_string(syndrome);
+-		fpga_qpn = MLX5_GET(fpga_qp_error_event, data, fpga_qpn);
+ 		break;
+ 	default:
+ 		mlx5_fpga_warn_ratelimited(fdev, "Unexpected event %u\n",
 -- 
 2.20.1
 
