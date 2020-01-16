@@ -7,47 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA2A0C33CB3
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:47:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CF7FC33CB6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:48:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E0D92064C
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:47:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30EF02077B
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:48:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579200471;
-	bh=N6NL80NyMEmBK1Ck48h21G8o7JDmrLH68BcMhLlv+3k=;
+	s=default; t=1579200537;
+	bh=Tsv2cFwSXKX5+sUOE41BpHJBx1IMbHjouscXos+JqRc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=S03giUoIZ6JKBUbqroQZG46fbFs3Q9JCtZPtEySUu+z+IVgEJ03ZVIdldDzW+3FZz
-	 r9OxA4fcgFkRHRGHjwfcJO62nDYvGdiX1XJuOZuERxBwktJlYgPpaaHJRM8qVdZeIo
-	 9Sje54kV0Pm9GBvaIt2lcLKtW2agMYDxru4/z6PE=
+	b=hXRqVgvr/2BCXv6PaIJBjgYnpvRazsTAyisjgq493Zki8ETgvKO4TFioqbFhrrmn5
+	 UFx0aZ4/1PzSs9e/lVS4aWUDiWj9yYLlDHZkIB0UJCXVqhTjRR+w5HgfYJw5yrodp9
+	 bE4hsL5QT6ANeI4fGWz43NQ0OV16SFgBdP5ZL3Ps=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389106AbgAPSr3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:47:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49022 "EHLO mail.kernel.org"
+        id S2389781AbgAPSsv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 13:48:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389305AbgAPRKf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:10:35 -0500
+        id S2389720AbgAPRJj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:09:39 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 94F4424686;
-        Thu, 16 Jan 2020 17:10:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B6C8C24689;
+        Thu, 16 Jan 2020 17:09:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194634;
-        bh=N6NL80NyMEmBK1Ck48h21G8o7JDmrLH68BcMhLlv+3k=;
+        s=default; t=1579194578;
+        bh=Tsv2cFwSXKX5+sUOE41BpHJBx1IMbHjouscXos+JqRc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=OcA/O+C5FUYSxPjqn10/dlByLCN99g2uh1Vk/5Obf5FfqPqSF37rjTO2f9yFoSVX+
-         tk1iJ4HhwDM3cGqden4F5JBleKHCRfWMytKTmxkzd71wKipGR3eLEQL3eNPLEX3JjM
-         6DF0hhz4D63KGuZ77nEzqdbfkmvYIzucJZ+oSNJY=
+        b=ifsG+hEsHT8cL7IP/oKqIkvUvt8fkNq29uMWZCjd7FLKv7GE6DlL5eyGwLHpjIMI3
+         wt/TUtv4zmT8WUZOjBIqvsWInkn36zUIj2YTbU1d6UK/s7jKQ9fi7YN58vpbxWXOqI
+         APa+o61fs0wXrXVy6+OGdeSLzato3TIOlXxIlB7Q=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: [PATCH AUTOSEL 4.19 493/671] net/rds: Add a few missing rds_stat_names entries
-Date:   Thu, 16 Jan 2020 12:02:11 -0500
-Message-Id: <20200116170509.12787-230-sashal@kernel.org>
+Cc:     Xi Wang <wangxi11@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 453/671] RDMA/hns: Fixs hw access invalid dma memory error
+Date:   Thu, 16 Jan 2020 12:01:31 -0500
+Message-Id: <20200116170509.12787-190-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
 References: <20200116170509.12787-1-sashal@kernel.org>
@@ -60,42 +57,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gerd Rausch <gerd.rausch@oracle.com>
+From: Xi Wang <wangxi11@huawei.com>
 
-[ Upstream commit 55c70ca00c982fbc0df4c4d3e31747fb73f4ddb5 ]
+[ Upstream commit ec5bc2cc69b4fc494e04d10fc5226f6f9cf67c56 ]
 
-In a previous commit, fields were added to "struct rds_statistics"
-but array "rds_stat_names" was not updated accordingly.
+When smmu is enable, if execute the perftest command and then use 'kill
+-9' to exit, follow this operation repeatedly, the kernel will have a high
+probability to print the following smmu event:
 
-Please note the inconsistent naming of the string representations
-that is done in the name of compatibility
-with the Oracle internal code-base.
+  arm-smmu-v3 arm-smmu-v3.1.auto: event 0x10 received:
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x00007d0000000010
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x0000020900000080
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x00000000f47cf000
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x00000000f47cf000
 
-s_recv_bytes_added_to_socket     -> "recv_bytes_added_to_sock"
-s_recv_bytes_removed_from_socket -> "recv_bytes_freed_fromsock"
+This is because the hw will periodically refresh the qpc cache until the
+next reset.
 
-Fixes: 192a798f5299 ("RDS: add stat for socket recv memory usage")
-Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+This patch fixed it by removing the action that release qpc memory in the
+'hns_roce_qp_free' function.
+
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/rds/stats.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/rds/stats.c b/net/rds/stats.c
-index 73be187d389e..6bbab4d74c4f 100644
---- a/net/rds/stats.c
-+++ b/net/rds/stats.c
-@@ -76,6 +76,8 @@ static const char *const rds_stat_names[] = {
- 	"cong_update_received",
- 	"cong_send_error",
- 	"cong_send_blocked",
-+	"recv_bytes_added_to_sock",
-+	"recv_bytes_freed_fromsock",
- };
- 
- void rds_stats_info_copy(struct rds_info_iterator *iter,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index af24698ff226..3012d7eb4ccb 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -262,7 +262,6 @@ void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 			hns_roce_table_put(hr_dev, &qp_table->trrl_table,
+ 					   hr_qp->qpn);
+ 		hns_roce_table_put(hr_dev, &qp_table->irrl_table, hr_qp->qpn);
+-		hns_roce_table_put(hr_dev, &qp_table->qp_table, hr_qp->qpn);
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(hns_roce_qp_free);
 -- 
 2.20.1
 
