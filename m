@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 559B6C33CB6
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:46:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA2A0C33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:47:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1CFA2206B7
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:46:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E0D92064C
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:47:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579200394;
-	bh=3wY1eNIDBl00qk/vjDIBuNUlA3VgGOqLlLdRJU7xOIA=;
+	s=default; t=1579200471;
+	bh=N6NL80NyMEmBK1Ck48h21G8o7JDmrLH68BcMhLlv+3k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=bt8QjrZSpmGQj57Q2h8f0GsPaX6ixZlIMzWPmX96q5OsSn8Iz9X/EzXrubx/0Z291
-	 peLB38sSKuhXUUsP4Lge3ZjnDstAPvITx7MJUEa2Ge8NI0e6gQnwf6n0xuXXNI6qgL
-	 Vv4bVacVmP+0kKJL5x4Ew2Qr6j6eWTYJXZVugshU=
+	b=S03giUoIZ6JKBUbqroQZG46fbFs3Q9JCtZPtEySUu+z+IVgEJ03ZVIdldDzW+3FZz
+	 r9OxA4fcgFkRHRGHjwfcJO62nDYvGdiX1XJuOZuERxBwktJlYgPpaaHJRM8qVdZeIo
+	 9Sje54kV0Pm9GBvaIt2lcLKtW2agMYDxru4/z6PE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389890AbgAPRKS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:10:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48056 "EHLO mail.kernel.org"
+        id S2389106AbgAPSr3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 13:47:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49022 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389884AbgAPRKR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:10:17 -0500
+        id S2389305AbgAPRKf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:10:35 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8174F24683;
-        Thu, 16 Jan 2020 17:10:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 94F4424686;
+        Thu, 16 Jan 2020 17:10:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194617;
-        bh=3wY1eNIDBl00qk/vjDIBuNUlA3VgGOqLlLdRJU7xOIA=;
+        s=default; t=1579194634;
+        bh=N6NL80NyMEmBK1Ck48h21G8o7JDmrLH68BcMhLlv+3k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=plbH3aQMaEjLLK/blVseJ2hZT9fL59A6jyvkxzHZpayWU77LEs4kFBZb3M7ajp/Dm
-         wIMHxp64kJ5AikJW8Qf526tcKj9BZtqDBY87FCrsD16Pgy/+DCaNau2Fjw9CLRT7XA
-         uwfLY2Kb30W4FZuFH5kjxwQ3Gq8I8+WEKO0pbVLc=
+        b=OcA/O+C5FUYSxPjqn10/dlByLCN99g2uh1Vk/5Obf5FfqPqSF37rjTO2f9yFoSVX+
+         tk1iJ4HhwDM3cGqden4F5JBleKHCRfWMytKTmxkzd71wKipGR3eLEQL3eNPLEX3JjM
+         6DF0hhz4D63KGuZ77nEzqdbfkmvYIzucJZ+oSNJY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mark Zhang <markz@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 480/671] net/mlx5: Fix mlx5_ifc_query_lag_out_bits
-Date:   Thu, 16 Jan 2020 12:01:58 -0500
-Message-Id: <20200116170509.12787-217-sashal@kernel.org>
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Subject: [PATCH AUTOSEL 4.19 493/671] net/rds: Add a few missing rds_stat_names entries
+Date:   Thu, 16 Jan 2020 12:02:11 -0500
+Message-Id: <20200116170509.12787-230-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
 References: <20200116170509.12787-1-sashal@kernel.org>
@@ -60,34 +60,42 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markz@mellanox.com>
+From: Gerd Rausch <gerd.rausch@oracle.com>
 
-[ Upstream commit ea77388b02270b0af8dc57f668f311235ea068f0 ]
+[ Upstream commit 55c70ca00c982fbc0df4c4d3e31747fb73f4ddb5 ]
 
-Remove the "reserved_at_40" field to match the device specification.
+In a previous commit, fields were added to "struct rds_statistics"
+but array "rds_stat_names" was not updated accordingly.
 
-Fixes: 84df61ebc69b ("net/mlx5: Add HW interfaces used by LAG")
-Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Please note the inconsistent naming of the string representations
+that is done in the name of compatibility
+with the Oracle internal code-base.
+
+s_recv_bytes_added_to_socket     -> "recv_bytes_added_to_sock"
+s_recv_bytes_removed_from_socket -> "recv_bytes_freed_fromsock"
+
+Fixes: 192a798f5299 ("RDS: add stat for socket recv memory usage")
+Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/mlx5/mlx5_ifc.h | 2 --
- 1 file changed, 2 deletions(-)
+ net/rds/stats.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 177f11c96187..76b76b6aa83d 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -9053,8 +9053,6 @@ struct mlx5_ifc_query_lag_out_bits {
- 
- 	u8         syndrome[0x20];
- 
--	u8         reserved_at_40[0x40];
--
- 	struct mlx5_ifc_lagc_bits ctx;
+diff --git a/net/rds/stats.c b/net/rds/stats.c
+index 73be187d389e..6bbab4d74c4f 100644
+--- a/net/rds/stats.c
++++ b/net/rds/stats.c
+@@ -76,6 +76,8 @@ static const char *const rds_stat_names[] = {
+ 	"cong_update_received",
+ 	"cong_send_error",
+ 	"cong_send_blocked",
++	"recv_bytes_added_to_sock",
++	"recv_bytes_freed_fromsock",
  };
  
+ void rds_stats_info_copy(struct rds_info_iterator *iter,
 -- 
 2.20.1
 
