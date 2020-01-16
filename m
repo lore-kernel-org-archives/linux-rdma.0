@@ -4,50 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35EDFC33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:04:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E59AC33CB3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:06:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12E7024685
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:04:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1263B2087E
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:06:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579197860;
-	bh=a901/IBEU/bDcBBNw29cxt8hxMfb4O0J2wbr1+jNLaA=;
+	s=default; t=1579197970;
+	bh=1L+Uh7jj68z+yjjo5rQZ/oiCiuQZRMJEugTJpqgN8wc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=h1kgM9dkT9jeslG117w+0FTCj1M7ew/AnWhVkzKgpwcyLD+DgJgOoB4QyWG6dgi8b
-	 VwTn015PPVN7WnwaG95O0rrpa21W2Yenxc65z05PxACemuHzSBrKFvBaLe7NZ1++xp
-	 VU6P2EgIv/24A9OHx9508QPqBtRGQs0gIr9jw6bo=
+	b=jKyiNWQ0Nhbuf8UUiN6GKOYRq8LV7kFa0I65nu1ip3iFeOiN2x5t7efNnrd/S0a6e
+	 RxQRrX7Ac0MT9te/zSVZRejAl3SPYA2QXRtTWehFgVZFGjyqzmy9e6qzlK+aCSKMnB
+	 +ICIFz2NNB9vzKM3eXpSCfSVrxqnifhX8anWMsrM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394808AbgAPSES (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:04:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57838 "EHLO mail.kernel.org"
+        id S2393535AbgAPRjs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:39:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405563AbgAPRkg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:40:36 -0500
+        id S2393519AbgAPRjo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:39:44 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0B0D024730;
-        Thu, 16 Jan 2020 17:40:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 50D812470D;
+        Thu, 16 Jan 2020 17:39:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579196436;
-        bh=a901/IBEU/bDcBBNw29cxt8hxMfb4O0J2wbr1+jNLaA=;
+        s=default; t=1579196384;
+        bh=1L+Uh7jj68z+yjjo5rQZ/oiCiuQZRMJEugTJpqgN8wc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=FZHyH+lJv34IoTy03GPPsuvSStUs5NO8U21LVnc1ZoSJ3llyPEKTrMEMNnlxyVdjV
-         d/gIWU5jDgg5Yt0gWVZZuXHae73avthrBJ5xcn8AukSgaeRCCeAVByySImH9mgwmtE
-         PBWVdJ7+9DxFwwssEQrdNdkJ/YSHZdum4Etfilko=
+        b=EuDO5KvHfsdMP2hEmBHrcrnJWClJIFMoxgGoAcsXgCmJ+cxEhIngioPL0VDKyYE3T
+         MuHWzNr1CbI9K5+1nieZFaTjg7NQY315A2TALarX+lpeLSMk9i2LdGnsmP+328nb4a
+         fyu84xA/GSlc5wRFcdvNGSogCaJfrVgsuacV23kQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: [PATCH AUTOSEL 4.9 201/251] net/rds: Fix 'ib_evt_handler_call' element in 'rds_ib_stat_names'
-Date:   Thu, 16 Jan 2020 12:35:50 -0500
-Message-Id: <20200116173641.22137-161-sashal@kernel.org>
+Cc:     Xi Wang <wangxi11@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.9 166/251] RDMA/hns: Fixs hw access invalid dma memory error
+Date:   Thu, 16 Jan 2020 12:35:15 -0500
+Message-Id: <20200116173641.22137-126-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116173641.22137-1-sashal@kernel.org>
 References: <20200116173641.22137-1-sashal@kernel.org>
@@ -60,38 +57,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gerd Rausch <gerd.rausch@oracle.com>
+From: Xi Wang <wangxi11@huawei.com>
 
-[ Upstream commit 05a82481a3024b94db00b8c816bb3d526b5209e0 ]
+[ Upstream commit ec5bc2cc69b4fc494e04d10fc5226f6f9cf67c56 ]
 
-All entries in 'rds_ib_stat_names' are stringified versions
-of the corresponding "struct rds_ib_statistics" element
-without the "s_"-prefix.
+When smmu is enable, if execute the perftest command and then use 'kill
+-9' to exit, follow this operation repeatedly, the kernel will have a high
+probability to print the following smmu event:
 
-Fix entry 'ib_evt_handler_call' to do the same.
+  arm-smmu-v3 arm-smmu-v3.1.auto: event 0x10 received:
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x00007d0000000010
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x0000020900000080
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x00000000f47cf000
+  arm-smmu-v3 arm-smmu-v3.1.auto:  0x00000000f47cf000
 
-Fixes: f4f943c958a2 ("RDS: IB: ack more receive completions to improve performance")
-Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+This is because the hw will periodically refresh the qpc cache until the
+next reset.
+
+This patch fixed it by removing the action that release qpc memory in the
+'hns_roce_qp_free' function.
+
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/rds/ib_stats.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/rds/ib_stats.c b/net/rds/ib_stats.c
-index 7e78dca1f252..aaf4b3d10203 100644
---- a/net/rds/ib_stats.c
-+++ b/net/rds/ib_stats.c
-@@ -42,7 +42,7 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
- static const char *const rds_ib_stat_names[] = {
- 	"ib_connect_raced",
- 	"ib_listen_closed_stale",
--	"s_ib_evt_handler_call",
-+	"ib_evt_handler_call",
- 	"ib_tasklet_call",
- 	"ib_tx_cq_event",
- 	"ib_tx_ring_full",
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 33cf1035030b..6f3c0ea99dd0 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -241,7 +241,6 @@ void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 
+ 	if ((hr_qp->ibqp.qp_type) != IB_QPT_GSI) {
+ 		hns_roce_table_put(hr_dev, &qp_table->irrl_table, hr_qp->qpn);
+-		hns_roce_table_put(hr_dev, &qp_table->qp_table, hr_qp->qpn);
+ 	}
+ }
+ 
 -- 
 2.20.1
 
