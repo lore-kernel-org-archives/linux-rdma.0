@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09BF1C33CB3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED35BC47409
 	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D440920684
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4EEC20684
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:21:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579195310;
-	bh=OV4Gj3iKYNmpIhjM+5ujw1W1RlqHOngGDq3bXFJQo6A=;
+	s=default; t=1579195311;
+	bh=N6Y8PkCQnIedDcnf0oyyx/ToavtI/AovlyPF64X9BKo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=QdEvyLN+C4Wh+Q5imnkasYJKgMPzz9Qzpf34IclJV4SAProBiOWdrCSivHwfS8RVX
-	 LBjoDYkgEr0cKj63Cr2WETaTc6TWp+kKMxssB/wkX+zqtam5FuylmDVecqH6PhPiOn
-	 tU/e+MdfizhT5/FkZYrvPfA1oNyul7hLOqQ7Z2Jg=
+	b=CdNsZfb3F/aRKjPQ3mZT6vxNAewURsa52/7e2MPI5ENMIHTI+3Bhx0f2nfVYTL6hm
+	 zaJiQwfyKSLJdrmCIByr8sYyGgnu/FfLed+IKKlOkSFj4spuDvXnyVb++W9y4mJD+r
+	 RyWbnLfoWaeKWskI+0N/9HsOcg0uQhCKjKwyo9UY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391218AbgAPRRc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:17:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42828 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390838AbgAPRRb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S2391216AbgAPRRb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 16 Jan 2020 12:17:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42770 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2391134AbgAPRR3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:17:29 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B68C620728;
-        Thu, 16 Jan 2020 17:17:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 842472081E;
+        Thu, 16 Jan 2020 17:17:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579195050;
-        bh=OV4Gj3iKYNmpIhjM+5ujw1W1RlqHOngGDq3bXFJQo6A=;
+        s=default; t=1579195049;
+        bh=N6Y8PkCQnIedDcnf0oyyx/ToavtI/AovlyPF64X9BKo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=limpOP8CqrDorPDHGTcjkojbeIoD0w8CDFpHB6wcpqkmnJHwtVV/8x1yDLVFfBAEz
-         q6UswCAjIVqhmU74RA1ErsJwa+Vf22WzAK6O8WZumBgp7aNqeSLRQVBfsCM/wnJF+U
-         lfuvn+5DIyAVIuNGD1LrejJSdLQq06jAbTdOTYT4=
+        b=BlSv6jhYmhw/enHhdU5eawmTD3QAoqx8k9uASJHKN5JgeAqR0UmrR4sp5X1l8Xlgv
+         iVkPVyDk2fhyrbpEf+vlwq0KOSpKqKwlxOVNaR1YAg2IDSxc7Rlp2b+DPIhI/84oQa
+         bTG2OomkqhI2ND2bWW3YnrpPAs925m6HRIXqNSQE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Alex Estrin <alex.estrin@intel.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        "Michael J . Ruhl" <michael.j.ruhl@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+Cc:     Zhu Yanjun <yanjun.zhu@oracle.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 008/371] IB/hfi1: Add mtu check for operational data VLs
-Date:   Thu, 16 Jan 2020 12:11:16 -0500
-Message-Id: <20200116171719.16965-8-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 007/371] IB/rxe: replace kvfree with vfree
+Date:   Thu, 16 Jan 2020 12:11:15 -0500
+Message-Id: <20200116171719.16965-7-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116171719.16965-1-sashal@kernel.org>
 References: <20200116171719.16965-1-sashal@kernel.org>
@@ -61,71 +59,74 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin@intel.com>
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
 
-[ Upstream commit eb50130964e8c1379f37c3d3bab33a411ec62e98 ]
+[ Upstream commit 721ad7e643f7002efa398838693f90284ea216d1 ]
 
-Since Virtual Lanes BCT credits and MTU are set through separate MADs, we
-have to ensure both are valid, and data VLs are ready for transmission
-before we allow port transition to Armed state.
+The buf is allocated by vmalloc_user in the function rxe_queue_init.
+So it is better to free it by vfree.
 
-Fixes: 5e2d6764a729 ("IB/hfi1: Verify port data VLs credits on transition to Armed")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Alex Estrin <alex.estrin@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_cq.c | 4 ++--
+ drivers/infiniband/sw/rxe/rxe_qp.c | 5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 9f78bb07744c..4a0b7c003477 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -10552,12 +10552,29 @@ void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
- 	}
- }
- 
--/*
-- * Verify if BCT for data VLs is non-zero.
-+/**
-+ * data_vls_operational() - Verify if data VL BCT credits and MTU
-+ *			    are both set.
-+ * @ppd: pointer to hfi1_pportdata structure
-+ *
-+ * Return: true - Ok, false -otherwise.
+diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
+index c4aabf78dc90..f6e036ded046 100644
+--- a/drivers/infiniband/sw/rxe/rxe_cq.c
++++ b/drivers/infiniband/sw/rxe/rxe_cq.c
+@@ -30,7 +30,7 @@
+  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  * SOFTWARE.
   */
- static inline bool data_vls_operational(struct hfi1_pportdata *ppd)
- {
--	return !!ppd->actual_vls_operational;
-+	int i;
-+	u64 reg;
-+
-+	if (!ppd->actual_vls_operational)
-+		return false;
-+
-+	for (i = 0; i < ppd->vls_supported; i++) {
-+		reg = read_csr(ppd->dd, SEND_CM_CREDIT_VL + (8 * i));
-+		if ((reg && !ppd->dd->vld[i].mtu) ||
-+		    (!reg && ppd->dd->vld[i].mtu))
-+			return false;
-+	}
-+
-+	return true;
- }
+-
++#include <linux/vmalloc.h>
+ #include "rxe.h"
+ #include "rxe_loc.h"
+ #include "rxe_queue.h"
+@@ -97,7 +97,7 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
+ 	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
+ 			   cq->queue->buf_size, &cq->queue->ip);
+ 	if (err) {
+-		kvfree(cq->queue->buf);
++		vfree(cq->queue->buf);
+ 		kfree(cq->queue);
+ 		return err;
+ 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index aeea994b04c4..25055a68a2c0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -34,6 +34,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/delay.h>
+ #include <linux/sched.h>
++#include <linux/vmalloc.h>
  
- /*
-@@ -10662,7 +10679,8 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
+ #include "rxe.h"
+ #include "rxe_loc.h"
+@@ -255,7 +256,7 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 			   qp->sq.queue->buf_size, &qp->sq.queue->ip);
  
- 		if (!data_vls_operational(ppd)) {
- 			dd_dev_err(dd,
--				   "%s: data VLs not operational\n", __func__);
-+				   "%s: Invalid data VL credits or mtu\n",
-+				   __func__);
- 			ret = -EINVAL;
- 			break;
+ 	if (err) {
+-		kvfree(qp->sq.queue->buf);
++		vfree(qp->sq.queue->buf);
+ 		kfree(qp->sq.queue);
+ 		return err;
+ 	}
+@@ -308,7 +309,7 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 				   qp->rq.queue->buf_size,
+ 				   &qp->rq.queue->ip);
+ 		if (err) {
+-			kvfree(qp->rq.queue->buf);
++			vfree(qp->rq.queue->buf);
+ 			kfree(qp->rq.queue);
+ 			return err;
  		}
 -- 
 2.20.1
