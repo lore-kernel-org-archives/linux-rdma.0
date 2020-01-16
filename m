@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70D5BC33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:16:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA0FC3F68F
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:18:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4AB5E20730
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:16:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F7E1208C3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:18:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579198565;
-	bh=VMxSnVGIwtCxxKxJeP4Q7uYMqhofEoA/E2CG4sUyupk=;
+	s=default; t=1579198719;
+	bh=N6NL80NyMEmBK1Ck48h21G8o7JDmrLH68BcMhLlv+3k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=RhNcgWGj/H7MFfe04OM/VnZ93vOdq8L3X13J165n+24SV5sbi4nhkQEWzUgNvtP13
-	 BQeUzYIDXBUcYvKjranGWFyfYS2G0g7em/7ETcYG8ZhGrF6D4GFd50Jo+kVBFD81WA
-	 zbXwBdkx0WbFSU7MoMP3QdzBYZZuMq+Id4K86wkA=
+	b=SXBT3Lmb7oeX76hUig5OEwVsCGqVLXUzDHaVedc353BcUd7sY4pDCJHXtwpRLBEo6
+	 +21PE3cRcqH27//YLcvC0rkAOeI5TgLTX0V6VOi6bgbp6Y6qAHa7WIVavuTPiZuAcs
+	 mhyhk4OxRRJ/1g4XSKUg7HqcV95XsbLrTqoCh3rA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392819AbgAPSP4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:15:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41502 "EHLO mail.kernel.org"
+        id S2395392AbgAPSS2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 13:18:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392770AbgAPR3g (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:29:36 -0500
+        id S2392655AbgAPR2r (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:28:47 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0634424726;
-        Thu, 16 Jan 2020 17:29:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1C502246E8;
+        Thu, 16 Jan 2020 17:28:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579195776;
-        bh=VMxSnVGIwtCxxKxJeP4Q7uYMqhofEoA/E2CG4sUyupk=;
+        s=default; t=1579195727;
+        bh=N6NL80NyMEmBK1Ck48h21G8o7JDmrLH68BcMhLlv+3k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Hb0LX4P9yM6JDO9gaA+ots/6RPv5bYLdzDFzibaiQ2m7Zz5zT88/LgictNWKw24Z2
-         IJVHN77SyyIzoCk2Lqzg/+NmPilzvuBLS7dh28NnmBpYWpjFZir4idpvF5q+9dOnQ9
-         OA7iR0oQLqnu7y3YBnT6vtQKYssYG5TdUdgrvh9s=
+        b=BJQqak/USWV+Rx5bGj5xy5gur37QstpW+i0wTmG/MXfod+3TURj0D52xj6kIdABvq
+         hzf20qm0Nb0xQWnwregGBrMABx64cqRsRa/Chy3kl4xdFMvRAs9QtWIlqM5nVkkARD
+         3a5+wXkEDJ/98uQnWg7HBzfyrj9RiQ/vZCGBToJY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
@@ -45,9 +45,9 @@ Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
         "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: [PATCH AUTOSEL 4.14 301/371] net/rds: Fix 'ib_evt_handler_call' element in 'rds_ib_stat_names'
-Date:   Thu, 16 Jan 2020 12:22:53 -0500
-Message-Id: <20200116172403.18149-244-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 268/371] net/rds: Add a few missing rds_stat_names entries
+Date:   Thu, 16 Jan 2020 12:22:20 -0500
+Message-Id: <20200116172403.18149-211-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116172403.18149-1-sashal@kernel.org>
 References: <20200116172403.18149-1-sashal@kernel.org>
@@ -62,36 +62,40 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Gerd Rausch <gerd.rausch@oracle.com>
 
-[ Upstream commit 05a82481a3024b94db00b8c816bb3d526b5209e0 ]
+[ Upstream commit 55c70ca00c982fbc0df4c4d3e31747fb73f4ddb5 ]
 
-All entries in 'rds_ib_stat_names' are stringified versions
-of the corresponding "struct rds_ib_statistics" element
-without the "s_"-prefix.
+In a previous commit, fields were added to "struct rds_statistics"
+but array "rds_stat_names" was not updated accordingly.
 
-Fix entry 'ib_evt_handler_call' to do the same.
+Please note the inconsistent naming of the string representations
+that is done in the name of compatibility
+with the Oracle internal code-base.
 
-Fixes: f4f943c958a2 ("RDS: IB: ack more receive completions to improve performance")
+s_recv_bytes_added_to_socket     -> "recv_bytes_added_to_sock"
+s_recv_bytes_removed_from_socket -> "recv_bytes_freed_fromsock"
+
+Fixes: 192a798f5299 ("RDS: add stat for socket recv memory usage")
 Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/rds/ib_stats.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/rds/stats.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/rds/ib_stats.c b/net/rds/ib_stats.c
-index 9252ad126335..ac46d8961b61 100644
---- a/net/rds/ib_stats.c
-+++ b/net/rds/ib_stats.c
-@@ -42,7 +42,7 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
- static const char *const rds_ib_stat_names[] = {
- 	"ib_connect_raced",
- 	"ib_listen_closed_stale",
--	"s_ib_evt_handler_call",
-+	"ib_evt_handler_call",
- 	"ib_tasklet_call",
- 	"ib_tx_cq_event",
- 	"ib_tx_ring_full",
+diff --git a/net/rds/stats.c b/net/rds/stats.c
+index 73be187d389e..6bbab4d74c4f 100644
+--- a/net/rds/stats.c
++++ b/net/rds/stats.c
+@@ -76,6 +76,8 @@ static const char *const rds_stat_names[] = {
+ 	"cong_update_received",
+ 	"cong_send_error",
+ 	"cong_send_blocked",
++	"recv_bytes_added_to_sock",
++	"recv_bytes_freed_fromsock",
+ };
+ 
+ void rds_stats_info_copy(struct rds_info_iterator *iter,
 -- 
 2.20.1
 
