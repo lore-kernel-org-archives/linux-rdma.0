@@ -2,191 +2,116 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B4F1C33CB1
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:24:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E44A6C33CB1
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:39:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DDD9D206D5
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:24:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B67EA2073A
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 16:39:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="PyLaSZFm"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="jHU+8/LZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726559AbgAPQY2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:24:28 -0500
-Received: from mail-io1-f66.google.com ([209.85.166.66]:37024 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726867AbgAPQY2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 11:24:28 -0500
-Received: by mail-io1-f66.google.com with SMTP id k24so22453266ioc.4
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 08:24:27 -0800 (PST)
+        id S1726343AbgAPQj6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 11:39:58 -0500
+Received: from mail-qt1-f194.google.com ([209.85.160.194]:40375 "EHLO
+        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726151AbgAPQj6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 11:39:58 -0500
+Received: by mail-qt1-f194.google.com with SMTP id v25so19366318qto.7
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 08:39:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=apIz2+9yoUfuStq5UMu8JP8acA1lx+rNR0oTEq6+/+s=;
-        b=PyLaSZFmKclzKXc2mofAeRISHMo3IWIZvYOyzXjwWgiLonnaYcHRnYY5Svxx66yr7f
-         jLGOtmtEc53zsMlgG6EdXnP4HHgPAhPlGnNFM8X3Y0V+pcglmBH8kHbl+hSAHmN8gUD2
-         H9FpdGXns3IiBm3bbIpeGscEvRwjhxG67Z9nHKF08lQF0ljI6NviuoRo+fmTUOu+ALa1
-         FE6W2xv4JWmwA1MJswmHEBnY3KIAo6mAnSdC0eTvFoFw8ltYmc+0W4percxA0OQUEYg1
-         XLbIO803hHOeZbjtYia3DefqH70LdH5+s3ihhmc0NF0nTdJbwxybtvvXP5/+CljjgUhR
-         O2Bw==
+        d=ziepe.ca; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=kWYbBeaMjs0GnQZYUjR4f7NNZZLfx+/6BfTHxNRD/ug=;
+        b=jHU+8/LZbbz69x1x7+hY1xxeq08tg0bbO7OnYvZpt0LUU/5LsKurj4JxdEynEtQabm
+         k58CyGef+KJZP7OEqOoGAo+rexwc0EiFjiMaZT1gqCerzyWVX7peuaMx1BpkhMoydjIc
+         chajO6JL/EUqDZCpQRKDceG7baUHU8TcwqIyw8JxvzT7O4ihHtYYgquKgPUbxYcN9E5m
+         ZMop92Iw005iXm90Ww5zHUjSEf/wvKCflpyGqbccVVa5puRd1yiF1f3fRl5gLtEgMlg0
+         sSHf4PSJV7ooXXczfYdSe7XGsfUkRQ8nRn/NZvOsjMs+kfx/8mUmZc94Bhdp26+D9W2R
+         li2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=apIz2+9yoUfuStq5UMu8JP8acA1lx+rNR0oTEq6+/+s=;
-        b=pc1S8et3M5XSYLRcESch5gtWBzrYxH6TwWvdGaYournhJJxGbVe0zt186L9dzLuvfC
-         HDIYhkd7w9IIOKCbxnyrVyNMprFNVq41vMcWmfMKb/31oPcGfSQDjjdy3auDQA5et+xP
-         CrgDCD4GIRBelSO63Qpe4UT1Vl11/Fk3/t1Rw/UNNj02GwPRvnYk5zt2OX7JboYYRk6n
-         vLX4gXJsR5gT7btQ8OLfBV9V3iciQY+diiu0Wn3MvX6Dwmp5fVb5VINIF/VwBPpsIg+s
-         bxI6f05dWBNCvnOSn2yigJZ8BDIHnDO7ph32TECsNDzSKkyBA02WOYIRJ9A4idGeTjvU
-         OOLA==
-X-Gm-Message-State: APjAAAVkpQ0rLZNr4a7FHh2s0PrlARAylToEQaqeBQnHBQMrgM1Jr9sE
-        FGWAy03rGYg9QeRNlSIDIv6savm0LtgU1857qmu9cQ==
-X-Google-Smtp-Source: APXvYqwEbz/nPKl0Ju6yl68j4LvWHYZBTDI1g6S3NJ2/g8vGUHJa7Caj1TYzBMwRrxOdVH7Rk3i+WPh3WyrLmfJlF2Y=
-X-Received: by 2002:a02:ca10:: with SMTP id i16mr30169945jak.10.1579191867085;
- Thu, 16 Jan 2020 08:24:27 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=kWYbBeaMjs0GnQZYUjR4f7NNZZLfx+/6BfTHxNRD/ug=;
+        b=XT5FUUoJ4dGznsTV22vv9YT2mbNF4YLWbQQzL92IwS1uAM62KJWjUcZN7CoVrkBuKD
+         RPb1fz0MKsMq5EV5m8qiuOh9ic/Ra+rYVNqTwT/dVHoN2sv4zfu5LEsMWChk3JESh0Ga
+         HD+haj9Qvjr4pzZTkHqywD8jmVMvU1+2wYOCWAcJRlQcSkr1LTmJiHbLcBMPKY4snDG0
+         Rxm809z0lz/kUTLcxG/mwnsRr3kYJqS/0LToLn9b3BYiiKcaxm5mMH6v/8RTRLQORejI
+         CcDcTlgbe0kpONC6vETK4LXr/GRR/mainomC/1hP2wUFWJaLRfpSkF+BlNemgdLvej94
+         6+iA==
+X-Gm-Message-State: APjAAAVAc8jI+ii4GZOn8fzT5E1ioZONUbyU8IY/iNsCDgWyM2+VH4mU
+        uzAyzCVew6xuoI1IYuHCzhtcUw==
+X-Google-Smtp-Source: APXvYqzfns8ljtcO2JFCJbXZPLfVUE3/cIm6iWQjaO8uPfYNRqQtNCFlZrZCPQFtsUY9k/vw/Qrh2A==
+X-Received: by 2002:ac8:ff6:: with SMTP id f51mr3262879qtk.60.1579192796991;
+        Thu, 16 Jan 2020 08:39:56 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id u55sm11877069qtc.28.2020.01.16.08.39.55
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 16 Jan 2020 08:39:55 -0800 (PST)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1is8BW-00072p-LF; Thu, 16 Jan 2020 12:39:54 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     linux-mm@kvack.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Jerome Glisse <jglisse@redhat.com>,
+        Ralph Campbell <rcampbell@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH 0/3] Rename variables in mmu_notifier.c
+Date:   Thu, 16 Jan 2020 12:39:42 -0400
+Message-Id: <20200116163945.26956-1-jgg@ziepe.ca>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-References: <20200116125915.14815-1-jinpuwang@gmail.com> <20200116125915.14815-7-jinpuwang@gmail.com>
- <20200116145300.GC12433@unreal> <CAMGffE=pym8iz4OVxx7s6i37AU+KPFN3AeVrCTOpLx+N8A9dEQ@mail.gmail.com>
- <20200116155800.GA18467@unreal>
-In-Reply-To: <20200116155800.GA18467@unreal>
-From:   Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Date:   Thu, 16 Jan 2020 17:24:16 +0100
-Message-ID: <CAMGffEkLHNPJ3feWhX0vnjr3hasVp3=+Z76wO3-07s9+Te=7Pw@mail.gmail.com>
-Subject: Re: [PATCH v7 06/25] RDMA/rtrs: client: main functionality
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        Roman Penyaev <rpenyaev@suse.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 16, 2020 at 4:58 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> On Thu, Jan 16, 2020 at 04:43:41PM +0100, Jinpu Wang wrote:
-> > On Thu, Jan 16, 2020 at 3:53 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > >
-> > > On Thu, Jan 16, 2020 at 01:58:56PM +0100, Jack Wang wrote:
-> > > > From: Jack Wang <jinpu.wang@cloud.ionos.com>
-> > > >
-> > > > This is main functionality of rtrs-client module, which manages
-> > > > set of RDMA connections for each rtrs session, does multipathing,
-> > > > load balancing and failover of RDMA requests.
-> > > >
-> > > > Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
-> > > > Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-> > > > ---
-> > > >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 2967 ++++++++++++++++++++++++
-> > > >  1 file changed, 2967 insertions(+)
-> > > >  create mode 100644 drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > > >
-> > > > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > > > new file mode 100644
-> > > > index 000000000000..717d19d4d930
-> > > > --- /dev/null
-> > > > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > > > @@ -0,0 +1,2967 @@
-> > > > +// SPDX-License-Identifier: GPL-2.0-or-later
-> > > > +/*
-> > > > + * RDMA Transport Layer
-> > > > + *
-> > > > + * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
-> > > > + *
-> > > > + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
-> > > > + *
-> > > > + * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
-> > >
-> > > Please no extra lines between Copyright lines.
-> > I checked in kernel tree, seems most of Copyright indeed contain no
-> > extra line in between
-> >
-> > >
-> > > > + */
-> > > > +
-> > > > +#undef pr_fmt
-> > > > +#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
-> > >
-> > > I never understood this pr_fmt() thing, do we really need it?
-> > you can custorm the format for print, include modue name and line
-> > number in this case, it's quite useful for debugging.
->
-> The idea that messages are needed to be unique and don't rely on line
-> numbers.
-Then you have to check all other message in order to be unique, that
-is too much :)
->
-> > >
-> > > > +
-> > > > +#include <linux/module.h>
-> > > > +#include <linux/rculist.h>
-> > > > +#include <linux/blkdev.h> /* for BLK_MAX_SEGMENT_SIZE */
-> > > > +
-> > > > +#include "rtrs-clt.h"
-> > > > +#include "rtrs-log.h"
-> > > > +
-> > > > +#define RTRS_CONNECT_TIMEOUT_MS 30000
-> > > > +
-> > > > +MODULE_DESCRIPTION("RDMA Transport Client");
-> > > > +MODULE_LICENSE("GPL");
-> > > > +
-> > > > +static ushort nr_cons_per_session;
-> > > > +module_param(nr_cons_per_session, ushort, 0444);
-> > > > +MODULE_PARM_DESC(nr_cons_per_session,
-> > > > +              "Number of connections per session. (default: nr_cpu_ids)");
-> > > > +
-> > > > +static int retry_cnt = 7;
-> > > > +module_param_named(retry_cnt, retry_cnt, int, 0644);
-> > > > +MODULE_PARM_DESC(retry_cnt,
-> > > > +              "Number of times to send the message if the remote side didn't respond with Ack or Nack (default: 7, min: "
-> > > > +              __stringify(MIN_RTR_CNT) ", max: "
-> > > > +              __stringify(MAX_RTR_CNT) ")");
-> > > > +
-> > > > +static int __read_mostly noreg_cnt;
-> > > > +module_param_named(noreg_cnt, noreg_cnt, int, 0444);
-> > > > +MODULE_PARM_DESC(noreg_cnt,
-> > > > +              "Max number of SG entries when MR registration does not happen (default: 0)");
-> > >
-> > > We don't like modules in new code.
-> > could you elaberate a bit, no module paramters? which one? all?
->
-> All of them.
-Ok
+From: Jason Gunthorpe <jgg@mellanox.com>
 
+Linus has observed that the variable names here do not make a lot of sense,
+revise them as discussed so the file has better readability.
 
+The new names are:
 
-snip
-> > > > +static bool __rtrs_clt_change_state(struct rtrs_clt_sess *sess,
-> > > > +                                  enum rtrs_clt_state new_state)
-> > > > +{
-> > > > +     enum rtrs_clt_state old_state;
-> > > > +     bool changed = false;
-> > > > +
-> > > > +     lockdep_assert_held(&sess->state_wq.lock);
-> > > > +
-> > > > +     old_state = sess->state;
-> > > > +     switch (new_state) {
-> > > > +     case RTRS_CLT_CONNECTING:
-> > > > +             switch (old_state) {
-> > >
-> > > Double switch is better to be avoided.
-> > what's the better way to do it?
->
-> Rewrite function to be more readable.
-Frankly I think it's easy to read, depends on old_state change to new state.
-see also scsi_device_set_state
+  struct mmu_notifier_mm -> struct mmu_notifier_subscriptions
+  mmu_notifier_mm or mmn_mm -> subscriptions
+   The per mm_struct memory that holds all the notifier subscription list
+   heads and interval tree
 
-Thanks
+  mn -> subscription (of type struct mmu_notifier)
+   A list based subscription to notifications
+
+  mni -> interval_sub (of type struct mmu_interval_notifier)
+   A VA interval based subscription to notifications
+
+I had originaly thought to also change the struct names, and while they are
+not ideal, it seems that the resulting tree wide churn is probably not
+worthwhile considering the size.
+
+This is intended to have no functional change.
+
+Jason Gunthorpe (3):
+  mm/mmu_notifier: Rename struct mmu_notifier_mm to
+    mmu_notifier_subscriptions
+  mm/mmu_notifiers: Use 'subscription' as the variable name for
+    mmu_notifier
+  mm/mmu_notifiers: Use 'interval_sub' as the variable for
+    mmu_interval_notifier
+
+ Documentation/vm/hmm.rst     |  20 +-
+ include/linux/mm_types.h     |   2 +-
+ include/linux/mmu_notifier.h |  86 ++---
+ kernel/fork.c                |   4 +-
+ mm/debug.c                   |   4 +-
+ mm/mmu_notifier.c            | 585 +++++++++++++++++++----------------
+ 6 files changed, 375 insertions(+), 326 deletions(-)
+
+-- 
+2.24.1
+
