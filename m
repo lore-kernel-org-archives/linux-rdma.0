@@ -7,49 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3DCCC33CAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B86EEC33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:41:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F76F2077B
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:41:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92B9C207E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 18:41:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579200068;
-	bh=9CDhK2Sd42pZ+PhVJnnuGEpUks1p1zRL9gxcUm+9XKo=;
+	s=default; t=1579200079;
+	bh=YSqZMwFEC5KIbfh4yOjDt6rdM32AL7ICzGhTCKJhBY8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=sZxx2MXErea1SNz81AaaHXQmUmc3wpsCRwZZTwfXA1Gmfs5rIDBX/GlD1PDHzCF41
-	 LLES93ibgU15giYbp1J2b9XnHebqv9O3v7tEPIbQah138cHxyq2S1ldxybOU6VtoPe
-	 +pfocfAEnU6NHrxCKAzY+1uUpgGjrMunw4MEIfO8=
+	b=eaX+k6a6UOPOIhRuUh7ST1BO1ePGxgB1K15EFbqPspEw3o1TkjBVIDLIMhS+6zclS
+	 giopvJQOwwdjMRt1A0qsMtmpXPR2j1I2K9fbObGYEL2eFX7xVFRND86zoYpCLKGRXi
+	 kTL8el0jL9Xltqmdoqsyr8c3BNlr9kk+T8EwWnmc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390446AbgAPSlD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:41:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53516 "EHLO mail.kernel.org"
+        id S2390438AbgAPSlM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 13:41:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389358AbgAPRLx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:11:53 -0500
+        id S2389947AbgAPRLw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:11:52 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 767D824692;
-        Thu, 16 Jan 2020 17:11:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4E48224695;
+        Thu, 16 Jan 2020 17:11:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194713;
-        bh=9CDhK2Sd42pZ+PhVJnnuGEpUks1p1zRL9gxcUm+9XKo=;
+        s=default; t=1579194712;
+        bh=YSqZMwFEC5KIbfh4yOjDt6rdM32AL7ICzGhTCKJhBY8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=t6cEFPn87+n2PhdBSnuuwAcwfVHCu0JhrizWUFUX/TnU1RTqu9OtjrD+ZrFlx7kFz
-         LYsvDJsBEufSZcb7o/JMFYAwkVzC+J9G54Wu8XdQaHS3/Y+nF7BHHEf0iUg+kWWTAV
-         k3U/JlXDLfmpB8vfgQCoG9d8rbPETdElKv8ddTjI=
+        b=FzhlnxBl59HBNcvp60Bydi7uCLtmymR++kfxLk9huRI4wCODIXqBh+vWAkzz5J0bS
+         +YB5yZ1NIwn0zSlJpqPGFc5ZQYY0it7yxijIso/isCw2AVNcoGUBXcieuV75FUJV7Q
+         IlmN/q8NJKVDcXJ5NNCckc8zBs7LhsRl+ThxT298=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Navid Emamdoost <navid.emamdoost@gmail.com>,
+Cc:     =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 550/671] RDMA: Fix goto target to release the allocated memory
-Date:   Thu, 16 Jan 2020 12:03:08 -0500
-Message-Id: <20200116170509.12787-287-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 549/671] RDMA/cma: Fix false error message
+Date:   Thu, 16 Jan 2020 12:03:07 -0500
+Message-Id: <20200116170509.12787-286-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
 References: <20200116170509.12787-1-sashal@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -58,36 +59,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Navid Emamdoost <navid.emamdoost@gmail.com>
+From: Håkon Bugge <haakon.bugge@oracle.com>
 
-[ Upstream commit 4a9d46a9fe14401f21df69cea97c62396d5fb053 ]
+[ Upstream commit a6e4d254c19b541a58caced322111084b27a7788 ]
 
-In bnxt_re_create_srq(), when ib_copy_to_udata() fails allocated memory
-should be released by goto fail.
+In addr_handler(), assuming status == 0 and the device already has been
+acquired (id_priv->cma_dev != NULL), we get the following incorrect
+"error" message:
 
-Fixes: 37cb11acf1f7 ("RDMA/bnxt_re: Add SRQ support for Broadcom adapters")
-Link: https://lore.kernel.org/r/20190910222120.16517-1-navid.emamdoost@gmail.com
-Signed-off-by: Navid Emamdoost <navid.emamdoost@gmail.com>
+RDMA CM: ADDR_ERROR: failed to resolve IP. status 0
+
+Fixes: 498683c6a7ee ("IB/cma: Add debug messages to error flows")
+Link: https://lore.kernel.org/r/20190902092731.1055757-1-haakon.bugge@oracle.com
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
 Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 +-
+ drivers/infiniband/core/cma.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index bea8318e7007..a019ff266f52 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -1446,7 +1446,7 @@ struct ib_srq *bnxt_re_create_srq(struct ib_pd *ib_pd,
- 			dev_err(rdev_to_dev(rdev), "SRQ copy to udata failed!");
- 			bnxt_qplib_destroy_srq(&rdev->qplib_res,
- 					       &srq->qplib_srq);
--			goto exit;
-+			goto fail;
- 		}
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 319bfef00a4a..e16872e0724f 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2889,7 +2889,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 		if (status)
+ 			pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to acquire device. status %d\n",
+ 					     status);
+-	} else {
++	} else if (status) {
+ 		pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to resolve IP. status %d\n", status);
  	}
- 	if (nq)
+ 
 -- 
 2.20.1
 
