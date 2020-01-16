@@ -2,112 +2,100 @@ Return-Path: <SRS0=Ta2D=3F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FDCC33CB6
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:21:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7B88C33CAF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:24:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CAEB920661
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:21:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE224207FF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 19:24:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="ahDyw2WT"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="owqavWUh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437724AbgAPTVZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 14:21:25 -0500
-Received: from mail-io1-f65.google.com ([209.85.166.65]:43299 "EHLO
-        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731107AbgAPQxl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 11:53:41 -0500
-Received: by mail-io1-f65.google.com with SMTP id n21so22607324ioo.10
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 08:53:40 -0800 (PST)
+        id S1730919AbgAPTYJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 14:24:09 -0500
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:38997 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1733088AbgAPTYI (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Jan 2020 14:24:08 -0500
+Received: by mail-qk1-f193.google.com with SMTP id c16so20296671qko.6
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Jan 2020 11:24:07 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=uAC/LLqL3olhNiYcI8mpq/Wk2UEcqBfRhXyaxNaKlbY=;
-        b=ahDyw2WT+cLsDo1SVB0mkMITUwO84KVw9/mYTQ9xOkhJJwsLHrmDxb2ZAREcROshxl
-         StiCzFwERoMqQz2HzuB6uc79yyjOviLoj0LC5CE9qYXdxgX+2kLnLqnkQ32XJ4tTJUpF
-         6DZ6ocW8o73mUoZqbSs7PKbFrB867OUReK7HnEErI5VemxqAt5a5WKzatP1sA1osm1X3
-         r6zh1l8EkSgtbRNBwAQ9+4qrjL+FIW48K0TXXDxnvyaSggLHWgBQgcpOvI2LlwWnF8Yr
-         ZoFmdBKPMhU1YxJ6gfFxhfQFLfSnsN/wPoiVn5hzHWLwLf6gbqVcxXQXdRQ/xtEdBQK3
-         HxuA==
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=e4/z0umMohmgQB5HhskF+31qfU2NQcCR4vvmoWLJ4cE=;
+        b=owqavWUhKk1J6MPPCu7wzQDUMF+dd3/sRpNGOlaP3t0R+B94mcSwanMfizJDmd0AQJ
+         VzN0YNnbEoXkfn0ZewHSMch6LcHT+4uKXTRhzB5/tZfzcGfMDDUpX3c5/Pl8bStBHw+h
+         sVtAehKrEjOQLkckWet6hm+kVLKr2cwVcLQS742PSQ1TTOLWMhMcryzIcMFUiMi7wUKS
+         lF71vniGJ+Kd1X4x7WL+nlwa5ypIB35+jfzdxaKNFpRSfWuYDwXKgwD4tCeaBwpZn/Gc
+         UpV2k3GciUECCB6Osant4e2VefMsdm+kDlmFMGDm7dyYopROEDQcr5yFXMb42T/5w8al
+         wyzA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=uAC/LLqL3olhNiYcI8mpq/Wk2UEcqBfRhXyaxNaKlbY=;
-        b=UD+5Y9adk16S8vWDqDAkzVp3mYNYMJe5/gRcVSXk28JaI1nn7R5eq0uO1eL6sP8h01
-         a+S7r7LU0kHS+2WO0H25/9w+MXAnVnuTAZiXe2Fzx7lsprOBdBwof84by/STsHFwBsc0
-         vFfXBRO/ENxAtOlPOCpiIPNpRI3ZDl7h4huMz3kvP96DQIu7BACFDsWJDO2gWi8SBXUP
-         GnZbmN/DG+9fomG2/tZr3r9os+QKzDcElRXFzS0EOA/zj1Q491pDClx1dPtCjiFPnugK
-         K85nJ26wZXZt3k1kDMrrczq50lzcJpz5vcPIIXXIHwAZpm5RonnD0A3Ee2/LU7e9H/yw
-         SmWg==
-X-Gm-Message-State: APjAAAUGHGoUSchi+8e5k+KgwhGfUXwPNDudQZ9a09siloEU4wtsRqx0
-        dJlCJqXCXkbEzO4JqB3PkPrMZ2tmalxOyfQaH/ED8g==
-X-Google-Smtp-Source: APXvYqz/CMc1I7H9snlOYg+zymD+3AllbvT2PU+3zuT66eTV8reVm4lO++qYSVkX5siulLpKd/ZECwlTujdCrYgbavc=
-X-Received: by 2002:a6b:ca43:: with SMTP id a64mr6547189iog.217.1579193620289;
- Thu, 16 Jan 2020 08:53:40 -0800 (PST)
-MIME-Version: 1.0
-References: <20200116125915.14815-1-jinpuwang@gmail.com> <20200116125915.14815-24-jinpuwang@gmail.com>
- <20200116144005.GB12433@unreal> <CAMGffEmaif+Gc-OT2Dmn+u06A3tryHA0bu52ekroHaixBFZKGg@mail.gmail.com>
- <20200116155903.GB18467@unreal>
-In-Reply-To: <20200116155903.GB18467@unreal>
-From:   Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Date:   Thu, 16 Jan 2020 17:53:29 +0100
-Message-ID: <CAMGffE=R81u1whK1AotCu4agAd4UwzTMEM177pHsJRLKoHNdkQ@mail.gmail.com>
-Subject: Re: [PATCH v7 23/25] block/rnbd: include client and server modules
- into kernel compilation
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=e4/z0umMohmgQB5HhskF+31qfU2NQcCR4vvmoWLJ4cE=;
+        b=iWbxzeSwQoLMRve/f2/yUljGJXZH5JJ1rEkiMe4BWpscwXSiKtYkjTlW3MxevllxH3
+         VHMgsbSQO1og6MlwIsL4dAe/LnK7CfgJ9eG4MtoIxuQQtxcCyIvZCAzLRBqBsQmhgeIi
+         Di3bVxvS2ozLdX1pr3rOl/CcZPpbA2Y8m2IeLlhREAI/ci5v6kKicx174vnXP2UhyhSw
+         Xzjgogn3Ok9kA366Dq6PmUckNIGuD6oAmuvuSCNUCXENh52KRcX840aHQ1BLuQxUhxb2
+         s456x9iCSkAMoWSFT9eiyLlFt9cOLsepCbLkWWkpcQ8lDWjSiT8VX/t2ZCrNUYHSpb5H
+         ZoUA==
+X-Gm-Message-State: APjAAAXQLPA4tRDeZxhdkGm3bgrEZXqUeF/10Zr0ZnMf3xqZNv/VVgIb
+        sywE//N1pBZdYmRw1ghQKTJTSQ==
+X-Google-Smtp-Source: APXvYqybolHbGE3JTvmrEpeyIpUzCKU5N69jKxbjGpaXZG2hwfQRW3UenCJavr20+2XUd7MTXNZ3aQ==
+X-Received: by 2002:a37:801:: with SMTP id 1mr35686766qki.326.1579202647486;
+        Thu, 16 Jan 2020 11:24:07 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id i5sm11613265qtv.80.2020.01.16.11.24.05
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 16 Jan 2020 11:24:06 -0800 (PST)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1isAkO-0002jF-HP; Thu, 16 Jan 2020 15:24:04 -0400
+Date:   Thu, 16 Jan 2020 15:24:04 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Sagi Grimberg <sagi@grimberg.me>,
+Cc:     Doug Ledford <dledford@redhat.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        Roman Penyaev <rpenyaev@suse.de>
-Content-Type: text/plain; charset="UTF-8"
+        Sean Hefty <sean.hefty@intel.com>
+Subject: Re: [PATCH rdma-rc v2 00/48] Organize code according to IBTA layout
+Message-ID: <20200116192404.GE10759@ziepe.ca>
+References: <20191212093830.316934-1-leon@kernel.org>
+ <20200107184019.GA20166@ziepe.ca>
+ <20200116073208.GG76932@unreal>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200116073208.GG76932@unreal>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 16, 2020 at 4:59 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> On Thu, Jan 16, 2020 at 03:54:03PM +0100, Jinpu Wang wrote:
-> > > > +obj-$(CONFIG_BLK_DEV_RNBD_CLIENT) += rnbd-client.o
-> > > > +obj-$(CONFIG_BLK_DEV_RNBD_SERVER) += rnbd-server.o
-> > > > +
-> > > > +-include $(src)/compat/compat.mk
-> > >
-> > > What is it?
-> > >
-> > > Thanks
-> > quote from Roman
-> > "'
-> > Well, in our production we use same source code and in order not to spoil
-> > sources with 'ifdef' macros for different kernel versions we use compat
-> > layer, which obviously will never go upstream.  This line is the only
-> > clean way to keep sources always up-to-date with latest kernel and still
-> > be compatible with what we have on our servers in production.
-> >
-> > '-' prefix at the beginning of the line tells make to ignore it if
-> > file does not exist, so should not rise any error for compilation
-> > against latest kernel.
-> >
-> > Here is an example of the compat layer for RNBD block device:
-> > https://github.com/ionos-enterprise/ibnbd/tree/master/rnbd/compat
-> > "'
-> >
-> > We will remove it also the one in the makefile for rtrs if we need to
-> > send another round.
->
-> Yes, remove it please.
->
-> >
-> > Thanks
-ok, thanks
+On Thu, Jan 16, 2020 at 09:32:08AM +0200, Leon Romanovsky wrote:
+
+> 2. IMHO, you don't need to include your selftest in final patches, because
+> the whole series is going to be accepted and that code will be added and
+> deleted at the same time. Especially printk part.
+
+I like seeing the tests. For a patch like this, which is so tedious to
+review, it makes the review a check of the tests, a check of the
+spatch and some spot checks of the transformations.
+
+Since it is a small number of lines, and it is much easier than
+sending the tests separately, it felt reasonable to leave them in the
+history.
+
+Will you be able to send the _be removal conversions you had done on
+top of this?
+
+I didn't show it, but all the private_data_len, etc should be some
+generic IBA_NUM_BYTES() accessor like get/set instead of more #defines.
+
+Jason
