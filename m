@@ -7,50 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD3DC33CB7
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:04:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD0CC33CB6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:06:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ACAF020730
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:04:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E97C22464
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jan 2020 17:06:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579194279;
-	bh=DxDMkXN6W8HXA9Tv9UdkQdLIiC4v0uFN8JnUp4MuYaQ=;
+	s=default; t=1579194406;
+	bh=FNOQzJoFt9NO9rWRNVNyBAn/A5LtMTkJ6NiP6s5cEcA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=haGE2nFFGQyFA9Gn3aBbq1pHME9OxGcvNPc/LgH0s9Newgphns+WkvVyUqyv5rH0R
-	 2ozTZhELmzhun312wATcZqRsG6ZdA9r8Apw4Vub1OlnvPHzQzUgcA2MhQpTn+kUlPB
-	 2a28YKizitjPPZR225Afeo0o5eIjzGYg7gzDxPqo=
+	b=xI1EBDxv51i4h1gOw14o885ghF4TdSwEomy6lQjmkheuYOQtnN2rZ8NMc5lHQ1lWN
+	 9hyvcPlXDmcqW7BkdZANRsQrVaRmlBAltqotcXIlY5BU63ZAhwIFF/gWwFSVK53Nii
+	 Y1LB5vcYB3sSU/Ocv10XZoI7IIaM/WA6z1sg1g4s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388446AbgAPRCn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:02:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55952 "EHLO mail.kernel.org"
+        id S2388979AbgAPRGo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jan 2020 12:06:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388036AbgAPRCn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:02:43 -0500
+        id S2388974AbgAPRGn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:06:43 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 04F9D207FF;
-        Thu, 16 Jan 2020 17:02:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A15D32081E;
+        Thu, 16 Jan 2020 17:06:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194162;
-        bh=DxDMkXN6W8HXA9Tv9UdkQdLIiC4v0uFN8JnUp4MuYaQ=;
+        s=default; t=1579194402;
+        bh=FNOQzJoFt9NO9rWRNVNyBAn/A5LtMTkJ6NiP6s5cEcA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=c7dM815HwtyBCpR5EmbF7N7NOBhiFqdfO1RAM1lSVKMJbEtTDuYEFWoatCqzwrCZv
-         tleyxGE1W+FGV5FBaE1vuTfBtBrGo4BF/SknKzllZukF2BRluza5ntlOSVuPdVVmZ7
-         ryu1kPcT/Qu8idP3sJh3elVk1a5ilrDtf4nILMQM=
+        b=limP4l0d8wspYeu7np5jkieTw/t/Cid84yeDsxLGovkvjkBl6JdpYWufmxPrZSUmo
+         r5eiP6xctmkDbcGreOr3+0KRKjqYeKibzHNd4SdS2FMxMSRtS8oN/1iLq6W6ExTocC
+         NeuAypa/vfdUPY1f/kXIY6YCCcGM/OILn9Hfk9zI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Eli Britstein <elibr@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 243/671] net/mlx5: Fix multiple updates of steering rules in parallel
-Date:   Thu, 16 Jan 2020 11:52:32 -0500
-Message-Id: <20200116165940.10720-126-sashal@kernel.org>
+Cc:     Jack Morgenstein <jackm@dev.mellanox.co.il>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 327/671] IB/mlx5: Add missing XRC options to QP optional params mask
+Date:   Thu, 16 Jan 2020 11:59:25 -0500
+Message-Id: <20200116170509.12787-64-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116165940.10720-1-sashal@kernel.org>
-References: <20200116165940.10720-1-sashal@kernel.org>
+In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
+References: <20200116170509.12787-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,47 +59,88 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Eli Britstein <elibr@mellanox.com>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
-[ Upstream commit 6237634d8fcc65c9e3348382910e7cdb15084c68 ]
+[ Upstream commit 8f4426aa19fcdb9326ac44154a117b1a3a5ae126 ]
 
-There might be a condition where the fte found is not active yet. In
-this case we should not use it, but continue to search for another, or
-allocate a new one.
+The QP transition optional parameters for the various transition for XRC
+QPs are identical to those for RC QPs.
 
-Fixes: bd71b08ec2ee ("net/mlx5: Support multiple updates of steering rules in parallel")
-Signed-off-by: Eli Britstein <elibr@mellanox.com>
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Many of the XRC QP transition optional parameter bits are missing from the
+QP optional mask table.  These omissions caused failures when doing XRC QP
+state transitions.
+
+For example, when trying to change the response timer of an XRC receive QP
+via the RTS2RTS transition, the new timer value was ignored because
+MLX5_QP_OPTPAR_RNR_TIMEOUT bit was missing from the optional params mask
+for XRC qps for the RTS2RTS transition.
+
+Fix this by adding the missing XRC optional parameters for all QP
+transitions to the opt_mask table.
+
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Fixes: a4774e9095de ("IB/mlx5: Fix opt param mask according to firmware spec")
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/infiniband/hw/mlx5/qp.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 82a53317285d..b16e0f45d28c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -469,6 +469,7 @@ static void del_hw_fte(struct fs_node *node)
- 			mlx5_core_warn(dev,
- 				       "flow steering can't delete fte in index %d of flow group id %d\n",
- 				       fte->index, fg->id);
-+		node->active = 0;
- 	}
- }
- 
-@@ -1597,6 +1598,11 @@ lookup_fte_locked(struct mlx5_flow_group *g,
- 		fte_tmp = NULL;
- 		goto out;
- 	}
-+	if (!fte_tmp->node.active) {
-+		tree_put_node(&fte_tmp->node);
-+		fte_tmp = NULL;
-+		goto out;
-+	}
- 
- 	nested_down_write_ref_node(&fte_tmp->node, FS_LOCK_CHILD);
- out:
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index ef0f710587ad..4c0f0ce02d2f 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2598,6 +2598,11 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_PKEY_INDEX	|
+ 					  MLX5_QP_OPTPAR_Q_KEY		|
+ 					  MLX5_QP_OPTPAR_PRI_PORT,
++			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_RRE		|
++					  MLX5_QP_OPTPAR_RAE		|
++					  MLX5_QP_OPTPAR_RWE		|
++					  MLX5_QP_OPTPAR_PKEY_INDEX	|
++					  MLX5_QP_OPTPAR_PRI_PORT,
+ 		},
+ 		[MLX5_QP_STATE_RTR] = {
+ 			[MLX5_QP_ST_RC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH  |
+@@ -2631,6 +2636,12 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 					  MLX5_QP_OPTPAR_RWE		|
+ 					  MLX5_QP_OPTPAR_PM_STATE,
+ 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_Q_KEY,
++			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH	|
++					  MLX5_QP_OPTPAR_RRE		|
++					  MLX5_QP_OPTPAR_RAE		|
++					  MLX5_QP_OPTPAR_RWE		|
++					  MLX5_QP_OPTPAR_PM_STATE	|
++					  MLX5_QP_OPTPAR_RNR_TIMEOUT,
+ 		},
+ 	},
+ 	[MLX5_QP_STATE_RTS] = {
+@@ -2647,6 +2658,12 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_Q_KEY		|
+ 					  MLX5_QP_OPTPAR_SRQN		|
+ 					  MLX5_QP_OPTPAR_CQN_RCV,
++			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_RRE		|
++					  MLX5_QP_OPTPAR_RAE		|
++					  MLX5_QP_OPTPAR_RWE		|
++					  MLX5_QP_OPTPAR_RNR_TIMEOUT	|
++					  MLX5_QP_OPTPAR_PM_STATE	|
++					  MLX5_QP_OPTPAR_ALT_ADDR_PATH,
+ 		},
+ 	},
+ 	[MLX5_QP_STATE_SQER] = {
+@@ -2658,6 +2675,10 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
+ 					   MLX5_QP_OPTPAR_RWE		|
+ 					   MLX5_QP_OPTPAR_RAE		|
+ 					   MLX5_QP_OPTPAR_RRE,
++			[MLX5_QP_ST_XRC]  = MLX5_QP_OPTPAR_RNR_TIMEOUT	|
++					   MLX5_QP_OPTPAR_RWE		|
++					   MLX5_QP_OPTPAR_RAE		|
++					   MLX5_QP_OPTPAR_RRE,
+ 		},
+ 	},
+ };
 -- 
 2.20.1
 
