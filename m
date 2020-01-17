@@ -2,70 +2,72 @@ Return-Path: <SRS0=vtQQ=3G=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CE93C33CB1
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 09:58:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FF1BC33CB1
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 13:36:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A0EE2087E
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 09:58:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D80942083E
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 13:36:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="f2CGdxgK"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DOzKNkb9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726752AbgAQJ6s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 17 Jan 2020 04:58:48 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:54386 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726755AbgAQJ6r (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 17 Jan 2020 04:58:47 -0500
+        id S1728733AbgAQNgr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 17 Jan 2020 08:36:47 -0500
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:28603 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728665AbgAQNgq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 17 Jan 2020 08:36:46 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579255126;
+        s=mimecast20190719; t=1579268205;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Uf1keSD3DOZ8jh4mCSz+0fhQb4Z+vPKdygjWjY+hlbM=;
-        b=f2CGdxgKOyVjWpy69GKk/kAVWGo9xtnyXyFTtCZoXQnmVlG2kQbkeOIa+jLC2Ozk9b8m7t
-        WoWYiRQltOhNSXhKKV1fkpKft2bcDEiMSrvcA00PE1vAnakLQjM5JT0Y72qJB5x62dgCEH
-        +jf+ZHI2lXsNdCN5dfMvFKaAYjSe8Qo=
-Received: from mail-lj1-f198.google.com (mail-lj1-f198.google.com
- [209.85.208.198]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-222-am9dZOQ2Pb2kLEZHeWWOsg-1; Fri, 17 Jan 2020 04:58:44 -0500
-X-MC-Unique: am9dZOQ2Pb2kLEZHeWWOsg-1
-Received: by mail-lj1-f198.google.com with SMTP id k25so6030529lji.4
-        for <linux-rdma@vger.kernel.org>; Fri, 17 Jan 2020 01:58:44 -0800 (PST)
+        bh=3uHiB/rHLsVw+zJgXGJkoutNE3orjbRqSapatBIGTrI=;
+        b=DOzKNkb99Y1gLMlH1yPgTTMBOcvE6MhoR4zijvO8gk4nbgVCwvoUkBFSO4B6gnoOJ0nCTr
+        ojFKO1RQii8OVWycHUyNd9LDSm2XSi66+EIRKCXC4kDzd6mNdPkEx79zE7m9f8GLty0Jsp
+        9Ifv/oE+egLR90E9jful0W1+1OR/7TI=
+Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
+ [209.85.167.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-384-giF3oYq0OQ2WBRarvDQ_Zg-1; Fri, 17 Jan 2020 08:36:44 -0500
+X-MC-Unique: giF3oYq0OQ2WBRarvDQ_Zg-1
+Received: by mail-lf1-f72.google.com with SMTP id x23so4370599lfc.5
+        for <linux-rdma@vger.kernel.org>; Fri, 17 Jan 2020 05:36:44 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
-         :message-id:mime-version:content-transfer-encoding;
-        bh=Uf1keSD3DOZ8jh4mCSz+0fhQb4Z+vPKdygjWjY+hlbM=;
-        b=k3qDcHPN9Hbt2fEZTcnksVvxgBwAaucdmQJKIvjG61httt53XhNiGz7IEeNCotPkvb
-         ndziEkHM3UUYWW3hkOLnYl8PxEr+5n8ZBX0baDxcyCmScsBnaduujZI+k3DFjJv0m4fP
-         uON9HkpURy9vEtyPOttG/e3SKchD3L+6To62fuyhLH+mdMfPsmNn/6Is1C6CkVuS3wez
-         J+iYF9Ogmsx2TvTj4bHpqbOIX2x9BdXl9C4Do/0dJ2eSU592gOVMaA0qMyUpWm0W64M9
-         BFQCYgljTV03cTYZYKVwHZ5KW02O2sEla7RkY15JQizS9ZMipFWmpsSGFNDh6S6qRtfI
-         RvnA==
-X-Gm-Message-State: APjAAAXVLpapfnlyAPOlTjMCdZVRf1MDNE9z/0iimzZ21ouW9XboFWNj
-        Oc75eFZ235lX+9EJrw5HDpB9Uma16VRTqzzjnF0sa+s+wxq0D73gBTEtv1lHRjHTKD/r4roIMDV
-        wqVEVO7a2eFxxEcVEmvIIVw==
-X-Received: by 2002:ac2:4849:: with SMTP id 9mr4975737lfy.11.1579255123129;
-        Fri, 17 Jan 2020 01:58:43 -0800 (PST)
-X-Google-Smtp-Source: APXvYqzx3OTlP+sKcKqC8lWpUkR48Xy7KHR8XB1tnfvUp3Gadttkq8Vpe8cxhtUqaWxJHiUphB7sig==
-X-Received: by 2002:ac2:4849:: with SMTP id 9mr4975702lfy.11.1579255122857;
-        Fri, 17 Jan 2020 01:58:42 -0800 (PST)
+        h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=3uHiB/rHLsVw+zJgXGJkoutNE3orjbRqSapatBIGTrI=;
+        b=hOv6KU0eGDQu6oWomqynyd0E8y1q/WzY0lCFxhtha/9+fgP15BHL+M1Iycfw+i3m21
+         Mpg1ulrIEgxmPiUe+QikXvDKdmougQ2gbyjmCRRXJAWQoA5KD8lR46NFgYS5Z0kzPtjn
+         XskdQaPOsTMlwh0tFfFLcJuXaA9hoNlgGWsgYyJl1QAxkAAAP0c9XL6p7P9nifFsBDA+
+         zMZ6K7TZLWUX3dHEM6qs42QixvHxiGvMy/W5WFZoqsPPHmd5eCmDzFRV9PnGMKu8+7po
+         xoAzOLMZ9BRUma/t+aXDULNcuIyA03GuQcqKYyRArbFFl7tgaCE64i7a2+YA+mkORjr6
+         MF9g==
+X-Gm-Message-State: APjAAAUbZsHWL+tYYX7MRve+VYvdtB048+Ek1mu5Awo1ED1EVD1NHcqt
+        tj+AUkKORup6alTOz1g9pa+MEojepZ/QPuE2UhF1lj4bUg0MVvSIk1ANABuMsBbfso/c9NGcco3
+        0TBEZP8ywk2smKR6EpRTaTA==
+X-Received: by 2002:a2e:9cca:: with SMTP id g10mr5571388ljj.258.1579268203337;
+        Fri, 17 Jan 2020 05:36:43 -0800 (PST)
+X-Google-Smtp-Source: APXvYqyFRQDM7RuuJv2SpQFKkm/d5REFszMdDint07qob4Hs3TAj8lfrBlXW/KoVQwFk65vCLxDe7A==
+X-Received: by 2002:a2e:9cca:: with SMTP id g10mr5571378ljj.258.1579268203185;
+        Fri, 17 Jan 2020 05:36:43 -0800 (PST)
 Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id r21sm12164399ljn.64.2020.01.17.01.58.41
+        by smtp.gmail.com with ESMTPSA id s9sm14366440ljh.90.2020.01.17.05.36.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Jan 2020 01:58:42 -0800 (PST)
+        Fri, 17 Jan 2020 05:36:41 -0800 (PST)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 341A91804D6; Fri, 17 Jan 2020 10:58:41 +0100 (CET)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-To:     Jesper Dangaard Brouer <brouer@redhat.com>,
-        Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
+        id 4D2A91804D7; Fri, 17 Jan 2020 14:36:40 +0100 (CET)
+Subject: [PATCH bpf-next v4 03/10] selftests: Pass VMLINUX_BTF to runqslower
+ Makefile
+From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+To:     Alexei Starovoitov <ast@kernel.org>
+Cc:     Daniel Borkmann <daniel@iogearbox.net>,
         Martin KaFai Lau <kafai@fb.com>,
         Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
         Andrii Nakryiko <andriin@fb.com>,
@@ -73,6 +75,7 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         Jason Gunthorpe <jgg@ziepe.ca>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
         John Fastabend <john.fastabend@gmail.com>,
         Peter Zijlstra <peterz@infradead.org>,
         Ingo Molnar <mingo@redhat.com>,
@@ -84,94 +87,57 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
         bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        clang-built-linux@googlegroups.com, brouer@redhat.com
-Subject: Re: [PATCH bpf-next v3 00/11] tools: Use consistent libbpf include paths everywhere
-In-Reply-To: <20200117095721.0030f414@carbon>
-References: <157918093154.1357254.7616059374996162336.stgit@toke.dk> <20200117041431.h7vvc32fungenyhg@ast-mbp.dhcp.thefacebook.com> <20200117095721.0030f414@carbon>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Fri, 17 Jan 2020 10:58:41 +0100
-Message-ID: <87lfq6qu9a.fsf@toke.dk>
+        clang-built-linux@googlegroups.com
+Date:   Fri, 17 Jan 2020 14:36:40 +0100
+Message-ID: <157926820025.1555735.5663814379544078154.stgit@toke.dk>
+In-Reply-To: <157926819690.1555735.10756593211671752826.stgit@toke.dk>
+References: <157926819690.1555735.10756593211671752826.stgit@toke.dk>
+User-Agent: StGit/0.21
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Jesper Dangaard Brouer <brouer@redhat.com> writes:
+From: Toke Høiland-Jørgensen <toke@redhat.com>
 
-> On Thu, 16 Jan 2020 20:14:32 -0800
-> Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
->
->> On Thu, Jan 16, 2020 at 02:22:11PM +0100, Toke H=C3=B8iland-J=C3=B8rgens=
-en wrote:
->> > The recent commit 6910d7d3867a ("selftests/bpf: Ensure bpf_helper_defs=
-.h are
->> > taken from selftests dir") broke compilation against libbpf if it is i=
-nstalled
->> > on the system, and $INCLUDEDIR/bpf is not in the include path.
->> >=20
->> > Since having the bpf/ subdir of $INCLUDEDIR in the include path has ne=
-ver been a
->> > requirement for building against libbpf before, this needs to be fixed=
-. One
->> > option is to just revert the offending commit and figure out a differe=
-nt way to
->> > achieve what it aims for.=20=20=20
->>=20
->> The offending commit has been in the tree for a week. So I applied Andri=
-i's
->> revert of that change. It reintroduced the build dependency issue, but w=
-e lived
->> with it for long time, so we can take time to fix it cleanly.
->> I suggest to focus on that build dependency first.
->>=20
->> > However, this series takes a different approach:
->> > Changing all in-tree users of libbpf to consistently use a bpf/ prefix=
- in
->> > #include directives for header files from libbpf.=20=20
->>=20
->> I'm not sure it's a good idea. It feels nice, but think of a message we'=
-re
->> sending to everyone. We will get spamed with question: does bpf community
->> require all libbpf users to use bpf/ prefix ? What should be our answer?
->
-> The answer should be: Yes. When libbpf install the header files the are
-> installed under bpf/ prefix.  It is very confusing that samples and
-> selftests can include libbpf.h without this prefix. Even worse
-> including "bpf.h" pickup the libbpf version bpf/bpf.h, which have
-> caused confusion.  The only reason for the direct "libbpf.h" include is
-> historical, as there used-to-be a local file for that.
+Add a VMLINUX_BTF variable with the locally-built path when calling the
+runqslower Makefile from selftests. This makes sure a simple 'make'
+invocation in the selftests dir works even when there is no BTF information
+for the running kernel. Do a wildcard expansion and include the same paths
+for BTF for the running kernel as in the runqslower Makefile, to make it
+possible to build selftests without having a vmlinux in the local tree.
 
-Agreed. Also, we are already telling people what the right include path
-is in at least two ways - and currently they are incompatible:
+Also fix the make invocation to use $(OUTPUT)/tools as the destination
+directory instead of $(CURDIR)/tools.
 
-- The pkg-config file included with libbpf has a notion of include path;
-  which does *not* include the bpf/ subdirectory.
+Fixes: 3a0d3092a4ed ("selftests/bpf: Build runqslower from selftests")
+Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
+---
+ tools/testing/selftests/bpf/Makefile |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-- The skeleton generator puts an '#include <libbpf.h>' line into the
-  generated files.
-
-With this series we'll at least be consistent.
-
->> Require or recommend? If require.. what for? It works as-is. If recommen=
-d then
->> why suddenly we're changing all files in selftests and samples?
->> There is no good answer here. I think we should leave the things as-is.
->
-> I strongly believe we should correct this.  It doesn't make sense that
-> someone copying out a sample or selftests, into a git-submodule libbpf
-> (or distro installed libbpf-devel) have to understand that they have to
-> update the include path for all the libbpf header files.
-
-Yeah, I think being clear and explicit about what is the recommended way
-to include libbpf is strictly an improvement. And making it possible to
-move example programs seamlessly in and out of the kernel tree will only
-make things easier for people.
-
-I'll rebase and respin this series on top of the revert (and fix
-Andrii's comments).
-
--Toke
+diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests/bpf/Makefile
+index 246d09ffb296..dcc8dbb1510b 100644
+--- a/tools/testing/selftests/bpf/Makefile
++++ b/tools/testing/selftests/bpf/Makefile
+@@ -124,10 +124,14 @@ $(OUTPUT)/test_stub.o: test_stub.c
+ 	$(call msg,CC,,$@)
+ 	$(CC) -c $(CFLAGS) -o $@ $<
+ 
++VMLINUX_BTF_PATHS := $(abspath ../../../../vmlinux)			\
++			/sys/kernel/btf/vmlinux			\
++			/boot/vmlinux-$(shell uname -r)
++VMLINUX_BTF:= $(firstword $(wildcard $(VMLINUX_BTF_PATHS)))
+ .PHONY: $(OUTPUT)/runqslower
+ $(OUTPUT)/runqslower: force
+-	$(Q)$(MAKE) $(submake_extras) -C $(TOOLSDIR)/bpf/runqslower	      \
+-		    OUTPUT=$(CURDIR)/tools/
++	$(Q)$(MAKE) $(submake_extras) -C $(TOOLSDIR)/bpf/runqslower	\
++		    OUTPUT=$(OUTPUT)/tools/ VMLINUX_BTF=$(VMLINUX_BTF)
+ 
+ BPFOBJ := $(OUTPUT)/libbpf.a
+ 
 
