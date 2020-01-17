@@ -2,241 +2,124 @@ Return-Path: <SRS0=vtQQ=3G=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF58BC33CB6
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 13:43:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8CDBC33CB1
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 13:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7BBF320661
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 13:43:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A2C32072E
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Jan 2020 13:58:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NqsaibTt"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="H1OWyP14"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728708AbgAQNnO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 17 Jan 2020 08:43:14 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:39673 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728775AbgAQNnE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 17 Jan 2020 08:43:04 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579268583;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=LQICz1wSrd9+unk/KTAhm5BSjsKUGLh/wx6klsQzMyE=;
-        b=NqsaibTt49DomdUQs04VT6oilDM7+4gmlAcoatEA6iQjUKYbc4GsH8R1i4fOWm7EZtx7cq
-        MJ6FfGek8LrCXlrX91M763R//USk46zJgbB+a8LlXJBAdxaZGe4/L8zzFh0XMqpo6vuAfF
-        iMgO99jjM8rg7qgnuuaLaqwmfu2gmx0=
-Received: from mail-lj1-f198.google.com (mail-lj1-f198.google.com
- [209.85.208.198]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-75-ellVDsz6MG6qQNBMG8e9OQ-1; Fri, 17 Jan 2020 08:42:59 -0500
-X-MC-Unique: ellVDsz6MG6qQNBMG8e9OQ-1
-Received: by mail-lj1-f198.google.com with SMTP id h23so6184180ljk.14
-        for <linux-rdma@vger.kernel.org>; Fri, 17 Jan 2020 05:42:59 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=LQICz1wSrd9+unk/KTAhm5BSjsKUGLh/wx6klsQzMyE=;
-        b=XfG/Ls19NAQzjfiRqT9Ub6d73LymAo0kH+e3yoFVm5oaWGNWBUYkxORYlJTz7PUPUu
-         dI7bHM1zEKCOSDR6g24kqoRj/Ba8xGJ+mqozuiIsTbiddO/Leh79L3H++iLvRzXyjMVw
-         21rEwcSyWADmpGLLy4FWelBM/tn4W3ZrJ5qGWHYXkmYbJ7juKexbZJ1LiRoTKb9KbfzG
-         GV5Wp1mdngiCdcWm/VXYmfsN0F+8dvgdNoqChIjbxGRADh3NjEgQcDuQvEemDlkkDIVt
-         HRX/IF8RkvBvSfXjFWDZbK/ksaADaaApXEJpAKd+ctPARoALtiuRb1kCiMFOqG3FPzou
-         xxvQ==
-X-Gm-Message-State: APjAAAURwbqnNHIUNZOca48Cb95Lbzbs4oCavFp6WSIxtggEEb8IETJa
-        lwDqYJmIyvpmTRerkTGWV1kNVjpyHBF10qnL5TB8/nj1mFDnlBWFa/FPNOmc0KXsic00urWr6Ay
-        qR00RkeqOOOxLvmu2a9WY9Q==
-X-Received: by 2002:a05:651c:21c:: with SMTP id y28mr5577322ljn.164.1579268578509;
-        Fri, 17 Jan 2020 05:42:58 -0800 (PST)
-X-Google-Smtp-Source: APXvYqwHAwELWdTWp8cnKfoF73NjYLMwS9bCVGuMLhOLg/d8FS+JPMoZdDFWlWeYmTFnPvP7DqNGsg==
-X-Received: by 2002:a05:651c:21c:: with SMTP id y28mr5577310ljn.164.1579268578268;
-        Fri, 17 Jan 2020 05:42:58 -0800 (PST)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id s23sm12499671lji.70.2020.01.17.05.42.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Jan 2020 05:42:56 -0800 (PST)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id DD4BF1804D6; Fri, 17 Jan 2020 14:36:46 +0100 (CET)
-Subject: [PATCH bpf-next v4 09/10] selftests: Remove tools/lib/bpf from
- include path
-From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-To:     Alexei Starovoitov <ast@kernel.org>
-Cc:     Daniel Borkmann <daniel@iogearbox.net>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        Andrii Nakryiko <andriin@fb.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
-        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        clang-built-linux@googlegroups.com
-Date:   Fri, 17 Jan 2020 14:36:46 +0100
-Message-ID: <157926820677.1555735.5437255599683298212.stgit@toke.dk>
-In-Reply-To: <157926819690.1555735.10756593211671752826.stgit@toke.dk>
-References: <157926819690.1555735.10756593211671752826.stgit@toke.dk>
-User-Agent: StGit/0.21
+        id S1726942AbgAQN6r (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 17 Jan 2020 08:58:47 -0500
+Received: from aserp2120.oracle.com ([141.146.126.78]:54368 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726688AbgAQN6q (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 17 Jan 2020 08:58:46 -0500
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00HDwWP5123410;
+        Fri, 17 Jan 2020 13:58:32 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-type :
+ content-transfer-encoding; s=corp-2019-08-05;
+ bh=+XClf+6vInzWnoz/XX8Nh5/S7PiR5cNmiXBXBiOGx/o=;
+ b=H1OWyP14aXaIOwMl/kmVhB8NLyWcO3jV5N7zwGZcKYOgMU6UXaCXYEt8/NYUQV61PaXq
+ pzsYIKuXJ1YnwwvboW9LmIQyz5YFazOH+C0AVQOqXazHgxa+p8uLYu7bZDRDjn7LA0m1
+ Mw0I0ZxaMWAYO6APW5mBInC881HYNRMPhcNVtesxccuiabVcV293NoA8PLqNfPQ5tNyo
+ 4uvKchO4rwbF6Kbcj8oznD5sr/UDb8cg1XLAyHLi/1t6oCDwgjFWa/dip5bKf5ViWaIO
+ SMZI3dnM4q5MfYRFn9gT0EREJQnHm4+Ggr2kFDQ7xa9qlhvUtJpEgOYDCEKH8TWWD7YT oQ== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by aserp2120.oracle.com with ESMTP id 2xf73u8qmj-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 17 Jan 2020 13:58:32 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00HDrXrw125346;
+        Fri, 17 Jan 2020 13:56:32 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by aserp3020.oracle.com with ESMTP id 2xk232gv9a-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 17 Jan 2020 13:56:32 +0000
+Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00HDuV3f031546;
+        Fri, 17 Jan 2020 13:56:31 GMT
+Received: from lab02.no.oracle.com (/10.172.144.56)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 17 Jan 2020 05:56:30 -0800
+From:   =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
+To:     Yishai Hadas <yishaih@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org
+Subject: [PATCH for-rc] IB/mlx4: Fix leak in id_map_find_del
+Date:   Fri, 17 Jan 2020 14:56:22 +0100
+Message-Id: <20200117135622.836563-1-haakon.bugge@oracle.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9502 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=2 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1911140001 definitions=main-2001170110
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9502 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=2 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-2001170111
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Toke Høiland-Jørgensen <toke@redhat.com>
+Using CX-3 virtual functions, either from a bare-metal machine or
+pass-through from a VM, MAD packets are proxied through the PF driver.
 
-To make sure no new files are introduced that doesn't include the bpf/
-prefix in its #include, remove tools/lib/bpf from the include path
-entirely.
+Since the VF drivers have separate name spaces for MAD Transaction Ids
+(TIDs), the PF driver has to re-map the TIDs and keep the book keeping
+in a cache.
 
-Instead, we introduce a new header files directory under the scratch tools/
-dir, and add a rule to run the 'install_headers' rule from libbpf to have a
-full set of consistent libbpf headers in $(OUTPUT)/tools/include/bpf, and
-then use $(OUTPUT)/tools/include as the include path for selftests.
+Following the RDMA Connection Manager (CM) protocol, it is clear when
+an entry has to evicted from the cache. When a DREP is sent from
+mlx4_ib_multiplex_cm_handler(), id_map_find_del() is called. Similar
+when a REJ is received by the mlx4_ib_demux_cm_handler(),
+id_map_find_del() is called.
 
-For consistency we also make sure we put all the scratch build files from
-other bpftool and libbpf into tools/build/, so everything stays within
-selftests/.
+This function wipes out the TID in use from the IDR or XArray and
+removes the id_map_entry from the table.
 
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
+In short, it does everything except the topping of the cake, which is
+to remove the entry from the list and free it. In other words, for the
+DREP and REJ cases enumerated above, both will leak one id_map_entry.
+
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
 ---
- tools/testing/selftests/bpf/.gitignore |    2 +
- tools/testing/selftests/bpf/Makefile   |   49 +++++++++++++++++++++-----------
- 2 files changed, 33 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/mlx4/cm.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/bpf/.gitignore b/tools/testing/selftests/bpf/.gitignore
-index 1d14e3ab70be..8c9eac626996 100644
---- a/tools/testing/selftests/bpf/.gitignore
-+++ b/tools/testing/selftests/bpf/.gitignore
-@@ -39,4 +39,4 @@ test_cpp
- /no_alu32
- /bpf_gcc
- /tools
--bpf_helper_defs.h
-+
-diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests/bpf/Makefile
-index 858d4e3369ad..ac0292a82fdc 100644
---- a/tools/testing/selftests/bpf/Makefile
-+++ b/tools/testing/selftests/bpf/Makefile
-@@ -20,8 +20,8 @@ CLANG		?= clang
- LLC		?= llc
- LLVM_OBJCOPY	?= llvm-objcopy
- BPF_GCC		?= $(shell command -v bpf-gcc;)
--CFLAGS += -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR) -I$(LIBDIR)  \
--	  -I$(BPFDIR) -I$(GENDIR) -I$(TOOLSINCDIR)			\
-+CFLAGS += -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR)		 \
-+	  -I$(INCLUDE_DIR) -I$(GENDIR) -I$(LIBDIR) -I$(TOOLSINCDIR)	\
- 	  -Dbpf_prog_load=bpf_prog_test_load				\
- 	  -Dbpf_load_program=bpf_test_load_program
- LDLIBS += -lcap -lelf -lz -lrt -lpthread
-@@ -97,11 +97,15 @@ OVERRIDE_TARGETS := 1
- override define CLEAN
- 	$(call msg,CLEAN)
- 	$(RM) -r $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) $(TEST_GEN_FILES) $(EXTRA_CLEAN)
--	$(MAKE) -C $(BPFDIR) OUTPUT=$(OUTPUT)/ clean
- endef
- 
- include ../lib.mk
- 
-+SCRATCH_DIR := $(OUTPUT)/tools
-+BUILD_DIR := $(SCRATCH_DIR)/build
-+INCLUDE_DIR := $(SCRATCH_DIR)/include
-+INCLUDE_BPF := $(INCLUDE_DIR)/bpf
-+
- # Define simple and short `make test_progs`, `make test_sysctl`, etc targets
- # to build individual tests.
- # NOTE: Semicolon at the end is critical to override lib.mk's default static
-@@ -120,7 +124,7 @@ $(OUTPUT)/urandom_read: urandom_read.c
- 	$(call msg,BINARY,,$@)
- 	$(CC) -o $@ $< -Wl,--build-id
- 
--$(OUTPUT)/test_stub.o: test_stub.c
-+$(OUTPUT)/test_stub.o: test_stub.c $(INCLUDE_BPF)
- 	$(call msg,CC,,$@)
- 	$(CC) -c $(CFLAGS) -o $@ $<
- 
-@@ -133,7 +137,7 @@ $(OUTPUT)/runqslower: force
- 	$(Q)$(MAKE) $(submake_extras) -C $(TOOLSDIR)/bpf/runqslower	\
- 		    OUTPUT=$(OUTPUT)/tools/ VMLINUX_BTF=$(VMLINUX_BTF)
- 
--BPFOBJ := $(OUTPUT)/libbpf.a
-+BPFOBJ := $(BUILD_DIR)/libbpf/libbpf.a
- 
- $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED): $(OUTPUT)/test_stub.o $(BPFOBJ)
- 
-@@ -159,17 +163,28 @@ force:
- DEFAULT_BPFTOOL := $(OUTPUT)/tools/sbin/bpftool
- BPFTOOL ?= $(DEFAULT_BPFTOOL)
- 
--$(DEFAULT_BPFTOOL): force
--	$(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)			      \
-+$(BUILD_DIR)/libbpf $(BUILD_DIR)/bpftool $(INCLUDE_DIR):
-+	$(call msg,MKDIR,,$@)
-+	mkdir -p $@
-+
-+$(DEFAULT_BPFTOOL): force | $(BUILD_DIR)/bpftool
-+	$(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)		\
-+		    OUTPUT=$(BUILD_DIR)/bpftool/			\
- 		    prefix= DESTDIR=$(OUTPUT)/tools/ install
- 
--$(BPFOBJ): force
--	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) OUTPUT=$(OUTPUT)/
-+$(BPFOBJ): force | $(BUILD_DIR)/libbpf
-+	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) \
-+		OUTPUT=$(BUILD_DIR)/libbpf/
-+
-+$(INCLUDE_BPF): $(BPFOBJ) | $(INCLUDE_DIR)
-+	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) install_headers \
-+		OUTPUT=$(BUILD_DIR)/libbpf/ DESTDIR=$(SCRATCH_DIR) prefix=
-+
-+BPF_HELPERS := $(or $(wildcard $(INCLUDE_BPF)/bpf_*.h),$(INCLUDE_BPF))
-+ifneq ($(BPF_HELPERS),$(INCLUDE_BPF))
-+$(BPF_HELPERS): $(INCLUDE_BPF)
-+endif
- 
--BPF_HELPERS := $(OUTPUT)/bpf_helper_defs.h $(wildcard $(BPFDIR)/bpf_*.h)
--$(OUTPUT)/bpf_helper_defs.h: $(BPFOBJ)
--	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR)			      \
--		    OUTPUT=$(OUTPUT)/ $(OUTPUT)/bpf_helper_defs.h
- 
- # Get Clang's default includes on this system, as opposed to those seen by
- # '-target bpf'. This fixes "missing" files on some architectures/distros,
-@@ -189,8 +204,8 @@ MENDIAN=$(if $(IS_LITTLE_ENDIAN),-mlittle-endian,-mbig-endian)
- 
- CLANG_SYS_INCLUDES = $(call get_sys_includes,$(CLANG))
- BPF_CFLAGS = -g -D__TARGET_ARCH_$(SRCARCH) $(MENDIAN) 			\
--	     -I$(OUTPUT) -I$(CURDIR) -I$(CURDIR)/include/uapi		\
--	     -I$(APIDIR) -I$(LIBDIR) -I$(BPFDIR) -I$(abspath $(OUTPUT)/../usr/include)
-+	     -I$(INCLUDE_DIR) -I$(CURDIR) -I$(CURDIR)/include/uapi	\
-+	     -I$(APIDIR) -I$(abspath $(OUTPUT)/../usr/include)
- 
- CLANG_CFLAGS = $(CLANG_SYS_INCLUDES) \
- 	       -Wno-compare-distinct-pointer-types
-@@ -392,7 +407,7 @@ $(OUTPUT)/test_cpp: test_cpp.cpp $(OUTPUT)/test_core_extern.skel.h $(BPFOBJ)
- 	$(call msg,CXX,,$@)
- 	$(CXX) $(CFLAGS) $^ $(LDLIBS) -o $@
- 
--EXTRA_CLEAN := $(TEST_CUSTOM_PROGS)					\
-+EXTRA_CLEAN := $(TEST_CUSTOM_PROGS) $(SCRATCH_DIR)			\
- 	prog_tests/tests.h map_tests/tests.h verifier/tests.h		\
- 	feature								\
--	$(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc tools)
-+	$(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc)
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+index ecd6cadd529a..1df6d3ccfc62 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -197,8 +197,13 @@ static void id_map_find_del(struct ib_device *ibdev, int pv_cm_id)
+ 	if (!ent)
+ 		goto out;
+ 	found_ent = id_map_find_by_sl_id(ibdev, ent->slave_id, ent->sl_cm_id);
+-	if (found_ent && found_ent == ent)
++	if (found_ent && found_ent == ent) {
+ 		rb_erase(&found_ent->node, sl_id_map);
++		if (!ent->scheduled_delete) {
++			list_del(&ent->list);
++			kfree(ent);
++		}
++	}
+ out:
+ 	spin_unlock(&sriov->id_map_lock);
+ }
+-- 
+2.20.1
 
