@@ -2,297 +2,67 @@ Return-Path: <SRS0=PaA+=3J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F582C33CB7
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 06:21:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2471C3F68F
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 07:30:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C6B3207FF
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 06:21:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CvqTeXhX"
+	by mail.kernel.org (Postfix) with ESMTP id 979AB20684
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 07:30:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726148AbgATGVI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jan 2020 01:21:08 -0500
-Received: from mail-qk1-f195.google.com ([209.85.222.195]:34650 "EHLO
-        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725783AbgATGVI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Jan 2020 01:21:08 -0500
-Received: by mail-qk1-f195.google.com with SMTP id j9so29127135qkk.1;
-        Sun, 19 Jan 2020 22:21:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=HzgwQjk23FH9alWYUZE6q0CWsQkjBSTe2jUKbbfrMf8=;
-        b=CvqTeXhX9F6eVJZp+SYzLBQGk1j0R2KFNWPCi2rapCMh4k2e1ccT//93/BPrWl82y1
-         vGarXBJzdbATNWwv/w9OlWb+ZVhBtDiyan/veftuq9TC5NB1wKROhJDgjUBLx/V5dUZc
-         0Q9/RlS3HmjPLQPgJctAqVzZIicj/l8DEDtcVKSn7KnbOdwd+4jWGhZI6KbpxLNBXEmt
-         MQqnbeDlWSshcgQOKRHQ181Hhbj7+ZqVt6uq82LMofX5Nk20WVSmM99TD+NwzwTMgYLj
-         PJP0O6DGp9v8ZdizZZdoFOu7lAfFobH/Je2qQXRCAC2D2J7+d/WnDcDgQsOlve/gUbys
-         JpeQ==
+        id S1726819AbgATHav (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jan 2020 02:30:51 -0500
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:40699 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726282AbgATHav (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Jan 2020 02:30:51 -0500
+Received: by mail-pl1-f193.google.com with SMTP id s21so12801278plr.7;
+        Sun, 19 Jan 2020 23:30:50 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=HzgwQjk23FH9alWYUZE6q0CWsQkjBSTe2jUKbbfrMf8=;
-        b=iJZ3V8n3haQHUpA4YYze4a8YBOFdIOHUlKDJKyVxoYJmkdcMtuCoS7X1fdznTK78b3
-         jRvZcasBZT1etMtzara6WS/l00uS+GXvAFyYBxQ502X99a3WQjekUvJqp1mb0nuP1w6A
-         LiDiLBitNS7QnNimpvOtU49BgiETGPuz8fcq4aclG9DJ74gGmdz2PXbNOwrP+4cLjDdk
-         FF3lKmAoCtbXO6iFFHsN6E9n/yUhVRCVjoufy89VNq7SlQnUKJ6DAHXn/tw2/aj45mj1
-         idigrvaFo+JgUxxllVVmgwjMpbl96+nTnSSK1PpfQCIu+mot217iWy8vV5W0xRNDZMZC
-         Lc7g==
-X-Gm-Message-State: APjAAAUTNUXCUQY6d9H4LkkfFZ66QqzD6+ooSQQ2Qa5X5wtikuKJ8vPz
-        Hb2RiJBwhwphHxhsAu5Lc++iSaUWmcmpHp6G/Cg=
-X-Google-Smtp-Source: APXvYqyf+AOg23rg7WeXYxqzp4r3mgJLIWtxn6tckbkEE2rtwGF9JOexPu3kHucfyEKTtHP4YPeGHwAWjvVI+3UbALs=
-X-Received: by 2002:a05:620a:5ae:: with SMTP id q14mr46460647qkq.437.1579501266863;
- Sun, 19 Jan 2020 22:21:06 -0800 (PST)
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=Tytd2xIi4rDm4xTJXT7PgUqxrt5vtfpID7x35/XLvLQ=;
+        b=qgJoM5PzvBD4WIudxgVJpR0JpUL95t3+RV2VQF5DIC6J15eoPbPTxFy2SunYRCwuB6
+         dLn/dcoPQSlzf3jEp9KeplHiElAI4h4Nf//fAp9u4rg+46Ve6S5jkuwwa55g7fdkXMUI
+         rJTqpcBX7zkqM//iuzN/+IWClnMYYjzHAUPF7R2yOy+FAhzjVd4uTW4Q5O9xBzrDRYDO
+         0YrOao7j3EhBZbQxfeXiGrem96y62PcR/xXWc4DBcwJJTpL0MhYyYmGp7Lc1+G+eOfDU
+         18y5STnhQCkf3ImefRtd2h6x9DEtWibON0wWHHVILcVJqadj7xnDNjyi1o1cd2ZzzSOO
+         qfww==
+X-Gm-Message-State: APjAAAXjvLZE3ORpGd8K2UJAZWxXKv6RV83zlatiPpWX48dnfb3BzugK
+        RdCaM6+rjWeIP9Dt7A/+aQOme3de
+X-Google-Smtp-Source: APXvYqzDK6wx4LEDEg9emD5TiFnDsSjzz0adG10VLaUd3gMoKhJUt8CEO0Kge+r5ZYSORCoBtC5Rpw==
+X-Received: by 2002:a17:902:9b90:: with SMTP id y16mr10637863plp.217.1579505450351;
+        Sun, 19 Jan 2020 23:30:50 -0800 (PST)
+Received: from ?IPv6:2601:647:4802:9070:fd41:47a6:c3c9:b0ce? ([2601:647:4802:9070:fd41:47a6:c3c9:b0ce])
+        by smtp.gmail.com with ESMTPSA id w5sm35781930pgb.78.2020.01.19.23.30.49
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 19 Jan 2020 23:30:49 -0800 (PST)
+Subject: Re: [PATCH] RDMA/isert: Fix a recently introduced regression related
+ to logout
+To:     Bart Van Assche <bvanassche@acm.org>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>
+Cc:     target-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Rahul Kundu <rahul.kundu@chelsio.com>
+References: <20200116044737.19507-1-bvanassche@acm.org>
+From:   Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <97430396-5916-7913-d62f-b70cf174d465@grimberg.me>
+Date:   Sun, 19 Jan 2020 23:30:48 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-References: <157926819690.1555735.10756593211671752826.stgit@toke.dk> <157926820677.1555735.5437255599683298212.stgit@toke.dk>
-In-Reply-To: <157926820677.1555735.5437255599683298212.stgit@toke.dk>
-From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Date:   Sun, 19 Jan 2020 22:20:55 -0800
-Message-ID: <CAEf4Bzb9zUmhxTyYahJqySJzgfyB-zMEd+o4ybv=a8-t+iZS4w@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v4 09/10] selftests: Remove tools/lib/bpf from
- include path
-To:     =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        Andrii Nakryiko <andriin@fb.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Networking <netdev@vger.kernel.org>, bpf <bpf@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        linux-rdma@vger.kernel.org,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>,
-        clang-built-linux@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20200116044737.19507-1-bvanassche@acm.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jan 17, 2020 at 5:43 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@redh=
-at.com> wrote:
->
-> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
->
-> To make sure no new files are introduced that doesn't include the bpf/
-> prefix in its #include, remove tools/lib/bpf from the include path
-> entirely.
->
-> Instead, we introduce a new header files directory under the scratch tool=
-s/
-> dir, and add a rule to run the 'install_headers' rule from libbpf to have=
- a
-> full set of consistent libbpf headers in $(OUTPUT)/tools/include/bpf, and
-> then use $(OUTPUT)/tools/include as the include path for selftests.
->
-> For consistency we also make sure we put all the scratch build files from
-> other bpftool and libbpf into tools/build/, so everything stays within
-> selftests/.
->
-> Signed-off-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
-> ---
->  tools/testing/selftests/bpf/.gitignore |    2 +
->  tools/testing/selftests/bpf/Makefile   |   49 +++++++++++++++++++++-----=
-------
->  2 files changed, 33 insertions(+), 18 deletions(-)
->
-> diff --git a/tools/testing/selftests/bpf/.gitignore b/tools/testing/selft=
-ests/bpf/.gitignore
-> index 1d14e3ab70be..8c9eac626996 100644
-> --- a/tools/testing/selftests/bpf/.gitignore
-> +++ b/tools/testing/selftests/bpf/.gitignore
-> @@ -39,4 +39,4 @@ test_cpp
->  /no_alu32
->  /bpf_gcc
->  /tools
-> -bpf_helper_defs.h
+Bart,
 
-can you please also drop libbpf.pc and libbpf.so.* rules from .gitignore?
-
-> +
-> diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftes=
-ts/bpf/Makefile
-> index 858d4e3369ad..ac0292a82fdc 100644
-> --- a/tools/testing/selftests/bpf/Makefile
-> +++ b/tools/testing/selftests/bpf/Makefile
-> @@ -20,8 +20,8 @@ CLANG         ?=3D clang
->  LLC            ?=3D llc
->  LLVM_OBJCOPY   ?=3D llvm-objcopy
->  BPF_GCC                ?=3D $(shell command -v bpf-gcc;)
-> -CFLAGS +=3D -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR) -I$(LIBDIR)=
-  \
-> -         -I$(BPFDIR) -I$(GENDIR) -I$(TOOLSINCDIR)                      \
-> +CFLAGS +=3D -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR)            =
-  \
-
-extra space here
-
-> +         -I$(INCLUDE_DIR) -I$(GENDIR) -I$(LIBDIR) -I$(TOOLSINCDIR)     \
->           -Dbpf_prog_load=3Dbpf_prog_test_load                           =
- \
->           -Dbpf_load_program=3Dbpf_test_load_program
->  LDLIBS +=3D -lcap -lelf -lz -lrt -lpthread
-> @@ -97,11 +97,15 @@ OVERRIDE_TARGETS :=3D 1
->  override define CLEAN
->         $(call msg,CLEAN)
->         $(RM) -r $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) $(TEST_GEN_=
-FILES) $(EXTRA_CLEAN)
-> -       $(MAKE) -C $(BPFDIR) OUTPUT=3D$(OUTPUT)/ clean
->  endef
->
->  include ../lib.mk
->
-> +SCRATCH_DIR :=3D $(OUTPUT)/tools
-> +BUILD_DIR :=3D $(SCRATCH_DIR)/build
-> +INCLUDE_DIR :=3D $(SCRATCH_DIR)/include
-> +INCLUDE_BPF :=3D $(INCLUDE_DIR)/bpf
-> +
->  # Define simple and short `make test_progs`, `make test_sysctl`, etc tar=
-gets
->  # to build individual tests.
->  # NOTE: Semicolon at the end is critical to override lib.mk's default st=
-atic
-> @@ -120,7 +124,7 @@ $(OUTPUT)/urandom_read: urandom_read.c
->         $(call msg,BINARY,,$@)
->         $(CC) -o $@ $< -Wl,--build-id
->
-> -$(OUTPUT)/test_stub.o: test_stub.c
-> +$(OUTPUT)/test_stub.o: test_stub.c $(INCLUDE_BPF)
->         $(call msg,CC,,$@)
->         $(CC) -c $(CFLAGS) -o $@ $<
->
-> @@ -133,7 +137,7 @@ $(OUTPUT)/runqslower: force
->         $(Q)$(MAKE) $(submake_extras) -C $(TOOLSDIR)/bpf/runqslower     \
->                     OUTPUT=3D$(OUTPUT)/tools/ VMLINUX_BTF=3D$(VMLINUX_BTF=
-)
->
-> -BPFOBJ :=3D $(OUTPUT)/libbpf.a
-> +BPFOBJ :=3D $(BUILD_DIR)/libbpf/libbpf.a
->
->  $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED): $(OUTPUT)/test_stub.o $(BP=
-FOBJ)
->
-> @@ -159,17 +163,28 @@ force:
->  DEFAULT_BPFTOOL :=3D $(OUTPUT)/tools/sbin/bpftool
->  BPFTOOL ?=3D $(DEFAULT_BPFTOOL)
->
-> -$(DEFAULT_BPFTOOL): force
-> -       $(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)                  =
-     \
-> +$(BUILD_DIR)/libbpf $(BUILD_DIR)/bpftool $(INCLUDE_DIR):
-> +       $(call msg,MKDIR,,$@)
-> +       mkdir -p $@
-> +
-> +$(DEFAULT_BPFTOOL): force | $(BUILD_DIR)/bpftool
-> +       $(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)         \
-
-slash alignment
-
-
-> +                   OUTPUT=3D$(BUILD_DIR)/bpftool/                       =
- \
->                     prefix=3D DESTDIR=3D$(OUTPUT)/tools/ install
->
-> -$(BPFOBJ): force
-> -       $(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) OUTPUT=3D$(OUTPUT)/
-> +$(BPFOBJ): force | $(BUILD_DIR)/libbpf
-> +       $(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) \
-> +               OUTPUT=3D$(BUILD_DIR)/libbpf/
-> +
-> +$(INCLUDE_BPF): $(BPFOBJ) | $(INCLUDE_DIR)
-> +       $(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) install_headers \
-> +               OUTPUT=3D$(BUILD_DIR)/libbpf/ DESTDIR=3D$(SCRATCH_DIR) pr=
-efix=3D
-> +
-> +BPF_HELPERS :=3D $(or $(wildcard $(INCLUDE_BPF)/bpf_*.h),$(INCLUDE_BPF))
-> +ifneq ($(BPF_HELPERS),$(INCLUDE_BPF))
-> +$(BPF_HELPERS): $(INCLUDE_BPF)
-> +endif
->
-> -BPF_HELPERS :=3D $(OUTPUT)/bpf_helper_defs.h $(wildcard $(BPFDIR)/bpf_*.=
-h)
-> -$(OUTPUT)/bpf_helper_defs.h: $(BPFOBJ)
-> -       $(Q)$(MAKE) $(submake_extras) -C $(BPFDIR)                       =
-     \
-> -                   OUTPUT=3D$(OUTPUT)/ $(OUTPUT)/bpf_helper_defs.h
->
-
-I really-really didn't like this alternating dependency on directory
-or a set of file, depending on current state of those temporary
-directories. Then also this ugly check to avoid circular dependency.
-All that seemed wrong. So I played a bit with how to achieve the same
-differently, and here's what I came up with, which I like a bit
-better. What do you think?
-
-$(BPFOBJ): $(wildcard $(BPFDIR)/*.c $(BPFDIR)/*.h $(BPFDIR)/Makefile)      =
-    \
-           ../../../include/uapi/linux/bpf.h                               =
-    \
-           | $(INCLUDE_DIR) $(BUILD_DIR)/libbpf
-        $(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) OUTPUT=3D$(BUILD_DIR)/li=
-bbpf/ \
-                    DESTDIR=3D$(SCRATCH_DIR) prefix=3D all install_headers
-
-So, essentially, just make sure that we install local copies of
-headers whenever libbpf.a needs to be re-built.
-../../../include/uapi/linux/bpf.h ensures we don't miss uapi header
-changes as well. Now anything that uses libbpf headers will need to
-depend on $(BPFOBJ) and will automatically get up-to-date local copies
-of headers.
-
-This seems much simpler. Please give it a try, thanks!
-
->  # Get Clang's default includes on this system, as opposed to those seen =
-by
->  # '-target bpf'. This fixes "missing" files on some architectures/distro=
-s,
-> @@ -189,8 +204,8 @@ MENDIAN=3D$(if $(IS_LITTLE_ENDIAN),-mlittle-endian,-m=
-big-endian)
->
->  CLANG_SYS_INCLUDES =3D $(call get_sys_includes,$(CLANG))
->  BPF_CFLAGS =3D -g -D__TARGET_ARCH_$(SRCARCH) $(MENDIAN)                 =
- \
-> -            -I$(OUTPUT) -I$(CURDIR) -I$(CURDIR)/include/uapi           \
-> -            -I$(APIDIR) -I$(LIBDIR) -I$(BPFDIR) -I$(abspath $(OUTPUT)/..=
-/usr/include)
-> +            -I$(INCLUDE_DIR) -I$(CURDIR) -I$(CURDIR)/include/uapi      \
-> +            -I$(APIDIR) -I$(abspath $(OUTPUT)/../usr/include)
->
->  CLANG_CFLAGS =3D $(CLANG_SYS_INCLUDES) \
->                -Wno-compare-distinct-pointer-types
-> @@ -392,7 +407,7 @@ $(OUTPUT)/test_cpp: test_cpp.cpp $(OUTPUT)/test_core_=
-extern.skel.h $(BPFOBJ)
->         $(call msg,CXX,,$@)
->         $(CXX) $(CFLAGS) $^ $(LDLIBS) -o $@
->
-> -EXTRA_CLEAN :=3D $(TEST_CUSTOM_PROGS)                                   =
- \
-> +EXTRA_CLEAN :=3D $(TEST_CUSTOM_PROGS) $(SCRATCH_DIR)                    =
- \
->         prog_tests/tests.h map_tests/tests.h verifier/tests.h           \
->         feature                                                         \
-> -       $(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc tools)
-> +       $(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc)
->
+Acked-by: Sagi Grimberg <sagi@grimberg.me>
