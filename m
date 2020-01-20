@@ -7,64 +7,64 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0F0AC3F68F
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:07:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F826C33CAA
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:13:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B891621D7E
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:07:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BB5F22314
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:13:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bhX7yiQC"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CU6+1cuO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727289AbgATNGr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jan 2020 08:06:47 -0500
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:41047 "EHLO
+        id S1726589AbgATNN0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jan 2020 08:13:26 -0500
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:37374 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727243AbgATNGr (ORCPT
+        by vger.kernel.org with ESMTP id S1727092AbgATNNY (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Jan 2020 08:06:47 -0500
+        Mon, 20 Jan 2020 08:13:24 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579525606;
+        s=mimecast20190719; t=1579526002;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=oVICxkwYE819T09jumS9b6kqZZVW9alGabNhw2Byv4c=;
-        b=bhX7yiQC06ov8M3HpddvHv1pG1e/EwEZ6AzVoYP+YZaot0iUufBUXPWd1c8e7WTe+FmGBj
-        HSllop26wd/fEU9wb3SCNorMgXZ+JGdZAJLmxDIbzeDNgMedZR+zw3NS3Awlkhlu2Oe42k
-        tuHM1oxS0oGxA5+lE/ec2khu+6SZ1AE=
-Received: from mail-lf1-f69.google.com (mail-lf1-f69.google.com
- [209.85.167.69]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-402-OQxRL5_YPcmTCT4xd3pAow-1; Mon, 20 Jan 2020 08:06:45 -0500
-X-MC-Unique: OQxRL5_YPcmTCT4xd3pAow-1
-Received: by mail-lf1-f69.google.com with SMTP id b22so336308lfa.16
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Jan 2020 05:06:44 -0800 (PST)
+        bh=OV2F5KycaRYFyA7gRNTRFrtUAPvKB/uVOGe3Q95tG20=;
+        b=CU6+1cuOi2LmooHfumWcf5DxSVOAtPnYT4y6XtSnrBOIIR69fFvpuFldD7tmjc/tUfE44n
+        lX4hrf2/vPwcd/hQ8gvJWDM586610tY5Vla/Dvo2yQnKDdgoRBRhitkjHiekZpFNL8lOIh
+        Ujz2ZpCvtJNXt09j2zXwOq9z2rKcAYQ=
+Received: from mail-lj1-f197.google.com (mail-lj1-f197.google.com
+ [209.85.208.197]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-362-90PXR4l7M9uZVrrM_6Wh_Q-1; Mon, 20 Jan 2020 08:13:21 -0500
+X-MC-Unique: 90PXR4l7M9uZVrrM_6Wh_Q-1
+Received: by mail-lj1-f197.google.com with SMTP id d14so7518552ljg.17
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Jan 2020 05:13:20 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
          :references:user-agent:mime-version:content-transfer-encoding;
-        bh=oVICxkwYE819T09jumS9b6kqZZVW9alGabNhw2Byv4c=;
-        b=Ml4hdGl6VVh7wYy4B/twetBQvJI9OHHsfFQAg5jU4pDxXwOA6SWXXrF8V/Fpectqee
-         dYCsMl4B8x1vyMSj4Dk0/GqfJ01LRbC/OeypPl9lf2O34y4+2rzEAnkkKms1M8UnIxVt
-         S40tZQD/vs7EIQXo7gQU8xzW6irnPyRDsgKoxNoFaHXYOE/GqgPGnRTDUhtrqek4KgaH
-         eIorEDhe0kof6HxPuqmCrGcrj9vi/aALCeeRYPuqYmd3RvvAxkN3i8w2KR7tVHhb+9XB
-         f68lSkws9PskEFpe5ximTwP5yN03bDr7Gzve6GopnoLcYJKdVR1pe1Zc7fcYE3aaqueU
-         hsyg==
-X-Gm-Message-State: APjAAAVxK6iggvnrKJv9+2O3ApVi2ba4hQE5qk0/AlCAe3bko80XriKw
-        1fLu6hrd5ZlisZmqbt4lkuQp33KDuJN2VLpxIe0V7XN8m9JFIgSHsEGl9zBJ8eO6B/Vrf6E4Ylv
-        qKPQyihvLlnh8OI7rBGeIWA==
-X-Received: by 2002:a2e:9015:: with SMTP id h21mr13901689ljg.69.1579525603443;
-        Mon, 20 Jan 2020 05:06:43 -0800 (PST)
-X-Google-Smtp-Source: APXvYqxl6cjsyjw8Scl4Npe4TQQoKpYIFE7qfthL3twnuQzv1KZL4kmSTEjNXwjKvkvlIou0OEBbwA==
-X-Received: by 2002:a2e:9015:: with SMTP id h21mr13901661ljg.69.1579525603114;
-        Mon, 20 Jan 2020 05:06:43 -0800 (PST)
+        bh=OV2F5KycaRYFyA7gRNTRFrtUAPvKB/uVOGe3Q95tG20=;
+        b=mBrUvuorXusCsGlpMq9J2uVaim/jthTJrrYl8xqTHYG/lU/b9wgpT6TEJjFLJrggPu
+         19/w047hmKLyp24H2qXu80AlowDzBesO4Z2rFLiz23HryXRHOgq1RXqW1aavhdidDDZZ
+         U55F2KyOnQQBpQBeby+wnKwBU49HGyTPy9avBgaQFbNKCN09L503b3D0tlrPtFXcLGKS
+         54z/MLXfksCJkYzsxEw30qxVPRfWVlTe2sa0a73ZCqTD/4MoWBvt6Xlw/eg4g1v5Dwc8
+         cl5pEQTY/rWcXZ8xIOjEFD+3Hxnrz/yoIno+vSWNt6NGX/jc9oZNcXtNsw5OkKgkemji
+         UP4A==
+X-Gm-Message-State: APjAAAW+mD7Hn5cF7hDsKoKmEYt4qrtATG8ycUEjUPPVHANqYxfzgc3b
+        VEv7wBjU8TrFLfX31E1h4QWwmdNIjhZEcs8LYUbFn+S85f7aQxRaC5H3Nt+P7ulzzArr8IK5x4p
+        JF2pbZSG7E8xswUNbWDaaOw==
+X-Received: by 2002:ac2:58c1:: with SMTP id u1mr6526495lfo.57.1579525999328;
+        Mon, 20 Jan 2020 05:13:19 -0800 (PST)
+X-Google-Smtp-Source: APXvYqw6GaaMgnx8Xd+lJy37awgoTe/xbVU+R2aCqUfNb8TodmbD6JzVbGj8RG+80hAD+E40R80DWQ==
+X-Received: by 2002:ac2:58c1:: with SMTP id u1mr6526468lfo.57.1579525998962;
+        Mon, 20 Jan 2020 05:13:18 -0800 (PST)
 Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id z5sm16825740lji.40.2020.01.20.05.06.41
+        by smtp.gmail.com with ESMTPSA id b14sm16762076lff.68.2020.01.20.05.13.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jan 2020 05:06:42 -0800 (PST)
+        Mon, 20 Jan 2020 05:13:16 -0800 (PST)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 59E971804D7; Mon, 20 Jan 2020 14:06:41 +0100 (CET)
-Subject: [PATCH bpf-next v5 01/11] samples/bpf: Don't try to remove user's
- homedir on clean
+        id 8CE311804D8; Mon, 20 Jan 2020 14:06:52 +0100 (CET)
+Subject: [PATCH bpf-next v5 11/11] selftests: Refactor build to remove
+ tools/lib/bpf from include path
 From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To:     Alexei Starovoitov <ast@kernel.org>
 Cc:     Daniel Borkmann <daniel@iogearbox.net>,
@@ -88,8 +88,8 @@ Cc:     Daniel Borkmann <daniel@iogearbox.net>,
         bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
         clang-built-linux@googlegroups.com
-Date:   Mon, 20 Jan 2020 14:06:41 +0100
-Message-ID: <157952560126.1683545.7273054725976032511.stgit@toke.dk>
+Date:   Mon, 20 Jan 2020 14:06:52 +0100
+Message-ID: <157952561246.1683545.2762245552022369203.stgit@toke.dk>
 In-Reply-To: <157952560001.1683545.16757917515390545122.stgit@toke.dk>
 References: <157952560001.1683545.16757917515390545122.stgit@toke.dk>
 User-Agent: StGit/0.21
@@ -103,34 +103,168 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Toke Høiland-Jørgensen <toke@redhat.com>
 
-The 'clean' rule in the samples/bpf Makefile tries to remove backup
-files (ending in ~). However, if no such files exist, it will instead try
-to remove the user's home directory. While the attempt is mostly harmless,
-it does lead to a somewhat scary warning like this:
+To make sure no new files are introduced that doesn't include the bpf/
+prefix in its #include, remove tools/lib/bpf from the include path
+entirely.
 
-rm: cannot remove '~': Is a directory
+Instead, we introduce a new header files directory under the scratch tools/
+dir, and add a rule to run the 'install_headers' rule from libbpf to have a
+full set of consistent libbpf headers in $(OUTPUT)/tools/include/bpf, and
+then use $(OUTPUT)/tools/include as the include path for selftests.
 
-Fix this by using find instead of shell expansion to locate any actual
-backup files that need to be removed.
+For consistency we also make sure we put all the scratch build files from
+other bpftool and libbpf into tools/build/, so everything stays within
+selftests/.
 
-Fixes: b62a796c109c ("samples/bpf: allow make to be run from samples/bpf/ directory")
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
 ---
- samples/bpf/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/bpf/.gitignore |    4 +-
+ tools/testing/selftests/bpf/Makefile   |   59 ++++++++++++++++----------------
+ 2 files changed, 30 insertions(+), 33 deletions(-)
 
-diff --git a/samples/bpf/Makefile b/samples/bpf/Makefile
-index 5b89c0370f33..f86d713a17a5 100644
---- a/samples/bpf/Makefile
-+++ b/samples/bpf/Makefile
-@@ -254,7 +254,7 @@ all:
+diff --git a/tools/testing/selftests/bpf/.gitignore b/tools/testing/selftests/bpf/.gitignore
+index 1d14e3ab70be..ec464859c6b6 100644
+--- a/tools/testing/selftests/bpf/.gitignore
++++ b/tools/testing/selftests/bpf/.gitignore
+@@ -29,8 +29,6 @@ test_tcpnotify_user
+ test_libbpf
+ test_tcp_check_syncookie_user
+ test_sysctl
+-libbpf.pc
+-libbpf.so.*
+ test_hashmap
+ test_btf_dump
+ xdping
+@@ -39,4 +37,4 @@ test_cpp
+ /no_alu32
+ /bpf_gcc
+ /tools
+-bpf_helper_defs.h
++
+diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests/bpf/Makefile
+index 2cd91e0524cf..be8fe404a086 100644
+--- a/tools/testing/selftests/bpf/Makefile
++++ b/tools/testing/selftests/bpf/Makefile
+@@ -20,8 +20,8 @@ CLANG		?= clang
+ LLC		?= llc
+ LLVM_OBJCOPY	?= llvm-objcopy
+ BPF_GCC		?= $(shell command -v bpf-gcc;)
+-CFLAGS += -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR) -I$(LIBDIR)  \
+-	  -I$(BPFDIR) -I$(GENDIR) -I$(TOOLSINCDIR)			\
++CFLAGS += -g -Wall -O2 $(GENFLAGS) -I$(CURDIR) -I$(APIDIR)		\
++	  -I$(INCLUDE_DIR) -I$(GENDIR) -I$(LIBDIR) -I$(TOOLSINCDIR)	\
+ 	  -Dbpf_prog_load=bpf_prog_test_load				\
+ 	  -Dbpf_load_program=bpf_test_load_program
+ LDLIBS += -lcap -lelf -lz -lrt -lpthread
+@@ -97,11 +97,15 @@ OVERRIDE_TARGETS := 1
+ override define CLEAN
+ 	$(call msg,CLEAN)
+ 	$(RM) -r $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) $(TEST_GEN_FILES) $(EXTRA_CLEAN)
+-	$(MAKE) -C $(BPFDIR) OUTPUT=$(OUTPUT)/ clean
+ endef
  
- clean:
- 	$(MAKE) -C ../../ M=$(CURDIR) clean
--	@rm -f *~
-+	@find $(CURDIR) -type f -name '*~' -delete
+ include ../lib.mk
  
- $(LIBBPF): FORCE
- # Fix up variables inherited from Kbuild that tools/ build system won't like
++SCRATCH_DIR := $(OUTPUT)/tools
++BUILD_DIR := $(SCRATCH_DIR)/build
++INCLUDE_DIR := $(SCRATCH_DIR)/include
++BPFOBJ := $(BUILD_DIR)/libbpf/libbpf.a
++
+ # Define simple and short `make test_progs`, `make test_sysctl`, etc targets
+ # to build individual tests.
+ # NOTE: Semicolon at the end is critical to override lib.mk's default static
+@@ -120,7 +124,7 @@ $(OUTPUT)/urandom_read: urandom_read.c
+ 	$(call msg,BINARY,,$@)
+ 	$(CC) -o $@ $< -Wl,--build-id
+ 
+-$(OUTPUT)/test_stub.o: test_stub.c
++$(OUTPUT)/test_stub.o: test_stub.c $(BPFOBJ)
+ 	$(call msg,CC,,$@)
+ 	$(CC) -c $(CFLAGS) -o $@ $<
+ 
+@@ -128,12 +132,10 @@ VMLINUX_BTF_PATHS := $(abspath ../../../../vmlinux)			\
+ 			       /sys/kernel/btf/vmlinux			\
+ 			       /boot/vmlinux-$(shell uname -r)
+ VMLINUX_BTF:= $(firstword $(wildcard $(VMLINUX_BTF_PATHS)))
+-.PHONY: $(OUTPUT)/runqslower
+-$(OUTPUT)/runqslower: force
++$(OUTPUT)/runqslower: $(BPFOBJ)
+ 	$(Q)$(MAKE) $(submake_extras) -C $(TOOLSDIR)/bpf/runqslower	\
+-		    OUTPUT=$(OUTPUT)/tools/ VMLINUX_BTF=$(VMLINUX_BTF)
+-
+-BPFOBJ := $(OUTPUT)/libbpf.a
++		    OUTPUT=$(SCRATCH_DIR)/ VMLINUX_BTF=$(VMLINUX_BTF)   \
++		    BPFOBJ=$(BPFOBJ) BPF_INCLUDE=$(INCLUDE_DIR)
+ 
+ $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED): $(OUTPUT)/test_stub.o $(BPFOBJ)
+ 
+@@ -151,25 +153,22 @@ $(OUTPUT)/test_netcnt: cgroup_helpers.c
+ $(OUTPUT)/test_sock_fields: cgroup_helpers.c
+ $(OUTPUT)/test_sysctl: cgroup_helpers.c
+ 
+-.PHONY: force
+-
+-# force a rebuild of BPFOBJ when its dependencies are updated
+-force:
+-
+-DEFAULT_BPFTOOL := $(OUTPUT)/tools/sbin/bpftool
++DEFAULT_BPFTOOL := $(SCRATCH_DIR)/sbin/bpftool
+ BPFTOOL ?= $(DEFAULT_BPFTOOL)
++$(DEFAULT_BPFTOOL): $(BPFOBJ) | $(BUILD_DIR)/bpftool
++	$(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)			\
++		    OUTPUT=$(BUILD_DIR)/bpftool/			\
++		    prefix= DESTDIR=$(SCRATCH_DIR)/ install
+ 
+-$(DEFAULT_BPFTOOL): force
+-	$(Q)$(MAKE) $(submake_extras)  -C $(BPFTOOLDIR)			      \
+-		    prefix= DESTDIR=$(OUTPUT)/tools/ install
+-
+-$(BPFOBJ): force
+-	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) OUTPUT=$(OUTPUT)/
++$(BPFOBJ): $(wildcard $(BPFDIR)/*.c $(BPFDIR)/*.h $(BPFDIR)/Makefile)          \
++	   ../../../include/uapi/linux/bpf.h                                   \
++	   | $(INCLUDE_DIR) $(BUILD_DIR)/libbpf
++	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR) OUTPUT=$(BUILD_DIR)/libbpf/ \
++		DESTDIR=$(SCRATCH_DIR) prefix= all install_headers
+ 
+-BPF_HELPERS := $(OUTPUT)/bpf_helper_defs.h $(wildcard $(BPFDIR)/bpf_*.h)
+-$(OUTPUT)/bpf_helper_defs.h: $(BPFOBJ)
+-	$(Q)$(MAKE) $(submake_extras) -C $(BPFDIR)			      \
+-		    OUTPUT=$(OUTPUT)/ $(OUTPUT)/bpf_helper_defs.h
++$(BUILD_DIR)/libbpf $(BUILD_DIR)/bpftool $(INCLUDE_DIR):
++	$(call msg,MKDIR,,$@)
++	mkdir -p $@
+ 
+ # Get Clang's default includes on this system, as opposed to those seen by
+ # '-target bpf'. This fixes "missing" files on some architectures/distros,
+@@ -189,8 +188,8 @@ MENDIAN=$(if $(IS_LITTLE_ENDIAN),-mlittle-endian,-mbig-endian)
+ 
+ CLANG_SYS_INCLUDES = $(call get_sys_includes,$(CLANG))
+ BPF_CFLAGS = -g -D__TARGET_ARCH_$(SRCARCH) $(MENDIAN) 			\
+-	     -I$(OUTPUT) -I$(CURDIR) -I$(CURDIR)/include/uapi		\
+-	     -I$(APIDIR) -I$(LIBDIR) -I$(BPFDIR) -I$(abspath $(OUTPUT)/../usr/include)
++	     -I$(INCLUDE_DIR) -I$(CURDIR) -I$(CURDIR)/include/uapi	\
++	     -I$(APIDIR) -I$(abspath $(OUTPUT)/../usr/include)
+ 
+ CLANG_CFLAGS = $(CLANG_SYS_INCLUDES) \
+ 	       -Wno-compare-distinct-pointer-types
+@@ -279,7 +278,7 @@ $(TRUNNER_BPF_PROGS_DIR)$(if $2,-)$2-bpfobjs := y
+ $(TRUNNER_BPF_OBJS): $(TRUNNER_OUTPUT)/%.o:				\
+ 		     $(TRUNNER_BPF_PROGS_DIR)/%.c			\
+ 		     $(TRUNNER_BPF_PROGS_DIR)/*.h			\
+-		     $$(BPF_HELPERS) | $(TRUNNER_OUTPUT)
++		     $$(BPFOBJ) | $(TRUNNER_OUTPUT)
+ 	$$(call $(TRUNNER_BPF_BUILD_RULE),$$<,$$@,			\
+ 					  $(TRUNNER_BPF_CFLAGS),	\
+ 					  $(TRUNNER_BPF_LDFLAGS))
+@@ -392,7 +391,7 @@ $(OUTPUT)/test_cpp: test_cpp.cpp $(OUTPUT)/test_core_extern.skel.h $(BPFOBJ)
+ 	$(call msg,CXX,,$@)
+ 	$(CXX) $(CFLAGS) $^ $(LDLIBS) -o $@
+ 
+-EXTRA_CLEAN := $(TEST_CUSTOM_PROGS)					\
++EXTRA_CLEAN := $(TEST_CUSTOM_PROGS) $(SCRATCH_DIR)			\
+ 	prog_tests/tests.h map_tests/tests.h verifier/tests.h		\
+ 	feature								\
+-	$(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc tools)
++	$(addprefix $(OUTPUT)/,*.o *.skel.h no_alu32 bpf_gcc)
 
