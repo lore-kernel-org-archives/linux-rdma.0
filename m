@@ -2,159 +2,140 @@ Return-Path: <SRS0=PaA+=3J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72054C2D0DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:13:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 809D6C2D0DB
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:30:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3E62E22464
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:13:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gFe8J88J"
+	by mail.kernel.org (Postfix) with ESMTP id 553C922464
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:30:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579527012;
+	bh=6dnPLM8mNQSGiS/EjQyZOON1MxnO1ZCcpX5QnQbw6YU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=UXaw7UjJeW01WV51y4KCBNLz88XDAQ9l8g0AcJU+Bzd/9velBd+kyTAtSHb2R/SmP
+	 0iW/OWrsEvcy9GlMPiTf3PlzeZP/nLona/BFHmcYiNUpBb55fRE2gKCqUyobUovY2A
+	 1z85kNYds2uyoNv46BzPCaI/RgiCWULKAegldpJk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728668AbgATNN1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jan 2020 08:13:27 -0500
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:30847 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727075AbgATNNZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Jan 2020 08:13:25 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579526004;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=7nX6gCvToHh/M+ufmuZNkVcVbY/LiP2p5Z5znXTQZT8=;
-        b=gFe8J88JNdfWpC8MimBpwKfdpLyK3ffzGt5UmUf+Eo7oCMNlS0zLOQqlpFpyXEb605q/hi
-        ZwPyXp4qbs8HKRdDHtiWSydRHVuJ8N4pRtzfyAqre14UsI5xuqWn140yfAHZzihkD/giPG
-        tO/ffq7kWp1LUMQBFbrIeSVvJ438sjU=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-212-41FnN8sfN4u0zpfOnf_Y_A-1; Mon, 20 Jan 2020 08:13:23 -0500
-X-MC-Unique: 41FnN8sfN4u0zpfOnf_Y_A-1
-Received: by mail-ed1-f72.google.com with SMTP id g11so21788479edu.10
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Jan 2020 05:13:23 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=7nX6gCvToHh/M+ufmuZNkVcVbY/LiP2p5Z5znXTQZT8=;
-        b=GF1mDUMIaCt9e6fbGRlrHA/2li06zBWhXOVUBkacPlwWtqbdfAWatjxlYzHQ/nKLmU
-         RVJf7Eu+a5rEZp4liqGl0cnC/T7dIcuBWOomyodzMZK6DrrVkXoXn0cv+7HwuagnMqFa
-         rvoHQMd4nRCnXrR2A06m09ApFV5wbmTa2qXB3AWMgYeT5N5HdFy0g3C++WG045wk+3l2
-         B68/Z/O7McKrqqT5J4Sn1YN7Djduh941eK9RyB1NlazHdD4Ehg3f3IGePHUZjpThflwL
-         2nOxmlzYD1A7AN8O4Ck1cq/yO9u1SH4UTuiEucnMPyQnSBDYdQ3MJottzB165vRD8S1D
-         2n1w==
-X-Gm-Message-State: APjAAAWZDfenMCjyE9/ZlGwtbv1EBBGx+j1W6mw9oL79HUP9ekoVs4yN
-        XvJck/wZtCJ38Jx5mgndPWnOFqO124tAQ0oPfJq7RoKmUXt5bnUeVdNFHY5j6DZNhbZS7a9c89/
-        bMkmAtyqzZPxflhNOGlbxlw==
-X-Received: by 2002:a17:906:19c8:: with SMTP id h8mr20809255ejd.250.1579525999467;
-        Mon, 20 Jan 2020 05:13:19 -0800 (PST)
-X-Google-Smtp-Source: APXvYqx0QP6IDZi2QN6qajrJveTlJj75I05ZuYUObj5tdnbOi4mrACFD11iCcZbt/l4zWfp+Ir1i2Q==
-X-Received: by 2002:a05:651c:8f:: with SMTP id 15mr13842833ljq.109.1579525998002;
-        Mon, 20 Jan 2020 05:13:18 -0800 (PST)
-Received: from alrua-x1.borgediget.toke.dk ([85.204.121.218])
-        by smtp.gmail.com with ESMTPSA id z3sm16867876ljh.83.2020.01.20.05.13.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jan 2020 05:13:16 -0800 (PST)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 709ED1804D6; Mon, 20 Jan 2020 14:06:51 +0100 (CET)
-Subject: [PATCH bpf-next v5 10/11] runsqslower: Support user-specified libbpf
- include and object paths
-From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-To:     Alexei Starovoitov <ast@kernel.org>
-Cc:     Daniel Borkmann <daniel@iogearbox.net>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        Andrii Nakryiko <andriin@fb.com>,
+        id S1726642AbgATNaL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jan 2020 08:30:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54044 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726626AbgATNaL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Jan 2020 08:30:11 -0500
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 84FDC21835;
+        Mon, 20 Jan 2020 13:30:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579527010;
+        bh=6dnPLM8mNQSGiS/EjQyZOON1MxnO1ZCcpX5QnQbw6YU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=wx2UcaasQHgZBWELEmnGYbwZ3GNliteogm9+qeDJrAfM/Pzdu6AHJpOSptyE5CBIS
+         bc5Q4dchas/yFzl4eA3ExGkNXtTt+Luid93rPKphFwEujtE1enYEdTpq8cgLR9Omgj
+         sMStJH5uouN+fSPZhEzHn/YhsCXp1OEoAtwf8OuQ=
+Date:   Mon, 20 Jan 2020 15:30:06 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Cc:     Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Bart Van Assche <bvanassche@acm.org>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
-        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        clang-built-linux@googlegroups.com
-Date:   Mon, 20 Jan 2020 14:06:51 +0100
-Message-ID: <157952561135.1683545.5660339645093141381.stgit@toke.dk>
-In-Reply-To: <157952560001.1683545.16757917515390545122.stgit@toke.dk>
-References: <157952560001.1683545.16757917515390545122.stgit@toke.dk>
-User-Agent: StGit/0.21
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        Roman Penyaev <rpenyaev@suse.de>
+Subject: Re: [PATCH v7 04/25] RDMA/rtrs: core: lib functions shared between
+ client and server modules
+Message-ID: <20200120133006.GG51881@unreal>
+References: <20200116125915.14815-1-jinpuwang@gmail.com>
+ <20200116125915.14815-5-jinpuwang@gmail.com>
+ <20200119144837.GE51881@unreal>
+ <CAMGffEn-_hbuXBSp=xV+uZa3ZJ21PNvCuedVLHKUPLf+QxbL7w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMGffEn-_hbuXBSp=xV+uZa3ZJ21PNvCuedVLHKUPLf+QxbL7w@mail.gmail.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Toke Høiland-Jørgensen <toke@redhat.com>
+On Mon, Jan 20, 2020 at 12:32:00PM +0100, Jinpu Wang wrote:
+> On Sun, Jan 19, 2020 at 3:48 PM Leon Romanovsky <leon@kernel.org> wrote:
+> >
+> > On Thu, Jan 16, 2020 at 01:58:54PM +0100, Jack Wang wrote:
+> > > From: Jack Wang <jinpu.wang@cloud.ionos.com>
+> > >
+> > > This is a set of library functions existing as a rtrs-core module,
+> > > used by client and server modules.
+> > >
+> > > Mainly these functions wrap IB and RDMA calls and provide a bit higher
+> > > abstraction for implementing of RTRS protocol on client or server
+> > > sides.
+> > >
+> > > Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
+> > > Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+> > > ---
+> > >  drivers/infiniband/ulp/rtrs/rtrs.c | 597 +++++++++++++++++++++++++++++
+> > >  1 file changed, 597 insertions(+)
+> > >  create mode 100644 drivers/infiniband/ulp/rtrs/rtrs.c
+> > >
+> > > diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/rtrs/rtrs.c
+> > > new file mode 100644
+> > > index 000000000000..7b84d76e2a67
+> > > --- /dev/null
+> > > +++ b/drivers/infiniband/ulp/rtrs/rtrs.c
+> > > @@ -0,0 +1,597 @@
+> > > +// SPDX-License-Identifier: GPL-2.0-or-later
+> > > +/*
+> > > + * RDMA Transport Layer
+> > > + *
+> > > + * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
+> > > + *
+> > > + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
+> > > + *
+> > > + * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
+> > > + */
+> > > +#undef pr_fmt
+> > > +#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
+> > > +
+> > > +#include <linux/module.h>
+> > > +#include <linux/inet.h>
+> > > +
+> > > +#include "rtrs-pri.h"
+> > > +#include "rtrs-log.h"
+> > > +
+> > > +MODULE_DESCRIPTION("RDMA Transport Core");
+> > > +MODULE_LICENSE("GPL");
+> > > +
+> > > +struct rtrs_iu *rtrs_iu_alloc(u32 queue_size, size_t size, gfp_t gfp_mask,
+> > > +                           struct ib_device *dma_dev,
+> > > +                           enum dma_data_direction dir,
+> > > +                           void (*done)(struct ib_cq *cq, struct ib_wc *wc))
+> > > +{
+> > > +     struct rtrs_iu *ius, *iu;
+> > > +     int i;
+> > > +
+> > > +     WARN_ON(!queue_size);
+> > > +     ius = kcalloc(queue_size, sizeof(*ius), gfp_mask);
+> > > +     if (unlikely(!ius))
+> > > +             return NULL;
+> >
+> > Let's do not add useless WARN_ON() and unlikely to every error path.
+> I can remove the WARN_ON, but the unlikey for error case seems normal to use,
+> small size memory allocation is unlikely to fail.
 
-This adds support for specifying the libbpf include and object paths as
-arguments to the runqslower Makefile, to support reusing the libbpf version
-built as part of the selftests.
+The unlikely() makes sense in data-path only and mostly it doesn't give
+any performance advantage, kcalloc() in this function means that this
+function is not performance oriented.
 
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
----
- tools/bpf/runqslower/Makefile |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+As general note, as long as this code will leave impression of
+not-stable enough, we will have hard time to accept it. The overuse of
+WARN_ON(), debug prints and micro-optimizations add to such feeling.
 
-diff --git a/tools/bpf/runqslower/Makefile b/tools/bpf/runqslower/Makefile
-index b90044caf270..faf5418609ea 100644
---- a/tools/bpf/runqslower/Makefile
-+++ b/tools/bpf/runqslower/Makefile
-@@ -6,7 +6,9 @@ LLVM_STRIP := llvm-strip
- DEFAULT_BPFTOOL := $(OUTPUT)/sbin/bpftool
- BPFTOOL ?= $(DEFAULT_BPFTOOL)
- LIBBPF_SRC := $(abspath ../../lib/bpf)
--INCLUDES := -I$(OUTPUT) -I$(abspath ../../lib)
-+BPFOBJ := $(OUTPUT)/libbpf.a
-+BPF_INCLUDE := $(OUTPUT)
-+INCLUDES := -I$(BPF_INCLUDE) -I$(OUTPUT) -I$(abspath ../../lib)
- CFLAGS := -g -Wall
- 
- # Try to detect best kernel BTF source
-@@ -37,7 +39,7 @@ clean:
- 	$(call msg,CLEAN)
- 	$(Q)rm -rf $(OUTPUT) runqslower
- 
--$(OUTPUT)/runqslower: $(OUTPUT)/runqslower.o $(OUTPUT)/libbpf.a
-+$(OUTPUT)/runqslower: $(OUTPUT)/runqslower.o $(BPFOBJ)
- 	$(call msg,BINARY,$@)
- 	$(Q)$(CC) $(CFLAGS) -lelf -lz $^ -o $@
- 
-@@ -50,7 +52,7 @@ $(OUTPUT)/%.skel.h: $(OUTPUT)/%.bpf.o | $(BPFTOOL)
- 	$(call msg,GEN-SKEL,$@)
- 	$(Q)$(BPFTOOL) gen skeleton $< > $@
- 
--$(OUTPUT)/%.bpf.o: %.bpf.c $(OUTPUT)/libbpf.a | $(OUTPUT)
-+$(OUTPUT)/%.bpf.o: %.bpf.c $(BPFOBJ) | $(OUTPUT)
- 	$(call msg,BPF,$@)
- 	$(Q)$(CLANG) -g -O2 -target bpf $(INCLUDES)			      \
- 		 -c $(filter %.c,$^) -o $@ &&				      \
-@@ -73,9 +75,9 @@ $(OUTPUT)/vmlinux.h: $(VMLINUX_BTF_PATH) | $(OUTPUT) $(BPFTOOL)
- 	fi
- 	$(Q)$(BPFTOOL) btf dump file $(VMLINUX_BTF_PATH) format c > $@
- 
--$(OUTPUT)/libbpf.a: | $(OUTPUT)
-+$(BPFOBJ): | $(OUTPUT)
- 	$(Q)$(MAKE) $(submake_extras) -C $(LIBBPF_SRC)			       \
--		    OUTPUT=$(abs_out)/ $(abs_out)/libbpf.a
-+		    OUTPUT=$(abspath $(dir $@))/ $(abspath $@)
- 
- $(DEFAULT_BPFTOOL):
- 	$(Q)$(MAKE) $(submake_extras) -C ../bpftool			      \
-
+Thanks
