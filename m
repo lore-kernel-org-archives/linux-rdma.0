@@ -2,64 +2,62 @@ Return-Path: <SRS0=PaA+=3J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC5C2C33CAA
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 18:36:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32B8AC32771
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 20:56:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B6FA022314
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 18:36:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04D0822522
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 20:56:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n6OHQmi2"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qtbvV9o0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727580AbgATSgI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jan 2020 13:36:08 -0500
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:33601 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726642AbgATSgI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Jan 2020 13:36:08 -0500
-Received: by mail-qk1-f194.google.com with SMTP id d71so219404qkc.0;
-        Mon, 20 Jan 2020 10:36:07 -0800 (PST)
+        id S1726951AbgATU4X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jan 2020 15:56:23 -0500
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:42558 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726586AbgATU4X (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Jan 2020 15:56:23 -0500
+Received: by mail-qt1-f193.google.com with SMTP id j5so871843qtq.9;
+        Mon, 20 Jan 2020 12:56:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc:content-transfer-encoding;
-        bh=nypa0fmcU1qrcDA/69y5vVyGSxEYCTlbnT0MYvisCOY=;
-        b=n6OHQmi2Lqnt+u56UyfOnq36LdLY/90AjbbbAuc8Yi+Sexy1YUz2TZnz29vuv8c1GA
-         AFxN+hfJx4ikYoOkGw7RUtlqRcJLAU/8edx7OLCcMNGYFxMzSoJpUXhWzcN0YthgGkTT
-         qEG84m7Cz0WHjv1u3YwE01A4d+lgJveFYMf0YXHdOnienwPstAziOMIilVGV9PtJIHIX
-         MWbMRgb1+F9w+EbiEoulZtnb+bSp/exAEqak/Jojul1Q2WjNv/tuHtTTmGFgrRZyJ2RA
-         GeHNnfD1qa4l6Jnpoh8S515/p62ljovXd7MmiSVhmFRm0EnrBj4naN92dsKCe9y0YJ/9
-         bxeg==
+        bh=DmDOf0n1Uh/peGzEOmgfSb9HmQAqydm6Nl5bcqVlrmM=;
+        b=qtbvV9o0qlYj0zEYfaetNpBWONaNX49z7r9KiONLvB56ImwV9BfzAQfRJ/d+P39w6e
+         Atx4wqs0EezVaqWKK8iOEwpK1VXFvtGnF3Z5bmzVb4hIK/JOunUkOOMX8jThq/UN+foD
+         Hk9xS71cvdaBqbBeZUudlzvTmorF3r8/NnQQA91oezRuX9cO76q+rynoOBJwQ0i2hWch
+         8P4FiE7epbKWthfQX7/ZH5GcrLb4ig3qRcJ2IYOUVrJN/4gFbfeV6TVC7mHa6cXu1IWz
+         2+divanKVWo8d83xgUuSTG5tywO6xLNvZpBPT/j7YMcN8AqZcufWyA2HE9q3a50Xkp+1
+         ptTg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc:content-transfer-encoding;
-        bh=nypa0fmcU1qrcDA/69y5vVyGSxEYCTlbnT0MYvisCOY=;
-        b=AvFxy3JI4ndXddh7C+xS/Ort3iUVKd4c4uyCrMdlzI5NixWe24+LCFzTgfPNBh3H0v
-         SBj1w4QV7K768V4sX+gDOHfZyft9vcyiHrUKBiiUNrKYvvjqdHM0HGZKIdotrkx6RRSZ
-         xScC/v9cDO4kILvr4220z/Wt71CM2x2LSHle2mWvYx+PYcSNgnOvfIiwGaXwoCrxWxRH
-         oLDMUY2s1jsJMn7ZEqswtG/9gMmpb8WgjAEPp6qXVBq0sMguinP03ywXCxFe9ZmBXpp5
-         PdmTRqj266vPr1Nkcry2fWquDS4VrxURcJUHWQGA1HwstboKGgnI9SHIuAk0/xgNptwR
-         TT9w==
-X-Gm-Message-State: APjAAAWj6lBVlV5b4J1XCK/dEfr++Y6hAVW/n16lJuWMky2ggSvygR4I
-        SwecOcl818WSEgeBPrZg80n3DyLI/h2Y+On1HN0=
-X-Google-Smtp-Source: APXvYqyGHYkSXOZiJvAONUelyvaLJfv9/CZYkyPdYsL0xeUScApGmNT8/JruIuZcQj5K1GGwsZvg7mP2yjaYIUQCMas=
-X-Received: by 2002:a05:620a:5ae:: with SMTP id q14mr871914qkq.437.1579545367408;
- Mon, 20 Jan 2020 10:36:07 -0800 (PST)
+        bh=DmDOf0n1Uh/peGzEOmgfSb9HmQAqydm6Nl5bcqVlrmM=;
+        b=Pfrm29+ZVf1itz3TbdaWRlM47c9beZnxDtcVkMxaSzv/otrqrYtvM80OdCk9dZlUwR
+         fA1D0u5gSDG91kkdjibrwSHsk2F+S1up7Y7EEcNOfQUgCC9LfxpOBFjzqtcE+xPtZ0sG
+         uhNdq7XoXJchuZwkHUaaFX6D/KxzUf/eRC52wdkGfswQqdKTyfS/g3wQSnrd0bR3f4ig
+         v7Sj9bhDDPL9Qm5aLsQPSTUSSQ+//s4P83ommNP3l75U58I+/KrWei/y9jzdSUeiXNFL
+         /ODyAssUnVYSgJ2dF1abV1VJ2HMzP0LuutBSGQeAvyEQKpBYn3NXBaOSSFaPL7pPN6WE
+         Oa0w==
+X-Gm-Message-State: APjAAAWR0Vxbh7/jKHugGpvgQlq3lY4gJ892PnwvQR6ct8AWtj+iyZa9
+        IkZbT6BRHt4YWWHkGl5YHm1sFEZb25FgB1peWFw=
+X-Google-Smtp-Source: APXvYqzrIt+QdW57C+3Nfq5K12Tt1bsCDun3Y6YsqP0UmeYR/HLoyVgHor+Ss8TdgdzRMadXC67J1+FhTg41oWHh0YE=
+X-Received: by 2002:ac8:4050:: with SMTP id j16mr1212310qtl.171.1579553781967;
+ Mon, 20 Jan 2020 12:56:21 -0800 (PST)
 MIME-Version: 1.0
-References: <157926819690.1555735.10756593211671752826.stgit@toke.dk>
- <157926820131.1555735.1177228853838027248.stgit@toke.dk> <CAEf4BzbAV0TmEUL=62jz+RD6SPmu927z-dhGL9JHepcAOGMSJA@mail.gmail.com>
- <875zh6p9pg.fsf@toke.dk>
-In-Reply-To: <875zh6p9pg.fsf@toke.dk>
+References: <157952560001.1683545.16757917515390545122.stgit@toke.dk> <157952560237.1683545.17771785178857224877.stgit@toke.dk>
+In-Reply-To: <157952560237.1683545.17771785178857224877.stgit@toke.dk>
 From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Date:   Mon, 20 Jan 2020 10:35:56 -0800
-Message-ID: <CAEf4BzZ7x4F_-bjGg7TdzXcin6c1BAT6OKe53ujh1tx-GB6-ZQ@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v4 04/10] tools/runqslower: Use consistent
- include paths for libbpf
+Date:   Mon, 20 Jan 2020 12:56:10 -0800
+Message-ID: <CAEf4BzZWahGh5ToWViFHRHQLpii-Xxc_f=xnbpuuLwXbvcDwqQ@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v5 02/11] tools/bpf/runqslower: Fix override
+ option for VMLINUX_BTF
 To:     =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
 Cc:     Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
@@ -93,62 +91,27 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 20, 2020 at 4:57 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@redh=
+On Mon, Jan 20, 2020 at 5:08 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@redh=
 at.com> wrote:
 >
-> Andrii Nakryiko <andrii.nakryiko@gmail.com> writes:
+> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
 >
-> > On Fri, Jan 17, 2020 at 5:37 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@=
-redhat.com> wrote:
-> >>
-> >> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
-> >>
-> >> Fix the runqslower tool to include libbpf header files with the bpf/
-> >> prefix, to be consistent with external users of the library. Also ensu=
-re
-> >> that all includes of exported libbpf header files (those that are expo=
-rted
-> >> on 'make install' of the library) use bracketed includes instead of qu=
-oted.
-> >>
-> >> To not break the build, keep the old include path until everything has=
- been
-> >> changed to the new one; a subsequent patch will remove that.
-> >>
-> >> Fixes: 6910d7d3867a ("selftests/bpf: Ensure bpf_helper_defs.h are take=
-n from selftests dir")
-> >> Acked-by: Andrii Nakryiko <andriin@fb.com>
-> >> Signed-off-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
-> >> ---
-> >>  tools/bpf/runqslower/Makefile         |    5 +++--
-> >>  tools/bpf/runqslower/runqslower.bpf.c |    2 +-
-> >>  tools/bpf/runqslower/runqslower.c     |    4 ++--
-> >>  3 files changed, 6 insertions(+), 5 deletions(-)
-> >>
-> >> diff --git a/tools/bpf/runqslower/Makefile b/tools/bpf/runqslower/Make=
-file
-> >> index b62fc9646c39..9f022f7f2593 100644
-> >> --- a/tools/bpf/runqslower/Makefile
-> >> +++ b/tools/bpf/runqslower/Makefile
-> >> @@ -5,6 +5,7 @@ LLC :=3D llc
-> >>  LLVM_STRIP :=3D llvm-strip
-> >>  DEFAULT_BPFTOOL :=3D $(OUTPUT)/sbin/bpftool
-> >>  BPFTOOL ?=3D $(DEFAULT_BPFTOOL)
-> >> +INCLUDES :=3D -I$(OUTPUT) -I$(abspath ../../lib) -I$(abspath ../../li=
-b/bpf)
-> >>  LIBBPF_SRC :=3D $(abspath ../../lib/bpf)
-> >
-> > drop LIBBPF_SRC, it's not used anymore
+> The runqslower tool refuses to build without a file to read vmlinux BTF
+> from. The build fails with an error message to override the location by
+> setting the VMLINUX_BTF variable if autodetection fails. However, the
+> Makefile doesn't actually work with that override - the error message is
+> still emitted.
 >
-> It is: in the rule for building libbpf there's a '-C $(LIBBPF_SRC)'
+> Fix this by including the value of VMLINUX_BTF in the expansion, and only
+> emitting the error message if the *result* is empty. Also permit running
+> 'make clean' even though no VMLINUX_BTF is set.
 >
+> Fixes: 9c01546d26d2 ("tools/bpf: Add runqslower tool to tools/bpf")
+> Signed-off-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
+> ---
 
-Ah, right, missed that one. Looked a bit weird to have $(abspath
-../../lib/bpf) used in INCLUDES and then separate LIBBPF_SRC
-definition there, maybe
+Thanks!
 
-LIBBPF_SRC :=3D $(abspath ../../lib/bpf)
-INCLUDES :=3D -I$(OUTPUT) -I$(abspath ../../lib) -I$(LIBBPF_SRC)
+Acked-by: Andrii Nakryiko <andriin@fb.com>
 
-> -Toke
->
+[...]
