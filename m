@@ -4,66 +4,66 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D371EC2D0DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:07:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A7E8C35240
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:07:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75A0121D7E
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:07:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 011C722525
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 13:07:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="D5Sp7cWP"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UeLb9mtK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726626AbgATNHC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jan 2020 08:07:02 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:20977 "EHLO
+        id S1729064AbgATNHH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jan 2020 08:07:07 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:30207 "EHLO
         us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729008AbgATNHB (ORCPT
+        with ESMTP id S1729106AbgATNHB (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Jan 2020 08:07:01 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579525615;
+        s=mimecast20190719; t=1579525618;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=RzUxlAKUKEEjeoCnDEiqPeOzmSWAGVfVw+uKRNlqu7o=;
-        b=D5Sp7cWPYpFNwCeO4YdJX4SXt77E4qVmgi0P3e3gi1H2/eQitbGBBUvCnY5Z+6u7gOWZu7
-        VbsCsk3Mdd+b4xCyC9DVKAo42pBTYxTacXiJ50AiSkA/VyHr7RTgxjCCPmcpgeuatgdA5c
-        gZX7wSxnifPDiHGmoUcvL15nV0vpbYo=
-Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
- [209.85.167.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-151-dZ93o99CMhGMManOp5yybw-1; Mon, 20 Jan 2020 08:06:53 -0500
-X-MC-Unique: dZ93o99CMhGMManOp5yybw-1
-Received: by mail-lf1-f72.google.com with SMTP id a21so1649385lfg.4
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Jan 2020 05:06:52 -0800 (PST)
+        bh=JyRp3l6AOwRTiJ2eAm7wsXaTFpgYg30fqN3mquU0y+o=;
+        b=UeLb9mtKs35W64oxKxCKOt0sOGo2JEF/+bAQKV1wJTUDtdvfx/o8jc2p8dJdI1Up7uki7n
+        9IBMty3FtZFr8QFoYESKrVtittWCswGQ2EBwaOC09vkfS9GVbBYyn4NNNT0vLoE6PoaF7y
+        p7qwBNUmxj0AWkdP9g4/BFKmnx9fYh4=
+Received: from mail-lj1-f199.google.com (mail-lj1-f199.google.com
+ [209.85.208.199]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-268-lfEJDYaqOuGxQ2bPSTz6Tw-1; Mon, 20 Jan 2020 08:06:57 -0500
+X-MC-Unique: lfEJDYaqOuGxQ2bPSTz6Tw-1
+Received: by mail-lj1-f199.google.com with SMTP id g10so6590940ljg.8
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Jan 2020 05:06:57 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
          :references:user-agent:mime-version:content-transfer-encoding;
-        bh=RzUxlAKUKEEjeoCnDEiqPeOzmSWAGVfVw+uKRNlqu7o=;
-        b=Hiwk5kdlQrRF8gLDr1DtwmJApKTWrAv0ly4uVVgRfUor2I10+WZ3i/I37QFYdht0Ig
-         7BzsmFSUYQesv13j2ba6lOdkpRJ8gWeSFGCxma/SI7XHMXMXRkBKpvlAn5vhWO0UVVEx
-         R3DY+HzhK03WKq2iU4ue9uDHrE8F9Pzf4hfdJ/Mao6Cbn6K9c6SuGx+ywSLuip2ZxMMA
-         PskqGPAi3uAUd+4lyLy7KMZgpCVv1MoHQDCQUA69o3LpkiQZpJiTuVBmZaGT5hxiv0Sv
-         c+Qyln8N7/Itb6y+HUhKEzpbAo9qznA+4gcCY4ECw1kqbkX8BmVRhiYBnGzxxJ7nkeAV
-         9qNw==
-X-Gm-Message-State: APjAAAUV25577j4rDDsQ5bZYFKSgqIFXw1DIKAVVWCTvpKY4sAWA8K4F
-        lamSwaaWOOYDBauPOtyHL+uQlqJ2gNTeXlByNsBBFu+DQ9paV0HJbOxCy340BFQ+g1KJXM/KJFI
-        CT39wJz8HEH/vt7CtaU8QYA==
-X-Received: by 2002:ac2:5635:: with SMTP id b21mr13411075lff.127.1579525610285;
-        Mon, 20 Jan 2020 05:06:50 -0800 (PST)
-X-Google-Smtp-Source: APXvYqzS0g47XN7mB24SmylX4kd8UwerBarr3qUOcyfcLjy5sp7gwQCQ596iAhfmXSBTEn+W6woigw==
-X-Received: by 2002:ac2:5635:: with SMTP id b21mr13411006lff.127.1579525608900;
-        Mon, 20 Jan 2020 05:06:48 -0800 (PST)
+        bh=JyRp3l6AOwRTiJ2eAm7wsXaTFpgYg30fqN3mquU0y+o=;
+        b=IXMSCPL0du/VnLsBEpgyG5QAnc/pBtf7MkMYrVFYvzIeiVJYwfFpRWy7NC3E33vHFU
+         wrVvN4aTKvp10Md3vX9Wf7xRmAthg3vL1Wucmclj74bNnyPzYYsFE9xjJfq9xbk1zzM4
+         4k1icTHtIpGSQ1YENK+C6gsWDyHVPTWAWwiOw97yuILX1WFrJnNjcpjeHroUXXnS8kfd
+         cDszrkrP7aFBFaaFPIcqj2VvbpcWjK9nvspYcyeGF2rp8Y1xqQI/m9xqfRwuGlLRPn+Z
+         TzI1nX4l7n1TvLWGJuMhX3wVswUy+ViL6zErB2zuKORNypDe50ZbHWEYMgFwJIgxE2Bl
+         4okg==
+X-Gm-Message-State: APjAAAV5inAPXKD3oQvwAB9ASKEXMlNn672z3pnslKAknqJVhK1q/iti
+        0Fke5+xzpAnb4ytRpmDY+jH016OL/rpe2M7l5GFG4JN5CO71m8oO0fzaNtEbBttTPSzNtRWFLmT
+        wtKKok/pTdNbhEoliZvUKnQ==
+X-Received: by 2002:a2e:a168:: with SMTP id u8mr14142969ljl.5.1579525614240;
+        Mon, 20 Jan 2020 05:06:54 -0800 (PST)
+X-Google-Smtp-Source: APXvYqyT4U/nA5Zg30wJQdy7Dt8tPnqtKJuHbZ6ydmSlJbVZhrwumqG6hjnfmqeMmszpVPOCKs8Gaw==
+X-Received: by 2002:a2e:a168:: with SMTP id u8mr14142918ljl.5.1579525613394;
+        Mon, 20 Jan 2020 05:06:53 -0800 (PST)
 Received: from alrua-x1.borgediget.toke.dk ([85.204.121.218])
-        by smtp.gmail.com with ESMTPSA id r9sm19582665lfc.72.2020.01.20.05.06.46
+        by smtp.gmail.com with ESMTPSA id u16sm16548115ljo.22.2020.01.20.05.06.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jan 2020 05:06:46 -0800 (PST)
+        Mon, 20 Jan 2020 05:06:51 -0800 (PST)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id CE96E1804D7; Mon, 20 Jan 2020 14:06:45 +0100 (CET)
-Subject: [PATCH bpf-next v5 05/11] selftests: Use consistent include paths for
- libbpf
+        id 41C251804D7; Mon, 20 Jan 2020 14:06:49 +0100 (CET)
+Subject: [PATCH bpf-next v5 08/11] samples/bpf: Use consistent include paths
+ for libbpf
 From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To:     Alexei Starovoitov <ast@kernel.org>
 Cc:     Daniel Borkmann <daniel@iogearbox.net>,
@@ -87,8 +87,8 @@ Cc:     Daniel Borkmann <daniel@iogearbox.net>,
         bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
         clang-built-linux@googlegroups.com
-Date:   Mon, 20 Jan 2020 14:06:45 +0100
-Message-ID: <157952560568.1683545.9649335788846513446.stgit@toke.dk>
+Date:   Mon, 20 Jan 2020 14:06:49 +0100
+Message-ID: <157952560911.1683545.8795966751309534150.stgit@toke.dk>
 In-Reply-To: <157952560001.1683545.16757917515390545122.stgit@toke.dk>
 References: <157952560001.1683545.16757917515390545122.stgit@toke.dk>
 User-Agent: StGit/0.21
@@ -102,1908 +102,1248 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Toke Høiland-Jørgensen <toke@redhat.com>
 
-Fix all selftests to include libbpf header files with the bpf/ prefix, to
-be consistent with external users of the library. Also ensure that all
-includes of exported libbpf header files (those that are exported on 'make
-install' of the library) use bracketed includes instead of quoted.
+Fix all files in samples/bpf to include libbpf header files with the bpf/
+prefix, to be consistent with external users of the library. Also ensure
+that all includes of exported libbpf header files (those that are exported
+on 'make install' of the library) use bracketed includes instead of quoted.
 
-To not break the build, keep the old include path until everything has been
-changed to the new one; a subsequent patch will remove that.
+To make sure no new files are introduced that doesn't include the bpf/
+prefix in its include, remove tools/lib/bpf from the include path entirely,
+and use tools/lib instead.
 
 Fixes: 6910d7d3867a ("selftests/bpf: Ensure bpf_helper_defs.h are taken from selftests dir")
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Acked-by: Andrii Nakryiko <andriin@fb.com>
 Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
 ---
- tools/testing/selftests/bpf/Makefile               |    2 +-
- tools/testing/selftests/bpf/bpf_tcp_helpers.h      |    4 ++--
- tools/testing/selftests/bpf/bpf_trace_helpers.h    |    2 +-
- tools/testing/selftests/bpf/bpf_util.h             |    2 +-
- tools/testing/selftests/bpf/prog_tests/cpu_mask.c  |    2 +-
- .../testing/selftests/bpf/prog_tests/perf_buffer.c |    2 +-
- tools/testing/selftests/bpf/progs/bpf_dctcp.c      |    4 ++--
- tools/testing/selftests/bpf/progs/bpf_flow.c       |    4 ++--
- tools/testing/selftests/bpf/progs/connect4_prog.c  |    4 ++--
- tools/testing/selftests/bpf/progs/connect6_prog.c  |    4 ++--
- tools/testing/selftests/bpf/progs/dev_cgroup.c     |    2 +-
- tools/testing/selftests/bpf/progs/fentry_test.c    |    2 +-
- tools/testing/selftests/bpf/progs/fexit_bpf2bpf.c  |    2 +-
- .../selftests/bpf/progs/fexit_bpf2bpf_simple.c     |    2 +-
- tools/testing/selftests/bpf/progs/fexit_test.c     |    2 +-
- .../selftests/bpf/progs/get_cgroup_id_kern.c       |    2 +-
- tools/testing/selftests/bpf/progs/kfree_skb.c      |    4 ++--
- tools/testing/selftests/bpf/progs/loop1.c          |    4 ++--
- tools/testing/selftests/bpf/progs/loop2.c          |    4 ++--
- tools/testing/selftests/bpf/progs/loop3.c          |    4 ++--
- tools/testing/selftests/bpf/progs/loop4.c          |    2 +-
- tools/testing/selftests/bpf/progs/loop5.c          |    2 +-
- tools/testing/selftests/bpf/progs/netcnt_prog.c    |    2 +-
- tools/testing/selftests/bpf/progs/pyperf.h         |    2 +-
- .../testing/selftests/bpf/progs/sample_map_ret0.c  |    2 +-
- tools/testing/selftests/bpf/progs/sendmsg4_prog.c  |    4 ++--
- tools/testing/selftests/bpf/progs/sendmsg6_prog.c  |    4 ++--
- .../selftests/bpf/progs/socket_cookie_prog.c       |    4 ++--
- .../selftests/bpf/progs/sockmap_parse_prog.c       |    4 ++--
- .../selftests/bpf/progs/sockmap_tcp_msg_prog.c     |    4 ++--
- .../selftests/bpf/progs/sockmap_verdict_prog.c     |    4 ++--
- .../testing/selftests/bpf/progs/sockopt_inherit.c  |    2 +-
- tools/testing/selftests/bpf/progs/sockopt_multi.c  |    2 +-
- tools/testing/selftests/bpf/progs/sockopt_sk.c     |    2 +-
- tools/testing/selftests/bpf/progs/strobemeta.h     |    2 +-
- tools/testing/selftests/bpf/progs/tailcall1.c      |    2 +-
- tools/testing/selftests/bpf/progs/tailcall2.c      |    2 +-
- tools/testing/selftests/bpf/progs/tailcall3.c      |    2 +-
- tools/testing/selftests/bpf/progs/tailcall4.c      |    2 +-
- tools/testing/selftests/bpf/progs/tailcall5.c      |    2 +-
- tools/testing/selftests/bpf/progs/tcp_rtt.c        |    2 +-
- .../testing/selftests/bpf/progs/test_adjust_tail.c |    2 +-
- .../selftests/bpf/progs/test_attach_probe.c        |    2 +-
- tools/testing/selftests/bpf/progs/test_btf_haskv.c |    2 +-
- tools/testing/selftests/bpf/progs/test_btf_newkv.c |    2 +-
- tools/testing/selftests/bpf/progs/test_btf_nokv.c  |    2 +-
- .../testing/selftests/bpf/progs/test_core_extern.c |    2 +-
- .../selftests/bpf/progs/test_core_reloc_arrays.c   |    4 ++--
- .../bpf/progs/test_core_reloc_bitfields_direct.c   |    4 ++--
- .../bpf/progs/test_core_reloc_bitfields_probed.c   |    4 ++--
- .../bpf/progs/test_core_reloc_existence.c          |    4 ++--
- .../selftests/bpf/progs/test_core_reloc_flavors.c  |    4 ++--
- .../selftests/bpf/progs/test_core_reloc_ints.c     |    4 ++--
- .../selftests/bpf/progs/test_core_reloc_kernel.c   |    4 ++--
- .../selftests/bpf/progs/test_core_reloc_misc.c     |    4 ++--
- .../selftests/bpf/progs/test_core_reloc_mods.c     |    4 ++--
- .../selftests/bpf/progs/test_core_reloc_nesting.c  |    4 ++--
- .../bpf/progs/test_core_reloc_primitives.c         |    4 ++--
- .../bpf/progs/test_core_reloc_ptr_as_arr.c         |    4 ++--
- .../selftests/bpf/progs/test_core_reloc_size.c     |    4 ++--
- .../selftests/bpf/progs/test_get_stack_rawtp.c     |    2 +-
- .../testing/selftests/bpf/progs/test_global_data.c |    2 +-
- .../selftests/bpf/progs/test_global_func1.c        |    2 +-
- .../selftests/bpf/progs/test_global_func3.c        |    2 +-
- .../selftests/bpf/progs/test_global_func5.c        |    2 +-
- .../selftests/bpf/progs/test_global_func6.c        |    2 +-
- .../selftests/bpf/progs/test_global_func7.c        |    2 +-
- tools/testing/selftests/bpf/progs/test_l4lb.c      |    4 ++--
- .../selftests/bpf/progs/test_l4lb_noinline.c       |    4 ++--
- .../selftests/bpf/progs/test_lirc_mode2_kern.c     |    2 +-
- .../selftests/bpf/progs/test_lwt_ip_encap.c        |    4 ++--
- .../selftests/bpf/progs/test_lwt_seg6local.c       |    4 ++--
- .../testing/selftests/bpf/progs/test_map_in_map.c  |    2 +-
- tools/testing/selftests/bpf/progs/test_map_lock.c  |    2 +-
- tools/testing/selftests/bpf/progs/test_mmap.c      |    2 +-
- tools/testing/selftests/bpf/progs/test_obj_id.c    |    2 +-
- tools/testing/selftests/bpf/progs/test_overhead.c  |    4 ++--
- .../testing/selftests/bpf/progs/test_perf_buffer.c |    2 +-
- tools/testing/selftests/bpf/progs/test_pinning.c   |    2 +-
- .../selftests/bpf/progs/test_pinning_invalid.c     |    2 +-
- .../testing/selftests/bpf/progs/test_pkt_access.c  |    4 ++--
- .../selftests/bpf/progs/test_pkt_md_access.c       |    2 +-
- .../testing/selftests/bpf/progs/test_probe_user.c  |    4 ++--
- .../selftests/bpf/progs/test_queue_stack_map.h     |    2 +-
- .../testing/selftests/bpf/progs/test_rdonly_maps.c |    2 +-
- tools/testing/selftests/bpf/progs/test_seg6_loop.c |    4 ++--
- .../bpf/progs/test_select_reuseport_kern.c         |    4 ++--
- .../selftests/bpf/progs/test_send_signal_kern.c    |    2 +-
- .../selftests/bpf/progs/test_sk_lookup_kern.c      |    4 ++--
- .../selftests/bpf/progs/test_skb_cgroup_id_kern.c  |    2 +-
- tools/testing/selftests/bpf/progs/test_skb_ctx.c   |    2 +-
- tools/testing/selftests/bpf/progs/test_skeleton.c  |    2 +-
- .../selftests/bpf/progs/test_sock_fields_kern.c    |    4 ++--
- tools/testing/selftests/bpf/progs/test_spin_lock.c |    2 +-
- .../selftests/bpf/progs/test_stacktrace_build_id.c |    2 +-
- .../selftests/bpf/progs/test_stacktrace_map.c      |    2 +-
- .../selftests/bpf/progs/test_sysctl_loop1.c        |    2 +-
- .../selftests/bpf/progs/test_sysctl_loop2.c        |    2 +-
- .../testing/selftests/bpf/progs/test_sysctl_prog.c |    2 +-
- tools/testing/selftests/bpf/progs/test_tc_edt.c    |    4 ++--
- tools/testing/selftests/bpf/progs/test_tc_tunnel.c |    4 ++--
- .../bpf/progs/test_tcp_check_syncookie_kern.c      |    4 ++--
- .../testing/selftests/bpf/progs/test_tcp_estats.c  |    2 +-
- .../testing/selftests/bpf/progs/test_tcpbpf_kern.c |    4 ++--
- .../selftests/bpf/progs/test_tcpnotify_kern.c      |    4 ++--
- .../testing/selftests/bpf/progs/test_tracepoint.c  |    2 +-
- .../testing/selftests/bpf/progs/test_tunnel_kern.c |    4 ++--
- .../selftests/bpf/progs/test_verif_scale1.c        |    2 +-
- .../selftests/bpf/progs/test_verif_scale2.c        |    2 +-
- .../selftests/bpf/progs/test_verif_scale3.c        |    2 +-
- tools/testing/selftests/bpf/progs/test_xdp.c       |    4 ++--
- .../testing/selftests/bpf/progs/test_xdp_bpf2bpf.c |    2 +-
- tools/testing/selftests/bpf/progs/test_xdp_loop.c  |    4 ++--
- tools/testing/selftests/bpf/progs/test_xdp_meta.c  |    2 +-
- .../selftests/bpf/progs/test_xdp_noinline.c        |    4 ++--
- .../selftests/bpf/progs/test_xdp_redirect.c        |    2 +-
- tools/testing/selftests/bpf/progs/test_xdp_vlan.c  |    4 ++--
- tools/testing/selftests/bpf/progs/xdp_dummy.c      |    2 +-
- .../testing/selftests/bpf/progs/xdp_redirect_map.c |    2 +-
- tools/testing/selftests/bpf/progs/xdp_tx.c         |    2 +-
- tools/testing/selftests/bpf/progs/xdping_kern.c    |    4 ++--
- tools/testing/selftests/bpf/test_cpp.cpp           |    6 +++---
- tools/testing/selftests/bpf/test_hashmap.c         |    2 +-
- tools/testing/selftests/bpf/test_progs.h           |    2 +-
- tools/testing/selftests/bpf/test_sock.c            |    2 +-
- tools/testing/selftests/bpf/test_sockmap_kern.h    |    4 ++--
- tools/testing/selftests/bpf/test_sysctl.c          |    2 +-
- tools/testing/selftests/bpf/trace_helpers.h        |    2 +-
- 128 files changed, 181 insertions(+), 181 deletions(-)
+ samples/bpf/Makefile                              |    3 +--
+ samples/bpf/cpustat_kern.c                        |    2 +-
+ samples/bpf/fds_example.c                         |    2 +-
+ samples/bpf/hbm.c                                 |    4 ++--
+ samples/bpf/hbm_kern.h                            |    4 ++--
+ samples/bpf/ibumad_kern.c                         |    2 +-
+ samples/bpf/ibumad_user.c                         |    2 +-
+ samples/bpf/lathist_kern.c                        |    2 +-
+ samples/bpf/lwt_len_hist_kern.c                   |    2 +-
+ samples/bpf/map_perf_test_kern.c                  |    4 ++--
+ samples/bpf/offwaketime_kern.c                    |    4 ++--
+ samples/bpf/offwaketime_user.c                    |    2 +-
+ samples/bpf/parse_ldabs.c                         |    2 +-
+ samples/bpf/parse_simple.c                        |    2 +-
+ samples/bpf/parse_varlen.c                        |    2 +-
+ samples/bpf/sampleip_kern.c                       |    4 ++--
+ samples/bpf/sampleip_user.c                       |    2 +-
+ samples/bpf/sock_flags_kern.c                     |    2 +-
+ samples/bpf/sockex1_kern.c                        |    2 +-
+ samples/bpf/sockex1_user.c                        |    2 +-
+ samples/bpf/sockex2_kern.c                        |    2 +-
+ samples/bpf/sockex2_user.c                        |    2 +-
+ samples/bpf/sockex3_kern.c                        |    2 +-
+ samples/bpf/spintest_kern.c                       |    4 ++--
+ samples/bpf/spintest_user.c                       |    2 +-
+ samples/bpf/syscall_tp_kern.c                     |    2 +-
+ samples/bpf/task_fd_query_kern.c                  |    2 +-
+ samples/bpf/task_fd_query_user.c                  |    2 +-
+ samples/bpf/tc_l2_redirect_kern.c                 |    2 +-
+ samples/bpf/tcbpf1_kern.c                         |    2 +-
+ samples/bpf/tcp_basertt_kern.c                    |    4 ++--
+ samples/bpf/tcp_bufs_kern.c                       |    4 ++--
+ samples/bpf/tcp_clamp_kern.c                      |    4 ++--
+ samples/bpf/tcp_cong_kern.c                       |    4 ++--
+ samples/bpf/tcp_dumpstats_kern.c                  |    4 ++--
+ samples/bpf/tcp_iw_kern.c                         |    4 ++--
+ samples/bpf/tcp_rwnd_kern.c                       |    4 ++--
+ samples/bpf/tcp_synrto_kern.c                     |    4 ++--
+ samples/bpf/tcp_tos_reflect_kern.c                |    4 ++--
+ samples/bpf/test_cgrp2_tc_kern.c                  |    2 +-
+ samples/bpf/test_current_task_under_cgroup_kern.c |    2 +-
+ samples/bpf/test_lwt_bpf.c                        |    2 +-
+ samples/bpf/test_map_in_map_kern.c                |    4 ++--
+ samples/bpf/test_overhead_kprobe_kern.c           |    4 ++--
+ samples/bpf/test_overhead_raw_tp_kern.c           |    2 +-
+ samples/bpf/test_overhead_tp_kern.c               |    2 +-
+ samples/bpf/test_probe_write_user_kern.c          |    4 ++--
+ samples/bpf/trace_event_kern.c                    |    4 ++--
+ samples/bpf/trace_event_user.c                    |    2 +-
+ samples/bpf/trace_output_kern.c                   |    2 +-
+ samples/bpf/trace_output_user.c                   |    2 +-
+ samples/bpf/tracex1_kern.c                        |    4 ++--
+ samples/bpf/tracex2_kern.c                        |    4 ++--
+ samples/bpf/tracex3_kern.c                        |    4 ++--
+ samples/bpf/tracex4_kern.c                        |    4 ++--
+ samples/bpf/tracex5_kern.c                        |    4 ++--
+ samples/bpf/tracex6_kern.c                        |    2 +-
+ samples/bpf/tracex7_kern.c                        |    2 +-
+ samples/bpf/xdp1_kern.c                           |    2 +-
+ samples/bpf/xdp1_user.c                           |    4 ++--
+ samples/bpf/xdp2_kern.c                           |    2 +-
+ samples/bpf/xdp2skb_meta_kern.c                   |    2 +-
+ samples/bpf/xdp_adjust_tail_kern.c                |    2 +-
+ samples/bpf/xdp_adjust_tail_user.c                |    4 ++--
+ samples/bpf/xdp_fwd_kern.c                        |    2 +-
+ samples/bpf/xdp_fwd_user.c                        |    2 +-
+ samples/bpf/xdp_monitor_kern.c                    |    2 +-
+ samples/bpf/xdp_redirect_cpu_kern.c               |    2 +-
+ samples/bpf/xdp_redirect_cpu_user.c               |    2 +-
+ samples/bpf/xdp_redirect_kern.c                   |    2 +-
+ samples/bpf/xdp_redirect_map_kern.c               |    2 +-
+ samples/bpf/xdp_redirect_map_user.c               |    2 +-
+ samples/bpf/xdp_redirect_user.c                   |    2 +-
+ samples/bpf/xdp_router_ipv4_kern.c                |    2 +-
+ samples/bpf/xdp_router_ipv4_user.c                |    2 +-
+ samples/bpf/xdp_rxq_info_kern.c                   |    2 +-
+ samples/bpf/xdp_rxq_info_user.c                   |    4 ++--
+ samples/bpf/xdp_sample_pkts_kern.c                |    2 +-
+ samples/bpf/xdp_sample_pkts_user.c                |    2 +-
+ samples/bpf/xdp_tx_iptunnel_kern.c                |    2 +-
+ samples/bpf/xdp_tx_iptunnel_user.c                |    2 +-
+ samples/bpf/xdpsock_kern.c                        |    2 +-
+ samples/bpf/xdpsock_user.c                        |    6 +++---
+ 83 files changed, 112 insertions(+), 113 deletions(-)
 
-diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests/bpf/Makefile
-index 8240282aef7f..2cd91e0524cf 100644
---- a/tools/testing/selftests/bpf/Makefile
-+++ b/tools/testing/selftests/bpf/Makefile
-@@ -190,7 +190,7 @@ MENDIAN=$(if $(IS_LITTLE_ENDIAN),-mlittle-endian,-mbig-endian)
- CLANG_SYS_INCLUDES = $(call get_sys_includes,$(CLANG))
- BPF_CFLAGS = -g -D__TARGET_ARCH_$(SRCARCH) $(MENDIAN) 			\
- 	     -I$(OUTPUT) -I$(CURDIR) -I$(CURDIR)/include/uapi		\
--	     -I$(APIDIR) -I$(BPFDIR) -I$(abspath $(OUTPUT)/../usr/include)
-+	     -I$(APIDIR) -I$(LIBDIR) -I$(BPFDIR) -I$(abspath $(OUTPUT)/../usr/include)
+diff --git a/samples/bpf/Makefile b/samples/bpf/Makefile
+index f86d713a17a5..b0e8adf7eb01 100644
+--- a/samples/bpf/Makefile
++++ b/samples/bpf/Makefile
+@@ -184,7 +184,6 @@ TPROGS_CFLAGS += -Wmissing-prototypes
+ TPROGS_CFLAGS += -Wstrict-prototypes
  
- CLANG_CFLAGS = $(CLANG_SYS_INCLUDES) \
- 	       -Wno-compare-distinct-pointer-types
-diff --git a/tools/testing/selftests/bpf/bpf_tcp_helpers.h b/tools/testing/selftests/bpf/bpf_tcp_helpers.h
-index 1052b9bb4320..6fee732f0297 100644
---- a/tools/testing/selftests/bpf/bpf_tcp_helpers.h
-+++ b/tools/testing/selftests/bpf/bpf_tcp_helpers.h
-@@ -4,8 +4,8 @@
- 
- #include <stdbool.h>
- #include <linux/types.h>
--#include <bpf_helpers.h>
--#include <bpf_core_read.h>
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- struct sock_common {
- 	unsigned char	skc_state;
-diff --git a/tools/testing/selftests/bpf/bpf_trace_helpers.h b/tools/testing/selftests/bpf/bpf_trace_helpers.h
-index 1719cabc97b7..c6f1354d93fb 100644
---- a/tools/testing/selftests/bpf/bpf_trace_helpers.h
-+++ b/tools/testing/selftests/bpf/bpf_trace_helpers.h
-@@ -2,7 +2,7 @@
- #ifndef __BPF_TRACE_HELPERS_H
- #define __BPF_TRACE_HELPERS_H
- 
--#include <bpf_helpers.h>
-+#include <bpf/bpf_helpers.h>
- 
- #define ___bpf_concat(a, b) a ## b
- #define ___bpf_apply(fn, n) ___bpf_concat(fn, n)
-diff --git a/tools/testing/selftests/bpf/bpf_util.h b/tools/testing/selftests/bpf/bpf_util.h
-index ec219f84e041..a3352a64c067 100644
---- a/tools/testing/selftests/bpf/bpf_util.h
-+++ b/tools/testing/selftests/bpf/bpf_util.h
-@@ -6,7 +6,7 @@
- #include <stdlib.h>
- #include <string.h>
- #include <errno.h>
--#include <libbpf.h> /* libbpf_num_possible_cpus */
-+#include <bpf/libbpf.h> /* libbpf_num_possible_cpus */
- 
- static inline unsigned int bpf_num_possible_cpus(void)
- {
-diff --git a/tools/testing/selftests/bpf/prog_tests/cpu_mask.c b/tools/testing/selftests/bpf/prog_tests/cpu_mask.c
-index 1fa1bdbaffa9..f7c7e25232be 100644
---- a/tools/testing/selftests/bpf/prog_tests/cpu_mask.c
-+++ b/tools/testing/selftests/bpf/prog_tests/cpu_mask.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <test_progs.h>
- #include <bpf/btf.h>
--#include "libbpf_internal.h"
-+#include "bpf/libbpf_internal.h"
- 
- static int duration = 0;
- 
-diff --git a/tools/testing/selftests/bpf/prog_tests/perf_buffer.c b/tools/testing/selftests/bpf/prog_tests/perf_buffer.c
-index cf6c87936c69..1450ea2dd4cc 100644
---- a/tools/testing/selftests/bpf/prog_tests/perf_buffer.c
-+++ b/tools/testing/selftests/bpf/prog_tests/perf_buffer.c
-@@ -4,7 +4,7 @@
- #include <sched.h>
- #include <sys/socket.h>
- #include <test_progs.h>
--#include "libbpf_internal.h"
-+#include "bpf/libbpf_internal.h"
- 
- static void on_sample(void *ctx, int cpu, void *data, __u32 size)
- {
-diff --git a/tools/testing/selftests/bpf/progs/bpf_dctcp.c b/tools/testing/selftests/bpf/progs/bpf_dctcp.c
-index 19650f43c192..b631fb5032d2 100644
---- a/tools/testing/selftests/bpf/progs/bpf_dctcp.c
-+++ b/tools/testing/selftests/bpf/progs/bpf_dctcp.c
-@@ -8,8 +8,8 @@
- 
- #include <linux/bpf.h>
- #include <linux/types.h>
--#include <bpf_helpers.h>
--#include <bpf_trace_helpers.h>
-+#include <bpf/bpf_helpers.h>
-+#include "bpf_trace_helpers.h"
- #include "bpf_tcp_helpers.h"
- 
- char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/bpf_flow.c b/tools/testing/selftests/bpf/progs/bpf_flow.c
-index 040a44206f29..9941f0ba471e 100644
---- a/tools/testing/selftests/bpf/progs/bpf_flow.c
-+++ b/tools/testing/selftests/bpf/progs/bpf_flow.c
-@@ -16,8 +16,8 @@
- #include <sys/socket.h>
- #include <linux/if_tunnel.h>
- #include <linux/mpls.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- int _version SEC("version") = 1;
- #define PROG(F) SEC(#F) int bpf_func_##F
-diff --git a/tools/testing/selftests/bpf/progs/connect4_prog.c b/tools/testing/selftests/bpf/progs/connect4_prog.c
-index 1fd244d35ba9..75085119c5bb 100644
---- a/tools/testing/selftests/bpf/progs/connect4_prog.c
-+++ b/tools/testing/selftests/bpf/progs/connect4_prog.c
-@@ -9,8 +9,8 @@
- #include <linux/in6.h>
- #include <sys/socket.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- #define SRC_REWRITE_IP4		0x7f000004U
- #define DST_REWRITE_IP4		0x7f000001U
-diff --git a/tools/testing/selftests/bpf/progs/connect6_prog.c b/tools/testing/selftests/bpf/progs/connect6_prog.c
-index 26397ab7b3c7..506d0f81a375 100644
---- a/tools/testing/selftests/bpf/progs/connect6_prog.c
-+++ b/tools/testing/selftests/bpf/progs/connect6_prog.c
-@@ -9,8 +9,8 @@
- #include <linux/in6.h>
- #include <sys/socket.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- #define SRC_REWRITE_IP6_0	0
- #define SRC_REWRITE_IP6_1	0
-diff --git a/tools/testing/selftests/bpf/progs/dev_cgroup.c b/tools/testing/selftests/bpf/progs/dev_cgroup.c
-index ce41a3475f27..8924e06bdef0 100644
---- a/tools/testing/selftests/bpf/progs/dev_cgroup.c
-+++ b/tools/testing/selftests/bpf/progs/dev_cgroup.c
-@@ -7,7 +7,7 @@
- 
- #include <linux/bpf.h>
+ TPROGS_CFLAGS += -I$(objtree)/usr/include
+-TPROGS_CFLAGS += -I$(srctree)/tools/lib/bpf/
+ TPROGS_CFLAGS += -I$(srctree)/tools/testing/selftests/bpf/
+ TPROGS_CFLAGS += -I$(srctree)/tools/lib/
+ TPROGS_CFLAGS += -I$(srctree)/tools/include
+@@ -305,7 +304,7 @@ $(obj)/%.o: $(src)/%.c
+ 	@echo "  CLANG-bpf " $@
+ 	$(Q)$(CLANG) $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(BPF_EXTRA_CFLAGS) \
+ 		-I$(obj) -I$(srctree)/tools/testing/selftests/bpf/ \
+-		-I$(srctree)/tools/lib/bpf/ \
++		-I$(srctree)/tools/lib/ \
+ 		-D__KERNEL__ -D__BPF_TRACING__ -Wno-unused-value -Wno-pointer-sign \
+ 		-D__TARGET_ARCH_$(SRCARCH) -Wno-compare-distinct-pointer-types \
+ 		-Wno-gnu-variable-sized-type-not-at-end \
+diff --git a/samples/bpf/cpustat_kern.c b/samples/bpf/cpustat_kern.c
+index 68c84da065b1..a86a19d5f033 100644
+--- a/samples/bpf/cpustat_kern.c
++++ b/samples/bpf/cpustat_kern.c
+@@ -3,7 +3,7 @@
  #include <linux/version.h>
+ #include <linux/ptrace.h>
+ #include <uapi/linux/bpf.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
  
- SEC("cgroup/dev")
- int bpf_prog1(struct bpf_cgroup_dev_ctx *ctx)
-diff --git a/tools/testing/selftests/bpf/progs/fentry_test.c b/tools/testing/selftests/bpf/progs/fentry_test.c
-index 1ae1779a8e2e..38d3a82144ca 100644
---- a/tools/testing/selftests/bpf/progs/fentry_test.c
-+++ b/tools/testing/selftests/bpf/progs/fentry_test.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- /* Copyright (c) 2019 Facebook */
+ /*
+  * The CPU number, cstate number and pstate number are based
+diff --git a/samples/bpf/fds_example.c b/samples/bpf/fds_example.c
+index 2d4b717726b6..d5992f787232 100644
+--- a/samples/bpf/fds_example.c
++++ b/samples/bpf/fds_example.c
+@@ -14,7 +14,7 @@
+ 
+ #include <bpf/bpf.h>
+ 
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "bpf_insn.h"
+ #include "sock_example.h"
+ 
+diff --git a/samples/bpf/hbm.c b/samples/bpf/hbm.c
+index 829b68d87687..7d7153777678 100644
+--- a/samples/bpf/hbm.c
++++ b/samples/bpf/hbm.c
+@@ -50,8 +50,8 @@
+ #include "cgroup_helpers.h"
+ #include "hbm.h"
+ #include "bpf_util.h"
+-#include "bpf.h"
+-#include "libbpf.h"
++#include <bpf/bpf.h>
++#include <bpf/libbpf.h>
+ 
+ bool outFlag = true;
+ int minRate = 1000;		/* cgroup rate limit in Mbps */
+diff --git a/samples/bpf/hbm_kern.h b/samples/bpf/hbm_kern.h
+index 4edaf47876ca..e00f26f6afba 100644
+--- a/samples/bpf/hbm_kern.h
++++ b/samples/bpf/hbm_kern.h
+@@ -22,8 +22,8 @@
+ #include <uapi/linux/pkt_cls.h>
+ #include <net/ipv6.h>
+ #include <net/inet_ecn.h>
+-#include "bpf_endian.h"
+-#include "bpf_helpers.h"
++#include <bpf/bpf_endian.h>
++#include <bpf/bpf_helpers.h>
+ #include "hbm.h"
+ 
+ #define DROP_PKT	0
+diff --git a/samples/bpf/ibumad_kern.c b/samples/bpf/ibumad_kern.c
+index f281df7e0089..3a91b4c1989a 100644
+--- a/samples/bpf/ibumad_kern.c
++++ b/samples/bpf/ibumad_kern.c
+@@ -13,7 +13,7 @@
+ #define KBUILD_MODNAME "ibumad_count_pkts_by_class"
+ #include <uapi/linux/bpf.h>
+ 
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ 
+ struct bpf_map_def SEC("maps") read_count = {
+diff --git a/samples/bpf/ibumad_user.c b/samples/bpf/ibumad_user.c
+index cb5a8f994849..fa06eef31a84 100644
+--- a/samples/bpf/ibumad_user.c
++++ b/samples/bpf/ibumad_user.c
+@@ -25,7 +25,7 @@
+ 
+ #include "bpf_load.h"
+ #include "bpf_util.h"
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ 
+ static void dump_counts(int fd)
+ {
+diff --git a/samples/bpf/lathist_kern.c b/samples/bpf/lathist_kern.c
+index 18fa088473cd..ca9c2e4e69aa 100644
+--- a/samples/bpf/lathist_kern.c
++++ b/samples/bpf/lathist_kern.c
+@@ -8,7 +8,7 @@
+ #include <linux/version.h>
+ #include <linux/ptrace.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ #define MAX_ENTRIES	20
+ #define MAX_CPU		4
+diff --git a/samples/bpf/lwt_len_hist_kern.c b/samples/bpf/lwt_len_hist_kern.c
+index df75383280f9..9ed63e10e170 100644
+--- a/samples/bpf/lwt_len_hist_kern.c
++++ b/samples/bpf/lwt_len_hist_kern.c
+@@ -14,7 +14,7 @@
+ #include <uapi/linux/if_ether.h>
+ #include <uapi/linux/ip.h>
+ #include <uapi/linux/in.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ # define printk(fmt, ...)						\
+ 		({							\
+diff --git a/samples/bpf/map_perf_test_kern.c b/samples/bpf/map_perf_test_kern.c
+index 281bcdaee58e..12e91ae64d4d 100644
+--- a/samples/bpf/map_perf_test_kern.c
++++ b/samples/bpf/map_perf_test_kern.c
+@@ -8,9 +8,9 @@
+ #include <linux/netdevice.h>
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "bpf_legacy.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_tracing.h>
+ 
+ #define MAX_ENTRIES 1000
+ #define MAX_NR_CPUS 1024
+diff --git a/samples/bpf/offwaketime_kern.c b/samples/bpf/offwaketime_kern.c
+index 9cb5207a692f..c4ec10dbfc3b 100644
+--- a/samples/bpf/offwaketime_kern.c
++++ b/samples/bpf/offwaketime_kern.c
+@@ -5,8 +5,8 @@
+  * License as published by the Free Software Foundation.
+  */
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ #include <uapi/linux/ptrace.h>
+ #include <uapi/linux/perf_event.h>
+ #include <linux/version.h>
+diff --git a/samples/bpf/offwaketime_user.c b/samples/bpf/offwaketime_user.c
+index fc8767d001f6..51c7da5341cc 100644
+--- a/samples/bpf/offwaketime_user.c
++++ b/samples/bpf/offwaketime_user.c
+@@ -12,7 +12,7 @@
+ #include <assert.h>
+ #include <stdbool.h>
+ #include <sys/resource.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "bpf_load.h"
+ #include "trace_helpers.h"
+ 
+diff --git a/samples/bpf/parse_ldabs.c b/samples/bpf/parse_ldabs.c
+index ef5892377beb..c6f65f90a097 100644
+--- a/samples/bpf/parse_ldabs.c
++++ b/samples/bpf/parse_ldabs.c
+@@ -11,7 +11,7 @@
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "bpf_legacy.h"
+ 
+ #define DEFAULT_PKTGEN_UDP_PORT	9
+diff --git a/samples/bpf/parse_simple.c b/samples/bpf/parse_simple.c
+index 10af53d33cc2..4a486cb1e0df 100644
+--- a/samples/bpf/parse_simple.c
++++ b/samples/bpf/parse_simple.c
+@@ -12,7 +12,7 @@
+ #include <linux/udp.h>
+ #include <uapi/linux/bpf.h>
+ #include <net/ip.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ #define DEFAULT_PKTGEN_UDP_PORT 9
+ 
+diff --git a/samples/bpf/parse_varlen.c b/samples/bpf/parse_varlen.c
+index 0b6f22feb2c9..d8623846e810 100644
+--- a/samples/bpf/parse_varlen.c
++++ b/samples/bpf/parse_varlen.c
+@@ -14,7 +14,7 @@
+ #include <linux/udp.h>
+ #include <uapi/linux/bpf.h>
+ #include <net/ip.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ #define DEFAULT_PKTGEN_UDP_PORT 9
+ #define DEBUG 0
+diff --git a/samples/bpf/sampleip_kern.c b/samples/bpf/sampleip_kern.c
+index 4a190893894f..e504dc308371 100644
+--- a/samples/bpf/sampleip_kern.c
++++ b/samples/bpf/sampleip_kern.c
+@@ -8,8 +8,8 @@
+ #include <linux/ptrace.h>
+ #include <uapi/linux/bpf.h>
+ #include <uapi/linux/bpf_perf_event.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ #define MAX_IPS		8192
+ 
+diff --git a/samples/bpf/sampleip_user.c b/samples/bpf/sampleip_user.c
+index 6b5dc26d9701..b0f115f938bc 100644
+--- a/samples/bpf/sampleip_user.c
++++ b/samples/bpf/sampleip_user.c
+@@ -15,7 +15,7 @@
+ #include <linux/ptrace.h>
  #include <linux/bpf.h>
+ #include <sys/ioctl.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "bpf_load.h"
+ #include "perf-sys.h"
+ #include "trace_helpers.h"
+diff --git a/samples/bpf/sock_flags_kern.c b/samples/bpf/sock_flags_kern.c
+index 05dcdf8a4baa..6d0ac7569d6f 100644
+--- a/samples/bpf/sock_flags_kern.c
++++ b/samples/bpf/sock_flags_kern.c
+@@ -3,7 +3,7 @@
+ #include <linux/net.h>
+ #include <uapi/linux/in.h>
+ #include <uapi/linux/in6.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
- #include "bpf_trace_helpers.h"
  
- char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/fexit_bpf2bpf.c b/tools/testing/selftests/bpf/progs/fexit_bpf2bpf.c
-index 7c17ee159378..ec5710767d13 100644
---- a/tools/testing/selftests/bpf/progs/fexit_bpf2bpf.c
-+++ b/tools/testing/selftests/bpf/progs/fexit_bpf2bpf.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- /* Copyright (c) 2019 Facebook */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "bpf_trace_helpers.h"
- 
- struct sk_buff {
-diff --git a/tools/testing/selftests/bpf/progs/fexit_bpf2bpf_simple.c b/tools/testing/selftests/bpf/progs/fexit_bpf2bpf_simple.c
-index ac527b10dd80..92f3fa47cf40 100644
---- a/tools/testing/selftests/bpf/progs/fexit_bpf2bpf_simple.c
-+++ b/tools/testing/selftests/bpf/progs/fexit_bpf2bpf_simple.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- /* Copyright (c) 2019 Facebook */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "bpf_trace_helpers.h"
- 
- struct sk_buff {
-diff --git a/tools/testing/selftests/bpf/progs/fexit_test.c b/tools/testing/selftests/bpf/progs/fexit_test.c
-index f0dd412ca128..348109b9ea07 100644
---- a/tools/testing/selftests/bpf/progs/fexit_test.c
-+++ b/tools/testing/selftests/bpf/progs/fexit_test.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- /* Copyright (c) 2019 Facebook */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "bpf_trace_helpers.h"
- 
- char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/get_cgroup_id_kern.c b/tools/testing/selftests/bpf/progs/get_cgroup_id_kern.c
-index 16c54ade6888..6b42db2fe391 100644
---- a/tools/testing/selftests/bpf/progs/get_cgroup_id_kern.c
-+++ b/tools/testing/selftests/bpf/progs/get_cgroup_id_kern.c
+ SEC("cgroup/sock1")
+ int bpf_prog1(struct bpf_sock *sk)
+diff --git a/samples/bpf/sockex1_kern.c b/samples/bpf/sockex1_kern.c
+index 2408dbfb7a21..431c956460ad 100644
+--- a/samples/bpf/sockex1_kern.c
++++ b/samples/bpf/sockex1_kern.c
 @@ -2,7 +2,7 @@
- // Copyright (c) 2018 Facebook
- 
- #include <linux/bpf.h>
+ #include <uapi/linux/if_ether.h>
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
+ #include "bpf_legacy.h"
  
  struct {
- 	__uint(type, BPF_MAP_TYPE_ARRAY);
-diff --git a/tools/testing/selftests/bpf/progs/kfree_skb.c b/tools/testing/selftests/bpf/progs/kfree_skb.c
-index 046fae868f93..8f48a909f079 100644
---- a/tools/testing/selftests/bpf/progs/kfree_skb.c
-+++ b/tools/testing/selftests/bpf/progs/kfree_skb.c
-@@ -2,8 +2,8 @@
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
- #include <stdbool.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- #include "bpf_trace_helpers.h"
- 
- char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/loop1.c b/tools/testing/selftests/bpf/progs/loop1.c
-index 40ac722a9da5..50e66772c046 100644
---- a/tools/testing/selftests/bpf/progs/loop1.c
-+++ b/tools/testing/selftests/bpf/progs/loop1.c
-@@ -6,8 +6,8 @@
- #include <stddef.h>
- #include <stdbool.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
--#include "bpf_tracing.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_tracing.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/loop2.c b/tools/testing/selftests/bpf/progs/loop2.c
-index bb80f29aa7f7..947bb7e988c2 100644
---- a/tools/testing/selftests/bpf/progs/loop2.c
-+++ b/tools/testing/selftests/bpf/progs/loop2.c
-@@ -6,8 +6,8 @@
- #include <stddef.h>
- #include <stdbool.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
--#include "bpf_tracing.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_tracing.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/loop3.c b/tools/testing/selftests/bpf/progs/loop3.c
-index 2b9165a7afe1..76e93b31c14b 100644
---- a/tools/testing/selftests/bpf/progs/loop3.c
-+++ b/tools/testing/selftests/bpf/progs/loop3.c
-@@ -6,8 +6,8 @@
- #include <stddef.h>
- #include <stdbool.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
--#include "bpf_tracing.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_tracing.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/loop4.c b/tools/testing/selftests/bpf/progs/loop4.c
-index 650859022771..b35337926d66 100644
---- a/tools/testing/selftests/bpf/progs/loop4.c
-+++ b/tools/testing/selftests/bpf/progs/loop4.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/loop5.c b/tools/testing/selftests/bpf/progs/loop5.c
-index 28d1d668f07c..913791923fa3 100644
---- a/tools/testing/selftests/bpf/progs/loop5.c
-+++ b/tools/testing/selftests/bpf/progs/loop5.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #define barrier() __asm__ __volatile__("": : :"memory")
- 
- char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/netcnt_prog.c b/tools/testing/selftests/bpf/progs/netcnt_prog.c
-index 38a997852cad..d071adf178bd 100644
---- a/tools/testing/selftests/bpf/progs/netcnt_prog.c
-+++ b/tools/testing/selftests/bpf/progs/netcnt_prog.c
-@@ -2,7 +2,7 @@
- #include <linux/bpf.h>
- #include <linux/version.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "netcnt_common.h"
- 
- #define MAX_BPS	(3 * 1024 * 1024)
-diff --git a/tools/testing/selftests/bpf/progs/pyperf.h b/tools/testing/selftests/bpf/progs/pyperf.h
-index e186899954e9..cc615b82b56e 100644
---- a/tools/testing/selftests/bpf/progs/pyperf.h
-+++ b/tools/testing/selftests/bpf/progs/pyperf.h
-@@ -6,7 +6,7 @@
- #include <stddef.h>
- #include <stdbool.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #define FUNCTION_NAME_LEN 64
- #define FILE_NAME_LEN 128
-diff --git a/tools/testing/selftests/bpf/progs/sample_map_ret0.c b/tools/testing/selftests/bpf/progs/sample_map_ret0.c
-index 0756303676ac..1612a32007b6 100644
---- a/tools/testing/selftests/bpf/progs/sample_map_ret0.c
-+++ b/tools/testing/selftests/bpf/progs/sample_map_ret0.c
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause) */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct bpf_map_def SEC("maps") htab = {
- 	.type = BPF_MAP_TYPE_HASH,
-diff --git a/tools/testing/selftests/bpf/progs/sendmsg4_prog.c b/tools/testing/selftests/bpf/progs/sendmsg4_prog.c
-index a91536b1c47e..092d9da536f3 100644
---- a/tools/testing/selftests/bpf/progs/sendmsg4_prog.c
-+++ b/tools/testing/selftests/bpf/progs/sendmsg4_prog.c
-@@ -5,8 +5,8 @@
- #include <linux/bpf.h>
- #include <sys/socket.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- #define SRC1_IP4		0xAC100001U /* 172.16.0.1 */
- #define SRC2_IP4		0x00000000U
-diff --git a/tools/testing/selftests/bpf/progs/sendmsg6_prog.c b/tools/testing/selftests/bpf/progs/sendmsg6_prog.c
-index a68062820410..255a432bc163 100644
---- a/tools/testing/selftests/bpf/progs/sendmsg6_prog.c
-+++ b/tools/testing/selftests/bpf/progs/sendmsg6_prog.c
-@@ -5,8 +5,8 @@
- #include <linux/bpf.h>
- #include <sys/socket.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- #define SRC_REWRITE_IP6_0	0
- #define SRC_REWRITE_IP6_1	0
-diff --git a/tools/testing/selftests/bpf/progs/socket_cookie_prog.c b/tools/testing/selftests/bpf/progs/socket_cookie_prog.c
-index e4440fdd94cb..0cb5656a22b0 100644
---- a/tools/testing/selftests/bpf/progs/socket_cookie_prog.c
-+++ b/tools/testing/selftests/bpf/progs/socket_cookie_prog.c
-@@ -4,8 +4,8 @@
- #include <linux/bpf.h>
- #include <sys/socket.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- struct socket_cookie {
- 	__u64 cookie_key;
-diff --git a/tools/testing/selftests/bpf/progs/sockmap_parse_prog.c b/tools/testing/selftests/bpf/progs/sockmap_parse_prog.c
-index 9390e0244259..a5c6d5903b22 100644
---- a/tools/testing/selftests/bpf/progs/sockmap_parse_prog.c
-+++ b/tools/testing/selftests/bpf/progs/sockmap_parse_prog.c
-@@ -1,6 +1,6 @@
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/sockmap_tcp_msg_prog.c b/tools/testing/selftests/bpf/progs/sockmap_tcp_msg_prog.c
-index e80484d98a1a..fdb4bf4408fa 100644
---- a/tools/testing/selftests/bpf/progs/sockmap_tcp_msg_prog.c
-+++ b/tools/testing/selftests/bpf/progs/sockmap_tcp_msg_prog.c
-@@ -1,7 +1,7 @@
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/sockmap_verdict_prog.c b/tools/testing/selftests/bpf/progs/sockmap_verdict_prog.c
-index 433e23918a62..4797dc985064 100644
---- a/tools/testing/selftests/bpf/progs/sockmap_verdict_prog.c
-+++ b/tools/testing/selftests/bpf/progs/sockmap_verdict_prog.c
-@@ -1,6 +1,6 @@
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/sockopt_inherit.c b/tools/testing/selftests/bpf/progs/sockopt_inherit.c
-index dede0fcd6102..c6d428a8d785 100644
---- a/tools/testing/selftests/bpf/progs/sockopt_inherit.c
-+++ b/tools/testing/selftests/bpf/progs/sockopt_inherit.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- char _license[] SEC("license") = "GPL";
- __u32 _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/sockopt_multi.c b/tools/testing/selftests/bpf/progs/sockopt_multi.c
-index 4afd2595c08e..9d8c212dde9f 100644
---- a/tools/testing/selftests/bpf/progs/sockopt_multi.c
-+++ b/tools/testing/selftests/bpf/progs/sockopt_multi.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <netinet/in.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- char _license[] SEC("license") = "GPL";
- __u32 _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/sockopt_sk.c b/tools/testing/selftests/bpf/progs/sockopt_sk.c
-index 1bafbb944e37..d5a5eeb5fb52 100644
---- a/tools/testing/selftests/bpf/progs/sockopt_sk.c
-+++ b/tools/testing/selftests/bpf/progs/sockopt_sk.c
+diff --git a/samples/bpf/sockex1_user.c b/samples/bpf/sockex1_user.c
+index a219442afbee..3c83722877dc 100644
+--- a/samples/bpf/sockex1_user.c
++++ b/samples/bpf/sockex1_user.c
 @@ -3,7 +3,7 @@
- #include <netinet/in.h>
- #include <netinet/tcp.h>
+ #include <assert.h>
  #include <linux/bpf.h>
+ #include <bpf/bpf.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "sock_example.h"
+ #include <unistd.h>
+ #include <arpa/inet.h>
+diff --git a/samples/bpf/sockex2_kern.c b/samples/bpf/sockex2_kern.c
+index a7bcd03bf529..a41dd520bc53 100644
+--- a/samples/bpf/sockex2_kern.c
++++ b/samples/bpf/sockex2_kern.c
+@@ -1,5 +1,5 @@
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "bpf_legacy.h"
+ #include <uapi/linux/in.h>
+ #include <uapi/linux/if.h>
+diff --git a/samples/bpf/sockex2_user.c b/samples/bpf/sockex2_user.c
+index 6de383ddd08b..af925a5afd1d 100644
+--- a/samples/bpf/sockex2_user.c
++++ b/samples/bpf/sockex2_user.c
+@@ -3,7 +3,7 @@
+ #include <assert.h>
+ #include <linux/bpf.h>
+ #include <bpf/bpf.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "sock_example.h"
+ #include <unistd.h>
+ #include <arpa/inet.h>
+diff --git a/samples/bpf/sockex3_kern.c b/samples/bpf/sockex3_kern.c
+index 151dd842ecc0..36d4dac23549 100644
+--- a/samples/bpf/sockex3_kern.c
++++ b/samples/bpf/sockex3_kern.c
+@@ -5,7 +5,7 @@
+  * License as published by the Free Software Foundation.
+  */
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "bpf_legacy.h"
+ #include <uapi/linux/in.h>
+ #include <uapi/linux/if.h>
+diff --git a/samples/bpf/spintest_kern.c b/samples/bpf/spintest_kern.c
+index 6e9478aa2938..f508af357251 100644
+--- a/samples/bpf/spintest_kern.c
++++ b/samples/bpf/spintest_kern.c
+@@ -9,8 +9,8 @@
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+ #include <uapi/linux/perf_event.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ struct bpf_map_def SEC("maps") my_map = {
+ 	.type = BPF_MAP_TYPE_HASH,
+diff --git a/samples/bpf/spintest_user.c b/samples/bpf/spintest_user.c
+index 2556af2d9b3e..fb430ea2ef51 100644
+--- a/samples/bpf/spintest_user.c
++++ b/samples/bpf/spintest_user.c
+@@ -5,7 +5,7 @@
+ #include <string.h>
+ #include <assert.h>
+ #include <sys/resource.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "bpf_load.h"
+ #include "trace_helpers.h"
+ 
+diff --git a/samples/bpf/syscall_tp_kern.c b/samples/bpf/syscall_tp_kern.c
+index 630ce8c4d5a2..5a62b03b1f88 100644
+--- a/samples/bpf/syscall_tp_kern.c
++++ b/samples/bpf/syscall_tp_kern.c
+@@ -2,7 +2,7 @@
+ /* Copyright (c) 2017 Facebook
+  */
+ #include <uapi/linux/bpf.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
  
- char _license[] SEC("license") = "GPL";
- __u32 _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/strobemeta.h b/tools/testing/selftests/bpf/progs/strobemeta.h
-index 4bf16e0a1b0e..ad61b722a9de 100644
---- a/tools/testing/selftests/bpf/progs/strobemeta.h
-+++ b/tools/testing/selftests/bpf/progs/strobemeta.h
+ struct syscalls_enter_open_args {
+ 	unsigned long long unused;
+diff --git a/samples/bpf/task_fd_query_kern.c b/samples/bpf/task_fd_query_kern.c
+index fb56fc2a3e5d..278ade5427c8 100644
+--- a/samples/bpf/task_fd_query_kern.c
++++ b/samples/bpf/task_fd_query_kern.c
+@@ -2,7 +2,7 @@
+ #include <linux/version.h>
+ #include <linux/ptrace.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ SEC("kprobe/blk_mq_start_request")
+ int bpf_prog1(struct pt_regs *ctx)
+diff --git a/samples/bpf/task_fd_query_user.c b/samples/bpf/task_fd_query_user.c
+index 4c31b305e6ef..ff2e9c1c7266 100644
+--- a/samples/bpf/task_fd_query_user.c
++++ b/samples/bpf/task_fd_query_user.c
+@@ -15,7 +15,7 @@
+ #include <sys/stat.h>
+ #include <linux/perf_event.h>
+ 
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "bpf_load.h"
+ #include "bpf_util.h"
+ #include "perf-sys.h"
+diff --git a/samples/bpf/tc_l2_redirect_kern.c b/samples/bpf/tc_l2_redirect_kern.c
+index 7ef2a12b25b2..fd2fa0004330 100644
+--- a/samples/bpf/tc_l2_redirect_kern.c
++++ b/samples/bpf/tc_l2_redirect_kern.c
+@@ -15,7 +15,7 @@
+ #include <uapi/linux/filter.h>
+ #include <uapi/linux/pkt_cls.h>
+ #include <net/ipv6.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ #define _htonl __builtin_bswap32
+ 
+diff --git a/samples/bpf/tcbpf1_kern.c b/samples/bpf/tcbpf1_kern.c
+index ff43341bdfce..e9356130f84e 100644
+--- a/samples/bpf/tcbpf1_kern.c
++++ b/samples/bpf/tcbpf1_kern.c
+@@ -7,7 +7,7 @@
+ #include <uapi/linux/tcp.h>
+ #include <uapi/linux/filter.h>
+ #include <uapi/linux/pkt_cls.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "bpf_legacy.h"
+ 
+ /* compiler workaround */
+diff --git a/samples/bpf/tcp_basertt_kern.c b/samples/bpf/tcp_basertt_kern.c
+index 9dba48c2b920..8dfe09a92fec 100644
+--- a/samples/bpf/tcp_basertt_kern.c
++++ b/samples/bpf/tcp_basertt_kern.c
+@@ -16,8 +16,8 @@
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/tcp_bufs_kern.c b/samples/bpf/tcp_bufs_kern.c
+index af8486f33771..6a80d08952ad 100644
+--- a/samples/bpf/tcp_bufs_kern.c
++++ b/samples/bpf/tcp_bufs_kern.c
+@@ -17,8 +17,8 @@
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/tcp_clamp_kern.c b/samples/bpf/tcp_clamp_kern.c
+index 26c0fd091f3c..e88bd9ab0695 100644
+--- a/samples/bpf/tcp_clamp_kern.c
++++ b/samples/bpf/tcp_clamp_kern.c
+@@ -17,8 +17,8 @@
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/tcp_cong_kern.c b/samples/bpf/tcp_cong_kern.c
+index 6d4dc4c7dd1e..2311fc9dde85 100644
+--- a/samples/bpf/tcp_cong_kern.c
++++ b/samples/bpf/tcp_cong_kern.c
+@@ -16,8 +16,8 @@
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/tcp_dumpstats_kern.c b/samples/bpf/tcp_dumpstats_kern.c
+index 8557913106a0..e80d3afd24bd 100644
+--- a/samples/bpf/tcp_dumpstats_kern.c
++++ b/samples/bpf/tcp_dumpstats_kern.c
+@@ -4,8 +4,8 @@
+  */
+ #include <linux/bpf.h>
+ 
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define INTERVAL			1000000000ULL
+ 
+diff --git a/samples/bpf/tcp_iw_kern.c b/samples/bpf/tcp_iw_kern.c
+index da61d53378b3..d1444557358e 100644
+--- a/samples/bpf/tcp_iw_kern.c
++++ b/samples/bpf/tcp_iw_kern.c
+@@ -17,8 +17,8 @@
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/tcp_rwnd_kern.c b/samples/bpf/tcp_rwnd_kern.c
+index d011e38b80d2..223d9c23b10c 100644
+--- a/samples/bpf/tcp_rwnd_kern.c
++++ b/samples/bpf/tcp_rwnd_kern.c
+@@ -16,8 +16,8 @@
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/tcp_synrto_kern.c b/samples/bpf/tcp_synrto_kern.c
+index 720d1950322d..d58004eef124 100644
+--- a/samples/bpf/tcp_synrto_kern.c
++++ b/samples/bpf/tcp_synrto_kern.c
+@@ -16,8 +16,8 @@
+ #include <uapi/linux/if_packet.h>
+ #include <uapi/linux/ip.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/tcp_tos_reflect_kern.c b/samples/bpf/tcp_tos_reflect_kern.c
+index 369faca70a15..953fedc79ce1 100644
+--- a/samples/bpf/tcp_tos_reflect_kern.c
++++ b/samples/bpf/tcp_tos_reflect_kern.c
+@@ -15,8 +15,8 @@
+ #include <uapi/linux/ipv6.h>
+ #include <uapi/linux/in.h>
+ #include <linux/socket.h>
+-#include "bpf_helpers.h"
+-#include "bpf_endian.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_endian.h>
+ 
+ #define DEBUG 1
+ 
+diff --git a/samples/bpf/test_cgrp2_tc_kern.c b/samples/bpf/test_cgrp2_tc_kern.c
+index 1547b36a7b7b..4dd532a312b9 100644
+--- a/samples/bpf/test_cgrp2_tc_kern.c
++++ b/samples/bpf/test_cgrp2_tc_kern.c
+@@ -10,7 +10,7 @@
+ #include <uapi/linux/ipv6.h>
+ #include <uapi/linux/pkt_cls.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ /* copy of 'struct ethhdr' without __packed */
+ struct eth_hdr {
+diff --git a/samples/bpf/test_current_task_under_cgroup_kern.c b/samples/bpf/test_current_task_under_cgroup_kern.c
+index 86b28d7d6c99..6dc4f41bb6cb 100644
+--- a/samples/bpf/test_current_task_under_cgroup_kern.c
++++ b/samples/bpf/test_current_task_under_cgroup_kern.c
 @@ -8,7 +8,7 @@
  #include <linux/ptrace.h>
- #include <linux/sched.h>
- #include <linux/types.h>
+ #include <uapi/linux/bpf.h>
+ #include <linux/version.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
+ #include <uapi/linux/utsname.h>
  
- typedef uint32_t pid_t;
- struct task_struct {};
-diff --git a/tools/testing/selftests/bpf/progs/tailcall1.c b/tools/testing/selftests/bpf/progs/tailcall1.c
-index 63531e1a9fa4..1f407e65ae52 100644
---- a/tools/testing/selftests/bpf/progs/tailcall1.c
-+++ b/tools/testing/selftests/bpf/progs/tailcall1.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct {
- 	__uint(type, BPF_MAP_TYPE_PROG_ARRAY);
-diff --git a/tools/testing/selftests/bpf/progs/tailcall2.c b/tools/testing/selftests/bpf/progs/tailcall2.c
-index 21c85c477210..a093e739cf0e 100644
---- a/tools/testing/selftests/bpf/progs/tailcall2.c
-+++ b/tools/testing/selftests/bpf/progs/tailcall2.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct {
- 	__uint(type, BPF_MAP_TYPE_PROG_ARRAY);
-diff --git a/tools/testing/selftests/bpf/progs/tailcall3.c b/tools/testing/selftests/bpf/progs/tailcall3.c
-index 1ecae198b8c1..cabda877cf0a 100644
---- a/tools/testing/selftests/bpf/progs/tailcall3.c
-+++ b/tools/testing/selftests/bpf/progs/tailcall3.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct {
- 	__uint(type, BPF_MAP_TYPE_PROG_ARRAY);
-diff --git a/tools/testing/selftests/bpf/progs/tailcall4.c b/tools/testing/selftests/bpf/progs/tailcall4.c
-index 499388758119..f82075b47d7d 100644
---- a/tools/testing/selftests/bpf/progs/tailcall4.c
-+++ b/tools/testing/selftests/bpf/progs/tailcall4.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct {
- 	__uint(type, BPF_MAP_TYPE_PROG_ARRAY);
-diff --git a/tools/testing/selftests/bpf/progs/tailcall5.c b/tools/testing/selftests/bpf/progs/tailcall5.c
-index 49c64eb53f19..ce5450744fd4 100644
---- a/tools/testing/selftests/bpf/progs/tailcall5.c
-+++ b/tools/testing/selftests/bpf/progs/tailcall5.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct {
- 	__uint(type, BPF_MAP_TYPE_PROG_ARRAY);
-diff --git a/tools/testing/selftests/bpf/progs/tcp_rtt.c b/tools/testing/selftests/bpf/progs/tcp_rtt.c
-index 2cf813a06b83..0cb3204ddb18 100644
---- a/tools/testing/selftests/bpf/progs/tcp_rtt.c
-+++ b/tools/testing/selftests/bpf/progs/tcp_rtt.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- char _license[] SEC("license") = "GPL";
- __u32 _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/test_adjust_tail.c b/tools/testing/selftests/bpf/progs/test_adjust_tail.c
-index 4cd5e860c903..b7fc85769bdc 100644
---- a/tools/testing/selftests/bpf/progs/test_adjust_tail.c
-+++ b/tools/testing/selftests/bpf/progs/test_adjust_tail.c
-@@ -7,7 +7,7 @@
-  */
- #include <linux/bpf.h>
+ struct bpf_map_def SEC("maps") cgroup_map = {
+diff --git a/samples/bpf/test_lwt_bpf.c b/samples/bpf/test_lwt_bpf.c
+index bacc8013436b..1b568575ad11 100644
+--- a/samples/bpf/test_lwt_bpf.c
++++ b/samples/bpf/test_lwt_bpf.c
+@@ -20,7 +20,7 @@
+ #include <linux/udp.h>
+ #include <linux/icmpv6.h>
  #include <linux/if_ether.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_attach_probe.c b/tools/testing/selftests/bpf/progs/test_attach_probe.c
-index 221b69700625..dd8fae6660ab 100644
---- a/tools/testing/selftests/bpf/progs/test_attach_probe.c
-+++ b/tools/testing/selftests/bpf/progs/test_attach_probe.c
-@@ -3,7 +3,7 @@
- 
- #include <linux/ptrace.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int kprobe_res = 0;
- int kretprobe_res = 0;
-diff --git a/tools/testing/selftests/bpf/progs/test_btf_haskv.c b/tools/testing/selftests/bpf/progs/test_btf_haskv.c
-index 62ad7e22105e..88b0566da13d 100644
---- a/tools/testing/selftests/bpf/progs/test_btf_haskv.c
-+++ b/tools/testing/selftests/bpf/progs/test_btf_haskv.c
-@@ -1,7 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /* Copyright (c) 2018 Facebook */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "bpf_legacy.h"
- 
- int _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/test_btf_newkv.c b/tools/testing/selftests/bpf/progs/test_btf_newkv.c
-index fb8d91a1dbe0..a924e53c8e9d 100644
---- a/tools/testing/selftests/bpf/progs/test_btf_newkv.c
-+++ b/tools/testing/selftests/bpf/progs/test_btf_newkv.c
-@@ -1,7 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /* Copyright (c) 2018 Facebook */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "bpf_legacy.h"
- 
- int _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/test_btf_nokv.c b/tools/testing/selftests/bpf/progs/test_btf_nokv.c
-index 3f4422044759..983aedd1c072 100644
---- a/tools/testing/selftests/bpf/progs/test_btf_nokv.c
-+++ b/tools/testing/selftests/bpf/progs/test_btf_nokv.c
-@@ -1,7 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /* Copyright (c) 2018 Facebook */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_extern.c b/tools/testing/selftests/bpf/progs/test_core_extern.c
-index 9bfc91d9d004..3ac3603ad53d 100644
---- a/tools/testing/selftests/bpf/progs/test_core_extern.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_extern.c
-@@ -5,7 +5,7 @@
- #include <stdbool.h>
- #include <linux/ptrace.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- /* non-existing BPF helper, to test dead code elimination */
- static int (*bpf_missing_helper)(const void *arg1, int arg2) = (void *) 999;
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_arrays.c b/tools/testing/selftests/bpf/progs/test_core_reloc_arrays.c
-index 053b86f6b53f..51b3f79df523 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_arrays.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_arrays.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_direct.c b/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_direct.c
-index edc0f7c9e56d..56aec20212b5 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_direct.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_direct.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_probed.c b/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_probed.c
-index 6c20e433558b..ab1e647aeb31 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_probed.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_bitfields_probed.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_existence.c b/tools/testing/selftests/bpf/progs/test_core_reloc_existence.c
-index 1b7f0ae49cfb..7e45e2bdf6cd 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_existence.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_existence.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_flavors.c b/tools/testing/selftests/bpf/progs/test_core_reloc_flavors.c
-index b5dbeef540fd..525acc2f841b 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_flavors.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_flavors.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_ints.c b/tools/testing/selftests/bpf/progs/test_core_reloc_ints.c
-index c78ab6d28a14..6b5290739806 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_ints.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_ints.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_kernel.c b/tools/testing/selftests/bpf/progs/test_core_reloc_kernel.c
-index 270de441b60a..aba928fd60d3 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_kernel.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_kernel.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_misc.c b/tools/testing/selftests/bpf/progs/test_core_reloc_misc.c
-index 292a5c4ee76a..d5756dbdef82 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_misc.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_misc.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_mods.c b/tools/testing/selftests/bpf/progs/test_core_reloc_mods.c
-index 0b28bfacc8fd..8b533db4a7a5 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_mods.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_mods.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_nesting.c b/tools/testing/selftests/bpf/progs/test_core_reloc_nesting.c
-index 39279bf0c9db..2b4b6d49c677 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_nesting.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_nesting.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_primitives.c b/tools/testing/selftests/bpf/progs/test_core_reloc_primitives.c
-index ea57973cdd19..2a8975678aa6 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_primitives.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_primitives.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_ptr_as_arr.c b/tools/testing/selftests/bpf/progs/test_core_reloc_ptr_as_arr.c
-index d1eb59d4ea64..ca61a5183b88 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_ptr_as_arr.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_ptr_as_arr.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_core_reloc_size.c b/tools/testing/selftests/bpf/progs/test_core_reloc_size.c
-index 9e091124d3bd..d7fb6cfc7891 100644
---- a/tools/testing/selftests/bpf/progs/test_core_reloc_size.c
-+++ b/tools/testing/selftests/bpf/progs/test_core_reloc_size.c
-@@ -3,8 +3,8 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
--#include "bpf_core_read.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_get_stack_rawtp.c b/tools/testing/selftests/bpf/progs/test_get_stack_rawtp.c
-index 6a4a8f57f174..29817a703984 100644
---- a/tools/testing/selftests/bpf/progs/test_get_stack_rawtp.c
-+++ b/tools/testing/selftests/bpf/progs/test_get_stack_rawtp.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- /* Permit pretty deep stack traces */
- #define MAX_STACK_RAWTP 100
-diff --git a/tools/testing/selftests/bpf/progs/test_global_data.c b/tools/testing/selftests/bpf/progs/test_global_data.c
-index 32a6073acb99..dd7a4d3dbc0d 100644
---- a/tools/testing/selftests/bpf/progs/test_global_data.c
-+++ b/tools/testing/selftests/bpf/progs/test_global_data.c
-@@ -5,7 +5,7 @@
- #include <linux/pkt_cls.h>
  #include <string.h>
  
+ # define printk(fmt, ...)						\
+diff --git a/samples/bpf/test_map_in_map_kern.c b/samples/bpf/test_map_in_map_kern.c
+index 32ee752f19df..6cee61e8ce9b 100644
+--- a/samples/bpf/test_map_in_map_kern.c
++++ b/samples/bpf/test_map_in_map_kern.c
+@@ -10,9 +10,9 @@
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+ #include <uapi/linux/in6.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "bpf_legacy.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_tracing.h>
+ 
+ #define MAX_NR_PORTS 65536
+ 
+diff --git a/samples/bpf/test_overhead_kprobe_kern.c b/samples/bpf/test_overhead_kprobe_kern.c
+index 8d2518e68db9..8b811c29dc79 100644
+--- a/samples/bpf/test_overhead_kprobe_kern.c
++++ b/samples/bpf/test_overhead_kprobe_kern.c
+@@ -7,8 +7,8 @@
+ #include <linux/version.h>
+ #include <linux/ptrace.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ #define _(P) ({typeof(P) val = 0; bpf_probe_read(&val, sizeof(val), &P); val;})
+ 
+diff --git a/samples/bpf/test_overhead_raw_tp_kern.c b/samples/bpf/test_overhead_raw_tp_kern.c
+index d2af8bc1c805..8763181a32f3 100644
+--- a/samples/bpf/test_overhead_raw_tp_kern.c
++++ b/samples/bpf/test_overhead_raw_tp_kern.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /* Copyright (c) 2018 Facebook */
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ SEC("raw_tracepoint/task_rename")
+ int prog(struct bpf_raw_tracepoint_args *ctx)
+diff --git a/samples/bpf/test_overhead_tp_kern.c b/samples/bpf/test_overhead_tp_kern.c
+index 38f5c0b9da9f..eaa32693f8fc 100644
+--- a/samples/bpf/test_overhead_tp_kern.c
++++ b/samples/bpf/test_overhead_tp_kern.c
+@@ -5,7 +5,7 @@
+  * License as published by the Free Software Foundation.
+  */
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ /* from /sys/kernel/debug/tracing/events/task/task_rename/format */
+ struct task_rename {
+diff --git a/samples/bpf/test_probe_write_user_kern.c b/samples/bpf/test_probe_write_user_kern.c
+index b7c48f37132c..f033f36a13a3 100644
+--- a/samples/bpf/test_probe_write_user_kern.c
++++ b/samples/bpf/test_probe_write_user_kern.c
+@@ -8,8 +8,8 @@
+ #include <linux/netdevice.h>
+ #include <uapi/linux/bpf.h>
+ #include <linux/version.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ struct bpf_map_def SEC("maps") dnat_map = {
+ 	.type = BPF_MAP_TYPE_HASH,
+diff --git a/samples/bpf/trace_event_kern.c b/samples/bpf/trace_event_kern.c
+index 8dc18d233a27..da1d69e20645 100644
+--- a/samples/bpf/trace_event_kern.c
++++ b/samples/bpf/trace_event_kern.c
+@@ -9,8 +9,8 @@
+ #include <uapi/linux/bpf.h>
+ #include <uapi/linux/bpf_perf_event.h>
+ #include <uapi/linux/perf_event.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ struct key_t {
+ 	char comm[TASK_COMM_LEN];
+diff --git a/samples/bpf/trace_event_user.c b/samples/bpf/trace_event_user.c
+index 749a50f2f9f3..356171bc392b 100644
+--- a/samples/bpf/trace_event_user.c
++++ b/samples/bpf/trace_event_user.c
+@@ -15,7 +15,7 @@
+ #include <assert.h>
+ #include <errno.h>
+ #include <sys/resource.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include "bpf_load.h"
+ #include "perf-sys.h"
+ #include "trace_helpers.h"
+diff --git a/samples/bpf/trace_output_kern.c b/samples/bpf/trace_output_kern.c
+index 9b96f4fb8cea..1d7d422cae6f 100644
+--- a/samples/bpf/trace_output_kern.c
++++ b/samples/bpf/trace_output_kern.c
+@@ -1,7 +1,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ struct bpf_map_def SEC("maps") my_map = {
+ 	.type = BPF_MAP_TYPE_PERF_EVENT_ARRAY,
+diff --git a/samples/bpf/trace_output_user.c b/samples/bpf/trace_output_user.c
+index 8ee47699a870..60a17dd05345 100644
+--- a/samples/bpf/trace_output_user.c
++++ b/samples/bpf/trace_output_user.c
+@@ -15,7 +15,7 @@
+ #include <sys/mman.h>
+ #include <time.h>
+ #include <signal.h>
+-#include <libbpf.h>
++#include <bpf/libbpf.h>
+ #include "bpf_load.h"
+ #include "perf-sys.h"
+ 
+diff --git a/samples/bpf/tracex1_kern.c b/samples/bpf/tracex1_kern.c
+index 1a15f6605129..8e2610e14475 100644
+--- a/samples/bpf/tracex1_kern.c
++++ b/samples/bpf/tracex1_kern.c
+@@ -8,8 +8,8 @@
+ #include <linux/netdevice.h>
+ #include <uapi/linux/bpf.h>
+ #include <linux/version.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ #define _(P) ({typeof(P) val = 0; bpf_probe_read(&val, sizeof(val), &P); val;})
+ 
+diff --git a/samples/bpf/tracex2_kern.c b/samples/bpf/tracex2_kern.c
+index d70b3ea79ea7..d865bb309bcb 100644
+--- a/samples/bpf/tracex2_kern.c
++++ b/samples/bpf/tracex2_kern.c
+@@ -8,8 +8,8 @@
+ #include <linux/netdevice.h>
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ struct bpf_map_def SEC("maps") my_map = {
+ 	.type = BPF_MAP_TYPE_HASH,
+diff --git a/samples/bpf/tracex3_kern.c b/samples/bpf/tracex3_kern.c
+index 9af546bebfa9..fe21c14feb8d 100644
+--- a/samples/bpf/tracex3_kern.c
++++ b/samples/bpf/tracex3_kern.c
+@@ -8,8 +8,8 @@
+ #include <linux/netdevice.h>
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ struct bpf_map_def SEC("maps") my_map = {
+ 	.type = BPF_MAP_TYPE_HASH,
+diff --git a/samples/bpf/tracex4_kern.c b/samples/bpf/tracex4_kern.c
+index 2a02cbe9d9a1..b1bb9df88f8e 100644
+--- a/samples/bpf/tracex4_kern.c
++++ b/samples/bpf/tracex4_kern.c
+@@ -7,8 +7,8 @@
+ #include <linux/ptrace.h>
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ struct pair {
+ 	u64 val;
+diff --git a/samples/bpf/tracex5_kern.c b/samples/bpf/tracex5_kern.c
+index b3557b21a8fe..481790fde864 100644
+--- a/samples/bpf/tracex5_kern.c
++++ b/samples/bpf/tracex5_kern.c
+@@ -10,8 +10,8 @@
+ #include <uapi/linux/seccomp.h>
+ #include <uapi/linux/unistd.h>
+ #include "syscall_nrs.h"
+-#include "bpf_helpers.h"
+-#include "bpf_tracing.h"
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
+ 
+ #define PROG(F) SEC("kprobe/"__stringify(F)) int bpf_func_##F
+ 
+diff --git a/samples/bpf/tracex6_kern.c b/samples/bpf/tracex6_kern.c
+index 46c557afac73..96c234efa852 100644
+--- a/samples/bpf/tracex6_kern.c
++++ b/samples/bpf/tracex6_kern.c
+@@ -1,7 +1,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ struct bpf_map_def SEC("maps") counters = {
+ 	.type = BPF_MAP_TYPE_PERF_EVENT_ARRAY,
+diff --git a/samples/bpf/tracex7_kern.c b/samples/bpf/tracex7_kern.c
+index 1ab308a43e0f..c5a92df8ac31 100644
+--- a/samples/bpf/tracex7_kern.c
++++ b/samples/bpf/tracex7_kern.c
+@@ -1,7 +1,7 @@
+ #include <uapi/linux/ptrace.h>
+ #include <uapi/linux/bpf.h>
+ #include <linux/version.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ SEC("kprobe/open_ctree")
+ int bpf_prog1(struct pt_regs *ctx)
+diff --git a/samples/bpf/xdp1_kern.c b/samples/bpf/xdp1_kern.c
+index db6870aee42c..34b64394ed9c 100644
+--- a/samples/bpf/xdp1_kern.c
++++ b/samples/bpf/xdp1_kern.c
+@@ -12,7 +12,7 @@
+ #include <linux/if_vlan.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ struct {
+ 	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+diff --git a/samples/bpf/xdp1_user.c b/samples/bpf/xdp1_user.c
+index 38a8852cb57f..c447ad9e3a1d 100644
+--- a/samples/bpf/xdp1_user.c
++++ b/samples/bpf/xdp1_user.c
+@@ -15,8 +15,8 @@
+ #include <net/if.h>
+ 
+ #include "bpf_util.h"
+-#include "bpf.h"
+-#include "libbpf.h"
++#include <bpf/bpf.h>
++#include <bpf/libbpf.h>
+ 
+ static int ifindex;
+ static __u32 xdp_flags = XDP_FLAGS_UPDATE_IF_NOEXIST;
+diff --git a/samples/bpf/xdp2_kern.c b/samples/bpf/xdp2_kern.c
+index c74b52c6d945..c787f4b49646 100644
+--- a/samples/bpf/xdp2_kern.c
++++ b/samples/bpf/xdp2_kern.c
+@@ -12,7 +12,7 @@
+ #include <linux/if_vlan.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ struct {
+ 	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+diff --git a/samples/bpf/xdp2skb_meta_kern.c b/samples/bpf/xdp2skb_meta_kern.c
+index 0c12048ac79f..9b783316e860 100644
+--- a/samples/bpf/xdp2skb_meta_kern.c
++++ b/samples/bpf/xdp2skb_meta_kern.c
+@@ -12,7 +12,7 @@
+ #include <uapi/linux/bpf.h>
+ #include <uapi/linux/pkt_cls.h>
+ 
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ /*
+  * This struct is stored in the XDP 'data_meta' area, which is located
+diff --git a/samples/bpf/xdp_adjust_tail_kern.c b/samples/bpf/xdp_adjust_tail_kern.c
+index 0f707e0fb375..ffdd548627f0 100644
+--- a/samples/bpf/xdp_adjust_tail_kern.c
++++ b/samples/bpf/xdp_adjust_tail_kern.c
+@@ -18,7 +18,7 @@
+ #include <linux/if_vlan.h>
+ #include <linux/ip.h>
+ #include <linux/icmp.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ #define DEFAULT_TTL 64
+ #define MAX_PCKT_SIZE 600
+diff --git a/samples/bpf/xdp_adjust_tail_user.c b/samples/bpf/xdp_adjust_tail_user.c
+index 008789eb6ada..ba482dc3da33 100644
+--- a/samples/bpf/xdp_adjust_tail_user.c
++++ b/samples/bpf/xdp_adjust_tail_user.c
+@@ -19,8 +19,8 @@
+ #include <netinet/ether.h>
+ #include <unistd.h>
+ #include <time.h>
+-#include "bpf.h"
+-#include "libbpf.h"
++#include <bpf/bpf.h>
++#include <bpf/libbpf.h>
+ 
+ #define STATS_INTERVAL_S 2U
+ #define MAX_PCKT_SIZE 600
+diff --git a/samples/bpf/xdp_fwd_kern.c b/samples/bpf/xdp_fwd_kern.c
+index d013029aeaa2..54c099cbd639 100644
+--- a/samples/bpf/xdp_fwd_kern.c
++++ b/samples/bpf/xdp_fwd_kern.c
+@@ -19,7 +19,7 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+ 
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ #define IPV6_FLOWINFO_MASK              cpu_to_be32(0x0FFFFFFF)
+ 
+diff --git a/samples/bpf/xdp_fwd_user.c b/samples/bpf/xdp_fwd_user.c
+index c30f9acfdb84..74a4583d0d86 100644
+--- a/samples/bpf/xdp_fwd_user.c
++++ b/samples/bpf/xdp_fwd_user.c
+@@ -24,7 +24,7 @@
+ #include <fcntl.h>
+ #include <libgen.h>
+ 
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include <bpf/bpf.h>
+ 
+ static __u32 xdp_flags = XDP_FLAGS_UPDATE_IF_NOEXIST;
+diff --git a/samples/bpf/xdp_monitor_kern.c b/samples/bpf/xdp_monitor_kern.c
+index 39458a44472e..3d33cca2d48a 100644
+--- a/samples/bpf/xdp_monitor_kern.c
++++ b/samples/bpf/xdp_monitor_kern.c
+@@ -4,7 +4,7 @@
+  * XDP monitor tool, based on tracepoints
+  */
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ struct bpf_map_def SEC("maps") redirect_err_cnt = {
+ 	.type = BPF_MAP_TYPE_PERCPU_ARRAY,
+diff --git a/samples/bpf/xdp_redirect_cpu_kern.c b/samples/bpf/xdp_redirect_cpu_kern.c
+index cfcc31e51197..313a8fe6d125 100644
+--- a/samples/bpf/xdp_redirect_cpu_kern.c
++++ b/samples/bpf/xdp_redirect_cpu_kern.c
+@@ -12,7 +12,7 @@
+ #include <uapi/linux/udp.h>
+ 
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "hash_func01.h"
+ 
+ #define MAX_CPUS 64 /* WARNING - sync with _user.c */
+diff --git a/samples/bpf/xdp_redirect_cpu_user.c b/samples/bpf/xdp_redirect_cpu_user.c
+index 79a2fb7d16cb..15bdf047a222 100644
+--- a/samples/bpf/xdp_redirect_cpu_user.c
++++ b/samples/bpf/xdp_redirect_cpu_user.c
+@@ -30,7 +30,7 @@ static const char *__doc__ =
+ #define MAX_PROG 6
+ 
+ #include <bpf/bpf.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ 
+ #include "bpf_util.h"
+ 
+diff --git a/samples/bpf/xdp_redirect_kern.c b/samples/bpf/xdp_redirect_kern.c
+index 1f0b7d05abb2..d26ec3aa215e 100644
+--- a/samples/bpf/xdp_redirect_kern.c
++++ b/samples/bpf/xdp_redirect_kern.c
+@@ -17,7 +17,7 @@
+ #include <linux/if_vlan.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
  
  struct {
  	__uint(type, BPF_MAP_TYPE_ARRAY);
-diff --git a/tools/testing/selftests/bpf/progs/test_global_func1.c b/tools/testing/selftests/bpf/progs/test_global_func1.c
-index 97d57d6e244e..880260f6d536 100644
---- a/tools/testing/selftests/bpf/progs/test_global_func1.c
-+++ b/tools/testing/selftests/bpf/progs/test_global_func1.c
-@@ -2,7 +2,7 @@
- /* Copyright (c) 2020 Facebook */
- #include <stddef.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #ifndef MAX_STACK
- #define MAX_STACK (512 - 3 * 32 + 8)
-diff --git a/tools/testing/selftests/bpf/progs/test_global_func3.c b/tools/testing/selftests/bpf/progs/test_global_func3.c
-index 514ecf9f51b0..86f0ecb304fc 100644
---- a/tools/testing/selftests/bpf/progs/test_global_func3.c
-+++ b/tools/testing/selftests/bpf/progs/test_global_func3.c
-@@ -2,7 +2,7 @@
- /* Copyright (c) 2020 Facebook */
- #include <stddef.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- __attribute__ ((noinline))
- int f1(struct __sk_buff *skb)
-diff --git a/tools/testing/selftests/bpf/progs/test_global_func5.c b/tools/testing/selftests/bpf/progs/test_global_func5.c
-index 86787c03cea8..260c25b827ef 100644
---- a/tools/testing/selftests/bpf/progs/test_global_func5.c
-+++ b/tools/testing/selftests/bpf/progs/test_global_func5.c
-@@ -2,7 +2,7 @@
- /* Copyright (c) 2020 Facebook */
- #include <stddef.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- __attribute__ ((noinline))
- int f1(struct __sk_buff *skb)
-diff --git a/tools/testing/selftests/bpf/progs/test_global_func6.c b/tools/testing/selftests/bpf/progs/test_global_func6.c
-index e215fb3e6f02..69e19c64e10b 100644
---- a/tools/testing/selftests/bpf/progs/test_global_func6.c
-+++ b/tools/testing/selftests/bpf/progs/test_global_func6.c
-@@ -2,7 +2,7 @@
- /* Copyright (c) 2020 Facebook */
- #include <stddef.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- __attribute__ ((noinline))
- int f1(struct __sk_buff *skb)
-diff --git a/tools/testing/selftests/bpf/progs/test_global_func7.c b/tools/testing/selftests/bpf/progs/test_global_func7.c
-index ff98d93916fd..309b3f6136bd 100644
---- a/tools/testing/selftests/bpf/progs/test_global_func7.c
-+++ b/tools/testing/selftests/bpf/progs/test_global_func7.c
-@@ -2,7 +2,7 @@
- /* Copyright (c) 2020 Facebook */
- #include <stddef.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- __attribute__ ((noinline))
- void foo(struct __sk_buff *skb)
-diff --git a/tools/testing/selftests/bpf/progs/test_l4lb.c b/tools/testing/selftests/bpf/progs/test_l4lb.c
-index 1d652ee8e73d..33493911d87a 100644
---- a/tools/testing/selftests/bpf/progs/test_l4lb.c
-+++ b/tools/testing/selftests/bpf/progs/test_l4lb.c
-@@ -17,9 +17,9 @@
- #include <linux/icmpv6.h>
- #include <linux/tcp.h>
- #include <linux/udp.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "test_iptunnel_common.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_endian.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_l4lb_noinline.c b/tools/testing/selftests/bpf/progs/test_l4lb_noinline.c
-index 2e4efe70b1e5..28351936a438 100644
---- a/tools/testing/selftests/bpf/progs/test_l4lb_noinline.c
-+++ b/tools/testing/selftests/bpf/progs/test_l4lb_noinline.c
-@@ -13,9 +13,9 @@
- #include <linux/icmpv6.h>
- #include <linux/tcp.h>
- #include <linux/udp.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "test_iptunnel_common.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_endian.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_lirc_mode2_kern.c b/tools/testing/selftests/bpf/progs/test_lirc_mode2_kern.c
-index 4147130cc3b7..7a6620671a83 100644
---- a/tools/testing/selftests/bpf/progs/test_lirc_mode2_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_lirc_mode2_kern.c
-@@ -5,7 +5,7 @@
- 
- #include <linux/bpf.h>
- #include <linux/lirc.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- SEC("lirc_mode2")
- int bpf_decoder(unsigned int *sample)
-diff --git a/tools/testing/selftests/bpf/progs/test_lwt_ip_encap.c b/tools/testing/selftests/bpf/progs/test_lwt_ip_encap.c
-index c957d6dfe6d7..d6cb986e7533 100644
---- a/tools/testing/selftests/bpf/progs/test_lwt_ip_encap.c
-+++ b/tools/testing/selftests/bpf/progs/test_lwt_ip_encap.c
-@@ -4,8 +4,8 @@
- #include <linux/bpf.h>
+diff --git a/samples/bpf/xdp_redirect_map_kern.c b/samples/bpf/xdp_redirect_map_kern.c
+index 4631b484c432..6489352ab7a4 100644
+--- a/samples/bpf/xdp_redirect_map_kern.c
++++ b/samples/bpf/xdp_redirect_map_kern.c
+@@ -17,7 +17,7 @@
+ #include <linux/if_vlan.h>
  #include <linux/ip.h>
  #include <linux/ipv6.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- struct grehdr {
- 	__be16 flags;
-diff --git a/tools/testing/selftests/bpf/progs/test_lwt_seg6local.c b/tools/testing/selftests/bpf/progs/test_lwt_seg6local.c
-index 41a3ebcd593d..48ff2b2ad5e7 100644
---- a/tools/testing/selftests/bpf/progs/test_lwt_seg6local.c
-+++ b/tools/testing/selftests/bpf/progs/test_lwt_seg6local.c
-@@ -3,8 +3,8 @@
- #include <errno.h>
- #include <linux/seg6_local.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- /* Packet parsing state machine helpers. */
- #define cursor_advance(_cursor, _len) \
-diff --git a/tools/testing/selftests/bpf/progs/test_map_in_map.c b/tools/testing/selftests/bpf/progs/test_map_in_map.c
-index 113226115365..1cfeb940cf9f 100644
---- a/tools/testing/selftests/bpf/progs/test_map_in_map.c
-+++ b/tools/testing/selftests/bpf/progs/test_map_in_map.c
-@@ -3,7 +3,7 @@
- #include <stddef.h>
- #include <linux/bpf.h>
- #include <linux/types.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct {
- 	__uint(type, BPF_MAP_TYPE_ARRAY_OF_MAPS);
-diff --git a/tools/testing/selftests/bpf/progs/test_map_lock.c b/tools/testing/selftests/bpf/progs/test_map_lock.c
-index bb7ce35f691b..b5c07ae7b68f 100644
---- a/tools/testing/selftests/bpf/progs/test_map_lock.c
-+++ b/tools/testing/selftests/bpf/progs/test_map_lock.c
-@@ -2,7 +2,7 @@
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
- #include <linux/version.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #define VAR_NUM 16
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_mmap.c b/tools/testing/selftests/bpf/progs/test_mmap.c
-index e808791b7047..6239596cd14e 100644
---- a/tools/testing/selftests/bpf/progs/test_mmap.c
-+++ b/tools/testing/selftests/bpf/progs/test_mmap.c
-@@ -3,7 +3,7 @@
- 
- #include <linux/bpf.h>
- #include <stdint.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- char _license[] SEC("license") = "GPL";
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_obj_id.c b/tools/testing/selftests/bpf/progs/test_obj_id.c
-index 3d30c02bdae9..98b9de2fafd0 100644
---- a/tools/testing/selftests/bpf/progs/test_obj_id.c
-+++ b/tools/testing/selftests/bpf/progs/test_obj_id.c
-@@ -4,7 +4,7 @@
- #include <stddef.h>
- #include <linux/bpf.h>
- #include <linux/pkt_cls.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- /* It is a dumb bpf program such that it must have no
-  * issue to be loaded since testing the verifier is
-diff --git a/tools/testing/selftests/bpf/progs/test_overhead.c b/tools/testing/selftests/bpf/progs/test_overhead.c
-index 48748297b860..bfe9fbcb9684 100644
---- a/tools/testing/selftests/bpf/progs/test_overhead.c
-+++ b/tools/testing/selftests/bpf/progs/test_overhead.c
-@@ -4,8 +4,8 @@
- #include <stddef.h>
- #include <linux/bpf.h>
- #include <linux/ptrace.h>
--#include "bpf_helpers.h"
--#include "bpf_tracing.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_tracing.h>
- #include "bpf_trace_helpers.h"
- 
- struct task_struct;
-diff --git a/tools/testing/selftests/bpf/progs/test_perf_buffer.c b/tools/testing/selftests/bpf/progs/test_perf_buffer.c
-index 1fdc999031ac..ebfcc9f50c35 100644
---- a/tools/testing/selftests/bpf/progs/test_perf_buffer.c
-+++ b/tools/testing/selftests/bpf/progs/test_perf_buffer.c
-@@ -3,7 +3,7 @@
- 
- #include <linux/ptrace.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "bpf_trace_helpers.h"
- 
- struct {
-diff --git a/tools/testing/selftests/bpf/progs/test_pinning.c b/tools/testing/selftests/bpf/progs/test_pinning.c
-index f20e7e00373f..4ef2630292b2 100644
---- a/tools/testing/selftests/bpf/progs/test_pinning.c
-+++ b/tools/testing/selftests/bpf/progs/test_pinning.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_pinning_invalid.c b/tools/testing/selftests/bpf/progs/test_pinning_invalid.c
-index 51b38abe7ba1..5412e0c732c7 100644
---- a/tools/testing/selftests/bpf/progs/test_pinning_invalid.c
-+++ b/tools/testing/selftests/bpf/progs/test_pinning_invalid.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_pkt_access.c b/tools/testing/selftests/bpf/progs/test_pkt_access.c
-index b77cebf71e66..7c9fcfd2b463 100644
---- a/tools/testing/selftests/bpf/progs/test_pkt_access.c
-+++ b/tools/testing/selftests/bpf/progs/test_pkt_access.c
-@@ -11,8 +11,8 @@
- #include <linux/in.h>
- #include <linux/tcp.h>
- #include <linux/pkt_cls.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- #define barrier() __asm__ __volatile__("": : :"memory")
- int _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/test_pkt_md_access.c b/tools/testing/selftests/bpf/progs/test_pkt_md_access.c
-index 1db2623021ad..610c74ea9f64 100644
---- a/tools/testing/selftests/bpf/progs/test_pkt_md_access.c
-+++ b/tools/testing/selftests/bpf/progs/test_pkt_md_access.c
-@@ -5,7 +5,7 @@
- #include <string.h>
- #include <linux/bpf.h>
- #include <linux/pkt_cls.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_probe_user.c b/tools/testing/selftests/bpf/progs/test_probe_user.c
-index 5b570969e5c5..d556b1572cc6 100644
---- a/tools/testing/selftests/bpf/progs/test_probe_user.c
-+++ b/tools/testing/selftests/bpf/progs/test_probe_user.c
-@@ -5,8 +5,8 @@
- 
- #include <netinet/in.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_tracing.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_tracing.h>
- #include "bpf_trace_helpers.h"
- 
- static struct sockaddr_in old;
-diff --git a/tools/testing/selftests/bpf/progs/test_queue_stack_map.h b/tools/testing/selftests/bpf/progs/test_queue_stack_map.h
-index 0e014d3b2b36..4dd9806ad73b 100644
---- a/tools/testing/selftests/bpf/progs/test_queue_stack_map.h
-+++ b/tools/testing/selftests/bpf/progs/test_queue_stack_map.h
-@@ -6,7 +6,7 @@
- #include <linux/if_ether.h>
- #include <linux/ip.h>
- #include <linux/pkt_cls.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_rdonly_maps.c b/tools/testing/selftests/bpf/progs/test_rdonly_maps.c
-index 52d94e8b214d..ecbeea2df259 100644
---- a/tools/testing/selftests/bpf/progs/test_rdonly_maps.c
-+++ b/tools/testing/selftests/bpf/progs/test_rdonly_maps.c
-@@ -3,7 +3,7 @@
- 
- #include <linux/ptrace.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- static volatile const struct {
- 	unsigned a[4];
-diff --git a/tools/testing/selftests/bpf/progs/test_seg6_loop.c b/tools/testing/selftests/bpf/progs/test_seg6_loop.c
-index 69880c1e7700..a7278f064368 100644
---- a/tools/testing/selftests/bpf/progs/test_seg6_loop.c
-+++ b/tools/testing/selftests/bpf/progs/test_seg6_loop.c
-@@ -3,8 +3,8 @@
- #include <errno.h>
- #include <linux/seg6_local.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- /* Packet parsing state machine helpers. */
- #define cursor_advance(_cursor, _len) \
-diff --git a/tools/testing/selftests/bpf/progs/test_select_reuseport_kern.c b/tools/testing/selftests/bpf/progs/test_select_reuseport_kern.c
-index b1f09f5bb1cf..d69a1f2bbbfd 100644
---- a/tools/testing/selftests/bpf/progs/test_select_reuseport_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_select_reuseport_kern.c
-@@ -11,8 +11,8 @@
- #include <linux/types.h>
- #include <linux/if_ether.h>
- 
--#include "bpf_endian.h"
--#include "bpf_helpers.h"
-+#include <bpf/bpf_endian.h>
-+#include <bpf/bpf_helpers.h>
- #include "test_select_reuseport_common.h"
- 
- int _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/test_send_signal_kern.c b/tools/testing/selftests/bpf/progs/test_send_signal_kern.c
-index 726733f9f20b..1acc91e87bfc 100644
---- a/tools/testing/selftests/bpf/progs/test_send_signal_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_send_signal_kern.c
-@@ -2,7 +2,7 @@
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
- #include <linux/version.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- __u32 sig = 0, pid = 0, status = 0, signal_thread = 0;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_sk_lookup_kern.c b/tools/testing/selftests/bpf/progs/test_sk_lookup_kern.c
-index cb49ccb707d1..d2b38fa6a5b0 100644
---- a/tools/testing/selftests/bpf/progs/test_sk_lookup_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_sk_lookup_kern.c
-@@ -12,8 +12,8 @@
- #include <linux/pkt_cls.h>
- #include <linux/tcp.h>
- #include <sys/socket.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- int _version SEC("version") = 1;
- char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/test_skb_cgroup_id_kern.c b/tools/testing/selftests/bpf/progs/test_skb_cgroup_id_kern.c
-index 68cf9829f5a7..552f2090665c 100644
---- a/tools/testing/selftests/bpf/progs/test_skb_cgroup_id_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_skb_cgroup_id_kern.c
-@@ -6,7 +6,7 @@
- 
- #include <string.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #define NUM_CGROUP_LEVELS	4
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_skb_ctx.c b/tools/testing/selftests/bpf/progs/test_skb_ctx.c
-index e18da87fe84f..202de3938494 100644
---- a/tools/testing/selftests/bpf/progs/test_skb_ctx.c
-+++ b/tools/testing/selftests/bpf/progs/test_skb_ctx.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/test_skeleton.c b/tools/testing/selftests/bpf/progs/test_skeleton.c
-index 4f69aac5635f..de03a90f78ca 100644
---- a/tools/testing/selftests/bpf/progs/test_skeleton.c
-+++ b/tools/testing/selftests/bpf/progs/test_skeleton.c
-@@ -3,7 +3,7 @@
- 
- #include <stdbool.h>
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct s {
- 	int a;
-diff --git a/tools/testing/selftests/bpf/progs/test_sock_fields_kern.c b/tools/testing/selftests/bpf/progs/test_sock_fields_kern.c
-index a47b003623ef..9bcaa37f476a 100644
---- a/tools/testing/selftests/bpf/progs/test_sock_fields_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_sock_fields_kern.c
-@@ -5,8 +5,8 @@
- #include <netinet/in.h>
- #include <stdbool.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- enum bpf_addr_array_idx {
- 	ADDR_SRV_IDX,
-diff --git a/tools/testing/selftests/bpf/progs/test_spin_lock.c b/tools/testing/selftests/bpf/progs/test_spin_lock.c
-index a43b999c8da2..0d31a3b3505f 100644
---- a/tools/testing/selftests/bpf/progs/test_spin_lock.c
-+++ b/tools/testing/selftests/bpf/progs/test_spin_lock.c
-@@ -2,7 +2,7 @@
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
- #include <linux/version.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- struct hmap_elem {
- 	volatile int cnt;
-diff --git a/tools/testing/selftests/bpf/progs/test_stacktrace_build_id.c b/tools/testing/selftests/bpf/progs/test_stacktrace_build_id.c
-index f5638e26865d..0cf0134631b4 100644
---- a/tools/testing/selftests/bpf/progs/test_stacktrace_build_id.c
-+++ b/tools/testing/selftests/bpf/progs/test_stacktrace_build_id.c
-@@ -2,7 +2,7 @@
- // Copyright (c) 2018 Facebook
- 
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #ifndef PERF_MAX_STACK_DEPTH
- #define PERF_MAX_STACK_DEPTH         127
-diff --git a/tools/testing/selftests/bpf/progs/test_stacktrace_map.c b/tools/testing/selftests/bpf/progs/test_stacktrace_map.c
-index 3b7e1dca8829..00ed48672620 100644
---- a/tools/testing/selftests/bpf/progs/test_stacktrace_map.c
-+++ b/tools/testing/selftests/bpf/progs/test_stacktrace_map.c
-@@ -2,7 +2,7 @@
- // Copyright (c) 2018 Facebook
- 
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #ifndef PERF_MAX_STACK_DEPTH
- #define PERF_MAX_STACK_DEPTH         127
-diff --git a/tools/testing/selftests/bpf/progs/test_sysctl_loop1.c b/tools/testing/selftests/bpf/progs/test_sysctl_loop1.c
-index d22e438198cf..458b0d69133e 100644
---- a/tools/testing/selftests/bpf/progs/test_sysctl_loop1.c
-+++ b/tools/testing/selftests/bpf/progs/test_sysctl_loop1.c
-@@ -7,7 +7,7 @@
- #include <linux/stddef.h>
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #ifndef ARRAY_SIZE
- #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-diff --git a/tools/testing/selftests/bpf/progs/test_sysctl_loop2.c b/tools/testing/selftests/bpf/progs/test_sysctl_loop2.c
-index cb201cbe11e7..b2e6f9b0894d 100644
---- a/tools/testing/selftests/bpf/progs/test_sysctl_loop2.c
-+++ b/tools/testing/selftests/bpf/progs/test_sysctl_loop2.c
-@@ -7,7 +7,7 @@
- #include <linux/stddef.h>
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #ifndef ARRAY_SIZE
- #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-diff --git a/tools/testing/selftests/bpf/progs/test_sysctl_prog.c b/tools/testing/selftests/bpf/progs/test_sysctl_prog.c
-index 5cbbff416998..2d0b0b82a78a 100644
---- a/tools/testing/selftests/bpf/progs/test_sysctl_prog.c
-+++ b/tools/testing/selftests/bpf/progs/test_sysctl_prog.c
-@@ -7,7 +7,7 @@
- #include <linux/stddef.h>
- #include <linux/bpf.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- /* Max supported length of a string with unsigned long in base 10 (pow2 - 1). */
- #define MAX_ULONG_STR_LEN 0xF
-diff --git a/tools/testing/selftests/bpf/progs/test_tc_edt.c b/tools/testing/selftests/bpf/progs/test_tc_edt.c
-index 0961415ba477..bf28814bfde5 100644
---- a/tools/testing/selftests/bpf/progs/test_tc_edt.c
-+++ b/tools/testing/selftests/bpf/progs/test_tc_edt.c
-@@ -7,8 +7,8 @@
- #include <linux/ip.h>
- #include <linux/pkt_cls.h>
- #include <linux/tcp.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- /* the maximum delay we are willing to add (drop packets beyond that) */
- #define TIME_HORIZON_NS (2000 * 1000 * 1000)
-diff --git a/tools/testing/selftests/bpf/progs/test_tc_tunnel.c b/tools/testing/selftests/bpf/progs/test_tc_tunnel.c
-index 74370e7e286d..37bce7a7c394 100644
---- a/tools/testing/selftests/bpf/progs/test_tc_tunnel.c
-+++ b/tools/testing/selftests/bpf/progs/test_tc_tunnel.c
-@@ -17,8 +17,8 @@
- #include <linux/pkt_cls.h>
- #include <linux/types.h>
- 
--#include "bpf_endian.h"
--#include "bpf_helpers.h"
-+#include <bpf/bpf_endian.h>
-+#include <bpf/bpf_helpers.h>
- 
- static const int cfg_port = 8000;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_tcp_check_syncookie_kern.c b/tools/testing/selftests/bpf/progs/test_tcp_check_syncookie_kern.c
-index d8803dfa8d32..47cbe2eeae43 100644
---- a/tools/testing/selftests/bpf/progs/test_tcp_check_syncookie_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_tcp_check_syncookie_kern.c
-@@ -13,8 +13,8 @@
- #include <sys/socket.h>
- #include <linux/tcp.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- struct bpf_map_def SEC("maps") results = {
- 	.type = BPF_MAP_TYPE_ARRAY,
-diff --git a/tools/testing/selftests/bpf/progs/test_tcp_estats.c b/tools/testing/selftests/bpf/progs/test_tcp_estats.c
-index 87b7d934ce73..adc83a54c352 100644
---- a/tools/testing/selftests/bpf/progs/test_tcp_estats.c
-+++ b/tools/testing/selftests/bpf/progs/test_tcp_estats.c
-@@ -36,7 +36,7 @@
- #include <linux/ipv6.h>
- #include <linux/version.h>
- #include <sys/socket.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #define _(P) ({typeof(P) val = 0; bpf_probe_read_kernel(&val, sizeof(val), &P); val;})
- #define TCP_ESTATS_MAGIC 0xBAADBEEF
-diff --git a/tools/testing/selftests/bpf/progs/test_tcpbpf_kern.c b/tools/testing/selftests/bpf/progs/test_tcpbpf_kern.c
-index 7fa4595d2b66..1f1966e86e9f 100644
---- a/tools/testing/selftests/bpf/progs/test_tcpbpf_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_tcpbpf_kern.c
-@@ -10,8 +10,8 @@
- #include <linux/types.h>
- #include <linux/socket.h>
- #include <linux/tcp.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- #include "test_tcpbpf.h"
- 
- struct {
-diff --git a/tools/testing/selftests/bpf/progs/test_tcpnotify_kern.c b/tools/testing/selftests/bpf/progs/test_tcpnotify_kern.c
-index 08346e7765d5..ac63410bb541 100644
---- a/tools/testing/selftests/bpf/progs/test_tcpnotify_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_tcpnotify_kern.c
-@@ -10,8 +10,8 @@
- #include <linux/types.h>
- #include <linux/socket.h>
- #include <linux/tcp.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- #include "test_tcpnotify.h"
- 
- struct {
-diff --git a/tools/testing/selftests/bpf/progs/test_tracepoint.c b/tools/testing/selftests/bpf/progs/test_tracepoint.c
-index 04bf084517e0..4b825ee122cf 100644
---- a/tools/testing/selftests/bpf/progs/test_tracepoint.c
-+++ b/tools/testing/selftests/bpf/progs/test_tracepoint.c
-@@ -2,7 +2,7 @@
- // Copyright (c) 2017 Facebook
- 
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- /* taken from /sys/kernel/debug/tracing/events/sched/sched_switch/format */
- struct sched_switch_args {
-diff --git a/tools/testing/selftests/bpf/progs/test_tunnel_kern.c b/tools/testing/selftests/bpf/progs/test_tunnel_kern.c
-index 504df69c83df..f48dbfe24ddc 100644
---- a/tools/testing/selftests/bpf/progs/test_tunnel_kern.c
-+++ b/tools/testing/selftests/bpf/progs/test_tunnel_kern.c
-@@ -19,8 +19,8 @@
- #include <linux/socket.h>
- #include <linux/pkt_cls.h>
- #include <linux/erspan.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- #define ERROR(ret) do {\
- 		char fmt[] = "ERROR line:%d ret:%d\n";\
-diff --git a/tools/testing/selftests/bpf/progs/test_verif_scale1.c b/tools/testing/selftests/bpf/progs/test_verif_scale1.c
-index f3236ce35f31..d38153dab3dd 100644
---- a/tools/testing/selftests/bpf/progs/test_verif_scale1.c
-+++ b/tools/testing/selftests/bpf/progs/test_verif_scale1.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #define ATTR __attribute__((noinline))
- #include "test_jhash.h"
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_verif_scale2.c b/tools/testing/selftests/bpf/progs/test_verif_scale2.c
-index 9897150ed516..f024154c7be7 100644
---- a/tools/testing/selftests/bpf/progs/test_verif_scale2.c
-+++ b/tools/testing/selftests/bpf/progs/test_verif_scale2.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #define ATTR __always_inline
- #include "test_jhash.h"
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_verif_scale3.c b/tools/testing/selftests/bpf/progs/test_verif_scale3.c
-index 1848da04ea41..9beb5bf80373 100644
---- a/tools/testing/selftests/bpf/progs/test_verif_scale3.c
-+++ b/tools/testing/selftests/bpf/progs/test_verif_scale3.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- // Copyright (c) 2019 Facebook
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #define ATTR __attribute__((noinline))
- #include "test_jhash.h"
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_xdp.c b/tools/testing/selftests/bpf/progs/test_xdp.c
-index 0941c655b07b..31f9bce37491 100644
---- a/tools/testing/selftests/bpf/progs/test_xdp.c
-+++ b/tools/testing/selftests/bpf/progs/test_xdp.c
-@@ -16,8 +16,8 @@
- #include <linux/tcp.h>
- #include <linux/pkt_cls.h>
- #include <sys/socket.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- #include "test_iptunnel_common.h"
- 
- int _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/test_xdp_bpf2bpf.c b/tools/testing/selftests/bpf/progs/test_xdp_bpf2bpf.c
-index f8f105af6743..cb8a04ab7a78 100644
---- a/tools/testing/selftests/bpf/progs/test_xdp_bpf2bpf.c
-+++ b/tools/testing/selftests/bpf/progs/test_xdp_bpf2bpf.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- #include "bpf_trace_helpers.h"
- 
- struct net_device {
-diff --git a/tools/testing/selftests/bpf/progs/test_xdp_loop.c b/tools/testing/selftests/bpf/progs/test_xdp_loop.c
-index 97175f73c3fe..fcabcda30ba3 100644
---- a/tools/testing/selftests/bpf/progs/test_xdp_loop.c
-+++ b/tools/testing/selftests/bpf/progs/test_xdp_loop.c
-@@ -12,8 +12,8 @@
- #include <linux/tcp.h>
- #include <linux/pkt_cls.h>
- #include <sys/socket.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- #include "test_iptunnel_common.h"
- 
- int _version SEC("version") = 1;
-diff --git a/tools/testing/selftests/bpf/progs/test_xdp_meta.c b/tools/testing/selftests/bpf/progs/test_xdp_meta.c
-index 8d0182650653..a7c4a7d49fe6 100644
---- a/tools/testing/selftests/bpf/progs/test_xdp_meta.c
-+++ b/tools/testing/selftests/bpf/progs/test_xdp_meta.c
-@@ -2,7 +2,7 @@
- #include <linux/if_ether.h>
- #include <linux/pkt_cls.h>
- 
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- #define __round_mask(x, y) ((__typeof__(x))((y) - 1))
- #define round_up(x, y) ((((x) - 1) | __round_mask(x, y)) + 1)
-diff --git a/tools/testing/selftests/bpf/progs/test_xdp_noinline.c b/tools/testing/selftests/bpf/progs/test_xdp_noinline.c
-index f95bc1a17667..8beecec166d9 100644
---- a/tools/testing/selftests/bpf/progs/test_xdp_noinline.c
-+++ b/tools/testing/selftests/bpf/progs/test_xdp_noinline.c
-@@ -13,8 +13,8 @@
- #include <linux/icmpv6.h>
- #include <linux/tcp.h>
- #include <linux/udp.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- static __u32 rol32(__u32 word, unsigned int shift)
- {
-diff --git a/tools/testing/selftests/bpf/progs/test_xdp_redirect.c b/tools/testing/selftests/bpf/progs/test_xdp_redirect.c
-index ef9e704be140..a5337cd9400b 100644
---- a/tools/testing/selftests/bpf/progs/test_xdp_redirect.c
-+++ b/tools/testing/selftests/bpf/progs/test_xdp_redirect.c
-@@ -10,7 +10,7 @@
-  * General Public License for more details.
-  */
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- int _version SEC("version") = 1;
- 
-diff --git a/tools/testing/selftests/bpf/progs/test_xdp_vlan.c b/tools/testing/selftests/bpf/progs/test_xdp_vlan.c
-index 365a7d2d9f5c..134768f6b788 100644
---- a/tools/testing/selftests/bpf/progs/test_xdp_vlan.c
-+++ b/tools/testing/selftests/bpf/progs/test_xdp_vlan.c
-@@ -22,8 +22,8 @@
- #include <linux/in.h>
- #include <linux/pkt_cls.h>
- 
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- /* linux/if_vlan.h have not exposed this as UAPI, thus mirror some here
-  *
-diff --git a/tools/testing/selftests/bpf/progs/xdp_dummy.c b/tools/testing/selftests/bpf/progs/xdp_dummy.c
-index 43b0ef1001ed..ea25e8881992 100644
---- a/tools/testing/selftests/bpf/progs/xdp_dummy.c
-+++ b/tools/testing/selftests/bpf/progs/xdp_dummy.c
-@@ -2,7 +2,7 @@
- 
- #define KBUILD_MODNAME "xdp_dummy"
- #include <linux/bpf.h>
--#include "bpf_helpers.h"
-+#include <bpf/bpf_helpers.h>
- 
- SEC("xdp_dummy")
- int xdp_dummy_prog(struct xdp_md *ctx)
-diff --git a/tools/testing/selftests/bpf/progs/xdp_redirect_map.c b/tools/testing/selftests/bpf/progs/xdp_redirect_map.c
-index 1c5f298d7196..d037262c8937 100644
---- a/tools/testing/selftests/bpf/progs/xdp_redirect_map.c
-+++ b/tools/testing/selftests/bpf/progs/xdp_redirect_map.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- #include <linux/bpf.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
  
  struct {
  	__uint(type, BPF_MAP_TYPE_DEVMAP);
-diff --git a/tools/testing/selftests/bpf/progs/xdp_tx.c b/tools/testing/selftests/bpf/progs/xdp_tx.c
-index 57912e7c94b0..94e6c2b281cb 100644
---- a/tools/testing/selftests/bpf/progs/xdp_tx.c
-+++ b/tools/testing/selftests/bpf/progs/xdp_tx.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
+diff --git a/samples/bpf/xdp_redirect_map_user.c b/samples/bpf/xdp_redirect_map_user.c
+index cc840661faab..35e16dee613e 100644
+--- a/samples/bpf/xdp_redirect_map_user.c
++++ b/samples/bpf/xdp_redirect_map_user.c
+@@ -17,7 +17,7 @@
  
+ #include "bpf_util.h"
+ #include <bpf/bpf.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ 
+ static int ifindex_in;
+ static int ifindex_out;
+diff --git a/samples/bpf/xdp_redirect_user.c b/samples/bpf/xdp_redirect_user.c
+index 71dff8e3382a..9ca2bf457cda 100644
+--- a/samples/bpf/xdp_redirect_user.c
++++ b/samples/bpf/xdp_redirect_user.c
+@@ -17,7 +17,7 @@
+ 
+ #include "bpf_util.h"
+ #include <bpf/bpf.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ 
+ static int ifindex_in;
+ static int ifindex_out;
+diff --git a/samples/bpf/xdp_router_ipv4_kern.c b/samples/bpf/xdp_router_ipv4_kern.c
+index bf11efc8e949..b37ca2b13063 100644
+--- a/samples/bpf/xdp_router_ipv4_kern.c
++++ b/samples/bpf/xdp_router_ipv4_kern.c
+@@ -12,7 +12,7 @@
+ #include <linux/if_vlan.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include <linux/slab.h>
+ #include <net/ip_fib.h>
+ 
+diff --git a/samples/bpf/xdp_router_ipv4_user.c b/samples/bpf/xdp_router_ipv4_user.c
+index fef286c5add2..c2da1b51ff95 100644
+--- a/samples/bpf/xdp_router_ipv4_user.c
++++ b/samples/bpf/xdp_router_ipv4_user.c
+@@ -21,7 +21,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/syscall.h>
+ #include "bpf_util.h"
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include <sys/resource.h>
+ #include <libgen.h>
+ 
+diff --git a/samples/bpf/xdp_rxq_info_kern.c b/samples/bpf/xdp_rxq_info_kern.c
+index 272d0f82a6b5..5e7459f9bf3e 100644
+--- a/samples/bpf/xdp_rxq_info_kern.c
++++ b/samples/bpf/xdp_rxq_info_kern.c
+@@ -6,7 +6,7 @@
+ #include <uapi/linux/bpf.h>
+ #include <uapi/linux/if_ether.h>
+ #include <uapi/linux/in.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ /* Config setup from with userspace
+  *
+diff --git a/samples/bpf/xdp_rxq_info_user.c b/samples/bpf/xdp_rxq_info_user.c
+index fc4983fd6959..4fe47502ebed 100644
+--- a/samples/bpf/xdp_rxq_info_user.c
++++ b/samples/bpf/xdp_rxq_info_user.c
+@@ -22,8 +22,8 @@ static const char *__doc__ = " XDP RX-queue info extract example\n\n"
+ #include <arpa/inet.h>
+ #include <linux/if_link.h>
+ 
+-#include "bpf.h"
+-#include "libbpf.h"
++#include <bpf/bpf.h>
++#include <bpf/libbpf.h>
+ #include "bpf_util.h"
+ 
+ static int ifindex = -1;
+diff --git a/samples/bpf/xdp_sample_pkts_kern.c b/samples/bpf/xdp_sample_pkts_kern.c
+index 6c7c7e0aaeda..33377289e2a8 100644
+--- a/samples/bpf/xdp_sample_pkts_kern.c
++++ b/samples/bpf/xdp_sample_pkts_kern.c
+@@ -2,7 +2,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/version.h>
+ #include <uapi/linux/bpf.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ 
+ #define SAMPLE_SIZE 64ul
+ #define MAX_CPUS 128
+diff --git a/samples/bpf/xdp_sample_pkts_user.c b/samples/bpf/xdp_sample_pkts_user.c
+index 8c1af1b7372d..991ef6f0880b 100644
+--- a/samples/bpf/xdp_sample_pkts_user.c
++++ b/samples/bpf/xdp_sample_pkts_user.c
+@@ -10,7 +10,7 @@
+ #include <sys/sysinfo.h>
+ #include <sys/ioctl.h>
+ #include <signal.h>
+-#include <libbpf.h>
++#include <bpf/libbpf.h>
+ #include <bpf/bpf.h>
+ #include <sys/resource.h>
+ #include <libgen.h>
+diff --git a/samples/bpf/xdp_tx_iptunnel_kern.c b/samples/bpf/xdp_tx_iptunnel_kern.c
+index 6db450a5c1ca..575d57e4b8d6 100644
+--- a/samples/bpf/xdp_tx_iptunnel_kern.c
++++ b/samples/bpf/xdp_tx_iptunnel_kern.c
+@@ -16,7 +16,7 @@
+ #include <linux/if_vlan.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+-#include "bpf_helpers.h"
++#include <bpf/bpf_helpers.h>
+ #include "xdp_tx_iptunnel_common.h"
+ 
+ struct {
+diff --git a/samples/bpf/xdp_tx_iptunnel_user.c b/samples/bpf/xdp_tx_iptunnel_user.c
+index 5f33b5530032..a419bee151a8 100644
+--- a/samples/bpf/xdp_tx_iptunnel_user.c
++++ b/samples/bpf/xdp_tx_iptunnel_user.c
+@@ -15,7 +15,7 @@
+ #include <netinet/ether.h>
+ #include <unistd.h>
+ #include <time.h>
+-#include "libbpf.h"
++#include <bpf/libbpf.h>
+ #include <bpf/bpf.h>
+ #include "bpf_util.h"
+ #include "xdp_tx_iptunnel_common.h"
+diff --git a/samples/bpf/xdpsock_kern.c b/samples/bpf/xdpsock_kern.c
+index a06177c262cd..05430484375c 100644
+--- a/samples/bpf/xdpsock_kern.c
++++ b/samples/bpf/xdpsock_kern.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
  #include <linux/bpf.h>
 -#include "bpf_helpers.h"
 +#include <bpf/bpf_helpers.h>
+ #include "xdpsock.h"
  
- SEC("tx")
- int xdp_tx(struct xdp_md *xdp)
-diff --git a/tools/testing/selftests/bpf/progs/xdping_kern.c b/tools/testing/selftests/bpf/progs/xdping_kern.c
-index 112a2857f4e2..6b9ca40bd1f4 100644
---- a/tools/testing/selftests/bpf/progs/xdping_kern.c
-+++ b/tools/testing/selftests/bpf/progs/xdping_kern.c
-@@ -12,8 +12,8 @@
- #include <linux/if_vlan.h>
- #include <linux/ip.h>
+ /* This XDP program is only needed for the XDP_SHARED_UMEM mode.
+diff --git a/samples/bpf/xdpsock_user.c b/samples/bpf/xdpsock_user.c
+index d74c4c83fc93..0b5acd722306 100644
+--- a/samples/bpf/xdpsock_user.c
++++ b/samples/bpf/xdpsock_user.c
+@@ -30,10 +30,10 @@
+ #include <time.h>
+ #include <unistd.h>
  
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- #include "xdping.h"
- 
-diff --git a/tools/testing/selftests/bpf/test_cpp.cpp b/tools/testing/selftests/bpf/test_cpp.cpp
-index 6fe23a10d48a..a8d2e9a87fbf 100644
---- a/tools/testing/selftests/bpf/test_cpp.cpp
-+++ b/tools/testing/selftests/bpf/test_cpp.cpp
-@@ -1,8 +1,8 @@
- /* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */
- #include <iostream>
 -#include "libbpf.h"
--#include "bpf.h"
--#include "btf.h"
+-#include "xsk.h"
+-#include "xdpsock.h"
 +#include <bpf/libbpf.h>
-+#include <bpf/bpf.h>
-+#include <bpf/btf.h>
- #include "test_core_extern.skel.h"
- 
- /* do nothing, just make sure we can link successfully */
-diff --git a/tools/testing/selftests/bpf/test_hashmap.c b/tools/testing/selftests/bpf/test_hashmap.c
-index b64094c981e3..c490e012c23f 100644
---- a/tools/testing/selftests/bpf/test_hashmap.c
-+++ b/tools/testing/selftests/bpf/test_hashmap.c
-@@ -8,7 +8,7 @@
- #include <stdio.h>
- #include <errno.h>
- #include <linux/err.h>
--#include "hashmap.h"
-+#include "bpf/hashmap.h"
- 
- #define CHECK(condition, format...) ({					\
- 	int __ret = !!(condition);					\
-diff --git a/tools/testing/selftests/bpf/test_progs.h b/tools/testing/selftests/bpf/test_progs.h
-index 99933a1857ca..bcfa9ef23fda 100644
---- a/tools/testing/selftests/bpf/test_progs.h
-+++ b/tools/testing/selftests/bpf/test_progs.h
-@@ -35,7 +35,7 @@ typedef __u16 __sum16;
- 
- #include "test_iptunnel_common.h"
- #include "bpf_util.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_endian.h>
- #include "trace_helpers.h"
- #include "flow_dissector_load.h"
- 
-diff --git a/tools/testing/selftests/bpf/test_sock.c b/tools/testing/selftests/bpf/test_sock.c
-index 0e6652733462..52bf14955797 100644
---- a/tools/testing/selftests/bpf/test_sock.c
-+++ b/tools/testing/selftests/bpf/test_sock.c
-@@ -13,7 +13,7 @@
++#include <bpf/xsk.h>
  #include <bpf/bpf.h>
++#include "xdpsock.h"
  
- #include "cgroup_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_endian.h>
- #include "bpf_rlimit.h"
- #include "bpf_util.h"
- 
-diff --git a/tools/testing/selftests/bpf/test_sockmap_kern.h b/tools/testing/selftests/bpf/test_sockmap_kern.h
-index d008b41b7d8d..9b4d3a68a91a 100644
---- a/tools/testing/selftests/bpf/test_sockmap_kern.h
-+++ b/tools/testing/selftests/bpf/test_sockmap_kern.h
-@@ -12,8 +12,8 @@
- #include <linux/tcp.h>
- #include <linux/pkt_cls.h>
- #include <sys/socket.h>
--#include "bpf_helpers.h"
--#include "bpf_endian.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
- 
- /* Sockmap sample program connects a client and a backend together
-  * using cgroups.
-diff --git a/tools/testing/selftests/bpf/test_sysctl.c b/tools/testing/selftests/bpf/test_sysctl.c
-index 40bd93a6e7ae..d196e2a4a6e0 100644
---- a/tools/testing/selftests/bpf/test_sysctl.c
-+++ b/tools/testing/selftests/bpf/test_sysctl.c
-@@ -13,7 +13,7 @@
- #include <bpf/bpf.h>
- #include <bpf/libbpf.h>
- 
--#include "bpf_endian.h"
-+#include <bpf/bpf_endian.h>
- #include "bpf_rlimit.h"
- #include "bpf_util.h"
- #include "cgroup_helpers.h"
-diff --git a/tools/testing/selftests/bpf/trace_helpers.h b/tools/testing/selftests/bpf/trace_helpers.h
-index aa4dcfe18050..0383c9b8adc1 100644
---- a/tools/testing/selftests/bpf/trace_helpers.h
-+++ b/tools/testing/selftests/bpf/trace_helpers.h
-@@ -2,7 +2,7 @@
- #ifndef __TRACE_HELPER_H
- #define __TRACE_HELPER_H
- 
--#include <libbpf.h>
-+#include <bpf/libbpf.h>
- 
- struct ksym {
- 	long addr;
+ #ifndef SOL_XDP
+ #define SOL_XDP 283
 
