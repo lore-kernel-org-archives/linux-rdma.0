@@ -2,67 +2,175 @@ Return-Path: <SRS0=PaA+=3J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2471C3F68F
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 07:30:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BBE4C33CA1
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 07:30:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 979AB20684
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 07:30:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CD29207FD
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 07:30:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1579505457;
+	bh=QkXqYataShtv5Re4qL9AbP44cpqVaJtkXXP3hf4o0Zc=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=Symj2qJp15fLNdxD9digkOa64JzDtzTHHkrQ20wa/SP5gmTfyENvX89UsfuINAZOO
+	 ekc3FfddoppU3izccrAfKR8hMKEJQiIfiEjOENEpoN54nFrouXo5Z748aLvektnHTN
+	 nnJG3ISkmPQogD6Ey7f6J7c0qxLvD8XoGij6psw0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726819AbgATHav (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jan 2020 02:30:51 -0500
-Received: from mail-pl1-f193.google.com ([209.85.214.193]:40699 "EHLO
-        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726282AbgATHav (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Jan 2020 02:30:51 -0500
-Received: by mail-pl1-f193.google.com with SMTP id s21so12801278plr.7;
-        Sun, 19 Jan 2020 23:30:50 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=Tytd2xIi4rDm4xTJXT7PgUqxrt5vtfpID7x35/XLvLQ=;
-        b=qgJoM5PzvBD4WIudxgVJpR0JpUL95t3+RV2VQF5DIC6J15eoPbPTxFy2SunYRCwuB6
-         dLn/dcoPQSlzf3jEp9KeplHiElAI4h4Nf//fAp9u4rg+46Ve6S5jkuwwa55g7fdkXMUI
-         rJTqpcBX7zkqM//iuzN/+IWClnMYYjzHAUPF7R2yOy+FAhzjVd4uTW4Q5O9xBzrDRYDO
-         0YrOao7j3EhBZbQxfeXiGrem96y62PcR/xXWc4DBcwJJTpL0MhYyYmGp7Lc1+G+eOfDU
-         18y5STnhQCkf3ImefRtd2h6x9DEtWibON0wWHHVILcVJqadj7xnDNjyi1o1cd2ZzzSOO
-         qfww==
-X-Gm-Message-State: APjAAAXjvLZE3ORpGd8K2UJAZWxXKv6RV83zlatiPpWX48dnfb3BzugK
-        RdCaM6+rjWeIP9Dt7A/+aQOme3de
-X-Google-Smtp-Source: APXvYqzDK6wx4LEDEg9emD5TiFnDsSjzz0adG10VLaUd3gMoKhJUt8CEO0Kge+r5ZYSORCoBtC5Rpw==
-X-Received: by 2002:a17:902:9b90:: with SMTP id y16mr10637863plp.217.1579505450351;
-        Sun, 19 Jan 2020 23:30:50 -0800 (PST)
-Received: from ?IPv6:2601:647:4802:9070:fd41:47a6:c3c9:b0ce? ([2601:647:4802:9070:fd41:47a6:c3c9:b0ce])
-        by smtp.gmail.com with ESMTPSA id w5sm35781930pgb.78.2020.01.19.23.30.49
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 19 Jan 2020 23:30:49 -0800 (PST)
-Subject: Re: [PATCH] RDMA/isert: Fix a recently introduced regression related
- to logout
-To:     Bart Van Assche <bvanassche@acm.org>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>
-Cc:     target-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Rahul Kundu <rahul.kundu@chelsio.com>
-References: <20200116044737.19507-1-bvanassche@acm.org>
-From:   Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <97430396-5916-7913-d62f-b70cf174d465@grimberg.me>
-Date:   Sun, 19 Jan 2020 23:30:48 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        id S1726586AbgATHa4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jan 2020 02:30:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35488 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726282AbgATHa4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Jan 2020 02:30:56 -0500
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 34F0320684;
+        Mon, 20 Jan 2020 07:30:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1579505454;
+        bh=QkXqYataShtv5Re4qL9AbP44cpqVaJtkXXP3hf4o0Zc=;
+        h=From:To:Cc:Subject:Date:From;
+        b=zPidTaHSnvgnqAll1EEAUnFhOB5GW8k12cjrMW07cvev9hXP84vzbxR57rjTmucvn
+         m0XIZQ6D2UK6MTtjqYp8tiHZivCZj5hvwl8UijfOTkfBzBw/vZulT+yFmaqoKKM1rj
+         +mDHbH+Mzf01LF+iLvyVk9bJgji3i2y0nIeRVxoQ=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     "David S . Miller" <davem@davemloft.net>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        linux-netdev <netdev@vger.kernel.org>
+Subject: [net-next, rdma-next] [pull request] Use ODP MRs for kernel ULPs
+Date:   Mon, 20 Jan 2020 09:30:46 +0200
+Message-Id: <20200120073046.75590-1-leon@kernel.org>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-In-Reply-To: <20200116044737.19507-1-bvanassche@acm.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Bart,
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Acked-by: Sagi Grimberg <sagi@grimberg.me>
+Hi David, Jakub, Doug and Jason
+
+This is pull request to previously posted and reviewed series [1] which touches
+RDMA and netdev subsystems. RDMA part was approved for inclusion by Jason [2]
+and RDS patches were acked by Santosh [3].
+
+For your convenience, the series is based on clean v5.5-rc6 tag and applies
+cleanly to both subsystems.
+
+Please pull and let me know if there's any problem. I'm very rare doing PRs
+and sorry in advance if something is not as expected.
+
+[1] https://lore.kernel.org/linux-rdma/20200115124340.79108-1-leon@kernel.org
+[2] https://lore.kernel.org/linux-rdma/20200117141232.GX20978@mellanox.com
+[3] https://lore.kernel.org/linux-rdma/3c479d8a-f98a-a4c9-bd85-6332e919bf35@oracle.com
+
+----------------------------------------------------------------
+The following series extends MR creation routines to allow creation of
+user MRs through kernel ULPs as a proxy. The immediate use case is to
+allow RDS to work over FS-DAX, which requires ODP (on-demand-paging)
+MRs to be created and such MRs were not possible to create prior this
+series.
+
+The first part of this patchset extends RDMA to have special verb
+ib_reg_user_mr(). The common use case that uses this function is a
+userspace application that allocates memory for HCA access but the
+responsibility to register the memory at the HCA is on an kernel ULP.
+This ULP acts as an agent for the userspace application.
+
+The second part provides advise MR functionality for ULPs. This is
+integral part of ODP flows and used to trigger pagefaults in advance
+to prepare memory before running working set.
+
+The third part is actual user of those in-kernel APIs.
+
+Thanks
+----------------------------------------------------------------
+The following changes since commit b3a987b0264d3ddbb24293ebff10eddfc472f653:
+
+  Linux 5.5-rc6 (2020-01-12 16:55:08 -0800)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rds-odp-for-5.5
+
+for you to fetch changes up to b2dfc6765e45a3154800333234e4952b5412d792:
+
+  net/rds: Use prefetch for On-Demand-Paging MR (2020-01-18 11:48:19 +0200)
+
+----------------------------------------------------------------
+Hans Westgaard Ry (3):
+      net/rds: Detect need of On-Demand-Paging memory registration
+      net/rds: Handle ODP mr registration/unregistration
+      net/rds: Use prefetch for On-Demand-Paging MR
+
+Jason Gunthorpe (1):
+      RDMA/mlx5: Fix handling of IOVA != user_va in ODP paths
+
+Leon Romanovsky (1):
+      RDMA/mlx5: Don't fake udata for kernel path
+
+Moni Shoua (5):
+      IB: Allow calls to ib_umem_get from kernel ULPs
+      IB/core: Introduce ib_reg_user_mr
+      IB/core: Add interface to advise_mr for kernel users
+      IB/mlx5: Add ODP WQE handlers for kernel QPs
+      IB/mlx5: Mask out unsupported ODP capabilities for kernel QPs
+
+ drivers/infiniband/core/umem.c                |  27 ++---
+ drivers/infiniband/core/umem_odp.c            |  29 ++---
+ drivers/infiniband/core/verbs.c               |  41 +++++++
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c      |  12 +-
+ drivers/infiniband/hw/cxgb4/mem.c             |   2 +-
+ drivers/infiniband/hw/efa/efa_verbs.c         |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_cq.c       |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_db.c       |   3 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c       |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c       |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_srq.c      |   5 +-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c     |   5 +-
+ drivers/infiniband/hw/mlx4/cq.c               |   2 +-
+ drivers/infiniband/hw/mlx4/doorbell.c         |   3 +-
+ drivers/infiniband/hw/mlx4/mr.c               |   8 +-
+ drivers/infiniband/hw/mlx4/qp.c               |   5 +-
+ drivers/infiniband/hw/mlx4/srq.c              |   3 +-
+ drivers/infiniband/hw/mlx5/cq.c               |   6 +-
+ drivers/infiniband/hw/mlx5/devx.c             |   2 +-
+ drivers/infiniband/hw/mlx5/doorbell.c         |   3 +-
+ drivers/infiniband/hw/mlx5/main.c             |  51 +++++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  12 +-
+ drivers/infiniband/hw/mlx5/mr.c               |  20 +--
+ drivers/infiniband/hw/mlx5/odp.c              |  33 +++--
+ drivers/infiniband/hw/mlx5/qp.c               | 167 +++++++++++++++++---------
+ drivers/infiniband/hw/mlx5/srq.c              |   2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c  |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c   |   2 +-
+ drivers/infiniband/hw/qedr/verbs.c            |   9 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c  |   2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c  |   2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c  |   7 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c |   2 +-
+ drivers/infiniband/sw/rdmavt/mr.c             |   2 +-
+ drivers/infiniband/sw/rxe/rxe_mr.c            |   2 +-
+ include/rdma/ib_umem.h                        |   4 +-
+ include/rdma/ib_umem_odp.h                    |   6 +-
+ include/rdma/ib_verbs.h                       |   9 ++
+ net/rds/ib.c                                  |   7 ++
+ net/rds/ib.h                                  |   3 +-
+ net/rds/ib_mr.h                               |   7 +-
+ net/rds/ib_rdma.c                             |  84 ++++++++++++-
+ net/rds/ib_send.c                             |  44 +++++--
+ net/rds/rdma.c                                | 157 ++++++++++++++++++------
+ net/rds/rds.h                                 |  13 +-
+ 45 files changed, 561 insertions(+), 256 deletions(-)
