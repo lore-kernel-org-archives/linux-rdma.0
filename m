@@ -2,193 +2,190 @@ Return-Path: <SRS0=PaA+=3J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11226C33CB1
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 08:23:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54497C33CAA
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 11:04:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DEF34207FF
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 08:23:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A25520882
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jan 2020 11:04:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UlzPZXXk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726587AbgATIXj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jan 2020 03:23:39 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9208 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726650AbgATIXj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Jan 2020 03:23:39 -0500
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id ECA8839547BECDF8E92E;
-        Mon, 20 Jan 2020 16:23:36 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 20 Jan 2020 16:23:27 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 6/7] RDMA/hns: Optimize kernel qp wrid allocation flow
-Date:   Mon, 20 Jan 2020 16:19:36 +0800
-Message-ID: <1579508377-55818-7-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1579508377-55818-1-git-send-email-liweihang@huawei.com>
-References: <1579508377-55818-1-git-send-email-liweihang@huawei.com>
+        id S1727075AbgATLEV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jan 2020 06:04:21 -0500
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:53134 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726573AbgATLER (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Jan 2020 06:04:17 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1579518255;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=0D2NV9EyT8+bRJWlmQx32SvVPgUYttr3IYvJpCG0gTo=;
+        b=UlzPZXXkfStwOUTOhlmhLUgn8H1x/D1EM04ioleX1smxggN/QOfkA4IFvQnk1Ysf4my3F/
+        sDhm8lZNLzJMUFGBiuRL6tAaQelttCOy7LH1BePcqNiuQ2Gm1hi5d2FK76AB0y/CPJGVyO
+        v9foDTcMzfQjZeR4udPm7juF1/+8JkU=
+Received: from mail-lf1-f70.google.com (mail-lf1-f70.google.com
+ [209.85.167.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-258-plCZYW-dNoqFtgVsjG5KyQ-1; Mon, 20 Jan 2020 06:04:14 -0500
+X-MC-Unique: plCZYW-dNoqFtgVsjG5KyQ-1
+Received: by mail-lf1-f70.google.com with SMTP id z3so6170117lfq.22
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Jan 2020 03:04:13 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
+         :message-id:mime-version:content-transfer-encoding;
+        bh=0D2NV9EyT8+bRJWlmQx32SvVPgUYttr3IYvJpCG0gTo=;
+        b=CSuD3OPnpIIVT8nFxzf14vVPhNRvtfGQZlpA81Zw8OtEa3XgZ1IYt1m4VXabzYSB36
+         KXka+mHWoNN4hQJhc67iZUpjU7lWkeJNPj1pSaIaJy5cgsmnXlBt7GtBMZ4fdZRR5Ifp
+         1rvI2N+K+8V1IyOHIIuxQcWc9jgkwIjgZZRT5n5urd3yXnz2QkbtHBjtsTBpfC+9B1sE
+         sfno2z9ny5FlaopT5XzPOEJbVbvC+dVgm0z7Ox73uNAdNY6sTDm/WEeePCHWUhY1T5VU
+         uY1qvRtzEQuoB1KjgLn5HQUkWolEW6W87b5autrGx52d0hnoJrKc/eL46eQRORPEYvh8
+         MSow==
+X-Gm-Message-State: APjAAAUpBNCEWcyyI3qbSRjB42X521c6PF2Uz39rpZHJXJZkLN76lkTf
+        LBvvr5e/R4BEs8BFNqDOMGQrqepNOFsj9+wBkNgF4pFSJO3Leabd0onS83q9YYBbwnoTkxfkXd6
+        jRh2gdlEiZjp09PTidI6DWg==
+X-Received: by 2002:a2e:2c16:: with SMTP id s22mr13113874ljs.248.1579518252323;
+        Mon, 20 Jan 2020 03:04:12 -0800 (PST)
+X-Google-Smtp-Source: APXvYqzXI2yd2Oi5VKXpLVh9lATHnVWtfkEINyqNvSzJ0CGsMQ8EPIgo05xlthJ7jXSiWSfn+eDmEA==
+X-Received: by 2002:a2e:2c16:: with SMTP id s22mr13113829ljs.248.1579518251933;
+        Mon, 20 Jan 2020 03:04:11 -0800 (PST)
+Received: from alrua-x1.borgediget.toke.dk ([85.204.121.218])
+        by smtp.gmail.com with ESMTPSA id z5sm16616586lji.40.2020.01.20.03.04.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Jan 2020 03:04:11 -0800 (PST)
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 50B871804D6; Mon, 20 Jan 2020 12:04:09 +0100 (CET)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+To:     Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        Andrii Nakryiko <andriin@fb.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Networking <netdev@vger.kernel.org>, bpf <bpf@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        linux-rdma@vger.kernel.org,
+        "open list\:KERNEL SELFTEST FRAMEWORK" 
+        <linux-kselftest@vger.kernel.org>,
+        clang-built-linux@googlegroups.com
+Subject: Re: [PATCH bpf-next v4 02/10] tools/bpf/runqslower: Fix override option for VMLINUX_BTF
+In-Reply-To: <CAEf4BzY3RM3LS3bvU4dHY+8U27RaezeaC9rfuW1YLAcFQEQKEA@mail.gmail.com>
+References: <157926819690.1555735.10756593211671752826.stgit@toke.dk> <157926819920.1555735.13051810516683828343.stgit@toke.dk> <CAEf4BzY3RM3LS3bvU4dHY+8U27RaezeaC9rfuW1YLAcFQEQKEA@mail.gmail.com>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Mon, 20 Jan 2020 12:04:09 +0100
+Message-ID: <87blqypexi.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xi Wang <wangxi11@huawei.com>
+Andrii Nakryiko <andrii.nakryiko@gmail.com> writes:
 
-Encapsulate the kernel qp wrid allocation related code into 2 functions:
-alloc_kernel_wrid() and free_kernel_wrid().
+> On Fri, Jan 17, 2020 at 5:37 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@re=
+dhat.com> wrote:
+>>
+>> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
+>>
+>> The runqslower tool refuses to build without a file to read vmlinux BTF
+>> from. The build fails with an error message to override the location by
+>> setting the VMLINUX_BTF variable if autodetection fails. However, the
+>> Makefile doesn't actually work with that override - the error message is
+>> still emitted.
+>>
+>> Fix this by including the value of VMLINUX_BTF in the expansion, and only
+>> emitting the error message if the *result* is empty. Also permit running
+>> 'make clean' even though no VMLINUX_BTF is set.
+>>
+>> Fixes: 9c01546d26d2 ("tools/bpf: Add runqslower tool to tools/bpf")
+>> Signed-off-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com>
+>> ---
+>
+> approach looks good, thanks, few nits below
+>
+>>  tools/bpf/runqslower/Makefile |   18 +++++++++---------
+>>  1 file changed, 9 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/tools/bpf/runqslower/Makefile b/tools/bpf/runqslower/Makefi=
+le
+>> index cff2fbcd29a8..b62fc9646c39 100644
+>> --- a/tools/bpf/runqslower/Makefile
+>> +++ b/tools/bpf/runqslower/Makefile
+>> @@ -10,13 +10,9 @@ CFLAGS :=3D -g -Wall
+>>
+>>  # Try to detect best kernel BTF source
+>>  KERNEL_REL :=3D $(shell uname -r)
+>> -ifneq ("$(wildcard /sys/kernel/btf/vmlinux)","")
+>> -VMLINUX_BTF :=3D /sys/kernel/btf/vmlinux
+>> -else ifneq ("$(wildcard /boot/vmlinux-$(KERNEL_REL))","")
+>> -VMLINUX_BTF :=3D /boot/vmlinux-$(KERNEL_REL)
+>> -else
+>> -$(error "Can't detect kernel BTF, use VMLINUX_BTF to specify it explici=
+tly")
+>> -endif
+>> +VMLINUX_BTF_PATHS :=3D /sys/kernel/btf/vmlinux /boot/vmlinux-$(KERNEL_R=
+EL)
+>> +VMLINUX_BTF_PATH :=3D $(abspath $(or $(VMLINUX_BTF),$(firstword \
+>> +       $(wildcard $(VMLINUX_BTF_PATHS)))))
+>
+> you can drop abspath, relative path for VMLINUX_BTF would work just fine
 
-Signed-off-by: Xi Wang <wangxi11@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_qp.c | 73 ++++++++++++++++++++-------------
- 1 file changed, 45 insertions(+), 28 deletions(-)
+OK.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index baa3f48..c51d4d4 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -847,6 +847,45 @@ static void free_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 		free_rq_inline_buf(hr_qp);
- }
- 
-+static int alloc_kernel_wrid(struct hns_roce_dev *hr_dev,
-+			     struct hns_roce_qp *hr_qp)
-+{
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	u64 *sq_wrid = NULL;
-+	u64 *rq_wrid = NULL;
-+	int ret;
-+
-+	sq_wrid = kcalloc(hr_qp->sq.wqe_cnt, sizeof(u64), GFP_KERNEL);
-+	if (ZERO_OR_NULL_PTR(sq_wrid)) {
-+		ibdev_err(ibdev, "sq wrid alloc failed!\n");
-+		return -ENOMEM;
-+	}
-+
-+	if (hr_qp->rq.wqe_cnt) {
-+		rq_wrid = kcalloc(hr_qp->rq.wqe_cnt, sizeof(u64), GFP_KERNEL);
-+		if (ZERO_OR_NULL_PTR(rq_wrid)) {
-+			ibdev_err(ibdev, "rq wrid alloc failed!\n");
-+			ret = -ENOMEM;
-+			goto err_sq;
-+		}
-+	}
-+
-+	hr_qp->sq.wrid = sq_wrid;
-+	hr_qp->rq.wrid = rq_wrid;
-+	return 0;
-+err_sq:
-+	kfree(sq_wrid);
-+
-+	return ret;
-+}
-+
-+static void free_kernel_wrid(struct hns_roce_dev *hr_dev,
-+			     struct hns_roce_qp *hr_qp)
-+{
-+	kfree(hr_qp->rq.wrid);
-+	kfree(hr_qp->sq.wrid);
-+}
-+
- static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 			struct ib_qp_init_attr *init_attr,
- 			struct ib_udata *udata,
-@@ -972,21 +1011,11 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 			hr_qp->rdb_en = 1;
- 		}
- 
--		hr_qp->sq.wrid = kcalloc(hr_qp->sq.wqe_cnt, sizeof(u64),
--					 GFP_KERNEL);
--		if (ZERO_OR_NULL_PTR(hr_qp->sq.wrid)) {
--			ret = -ENOMEM;
-+		ret = alloc_kernel_wrid(hr_dev, hr_qp);
-+		if (ret) {
-+			ibdev_err(&hr_dev->ib_dev, "alloc wrid error!\n");
- 			goto err_db;
- 		}
--
--		if (hr_qp->rq.wqe_cnt) {
--			hr_qp->rq.wrid = kcalloc(hr_qp->rq.wqe_cnt, sizeof(u64),
--						 GFP_KERNEL);
--			if (ZERO_OR_NULL_PTR(hr_qp->rq.wrid)) {
--				ret = -ENOMEM;
--				goto err_sq_wrid;
--			}
--		}
- 	}
- 
- 	ret = alloc_qp_buf(hr_dev, hr_qp, init_attr, udata, ucmd.buf_addr);
-@@ -1035,25 +1064,20 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 
- err_store:
- 	hns_roce_qp_remove(hr_dev, hr_qp);
--
- err_qpc:
- 	free_qpc(hr_dev, hr_qp);
--
- err_qpn:
- 	free_qpn(hr_dev, hr_qp);
--
- err_buf:
- 	free_qp_buf(hr_dev, hr_qp);
--
- err_wrid:
-+	free_kernel_wrid(hr_dev, hr_qp);
-+
- 	if (udata) {
- 		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
- 		    (udata->outlen >= sizeof(resp)) &&
- 		    hns_roce_qp_has_rq(init_attr))
- 			hns_roce_db_unmap_user(uctx, &hr_qp->rdb);
--	} else {
--		if (hr_qp->rq.wqe_cnt)
--			kfree(hr_qp->rq.wrid);
- 	}
- 
- err_sq_dbmap:
-@@ -1064,10 +1088,6 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		    hns_roce_qp_has_sq(init_attr))
- 			hns_roce_db_unmap_user(uctx, &hr_qp->sdb);
- 
--err_sq_wrid:
--	if (!udata)
--		kfree(hr_qp->sq.wrid);
--
- err_db:
- 	if (!udata && hns_roce_qp_has_rq(init_attr) &&
- 	    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB))
-@@ -1085,10 +1105,9 @@ void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	wait_for_completion(&hr_qp->free);
- 
- 	free_qpc(hr_dev, hr_qp);
--
- 	free_qpn(hr_dev, hr_qp);
--
- 	free_qp_buf(hr_dev, hr_qp);
-+	free_kernel_wrid(hr_dev, hr_qp);
- 
- 	if (udata) {
- 		struct hns_roce_ucontext *context =
-@@ -1103,8 +1122,6 @@ void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 		if (hr_qp->rq.wqe_cnt && (hr_qp->rdb_en == 1))
- 			hns_roce_db_unmap_user(context, &hr_qp->rdb);
- 	} else {
--		kfree(hr_qp->sq.wrid);
--		kfree(hr_qp->rq.wrid);
- 		if (hr_qp->rq.wqe_cnt)
- 			hns_roce_free_db(hr_dev, &hr_qp->rdb);
- 	}
--- 
-2.8.1
+>>
+>>  abs_out :=3D $(abspath $(OUTPUT))
+>>  ifeq ($(V),1)
+>> @@ -67,9 +63,13 @@ $(OUTPUT):
+>>         $(call msg,MKDIR,$@)
+>>         $(Q)mkdir -p $(OUTPUT)
+>>
+>> -$(OUTPUT)/vmlinux.h: $(VMLINUX_BTF) | $(OUTPUT) $(BPFTOOL)
+>> +$(OUTPUT)/vmlinux.h: $(VMLINUX_BTF_PATH) | $(OUTPUT) $(BPFTOOL)
+>>         $(call msg,GEN,$@)
+>> -       $(Q)$(BPFTOOL) btf dump file $(VMLINUX_BTF) format c > $@
+>> +       @if [ ! -e "$(VMLINUX_BTF_PATH)" ] ; then \
+>
+> $(Q), not @
+
+This was actually deliberate, since I was replacing an $(error) (which
+doesn't show up in V=3D1 output). But OK, I guess we can output the whole
+if statement as well on verbose builds...
+
+>> +               echo "Couldn't find kernel BTF; set VMLINUX_BTF to speci=
+fy its location."; \
+>> +               exit 1;\
+>
+> nit: please align \'s (same above for VMLONUX_BTF_PATH) at the right
+> edge as it's done everywhere in this Makefile
+
+Right, I'll try to fix those up (for the whole series). My emacs is
+being a bit weird with displaying tabstops, so some of these look
+aligned when I'm editing. I'll see if I can figure out how to fix this
+so it becomes obvious while I'm making changes...
+
+-Toke
 
