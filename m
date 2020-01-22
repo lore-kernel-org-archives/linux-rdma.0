@@ -2,208 +2,149 @@ Return-Path: <SRS0=l8MA=3L=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A67C9C33CB6
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 08:57:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC58DC2D0DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 09:50:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7ADCF2253D
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 08:57:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EE2A2467B
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 09:50:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=dev-mellanox-co-il.20150623.gappssmtp.com header.i=@dev-mellanox-co-il.20150623.gappssmtp.com header.b="pDq5lwmH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726231AbgAVI50 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jan 2020 03:57:26 -0500
-Received: from mga09.intel.com ([134.134.136.24]:13906 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725862AbgAVI50 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 22 Jan 2020 03:57:26 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jan 2020 00:57:25 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.70,348,1574150400"; 
-   d="scan'208";a="307467304"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga001.jf.intel.com with ESMTP; 22 Jan 2020 00:57:24 -0800
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1iuBpD-000Evm-Qy; Wed, 22 Jan 2020 16:57:23 +0800
-Date:   Wed, 22 Jan 2020 16:56:48 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- e8b3a426fb4a9e2856a69b6e19de044c7416c316
-Message-ID: <5e280e50.BX0cxEEVhvUpkB7C%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1731556AbgAVJuK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jan 2020 04:50:10 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:52538 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731430AbgAVJuJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jan 2020 04:50:09 -0500
+Received: by mail-wm1-f65.google.com with SMTP id p9so6106490wmc.2
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Jan 2020 01:50:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=dev-mellanox-co-il.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=yILKB/LdAW7ALnHytCM//bVCrmPX7ONBVfhWecuqj0E=;
+        b=pDq5lwmHgiUtCNzm8miSmJMeNAY2QjjZPFbNZKV/jsqsq2RDRLsBsb5JZeDdT7Y8+n
+         CcYOOgazLQe/r+jwoWSl4Zf5SktAAyjNPavjeYyoqCehKXBRRdZh9zu5sAb76Ie0/A+i
+         q6D3Dk6ap5cRN6p7rlP+bChXoacUQ4AwYedRWixTJ37Mda2rnGXV8xsUQDm140MDlhyZ
+         VgJOzJBSZr+8XekA77dOlkh2GFr0veWsMp/bWTn1dG0wWOBXB1CJJ0Hr06EokLVG2LVw
+         5/D1Hjh4wj9QrNiuda/s3ipEDOdwEvTWlQQ7l/cjC9YN2qz7wPYpfLGp6FA8jdaaJqS1
+         +d1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=yILKB/LdAW7ALnHytCM//bVCrmPX7ONBVfhWecuqj0E=;
+        b=p+IJzUC/uO/jZT9rE8jVBb4vk4lO+hnKE4+VUHndre6yxPC16Kj9OffbM44TKW3nou
+         +BJ55ftk2mmIbxj8aMtxUQCYA+OwKbcmQXNHCdqu7qBZDQRjIvNcoWMpEA7oeqr2AXYc
+         AyfrFuS/WvJi85cr41p2VRT6uSkgxJdoJGk9sRKRsX27TDMV3x3a+qVwnPHTDu2WB8N0
+         NeNt+bCRXMcHptchkSSVPiHW41sMDbGRkG5ZXfYQDScBDgX6YlFO0ZTBclluK2oyqmaJ
+         I5JN7whcSvMYzAlLGjG3FQG6CLN0NC5GrHxd1b9LIUAtCrw1ULVwpxmB5pUxYZeKF4PO
+         So5Q==
+X-Gm-Message-State: APjAAAW7idFD+Xyx0tVMQch8Qo9zJxdjWuWtMEJzO4zZQqwHmxp9AlHf
+        Svg+6dFBs8+ZYoway9gWFIlHczaevDo=
+X-Google-Smtp-Source: APXvYqz43+tECFeXW5fQwz0MCB9jOeiGIdIRNwizT1GH/1Um+lSRkpnd7F2J06ni09p/x/kVu7OQ+Q==
+X-Received: by 2002:a7b:c935:: with SMTP id h21mr1958320wml.173.1579686607459;
+        Wed, 22 Jan 2020 01:50:07 -0800 (PST)
+Received: from [10.80.2.221] ([193.47.165.251])
+        by smtp.googlemail.com with ESMTPSA id f1sm58045826wro.85.2020.01.22.01.50.04
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 22 Jan 2020 01:50:06 -0800 (PST)
+Subject: Re: [PATCH rdma-core 0/7] verbs: Relaxed ordering memory regions
+To:     linux-rdma@vger.kernel.org, michaelgur@mellanox.com
+Cc:     Yishai Hadas <yishaih@mellanox.com>, jgg@mellanox.com,
+        dledford@redhat.com, maorg@mellanox.com
+References: <1578578676-752-1-git-send-email-yishaih@mellanox.com>
+From:   Yishai Hadas <yishaih@dev.mellanox.co.il>
+Message-ID: <37f3f109-342c-54f7-ac1b-aed09266ae77@dev.mellanox.co.il>
+Date:   Wed, 22 Jan 2020 11:50:03 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <1578578676-752-1-git-send-email-yishaih@mellanox.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
-branch HEAD: e8b3a426fb4a9e2856a69b6e19de044c7416c316  Merge tag 'rds-odp-for-5.5' into rdma.git for-next
+On 1/9/2020 4:04 PM, Yishai Hadas wrote:
+> This series exposes an IBV_ACCESS_RELAXED_ORDERING optional MR access flag.
+> This optional flag allows creation of relaxed ordering memory regions.
+> Access through such MRs can improve performance by allowing the system to reorder
+> certain accesses.
+> 
+> The series uses the new ioctl command to get a device context, this command
+> enables reading some core generic capabilities such as supporting an optional
+> MR access flags by IB core and its related drivers.
+> 
+> This capability enables transparent masking of the optional flags in libibverbs
+> when the kernel doesn't support the MR optional access mode.
+> 
+> The series is based on an RFC that was sent to the ML [1], the matching kernel
+> series was sent to 'for-next'.
+> [1] https://www.spinics.net/lists/linux-rdma/msg86188.html
+> 
+> PR was sent:
+> https://github.com/linux-rdma/rdma-core/pull/660
+> 
+> Yishai
+> 
+> Michael Guralnik (6):
+>    verbs: Move free_context from verbs_device_ops to verbs_context_ops
+>    verbs: Move alloc_context to ioctl
+>    verbs: Relaxed ordering memory regions
+>    mlx5: Add optional access flags range to DM
+>    pyverbs: Add relaxed ordering access flag
+>    tests: Add relaxed ordering access test
+> 
+> Yishai Hadas (1):
+>    Update kernel headers
+> 
+>   debian/libibverbs1.symbols                |  2 +
+>   kernel-headers/rdma/ib_user_ioctl_cmds.h  | 15 ++++++
+>   kernel-headers/rdma/ib_user_ioctl_verbs.h | 12 +++++
+>   libibverbs/CMakeLists.txt                 |  2 +-
+>   libibverbs/cmd.c                          | 18 -------
+>   libibverbs/cmd_device.c                   | 79 +++++++++++++++++++++++++++++++
+>   libibverbs/device.c                       |  5 +-
+>   libibverbs/driver.h                       |  3 +-
+>   libibverbs/dummy_ops.c                    |  7 +++
+>   libibverbs/libibverbs.map.in              |  5 ++
+>   libibverbs/man/ibv_reg_mr.3               |  2 +
+>   libibverbs/verbs.c                        | 13 +++++
+>   libibverbs/verbs.h                        | 51 +++++++++++++++++++-
+>   libibverbs/verbs_api.h                    |  2 +
+>   providers/bnxt_re/main.c                  |  6 ++-
+>   providers/cxgb4/dev.c                     |  4 +-
+>   providers/efa/efa.c                       |  4 +-
+>   providers/hfi1verbs/hfiverbs.c            |  4 +-
+>   providers/hns/hns_roce_u.c                |  4 +-
+>   providers/i40iw/i40iw_umain.c             |  6 ++-
+>   providers/ipathverbs/ipathverbs.c         |  4 +-
+>   providers/mlx4/mlx4.c                     |  4 +-
+>   providers/mlx5/mlx5.c                     |  4 +-
+>   providers/mlx5/verbs.c                    |  3 +-
+>   providers/mthca/mthca.c                   |  6 ++-
+>   providers/ocrdma/ocrdma_main.c            |  6 ++-
+>   providers/qedr/qelr_main.c                |  4 +-
+>   providers/rxe/rxe.c                       |  6 ++-
+>   providers/siw/siw.c                       |  3 +-
+>   providers/vmw_pvrdma/pvrdma_main.c        |  4 +-
+>   pyverbs/libibverbs_enums.pxd              |  1 +
+>   tests/CMakeLists.txt                      |  5 +-
+>   tests/test_relaxed_ordering.py            | 55 +++++++++++++++++++++
+>   33 files changed, 301 insertions(+), 48 deletions(-)
+>   create mode 100644 tests/test_relaxed_ordering.py
+> 
 
-elapsed time: 580m
+The PR was merged, thanks.
 
-configs tested: 146
-configs skipped: 0
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-c6x                              allyesconfig
-c6x                        evmc6678_defconfig
-nios2                         10m50_defconfig
-nios2                         3c120_defconfig
-openrisc                    or1ksim_defconfig
-openrisc                 simple_smp_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-s390                             alldefconfig
-s390                             allmodconfig
-s390                              allnoconfig
-s390                             allyesconfig
-s390                          debug_defconfig
-s390                                defconfig
-s390                       zfcpdump_defconfig
-sh                               allmodconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-sparc                            allyesconfig
-x86_64                              fedora-25
-x86_64                                  kexec
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                               rhel-7.6
-parisc                            allnoconfig
-parisc                            allyesonfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-parisc                              defconfig
-sparc                               defconfig
-sparc64                          allmodconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                             defconfig
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                             allmodconfig
-mips                              allnoconfig
-mips                             allyesconfig
-mips                      fuloong2e_defconfig
-mips                      malta_kvm_defconfig
-x86_64               randconfig-c001-20200122
-x86_64               randconfig-c002-20200122
-x86_64               randconfig-c003-20200122
-i386                 randconfig-c001-20200122
-i386                 randconfig-c002-20200122
-i386                 randconfig-c003-20200122
-arc                  randconfig-a001-20200122
-arm                  randconfig-a001-20200122
-arm64                randconfig-a001-20200122
-ia64                 randconfig-a001-20200122
-powerpc              randconfig-a001-20200122
-sparc                randconfig-a001-20200122
-c6x                  randconfig-a001-20200122
-h8300                randconfig-a001-20200122
-microblaze           randconfig-a001-20200122
-nios2                randconfig-a001-20200122
-sparc64              randconfig-a001-20200122
-h8300                       h8s-sim_defconfig
-h8300                     edosk2674_defconfig
-h8300                    h8300h-sim_defconfig
-m68k                             allmodconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-um                                  defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-alpha                randconfig-a001-20200122
-m68k                 randconfig-a001-20200122
-mips                 randconfig-a001-20200122
-nds32                randconfig-a001-20200122
-parisc               randconfig-a001-20200122
-riscv                randconfig-a001-20200122
-i386                             alldefconfig
-i386                              allnoconfig
-i386                             allyesconfig
-i386                                defconfig
-arm                              allmodconfig
-arm64                            allmodconfig
-x86_64               randconfig-d001-20200122
-x86_64               randconfig-d002-20200122
-x86_64               randconfig-d003-20200122
-i386                 randconfig-d001-20200122
-i386                 randconfig-d002-20200122
-i386                 randconfig-d003-20200122
-arc                              allyesconfig
-arc                                 defconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-powerpc                          rhel-kconfig
-alpha                               defconfig
-csky                                defconfig
-nds32                             allnoconfig
-nds32                               defconfig
-riscv                            allmodconfig
-riscv                             allnoconfig
-riscv                            allyesconfig
-riscv                               defconfig
-riscv                    nommu_virt_defconfig
-riscv                          rv32_defconfig
-csky                 randconfig-a001-20200122
-openrisc             randconfig-a001-20200122
-s390                 randconfig-a001-20200122
-sh                   randconfig-a001-20200122
-xtensa               randconfig-a001-20200122
-arm                               allnoconfig
-arm                              allyesconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-arm64                            allyesconfig
-arm64                               defconfig
-x86_64               randconfig-a001-20200122
-x86_64               randconfig-a002-20200122
-x86_64               randconfig-a003-20200122
-i386                 randconfig-a001-20200122
-i386                 randconfig-a002-20200122
-i386                 randconfig-a003-20200122
-x86_64               randconfig-b001-20200122
-x86_64               randconfig-b002-20200122
-x86_64               randconfig-b003-20200122
-i386                 randconfig-b001-20200122
-i386                 randconfig-b002-20200122
-i386                 randconfig-b003-20200122
-ia64                             alldefconfig
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-ia64                                defconfig
-x86_64               randconfig-g001-20200122
-x86_64               randconfig-g002-20200122
-x86_64               randconfig-g003-20200122
-i386                 randconfig-g001-20200122
-i386                 randconfig-g002-20200122
-i386                 randconfig-g003-20200122
-
----
-0-DAY kernel test infrastructure                 Open Source Technology Center
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org Intel Corporation
+Yishai
