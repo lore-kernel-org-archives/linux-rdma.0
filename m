@@ -2,58 +2,58 @@ Return-Path: <SRS0=l8MA=3L=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D49BC33CBA
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 15:26:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57638C35240
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 15:26:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0024621835
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 15:26:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20E542071E
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jan 2020 15:26:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="LJ2kDq0t"
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="QuqsZnnU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726231AbgAVP0l (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jan 2020 10:26:41 -0500
-Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:23600 "EHLO
+        id S1727817AbgAVP0r (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jan 2020 10:26:47 -0500
+Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:54550 "EHLO
         mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726054AbgAVP0l (ORCPT
+        by vger.kernel.org with ESMTP id S1726871AbgAVP0q (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 22 Jan 2020 10:26:41 -0500
+        Wed, 22 Jan 2020 10:26:46 -0500
 Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
-        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 00MFQK5S024747;
-        Wed, 22 Jan 2020 07:26:36 -0800
+        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 00MFQJsI024741;
+        Wed, 22 Jan 2020 07:26:45 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
- content-type; s=pfpt0818; bh=nT6pKCJmqFNJBeKhT2X9/ugpyLlKaIprRIorpRMUni4=;
- b=LJ2kDq0t8spIko1gIeddZa8wxJ+Jri7x/1XmKP4tsKZHmHQVYGtM2Vf86mhoRTae16zI
- CqMM22LPwuIv0aXO8TkGR05WZPz3BNJFkwRduexN/uVhgnn7dDAVBEI2PNPTdltj1EhY
- z19/8kvTM2u8D6vg28QMIveqyCbxJDUHE0g+uOdRu6AzZ9QQNIEon7stEI1e9xY37uVY
- Tej/36M7dFIWva9AlQWiOEpfE8Bd1waqe1EWLtTA8XHnPm8s8HHCTCQzKuryoRv/1TeU
- 8VyUoUKxY49r844wWmjLXYkmex9JuKirRoUdOIzTq7U+jcdlnQfCrMbATDfPGpXffogQ 9Q== 
+ content-type; s=pfpt0818; bh=p3gTDjPZ/+fCryOek3cQyILqX/pp7CB+qzDU7FIuyVg=;
+ b=QuqsZnnU4q9RzzEeA76Y5TMdX9qnV1S4USRp4UAfmeO9FhLTnGeS2MJIf3ObjSUQFz+B
+ LvG/1ZgYAHmRnvYJjrqptXKtnSJo7fWxLY6hlNW4xImjceHCwHFFeCGlhVFMgCvzz8+C
+ 5BwYa6cdNa6IAeFASlC4hisH/oiFbpXJRLcbA4Foaw4IADT2L9+alGFqCdBPoNN8MGfv
+ u4iUO1rEagiOgMgbjL/OixmFHQVNiwr8m6fB2qwNBOhKCUOTiIJ6My3j2RGclA/GcD/V
+ QwoFs6hXAKclDxrhUqfXX22njFBUMR9vjClTk8Ps/kk2Ij8SzbQASWZMBbQNZIYjXtwR yg== 
 Received: from sc-exch03.marvell.com ([199.233.58.183])
-        by mx0a-0016f401.pphosted.com with ESMTP id 2xpm9015r5-1
+        by mx0a-0016f401.pphosted.com with ESMTP id 2xpm9015rn-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Wed, 22 Jan 2020 07:26:36 -0800
+        Wed, 22 Jan 2020 07:26:44 -0800
 Received: from SC-EXCH01.marvell.com (10.93.176.81) by SC-EXCH03.marvell.com
  (10.93.176.83) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 22 Jan
- 2020 07:26:34 -0800
+ 2020 07:26:43 -0800
 Received: from maili.marvell.com (10.93.176.43) by SC-EXCH01.marvell.com
  (10.93.176.81) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Wed, 22 Jan 2020 07:26:34 -0800
+ Transport; Wed, 22 Jan 2020 07:26:43 -0800
 Received: from lb-tlvb-michal.il.qlogic.org (unknown [10.5.220.215])
-        by maili.marvell.com (Postfix) with ESMTP id BD85E3F703F;
-        Wed, 22 Jan 2020 07:26:32 -0800 (PST)
+        by maili.marvell.com (Postfix) with ESMTP id B4FBB3F703F;
+        Wed, 22 Jan 2020 07:26:41 -0800 (PST)
 From:   Michal Kalderon <michal.kalderon@marvell.com>
 To:     <michal.kalderon@marvell.com>, <ariel.elior@marvell.com>,
         <davem@davemloft.net>
 CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linux-scsi@vger.kernel.org>
-Subject: [PATCH net-next 02/14] qed: FW 8.42.2.0 Expose new registers and change windows
-Date:   Wed, 22 Jan 2020 17:26:15 +0200
-Message-ID: <20200122152627.14903-3-michal.kalderon@marvell.com>
+Subject: [PATCH net-next 06/14] qed: FW 8.42.2.0 Additional ll2 type
+Date:   Wed, 22 Jan 2020 17:26:19 +0200
+Message-ID: <20200122152627.14903-7-michal.kalderon@marvell.com>
 X-Mailer: git-send-email 2.14.5
 In-Reply-To: <20200122152627.14903-1-michal.kalderon@marvell.com>
 References: <20200122152627.14903-1-michal.kalderon@marvell.com>
@@ -66,1186 +66,661 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch contains register initialization related changes.
-- Modifications to the runtime offsets - these are defines used
-  by the driver or firmware functions to set values that are used
-  by the initialization functions to set device register values.
-- Global window values changes to provide different device register
-  ranges.
-- Additional device registers addresses were added to the register file,
-  used in later stages.
+LL2 queues were a limited resource due to FW constraints.
+This FW introduced a new resource which is a context based ll2 queue
+(memory on host). The additional ll2 queues are required for RDMA SRIOV.
+The code refers to the previous ll2 queues as ram-based or legacy, and the
+new queues as ctx-based.
+This change decreased the "legacy" ram-based queues therefore the first ll2
+queue used for iWARP was converted to the ctx-based ll2 queue.
+This feature also exposed a bug in the DIRECT_REG_WR64 macro implementation
+which didn't have an effect in other use cases.
 
 Signed-off-by: Ariel Elior <ariel.elior@marvell.com>
 Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
 ---
- drivers/net/ethernet/qlogic/qed/qed_hsi.h          | 961 ++++++++++-----------
- .../net/ethernet/qlogic/qed/qed_init_fw_funcs.c    |   9 +-
- drivers/net/ethernet/qlogic/qed/qed_init_ops.c     |  18 +-
- drivers/net/ethernet/qlogic/qed/qed_reg_addr.h     |  38 +
- 4 files changed, 488 insertions(+), 538 deletions(-)
+ drivers/net/ethernet/qlogic/qed/qed.h       |   3 +-
+ drivers/net/ethernet/qlogic/qed/qed_dev.c   |  20 ++--
+ drivers/net/ethernet/qlogic/qed/qed_hsi.h   |  42 +++++++-
+ drivers/net/ethernet/qlogic/qed/qed_iscsi.c |   5 +-
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.c |   8 +-
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c   | 149 ++++++++++++++++++++++++----
+ drivers/net/ethernet/qlogic/qed/qed_ll2.h   |  14 +++
+ drivers/net/ethernet/qlogic/qed/qed_mcp.c   |   5 +-
+ include/linux/qed/common_hsi.h              |  15 ++-
+ include/linux/qed/qed_if.h                  |   4 +-
+ include/linux/qed/qed_ll2_if.h              |   7 ++
+ 11 files changed, 235 insertions(+), 37 deletions(-)
 
+diff --git a/drivers/net/ethernet/qlogic/qed/qed.h b/drivers/net/ethernet/qlogic/qed/qed.h
+index 8ec46bf409c2..cfa45fb9a5a4 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed.h
++++ b/drivers/net/ethernet/qlogic/qed/qed.h
+@@ -253,7 +253,8 @@ enum qed_resources {
+ 	QED_VLAN,
+ 	QED_RDMA_CNQ_RAM,
+ 	QED_ILT,
+-	QED_LL2_QUEUE,
++	QED_LL2_RAM_QUEUE,
++	QED_LL2_CTX_QUEUE,
+ 	QED_CMDQS_CQS,
+ 	QED_RDMA_STATS_QUEUE,
+ 	QED_BDQ,
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_dev.c b/drivers/net/ethernet/qlogic/qed/qed_dev.c
+index 479d98e6187a..898c1f8d1530 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_dev.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_dev.c
+@@ -3565,8 +3565,10 @@ const char *qed_hw_get_resc_name(enum qed_resources res_id)
+ 		return "RDMA_CNQ_RAM";
+ 	case QED_ILT:
+ 		return "ILT";
+-	case QED_LL2_QUEUE:
+-		return "LL2_QUEUE";
++	case QED_LL2_RAM_QUEUE:
++		return "LL2_RAM_QUEUE";
++	case QED_LL2_CTX_QUEUE:
++		return "LL2_CTX_QUEUE";
+ 	case QED_CMDQS_CQS:
+ 		return "CMDQS_CQS";
+ 	case QED_RDMA_STATS_QUEUE:
+@@ -3615,8 +3617,11 @@ qed_hw_set_soft_resc_size(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
+ 
+ 	for (res_id = 0; res_id < QED_MAX_RESC; res_id++) {
+ 		switch (res_id) {
+-		case QED_LL2_QUEUE:
+-			resc_max_val = MAX_NUM_LL2_RX_QUEUES;
++		case QED_LL2_RAM_QUEUE:
++			resc_max_val = MAX_NUM_LL2_RX_RAM_QUEUES;
++			break;
++		case QED_LL2_CTX_QUEUE:
++			resc_max_val = MAX_NUM_LL2_RX_CTX_QUEUES;
+ 			break;
+ 		case QED_RDMA_CNQ_RAM:
+ 			/* No need for a case for QED_CMDQS_CQS since
+@@ -3691,8 +3696,11 @@ int qed_hw_get_dflt_resc(struct qed_hwfn *p_hwfn,
+ 		*p_resc_num = (b_ah ? PXP_NUM_ILT_RECORDS_K2 :
+ 			       PXP_NUM_ILT_RECORDS_BB) / num_funcs;
+ 		break;
+-	case QED_LL2_QUEUE:
+-		*p_resc_num = MAX_NUM_LL2_RX_QUEUES / num_funcs;
++	case QED_LL2_RAM_QUEUE:
++		*p_resc_num = MAX_NUM_LL2_RX_RAM_QUEUES / num_funcs;
++		break;
++	case QED_LL2_CTX_QUEUE:
++		*p_resc_num = MAX_NUM_LL2_RX_CTX_QUEUES / num_funcs;
+ 		break;
+ 	case QED_RDMA_CNQ_RAM:
+ 	case QED_CMDQS_CQS:
 diff --git a/drivers/net/ethernet/qlogic/qed/qed_hsi.h b/drivers/net/ethernet/qlogic/qed/qed_hsi.h
-index aaff7117291c..efabe0ca5cbe 100644
+index 565ab12fa87c..8cec6dc179d6 100644
 --- a/drivers/net/ethernet/qlogic/qed/qed_hsi.h
 +++ b/drivers/net/ethernet/qlogic/qed/qed_hsi.h
-@@ -4645,529 +4645,444 @@ static const u32 iro_arr[] = {
+@@ -98,6 +98,7 @@ enum core_event_opcode {
+ 	CORE_EVENT_RX_QUEUE_STOP,
+ 	CORE_EVENT_RX_QUEUE_FLUSH,
+ 	CORE_EVENT_TX_QUEUE_UPDATE,
++	CORE_EVENT_QUEUE_STATS_QUERY,
+ 	MAX_CORE_EVENT_OPCODE
  };
  
- /* Runtime array offsets */
--#define DORQ_REG_PF_MAX_ICID_0_RT_OFFSET			0
--#define DORQ_REG_PF_MAX_ICID_1_RT_OFFSET			1
--#define DORQ_REG_PF_MAX_ICID_2_RT_OFFSET			2
--#define DORQ_REG_PF_MAX_ICID_3_RT_OFFSET			3
--#define DORQ_REG_PF_MAX_ICID_4_RT_OFFSET			4
--#define DORQ_REG_PF_MAX_ICID_5_RT_OFFSET			5
--#define DORQ_REG_PF_MAX_ICID_6_RT_OFFSET			6
--#define DORQ_REG_PF_MAX_ICID_7_RT_OFFSET			7
--#define DORQ_REG_VF_MAX_ICID_0_RT_OFFSET			8
--#define DORQ_REG_VF_MAX_ICID_1_RT_OFFSET			9
--#define DORQ_REG_VF_MAX_ICID_2_RT_OFFSET			10
--#define DORQ_REG_VF_MAX_ICID_3_RT_OFFSET			11
--#define DORQ_REG_VF_MAX_ICID_4_RT_OFFSET			12
--#define DORQ_REG_VF_MAX_ICID_5_RT_OFFSET			13
--#define DORQ_REG_VF_MAX_ICID_6_RT_OFFSET			14
--#define DORQ_REG_VF_MAX_ICID_7_RT_OFFSET			15
--#define DORQ_REG_PF_WAKE_ALL_RT_OFFSET				16
--#define DORQ_REG_TAG1_ETHERTYPE_RT_OFFSET			17
--#define DORQ_REG_GLB_MAX_ICID_0_RT_OFFSET			18
--#define DORQ_REG_GLB_MAX_ICID_1_RT_OFFSET			19
--#define DORQ_REG_GLB_RANGE2CONN_TYPE_0_RT_OFFSET		20
--#define DORQ_REG_GLB_RANGE2CONN_TYPE_1_RT_OFFSET		21
--#define DORQ_REG_PRV_PF_MAX_ICID_2_RT_OFFSET			22
--#define DORQ_REG_PRV_PF_MAX_ICID_3_RT_OFFSET			23
--#define DORQ_REG_PRV_PF_MAX_ICID_4_RT_OFFSET			24
--#define DORQ_REG_PRV_PF_MAX_ICID_5_RT_OFFSET			25
--#define DORQ_REG_PRV_VF_MAX_ICID_2_RT_OFFSET			26
--#define DORQ_REG_PRV_VF_MAX_ICID_3_RT_OFFSET			27
--#define DORQ_REG_PRV_VF_MAX_ICID_4_RT_OFFSET			28
--#define DORQ_REG_PRV_VF_MAX_ICID_5_RT_OFFSET			29
--#define DORQ_REG_PRV_PF_RANGE2CONN_TYPE_2_RT_OFFSET		30
--#define DORQ_REG_PRV_PF_RANGE2CONN_TYPE_3_RT_OFFSET		31
--#define DORQ_REG_PRV_PF_RANGE2CONN_TYPE_4_RT_OFFSET		32
--#define DORQ_REG_PRV_PF_RANGE2CONN_TYPE_5_RT_OFFSET		33
--#define DORQ_REG_PRV_VF_RANGE2CONN_TYPE_2_RT_OFFSET		34
--#define DORQ_REG_PRV_VF_RANGE2CONN_TYPE_3_RT_OFFSET		35
--#define DORQ_REG_PRV_VF_RANGE2CONN_TYPE_4_RT_OFFSET		36
--#define DORQ_REG_PRV_VF_RANGE2CONN_TYPE_5_RT_OFFSET		37
--#define IGU_REG_PF_CONFIGURATION_RT_OFFSET			38
--#define IGU_REG_VF_CONFIGURATION_RT_OFFSET			39
--#define IGU_REG_ATTN_MSG_ADDR_L_RT_OFFSET			40
--#define IGU_REG_ATTN_MSG_ADDR_H_RT_OFFSET			41
--#define IGU_REG_LEADING_EDGE_LATCH_RT_OFFSET			42
--#define IGU_REG_TRAILING_EDGE_LATCH_RT_OFFSET			43
--#define CAU_REG_CQE_AGG_UNIT_SIZE_RT_OFFSET			44
--#define CAU_REG_SB_VAR_MEMORY_RT_OFFSET				45
--#define CAU_REG_SB_VAR_MEMORY_RT_SIZE				1024
--#define CAU_REG_SB_ADDR_MEMORY_RT_OFFSET			1069
--#define CAU_REG_SB_ADDR_MEMORY_RT_SIZE				1024
--#define CAU_REG_PI_MEMORY_RT_OFFSET				2093
--#define CAU_REG_PI_MEMORY_RT_SIZE				4416
--#define PRS_REG_SEARCH_RESP_INITIATOR_TYPE_RT_OFFSET		6509
--#define PRS_REG_TASK_ID_MAX_INITIATOR_PF_RT_OFFSET		6510
--#define PRS_REG_TASK_ID_MAX_INITIATOR_VF_RT_OFFSET		6511
--#define PRS_REG_TASK_ID_MAX_TARGET_PF_RT_OFFSET			6512
--#define PRS_REG_TASK_ID_MAX_TARGET_VF_RT_OFFSET			6513
--#define PRS_REG_SEARCH_TCP_RT_OFFSET				6514
--#define PRS_REG_SEARCH_FCOE_RT_OFFSET				6515
--#define PRS_REG_SEARCH_ROCE_RT_OFFSET				6516
--#define PRS_REG_ROCE_DEST_QP_MAX_VF_RT_OFFSET			6517
--#define PRS_REG_ROCE_DEST_QP_MAX_PF_RT_OFFSET			6518
--#define PRS_REG_SEARCH_OPENFLOW_RT_OFFSET			6519
--#define PRS_REG_SEARCH_NON_IP_AS_OPENFLOW_RT_OFFSET		6520
--#define PRS_REG_OPENFLOW_SUPPORT_ONLY_KNOWN_OVER_IP_RT_OFFSET	6521
--#define PRS_REG_OPENFLOW_SEARCH_KEY_MASK_RT_OFFSET		6522
--#define PRS_REG_TAG_ETHERTYPE_0_RT_OFFSET			6523
--#define PRS_REG_LIGHT_L2_ETHERTYPE_EN_RT_OFFSET			6524
--#define SRC_REG_FIRSTFREE_RT_OFFSET				6525
--#define SRC_REG_FIRSTFREE_RT_SIZE				2
--#define SRC_REG_LASTFREE_RT_OFFSET				6527
--#define SRC_REG_LASTFREE_RT_SIZE				2
--#define SRC_REG_COUNTFREE_RT_OFFSET				6529
--#define SRC_REG_NUMBER_HASH_BITS_RT_OFFSET			6530
--#define PSWRQ2_REG_CDUT_P_SIZE_RT_OFFSET			6531
--#define PSWRQ2_REG_CDUC_P_SIZE_RT_OFFSET			6532
--#define PSWRQ2_REG_TM_P_SIZE_RT_OFFSET				6533
--#define PSWRQ2_REG_QM_P_SIZE_RT_OFFSET				6534
--#define PSWRQ2_REG_SRC_P_SIZE_RT_OFFSET				6535
--#define PSWRQ2_REG_TSDM_P_SIZE_RT_OFFSET			6536
--#define PSWRQ2_REG_TM_FIRST_ILT_RT_OFFSET			6537
--#define PSWRQ2_REG_TM_LAST_ILT_RT_OFFSET			6538
--#define PSWRQ2_REG_QM_FIRST_ILT_RT_OFFSET			6539
--#define PSWRQ2_REG_QM_LAST_ILT_RT_OFFSET			6540
--#define PSWRQ2_REG_SRC_FIRST_ILT_RT_OFFSET			6541
--#define PSWRQ2_REG_SRC_LAST_ILT_RT_OFFSET			6542
--#define PSWRQ2_REG_CDUC_FIRST_ILT_RT_OFFSET			6543
--#define PSWRQ2_REG_CDUC_LAST_ILT_RT_OFFSET			6544
--#define PSWRQ2_REG_CDUT_FIRST_ILT_RT_OFFSET			6545
--#define PSWRQ2_REG_CDUT_LAST_ILT_RT_OFFSET			6546
--#define PSWRQ2_REG_TSDM_FIRST_ILT_RT_OFFSET			6547
--#define PSWRQ2_REG_TSDM_LAST_ILT_RT_OFFSET			6548
--#define PSWRQ2_REG_TM_NUMBER_OF_PF_BLOCKS_RT_OFFSET		6549
--#define PSWRQ2_REG_CDUT_NUMBER_OF_PF_BLOCKS_RT_OFFSET		6550
--#define PSWRQ2_REG_CDUC_NUMBER_OF_PF_BLOCKS_RT_OFFSET		6551
--#define PSWRQ2_REG_TM_VF_BLOCKS_RT_OFFSET			6552
--#define PSWRQ2_REG_CDUT_VF_BLOCKS_RT_OFFSET			6553
--#define PSWRQ2_REG_CDUC_VF_BLOCKS_RT_OFFSET			6554
--#define PSWRQ2_REG_TM_BLOCKS_FACTOR_RT_OFFSET			6555
--#define PSWRQ2_REG_CDUT_BLOCKS_FACTOR_RT_OFFSET			6556
--#define PSWRQ2_REG_CDUC_BLOCKS_FACTOR_RT_OFFSET			6557
--#define PSWRQ2_REG_VF_BASE_RT_OFFSET				6558
--#define PSWRQ2_REG_VF_LAST_ILT_RT_OFFSET			6559
--#define PSWRQ2_REG_DRAM_ALIGN_WR_RT_OFFSET			6560
--#define PSWRQ2_REG_DRAM_ALIGN_RD_RT_OFFSET			6561
--#define PSWRQ2_REG_TGSRC_FIRST_ILT_RT_OFFSET			6562
--#define PSWRQ2_REG_RGSRC_FIRST_ILT_RT_OFFSET			6563
--#define PSWRQ2_REG_TGSRC_LAST_ILT_RT_OFFSET			6564
--#define PSWRQ2_REG_RGSRC_LAST_ILT_RT_OFFSET			6565
--#define PSWRQ2_REG_ILT_MEMORY_RT_OFFSET				6566
--#define PSWRQ2_REG_ILT_MEMORY_RT_SIZE				26414
--#define PGLUE_REG_B_VF_BASE_RT_OFFSET				32980
--#define PGLUE_REG_B_MSDM_OFFSET_MASK_B_RT_OFFSET		32981
--#define PGLUE_REG_B_MSDM_VF_SHIFT_B_RT_OFFSET			32982
--#define PGLUE_REG_B_CACHE_LINE_SIZE_RT_OFFSET			32983
--#define PGLUE_REG_B_PF_BAR0_SIZE_RT_OFFSET			32984
--#define PGLUE_REG_B_PF_BAR1_SIZE_RT_OFFSET			32985
--#define PGLUE_REG_B_VF_BAR1_SIZE_RT_OFFSET			32986
--#define TM_REG_VF_ENABLE_CONN_RT_OFFSET				32987
--#define TM_REG_PF_ENABLE_CONN_RT_OFFSET				32988
--#define TM_REG_PF_ENABLE_TASK_RT_OFFSET				32989
--#define TM_REG_GROUP_SIZE_RESOLUTION_CONN_RT_OFFSET		32990
--#define TM_REG_GROUP_SIZE_RESOLUTION_TASK_RT_OFFSET		32991
--#define TM_REG_CONFIG_CONN_MEM_RT_OFFSET			32992
--#define TM_REG_CONFIG_CONN_MEM_RT_SIZE				416
--#define TM_REG_CONFIG_TASK_MEM_RT_OFFSET			33408
--#define TM_REG_CONFIG_TASK_MEM_RT_SIZE				608
--#define QM_REG_MAXPQSIZE_0_RT_OFFSET				34016
--#define QM_REG_MAXPQSIZE_1_RT_OFFSET				34017
--#define QM_REG_MAXPQSIZE_2_RT_OFFSET				34018
--#define QM_REG_MAXPQSIZETXSEL_0_RT_OFFSET			34019
--#define QM_REG_MAXPQSIZETXSEL_1_RT_OFFSET			34020
--#define QM_REG_MAXPQSIZETXSEL_2_RT_OFFSET			34021
--#define QM_REG_MAXPQSIZETXSEL_3_RT_OFFSET			34022
--#define QM_REG_MAXPQSIZETXSEL_4_RT_OFFSET			34023
--#define QM_REG_MAXPQSIZETXSEL_5_RT_OFFSET			34024
--#define QM_REG_MAXPQSIZETXSEL_6_RT_OFFSET			34025
--#define QM_REG_MAXPQSIZETXSEL_7_RT_OFFSET			34026
--#define QM_REG_MAXPQSIZETXSEL_8_RT_OFFSET			34027
--#define QM_REG_MAXPQSIZETXSEL_9_RT_OFFSET			34028
--#define QM_REG_MAXPQSIZETXSEL_10_RT_OFFSET			34029
--#define QM_REG_MAXPQSIZETXSEL_11_RT_OFFSET			34030
--#define QM_REG_MAXPQSIZETXSEL_12_RT_OFFSET			34031
--#define QM_REG_MAXPQSIZETXSEL_13_RT_OFFSET			34032
--#define QM_REG_MAXPQSIZETXSEL_14_RT_OFFSET			34033
--#define QM_REG_MAXPQSIZETXSEL_15_RT_OFFSET			34034
--#define QM_REG_MAXPQSIZETXSEL_16_RT_OFFSET			34035
--#define QM_REG_MAXPQSIZETXSEL_17_RT_OFFSET			34036
--#define QM_REG_MAXPQSIZETXSEL_18_RT_OFFSET			34037
--#define QM_REG_MAXPQSIZETXSEL_19_RT_OFFSET			34038
--#define QM_REG_MAXPQSIZETXSEL_20_RT_OFFSET			34039
--#define QM_REG_MAXPQSIZETXSEL_21_RT_OFFSET			34040
--#define QM_REG_MAXPQSIZETXSEL_22_RT_OFFSET			34041
--#define QM_REG_MAXPQSIZETXSEL_23_RT_OFFSET			34042
--#define QM_REG_MAXPQSIZETXSEL_24_RT_OFFSET			34043
--#define QM_REG_MAXPQSIZETXSEL_25_RT_OFFSET			34044
--#define QM_REG_MAXPQSIZETXSEL_26_RT_OFFSET			34045
--#define QM_REG_MAXPQSIZETXSEL_27_RT_OFFSET			34046
--#define QM_REG_MAXPQSIZETXSEL_28_RT_OFFSET			34047
--#define QM_REG_MAXPQSIZETXSEL_29_RT_OFFSET			34048
--#define QM_REG_MAXPQSIZETXSEL_30_RT_OFFSET			34049
--#define QM_REG_MAXPQSIZETXSEL_31_RT_OFFSET			34050
--#define QM_REG_MAXPQSIZETXSEL_32_RT_OFFSET			34051
--#define QM_REG_MAXPQSIZETXSEL_33_RT_OFFSET			34052
--#define QM_REG_MAXPQSIZETXSEL_34_RT_OFFSET			34053
--#define QM_REG_MAXPQSIZETXSEL_35_RT_OFFSET			34054
--#define QM_REG_MAXPQSIZETXSEL_36_RT_OFFSET			34055
--#define QM_REG_MAXPQSIZETXSEL_37_RT_OFFSET			34056
--#define QM_REG_MAXPQSIZETXSEL_38_RT_OFFSET			34057
--#define QM_REG_MAXPQSIZETXSEL_39_RT_OFFSET			34058
--#define QM_REG_MAXPQSIZETXSEL_40_RT_OFFSET			34059
--#define QM_REG_MAXPQSIZETXSEL_41_RT_OFFSET			34060
--#define QM_REG_MAXPQSIZETXSEL_42_RT_OFFSET			34061
--#define QM_REG_MAXPQSIZETXSEL_43_RT_OFFSET			34062
--#define QM_REG_MAXPQSIZETXSEL_44_RT_OFFSET			34063
--#define QM_REG_MAXPQSIZETXSEL_45_RT_OFFSET			34064
--#define QM_REG_MAXPQSIZETXSEL_46_RT_OFFSET			34065
--#define QM_REG_MAXPQSIZETXSEL_47_RT_OFFSET			34066
--#define QM_REG_MAXPQSIZETXSEL_48_RT_OFFSET			34067
--#define QM_REG_MAXPQSIZETXSEL_49_RT_OFFSET			34068
--#define QM_REG_MAXPQSIZETXSEL_50_RT_OFFSET			34069
--#define QM_REG_MAXPQSIZETXSEL_51_RT_OFFSET			34070
--#define QM_REG_MAXPQSIZETXSEL_52_RT_OFFSET			34071
--#define QM_REG_MAXPQSIZETXSEL_53_RT_OFFSET			34072
--#define QM_REG_MAXPQSIZETXSEL_54_RT_OFFSET			34073
--#define QM_REG_MAXPQSIZETXSEL_55_RT_OFFSET			34074
--#define QM_REG_MAXPQSIZETXSEL_56_RT_OFFSET			34075
--#define QM_REG_MAXPQSIZETXSEL_57_RT_OFFSET			34076
--#define QM_REG_MAXPQSIZETXSEL_58_RT_OFFSET			34077
--#define QM_REG_MAXPQSIZETXSEL_59_RT_OFFSET			34078
--#define QM_REG_MAXPQSIZETXSEL_60_RT_OFFSET			34079
--#define QM_REG_MAXPQSIZETXSEL_61_RT_OFFSET			34080
--#define QM_REG_MAXPQSIZETXSEL_62_RT_OFFSET			34081
--#define QM_REG_MAXPQSIZETXSEL_63_RT_OFFSET			34082
--#define QM_REG_BASEADDROTHERPQ_RT_OFFSET			34083
--#define QM_REG_BASEADDROTHERPQ_RT_SIZE				128
--#define QM_REG_PTRTBLOTHER_RT_OFFSET				34211
--#define QM_REG_PTRTBLOTHER_RT_SIZE				256
--#define QM_REG_AFULLQMBYPTHRPFWFQ_RT_OFFSET			34467
--#define QM_REG_AFULLQMBYPTHRVPWFQ_RT_OFFSET			34468
--#define QM_REG_AFULLQMBYPTHRPFRL_RT_OFFSET			34469
--#define QM_REG_AFULLQMBYPTHRGLBLRL_RT_OFFSET			34470
--#define QM_REG_AFULLOPRTNSTCCRDMASK_RT_OFFSET			34471
--#define QM_REG_WRROTHERPQGRP_0_RT_OFFSET			34472
--#define QM_REG_WRROTHERPQGRP_1_RT_OFFSET			34473
--#define QM_REG_WRROTHERPQGRP_2_RT_OFFSET			34474
--#define QM_REG_WRROTHERPQGRP_3_RT_OFFSET			34475
--#define QM_REG_WRROTHERPQGRP_4_RT_OFFSET			34476
--#define QM_REG_WRROTHERPQGRP_5_RT_OFFSET			34477
--#define QM_REG_WRROTHERPQGRP_6_RT_OFFSET			34478
--#define QM_REG_WRROTHERPQGRP_7_RT_OFFSET			34479
--#define QM_REG_WRROTHERPQGRP_8_RT_OFFSET			34480
--#define QM_REG_WRROTHERPQGRP_9_RT_OFFSET			34481
--#define QM_REG_WRROTHERPQGRP_10_RT_OFFSET			34482
--#define QM_REG_WRROTHERPQGRP_11_RT_OFFSET			34483
--#define QM_REG_WRROTHERPQGRP_12_RT_OFFSET			34484
--#define QM_REG_WRROTHERPQGRP_13_RT_OFFSET			34485
--#define QM_REG_WRROTHERPQGRP_14_RT_OFFSET			34486
--#define QM_REG_WRROTHERPQGRP_15_RT_OFFSET			34487
--#define QM_REG_WRROTHERGRPWEIGHT_0_RT_OFFSET			34488
--#define QM_REG_WRROTHERGRPWEIGHT_1_RT_OFFSET			34489
--#define QM_REG_WRROTHERGRPWEIGHT_2_RT_OFFSET			34490
--#define QM_REG_WRROTHERGRPWEIGHT_3_RT_OFFSET			34491
--#define QM_REG_WRRTXGRPWEIGHT_0_RT_OFFSET			34492
--#define QM_REG_WRRTXGRPWEIGHT_1_RT_OFFSET			34493
--#define QM_REG_PQTX2PF_0_RT_OFFSET				34494
--#define QM_REG_PQTX2PF_1_RT_OFFSET				34495
--#define QM_REG_PQTX2PF_2_RT_OFFSET				34496
--#define QM_REG_PQTX2PF_3_RT_OFFSET				34497
--#define QM_REG_PQTX2PF_4_RT_OFFSET				34498
--#define QM_REG_PQTX2PF_5_RT_OFFSET				34499
--#define QM_REG_PQTX2PF_6_RT_OFFSET				34500
--#define QM_REG_PQTX2PF_7_RT_OFFSET				34501
--#define QM_REG_PQTX2PF_8_RT_OFFSET				34502
--#define QM_REG_PQTX2PF_9_RT_OFFSET				34503
--#define QM_REG_PQTX2PF_10_RT_OFFSET				34504
--#define QM_REG_PQTX2PF_11_RT_OFFSET				34505
--#define QM_REG_PQTX2PF_12_RT_OFFSET				34506
--#define QM_REG_PQTX2PF_13_RT_OFFSET				34507
--#define QM_REG_PQTX2PF_14_RT_OFFSET				34508
--#define QM_REG_PQTX2PF_15_RT_OFFSET				34509
--#define QM_REG_PQTX2PF_16_RT_OFFSET				34510
--#define QM_REG_PQTX2PF_17_RT_OFFSET				34511
--#define QM_REG_PQTX2PF_18_RT_OFFSET				34512
--#define QM_REG_PQTX2PF_19_RT_OFFSET				34513
--#define QM_REG_PQTX2PF_20_RT_OFFSET				34514
--#define QM_REG_PQTX2PF_21_RT_OFFSET				34515
--#define QM_REG_PQTX2PF_22_RT_OFFSET				34516
--#define QM_REG_PQTX2PF_23_RT_OFFSET				34517
--#define QM_REG_PQTX2PF_24_RT_OFFSET				34518
--#define QM_REG_PQTX2PF_25_RT_OFFSET				34519
--#define QM_REG_PQTX2PF_26_RT_OFFSET				34520
--#define QM_REG_PQTX2PF_27_RT_OFFSET				34521
--#define QM_REG_PQTX2PF_28_RT_OFFSET				34522
--#define QM_REG_PQTX2PF_29_RT_OFFSET				34523
--#define QM_REG_PQTX2PF_30_RT_OFFSET				34524
--#define QM_REG_PQTX2PF_31_RT_OFFSET				34525
--#define QM_REG_PQTX2PF_32_RT_OFFSET				34526
--#define QM_REG_PQTX2PF_33_RT_OFFSET				34527
--#define QM_REG_PQTX2PF_34_RT_OFFSET				34528
--#define QM_REG_PQTX2PF_35_RT_OFFSET				34529
--#define QM_REG_PQTX2PF_36_RT_OFFSET				34530
--#define QM_REG_PQTX2PF_37_RT_OFFSET				34531
--#define QM_REG_PQTX2PF_38_RT_OFFSET				34532
--#define QM_REG_PQTX2PF_39_RT_OFFSET				34533
--#define QM_REG_PQTX2PF_40_RT_OFFSET				34534
--#define QM_REG_PQTX2PF_41_RT_OFFSET				34535
--#define QM_REG_PQTX2PF_42_RT_OFFSET				34536
--#define QM_REG_PQTX2PF_43_RT_OFFSET				34537
--#define QM_REG_PQTX2PF_44_RT_OFFSET				34538
--#define QM_REG_PQTX2PF_45_RT_OFFSET				34539
--#define QM_REG_PQTX2PF_46_RT_OFFSET				34540
--#define QM_REG_PQTX2PF_47_RT_OFFSET				34541
--#define QM_REG_PQTX2PF_48_RT_OFFSET				34542
--#define QM_REG_PQTX2PF_49_RT_OFFSET				34543
--#define QM_REG_PQTX2PF_50_RT_OFFSET				34544
--#define QM_REG_PQTX2PF_51_RT_OFFSET				34545
--#define QM_REG_PQTX2PF_52_RT_OFFSET				34546
--#define QM_REG_PQTX2PF_53_RT_OFFSET				34547
--#define QM_REG_PQTX2PF_54_RT_OFFSET				34548
--#define QM_REG_PQTX2PF_55_RT_OFFSET				34549
--#define QM_REG_PQTX2PF_56_RT_OFFSET				34550
--#define QM_REG_PQTX2PF_57_RT_OFFSET				34551
--#define QM_REG_PQTX2PF_58_RT_OFFSET				34552
--#define QM_REG_PQTX2PF_59_RT_OFFSET				34553
--#define QM_REG_PQTX2PF_60_RT_OFFSET				34554
--#define QM_REG_PQTX2PF_61_RT_OFFSET				34555
--#define QM_REG_PQTX2PF_62_RT_OFFSET				34556
--#define QM_REG_PQTX2PF_63_RT_OFFSET				34557
--#define QM_REG_PQOTHER2PF_0_RT_OFFSET				34558
--#define QM_REG_PQOTHER2PF_1_RT_OFFSET				34559
--#define QM_REG_PQOTHER2PF_2_RT_OFFSET				34560
--#define QM_REG_PQOTHER2PF_3_RT_OFFSET				34561
--#define QM_REG_PQOTHER2PF_4_RT_OFFSET				34562
--#define QM_REG_PQOTHER2PF_5_RT_OFFSET				34563
--#define QM_REG_PQOTHER2PF_6_RT_OFFSET				34564
--#define QM_REG_PQOTHER2PF_7_RT_OFFSET				34565
--#define QM_REG_PQOTHER2PF_8_RT_OFFSET				34566
--#define QM_REG_PQOTHER2PF_9_RT_OFFSET				34567
--#define QM_REG_PQOTHER2PF_10_RT_OFFSET				34568
--#define QM_REG_PQOTHER2PF_11_RT_OFFSET				34569
--#define QM_REG_PQOTHER2PF_12_RT_OFFSET				34570
--#define QM_REG_PQOTHER2PF_13_RT_OFFSET				34571
--#define QM_REG_PQOTHER2PF_14_RT_OFFSET				34572
--#define QM_REG_PQOTHER2PF_15_RT_OFFSET				34573
--#define QM_REG_RLGLBLPERIOD_0_RT_OFFSET				34574
--#define QM_REG_RLGLBLPERIOD_1_RT_OFFSET				34575
--#define QM_REG_RLGLBLPERIODTIMER_0_RT_OFFSET			34576
--#define QM_REG_RLGLBLPERIODTIMER_1_RT_OFFSET			34577
--#define QM_REG_RLGLBLPERIODSEL_0_RT_OFFSET			34578
--#define QM_REG_RLGLBLPERIODSEL_1_RT_OFFSET			34579
--#define QM_REG_RLGLBLPERIODSEL_2_RT_OFFSET			34580
--#define QM_REG_RLGLBLPERIODSEL_3_RT_OFFSET			34581
--#define QM_REG_RLGLBLPERIODSEL_4_RT_OFFSET			34582
--#define QM_REG_RLGLBLPERIODSEL_5_RT_OFFSET			34583
--#define QM_REG_RLGLBLPERIODSEL_6_RT_OFFSET			34584
--#define QM_REG_RLGLBLPERIODSEL_7_RT_OFFSET			34585
--#define QM_REG_RLGLBLINCVAL_RT_OFFSET				34586
--#define QM_REG_RLGLBLINCVAL_RT_SIZE				256
--#define QM_REG_RLGLBLUPPERBOUND_RT_OFFSET			34842
--#define QM_REG_RLGLBLUPPERBOUND_RT_SIZE				256
--#define QM_REG_RLGLBLCRD_RT_OFFSET				35098
--#define QM_REG_RLGLBLCRD_RT_SIZE				256
--#define QM_REG_RLGLBLENABLE_RT_OFFSET				35354
--#define QM_REG_RLPFPERIOD_RT_OFFSET				35355
--#define QM_REG_RLPFPERIODTIMER_RT_OFFSET			35356
--#define QM_REG_RLPFINCVAL_RT_OFFSET				35357
--#define QM_REG_RLPFINCVAL_RT_SIZE				16
--#define QM_REG_RLPFUPPERBOUND_RT_OFFSET				35373
--#define QM_REG_RLPFUPPERBOUND_RT_SIZE				16
--#define QM_REG_RLPFCRD_RT_OFFSET				35389
--#define QM_REG_RLPFCRD_RT_SIZE					16
--#define QM_REG_RLPFENABLE_RT_OFFSET				35405
--#define QM_REG_RLPFVOQENABLE_RT_OFFSET				35406
--#define QM_REG_WFQPFWEIGHT_RT_OFFSET				35407
--#define QM_REG_WFQPFWEIGHT_RT_SIZE				16
--#define QM_REG_WFQPFUPPERBOUND_RT_OFFSET			35423
--#define QM_REG_WFQPFUPPERBOUND_RT_SIZE				16
--#define QM_REG_WFQPFCRD_RT_OFFSET				35439
--#define QM_REG_WFQPFCRD_RT_SIZE					256
--#define QM_REG_WFQPFENABLE_RT_OFFSET				35695
--#define QM_REG_WFQVPENABLE_RT_OFFSET				35696
--#define QM_REG_BASEADDRTXPQ_RT_OFFSET				35697
--#define QM_REG_BASEADDRTXPQ_RT_SIZE				512
--#define QM_REG_TXPQMAP_RT_OFFSET				36209
--#define QM_REG_TXPQMAP_RT_SIZE					512
--#define QM_REG_WFQVPWEIGHT_RT_OFFSET				36721
--#define QM_REG_WFQVPWEIGHT_RT_SIZE				512
--#define QM_REG_WFQVPCRD_RT_OFFSET				37233
--#define QM_REG_WFQVPCRD_RT_SIZE					512
--#define QM_REG_WFQVPMAP_RT_OFFSET				37745
--#define QM_REG_WFQVPMAP_RT_SIZE					512
--#define QM_REG_PTRTBLTX_RT_OFFSET				38257
--#define QM_REG_PTRTBLTX_RT_SIZE					1024
--#define QM_REG_WFQPFCRD_MSB_RT_OFFSET				39281
--#define QM_REG_WFQPFCRD_MSB_RT_SIZE				320
--#define QM_REG_VOQCRDLINE_RT_OFFSET				39601
--#define QM_REG_VOQCRDLINE_RT_SIZE				36
--#define QM_REG_VOQINITCRDLINE_RT_OFFSET				39637
--#define QM_REG_VOQINITCRDLINE_RT_SIZE				36
--#define QM_REG_RLPFVOQENABLE_MSB_RT_OFFSET			39673
--#define NIG_REG_TAG_ETHERTYPE_0_RT_OFFSET			39674
--#define NIG_REG_BRB_GATE_DNTFWD_PORT_RT_OFFSET			39675
--#define NIG_REG_OUTER_TAG_VALUE_LIST0_RT_OFFSET			39676
--#define NIG_REG_OUTER_TAG_VALUE_LIST1_RT_OFFSET			39677
--#define NIG_REG_OUTER_TAG_VALUE_LIST2_RT_OFFSET			39678
--#define NIG_REG_OUTER_TAG_VALUE_LIST3_RT_OFFSET			39679
--#define NIG_REG_LLH_FUNC_TAGMAC_CLS_TYPE_RT_OFFSET		39680
--#define NIG_REG_LLH_FUNC_TAG_EN_RT_OFFSET			39681
--#define NIG_REG_LLH_FUNC_TAG_EN_RT_SIZE				4
--#define NIG_REG_LLH_FUNC_TAG_VALUE_RT_OFFSET			39685
--#define NIG_REG_LLH_FUNC_TAG_VALUE_RT_SIZE			4
--#define NIG_REG_LLH_FUNC_FILTER_VALUE_RT_OFFSET			39689
--#define NIG_REG_LLH_FUNC_FILTER_VALUE_RT_SIZE			32
--#define NIG_REG_LLH_FUNC_FILTER_EN_RT_OFFSET			39721
--#define NIG_REG_LLH_FUNC_FILTER_EN_RT_SIZE			16
--#define NIG_REG_LLH_FUNC_FILTER_MODE_RT_OFFSET			39737
--#define NIG_REG_LLH_FUNC_FILTER_MODE_RT_SIZE			16
--#define NIG_REG_LLH_FUNC_FILTER_PROTOCOL_TYPE_RT_OFFSET		39753
--#define NIG_REG_LLH_FUNC_FILTER_PROTOCOL_TYPE_RT_SIZE		16
--#define NIG_REG_LLH_FUNC_FILTER_HDR_SEL_RT_OFFSET		39769
--#define NIG_REG_LLH_FUNC_FILTER_HDR_SEL_RT_SIZE			16
--#define NIG_REG_TX_EDPM_CTRL_RT_OFFSET				39785
--#define NIG_REG_PPF_TO_ENGINE_SEL_RT_OFFSET                             39786
--#define NIG_REG_PPF_TO_ENGINE_SEL_RT_SIZE                               8
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_VALUE_RT_OFFSET                  39794
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_VALUE_RT_SIZE                    1024
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_EN_RT_OFFSET                     40818
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_EN_RT_SIZE                       512
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_MODE_RT_OFFSET                   41330
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_MODE_RT_SIZE                     512
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_PROTOCOL_TYPE_RT_OFFSET          41842
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_PROTOCOL_TYPE_RT_SIZE            512
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_HDR_SEL_RT_OFFSET                42354
--#define NIG_REG_LLH_PF_CLS_FUNC_FILTER_HDR_SEL_RT_SIZE                  512
--#define NIG_REG_LLH_PF_CLS_FILTERS_MAP_RT_OFFSET                        42866
--#define NIG_REG_LLH_PF_CLS_FILTERS_MAP_RT_SIZE                          32
--#define CDU_REG_CID_ADDR_PARAMS_RT_OFFSET                               42898
--#define CDU_REG_SEGMENT0_PARAMS_RT_OFFSET                               42899
--#define CDU_REG_SEGMENT1_PARAMS_RT_OFFSET                               42900
--#define CDU_REG_PF_SEG0_TYPE_OFFSET_RT_OFFSET                           42901
--#define CDU_REG_PF_SEG1_TYPE_OFFSET_RT_OFFSET                           42902
--#define CDU_REG_PF_SEG2_TYPE_OFFSET_RT_OFFSET                           42903
--#define CDU_REG_PF_SEG3_TYPE_OFFSET_RT_OFFSET                           42904
--#define CDU_REG_PF_FL_SEG0_TYPE_OFFSET_RT_OFFSET                        42905
--#define CDU_REG_PF_FL_SEG1_TYPE_OFFSET_RT_OFFSET                        42906
--#define CDU_REG_PF_FL_SEG2_TYPE_OFFSET_RT_OFFSET                        42907
--#define CDU_REG_PF_FL_SEG3_TYPE_OFFSET_RT_OFFSET                        42908
--#define CDU_REG_VF_SEG_TYPE_OFFSET_RT_OFFSET                            42909
--#define CDU_REG_VF_FL_SEG_TYPE_OFFSET_RT_OFFSET                         42910
--#define PBF_REG_TAG_ETHERTYPE_0_RT_OFFSET                               42911
--#define PBF_REG_BTB_SHARED_AREA_SIZE_RT_OFFSET                          42912
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ0_RT_OFFSET                        42913
--#define PBF_REG_BTB_GUARANTEED_VOQ0_RT_OFFSET                           42914
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ0_RT_OFFSET                    42915
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ1_RT_OFFSET                        42916
--#define PBF_REG_BTB_GUARANTEED_VOQ1_RT_OFFSET                           42917
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ1_RT_OFFSET                    42918
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ2_RT_OFFSET                        42919
--#define PBF_REG_BTB_GUARANTEED_VOQ2_RT_OFFSET                           42920
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ2_RT_OFFSET                    42921
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ3_RT_OFFSET                        42922
--#define PBF_REG_BTB_GUARANTEED_VOQ3_RT_OFFSET                           42923
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ3_RT_OFFSET                    42924
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ4_RT_OFFSET                        42925
--#define PBF_REG_BTB_GUARANTEED_VOQ4_RT_OFFSET                           42926
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ4_RT_OFFSET                    42927
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ5_RT_OFFSET                        42928
--#define PBF_REG_BTB_GUARANTEED_VOQ5_RT_OFFSET                           42929
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ5_RT_OFFSET                    42930
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ6_RT_OFFSET                        42931
--#define PBF_REG_BTB_GUARANTEED_VOQ6_RT_OFFSET                           42932
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ6_RT_OFFSET                    42933
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ7_RT_OFFSET                        42934
--#define PBF_REG_BTB_GUARANTEED_VOQ7_RT_OFFSET                           42935
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ7_RT_OFFSET                    42936
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ8_RT_OFFSET                        42937
--#define PBF_REG_BTB_GUARANTEED_VOQ8_RT_OFFSET                           42938
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ8_RT_OFFSET                    42939
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ9_RT_OFFSET                        42940
--#define PBF_REG_BTB_GUARANTEED_VOQ9_RT_OFFSET                           42941
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ9_RT_OFFSET                    42942
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ10_RT_OFFSET                       42943
--#define PBF_REG_BTB_GUARANTEED_VOQ10_RT_OFFSET                          42944
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ10_RT_OFFSET                   42945
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ11_RT_OFFSET                       42946
--#define PBF_REG_BTB_GUARANTEED_VOQ11_RT_OFFSET                          42947
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ11_RT_OFFSET                   42948
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ12_RT_OFFSET                       42949
--#define PBF_REG_BTB_GUARANTEED_VOQ12_RT_OFFSET                          42950
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ12_RT_OFFSET                   42951
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ13_RT_OFFSET                       42952
--#define PBF_REG_BTB_GUARANTEED_VOQ13_RT_OFFSET                          42953
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ13_RT_OFFSET                   42954
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ14_RT_OFFSET                       42955
--#define PBF_REG_BTB_GUARANTEED_VOQ14_RT_OFFSET                          42956
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ14_RT_OFFSET                   42957
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ15_RT_OFFSET                       42958
--#define PBF_REG_BTB_GUARANTEED_VOQ15_RT_OFFSET                          42959
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ15_RT_OFFSET                   42960
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ16_RT_OFFSET                       42961
--#define PBF_REG_BTB_GUARANTEED_VOQ16_RT_OFFSET                          42962
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ16_RT_OFFSET                   42963
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ17_RT_OFFSET                       42964
--#define PBF_REG_BTB_GUARANTEED_VOQ17_RT_OFFSET                          42965
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ17_RT_OFFSET                   42966
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ18_RT_OFFSET                       42967
--#define PBF_REG_BTB_GUARANTEED_VOQ18_RT_OFFSET                          42968
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ18_RT_OFFSET                   42969
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ19_RT_OFFSET                       42970
--#define PBF_REG_BTB_GUARANTEED_VOQ19_RT_OFFSET                          42971
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ19_RT_OFFSET                   42972
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ20_RT_OFFSET                       42973
--#define PBF_REG_BTB_GUARANTEED_VOQ20_RT_OFFSET                          42974
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ20_RT_OFFSET                   42975
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ21_RT_OFFSET                       42976
--#define PBF_REG_BTB_GUARANTEED_VOQ21_RT_OFFSET                          42977
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ21_RT_OFFSET                   42978
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ22_RT_OFFSET                       42979
--#define PBF_REG_BTB_GUARANTEED_VOQ22_RT_OFFSET                          42980
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ22_RT_OFFSET                   42981
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ23_RT_OFFSET                       42982
--#define PBF_REG_BTB_GUARANTEED_VOQ23_RT_OFFSET                          42983
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ23_RT_OFFSET                   42984
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ24_RT_OFFSET                       42985
--#define PBF_REG_BTB_GUARANTEED_VOQ24_RT_OFFSET                          42986
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ24_RT_OFFSET                   42987
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ25_RT_OFFSET                       42988
--#define PBF_REG_BTB_GUARANTEED_VOQ25_RT_OFFSET                          42989
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ25_RT_OFFSET                   42990
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ26_RT_OFFSET                       42991
--#define PBF_REG_BTB_GUARANTEED_VOQ26_RT_OFFSET                          42992
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ26_RT_OFFSET                   42993
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ27_RT_OFFSET                       42994
--#define PBF_REG_BTB_GUARANTEED_VOQ27_RT_OFFSET                          42995
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ27_RT_OFFSET                   42996
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ28_RT_OFFSET                       42997
--#define PBF_REG_BTB_GUARANTEED_VOQ28_RT_OFFSET                          42998
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ28_RT_OFFSET                   42999
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ29_RT_OFFSET                       43000
--#define PBF_REG_BTB_GUARANTEED_VOQ29_RT_OFFSET                          43001
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ29_RT_OFFSET                   43002
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ30_RT_OFFSET                       43003
--#define PBF_REG_BTB_GUARANTEED_VOQ30_RT_OFFSET                          43004
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ30_RT_OFFSET                   43005
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ31_RT_OFFSET                       43006
--#define PBF_REG_BTB_GUARANTEED_VOQ31_RT_OFFSET                          43007
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ31_RT_OFFSET                   43008
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ32_RT_OFFSET                       43009
--#define PBF_REG_BTB_GUARANTEED_VOQ32_RT_OFFSET                          43010
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ32_RT_OFFSET                   43011
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ33_RT_OFFSET                       43012
--#define PBF_REG_BTB_GUARANTEED_VOQ33_RT_OFFSET                          43013
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ33_RT_OFFSET                   43014
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ34_RT_OFFSET                       43015
--#define PBF_REG_BTB_GUARANTEED_VOQ34_RT_OFFSET                          43016
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ34_RT_OFFSET                   43017
--#define PBF_REG_YCMD_QS_NUM_LINES_VOQ35_RT_OFFSET                       43018
--#define PBF_REG_BTB_GUARANTEED_VOQ35_RT_OFFSET                          43019
--#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ35_RT_OFFSET                   43020
--#define XCM_REG_CON_PHY_Q3_RT_OFFSET                                    43021
--
--#define RUNTIME_ARRAY_SIZE 43022
--
-+#define DORQ_REG_PF_MAX_ICID_0_RT_OFFSET				0
-+#define DORQ_REG_PF_MAX_ICID_1_RT_OFFSET				1
-+#define DORQ_REG_PF_MAX_ICID_2_RT_OFFSET				2
-+#define DORQ_REG_PF_MAX_ICID_3_RT_OFFSET				3
-+#define DORQ_REG_PF_MAX_ICID_4_RT_OFFSET				4
-+#define DORQ_REG_PF_MAX_ICID_5_RT_OFFSET				5
-+#define DORQ_REG_PF_MAX_ICID_6_RT_OFFSET				6
-+#define DORQ_REG_PF_MAX_ICID_7_RT_OFFSET				7
-+#define DORQ_REG_VF_MAX_ICID_0_RT_OFFSET				8
-+#define DORQ_REG_VF_MAX_ICID_1_RT_OFFSET				9
-+#define DORQ_REG_VF_MAX_ICID_2_RT_OFFSET				10
-+#define DORQ_REG_VF_MAX_ICID_3_RT_OFFSET				11
-+#define DORQ_REG_VF_MAX_ICID_4_RT_OFFSET				12
-+#define DORQ_REG_VF_MAX_ICID_5_RT_OFFSET				13
-+#define DORQ_REG_VF_MAX_ICID_6_RT_OFFSET				14
-+#define DORQ_REG_VF_MAX_ICID_7_RT_OFFSET				15
-+#define DORQ_REG_VF_ICID_BIT_SHIFT_NORM_RT_OFFSET			16
-+#define DORQ_REG_PF_WAKE_ALL_RT_OFFSET					17
-+#define DORQ_REG_TAG1_ETHERTYPE_RT_OFFSET				18
-+#define IGU_REG_PF_CONFIGURATION_RT_OFFSET				19
-+#define IGU_REG_VF_CONFIGURATION_RT_OFFSET				20
-+#define IGU_REG_ATTN_MSG_ADDR_L_RT_OFFSET				21
-+#define IGU_REG_ATTN_MSG_ADDR_H_RT_OFFSET				22
-+#define IGU_REG_LEADING_EDGE_LATCH_RT_OFFSET				23
-+#define IGU_REG_TRAILING_EDGE_LATCH_RT_OFFSET				24
-+#define CAU_REG_CQE_AGG_UNIT_SIZE_RT_OFFSET				25
-+#define CAU_REG_SB_VAR_MEMORY_RT_OFFSET					26
-+#define CAU_REG_SB_VAR_MEMORY_RT_SIZE					736
-+#define CAU_REG_SB_ADDR_MEMORY_RT_OFFSET				762
-+#define CAU_REG_SB_ADDR_MEMORY_RT_SIZE					736
-+#define CAU_REG_PI_MEMORY_RT_OFFSET					1498
-+#define CAU_REG_PI_MEMORY_RT_SIZE					4416
-+#define PRS_REG_SEARCH_RESP_INITIATOR_TYPE_RT_OFFSET			5914
-+#define PRS_REG_TASK_ID_MAX_INITIATOR_PF_RT_OFFSET			5915
-+#define PRS_REG_TASK_ID_MAX_INITIATOR_VF_RT_OFFSET			5916
-+#define PRS_REG_TASK_ID_MAX_TARGET_PF_RT_OFFSET				5917
-+#define PRS_REG_TASK_ID_MAX_TARGET_VF_RT_OFFSET				5918
-+#define PRS_REG_SEARCH_TCP_RT_OFFSET					5919
-+#define PRS_REG_SEARCH_FCOE_RT_OFFSET					5920
-+#define PRS_REG_SEARCH_ROCE_RT_OFFSET					5921
-+#define PRS_REG_ROCE_DEST_QP_MAX_VF_RT_OFFSET				5922
-+#define PRS_REG_ROCE_DEST_QP_MAX_PF_RT_OFFSET				5923
-+#define PRS_REG_SEARCH_OPENFLOW_RT_OFFSET				5924
-+#define PRS_REG_SEARCH_NON_IP_AS_OPENFLOW_RT_OFFSET			5925
-+#define PRS_REG_OPENFLOW_SUPPORT_ONLY_KNOWN_OVER_IP_RT_OFFSET		5926
-+#define PRS_REG_OPENFLOW_SEARCH_KEY_MASK_RT_OFFSET			5927
-+#define PRS_REG_TAG_ETHERTYPE_0_RT_OFFSET				5928
-+#define PRS_REG_LIGHT_L2_ETHERTYPE_EN_RT_OFFSET				5929
-+#define SRC_REG_FIRSTFREE_RT_OFFSET					5930
-+#define SRC_REG_FIRSTFREE_RT_SIZE					2
-+#define SRC_REG_LASTFREE_RT_OFFSET					5932
-+#define SRC_REG_LASTFREE_RT_SIZE					2
-+#define SRC_REG_COUNTFREE_RT_OFFSET					5934
-+#define SRC_REG_NUMBER_HASH_BITS_RT_OFFSET				5935
-+#define PSWRQ2_REG_CDUT_P_SIZE_RT_OFFSET				5936
-+#define PSWRQ2_REG_CDUC_P_SIZE_RT_OFFSET				5937
-+#define PSWRQ2_REG_TM_P_SIZE_RT_OFFSET					5938
-+#define PSWRQ2_REG_QM_P_SIZE_RT_OFFSET					5939
-+#define PSWRQ2_REG_SRC_P_SIZE_RT_OFFSET					5940
-+#define PSWRQ2_REG_TSDM_P_SIZE_RT_OFFSET				5941
-+#define PSWRQ2_REG_TM_FIRST_ILT_RT_OFFSET				5942
-+#define PSWRQ2_REG_TM_LAST_ILT_RT_OFFSET				5943
-+#define PSWRQ2_REG_QM_FIRST_ILT_RT_OFFSET				5944
-+#define PSWRQ2_REG_QM_LAST_ILT_RT_OFFSET				5945
-+#define PSWRQ2_REG_SRC_FIRST_ILT_RT_OFFSET				5946
-+#define PSWRQ2_REG_SRC_LAST_ILT_RT_OFFSET				5947
-+#define PSWRQ2_REG_CDUC_FIRST_ILT_RT_OFFSET				5948
-+#define PSWRQ2_REG_CDUC_LAST_ILT_RT_OFFSET				5949
-+#define PSWRQ2_REG_CDUT_FIRST_ILT_RT_OFFSET				5950
-+#define PSWRQ2_REG_CDUT_LAST_ILT_RT_OFFSET				5951
-+#define PSWRQ2_REG_TSDM_FIRST_ILT_RT_OFFSET				5952
-+#define PSWRQ2_REG_TSDM_LAST_ILT_RT_OFFSET				5953
-+#define PSWRQ2_REG_TM_NUMBER_OF_PF_BLOCKS_RT_OFFSET			5954
-+#define PSWRQ2_REG_CDUT_NUMBER_OF_PF_BLOCKS_RT_OFFSET			5955
-+#define PSWRQ2_REG_CDUC_NUMBER_OF_PF_BLOCKS_RT_OFFSET			5956
-+#define PSWRQ2_REG_TM_VF_BLOCKS_RT_OFFSET				5957
-+#define PSWRQ2_REG_CDUT_VF_BLOCKS_RT_OFFSET				5958
-+#define PSWRQ2_REG_CDUC_VF_BLOCKS_RT_OFFSET				5959
-+#define PSWRQ2_REG_TM_BLOCKS_FACTOR_RT_OFFSET				5960
-+#define PSWRQ2_REG_CDUT_BLOCKS_FACTOR_RT_OFFSET				5961
-+#define PSWRQ2_REG_CDUC_BLOCKS_FACTOR_RT_OFFSET				5962
-+#define PSWRQ2_REG_VF_BASE_RT_OFFSET					5963
-+#define PSWRQ2_REG_VF_LAST_ILT_RT_OFFSET				5964
-+#define PSWRQ2_REG_DRAM_ALIGN_WR_RT_OFFSET				5965
-+#define PSWRQ2_REG_DRAM_ALIGN_RD_RT_OFFSET				5966
-+#define PSWRQ2_REG_ILT_MEMORY_RT_OFFSET					5967
-+#define PSWRQ2_REG_ILT_MEMORY_RT_SIZE					22000
-+#define PGLUE_REG_B_VF_BASE_RT_OFFSET					27967
-+#define PGLUE_REG_B_MSDM_OFFSET_MASK_B_RT_OFFSET			27968
-+#define PGLUE_REG_B_MSDM_VF_SHIFT_B_RT_OFFSET				27969
-+#define PGLUE_REG_B_CACHE_LINE_SIZE_RT_OFFSET				27970
-+#define PGLUE_REG_B_PF_BAR0_SIZE_RT_OFFSET				27971
-+#define PGLUE_REG_B_PF_BAR1_SIZE_RT_OFFSET				27972
-+#define PGLUE_REG_B_VF_BAR1_SIZE_RT_OFFSET				27973
-+#define TM_REG_VF_ENABLE_CONN_RT_OFFSET					27974
-+#define TM_REG_PF_ENABLE_CONN_RT_OFFSET					27975
-+#define TM_REG_PF_ENABLE_TASK_RT_OFFSET					27976
-+#define TM_REG_GROUP_SIZE_RESOLUTION_CONN_RT_OFFSET			27977
-+#define TM_REG_GROUP_SIZE_RESOLUTION_TASK_RT_OFFSET			27978
-+#define TM_REG_CONFIG_CONN_MEM_RT_OFFSET				27979
-+#define TM_REG_CONFIG_CONN_MEM_RT_SIZE					416
-+#define TM_REG_CONFIG_TASK_MEM_RT_OFFSET				28395
-+#define TM_REG_CONFIG_TASK_MEM_RT_SIZE					512
-+#define QM_REG_MAXPQSIZE_0_RT_OFFSET					28907
-+#define QM_REG_MAXPQSIZE_1_RT_OFFSET					28908
-+#define QM_REG_MAXPQSIZE_2_RT_OFFSET					28909
-+#define QM_REG_MAXPQSIZETXSEL_0_RT_OFFSET				28910
-+#define QM_REG_MAXPQSIZETXSEL_1_RT_OFFSET				28911
-+#define QM_REG_MAXPQSIZETXSEL_2_RT_OFFSET				28912
-+#define QM_REG_MAXPQSIZETXSEL_3_RT_OFFSET				28913
-+#define QM_REG_MAXPQSIZETXSEL_4_RT_OFFSET				28914
-+#define QM_REG_MAXPQSIZETXSEL_5_RT_OFFSET				28915
-+#define QM_REG_MAXPQSIZETXSEL_6_RT_OFFSET				28916
-+#define QM_REG_MAXPQSIZETXSEL_7_RT_OFFSET				28917
-+#define QM_REG_MAXPQSIZETXSEL_8_RT_OFFSET				28918
-+#define QM_REG_MAXPQSIZETXSEL_9_RT_OFFSET				28919
-+#define QM_REG_MAXPQSIZETXSEL_10_RT_OFFSET				28920
-+#define QM_REG_MAXPQSIZETXSEL_11_RT_OFFSET				28921
-+#define QM_REG_MAXPQSIZETXSEL_12_RT_OFFSET				28922
-+#define QM_REG_MAXPQSIZETXSEL_13_RT_OFFSET				28923
-+#define QM_REG_MAXPQSIZETXSEL_14_RT_OFFSET				28924
-+#define QM_REG_MAXPQSIZETXSEL_15_RT_OFFSET				28925
-+#define QM_REG_MAXPQSIZETXSEL_16_RT_OFFSET				28926
-+#define QM_REG_MAXPQSIZETXSEL_17_RT_OFFSET				28927
-+#define QM_REG_MAXPQSIZETXSEL_18_RT_OFFSET				28928
-+#define QM_REG_MAXPQSIZETXSEL_19_RT_OFFSET				28929
-+#define QM_REG_MAXPQSIZETXSEL_20_RT_OFFSET				28930
-+#define QM_REG_MAXPQSIZETXSEL_21_RT_OFFSET				28931
-+#define QM_REG_MAXPQSIZETXSEL_22_RT_OFFSET				28932
-+#define QM_REG_MAXPQSIZETXSEL_23_RT_OFFSET				28933
-+#define QM_REG_MAXPQSIZETXSEL_24_RT_OFFSET				28934
-+#define QM_REG_MAXPQSIZETXSEL_25_RT_OFFSET				28935
-+#define QM_REG_MAXPQSIZETXSEL_26_RT_OFFSET				28936
-+#define QM_REG_MAXPQSIZETXSEL_27_RT_OFFSET				28937
-+#define QM_REG_MAXPQSIZETXSEL_28_RT_OFFSET				28938
-+#define QM_REG_MAXPQSIZETXSEL_29_RT_OFFSET				28939
-+#define QM_REG_MAXPQSIZETXSEL_30_RT_OFFSET				28940
-+#define QM_REG_MAXPQSIZETXSEL_31_RT_OFFSET				28941
-+#define QM_REG_MAXPQSIZETXSEL_32_RT_OFFSET				28942
-+#define QM_REG_MAXPQSIZETXSEL_33_RT_OFFSET				28943
-+#define QM_REG_MAXPQSIZETXSEL_34_RT_OFFSET				28944
-+#define QM_REG_MAXPQSIZETXSEL_35_RT_OFFSET				28945
-+#define QM_REG_MAXPQSIZETXSEL_36_RT_OFFSET				28946
-+#define QM_REG_MAXPQSIZETXSEL_37_RT_OFFSET				28947
-+#define QM_REG_MAXPQSIZETXSEL_38_RT_OFFSET				28948
-+#define QM_REG_MAXPQSIZETXSEL_39_RT_OFFSET				28949
-+#define QM_REG_MAXPQSIZETXSEL_40_RT_OFFSET				28950
-+#define QM_REG_MAXPQSIZETXSEL_41_RT_OFFSET				28951
-+#define QM_REG_MAXPQSIZETXSEL_42_RT_OFFSET				28952
-+#define QM_REG_MAXPQSIZETXSEL_43_RT_OFFSET				28953
-+#define QM_REG_MAXPQSIZETXSEL_44_RT_OFFSET				28954
-+#define QM_REG_MAXPQSIZETXSEL_45_RT_OFFSET				28955
-+#define QM_REG_MAXPQSIZETXSEL_46_RT_OFFSET				28956
-+#define QM_REG_MAXPQSIZETXSEL_47_RT_OFFSET				28957
-+#define QM_REG_MAXPQSIZETXSEL_48_RT_OFFSET				28958
-+#define QM_REG_MAXPQSIZETXSEL_49_RT_OFFSET				28959
-+#define QM_REG_MAXPQSIZETXSEL_50_RT_OFFSET				28960
-+#define QM_REG_MAXPQSIZETXSEL_51_RT_OFFSET				28961
-+#define QM_REG_MAXPQSIZETXSEL_52_RT_OFFSET				28962
-+#define QM_REG_MAXPQSIZETXSEL_53_RT_OFFSET				28963
-+#define QM_REG_MAXPQSIZETXSEL_54_RT_OFFSET				28964
-+#define QM_REG_MAXPQSIZETXSEL_55_RT_OFFSET				28965
-+#define QM_REG_MAXPQSIZETXSEL_56_RT_OFFSET				28966
-+#define QM_REG_MAXPQSIZETXSEL_57_RT_OFFSET				28967
-+#define QM_REG_MAXPQSIZETXSEL_58_RT_OFFSET				28968
-+#define QM_REG_MAXPQSIZETXSEL_59_RT_OFFSET				28969
-+#define QM_REG_MAXPQSIZETXSEL_60_RT_OFFSET				28970
-+#define QM_REG_MAXPQSIZETXSEL_61_RT_OFFSET				28971
-+#define QM_REG_MAXPQSIZETXSEL_62_RT_OFFSET				28972
-+#define QM_REG_MAXPQSIZETXSEL_63_RT_OFFSET				28973
-+#define QM_REG_BASEADDROTHERPQ_RT_OFFSET				28974
-+#define QM_REG_BASEADDROTHERPQ_RT_SIZE					128
-+#define QM_REG_PTRTBLOTHER_RT_OFFSET					29102
-+#define QM_REG_PTRTBLOTHER_RT_SIZE					256
-+#define QM_REG_VOQCRDLINE_RT_OFFSET					29358
-+#define QM_REG_VOQCRDLINE_RT_SIZE					20
-+#define QM_REG_VOQINITCRDLINE_RT_OFFSET					29378
-+#define QM_REG_VOQINITCRDLINE_RT_SIZE					20
-+#define QM_REG_AFULLQMBYPTHRPFWFQ_RT_OFFSET				29398
-+#define QM_REG_AFULLQMBYPTHRVPWFQ_RT_OFFSET				29399
-+#define QM_REG_AFULLQMBYPTHRPFRL_RT_OFFSET				29400
-+#define QM_REG_AFULLQMBYPTHRGLBLRL_RT_OFFSET				29401
-+#define QM_REG_AFULLOPRTNSTCCRDMASK_RT_OFFSET				29402
-+#define QM_REG_WRROTHERPQGRP_0_RT_OFFSET				29403
-+#define QM_REG_WRROTHERPQGRP_1_RT_OFFSET				29404
-+#define QM_REG_WRROTHERPQGRP_2_RT_OFFSET				29405
-+#define QM_REG_WRROTHERPQGRP_3_RT_OFFSET				29406
-+#define QM_REG_WRROTHERPQGRP_4_RT_OFFSET				29407
-+#define QM_REG_WRROTHERPQGRP_5_RT_OFFSET				29408
-+#define QM_REG_WRROTHERPQGRP_6_RT_OFFSET				29409
-+#define QM_REG_WRROTHERPQGRP_7_RT_OFFSET				29410
-+#define QM_REG_WRROTHERPQGRP_8_RT_OFFSET				29411
-+#define QM_REG_WRROTHERPQGRP_9_RT_OFFSET				29412
-+#define QM_REG_WRROTHERPQGRP_10_RT_OFFSET				29413
-+#define QM_REG_WRROTHERPQGRP_11_RT_OFFSET				29414
-+#define QM_REG_WRROTHERPQGRP_12_RT_OFFSET				29415
-+#define QM_REG_WRROTHERPQGRP_13_RT_OFFSET				29416
-+#define QM_REG_WRROTHERPQGRP_14_RT_OFFSET				29417
-+#define QM_REG_WRROTHERPQGRP_15_RT_OFFSET				29418
-+#define QM_REG_WRROTHERGRPWEIGHT_0_RT_OFFSET				29419
-+#define QM_REG_WRROTHERGRPWEIGHT_1_RT_OFFSET				29420
-+#define QM_REG_WRROTHERGRPWEIGHT_2_RT_OFFSET				29421
-+#define QM_REG_WRROTHERGRPWEIGHT_3_RT_OFFSET				29422
-+#define QM_REG_WRRTXGRPWEIGHT_0_RT_OFFSET				29423
-+#define QM_REG_WRRTXGRPWEIGHT_1_RT_OFFSET				29424
-+#define QM_REG_PQTX2PF_0_RT_OFFSET					29425
-+#define QM_REG_PQTX2PF_1_RT_OFFSET					29426
-+#define QM_REG_PQTX2PF_2_RT_OFFSET					29427
-+#define QM_REG_PQTX2PF_3_RT_OFFSET					29428
-+#define QM_REG_PQTX2PF_4_RT_OFFSET					29429
-+#define QM_REG_PQTX2PF_5_RT_OFFSET					29430
-+#define QM_REG_PQTX2PF_6_RT_OFFSET					29431
-+#define QM_REG_PQTX2PF_7_RT_OFFSET					29432
-+#define QM_REG_PQTX2PF_8_RT_OFFSET					29433
-+#define QM_REG_PQTX2PF_9_RT_OFFSET					29434
-+#define QM_REG_PQTX2PF_10_RT_OFFSET					29435
-+#define QM_REG_PQTX2PF_11_RT_OFFSET					29436
-+#define QM_REG_PQTX2PF_12_RT_OFFSET					29437
-+#define QM_REG_PQTX2PF_13_RT_OFFSET					29438
-+#define QM_REG_PQTX2PF_14_RT_OFFSET					29439
-+#define QM_REG_PQTX2PF_15_RT_OFFSET					29440
-+#define QM_REG_PQTX2PF_16_RT_OFFSET					29441
-+#define QM_REG_PQTX2PF_17_RT_OFFSET					29442
-+#define QM_REG_PQTX2PF_18_RT_OFFSET					29443
-+#define QM_REG_PQTX2PF_19_RT_OFFSET					29444
-+#define QM_REG_PQTX2PF_20_RT_OFFSET					29445
-+#define QM_REG_PQTX2PF_21_RT_OFFSET					29446
-+#define QM_REG_PQTX2PF_22_RT_OFFSET					29447
-+#define QM_REG_PQTX2PF_23_RT_OFFSET					29448
-+#define QM_REG_PQTX2PF_24_RT_OFFSET					29449
-+#define QM_REG_PQTX2PF_25_RT_OFFSET					29450
-+#define QM_REG_PQTX2PF_26_RT_OFFSET					29451
-+#define QM_REG_PQTX2PF_27_RT_OFFSET					29452
-+#define QM_REG_PQTX2PF_28_RT_OFFSET					29453
-+#define QM_REG_PQTX2PF_29_RT_OFFSET					29454
-+#define QM_REG_PQTX2PF_30_RT_OFFSET					29455
-+#define QM_REG_PQTX2PF_31_RT_OFFSET					29456
-+#define QM_REG_PQTX2PF_32_RT_OFFSET					29457
-+#define QM_REG_PQTX2PF_33_RT_OFFSET					29458
-+#define QM_REG_PQTX2PF_34_RT_OFFSET					29459
-+#define QM_REG_PQTX2PF_35_RT_OFFSET					29460
-+#define QM_REG_PQTX2PF_36_RT_OFFSET					29461
-+#define QM_REG_PQTX2PF_37_RT_OFFSET					29462
-+#define QM_REG_PQTX2PF_38_RT_OFFSET					29463
-+#define QM_REG_PQTX2PF_39_RT_OFFSET					29464
-+#define QM_REG_PQTX2PF_40_RT_OFFSET					29465
-+#define QM_REG_PQTX2PF_41_RT_OFFSET					29466
-+#define QM_REG_PQTX2PF_42_RT_OFFSET					29467
-+#define QM_REG_PQTX2PF_43_RT_OFFSET					29468
-+#define QM_REG_PQTX2PF_44_RT_OFFSET					29469
-+#define QM_REG_PQTX2PF_45_RT_OFFSET					29470
-+#define QM_REG_PQTX2PF_46_RT_OFFSET					29471
-+#define QM_REG_PQTX2PF_47_RT_OFFSET					29472
-+#define QM_REG_PQTX2PF_48_RT_OFFSET					29473
-+#define QM_REG_PQTX2PF_49_RT_OFFSET					29474
-+#define QM_REG_PQTX2PF_50_RT_OFFSET					29475
-+#define QM_REG_PQTX2PF_51_RT_OFFSET					29476
-+#define QM_REG_PQTX2PF_52_RT_OFFSET					29477
-+#define QM_REG_PQTX2PF_53_RT_OFFSET					29478
-+#define QM_REG_PQTX2PF_54_RT_OFFSET					29479
-+#define QM_REG_PQTX2PF_55_RT_OFFSET					29480
-+#define QM_REG_PQTX2PF_56_RT_OFFSET					29481
-+#define QM_REG_PQTX2PF_57_RT_OFFSET					29482
-+#define QM_REG_PQTX2PF_58_RT_OFFSET					29483
-+#define QM_REG_PQTX2PF_59_RT_OFFSET					29484
-+#define QM_REG_PQTX2PF_60_RT_OFFSET					29485
-+#define QM_REG_PQTX2PF_61_RT_OFFSET					29486
-+#define QM_REG_PQTX2PF_62_RT_OFFSET					29487
-+#define QM_REG_PQTX2PF_63_RT_OFFSET					29488
-+#define QM_REG_PQOTHER2PF_0_RT_OFFSET					29489
-+#define QM_REG_PQOTHER2PF_1_RT_OFFSET					29490
-+#define QM_REG_PQOTHER2PF_2_RT_OFFSET					29491
-+#define QM_REG_PQOTHER2PF_3_RT_OFFSET					29492
-+#define QM_REG_PQOTHER2PF_4_RT_OFFSET					29493
-+#define QM_REG_PQOTHER2PF_5_RT_OFFSET					29494
-+#define QM_REG_PQOTHER2PF_6_RT_OFFSET					29495
-+#define QM_REG_PQOTHER2PF_7_RT_OFFSET					29496
-+#define QM_REG_PQOTHER2PF_8_RT_OFFSET					29497
-+#define QM_REG_PQOTHER2PF_9_RT_OFFSET					29498
-+#define QM_REG_PQOTHER2PF_10_RT_OFFSET					29499
-+#define QM_REG_PQOTHER2PF_11_RT_OFFSET					29500
-+#define QM_REG_PQOTHER2PF_12_RT_OFFSET					29501
-+#define QM_REG_PQOTHER2PF_13_RT_OFFSET					29502
-+#define QM_REG_PQOTHER2PF_14_RT_OFFSET					29503
-+#define QM_REG_PQOTHER2PF_15_RT_OFFSET					29504
-+#define QM_REG_RLGLBLPERIOD_0_RT_OFFSET					29505
-+#define QM_REG_RLGLBLPERIOD_1_RT_OFFSET					29506
-+#define QM_REG_RLGLBLPERIODTIMER_0_RT_OFFSET				29507
-+#define QM_REG_RLGLBLPERIODTIMER_1_RT_OFFSET				29508
-+#define QM_REG_RLGLBLPERIODSEL_0_RT_OFFSET				29509
-+#define QM_REG_RLGLBLPERIODSEL_1_RT_OFFSET				29510
-+#define QM_REG_RLGLBLPERIODSEL_2_RT_OFFSET				29511
-+#define QM_REG_RLGLBLPERIODSEL_3_RT_OFFSET				29512
-+#define QM_REG_RLGLBLPERIODSEL_4_RT_OFFSET				29513
-+#define QM_REG_RLGLBLPERIODSEL_5_RT_OFFSET				29514
-+#define QM_REG_RLGLBLPERIODSEL_6_RT_OFFSET				29515
-+#define QM_REG_RLGLBLPERIODSEL_7_RT_OFFSET				29516
-+#define QM_REG_RLGLBLINCVAL_RT_OFFSET					29517
-+#define QM_REG_RLGLBLINCVAL_RT_SIZE					256
-+#define QM_REG_RLGLBLUPPERBOUND_RT_OFFSET				29773
-+#define QM_REG_RLGLBLUPPERBOUND_RT_SIZE					256
-+#define QM_REG_RLGLBLCRD_RT_OFFSET					30029
-+#define QM_REG_RLGLBLCRD_RT_SIZE					256
-+#define QM_REG_RLGLBLENABLE_RT_OFFSET					30285
-+#define QM_REG_RLPFPERIOD_RT_OFFSET					30286
-+#define QM_REG_RLPFPERIODTIMER_RT_OFFSET				30287
-+#define QM_REG_RLPFINCVAL_RT_OFFSET					30288
-+#define QM_REG_RLPFINCVAL_RT_SIZE					16
-+#define QM_REG_RLPFUPPERBOUND_RT_OFFSET					30304
-+#define QM_REG_RLPFUPPERBOUND_RT_SIZE					16
-+#define QM_REG_RLPFCRD_RT_OFFSET					30320
-+#define QM_REG_RLPFCRD_RT_SIZE						16
-+#define QM_REG_RLPFENABLE_RT_OFFSET					30336
-+#define QM_REG_RLPFVOQENABLE_RT_OFFSET					30337
-+#define QM_REG_WFQPFWEIGHT_RT_OFFSET					30338
-+#define QM_REG_WFQPFWEIGHT_RT_SIZE					16
-+#define QM_REG_WFQPFUPPERBOUND_RT_OFFSET				30354
-+#define QM_REG_WFQPFUPPERBOUND_RT_SIZE					16
-+#define QM_REG_WFQPFCRD_RT_OFFSET					30370
-+#define QM_REG_WFQPFCRD_RT_SIZE						160
-+#define QM_REG_WFQPFENABLE_RT_OFFSET					30530
-+#define QM_REG_WFQVPENABLE_RT_OFFSET					30531
-+#define QM_REG_BASEADDRTXPQ_RT_OFFSET					30532
-+#define QM_REG_BASEADDRTXPQ_RT_SIZE					512
-+#define QM_REG_TXPQMAP_RT_OFFSET					31044
-+#define QM_REG_TXPQMAP_RT_SIZE						512
-+#define QM_REG_WFQVPWEIGHT_RT_OFFSET					31556
-+#define QM_REG_WFQVPWEIGHT_RT_SIZE					512
-+#define QM_REG_WFQVPCRD_RT_OFFSET					32068
-+#define QM_REG_WFQVPCRD_RT_SIZE						512
-+#define QM_REG_WFQVPMAP_RT_OFFSET					32580
-+#define QM_REG_WFQVPMAP_RT_SIZE						512
-+#define QM_REG_PTRTBLTX_RT_OFFSET					33092
-+#define QM_REG_PTRTBLTX_RT_SIZE						1024
-+#define QM_REG_WFQPFCRD_MSB_RT_OFFSET					34116
-+#define QM_REG_WFQPFCRD_MSB_RT_SIZE					160
-+#define NIG_REG_TAG_ETHERTYPE_0_RT_OFFSET				34276
-+#define NIG_REG_BRB_GATE_DNTFWD_PORT_RT_OFFSET				34277
-+#define NIG_REG_OUTER_TAG_VALUE_LIST0_RT_OFFSET				34278
-+#define NIG_REG_OUTER_TAG_VALUE_LIST1_RT_OFFSET				34279
-+#define NIG_REG_OUTER_TAG_VALUE_LIST2_RT_OFFSET				34280
-+#define NIG_REG_OUTER_TAG_VALUE_LIST3_RT_OFFSET				34281
-+#define NIG_REG_LLH_FUNC_TAGMAC_CLS_TYPE_RT_OFFSET			34282
-+#define NIG_REG_LLH_FUNC_TAG_EN_RT_OFFSET				34283
-+#define NIG_REG_LLH_FUNC_TAG_EN_RT_SIZE					4
-+#define NIG_REG_LLH_FUNC_TAG_VALUE_RT_OFFSET				34287
-+#define NIG_REG_LLH_FUNC_TAG_VALUE_RT_SIZE				4
-+#define NIG_REG_LLH_FUNC_FILTER_VALUE_RT_OFFSET				34291
-+#define NIG_REG_LLH_FUNC_FILTER_VALUE_RT_SIZE				32
-+#define NIG_REG_LLH_FUNC_FILTER_EN_RT_OFFSET				34323
-+#define NIG_REG_LLH_FUNC_FILTER_EN_RT_SIZE				16
-+#define NIG_REG_LLH_FUNC_FILTER_MODE_RT_OFFSET				34339
-+#define NIG_REG_LLH_FUNC_FILTER_MODE_RT_SIZE				16
-+#define NIG_REG_LLH_FUNC_FILTER_PROTOCOL_TYPE_RT_OFFSET			34355
-+#define NIG_REG_LLH_FUNC_FILTER_PROTOCOL_TYPE_RT_SIZE			16
-+#define NIG_REG_LLH_FUNC_FILTER_HDR_SEL_RT_OFFSET			34371
-+#define NIG_REG_LLH_FUNC_FILTER_HDR_SEL_RT_SIZE				16
-+#define NIG_REG_TX_EDPM_CTRL_RT_OFFSET					34387
-+#define NIG_REG_PPF_TO_ENGINE_SEL_RT_OFFSET				34388
-+#define NIG_REG_PPF_TO_ENGINE_SEL_RT_SIZE				8
-+#define CDU_REG_CID_ADDR_PARAMS_RT_OFFSET				34396
-+#define CDU_REG_SEGMENT0_PARAMS_RT_OFFSET				34397
-+#define CDU_REG_SEGMENT1_PARAMS_RT_OFFSET				34398
-+#define CDU_REG_PF_SEG0_TYPE_OFFSET_RT_OFFSET				34399
-+#define CDU_REG_PF_SEG1_TYPE_OFFSET_RT_OFFSET				34400
-+#define CDU_REG_PF_SEG2_TYPE_OFFSET_RT_OFFSET				34401
-+#define CDU_REG_PF_SEG3_TYPE_OFFSET_RT_OFFSET				34402
-+#define CDU_REG_PF_FL_SEG0_TYPE_OFFSET_RT_OFFSET			34403
-+#define CDU_REG_PF_FL_SEG1_TYPE_OFFSET_RT_OFFSET			34404
-+#define CDU_REG_PF_FL_SEG2_TYPE_OFFSET_RT_OFFSET			34405
-+#define CDU_REG_PF_FL_SEG3_TYPE_OFFSET_RT_OFFSET			34406
-+#define CDU_REG_VF_SEG_TYPE_OFFSET_RT_OFFSET				34407
-+#define CDU_REG_VF_FL_SEG_TYPE_OFFSET_RT_OFFSET				34408
-+#define PBF_REG_TAG_ETHERTYPE_0_RT_OFFSET				34409
-+#define PBF_REG_BTB_SHARED_AREA_SIZE_RT_OFFSET				34410
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ0_RT_OFFSET			34411
-+#define PBF_REG_BTB_GUARANTEED_VOQ0_RT_OFFSET				34412
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ0_RT_OFFSET			34413
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ1_RT_OFFSET			34414
-+#define PBF_REG_BTB_GUARANTEED_VOQ1_RT_OFFSET				34415
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ1_RT_OFFSET			34416
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ2_RT_OFFSET			34417
-+#define PBF_REG_BTB_GUARANTEED_VOQ2_RT_OFFSET				34418
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ2_RT_OFFSET			34419
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ3_RT_OFFSET			34420
-+#define PBF_REG_BTB_GUARANTEED_VOQ3_RT_OFFSET				34421
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ3_RT_OFFSET			34422
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ4_RT_OFFSET			34423
-+#define PBF_REG_BTB_GUARANTEED_VOQ4_RT_OFFSET				34424
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ4_RT_OFFSET			34425
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ5_RT_OFFSET			34426
-+#define PBF_REG_BTB_GUARANTEED_VOQ5_RT_OFFSET				34427
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ5_RT_OFFSET			34428
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ6_RT_OFFSET			34429
-+#define PBF_REG_BTB_GUARANTEED_VOQ6_RT_OFFSET				34430
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ6_RT_OFFSET			34431
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ7_RT_OFFSET			34432
-+#define PBF_REG_BTB_GUARANTEED_VOQ7_RT_OFFSET				34433
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ7_RT_OFFSET			34434
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ8_RT_OFFSET			34435
-+#define PBF_REG_BTB_GUARANTEED_VOQ8_RT_OFFSET				34436
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ8_RT_OFFSET			34437
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ9_RT_OFFSET			34438
-+#define PBF_REG_BTB_GUARANTEED_VOQ9_RT_OFFSET				34439
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ9_RT_OFFSET			34440
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ10_RT_OFFSET			34441
-+#define PBF_REG_BTB_GUARANTEED_VOQ10_RT_OFFSET				34442
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ10_RT_OFFSET			34443
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ11_RT_OFFSET			34444
-+#define PBF_REG_BTB_GUARANTEED_VOQ11_RT_OFFSET				34445
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ11_RT_OFFSET			34446
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ12_RT_OFFSET			34447
-+#define PBF_REG_BTB_GUARANTEED_VOQ12_RT_OFFSET				34448
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ12_RT_OFFSET			34449
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ13_RT_OFFSET			34450
-+#define PBF_REG_BTB_GUARANTEED_VOQ13_RT_OFFSET				34451
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ13_RT_OFFSET			34452
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ14_RT_OFFSET			34453
-+#define PBF_REG_BTB_GUARANTEED_VOQ14_RT_OFFSET				34454
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ14_RT_OFFSET			34455
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ15_RT_OFFSET			34456
-+#define PBF_REG_BTB_GUARANTEED_VOQ15_RT_OFFSET				34457
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ15_RT_OFFSET			34458
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ16_RT_OFFSET			34459
-+#define PBF_REG_BTB_GUARANTEED_VOQ16_RT_OFFSET				34460
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ16_RT_OFFSET			34461
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ17_RT_OFFSET			34462
-+#define PBF_REG_BTB_GUARANTEED_VOQ17_RT_OFFSET				34463
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ17_RT_OFFSET			34464
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ18_RT_OFFSET			34465
-+#define PBF_REG_BTB_GUARANTEED_VOQ18_RT_OFFSET				34466
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ18_RT_OFFSET			34467
-+#define PBF_REG_YCMD_QS_NUM_LINES_VOQ19_RT_OFFSET			34468
-+#define PBF_REG_BTB_GUARANTEED_VOQ19_RT_OFFSET				34469
-+#define PBF_REG_BTB_SHARED_AREA_SETUP_VOQ19_RT_OFFSET			34470
-+#define XCM_REG_CON_PHY_Q3_RT_OFFSET					34471
+@@ -116,7 +117,7 @@ struct core_ll2_port_stats {
+ 	struct regpair gsi_crcchksm_error;
+ };
+ 
+-/* Ethernet TX Per Queue Stats */
++/* LL2 TX Per Queue Stats */
+ struct core_ll2_pstorm_per_queue_stat {
+ 	struct regpair sent_ucast_bytes;
+ 	struct regpair sent_mcast_bytes;
+@@ -124,13 +125,13 @@ struct core_ll2_pstorm_per_queue_stat {
+ 	struct regpair sent_ucast_pkts;
+ 	struct regpair sent_mcast_pkts;
+ 	struct regpair sent_bcast_pkts;
++	struct regpair error_drop_pkts;
+ };
+ 
+ /* Light-L2 RX Producers in Tstorm RAM */
+ struct core_ll2_rx_prod {
+ 	__le16 bd_prod;
+ 	__le16 cqe_prod;
+-	__le32 reserved;
+ };
+ 
+ struct core_ll2_tstorm_per_queue_stat {
+@@ -147,6 +148,18 @@ struct core_ll2_ustorm_per_queue_stat {
+ 	struct regpair rcv_bcast_pkts;
+ };
+ 
++/* Structure for doorbell data, in PWM mode, for RX producers update. */
++struct core_pwm_prod_update_data {
++	__le16 icid; /* internal CID */
++	u8 reserved0;
++	u8 params;
++#define CORE_PWM_PROD_UPDATE_DATA_AGG_CMD_MASK	  0x3
++#define CORE_PWM_PROD_UPDATE_DATA_AGG_CMD_SHIFT   0
++#define CORE_PWM_PROD_UPDATE_DATA_RESERVED1_MASK  0x3F	/* Set 0 */
++#define CORE_PWM_PROD_UPDATE_DATA_RESERVED1_SHIFT 2
++	struct core_ll2_rx_prod prod; /* Producers */
++};
 +
-+#define RUNTIME_ARRAY_SIZE 34472
- 
- /* Init Callbacks */
- #define DMAE_READY_CB	0
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_init_fw_funcs.c b/drivers/net/ethernet/qlogic/qed/qed_init_fw_funcs.c
-index d6430dfebd83..2307f8842c9e 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_init_fw_funcs.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_init_fw_funcs.c
-@@ -44,9 +44,9 @@
- #define CDU_VALIDATION_DEFAULT_CFG	61
- 
- static u16 con_region_offsets[3][NUM_OF_CONNECTION_TYPES_E4] = {
--	{400, 336, 352, 304, 304, 384, 416, 352},	/* region 3 offsets */
--	{528, 496, 416, 448, 448, 512, 544, 480},	/* region 4 offsets */
--	{608, 544, 496, 512, 576, 592, 624, 560}	/* region 5 offsets */
-+	{400, 336, 352, 368, 304, 384, 416, 352},	/* region 3 offsets */
-+	{528, 496, 416, 512, 448, 512, 544, 480},	/* region 4 offsets */
-+	{608, 544, 496, 576, 576, 592, 624, 560}	/* region 5 offsets */
+ /* Core Ramrod Command IDs (light L2) */
+ enum core_ramrod_cmd_id {
+ 	CORE_RAMROD_UNUSED,
+@@ -156,6 +169,7 @@ enum core_ramrod_cmd_id {
+ 	CORE_RAMROD_TX_QUEUE_STOP,
+ 	CORE_RAMROD_RX_QUEUE_FLUSH,
+ 	CORE_RAMROD_TX_QUEUE_UPDATE,
++	CORE_RAMROD_QUEUE_STATS_QUERY,
+ 	MAX_CORE_RAMROD_CMD_ID
  };
  
- static u16 task_region_offsets[1][NUM_OF_CONNECTION_TYPES_E4] = {
-@@ -228,9 +228,6 @@ static void qed_enable_pf_rl(struct qed_hwfn *p_hwfn, bool pf_rl_en)
- 		STORE_RT_REG(p_hwfn,
- 			     QM_REG_RLPFVOQENABLE_RT_OFFSET,
- 			     (u32)voq_bit_mask);
--		if (num_ext_voqs >= 32)
--			STORE_RT_REG(p_hwfn, QM_REG_RLPFVOQENABLE_MSB_RT_OFFSET,
--				     (u32)(voq_bit_mask >> 32));
+@@ -274,8 +288,11 @@ struct core_rx_start_ramrod_data {
+ 	u8 mf_si_mcast_accept_all;
+ 	struct core_rx_action_on_error action_on_error;
+ 	u8 gsi_offload_flag;
++	u8 vport_id_valid;
++	u8 vport_id;
++	u8 zero_prod_flg;
+ 	u8 wipe_inner_vlan_pri_en;
+-	u8 reserved[5];
++	u8 reserved[2];
+ };
  
- 		/* Write RL period */
- 		STORE_RT_REG(p_hwfn,
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_init_ops.c b/drivers/net/ethernet/qlogic/qed/qed_init_ops.c
-index a868d7f88601..ef22a3596295 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_init_ops.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_init_ops.c
-@@ -54,15 +54,15 @@ static u32 pxp_global_win[] = {
- 	0x1c80, /* win 3: addr=0x1c80000, size=4096 bytes */
- 	0x1d00, /* win 4: addr=0x1d00000, size=4096 bytes */
- 	0x1d01, /* win 5: addr=0x1d01000, size=4096 bytes */
--	0x1d80, /* win 6: addr=0x1d80000, size=4096 bytes */
--	0x1d81, /* win 7: addr=0x1d81000, size=4096 bytes */
--	0x1d82, /* win 8: addr=0x1d82000, size=4096 bytes */
--	0x1e00, /* win 9: addr=0x1e00000, size=4096 bytes */
--	0x1e80, /* win 10: addr=0x1e80000, size=4096 bytes */
--	0x1f00, /* win 11: addr=0x1f00000, size=4096 bytes */
--	0,
--	0,
--	0,
-+	0x1d02, /* win 6: addr=0x1d02000, size=4096 bytes */
-+	0x1d80, /* win 7: addr=0x1d80000, size=4096 bytes */
-+	0x1d81, /* win 8: addr=0x1d81000, size=4096 bytes */
-+	0x1d82, /* win 9: addr=0x1d82000, size=4096 bytes */
-+	0x1e00, /* win 10: addr=0x1e00000, size=4096 bytes */
-+	0x1e01, /* win 11: addr=0x1e01000, size=4096 bytes */
-+	0x1e80, /* win 12: addr=0x1e80000, size=4096 bytes */
-+	0x1f00, /* win 13: addr=0x1f00000, size=4096 bytes */
-+	0x1c08, /* win 14: addr=0x1c08000, size=4096 bytes */
- 	0,
- 	0,
- 	0,
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_reg_addr.h b/drivers/net/ethernet/qlogic/qed/qed_reg_addr.h
-index 60f850c3bdd6..3dcb6ff58e73 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_reg_addr.h
-+++ b/drivers/net/ethernet/qlogic/qed/qed_reg_addr.h
-@@ -178,6 +178,8 @@
- 	0x008c80UL
- #define  MCP_REG_SCRATCH	\
- 	0xe20000UL
-+#define MCP_REG_SCRATCH_SIZE \
-+	57344
- #define  CNIG_REG_NW_PORT_MODE_BB \
- 	0x218200UL
- #define  MISCS_REG_CHIP_NUM \
-@@ -212,6 +214,8 @@
- 	0x580900UL
- #define  DBG_REG_CLIENT_ENABLE \
- 	0x010004UL
-+#define DBG_REG_TIMESTAMP_VALID_EN \
-+	0x010b58UL
- #define  DMAE_REG_INIT \
- 	0x00c000UL
- #define  DORQ_REG_IFEN \
-@@ -350,6 +354,10 @@
- 	0x24000cUL
- #define PSWRQ2_REG_ILT_MEMORY \
- 	0x260000UL
-+#define PSWRQ2_REG_ILT_MEMORY_SIZE_BB \
-+	15200
-+#define PSWRQ2_REG_ILT_MEMORY_SIZE_K2 \
-+	22000
- #define  PSWHST_REG_DISCARD_INTERNAL_WRITES \
- 	0x2a0040UL
- #define  PSWHST2_REG_DBGSYN_ALMOST_FULL_THR \
-@@ -1453,6 +1461,8 @@
- 	0x1401404UL
- #define XSEM_REG_DBG_FRAME_MODE_BB_K2	\
- 	0x1401408UL
-+#define XSEM_REG_DBG_GPRE_VECT \
-+	0x1401410UL
- #define XSEM_REG_DBG_MODE1_CFG_BB_K2 \
- 	0x1401420UL
- #define XSEM_REG_FAST_MEMORY \
-@@ -1465,6 +1475,8 @@
- 	0x1501404UL
- #define YSEM_REG_DBG_FRAME_MODE_BB_K2	\
- 	0x1501408UL
-+#define YSEM_REG_DBG_GPRE_VECT \
-+	0x1501410UL
- #define YSEM_REG_DBG_MODE1_CFG_BB_K2 \
- 	0x1501420UL
- #define YSEM_REG_FAST_MEMORY \
-@@ -1479,6 +1491,8 @@
- 	0x1601404UL
- #define PSEM_REG_DBG_FRAME_MODE_BB_K2	\
- 	0x1601408UL
-+#define PSEM_REG_DBG_GPRE_VECT \
-+	0x1601410UL
- #define PSEM_REG_DBG_MODE1_CFG_BB_K2 \
- 	0x1601420UL
- #define PSEM_REG_FAST_MEMORY \
-@@ -1493,6 +1507,8 @@
- 	0x1701404UL
- #define TSEM_REG_DBG_FRAME_MODE_BB_K2	\
- 	0x1701408UL
-+#define TSEM_REG_DBG_GPRE_VECT \
-+	0x1701410UL
- #define TSEM_REG_DBG_MODE1_CFG_BB_K2 \
- 	0x1701420UL
- #define TSEM_REG_FAST_MEMORY \
-@@ -1507,12 +1523,16 @@
- 	0x1801404UL
- #define MSEM_REG_DBG_FRAME_MODE_BB_K2	\
- 	0x1801408UL
-+#define MSEM_REG_DBG_GPRE_VECT \
-+	0x1801410UL
- #define MSEM_REG_DBG_MODE1_CFG_BB_K2 \
- 	0x1801420UL
- #define MSEM_REG_FAST_MEMORY \
- 	0x1840000UL
- #define USEM_REG_SLOW_DBG_EMPTY_BB_K2	\
- 	0x1901140UL
-+#define SEM_FAST_REG_INT_RAM_SIZE \
-+	20480
- #define USEM_REG_SYNC_DBG_EMPTY	\
- 	0x1901160UL
- #define USEM_REG_SLOW_DBG_ACTIVE_BB_K2 \
-@@ -1521,14 +1541,26 @@
- 	0x1901404UL
- #define USEM_REG_DBG_FRAME_MODE_BB_K2	\
- 	0x1901408UL
-+#define USEM_REG_DBG_GPRE_VECT \
-+	0x1901410UL
- #define USEM_REG_DBG_MODE1_CFG_BB_K2 \
- 	0x1901420UL
- #define USEM_REG_FAST_MEMORY \
- 	0x1940000UL
-+#define SEM_FAST_REG_DBG_MODE23_SRC_DISABLE \
-+	0x000748UL
-+#define SEM_FAST_REG_DBG_MODE4_SRC_DISABLE \
-+	0x00074cUL
-+#define SEM_FAST_REG_DBG_MODE6_SRC_DISABLE \
-+	0x000750UL
-+#define SEM_FAST_REG_DEBUG_ACTIVE \
-+	0x000740UL
- #define SEM_FAST_REG_INT_RAM \
- 	0x020000UL
- #define SEM_FAST_REG_INT_RAM_SIZE_BB_K2 \
- 	20480
-+#define SEM_FAST_REG_RECORD_FILTER_ENABLE \
-+	0x000768UL
- #define GRC_REG_TRACE_FIFO_VALID_DATA \
- 	0x050064UL
- #define GRC_REG_NUMBER_VALID_OVERRIDE_WINDOW \
-@@ -1583,14 +1615,20 @@
- 	0x181530UL
- #define DBG_REG_DBG_BLOCK_ON \
- 	0x010454UL
-+#define DBG_REG_FILTER_ENABLE \
-+	0x0109d0UL
- #define DBG_REG_FRAMING_MODE \
- 	0x010058UL
-+#define DBG_REG_TRIGGER_ENABLE \
-+	0x01054cUL
- #define SEM_FAST_REG_VFC_DATA_WR \
- 	0x000b40UL
- #define SEM_FAST_REG_VFC_ADDR \
- 	0x000b44UL
- #define SEM_FAST_REG_VFC_DATA_RD \
- 	0x000b48UL
-+#define SEM_FAST_REG_VFC_STATUS	\
-+	0x000b4cUL
- #define RSS_REG_RSS_RAM_DATA \
- 	0x238c20UL
- #define RSS_REG_RSS_RAM_DATA_SIZE \
+ /* Ramrod data for rx queue stop ramrod */
+@@ -352,8 +369,11 @@ struct core_tx_start_ramrod_data {
+ 	__le16 pbl_size;
+ 	__le16 qm_pq_id;
+ 	u8 gsi_offload_flag;
++	u8 ctx_stats_en;
++	u8 vport_id_valid;
+ 	u8 vport_id;
+-	u8 resrved[2];
++	u8 enforce_security_flag;
++	u8 reserved[7];
+ };
+ 
+ /* Ramrod data for tx queue stop ramrod */
+@@ -761,7 +781,7 @@ struct e4_tstorm_core_conn_ag_ctx {
+ 	__le16 word1;
+ 	__le16 word2;
+ 	__le16 word3;
+-	__le32 reg9;
++	__le32 ll2_rx_prod;
+ 	__le32 reg10;
+ };
+ 
+@@ -844,6 +864,11 @@ struct ustorm_core_conn_st_ctx {
+ 	__le32 reserved[4];
+ };
+ 
++/* The core storm context for the Tstorm */
++struct tstorm_core_conn_st_ctx {
++	__le32 reserved[4];
++};
++
+ /* core connection context */
+ struct e4_core_conn_context {
+ 	struct ystorm_core_conn_st_ctx ystorm_st_context;
+@@ -857,6 +882,8 @@ struct e4_core_conn_context {
+ 	struct mstorm_core_conn_st_ctx mstorm_st_context;
+ 	struct ustorm_core_conn_st_ctx ustorm_st_context;
+ 	struct regpair ustorm_st_padding[2];
++	struct tstorm_core_conn_st_ctx tstorm_st_context;
++	struct regpair tstorm_st_padding[2];
+ };
+ 
+ struct eth_mstorm_per_pf_stat {
+@@ -12484,6 +12511,11 @@ enum resource_id_enum {
+ 	RESOURCE_LL2_QUEUE_E = 15,
+ 	RESOURCE_RDMA_STATS_QUEUE_E = 16,
+ 	RESOURCE_BDQ_E = 17,
++	RESOURCE_QCN_E = 18,
++	RESOURCE_LLH_FILTER_E = 19,
++	RESOURCE_VF_MAC_ADDR = 20,
++	RESOURCE_LL2_CQS_E = 21,
++	RESOURCE_VF_CNQS = 22,
+ 	RESOURCE_MAX_NUM,
+ 	RESOURCE_NUM_INVALID = 0xFFFFFFFF
+ };
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_iscsi.c b/drivers/net/ethernet/qlogic/qed/qed_iscsi.c
+index 5585c18053ec..8ee668d66b4b 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_iscsi.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_iscsi.c
+@@ -213,8 +213,9 @@ qed_sp_iscsi_func_start(struct qed_hwfn *p_hwfn,
+ 	p_init->num_sq_pages_in_ring = p_params->num_sq_pages_in_ring;
+ 	p_init->num_r2tq_pages_in_ring = p_params->num_r2tq_pages_in_ring;
+ 	p_init->num_uhq_pages_in_ring = p_params->num_uhq_pages_in_ring;
+-	p_init->ll2_rx_queue_id = p_hwfn->hw_info.resc_start[QED_LL2_QUEUE] +
+-				  p_params->ll2_ooo_queue_id;
++	p_init->ll2_rx_queue_id =
++	    p_hwfn->hw_info.resc_start[QED_LL2_RAM_QUEUE] +
++	    p_params->ll2_ooo_queue_id;
+ 
+ 	p_init->func_params.log_page_size = p_params->log_page_size;
+ 	val = p_params->num_tasks;
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
+index 65ec16a31658..d2fe61a5cf56 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
+@@ -137,8 +137,8 @@ qed_iwarp_init_fw_ramrod(struct qed_hwfn *p_hwfn,
+ 			 struct iwarp_init_func_ramrod_data *p_ramrod)
+ {
+ 	p_ramrod->iwarp.ll2_ooo_q_index =
+-		RESC_START(p_hwfn, QED_LL2_QUEUE) +
+-		p_hwfn->p_rdma_info->iwarp.ll2_ooo_handle;
++	    RESC_START(p_hwfn, QED_LL2_RAM_QUEUE) +
++	    p_hwfn->p_rdma_info->iwarp.ll2_ooo_handle;
+ 
+ 	p_ramrod->tcp.max_fin_rt = QED_IWARP_MAX_FIN_RT_DEFAULT;
+ 
+@@ -2651,6 +2651,8 @@ qed_iwarp_ll2_start(struct qed_hwfn *p_hwfn,
+ 
+ 	memset(&data, 0, sizeof(data));
+ 	data.input.conn_type = QED_LL2_TYPE_IWARP;
++	/* SYN will use ctx based queues */
++	data.input.rx_conn_type = QED_LL2_RX_TYPE_CTX;
+ 	data.input.mtu = params->max_mtu;
+ 	data.input.rx_num_desc = QED_IWARP_LL2_SYN_RX_SIZE;
+ 	data.input.tx_num_desc = QED_IWARP_LL2_SYN_TX_SIZE;
+@@ -2683,6 +2685,8 @@ qed_iwarp_ll2_start(struct qed_hwfn *p_hwfn,
+ 
+ 	/* Start OOO connection */
+ 	data.input.conn_type = QED_LL2_TYPE_OOO;
++	/* OOO/unaligned will use legacy ll2 queues (ram based) */
++	data.input.rx_conn_type = QED_LL2_RX_TYPE_LEGACY;
+ 	data.input.mtu = params->max_mtu;
+ 
+ 	n_ooo_bufs = (QED_IWARP_MAX_OOO * rcv_wnd_size) /
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_ll2.c b/drivers/net/ethernet/qlogic/qed/qed_ll2.c
+index 19a1a58d60f8..037e5978787e 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_ll2.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_ll2.c
+@@ -962,7 +962,7 @@ static int qed_sp_ll2_rx_queue_start(struct qed_hwfn *p_hwfn,
+ 		return rc;
+ 
+ 	p_ramrod = &p_ent->ramrod.core_rx_queue_start;
+-
++	memset(p_ramrod, 0, sizeof(*p_ramrod));
+ 	p_ramrod->sb_id = cpu_to_le16(qed_int_get_sp_sb_id(p_hwfn));
+ 	p_ramrod->sb_index = p_rx->rx_sb_index;
+ 	p_ramrod->complete_event_flg = 1;
+@@ -996,6 +996,8 @@ static int qed_sp_ll2_rx_queue_start(struct qed_hwfn *p_hwfn,
+ 
+ 	p_ramrod->action_on_error.error_type = action_on_error;
+ 	p_ramrod->gsi_offload_flag = p_ll2_conn->input.gsi_enable;
++	p_ramrod->zero_prod_flg = 1;
++
+ 	return qed_spq_post(p_hwfn, p_ent, NULL);
+ }
+ 
+@@ -1317,6 +1319,25 @@ qed_ll2_set_cbs(struct qed_ll2_info *p_ll2_info, const struct qed_ll2_cbs *cbs)
+ 	return 0;
+ }
+ 
++static void _qed_ll2_calc_allowed_conns(struct qed_hwfn *p_hwfn,
++					struct qed_ll2_acquire_data *data,
++					u8 *start_idx, u8 *last_idx)
++{
++	/* LL2 queues handles will be split as follows:
++	 * First will be the legacy queues, and then the ctx based.
++	 */
++	if (data->input.rx_conn_type == QED_LL2_RX_TYPE_LEGACY) {
++		*start_idx = QED_LL2_LEGACY_CONN_BASE_PF;
++		*last_idx = *start_idx +
++			QED_MAX_NUM_OF_LEGACY_LL2_CONNS_PF;
++	} else {
++		/* QED_LL2_RX_TYPE_CTX */
++		*start_idx = QED_LL2_CTX_CONN_BASE_PF;
++		*last_idx = *start_idx +
++			QED_MAX_NUM_OF_CTX_LL2_CONNS_PF;
++	}
++}
++
+ static enum core_error_handle
+ qed_ll2_get_error_choice(enum qed_ll2_error_handle err)
+ {
+@@ -1337,14 +1358,16 @@ int qed_ll2_acquire_connection(void *cxt, struct qed_ll2_acquire_data *data)
+ 	struct qed_hwfn *p_hwfn = cxt;
+ 	qed_int_comp_cb_t comp_rx_cb, comp_tx_cb;
+ 	struct qed_ll2_info *p_ll2_info = NULL;
+-	u8 i, *p_tx_max;
++	u8 i, first_idx, last_idx, *p_tx_max;
+ 	int rc;
+ 
+ 	if (!data->p_connection_handle || !p_hwfn->p_ll2_info)
+ 		return -EINVAL;
+ 
++	_qed_ll2_calc_allowed_conns(p_hwfn, data, &first_idx, &last_idx);
++
+ 	/* Find a free connection to be used */
+-	for (i = 0; (i < QED_MAX_NUM_OF_LL2_CONNECTIONS); i++) {
++	for (i = first_idx; i < last_idx; i++) {
+ 		mutex_lock(&p_hwfn->p_ll2_info[i].mutex);
+ 		if (p_hwfn->p_ll2_info[i].b_active) {
+ 			mutex_unlock(&p_hwfn->p_ll2_info[i].mutex);
+@@ -1448,6 +1471,7 @@ static int qed_ll2_establish_connection_rx(struct qed_hwfn *p_hwfn,
+ 	enum qed_ll2_error_handle error_input;
+ 	enum core_error_handle error_mode;
+ 	u8 action_on_error = 0;
++	int rc;
+ 
+ 	if (!QED_LL2_RX_REGISTERED(p_ll2_conn))
+ 		return 0;
+@@ -1461,7 +1485,18 @@ static int qed_ll2_establish_connection_rx(struct qed_hwfn *p_hwfn,
+ 	error_mode = qed_ll2_get_error_choice(error_input);
+ 	SET_FIELD(action_on_error, CORE_RX_ACTION_ON_ERROR_NO_BUFF, error_mode);
+ 
+-	return qed_sp_ll2_rx_queue_start(p_hwfn, p_ll2_conn, action_on_error);
++	rc = qed_sp_ll2_rx_queue_start(p_hwfn, p_ll2_conn, action_on_error);
++	if (rc)
++		return rc;
++
++	if (p_ll2_conn->rx_queue.ctx_based) {
++		rc = qed_db_recovery_add(p_hwfn->cdev,
++					 p_ll2_conn->rx_queue.set_prod_addr,
++					 &p_ll2_conn->rx_queue.db_data,
++					 DB_REC_WIDTH_64B, DB_REC_KERNEL);
++	}
++
++	return rc;
+ }
+ 
+ static void
+@@ -1475,13 +1510,41 @@ qed_ll2_establish_connection_ooo(struct qed_hwfn *p_hwfn,
+ 	qed_ooo_submit_rx_buffers(p_hwfn, p_ll2_conn);
+ }
+ 
++static inline u8 qed_ll2_handle_to_queue_id(struct qed_hwfn *p_hwfn,
++					    u8 handle,
++					    u8 ll2_queue_type)
++{
++	u8 qid;
++
++	if (ll2_queue_type == QED_LL2_RX_TYPE_LEGACY)
++		return p_hwfn->hw_info.resc_start[QED_LL2_RAM_QUEUE] + handle;
++
++	/* QED_LL2_RX_TYPE_CTX
++	 * FW distinguishes between the legacy queues (ram based) and the
++	 * ctx based queues by the queue_id.
++	 * The first MAX_NUM_LL2_RX_RAM_QUEUES queues are legacy
++	 * and the queue ids above that are ctx base.
++	 */
++	qid = p_hwfn->hw_info.resc_start[QED_LL2_CTX_QUEUE] +
++	      MAX_NUM_LL2_RX_RAM_QUEUES;
++
++	/* See comment on the acquire connection for how the ll2
++	 * queues handles are divided.
++	 */
++	qid += (handle - QED_MAX_NUM_OF_LEGACY_LL2_CONNS_PF);
++
++	return qid;
++}
++
+ int qed_ll2_establish_connection(void *cxt, u8 connection_handle)
+ {
+-	struct qed_hwfn *p_hwfn = cxt;
+-	struct qed_ll2_info *p_ll2_conn;
++	struct e4_core_conn_context *p_cxt;
+ 	struct qed_ll2_tx_packet *p_pkt;
++	struct qed_ll2_info *p_ll2_conn;
++	struct qed_hwfn *p_hwfn = cxt;
+ 	struct qed_ll2_rx_queue *p_rx;
+ 	struct qed_ll2_tx_queue *p_tx;
++	struct qed_cxt_info cxt_info;
+ 	struct qed_ptt *p_ptt;
+ 	int rc = -EINVAL;
+ 	u32 i, capacity;
+@@ -1539,13 +1602,46 @@ int qed_ll2_establish_connection(void *cxt, u8 connection_handle)
+ 	rc = qed_cxt_acquire_cid(p_hwfn, PROTOCOLID_CORE, &p_ll2_conn->cid);
+ 	if (rc)
+ 		goto out;
++	cxt_info.iid = p_ll2_conn->cid;
++	rc = qed_cxt_get_cid_info(p_hwfn, &cxt_info);
++	if (rc) {
++		DP_NOTICE(p_hwfn, "Cannot find context info for cid=%d\n",
++			  p_ll2_conn->cid);
++		goto out;
++	}
++
++	p_cxt = cxt_info.p_cxt;
++
++	memset(p_cxt, 0, sizeof(*p_cxt));
+ 
+-	qid = p_hwfn->hw_info.resc_start[QED_LL2_QUEUE] + connection_handle;
++	qid = qed_ll2_handle_to_queue_id(p_hwfn, connection_handle,
++					 p_ll2_conn->input.rx_conn_type);
+ 	p_ll2_conn->queue_id = qid;
+ 	p_ll2_conn->tx_stats_id = qid;
+-	p_rx->set_prod_addr = (u8 __iomem *)p_hwfn->regview +
+-					    GTT_BAR0_MAP_REG_TSDM_RAM +
+-					    TSTORM_LL2_RX_PRODS_OFFSET(qid);
++
++	DP_VERBOSE(p_hwfn, QED_MSG_LL2,
++		   "Establishing ll2 queue. PF %d ctx_based=%d abs qid=%d\n",
++		   p_hwfn->rel_pf_id, p_ll2_conn->input.rx_conn_type, qid);
++
++	if (p_ll2_conn->input.rx_conn_type == QED_LL2_RX_TYPE_LEGACY) {
++		p_rx->set_prod_addr = p_hwfn->regview +
++		    GTT_BAR0_MAP_REG_TSDM_RAM + TSTORM_LL2_RX_PRODS_OFFSET(qid);
++	} else {
++		/* QED_LL2_RX_TYPE_CTX - using doorbell */
++		p_rx->ctx_based = 1;
++
++		p_rx->set_prod_addr = p_hwfn->doorbells +
++			p_hwfn->dpi_start_offset +
++			DB_ADDR_SHIFT(DQ_PWM_OFFSET_TCM_LL2_PROD_UPDATE);
++
++		/* prepare db data */
++		p_rx->db_data.icid = cpu_to_le16((u16)p_ll2_conn->cid);
++		SET_FIELD(p_rx->db_data.params,
++			  CORE_PWM_PROD_UPDATE_DATA_AGG_CMD, DB_AGG_CMD_SET);
++		SET_FIELD(p_rx->db_data.params,
++			  CORE_PWM_PROD_UPDATE_DATA_RESERVED1, 0);
++	}
++
+ 	p_tx->doorbell_addr = (u8 __iomem *)p_hwfn->doorbells +
+ 					    qed_db_addr(p_ll2_conn->cid,
+ 							DQ_DEMS_LEGACY);
+@@ -1556,7 +1652,6 @@ int qed_ll2_establish_connection(void *cxt, u8 connection_handle)
+ 		  DQ_XCM_CORE_TX_BD_PROD_CMD);
+ 	p_tx->db_msg.agg_flags = DQ_XCM_CORE_DQ_CF_CMD;
+ 
+-
+ 	rc = qed_ll2_establish_connection_rx(p_hwfn, p_ll2_conn);
+ 	if (rc)
+ 		goto out;
+@@ -1590,7 +1685,7 @@ static void qed_ll2_post_rx_buffer_notify_fw(struct qed_hwfn *p_hwfn,
+ 					     struct qed_ll2_rx_packet *p_curp)
+ {
+ 	struct qed_ll2_rx_packet *p_posting_packet = NULL;
+-	struct core_ll2_rx_prod rx_prod = { 0, 0, 0 };
++	struct core_ll2_rx_prod rx_prod = { 0, 0 };
+ 	bool b_notify_fw = false;
+ 	u16 bd_prod, cq_prod;
+ 
+@@ -1615,13 +1710,27 @@ static void qed_ll2_post_rx_buffer_notify_fw(struct qed_hwfn *p_hwfn,
+ 
+ 	bd_prod = qed_chain_get_prod_idx(&p_rx->rxq_chain);
+ 	cq_prod = qed_chain_get_prod_idx(&p_rx->rcq_chain);
+-	rx_prod.bd_prod = cpu_to_le16(bd_prod);
+-	rx_prod.cqe_prod = cpu_to_le16(cq_prod);
++	if (p_rx->ctx_based) {
++		/* update producer by giving a doorbell */
++		p_rx->db_data.prod.bd_prod = cpu_to_le16(bd_prod);
++		p_rx->db_data.prod.cqe_prod = cpu_to_le16(cq_prod);
++		/* Make sure chain element is updated before ringing the
++		 * doorbell
++		 */
++		dma_wmb();
++		DIRECT_REG_WR64(p_rx->set_prod_addr,
++				*((u64 *)&p_rx->db_data));
++	} else {
++		rx_prod.bd_prod = cpu_to_le16(bd_prod);
++		rx_prod.cqe_prod = cpu_to_le16(cq_prod);
+ 
+-	/* Make sure chain element is updated before ringing the doorbell */
+-	dma_wmb();
++		/* Make sure chain element is updated before ringing the
++		 * doorbell
++		 */
++		dma_wmb();
+ 
+-	DIRECT_REG_WR(p_rx->set_prod_addr, *((u32 *)&rx_prod));
++		DIRECT_REG_WR(p_rx->set_prod_addr, *((u32 *)&rx_prod));
++	}
+ }
+ 
+ int qed_ll2_post_rx_buffer(void *cxt,
+@@ -1965,6 +2074,12 @@ int qed_ll2_terminate_connection(void *cxt, u8 connection_handle)
+ 	if (QED_LL2_RX_REGISTERED(p_ll2_conn)) {
+ 		p_ll2_conn->rx_queue.b_cb_registered = false;
+ 		smp_wmb(); /* Make sure this is seen by ll2_lb_rxq_completion */
++
++		if (p_ll2_conn->rx_queue.ctx_based)
++			qed_db_recovery_del(p_hwfn->cdev,
++					    p_ll2_conn->rx_queue.set_prod_addr,
++					    &p_ll2_conn->rx_queue.db_data);
++
+ 		rc = qed_sp_ll2_rx_queue_stop(p_hwfn, p_ll2_conn);
+ 		if (rc)
+ 			goto out;
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_ll2.h b/drivers/net/ethernet/qlogic/qed/qed_ll2.h
+index 5f01fbd3c073..288642d526b7 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_ll2.h
++++ b/drivers/net/ethernet/qlogic/qed/qed_ll2.h
+@@ -46,6 +46,18 @@
+ #include "qed_sp.h"
+ 
+ #define QED_MAX_NUM_OF_LL2_CONNECTIONS                    (4)
++/* LL2 queues handles will be split as follows:
++ * first will be legacy queues, and then the ctx based queues.
++ */
++#define QED_MAX_NUM_OF_LL2_CONNS_PF            (4)
++#define QED_MAX_NUM_OF_LEGACY_LL2_CONNS_PF   (3)
++
++#define QED_MAX_NUM_OF_CTX_LL2_CONNS_PF	\
++	(QED_MAX_NUM_OF_LL2_CONNS_PF - QED_MAX_NUM_OF_LEGACY_LL2_CONNS_PF)
++
++#define QED_LL2_LEGACY_CONN_BASE_PF     0
++#define QED_LL2_CTX_CONN_BASE_PF        QED_MAX_NUM_OF_LEGACY_LL2_CONNS_PF
++
+ 
+ struct qed_ll2_rx_packet {
+ 	struct list_head list_entry;
+@@ -79,6 +91,7 @@ struct qed_ll2_rx_queue {
+ 	struct qed_chain rxq_chain;
+ 	struct qed_chain rcq_chain;
+ 	u8 rx_sb_index;
++	u8 ctx_based;
+ 	bool b_cb_registered;
+ 	__le16 *p_fw_cons;
+ 	struct list_head active_descq;
+@@ -86,6 +99,7 @@ struct qed_ll2_rx_queue {
+ 	struct list_head posting_descq;
+ 	struct qed_ll2_rx_packet *descq_array;
+ 	void __iomem *set_prod_addr;
++	struct core_pwm_prod_update_data db_data;
+ };
+ 
+ struct qed_ll2_tx_queue {
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_mcp.c b/drivers/net/ethernet/qlogic/qed/qed_mcp.c
+index 36ddb89856a8..aeac359941de 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_mcp.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_mcp.c
+@@ -3261,9 +3261,12 @@ static enum resource_id_enum qed_mcp_get_mfw_res_id(enum qed_resources res_id)
+ 	case QED_ILT:
+ 		mfw_res_id = RESOURCE_ILT_E;
+ 		break;
+-	case QED_LL2_QUEUE:
++	case QED_LL2_RAM_QUEUE:
+ 		mfw_res_id = RESOURCE_LL2_QUEUE_E;
+ 		break;
++	case QED_LL2_CTX_QUEUE:
++		mfw_res_id = RESOURCE_LL2_CQS_E;
++		break;
+ 	case QED_RDMA_CNQ_RAM:
+ 	case QED_CMDQS_CQS:
+ 		/* CNQ/CMDQS are the same resource */
+diff --git a/include/linux/qed/common_hsi.h b/include/linux/qed/common_hsi.h
+index 03f59a28fefd..358566f1ff64 100644
+--- a/include/linux/qed/common_hsi.h
++++ b/include/linux/qed/common_hsi.h
+@@ -105,8 +105,15 @@
+ 
+ #define CORE_SPQE_PAGE_SIZE_BYTES	4096
+ 
+-#define MAX_NUM_LL2_RX_QUEUES		48
+-#define MAX_NUM_LL2_TX_STATS_COUNTERS	48
++/* Number of LL2 RAM based queues */
++#define MAX_NUM_LL2_RX_RAM_QUEUES 32
++
++/* Number of LL2 context based queues */
++#define MAX_NUM_LL2_RX_CTX_QUEUES 208
++#define MAX_NUM_LL2_RX_QUEUES \
++	(MAX_NUM_LL2_RX_RAM_QUEUES + MAX_NUM_LL2_RX_CTX_QUEUES)
++
++#define MAX_NUM_LL2_TX_STATS_COUNTERS  48
+ 
+ #define FW_MAJOR_VERSION	8
+ #define FW_MINOR_VERSION        37
+@@ -340,6 +347,10 @@
+ #define DQ_PWM_OFFSET_TCM_ROCE_RQ_PROD		(DQ_PWM_OFFSET_TCM16_BASE + 1)
+ #define DQ_PWM_OFFSET_TCM_IWARP_RQ_PROD		(DQ_PWM_OFFSET_TCM16_BASE + 3)
+ 
++/* DQ_DEMS_AGG_VAL_BASE */
++#define DQ_PWM_OFFSET_TCM_LL2_PROD_UPDATE \
++	(DQ_PWM_OFFSET_TCM32_BASE + DQ_TCM_AGG_VAL_SEL_REG9 - 4)
++
+ #define	DQ_REGION_SHIFT			(12)
+ 
+ /* DPM */
+diff --git a/include/linux/qed/qed_if.h b/include/linux/qed/qed_if.h
+index b5db1ee96d78..9bcb2f419004 100644
+--- a/include/linux/qed/qed_if.h
++++ b/include/linux/qed/qed_if.h
+@@ -463,7 +463,7 @@ enum qed_db_rec_space {
+ 
+ #define DIRECT_REG_RD(reg_addr) readl((void __iomem *)(reg_addr))
+ 
+-#define DIRECT_REG_WR64(reg_addr, val) writeq((u32)val,	\
++#define DIRECT_REG_WR64(reg_addr, val) writeq((u64)val,	\
+ 					      (void __iomem *)(reg_addr))
+ 
+ #define QED_COALESCE_MAX 0x1FF
+@@ -1177,6 +1177,8 @@ struct qed_common_ops {
+ #define GET_FIELD(value, name) \
+ 	(((value) >> (name ## _SHIFT)) & name ## _MASK)
+ 
++#define DB_ADDR_SHIFT(addr) ((addr) << DB_PWM_ADDR_OFFSET_SHIFT)
++
+ /* Debug print definitions */
+ #define DP_ERR(cdev, fmt, ...)					\
+ 	do {							\
+diff --git a/include/linux/qed/qed_ll2_if.h b/include/linux/qed/qed_ll2_if.h
+index 5eb022953aca..1313c34d9a68 100644
+--- a/include/linux/qed/qed_ll2_if.h
++++ b/include/linux/qed/qed_ll2_if.h
+@@ -52,6 +52,12 @@ enum qed_ll2_conn_type {
+ 	QED_LL2_TYPE_ROCE,
+ 	QED_LL2_TYPE_IWARP,
+ 	QED_LL2_TYPE_RESERVED3,
++	MAX_QED_LL2_CONN_TYPE
++};
++
++enum qed_ll2_rx_conn_type {
++	QED_LL2_RX_TYPE_LEGACY,
++	QED_LL2_RX_TYPE_CTX,
+ 	MAX_QED_LL2_RX_CONN_TYPE
+ };
+ 
+@@ -165,6 +171,7 @@ struct qed_ll2_cbs {
+ };
+ 
+ struct qed_ll2_acquire_data_inputs {
++	enum qed_ll2_rx_conn_type rx_conn_type;
+ 	enum qed_ll2_conn_type conn_type;
+ 	u16 mtu;
+ 	u16 rx_num_desc;
 -- 
 2.14.5
 
