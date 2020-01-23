@@ -2,91 +2,70 @@ Return-Path: <SRS0=WZnQ=3M=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C3ADC2D0DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jan 2020 14:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99920C2D0DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jan 2020 15:18:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1717F21569
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jan 2020 14:54:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579791287;
-	bh=SMQMIxOGkoJUC2jpo2BoAyASSVdtjj0htnHzSnpDQcw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=gtLdY2OSfJFj8DebKcfayf2Gn17g3gUoS4InvlCFZKYLmDP9fVVTKM9u2SOk20ZDw
-	 nClCG4zMzf7UEopInGGKZxncRA4GyJDj7yjY16laQTvxe23bZuAeoAe3KWwQqx9B2g
-	 S0Js0V6fCM7cZNtbM61EQn06QqKe4zC58jKdN9TQ=
+	by mail.kernel.org (Postfix) with ESMTP id 4155621835
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jan 2020 15:18:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=wp.pl header.i=@wp.pl header.b="nZ9u77Zk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726811AbgAWOyq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Jan 2020 09:54:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57210 "EHLO mail.kernel.org"
+        id S1726968AbgAWPSN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Jan 2020 10:18:13 -0500
+Received: from mx3.wp.pl ([212.77.101.9]:50015 "EHLO mx3.wp.pl"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727307AbgAWOyq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Jan 2020 09:54:46 -0500
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4534A21569;
-        Thu, 23 Jan 2020 14:54:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579791285;
-        bh=SMQMIxOGkoJUC2jpo2BoAyASSVdtjj0htnHzSnpDQcw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=e8Vqy0Wq0SzcDCnhQBfcUpJ/vgm1Khhb6Dv0xkSNdcW1kk5TgInJKqNPm9ZsRZqcd
-         D/1k6AuyC87dALd/gcjez/q6smjJ71cMAyj4vk4f71lW3u/r8JUymR8Ap3MfP5gH6k
-         HrNXyPE0S3RaDkDz4mizG7DjT+cPnAFBQ+oX2r4Y=
-Date:   Thu, 23 Jan 2020 16:54:42 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     "David S . Miller" <davem@davemloft.net>,
+        id S1726232AbgAWPSN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 23 Jan 2020 10:18:13 -0500
+Received: (wp-smtpd smtp.wp.pl 1361 invoked from network); 23 Jan 2020 16:18:10 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wp.pl; s=1024a;
+          t=1579792690; bh=HVebdqs4jjVJLiwEy7GWNt82L4WsqWx3d6tHegSCug0=;
+          h=Subject:To:CC:From;
+          b=nZ9u77Zk0CgC8gYFwBOLt5WyALlx2Q0aTTDjGlVjEk6erf8aUgyX/KaO552nYpWTt
+           /3JJj7/o9AlfQa46sk3QmN5qVacvyLjVDPTMHIDpAPPP1swYTTu9uu3C8MImWJQUM7
+           AZzOKKDuPqQShfv355bUdrZ1ZbT9mBGKw9Y2t1D8=
+Received: from unknown (HELO [IPv6:2607:fb90:4a9:9af8:7bb0:36a1:c5f0:bff9]) (kubakici@wp.pl@[172.58.38.244])
+          (envelope-sender <kubakici@wp.pl>)
+          by smtp.wp.pl (WP-SMTPD) with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP
+          for <leon@kernel.org>; 23 Jan 2020 16:18:10 +0100
+Date:   Thu, 23 Jan 2020 07:17:54 -0800
+User-Agent: K-9 Mail for Android
+In-Reply-To: <20200123145442.GP7018@unreal>
+References: <20200123130541.30473-1-leon@kernel.org> <20200123064006.2012fb0b@cakuba> <20200123145442.GP7018@unreal>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH net-next] net/core: Replace driver version to be kernel version
+To:     Leon Romanovsky <leon@kernel.org>, Jakub Kicinski <kuba@kernel.org>
+CC:     "David S . Miller" <davem@davemloft.net>,
         Michal Kalderon <michal.kalderon@marvell.com>,
         linux-netdev <netdev@vger.kernel.org>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH net-next] net/core: Replace driver version to be kernel
- version
-Message-ID: <20200123145442.GP7018@unreal>
-References: <20200123130541.30473-1-leon@kernel.org>
- <20200123064006.2012fb0b@cakuba>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200123064006.2012fb0b@cakuba>
+From:   Jakub Kicinski <kubakici@wp.pl>
+Message-ID: <035D6EB1-B1CB-4285-97F8-534B10D9C01E@wp.pl>
+X-WP-MailID: f9657610267c0eccae14476658ee131e
+X-WP-AV: skaner antywirusowy Poczty Wirtualnej Polski
+X-WP-SPAM: NO 0000000 [AROy]                               
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 23, 2020 at 06:40:06AM -0800, Jakub Kicinski wrote:
-> On Thu, 23 Jan 2020 15:05:41 +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > In order to stop useless driver version bumps and unify output
-> > presented by ethtool -i, let's overwrite the version string.
-> >
-> > Before this change:
-> > [leonro@erver ~]$ ethtool -i eth0
-> > driver: virtio_net
-> > version: 1.0.0
-> > After this change:
-> > [leonro@server ~]$ ethtool -i eth0
-> > driver: virtio_net
-> > version: 5.5.0-rc6+
-> >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+
+
+On January 23, 2020 6:54:42 AM PST, Leon Romanovsky <leon@kernel=2Eorg> wr=
+ote:
+>> Anyway, you gotta rebase on net-next, the ethtool code got moved
+>around
+>> :)
 >
-> I wonder how hard it would be to tell Coccinelle to remove all prints
-> in the drivers.  Removing related defines would probably be a little
-> painful/manual. Hm..
+>I tried it now and It applies cleanly on top of commit
+>6d9f6e6790e7 Merge branch
+>'net-sched-add-Flow-Queue-PIE-packet-scheduler'
 
-It is also unclear how can we automatically catch new comers.
-
->
-> Anyway, you gotta rebase on net-next, the ethtool code got moved around
-> :)
-
-I tried it now and It applies cleanly on top of commit
-6d9f6e6790e7 Merge branch 'net-sched-add-Flow-Queue-PIE-packet-scheduler'
-
-Thanks
+Git is magic=2E
