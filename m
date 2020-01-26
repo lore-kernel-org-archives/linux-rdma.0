@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8063EC2D0DB
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jan 2020 14:27:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03749C2D0DB
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jan 2020 14:27:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 590BD2075D
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jan 2020 14:27:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB07E20720
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jan 2020 14:27:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1580048828;
-	bh=EVr3bwHzuMJmwIUx8zTWI3sAJZK5tcQ4/EtJIocspNE=;
+	s=default; t=1580048830;
+	bh=hkEzVIDNhPaDMZe0s+LhEP+uEoazk1z54GRsqqQIIjg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Qaq8DOYhkAwcy6yR5JJUkKoRF8zayRJ/qD2dTsOvCSoDZhhW1ZJxgUEdtraOuhQiW
-	 bXrBp5z/Az6tsopIl/yOu4J2/7V4/vHYXnmSv5KQ5PqoxhapE6SFFJP+zDDjUAshwW
-	 bIPlVhXJfNWAd3Y9Emhb2b44r7DSHljOSs3aGQpE=
+	b=Y7wJJdGCBo/LHwGY5zlDEtT0tuxwHdZ0MwZCx31iwXCMi+cmqiUl6kRUSoVGkQpuJ
+	 H6Q2VTcMPigZ72XbsiTRZsuVCYUAwmOmqP+Bt16n4VZ2WNs18yNoEUC+VkcO0MoAyp
+	 bhvmjExXVN9p2BxHk/Q23uxHoiuZHokcVYhSpmMA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387413AbgAZO1H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 26 Jan 2020 09:27:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42636 "EHLO mail.kernel.org"
+        id S2387430AbgAZO1K (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 26 Jan 2020 09:27:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387401AbgAZO1H (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 26 Jan 2020 09:27:07 -0500
+        id S2387401AbgAZO1K (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 26 Jan 2020 09:27:10 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D925620720;
-        Sun, 26 Jan 2020 14:27:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 07E1220708;
+        Sun, 26 Jan 2020 14:27:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1580048826;
-        bh=EVr3bwHzuMJmwIUx8zTWI3sAJZK5tcQ4/EtJIocspNE=;
+        s=default; t=1580048829;
+        bh=hkEzVIDNhPaDMZe0s+LhEP+uEoazk1z54GRsqqQIIjg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qW636FDHPYOmqEcbE2cHZx/1x82OSmLlAry+S/YTLYUDd49isg38dtIe9tu3Y9DBE
-         O7GRjOgxbBCfam7gVXJeVDbkUFGoQ1MR7uR24ZOMI4yh4hFKzt0BC4jgBN5WzEFth6
-         eVdhf6OPtafTyqsz17XfILR38K3PFlUq4cNReleA=
+        b=P/c6pik9MNJdeRHOGdoyGBiKKNi6+vuXjkb8nFZHB6Q5Lg7bmQOhXaJYTsKG6kywB
+         ljM+dp/UZEbufica0hewTY+imVBTtmSXnA4ktsIPMgAtHbOz0lFD4ofh4R7BFOBC2G
+         ldv/I8kah7+wslrCHkZ8lL4+Xi3ytmzth+Gpzquk=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Parav Pandit <parav@mellanox.com>
-Subject: [PATCH rdma-next 4/7] RDMA/cma: Rename cma_device ref/deref helpers to to get/put
-Date:   Sun, 26 Jan 2020 16:26:49 +0200
-Message-Id: <20200126142652.104803-5-leon@kernel.org>
+Subject: [PATCH rdma-next 1/7] RDMA/cma: Fix unbalanced cm_id reference count during address resolve
+Date:   Sun, 26 Jan 2020 16:26:46 +0200
+Message-Id: <20200126142652.104803-2-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200126142652.104803-1-leon@kernel.org>
 References: <20200126142652.104803-1-leon@kernel.org>
@@ -59,134 +59,49 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@mellanox.com>
 
-Helper functions which increment/decrement reference count of the
-structure are read better when they are named with get/put suffix.
+Below cited commit missed to consider AF_IB and loopback code flow in
+rdma_resolve_addr().
+This leads to unbalanced cm_id refcount in cma_work_handler() which
+puts the refcount which was not incremented in rdma_resolve_addr().
 
-Hence, rename cma_ref/deref_dev() to cma_dev_get/put().
+A call trace is observed with such code flow.
 
+BUG: unable to handle kernel NULL pointer dereference at (null)
+[<ffffffff96b67e16>] __mutex_lock_slowpath+0x166/0x1d0
+[<ffffffff96b6715f>] mutex_lock+0x1f/0x2f
+[<ffffffffc0beabb5>] cma_work_handler+0x25/0xa0
+[<ffffffff964b9ebf>] process_one_work+0x17f/0x440
+[<ffffffff964baf56>] worker_thread+0x126/0x3c0
+
+Hence, hold the cm_id reference when scheduling resolve work item.
+
+Fixes: 722c7b2bfead ("RDMA/{cma, core}: Avoid callback on rdma_addr_cancel()")
 Signed-off-by: Parav Pandit <parav@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cma.c          | 22 +++++++++++-----------
- drivers/infiniband/core/cma_configfs.c |  6 +++---
- drivers/infiniband/core/cma_priv.h     |  4 ++--
- 3 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/cma.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 34c62eae08d8..7e16d1b001ff 100644
+index 55a9afacfedd..72f032160c4b 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -247,11 +247,17 @@ enum {
- 	CMA_OPTION_AFONLY,
- };
+@@ -3148,6 +3148,7 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
+ 	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
  
--void cma_ref_dev(struct cma_device *cma_dev)
-+void cma_dev_get(struct cma_device *cma_dev)
- {
- 	atomic_inc(&cma_dev->refcount);
- }
++	atomic_inc(&id_priv->refcount);
+ 	cma_init_resolve_addr_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
+ 	return 0;
+@@ -3174,6 +3175,7 @@ static int cma_resolve_ib_addr(struct rdma_id_private *id_priv)
+ 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, (union ib_gid *)
+ 		&(((struct sockaddr_ib *) &id_priv->id.route.addr.dst_addr)->sib_addr));
  
-+void cma_dev_put(struct cma_device *cma_dev)
-+{
-+	if (atomic_dec_and_test(&cma_dev->refcount))
-+		complete(&cma_dev->comp);
-+}
-+
- struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter	filter,
- 					     void		*cookie)
- {
-@@ -267,7 +273,7 @@ struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter	filter,
- 		}
- 
- 	if (found_cma_dev)
--		cma_ref_dev(found_cma_dev);
-+		cma_dev_get(found_cma_dev);
- 	mutex_unlock(&lock);
- 	return found_cma_dev;
- }
-@@ -463,7 +469,7 @@ static int cma_igmp_send(struct net_device *ndev, union ib_gid *mgid, bool join)
- static void _cma_attach_to_dev(struct rdma_id_private *id_priv,
- 			       struct cma_device *cma_dev)
- {
--	cma_ref_dev(cma_dev);
-+	cma_dev_get(cma_dev);
- 	id_priv->cma_dev = cma_dev;
- 	id_priv->id.device = cma_dev->device;
- 	id_priv->id.route.addr.dev_addr.transport =
-@@ -484,12 +490,6 @@ static void cma_attach_to_dev(struct rdma_id_private *id_priv,
- 					  rdma_start_port(cma_dev->device)];
- }
- 
--void cma_deref_dev(struct cma_device *cma_dev)
--{
--	if (atomic_dec_and_test(&cma_dev->refcount))
--		complete(&cma_dev->comp);
--}
--
- static inline void release_mc(struct kref *kref)
- {
- 	struct cma_multicast *mc = container_of(kref, struct cma_multicast, mcref);
-@@ -502,7 +502,7 @@ static void cma_release_dev(struct rdma_id_private *id_priv)
- {
- 	mutex_lock(&lock);
- 	list_del(&id_priv->list);
--	cma_deref_dev(id_priv->cma_dev);
-+	cma_dev_put(id_priv->cma_dev);
- 	id_priv->cma_dev = NULL;
- 	mutex_unlock(&lock);
- }
-@@ -4728,7 +4728,7 @@ static void cma_process_remove(struct cma_device *cma_dev)
- 	}
- 	mutex_unlock(&lock);
- 
--	cma_deref_dev(cma_dev);
-+	cma_dev_put(cma_dev);
- 	wait_for_completion(&cma_dev->comp);
- }
- 
-diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-index 8b0b5ae22e4c..c672a4978bfd 100644
---- a/drivers/infiniband/core/cma_configfs.c
-+++ b/drivers/infiniband/core/cma_configfs.c
-@@ -94,7 +94,7 @@ static int cma_configfs_params_get(struct config_item *item,
- 
- static void cma_configfs_params_put(struct cma_device *cma_dev)
- {
--	cma_deref_dev(cma_dev);
-+	cma_dev_put(cma_dev);
- }
- 
- static ssize_t default_roce_mode_show(struct config_item *item,
-@@ -312,12 +312,12 @@ static struct config_group *make_cma_dev(struct config_group *group,
- 	configfs_add_default_group(&cma_dev_group->ports_group,
- 			&cma_dev_group->device_group);
- 
--	cma_deref_dev(cma_dev);
-+	cma_dev_put(cma_dev);
- 	return &cma_dev_group->device_group;
- 
- fail:
- 	if (cma_dev)
--		cma_deref_dev(cma_dev);
-+		cma_dev_put(cma_dev);
- 	kfree(cma_dev_group);
- 	return ERR_PTR(err);
- }
-diff --git a/drivers/infiniband/core/cma_priv.h b/drivers/infiniband/core/cma_priv.h
-index ca7307277518..4e04c442ff86 100644
---- a/drivers/infiniband/core/cma_priv.h
-+++ b/drivers/infiniband/core/cma_priv.h
-@@ -111,8 +111,8 @@ static inline void cma_configfs_exit(void)
- }
- #endif
- 
--void cma_ref_dev(struct cma_device *dev);
--void cma_deref_dev(struct cma_device *dev);
-+void cma_dev_get(struct cma_device *dev);
-+void cma_dev_put(struct cma_device *dev);
- typedef bool (*cma_device_filter)(struct ib_device *, void *);
- struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter filter,
- 					     void *cookie);
++	atomic_inc(&id_priv->refcount);
+ 	cma_init_resolve_addr_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
+ 	return 0;
 -- 
 2.24.1
 
