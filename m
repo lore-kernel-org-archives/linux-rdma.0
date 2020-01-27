@@ -2,100 +2,182 @@ Return-Path: <SRS0=4++I=3Q=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75217C33CB1
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:24:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6475AC32771
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:25:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5385120CC7
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:24:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E22D214AF
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:25:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="NU7Ne4SQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726548AbgA0LXu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Jan 2020 06:23:50 -0500
-Received: from mx2.suse.de ([195.135.220.15]:41032 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729530AbgA0LXt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Jan 2020 06:23:49 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx2.suse.de (Postfix) with ESMTP id 51770AFF0;
-        Mon, 27 Jan 2020 11:06:25 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 356041E0E4E; Mon, 27 Jan 2020 12:06:24 +0100 (CET)
-Date:   Mon, 27 Jan 2020 12:06:24 +0100
-From:   Jan Kara <jack@suse.cz>
-To:     John Hubbard <jhubbard@nvidia.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Jonathan Corbet <corbet@lwn.net>,
-        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
-        "Kirill A . Shutemov" <kirill@shutemov.name>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-mm@kvack.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: Re: [PATCH 1/3] mm/gup: track FOLL_PIN pages
-Message-ID: <20200127110624.GD19414@quack2.suse.cz>
-References: <20200125021115.731629-1-jhubbard@nvidia.com>
- <20200125021115.731629-2-jhubbard@nvidia.com>
+        id S1726548AbgA0LZp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Jan 2020 06:25:45 -0500
+Received: from mail-io1-f65.google.com ([209.85.166.65]:41677 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726428AbgA0LZp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 27 Jan 2020 06:25:45 -0500
+Received: by mail-io1-f65.google.com with SMTP id m25so9526954ioo.8
+        for <linux-rdma@vger.kernel.org>; Mon, 27 Jan 2020 03:25:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=JVrciqkeD3YV+mg12gP18iWXb08rDO00qrh61FKX5oU=;
+        b=NU7Ne4SQSBOXmWT50CiCKjsX/n/+KNoAJAZbR1nq2lXcg4MQIQatLiaf0FCfoDES5T
+         nGgoygfKHNCWNyUDSfeLcds+hYQk0lfAZ6YhD9FZ2h6R9gDhfeJiuxs5vmLQLs8lqQFg
+         i6o2amSHuqQJm2ccg4xRYq++UwZPCFg81z4QU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=JVrciqkeD3YV+mg12gP18iWXb08rDO00qrh61FKX5oU=;
+        b=sLd0Y2IKWpEk1PzMrGlzCgLYv5ND5Z8/nQOwJ98sTMrDJKPMb8ztfqoSiufow2Diro
+         higUTepAzhjx+dp+byIke8BvxrqrskemPB2o4fmwe+wm+Kudxu4e88YMEAbGhvsFCZwk
+         hYskQcny5BwPax4cmVipnckkn+5qz2nfL5+4KIQsBe2Bkxs6V6aQYowXIMUyK8nA3y3M
+         CDo2yCr95fh9jc9i7umDQkO+rJuEQ8vWJOjHNYrNm/Fc+S7I1uY1N+jZC6gw0yJaPs3x
+         +9lulAIhm7hXJNAwmYJWlTZH04MirKRaKybEQ4Ober/NWjgmEnVltu7tJez+u6YC7+UO
+         4bSA==
+X-Gm-Message-State: APjAAAU1uigNeXZCTVE2UP/m5JsU1xeMjd2yT+KRT6Ka5p6hSr3bkgOC
+        EvOPCNoI+13gJPUmyoABNH8PnzLrpU1+6LrLd+U21A==
+X-Google-Smtp-Source: APXvYqxl/CZmzmTuJ9aPgCy5YVflSfOXR4JHj8OmL9j+dGwtu9kEW7cZCHBHXFYBLv5mhrqO4GM29NdbzCK7iNr9Tuw=
+X-Received: by 2002:a6b:7113:: with SMTP id q19mr12223786iog.87.1580124344239;
+ Mon, 27 Jan 2020 03:25:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200125021115.731629-2-jhubbard@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <1579845165-18002-1-git-send-email-devesh.sharma@broadcom.com>
+ <1579845165-18002-5-git-send-email-devesh.sharma@broadcom.com>
+ <20200126142928.GG2993@unreal> <CANjDDBhxVC0ps8ee5NTW3QrN9bFNVdEcwxS2=Kfn1uOfDR2v_A@mail.gmail.com>
+ <20200127080216.GK3870@unreal>
+In-Reply-To: <20200127080216.GK3870@unreal>
+From:   Devesh Sharma <devesh.sharma@broadcom.com>
+Date:   Mon, 27 Jan 2020 16:55:07 +0530
+Message-ID: <CANjDDBj_vieac6bzbNHNa-WhzpRoSJfOG-bQNqK7U8fN7A+WaA@mail.gmail.com>
+Subject: Re: [PATCH for-next 4/7] RDMA/bnxt_re: Refactor net ring allocation function
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri 24-01-20 18:11:13, John Hubbard wrote:
-> +static __maybe_unused struct page *try_grab_compound_head(struct page *page,
-> +							  int refs,
-> +							  unsigned int flags)
-> +{
-> +	if (flags & FOLL_GET)
-> +		return try_get_compound_head(page, refs);
-> +	else if (flags & FOLL_PIN) {
-> +		int orig_refs = refs;
-> +
-> +		/*
-> +		 * When pinning a compound page of order > 1 (which is what
-> +		 * hpage_pincount_available() checks for), use an exact count to
-> +		 * track it, via hpage_pincount_inc/_dec().
-> +		 *
-> +		 * However, be sure to *also* increment the normal page refcount
-> +		 * field at least once, so that the page really is pinned.
-> +		 */
-> +		if (!hpage_pincount_available(page))
-> +			refs *= GUP_PIN_COUNTING_BIAS;
-> +
-> +		page = try_get_compound_head(page, refs);
-> +		if (!page)
-> +			return NULL;
-> +
-> +		if (hpage_pincount_available(page))
-> +			hpage_pincount_inc(page);
-
-Umm, adding just 1 to pincount looks dangerous to me as
-try_grab_compound_head() would not compose - you could not release
-references acquired by try_grab_compound_head() with refs==2 by two calls
-to put_compound_head() with refs==1. So I'd rather have here:
-hpage_pincount_add(page, refs) and similarly in put_compound_head().
-Otherwise the patch looks good to me from a quick look.
-
-								Honza
-
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+On Mon, Jan 27, 2020 at 1:32 PM Leon Romanovsky <leon@kernel.org> wrote:
+>
+> On Mon, Jan 27, 2020 at 01:10:10PM +0530, Devesh Sharma wrote:
+> > On Sun, Jan 26, 2020 at 7:59 PM Leon Romanovsky <leon@kernel.org> wrote:
+> > >
+> > > On Fri, Jan 24, 2020 at 12:52:42AM -0500, Devesh Sharma wrote:
+> > > > Introducing a new attribute structure to reduce
+> > > > the long list of arguments passed in bnxt_re_net_ring_alloc()
+> > > > function.
+> > > >
+> > > > The caller of bnxt_re_net_ring_alloc should fill in
+> > > > the list of attributes in bnxt_re_ring_attr structure
+> > > > and then pass the pointer to the function.
+> > > >
+> > > > Signed-off-by: Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
+> > > > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> > > > Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+> > > > ---
+> > > >  drivers/infiniband/hw/bnxt_re/bnxt_re.h |  9 +++++
+> > > >  drivers/infiniband/hw/bnxt_re/main.c    | 65 ++++++++++++++++++---------------
+> > > >  2 files changed, 45 insertions(+), 29 deletions(-)
+> > > >
+> > > > diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> > > > index 86274f4..c736e82 100644
+> > > > --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> > > > +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> > > > @@ -89,6 +89,15 @@
+> > > >
+> > > >  #define BNXT_RE_DEFAULT_ACK_DELAY    16
+> > > >
+> > > > +struct bnxt_re_ring_attr {
+> > > > +     dma_addr_t      *dma_arr;
+> > > > +     int             pages;
+> > > > +     int             type;
+> > > > +     u32             depth;
+> > > > +     u32             lrid; /* Logical ring id */
+> > > > +     u8              mode;
+> > > > +};
+> > > > +
+> > > >  struct bnxt_re_work {
+> > > >       struct work_struct      work;
+> > > >       unsigned long           event;
+> > > > diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+> > > > index a966c68..648a5ea 100644
+> > > > --- a/drivers/infiniband/hw/bnxt_re/main.c
+> > > > +++ b/drivers/infiniband/hw/bnxt_re/main.c
+> > > > @@ -427,9 +427,9 @@ static int bnxt_re_net_ring_free(struct bnxt_re_dev *rdev,
+> > > >       return rc;
+> > > >  }
+> > > >
+> > > > -static int bnxt_re_net_ring_alloc(struct bnxt_re_dev *rdev, dma_addr_t *dma_arr,
+> > > > -                               int pages, int type, u32 ring_mask,
+> > > > -                               u32 map_index, u16 *fw_ring_id)
+> > > > +static int bnxt_re_net_ring_alloc(struct bnxt_re_dev *rdev,
+> > > > +                               struct bnxt_re_ring_attr *ring_attr,
+> > > > +                               u16 *fw_ring_id)
+> > > >  {
+> > > >       struct bnxt_en_dev *en_dev = rdev->en_dev;
+> > > >       struct hwrm_ring_alloc_input req = {0};
+> > > > @@ -443,18 +443,18 @@ static int bnxt_re_net_ring_alloc(struct bnxt_re_dev *rdev, dma_addr_t *dma_arr,
+> > > >       memset(&fw_msg, 0, sizeof(fw_msg));
+> > > >       bnxt_re_init_hwrm_hdr(rdev, (void *)&req, HWRM_RING_ALLOC, -1, -1);
+> > > >       req.enables = 0;
+> > > > -     req.page_tbl_addr =  cpu_to_le64(dma_arr[0]);
+> > > > -     if (pages > 1) {
+> > > > +     req.page_tbl_addr =  cpu_to_le64(ring_attr->dma_arr[0]);
+> > > > +     if (ring_attr->pages > 1) {
+> > > >               /* Page size is in log2 units */
+> > > >               req.page_size = BNXT_PAGE_SHIFT;
+> > > >               req.page_tbl_depth = 1;
+> > > >       }
+> > > >       req.fbo = 0;
+> > > >       /* Association of ring index with doorbell index and MSIX number */
+> > > > -     req.logical_id = cpu_to_le16(map_index);
+> > > > -     req.length = cpu_to_le32(ring_mask + 1);
+> > > > -     req.ring_type = type;
+> > > > -     req.int_mode = RING_ALLOC_REQ_INT_MODE_MSIX;
+> > > > +     req.logical_id = cpu_to_le16(ring_attr->lrid);
+> > > > +     req.length = cpu_to_le32(ring_attr->depth + 1);
+> > > > +     req.ring_type = ring_attr->type;
+> > > > +     req.int_mode = ring_attr->mode;
+> > > >       bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
+> > > >                           sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
+> > > >       rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, BNXT_ROCE_ULP, &fw_msg);
+> > > > @@ -1006,12 +1006,13 @@ static void bnxt_re_free_res(struct bnxt_re_dev *rdev)
+> > > >
+> > > >  static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+> > > >  {
+> > > > +     struct bnxt_qplib_ctx *qplib_ctx;
+> > > > +     struct bnxt_re_ring_attr rattr;
+> > > >       int num_vec_created = 0;
+> > > > -     dma_addr_t *pg_map;
+> > > >       int rc = 0, i;
+> > > > -     int pages;
+> > > >       u8 type;
+> > > >
+> > > > +     memset(&rattr, 0, sizeof(rattr));
+> > >
+> > > Initialize rattr to zero from the beginning and save call to memset.
+> > I moved from static initialization to memset due to some sparse/smatch
+> > warnings, rattr has a "pointer member".
+>
+> Can you share the error and tool version, because it is pretty common
+> way to initialize variables? Also "= {0}" would solve your checker
+> warning.
+I will have to duplicate it again to report the precise warning but
+based on my memory, sparse or smatch was shouting about "pointer
+converted to integer without cast"
+I guess that was because rattr.dma_arr is a pointer and static
+initialization was assigning value 0 while it should had been NULL. If
+you insist I would send you exact warning msg and tool-version-number
+soon.
+>
+> Thanks
