@@ -2,102 +2,100 @@ Return-Path: <SRS0=4++I=3Q=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68400C32771
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:17:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75217C33CB1
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:24:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 398E5206A2
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:17:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="HPAVzDIc"
+	by mail.kernel.org (Postfix) with ESMTP id 5385120CC7
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:24:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729501AbgA0LRx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Jan 2020 06:17:53 -0500
-Received: from mail-io1-f66.google.com ([209.85.166.66]:38923 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726210AbgA0LRx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 27 Jan 2020 06:17:53 -0500
-Received: by mail-io1-f66.google.com with SMTP id c16so9515382ioh.6
-        for <linux-rdma@vger.kernel.org>; Mon, 27 Jan 2020 03:17:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=kSnlbipL2vRTTGYLBNKgvgTvdf9FMGOMX4ksFQgHARU=;
-        b=HPAVzDIcTqXucFHc+3+G4zPbzTu+ha7R31Zb95LA5CiMrYMYYNDEOZCzVy6KRjxO+o
-         Ol528pRTvy0yxGHx+NZRUBlM9rBKn7ss1hpznJcqNBguHz8gPG0RPMxe1We2dGtV83wA
-         mU7VTlJKY1nsRdsQjYxOlr0Uq2Ghsr0EHNlu0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=kSnlbipL2vRTTGYLBNKgvgTvdf9FMGOMX4ksFQgHARU=;
-        b=OScKDzZ789+FIQkVH5diAbaFyyYMDLIKm5zTJHbVozKsf3q2Px5cXqOte6SRaEnzVc
-         E2cj4YMw7Aeu6x3cqbZLYzQ4o3qQlWVK8pGLSx4nVbhHlTIGerJTtJD2nYGuT6aLkL1t
-         sHbvUMBw2eGlFz3GzdYW69AIW9eGMF5pTV2LKrvlmbjLNobWHt6YM6XwZQINJYxpvDM5
-         HQqbWwhm9CiMiGuMQwyoc79VdzxQtNb5vZya6OlxSUQ/f3CP4BlNoNu0BiT729+CrmiI
-         hxrNyjvhIJ9PzDAzqkyTSxupLj+JmfizW0n6f1N3W8a07axO06Z4uG4OKUoW3Cu2nWaa
-         Nw4g==
-X-Gm-Message-State: APjAAAXLXx0KpkmfpnPVf6B2DvDvtAREFj7+ZpUauV3JS5XHEPdoogRv
-        +Pu5b+UAiKS43LZsjFzdu0m9sv+KBMaTmOCuxDXUQg==
-X-Google-Smtp-Source: APXvYqybCKPon26hn7gsp8fh/2SoEePfMS8QDadJ0bXyxYYD579koUPggUTrK0UT8FV9gzVVeIESEZIVA9XyR9pviZI=
-X-Received: by 2002:a5d:8908:: with SMTP id b8mr6152088ion.89.1580123872537;
- Mon, 27 Jan 2020 03:17:52 -0800 (PST)
+        id S1726548AbgA0LXu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Jan 2020 06:23:50 -0500
+Received: from mx2.suse.de ([195.135.220.15]:41032 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729530AbgA0LXt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Jan 2020 06:23:49 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id 51770AFF0;
+        Mon, 27 Jan 2020 11:06:25 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 356041E0E4E; Mon, 27 Jan 2020 12:06:24 +0100 (CET)
+Date:   Mon, 27 Jan 2020 12:06:24 +0100
+From:   Jan Kara <jack@suse.cz>
+To:     John Hubbard <jhubbard@nvidia.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Chinner <david@fromorbit.com>,
+        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
+        "Kirill A . Shutemov" <kirill@shutemov.name>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>, linux-doc@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-mm@kvack.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: Re: [PATCH 1/3] mm/gup: track FOLL_PIN pages
+Message-ID: <20200127110624.GD19414@quack2.suse.cz>
+References: <20200125021115.731629-1-jhubbard@nvidia.com>
+ <20200125021115.731629-2-jhubbard@nvidia.com>
 MIME-Version: 1.0
-References: <1579845165-18002-1-git-send-email-devesh.sharma@broadcom.com>
- <1579845165-18002-3-git-send-email-devesh.sharma@broadcom.com>
- <20200125180252.GD4616@mellanox.com> <CANjDDBiSLY55v=cA+gMC6QFAqxUxiiFCy3y3_Rw9vF+v40LgDQ@mail.gmail.com>
- <20200127080440.GL3870@unreal>
-In-Reply-To: <20200127080440.GL3870@unreal>
-From:   Devesh Sharma <devesh.sharma@broadcom.com>
-Date:   Mon, 27 Jan 2020 16:47:16 +0530
-Message-ID: <CANjDDBheoju7MLg+maHzEvVL3Ap70DT3W3ZrcXbSiiz-fVkTGQ@mail.gmail.com>
-Subject: Re: [PATCH for-next 2/7] RDMA/bnxt_re: Replace chip context structure
- with pointer
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "dledford@redhat.com" <dledford@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200125021115.731629-2-jhubbard@nvidia.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 27, 2020 at 1:34 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> On Mon, Jan 27, 2020 at 01:09:46PM +0530, Devesh Sharma wrote:
-> > On Sat, Jan 25, 2020 at 11:33 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
-> > >
-> > > On Fri, Jan 24, 2020 at 12:52:40AM -0500, Devesh Sharma wrote:
-> > > >  static void bnxt_re_destroy_chip_ctx(struct bnxt_re_dev *rdev)
-> > > >  {
-> > > > +     struct bnxt_qplib_chip_ctx *chip_ctx;
-> > > > +
-> > > > +     if (!rdev->chip_ctx)
-> > > > +             return;
-> > > > +     chip_ctx = rdev->chip_ctx;
-> > > > +     rdev->chip_ctx = NULL;
-> > > >       rdev->rcfw.res = NULL;
-> > > >       rdev->qplib_res.cctx = NULL;
-> > > > +     kfree(chip_ctx);
-> > > >  }
-> > >
-> > > Are you sure this kfree is late enough? I couldn't deduce if it was
-> > > really safe to NULL chip_ctx here.
-> > With the current design its okay to free this here because
-> > bnxt_re_destroy_chip_ctx is indeed the last deallocation performed
-> > before ib_device_dealloc() in any exit path. Further, the call to
-> > bnxt_re_destroy_chip_ctx is protected by rtnl.
->
-> ??? Why does device destroy path need global lock to already existing
-> protection from ib_core?
-Oh! probably I confused you, What I meant to say was exit path is
-executed under netdev-notifier context which already holds the lock.
-RoCE driver is not taking that lock explicitly.
->
-> Thanks
+On Fri 24-01-20 18:11:13, John Hubbard wrote:
+> +static __maybe_unused struct page *try_grab_compound_head(struct page *page,
+> +							  int refs,
+> +							  unsigned int flags)
+> +{
+> +	if (flags & FOLL_GET)
+> +		return try_get_compound_head(page, refs);
+> +	else if (flags & FOLL_PIN) {
+> +		int orig_refs = refs;
+> +
+> +		/*
+> +		 * When pinning a compound page of order > 1 (which is what
+> +		 * hpage_pincount_available() checks for), use an exact count to
+> +		 * track it, via hpage_pincount_inc/_dec().
+> +		 *
+> +		 * However, be sure to *also* increment the normal page refcount
+> +		 * field at least once, so that the page really is pinned.
+> +		 */
+> +		if (!hpage_pincount_available(page))
+> +			refs *= GUP_PIN_COUNTING_BIAS;
+> +
+> +		page = try_get_compound_head(page, refs);
+> +		if (!page)
+> +			return NULL;
+> +
+> +		if (hpage_pincount_available(page))
+> +			hpage_pincount_inc(page);
+
+Umm, adding just 1 to pincount looks dangerous to me as
+try_grab_compound_head() would not compose - you could not release
+references acquired by try_grab_compound_head() with refs==2 by two calls
+to put_compound_head() with refs==1. So I'd rather have here:
+hpage_pincount_add(page, refs) and similarly in put_compound_head().
+Otherwise the patch looks good to me from a quick look.
+
+								Honza
+
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
