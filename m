@@ -2,155 +2,102 @@ Return-Path: <SRS0=4++I=3Q=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07F13C32771
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 09:28:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68400C32771
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:17:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CE4A921569
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 09:28:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1580117281;
-	bh=Y6b7dIlDJuPnFX3aDH9nm/OaNreSy+VArBY8hxqT7bQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=wbjT4vzcCkiwfYPLZYCiVkjAph35o6ec+k0qEvMQ7BbS8L/nrE5kJBGy9nLpERz0P
-	 ql+HgW4Q9KMOOOu6MgUot8FFudFi5By9/ryhmGH9bnWBFLA64ARgVqojc91nc+ZkQV
-	 HXc8wwWHHSYH6QtYqy9P6/zSZ+zxVYeNzKw04N/U=
+	by mail.kernel.org (Postfix) with ESMTP id 398E5206A2
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 11:17:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="HPAVzDIc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728575AbgA0J2B (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Jan 2020 04:28:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41936 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726191AbgA0J2B (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Jan 2020 04:28:01 -0500
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B89E12071E;
-        Mon, 27 Jan 2020 09:27:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1580117280;
-        bh=Y6b7dIlDJuPnFX3aDH9nm/OaNreSy+VArBY8hxqT7bQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=TmXC2cieqs95HncR9Ajyzcva2Q+dqOrIQN6mpYcDzGdQhmyR6nr8gMyZi0mgSKmyI
-         k1PIzkLQqyQrFlMUScxhptErKGxV+8Qn2QxMuobHXGLGRnXYVY29PQdFad9J+n/mI3
-         ajZdFBa6300fl5F8CnWe9M55nRJ9TxedsYLY7nvs=
-Date:   Mon, 27 Jan 2020 11:27:57 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Devesh Sharma <devesh.sharma@broadcom.com>
+        id S1729501AbgA0LRx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Jan 2020 06:17:53 -0500
+Received: from mail-io1-f66.google.com ([209.85.166.66]:38923 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726210AbgA0LRx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 27 Jan 2020 06:17:53 -0500
+Received: by mail-io1-f66.google.com with SMTP id c16so9515382ioh.6
+        for <linux-rdma@vger.kernel.org>; Mon, 27 Jan 2020 03:17:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=kSnlbipL2vRTTGYLBNKgvgTvdf9FMGOMX4ksFQgHARU=;
+        b=HPAVzDIcTqXucFHc+3+G4zPbzTu+ha7R31Zb95LA5CiMrYMYYNDEOZCzVy6KRjxO+o
+         Ol528pRTvy0yxGHx+NZRUBlM9rBKn7ss1hpznJcqNBguHz8gPG0RPMxe1We2dGtV83wA
+         mU7VTlJKY1nsRdsQjYxOlr0Uq2Ghsr0EHNlu0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kSnlbipL2vRTTGYLBNKgvgTvdf9FMGOMX4ksFQgHARU=;
+        b=OScKDzZ789+FIQkVH5diAbaFyyYMDLIKm5zTJHbVozKsf3q2Px5cXqOte6SRaEnzVc
+         E2cj4YMw7Aeu6x3cqbZLYzQ4o3qQlWVK8pGLSx4nVbhHlTIGerJTtJD2nYGuT6aLkL1t
+         sHbvUMBw2eGlFz3GzdYW69AIW9eGMF5pTV2LKrvlmbjLNobWHt6YM6XwZQINJYxpvDM5
+         HQqbWwhm9CiMiGuMQwyoc79VdzxQtNb5vZya6OlxSUQ/f3CP4BlNoNu0BiT729+CrmiI
+         hxrNyjvhIJ9PzDAzqkyTSxupLj+JmfizW0n6f1N3W8a07axO06Z4uG4OKUoW3Cu2nWaa
+         Nw4g==
+X-Gm-Message-State: APjAAAXLXx0KpkmfpnPVf6B2DvDvtAREFj7+ZpUauV3JS5XHEPdoogRv
+        +Pu5b+UAiKS43LZsjFzdu0m9sv+KBMaTmOCuxDXUQg==
+X-Google-Smtp-Source: APXvYqybCKPon26hn7gsp8fh/2SoEePfMS8QDadJ0bXyxYYD579koUPggUTrK0UT8FV9gzVVeIESEZIVA9XyR9pviZI=
+X-Received: by 2002:a5d:8908:: with SMTP id b8mr6152088ion.89.1580123872537;
+ Mon, 27 Jan 2020 03:17:52 -0800 (PST)
+MIME-Version: 1.0
+References: <1579845165-18002-1-git-send-email-devesh.sharma@broadcom.com>
+ <1579845165-18002-3-git-send-email-devesh.sharma@broadcom.com>
+ <20200125180252.GD4616@mellanox.com> <CANjDDBiSLY55v=cA+gMC6QFAqxUxiiFCy3y3_Rw9vF+v40LgDQ@mail.gmail.com>
+ <20200127080440.GL3870@unreal>
+In-Reply-To: <20200127080440.GL3870@unreal>
+From:   Devesh Sharma <devesh.sharma@broadcom.com>
+Date:   Mon, 27 Jan 2020 16:47:16 +0530
+Message-ID: <CANjDDBheoju7MLg+maHzEvVL3Ap70DT3W3ZrcXbSiiz-fVkTGQ@mail.gmail.com>
+Subject: Re: [PATCH for-next 2/7] RDMA/bnxt_re: Replace chip context structure
+ with pointer
+To:     Leon Romanovsky <leon@kernel.org>
 Cc:     Jason Gunthorpe <jgg@mellanox.com>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         "dledford@redhat.com" <dledford@redhat.com>
-Subject: Re: [PATCH for-next 1/7] RDMA/bnxt_re: Refactor queue pair creation
- code
-Message-ID: <20200127092757.GN3870@unreal>
-References: <1579845165-18002-1-git-send-email-devesh.sharma@broadcom.com>
- <1579845165-18002-2-git-send-email-devesh.sharma@broadcom.com>
- <20200125174645.GC4616@mellanox.com>
- <CANjDDBht4vTzkrRH1L9_9CquvsfRwo6VmPb6FFT2HNzkkh0H0w@mail.gmail.com>
- <CANjDDBigH2EvkKVoFrRc0hdMG+1czSg0DChTmkj9M3Kzt2d=gQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CANjDDBigH2EvkKVoFrRc0hdMG+1czSg0DChTmkj9M3Kzt2d=gQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 27, 2020 at 01:46:13PM +0530, Devesh Sharma wrote:
-> On Mon, Jan 27, 2020 at 1:43 PM Devesh Sharma
-> <devesh.sharma@broadcom.com> wrote:
-> >
-> > On Sat, Jan 25, 2020 at 11:16 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
-> > >
-> > > On Fri, Jan 24, 2020 at 12:52:39AM -0500, Devesh Sharma wrote:
-> > > > +static int bnxt_re_destroy_gsi_sqp(struct bnxt_re_qp *qp)
-> > > > +{
-> > > > +     struct bnxt_re_qp *gsi_sqp;
-> > > > +     struct bnxt_re_ah *gsi_sah;
-> > > > +     struct bnxt_re_dev *rdev;
-> > > > +     int rc = 0;
-> > > > +
-> > > > +     rdev = qp->rdev;
-> > > > +     gsi_sqp = rdev->gsi_ctx.gsi_sqp;
-> > > > +     gsi_sah = rdev->gsi_ctx.gsi_sah;
-> > > > +
-> > > > +     /* remove from active qp list */
-> > > > +     mutex_lock(&rdev->qp_lock);
-> > > > +     list_del(&gsi_sqp->list);
-> > > > +     atomic_dec(&rdev->qp_count);
-> > > > +     mutex_unlock(&rdev->qp_lock);
-> > > > +
-> > > > +     dev_dbg(rdev_to_dev(rdev), "Destroy the shadow AH\n");
-> > > > +     bnxt_qplib_destroy_ah(&rdev->qplib_res,
-> > > > +                           &gsi_sah->qplib_ah,
-> > > > +                           true);
-> > > > +     bnxt_qplib_clean_qp(&qp->qplib_qp);
-> > > > +
-> > > > +     dev_dbg(rdev_to_dev(rdev), "Destroy the shadow QP\n");
-> > > > +     rc = bnxt_qplib_destroy_qp(&rdev->qplib_res, &gsi_sqp->qplib_qp);
-> > > > +     if (rc) {
-> > > > +             dev_err(rdev_to_dev(rdev), "Destroy Shadow QP failed");
-> > > > +             goto fail;
-> > > > +     }
-> > > > +     bnxt_qplib_free_qp_res(&rdev->qplib_res, &gsi_sqp->qplib_qp);
-> > > > +
-> > > > +     kfree(rdev->gsi_ctx.sqp_tbl);
-> > > > +     kfree(gsi_sah);
-> > > > +     kfree(gsi_sqp);
-> > > > +     rdev->gsi_ctx.gsi_sqp = NULL;
-> > > > +     rdev->gsi_ctx.gsi_sah = NULL;
-> > > > +     rdev->gsi_ctx.sqp_tbl = NULL;
-> > > > +
-> > > > +     return 0;
-> > > > +fail:
-> > > > +     mutex_lock(&rdev->qp_lock);
-> > > > +     list_add_tail(&gsi_sqp->list, &rdev->qp_list);
-> > > > +     atomic_inc(&rdev->qp_count);
-> > > > +     mutex_unlock(&rdev->qp_lock);
-> > > > +     return rc;
-> > >
-> > > This error unwind approach looks racy. destroy is not allowed to
-> > > fail, so why all this mess?
-> > True, the unwind is not required, even if the driver wants to keep it
-> > for debugging purpose, the zombie resource would give rise to
-> > confusion.
-> > >
-> > > >  /* Queue Pairs */
-> > > >  int bnxt_re_destroy_qp(struct ib_qp *ib_qp, struct ib_udata *udata)
-> > > >  {
-> > > > @@ -750,10 +797,18 @@ int bnxt_re_destroy_qp(struct ib_qp *ib_qp, struct ib_udata *udata)
-> > > >       unsigned int flags;
-> > > >       int rc;
-> > > >
-> > > > +     mutex_lock(&rdev->qp_lock);
-> > > > +     list_del(&qp->list);
-> > > > +     atomic_dec(&rdev->qp_count);
-> > > > +     mutex_unlock(&rdev->qp_lock);
-> > > >       bnxt_qplib_flush_cqn_wq(&qp->qplib_qp);
-> > > >       rc = bnxt_qplib_destroy_qp(&rdev->qplib_res, &qp->qplib_qp);
-> > > >       if (rc) {
-> > > >               dev_err(rdev_to_dev(rdev), "Failed to destroy HW QP");
-> > > > +             mutex_lock(&rdev->qp_lock);
-> > > > +             list_add_tail(&qp->list, &rdev->qp_list);
-> > > > +             atomic_inc(&rdev->qp_count);
-> > > > +             mutex_unlock(&rdev->qp_lock);
-> > > >               return rc;
-> > > >       }
-> > >
-> > > More..
-> > Let me see if I can remove it in this series, else future series would
-> > remove it.
-> > >
-> > > Jason
+On Mon, Jan 27, 2020 at 1:34 PM Leon Romanovsky <leon@kernel.org> wrote:
 >
-> At the top level, if provider driver is so keen on returning success
-> in any case, should we change the return type to void of
-> ib_destroy_xx() hooks?
-
-We are doing it but in extremely slow way. Patches are welcomed.
-
-Thanks
+> On Mon, Jan 27, 2020 at 01:09:46PM +0530, Devesh Sharma wrote:
+> > On Sat, Jan 25, 2020 at 11:33 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
+> > >
+> > > On Fri, Jan 24, 2020 at 12:52:40AM -0500, Devesh Sharma wrote:
+> > > >  static void bnxt_re_destroy_chip_ctx(struct bnxt_re_dev *rdev)
+> > > >  {
+> > > > +     struct bnxt_qplib_chip_ctx *chip_ctx;
+> > > > +
+> > > > +     if (!rdev->chip_ctx)
+> > > > +             return;
+> > > > +     chip_ctx = rdev->chip_ctx;
+> > > > +     rdev->chip_ctx = NULL;
+> > > >       rdev->rcfw.res = NULL;
+> > > >       rdev->qplib_res.cctx = NULL;
+> > > > +     kfree(chip_ctx);
+> > > >  }
+> > >
+> > > Are you sure this kfree is late enough? I couldn't deduce if it was
+> > > really safe to NULL chip_ctx here.
+> > With the current design its okay to free this here because
+> > bnxt_re_destroy_chip_ctx is indeed the last deallocation performed
+> > before ib_device_dealloc() in any exit path. Further, the call to
+> > bnxt_re_destroy_chip_ctx is protected by rtnl.
+>
+> ??? Why does device destroy path need global lock to already existing
+> protection from ib_core?
+Oh! probably I confused you, What I meant to say was exit path is
+executed under netdev-notifier context which already holds the lock.
+RoCE driver is not taking that lock explicitly.
+>
+> Thanks
