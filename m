@@ -2,97 +2,93 @@ Return-Path: <SRS0=4++I=3Q=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E88AC32771
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 06:01:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84040C32771
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 06:08:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3780F2071E
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 06:01:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C50D214DB
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jan 2020 06:08:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725893AbgA0GBp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Jan 2020 01:01:45 -0500
-Received: from mga09.intel.com ([134.134.136.24]:13409 "EHLO mga09.intel.com"
+        id S1725775AbgA0GIi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Jan 2020 01:08:38 -0500
+Received: from mx2.suse.de ([195.135.220.15]:45352 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725763AbgA0GBp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Jan 2020 01:01:45 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Jan 2020 22:01:19 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.70,368,1574150400"; 
-   d="scan'208";a="228872828"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 26 Jan 2020 22:01:17 -0800
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1ivxSW-0005Zm-TY; Mon, 27 Jan 2020 14:01:16 +0800
-Date:   Mon, 27 Jan 2020 14:00:18 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Michal Kalderon <michal.kalderon@marvell.com>
-Cc:     kbuild-all@lists.01.org, michal.kalderon@marvell.com,
-        ariel.elior@marvell.com, davem@davemloft.net,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-scsi@vger.kernel.org
-Subject: Re: [PATCH v2 net-next 11/13] qed: Debug feature: ilt and mdump
-Message-ID: <202001271349.Dc4ppCRx%lkp@intel.com>
-References: <20200123105836.15090-12-michal.kalderon@marvell.com>
+        id S1725763AbgA0GIi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Jan 2020 01:08:38 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id 4D1A7AF83;
+        Mon, 27 Jan 2020 06:08:36 +0000 (UTC)
+Received: by unicorn.suse.cz (Postfix, from userid 1000)
+        id 62125E0B78; Mon, 27 Jan 2020 07:08:35 +0100 (CET)
+Date:   Mon, 27 Jan 2020 07:08:35 +0100
+From:   Michal Kubecek <mkubecek@suse.cz>
+To:     netdev@vger.kernel.org
+Cc:     Shannon Nelson <snelson@pensando.io>,
+        Leon Romanovsky <leon@kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Michal Kalderon <michal.kalderon@marvell.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH net-next] net/core: Replace driver version to be kernel
+ version
+Message-ID: <20200127060835.GA570@unicorn.suse.cz>
+References: <20200123130541.30473-1-leon@kernel.org>
+ <43d43a45-18db-f959-7275-63c9976fdf40@pensando.io>
+ <20200126194110.GA3870@unreal>
+ <20200126124957.78a31463@cakuba>
+ <20200126210850.GB3870@unreal>
+ <31c6c46a-63b2-6397-5c75-5671ee8d41c3@pensando.io>
+ <20200126212424.GD3870@unreal>
+ <0755f526-73cb-e926-2785-845fec0f51dd@pensando.io>
+ <20200126222253.GX22304@unicorn.suse.cz>
+ <b05ea7dd-d985-66b5-07c6-9c1d7ba74429@pensando.io>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20200123105836.15090-12-michal.kalderon@marvell.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b05ea7dd-d985-66b5-07c6-9c1d7ba74429@pensando.io>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Michal,
+On Sun, Jan 26, 2020 at 02:57:21PM -0800, Shannon Nelson wrote:
+> On 1/26/20 2:22 PM, Michal Kubecek wrote:
+> > On Sun, Jan 26, 2020 at 02:12:38PM -0800, Shannon Nelson wrote:
+> > > Part of the pain of supporting our users is getting them to give us useful
+> > > information about their problem.  The more commands I need them to run to
+> > > get information about the environment, the less likely I will get anything
+> > > useful.  We've been training our users over the years to use "ethtool -i" to
+> > > get a good chunk of that info, with the knowledge that the driver version is
+> > > only a hint, based upon the distro involved.  I don't want to lose that
+> > > hint.  If anything, I'd prefer that we added a field for UTS_RELEASE in the
+> > > ethtool output, but I know that's too much to ask.
+> > 
+> > At the same time, I've been trying to explain both our L1/L2 support
+> > guys and our customers that "driver version" information reported by
+> > "ethtool -i" is almost useless and that if they really want to identify
+> > driver version, they should rather use srcversion as reported by modinfo
+> > or sysfs.
+> 
+> So as I suggested elsewhere, can we compromise by not bashing the driver
+> string in the caller stack, but require the in-kernel drivers to use a
+> particular macro that will put the kernel/git version into the string?  This
+> allows out-of-tree drivers the option of overriding the version with some
+> other string that can be meaningful in any other given old or new distro
+> kernel.  This should be easy to enforce mechanically with checkpatch, and
+> easy enough to do a sweeping coccinelle change on the existing drivers.
 
-I love your patch! Perhaps something to improve:
+Personally, I rather liked what Jakub suggested earlier: set
+ethtool_drvinfo::version to kernel version before ops->get_drvinfo() is called
+in ethtool_get_drvinfo() (and its netlink counterpart once we get some
+consensus about what information should be in the message), clean up in-tree
+drivers so that they don't touch it and add a coccinelle check so that we keep
+in-tree drivers compliant; this would allow out-of-tree drivers to overwrite
+ethtool_drvinfo::version with whatever they want.
 
-[auto build test WARNING on net-next/master]
-[also build test WARNING on linus/master v5.5 next-20200121]
-[if your patch is applied to the wrong git tree, please drop us a note to help
-improve the system. BTW, we also suggest to use '--base' option to specify the
-base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
-
-url:    https://github.com/0day-ci/linux/commits/Michal-Kalderon/qed-Utilize-FW-8-42-2-0/20200125-055253
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git 9bbc8be29d66cc34b650510f2c67b5c55235fe5d
-reproduce:
-        # apt-get install sparse
-        # sparse version: v0.6.1-153-g47b6dfef-dirty
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
-
-If you fix the issue, kindly add following tag
-Reported-by: kbuild test robot <lkp@intel.com>
-
-
-sparse warnings: (new ones prefixed by >>)
-
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:1916:29: sparse: sparse: restricted __le32 degrades to integer
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:1916:58: sparse: sparse: restricted __le32 degrades to integer
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:1918:22: sparse: sparse: incorrect type in assignment (different base types)
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:1918:22: sparse:    expected unsigned int [assigned] [usertype] addr
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:1918:22: sparse:    got restricted __le32 [addressable] [usertype] grc_addr
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:1920:33: sparse: sparse: restricted __le32 degrades to integer
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:2049:65: sparse: sparse: incorrect type in argument 4 (different base types)
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:2049:65: sparse:    expected unsigned int [usertype] param_val
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:2049:65: sparse:    got restricted __le32 [addressable] [usertype] timestamp
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:5088:25: sparse: sparse: restricted __le16 degrades to integer
->> drivers/net/ethernet/qlogic/qed/qed_debug.c:5920:17: sparse: sparse: symbol 'qed_dbg_ilt_get_dump_buf_size' was not declared. Should it be static?
->> drivers/net/ethernet/qlogic/qed/qed_debug.c:5936:17: sparse: sparse: symbol 'qed_dbg_ilt_dump' was not declared. Should it be static?
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:8404:46: sparse: sparse: incorrect type in assignment (different base types)
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:8404:46: sparse:    expected unsigned int [usertype]
-   drivers/net/ethernet/qlogic/qed/qed_debug.c:8404:46: sparse:    got restricted __be32 [assigned] [usertype] val
-
-Please review and possibly fold the followup patch.
-
----
-0-DAY kernel test infrastructure                 Open Source Technology Center
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org Intel Corporation
+Michal
