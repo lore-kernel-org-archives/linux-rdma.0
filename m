@@ -2,210 +2,94 @@ Return-Path: <SRS0=iZOS=3S=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A9CFC35249
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 03:25:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92323C35240
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 05:48:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 589C12070E
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 03:25:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="dIdd/4I3"
+	by mail.kernel.org (Postfix) with ESMTP id 5F8EB20CC7
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 05:48:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1580276883;
+	bh=Y+9aIhN4apiy5tD4uo8NEkUkqCFQBUmX8iUUCn+SJz4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=Sx8WzLoe7RKCgL0A4Z34E0f+DXhdcdToUgztArHrpm6UIPzF5bPmjAXuohwnPSOMZ
+	 PaApTXMiV4npm0bWJEZoGm38DzcSULGaLyp2RrZCiSVmYs5dagRukzQaK+TsLTi5D6
+	 9tfoDRxXBEUqvrl7IV5PtxVVpvvk1l06MODZLSjw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726749AbgA2DYU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Jan 2020 22:24:20 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:17856 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726725AbgA2DYU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Jan 2020 22:24:20 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e30fad50001>; Tue, 28 Jan 2020 19:24:05 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Tue, 28 Jan 2020 19:24:19 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Tue, 28 Jan 2020 19:24:19 -0800
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 29 Jan
- 2020 03:24:19 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Wed, 29 Jan 2020 03:24:19 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e30fae30000>; Tue, 28 Jan 2020 19:24:19 -0800
-From:   John Hubbard <jhubbard@nvidia.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-CC:     Al Viro <viro@zeniv.linux.org.uk>,
+        id S1726287AbgA2FsC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 29 Jan 2020 00:48:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56342 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726069AbgA2FsC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 29 Jan 2020 00:48:02 -0500
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 221AE2071E;
+        Wed, 29 Jan 2020 05:48:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1580276881;
+        bh=Y+9aIhN4apiy5tD4uo8NEkUkqCFQBUmX8iUUCn+SJz4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=GA4xldnrfCZ/hBa/e+u4jH+ceiMp46v485VEdcIQS+PL2onNs2Lp344hOSwut0cl5
+         kMjlKcFvkhxbeePcWEiAlqewXAYnKlDFlVtI4vZlErWp9sEeIGhuDBlR6Xyf3B/MvB
+         77hB3BnefN51UHOfzz/YcUfa9FLW3mE857JX1mzU=
+Date:   Wed, 29 Jan 2020 07:47:56 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     John Hubbard <jhubbard@nvidia.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
         Dan Williams <dan.j.williams@intel.com>,
         Dave Chinner <david@fromorbit.com>,
         Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
         Jason Gunthorpe <jgg@ziepe.ca>,
         Jonathan Corbet <corbet@lwn.net>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
+        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
         "Kirill A . Shutemov" <kirill@shutemov.name>,
         Michal Hocko <mhocko@suse.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>, <linux-doc@vger.kernel.org>,
-        <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v2 3/8] mm/gup: pass a flags arg to __gup_device_* functions
-Date:   Tue, 28 Jan 2020 19:24:12 -0800
-Message-ID: <20200129032417.3085670-4-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.25.0
-In-Reply-To: <20200129032417.3085670-1-jhubbard@nvidia.com>
-References: <20200129032417.3085670-1-jhubbard@nvidia.com>
+        Vlastimil Babka <vbabka@suse.cz>, linux-doc@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-mm@kvack.org,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 0/3] mm/gup: track FOLL_PIN pages (follow on from v12)
+Message-ID: <20200129054756.GB3326@unreal>
+References: <20200125021115.731629-1-jhubbard@nvidia.com>
+ <20200125162339.GA41770@unreal>
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1580268245; bh=4jp0QhymG3IBZ2UdWKCHIHfGSO5gi4QtwHm0dzK8Ubk=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Type:Content-Transfer-Encoding;
-        b=dIdd/4I37fBknkQablXBtLM78TVO5M8tfksUiIeJqh6sECEvBwy9g/If56u8KHnoR
-         5S6VIticwZFAPD0MMSWWOnyKvxqPE0A3Nkxv46D8zTNZ6hf7msHPDvgoxfFGaCRITn
-         fsO9EdWCjJfUjP53JSRwcQN939LyT92HSwtBJjnjB57jjOMo17+6u/fJOYKpb03bYd
-         Qx+nTX9YZewOqUl5B2Ra8zhcgq21pvEbsQ0rInKRqnytB1ZO78PPoHC2PaPGm5u8f8
-         NcKggXL1i1ymyTtnsTJrBbk6yHLeEZQoWRtU9WaoUpkX/FAufJgmyv7T3Dlrpm3Wk/
-         kMIG/Vf9QZkxA==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200125162339.GA41770@unreal>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-A subsequent patch requires access to gup flags, so pass the flags
-argument through to the __gup_device_* functions.
+On Sat, Jan 25, 2020 at 06:23:39PM +0200, Leon Romanovsky wrote:
+> On Fri, Jan 24, 2020 at 06:11:12PM -0800, John Hubbard wrote:
+> > Leon Romanovsky:
+> >
+> > If you get a chance, I'd love to have this short series (or even just
+> > the first patch; the others are just selftests) run through your test
+> > suite that was previously choking on my earlier v11 patchset. The huge
+> > page pincount limitations are removed, so I'm expecting a perfect test
+> > run this time!
+> >
+>
+> I added those patches to our regression and I will post the in the
+> couple of days.
 
-Also placate checkpatch.pl by shortening a nearby line.
+Hi John,
 
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+The patches survived our RDMA verification night runs.
 
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- mm/gup.c | 28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+Thanks
 
-diff --git a/mm/gup.c b/mm/gup.c
-index b699500da077..9e117998274c 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1963,7 +1963,8 @@ static int gup_pte_range(pmd_t pmd, unsigned long add=
-r, unsigned long end,
-=20
- #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGE=
-PAGE)
- static int __gup_device_huge(unsigned long pfn, unsigned long addr,
--		unsigned long end, struct page **pages, int *nr)
-+			     unsigned long end, unsigned int flags,
-+			     struct page **pages, int *nr)
- {
- 	int nr_start =3D *nr;
- 	struct dev_pagemap *pgmap =3D NULL;
-@@ -1989,13 +1990,14 @@ static int __gup_device_huge(unsigned long pfn, uns=
-igned long addr,
- }
-=20
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
-dr,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
- {
- 	unsigned long fault_pfn;
- 	int nr_start =3D *nr;
-=20
- 	fault_pfn =3D pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
--	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-+	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
- 		return 0;
-=20
- 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
-@@ -2006,13 +2008,14 @@ static int __gup_device_huge_pmd(pmd_t orig, pmd_t =
-*pmdp, unsigned long addr,
- }
-=20
- static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long ad=
-dr,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
- {
- 	unsigned long fault_pfn;
- 	int nr_start =3D *nr;
-=20
- 	fault_pfn =3D pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
--	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-+	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
- 		return 0;
-=20
- 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
-@@ -2023,14 +2026,16 @@ static int __gup_device_huge_pud(pud_t orig, pud_t =
-*pudp, unsigned long addr,
- }
- #else
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
-dr,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
- {
- 	BUILD_BUG();
- 	return 0;
- }
-=20
- static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long add=
-r,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
- {
- 	BUILD_BUG();
- 	return 0;
-@@ -2146,7 +2151,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsi=
-gned long addr,
- 	if (pmd_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
--		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
-+		return __gup_device_huge_pmd(orig, pmdp, addr, end, flags,
-+					     pages, nr);
- 	}
-=20
- 	page =3D pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-@@ -2167,7 +2173,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsi=
-gned long addr,
- }
-=20
- static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages, int *nr)
-+			unsigned long end, unsigned int flags,
-+			struct page **pages, int *nr)
- {
- 	struct page *head, *page;
- 	int refs;
-@@ -2178,7 +2185,8 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsi=
-gned long addr,
- 	if (pud_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
--		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
-+		return __gup_device_huge_pud(orig, pudp, addr, end, flags,
-+					     pages, nr);
- 	}
-=20
- 	page =3D pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
---=20
-2.25.0
-
+>
+> Thanks
+>
