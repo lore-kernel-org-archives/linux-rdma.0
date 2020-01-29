@@ -2,215 +2,121 @@ Return-Path: <SRS0=iZOS=3S=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B492C33CB2
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 02:09:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F350DC33CB7
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 03:24:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E58A207FD
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 02:09:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB7CF2468C
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Jan 2020 03:24:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="E3c5QEyG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726389AbgA2CJF convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Jan 2020 21:09:05 -0500
-Received: from youngberry.canonical.com ([91.189.89.112]:41895 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726363AbgA2CJF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Jan 2020 21:09:05 -0500
-Received: from c-67-160-6-8.hsd1.wa.comcast.net ([67.160.6.8] helo=famine.localdomain)
-        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <jay.vosburgh@canonical.com>)
-        id 1iwcmp-0002wQ-DY; Wed, 29 Jan 2020 02:08:59 +0000
-Received: by famine.localdomain (Postfix, from userid 1000)
-        id 6D94E67BB3; Tue, 28 Jan 2020 18:08:57 -0800 (PST)
-Received: from famine (localhost [127.0.0.1])
-        by famine.localdomain (Postfix) with ESMTP id 65AC4AC1CC;
-        Tue, 28 Jan 2020 18:08:57 -0800 (PST)
-From:   Jay Vosburgh <jay.vosburgh@canonical.com>
-To:     Maor Gottlieb <maorg@mellanox.com>
-cc:     vfalico@gmail.com, andy@greyhouse.net, jiri@mellanox.com,
-        davem@davemloft.net, netdev@vger.kernel.org, saeedm@mellanox.com,
-        jgg@mellanox.com, leonro@mellanox.com, alexr@mellanox.com,
-        markz@mellanox.com, parav@mellanox.com, eranbe@mellanox.com,
-        linux-rdma@vger.kernel.org
-Subject: Re: [RFC PATCH 4/4] bonding: Implement ndo_xmit_slave_get
-In-reply-to: <20200126132126.9981-5-maorg@mellanox.com>
-References: <20200126132126.9981-1-maorg@mellanox.com> <20200126132126.9981-5-maorg@mellanox.com>
-Comments: In-reply-to Maor Gottlieb <maorg@mellanox.com>
-   message dated "Sun, 26 Jan 2020 15:21:26 +0200."
-X-Mailer: MH-E 8.6+git; nmh 1.6; GNU Emacs 27.0.50
+        id S1726825AbgA2DYX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Jan 2020 22:24:23 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:6362 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726820AbgA2DYX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Jan 2020 22:24:23 -0500
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e30fab10001>; Tue, 28 Jan 2020 19:23:29 -0800
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate102.nvidia.com (PGP Universal service);
+  Tue, 28 Jan 2020 19:24:19 -0800
+X-PGP-Universal: processed;
+        by hqpgpgate102.nvidia.com on Tue, 28 Jan 2020 19:24:19 -0800
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 29 Jan
+ 2020 03:24:19 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Wed, 29 Jan 2020 03:24:19 +0000
+Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5e30fae20004>; Tue, 28 Jan 2020 19:24:18 -0800
+From:   John Hubbard <jhubbard@nvidia.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+CC:     Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Chinner <david@fromorbit.com>,
+        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Jonathan Corbet <corbet@lwn.net>,
+        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
+        "Kirill A . Shutemov" <kirill@shutemov.name>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>, <linux-doc@vger.kernel.org>,
+        <linux-fsdevel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+        <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v2 1/8] mm: dump_page: print head page's refcount, for compound pages
+Date:   Tue, 28 Jan 2020 19:24:10 -0800
+Message-ID: <20200129032417.3085670-2-jhubbard@nvidia.com>
+X-Mailer: git-send-email 2.25.0
+In-Reply-To: <20200129032417.3085670-1-jhubbard@nvidia.com>
+References: <20200129032417.3085670-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <708.1580263737.1@famine>
-Content-Transfer-Encoding: 8BIT
-Date:   Tue, 28 Jan 2020 18:08:57 -0800
-Message-ID: <709.1580263737@famine>
+X-NVConfidentiality: public
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1580268209; bh=P1TeODLKtRur5z7N4mKfBv38jAYvtdOaySoL8r08WIg=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=E3c5QEyGx95NN96IE5SjKIfekR44Kiz+3iLIw4qlBA+LpbSooYT0An9LHX6XD6yl4
+         7lXKNT/kQg8YCcnJmYPOse8qK2L5jU8GMbzDsJ5WhQhpVzoarZvejOPeDSNh67wMcQ
+         hhPTwYPCvGm+OytsPAfw0evq9Lg0XgniczwV2eLW6M6FblnpHUvbCcwtJzhu2nPfuq
+         KZMCTpM8R/TZXtYInxwDY4PQVS0KggBcsXut4esMIK1IpOqrkG0AFWn1oyIHFG6HgV
+         oVgZsqQFU53ImQs7VGD18/+8URzEUhFO6Z663+sFH9Q7FNr95JNFeu5iWQeAs6fJV+
+         IyukOqyF+pdQg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Maor Gottlieb <maorg@mellanox.com> wrote:
+When debugging a problem that involves compound pages, it is extremely
+helpful if dump_page() reports not only the page->_refcount, but also
+the refcount of the head page of the compound page. That's because the
+head page collects refcounts for the entire compound page.
 
->Add implementation of ndo_xmit_slave_get.
->When user set the LAG_FLAGS_HASH_ALL_SLAVES bit and the xmit slave
->result is based on the hash, then the slave will be selected from the
->array of all the slaves.
->
->Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
->---
-> drivers/net/bonding/bond_main.c | 63 ++++++++++++++++++++++++++++++---
-> include/net/bonding.h           |  1 +
-> 2 files changed, 60 insertions(+), 4 deletions(-)
->
->diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
->index adab1e3549ff..c8f440d1b624 100644
->--- a/drivers/net/bonding/bond_main.c
->+++ b/drivers/net/bonding/bond_main.c
->@@ -4098,7 +4098,8 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
->  */
-> int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
-> {
->-	struct bond_up_slave *active_slaves, *old_active_slaves;
->+	struct bond_up_slave *active_slaves = NULL, *all_slaves = NULL;
->+	struct bond_up_slave *old_active_slaves, *old_all_slaves;
-> 	struct slave *slave;
-> 	struct list_head *iter;
-> 	int agg_id = 0;
->@@ -4110,7 +4111,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
-> 
-> 	active_slaves = kzalloc(struct_size(active_slaves, arr,
-> 					    bond->slave_cnt), GFP_KERNEL);
->-	if (!active_slaves) {
->+	all_slaves = kzalloc(struct_size(all_slaves, arr,
->+					 bond->slave_cnt), GFP_KERNEL);
->+	if (!active_slaves || !all_slaves) {
-> 		ret = -ENOMEM;
-> 		pr_err("Failed to build slave-array.\n");
-> 		goto out;
->@@ -4141,14 +4144,17 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
-> 			if (!agg || agg->aggregator_identifier != agg_id)
-> 				continue;
-> 		}
->-		if (!bond_slave_can_tx(slave))
->+		if (!bond_slave_can_tx(slave)) {
->+			all_slaves->arr[all_slaves->count++] = slave;
-> 			continue;
->+		}
-> 		if (skipslave == slave)
-> 			continue;
-> 
-> 		slave_dbg(bond->dev, slave->dev, "Adding slave to tx hash array[%d]\n",
-> 			  active_slaves->count);
-> 
->+		all_slaves->arr[all_slaves->count++] = slave;
-> 		active_slaves->arr[active_slaves->count++] = slave;
-> 	}
-> 
->@@ -4156,10 +4162,18 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
-> 	rcu_assign_pointer(bond->active_slaves, active_slaves);
-> 	if (old_active_slaves)
-> 		kfree_rcu(old_active_slaves, rcu);
->+
->+	old_all_slaves = rtnl_dereference(bond->all_slaves);
->+	rcu_assign_pointer(bond->all_slaves, all_slaves);
->+	if (old_all_slaves)
->+		kfree_rcu(old_all_slaves, rcu);
-> out:
->-	if (ret != 0 && skipslave)
->+	if (ret != 0 && skipslave) {
-> 		bond_skip_slave(rtnl_dereference(bond->active_slaves),
-> 				skipslave);
->+		kfree(all_slaves);
->+		kfree(active_slaves);
->+	}
+Therefore, enhance dump_page() so as to print out the refcount of the
+head page of a compound page.
 
-	I'm still going through the patch set, but noticed this right
-away: the above will leak memory if !skipslave and the allocation for
-active_slaves succeeds, but the allocation for all_slaves fails.
-> 
-> 	return ret;
-> }
->@@ -4265,6 +4279,46 @@ static u16 bond_select_queue(struct net_device *dev, struct sk_buff *skb,
-> 	return txq;
-> }
-> 
->+static struct net_device *bond_xmit_slave_get(struct net_device *master_dev,
->+					      struct sk_buff *skb,
->+					      int flags)
->+{
->+	struct bonding *bond = netdev_priv(master_dev);
->+	struct bond_up_slave *slaves;
->+	struct slave *slave;
->+
->+	switch (BOND_MODE(bond)) {
->+	case BOND_MODE_ROUNDROBIN:
->+		slave = bond_xmit_roundrobin_slave_get(bond, skb);
->+		break;
->+	case BOND_MODE_ACTIVEBACKUP:
->+		slave = bond_xmit_activebackup_slave_get(bond, skb);
->+		break;
->+	case BOND_MODE_8023AD:
->+	case BOND_MODE_XOR:
->+		if (flags & LAG_FLAGS_HASH_ALL_SLAVES)
->+			slaves = rcu_dereference(bond->all_slaves);
->+		else
->+			slaves = rcu_dereference(bond->active_slaves);
->+		slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
->+		break;
->+	case BOND_MODE_BROADCAST:
->+		return ERR_PTR(-EOPNOTSUPP);
->+	case BOND_MODE_ALB:
->+		slave = bond_xmit_alb_slave_get(bond, skb);
->+		break;
->+	case BOND_MODE_TLB:
->+		slave = bond_xmit_tlb_slave_get(bond, skb);
->+		break;
->+	default:
->+		return NULL;
+This approach (printing information about a struct page that is not the
+struct page that was passed into dump_page()) has a precedent:
+compound_mapcount is already being printed.
 
-	I would argue this should (a) return an error (not NULL), and,
-(b) ideally issue a netdev_err for this impossible situation, similar to
-the other switch statements in bonding.
-
-	-J
-	
->+	}
->+
->+	if (slave)
->+		return slave->dev;
->+	return NULL;
->+}
->+
-> static netdev_tx_t __bond_start_xmit(struct sk_buff *skb, struct net_device *dev)
-> {
-> 	struct bonding *bond = netdev_priv(dev);
->@@ -4387,6 +4441,7 @@ static const struct net_device_ops bond_netdev_ops = {
-> 	.ndo_del_slave		= bond_release,
-> 	.ndo_fix_features	= bond_fix_features,
-> 	.ndo_features_check	= passthru_features_check,
->+	.ndo_xmit_slave_get	= bond_xmit_slave_get,
-> };
-> 
-> static const struct device_type bond_type = {
->diff --git a/include/net/bonding.h b/include/net/bonding.h
->index b77daffc1b52..6dd970eb9d3f 100644
->--- a/include/net/bonding.h
->+++ b/include/net/bonding.h
->@@ -201,6 +201,7 @@ struct bonding {
-> 	struct   slave __rcu *current_arp_slave;
-> 	struct   slave __rcu *primary_slave;
-> 	struct   bond_up_slave __rcu *active_slaves; /* Array of usable slaves */
->+	struct   bond_up_slave __rcu *all_slaves; /* Array of all slaves */
-> 	bool     force_primary;
-> 	s32      slave_cnt; /* never change this value outside the attach/detach wrappers */
-> 	int     (*recv_probe)(const struct sk_buff *, struct bonding *,
->-- 
->2.17.2
->
-
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
-	-Jay Vosburgh, jay.vosburgh@canonical.com
+ mm/debug.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/mm/debug.c b/mm/debug.c
+index a90da5337c14..4cc6cad8385d 100644
+--- a/mm/debug.c
++++ b/mm/debug.c
+@@ -76,9 +76,11 @@ void __dump_page(struct page *page, const char *reason)
+ 	mapcount =3D PageSlab(page) ? 0 : page_mapcount(page);
+=20
+ 	if (PageCompound(page))
+-		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
+-			"index:%#lx compound_mapcount: %d\n",
+-			page, page_ref_count(page), mapcount,
++		pr_warn("page:%px refcount:%d head refcount:%d "
++			"mapcount:%d mapping:%px index:%#lx "
++			"compound_mapcount:%d\n",
++			page, page_ref_count(page),
++			page_ref_count(compound_head(page)), mapcount,
+ 			page->mapping, page_to_pgoff(page),
+ 			compound_mapcount(page));
+ 	else
+--=20
+2.25.0
+
