@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FD44C2D0DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jan 2020 18:13:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BCC2C2D0DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jan 2020 18:13:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0546220678
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jan 2020 18:13:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F04C220678
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jan 2020 18:13:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="CGC3ZqA2"
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="UQL33UC+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728488AbgA3SN3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Jan 2020 13:13:29 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:45622 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728483AbgA3SN3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Jan 2020 13:13:29 -0500
-Received: by mail-wr1-f65.google.com with SMTP id a6so5241681wrx.12
-        for <linux-rdma@vger.kernel.org>; Thu, 30 Jan 2020 10:13:26 -0800 (PST)
+        id S1728477AbgA3SNe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Jan 2020 13:13:34 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:36259 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728489AbgA3SNe (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Jan 2020 13:13:34 -0500
+Received: by mail-wm1-f67.google.com with SMTP id p17so5446624wma.1
+        for <linux-rdma@vger.kernel.org>; Thu, 30 Jan 2020 10:13:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=wZXmMglY6WPixX0W7ZAia/iyMhYIuMubFg1nUul4rT8=;
-        b=CGC3ZqA2PGbmHLQMfqGni6q6Nt2QOY/sLS2OjAUxWUZW9M1jp+97+2YN7W9QVvRyr8
-         +zV3lp2IxLPpGTnshHBSZ2FdAmu+3uk758g7rD7WyIoqfdE5xHCM02l+EidHYg7PME+Q
-         GMfJytG12ZF7PzzgU5BmFa9HV/P1NuFw/7j7E=
+        bh=MfHAMQSGmpVZ6Pwc0znHSzOzFRAEUgcA8OMpcSuvdgE=;
+        b=UQL33UC+iC9eZqGwMRhsbQR0SWi6UqERLHhIe+9FHgBn9MzRoDwRS6p3uTV9L1DSeJ
+         vbMrlulAwWEUPh9d1NTcMnCV5fK9dn+yxYvyEbB2kBLJwX69wZU8kixErJ20OAZd9byd
+         fLVLE3B+SFrj/bR2GwEmmj1B+vH7KZJpX65gI=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=wZXmMglY6WPixX0W7ZAia/iyMhYIuMubFg1nUul4rT8=;
-        b=RO/C3JEnBeBEv10zJ6DYJBw2P8OK+EZD45Gtbdm9Z3AirDCx1wirgyWlmuEINYZljr
-         vqTwfj4sSli99DNa+/l6nyYaPTSMhvFS6WiTtHjaFCPF/qwOHahIRrwLQohNgF3AKwxP
-         e8wcxPkzQjsKoCpd+6EYON3Df/hJxY13Hkj/Sr2moaZKQN6awWCHNuOKrgai9OHeZTSg
-         1ALY5tcOV45HltwhhLhoB6jxcoai4TAfwMsDusQQAZp4CZ4b+zn8pmDN+HA3kae8TQzv
-         nhycZzA7hqGnzPFPisYxKx2kS38m9187HnfFTDao/B/d2A5N6GGlLivxkiVkSk7i4GlB
-         CAWg==
-X-Gm-Message-State: APjAAAUgGcCy62xY6grnwBkNUgtWQDO1LWOA2GQz+ov3zbMk/Pou0x2y
-        H9PLOIQP8FRo6EB7HHui0eb4VfDg1YUxctQfZyQ0c57fOTNxXaEDapRgPuW+ZktZoddbcMp5S75
-        UHRNXtI+5GhS/cx6lcd4lnBDI8HY0qdxspBGZgzLyo1cCxQ1cSsB8g+T59b/Guub7tpxYz5BBjs
-        AlX0U=
-X-Google-Smtp-Source: APXvYqzOthV+t1cI7K5tPlU3J4j488TgJ958OHD28ZKIBWRp9hQCfpXSHToNBs1QpRc3Zi6K0EFZ0A==
-X-Received: by 2002:adf:f80c:: with SMTP id s12mr6933989wrp.1.1580408004777;
-        Thu, 30 Jan 2020 10:13:24 -0800 (PST)
+        bh=MfHAMQSGmpVZ6Pwc0znHSzOzFRAEUgcA8OMpcSuvdgE=;
+        b=StwTbYPHLBU+8F2jhbtjLvElIe06tvxvsqTB4MO5ebZ5FAFHRCuFyx9ca+50dNU4Wr
+         Rv8bR/EVjo+DOwQwSEqYaLLfQInKvTn8Qi7Q+2xtwTkulzW/hFbEhbKtElSLlna7kTdW
+         xdwZ+D66a3B2bKTloBMhj3TsrYleK8NZ9kXLNUWxx1Lr6punkPhN7sh4bN3Tnjmzv7uB
+         AYjIDWGIlwD1YXlPzXNU23ifP3Xs+oIqlOdKqiu2Zb2YHrtsiytw3JCYa6inkmalltsu
+         j/AOxf8YGHCv8ay5n1OGaPELmakK3oGjbKJ7BCmyqtt1FIPmYSigKnY9uHXZt4KMvyx/
+         HFnA==
+X-Gm-Message-State: APjAAAXYQbBNk2nHHu2IoQLbd3XhyexbQfYAdxSH8uy73SYpCvBoS/lv
+        qO/YIOlXOXR9mdnc17C5XLYy2Tq3rgPCEkkON0gAn6vHpgJhWpT/CHFgnSg6Fj/bX4CwRqA9FGP
+        HxfdgUQnAjwRnHWX9FFVb21tOxSaU0gcpM7fU+Snsw3i3e0w5W8PsBKMhHNd3/8jl6P+OiTsv7D
+        A70Ok=
+X-Google-Smtp-Source: APXvYqw+ZHP2rwyuEOBDHdEygDBGTho9XlOTa84bTBoSIjSYIHJLPmw6cjT/lQ7t6SbMmxVSD0eDJA==
+X-Received: by 2002:a7b:c8d7:: with SMTP id f23mr6754589wml.173.1580408009541;
+        Thu, 30 Jan 2020 10:13:29 -0800 (PST)
 Received: from neo00-el73.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id d14sm8695060wru.9.2020.01.30.10.13.22
+        by smtp.gmail.com with ESMTPSA id d14sm8695060wru.9.2020.01.30.10.13.27
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 30 Jan 2020 10:13:24 -0800 (PST)
+        Thu, 30 Jan 2020 10:13:29 -0800 (PST)
 From:   Devesh Sharma <devesh.sharma@broadcom.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, dledford@redhat.com
-Subject: [PATCH V2 for-next 5/8] RDMA/bnxt_re: Refactor command queue management code
-Date:   Thu, 30 Jan 2020 13:12:59 -0500
-Message-Id: <1580407982-882-6-git-send-email-devesh.sharma@broadcom.com>
+Subject: [PATCH V2 for-next 7/8] RDMA/bnxt_re: Refactor doorbell management functions
+Date:   Thu, 30 Jan 2020 13:13:01 -0500
+Message-Id: <1580407982-882-8-git-send-email-devesh.sharma@broadcom.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1580407982-882-1-git-send-email-devesh.sharma@broadcom.com>
 References: <1580407982-882-1-git-send-email-devesh.sharma@broadcom.com>
@@ -66,959 +66,613 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Refactoring the command queue (rcfw) management code. A new
-data-structure is introduced to describe the bar register.
-each object which deals with mmio space should have a descriptor
-structure. This structure specifically hold DB register information.
-Thus, slow path creq structure now hold a bar register descriptor.
+Moving all the fast path doorbell functions at one place
+under qplib_res.h. To pass doorbell record information
+a new structure bnxt_qplib_db_info has been introduced.
+Every roce object holds an instance of this structure and
+doorbell information is initialized during resource creation.
 
-Further cleanup the rcfw structure to introduce the command queue
-context and command response event queue context structures. Rest
-of the rcfw related code has been touched to incorporate these three
-structures.
+When DB is rung only the current queue index is read from
+hardware ring and rest of the data is taken from pre-initialized
+dbinfo structure.
 
-Signed-off-by: Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/main.c       |  12 +-
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 422 +++++++++++++++++------------
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  80 +++---
- drivers/infiniband/hw/bnxt_re/qplib_res.h  |   7 +
- 4 files changed, 315 insertions(+), 206 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 143 ++++++++++-------------------
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h   |  44 +--------
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  21 ++---
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |   2 +-
+ drivers/infiniband/hw/bnxt_re/qplib_res.h  |  78 ++++++++++++++++
+ 5 files changed, 141 insertions(+), 147 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index f013bf6..65f106f 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -1344,7 +1344,7 @@ static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev)
- 		bnxt_qplib_free_ctx(&rdev->qplib_res, &rdev->qplib_ctx);
- 		bnxt_qplib_disable_rcfw_channel(&rdev->rcfw);
- 		type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
--		bnxt_re_net_ring_free(rdev, rdev->rcfw.creq_ring_id, type);
-+		bnxt_re_net_ring_free(rdev, rdev->rcfw.creq.ring_id, type);
- 		bnxt_qplib_free_rcfw_channel(&rdev->rcfw);
- 	}
- 	if (test_and_clear_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags)) {
-@@ -1375,6 +1375,7 @@ static void bnxt_re_worker(struct work_struct *work)
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index 5f72770..25d4348 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -53,9 +53,7 @@
+ #include "qplib_sp.h"
+ #include "qplib_fp.h"
  
- static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+-static void bnxt_qplib_arm_cq_enable(struct bnxt_qplib_cq *cq);
+ static void __clean_cq(struct bnxt_qplib_cq *cq, u64 qp);
+-static void bnxt_qplib_arm_srq(struct bnxt_qplib_srq *srq, u32 arm_type);
+ 
+ static void bnxt_qplib_cancel_phantom_processing(struct bnxt_qplib_qp *qp)
  {
-+	struct bnxt_qplib_creq_ctx *creq;
- 	struct bnxt_re_ring_attr rattr;
- 	u32 db_offt;
- 	bool locked;
-@@ -1427,13 +1428,14 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+@@ -236,7 +234,6 @@ static int bnxt_qplib_alloc_qp_hdr_buf(struct bnxt_qplib_res *res,
+ static void bnxt_qplib_service_nq(unsigned long data)
+ {
+ 	struct bnxt_qplib_nq *nq = (struct bnxt_qplib_nq *)data;
+-	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(nq->res->cctx);
+ 	struct bnxt_qplib_hwq *hwq = &nq->hwq;
+ 	struct nq_base *nqe, **nq_ptr;
+ 	struct bnxt_qplib_cq *cq;
+@@ -272,7 +269,8 @@ static void bnxt_qplib_service_nq(unsigned long data)
+ 			q_handle |= (u64)le32_to_cpu(nqcne->cq_handle_high)
+ 						     << 32;
+ 			cq = (struct bnxt_qplib_cq *)(unsigned long)q_handle;
+-			bnxt_qplib_arm_cq_enable(cq);
++			bnxt_qplib_armen_db(&cq->dbinfo,
++					    DBC_DBC_TYPE_CQ_ARMENA);
+ 			spin_lock_bh(&cq->compl_lock);
+ 			atomic_set(&cq->arm_state, 0);
+ 			if (!nq->cqn_handler(nq, (cq)))
+@@ -285,14 +283,16 @@ static void bnxt_qplib_service_nq(unsigned long data)
+ 		}
+ 		case NQ_BASE_TYPE_SRQ_EVENT:
+ 		{
++			struct bnxt_qplib_srq *srq;
+ 			struct nq_srq_event *nqsrqe =
+ 						(struct nq_srq_event *)nqe;
+ 
+ 			q_handle = le32_to_cpu(nqsrqe->srq_handle_low);
+ 			q_handle |= (u64)le32_to_cpu(nqsrqe->srq_handle_high)
+ 				     << 32;
+-			bnxt_qplib_arm_srq((struct bnxt_qplib_srq *)q_handle,
+-					   DBC_DBC_TYPE_SRQ_ARMENA);
++			srq = (struct bnxt_qplib_srq *)q_handle;
++			bnxt_qplib_armen_db(&srq->dbinfo,
++					    DBC_DBC_TYPE_SRQ_ARMENA);
+ 			if (!nq->srqn_handler(nq,
+ 					      (struct bnxt_qplib_srq *)q_handle,
+ 					      nqsrqe->event))
+@@ -314,9 +314,7 @@ static void bnxt_qplib_service_nq(unsigned long data)
+ 	}
+ 	if (hwq->cons != raw_cons) {
+ 		hwq->cons = raw_cons;
+-		bnxt_qplib_ring_nq_db_rearm(nq->nq_db.db, hwq->cons,
+-					    hwq->max_elements, nq->ring_id,
+-					    gen_p5);
++		bnxt_qplib_ring_nq_db(&nq->nq_db.dbinfo, nq->res->cctx, true);
+ 	}
+ }
+ 
+@@ -340,11 +338,9 @@ static irqreturn_t bnxt_qplib_nq_irq(int irq, void *dev_instance)
+ 
+ void bnxt_qplib_nq_stop_irq(struct bnxt_qplib_nq *nq, bool kill)
+ {
+-	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(nq->res->cctx);
+ 	tasklet_disable(&nq->nq_tasklet);
+ 	/* Mask h/w interrupt */
+-	bnxt_qplib_ring_nq_db(nq->nq_db.db, nq->hwq.cons,
+-			      nq->hwq.max_elements, nq->ring_id, gen_p5);
++	bnxt_qplib_ring_nq_db(&nq->nq_db.dbinfo, nq->res->cctx, false);
+ 	/* Sync with last running IRQ handler */
+ 	synchronize_irq(nq->msix_vec);
+ 	if (kill)
+@@ -369,7 +365,6 @@ void bnxt_qplib_disable_nq(struct bnxt_qplib_nq *nq)
+ 	if (nq->nq_db.reg.bar_reg) {
+ 		iounmap(nq->nq_db.reg.bar_reg);
+ 		nq->nq_db.reg.bar_reg = NULL;
+-		nq->nq_db.db = NULL;
  	}
  
- 	type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
--	rattr.dma_arr = rdev->rcfw.creq.pbl[PBL_LVL_0].pg_map_arr;
--	rattr.pages = rdev->rcfw.creq.pbl[rdev->rcfw.creq.level].pg_count;
-+	creq = &rdev->rcfw.creq;
-+	rattr.dma_arr = creq->hwq.pbl[PBL_LVL_0].pg_map_arr;
-+	rattr.pages = creq->hwq.pbl[creq->hwq.level].pg_count;
- 	rattr.type = type;
- 	rattr.mode = RING_ALLOC_REQ_INT_MODE_MSIX;
- 	rattr.depth = BNXT_QPLIB_CREQE_MAX_CNT - 1;
- 	rattr.lrid = rdev->msix_entries[BNXT_RE_AEQ_IDX].ring_idx;
--	rc = bnxt_re_net_ring_alloc(rdev, &rattr, &rdev->rcfw.creq_ring_id);
-+	rc = bnxt_re_net_ring_alloc(rdev, &rattr, &creq->ring_id);
- 	if (rc) {
- 		pr_err("Failed to allocate CREQ: %#x\n", rc);
- 		goto free_rcfw;
-@@ -1527,7 +1529,7 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 	bnxt_qplib_disable_rcfw_channel(&rdev->rcfw);
- free_ring:
- 	type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
--	bnxt_re_net_ring_free(rdev, rdev->rcfw.creq_ring_id, type);
-+	bnxt_re_net_ring_free(rdev, rdev->rcfw.creq.ring_id, type);
- free_rcfw:
- 	bnxt_qplib_free_rcfw_channel(&rdev->rcfw);
- fail:
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-index c6b6e83..162f4d7 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-@@ -55,12 +55,14 @@
- /* Hardware communication channel */
- static int __wait_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+ 	nq->cqn_handler = NULL;
+@@ -380,7 +375,6 @@ void bnxt_qplib_disable_nq(struct bnxt_qplib_nq *nq)
+ int bnxt_qplib_nq_start_irq(struct bnxt_qplib_nq *nq, int nq_indx,
+ 			    int msix_vector, bool need_init)
  {
-+	struct bnxt_qplib_cmdq_ctx *cmdq;
- 	u16 cbit;
+-	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(nq->res->cctx);
  	int rc;
  
-+	cmdq = &rcfw->cmdq;
- 	cbit = cookie % rcfw->cmdq_depth;
--	rc = wait_event_timeout(rcfw->waitq,
--				!test_bit(cbit, rcfw->cmdq_bitmap),
-+	rc = wait_event_timeout(cmdq->waitq,
-+				!test_bit(cbit, cmdq->cmdq_bitmap),
- 				msecs_to_jiffies(RCFW_CMD_WAIT_TIME_MS));
- 	return rc ? 0 : -ETIMEDOUT;
- };
-@@ -68,15 +70,17 @@ static int __wait_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
- static int __block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
- {
- 	u32 count = RCFW_BLOCKED_CMD_WAIT_COUNT;
-+	struct bnxt_qplib_cmdq_ctx *cmdq;
- 	u16 cbit;
+ 	if (nq->requested)
+@@ -407,8 +401,7 @@ int bnxt_qplib_nq_start_irq(struct bnxt_qplib_nq *nq, int nq_indx,
+ 			 nq->msix_vec, nq_indx);
+ 	}
+ 	nq->requested = true;
+-	bnxt_qplib_ring_nq_db_rearm(nq->nq_db.db, nq->hwq.cons,
+-				    nq->hwq.max_elements, nq->ring_id, gen_p5);
++	bnxt_qplib_ring_nq_db(&nq->nq_db.dbinfo, nq->res->cctx, true);
  
-+	cmdq = &rcfw->cmdq;
- 	cbit = cookie % rcfw->cmdq_depth;
--	if (!test_bit(cbit, rcfw->cmdq_bitmap))
-+	if (!test_bit(cbit, cmdq->cmdq_bitmap))
- 		goto done;
- 	do {
- 		mdelay(1); /* 1m sec */
- 		bnxt_qplib_service_creq((unsigned long)rcfw);
--	} while (test_bit(cbit, rcfw->cmdq_bitmap) && --count);
-+	} while (test_bit(cbit, cmdq->cmdq_bitmap) && --count);
- done:
- 	return count ? 0 : -ETIMEDOUT;
- };
-@@ -84,56 +88,61 @@ static int __block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
- static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
- 			  struct creq_base *resp, void *sb, u8 is_block)
- {
--	struct bnxt_qplib_cmdqe *cmdqe, **cmdq_ptr;
--	struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
-+	struct bnxt_qplib_cmdq_ctx *cmdq = &rcfw->cmdq;
-+	struct bnxt_qplib_cmdqe *cmdqe, **hwq_ptr;
-+	struct bnxt_qplib_hwq *hwq = &cmdq->hwq;
-+	struct bnxt_qplib_crsqe *crsqe;
- 	u32 cmdq_depth = rcfw->cmdq_depth;
--	struct bnxt_qplib_crsq *crsqe;
- 	u32 sw_prod, cmdq_prod;
-+	struct pci_dev *pdev;
- 	unsigned long flags;
- 	u32 size, opcode;
- 	u16 cookie, cbit;
-+	int pg, idx;
- 	u8 *preq;
- 
-+	pdev = rcfw->pdev;
-+
- 	opcode = req->opcode;
--	if (!test_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags) &&
-+	if (!test_bit(FIRMWARE_INITIALIZED_FLAG, &cmdq->flags) &&
- 	    (opcode != CMDQ_BASE_OPCODE_QUERY_FUNC &&
- 	     opcode != CMDQ_BASE_OPCODE_INITIALIZE_FW &&
- 	     opcode != CMDQ_BASE_OPCODE_QUERY_VERSION)) {
--		dev_err(&rcfw->pdev->dev,
-+		dev_err(&pdev->dev,
- 			"RCFW not initialized, reject opcode 0x%x\n", opcode);
- 		return -EINVAL;
+ 	return rc;
+ }
+@@ -442,7 +435,9 @@ static int bnxt_qplib_map_nq_db(struct bnxt_qplib_nq *nq,  u32 reg_offt)
+ 		goto fail;
  	}
  
--	if (test_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags) &&
-+	if (test_bit(FIRMWARE_INITIALIZED_FLAG, &cmdq->flags) &&
- 	    opcode == CMDQ_BASE_OPCODE_INITIALIZE_FW) {
--		dev_err(&rcfw->pdev->dev, "RCFW already initialized!\n");
-+		dev_err(&pdev->dev, "RCFW already initialized!\n");
- 		return -EINVAL;
- 	}
+-	nq_db->db = nq_db->reg.bar_reg;
++	nq_db->dbinfo.db = nq_db->reg.bar_reg;
++	nq_db->dbinfo.hwq = &nq->hwq;
++	nq_db->dbinfo.xid = nq->ring_id;
+ fail:
+ 	return rc;
+ }
+@@ -515,24 +510,6 @@ int bnxt_qplib_alloc_nq(struct bnxt_qplib_res *res, struct bnxt_qplib_nq *nq)
+ }
  
--	if (test_bit(FIRMWARE_TIMED_OUT, &rcfw->flags))
-+	if (test_bit(FIRMWARE_TIMED_OUT, &cmdq->flags))
- 		return -ETIMEDOUT;
- 
- 	/* Cmdq are in 16-byte units, each request can consume 1 or more
- 	 * cmdqe
- 	 */
--	spin_lock_irqsave(&cmdq->lock, flags);
--	if (req->cmd_size >= HWQ_FREE_SLOTS(cmdq)) {
--		dev_err(&rcfw->pdev->dev, "RCFW: CMDQ is full!\n");
--		spin_unlock_irqrestore(&cmdq->lock, flags);
-+	spin_lock_irqsave(&hwq->lock, flags);
-+	if (req->cmd_size >= HWQ_FREE_SLOTS(hwq)) {
-+		dev_err(&pdev->dev, "RCFW: CMDQ is full!\n");
-+		spin_unlock_irqrestore(&hwq->lock, flags);
- 		return -EAGAIN;
- 	}
- 
- 
--	cookie = rcfw->seq_num & RCFW_MAX_COOKIE_VALUE;
-+	cookie = cmdq->seq_num & RCFW_MAX_COOKIE_VALUE;
- 	cbit = cookie % rcfw->cmdq_depth;
- 	if (is_block)
- 		cookie |= RCFW_CMD_IS_BLOCKING;
- 
--	set_bit(cbit, rcfw->cmdq_bitmap);
-+	set_bit(cbit, cmdq->cmdq_bitmap);
- 	req->cookie = cpu_to_le16(cookie);
- 	crsqe = &rcfw->crsqe_tbl[cbit];
- 	if (crsqe->resp) {
--		spin_unlock_irqrestore(&cmdq->lock, flags);
-+		spin_unlock_irqrestore(&hwq->lock, flags);
- 		return -EBUSY;
- 	}
- 
-@@ -155,15 +164,18 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
- 				  BNXT_QPLIB_CMDQE_UNITS;
- 	}
- 
--	cmdq_ptr = (struct bnxt_qplib_cmdqe **)cmdq->pbl_ptr;
-+	hwq_ptr = (struct bnxt_qplib_cmdqe **)hwq->pbl_ptr;
- 	preq = (u8 *)req;
- 	do {
-+		pg = 0;
-+		idx = 0;
-+
- 		/* Locate the next cmdq slot */
--		sw_prod = HWQ_CMP(cmdq->prod, cmdq);
--		cmdqe = &cmdq_ptr[get_cmdq_pg(sw_prod, cmdq_depth)]
-+		sw_prod = HWQ_CMP(hwq->prod, hwq);
-+		cmdqe = &hwq_ptr[get_cmdq_pg(sw_prod, cmdq_depth)]
- 				[get_cmdq_idx(sw_prod, cmdq_depth)];
- 		if (!cmdqe) {
--			dev_err(&rcfw->pdev->dev,
-+			dev_err(&pdev->dev,
- 				"RCFW request failed with no cmdqe!\n");
- 			goto done;
- 		}
-@@ -172,31 +184,27 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
- 		memcpy(cmdqe, preq, min_t(u32, size, sizeof(*cmdqe)));
- 		preq += min_t(u32, size, sizeof(*cmdqe));
- 		size -= min_t(u32, size, sizeof(*cmdqe));
--		cmdq->prod++;
--		rcfw->seq_num++;
-+		hwq->prod++;
- 	} while (size > 0);
-+	cmdq->seq_num++;
- 
--	rcfw->seq_num++;
+ /* SRQ */
+-static void bnxt_qplib_arm_srq(struct bnxt_qplib_srq *srq, u32 arm_type)
+-{
+-	struct bnxt_qplib_hwq *srq_hwq = &srq->hwq;
+-	void __iomem *db;
+-	u32 sw_prod;
+-	u64 val = 0;
 -
--	cmdq_prod = cmdq->prod;
--	if (test_bit(FIRMWARE_FIRST_FLAG, &rcfw->flags)) {
-+	cmdq_prod = hwq->prod;
-+	if (test_bit(FIRMWARE_FIRST_FLAG, &cmdq->flags)) {
- 		/* The very first doorbell write
- 		 * is required to set this flag
- 		 * which prompts the FW to reset
- 		 * its internal pointers
- 		 */
- 		cmdq_prod |= BIT(FIRMWARE_FIRST_FLAG);
--		clear_bit(FIRMWARE_FIRST_FLAG, &rcfw->flags);
-+		clear_bit(FIRMWARE_FIRST_FLAG, &cmdq->flags);
- 	}
+-	/* Ring DB */
+-	sw_prod = (arm_type == DBC_DBC_TYPE_SRQ_ARM) ?
+-		   srq->threshold : HWQ_CMP(srq_hwq->prod, srq_hwq);
+-	db = (arm_type == DBC_DBC_TYPE_SRQ_ARMENA) ? srq->dbr_base :
+-						     srq->dpi->dbr;
+-	val = ((srq->id << DBC_DBC_XID_SFT) & DBC_DBC_XID_MASK) | arm_type;
+-	val <<= 32;
+-	val |= (sw_prod << DBC_DBC_INDEX_SFT) & DBC_DBC_INDEX_MASK;
+-	writeq(val, db);
+-}
+-
+ void bnxt_qplib_destroy_srq(struct bnxt_qplib_res *res,
+ 			   struct bnxt_qplib_srq *srq)
+ {
+@@ -623,9 +600,12 @@ int bnxt_qplib_create_srq(struct bnxt_qplib_res *res,
+ 	srq->swq[srq->last_idx].next_idx = -1;
  
- 	/* ring CMDQ DB */
- 	wmb();
--	writel(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
--	       rcfw->cmdq_bar_reg_prod_off);
--	writel(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
--	       rcfw->cmdq_bar_reg_trig_off);
-+	writel(cmdq_prod, cmdq->cmdq_mbox.prod);
-+	writel(RCFW_CMDQ_TRIG_VAL, cmdq->cmdq_mbox.db);
- done:
--	spin_unlock_irqrestore(&cmdq->lock, flags);
-+	spin_unlock_irqrestore(&hwq->lock, flags);
- 	/* Return the CREQ response pointer */
+ 	srq->id = le32_to_cpu(resp.xid);
+-	srq->dbr_base = res->dpi_tbl.dbr_bar_reg_iomem;
++	srq->dbinfo.hwq = &srq->hwq;
++	srq->dbinfo.xid = srq->id;
++	srq->dbinfo.db = srq->dpi->dbr;
++	srq->dbinfo.priv_db = res->dpi_tbl.dbr_bar_reg_iomem;
+ 	if (srq->threshold)
+-		bnxt_qplib_arm_srq(srq, DBC_DBC_TYPE_SRQ_ARMENA);
++		bnxt_qplib_armen_db(&srq->dbinfo, DBC_DBC_TYPE_SRQ_ARMENA);
+ 	srq->arm_req = false;
+ 
  	return 0;
- }
-@@ -236,7 +244,7 @@ int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
- 		/* timed out */
- 		dev_err(&rcfw->pdev->dev, "cmdq[%#x]=%#x timedout (%d)msec\n",
- 			cookie, opcode, RCFW_CMD_WAIT_TIME_MS);
--		set_bit(FIRMWARE_TIMED_OUT, &rcfw->flags);
-+		set_bit(FIRMWARE_TIMED_OUT, &rcfw->cmdq.flags);
- 		return rc;
+@@ -649,7 +629,7 @@ int bnxt_qplib_modify_srq(struct bnxt_qplib_res *res,
+ 				    srq_hwq->max_elements - sw_cons + sw_prod;
+ 	if (count > srq->threshold) {
+ 		srq->arm_req = false;
+-		bnxt_qplib_arm_srq(srq, DBC_DBC_TYPE_SRQ_ARM);
++		bnxt_qplib_srq_arm_db(&srq->dbinfo, srq->threshold);
+ 	} else {
+ 		/* Deferred arming */
+ 		srq->arm_req = true;
+@@ -737,10 +717,10 @@ int bnxt_qplib_post_srq_recv(struct bnxt_qplib_srq *srq,
+ 				    srq_hwq->max_elements - sw_cons + sw_prod;
+ 	spin_unlock(&srq_hwq->lock);
+ 	/* Ring DB */
+-	bnxt_qplib_arm_srq(srq, DBC_DBC_TYPE_SRQ);
++	bnxt_qplib_ring_prod_db(&srq->dbinfo, DBC_DBC_TYPE_SRQ);
+ 	if (srq->arm_req == true && count > srq->threshold) {
+ 		srq->arm_req = false;
+-		bnxt_qplib_arm_srq(srq, DBC_DBC_TYPE_SRQ_ARM);
++		bnxt_qplib_srq_arm_db(&srq->dbinfo, srq->threshold);
  	}
+ done:
+ 	return rc;
+@@ -871,6 +851,15 @@ int bnxt_qplib_create_qp1(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
  
-@@ -253,6 +261,8 @@ int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
- static int bnxt_qplib_process_func_event(struct bnxt_qplib_rcfw *rcfw,
- 					 struct creq_func_event *func_event)
+ 	qp->id = le32_to_cpu(resp.xid);
+ 	qp->cur_qp_state = CMDQ_MODIFY_QP_NEW_STATE_RESET;
++	qp->cctx = res->cctx;
++	sq->dbinfo.hwq = &sq->hwq;
++	sq->dbinfo.xid = qp->id;
++	sq->dbinfo.db = qp->dpi->dbr;
++	if (rq->max_wqe) {
++		rq->dbinfo.hwq = &rq->hwq;
++		rq->dbinfo.xid = qp->id;
++		rq->dbinfo.db = qp->dpi->dbr;
++	}
+ 	rcfw->qp_tbl[qp->id].qp_id = qp->id;
+ 	rcfw->qp_tbl[qp->id].qp_handle = (void *)qp;
+ 
+@@ -1108,9 +1097,17 @@ int bnxt_qplib_create_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+ 
+ 	qp->id = le32_to_cpu(resp.xid);
+ 	qp->cur_qp_state = CMDQ_MODIFY_QP_NEW_STATE_RESET;
+-	qp->cctx = res->cctx;
+ 	INIT_LIST_HEAD(&qp->sq_flush);
+ 	INIT_LIST_HEAD(&qp->rq_flush);
++	qp->cctx = res->cctx;
++	sq->dbinfo.hwq = &sq->hwq;
++	sq->dbinfo.xid = qp->id;
++	sq->dbinfo.db = qp->dpi->dbr;
++	if (rq->max_wqe) {
++		rq->dbinfo.hwq = &rq->hwq;
++		rq->dbinfo.xid = qp->id;
++		rq->dbinfo.db = qp->dpi->dbr;
++	}
+ 	rcfw->qp_tbl[qp->id].qp_id = qp->id;
+ 	rcfw->qp_tbl[qp->id].qp_handle = (void *)qp;
+ 
+@@ -1550,16 +1547,8 @@ void *bnxt_qplib_get_qp1_rq_buf(struct bnxt_qplib_qp *qp,
+ void bnxt_qplib_post_send_db(struct bnxt_qplib_qp *qp)
  {
-+	int rc;
-+
- 	switch (func_event->event) {
- 	case CREQ_FUNC_EVENT_EVENT_TX_WQE_ERROR:
- 		break;
-@@ -286,37 +296,41 @@ static int bnxt_qplib_process_func_event(struct bnxt_qplib_rcfw *rcfw,
- 	default:
- 		return -EINVAL;
- 	}
--	return 0;
-+
-+	rc = rcfw->creq.aeq_handler(rcfw, (void *)func_event, NULL);
-+	return rc;
+ 	struct bnxt_qplib_q *sq = &qp->sq;
+-	u32 sw_prod;
+-	u64 val = 0;
+ 
+-	val = (((qp->id << DBC_DBC_XID_SFT) & DBC_DBC_XID_MASK) |
+-	       DBC_DBC_TYPE_SQ);
+-	val <<= 32;
+-	sw_prod = HWQ_CMP(sq->hwq.prod, &sq->hwq);
+-	val |= (sw_prod << DBC_DBC_INDEX_SFT) & DBC_DBC_INDEX_MASK;
+-	/* Flush all the WQE writes to HW */
+-	writeq(val, qp->dpi->dbr);
++	bnxt_qplib_ring_prod_db(&sq->dbinfo, DBC_DBC_TYPE_SQ);
  }
  
- static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
- 				       struct creq_qp_event *qp_event)
+ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
+@@ -1851,16 +1840,8 @@ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
+ void bnxt_qplib_post_recv_db(struct bnxt_qplib_qp *qp)
  {
--	struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
- 	struct creq_qp_error_notification *err_event;
--	struct bnxt_qplib_crsq *crsqe;
--	unsigned long flags;
-+	struct bnxt_qplib_hwq *hwq = &rcfw->cmdq.hwq;
-+	struct bnxt_qplib_crsqe *crsqe;
- 	struct bnxt_qplib_qp *qp;
- 	u16 cbit, blocked = 0;
--	u16 cookie;
-+	struct pci_dev *pdev;
-+	unsigned long flags;
- 	__le16  mcookie;
-+	u16 cookie;
-+	int rc = 0;
- 	u32 qp_id;
+ 	struct bnxt_qplib_q *rq = &qp->rq;
+-	u32 sw_prod;
+-	u64 val = 0;
  
-+	pdev = rcfw->pdev;
- 	switch (qp_event->event) {
- 	case CREQ_QP_EVENT_EVENT_QP_ERROR_NOTIFICATION:
- 		err_event = (struct creq_qp_error_notification *)qp_event;
- 		qp_id = le32_to_cpu(err_event->xid);
- 		qp = rcfw->qp_tbl[qp_id].qp_handle;
--		dev_dbg(&rcfw->pdev->dev,
--			"Received QP error notification\n");
--		dev_dbg(&rcfw->pdev->dev,
-+		dev_dbg(&pdev->dev, "Received QP error notification\n");
-+		dev_dbg(&pdev->dev,
- 			"qpid 0x%x, req_err=0x%x, resp_err=0x%x\n",
- 			qp_id, err_event->req_err_state_reason,
- 			err_event->res_err_state_reason);
- 		if (!qp)
- 			break;
- 		bnxt_qplib_mark_qp_error(qp);
--		rcfw->aeq_handler(rcfw, qp_event, qp);
-+		rc = rcfw->creq.aeq_handler(rcfw, qp_event, qp);
- 		break;
- 	default:
- 		/*
-@@ -328,7 +342,7 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
- 		 *
- 		 */
- 
--		spin_lock_irqsave_nested(&cmdq->lock, flags,
-+		spin_lock_irqsave_nested(&hwq->lock, flags,
- 					 SINGLE_DEPTH_NESTING);
- 		cookie = le16_to_cpu(qp_event->cookie);
- 		mcookie = qp_event->cookie;
-@@ -342,23 +356,23 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
- 			crsqe->resp = NULL;
- 		} else {
- 			if (crsqe->resp && crsqe->resp->cookie)
--				dev_err(&rcfw->pdev->dev,
-+				dev_err(&pdev->dev,
- 					"CMD %s cookie sent=%#x, recd=%#x\n",
- 					crsqe->resp ? "mismatch" : "collision",
- 					crsqe->resp ? crsqe->resp->cookie : 0,
- 					mcookie);
- 		}
--		if (!test_and_clear_bit(cbit, rcfw->cmdq_bitmap))
--			dev_warn(&rcfw->pdev->dev,
-+		if (!test_and_clear_bit(cbit, rcfw->cmdq.cmdq_bitmap))
-+			dev_warn(&pdev->dev,
- 				 "CMD bit %d was not requested\n", cbit);
--		cmdq->cons += crsqe->req_size;
-+		hwq->cons += crsqe->req_size;
- 		crsqe->req_size = 0;
- 
- 		if (!blocked)
--			wake_up(&rcfw->waitq);
--		spin_unlock_irqrestore(&cmdq->lock, flags);
-+			wake_up(&rcfw->cmdq.waitq);
-+		spin_unlock_irqrestore(&hwq->lock, flags);
- 	}
--	return 0;
-+	return rc;
+-	val = (((qp->id << DBC_DBC_XID_SFT) & DBC_DBC_XID_MASK) |
+-	       DBC_DBC_TYPE_RQ);
+-	val <<= 32;
+-	sw_prod = HWQ_CMP(rq->hwq.prod, &rq->hwq);
+-	val |= (sw_prod << DBC_DBC_INDEX_SFT) & DBC_DBC_INDEX_MASK;
+-	/* Flush the writes to HW Rx WQE before the ringing Rx DB */
+-	writeq(val, qp->dpi->dbr);
++	bnxt_qplib_ring_prod_db(&rq->dbinfo, DBC_DBC_TYPE_RQ);
  }
  
- /* SP - CREQ Completion handlers */
-@@ -366,20 +380,21 @@ static void bnxt_qplib_service_creq(unsigned long data)
+ int bnxt_qplib_post_recv(struct bnxt_qplib_qp *qp,
+@@ -1940,34 +1921,6 @@ int bnxt_qplib_post_recv(struct bnxt_qplib_qp *qp,
+ }
+ 
+ /* CQ */
+-
+-/* Spinlock must be held */
+-static void bnxt_qplib_arm_cq_enable(struct bnxt_qplib_cq *cq)
+-{
+-	u64 val = 0;
+-
+-	val = ((cq->id << DBC_DBC_XID_SFT) & DBC_DBC_XID_MASK) |
+-	       DBC_DBC_TYPE_CQ_ARMENA;
+-	val <<= 32;
+-	/* Flush memory writes before enabling the CQ */
+-	writeq(val, cq->dbr_base);
+-}
+-
+-static void bnxt_qplib_arm_cq(struct bnxt_qplib_cq *cq, u32 arm_type)
+-{
+-	struct bnxt_qplib_hwq *cq_hwq = &cq->hwq;
+-	u32 sw_cons;
+-	u64 val = 0;
+-
+-	/* Ring DB */
+-	val = ((cq->id << DBC_DBC_XID_SFT) & DBC_DBC_XID_MASK) | arm_type;
+-	val <<= 32;
+-	sw_cons = HWQ_CMP(cq_hwq->cons, cq_hwq);
+-	val |= (sw_cons << DBC_DBC_INDEX_SFT) & DBC_DBC_INDEX_MASK;
+-	/* flush memory writes before arming the CQ */
+-	writeq(val, cq->dpi->dbr);
+-}
+-
+ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+ {
+ 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+@@ -2022,7 +1975,6 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+ 		goto fail;
+ 
+ 	cq->id = le32_to_cpu(resp.xid);
+-	cq->dbr_base = res->dpi_tbl.dbr_bar_reg_iomem;
+ 	cq->period = BNXT_QPLIB_QUEUE_START_PERIOD;
+ 	init_waitqueue_head(&cq->waitq);
+ 	INIT_LIST_HEAD(&cq->sqf_head);
+@@ -2030,7 +1982,13 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+ 	spin_lock_init(&cq->compl_lock);
+ 	spin_lock_init(&cq->flush_lock);
+ 
+-	bnxt_qplib_arm_cq_enable(cq);
++	cq->dbinfo.hwq = &cq->hwq;
++	cq->dbinfo.xid = cq->id;
++	cq->dbinfo.db = cq->dpi->dbr;
++	cq->dbinfo.priv_db = res->dpi_tbl.dbr_bar_reg_iomem;
++
++	bnxt_qplib_armen_db(&cq->dbinfo, DBC_DBC_TYPE_CQ_ARMENA);
++
+ 	return 0;
+ 
+ fail:
+@@ -2187,8 +2145,7 @@ static int do_wa9060(struct bnxt_qplib_qp *qp, struct bnxt_qplib_cq *cq,
+ 		sq->send_phantom = true;
+ 
+ 		/* TODO: Only ARM if the previous SQE is ARMALL */
+-		bnxt_qplib_arm_cq(cq, DBC_DBC_TYPE_CQ_ARMALL);
+-
++		bnxt_qplib_ring_db(&cq->dbinfo, DBC_DBC_TYPE_CQ_ARMALL);
+ 		rc = -EAGAIN;
+ 		goto out;
+ 	}
+@@ -2858,7 +2815,7 @@ int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
+ 	}
+ 	if (cq->hwq.cons != raw_cons) {
+ 		cq->hwq.cons = raw_cons;
+-		bnxt_qplib_arm_cq(cq, DBC_DBC_TYPE_CQ);
++		bnxt_qplib_ring_db(&cq->dbinfo, DBC_DBC_TYPE_CQ);
+ 	}
+ exit:
+ 	return num_cqes - budget;
+@@ -2867,7 +2824,7 @@ int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
+ void bnxt_qplib_req_notify_cq(struct bnxt_qplib_cq *cq, u32 arm_type)
+ {
+ 	if (arm_type)
+-		bnxt_qplib_arm_cq(cq, arm_type);
++		bnxt_qplib_ring_db(&cq->dbinfo, arm_type);
+ 	/* Using cq->arm_state variable to track whether to issue cq handler */
+ 	atomic_set(&cq->arm_state, 1);
+ }
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
+index 765e5d2..9e8d1c5 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
+@@ -42,7 +42,7 @@
+ struct bnxt_qplib_srq {
+ 	struct bnxt_qplib_pd		*pd;
+ 	struct bnxt_qplib_dpi		*dpi;
+-	void __iomem			*dbr_base;
++	struct bnxt_qplib_db_info	dbinfo;
+ 	u64				srq_handle;
+ 	u32				id;
+ 	u32				max_wqe;
+@@ -236,6 +236,7 @@ struct bnxt_qplib_swqe {
+ struct bnxt_qplib_q {
+ 	struct bnxt_qplib_hwq		hwq;
+ 	struct bnxt_qplib_swq		*swq;
++	struct bnxt_qplib_db_info	dbinfo;
+ 	struct bnxt_qplib_sg_info	sg_info;
+ 	u32				max_wqe;
+ 	u16				q_full_delta;
+@@ -370,7 +371,7 @@ struct bnxt_qplib_cqe {
+ #define BNXT_QPLIB_QUEUE_START_PERIOD		0x01
+ struct bnxt_qplib_cq {
+ 	struct bnxt_qplib_dpi		*dpi;
+-	void __iomem			*dbr_base;
++	struct bnxt_qplib_db_info	dbinfo;
+ 	u32				max_wqe;
+ 	u32				id;
+ 	u16				count;
+@@ -433,46 +434,9 @@ struct bnxt_qplib_cq {
+ 					 NQ_DB_IDX_VALID |	\
+ 					 NQ_DB_IRQ_DIS)
+ 
+-static inline void bnxt_qplib_ring_nq_db64(void __iomem *db, u32 index,
+-					   u32 xid, bool arm)
+-{
+-	u64 val;
+-
+-	val = xid & DBC_DBC_XID_MASK;
+-	val |= DBC_DBC_PATH_ROCE;
+-	val |= arm ? DBC_DBC_TYPE_NQ_ARM : DBC_DBC_TYPE_NQ;
+-	val <<= 32;
+-	val |= index & DBC_DBC_INDEX_MASK;
+-	writeq(val, db);
+-}
+-
+-static inline void bnxt_qplib_ring_nq_db_rearm(void __iomem *db, u32 raw_cons,
+-					       u32 max_elements, u32 xid,
+-					       bool gen_p5)
+-{
+-	u32 index = raw_cons & (max_elements - 1);
+-
+-	if (gen_p5)
+-		bnxt_qplib_ring_nq_db64(db, index, xid, true);
+-	else
+-		writel(NQ_DB_CP_FLAGS_REARM | (index & DBC_DBC32_XID_MASK), db);
+-}
+-
+-static inline void bnxt_qplib_ring_nq_db(void __iomem *db, u32 raw_cons,
+-					 u32 max_elements, u32 xid,
+-					 bool gen_p5)
+-{
+-	u32 index = raw_cons & (max_elements - 1);
+-
+-	if (gen_p5)
+-		bnxt_qplib_ring_nq_db64(db, index, xid, false);
+-	else
+-		writel(NQ_DB_CP_FLAGS | (index & DBC_DBC32_XID_MASK), db);
+-}
+-
+ struct bnxt_qplib_nq_db {
+ 	struct bnxt_qplib_reg_desc	reg;
+-	void __iomem			*db;
++	struct bnxt_qplib_db_info	dbinfo;
+ };
+ 
+ typedef int (*cqn_handler_t)(struct bnxt_qplib_nq *nq,
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index 162f4d7..06705e7 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -379,7 +379,6 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ static void bnxt_qplib_service_creq(unsigned long data)
  {
  	struct bnxt_qplib_rcfw *rcfw = (struct bnxt_qplib_rcfw *)data;
- 	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(rcfw->res->cctx);
--	struct bnxt_qplib_hwq *creq = &rcfw->creq;
-+	struct bnxt_qplib_creq_ctx *creq = &rcfw->creq;
+-	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(rcfw->res->cctx);
+ 	struct bnxt_qplib_creq_ctx *creq = &rcfw->creq;
  	u32 type, budget = CREQ_ENTRY_POLL_BUDGET;
--	struct creq_base *creqe, **creq_ptr;
-+	struct bnxt_qplib_hwq *hwq = &creq->hwq;
-+	struct creq_base *creqe, **hwq_ptr;
- 	u32 sw_cons, raw_cons;
- 	unsigned long flags;
+ 	struct bnxt_qplib_hwq *hwq = &creq->hwq;
+@@ -429,9 +428,8 @@ static void bnxt_qplib_service_creq(unsigned long data)
  
- 	/* Service the CREQ until budget is over */
--	spin_lock_irqsave(&creq->lock, flags);
--	raw_cons = creq->cons;
-+	spin_lock_irqsave(&hwq->lock, flags);
-+	raw_cons = hwq->cons;
- 	while (budget > 0) {
--		sw_cons = HWQ_CMP(raw_cons, creq);
--		creq_ptr = (struct creq_base **)creq->pbl_ptr;
--		creqe = &creq_ptr[get_creq_pg(sw_cons)][get_creq_idx(sw_cons)];
--		if (!CREQ_CMP_VALID(creqe, raw_cons, creq->max_elements))
-+		sw_cons = HWQ_CMP(raw_cons, hwq);
-+		hwq_ptr = (struct creq_base **)hwq->pbl_ptr;
-+		creqe = &hwq_ptr[get_creq_pg(sw_cons)][get_creq_idx(sw_cons)];
-+		if (!CREQ_CMP_VALID(creqe, raw_cons, hwq->max_elements))
- 			break;
- 		/* The valid test of the entry must be done first before
- 		 * reading any further.
-@@ -391,12 +406,12 @@ static void bnxt_qplib_service_creq(unsigned long data)
- 		case CREQ_BASE_TYPE_QP_EVENT:
- 			bnxt_qplib_process_qp_event
- 				(rcfw, (struct creq_qp_event *)creqe);
--			rcfw->creq_qp_event_processed++;
-+			creq->stats.creq_qp_event_processed++;
- 			break;
- 		case CREQ_BASE_TYPE_FUNC_EVENT:
- 			if (!bnxt_qplib_process_func_event
- 			    (rcfw, (struct creq_func_event *)creqe))
--				rcfw->creq_func_event_processed++;
-+				creq->stats.creq_func_event_processed++;
- 			else
- 				dev_warn(&rcfw->pdev->dev,
- 					 "aeqe:%#x Not handled\n", type);
-@@ -412,28 +427,31 @@ static void bnxt_qplib_service_creq(unsigned long data)
- 		budget--;
+ 	if (hwq->cons != raw_cons) {
+ 		hwq->cons = raw_cons;
+-		bnxt_qplib_ring_creq_db_rearm(creq->creq_db.db,
+-					      raw_cons, hwq->max_elements,
+-					      creq->ring_id, gen_p5);
++		bnxt_qplib_ring_nq_db(&creq->creq_db.dbinfo,
++				      rcfw->res->cctx, true);
  	}
- 
--	if (creq->cons != raw_cons) {
--		creq->cons = raw_cons;
--		bnxt_qplib_ring_creq_db_rearm(rcfw->creq_bar_reg_iomem,
--					      raw_cons, creq->max_elements,
--					      rcfw->creq_ring_id, gen_p5);
-+	if (hwq->cons != raw_cons) {
-+		hwq->cons = raw_cons;
-+		bnxt_qplib_ring_creq_db_rearm(creq->creq_db.db,
-+					      raw_cons, hwq->max_elements,
-+					      creq->ring_id, gen_p5);
- 	}
--	spin_unlock_irqrestore(&creq->lock, flags);
-+	spin_unlock_irqrestore(&hwq->lock, flags);
+ 	spin_unlock_irqrestore(&hwq->lock, flags);
  }
+@@ -660,15 +658,12 @@ int bnxt_qplib_alloc_rcfw_channel(struct bnxt_qplib_res *res,
  
- static irqreturn_t bnxt_qplib_creq_irq(int irq, void *dev_instance)
- {
- 	struct bnxt_qplib_rcfw *rcfw = dev_instance;
--	struct bnxt_qplib_hwq *creq = &rcfw->creq;
-+	struct bnxt_qplib_creq_ctx *creq;
- 	struct creq_base **creq_ptr;
-+	struct bnxt_qplib_hwq *hwq;
- 	u32 sw_cons;
- 
-+	creq = &rcfw->creq;
-+	hwq = &creq->hwq;
- 	/* Prefetch the CREQ element */
--	sw_cons = HWQ_CMP(creq->cons, creq);
--	creq_ptr = (struct creq_base **)rcfw->creq.pbl_ptr;
-+	sw_cons = HWQ_CMP(hwq->cons, hwq);
-+	creq_ptr = (struct creq_base **)creq->hwq.pbl_ptr;
- 	prefetch(&creq_ptr[get_creq_pg(sw_cons)][get_creq_idx(sw_cons)]);
- 
--	tasklet_schedule(&rcfw->worker);
-+	tasklet_schedule(&creq->creq_tasklet);
- 
- 	return IRQ_HANDLED;
- }
-@@ -452,7 +470,7 @@ int bnxt_qplib_deinit_rcfw(struct bnxt_qplib_rcfw *rcfw)
- 	if (rc)
- 		return rc;
- 
--	clear_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags);
-+	clear_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->cmdq.flags);
- 	return 0;
- }
- 
-@@ -556,16 +574,17 @@ int bnxt_qplib_init_rcfw(struct bnxt_qplib_rcfw *rcfw,
- 					  NULL, 0);
- 	if (rc)
- 		return rc;
--	set_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags);
-+	set_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->cmdq.flags);
- 	return 0;
- }
- 
- void bnxt_qplib_free_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
- {
-+	kfree(rcfw->cmdq.cmdq_bitmap);
- 	kfree(rcfw->qp_tbl);
- 	kfree(rcfw->crsqe_tbl);
--	bnxt_qplib_free_hwq(rcfw->res, &rcfw->cmdq);
--	bnxt_qplib_free_hwq(rcfw->res, &rcfw->creq);
-+	bnxt_qplib_free_hwq(rcfw->res, &rcfw->cmdq.hwq);
-+	bnxt_qplib_free_hwq(rcfw->res, &rcfw->creq.hwq);
- 	rcfw->pdev = NULL;
- }
- 
-@@ -576,8 +595,13 @@ int bnxt_qplib_alloc_rcfw_channel(struct bnxt_qplib_res *res,
- {
- 	struct bnxt_qplib_hwq_attr hwq_attr = {};
- 	struct bnxt_qplib_sg_info sginfo = {};
-+	struct bnxt_qplib_cmdq_ctx *cmdq;
-+	struct bnxt_qplib_creq_ctx *creq;
-+	u32 bmap_size = 0;
- 
- 	rcfw->pdev = res->pdev;
-+	cmdq = &rcfw->cmdq;
-+	creq = &rcfw->creq;
- 	rcfw->res = res;
- 
- 	sginfo.pgsize = PAGE_SIZE;
-@@ -589,7 +613,7 @@ int bnxt_qplib_alloc_rcfw_channel(struct bnxt_qplib_res *res,
- 	hwq_attr.stride = BNXT_QPLIB_CREQE_UNITS;
- 	hwq_attr.type = bnxt_qplib_get_hwq_type(res);
- 
--	if (bnxt_qplib_alloc_init_hwq(&rcfw->creq, &hwq_attr)) {
-+	if (bnxt_qplib_alloc_init_hwq(&creq->hwq, &hwq_attr)) {
- 		dev_err(&rcfw->pdev->dev,
- 			"HW channel CREQ allocation failed\n");
- 		goto fail;
-@@ -603,17 +627,24 @@ int bnxt_qplib_alloc_rcfw_channel(struct bnxt_qplib_res *res,
- 	hwq_attr.depth = rcfw->cmdq_depth;
- 	hwq_attr.stride = BNXT_QPLIB_CMDQE_UNITS;
- 	hwq_attr.type = HWQ_TYPE_CTX;
--	if (bnxt_qplib_alloc_init_hwq(&rcfw->cmdq, &hwq_attr)) {
-+	if (bnxt_qplib_alloc_init_hwq(&cmdq->hwq, &hwq_attr)) {
- 		dev_err(&rcfw->pdev->dev,
- 			"HW channel CMDQ allocation failed\n");
- 		goto fail;
- 	}
- 
--	rcfw->crsqe_tbl = kcalloc(rcfw->cmdq.max_elements,
-+	rcfw->crsqe_tbl = kcalloc(cmdq->hwq.max_elements,
- 				  sizeof(*rcfw->crsqe_tbl), GFP_KERNEL);
- 	if (!rcfw->crsqe_tbl)
- 		goto fail;
- 
-+	bmap_size = BITS_TO_LONGS(rcfw->cmdq_depth) * sizeof(unsigned long);
-+	cmdq->cmdq_bitmap = kzalloc(bmap_size, GFP_KERNEL);
-+	if (!cmdq->cmdq_bitmap)
-+		goto fail;
-+
-+	cmdq->bmap_size = bmap_size;
-+
- 	rcfw->qp_tbl_size = qp_tbl_sz;
- 	rcfw->qp_tbl = kcalloc(qp_tbl_sz, sizeof(struct bnxt_qplib_qp_node),
- 			       GFP_KERNEL);
-@@ -630,137 +661,202 @@ int bnxt_qplib_alloc_rcfw_channel(struct bnxt_qplib_res *res,
  void bnxt_qplib_rcfw_stop_irq(struct bnxt_qplib_rcfw *rcfw, bool kill)
  {
- 	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(rcfw->res->cctx);
-+	struct bnxt_qplib_creq_ctx *creq;
+-	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(rcfw->res->cctx);
+ 	struct bnxt_qplib_creq_ctx *creq;
  
--	tasklet_disable(&rcfw->worker);
-+	creq = &rcfw->creq;
-+	tasklet_disable(&creq->creq_tasklet);
+ 	creq = &rcfw->creq;
+ 	tasklet_disable(&creq->creq_tasklet);
  	/* Mask h/w interrupts */
--	bnxt_qplib_ring_creq_db(rcfw->creq_bar_reg_iomem, rcfw->creq.cons,
--				rcfw->creq.max_elements, rcfw->creq_ring_id,
-+	bnxt_qplib_ring_creq_db(creq->creq_db.db, creq->hwq.cons,
-+				creq->hwq.max_elements, creq->ring_id,
- 				gen_p5);
+-	bnxt_qplib_ring_creq_db(creq->creq_db.db, creq->hwq.cons,
+-				creq->hwq.max_elements, creq->ring_id,
+-				gen_p5);
++	bnxt_qplib_ring_nq_db(&creq->creq_db.dbinfo, rcfw->res->cctx, false);
  	/* Sync with last running IRQ-handler */
--	synchronize_irq(rcfw->vector);
-+	synchronize_irq(creq->msix_vec);
+ 	synchronize_irq(creq->msix_vec);
  	if (kill)
--		tasklet_kill(&rcfw->worker);
-+		tasklet_kill(&creq->creq_tasklet);
- 
--	if (rcfw->requested) {
--		free_irq(rcfw->vector, rcfw);
--		rcfw->requested = false;
-+	if (creq->requested) {
-+		free_irq(creq->msix_vec, rcfw);
-+		creq->requested = false;
- 	}
- }
- 
- void bnxt_qplib_disable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
- {
-+	struct bnxt_qplib_creq_ctx *creq;
-+	struct bnxt_qplib_cmdq_ctx *cmdq;
- 	unsigned long indx;
- 
-+	creq = &rcfw->creq;
-+	cmdq = &rcfw->cmdq;
-+	/* Make sure the HW channel is stopped! */
- 	bnxt_qplib_rcfw_stop_irq(rcfw, true);
- 
--	iounmap(rcfw->cmdq_bar_reg_iomem);
--	iounmap(rcfw->creq_bar_reg_iomem);
-+	iounmap(cmdq->cmdq_mbox.reg.bar_reg);
-+	iounmap(creq->creq_db.reg.bar_reg);
- 
--	indx = find_first_bit(rcfw->cmdq_bitmap, rcfw->bmap_size);
--	if (indx != rcfw->bmap_size)
-+	indx = find_first_bit(cmdq->cmdq_bitmap, cmdq->bmap_size);
-+	if (indx != cmdq->bmap_size)
- 		dev_err(&rcfw->pdev->dev,
- 			"disabling RCFW with pending cmd-bit %lx\n", indx);
--	kfree(rcfw->cmdq_bitmap);
--	rcfw->bmap_size = 0;
- 
--	rcfw->cmdq_bar_reg_iomem = NULL;
--	rcfw->creq_bar_reg_iomem = NULL;
--	rcfw->aeq_handler = NULL;
--	rcfw->vector = 0;
-+	cmdq->cmdq_mbox.reg.bar_reg = NULL;
-+	creq->creq_db.reg.bar_reg = NULL;
-+	creq->aeq_handler = NULL;
-+	creq->msix_vec = 0;
- }
- 
+@@ -708,7 +703,6 @@ void bnxt_qplib_disable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
  int bnxt_qplib_rcfw_start_irq(struct bnxt_qplib_rcfw *rcfw, int msix_vector,
  			      bool need_init)
  {
- 	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(rcfw->res->cctx);
-+	struct bnxt_qplib_creq_ctx *creq;
+-	bool gen_p5 = bnxt_qplib_is_chip_gen_p5(rcfw->res->cctx);
+ 	struct bnxt_qplib_creq_ctx *creq;
  	int rc;
  
--	if (rcfw->requested)
-+	creq = &rcfw->creq;
-+
-+	if (creq->requested)
- 		return -EFAULT;
- 
--	rcfw->vector = msix_vector;
-+	creq->msix_vec = msix_vector;
- 	if (need_init)
--		tasklet_init(&rcfw->worker,
-+		tasklet_init(&creq->creq_tasklet,
- 			     bnxt_qplib_service_creq, (unsigned long)rcfw);
- 	else
--		tasklet_enable(&rcfw->worker);
--	rc = request_irq(rcfw->vector, bnxt_qplib_creq_irq, 0,
-+		tasklet_enable(&creq->creq_tasklet);
-+	rc = request_irq(creq->msix_vec, bnxt_qplib_creq_irq, 0,
- 			 "bnxt_qplib_creq", rcfw);
+@@ -728,9 +722,8 @@ int bnxt_qplib_rcfw_start_irq(struct bnxt_qplib_rcfw *rcfw, int msix_vector,
  	if (rc)
  		return rc;
--	rcfw->requested = true;
--	bnxt_qplib_ring_creq_db_rearm(rcfw->creq_bar_reg_iomem,
--				      rcfw->creq.cons, rcfw->creq.max_elements,
--				      rcfw->creq_ring_id, gen_p5);
-+	creq->requested = true;
-+	bnxt_qplib_ring_creq_db_rearm(creq->creq_db.db,
-+				      creq->hwq.cons, creq->hwq.max_elements,
-+				      creq->ring_id, gen_p5);
+ 	creq->requested = true;
+-	bnxt_qplib_ring_creq_db_rearm(creq->creq_db.db,
+-				      creq->hwq.cons, creq->hwq.max_elements,
+-				      creq->ring_id, gen_p5);
++
++	bnxt_qplib_ring_nq_db(&creq->creq_db.dbinfo, rcfw->res->cctx, true);
  
  	return 0;
  }
- 
--int bnxt_qplib_enable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw,
--				   int msix_vector,
--				   int cp_bar_reg_off, int virt_fn,
--				   int (*aeq_handler)(struct bnxt_qplib_rcfw *,
--						      void *, void *))
-+static int bnxt_qplib_map_cmdq_mbox(struct bnxt_qplib_rcfw *rcfw, bool is_vf)
- {
--	resource_size_t res_base;
--	struct cmdq_init init;
-+	struct bnxt_qplib_cmdq_mbox *mbox;
-+	resource_size_t bar_reg;
- 	struct pci_dev *pdev;
--	u16 bmap_size;
--	int rc;
-+	u16 prod_offt;
-+	int rc = 0;
- 
--	/* General */
- 	pdev = rcfw->pdev;
--	rcfw->seq_num = 0;
--	set_bit(FIRMWARE_FIRST_FLAG, &rcfw->flags);
--	bmap_size = BITS_TO_LONGS(rcfw->cmdq_depth) * sizeof(unsigned long);
--	rcfw->cmdq_bitmap = kzalloc(bmap_size, GFP_KERNEL);
--	if (!rcfw->cmdq_bitmap)
--		return -ENOMEM;
--	rcfw->bmap_size = bmap_size;
--
--	/* CMDQ */
--	rcfw->cmdq_bar_reg = RCFW_COMM_PCI_BAR_REGION;
--	res_base = pci_resource_start(pdev, rcfw->cmdq_bar_reg);
--	if (!res_base)
-+	mbox = &rcfw->cmdq.cmdq_mbox;
-+
-+	mbox->reg.bar_id = RCFW_COMM_PCI_BAR_REGION;
-+	mbox->reg.len = RCFW_COMM_SIZE;
-+	mbox->reg.bar_base = pci_resource_start(pdev, mbox->reg.bar_id);
-+	if (!mbox->reg.bar_base) {
-+		dev_err(&pdev->dev,
-+			"QPLIB: CMDQ BAR region %d resc start is 0!\n",
-+			mbox->reg.bar_id);
- 		return -ENOMEM;
-+	}
- 
--	rcfw->cmdq_bar_reg_iomem = ioremap_nocache(res_base +
--					      RCFW_COMM_BASE_OFFSET,
--					      RCFW_COMM_SIZE);
--	if (!rcfw->cmdq_bar_reg_iomem) {
--		dev_err(&rcfw->pdev->dev, "CMDQ BAR region %d mapping failed\n",
--			rcfw->cmdq_bar_reg);
-+	bar_reg = mbox->reg.bar_base + RCFW_COMM_BASE_OFFSET;
-+	mbox->reg.len = RCFW_COMM_SIZE;
-+	mbox->reg.bar_reg = ioremap_nocache(bar_reg, mbox->reg.len);
-+	if (!mbox->reg.bar_reg) {
-+		dev_err(&pdev->dev,
-+			"QPLIB: CMDQ BAR region %d mapping failed\n",
-+			mbox->reg.bar_id);
+@@ -799,7 +792,9 @@ static int bnxt_qplib_map_creq_db(struct bnxt_qplib_rcfw *rcfw, u32 reg_offt)
  		return -ENOMEM;
  	}
  
--	rcfw->cmdq_bar_reg_prod_off = virt_fn ? RCFW_VF_COMM_PROD_OFFSET :
--					RCFW_PF_COMM_PROD_OFFSET;
-+	prod_offt = is_vf ? RCFW_VF_COMM_PROD_OFFSET :
-+			    RCFW_PF_COMM_PROD_OFFSET;
-+	mbox->prod = (void  __iomem *)(mbox->reg.bar_reg + prod_offt);
-+	mbox->db = (void __iomem *)(mbox->reg.bar_reg + RCFW_COMM_TRIG_OFFSET);
-+	return rc;
-+}
+-	creq_db->db = creq_db->reg.bar_reg;
++	creq_db->dbinfo.db = creq_db->reg.bar_reg;
++	creq_db->dbinfo.hwq = &rcfw->creq.hwq;
++	creq_db->dbinfo.xid = rcfw->creq.ring_id;
  
--	rcfw->cmdq_bar_reg_trig_off = RCFW_COMM_TRIG_OFFSET;
-+static int bnxt_qplib_map_creq_db(struct bnxt_qplib_rcfw *rcfw, u32 reg_offt)
-+{
-+	struct bnxt_qplib_creq_db *creq_db;
-+	resource_size_t bar_reg;
-+	struct pci_dev *pdev;
- 
--	/* CREQ */
--	rcfw->creq_bar_reg = RCFW_COMM_CONS_PCI_BAR_REGION;
--	res_base = pci_resource_start(pdev, rcfw->creq_bar_reg);
--	if (!res_base)
--		dev_err(&rcfw->pdev->dev,
--			"CREQ BAR region %d resc start is 0!\n",
--			rcfw->creq_bar_reg);
--	/* Unconditionally map 8 bytes to support 57500 series */
--	rcfw->creq_bar_reg_iomem = ioremap_nocache(res_base + cp_bar_reg_off,
--						   8);
--	if (!rcfw->creq_bar_reg_iomem) {
--		dev_err(&rcfw->pdev->dev, "CREQ BAR region %d mapping failed\n",
--			rcfw->creq_bar_reg);
--		iounmap(rcfw->cmdq_bar_reg_iomem);
--		rcfw->cmdq_bar_reg_iomem = NULL;
-+	pdev = rcfw->pdev;
-+	creq_db = &rcfw->creq.creq_db;
-+
-+	creq_db->reg.bar_id = RCFW_COMM_CONS_PCI_BAR_REGION;
-+	creq_db->reg.bar_base = pci_resource_start(pdev, creq_db->reg.bar_id);
-+	if (!creq_db->reg.bar_id)
-+		dev_err(&pdev->dev,
-+			"QPLIB: CREQ BAR region %d resc start is 0!",
-+			creq_db->reg.bar_id);
-+
-+	bar_reg = creq_db->reg.bar_base + reg_offt;
-+	creq_db->reg.len = 8;
-+	creq_db->reg.bar_reg = ioremap_nocache(bar_reg, creq_db->reg.len);
-+	if (!creq_db->reg.bar_reg) {
-+		dev_err(&pdev->dev,
-+			"QPLIB: CREQ BAR region %d mapping failed",
-+			creq_db->reg.bar_id);
- 		return -ENOMEM;
- 	}
--	rcfw->creq_qp_event_processed = 0;
--	rcfw->creq_func_event_processed = 0;
- 
--	if (aeq_handler)
--		rcfw->aeq_handler = aeq_handler;
--	init_waitqueue_head(&rcfw->waitq);
-+	creq_db->db = creq_db->reg.bar_reg;
-+
-+	return 0;
-+}
-+
-+static void bnxt_qplib_start_rcfw(struct bnxt_qplib_rcfw *rcfw)
-+{
-+	struct bnxt_qplib_cmdq_ctx *cmdq;
-+	struct bnxt_qplib_creq_ctx *creq;
-+	struct bnxt_qplib_cmdq_mbox *mbox;
-+	struct cmdq_init init = {0};
-+
-+	cmdq = &rcfw->cmdq;
-+	creq = &rcfw->creq;
-+	mbox = &cmdq->cmdq_mbox;
-+
-+	init.cmdq_pbl = cpu_to_le64(cmdq->hwq.pbl[PBL_LVL_0].pg_map_arr[0]);
-+	init.cmdq_size_cmdq_lvl =
-+			cpu_to_le16(((rcfw->cmdq_depth <<
-+				      CMDQ_INIT_CMDQ_SIZE_SFT) &
-+				    CMDQ_INIT_CMDQ_SIZE_MASK) |
-+				    ((cmdq->hwq.level <<
-+				      CMDQ_INIT_CMDQ_LVL_SFT) &
-+				    CMDQ_INIT_CMDQ_LVL_MASK));
-+	init.creq_ring_id = cpu_to_le16(creq->ring_id);
-+	/* Write to the Bono mailbox register */
-+	__iowrite32_copy(mbox->reg.bar_reg, &init, sizeof(init) / 4);
-+}
-+
-+int bnxt_qplib_enable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw,
-+				   int msix_vector,
-+				   int cp_bar_reg_off, int virt_fn,
-+				   aeq_handler_t aeq_handler)
-+{
-+	struct bnxt_qplib_cmdq_ctx *cmdq;
-+	struct bnxt_qplib_creq_ctx *creq;
-+	int rc;
-+
-+	cmdq = &rcfw->cmdq;
-+	creq = &rcfw->creq;
-+
-+	/* Clear to defaults */
-+
-+	cmdq->seq_num = 0;
-+	set_bit(FIRMWARE_FIRST_FLAG, &cmdq->flags);
-+	init_waitqueue_head(&cmdq->waitq);
-+
-+	creq->stats.creq_qp_event_processed = 0;
-+	creq->stats.creq_func_event_processed = 0;
-+	creq->aeq_handler = aeq_handler;
-+
-+	rc = bnxt_qplib_map_cmdq_mbox(rcfw, virt_fn);
-+	if (rc)
-+		return rc;
-+
-+	rc = bnxt_qplib_map_creq_db(rcfw, cp_bar_reg_off);
-+	if (rc)
-+		return rc;
- 
- 	rc = bnxt_qplib_rcfw_start_irq(rcfw, msix_vector, true);
- 	if (rc) {
-@@ -770,16 +866,8 @@ int bnxt_qplib_enable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw,
- 		return rc;
- 	}
- 
--	init.cmdq_pbl = cpu_to_le64(rcfw->cmdq.pbl[PBL_LVL_0].pg_map_arr[0]);
--	init.cmdq_size_cmdq_lvl = cpu_to_le16(
--		((rcfw->cmdq_depth << CMDQ_INIT_CMDQ_SIZE_SFT) &
--		 CMDQ_INIT_CMDQ_SIZE_MASK) |
--		((rcfw->cmdq.level << CMDQ_INIT_CMDQ_LVL_SFT) &
--		 CMDQ_INIT_CMDQ_LVL_MASK));
--	init.creq_ring_id = cpu_to_le16(rcfw->creq_ring_id);
-+	bnxt_qplib_start_rcfw(rcfw);
- 
--	/* Write to the Bono mailbox register */
--	__iowrite32_copy(rcfw->cmdq_bar_reg_iomem, &init, sizeof(init) / 4);
  	return 0;
  }
- 
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
-index ab1531c..1aff6d4 100644
+index 1aff6d4..411fce3 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
-@@ -206,8 +206,9 @@ static inline void bnxt_qplib_ring_creq_db(void __iomem *db, u32 raw_cons,
- #define CREQ_ENTRY_POLL_BUDGET		0x100
+@@ -247,7 +247,7 @@ struct bnxt_qplib_cmdq_ctx {
  
- /* HWQ */
-+typedef int (*aeq_handler_t)(struct bnxt_qplib_rcfw *, void *, void *);
- 
--struct bnxt_qplib_crsq {
-+struct bnxt_qplib_crsqe {
- 	struct creq_qp_event	*resp;
- 	u32			req_size;
+ struct bnxt_qplib_creq_db {
+ 	struct bnxt_qplib_reg_desc	reg;
+-	void __iomem			*db;
++	struct bnxt_qplib_db_info	dbinfo;
  };
-@@ -225,41 +226,53 @@ struct bnxt_qplib_qp_node {
  
- #define BNXT_QPLIB_OOS_COUNT_MASK 0xFFFFFFFF
- 
-+#define FIRMWARE_INITIALIZED_FLAG	(0)
-+#define FIRMWARE_FIRST_FLAG		(31)
-+#define FIRMWARE_TIMED_OUT		(3)
-+struct bnxt_qplib_cmdq_mbox {
-+	struct bnxt_qplib_reg_desc	reg;
-+	void __iomem			*prod;
-+	void __iomem			*db;
-+};
-+
-+struct bnxt_qplib_cmdq_ctx {
-+	struct bnxt_qplib_hwq		hwq;
-+	struct bnxt_qplib_cmdq_mbox	cmdq_mbox;
-+	wait_queue_head_t		waitq;
-+	unsigned long			flags;
-+	unsigned long			*cmdq_bitmap;
-+	u32				bmap_size;
-+	u32				seq_num;
-+};
-+
-+struct bnxt_qplib_creq_db {
-+	struct bnxt_qplib_reg_desc	reg;
-+	void __iomem			*db;
-+};
-+
-+struct bnxt_qplib_creq_stat {
-+	u64	creq_qp_event_processed;
-+	u64	creq_func_event_processed;
-+};
-+
-+struct bnxt_qplib_creq_ctx {
-+	struct bnxt_qplib_hwq		hwq;
-+	struct bnxt_qplib_creq_db	creq_db;
-+	struct bnxt_qplib_creq_stat	stats;
-+	struct tasklet_struct		creq_tasklet;
-+	aeq_handler_t			aeq_handler;
-+	u16				ring_id;
-+	int				msix_vec;
-+	bool				requested; /*irq handler installed */
-+};
-+
- /* RCFW Communication Channels */
- struct bnxt_qplib_rcfw {
- 	struct pci_dev		*pdev;
- 	struct bnxt_qplib_res	*res;
--	int			vector;
--	struct tasklet_struct	worker;
--	bool			requested;
--	unsigned long		*cmdq_bitmap;
--	u32			bmap_size;
--	unsigned long		flags;
--#define FIRMWARE_INITIALIZED_FLAG	0
--#define FIRMWARE_FIRST_FLAG		31
--#define FIRMWARE_TIMED_OUT		3
--	wait_queue_head_t	waitq;
--	int			(*aeq_handler)(struct bnxt_qplib_rcfw *,
--					       void *, void *);
--	u32			seq_num;
--
--	/* Bar region info */
--	void __iomem		*cmdq_bar_reg_iomem;
--	u16			cmdq_bar_reg;
--	u16			cmdq_bar_reg_prod_off;
--	u16			cmdq_bar_reg_trig_off;
--	u16			creq_ring_id;
--	u16			creq_bar_reg;
--	void __iomem		*creq_bar_reg_iomem;
--
--	/* Cmd-Resp and Async Event notification queue */
--	struct bnxt_qplib_hwq	creq;
--	u64			creq_qp_event_processed;
--	u64			creq_func_event_processed;
--
--	/* Actual Cmd and Resp Queues */
--	struct bnxt_qplib_hwq	cmdq;
--	struct bnxt_qplib_crsq	*crsqe_tbl;
-+	struct bnxt_qplib_cmdq_ctx	cmdq;
-+	struct bnxt_qplib_creq_ctx	creq;
-+	struct bnxt_qplib_crsqe		*crsqe_tbl;
- 	int qp_tbl_size;
- 	struct bnxt_qplib_qp_node *qp_tbl;
- 	u64 oos_prev;
-@@ -279,8 +292,7 @@ int bnxt_qplib_rcfw_start_irq(struct bnxt_qplib_rcfw *rcfw, int msix_vector,
- int bnxt_qplib_enable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw,
- 				   int msix_vector,
- 				   int cp_bar_reg_off, int virt_fn,
--				   int (*aeq_handler)(struct bnxt_qplib_rcfw *,
--						      void *aeqe, void *obj));
-+				   aeq_handler_t aeq_handler);
- 
- struct bnxt_qplib_rcfw_sbuf *bnxt_qplib_rcfw_alloc_sbuf(
- 				struct bnxt_qplib_rcfw *rcfw,
+ struct bnxt_qplib_creq_stat {
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-index fe8a6dd..5fa278e 100644
+index 5fa278e..95b645d 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-@@ -80,6 +80,13 @@ enum bnxt_qplib_pbl_lvl {
- #define ROCE_PG_SIZE_8M		(8 * 1024 * 1024)
- #define ROCE_PG_SIZE_1G		(1024 * 1024 * 1024)
+@@ -133,6 +133,13 @@ struct bnxt_qplib_hwq {
+ 	u8				is_user;
+ };
  
-+struct bnxt_qplib_reg_desc {
-+	u8		bar_id;
-+	resource_size_t	bar_base;
-+	void __iomem	*bar_reg;
-+	size_t		len;
++struct bnxt_qplib_db_info {
++	void __iomem		*db;
++	void __iomem		*priv_db;
++	struct bnxt_qplib_hwq	*hwq;
++	u32			xid;
 +};
 +
- struct bnxt_qplib_pbl {
- 	u32				pg_count;
- 	u32				pg_size;
+ /* Tables */
+ struct bnxt_qplib_pd_tbl {
+ 	unsigned long			*tbl;
+@@ -290,4 +297,75 @@ void bnxt_qplib_free_ctx(struct bnxt_qplib_res *res,
+ int bnxt_qplib_alloc_ctx(struct bnxt_qplib_res *res,
+ 			 struct bnxt_qplib_ctx *ctx,
+ 			 bool virt_fn, bool is_p5);
++
++static inline void bnxt_qplib_ring_db32(struct bnxt_qplib_db_info *info,
++					bool arm)
++{
++	u32 key;
++
++	key = info->hwq->cons & (info->hwq->max_elements - 1);
++	key |= (CMPL_DOORBELL_IDX_VALID |
++		(CMPL_DOORBELL_KEY_CMPL & CMPL_DOORBELL_KEY_MASK));
++	if (!arm)
++		key |= CMPL_DOORBELL_MASK;
++	writel(key, info->db);
++}
++
++static inline void bnxt_qplib_ring_db(struct bnxt_qplib_db_info *info,
++				      u32 type)
++{
++	u64 key = 0;
++
++	key = (info->xid & DBC_DBC_XID_MASK) | DBC_DBC_PATH_ROCE | type;
++	key <<= 32;
++	key |= (info->hwq->cons & (info->hwq->max_elements - 1)) &
++		DBC_DBC_INDEX_MASK;
++	writeq(key, info->db);
++}
++
++static inline void bnxt_qplib_ring_prod_db(struct bnxt_qplib_db_info *info,
++					   u32 type)
++{
++	u64 key = 0;
++
++	key = (info->xid & DBC_DBC_XID_MASK) | DBC_DBC_PATH_ROCE | type;
++	key <<= 32;
++	key |= (info->hwq->prod & (info->hwq->max_elements - 1)) &
++		DBC_DBC_INDEX_MASK;
++	writeq(key, info->db);
++}
++
++static inline void bnxt_qplib_armen_db(struct bnxt_qplib_db_info *info,
++				       u32 type)
++{
++	u64 key = 0;
++
++	key = (info->xid & DBC_DBC_XID_MASK) | DBC_DBC_PATH_ROCE | type;
++	key <<= 32;
++	writeq(key, info->priv_db);
++}
++
++static inline void bnxt_qplib_srq_arm_db(struct bnxt_qplib_db_info *info,
++					 u32 th)
++{
++	u64 key = 0;
++
++	key = (info->xid & DBC_DBC_XID_MASK) | DBC_DBC_PATH_ROCE | th;
++	key <<= 32;
++	key |=  th & DBC_DBC_INDEX_MASK;
++	writeq(key, info->priv_db);
++}
++
++static inline void bnxt_qplib_ring_nq_db(struct bnxt_qplib_db_info *info,
++					 struct bnxt_qplib_chip_ctx *cctx,
++					 bool arm)
++{
++	u32 type;
++
++	type = arm ? DBC_DBC_TYPE_NQ_ARM : DBC_DBC_TYPE_NQ;
++	if (bnxt_qplib_is_chip_gen_p5(cctx))
++		bnxt_qplib_ring_db(info, type);
++	else
++		bnxt_qplib_ring_db32(info, arm);
++}
+ #endif /* __BNXT_QPLIB_RES_H__ */
 -- 
 1.8.3.1
 
