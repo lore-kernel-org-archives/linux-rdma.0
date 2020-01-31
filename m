@@ -7,52 +7,54 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3532C2D0DB
-	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jan 2020 15:41:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7298C2D0DB
+	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jan 2020 15:54:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A5BE820707
-	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jan 2020 15:41:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A92120661
+	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jan 2020 15:54:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="S3ZPUew4"
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="gWHypgl2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728992AbgAaPlU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 31 Jan 2020 10:41:20 -0500
-Received: from mail-io1-f68.google.com ([209.85.166.68]:37182 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728752AbgAaPlU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jan 2020 10:41:20 -0500
-Received: by mail-io1-f68.google.com with SMTP id k24so8629886ioc.4
-        for <linux-rdma@vger.kernel.org>; Fri, 31 Jan 2020 07:41:19 -0800 (PST)
+        id S1729192AbgAaPyD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 31 Jan 2020 10:54:03 -0500
+Received: from mail-io1-f65.google.com ([209.85.166.65]:39014 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729016AbgAaPyC (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jan 2020 10:54:02 -0500
+Received: by mail-io1-f65.google.com with SMTP id c16so8669046ioh.6
+        for <linux-rdma@vger.kernel.org>; Fri, 31 Jan 2020 07:54:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=TShKAwQdBBlnopJ5mtRi2HgyMpjheFBfurHhQQ8X8jk=;
-        b=S3ZPUew4G1hKwEoik6cE5zU7vfRXVrf/GBfnGosdfcrI64zRiPGe3TPWDrbh03Qx6g
-         tad0LY7gsT3/vpONuCT7ol4ctq0sThTzIUGzmW973ca8qCIaME6I0ndrkJxeqMgr0vd3
-         b4Y1ffhAK9z/ErDfLHkWMek0Z0kVVCY4M4w90=
+        bh=RykGlF+AYDOu7d4iLsy+CTTcBpK+b6FTtu0QGGuwg2g=;
+        b=gWHypgl2B1Abx7J8mgH7HY6PJ7WHagMWWcYGjaZ8LrKI1JdqvYnc8NAhbh3IvkXwy4
+         R9LFaWf/nFtUG9ELfjMTLM9CgxAY7+6bIWIBttVtNwzECeLqhcmyVIeA8b6UaDrMNiVy
+         68zkeXd4fQOanXfG8jRQIdxZKA5/JnU0K/TWs=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=TShKAwQdBBlnopJ5mtRi2HgyMpjheFBfurHhQQ8X8jk=;
-        b=uXVeppDwf6fk1iwtv3p8H/7GBh53vxNLKKjvnX1bOgsG0gQ3Crm27b8cFDryHlpMll
-         uKD8vLoSaJS/bmWZxgcyJatytuIrV7+QEscTfeBlb+ifxhBTvPnLLs/yPpQj8Wd4lupE
-         z9uJo0mRvDyuGP/2HZ5Nwc3ce5jlVF7yl8CzGL8GF3gS5kzBVA+8uPUrpcZroXEw4WvT
-         b/THUa5c5/OivVnafouPDxx4IhkyYSx0vj6eC7RPqU1TIVD1gHbjkqlH63M3OZpxpuTf
-         tjCZQSejGCgxE7/1sJpaqGwEwDQrtlG2Z3HBG3Ig9zsHk4gU1jP9tLbgOwYr1IRRc/sd
-         ns1w==
-X-Gm-Message-State: APjAAAWV5RbmcB+u6U7npi+10Q2U76aoKOWTfqE0jDnvbDtQCN4gVSqo
-        UVqU/qna9v1mdHXMymTqSshuOytYcC0NVl+cghZqT50M
-X-Google-Smtp-Source: APXvYqxwiRxVKzJLaXLF/uDuCrpAI/ipG7X8uf8Yk+13bJu2AEdsbnpMFbd4EnnTBkB4nH+ZWOZD1+soL42jU4/SAps=
-X-Received: by 2002:a02:13c2:: with SMTP id 185mr9158101jaz.0.1580485277391;
- Fri, 31 Jan 2020 07:41:17 -0800 (PST)
+        bh=RykGlF+AYDOu7d4iLsy+CTTcBpK+b6FTtu0QGGuwg2g=;
+        b=S3CeBCTYzBmU2xg65ZbQtNETnM2fPMfnSDig/GZAoXcDlXQ5LnLpI6yCTi9cDoCUZb
+         Fsa5ndxEYVY26hPNzRFqIZxqpAgBxKsWjuOVrc8bUNplollbCZIhZLY9pXOoELWJJsCW
+         y3MoqAAe5ct3a2y3cOyG4+124NVna0VE7yNcfWgTYtSdryOz1FziVVl9PDEn+0zVMJQG
+         YKeSpCqz+EvP5upS/oN8PUcl0IyGjaP7hkW7cHMHsRDX+lmgggCKTvSLHj3MAl+xmiBB
+         Be7C3T3zdIJTc1887ysqevxg/g3lbjyr1W0k39hD27bW+MUrgXMU1VBy8n/iZXCCAkyw
+         K/LQ==
+X-Gm-Message-State: APjAAAVd+GvTJrVkZe9vlrgFr3+53iuyT9dgtjrRleIa1BwLSlYoQ2bx
+        KNN0f8zHCbujwpDBtIcoykqcGWtL7uDlpT11A0TvDBLd
+X-Google-Smtp-Source: APXvYqwKroFhgJd6570A5B/qCHHfjVLLriQ6sIddo1klBHViUykUDWP0t9b1bfJEkaTFsfAJUmjaMKgVc4/mpm6w2NY=
+X-Received: by 2002:a6b:c9c6:: with SMTP id z189mr8743270iof.285.1580486041689;
+ Fri, 31 Jan 2020 07:54:01 -0800 (PST)
 MIME-Version: 1.0
-References: <1580466773-24342-1-git-send-email-devesh.sharma@broadcom.com> <AM0PR05MB48663242B41CEB51D3535AF9D1070@AM0PR05MB4866.eurprd05.prod.outlook.com>
-In-Reply-To: <AM0PR05MB48663242B41CEB51D3535AF9D1070@AM0PR05MB4866.eurprd05.prod.outlook.com>
+References: <1580466773-24342-1-git-send-email-devesh.sharma@broadcom.com>
+ <AM0PR05MB48663242B41CEB51D3535AF9D1070@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <CANjDDBgtVSLK7sBLLSr3-RBt7W+TeJeSo=Df+wDMS6mhowudgA@mail.gmail.com>
+In-Reply-To: <CANjDDBgtVSLK7sBLLSr3-RBt7W+TeJeSo=Df+wDMS6mhowudgA@mail.gmail.com>
 From:   Devesh Sharma <devesh.sharma@broadcom.com>
-Date:   Fri, 31 Jan 2020 21:10:41 +0530
-Message-ID: <CANjDDBgtVSLK7sBLLSr3-RBt7W+TeJeSo=Df+wDMS6mhowudgA@mail.gmail.com>
+Date:   Fri, 31 Jan 2020 21:23:25 +0530
+Message-ID: <CANjDDBiZaSPhZk=G4wC4dvP6oULOXaqKLq2gWJWm-jk0xyp=mQ@mail.gmail.com>
 Subject: Re: [PATCH] rdma-core/libibverbs: display gid type in ibv_devinfo
 To:     Parav Pandit <parav@mellanox.com>
 Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
@@ -64,37 +66,51 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jan 31, 2020, 16:30 Parav Pandit <parav@mellanox.com> wrote:
+On Fri, Jan 31, 2020 at 9:10 PM Devesh Sharma
+<devesh.sharma@broadcom.com> wrote:
 >
-> Hi Devesh,
+> On Fri, Jan 31, 2020, 16:30 Parav Pandit <parav@mellanox.com> wrote:
+> >
+> > Hi Devesh,
+> >
+> > > From: linux-rdma-owner@vger.kernel.org <linux-rdma-
+> > > owner@vger.kernel.org> On Behalf Of Devesh Sharma
+> >
+> >
+> > [..]
+> >
+> > >  static int print_all_port_gids(struct ibv_context *ctx, uint8_t port_num, int
+> > > tbl_len)  {
+> > > +     enum ibv_gid_type type;
+> > >       union ibv_gid gid;
+> > >       int rc = 0;
+> > >       int i;
+> > > @@ -175,8 +185,16 @@ static int print_all_port_gids(struct ibv_context *ctx,
+> > > uint8_t port_num, int tb
+> > >                              port_num, i);
+> > >                       return rc;
+> > >               }
+> > > +
+> > > +             rc = ibv_query_gid_type(ctx, port_num, i, &type);
+> > > +             if (rc) {
+> > > +                     fprintf(stderr, "Failed to query gid type to port %d,
+> > > index %d\n",
+> > > +                             port_num, i);
+> > > +                     return rc;
+> > GID table can have holes depending on how IP addresses, vlan configured/removed.
+> > ibv_query_gid_type() is masking the EINVAL error with RoCEv1 type so here return is ok.
+> > But as good practice, instead of bailing out the loop, if it returns failure, skip the particular GID entry print.
+> > This way rest of valid entries can be still printed.
 >
-> > From: linux-rdma-owner@vger.kernel.org <linux-rdma-
-> > owner@vger.kernel.org> On Behalf Of Devesh Sharma
->
->
-> [..]
->
-> >  static int print_all_port_gids(struct ibv_context *ctx, uint8_t port_num, int
-> > tbl_len)  {
-> > +     enum ibv_gid_type type;
-> >       union ibv_gid gid;
-> >       int rc = 0;
-> >       int i;
-> > @@ -175,8 +185,16 @@ static int print_all_port_gids(struct ibv_context *ctx,
-> > uint8_t port_num, int tb
-> >                              port_num, i);
-> >                       return rc;
-> >               }
-> > +
-> > +             rc = ibv_query_gid_type(ctx, port_num, i, &type);
-> > +             if (rc) {
-> > +                     fprintf(stderr, "Failed to query gid type to port %d,
-> > index %d\n",
-> > +                             port_num, i);
-> > +                     return rc;
-> GID table can have holes depending on how IP addresses, vlan configured/removed.
-> ibv_query_gid_type() is masking the EINVAL error with RoCEv1 type so here return is ok.
-> But as good practice, instead of bailing out the loop, if it returns failure, skip the particular GID entry print.
-> This way rest of valid entries can be still printed.
+> Okay, will send V2 shortly.
 
-Okay, will send V2 shortly.
+Is this what you want:
+if (rc) {
+   print msg;
+   save rc in tmp var;
+   continue;
+}
+
+in the end after loop over
+return saved-rc-tmp-var;
+Alter saved-rc-tmp-var accordingly for good cases.
