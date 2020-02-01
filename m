@@ -2,40 +2,40 @@ Return-Path: <SRS0=zqSS=3V=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F190C35250
-	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:41:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4EB6C33C9E
+	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:41:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C14E2073B
-	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:41:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DDF22082E
+	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:41:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="rgUsJVjr"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="iDX4gxpQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727077AbgBADl3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 31 Jan 2020 22:41:29 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:4444 "EHLO
+        id S1727369AbgBADlQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 31 Jan 2020 22:41:16 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:4473 "EHLO
         hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727035AbgBADkh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jan 2020 22:40:37 -0500
+        with ESMTP id S1727164AbgBADkj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jan 2020 22:40:39 -0500
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e34f2fc0000>; Fri, 31 Jan 2020 19:39:40 -0800
+        id <B5e34f2fe0000>; Fri, 31 Jan 2020 19:39:42 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Fri, 31 Jan 2020 19:40:34 -0800
+  Fri, 31 Jan 2020 19:40:35 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Fri, 31 Jan 2020 19:40:34 -0800
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 1 Feb
- 2020 03:40:33 +0000
-Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sat, 1 Feb 2020 03:40:33 +0000
+        by hqpgpgate101.nvidia.com on Fri, 31 Jan 2020 19:40:35 -0800
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 1 Feb
+ 2020 03:40:35 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Sat, 1 Feb 2020 03:40:35 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e34f3300002>; Fri, 31 Jan 2020 19:40:33 -0800
+        id <B5e34f3320002>; Fri, 31 Jan 2020 19:40:34 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -56,208 +56,69 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>
-Subject: [PATCH v3 00/12] mm/gup: track FOLL_PIN pages
-Date:   Fri, 31 Jan 2020 19:40:17 -0800
-Message-ID: <20200201034029.4063170-1-jhubbard@nvidia.com>
+Subject: [PATCH v3 04/12] mm: introduce page_ref_sub_return()
+Date:   Fri, 31 Jan 2020 19:40:21 -0800
+Message-ID: <20200201034029.4063170-5-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.25.0
+In-Reply-To: <20200201034029.4063170-1-jhubbard@nvidia.com>
+References: <20200201034029.4063170-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1580528381; bh=PVjdhcWaJdJZJP6YMEesi4FW/EBC/lWrMURT82TytPs=;
+        t=1580528382; bh=VhVwoCFqTx48m7C67hmpKfI2lp8OYGAP7BWu53hCs80=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         MIME-Version:X-NVConfidentiality:Content-Type:
-         Content-Transfer-Encoding;
-        b=rgUsJVjrMtF/vDQ9D6u7i/0jWNgq1QgB9vY6QI5zxOn0DrWTp8CRHWzeekJj8yxgN
-         SyF4PMu4YShgVsbHZOg3nwe7j5dIX/q5+5Ey3yISV+1nqSXqrMBnfueby8qIsiAOvc
-         KdQ5dXLYcNByywkRlLqsim0w5EdAwsUaJf41Gzahn6iQ20V5v39zD76cEt0ro50Akx
-         d6NqgdH5PYqQFZNLTdlc9SZtjbV30GeMV3Tu0ZhSe9mK2GZ5kAPLy4+c8AgQsYkuF3
-         jm0InwaQ5rz1fw3tqyAMEklG/n2XVcDsgBRk4JI16MULBFHuu+PgtKNv7JoAp02bMs
-         D+HrOKQpLlQew==
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=iDX4gxpQL2C0C9cMl4/0o9eEAC7Hffol4qeTM8bdozImGlWGXqrTALpzFzNxnt84/
+         RP6GdlgNzoWj4sRyEUs8oyVGWXe+luTZElPfdyPd6vZfePeURd2Ux1fkG4/x2z70pn
+         XJ2izDvgoWSUjZFwNRu1IjGXJZ+3MnE5RojJLRoNlgb+5a8aplp4kvEs3lPpb1Tg+0
+         EHKeLOExY9j98deZAlBlmkzFh1D2x7PgVif+1weB34UZlIrezOItQEENKUD7tLo9Jt
+         6TLR7YuU1IULbseyKPQlc2LYomTvJPzqML/kdsxGpziYRoKXXdjiZffwif2bKYuB8k
+         lyJ7bq5UVNBsA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Matthew,
+An upcoming patch requires subtracting a large chunk of refcounts from
+a page, and checking what the resulting refcount is. This is a little
+different than the usual "check for zero refcount" that many of the
+page ref functions already do. However, it is similar to a few other
+routines that (like this one) are generally useful for things such as
+1-based refcounting.
 
-I've merged in your dump_page() ideas,  and also factored things out
-into a new __dump_tail_page() routine, in order to save a few
-indentation levels, mainly.
+Add page_ref_sub_return(), that subtracts a chunk of refcounts
+atomically, and returns an atomic snapshot of the result.
 
-Kirill, thanks for your review comments. I've applied them, and I think
-splitting this up as you recommended really makes it a lot better, and
-easier to spot problems.
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ include/linux/page_ref.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Changes since v2:
-
-* Rebased onto linux.git, because the akpm tree for 5.6 has been merged.
-
-* Split the tracking patch into even more patches, as requested.
-
-* Merged Matthew Wilcox's dump_page() changes into mine, as part of the
-  first patch.
-
-* Renamed: page_dma_pinned() --> page_maybe_dma_pinned(), in response to
-  Kirill Shutemov's review.
-
-* Moved a WARN to the top of a routine, and fixed a typo in the commit
-  description of patch #7, also as suggested by Kirill.
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Changes since v1:
-
-* Split the tracking patch into 6 smaller patches
-
-* Rebased onto today's linux-next/akpm (there weren't any conflicts).
-
-* Fixed an "unsigned int" vs. "int" problem in gup_benchmark, reported
-  by Nathan Chancellor. (I don't see it in my local builds, probably
-  because they use gcc, but an LLVM test found the mismatch.)
-
-* Fixed a huge page pincount problem (add/subtract vs.
-  increment/decrement), spotted by Jan Kara.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-There is a reasonable case to be made for merging two of the patches
-(patches 4 and 5), given that patch 4 provides tracking that has upper
-limits on the number of pins that can be done with huge pages. Let me
-know if anyone wants those merged, but unless there is some weird chance
-of someone grabbing patch 4 and not patch 5, I don't really see the
-need. Meanwhile, it's easier to review in this form.
-
-Also, patch 3 has been revived. Earlier reviewers asked for it to be
-merged into the tracking patch (one cannot please everyone, heh), but
-now it's back out on it's own.
-
-This activates tracking of FOLL_PIN pages. This is in support of fixing
-the get_user_pages()+DMA problem described in [1]-[4].
-
-It is based on today's (Jan 28) linux-next (branch: akpm),
-commit 280e9cb00b41 ("drivers/media/platform/sti/delta/delta-ipc.c: fix
-read buffer overflow")
-
-There is a git repo and branch, for convenience in reviewing:
-
-    git@github.com:johnhubbard/linux.git
-            track_user_pages_v2_linux-next_akpm_28Jan2020
-
-FOLL_PIN support is (so far) in mmotm and linux-next. However, the
-patch to use FOLL_PIN to track pages was *not* submitted, because Leon
-saw an RDMA test suite failure that involved (I think) page refcount
-overflows when huge pages were used.
-
-This patch definitively solves that kind of overflow problem, by adding
-an exact pincount, for compound pages (of order > 1), in the 3rd struct
-page of a compound page. If available, that form of pincounting is used,
-instead of the GUP_PIN_COUNTING_BIAS approach. Thanks again to Jan Kara
-for that idea.
-
-Here's the last reviewed version of the tracking patch (v11):
-
-  https://lore.kernel.org/r/20191216222537.491123-1-jhubbard@nvidia.com
-
-Jan Kara had provided a reviewed-by tag for that, but I've had to remove
-it (again) here, due to having changed the patch "a little bit", in
-order to add the feature described above.
-
-Other interesting changes:
-
-* dump_page(): added one, or two new things to report for compound
-  pages: head refcount (for all compound pages), and map_pincount (for
-  compound pages of order > 1).
-
-* Documentation/core-api/pin_user_pages.rst: removed the "TODO" for the
-  huge page refcount upper limit problems, and added notes about how it
-  works now. Also added a note about the dump_page() enhancements.
-
-* Added some comments in gup.c and mm.h, to explain that there are two
-  ways to count pinned pages: exact (for compound pages of order > 1)
-  and fuzzy (GUP_PIN_COUNTING_BIAS: for all other pages).
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-General notes about the tracking patch:
-
-This is a prerequisite to solving the problem of proper interactions
-between file-backed pages, and [R]DMA activities, as discussed in [1],
-[2], [3], [4] and in a remarkable number of email threads since about
-2017. :)
-
-In contrast to earlier approaches, the page tracking can be
-incrementally applied to the kernel call sites that, until now, have
-been simply calling get_user_pages() ("gup"). In other words, opt-in by
-changing from this:
-
-    get_user_pages() (sets FOLL_GET)
-    put_page()
-
-to this:
-    pin_user_pages() (sets FOLL_PIN)
-    unpin_user_page()
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Next steps:
-
-* Convert more subsystems from get_user_pages() to pin_user_pages().
-* Work with Ira and others to connect this all up with file system
-  leases.
-
-[1] Some slow progress on get_user_pages() (Apr 2, 2019):
-    https://lwn.net/Articles/784574/
-
-[2] DMA and get_user_pages() (LPC: Dec 12, 2018):
-    https://lwn.net/Articles/774411/
-
-[3] The trouble with get_user_pages() (Apr 30, 2018):
-    https://lwn.net/Articles/753027/
-
-[4] LWN kernel index: get_user_pages()
-    https://lwn.net/Kernel/Index/#Memory_management-get_user_pages
-
-John Hubbard (12):
-  mm: dump_page(): better diagnostics for compound pages
-  mm/gup: split get_user_pages_remote() into two routines
-  mm/gup: pass a flags arg to __gup_device_* functions
-  mm: introduce page_ref_sub_return()
-  mm/gup: pass gup flags to two more routines
-  mm/gup: require FOLL_GET for get_user_pages_fast()
-  mm/gup: track FOLL_PIN pages
-  mm/gup: page->hpage_pinned_refcount: exact pin counts for huge pages
-  mm: dump_page(): better diagnostics for huge pinned pages
-  mm/gup: /proc/vmstat: pin_user_pages (FOLL_PIN) reporting
-  mm/gup_benchmark: support pin_user_pages() and related calls
-  selftests/vm: run_vmtests: invoke gup_benchmark with basic FOLL_PIN
-    coverage
-
- Documentation/core-api/pin_user_pages.rst  |  53 +--
- include/linux/mm.h                         | 108 ++++-
- include/linux/mm_types.h                   |   7 +-
- include/linux/mmzone.h                     |   2 +
- include/linux/page_ref.h                   |  10 +
- mm/debug.c                                 |  60 ++-
- mm/gup.c                                   | 459 ++++++++++++++++-----
- mm/gup_benchmark.c                         |  71 +++-
- mm/huge_memory.c                           |  29 +-
- mm/hugetlb.c                               |  44 +-
- mm/page_alloc.c                            |   2 +
- mm/rmap.c                                  |   6 +
- mm/vmstat.c                                |   2 +
- tools/testing/selftests/vm/gup_benchmark.c |  15 +-
- tools/testing/selftests/vm/run_vmtests     |  22 +
- 15 files changed, 715 insertions(+), 175 deletions(-)
-
+diff --git a/include/linux/page_ref.h b/include/linux/page_ref.h
+index 14d14beb1f7f..b9cbe553d1e7 100644
+--- a/include/linux/page_ref.h
++++ b/include/linux/page_ref.h
+@@ -102,6 +102,16 @@ static inline void page_ref_sub(struct page *page, int=
+ nr)
+ 		__page_ref_mod(page, -nr);
+ }
+=20
++static inline int page_ref_sub_return(struct page *page, int nr)
++{
++	int ret =3D atomic_sub_return(nr, &page->_refcount);
++
++	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod))
++		__page_ref_mod(page, -nr);
++
++	return ret;
++}
++
+ static inline void page_ref_inc(struct page *page)
+ {
+ 	atomic_inc(&page->_refcount);
 --=20
 2.25.0
 
