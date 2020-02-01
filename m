@@ -2,41 +2,40 @@ Return-Path: <SRS0=zqSS=3V=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_DBL_ABUSE_MALW,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD18C3F68F
-	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:40:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAF4DC3524A
+	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:40:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B603120643
-	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:40:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B005215A4
+	for <linux-rdma@archiver.kernel.org>; Sat,  1 Feb 2020 03:40:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="PEsKAxAr"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ZWO0bU5d"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727025AbgBADkf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 31 Jan 2020 22:40:35 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:11549 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726698AbgBADkf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jan 2020 22:40:35 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e34f3240000>; Fri, 31 Jan 2020 19:40:20 -0800
+        id S1727181AbgBADkj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 31 Jan 2020 22:40:39 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:4472 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727152AbgBADkj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jan 2020 22:40:39 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e34f2ff0000>; Fri, 31 Jan 2020 19:39:43 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Fri, 31 Jan 2020 19:40:34 -0800
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Fri, 31 Jan 2020 19:40:36 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Fri, 31 Jan 2020 19:40:34 -0800
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
+        by hqpgpgate101.nvidia.com on Fri, 31 Jan 2020 19:40:36 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 1 Feb
- 2020 03:40:34 +0000
-Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Sat, 1 Feb 2020 03:40:33 +0000
+ 2020 03:40:36 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Sat, 1 Feb 2020 03:40:36 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e34f3310000>; Fri, 31 Jan 2020 19:40:33 -0800
+        id <B5e34f3330001>; Fri, 31 Jan 2020 19:40:35 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -56,11 +55,10 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-doc@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
         <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v3 01/12] mm: dump_page(): better diagnostics for compound pages
-Date:   Fri, 31 Jan 2020 19:40:18 -0800
-Message-ID: <20200201034029.4063170-2-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v3 06/12] mm/gup: require FOLL_GET for get_user_pages_fast()
+Date:   Fri, 31 Jan 2020 19:40:23 -0800
+Message-ID: <20200201034029.4063170-7-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200201034029.4063170-1-jhubbard@nvidia.com>
 References: <20200201034029.4063170-1-jhubbard@nvidia.com>
@@ -69,96 +67,87 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1580528420; bh=iEHx9VxUswj/Tdrgroo0JwdM/JRuVE7oL68Xhz3dQSA=;
+        t=1580528383; bh=Z9uI90D5Af1XE4HB0iXcZz0iIFq8KeG+V2UZnNU7A3I=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=PEsKAxArjDtswBzqAgz5af48cL0UI4f9D2NDq60bxbMuvJ2drmwUFCZn7pRQafO+Z
-         2yg7FgVo5uMLrBcOb5AsA5Y04DFJTu+V2TMf+3P3z3LCMWRUwwdxVbJ7RfjnFEpCt5
-         dhfIaZJ5YW3hAcui5d2gmpKyKzCW5H3vsygO4nRVTTH5HfylruNT26nQtKebTP1Qzv
-         EQLH9JaRTbDqIB/Udh1i8ReYrZsbJtxa/JOqflC4QrYY4lEji3oGVMLd8UZhs6/3ti
-         xicmmR4iZVJnNpsZdThIpEgT4efffPSsfJ3VmwS2Sl0u3fvuv5vvBnsCPU7O4YxU3f
-         hVS+vy5A+IZaA==
+        b=ZWO0bU5dS7wz1ASmGWmadruPr2XEHoOFdREk1Ke1iHPAZZYuUNzk8uz50X9vueHEB
+         uwZ73YDTr6KYSQ5E35pOxHJiQdkGf/7OBL7iAThpFgXJ5kFHPa2HQfK4FXXFAYbQIY
+         ALJmyCjklVhburx0FZrCWyjGGCwHjjdOiNsKV9uGTTYydQVra9MWa06V2rAMKrEZBD
+         /hte6FfbtMYdBoQesavwuEUktsLBXWBDV1datYFOopPbrrylpSx2VMlMeiYzqr0Pmc
+         0vyAxJ/hJYGjVsdN5jmGh/tEVce6NMxA2cwxv6ZAPWdatb5VoYIOQmysiRemQGmLYa
+         o5oselPb3l4tQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-A compound page collects the refcount in the head page, while leaving
-the refcount of each tail page at zero. Therefore, when debugging a
-problem that involves compound pages, it's best to have diagnostics that
-reflect that situation. However, dump_page() is oblivious to these
-points.
+Internal to mm/gup.c, require that get_user_pages_fast()
+and __get_user_pages_fast() identify themselves, by setting
+FOLL_GET. This is required in order to be able to make decisions
+based on "FOLL_PIN, or FOLL_GET, or both or neither are set", in
+upcoming patches.
 
-Change dump_page() as follows:
-
-1) For tail pages, print relevant head page information: refcount, in
-   particular. But only do this if the page is not corrupted so badly
-   that the pointer to the head page is all wrong.
-
-2) Do a separate check to catch any (rare) cases of the tail page's
-   refcount being non-zero, and issue a separate, clear pr_warn() if
-   that ever happens.
-
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/debug.c | 34 ++++++++++++++++++++++++++++------
- 1 file changed, 28 insertions(+), 6 deletions(-)
+ mm/gup.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/mm/debug.c b/mm/debug.c
-index ecccd9f17801..beb1c59d784b 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -42,6 +42,32 @@ const struct trace_print_flags vmaflag_names[] =3D {
- 	{0, NULL}
- };
+diff --git a/mm/gup.c b/mm/gup.c
+index 83473c2165f4..e899d2e6398c 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2390,6 +2390,14 @@ int __get_user_pages_fast(unsigned long start, int n=
+r_pages, int write,
+ 	unsigned long len, end;
+ 	unsigned long flags;
+ 	int nr =3D 0;
++	/*
++	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
++	 * because gup fast is always a "pin with a +1 page refcount" request.
++	 */
++	unsigned int gup_flags =3D FOLL_GET;
++
++	if (write)
++		gup_flags |=3D FOLL_WRITE;
 =20
-+static void __dump_tail_page(struct page *page, int mapcount)
-+{
-+	struct page *head =3D compound_head(page);
-+
-+	if ((page < head) || (page >=3D head + MAX_ORDER_NR_PAGES)) {
-+		/*
-+		 * Page is hopelessly corrupted, so limit any reporting to
-+		 * information about the page itself. Do not attempt to look at
-+		 * the head page.
-+		 */
-+		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
-+			"index:%#lx (corrupted tail page case)\n",
-+			page, page_ref_count(page), mapcount, page->mapping,
-+			page_to_pgoff(page));
-+	} else {
-+		pr_warn("page:%px compound refcount:%d mapcount:%d mapping:%px "
-+			"index:%#lx compound_mapcount:%d\n",
-+			page, page_ref_count(head), mapcount, head->mapping,
-+			page_to_pgoff(head), compound_mapcount(page));
-+	}
-+
-+	if (page_ref_count(page) !=3D 0)
-+		pr_warn("page:%px PROBLEM: non-zero refcount (=3D=3D%d) on this "
-+			"tail page\n", page, page_ref_count(page));
-+}
-+
- void __dump_page(struct page *page, const char *reason)
- {
- 	struct address_space *mapping;
-@@ -75,12 +101,8 @@ void __dump_page(struct page *page, const char *reason)
- 	 */
- 	mapcount =3D PageSlab(page) ? 0 : page_mapcount(page);
+ 	start =3D untagged_addr(start) & PAGE_MASK;
+ 	len =3D (unsigned long) nr_pages << PAGE_SHIFT;
+@@ -2415,7 +2423,7 @@ int __get_user_pages_fast(unsigned long start, int nr=
+_pages, int write,
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+ 	    gup_fast_permitted(start, end)) {
+ 		local_irq_save(flags);
+-		gup_pgd_range(start, end, write ? FOLL_WRITE : 0, pages, &nr);
++		gup_pgd_range(start, end, gup_flags, pages, &nr);
+ 		local_irq_restore(flags);
+ 	}
 =20
--	if (PageCompound(page))
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
--			"index:%#lx compound_mapcount: %d\n",
--			page, page_ref_count(page), mapcount,
--			page->mapping, page_to_pgoff(page),
--			compound_mapcount(page));
-+	if (PageTail(page))
-+		__dump_tail_page(page, mapcount);
- 	else
- 		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px index:%#lx\n",
- 			page, page_ref_count(page), mapcount,
+@@ -2454,7 +2462,7 @@ static int internal_get_user_pages_fast(unsigned long=
+ start, int nr_pages,
+ 	int nr =3D 0, ret =3D 0;
+=20
+ 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
+-				       FOLL_FORCE | FOLL_PIN)))
++				       FOLL_FORCE | FOLL_PIN | FOLL_GET)))
+ 		return -EINVAL;
+=20
+ 	start =3D untagged_addr(start) & PAGE_MASK;
+@@ -2521,6 +2529,13 @@ int get_user_pages_fast(unsigned long start, int nr_=
+pages,
+ 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
+ 		return -EINVAL;
+=20
++	/*
++	 * The caller may or may not have explicitly set FOLL_GET; either way is
++	 * OK. However, internally (within mm/gup.c), gup fast variants must set
++	 * FOLL_GET, because gup fast is always a "pin with a +1 page refcount"
++	 * request.
++	 */
++	gup_flags |=3D FOLL_GET;
+ 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
 --=20
 2.25.0
 
