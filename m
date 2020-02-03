@@ -2,71 +2,99 @@ Return-Path: <SRS0=727Q=3X=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADA0FC3524D
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 Feb 2020 08:50:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E04D4C3524D
+	for <linux-rdma@archiver.kernel.org>; Mon,  3 Feb 2020 09:13:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F9C72082F
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 Feb 2020 08:50:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1580719805;
-	bh=yYKkNncRr/tmL64rJpPl+8ikQZdChRThNBGG6XsXDeM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=wE6+qwEtbqLPeNNDvOG3sOp4N25m5tEYG5zU0NffOEBxxPM6NHSavRCMNe3UNSjBF
-	 aerJ1rNDXXu1W/0cZDuKl3NBESa5Hl2E9njXOYeKvY5wewTW1vid7TIvirhm5oeFoh
-	 yhNluGMjsy8R1gTWLxi1/8yy/KyQvKwP7arZ659U=
+	by mail.kernel.org (Postfix) with ESMTP id AD2412070A
+	for <linux-rdma@archiver.kernel.org>; Mon,  3 Feb 2020 09:13:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="IHZjNuGH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727604AbgBCIuE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 3 Feb 2020 03:50:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35396 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727429AbgBCIuE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 3 Feb 2020 03:50:04 -0500
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7572F20658;
-        Mon,  3 Feb 2020 08:50:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1580719804;
-        bh=yYKkNncRr/tmL64rJpPl+8ikQZdChRThNBGG6XsXDeM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=xTFwFTyM+5f9r4YrOz2KaahHgJ280TvVlPiLH+AqHPVle0BekUlvKvvxhqkOGXbfS
-         lGy1bwunkARdZOKGKeLG9eebZAs4eG+12azi92SunStXGnj0j53Js943zRBaIfYqVb
-         JYeQUAwFgxak+uQJXyE0R6wXPMzxFncYUTNNeljc=
-Date:   Mon, 3 Feb 2020 10:49:58 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Devesh Sharma <devesh.sharma@broadcom.com>
-Cc:     linux-rdma@vger.kernel.org, jgg@mellanox.com
+        id S1726201AbgBCJNi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 3 Feb 2020 04:13:38 -0500
+Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:12378 "EHLO
+        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726992AbgBCJNi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 Feb 2020 04:13:38 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1580721217; x=1612257217;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=aNOxkZbLuFknecRKUiJZ9exwWtIkfMGuwGWFkOSktAY=;
+  b=IHZjNuGHtnUI3nA69DJN5UWK5d9XUAekuV4CLXHX282go5Jr2YxMLQYW
+   xBvfi/bxSqLERAI2z4MvaVZ0DNAoiVN7EayyCDR7XBcdYCZpR3gI+2X2R
+   xt8vaSZ5hA4Fd+Y7KgQIHG7Q+MMMu1NTzHzbHsIt7tIhwdajCj21+tYaF
+   s=;
+IronPort-SDR: K8z865lpVr8g9mR5OepCgLwCvmzdUmqd4Tskx2NlrhNo1H5pj9uq3h7wmlT/KcIKKG5VJciLPO
+ GMmUmUwiE1lg==
+X-IronPort-AV: E=Sophos;i="5.70,397,1574121600"; 
+   d="scan'208";a="15292086"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1e-a70de69e.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 03 Feb 2020 09:13:36 +0000
+Received: from EX13MTAUEA002.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan2.iad.amazon.com [10.40.159.162])
+        by email-inbound-relay-1e-a70de69e.us-east-1.amazon.com (Postfix) with ESMTPS id A6147A23E4;
+        Mon,  3 Feb 2020 09:13:34 +0000 (UTC)
+Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
+ EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
+ id 15.0.1236.3; Mon, 3 Feb 2020 09:13:33 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.43.162.133) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1367.3; Mon, 3 Feb 2020 09:13:31 +0000
 Subject: Re: [PATCH v3] rdma-core/libibverbs: display gid type in ibv_devinfo
-Message-ID: <20200203084958.GN414821@unreal>
+To:     Devesh Sharma <devesh.sharma@broadcom.com>
+CC:     <linux-rdma@vger.kernel.org>, <jgg@mellanox.com>, <leon@kernel.org>
 References: <1580708846-10851-1-git-send-email-devesh.sharma@broadcom.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <65ab8a55-2155-cf1e-fcd8-b87fc7360a36@amazon.com>
+Date:   Mon, 3 Feb 2020 11:13:24 +0200
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
+ Gecko/20100101 Thunderbird/68.4.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <1580708846-10851-1-git-send-email-devesh.sharma@broadcom.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.162.133]
+X-ClientProxiedBy: EX13D39UWB003.ant.amazon.com (10.43.161.215) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Feb 03, 2020 at 12:47:26AM -0500, Devesh Sharma wrote:
+On 03/02/2020 7:47, Devesh Sharma wrote:
 > It becomes difficult to make out from the output of ibv_devinfo
 > if a particular gid index is RoCE v2 or not.
->
+> 
 > Adding a string to the output of ibv_devinfo -v to display the
 > gid type at the end of gid.
->
+> 
 > Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
 > ---
 >  libibverbs/examples/devinfo.c | 22 ++++++++++++++++++++--
 >  1 file changed, 20 insertions(+), 2 deletions(-)
->
+> 
+> diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
+> index bf53eac..bbaed8c 100644
+> --- a/libibverbs/examples/devinfo.c
+> +++ b/libibverbs/examples/devinfo.c
+> @@ -162,8 +162,18 @@ static const char *vl_str(uint8_t vl_num)
+>  	}
+>  }
+>  
+> +static const char *gid_type_str(enum ibv_gid_type type)
+> +{
+> +	switch (type) {
+> +	case 0: return "IB/RoCE v1";
+> +	case 1: return "RoCE v2";
+> +	default: return "invalid value";
+> +	}
+> +}
 
-It will be very helpful to add example of "ibv_devinfo -v"
-to the commit message.
-
-Thanks
+Why hard code the enum values? Use IBV_GID_TYPE_IB_ROCE_V1 and IBV_GID_TYPE_ROCE_V2.
