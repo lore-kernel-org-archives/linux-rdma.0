@@ -2,36 +2,38 @@ Return-Path: <SRS0=EG8C=3Y=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A663AC3524F
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 08:24:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 816BFC3524A
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 08:24:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7DB4521775
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 08:24:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BAED21775
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 08:24:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726763AbgBDIYm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 4 Feb 2020 03:24:42 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:10151 "EHLO huawei.com"
+        id S1727192AbgBDIYq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 4 Feb 2020 03:24:46 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:9689 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727180AbgBDIYm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 4 Feb 2020 03:24:42 -0500
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 9C4A22DA8F5A82DD651B;
-        Tue,  4 Feb 2020 16:24:39 +0800 (CST)
+        id S1727180AbgBDIYq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 4 Feb 2020 03:24:46 -0500
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id A8308ACBC8048A1EA7A0;
+        Tue,  4 Feb 2020 16:24:44 +0800 (CST)
 Received: from SZA160416817.china.huawei.com (10.46.14.205) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 4 Feb 2020 16:24:29 +0800
+ 14.3.439.0; Tue, 4 Feb 2020 16:24:35 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH RFC v2 for-next 0/7] ib core support to send ib port link event
-Date:   Tue, 4 Feb 2020 16:24:01 +0800
-Message-ID: <20200204082408.18728-1-liweihang@huawei.com>
+Subject: [PATCH RFC v2 for-next 6/7] RDMA/core: support send port event
+Date:   Tue, 4 Feb 2020 16:24:07 +0800
+Message-ID: <20200204082408.18728-7-liweihang@huawei.com>
 X-Mailer: git-send-email 2.10.0.windows.1
+In-Reply-To: <20200204082408.18728-1-liweihang@huawei.com>
+References: <20200204082408.18728-1-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.46.14.205]
@@ -43,48 +45,91 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Lang Cheng <chenglang@huawei.com>
 
-Some provider driver has realized this function, but these code are
-implemented separately by each manufacturer. This series provides an
-solution in ib_core, and remove the relevant codes of some manufacturers.
+For the process of handling the link event of the net device, the driver
+of each provider is similar, so it can be integrated into the ib_core for
+unified processing.
 
-The key point is how to shield the port event of the backup port in the ib
-bonding scenario. Since the active-backup control is judged by the vendor
-driver, so the ops.query_port of vendor would determine the port role. And
-there is no relevant data structure in ib_core, so modify struct
-ib_port_cache to store this information.
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+---
+ drivers/infiniband/core/device.c        |  1 +
+ drivers/infiniband/core/roce_gid_mgmt.c | 45 +++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
-Supports reporting port active time during device registration and sending
-port error events when device is deregistered.
-
-The previous discussion can be found at:
-https://patchwork.kernel.org/cover/11335999/
-
-Changes since v1:
-- Fix comments from Leon and Jason.
-
-- Move event processing flow into global notifier instead of one notifier
-  per device.
-
-Lang Cheng (7):
-  RDMA/core: add inactive attribute of ib_port_cache
-  RDMA/mlx5: remove deliver net device event
-  qede: remove invalid notify operation
-  RDMA/qedr: remove deliver net device event
-  RDMA/vmw_pvrdma: remove deliver net device event
-  RDMA/core: support send port event
-  RDMA/core: report link status when register and deregister ib device
-
- drivers/infiniband/core/cache.c                | 16 ++++-
- drivers/infiniband/core/device.c               | 45 ++++++++++++
- drivers/infiniband/core/roce_gid_mgmt.c        | 45 ++++++++++++
- drivers/infiniband/hw/mlx5/main.c              | 95 +++-----------------------
- drivers/infiniband/hw/qedr/main.c              | 19 ------
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  5 --
- drivers/net/ethernet/qlogic/qede/qede_rdma.c   |  4 --
- include/rdma/ib_cache.h                        | 10 +++
- include/rdma/ib_verbs.h                        |  2 +
- 9 files changed, 126 insertions(+), 115 deletions(-)
-
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 84dd74f..0427a4d 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2225,6 +2225,7 @@ struct net_device *ib_device_get_netdev(struct ib_device *ib_dev,
+ 
+ 	return res;
+ }
++EXPORT_SYMBOL(ib_device_get_netdev);
+ 
+ /**
+  * ib_device_get_by_netdev - Find an IB device associated with a netdev
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index 2860def..4170ba3 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -751,6 +751,12 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
+ 	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
+ 	struct netdev_event_work_cmd cmds[ROCE_NETDEV_CALLBACK_SZ] = { {NULL} };
+ 
++	enum ib_port_state last_state;
++	enum ib_port_state curr_state;
++	struct ib_device *device;
++	struct ib_event ibev;
++	unsigned int port;
++
+ 	if (ndev->type != ARPHRD_ETHER)
+ 		return NOTIFY_DONE;
+ 
+@@ -762,6 +768,45 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
+ 		cmds[2] = add_cmd;
+ 		break;
+ 
++	case NETDEV_CHANGE:
++	case NETDEV_DOWN:
++		device = ib_device_get_by_netdev(ndev, RDMA_DRIVER_UNKNOWN);
++		if (!device)
++			break;
++
++		rdma_for_each_port (device, port) {
++			if (ib_device_get_netdev(device, port) != ndev)
++				continue;
++
++			if (ib_get_cached_port_inactive_status(device, port))
++				break;
++
++			ib_get_cached_port_state(device, port, &last_state);
++			curr_state =
++				netif_running(ndev) && netif_carrier_ok(ndev) ?
++					IB_PORT_ACTIVE :
++					IB_PORT_DOWN;
++
++			if (last_state == curr_state)
++				break;
++
++			if (curr_state == IB_PORT_DOWN)
++				ibev.event = IB_EVENT_PORT_ERR;
++			else if (curr_state == IB_PORT_ACTIVE)
++				ibev.event = IB_EVENT_PORT_ACTIVE;
++			else
++				break;
++
++			ibev.device = device;
++			ibev.element.port_num = port;
++			ib_dispatch_event(&ibev);
++			ibdev_dbg(ibev.device, "core send %s\n",
++				  ib_event_msg(ibev.event));
++		}
++
++		ib_device_put(device);
++		break;
++
+ 	case NETDEV_UNREGISTER:
+ 		if (ndev->reg_state < NETREG_UNREGISTERED)
+ 			cmds[0] = del_cmd;
 -- 
 2.8.1
 
