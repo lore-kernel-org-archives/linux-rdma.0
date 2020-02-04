@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF541C352A5
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCDDCC352A1
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:42:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9650E21582
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:42:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93EB221582
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:42:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="XeW/rqQk"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Hb/gerXT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727877AbgBDXlz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 4 Feb 2020 18:41:55 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:8901 "EHLO
+        id S1727896AbgBDXmB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 4 Feb 2020 18:42:01 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:8902 "EHLO
         hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727729AbgBDXlY (ORCPT
+        with ESMTP id S1727730AbgBDXlY (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 4 Feb 2020 18:41:24 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e3a00e60003>; Tue, 04 Feb 2020 15:40:23 -0800
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e3a00e70005>; Tue, 04 Feb 2020 15:40:23 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
+  by hqpgpgate102.nvidia.com (PGP Universal service);
   Tue, 04 Feb 2020 15:41:20 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 04 Feb 2020 15:41:20 -0800
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 4 Feb
- 2020 23:41:19 +0000
-Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 4 Feb 2020 23:41:19 +0000
+        by hqpgpgate102.nvidia.com on Tue, 04 Feb 2020 15:41:20 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 4 Feb
+ 2020 23:41:20 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Tue, 4 Feb 2020 23:41:20 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e3a011e0002>; Tue, 04 Feb 2020 15:41:18 -0800
+        id <B5e3a011f0002>; Tue, 04 Feb 2020 15:41:19 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -57,9 +57,9 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>,
         "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v4 02/12] mm/gup: split get_user_pages_remote() into two routines
-Date:   Tue, 4 Feb 2020 15:41:07 -0800
-Message-ID: <20200204234117.2974687-3-jhubbard@nvidia.com>
+Subject: [PATCH v4 06/12] mm/gup: require FOLL_GET for get_user_pages_fast()
+Date:   Tue, 4 Feb 2020 15:41:11 -0800
+Message-ID: <20200204234117.2974687-7-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200204234117.2974687-1-jhubbard@nvidia.com>
 References: <20200204234117.2974687-1-jhubbard@nvidia.com>
@@ -68,119 +68,89 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1580859623; bh=5eZvoA5nW7X3dfTYOUjuH4An39unHi+TdehpbIAk1Fs=;
+        t=1580859624; bh=zdKJN+80LnhrM42H0YcEzysuucpfBmwOwmXaeST0eWY=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=XeW/rqQkwXtywsSBDjYabmhQ6QiQ3rTVpSSFkJ4HkWcJ77uw0/x7p4Ek+mB+Tn/f9
-         W3/SLncUw+aNRIDytW6zkUdQyqkp4YSQbRn5Hc5nrAnO2wPr+rZ4J/scNsUpHabK0+
-         JQdicag4Mrz44NCDbG23aKJJXm9/tWBxOLXSIRWkFa8MO6LKUmPWGiq776PXnCGf8L
-         y8h7B1fu7R6mJR/Rm2Lqycg5czHeC0Wnvr37h8WdZxv8tzdEBCTtgFDLXoEayX/ItT
-         3qZYHEFJ2zcZXuNcu2AvedsRVZ0PUH1Z3q5YUFNbx8/1dvr4W/XWfwW3LfXuKdKiCG
-         AZ0Lkj4eozEOg==
+        b=Hb/gerXT22GLw8iVFdPyAv3XiaXjEYBvlRWtPvGdEtt2raRBr3YXTXHDZWDLJKqvr
+         QQhv24bxvrZjAzedXXOmacEKcn2KHtiQXq/gabkWLEeq1wNRDWtMOqXDZIetzCJ6dr
+         jRYALutzOa79coLTnY9tbgzoQNtppuhKtLsvVRZraWmQf9yl7VlH3J3pmNUO3sspTL
+         oB8sCEG8Y2KUZ1VDXEuoAbOyyAfSu7xlQ+QmIKzlWQRHAtxFL9Ti9c5EUqjkEdSyJ9
+         qsusZbaG5CbklkB1oj3dzPnZOR1IOlT8gy343wZQGLPSHzXcDr/SAdX71eGx+9JyIZ
+         NtX2KhzHU1kjw==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-An upcoming patch requires reusing the implementation of
-get_user_pages_remote(). Split up get_user_pages_remote() into an outer
-routine that checks flags, and an implementation routine that will be
-reused. This makes subsequent changes much easier to understand.
-
-There should be no change in behavior due to this patch.
+Internal to mm/gup.c, require that get_user_pages_fast()
+and __get_user_pages_fast() identify themselves, by setting
+FOLL_GET. This is required in order to be able to make decisions
+based on "FOLL_PIN, or FOLL_GET, or both or neither are set", in
+upcoming patches.
 
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup.c | 56 +++++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 33 insertions(+), 23 deletions(-)
+ mm/gup.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
 diff --git a/mm/gup.c b/mm/gup.c
-index 1b521e0ac1de..b699500da077 100644
+index e5f75e886663..c8affbea2019 100644
 --- a/mm/gup.c
 +++ b/mm/gup.c
-@@ -1557,6 +1557,37 @@ static __always_inline long __gup_longterm_locked(st=
-ruct task_struct *tsk,
- }
- #endif /* CONFIG_FS_DAX || CONFIG_CMA */
-=20
-+#ifdef CONFIG_MMU
-+static long __get_user_pages_remote(struct task_struct *tsk,
-+				    struct mm_struct *mm,
-+				    unsigned long start, unsigned long nr_pages,
-+				    unsigned int gup_flags, struct page **pages,
-+				    struct vm_area_struct **vmas, int *locked)
-+{
+@@ -2390,6 +2390,14 @@ int __get_user_pages_fast(unsigned long start, int n=
+r_pages, int write,
+ 	unsigned long len, end;
+ 	unsigned long flags;
+ 	int nr =3D 0;
 +	/*
-+	 * Parts of FOLL_LONGTERM behavior are incompatible with
-+	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
-+	 * vmas. However, this only comes up if locked is set, and there are
-+	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
-+	 * allow what we can.
++	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
++	 * because gup fast is always a "pin with a +1 page refcount" request.
 +	 */
-+	if (gup_flags & FOLL_LONGTERM) {
-+		if (WARN_ON_ONCE(locked))
-+			return -EINVAL;
-+		/*
-+		 * This will check the vmas (even if our vmas arg is NULL)
-+		 * and return -ENOTSUPP if DAX isn't allowed in this case:
-+		 */
-+		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
-+					     vmas, gup_flags | FOLL_TOUCH |
-+					     FOLL_REMOTE);
-+	}
++	unsigned int gup_flags =3D FOLL_GET;
 +
-+	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
-+				       locked,
-+				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
-+}
-+
- /*
-  * get_user_pages_remote() - pin user pages in memory
-  * @tsk:	the task_struct to use for page fault accounting, or
-@@ -1619,7 +1650,6 @@ static __always_inline long __gup_longterm_locked(str=
-uct task_struct *tsk,
-  * should use get_user_pages because it cannot pass
-  * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
-  */
--#ifdef CONFIG_MMU
- long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
-@@ -1632,28 +1662,8 @@ long get_user_pages_remote(struct task_struct *tsk, =
-struct mm_struct *mm,
++	if (write)
++		gup_flags |=3D FOLL_WRITE;
+=20
+ 	start =3D untagged_addr(start) & PAGE_MASK;
+ 	len =3D (unsigned long) nr_pages << PAGE_SHIFT;
+@@ -2415,7 +2423,7 @@ int __get_user_pages_fast(unsigned long start, int nr=
+_pages, int write,
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+ 	    gup_fast_permitted(start, end)) {
+ 		local_irq_save(flags);
+-		gup_pgd_range(start, end, write ? FOLL_WRITE : 0, pages, &nr);
++		gup_pgd_range(start, end, gup_flags, pages, &nr);
+ 		local_irq_restore(flags);
+ 	}
+=20
+@@ -2454,7 +2462,7 @@ static int internal_get_user_pages_fast(unsigned long=
+ start, int nr_pages,
+ 	int nr =3D 0, ret =3D 0;
+=20
+ 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
+-				       FOLL_FORCE | FOLL_PIN)))
++				       FOLL_FORCE | FOLL_PIN | FOLL_GET)))
+ 		return -EINVAL;
+=20
+ 	start =3D untagged_addr(start) & PAGE_MASK;
+@@ -2521,6 +2529,13 @@ int get_user_pages_fast(unsigned long start, int nr_=
+pages,
  	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
  		return -EINVAL;
 =20
--	/*
--	 * Parts of FOLL_LONGTERM behavior are incompatible with
--	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
--	 * vmas. However, this only comes up if locked is set, and there are
--	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
--	 * allow what we can.
--	 */
--	if (gup_flags & FOLL_LONGTERM) {
--		if (WARN_ON_ONCE(locked))
--			return -EINVAL;
--		/*
--		 * This will check the vmas (even if our vmas arg is NULL)
--		 * and return -ENOTSUPP if DAX isn't allowed in this case:
--		 */
--		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
--					     vmas, gup_flags | FOLL_TOUCH |
--					     FOLL_REMOTE);
--	}
--
--	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
--				       locked,
--				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
-+	return __get_user_pages_remote(tsk, mm, start, nr_pages, gup_flags,
-+				       pages, vmas, locked);
++	/*
++	 * The caller may or may not have explicitly set FOLL_GET; either way is
++	 * OK. However, internally (within mm/gup.c), gup fast variants must set
++	 * FOLL_GET, because gup fast is always a "pin with a +1 page refcount"
++	 * request.
++	 */
++	gup_flags |=3D FOLL_GET;
+ 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
  }
- EXPORT_SYMBOL(get_user_pages_remote);
-=20
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
 --=20
 2.25.0
 
