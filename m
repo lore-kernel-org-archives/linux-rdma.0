@@ -2,38 +2,36 @@ Return-Path: <SRS0=EG8C=3Y=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BB44C3524B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A663AC3524F
 	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 08:24:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5ACFD21744
+	by mail.kernel.org (Postfix) with ESMTP id 7DB4521775
 	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 08:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727185AbgBDIYm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726763AbgBDIYm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 4 Feb 2020 03:24:42 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:10149 "EHLO huawei.com"
+Received: from szxga04-in.huawei.com ([45.249.212.190]:10151 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726763AbgBDIYm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727180AbgBDIYm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 4 Feb 2020 03:24:42 -0500
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id A012D67CE558807F94B7;
+        by Forcepoint Email with ESMTP id 9C4A22DA8F5A82DD651B;
         Tue,  4 Feb 2020 16:24:39 +0800 (CST)
 Received: from SZA160416817.china.huawei.com (10.46.14.205) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.439.0; Tue, 4 Feb 2020 16:24:31 +0800
+ 14.3.439.0; Tue, 4 Feb 2020 16:24:29 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH RFC v2 for-next 2/7] RDMA/mlx5: remove deliver net device event
-Date:   Tue, 4 Feb 2020 16:24:03 +0800
-Message-ID: <20200204082408.18728-3-liweihang@huawei.com>
+Subject: [PATCH RFC v2 for-next 0/7] ib core support to send ib port link event
+Date:   Tue, 4 Feb 2020 16:24:01 +0800
+Message-ID: <20200204082408.18728-1-liweihang@huawei.com>
 X-Mailer: git-send-email 2.10.0.windows.1
-In-Reply-To: <20200204082408.18728-1-liweihang@huawei.com>
-References: <20200204082408.18728-1-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.46.14.205]
@@ -45,138 +43,48 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Lang Cheng <chenglang@huawei.com>
 
-The code that handles the link event of the net device has been moved into
-the core, and the related processing should been removed from the provider
-driver.
+Some provider driver has realized this function, but these code are
+implemented separately by each manufacturer. This series provides an
+solution in ib_core, and remove the relevant codes of some manufacturers.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
----
- drivers/infiniband/hw/mlx5/main.c | 95 ++++-----------------------------------
- 1 file changed, 9 insertions(+), 86 deletions(-)
+The key point is how to shield the port event of the backup port in the ib
+bonding scenario. Since the active-backup control is judged by the vendor
+driver, so the ops.query_port of vendor would determine the port role. And
+there is no relevant data structure in ib_core, so modify struct
+ib_port_cache to store this information.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 997cbfe..f202cbc 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -144,48 +144,6 @@ mlx5_ib_port_link_layer(struct ib_device *device, u8 port_num)
- 	return mlx5_port_type_cap_to_rdma_ll(port_type_cap);
- }
- 
--static int get_port_state(struct ib_device *ibdev,
--			  u8 port_num,
--			  enum ib_port_state *state)
--{
--	struct ib_port_attr attr;
--	int ret;
--
--	memset(&attr, 0, sizeof(attr));
--	ret = ibdev->ops.query_port(ibdev, port_num, &attr);
--	if (!ret)
--		*state = attr.state;
--	return ret;
--}
--
--static struct mlx5_roce *mlx5_get_rep_roce(struct mlx5_ib_dev *dev,
--					   struct net_device *ndev,
--					   u8 *port_num)
--{
--	struct mlx5_eswitch *esw = dev->mdev->priv.eswitch;
--	struct net_device *rep_ndev;
--	struct mlx5_ib_port *port;
--	int i;
--
--	for (i = 0; i < dev->num_ports; i++) {
--		port  = &dev->port[i];
--		if (!port->rep)
--			continue;
--
--		read_lock(&port->roce.netdev_lock);
--		rep_ndev = mlx5_ib_get_rep_netdev(esw,
--						  port->rep->vport);
--		if (rep_ndev == ndev) {
--			read_unlock(&port->roce.netdev_lock);
--			*port_num = i + 1;
--			return &port->roce;
--		}
--		read_unlock(&port->roce.netdev_lock);
--	}
--
--	return NULL;
--}
--
- static int mlx5_netdev_event(struct notifier_block *this,
- 			     unsigned long event, void *ptr)
- {
-@@ -219,52 +177,10 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 		write_unlock(&roce->netdev_lock);
- 		break;
- 
--	case NETDEV_CHANGE:
--	case NETDEV_UP:
--	case NETDEV_DOWN: {
--		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(mdev);
--		struct net_device *upper = NULL;
--
--		if (lag_ndev) {
--			upper = netdev_master_upper_dev_get(lag_ndev);
--			dev_put(lag_ndev);
--		}
--
--		if (ibdev->is_rep)
--			roce = mlx5_get_rep_roce(ibdev, ndev, &port_num);
--		if (!roce)
--			return NOTIFY_DONE;
--		if ((upper == ndev || (!upper && ndev == roce->netdev))
--		    && ibdev->ib_active) {
--			struct ib_event ibev = { };
--			enum ib_port_state port_state;
--
--			if (get_port_state(&ibdev->ib_dev, port_num,
--					   &port_state))
--				goto done;
--
--			if (roce->last_port_state == port_state)
--				goto done;
--
--			roce->last_port_state = port_state;
--			ibev.device = &ibdev->ib_dev;
--			if (port_state == IB_PORT_DOWN)
--				ibev.event = IB_EVENT_PORT_ERR;
--			else if (port_state == IB_PORT_ACTIVE)
--				ibev.event = IB_EVENT_PORT_ACTIVE;
--			else
--				goto done;
--
--			ibev.element.port_num = port_num;
--			ib_dispatch_event(&ibev);
--		}
--		break;
--	}
--
- 	default:
- 		break;
- 	}
--done:
-+
- 	mlx5_ib_put_native_port_mdev(ibdev, port_num);
- 	return NOTIFY_DONE;
- }
-@@ -569,7 +485,14 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 
- 	dev_put(ndev);
- 
--	props->active_mtu	= min(props->max_mtu, ndev_ib_mtu);
-+	props->active_mtu = min(props->max_mtu, ndev_ib_mtu);
-+
-+	if ((dev->lag_active && ndev != mlx5_lag_get_roce_netdev(mdev)) ||
-+	    (!dev->lag_active && port_num != mdev_port_num))
-+		props->inactive = 1;
-+	else
-+		props->inactive = 0;
-+
- out:
- 	if (put_mdev)
- 		mlx5_ib_put_native_port_mdev(dev, port_num);
+Supports reporting port active time during device registration and sending
+port error events when device is deregistered.
+
+The previous discussion can be found at:
+https://patchwork.kernel.org/cover/11335999/
+
+Changes since v1:
+- Fix comments from Leon and Jason.
+
+- Move event processing flow into global notifier instead of one notifier
+  per device.
+
+Lang Cheng (7):
+  RDMA/core: add inactive attribute of ib_port_cache
+  RDMA/mlx5: remove deliver net device event
+  qede: remove invalid notify operation
+  RDMA/qedr: remove deliver net device event
+  RDMA/vmw_pvrdma: remove deliver net device event
+  RDMA/core: support send port event
+  RDMA/core: report link status when register and deregister ib device
+
+ drivers/infiniband/core/cache.c                | 16 ++++-
+ drivers/infiniband/core/device.c               | 45 ++++++++++++
+ drivers/infiniband/core/roce_gid_mgmt.c        | 45 ++++++++++++
+ drivers/infiniband/hw/mlx5/main.c              | 95 +++-----------------------
+ drivers/infiniband/hw/qedr/main.c              | 19 ------
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  5 --
+ drivers/net/ethernet/qlogic/qede/qede_rdma.c   |  4 --
+ include/rdma/ib_cache.h                        | 10 +++
+ include/rdma/ib_verbs.h                        |  2 +
+ 9 files changed, 126 insertions(+), 115 deletions(-)
+
 -- 
 2.8.1
 
