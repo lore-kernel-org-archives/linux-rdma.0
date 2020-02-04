@@ -2,40 +2,41 @@ Return-Path: <SRS0=EG8C=3Y=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-14.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D1F7C3524F
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:41:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F46AC352A2
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:41:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E3CF121582
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:41:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55F0322522
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Feb 2020 23:41:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="MIMbdWw9"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="MaI5Vl3F"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727763AbgBDXlY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727746AbgBDXlY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 4 Feb 2020 18:41:24 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:4068 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727722AbgBDXlW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 4 Feb 2020 18:41:22 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e3a01130001>; Tue, 04 Feb 2020 15:41:07 -0800
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:8804 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727726AbgBDXlX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 4 Feb 2020 18:41:23 -0500
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e3a010a0000>; Tue, 04 Feb 2020 15:40:58 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Tue, 04 Feb 2020 15:41:21 -0800
+  Tue, 04 Feb 2020 15:41:22 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 04 Feb 2020 15:41:21 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL101.nvidia.com
+        by hqpgpgate101.nvidia.com on Tue, 04 Feb 2020 15:41:22 -0800
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL101.nvidia.com
  (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 4 Feb
- 2020 23:41:21 +0000
-Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 4 Feb 2020 23:41:20 +0000
+ 2020 23:41:22 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Tue, 4 Feb 2020 23:41:21 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e3a01200001>; Tue, 04 Feb 2020 15:41:20 -0800
+        id <B5e3a01210001>; Tue, 04 Feb 2020 15:41:21 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -55,11 +56,10 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-doc@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
         <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v4 09/12] mm: dump_page(): better diagnostics for huge pinned pages
-Date:   Tue, 4 Feb 2020 15:41:14 -0800
-Message-ID: <20200204234117.2974687-10-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v4 12/12] selftests/vm: run_vmtests: invoke gup_benchmark with basic FOLL_PIN coverage
+Date:   Tue, 4 Feb 2020 15:41:17 -0800
+Message-ID: <20200204234117.2974687-13-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200204234117.2974687-1-jhubbard@nvidia.com>
 References: <20200204234117.2974687-1-jhubbard@nvidia.com>
@@ -68,115 +68,81 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1580859667; bh=43ute8+ercp6HwSnPRqPV2UHjkODBKnCyycIiPbVVPU=;
+        t=1580859658; bh=Q/jtf1QAQWUBdGa6x5cGwrQgIxtlzXz53YFDTgazJkU=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=MIMbdWw9lBPFMX9CX03TQiDEozUouZCqGTYhKh7Wg6781jGwedTEPfWm8zFf+Asrl
-         7aSjCcBlTHHLQqJt2hoenvoUR0TJ2Mxh8ytAgKklKfJxTN1l2skRuMcOosZnxqvnOS
-         GcwMLs8MOcxYK4r9SArw0OU39mpwPTi2FVEnuilgUYrputUFrHaPgJAWajiBHHLZK1
-         HXBdUEVIrqQFqYdhze6xNw+4DjneNaIH30HAtLlgd3wonMIPfCfvQoMm8Fb7zzol6j
-         qmeuo1/zr4aRk9p6kaCVGRImKusfqQ9wRh3Wt6f5Wf0663ZFLeyw20svMZ6xTOCGA4
-         ap7EhCEH0m0oA==
+        b=MaI5Vl3Fzbukc040Wy4hfFeTvV/ZSQs+GINa0gRZM2oyXoPWvrVCtdKPWzJgFheWM
+         k8zVc1VS3l1ASNx27NzSnlWEg+z8tphgIRuR+s47MUgsJyMhi3YnSOMzu7GD/WpzEf
+         RgOhqtzTSKimJbHkdV7wCARPP2t8Bi0M1/kYbf3jmNVxLGvOIXAhUmQ78msLwcjOGq
+         Z2Vj1Ejt+iAyslO5817U4cQ4mddSTmTcarILDmH6F24NLymQURJi+cxsOfVgSkNCoK
+         kzLQPS+J5W2+MhW9AVCHUd78p0jiOfdLV6dog+bGnyzX0wlnzVshUGL4yBICtgbQ4f
+         UvBecg8vaPXVg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-As part of pin_user_pages() and related API calls, pages are
-"dma-pinned". For the case of compound pages of order > 1, the per-page
-accounting of dma pins is accomplished via the 3rd struct page in the
-compound page. In order to support debugging of any pin_user_pages()-
-related problems, enhance dump_page() so as to report the pin count
-in that case.
+It's good to have basic unit test coverage of the new FOLL_PIN
+behavior. Fortunately, the gup_benchmark unit test is extremely
+fast (a few milliseconds), so adding it the the run_vmtests suite
+is going to cause no noticeable change in running time.
 
-Documentation/core-api/pin_user_pages.rst is also updated accordingly.
+So, add two new invocations to run_vmtests:
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+1) Run gup_benchmark with normal get_user_pages().
+
+2) Run gup_benchmark with pin_user_pages(). This is much like
+the first call, except that it sets FOLL_PIN.
+
+Running these two in quick succession also provide a visual
+comparison of the running times, which is convenient.
+
+The new invocations are fairly early in the run_vmtests script,
+because with test suites, it's usually preferable to put the
+shorter, faster tests first, all other things being equal.
+
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- Documentation/core-api/pin_user_pages.rst |  7 +++++
- mm/debug.c                                | 34 +++++++++++++++++------
- 2 files changed, 33 insertions(+), 8 deletions(-)
+ tools/testing/selftests/vm/run_vmtests | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/Documentation/core-api/pin_user_pages.rst b/Documentation/core=
--api/pin_user_pages.rst
-index 3f72b1ea1104..dd21ea140ef4 100644
---- a/Documentation/core-api/pin_user_pages.rst
-+++ b/Documentation/core-api/pin_user_pages.rst
-@@ -215,6 +215,13 @@ Those are both going to show zero, unless CONFIG_DEBUG=
-_VM is set. This is
- because there is a noticeable performance drop in unpin_user_page(), when =
-they
- are activated.
+diff --git a/tools/testing/selftests/vm/run_vmtests b/tools/testing/selftes=
+ts/vm/run_vmtests
+index a692ea828317..df6a6bf3f238 100755
+--- a/tools/testing/selftests/vm/run_vmtests
++++ b/tools/testing/selftests/vm/run_vmtests
+@@ -112,6 +112,28 @@ echo "NOTE: The above hugetlb tests provide minimal co=
+verage.  Use"
+ echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
+ echo "      hugetlb regression testing."
 =20
-+Other diagnostics
-+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++echo "--------------------------------------------"
++echo "running 'gup_benchmark -U' (normal/slow gup)"
++echo "--------------------------------------------"
++./gup_benchmark -U
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=3D1
++else
++	echo "[PASS]"
++fi
 +
-+dump_page() has been enhanced slightly, to handle these new counting field=
-s, and
-+to better report on compound pages in general. Specifically, for compound =
-pages
-+with order > 1, the exact (hpage_pinned_refcount) pincount is reported.
++echo "------------------------------------------"
++echo "running gup_benchmark -b (pin_user_pages)"
++echo "------------------------------------------"
++./gup_benchmark -b
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=3D1
++else
++	echo "[PASS]"
++fi
 +
- References
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=20
-diff --git a/mm/debug.c b/mm/debug.c
-index f074077eee11..e82c878c27df 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -57,10 +57,20 @@ static void __dump_tail_page(struct page *page, int map=
-count)
- 			page, page_ref_count(page), mapcount, page->mapping,
- 			page_to_pgoff(page));
- 	} else {
--		pr_warn("page:%px compound refcount:%d mapcount:%d mapping:%px "
--			"index:%#lx compound_mapcount:%d\n",
--			page, page_ref_count(head), mapcount, head->mapping,
--			page_to_pgoff(head), compound_mapcount(page));
-+		if (hpage_pincount_available(page))
-+			pr_warn("page:%px compound refcount:%d mapcount:%d "
-+				"mapping:%px index:%#lx compound_mapcount:%d "
-+				"compound_pincount:%d\n",
-+				page, page_ref_count(head), mapcount,
-+				head->mapping, page_to_pgoff(head),
-+				compound_mapcount(page),
-+				compound_pincount(page));
-+		else
-+			pr_warn("page:%px compound refcount:%d mapcount:%d "
-+				"mapping:%px index:%#lx compound_mapcount:%d\n",
-+				page, page_ref_count(head), mapcount,
-+				head->mapping, page_to_pgoff(head),
-+				compound_mapcount(page));
- 	}
-=20
- 	if (page_ref_count(page) !=3D 0) {
-@@ -104,10 +114,18 @@ void __dump_page(struct page *page, const char *reaso=
-n)
-=20
- 	if (PageTail(page))
- 		__dump_tail_page(page, mapcount);
--	else
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px index:%#lx\n",
--			page, page_ref_count(page), mapcount,
--			page->mapping, page_to_pgoff(page));
-+	else {
-+		if (hpage_pincount_available(page))
-+			pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
-+				"index:%#lx compound pincount: %d\n",
-+				page, page_ref_count(page), mapcount,
-+				page->mapping, page_to_pgoff(page),
-+				compound_pincount(page));
-+		else
-+			pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
-+				"index:%#lx\n", page, page_ref_count(page),
-+				mapcount, page->mapping, page_to_pgoff(page));
-+	}
- 	if (PageKsm(page))
- 		type =3D "ksm ";
- 	else if (PageAnon(page))
+ echo "-------------------"
+ echo "running userfaultfd"
+ echo "-------------------"
 --=20
 2.25.0
 
