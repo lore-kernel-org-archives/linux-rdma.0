@@ -2,190 +2,204 @@ Return-Path: <SRS0=p0Sv=32=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C2EC2D0B1
-	for <linux-rdma@archiver.kernel.org>; Thu,  6 Feb 2020 14:35:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63708C2D0B1
+	for <linux-rdma@archiver.kernel.org>; Thu,  6 Feb 2020 14:39:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 13C5D217BA
-	for <linux-rdma@archiver.kernel.org>; Thu,  6 Feb 2020 14:35:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 242BA2082E
+	for <linux-rdma@archiver.kernel.org>; Thu,  6 Feb 2020 14:39:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="UB4wxoDF"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aZ+fDBk/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727928AbgBFOf1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 6 Feb 2020 09:35:27 -0500
-Received: from mail-eopbgr40060.outbound.protection.outlook.com ([40.107.4.60]:37028
-        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727918AbgBFOf1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 6 Feb 2020 09:35:27 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=RwgcDWwZRD32mMDps33Te0LlcQ7wiajK3pF1I4Q64bi3QaybDJDYvtqutLw1IcJ3h5qSz+hTNIN8V7BQeceRrndyMOZXuKa/Z6s2sxcrSx/OHgMWuGmFmRicYlnjrURA+BsRYCzM5B/lMy7pzbcMVMG5Gd0OrsXQIZavJDtelRCtWCUW/sDpKtBDGgIIFWyVfaJqhwqoQFBilY3B64blRjo5aHXPgrHObbturByT/qkQ1k6MAf3gFVhwp7TcYjXh+OnjezB0jZODs8oPIpGYOzC0K0XKoBSkfOub56eHBEEwi2Zvh+HW8KZXET5vOWu6qsv2xaZ7HfUkYIp+rBflEA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=s4kAMfxPzTvQfHwjGMiM95IjpPHEZyE9ARG2oKE2seA=;
- b=WGCZEfLcV/kQFiVs+UzPO4yceCufZQ7UJjlaf2G11cPy4k+dKhEd2TFd/MIUWDIg5qZeJn/KV4ISURmIkfXS+Xm9iQ/Z0gfXSrPoIG9/VWOJD93qrPN+vWskMqUE5sWwCvCwgsi8XX68hh4wbH8MLBjYEU6wFDx0dHtFL+2pCBJ+/1JRVuDYKZkhuczpd5AHMGDONb5aNIFbSb4ujRjFE9geiQfJPcop/S6HoLmdKiWyWGsjO/Cm67/4l3IhFUnZwUhmX9Lm8Id/djyLjqxxE0Q5pUtD/kpxgOz3ZzS1/Aii81feGftQDa+as3M6tVU+TMLZhV+7tAHSbTKnbrOdzA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=s4kAMfxPzTvQfHwjGMiM95IjpPHEZyE9ARG2oKE2seA=;
- b=UB4wxoDFYlIMtM7tc6sXspFoPSnYZJIKqDipQ2pfI8PeRuihvE/PHKCMM5YbdxTJwNUDi/gONUb+KoiHl9jGGFznWCkxAVbThVI/WUTp4H/89OGGi0B9bMRTUGXa7HfgulTQ9yTMOUp2+RRaESCAMX6SzhqapPee/ZhLvu31KR8=
-Authentication-Results: spf=none (sender IP is )
- smtp.mailfrom=leonro@mellanox.com; 
-Received: from AM6PR05MB6408.eurprd05.prod.outlook.com (20.179.5.215) by
- AM6PR05MB4904.eurprd05.prod.outlook.com (20.177.33.148) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2707.23; Thu, 6 Feb 2020 14:35:21 +0000
-Received: from AM6PR05MB6408.eurprd05.prod.outlook.com
- ([fe80::c99f:9130:561f:dea0]) by AM6PR05MB6408.eurprd05.prod.outlook.com
- ([fe80::c99f:9130:561f:dea0%3]) with mapi id 15.20.2707.024; Thu, 6 Feb 2020
- 14:35:21 +0000
-Date:   Thu, 6 Feb 2020 16:35:19 +0200
-From:   Leon Romanovsky <leonro@mellanox.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: linux-next: Tree for Jan 30 + 20200206
- (drivers/infiniband/hw/mlx5/)
-Message-ID: <20200206143519.GH414821@unreal>
-References: <20200130152852.6056b5d8@canb.auug.org.au>
- <df42492f-a57e-bf71-e7e2-ce4dd7864462@infradead.org>
- <ee5f17b6-3282-2137-7e9d-fa0008f9eeb0@infradead.org>
- <20200206073019.GC414821@unreal>
- <20200206114033.GF414821@unreal>
- <20200206143201.GF25297@ziepe.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200206143201.GF25297@ziepe.ca>
-X-ClientProxiedBy: AM0PR07CA0007.eurprd07.prod.outlook.com
- (2603:10a6:208:ac::20) To AM6PR05MB6408.eurprd05.prod.outlook.com
- (2603:10a6:20b:b8::23)
+        id S1728073AbgBFOjy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 6 Feb 2020 09:39:54 -0500
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:37293 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727828AbgBFOjy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 Feb 2020 09:39:54 -0500
+Received: by mail-wr1-f68.google.com with SMTP id w15so7500217wru.4
+        for <linux-rdma@vger.kernel.org>; Thu, 06 Feb 2020 06:39:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=xH3422RlY86Ou6/ZiHXMnZcmaIPKDdeo6+H/EMV9ixk=;
+        b=aZ+fDBk/SRBuEUl1aUwUk9oN16YHUkZiV/TfDapfGxjmMLMaHjGMO0rVVDpC/wTnui
+         zS+BNpfrVGIgVXnkstodWUv6f46eqvXeDR1e8OScPEpv/1+fA0/Xequ+/nAONBSH3D/w
+         +ISxuOMSaf7xZzso3pM8bREJaskREKS984iqB0CviidQ1ULkUoACI3OB+xphzTA+VsQP
+         XVdg1f5Z5iKO8Z+zCjiMwK4h57eQJJjZKliasp9RmCbWq59fhnlXDUgrxA0tNb0QNwXr
+         So9Vww3XiZO1Wm4DZTFNB3OYfH/rTCi1/JXJ9MU55Z4OBZanYo0XP2m3JhLNs46IFpWP
+         XkpQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=xH3422RlY86Ou6/ZiHXMnZcmaIPKDdeo6+H/EMV9ixk=;
+        b=WNCGJsHgkVfzKC5fkzAQdapvqxTYurXU3Jgcqb/XoqGVSwLiNeeUc/9UtwMXgSdeWO
+         ZQpbS0NnPwaZJhQ71DMUStrJkN8HzATBLGsfg1NmBNuG3fFqosGSirCd9Fahkd3db9NC
+         jgOUnTC1448MEyOsqQ26sW/YAVykNm6GHaZkFJ8CCB+bprnslFTZJdnUONe+rEqqnKsi
+         XzUXUsR6QWlgrcdF5ZNYCWOahUKCTpcmdZXyiOocys1IKTokBUava3YtWTha2UmFYoJa
+         GTfblZ9yypA8TvbNfRkOMjzC2Vu2nFYPOW6D3E88BlZDNwV7vwRqAHBd/Gdo+3LsZGe4
+         2Obg==
+X-Gm-Message-State: APjAAAVQk+aAjD5IkbFon0fGYg/ioATIYDL/JI2W0RWJ9rYG7hCyMqqH
+        Obd7bkdDXpZL+XqtLSG5h7ykJx6jjv1Fwu/ceiY=
+X-Google-Smtp-Source: APXvYqzPBw7zv9Dv1luYMDDeSDzFoGCSrm7cpJ85Thv/N/05/55jRc/y9otPXnO93Vkvmt0yN+2orOHYW5Zehjj2Z+I=
+X-Received: by 2002:adf:e70d:: with SMTP id c13mr4095119wrm.248.1580999991369;
+ Thu, 06 Feb 2020 06:39:51 -0800 (PST)
 MIME-Version: 1.0
-Received: from localhost (193.47.165.251) by AM0PR07CA0007.eurprd07.prod.outlook.com (2603:10a6:208:ac::20) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2729.9 via Frontend Transport; Thu, 6 Feb 2020 14:35:20 +0000
-X-Originating-IP: [193.47.165.251]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 03bb7ec1-9b13-4037-8111-08d7ab11cb5c
-X-MS-TrafficTypeDiagnostic: AM6PR05MB4904:
-X-Microsoft-Antispam-PRVS: <AM6PR05MB4904B0EEC7D5E82F57F90CC9B01D0@AM6PR05MB4904.eurprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
-X-Forefront-PRVS: 0305463112
-X-Forefront-Antispam-Report: SFV:NSPM;SFS:(10009020)(7916004)(4636009)(366004)(396003)(136003)(376002)(346002)(39860400002)(189003)(199004)(81156014)(5660300002)(54906003)(478600001)(33656002)(1076003)(316002)(6486002)(6916009)(966005)(8936002)(956004)(53546011)(66476007)(66946007)(66556008)(6496006)(81166006)(86362001)(9686003)(8676002)(4326008)(2906002)(26005)(33716001)(186003)(16526019)(52116002);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR05MB4904;H:AM6PR05MB6408.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-Received-SPF: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: weE7GGCBXWN92RrX6Q8JNOkObPRRz4J9zXNEBR/IG6MZcvzRWzWbwrlu0crnVQvzGdX9IyQ1f+rV5iEZBzH+XFOrtH0r1UouAnVhA1jHVaotEO86cUskz/d2q8wPRIVP7PWOh5Snp+g/pz6fuuVqn2UxIK2wiqrnsSOPc15trIZhGfGmbzBVjY114Kum0HebSUKMocJMVx3OyjrvBwPwcGxnHQCD2XqduUNHqns2CoPGr3HEmTQWsNI4tb40ytfgmDw7UMZ8PLV0oinjJCJ4hhJ7GSI48SZRA1wgdtzm0BV7jHjfv54+vV/9E1b168nct447v90j4qHc17kMPmaayhWi496BbLIx2ikatpHQZRZ22UeIoxQEVw5O3HmM7gdItjgtfcSn3JaVBR6ho/Ui3fCW4NNvtNp2y5e3q0VnSi9QViv+hHqcfFzxT3z0yiwjvPFvl5rq9XKP45Wqu2l6ESY7KMxlgdL5CSNyCok/DyCEC7dcbcuf9vpTaOi+iWf5pgEvgu551LS2G78a6A+pzw==
-X-MS-Exchange-AntiSpam-MessageData: j98p+KKh8L+WDpue832bxERTmDURES0tuqxcYItHQg0trnT7A3ed4QbMcKTwHMqFmS5URb2FpiVLDnNTt0rUqfjwShJ2otsvNHQKjnU8SVIUtvWGrsursDdyvWMnzyzSldLc60FStOWimwUGW/qFPg==
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 03bb7ec1-9b13-4037-8111-08d7ab11cb5c
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Feb 2020 14:35:21.2524
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: u/LUdzBWhI5LHiu/Ru3ilPa14lfgFqJ9ztZFSj8foi20zjtnR2fPX0+B3hUOQQDQXQQsxCkCF4MzENUGt/V73A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB4904
+References: <CAFgAxU8ArpoL9fMpJY5v-UZS5AMXom+TJ8HS57XeEOsCFFov8Q@mail.gmail.com>
+ <63a56c06-57bf-6e31-6ca8-043f9d3b72f3@talpey.com>
+In-Reply-To: <63a56c06-57bf-6e31-6ca8-043f9d3b72f3@talpey.com>
+From:   Alex Rosenbaum <rosenbaumalex@gmail.com>
+Date:   Thu, 6 Feb 2020 16:39:39 +0200
+Message-ID: <CAFgAxU80+feEEtaRYFYTHwTMSE6Edjq0t0siJ0W06WSyD+Cy3A@mail.gmail.com>
+Subject: Re: [RFC v2] RoCE v2.0 Entropy - IPv6 Flow Label and UDP Source Port
+To:     Tom Talpey <tom@talpey.com>
+Cc:     RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Eran Ben Elisha <eranbe@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        "Alex @ Mellanox" <alexr@mellanox.com>,
+        Maor Gottlieb <maorg@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Mark Zhang <markz@mellanox.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 06, 2020 at 10:32:01AM -0400, Jason Gunthorpe wrote:
-> On Thu, Feb 06, 2020 at 01:40:33PM +0200, Leon Romanovsky wrote:
-> > On Thu, Feb 06, 2020 at 09:30:19AM +0200, Leon Romanovsky wrote:
-> > > On Wed, Feb 05, 2020 at 09:31:15PM -0800, Randy Dunlap wrote:
-> > > > On 1/30/20 5:47 AM, Randy Dunlap wrote:
-> > > > > On 1/29/20 8:28 PM, Stephen Rothwell wrote:
-> > > > >> Hi all,
-> > > > >>
-> > > > >> Please do not add any v5.7 material to your linux-next included
-> > > > >> branches until after v5.6-rc1 has been released.
-> > > > >>
-> > > > >> Changes since 20200129:
-> > > > >>
-> > > > >
-> > > > > on i386:
-> > > > >
-> > > > > ERROR: "__udivdi3" [drivers/infiniband/hw/mlx5/mlx5_ib.ko] undefined!
-> > > > > ERROR: "__divdi3" [drivers/infiniband/hw/mlx5/mlx5_ib.ko] undefined!
-> > > > >
-> > > > >
-> > > > > Full randconfig file is attached.
-> > > > >
-> > > > >
-> > > >
-> > > > I am still seeing this on linux-next of 20200206.
-> > >
-> > > Sorry, I was under wrong impression that this failure is connected to
-> > > other issue reported by you.
-> > >
-> > > I'm looking on it right now.
+On Thu, Feb 6, 2020 at 4:18 PM Tom Talpey <tom@talpey.com> wrote:
+>
+> On 1/8/2020 9:26 AM, Alex Rosenbaum wrote:
+> > A combination of the flow_label field in the IPv6 header and UDP source port
+> > field in RoCE v2.0 are used to identify a group of packets that must be
+> > delivered in order by the network, end-to-end.
+> > These fields are used to create entropy for network routers (ECMP), load
+> > balancers and 802.3ad link aggregation switching that are not aware of RoCE IB
+> > headers.
 > >
-> > Randy,
+> > The flow_label field is defined by a 20 bit hash value. CM based connections
+> > will use a hash function definition based on the service type (QP Type) and
+> > Service ID (SID). Where CM services are not used, the 20 bit hash will be
+> > according to the source and destination QPN values.
+> > Drivers will derive the RoCE v2.0 UDP src_port from the flow_label result.
 > >
-> > I'm having hard time to reproduce the failure.
-> > ➜  kernel git:(a0c61bf1c773) ✗ git fixes
-> > Fixes: a0c61bf1c773 ("Add linux-next specific files for 20200206")
-> > ➜  kernel git:(a0c61bf1c773) ✗ wget https://lore.kernel.org/lkml/df42492f-a57e-bf71-e7e2-ce4dd7864462@infradead.org/2-config-r9621
-> > from https://lore.kernel.org/lkml/df42492f-a57e-bf71-e7e2-ce4dd7864462@infradead.org/
-> > ➜  kernel git:(a0c61bf1c773) ✗ mv 2-config-r9621 .config
-> > ➜  kernel git:(a0c61bf1c773) ✗ make ARCH=i386 -j64 -s M=drivers/infiniband/hw/mlx5
-> > ➜  kernel git:(a0c61bf1c773) ✗ file drivers/infiniband/hw/mlx5/mlx5_ib.ko
-> > drivers/infiniband/hw/mlx5/mlx5_ib.ko: ELF 32-bit LSB relocatable, Intel 80386, version 1 (SYSV), BuildID[sha1]=49f81f5d56f7caf95d4a6cc9097391622c34f4ba, not stripped
+> > UDP source port selection must adhere IANA port allocation ranges. Thus we will
+> > be using IANA recommendation for Ephemeral port range of: 49152-65535, or in
+> > hex: 0xC000-0xFFFF.
 > >
-> > on my 64bit system:
-> > ➜  kernel git:(rdma-next) file drivers/infiniband/hw/mlx5/mlx5_ib.ko
-> > drivers/infiniband/hw/mlx5/mlx5_ib.ko: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), BuildID[sha1]=2dcb1e30d0bba9885d5a824f6f57488a98f0c95d, with debug_info, not stripped
+> > The below calculations take into account the importance of producing a symmetric
+> > hash result so we can support symmetric hash calculation of network elements.
+> >
+> > Hash Calculation for RDMA IP CM Service
+> > =======================================
+> > For RDMA IP CM Services, based on QP1 iMAD usage and connected RC QPs using the
+> > RDMA IP CM Service ID, the flow label will be calculated according to IBTA CM
+> > REQ private data info and Service ID.
+> >
+> > Flow label hash function calculations definition will be defined as:
+> > Extract the following fields from the CM IP REQ:
+> >    CM_REQ.ServiceID.DstPort [2 Bytes]
+> >    CM_REQ.PrivateData.SrcPort [2 Bytes]
+> >    u32 hash = DstPort * SrcPort;
+> >    hash ^= (hash >> 16);
+> >    hash ^= (hash >> 8);
+> >    AH_ATTR.GRH.flow_label = hash AND IB_GRH_FLOWLABEL_MASK;
+> >
+> >    #define IB_GRH_FLOWLABEL_MASK  0x000FFFFF
 >
-> You need to link to see it..
+> Sorry it took me a while to respond to this, and thanks for looking
+> into it since my comments on the previous proposal. I have a concern
+> with an aspect of this one.
+>
+> The RoCEv2 destination port is a fixed value, 4791. Therefore the
+> term
+>
+>         u32 hash = DstPort * SrcPort;
+>
+> adds no entropy beyond the value of SrcPort.
+>
 
-I tried to run full compilation but didn't see too :(.
+we're talking about the CM service ports, taken from the
+rdma_resolve_route(mca_id, <ip:SrcPort>, <ip:DstPort>, to_msec);
+these are the CM level port-space and not the RoCE UDP L4 ports.
+we want to use both as these will allow different client instance and
+server instance on same nodes will use differen CM ports and hopefully
+generate different hash results for multi-flows between these two
+servers.
 
-Thanks for the patch.
-
+> In turn, the subsequent
 >
-> From bee7b242c2c6a3bfb696cd5fa37d83a731f3ab15 Mon Sep 17 00:00:00 2001
-> From: Jason Gunthorpe <jgg@mellanox.com>
-> Date: Thu, 6 Feb 2020 10:27:54 -0400
-> Subject: [PATCH] IB/mlx5: Use div64_u64 for num_var_hw_entries calculation
+>         hash ^= (hash >> 16);
+>         hash ^= (hash >> 8);
 >
-> On i386:
+> are re-mashing the bits with one another, again, adding no entropy.
 >
-> ERROR: "__udivdi3" [drivers/infiniband/hw/mlx5/mlx5_ib.ko] undefined!
-> ERROR: "__divdi3" [drivers/infiniband/hw/mlx5/mlx5_ib.ko] undefined!
+> Can you describe how, mathematically, this is not different from simply
+> using the SrcPort field, and if so, how it contributes to the entropy
+> differentiation of the incoming streams?
 >
-> Fixes: f164be8c0366 ("IB/mlx5: Extend caps stage to handle VAR capabilities")
-> Reported-by: Randy Dunlap <rdunlap@infradead.org>
-> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Tom.
 >
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 0ca9581432808c..9b88935f805ba2 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -6543,7 +6543,7 @@ static int mlx5_ib_init_var_table(struct mlx5_ib_dev *dev)
->  					doorbell_bar_offset);
->  	bar_size = (1ULL << log_doorbell_bar_size) * 4096;
->  	var_table->stride_size = 1ULL << log_doorbell_stride;
-> -	var_table->num_var_hw_entries = bar_size / var_table->stride_size;
-> +	var_table->num_var_hw_entries = div64_u64(bar_size, var_table->stride_size);
->  	mutex_init(&var_table->bitmap_lock);
->  	var_table->bitmap = bitmap_zalloc(var_table->num_var_hw_entries,
->  					  GFP_KERNEL);
-> --
-> 2.25.0
->
+> > Result of the above hash will be kept in the CM's route path record connection
+> > context and will be used all across its vitality for all preceding CM messages
+> > on both ends of the connection (including REP, REJ, DREQ, DREP, ..).
+> > Once connection is established, the corresponding Connected RC QPs, on both
+> > ends of the connection, will update their context with the calculated RDMA IP
+> > CM Service based flow_label and UDP src_port values at the Connect phase of
+> > the active side and Accept phase of the passive side of the connection.
+> >
+> > CM will provide to the calculated value of the flow_label hash (20 bit) result
+> > in the 'uint32_t flow_label' field of 'struct ibv_global_route' in 'struct
+> > ibv_ah_attr'.
+> > The 'struct ibv_ah_attr' is passed by the CM to the provider library when
+> > modifying a connected QP's (e.g.: RC) state by calling 'ibv_modify_qp(qp,
+> > ah_attr, attr_mask |= IBV_QP_AV)' or when create a AH for working with
+> > datagram QP's (e.g.: UD) by calling ibv_create_ah(ah_attr).
+> >
+> > Hash Calculation for non-RDMA CM Service ID
+> > ===========================================
+> > For non CM QP's, the application can define the flow_label value in the
+> > 'struct ibv_ah_attr' when modifying the connected QP's (e.g.: RC) or creating
+> > a AH for the datagram QP's (e.g.: UD).
+> >
+> > If the provided flow_label value is zero, not set by the application (e.g.:
+> > legacy cases), then verbs providers should use the src.QP[24bit] and
+> > dst.QP[24bit] as input arguments for flow_label calculation.
+> > As QPN's are an array of 3 bytes, the multiplication will result in 6 bytes
+> > value. We'll define a flow_label value as:
+> >    DstQPn [3 Bytes]
+> >    SrcQPn [3 Bytes]
+> >    u64 hash = DstQPn * SrcQPn;
+> >    hash ^= (hash >> 20);
+> >    hash ^= (hash >> 40);
+> >    AH_ATTR.GRH.flow_label = hash AND IB_GRH_FLOWLABEL_MASK;
+> >
+> > Hash Calculation for UDP src_port
+> > =================================
+> > Providers supporting RoCEv2 will use the 'flow_label' value as input to
+> > calculate the RoCEv2 UDP src_port, which will be used in the QP context or the
+> > AH context.
+> >
+> > UDP src_port calculations from flow label:
+> > [while considering the 14 bits UDP port range according to IANA recommendation]
+> >    AH_ATTR.GRH.flow_label [20 bits]
+> >    u32 fl_low  = fl & 0x03FFF;
+> >    u32 fl_high = fl & 0xFC000;
+> >    u16 udp_sport = fl_low XOR (fl_high >> 14);
+> >    RoCE.UDP.src_port = udp_sport OR IB_ROCE_UDP_ENCAP_VALID_PORT
+> >
+> >    #define IB_ROCE_UDP_ENCAP_VALID_PORT 0xC000
+> >
+> > This is a v2 follow-up on "[RFC] RoCE v2.0 UDP Source Port Entropy" [1]
+> >
+> > [1] https://www.spinics.net/lists/linux-rdma/msg73735.html
+> >
+> > Signed-off-by: Alex Rosenbaum <alexr@mellanox.com>
+> >
+> >
