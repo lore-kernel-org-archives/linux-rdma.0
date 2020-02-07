@@ -2,164 +2,72 @@ Return-Path: <SRS0=kLfo=33=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0842CC352A3
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 03:38:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48858C2D0B1
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 05:18:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CB0AE222D9
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 03:38:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0ECDC22314
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 05:18:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ejg6TBDM"
+	dkim=pass (2048-bit key) header.d=imatrex-com.20150623.gappssmtp.com header.i=@imatrex-com.20150623.gappssmtp.com header.b="z2O0Y+v1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727367AbgBGDhi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 6 Feb 2020 22:37:38 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:2970 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726709AbgBGDhh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 Feb 2020 22:37:37 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e3cdb720000>; Thu, 06 Feb 2020 19:37:22 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Thu, 06 Feb 2020 19:37:37 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Thu, 06 Feb 2020 19:37:37 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 7 Feb
- 2020 03:37:36 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Fri, 7 Feb 2020 03:37:36 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e3cdb800001>; Thu, 06 Feb 2020 19:37:36 -0800
-From:   John Hubbard <jhubbard@nvidia.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-CC:     Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Jonathan Corbet <corbet@lwn.net>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-        "Kirill A . Shutemov" <kirill@shutemov.name>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Matthew Wilcox <willy@infradead.org>,
-        <linux-doc@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-        <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v5 01/12] mm: dump_page(): better diagnostics for compound pages
-Date:   Thu, 6 Feb 2020 19:37:24 -0800
-Message-ID: <20200207033735.308000-2-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.25.0
-In-Reply-To: <20200207033735.308000-1-jhubbard@nvidia.com>
-References: <20200207033735.308000-1-jhubbard@nvidia.com>
+        id S1726019AbgBGFSO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 7 Feb 2020 00:18:14 -0500
+Received: from mail-ed1-f50.google.com ([209.85.208.50]:38760 "EHLO
+        mail-ed1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725851AbgBGFSO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Feb 2020 00:18:14 -0500
+Received: by mail-ed1-f50.google.com with SMTP id p23so1052680edr.5
+        for <linux-rdma@vger.kernel.org>; Thu, 06 Feb 2020 21:18:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=imatrex-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=kiaH+EUM9IdqSdQdusqIug3qrqmSz4xmRRIeEn/wo7c=;
+        b=z2O0Y+v1XqUga/xk/U5K9qnkHCKCggnp0uaXP1RiTX6DS6fNK2xHCR3Y04966tpYgm
+         OvjHwZy6rzdoGYgjGb/basL3PRw+zkBnCr6SQnamYmDuFaEyIs+G0QhrLo1HhnSxEj+l
+         OO/G91i3zcSsP4adlHM8xhJReBCgn08bSIMvwtnJf5RqpuDf7nOXe66ai1vDaMmre3WK
+         RK1ugPUx3XaQyDUo51zShWeb5N1K2n0brw5LWkI6AsW85YXwtp35WXfHTWs/TJOyFbRs
+         S+XY8WOQpCZUqxwHBeL/ETUkpqgi2/fp+1o7QcJIz3MO1eJ5sN67jisuK9rVfxTMaHrr
+         SNLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=kiaH+EUM9IdqSdQdusqIug3qrqmSz4xmRRIeEn/wo7c=;
+        b=nr8gfgN+dNmuSV1QcrEVqHMjcgAmTxTDpSxiV67K5uKDpD4JAMTgqrSI40164F5H68
+         uxCPBddXTU8ZcJ0l9szHn9Oqod/nV2nRY1uUAF3i4/C6LwSdK3+bd4Oj6uM817b/LGrZ
+         yfH3RVvsfOMbhcM3Jy/Jq+umkxh+mSucDsFGdqmTeFQpypyCVDxH1OtHGda3BpZ9zFxF
+         6l2rVtZE4uNheVYnpDSHgn78B6idgvB1W4p7ExiwQwiGYBdwTnTO+HVql/bWHuaj4235
+         kiiFTqz1n6WkUL4oXT5fxgOGRpdknKaoerWKT2CVGNGtQzPQrIA5FM6d9FJCayxFAKpx
+         +cVw==
+X-Gm-Message-State: APjAAAVlB4RN+BtTcxyxqNyIpCDIspauib785Xofv8wyk3MB8Xxw6RpS
+        Z2Gtpr9hceWrCsdNR8SD86tzlBMR+Ru1Y771o7IpArLg2xg=
+X-Google-Smtp-Source: APXvYqzkVPX9M6GR+sbSLQI7gFvG6u24wP9OcKiQz3QVDuvxN1ML7o2i7iVFRejZbF24qOcCFtJYdl9TnXjzwdErluE=
+X-Received: by 2002:a17:906:eda9:: with SMTP id sa9mr6686960ejb.297.1581052690783;
+ Thu, 06 Feb 2020 21:18:10 -0800 (PST)
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1581046642; bh=JHbFoVlby1O2Fi0YWtwHfwC9UdnPi6RlItOvHznb5y0=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=ejg6TBDMQadq3V8m4zpmpBWDvyla1Cwb+Pz7xP8Sy2K+XjBjA9AL5+bGG3OlOUGYc
-         6vCxNALEG82PF88QxORGXRoa9GKsm+Pv0WCv2l57EGB1Cdf4r4W5ErzwGKvw16H0hj
-         JF98EdTNU/tVRevEDqZgBeD0h1Tzz51zyM+zD2+tf+9uSPSEiWjT281tJ21tcZ62xW
-         fvBTfsDCics41w6Y8J1oOEJiOGsCSe3spIH8o6LSVtrn5GpI3x9eKgNpVf3azkJzXk
-         uCNgz1Pn1Qaz0tLcWL3r0WTWW5ioZi19i7XFLTbVHgSwL1wCR5HLWzBRIYzWd8AwKK
-         UpXznRe1xXEzA==
+From:   Dimitris Dimitropoulos <d.dimitropoulos@imatrex.com>
+Date:   Thu, 6 Feb 2020 21:18:00 -0800
+Message-ID: <CAOc41xHpF5VXK_-L_BeaU9v842BuRd2QTXkZunDKDgiEhixFtg@mail.gmail.com>
+Subject: maximum QP size
+To:     linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-A compound page collects the refcount in the head page, while leaving
-the refcount of each tail page at zero. Therefore, when debugging a
-problem that involves compound pages, it's best to have diagnostics that
-reflect that situation. However, dump_page() is oblivious to these
-points.
+Hi,
 
-Change dump_page() as follows:
+I'm running the ibv_rc_pingpong example and I notice as as rx-depth
+increases the QP create fails, eg at 50k. My understanding is this
+variable controls the number of RECV WR that will be posted in advance
+before SEND WRs are posted.
 
-1) For tail pages, print relevant head page information: refcount, in
-   particular. But only do this if the page is not corrupted so badly
-   that the pointer to the head page is all wrong.
+Is there a limitation on the queue size (the size is unit32_t) and if
+so why ? Also is there a way around it ?
 
-2) Do a separate check to catch any (rare) cases of the tail page's
-   refcount being non-zero, and issue a separate, clear pr_warn() if
-   that ever happens.
-
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- mm/debug.c | 35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
-
-diff --git a/mm/debug.c b/mm/debug.c
-index ecccd9f17801..f074077eee11 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -42,6 +42,33 @@ const struct trace_print_flags vmaflag_names[] =3D {
- 	{0, NULL}
- };
-=20
-+static void __dump_tail_page(struct page *page, int mapcount)
-+{
-+	struct page *head =3D compound_head(page);
-+
-+	if ((page < head) || (page >=3D head + MAX_ORDER_NR_PAGES)) {
-+		/*
-+		 * Page is hopelessly corrupted, so limit any reporting to
-+		 * information about the page itself. Do not attempt to look at
-+		 * the head page.
-+		 */
-+		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
-+			"index:%#lx (corrupted tail page case)\n",
-+			page, page_ref_count(page), mapcount, page->mapping,
-+			page_to_pgoff(page));
-+	} else {
-+		pr_warn("page:%px compound refcount:%d mapcount:%d mapping:%px "
-+			"index:%#lx compound_mapcount:%d\n",
-+			page, page_ref_count(head), mapcount, head->mapping,
-+			page_to_pgoff(head), compound_mapcount(page));
-+	}
-+
-+	if (page_ref_count(page) !=3D 0) {
-+		pr_warn("page:%px PROBLEM: non-zero refcount (=3D=3D%d) on this "
-+			"tail page\n", page, page_ref_count(page));
-+	}
-+}
-+
- void __dump_page(struct page *page, const char *reason)
- {
- 	struct address_space *mapping;
-@@ -75,12 +102,8 @@ void __dump_page(struct page *page, const char *reason)
- 	 */
- 	mapcount =3D PageSlab(page) ? 0 : page_mapcount(page);
-=20
--	if (PageCompound(page))
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
--			"index:%#lx compound_mapcount: %d\n",
--			page, page_ref_count(page), mapcount,
--			page->mapping, page_to_pgoff(page),
--			compound_mapcount(page));
-+	if (PageTail(page))
-+		__dump_tail_page(page, mapcount);
- 	else
- 		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px index:%#lx\n",
- 			page, page_ref_count(page), mapcount,
---=20
-2.25.0
-
+Regards
+Dimitris
