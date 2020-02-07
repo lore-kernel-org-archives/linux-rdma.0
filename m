@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2397CC352A2
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 03:38:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F988C3B187
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 03:38:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EBA3621927
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 03:38:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 662AC21927
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Feb 2020 03:38:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ef/4udRo"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="qCL7wJvy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727855AbgBGDil (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 6 Feb 2020 22:38:41 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:4751 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726709AbgBGDhj (ORCPT
+        id S1727558AbgBGDhk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 6 Feb 2020 22:37:40 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:13343 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727524AbgBGDhj (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 Feb 2020 22:37:39 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e3cdb460004>; Thu, 06 Feb 2020 19:36:38 -0800
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e3cdb680002>; Thu, 06 Feb 2020 19:37:12 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate102.nvidia.com (PGP Universal service);
-  Thu, 06 Feb 2020 19:37:38 -0800
+  Thu, 06 Feb 2020 19:37:37 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Thu, 06 Feb 2020 19:37:38 -0800
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 7 Feb
- 2020 03:37:37 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Fri, 7 Feb 2020 03:37:37 +0000
+        by hqpgpgate102.nvidia.com on Thu, 06 Feb 2020 19:37:37 -0800
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 7 Feb
+ 2020 03:37:36 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Fri, 7 Feb 2020 03:37:36 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e3cdb810003>; Thu, 06 Feb 2020 19:37:37 -0800
+        id <B5e3cdb800005>; Thu, 06 Feb 2020 19:37:36 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -48,18 +48,17 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
         "Kirill A . Shutemov" <kirill@shutemov.name>,
         Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
+        "Mike Kravetz" <mike.kravetz@oracle.com>,
         Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
+        "Vlastimil Babka" <vbabka@suse.cz>,
         Matthew Wilcox <willy@infradead.org>,
         <linux-doc@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
         <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v5 09/12] mm: dump_page(): better diagnostics for huge pinned pages
-Date:   Thu, 6 Feb 2020 19:37:32 -0800
-Message-ID: <20200207033735.308000-10-jhubbard@nvidia.com>
+        John Hubbard <jhubbard@nvidia.com>
+Subject: [PATCH v5 04/12] mm: introduce page_ref_sub_return()
+Date:   Thu, 6 Feb 2020 19:37:27 -0800
+Message-ID: <20200207033735.308000-5-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200207033735.308000-1-jhubbard@nvidia.com>
 References: <20200207033735.308000-1-jhubbard@nvidia.com>
@@ -68,115 +67,58 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1581046599; bh=jmOUjzJ549EfFTXaNo+IqA1m0L9Edt0hTMtlZOuZ9oI=;
+        t=1581046632; bh=DhMMWR0L+su36XhWVkaUTT8AIpyvoaCJ7tCBpQiPc3M=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=ef/4udRoouVf31SNt8dxH8rGemdY2KQ3FUhL1foXTZbDgzP4IyhLK4YjOkoH8c4J7
-         vZIBhMUtt/Q4ked+2xEBrgqdgHxMVPEsMO+ZlJHNnQBUA0b/dN7rEQuPkTfxV5Iz+m
-         YwMe+ClfugPn1gCR754PWzgyqnw3AwyYFOcqRCqkmf5o2pBbdcO5A8xjcfl4on2s17
-         zxAj6h1KNcrH4VfNdeKRUNav6fFaca+k9pEYjlc5vne5iyY9kswBj9/R7pYLkzXyQ4
-         Vp5jnRVUcRp0yCDbFslLV8IXO7B+toifjZo7qM2L5LOadtrhiHvkBEE9Lq9NvmG1A3
-         7txFYKNBc41Kg==
+        b=qCL7wJvyuAIwVgPSCBkxszuO0dlj80eWg/EDbClYxweQTRNHL+GTW+zK5ITf9LNig
+         uRb9r+NQmOvLYXjHpxOGosNBSj7qAFzD1Gp/gXOyn3l/7Eqt4KN7cqUq1efOgufStl
+         7Bea1KDIgNa9pQWBFdc/LdEPKGUGmPWbDZMoxCXH+5lY5tU5TD64FzekAlyXNuUnXd
+         Myo9xS52/un25I1eAeSv6b3cg81SSkeMiPJec39TyWWzQLsEdozMVBZqphrxjT7MNM
+         jkW3BmWsPJ7q587TT4lIOdnmBBkxgFCDUucq88TsdGmsVVI9cKN0B+bb69YA/DJtdV
+         8Nhet+MSTrAig==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-As part of pin_user_pages() and related API calls, pages are
-"dma-pinned". For the case of compound pages of order > 1, the per-page
-accounting of dma pins is accomplished via the 3rd struct page in the
-compound page. In order to support debugging of any pin_user_pages()-
-related problems, enhance dump_page() so as to report the pin count
-in that case.
+An upcoming patch requires subtracting a large chunk of refcounts from
+a page, and checking what the resulting refcount is. This is a little
+different than the usual "check for zero refcount" that many of the
+page ref functions already do. However, it is similar to a few other
+routines that (like this one) are generally useful for things such as
+1-based refcounting.
 
-Documentation/core-api/pin_user_pages.rst is also updated accordingly.
+Add page_ref_sub_return(), that subtracts a chunk of refcounts
+atomically, and returns an atomic snapshot of the result.
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- Documentation/core-api/pin_user_pages.rst |  7 +++++
- mm/debug.c                                | 34 +++++++++++++++++------
- 2 files changed, 33 insertions(+), 8 deletions(-)
+ include/linux/page_ref.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/Documentation/core-api/pin_user_pages.rst b/Documentation/core=
--api/pin_user_pages.rst
-index 7e5dd8b1b3f2..24641f1a1eba 100644
---- a/Documentation/core-api/pin_user_pages.rst
-+++ b/Documentation/core-api/pin_user_pages.rst
-@@ -215,6 +215,13 @@ Those are both going to show zero, unless CONFIG_DEBUG=
-_VM is set. This is
- because there is a noticeable performance drop in unpin_user_page(), when =
-they
- are activated.
+diff --git a/include/linux/page_ref.h b/include/linux/page_ref.h
+index 14d14beb1f7f..d27701199a4d 100644
+--- a/include/linux/page_ref.h
++++ b/include/linux/page_ref.h
+@@ -102,6 +102,15 @@ static inline void page_ref_sub(struct page *page, int=
+ nr)
+ 		__page_ref_mod(page, -nr);
+ }
 =20
-+Other diagnostics
-+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++static inline int page_ref_sub_return(struct page *page, int nr)
++{
++	int ret =3D atomic_sub_return(nr, &page->_refcount);
 +
-+dump_page() has been enhanced slightly, to handle these new counting field=
-s, and
-+to better report on compound pages in general. Specifically, for compound =
-pages
-+with order > 1, the exact (hpage_pinned_refcount) pincount is reported.
++	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod_and_return))
++		__page_ref_mod_and_return(page, -nr, ret);
++	return ret;
++}
 +
- References
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=20
-diff --git a/mm/debug.c b/mm/debug.c
-index f074077eee11..e82c878c27df 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -57,10 +57,20 @@ static void __dump_tail_page(struct page *page, int map=
-count)
- 			page, page_ref_count(page), mapcount, page->mapping,
- 			page_to_pgoff(page));
- 	} else {
--		pr_warn("page:%px compound refcount:%d mapcount:%d mapping:%px "
--			"index:%#lx compound_mapcount:%d\n",
--			page, page_ref_count(head), mapcount, head->mapping,
--			page_to_pgoff(head), compound_mapcount(page));
-+		if (hpage_pincount_available(page))
-+			pr_warn("page:%px compound refcount:%d mapcount:%d "
-+				"mapping:%px index:%#lx compound_mapcount:%d "
-+				"compound_pincount:%d\n",
-+				page, page_ref_count(head), mapcount,
-+				head->mapping, page_to_pgoff(head),
-+				compound_mapcount(page),
-+				compound_pincount(page));
-+		else
-+			pr_warn("page:%px compound refcount:%d mapcount:%d "
-+				"mapping:%px index:%#lx compound_mapcount:%d\n",
-+				page, page_ref_count(head), mapcount,
-+				head->mapping, page_to_pgoff(head),
-+				compound_mapcount(page));
- 	}
-=20
- 	if (page_ref_count(page) !=3D 0) {
-@@ -104,10 +114,18 @@ void __dump_page(struct page *page, const char *reaso=
-n)
-=20
- 	if (PageTail(page))
- 		__dump_tail_page(page, mapcount);
--	else
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px index:%#lx\n",
--			page, page_ref_count(page), mapcount,
--			page->mapping, page_to_pgoff(page));
-+	else {
-+		if (hpage_pincount_available(page))
-+			pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
-+				"index:%#lx compound pincount: %d\n",
-+				page, page_ref_count(page), mapcount,
-+				page->mapping, page_to_pgoff(page),
-+				compound_pincount(page));
-+		else
-+			pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
-+				"index:%#lx\n", page, page_ref_count(page),
-+				mapcount, page->mapping, page_to_pgoff(page));
-+	}
- 	if (PageKsm(page))
- 		type =3D "ksm ";
- 	else if (PageAnon(page))
+ static inline void page_ref_inc(struct page *page)
+ {
+ 	atomic_inc(&page->_refcount);
 --=20
 2.25.0
 
