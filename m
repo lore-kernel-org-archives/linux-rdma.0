@@ -6,43 +6,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6211CC352A5
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 13:18:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6E6DC352A5
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 13:19:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2BDF320715
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 13:18:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D5EE20715
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 13:19:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728836AbgBJNS5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 Feb 2020 08:18:57 -0500
-Received: from mga14.intel.com ([192.55.52.115]:48073 "EHLO mga14.intel.com"
+        id S1728379AbgBJNS7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 Feb 2020 08:18:59 -0500
+Received: from mga17.intel.com ([192.55.52.151]:31793 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728984AbgBJNSr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 10 Feb 2020 08:18:47 -0500
+        id S1731063AbgBJNS7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 10 Feb 2020 08:18:59 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Feb 2020 05:18:47 -0800
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Feb 2020 05:18:59 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,425,1574150400"; 
-   d="scan'208";a="347044087"
+   d="scan'208";a="280633743"
 Received: from sedona.ch.intel.com ([10.2.136.157])
-  by fmsmga001.fm.intel.com with ESMTP; 10 Feb 2020 05:18:46 -0800
+  by FMSMGA003.fm.intel.com with ESMTP; 10 Feb 2020 05:18:58 -0800
 Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 01ADIk5E008036;
-        Mon, 10 Feb 2020 06:18:46 -0700
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 01ADIwI4008042;
+        Mon, 10 Feb 2020 06:18:58 -0700
 Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 01ADIiqu088327;
-        Mon, 10 Feb 2020 08:18:44 -0500
-Subject: [PATCH for-next 06/16] IB/hfi1: RSM rules for AIP
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 01ADIu72088356;
+        Mon, 10 Feb 2020 08:18:56 -0500
+Subject: [PATCH for-next 08/16] IB/hfi1: Rename num_vnic_contexts as
+ num_netdev_contexts
 From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Dennis Dalessandro <dennis.alessandro@intel.com>,
+Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
         Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>,
-        Kaike Wan <kaike.wan@intel.com>
-Date:   Mon, 10 Feb 2020 08:18:44 -0500
-Message-ID: <20200210131844.87776.83118.stgit@awfm-01.aw.intel.com>
+        Dennis Dalessandro <dennis.alessandro@intel.com>,
+        linux-rdma@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>,
+        Sadanand Warrier <sadanand.warrier@intel.com>
+Date:   Mon, 10 Feb 2020 08:18:56 -0500
+Message-ID: <20200210131856.87776.86479.stgit@awfm-01.aw.intel.com>
 In-Reply-To: <20200210131223.87776.21339.stgit@awfm-01.aw.intel.com>
 References: <20200210131223.87776.21339.stgit@awfm-01.aw.intel.com>
 User-Agent: StGit/0.17.1-dirty
@@ -56,334 +57,167 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 
-This is implementation of RSM rule for AIP packets.
-AIP rule will use rule RSM2 and will match standard
-Infiniband packet containg BTH (LNH==BTH) and
-having Dest QPN prefixed with value 0x81. Spread between
-receive contexts will be done using source QPN bits.
+Rename num_vnic_contexts as num_ndetdev_contexts since VNIC and ipoib
+will share the same set of receive contexts.
 
-VNIC and AIP will share receive contexts, so their rules
-will point to the same RMT entries and their shared
-code is moved to separate functions.
-If any of the rules is active RMT mapping will be skipped
-for latter.
-
-Changed function hfi1_vnic_is_rsm_full to be more general
-and moved it from main header to chip.c.
-
-Changed the order of RSM rules because AIP rule as
-more specific one is needed to be placed before more
-general QOS rule. Rules are occupying two last RSM
-registers.
-
-Reviewed-by: Dennis Dalessandro <dennis.alessandro@intel.com>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.alessandro@intel.com>
+Signed-off-by: Sadanand Warrier <sadanand.warrier@intel.com>
 Signed-off-by: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 Signed-off-by: Kaike Wan <kaike.wan@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/chip.c |  171 ++++++++++++++++++++++++++++---------
- drivers/infiniband/hw/hfi1/chip.h |    4 +
- drivers/infiniband/hw/hfi1/hfi.h  |    8 +-
- drivers/infiniband/hw/hfi1/init.c |    4 +
- 4 files changed, 137 insertions(+), 50 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c      |   24 ++++++++++++------------
+ drivers/infiniband/hw/hfi1/hfi.h       |    4 ++--
+ drivers/infiniband/hw/hfi1/msix.c      |    4 ++--
+ drivers/infiniband/hw/hfi1/vnic_main.c |    8 ++++----
+ 4 files changed, 20 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index c08bf81..be1fb29 100644
+index be1fb29..07eec35 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -124,13 +124,15 @@ struct flag_table {
- 
- /*
-  * RSM instance allocation
-- *   0 - Verbs
-- *   1 - User Fecn Handling
-- *   2 - Vnic
-+ *   0 - User Fecn Handling
-+ *   1 - Vnic
-+ *   2 - AIP
-+ *   3 - Verbs
+@@ -13347,12 +13347,12 @@ static int set_up_interrupts(struct hfi1_devdata *dd)
+  *                             in array of contexts
+  *	freectxts  - number of free user contexts
+  *	num_send_contexts - number of PIO send contexts being used
+- *	num_vnic_contexts - number of contexts reserved for VNIC
++ *	num_netdev_contexts - number of contexts reserved for netdev
   */
--#define RSM_INS_VERBS             0
--#define RSM_INS_FECN              1
--#define RSM_INS_VNIC              2
-+#define RSM_INS_FECN              0
-+#define RSM_INS_VNIC              1
-+#define RSM_INS_AIP               2
-+#define RSM_INS_VERBS             3
- 
- /* Bit offset into the GUID which carries HFI id information */
- #define GUID_HFI_INDEX_SHIFT     39
-@@ -171,6 +173,25 @@ struct flag_table {
- /* QPN[m+n:1] QW 1, OFFSET 1 */
- #define QPN_SELECT_OFFSET      ((1ull << QW_SHIFT) | (1ull))
- 
-+/* RSM fields for AIP */
-+/* LRH.BTH above is reused for this rule */
-+
-+/* BTH.DESTQP: QW 1, OFFSET 16 for match */
-+#define BTH_DESTQP_QW           1ull
-+#define BTH_DESTQP_BIT_OFFSET   16ull
-+#define BTH_DESTQP_OFFSET(off) ((BTH_DESTQP_QW << QW_SHIFT) | (off))
-+#define BTH_DESTQP_MATCH_OFFSET BTH_DESTQP_OFFSET(BTH_DESTQP_BIT_OFFSET)
-+#define BTH_DESTQP_MASK         0xFFull
-+#define BTH_DESTQP_VALUE        0x81ull
-+
-+/* DETH.SQPN: QW 1 Offset 56 for select */
-+/* We use 8 most significant Soure QPN bits as entropy fpr AIP */
-+#define DETH_AIP_SQPN_QW 3ull
-+#define DETH_AIP_SQPN_BIT_OFFSET 56ull
-+#define DETH_AIP_SQPN_OFFSET(off) ((DETH_AIP_SQPN_QW << QW_SHIFT) | (off))
-+#define DETH_AIP_SQPN_SELECT_OFFSET \
-+	DETH_AIP_SQPN_OFFSET(DETH_AIP_SQPN_BIT_OFFSET)
-+
- /* RSM fields for Vnic */
- /* L2_TYPE: QW 0, OFFSET 61 - for match */
- #define L2_TYPE_QW             0ull
-@@ -14236,6 +14257,12 @@ static void complete_rsm_map_table(struct hfi1_devdata *dd,
- 	}
- }
- 
-+/* Is a receive side mapping rule */
-+static bool has_rsm_rule(struct hfi1_devdata *dd, u8 rule_index)
-+{
-+	return read_csr(dd, RCV_RSM_CFG + (8 * rule_index)) != 0;
-+}
-+
- /*
-  * Add a receive side mapping rule.
-  */
-@@ -14472,39 +14499,49 @@ static void init_fecn_handling(struct hfi1_devdata *dd,
- 	rmt->used += total_cnt;
- }
- 
--/* Initialize RSM for VNIC */
--void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
-+static inline bool hfi1_is_rmt_full(int start, int spare)
-+{
-+	return (start + spare) > NUM_MAP_ENTRIES;
-+}
-+
-+static bool hfi1_netdev_update_rmt(struct hfi1_devdata *dd)
+ static int set_up_context_variables(struct hfi1_devdata *dd)
  {
- 	u8 i, j;
- 	u8 ctx_id = 0;
- 	u64 reg;
- 	u32 regoff;
--	struct rsm_rule_data rrd;
-+	int rmt_start = dd->vnic.rmt_start;
- 
--	if (hfi1_vnic_is_rsm_full(dd, NUM_VNIC_MAP_ENTRIES)) {
--		dd_dev_err(dd, "Vnic RSM disabled, rmt entries used = %d\n",
--			   dd->vnic.rmt_start);
--		return;
-+	/* We already have contexts mapped in RMT */
-+	if (has_rsm_rule(dd, RSM_INS_VNIC) || has_rsm_rule(dd, RSM_INS_AIP)) {
-+		dd_dev_info(dd, "Contexts are already mapped in RMT\n");
-+		return true;
-+	}
-+
-+	if (hfi1_is_rmt_full(rmt_start, NUM_VNIC_MAP_ENTRIES)) {
-+		dd_dev_err(dd, "Not enought RMT entries used = %d\n",
-+			   rmt_start);
-+		return false;
+ 	unsigned long num_kernel_contexts;
+-	u16 num_vnic_contexts = HFI1_NUM_VNIC_CTXT;
++	u16 num_netdev_contexts = HFI1_NUM_VNIC_CTXT;
+ 	int total_contexts;
+ 	int ret;
+ 	unsigned ngroups;
+@@ -13391,11 +13391,11 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
  	}
  
--	dev_dbg(&(dd)->pcidev->dev, "Vnic rsm start = %d, end %d\n",
--		dd->vnic.rmt_start,
--		dd->vnic.rmt_start + NUM_VNIC_MAP_ENTRIES);
-+	dev_dbg(&(dd)->pcidev->dev, "RMT start = %d, end %d\n",
-+		rmt_start,
-+		rmt_start + NUM_VNIC_MAP_ENTRIES);
- 
- 	/* Update RSM mapping table, 32 regs, 256 entries - 1 ctx per byte */
--	regoff = RCV_RSM_MAP_TABLE + (dd->vnic.rmt_start / 8) * 8;
-+	regoff = RCV_RSM_MAP_TABLE + (rmt_start / 8) * 8;
- 	reg = read_csr(dd, regoff);
- 	for (i = 0; i < NUM_VNIC_MAP_ENTRIES; i++) {
--		/* Update map register with vnic context */
--		j = (dd->vnic.rmt_start + i) % 8;
-+		/* Update map register with netdev context */
-+		j = (rmt_start + i) % 8;
- 		reg &= ~(0xffllu << (j * 8));
- 		reg |= (u64)dd->vnic.ctxt[ctx_id++]->ctxt << (j * 8);
--		/* Wrap up vnic ctx index */
-+		/* Wrap up netdev ctx index */
- 		ctx_id %= dd->vnic.num_ctxt;
- 		/* Write back map register */
- 		if (j == 7 || ((i + 1) == NUM_VNIC_MAP_ENTRIES)) {
- 			dev_dbg(&(dd)->pcidev->dev,
--				"Vnic rsm map reg[%d] =0x%llx\n",
-+				"RMT[%d] =0x%llx\n",
- 				regoff - RCV_RSM_MAP_TABLE, reg);
- 
- 			write_csr(dd, regoff, reg);
-@@ -14514,35 +14551,83 @@ void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
- 		}
+ 	/* Accommodate VNIC contexts if possible */
+-	if ((num_kernel_contexts + num_vnic_contexts) > rcv_contexts) {
++	if ((num_kernel_contexts + num_netdev_contexts) > rcv_contexts) {
+ 		dd_dev_err(dd, "No receive contexts available for VNIC\n");
+-		num_vnic_contexts = 0;
++		num_netdev_contexts = 0;
  	}
+-	total_contexts = num_kernel_contexts + num_vnic_contexts;
++	total_contexts = num_kernel_contexts + num_netdev_contexts;
  
--	/* Add rule for vnic */
--	rrd.offset = dd->vnic.rmt_start;
--	rrd.pkt_type = 4;
--	/* Match 16B packets */
--	rrd.field1_off = L2_TYPE_MATCH_OFFSET;
--	rrd.mask1 = L2_TYPE_MASK;
--	rrd.value1 = L2_16B_VALUE;
--	/* Match ETH L4 packets */
--	rrd.field2_off = L4_TYPE_MATCH_OFFSET;
--	rrd.mask2 = L4_16B_TYPE_MASK;
--	rrd.value2 = L4_16B_ETH_VALUE;
--	/* Calc context from veswid and entropy */
--	rrd.index1_off = L4_16B_HDR_VESWID_OFFSET;
--	rrd.index1_width = ilog2(NUM_VNIC_MAP_ENTRIES);
--	rrd.index2_off = L2_16B_ENTROPY_OFFSET;
--	rrd.index2_width = ilog2(NUM_VNIC_MAP_ENTRIES);
--	add_rsm_rule(dd, RSM_INS_VNIC, &rrd);
--
--	/* Enable RSM if not already enabled */
-+	return true;
-+}
-+
-+static void hfi1_enable_rsm_rule(struct hfi1_devdata *dd,
-+				 int rule, struct rsm_rule_data *rrd)
-+{
-+	if (!hfi1_netdev_update_rmt(dd)) {
-+		dd_dev_err(dd, "Failed to update RMT for RSM%d rule\n", rule);
-+		return;
-+	}
-+
-+	add_rsm_rule(dd, rule, rrd);
- 	add_rcvctrl(dd, RCV_CTRL_RCV_RSM_ENABLE_SMASK);
- }
+ 	/*
+ 	 * User contexts:
+@@ -13422,15 +13422,15 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 	 * The RMT entries are currently allocated as shown below:
+ 	 * 1. QOS (0 to 128 entries);
+ 	 * 2. FECN (num_kernel_context - 1 + num_user_contexts +
+-	 *    num_vnic_contexts);
+-	 * 3. VNIC (num_vnic_contexts).
+-	 * It should be noted that FECN oversubscribe num_vnic_contexts
+-	 * entries of RMT because both VNIC and PSM could allocate any receive
++	 *    num_netdev_contexts);
++	 * 3. netdev (num_netdev_contexts).
++	 * It should be noted that FECN oversubscribe num_netdev_contexts
++	 * entries of RMT because both netdev and PSM could allocate any receive
+ 	 * context between dd->first_dyn_alloc_text and dd->num_rcv_contexts,
+ 	 * and PSM FECN must reserve an RMT entry for each possible PSM receive
+ 	 * context.
+ 	 */
+-	rmt_count = qos_rmt_entries(dd, NULL, NULL) + (num_vnic_contexts * 2);
++	rmt_count = qos_rmt_entries(dd, NULL, NULL) + (num_netdev_contexts * 2);
+ 	if (HFI1_CAP_IS_KSET(TID_RDMA))
+ 		rmt_count += num_kernel_contexts - 1;
+ 	if (rmt_count + n_usr_ctxts > NUM_MAP_ENTRIES) {
+@@ -13449,7 +13449,7 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 	dd->num_rcv_contexts = total_contexts;
+ 	dd->n_krcv_queues = num_kernel_contexts;
+ 	dd->first_dyn_alloc_ctxt = num_kernel_contexts;
+-	dd->num_vnic_contexts = num_vnic_contexts;
++	dd->num_netdev_contexts = num_netdev_contexts;
+ 	dd->num_user_contexts = n_usr_ctxts;
+ 	dd->freectxts = n_usr_ctxts;
+ 	dd_dev_info(dd,
+@@ -13457,7 +13457,7 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 		    rcv_contexts,
+ 		    (int)dd->num_rcv_contexts,
+ 		    (int)dd->n_krcv_queues,
+-		    dd->num_vnic_contexts,
++		    dd->num_netdev_contexts,
+ 		    dd->num_user_contexts);
  
-+void hfi1_init_aip_rsm(struct hfi1_devdata *dd)
-+{
-+	/*
-+	 * go through with the initialisation only if this rule actually doesn't
-+	 * exist yet
-+	 */
-+	if (atomic_fetch_inc(&dd->ipoib_rsm_usr_num) == 0) {
-+		struct rsm_rule_data rrd = {
-+			.offset = dd->vnic.rmt_start,
-+			.pkt_type = IB_PACKET_TYPE,
-+			.field1_off = LRH_BTH_MATCH_OFFSET,
-+			.mask1 = LRH_BTH_MASK,
-+			.value1 = LRH_BTH_VALUE,
-+			.field2_off = BTH_DESTQP_MATCH_OFFSET,
-+			.mask2 = BTH_DESTQP_MASK,
-+			.value2 = BTH_DESTQP_VALUE,
-+			.index1_off = DETH_AIP_SQPN_SELECT_OFFSET +
-+					ilog2(NUM_VNIC_MAP_ENTRIES),
-+			.index1_width = ilog2(NUM_VNIC_MAP_ENTRIES),
-+			.index2_off = DETH_AIP_SQPN_SELECT_OFFSET,
-+			.index2_width = ilog2(NUM_VNIC_MAP_ENTRIES)
-+		};
-+
-+		hfi1_enable_rsm_rule(dd, RSM_INS_AIP, &rrd);
-+	}
-+}
-+
-+/* Initialize RSM for VNIC */
-+void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
-+{
-+	struct rsm_rule_data rrd = {
-+		/* Add rule for vnic */
-+		.offset = dd->vnic.rmt_start,
-+		.pkt_type = 4,
-+		/* Match 16B packets */
-+		.field1_off = L2_TYPE_MATCH_OFFSET,
-+		.mask1 = L2_TYPE_MASK,
-+		.value1 = L2_16B_VALUE,
-+		/* Match ETH L4 packets */
-+		.field2_off = L4_TYPE_MATCH_OFFSET,
-+		.mask2 = L4_16B_TYPE_MASK,
-+		.value2 = L4_16B_ETH_VALUE,
-+		/* Calc context from veswid and entropy */
-+		.index1_off = L4_16B_HDR_VESWID_OFFSET,
-+		.index1_width = ilog2(NUM_VNIC_MAP_ENTRIES),
-+		.index2_off = L2_16B_ENTROPY_OFFSET,
-+		.index2_width = ilog2(NUM_VNIC_MAP_ENTRIES)
-+	};
-+
-+	hfi1_enable_rsm_rule(dd, RSM_INS_VNIC, &rrd);
-+}
-+
- void hfi1_deinit_vnic_rsm(struct hfi1_devdata *dd)
- {
- 	clear_rsm_rule(dd, RSM_INS_VNIC);
-+}
- 
--	/* Disable RSM if used only by vnic */
--	if (dd->vnic.rmt_start == 0)
--		clear_rcvctrl(dd, RCV_CTRL_RCV_RSM_ENABLE_SMASK);
-+void hfi1_deinit_aip_rsm(struct hfi1_devdata *dd)
-+{
-+	/* only actually clear the rule if it's the last user asking to do so */
-+	if (atomic_fetch_add_unless(&dd->ipoib_rsm_usr_num, -1, 0) == 1)
-+		clear_rsm_rule(dd, RSM_INS_AIP);
- }
- 
- static int init_rxe(struct hfi1_devdata *dd)
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 7255092..b10e0bf 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -1,7 +1,7 @@
- #ifndef _CHIP_H
- #define _CHIP_H
- /*
-- * Copyright(c) 2015 - 2018 Intel Corporation.
-+ * Copyright(c) 2015 - 2020 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -1455,6 +1455,8 @@ int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt,
- void remap_sdma_interrupts(struct hfi1_devdata *dd, int engine, int msix_intr);
- void reset_interrupts(struct hfi1_devdata *dd);
- u8 hfi1_get_qp_map(struct hfi1_devdata *dd, u8 idx);
-+void hfi1_init_aip_rsm(struct hfi1_devdata *dd);
-+void hfi1_deinit_aip_rsm(struct hfi1_devdata *dd);
- 
- /*
-  * Interrupt source table.
+ 	/*
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 92fceb5..5a7fa5a 100644
+index 5a7fa5a..2ff3904 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1419,12 +1419,10 @@ struct hfi1_devdata {
- 	struct hfi1_vnic_data vnic;
- 	/* Lock to protect IRQ SRC register access */
- 	spinlock_t irq_src_lock;
--};
+@@ -1167,8 +1167,8 @@ struct hfi1_devdata {
+ 	u64 z_send_schedule;
  
--static inline bool hfi1_vnic_is_rsm_full(struct hfi1_devdata *dd, int spare)
--{
--	return (dd->vnic.rmt_start + spare) > NUM_MAP_ENTRIES;
--}
-+	/* Keeps track of IPoIB RSM rule users */
-+	atomic_t ipoib_rsm_usr_num;
-+};
- 
- /* 8051 firmware version helper */
- #define dc8051_ver(a, b, c) ((a) << 16 | (b) << 8 | (c))
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index e3acda7..a4a1b3a 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1,5 +1,5 @@
+ 	u64 __percpu *send_schedule;
+-	/* number of reserved contexts for VNIC usage */
+-	u16 num_vnic_contexts;
++	/* number of reserved contexts for netdev usage */
++	u16 num_netdev_contexts;
+ 	/* number of receive contexts in use by the driver */
+ 	u32 num_rcv_contexts;
+ 	/* number of pio send contexts in use by the driver */
+diff --git a/drivers/infiniband/hw/hfi1/msix.c b/drivers/infiniband/hw/hfi1/msix.c
+index db82db4..7574f2b 100644
+--- a/drivers/infiniband/hw/hfi1/msix.c
++++ b/drivers/infiniband/hw/hfi1/msix.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
  /*
-- * Copyright(c) 2015 - 2018 Intel Corporation.
-+ * Copyright(c) 2015 - 2020 Intel Corporation.
+- * Copyright(c) 2018 Intel Corporation.
++ * Copyright(c) 2018 - 2020 Intel Corporation.
   *
   * This file is provided under a dual BSD/GPLv2 license.  When using or
   * redistributing this file, you may do so under either license.
-@@ -1333,6 +1333,8 @@ static struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev,
- 		goto bail;
- 	}
+@@ -69,7 +69,7 @@ int msix_initialize(struct hfi1_devdata *dd)
+ 	 *	one for each VNIC context
+ 	 *      ...any new IRQs should be added here.
+ 	 */
+-	total = 1 + dd->num_sdma + dd->n_krcv_queues + dd->num_vnic_contexts;
++	total = 1 + dd->num_sdma + dd->n_krcv_queues + dd->num_netdev_contexts;
  
-+	atomic_set(&dd->ipoib_rsm_usr_num, 0);
-+
- 	kobject_init(&dd->kobj, &hfi1_devdata_type);
- 	return dd;
+ 	if (total >= CCE_NUM_MSIX_VECTORS)
+ 		return -EINVAL;
+diff --git a/drivers/infiniband/hw/hfi1/vnic_main.c b/drivers/infiniband/hw/hfi1/vnic_main.c
+index 6b14581..db7624c 100644
+--- a/drivers/infiniband/hw/hfi1/vnic_main.c
++++ b/drivers/infiniband/hw/hfi1/vnic_main.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2017 - 2018 Intel Corporation.
++ * Copyright(c) 2017 - 2020 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -804,7 +804,7 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 	struct rdma_netdev *rn;
+ 	int i, size, rc;
  
+-	if (!dd->num_vnic_contexts)
++	if (!dd->num_netdev_contexts)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	if (!port_num || (port_num > dd->num_pports))
+@@ -815,7 +815,7 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 
+ 	size = sizeof(struct opa_vnic_rdma_netdev) + sizeof(*vinfo);
+ 	netdev = alloc_netdev_mqs(size, name, name_assign_type, setup,
+-				  dd->num_sdma, dd->num_vnic_contexts);
++				  dd->num_sdma, dd->num_netdev_contexts);
+ 	if (!netdev)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -823,7 +823,7 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 	vinfo = opa_vnic_dev_priv(netdev);
+ 	vinfo->dd = dd;
+ 	vinfo->num_tx_q = dd->num_sdma;
+-	vinfo->num_rx_q = dd->num_vnic_contexts;
++	vinfo->num_rx_q = dd->num_netdev_contexts;
+ 	vinfo->netdev = netdev;
+ 	rn->free_rdma_netdev = hfi1_vnic_free_rn;
+ 	rn->set_id = hfi1_vnic_set_vesw_id;
 
