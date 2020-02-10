@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77EE6C3B185
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 09:12:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCA9DC3B186
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 09:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 52F3C20733
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 09:12:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B051A20733
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 09:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726376AbgBJJMq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 Feb 2020 04:12:46 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9718 "EHLO huawei.com"
+        id S1725468AbgBJJMs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 Feb 2020 04:12:48 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:9716 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726118AbgBJJMq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 10 Feb 2020 04:12:46 -0500
+        id S1726231AbgBJJMr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 10 Feb 2020 04:12:47 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id A448548FFC317FF73729;
+        by Forcepoint Email with ESMTP id 9C4B477CD7745C11121B;
         Mon, 10 Feb 2020 17:12:43 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.439.0; Mon, 10 Feb 2020 17:12:37 +0800
+ 14.3.439.0; Mon, 10 Feb 2020 17:12:36 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 3/7] RDMA/hns: Optimize qp number assign flow
-Date:   Mon, 10 Feb 2020 17:08:36 +0800
-Message-ID: <1581325720-12975-4-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 1/7] RDMA/hns: Optimize qp destroy flow
+Date:   Mon, 10 Feb 2020 17:08:34 +0800
+Message-ID: <1581325720-12975-2-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1581325720-12975-1-git-send-email-liweihang@huawei.com>
 References: <1581325720-12975-1-git-send-email-liweihang@huawei.com>
@@ -45,209 +45,176 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-Encapsulate the code associated with the qp number assignment into
-alloc_qpn() and free_qpn().
+Wrap the duplicate code in hip08 and hip06 qp destruction process as
+hns_roce_qp_destroy() to simply the qp destroy flow.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c | 91 ++++++++++++++++-----------------
- 1 file changed, 44 insertions(+), 47 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 19 ++-----------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 39 +--------------------------
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 41 +++++++++++++++++++++++++++++
+ 4 files changed, 46 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index c3773db..91d2f56 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -108,15 +108,34 @@ static void hns_roce_ib_qp_event(struct hns_roce_qp *hr_qp,
- 	}
- }
- 
--static int hns_roce_reserve_range_qp(struct hns_roce_dev *hr_dev, int cnt,
--				     int align, unsigned long *base)
-+static int alloc_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- {
--	struct hns_roce_qp_table *qp_table = &hr_dev->qp_table;
-+	unsigned long num = 0;
-+	int ret;
-+
-+	if (hr_qp->ibqp.qp_type == IB_QPT_GSI) {
-+		/* when hw version is v1, the sqpn is allocated */
-+		if (hr_dev->caps.max_sq_sg <= HNS_ROCE_MAX_SGE_NUM)
-+			num = HNS_ROCE_MAX_PORTS +
-+			      hr_dev->iboe.phy_port[hr_qp->port];
-+		else
-+			num = 1;
- 
--	return hns_roce_bitmap_alloc_range(&qp_table->bitmap, cnt, align,
--					   base) ?
--		       -ENOMEM :
--		       0;
-+		hr_qp->doorbell_qpn = 1;
-+	} else {
-+		ret = hns_roce_bitmap_alloc_range(&hr_dev->qp_table.bitmap,
-+						  1, 1, &num);
-+		if (ret) {
-+			ibdev_err(&hr_dev->ib_dev, "Failed to alloc bitmap\n");
-+			return -ENOMEM;
-+		}
-+
-+		hr_qp->doorbell_qpn = (u32)num;
-+	}
-+
-+	hr_qp->qpn = num;
-+
-+	return 0;
- }
- 
- enum hns_roce_qp_state to_hns_roce_state(enum ib_qp_state state)
-@@ -275,15 +294,17 @@ static void free_qpc(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 	hns_roce_table_put(hr_dev, &qp_table->irrl_table, hr_qp->qpn);
- }
- 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index a7c4ff9..1f361e6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -1248,9 +1248,8 @@ void hns_roce_lock_cqs(struct hns_roce_cq *send_cq,
+ void hns_roce_unlock_cqs(struct hns_roce_cq *send_cq,
+ 			 struct hns_roce_cq *recv_cq);
+ void hns_roce_qp_remove(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp);
+-void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp);
 -void hns_roce_release_range_qp(struct hns_roce_dev *hr_dev, int base_qpn,
--			       int cnt)
-+static void free_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- {
- 	struct hns_roce_qp_table *qp_table = &hr_dev->qp_table;
+-			       int cnt);
++void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
++			 struct ib_udata *udata);
+ __be32 send_ieth(const struct ib_send_wr *wr);
+ int to_hr_qp_type(int qp_type);
  
--	if (base_qpn < hr_dev->caps.reserved_qps)
-+	if (hr_qp->ibqp.qp_type == IB_QPT_GSI)
-+		return;
-+
-+	if (hr_qp->qpn < hr_dev->caps.reserved_qps)
- 		return;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index c6e6658..fe37e6f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -3623,26 +3623,11 @@ int hns_roce_v1_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 		if (send_cq && send_cq != recv_cq)
+ 			__hns_roce_v1_cq_clean(send_cq, hr_qp->qpn, NULL);
+ 	}
+-	hns_roce_unlock_cqs(send_cq, recv_cq);
+-
+ 	hns_roce_qp_remove(hr_dev, hr_qp);
+-	hns_roce_qp_free(hr_dev, hr_qp);
+-
+-	/* RC QP, release QPN */
+-	if (hr_qp->ibqp.qp_type == IB_QPT_RC)
+-		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
+-
+-	hns_roce_mtt_cleanup(hr_dev, &hr_qp->mtt);
+-
+-	ib_umem_release(hr_qp->umem);
+-	if (!udata) {
+-		kfree(hr_qp->sq.wrid);
+-		kfree(hr_qp->rq.wrid);
++	hns_roce_unlock_cqs(send_cq, recv_cq);
  
--	hns_roce_bitmap_free_range(&qp_table->bitmap, base_qpn, cnt, BITMAP_RR);
-+	hns_roce_bitmap_free_range(&qp_table->bitmap, hr_qp->qpn, 1, BITMAP_RR);
+-		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
+-	}
++	hns_roce_qp_destroy(hr_dev, hr_qp, udata);
+ 
+-	kfree(hr_qp);
+ 	return 0;
  }
  
- static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
-@@ -698,7 +719,7 @@ static void free_rq_inline_buf(struct hns_roce_qp *hr_qp)
- static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 				     struct ib_pd *ib_pd,
- 				     struct ib_qp_init_attr *init_attr,
--				     struct ib_udata *udata, unsigned long sqpn,
-+				     struct ib_udata *udata,
- 				     struct hns_roce_qp *hr_qp)
- {
- 	dma_addr_t *buf_list[ARRAY_SIZE(hr_qp->regions)] = { NULL };
-@@ -708,7 +729,6 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	struct hns_roce_ucontext *uctx = rdma_udata_to_drv_context(
- 		udata, struct hns_roce_ucontext, ibucontext);
- 	struct hns_roce_buf_region *r;
--	unsigned long qpn = 0;
- 	u32 page_shift;
- 	int buf_count;
- 	int ret;
-@@ -907,19 +927,6 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		}
- 	}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 12c4cd8..5dbff86 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5032,43 +5032,6 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 	hns_roce_unlock_cqs(send_cq, recv_cq);
+ 	spin_unlock_irqrestore(&hr_dev->qp_list_lock, flags);
  
--	if (sqpn) {
--		qpn = sqpn;
+-	hns_roce_qp_free(hr_dev, hr_qp);
+-
+-	/* Not special_QP, free their QPN */
+-	if ((hr_qp->ibqp.qp_type == IB_QPT_RC) ||
+-	    (hr_qp->ibqp.qp_type == IB_QPT_UC) ||
+-	    (hr_qp->ibqp.qp_type == IB_QPT_UD))
+-		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
+-
+-	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
+-
+-	if (udata) {
+-		struct hns_roce_ucontext *context =
+-			rdma_udata_to_drv_context(
+-				udata,
+-				struct hns_roce_ucontext,
+-				ibucontext);
+-
+-		if (hr_qp->sq.wqe_cnt && (hr_qp->sdb_en == 1))
+-			hns_roce_db_unmap_user(context, &hr_qp->sdb);
+-
+-		if (hr_qp->rq.wqe_cnt && (hr_qp->rdb_en == 1))
+-			hns_roce_db_unmap_user(context, &hr_qp->rdb);
 -	} else {
--		/* Get QPN */
--		ret = hns_roce_reserve_range_qp(hr_dev, 1, 1, &qpn);
--		if (ret) {
--			dev_err(dev, "hns_roce_reserve_range_qp alloc qpn error\n");
--			goto err_wrid;
--		}
+-		kfree(hr_qp->sq.wrid);
+-		kfree(hr_qp->rq.wrid);
+-		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
+-		if (hr_qp->rq.wqe_cnt)
+-			hns_roce_free_db(hr_dev, &hr_qp->rdb);
+-	}
+-	ib_umem_release(hr_qp->umem);
+-
+-	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
+-	     hr_qp->rq.wqe_cnt) {
+-		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
+-		kfree(hr_qp->rq_inl_buf.wqe_list);
 -	}
 -
--	hr_qp->qpn = qpn;
--
- 	hr_qp->wqe_bt_pg_shift = calc_wqe_bt_page_shift(hr_dev, hr_qp->regions,
- 							hr_qp->region_cnt);
- 	hns_roce_mtr_init(&hr_qp->mtr, PAGE_SHIFT + hr_qp->wqe_bt_pg_shift,
-@@ -928,6 +935,12 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 				  hr_qp->regions, hr_qp->region_cnt);
- 	if (ret) {
- 		dev_err(dev, "mtr attach error for create qp\n");
-+		goto err_wrid;
+ 	return ret;
+ }
+ 
+@@ -5083,7 +5046,7 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 		ibdev_err(&hr_dev->ib_dev, "Destroy qp 0x%06lx failed(%d)\n",
+ 			  hr_qp->qpn, ret);
+ 
+-	kfree(hr_qp);
++	hns_roce_qp_destroy(hr_dev, hr_qp, udata);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 7c8de1e..748a867 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1035,6 +1035,47 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 	return ret;
+ }
+ 
++void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
++			 struct ib_udata *udata)
++{
++	hns_roce_qp_free(hr_dev, hr_qp);
++
++	/* Not special_QP, free their QPN */
++	if (hr_qp->ibqp.qp_type != IB_QPT_GSI)
++		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
++
++	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
++
++	if (udata) {
++		struct hns_roce_ucontext *context =
++			rdma_udata_to_drv_context(
++				udata,
++				struct hns_roce_ucontext,
++				ibucontext);
++
++		if (hr_qp->sq.wqe_cnt && (hr_qp->sdb_en == 1))
++			hns_roce_db_unmap_user(context, &hr_qp->sdb);
++
++		if (hr_qp->rq.wqe_cnt && (hr_qp->rdb_en == 1))
++			hns_roce_db_unmap_user(context, &hr_qp->rdb);
++	} else {
++		kfree(hr_qp->sq.wrid);
++		kfree(hr_qp->rq.wrid);
++		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
++		if (hr_qp->rq.wqe_cnt)
++			hns_roce_free_db(hr_dev, &hr_qp->rdb);
++	}
++	ib_umem_release(hr_qp->umem);
++
++	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
++	     hr_qp->rq.wqe_cnt) {
++		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
++		kfree(hr_qp->rq_inl_buf.wqe_list);
 +	}
 +
-+	ret = alloc_qpn(hr_dev, hr_qp);
-+	if (ret) {
-+		ibdev_err(&hr_dev->ib_dev, "Failed to alloc QPN\n");
- 		goto err_mtr;
- 	}
- 
-@@ -943,11 +956,6 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		goto err_qpc;
- 	}
- 
--	if (sqpn)
--		hr_qp->doorbell_qpn = 1;
--	else
--		hr_qp->doorbell_qpn = (u32)hr_qp->qpn;
--
- 	if (udata) {
- 		ret = ib_copy_to_udata(udata, &resp,
- 				       min(udata->outlen, sizeof(resp)));
-@@ -961,6 +969,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 			goto err_store;
- 	}
- 
-+	hr_qp->ibqp.qp_num = hr_qp->qpn;
- 	hr_qp->event = hns_roce_ib_qp_event;
- 	atomic_set(&hr_qp->refcount, 1);
- 	init_completion(&hr_qp->free);
-@@ -976,8 +985,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	free_qpc(hr_dev, hr_qp);
- 
- err_qpn:
--	if (!sqpn)
--		hns_roce_release_range_qp(hr_dev, qpn, 1);
-+	free_qpn(hr_dev, hr_qp);
- 
- err_mtr:
- 	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
-@@ -1036,9 +1044,7 @@ void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 
- 	free_qpc(hr_dev, hr_qp);
- 
--	/* Not special_QP, free their QPN */
--	if (hr_qp->ibqp.qp_type != IB_QPT_GSI)
--		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
-+	free_qpn(hr_dev, hr_qp);
- 
- 	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
- 
-@@ -1087,7 +1093,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 		if (!hr_qp)
- 			return ERR_PTR(-ENOMEM);
- 
--		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata, 0,
-+		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
- 						hr_qp);
- 		if (ret) {
- 			ibdev_err(ibdev, "Create QP 0x%06lx failed(%d)\n",
-@@ -1096,8 +1102,6 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 			return ERR_PTR(ret);
- 		}
- 
--		hr_qp->ibqp.qp_num = hr_qp->qpn;
--
- 		break;
- 	}
- 	case IB_QPT_GSI: {
-@@ -1114,15 +1118,8 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 		hr_qp->port = init_attr->port_num - 1;
- 		hr_qp->phy_port = hr_dev->iboe.phy_port[hr_qp->port];
- 
--		/* when hw version is v1, the sqpn is allocated */
--		if (hr_dev->caps.max_sq_sg <= 2)
--			hr_qp->ibqp.qp_num = HNS_ROCE_MAX_PORTS +
--					     hr_dev->iboe.phy_port[hr_qp->port];
--		else
--			hr_qp->ibqp.qp_num = 1;
--
- 		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
--						hr_qp->ibqp.qp_num, hr_qp);
-+						hr_qp);
- 		if (ret) {
- 			ibdev_err(ibdev, "Create GSI QP failed!\n");
- 			kfree(hr_qp);
++	kfree(hr_qp);
++}
++
+ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 				 struct ib_qp_init_attr *init_attr,
+ 				 struct ib_udata *udata)
 -- 
 2.8.1
 
