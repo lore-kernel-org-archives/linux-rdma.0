@@ -1,77 +1,71 @@
-Return-Path: <SRS0=iLfl=35=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=H8yA=36=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A587C35250
-	for <linux-rdma@archiver.kernel.org>; Sun,  9 Feb 2020 14:57:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD430C352A4
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 09:12:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2E17120733
-	for <linux-rdma@archiver.kernel.org>; Sun,  9 Feb 2020 14:57:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581260261;
-	bh=4XVPW0fRJ5NlFJm2qZ1lpi/YtEUv6R1dFTz6ggXQG9I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=PkcTxy4smUO3HSWRmUjVwvpR9XD0VkK92i2FKTbRTar34PY9m8JI0EjGc/7L8twTA
-	 LFNChF+yv5ppZIV5bNsdIO+Lg5isWz8VtWEUZ9drDI2c+NHN3f8WC5Qew5475jOLSr
-	 kQS1HBjQITTYaxwLEnc0QROvDJs4+FymOZgG3BS8=
+	by mail.kernel.org (Postfix) with ESMTP id 8CF7121927
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Feb 2020 09:12:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727698AbgBIO5k (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 9 Feb 2020 09:57:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42766 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727692AbgBIO5k (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 9 Feb 2020 09:57:40 -0500
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 361E920733;
-        Sun,  9 Feb 2020 14:57:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581260259;
-        bh=4XVPW0fRJ5NlFJm2qZ1lpi/YtEUv6R1dFTz6ggXQG9I=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=z5d/bG/ibkbZIwzjRjN53ZCivR1Vf9JN1TNErvFaQ/HpcplrZbwfCQqOz+Aeaif1t
-         edni+nHB5MDgmC6jJAincijS9zs1zDlnrv/7ith/5Iw4ASvaPDkq8n6ZTYKbaDGBLs
-         4+9RKFoYLu8nA098G1kkbp4RJhlw9KK0jcGl5HNE=
-Date:   Sun, 9 Feb 2020 16:57:36 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Dimitris Dimitropoulos <d.dimitropoulos@imatrex.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: Re: maximum QP size
-Message-ID: <20200209145736.GG13557@unreal>
-References: <CAOc41xHpF5VXK_-L_BeaU9v842BuRd2QTXkZunDKDgiEhixFtg@mail.gmail.com>
+        id S1726584AbgBJJMq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 Feb 2020 04:12:46 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:9715 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726376AbgBJJMp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 10 Feb 2020 04:12:45 -0500
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id A0DBA61B9E41DD77860B;
+        Mon, 10 Feb 2020 17:12:43 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
+ 14.3.439.0; Mon, 10 Feb 2020 17:12:36 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next 0/7] RDMA/hns: Refactor qp related code
+Date:   Mon, 10 Feb 2020 17:08:33 +0800
+Message-ID: <1581325720-12975-1-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOc41xHpF5VXK_-L_BeaU9v842BuRd2QTXkZunDKDgiEhixFtg@mail.gmail.com>
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 06, 2020 at 09:18:00PM -0800, Dimitris Dimitropoulos wrote:
-> Hi,
->
-> I'm running the ibv_rc_pingpong example and I notice as as rx-depth
-> increases the QP create fails, eg at 50k. My understanding is this
-> variable controls the number of RECV WR that will be posted in advance
-> before SEND WRs are posted.
->
-> Is there a limitation on the queue size (the size is unit32_t) and if
-> so why ? Also is there a way around it ?
+This series refactor qp related code, including creating, destroying qp and
+so on to make the processs easier to understand and maintain.
 
-The rx-depth is translated to the size of completion queue buffer.
-That buffer used by hardware to post completions - writing completion
-queue elements (CQEs) and it is allocated when creating the CQ.
+Previous disscussion can be found at:
+https://patchwork.kernel.org/cover/11341265/
 
-Maximum number of CQEs can be retrieved by the ibv_devinfo -v, see max_cqe field.
+Changes since v1:
+- Reduce the number of prints as Leon suggested.
+- Fix a wrong function name in description of patch 4/7.
 
-Thanks
+Xi Wang (7):
+  RDMA/hns: Optimize qp destroy flow
+  RDMA/hns: Optimize qp context create and destroy flow
+  RDMA/hns: Optimize qp number assign flow
+  RDMA/hns: Optimize qp buffer allocation flow
+  RDMA/hns: Optimize qp param setup flow
+  RDMA/hns: Optimize kernel qp wrid allocation flow
+  RDMA/hns: Optimize qp doorbell allocation flow
 
->
-> Regards
-> Dimitris
+ drivers/infiniband/hw/hns/hns_roce_device.h |   6 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  19 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  43 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 788 ++++++++++++++++------------
+ 4 files changed, 446 insertions(+), 410 deletions(-)
+
+-- 
+2.8.1
+
