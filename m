@@ -2,200 +2,167 @@ Return-Path: <SRS0=fYJ1=37=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13303C352A4
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 00:16:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5009C352A3
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 07:09:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D525C2072C
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 00:16:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90A3420842
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 07:09:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="rySPtA4z"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NdM2kdJ9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727716AbgBKAQq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 Feb 2020 19:16:46 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:4094 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727598AbgBKAPj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 Feb 2020 19:15:39 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e41f21c0001>; Mon, 10 Feb 2020 16:15:24 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Mon, 10 Feb 2020 16:15:38 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Mon, 10 Feb 2020 16:15:38 -0800
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 11 Feb
- 2020 00:15:38 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 11 Feb 2020 00:15:38 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e41f2290008>; Mon, 10 Feb 2020 16:15:37 -0800
-From:   John Hubbard <jhubbard@nvidia.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-CC:     Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Jonathan Corbet <corbet@lwn.net>,
-        =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-        "Kirill A . Shutemov" <kirill@shutemov.name>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Matthew Wilcox <willy@infradead.org>,
-        <linux-doc@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-        <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v6 04/12] mm/gup: pass gup flags to two more routines
-Date:   Mon, 10 Feb 2020 16:15:28 -0800
-Message-ID: <20200211001536.1027652-5-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.25.0
-In-Reply-To: <20200211001536.1027652-1-jhubbard@nvidia.com>
-References: <20200211001536.1027652-1-jhubbard@nvidia.com>
+        id S1727600AbgBKHJt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 11 Feb 2020 02:09:49 -0500
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:42390 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727467AbgBKHJt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 11 Feb 2020 02:09:49 -0500
+Received: by mail-lj1-f195.google.com with SMTP id d10so10290519ljl.9
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Feb 2020 23:09:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=aDl2jIZrlfmIMc8ELHUrWCpUIzvcBaftWl90I6Vd5uA=;
+        b=NdM2kdJ9siQ+wmZAzHWDjihLX3uQPzdwfH8op7arPAggzc2CO0Jd8n9ddzqsAjgvhV
+         bS5Wmd68vX6p4ybLdvW72WuKX4gKAketG0sqednAuPDK0w+wEjwXN2oMozR6hXrjnGuQ
+         ztp92xbMDLsUQZF6QGqCvnbnkQ0j2TVhCeRVwDYzloqlGhpT+mNg3yf+XF4egTieVjRQ
+         CrN8DgUruSmM7yy178dE8iqJWzfj6J5dOH8sOVe6i9wNdfuYDtNr7goLHI5pOvPLG64Y
+         Rb2x9DEVLLb61B6M3dCDOPNTX6RyNtdSqLQx42pG+eQeI4Se5NXAlKtIa78d1a1yH8RC
+         MUOg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=aDl2jIZrlfmIMc8ELHUrWCpUIzvcBaftWl90I6Vd5uA=;
+        b=W3qvyS65d3HCJmqH/MA8FgLcbrRzOvY88FHePYII3FIAfkEl3YK6N0MW8WniXRa9Tl
+         29cwH4zlWiSkpHoEk8kKC6gTmBWbqmIXeHN51in3TwB6EGgOZW3vA1tqJQLe23BMYIut
+         6Bu/QOyM87cK/wVlHntSY3xH96HS9YPwfe+CP4ydRql7GzxWcsTJdUTBxebBUsvbt9VN
+         YPlG76BLPZQwdiAuBGqBltZzTu57p9WqufKNMAraqnndFEDvaZmlhoDBMQahbBsL32xK
+         1KTXuAjed0HcoDS9Yo4NxwfoazFXRlTRdQY6avg5xd1URfMChjEOS1X57Jtjj61+FJu4
+         iKRA==
+X-Gm-Message-State: APjAAAVvgltGZd0PIwOAF2qepiN+5v7Lk1jK1oegWIdOSQ6FruvcaHhj
+        zxaA8sCJfrl3Qu/USf7zo7nsabaCEmE7+4XbL54nrkKvsXY=
+X-Google-Smtp-Source: APXvYqylDoqKllg6VVB9rVGn7aEwb2Rr+tqwEUY4LfvoWNapt7XPbCm0C+myfthi9cOCKAmErMw3G3xeTQ3bp3h342M=
+X-Received: by 2002:a2e:b536:: with SMTP id z22mr3214387ljm.259.1581404986182;
+ Mon, 10 Feb 2020 23:09:46 -0800 (PST)
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1581380124; bh=+TuU8OOcGV+ejGVFCndVV6S1iiJ5m64AX+o6oBv/wIw=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=rySPtA4zcKWR2BPaJ1IGD9md45eWG7WC2cKh9eXWjeSedfKMRbY0Hf+B3ww70efW2
-         L1B+qvrClsrexNdyrUb4ZLBBmm0VsLe/yO8kxyHyZdurqSBq4MxzWQSHw7q++mct+x
-         epeGRxVrR/lc8kuOLN+d3QykjTfTTeJXFf+0OoyBJzrLMZUVWUJArw6162d24j5HVy
-         /YkbC+F30V9queEmJS4N4KKw/46V00f7iVD+mAIPS9Jb8H3NjW8uMydEG1CO4VQRzR
-         VVLd+0sQ3GAA0kO60CvdELFtGAlxhASpgdQF+JKL4+hirllcR7HNsK6X/Z3FA25SJe
-         W+KLCmFkqijgg==
+From:   Frank Huang <tigerinxm@gmail.com>
+Date:   Tue, 11 Feb 2020 15:09:34 +0800
+Message-ID: <CAKC_zStdDH4my0gzfGhFc3zuWwGG1bW93Q+Bc-UF4csFacT5Hw@mail.gmail.com>
+Subject: slab leak on rxe
+To:     linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In preparation for an upcoming patch, send gup flags args to two more
-routines: put_compound_head(), and undo_dev_pagemap().
+Hi, All
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- mm/gup.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+When I use the old version of rdma_rxe (kernel 4.14.97), There is a
+slab leak of qp, is it fixed in newest version? I found the commit
+history on kernel.org, have not found same issue with it?
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 9e117998274c..e5f75e886663 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1870,6 +1870,7 @@ static inline pte_t gup_get_pte(pte_t *ptep)
- #endif /* CONFIG_GUP_GET_PTE_LOW_HIGH */
-=20
- static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
-+					    unsigned int flags,
- 					    struct page **pages)
- {
- 	while ((*nr) - nr_start) {
-@@ -1909,7 +1910,7 @@ static int gup_pte_range(pmd_t pmd, unsigned long add=
-r, unsigned long end,
-=20
- 			pgmap =3D get_dev_pagemap(pte_pfn(pte), pgmap);
- 			if (unlikely(!pgmap)) {
--				undo_dev_pagemap(nr, nr_start, pages);
-+				undo_dev_pagemap(nr, nr_start, flags, pages);
- 				goto pte_unmap;
- 			}
- 		} else if (pte_special(pte))
-@@ -1974,7 +1975,7 @@ static int __gup_device_huge(unsigned long pfn, unsig=
-ned long addr,
-=20
- 		pgmap =3D get_dev_pagemap(pfn, pgmap);
- 		if (unlikely(!pgmap)) {
--			undo_dev_pagemap(nr, nr_start, pages);
-+			undo_dev_pagemap(nr, nr_start, flags, pages);
- 			return 0;
- 		}
- 		SetPageReferenced(page);
-@@ -2001,7 +2002,7 @@ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *p=
-mdp, unsigned long addr,
- 		return 0;
-=20
- 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
--		undo_dev_pagemap(nr, nr_start, pages);
-+		undo_dev_pagemap(nr, nr_start, flags, pages);
- 		return 0;
- 	}
- 	return 1;
-@@ -2019,7 +2020,7 @@ static int __gup_device_huge_pud(pud_t orig, pud_t *p=
-udp, unsigned long addr,
- 		return 0;
-=20
- 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
--		undo_dev_pagemap(nr, nr_start, pages);
-+		undo_dev_pagemap(nr, nr_start, flags, pages);
- 		return 0;
- 	}
- 	return 1;
-@@ -2053,7 +2054,7 @@ static int record_subpages(struct page *page, unsigne=
-d long addr,
- 	return nr;
- }
-=20
--static void put_compound_head(struct page *page, int refs)
-+static void put_compound_head(struct page *page, int refs, unsigned int fl=
-ags)
- {
- 	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
- 	/*
-@@ -2103,7 +2104,7 @@ static int gup_hugepte(pte_t *ptep, unsigned long sz,=
- unsigned long addr,
- 		return 0;
-=20
- 	if (unlikely(pte_val(pte) !=3D pte_val(*ptep))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
-@@ -2163,7 +2164,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsi=
-gned long addr,
- 		return 0;
-=20
- 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
-@@ -2197,7 +2198,7 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsi=
-gned long addr,
- 		return 0;
-=20
- 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
-@@ -2226,7 +2227,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, unsi=
-gned long addr,
- 		return 0;
-=20
- 	if (unlikely(pgd_val(orig) !=3D pgd_val(*pgdp))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
---=20
-2.25.0
 
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+=============================================================================
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: BUG
+rxe-qp (Tainted: G           OE  ): Objects remaining in rxe-qp on
+__kmem_cache_shutdown()
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+-----------------------------------------------------------------------------
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Disabling
+lock debugging due to kernel taint
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: INFO:
+Slab 0xfffff4c4b027a000 objects=16 used=1 fp=0xffff96f3c9e83f00
+flags=0x17ffffc0008100
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: CPU: 27
+PID: 25588 Comm: rmmod Tainted: G    B      OE
+4.14.97-.el7.centos.x86_64 #1
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Hardware
+name: 80010056, BIOS 4.1.15 03/28/2017
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Call Trace:
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+dump_stack+0x5a/0x7b
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  slab_err+0xb4/0xe0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+calibrate_delay+0x138/0x5f0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+on_each_cpu_mask+0x27/0x60
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+on_each_cpu_cond+0xaf/0x140
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+__kmalloc+0x179/0x200
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+__kmem_cache_shutdown+0x194/0x3d0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+__kmem_cache_shutdown+0x1b4/0x3d0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+shutdown_cache+0x13/0x1b0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+kmem_cache_destroy+0x1e4/0x220
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+rxe_cache_clean+0x41/0x60 [rdma_rxe]
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+rxe_module_exit+0xf/0x68 [rdma_rxe]
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+SyS_delete_module+0x175/0x270
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+do_syscall_64+0x74/0x190
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RIP:
+0033:0x7ff146d3f517
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RSP:
+002b:00007ffd4b5c1598 EFLAGS: 00000202 ORIG_RAX: 00000000000000b0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RAX:
+ffffffffffffffda RBX: 0000000000d78280 RCX: 00007ff146d3f517
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RDX:
+00007ff146db3ca0 RSI: 0000000000000800 RDI: 0000000000d782e8
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RBP:
+0000000000000000 R08: 00007ff147008060 R09: 00007ff146db3ca0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R10:
+00007ffd4b5c1020 R11: 0000000000000202 R12: 00007ffd4b5c36ca
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R13:
+0000000000000000 R14: 0000000000d78280 R15: 0000000000d78010
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: INFO:
+Object 0xffff96f3c9e84ec0 @offset=20160
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+kmem_cache_destroy rxe-qp: Slab cache still has objects
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: CPU: 27
+PID: 25588 Comm: rmmod Tainted: G    B      OE
+4.14.97-.el7.centos.x86_64 #1
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Hardware
+name: 80010056, BIOS 4.1.15 03/28/2017
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Call Trace:
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+dump_stack+0x5a/0x7b
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+kmem_cache_destroy+0x203/0x220
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+rxe_cache_clean+0x41/0x60 [rdma_rxe]
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+rxe_module_exit+0xf/0x68 [rdma_rxe]
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+SyS_delete_module+0x175/0x270
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+do_syscall_64+0x74/0x190
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RIP:
+0033:0x7ff146d3f517
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RSP:
+002b:00007ffd4b5c1598 EFLAGS: 00000202 ORIG_RAX: 00000000000000b0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RAX:
+ffffffffffffffda RBX: 0000000000d78280 RCX: 00007ff146d3f517
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RDX:
+00007ff146db3ca0 RSI: 0000000000000800 RDI: 0000000000d782e8
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RBP:
+0000000000000000 R08: 00007ff147008060 R09: 00007ff146db3ca0
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R10:
+00007ffd4b5c1020 R11: 0000000000000202 R12: 00007ffd4b5c36ca
+Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R13:
+0000000000000000 R14: 0000000000d78280 R15: 0000000000d78010
