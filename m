@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97526C3B188
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 00:16:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C4B3C352A5
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 00:16:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E0642072C
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 00:16:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 008922072C
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 Feb 2020 00:16:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="rEwMQZWD"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="b15JXq87"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727831AbgBKAQL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 Feb 2020 19:16:11 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:18837 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727671AbgBKAPm (ORCPT
+        id S1727821AbgBKAQK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 Feb 2020 19:16:10 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:4287 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727683AbgBKAPm (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 Feb 2020 19:15:42 -0500
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5e41f20e0000>; Mon, 10 Feb 2020 16:15:11 -0800
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5e41f1ec0001>; Mon, 10 Feb 2020 16:14:36 -0800
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Mon, 10 Feb 2020 16:15:38 -0800
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Mon, 10 Feb 2020 16:15:39 -0800
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Mon, 10 Feb 2020 16:15:38 -0800
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 11 Feb
- 2020 00:15:37 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 11 Feb 2020 00:15:37 +0000
+        by hqpgpgate101.nvidia.com on Mon, 10 Feb 2020 16:15:39 -0800
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 11 Feb
+ 2020 00:15:38 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Tue, 11 Feb 2020 00:15:38 +0000
 Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5e41f2290004>; Mon, 10 Feb 2020 16:15:37 -0800
+        id <B5e41f22a000a>; Mon, 10 Feb 2020 16:15:38 -0800
 From:   John Hubbard <jhubbard@nvidia.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
 CC:     Al Viro <viro@zeniv.linux.org.uk>,
@@ -57,9 +57,9 @@ CC:     Al Viro <viro@zeniv.linux.org.uk>,
         <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
         John Hubbard <jhubbard@nvidia.com>,
         "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH v6 01/12] mm/gup: split get_user_pages_remote() into two routines
-Date:   Mon, 10 Feb 2020 16:15:25 -0800
-Message-ID: <20200211001536.1027652-2-jhubbard@nvidia.com>
+Subject: [PATCH v6 11/12] mm: Improve dump_page() for compound pages
+Date:   Mon, 10 Feb 2020 16:15:35 -0800
+Message-ID: <20200211001536.1027652-12-jhubbard@nvidia.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200211001536.1027652-1-jhubbard@nvidia.com>
 References: <20200211001536.1027652-1-jhubbard@nvidia.com>
@@ -68,119 +68,117 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1581380111; bh=5eZvoA5nW7X3dfTYOUjuH4An39unHi+TdehpbIAk1Fs=;
+        t=1581380076; bh=OEd2wPZ0nio0/lMg6Wc3iY7JuP/KkGjSqYpxktig1Bk=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=rEwMQZWD05AgLngkWV8G2ETx/yHb6UdGrTfv3nnbDyQPaGfmTi+7zeEvuv2Xyql9H
-         YVe0UlzbOsShgtrNYH8xNDp6KZOn+qVXqe4C/eKqH79BEf/nj3IjhdWBbCo5ZUn+Zd
-         92N9D+YbHepR0eMW3UFrgMr2R5h83A57cJI8vq1B2P0uerCeuMD34BA6991m2Sc3j1
-         WhpVeJkkGxAjYVhLllRp0a0aoqCVp8sZJpcoEgWmsbPhf4dF0Ii/j8mjaz7V0UfeXz
-         MF7nH1wRbd8sZ/fcrsb1sUq5RqlA6/TlLJ+UWmGMykqPcOBKK0Sve1KvMQf34ediCD
-         8I2iLuJqzZIdA==
+        b=b15JXq87UAwu5VDwVtaVlAZHpsbrY71cOtbd87znRSNsi+QhDasuq+HujoeSnOHil
+         sSJtrrq5xr1FhdJtwuTQBJkyOew05X2gqH8Q4FinkFhlZLS+j7Re2uBprDM6UTFy9C
+         UuKvN2twgVHCBUXeaEDMg5kKmnj7tm6zznf5uTMTir7KdJf1ynO4MozSrzYrDDvoGn
+         qxpyFpXsIINwbk4VYAhIuMRpAx27V8jZkC/114TCHUZo/SJVzsU2bMMW9uwxUs9Afy
+         ihfXORlYfsw9/mPfhSM9oBxpxvEXlawNsmlqi6J7gTxIUe/JZWI4U7+nT7q7y38awr
+         nxBU8rmxhMKqg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-An upcoming patch requires reusing the implementation of
-get_user_pages_remote(). Split up get_user_pages_remote() into an outer
-routine that checks flags, and an implementation routine that will be
-reused. This makes subsequent changes much easier to understand.
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 
-There should be no change in behavior due to this patch.
+There was no protection against a corrupted struct page having an
+implausible compound_head().  Sanity check that a compound page has
+a head within reach of the maximum allocatable page (this will need
+to be adjusted if one of the plans to allocate 1GB pages comes to
+fruition).  In addition,
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+ - Print the mapping pointer using %p insted of %px.  The actual value of
+   the pointer can be read out of the raw page dump and using %p gives a
+   chance to correlate it with an earlier printk of the mapping pointer
+ - Print the mapping pointer from the head page, not the tail page
+   (the tail ->mapping pointer may be in use for other purposes, eg part
+   of a list_head)
+ - Print the order of the page for compound pages
+ - Dump the raw head page as well as the raw page
+ - Print the refcount from the head page, not the tail page
+
+Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Co-developed-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
- mm/gup.c | 56 +++++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 33 insertions(+), 23 deletions(-)
+ mm/debug.c | 33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 1b521e0ac1de..b699500da077 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1557,6 +1557,37 @@ static __always_inline long __gup_longterm_locked(st=
-ruct task_struct *tsk,
- }
- #endif /* CONFIG_FS_DAX || CONFIG_CMA */
+diff --git a/mm/debug.c b/mm/debug.c
+index ecccd9f17801..f5ffb0784559 100644
+--- a/mm/debug.c
++++ b/mm/debug.c
+@@ -44,8 +44,10 @@ const struct trace_print_flags vmaflag_names[] =3D {
 =20
-+#ifdef CONFIG_MMU
-+static long __get_user_pages_remote(struct task_struct *tsk,
-+				    struct mm_struct *mm,
-+				    unsigned long start, unsigned long nr_pages,
-+				    unsigned int gup_flags, struct page **pages,
-+				    struct vm_area_struct **vmas, int *locked)
-+{
-+	/*
-+	 * Parts of FOLL_LONGTERM behavior are incompatible with
-+	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
-+	 * vmas. However, this only comes up if locked is set, and there are
-+	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
-+	 * allow what we can.
-+	 */
-+	if (gup_flags & FOLL_LONGTERM) {
-+		if (WARN_ON_ONCE(locked))
-+			return -EINVAL;
-+		/*
-+		 * This will check the vmas (even if our vmas arg is NULL)
-+		 * and return -ENOTSUPP if DAX isn't allowed in this case:
-+		 */
-+		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
-+					     vmas, gup_flags | FOLL_TOUCH |
-+					     FOLL_REMOTE);
+ void __dump_page(struct page *page, const char *reason)
+ {
++	struct page *head =3D compound_head(page);
+ 	struct address_space *mapping;
+ 	bool page_poisoned =3D PagePoisoned(page);
++	bool compound =3D PageCompound(page);
+ 	/*
+ 	 * Accessing the pageblock without the zone lock. It could change to
+ 	 * "isolate" again in the meantime, but since we are just dumping the
+@@ -66,25 +68,32 @@ void __dump_page(struct page *page, const char *reason)
+ 		goto hex_only;
+ 	}
+=20
+-	mapping =3D page_mapping(page);
++	if (page < head || (page >=3D head + MAX_ORDER_NR_PAGES)) {
++		/* Corrupt page, cannot call page_mapping */
++		mapping =3D page->mapping;
++		head =3D page;
++		compound =3D false;
++	} else {
++		mapping =3D page_mapping(page);
 +	}
-+
-+	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
-+				       locked,
-+				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
-+}
-+
- /*
-  * get_user_pages_remote() - pin user pages in memory
-  * @tsk:	the task_struct to use for page fault accounting, or
-@@ -1619,7 +1650,6 @@ static __always_inline long __gup_longterm_locked(str=
-uct task_struct *tsk,
-  * should use get_user_pages because it cannot pass
-  * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
-  */
--#ifdef CONFIG_MMU
- long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
-@@ -1632,28 +1662,8 @@ long get_user_pages_remote(struct task_struct *tsk, =
-struct mm_struct *mm,
- 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
- 		return -EINVAL;
 =20
--	/*
--	 * Parts of FOLL_LONGTERM behavior are incompatible with
--	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
--	 * vmas. However, this only comes up if locked is set, and there are
--	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
--	 * allow what we can.
--	 */
--	if (gup_flags & FOLL_LONGTERM) {
--		if (WARN_ON_ONCE(locked))
--			return -EINVAL;
--		/*
--		 * This will check the vmas (even if our vmas arg is NULL)
--		 * and return -ENOTSUPP if DAX isn't allowed in this case:
--		 */
--		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
--					     vmas, gup_flags | FOLL_TOUCH |
--					     FOLL_REMOTE);
--	}
--
--	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
--				       locked,
--				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
-+	return __get_user_pages_remote(tsk, mm, start, nr_pages, gup_flags,
-+				       pages, vmas, locked);
- }
- EXPORT_SYMBOL(get_user_pages_remote);
+ 	/*
+ 	 * Avoid VM_BUG_ON() in page_mapcount().
+ 	 * page->_mapcount space in struct page is used by sl[aou]b pages to
+ 	 * encode own info.
+ 	 */
+-	mapcount =3D PageSlab(page) ? 0 : page_mapcount(page);
++	mapcount =3D PageSlab(head) ? 0 : page_mapcount(page);
 =20
+-	if (PageCompound(page))
+-		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
+-			"index:%#lx compound_mapcount: %d\n",
+-			page, page_ref_count(page), mapcount,
+-			page->mapping, page_to_pgoff(page),
+-			compound_mapcount(page));
++	if (compound)
++		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
++			"index:%#lx head:%px order:%u compound_mapcount:%d\n",
++			page, page_ref_count(head), mapcount,
++			mapping, page_to_pgoff(page), head,
++			compound_order(head), compound_mapcount(page));
+ 	else
+-		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px index:%#lx\n",
++		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
+ 			page, page_ref_count(page), mapcount,
+-			page->mapping, page_to_pgoff(page));
++			mapping, page_to_pgoff(page));
+ 	if (PageKsm(page))
+ 		type =3D "ksm ";
+ 	else if (PageAnon(page))
+@@ -106,6 +115,10 @@ void __dump_page(struct page *page, const char *reason=
+)
+ 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
+ 			sizeof(unsigned long), page,
+ 			sizeof(struct page), false);
++	if (head !=3D page)
++		print_hex_dump(KERN_WARNING, "head: ", DUMP_PREFIX_NONE, 32,
++			sizeof(unsigned long), head,
++			sizeof(struct page), false);
+=20
+ 	if (reason)
+ 		pr_warn("page dumped because: %s\n", reason);
 --=20
 2.25.0
 
