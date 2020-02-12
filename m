@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A288C2BA83
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE809C3B186
 	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:27:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0AB4F206DB
+	by mail.kernel.org (Postfix) with ESMTP id 990A7206DB
 	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:27:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1581492436;
-	bh=jnA8DwKRvQltC9PCtDAoFuHXa95rTqwxdV+8HpdkUvM=;
+	bh=WTOuxnAf69VZB6PWBFesvFHXvANz8qD+i2VaJTkqnOc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=JrJjVrg/a0IBRQTmE/4hrOlKnlLpgr0us/z40UXtJkPJkDJONgeg+ZzG4yjmzSZdG
-	 l6BfgLFoDAN6rUDVfoUqwIXYq7+omcgGtC5AY8ODIv0tyJUTnODxbPTtjFa3AORU0G
-	 jAv7MZpWcy5kYl+ZixrQJYwVZnOovotzDmPEmqQ8=
+	b=2uCu9omgaY+zWZi777NgUquWbtiJguqGtrkdSPOqgrnx74ZhaRQjlW3morfgSrTct
+	 7egKfyVeV4ERCepULbRc4MG6K/JeD4xSogdN4auDP/pFjcu3I+/kTok9q6rUsP/2AC
+	 bwJxIzYSckQG9pmfL9YHMqTiUxOhq0ErOK6rR6RA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728329AbgBLH1P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Feb 2020 02:27:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59986 "EHLO mail.kernel.org"
+        id S1728325AbgBLH1Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Feb 2020 02:27:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60072 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728325AbgBLH1P (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1728237AbgBLH1P (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 12 Feb 2020 02:27:15 -0500
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8D539206DB;
-        Wed, 12 Feb 2020 07:27:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 47E552073C;
+        Wed, 12 Feb 2020 07:27:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581492431;
-        bh=jnA8DwKRvQltC9PCtDAoFuHXa95rTqwxdV+8HpdkUvM=;
+        s=default; t=1581492435;
+        bh=WTOuxnAf69VZB6PWBFesvFHXvANz8qD+i2VaJTkqnOc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=x57VwTOKYDJ5RVTLD5103IsSGKFFjkghT14AABNb+q/JLWHSWoojXtjjbyzqvtkIR
-         Iz/PYPbiFu24ZOoGCT/yY5lNwzgMmzwuqHQsS72ukFbEnTxKqBwc96ax0qWrvrm50a
-         hl7NVJCPEB7n9fVqy0IBTnqCVYYEpIBXQPeC3148=
+        b=XJ8Kq33n6B8/PwPy+t9D9lrORLGqMq4TiEKntGn93uc7pOizbczAijDEouEGZiWpN
+         0s15b+2B7cvfD/gTvc2QuvQNKhl0HwzbZBr9DdVt0TNuqRerdZ7VyIVmlw1OYzUq5z
+         QYeIVpBKkMaP9ZVAaZosZIHHGJkvxlmVSPm1yWI4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -55,9 +55,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         Yonatan Cohen <yonatanc@mellanox.com>,
         Zhu Yanjun <yanjunz@mellanox.com>
-Subject: [PATCH rdma-rc 3/9] Revert "RDMA/cma: Simplify rdma_resolve_addr() error flow"
-Date:   Wed, 12 Feb 2020 09:26:29 +0200
-Message-Id: <20200212072635.682689-4-leon@kernel.org>
+Subject: [PATCH rdma-rc 9/9] RDMA/mlx5: Prevent overflow in mmap offset calculations
+Date:   Wed, 12 Feb 2020 09:26:35 +0200
+Message-Id: <20200212072635.682689-10-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200212072635.682689-1-leon@kernel.org>
 References: <20200212072635.682689-1-leon@kernel.org>
@@ -68,65 +68,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-This reverts commit 219d2e9dfda9431b808c28d5efc74b404b95b638.
+The cmd and index variables declared as u16 and the result is supposed
+to be stored in u64. The C arithmetic rules doesn't promote "(index >>
+8) << 16" to be u64 and leaves the end result to be u16.
 
-Below flow requires cm_id_priv's destination address to be setup
-before performing rdma_bind_addr().
-Without which, source port allocation for existing bind list fails
-when port range is small, resulting into rdma_resolve_addr()
-failure.
-
-rdma_resolve_addr()
-  cma_bind_addr()
-    rdma_bind_addr()
-      cma_get_port()
-        cma_alloc_any_port()
-          cma_port_is_unique() <- compared with zero daddr
-
-Fixes: 219d2e9dfda9 ("RDMA/cma: Simplify rdma_resolve_addr() error flow")
-Signed-off-by: Parav Pandit <parav@mellanox.com>
+Fixes: 7be76bef320b ("IB/mlx5: Introduce VAR object and its alloc/destroy methods")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cma.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 72f032160c4b..2dec3a02ab9f 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -3212,19 +3212,26 @@ int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
- 	int ret;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e874d688d040..987bfdcd12a5 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2283,8 +2283,8 @@ static int mlx5_ib_mmap_offset(struct mlx5_ib_dev *dev,
  
- 	id_priv = container_of(id, struct rdma_id_private, id);
-+	memcpy(cma_dst_addr(id_priv), dst_addr, rdma_addr_size(dst_addr));
- 	if (id_priv->state == RDMA_CM_IDLE) {
- 		ret = cma_bind_addr(id, src_addr, dst_addr);
--		if (ret)
-+		if (ret) {
-+			memset(cma_dst_addr(id_priv), 0,
-+			       rdma_addr_size(dst_addr));
- 			return ret;
-+		}
- 	}
+ static u64 mlx5_entry_to_mmap_offset(struct mlx5_user_mmap_entry *entry)
+ {
+-	u16 cmd = entry->rdma_entry.start_pgoff >> 16;
+-	u16 index = entry->rdma_entry.start_pgoff & 0xFFFF;
++	u64 cmd = (entry->rdma_entry.start_pgoff >> 16) & 0xFFFF;
++	u64 index = entry->rdma_entry.start_pgoff & 0xFFFF;
  
--	if (cma_family(id_priv) != dst_addr->sa_family)
-+	if (cma_family(id_priv) != dst_addr->sa_family) {
-+		memset(cma_dst_addr(id_priv), 0, rdma_addr_size(dst_addr));
- 		return -EINVAL;
-+	}
- 
--	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND, RDMA_CM_ADDR_QUERY))
-+	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND, RDMA_CM_ADDR_QUERY)) {
-+		memset(cma_dst_addr(id_priv), 0, rdma_addr_size(dst_addr));
- 		return -EINVAL;
-+	}
- 
--	memcpy(cma_dst_addr(id_priv), dst_addr, rdma_addr_size(dst_addr));
- 	if (cma_any_addr(dst_addr)) {
- 		ret = cma_resolve_loopback(id_priv);
- 	} else {
+ 	return (((index >> 8) << 16) | (cmd << MLX5_IB_MMAP_CMD_SHIFT) |
+ 		(index & 0xFF)) << PAGE_SHIFT;
 -- 
 2.24.1
 
