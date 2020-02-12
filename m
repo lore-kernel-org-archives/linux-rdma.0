@@ -6,38 +6,37 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FFBDC3B189
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63B2EC352A4
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC9C12465D
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3214724672
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729173AbgBLTP3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Feb 2020 14:15:29 -0500
-Received: from mga07.intel.com ([134.134.136.100]:19425 "EHLO mga07.intel.com"
+        id S1729170AbgBLTP2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Feb 2020 14:15:28 -0500
+Received: from mga06.intel.com ([134.134.136.31]:41403 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729004AbgBLTO3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1729000AbgBLTO3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 12 Feb 2020 14:14:29 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Feb 2020 11:14:26 -0800
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Feb 2020 11:14:28 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,433,1574150400"; 
-   d="scan'208";a="237806991"
+   d="scan'208";a="237807032"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.74])
-  by orsmga006.jf.intel.com with ESMTP; 12 Feb 2020 11:14:26 -0800
+  by orsmga006.jf.intel.com with ESMTP; 12 Feb 2020 11:14:27 -0800
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
-Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
+Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
         sassmann@redhat.com, jgg@ziepe.ca,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        Andrew Bowers <andrewx.bowers@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [RFC PATCH v4 05/25] ice: Enable event notifications
-Date:   Wed, 12 Feb 2020 11:14:04 -0800
-Message-Id: <20200212191424.1715577-6-jeffrey.t.kirsher@intel.com>
+Subject: [RFC PATCH v4 17/25] RDMA/irdma: Add PBLE resource manager
+Date:   Wed, 12 Feb 2020 11:14:16 -0800
+Message-Id: <20200212191424.1715577-18-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200212191424.1715577-1-jeffrey.t.kirsher@intel.com>
 References: <20200212191424.1715577-1-jeffrey.t.kirsher@intel.com>
@@ -48,415 +47,678 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dave Ertman <david.m.ertman@intel.com>
+From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Enable registration of notifications. Peer devices can register to be
-notified of certain events as well as notify the driver of its state
-changes.
+Implement a Physical Buffer List Entry (PBLE) resource manager
+to manage a pool of PBLE HMC resource objects.
 
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
-Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
-Tested-by: Andrew Bowers <andrewx.bowers@intel.com>
+Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- drivers/net/ethernet/intel/ice/ice_dcb_lib.c |  34 +++
- drivers/net/ethernet/intel/ice/ice_idc.c     | 221 +++++++++++++++++++
- drivers/net/ethernet/intel/ice/ice_idc_int.h |   1 +
- drivers/net/ethernet/intel/ice/ice_main.c    |  27 ++-
- 4 files changed, 277 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/irdma/pble.c | 510 +++++++++++++++++++++++++++++
+ drivers/infiniband/hw/irdma/pble.h | 135 ++++++++
+ 2 files changed, 645 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/pble.c
+ create mode 100644 drivers/infiniband/hw/irdma/pble.h
 
-diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-index b0b957e22bf3..9401f2051293 100644
---- a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-+++ b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-@@ -148,6 +148,27 @@ void ice_vsi_cfg_dcb_rings(struct ice_vsi *vsi)
- 	}
- }
- 
+diff --git a/drivers/infiniband/hw/irdma/pble.c b/drivers/infiniband/hw/irdma/pble.c
+new file mode 100644
+index 000000000000..225083726d2f
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/pble.c
+@@ -0,0 +1,510 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (c) 2015 - 2019 Intel Corporation */
++#include "osdep.h"
++#include "status.h"
++#include "hmc.h"
++#include "defs.h"
++#include "type.h"
++#include "protos.h"
++#include "pble.h"
++
++static enum irdma_status_code
++add_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc);
++
 +/**
-+ * ice_peer_prep_tc_change - Pre-notify RDMA Peer in blocking call of TC change
-+ * @peer_dev_int: ptr to peer device internal struct
-+ * @data: ptr to opaque data
++ * irdma_destroy_pble_prm - destroy prm during module unload
++ * @pble_rsrc: pble resources
 + */
-+static int
-+ice_peer_prep_tc_change(struct ice_peer_dev_int *peer_dev_int,
-+			void __always_unused *data)
++void irdma_destroy_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc)
 +{
-+	struct iidc_peer_dev *peer_dev;
++	struct irdma_chunk *chunk;
++	struct irdma_pble_prm *pinfo = &pble_rsrc->pinfo;
 +
-+	peer_dev = &peer_dev_int->peer_dev;
-+	if (!ice_validate_peer_dev(peer_dev))
-+		return 0;
-+
-+	if (peer_dev->peer_ops && peer_dev->peer_ops->prep_tc_change)
-+		peer_dev->peer_ops->prep_tc_change(peer_dev);
-+
-+	return 0;
-+}
-+
- /**
-  * ice_pf_dcb_cfg - Apply new DCB configuration
-  * @pf: pointer to the PF struct
-@@ -182,6 +203,9 @@ int ice_pf_dcb_cfg(struct ice_pf *pf, struct ice_dcbx_cfg *new_cfg, bool locked)
- 		return ret;
- 	}
- 
-+	/* Notify capable peers about impending change to TCs */
-+	ice_for_each_peer(pf, NULL, ice_peer_prep_tc_change);
-+
- 	/* Store old config in case FW config fails */
- 	old_cfg = kmemdup(curr_cfg, sizeof(*old_cfg), GFP_KERNEL);
- 	if (!old_cfg)
-@@ -542,6 +566,7 @@ static int ice_dcb_noncontig_cfg(struct ice_pf *pf)
- void ice_pf_dcb_recfg(struct ice_pf *pf)
- {
- 	struct ice_dcbx_cfg *dcbcfg = &pf->hw.port_info->local_dcbx_cfg;
-+	struct iidc_event *event;
- 	u8 tc_map = 0;
- 	int v, ret;
- 
-@@ -577,6 +602,15 @@ void ice_pf_dcb_recfg(struct ice_pf *pf)
- 		if (vsi->type == ICE_VSI_PF)
- 			ice_dcbnl_set_all(vsi);
- 	}
-+	event = kzalloc(sizeof(*event), GFP_KERNEL);
-+	if (!event)
-+		return;
-+
-+	set_bit(IIDC_EVENT_TC_CHANGE, event->type);
-+	event->reporter = NULL;
-+	ice_setup_dcb_qos_info(pf, &event->info.port_qos);
-+	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
-+	kfree(event);
- }
- 
- /**
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
-index 92bf499bbf35..ff3dc452d7d7 100644
---- a/drivers/net/ethernet/intel/ice/ice_idc.c
-+++ b/drivers/net/ethernet/intel/ice/ice_idc.c
-@@ -217,6 +217,72 @@ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data)
- 	return 0;
- }
- 
-+/**
-+ * ice_check_peer_drv_for_events - check peer_drv for events to report
-+ * @peer_dev: peer device to report to
-+ */
-+static void ice_check_peer_drv_for_events(struct iidc_peer_dev *peer_dev)
-+{
-+	const struct iidc_peer_ops *p_ops = peer_dev->peer_ops;
-+	struct ice_peer_dev_int *peer_dev_int;
-+	struct ice_peer_drv_int *peer_drv_int;
-+	int i;
-+
-+	peer_dev_int = peer_to_ice_dev_int(peer_dev);
-+	if (!peer_dev_int)
-+		return;
-+	peer_drv_int = peer_dev_int->peer_drv_int;
-+
-+	for_each_set_bit(i, peer_dev_int->events, IIDC_EVENT_NBITS) {
-+		struct iidc_event *curr = &peer_drv_int->current_events[i];
-+
-+		if (!bitmap_empty(curr->type, IIDC_EVENT_NBITS) &&
-+		    p_ops->event_handler)
-+			p_ops->event_handler(peer_dev, curr);
++	while (!list_empty(&pinfo->clist)) {
++		chunk = (struct irdma_chunk *)pinfo->clist.next;
++		list_del(&chunk->list);
++		if (chunk->type == PBLE_SD_PAGED)
++			irdma_pble_free_paged_mem(chunk);
++		if (chunk->bitmapbuf)
++			kfree(chunk->bitmapmem.va);
++		kfree(chunk->chunkmem.va);
 +	}
 +}
 +
 +/**
-+ * ice_check_peer_for_events - check peer_devs for events new peer reg'd for
-+ * @src_peer_int: peer to check for events
-+ * @data: ptr to opaque data, to be used for the peer struct that opened
-+ *
-+ * This function is to be called when a peer device is opened.
-+ *
-+ * Since a new peer opening would have missed any events that would
-+ * have happened before its opening, we need to walk the peers and see
-+ * if any of them have events that the new peer cares about
-+ *
-+ * This function is meant to be called by a device_for_each_child.
++ * irdma_hmc_init_pble - Initialize pble resources during module load
++ * @dev: irdma_sc_dev struct
++ * @pble_rsrc: pble resources
 + */
-+static int
-+ice_check_peer_for_events(struct ice_peer_dev_int *src_peer_int, void *data)
++enum irdma_status_code
++irdma_hmc_init_pble(struct irdma_sc_dev *dev,
++		    struct irdma_hmc_pble_rsrc *pble_rsrc)
 +{
-+	struct iidc_peer_dev *new_peer = (struct iidc_peer_dev *)data;
-+	const struct iidc_peer_ops *p_ops = new_peer->peer_ops;
-+	struct ice_peer_dev_int *new_peer_int;
-+	struct iidc_peer_dev *src_peer;
-+	int i;
++	struct irdma_hmc_info *hmc_info;
++	u32 fpm_idx = 0;
++	enum irdma_status_code status = 0;
 +
-+	src_peer = &src_peer_int->peer_dev;
-+	if (!ice_validate_peer_dev(new_peer) ||
-+	    !ice_validate_peer_dev(src_peer))
-+		return 0;
++	hmc_info = dev->hmc_info;
++	pble_rsrc->dev = dev;
++	pble_rsrc->fpm_base_addr = hmc_info->hmc_obj[IRDMA_HMC_IW_PBLE].base;
++	/* Start pble' on 4k boundary */
++	if (pble_rsrc->fpm_base_addr & 0xfff)
++		fpm_idx = (4096 - (pble_rsrc->fpm_base_addr & 0xfff)) >> 3;
++	pble_rsrc->unallocated_pble =
++		hmc_info->hmc_obj[IRDMA_HMC_IW_PBLE].cnt - fpm_idx;
++	pble_rsrc->next_fpm_addr = pble_rsrc->fpm_base_addr + (fpm_idx << 3);
++	pble_rsrc->pinfo.pble_shift = PBLE_SHIFT;
 +
-+	new_peer_int = peer_to_ice_dev_int(new_peer);
-+
-+	for_each_set_bit(i, new_peer_int->events, IIDC_EVENT_NBITS) {
-+		struct iidc_event *curr = &src_peer_int->current_events[i];
-+
-+		if (!bitmap_empty(curr->type, IIDC_EVENT_NBITS) &&
-+		    new_peer->peer_dev_id != src_peer->peer_dev_id &&
-+		    p_ops->event_handler)
-+			p_ops->event_handler(new_peer, curr);
++	spin_lock_init(&pble_rsrc->pinfo.prm_lock);
++	INIT_LIST_HEAD(&pble_rsrc->pinfo.clist);
++	if (add_pble_prm(pble_rsrc)) {
++		irdma_destroy_pble_prm(pble_rsrc);
++		status = IRDMA_ERR_NO_MEMORY;
 +	}
 +
-+	return 0;
-+}
-+
- /**
-  * ice_for_each_peer - iterate across and call function for each peer dev
-  * @pf: pointer to private board struct
-@@ -322,6 +388,9 @@ ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int,
- 
- 		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_OPENED,
- 				      true);
-+		ret = ice_for_each_peer(pf, peer_dev,
-+					ice_check_peer_for_events);
-+		ice_check_peer_drv_for_events(peer_dev);
- 	}
- 
- init_unlock:
-@@ -654,6 +723,155 @@ ice_peer_free_res(struct iidc_peer_dev *peer_dev, struct iidc_res *res)
- 	return ret;
- }
- 
-+/**
-+ * ice_peer_reg_for_notif - register a peer to receive specific notifications
-+ * @peer_dev: peer that is registering for event notifications
-+ * @events: mask of event types peer is registering for
-+ */
-+static void
-+ice_peer_reg_for_notif(struct iidc_peer_dev *peer_dev,
-+		       struct iidc_event *events)
-+{
-+	struct ice_peer_dev_int *peer_dev_int;
-+	struct ice_pf *pf;
-+
-+	if (!ice_validate_peer_dev(peer_dev) || !events)
-+		return;
-+
-+	peer_dev_int = peer_to_ice_dev_int(peer_dev);
-+	pf = pci_get_drvdata(peer_dev->pdev);
-+
-+	bitmap_or(peer_dev_int->events, peer_dev_int->events, events->type,
-+		  IIDC_EVENT_NBITS);
-+
-+	/* Check to see if any events happened previous to peer registering */
-+	ice_for_each_peer(pf, peer_dev, ice_check_peer_for_events);
-+	ice_check_peer_drv_for_events(peer_dev);
++	return status;
 +}
 +
 +/**
-+ * ice_peer_unreg_for_notif - unreg a peer from receiving certain notifications
-+ * @peer_dev: peer that is unregistering from event notifications
-+ * @events: mask of event types peer is unregistering for
++ * get_sd_pd_idx -  Returns sd index, pd index and rel_pd_idx from fpm address
++ * @pble_rsrc: structure containing fpm address
++ * @idx: where to return indexes
 + */
-+static void
-+ice_peer_unreg_for_notif(struct iidc_peer_dev *peer_dev,
-+			 struct iidc_event *events)
++static void get_sd_pd_idx(struct irdma_hmc_pble_rsrc *pble_rsrc,
++			  struct sd_pd_idx *idx)
 +{
-+	struct ice_peer_dev_int *peer_dev_int;
-+
-+	if (!ice_validate_peer_dev(peer_dev) || !events)
-+		return;
-+
-+	peer_dev_int = peer_to_ice_dev_int(peer_dev);
-+
-+	bitmap_andnot(peer_dev_int->events, peer_dev_int->events, events->type,
-+		      IIDC_EVENT_NBITS);
++	idx->sd_idx = (u32)pble_rsrc->next_fpm_addr / IRDMA_HMC_DIRECT_BP_SIZE;
++	idx->pd_idx = (u32)(pble_rsrc->next_fpm_addr / IRDMA_HMC_PAGED_BP_SIZE);
++	idx->rel_pd_idx = (idx->pd_idx % IRDMA_HMC_PD_CNT_IN_SD);
 +}
 +
 +/**
-+ * ice_peer_check_for_reg - check to see if any peers are reg'd for event
-+ * @peer_dev_int: ptr to peer device internal struct
-+ * @data: ptr to opaque data, to be used for ice_event to report
-+ *
-+ * This function is to be called by device_for_each_child to handle an
-+ * event reported by a peer or the ice driver.
++ * add_sd_direct - add sd direct for pble
++ * @pble_rsrc: pble resource ptr
++ * @info: page info for sd
 + */
-+int ice_peer_check_for_reg(struct ice_peer_dev_int *peer_dev_int, void *data)
++static enum irdma_status_code
++add_sd_direct(struct irdma_hmc_pble_rsrc *pble_rsrc,
++	      struct irdma_add_page_info *info)
 +{
-+	struct iidc_event *event = (struct iidc_event *)data;
-+	DECLARE_BITMAP(comp_events, IIDC_EVENT_NBITS);
-+	struct iidc_peer_dev *peer_dev;
-+	bool check = true;
++	struct irdma_sc_dev *dev = pble_rsrc->dev;
++	enum irdma_status_code ret_code = 0;
++	struct sd_pd_idx *idx = &info->idx;
++	struct irdma_chunk *chunk = info->chunk;
++	struct irdma_hmc_info *hmc_info = info->hmc_info;
++	struct irdma_hmc_sd_entry *sd_entry = info->sd_entry;
++	u32 offset = 0;
 +
-+	peer_dev = &peer_dev_int->peer_dev;
++	if (!sd_entry->valid) {
++		ret_code = irdma_add_sd_table_entry(dev->hw, hmc_info,
++						    info->idx.sd_idx,
++						    IRDMA_SD_TYPE_DIRECT,
++						    IRDMA_HMC_DIRECT_BP_SIZE);
++		if (ret_code)
++			return ret_code;
 +
-+	if (!ice_validate_peer_dev(peer_dev) || !data)
-+	/* If invalid dev, in this case return 0 instead of error
-+	 * because caller ignores this return value
-+	 */
-+		return 0;
++		chunk->type = PBLE_SD_CONTIGOUS;
++	}
 +
-+	if (event->reporter)
-+		check = event->reporter->peer_dev_id != peer_dev->peer_dev_id;
-+
-+	if (bitmap_and(comp_events, event->type, peer_dev_int->events,
-+		       IIDC_EVENT_NBITS) &&
-+	    (test_bit(ICE_PEER_DEV_STATE_OPENED, peer_dev_int->state) ||
-+	     test_bit(ICE_PEER_DEV_STATE_PREP_RST, peer_dev_int->state) ||
-+	     test_bit(ICE_PEER_DEV_STATE_PREPPED, peer_dev_int->state)) &&
-+	    check &&
-+	    peer_dev->peer_ops->event_handler)
-+		peer_dev->peer_ops->event_handler(peer_dev, event);
++	offset = idx->rel_pd_idx << HMC_PAGED_BP_SHIFT;
++	chunk->size = info->pages << HMC_PAGED_BP_SHIFT;
++	chunk->vaddr = (uintptr_t)(sd_entry->u.bp.addr.va + offset);
++	chunk->fpm_addr = pble_rsrc->next_fpm_addr;
++	dev_dbg(rfdev_to_dev(dev),
++		"PBLE: chunk_size[%lld] = 0x%llx vaddr=0x%llx fpm_addr = %llx\n",
++		chunk->size, chunk->size, chunk->vaddr, chunk->fpm_addr);
 +
 +	return 0;
 +}
 +
 +/**
-+ * ice_peer_report_state_change - accept report of a peer state change
-+ * @peer_dev: peer that is sending notification about state change
-+ * @event: ice_event holding info on what the state change is
-+ *
-+ * We also need to parse the list of peers to see if anyone is registered
-+ * for notifications about this state change event, and if so, notify them.
++ * fpm_to_idx - given fpm address, get pble index
++ * @pble_rsrc: pble resource management
++ * @addr: fpm address for index
 + */
-+static void
-+ice_peer_report_state_change(struct iidc_peer_dev *peer_dev,
-+			     struct iidc_event *event)
++static u32 fpm_to_idx(struct irdma_hmc_pble_rsrc *pble_rsrc, u64 addr)
 +{
-+	struct ice_peer_dev_int *peer_dev_int;
-+	struct ice_peer_drv_int *peer_drv_int;
-+	int e_type, drv_event = 0;
-+	struct ice_pf *pf;
++	u64 idx;
 +
-+	if (!ice_validate_peer_dev(peer_dev) || !event)
-+		return;
++	idx = (addr - (pble_rsrc->fpm_base_addr)) >> 3;
 +
-+	pf = pci_get_drvdata(peer_dev->pdev);
-+	peer_dev_int = peer_to_ice_dev_int(peer_dev);
-+	peer_drv_int = peer_dev_int->peer_drv_int;
++	return (u32)idx;
++}
 +
-+	e_type = find_first_bit(event->type, IIDC_EVENT_NBITS);
-+	if (!e_type)
-+		return;
++/**
++ * add_bp_pages - add backing pages for sd
++ * @pble_rsrc: pble resource management
++ * @info: page info for sd
++ */
++static enum irdma_status_code
++add_bp_pages(struct irdma_hmc_pble_rsrc *pble_rsrc,
++	     struct irdma_add_page_info *info)
++{
++	struct irdma_sc_dev *dev = pble_rsrc->dev;
++	u8 *addr;
++	struct irdma_dma_mem mem;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_hmc_sd_entry *sd_entry = info->sd_entry;
++	struct irdma_hmc_info *hmc_info = info->hmc_info;
++	struct irdma_chunk *chunk = info->chunk;
++	enum irdma_status_code status = 0;
++	u32 rel_pd_idx = info->idx.rel_pd_idx;
++	u32 pd_idx = info->idx.pd_idx;
++	u32 i;
 +
-+	switch (e_type) {
-+	/* Check for peer_drv events */
-+	case IIDC_EVENT_MBX_CHANGE:
-+		drv_event = 1;
-+		if (event->info.mbx_rdy)
-+			set_bit(ICE_PEER_DRV_STATE_MBX_RDY,
-+				peer_drv_int->state);
-+		else
-+			clear_bit(ICE_PEER_DRV_STATE_MBX_RDY,
-+				  peer_drv_int->state);
-+		break;
++	if (irdma_pble_get_paged_mem(chunk, info->pages))
++		return IRDMA_ERR_NO_MEMORY;
 +
-+	/* Check for peer_dev events */
-+	case IIDC_EVENT_API_CHANGE:
-+		if (event->info.api_rdy)
-+			set_bit(ICE_PEER_DEV_STATE_API_RDY,
-+				peer_dev_int->state);
-+		else
-+			clear_bit(ICE_PEER_DEV_STATE_API_RDY,
-+				  peer_dev_int->state);
-+		break;
++	status = irdma_add_sd_table_entry(dev->hw, hmc_info, info->idx.sd_idx,
++					  IRDMA_SD_TYPE_PAGED,
++					  IRDMA_HMC_DIRECT_BP_SIZE);
 +
-+	default:
-+		return;
++	if (status)
++		goto error;
++
++	addr = (u8 *)(uintptr_t)chunk->vaddr;
++	for (i = 0; i < info->pages; i++) {
++		mem.pa = (u64)chunk->dmainfo.dmaaddrs[i];
++		mem.size = 4096;
++		mem.va = addr;
++		pd_entry = &sd_entry->u.pd_table.pd_entry[rel_pd_idx++];
++		if (!pd_entry->valid) {
++			status = irdma_add_pd_table_entry(dev, hmc_info,
++							  pd_idx++, &mem);
++			if (status)
++				goto error;
++
++			addr += 4096;
++		}
 +	}
 +
-+	/* store the event and state to notify any new peers opening */
-+	if (drv_event)
-+		memcpy(&peer_drv_int->current_events[e_type], event,
-+		       sizeof(*event));
++	chunk->fpm_addr = pble_rsrc->next_fpm_addr;
++	return 0;
++
++error:
++	irdma_pble_free_paged_mem(chunk);
++
++	return status;
++}
++
++/**
++ * add_pble_prm - add a sd entry for pble resoure
++ * @pble_rsrc: pble resource management
++ */
++static enum irdma_status_code
++add_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc)
++{
++	struct irdma_sc_dev *dev = pble_rsrc->dev;
++	struct irdma_hmc_sd_entry *sd_entry;
++	struct irdma_hmc_info *hmc_info;
++	struct irdma_chunk *chunk;
++	struct irdma_add_page_info info;
++	struct sd_pd_idx *idx = &info.idx;
++	enum irdma_status_code ret_code = 0;
++	enum irdma_sd_entry_type sd_entry_type;
++	u64 sd_reg_val = 0;
++	struct irdma_virt_mem chunkmem;
++	u32 pages;
++
++	if (pble_rsrc->unallocated_pble < PBLE_PER_PAGE)
++		return IRDMA_ERR_NO_MEMORY;
++
++	if (pble_rsrc->next_fpm_addr & 0xfff)
++		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
++
++	chunkmem.size = sizeof(*chunk);
++	chunkmem.va = kzalloc(chunkmem.size, GFP_ATOMIC);
++	if (!chunkmem.va)
++		return IRDMA_ERR_NO_MEMORY;
++
++	chunk = chunkmem.va;
++	chunk->chunkmem = chunkmem;
++	hmc_info = dev->hmc_info;
++	chunk->dev = dev;
++	chunk->fpm_addr = pble_rsrc->next_fpm_addr;
++	get_sd_pd_idx(pble_rsrc, idx);
++	sd_entry = &hmc_info->sd_table.sd_entry[idx->sd_idx];
++	pages = (idx->rel_pd_idx) ? (IRDMA_HMC_PD_CNT_IN_SD - idx->rel_pd_idx) :
++				    IRDMA_HMC_PD_CNT_IN_SD;
++	pages = min(pages, pble_rsrc->unallocated_pble >> PBLE_512_SHIFT);
++	info.chunk = chunk;
++	info.hmc_info = hmc_info;
++	info.pages = pages;
++	info.sd_entry = sd_entry;
++	if (!sd_entry->valid)
++		sd_entry_type = (!idx->rel_pd_idx &&
++				 (pages == IRDMA_HMC_PD_CNT_IN_SD) &&
++				 dev->privileged) ?
++				 IRDMA_SD_TYPE_DIRECT : IRDMA_SD_TYPE_PAGED;
 +	else
-+		memcpy(&peer_dev_int->current_events[e_type], event,
-+		       sizeof(*event));
++		sd_entry_type = sd_entry->entry_type;
 +
-+	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
++	dev_dbg(rfdev_to_dev(dev),
++		"PBLE: pages = %d, unallocated_pble[%d] current_fpm_addr = %llx\n",
++		pages, pble_rsrc->unallocated_pble, pble_rsrc->next_fpm_addr);
++	dev_dbg(rfdev_to_dev(dev), "PBLE: sd_entry_type = %d\n",
++		sd_entry_type);
++	if (sd_entry_type == IRDMA_SD_TYPE_DIRECT)
++		ret_code = add_sd_direct(pble_rsrc, &info);
++
++	if (ret_code)
++		sd_entry_type = IRDMA_SD_TYPE_PAGED;
++	else
++		pble_rsrc->stats_direct_sds++;
++
++	if (sd_entry_type == IRDMA_SD_TYPE_PAGED) {
++		ret_code = add_bp_pages(pble_rsrc, &info);
++		if (ret_code)
++			goto error;
++		else
++			pble_rsrc->stats_paged_sds++;
++	}
++
++	ret_code = irdma_prm_add_pble_mem(&pble_rsrc->pinfo, chunk);
++	if (ret_code)
++		goto error;
++
++	pble_rsrc->next_fpm_addr += chunk->size;
++	dev_dbg(rfdev_to_dev(dev),
++		"PBLE: next_fpm_addr = %llx chunk_size[%llu] = 0x%llx\n",
++		pble_rsrc->next_fpm_addr, chunk->size, chunk->size);
++	pble_rsrc->unallocated_pble -= (u32)(chunk->size >> 3);
++	list_add(&chunk->list, &pble_rsrc->pinfo.clist);
++	sd_reg_val = (sd_entry_type == IRDMA_SD_TYPE_PAGED) ?
++			     sd_entry->u.pd_table.pd_page_addr.pa :
++			     sd_entry->u.bp.addr.pa;
++	if (sd_entry->valid)
++		return 0;
++
++	if (dev->privileged) {
++		ret_code = irdma_hmc_sd_one(dev, hmc_info->hmc_fn_id,
++					    sd_reg_val, idx->sd_idx,
++					    sd_entry->entry_type, true);
++		if (ret_code)
++			goto error;
++	}
++
++	sd_entry->valid = true;
++	return 0;
++
++error:
++	if (chunk->bitmapbuf)
++		kfree(chunk->bitmapmem.va);
++
++	kfree(chunk->chunkmem.va);
++
++	return ret_code;
 +}
 +
- /**
-  * ice_peer_unregister - request to unregister peer
-  * @peer_dev: peer device
-@@ -779,6 +997,9 @@ ice_peer_update_vsi_filter(struct iidc_peer_dev *peer_dev,
- static const struct iidc_ops ops = {
- 	.alloc_res			= ice_peer_alloc_res,
- 	.free_res			= ice_peer_free_res,
-+	.reg_for_notification		= ice_peer_reg_for_notif,
-+	.unreg_for_notification		= ice_peer_unreg_for_notif,
-+	.notify_state_change		= ice_peer_report_state_change,
- 	.peer_register			= ice_peer_register,
- 	.peer_unregister		= ice_peer_unregister,
- 	.update_vsi_filter		= ice_peer_update_vsi_filter,
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
-index d22e6f5bb50e..1d3d5cafc977 100644
---- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
-+++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
-@@ -66,6 +66,7 @@ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data);
- int ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int, void *data);
- int ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
- int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data);
-+int ice_peer_check_for_reg(struct ice_peer_dev_int *peer_dev_int, void *data);
- int
- ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
- 
-diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index e67969ae1327..b085a3e66b4f 100644
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -4852,7 +4852,9 @@ static int ice_change_mtu(struct net_device *netdev, int new_mtu)
- 	struct ice_netdev_priv *np = netdev_priv(netdev);
- 	struct ice_vsi *vsi = np->vsi;
- 	struct ice_pf *pf = vsi->back;
-+	struct iidc_event *event;
- 	u8 count = 0;
-+	int err = 0;
- 
- 	if (new_mtu == netdev->mtu) {
- 		netdev_warn(netdev, "MTU is already %u\n", netdev->mtu);
-@@ -4894,27 +4896,40 @@ static int ice_change_mtu(struct net_device *netdev, int new_mtu)
- 		return -EBUSY;
- 	}
- 
-+	event = kzalloc(sizeof(*event), GFP_KERNEL);
-+	if (!event)
-+		return -ENOMEM;
++/**
++ * free_lvl2 - fee level 2 pble
++ * @pble_rsrc: pble resource management
++ * @palloc: level 2 pble allocation
++ */
++static void free_lvl2(struct irdma_hmc_pble_rsrc *pble_rsrc,
++		      struct irdma_pble_alloc *palloc)
++{
++	u32 i;
++	struct irdma_pble_level2 *lvl2 = &palloc->level2;
++	struct irdma_pble_info *root = &lvl2->root;
++	struct irdma_pble_info *leaf = lvl2->leaf;
 +
- 	netdev->mtu = new_mtu;
- 
- 	/* if VSI is up, bring it down and then back up */
- 	if (!test_and_set_bit(__ICE_DOWN, vsi->state)) {
--		int err;
--
- 		err = ice_down(vsi);
- 		if (err) {
--			netdev_err(netdev, "change MTU if_up err %d\n", err);
--			return err;
-+			netdev_err(netdev, "change MTU if_down err %d\n", err);
-+			goto free_event;
- 		}
- 
- 		err = ice_up(vsi);
- 		if (err) {
- 			netdev_err(netdev, "change MTU if_up err %d\n", err);
--			return err;
-+			goto free_event;
- 		}
- 	}
- 
-+	if (ice_is_safe_mode(pf))
-+		goto out;
++	for (i = 0; i < lvl2->leaf_cnt; i++, leaf++) {
++		if (leaf->addr)
++			irdma_prm_return_pbles(&pble_rsrc->pinfo,
++					       &leaf->chunkinfo);
++		else
++			break;
++	}
 +
-+	set_bit(IIDC_EVENT_MTU_CHANGE, event->type);
-+	event->reporter = NULL;
-+	event->info.mtu = new_mtu;
-+	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
++	if (root->addr)
++		irdma_prm_return_pbles(&pble_rsrc->pinfo, &root->chunkinfo);
 +
-+out:
- 	netdev_dbg(netdev, "changed MTU to %d\n", new_mtu);
--	return 0;
-+free_event:
-+	kfree(event);
-+	return err;
- }
- 
- /**
++	kfree(lvl2->leafmem.va);
++	lvl2->leaf = NULL;
++}
++
++/**
++ * get_lvl2_pble - get level 2 pble resource
++ * @pble_rsrc: pble resource management
++ * @palloc: level 2 pble allocation
++ */
++static enum irdma_status_code
++get_lvl2_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
++	      struct irdma_pble_alloc *palloc)
++{
++	u32 lf4k, lflast, total, i;
++	u32 pblcnt = PBLE_PER_PAGE;
++	u64 *addr;
++	struct irdma_pble_level2 *lvl2 = &palloc->level2;
++	struct irdma_pble_info *root = &lvl2->root;
++	struct irdma_pble_info *leaf;
++	enum irdma_status_code ret_code;
++	u64 fpm_addr;
++
++	/* number of full 512 (4K) leafs) */
++	lf4k = palloc->total_cnt >> 9;
++	lflast = palloc->total_cnt % PBLE_PER_PAGE;
++	total = (lflast == 0) ? lf4k : lf4k + 1;
++	lvl2->leaf_cnt = total;
++
++	lvl2->leafmem.size = (sizeof(*leaf) * total);
++	lvl2->leafmem.va = kzalloc(lvl2->leafmem.size, GFP_ATOMIC);
++	if (!lvl2->leafmem.va)
++		return IRDMA_ERR_NO_MEMORY;
++
++	lvl2->leaf = lvl2->leafmem.va;
++	leaf = lvl2->leaf;
++	ret_code = irdma_prm_get_pbles(&pble_rsrc->pinfo, &root->chunkinfo,
++				       total << 3, &root->addr, &fpm_addr);
++	if (ret_code) {
++		kfree(lvl2->leafmem.va);
++		lvl2->leaf = NULL;
++		return IRDMA_ERR_NO_MEMORY;
++	}
++
++	root->idx = fpm_to_idx(pble_rsrc, fpm_addr);
++	root->cnt = total;
++	addr = (u64 *)(uintptr_t)root->addr;
++	for (i = 0; i < total; i++, leaf++) {
++		pblcnt = (lflast && ((i + 1) == total)) ?
++				lflast : PBLE_PER_PAGE;
++		ret_code = irdma_prm_get_pbles(&pble_rsrc->pinfo,
++					       &leaf->chunkinfo, pblcnt << 3,
++					       &leaf->addr, &fpm_addr);
++		if (ret_code)
++			goto error;
++
++		leaf->idx = fpm_to_idx(pble_rsrc, fpm_addr);
++
++		leaf->cnt = pblcnt;
++		*addr = (u64)leaf->idx;
++		addr++;
++	}
++
++	palloc->level = PBLE_LEVEL_2;
++	pble_rsrc->stats_lvl2++;
++	return 0;
++
++error:
++	free_lvl2(pble_rsrc, palloc);
++
++	return IRDMA_ERR_NO_MEMORY;
++}
++
++/**
++ * get_lvl1_pble - get level 1 pble resource
++ * @pble_rsrc: pble resource management
++ * @palloc: level 1 pble allocation
++ */
++static enum irdma_status_code
++get_lvl1_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
++	      struct irdma_pble_alloc *palloc)
++{
++	enum irdma_status_code ret_code;
++	u64 fpm_addr, vaddr;
++	struct irdma_pble_info *lvl1 = &palloc->level1;
++
++	ret_code = irdma_prm_get_pbles(&pble_rsrc->pinfo, &lvl1->chunkinfo,
++				       palloc->total_cnt << 3, &vaddr,
++				       &fpm_addr);
++	if (ret_code)
++		return IRDMA_ERR_NO_MEMORY;
++
++	lvl1->addr = vaddr;
++	palloc->level = PBLE_LEVEL_1;
++	lvl1->idx = fpm_to_idx(pble_rsrc, fpm_addr);
++	lvl1->cnt = palloc->total_cnt;
++	pble_rsrc->stats_lvl1++;
++
++	return 0;
++}
++
++/**
++ * get_lvl1_lvl2_pble - calls get_lvl1 and get_lvl2 pble routine
++ * @pble_rsrc: pble resources
++ * @palloc: contains all inforamtion regarding pble (idx + pble addr)
++ * @level1_only: flag for a level 1 PBLE
++ */
++static enum irdma_status_code
++get_lvl1_lvl2_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
++		   struct irdma_pble_alloc *palloc, bool level1_only)
++{
++	enum irdma_status_code status = 0;
++
++	status = get_lvl1_pble(pble_rsrc, palloc);
++	if (!status || level1_only || palloc->total_cnt <= PBLE_PER_PAGE)
++		return status;
++
++	status = get_lvl2_pble(pble_rsrc, palloc);
++
++	return status;
++}
++
++/**
++ * irdma_get_pble - allocate pbles from the prm
++ * @pble_rsrc: pble resources
++ * @palloc: contains all inforamtion regarding pble (idx + pble addr)
++ * @pble_cnt: #of pbles requested
++ * @level1_only: true if only pble level 1 to acquire
++ */
++enum irdma_status_code irdma_get_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
++				      struct irdma_pble_alloc *palloc,
++				      u32 pble_cnt, bool level1_only)
++{
++	enum irdma_status_code status = 0;
++	unsigned long flags;
++	int max_sds = 0;
++	int i;
++
++	palloc->total_cnt = pble_cnt;
++	palloc->level = PBLE_LEVEL_0;
++	spin_lock_irqsave(&pble_rsrc->pble_lock, flags);
++	/*check first to see if we can get pble's without acquiring
++	 * additional sd's
++	 */
++	status = get_lvl1_lvl2_pble(pble_rsrc, palloc, level1_only);
++	if (!status)
++		goto exit;
++
++	max_sds = (palloc->total_cnt >> 18) + 1;
++	for (i = 0; i < max_sds; i++) {
++		status = add_pble_prm(pble_rsrc);
++		if (status)
++			break;
++
++		status = get_lvl1_lvl2_pble(pble_rsrc, palloc, level1_only);
++		/* if level1_only, only go through it once */
++		if (!status || level1_only)
++			break;
++	}
++
++exit:
++	if (!status) {
++		pble_rsrc->allocdpbles += pble_cnt;
++		pble_rsrc->stats_alloc_ok++;
++	} else {
++		pble_rsrc->stats_alloc_fail++;
++	}
++	spin_unlock_irqrestore(&pble_rsrc->pble_lock, flags);
++
++	return status;
++}
++
++/**
++ * irdma_free_pble - put pbles back into prm
++ * @pble_rsrc: pble resources
++ * @palloc: contains all information regarding pble resource being freed
++ */
++void irdma_free_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
++		     struct irdma_pble_alloc *palloc)
++{
++	pble_rsrc->freedpbles += palloc->total_cnt;
++
++	if (palloc->level == PBLE_LEVEL_2)
++		free_lvl2(pble_rsrc, palloc);
++	else
++		irdma_prm_return_pbles(&pble_rsrc->pinfo,
++				       &palloc->level1.chunkinfo);
++	pble_rsrc->stats_alloc_freed++;
++}
+diff --git a/drivers/infiniband/hw/irdma/pble.h b/drivers/infiniband/hw/irdma/pble.h
+new file mode 100644
+index 000000000000..59ed2c28ad11
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/pble.h
+@@ -0,0 +1,135 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2019 Intel Corporation */
++#ifndef IRDMA_PBLE_H
++#define IRDMA_PBLE_H
++
++#define PBLE_SHIFT		6
++#define PBLE_PER_PAGE		512
++#define HMC_PAGED_BP_SHIFT	12
++#define PBLE_512_SHIFT		9
++#define PBLE_INVALID_IDX	0xffffffff
++
++enum irdma_pble_level {
++	PBLE_LEVEL_0 = 0,
++	PBLE_LEVEL_1 = 1,
++	PBLE_LEVEL_2 = 2,
++};
++
++enum irdma_alloc_type {
++	PBLE_NO_ALLOC	  = 0,
++	PBLE_SD_CONTIGOUS = 1,
++	PBLE_SD_PAGED	  = 2,
++};
++
++struct irdma_chunk;
++
++struct irdma_pble_chunkinfo {
++	struct irdma_chunk *pchunk;
++	u64 bit_idx;
++	u64 bits_used;
++};
++
++struct irdma_pble_info {
++	u64 addr;
++	u32 idx;
++	u32 cnt;
++	struct irdma_pble_chunkinfo chunkinfo;
++};
++
++struct irdma_pble_level2 {
++	struct irdma_pble_info root;
++	struct irdma_pble_info *leaf;
++	struct irdma_virt_mem leafmem;
++	u32 leaf_cnt;
++};
++
++struct irdma_pble_alloc {
++	u32 total_cnt;
++	enum irdma_pble_level level;
++	union {
++		struct irdma_pble_info level1;
++		struct irdma_pble_level2 level2;
++	};
++};
++
++struct sd_pd_idx {
++	u32 sd_idx;
++	u32 pd_idx;
++	u32 rel_pd_idx;
++};
++
++struct irdma_add_page_info {
++	struct irdma_chunk *chunk;
++	struct irdma_hmc_sd_entry *sd_entry;
++	struct irdma_hmc_info *hmc_info;
++	struct sd_pd_idx idx;
++	u32 pages;
++};
++
++struct irdma_chunk {
++	struct list_head list;
++	struct irdma_dma_info dmainfo;
++	void *bitmapbuf;
++
++	u32 sizeofbitmap;
++	u64 size;
++	u64 vaddr;
++	u64 fpm_addr;
++	u32 pg_cnt;
++	enum irdma_alloc_type type;
++	struct irdma_sc_dev *dev;
++	struct irdma_virt_mem bitmapmem;
++	struct irdma_virt_mem chunkmem;
++};
++
++struct irdma_pble_prm {
++	struct list_head clist;
++	spinlock_t prm_lock; /* protect prm bitmap */
++	u64 total_pble_alloc;
++	u64 free_pble_cnt;
++	u8 pble_shift;
++};
++
++struct irdma_hmc_pble_rsrc {
++	u32 unallocated_pble;
++	spinlock_t pble_lock; /* to serialize PBLE resource acquisition */
++	struct irdma_sc_dev *dev;
++	u64 fpm_base_addr;
++	u64 next_fpm_addr;
++	struct irdma_pble_prm pinfo;
++	u64 allocdpbles;
++	u64 freedpbles;
++	u32 stats_direct_sds;
++	u32 stats_paged_sds;
++	u64 stats_alloc_ok;
++	u64 stats_alloc_fail;
++	u64 stats_alloc_freed;
++	u64 stats_lvl1;
++	u64 stats_lvl2;
++};
++
++void irdma_destroy_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc);
++enum irdma_status_code
++irdma_hmc_init_pble(struct irdma_sc_dev *dev,
++		    struct irdma_hmc_pble_rsrc *pble_rsrc);
++void irdma_free_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
++		     struct irdma_pble_alloc *palloc);
++enum irdma_status_code irdma_get_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
++				      struct irdma_pble_alloc *palloc,
++				      u32 pble_cnt, bool level1_only);
++enum irdma_status_code irdma_prm_add_pble_mem(struct irdma_pble_prm *pprm,
++					      struct irdma_chunk *pchunk);
++enum irdma_status_code
++irdma_prm_get_pbles(struct irdma_pble_prm *pprm,
++		    struct irdma_pble_chunkinfo *chunkinfo, u32 mem_size,
++		    u64 *vaddr, u64 *fpm_addr);
++void irdma_prm_return_pbles(struct irdma_pble_prm *pprm,
++			    struct irdma_pble_chunkinfo *chunkinfo);
++void irdma_pble_acquire_lock(struct irdma_hmc_pble_rsrc *pble_rsrc,
++			     unsigned long *flags);
++void irdma_pble_release_lock(struct irdma_hmc_pble_rsrc *pble_rsrc,
++			     unsigned long *flags);
++void irdma_pble_free_paged_mem(struct irdma_chunk *chunk);
++enum irdma_status_code irdma_pble_get_paged_mem(struct irdma_chunk *chunk,
++						int pg_cnt);
++#endif /* IRDMA_PBLE_H */
 -- 
 2.24.1
 
