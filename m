@@ -2,41 +2,42 @@ Return-Path: <SRS0=Y9Cu=4A=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9049FC2BA83
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F18BC3B186
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 625D22082F
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D823D2082F
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581492406;
-	bh=EDc8/ccu0dVjOUUmWXmB2qfPz0QR7pmifOZfvGhxq88=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=LMgdDXLMbYlm9jy9Lh2XNj7ppApRr2i3qwW+C1Dy7j7Y1WAnY0zd/R+yTuFJ47vdh
-	 SeWqTxXKrfOD90iHETc54BINIOQluv8fmVpBNYXXTSjcuuvmoDKCPef6zmeUcjFurl
-	 SjcHo/IpUqXpUlKFF8WgsTogyzwqHziCaFiq/H+E=
+	s=default; t=1581492410;
+	bh=+f94FVd8532UNuajVmZwD9xL9AwKkosfacfslF/+1ko=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=SE056Hg3rVlMM2gfjuVUeUhPbTCij66SnaLUD7foirSPHVRKQerJXVYeCh55Zazn3
+	 b6LnLApxuUQ1a0vGJVI9B8c7GJG7Gp5zet5z2z1mIVoWKLeIaoIXJzib6lz3O4pLvA
+	 uzRbT4Y2T4gT7iJ0ita7QGtvP4ZsyMrxu31phoNM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728323AbgBLH0p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Feb 2020 02:26:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59406 "EHLO mail.kernel.org"
+        id S1728294AbgBLH0u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Feb 2020 02:26:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728294AbgBLH0p (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 12 Feb 2020 02:26:45 -0500
+        id S1728242AbgBLH0u (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 12 Feb 2020 02:26:50 -0500
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B21F02073C;
-        Wed, 12 Feb 2020 07:26:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 68B9B2073C;
+        Wed, 12 Feb 2020 07:26:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581492405;
-        bh=EDc8/ccu0dVjOUUmWXmB2qfPz0QR7pmifOZfvGhxq88=;
-        h=From:To:Cc:Subject:Date:From;
-        b=kswiPS3ZrRq818IsuYP75T23KCSn7PRXiIzx9KMrUSk8lPXy9MPjeeGjtALuN/bgb
-         fslJaeyptgf5PzSt7UPSmMBKt4yhHMzey6Gq5DxYFIgu2SlD7YpWj/rHbbBhKqf2Jo
-         t4/lMAmunggBDNimi4BDsKlL6d0nj960hB+r/MN8=
+        s=default; t=1581492409;
+        bh=+f94FVd8532UNuajVmZwD9xL9AwKkosfacfslF/+1ko=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=RqZzdfWJptFOGrOgpB+QsjulKCLuzPniiYZu/XubUv7uWAMVuyOveiiPu83QvLE45
+         U/Yu2FaXrKAbKMP/oIYkPHyH2QFxos1hyQm/84ca783r5jrtp52qBRMcVNEE2+gdTi
+         lLe1qntOGt3jc+fP3stGxs/DR7jUjhSmLGSeo+54=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -54,10 +55,12 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         Yonatan Cohen <yonatanc@mellanox.com>,
         Zhu Yanjun <yanjunz@mellanox.com>
-Subject: [PATCH rdma-rc 0/9] Fixes for v5.6
-Date:   Wed, 12 Feb 2020 09:26:26 +0200
-Message-Id: <20200212072635.682689-1-leon@kernel.org>
+Subject: [PATCH rdma-rc 2/9] RDMA/core: Fix protection fault in get_pkey_idx_qp_list
+Date:   Wed, 12 Feb 2020 09:26:28 +0200
+Message-Id: <20200212072635.682689-3-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200212072635.682689-1-leon@kernel.org>
+References: <20200212072635.682689-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -65,62 +68,91 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Maor Gottlieb <maorg@mellanox.com>
 
-Hi,
+We don't need to set pkey as valid in case that user set only one of
+pkey index or port number, otherwise it will be resulted in NULL
+pointer dereference while accessing to uninitialized pkey list.
+The following crash from Syzkaller revealed it.
 
-This pack of small fixes is sent as a patchset simply to simplify their
-tracking. Some of them, like first and second patches were already
-sent to the mailing list. The ucma patch was in our regression for whole
-cycle and we didn't notice any failures related to that change.
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN PTI
+CPU: 1 PID: 14753 Comm: syz-executor.2 Not tainted 5.5.0-rc5 #2
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
+rel-1.12.1-0-ga5cab58e9a3f-prebuilt.qemu.org 04/01/2014
+RIP: 0010:get_pkey_idx_qp_list+0x161/0x2d0
+Code: 01 00 00 49 8b 5e 20 4c 39 e3 0f 84 b9 00 00 00 e8 e4 42 6e fe 48
+8d 7b 10 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <0f> b6 04
+02 84 c0 74 08 3c 01 0f 8e d0 00 00 00 48 8d 7d 04 48 b8
+RSP: 0018:ffffc9000bc6f950 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff82c8bdec
+RDX: 0000000000000002 RSI: ffffc900030a8000 RDI: 0000000000000010
+RBP: ffff888112c8ce80 R08: 0000000000000004 R09: fffff5200178df1f
+R10: 0000000000000001 R11: fffff5200178df1f R12: ffff888115dc4430
+R13: ffff888115da8498 R14: ffff888115dc4410 R15: ffff888115da8000
+FS:  00007f20777de700(0000) GS:ffff88811b100000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b2f721000 CR3: 00000001173ca002 CR4: 0000000000360ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ port_pkey_list_insert+0xd7/0x7c0
+ ib_security_modify_qp+0x6fa/0xfc0
+ _ib_modify_qp+0x8c4/0xbf0
+ modify_qp+0x10da/0x16d0
+ ib_uverbs_modify_qp+0x9a/0x100
+ ib_uverbs_write+0xaa5/0xdf0
+ __vfs_write+0x7c/0x100
+ vfs_write+0x168/0x4a0
+ ksys_write+0xc8/0x200
+ do_syscall_64+0x9c/0x390
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-Changelog of second patch:
-1. Maor added IB_QP_PKEY_INDEX and IB_QP_PORT checks and I rewrote the
-code logic to be less hairy.
+Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/security.c | 24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-Thanks
-
-Leon Romanovsky (2):
-  RDMA/ucma: Mask QPN to be 24 bits according to IBTA
-  RDMA/mlx5: Prevent overflow in mmap offset calculations
-
-Maor Gottlieb (1):
-  RDMA/core: Fix protection fault in get_pkey_idx_qp_list
-
-Michael Guralnik (1):
-  RDMA/core: Add missing list deletion on freeing event queue
-
-Parav Pandit (1):
-  Revert "RDMA/cma: Simplify rdma_resolve_addr() error flow"
-
-Valentine Fatiev (1):
-  IB/ipoib: Fix double free of skb in case of multicast traffic in CM
-    mode
-
-Yishai Hadas (1):
-  IB/mlx5: Fix async events cleanup flows
-
-Yonatan Cohen (1):
-  IB/umad: Fix kernel crash while unloading ib_umad
-
-Zhu Yanjun (1):
-  RDMA/rxe: Fix soft lockup problem due to using tasklets in softirq
-
- drivers/infiniband/core/cm.c               |  3 ++
- drivers/infiniband/core/cma.c              | 15 +++++--
- drivers/infiniband/core/security.c         | 24 ++++------
- drivers/infiniband/core/ucma.c             |  2 +-
- drivers/infiniband/core/user_mad.c         |  5 ++-
- drivers/infiniband/core/uverbs_std_types.c |  1 +
- drivers/infiniband/hw/mlx5/devx.c          | 51 ++++++++++++----------
- drivers/infiniband/hw/mlx5/main.c          |  4 +-
- drivers/infiniband/sw/rxe/rxe_comp.c       |  8 ++--
- drivers/infiniband/ulp/ipoib/ipoib.h       |  1 +
- drivers/infiniband/ulp/ipoib/ipoib_cm.c    | 15 ++++---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c    |  8 +++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c  |  1 +
- 13 files changed, 78 insertions(+), 60 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
+index 6eb6d2717ca5..5c8bf8ffb08c 100644
+--- a/drivers/infiniband/core/security.c
++++ b/drivers/infiniband/core/security.c
+@@ -339,22 +339,16 @@ static struct ib_ports_pkeys *get_new_pps(const struct ib_qp *qp,
+ 	if (!new_pps)
+ 		return NULL;
+ 
+-	if (qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) {
+-		if (!qp_pps) {
+-			new_pps->main.port_num = qp_attr->port_num;
+-			new_pps->main.pkey_index = qp_attr->pkey_index;
+-		} else {
+-			new_pps->main.port_num = (qp_attr_mask & IB_QP_PORT) ?
+-						  qp_attr->port_num :
+-						  qp_pps->main.port_num;
+-
+-			new_pps->main.pkey_index =
+-					(qp_attr_mask & IB_QP_PKEY_INDEX) ?
+-					 qp_attr->pkey_index :
+-					 qp_pps->main.pkey_index;
+-		}
++	if (qp_attr_mask & IB_QP_PORT)
++		new_pps->main.port_num =
++			(qp_pps) ? qp_pps->main.port_num : qp_attr->port_num;
++	if (qp_attr_mask & IB_QP_PKEY_INDEX)
++		new_pps->main.pkey_index = (qp_pps) ? qp_pps->main.pkey_index :
++						      qp_attr->pkey_index;
++	if ((qp_attr_mask & IB_QP_PKEY_INDEX) && (qp_attr_mask & IB_QP_PORT))
+ 		new_pps->main.state = IB_PORT_PKEY_VALID;
+-	} else if (qp_pps) {
++
++	if (!(qp_attr_mask & IB_QP_PKEY_INDEX & IB_QP_PORT) && qp_pps) {
+ 		new_pps->main.port_num = qp_pps->main.port_num;
+ 		new_pps->main.pkey_index = qp_pps->main.pkey_index;
+ 		if (qp_pps->main.state != IB_PORT_PKEY_NOT_VALID)
+-- 
 2.24.1
 
