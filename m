@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F18BC3B186
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06BD0C2BA83
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D823D2082F
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3B582082F
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581492410;
-	bh=+f94FVd8532UNuajVmZwD9xL9AwKkosfacfslF/+1ko=;
+	s=default; t=1581492414;
+	bh=MSU1rNtQhwV5+WcvT9QipiGmRds857+slycHbAgGCRQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=SE056Hg3rVlMM2gfjuVUeUhPbTCij66SnaLUD7foirSPHVRKQerJXVYeCh55Zazn3
-	 b6LnLApxuUQ1a0vGJVI9B8c7GJG7Gp5zet5z2z1mIVoWKLeIaoIXJzib6lz3O4pLvA
-	 uzRbT4Y2T4gT7iJ0ita7QGtvP4ZsyMrxu31phoNM=
+	b=e2akvvZKalkCoxy37WZhWF3GBxxUUHwLgZyFnGXqikJMbKdqkAwBi7KsazGy7Epji
+	 OTCw2U5BXpdADFo0WYhAj6AzqA69gAYhWiVneA87nRFqSecz16CAe7cdrsHaHI8hCQ
+	 AhyjGKwrVZjJKerdNTaKIn7cXS5HpYvMWdsmtl50=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728294AbgBLH0u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Feb 2020 02:26:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59492 "EHLO mail.kernel.org"
+        id S1728338AbgBLH0x (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Feb 2020 02:26:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728242AbgBLH0u (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 12 Feb 2020 02:26:50 -0500
+        id S1728242AbgBLH0x (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 12 Feb 2020 02:26:53 -0500
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 68B9B2073C;
-        Wed, 12 Feb 2020 07:26:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0ECE720848;
+        Wed, 12 Feb 2020 07:26:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581492409;
-        bh=+f94FVd8532UNuajVmZwD9xL9AwKkosfacfslF/+1ko=;
+        s=default; t=1581492412;
+        bh=MSU1rNtQhwV5+WcvT9QipiGmRds857+slycHbAgGCRQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RqZzdfWJptFOGrOgpB+QsjulKCLuzPniiYZu/XubUv7uWAMVuyOveiiPu83QvLE45
-         U/Yu2FaXrKAbKMP/oIYkPHyH2QFxos1hyQm/84ca783r5jrtp52qBRMcVNEE2+gdTi
-         lLe1qntOGt3jc+fP3stGxs/DR7jUjhSmLGSeo+54=
+        b=J1B5QrEHHyvjRQ3lssGIHIhXFgh8Gq9yRWgyuEQZF2oGaiyJz+S4nwT/1/PQmdEOy
+         8CNtPlM66RHF4xxa7Le/WVz6scuXv8MKsHYKOgn4J6Gwepqf+1iB2+7L3FcVnBPeTG
+         iJzOMh8u0y5dzNNKKrTh6+IJXnBCtyiI5B7H+4c8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -55,9 +55,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         Yonatan Cohen <yonatanc@mellanox.com>,
         Zhu Yanjun <yanjunz@mellanox.com>
-Subject: [PATCH rdma-rc 2/9] RDMA/core: Fix protection fault in get_pkey_idx_qp_list
-Date:   Wed, 12 Feb 2020 09:26:28 +0200
-Message-Id: <20200212072635.682689-3-leon@kernel.org>
+Subject: [PATCH rdma-rc 4/9] IB/ipoib: Fix double free of skb in case of multicast traffic in CM mode
+Date:   Wed, 12 Feb 2020 09:26:30 +0200
+Message-Id: <20200212072635.682689-5-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200212072635.682689-1-leon@kernel.org>
 References: <20200212072635.682689-1-leon@kernel.org>
@@ -68,91 +68,199 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@mellanox.com>
+From: Valentine Fatiev <valentinef@mellanox.com>
 
-We don't need to set pkey as valid in case that user set only one of
-pkey index or port number, otherwise it will be resulted in NULL
-pointer dereference while accessing to uninitialized pkey list.
-The following crash from Syzkaller revealed it.
+While connected mode set and we have connected and datagram traffic
+in parallel it might end with double free of datagram skb.
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] SMP KASAN PTI
-CPU: 1 PID: 14753 Comm: syz-executor.2 Not tainted 5.5.0-rc5 #2
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
-rel-1.12.1-0-ga5cab58e9a3f-prebuilt.qemu.org 04/01/2014
-RIP: 0010:get_pkey_idx_qp_list+0x161/0x2d0
-Code: 01 00 00 49 8b 5e 20 4c 39 e3 0f 84 b9 00 00 00 e8 e4 42 6e fe 48
-8d 7b 10 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <0f> b6 04
-02 84 c0 74 08 3c 01 0f 8e d0 00 00 00 48 8d 7d 04 48 b8
-RSP: 0018:ffffc9000bc6f950 EFLAGS: 00010202
-RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff82c8bdec
-RDX: 0000000000000002 RSI: ffffc900030a8000 RDI: 0000000000000010
-RBP: ffff888112c8ce80 R08: 0000000000000004 R09: fffff5200178df1f
-R10: 0000000000000001 R11: fffff5200178df1f R12: ffff888115dc4430
-R13: ffff888115da8498 R14: ffff888115dc4410 R15: ffff888115da8000
-FS:  00007f20777de700(0000) GS:ffff88811b100000(0000)
-knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000001b2f721000 CR3: 00000001173ca002 CR4: 0000000000360ee0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- port_pkey_list_insert+0xd7/0x7c0
- ib_security_modify_qp+0x6fa/0xfc0
- _ib_modify_qp+0x8c4/0xbf0
- modify_qp+0x10da/0x16d0
- ib_uverbs_modify_qp+0x9a/0x100
- ib_uverbs_write+0xaa5/0xdf0
- __vfs_write+0x7c/0x100
- vfs_write+0x168/0x4a0
- ksys_write+0xc8/0x200
- do_syscall_64+0x9c/0x390
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Current mechanism assumes that order in completion queue is the same as
+theorder of sent packets for all QPs. Order is kept only for specific QP,
+in case of mixed UD and CM traffic we have few QPs(one UD and few CM's)
+in parallel.
 
-Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+The problem:
+----------------------------------------------------------
+
+Transmit queue:
+-----------------
+UD skb pointer kept in queue itself , CM skb kept in spearate queue and
+use transmit queue as a placeholder to count number of transmitted packets.
+
+0   1   2   3   4  5  6  7  8   9  10  11 12 13 .........127
+------------------------------------------------------------
+NL ud1 UD2 CM1 ud3 cm2 cm3 ud4 cm4 ud5 NL NL NL ...........
+--------------------------------------------------------------
+    ^                                  ^
+   tail                               head
+
+Completion queue(problematic scenario) - order not the same as in
+transmit queue
+
+  1  2  3  4  5  6  7  8  9
+----------------------------
+ ud1 CM1 UD2 ud3 cm2 cm3 ud4 cm4 ud5
+----------------------------
+
+1. CM1 'wc' processing
+   - skb freed in cm separate ring.
+   - tx_tail of transmit queue increased although UD2 not freed.
+     Now driver assume UD2 index is already freed and it could be used
+     for new transmitted skb.
+
+0   1   2   3   4  5  6  7  8   9  10  11 12 13 .........127
+------------------------------------------------------------
+NL NL  UD2 CM1 ud3 cm2 cm3 ud4 cm4 ud5 NL NL NL ...........
+--------------------------------------------------------------
+        ^   ^                       ^
+      (Bad)tail                    head
+(Bad - Could be used for new SKB)
+
+In this case (due to heavy load) UD2 skb pointer could be replaced by
+new transmitted packet UD_NEW , as driver assume its free.
+At this point we will have to process two 'wc' with same index but we
+have only one pointer to free.
+During second attempt to free same skb we will have NULL pointer exception.
+
+2. UD2 'wc' processing
+   - skb freed according the index we got from 'wc' ,but
+     it was already overwritten by mistake.So actually skb that was
+     released its skb of new transmitted packet and no the original one.
+
+3. UD_NEW 'wc' processing
+   - attempt to free already freed skb. NUll pointer exception.
+
+Fix:
+-----------------------------------------------------------------------
+The fix is to stop using UD ring also as placeholder for CM packets,
+instead using atomic counter to keep total packets sent value and use it
+to stop/wake queue.
+
+Fixes: 2c104ea68350 ("IB/ipoib: Get rid of the tx_outstanding variable in all modes")
+Signed-off-by: Valentine Fatiev <valentinef@mellanox.com>
+Reviewed-by: Erez Shitrit <erezsh@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/security.c | 24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h      |  1 +
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 15 ++++++++-------
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c   |  8 ++++++--
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |  1 +
+ 4 files changed, 16 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
-index 6eb6d2717ca5..5c8bf8ffb08c 100644
---- a/drivers/infiniband/core/security.c
-+++ b/drivers/infiniband/core/security.c
-@@ -339,22 +339,16 @@ static struct ib_ports_pkeys *get_new_pps(const struct ib_qp *qp,
- 	if (!new_pps)
- 		return NULL;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 2aa3457a30ce..c614cb87d09b 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -379,6 +379,7 @@ struct ipoib_dev_priv {
+ 	struct ipoib_tx_buf *tx_ring;
+ 	unsigned int	     tx_head;
+ 	unsigned int	     tx_tail;
++	atomic_t             tx_outstanding;
+ 	struct ib_sge	     tx_sge[MAX_SKB_FRAGS + 1];
+ 	struct ib_ud_wr      tx_wr;
+ 	struct ib_wc	     send_wc[MAX_SEND_CQE];
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index c59e00a0881f..db6aace83fe5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -756,7 +756,7 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
+ 		return;
+ 	}
  
--	if (qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) {
--		if (!qp_pps) {
--			new_pps->main.port_num = qp_attr->port_num;
--			new_pps->main.pkey_index = qp_attr->pkey_index;
--		} else {
--			new_pps->main.port_num = (qp_attr_mask & IB_QP_PORT) ?
--						  qp_attr->port_num :
--						  qp_pps->main.port_num;
--
--			new_pps->main.pkey_index =
--					(qp_attr_mask & IB_QP_PKEY_INDEX) ?
--					 qp_attr->pkey_index :
--					 qp_pps->main.pkey_index;
--		}
-+	if (qp_attr_mask & IB_QP_PORT)
-+		new_pps->main.port_num =
-+			(qp_pps) ? qp_pps->main.port_num : qp_attr->port_num;
-+	if (qp_attr_mask & IB_QP_PKEY_INDEX)
-+		new_pps->main.pkey_index = (qp_pps) ? qp_pps->main.pkey_index :
-+						      qp_attr->pkey_index;
-+	if ((qp_attr_mask & IB_QP_PKEY_INDEX) && (qp_attr_mask & IB_QP_PORT))
- 		new_pps->main.state = IB_PORT_PKEY_VALID;
--	} else if (qp_pps) {
-+
-+	if (!(qp_attr_mask & IB_QP_PKEY_INDEX & IB_QP_PORT) && qp_pps) {
- 		new_pps->main.port_num = qp_pps->main.port_num;
- 		new_pps->main.pkey_index = qp_pps->main.pkey_index;
- 		if (qp_pps->main.state != IB_PORT_PKEY_NOT_VALID)
+-	if ((priv->tx_head - priv->tx_tail) == ipoib_sendq_size - 1) {
++	if (atomic_read(&priv->tx_outstanding) == ipoib_sendq_size - 1) {
+ 		ipoib_dbg(priv, "TX ring 0x%x full, stopping kernel net queue\n",
+ 			  tx->qp->qp_num);
+ 		netif_stop_queue(dev);
+@@ -786,7 +786,7 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
+ 	} else {
+ 		netif_trans_update(dev);
+ 		++tx->tx_head;
+-		++priv->tx_head;
++		atomic_inc(&priv->tx_outstanding);
+ 	}
+ }
+ 
+@@ -820,11 +820,11 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	netif_tx_lock(dev);
+ 
+ 	++tx->tx_tail;
+-	++priv->tx_tail;
++	atomic_dec(&priv->tx_outstanding);
+ 
+ 	if (unlikely(netif_queue_stopped(dev) &&
+-		     (priv->tx_head - priv->tx_tail) <= ipoib_sendq_size >> 1 &&
+-		     test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)))
++	    (atomic_read(&priv->tx_outstanding) <= ipoib_sendq_size >> 1) &&
++	    test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)))
+ 		netif_wake_queue(dev);
+ 
+ 	if (wc->status != IB_WC_SUCCESS &&
+@@ -1232,8 +1232,9 @@ static void ipoib_cm_tx_destroy(struct ipoib_cm_tx *p)
+ 		dev_kfree_skb_any(tx_req->skb);
+ 		netif_tx_lock_bh(p->dev);
+ 		++p->tx_tail;
+-		++priv->tx_tail;
+-		if (unlikely(priv->tx_head - priv->tx_tail == ipoib_sendq_size >> 1) &&
++		atomic_dec(&priv->tx_outstanding);
++		if (unlikely(atomic_read(&priv->tx_outstanding) <=
++			     ipoib_sendq_size >> 1) &&
+ 		    netif_queue_stopped(p->dev) &&
+ 		    test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
+ 			netif_wake_queue(p->dev);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index c332b4761816..0652f25e8d0f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -407,9 +407,11 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	dev_kfree_skb_any(tx_req->skb);
+ 
+ 	++priv->tx_tail;
++	atomic_dec(&priv->tx_outstanding);
+ 
+ 	if (unlikely(netif_queue_stopped(dev) &&
+-		     ((priv->tx_head - priv->tx_tail) <= ipoib_sendq_size >> 1) &&
++		     (atomic_read(&priv->tx_outstanding) <= ipoib_sendq_size >>
++		      1) &&
+ 		     test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)))
+ 		netif_wake_queue(dev);
+ 
+@@ -634,7 +636,7 @@ int ipoib_send(struct net_device *dev, struct sk_buff *skb,
+ 	else
+ 		priv->tx_wr.wr.send_flags &= ~IB_SEND_IP_CSUM;
+ 	/* increase the tx_head after send success, but use it for queue state */
+-	if (priv->tx_head - priv->tx_tail == ipoib_sendq_size - 1) {
++	if (atomic_read(&priv->tx_outstanding) == ipoib_sendq_size - 1) {
+ 		ipoib_dbg(priv, "TX ring full, stopping kernel net queue\n");
+ 		netif_stop_queue(dev);
+ 	}
+@@ -662,6 +664,7 @@ int ipoib_send(struct net_device *dev, struct sk_buff *skb,
+ 
+ 		rc = priv->tx_head;
+ 		++priv->tx_head;
++		atomic_inc(&priv->tx_outstanding);
+ 	}
+ 	return rc;
+ }
+@@ -807,6 +810,7 @@ int ipoib_ib_dev_stop_default(struct net_device *dev)
+ 				ipoib_dma_unmap_tx(priv, tx_req);
+ 				dev_kfree_skb_any(tx_req->skb);
+ 				++priv->tx_tail;
++				atomic_dec(&priv->tx_outstanding);
+ 			}
+ 
+ 			for (i = 0; i < ipoib_recvq_size; ++i) {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 4a0d3a9e72e1..0d98886cfef8 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1706,6 +1706,7 @@ static int ipoib_dev_init_default(struct net_device *dev)
+ 	}
+ 
+ 	/* priv->tx_head, tx_tail & tx_outstanding are already 0 */
++	atomic_set(&priv->tx_outstanding, 0);
+ 
+ 	if (ipoib_transport_dev_init(dev, priv->ca)) {
+ 		pr_warn("%s: ipoib_transport_dev_init failed\n",
 -- 
 2.24.1
 
