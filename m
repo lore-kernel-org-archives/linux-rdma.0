@@ -6,37 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 650B2C3B18B
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2442FC3B18A
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4259D2465D
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBD702465D
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 19:15:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728954AbgBLTPU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Feb 2020 14:15:20 -0500
+        id S1729015AbgBLTOa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Feb 2020 14:14:30 -0500
 Received: from mga07.intel.com ([134.134.136.100]:19422 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729029AbgBLTOb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 12 Feb 2020 14:14:31 -0500
+        id S1729005AbgBLTO3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 12 Feb 2020 14:14:29 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
   by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Feb 2020 11:14:26 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,433,1574150400"; 
-   d="scan'208";a="237807000"
+   d="scan'208";a="237806995"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.74])
   by orsmga006.jf.intel.com with ESMTP; 12 Feb 2020 11:14:26 -0800
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
-Cc:     Shiraz Saleem <shiraz.saleem@intel.com>, netdev@vger.kernel.org,
+Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
         sassmann@redhat.com, jgg@ziepe.ca,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
         Andrew Bowers <andrewx.bowers@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [RFC PATCH v4 08/25] i40e: Move client header location
-Date:   Wed, 12 Feb 2020 11:14:07 -0800
-Message-Id: <20200212191424.1715577-9-jeffrey.t.kirsher@intel.com>
+Subject: [RFC PATCH v4 06/25] ice: Allow reset operations
+Date:   Wed, 12 Feb 2020 11:14:05 -0800
+Message-Id: <20200212191424.1715577-7-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200212191424.1715577-1-jeffrey.t.kirsher@intel.com>
 References: <20200212191424.1715577-1-jeffrey.t.kirsher@intel.com>
@@ -47,86 +48,251 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem@intel.com>
+From: Dave Ertman <david.m.ertman@intel.com>
 
-Move i40e_client.h to include/linux/net/intel/*
-since its shared between i40iw and i40e.
+Enable the PF to notify peers when it's going to reset so that peer devices
+can prepare accordingly. Also enable the peer devices to request the PF to
+reset.
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Implement ice_peer_is_vsi_ready() so the peer device can determine when the
+VSI is ready for operations following a reset.
+
+Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 Tested-by: Andrew Bowers <andrewx.bowers@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- drivers/infiniband/hw/i40iw/Makefile                            | 1 -
- drivers/infiniband/hw/i40iw/i40iw.h                             | 2 +-
- drivers/net/ethernet/intel/i40e/i40e.h                          | 2 +-
- drivers/net/ethernet/intel/i40e/i40e_client.c                   | 2 +-
- .../intel/i40e => include/linux/net/intel}/i40e_client.h        | 0
- 5 files changed, 3 insertions(+), 4 deletions(-)
- rename {drivers/net/ethernet/intel/i40e => include/linux/net/intel}/i40e_client.h (100%)
+ drivers/net/ethernet/intel/ice/ice_idc.c     | 140 +++++++++++++++++++
+ drivers/net/ethernet/intel/ice/ice_idc_int.h |   1 +
+ drivers/net/ethernet/intel/ice/ice_lib.c     |   6 +
+ drivers/net/ethernet/intel/ice/ice_main.c    |   3 +
+ 4 files changed, 150 insertions(+)
 
-diff --git a/drivers/infiniband/hw/i40iw/Makefile b/drivers/infiniband/hw/i40iw/Makefile
-index 8942f8229945..34da9eba8a7c 100644
---- a/drivers/infiniband/hw/i40iw/Makefile
-+++ b/drivers/infiniband/hw/i40iw/Makefile
-@@ -1,5 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--ccflags-y :=  -I $(srctree)/drivers/net/ethernet/intel/i40e
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
+index ff3dc452d7d7..6d625cc18a9d 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc.c
++++ b/drivers/net/ethernet/intel/ice/ice_idc.c
+@@ -217,6 +217,40 @@ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data)
+ 	return 0;
+ }
  
- obj-$(CONFIG_INFINIBAND_I40IW) += i40iw.o
++/**
++ * ice_close_peer_for_reset - queue work to close peer for reset
++ * @peer_dev_int: pointer peer dev internal struct
++ * @data: pointer to opaque data used for reset type
++ */
++int ice_close_peer_for_reset(struct ice_peer_dev_int *peer_dev_int, void *data)
++{
++	struct iidc_peer_dev *peer_dev;
++	enum ice_reset_req reset;
++
++	peer_dev = &peer_dev_int->peer_dev;
++	if (!ice_validate_peer_dev(peer_dev))
++		return 0;
++
++	reset = *(enum ice_reset_req *)data;
++
++	switch (reset) {
++	case ICE_RESET_GLOBR:
++		peer_dev_int->rst_type = IIDC_REASON_GLOBR_REQ;
++		break;
++	case ICE_RESET_CORER:
++		peer_dev_int->rst_type = IIDC_REASON_CORER_REQ;
++		break;
++	case ICE_RESET_PFR:
++		peer_dev_int->rst_type = IIDC_REASON_PFR_REQ;
++		break;
++	default:
++		/* reset type is invalid */
++		return 1;
++	}
++	queue_work(peer_dev_int->ice_peer_wq, &peer_dev_int->peer_close_task);
++	return 0;
++}
++
+ /**
+  * ice_check_peer_drv_for_events - check peer_drv for events to report
+  * @peer_dev: peer device to report to
+@@ -954,6 +988,74 @@ static int ice_peer_register(struct iidc_peer_dev *peer_dev)
+ 	return 0;
+ }
  
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index 8feec35f95a7..f628325be6e7 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -45,6 +45,7 @@
- #include <linux/slab.h>
- #include <linux/io.h>
- #include <linux/crc32c.h>
-+#include <linux/net/intel/i40e_client.h>
- #include <rdma/ib_smi.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_pack.h>
-@@ -57,7 +58,6 @@
- #include "i40iw_d.h"
- #include "i40iw_hmc.h"
++/**
++ * ice_peer_request_reset - accept request from peer to perform a reset
++ * @peer_dev: peer device that is request a reset
++ * @reset_type: type of reset the peer is requesting
++ */
++static int
++ice_peer_request_reset(struct iidc_peer_dev *peer_dev,
++		       enum iidc_peer_reset_type reset_type)
++{
++	enum ice_reset_req reset;
++	struct ice_pf *pf;
++
++	if (!ice_validate_peer_dev(peer_dev))
++		return -EINVAL;
++
++	pf = pci_get_drvdata(peer_dev->pdev);
++
++	switch (reset_type) {
++	case IIDC_PEER_PFR:
++		reset = ICE_RESET_PFR;
++		break;
++	case IIDC_PEER_CORER:
++		reset = ICE_RESET_CORER;
++		break;
++	case IIDC_PEER_GLOBR:
++		reset = ICE_RESET_GLOBR;
++		break;
++	default:
++		dev_err(ice_pf_to_dev(pf), "incorrect reset request from peer\n");
++		return -EINVAL;
++	}
++
++	return ice_schedule_reset(pf, reset);
++}
++
++/**
++ * ice_peer_is_vsi_ready - query if VSI in nominal state
++ * @peer_dev: pointer to iidc_peer_dev struct
++ */
++static int ice_peer_is_vsi_ready(struct iidc_peer_dev *peer_dev)
++{
++	DECLARE_BITMAP(check_bits, __ICE_STATE_NBITS) = { 0 };
++	struct ice_netdev_priv *np;
++	struct ice_vsi *vsi;
++
++	/* If the peer_dev or associated values are not valid, then return
++	 * 0 as there is no ready port associated with the values passed in
++	 * as parameters.
++	 */
++
++	if (!ice_validate_peer_dev(peer_dev))
++		return 0;
++
++	if (!peer_dev->netdev)
++		return 0;
++
++	np = netdev_priv(peer_dev->netdev);
++	vsi = np->vsi;
++	if (!vsi)
++		return 0;
++
++	bitmap_set(check_bits, 0, __ICE_STATE_NOMINAL_CHECK_BITS);
++	if (bitmap_intersects(vsi->state, check_bits, __ICE_STATE_NBITS))
++		return 0;
++
++	return 1;
++}
++
+ /**
+  * ice_peer_update_vsi_filter - update main VSI filters for RDMA
+  * @peer_dev: pointer to RDMA peer device
+@@ -997,9 +1099,11 @@ ice_peer_update_vsi_filter(struct iidc_peer_dev *peer_dev,
+ static const struct iidc_ops ops = {
+ 	.alloc_res			= ice_peer_alloc_res,
+ 	.free_res			= ice_peer_free_res,
++	.is_vsi_ready			= ice_peer_is_vsi_ready,
+ 	.reg_for_notification		= ice_peer_reg_for_notif,
+ 	.unreg_for_notification		= ice_peer_unreg_for_notif,
+ 	.notify_state_change		= ice_peer_report_state_change,
++	.request_reset			= ice_peer_request_reset,
+ 	.peer_register			= ice_peer_register,
+ 	.peer_unregister		= ice_peer_unregister,
+ 	.update_vsi_filter		= ice_peer_update_vsi_filter,
+@@ -1024,6 +1128,41 @@ static int ice_reserve_peer_qvector(struct ice_pf *pf)
+ 	return 0;
+ }
  
--#include <i40e_client.h>
- #include "i40iw_type.h"
- #include "i40iw_p.h"
- #include <rdma/i40iw-abi.h>
-diff --git a/drivers/net/ethernet/intel/i40e/i40e.h b/drivers/net/ethernet/intel/i40e/i40e.h
-index 4833187bd259..05453f556614 100644
---- a/drivers/net/ethernet/intel/i40e/i40e.h
-+++ b/drivers/net/ethernet/intel/i40e/i40e.h
-@@ -38,7 +38,7 @@
- #include <net/xdp_sock.h>
- #include "i40e_type.h"
- #include "i40e_prototype.h"
--#include "i40e_client.h"
-+#include <linux/net/intel/i40e_client.h>
- #include <linux/avf/virtchnl.h>
- #include "i40e_virtchnl_pf.h"
- #include "i40e_txrx.h"
-diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.c b/drivers/net/ethernet/intel/i40e/i40e_client.c
-index e81530ca08d0..befd3018183f 100644
---- a/drivers/net/ethernet/intel/i40e/i40e_client.c
-+++ b/drivers/net/ethernet/intel/i40e/i40e_client.c
-@@ -3,10 +3,10 @@
++/**
++ * ice_peer_close_task - call peer's close asynchronously
++ * @work: pointer to work_struct contained by the peer_dev_int struct
++ *
++ * This method (asynchronous) of calling a peer's close function is
++ * meant to be used in the reset path.
++ */
++static void ice_peer_close_task(struct work_struct *work)
++{
++	struct ice_peer_dev_int *peer_dev_int;
++	struct iidc_peer_dev *peer_dev;
++
++	peer_dev_int = container_of(work, struct ice_peer_dev_int,
++				    peer_close_task);
++
++	peer_dev = &peer_dev_int->peer_dev;
++	if (!peer_dev || !peer_dev->peer_ops)
++		return;
++
++	/* If this peer_dev is going to close, we do not want any state changes
++	 * to happen until after we successfully finish or abort the close.
++	 * Grab the peer_dev_state_mutex to protect this flow
++	 */
++	mutex_lock(&peer_dev_int->peer_dev_state_mutex);
++
++	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_CLOSING, true);
++
++	if (peer_dev->peer_ops->close)
++		peer_dev->peer_ops->close(peer_dev, peer_dev_int->rst_type);
++
++	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_CLOSED, true);
++
++	mutex_unlock(&peer_dev_int->peer_dev_state_mutex);
++}
++
+ /**
+  * ice_peer_vdev_release - function to map to virtbus_devices release callback
+  * @vdev: pointer to virtbus_device to free
+@@ -1120,6 +1259,7 @@ int ice_init_peer_devices(struct ice_pf *pf)
+ 						i);
+ 		if (!peer_dev_int->ice_peer_wq)
+ 			return -ENOMEM;
++		INIT_WORK(&peer_dev_int->peer_close_task, ice_peer_close_task);
  
- #include <linux/list.h>
- #include <linux/errno.h>
-+#include <linux/net/intel/i40e_client.h>
+ 		peer_dev->pdev = pdev;
+ 		qos_info = &peer_dev->initial_qos_info;
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+index 1d3d5cafc977..90e165434aea 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
++++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+@@ -63,6 +63,7 @@ struct ice_peer_dev_int {
+ };
  
- #include "i40e.h"
- #include "i40e_prototype.h"
--#include "i40e_client.h"
+ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data);
++int ice_close_peer_for_reset(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data);
+diff --git a/drivers/net/ethernet/intel/ice/ice_lib.c b/drivers/net/ethernet/intel/ice/ice_lib.c
+index b2c2f7e05393..75159b658098 100644
+--- a/drivers/net/ethernet/intel/ice/ice_lib.c
++++ b/drivers/net/ethernet/intel/ice/ice_lib.c
+@@ -2277,6 +2277,12 @@ void ice_vsi_close(struct ice_vsi *vsi)
+ {
+ 	enum iidc_close_reason reason = IIDC_REASON_INTERFACE_DOWN;
  
- static const char i40e_client_interface_version_str[] = I40E_CLIENT_VERSION_STR;
- static struct i40e_client *registered_client;
-diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.h b/include/linux/net/intel/i40e_client.h
-similarity index 100%
-rename from drivers/net/ethernet/intel/i40e/i40e_client.h
-rename to include/linux/net/intel/i40e_client.h
++	if (test_bit(__ICE_CORER_REQ, vsi->back->state))
++		reason = IIDC_REASON_CORER_REQ;
++	if (test_bit(__ICE_GLOBR_REQ, vsi->back->state))
++		reason = IIDC_REASON_GLOBR_REQ;
++	if (test_bit(__ICE_PFR_REQ, vsi->back->state))
++		reason = IIDC_REASON_PFR_REQ;
+ 	if (!ice_is_safe_mode(vsi->back) && vsi->type == ICE_VSI_PF) {
+ 		int ret = ice_for_each_peer(vsi->back, &reason, ice_peer_close);
+ 
+diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
+index b085a3e66b4f..6ce422789df7 100644
+--- a/drivers/net/ethernet/intel/ice/ice_main.c
++++ b/drivers/net/ethernet/intel/ice/ice_main.c
+@@ -562,6 +562,9 @@ static void ice_reset_subtask(struct ice_pf *pf)
+ 		/* return if no valid reset type requested */
+ 		if (reset_type == ICE_RESET_INVAL)
+ 			return;
++		if (ice_is_peer_ena(pf))
++			ice_for_each_peer(pf, &reset_type,
++					  ice_close_peer_for_reset);
+ 		ice_prepare_for_reset(pf);
+ 
+ 		/* make sure we are ready to rebuild */
 -- 
 2.24.1
 
