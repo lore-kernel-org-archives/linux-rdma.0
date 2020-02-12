@@ -2,239 +2,283 @@ Return-Path: <SRS0=Y9Cu=4A=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA05CC3F68F
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 09:17:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2D09C2BA83
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 13:07:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BC73B20848
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 09:17:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 795122086A
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 13:07:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VbBHpS9C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728803AbgBLJRt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Feb 2020 04:17:49 -0500
-Received: from mx2.suse.de ([195.135.220.15]:47802 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728150AbgBLJRs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 12 Feb 2020 04:17:48 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx2.suse.de (Postfix) with ESMTP id 5A7EDAC16;
-        Wed, 12 Feb 2020 09:17:44 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 132C61E0E01; Wed, 12 Feb 2020 10:17:43 +0100 (CET)
-Date:   Wed, 12 Feb 2020 10:17:43 +0100
-From:   Jan Kara <jack@suse.cz>
-To:     John Hubbard <jhubbard@nvidia.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Chinner <david@fromorbit.com>,
-        Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Jonathan Corbet <corbet@lwn.net>,
-        =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
-        "Kirill A . Shutemov" <kirill@shutemov.name>,
-        Michal Hocko <mhocko@suse.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Matthew Wilcox <willy@infradead.org>,
-        linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: Re: [PATCH v6 08/12] mm/gup: /proc/vmstat: pin_user_pages (FOLL_PIN)
- reporting
-Message-ID: <20200212091743.GC25573@quack2.suse.cz>
-References: <20200211001536.1027652-1-jhubbard@nvidia.com>
- <20200211001536.1027652-9-jhubbard@nvidia.com>
+        id S1727781AbgBLNHy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Feb 2020 08:07:54 -0500
+Received: from mail-vs1-f68.google.com ([209.85.217.68]:40488 "EHLO
+        mail-vs1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727600AbgBLNHx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Feb 2020 08:07:53 -0500
+Received: by mail-vs1-f68.google.com with SMTP id c18so1069389vsq.7
+        for <linux-rdma@vger.kernel.org>; Wed, 12 Feb 2020 05:07:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=3x9UhB/yOAUz4xbOX8GmEmjh4gJ17LLK385BHmrhXgo=;
+        b=VbBHpS9Cun+lC6YvGEOoqqEhfylhEzx0aTWyejA6SjKz85bbtvax/jeRKGnh/fONZN
+         VxHtv8Im0ofDWlKpLKptB3mDfawExj+5pQLtEoY8TVVrAJTtz0Kbz5n6hXQnjVJX8AMG
+         0HfdecT5w/5u7Z9fBvEH/nVPnwb6PQeoO6CpIe4IQZ9O6B8dx1uZWJJ79mnXJCol56bA
+         1kEPRbNasg7enVa/jK51AGhNrw1zuaTI46wQo2xncg+T7/OAIigYlNDBFmn0amp2+1f3
+         Iyd630SZuIvl9obbypJy7qPAFuuTCfbivzXimKVybclArKEhsiezlvRXwiTvWBXYfLdR
+         Kxzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3x9UhB/yOAUz4xbOX8GmEmjh4gJ17LLK385BHmrhXgo=;
+        b=AwHUSBu6y3Fm0xod7rM8mEbKkWcQ0ehy03Xm004mbUUbAYavfgfkRvjgoLHqyR2OBn
+         rzlLnl2H/fYqgEZhYpkF6kMXQtCGgLmYiqRO/0O6xhQqXTXq6HW12AtAGKxONV7jRiNd
+         6oI/x7EiwJCBQ0b7K0FZbh+lEugJQYAbCDq0k3hvUvx9s4Zldzb1kiRuJJoKwkFDvojH
+         cD3joyN3RVl6Cjk8REz+kiEx9f3J79+jo78aP/uExruzgCJ3IifMnvzrVaNnClunu/Px
+         aLg5KiLjIf/84ELk2XNVeuxR0HryjTr9XyYq5ewa2yQSE7gmP+UZLskbHc1vhixlgytQ
+         ueEw==
+X-Gm-Message-State: APjAAAXUdqcYfBanlwtSY7fBC2uJpBy6UzljbTpcFEdIMog/ds03kzUe
+        zjiqN1gKlAmIHzF8UbMuOIrjzbTUAiVe4YZMzQM=
+X-Google-Smtp-Source: APXvYqx6HUwrSuY9Vr28YE5aupI8ZVRY8jHI2XdUvawuoS3eqtzvfVB6MGNSqgacY3MrKvR13vCw0DqDiZDvRIQ0ZCE=
+X-Received: by 2002:a67:f6c8:: with SMTP id v8mr12501713vso.147.1581512872187;
+ Wed, 12 Feb 2020 05:07:52 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200211001536.1027652-9-jhubbard@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <CAKC_zStdDH4my0gzfGhFc3zuWwGG1bW93Q+Bc-UF4csFacT5Hw@mail.gmail.com>
+ <CAKC_zSvKE+tOYiODVmW=0=qd+HGGTEhREi3e4SOmK_Et_iVn8A@mail.gmail.com>
+ <CAD=hENf3RaNDaxi3qRCH499Q9WK6ZDoPBSCrh0ffES6f5UU=5Q@mail.gmail.com> <CAKC_zSuwGKEc1za4gvUze41nyKzemwHSV-m_um3MkxwKQw=w1g@mail.gmail.com>
+In-Reply-To: <CAKC_zSuwGKEc1za4gvUze41nyKzemwHSV-m_um3MkxwKQw=w1g@mail.gmail.com>
+From:   Zhu Yanjun <zyjzyj2000@gmail.com>
+Date:   Wed, 12 Feb 2020 21:07:40 +0800
+Message-ID: <CAD=hENep4EFeE+C6g=aPJ7-OGJb0VbMyrrCZvC5jJJ4G5VUH1w@mail.gmail.com>
+Subject: Re: slab leak on rxe
+To:     Frank Huang <tigerinxm@gmail.com>
+Cc:     linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon 10-02-20 16:15:32, John Hubbard wrote:
-> Now that pages are "DMA-pinned" via pin_user_page*(), and unpinned via
-> unpin_user_pages*(), we need some visibility into whether all of this is
-> working correctly.
-> 
-> Add two new fields to /proc/vmstat:
-> 
->     nr_foll_pin_acquired
->     nr_foll_pin_released
-> 
-> These are documented in Documentation/core-api/pin_user_pages.rst.
-> They represent the number of pages (since boot time) that have been
-> pinned ("nr_foll_pin_acquired") and unpinned ("nr_foll_pin_released"),
-> via pin_user_pages*() and unpin_user_pages*().
-> 
-> In the absence of long-running DMA or RDMA operations that hold pages
-> pinned, the above two fields will normally be equal to each other.
-> 
-> Also: update Documentation/core-api/pin_user_pages.rst, to remove an
-> earlier (now confirmed untrue) claim about a performance problem with
-> /proc/vmstat.
-> 
-> Also: updated Documentation/core-api/pin_user_pages.rst to rename the
-> new /proc/vmstat entries, to the names listed here.
-> 
-> Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+From kernel 4.14.97, the function rxe_cache_clean does not exist.
+This function is introduced in the following commit.
+"
+commit 6db21d8986e14e2e86573a3b055b05296188bd2c
+Author: Yuval Shaia <yuval.shaia@oracle.com>
+Date:   Sun Dec 9 15:53:49 2018 +0200
+    IB/rxe: Fix incorrect cache cleanup in error flow
+    Array iterator stays at the same slot, fix it.
+    Fixes: 8700e3e7c485 ("Soft RoCE driver")
+    Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+    Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+    Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+    Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+    Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+"
 
-The patch looks good to me now. You can add:
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-> ---
->  Documentation/core-api/pin_user_pages.rst | 33 +++++++++++++++++++----
->  include/linux/mmzone.h                    |  2 ++
->  mm/gup.c                                  | 13 +++++++++
->  mm/vmstat.c                               |  2 ++
->  4 files changed, 45 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/core-api/pin_user_pages.rst b/Documentation/core-api/pin_user_pages.rst
-> index 7e5dd8b1b3f2..5c8a5f89756b 100644
-> --- a/Documentation/core-api/pin_user_pages.rst
-> +++ b/Documentation/core-api/pin_user_pages.rst
-> @@ -208,12 +208,35 @@ has the following new calls to exercise the new pin*() wrapper functions:
->  You can monitor how many total dma-pinned pages have been acquired and released
->  since the system was booted, via two new /proc/vmstat entries: ::
->  
-> -    /proc/vmstat/nr_foll_pin_requested
-> -    /proc/vmstat/nr_foll_pin_requested
-> +    /proc/vmstat/nr_foll_pin_acquired
-> +    /proc/vmstat/nr_foll_pin_released
->  
-> -Those are both going to show zero, unless CONFIG_DEBUG_VM is set. This is
-> -because there is a noticeable performance drop in unpin_user_page(), when they
-> -are activated.
-> +Under normal conditions, these two values will be equal unless there are any
-> +long-term [R]DMA pins in place, or during pin/unpin transitions.
-> +
-> +* nr_foll_pin_acquired: This is the number of logical pins that have been
-> +  acquired since the system was powered on. For huge pages, the head page is
-> +  pinned once for each page (head page and each tail page) within the huge page.
-> +  This follows the same sort of behavior that get_user_pages() uses for huge
-> +  pages: the head page is refcounted once for each tail or head page in the huge
-> +  page, when get_user_pages() is applied to a huge page.
-> +
-> +* nr_foll_pin_released: The number of logical pins that have been released since
-> +  the system was powered on. Note that pages are released (unpinned) on a
-> +  PAGE_SIZE granularity, even if the original pin was applied to a huge page.
-> +  Becaused of the pin count behavior described above in "nr_foll_pin_acquired",
-> +  the accounting balances out, so that after doing this::
-> +
-> +    pin_user_pages(huge_page);
-> +    for (each page in huge_page)
-> +        unpin_user_page(page);
-> +
-> +...the following is expected::
-> +
-> +    nr_foll_pin_released == nr_foll_pin_acquired
-> +
-> +(...unless it was already out of balance due to a long-term RDMA pin being in
-> +place.)
->  
->  References
->  ==========
-> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-> index 462f6873905a..4bca42eeb439 100644
-> --- a/include/linux/mmzone.h
-> +++ b/include/linux/mmzone.h
-> @@ -243,6 +243,8 @@ enum node_stat_item {
->  	NR_DIRTIED,		/* page dirtyings since bootup */
->  	NR_WRITTEN,		/* page writings since bootup */
->  	NR_KERNEL_MISC_RECLAIMABLE,	/* reclaimable non-slab kernel pages */
-> +	NR_FOLL_PIN_ACQUIRED,	/* via: pin_user_page(), gup flag: FOLL_PIN */
-> +	NR_FOLL_PIN_RELEASED,	/* pages returned via unpin_user_page() */
->  	NR_VM_NODE_STAT_ITEMS
->  };
->  
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 4d0d94405639..441f7a48f370 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -86,6 +86,8 @@ static __maybe_unused struct page *try_grab_compound_head(struct page *page,
->  	if (flags & FOLL_GET)
->  		return try_get_compound_head(page, refs);
->  	else if (flags & FOLL_PIN) {
-> +		int orig_refs = refs;
-> +
->  		/*
->  		 * When pinning a compound page of order > 1 (which is what
->  		 * hpage_pincount_available() checks for), use an exact count to
-> @@ -104,6 +106,9 @@ static __maybe_unused struct page *try_grab_compound_head(struct page *page,
->  		if (hpage_pincount_available(page))
->  			hpage_pincount_add(page, refs);
->  
-> +		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED,
-> +				    orig_refs);
-> +
->  		return page;
->  	}
->  
-> @@ -158,6 +163,8 @@ bool __must_check try_grab_page(struct page *page, unsigned int flags)
->  		 * once, so that the page really is pinned.
->  		 */
->  		page_ref_add(page, refs);
-> +
-> +		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED, 1);
->  	}
->  
->  	return true;
-> @@ -178,6 +185,7 @@ static bool __unpin_devmap_managed_user_page(struct page *page)
->  
->  	count = page_ref_sub_return(page, refs);
->  
-> +	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
->  	/*
->  	 * devmap page refcounts are 1-based, rather than 0-based: if
->  	 * refcount is 1, then the page is free and the refcount is
-> @@ -228,6 +236,8 @@ void unpin_user_page(struct page *page)
->  
->  	if (page_ref_sub_and_test(page, refs))
->  		__put_page(page);
-> +
-> +	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
->  }
->  EXPORT_SYMBOL(unpin_user_page);
->  
-> @@ -2259,6 +2269,9 @@ static int record_subpages(struct page *page, unsigned long addr,
->  static void put_compound_head(struct page *page, int refs, unsigned int flags)
->  {
->  	if (flags & FOLL_PIN) {
-> +		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
-> +				    refs);
-> +
->  		if (hpage_pincount_available(page))
->  			hpage_pincount_sub(page, refs);
->  		else
-> diff --git a/mm/vmstat.c b/mm/vmstat.c
-> index 78d53378db99..c9c0d71f917f 100644
-> --- a/mm/vmstat.c
-> +++ b/mm/vmstat.c
-> @@ -1168,6 +1168,8 @@ const char * const vmstat_text[] = {
->  	"nr_dirtied",
->  	"nr_written",
->  	"nr_kernel_misc_reclaimable",
-> +	"nr_foll_pin_acquired",
-> +	"nr_foll_pin_released",
->  
->  	/* enum writeback_stat_item counters */
->  	"nr_dirty_threshold",
-> -- 
-> 2.25.0
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+On Tue, Feb 11, 2020 at 4:33 PM Frank Huang <tigerinxm@gmail.com> wrote:
+>
+> This is the first time I meet this bug, haven't found the bug trigger yet.
+>
+> We will kill the process in some situation using kill -9. Would it cause that?
+>
+> Before this happens, there are some error report:
+>
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+> Feb 11 04:24:55  kernel: rdma_rxe: no qp matches qpn 0x31f5
+>
+> On Tue, Feb 11, 2020 at 3:42 PM Zhu Yanjun <zyjzyj2000@gmail.com> wrote:
+> >
+> > Can this bug be reproduced?
+> >
+> > Zhu Yanjun
+> >
+> > On Tue, Feb 11, 2020 at 3:32 PM Frank Huang <tigerinxm@gmail.com> wrote:
+> > >
+> > > Re-post the log , sorry for the format.
+> > >
+> > > Feb 11 14:17:31  kernel:
+> > > =============================================================================
+> > > Feb 11 14:17:31  kernel: BUG rxe-qp (Tainted: G           OE  ):
+> > > Objects remaining in rxe-qp on __kmem_cache_shutdown()
+> > > Feb 11 14:17:31  kernel:
+> > > -----------------------------------------------------------------------------
+> > > Feb 11 14:17:31  kernel: Disabling lock debugging due to kernel taint
+> > > Feb 11 14:17:31  kernel: INFO: Slab 0xfffff4c4b027a000 objects=16
+> > > used=1 fp=0xffff96f3c9e83f00 flags=0x17ffffc0008100
+> > > Feb 11 14:17:31  kernel: CPU: 27 PID: 25588 Comm: rmmod Tainted: G
+> > > B      OE   4.14.97-.el7.centos.x86_64 #1
+> > > Feb 11 14:17:31  kernel: Hardware name: /80010056, BIOS 4.1.15 03/28/2017
+> > > Feb 11 14:17:31  kernel: Call Trace:
+> > > Feb 11 14:17:31  kernel:  dump_stack+0x5a/0x7b
+> > > Feb 11 14:17:31  kernel:  slab_err+0xb4/0xe0
+> > > Feb 11 14:17:31  kernel:  ? calibrate_delay+0x138/0x5f0
+> > > Feb 11 14:17:31  kernel:  ? on_each_cpu_mask+0x27/0x60
+> > > Feb 11 14:17:31  kernel:  ? on_each_cpu_cond+0xaf/0x140
+> > > Feb 11 14:17:31  kernel:  ? __kmalloc+0x179/0x200
+> > > Feb 11 14:17:31  kernel:  ? __kmem_cache_shutdown+0x194/0x3d0
+> > > Feb 11 14:17:31  kernel:  __kmem_cache_shutdown+0x1b4/0x3d0
+> > > Feb 11 14:17:31  kernel:  shutdown_cache+0x13/0x1b0
+> > > Feb 11 14:17:31  kernel:  kmem_cache_destroy+0x1e4/0x220
+> > > Feb 11 14:17:31  kernel:  rxe_cache_clean+0x41/0x60 [rdma_rxe]
+> > > Feb 11 14:17:31  kernel:  rxe_module_exit+0xf/0x68 [rdma_rxe]
+> > > Feb 11 14:17:31  kernel:  SyS_delete_module+0x175/0x270
+> > > Feb 11 14:17:31  kernel:  do_syscall_64+0x74/0x190
+> > > Feb 11 14:17:31  kernel:  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> > > Feb 11 14:17:31  kernel: RIP: 0033:0x7ff146d3f517
+> > > Feb 11 14:17:31  kernel: RSP: 002b:00007ffd4b5c1598 EFLAGS: 00000202
+> > > ORIG_RAX: 00000000000000b0
+> > > Feb 11 14:17:31  kernel: RAX: ffffffffffffffda RBX: 0000000000d78280
+> > > RCX: 00007ff146d3f517
+> > > Feb 11 14:17:31  kernel: RDX: 00007ff146db3ca0 RSI: 0000000000000800
+> > > RDI: 0000000000d782e8
+> > > Feb 11 14:17:31  kernel: RBP: 0000000000000000 R08: 00007ff147008060
+> > > R09: 00007ff146db3ca0
+> > > Feb 11 14:17:31  kernel: R10: 00007ffd4b5c1020 R11: 0000000000000202
+> > > R12: 00007ffd4b5c36ca
+> > > Feb 11 14:17:31  kernel: R13: 0000000000000000 R14: 0000000000d78280
+> > > R15: 0000000000d78010
+> > > Feb 11 14:17:31  kernel: INFO: Object 0xffff96f3c9e84ec0 @offset=20160
+> > > Feb 11 14:17:31  kernel: kmem_cache_destroy rxe-qp: Slab cache still has objects
+> > > Feb 11 14:17:31  kernel: CPU: 27 PID: 25588 Comm: rmmod Tainted: G
+> > > B      OE   4.14.97-.el7.centos.x86_64 #1
+> > > Feb 11 14:17:31  kernel: Hardware name: /80010056, BIOS 4.1.15 03/28/2017
+> > > Feb 11 14:17:31  kernel: Call Trace:
+> > > Feb 11 14:17:31  kernel:  dump_stack+0x5a/0x7b
+> > > Feb 11 14:17:31  kernel:  kmem_cache_destroy+0x203/0x220
+> > > Feb 11 14:17:31  kernel:  rxe_cache_clean+0x41/0x60 [rdma_rxe]
+> > > Feb 11 14:17:31  kernel:  rxe_module_exit+0xf/0x68 [rdma_rxe]
+> > > Feb 11 14:17:31  kernel:  SyS_delete_module+0x175/0x270
+> > > Feb 11 14:17:31  kernel:  do_syscall_64+0x74/0x190
+> > > Feb 11 14:17:31  kernel:  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> > > Feb 11 14:17:31  kernel: RIP: 0033:0x7ff146d3f517
+> > > Feb 11 14:17:31  kernel: RSP: 002b:00007ffd4b5c1598 EFLAGS: 00000202
+> > > ORIG_RAX: 00000000000000b0
+> > > Feb 11 14:17:31  kernel: RAX: ffffffffffffffda RBX: 0000000000d78280
+> > > RCX: 00007ff146d3f517
+> > > Feb 11 14:17:31  kernel: RDX: 00007ff146db3ca0 RSI: 0000000000000800
+> > > RDI: 0000000000d782e8
+> > >
+> > > On Tue, Feb 11, 2020 at 3:09 PM Frank Huang <tigerinxm@gmail.com> wrote:
+> > > >
+> > > > Hi, All
+> > > >
+> > > > When I use the old version of rdma_rxe (kernel 4.14.97), There is a
+> > > > slab leak of qp, is it fixed in newest version? I found the commit
+> > > > history on kernel.org, have not found same issue with it?
+> > > >
+> > > >
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > =============================================================================
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: BUG
+> > > > rxe-qp (Tainted: G           OE  ): Objects remaining in rxe-qp on
+> > > > __kmem_cache_shutdown()
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > -----------------------------------------------------------------------------
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Disabling
+> > > > lock debugging due to kernel taint
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: INFO:
+> > > > Slab 0xfffff4c4b027a000 objects=16 used=1 fp=0xffff96f3c9e83f00
+> > > > flags=0x17ffffc0008100
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: CPU: 27
+> > > > PID: 25588 Comm: rmmod Tainted: G    B      OE
+> > > > 4.14.97-.el7.centos.x86_64 #1
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Hardware
+> > > > name: 80010056, BIOS 4.1.15 03/28/2017
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Call Trace:
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > dump_stack+0x5a/0x7b
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  slab_err+0xb4/0xe0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+> > > > calibrate_delay+0x138/0x5f0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+> > > > on_each_cpu_mask+0x27/0x60
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+> > > > on_each_cpu_cond+0xaf/0x140
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+> > > > __kmalloc+0x179/0x200
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:  ?
+> > > > __kmem_cache_shutdown+0x194/0x3d0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > __kmem_cache_shutdown+0x1b4/0x3d0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > shutdown_cache+0x13/0x1b0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > kmem_cache_destroy+0x1e4/0x220
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > rxe_cache_clean+0x41/0x60 [rdma_rxe]
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > rxe_module_exit+0xf/0x68 [rdma_rxe]
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > SyS_delete_module+0x175/0x270
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > do_syscall_64+0x74/0x190
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RIP:
+> > > > 0033:0x7ff146d3f517
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RSP:
+> > > > 002b:00007ffd4b5c1598 EFLAGS: 00000202 ORIG_RAX: 00000000000000b0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RAX:
+> > > > ffffffffffffffda RBX: 0000000000d78280 RCX: 00007ff146d3f517
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RDX:
+> > > > 00007ff146db3ca0 RSI: 0000000000000800 RDI: 0000000000d782e8
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RBP:
+> > > > 0000000000000000 R08: 00007ff147008060 R09: 00007ff146db3ca0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R10:
+> > > > 00007ffd4b5c1020 R11: 0000000000000202 R12: 00007ffd4b5c36ca
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R13:
+> > > > 0000000000000000 R14: 0000000000d78280 R15: 0000000000d78010
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: INFO:
+> > > > Object 0xffff96f3c9e84ec0 @offset=20160
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > kmem_cache_destroy rxe-qp: Slab cache still has objects
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: CPU: 27
+> > > > PID: 25588 Comm: rmmod Tainted: G    B      OE
+> > > > 4.14.97-.el7.centos.x86_64 #1
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Hardware
+> > > > name: 80010056, BIOS 4.1.15 03/28/2017
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: Call Trace:
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > dump_stack+0x5a/0x7b
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > kmem_cache_destroy+0x203/0x220
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > rxe_cache_clean+0x41/0x60 [rdma_rxe]
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > rxe_module_exit+0xf/0x68 [rdma_rxe]
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > SyS_delete_module+0x175/0x270
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > do_syscall_64+0x74/0x190
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel:
+> > > > entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RIP:
+> > > > 0033:0x7ff146d3f517
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RSP:
+> > > > 002b:00007ffd4b5c1598 EFLAGS: 00000202 ORIG_RAX: 00000000000000b0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RAX:
+> > > > ffffffffffffffda RBX: 0000000000d78280 RCX: 00007ff146d3f517
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RDX:
+> > > > 00007ff146db3ca0 RSI: 0000000000000800 RDI: 0000000000d782e8
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: RBP:
+> > > > 0000000000000000 R08: 00007ff147008060 R09: 00007ff146db3ca0
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R10:
+> > > > 00007ffd4b5c1020 R11: 0000000000000202 R12: 00007ffd4b5c36ca
+> > > > Feb 11 14:17:31 57c4c63f-e817-4e22-aec9-72bc376b757c kernel: R13:
+> > > > 0000000000000000 R14: 0000000000d78280 R15: 0000000000d78010
