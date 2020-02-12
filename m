@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 226DEC2BA83
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:27:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A288C2BA83
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:27:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EB920206DB
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:27:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AB4F206DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Feb 2020 07:27:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581492429;
-	bh=hK073K+SwyrKYjKY2M3MatVvIa7OTGYiMJ1AsFBK4UM=;
+	s=default; t=1581492436;
+	bh=jnA8DwKRvQltC9PCtDAoFuHXa95rTqwxdV+8HpdkUvM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=yifpYTQj4EUe6Kf02X25LUoGSUbh6NrjdY+0My6WxBScvdid/d7Q+GAl2QgfrXJwm
-	 sRvUohZmpj+ug1MrRabM1sJ8ouzMeue6X+QBIYfTJ5V5xz0bMKpL9VTRwO4NXfHMyF
-	 dG/Y8yiYTyf78TjqcGgpb+9Atw/znKa4lsUFKG14=
+	b=JrJjVrg/a0IBRQTmE/4hrOlKnlLpgr0us/z40UXtJkPJkDJONgeg+ZzG4yjmzSZdG
+	 l6BfgLFoDAN6rUDVfoUqwIXYq7+omcgGtC5AY8ODIv0tyJUTnODxbPTtjFa3AORU0G
+	 jAv7MZpWcy5kYl+ZixrQJYwVZnOovotzDmPEmqQ8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728328AbgBLH1I (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Feb 2020 02:27:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59886 "EHLO mail.kernel.org"
+        id S1728329AbgBLH1P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Feb 2020 02:27:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728325AbgBLH1I (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 12 Feb 2020 02:27:08 -0500
+        id S1728325AbgBLH1P (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 12 Feb 2020 02:27:15 -0500
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E6CFD2073C;
-        Wed, 12 Feb 2020 07:27:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8D539206DB;
+        Wed, 12 Feb 2020 07:27:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581492427;
-        bh=hK073K+SwyrKYjKY2M3MatVvIa7OTGYiMJ1AsFBK4UM=;
+        s=default; t=1581492431;
+        bh=jnA8DwKRvQltC9PCtDAoFuHXa95rTqwxdV+8HpdkUvM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=v8A0hCMFv+fNvC68m5aVQpWOWhWDAHF66aM60HaOa50lYs2VTeyz8lGp8FCoyWbJ5
-         2dhMaGkIjCss/xB1sybIWh0KPIHUKxZnzgetIkikHrHTv7dzX0ciPl+bDc9QFSqfLH
-         19vATUoBoejlptWxWMgoNsRO7j0MYYs4g57jznOY=
+        b=x57VwTOKYDJ5RVTLD5103IsSGKFFjkghT14AABNb+q/JLWHSWoojXtjjbyzqvtkIR
+         Iz/PYPbiFu24ZOoGCT/yY5lNwzgMmzwuqHQsS72ukFbEnTxKqBwc96ax0qWrvrm50a
+         hl7NVJCPEB7n9fVqy0IBTnqCVYYEpIBXQPeC3148=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -55,9 +55,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Yishai Hadas <yishaih@mellanox.com>,
         Yonatan Cohen <yonatanc@mellanox.com>,
         Zhu Yanjun <yanjunz@mellanox.com>
-Subject: [PATCH rdma-rc 8/9] IB/umad: Fix kernel crash while unloading ib_umad
-Date:   Wed, 12 Feb 2020 09:26:34 +0200
-Message-Id: <20200212072635.682689-9-leon@kernel.org>
+Subject: [PATCH rdma-rc 3/9] Revert "RDMA/cma: Simplify rdma_resolve_addr() error flow"
+Date:   Wed, 12 Feb 2020 09:26:29 +0200
+Message-Id: <20200212072635.682689-4-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200212072635.682689-1-leon@kernel.org>
 References: <20200212072635.682689-1-leon@kernel.org>
@@ -68,74 +68,65 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yonatan Cohen <yonatanc@mellanox.com>
+From: Parav Pandit <parav@mellanox.com>
 
-When unloading ib_umad, remove ibdev sys file 1st before
-port removal to prevent kernel oops.
+This reverts commit 219d2e9dfda9431b808c28d5efc74b404b95b638.
 
-ib_mad's method ibdev_show() might access a umad port
-whoes ibdev field has already been NULLed when rmmod ib_umad
-was issued from another shell.
+Below flow requires cm_id_priv's destination address to be setup
+before performing rdma_bind_addr().
+Without which, source port allocation for existing bind list fails
+when port range is small, resulting into rdma_resolve_addr()
+failure.
 
-Consider this scenario
-	         shell-1            	shell-2
-	        rmmod ib_mod    	cat /sys/devices/../ibdev
-	            |           		|
-	        ib_umad_kill_port()        ibdev_show()
-	     port->ib_dev = NULL	dev_name(port->ib_dev)
+rdma_resolve_addr()
+  cma_bind_addr()
+    rdma_bind_addr()
+      cma_get_port()
+        cma_alloc_any_port()
+          cma_port_is_unique() <- compared with zero daddr
 
-kernel stack
-PF: error_code(0x0000) - not-present page
-Oops: 0000 [#1] SMP DEBUG_PAGEALLOC PTI
-RIP: 0010:ibdev_show+0x18/0x50 [ib_umad]
-RSP: 0018:ffffc9000097fe40 EFLAGS: 00010282
-RAX: 0000000000000000 RBX: ffffffffa0441120 RCX: ffff8881df514000
-RDX: ffff8881df514000 RSI: ffffffffa0441120 RDI: ffff8881df1e8870
-RBP: ffffffff81caf000 R08: ffff8881df1e8870 R09: 0000000000000000
-R10: 0000000000001000 R11: 0000000000000003 R12: ffff88822f550b40
-R13: 0000000000000001 R14: ffffc9000097ff08 R15: ffff8882238bad58
-FS:  00007f1437ff3740(0000) GS:ffff888236940000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000000004e8 CR3: 00000001e0dfc001 CR4: 00000000001606e0
-Call Trace:
- dev_attr_show+0x15/0x50
- sysfs_kf_seq_show+0xb8/0x1a0
- seq_read+0x12d/0x350
- vfs_read+0x89/0x140
- ksys_read+0x55/0xd0
- do_syscall_64+0x55/0x1b0
- entry_SYSCALL_64_after_hwframe+0x44/0xa9:
-
-Fixes: e9dd5daf884c ("IB/umad: Refactor code to use cdev_device_add()")
-Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
+Fixes: 219d2e9dfda9 ("RDMA/cma: Simplify rdma_resolve_addr() error flow")
+Signed-off-by: Parav Pandit <parav@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/user_mad.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cma.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index d1407fa378e8..1235ffb2389b 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1312,6 +1312,9 @@ static void ib_umad_kill_port(struct ib_umad_port *port)
- 	struct ib_umad_file *file;
- 	int id;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 72f032160c4b..2dec3a02ab9f 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -3212,19 +3212,26 @@ int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
+ 	int ret;
  
-+	cdev_device_del(&port->sm_cdev, &port->sm_dev);
-+	cdev_device_del(&port->cdev, &port->dev);
-+
- 	mutex_lock(&port->file_mutex);
+ 	id_priv = container_of(id, struct rdma_id_private, id);
++	memcpy(cma_dst_addr(id_priv), dst_addr, rdma_addr_size(dst_addr));
+ 	if (id_priv->state == RDMA_CM_IDLE) {
+ 		ret = cma_bind_addr(id, src_addr, dst_addr);
+-		if (ret)
++		if (ret) {
++			memset(cma_dst_addr(id_priv), 0,
++			       rdma_addr_size(dst_addr));
+ 			return ret;
++		}
+ 	}
  
- 	/* Mark ib_dev NULL and block ioctl or other file ops to progress
-@@ -1331,8 +1334,6 @@ static void ib_umad_kill_port(struct ib_umad_port *port)
+-	if (cma_family(id_priv) != dst_addr->sa_family)
++	if (cma_family(id_priv) != dst_addr->sa_family) {
++		memset(cma_dst_addr(id_priv), 0, rdma_addr_size(dst_addr));
+ 		return -EINVAL;
++	}
  
- 	mutex_unlock(&port->file_mutex);
+-	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND, RDMA_CM_ADDR_QUERY))
++	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND, RDMA_CM_ADDR_QUERY)) {
++		memset(cma_dst_addr(id_priv), 0, rdma_addr_size(dst_addr));
+ 		return -EINVAL;
++	}
  
--	cdev_device_del(&port->sm_cdev, &port->sm_dev);
--	cdev_device_del(&port->cdev, &port->dev);
- 	ida_free(&umad_ida, port->dev_num);
- 
- 	/* balances device_initialize() */
+-	memcpy(cma_dst_addr(id_priv), dst_addr, rdma_addr_size(dst_addr));
+ 	if (cma_any_addr(dst_addr)) {
+ 		ret = cma_resolve_loopback(id_priv);
+ 	} else {
 -- 
 2.24.1
 
