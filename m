@@ -2,142 +2,79 @@ Return-Path: <SRS0=pr8h=4B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE611C2BA83
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 18:36:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA40EC2BA83
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 18:38:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BAEE124649
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 18:36:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 924AC24650
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 18:38:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581618987;
-	bh=svUnOJK3oUj1gXpDzr9KUBMiZI4JCZN54zs8vPUWTgo=;
+	s=default; t=1581619081;
+	bh=GgE9jaJHksVdV/CcvSv2LRLhhQw9KD+aQI+eJax4H+k=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=Cic3LvYUlHHAHV1R+rzMsfnWIrILyFcNHE1gbTvMYvzWcrFLht669VdCCpTLYYp8Y
-	 pmkBrkc8DXn8AhQe/JX/XrBzyGX8qv9qs/XWk+/PGCW1q/Zle8RBdoQh+YBx62n8QD
-	 l5AEwa9Xn2frURjcIeh/UUkJC0YuE1MBJmdxCdzo=
+	b=oJ3h/AfGUMDuELSzpCLI7ce4KqJ+gnVskvfzE5rQislP5Bwb8B9yu6d0aFpgfLzn4
+	 XfR9oELsfd7YnW7cDJ0gmPgJvsF8QzH/o9myJfUwIjzrgB+ZZJf9POGH+j0J5dsn9m
+	 6IPtvIIkaUjx5oWLMBetKiSSxohUQUw4zM+51E3k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727998AbgBMSg1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 13 Feb 2020 13:36:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43560 "EHLO mail.kernel.org"
+        id S1727781AbgBMSiA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 13 Feb 2020 13:38:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727996AbgBMSg0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 13 Feb 2020 13:36:26 -0500
+        id S1727779AbgBMSiA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 13 Feb 2020 13:38:00 -0500
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 722C820656;
-        Thu, 13 Feb 2020 18:36:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8C3FB24649;
+        Thu, 13 Feb 2020 18:37:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581618986;
-        bh=svUnOJK3oUj1gXpDzr9KUBMiZI4JCZN54zs8vPUWTgo=;
+        s=default; t=1581619080;
+        bh=GgE9jaJHksVdV/CcvSv2LRLhhQw9KD+aQI+eJax4H+k=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=GpeEo6LOPO2rrt6Ym6ieMFcbseuQWgsg92T7FxUiux28128HRThLIV+qvNWMuVyq/
-         HktyrFSN0k6s1Gro8H3qPSGgGU4bkBxnyqvRBJU3ssKvYplfLiqyTNTrOx4Bjn+uFy
-         xaKe8CGmmGBvq7nmxhNrhkHPzRsjdF+Y0ef79obk=
-Date:   Thu, 13 Feb 2020 20:36:22 +0200
+        b=kElno5GSpAxYVkSmxjcez2c0dXmtA7T1QNSInohnokYFchxbdV8WKlVHUXOjHYqV1
+         7fmsaF706LRivXSdhxX1jAuXNVSjX1IVYteg1TaEm6T82AID3YodRoGaU6DVzX1via
+         fLxXy0j4DX7rBSv7PUNy6nMISM+QsK0sI+glanuk=
+Date:   Thu, 13 Feb 2020 20:37:56 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Daniel Jurgens <danielj@mellanox.com>,
-        Erez Shitrit <erezsh@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Michael Guralnik <michaelgur@mellanox.com>,
-        Moni Shoua <monis@mellanox.com>,
-        Parav Pandit <parav@mellanox.com>,
-        Sean Hefty <sean.hefty@intel.com>,
-        Valentine Fatiev <valentinef@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        Yonatan Cohen <yonatanc@mellanox.com>,
-        Zhu Yanjun <yanjunz@mellanox.com>
-Subject: Re: [PATCH rdma-rc 4/9] IB/ipoib: Fix double free of skb in case of
- multicast traffic in CM mode
-Message-ID: <20200213183622.GH679970@unreal>
-References: <20200212072635.682689-1-leon@kernel.org>
- <20200212072635.682689-5-leon@kernel.org>
- <20200213153743.GA19802@ziepe.ca>
- <20200213181012.GG679970@unreal>
- <20200213182655.GK31668@ziepe.ca>
+To:     "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] IB/core, cache: Replace zero-length array with
+ flexible-array member
+Message-ID: <20200213183756.GI679970@unreal>
+References: <20200213010425.GA13068@embeddedor.com>
+ <20200213010827.GG31668@ziepe.ca>
+ <1e6d952f-7d43-db2b-67f3-001ab8421bc8@embeddedor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200213182655.GK31668@ziepe.ca>
+In-Reply-To: <1e6d952f-7d43-db2b-67f3-001ab8421bc8@embeddedor.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 13, 2020 at 02:26:55PM -0400, Jason Gunthorpe wrote:
-> On Thu, Feb 13, 2020 at 08:10:12PM +0200, Leon Romanovsky wrote:
-> > On Thu, Feb 13, 2020 at 11:37:43AM -0400, Jason Gunthorpe wrote:
-> > > On Wed, Feb 12, 2020 at 09:26:30AM +0200, Leon Romanovsky wrote:
-> > >
-> > > > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > > > index 2aa3457a30ce..c614cb87d09b 100644
-> > > > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > > > @@ -379,6 +379,7 @@ struct ipoib_dev_priv {
-> > > >  	struct ipoib_tx_buf *tx_ring;
-> > > >  	unsigned int	     tx_head;
-> > > >  	unsigned int	     tx_tail;
-> > > > +	atomic_t             tx_outstanding;
-> > > >  	struct ib_sge	     tx_sge[MAX_SKB_FRAGS + 1];
-> > > >  	struct ib_ud_wr      tx_wr;
-> > > >  	struct ib_wc	     send_wc[MAX_SEND_CQE];
-> > > > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> > > > index c59e00a0881f..db6aace83fe5 100644
-> > > > +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> > > > @@ -756,7 +756,7 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
-> > > >  		return;
-> > > >  	}
-> > > >
-> > > > -	if ((priv->tx_head - priv->tx_tail) == ipoib_sendq_size - 1) {
-> > > > +	if (atomic_read(&priv->tx_outstanding) == ipoib_sendq_size - 1) {
-> > > >  		ipoib_dbg(priv, "TX ring 0x%x full, stopping kernel net queue\n",
-> > > >  			  tx->qp->qp_num);
-> > > >  		netif_stop_queue(dev);
-> > > > @@ -786,7 +786,7 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
-> > > >  	} else {
-> > > >  		netif_trans_update(dev);
-> > > >  		++tx->tx_head;
-> > > > -		++priv->tx_head;
-> > > > +		atomic_inc(&priv->tx_outstanding);
-> > > >  	}
-> > >
-> > > This use of an atomic is very weird, probably wrong.
-> > >
-> > > Why is it an atomic?  priv->tx_head wasn't an atomic, and every place
-> > > touching tx_outstanding was also touching tx_head.
-> > >
-> > > I assume there is some hidden locking here? Or much more stuff is
-> > > busted up.
-> > >
-> > > In that case, drop the atomic.
-> > >
-> > > However, if the atomic is needed (where/why?) then something has to
-> > > be dealing with the races, and if the write side is fully locked then
-> > > an atomic is the wrong choice, use READ_ONCE/WRITE_ONCE instead
+On Thu, Feb 13, 2020 at 12:36:39PM -0600, Gustavo A. R. Silva wrote:
+>
+>
+> On 2/12/20 19:08, Jason Gunthorpe wrote:
 > >
-> > I thought that atomic_t is appropriate here. Valentin wanted to
-> > implement "window" and he needed to ensure that this window is counted
-> > correctly while it doesn't need to be 100% accurate.
+> > There are many more of these under core/* care to fix them all in one
+> > patch?
+> >
 >
-> It does need to be 100% accurate because the stop_queue condition is:
->
->  +	if (atomic_read(&priv->tx_outstanding) == ipoib_sendq_size - 1) {
+> Sure thing. I can do that.
 
-So better to write ">=" instead of "=".
+Gustavo,
 
->
-> And presumably the whole problem here is overflowing some sized q
-> opbject.
->
-> That atomic is only needed if there is concurrency, and where is the
-> concurrency?
+Was checkpatch extended to catch such mistakes?
 
-Depends on if you believe to description in commit message :)
+Thanks
 
 >
-> Jason
+> Thanks
+> --
+> Gustavo
