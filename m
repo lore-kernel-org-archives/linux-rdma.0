@@ -3,154 +3,139 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFA1DC2BA83
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 14:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8226AC3B189
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 15:37:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A69FF2073C
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 14:56:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 576812073C
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 15:37:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="QwNRXL4L"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="IM5HiIeG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727130AbgBMO4X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 13 Feb 2020 09:56:23 -0500
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:39028 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726282AbgBMO4X (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 13 Feb 2020 09:56:23 -0500
-Received: by mail-qk1-f194.google.com with SMTP id w15so5907345qkf.6
-        for <linux-rdma@vger.kernel.org>; Thu, 13 Feb 2020 06:56:22 -0800 (PST)
+        id S1729224AbgBMPhr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 13 Feb 2020 10:37:47 -0500
+Received: from mail-qk1-f196.google.com ([209.85.222.196]:43817 "EHLO
+        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727963AbgBMPhq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 13 Feb 2020 10:37:46 -0500
+Received: by mail-qk1-f196.google.com with SMTP id p7so6049869qkh.10
+        for <linux-rdma@vger.kernel.org>; Thu, 13 Feb 2020 07:37:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=L1yqwsepRWzermGFjsYu3VrzLZwg/ltH+9eaqXJdLvs=;
-        b=QwNRXL4LNXzlXI1njln3t0egXOEh06OzvNqzOitrpSEzl/ld2pBc1CG+JN3/xTGY8M
-         RPJB9D2zWNhHMhAv/KYmKUck2IXkJvqTNQAHMso1aH6l7f2bOksz3DYLAXW+xhTi0ygR
-         hDlA2d8eslEpY+DVEe7wgVikBYr4jG/fcg98k15QEgGVEF4i7+6fNqO+lkJY/T+jTEgP
-         Yw6+N3cn74qMmMnSS26UraGpB8gADP4Lru7e4r+EvjKgrWAcH4eKlJxIm3obOlfMU59e
-         2mXAe34lfW5HOf2+xrSnjzFtdZ7c+r5oKCDJStsX4iwCj8V0yFVvrH74iYsQLeqVRNcE
-         sAeg==
+        bh=ifKC7fSoU+fi6otQVLrkXu6Jr4u9UZJbccDmjG6O/Uo=;
+        b=IM5HiIeGr7bEkBTgtPy0FRoUL74ace8PxLHG0TclGGdNw5/qifvCyjthOlSA6mVLwO
+         gibM9/kFGhldPtf+Jn2zvCXSxTdF/VBo0aHdr4AS/lXtwWHSVRE7x9h0pRGb+JtXL0bg
+         Gk2+Ng2T7bDheXnwolj6JSermKvNLKJ5p/3BO5jduJEBaR3y3CL9KWNbJq8TLSxFROLx
+         DU3XxNbbYaYHXkg8fOBJbULGs0b+7MsGVVrgGI1wdbQsF/8XQgaW74d54U/QMoezmZ5R
+         YbCg0WWHGeCAOq90/mppcKOxNW/jcMz1Y+s59XCHOlSe3rYxJ9nfNsBxNYuAAuOiHmoy
+         Fb/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=L1yqwsepRWzermGFjsYu3VrzLZwg/ltH+9eaqXJdLvs=;
-        b=LV6Uzy4R4cRGJ/1jZF+Elw29EPXcUz7G5493L9xIMXw03VJPfYKCrlozmoZWWdgMNa
-         gf96JU71hF5ulKDlNyru0dXkRicuG0lN8QuOmklQ9NDcTG+t/Mq0y4LcoQxX3FmTM92T
-         8j2Vp711whPGisXqIXDX+ashgT+1Rn56LtJbXZOoOyR5/2qgwa9Btrc/967jybxu3sjM
-         LJRo2OVe98C+2BtzmxHR2i0zx/ZxnTzlF4HeWw4eqCM0aOc2oFLGaHTNe3YalQoSRU80
-         DvvIds15EvR6aUYrzb7o1lJrsk+VxCYF4Coxy1u7DX7kEES8xok7GdqR+gokEpWyULtN
-         e+Cw==
-X-Gm-Message-State: APjAAAUDvrwI0eXgJdc6ihcGSuRDu5n9yt3D9gF3LfP4R/1f8ZEVcEUO
-        MH8IDDZMhyOhKhtfWpJDinRO5PR415N+yg==
-X-Google-Smtp-Source: APXvYqykyR1HAYL8n+6smDT90HiVdC1pj0px9bgMvjOPNJIwgjltOg85yhljkhOxLwYJ+wM5cdKuMw==
-X-Received: by 2002:a37:7b43:: with SMTP id w64mr16039493qkc.203.1581605778823;
-        Thu, 13 Feb 2020 06:56:18 -0800 (PST)
+        bh=ifKC7fSoU+fi6otQVLrkXu6Jr4u9UZJbccDmjG6O/Uo=;
+        b=RQ2srT7vnlGW1rnFG1NL865phkbqLmq+SkExIBAnL+Uk0Qr838/f6u7zjjBUiDC5zE
+         V2Cx+2p3jtlCuN+D+o7DAHTPgVzEePuGfWMb/qL3mF8L76DcJavHdrAlL4mSXo+tjois
+         CKwGLYfMgJZDQYkSg2+E5BHI9x0+FP6Pd6/IcUyZlxiX6qCxJS4Ok686O0E8LQa6wfU6
+         3zdcu1nSseg1uc3jIMOol2Nv0krXjNUIUvL0V2rXCzOCayfI/Qd4RTrSbxmutFgACiYI
+         0nkrnXRYVC4YXOR7HmPFhzGfloxgn9ql+kYolyaoDn9fsdyBZN1z6ncDLNz/N6IQzZU2
+         z2Aw==
+X-Gm-Message-State: APjAAAW54NHK1bvKJhkTLvwj4zsLLiA68CG6pBMZE/KL0rzxSVq9ZlBp
+        +K4i9Yb8gtmqsF03X3A3sIXm4A==
+X-Google-Smtp-Source: APXvYqxUxG0o2NWPxHMKA2WbnhZF5DmFoHYouHXzYXdZ+wlgNEo3u3PJ5k3F7AG/dUZcCXE68Le7sg==
+X-Received: by 2002:a37:664f:: with SMTP id a76mr13044734qkc.470.1581608264129;
+        Thu, 13 Feb 2020 07:37:44 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id d9sm1512875qtw.32.2020.02.13.06.56.17
+        by smtp.gmail.com with ESMTPSA id 64sm1492127qkh.98.2020.02.13.07.37.43
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 13 Feb 2020 06:56:18 -0800 (PST)
+        Thu, 13 Feb 2020 07:37:43 -0800 (PST)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1j2Fub-0004w3-Gs; Thu, 13 Feb 2020 10:56:17 -0400
-Date:   Thu, 13 Feb 2020 10:56:17 -0400
+        id 1j2GYh-0005ST-6q; Thu, 13 Feb 2020 11:37:43 -0400
+Date:   Thu, 13 Feb 2020 11:37:43 -0400
 From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Chuck Lever <chuck.lever@oracle.com>
-Cc:     Anna Schumaker <anna.schumaker@netapp.com>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] xprtrdma: Fix DMA scatter-gather list mapping
- imbalance
-Message-ID: <20200213145617.GI31668@ziepe.ca>
-References: <158152363458.433502.7428050218198466755.stgit@morisot.1015granger.net>
- <158152394998.433502.5623790463334839091.stgit@morisot.1015granger.net>
- <20200212182638.GA31668@ziepe.ca>
- <F7B6A553-0355-41BF-A209-E8D73D15A6A9@oracle.com>
- <20200212190545.GB31668@ziepe.ca>
- <B9D0EE52-469B-4CC4-A944-C3421DBB68B6@oracle.com>
- <20200212193036.GD31668@ziepe.ca>
- <595DB50E-F65A-4F52-BFDB-79161151ECDD@oracle.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Daniel Jurgens <danielj@mellanox.com>,
+        Erez Shitrit <erezsh@mellanox.com>,
+        Maor Gottlieb <maorg@mellanox.com>,
+        Michael Guralnik <michaelgur@mellanox.com>,
+        Moni Shoua <monis@mellanox.com>,
+        Parav Pandit <parav@mellanox.com>,
+        Sean Hefty <sean.hefty@intel.com>,
+        Valentine Fatiev <valentinef@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Yonatan Cohen <yonatanc@mellanox.com>,
+        Zhu Yanjun <yanjunz@mellanox.com>
+Subject: Re: [PATCH rdma-rc 4/9] IB/ipoib: Fix double free of skb in case of
+ multicast traffic in CM mode
+Message-ID: <20200213153743.GA19802@ziepe.ca>
+References: <20200212072635.682689-1-leon@kernel.org>
+ <20200212072635.682689-5-leon@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <595DB50E-F65A-4F52-BFDB-79161151ECDD@oracle.com>
+In-Reply-To: <20200212072635.682689-5-leon@kernel.org>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 13, 2020 at 09:33:23AM -0500, Chuck Lever wrote:
-> 
-> 
-> > On Feb 12, 2020, at 2:30 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > 
-> > On Wed, Feb 12, 2020 at 02:09:03PM -0500, Chuck Lever wrote:
-> >> 
-> >> 
-> >>> On Feb 12, 2020, at 2:05 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> >>> 
-> >>> On Wed, Feb 12, 2020 at 01:38:59PM -0500, Chuck Lever wrote:
-> >>>> 
-> >>>>> On Feb 12, 2020, at 1:26 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> >>>>> 
-> >>>>> On Wed, Feb 12, 2020 at 11:12:30AM -0500, Chuck Lever wrote:
-> >>>>>> The @nents value that was passed to ib_dma_map_sg() has to be passed
-> >>>>>> to the matching ib_dma_unmap_sg() call. If ib_dma_map_sg() choses to
-> >>>>>> concatenate sg entries, it will return a different nents value than
-> >>>>>> it was passed.
-> >>>>>> 
-> >>>>>> The bug was exposed by recent changes to the AMD IOMMU driver, which
-> >>>>>> enabled sg entry concatenation.
-> >>>>>> 
-> >>>>>> Looking all the way back to commit 4143f34e01e9 ("xprtrdma: Port to
-> >>>>>> new memory registration API") and reviewing other kernel ULPs, it's
-> >>>>>> not clear that the frwr_map() logic was ever correct for this case.
-> >>>>>> 
-> >>>>>> Reported-by: Andre Tomt <andre@tomt.net>
-> >>>>>> Suggested-by: Robin Murphy <robin.murphy@arm.com>
-> >>>>>> Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-> >>>>>> Cc: stable@vger.kernel.org # v5.5
-> >>>>>> net/sunrpc/xprtrdma/frwr_ops.c |   13 +++++++------
-> >>>>>> 1 file changed, 7 insertions(+), 6 deletions(-)
-> >>>>> 
-> >>>>> Yep
-> >>>>> 
-> >>>>> Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-> >>>> 
-> >>>> Thanks.
-> >>>> 
-> >>>> Wondering if it makes sense to add a Fixes tag for the AMD IOMMU commit
-> >>>> where NFS/RDMA stopped working, rather than the "Cc: stable # v5.5".
-> >>>> 
-> >>>> Fixes: be62dbf554c5 ("iommu/amd: Convert AMD iommu driver to the dma-iommu api")
-> >>> 
-> >>> Not really, this was broken for other configurations besides AMD
-> >> 
-> >> Agreed, but the bug seems to have been inconsequential until now?
-> > 
-> > I imagine it would get you on ARM or other archs, IIRC.
-> 
-> That's certainly plausible, but I haven't received explicit bug reports
-> in this area. (I'm not at all saying that such bugs categorically do
-> not exist).
+On Wed, Feb 12, 2020 at 09:26:30AM +0200, Leon Romanovsky wrote:
 
-Usually I encourage people to put the fixes line to the commit that is
-being fixed, pointing at some other commit that happens to expose the
-bug is not the best. 
- 
-> In any event, practical matters: the posted patch applies back to v5.4,
-> but fails to apply starting with v5.3.
-> 
-> I think we can leave the "Cc: stable # v5.5"; and I'm open to requests
-> to backport this simple fix onto earlier stable kernels (back to v4.4),
-> which can be handled case-by-case. 'Salright?
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+> index 2aa3457a30ce..c614cb87d09b 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+> @@ -379,6 +379,7 @@ struct ipoib_dev_priv {
+>  	struct ipoib_tx_buf *tx_ring;
+>  	unsigned int	     tx_head;
+>  	unsigned int	     tx_tail;
+> +	atomic_t             tx_outstanding;
+>  	struct ib_sge	     tx_sge[MAX_SKB_FRAGS + 1];
+>  	struct ib_ud_wr      tx_wr;
+>  	struct ib_wc	     send_wc[MAX_SEND_CQE];
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> index c59e00a0881f..db6aace83fe5 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> @@ -756,7 +756,7 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
+>  		return;
+>  	}
+>  
+> -	if ((priv->tx_head - priv->tx_tail) == ipoib_sendq_size - 1) {
+> +	if (atomic_read(&priv->tx_outstanding) == ipoib_sendq_size - 1) {
+>  		ipoib_dbg(priv, "TX ring 0x%x full, stopping kernel net queue\n",
+>  			  tx->qp->qp_num);
+>  		netif_stop_queue(dev);
+> @@ -786,7 +786,7 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
+>  	} else {
+>  		netif_trans_update(dev);
+>  		++tx->tx_head;
+> -		++priv->tx_head;
+> +		atomic_inc(&priv->tx_outstanding);
+>  	}
 
-I'd just put Cc: stable, the stable folks will reject it on earlier
-versions because of conflicts and we can leave it.
+This use of an atomic is very weird, probably wrong.
+
+Why is it an atomic?  priv->tx_head wasn't an atomic, and every place
+touching tx_outstanding was also touching tx_head.
+
+I assume there is some hidden locking here? Or much more stuff is
+busted up.
+
+In that case, drop the atomic.
+
+However, if the atomic is needed (where/why?) then something has to
+be dealing with the races, and if the write side is fully locked then
+an atomic is the wrong choice, use READ_ONCE/WRITE_ONCE instead
 
 Jason
