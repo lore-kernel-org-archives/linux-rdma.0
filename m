@@ -2,197 +2,147 @@ Return-Path: <SRS0=pr8h=4B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF468C3F68F
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 15:51:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0212C2BA83
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 16:20:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AE1D52073C
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 15:51:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F3AA206ED
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 16:20:42 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="hw20Vu9P"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729281AbgBMPvm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 13 Feb 2020 10:51:42 -0500
-Received: from p3plsmtpa11-04.prod.phx3.secureserver.net ([68.178.252.105]:47989
-        "EHLO p3plsmtpa11-04.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728469AbgBMP0L (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 13 Feb 2020 10:26:11 -0500
-Received: from [192.168.0.78] ([24.218.182.144])
-        by :SMTPAUTH: with ESMTPSA
-        id 2GNWjRzNfilGc2GNWjbJF7; Thu, 13 Feb 2020 08:26:11 -0700
-X-CMAE-Analysis: v=2.3 cv=CubBjUwD c=1 sm=1 tr=0
- a=ugQcCzLIhEHbLaAUV45L0A==:117 a=ugQcCzLIhEHbLaAUV45L0A==:17
- a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=IkcTkHD0fZMA:10 a=SEc3moZ4AAAA:8
- a=P-IC7800AAAA:8 a=lKubuHx3MQE-PGVhoo8A:9 a=7Zwj6sZBwVKJAoWSPKxL6X1jA+E=:19
- a=QEXdDO2ut3YA:10 a=5oRCH6oROnRZc2VpWJZ3:22 a=d3PnA9EDa4IxuAV0gXij:22
-X-SECURESERVER-ACCT: tom@talpey.com
-Subject: Re: [RFC v2] RoCE v2.0 Entropy - IPv6 Flow Label and UDP Source Port
-To:     Alex Rosenbaum <rosenbaumalex@gmail.com>
-Cc:     RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Eran Ben Elisha <eranbe@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        "Alex @ Mellanox" <alexr@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Mark Zhang <markz@mellanox.com>
-References: <CAFgAxU8ArpoL9fMpJY5v-UZS5AMXom+TJ8HS57XeEOsCFFov8Q@mail.gmail.com>
- <63a56c06-57bf-6e31-6ca8-043f9d3b72f3@talpey.com>
- <CAFgAxU80+feEEtaRYFYTHwTMSE6Edjq0t0siJ0W06WSyD+Cy3A@mail.gmail.com>
- <b0414c43-c035-aa90-9f89-7ec6bba9e119@talpey.com>
- <CAFgAxU-LW+t17frRnNOYgoaqJEwffRPfFDasOPjbyVmuxj8AXA@mail.gmail.com>
- <09478db9-28ca-65fe-1424-b0229a514bbb@talpey.com>
- <CAFgAxU8XmoOheJ29s7r7J23V1x0QcagDgUDVGSyfKyaWSEzRzg@mail.gmail.com>
-From:   Tom Talpey <tom@talpey.com>
-Message-ID: <62f4df50-b50d-29e2-a0f4-eccaf81bd8d9@talpey.com>
-Date:   Thu, 13 Feb 2020 10:26:09 -0500
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.2
-MIME-Version: 1.0
-In-Reply-To: <CAFgAxU8XmoOheJ29s7r7J23V1x0QcagDgUDVGSyfKyaWSEzRzg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+        id S1727849AbgBMQUl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 13 Feb 2020 11:20:41 -0500
+Received: from mail-eopbgr60074.outbound.protection.outlook.com ([40.107.6.74]:29934
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727772AbgBMQUl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 13 Feb 2020 11:20:41 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Jk+z7HVIdNm4CT5PF9Ezgq2TsjuJZUPUAGXCB4jOOM0c4euKbnbkDGY0usImEBDumU+waaE4LRf853h3srZkEKJi8Nvym+sbgLUOUzXhcMXKSTEsYArZ3dVSREyqjebyled0/38B0VknYGJK2H6p7KQq0YXtnZkism01IWPSvu6ayDA4ldzownbb7FLxbfXS5PCTGOniL1lFjIxaSqMTv7qRrOK7UMcgKGDcDCVgruzTdNpaqeOtd7eIJZLGGMxpiuo3eAn/rwYmWF3LnCzAftQrWZejSJQO4CttRCHKxoboP1wSNX8J8EeZD3GWF5CEVbXn+fzw80WHcAwk9p71kg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=udPa4nMJJYMChtxVi11dleCGQ1FMdvvQoYBsVmKr0sQ=;
+ b=Sh7Dgn5u3n5100C9MMhremej5tt/smValhQFGeD8saTbXkksZxSoBSGIHe4jclmrehLLa/rGvkawO5iyEJ1tLSRMmB+EDmoqjnlwdT0TGBh3v+AjouA/iDguN1vdvOSt1ieBvBMrPckCuFx9KpfQEYrXHTlNUbMJf3uEjVLVuSYxFLx2NPRBM1fy8/MJIrgXUISOOXO0gZGco+PFcrdPUp8mwm6VjHUH2/G706SfnaOnVq/gvXsxss2Nf4a8mkc8zZouxAb0BoASVzPI6ovdqTqTilkRXsb8Ru4xeb1q9h2wOSGzZKuY1f50cui3W6oYARvlFvfqUKQ0AjvmK9eZZw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=udPa4nMJJYMChtxVi11dleCGQ1FMdvvQoYBsVmKr0sQ=;
+ b=hw20Vu9P/3TktwjEeu3li/Qo+cbT2280st1M6BbtnBXIndpTsjBQzJAj+Qlf19ZOqVxO1AXQ+NP8hG3Z7e+aj51RqQs4aZ/xi4kM3WGMrw0czHs8lLrphbUN7oxI9vZdCFHm/4MRUJkmDr2nRuhm33r+BrQ7hZjehcTbZuxjyBs=
+Received: from VI1PR0502MB3888.eurprd05.prod.outlook.com (52.134.6.21) by
+ VI1PR0502MB3839.eurprd05.prod.outlook.com (52.134.6.17) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2707.24; Thu, 13 Feb 2020 16:20:38 +0000
+Received: from VI1PR0502MB3888.eurprd05.prod.outlook.com
+ ([fe80::9daa:2732:c24b:482c]) by VI1PR0502MB3888.eurprd05.prod.outlook.com
+ ([fe80::9daa:2732:c24b:482c%7]) with mapi id 15.20.2707.030; Thu, 13 Feb 2020
+ 16:20:38 +0000
+From:   Tamir Ronen <tamirr@mellanox.com>
+To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "ewg@lists.openfabrics.org" <ewg@lists.openfabrics.org>
+Subject: [ANNOUNCE] ibsim 0.9 release
+Thread-Topic: [ANNOUNCE] ibsim 0.9 release
+Thread-Index: AdXihyssewF2470vTFKzsqPqmzHnUA==
+Date:   Thu, 13 Feb 2020 16:20:38 +0000
+Message-ID: <VI1PR0502MB38882E575220E8D7B9D5DFF2B41A0@VI1PR0502MB3888.eurprd05.prod.outlook.com>
+Accept-Language: en-US
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfFTOtIgjv+LXBgVu2B3uVF5wJI3JtFyzctMzY9Vm4jrwQ9jmgXU7S4RomuzM9PpmhP1T3JKcRQ7RB9smnIlfxvw7BqCr8fbcZdNRtoHcc38xAuinuKHr
- VYgPkJ5H7NuA/uukFR5zFZK04jes8DIfT5p3eNrqE9aERggkkxSUJFkbiBVDCqemtRjls2HPRvRpLz47DGliuBoiKqseDbNDYCwsCYqDs6ch0ffOmd8OZn5y
- /YpyMTcvE2sOVlXgGKAAPHHssp5/eEzObEP/7xwQu64LTCsv2ahq/+gEsiUenpnuLoF8tSYSDo5psHz9JQU7qRWesmj51yUasakbOdRDHClJI4B1FjY8enUP
- 6ai4FkbVBmCCkspdZQ3BJ2AsDBcjAoVoXpP8QZwKPIdTse8NuMy7HRW16eSTjedV3BVqgORN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=tamirr@mellanox.com; 
+x-originating-ip: [2a00:a040:199:924c:3c6f:d156:ddf9:7e0c]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 87a7f187-f117-4013-2380-08d7b0a0a9ba
+x-ms-traffictypediagnostic: VI1PR0502MB3839:
+x-microsoft-antispam-prvs: <VI1PR0502MB38396C3F3424315326444B18B41A0@VI1PR0502MB3839.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:1850;
+x-forefront-prvs: 031257FE13
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(376002)(396003)(346002)(366004)(39860400002)(136003)(199004)(189003)(2906002)(9686003)(64756008)(76116006)(66556008)(66946007)(966005)(66446008)(66476007)(478600001)(55016002)(110136005)(6506007)(316002)(81166006)(52536014)(186003)(5660300002)(33656002)(81156014)(71200400001)(8936002)(8676002)(7696005)(86362001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR0502MB3839;H:VI1PR0502MB3888.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 9Dbb7zTA2kNcnbWbYxTb5Y1QYJ8CdhXdPdJaFKgo8o5pxbAy+RH9uAUkSKxqLNou1Rzeb9tAj4/AeIthzKLN5dRymN82M9Qqk4tANgHfDUE/dqAzg9XKDvW3aYAKhai/Z58/792kvZrbYIfyGkqH1oakTEQXaEK+ZXTS9K1zETvhu0VXz5NqXOQOZgRqAPd/XKLZtQ2/qE6rQZOVEBY27bY1vkZbHWzdCo/nkq/v18Xuzvgqme4eFpJ5niR2LXVAD48/UUOBBOobVYC/Stfqrq18S3xdyBLVMA68TrJaH/Pb9PHRvhPVvibiEStG0aJLfONZqYqdTRfKJ9HqtLqAQ2SI8o7UgfPocNtYDccLJ+KYLHvTQIQGbmMjaAx/Mmft5lhQyoBqG5tiedbBN35FzJiR8hgrKH/tidBzRJGP3F3oc6W7OnLZC4nMVkoLVmcLtN6IyqBgT3kE7Ds6SE+xAvO/bCXIQSreKeCqmnaFw9qHfbCzM4lp4Wu+N82XJW6nI4Bndy4xriV3zoQ7iVt7Lw==
+x-ms-exchange-antispam-messagedata: Gn9FpnrQVBKn37AvnUQD+C/YVMgawkAHHTA1SytTnoBrIiAbtPYiMcM45smr0tfngT3L6YPKtKMkcBo0IzfoXp9egUu4cVKEkQ+06aJVg8KcrCh4Vwa1eppD9qzOPWjJ6DzvCCE7HN0KlO2TJ2hEerFcTg5qJZIH6fh75sYTG6VrhsmgyKfHafKlURXyPW5VCaYsJPpltdQCqKQwuNCYig==
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 87a7f187-f117-4013-2380-08d7b0a0a9ba
+X-MS-Exchange-CrossTenant-originalarrivaltime: 13 Feb 2020 16:20:38.3469
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: gIzKROkQVSxCDesXbZmGbtbTh8kNokkcvpaXZZW4nPobURPxsi6FzmauO7D1jHoMGFlq6rYRwZYxZEde/YWL5A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0502MB3839
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2/13/2020 6:03 AM, Alex Rosenbaum wrote:
-> On Wed, Feb 12, 2020 at 5:47 PM Tom Talpey <tom@talpey.com> wrote:
->>
->> On 2/8/2020 4:58 AM, Alex Rosenbaum wrote:
->>> On Thu, Feb 6, 2020 at 5:19 PM Tom Talpey <tom@talpey.com> wrote:
->>>>
->>>> On 2/6/2020 9:39 AM, Alex Rosenbaum wrote:
->>>>> On Thu, Feb 6, 2020 at 4:18 PM Tom Talpey <tom@talpey.com> wrote:
->>>>>>
->>>>>> On 1/8/2020 9:26 AM, Alex Rosenbaum wrote:
->>>>>>> A combination of the flow_label field in the IPv6 header and UDP source port
->>>>>>> field in RoCE v2.0 are used to identify a group of packets that must be
->>>>>>> delivered in order by the network, end-to-end.
->>>>>>> These fields are used to create entropy for network routers (ECMP), load
->>>>>>> balancers and 802.3ad link aggregation switching that are not aware of RoCE IB
->>>>>>> headers.
->>>>>>>
->>>>>>> The flow_label field is defined by a 20 bit hash value. CM based connections
->>>>>>> will use a hash function definition based on the service type (QP Type) and
->>>>>>> Service ID (SID). Where CM services are not used, the 20 bit hash will be
->>>>>>> according to the source and destination QPN values.
->>>>>>> Drivers will derive the RoCE v2.0 UDP src_port from the flow_label result.
->>>>>>>
->>>>>>> UDP source port selection must adhere IANA port allocation ranges. Thus we will
->>>>>>> be using IANA recommendation for Ephemeral port range of: 49152-65535, or in
->>>>>>> hex: 0xC000-0xFFFF.
->>>>>>>
->>>>>>> The below calculations take into account the importance of producing a symmetric
->>>>>>> hash result so we can support symmetric hash calculation of network elements.
->>>>>>>
->>>>>>> Hash Calculation for RDMA IP CM Service
->>>>>>> =======================================
->>>>>>> For RDMA IP CM Services, based on QP1 iMAD usage and connected RC QPs using the
->>>>>>> RDMA IP CM Service ID, the flow label will be calculated according to IBTA CM
->>>>>>> REQ private data info and Service ID.
->>>>>>>
->>>>>>> Flow label hash function calculations definition will be defined as:
->>>>>>> Extract the following fields from the CM IP REQ:
->>>>>>>       CM_REQ.ServiceID.DstPort [2 Bytes]
->>>>>>>       CM_REQ.PrivateData.SrcPort [2 Bytes]
->>>>>>>       u32 hash = DstPort * SrcPort;
->>>>>>>       hash ^= (hash >> 16);
->>>>>>>       hash ^= (hash >> 8);
->>>>>>>       AH_ATTR.GRH.flow_label = hash AND IB_GRH_FLOWLABEL_MASK;
->>>>>>>
->>>>>>>       #define IB_GRH_FLOWLABEL_MASK  0x000FFFFF
->>>>>>
->>>>>> Sorry it took me a while to respond to this, and thanks for looking
->>>>>> into it since my comments on the previous proposal. I have a concern
->>>>>> with an aspect of this one.
->>>>>>
->>>>>> The RoCEv2 destination port is a fixed value, 4791. Therefore the
->>>>>> term
->>>>>>
->>>>>>            u32 hash = DstPort * SrcPort;
->>>>>>
->>>>>> adds no entropy beyond the value of SrcPort.
->>>>>>
->>>>>
->>>>> we're talking about the CM service ports, taken from the
->>>>> rdma_resolve_route(mca_id, <ip:SrcPort>, <ip:DstPort>, to_msec);
->>>>> these are the CM level port-space and not the RoCE UDP L4 ports.
->>>>> we want to use both as these will allow different client instance and
->>>>> server instance on same nodes will use differen CM ports and hopefully
->>>>> generate different hash results for multi-flows between these two
->>>>> servers.
->>>>
->>>> Aha, ok I guess I missed that, and ok.
->>>>
->>>>>> In turn, the subsequent
->>>>>>
->>>>>>            hash ^= (hash >> 16);
->>>>>>            hash ^= (hash >> 8);
->>>>>>
->>>>>> are re-mashing the bits with one another, again, adding no entropy.
->>>>
->>>> I still wonder about this one. It's attempting to reduce the 32-bit
->>>> product to 20 bits, but a second xor with the "middle" 16 bits seems
->>>> really strange. Mathematically, wouldn't it be better to just take
->>>> the modulus of 2^20? If not, are you expecting some behavior in the
->>>> hash values that makes the double-xor approach better (in which case
->>>> it should be called out)?
->>>>
->>>> Tom.
->>>
->>> The function takes into account creating a symmetric hash, so both
->>> active and passive can reconstruct the same flow label results. That's
->>> why we multiply the two CM Port values (16 bit * 16 bit). The results
->>> is a 32 bit value, and we don't want to lose any of of the MSB bit's
->>> by modulus or masking. So we need some folding function from 32 bit to
->>> the 20 bit flow label.
->>>
->>> The specific bit shift is something I took from the bond driver:
->>> https://elixir.bootlin.com/linux/latest/source/drivers/net/bonding/bond_main.c#L3407
->>> This proved very good in spreading the flow label in our internal
->>> testing. Other alternative can be suggested, as long as it considers
->>> all bits in the conversion 32->20 bits.
->>
->> I'm ok with it, but I still don't fully understand why the folding
->> is necessary. The multiplication is the important part, and it is
->> the operation that combines the two entropic inputs. The folding just
->> flips bits from what's basically the same entropy source.
->>
->> IOW, I think that
->>
->>          u32 hash = (DstPort * SrcPort) & IB_GRH_FLOWLABEL_MASK;
->>
->> would produce a completely equal benefit, mathematically.
->> Tom.
->>
-> 
-> If both src & dst ports are in the high value range you loss those
-> hash bits in the masking.
-> If src & dst port are both 0xE000, your masked hash equals 0. You'll
-> get the same hash if both ports are equal 0xF000.
+There is a new 0.9 release of ibsim.
 
-Sure, but this is because it's a 20-bit hash of a 32-bit object. There
-will always be collisions, this is just one example. My concern is the
-statistical spread of the results. I argue it's not changed by the
-proposed bit-folding, possibly even damaged.
+https://github.com/linux-rdma/ibsim/releases/tag/ibsim-0.9
 
-> The idea with the bit shift is to take the MSB hash bits (left from
-> the 0XFFFFF mask) and fold them with the LSB in some way.
+New features since 0.8:
+Add --no-console option
+Support GID/subnet prefix field in the PortInfo attribute
 
-I get that, but it's only folding the "one" bits, and it's doing so in
-a rather primitive way. For example, the ">> 8" term is folding the
-high 4 of 20 bits twice - once in the >> 16 and again in the >> 8.
+All component versions are from recent master branch. Full list of
+changes is below.
 
-This value is only computed once, at QP creation, correct? Why not
-compute a CRC-20, for example?
+Nicolas Morey-Chaisemartin (18):
+      umad2sim: Do not use umad.h deprecated functions
+      Use NULL instread of 0 in all places where it used as a pointer
+      Cleanup extern declarations
+      Add missing static keywords
+      Add travis validation
+      travis: add patch check
+      tests: Do not use umad.h deprecated functions
+      .gitignore: Add tests binaries
+      tests: Use NULL instread of 0 in all places where it used as a pointe=
+r
+      tests: make function declaration ANSI
+      tests: Fix signed vs unsigned comparisons
+      tests/subnet_discover.c: Fix stack overflow
+      tests/mcast_storm.c: Make sure dbg macro is never empty
+      Makefile: Add tests to all targets
+      scripts/travis-build: Keep last build so we can run tests
+      ibsim.c: Add --no-console option
+      scripts: Add travis-runtest script to run tests
+      travis: Enable running tests during travis build
 
-Tom.
+Hal Rosenstock (3):
+      ibsim.spec.in: Updated for move to github
+      ibsim.spec.in: Revert previous commit to Move 'COPYING' file into the=
+ license tag
+      README: Update maintainer
+
+Honggang Li (3):
+      ibsim.spec.in: Move 'COPYING' file into the license tag
+      Fix multiple definition of `simverb'
+      Replace UMAD_DEV_DIR with string "/dev/infiniband"
+
+Cyrille Verrier (1):
+      Makefile: Exclude tests folder from install target
+
+Leon Romanovsky (1):
+      Merge pull request #11 from Honggang-LI/gcc-10
+
+Tamir Ronen (1):
+      ibsim/ibsim.c: Bump version to 0.9
+
+Vladimir Koushnir (1):
+      Support GID/subnet prefix field in the PortInfo attribute
