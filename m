@@ -2,162 +2,200 @@ Return-Path: <SRS0=pr8h=4B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6021CC352A3
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 19:13:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E6CFC352A3
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 19:19:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 31B7F218AC
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 19:13:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0D9220656
+	for <linux-rdma@archiver.kernel.org>; Thu, 13 Feb 2020 19:19:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="IAjHsCPX"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="KnSfCnLr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728484AbgBMTNK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 13 Feb 2020 14:13:10 -0500
-Received: from gateway33.websitewelcome.com ([192.185.147.108]:23900 "EHLO
-        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727652AbgBMTNK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 13 Feb 2020 14:13:10 -0500
-X-Greylist: delayed 1328 seconds by postgrey-1.27 at vger.kernel.org; Thu, 13 Feb 2020 14:13:09 EST
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway33.websitewelcome.com (Postfix) with ESMTP id 52A556F4F93
-        for <linux-rdma@vger.kernel.org>; Thu, 13 Feb 2020 12:51:00 -0600 (CST)
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with SMTP
-        id 2JZkjPoezRP4z2JZkjrG2Y; Thu, 13 Feb 2020 12:51:00 -0600
-X-Authority-Reason: nr=8
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=T7nae/cQQpsPFTp+fQB1X1mfe56DykBNtXR9BGxwUJE=; b=IAjHsCPXdMZt+5WNJcqD+P7TIP
-        7+R15R+sJUQkw9qT8j7G+LFiVAxHM9fzq8n5chUMuZO/1zeCSL9OAFMVT97WQG0Xo54MMJ/hbst0K
-        eh9SwkUJUe8WNfyXlbfvzCjqdvCTACrKHHfcDIXYorm5KjplB6NZzYLHLe/K1W54SuIGiOfEQvkmc
-        vtnQg/f1K/tvS2jinwVDPYcFaUYvyrG5eJNnNGpTUbS6yBc/SryF8Blaqy5kea3mcSNJ/EUgztXs8
-        Gq4Exh4jgTzVHLR1jpwahpQajQrwoTt649HZykaNeAI4HairJsnsIx+YsHcqWivaUnXEbZuZTJ7YG
-        3FVpMlxQ==;
-Received: from [200.68.140.15] (port=10057 helo=[192.168.43.131])
-        by gator4166.hostgator.com with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
-        (Exim 4.92)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1j2JZj-000fEB-VN; Thu, 13 Feb 2020 12:51:00 -0600
-Subject: Re: [PATCH] IB/core: Replace zero-length array with flexible-array
- member
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20200213183715.GA19636@embeddedor>
- <20200213183850.GM31668@ziepe.ca>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Autocrypt: addr=gustavo@embeddedor.com; keydata=
- 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
- VtSixD1uOgytAP7RWS474w==
-Message-ID: <ad526791-a9d2-fa69-e989-5c74c3cfc704@embeddedor.com>
-Date:   Thu, 13 Feb 2020 12:53:36 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+        id S1727720AbgBMTTU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 13 Feb 2020 14:19:20 -0500
+Received: from mail-eopbgr60057.outbound.protection.outlook.com ([40.107.6.57]:9888
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727076AbgBMTTU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 13 Feb 2020 14:19:20 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=RO7len7TjLsVZ6VBcQNcxKHhmEfesNCPWBvXsKRt6Bm2n5t1qLTQXaOaExEbP2HOl7Sdn6J1D7tn9RPfiX5+eMjJPvTXh27y7dg66LzSl6nWFlw7S2XSAtcyvLoDGXuFTcDb1wEBHZFmgVgHYxgIdWSt1XaVnXe9uLSbRPKVKQ0ekU3CIO/Z0Na1yVagG2XlnAhkrKvbr2xGLKa0RjShYDiG9/QQbaHoh3Tj4AwPJhqHQW8XDpHLgx8fp7+Qpt3LSToZHPCmeolxUzfY3bYKM1QKtpurr1X0iFTmp/h1SYdPEYeOjidPEPGE0Wc6f9a2ttkU8+qzDcCczyMh7KvMag==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Ltv+2mVpGK33q0MMlUlOukbDdvyePZUT0BtlHl1ur2I=;
+ b=njqMAdTUEiT6IL/3Ta7fnXpwkdu0A81BEje41HYYJ3vhoaAFSaFlaGIq/Iaqt/HuwPfZQ1N2u6dCRSW8ypnpu86TH44Wr5md4QT+pDMWxagvAmXLFAg5bxP2RXd7K9GQ8anS/H8NX3TPCMSEnfo6OXZV7mVhKWQAzfq/g23aOoHgEHEyxqmhip3Qhynnxm+GpaMy7AuZKZXLYLDunc9cN0WZd23jfXYwQlT+vE02k4cvTDykReY2lMrE+do2OI3IqgvTID33LCKcYypP3+L/oQSPMaQyx2ggcugNq7rvYzej1L/byaMmC4x7OBxXpsZh6K2IcP6HlX04xAF36vNvvg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Ltv+2mVpGK33q0MMlUlOukbDdvyePZUT0BtlHl1ur2I=;
+ b=KnSfCnLroM7XmCeHr/UkO0eXwjaCdh46B23NDH3D7UEHGojUV73pmPZp85n2GN3SuCkSPI1855slpNtkgTY/l0UosGnvbcmRhVZVUww+1XCJ4CH+u8z6uRa7d/tqeMlWCK+DkmQUK7LpXeQ7r5UtUq+Fzk5BQ7Hp0x1xhtSr9jE=
+Authentication-Results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (52.133.14.15) by
+ VI1PR05MB4813.eurprd05.prod.outlook.com (20.177.48.146) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2729.22; Thu, 13 Feb 2020 19:19:15 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d%7]) with mapi id 15.20.2729.025; Thu, 13 Feb 2020
+ 19:19:15 +0000
+Date:   Thu, 13 Feb 2020 15:19:11 -0400
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     linux-rdma@vger.kernel.org
+Subject: [PATCH] RDMA/core: Get rid of ib_create_qp_user
+Message-ID: <20200213191911.GA9898@ziepe.ca>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-ClientProxiedBy: MN2PR05CA0058.namprd05.prod.outlook.com
+ (2603:10b6:208:236::27) To VI1PR05MB4141.eurprd05.prod.outlook.com
+ (2603:10a6:803:44::15)
 MIME-Version: 1.0
-In-Reply-To: <20200213183850.GM31668@ziepe.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 200.68.140.15
-X-Source-L: No
-X-Exim-ID: 1j2JZj-000fEB-VN
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: ([192.168.43.131]) [200.68.140.15]:10057
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 16
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
+Received: from mlx.ziepe.ca (142.68.57.212) by MN2PR05CA0058.namprd05.prod.outlook.com (2603:10b6:208:236::27) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2729.9 via Frontend Transport; Thu, 13 Feb 2020 19:19:15 +0000
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)     (envelope-from <jgg@mellanox.com>)      id 1j2K11-0002fY-Vt     for linux-rdma@vger.kernel.org; Thu, 13 Feb 2020 15:19:11 -0400
+X-Originating-IP: [142.68.57.212]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 04f36a73-85fb-45d6-c45e-08d7b0b99d6d
+X-MS-TrafficTypeDiagnostic: VI1PR05MB4813:
+X-Microsoft-Antispam-PRVS: <VI1PR05MB48138BD8F02737C3FF3C979BCF1A0@VI1PR05MB4813.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:6430;
+X-Forefront-PRVS: 031257FE13
+X-Forefront-Antispam-Report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(136003)(39860400002)(366004)(376002)(396003)(189003)(199004)(66946007)(316002)(6916009)(5660300002)(66556008)(66476007)(1076003)(52116002)(2906002)(36756003)(9746002)(86362001)(9786002)(33656002)(81156014)(81166006)(8676002)(9686003)(8936002)(478600001)(26005)(186003)(26583001)(24400500001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB4813;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+Received-SPF: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 44wHc8iS7fnoITFhPFhS8Cj/2QTuXVtZ8mYW7dqCCCaPFgsHW4nnJu77I0FzyqYNYHj6ZM9IdommSQpHqbdHjgwgpU+rvO8gsHgyeiLOMwKnZpESyj/CLIwb7akj/aS+JOG9oL7lxYwMImUb/4OmZ7iU2BJW6V2ptJ52vlQEldaU8+Lh0ffv5iVjrHkCqb5g9AJgYjIQTJL91zNbOLhYMWfPVwtvlXMakO95K9A6Y86Rjf9Qf+8rSjU94NM6L0ophVNxG1nj2IKcFvn+7+CdwNO8Ic4qdlaSiUuVz53nGBzy8rcR/1ycjNQd1W+e8NYk2rVDpWUd2BU51VuPx02/j0BqXAOwH0agw5mAWopoQLydfgl+dCvgDM9smedjUg78MC+6tQFEauwS4QMh6yQEf1GBzEZeWEAT5qAhT95lcTgRm6EecHYXq9+q5MChQxX/ZxbW10zL4j2/WC1PkaXR5K5u/g1wChL3XElwAs4EA2sCwYLg3iKsUofnDrUEGsfbBZOCCVZyxtZyl/2RrDRhag==
+X-MS-Exchange-AntiSpam-MessageData: vFZ3adl62jVEsRc4UkvkKYg6WLhP+bpuSFM5Aj8XI4FSG1a1U9SKM2t7b6GgYXRwTc+KvXa98ddHJURhWEnVfHEeuQECDAHbIxp3iySWqWnbDwtqAG/dq3fMqAw/hRoaMXH5wRuLYQqlpdnwKMV5yQ==
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 04f36a73-85fb-45d6-c45e-08d7b0b99d6d
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Feb 2020 19:19:15.3798
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: kSti1ESHWXPLkQT2bSSStqW2pKktxjo+p3pWprp3QQbZ68yjHRYM/uZTQ5736ypeT2EaMa5bwcL88qQnV8on3g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB4813
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+This function accepts a udata but does nothing with it, and is never
+passed a !NULL udata. Rename it to ib_create_qp which was the only
+caller and remove the udata.
 
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/core/verbs.c | 22 +++++++++++++++-------
+ include/rdma/ib_verbs.h         | 31 ++-----------------------------
+ 2 files changed, 17 insertions(+), 36 deletions(-)
 
-On 2/13/20 12:38, Jason Gunthorpe wrote:
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 3ebae3b65c2821..13ff4c8bfe5ac7 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1127,8 +1127,7 @@ struct ib_qp *ib_open_qp(struct ib_xrcd *xrcd,
+ EXPORT_SYMBOL(ib_open_qp);
+ 
+ static struct ib_qp *create_xrc_qp_user(struct ib_qp *qp,
+-					struct ib_qp_init_attr *qp_init_attr,
+-					struct ib_udata *udata)
++					struct ib_qp_init_attr *qp_init_attr)
+ {
+ 	struct ib_qp *real_qp = qp;
+ 
+@@ -1150,9 +1149,18 @@ static struct ib_qp *create_xrc_qp_user(struct ib_qp *qp,
+ 	return qp;
+ }
+ 
+-struct ib_qp *ib_create_qp_user(struct ib_pd *pd,
+-				struct ib_qp_init_attr *qp_init_attr,
+-				struct ib_udata *udata)
++/**
++ * ib_create_qp - Creates a kernel QP associated with the specified protection
++ *   domain.
++ * @pd: The protection domain associated with the QP.
++ * @qp_init_attr: A list of initial attributes required to create the
++ *   QP.  If QP creation succeeds, then the attributes are updated to
++ *   the actual capabilities of the created QP.
++ *
++ * NOTE: for user qp use ib_create_qp_user with valid udata!
++ */
++struct ib_qp *ib_create_qp(struct ib_pd *pd,
++			   struct ib_qp_init_attr *qp_init_attr)
+ {
+ 	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
+ 	struct ib_qp *qp;
+@@ -1197,7 +1205,7 @@ struct ib_qp *ib_create_qp_user(struct ib_pd *pd,
+ 
+ 	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
+ 		struct ib_qp *xrc_qp =
+-			create_xrc_qp_user(qp, qp_init_attr, udata);
++			create_xrc_qp_user(qp, qp_init_attr);
+ 
+ 		if (IS_ERR(xrc_qp)) {
+ 			ret = PTR_ERR(xrc_qp);
+@@ -1253,7 +1261,7 @@ struct ib_qp *ib_create_qp_user(struct ib_pd *pd,
+ 	return ERR_PTR(ret);
+ 
+ }
+-EXPORT_SYMBOL(ib_create_qp_user);
++EXPORT_SYMBOL(ib_create_qp);
+ 
+ static const struct {
+ 	int			valid;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1f779fad3a1e4e..5f3a04ead9f593 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3627,35 +3627,8 @@ static inline int ib_post_srq_recv(struct ib_srq *srq,
+ 					      bad_recv_wr ? : &dummy);
+ }
+ 
+-/**
+- * ib_create_qp_user - Creates a QP associated with the specified protection
+- *   domain.
+- * @pd: The protection domain associated with the QP.
+- * @qp_init_attr: A list of initial attributes required to create the
+- *   QP.  If QP creation succeeds, then the attributes are updated to
+- *   the actual capabilities of the created QP.
+- * @udata: Valid user data or NULL for kernel objects
+- */
+-struct ib_qp *ib_create_qp_user(struct ib_pd *pd,
+-				struct ib_qp_init_attr *qp_init_attr,
+-				struct ib_udata *udata);
+-
+-/**
+- * ib_create_qp - Creates a kernel QP associated with the specified protection
+- *   domain.
+- * @pd: The protection domain associated with the QP.
+- * @qp_init_attr: A list of initial attributes required to create the
+- *   QP.  If QP creation succeeds, then the attributes are updated to
+- *   the actual capabilities of the created QP.
+- * @udata: Valid user data or NULL for kernel objects
+- *
+- * NOTE: for user qp use ib_create_qp_user with valid udata!
+- */
+-static inline struct ib_qp *ib_create_qp(struct ib_pd *pd,
+-					 struct ib_qp_init_attr *qp_init_attr)
+-{
+-	return ib_create_qp_user(pd, qp_init_attr, NULL);
+-}
++struct ib_qp *ib_create_qp(struct ib_pd *pd,
++			   struct ib_qp_init_attr *qp_init_attr);
+ 
+ /**
+  * ib_modify_qp_with_udata - Modifies the attributes for the specified QP.
+-- 
+2.25.0
 
-> 
-> Any reason to skip these two?
-> 
-> drivers/infiniband/core/mad_priv.h:     u8 mad[0];
-> drivers/infiniband/core/mad_priv.h:     u8 data[0];
-> 
-> And may as well touch these in the subsystem headers too:
-> 
-> include/rdma/ib_fmr_pool.h:     u64                 page_list[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/ib_verbs.h:        u8      real_sz[0];
-> include/rdma/opa_vnic.h:        char *dev_priv[0];
-> include/rdma/rdmavt_mr.h:       struct rvt_segarray *map[0];    /* the segments */
-> include/rdma/rdmavt_qp.h:       struct rvt_sge sg_list[0];
-> 
-> ?
-
-OK. Let me tweak my script a bit to catch all of those.
-
-Thanks for the feedback.
---
-Gustavo
