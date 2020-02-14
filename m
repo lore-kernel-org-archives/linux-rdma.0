@@ -2,132 +2,140 @@ Return-Path: <SRS0=HMeR=4C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6909C2BA83
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:20:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8054C3F68F
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:21:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 86FA320873
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:20:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X9HeBIgq"
+	by mail.kernel.org (Postfix) with ESMTP id 8E86B22314
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:21:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581704468;
+	bh=bX99eYqCdt9HGu476nb8P95HPBtcN1RG7J1IrnkOe2I=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=2O7RBqNQ5605biABEB6hKnX58ugpRX3yQQYmQFmAq7Kepj+4lhDrkOMwr2lsjdEjh
+	 iOe91sG4bmo+YY1hYmZR8aizUl3nXhmbCxzxisZEQh6Rt3e1Q7oQWtAV9MsF9r/wNR
+	 cUcAGGIx9zztnEgkdn4e/kv0wfQCuR491nNpkSY4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730293AbgBNPt5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 10:49:57 -0500
-Received: from mail-yb1-f195.google.com ([209.85.219.195]:41737 "EHLO
-        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730276AbgBNPt4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Feb 2020 10:49:56 -0500
-Received: by mail-yb1-f195.google.com with SMTP id j11so4949569ybt.8;
-        Fri, 14 Feb 2020 07:49:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:subject:from:to:cc:date:message-id:in-reply-to:references
-         :user-agent:mime-version:content-transfer-encoding;
-        bh=OArWSvRlQC6nv37i8m+YGKW30FGPFbQtp+/YdSZuH2k=;
-        b=X9HeBIgqkvbSmwKpQmJFMtHX8YDTP7182yUj43/dQOc+4vJ0DFvyS8hgMSWeVV8KVE
-         HBr2C2y6WPVu0N3gkMH3B2FKrE36ZhQjkjFVOAp7NUvRSHSrM0wcxaIGvl4BqWRiUgki
-         y0YuUFd/pUv9/vLvlau+3Q4/bisAx1zJrvTj6mCLhELJ+uKl1bUWqE+/QLaQA8PBOcdD
-         DzPsjnJkqBXOsphfJarOBj4eCHGA+jH5dyTdKIICGmXNT5y9a2HkcO1mCCVp0SApKrfi
-         TFFyA+jGLvT8lYsT/eTobOgRagwj7VPMeAXb4PRyTf1s85oUv4HhoZTHsnBvk5Uz54F/
-         b2Gg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:subject:from:to:cc:date:message-id
-         :in-reply-to:references:user-agent:mime-version
-         :content-transfer-encoding;
-        bh=OArWSvRlQC6nv37i8m+YGKW30FGPFbQtp+/YdSZuH2k=;
-        b=gtyf1qxChzHknuAmo6HeEYdQ/46yNUNpN8iOPCDKvy5ERRy5CN9OQlji2K07vkRXrm
-         7LKBjzKI84uhi9RgUjAxv7gObDo58aKX2hZqW3wHBqsacgC1KUxBfZm+64JIdCGJ8UZw
-         r2Op2cvcLLNXHJZRvnpl3h3hKqHr+Eg5bP5/y+vKXs80NXrOIQ8Zye3MiSNpnkK5gaBo
-         rScyn6t77Jz3ca19+Pqkd/7keGyMOtjPuUhk6HR6+xlnwrh5os2JKemEOQp/3M2guLr5
-         TvLUnvx2tzuCSmq3eHcQD8v+ho6Da3PZP1tJpXPZLLivSAoj1sNwbq6g1sD+ELoWNgot
-         TCIQ==
-X-Gm-Message-State: APjAAAX0jjWr1IYVqdtsvzXa06C1ja8YlA0VX6dbnE5i3Sn4iMmNzbwX
-        PggaUDOwEU+54/M0yGE0WmM9r6yF
-X-Google-Smtp-Source: APXvYqygAUi6rlnyTjyzIsPG0nXZZ3xVGVAZpSrvpS8M0xAMG3vB3dx0db6wFkGYEPVBELdntuUprA==
-X-Received: by 2002:a05:6902:6c1:: with SMTP id m1mr3442569ybt.491.1581695394204;
-        Fri, 14 Feb 2020 07:49:54 -0800 (PST)
-Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
-        by smtp.gmail.com with ESMTPSA id s3sm2788345ywf.22.2020.02.14.07.49.53
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 14 Feb 2020 07:49:53 -0800 (PST)
-Received: from klimt.1015granger.net (klimt.1015granger.net [192.168.1.55])
-        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 01EFnqRC029153;
-        Fri, 14 Feb 2020 15:49:52 GMT
-Subject: [PATCH RFC 2/9] NFSD: Clean up nfsd4_encode_readv
-From:   Chuck Lever <chuck.lever@oracle.com>
-To:     bfields@fieldses.org
-Cc:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
-Date:   Fri, 14 Feb 2020 10:49:52 -0500
-Message-ID: <20200214154952.3848.15021.stgit@klimt.1015granger.net>
-In-Reply-To: <20200214151427.3848.49739.stgit@klimt.1015granger.net>
-References: <20200214151427.3848.49739.stgit@klimt.1015granger.net>
-User-Agent: StGit/0.17.1-dirty
+        id S2393496AbgBNSU7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 13:20:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53376 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730254AbgBNPty (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:49:54 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 59EC324685;
+        Fri, 14 Feb 2020 15:49:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1581695393;
+        bh=bX99eYqCdt9HGu476nb8P95HPBtcN1RG7J1IrnkOe2I=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=EtaQRcougAGdsxZUj0jC4aJs6P8E26dl202j9/tkHxTPzFihSPUgilK0WW4PfHO3v
+         m8hUa8x2UkH2ANUKXjOz1LSGtAX4p8UTNCOA2AMkYHQRyozcgZMDNLjlw6Q+hvKwH9
+         AR1etgSXM0fXYHdsNrpkQKzPGPyT+6sDHplhqLJ0=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
+        Mark Haywood <mark.haywood@oracle.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.5 045/542] RDMA/netlink: Do not always generate an ACK for some netlink operations
+Date:   Fri, 14 Feb 2020 10:40:37 -0500
+Message-Id: <20200214154854.6746-45-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
+References: <20200214154854.6746-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Address some minor nits I noticed while working on this function.
+From: Håkon Bugge <haakon.bugge@oracle.com>
 
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+[ Upstream commit a242c36951ecd24bc16086940dbe6b522205c461 ]
+
+In rdma_nl_rcv_skb(), the local variable err is assigned the return value
+of the supplied callback function, which could be one of
+ib_nl_handle_resolve_resp(), ib_nl_handle_set_timeout(), or
+ib_nl_handle_ip_res_resp(). These three functions all return skb->len on
+success.
+
+rdma_nl_rcv_skb() is merely a copy of netlink_rcv_skb(). The callback
+functions used by the latter have the convention: "Returns 0 on success or
+a negative error code".
+
+In particular, the statement (equal for both functions):
+
+   if (nlh->nlmsg_flags & NLM_F_ACK || err)
+
+implies that rdma_nl_rcv_skb() always will ack a message, independent of
+the NLM_F_ACK being set in nlmsg_flags or not.
+
+The fix could be to change the above statement, but it is better to keep
+the two *_rcv_skb() functions equal in this respect and instead change the
+three callback functions in the rdma subsystem to the correct convention.
+
+Fixes: 2ca546b92a02 ("IB/sa: Route SA pathrecord query through netlink")
+Fixes: ae43f8286730 ("IB/core: Add IP to GID netlink offload")
+Link: https://lore.kernel.org/r/20191216120436.3204814-1-haakon.bugge@oracle.com
+Suggested-by: Mark Haywood <mark.haywood@oracle.com>
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Tested-by: Mark Haywood <mark.haywood@oracle.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/nfsd/nfs4xdr.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/addr.c     | 2 +-
+ drivers/infiniband/core/sa_query.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/fs/nfsd/nfs4xdr.c b/fs/nfsd/nfs4xdr.c
-index 60be969d8be1..262f9fc76e4e 100644
---- a/fs/nfsd/nfs4xdr.c
-+++ b/fs/nfsd/nfs4xdr.c
-@@ -3591,7 +3591,6 @@ static __be32 nfsd4_encode_readv(struct nfsd4_compoundres *resp,
- 	__be32 nfserr;
- 	__be32 tmp;
- 	__be32 *p;
--	u32 zzz = 0;
- 	int pad;
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 606fa6d866851..1753a9801b704 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -139,7 +139,7 @@ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+ 	if (ib_nl_is_good_ip_resp(nlh))
+ 		ib_nl_process_good_ip_rsep(nlh);
  
- 	/*
-@@ -3607,7 +3606,7 @@ static __be32 nfsd4_encode_readv(struct nfsd4_compoundres *resp,
- 	v = 0;
- 	while (len) {
- 		thislen = min_t(long, len, PAGE_SIZE);
--		p = xdr_reserve_space(xdr, (thislen+3)&~3);
-+		p = xdr_reserve_space(xdr, thislen);
- 		WARN_ON_ONCE(!p);
- 		resp->rqstp->rq_vec[v].iov_base = p;
- 		resp->rqstp->rq_vec[v].iov_len = thislen;
-@@ -3616,7 +3615,6 @@ static __be32 nfsd4_encode_readv(struct nfsd4_compoundres *resp,
- 	}
- 	read->rd_vlen = v;
- 
--	len = maxcount;
- 	nfserr = nfsd_readv(resp->rqstp, read->rd_fhp, file, read->rd_offset,
- 			    resp->rqstp->rq_vec, read->rd_vlen, &maxcount,
- 			    &eof);
-@@ -3625,16 +3623,17 @@ static __be32 nfsd4_encode_readv(struct nfsd4_compoundres *resp,
- 		return nfserr;
- 	if (svc_encode_read_payload(resp->rqstp, starting_len + 8, maxcount))
- 		return nfserr_io;
--	xdr_truncate_encode(xdr, starting_len + 8 + ((maxcount+3)&~3));
-+	xdr_truncate_encode(xdr, starting_len + 8 + xdr_align_size(maxcount));
- 
- 	tmp = htonl(eof);
- 	write_bytes_to_xdr_buf(xdr->buf, starting_len    , &tmp, 4);
- 	tmp = htonl(maxcount);
- 	write_bytes_to_xdr_buf(xdr->buf, starting_len + 4, &tmp, 4);
- 
-+	tmp = xdr_zero;
- 	pad = (maxcount&3) ? 4 - (maxcount&3) : 0;
- 	write_bytes_to_xdr_buf(xdr->buf, starting_len + 8 + maxcount,
--								&zzz, pad);
-+								&tmp, pad);
- 	return 0;
- 
+-	return skb->len;
++	return 0;
  }
+ 
+ static int ib_nl_ip_send_msg(struct rdma_dev_addr *dev_addr,
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 8917125ea16d4..30d4c126a2db0 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1068,7 +1068,7 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+ 	}
+ 
+ settimeout_out:
+-	return skb->len;
++	return 0;
+ }
+ 
+ static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr *nlh)
+@@ -1139,7 +1139,7 @@ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+ 	}
+ 
+ resp_out:
+-	return skb->len;
++	return 0;
+ }
+ 
+ static void free_sm_ah(struct kref *kref)
+-- 
+2.20.1
 
