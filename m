@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4B32C3B1A1
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:15:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D814C3B19F
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:40:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 71EF6246C0
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:15:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D127217F4
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581696911;
-	bh=RM5bJZqD6fBIu+hMD74+5St8AFmtMUWd4KMgCZxZTrw=;
+	s=default; t=1581698421;
+	bh=p5e5+dj/rRUMiUhx7SjErNTvVSgmlKbtP28hNVhouik=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=KiCiILilOo0lc3SJRd9OIVk4nx9lAJ6BCq1wso7BkSJp9G5gQ50az6h2JsVXkvABQ
-	 VdOEmXMtmHJzw8DT+0mT5CAVp99XWhYNE4bkcjo6MH2hRK+8dGXfmqEtyT134M6h1m
-	 usgVdjdzSD3YoacLp8WhsnsGmHyowmm+ijQNJs6Y=
+	b=1B+ck065XJAOEwpWOjb4UPBSj+ENM0CT0E2PhQf0CU4xqeWBppWMM1TPJldlhBv6X
+	 m2r1KQO9vV/J2nif9kqeK0I5or/ago1zupG/c6pp/vyT23YeqHOSXl0YHzyu7F8DzC
+	 NV5e+XTrjTOCiCNoJngeLUs0///AJdX0sScWQOIo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392112AbgBNQPK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 11:15:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45190 "EHLO mail.kernel.org"
+        id S2387812AbgBNQkU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:40:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404090AbgBNQPI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:15:08 -0500
+        id S2393308AbgBNQXA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:23:00 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 39274246D6;
-        Fri, 14 Feb 2020 16:15:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5B0FD24764;
+        Fri, 14 Feb 2020 16:22:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696908;
-        bh=RM5bJZqD6fBIu+hMD74+5St8AFmtMUWd4KMgCZxZTrw=;
+        s=default; t=1581697380;
+        bh=p5e5+dj/rRUMiUhx7SjErNTvVSgmlKbtP28hNVhouik=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MnAwbbPaYIpd/4mhQCFglQIBWXGpH94hVemS6pQfJk88MK18+ddUzR9n19XIq8nWc
-         Pw/1cbSaR+KOdwzf70YlIawQfzLJUfRFyPtAC8+u/2eIx1sezHoVaVdGQxwfKFoXGC
-         ZKjzzNjpcxh4+yySdj3AYUWWJtSDLPz/xkzU8Xa8=
+        b=z+NWyJHNCnsZMS5cjpKt67tZdTHTqDlQBkd7SU6N7c/zxQn7r0kqWd2Gd16liCw9W
+         o2e43Etq8wMUnrMJ6vpDlyJ2ZaFJCa+MsMJ9W9LxMBmKGromuaXJIUCfSHQOOo0gaC
+         6bTy1dFZ2UCihFFt8cqFUbKrIDfONHMkUzAWsm7U=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Michael Guralnik <michaelgur@mellanox.com>,
+Cc:     Jiewei Ke <kejiewei.cn@gmail.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 157/252] RDMA/uverbs: Remove needs_kfree_rcu from uverbs_obj_type_class
-Date:   Fri, 14 Feb 2020 11:10:12 -0500
-Message-Id: <20200214161147.15842-157-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 077/141] RDMA/rxe: Fix error type of mmap_offset
+Date:   Fri, 14 Feb 2020 11:20:17 -0500
+Message-Id: <20200214162122.19794-77-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214161147.15842-1-sashal@kernel.org>
-References: <20200214161147.15842-1-sashal@kernel.org>
+In-Reply-To: <20200214162122.19794-1-sashal@kernel.org>
+References: <20200214162122.19794-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -58,88 +58,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Jiewei Ke <kejiewei.cn@gmail.com>
 
-[ Upstream commit 8bdf9dd984c18375d1090ddeb1792511f619c5c1 ]
+[ Upstream commit 6ca18d8927d468c763571f78c9a7387a69ffa020 ]
 
-After device disassociation the uapi_objects are destroyed and freed,
-however it is still possible that core code can be holding a kref on the
-uobject. When it finally goes to uverbs_uobject_free() via the kref_put()
-it can trigger a use-after-free on the uapi_object.
+The type of mmap_offset should be u64 instead of int to match the type of
+mminfo.offset. If otherwise, after we create several thousands of CQs, it
+will run into overflow issues.
 
-Since needs_kfree_rcu is a micro optimization that only benefits file
-uobjects, just get rid of it. There is no harm in using kfree_rcu even if
-it isn't required, and the number of involved objects is small.
-
-Link: https://lore.kernel.org/r/20200113143306.GA28717@ziepe.ca
-Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
+Link: https://lore.kernel.org/r/20191227113613.5020-1-kejiewei.cn@gmail.com
+Signed-off-by: Jiewei Ke <kejiewei.cn@gmail.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/rdma_core.c | 23 +----------------------
- include/rdma/uverbs_types.h         |  1 -
- 2 files changed, 1 insertion(+), 23 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index c4118bcd51035..c2c9bd72b350f 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -49,13 +49,7 @@ void uverbs_uobject_get(struct ib_uobject *uobject)
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 47003d2a4a46e..dee3853163b60 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -422,7 +422,7 @@ struct rxe_dev {
+ 	struct list_head	pending_mmaps;
  
- static void uverbs_uobject_free(struct kref *ref)
- {
--	struct ib_uobject *uobj =
--		container_of(ref, struct ib_uobject, ref);
--
--	if (uobj->uapi_object->type_class->needs_kfree_rcu)
--		kfree_rcu(uobj, rcu);
--	else
--		kfree(uobj);
-+	kfree_rcu(container_of(ref, struct ib_uobject, ref), rcu);
- }
+ 	spinlock_t		mmap_offset_lock; /* guard mmap_offset */
+-	int			mmap_offset;
++	u64			mmap_offset;
  
- void uverbs_uobject_put(struct ib_uobject *uobject)
-@@ -753,20 +747,6 @@ const struct uverbs_obj_type_class uverbs_idr_class = {
- 	.lookup_put = lookup_put_idr_uobject,
- 	.destroy_hw = destroy_hw_idr_uobject,
- 	.remove_handle = remove_handle_idr_uobject,
--	/*
--	 * When we destroy an object, we first just lock it for WRITE and
--	 * actually DESTROY it in the finalize stage. So, the problematic
--	 * scenario is when we just started the finalize stage of the
--	 * destruction (nothing was executed yet). Now, the other thread
--	 * fetched the object for READ access, but it didn't lock it yet.
--	 * The DESTROY thread continues and starts destroying the object.
--	 * When the other thread continue - without the RCU, it would
--	 * access freed memory. However, the rcu_read_lock delays the free
--	 * until the rcu_read_lock of the READ operation quits. Since the
--	 * exclusive lock of the object is still taken by the DESTROY flow, the
--	 * READ operation will get -EBUSY and it'll just bail out.
--	 */
--	.needs_kfree_rcu = true,
- };
- EXPORT_SYMBOL(uverbs_idr_class);
- 
-@@ -954,7 +934,6 @@ const struct uverbs_obj_type_class uverbs_fd_class = {
- 	.lookup_put = lookup_put_fd_uobject,
- 	.destroy_hw = destroy_hw_fd_uobject,
- 	.remove_handle = remove_handle_fd_uobject,
--	.needs_kfree_rcu = false,
- };
- EXPORT_SYMBOL(uverbs_fd_class);
- 
-diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
-index acb1bfa3cc99a..f70155cc73979 100644
---- a/include/rdma/uverbs_types.h
-+++ b/include/rdma/uverbs_types.h
-@@ -97,7 +97,6 @@ struct uverbs_obj_type_class {
- 	int __must_check (*destroy_hw)(struct ib_uobject *uobj,
- 				       enum rdma_remove_reason why);
- 	void (*remove_handle)(struct ib_uobject *uobj);
--	u8    needs_kfree_rcu;
- };
- 
- struct uverbs_obj_type {
+ 	struct rxe_port		port;
+ 	struct list_head	list;
 -- 
 2.20.1
 
