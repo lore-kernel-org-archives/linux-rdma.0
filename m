@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84471C3B1A6
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:31:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20B22C3B1B0
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:40:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57ED52082F
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:31:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F206020873
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:40:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581701504;
-	bh=J/hOnjw0i23XoypiLhJtK1LFTicuZDTfM0VzYi6zdjY=;
+	s=default; t=1581702006;
+	bh=7OdUvj5wXUpXSgoXzi7bOIcjIEDpI8uxLR8gktwYQXg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=B2xpZs5XkNAgWZyEbML9xlGnfs6zC/bi3P8xS68PPxsKfOr1BIrHxrW/FXkolfFzN
-	 WqkXD91rM1sGpyIlZIh0nw7XYY4O2lwKZxWfJJbCABMy16fVErolvx42qRaf4zVsrp
-	 V4is27R2wDzYvJTf3Wl1icOsIlE7HzVEjwHHRm/o=
+	b=L4GlJAAlqk2csqq49Swfdm52a4okuOJegDMA4/xT4/tzyp7ieY7NyQUbWStbcCMhq
+	 H5UGoGrorg7QX2Pa59+1XE9475LOLTFaHixEQqbesv8k9IBAoIskvzeF4jIlW39pzw
+	 SETi+HTOntGV9msZAGJXBfBSWHPyaVICN8L/o0cc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390598AbgBNRbf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:31:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57858 "EHLO mail.kernel.org"
+        id S2389850AbgBNQEG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:04:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387585AbgBNQG7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:06:59 -0500
+        id S2389847AbgBNQEG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:04:06 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CB0E0222C2;
-        Fri, 14 Feb 2020 16:06:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1C3992187F;
+        Fri, 14 Feb 2020 16:04:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696419;
-        bh=J/hOnjw0i23XoypiLhJtK1LFTicuZDTfM0VzYi6zdjY=;
+        s=default; t=1581696245;
+        bh=7OdUvj5wXUpXSgoXzi7bOIcjIEDpI8uxLR8gktwYQXg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mN6P7Ur/0d+/BtSu4XOxhRimbMDBZW+B7WJ+lnpYptmtnvJpR+fiBkq62wNdhJzSE
-         FwKDq49cdUSXfIRoA1+fh8T2M1Pdjnel+QE/Sd7Lk3YUbL9DHTTYT2lsdL7cKBTd57
-         cA1uRHkUrsbiJ2uRWhgMavWtru7css7Utq+rj9lU=
+        b=vNE2JT+VTLh+ZJhC45bkwOaL53XiZS6+IVIW06AUSnVVsd8/IkYgFhD33ARNPbHXJ
+         YezRYZ9R3USb7t7611cmll+CERoI+NrCrvnxC9zfVNGQjEbxB7meNslwa3MEDJEmuT
+         qm3YdDpHb8Ay8CHqZDIuJMJAGJ+AT+k78FzVrjrY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jiewei Ke <kejiewei.cn@gmail.com>,
+Cc:     Parav Pandit <parav@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 240/459] RDMA/rxe: Fix error type of mmap_offset
-Date:   Fri, 14 Feb 2020 10:58:10 -0500
-Message-Id: <20200214160149.11681-240-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 103/459] RDMA/cma: Fix unbalanced cm_id reference count during address resolve
+Date:   Fri, 14 Feb 2020 10:55:53 -0500
+Message-Id: <20200214160149.11681-103-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
 References: <20200214160149.11681-1-sashal@kernel.org>
@@ -58,36 +59,57 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jiewei Ke <kejiewei.cn@gmail.com>
+From: Parav Pandit <parav@mellanox.com>
 
-[ Upstream commit 6ca18d8927d468c763571f78c9a7387a69ffa020 ]
+[ Upstream commit b4fb4cc5ba83b20dae13cef116c33648e81d2f44 ]
 
-The type of mmap_offset should be u64 instead of int to match the type of
-mminfo.offset. If otherwise, after we create several thousands of CQs, it
-will run into overflow issues.
+Below commit missed the AF_IB and loopback code flow in
+rdma_resolve_addr().  This leads to an unbalanced cm_id refcount in
+cma_work_handler() which puts the refcount which was not incremented prior
+to queuing the work.
 
-Link: https://lore.kernel.org/r/20191227113613.5020-1-kejiewei.cn@gmail.com
-Signed-off-by: Jiewei Ke <kejiewei.cn@gmail.com>
+A call trace is observed with such code flow:
+
+ BUG: unable to handle kernel NULL pointer dereference at (null)
+ [<ffffffff96b67e16>] __mutex_lock_slowpath+0x166/0x1d0
+ [<ffffffff96b6715f>] mutex_lock+0x1f/0x2f
+ [<ffffffffc0beabb5>] cma_work_handler+0x25/0xa0
+ [<ffffffff964b9ebf>] process_one_work+0x17f/0x440
+ [<ffffffff964baf56>] worker_thread+0x126/0x3c0
+
+Hence, hold the cm_id reference when scheduling the resolve work item.
+
+Fixes: 722c7b2bfead ("RDMA/{cma, core}: Avoid callback on rdma_addr_cancel()")
+Link: https://lore.kernel.org/r/20200126142652.104803-2-leon@kernel.org
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/cma.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 5c4b2239129cc..b0a02d4c8b933 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -407,7 +407,7 @@ struct rxe_dev {
- 	struct list_head	pending_mmaps;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 50052e9a17318..9008937f8ed86 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -3091,6 +3091,7 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
+ 	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
  
- 	spinlock_t		mmap_offset_lock; /* guard mmap_offset */
--	int			mmap_offset;
-+	u64			mmap_offset;
++	atomic_inc(&id_priv->refcount);
+ 	cma_init_resolve_addr_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
+ 	return 0;
+@@ -3117,6 +3118,7 @@ static int cma_resolve_ib_addr(struct rdma_id_private *id_priv)
+ 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, (union ib_gid *)
+ 		&(((struct sockaddr_ib *) &id_priv->id.route.addr.dst_addr)->sib_addr));
  
- 	atomic64_t		stats_counters[RXE_NUM_OF_COUNTERS];
- 
++	atomic_inc(&id_priv->refcount);
+ 	cma_init_resolve_addr_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
+ 	return 0;
 -- 
 2.20.1
 
