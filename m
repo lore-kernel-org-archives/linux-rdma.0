@@ -4,50 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C081C3B1B1
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:57:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3D03C2BA83
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:57:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D91C52168B
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B58BC20873
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:57:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581703058;
-	bh=E+NY1IUfRyjLg3KC35UISknubnYvdfXwNTG13ScXiD8=;
+	s=default; t=1581703071;
+	bh=4Wa/QB+IckNJ0b9xJIugVaiu2lf8uvi1J/olPIqS1SE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TrgPxXLiE15UTI2C7TacpuIOkxuLi0RGiEhOkLgbj/aUvHJxTXhoF+TDbJPaEY7Kb
-	 w+jXtULS8n6o+ALpFzZ/XnTdzTjlUFiJlv89Qc+rcbyj34pO7gfr5ZtHUETkAGFWNB
-	 Ex+Ly4/u/0Pt8yecpuLla3WWIjxVHSKAPSyrJY9A=
+	b=sQ3ozmxwb3YvagqvakGdhERJ53gq2tMh0Vsr9qYWUT6ck3GkEDbHjPwwS/NtHiqI2
+	 uAtyx/CdzASAjYW09ed3MvFCMkbM5mvEYqIbU/VuF+WIrfvlguVj+J3/MT1n7swBIC
+	 DvO72DYaQ4d1Gh7w8dRaTQuA4KRlqMXaAqpqNhiQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730887AbgBNR4U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:56:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40198 "EHLO mail.kernel.org"
+        id S2387961AbgBNR5k (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 12:57:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40126 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388205AbgBNP5X (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:57:23 -0500
+        id S2388193AbgBNP5V (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:57:21 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 27CFD24676;
-        Fri, 14 Feb 2020 15:57:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DEEF524654;
+        Fri, 14 Feb 2020 15:57:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695843;
-        bh=E+NY1IUfRyjLg3KC35UISknubnYvdfXwNTG13ScXiD8=;
+        s=default; t=1581695840;
+        bh=4Wa/QB+IckNJ0b9xJIugVaiu2lf8uvi1J/olPIqS1SE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=otqB9oy1EUg46c4SNmUg7NVxf5mMcvsXhSpvPrKlk8xfDap83KwnVAn7Oy3GrkoVz
-         8U+NEZyC0ihd/K67lfxhYOyxMsicGvpcfdxC6C2Yjvs+RJePkg9fAQlEGdZKDjIjGC
-         Am7fPnXkUcfsKiV6wXTJ8fVnMDAp80RVkUwqJlKE=
+        b=XWn95NDHP4a33SIHib/6sFQ0VfLN1FUAHl9a7pRz1tVxz6v7eDAXLSZQM9NqyqIC/
+         1ya4uZnMpf3uByLWAsOUzlSGEGZwOJjq2sn36EfbqtNC3G3pfFxRA244SVdRs8YJjf
+         n8cPMSNQGuGjlMwgApyWoTSHVfpCCstjZ7bPldyY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jack Morgenstein <jackm@dev.mellanox.co.il>,
-        Parav Pandit <parav@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Michael Guralnik <michaelgur@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 393/542] IB/mlx4: Fix memory leak in add_gid error flow
-Date:   Fri, 14 Feb 2020 10:46:25 -0500
-Message-Id: <20200214154854.6746-393-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 391/542] RDMA/uverbs: Verify MR access flags
+Date:   Fri, 14 Feb 2020 10:46:23 -0500
+Message-Id: <20200214154854.6746-391-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
 References: <20200214154854.6746-1-sashal@kernel.org>
@@ -60,80 +59,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm@dev.mellanox.co.il>
+From: Michael Guralnik <michaelgur@mellanox.com>
 
-[ Upstream commit eaad647e5cc27f7b46a27f3b85b14c4c8a64bffa ]
+[ Upstream commit ca95c1411198c2d87217c19d44571052cdc94725 ]
 
-In procedure mlx4_ib_add_gid(), if the driver is unable to update the FW
-gid table, there is a memory leak in the driver's copy of the gid table:
-the gid entry's context buffer is not freed.
+Verify that MR access flags that are passed from user are all supported
+ones, otherwise an error is returned.
 
-If such an error occurs, free the entry's context buffer, and mark the
-entry as available (by setting its context pointer to NULL).
-
-Fixes: e26be1bfef81 ("IB/mlx4: Implement ib_device callbacks")
-Link: https://lore.kernel.org/r/20200115085050.73746-1-leon@kernel.org
-Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Reviewed-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 4fca03778351 ("IB/uverbs: Move ib_access_flags and ib_read_counters_flags to uapi")
+Link: https://lore.kernel.org/r/1578506740-22188-6-git-send-email-yishaih@mellanox.com
+Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ include/rdma/ib_verbs.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 34055cbab38cf..2f5d9b181848b 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -246,6 +246,13 @@ static int mlx4_ib_update_gids(struct gid_entry *gids,
- 	return mlx4_ib_update_gids_v1(gids, ibdev, port_num);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index cb02d36d41d22..a14f837fb1c84 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4303,6 +4303,9 @@ static inline int ib_check_mr_access(int flags)
+ 	    !(flags & IB_ACCESS_LOCAL_WRITE))
+ 		return -EINVAL;
+ 
++	if (flags & ~IB_ACCESS_SUPPORTED)
++		return -EINVAL;
++
+ 	return 0;
  }
  
-+static void free_gid_entry(struct gid_entry *entry)
-+{
-+	memset(&entry->gid, 0, sizeof(entry->gid));
-+	kfree(entry->ctx);
-+	entry->ctx = NULL;
-+}
-+
- static int mlx4_ib_add_gid(const struct ib_gid_attr *attr, void **context)
- {
- 	struct mlx4_ib_dev *ibdev = to_mdev(attr->device);
-@@ -313,6 +320,8 @@ static int mlx4_ib_add_gid(const struct ib_gid_attr *attr, void **context)
- 				     GFP_ATOMIC);
- 		if (!gids) {
- 			ret = -ENOMEM;
-+			*context = NULL;
-+			free_gid_entry(&port_gid_table->gids[free]);
- 		} else {
- 			for (i = 0; i < MLX4_MAX_PORT_GIDS; i++) {
- 				memcpy(&gids[i].gid, &port_gid_table->gids[i].gid, sizeof(union ib_gid));
-@@ -324,6 +333,12 @@ static int mlx4_ib_add_gid(const struct ib_gid_attr *attr, void **context)
- 
- 	if (!ret && hw_update) {
- 		ret = mlx4_ib_update_gids(gids, ibdev, attr->port_num);
-+		if (ret) {
-+			spin_lock_bh(&iboe->lock);
-+			*context = NULL;
-+			free_gid_entry(&port_gid_table->gids[free]);
-+			spin_unlock_bh(&iboe->lock);
-+		}
- 		kfree(gids);
- 	}
- 
-@@ -353,10 +368,7 @@ static int mlx4_ib_del_gid(const struct ib_gid_attr *attr, void **context)
- 		if (!ctx->refcount) {
- 			unsigned int real_index = ctx->real_index;
- 
--			memset(&port_gid_table->gids[real_index].gid, 0,
--			       sizeof(port_gid_table->gids[real_index].gid));
--			kfree(port_gid_table->gids[real_index].ctx);
--			port_gid_table->gids[real_index].ctx = NULL;
-+			free_gid_entry(&port_gid_table->gids[real_index]);
- 			hw_update = 1;
- 		}
- 	}
 -- 
 2.20.1
 
