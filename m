@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20B22C3B1B0
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:40:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A601C2BA83
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:40:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F206020873
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:40:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1A9820873
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581702006;
-	bh=7OdUvj5wXUpXSgoXzi7bOIcjIEDpI8uxLR8gktwYQXg=;
+	s=default; t=1581702007;
+	bh=amYH3ceF7CJnpOkXmLfBOhz0UF9g7Vo4PvHExPucgLQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=L4GlJAAlqk2csqq49Swfdm52a4okuOJegDMA4/xT4/tzyp7ieY7NyQUbWStbcCMhq
-	 H5UGoGrorg7QX2Pa59+1XE9475LOLTFaHixEQqbesv8k9IBAoIskvzeF4jIlW39pzw
-	 SETi+HTOntGV9msZAGJXBfBSWHPyaVICN8L/o0cc=
+	b=uDJ9cJ1ZrWAJn573n6L/BaNMRe09FoFAsDvmPmx9AgfBOJoaij5ukUgTcnyECTwaU
+	 WqPcL8h1N9PAFtR1WcTkhiZmPvNYk5+kljC9Evh9m6dl+ZVSdHVQfK7EKAWTIKlo8t
+	 7MNqTsXr0+53L6MbuvcF9lNo0IYwXIsIKohhnTZQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389850AbgBNQEG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2389846AbgBNQEG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 14 Feb 2020 11:04:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51922 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51876 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389847AbgBNQEG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:04:06 -0500
+        id S2389841AbgBNQEF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:04:05 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1C3992187F;
-        Fri, 14 Feb 2020 16:04:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C614F24676;
+        Fri, 14 Feb 2020 16:04:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696245;
-        bh=7OdUvj5wXUpXSgoXzi7bOIcjIEDpI8uxLR8gktwYQXg=;
+        s=default; t=1581696244;
+        bh=amYH3ceF7CJnpOkXmLfBOhz0UF9g7Vo4PvHExPucgLQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=vNE2JT+VTLh+ZJhC45bkwOaL53XiZS6+IVIW06AUSnVVsd8/IkYgFhD33ARNPbHXJ
-         YezRYZ9R3USb7t7611cmll+CERoI+NrCrvnxC9zfVNGQjEbxB7meNslwa3MEDJEmuT
-         qm3YdDpHb8Ay8CHqZDIuJMJAGJ+AT+k78FzVrjrY=
+        b=fo60p2OdVQkdaJU5HcwGRGyvBtNuwhaM8Vl6I4STAUIzxGjCtTx5j4Ts2s/RFwWB4
+         9JT/LscJyblTh36Di89a6egCzIa+vGqgrt1k8rZGbYF7okXuRyLCbURmjCxkXYfka6
+         0J+YJz9DkTJq0yS9wYjCkTCN7N/PFVykMAgaRLw8=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Parav Pandit <parav@mellanox.com>,
+Cc:     Artemy Kovalyov <artemyko@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
+        Gal Pressman <galpress@amazon.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 103/459] RDMA/cma: Fix unbalanced cm_id reference count during address resolve
-Date:   Fri, 14 Feb 2020 10:55:53 -0500
-Message-Id: <20200214160149.11681-103-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 102/459] RDMA/umem: Fix ib_umem_find_best_pgsz()
+Date:   Fri, 14 Feb 2020 10:55:52 -0500
+Message-Id: <20200214160149.11681-102-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
 References: <20200214160149.11681-1-sashal@kernel.org>
@@ -59,57 +60,47 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+From: Artemy Kovalyov <artemyko@mellanox.com>
 
-[ Upstream commit b4fb4cc5ba83b20dae13cef116c33648e81d2f44 ]
+[ Upstream commit 36798d5ae1af62e830c5e045b2e41ce038690c61 ]
 
-Below commit missed the AF_IB and loopback code flow in
-rdma_resolve_addr().  This leads to an unbalanced cm_id refcount in
-cma_work_handler() which puts the refcount which was not incremented prior
-to queuing the work.
+Except for the last entry, the ending iova alignment sets the maximum
+possible page size as the low bits of the iova must be zero when starting
+the next chunk.
 
-A call trace is observed with such code flow:
-
- BUG: unable to handle kernel NULL pointer dereference at (null)
- [<ffffffff96b67e16>] __mutex_lock_slowpath+0x166/0x1d0
- [<ffffffff96b6715f>] mutex_lock+0x1f/0x2f
- [<ffffffffc0beabb5>] cma_work_handler+0x25/0xa0
- [<ffffffff964b9ebf>] process_one_work+0x17f/0x440
- [<ffffffff964baf56>] worker_thread+0x126/0x3c0
-
-Hence, hold the cm_id reference when scheduling the resolve work item.
-
-Fixes: 722c7b2bfead ("RDMA/{cma, core}: Avoid callback on rdma_addr_cancel()")
-Link: https://lore.kernel.org/r/20200126142652.104803-2-leon@kernel.org
-Signed-off-by: Parav Pandit <parav@mellanox.com>
+Fixes: 4a35339958f1 ("RDMA/umem: Add API to find best driver supported page size in an MR")
+Link: https://lore.kernel.org/r/20200128135612.174820-1-leon@kernel.org
+Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Tested-by: Gal Pressman <galpress@amazon.com>
 Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/cma.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/core/umem.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 50052e9a17318..9008937f8ed86 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -3091,6 +3091,7 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
- 	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
- 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
- 
-+	atomic_inc(&id_priv->refcount);
- 	cma_init_resolve_addr_work(work, id_priv);
- 	queue_work(cma_wq, &work->work);
- 	return 0;
-@@ -3117,6 +3118,7 @@ static int cma_resolve_ib_addr(struct rdma_id_private *id_priv)
- 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, (union ib_gid *)
- 		&(((struct sockaddr_ib *) &id_priv->id.route.addr.dst_addr)->sib_addr));
- 
-+	atomic_inc(&id_priv->refcount);
- 	cma_init_resolve_addr_work(work, id_priv);
- 	queue_work(cma_wq, &work->work);
- 	return 0;
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 24244a2f68cc5..0d42ba8c0b696 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -166,10 +166,13 @@ unsigned long ib_umem_find_best_pgsz(struct ib_umem *umem,
+ 		 * for any address.
+ 		 */
+ 		mask |= (sg_dma_address(sg) + pgoff) ^ va;
+-		if (i && i != (umem->nmap - 1))
+-			/* restrict by length as well for interior SGEs */
+-			mask |= sg_dma_len(sg);
+ 		va += sg_dma_len(sg) - pgoff;
++		/* Except for the last entry, the ending iova alignment sets
++		 * the maximum possible page size as the low bits of the iova
++		 * must be zero when starting the next chunk.
++		 */
++		if (i != (umem->nmap - 1))
++			mask |= va;
+ 		pgoff = 0;
+ 	}
+ 	best_pg_bit = rdma_find_pg_bit(mask, pgsz_bitmap);
 -- 
 2.20.1
 
