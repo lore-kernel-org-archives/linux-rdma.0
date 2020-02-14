@@ -2,107 +2,81 @@ Return-Path: <SRS0=HMeR=4C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A495AC3B1A1
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:25:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6C94C3B1A1
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:26:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 80EAD222C2
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:25:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581701151;
-	bh=tah2T/OvVrsNU75aEekf6ABk4+xYfjAbZ42HFtcrqkg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=D2VnTUTeGtCy6MrQ1ULN18furfaXdrMX1ETE7MTNBAkOCWFLWnr/KXBFK6IpWcFSQ
-	 H7fzbNPc2S1iUMVioCvfbq4m9OGOoW4LExIKOQ1zYQcAn4x3khUZzdDCXRNycsfRuq
-	 8CshB0rge6UGZTSyVH5zUk5iYumcfwUDt49MRImM=
+	by mail.kernel.org (Postfix) with ESMTP id 98ADE24650
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:26:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391048AbgBNQIp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 11:08:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60950 "EHLO mail.kernel.org"
+        id S2391188AbgBNR0i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 12:26:38 -0500
+Received: from mga09.intel.com ([134.134.136.24]:40382 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391044AbgBNQIp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:08:45 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DCE35222C2;
-        Fri, 14 Feb 2020 16:08:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696524;
-        bh=tah2T/OvVrsNU75aEekf6ABk4+xYfjAbZ42HFtcrqkg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VabyCJjylbThaWkEhmoPvzRJsZwhQ7/sNqPJvGjF161jn4ii21KsRwdC3rdRlxaRh
-         LYvQKC/WQjR7p0UiLSOCVlG2h+/ugUL3NZZ4nU49t6flSxewnC4SuGI+H987GlZcUu
-         LLWECYFgkSmMJ89mBfrUtUpaprS1VORGV53oPnjk=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Sergey Gorenko <sergeygo@mellanox.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 324/459] IB/srp: Never use immediate data if it is disabled by a user
-Date:   Fri, 14 Feb 2020 10:59:34 -0500
-Message-Id: <20200214160149.11681-324-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
-References: <20200214160149.11681-1-sashal@kernel.org>
+        id S2390996AbgBNR0i (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 12:26:38 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Feb 2020 09:26:37 -0800
+X-IronPort-AV: E=Sophos;i="5.70,441,1574150400"; 
+   d="scan'208";a="223081578"
+Received: from ddalessa-mobl.amr.corp.intel.com (HELO [10.254.204.146]) ([10.254.204.146])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-SHA; 14 Feb 2020 09:26:35 -0800
+Subject: Re: [PATCH 3/3] infiniband: sw: rdmavt: mcast.c: Use built-in RCU
+ list checking
+To:     madhuparnabhowmik04@gmail.com, mike.marciniszyn@intel.com,
+        jgg@ziepe.ca, paulmck@kernel.org
+Cc:     joel@joelfernandes.org, frextrite@gmail.com,
+        linux-kernel-mentees@lists.linuxfoundation.org,
+        rcu@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20200114162536.20388-1-madhuparnabhowmik04@gmail.com>
+From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
+Message-ID: <b9a48945-7fc7-2463-2b56-61ad43e54754@intel.com>
+Date:   Fri, 14 Feb 2020 12:26:34 -0500
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.2
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200114162536.20388-1-madhuparnabhowmik04@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Sergey Gorenko <sergeygo@mellanox.com>
+On 1/14/2020 11:25 AM, madhuparnabhowmik04@gmail.com wrote:
+> From: Madhuparna Bhowmik <madhuparnabhowmik04@gmail.com>
+> 
+> Use built-in RCU and lock-checking for list_for_each_entry_rcu()
+> by passing the cond argument.
+> 
+> Signed-off-by: Madhuparna Bhowmik <madhuparnabhowmik04@gmail.com>
+> ---
+>   drivers/infiniband/sw/rdmavt/mcast.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/sw/rdmavt/mcast.c b/drivers/infiniband/sw/rdmavt/mcast.c
+> index dd11c6fcd060..31c7f12c7665 100644
+> --- a/drivers/infiniband/sw/rdmavt/mcast.c
+> +++ b/drivers/infiniband/sw/rdmavt/mcast.c
+> @@ -224,7 +224,7 @@ static int rvt_mcast_add(struct rvt_dev_info *rdi, struct rvt_ibport *ibp,
+>   		}
+>   
+>   		/* Search the QP list to see if this is already there. */
+> -		list_for_each_entry_rcu(p, &tmcast->qp_list, list) {
+> +		list_for_each_entry_rcu(p, &tmcast->qp_list, list, lockdep_is_held(&(ibp->lock))) {
+>   			if (p->qp == mqp->qp) {
+>   				ret = ESRCH;
+>   				goto bail;
+> 
 
-[ Upstream commit 0fbb37dd82998b5c83355997b3bdba2806968ac7 ]
+This one is OK. The lock is held and it is the correct one to use when 
+updating the list.
 
-Some SRP targets that do not support specification SRP-2, put the garbage
-to the reserved bits of the SRP login response.  The problem was not
-detected for a long time because the SRP initiator ignored those bits. But
-now one of them is used as SRP_LOGIN_RSP_IMMED_SUPP. And it causes a
-critical error on the target when the initiator sends immediate data.
-
-The ib_srp module has a use_imm_date parameter to enable or disable
-immediate data manually. But it does not help in the above case, because
-use_imm_date is ignored at handling the SRP login response. The problem is
-definitely caused by a bug on the target side, but the initiator's
-behavior also does not look correct.  The initiator should not use
-immediate data if use_imm_date is disabled by a user.
-
-This commit adds an additional checking of use_imm_date at the handling of
-SRP login response to avoid unexpected use of immediate data.
-
-Fixes: 882981f4a411 ("RDMA/srp: Add support for immediate data")
-Link: https://lore.kernel.org/r/20200115133055.30232-1-sergeygo@mellanox.com
-Signed-off-by: Sergey Gorenko <sergeygo@mellanox.com>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b5960351bec08..8708ed5477e99 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2536,7 +2536,8 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 	if (lrsp->opcode == SRP_LOGIN_RSP) {
- 		ch->max_ti_iu_len = be32_to_cpu(lrsp->max_ti_iu_len);
- 		ch->req_lim       = be32_to_cpu(lrsp->req_lim_delta);
--		ch->use_imm_data  = lrsp->rsp_flags & SRP_LOGIN_RSP_IMMED_SUPP;
-+		ch->use_imm_data  = srp_use_imm_data &&
-+			(lrsp->rsp_flags & SRP_LOGIN_RSP_IMMED_SUPP);
- 		ch->max_it_iu_len = srp_max_it_iu_len(target->cmd_sg_cnt,
- 						      ch->use_imm_data);
- 		WARN_ON_ONCE(ch->max_it_iu_len >
--- 
-2.20.1
-
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
