@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6CF5C47409
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:59:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15DF4C3B1B2
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:01:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C074120873
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:59:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3187206D7
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:01:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581703141;
-	bh=hJczrfq4NJKGpubcEvXSXTXvYRR3QAEZ6ENaMdbMA0s=;
+	s=default; t=1581703285;
+	bh=NkbwHRPJTd0n1wMIX/xDQuhB5Pvxqjc3hAvIS3hSP/c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=QyCGDrtseELhdymfHPis0R3cFNLOmaWDy1ql0rBCShi6fa+IrxITvevSUmXuXtgmR
-	 ELdJ5JFfkWglIpiYyBD1whGiXgBFcyToRl9tU0f5vWVCyousH1o8HSnZ/yujoT4I+U
-	 TvoANrg/X540XNSW4EdzeZlebRgAc9FYsn9ITwvA=
+	b=Fm9rSo3Mhg0YRqz7drY8zLRuxB/syHuhXH/C2+dFfSHeBrlKtK/DKYcgEZQt0yq2M
+	 VTer6++QHCAlEWbGxYjWrKRJFFQswlhn23MCJ6stqL+BbMGFf5itRvHhlOWWipwUAr
+	 qTlUhX0RTVbhh4RupZYASJaOkFnV+PbrEuNijdzI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388256AbgBNR6z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:58:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39152 "EHLO mail.kernel.org"
+        id S2387706AbgBNP4Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 10:56:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388019AbgBNP4z (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:56:55 -0500
+        id S2387675AbgBNP4P (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:56:15 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BFB092086A;
-        Fri, 14 Feb 2020 15:56:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7BE25206D7;
+        Fri, 14 Feb 2020 15:56:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695814;
-        bh=hJczrfq4NJKGpubcEvXSXTXvYRR3QAEZ6ENaMdbMA0s=;
+        s=default; t=1581695774;
+        bh=NkbwHRPJTd0n1wMIX/xDQuhB5Pvxqjc3hAvIS3hSP/c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PJ+vawhykcraPPXM7k2ZPZx6L4M7KXaSu0feD+U44T209NyqofjS6Uju4RH5ZBXw6
-         DMY6uZD+aQgzlX/bup91h7RikRzyLMCLqeDsR3IenAO/acYeqpPlG4TnyMXF7ckbL/
-         VzbtC5WAzcwOYBfLaJS91SYWNuElKck3BFQDpSqk=
+        b=vkXjbLVp6/YPHGpJMjFNvmTWyxSUXhlOg6kvQpHjHk6wguSpykkoo+ZPu2bRhbr/g
+         wAaBMmInwd4jWbJ1IICmroXap8ownLhD+1J/pxv0jOCMUp9q63tQQO4LzOrzQYZqQ2
+         q9aYLz2BIFbHvNyQ59qXMYp0ieQIoAK0KLSHY8B4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Sergey Gorenko <sergeygo@mellanox.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Michael Guralnik <michaelgur@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 372/542] IB/srp: Never use immediate data if it is disabled by a user
-Date:   Fri, 14 Feb 2020 10:46:04 -0500
-Message-Id: <20200214154854.6746-372-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 339/542] RDMA/uverbs: Remove needs_kfree_rcu from uverbs_obj_type_class
+Date:   Fri, 14 Feb 2020 10:45:31 -0500
+Message-Id: <20200214154854.6746-339-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
 References: <20200214154854.6746-1-sashal@kernel.org>
@@ -59,50 +58,88 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Sergey Gorenko <sergeygo@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit 0fbb37dd82998b5c83355997b3bdba2806968ac7 ]
+[ Upstream commit 8bdf9dd984c18375d1090ddeb1792511f619c5c1 ]
 
-Some SRP targets that do not support specification SRP-2, put the garbage
-to the reserved bits of the SRP login response.  The problem was not
-detected for a long time because the SRP initiator ignored those bits. But
-now one of them is used as SRP_LOGIN_RSP_IMMED_SUPP. And it causes a
-critical error on the target when the initiator sends immediate data.
+After device disassociation the uapi_objects are destroyed and freed,
+however it is still possible that core code can be holding a kref on the
+uobject. When it finally goes to uverbs_uobject_free() via the kref_put()
+it can trigger a use-after-free on the uapi_object.
 
-The ib_srp module has a use_imm_date parameter to enable or disable
-immediate data manually. But it does not help in the above case, because
-use_imm_date is ignored at handling the SRP login response. The problem is
-definitely caused by a bug on the target side, but the initiator's
-behavior also does not look correct.  The initiator should not use
-immediate data if use_imm_date is disabled by a user.
+Since needs_kfree_rcu is a micro optimization that only benefits file
+uobjects, just get rid of it. There is no harm in using kfree_rcu even if
+it isn't required, and the number of involved objects is small.
 
-This commit adds an additional checking of use_imm_date at the handling of
-SRP login response to avoid unexpected use of immediate data.
-
-Fixes: 882981f4a411 ("RDMA/srp: Add support for immediate data")
-Link: https://lore.kernel.org/r/20200115133055.30232-1-sergeygo@mellanox.com
-Signed-off-by: Sergey Gorenko <sergeygo@mellanox.com>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Link: https://lore.kernel.org/r/20200113143306.GA28717@ziepe.ca
+Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/rdma_core.c | 23 +----------------------
+ include/rdma/uverbs_types.h         |  1 -
+ 2 files changed, 1 insertion(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b7f7a5f7bd986..cd1181c39ed29 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2546,7 +2546,8 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 	if (lrsp->opcode == SRP_LOGIN_RSP) {
- 		ch->max_ti_iu_len = be32_to_cpu(lrsp->max_ti_iu_len);
- 		ch->req_lim       = be32_to_cpu(lrsp->req_lim_delta);
--		ch->use_imm_data  = lrsp->rsp_flags & SRP_LOGIN_RSP_IMMED_SUPP;
-+		ch->use_imm_data  = srp_use_imm_data &&
-+			(lrsp->rsp_flags & SRP_LOGIN_RSP_IMMED_SUPP);
- 		ch->max_it_iu_len = srp_max_it_iu_len(target->cmd_sg_cnt,
- 						      ch->use_imm_data,
- 						      target->max_it_iu_size);
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 6c72773faf291..17bdbe38fdfa5 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -49,13 +49,7 @@ void uverbs_uobject_get(struct ib_uobject *uobject)
+ 
+ static void uverbs_uobject_free(struct kref *ref)
+ {
+-	struct ib_uobject *uobj =
+-		container_of(ref, struct ib_uobject, ref);
+-
+-	if (uobj->uapi_object->type_class->needs_kfree_rcu)
+-		kfree_rcu(uobj, rcu);
+-	else
+-		kfree(uobj);
++	kfree_rcu(container_of(ref, struct ib_uobject, ref), rcu);
+ }
+ 
+ void uverbs_uobject_put(struct ib_uobject *uobject)
+@@ -744,20 +738,6 @@ const struct uverbs_obj_type_class uverbs_idr_class = {
+ 	.lookup_put = lookup_put_idr_uobject,
+ 	.destroy_hw = destroy_hw_idr_uobject,
+ 	.remove_handle = remove_handle_idr_uobject,
+-	/*
+-	 * When we destroy an object, we first just lock it for WRITE and
+-	 * actually DESTROY it in the finalize stage. So, the problematic
+-	 * scenario is when we just started the finalize stage of the
+-	 * destruction (nothing was executed yet). Now, the other thread
+-	 * fetched the object for READ access, but it didn't lock it yet.
+-	 * The DESTROY thread continues and starts destroying the object.
+-	 * When the other thread continue - without the RCU, it would
+-	 * access freed memory. However, the rcu_read_lock delays the free
+-	 * until the rcu_read_lock of the READ operation quits. Since the
+-	 * exclusive lock of the object is still taken by the DESTROY flow, the
+-	 * READ operation will get -EBUSY and it'll just bail out.
+-	 */
+-	.needs_kfree_rcu = true,
+ };
+ EXPORT_SYMBOL(uverbs_idr_class);
+ 
+@@ -920,7 +900,6 @@ const struct uverbs_obj_type_class uverbs_fd_class = {
+ 	.lookup_put = lookup_put_fd_uobject,
+ 	.destroy_hw = destroy_hw_fd_uobject,
+ 	.remove_handle = remove_handle_fd_uobject,
+-	.needs_kfree_rcu = false,
+ };
+ EXPORT_SYMBOL(uverbs_fd_class);
+ 
+diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+index d57a5ba00c743..0b0f5a5f392de 100644
+--- a/include/rdma/uverbs_types.h
++++ b/include/rdma/uverbs_types.h
+@@ -98,7 +98,6 @@ struct uverbs_obj_type_class {
+ 				       enum rdma_remove_reason why,
+ 				       struct uverbs_attr_bundle *attrs);
+ 	void (*remove_handle)(struct ib_uobject *uobj);
+-	u8    needs_kfree_rcu;
+ };
+ 
+ struct uverbs_obj_type {
 -- 
 2.20.1
 
