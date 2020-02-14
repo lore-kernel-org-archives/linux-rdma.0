@@ -4,56 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A148C3B1B1
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:49:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20005C3B1AF
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:51:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 02F32206B6
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:49:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE4AD206D7
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:51:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581702557;
-	bh=c5o19+rQFgJknbbwsH/t2vs9Qk0t3EGm16g5n7mQ11A=;
+	s=default; t=1581702680;
+	bh=PLNrytnzgF1eAeTHEjvYL517Oe7v9++dJm1YPKnNc2U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=c88ll/PzulPXRx00RJDCnKSIPYqD2F23ODhcfMZ/p33XOUeGPSb69lsrIq+NQ6N23
-	 nu0CykUujupatOC3TRXKCmfDAqOIETu1dquNQkU9m5y8Of6fuetCPJgcyzwhJvuXmT
-	 hwm9PZFxuafhyFU2w3sWEcXSDTYJO4gzAO5e71H4=
+	b=QD3ix4o/5JOI/W93IJnX/GZhLuljYoJc+YjKpPU8odKu2/pHLa1Hn3+Z2E1Ituuhf
+	 u1F9xtAom7nG0kYn2Y0uQGSaF6ksS49W/fwlEQs7lCGCFp6OrjtNHk0IkZmk5lMC4u
+	 Pg21Y+U5LFTqm54OueCuGcTbBKut+iDzdobpFFyA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389431AbgBNRtP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:49:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43988 "EHLO mail.kernel.org"
+        id S2388736AbgBNP6z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 10:58:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388898AbgBNP7W (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:59:22 -0500
+        id S2388400AbgBNP6y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:58:54 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 761DF22314;
-        Fri, 14 Feb 2020 15:59:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5FF04222C4;
+        Fri, 14 Feb 2020 15:58:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695961;
-        bh=c5o19+rQFgJknbbwsH/t2vs9Qk0t3EGm16g5n7mQ11A=;
+        s=default; t=1581695934;
+        bh=PLNrytnzgF1eAeTHEjvYL517Oe7v9++dJm1YPKnNc2U=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=T3heskChvJ0kLk8KxQH7AG1TmIX/Ub9EioXnUczhuYsm1yAwtwuVdzC9MPEGpDwmf
-         UL0jSkvvkLXSx6gETex0vEwdvaAI8Au6tUthVu7eeB0ooBECqy7kn/Z0VriHpJvWtd
-         kQmVPnF+XlsynEKsNZF2+veZGSUKGCrapW0aEGJM=
+        b=S5lqIXlvgeFHkmc3ms1vvR9ZrOlliLaSHMZt8hbDRq5o8Su/Pi0Cdn4lWnBQkG6+y
+         6CtaL4hC4eQCuHTIbvlRi8zqerUp/CsRZPuOY3eQ3d9XvVumnUw1TTliU7600UaHab
+         8Eb03El6glPRq30+Ig9+gJoii2/YFwTW73hCL+yg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
-        Manjunath Patil <manjunath.b.patil@oracle.com>,
-        Rama Nichanamatlu <rama.nichanamatlu@oracle.com>,
-        Jack Morgenstein <jackm@dev.mellanox.co.il>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Gal Pressman <galpress@amazon.com>,
+        Michal Kalderon <michal.kalderon@marvell.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 490/542] IB/mlx4: Fix leak in id_map_find_del
-Date:   Fri, 14 Feb 2020 10:48:02 -0500
-Message-Id: <20200214154854.6746-490-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 469/542] RDMA/core: Ensure that rdma_user_mmap_entry_remove() is a fence
+Date:   Fri, 14 Feb 2020 10:47:41 -0500
+Message-Id: <20200214154854.6746-469-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
 References: <20200214154854.6746-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -62,129 +59,41 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Håkon Bugge <haakon.bugge@oracle.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit ea660ad7c1c476fd6e5e3b17780d47159db71dea ]
+[ Upstream commit 6b3712c0246ca7b2b8fa05eab2362cf267410f7e ]
 
-Using CX-3 virtual functions, either from a bare-metal machine or
-pass-through from a VM, MAD packets are proxied through the PF driver.
+The set of entry->driver_removed is missing locking, protect it with
+xa_lock() which is held by the only reader.
 
-Since the VF drivers have separate name spaces for MAD Transaction Ids
-(TIDs), the PF driver has to re-map the TIDs and keep the book keeping in
-a cache.
+Otherwise readers may continue to see driver_removed = false after
+rdma_user_mmap_entry_remove() returns and may continue to try and
+establish new mmaps.
 
-Following the RDMA Connection Manager (CM) protocol, it is clear when an
-entry has to evicted from the cache. When a DREP is sent from
-mlx4_ib_multiplex_cm_handler(), id_map_find_del() is called. Similar when
-a REJ is received by the mlx4_ib_demux_cm_handler(), id_map_find_del() is
-called.
-
-This function wipes out the TID in use from the IDR or XArray and removes
-the id_map_entry from the table.
-
-In short, it does everything except the topping of the cake, which is to
-remove the entry from the list and free it. In other words, for the REJ
-case enumerated above, one id_map_entry will be leaked.
-
-For the other case above, a DREQ has been received first. The reception of
-the DREQ will trigger queuing of a delayed work to delete the
-id_map_entry, for the case where the VM doesn't send back a DREP.
-
-In the normal case, the VM _will_ send back a DREP, and id_map_find_del()
-will be called.
-
-But this scenario introduces a secondary leak. First, when the DREQ is
-received, a delayed work is queued. The VM will then return a DREP, which
-will call id_map_find_del(). As stated above, this will free the TID used
-from the XArray or IDR. Now, there is window where that particular TID can
-be re-allocated, lets say by an outgoing REQ. This TID will later be wiped
-out by the delayed work, when the function id_map_ent_timeout() is
-called. But the id_map_entry allocated by the outgoing REQ will not be
-de-allocated, and we have a leak.
-
-Both leaks are fixed by removing the id_map_find_del() function and only
-using schedule_delayed(). Of course, a check in schedule_delayed() to see
-if the work already has been queued, has been added.
-
-Another benefit of always using the delayed version for deleting entries,
-is that we do get a TimeWait effect; a TID no longer in use, will occupy
-the XArray or IDR for CM_CLEANUP_CACHE_TIMEOUT time, without any ability
-of being re-used for that time period.
-
-Fixes: 3cf69cc8dbeb ("IB/mlx4: Add CM paravirtualization")
-Link: https://lore.kernel.org/r/20200123155521.1212288-1-haakon.bugge@oracle.com
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-Signed-off-by: Manjunath Patil <manjunath.b.patil@oracle.com>
-Reviewed-by: Rama Nichanamatlu <rama.nichanamatlu@oracle.com>
-Reviewed-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Fixes: 3411f9f01b76 ("RDMA/core: Create mmap database and cookie helper functions")
+Link: https://lore.kernel.org/r/20200115202041.GA17199@ziepe.ca
+Reviewed-by: Gal Pressman <galpress@amazon.com>
+Acked-by: Michal Kalderon <michal.kalderon@marvell.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx4/cm.c | 29 +++--------------------------
- 1 file changed, 3 insertions(+), 26 deletions(-)
+ drivers/infiniband/core/ib_core_uverbs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index ecd6cadd529a5..b591861934b3c 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -186,23 +186,6 @@ static void id_map_ent_timeout(struct work_struct *work)
- 	kfree(ent);
+diff --git a/drivers/infiniband/core/ib_core_uverbs.c b/drivers/infiniband/core/ib_core_uverbs.c
+index b7cb59844ece4..b51bd7087a881 100644
+--- a/drivers/infiniband/core/ib_core_uverbs.c
++++ b/drivers/infiniband/core/ib_core_uverbs.c
+@@ -232,7 +232,9 @@ void rdma_user_mmap_entry_remove(struct rdma_user_mmap_entry *entry)
+ 	if (!entry)
+ 		return;
+ 
++	xa_lock(&entry->ucontext->mmap_xa);
+ 	entry->driver_removed = true;
++	xa_unlock(&entry->ucontext->mmap_xa);
+ 	kref_put(&entry->ref, rdma_user_mmap_entry_free);
  }
- 
--static void id_map_find_del(struct ib_device *ibdev, int pv_cm_id)
--{
--	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
--	struct rb_root *sl_id_map = &sriov->sl_id_map;
--	struct id_map_entry *ent, *found_ent;
--
--	spin_lock(&sriov->id_map_lock);
--	ent = xa_erase(&sriov->pv_id_table, pv_cm_id);
--	if (!ent)
--		goto out;
--	found_ent = id_map_find_by_sl_id(ibdev, ent->slave_id, ent->sl_cm_id);
--	if (found_ent && found_ent == ent)
--		rb_erase(&found_ent->node, sl_id_map);
--out:
--	spin_unlock(&sriov->id_map_lock);
--}
--
- static void sl_id_map_add(struct ib_device *ibdev, struct id_map_entry *new)
- {
- 	struct rb_root *sl_id_map = &to_mdev(ibdev)->sriov.sl_id_map;
-@@ -294,7 +277,7 @@ static void schedule_delayed(struct ib_device *ibdev, struct id_map_entry *id)
- 	spin_lock(&sriov->id_map_lock);
- 	spin_lock_irqsave(&sriov->going_down_lock, flags);
- 	/*make sure that there is no schedule inside the scheduled work.*/
--	if (!sriov->is_going_down) {
-+	if (!sriov->is_going_down && !id->scheduled_delete) {
- 		id->scheduled_delete = 1;
- 		schedule_delayed_work(&id->timeout, CM_CLEANUP_CACHE_TIMEOUT);
- 	}
-@@ -341,9 +324,6 @@ int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id
- 
- 	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
- 		schedule_delayed(ibdev, id);
--	else if (mad->mad_hdr.attr_id == CM_DREP_ATTR_ID)
--		id_map_find_del(ibdev, pv_cm_id);
--
- 	return 0;
- }
- 
-@@ -382,12 +362,9 @@ int mlx4_ib_demux_cm_handler(struct ib_device *ibdev, int port, int *slave,
- 		*slave = id->slave_id;
- 	set_remote_comm_id(mad, id->sl_cm_id);
- 
--	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
-+	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID ||
-+	    mad->mad_hdr.attr_id == CM_REJ_ATTR_ID)
- 		schedule_delayed(ibdev, id);
--	else if (mad->mad_hdr.attr_id == CM_REJ_ATTR_ID ||
--			mad->mad_hdr.attr_id == CM_DREP_ATTR_ID) {
--		id_map_find_del(ibdev, (int) pv_cm_id);
--	}
- 
- 	return 0;
- }
+ EXPORT_SYMBOL(rdma_user_mmap_entry_remove);
 -- 
 2.20.1
 
