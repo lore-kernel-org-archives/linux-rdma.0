@@ -2,236 +2,101 @@ Return-Path: <SRS0=HMeR=4C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1966AC35242
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 20:39:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 600A3C35242
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 21:17:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC01522314
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 20:39:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="k8B2BMcB"
+	by mail.kernel.org (Postfix) with ESMTP id 2436424673
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 21:17:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581715027;
+	bh=kwJZryH9PYTfAgDGtFgbmMLNd0kxk71mAKpiZB1yWV4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=SBGKuM2TaA3umDssEHvYWlhLlA22ArTEx/ngO0skQA0K/g+5oOfCAis5EYngVQUSF
+	 8tarW8ClyXdwSUgDSLGTKb79dPfU0aY5bJ+65dcttm35km4ZA5X4cY6OjqKt55eCGQ
+	 iCw9off3fXw+gaxeo9EymyihRzVPZkPUAQQww6Io=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730187AbgBNUjf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 15:39:35 -0500
-Received: from mail-qk1-f193.google.com ([209.85.222.193]:44098 "EHLO
-        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730043AbgBNUje (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Feb 2020 15:39:34 -0500
-Received: by mail-qk1-f193.google.com with SMTP id v195so10478071qkb.11
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Feb 2020 12:39:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=Oo2pkt9CWUlNP26Aj7JvVAs5/HfWe+DbVSstrn3Z6gc=;
-        b=k8B2BMcBuBEpjJJsaYiFY9ohOkUn5y3CX8Sd1VA71RY3hItJXp0r+ILL1z88yJ2/5X
-         vX3bxjRipFItXTIB/YKj//obdqSmpbBQpHq1bfFcpwlOt0jnnYJ2f/m0VMxAABbnVEke
-         aStTmViZ4cQ1HM78CeVhIoNrUyb9KdtvcC/URJXFL/QTyEaA9uoUhG7F1M/Nk5O+mYYh
-         zCXZmV06MmNf/jywmpjQ94TqlWqf79AL8A0OJ7LEB6iAD+eMgT6ISUdfHzWMOP04Lden
-         fapQ3C3eS7z+Skk5MNY94HX7YdLagwwZrVVFBrLJZ+B+rJQQQJvk4+wwETguUn+xq8Yl
-         G2jQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=Oo2pkt9CWUlNP26Aj7JvVAs5/HfWe+DbVSstrn3Z6gc=;
-        b=Xonn+yQkMZq+h4vVysrjefdRn4QSPJPpGVBedYI/dMpNEpmiuV51LAAQDibFSsHfXV
-         ycBBGazrU2xgood15o+laji9YeMWZIkAHwx2L46LK2OLZW0OsvRmx6SJfQ0eb1ZzQJUI
-         zOvfNxFDUbM8kO9LTdvyR+2nSZKBCGDm3mD7FvmsZUntrgUz9pycTATMvWFsWzFaNUHd
-         4DMeuWylU++mHTZfRL7hxmswSIsCLKU63jkIziNM653OY4MqusWpWRGxHLz3aN7PYJ00
-         XfYBAEpjdR4ij6WdaBWzhP4hTwklN3tuuZxCXcz/De5ynyAmX6fV3JgV3q5ISCnM2Tet
-         X2CQ==
-X-Gm-Message-State: APjAAAVOn1qHijzJj2X7HnsEwpytKByRL/DUygpOl3QiuV2myBEoryCC
-        5S3eAJDiuWuCqZ9PNvrrfequpA==
-X-Google-Smtp-Source: APXvYqzwO6JQOeYA+Za+/OfE7SOU/V7tggwhq/PHZc6nlA1nx/UeepixWmCET6bSM8qdVH/CC4M07Q==
-X-Received: by 2002:a05:620a:146a:: with SMTP id j10mr4158323qkl.19.1581712773573;
-        Fri, 14 Feb 2020 12:39:33 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id z6sm3752017qkz.101.2020.02.14.12.39.32
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 14 Feb 2020 12:39:33 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1j2hkK-0007Jp-IQ; Fri, 14 Feb 2020 16:39:32 -0400
-Date:   Fri, 14 Feb 2020 16:39:32 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc:     davem@davemloft.net, gregkh@linuxfoundation.org,
+        id S2389223AbgBNVRE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 16:17:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50984 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389164AbgBNVRE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 16:17:04 -0500
+Received: from localhost (unknown [65.119.211.164])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E0E6624650;
+        Fri, 14 Feb 2020 21:17:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1581715024;
+        bh=kwJZryH9PYTfAgDGtFgbmMLNd0kxk71mAKpiZB1yWV4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=pF9+ek0Z6PsREEEJaI4Y8E1Vz3bPtYrgr158u15CTfoyqrCzTSKk3QcMq5DIP8jNf
+         iARoEJykQgwfBl5KjnUl/hz1O5dGTSLXb8e+DM0mKjaC/svwDs4ByXxNvdfL0QfNK1
+         pRf55/6GIYzsM6RzxwTRLPSCHT5kAYpSO2v/wVmU=
+Date:   Fri, 14 Feb 2020 15:45:00 -0500
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Jeff Kirsher <jeffrey.t.kirsher@intel.com>, davem@davemloft.net,
         Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
-        sassmann@redhat.com, Tony Nguyen <anthony.l.nguyen@intel.com>,
+        sassmann@redhat.com, parav@mellanox.com, galpress@amazon.com,
+        selvin.xavier@broadcom.com, sriharsha.basavapatna@broadcom.com,
+        benve@cisco.com, bharat@chelsio.com, xavier.huwei@huawei.com,
+        yishaih@mellanox.com, leonro@mellanox.com, mkalderon@marvell.com,
+        aditr@vmware.com, Kiran Patil <kiran.patil@intel.com>,
         Andrew Bowers <andrewx.bowers@intel.com>
-Subject: Re: [RFC PATCH v4 02/25] ice: Create and register virtual bus for
- RDMA
-Message-ID: <20200214203932.GY31668@ziepe.ca>
+Subject: Re: [RFC PATCH v4 01/25] virtual-bus: Implementation of Virtual Bus
+Message-ID: <20200214204500.GC4086224@kroah.com>
 References: <20200212191424.1715577-1-jeffrey.t.kirsher@intel.com>
- <20200212191424.1715577-3-jeffrey.t.kirsher@intel.com>
+ <20200212191424.1715577-2-jeffrey.t.kirsher@intel.com>
+ <20200214170240.GA4034785@kroah.com>
+ <20200214203455.GX31668@ziepe.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200212191424.1715577-3-jeffrey.t.kirsher@intel.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+In-Reply-To: <20200214203455.GX31668@ziepe.ca>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Feb 12, 2020 at 11:14:01AM -0800, Jeff Kirsher wrote:
-> +/**
-> + * ice_init_peer_devices - initializes peer devices
-> + * @pf: ptr to ice_pf
-> + *
-> + * This function initializes peer devices on the virtual bus.
-> + */
-> +int ice_init_peer_devices(struct ice_pf *pf)
-> +{
-> +	struct ice_vsi *vsi = pf->vsi[0];
-> +	struct pci_dev *pdev = pf->pdev;
-> +	struct device *dev = &pdev->dev;
-> +	int status = 0;
-> +	int i;
-> +
-> +	/* Reserve vector resources */
-> +	status = ice_reserve_peer_qvector(pf);
-> +	if (status < 0) {
-> +		dev_err(dev, "failed to reserve vectors for peer drivers\n");
-> +		return status;
-> +	}
-> +	for (i = 0; i < ARRAY_SIZE(ice_peers); i++) {
-> +		struct ice_peer_dev_int *peer_dev_int;
-> +		struct ice_peer_drv_int *peer_drv_int;
-> +		struct iidc_qos_params *qos_info;
-> +		struct iidc_virtbus_object *vbo;
-> +		struct msix_entry *entry = NULL;
-> +		struct iidc_peer_dev *peer_dev;
-> +		struct virtbus_device *vdev;
-> +		int j;
-> +
-> +		/* structure layout needed for container_of's looks like:
-> +		 * ice_peer_dev_int (internal only ice peer superstruct)
-> +		 * |--> iidc_peer_dev
-> +		 * |--> *ice_peer_drv_int
-> +		 *
-> +		 * iidc_virtbus_object (container_of parent for vdev)
-> +		 * |--> virtbus_device
-> +		 * |--> *iidc_peer_dev (pointer from internal struct)
-> +		 *
-> +		 * ice_peer_drv_int (internal only peer_drv struct)
-> +		 */
-> +		peer_dev_int = devm_kzalloc(dev, sizeof(*peer_dev_int),
-> +					    GFP_KERNEL);
-> +		if (!peer_dev_int)
-> +			return -ENOMEM;
-> +
-> +		vbo = kzalloc(sizeof(*vbo), GFP_KERNEL);
-> +		if (!vbo) {
-> +			devm_kfree(dev, peer_dev_int);
-> +			return -ENOMEM;
-> +		}
-> +
-> +		peer_drv_int = devm_kzalloc(dev, sizeof(*peer_drv_int),
-> +					    GFP_KERNEL);
+On Fri, Feb 14, 2020 at 04:34:55PM -0400, Jason Gunthorpe wrote:
+> On Fri, Feb 14, 2020 at 09:02:40AM -0800, Greg KH wrote:
+> > > +	put_device(&vdev->dev);
+> > > +	ida_simple_remove(&virtbus_dev_ida, vdev->id);
+> > 
+> > You need to do this before put_device().
+> 
+> Shouldn't it be in the release function? The ida index should not be
+> re-used until the kref goes to zero..
 
-To me, this looks like a lifetime mess. All these devm allocations
-against the parent object are being referenced through the vbo with a
-different kref lifetime. The whole thing has very unclear semantics
-who should be cleaning up on error
+Doesn't really matter, once you have unregistered it, you can reuse it.
+But yes, putting it in release() is the safest thing to do.
 
-> +		if (!peer_drv_int) {
-> +			devm_kfree(dev, peer_dev_int);
-> +			kfree(vbo);
+> > > +struct virtbus_device {
+> > > +	struct device dev;
+> > > +	const char *name;
+> > > +	void (*release)(struct virtbus_device *);
+> > > +	int id;
+> > > +	const struct virtbus_dev_id *matched_element;
+> > > +};
+> > 
+> > Any reason you need to make "struct virtbus_device" a public structure
+> > at all? 
+> 
+> The general point of this scheme is to do this in a public header:
+> 
+> +struct iidc_virtbus_object {
+> +	struct virtbus_device vdev;
+> +	struct iidc_peer_dev *peer_dev;
+> +};
+> 
+> And then this when the driver binds:
 
-ie here we free two things
+Ah, yes, nevermind, I missed that.
 
-> +			return -ENOMEM;
-> +		}
-> +
-> +		pf->peers[i] = peer_dev_int;
-> +		vbo->peer_dev = &peer_dev_int->peer_dev;
-> +		peer_dev_int->peer_drv_int = peer_drv_int;
-> +		peer_dev_int->peer_dev.vdev = &vbo->vdev;
-> +
-> +		/* Initialize driver values */
-> +		for (j = 0; j < IIDC_EVENT_NBITS; j++)
-> +			bitmap_zero(peer_drv_int->current_events[j].type,
-> +				    IIDC_EVENT_NBITS);
-> +
-> +		mutex_init(&peer_dev_int->peer_dev_state_mutex);
-> +
-> +		peer_dev = &peer_dev_int->peer_dev;
-> +		peer_dev->peer_ops = NULL;
-> +		peer_dev->hw_addr = (u8 __iomem *)pf->hw.hw_addr;
-> +		peer_dev->peer_dev_id = ice_peers[i].id;
-> +		peer_dev->pf_vsi_num = vsi->vsi_num;
-> +		peer_dev->netdev = vsi->netdev;
-> +
-> +		peer_dev_int->ice_peer_wq =
-> +			alloc_ordered_workqueue("ice_peer_wq_%d", WQ_UNBOUND,
-> +						i);
-> +		if (!peer_dev_int->ice_peer_wq)
-> +			return -ENOMEM;
-
-Here we free nothing
-
-> +
-> +		peer_dev->pdev = pdev;
-> +		qos_info = &peer_dev->initial_qos_info;
-> +
-> +		/* setup qos_info fields with defaults */
-> +		qos_info->num_apps = 0;
-> +		qos_info->num_tc = 1;
-> +
-> +		for (j = 0; j < IIDC_MAX_USER_PRIORITY; j++)
-> +			qos_info->up2tc[j] = 0;
-> +
-> +		qos_info->tc_info[0].rel_bw = 100;
-> +		for (j = 1; j < IEEE_8021QAZ_MAX_TCS; j++)
-> +			qos_info->tc_info[j].rel_bw = 0;
-> +
-> +		/* for DCB, override the qos_info defaults. */
-> +		ice_setup_dcb_qos_info(pf, qos_info);
-> +
-> +		/* make sure peer specific resources such as msix_count and
-> +		 * msix_entries are initialized
-> +		 */
-> +		switch (ice_peers[i].id) {
-> +		case IIDC_PEER_RDMA_ID:
-> +			if (test_bit(ICE_FLAG_IWARP_ENA, pf->flags)) {
-> +				peer_dev->msix_count = pf->num_rdma_msix;
-> +				entry = &pf->msix_entries[pf->rdma_base_vector];
-> +			}
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +
-> +		peer_dev->msix_entries = entry;
-> +		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_INIT,
-> +				      false);
-> +
-> +		vdev = &vbo->vdev;
-> +		vdev->name = ice_peers[i].name;
-> +		vdev->release = ice_peer_vdev_release;
-> +		vdev->dev.parent = &pdev->dev;
-> +
-> +		status = virtbus_dev_register(vdev);
-> +		if (status) {
-> +			virtbus_dev_unregister(vdev);
-> +			vdev = NULL;
-
-Here we double unregister and free nothing.
-
-You need to go through all of this really carefully and make some kind
-of sane lifetime model and fix all the error unwinding :(
-
-Why doesn't the release() function of vbo trigger the free of all this
-peer related stuff?
-
-Use a sane design model of splitting into functions to allocate single
-peices of memory, goto error unwind each function, and build things up
-properly.
-
-Jason
+greg k-h
