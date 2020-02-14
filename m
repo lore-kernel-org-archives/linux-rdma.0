@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5E53C2BA83
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:03:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 320C7C3B1B2
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:03:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 90C2D20873
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:03:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 093C920848
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:03:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581703410;
-	bh=n8/eT0zOWM4YH+hFYcZ+qn8PGX/nJFDqrsYfxuAXJUA=;
+	s=default; t=1581703413;
+	bh=FBM1rzf7DLSMvUAaC3i8DcmuGknUjHJ5lhPV/cxqBRI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=MNtjafBujW0aChU6zshRCa2gpTnTugVFLbsJUK5HbaxseaCXQdHit/cWCNzhNx3O7
-	 rYLa1FVvoBlwpNalpahRztxYPIN4feFFI8LXCcA6/JuxEgIOv8EKYYzRjLOV6elnkA
-	 tJoWmR2PurQxiQqqjeKTsqlNhfZ1B/2V+6XB6zd0=
+	b=S9/y90RLdJTFyCNjJXh0n5pcTem1esuP0DxmpceIij3oghfOaJ5gpMsFbadUV3MEz
+	 Vl4PQBKCaqm/4wTU0sAEa1iG2/hvfrGS+9MS0msXWiPEBLQh8ct7S+tDMAw6RTcT2x
+	 q8dEGIExXVDI8X3jk3e/zzl1TQQ+TqBaYuSfmwJs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388643AbgBNSDZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 13:03:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36988 "EHLO mail.kernel.org"
+        id S2387576AbgBNPzn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 10:55:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387595AbgBNPzo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:55:44 -0500
+        id S2387552AbgBNPzm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:55:42 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A8E282467C;
-        Fri, 14 Feb 2020 15:55:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3C5C124676;
+        Fri, 14 Feb 2020 15:55:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695743;
-        bh=n8/eT0zOWM4YH+hFYcZ+qn8PGX/nJFDqrsYfxuAXJUA=;
+        s=default; t=1581695742;
+        bh=FBM1rzf7DLSMvUAaC3i8DcmuGknUjHJ5lhPV/cxqBRI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IrGHIfsqtBOY87hyQEsHjiJk8tq3u34QLEd8TTnPO/JsSon3YlfGyLqpsjZRVWTz2
-         K0Cr5T0jZueOU94kuyt0r4158RfhSc7wpH/Oz/opxDOiW7TCtRtRgzlAU9h0oCs8BS
-         H7p/NK2dJ+aAr+jjkq2rnAIWDhhod5yhOS3UEFPY=
+        b=mkzRLZAPYmYdVB++6f9GcrEOUF5motCV8VEPiYhywN2kvV3X/mjtKwAW/y3X6PpZq
+         VQJ1lyMtW/V9blgrQQmIwNWuilGtAGNnrCl8Cb3s/WRPwlA1lIZumeHDlBGdtMDkxc
+         Qi3QgUcwuF6bwWHTzn/QNvGk9FI6UsvO/eM8LCDw=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Kaike Wan <kaike.wan@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 315/542] IB/hfi1: Add software counter for ctxt0 seq drop
-Date:   Fri, 14 Feb 2020 10:45:07 -0500
-Message-Id: <20200214154854.6746-315-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 314/542] RDMA/core: Fix locking in ib_uverbs_event_read
+Date:   Fri, 14 Feb 2020 10:45:06 -0500
+Message-Id: <20200214154854.6746-314-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
 References: <20200214154854.6746-1-sashal@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -60,93 +60,109 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit 5ffd048698ea5139743acd45e8ab388a683642b8 ]
+[ Upstream commit 14e23bd6d22123f6f3b2747701fa6cd4c6d05873 ]
 
-All other code paths increment some form of drop counter.
+This should not be using ib_dev to test for disassociation, during
+disassociation is_closed is set under lock and the waitq is triggered.
 
-This was missed in the original implementation.
+Instead check is_closed and be sure to re-obtain the lock to test the
+value after the wait_event returns.
 
-Fixes: 82c2611daaf0 ("staging/rdma/hfi1: Handle packets with invalid RHF on context 0")
-Link: https://lore.kernel.org/r/20200106134228.119356.96828.stgit@awfm-01.aw.intel.com
-Reviewed-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Fixes: 036b10635739 ("IB/uverbs: Enable device removal when there are active user space applications")
+Link: https://lore.kernel.org/r/1578504126-9400-12-git-send-email-yishaih@mellanox.com
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c   | 10 ++++++++++
- drivers/infiniband/hw/hfi1/chip.h   |  1 +
- drivers/infiniband/hw/hfi1/driver.c |  1 +
- drivers/infiniband/hw/hfi1/hfi.h    |  2 ++
- 4 files changed, 14 insertions(+)
+ drivers/infiniband/core/uverbs_main.c | 32 ++++++++++++---------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 9b1fb84a3d45b..d5961918fe157 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -1685,6 +1685,14 @@ static u64 access_sw_pio_drain(const struct cntr_entry *entry,
- 	return dd->verbs_dev.n_piodrain;
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 970d8e31dd658..8f5de4dcad97c 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -220,7 +220,6 @@ void ib_uverbs_release_file(struct kref *ref)
  }
  
-+static u64 access_sw_ctx0_seq_drop(const struct cntr_entry *entry,
-+				   void *context, int vl, int mode, u64 data)
-+{
-+	struct hfi1_devdata *dd = context;
+ static ssize_t ib_uverbs_event_read(struct ib_uverbs_event_queue *ev_queue,
+-				    struct ib_uverbs_file *uverbs_file,
+ 				    struct file *filp, char __user *buf,
+ 				    size_t count, loff_t *pos,
+ 				    size_t eventsz)
+@@ -238,19 +237,16 @@ static ssize_t ib_uverbs_event_read(struct ib_uverbs_event_queue *ev_queue,
+ 
+ 		if (wait_event_interruptible(ev_queue->poll_wait,
+ 					     (!list_empty(&ev_queue->event_list) ||
+-			/* The barriers built into wait_event_interruptible()
+-			 * and wake_up() guarentee this will see the null set
+-			 * without using RCU
+-			 */
+-					     !uverbs_file->device->ib_dev)))
++					      ev_queue->is_closed)))
+ 			return -ERESTARTSYS;
+ 
++		spin_lock_irq(&ev_queue->lock);
 +
-+	return dd->ctx0_seq_drop;
-+}
-+
- static u64 access_sw_vtx_wait(const struct cntr_entry *entry,
- 			      void *context, int vl, int mode, u64 data)
+ 		/* If device was disassociated and no event exists set an error */
+-		if (list_empty(&ev_queue->event_list) &&
+-		    !uverbs_file->device->ib_dev)
++		if (list_empty(&ev_queue->event_list) && ev_queue->is_closed) {
++			spin_unlock_irq(&ev_queue->lock);
+ 			return -EIO;
+-
+-		spin_lock_irq(&ev_queue->lock);
++		}
+ 	}
+ 
+ 	event = list_entry(ev_queue->event_list.next, struct ib_uverbs_event, list);
+@@ -285,8 +281,7 @@ static ssize_t ib_uverbs_async_event_read(struct file *filp, char __user *buf,
  {
-@@ -4249,6 +4257,8 @@ static struct cntr_entry dev_cntrs[DEV_CNTR_LAST] = {
- 			    access_sw_cpu_intr),
- [C_SW_CPU_RCV_LIM] = CNTR_ELEM("RcvLimit", 0, 0, CNTR_NORMAL,
- 			    access_sw_cpu_rcv_limit),
-+[C_SW_CTX0_SEQ_DROP] = CNTR_ELEM("SeqDrop0", 0, 0, CNTR_NORMAL,
-+			    access_sw_ctx0_seq_drop),
- [C_SW_VTX_WAIT] = CNTR_ELEM("vTxWait", 0, 0, CNTR_NORMAL,
- 			    access_sw_vtx_wait),
- [C_SW_PIO_WAIT] = CNTR_ELEM("PioWait", 0, 0, CNTR_NORMAL,
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 4ca5ac8d7e9e4..bfccd4ae07a72 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -926,6 +926,7 @@ enum {
- 	C_DC_PG_STS_TX_MBE_CNT,
- 	C_SW_CPU_INTR,
- 	C_SW_CPU_RCV_LIM,
-+	C_SW_CTX0_SEQ_DROP,
- 	C_SW_VTX_WAIT,
- 	C_SW_PIO_WAIT,
- 	C_SW_PIO_DRAIN,
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 01aa1f132f55e..941b465244abe 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -734,6 +734,7 @@ static noinline int skip_rcv_packet(struct hfi1_packet *packet, int thread)
+ 	struct ib_uverbs_async_event_file *file = filp->private_data;
+ 
+-	return ib_uverbs_event_read(&file->ev_queue, file->uverbs_file, filp,
+-				    buf, count, pos,
++	return ib_uverbs_event_read(&file->ev_queue, filp, buf, count, pos,
+ 				    sizeof(struct ib_uverbs_async_event_desc));
+ }
+ 
+@@ -296,9 +291,8 @@ static ssize_t ib_uverbs_comp_event_read(struct file *filp, char __user *buf,
+ 	struct ib_uverbs_completion_event_file *comp_ev_file =
+ 		filp->private_data;
+ 
+-	return ib_uverbs_event_read(&comp_ev_file->ev_queue,
+-				    comp_ev_file->uobj.ufile, filp,
+-				    buf, count, pos,
++	return ib_uverbs_event_read(&comp_ev_file->ev_queue, filp, buf, count,
++				    pos,
+ 				    sizeof(struct ib_uverbs_comp_event_desc));
+ }
+ 
+@@ -321,7 +315,9 @@ static __poll_t ib_uverbs_event_poll(struct ib_uverbs_event_queue *ev_queue,
+ static __poll_t ib_uverbs_async_event_poll(struct file *filp,
+ 					       struct poll_table_struct *wait)
  {
- 	int ret;
- 
-+	packet->rcd->dd->ctx0_seq_drop++;
- 	/* Set up for the next packet */
- 	packet->rhqoff += packet->rsize;
- 	if (packet->rhqoff >= packet->maxcnt)
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index fc10d65fc3e13..3084d6cc63a70 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1153,6 +1153,8 @@ struct hfi1_devdata {
- 
- 	char *boardname; /* human readable board info */
- 
-+	u64 ctx0_seq_drop;
+-	return ib_uverbs_event_poll(filp->private_data, filp, wait);
++	struct ib_uverbs_async_event_file *file = filp->private_data;
 +
- 	/* reset value */
- 	u64 z_int_counter;
- 	u64 z_rcv_limit;
++	return ib_uverbs_event_poll(&file->ev_queue, filp, wait);
+ }
+ 
+ static __poll_t ib_uverbs_comp_event_poll(struct file *filp,
+@@ -335,9 +331,9 @@ static __poll_t ib_uverbs_comp_event_poll(struct file *filp,
+ 
+ static int ib_uverbs_async_event_fasync(int fd, struct file *filp, int on)
+ {
+-	struct ib_uverbs_event_queue *ev_queue = filp->private_data;
++	struct ib_uverbs_async_event_file *file = filp->private_data;
+ 
+-	return fasync_helper(fd, filp, on, &ev_queue->async_queue);
++	return fasync_helper(fd, filp, on, &file->ev_queue.async_queue);
+ }
+ 
+ static int ib_uverbs_comp_event_fasync(int fd, struct file *filp, int on)
 -- 
 2.20.1
 
