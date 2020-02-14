@@ -2,154 +2,329 @@ Return-Path: <SRS0=HMeR=4C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00650C3B1BA
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:19:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84537C3B1B5
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:19:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CA2AD2168B
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:19:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581704342;
-	bh=sCO2mfmq57t7Vcdbn2D61ddsref8LHV6RcKdnIeoenw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ipW/bfre2EypvUB99yIZKKJzyLQWPu4/qAdCYzB2vMQdJdyhxXbxh6s03wiWZB3nG
-	 4BCAXf9+QtZkXsb5deM2eiybnlCR+9c7XAYtbBbiqsNoVb2swP29YZdTBvx9rVxuck
-	 FJvexo33Uqh5qFH37YHZ71rjm2Clr5+xp2LbI1O0=
+	by mail.kernel.org (Postfix) with ESMTP id 4397A222C2
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:19:27 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bH2Tjtku"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404838AbgBNSTB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 13:19:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54894 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730538AbgBNPui (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:50:38 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B016B2086A;
-        Fri, 14 Feb 2020 15:50:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695437;
-        bh=sCO2mfmq57t7Vcdbn2D61ddsref8LHV6RcKdnIeoenw=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cfzHwjMWkGP9+vQBvNED64fJBq6Bpl0TJaPuX4ztPR9rUrCgtkUCKRX9bBaCSkthH
-         UOF5p2AmkS8VbsRfNIN0WmaEYJHz4OOngJgW6cyOxQSIYAuJvdcumhIRa6gibAHjMZ
-         iXwDcB/TkoJroi5KyDF6R2C46Y1i4Qofq2FWw5n0=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Moni Shoua <monis@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 079/542] RDMA/mlx5: Fix handling of IOVA != user_va in ODP paths
-Date:   Fri, 14 Feb 2020 10:41:11 -0500
-Message-Id: <20200214154854.6746-79-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
-References: <20200214154854.6746-1-sashal@kernel.org>
+        id S1730473AbgBNPu2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 10:50:28 -0500
+Received: from mail-yb1-f195.google.com ([209.85.219.195]:33309 "EHLO
+        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730469AbgBNPu1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Feb 2020 10:50:27 -0500
+Received: by mail-yb1-f195.google.com with SMTP id b6so4974142ybr.0;
+        Fri, 14 Feb 2020 07:50:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:cc:date:message-id:in-reply-to:references
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=UHr7Egb239EH8xYPRJJNLMkIYC7QjqSp3fLfoqGYkbo=;
+        b=bH2TjtkuGmyZ9RQT/dpqSYS3GxyEQFaVeyOzTpUFSlsZNWqU6vAgk2VD1/pzVsKzY3
+         W5ADw+7f0fVRZhYZWXAWKVWloowH29UosCmiINpPq6nUhlSFaLGDfPmvuLh5ykx1LNG8
+         8652RoR+/SdZ3AXwUjI6j2KnbLLG1gxvv1F8JLteMJfLZXAkrP34IkJMFQvJxnpuq8nt
+         JPL0MswytQ125Tvz6IkFRWppDjEI4F802lCRsUNub5kd60TUjglJNvGMZT3QG/o4+jrw
+         Khdd8DJv/ZeSYNipRVefBr3DYmb2UQpHiX5aBU+GFCorDPxHqMiJbql8j4OplIJHn7oQ
+         HNuQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:from:to:cc:date:message-id
+         :in-reply-to:references:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=UHr7Egb239EH8xYPRJJNLMkIYC7QjqSp3fLfoqGYkbo=;
+        b=lnnkp2l0KPezUxwyVT1JvjkbBxzROSfcPQXg21gYq66vhFCMKxmMLj5eVJB/JnO0jY
+         GWkAQ26MEIRTHACoTZWuliLWvmd2fR68plqG1PJj1NoK3YPnxVqs0ZIwd6xqW34g3kEo
+         6Cttbkg6+K6Ry8lJmSJFmru8X1Oa1ycfNSXxrq+B2JRV90btSwRfDosPZzcFeiztnEJC
+         BVZyx+bPbaSKmpK4eYoBAiU9tr30c8vlx923obuBC5orxXt0xvL1olV7ajDjT2EsSDes
+         StMGXtv3jpcNZk7nVziS0BY8rBar9E88DAxLt7mgRmYfG96Nl1LF5RfzmPcKxdpEZpnC
+         GR2g==
+X-Gm-Message-State: APjAAAUzJBt3NOSaABJgOnl0BbmWO2Riq5rnTxXAdPz4cTeh0GDBApc5
+        9ryfc/+gdUPAYp2V9Dyq1G9SUvm9
+X-Google-Smtp-Source: APXvYqwOyrXE9iE96+z2QS8eWrDoaz3BtMwqe8sJkdU+SNedSrTr/eg8FN9f29sCgNDBGLb4B1zzYg==
+X-Received: by 2002:a25:2c02:: with SMTP id s2mr3020157ybs.155.1581695426106;
+        Fri, 14 Feb 2020 07:50:26 -0800 (PST)
+Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
+        by smtp.gmail.com with ESMTPSA id d13sm2547484ywj.91.2020.02.14.07.50.25
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 14 Feb 2020 07:50:25 -0800 (PST)
+Received: from klimt.1015granger.net (klimt.1015granger.net [192.168.1.55])
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 01EFoOkN029181;
+        Fri, 14 Feb 2020 15:50:24 GMT
+Subject: [PATCH RFC 8/9] svcrdma: Refactor svc_rdma_sendto()
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     bfields@fieldses.org
+Cc:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
+Date:   Fri, 14 Feb 2020 10:50:24 -0500
+Message-ID: <20200214155024.3848.32817.stgit@klimt.1015granger.net>
+In-Reply-To: <20200214151427.3848.49739.stgit@klimt.1015granger.net>
+References: <20200214151427.3848.49739.stgit@klimt.1015granger.net>
+User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+No behavior change expected, just preparing for subsequent patches.
 
-[ Upstream commit 8ffc32485158528f870b62707077ab494ba31deb ]
+Pass the RPC request's svc_rdma_recv_ctxt deeper into the sendto()
+path. This will enable us to subsequent pass more information about
+the Reply into those lower-level functions.
 
-Till recently it was not possible for userspace to specify a different
-IOVA, but with the new ibv_reg_mr_iova() library call this can be done.
+Since we're touching the synopses of these functions, let's also
+change the header encoding to work like other areas: Instead of
+walking over the beginning of the header when encoding each
+chunk list, use the "p = xdr_encode_blob(p);" style that is
+consistent with most other XDR-related code.
 
-To compute the user_va we must compute:
-  user_va = (iova - iova_start) + user_va_start
-
-while being cautious of overflow and other math problems.
-
-The iova is not reliably stored in the mmkey when the MR is created. Only
-the cached creation path (the common one) set it, so it must also be set
-when creating uncached MRs.
-
-Fix the weird use of iova when computing the starting page index in the
-MR. In the normal case, when iova == umem.address:
-  iova & (~(BIT(page_shift) - 1)) ==
-  ALIGN_DOWN(umem.address, odp->page_size) ==
-  ib_umem_start(odp)
-
-And when iova is different using it in math with a user_va is wrong.
-
-Finally, do not allow an implicit ODP to be created with a non-zero IOVA
-as we have no support for that.
-
-Fixes: 7bdf65d411c1 ("IB/mlx5: Handle page faults")
-Signed-off-by: Moni Shoua <monis@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
- drivers/infiniband/hw/mlx5/mr.c  |  2 ++
- drivers/infiniband/hw/mlx5/odp.c | 19 +++++++++++++------
- 2 files changed, 15 insertions(+), 6 deletions(-)
+ include/linux/sunrpc/svc_rdma.h       |    2 -
+ net/sunrpc/xprtrdma/svc_rdma_rw.c     |   12 ++--
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |   98 ++++++++++++++-------------------
+ 3 files changed, 50 insertions(+), 62 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index ea8bfc3e2d8d4..23c4529edf540 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1247,6 +1247,8 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index 07baeb5f93c1..c1c4563066d9 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -178,7 +178,7 @@ extern int svc_rdma_send_write_chunk(struct svcxprt_rdma *rdma,
+ 				     unsigned int offset,
+ 				     unsigned long length);
+ extern int svc_rdma_send_reply_chunk(struct svcxprt_rdma *rdma,
+-				     __be32 *rp_ch, bool writelist,
++				     const struct svc_rdma_recv_ctxt *rctxt,
+ 				     struct xdr_buf *xdr);
  
- 	if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING) && !start &&
- 	    length == U64_MAX) {
-+		if (virt_addr != start)
-+			return ERR_PTR(-EINVAL);
- 		if (!(access_flags & IB_ACCESS_ON_DEMAND) ||
- 		    !(dev->odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
- 			return ERR_PTR(-EINVAL);
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index f924250f80c2e..8247c26a1ce92 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -624,11 +624,10 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	bool downgrade = flags & MLX5_PF_FLAGS_DOWNGRADE;
- 	unsigned long current_seq;
- 	u64 access_mask;
--	u64 start_idx, page_mask;
-+	u64 start_idx;
- 
- 	page_shift = odp->page_shift;
--	page_mask = ~(BIT(page_shift) - 1);
--	start_idx = (user_va - (mr->mmkey.iova & page_mask)) >> page_shift;
-+	start_idx = (user_va - ib_umem_start(odp)) >> page_shift;
- 	access_mask = ODP_READ_ALLOWED_BIT;
- 
- 	if (odp->umem.writable && !downgrade)
-@@ -767,11 +766,19 @@ static int pagefault_mr(struct mlx5_ib_mr *mr, u64 io_virt, size_t bcnt,
+ /* svc_rdma_sendto.c */
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_rw.c b/net/sunrpc/xprtrdma/svc_rdma_rw.c
+index b0ac535c8728..ca9d414bef9d 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_rw.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_rw.c
+@@ -545,8 +545,7 @@ int svc_rdma_send_write_chunk(struct svcxprt_rdma *rdma, __be32 *wr_ch,
+ /**
+  * svc_rdma_send_reply_chunk - Write all segments in the Reply chunk
+  * @rdma: controlling RDMA transport
+- * @rp_ch: Reply chunk provided by client
+- * @writelist: true if client provided a Write list
++ * @rctxt: chunk list information
+  * @xdr: xdr_buf containing an RPC Reply
+  *
+  * Returns a non-negative number of bytes the chunk consumed, or
+@@ -556,13 +555,14 @@ int svc_rdma_send_write_chunk(struct svcxprt_rdma *rdma, __be32 *wr_ch,
+  *	%-ENOTCONN if posting failed (connection is lost),
+  *	%-EIO if rdma_rw initialization failed (DMA mapping, etc).
+  */
+-int svc_rdma_send_reply_chunk(struct svcxprt_rdma *rdma, __be32 *rp_ch,
+-			      bool writelist, struct xdr_buf *xdr)
++int svc_rdma_send_reply_chunk(struct svcxprt_rdma *rdma,
++			      const struct svc_rdma_recv_ctxt *rctxt,
++			      struct xdr_buf *xdr)
  {
- 	struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
+ 	struct svc_rdma_write_info *info;
+ 	int consumed, ret;
  
-+	if (unlikely(io_virt < mr->mmkey.iova))
-+		return -EFAULT;
+-	info = svc_rdma_write_info_alloc(rdma, rp_ch);
++	info = svc_rdma_write_info_alloc(rdma, rctxt->rc_reply_chunk);
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+@@ -574,7 +574,7 @@ int svc_rdma_send_reply_chunk(struct svcxprt_rdma *rdma, __be32 *rp_ch,
+ 	/* Send the page list in the Reply chunk only if the
+ 	 * client did not provide Write chunks.
+ 	 */
+-	if (!writelist && xdr->page_len) {
++	if (!rctxt->rc_write_list && xdr->page_len) {
+ 		ret = svc_rdma_send_xdr_pagelist(info, xdr,
+ 						 xdr->head[0].iov_len,
+ 						 xdr->page_len);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+index 273453a336b0..7349a3f9aa5d 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -354,6 +354,14 @@ static unsigned int svc_rdma_reply_hdr_len(__be32 *rdma_resp)
+ 	return (unsigned long)p - (unsigned long)rdma_resp;
+ }
+ 
++/* RPC-over-RDMA V1 replies never have a Read list.
++ */
++static __be32 *xdr_encode_read_list(__be32 *p)
++{
++	*p++ = xdr_zero;
++	return p;
++}
 +
- 	if (!odp->is_implicit_odp) {
--		if (unlikely(io_virt < ib_umem_start(odp) ||
--			     ib_umem_end(odp) - io_virt < bcnt))
-+		u64 user_va;
-+
-+		if (check_add_overflow(io_virt - mr->mmkey.iova,
-+				       (u64)odp->umem.address, &user_va))
-+			return -EFAULT;
-+		if (unlikely(user_va >= ib_umem_end(odp) ||
-+			     ib_umem_end(odp) - user_va < bcnt))
- 			return -EFAULT;
--		return pagefault_real_mr(mr, odp, io_virt, bcnt, bytes_mapped,
-+		return pagefault_real_mr(mr, odp, user_va, bcnt, bytes_mapped,
- 					 flags);
+ /* One Write chunk is copied from Call transport header to Reply
+  * transport header. Each segment's length field is updated to
+  * reflect number of bytes consumed in the segment.
+@@ -406,16 +414,17 @@ static unsigned int xdr_encode_write_chunk(__be32 *dst, __be32 *src,
+  * Assumptions:
+  *  - Client has provided only one Write chunk
+  */
+-static void svc_rdma_xdr_encode_write_list(__be32 *rdma_resp, __be32 *wr_ch,
+-					   unsigned int consumed)
++static __be32 *xdr_encode_write_list(__be32 *p,
++				     const struct svc_rdma_recv_ctxt *rctxt)
+ {
+-	unsigned int nsegs;
+-	__be32 *p, *q;
++	unsigned int consumed, nsegs;
++	__be32 *q;
+ 
+-	/* RPC-over-RDMA V1 replies never have a Read list. */
+-	p = rdma_resp + rpcrdma_fixed_maxsz + 1;
++	q = rctxt->rc_write_list;
++	if (!q)
++		goto out;
+ 
+-	q = wr_ch;
++	consumed = rctxt->rc_read_payload_length;
+ 	while (*q != xdr_zero) {
+ 		nsegs = xdr_encode_write_chunk(p, q, consumed);
+ 		q += 2 + nsegs * rpcrdma_segment_maxsz;
+@@ -424,10 +433,9 @@ static void svc_rdma_xdr_encode_write_list(__be32 *rdma_resp, __be32 *wr_ch,
  	}
- 	return pagefault_implicit_mr(mr, odp, io_virt, bcnt, bytes_mapped,
--- 
-2.20.1
+ 
+ 	/* Terminate Write list */
++out:
+ 	*p++ = xdr_zero;
+-
+-	/* Reply chunk discriminator; may be replaced later */
+-	*p = xdr_zero;
++	return p;
+ }
+ 
+ /* The client provided a Reply chunk in the Call message. Fill in
+@@ -435,23 +443,13 @@ static void svc_rdma_xdr_encode_write_list(__be32 *rdma_resp, __be32 *wr_ch,
+  * number of bytes consumed in each segment.
+  *
+  * Assumptions:
+- * - Reply can always fit in the provided Reply chunk
++ * - Reply can always fit in the client-provided Reply chunk
+  */
+-static void svc_rdma_xdr_encode_reply_chunk(__be32 *rdma_resp, __be32 *rp_ch,
+-					    unsigned int consumed)
++static void xdr_encode_reply_chunk(__be32 *p,
++				   const struct svc_rdma_recv_ctxt *rctxt,
++				   unsigned int length)
+ {
+-	__be32 *p;
+-
+-	/* Find the Reply chunk in the Reply's xprt header.
+-	 * RPC-over-RDMA V1 replies never have a Read list.
+-	 */
+-	p = rdma_resp + rpcrdma_fixed_maxsz + 1;
+-
+-	/* Skip past Write list */
+-	while (*p++ != xdr_zero)
+-		p += 1 + be32_to_cpup(p) * rpcrdma_segment_maxsz;
+-
+-	xdr_encode_write_chunk(p, rp_ch, consumed);
++	xdr_encode_write_chunk(p, rctxt->rc_reply_chunk, length);
+ }
+ 
+ static int svc_rdma_dma_map_page(struct svcxprt_rdma *rdma,
+@@ -735,15 +733,15 @@ static void svc_rdma_save_io_pages(struct svc_rqst *rqstp,
+  */
+ static int svc_rdma_send_reply_msg(struct svcxprt_rdma *rdma,
+ 				   struct svc_rdma_send_ctxt *sctxt,
+-				   struct svc_rdma_recv_ctxt *rctxt,
+-				   struct svc_rqst *rqstp,
+-				   __be32 *wr_lst, __be32 *rp_ch)
++				   const struct svc_rdma_recv_ctxt *rctxt,
++				   struct svc_rqst *rqstp)
+ {
+ 	int ret;
+ 
+-	if (!rp_ch) {
++	if (!rctxt->rc_reply_chunk) {
+ 		ret = svc_rdma_map_reply_msg(rdma, sctxt,
+-					     &rqstp->rq_res, wr_lst);
++					     &rqstp->rq_res,
++					     rctxt->rc_write_list);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -808,16 +806,12 @@ static int svc_rdma_send_error_msg(struct svcxprt_rdma *rdma,
+  */
+ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ {
+-	struct svc_xprt *xprt = rqstp->rq_xprt;
+ 	struct svcxprt_rdma *rdma =
+-		container_of(xprt, struct svcxprt_rdma, sc_xprt);
++		container_of(rqstp->rq_xprt, struct svcxprt_rdma, sc_xprt);
+ 	struct svc_rdma_recv_ctxt *rctxt = rqstp->rq_xprt_ctxt;
+ 	__be32 *rdma_argp = rctxt->rc_recv_buf;
+-	__be32 *wr_lst = rctxt->rc_write_list;
+-	__be32 *rp_ch = rctxt->rc_reply_chunk;
+-	struct xdr_buf *xdr = &rqstp->rq_res;
+ 	struct svc_rdma_send_ctxt *sctxt;
+-	__be32 *p, *rdma_resp;
++	__be32 *p;
+ 	int ret;
+ 
+ 	/* Create the RDMA response header. xprt->xpt_mutex,
+@@ -830,32 +824,26 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ 	sctxt = svc_rdma_send_ctxt_get(rdma);
+ 	if (!sctxt)
+ 		goto err0;
+-	rdma_resp = sctxt->sc_xprt_buf;
+ 
+-	p = rdma_resp;
++	p = sctxt->sc_xprt_buf;
+ 	*p++ = *rdma_argp;
+ 	*p++ = *(rdma_argp + 1);
+ 	*p++ = rdma->sc_fc_credits;
+-	*p++ = rp_ch ? rdma_nomsg : rdma_msg;
++	*p++ = rctxt->rc_reply_chunk ? rdma_nomsg : rdma_msg;
+ 
+-	/* Start with empty chunks */
+-	*p++ = xdr_zero;
+-	*p++ = xdr_zero;
+-	*p   = xdr_zero;
+-
+-	if (wr_lst)
+-		svc_rdma_xdr_encode_write_list(rdma_resp, wr_lst,
+-					       rctxt->rc_read_payload_length);
+-	if (rp_ch) {
+-		ret = svc_rdma_send_reply_chunk(rdma, rp_ch, wr_lst, xdr);
++	p = xdr_encode_read_list(p);
++	p = xdr_encode_write_list(p, rctxt);
++	if (rctxt->rc_reply_chunk) {
++		ret = svc_rdma_send_reply_chunk(rdma, rctxt, &rqstp->rq_res);
+ 		if (ret < 0)
+ 			goto err2;
+-		svc_rdma_xdr_encode_reply_chunk(rdma_resp, rp_ch, ret);
+-	}
++		xdr_encode_reply_chunk(p, rctxt, ret);
++	} else
++		*p = xdr_zero;
+ 
+-	svc_rdma_sync_reply_hdr(rdma, sctxt, svc_rdma_reply_hdr_len(rdma_resp));
+-	ret = svc_rdma_send_reply_msg(rdma, sctxt, rctxt, rqstp,
+-				      wr_lst, rp_ch);
++	svc_rdma_sync_reply_hdr(rdma, sctxt,
++				svc_rdma_reply_hdr_len(sctxt->sc_xprt_buf));
++	ret = svc_rdma_send_reply_msg(rdma, sctxt, rctxt, rqstp);
+ 	if (ret < 0)
+ 		goto err1;
+ 	ret = 0;
+@@ -879,7 +867,7 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ 	svc_rdma_send_ctxt_put(rdma, sctxt);
+  err0:
+ 	trace_svcrdma_send_failed(rqstp, ret);
+-	set_bit(XPT_CLOSE, &xprt->xpt_flags);
++	set_bit(XPT_CLOSE, &rqstp->rq_xprt->xpt_flags);
+ 	ret = -ENOTCONN;
+ 	goto out;
+ }
 
