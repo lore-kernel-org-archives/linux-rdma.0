@@ -2,140 +2,130 @@ Return-Path: <SRS0=HMeR=4C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDEBBC2BA83
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 823BEC3B1A1
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:45:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B25142187F
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:44:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581698657;
-	bh=dSvF0y23x2RhFBIaj9BU/lA5dSQx65QZcnmoG1PWSJ8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=qBSgTEuuhoP1ZRQGnwHTsmatyjZqyLnNnoG2wwsM1dajmUtyWKvpwQRsuqK7oMmzu
-	 m29N/jA8RgdXk8lU48DMNbt3GREH8H9h6i8pnzio8OaNFx5Veq5K5ejyJ2CgGmJ/pu
-	 cI528aZa8snmB/iloqa8+sy0ttx49zFP72z3jwoQ=
+	by mail.kernel.org (Postfix) with ESMTP id 587672187F
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:45:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="oNniTQAW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393046AbgBNQVi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 11:21:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56386 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393031AbgBNQVi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:21:38 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5A31B246BB;
-        Fri, 14 Feb 2020 16:21:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581697297;
-        bh=dSvF0y23x2RhFBIaj9BU/lA5dSQx65QZcnmoG1PWSJ8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aqPsiDnEv+BNcIRU9b4UXLWUeoufLzpcFjElWycCIfnhz3esJntxiQIFFtOiud2YI
-         S1MSEehHTTDphsy0bXwUPvljeXoG6RQvaIQmAGHNR+w0EW7FBcdgXWvExCJkR3j/64
-         H1E4ukYvN5f/doTxXMcbRz6l9YkNHxtwIRUshYpU=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
-        Mark Haywood <mark.haywood@oracle.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 011/141] RDMA/netlink: Do not always generate an ACK for some netlink operations
-Date:   Fri, 14 Feb 2020 11:19:11 -0500
-Message-Id: <20200214162122.19794-11-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214162122.19794-1-sashal@kernel.org>
-References: <20200214162122.19794-1-sashal@kernel.org>
+        id S2392972AbgBNQp4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:45:56 -0500
+Received: from mail-qv1-f68.google.com ([209.85.219.68]:47084 "EHLO
+        mail-qv1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2393872AbgBNQpz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Feb 2020 11:45:55 -0500
+Received: by mail-qv1-f68.google.com with SMTP id y2so4535349qvu.13
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Feb 2020 08:45:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=6zMAV6opT8F4IR1EmzI6ROBaFFltfgM895kUaotRIlk=;
+        b=oNniTQAWE+1pH7ooqR0szPphGeNMfhxh0K7p07S3hqK3YV8+Aes8Eb32kL0g+XbGCQ
+         tZTSWIurEjn2VjNJGS4dkuitS7jaRUJlDOsRFMYf+yZvusk2yC2vRxp6+SUha9lbwLPj
+         K/aiKYG445wnrz7BD+AJh6emWHCrnd2TqN4I8bFP5Pu4jARATLSwVNU0n9it+fGx/+Wo
+         i4H2rDyDIV3e2v9AybQXyYP5BJ6EXFhmupT8MQ+b1Vn4geVLh9xESJEVmDd3DnBR9xMr
+         pY7nAEPWnZ3hinT0yhPJa5O9MlrNoTqAwJYANNJsqpQzuYYawT26BlUjYviy8Rxzpegj
+         KVuQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=6zMAV6opT8F4IR1EmzI6ROBaFFltfgM895kUaotRIlk=;
+        b=sNKeRqX9wQyeDlo6KrA4/ptanSWBb9pgwYKt3Zf1zcr/cER9U2MRtUIzAf84DEqE28
+         US2gcGNxTuvRhw7PdM/Ocpu3jixbHidZTG6JqCRReorAMupgY06LUjmZLQVzI18Cwpd7
+         EGzXgl/qfEQ/HgWPkGiKyiX1wCUkuKMoteYGBks9GY9VtR6xwA1H4AbYKyX+HhwRoAgS
+         1KOvReSxlG04O9GWQiJgGzqgfA/7F7aBlNinM6JlgnrImE+hMbSMndqAyP4VdHX7Sa2q
+         YHDuQHqotwedq4j1eeZ8pTt6tqlAvlpp9CL52+btpoxLV8o/ddqSzOpMMOU4jsu1vNCQ
+         S7cQ==
+X-Gm-Message-State: APjAAAV+j242fiiH8COu1BPpzisWuGfOR8JTqjy/8FCKtG2j1xhtKIH8
+        SPI3ovrIPkn5qAnW0FnWpjWowA==
+X-Google-Smtp-Source: APXvYqwyqbVW2l3NU+TGVwqM1Q2R64Pbxb1BEV1d5U3mEZkqfT6cMit9OEAbxJF0vAUFwm5AzEvPfQ==
+X-Received: by 2002:a0c:fe8d:: with SMTP id d13mr2983695qvs.217.1581698754942;
+        Fri, 14 Feb 2020 08:45:54 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id d20sm1734570qkg.8.2020.02.14.08.45.54
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 14 Feb 2020 08:45:54 -0800 (PST)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1j2e6D-0001DP-RH; Fri, 14 Feb 2020 12:45:53 -0400
+Date:   Fri, 14 Feb 2020 12:45:53 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Andrew Boyer <aboyer@pensando.io>
+Cc:     Jeff Kirsher <jeffrey.t.kirsher@intel.com>, davem@davemloft.net,
+        gregkh@linuxfoundation.org,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        nhorman@redhat.com, sassmann@redhat.com,
+        Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: Re: [RFC PATCH v4 18/25] RDMA/irdma: Implement device supported verb
+ APIs
+Message-ID: <20200214164553.GV31668@ziepe.ca>
+References: <20200212191424.1715577-1-jeffrey.t.kirsher@intel.com>
+ <20200212191424.1715577-19-jeffrey.t.kirsher@intel.com>
+ <20200214145443.GU31668@ziepe.ca>
+ <E686D00B-5B27-4463-ADB1-D01588621138@pensando.io>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-stable: review
-X-Patchwork-Hint: Ignore
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <E686D00B-5B27-4463-ADB1-D01588621138@pensando.io>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Håkon Bugge <haakon.bugge@oracle.com>
+On Fri, Feb 14, 2020 at 10:49:38AM -0500, Andrew Boyer wrote:
+> 
+> > On Feb 14, 2020, at 9:54 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > 
+> > On Wed, Feb 12, 2020 at 11:14:17AM -0800, Jeff Kirsher wrote:
+> > ...
+> > New drivers are forbidden from calling this:
+> > 
+> > /**
+> > * rdma_set_device_sysfs_group - Set device attributes group to have
+> > *				 driver specific sysfs entries at
+> > *				 for infiniband class.
+> > *
+> > * @device:	device pointer for which attributes to be created
+> > * @group:	Pointer to group which should be added when device
+> > *		is registered with sysfs.
+> > * rdma_set_device_sysfs_group() allows existing drivers to expose one
+> > * group per device to have sysfs attributes.
+> > *
+> > * NOTE: New drivers should not make use of this API; instead new device
+> > * parameter should be exposed via netlink command. This API and mechanism
+> > * exist only for existing drivers.
+> > */
+> > 
+> > Jason
+> 
+> Is there an existing field in RDMA_NLDEV_ATTR_* that allows us to
+> display a string to use as a replacement for the board_id in sysfs?
 
-[ Upstream commit a242c36951ecd24bc16086940dbe6b522205c461 ]
+I don't think so, this is highly vendor specific stuff.
 
-In rdma_nl_rcv_skb(), the local variable err is assigned the return value
-of the supplied callback function, which could be one of
-ib_nl_handle_resolve_resp(), ib_nl_handle_set_timeout(), or
-ib_nl_handle_ip_res_resp(). These three functions all return skb->len on
-success.
+> Like “Mellanox ConnectX-3” or similar.
 
-rdma_nl_rcv_skb() is merely a copy of netlink_rcv_skb(). The callback
-functions used by the latter have the convention: "Returns 0 on success or
-a negative error code".
+General names like that can come from the pci database that udev and
+lspci keeps. Ie if you do 'systemctl -a' on a modern system with
+rdma-core you will see the PCI device description show up next to the
+verbs char device.
 
-In particular, the statement (equal for both functions):
+> The other two sysfs fields (hca_type and hw_rev) seem to have been unused.
 
-   if (nlh->nlmsg_flags & NLM_F_ACK || err)
+I wonder if hw_rev was supposed to be the same as hw_ver (see
+ib_uverbs_query_device_resp).
 
-implies that rdma_nl_rcv_skb() always will ack a message, independent of
-the NLM_F_ACK being set in nlmsg_flags or not.
-
-The fix could be to change the above statement, but it is better to keep
-the two *_rcv_skb() functions equal in this respect and instead change the
-three callback functions in the rdma subsystem to the correct convention.
-
-Fixes: 2ca546b92a02 ("IB/sa: Route SA pathrecord query through netlink")
-Fixes: ae43f8286730 ("IB/core: Add IP to GID netlink offload")
-Link: https://lore.kernel.org/r/20191216120436.3204814-1-haakon.bugge@oracle.com
-Suggested-by: Mark Haywood <mark.haywood@oracle.com>
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-Tested-by: Mark Haywood <mark.haywood@oracle.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/core/addr.c     | 2 +-
- drivers/infiniband/core/sa_query.c | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 1baa25e82bdd9..f7d23c1081dc4 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -141,7 +141,7 @@ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
- 	if (ib_nl_is_good_ip_resp(nlh))
- 		ib_nl_process_good_ip_rsep(nlh);
- 
--	return skb->len;
-+	return 0;
- }
- 
- static int ib_nl_ip_send_msg(struct rdma_dev_addr *dev_addr,
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 5879a06ada938..1c459725d64e7 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -848,7 +848,7 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
- 	}
- 
- settimeout_out:
--	return skb->len;
-+	return 0;
- }
- 
- static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr *nlh)
-@@ -920,7 +920,7 @@ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
- 	}
- 
- resp_out:
--	return skb->len;
-+	return 0;
- }
- 
- static void free_sm_ah(struct kref *kref)
--- 
-2.20.1
-
+Jason
