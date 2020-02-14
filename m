@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35696C3B1A6
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:30:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84471C3B1A6
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:31:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 09BB7246A3
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:30:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57ED52082F
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:31:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581701454;
-	bh=ZMzivYDnpaZYdtbLeJqLb2sqgxAkm92n6yx/iyLIL4I=;
+	s=default; t=1581701504;
+	bh=J/hOnjw0i23XoypiLhJtK1LFTicuZDTfM0VzYi6zdjY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LHRwjaL4X1urg9vl2fKGUKo9VAucMslpeYyjPTvdmYkzoSADHfCVJKW291517A8MZ
-	 kuv51FlmOhGA5LAl9hNkNrdW3X+bWsTcxvHjHbIULjC/iQFhOqVCmUDf7+wTQ2chPM
-	 uFHivNFsM7nY2fE7vOgCLt+j52ldHB55W7qr6P2o=
+	b=B2xpZs5XkNAgWZyEbML9xlGnfs6zC/bi3P8xS68PPxsKfOr1BIrHxrW/FXkolfFzN
+	 WqkXD91rM1sGpyIlZIh0nw7XYY4O2lwKZxWfJJbCABMy16fVErolvx42qRaf4zVsrp
+	 V4is27R2wDzYvJTf3Wl1icOsIlE7HzVEjwHHRm/o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390684AbgBNRar (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:30:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58650 "EHLO mail.kernel.org"
+        id S2390598AbgBNRbf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 12:31:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57858 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390096AbgBNQHW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:07:22 -0500
+        id S2387585AbgBNQG7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:06:59 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E3B4124676;
-        Fri, 14 Feb 2020 16:07:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CB0E0222C2;
+        Fri, 14 Feb 2020 16:06:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696441;
-        bh=ZMzivYDnpaZYdtbLeJqLb2sqgxAkm92n6yx/iyLIL4I=;
+        s=default; t=1581696419;
+        bh=J/hOnjw0i23XoypiLhJtK1LFTicuZDTfM0VzYi6zdjY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=nCtaR44n0UejoMnIBLB85m5KBfAenB6d5aNjwrCGjvSDMXNFcp1Jr/pCBfsjr9yJG
-         bYLoEZeaWUicmKtjkQ1Fl6IMWPYnVwIJ8Goanvv1gwGKKVbLOwzhluHI18DvEh0Zga
-         JVgRRHdGKYuk6svkpsL8PV3aH9ORQ06/sLNfC6G4=
+        b=mN6P7Ur/0d+/BtSu4XOxhRimbMDBZW+B7WJ+lnpYptmtnvJpR+fiBkq62wNdhJzSE
+         FwKDq49cdUSXfIRoA1+fh8T2M1Pdjnel+QE/Sd7Lk3YUbL9DHTTYT2lsdL7cKBTd57
+         cA1uRHkUrsbiJ2uRWhgMavWtru7css7Utq+rj9lU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Wenpeng Liang <liangwenpeng@huawei.com>,
-        Weihang Li <liweihang@huawei.com>,
+Cc:     Jiewei Ke <kejiewei.cn@gmail.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 257/459] RDMA/hns: Avoid printing address of mtt page
-Date:   Fri, 14 Feb 2020 10:58:27 -0500
-Message-Id: <20200214160149.11681-257-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 240/459] RDMA/rxe: Fix error type of mmap_offset
+Date:   Fri, 14 Feb 2020 10:58:10 -0500
+Message-Id: <20200214160149.11681-240-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
 References: <20200214160149.11681-1-sashal@kernel.org>
@@ -59,36 +58,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+From: Jiewei Ke <kejiewei.cn@gmail.com>
 
-[ Upstream commit eca44507c3e908b7362696a4d6a11d90371334c6 ]
+[ Upstream commit 6ca18d8927d468c763571f78c9a7387a69ffa020 ]
 
-Address of a page shouldn't be printed in case of security issues.
+The type of mmap_offset should be u64 instead of int to match the type of
+mminfo.offset. If otherwise, after we create several thousands of CQs, it
+will run into overflow issues.
 
-Link: https://lore.kernel.org/r/1578313276-29080-2-git-send-email-liweihang@huawei.com
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
+Link: https://lore.kernel.org/r/20191227113613.5020-1-kejiewei.cn@gmail.com
+Signed-off-by: Jiewei Ke <kejiewei.cn@gmail.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_mr.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 5f8416ba09a94..702b59f0dab91 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -1062,8 +1062,8 @@ int hns_roce_ib_umem_write_mtt(struct hns_roce_dev *hr_dev,
- 		if (!(npage % (1 << (mtt->page_shift - PAGE_SHIFT)))) {
- 			if (page_addr & ((1 << mtt->page_shift) - 1)) {
- 				dev_err(dev,
--					"page_addr 0x%llx is not page_shift %d alignment!\n",
--					page_addr, mtt->page_shift);
-+					"page_addr is not page_shift %d alignment!\n",
-+					mtt->page_shift);
- 				ret = -EINVAL;
- 				goto out;
- 			}
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 5c4b2239129cc..b0a02d4c8b933 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -407,7 +407,7 @@ struct rxe_dev {
+ 	struct list_head	pending_mmaps;
+ 
+ 	spinlock_t		mmap_offset_lock; /* guard mmap_offset */
+-	int			mmap_offset;
++	u64			mmap_offset;
+ 
+ 	atomic64_t		stats_counters[RXE_NUM_OF_COUNTERS];
+ 
 -- 
 2.20.1
 
