@@ -4,49 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20005C3B1AF
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:51:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA48C2BA83
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:53:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EE4AD206D7
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:51:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1D40206D7
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:53:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581702680;
-	bh=PLNrytnzgF1eAeTHEjvYL517Oe7v9++dJm1YPKnNc2U=;
+	s=default; t=1581702796;
+	bh=A3r53Ti4W7H0MZfUrZJ9EtnHYp8kTdo1d+21a3Ib3lc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=QD3ix4o/5JOI/W93IJnX/GZhLuljYoJc+YjKpPU8odKu2/pHLa1Hn3+Z2E1Ituuhf
-	 u1F9xtAom7nG0kYn2Y0uQGSaF6ksS49W/fwlEQs7lCGCFp6OrjtNHk0IkZmk5lMC4u
-	 Pg21Y+U5LFTqm54OueCuGcTbBKut+iDzdobpFFyA=
+	b=PHt1afL395xWcKcUJYDZPLrE10aMEVSqPK4PIfoieUoF6bRA9g+5m20EMey/AFuam
+	 hBEIl3hFZVnsLeJPwrPGlKJfph6z6A+Wy45cKeQFCoeOPQsEgfi4BhTULoO3LvmNhP
+	 wQv+GMQ7eLF1f7ApqTmRCs/5o+kYVVptzdTQYOFE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388736AbgBNP6z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 10:58:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43300 "EHLO mail.kernel.org"
+        id S2389849AbgBNRxP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 12:53:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388400AbgBNP6y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:58:54 -0500
+        id S2388564AbgBNP6W (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:58:22 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5FF04222C4;
-        Fri, 14 Feb 2020 15:58:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7C50F24654;
+        Fri, 14 Feb 2020 15:58:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695934;
-        bh=PLNrytnzgF1eAeTHEjvYL517Oe7v9++dJm1YPKnNc2U=;
+        s=default; t=1581695902;
+        bh=A3r53Ti4W7H0MZfUrZJ9EtnHYp8kTdo1d+21a3Ib3lc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=S5lqIXlvgeFHkmc3ms1vvR9ZrOlliLaSHMZt8hbDRq5o8Su/Pi0Cdn4lWnBQkG6+y
-         6CtaL4hC4eQCuHTIbvlRi8zqerUp/CsRZPuOY3eQ3d9XvVumnUw1TTliU7600UaHab
-         8Eb03El6glPRq30+Ig9+gJoii2/YFwTW73hCL+yg=
+        b=HNFIVg4Q5AogweM0gaVK/J+nhd8P3hdMIcF44FZXXyVzJryFMz+7uxd1ibC9SUIF0
+         BaezzsPvxqAmK4YbrRnWbc+Lgq+CmiRNk/6/O5RJVYC+JokCYTIxcq0vX/JfU2C6L9
+         z6gl6Bz4mmzhMGw4ahnSLegIyZN+gM+O5ZdoXDOo=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Michal Kalderon <michal.kalderon@marvell.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 469/542] RDMA/core: Ensure that rdma_user_mmap_entry_remove() is a fence
-Date:   Fri, 14 Feb 2020 10:47:41 -0500
-Message-Id: <20200214154854.6746-469-sashal@kernel.org>
+Cc:     Olof Johansson <olof@lixom.net>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.5 443/542] net/mlx5e: Fix printk format warning
+Date:   Fri, 14 Feb 2020 10:47:15 -0500
+Message-Id: <20200214154854.6746-443-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
 References: <20200214154854.6746-1-sashal@kernel.org>
@@ -59,41 +59,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Olof Johansson <olof@lixom.net>
 
-[ Upstream commit 6b3712c0246ca7b2b8fa05eab2362cf267410f7e ]
+[ Upstream commit ca9c74ae9be5e78541c2058db9a754947a7d4a9b ]
 
-The set of entry->driver_removed is missing locking, protect it with
-xa_lock() which is held by the only reader.
+Use "%zu" for size_t. Seen on ARM allmodconfig:
 
-Otherwise readers may continue to see driver_removed = false after
-rdma_user_mmap_entry_remove() returns and may continue to try and
-establish new mmaps.
+drivers/net/ethernet/mellanox/mlx5/core/wq.c: In function 'mlx5_wq_cyc_wqe_dump':
+include/linux/kern_levels.h:5:18: warning: format '%ld' expects argument of type 'long int', but argument 5 has type 'size_t' {aka 'unsigned int'} [-Wformat=]
 
-Fixes: 3411f9f01b76 ("RDMA/core: Create mmap database and cookie helper functions")
-Link: https://lore.kernel.org/r/20200115202041.GA17199@ziepe.ca
-Reviewed-by: Gal Pressman <galpress@amazon.com>
-Acked-by: Michal Kalderon <michal.kalderon@marvell.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: 130c7b46c93d ("net/mlx5e: TX, Dump WQs wqe descriptors on CQE with error events")
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/ib_core_uverbs.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/wq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/ib_core_uverbs.c b/drivers/infiniband/core/ib_core_uverbs.c
-index b7cb59844ece4..b51bd7087a881 100644
---- a/drivers/infiniband/core/ib_core_uverbs.c
-+++ b/drivers/infiniband/core/ib_core_uverbs.c
-@@ -232,7 +232,9 @@ void rdma_user_mmap_entry_remove(struct rdma_user_mmap_entry *entry)
- 	if (!entry)
- 		return;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/wq.c b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
+index f2a0e72285bac..02f7e4a39578a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/wq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
+@@ -89,7 +89,7 @@ void mlx5_wq_cyc_wqe_dump(struct mlx5_wq_cyc *wq, u16 ix, u8 nstrides)
+ 	len = nstrides << wq->fbc.log_stride;
+ 	wqe = mlx5_wq_cyc_get_wqe(wq, ix);
  
-+	xa_lock(&entry->ucontext->mmap_xa);
- 	entry->driver_removed = true;
-+	xa_unlock(&entry->ucontext->mmap_xa);
- 	kref_put(&entry->ref, rdma_user_mmap_entry_free);
+-	pr_info("WQE DUMP: WQ size %d WQ cur size %d, WQE index 0x%x, len: %ld\n",
++	pr_info("WQE DUMP: WQ size %d WQ cur size %d, WQE index 0x%x, len: %zu\n",
+ 		mlx5_wq_cyc_get_size(wq), wq->cur_sz, ix, len);
+ 	print_hex_dump(KERN_WARNING, "", DUMP_PREFIX_OFFSET, 16, 1, wqe, len, false);
  }
- EXPORT_SYMBOL(rdma_user_mmap_entry_remove);
 -- 
 2.20.1
 
