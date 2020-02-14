@@ -7,49 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56A35C2BA83
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 15:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD29C3B1A1
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:02:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D6262467D
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 15:51:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD6222468C
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 16:02:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581695492;
-	bh=PujbNvqkvyrzZobB4pxyCIUog3O22ilzl8UACEUWRV4=;
+	s=default; t=1581696158;
+	bh=GY003Kf7o5vi7BB4jlvFQ9Zp0hgkYbEd9tJw0MG2Pn8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=QiKa3VIOClWQ50BKX7MLhzGuyJbXIZEfabpnId+P1srWfxvExiKhDsVuL9xOkPJ+x
-	 ChNjcGe+NL2D3xxU1WOMxDwGdrAgdxT4Z84ke7womfyFMriCDgdyUm4rDKJrNzTLyq
-	 L+Ukg3JJ65lA8wnkX92DCdpF4Okw79IQr2wP2B50=
+	b=ccmI0d/e9YecTdFVTASpGu+YnwE7soZCrlJCHFdBtjd4TC+Te1v0xLsYdXWw8Kz69
+	 mIlkSYIIFmD6WN0dHDopdYNfgpxDXmjKEMQv2gt4lJ7zUQ5hcgsGTmXguynrfjScYE
+	 Yxro5E4wWBPZqDyMrNz6bowDDgWHUmYcSCbOGFEY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730787AbgBNPva (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 10:51:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56526 "EHLO mail.kernel.org"
+        id S2389409AbgBNQCh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:02:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730780AbgBNPva (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:51:30 -0500
+        id S2389402AbgBNQCg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:02:36 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2416F2467E;
-        Fri, 14 Feb 2020 15:51:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CD0332168B;
+        Fri, 14 Feb 2020 16:02:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695489;
-        bh=PujbNvqkvyrzZobB4pxyCIUog3O22ilzl8UACEUWRV4=;
+        s=default; t=1581696155;
+        bh=GY003Kf7o5vi7BB4jlvFQ9Zp0hgkYbEd9tJw0MG2Pn8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=d2yVdn8h2na2gMl4u4i4KnAPTBYK5n9gIfL4e4X3c0LJIdzM3F4lNUTputBqfb5vo
-         og9v0Z06HRJ5Ez+p+Fyz+hnAm2nWWjp2GEIZdhIJ6fKuxBVhw4AlJ997wXunA2G9+2
-         O3CQcfHnBU0CKC2XDc/A6VvjwVKW1tos2HifMqwE=
+        b=ToM9CMEeMWDNpPSCXK28Tnv3LqjHwyREYSiF104RfMpVJXkDmtP8TyYbRnIilldWt
+         VSgIBKsiZHW/X8Pqo/8Vxu1Xa6Mk6LHCMwq9G6Nvt4ovml79Hk5MJgosg8J1fCqzhp
+         M7F+QUEfx5EpjA8WNgT46im/M/vlTbCkU8iH79Y0=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Parav Pandit <parav@mellanox.com>,
+Cc:     Xiyu Yang <xiyuyang19@fudan.edu.cn>,
+        Xin Tan <tanxin.ctf@gmail.com>,
         Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 119/542] RDMA/cma: Fix unbalanced cm_id reference count during address resolve
-Date:   Fri, 14 Feb 2020 10:41:51 -0500
-Message-Id: <20200214154854.6746-119-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 034/459] RDMA/i40iw: fix a potential NULL pointer dereference
+Date:   Fri, 14 Feb 2020 10:54:44 -0500
+Message-Id: <20200214160149.11681-34-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
-References: <20200214154854.6746-1-sashal@kernel.org>
+In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
+References: <20200214160149.11681-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,57 +60,38 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+From: Xiyu Yang <xiyuyang19@fudan.edu.cn>
 
-[ Upstream commit b4fb4cc5ba83b20dae13cef116c33648e81d2f44 ]
+[ Upstream commit 04db1580b5e48a79e24aa51ecae0cd4b2296ec23 ]
 
-Below commit missed the AF_IB and loopback code flow in
-rdma_resolve_addr().  This leads to an unbalanced cm_id refcount in
-cma_work_handler() which puts the refcount which was not incremented prior
-to queuing the work.
+A NULL pointer can be returned by in_dev_get(). Thus add a corresponding
+check so that a NULL pointer dereference will be avoided at this place.
 
-A call trace is observed with such code flow:
-
- BUG: unable to handle kernel NULL pointer dereference at (null)
- [<ffffffff96b67e16>] __mutex_lock_slowpath+0x166/0x1d0
- [<ffffffff96b6715f>] mutex_lock+0x1f/0x2f
- [<ffffffffc0beabb5>] cma_work_handler+0x25/0xa0
- [<ffffffff964b9ebf>] process_one_work+0x17f/0x440
- [<ffffffff964baf56>] worker_thread+0x126/0x3c0
-
-Hence, hold the cm_id reference when scheduling the resolve work item.
-
-Fixes: 722c7b2bfead ("RDMA/{cma, core}: Avoid callback on rdma_addr_cancel()")
-Link: https://lore.kernel.org/r/20200126142652.104803-2-leon@kernel.org
-Signed-off-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 8e06af711bf2 ("i40iw: add main, hdr, status")
+Link: https://lore.kernel.org/r/1577672668-46499-1-git-send-email-xiyuyang19@fudan.edu.cn
+Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/cma.c | 2 ++
+ drivers/infiniband/hw/i40iw/i40iw_main.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 43a6f07e0afe2..af1afc17b8bdf 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -3118,6 +3118,7 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
- 	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
- 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index d44cf33df81ae..238614370927a 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1225,6 +1225,8 @@ static void i40iw_add_ipv4_addr(struct i40iw_device *iwdev)
+ 			const struct in_ifaddr *ifa;
  
-+	atomic_inc(&id_priv->refcount);
- 	cma_init_resolve_addr_work(work, id_priv);
- 	queue_work(cma_wq, &work->work);
- 	return 0;
-@@ -3144,6 +3145,7 @@ static int cma_resolve_ib_addr(struct rdma_id_private *id_priv)
- 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, (union ib_gid *)
- 		&(((struct sockaddr_ib *) &id_priv->id.route.addr.dst_addr)->sib_addr));
- 
-+	atomic_inc(&id_priv->refcount);
- 	cma_init_resolve_addr_work(work, id_priv);
- 	queue_work(cma_wq, &work->work);
- 	return 0;
+ 			idev = in_dev_get(dev);
++			if (!idev)
++				continue;
+ 			in_dev_for_each_ifa_rtnl(ifa, idev) {
+ 				i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_CM,
+ 					    "IP=%pI4, vlan_id=%d, MAC=%pM\n", &ifa->ifa_address,
 -- 
 2.20.1
 
