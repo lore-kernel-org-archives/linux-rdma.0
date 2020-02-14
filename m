@@ -7,49 +7,51 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23EB5C2BA83
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:28:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA13EC3B1A6
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:29:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EF74C2467B
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:28:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6A382467C
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 17:29:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581701292;
-	bh=EfqTLV/Ja2CAc990v9LG2sf9f+XqMnZ58KAWfhoHIno=;
+	s=default; t=1581701389;
+	bh=kYdwZ1asdV48HndTNXByNl7+R0TWji93m0htGZnCCiM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=H1Ka+WQIanJfBFszcOs0MotWaYlLWuoWQUrHEEPSY/3IkZOaqGONZRjrEZavRDCke
-	 qMIif6AI/JrnvbQTaYFK38lnLq8WwGT/3Et3/oKyW7xfW7S18/PeIS+5Vbr8v5Lc8R
-	 WN6dg+8uhyCtk+Lo58hjy1inm4zw4CuZYxSspQzk=
+	b=kmsOk91bJhLldrpr0asgNSAwGtbOWbbB6yVkHMM2qb32MMTXInJXceOcdefYAACNf
+	 T7IHWg+gMhjwl1X3gjGs95QKYW1U7GDTxs6JTiOq2yuMKT5WdoROtoqIeve1D/kNSN
+	 9Hxm4izd4q27GIrJh9ixqbztNOviSd6De5yTJg3A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391214AbgBNR2D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:28:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60016 "EHLO mail.kernel.org"
+        id S2390753AbgBNQHo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:07:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390539AbgBNQIK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:08:10 -0500
+        id S2390741AbgBNQHo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:07:44 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3953B2187F;
-        Fri, 14 Feb 2020 16:08:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 97B952467D;
+        Fri, 14 Feb 2020 16:07:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696489;
-        bh=EfqTLV/Ja2CAc990v9LG2sf9f+XqMnZ58KAWfhoHIno=;
+        s=default; t=1581696462;
+        bh=kYdwZ1asdV48HndTNXByNl7+R0TWji93m0htGZnCCiM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MB+nutMk7c4E/ws3m9Uj9brCfHhB44Gd8dRMz3QAF1lTNsy8GmewO5qYeY/yikcCT
-         dfAC6o6h9OoGuJcPm3ymzTs9E+rgfqLmYmGUfdhiBloVFbjPOSdlQ5W0sf3P2qPAcG
-         dluY0jA8zg+12lAj6uvu1/tpZQ0C9AuOv36RjhPQ=
+        b=a9ByUf177BJK5wkFOm8fSNQc9xNT0pWq0VVjsLstHaF6zkZmXah/EvrGutD/vQ//3
+         cGyavnBo5GZN9vMSdCRkzBDkkEjN42VcM5/9Zjh+gK4D8vO4bapKc/xKErnSasduse
+         6A3pRvq3OagjZkR9ww3Q5gGG/hxE9De/VbPBoKRk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Michael Guralnik <michaelgur@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 295/459] RDMA/uverbs: Remove needs_kfree_rcu from uverbs_obj_type_class
-Date:   Fri, 14 Feb 2020 10:59:05 -0500
-Message-Id: <20200214160149.11681-295-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 273/459] RDMA/core: Fix locking in ib_uverbs_event_read
+Date:   Fri, 14 Feb 2020 10:58:43 -0500
+Message-Id: <20200214160149.11681-273-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
 References: <20200214160149.11681-1-sashal@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -60,86 +62,107 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit 8bdf9dd984c18375d1090ddeb1792511f619c5c1 ]
+[ Upstream commit 14e23bd6d22123f6f3b2747701fa6cd4c6d05873 ]
 
-After device disassociation the uapi_objects are destroyed and freed,
-however it is still possible that core code can be holding a kref on the
-uobject. When it finally goes to uverbs_uobject_free() via the kref_put()
-it can trigger a use-after-free on the uapi_object.
+This should not be using ib_dev to test for disassociation, during
+disassociation is_closed is set under lock and the waitq is triggered.
 
-Since needs_kfree_rcu is a micro optimization that only benefits file
-uobjects, just get rid of it. There is no harm in using kfree_rcu even if
-it isn't required, and the number of involved objects is small.
+Instead check is_closed and be sure to re-obtain the lock to test the
+value after the wait_event returns.
 
-Link: https://lore.kernel.org/r/20200113143306.GA28717@ziepe.ca
-Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
+Fixes: 036b10635739 ("IB/uverbs: Enable device removal when there are active user space applications")
+Link: https://lore.kernel.org/r/1578504126-9400-12-git-send-email-yishaih@mellanox.com
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/rdma_core.c | 23 +----------------------
- include/rdma/uverbs_types.h         |  1 -
- 2 files changed, 1 insertion(+), 23 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 32 ++++++++++++---------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index ccf4d069c25c9..7dd9bd1e4d118 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -49,13 +49,7 @@ void uverbs_uobject_get(struct ib_uobject *uobject)
- 
- static void uverbs_uobject_free(struct kref *ref)
- {
--	struct ib_uobject *uobj =
--		container_of(ref, struct ib_uobject, ref);
--
--	if (uobj->uapi_object->type_class->needs_kfree_rcu)
--		kfree_rcu(uobj, rcu);
--	else
--		kfree(uobj);
-+	kfree_rcu(container_of(ref, struct ib_uobject, ref), rcu);
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index db98111b47f42..f2a2d1246c198 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -220,7 +220,6 @@ void ib_uverbs_release_file(struct kref *ref)
  }
  
- void uverbs_uobject_put(struct ib_uobject *uobject)
-@@ -744,20 +738,6 @@ const struct uverbs_obj_type_class uverbs_idr_class = {
- 	.lookup_put = lookup_put_idr_uobject,
- 	.destroy_hw = destroy_hw_idr_uobject,
- 	.remove_handle = remove_handle_idr_uobject,
--	/*
--	 * When we destroy an object, we first just lock it for WRITE and
--	 * actually DESTROY it in the finalize stage. So, the problematic
--	 * scenario is when we just started the finalize stage of the
--	 * destruction (nothing was executed yet). Now, the other thread
--	 * fetched the object for READ access, but it didn't lock it yet.
--	 * The DESTROY thread continues and starts destroying the object.
--	 * When the other thread continue - without the RCU, it would
--	 * access freed memory. However, the rcu_read_lock delays the free
--	 * until the rcu_read_lock of the READ operation quits. Since the
--	 * exclusive lock of the object is still taken by the DESTROY flow, the
--	 * READ operation will get -EBUSY and it'll just bail out.
--	 */
--	.needs_kfree_rcu = true,
- };
- EXPORT_SYMBOL(uverbs_idr_class);
+ static ssize_t ib_uverbs_event_read(struct ib_uverbs_event_queue *ev_queue,
+-				    struct ib_uverbs_file *uverbs_file,
+ 				    struct file *filp, char __user *buf,
+ 				    size_t count, loff_t *pos,
+ 				    size_t eventsz)
+@@ -238,19 +237,16 @@ static ssize_t ib_uverbs_event_read(struct ib_uverbs_event_queue *ev_queue,
  
-@@ -919,7 +899,6 @@ const struct uverbs_obj_type_class uverbs_fd_class = {
- 	.lookup_put = lookup_put_fd_uobject,
- 	.destroy_hw = destroy_hw_fd_uobject,
- 	.remove_handle = remove_handle_fd_uobject,
--	.needs_kfree_rcu = false,
- };
- EXPORT_SYMBOL(uverbs_fd_class);
+ 		if (wait_event_interruptible(ev_queue->poll_wait,
+ 					     (!list_empty(&ev_queue->event_list) ||
+-			/* The barriers built into wait_event_interruptible()
+-			 * and wake_up() guarentee this will see the null set
+-			 * without using RCU
+-			 */
+-					     !uverbs_file->device->ib_dev)))
++					      ev_queue->is_closed)))
+ 			return -ERESTARTSYS;
  
-diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
-index d57a5ba00c743..0b0f5a5f392de 100644
---- a/include/rdma/uverbs_types.h
-+++ b/include/rdma/uverbs_types.h
-@@ -98,7 +98,6 @@ struct uverbs_obj_type_class {
- 				       enum rdma_remove_reason why,
- 				       struct uverbs_attr_bundle *attrs);
- 	void (*remove_handle)(struct ib_uobject *uobj);
--	u8    needs_kfree_rcu;
- };
++		spin_lock_irq(&ev_queue->lock);
++
+ 		/* If device was disassociated and no event exists set an error */
+-		if (list_empty(&ev_queue->event_list) &&
+-		    !uverbs_file->device->ib_dev)
++		if (list_empty(&ev_queue->event_list) && ev_queue->is_closed) {
++			spin_unlock_irq(&ev_queue->lock);
+ 			return -EIO;
+-
+-		spin_lock_irq(&ev_queue->lock);
++		}
+ 	}
  
- struct uverbs_obj_type {
+ 	event = list_entry(ev_queue->event_list.next, struct ib_uverbs_event, list);
+@@ -285,8 +281,7 @@ static ssize_t ib_uverbs_async_event_read(struct file *filp, char __user *buf,
+ {
+ 	struct ib_uverbs_async_event_file *file = filp->private_data;
+ 
+-	return ib_uverbs_event_read(&file->ev_queue, file->uverbs_file, filp,
+-				    buf, count, pos,
++	return ib_uverbs_event_read(&file->ev_queue, filp, buf, count, pos,
+ 				    sizeof(struct ib_uverbs_async_event_desc));
+ }
+ 
+@@ -296,9 +291,8 @@ static ssize_t ib_uverbs_comp_event_read(struct file *filp, char __user *buf,
+ 	struct ib_uverbs_completion_event_file *comp_ev_file =
+ 		filp->private_data;
+ 
+-	return ib_uverbs_event_read(&comp_ev_file->ev_queue,
+-				    comp_ev_file->uobj.ufile, filp,
+-				    buf, count, pos,
++	return ib_uverbs_event_read(&comp_ev_file->ev_queue, filp, buf, count,
++				    pos,
+ 				    sizeof(struct ib_uverbs_comp_event_desc));
+ }
+ 
+@@ -321,7 +315,9 @@ static __poll_t ib_uverbs_event_poll(struct ib_uverbs_event_queue *ev_queue,
+ static __poll_t ib_uverbs_async_event_poll(struct file *filp,
+ 					       struct poll_table_struct *wait)
+ {
+-	return ib_uverbs_event_poll(filp->private_data, filp, wait);
++	struct ib_uverbs_async_event_file *file = filp->private_data;
++
++	return ib_uverbs_event_poll(&file->ev_queue, filp, wait);
+ }
+ 
+ static __poll_t ib_uverbs_comp_event_poll(struct file *filp,
+@@ -335,9 +331,9 @@ static __poll_t ib_uverbs_comp_event_poll(struct file *filp,
+ 
+ static int ib_uverbs_async_event_fasync(int fd, struct file *filp, int on)
+ {
+-	struct ib_uverbs_event_queue *ev_queue = filp->private_data;
++	struct ib_uverbs_async_event_file *file = filp->private_data;
+ 
+-	return fasync_helper(fd, filp, on, &ev_queue->async_queue);
++	return fasync_helper(fd, filp, on, &file->ev_queue.async_queue);
+ }
+ 
+ static int ib_uverbs_comp_event_fasync(int fd, struct file *filp, int on)
 -- 
 2.20.1
 
