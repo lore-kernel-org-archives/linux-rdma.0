@@ -2,96 +2,138 @@ Return-Path: <SRS0=HMeR=4C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE592C3B1B9
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:21:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C07E0C3B1B9
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:21:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B96F22168B
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:21:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581704483;
-	bh=GY003Kf7o5vi7BB4jlvFQ9Zp0hgkYbEd9tJw0MG2Pn8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=V/fogk/gkU6HLmcWzgAmYRyktFbDYxyJwvqqhH80/NoeTfmfqp7Ol7vq4uckEv0ff
-	 tEqjWEqyKvx5jpJt40edlEZDCwAcNx6Lkq/KeS8Kt6kRALCWQ7QVS9GzuoTpJnblmO
-	 LOuBMwFmKwoWNB2RMchAbPssBJJx4rA6Y5kDsSwU=
+	by mail.kernel.org (Postfix) with ESMTP id 921042168B
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:21:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gNM5lKg4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730204AbgBNPtr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 10:49:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53100 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730188AbgBNPtr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:49:47 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6198D2468F;
-        Fri, 14 Feb 2020 15:49:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695386;
-        bh=GY003Kf7o5vi7BB4jlvFQ9Zp0hgkYbEd9tJw0MG2Pn8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HCzlEkYu7+xOfS2PyebajIh5dUdtLThJvI65q9Fu/lILlRMTR7LVmjb7W1VaoNdW5
-         dk0cbMA+8s5Gbuy1JVwwWTCKDDMUCXYQnqjkrSEzsM6942srG4LUKwapbzm/flpt6M
-         QCaSoua8GB7tqiQczZqg+43rAfKKiAajzxX25WFc=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Xiyu Yang <xiyuyang19@fudan.edu.cn>,
-        Xin Tan <tanxin.ctf@gmail.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 040/542] RDMA/i40iw: fix a potential NULL pointer dereference
-Date:   Fri, 14 Feb 2020 10:40:32 -0500
-Message-Id: <20200214154854.6746-40-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
-References: <20200214154854.6746-1-sashal@kernel.org>
+        id S2390129AbgBNSV1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 13:21:27 -0500
+Received: from mail-yb1-f195.google.com ([209.85.219.195]:33257 "EHLO
+        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730179AbgBNPtq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Feb 2020 10:49:46 -0500
+Received: by mail-yb1-f195.google.com with SMTP id b6so4973054ybr.0;
+        Fri, 14 Feb 2020 07:49:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:cc:date:message-id:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=B4Yces3GA3NT+lBTZdVIgNxGvj/dhKg96+I5y5scsvg=;
+        b=gNM5lKg4vqIVz/o8q+PAO9NAWIc47FwnqjDp8dx2ZnbpQNZB/Aw4uddWrR5bBA7Duo
+         zFIWz1fTR3bLrwy9nOKkRi71pKjuKhEsxcZQoBjP8MWVmZtbPiESyAlBC6FcLmOloeAN
+         sZBUpacJqvXzUCIUvkxe+a8XFuX0cJm0dcPmvQv481ce8YolmgUlp0PSjnr/Up00ezFF
+         HyxHPzUllJUZW71Px0gArL+i8hyGuiysSALcWKUvbmqxgEfR89kqB/Ni7wYZEYBT7nWh
+         rvv7FCwSvZFQzejwT26HFGRwnItSEpSykJITzpyZY678quSn27BmaYH+jF90FrB565x+
+         kqRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:from:to:cc:date:message-id
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=B4Yces3GA3NT+lBTZdVIgNxGvj/dhKg96+I5y5scsvg=;
+        b=hSeL8iflMR42EnluJx/dM4Dj7Rxp565y5vfqyZwvsSKs/EoSr/6HsMyQ1NL0eHojbm
+         ue8cAtGdhkXCIRdAkoHhBCq4dPKvC6kaeE5IbwKM2tjLrq90lvuxcOACN6XVQu1J5DGK
+         GDDe8ha/jqTwa2XIWf5O7Xd5BjenpHqYc61Hb9RFa4ekZfTgflKWiswexAV2ZP19wUf3
+         LhkLkpFxLIw02YD24IrgNSuEsVYSgRh7hnG+pz/CLMIPYCJQnCTC1ly51pAf4oo0uniz
+         XhrdmiV94i6Nj7mp1+tQ+mQCSenu/82zyAFtTRbEMwYdKSkj3Ne8TSfcx7z+rFxkkEDF
+         NbZA==
+X-Gm-Message-State: APjAAAWgOisfgXJedFUoHdZRrmxLn8RsvCwmKjg+w0DcW/hVh36da8rB
+        dPmSBhD0ugXb5vEYzYwO+jL4i085
+X-Google-Smtp-Source: APXvYqzKbkj09pM79pXgkQDMAlSRFxHqG0ms5dFZBDHSILLBgE1Api88TzotZgVMmu8BiEkgpQXcag==
+X-Received: by 2002:a25:c945:: with SMTP id z66mr3463977ybf.206.1581695385184;
+        Fri, 14 Feb 2020 07:49:45 -0800 (PST)
+Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
+        by smtp.gmail.com with ESMTPSA id v7sm2630937ywh.62.2020.02.14.07.49.44
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 14 Feb 2020 07:49:44 -0800 (PST)
+Received: from klimt.1015granger.net (klimt.1015granger.net [192.168.1.55])
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 01EFneeg029147;
+        Fri, 14 Feb 2020 15:49:41 GMT
+Subject: [PATCH RFC 0/9] Address bugzilla 198053 and more ...
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     bfields@fieldses.org
+Cc:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
+Date:   Fri, 14 Feb 2020 10:49:40 -0500
+Message-ID: <20200214151427.3848.49739.stgit@klimt.1015granger.net>
+User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Hi Bruce-
 
-[ Upstream commit 04db1580b5e48a79e24aa51ecae0cd4b2296ec23 ]
+As promised, I'm resending the fix for 198053, now that the v5.6
+merge window has closed. This fix gets splice-incapable file systems
+working with NFS/RDMA. That's the first patch in this series.
 
-A NULL pointer can be returned by in_dev_get(). Thus add a corresponding
-check so that a NULL pointer dereference will be avoided at this place.
+We can discuss splitting the fix up again, if you so desire, but my
+sense is that will make the fix more challenging to backport into
+stable kernels.
 
-Fixes: 8e06af711bf2 ("i40iw: add main, hdr, status")
-Link: https://lore.kernel.org/r/1577672668-46499-1-git-send-email-xiyuyang19@fudan.edu.cn
-Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+The next logical step is to add support for multiple READ payloads
+to the server's RPC-over-RDMA transport implementation. Subsequent
+patches in this series start down that path. There is more work to
+do to finish that task. Today I'm sending only what is code-complete
+and working.
+
+The primary issue is that today svcrdma assumes that rq_res's page
+vector is exactly what needs to be pushed in a single Write chunk.
+In other words, only one read payload is supported, and it has to
+fit exactly into that page vector. And critically, the XDR pad for
+that payload must not be included in the page vector.
+
+I've already implemented changes to handle Writing more than one
+chunk back to a client. See patches 4 and 7.
+
+Patch 9 introduces a data structure to keep track of multiple Write
+chunks and multiple read payloads. Next, the svc_rdma_sendto path
+needs to be changed to use the information in this data structure to
+exclude arbitrary segments of rq_res (ie, read payloads already sent
+via explicit RDMA) when constructing each RPC/RDMA Reply.
+
+Comments and input are welcome as always.
+
+
 ---
- drivers/infiniband/hw/i40iw/i40iw_main.c | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index d44cf33df81ae..238614370927a 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -1225,6 +1225,8 @@ static void i40iw_add_ipv4_addr(struct i40iw_device *iwdev)
- 			const struct in_ifaddr *ifa;
- 
- 			idev = in_dev_get(dev);
-+			if (!idev)
-+				continue;
- 			in_dev_for_each_ifa_rtnl(ifa, idev) {
- 				i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_CM,
- 					    "IP=%pI4, vlan_id=%d, MAC=%pM\n", &ifa->ifa_address,
--- 
-2.20.1
+Chuck Lever (9):
+      nfsd: Fix NFSv4 READ on RDMA when using readv
+      NFSD: Clean up nfsd4_encode_readv
+      svcrdma: Avoid DMA mapping small RPC Replies
+      NFSD: Invoke svc_encode_read_payload in "read" NFSD encoders
+      svcrdma: Add trace point to examine client-provided write segment
+      svcrdma: De-duplicate code that locates Write and Reply chunks
+      svcrdma: Post RDMA Writes while XDR encoding replies
+      svcrdma: Refactor svc_rdma_sendto()
+      svcrdma: Add data structure to track READ payloads
 
+
+ fs/nfsd/nfs3xdr.c                          |    4 
+ fs/nfsd/nfs4xdr.c                          |   32 ++--
+ fs/nfsd/nfsxdr.c                           |    4 
+ include/linux/sunrpc/svc.h                 |    3 
+ include/linux/sunrpc/svc_rdma.h            |   21 ++
+ include/linux/sunrpc/svc_xprt.h            |    2 
+ include/trace/events/rpcrdma.h             |   47 +++++
+ net/sunrpc/svc.c                           |   16 ++
+ net/sunrpc/svcsock.c                       |    8 +
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    2 
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   58 +++++--
+ net/sunrpc/xprtrdma/svc_rdma_rw.c          |   42 +++--
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  248 +++++++++++++---------------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |    1 
+ 14 files changed, 308 insertions(+), 180 deletions(-)
+
+--
+Chuck Lever
