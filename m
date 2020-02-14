@@ -2,244 +2,439 @@ Return-Path: <SRS0=HMeR=4C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98D37C3B1BA
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:20:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32E93C2BA83
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:20:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F32924676
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:20:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cn595/bE"
+	by mail.kernel.org (Postfix) with ESMTP id EA14624654
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Feb 2020 18:20:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581704412;
+	bh=QEA1hlOEKk2fZXClimEARGffEJeKp7H8Bv1Jvcx490o=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=oYScCu5qXc4c/I+w9mq0p0md37vzvHqjfCJlqMcA3ziAl/X6gH21YCmPdFLnHLG8Z
+	 IlAg4pX/us8ks6iHEnQMMDRYneZiRYYxLq6JBMk6YocNvgv1h+3gpthbiB90Oe3shH
+	 8A8on7YgJCVpk03p3MD5VTegb0TUfVzXiO4RwKmo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394810AbgBNSUJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Feb 2020 13:20:09 -0500
-Received: from mail-yw1-f68.google.com ([209.85.161.68]:45499 "EHLO
-        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730409AbgBNPuQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Feb 2020 10:50:16 -0500
-Received: by mail-yw1-f68.google.com with SMTP id a125so4419915ywe.12;
-        Fri, 14 Feb 2020 07:50:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:subject:from:to:cc:date:message-id:in-reply-to:references
-         :user-agent:mime-version:content-transfer-encoding;
-        bh=4CVhXYMIL7ngreD3h590y5QJsOqcAB/B0UruGgDbpao=;
-        b=cn595/bE0+I30RhhDv44q3UwuufzvBh/cGPspIT9i3lLe4boPZ08NKo5iQPRdHj+Di
-         6jkQztoQPlPBi9SbhAJCzwi4hv74NgHd6pGoSbzduxf60gF5P3ZH0t0oUJQzMiT7IBSW
-         JZlvFN1X4izV/mT4zvwVQAyx7RvJaLjc/2EwlmpLAWqO3YnoKcwi5+2RN/bZeFDi4ClG
-         Owac+edJeZpXjnNt/PKH+hYxztb4KfS6MKgNvawsY4k9MlFfhjpMhFtZooef6x3OklN+
-         F8GEM/JH0dUECWU6WwDYaYE5J4Xh6VJIcApjN4mJ/2j1u8HMt2rleOxP6riML3xY5z+L
-         7pJw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:subject:from:to:cc:date:message-id
-         :in-reply-to:references:user-agent:mime-version
-         :content-transfer-encoding;
-        bh=4CVhXYMIL7ngreD3h590y5QJsOqcAB/B0UruGgDbpao=;
-        b=bLmVh+JEjO7XPZoYKfRwo+goHIrKLISZ4QHUiMR56fwhIEggHRFEwSRYwShwhOdS8E
-         M96A7eSYY+82XKM2gHbqcuK3iqGpaFN8+bPyQ7C/Bz02ufDKjDC2Jmc0bkqQlMNPAop4
-         gA3ulhBtjQjOJ70AuDibAu0ehKPbk5IU+7t9kT88nwldukBElWx7vcvqbi0bx2+P+/dz
-         UFwSr8kVyL61fDSl7WWHkxvet/hmAarLuLWyG4A2FnOAhQE1ckq9a4/kk/dUAiGELv+J
-         CK7kMxSq8E8YVQ+eTnsn0cXnj2EOPes1IQUG0DE8cSeriUv/FMSmYDotOza6mfZHnGtt
-         e0gg==
-X-Gm-Message-State: APjAAAWHwW5lXO7iurAcvNCCR+5IQIiQdHIUhK7EXEV68WUPTmCyBLgm
-        mEauC32lCsE3v7Xk18MnfNgWnB0x
-X-Google-Smtp-Source: APXvYqyGEF+Z6KPkh+RZKk1b/x7jzQ20oMi8+tNvvrs/MKLB5w43OaZzDk+XJlT5A1UhkITqZRQldg==
-X-Received: by 2002:a81:9a09:: with SMTP id r9mr2852836ywg.244.1581695415446;
-        Fri, 14 Feb 2020 07:50:15 -0800 (PST)
-Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
-        by smtp.gmail.com with ESMTPSA id o69sm2804046ywd.38.2020.02.14.07.50.14
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 14 Feb 2020 07:50:14 -0800 (PST)
-Received: from klimt.1015granger.net (klimt.1015granger.net [192.168.1.55])
-        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 01EFoEbC029175;
-        Fri, 14 Feb 2020 15:50:14 GMT
-Subject: [PATCH RFC 6/9] svcrdma: De-duplicate code that locates Write and
- Reply chunks
-From:   Chuck Lever <chuck.lever@oracle.com>
-To:     bfields@fieldses.org
-Cc:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
-Date:   Fri, 14 Feb 2020 10:50:14 -0500
-Message-ID: <20200214155014.3848.84789.stgit@klimt.1015granger.net>
-In-Reply-To: <20200214151427.3848.49739.stgit@klimt.1015granger.net>
-References: <20200214151427.3848.49739.stgit@klimt.1015granger.net>
-User-Agent: StGit/0.17.1-dirty
+        id S1729556AbgBNPuO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Feb 2020 10:50:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54112 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730396AbgBNPuN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:50:13 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6968D24681;
+        Fri, 14 Feb 2020 15:50:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1581695412;
+        bh=QEA1hlOEKk2fZXClimEARGffEJeKp7H8Bv1Jvcx490o=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=wGj4Z8E8772fMvpXbE/uzJ1MXAaiyc15Ux0gRojMcORY7x0GkCTmDKqKTPyhLLCdM
+         j5bBFF4k/ZmlXF9oAy2/y/FhiXI/0kMRIwOQ0EajE8AxqKZAEL8ft5VSZot4BJ0F49
+         bIFKZD7Y+cPvBFKG1w/A877S7wN7SwBmiyDA+EV4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Parav Pandit <parav@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.5 059/542] IB/core: Let IB core distribute cache update events
+Date:   Fri, 14 Feb 2020 10:40:51 -0500
+Message-Id: <20200214154854.6746-59-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
+References: <20200214154854.6746-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Cache the locations of the first Write chunk and the Reply chunk so
-that the Send path doesn't need to parse the Call header again.
+From: Parav Pandit <parav@mellanox.com>
 
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+[ Upstream commit 6b57cea9221b0247ad5111b348522625e489a8e4 ]
+
+Currently when the low level driver notifies Pkey, GID, and port change
+events they are notified to the registered handlers in the order they are
+registered.
+
+IB core and other ULPs such as IPoIB are interested in GID, LID, Pkey
+change events.
+
+Since all GID queries done by ULPs are serviced by IB core, and the IB
+core deferes cache updates to a work queue, it is possible for other
+clients to see stale cache data when they handle their own events.
+
+For example, the below call tree shows how ipoib will call
+rdma_query_gid() concurrently with the update to the cache sitting in the
+WQ.
+
+mlx5_ib_handle_event()
+  ib_dispatch_event()
+    ib_cache_event()
+       queue_work() -> slow cache update
+
+    [..]
+    ipoib_event()
+     queue_work()
+       [..]
+       work handler
+         ipoib_ib_dev_flush_light()
+           __ipoib_ib_dev_flush()
+              ipoib_dev_addr_changed_valid()
+                rdma_query_gid() <- Returns old GID, cache not updated.
+
+Move all the event dispatch to a work queue so that the cache update is
+always done before any clients are notified.
+
+Fixes: f35faa4ba956 ("IB/core: Simplify ib_query_gid to always refer to cache")
+Link: https://lore.kernel.org/r/20191212113024.336702-3-leon@kernel.org
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/sunrpc/svc_rdma.h         |    2 ++
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   24 +++++++++++++-------
- net/sunrpc/xprtrdma/svc_rdma_sendto.c   |   38 +++----------------------------
- 3 files changed, 22 insertions(+), 42 deletions(-)
+ drivers/infiniband/core/cache.c     | 121 +++++++++++++++++-----------
+ drivers/infiniband/core/core_priv.h |   1 +
+ drivers/infiniband/core/device.c    |  33 +++-----
+ include/rdma/ib_verbs.h             |   9 ++-
+ 4 files changed, 92 insertions(+), 72 deletions(-)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 04e4a34d1c6a..07baeb5f93c1 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -137,6 +137,8 @@ struct svc_rdma_recv_ctxt {
- 	unsigned int		rc_page_count;
- 	unsigned int		rc_hdr_count;
- 	u32			rc_inv_rkey;
-+	__be32			*rc_write_list;
-+	__be32			*rc_reply_chunk;
- 	unsigned int		rc_read_payload_offset;
- 	unsigned int		rc_read_payload_length;
- 	struct page		*rc_pages[RPCSVC_MAXPAGES];
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 2f16c0625226..91abe08f7d75 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -444,15 +444,17 @@ static __be32 *xdr_check_write_chunk(__be32 *p, const __be32 *end,
-  * - This implementation supports only one Write chunk.
-  *
-  * Sanity checks:
-- * - Write list does not overflow buffer.
-+ * - Write list does not overflow Receive buffer.
-  * - Segment size limited by largest NFS data payload.
-  *
-  * Returns pointer to the following Reply chunk.
-  */
--static __be32 *xdr_check_write_list(__be32 *p, const __be32 *end)
-+static __be32 *xdr_check_write_list(__be32 *p, const __be32 *end,
-+				    struct svc_rdma_recv_ctxt *ctxt)
- {
- 	u32 chcount;
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index d535995711c30..e55f345799e41 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -51,9 +51,8 @@ struct ib_pkey_cache {
  
-+	ctxt->rc_write_list = p;
- 	chcount = 0;
- 	while (*p++ != xdr_zero) {
- 		p = xdr_check_write_chunk(p, end, MAX_BYTES_WRITE_SEG);
-@@ -461,6 +463,8 @@ static __be32 *xdr_check_write_list(__be32 *p, const __be32 *end)
- 		if (chcount++ > 1)
- 			return NULL;
- 	}
-+	if (!chcount)
-+		ctxt->rc_write_list = NULL;
- 	return p;
+ struct ib_update_work {
+ 	struct work_struct work;
+-	struct ib_device  *device;
+-	u8                 port_num;
+-	bool		   enforce_security;
++	struct ib_event event;
++	bool enforce_security;
+ };
+ 
+ union ib_gid zgid;
+@@ -130,7 +129,7 @@ static void dispatch_gid_change_event(struct ib_device *ib_dev, u8 port)
+ 	event.element.port_num	= port;
+ 	event.event		= IB_EVENT_GID_CHANGE;
+ 
+-	ib_dispatch_event(&event);
++	ib_dispatch_event_clients(&event);
  }
  
-@@ -472,13 +476,16 @@ static __be32 *xdr_check_write_list(__be32 *p, const __be32 *end)
-  *
-  * Returns pointer to the following RPC header.
-  */
--static __be32 *xdr_check_reply_chunk(__be32 *p, const __be32 *end)
-+static __be32 *xdr_check_reply_chunk(__be32 *p, const __be32 *end,
-+				     struct svc_rdma_recv_ctxt *ctxt)
+ static const char * const gid_type_str[] = {
+@@ -1381,9 +1380,8 @@ static int config_non_roce_gid_cache(struct ib_device *device,
+ 	return ret;
+ }
+ 
+-static void ib_cache_update(struct ib_device *device,
+-			    u8                port,
+-			    bool	      enforce_security)
++static int
++ib_cache_update(struct ib_device *device, u8 port, bool enforce_security)
  {
-+	ctxt->rc_reply_chunk = p;
- 	if (*p++ != xdr_zero) {
- 		p = xdr_check_write_chunk(p, end, MAX_BYTES_SPECIAL_SEG);
- 		if (!p)
- 			return NULL;
+ 	struct ib_port_attr       *tprops = NULL;
+ 	struct ib_pkey_cache      *pkey_cache = NULL, *old_pkey_cache;
+@@ -1391,11 +1389,11 @@ static void ib_cache_update(struct ib_device *device,
+ 	int                        ret;
+ 
+ 	if (!rdma_is_port_valid(device, port))
+-		return;
++		return -EINVAL;
+ 
+ 	tprops = kmalloc(sizeof *tprops, GFP_KERNEL);
+ 	if (!tprops)
+-		return;
++		return -ENOMEM;
+ 
+ 	ret = ib_query_port(device, port, tprops);
+ 	if (ret) {
+@@ -1413,8 +1411,10 @@ static void ib_cache_update(struct ib_device *device,
+ 	pkey_cache = kmalloc(struct_size(pkey_cache, table,
+ 					 tprops->pkey_tbl_len),
+ 			     GFP_KERNEL);
+-	if (!pkey_cache)
++	if (!pkey_cache) {
++		ret = -ENOMEM;
+ 		goto err;
++	}
+ 
+ 	pkey_cache->table_len = tprops->pkey_tbl_len;
+ 
+@@ -1446,50 +1446,84 @@ static void ib_cache_update(struct ib_device *device,
+ 
+ 	kfree(old_pkey_cache);
+ 	kfree(tprops);
+-	return;
++	return 0;
+ 
+ err:
+ 	kfree(pkey_cache);
+ 	kfree(tprops);
++	return ret;
++}
++
++static void ib_cache_event_task(struct work_struct *_work)
++{
++	struct ib_update_work *work =
++		container_of(_work, struct ib_update_work, work);
++	int ret;
++
++	/* Before distributing the cache update event, first sync
++	 * the cache.
++	 */
++	ret = ib_cache_update(work->event.device, work->event.element.port_num,
++			      work->enforce_security);
++
++	/* GID event is notified already for individual GID entries by
++	 * dispatch_gid_change_event(). Hence, notifiy for rest of the
++	 * events.
++	 */
++	if (!ret && work->event.event != IB_EVENT_GID_CHANGE)
++		ib_dispatch_event_clients(&work->event);
++
++	kfree(work);
+ }
+ 
+-static void ib_cache_task(struct work_struct *_work)
++static void ib_generic_event_task(struct work_struct *_work)
+ {
+ 	struct ib_update_work *work =
+ 		container_of(_work, struct ib_update_work, work);
+ 
+-	ib_cache_update(work->device,
+-			work->port_num,
+-			work->enforce_security);
++	ib_dispatch_event_clients(&work->event);
+ 	kfree(work);
+ }
+ 
+-static void ib_cache_event(struct ib_event_handler *handler,
+-			   struct ib_event *event)
++static bool is_cache_update_event(const struct ib_event *event)
++{
++	return (event->event == IB_EVENT_PORT_ERR    ||
++		event->event == IB_EVENT_PORT_ACTIVE ||
++		event->event == IB_EVENT_LID_CHANGE  ||
++		event->event == IB_EVENT_PKEY_CHANGE ||
++		event->event == IB_EVENT_CLIENT_REREGISTER ||
++		event->event == IB_EVENT_GID_CHANGE);
++}
++
++/**
++ * ib_dispatch_event - Dispatch an asynchronous event
++ * @event:Event to dispatch
++ *
++ * Low-level drivers must call ib_dispatch_event() to dispatch the
++ * event to all registered event handlers when an asynchronous event
++ * occurs.
++ */
++void ib_dispatch_event(const struct ib_event *event)
+ {
+ 	struct ib_update_work *work;
+ 
+-	if (event->event == IB_EVENT_PORT_ERR    ||
+-	    event->event == IB_EVENT_PORT_ACTIVE ||
+-	    event->event == IB_EVENT_LID_CHANGE  ||
+-	    event->event == IB_EVENT_PKEY_CHANGE ||
+-	    event->event == IB_EVENT_CLIENT_REREGISTER ||
+-	    event->event == IB_EVENT_GID_CHANGE) {
+-		work = kmalloc(sizeof *work, GFP_ATOMIC);
+-		if (work) {
+-			INIT_WORK(&work->work, ib_cache_task);
+-			work->device   = event->device;
+-			work->port_num = event->element.port_num;
+-			if (event->event == IB_EVENT_PKEY_CHANGE ||
+-			    event->event == IB_EVENT_GID_CHANGE)
+-				work->enforce_security = true;
+-			else
+-				work->enforce_security = false;
+-
+-			queue_work(ib_wq, &work->work);
+-		}
 -	}
-+	} else
-+		ctxt->rc_reply_chunk = NULL;
- 	return p;
++	work = kzalloc(sizeof(*work), GFP_ATOMIC);
++	if (!work)
++		return;
++
++	if (is_cache_update_event(event))
++		INIT_WORK(&work->work, ib_cache_event_task);
++	else
++		INIT_WORK(&work->work, ib_generic_event_task);
++
++	work->event = *event;
++	if (event->event == IB_EVENT_PKEY_CHANGE ||
++	    event->event == IB_EVENT_GID_CHANGE)
++		work->enforce_security = true;
++
++	queue_work(ib_wq, &work->work);
  }
++EXPORT_SYMBOL(ib_dispatch_event);
  
-@@ -554,7 +561,8 @@ static void svc_rdma_get_inv_rkey(struct svcxprt_rdma *rdma,
-  * Assumptions:
-  * - The transport header is entirely contained in the head iovec.
-  */
--static int svc_rdma_xdr_decode_req(struct xdr_buf *rq_arg)
-+static int svc_rdma_xdr_decode_req(struct xdr_buf *rq_arg,
-+				   struct svc_rdma_recv_ctxt *ctxt)
+ int ib_cache_setup_one(struct ib_device *device)
  {
- 	__be32 *p, *end, *rdma_argp;
- 	unsigned int hdr_len;
-@@ -587,10 +595,10 @@ static int svc_rdma_xdr_decode_req(struct xdr_buf *rq_arg)
- 	p = xdr_check_read_list(rdma_argp + 4, end);
- 	if (!p)
- 		goto out_inval;
--	p = xdr_check_write_list(p, end);
-+	p = xdr_check_write_list(p, end, ctxt);
- 	if (!p)
- 		goto out_inval;
--	p = xdr_check_reply_chunk(p, end);
-+	p = xdr_check_reply_chunk(p, end, ctxt);
- 	if (!p)
- 		goto out_inval;
- 	if (p > end)
-@@ -792,7 +800,7 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 	rqstp->rq_next_page = rqstp->rq_respages;
+@@ -1505,9 +1539,6 @@ int ib_cache_setup_one(struct ib_device *device)
+ 	rdma_for_each_port (device, p)
+ 		ib_cache_update(device, p, true);
  
- 	p = (__be32 *)rqstp->rq_arg.head[0].iov_base;
--	ret = svc_rdma_xdr_decode_req(&rqstp->rq_arg);
-+	ret = svc_rdma_xdr_decode_req(&rqstp->rq_arg, ctxt);
- 	if (ret < 0)
- 		goto out_err;
- 	if (ret == 0)
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 40b4843be869..3c0e41d378bc 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -454,36 +454,6 @@ static void svc_rdma_xdr_encode_reply_chunk(__be32 *rdma_resp, __be32 *rp_ch,
- 	xdr_encode_write_chunk(p, rp_ch, consumed);
+-	INIT_IB_EVENT_HANDLER(&device->cache.event_handler,
+-			      device, ib_cache_event);
+-	ib_register_event_handler(&device->cache.event_handler);
+ 	return 0;
  }
  
--/* Parse the RPC Call's transport header.
+@@ -1529,14 +1560,12 @@ void ib_cache_release_one(struct ib_device *device)
+ 
+ void ib_cache_cleanup_one(struct ib_device *device)
+ {
+-	/* The cleanup function unregisters the event handler,
+-	 * waits for all in-progress workqueue elements and cleans
+-	 * up the GID cache. This function should be called after
+-	 * the device was removed from the devices list and all
+-	 * clients were removed, so the cache exists but is
++	/* The cleanup function waits for all in-progress workqueue
++	 * elements and cleans up the GID cache. This function should be
++	 * called after the device was removed from the devices list and
++	 * all clients were removed, so the cache exists but is
+ 	 * non-functional and shouldn't be updated anymore.
+ 	 */
+-	ib_unregister_event_handler(&device->cache.event_handler);
+ 	flush_workqueue(ib_wq);
+ 	gid_table_cleanup_one(device);
+ 
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 3645e092e1c79..d657d90e618be 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -149,6 +149,7 @@ unsigned long roce_gid_type_mask_support(struct ib_device *ib_dev, u8 port);
+ int ib_cache_setup_one(struct ib_device *device);
+ void ib_cache_cleanup_one(struct ib_device *device);
+ void ib_cache_release_one(struct ib_device *device);
++void ib_dispatch_event_clients(struct ib_event *event);
+ 
+ #ifdef CONFIG_CGROUP_RDMA
+ void ib_device_register_rdmacg(struct ib_device *device);
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 84dd74fe13b81..c38b2b0b078ad 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -588,6 +588,7 @@ struct ib_device *_ib_alloc_device(size_t size)
+ 
+ 	INIT_LIST_HEAD(&device->event_handler_list);
+ 	spin_lock_init(&device->event_handler_lock);
++	init_rwsem(&device->event_handler_rwsem);
+ 	mutex_init(&device->unregistration_lock);
+ 	/*
+ 	 * client_data needs to be alloc because we don't want our mark to be
+@@ -1931,17 +1932,15 @@ EXPORT_SYMBOL(ib_set_client_data);
+  *
+  * ib_register_event_handler() registers an event handler that will be
+  * called back when asynchronous IB events occur (as defined in
+- * chapter 11 of the InfiniBand Architecture Specification).  This
+- * callback may occur in interrupt context.
++ * chapter 11 of the InfiniBand Architecture Specification). This
++ * callback occurs in workqueue context.
+  */
+ void ib_register_event_handler(struct ib_event_handler *event_handler)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&event_handler->device->event_handler_lock, flags);
++	down_write(&event_handler->device->event_handler_rwsem);
+ 	list_add_tail(&event_handler->list,
+ 		      &event_handler->device->event_handler_list);
+-	spin_unlock_irqrestore(&event_handler->device->event_handler_lock, flags);
++	up_write(&event_handler->device->event_handler_rwsem);
+ }
+ EXPORT_SYMBOL(ib_register_event_handler);
+ 
+@@ -1954,35 +1953,23 @@ EXPORT_SYMBOL(ib_register_event_handler);
+  */
+ void ib_unregister_event_handler(struct ib_event_handler *event_handler)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&event_handler->device->event_handler_lock, flags);
++	down_write(&event_handler->device->event_handler_rwsem);
+ 	list_del(&event_handler->list);
+-	spin_unlock_irqrestore(&event_handler->device->event_handler_lock, flags);
++	up_write(&event_handler->device->event_handler_rwsem);
+ }
+ EXPORT_SYMBOL(ib_unregister_event_handler);
+ 
+-/**
+- * ib_dispatch_event - Dispatch an asynchronous event
+- * @event:Event to dispatch
+- *
+- * Low-level drivers must call ib_dispatch_event() to dispatch the
+- * event to all registered event handlers when an asynchronous event
+- * occurs.
 - */
--static void svc_rdma_get_write_arrays(__be32 *rdma_argp,
--				      __be32 **write, __be32 **reply)
--{
--	__be32 *p;
--
--	p = rdma_argp + rpcrdma_fixed_maxsz;
--
--	/* Read list */
--	while (*p++ != xdr_zero)
--		p += 5;
--
--	/* Write list */
--	if (*p != xdr_zero) {
--		*write = p;
--		while (*p++ != xdr_zero)
--			p += 1 + be32_to_cpu(*p) * 4;
--	} else {
--		*write = NULL;
--		p++;
--	}
--
--	/* Reply chunk */
--	if (*p != xdr_zero)
--		*reply = p;
--	else
--		*reply = NULL;
--}
--
- static int svc_rdma_dma_map_page(struct svcxprt_rdma *rdma,
- 				 struct svc_rdma_send_ctxt *ctxt,
- 				 struct page *page,
-@@ -842,14 +812,14 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- 	struct svcxprt_rdma *rdma =
- 		container_of(xprt, struct svcxprt_rdma, sc_xprt);
- 	struct svc_rdma_recv_ctxt *rctxt = rqstp->rq_xprt_ctxt;
--	__be32 *p, *rdma_argp, *rdma_resp, *wr_lst, *rp_ch;
-+	__be32 *rdma_argp = rctxt->rc_recv_buf;
-+	__be32 *wr_lst = rctxt->rc_write_list;
-+	__be32 *rp_ch = rctxt->rc_reply_chunk;
- 	struct xdr_buf *xdr = &rqstp->rq_res;
- 	struct svc_rdma_send_ctxt *sctxt;
-+	__be32 *p, *rdma_resp;
- 	int ret;
+-void ib_dispatch_event(struct ib_event *event)
++void ib_dispatch_event_clients(struct ib_event *event)
+ {
+-	unsigned long flags;
+ 	struct ib_event_handler *handler;
  
--	rdma_argp = rctxt->rc_recv_buf;
--	svc_rdma_get_write_arrays(rdma_argp, &wr_lst, &rp_ch);
--
- 	/* Create the RDMA response header. xprt->xpt_mutex,
- 	 * acquired in svc_send(), serializes RPC replies. The
- 	 * code path below that inserts the credit grant value
+-	spin_lock_irqsave(&event->device->event_handler_lock, flags);
++	down_read(&event->device->event_handler_rwsem);
+ 
+ 	list_for_each_entry(handler, &event->device->event_handler_list, list)
+ 		handler->handler(handler, event);
+ 
+-	spin_unlock_irqrestore(&event->device->event_handler_lock, flags);
++	up_read(&event->device->event_handler_rwsem);
+ }
+-EXPORT_SYMBOL(ib_dispatch_event);
+ 
+ static int iw_query_port(struct ib_device *device,
+ 			   u8 port_num,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5608e14e3aadf..cb02d36d41d22 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2149,7 +2149,6 @@ struct ib_port_cache {
+ 
+ struct ib_cache {
+ 	rwlock_t                lock;
+-	struct ib_event_handler event_handler;
+ };
+ 
+ struct ib_port_immutable {
+@@ -2627,7 +2626,11 @@ struct ib_device {
+ 	struct rcu_head rcu_head;
+ 
+ 	struct list_head              event_handler_list;
+-	spinlock_t                    event_handler_lock;
++	/* Protects event_handler_list */
++	struct rw_semaphore event_handler_rwsem;
++
++	/* Protects QP's event_handler calls and open_qp list */
++	spinlock_t event_handler_lock;
+ 
+ 	struct rw_semaphore	      client_data_rwsem;
+ 	struct xarray                 client_data;
+@@ -2942,7 +2945,7 @@ bool ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
+ 
+ void ib_register_event_handler(struct ib_event_handler *event_handler);
+ void ib_unregister_event_handler(struct ib_event_handler *event_handler);
+-void ib_dispatch_event(struct ib_event *event);
++void ib_dispatch_event(const struct ib_event *event);
+ 
+ int ib_query_port(struct ib_device *device,
+ 		  u8 port_num, struct ib_port_attr *port_attr);
+-- 
+2.20.1
 
