@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58CB1C2BA83
-	for <linux-rdma@archiver.kernel.org>; Sat, 15 Feb 2020 17:11:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E937AC7114D
+	for <linux-rdma@archiver.kernel.org>; Sat, 15 Feb 2020 17:11:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2353422314
-	for <linux-rdma@archiver.kernel.org>; Sat, 15 Feb 2020 17:11:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB81E22314
+	for <linux-rdma@archiver.kernel.org>; Sat, 15 Feb 2020 17:11:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="OhDYPLx/"
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="gT0yuolP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726299AbgBORL0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 15 Feb 2020 12:11:26 -0500
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:33280 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726143AbgBORL0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 15 Feb 2020 12:11:26 -0500
-Received: by mail-pf1-f196.google.com with SMTP id n7so6645993pfn.0
-        for <linux-rdma@vger.kernel.org>; Sat, 15 Feb 2020 09:11:25 -0800 (PST)
+        id S1726307AbgBORLa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 15 Feb 2020 12:11:30 -0500
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:38749 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726143AbgBORLa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 15 Feb 2020 12:11:30 -0500
+Received: by mail-pg1-f196.google.com with SMTP id d6so6786109pgn.5
+        for <linux-rdma@vger.kernel.org>; Sat, 15 Feb 2020 09:11:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=3P023nkDEPy/hptMWDMq6GVTAmaCb6i+0zWaJLjbppc=;
-        b=OhDYPLx/+9b1KfPreoWHFPqT4Gx9frDW8xHxooe22x7bHV1jDaT0UPUGiZ2m3VJSv1
-         19NeKVCIf9wAkkPL86UmZVkCHOg8A8O48gbGnIyr/H3rYQZcmit4jgZlx1soluVwSIIa
-         PxOhQCs4hJwdREMDphREKM2tsaKRnL5dLBScI=
+        bh=FwkPHqj2lO4GDjxAr/xZc37ksFb85QVKWgtNcxu0cZQ=;
+        b=gT0yuolPraaZuOjQr7rCi3NieuSMvIIKmMXdrZea87axEALV6Rn8wJLYeFrWBw1kUy
+         ONHNbXQoL/LY98zB28JdRAPGqtkiDAXwa34+cI4f6ZCDs2KeZZEQscykyfuGImXEwKRK
+         H9ryV4SDJatrszbjI/rTpA/Sw/oY98CRd0Jpw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=3P023nkDEPy/hptMWDMq6GVTAmaCb6i+0zWaJLjbppc=;
-        b=SDu0HMw/e2RahfnKGfQ2d+L9XeI1O/z/lb3WZtTjEhcVtiKBAfHtXcUiu7AhhDWjWO
-         IZ5eoCcdNLxpbY4K7OVNu2FBWFO0Pd6vyKO7NCw+UOKQGAwCVzJ3VsxZWnf7kdG4BMmL
-         SQtFREYZGShMac3+PkHKMPNUa+igLgf9P6OMggF2807+CGVxNVqI9JlbeiI808n0yB8m
-         obvAZrp/WOetBvM2PYOAztjVL4QKCc7cA0Xuoj5FHHpPajS0+H0Ie5dthyLnzPAaffIf
-         DSy+D9F/JayoHkaNaYjwXa1SDe6XPlajqZTjpljYA5t+ldeB8wW6dNwyZ+qtn5uJZxBS
-         41+Q==
-X-Gm-Message-State: APjAAAUUqnL1R2L7VmnXOzxAylDeKh9tqg/0G84+daHSvgFUG/JodJiT
-        zV4Ps5OgIuGFQpW07fn0ukYHPwfCElED+KSam4jVyRvh49GdQQi/dKM12oY9kHBkAuGuI2MMVHg
-        YoBKscM9U9i03jTMIho5VYEEcREb2ProtUyA+78teGYk/UM8j41zWWedjwGf8daD7tOYv/OOop7
-        Mf1Bo=
-X-Google-Smtp-Source: APXvYqz1Wg+cP1qHrzfdnSGFIhJaTpYIP47NBpVv/1GPfWXAj0LQLEWayepootPYANrrFXBrHWFo/w==
-X-Received: by 2002:a62:e111:: with SMTP id q17mr8813880pfh.242.1581786684683;
-        Sat, 15 Feb 2020 09:11:24 -0800 (PST)
+        bh=FwkPHqj2lO4GDjxAr/xZc37ksFb85QVKWgtNcxu0cZQ=;
+        b=Yqeub5hlK5Be6E6bGBpIGmrDAZzvZAL6wdMEyNYCJHTz3gZbVS9yHj8n4OEq5gOlYs
+         Zr08osAQhUGWVJhJM1rDWvQyRztGOp9vvSdSKXm3dnh8124Uoj/b4qOmRrU5NZ+4lW+3
+         /PDnyDPcURiHTcVQu0KU4xwsD4NGAPEleV0zMCtfcuPfA10a3MGJfnfOO988TRmNv+E+
+         CySd/R9CB1OT4Idi8lURQ5EdWTaWWh+WXH43YfEw0EUEpgWsvOCCa/GPq03w81LxbXHc
+         yqYJs+yQQkYbDObP7zr/QQ1XlUVxl+Wu5S1Parj7PpjA2sn0rWJP0/byWDx158GKt4vP
+         Xc3A==
+X-Gm-Message-State: APjAAAXSl4HmFKTYeRP1v395U9lgkqII+nkxUgK0lKMNSRPVhEZm0oUa
+        eB71Sw+7r9CM4Kpp58lTxA4mBb8EzQtnQFRegrtzdnhKVa8yjqlTIKWrhkZltYfCXIpG1x9kqAy
+        SVp+J03gJScJ9N679xHS45gsW14TxUgtXqKzXfU4lpKnz9mJxB1TTponYtwVviM9FhvJ/ObKlpf
+        SsvvQ=
+X-Google-Smtp-Source: APXvYqxgAbQCn9XIPtPb9zPjSQwToGA3dBRL3dS+b0hcK0rXMrFfPCpmbTUPbuOfv33sxEEOTUMWeA==
+X-Received: by 2002:a63:591f:: with SMTP id n31mr9375073pgb.108.1581786688859;
+        Sat, 15 Feb 2020 09:11:28 -0800 (PST)
 Received: from neo00-el73.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id r198sm11755664pfr.54.2020.02.15.09.11.23
+        by smtp.gmail.com with ESMTPSA id r198sm11755664pfr.54.2020.02.15.09.11.27
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 15 Feb 2020 09:11:24 -0800 (PST)
+        Sat, 15 Feb 2020 09:11:28 -0800 (PST)
 From:   Devesh Sharma <devesh.sharma@broadcom.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, dledford@redhat.com
-Subject: [PATCH V3 for-next 2/8] RDMA/bnxt_re: Replace chip context structure with pointer
-Date:   Sat, 15 Feb 2020 12:10:59 -0500
-Message-Id: <1581786665-23705-3-git-send-email-devesh.sharma@broadcom.com>
+Subject: [PATCH V3 for-next 4/8] RDMA/bnxt_re: Refactor net ring allocation function
+Date:   Sat, 15 Feb 2020 12:11:01 -0500
+Message-Id: <1581786665-23705-5-git-send-email-devesh.sharma@broadcom.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1581786665-23705-1-git-send-email-devesh.sharma@broadcom.com>
 References: <1581786665-23705-1-git-send-email-devesh.sharma@broadcom.com>
@@ -66,242 +66,176 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The chip_ctx member in bnxt_re_dev structure is now a pointer
-to struct bnxt_qplib_chip_ctx. Since the member type has changed
-there are changes in rest of the code wherever dev->chip_ctx is
-used.
+Introducing a new attribute structure to reduce
+the long list of arguments passed in bnxt_re_net_ring_alloc()
+function.
+
+The caller of bnxt_re_net_ring_alloc should fill in
+the list of attributes in bnxt_re_ring_attr structure
+and then pass the pointer to the function.
 
 Signed-off-by: Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  2 +-
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 13 ++++++-----
- drivers/infiniband/hw/bnxt_re/main.c     | 40 +++++++++++++++++++++-----------
- drivers/infiniband/hw/bnxt_re/qplib_fp.c |  2 +-
- 4 files changed, 36 insertions(+), 21 deletions(-)
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h |  9 +++++
+ drivers/infiniband/hw/bnxt_re/main.c    | 64 ++++++++++++++++++---------------
+ 2 files changed, 44 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index c2805384..86274f4 100644
+index 86274f4..c736e82 100644
 --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
 +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -133,7 +133,7 @@ struct bnxt_re_dev {
- #define BNXT_RE_FLAG_ISSUE_ROCE_STATS          29
- 	struct net_device		*netdev;
- 	unsigned int			version, major, minor;
--	struct bnxt_qplib_chip_ctx	chip_ctx;
-+	struct bnxt_qplib_chip_ctx	*chip_ctx;
- 	struct bnxt_en_dev		*en_dev;
- 	struct bnxt_msix_entry		msix_entries[BNXT_RE_MAX_MSIX];
- 	int				num_msix;
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index f1a83f4..38b9564 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -859,7 +859,7 @@ static int bnxt_re_init_user_qp(struct bnxt_re_dev *rdev, struct bnxt_re_pd *pd,
- 	bytes = (qplib_qp->sq.max_wqe * BNXT_QPLIB_MAX_SQE_ENTRY_SIZE);
- 	/* Consider mapping PSN search memory only for RC QPs. */
- 	if (qplib_qp->type == CMDQ_CREATE_QP_TYPE_RC) {
--		psn_sz = bnxt_qplib_is_chip_gen_p5(&rdev->chip_ctx) ?
-+		psn_sz = bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) ?
- 					sizeof(struct sq_psn_search_ext) :
- 					sizeof(struct sq_psn_search);
- 		bytes += (qplib_qp->sq.max_wqe * psn_sz);
-@@ -1060,6 +1060,7 @@ static void bnxt_re_adjust_gsi_rq_attr(struct bnxt_re_qp *qp)
- 	qplqp->rq.max_sge = dev_attr->max_qp_sges;
- 	if (qplqp->rq.max_sge > dev_attr->max_qp_sges)
- 		qplqp->rq.max_sge = dev_attr->max_qp_sges;
-+	qplqp->rq.max_sge = 6;
- }
+@@ -89,6 +89,15 @@
  
- static void bnxt_re_init_sq_attr(struct bnxt_re_qp *qp,
-@@ -1123,7 +1124,7 @@ static int bnxt_re_init_qp_type(struct bnxt_re_dev *rdev,
- 	struct bnxt_qplib_chip_ctx *chip_ctx;
- 	int qptype;
+ #define BNXT_RE_DEFAULT_ACK_DELAY	16
  
--	chip_ctx = &rdev->chip_ctx;
-+	chip_ctx = rdev->chip_ctx;
- 
- 	qptype = __from_ib_qp_type(init_attr->qp_type);
- 	if (qptype == IB_QPT_MAX) {
-@@ -1343,7 +1344,7 @@ struct ib_qp *bnxt_re_create_qp(struct ib_pd *ib_pd,
- 		goto fail;
- 
- 	if (qp_init_attr->qp_type == IB_QPT_GSI &&
--	    !(bnxt_qplib_is_chip_gen_p5(&rdev->chip_ctx))) {
-+	    !(bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx))) {
- 		rc = bnxt_re_create_gsi_qp(qp, pd, qp_init_attr);
- 		if (rc == -ENODEV)
- 			goto qp_destroy;
-@@ -3819,10 +3820,10 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
- 	spin_lock_init(&uctx->sh_lock);
- 
- 	resp.comp_mask = BNXT_RE_UCNTX_CMASK_HAVE_CCTX;
--	chip_met_rev_num = rdev->chip_ctx.chip_num;
--	chip_met_rev_num |= ((u32)rdev->chip_ctx.chip_rev & 0xFF) <<
-+	chip_met_rev_num = rdev->chip_ctx->chip_num;
-+	chip_met_rev_num |= ((u32)rdev->chip_ctx->chip_rev & 0xFF) <<
- 			     BNXT_RE_CHIP_ID0_CHIP_REV_SFT;
--	chip_met_rev_num |= ((u32)rdev->chip_ctx.chip_metal & 0xFF) <<
-+	chip_met_rev_num |= ((u32)rdev->chip_ctx->chip_metal & 0xFF) <<
- 			     BNXT_RE_CHIP_ID0_CHIP_MET_SFT;
- 	resp.chip_id0 = chip_met_rev_num;
- 	/* Future extension of chip info */
++struct bnxt_re_ring_attr {
++	dma_addr_t	*dma_arr;
++	int		pages;
++	int		type;
++	u32		depth;
++	u32		lrid; /* Logical ring id */
++	u8		mode;
++};
++
+ struct bnxt_re_work {
+ 	struct work_struct	work;
+ 	unsigned long		event;
 diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 82a5350..390daeb 100644
+index a966c68..f013bf6 100644
 --- a/drivers/infiniband/hw/bnxt_re/main.c
 +++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -82,22 +82,35 @@
- 
- static void bnxt_re_destroy_chip_ctx(struct bnxt_re_dev *rdev)
- {
-+	struct bnxt_qplib_chip_ctx *chip_ctx;
-+
-+	if (!rdev->chip_ctx)
-+		return;
-+	chip_ctx = rdev->chip_ctx;
-+	rdev->chip_ctx = NULL;
- 	rdev->rcfw.res = NULL;
- 	rdev->qplib_res.cctx = NULL;
-+	kfree(chip_ctx);
+@@ -427,9 +427,9 @@ static int bnxt_re_net_ring_free(struct bnxt_re_dev *rdev,
+ 	return rc;
  }
  
- static int bnxt_re_setup_chip_ctx(struct bnxt_re_dev *rdev)
+-static int bnxt_re_net_ring_alloc(struct bnxt_re_dev *rdev, dma_addr_t *dma_arr,
+-				  int pages, int type, u32 ring_mask,
+-				  u32 map_index, u16 *fw_ring_id)
++static int bnxt_re_net_ring_alloc(struct bnxt_re_dev *rdev,
++				  struct bnxt_re_ring_attr *ring_attr,
++				  u16 *fw_ring_id)
  {
-+	struct bnxt_qplib_chip_ctx *chip_ctx;
- 	struct bnxt_en_dev *en_dev;
- 	struct bnxt *bp;
+ 	struct bnxt_en_dev *en_dev = rdev->en_dev;
+ 	struct hwrm_ring_alloc_input req = {0};
+@@ -443,18 +443,18 @@ static int bnxt_re_net_ring_alloc(struct bnxt_re_dev *rdev, dma_addr_t *dma_arr,
+ 	memset(&fw_msg, 0, sizeof(fw_msg));
+ 	bnxt_re_init_hwrm_hdr(rdev, (void *)&req, HWRM_RING_ALLOC, -1, -1);
+ 	req.enables = 0;
+-	req.page_tbl_addr =  cpu_to_le64(dma_arr[0]);
+-	if (pages > 1) {
++	req.page_tbl_addr =  cpu_to_le64(ring_attr->dma_arr[0]);
++	if (ring_attr->pages > 1) {
+ 		/* Page size is in log2 units */
+ 		req.page_size = BNXT_PAGE_SHIFT;
+ 		req.page_tbl_depth = 1;
+ 	}
+ 	req.fbo = 0;
+ 	/* Association of ring index with doorbell index and MSIX number */
+-	req.logical_id = cpu_to_le16(map_index);
+-	req.length = cpu_to_le32(ring_mask + 1);
+-	req.ring_type = type;
+-	req.int_mode = RING_ALLOC_REQ_INT_MODE_MSIX;
++	req.logical_id = cpu_to_le16(ring_attr->lrid);
++	req.length = cpu_to_le32(ring_attr->depth + 1);
++	req.ring_type = ring_attr->type;
++	req.int_mode = ring_attr->mode;
+ 	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
+ 			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
+ 	rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, BNXT_ROCE_ULP, &fw_msg);
+@@ -1006,10 +1006,10 @@ static void bnxt_re_free_res(struct bnxt_re_dev *rdev)
  
- 	en_dev = rdev->en_dev;
- 	bp = netdev_priv(en_dev->net);
- 
--	rdev->chip_ctx.chip_num = bp->chip_num;
-+	chip_ctx = kzalloc(sizeof(*chip_ctx), GFP_KERNEL);
-+	if (!chip_ctx)
-+		return -ENOMEM;
-+	chip_ctx->chip_num = bp->chip_num;
-+
-+	rdev->chip_ctx = chip_ctx;
- 	/* rest members to follow eventually */
- 
--	rdev->qplib_res.cctx = &rdev->chip_ctx;
-+	rdev->qplib_res.cctx = rdev->chip_ctx;
- 	rdev->rcfw.res = &rdev->qplib_res;
- 
- 	return 0;
-@@ -136,7 +149,7 @@ static void bnxt_re_limit_pf_res(struct bnxt_re_dev *rdev)
- 	ctx->srqc_count = min_t(u32, BNXT_RE_MAX_SRQC_COUNT,
- 				attr->max_srq);
- 	ctx->cq_count = min_t(u32, BNXT_RE_MAX_CQ_COUNT, attr->max_cq);
--	if (!bnxt_qplib_is_chip_gen_p5(&rdev->chip_ctx))
-+	if (!bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx))
- 		for (i = 0; i < MAX_TQM_ALLOC_REQ; i++)
- 			rdev->qplib_ctx.tqm_count[i] =
- 			rdev->dev_attr.tqm_alloc_reqs[i];
-@@ -185,7 +198,7 @@ static void bnxt_re_set_resource_limits(struct bnxt_re_dev *rdev)
- 	memset(&rdev->qplib_ctx.vf_res, 0, sizeof(struct bnxt_qplib_vf_res));
- 	bnxt_re_limit_pf_res(rdev);
- 
--	num_vfs =  bnxt_qplib_is_chip_gen_p5(&rdev->chip_ctx) ?
-+	num_vfs =  bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) ?
- 			BNXT_RE_GEN_P5_MAX_VF : rdev->num_vfs;
- 	if (num_vfs)
- 		bnxt_re_limit_vf_res(&rdev->qplib_ctx, num_vfs);
-@@ -208,7 +221,7 @@ static void bnxt_re_sriov_config(void *p, int num_vfs)
- 		return;
- 
- 	rdev->num_vfs = num_vfs;
--	if (!bnxt_qplib_is_chip_gen_p5(&rdev->chip_ctx)) {
-+	if (!bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx)) {
- 		bnxt_re_set_resource_limits(rdev);
- 		bnxt_qplib_set_func_resources(&rdev->qplib_res, &rdev->rcfw,
- 					      &rdev->qplib_ctx);
-@@ -916,7 +929,7 @@ static int bnxt_re_cqn_handler(struct bnxt_qplib_nq *nq,
- #define BNXT_RE_GEN_P5_VF_NQ_DB		0x4000
- static u32 bnxt_re_get_nqdb_offset(struct bnxt_re_dev *rdev, u16 indx)
+ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
  {
--	return bnxt_qplib_is_chip_gen_p5(&rdev->chip_ctx) ?
-+	return bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) ?
- 		(rdev->is_virtfn ? BNXT_RE_GEN_P5_VF_NQ_DB :
- 				   BNXT_RE_GEN_P5_PF_NQ_DB) :
- 				   rdev->msix_entries[indx].db_offset;
-@@ -967,7 +980,7 @@ static void bnxt_re_free_nq_res(struct bnxt_re_dev *rdev)
- 	int i;
++	struct bnxt_re_ring_attr rattr = {};
++	struct bnxt_qplib_ctx *qplib_ctx;
+ 	int num_vec_created = 0;
+-	dma_addr_t *pg_map;
+ 	int rc = 0, i;
+-	int pages;
+ 	u8 type;
  
+ 	/* Configure and allocate resources for qplib */
+@@ -1030,10 +1030,13 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+ 	if (rc)
+ 		goto dealloc_res;
+ 
++	qplib_ctx = &rdev->qplib_ctx;
  	for (i = 0; i < rdev->num_msix - 1; i++) {
--		type = bnxt_qplib_get_ring_type(&rdev->chip_ctx);
-+		type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
- 		bnxt_re_net_ring_free(rdev, rdev->nq[i].ring_id, type);
- 		rdev->nq[i].res = NULL;
- 		bnxt_qplib_free_nq(&rdev->nq[i]);
-@@ -1025,7 +1038,7 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
- 				i, rc);
+-		rdev->nq[i].res = &rdev->qplib_res;
+-		rdev->nq[i].hwq.max_elements = BNXT_RE_MAX_CQ_COUNT +
+-			BNXT_RE_MAX_SRQC_COUNT + 2;
++		struct bnxt_qplib_nq *nq;
++
++		nq = &rdev->nq[i];
++		nq->hwq.max_elements = (qplib_ctx->cq_count +
++					qplib_ctx->srqc_count + 2);
+ 		rc = bnxt_qplib_alloc_nq(&rdev->qplib_res, &rdev->nq[i]);
+ 		if (rc) {
+ 			dev_err(rdev_to_dev(rdev), "Alloc Failed NQ%d rc:%#x",
+@@ -1041,12 +1044,13 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
  			goto free_nq;
  		}
--		type = bnxt_qplib_get_ring_type(&rdev->chip_ctx);
-+		type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
- 		pg_map = rdev->nq[i].hwq.pbl[PBL_LVL_0].pg_map_arr;
- 		pages = rdev->nq[i].hwq.pbl[rdev->nq[i].hwq.level].pg_count;
- 		rc = bnxt_re_net_ring_alloc(rdev, pg_map, pages, type,
-@@ -1044,7 +1057,7 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
- 	return 0;
- free_nq:
- 	for (i = num_vec_created; i >= 0; i--) {
--		type = bnxt_qplib_get_ring_type(&rdev->chip_ctx);
-+		type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
- 		bnxt_re_net_ring_free(rdev, rdev->nq[i].ring_id, type);
- 		bnxt_qplib_free_nq(&rdev->nq[i]);
- 	}
-@@ -1324,7 +1337,7 @@ static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev)
- 		bnxt_re_net_stats_ctx_free(rdev, rdev->qplib_ctx.stats.fw_id);
- 		bnxt_qplib_free_ctx(rdev->en_dev->pdev, &rdev->qplib_ctx);
- 		bnxt_qplib_disable_rcfw_channel(&rdev->rcfw);
--		type = bnxt_qplib_get_ring_type(&rdev->chip_ctx);
-+		type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
- 		bnxt_re_net_ring_free(rdev, rdev->rcfw.creq_ring_id, type);
- 		bnxt_qplib_free_rcfw_channel(&rdev->rcfw);
- 	}
-@@ -1405,7 +1418,8 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 		pr_err("Failed to allocate RCFW Channel: %#x\n", rc);
- 		goto fail;
- 	}
--	type = bnxt_qplib_get_ring_type(&rdev->chip_ctx);
-+
-+	type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
- 	pg_map = rdev->rcfw.creq.pbl[PBL_LVL_0].pg_map_arr;
- 	pages = rdev->rcfw.creq.pbl[rdev->rcfw.creq.level].pg_count;
- 	ridx = rdev->msix_entries[BNXT_RE_AEQ_IDX].ring_idx;
-@@ -1434,7 +1448,7 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 	bnxt_re_set_resource_limits(rdev);
+ 		type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
+-		pg_map = rdev->nq[i].hwq.pbl[PBL_LVL_0].pg_map_arr;
+-		pages = rdev->nq[i].hwq.pbl[rdev->nq[i].hwq.level].pg_count;
+-		rc = bnxt_re_net_ring_alloc(rdev, pg_map, pages, type,
+-					    BNXT_QPLIB_NQE_MAX_CNT - 1,
+-					    rdev->msix_entries[i + 1].ring_idx,
+-					    &rdev->nq[i].ring_id);
++		rattr.dma_arr = nq->hwq.pbl[PBL_LVL_0].pg_map_arr;
++		rattr.pages = nq->hwq.pbl[rdev->nq[i].hwq.level].pg_count;
++		rattr.type = type;
++		rattr.mode = RING_ALLOC_REQ_INT_MODE_MSIX;
++		rattr.depth = BNXT_QPLIB_NQE_MAX_CNT - 1;
++		rattr.lrid = rdev->msix_entries[i + 1].ring_idx;
++		rc = bnxt_re_net_ring_alloc(rdev, &rattr, &nq->ring_id);
+ 		if (rc) {
+ 			dev_err(rdev_to_dev(rdev),
+ 				"Failed to allocate NQ fw id with rc = 0x%x",
+@@ -1371,10 +1375,10 @@ static void bnxt_re_worker(struct work_struct *work)
  
- 	rc = bnxt_qplib_alloc_ctx(rdev->en_dev->pdev, &rdev->qplib_ctx, 0,
--				  bnxt_qplib_is_chip_gen_p5(&rdev->chip_ctx));
-+				  bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx));
+ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+ {
+-	dma_addr_t *pg_map;
+-	u32 db_offt, ridx;
+-	int pages, vid;
++	struct bnxt_re_ring_attr rattr;
++	u32 db_offt;
+ 	bool locked;
++	int vid;
+ 	u8 type;
+ 	int rc;
+ 
+@@ -1383,6 +1387,7 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+ 	locked = true;
+ 
+ 	/* Registered a new RoCE device instance to netdev */
++	memset(&rattr, 0, sizeof(rattr));
+ 	rc = bnxt_re_register_netdev(rdev);
  	if (rc) {
- 		pr_err("Failed to allocate QPLIB context: %#x\n", rc);
- 		goto disable_rcfw;
-@@ -1504,7 +1518,7 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- disable_rcfw:
- 	bnxt_qplib_disable_rcfw_channel(&rdev->rcfw);
- free_ring:
--	type = bnxt_qplib_get_ring_type(&rdev->chip_ctx);
-+	type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
- 	bnxt_re_net_ring_free(rdev, rdev->rcfw.creq_ring_id, type);
- free_rcfw:
- 	bnxt_qplib_free_rcfw_channel(&rdev->rcfw);
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 020f70e..ffe8610 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -2426,7 +2426,7 @@ static int bnxt_qplib_cq_process_res_ud(struct bnxt_qplib_cq *cq,
+ 		rtnl_unlock();
+@@ -1422,12 +1427,13 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
  	}
- 	cqe = *pcqe;
- 	cqe->opcode = hwcqe->cqe_type_toggle & CQ_BASE_CQE_TYPE_MASK;
--	cqe->length = (u32)le16_to_cpu(hwcqe->length);
-+	cqe->length = le16_to_cpu(hwcqe->length) & CQ_RES_UD_LENGTH_MASK;
- 	cqe->cfa_meta = le16_to_cpu(hwcqe->cfa_metadata);
- 	cqe->invrkey = le32_to_cpu(hwcqe->imm_data);
- 	cqe->flags = le16_to_cpu(hwcqe->flags);
+ 
+ 	type = bnxt_qplib_get_ring_type(rdev->chip_ctx);
+-	pg_map = rdev->rcfw.creq.pbl[PBL_LVL_0].pg_map_arr;
+-	pages = rdev->rcfw.creq.pbl[rdev->rcfw.creq.level].pg_count;
+-	ridx = rdev->msix_entries[BNXT_RE_AEQ_IDX].ring_idx;
+-	rc = bnxt_re_net_ring_alloc(rdev, pg_map, pages, type,
+-				    BNXT_QPLIB_CREQE_MAX_CNT - 1,
+-				    ridx, &rdev->rcfw.creq_ring_id);
++	rattr.dma_arr = rdev->rcfw.creq.pbl[PBL_LVL_0].pg_map_arr;
++	rattr.pages = rdev->rcfw.creq.pbl[rdev->rcfw.creq.level].pg_count;
++	rattr.type = type;
++	rattr.mode = RING_ALLOC_REQ_INT_MODE_MSIX;
++	rattr.depth = BNXT_QPLIB_CREQE_MAX_CNT - 1;
++	rattr.lrid = rdev->msix_entries[BNXT_RE_AEQ_IDX].ring_idx;
++	rc = bnxt_re_net_ring_alloc(rdev, &rattr, &rdev->rcfw.creq_ring_id);
+ 	if (rc) {
+ 		pr_err("Failed to allocate CREQ: %#x\n", rc);
+ 		goto free_rcfw;
 -- 
 1.8.3.1
 
