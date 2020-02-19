@@ -2,139 +2,141 @@ Return-Path: <SRS0=b7KD=4H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C7BC34047
-	for <linux-rdma@archiver.kernel.org>; Wed, 19 Feb 2020 11:13:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 604E3C34047
+	for <linux-rdma@archiver.kernel.org>; Wed, 19 Feb 2020 13:04:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 967FF24658
-	for <linux-rdma@archiver.kernel.org>; Wed, 19 Feb 2020 11:13:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 370DD24670
+	for <linux-rdma@archiver.kernel.org>; Wed, 19 Feb 2020 13:04:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WvD6Bt0p"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="OsI3n81/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726723AbgBSLNR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 19 Feb 2020 06:13:17 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:36356 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726469AbgBSLNQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 19 Feb 2020 06:13:16 -0500
-Received: by mail-wr1-f67.google.com with SMTP id z3so44675wru.3
-        for <linux-rdma@vger.kernel.org>; Wed, 19 Feb 2020 03:13:15 -0800 (PST)
+        id S1727636AbgBSNE5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 19 Feb 2020 08:04:57 -0500
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:33844 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726548AbgBSNE5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 19 Feb 2020 08:04:57 -0500
+Received: by mail-qk1-f193.google.com with SMTP id c20so26700qkm.1
+        for <linux-rdma@vger.kernel.org>; Wed, 19 Feb 2020 05:04:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
+        d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=RyJW27hSCcsJKKMLQWuyuSb+TqLo4Bq+Lac4a7MICtw=;
-        b=WvD6Bt0pFtkRTcy5rhGHguR+eYQZmPFHrPm3M1r9AosaeVtUnyq0mwkDf3IOo3Qzgi
-         wmg1T2rnf7EG/amgJhcJAwI0WZZX5wY3mu49GzsdM18r8kYEpytdqbvZqZAiZWQ/sna+
-         ch0JgyoUPoAz0j3HtG6BKsOcw994YLDWMt83Tkd3Geo/qcv3SjghB7s24F0eiLs8/VAi
-         Mv5q2z1Et2DLbJwpEFJdCNltwyJujsJlpT8ShJVs+k4Y8Wvu9L7AeBBltmgwJeH5yx+a
-         lv2G4A0JYLierpgMLEGqZXNOHW1IJex4ZcRt/y1sycXq/KklSajmyfLPIQsPzOccFQdX
-         45jA==
+         :content-disposition:in-reply-to:user-agent;
+        bh=goLUugo2OcTd80Umui3tF9d4Pkr7paqnVUo9dLDeBaU=;
+        b=OsI3n81/VYVZ0WkakBm6Md8OmeNeMhEdktr7wEgXim8YZe7N/5zJjaf2xod5Whd6Bb
+         QaJJrAMOiy1aBVHnA/CLprv0EB89Ymjj9MUl8PqBbiqq67EN1KbuqMOlDYwQKbjgOQaW
+         zf/FroPxNtqkuqkaVNCZiu/msV290IQ29Zaq7nJEKR8Kwxg+5Vm/1MKn8nRSP5iFqO92
+         knT357KPMvhNeBIUdGytFqc/cTstbOODiVH/5BaQWBb3SY+2z2D6CxcuLBRt1sVyE+Ef
+         FLZHgOhL1l1eAmBl7iZhozVW9ayxUL1sF5aQYp09VXEUbDppncp0WZv4KL72FqUGnE+z
+         aqPw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=RyJW27hSCcsJKKMLQWuyuSb+TqLo4Bq+Lac4a7MICtw=;
-        b=Y/oUp+92YdljcEEIbQ1XSSe15sqDx04khG7FUak/C6K03/89pEWxtPdWOfGQ++Pz3Y
-         3/yO2PDGINtFhjw2Jv9Id+ciu+WSXYdHw444xoEG77lkWlLx8agWYJQ9NnpvwOTL7OTo
-         DwYjy6un7onMPgFAtRz9zaZRtE0m5TJ7VzhYEoqbtSvtpAPsevKDJWroM5RH8L/wyagT
-         JLmTEVmnJLlW7NZhonWxLBJJuF+ODArF5cpEzosD9E9xpweDmqMiruyI5xw8a0pk4lML
-         RDVb/U2AgZ/DfC0voFq2UxMSEqoJ1vNHiwDu2yDvdvcAZX9NBpc0+2uDBdRhSF2wCoQK
-         wABQ==
-X-Gm-Message-State: APjAAAXBdovU8IDEFURPkXii0XKP9gADsIcAcGcHnNworjY4jacJ2J4i
-        ++SxKHUQ2yrM4bfS9Cly77w=
-X-Google-Smtp-Source: APXvYqzGhn8FMyUILNt1lcBlzybjTDEwW99QdaLQ7sj0wKpj6Al5yMMoTQf86AvtWu4zIuknZJvKDw==
-X-Received: by 2002:adf:ec83:: with SMTP id z3mr33936562wrn.133.1582110794595;
-        Wed, 19 Feb 2020 03:13:14 -0800 (PST)
-Received: from kheib-workstation (bzq-109-65-128-51.red.bezeqint.net. [109.65.128.51])
-        by smtp.gmail.com with ESMTPSA id x21sm2383589wmi.30.2020.02.19.03.13.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 19 Feb 2020 03:13:14 -0800 (PST)
-Date:   Wed, 19 Feb 2020 13:13:11 +0200
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>
-Subject: Re: [PATCH for-next v2] RDMA/siw: Fix setting active_{speed, width}
- attributes
-Message-ID: <20200219111311.GA15804@kheib-workstation>
-References: <20200218095911.26614-1-kamalheib1@gmail.com>
- <20200218165847.GA15239@unreal>
- <20200219084359.GA12296@kheib-workstation>
- <20200219093321.GI15239@unreal>
- <20200219102110.GA13582@kheib-workstation>
- <20200219105320.GJ15239@unreal>
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=goLUugo2OcTd80Umui3tF9d4Pkr7paqnVUo9dLDeBaU=;
+        b=opFpC5ZF6O3O48Ko5oTNHq+a4xVXSuvjJ1wRuRsw3qfwnv+BK/ElCpPVGjJqyILfq9
+         43b9p1usDtWPSSAPTeCX15vHZzkOJHX9s9O+NK0NDXE2EaXMaOLTTQ4FPMiJJ0u5+KaH
+         5aNymVR9bsTxJylnNxTFiDJ3h2MMRnqkDxGrCJxlyHeMiqvKPbBD+bybN0NDAUXdQiIn
+         jSwoZbyvNtSj416ltX/vqkEwx3CcaymhDSDLvOQQ/OCNnIqfDJAOrjho/xYJeFMhLENG
+         TQFo1J1fGgdATxZFtC3ccCZbtcRx/VGcQhbZiJWEi/t7IvYQADqOXFtpIFAYzDSaiF9z
+         AZhQ==
+X-Gm-Message-State: APjAAAUnGiOjYVFBUKsTFqm3fT5HaIbigJRJpUap6gLeGrek81wMXP0v
+        F2bOe4hcYbb70wR8b9LmI8evsQ==
+X-Google-Smtp-Source: APXvYqxJLsvAqlYphCh5e9GMvszpHDnG9qhhwA485l0jlHZRwK3O7Gt57g8U47CpqY7u+6v/lf4oxw==
+X-Received: by 2002:a05:620a:41b:: with SMTP id 27mr23823411qkp.349.1582117496531;
+        Wed, 19 Feb 2020 05:04:56 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id x197sm960409qkb.28.2020.02.19.05.04.55
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 19 Feb 2020 05:04:56 -0800 (PST)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1j4P27-0000tR-Bf; Wed, 19 Feb 2020 09:04:55 -0400
+Date:   Wed, 19 Feb 2020 09:04:55 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Yunsheng Lin <linyunsheng@huawei.com>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        Lang Cheng <chenglang@huawei.com>, dledford@redhat.com,
+        davem@davemloft.net, salil.mehta@huawei.com,
+        yisen.zhuang@huawei.com, linuxarm@huawei.com,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Saeed Mahameed <saeedm@mellanox.com>, bhaktipriya96@gmail.com,
+        tj@kernel.org, Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Subject: Re: [RFC rdma-next] RDMA/core: Add attribute WQ_MEM_RECLAIM to
+ workqueue "infiniband"
+Message-ID: <20200219130455.GL31668@ziepe.ca>
+References: <1581996935-46507-1-git-send-email-chenglang@huawei.com>
+ <20200218153156.GD31668@ziepe.ca>
+ <212eda31-cc86-5487-051b-cb51c368b6fe@huawei.com>
+ <20200219064507.GC15239@unreal>
+ <1155d15f-4188-e5cd-3e4a-6e0c52e9b1eb@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200219105320.GJ15239@unreal>
+In-Reply-To: <1155d15f-4188-e5cd-3e4a-6e0c52e9b1eb@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Feb 19, 2020 at 12:53:20PM +0200, Leon Romanovsky wrote:
-> On Wed, Feb 19, 2020 at 12:21:10PM +0200, Kamal Heib wrote:
-> > On Wed, Feb 19, 2020 at 11:33:21AM +0200, Leon Romanovsky wrote:
-> > > On Wed, Feb 19, 2020 at 10:43:59AM +0200, Kamal Heib wrote:
-> > > > On Tue, Feb 18, 2020 at 06:58:47PM +0200, Leon Romanovsky wrote:
-> > > > > On Tue, Feb 18, 2020 at 11:59:11AM +0200, Kamal Heib wrote:
-> > > > > > Make sure to set the active_{speed, width} attributes to avoid reporting
-> > > > > > the same values regardless of the underlying device.
-> > > > > >
-> > > > > > Fixes: 303ae1cdfdf7 ("rdma/siw: application interface")
-> > > > > > Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-> > > > > > ---
-> > > > > > V2: Change rc to rv.
-> > > > > > ---
-> > > > > >  drivers/infiniband/sw/siw/siw_verbs.c | 7 ++++---
-> > > > > >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > > > > >
-> > > > > > diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/siw/siw_verbs.c
-> > > > > > index 73485d0da907..d5390d498c61 100644
-> > > > > > --- a/drivers/infiniband/sw/siw/siw_verbs.c
-> > > > > > +++ b/drivers/infiniband/sw/siw/siw_verbs.c
-> > > > > > @@ -165,11 +165,12 @@ int siw_query_port(struct ib_device *base_dev, u8 port,
-> > > > > >  		   struct ib_port_attr *attr)
-> > > > > >  {
-> > > > > >  	struct siw_device *sdev = to_siw_dev(base_dev);
-> > > > > > +	int rv;
-> > > > > >
-> > > > > >  	memset(attr, 0, sizeof(*attr));
-> > > > >
-> > > > > This line should go too. IB/core clears attr prior to call driver.
-> > > > >
-> > > > > Thanks
-> > > > >
-> > > >
-> > > > This can be done in a separate patch as this patch fixes a specific issue.
-> > >
-> > > Whatever works for you, if you don't value your own time, go for it,
-> > > do separate patch for every line you are changing. It just looks crazy
-> > > to see changes like this:
-> > >  * changed line
-> > >  * line to be changed, but not changed
-> > >  * another changed line
-> > >
-> > > Thanks
-> > >
-> >
-> > Leon, With all my respect, This isn't your decision what I do and when.
+On Wed, Feb 19, 2020 at 03:40:59PM +0800, Yunsheng Lin wrote:
+> +cc Bhaktipriya, Tejun and Jeff
 > 
-> Please carefully reread my answer, I didn't say what and when you should
-> do, simply gave to you an explanation why request remove useless memeset
-> makes sense in the context of proposed patch.
+> On 2020/2/19 14:45, Leon Romanovsky wrote:
+> > On Wed, Feb 19, 2020 at 09:13:23AM +0800, Yunsheng Lin wrote:
+> >> On 2020/2/18 23:31, Jason Gunthorpe wrote:
+> >>> On Tue, Feb 18, 2020 at 11:35:35AM +0800, Lang Cheng wrote:
+> >>>> The hns3 driver sets "hclge_service_task" workqueue with
+> >>>> WQ_MEM_RECLAIM flag in order to guarantee forward progress
+> >>>> under memory pressure.
+> >>>
+> >>> Don't do that. WQ_MEM_RECLAIM is only to be used by things interlinked
+> >>> with reclaimed processing.
+> >>>
+> >>> Work on queues marked with WQ_MEM_RECLAIM can't use GFP_KERNEL
+> >>> allocations, can't do certain kinds of sleeps, can't hold certain
+> >>> kinds of locks, etc.
 > 
-> Thanks
+> By the way, what kind of sleeps and locks can not be done in the work
+> queued to wq marked with WQ_MEM_RECLAIM?
 
-I simply give an answer to why I think otherwise, That doesn't mean that
-I don't value my own time...
+Anything that recurses back into a blocking allocation function.
 
-Thanks,
-Kamal
+If we are freeing memory because an allocation failed (eg GFP_KERNEL)
+then we cannot go back into a blockable allocation while trying to
+progress the first failing allocation. That is a deadlock.
 
+So a WQ cannot hold any locks that enclose GFP_KERNEL in any other
+threads.
+
+Unfortunately we don't have a lockdep test for this by default.
+
+> >> hns3 ethernet driver may be used as the low level transport of a
+> >> network file system, memory reclaim data path may depend on the
+> >> worker in hns3 driver to bring back the ethernet link so that it flush
+> >> the some cache to network based disk.
+> > 
+> > Unlikely that this "network file system" dependency on ethernet link is correct.
+> 
+> Ok, I may be wrong about the above usecase.  but the below commit
+> explicitly state that network devices may be used in memory reclaim
+> path.
+
+I don't really know how this works when the networking stacks
+intersect with the block stack.
+
+Forward progress on something like a NVMeOF requires a lot of stuff to
+be working, and presumably under reclaim.
+
+But, we can't make everything WQ_MEM_RECLAIM safe, because we could
+never do a GFP_KERNEL allocation..
+
+I have never seen specific guidance what to do here, I assume it is
+broken.
+
+Jason
