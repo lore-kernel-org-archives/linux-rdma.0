@@ -2,51 +2,54 @@ Return-Path: <SRS0=rt4E=4I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB161C34031
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 07:12:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B73C34031
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 07:12:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D0122465D
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 07:12:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 609FA24656
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 07:12:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582182769;
-	bh=dViDeOl1RXJspvgA/3Crf+b7WLlKCWKmiS6Li2z5boQ=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=WDEdcS+z9/VvdYZn+KjhEMYk4RzFv1WF/iWVF9Tv1DIl/CC+nnI/Ve5/fjVCDoE9l
-	 /qILmlmeBNXJlFz2xe0ZYbP/SnFxVQ+HmR2No1x3uzHa1we1LJ/dqqks3i9rlfIlqX
-	 Oe/v+G2nliFXVbFtMF67P3VzPlwJTLJ+wm0e0Lrs=
+	s=default; t=1582182773;
+	bh=O10T/IBS68LU6927FT7UJxV2RCn8XwhNO7Nmtq+gaaI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=wQLguup/sPi34l8RFOWhrtY71hijpo6odqx5dUarYL0L25+kv+7QpO0ffBKSaP6Fe
+	 PgoKYzqmGypccqmieAVmoiKVeB6tpfn0sxYGSDs9CskuXiv41YdMhoPHIuqbHYKFPN
+	 WR/xxUOmXxBVxJV5zO/XXraqcUkbmpAEqDws3580=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726149AbgBTHMt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 20 Feb 2020 02:12:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45768 "EHLO mail.kernel.org"
+        id S1726248AbgBTHMw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 20 Feb 2020 02:12:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725942AbgBTHMt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 20 Feb 2020 02:12:49 -0500
+        id S1725942AbgBTHMw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 20 Feb 2020 02:12:52 -0500
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D365424656;
-        Thu, 20 Feb 2020 07:12:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 653612465D;
+        Thu, 20 Feb 2020 07:12:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1582182768;
-        bh=dViDeOl1RXJspvgA/3Crf+b7WLlKCWKmiS6Li2z5boQ=;
-        h=From:To:Cc:Subject:Date:From;
-        b=i4jK2+Pte7aivQIkivBxjmAD5HW6nbMi1RodNar1GE+kx6Wq2ly56kDGGVhaylClY
-         aWcobH5H2IFNJ6V4pLVhd+8RLEVNkGBJUFATBXNw7L2/m9ShCMlZnbzJle1S2KOT/m
-         cxk5eOHRqfuga+rKAFr2kN4ZAUHZyPHtUhNLOar4=
+        s=default; t=1582182772;
+        bh=O10T/IBS68LU6927FT7UJxV2RCn8XwhNO7Nmtq+gaaI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=bQmpTBfRz96omqmNZtw49dlu2+j3F7I5RS93K3PoH8xp65XrVhmco1hcis8fCNE75
+         OkjPuyRvyqr0trzx70KCQtmr5b7h4zPRkzTbThaASzzFVKjbs+wwVe8viqU+gPY0Gb
+         7v7r8TBo7u4VxiShWmcv4NhBkMr1cfZzfpG6ADM0=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH rdma-next 0/2] Drop driver version in favor of default ethtool
-Date:   Thu, 20 Feb 2020 09:12:37 +0200
-Message-Id: <20200220071239.231800-1-leon@kernel.org>
+Subject: [PATCH rdma-next 1/2] RDMA/ipoib: Don't set constant driver version
+Date:   Thu, 20 Feb 2020 09:12:38 +0200
+Message-Id: <20200220071239.231800-2-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200220071239.231800-1-leon@kernel.org>
+References: <20200220071239.231800-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -56,24 +59,55 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Following the change in ethtool to provide default driver version which
-is aligned with kernel in use, drop the static assignments of driver
-versions in IPoIB and OPA_VNIC.
+There is no need to set driver version in in-tree kernel code.
 
-Thanks
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h         | 2 --
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 3 ---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    | 4 ----
+ 3 files changed, 9 deletions(-)
 
-Leon Romanovsky (2):
-  RDMA/ipoib: Don't set constant driver version
-  RDMA/opa_vnic: Delete driver version
-
- drivers/infiniband/ulp/ipoib/ipoib.h                | 2 --
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c        | 3 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c           | 4 ----
- drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c  | 2 --
- drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h | 1 -
- drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c     | 5 -----
- 6 files changed, 17 deletions(-)
-
---
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 2aa3457a30ce..e188a95984b5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -838,6 +838,4 @@ extern int ipoib_debug_level;
+ 
+ #define IPOIB_QPN(ha) (be32_to_cpup((__be32 *) ha) & 0xffffff)
+ 
+-extern const char ipoib_driver_version[];
+-
+ #endif /* _IPOIB_H */
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+index 63e4f9d15fd9..a47097d4577c 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+@@ -68,9 +68,6 @@ static void ipoib_get_drvinfo(struct net_device *netdev,
+ 	strlcpy(drvinfo->bus_info, dev_name(priv->ca->dev.parent),
+ 		sizeof(drvinfo->bus_info));
+ 
+-	strlcpy(drvinfo->version, ipoib_driver_version,
+-		sizeof(drvinfo->version));
+-
+ 	strlcpy(drvinfo->driver, "ib_ipoib", sizeof(drvinfo->driver));
+ }
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index f630be064435..9fac1dbc8197 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -52,10 +52,6 @@
+ #include <linux/inetdevice.h>
+ #include <rdma/ib_cache.h>
+ 
+-#define DRV_VERSION "1.0.0"
+-
+-const char ipoib_driver_version[] = DRV_VERSION;
+-
+ MODULE_AUTHOR("Roland Dreier");
+ MODULE_DESCRIPTION("IP-over-InfiniBand net driver");
+ MODULE_LICENSE("Dual BSD/GPL");
+-- 
 2.24.1
 
