@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4991C11D40
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:00:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2C21C11D43
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:00:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AEC4724670
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:00:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B412E24670
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:00:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727620AbgBTDAW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 19 Feb 2020 22:00:22 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:10647 "EHLO huawei.com"
+        id S1727402AbgBTDAY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 19 Feb 2020 22:00:24 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:10650 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727476AbgBTDAV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 19 Feb 2020 22:00:21 -0500
+        id S1727476AbgBTDAX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 19 Feb 2020 22:00:23 -0500
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 29E95C583835F0B440AD;
+        by Forcepoint Email with ESMTP id 20869B84047E2C9E38D6;
         Thu, 20 Feb 2020 11:00:18 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 20 Feb 2020 11:00:09 +0800
+ 14.3.439.0; Thu, 20 Feb 2020 11:00:08 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 7/7] RDMA/hns: Optimize qp doorbell allocation flow
-Date:   Thu, 20 Feb 2020 10:56:07 +0800
-Message-ID: <1582167367-50380-8-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v3 for-next 1/7] RDMA/hns: Optimize qp destroy flow
+Date:   Thu, 20 Feb 2020 10:56:01 +0800
+Message-ID: <1582167367-50380-2-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1582167367-50380-1-git-send-email-liweihang@huawei.com>
 References: <1582167367-50380-1-git-send-email-liweihang@huawei.com>
@@ -45,308 +45,84 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-Encapsulate the kernel qp doorbell allocation related code into 2
-functions: alloc_qp_db() and free_qp_db().
+Wrap the duplicate code in hip08 and hip06 qp destruction process as
+hns_roce_qp_destroy() to simply the qp destroy flow.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c | 234 ++++++++++++++++++--------------
- 1 file changed, 132 insertions(+), 102 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 19 ++-----------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 39 +--------------------------
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 41 +++++++++++++++++++++++++++++
+ 4 files changed, 46 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 8e9c9dc..b16b4a2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -834,7 +834,7 @@ static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index d0a8392..f7335c9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -1250,9 +1250,8 @@ void hns_roce_lock_cqs(struct hns_roce_cq *send_cq,
+ void hns_roce_unlock_cqs(struct hns_roce_cq *send_cq,
+ 			 struct hns_roce_cq *recv_cq);
+ void hns_roce_qp_remove(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp);
+-void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp);
+-void hns_roce_release_range_qp(struct hns_roce_dev *hr_dev, int base_qpn,
+-			       int cnt);
++void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
++			 struct ib_udata *udata);
+ __be32 send_ieth(const struct ib_send_wr *wr);
+ int to_hr_qp_type(int qp_type);
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index c6e6658..fe37e6f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -3623,26 +3623,11 @@ int hns_roce_v1_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 		if (send_cq && send_cq != recv_cq)
+ 			__hns_roce_v1_cq_clean(send_cq, hr_qp->qpn, NULL);
  	}
- 
- 	if (udata) {
--		hr_qp->umem = ib_umem_get(udata, addr, hr_qp->buff_size, 0);
-+		hr_qp->umem = ib_umem_get(ibdev, addr, hr_qp->buff_size, 0);
- 		if (IS_ERR(hr_qp->umem)) {
- 			ret = PTR_ERR(hr_qp->umem);
- 			goto err_inline;
-@@ -886,6 +886,114 @@ static void free_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 		free_rq_inline_buf(hr_qp);
- }
- 
-+static inline bool user_qp_has_sdb(struct hns_roce_dev *hr_dev,
-+				   struct ib_qp_init_attr *init_attr,
-+				   struct ib_udata *udata,
-+				   struct hns_roce_ib_create_qp_resp *resp,
-+				   struct hns_roce_ib_create_qp *ucmd)
-+{
-+	return ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SQ_RECORD_DB) &&
-+		udata->outlen >= sizeof(*resp) &&
-+		hns_roce_qp_has_sq(init_attr) &&
-+		udata->inlen >= sizeof(*ucmd));
-+}
-+
-+static inline bool user_qp_has_rdb(struct hns_roce_dev *hr_dev,
-+				   struct ib_qp_init_attr *init_attr,
-+				   struct ib_udata *udata,
-+				   struct hns_roce_ib_create_qp_resp *resp)
-+{
-+	return ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
-+		udata->outlen >= sizeof(*resp) &&
-+		hns_roce_qp_has_rq(init_attr));
-+}
-+
-+static inline bool kernel_qp_has_rdb(struct hns_roce_dev *hr_dev,
-+				     struct ib_qp_init_attr *init_attr)
-+{
-+	return ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
-+		hns_roce_qp_has_rq(init_attr));
-+}
-+
-+static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+		       struct ib_qp_init_attr *init_attr,
-+		       struct ib_udata *udata,
-+		       struct hns_roce_ib_create_qp *ucmd,
-+		       struct hns_roce_ib_create_qp_resp *resp)
-+{
-+	struct hns_roce_ucontext *uctx = rdma_udata_to_drv_context(
-+		udata, struct hns_roce_ucontext, ibucontext);
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	int ret;
-+
-+	if (udata) {
-+		if (user_qp_has_sdb(hr_dev, init_attr, udata, resp, ucmd)) {
-+			ret = hns_roce_db_map_user(uctx, udata, ucmd->sdb_addr,
-+						   &hr_qp->sdb);
-+			if (ret) {
-+				ibdev_err(ibdev,
-+					  "Failed to map user SQ doorbell\n");
-+				goto err_out;
-+			}
-+			hr_qp->sdb_en = 1;
-+			resp->cap_flags |= HNS_ROCE_SUPPORT_SQ_RECORD_DB;
-+		}
-+
-+		if (user_qp_has_rdb(hr_dev, init_attr, udata, resp)) {
-+			ret = hns_roce_db_map_user(uctx, udata, ucmd->db_addr,
-+						   &hr_qp->rdb);
-+			if (ret) {
-+				ibdev_err(ibdev,
-+					  "Failed to map user RQ doorbell\n");
-+				goto err_sdb;
-+			}
-+			hr_qp->rdb_en = 1;
-+			resp->cap_flags |= HNS_ROCE_SUPPORT_RQ_RECORD_DB;
-+		}
-+	} else {
-+		/* QP doorbell register address */
-+		hr_qp->sq.db_reg_l = hr_dev->reg_base + hr_dev->sdb_offset +
-+				     DB_REG_OFFSET * hr_dev->priv_uar.index;
-+		hr_qp->rq.db_reg_l = hr_dev->reg_base + hr_dev->odb_offset +
-+				     DB_REG_OFFSET * hr_dev->priv_uar.index;
-+
-+		if (kernel_qp_has_rdb(hr_dev, init_attr)) {
-+			ret = hns_roce_alloc_db(hr_dev, &hr_qp->rdb, 0);
-+			if (ret) {
-+				ibdev_err(ibdev,
-+					  "Failed to alloc kernel RQ doorbell\n");
-+				goto err_out;
-+			}
-+			*hr_qp->rdb.db_record = 0;
-+			hr_qp->rdb_en = 1;
-+		}
-+	}
-+
-+	return 0;
-+err_sdb:
-+	if (udata && hr_qp->sdb_en)
-+		hns_roce_db_unmap_user(uctx, &hr_qp->sdb);
-+err_out:
-+	return ret;
-+}
-+
-+static void free_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+		       struct ib_udata *udata)
-+{
-+	struct hns_roce_ucontext *uctx = rdma_udata_to_drv_context(
-+		udata, struct hns_roce_ucontext, ibucontext);
-+
-+	if (udata) {
-+		if (hr_qp->rdb_en)
-+			hns_roce_db_unmap_user(uctx, &hr_qp->rdb);
-+		if (hr_qp->sdb_en)
-+			hns_roce_db_unmap_user(uctx, &hr_qp->sdb);
-+	} else {
-+		if (hr_qp->rdb_en)
-+			hns_roce_free_db(hr_dev, &hr_qp->rdb);
-+	}
-+}
-+
- static int alloc_kernel_wrid(struct hns_roce_dev *hr_dev,
- 			     struct hns_roce_qp *hr_qp)
- {
-@@ -982,11 +1090,9 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 				     struct ib_udata *udata,
- 				     struct hns_roce_qp *hr_qp)
- {
--	struct device *dev = hr_dev->dev;
--	struct hns_roce_ib_create_qp ucmd;
- 	struct hns_roce_ib_create_qp_resp resp = {};
--	struct hns_roce_ucontext *uctx = rdma_udata_to_drv_context(
--		udata, struct hns_roce_ucontext, ibucontext);
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	struct hns_roce_ib_create_qp ucmd;
- 	int ret;
- 
- 	mutex_init(&hr_qp->mutex);
-@@ -998,95 +1104,55 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 
- 	ret = set_qp_param(hr_dev, hr_qp, init_attr, udata, &ucmd);
- 	if (ret) {
--		ibdev_err(&hr_dev->ib_dev, "Failed to set QP param\n");
-+		ibdev_err(ibdev, "Failed to set QP param\n");
- 		return ret;
- 	}
- 
--	if (udata) {
--		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SQ_RECORD_DB) &&
--		    (udata->inlen >= sizeof(ucmd)) &&
--		    (udata->outlen >= sizeof(resp)) &&
--		    hns_roce_qp_has_sq(init_attr)) {
--			ret = hns_roce_db_map_user(uctx, udata, ucmd.sdb_addr,
--						   &hr_qp->sdb);
--			if (ret) {
--				dev_err(dev, "sq record doorbell map failed!\n");
--				goto err_out;
--			}
+-	hns_roce_unlock_cqs(send_cq, recv_cq);
 -
--			/* indicate kernel supports sq record db */
--			resp.cap_flags |= HNS_ROCE_SUPPORT_SQ_RECORD_DB;
--			hr_qp->sdb_en = 1;
--		}
+ 	hns_roce_qp_remove(hr_dev, hr_qp);
+-	hns_roce_qp_free(hr_dev, hr_qp);
 -
--		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
--		    (udata->outlen >= sizeof(resp)) &&
--		    hns_roce_qp_has_rq(init_attr)) {
--			ret = hns_roce_db_map_user(uctx, udata, ucmd.db_addr,
--						   &hr_qp->rdb);
--			if (ret) {
--				dev_err(dev, "rq record doorbell map failed!\n");
--				goto err_sq_dbmap;
--			}
+-	/* RC QP, release QPN */
+-	if (hr_qp->ibqp.qp_type == IB_QPT_RC)
+-		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
 -
--			/* indicate kernel supports rq record db */
--			resp.cap_flags |= HNS_ROCE_SUPPORT_RQ_RECORD_DB;
--			hr_qp->rdb_en = 1;
--		}
--	} else {
--		/* QP doorbell register address */
--		hr_qp->sq.db_reg_l = hr_dev->reg_base + hr_dev->sdb_offset +
--				     DB_REG_OFFSET * hr_dev->priv_uar.index;
--		hr_qp->rq.db_reg_l = hr_dev->reg_base + hr_dev->odb_offset +
--				     DB_REG_OFFSET * hr_dev->priv_uar.index;
+-	hns_roce_mtt_cleanup(hr_dev, &hr_qp->mtt);
 -
--		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
--		    hns_roce_qp_has_rq(init_attr)) {
--			ret = hns_roce_alloc_db(hr_dev, &hr_qp->rdb, 0);
--			if (ret) {
--				dev_err(dev, "rq record doorbell alloc failed!\n");
--				goto err_out;
--			}
--			*hr_qp->rdb.db_record = 0;
--			hr_qp->rdb_en = 1;
--		}
--
-+	if (!udata) {
- 		ret = alloc_kernel_wrid(hr_dev, hr_qp);
- 		if (ret) {
--			ibdev_err(&hr_dev->ib_dev, "Failed to alloc wrid\n");
--			goto err_db;
-+			ibdev_err(ibdev, "Failed to alloc wrid\n");
-+			return ret;
- 		}
- 	}
+-	ib_umem_release(hr_qp->umem);
+-	if (!udata) {
+-		kfree(hr_qp->sq.wrid);
+-		kfree(hr_qp->rq.wrid);
++	hns_roce_unlock_cqs(send_cq, recv_cq);
  
-+	ret = alloc_qp_db(hr_dev, hr_qp, init_attr, udata, &ucmd, &resp);
-+	if (ret) {
-+		ibdev_err(ibdev, "Failed to alloc QP doorbell\n");
-+		goto err_wrid;
-+	}
-+
- 	ret = alloc_qp_buf(hr_dev, hr_qp, init_attr, udata, ucmd.buf_addr);
- 	if (ret) {
--		ibdev_err(&hr_dev->ib_dev, "Failed to alloc QP buffer\n");
-+		ibdev_err(ibdev, "Failed to alloc QP buffer\n");
- 		goto err_db;
- 	}
- 
- 	ret = alloc_qpn(hr_dev, hr_qp);
- 	if (ret) {
--		ibdev_err(&hr_dev->ib_dev, "Failed to alloc QPN\n");
-+		ibdev_err(ibdev, "Failed to alloc QPN\n");
- 		goto err_buf;
- 	}
- 
- 	ret = alloc_qpc(hr_dev, hr_qp);
- 	if (ret) {
--		ibdev_err(&hr_dev->ib_dev, "Failed to alloc QP context\n");
-+		ibdev_err(ibdev, "Failed to alloc QP context\n");
- 		goto err_qpn;
- 	}
- 
- 	ret = hns_roce_qp_store(hr_dev, hr_qp, init_attr);
- 	if (ret) {
--		ibdev_err(&hr_dev->ib_dev, "Failed to store QP\n");
-+		ibdev_err(ibdev, "Failed to store QP\n");
- 		goto err_qpc;
- 	}
- 
- 	if (udata) {
- 		ret = ib_copy_to_udata(udata, &resp,
- 				       min(udata->outlen, sizeof(resp)));
--		if (ret)
-+		if (ret) {
-+			ibdev_err(ibdev, "copy qp resp failed!\n");
- 			goto err_store;
-+		}
- 	}
- 
- 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
-@@ -1110,30 +1176,10 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	free_qpn(hr_dev, hr_qp);
- err_buf:
- 	free_qp_buf(hr_dev, hr_qp);
--
--	free_kernel_wrid(hr_dev, hr_qp);
--
--	if (udata) {
--		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
--		    (udata->outlen >= sizeof(resp)) &&
--		    hns_roce_qp_has_rq(init_attr))
--			hns_roce_db_unmap_user(uctx, &hr_qp->rdb);
+-		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
 -	}
--
--err_sq_dbmap:
--	if (udata)
--		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SQ_RECORD_DB) &&
--		    (udata->inlen >= sizeof(ucmd)) &&
--		    (udata->outlen >= sizeof(resp)) &&
--		    hns_roce_qp_has_sq(init_attr))
--			hns_roce_db_unmap_user(uctx, &hr_qp->sdb);
--
- err_db:
--	if (!udata && hns_roce_qp_has_rq(init_attr) &&
--	    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB))
--		hns_roce_free_db(hr_dev, &hr_qp->rdb);
--
--err_out:
-+	free_qp_db(hr_dev, hr_qp, udata);
-+err_wrid:
-+	free_kernel_wrid(hr_dev, hr_qp);
- 	return ret;
++	hns_roce_qp_destroy(hr_dev, hr_qp, udata);
+ 
+-	kfree(hr_qp);
+ 	return 0;
  }
  
-@@ -1148,23 +1194,7 @@ void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	free_qpn(hr_dev, hr_qp);
- 	free_qp_buf(hr_dev, hr_qp);
- 	free_kernel_wrid(hr_dev, hr_qp);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index aa9d179..8ad34d1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5039,43 +5039,6 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 	hns_roce_unlock_cqs(send_cq, recv_cq);
+ 	spin_unlock_irqrestore(&hr_dev->qp_list_lock, flags);
+ 
+-	hns_roce_qp_free(hr_dev, hr_qp);
+-
+-	/* Not special_QP, free their QPN */
+-	if ((hr_qp->ibqp.qp_type == IB_QPT_RC) ||
+-	    (hr_qp->ibqp.qp_type == IB_QPT_UC) ||
+-	    (hr_qp->ibqp.qp_type == IB_QPT_UD))
+-		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
+-
+-	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
 -
 -	if (udata) {
 -		struct hns_roce_ucontext *context =
@@ -361,13 +137,84 @@ index 8e9c9dc..b16b4a2 100644
 -		if (hr_qp->rq.wqe_cnt && (hr_qp->rdb_en == 1))
 -			hns_roce_db_unmap_user(context, &hr_qp->rdb);
 -	} else {
+-		kfree(hr_qp->sq.wrid);
+-		kfree(hr_qp->rq.wrid);
+-		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
 -		if (hr_qp->rq.wqe_cnt)
 -			hns_roce_free_db(hr_dev, &hr_qp->rdb);
 -	}
-+	free_qp_db(hr_dev, hr_qp, udata);
- 
- 	kfree(hr_qp);
+-	ib_umem_release(hr_qp->umem);
+-
+-	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
+-	     hr_qp->rq.wqe_cnt) {
+-		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
+-		kfree(hr_qp->rq_inl_buf.wqe_list);
+-	}
+-
+ 	return ret;
  }
+ 
+@@ -5090,7 +5053,7 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 		ibdev_err(&hr_dev->ib_dev, "Destroy qp 0x%06lx failed(%d)\n",
+ 			  hr_qp->qpn, ret);
+ 
+-	kfree(hr_qp);
++	hns_roce_qp_destroy(hr_dev, hr_qp, udata);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index c52e1b0..26e1cf0 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1078,6 +1078,47 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 	return ret;
+ }
+ 
++void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
++			 struct ib_udata *udata)
++{
++	hns_roce_qp_free(hr_dev, hr_qp);
++
++	/* Not special_QP, free their QPN */
++	if (hr_qp->ibqp.qp_type != IB_QPT_GSI)
++		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
++
++	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
++
++	if (udata) {
++		struct hns_roce_ucontext *context =
++			rdma_udata_to_drv_context(
++				udata,
++				struct hns_roce_ucontext,
++				ibucontext);
++
++		if (hr_qp->sq.wqe_cnt && (hr_qp->sdb_en == 1))
++			hns_roce_db_unmap_user(context, &hr_qp->sdb);
++
++		if (hr_qp->rq.wqe_cnt && (hr_qp->rdb_en == 1))
++			hns_roce_db_unmap_user(context, &hr_qp->rdb);
++	} else {
++		kfree(hr_qp->sq.wrid);
++		kfree(hr_qp->rq.wrid);
++		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
++		if (hr_qp->rq.wqe_cnt)
++			hns_roce_free_db(hr_dev, &hr_qp->rdb);
++	}
++	ib_umem_release(hr_qp->umem);
++
++	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
++	     hr_qp->rq.wqe_cnt) {
++		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
++		kfree(hr_qp->rq_inl_buf.wqe_list);
++	}
++
++	kfree(hr_qp);
++}
++
+ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 				 struct ib_qp_init_attr *init_attr,
+ 				 struct ib_udata *udata)
 -- 
 2.8.1
 
