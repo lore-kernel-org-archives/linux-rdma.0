@@ -2,476 +2,168 @@ Return-Path: <SRS0=rt4E=4I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF0EC5ACC4
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:00:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F10CC5ACC4
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:19:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4764224670
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:00:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DECDB24656
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Feb 2020 03:19:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727666AbgBTDAb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 19 Feb 2020 22:00:31 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:10645 "EHLO huawei.com"
+        id S1727469AbgBTDTh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 19 Feb 2020 22:19:37 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:10653 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727476AbgBTDAb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 19 Feb 2020 22:00:31 -0500
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 2EE4035024AC66483F1F;
-        Thu, 20 Feb 2020 11:00:18 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.439.0; Thu, 20 Feb 2020 11:00:08 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 4/7] RDMA/hns: Optimize qp buffer allocation flow
-Date:   Thu, 20 Feb 2020 10:56:04 +0800
-Message-ID: <1582167367-50380-5-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1582167367-50380-1-git-send-email-liweihang@huawei.com>
-References: <1582167367-50380-1-git-send-email-liweihang@huawei.com>
+        id S1727402AbgBTDTh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 19 Feb 2020 22:19:37 -0500
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 69FD77A8F6DABE932F4E;
+        Thu, 20 Feb 2020 11:19:35 +0800 (CST)
+Received: from [127.0.0.1] (10.40.203.251) by DGGEMS405-HUB.china.huawei.com
+ (10.3.19.205) with Microsoft SMTP Server id 14.3.439.0; Thu, 20 Feb 2020
+ 11:19:25 +0800
+Subject: Re: [PATCH RFC v2 for-next 1/7] RDMA/core: add inactive attribute of
+ ib_port_cache
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Weihang Li <liweihang@huawei.com>
+CC:     <dledford@redhat.com>, <leon@kernel.org>,
+        <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
+References: <20200204082408.18728-1-liweihang@huawei.com>
+ <20200204082408.18728-2-liweihang@huawei.com>
+ <20200219210130.GY31668@ziepe.ca>
+From:   Lang Cheng <chenglang@huawei.com>
+Message-ID: <cf62eeae-5e5e-a228-7a9e-8eccfc90c5fc@huawei.com>
+Date:   Thu, 20 Feb 2020 11:19:25 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
+In-Reply-To: <20200219210130.GY31668@ziepe.ca>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.40.203.251]
 X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xi Wang <wangxi11@huawei.com>
 
-Encapsulate qp buffer allocation related code into 3 functions:
-alloc_qp_buf(), map_wqe_buf() and free_qp_buf().
 
-Signed-off-by: Xi Wang <wangxi11@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h |   1 -
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 266 +++++++++++++++-------------
- 2 files changed, 144 insertions(+), 123 deletions(-)
+On 2020/2/20 5:01, Jason Gunthorpe wrote:
+> On Tue, Feb 04, 2020 at 04:24:02PM +0800, Weihang Li wrote:
+>> From: Lang Cheng <chenglang@huawei.com>
+>>
+>> Add attribute inactive to mark bonding backup port.
+>>
+>> Signed-off-by: Lang Cheng <chenglang@huawei.com>
+>>   drivers/infiniband/core/cache.c | 16 +++++++++++++++-
+>>   include/rdma/ib_cache.h         | 10 ++++++++++
+>>   include/rdma/ib_verbs.h         |  2 ++
+>>   3 files changed, 27 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+>> index d535995..7a7ef0e 100644
+>> +++ b/drivers/infiniband/core/cache.c
+>> @@ -1175,6 +1175,19 @@ int ib_get_cached_port_state(struct ib_device   *device,
+>>   }
+>>   EXPORT_SYMBOL(ib_get_cached_port_state);
+>>   
+>> +u8 ib_get_cached_port_inactive_status(struct ib_device *device, u8 port_num)
+>> +{
+>> +	unsigned long flags;
+>> +	u8 inactive;
+>> +
+>> +	read_lock_irqsave(&device->cache.lock, flags);
+>> +	inactive = device->port_data[port_num].cache.inactive;
+>> +	read_unlock_irqrestore(&device->cache.lock, flags);
+>> +
+>> +	return inactive;
+>> +}
+>> +EXPORT_SYMBOL(ib_get_cached_port_inactive_status);
+>> +
+>>   /**
+>>    * rdma_get_gid_attr - Returns GID attributes for a port of a device
+>>    * at a requested gid_index, if a valid GID entry exists.
+>> @@ -1393,7 +1406,7 @@ static void ib_cache_update(struct ib_device *device,
+>>   	if (!rdma_is_port_valid(device, port))
+>>   		return;
+>>   
+>> -	tprops = kmalloc(sizeof *tprops, GFP_KERNEL);
+>> +	tprops = kzalloc(sizeof *tprops, GFP_KERNEL);
+>>   	if (!tprops)
+>>   		return;
+>>   
+>> @@ -1435,6 +1448,7 @@ static void ib_cache_update(struct ib_device *device,
+>>   	device->port_data[port].cache.pkey = pkey_cache;
+>>   	device->port_data[port].cache.lmc = tprops->lmc;
+>>   	device->port_data[port].cache.port_state = tprops->state;
+>> +	device->port_data[port].cache.inactive = tprops->inactive;
+>>   
+>>   	device->port_data[port].cache.subnet_prefix = tprops->subnet_prefix;
+>>   	write_unlock_irq(&device->cache.lock);
+>> diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+>> index 870b5e6..63b2dd6 100644
+>> +++ b/include/rdma/ib_cache.h
+>> @@ -131,6 +131,16 @@ int ib_get_cached_port_state(struct ib_device *device,
+>>   			      u8                port_num,
+>>   			      enum ib_port_state *port_active);
+>>   
+>> +/**
+>> + * ib_get_cached_port_inactive_status - Returns a cached port inactive status
+>> + * @device: The device to query.
+>> + * @port_num: The port number of the device to query.
+>> + *
+>> + * ib_get_cached_port_inactive_status() fetches the specified event inactive
+>> + * status stored in the local software cache.
+>> + */
+>> +u8 ib_get_cached_port_inactive_status(struct ib_device *device, u8 port_num);
+>> +
+> 
+> kdocs belong with the implementation, not in the header file
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index f7335c9..d7dcf6e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -673,7 +673,6 @@ struct hns_roce_qp {
- 	/* this define must less than HNS_ROCE_MAX_BT_REGION */
- #define HNS_ROCE_WQE_REGION_MAX	 3
- 	struct hns_roce_buf_region regions[HNS_ROCE_WQE_REGION_MAX];
--	int			region_cnt;
- 	int                     wqe_bt_pg_shift;
- 
- 	u32			buff_size;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 576f909..dae899e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -758,23 +758,147 @@ static void free_rq_inline_buf(struct hns_roce_qp *hr_qp)
- 	kfree(hr_qp->rq_inl_buf.wqe_list);
- }
- 
-+static int map_wqe_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+		       u32 page_shift, bool is_user)
-+{
-+	dma_addr_t *buf_list[ARRAY_SIZE(hr_qp->regions)] = { NULL };
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	struct hns_roce_buf_region *r;
-+	int region_count;
-+	int buf_count;
-+	int ret;
-+	int i;
-+
-+	region_count = split_wqe_buf_region(hr_dev, hr_qp, hr_qp->regions,
-+					ARRAY_SIZE(hr_qp->regions), page_shift);
-+
-+	/* alloc a tmp list to store WQE buffers address */
-+	ret = hns_roce_alloc_buf_list(hr_qp->regions, buf_list, region_count);
-+	if (ret) {
-+		ibdev_err(ibdev, "Failed to alloc WQE buffer list\n");
-+		return ret;
-+	}
-+
-+	for (i = 0; i < region_count; i++) {
-+		r = &hr_qp->regions[i];
-+		if (is_user)
-+			buf_count = hns_roce_get_umem_bufs(hr_dev, buf_list[i],
-+					r->count, r->offset, hr_qp->umem,
-+					page_shift);
-+		else
-+			buf_count = hns_roce_get_kmem_bufs(hr_dev, buf_list[i],
-+					r->count, r->offset, &hr_qp->hr_buf);
-+
-+		if (buf_count != r->count) {
-+			ibdev_err(ibdev, "Failed to get %s WQE buf, expect %d = %d.\n",
-+				  is_user ? "user" : "kernel",
-+				  r->count, buf_count);
-+			ret = -ENOBUFS;
-+			goto done;
-+		}
-+	}
-+
-+	hr_qp->wqe_bt_pg_shift = calc_wqe_bt_page_shift(hr_dev, hr_qp->regions,
-+							region_count);
-+	hns_roce_mtr_init(&hr_qp->mtr, PAGE_SHIFT + hr_qp->wqe_bt_pg_shift,
-+			  page_shift);
-+	ret = hns_roce_mtr_attach(hr_dev, &hr_qp->mtr, buf_list, hr_qp->regions,
-+				  region_count);
-+	if (ret)
-+		ibdev_err(ibdev, "Failed to attatch WQE's mtr\n");
-+
-+	goto done;
-+
-+	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
-+done:
-+	hns_roce_free_buf_list(buf_list, region_count);
-+
-+	return ret;
-+}
-+
-+static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+			struct ib_qp_init_attr *init_attr,
-+			struct ib_udata *udata, unsigned long addr)
-+{
-+	u32 page_shift = PAGE_SHIFT + hr_dev->caps.mtt_buf_pg_sz;
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	bool is_rq_buf_inline;
-+	int ret;
-+
-+	is_rq_buf_inline = (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
-+			   hns_roce_qp_has_rq(init_attr);
-+	if (is_rq_buf_inline) {
-+		ret = alloc_rq_inline_buf(hr_qp, init_attr);
-+		if (ret) {
-+			ibdev_err(ibdev, "Failed to alloc inline RQ buffer\n");
-+			return ret;
-+		}
-+	}
-+
-+	if (udata) {
-+		hr_qp->umem = ib_umem_get(udata, addr, hr_qp->buff_size, 0);
-+		if (IS_ERR(hr_qp->umem)) {
-+			ret = PTR_ERR(hr_qp->umem);
-+			goto err_inline;
-+		}
-+	} else {
-+		ret = hns_roce_buf_alloc(hr_dev, hr_qp->buff_size,
-+					 (1 << page_shift) * 2,
-+					 &hr_qp->hr_buf, page_shift);
-+		if (ret)
-+			goto err_inline;
-+	}
-+
-+	ret = map_wqe_buf(hr_dev, hr_qp, page_shift, udata);
-+	if (ret)
-+		goto err_alloc;
-+
-+	return 0;
-+
-+err_inline:
-+	if (is_rq_buf_inline)
-+		free_rq_inline_buf(hr_qp);
-+
-+err_alloc:
-+	if (udata) {
-+		ib_umem_release(hr_qp->umem);
-+		hr_qp->umem = NULL;
-+	} else {
-+		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
-+	}
-+
-+	ibdev_err(ibdev, "Failed to alloc WQE buffer, ret %d.\n", ret);
-+
-+	return ret;
-+}
-+
-+static void free_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
-+{
-+	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
-+	if (hr_qp->umem) {
-+		ib_umem_release(hr_qp->umem);
-+		hr_qp->umem = NULL;
-+	}
-+
-+	if (hr_qp->hr_buf.nbufs > 0)
-+		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
-+
-+	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
-+	     hr_qp->rq.wqe_cnt)
-+		free_rq_inline_buf(hr_qp);
-+}
- static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 				     struct ib_pd *ib_pd,
- 				     struct ib_qp_init_attr *init_attr,
- 				     struct ib_udata *udata,
- 				     struct hns_roce_qp *hr_qp)
- {
--	dma_addr_t *buf_list[ARRAY_SIZE(hr_qp->regions)] = { NULL };
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_ib_create_qp ucmd;
- 	struct hns_roce_ib_create_qp_resp resp = {};
- 	struct hns_roce_ucontext *uctx = rdma_udata_to_drv_context(
- 		udata, struct hns_roce_ucontext, ibucontext);
--	struct hns_roce_buf_region *r;
--	u32 page_shift;
--	int buf_count;
- 	int ret;
--	int i;
- 
- 	mutex_init(&hr_qp->mutex);
- 	spin_lock_init(&hr_qp->sq.lock);
-@@ -797,59 +921,18 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		goto err_out;
- 	}
- 
--	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
--	    hns_roce_qp_has_rq(init_attr)) {
--		ret = alloc_rq_inline_buf(hr_qp, init_attr);
--		if (ret) {
--			dev_err(dev, "allocate receive inline buffer failed\n");
--			goto err_out;
--		}
--	}
--
--	page_shift = PAGE_SHIFT + hr_dev->caps.mtt_buf_pg_sz;
- 	if (udata) {
- 		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
- 			dev_err(dev, "ib_copy_from_udata error for create qp\n");
- 			ret = -EFAULT;
--			goto err_alloc_rq_inline_buf;
-+			goto err_out;
- 		}
- 
- 		ret = hns_roce_set_user_sq_size(hr_dev, &init_attr->cap, hr_qp,
- 						&ucmd);
- 		if (ret) {
- 			dev_err(dev, "hns_roce_set_user_sq_size error for create qp\n");
--			goto err_alloc_rq_inline_buf;
--		}
--
--		hr_qp->umem = ib_umem_get(ib_pd->device, ucmd.buf_addr,
--					  hr_qp->buff_size, 0);
--		if (IS_ERR(hr_qp->umem)) {
--			dev_err(dev, "ib_umem_get error for create qp\n");
--			ret = PTR_ERR(hr_qp->umem);
--			goto err_alloc_rq_inline_buf;
--		}
--		hr_qp->region_cnt = split_wqe_buf_region(hr_dev, hr_qp,
--				hr_qp->regions, ARRAY_SIZE(hr_qp->regions),
--				page_shift);
--		ret = hns_roce_alloc_buf_list(hr_qp->regions, buf_list,
--					      hr_qp->region_cnt);
--		if (ret) {
--			dev_err(dev, "alloc buf_list error for create qp\n");
--			goto err_alloc_list;
--		}
--
--		for (i = 0; i < hr_qp->region_cnt; i++) {
--			r = &hr_qp->regions[i];
--			buf_count = hns_roce_get_umem_bufs(hr_dev,
--					buf_list[i], r->count, r->offset,
--					hr_qp->umem, page_shift);
--			if (buf_count != r->count) {
--				dev_err(dev,
--					"get umem buf err, expect %d,ret %d.\n",
--					r->count, buf_count);
--				ret = -ENOBUFS;
--				goto err_get_bufs;
--			}
-+			goto err_out;
- 		}
- 
- 		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SQ_RECORD_DB) &&
-@@ -860,7 +943,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 						   &hr_qp->sdb);
- 			if (ret) {
- 				dev_err(dev, "sq record doorbell map failed!\n");
--				goto err_get_bufs;
-+				goto err_out;
- 			}
- 
- 			/* indicate kernel supports sq record db */
-@@ -887,13 +970,13 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		    IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
- 			dev_err(dev, "init_attr->create_flags error!\n");
- 			ret = -EINVAL;
--			goto err_alloc_rq_inline_buf;
-+			goto err_out;
- 		}
- 
- 		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO) {
- 			dev_err(dev, "init_attr->create_flags error!\n");
- 			ret = -EINVAL;
--			goto err_alloc_rq_inline_buf;
-+			goto err_out;
- 		}
- 
- 		/* Set SQ size */
-@@ -901,7 +984,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 						  hr_qp);
- 		if (ret) {
- 			dev_err(dev, "hns_roce_set_kernel_sq_size error!\n");
--			goto err_alloc_rq_inline_buf;
-+			goto err_out;
- 		}
- 
- 		/* QP doorbell register address */
-@@ -915,49 +998,17 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 			ret = hns_roce_alloc_db(hr_dev, &hr_qp->rdb, 0);
- 			if (ret) {
- 				dev_err(dev, "rq record doorbell alloc failed!\n");
--				goto err_alloc_rq_inline_buf;
-+				goto err_out;
- 			}
- 			*hr_qp->rdb.db_record = 0;
- 			hr_qp->rdb_en = 1;
- 		}
- 
--		/* Allocate QP buf */
--		if (hns_roce_buf_alloc(hr_dev, hr_qp->buff_size,
--				       (1 << page_shift) * 2,
--				       &hr_qp->hr_buf, page_shift)) {
--			dev_err(dev, "hns_roce_buf_alloc error!\n");
--			ret = -ENOMEM;
--			goto err_db;
--		}
--		hr_qp->region_cnt = split_wqe_buf_region(hr_dev, hr_qp,
--				hr_qp->regions, ARRAY_SIZE(hr_qp->regions),
--				page_shift);
--		ret = hns_roce_alloc_buf_list(hr_qp->regions, buf_list,
--					      hr_qp->region_cnt);
--		if (ret) {
--			dev_err(dev, "alloc buf_list error for create qp!\n");
--			goto err_alloc_list;
--		}
--
--		for (i = 0; i < hr_qp->region_cnt; i++) {
--			r = &hr_qp->regions[i];
--			buf_count = hns_roce_get_kmem_bufs(hr_dev,
--					buf_list[i], r->count, r->offset,
--					&hr_qp->hr_buf);
--			if (buf_count != r->count) {
--				dev_err(dev,
--					"get kmem buf err, expect %d,ret %d.\n",
--					r->count, buf_count);
--				ret = -ENOBUFS;
--				goto err_get_bufs;
--			}
--		}
--
- 		hr_qp->sq.wrid = kcalloc(hr_qp->sq.wqe_cnt, sizeof(u64),
- 					 GFP_KERNEL);
- 		if (ZERO_OR_NULL_PTR(hr_qp->sq.wrid)) {
- 			ret = -ENOMEM;
--			goto err_get_bufs;
-+			goto err_db;
- 		}
- 
- 		if (hr_qp->rq.wqe_cnt) {
-@@ -970,21 +1021,16 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		}
- 	}
- 
--	hr_qp->wqe_bt_pg_shift = calc_wqe_bt_page_shift(hr_dev, hr_qp->regions,
--							hr_qp->region_cnt);
--	hns_roce_mtr_init(&hr_qp->mtr, PAGE_SHIFT + hr_qp->wqe_bt_pg_shift,
--			  page_shift);
--	ret = hns_roce_mtr_attach(hr_dev, &hr_qp->mtr, buf_list,
--				  hr_qp->regions, hr_qp->region_cnt);
-+	ret = alloc_qp_buf(hr_dev, hr_qp, init_attr, udata, ucmd.buf_addr);
- 	if (ret) {
--		dev_err(dev, "mtr attach error for create qp\n");
--		goto err_wrid;
-+		ibdev_err(&hr_dev->ib_dev, "Failed to alloc QP buffer\n");
-+		goto err_db;
- 	}
- 
- 	ret = alloc_qpn(hr_dev, hr_qp);
- 	if (ret) {
- 		ibdev_err(&hr_dev->ib_dev, "Failed to alloc QPN\n");
--		goto err_mtr;
-+		goto err_buf;
- 	}
- 
- 	ret = alloc_qpc(hr_dev, hr_qp);
-@@ -1017,8 +1063,6 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	atomic_set(&hr_qp->refcount, 1);
- 	init_completion(&hr_qp->free);
- 
--	hns_roce_free_buf_list(buf_list, hr_qp->region_cnt);
--
- 	return 0;
- 
- err_store:
-@@ -1030,10 +1074,9 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- err_qpn:
- 	free_qpn(hr_dev, hr_qp);
- 
--err_mtr:
--	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
-+err_buf:
-+	free_qp_buf(hr_dev, hr_qp);
- 
--err_wrid:
- 	if (udata) {
- 		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
- 		    (udata->outlen >= sizeof(resp)) &&
-@@ -1056,24 +1099,11 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	if (!udata)
- 		kfree(hr_qp->sq.wrid);
- 
--err_get_bufs:
--	hns_roce_free_buf_list(buf_list, hr_qp->region_cnt);
--
--err_alloc_list:
--	if (!hr_qp->umem)
--		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
--	ib_umem_release(hr_qp->umem);
--
- err_db:
- 	if (!udata && hns_roce_qp_has_rq(init_attr) &&
- 	    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB))
- 		hns_roce_free_db(hr_dev, &hr_qp->rdb);
- 
--err_alloc_rq_inline_buf:
--	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
--	     hns_roce_qp_has_rq(init_attr))
--		free_rq_inline_buf(hr_qp);
--
- err_out:
- 	return ret;
- }
-@@ -1089,7 +1119,7 @@ void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 
- 	free_qpn(hr_dev, hr_qp);
- 
--	hns_roce_mtr_cleanup(hr_dev, &hr_qp->mtr);
-+	free_qp_buf(hr_dev, hr_qp);
- 
- 	if (udata) {
- 		struct hns_roce_ucontext *context =
-@@ -1106,17 +1136,9 @@ void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	} else {
- 		kfree(hr_qp->sq.wrid);
- 		kfree(hr_qp->rq.wrid);
--		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
- 		if (hr_qp->rq.wqe_cnt)
- 			hns_roce_free_db(hr_dev, &hr_qp->rdb);
- 	}
--	ib_umem_release(hr_qp->umem);
--
--	if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) &&
--	     hr_qp->rq.wqe_cnt) {
--		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
--		kfree(hr_qp->rq_inl_buf.wqe_list);
--	}
- 
- 	kfree(hr_qp);
- }
--- 
-2.8.1
+All of ib_get_cached_XXX() should remove rdma_is_port_valid() and move 
+kdocs from ib_cache.h to cache.c.
+I can send this first, independently.
+
+> 
+>>   bool rdma_is_zero_gid(const union ib_gid *gid);
+>>   const struct ib_gid_attr *rdma_get_gid_attr(struct ib_device *device,
+>>   					    u8 port_num, int index);
+>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+>> index 5608e14..e17d846 100644
+>> +++ b/include/rdma/ib_verbs.h
+>> @@ -665,6 +665,7 @@ struct ib_port_attr {
+>>   	u8			active_speed;
+>>   	u8                      phys_state;
+>>   	u16			port_cap_flags2;
+>> +	u8 			inactive;
+>>   };
+> 
+> Why is a major structure being changed for this?
+> 
+> If LAG is to be brought up to the core code then the core should know
+> what leg is active or not, not the driver.
+
+"LAG is to be brought up to the core", is this under planning?
+The link event report could be after this . Then, there may be a better 
+way to ignore inactive port.
+
+> 
+>>   enum ib_device_modify_flags {
+>> @@ -2145,6 +2146,7 @@ struct ib_port_cache {
+>>   	struct ib_gid_table   *gid;
+>>   	u8                     lmc;
+>>   	enum ib_port_state     port_state;
+>> +	u8                     inactive;
+>>   };
+> 
+> Please think carefully about structure patcking here, both placements
+> of u8 seem poor
+> 
+> Jason
+> 
+> .
+> 
 
