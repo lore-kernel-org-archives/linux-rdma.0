@@ -5,55 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C56C35646
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:47:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAAC9C35659
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:47:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 319F924650
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:47:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B93124650
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:47:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VHeDNLr9"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FkyHJ7SW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728135AbgBUKr2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 Feb 2020 05:47:28 -0500
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:43720 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727830AbgBUKr1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Feb 2020 05:47:27 -0500
-Received: by mail-ed1-f68.google.com with SMTP id dc19so1758095edb.10;
-        Fri, 21 Feb 2020 02:47:26 -0800 (PST)
+        id S1728164AbgBUKrb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 Feb 2020 05:47:31 -0500
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:45844 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728132AbgBUKra (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Feb 2020 05:47:30 -0500
+Received: by mail-ed1-f67.google.com with SMTP id v28so1747911edw.12;
+        Fri, 21 Feb 2020 02:47:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=y4fmyEDvMev+FTDawxeYugUwJ2SbvheM1Vfkt/7AvF0=;
-        b=VHeDNLr9SeGcSHstGGxCH11nN8+lFZMINZ8iP8EtW0of32QAr9HC343ELUvhfDF2VF
-         fVj0HlL55jQzdv5pTGLrWtBjXO6LApUp8l/zV1u8vn3dSOwu0drJskQQbEn/AsdH9BN4
-         yZnInzC++ThPYfW/2REANgpa46LESKPS/VYCs+y8JXYWSxdiBUoW73LUbRz04eHLA7v4
-         6qbvRjF7GEc05m62YRvKBUUeL/VLfGyhldnE3sOoMhgSe0laW7Al2BrhXZLi+rCvBGnD
-         uMJlgoukZIs48Hwq9rodb+Mnp/6icJ83OHUpwRh1rS719oCaCmCDENbobTbdCv9JSgOg
-         GjIw==
+        bh=QSD8afc3R4uVDQwvkGYt0Or8MMvaNv9G/xvvXLiSMMk=;
+        b=FkyHJ7SWKo6CTNDsbxLIroag8Ng/+kGGNH+IYYP/vRC7CjvVsCdORKUDr407ekNo2g
+         vrygbeKB8hx8qRk5Gw3gk36b14tZ3t5LIG50huTt8xcTelASrtaOGj4SGhaN3gN5dnFm
+         s3BnloL3xf8QetiOu3sudsSVnJKBSJ7CgrTHPGKszkohTw3Y1YcX7nhxXB/Y75Wf/s4y
+         UybX4gSYJZrKhlp799OLgienc00s0/4ElPvYesJKZmb+yat0S/qYa99GhDl08rj1D3oU
+         dGOQb+3Za/+yO8qev04/885srWeUG4XiZcuLXOE87JCXMSVCubCGqE3ErbyUX4SOVFST
+         3Ihw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=y4fmyEDvMev+FTDawxeYugUwJ2SbvheM1Vfkt/7AvF0=;
-        b=IYZHZHgco3neDQAjMKiKmnj5wesTV5lc5rrLAOzENLQUdrpPBdcGEq8ZqAmOim1h3N
-         rZBJD81pKB1KRsTiBJ9fT383ltDH4L/oM8J3JR+drHfocvbWt2yGutCT63m3Kh1kQz5E
-         dwZeGvV8ENMzvq5IzwLjXyrNtM0RzS4+ot7dl5dqtB0t7sE231oeccG5HbvbBIHAqIx5
-         x82CScmN1YRRMxyY1+QuBM8TkKtm4Z5+/8K7+WPcj33R21mFjqN9n4Q4rVYb0TzIUTLN
-         mzx5E0wgY3ikfSDqpCxG4M/1PLxZtswEvQSfHevKZ/KthaDCh0QryGGZFXwzh4IF1K8m
-         2rwQ==
-X-Gm-Message-State: APjAAAUIzP1sxLv+D4d7AfDfC+NVlCwvxfQERJos2EiE3A5Vl+fsn0e+
-        zh1JB89VM6r/r5OPrVMxoPjxpbhF
-X-Google-Smtp-Source: APXvYqzkA/S7Fhqqh8h2SWG6Zsnt2JvxPhV0hMeFBxZPDgrFx6RSoZnRI9jbJKtFz2xyCP9VJJuMeA==
-X-Received: by 2002:a17:906:3798:: with SMTP id n24mr34740414ejc.15.1582282045159;
-        Fri, 21 Feb 2020 02:47:25 -0800 (PST)
+        bh=QSD8afc3R4uVDQwvkGYt0Or8MMvaNv9G/xvvXLiSMMk=;
+        b=c1ec80xHpqMRpv70nZVOuPMS0D3COJPwL8b1D1fr5sCDHyJ8R38v7Z2lS5Nxf2+Eqc
+         rwntyZ40EQlMhnIlJ1UX2oIoxOa4myuim3HLSMvpvNMzUwF5zbdxe0gPKorFg6KT6oiD
+         M60CKzR31yRqWdfTbCAmy9iEI6OnDJkZ/IbNW5XBF25JEoZAFtV9HDISoJtz6SQLrs1m
+         NJHe50FD1A0UwFBl/PS0h1V1R3rUCVp3xSGAWFWUdYsUXK9fdEPXMrRIP0Yh079IWomY
+         RWZW5FG/67tQGN6M8WOLV2b9x8D5ZnErSL9Eh+tJz6aQKwYDZ04gw7kHpM7bBwtKIyv8
+         EenQ==
+X-Gm-Message-State: APjAAAVj13QaWh5Jw/O8WHcVO7Z7bv86SEBbgGQWSDW6JAxvy9gc2yjl
+        T3AF57Wy7rWymIc69fcQAXWq8uIF
+X-Google-Smtp-Source: APXvYqw0YZ1MPjFU/uAl5rsSMLmQFEJOfNYFRbwtK1QNcWTnHmxZ3tsztJ8DYGi/uliUKAuyc/D/gQ==
+X-Received: by 2002:a17:906:34d7:: with SMTP id h23mr33567457ejb.90.1582282047229;
+        Fri, 21 Feb 2020 02:47:27 -0800 (PST)
 Received: from jwang-Latitude-5491.pb.local ([2001:1438:4010:2558:d8ec:cf8e:d7de:fb22])
-        by smtp.gmail.com with ESMTPSA id 2sm270594edv.87.2020.02.21.02.47.24
+        by smtp.gmail.com with ESMTPSA id 2sm270594edv.87.2020.02.21.02.47.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Feb 2020 02:47:24 -0800 (PST)
+        Fri, 21 Feb 2020 02:47:26 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
@@ -61,9 +61,9 @@ Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com, rpenyaev@suse.de,
         pankaj.gupta@cloud.ionos.com
-Subject: [PATCH v9 02/25] RDMA/rtrs: public interface header to establish RDMA connections
-Date:   Fri, 21 Feb 2020 11:46:58 +0100
-Message-Id: <20200221104721.350-3-jinpuwang@gmail.com>
+Subject: [PATCH v9 04/25] RDMA/rtrs: core: lib functions shared between client and server modules
+Date:   Fri, 21 Feb 2020 11:47:00 +0100
+Message-Id: <20200221104721.350-5-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200221104721.350-1-jinpuwang@gmail.com>
 References: <20200221104721.350-1-jinpuwang@gmail.com>
@@ -74,42 +74,27 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-Introduce public header which provides set of API functions to
-establish RDMA connections from client to server machine using
-RTRS protocol, which manages RDMA connections for each session,
-does multipathing and load balancing.
+This is a set of library functions existing as a rtrs-core module,
+used by client and server modules.
 
-Main functions for client (active) side:
-
- rtrs_clt_open() - Creates set of RDMA connections incapsulated
-                    in IBTRS session and returns pointer on RTRS
-		    session object.
- rtrs_clt_close() - Closes RDMA connections associated with RTRS
-                     session.
- rtrs_clt_request() - Requests zero-copy RDMA transfer to/from
-                       server.
-
-Main functions for server (passive) side:
-
- rtrs_srv_open() - Starts listening for RTRS clients on specified
-                    port and invokes RTRS callbacks for incoming
-		    RDMA requests or link events.
- rtrs_srv_close() - Closes RTRS server context.
+Mainly these functions wrap IB and RDMA calls and provide a bit higher
+abstraction for implementing of RTRS protocol on client or server
+sides.
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs.h | 310 +++++++++++++++++++++++++++++
- 1 file changed, 310 insertions(+)
- create mode 100644 drivers/infiniband/ulp/rtrs/rtrs.h
+ drivers/infiniband/ulp/rtrs/rtrs.c | 594 +++++++++++++++++++++++++++++
+ 1 file changed, 594 insertions(+)
+ create mode 100644 drivers/infiniband/ulp/rtrs/rtrs.c
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs.h b/drivers/infiniband/ulp/rtrs/rtrs.h
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/rtrs/rtrs.c
 new file mode 100644
-index 000000000000..5e1c8a654e92
+index 000000000000..8c6a612e185a
 --- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/rtrs.h
-@@ -0,0 +1,310 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
++++ b/drivers/infiniband/ulp/rtrs/rtrs.c
+@@ -0,0 +1,594 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * RDMA Transport Layer
 + *
@@ -117,308 +102,592 @@ index 000000000000..5e1c8a654e92
 + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
 + * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
 + */
-+#ifndef RTRS_H
-+#define RTRS_H
++#undef pr_fmt
++#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
-+#include <linux/socket.h>
-+#include <linux/scatterlist.h>
++#include <linux/module.h>
++#include <linux/inet.h>
 +
-+struct rtrs_permit;
-+struct rtrs_clt;
-+struct rtrs_srv_ctx;
-+struct rtrs_srv;
-+struct rtrs_srv_op;
++#include "rtrs-pri.h"
++#include "rtrs-log.h"
 +
-+/*
-+ * RDMA transport (RTRS) client API
-+ */
++MODULE_DESCRIPTION("RDMA Transport Core");
++MODULE_LICENSE("GPL");
++
++struct rtrs_iu *rtrs_iu_alloc(u32 queue_size, size_t size, gfp_t gfp_mask,
++			      struct ib_device *dma_dev,
++			      enum dma_data_direction dir,
++			      void (*done)(struct ib_cq *cq, struct ib_wc *wc))
++{
++	struct rtrs_iu *ius, *iu;
++	int i;
++
++	ius = kcalloc(queue_size, sizeof(*ius), gfp_mask);
++	if (!ius)
++		return NULL;
++	for (i = 0; i < queue_size; i++) {
++		iu = &ius[i];
++		iu->buf = kzalloc(size, gfp_mask);
++		if (!iu->buf)
++			goto err;
++
++		iu->dma_addr = ib_dma_map_single(dma_dev, iu->buf, size, dir);
++		if (ib_dma_mapping_error(dma_dev, iu->dma_addr))
++			goto err;
++
++		iu->cqe.done  = done;
++		iu->size      = size;
++		iu->direction = dir;
++	}
++	return ius;
++err:
++	rtrs_iu_free(ius, dir, dma_dev, i);
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(rtrs_iu_alloc);
++
++void rtrs_iu_free(struct rtrs_iu *ius, enum dma_data_direction dir,
++		   struct ib_device *ibdev, u32 queue_size)
++{
++	struct rtrs_iu *iu;
++	int i;
++
++	if (!ius)
++		return;
++
++	for (i = 0; i < queue_size; i++) {
++		iu = &ius[i];
++		ib_dma_unmap_single(ibdev, iu->dma_addr, iu->size, dir);
++		kfree(iu->buf);
++	}
++	kfree(ius);
++}
++EXPORT_SYMBOL_GPL(rtrs_iu_free);
++
++int rtrs_iu_post_recv(struct rtrs_con *con, struct rtrs_iu *iu)
++{
++	struct rtrs_sess *sess = con->sess;
++	struct ib_recv_wr wr;
++	struct ib_sge list;
++
++	list.addr   = iu->dma_addr;
++	list.length = iu->size;
++	list.lkey   = sess->dev->ib_pd->local_dma_lkey;
++
++	if (list.length == 0) {
++		rtrs_wrn(con->sess,
++			  "Posting receive work request failed, sg list is empty\n");
++		return -EINVAL;
++	}
++	wr = (struct ib_recv_wr) {
++	.wr_cqe  = &iu->cqe,
++	.sg_list = &list,
++	.num_sge = 1,
++	};
++
++	return ib_post_recv(con->qp, &wr, NULL);
++}
++EXPORT_SYMBOL_GPL(rtrs_iu_post_recv);
++
++int rtrs_post_recv_empty(struct rtrs_con *con, struct ib_cqe *cqe)
++{
++	struct ib_recv_wr wr;
++
++	wr = (struct ib_recv_wr) {
++	.wr_cqe  = cqe,
++	};
++
++	return ib_post_recv(con->qp, &wr, NULL);
++}
++EXPORT_SYMBOL_GPL(rtrs_post_recv_empty);
++
++int rtrs_iu_post_send(struct rtrs_con *con, struct rtrs_iu *iu, size_t size,
++		       struct ib_send_wr *head)
++{
++	struct rtrs_sess *sess = con->sess;
++	struct ib_send_wr wr;
++	struct ib_sge list;
++
++	if (WARN_ON(size == 0))
++		return -EINVAL;
++
++	list.addr   = iu->dma_addr;
++	list.length = size;
++	list.lkey   = sess->dev->ib_pd->local_dma_lkey;
++
++	wr = (struct ib_send_wr) {
++	.wr_cqe     = &iu->cqe,
++	.sg_list    = &list,
++	.num_sge    = 1,
++	.opcode     = IB_WR_SEND,
++	.send_flags = IB_SEND_SIGNALED,
++	};
++
++	if (head) {
++		struct ib_send_wr *tail = head;
++
++		while (tail->next)
++			tail = tail->next;
++		tail->next = &wr;
++	} else {
++		head = &wr;
++	}
++
++	return ib_post_send(con->qp, head, NULL);
++}
++EXPORT_SYMBOL_GPL(rtrs_iu_post_send);
++
++int rtrs_iu_post_rdma_write_imm(struct rtrs_con *con, struct rtrs_iu *iu,
++				 struct ib_sge *sge, unsigned int num_sge,
++				 u32 rkey, u64 rdma_addr, u32 imm_data,
++				 enum ib_send_flags flags,
++				 struct ib_send_wr *head)
++{
++	struct ib_rdma_wr wr;
++	int i;
++
++	wr = (struct ib_rdma_wr) {
++	.wr.wr_cqe	  = &iu->cqe,
++	.wr.sg_list	  = sge,
++	.wr.num_sge	  = num_sge,
++	.rkey		  = rkey,
++	.remote_addr	  = rdma_addr,
++	.wr.opcode	  = IB_WR_RDMA_WRITE_WITH_IMM,
++	.wr.ex.imm_data = cpu_to_be32(imm_data),
++	.wr.send_flags  = flags,
++	};
++
++	/*
++	 * If one of the sges has 0 size, the operation will fail with an
++	 * length error
++	 */
++	for (i = 0; i < num_sge; i++)
++		if (WARN_ON(sge[i].length == 0))
++			return -EINVAL;
++
++	if (head) {
++		struct ib_send_wr *tail = head;
++
++		while (tail->next)
++			tail = tail->next;
++		tail->next = &wr.wr;
++	} else {
++		head = &wr.wr;
++	}
++
++	return ib_post_send(con->qp, head, NULL);
++}
++EXPORT_SYMBOL_GPL(rtrs_iu_post_rdma_write_imm);
++
++int rtrs_post_rdma_write_imm_empty(struct rtrs_con *con, struct ib_cqe *cqe,
++				    u32 imm_data, enum ib_send_flags flags,
++				    struct ib_send_wr *head)
++{
++	struct ib_send_wr wr;
++
++	wr = (struct ib_send_wr) {
++	.wr_cqe	= cqe,
++	.send_flags	= flags,
++	.opcode	= IB_WR_RDMA_WRITE_WITH_IMM,
++	.ex.imm_data	= cpu_to_be32(imm_data),
++	};
++
++	if (head) {
++		struct ib_send_wr *tail = head;
++
++		while (tail->next)
++			tail = tail->next;
++		tail->next = &wr;
++	} else {
++		head = &wr;
++	}
++
++	return ib_post_send(con->qp, head, NULL);
++}
++EXPORT_SYMBOL_GPL(rtrs_post_rdma_write_imm_empty);
++
++static void qp_event_handler(struct ib_event *ev, void *ctx)
++{
++	struct rtrs_con *con = ctx;
++
++	switch (ev->event) {
++	case IB_EVENT_COMM_EST:
++		rtrs_info(con->sess, "QP event %s (%d) received\n",
++			   ib_event_msg(ev->event), ev->event);
++		rdma_notify(con->cm_id, IB_EVENT_COMM_EST);
++		break;
++	default:
++		rtrs_info(con->sess, "Unhandled QP event %s (%d) received\n",
++			   ib_event_msg(ev->event), ev->event);
++		break;
++	}
++}
++
++static int create_cq(struct rtrs_con *con, int cq_vector, u16 cq_size,
++		     enum ib_poll_context poll_ctx)
++{
++	struct rdma_cm_id *cm_id = con->cm_id;
++	struct ib_cq *cq;
++
++	cq = ib_alloc_cq(cm_id->device, con, cq_size,
++			 cq_vector, poll_ctx);
++	if (IS_ERR(cq)) {
++		rtrs_err(con->sess, "Creating completion queue failed, errno: %ld\n",
++			  PTR_ERR(cq));
++		return PTR_ERR(cq);
++	}
++	con->cq = cq;
++
++	return 0;
++}
++
++static int create_qp(struct rtrs_con *con, struct ib_pd *pd,
++		     u16 wr_queue_size, u32 max_sge)
++{
++	struct ib_qp_init_attr init_attr = {NULL};
++	struct rdma_cm_id *cm_id = con->cm_id;
++	int ret;
++
++	init_attr.cap.max_send_wr = wr_queue_size;
++	init_attr.cap.max_recv_wr = wr_queue_size;
++	init_attr.cap.max_recv_sge = 1;
++	init_attr.event_handler = qp_event_handler;
++	init_attr.qp_context = con;
++	init_attr.cap.max_send_sge = max_sge;
++
++	init_attr.qp_type = IB_QPT_RC;
++	init_attr.send_cq = con->cq;
++	init_attr.recv_cq = con->cq;
++	init_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
++
++	ret = rdma_create_qp(cm_id, pd, &init_attr);
++	if (ret) {
++		rtrs_err(con->sess, "Creating QP failed, err: %d\n", ret);
++		return ret;
++	}
++	con->qp = cm_id->qp;
++
++	return ret;
++}
++
++int rtrs_cq_qp_create(struct rtrs_sess *sess, struct rtrs_con *con,
++		       u32 max_send_sge, int cq_vector, u16 cq_size,
++		       u16 wr_queue_size, enum ib_poll_context poll_ctx)
++{
++	int err;
++
++	err = create_cq(con, cq_vector, cq_size, poll_ctx);
++	if (err)
++		return err;
++
++	err = create_qp(con, sess->dev->ib_pd, wr_queue_size, max_send_sge);
++	if (err) {
++		ib_free_cq(con->cq);
++		con->cq = NULL;
++		return err;
++	}
++	con->sess = sess;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(rtrs_cq_qp_create);
++
++void rtrs_cq_qp_destroy(struct rtrs_con *con)
++{
++	if (con->qp) {
++		rdma_destroy_qp(con->cm_id);
++		con->qp = NULL;
++	}
++	if (con->cq) {
++		ib_free_cq(con->cq);
++		con->cq = NULL;
++	}
++}
++EXPORT_SYMBOL_GPL(rtrs_cq_qp_destroy);
++
++static void schedule_hb(struct rtrs_sess *sess)
++{
++	queue_delayed_work(sess->hb_wq, &sess->hb_dwork,
++			   msecs_to_jiffies(sess->hb_interval_ms));
++}
++
++void rtrs_send_hb_ack(struct rtrs_sess *sess)
++{
++	struct rtrs_con *usr_con = sess->con[0];
++	u32 imm;
++	int err;
++
++	imm = rtrs_to_imm(RTRS_HB_ACK_IMM, 0);
++	err = rtrs_post_rdma_write_imm_empty(usr_con, sess->hb_cqe, imm,
++					      IB_SEND_SIGNALED, NULL);
++	if (err) {
++		sess->hb_err_handler(usr_con);
++		return;
++	}
++}
++EXPORT_SYMBOL_GPL(rtrs_send_hb_ack);
++
++static void hb_work(struct work_struct *work)
++{
++	struct rtrs_con *usr_con;
++	struct rtrs_sess *sess;
++	u32 imm;
++	int err;
++
++	sess = container_of(to_delayed_work(work), typeof(*sess), hb_dwork);
++	usr_con = sess->con[0];
++
++	if (sess->hb_missed_cnt > sess->hb_missed_max) {
++		sess->hb_err_handler(usr_con);
++		return;
++	}
++	if (sess->hb_missed_cnt++) {
++		/* Reschedule work without sending hb */
++		schedule_hb(sess);
++		return;
++	}
++	imm = rtrs_to_imm(RTRS_HB_MSG_IMM, 0);
++	err = rtrs_post_rdma_write_imm_empty(usr_con, sess->hb_cqe, imm,
++					      IB_SEND_SIGNALED, NULL);
++	if (err) {
++		sess->hb_err_handler(usr_con);
++		return;
++	}
++
++	schedule_hb(sess);
++}
++
++void rtrs_init_hb(struct rtrs_sess *sess, struct ib_cqe *cqe,
++		   unsigned int interval_ms, unsigned int missed_max,
++		   rtrs_hb_handler_t *err_handler,
++		   struct workqueue_struct *wq)
++{
++	sess->hb_cqe = cqe;
++	sess->hb_interval_ms = interval_ms;
++	sess->hb_err_handler = err_handler;
++	sess->hb_wq = wq;
++	sess->hb_missed_max = missed_max;
++	sess->hb_missed_cnt = 0;
++	INIT_DELAYED_WORK(&sess->hb_dwork, hb_work);
++}
++EXPORT_SYMBOL_GPL(rtrs_init_hb);
++
++void rtrs_start_hb(struct rtrs_sess *sess)
++{
++	schedule_hb(sess);
++}
++EXPORT_SYMBOL_GPL(rtrs_start_hb);
++
++void rtrs_stop_hb(struct rtrs_sess *sess)
++{
++	cancel_delayed_work_sync(&sess->hb_dwork);
++	sess->hb_missed_cnt = 0;
++	sess->hb_missed_max = 0;
++}
++EXPORT_SYMBOL_GPL(rtrs_stop_hb);
++
++static int rtrs_str_gid_to_sockaddr(const char *addr, size_t len,
++				     short port, struct sockaddr_storage *dst)
++{
++	struct sockaddr_ib *dst_ib = (struct sockaddr_ib *)dst;
++	int ret;
++
++	/*
++	 * We can use some of the IPv6 functions since GID is a valid
++	 * IPv6 address format
++	 */
++	ret = in6_pton(addr, len, dst_ib->sib_addr.sib_raw, '\0', NULL);
++	if (ret == 0)
++		return -EINVAL;
++
++	dst_ib->sib_family = AF_IB;
++	/*
++	 * Use the same TCP server port number as the IB service ID
++	 * on the IB port space range
++	 */
++	dst_ib->sib_sid = cpu_to_be64(RDMA_IB_IP_PS_IB | port);
++	dst_ib->sib_sid_mask = cpu_to_be64(0xffffffffffffffffULL);
++	dst_ib->sib_pkey = cpu_to_be16(0xffff);
++
++	return 0;
++}
 +
 +/**
-+ * enum rtrs_clt_link_ev - Events about connectivity state of a client
-+ * @RTRS_CLT_LINK_EV_RECONNECTED	Client was reconnected.
-+ * @RTRS_CLT_LINK_EV_DISCONNECTED	Client was disconnected.
-+ */
-+enum rtrs_clt_link_ev {
-+	RTRS_CLT_LINK_EV_RECONNECTED,
-+	RTRS_CLT_LINK_EV_DISCONNECTED,
-+};
-+
-+/**
-+ * Source and destination address of a path to be established
-+ */
-+struct rtrs_addr {
-+	struct sockaddr_storage *src;
-+	struct sockaddr_storage *dst;
-+};
-+
-+typedef void (link_clt_ev_fn)(void *priv, enum rtrs_clt_link_ev ev);
-+/**
-+ * rtrs_clt_open() - Open a session to an RTRS server
-+ * @priv: User supplied private data.
-+ * @link_ev: Event notification callback function for connection state changes
-+ *	@priv: User supplied data that was passed to rtrs_clt_open()
-+ *	@ev: Occurred event
-+ * @sessname: name of the session
-+ * @paths: Paths to be established defined by their src and dst addresses
-+ * @path_cnt: Number of elements in the @paths array
-+ * @port: port to be used by the RTRS session
-+ * @pdu_sz: Size of extra payload which can be accessed after permit allocation.
-+ * @max_inflight_msg: Max. number of parallel inflight messages for the session
-+ * @max_segments: Max. number of segments per IO request
-+ * @reconnect_delay_sec: time between reconnect tries
-+ * @max_reconnect_attempts: Number of times to reconnect on error before giving
-+ *			    up, 0 for * disabled, -1 for forever
++ * rtrs_str_to_sockaddr() - Convert rtrs address string to sockaddr
++ * @addr:	String representation of an addr (IPv4, IPv6 or IB GID):
++ *              - "ip:192.168.1.1"
++ *              - "ip:fe80::200:5aee:feaa:20a2"
++ *              - "gid:fe80::200:5aee:feaa:20a2"
++ * @len:        String address length
++ * @port:	Destination port
++ * @dst:	Destination sockaddr structure
 + *
-+ * Starts session establishment with the rtrs_server. The function can block
-+ * up to ~2000ms before it returns.
-+ *
-+ * Return a valid pointer on success otherwise PTR_ERR.
++ * Returns 0 if conversion successful. Non-zero on error.
 + */
-+struct rtrs_clt *rtrs_clt_open(void *priv, link_clt_ev_fn *link_ev,
-+				 const char *sessname,
-+				 const struct rtrs_addr *paths,
-+				 size_t path_cnt, u16 port,
-+				 size_t pdu_sz, u8 reconnect_delay_sec,
-+				 u16 max_segments,
-+				 s16 max_reconnect_attempts);
++static int rtrs_str_to_sockaddr(const char *addr, size_t len,
++				 short port, struct sockaddr_storage *dst)
++{
++	if (strncmp(addr, "gid:", 4) == 0) {
++		return rtrs_str_gid_to_sockaddr(addr + 4, len - 4, port, dst);
++	} else if (strncmp(addr, "ip:", 3) == 0) {
++		char port_str[8];
++		char *cpy;
++		int err;
 +
-+/**
-+ * rtrs_clt_close() - Close a session
-+ * @sess: Session handle. Session is freed upon return.
-+ */
-+void rtrs_clt_close(struct rtrs_clt *sess);
++		snprintf(port_str, sizeof(port_str), "%u", port);
++		cpy = kstrndup(addr + 3, len - 3, GFP_KERNEL);
++		err = cpy ? inet_pton_with_scope(&init_net, AF_UNSPEC,
++						 cpy, port_str, dst) : -ENOMEM;
++		kfree(cpy);
 +
-+/**
-+ * rtrs_permit_to_pdu() - converts rtrs_permit to opaque pdu pointer
-+ * @permit: RTRS permit pointer, it associates the memory allocation for future
-+ *          RDMA operation.
-+ */
-+void *rtrs_permit_to_pdu(struct rtrs_permit *permit);
++		return err;
++	}
++	return -EPROTONOSUPPORT;
++}
 +
-+enum {
-+	RTRS_PERMIT_NOWAIT = 0,
-+	RTRS_PERMIT_WAIT   = 1,
-+};
++int sockaddr_to_str(const struct sockaddr *addr, char *buf, size_t len)
++{
++	int cnt;
 +
-+/**
-+ * enum rtrs_clt_con_type() type of ib connection to use with a given
-+ * rtrs_permit
-+ * @USR_CON - use connection reserved vor "service" messages
-+ * @IO_CON - use a connection reserved for IO
-+ */
-+enum rtrs_clt_con_type {
-+	RTRS_USR_CON,
-+	RTRS_IO_CON
-+};
++	switch (addr->sa_family) {
++	case AF_IB:
++		cnt = scnprintf(buf, len, "gid:%pI6",
++			&((struct sockaddr_ib *)addr)->sib_addr.sib_raw);
++		return cnt;
++	case AF_INET:
++		cnt = scnprintf(buf, len, "ip:%pI4",
++			&((struct sockaddr_in *)addr)->sin_addr);
++		return cnt;
++	case AF_INET6:
++		cnt = scnprintf(buf, len, "ip:%pI6c",
++			  &((struct sockaddr_in6 *)addr)->sin6_addr);
++		return cnt;
++	}
++	cnt = scnprintf(buf, len, "<invalid address family>");
++	pr_err("Invalid address family\n");
++	return cnt;
++}
++EXPORT_SYMBOL(sockaddr_to_str);
 +
-+/**
-+ * rtrs_clt_get_permit() - allocates permit for future RDMA operation
-+ * @sess:	Current session
-+ * @con_type:	Type of connection to use with the permit
-+ * @wait:	Wait type
-+ *
-+ * Description:
-+ *    Allocates permit for the following RDMA operation.  Permit is used
-+ *    to preallocate all resources and to propagate memory pressure
-+ *    up earlier.
-+ *
-+ * Context:
-+ *    Can sleep if @wait == RTRS_TAG_WAIT
-+ */
-+struct rtrs_permit *rtrs_clt_get_permit(struct rtrs_clt *sess,
-+				    enum rtrs_clt_con_type con_type,
-+				    int wait);
-+
-+/**
-+ * rtrs_clt_put_permit() - puts allocated permit
-+ * @sess:	Current session
-+ * @permit:	Permit to be freed
-+ *
-+ * Context:
-+ *    Does not matter
-+ */
-+void rtrs_clt_put_permit(struct rtrs_clt *sess, struct rtrs_permit *permit);
-+
-+typedef void (rtrs_conf_fn)(void *priv, int errno);
-+/**
-+ * rtrs_clt_request() - Request data transfer to/from server via RDMA.
-+ *
-+ * @dir:	READ/WRITE
-+ * @conf:	callback function to be called as confirmation
-+ * @sess:	Session
-+ * @permit:	Preallocated permit
-+ * @priv:	User provided data, passed back with corresponding
-+ *		@(conf) confirmation.
-+ * @vec:	Message that is sent to server together with the request.
-+ *		Sum of len of all @vec elements limited to <= IO_MSG_SIZE.
-+ *		Since the msg is copied internally it can be allocated on stack.
-+ * @nr:		Number of elements in @vec.
-+ * @len:	length of data sent to/from server
-+ * @sg:		Pages to be sent/received to/from server.
-+ * @sg_cnt:	Number of elements in the @sg
-+ *
-+ * Return:
-+ * 0:		Success
-+ * <0:		Error
-+ *
-+ * On dir=READ rtrs client will request a data transfer from Server to client.
-+ * The data that the server will respond with will be stored in @sg when
-+ * the user receives an %RTRS_CLT_RDMA_EV_RDMA_REQUEST_WRITE_COMPL event.
-+ * On dir=WRITE rtrs client will rdma write data in sg to server side.
-+ */
-+int rtrs_clt_request(int dir, rtrs_conf_fn *conf, struct rtrs_clt *sess,
-+		      struct rtrs_permit *permit, void *priv,
-+		      const struct kvec *vec, size_t nr, size_t len,
-+		      struct scatterlist *sg, unsigned int sg_cnt);
-+
-+/**
-+ * rtrs_attrs - RTRS session attributes
-+ */
-+struct rtrs_attrs {
-+	u32	queue_depth;
-+	u32	max_io_size;
-+	u8	sessname[NAME_MAX];
-+	struct kobject *sess_kobj;
-+};
-+
-+/**
-+ * rtrs_clt_query() - queries RTRS session attributes
-+ *
-+ * Returns:
-+ *    0 on success
-+ *    -ECOMM		no connection to the server
-+ */
-+int rtrs_clt_query(struct rtrs_clt *sess, struct rtrs_attrs *attr);
-+
-+/*
-+ * Here goes RTRS server API
-+ */
-+
-+/**
-+ * enum rtrs_srv_link_ev - Server link events
-+ * @RTRS_SRV_LINK_EV_CONNECTED:	Connection from client established
-+ * @RTRS_SRV_LINK_EV_DISCONNECTED:	Connection was disconnected, all
-+ *					connection RTRS resources were freed.
-+ */
-+enum rtrs_srv_link_ev {
-+	RTRS_SRV_LINK_EV_CONNECTED,
-+	RTRS_SRV_LINK_EV_DISCONNECTED,
-+};
-+
-+/**
-+ * rdma_ev_fn():	Event notification for RDMA operations
-+ *			If the callback returns a value != 0, an error message
-+ *			for the data transfer will be sent to the client.
-+
-+ *	@sess:		Session
-+ *	@priv:		Private data set by rtrs_srv_set_sess_priv()
-+ *	@id:		internal RTRS operation id
-+ *	@dir:		READ/WRITE
-+ *	@data:		Pointer to (bidirectional) rdma memory area:
-+ *			- in case of %RTRS_SRV_RDMA_EV_RECV contains
-+ *			data sent by the client
-+ *			- in case of %RTRS_SRV_RDMA_EV_WRITE_REQ points to the
-+ *			memory area where the response is to be written to
-+ *	@datalen:	Size of the memory area in @data
-+ *	@usr:		The extra user message sent by the client (%vec)
-+ *	@usrlen:	Size of the user message
-+ */
-+typedef int (rdma_ev_fn)(struct rtrs_srv *sess, void *priv,
-+			 struct rtrs_srv_op *id, int dir,
-+			 void *data, size_t datalen, const void *usr,
-+			 size_t usrlen);
-+
-+/**
-+ * link_ev_fn():	Events about connectivity state changes
-+ *			If the callback returns != 0 and the event
-+ *			%RTRS_SRV_LINK_EV_CONNECTED the corresponding session
-+ *			will be destroyed.
-+ *	@sess:		Session
-+ *	@ev:		event
-+ *	@priv:		Private data from user if previously set with
-+ *			rtrs_srv_set_sess_priv()
-+ */
-+typedef int (link_ev_fn)(struct rtrs_srv *sess, enum rtrs_srv_link_ev ev,
-+			 void *priv);
-+
-+/**
-+ * rtrs_srv_open() - open RTRS server context
-+ * @ops:		callback functions
-+ *
-+ * Creates server context with specified callbacks.
-+ *
-+ * Return a valid pointer on success otherwise PTR_ERR.
-+ */
-+struct rtrs_srv_ctx *rtrs_srv_open(rdma_ev_fn *rdma_ev, link_ev_fn *link_ev,
-+				     unsigned int port);
-+
-+/**
-+ * rtrs_srv_close() - close RTRS server context
-+ * @ctx: pointer to server context
-+ *
-+ * Closes RTRS server context with all client sessions.
-+ */
-+void rtrs_srv_close(struct rtrs_srv_ctx *ctx);
-+
-+/**
-+ * rtrs_srv_resp_rdma() - Finish an RDMA request
-+ *
-+ * @id:		Internal RTRS operation identifier
-+ * @errno:	Response Code sent to the other side for this operation.
-+ *		0 = success, <=0 error
-+ *
-+ * Finish a RDMA operation. A message is sent to the client and the
-+ * corresponding memory areas will be released.
-+ */
-+void rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int errno);
-+
-+/**
-+ * rtrs_srv_set_sess_priv() - Set private pointer in rtrs_srv.
-+ * @sess:	Session
-+ * @priv:	The private pointer that is associated with the session.
-+ */
-+void rtrs_srv_set_sess_priv(struct rtrs_srv *sess, void *priv);
-+
-+/**
-+ * rtrs_srv_get_sess_qdepth() - Get rtrs_srv qdepth.
-+ * @sess:	Session
-+ */
-+int rtrs_srv_get_queue_depth(struct rtrs_srv *sess);
-+
-+/**
-+ * rtrs_srv_get_sess_name() - Get rtrs_srv peer hostname.
-+ * @sess:	Session
-+ * @sessname:	Sessname buffer
-+ * @len:	Length of sessname buffer
-+ */
-+int rtrs_srv_get_sess_name(struct rtrs_srv *sess, char *sessname, size_t len);
-+
-+/**
-+ * rtrs_addr_to_sockaddr() - convert path string "src,dst" to sockaddreses
-+ * @str		string containing source and destination addr of a path
-+ *		separated by comma. I.e. "ip:1.1.1.1,ip:1.1.1.2". If str
-+ *		contains only one address it's considered to be destination.
-+ * @len		string length
-+ * @addr->dst	will be set to the destination sockadddr.
-+ * @addr->src	will be set to the source address or to NULL
-+ *		if str doesn't contain any sorce address.
-+ *
-+ * Returns zero if conversion successful. Non-zero otherwise.
-+ */
 +int rtrs_addr_to_sockaddr(const char *str, size_t len, short port,
-+			   struct rtrs_addr *addr);
++			   struct rtrs_addr *addr)
++{
++	const char *d;
 +
-+/**
-+ * sockaddr_to_str() - convert sockaddr to a string.
-+ * @addr	the sockadddr structure to be converted.
-+ * @buf		string containing socket addr.
-+ * @len		string length.
-+ *
-+ * The return value is the number of characters written into buf not
-+ * including the trailing '\0'. If len is == 0 the function returns 0..
-+ */
-+int sockaddr_to_str(const struct sockaddr *addr, char *buf, size_t len);
-+#endif
++	d = strchr(str, ',');
++	if (!d)
++		d = strchr(str, '@');
++	if (d) {
++		if (rtrs_str_to_sockaddr(str, d - str, 0, addr->src))
++			return -EINVAL;
++		d += 1;
++		len -= d - str;
++		str  = d;
++
++	} else {
++		addr->src = NULL;
++	}
++	return rtrs_str_to_sockaddr(str, len, port, addr->dst);
++}
++EXPORT_SYMBOL(rtrs_addr_to_sockaddr);
++
++void rtrs_rdma_dev_pd_init(enum ib_pd_flags pd_flags,
++			    struct rtrs_rdma_dev_pd *pool)
++{
++	WARN_ON(pool->ops && (!pool->ops->alloc ^ !pool->ops->free));
++	INIT_LIST_HEAD(&pool->list);
++	mutex_init(&pool->mutex);
++	pool->pd_flags = pd_flags;
++}
++EXPORT_SYMBOL(rtrs_rdma_dev_pd_init);
++
++void rtrs_rdma_dev_pd_deinit(struct rtrs_rdma_dev_pd *pool)
++{
++	mutex_destroy(&pool->mutex);
++	WARN_ON(!list_empty(&pool->list));
++}
++EXPORT_SYMBOL(rtrs_rdma_dev_pd_deinit);
++
++static void dev_free(struct kref *ref)
++{
++	struct rtrs_rdma_dev_pd *pool;
++	struct rtrs_ib_dev *dev;
++
++	dev = container_of(ref, typeof(*dev), ref);
++	pool = dev->pool;
++
++	mutex_lock(&pool->mutex);
++	list_del(&dev->entry);
++	mutex_unlock(&pool->mutex);
++
++	if (pool->ops && pool->ops->deinit)
++		pool->ops->deinit(dev);
++
++	ib_dealloc_pd(dev->ib_pd);
++
++	if (pool->ops && pool->ops->free)
++		pool->ops->free(dev);
++	else
++		kfree(dev);
++}
++
++int rtrs_ib_dev_put(struct rtrs_ib_dev *dev)
++{
++	return kref_put(&dev->ref, dev_free);
++}
++EXPORT_SYMBOL(rtrs_ib_dev_put);
++
++static int rtrs_ib_dev_get(struct rtrs_ib_dev *dev)
++{
++	return kref_get_unless_zero(&dev->ref);
++}
++
++struct rtrs_ib_dev *
++rtrs_ib_dev_find_or_add(struct ib_device *ib_dev,
++			 struct rtrs_rdma_dev_pd *pool)
++{
++	struct rtrs_ib_dev *dev;
++
++	mutex_lock(&pool->mutex);
++	list_for_each_entry(dev, &pool->list, entry) {
++		if (dev->ib_dev->node_guid == ib_dev->node_guid &&
++		    rtrs_ib_dev_get(dev))
++			goto out_unlock;
++	}
++	if (pool->ops && pool->ops->alloc)
++		dev = pool->ops->alloc();
++	else
++		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (IS_ERR_OR_NULL(dev))
++		goto out_err;
++
++	kref_init(&dev->ref);
++	dev->pool = pool;
++	dev->ib_dev = ib_dev;
++	dev->ib_pd = ib_alloc_pd(ib_dev, pool->pd_flags);
++	if (IS_ERR(dev->ib_pd))
++		goto out_free_dev;
++
++	if (pool->ops && pool->ops->init && pool->ops->init(dev))
++		goto out_free_pd;
++
++	list_add(&dev->entry, &pool->list);
++out_unlock:
++	mutex_unlock(&pool->mutex);
++	return dev;
++
++out_free_pd:
++	ib_dealloc_pd(dev->ib_pd);
++out_free_dev:
++	if (pool->ops && pool->ops->free)
++		pool->ops->free(dev);
++	else
++		kfree(dev);
++out_err:
++	mutex_unlock(&pool->mutex);
++	return NULL;
++}
++EXPORT_SYMBOL(rtrs_ib_dev_find_or_add);
 -- 
 2.17.1
 
