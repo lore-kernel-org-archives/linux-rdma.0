@@ -2,508 +2,134 @@ Return-Path: <SRS0=JPT9=4J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6341C35646
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:48:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B8A0C35646
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:50:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9481624653
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:48:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 420472073A
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:50:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OOSWQdIz"
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="I//oOyFh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728262AbgBUKrm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 Feb 2020 05:47:42 -0500
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:39012 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728179AbgBUKrl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Feb 2020 05:47:41 -0500
-Received: by mail-ed1-f67.google.com with SMTP id m13so1779978edb.6;
-        Fri, 21 Feb 2020 02:47:39 -0800 (PST)
+        id S1726410AbgBUKuf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 Feb 2020 05:50:35 -0500
+Received: from mail-il1-f194.google.com ([209.85.166.194]:34932 "EHLO
+        mail-il1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726100AbgBUKuf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Feb 2020 05:50:35 -0500
+Received: by mail-il1-f194.google.com with SMTP id g12so1295171ild.2
+        for <linux-rdma@vger.kernel.org>; Fri, 21 Feb 2020 02:50:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=8s1VHXz6BMVR8Z+D6wnMLRd+Yvaz4WXPgqQPxnaR2Nw=;
-        b=OOSWQdIz/Hwi4vt1xlUhWhHK7U7950iBaZFn441ObYY64YgUKBbd0fiZIxu9mQAzrT
-         D5jcKzCbE01wHNNFAs34ra8wc1Z8dP+E+FAl+oflh/3Dz0Fv+STNUmd5qqwqu71ySsgx
-         l85gU3NPRaN8TyuL3nRKI64Cdia9v/7IJPcxaR2sQcuIKTkUjUTdigk4IDUW3LQVXlye
-         OcUjrj3vGNIKyqq7RcRYqJ9HQgA7eu/o0LVAJsW0iYk9g4IQ+ALZcHUVnzIMXjMoscSL
-         O7iBOxWxSoPsUE9jVcfCRXcW06xKBsNWabCMRYi11zOHJOFOx1I1wQsr37UB2PmvqR2n
-         YwNQ==
+        d=cloud.ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=OPS6z2b9xpPF3wQKIuekk4fC9RzWMOEqMORb//JIJpo=;
+        b=I//oOyFh8ZfE9orwZucAjqt0Xsc5RS48pWVW07HFUdNIV6/4JmHCZJk+gpiBuxguin
+         fo7DvsXOXoJu9hQHA8yJYpAuXPrAi/eUtoYOA1Y8X7Xq2Gtl1gmY27dFq0COSgWY3w/V
+         2nN0hI81lI4wtTntPmvOJk4UdD94yQRN81sXFnWGJYLoSqiKuk3zM6jjuRxMZcZdwXHK
+         9UfwG76RPGKYXub7zjT5vSFbDlQUUK4O/mkknKarLFxtdMSVOmwZSiLo44a9ivhDwUbJ
+         KoTk9lpvzO+e/FvsMnbivhukh3vYXAR/8Ugn9iscw92uW401rtNHOs7eUPGgqefWD7qV
+         XiDQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=8s1VHXz6BMVR8Z+D6wnMLRd+Yvaz4WXPgqQPxnaR2Nw=;
-        b=MjOM7YDosRWZT/LvlCxuaCQjeUGIUfuIMtDId5DFBEDiKCWAqC582lnh1Y/EwAwASy
-         NHM6znNahQyLTEzcj7QH8UVI/tCc5JTO/nhDAZzxjMsooilMEYfsMZpzpDvhVOHQmH2P
-         8ei1gxFi4wm3xN4DhIxufzgpRfBgvzx/8fhkCNbsE1Y6CZBALFk7OEAKwv+G0VyfZiZF
-         cgJcl8Lgmk86GpA2jnCz9rsfEMxKWTxpPoqcifNODoUJbaiXpl8BjvBCx6zA3BZj76D9
-         M2vyYiFQUtBkeeiqg0OKJm/RZ3EXR4P8R4Q7fQ38NjzDuYau1/ziSePluIr7ZDYJCyrM
-         VXzw==
-X-Gm-Message-State: APjAAAWRn71GG/4KP5jUmspY2DtBaukmnXvy8e68HPd9LSjSQX1AZ5/J
-        f3hd4DFz3EXjBHYsFE+Mo3b/2VUi
-X-Google-Smtp-Source: APXvYqzzyS96Hukz38hD2X0V6E/imYsXRf+t3QZw9ZWiH7To4uzYJg5JEn7R3i3AVRe7qoaA4RYi8A==
-X-Received: by 2002:a17:906:1e48:: with SMTP id i8mr31644924ejj.189.1582282058239;
-        Fri, 21 Feb 2020 02:47:38 -0800 (PST)
-Received: from jwang-Latitude-5491.pb.local ([2001:1438:4010:2558:d8ec:cf8e:d7de:fb22])
-        by smtp.gmail.com with ESMTPSA id 2sm270594edv.87.2020.02.21.02.47.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Feb 2020 02:47:37 -0800 (PST)
-From:   Jack Wang <jinpuwang@gmail.com>
-To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
-        bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
-        jinpu.wang@cloud.ionos.com, rpenyaev@suse.de,
-        pankaj.gupta@cloud.ionos.com, linux-kernel@vger.kernel.org
-Subject: [PATCH v9 14/25] RDMA/rtrs: a bit of documentation
-Date:   Fri, 21 Feb 2020 11:47:10 +0100
-Message-Id: <20200221104721.350-15-jinpuwang@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200221104721.350-1-jinpuwang@gmail.com>
-References: <20200221104721.350-1-jinpuwang@gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=OPS6z2b9xpPF3wQKIuekk4fC9RzWMOEqMORb//JIJpo=;
+        b=B5Qk+PsSzq/0f8BhIW2rjmzo0ECqu1miz2H5YHiemcMvOWWv4arNgiNUi3rcBN4P1w
+         QLnHga/doub3GbOjNIp4cceGS6ivSmImD835P0yQmMTJgL6NqrHmlL8ugCNEHrLDv3CX
+         Vou1QwwcbzGnazbOSIVacXwB5R8T1Pn2B1c+qkUS9jesZzVlCpRauzEF5CcJWqCTTd65
+         K0X/sJH87A1GA0aV4hRb5yFS3yXVydAjlskmqVnT9LFN+Tw26VPDtPyJ7zCZlgTT75b8
+         /JPqlNYFRPteZl9UXEkO82IzEdVVJD54BeQaR23nUBoxSYJhLw5dS9fuMh3hfhDGYfgw
+         sYFA==
+X-Gm-Message-State: APjAAAWcLPjBXXLRB6T6OHXUS9VQ7d8ayeGtvrk1uopEyi44v9ppuqyl
+        COjMNsUnlaB5LlLjQEvg2Z4X5uc2ajhb2RNfc3iyTQ==
+X-Google-Smtp-Source: APXvYqzMSH2AYlu+wEv2Y0IUsXD22f9VImOhSPAYzmjr3fXLgz7dusvmqw4OEdsMwL529YhwVccDqy4UrBeOcJe68TQ=
+X-Received: by 2002:a05:6e02:4d2:: with SMTP id f18mr33874619ils.54.1582282234244;
+ Fri, 21 Feb 2020 02:50:34 -0800 (PST)
+MIME-Version: 1.0
+References: <20200124204753.13154-1-jinpuwang@gmail.com> <CAHg0HuzLLHqp_76ThLhUdHGG_986Oxvvr15h_13T12eEWjyAxA@mail.gmail.com>
+ <20200131165421.GB29820@ziepe.ca> <f657d371-3b23-e4b2-50b3-db47cd521e1f@kernel.dk>
+ <CAD9gYJLVMVPjQcCj0aqbAW3CD86JQoFNvzJwGziRXT8B2UT0VQ@mail.gmail.com>
+ <a1aaa047-3a44-11a7-19a1-e150a9df4616@kernel.dk> <CAMGffEkLkwkd73Q+m46VeOw0UnzZ0EkZQF-QcSZjyqNcqigZPw@mail.gmail.com>
+ <20200219002449.GA11943@ziepe.ca> <20200219061949.GB15239@unreal>
+In-Reply-To: <20200219061949.GB15239@unreal>
+From:   Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Date:   Fri, 21 Feb 2020 11:50:23 +0100
+Message-ID: <CAMGffE=N6EAuudLgh-jYt26bMVwoF8iy9mYkpuM1OEKQamcbUQ@mail.gmail.com>
+Subject: Re: [PATCH v8 00/25] RTRS (former IBTRS) RDMA Transport Library and
+ RNBD (former IBNBD) RDMA Network Block Device
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Jinpu Wang <jinpuwang@gmail.com>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Christoph Hellwig <hch@infradead.org>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Doug Ledford <dledford@redhat.com>,
+        Roman Penyaev <rpenyaev@suse.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang@cloud.ionos.com>
+On Wed, Feb 19, 2020 at 7:19 AM Leon Romanovsky <leon@kernel.org> wrote:
+>
+> On Tue, Feb 18, 2020 at 08:24:49PM -0400, Jason Gunthorpe wrote:
+> > On Thu, Feb 06, 2020 at 04:12:22PM +0100, Jinpu Wang wrote:
+> > > On Fri, Jan 31, 2020 at 6:49 PM Jens Axboe <axboe@kernel.dk> wrote:
+> > > >
+> > > > On 1/31/20 10:28 AM, Jinpu Wang wrote:
+> > > > > Jens Axboe <axboe@kernel.dk> =E4=BA=8E2020=E5=B9=B41=E6=9C=8831=
+=E6=97=A5=E5=91=A8=E4=BA=94 =E4=B8=8B=E5=8D=886:04=E5=86=99=E9=81=93=EF=BC=
+=9A
+> > > > >>
+> > > > >> On 1/31/20 9:54 AM, Jason Gunthorpe wrote:
+> > > > >>> On Fri, Jan 31, 2020 at 05:50:44PM +0100, Danil Kipnis wrote:
+> > > > >>>> Hi Doug, Hi Jason, Hi Jens, Hi All,
+> > > > >>>>
+> > > > >>>> since we didn't get any new comments for the V8 prepared by Ja=
+ck a
+> > > > >>>> week ago do you think rnbd/rtrs could be merged in the current=
+ merge
+> > > > >>>> window?
+> > > > >>>
+> > > > >>> No, the cut off for something large like this would be rc4ish
+> > > > >>
+> > > > >> Since it's been around for a while, I would have taken it in a b=
+it
+> > > > >> later than that. But not now, definitely too late. If folks are
+> > > > >> happy with it, we can get it queued for 5.7.
+> > > > >>
+> > > > >
+> > > > > Thanks Jason, thanks Jens, then we will prepare later another rou=
+nd for 5.7
+> > > >
+> > > > It would also be really nice to see official sign-offs (reviews) fr=
+om non
+> > > > ionos people...
+> > >
+> > > Totally agree.
+> > > Hi Bart, hi Leon,
+> > >
+> > > Both of you spent quite some time to review the code, could you give =
+a
+> > > Reviewed-by for some of the patches you've reviewed?
+> >
+> > Anyone? I don't want to move ahead with a block driver without someone
+> > from the block community saying it is OK
+>
+> I wanted to ask for a resend based on latest -rc2, if it is possible.
+>
+> Thanks
+>
+Hi, all
 
-README with description of major sysfs entries, sysfs documentation
-has been moved to ABI dir as suggested by Bart.
+I just send v9 out based on latest 5.6-rc2.
 
-Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-Cc: linux-kernel@vger.kernel.org
----
- .../ABI/testing/sysfs-class-rtrs-client       | 131 +++++++++++
- .../ABI/testing/sysfs-class-rtrs-server       |  53 +++++
- drivers/infiniband/ulp/rtrs/README            | 213 ++++++++++++++++++
- 3 files changed, 397 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-class-rtrs-client
- create mode 100644 Documentation/ABI/testing/sysfs-class-rtrs-server
- create mode 100644 drivers/infiniband/ulp/rtrs/README
-
-diff --git a/Documentation/ABI/testing/sysfs-class-rtrs-client b/Documentation/ABI/testing/sysfs-class-rtrs-client
-new file mode 100644
-index 000000000000..e7e718db8941
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rtrs-client
-@@ -0,0 +1,131 @@
-+What:		/sys/class/rtrs-client
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When a user of RTRS API creates a new session, a directory entry with
-+		the name of that session is created under /sys/class/rtrs-client/<session-name>/
-+
-+What:		/sys/class/rtrs-client/<session-name>/add_path
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RW, adds a new path (connection) to an existing session. Expected format is the
-+		following:
-+
-+		<[source addr,]destination addr>
-+		*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]
-+
-+What:		/sys/class/rtrs-client/<session-name>/max_reconnect_attempts
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Maximum number reconnect attempts the client should make before giving up
-+		after connection breaks unexpectedly.
-+
-+What:		/sys/class/rtrs-client/<session-name>/mp_policy
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Multipath policy specifies which path should be selected on each IO:
-+
-+		round-robin (0):
-+		select path in per CPU round-robin manner.
-+
-+		min-inflight (1):
-+		select path with minimum inflights.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Each path belonging to a given session is listed here by its source and
-+		destination address. When a new path is added to a session by writing to
-+		the "add_path" entry, a directory <src@dst> is created.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/state
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains "connected" if the session is connected to the peer and fully
-+		functional.  Otherwise the file contains "disconnected"
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/reconnect
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Write "1" to the file in order to reconnect the path.
-+		Operation is blocking and returns 0 if reconnect was successful.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/disconnect
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Write "1" to the file in order to disconnect the path.
-+		Operation blocks until RTRS path is disconnected.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/remove_path
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Write "1" to the file in order to disconnected and remove the path
-+		from the session.  Operation blocks until the path is disconnected
-+		and removed from the session.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/hca_name
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the the name of HCA the connection established on.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/hca_port
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the port number of active port traffic is going through.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/src_addr
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the source address of the path
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/dst_addr
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the destination address of the path
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/reset_all
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RW, Read will return usage help, write 0 will clear all the statistics.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/cpu_migration
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RTRS expects that each HCA IRQ is pinned to a separate CPU. If it's
-+		not the case, the processing of an I/O response could be processed on a
-+		different CPU than where it was originally submitted.  This file shows
-+		how many interrupts where generated on a non expected CPU.
-+		"from:" is the CPU on which the IRQ was expected, but not generated.
-+		"to:" is the CPU on which the IRQ was generated, but not expected.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/reconnects
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains 2 unsigned int values, the first one records number of successful
-+		reconnects in the path lifetime, the second one records number of failed
-+		reconnects in the path lifetime.
-+
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/rdma
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains statistics regarding rdma operations and inflight operations.
-+		The output consists of 6 values:
-+
-+		<read-count> <read-total-size> <write-count> <write-total-size> \
-+		<inflights> <failovered>
-diff --git a/Documentation/ABI/testing/sysfs-class-rtrs-server b/Documentation/ABI/testing/sysfs-class-rtrs-server
-new file mode 100644
-index 000000000000..3b6d5b067df0
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rtrs-server
-@@ -0,0 +1,53 @@
-+What:		/sys/class/rtrs-server
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When a user of RTRS API creates a new session on a client side, a
-+		directory entry with the name of that session is created in here.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When new path is created by writing to "add_path" entry on client side,
-+		a directory entry named as <source address>@<destination address> is created
-+		on server.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/disconnect
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When "1" is written to the file, the RTRS session is being disconnected.
-+		Operations is non-blocking and returns control immediately to the caller.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/hca_name
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the the name of HCA the connection established on.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/hca_port
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the port number of active port traffic is going through.
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/src_addr
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the source address of the path
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/dst_addr
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the destination address of the path
-+
-+What:		/sys/class/rtrs-server/<session-name>/paths/<src@dst>/stats/rdma
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains statistics regarding rdma operations and inflight operations.
-+		The output consists of 5 values:
-+		<read-count> <read-total-size> <write-count> <write-total-size> <inflights>
-diff --git a/drivers/infiniband/ulp/rtrs/README b/drivers/infiniband/ulp/rtrs/README
-new file mode 100644
-index 000000000000..5d9ea142e5dd
---- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/README
-@@ -0,0 +1,213 @@
-+****************************
-+RDMA Transport (RTRS)
-+****************************
-+
-+RTRS (RDMA Transport) is a reliable high speed transport library
-+which provides support to establish optimal number of connections
-+between client and server machines using RDMA (InfiniBand, RoCE, iWarp)
-+transport. It is optimized to transfer (read/write) IO blocks.
-+
-+In its core interface it follows the BIO semantics of providing the
-+possibility to either write data from an sg list to the remote side
-+or to request ("read") data transfer from the remote side into a given
-+sg list.
-+
-+RTRS provides I/O fail-over and load-balancing capabilities by using
-+multipath I/O (see "add_path" and "mp_policy" configuration entries in
-+Documentation/ABI/testing/sysfs-class-rtrs-client).
-+
-+RTRS is used by the RNBD (RDMA Network Block Device) modules.
-+
-+==================
-+Transport protocol
-+==================
-+
-+Overview
-+--------
-+An established connection between a client and a server is called rtrs
-+session. A session is associated with a set of memory chunks reserved on the
-+server side for a given client for rdma transfer. A session
-+consists of multiple paths, each representing a separate physical link
-+between client and server. Those are used for load balancing and failover.
-+Each path consists of as many connections (QPs) as there are cpus on
-+the client.
-+
-+When processing an incoming write or read request, rtrs client uses memory
-+chunks reserved for him on the server side. Their number, size and addresses
-+need to be exchanged between client and server during the connection
-+establishment phase. Apart from the memory related information client needs to
-+inform the server about the session name and identify each path and connection
-+individually.
-+
-+On an established session client sends to server write or read messages.
-+Server uses immediate field to tell the client which request is being
-+acknowledged and for errno. Client uses immediate field to tell the server
-+which of the memory chunks has been accessed and at which offset the message
-+can be found.
-+
-+Module parameter always_invalidate is introduced for the security problem
-+discussed in LPC RDMA MC 2019. When always_invalidate=Y, on the server side we
-+invalidate each rdma buffer before we hand it over to RNBD server and
-+then pass it to the block layer. A new rkey is generated and registered for the
-+buffer after it returns back from the block layer and RNBD server.
-+The new rkey is sent back to the client along with the IO result.
-+The procedure is the default behaviour of the driver. This invalidation and
-+registration on each IO causes performance drop of up to 20%. A user of the
-+driver may choose to load the modules with this mechanism switched off
-+(always_invalidate=N), if he understands and can take the risk of a malicious
-+client being able to corrupt memory of a server it is connected to. This might
-+be a reasonable option in a scenario where all the clients and all the servers
-+are located within a secure datacenter.
-+
-+
-+Connection establishment
-+------------------------
-+
-+1. Client starts establishing connections belonging to a path of a session one
-+by one via attaching RTRS_MSG_CON_REQ messages to the rdma_connect requests.
-+Those include uuid of the session and uuid of the path to be
-+established. They are used by the server to find a persisting session/path or
-+to create a new one when necessary. The message also contains the protocol
-+version and magic for compatibility, total number of connections per session
-+(as many as cpus on the client), the id of the current connection and
-+the reconnect counter, which is used to resolve the situations where
-+client is trying to reconnect a path, while server is still destroying the old
-+one.
-+
-+2. Server accepts the connection requests one by one and attaches
-+RTRS_MSG_CONN_RSP messages to the rdma_accept. Apart from magic and
-+protocol version, the messages include error code, queue depth supported by
-+the server (number of memory chunks which are going to be allocated for that
-+session) and the maximum size of one io, RTRS_MSG_NEW_RKEY_F flags is set
-+when always_invalidate=Y.
-+
-+3. After all connections of a path are established client sends to server the
-+RTRS_MSG_INFO_REQ message, containing the name of the session. This message
-+requests the address information from the server.
-+
-+4. Server replies to the session info request message with RTRS_MSG_INFO_RSP,
-+which contains the addresses and keys of the RDMA buffers allocated for that
-+session.
-+
-+5. Session becomes connected after all paths to be established are connected
-+(i.e. steps 1-4 finished for all paths requested for a session)
-+
-+6. Server and client exchange periodically heartbeat messages (empty rdma
-+messages with an immediate field) which are used to detect a crash on remote
-+side or network outage in an absence of IO.
-+
-+7. On any RDMA related error or in the case of a heartbeat timeout, the
-+corresponding path is disconnected, all the inflight IO are failed over to a
-+healthy path, if any, and the reconnect mechanism is triggered.
-+
-+CLT                                     SRV
-+*for each connection belonging to a path and for each path:
-+RTRS_MSG_CON_REQ  ------------------->
-+                   <------------------- RTRS_MSG_CON_RSP
-+...
-+*after all connections are established:
-+RTRS_MSG_INFO_REQ ------------------->
-+                   <------------------- RTRS_MSG_INFO_RSP
-+*heartbeat is started from both sides:
-+                   -------------------> [RTRS_HB_MSG_IMM]
-+[RTRS_HB_MSG_ACK] <-------------------
-+[RTRS_HB_MSG_IMM] <-------------------
-+                   -------------------> [RTRS_HB_MSG_ACK]
-+
-+IO path
-+-------
-+
-+* Write (always_invalidate=N) *
-+
-+1. When processing a write request client selects one of the memory chunks
-+on the server side and rdma writes there the user data, user header and the
-+RTRS_MSG_RDMA_WRITE message. Apart from the type (write), the message only
-+contains size of the user header. The client tells the server which chunk has
-+been accessed and at what offset the RTRS_MSG_RDMA_WRITE can be found by
-+using the IMM field.
-+
-+2. When confirming a write request server sends an "empty" rdma message with
-+an immediate field. The 32 bit field is used to specify the outstanding
-+inflight IO and for the error code.
-+
-+CLT                                                          SRV
-+usr_data + usr_hdr + rtrs_msg_rdma_write -----------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]                        <----------------- (id + errno)
-+
-+* Write (always_invalidate=Y) *
-+
-+1. When processing a write request client selects one of the memory chunks
-+on the server side and rdma writes there the user data, user header and the
-+RTRS_MSG_RDMA_WRITE message. Apart from the type (write), the message only
-+contains size of the user header. The client tells the server which chunk has
-+been accessed and at what offset the RTRS_MSG_RDMA_WRITE can be found by
-+using the IMM field, Server invalidate rkey associated to the memory chunks
-+first, when it finishes, pass the IO to RNBD server module.
-+
-+2. When confirming a write request server sends an "empty" rdma message with
-+an immediate field. The 32 bit field is used to specify the outstanding
-+inflight IO and for the error code. The new rkey is sent back using
-+SEND_WITH_IMM WR, client When it recived new rkey message, it validates
-+the message and finished IO after update rkey for the rbuffer, then post
-+back the recv buffer for later use.
-+
-+CLT                                                          SRV
-+usr_data + usr_hdr + rtrs_msg_rdma_write -----------------> [RTRS_IO_REQ_IMM]
-+[RTRS_MSG_RKEY_RSP]                     <----------------- (RTRS_MSG_RKEY_RSP)
-+[RTRS_IO_RSP_IMM]                        <----------------- (id + errno)
-+
-+
-+* Read (always_invalidate=N)*
-+
-+1. When processing a read request client selects one of the memory chunks
-+on the server side and rdma writes there the user header and the
-+RTRS_MSG_RDMA_READ message. This message contains the type (read), size of
-+the user header, flags (specifying if memory invalidation is necessary) and the
-+list of addresses along with keys for the data to be read into.
-+
-+2. When confirming a read request server transfers the requested data first,
-+attaches an invalidation message if requested and finally an "empty" rdma
-+message with an immediate field. The 32 bit field is used to specify the
-+outstanding inflight IO and the error code.
-+
-+CLT                                           SRV
-+usr_hdr + rtrs_msg_rdma_read --------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]            <-------------- usr_data + (id + errno)
-+or in case client requested invalidation:
-+[RTRS_IO_RSP_IMM_W_INV]      <-------------- usr_data + (INV) + (id + errno)
-+
-+* Read (always_invalidate=Y)*
-+
-+1. When processing a read request client selects one of the memory chunks
-+on the server side and rdma writes there the user header and the
-+RTRS_MSG_RDMA_READ message. This message contains the type (read), size of
-+the user header, flags (specifying if memory invalidation is necessary) and the
-+list of addresses along with keys for the data to be read into.
-+Server invalidate rkey associated to the memory chunks first, when it finishes,
-+passes the IO to RNBD server module.
-+
-+2. When confirming a read request server transfers the requested data first,
-+attaches an invalidation message if requested and finally an "empty" rdma
-+message with an immediate field. The 32 bit field is used to specify the
-+outstanding inflight IO and the error code. The new rkey is sent back using
-+SEND_WITH_IMM WR, client When it recived new rkey message, it validates
-+the message and finished IO after update rkey for the rbuffer, then post
-+back the recv buffer for later use.
-+
-+CLT                                           SRV
-+usr_hdr + rtrs_msg_rdma_read --------------> [RTRS_IO_REQ_IMM]
-+[RTRS_IO_RSP_IMM]            <-------------- usr_data + (id + errno)
-+[RTRS_MSG_RKEY_RSP]	     <----------------- (RTRS_MSG_RKEY_RSP)
-+or in case client requested invalidation:
-+[RTRS_IO_RSP_IMM_W_INV]      <-------------- usr_data + (INV) + (id + errno)
-+=========================================
-+Contributors List(in alphabetical order)
-+=========================================
-+Danil Kipnis <danil.kipnis@profitbricks.com>
-+Fabian Holler <mail@fholler.de>
-+Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-+Jack Wang <jinpu.wang@profitbricks.com>
-+Kleber Souza <kleber.souza@profitbricks.com>
-+Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
-+Milind Dumbare <Milind.dumbare@gmail.com>
-+Roman Penyaev <roman.penyaev@profitbricks.com>
--- 
-2.17.1
-
+Thanks!
