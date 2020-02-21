@@ -8,64 +8,62 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62B0BC35658
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:48:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2514BC3565C
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:47:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 39E2C2073A
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:48:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5C0E222C4
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Feb 2020 10:47:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R2ZUvr3Z"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p09CWZYz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727836AbgBUKr0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 Feb 2020 05:47:26 -0500
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:33664 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727827AbgBUKr0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Feb 2020 05:47:26 -0500
-Received: by mail-ed1-f67.google.com with SMTP id r21so1809018edq.0;
-        Fri, 21 Feb 2020 02:47:25 -0800 (PST)
+        id S1728267AbgBUKrn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 Feb 2020 05:47:43 -0500
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:46965 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728186AbgBUKrl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Feb 2020 05:47:41 -0500
+Received: by mail-ed1-f65.google.com with SMTP id p14so1738423edy.13;
+        Fri, 21 Feb 2020 02:47:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=JU7gxEFwqK+Oxre///Ayp0+fP1f8xI82V+ZomELLvp4=;
-        b=R2ZUvr3ZuLAjFgvdrwOgxABTV1rb54T8Yot4G6CZhY33nraY/yTW8WHI8KSWs4LuhZ
-         MJG1OoU2i7KsKlydCYMqvmQMP60uFvKbgt9yOlPGdHqQ8Ybx9L0r3yLtP+0aPJH/zZ55
-         +ybM0KR/6kxsvD8HjL02eLeotMe1NdDyVlpGi02Hi3yVDLB+AyoT4iMLw2HH4Egtic9F
-         ObS5a/tP7Iiau+EyL5ukYMjYxkMQvWOJheMcHAl1dLj5f5iP9E5vz0mZJ2D6I6NH9W/l
-         ln3xH+q5H4ZxJPfPkmbBgUUY40SnPIk5fDsGyeAhYA3HqOBC/rCv5vMledURFHpv4aNj
-         Ru5A==
+        bh=RX+LJy+KVxK2uW08rZMWpri/Raraqlb0fVICH8fStZ4=;
+        b=p09CWZYzCkVp+/QTTZ5oK08ssFc61124L4Jvv8/VHUKQM8YoBflU/0NMmBTbRofyBr
+         u69FpTkp/eaBY6PZvNDF+7vyn4xilof9s+R1hz9VjYIHk8U43zYZs2vkHK0CR0qDwmz4
+         Sa1HXDW3Ekz+f/FrcWJorGacQO2jqbqQ2sK/Mvw3QZyUo39RPA4oLzQPg3iTbaDjTe66
+         jbh/Y7t//ziyUlwsoeelAlN8AslVdvka6klJnzvcuz++IIp3j+4nAObyOh2QytRnL5Bn
+         yL2E3E8NB4w26zXVZpQvzIjLAh8KtUWD6iTPZ8Gh9l0m+6W8WTQmNCcyJUEzd4eianBP
+         dW4Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=JU7gxEFwqK+Oxre///Ayp0+fP1f8xI82V+ZomELLvp4=;
-        b=bv+FIYbT8VczK/Xtl4PvcNQbuLoO7cF8mA1ceGtl0v4llpyToTmhxTUE/STTgOR9CW
-         NC4m7EVNoicehgdTAw4qqCGU5q5w+/7PodkYXfxmXeaLlknUCAFX6qnHi/SJ6pe9FrJg
-         RRPf3wULaImzZRWPFScZxyePtN9GpVJsPA/HpYHP3oqtm1R3KdzHE2n9lqqCqUxH11rP
-         oPBSMP8CTBOglniX0e8wNvbVA7XhKp+iifkZRu4/wjP5OnXhfo30uByQ0mMOmI1C9mMd
-         LVZ1dytjuDZ9SZvHnZWM3tf+i7eGeVh5wksIvdwd8YugynoX7EEp7h8dCRLqjRoUGUfL
-         AXfw==
-X-Gm-Message-State: APjAAAWYa2vSJK9csjzqzXuG4MmlCf80NOMzHcZqebbtaQnYEO5cYdlF
-        UWXFP2IZ5Y2+9WiMjmEo5H1UXu8v
-X-Google-Smtp-Source: APXvYqxFpO/dJx50hzO5j6R0vnqEpN2UskYHsdUTUvY8vTeSxERiuoJAxTUjAKW6VvKZDkKTFqxcCw==
-X-Received: by 2002:a17:906:ccdd:: with SMTP id ot29mr33226021ejb.204.1582282044212;
-        Fri, 21 Feb 2020 02:47:24 -0800 (PST)
+        bh=RX+LJy+KVxK2uW08rZMWpri/Raraqlb0fVICH8fStZ4=;
+        b=s2w70XfVuOBP925f8/Ps6V5Kj9dYo/s73citgspCMtbINaWMBjcrWMkg5mmmZ3UDjq
+         x0CzoOSFct6QpwzhfJXqOEs2UGERceWoYdSSI9+Ft8KWKSV3NQ4Ky/ybjvvSWSIAUeC0
+         c11LwDtuTbxeYiFXGz0x14AXDi+HsqyIQktBFVvKP6DN+VTo2+qHKxLB2wfjGW/gViXe
+         bgS4w01E0R7s5UWyhgbcnj4t3e5G0frnRZ7NMIJ2z2L51D1KLr+e1L2q9eYhhg+eGrNv
+         tbgedCW74t9FSMSfBdSHYbrs9EQ4yA5/FR7Sz2DmnWIf4FnIWH+BXyh0EXLntX4yslsN
+         vXdg==
+X-Gm-Message-State: APjAAAVZ0d+3a2PWsDHcazKuBMIS+RmT/96uyOlDGxBpDB5/eUMPXJDW
+        vdTWYNSq72+ZYLTRk6nM5fCV0Hmc
+X-Google-Smtp-Source: APXvYqwZWjOl9vTp1W+iDpyKX/RICNI3joG9DGiTX+h3IgIMI0F86UKgWtJF0HoRx4bilSAfWB4jSg==
+X-Received: by 2002:a17:906:a842:: with SMTP id dx2mr33802200ejb.380.1582282059306;
+        Fri, 21 Feb 2020 02:47:39 -0800 (PST)
 Received: from jwang-Latitude-5491.pb.local ([2001:1438:4010:2558:d8ec:cf8e:d7de:fb22])
-        by smtp.gmail.com with ESMTPSA id 2sm270594edv.87.2020.02.21.02.47.23
+        by smtp.gmail.com with ESMTPSA id 2sm270594edv.87.2020.02.21.02.47.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Feb 2020 02:47:23 -0800 (PST)
+        Fri, 21 Feb 2020 02:47:38 -0800 (PST)
 From:   Jack Wang <jinpuwang@gmail.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com, rpenyaev@suse.de,
-        pankaj.gupta@cloud.ionos.com,
-        Roman Pen <roman.penyaev@profitbricks.com>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v9 01/25] sysfs: export sysfs_remove_file_self()
-Date:   Fri, 21 Feb 2020 11:46:57 +0100
-Message-Id: <20200221104721.350-2-jinpuwang@gmail.com>
+        pankaj.gupta@cloud.ionos.com
+Subject: [PATCH v9 15/25] block/rnbd: private headers with rnbd protocol structs and helpers
+Date:   Fri, 21 Feb 2020 11:47:11 +0100
+Message-Id: <20200221104721.350-16-jinpuwang@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200221104721.350-1-jinpuwang@gmail.com>
 References: <20200221104721.350-1-jinpuwang@gmail.com>
@@ -76,30 +74,408 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-Function is going to be used in transport over RDMA module
-in subsequent patches, so export it to GPL modules.
+These are common private headers with rnbd protocol structures,
+logging, sysfs and other helper functions, which are used on
+both client and server sides.
 
-Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org
-[jwang: extend the commit message]
+Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- fs/sysfs/file.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/rnbd/rnbd-common.c |  23 +++
+ drivers/block/rnbd/rnbd-log.h    |  41 +++++
+ drivers/block/rnbd/rnbd-proto.h  | 305 +++++++++++++++++++++++++++++++
+ 3 files changed, 369 insertions(+)
+ create mode 100644 drivers/block/rnbd/rnbd-common.c
+ create mode 100644 drivers/block/rnbd/rnbd-log.h
+ create mode 100644 drivers/block/rnbd/rnbd-proto.h
 
-diff --git a/fs/sysfs/file.c b/fs/sysfs/file.c
-index 130fc6fbcc03..1ff4672d7746 100644
---- a/fs/sysfs/file.c
-+++ b/fs/sysfs/file.c
-@@ -492,6 +492,7 @@ bool sysfs_remove_file_self(struct kobject *kobj, const struct attribute *attr)
- 	kernfs_put(kn);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(sysfs_remove_file_self);
- 
- void sysfs_remove_files(struct kobject *kobj, const struct attribute * const *ptr)
- {
+diff --git a/drivers/block/rnbd/rnbd-common.c b/drivers/block/rnbd/rnbd-common.c
+new file mode 100644
+index 000000000000..596c3f732403
+--- /dev/null
++++ b/drivers/block/rnbd/rnbd-common.c
+@@ -0,0 +1,23 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * RDMA Network Block Driver
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
++ */
++#include "rnbd-proto.h"
++
++const char *rnbd_access_mode_str(enum rnbd_access_mode mode)
++{
++	switch (mode) {
++	case RNBD_ACCESS_RO:
++		return "ro";
++	case RNBD_ACCESS_RW:
++		return "rw";
++	case RNBD_ACCESS_MIGRATION:
++		return "migration";
++	default:
++		return "unknown";
++	}
++}
+diff --git a/drivers/block/rnbd/rnbd-log.h b/drivers/block/rnbd/rnbd-log.h
+new file mode 100644
+index 000000000000..136e7d6c3451
+--- /dev/null
++++ b/drivers/block/rnbd/rnbd-log.h
+@@ -0,0 +1,41 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * RDMA Network Block Driver
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
++ */
++#ifndef RNBD_LOG_H
++#define RNBD_LOG_H
++
++#include "rnbd-clt.h"
++#include "rnbd-srv.h"
++
++#define rnbd_clt_log(fn, dev, fmt, ...) (				\
++		fn("<%s@%s> " fmt, (dev)->pathname,			\
++		(dev)->sess->sessname,					\
++		   ##__VA_ARGS__))
++#define rnbd_srv_log(fn, dev, fmt, ...) (				\
++			fn("<%s@%s>: " fmt, (dev)->pathname,		\
++			   (dev)->sess->sessname, ##__VA_ARGS__))
++
++#define rnbd_clt_err(dev, fmt, ...)	\
++	rnbd_clt_log(pr_err, dev, fmt, ##__VA_ARGS__)
++#define rnbd_clt_err_rl(dev, fmt, ...)	\
++	rnbd_clt_log(pr_err_ratelimited, dev, fmt, ##__VA_ARGS__)
++#define rnbd_clt_info(dev, fmt, ...) \
++	rnbd_clt_log(pr_info, dev, fmt, ##__VA_ARGS__)
++#define rnbd_clt_info_rl(dev, fmt, ...) \
++	rnbd_clt_log(pr_info_ratelimited, dev, fmt, ##__VA_ARGS__)
++
++#define rnbd_srv_err(dev, fmt, ...)	\
++	rnbd_srv_log(pr_err, dev, fmt, ##__VA_ARGS__)
++#define rnbd_srv_err_rl(dev, fmt, ...)	\
++	rnbd_srv_log(pr_err_ratelimited, dev, fmt, ##__VA_ARGS__)
++#define rnbd_srv_info(dev, fmt, ...) \
++	rnbd_srv_log(pr_info, dev, fmt, ##__VA_ARGS__)
++#define rnbd_srv_info_rl(dev, fmt, ...) \
++	rnbd_srv_log(pr_info_ratelimited, dev, fmt, ##__VA_ARGS__)
++
++#endif /* RNBD_LOG_H */
+diff --git a/drivers/block/rnbd/rnbd-proto.h b/drivers/block/rnbd/rnbd-proto.h
+new file mode 100644
+index 000000000000..4a737363ed0d
+--- /dev/null
++++ b/drivers/block/rnbd/rnbd-proto.h
+@@ -0,0 +1,305 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * RDMA Network Block Driver
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
++ */
++#ifndef RNBD_PROTO_H
++#define RNBD_PROTO_H
++
++#include <linux/types.h>
++#include <linux/blkdev.h>
++#include <linux/limits.h>
++#include <linux/inet.h>
++#include <linux/in.h>
++#include <linux/in6.h>
++#include <rdma/ib.h>
++
++#define RNBD_PROTO_VER_MAJOR 2
++#define RNBD_PROTO_VER_MINOR 0
++
++#define RNBD_PROTO_VER_STRING __stringify(RNBD_PROTO_VER_MAJOR) "." \
++			       __stringify(RNBD_PROTO_VER_MINOR)
++
++#define RTRS_PORT 1234
++
++/**
++ * enum rnbd_msg_types - RNBD message types
++ * @RNBD_MSG_SESS_INFO:	initial session info from client to server
++ * @RNBD_MSG_SESS_INFO_RSP:	initial session info from server to client
++ * @RNBD_MSG_OPEN:		open (map) device request
++ * @RNBD_MSG_OPEN_RSP:		response to an @RNBD_MSG_OPEN
++ * @RNBD_MSG_IO:		block IO request operation
++ * @RNBD_MSG_CLOSE:		close (unmap) device request
++ */
++enum rnbd_msg_type {
++	RNBD_MSG_SESS_INFO,
++	RNBD_MSG_SESS_INFO_RSP,
++	RNBD_MSG_OPEN,
++	RNBD_MSG_OPEN_RSP,
++	RNBD_MSG_IO,
++	RNBD_MSG_CLOSE,
++};
++
++/**
++ * struct rnbd_msg_hdr - header of RNBD messages
++ * @type:	Message type, valid values see: enum rnbd_msg_types
++ */
++struct rnbd_msg_hdr {
++	__le16		type;
++	__le16		__padding;
++};
++
++/**
++ * We allow to map RO many times and RW only once. We allow to map yet another
++ * time RW, if MIGRATION is provided (second RW export can be required for
++ * example for VM migration)
++ */
++enum rnbd_access_mode {
++	RNBD_ACCESS_RO,
++	RNBD_ACCESS_RW,
++	RNBD_ACCESS_MIGRATION,
++};
++
++/**
++ * struct rnbd_msg_sess_info - initial session info from client to server
++ * @hdr:		message header
++ * @ver:		RNBD protocol version
++ */
++struct rnbd_msg_sess_info {
++	struct rnbd_msg_hdr hdr;
++	u8		ver;
++	u8		reserved[31];
++};
++
++/**
++ * struct rnbd_msg_sess_info_rsp - initial session info from server to client
++ * @hdr:		message header
++ * @ver:		RNBD protocol version
++ */
++struct rnbd_msg_sess_info_rsp {
++	struct rnbd_msg_hdr hdr;
++	u8		ver;
++	u8		reserved[31];
++};
++
++/**
++ * struct rnbd_msg_open - request to open a remote device.
++ * @hdr:		message header
++ * @access_mode:	the mode to open remote device, valid values see:
++ *			enum rnbd_access_mode
++ * @device_name:	device path on remote side
++ */
++struct rnbd_msg_open {
++	struct rnbd_msg_hdr hdr;
++	u8		access_mode;
++	u8		resv1;
++	s8		dev_name[NAME_MAX];
++	u8		reserved[3];
++};
++
++/**
++ * struct rnbd_msg_close - request to close a remote device.
++ * @hdr:	message header
++ * @device_id:	device_id on server side to identify the device
++ */
++struct rnbd_msg_close {
++	struct rnbd_msg_hdr hdr;
++	__le32		device_id;
++};
++
++/**
++ * struct rnbd_msg_open_rsp - response message to RNBD_MSG_OPEN
++ * @hdr:		message header
++ * @device_id:		device_id on server side to identify the device
++ * @nsectors:		number of sectors in the usual 512b unit
++ * @max_hw_sectors:	max hardware sectors in the usual 512b unit
++ * @max_write_same_sectors: max sectors for WRITE SAME in the 512b unit
++ * @max_discard_sectors: max. sectors that can be discarded at once in 512b
++ * unit.
++ * @discard_granularity: size of the internal discard allocation unit in bytes
++ * @discard_alignment: offset from internal allocation assignment in bytes
++ * @physical_block_size: physical block size device supports in bytes
++ * @logical_block_size: logical block size device supports in bytes
++ * @max_segments:	max segments hardware support in one transfer
++ * @secure_discard:	supports secure discard
++ * @rotation:		is a rotational disc?
++ */
++struct rnbd_msg_open_rsp {
++	struct rnbd_msg_hdr	hdr;
++	__le32			device_id;
++	__le64			nsectors;
++	__le32			max_hw_sectors;
++	__le32			max_write_same_sectors;
++	__le32			max_discard_sectors;
++	__le32			discard_granularity;
++	__le32			discard_alignment;
++	__le16			physical_block_size;
++	__le16			logical_block_size;
++	__le16			max_segments;
++	__le16			secure_discard;
++	u8			rotational;
++	u8			reserved[11];
++};
++
++/**
++ * struct rnbd_msg_io - message for I/O read/write
++ * @hdr:	message header
++ * @device_id:	device_id on server side to find the right device
++ * @sector:	bi_sector attribute from struct bio
++ * @rw:		valid values are defined in enum rnbd_io_flags
++ * @bi_size:    number of bytes for I/O read/write
++ * @prio:       priority
++ */
++struct rnbd_msg_io {
++	struct rnbd_msg_hdr hdr;
++	__le32		device_id;
++	__le64		sector;
++	__le32		rw;
++	__le32		bi_size;
++	__le16		prio;
++};
++
++#define RNBD_OP_BITS  8
++#define RNBD_OP_MASK  ((1 << RNBD_OP_BITS) - 1)
++
++/**
++ * enum rnbd_io_flags - RNBD request types from rq_flag_bits
++ * @RNBD_OP_READ:	     read sectors from the device
++ * @RNBD_OP_WRITE:	     write sectors to the device
++ * @RNBD_OP_FLUSH:	     flush the volatile write cache
++ * @RNBD_OP_DISCARD:        discard sectors
++ * @RNBD_OP_SECURE_ERASE:   securely erase sectors
++ * @RNBD_OP_WRITE_SAME:     write the same sectors many times
++
++ * @RNBD_F_SYNC:	     request is sync (sync write or read)
++ * @RNBD_F_FUA:             forced unit access
++ */
++enum rnbd_io_flags {
++
++	/* Operations */
++
++	RNBD_OP_READ		= 0,
++	RNBD_OP_WRITE		= 1,
++	RNBD_OP_FLUSH		= 2,
++	RNBD_OP_DISCARD	= 3,
++	RNBD_OP_SECURE_ERASE	= 4,
++	RNBD_OP_WRITE_SAME	= 5,
++
++	RNBD_OP_LAST,
++
++	/* Flags */
++
++	RNBD_F_SYNC  = 1<<(RNBD_OP_BITS + 0),
++	RNBD_F_FUA   = 1<<(RNBD_OP_BITS + 1),
++
++	RNBD_F_ALL   = (RNBD_F_SYNC | RNBD_F_FUA)
++
++};
++
++static inline u32 rnbd_op(u32 flags)
++{
++	return (flags & RNBD_OP_MASK);
++}
++
++static inline u32 rnbd_flags(u32 flags)
++{
++	return (flags & ~RNBD_OP_MASK);
++}
++
++static inline bool rnbd_flags_supported(u32 flags)
++{
++	u32 op;
++
++	op = rnbd_op(flags);
++	flags = rnbd_flags(flags);
++
++	if (op >= RNBD_OP_LAST)
++		return false;
++	if (flags & ~RNBD_F_ALL)
++		return false;
++
++	return true;
++}
++
++static inline u32 rnbd_to_bio_flags(u32 rnbd_opf)
++{
++	u32 bio_opf;
++
++	switch (rnbd_op(rnbd_opf)) {
++	case RNBD_OP_READ:
++		bio_opf = REQ_OP_READ;
++		break;
++	case RNBD_OP_WRITE:
++		bio_opf = REQ_OP_WRITE;
++		break;
++	case RNBD_OP_FLUSH:
++		bio_opf = REQ_OP_FLUSH | REQ_PREFLUSH;
++		break;
++	case RNBD_OP_DISCARD:
++		bio_opf = REQ_OP_DISCARD;
++		break;
++	case RNBD_OP_SECURE_ERASE:
++		bio_opf = REQ_OP_SECURE_ERASE;
++		break;
++	case RNBD_OP_WRITE_SAME:
++		bio_opf = REQ_OP_WRITE_SAME;
++		break;
++	default:
++		WARN(1, "Unknown RNBD type: %d (flags %d)\n",
++		     rnbd_op(rnbd_opf), rnbd_opf);
++		bio_opf = 0;
++	}
++
++	if (rnbd_opf & RNBD_F_SYNC)
++		bio_opf |= REQ_SYNC;
++
++	if (rnbd_opf & RNBD_F_FUA)
++		bio_opf |= REQ_FUA;
++
++	return bio_opf;
++}
++
++static inline u32 rq_to_rnbd_flags(struct request *rq)
++{
++	u32 rnbd_opf;
++
++	switch (req_op(rq)) {
++	case REQ_OP_READ:
++		rnbd_opf = RNBD_OP_READ;
++		break;
++	case REQ_OP_WRITE:
++		rnbd_opf = RNBD_OP_WRITE;
++		break;
++	case REQ_OP_DISCARD:
++		rnbd_opf = RNBD_OP_DISCARD;
++		break;
++	case REQ_OP_SECURE_ERASE:
++		rnbd_opf = RNBD_OP_SECURE_ERASE;
++		break;
++	case REQ_OP_WRITE_SAME:
++		rnbd_opf = RNBD_OP_WRITE_SAME;
++		break;
++	case REQ_OP_FLUSH:
++		rnbd_opf = RNBD_OP_FLUSH;
++		break;
++	default:
++		WARN(1, "Unknown request type %d (flags %llu)\n",
++		     req_op(rq), (unsigned long long)rq->cmd_flags);
++		rnbd_opf = 0;
++	}
++
++	if (op_is_sync(rq->cmd_flags))
++		rnbd_opf |= RNBD_F_SYNC;
++
++	if (op_is_flush(rq->cmd_flags))
++		rnbd_opf |= RNBD_F_FUA;
++
++	return rnbd_opf;
++}
++
++const char *rnbd_access_mode_str(enum rnbd_access_mode mode);
++
++#endif /* RNBD_PROTO_H */
 -- 
 2.17.1
 
