@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A49EBC11D34
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25E36C11D30
 	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 875EF222D9
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB9592192A
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727775AbgBXQpx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Feb 2020 11:45:53 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:59443 "EHLO
+        id S1727689AbgBXQpw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Feb 2020 11:45:52 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:46526 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727802AbgBXQpw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Feb 2020 11:45:52 -0500
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
+        with ESMTP id S1727501AbgBXQpv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Feb 2020 11:45:51 -0500
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 24 Feb 2020 18:45:45 +0200
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 01OGji9Q013647;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 01OGji9O013647;
         Mon, 24 Feb 2020 18:45:45 +0200
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, sagi@grimberg.me,
@@ -30,9 +30,9 @@ To:     linux-nvme@lists.infradead.org, sagi@grimberg.me,
         martin.petersen@oracle.com
 Cc:     vladimirk@mellanox.com, idanb@mellanox.com, maxg@mellanox.com,
         israelr@mellanox.com, axboe@kernel.dk, shlomin@mellanox.com
-Subject: [PATCH 04/19] nvme: Introduce max_integrity_segments ctrl attribute
-Date:   Mon, 24 Feb 2020 18:45:29 +0200
-Message-Id: <20200224164544.219438-6-maxg@mellanox.com>
+Subject: [PATCH 02/19] nvme: Add has_pi field to the nvme_req structure
+Date:   Mon, 24 Feb 2020 18:45:27 +0200
+Message-Id: <20200224164544.219438-4-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200224164544.219438-1-maxg@mellanox.com>
 References: <20200224164544.219438-1-maxg@mellanox.com>
@@ -43,88 +43,60 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch doesn't change any logic, and is needed as a preparation
-for adding PI support for fabrics drivers that will use an extended
-LBA format for metadata.
+From: Israel Rukshin <israelr@mellanox.com>
 
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Transport drivers will use this field to determine if the request has PI.
+
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
 Signed-off-by: Israel Rukshin <israelr@mellanox.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
 ---
- drivers/nvme/host/core.c | 11 +++++++----
- drivers/nvme/host/nvme.h |  1 +
- drivers/nvme/host/pci.c  |  7 +++++++
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ drivers/nvme/host/core.c | 6 ++++--
+ drivers/nvme/host/nvme.h | 1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index 86e39f6..ab25128 100644
+index 3a754e0..15d0863 100644
 --- a/drivers/nvme/host/core.c
 +++ b/drivers/nvme/host/core.c
-@@ -1626,7 +1626,8 @@ static int nvme_getgeo(struct block_device *bdev, struct hd_geometry *geo)
- }
- 
- #ifdef CONFIG_BLK_DEV_INTEGRITY
--static void nvme_init_integrity(struct gendisk *disk, u16 ms, u8 pi_type)
-+static void nvme_init_integrity(struct gendisk *disk, u16 ms, u8 pi_type,
-+				u32 max_integrity_segments)
- {
- 	struct blk_integrity integrity;
- 
-@@ -1649,10 +1650,11 @@ static void nvme_init_integrity(struct gendisk *disk, u16 ms, u8 pi_type)
+@@ -470,6 +470,7 @@ static inline void nvme_clear_nvme_request(struct request *req)
+ 	if (!(req->rq_flags & RQF_DONTPREP)) {
+ 		nvme_req(req)->retries = 0;
+ 		nvme_req(req)->flags = 0;
++		nvme_req(req)->has_pi = false;
+ 		req->rq_flags |= RQF_DONTPREP;
  	}
- 	integrity.tuple_size = ms;
- 	blk_integrity_register(disk, &integrity);
--	blk_queue_max_integrity_segments(disk->queue, 1);
-+	blk_queue_max_integrity_segments(disk->queue, max_integrity_segments);
  }
- #else
--static void nvme_init_integrity(struct gendisk *disk, u16 ms, u8 pi_type)
-+static void nvme_init_integrity(struct gendisk *disk, u16 ms, u8 pi_type,
-+				u32 max_integrity_segments)
- {
- }
- #endif /* CONFIG_BLK_DEV_INTEGRITY */
-@@ -1806,7 +1808,8 @@ static void nvme_update_disk_info(struct gendisk *disk,
- 	blk_queue_io_opt(disk->queue, io_opt);
+@@ -703,6 +704,8 @@ static inline blk_status_t nvme_setup_rw(struct nvme_ns *ns,
+ 		nvme_assign_write_stream(ctrl, req, &control, &dsmgmt);
  
- 	if (ns->features & NVME_NS_MD_HOST_SUPPORTED)
--		nvme_init_integrity(disk, ns->ms, ns->pi_type);
-+		nvme_init_integrity(disk, ns->ms, ns->pi_type,
-+				    ns->ctrl->max_integrity_segments);
- 	if ((ns->ms && !(ns->features & NVME_NS_MD_CTRL_SUPPORTED) &&
- 	     !blk_get_integrity(disk)) ||
- 	    ns->lba_shift > PAGE_SHIFT)
+ 	if (ns->ms) {
++		nvme_req(req)->has_pi =
++			ns->features & NVME_NS_MD_CTRL_SUPPORTED;
+ 		/*
+ 		 * If formated with metadata, the block layer always provides a
+ 		 * metadata buffer if CONFIG_BLK_DEV_INTEGRITY is enabled.  Else
+@@ -710,8 +713,7 @@ static inline blk_status_t nvme_setup_rw(struct nvme_ns *ns,
+ 		 * namespace capacity to zero to prevent any I/O.
+ 		 */
+ 		if (!blk_integrity_rq(req)) {
+-			if (WARN_ON_ONCE(!(ns->features &
+-					   NVME_NS_MD_CTRL_SUPPORTED)))
++			if (WARN_ON_ONCE(!nvme_req(req)->has_pi))
+ 				return BLK_STS_NOTSUPP;
+ 			control |= NVME_RW_PRINFO_PRACT;
+ 		}
 diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index 99340d7..af8e10a 100644
+index fea20f1..99340d7 100644
 --- a/drivers/nvme/host/nvme.h
 +++ b/drivers/nvme/host/nvme.h
-@@ -229,6 +229,7 @@ struct nvme_ctrl {
- 	u32 page_size;
- 	u32 max_hw_sectors;
- 	u32 max_segments;
-+	u32 max_integrity_segments;
- 	u16 crdt[3];
- 	u16 oncs;
- 	u16 oacs;
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index da392b5..e4e95c9 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -2573,6 +2573,13 @@ static void nvme_reset_work(struct work_struct *work)
- 		goto out;
- 	}
+@@ -139,6 +139,7 @@ struct nvme_request {
+ 	u8			flags;
+ 	u16			status;
+ 	struct nvme_ctrl	*ctrl;
++	bool			has_pi;
+ };
  
-+	/*
-+	 * NVMe PCI driver doesn't support Extended LBA format and supports
-+	 * only a single integrity segment for a separate contiguous buffer
-+	 * of metadata.
-+	 */
-+	dev->ctrl.max_integrity_segments = 1;
-+
- 	result = nvme_init_identify(&dev->ctrl);
- 	if (result)
- 		goto out;
+ /*
 -- 
 1.8.3.1
 
