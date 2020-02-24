@@ -2,37 +2,37 @@ Return-Path: <SRS0=0s84=4M=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EA82C11D2F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFC27C11D32
 	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E90C20880
+	by mail.kernel.org (Postfix) with ESMTP id 898F821775
 	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727902AbgBXQpv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727932AbgBXQpv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 24 Feb 2020 11:45:51 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:46506 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:46508 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727426AbgBXQpv (ORCPT
+        with ESMTP id S1727438AbgBXQpv (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Feb 2020 11:45:51 -0500
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 24 Feb 2020 18:45:45 +0200
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 01OGji9M013647;
-        Mon, 24 Feb 2020 18:45:44 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 01OGji9R013647;
+        Mon, 24 Feb 2020 18:45:45 +0200
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, sagi@grimberg.me,
         linux-rdma@vger.kernel.org, kbusch@kernel.org, hch@lst.de,
         martin.petersen@oracle.com
 Cc:     vladimirk@mellanox.com, idanb@mellanox.com, maxg@mellanox.com,
         israelr@mellanox.com, axboe@kernel.dk, shlomin@mellanox.com
-Subject: [PATCH] nvme-cli/fabrics: Add pi_enable param to connect cmd
-Date:   Mon, 24 Feb 2020 18:45:25 +0200
-Message-Id: <20200224164544.219438-2-maxg@mellanox.com>
+Subject: [PATCH 05/19] nvme-fabrics: Allow user enabling metadata/T10-PI support
+Date:   Mon, 24 Feb 2020 18:45:30 +0200
+Message-Id: <20200224164544.219438-7-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200224164544.219438-1-maxg@mellanox.com>
 References: <20200224164544.219438-1-maxg@mellanox.com>
@@ -45,71 +45,96 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Israel Rukshin <israelr@mellanox.com>
 
-Added 'pi_enable' to 'connect' command so users can enable metadata support.
-
-usage examples:
-nvme connect --pi_enable --transport=rdma --traddr=10.0.1.1 --nqn=test-nvme
-nvme connect -p -t rdma -a 10.0.1.1 -n test_nvme
+Preparation for adding metadata (T10-PI) over fabric support. This will
+allow end-to-end protection information passthrough and validation for
+NVMe over Fabric.
 
 Signed-off-by: Israel Rukshin <israelr@mellanox.com>
 Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
 ---
- fabrics.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/nvme/host/core.c    |  3 ++-
+ drivers/nvme/host/fabrics.c | 11 +++++++++++
+ drivers/nvme/host/fabrics.h |  3 +++
+ 3 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/fabrics.c b/fabrics.c
-index 8982ae4..b22ea14 100644
---- a/fabrics.c
-+++ b/fabrics.c
-@@ -72,6 +72,7 @@ static struct config {
- 	int  disable_sqflow;
- 	int  hdr_digest;
- 	int  data_digest;
-+	int  pi_enable;
- 	bool persistent;
- 	bool quiet;
- } cfg = { NULL };
-@@ -756,7 +757,9 @@ static int build_options(char *argstr, int max_len, bool discover)
- 	    add_bool_argument(&argstr, &max_len, "disable_sqflow",
- 				cfg.disable_sqflow) ||
- 	    add_bool_argument(&argstr, &max_len, "hdr_digest", cfg.hdr_digest) ||
--	    add_bool_argument(&argstr, &max_len, "data_digest", cfg.data_digest))
-+	    add_bool_argument(&argstr, &max_len, "data_digest",
-+				cfg.data_digest) ||
-+	    add_bool_argument(&argstr, &max_len, "pi_enable", cfg.pi_enable))
- 		return -EINVAL;
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index ab25128..c7933a8 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -1869,7 +1869,8 @@ static int __nvme_revalidate_disk(struct gendisk *disk, struct nvme_id_ns *id)
+ 		 * controller.
+ 		 */
+ 		if (ns->ctrl->ops->flags & NVME_F_METADATA_SUPPORTED) {
+-			if (ns->ctrl->ops->flags & NVME_F_FABRICS ||
++			if ((ns->ctrl->ops->flags & NVME_F_FABRICS &&
++			     ns->ctrl->opts->pi_enable) ||
+ 			    !(ns->features & NVME_NS_EXT_LBAS))
+ 				ns->features |= NVME_NS_MD_HOST_SUPPORTED;
+ 		}
+diff --git a/drivers/nvme/host/fabrics.c b/drivers/nvme/host/fabrics.c
+index 74b8818..c09230e 100644
+--- a/drivers/nvme/host/fabrics.c
++++ b/drivers/nvme/host/fabrics.c
+@@ -612,6 +612,7 @@ bool __nvmf_check_ready(struct nvme_ctrl *ctrl, struct request *rq,
+ 	{ NVMF_OPT_NR_WRITE_QUEUES,	"nr_write_queues=%d"	},
+ 	{ NVMF_OPT_NR_POLL_QUEUES,	"nr_poll_queues=%d"	},
+ 	{ NVMF_OPT_TOS,			"tos=%d"		},
++	{ NVMF_OPT_PI_ENABLE,		"pi_enable"		},
+ 	{ NVMF_OPT_ERR,			NULL			}
+ };
  
- 	return 0;
-@@ -885,6 +888,13 @@ retry:
- 		p += len;
- 	}
+@@ -634,6 +635,7 @@ static int nvmf_parse_options(struct nvmf_ctrl_options *opts,
+ 	opts->hdr_digest = false;
+ 	opts->data_digest = false;
+ 	opts->tos = -1; /* < 0 == use transport default */
++	opts->pi_enable = false;
  
-+	if (cfg.pi_enable) {
-+		len = sprintf(p, ",pi_enable");
-+		if (len < 0)
-+			return -EINVAL;
-+		p += len;
-+	}
-+
- 	switch (e->trtype) {
- 	case NVMF_TRTYPE_RDMA:
- 	case NVMF_TRTYPE_TCP:
-@@ -1171,6 +1181,7 @@ int discover(const char *desc, int argc, char **argv, bool connect)
- 		OPT_INT("tos",             'T', &cfg.tos,             "type of service"),
- 		OPT_FLAG("hdr_digest",     'g', &cfg.hdr_digest,      "enable transport protocol header digest (TCP transport)"),
- 		OPT_FLAG("data_digest",    'G', &cfg.data_digest,     "enable transport protocol data digest (TCP transport)"),
-+		OPT_FLAG("pi_enable",      'p', &cfg.pi_enable,       "enable metadata (T10-PI) support (default false)"),
- 		OPT_INT("nr-io-queues",    'i', &cfg.nr_io_queues,    "number of io queues to use (default is core count)"),
- 		OPT_INT("nr-write-queues", 'W', &cfg.nr_write_queues, "number of write queues to use (default 0)"),
- 		OPT_INT("nr-poll-queues",  'P', &cfg.nr_poll_queues,  "number of poll queues to use (default 0)"),
-@@ -1231,6 +1242,7 @@ int connect(const char *desc, int argc, char **argv)
- 		OPT_FLAG("disable-sqflow",    'd', &cfg.disable_sqflow,    "disable controller sq flow control (default false)"),
- 		OPT_FLAG("hdr-digest",        'g', &cfg.hdr_digest,        "enable transport protocol header digest (TCP transport)"),
- 		OPT_FLAG("data-digest",       'G', &cfg.data_digest,       "enable transport protocol data digest (TCP transport)"),
-+		OPT_FLAG("pi_enable",         'p', &cfg.pi_enable,         "enable metadata (T10-PI) support (default false)"),
- 		OPT_END()
- 	};
+ 	options = o = kstrdup(buf, GFP_KERNEL);
+ 	if (!options)
+@@ -867,6 +869,15 @@ static int nvmf_parse_options(struct nvmf_ctrl_options *opts,
+ 			}
+ 			opts->tos = token;
+ 			break;
++#ifdef CONFIG_BLK_DEV_INTEGRITY
++		case NVMF_OPT_PI_ENABLE:
++			if (opts->discovery_nqn) {
++				pr_debug("Ignoring pi_enable value for discovery controller\n");
++				break;
++			}
++			opts->pi_enable = true;
++			break;
++#endif
+ 		default:
+ 			pr_warn("unknown parameter or missing value '%s' in ctrl creation request\n",
+ 				p);
+diff --git a/drivers/nvme/host/fabrics.h b/drivers/nvme/host/fabrics.h
+index a0ec40a..773f748 100644
+--- a/drivers/nvme/host/fabrics.h
++++ b/drivers/nvme/host/fabrics.h
+@@ -56,6 +56,7 @@ enum {
+ 	NVMF_OPT_NR_WRITE_QUEUES = 1 << 17,
+ 	NVMF_OPT_NR_POLL_QUEUES = 1 << 18,
+ 	NVMF_OPT_TOS		= 1 << 19,
++	NVMF_OPT_PI_ENABLE	= 1 << 20,
+ };
  
+ /**
+@@ -89,6 +90,7 @@ enum {
+  * @nr_write_queues: number of queues for write I/O
+  * @nr_poll_queues: number of queues for polling I/O
+  * @tos: type of service
++ * @pi_enable: Enable metadata (T10-PI) support
+  */
+ struct nvmf_ctrl_options {
+ 	unsigned		mask;
+@@ -111,6 +113,7 @@ struct nvmf_ctrl_options {
+ 	unsigned int		nr_write_queues;
+ 	unsigned int		nr_poll_queues;
+ 	int			tos;
++	bool			pi_enable;
+ };
+ 
+ /*
 -- 
 1.8.3.1
 
