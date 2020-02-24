@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF407C11D32
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3291CC11D37
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D09BA20637
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 061BF20637
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Feb 2020 16:45:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727802AbgBXQpx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Feb 2020 11:45:53 -0500
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:59507 "EHLO
+        id S1727935AbgBXQpy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Feb 2020 11:45:54 -0500
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:59539 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727896AbgBXQpw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Feb 2020 11:45:52 -0500
+        with ESMTP id S1727895AbgBXQpy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Feb 2020 11:45:54 -0500
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 24 Feb 2020 18:45:46 +0200
+        with ESMTPS (AES256-SHA encrypted); 24 Feb 2020 18:45:47 +0200
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 01OGji9Z013647;
-        Mon, 24 Feb 2020 18:45:46 +0200
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 01OGji9d013647;
+        Mon, 24 Feb 2020 18:45:47 +0200
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, sagi@grimberg.me,
         linux-rdma@vger.kernel.org, kbusch@kernel.org, hch@lst.de,
         martin.petersen@oracle.com
 Cc:     vladimirk@mellanox.com, idanb@mellanox.com, maxg@mellanox.com,
         israelr@mellanox.com, axboe@kernel.dk, shlomin@mellanox.com
-Subject: [PATCH 13/19] nvme: Add Metadata Capabilities enumerations
-Date:   Mon, 24 Feb 2020 18:45:38 +0200
-Message-Id: <20200224164544.219438-15-maxg@mellanox.com>
+Subject: [PATCH 17/19] RDMA/rw: Expose maximal page list for a device per 1 MR
+Date:   Mon, 24 Feb 2020 18:45:42 +0200
+Message-Id: <20200224164544.219438-19-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200224164544.219438-1-maxg@mellanox.com>
 References: <20200224164544.219438-1-maxg@mellanox.com>
@@ -43,30 +43,58 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Israel Rukshin <israelr@mellanox.com>
+ULP's will use this information to determine the maximal data transfer
+size per IO operation.
 
-The enumerations will be used to expose the namespace metadata format by
-the target.
-
-Signed-off-by: Israel Rukshin <israelr@mellanox.com>
-Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
 ---
- include/linux/nvme.h | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/core/rw.c | 14 ++++++++++++--
+ include/rdma/rw.h            |  1 +
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/nvme.h b/include/linux/nvme.h
-index 3d5189f..4e968d3 100644
---- a/include/linux/nvme.h
-+++ b/include/linux/nvme.h
-@@ -396,6 +396,8 @@ enum {
- 	NVME_NS_FEAT_THIN	= 1 << 0,
- 	NVME_NS_FLBAS_LBA_MASK	= 0xf,
- 	NVME_NS_FLBAS_META_EXT	= 0x10,
-+	NVME_NS_MC_META_EXT	= 1 << 0,
-+	NVME_NS_MC_META_BUF	= 1 << 1,
- 	NVME_LBAF_RP_BEST	= 0,
- 	NVME_LBAF_RP_BETTER	= 1,
- 	NVME_LBAF_RP_GOOD	= 2,
+diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+index 4fad732..edc9bee 100644
+--- a/drivers/infiniband/core/rw.c
++++ b/drivers/infiniband/core/rw.c
+@@ -56,8 +56,17 @@ static inline bool rdma_rw_io_needs_mr(struct ib_device *dev, u8 port_num,
+ 	return false;
+ }
+ 
+-static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev,
+-					   bool pi_support)
++/**
++ * rdma_rw_fr_page_list_len - return the max number of pages mapped by 1 MR
++ * @dev:	RDMA device that will eventually create a PD for needed MRs
++ * @pi_support:	Whether MRs will be created for protection information offload
++ *
++ * Returns the number of pages that one MR can map for RDMA operation by the
++ * given device. One can determine the maximal data size according to the
++ * result of this function, or chose using multiple MRs for the RDMA operation
++ * as well.
++ */
++u32 rdma_rw_fr_page_list_len(struct ib_device *dev, bool pi_support)
+ {
+ 	u32 max_pages;
+ 
+@@ -69,6 +78,7 @@ static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev,
+ 	/* arbitrary limit to avoid allocating gigantic resources */
+ 	return min_t(u32, max_pages, 256);
+ }
++EXPORT_SYMBOL(rdma_rw_fr_page_list_len);
+ 
+ static inline int rdma_rw_inv_key(struct rdma_rw_reg_ctx *reg)
+ {
+diff --git a/include/rdma/rw.h b/include/rdma/rw.h
+index 6ad9dc8..a9bbda7 100644
+--- a/include/rdma/rw.h
++++ b/include/rdma/rw.h
+@@ -69,5 +69,6 @@ unsigned int rdma_rw_mr_factor(struct ib_device *device, u8 port_num,
+ void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr);
+ int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr);
+ void rdma_rw_cleanup_mrs(struct ib_qp *qp);
++u32 rdma_rw_fr_page_list_len(struct ib_device *dev, bool pi_support);
+ 
+ #endif /* _RDMA_RW_H */
 -- 
 1.8.3.1
 
