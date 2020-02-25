@@ -2,198 +2,266 @@ Return-Path: <SRS0=f0WE=4N=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A553C35DF5
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Feb 2020 11:40:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46875C35DE1
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Feb 2020 13:06:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2E34020CC7
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Feb 2020 11:40:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1C172176D
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Feb 2020 13:06:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="FXRZfqIO"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="gRUDS13R"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730047AbgBYLks (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 Feb 2020 06:40:48 -0500
-Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:51192 "EHLO
-        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729178AbgBYLks (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 Feb 2020 06:40:48 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1582630848; x=1614166848;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=kD8D8W430GMJH/LU9CjTdWldTJVV5kVJT7rubMsK6sg=;
-  b=FXRZfqIOt9RpONKmQ2O9OAp/qxMOExQkg/fSr4xdl9kyJzJEKK7bOujG
-   s9sA/WfXYDJenY9KDrC/Vnhl7gfpZCYE565Zy1H60C5sk7kp0LFjdeCqe
-   JwtvHAXKNjrXjuNbTWHNa4tgG8uxNOKcQNMHEi+AcpMQl6yAduMfscaxJ
-   E=;
-IronPort-SDR: qYpGgb6ZxKq+oBfALF32CMhA8FrqQgnZa2p/8wglhM45tnaBzkIybRs1NzBnCBuWGl+wyPGMQ1
- p5XUYPXbjQJg==
-X-IronPort-AV: E=Sophos;i="5.70,483,1574121600"; 
-   d="scan'208";a="18468179"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-2a-538b0bfb.us-west-2.amazon.com) ([10.43.8.6])
-  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 25 Feb 2020 11:40:34 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan3.pdx.amazon.com [10.170.41.166])
-        by email-inbound-relay-2a-538b0bfb.us-west-2.amazon.com (Postfix) with ESMTPS id 415A1A20B1;
-        Tue, 25 Feb 2020 11:40:33 +0000 (UTC)
-Received: from EX13D19EUA001.ant.amazon.com (10.43.165.74) by
- EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
- id 15.0.1236.3; Tue, 25 Feb 2020 11:40:31 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (10.43.61.77) by
- EX13D19EUA001.ant.amazon.com (10.43.165.74) with Microsoft SMTP Server (TLS)
- id 15.0.1367.3; Tue, 25 Feb 2020 11:40:30 +0000
-Received: from 8c85908914bf.ant.amazon.com (10.218.69.132) by
- mail-relay.amazon.com (10.43.61.169) with Microsoft SMTP Server id
- 15.0.1236.3 via Frontend Transport; Tue, 25 Feb 2020 11:40:28 +0000
-From:   Gal Pressman <galpress@amazon.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
-CC:     <linux-rdma@vger.kernel.org>,
-        Alexander Matushevsky <matua@amazon.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Firas JahJah <firasj@amazon.com>,
-        "Yossi Leybovich" <sleybo@amazon.com>
-Subject: [PATCH for-next v2 3/3] RDMA/efa: Do not delay freeing of DMA pages
-Date:   Tue, 25 Feb 2020 13:40:10 +0200
-Message-ID: <20200225114010.21790-4-galpress@amazon.com>
-X-Mailer: git-send-email 2.25.0
-In-Reply-To: <20200225114010.21790-1-galpress@amazon.com>
-References: <20200225114010.21790-1-galpress@amazon.com>
-MIME-Version: 1.0
+        id S1730143AbgBYNGH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 Feb 2020 08:06:07 -0500
+Received: from mail-eopbgr60056.outbound.protection.outlook.com ([40.107.6.56]:18818
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729193AbgBYNGH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 25 Feb 2020 08:06:07 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ZAlO59DUX4NIfX5/cwaL25KSspgO+LsgYZqPMaGIRYVTCd5MR30BF/fL5gpIUEWal7VcDjY6qqB2AOxitao1DqmmpCsi9XQv/sJXYCfrJGJB+SfKs/juLrckYJ9iM6e78idrzLIXFThMvgpLkFrVKkVIllYemAw8n2SHzs3SWJ/8Q+sT4gjYB9WBy4YV69TaWuyfAQ6eUZZIiP2oOAbwIZxOj5DhZcM4k+GqQ3Bx1j8Y8S4J/VwDbaR5SpZ/fZHNHz33c42rWsd5pu2FifLMLOh4Kg25SwgtWTQt3tmN0gh9yHZJONIMZHP/tWyDfGiBt+A+fOe0y0QiDlPaP0SvlQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lj8ndnTu645hZs+SBF3ZeWVdYJ8ROmjoQPB6dg7/XGw=;
+ b=h0NLJpdiDymmPKMfY0Fd1B0znSk+kMN54NsmhZbGAop+gDwP/oKhffxdHjfOwk7jZiuEF9DOeS9k7YJE7oRHOGelzJkb1433P50lYFcBek8oBC5qOJvhXziLhmPYYz175dgpFKOo67s3w1veUGwu9QQqzbI+6Ymn2TiQZUw9E04cS8CiqvRfst6GZrNZnH73MoNWJOG7JaB2kXGFRshu3gSromnPWBBlMfYJhJrQRGRtImEyqAOUCnbRT4Wt2vnftwGrfzaHaxjNRy/HXCTUZfITpSPwTgEzHwwvf6m3K9IcXP0v1CuiQU0zT6Ji4exruSlp4oeqw7KgdM6i3F4jJg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lj8ndnTu645hZs+SBF3ZeWVdYJ8ROmjoQPB6dg7/XGw=;
+ b=gRUDS13RtZJcMJjGMje6Xb9bzti6MpEoCkK1AIjn6PCGw+wCQrhWcakuYe/etQCn4y/9lSwEcnVcBRP7fOjAlRXhm9VLcMYM+aAfy5oldnAZ2VxPkTZC5kIWDKz74W1PK5CPKhxBhCWNS6PxB7eJCX1njocEuEJhqO/4BL6Aajg=
+Authentication-Results: spf=none (sender IP is )
+ smtp.mailfrom=maorg@mellanox.com; 
+Received: from AM0PR05MB5873.eurprd05.prod.outlook.com (20.178.117.153) by
+ AM0PR05MB6369.eurprd05.prod.outlook.com (20.179.36.78) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2750.18; Tue, 25 Feb 2020 13:06:03 +0000
+Received: from AM0PR05MB5873.eurprd05.prod.outlook.com
+ ([fe80::a556:1de2:ef6c:9192]) by AM0PR05MB5873.eurprd05.prod.outlook.com
+ ([fe80::a556:1de2:ef6c:9192%4]) with mapi id 15.20.2750.021; Tue, 25 Feb 2020
+ 13:06:03 +0000
+Subject: Re: a bug(BUG: kernel NULL pointer dereference) of ib or mlx happened
+ in 5.4.21 but not in 5.4.20
+To:     Wang Yugui <wangyugui@e16-tech.com>,
+        Leon Romanovsky <leon@kernel.org>
+Cc:     Chuck Lever <chuck.lever@oracle.com>,
+        linux-rdma <linux-rdma@vger.kernel.org>
+References: <FD4E1E87-28CF-4F4C-BBF4-2BD945142A14@oracle.com>
+ <20200220140547.GE209126@unreal> <20200221002631.97A1.409509F4@e16-tech.com>
+From:   Maor Gottlieb <maorg@mellanox.com>
+Message-ID: <bc3ce212-9fde-0489-e7ac-8cb8be55c015@mellanox.com>
+Date:   Tue, 25 Feb 2020 15:05:19 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.5.0
+In-Reply-To: <20200221002631.97A1.409509F4@e16-tech.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+Content-Language: en-US
+X-ClientProxiedBy: ZR0P278CA0020.CHEP278.PROD.OUTLOOK.COM
+ (2603:10a6:910:1c::7) To AM0PR05MB5873.eurprd05.prod.outlook.com
+ (2603:10a6:208:125::25)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [10.80.3.21] (193.47.165.251) by ZR0P278CA0020.CHEP278.PROD.OUTLOOK.COM (2603:10a6:910:1c::7) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2750.18 via Frontend Transport; Tue, 25 Feb 2020 13:06:02 +0000
+X-Originating-IP: [193.47.165.251]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 757de29c-e416-47f7-9cbe-08d7b9f3778c
+X-MS-TrafficTypeDiagnostic: AM0PR05MB6369:
+X-Microsoft-Antispam-PRVS: <AM0PR05MB63695583DE943FB33BF50553D3ED0@AM0PR05MB6369.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:431;
+X-Forefront-PRVS: 0324C2C0E2
+X-Forefront-Antispam-Report: SFV:NSPM;SFS:(10009020)(4636009)(366004)(376002)(396003)(346002)(136003)(39860400002)(189003)(199004)(6666004)(110136005)(36756003)(66556008)(5660300002)(316002)(478600001)(16576012)(66946007)(53546011)(66476007)(2906002)(54906003)(52116002)(81166006)(6486002)(186003)(31686004)(8936002)(966005)(31696002)(86362001)(2616005)(16526019)(956004)(81156014)(8676002)(4326008)(26005);DIR:OUT;SFP:1101;SCL:1;SRVR:AM0PR05MB6369;H:AM0PR05MB5873.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+Received-SPF: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 8CwIBDDmCbNySoc57SY71y2owO/PkKHIFemxVhFF39oxsbpzbYmAJb/iZlS2MSHjSo/GpRE50OMgeYsHJxqvP1oazCnpzNUQgjkjwF36i6bjMMCioAbEH2O66RPRdxQa6CLUpqaRst09bqkWsQ+qJIrozGKOzc/J4Ea7LrCxCLRvY17omSP8CkIUcL4bnJHNeVxu9CMRsBh5FHbmSDimHad8HrBQlm/pRRLBxB7Dd2tuRp5rDHqWC0A2pqhPlfjRd2gIBTug53/RGNyMXjLCzd8Ddla6jjnC/hdRkerHHPZcW6Cb/5On/rZ0ISbsiN5tqmHXFM/eCvi4hfWpI0eV+BYJ34HZL9aoQkd5rN8YnjCwiFDUfeCQBAVXfd+X51/eFuhHRL5tVEIBED4/JYfpQB5IS9BCYW9bVnpsw7Q8vLQvaflPS+EfkGT9MocCbk3cC6Lxor9rt+5L3smxpBiUAoqhb/OmIcopqMl1OHxSmovjppsoJDP1CQixHMPlvPUlpi0WICMBQHG91unTol1jdA==
+X-MS-Exchange-AntiSpam-MessageData: 9B64MhYUN43XhdaQFDmIlQz2KY69lavheNrNxikTAm3iVHgYgPfrT7LLZJD8AoS7EYmc9H6ZdhrgMeytYmNg6B3en15CYYrtLz9B3S0zyajmX9IzHl1qHR0mHDXDr5h8Nn3nleEDe6ZR/0Kpo6fU9Q==
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 757de29c-e416-47f7-9cbe-08d7b9f3778c
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Feb 2020 13:06:03.2008
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: pMwov5Q+CjtYgzjm1Naz/Lk0jzN9zx5oLPY4O2ip2gFRzK0g4o9cx5YFLpTxdBGX/gV6YsqxtJeWAAjq8D+Ygw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB6369
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When destroying a DMA mmapped object, there is no need to artificially
-delay the freeing of the pages to the mmap entry removal.
-Since the vma keeps reference count on these pages, free_pages_exact can
-be called on the destroy verb as it won't really free the pages until
-the reference count is cleared (in case the user hasn't called munmap
-yet).
+On 2/20/2020 6:26 PM, Wang Yugui wrote:
+> Hi, Leon, Chuck
+>
+> It is still broken even with the hotfix(https://patchwork.kernel.org/patch/11387567/) for 5.4.21.
 
-Remove the special handling of DMA pages and call free_pages_exact on
-destroy_qp/cq. The mmap entry removal is moved to the beginning of the
-destroy flows, so the driver can safely free the pages.
+Hi Wang,
 
-Reviewed-by: Firas JahJah <firasj@amazon.com>
-Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
-Signed-off-by: Gal Pressman <galpress@amazon.com>
----
- drivers/infiniband/hw/efa/efa_verbs.c | 44 +++++++++++++--------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+How can I reproduce it ?
 
-diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-index ec5545870554..bf3120f140f7 100644
---- a/drivers/infiniband/hw/efa/efa_verbs.c
-+++ b/drivers/infiniband/hw/efa/efa_verbs.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /*
-- * Copyright 2018-2019 Amazon.com, Inc. or its affiliates. All rights reserved.
-+ * Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All rights reserved.
-  */
- 
- #include <linux/vmalloc.h>
-@@ -169,6 +169,14 @@ static void *efa_zalloc_mapped(struct efa_dev *dev, dma_addr_t *dma_addr,
- 	return addr;
- }
- 
-+static void efa_free_mapped(struct efa_dev *dev, void *cpu_addr,
-+			    dma_addr_t dma_addr,
-+			    size_t size, enum dma_data_direction dir)
-+{
-+	dma_unmap_single(&dev->pdev->dev, dma_addr, size, dir);
-+	free_pages_exact(cpu_addr, size);
-+}
+Can you please try with the below diff?
+
+iff --git a/drivers/infiniband/core/security.c 
+b/drivers/infiniband/core/security.c
+index b9a36ea244d4..2d5608315dc8 100644
+--- a/drivers/infiniband/core/security.c
++++ b/drivers/infiniband/core/security.c
+@@ -340,11 +340,15 @@ static struct ib_ports_pkeys *get_new_pps(const 
+struct ib_qp *qp,
+                 return NULL;
+
+         if (qp_attr_mask & IB_QP_PORT)
+-           new_pps->main.port_num =
+-                   (qp_pps) ? qp_pps->main.port_num : qp_attr->port_num;
++         new_pps->main.port_num = qp_attr->port_num;
++ else if (qp_pps)
++         new_pps->main.port_num = qp_pps->main.port_num;
 +
- int efa_query_device(struct ib_device *ibdev,
- 		     struct ib_device_attr *props,
- 		     struct ib_udata *udata)
-@@ -402,6 +410,9 @@ int efa_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	int err;
- 
- 	ibdev_dbg(&dev->ibdev, "Destroy qp[%u]\n", ibqp->qp_num);
+         if (qp_attr_mask & IB_QP_PKEY_INDEX)
+-           new_pps->main.pkey_index = (qp_pps) ? qp_pps->main.pkey_index :
+- qp_attr->pkey_index;
++         new_pps->main.pkey_index = qp_attr->pkey_index;
++ else if (qp_pps)
++         new_pps->main.pkey_index = qp_pps->main.pkey_index;
 +
-+	efa_qp_user_mmap_entries_remove(qp);
-+
- 	err = efa_destroy_qp_handle(dev, qp->qp_handle);
- 	if (err)
- 		return err;
-@@ -411,11 +422,10 @@ int efa_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 			  "qp->cpu_addr[0x%p] freed: size[%lu], dma[%pad]\n",
- 			  qp->rq_cpu_addr, qp->rq_size,
- 			  &qp->rq_dma_addr);
--		dma_unmap_single(&dev->pdev->dev, qp->rq_dma_addr, qp->rq_size,
--				 DMA_TO_DEVICE);
-+		efa_free_mapped(dev, qp->rq_cpu_addr, qp->rq_dma_addr,
-+				qp->rq_size, DMA_TO_DEVICE);
- 	}
- 
--	efa_qp_user_mmap_entries_remove(qp);
- 	kfree(qp);
- 	return 0;
- }
-@@ -720,13 +730,9 @@ struct ib_qp *efa_create_qp(struct ib_pd *ibpd,
- err_destroy_qp:
- 	efa_destroy_qp_handle(dev, create_qp_resp.qp_handle);
- err_free_mapped:
--	if (qp->rq_size) {
--		dma_unmap_single(&dev->pdev->dev, qp->rq_dma_addr, qp->rq_size,
--				 DMA_TO_DEVICE);
--
--		if (!qp->rq_mmap_entry)
--			free_pages_exact(qp->rq_cpu_addr, qp->rq_size);
--	}
-+	if (qp->rq_size)
-+		efa_free_mapped(dev, qp->rq_cpu_addr, qp->rq_dma_addr,
-+				qp->rq_size, DMA_TO_DEVICE);
- err_free_qp:
- 	kfree(qp);
- err_out:
-@@ -845,10 +851,10 @@ void efa_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- 		  "Destroy cq[%d] virt[0x%p] freed: size[%lu], dma[%pad]\n",
- 		  cq->cq_idx, cq->cpu_addr, cq->size, &cq->dma_addr);
- 
--	efa_destroy_cq_idx(dev, cq->cq_idx);
--	dma_unmap_single(&dev->pdev->dev, cq->dma_addr, cq->size,
--			 DMA_FROM_DEVICE);
- 	rdma_user_mmap_entry_remove(cq->mmap_entry);
-+	efa_destroy_cq_idx(dev, cq->cq_idx);
-+	efa_free_mapped(dev, cq->cpu_addr, cq->dma_addr, cq->size,
-+			DMA_FROM_DEVICE);
- }
- 
- static int cq_mmap_entries_setup(struct efa_dev *dev, struct efa_cq *cq,
-@@ -985,10 +991,8 @@ int efa_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- err_destroy_cq:
- 	efa_destroy_cq_idx(dev, cq->cq_idx);
- err_free_mapped:
--	dma_unmap_single(&dev->pdev->dev, cq->dma_addr, cq->size,
--			 DMA_FROM_DEVICE);
--	if (!cq->mmap_entry)
--		free_pages_exact(cq->cpu_addr, cq->size);
-+	efa_free_mapped(dev, cq->cpu_addr, cq->dma_addr, cq->size,
-+			DMA_FROM_DEVICE);
- 
- err_out:
- 	atomic64_inc(&dev->stats.sw_stats.create_cq_err);
-@@ -1550,10 +1554,6 @@ void efa_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
- {
- 	struct efa_user_mmap_entry *entry = to_emmap(rdma_entry);
- 
--	/* DMA mapping is already gone, now free the pages */
--	if (entry->mmap_flag == EFA_MMAP_DMA_PAGE)
--		free_pages_exact(phys_to_virt(entry->address),
--				 entry->rdma_entry.npages * PAGE_SIZE);
- 	kfree(entry);
- }
- 
--- 
-2.25.0
+         if ((qp_attr_mask & IB_QP_PKEY_INDEX) && (qp_attr_mask & 
+IB_QP_PORT))
+                 new_pps->main.state = IB_PORT_PKEY_VALID;
 
+>
+> the call stack is almost the same.
+>
+> Feb 20 23:49:53 T630 kernel: Call Trace:
+> Feb 20 23:49:53 T630 kernel: port_pkey_list_insert+0x30/0x1a0 [ib_core]
+> Feb 20 23:49:53 T630 kernel: ? kmem_cache_alloc_trace+0x219/0x230
+> Feb 20 23:49:53 T630 kernel: ib_security_modify_qp+0x244/0x3b0 [ib_core]
+> Feb 20 23:49:53 T630 kernel: _ib_modify_qp+0x1c0/0x3c0 [ib_core]
+> Feb 20 23:49:53 T630 kernel: ? dma_pool_free+0x24/0xc0
+> Feb 20 23:49:53 T630 kernel: ipoib_init_qp+0x77/0x190 [ib_ipoib]
+> Feb 20 23:49:53 T630 kernel: ? __mlx4_ib_query_pkey+0xe7/0x110 [mlx4_ib]
+> Feb 20 23:49:53 T630 kernel: ? ib_find_pkey+0x98/0xe0 [ib_core]
+> Feb 20 23:49:53 T630 kernel: ipoib_ib_dev_open_default+0x1a/0x180 [ib_ipoib]
+> Feb 20 23:49:53 T630 kernel: ipoib_ib_dev_open+0x66/0xa0 [ib_ipoib]
+> Feb 20 23:49:53 T630 kernel: ipoib_open+0x44/0x110 [ib_ipoib]
+> Feb 20 23:49:53 T630 kernel: __dev_open+0xcd/0x160
+> Feb 20 23:49:53 T630 kernel: __dev_change_flags+0x1ad/0x220
+> Feb 20 23:49:53 T630 kernel: ? __dev_notify_flags+0x95/0xf0
+> Feb 20 23:49:53 T630 kernel: dev_change_flags+0x21/0x60
+> Feb 20 23:49:53 T630 kernel: do_setlink+0x320/0xf00
+> Feb 20 23:49:53 T630 kernel: ? __nla_validate_parse+0x51/0x840
+> Feb 20 23:49:53 T630 kernel: ? xas_load+0x8/0x80
+> Feb 20 23:49:53 T630 kernel: ? __update_load_avg_cfs_rq+0x1d5/0x2c0
+> Feb 20 23:49:53 T630 kernel: ? cpumask_next+0x17/0x20
+> Feb 20 23:49:53 T630 kernel: ? __snmp6_fill_stats64.isra.56+0x6b/0x110
+> Feb 20 23:49:53 T630 kernel: ? __nla_validate_parse+0x51/0x840
+> Feb 20 23:49:53 T630 kernel: __rtnl_newlink+0x53d/0x890
+> Feb 20 23:49:53 T630 kernel: ? __nla_reserve+0x38/0x50
+> Feb 20 23:49:53 T630 kernel: ? __nla_put+0xc/0x20
+> Feb 20 23:49:53 T630 kernel: ? __nla_reserve+0x38/0x50
+> Feb 20 23:49:53 T630 kernel: ? __nla_put+0xc/0x20
+> Feb 20 23:49:53 T630 kernel: ? nla_put+0x2f/0x40
+> Feb 20 23:49:53 T630 kernel: ? __nla_reserve+0x38/0x50
+> Feb 20 23:49:53 T630 kernel: ? __nla_put+0xc/0x20
+> Feb 20 23:49:53 T630 kernel: ? nla_put+0x2f/0x40
+> Feb 20 23:49:53 T630 kernel: ? rt6_fill_node+0x2d4/0x850
+> Feb 20 23:49:53 T630 kernel: ? _cond_resched+0x15/0x30
+> Feb 20 23:49:53 T630 kernel: ? kmem_cache_alloc_trace+0x1c9/0x230
+> Feb 20 23:49:53 T630 kernel: rtnl_newlink+0x43/0x60
+> Feb 20 23:49:53 T630 kernel: rtnetlink_rcv_msg+0x2b1/0x360
+> Feb 20 23:49:53 T630 kernel: ? __kmalloc_node_track_caller+0x241/0x300
+> Feb 20 23:49:53 T630 kernel: ? _cond_resched+0x15/0x30
+> Feb 20 23:49:53 T630 kernel: ? rtnl_calcit.isra.32+0x110/0x110
+> Feb 20 23:49:53 T630 kernel: netlink_rcv_skb+0x49/0x110
+> Feb 20 23:49:53 T630 kernel: netlink_unicast+0x191/0x220
+> Feb 20 23:49:53 T630 kernel: netlink_sendmsg+0x21d/0x3f0
+> Feb 20 23:49:53 T630 kernel: sock_sendmsg+0x5b/0x60
+> Feb 20 23:49:53 T630 kernel: ____sys_sendmsg+0x1eb/0x260
+> Feb 20 23:49:53 T630 kernel: ? copy_msghdr_from_user+0xdb/0x160
+> Feb 20 23:49:53 T630 kernel: ___sys_sendmsg+0x7c/0xc0
+> Feb 20 23:49:53 T630 kernel: ? do_filp_open+0xa7/0x100
+> Feb 20 23:49:53 T630 kernel: ? netdev_run_todo+0x5e/0x290
+> Feb 20 23:49:53 T630 kernel: ? list_lru_add+0xb7/0x1d0
+> Feb 20 23:49:53 T630 kernel: __sys_sendmsg+0x57/0xa0
+> Feb 20 23:49:53 T630 kernel: do_syscall_64+0x5b/0x180
+> Feb 20 23:49:53 T630 kernel: entry_SYSCALL_64_after_hwframe+0x44/0xa9
+>
+>
+> This card have 2 port, and port 1 is set as InfiniBand, port 2
+> is set as Ethernet.
+>
+> # ibstat
+> CA 'mlx4_0'
+>          CA type: MT4099
+>          Number of ports: 2
+>          Firmware version: 2.42.5000
+>          Hardware version: 1
+>          Node GUID: 0xe41d2d03007b4080
+>          System image GUID: 0xe41d2d03007b4083
+>          Port 1:
+>                  State: Down
+>                  Physical state: Polling
+>                  Rate: 10
+>                  Base lid: 0
+>                  LMC: 0
+>                  SM lid: 0
+>                  Capability mask: 0x02594868
+>                  Port GUID: 0xe41d2d03007b4081
+>                  Link layer: InfiniBand
+>          Port 2:
+>                  State: Down
+>                  Physical state: Disabled
+>                  Rate: 40
+>                  Base lid: 0
+>                  LMC: 0
+>                  SM lid: 0
+>                  Capability mask: 0x00010000
+>                  Port GUID: 0xe61d2dfffe7b4082
+>                  Link layer: Ethernet
+>
+>
+> Best Regards
+> 王玉贵
+> 2020/02/21
+>
+>> On Thu, Feb 20, 2020 at 08:57:29AM -0500, Chuck Lever wrote:
+>>> Hello!
+>>>
+>>> Thanks for your bug report.
+>>>
+>>>
+>>>> On Feb 19, 2020, at 10:22 PM, Wang Yugui <wangyugui@e16-tech.com> wrote:
+>>>>
+>>>> Hi, chuck.lever
+>>>>
+>>>> a bug(BUG: kernel NULL pointer dereference) of ib or mlx happened in 5.4.21 but not in 5.4.20.
+>>>>
+>>>> maybe some releationship to xprtrdma-fix-dma-scatter-gather-list-mapping-imbalance.patch
+>>> I don't see an obvious connection to fix-dma-scatter-gather-list-mapping-imbalance.
+>>> The backtrace below is through IPoIB code paths. Those have nothing to do with
+>>> NFS/RDMA, which is the only ULP code that is changed by my commit.
+>>>
+>>>
+>>>> maybe the info is useful.
+>>> I'm copying linux-rdma for a bigger set of eyeballs.
+>>>
+>>> My knee-jerk recommendation is that if you have a reliable reproducer, try "git bisect"
+>>> between .20 and .21 to nail down a specific commit where the BUG starts to occur.
+>> No need to bisect, it is me who broke.
+>> The fix is already accepted, but not yet merged.
+>> https://patchwork.kernel.org/patch/11387567/
+>>
+>> Thanks
+> --------------------------------------
+> 北京京垓科技有限公司
+> 王玉贵	wangyugui@e16-tech.com
+> 电话：+86-136-71123776
+>
