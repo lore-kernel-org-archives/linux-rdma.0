@@ -4,162 +4,186 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E347C4BA12
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Feb 2020 14:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 460D4C4BA12
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Feb 2020 14:29:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1C52C2467B
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Feb 2020 14:14:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21BA62467B
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Feb 2020 14:29:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726561AbgBZOOX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 26 Feb 2020 09:14:23 -0500
-Received: from stargate.chelsio.com ([12.32.117.8]:62697 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726555AbgBZOOX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Feb 2020 09:14:23 -0500
-Received: from localhost (pvp1.blr.asicdesigners.com [10.193.80.26])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id 01QEDYOm024545;
-        Wed, 26 Feb 2020 06:13:35 -0800
-From:   Krishnamraju Eraparaju <krishna2@chelsio.com>
-To:     linux-nvme@lists.infradead.org, sagi@grimberg.me, hch@lst.de
-Cc:     linux-rdma@vger.kernel.org, nirranjan@chelsio.com,
-        bharat@chelsio.com, krishna2@chelsio.com
-Subject: [PATCH for-rc] nvme-rdma/nvmet-rdma: Allocate sufficient RW ctxs to match hosts pgs len
-Date:   Wed, 26 Feb 2020 19:43:18 +0530
-Message-Id: <20200226141318.28519-1-krishna2@chelsio.com>
-X-Mailer: git-send-email 2.23.0.rc0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1727471AbgBZO33 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 26 Feb 2020 09:29:29 -0500
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:27170 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727093AbgBZO33 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 26 Feb 2020 09:29:29 -0500
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01QEOUeq096113
+        for <linux-rdma@vger.kernel.org>; Wed, 26 Feb 2020 09:29:28 -0500
+Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2ydq6h02hn-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-rdma@vger.kernel.org>; Wed, 26 Feb 2020 09:29:28 -0500
+Received: from localhost
+        by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-rdma@vger.kernel.org> from <bmt@zurich.ibm.com>;
+        Wed, 26 Feb 2020 14:29:26 -0000
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (9.149.109.195)
+        by e06smtp04.uk.ibm.com (192.168.101.134) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+        Wed, 26 Feb 2020 14:29:24 -0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+        by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01QETNCV47906952
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 26 Feb 2020 14:29:23 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 281A8A4055;
+        Wed, 26 Feb 2020 14:29:23 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id D4928A4053;
+        Wed, 26 Feb 2020 14:29:22 +0000 (GMT)
+Received: from spoke.zurich.ibm.com (unknown [9.4.69.152])
+        by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Wed, 26 Feb 2020 14:29:22 +0000 (GMT)
+From:   Bernard Metzler <bmt@zurich.ibm.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        syzkaller-bugs@googlegroups.com
+Cc:     Bernard Metzler <bmt@zurich.ibm.com>
+Subject: [PATCH for-rc] RDMA/siw: Fix failure handling during device creation
+Date:   Wed, 26 Feb 2020 15:29:20 +0100
+X-Mailer: git-send-email 2.17.2
+X-TM-AS-GCONF: 00
+x-cbid: 20022614-0016-0000-0000-000002EA7B26
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20022614-0017-0000-0000-0000334DAAFD
+Message-Id: <20200226142920.11074-1-bmt@zurich.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-02-26_05:2020-02-26,2020-02-26 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
+ spamscore=0 impostorscore=0 suspectscore=0 bulkscore=0 mlxlogscore=999
+ clxscore=1015 priorityscore=1501 malwarescore=0 mlxscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2002260107
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Current nvmet-rdma code allocates MR pool budget based on host's SQ
-size, assuming both host and target use the same "max_pages_per_mr"
-count. But if host's max_pages_per_mr is greater than target's, then
-target can run out of MRs while processing larger IO WRITEs.
+A failing call to ib_device_set_netdev() during device creation
+caused system crash due to xa_destroy of uninitialized xarray
+hit by device deallocation. Fixed by moving xarray initialization
+before potential device deallocation.
+Fixes also correct propagation of ib_device_set_netdev() failure
+to caller.
 
-That is, say host's SQ size is 100, then the MR pool budget allocated
-currently at target will also be 100 MRs. But 100 IO WRITE Requests
-with 256 sg_count(IO size above 1MB) require 200 MRs when target's
-"max_pages_per_mr" is 128.
-
-The proposed patch enables host to advertise the max_fr_pages(via
-nvme_rdma_cm_req) such that target can allocate that many number of
-RW ctxs(if host's max_fr_pages is higher than target's).
-
-Signed-off-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
+Reported-by: syzbot+2e80962bedd9559fe0b3@syzkaller.appspotmail.com
+Signed-off-by: Bernard Metzler <bmt@zurich.ibm.com>
 ---
- drivers/nvme/host/rdma.c   |  2 ++
- drivers/nvme/target/rdma.c | 23 ++++++++++++++++++++---
- include/linux/nvme-rdma.h  |  4 +++-
- 3 files changed, 25 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/siw/siw_main.c | 39 ++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 2a47c6c5007e..5970f0eedbd6 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -1614,6 +1614,8 @@ static int nvme_rdma_route_resolved(struct nvme_rdma_queue *queue)
- 		priv.hsqsize = cpu_to_le16(queue->ctrl->ctrl.sqsize);
- 	}
+diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
+index 96ed349c0939..839decfd9032 100644
+--- a/drivers/infiniband/sw/siw/siw_main.c
++++ b/drivers/infiniband/sw/siw/siw_main.c
+@@ -303,7 +303,7 @@ static const struct ib_device_ops siw_device_ops = {
  
-+	priv.hmax_fr_pages = cpu_to_le32(ctrl->max_fr_pages);
-+
- 	ret = rdma_connect(queue->cm_id, &param);
- 	if (ret) {
- 		dev_err(ctrl->ctrl.device,
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 37d262a65877..2a3893e3c4e7 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -98,6 +98,7 @@ struct nvmet_rdma_queue {
- 	int			host_qid;
- 	int			recv_queue_size;
- 	int			send_queue_size;
-+	int			rdma_rw_ctxs_factor;
- 
- 	struct list_head	queue_list;
- };
-@@ -1008,7 +1009,8 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
- 	qp_attr.qp_type = IB_QPT_RC;
- 	/* +1 for drain */
- 	qp_attr.cap.max_send_wr = queue->send_queue_size + 1;
--	qp_attr.cap.max_rdma_ctxs = queue->send_queue_size;
-+	qp_attr.cap.max_rdma_ctxs = queue->send_queue_size *
-+					queue->rdma_rw_ctxs_factor;
- 	qp_attr.cap.max_send_sge = max(ndev->device->attrs.max_sge_rd,
- 					ndev->device->attrs.max_send_sge);
- 
-@@ -1094,6 +1096,7 @@ nvmet_rdma_parse_cm_connect_req(struct rdma_conn_param *conn,
- 				struct nvmet_rdma_queue *queue)
+ static struct siw_device *siw_device_create(struct net_device *netdev)
  {
- 	struct nvme_rdma_cm_req *req;
-+	u32 host_fr_pages_len, tgt_fr_pages_len;
- 
- 	req = (struct nvme_rdma_cm_req *)conn->private_data;
- 	if (!req || conn->private_data_len == 0)
-@@ -1111,6 +1114,19 @@ nvmet_rdma_parse_cm_connect_req(struct rdma_conn_param *conn,
- 	queue->recv_queue_size = le16_to_cpu(req->hsqsize) + 1;
- 	queue->send_queue_size = le16_to_cpu(req->hrqsize);
- 
-+	host_fr_pages_len = le32_to_cpu(req->hmax_fr_pages),
-+	tgt_fr_pages_len = queue->dev->device->attrs.max_fast_reg_page_list_len;
-+
-+	if (host_fr_pages_len > tgt_fr_pages_len)
-+		/*
-+		 * Allocate more RW contexts as more MRs are required when
-+		 * host_fr_pages_len is higher than target's.
-+		 */
-+		queue->rdma_rw_ctxs_factor =
-+			DIV_ROUND_UP(host_fr_pages_len, tgt_fr_pages_len);
-+	else
-+		queue->rdma_rw_ctxs_factor = 1;
-+
- 	if (!queue->host_qid && queue->recv_queue_size > NVME_AQ_DEPTH)
- 		return NVME_RDMA_CM_INVALID_HSQSIZE;
- 
-@@ -1147,6 +1163,9 @@ nvmet_rdma_alloc_queue(struct nvmet_rdma_device *ndev,
- 		goto out_reject;
+-	struct siw_device *sdev = NULL;
++	struct siw_device *sdev;
+ 	struct ib_device *base_dev;
+ 	struct device *parent = netdev->dev.parent;
+ 	int rv;
+@@ -319,13 +319,13 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
+ 		if (netdev->type != ARPHRD_LOOPBACK) {
+ 			pr_warn("siw: device %s error: no parent device\n",
+ 				netdev->name);
+-			return NULL;
++			return ERR_PTR(-EINVAL);
+ 		}
+ 		parent = &netdev->dev;
  	}
+ 	sdev = ib_alloc_device(siw_device, base_dev);
+ 	if (!sdev)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
  
-+	queue->dev = ndev;
-+	queue->cm_id = cm_id;
+ 	base_dev = &sdev->base_dev;
+ 
+@@ -388,6 +388,9 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
+ 		{ .max_segment_size = SZ_2G };
+ 	base_dev->num_comp_vectors = num_possible_cpus();
+ 
++	xa_init_flags(&sdev->qp_xa, XA_FLAGS_ALLOC1);
++	xa_init_flags(&sdev->mem_xa, XA_FLAGS_ALLOC1);
 +
- 	ret = nvmet_sq_init(&queue->nvme_sq);
- 	if (ret) {
- 		ret = NVME_RDMA_CM_NO_RSC;
-@@ -1162,8 +1181,6 @@ nvmet_rdma_alloc_queue(struct nvmet_rdma_device *ndev,
- 	 * inside a CM callback would trigger a deadlock. (great API design..)
- 	 */
- 	INIT_WORK(&queue->release_work, nvmet_rdma_release_queue_work);
--	queue->dev = ndev;
--	queue->cm_id = cm_id;
+ 	ib_set_device_ops(base_dev, &siw_device_ops);
+ 	rv = ib_device_set_netdev(base_dev, netdev, 1);
+ 	if (rv)
+@@ -415,9 +418,6 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
+ 	sdev->attrs.max_srq_wr = SIW_MAX_SRQ_WR;
+ 	sdev->attrs.max_srq_sge = SIW_MAX_SGE;
  
- 	spin_lock_init(&queue->state_lock);
- 	queue->state = NVMET_RDMA_Q_CONNECTING;
-diff --git a/include/linux/nvme-rdma.h b/include/linux/nvme-rdma.h
-index 3ec8e50efa16..2d6f2cf1e319 100644
---- a/include/linux/nvme-rdma.h
-+++ b/include/linux/nvme-rdma.h
-@@ -52,13 +52,15 @@ static inline const char *nvme_rdma_cm_msg(enum nvme_rdma_cm_status status)
-  * @qid:           queue Identifier for the Admin or I/O Queue
-  * @hrqsize:       host receive queue size to be created
-  * @hsqsize:       host send queue size to be created
-+ * @hmax_fr_pages: host maximum pages per fast reg
-  */
- struct nvme_rdma_cm_req {
- 	__le16		recfmt;
- 	__le16		qid;
- 	__le16		hrqsize;
- 	__le16		hsqsize;
--	u8		rsvd[24];
-+	__le32		hmax_fr_pages;
-+	u8		rsvd[20];
- };
+-	xa_init_flags(&sdev->qp_xa, XA_FLAGS_ALLOC1);
+-	xa_init_flags(&sdev->mem_xa, XA_FLAGS_ALLOC1);
+-
+ 	INIT_LIST_HEAD(&sdev->cep_list);
+ 	INIT_LIST_HEAD(&sdev->qp_list);
  
- /**
+@@ -435,7 +435,7 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
+ error:
+ 	ib_dealloc_device(base_dev);
+ 
+-	return NULL;
++	return ERR_PTR(rv);
+ }
+ 
+ /*
+@@ -542,8 +542,8 @@ static struct notifier_block siw_netdev_nb = {
+ static int siw_newlink(const char *basedev_name, struct net_device *netdev)
+ {
+ 	struct ib_device *base_dev;
+-	struct siw_device *sdev = NULL;
+-	int rv = -ENOMEM;
++	struct siw_device *sdev;
++	int rv;
+ 
+ 	if (!siw_dev_qualified(netdev))
+ 		return -EINVAL;
+@@ -554,18 +554,19 @@ static int siw_newlink(const char *basedev_name, struct net_device *netdev)
+ 		return -EEXIST;
+ 	}
+ 	sdev = siw_device_create(netdev);
+-	if (sdev) {
+-		dev_dbg(&netdev->dev, "siw: new device\n");
++	if (IS_ERR(sdev))
++		return PTR_ERR(sdev);
+ 
+-		if (netif_running(netdev) && netif_carrier_ok(netdev))
+-			sdev->state = IB_PORT_ACTIVE;
+-		else
+-			sdev->state = IB_PORT_DOWN;
++	dev_dbg(&netdev->dev, "siw: new device\n");
+ 
+-		rv = siw_device_register(sdev, basedev_name);
+-		if (rv)
+-			ib_dealloc_device(&sdev->base_dev);
+-	}
++	if (netif_running(netdev) && netif_carrier_ok(netdev))
++		sdev->state = IB_PORT_ACTIVE;
++	else
++		sdev->state = IB_PORT_DOWN;
++
++	rv = siw_device_register(sdev, basedev_name);
++	if (rv)
++		ib_dealloc_device(&sdev->base_dev);
+ 	return rv;
+ }
+ 
 -- 
-2.23.0.rc0
+2.17.2
 
