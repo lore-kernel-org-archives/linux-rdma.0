@@ -2,89 +2,178 @@ Return-Path: <SRS0=V7/i=4P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1FCAC4BA2D
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:54:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4E65C4BA24
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:57:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B3A0924698
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:54:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582808052;
-	bh=O089r3ypnzy/o9hOEMIp1idAy5PNLWAXmZu9IzZ32tY=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=fhlkDms7KypPKqxC0pu7s2eBUuaECW+J/oa7hlwK/rJV4G1g51hh+Qpggn1vB0P8f
-	 mGKyZsSRMWvkHnZ8EpO26l6FbDj5PzILdNZMFYEOpicSx7YeW3/4iWuJ28I862tERx
-	 ONbZzDkmaNoFoobe494kRakcrGRTjEHeqKuBphzE=
+	by mail.kernel.org (Postfix) with ESMTP id 661EF2469C
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:57:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="fi3d1HrH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728986AbgB0MyM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Feb 2020 07:54:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43800 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728977AbgB0MyL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 27 Feb 2020 07:54:11 -0500
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BB00D24693;
-        Thu, 27 Feb 2020 12:54:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1582808051;
-        bh=O089r3ypnzy/o9hOEMIp1idAy5PNLWAXmZu9IzZ32tY=;
-        h=From:To:Cc:Subject:Date:From;
-        b=KwFBfqoSIOfphHXjJ3GQfVCw4pispnLaS+gcyH00b8KXEcYd99mYZtJ9uEO4N8Bpa
-         8TeROwpsKSJqaHhSlAFIyUMT7KbBXPQxPXRQSXvnDoBrdiGx2mDPMS6yzxTL0X1zKG
-         ms3vmAm5dOUHhOvfKIEQ9DTjR+YQjzYdFLiAvESo=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Parav Pandit <parav@mellanox.com>, linux-rdma@vger.kernel.org,
-        Mark Bloch <markb@mellanox.com>
-Subject: [PATCH rdma-next] IB/mlx5: Fix missing congestion control debugfs on rep rdma device
-Date:   Thu, 27 Feb 2020 14:54:07 +0200
-Message-Id: <20200227125407.99803-1-leon@kernel.org>
-X-Mailer: git-send-email 2.24.1
+        id S1729128AbgB0M5d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Feb 2020 07:57:33 -0500
+Received: from mail-eopbgr60078.outbound.protection.outlook.com ([40.107.6.78]:27398
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729056AbgB0M5d (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 27 Feb 2020 07:57:33 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=cntzs/zBzHTljUDHHJ1/kgFR0TMDXjZ4SQgJlLBAFJVrixkUQMp9GqxRxPH2iK/aJ+/nMLhqSYScmWeSWYbiq3yBpdGImsTbTUyRvm3ts8aCFRVB5Ry7dEmQ1uudhOvClfKu/FDE6Ale3G56t40UEOjRDgEVRfAxwdpxtUvf4GZAmkmB65BQ+yqAkXG97TUCwYLU/MbYtT+Uzq/9G0hYl7zNdSvOaEhlMHbLXtTCVHbBqZ1CXXMnv1Oh6MAu19Z9oLEOEemwxFLixNxfPkDTOzeXb74r3n68/w0BYmU6KHRW/Q/yd7NUOs60WFE3urmzhaRrtOi5mWJZiPtSoigorg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=vM+j975oAFHi6Ws+YQ5PK0dwPuxaSZIrraGi3WAvC+M=;
+ b=nDB8PCku253KEovoKDMu93kmO0f2/KVOCdJ82LBA0K969BRuTB1f4yyIWm5SuSKEsWTVQnThnZ9C/XLDZEvdfAHun/41DrKKpPmZ2ftap//cNK7EmPAFbFYYr+kdOEj4zZ4g7prTTFTbTE8vb4KxFHt0ygYFKJmXCqW8xsGtONSRKhINrDssrpTliu67uSwVHvjvuuvUttquC2Ar3RNQCSjORZiWxNWbZ+HtFX87CAZUYT6b+gYTF/5lrXHb8SHWJrGZb/D/qLnxDUjmM1BJwkz0ij4oLFFrTPYO9clhP7mSQQhMjia0s3cklM+Ugz+aeGrhLszugvf99ck0xeGcJw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=vM+j975oAFHi6Ws+YQ5PK0dwPuxaSZIrraGi3WAvC+M=;
+ b=fi3d1HrHM04v8YAa9UQhUlUEZwjvEdt/wuenPdvKPrQd/iZqT3LpAYrh/hIkr2+t1y4vEer4aJ40I2k2OqyXAOeYY8W3Ato3EgRyezMyGRq70R9pkIBcXNjd44e9LHPsi5yxU42kYzzCdT4BkzPOPXQchbHciBCM1WZj1KZhWMc=
+Received: from DBAPR05MB7093.eurprd05.prod.outlook.com (20.181.43.74) by
+ DBAPR05MB7080.eurprd05.prod.outlook.com (20.181.41.152) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2772.14; Thu, 27 Feb 2020 12:57:31 +0000
+Received: from DBAPR05MB7093.eurprd05.prod.outlook.com
+ ([fe80::3992:db02:90fc:8ea5]) by DBAPR05MB7093.eurprd05.prod.outlook.com
+ ([fe80::3992:db02:90fc:8ea5%3]) with mapi id 15.20.2772.012; Thu, 27 Feb 2020
+ 12:57:31 +0000
+From:   Vladimir Koushnir <vladimirk@mellanox.com>
+To:     Leon Romanovsky <leon@kernel.org>,
+        Haim Boozaglo <haimbo@mellanox.com>
+CC:     Jason Gunthorpe <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: RE: "ibstat -l" displays CA device list in an unsorted order
+Thread-Topic: "ibstat -l" displays CA device list in an unsorted order
+Thread-Index: AQHV6z1DMWp/6fBTvEevkqOyQ6SeqKgqvliAgADVi4CAAesAAIAABBiAgAA1oQCAAPWWgIAAVA+AgAABzeA=
+Date:   Thu, 27 Feb 2020 12:57:31 +0000
+Message-ID: <DBAPR05MB70932DD7E5FC7DCDD71543A3CEEB0@DBAPR05MB7093.eurprd05.prod.outlook.com>
+References: <2b43584f-f56a-6466-a2da-43d02fad6b64@mellanox.com>
+ <20200224194131.GV31668@ziepe.ca>
+ <d3b6297e-3251-ec14-ebef-541eb3a98eae@mellanox.com>
+ <20200226134310.GX31668@ziepe.ca> <20200226135749.GE12414@unreal>
+ <20200226170946.GA31668@ziepe.ca>
+ <1da164dc-9aff-038f-914a-c14d353c9e08@mellanox.com>
+ <20200227124937.GK12414@unreal>
+In-Reply-To: <20200227124937.GK12414@unreal>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=vladimirk@mellanox.com; 
+x-originating-ip: [193.47.165.251]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 49ebad92-2209-4d08-506b-08d7bb849b5e
+x-ms-traffictypediagnostic: DBAPR05MB7080:|DBAPR05MB7080:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <DBAPR05MB70803CA9A707828CD21B959CCEEB0@DBAPR05MB7080.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:9508;
+x-forefront-prvs: 03264AEA72
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(376002)(39860400002)(136003)(346002)(366004)(396003)(189003)(199004)(71200400001)(8676002)(66476007)(64756008)(316002)(66946007)(478600001)(8936002)(66446008)(5660300002)(54906003)(81166006)(110136005)(66556008)(81156014)(76116006)(86362001)(26005)(6636002)(186003)(52536014)(6506007)(53546011)(33656002)(4326008)(2906002)(55016002)(9686003)(7696005);DIR:OUT;SFP:1101;SCL:1;SRVR:DBAPR05MB7080;H:DBAPR05MB7093.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: yl2GEdLLUsu+5mr1QZDa7s7lVeJBIXHGkQtTqhZGoLieXzSi3AtMwmI5z9yjAu7XZs5RFvZbgiXhoBx9xeo3ErZmozc7ykfyO3MyBVqxc2ROkheZXhatw3GorBykmbQG6vWhX+ns+IXoPGVyBmg8fj7K2mBMFZCxuNkBeKLK7h70xD0GJs1FpGaS66bYW980+dN08jIGCyKwPukJbxqH3EWHmA6IMSg+VKNgvzosEOWejg/g4UQGlouoOqiVALDfqfqQKjtRBVTO4r1ERYFaVXfQWHRBRmmE5SRSJfQCrH+v/4TJJjSyjOET66ES/yhCYXOEJf8zJq4OVr+5RaqugBH509ksU2VKH41FNNV/IY6gxLzxCVP1dghiYrRTNZ+lT3Qjr136rcSUrVhk20ShYOtiSXyps7zteTjTw5gd7bryAxx7E8BuQq+ew+xs6Eh0
+x-ms-exchange-antispam-messagedata: ZFGvgh2BCX1nH6Y2A42Tm7oTLniWe8NX6PuUPXQlgD67mmwS09sYNRLZhcZgiLrWqW5HTyrk7fTua3fCO8lQg9RPy+FIlzrIA7l2burz+nt3mXj/z54+NYAX5NEUoobF81P1W+ZVgUeh1t0/1uUHQw==
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 49ebad92-2209-4d08-506b-08d7bb849b5e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 27 Feb 2020 12:57:31.1427
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: C9+NjnmGe7Xm6vM+BK0QvT1bbS1yJ1cZwQB8WJEltD5on8ranOzp8WrEEYJzsEV8pca7RVxHlzce668h6cnHhg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DBAPR05MB7080
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+Ibstat dumps the current status only.
+It has nothing to do with hotplug.
 
-Cited commit missed to include low level congestion control
-related debugfs stage initialization.
-This resulted in missing debugfs entries for cc_params of
-a RDMA device.
+-----Original Message-----
+From: linux-rdma-owner@vger.kernel.org <linux-rdma-owner@vger.kernel.org> O=
+n Behalf Of Leon Romanovsky
+Sent: Thursday, February 27, 2020 2:50 PM
+To: Haim Boozaglo <haimbo@mellanox.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>; linux-rdma@vger.kernel.org
+Subject: Re: "ibstat -l" displays CA device list in an unsorted order
 
-Add them back.
+On Thu, Feb 27, 2020 at 09:48:45AM +0200, Haim Boozaglo wrote:
+>
+>
+> On 2/26/2020 7:09 PM, Jason Gunthorpe wrote:
+> > On Wed, Feb 26, 2020 at 03:57:49PM +0200, Leon Romanovsky wrote:
+> > > On Wed, Feb 26, 2020 at 09:43:10AM -0400, Jason Gunthorpe wrote:
+> > > > On Tue, Feb 25, 2020 at 10:25:49AM +0200, Haim Boozaglo wrote:
+> > > > >
+> > > > >
+> > > > > On 2/24/2020 9:41 PM, Jason Gunthorpe wrote:
+> > > > > > On Mon, Feb 24, 2020 at 08:06:56PM +0200, Haim Boozaglo wrote:
+> > > > > > > Hi all,
+> > > > > > >
+> > > > > > > When running "ibstat" or "ibstat -l", the output of CA=20
+> > > > > > > device list is displayed in an unsorted order.
+> > > > > > >
+> > > > > > > Before pull request #561, ibstat displayed the CA device=20
+> > > > > > > list sorted in alphabetical order.
+> > > > > > >
+> > > > > > > The problem is that users expect to have the output sorted=20
+> > > > > > > in alphabetical order and now they get it not as expected (in=
+ an unsorted order).
+> > > > > >
+> > > > > > Really? Why? That doesn't look like it should happen, the=20
+> > > > > > list is constructed out of readdir() which should be sorted?
+> > > > > >
+> > > > > > Do you know where this comes from?
+> > > > > >
+> > > > > > Jason
+> > > > > >
+> > > > >
+> > > > > readdir() gives us struct by struct and doesn't keep on alphabeti=
+cal order.
+> > > > > Before pull request #561 ibstat have used this API of libibumad:
+> > > > > int umad_get_cas_names(char cas[][UMAD_CA_NAME_LEN], int max)
+> > > > >
+> > > > > This API used this function:
+> > > > > n =3D scandir(SYS_INFINIBAND, &namelist, NULL, alphasort);
+> > > > >
+> > > > > scandir() can return a sorted CA device list in alphabetical orde=
+r.
+> > > >
+> > > > Oh what a weird unintended side effect.
+> > > >
+> > > > Resolving it would require adding a sorting pass on a linked=20
+> > > > list.. Will you try?
+> > >
+> > > Please be aware that once ibstat will be converted to netlink, the=20
+> > > order will change again.
+> >
+> > This is why I suggest a function to sort the linked list that tools=20
+> > needing sorted order can call. Then it doesn't matter how we got the=20
+> > list
+> >
+> > Jason
+> >
+>
+> I can just sort the list at the time of insertion of each node.
 
-Fixes: b5ca15ad7e61 ("IB/mlx5: Add proper representors support")
-Signed-off-by: Parav Pandit <parav@mellanox.com>
-Reviewed-by: Mark Bloch <markb@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/main.c | 3 +++
- 1 file changed, 3 insertions(+)
+Will you "resort" your list in the hotplug event?
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index ec8ed90d2b60..f5d42985113c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -7080,6 +7080,9 @@ const struct mlx5_ib_profile raw_eth_profile = {
- 	STAGE_CREATE(MLX5_IB_STAGE_COUNTERS,
- 		     mlx5_ib_stage_counters_init,
- 		     mlx5_ib_stage_counters_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_CONG_DEBUGFS,
-+		     mlx5_ib_stage_cong_debugfs_init,
-+		     mlx5_ib_stage_cong_debugfs_cleanup),
- 	STAGE_CREATE(MLX5_IB_STAGE_UAR,
- 		     mlx5_ib_stage_uar_init,
- 		     mlx5_ib_stage_uar_cleanup),
---
-2.24.1
+Thanks
 
+>
+> Haim.
