@@ -2,90 +2,131 @@ Return-Path: <SRS0=V7/i=4P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5551EC52D33
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:01:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6ECAC76583
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:28:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D21724656
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:01:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582812083;
-	bh=n3I35yElf1J5MhF/uEIaFVI3u8WY37KG3XXa6UfWeIM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=JmX+Uwkv7Ci+s7J7qvTIgbGG4sgII4OFiPpBwBR9vTSC/j3HHNw2sx2Mcasae3Gpk
-	 eD8/deOg4sTuVw3zwQ0+Ebe4rLZutRX2HWVxiBLhFLTyXyAtLk0y85gQQ2GhphbLbA
-	 u4/uh2jt6UM6atcUGsLA/UHQg6/5FSMtiIj0jDZA=
+	by mail.kernel.org (Postfix) with ESMTP id BE6E824688
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:28:33 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="g0v9/RUJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730145AbgB0OBV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Feb 2020 09:01:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35254 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732905AbgB0OBT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 27 Feb 2020 09:01:19 -0500
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0ADF620578;
-        Thu, 27 Feb 2020 14:01:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1582812079;
-        bh=n3I35yElf1J5MhF/uEIaFVI3u8WY37KG3XXa6UfWeIM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=s0MICNR2DUQwtDpVSk8t90VV3mqkQaBNAW/H36F3fkrPBOy94E8da2QpWfncpeXZP
-         K7uYPPVBcPBaxlgk15J31K3++Q0kOCQmqaMa2iyXfALtJMmcgTVpU1706Rs2ucun0u
-         kXb3pEqjpbZ0SsT4EIK1LHpdFAVst/dX+XkCbbRw=
-Date:   Thu, 27 Feb 2020 16:01:16 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     bugzilla-daemon@bugzilla.kernel.org
-Cc:     linux-rdma@vger.kernel.org
-Subject: Re: [Bug 206687] New: If IB link comes up, oops in
- port_pkey_list_insert triggered with "NULL pointer derefence"
-Message-ID: <20200227140116.GN12414@unreal>
-References: <bug-206687-11804@https.bugzilla.kernel.org/>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bug-206687-11804@https.bugzilla.kernel.org/>
+        id S1733068AbgB0O2b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Feb 2020 09:28:31 -0500
+Received: from userp2130.oracle.com ([156.151.31.86]:44910 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388379AbgB0O2b (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Feb 2020 09:28:31 -0500
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 01REOjOX073587;
+        Thu, 27 Feb 2020 14:28:28 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
+ mime-version : subject : from : in-reply-to : date : cc :
+ content-transfer-encoding : message-id : references : to;
+ s=corp-2020-01-29; bh=wGcJXjxI8eNnQZB4OELo+Ip4jZtWH9Z1eOVxb97YW6Y=;
+ b=g0v9/RUJfloVbfqce20j0tnuGCN2gAUNXIn9eyNKwYQMBr+vZCRhG4QKufRyIOfujguT
+ 8rzKR/NaiV0kk4W6nlTxWclD0BnXf4zGsNVt3wc2A2Q1ROINNMuS3IEm8YNvjeP47Fmc
+ QdWwqRjmOCVR1qxRIqbJLbcYd6y+2yiJDUUnNCkU40yeU5nsDVITJogQ1do8GtAn5/yk
+ 622dCgB/HqAOJIok4A2EekBRAG8bhuDDzg0beiDTnkGEzxTPgLN+WmAmYVhhjK5TfBq6
+ bkbG5oJfVHGTonDRzkdWw3SPXbS85j1aF+VlXuIv/JOTvkMIFyKlCcusLz9w3fKY9bXw 1A== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by userp2130.oracle.com with ESMTP id 2ydcsnk95p-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 27 Feb 2020 14:28:28 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 01RESJXo091651;
+        Thu, 27 Feb 2020 14:28:27 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3020.oracle.com with ESMTP id 2ydcs9a2pk-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 27 Feb 2020 14:28:27 +0000
+Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 01RESQaL026748;
+        Thu, 27 Feb 2020 14:28:26 GMT
+Received: from dhcp-10-172-157-208.no.oracle.com (/10.172.157.208)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 27 Feb 2020 06:28:26 -0800
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3608.60.0.2.5\))
+Subject: Re: Maybe a race condition in net/rds/rdma.c?
+From:   =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+In-Reply-To: <afd9225d-5c43-8cc7-0eed-455837b53e10@gmail.com>
+Date:   Thu, 27 Feb 2020 15:28:24 +0100
+Cc:     OFED mailing list <linux-rdma@vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <D8EB4A77-77D7-41EB-9021-EA7BB8C3FA5B@oracle.com>
+References: <afd9225d-5c43-8cc7-0eed-455837b53e10@gmail.com>
+To:     zerons <sironhide0null@gmail.com>
+X-Mailer: Apple Mail (2.3608.60.0.2.5)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9543 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 bulkscore=0 phishscore=0
+ mlxlogscore=999 spamscore=0 suspectscore=1 mlxscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
+ definitions=main-2002270115
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9543 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0 bulkscore=0
+ lowpriorityscore=0 mlxlogscore=999 phishscore=0 spamscore=0 adultscore=0
+ suspectscore=1 impostorscore=0 clxscore=1011 priorityscore=1501
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
+ definitions=main-2002270114
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 27, 2020 at 10:57:34AM +0000, bugzilla-daemon@bugzilla.kernel.org wrote:
-> https://bugzilla.kernel.org/show_bug.cgi?id=206687
->
->             Bug ID: 206687
->            Summary: If IB link comes up, oops in port_pkey_list_insert
->                     triggered with "NULL pointer derefence"
->            Product: Drivers
->            Version: 2.5
->     Kernel Version: v5.4.21 ongoing
->           Hardware: x86-64
->                 OS: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: high
->           Priority: P1
->          Component: Infiniband/RDMA
->           Assignee: drivers_infiniband-rdma@kernel-bugs.osdl.org
->           Reporter: hjl@simulated-universe.de
->         Regression: No
->
-> I am running a Fedora home server for testing purpose and using QLA7322
-> Infinband adapters to connect my workstation.
->
-> Since the upgrade to Fedora 31, that comes with a v5.5.5 kernel, the system
-> crashes as the network manager tries to configure the IPoIB interface.
->
-> I checked the last installed fedora 30 kernel and all went fine.
-> Next I used the vanilla-kernels v5.4.19, v5.4.20 and v5.4.21 and tracked the
-> problem down to the v5.4.21
->
 
-this should fix the failure.
-https://lore.kernel.org/linux-rdma/20200227112708.93023-1-leon@kernel.org
 
-Thanks
+> On 18 Feb 2020, at 14:13, zerons <sironhide0null@gmail.com> wrote:
+>=20
+> Hi, all
+>=20
+> In net/rds/rdma.c
+> =
+(https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/net=
+/rds/rdma.c?h=3Dv5.5.3#n419),
+> there may be a race condition between rds_rdma_unuse() and =
+rds_free_mr().
+>=20
+> It seems that this one need some specific devices to run test,
+> unfortunately, I don't have any of these.
+> I've already sent two emails to the maintainer for help, no response =
+yet,
+> (the email address may not be in use).
+>=20
+> 0) in rds_recv_incoming_exthdrs(), it calls rds_rdma_unuse() when =
+receive an
+> extension header with force=3D0, if the victim mr does not have =
+RDS_RDMA_USE_ONCE
+> flag set, then the mr would stay in the rbtree. Without any lock, it =
+tries to
+> call mr->r_trans->sync_mr().
+>=20
+> 1) in rds_free_mr(), the same mr is found, and then freed. The =
+mr->r_refcount
+> doesn't change while rds_mr_tree_walk().
+>=20
+> 0) back in rds_rdma_unuse(), the victim mr get used again, call
+> mr->r_trans->sync_mr().
+>=20
+> Could this race condition actually happen?
+>=20
+> Thank you.
+
+Hi Peng,
+
+
+I will have someone to look at this one.
+
+Thanks for your report,
+
+
+H=C3=A5kon
+
+
+
+
