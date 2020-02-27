@@ -4,49 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 763BAC4BA24
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:34:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E847C4BA24
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:34:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 497E22468E
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:34:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 167F62468E
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:34:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582806863;
-	bh=OKeM2ARY1JoA7ynsbsxCtljktnZCPCBjkUVPDslPK7Y=;
+	s=default; t=1582806866;
+	bh=vGZDjvoB3hRn6vVB2bgV97lN4QLJhMdk9N5k1KLF2QM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=BP0K3tjL0dxoZuKB/mWjh4C+xc3/l56nb/0/m0t5XgAz0pChWm0Pd1HwJZmODPLIv
-	 FphJQ51sYMGEwcqEM8ZAzkP0I3p3GCbcTzWmryjjJ7Nocg8xWX2fC4lbGgeN7hExXt
-	 QXjAwgoEFo8Xl8o4QfRUT8OcFvoxL6GSgGOL5wtc=
+	b=YSBpOScFaH/cq4vgcHBnddCXsl1/lGpAZC/TpCYM9L6H6CdUl4avIq0kpTur47gDq
+	 B7bUICSeRu5fQoaeUWRVGofMrDKc4rVovBKif/947lX2IsEDgrbqyJPSyVXxZBNxIA
+	 cvT4zzGVqXSBmsS5GqVQzHIQpn/F95PI6+RmEqwM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729066AbgB0MeW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Feb 2020 07:34:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35328 "EHLO mail.kernel.org"
+        id S1729073AbgB0MeZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Feb 2020 07:34:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729004AbgB0MeW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 27 Feb 2020 07:34:22 -0500
+        id S1729004AbgB0MeZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 27 Feb 2020 07:34:25 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8CD602468E;
-        Thu, 27 Feb 2020 12:34:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9DF6D24698;
+        Thu, 27 Feb 2020 12:34:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1582806861;
-        bh=OKeM2ARY1JoA7ynsbsxCtljktnZCPCBjkUVPDslPK7Y=;
+        s=default; t=1582806864;
+        bh=vGZDjvoB3hRn6vVB2bgV97lN4QLJhMdk9N5k1KLF2QM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=x47mwFi8+mUA5Iiaa8I7EwAxq78oujIMkLpq1G7cC8AvVca0LuWqsnkYk5SlzNAR6
-         sSSued1QN4EQAYhXftNjsKzJVC4vYD3DWraVQlGlEBTn5Io5hIjj4VNwwbHzhkETP8
-         rAcdnnLUVNUnJwVQIiRnBfQ8liEmxj9Q26JCSksE=
+        b=Y64UPFoFrP49sJc0dNu7RhNB30/e8Q12RACC9T5hrEiPE4S/qY2bGohTtFLr6oFif
+         3h7a30E31wp+ySK5bDQVdJATMlQzvj+YMb3ap4q4JpqQcPCTdCgP5eU0xOFOyF2KIC
+         AGbJavVmAMeF99hLMgWFpEo+CdweiiLW4g2yvzkA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Michael Guralnik <michaelgur@mellanox.com>,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 1/9] RDMA/mlx5: Move asynchronous mkey creation to mlx5_ib
-Date:   Thu, 27 Feb 2020 14:33:52 +0200
-Message-Id: <20200227123400.97758-2-leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 6/9] RDMA/mlx5: Lock access to ent->available_mrs/limit when doing queue_work
+Date:   Thu, 27 Feb 2020 14:33:57 +0200
+Message-Id: <20200227123400.97758-7-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200227123400.97758-1-leon@kernel.org>
 References: <20200227123400.97758-1-leon@kernel.org>
@@ -57,126 +55,125 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Michael Guralnik <michaelgur@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-As mlx5_ib is the only user of the mlx5_core_create_mkey_cb, move the
-logic inside mlx5_ib and cleanup the code in mlx5_core.
+Accesses to these members needs to be locked. There is no reason not
+to hold a spinlock while calling queue_work(), so move the tests into
+a helper and always call it under lock.
 
-Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
+The helper should be called when available_mrs is adjusted.
+
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/mr.c              | 25 ++++++++++++++++----
- drivers/net/ethernet/mellanox/mlx5/core/mr.c | 22 +++--------------
- include/linux/mlx5/driver.h                  |  6 -----
- 3 files changed, 24 insertions(+), 29 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 40 ++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 6fa0a83c19de..dea14477a676 100644
+index 00d7dc4cd91b..17dda58360c4 100644
 --- a/drivers/infiniband/hw/mlx5/mr.c
 +++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -79,6 +79,25 @@ static bool use_umr_mtt_update(struct mlx5_ib_mr *mr, u64 start, u64 length)
- 		length + (start & (MLX5_ADAPTER_PAGE_SIZE - 1));
- }
+@@ -120,6 +120,10 @@ static void reg_mr_callback(int status, struct mlx5_async_work *context)
+ 	list_add_tail(&mr->list, &ent->head);
+ 	ent->available_mrs++;
+ 	ent->total_mrs++;
++	/*
++	 * Creating is always done in response to some demand, so do not call
++	 * queue_adjust_cache_locked().
++	 */
+ 	spin_unlock_irqrestore(&ent->lock, flags);
  
-+static int create_mkey_cb(struct mlx5_core_dev *dev, struct mlx5_ib_mr *mr,
-+			  struct mlx5_async_ctx *async_ctx, u32 *in, int inlen,
-+			  mlx5_async_cbk_t callback)
-+{
-+	void *mkc;
-+	u8 key;
-+
-+	spin_lock_irq(&dev->priv.mkey_lock);
-+	key = dev->priv.mkey_key++;
-+	spin_unlock_irq(&dev->priv.mkey_lock);
-+	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
-+
-+	MLX5_SET(create_mkey_in, in, opcode, MLX5_CMD_OP_CREATE_MKEY);
-+	MLX5_SET(mkc, mkc, mkey_7_0, key);
-+
-+	return mlx5_cmd_exec_cb(async_ctx, in, inlen, mr->out, sizeof(mr->out),
-+				callback, &mr->cb_work);
-+}
-+
- static void reg_mr_callback(int status, struct mlx5_async_work *context)
- {
- 	struct mlx5_ib_mr *mr =
-@@ -163,10 +182,8 @@ static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
- 		spin_lock_irq(&ent->lock);
- 		ent->pending++;
- 		spin_unlock_irq(&ent->lock);
--		err = mlx5_core_create_mkey_cb(dev->mdev, &mr->mmkey,
--					       &dev->async_ctx, in, inlen,
--					       mr->out, sizeof(mr->out),
--					       reg_mr_callback, &mr->cb_work);
-+		err = create_mkey_cb(dev->mdev, mr, &dev->async_ctx, in, inlen,
-+				     reg_mr_callback);
- 		if (err) {
- 			spin_lock_irq(&ent->lock);
- 			ent->pending--;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-index 42cc3c7ac5b6..83841e4119d7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-@@ -36,12 +36,9 @@
- #include <linux/mlx5/cmd.h>
- #include "mlx5_core.h"
- 
--int mlx5_core_create_mkey_cb(struct mlx5_core_dev *dev,
--			     struct mlx5_core_mkey *mkey,
--			     struct mlx5_async_ctx *async_ctx, u32 *in,
--			     int inlen, u32 *out, int outlen,
--			     mlx5_async_cbk_t callback,
--			     struct mlx5_async_work *context)
-+int mlx5_core_create_mkey(struct mlx5_core_dev *dev,
-+			  struct mlx5_core_mkey *mkey,
-+			  u32 *in, int inlen)
- {
- 	u32 lout[MLX5_ST_SZ_DW(create_mkey_out)] = {0};
- 	u32 mkey_index;
-@@ -57,10 +54,6 @@ int mlx5_core_create_mkey_cb(struct mlx5_core_dev *dev,
- 	MLX5_SET(create_mkey_in, in, opcode, MLX5_CMD_OP_CREATE_MKEY);
- 	MLX5_SET(mkc, mkc, mkey_7_0, key);
- 
--	if (callback)
--		return mlx5_cmd_exec_cb(async_ctx, in, inlen, out, outlen,
--					callback, context);
--
- 	err = mlx5_cmd_exec(dev, in, inlen, lout, sizeof(lout));
- 	if (err)
- 		return err;
-@@ -75,15 +68,6 @@ int mlx5_core_create_mkey_cb(struct mlx5_core_dev *dev,
- 		      mkey_index, key, mkey->key);
+ 	if (!completion_done(&ent->compl))
+@@ -352,6 +356,20 @@ static int someone_adding(struct mlx5_mr_cache *cache)
  	return 0;
  }
--EXPORT_SYMBOL(mlx5_core_create_mkey_cb);
--
--int mlx5_core_create_mkey(struct mlx5_core_dev *dev,
--			  struct mlx5_core_mkey *mkey,
--			  u32 *in, int inlen)
--{
--	return mlx5_core_create_mkey_cb(dev, mkey, NULL, in, inlen,
--					NULL, 0, NULL, NULL);
--}
- EXPORT_SYMBOL(mlx5_core_create_mkey);
  
- int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev,
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index f2b4225ed650..7225e9ca0f25 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -947,12 +947,6 @@ struct mlx5_cmd_mailbox *mlx5_alloc_cmd_mailbox_chain(struct mlx5_core_dev *dev,
- 						      gfp_t flags, int npages);
- void mlx5_free_cmd_mailbox_chain(struct mlx5_core_dev *dev,
- 				 struct mlx5_cmd_mailbox *head);
--int mlx5_core_create_mkey_cb(struct mlx5_core_dev *dev,
--			     struct mlx5_core_mkey *mkey,
--			     struct mlx5_async_ctx *async_ctx, u32 *in,
--			     int inlen, u32 *out, int outlen,
--			     mlx5_async_cbk_t callback,
--			     struct mlx5_async_work *context);
- int mlx5_core_create_mkey(struct mlx5_core_dev *dev,
- 			  struct mlx5_core_mkey *mkey,
- 			  u32 *in, int inlen);
++/*
++ * Check if the bucket is outside the high/low water mark and schedule an async
++ * update. The cache refill has hysteresis, once the low water mark is hit it is
++ * refilled up to the high mark.
++ */
++static void queue_adjust_cache_locked(struct mlx5_cache_ent *ent)
++{
++	lockdep_assert_held(&ent->lock);
++
++	if (ent->available_mrs < ent->limit ||
++	    ent->available_mrs > 2 * ent->limit)
++		queue_work(ent->dev->cache.wq, &ent->work);
++}
++
+ static void __cache_work_func(struct mlx5_cache_ent *ent)
+ {
+ 	struct mlx5_ib_dev *dev = ent->dev;
+@@ -447,9 +465,8 @@ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev,
+ 					      list);
+ 			list_del(&mr->list);
+ 			ent->available_mrs--;
++			queue_adjust_cache_locked(ent);
+ 			spin_unlock_irq(&ent->lock);
+-			if (ent->available_mrs < ent->limit)
+-				queue_work(cache->wq, &ent->work);
+ 			return mr;
+ 		}
+ 	}
+@@ -472,14 +489,12 @@ static struct mlx5_ib_mr *alloc_cached_mr(struct mlx5_cache_ent *req_ent)
+ 					      list);
+ 			list_del(&mr->list);
+ 			ent->available_mrs--;
++			queue_adjust_cache_locked(ent);
+ 			spin_unlock_irq(&ent->lock);
+-			if (ent->available_mrs < ent->limit)
+-				queue_work(dev->cache.wq, &ent->work);
+ 			break;
+ 		}
++		queue_adjust_cache_locked(ent);
+ 		spin_unlock_irq(&ent->lock);
+-
+-		queue_work(dev->cache.wq, &ent->work);
+ 	}
+ 
+ 	if (!mr)
+@@ -501,7 +516,6 @@ static void detach_mr_from_cache(struct mlx5_ib_mr *mr)
+ void mlx5_mr_cache_free(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ {
+ 	struct mlx5_cache_ent *ent = mr->cache_ent;
+-	int shrink = 0;
+ 
+ 	if (!ent)
+ 		return;
+@@ -509,20 +523,14 @@ void mlx5_mr_cache_free(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ 	if (mlx5_mr_cache_invalidate(mr)) {
+ 		detach_mr_from_cache(mr);
+ 		destroy_mkey(dev, mr);
+-		if (ent->available_mrs < ent->limit)
+-			queue_work(dev->cache.wq, &ent->work);
+ 		return;
+ 	}
+ 
+ 	spin_lock_irq(&ent->lock);
+ 	list_add_tail(&mr->list, &ent->head);
+ 	ent->available_mrs++;
+-	if (ent->available_mrs > 2 * ent->limit)
+-		shrink = 1;
++	queue_adjust_cache_locked(ent);
+ 	spin_unlock_irq(&ent->lock);
+-
+-	if (shrink)
+-		queue_work(dev->cache.wq, &ent->work);
+ }
+ 
+ static void clean_keys(struct mlx5_ib_dev *dev, int c)
+@@ -638,7 +646,9 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
+ 			ent->limit = dev->mdev->profile->mr_cache[i].limit;
+ 		else
+ 			ent->limit = 0;
+-		queue_work(cache->wq, &ent->work);
++		spin_lock_irq(&ent->lock);
++		queue_adjust_cache_locked(ent);
++		spin_unlock_irq(&ent->lock);
+ 	}
+ 
+ 	mlx5_mr_cache_debugfs_init(dev);
 -- 
 2.24.1
 
