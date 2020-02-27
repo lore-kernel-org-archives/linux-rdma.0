@@ -2,302 +2,121 @@ Return-Path: <SRS0=V7/i=4P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89592C4BA2D
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:34:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E343C4BA24
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:49:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5440124697
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:34:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 717C124698
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 12:49:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582806878;
-	bh=EQoyce/8kNLGH872+QrL4MY6iLwyCujFngOgupj5YdM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=GBrNFdKIbmxLiFFJ0M4hgwS41O3yaqkxK+jpO6rwSCOOzrLPygSX/f3GJFIRKfgLi
-	 88AJof42CUeAD1ATPJiYXfwOLUyRQvSilhu8vJcFjcrisjqYRb//TEiARXlZFDmGl8
-	 mflnNxmZ4X7sA+YmxA7q6p+p5U529jGUSHvHQc3E=
+	s=default; t=1582807782;
+	bh=Zql+f2IfDj95ZiVb3MZj1gWiov5hwUuDTV5Bp3aHXpc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=rezzUa+0ouhung34q/WspzFO4C2Mq3mXV/Opdw/E3yuHcmBXcKv5nngkYRC4UJxdD
+	 /tZPd5nQvCmCdRmnhRu3kUE0qOyWOi5oK+ICwV9jd0asNtw9TPzh4ABh8gHlCVnXTF
+	 pldJWEGHqZtLkH1B2k9uYCw3XZM8d6WQG6JtP+Bk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729074AbgB0Meh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Feb 2020 07:34:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35456 "EHLO mail.kernel.org"
+        id S1728998AbgB0Mtl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Feb 2020 07:49:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729004AbgB0Meh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 27 Feb 2020 07:34:37 -0500
+        id S1728977AbgB0Mtl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 27 Feb 2020 07:49:41 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EF1BC2468E;
-        Thu, 27 Feb 2020 12:34:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C0D7324697;
+        Thu, 27 Feb 2020 12:49:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1582806876;
-        bh=EQoyce/8kNLGH872+QrL4MY6iLwyCujFngOgupj5YdM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=omU9YQFF9Xqvc8iln7Wn236IW7DNXXwNHoeUhTQ2aQ23s+X6dNKDhE6g1xMVa3CF9
-         qnIsJ0ITKqPmO6TPBW8gbRUE5PBMPIKns5LiL2TpKWWCKwFFyo9/fZ6kdUj1OEPTIA
-         9ZyQ1hozirETWr3yjrZGTz4DJnulz4qORIdbLFSI=
+        s=default; t=1582807781;
+        bh=Zql+f2IfDj95ZiVb3MZj1gWiov5hwUuDTV5Bp3aHXpc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=cvDHCaa3U5KmzPmI5F99Zjb9EmHmg4QW7UGHeiL7QfiVMecDizaVOWCnJg/Sg3cUz
+         VwsiVfOkHf5XIH6Prw6r5ugEdM1FP+xFBMam1rDCux14iBdJ7+BeoHFvHYCuPdYHEA
+         aWITeCD4v9wua22iVl9Dcqw5+Ue6b159E5GkOlWg=
+Date:   Thu, 27 Feb 2020 14:49:37 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Eli Cohen <eli@mellanox.com>,
-        Jack Morgenstein <jackm@dev.mellanox.co.il>,
-        linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>
-Subject: [PATCH rdma-next 5/9] RDMA/mlx5: Fix MR cache size and limit debugfs
-Date:   Thu, 27 Feb 2020 14:33:56 +0200
-Message-Id: <20200227123400.97758-6-leon@kernel.org>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200227123400.97758-1-leon@kernel.org>
-References: <20200227123400.97758-1-leon@kernel.org>
+To:     Haim Boozaglo <haimbo@mellanox.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: Re: "ibstat -l" displays CA device list in an unsorted order
+Message-ID: <20200227124937.GK12414@unreal>
+References: <2b43584f-f56a-6466-a2da-43d02fad6b64@mellanox.com>
+ <20200224194131.GV31668@ziepe.ca>
+ <d3b6297e-3251-ec14-ebef-541eb3a98eae@mellanox.com>
+ <20200226134310.GX31668@ziepe.ca>
+ <20200226135749.GE12414@unreal>
+ <20200226170946.GA31668@ziepe.ca>
+ <1da164dc-9aff-038f-914a-c14d353c9e08@mellanox.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1da164dc-9aff-038f-914a-c14d353c9e08@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+On Thu, Feb 27, 2020 at 09:48:45AM +0200, Haim Boozaglo wrote:
+>
+>
+> On 2/26/2020 7:09 PM, Jason Gunthorpe wrote:
+> > On Wed, Feb 26, 2020 at 03:57:49PM +0200, Leon Romanovsky wrote:
+> > > On Wed, Feb 26, 2020 at 09:43:10AM -0400, Jason Gunthorpe wrote:
+> > > > On Tue, Feb 25, 2020 at 10:25:49AM +0200, Haim Boozaglo wrote:
+> > > > >
+> > > > >
+> > > > > On 2/24/2020 9:41 PM, Jason Gunthorpe wrote:
+> > > > > > On Mon, Feb 24, 2020 at 08:06:56PM +0200, Haim Boozaglo wrote:
+> > > > > > > Hi all,
+> > > > > > >
+> > > > > > > When running "ibstat" or "ibstat -l", the output of CA device list
+> > > > > > > is displayed in an unsorted order.
+> > > > > > >
+> > > > > > > Before pull request #561, ibstat displayed the CA device list sorted in
+> > > > > > > alphabetical order.
+> > > > > > >
+> > > > > > > The problem is that users expect to have the output sorted in alphabetical
+> > > > > > > order and now they get it not as expected (in an unsorted order).
+> > > > > >
+> > > > > > Really? Why? That doesn't look like it should happen, the list is
+> > > > > > constructed out of readdir() which should be sorted?
+> > > > > >
+> > > > > > Do you know where this comes from?
+> > > > > >
+> > > > > > Jason
+> > > > > >
+> > > > >
+> > > > > readdir() gives us struct by struct and doesn't keep on alphabetical order.
+> > > > > Before pull request #561 ibstat have used this API of libibumad:
+> > > > > int umad_get_cas_names(char cas[][UMAD_CA_NAME_LEN], int max)
+> > > > >
+> > > > > This API used this function:
+> > > > > n = scandir(SYS_INFINIBAND, &namelist, NULL, alphasort);
+> > > > >
+> > > > > scandir() can return a sorted CA device list in alphabetical order.
+> > > >
+> > > > Oh what a weird unintended side effect.
+> > > >
+> > > > Resolving it would require adding a sorting pass on a linked
+> > > > list.. Will you try?
+> > >
+> > > Please be aware that once ibstat will be converted to netlink, the order
+> > > will change again.
+> >
+> > This is why I suggest a function to sort the linked list that tools
+> > needing sorted order can call. Then it doesn't matter how we got the list
+> >
+> > Jason
+> >
+>
+> I can just sort the list at the time of insertion of each node.
 
-The size_write function is supposed to adjust the total_mr's to match
-the user's request, but lacks locking and safety checking.
+Will you "resort" your list in the hotplug event?
 
-total_mrs can only be adjusted by at most available_mrs. mrs already
-assigned to users cannot be revoked. Ensure that the user provides
-a target value within the range of available_mrs and within the high/low
-water mark.
+Thanks
 
-limit_write has confusing and wrong sanity checking, and doesn't have the
-ability to deallocate on limit reduction.
-
-Since both functions use the same algorithm to adjust the available_mrs,
-consolidate it into one function and write it correctly. Fix the locking
-and by holding the spinlock for all accesses to ent->X.
-
-Always fail if the user provides a malformed string.
-
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/mr.c | 152 ++++++++++++++++++--------------
- 1 file changed, 88 insertions(+), 64 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index c951bb14de56..00d7dc4cd91b 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -126,7 +126,7 @@ static void reg_mr_callback(int status, struct mlx5_async_work *context)
- 		complete(&ent->compl);
- }
-
--static int add_keys(struct mlx5_cache_ent *ent, int num)
-+static int add_keys(struct mlx5_cache_ent *ent, unsigned int num)
- {
- 	int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
- 	struct mlx5_ib_mr *mr;
-@@ -185,30 +185,54 @@ static int add_keys(struct mlx5_cache_ent *ent, int num)
- 	return err;
- }
-
--static void remove_keys(struct mlx5_cache_ent *ent, int num)
-+static void remove_cache_mr(struct mlx5_cache_ent *ent)
- {
--	struct mlx5_ib_mr *tmp_mr;
- 	struct mlx5_ib_mr *mr;
--	LIST_HEAD(del_list);
--	int i;
-
--	for (i = 0; i < num; i++) {
--		spin_lock_irq(&ent->lock);
--		if (list_empty(&ent->head)) {
--			spin_unlock_irq(&ent->lock);
--			break;
--		}
--		mr = list_first_entry(&ent->head, struct mlx5_ib_mr, list);
--		list_move(&mr->list, &del_list);
--		ent->available_mrs--;
--		ent->total_mrs--;
-+	spin_lock_irq(&ent->lock);
-+	if (list_empty(&ent->head)) {
- 		spin_unlock_irq(&ent->lock);
--		mlx5_core_destroy_mkey(ent->dev->mdev, &mr->mmkey);
-+		return;
- 	}
-+	mr = list_first_entry(&ent->head, struct mlx5_ib_mr, list);
-+	list_del(&mr->list);
-+	ent->available_mrs--;
-+	ent->total_mrs--;
-+	spin_unlock_irq(&ent->lock);
-+	mlx5_core_destroy_mkey(ent->dev->mdev, &mr->mmkey);
-+	kfree(mr);
-+}
-
--	list_for_each_entry_safe(mr, tmp_mr, &del_list, list) {
--		list_del(&mr->list);
--		kfree(mr);
-+static int resize_available_mrs(struct mlx5_cache_ent *ent, unsigned int target,
-+				bool limit_fill)
-+{
-+	int err;
-+
-+	lockdep_assert_held(&ent->lock);
-+
-+	while (true) {
-+		if (limit_fill)
-+			target = ent->limit * 2;
-+		if (target == ent->available_mrs + ent->pending)
-+			return 0;
-+		if (target > ent->available_mrs + ent->pending) {
-+			u32 todo = target - (ent->available_mrs + ent->pending);
-+
-+			spin_unlock_irq(&ent->lock);
-+			err = add_keys(ent, todo);
-+			if (err == -EAGAIN)
-+				usleep_range(3000, 5000);
-+			spin_lock_irq(&ent->lock);
-+			if (err) {
-+				if (err != -EAGAIN)
-+					return err;
-+			} else
-+				return 0;
-+		} else {
-+			spin_unlock_irq(&ent->lock);
-+			remove_cache_mr(ent);
-+			spin_lock_irq(&ent->lock);
-+		}
- 	}
- }
-
-@@ -216,33 +240,38 @@ static ssize_t size_write(struct file *filp, const char __user *buf,
- 			  size_t count, loff_t *pos)
- {
- 	struct mlx5_cache_ent *ent = filp->private_data;
--	char lbuf[20] = {0};
--	u32 var;
-+	u32 target;
- 	int err;
-
--	count = min(count, sizeof(lbuf) - 1);
--	if (copy_from_user(lbuf, buf, count))
--		return -EFAULT;
--
--	if (sscanf(lbuf, "%u", &var) != 1)
--		return -EINVAL;
--
--	if (var < ent->limit)
--		return -EINVAL;
--
--	if (var > ent->total_mrs) {
--		do {
--			err = add_keys(ent, var - ent->total_mrs);
--			if (err && err != -EAGAIN)
--				return err;
-+	err = kstrtou32_from_user(buf, count, 0, &target);
-+	if (err)
-+		return err;
-
--			usleep_range(3000, 5000);
--		} while (err);
--	} else if (var < ent->total_mrs) {
--		remove_keys(ent, ent->total_mrs - var);
-+	/*
-+	 * Target is the new value of total_mrs the user requests, however we
-+	 * cannot free MRs that are in use. Compute the target value for
-+	 * available_mrs.
-+	 */
-+	spin_lock_irq(&ent->lock);
-+	if (target < ent->total_mrs - ent->available_mrs) {
-+		err = -EINVAL;
-+		goto err_unlock;
-+	}
-+	target = target - (ent->total_mrs - ent->available_mrs);
-+	if (target < ent->limit || target > ent->limit*2) {
-+		err = -EINVAL;
-+		goto err_unlock;
- 	}
-+	err = resize_available_mrs(ent, target, false);
-+	if (err)
-+		goto err_unlock;
-+	spin_unlock_irq(&ent->lock);
-
- 	return count;
-+
-+err_unlock:
-+	spin_unlock_irq(&ent->lock);
-+	return err;
- }
-
- static ssize_t size_read(struct file *filp, char __user *buf, size_t count,
-@@ -270,28 +299,23 @@ static ssize_t limit_write(struct file *filp, const char __user *buf,
- 			   size_t count, loff_t *pos)
- {
- 	struct mlx5_cache_ent *ent = filp->private_data;
--	char lbuf[20] = {0};
- 	u32 var;
- 	int err;
-
--	count = min(count, sizeof(lbuf) - 1);
--	if (copy_from_user(lbuf, buf, count))
--		return -EFAULT;
--
--	if (sscanf(lbuf, "%u", &var) != 1)
--		return -EINVAL;
--
--	if (var > ent->total_mrs)
--		return -EINVAL;
-+	err = kstrtou32_from_user(buf, count, 0, &var);
-+	if (err)
-+		return err;
-
-+	/*
-+	 * Upon set we immediately fill the cache to high water mark implied by
-+	 * the limit.
-+	 */
-+	spin_lock_irq(&ent->lock);
- 	ent->limit = var;
--
--	if (ent->available_mrs < ent->limit) {
--		err = add_keys(ent, 2 * ent->limit - ent->available_mrs);
--		if (err)
--			return err;
--	}
--
-+	err = resize_available_mrs(ent, 0, true);
-+	spin_unlock_irq(&ent->lock);
-+	if (err)
-+		return err;
- 	return count;
- }
-
-@@ -356,20 +380,20 @@ static void __cache_work_func(struct mlx5_cache_ent *ent)
- 		}
- 	} else if (ent->available_mrs > 2 * ent->limit) {
- 		/*
--		 * The remove_keys() logic is performed as garbage collection
--		 * task. Such task is intended to be run when no other active
--		 * processes are running.
-+		 * The remove_cache_mr() logic is performed as garbage
-+		 * collection task. Such task is intended to be run when no
-+		 * other active processes are running.
- 		 *
- 		 * The need_resched() will return TRUE if there are user tasks
- 		 * to be activated in near future.
- 		 *
--		 * In such case, we don't execute remove_keys() and postpone
--		 * the garbage collection work to try to run in next cycle,
--		 * in order to free CPU resources to other tasks.
-+		 * In such case, we don't execute remove_cache_mr() and postpone
-+		 * the garbage collection work to try to run in next cycle, in
-+		 * order to free CPU resources to other tasks.
- 		 */
- 		if (!need_resched() && !someone_adding(cache) &&
- 		    time_after(jiffies, cache->last_add + 300 * HZ)) {
--			remove_keys(ent, 1);
-+			remove_cache_mr(ent);
- 			if (ent->available_mrs > ent->limit)
- 				queue_work(cache->wq, &ent->work);
- 		} else {
---
-2.24.1
-
+>
+> Haim.
