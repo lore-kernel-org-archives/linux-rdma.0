@@ -2,200 +2,133 @@ Return-Path: <SRS0=V7/i=4P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9190DC76584
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:28:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89D53C35DEE
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:39:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 54D2D2468F
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:28:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20D3D2468F
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Feb 2020 14:39:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="r/TdSoGS"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="Y7WukRDB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387806AbgB0O23 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Feb 2020 09:28:29 -0500
-Received: from mga01.intel.com ([192.55.52.88]:53676 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387712AbgB0OHT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 27 Feb 2020 09:07:19 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 27 Feb 2020 06:07:17 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.70,492,1574150400"; 
-   d="scan'208";a="272205388"
-Received: from orsmsx103.amr.corp.intel.com ([10.22.225.130])
-  by fmsmga002.fm.intel.com with ESMTP; 27 Feb 2020 06:07:17 -0800
-Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
- ORSMSX103.amr.corp.intel.com (10.22.225.130) with Microsoft SMTP Server (TLS)
- id 14.3.439.0; Thu, 27 Feb 2020 06:07:17 -0800
-Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
- ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Thu, 27 Feb 2020 06:07:16 -0800
-Received: from ORSEDG001.ED.cps.intel.com (10.7.248.4) by
- orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.1713.5
- via Frontend Transport; Thu, 27 Feb 2020 06:07:16 -0800
-Received: from NAM04-CO1-obe.outbound.protection.outlook.com (104.47.45.51) by
- edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server (TLS) id
- 14.3.439.0; Thu, 27 Feb 2020 06:07:12 -0800
+        id S1732001AbgB0Oi4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Feb 2020 09:38:56 -0500
+Received: from mail-eopbgr30075.outbound.protection.outlook.com ([40.107.3.75]:6976
+        "EHLO EUR03-AM5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731885AbgB0Nzi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 27 Feb 2020 08:55:38 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FV/lq2cHAK07pJdFzJ3ekkHrt4+Ebm0L8g2VdAXB/HZaxEXWhjUiYGBtZjgbTG0bKYHmNzRmPct3BYQhPFjUGa9KAlQBkcZe6wOaklnY6nIuKdDsttTGq2+OV482p9Feygm7HixurmSbLqhtRDBC9Sie3+sFhR13dHk0Me11/XWsmqhO38TZW0/hCQdHJpE4JMuaLW0sc22pgn+CE76lkM+QL9JmEtfKJMjqeNeE9mu4trojrIHh0bm/Th6VSmNX1KlMcurFjuPmmusMND3OIw3Z611o8r08sktqhPqn/z1R7YJWOL/J3Ce2iBpCalNdFB7qmvGVXhaFqh3emB5W4g==
+ b=Fqem78UgqO+Hb/ZVWsnnpd/0EekYj8jYqyICK15SI5+vRjUMOtl+WfepwP/oCcsYN7OWKi5xO0BABwjAPaUA7PQppSgyp/J91Ka6e9h+wfhtGCtgwWg49kkfgNSdr5kw5SSmKfSQlUAU4XfAS3GpzIoI1QFZoMiYT32xF9Gx5AGqqTbehYc8uGLM4otZ2Puj7EreU/0AsjTaA8bWmALLBb8cmhnsshHXkaHkyPek+wandZWMzJ1N4DN+64MK0PKGEJEVdXYs5f7/IHU9b73E5UKN8smMMt/Ad85JI4YLLOIRYkaN4cbhTyAH/qtqdSLzBLZB2Pj1SzrBoSd7W5KkDw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hMQcaKVRW/SIeeNpXVpAMLSwA61k3ZPMi+SMh+g04sk=;
- b=h7qh6t9uAmAiPftZZjepoCyXal0olbNXJuRh1olJjwYpvHM6S/d9jBA6+RwhtMKg22H/KjfUu4Tskf9I7RBscy2jbovq8/v5WT3LisnMNcm7G9cl/IkMvvXiP4AiO5OhGJrLXpgoAjwcohSF68vVkADsM3YLOEGDOMrXxyhr8cXpzoqa0E/J88Og450fdROJUJRU0qh2o+OK10zF4N6kkNeiWs/kRZSYXXxTYx6/15jOj0yox13S6OOswkbB6ArqK/j8ubeLxAYeeF6itkue3EGsPDzix6TBf+58YlQgKVFz7OWgcTmzp0mZMmyiaFI03qQ061V9oFq1MgtdD7wI3Q==
+ bh=SQao1s2mb3ImzjwT94Ls4sDwIFJz1b34eRjgTfJS/kY=;
+ b=ZgA1AIljz55J7EoTE3TGN0raaYCWHsRrT9ZqkwNGHnOxCmifBSjIeEVkzOWaMouzGFVRqJu/LZav5ZW8+xqv2ZC6LWQs/8A7PPjTQz+2s8GxM7MWPn4WbC35f3GxYFt0xAk6tAhFZ3koWuoSzCqd9+/iD5TCUAV5o95iWxGj8WI8KROpezEAOIQS+azYI6NHm2t75fLAM90ckrMERoWGuaAQ2WbBkUgo8IgC3n5afpElb8+pyEL6mTn4pDEK8ZBwZbVLDOKkrbJo4hLlgAKQw5+LcBAT9srnqqm8aErZJqy/uL2kvuiTAD1V4/jhu2sbdw7to0It5LpUVqj8ISLBMQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
- s=selector2-intel-onmicrosoft-com;
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hMQcaKVRW/SIeeNpXVpAMLSwA61k3ZPMi+SMh+g04sk=;
- b=r/TdSoGSBSAH8b1Hui16bTA48bmbcg81DgaU0hEhNJcY0ItEGFLpApnqjb5k7ktF/CIQvgWAadYwPXV/phNwBcVKWVBX0g/PtbZFNIfT0mdikGkUpUGlSrtOS6s8UNu//nd9cCh05ScoBTPUCROzXyZAVKk+7aDCGo7qXBCsQ64=
-Received: from CY4PR1101MB2262.namprd11.prod.outlook.com (2603:10b6:910:18::7)
- by CY4PR1101MB2104.namprd11.prod.outlook.com (2603:10b6:910:1b::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2750.21; Thu, 27 Feb
- 2020 14:07:10 +0000
-Received: from CY4PR1101MB2262.namprd11.prod.outlook.com
- ([fe80::41d8:8839:d18d:3f9d]) by CY4PR1101MB2262.namprd11.prod.outlook.com
- ([fe80::41d8:8839:d18d:3f9d%7]) with mapi id 15.20.2750.021; Thu, 27 Feb 2020
- 14:07:10 +0000
-From:   "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-To:     Leon Romanovsky <leon@kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-CC:     Maor Gottlieb <maorg@mellanox.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: RE: [PATCH rdma-rc] RDMA/core: Fix pkey and port assignment in
- get_new_pps
-Thread-Topic: [PATCH rdma-rc] RDMA/core: Fix pkey and port assignment in
- get_new_pps
-Thread-Index: AQHV7W2M4yEpf3CQsUeYRETD+oyVSKgvDcVg
-Date:   Thu, 27 Feb 2020 14:07:10 +0000
-Message-ID: <CY4PR1101MB2262DAEFBC6C06EDF69B0F1286EB0@CY4PR1101MB2262.namprd11.prod.outlook.com>
-References: <20200227125728.100551-1-leon@kernel.org>
-In-Reply-To: <20200227125728.100551-1-leon@kernel.org>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.2.0.6
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=mike.marciniszyn@intel.com; 
-x-originating-ip: [192.55.52.215]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 719618b7-cb30-409f-dd9c-08d7bb8e5662
-x-ms-traffictypediagnostic: CY4PR1101MB2104:
-x-microsoft-antispam-prvs: <CY4PR1101MB2104582FF89B5BCA2AEBA0EE86EB0@CY4PR1101MB2104.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:9508;
-x-forefront-prvs: 03264AEA72
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(366004)(199004)(189003)(6506007)(52536014)(2906002)(76116006)(4326008)(5660300002)(54906003)(966005)(498600001)(86362001)(66946007)(33656002)(110136005)(7696005)(186003)(55016002)(9686003)(26005)(71200400001)(66476007)(81156014)(8676002)(81166006)(8936002)(66556008)(64756008)(66446008)(6606295002);DIR:OUT;SFP:1102;SCL:1;SRVR:CY4PR1101MB2104;H:CY4PR1101MB2262.namprd11.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: FRHI3ISVGulMx8uoZ7V9sw79Mn5sYC0P2oYXTpdb1q45rn9Xktt2j2saAA2EA0GnmH90usYamD+6CdX10ZOBbF0ZuLV2Q4aG8B5xBK/LhBmcvmKVz6gOCS4lv452g4580wCqzobeMkSHttyzEB770fII5/2qevzs/nFGpJ0Rpvae5lQg3OY//g2Tae68UhLGhmAN2UU28UgQyu0i+pOiA0b6qtyi42QfZzRrh0+Yvx3vsWNWskaNtSMN+Oa/SHl9I/MN2U1n3y184+ZKA8ju3Vtg8+xeb4oblHFLoNyuOgI3RUV579nEv+3p2GCHahK8//ZlnTI3ziy+ihWt2K8S/DS1yEi1fRNV85CIusKz78siNZLE2iduLgyDzbdCAbwH3Mk98/dVJ5QN29Uak2+EqFQqq7GzvCc2Jo2NpOm/DEclOFnugE3EmSp7gWJU8Ozo2vwPAq+lqnHj1t88+xtEGAEn3Iij39kDpftopMXydJlfQea+mcJ79sgaWdpln23F6QbmCz8JfbqoBT9twhzYC5O5hQlzOtn/KqBEIYbOxSqQMqQhn9wxXVdWK0JvALiW
-x-ms-exchange-antispam-messagedata: CxNpgcbgOnh6zB1KzVUckymf1oeOAunO72bD+U4RccN6I5r0aoRhJQRE4rc7d8YZOOMfK0+TrED9WQZjksgb8REjrZ1olYIPlB99aC7phT0d45Cjz2vn5Jh7jaar1TlG7n7XPWAz+Fhr0FSxhCU1UQ==
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+ bh=SQao1s2mb3ImzjwT94Ls4sDwIFJz1b34eRjgTfJS/kY=;
+ b=Y7WukRDBN6GdialJc9zVST4dQUktiFE7bjAQ/a+OPGEPEYv5QCFVUgOmuZg+Rk/aZXiI1AWZY5ufNWbDBFlPjUp1i6YAEvcLKZsm6Me8lkAHitv0Y4fjwOe2W229vQBAzFH/NOKZ01TnURU1YxvvaEK+zeVbZwRr/a6KeWHW0Is=
+Authentication-Results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (52.133.14.15) by
+ VI1PR05MB3151.eurprd05.prod.outlook.com (10.170.236.149) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2750.22; Thu, 27 Feb 2020 13:55:33 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d%7]) with mapi id 15.20.2750.021; Thu, 27 Feb 2020
+ 13:55:33 +0000
+Date:   Thu, 27 Feb 2020 09:55:29 -0400
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Michal Kalderon <mkalderon@marvell.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Kamal Heib <kamalheib1@gmail.com>
+Subject: Re: rdma-core new/old compatability
+Message-ID: <20200227135529.GH26318@mellanox.com>
+References: <MN2PR18MB3182F6910B11467374900AD9A1EB0@MN2PR18MB3182.namprd18.prod.outlook.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <MN2PR18MB3182F6910B11467374900AD9A1EB0@MN2PR18MB3182.namprd18.prod.outlook.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-ClientProxiedBy: MN2PR07CA0029.namprd07.prod.outlook.com
+ (2603:10b6:208:1a0::39) To VI1PR05MB4141.eurprd05.prod.outlook.com
+ (2603:10a6:803:44::15)
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-Network-Message-Id: 719618b7-cb30-409f-dd9c-08d7bb8e5662
-X-MS-Exchange-CrossTenant-originalarrivaltime: 27 Feb 2020 14:07:10.4165
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.68.57.212) by MN2PR07CA0029.namprd07.prod.outlook.com (2603:10b6:208:1a0::39) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2772.14 via Frontend Transport; Thu, 27 Feb 2020 13:55:33 +0000
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)     (envelope-from <jgg@mellanox.com>)      id 1j7JdR-0003lY-VL; Thu, 27 Feb 2020 09:55:29 -0400
+X-Originating-IP: [142.68.57.212]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 3dcfde8a-4b02-4d44-1835-08d7bb8cb6e1
+X-MS-TrafficTypeDiagnostic: VI1PR05MB3151:
+X-Microsoft-Antispam-PRVS: <VI1PR05MB3151E7581BA6120BD99CBC73CFEB0@VI1PR05MB3151.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:9508;
+X-Forefront-PRVS: 03264AEA72
+X-Forefront-Antispam-Report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(376002)(346002)(136003)(39860400002)(366004)(189003)(199004)(54906003)(9746002)(66476007)(9786002)(8936002)(86362001)(2616005)(2906002)(26005)(33656002)(66556008)(66946007)(316002)(186003)(3480700007)(4326008)(36756003)(6916009)(81156014)(966005)(478600001)(52116002)(1076003)(81166006)(8676002)(5660300002)(24400500001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB3151;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+Received-SPF: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: egMDjMmFsRLst8EJFFgc0u4rA5G/FBsr1AjMGJbYxpZ0Ls0LCO/mKOOdqPFmIKcAlNeyuvswo8EweI1Lw+5dOQs2IEoOk0NlwUlk92waha32RIyyvAE8gtFejh/C6iJOCvT/WCuXkenEFFnEAjZ4b6mgyDgIsvLd8G1oJuCth+0zS0ta5kuGhfqZsHaN3Q35bdHD9UodDG7TizYQxuvMXVFbkDttR2ceLJNrwdjXMNwMb49jBulcomdogw63v3XsutQ0QJgmJJkfCaK3vL/KTJkTy2ISQ10LQVqTKVJ2FXnMEXmhukj9hkGXGEIUJfKDEso58YxjGVx/9h0j5JxeEl1JrprwomoqiDAL8Lv26bHhigJ2D2Q231rmofIjYrOkeT7GHfEb1J+5p2KHVkriKP2VXuILGVTqh0kOSun/EC8yQYkPdfRUF1vgDNs1sX+QA4ZgiCIl6D9hPczICH6gWvXguOeO8XJZwxUirkZ43AZg3aowaQ1hf37C9q2Jwe5cU3/oO/Z4ouLfDMpD8ImMx1kUAIGraVw221WRUGdlqBHLxK+t0I+R9gsq9ey5x51+
+X-MS-Exchange-AntiSpam-MessageData: 3TSjg8jihwFSaVEPKapCP4Ze1cwkVGrQ46d5gjEwhmZqFp6lpWdYDTXkgT7yJPKSm65nXYdkSRm4jL3FEI74zLbN++o0ycik69Njf8sg/Dxfsy0B3TLf0D4KApU4D6gZcfqs4OB8A+KyzvK5wa+JkA==
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3dcfde8a-4b02-4d44-1835-08d7bb8cb6e1
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Feb 2020 13:55:33.5814
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: X9EENtYa0wpr78OTcOAQu6CwqpnVWOXYrJ/16hcgKCOh5K41OkHM/nRU6UeXToXOvi0vQwAnt2x9Lihck7i+MD2dsnHwW6x7lBhtu6Al+ng=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR1101MB2104
-X-OriginatorOrg: intel.com
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: K+Tqj+e7fW3/v0t/Oe05tCT/GVlp0mps0wgycXiHP00GWQcQqJdsOtlX5XvFugUholyEg8mDnpfQOEw10VT56g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB3151
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
->=20
-> From: Maor Gottlieb <maorg@mellanox.com>
->=20
-> When port is part of the modify mask, then we should take
-> it from the qp_attr and not from the old pps. Same for PKEY.
->=20
-> Cc: <stable@vger.kernel.org>
-> Fixes: 1dd017882e01 ("RDMA/core: Fix protection fault in
-> get_pkey_idx_qp_list")
-> Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  drivers/infiniband/core/security.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/security.c
-> b/drivers/infiniband/core/security.c
-> index b9a36ea244d4..2d5608315dc8 100644
-> --- a/drivers/infiniband/core/security.c
-> +++ b/drivers/infiniband/core/security.c
-> @@ -340,11 +340,15 @@ static struct ib_ports_pkeys *get_new_pps(const
-> struct ib_qp *qp,
->  		return NULL;
->=20
->  	if (qp_attr_mask & IB_QP_PORT)
-> -		new_pps->main.port_num =3D
-> -			(qp_pps) ? qp_pps->main.port_num : qp_attr-
-> >port_num;
-> +		new_pps->main.port_num =3D qp_attr->port_num;
-> +	else if (qp_pps)
-> +		new_pps->main.port_num =3D qp_pps->main.port_num;
-> +
->  	if (qp_attr_mask & IB_QP_PKEY_INDEX)
-> -		new_pps->main.pkey_index =3D (qp_pps) ? qp_pps-
-> >main.pkey_index :
-> -						      qp_attr->pkey_index;
-> +		new_pps->main.pkey_index =3D qp_attr->pkey_index;
-> +	else if (qp_pps)
-> +		new_pps->main.pkey_index =3D qp_pps->main.pkey_index;
-> +
->  	if ((qp_attr_mask & IB_QP_PKEY_INDEX) && (qp_attr_mask &
-> IB_QP_PORT))
->  		new_pps->main.state =3D IB_PORT_PKEY_VALID;
->=20
+On Thu, Feb 27, 2020 at 01:11:13PM +0000, Michal Kalderon wrote:
+> Hi Kamal, Jason, 
+> 
+> Running a version of ibv_devinfo compiled against an old rdma-core (ibv_devinfo from libibverbs-utils-16.2-3-fc28.x86_64 )
+> failed to run with rdma-core release 28.0 for qedr.
+> 
+> The patch that caused this is commit c2841076
+> https://github.com/linux-rdma/rdma-core/commit/c28410765bdfe5cbed3cb2cdb1584eac3941469c#diff-8da8bc8b2790169de557d5dee83a278e
+> c28410765bdf 
+> 
+> libibverbs: Fix incorrect return code ...
+> 
+> The proper return code is EOPNOTSUPP when an operation is not supported.
+> 
+> Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
+> 
+> The reason it failed is because qedr doesn't have a query_device_ex
+> callback, so vctx->query_device_ex returns EOPNOTSUPP, and old
+> libibverbs Compares the return code to ENOSYS
 
-I agree with this aspect of the patch and it does fix the panic, because th=
-e correct unit
-is gotten from qp_pps.
+This is surprising and unfortunate
 
-My issue is that the new_pps->main.state will come back as 0, and the inser=
-t routine will drop any new pkey index update.
+> I think applications compiled against old rdma-core should continue
+> to run on new ones as well.  Can this commit be reverted?
 
-The sequence I'm concerned about is:
+I would prefer to only revert the little bit that might be needed for
+compatability.
 
-0x71 attr mask with both pkey index and port.
+Perhaps we should change the dummy function to implement
+query_device_ex for all providers? Zeroing the extended data should be
+sufficient I think.
 
-A ulp decides to change the pkey index and does an 0x51 modify without sett=
-ing the unit.
+Unfortunately we are changing return codes inadvertantly quite often,
+and the providers tend to use different codes.
 
-I see new_pps->main.state being returned as 0 and port_pkey_list_insert() w=
-ill early out.
-
-I asked this exact question in https://marc.info/?l=3Dlinux-rdma&m=3D158278=
-763015030&w=3D2.
-
-I also asked about the logical or, and you answered that pointing to an add=
-itional patch.
-
-You but didn't address the main.state being 0 and losing the pkey_index upd=
-ate in the 0x51 modify.
-
-Mike
-
-
-
-
-
-
+Jason
