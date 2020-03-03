@@ -2,155 +2,164 @@ Return-Path: <SRS0=qw0q=4U=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BE73C3F2D7
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Mar 2020 16:59:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA079C3F2D1
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Mar 2020 20:30:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6FB0B20836
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Mar 2020 16:59:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583254753;
-	bh=Mgy9cs++agZ+xTJ9o9y0uZ2iSXEwPaWUSSBnB1WigXk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=In8GF/jCBMORZ563PdSEypR2qg6wYydhLbbWZytyHbMkPlCF5M1pIcbst5UFrU/FX
-	 3263FeFE3QzaaWorG1tXfNQKDI2qpMPSMsymIJw/nrmnqMHX88zyIwnOhpbJS1eccK
-	 rxV2mMSXqrFgOB9ff9WVIS/Cb9JGIXqAtV3Mxp+M=
+	by mail.kernel.org (Postfix) with ESMTP id 88D6E206D5
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Mar 2020 20:30:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="oMnlxAfa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727909AbgCCQ7M (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 3 Mar 2020 11:59:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56538 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727077AbgCCQ7M (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 3 Mar 2020 11:59:12 -0500
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4CCF220838;
-        Tue,  3 Mar 2020 16:59:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583254751;
-        bh=Mgy9cs++agZ+xTJ9o9y0uZ2iSXEwPaWUSSBnB1WigXk=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=TiPW+mtKVjpy3KV2KLRtpTI+WjwrXQZ7WSAtG0v/r6buEXIcqZ5DVt4yEhTrzxti9
-         bQ3tE7mLSpwH2bdnVKmhMxPUF+JkdSCfqJGng78M7TrIM8GyNvpDw0QtN0zeH0JA/L
-         h3XEwFGCJ31saODQcrMdTvFPgg+ucdbNxHwuaOXY=
-Date:   Tue, 3 Mar 2020 18:59:06 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Cc:     Jack Wang <jinpuwang@gmail.com>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        Roman Penyaev <rpenyaev@suse.de>,
-        Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
-Subject: Re: [PATCH v9 10/25] RDMA/rtrs: server: main functionality
-Message-ID: <20200303165906.GO121803@unreal>
-References: <20200221104721.350-1-jinpuwang@gmail.com>
- <20200221104721.350-11-jinpuwang@gmail.com>
- <20200303113740.GM121803@unreal>
- <CAMGffEmEeK37QCr8uiABjOrC-48nETTv0fxHWE0S0s=j6bPbGQ@mail.gmail.com>
+        id S1731498AbgCCUar (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 3 Mar 2020 15:30:47 -0500
+Received: from mail-qk1-f194.google.com ([209.85.222.194]:45512 "EHLO
+        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730517AbgCCUaq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 3 Mar 2020 15:30:46 -0500
+Received: by mail-qk1-f194.google.com with SMTP id z12so4777456qkg.12
+        for <linux-rdma@vger.kernel.org>; Tue, 03 Mar 2020 12:30:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=123P9xQGjDkfvy5FsfzCO+UHa3rPS90oX4YiNtrqhWw=;
+        b=oMnlxAfaYeplW2vLS+DWelhhqH2WlAWDjWhlmOpKI/Duis+KxRNZz0/D21oxnIgULq
+         zgeFL7J09p5zRhZuEiKU0A44Iu5zo8t+DAT7bnK0R6jWCKxZu9EiFF2RPSzmDmGj4VrH
+         tf7m31BweTtKuVIIt2STCEMTZ0cceLF+cd7HOfySR6MP55Rp/mbHm7fZqGKtobukvEcU
+         ljoVaZjkKpl/W7a8I7QTI0PglgMnhhQyWFvFFnxXtVcWM7zeIZhJC8+X3vYRqswNkfOY
+         cu3Mfw6hiICbp67BUYQ7hRzo6QPjj/cdCqCUkIxbss5FMfZP/R8F0zE6KUY4z567HMKm
+         HPcw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=123P9xQGjDkfvy5FsfzCO+UHa3rPS90oX4YiNtrqhWw=;
+        b=SaW2F9ZZSb8tBAGrOhx4lgT4IzLU04PhKsqtb+iqx0PNjRHimb5nHPTp1ywu0MiraO
+         T0RNoLYDEo3zxwmTkGsL3jZw2eg+82e+rS655HW1cU1Qp6o+2qHOzqIr6TtPU7hQEPln
+         /KQx0VYKt9zm1zdAvf1nCSj9PGFcJZEKH3kUisCduzPDBawu9hk99woOZbm7XZJ4Iw5L
+         cFfRC7JyyUu8LQbSvGwcnXOA2nIkZNqgooAbVDmQ8ehATLRI6rfMBRMlcBB9RtCOx9ab
+         MI0Vl+EOGPisfIu/+eOFd31w7H4Whh3U409RYDEACAQDHDr1Uy8F7oRz2u9677tE3qDR
+         0SfA==
+X-Gm-Message-State: ANhLgQ0nJ8kizEoVShRPDHivCSvjX6CMXo1dLnu8ss/KTvLnHbBvGdHU
+        e6eIcmI7jWH36byBFytDJV1bjQ==
+X-Google-Smtp-Source: ADFU+vvHp3YJ4Y5ualAljJKts6XGmz1AJG7ZhH+LdzPqAcNANHKw/6O07c7kM42eTFtS7Agx619UJA==
+X-Received: by 2002:a37:67d3:: with SMTP id b202mr5746959qkc.496.1583267445778;
+        Tue, 03 Mar 2020 12:30:45 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id t29sm13453204qtt.20.2020.03.03.12.30.45
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 03 Mar 2020 12:30:45 -0800 (PST)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1j9EBg-0001xh-AJ; Tue, 03 Mar 2020 16:30:44 -0400
+Date:   Tue, 3 Mar 2020 16:30:44 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     syzbot <syzbot+46fe08363dbba223dec5@syzkaller.appspotmail.com>,
+        gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, rafael@kernel.org,
+        syzkaller-bugs@googlegroups.com,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: general protection fault in kobject_get
+Message-ID: <20200303203044.GD31668@ziepe.ca>
+References: <000000000000c4b371059fd83a92@google.com>
+ <20200303072558.GF121803@unreal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAMGffEmEeK37QCr8uiABjOrC-48nETTv0fxHWE0S0s=j6bPbGQ@mail.gmail.com>
+In-Reply-To: <20200303072558.GF121803@unreal>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Mar 03, 2020 at 05:41:27PM +0100, Jinpu Wang wrote:
-> On Tue, Mar 3, 2020 at 12:37 PM Leon Romanovsky <leon@kernel.org> wrote:
+On Tue, Mar 03, 2020 at 09:25:58AM +0200, Leon Romanovsky wrote:
+> +RDMA
+> 
+> On Sun, Mar 01, 2020 at 09:12:11PM -0800, syzbot wrote:
+> > Hello,
 > >
-> > On Fri, Feb 21, 2020 at 11:47:06AM +0100, Jack Wang wrote:
-> > > From: Jack Wang <jinpu.wang@cloud.ionos.com>
-> > >
-> > > This is main functionality of rtrs-server module, which accepts
-> > > set of RDMA connections (so called rtrs session), creates/destroys
-> > > sysfs entries associated with rtrs session and notifies upper layer
-> > > (user of RTRS API) about RDMA requests or link events.
-> > >
-> > > Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
-> > > Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-> > > ---
-> > >  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 2164 ++++++++++++++++++++++++
-> > >  1 file changed, 2164 insertions(+)
-> > >  create mode 100644 drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > >
-> > > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > > new file mode 100644
-> > > index 000000000000..e60ee6dd675d
-> > > --- /dev/null
-> > > +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > > @@ -0,0 +1,2164 @@
-> > > +// SPDX-License-Identifier: GPL-2.0-or-later
-> > > +/*
-> > > + * RDMA Transport Layer
-> > > + *
-> > > + * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
-> > > + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
-> > > + * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
-> > > + */
-> > > +
-> > > +#undef pr_fmt
-> > > +#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
-> > > +
-> > > +#include <linux/module.h>
-> > > +#include <linux/mempool.h>
-> > > +
-> > > +#include "rtrs-srv.h"
-> > > +#include "rtrs-log.h"
-> > > +
-> > > +MODULE_DESCRIPTION("RDMA Transport Server");
-> > > +MODULE_LICENSE("GPL");
-> > > +
-> > > +/* Must be power of 2, see mask from mr->page_size in ib_sg_to_pages() */
-> > > +#define DEFAULT_MAX_CHUNK_SIZE (128 << 10)
-> > > +#define DEFAULT_SESS_QUEUE_DEPTH 512
-> > > +#define MAX_HDR_SIZE PAGE_SIZE
-> > > +#define MAX_SG_COUNT ((MAX_HDR_SIZE - sizeof(struct rtrs_msg_rdma_read)) \
-> > > +                   / sizeof(struct rtrs_sg_desc))
-> > > +
-> > > +/* We guarantee to serve 10 paths at least */
-> > > +#define CHUNK_POOL_SZ 10
-> > > +
-> > > +static struct rtrs_rdma_dev_pd dev_pd;
-> > > +static mempool_t *chunk_pool;
-> > > +struct class *rtrs_dev_class;
-> > > +
-> > > +static int __read_mostly max_chunk_size = DEFAULT_MAX_CHUNK_SIZE;
-> > > +static int __read_mostly sess_queue_depth = DEFAULT_SESS_QUEUE_DEPTH;
-> > > +
-> > > +static bool always_invalidate = true;
-> > > +module_param(always_invalidate, bool, 0444);
-> > > +MODULE_PARM_DESC(always_invalidate,
-> > > +              "Invalidate memory registration for contiguous memory regions before accessing.");
-> > > +
-> > > +module_param_named(max_chunk_size, max_chunk_size, int, 0444);
-> > > +MODULE_PARM_DESC(max_chunk_size,
-> > > +              "Max size for each IO request, when change the unit is in byte (default: "
-> > > +              __stringify(DEFAULT_MAX_CHUNK_SIZE) "KB)");
-> > > +
-> > > +module_param_named(sess_queue_depth, sess_queue_depth, int, 0444);
-> > > +MODULE_PARM_DESC(sess_queue_depth,
-> > > +              "Number of buffers for pending I/O requests to allocate per session. Maximum: "
-> > > +              __stringify(MAX_SESS_QUEUE_DEPTH) " (default: "
-> > > +              __stringify(DEFAULT_SESS_QUEUE_DEPTH) ")");
+> > syzbot found the following crash on:
 > >
-> > We don't like module parameters in the RDMA.
-> Hi Leon,
->
-> These paramters are affecting resouce usage/performance, I think would
-> be good to have them as module parameters,
-> so admin could choose based their needs.
+> > HEAD commit:    3b3e808c Merge tag 'mac80211-next-for-net-next-2020-02-24'..
+> > git tree:       net-next
+> > console output: https://syzkaller.appspot.com/x/log.txt?x=15e20a2de00000
+> > kernel config:  https://syzkaller.appspot.com/x/.config?x=6ec9623400ee72
+> > dashboard link: https://syzkaller.appspot.com/bug?extid=46fe08363dbba223dec5
+> > compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+> >
+> > Unfortunately, I don't have any reproducer for this crash yet.
+> >
+> > IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> > Reported-by: syzbot+46fe08363dbba223dec5@syzkaller.appspotmail.com
 
-It is premature optimization before second user comes, also it is
-based on the assumption that everyone uses modules, which is not true.
+Hum, most probably something like this.. Will send a proper
+patch. If it is this I am very surprised that it didn't get a
+reproducer, as the fault should be pretty easy to hit, no race required..
 
-Thanks
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index d1407fa378e832..e43ec710092a94 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -1129,17 +1129,30 @@ static const struct file_operations umad_sm_fops = {
+ 	.llseek	 = no_llseek,
+ };
+ 
++static struct ib_umad_port *get_port(struct ib_device *ibdev,
++				     struct ib_umad_device *umad_dev,
++				     unsigned int port)
++{
++	if (!umad_dev)
++		return ERR_PTR(-EOPNOTSUPP);
++	if (!rdma_is_port_valid(ibdev, port))
++		return ERR_PTR(-EINVAL);
++	if (!rdma_cap_ib_mad(ibdev, port))
++		return ERR_PTR(-EOPNOTSUPP);
++
++	return &umad_dev->ports[port - rdma_start_port(ibdev)];
++}
++
+ static int ib_umad_get_nl_info(struct ib_device *ibdev, void *client_data,
+ 			       struct ib_client_nl_info *res)
+ {
+-	struct ib_umad_device *umad_dev = client_data;
++	struct ib_umad_port *port = get_port(ibdev, client_data, res->port);
+ 
+-	if (!rdma_is_port_valid(ibdev, res->port))
+-		return -EINVAL;
++	if (IS_ERR(port))
++		return PTR_ERR(port);
+ 
+ 	res->abi = IB_USER_MAD_ABI_VERSION;
+-	res->cdev = &umad_dev->ports[res->port - rdma_start_port(ibdev)].dev;
+-
++	res->cdev = &port->dev;
+ 	return 0;
+ }
+ 
+@@ -1154,15 +1167,13 @@ MODULE_ALIAS_RDMA_CLIENT("umad");
+ static int ib_issm_get_nl_info(struct ib_device *ibdev, void *client_data,
+ 			       struct ib_client_nl_info *res)
+ {
+-	struct ib_umad_device *umad_dev =
+-		ib_get_client_data(ibdev, &umad_client);
++	struct ib_umad_port *port = get_port(ibdev, client_data, res->port);
+ 
+-	if (!rdma_is_port_valid(ibdev, res->port))
+-		return -EINVAL;
++	if (IS_ERR(port))
++		return PTR_ERR(port);
+ 
+ 	res->abi = IB_USER_MAD_ABI_VERSION;
+-	res->cdev = &umad_dev->ports[res->port - rdma_start_port(ibdev)].sm_dev;
+-
++	res->cdev = &port->sm_dev;
+ 	return 0;
+ }
+ 
