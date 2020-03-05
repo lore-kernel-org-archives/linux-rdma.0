@@ -2,53 +2,49 @@ Return-Path: <SRS0=0596=4W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D0C5C3F2D1
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C2FFC3F2D1
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB4ED208C3
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F245420848
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583420501;
-	bh=1NM0L5xxx9b/mKgZd69ii4ycdt1d2ekJnwBhHpgDRJE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=cMyWpxHflIj1MjZg4AiZVZAa9i/z3RPgoapHg0JTMceGpqOnqWntyBCdr3+2RQ4bD
-	 TFgKDJrP2pZbuA3zciicELSSLbUHCx0ir7SHTz3HggsJdWNR7UZXRR7dd/cVn5bbVX
-	 lueZIq74KmS8AsXpV/a+CDvL3PZYoLmiIjc6cNgM=
+	s=default; t=1583420650;
+	bh=hIKb3y0aYDuRFwJO66rBKzMjmipFBrtfAtYEVrKCNpg=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=tmZcsROzjoOCJyKIcuufoUL3q0GvWHxZ6uahQifbrfMCqUPLq1ARISvwlHEWVtOzg
+	 ZtLRSjdA1G5av9NKehwXAjbOiGoYAjYv+gz0PP2iZRtswbW/alejmrUFAL0T2o5cUz
+	 d6Zdh9p0hFYhdiWilsiFMb+tiLYvt995KekPJAJ4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726234AbgCEPBk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 10:01:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46916 "EHLO mail.kernel.org"
+        id S1726282AbgCEPEJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 10:04:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47588 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726128AbgCEPBk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 10:01:40 -0500
+        id S1725963AbgCEPEJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 10:04:09 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5FB620848;
-        Thu,  5 Mar 2020 15:01:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7CEFC20801;
+        Thu,  5 Mar 2020 15:04:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583420499;
-        bh=1NM0L5xxx9b/mKgZd69ii4ycdt1d2ekJnwBhHpgDRJE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=XE6iEYnmZXZWqSMBDIMg2Utaq1x1SVh0Z2PGZeBUQ+GKttGcFekAaTkaxdkOUSlyQ
-         AuR+Ek0HRivMCaiA5QK6ImYXiF20nP6brFnRaqcl1TGET5Fy4D0ABqAbRBDbLwrl50
-         mav3gvErJdwjcn8RIE+lUIpwuOs6kqvtBMYaEEsc=
+        s=default; t=1583420648;
+        bh=hIKb3y0aYDuRFwJO66rBKzMjmipFBrtfAtYEVrKCNpg=;
+        h=From:To:Cc:Subject:Date:From;
+        b=NLXKaGS29oimeBmw0hjBcdBpvv+G9v0aCUVkBJU2YFmBRZf2Pt4mMWU71YCMCVAk2
+         rn89L1qpVOkFyNZRpBR/iWeNjLEiigFxcDahWAJ5tVFT8/bFnUDClYz9fj8Pl+USTd
+         UtFX1+f87jqEtkIWFy6HrY0RbGH22gmebKEgyW54=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Mark Zhang <markz@mellanox.com>
-Subject: [PATCH rdma-next 6/9] RDMA/ucma: Deliver ECE parameters through UCMA events
-Date:   Thu,  5 Mar 2020 17:01:02 +0200
-Message-Id: <20200305150105.207959-7-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [RFC PATCH rdma-core 00/11] Add Enhanced Connection Established (ECE) APIs
+Date:   Thu,  5 Mar 2020 17:03:45 +0200
+Message-Id: <20200305150356.208843-1-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200305150105.207959-1-leon@kernel.org>
-References: <20200305150105.207959-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -58,57 +54,103 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Passive side of CMID connection receives ECE request through
-REQ message and needs to respond with relevant REP message which
-will be forwarded to active side.
+Hi,
 
-The UCMA events interface is responsible for such communication
-with the user space (librdmacm). Extend it to provide ECE wire
-data.
+This is user space part of previously sent kernel part. It is marked as RFC because
+libmlx5 patch is not final and will be rewritten, however the concept is pretty solid.
+I'm posting the series to the ML in attempt to gather feedback, and I already aware
+of need to extend man pages to include definitions of struct ibv_ece.
 
-Reviewed-by: Mark Zhang <markz@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/ucma.c | 6 +++++-
- include/rdma/rdma_cm.h         | 1 +
- 2 files changed, 6 insertions(+), 1 deletion(-)
+Thanks
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index c06394350fed..d2aeb23e6a3c 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -360,6 +360,9 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
- 		ucma_copy_conn_event(&uevent->resp.param.conn,
- 				     &event->param.conn);
+-------------------------------------------------------------------------------------
+Enhanced Connection Established or ECE is new negotiation scheme
+introduced in IBTA v1.4 to exchange extra information about nodes
+capabilities and later negotiate them at the connection establishment
+phase.
 
-+	uevent->resp.ece.vendor_id = event->ece.vendor_id;
-+	uevent->resp.ece.attr_mod = event->ece.attr_mod;
-+
- 	if (event->event == RDMA_CM_EVENT_CONNECT_REQUEST) {
- 		if (!ctx->backlog) {
- 			ret = -ENOMEM;
-@@ -404,7 +407,8 @@ static ssize_t ucma_get_event(struct ucma_file *file, const char __user *inbuf,
- 	 * Old 32 bit user space does not send the 4 byte padding in the
- 	 * reserved field. We don't care, allow it to keep working.
- 	 */
--	if (out_len < sizeof(uevent->resp) - sizeof(uevent->resp.reserved))
-+	if (out_len < sizeof(uevent->resp) - sizeof(uevent->resp.reserved) -
-+			      sizeof(uevent->resp.ece))
- 		return -ENOSPC;
+The RDMA-CM messages (REQ, REP, SIDR_REQ and SIDR_REP) were extended
+to carry two fields, one new and another gained new functionality:
+ * VendorID is a new field that indicates that common subset of vendor
+   option bits are supported as indicated by that VendorID.
+ * AttributeModifier already exists, but overloaded to indicate which
+   vendor options are supported by this VendorID.
 
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
-diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index 86a849214c84..761168c41848 100644
---- a/include/rdma/rdma_cm.h
-+++ b/include/rdma/rdma_cm.h
-@@ -111,6 +111,7 @@ struct rdma_cm_event {
- 		struct rdma_conn_param	conn;
- 		struct rdma_ud_param	ud;
- 	} param;
-+	struct rdma_ucm_ece ece;
- };
+The general (success) communication flow can be described by the following table:
 
- struct rdma_cm_id;
+------------------------------------------------------------------------------
+Requester (client)                        | Responder (server)
+-----------------------------------------------------------------------------
+1. Create data QP.                        |
+2. Get ECE information about this QP.     |
+3. Update REQ message with local ECE data.|
+4. Send REQ message with rdma_connect().  |
+                                          | 5. Get REQ message with rdma_get_events.
+                                          | 6. Read remote ECE data from the REQ message.
+                                          | 7. Create data QP.
+                                          | 8. Set in QP the desired ECE options by giving remote ECE data.
+                                          | 9. Read accepted local ECE options.
+                                          |10. Modify QP based on those options.
+                                          |11. Fill local ECE options in REP message.
+                                          |12. Send REP message with rdma_accept().
+13. Receive REP message.                  |
+14. Read remote ECE data from REP message.|
+15. Set in QP remote ECE data             |
+16. Modify QP based on remote ECE data    |
+------------------------------------------------------------------------------
+
+In case the server decides to reject connection, the items #9-10 will be
+replaced with rdma_reject_ece() call that will send REJ message together
+with "ECE options not supported" reason as described in the IBTA.
+
+Thanks
+
+Leon Romanovsky (11):
+  Update kernel headers
+  libibverbs: Add interfaces to configure and use ECE
+  mlx5: Implement ECE callbacks
+  libibverbs: Document ECE API
+  debian: Install all available librdmacm man pages
+  librdmacm: Provide interface to use ECE for external QPs
+  librdmacm: Connect rdma_connect to the ECE
+  librdmacm: Return ECE results through rdma_accept
+  librdmacm: Add an option to reject ECE request
+  librdmacm: Implement ECE handshake logic
+  librdmacm: Document ECE API
+
+ CMakeLists.txt                         |   2 +-
+ debian/libibverbs1.symbols             |   5 +-
+ debian/librdmacm-dev.install           |  53 +---------
+ debian/librdmacm1.symbols              |   4 +
+ kernel-headers/rdma/rdma_user_cm.h     |  15 ++-
+ libibverbs/CMakeLists.txt              |   2 +-
+ libibverbs/driver.h                    |   2 +
+ libibverbs/dummy_ops.c                 |  14 +++
+ libibverbs/libibverbs.map.in           |   6 ++
+ libibverbs/man/CMakeLists.txt          |   2 +
+ libibverbs/man/ibv_query_ece.3.md      |  56 +++++++++++
+ libibverbs/man/ibv_set_ece.3.md        |  61 ++++++++++++
+ libibverbs/verbs.c                     |  15 +++
+ libibverbs/verbs.h                     |  18 ++++
+ librdmacm/CMakeLists.txt               |   2 +-
+ librdmacm/cma.c                        | 130 +++++++++++++++++++++++--
+ librdmacm/librdmacm.map                |   7 ++
+ librdmacm/man/CMakeLists.txt           |   2 +
+ librdmacm/man/rdma_cm.7                |  14 ++-
+ librdmacm/man/rdma_get_remote_ece.3.md |  61 ++++++++++++
+ librdmacm/man/rdma_set_local_ece.3.md  |  62 ++++++++++++
+ librdmacm/rdma_cma.h                   |  24 +++++
+ librdmacm/rdma_cma_abi.h               |  15 ++-
+ providers/mlx5/mlx5.c                  |   6 +-
+ providers/mlx5/mlx5.h                  |  10 ++
+ providers/mlx5/qp.c                    |  33 +++++++
+ providers/mlx5/verbs.c                 |   9 ++
+ 27 files changed, 560 insertions(+), 70 deletions(-)
+ create mode 100644 libibverbs/man/ibv_query_ece.3.md
+ create mode 100644 libibverbs/man/ibv_set_ece.3.md
+ create mode 100644 librdmacm/man/rdma_get_remote_ece.3.md
+ create mode 100644 librdmacm/man/rdma_set_local_ece.3.md
+
 --
 2.24.1
 
