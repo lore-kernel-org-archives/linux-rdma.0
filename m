@@ -2,111 +2,272 @@ Return-Path: <SRS0=0596=4W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35921C3F2D1
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 08:00:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F92FC3F2CD
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 11:23:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0AB4F208C3
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 08:00:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="IJfOiyXm"
+	by mail.kernel.org (Postfix) with ESMTP id 02B942073D
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 11:23:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725990AbgCEIA3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 03:00:29 -0500
-Received: from aserp2120.oracle.com ([141.146.126.78]:43290 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725897AbgCEIA3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Mar 2020 03:00:29 -0500
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0257w7Li123308;
-        Thu, 5 Mar 2020 08:00:17 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=tGxrfxnsYHWmjW6L+VGIvzPWMrDbApWGxS/7d/RBRbg=;
- b=IJfOiyXmVGsbERPj4dCy+ZqeA6zC4posUFIz8gxZb1qdNKJkKd42YSfE8DcM3hAjiRGB
- +yiXfzBArDIy5HnvqUYlKgxEI19xX3smlY7dVq0XXbjZ9RW/7u5xy4dwTyA4ekG2hKQ/
- IMgCdEvTu14u0MgO88OBS8AErs49iZY8rmbHajo70c+wjmY1GFxp+H/yx115y0/IQuoC
- jSddqA8sCaweyTSA4B0me719CamDJCHXz/Bg0i4T/dKkIgHwpZRkSrcuR8zHK6NXw3ao
- 2Cd0sw0M73Oha4RviLxcYfA/GJ/R+MQgB5yrtTiChntJoI4W18vjM+ubljS7Mxhz7ZD3 1g== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 2yffwr3e9w-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 05 Mar 2020 08:00:17 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0257uZJp194450;
-        Thu, 5 Mar 2020 08:00:16 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by userp3020.oracle.com with ESMTP id 2yg1p9ungw-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 05 Mar 2020 08:00:16 +0000
-Received: from abhmp0010.oracle.com (abhmp0010.oracle.com [141.146.116.16])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 02580F9D016770;
-        Thu, 5 Mar 2020 08:00:15 GMT
-Received: from kadam (/41.210.146.162)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 05 Mar 2020 00:00:14 -0800
-Date:   Thu, 5 Mar 2020 11:00:04 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Saeed Mahameed <saeedm@mellanox.com>
-Cc:     Eli Cohen <eli@mellanox.com>,
-        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
-        Mark Bloch <markb@mellanox.com>,
-        Paul Blakey <paulb@mellanox.com>,
+        id S1726048AbgCELXB convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 06:23:01 -0500
+Received: from szxga03-in.huawei.com ([45.249.212.189]:2597 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725880AbgCELXB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 06:23:01 -0500
+Received: from dggeml405-hub.china.huawei.com (unknown [172.30.72.54])
+        by Forcepoint Email with ESMTP id 67D3155AFBFA841DD1AB;
+        Thu,  5 Mar 2020 19:22:27 +0800 (CST)
+Received: from DGGEML522-MBX.china.huawei.com ([169.254.7.20]) by
+ dggeml405-hub.china.huawei.com ([10.3.17.49]) with mapi id 14.03.0439.000;
+ Thu, 5 Mar 2020 19:22:18 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "leon@kernel.org" <leon@kernel.org>
-Subject: Re: [PATCH] net/mlx5e: Fix an IS_ERR() vs NULL check
-Message-ID: <20200305080004.GA19839@kadam>
-References: <20200304142151.qivcobp6ngrynb2p@kili.mountain>
- <10527910074442142431505e9d424af9128e8c5c.camel@mellanox.com>
+        Linuxarm <linuxarm@huawei.com>
+Subject: Re: [PATCH for-next 3/5] RDMA/hns: Optimize the wr opcode
+ conversion from ib to hns
+Thread-Topic: [PATCH for-next 3/5] RDMA/hns: Optimize the wr opcode
+ conversion from ib to hns
+Thread-Index: AQHV8IxL8apXlqGeX0KNORb5L2i78Q==
+Date:   Thu, 5 Mar 2020 11:22:18 +0000
+Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A02274225@DGGEML522-MBX.china.huawei.com>
+References: <1583151093-30402-1-git-send-email-liweihang@huawei.com>
+ <1583151093-30402-4-git-send-email-liweihang@huawei.com>
+ <20200305061839.GQ121803@unreal>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.40.168.149]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <10527910074442142431505e9d424af9128e8c5c.camel@mellanox.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9550 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 malwarescore=0
- mlxlogscore=999 mlxscore=0 spamscore=0 adultscore=0 bulkscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2001150001 definitions=main-2003050050
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9550 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 spamscore=0
- impostorscore=0 malwarescore=0 mlxlogscore=999 mlxscore=0 suspectscore=0
- phishscore=0 clxscore=1015 bulkscore=0 adultscore=0 priorityscore=1501
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
- definitions=main-2003050050
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Mar 04, 2020 at 08:31:13PM +0000, Saeed Mahameed wrote:
-> On Wed, 2020-03-04 at 17:22 +0300, Dan Carpenter wrote:
-> > The esw_vport_tbl_get() function returns error pointers on error.
-> > 
-> > Fixes: 96e326878fa5 ("net/mlx5e: Eswitch, Use per vport tables for
-> > mirroring")
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+On 2020/3/5 14:18, Leon Romanovsky wrote:
+> On Mon, Mar 02, 2020 at 08:11:31PM +0800, Weihang Li wrote:
+>> From: Xi Wang <wangxi11@huawei.com>
+>>
+>> Simplify the wr opcode conversion from ib to hns by using a map table
+>> instead of the switch-case statement.
+>>
+>> Signed-off-by: Xi Wang <wangxi11@huawei.com>
+>> Signed-off-by: Weihang Li <liweihang@huawei.com>
+>> ---
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 70 ++++++++++++++++++------------
+>>  1 file changed, 43 insertions(+), 27 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>> index c8c345f..ea61ccb 100644
+>> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>> @@ -56,6 +56,47 @@ static void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
+>>  	dseg->len  = cpu_to_le32(sg->length);
+>>  }
+>>
+>> +/*
+>> + * mapped-value = 1 + real-value
+>> + * The hns wr opcode real value is start from 0, In order to distinguish between
+>> + * initialized and uninitialized map values, we plus 1 to the actual value when
+>> + * defining the mapping, so that the validity can be identified by checking the
+>> + * mapped value is greater than 0.
+>> + */
+>> +#define HR_OPC_MAP(ib_key, hr_key) \
+>> +		[IB_WR_ ## ib_key] = 1 + HNS_ROCE_V2_WQE_OP_ ## hr_key
+>> +
+>> +static const u32 hns_roce_op_code[] = {
+>> +	HR_OPC_MAP(RDMA_WRITE,			RDMA_WRITE),
+>> +	HR_OPC_MAP(RDMA_WRITE_WITH_IMM,		RDMA_WRITE_WITH_IMM),
+>> +	HR_OPC_MAP(SEND,			SEND),
+>> +	HR_OPC_MAP(SEND_WITH_IMM,		SEND_WITH_IMM),
+>> +	HR_OPC_MAP(RDMA_READ,			RDMA_READ),
+>> +	HR_OPC_MAP(ATOMIC_CMP_AND_SWP,		ATOM_CMP_AND_SWAP),
+>> +	HR_OPC_MAP(ATOMIC_FETCH_AND_ADD,	ATOM_FETCH_AND_ADD),
+>> +	HR_OPC_MAP(SEND_WITH_INV,		SEND_WITH_INV),
+>> +	HR_OPC_MAP(LOCAL_INV,			LOCAL_INV),
+>> +	HR_OPC_MAP(MASKED_ATOMIC_CMP_AND_SWP,	ATOM_MSK_CMP_AND_SWAP),
+>> +	HR_OPC_MAP(MASKED_ATOMIC_FETCH_AND_ADD,	ATOM_MSK_FETCH_AND_ADD),
+>> +	HR_OPC_MAP(REG_MR,			FAST_REG_PMR),
+>> +	[IB_WR_RESERVED1] = 0,
 > 
-> Hi Dan the patch looks fine, but you didn't cc netdev mailing list
-> Two options:
+> hns_roce_op_code[] is declared as static, everything is initialized to
+> 0, there is no need to set 0 again.
+
+OK, thank you.
+
 > 
-> 1) I can pick this patch up and repost it myself in a future pull
-> request
+>> +};
+>> +
+>> +static inline u32 to_hr_opcode(u32 ib_opcode)
+> 
+> No inline functions in *.c, please.
 
-I assumed we would do this, because the original patch didn't have
-Dave's signed-off-by.
+Hi Leon,
 
-> 2) you can re-post it and cc netdev also mark it for net [PATCH net]
+Thanks for your comments.
 
-If we were going to go that route then it would have to [PATCH net-next]
-because it doesn't apply to the net tree.
+But I'm confused about when we should use static inline and when we should
+use macros if a function is only used in a *.c. A few days ago, Jason
+suggested me to use static inline functions, you can check the link below:
 
-regards,
-dan carpenter
+https://patchwork.kernel.org/patch/11372851/
 
+Are there any rules about that in kernel or in our rdma subsystem? Should
+I use a macro, just remove the keyword "inline" from this definition or
+move this definition to .h?
+
+> 
+>> +{
+>> +	u32 hr_opcode = 0;
+>> +
+>> +	if (ib_opcode < IB_WR_RESERVED1)
+> 
+> if (ib_opcode > ARRAY_SIZE(hns_roce_op_code) - 1)
+> 	return HNS_ROCE_V2_WQE_OP_MASK;
+> 
+> return hns_roce_op_code[ib_opcode];
+> 
+
+The index of ib_key in hns_roce_op_code[] is not continuous, so there
+are some invalid ib_wr_opcode for hns between the valid index.
+
+For hardware of HIP08, HNS_ROCE_V2_WQE_OP_MASK means invalid opcode but
+not zero. So we have to check if the ib_wr_opcode has a mapping value in
+hns_roce_op_code[], and if the mapping result is zero, we have to return
+HNS_ROCE_V2_WQE_OP_MASK. Is it ok like this?
+
+{
+	u32 hr_opcode = 0;
+
+	if (ib_opcode > ARRAY_SIZE(hns_roce_op_code) - 1)
+ 		return HNS_ROCE_V2_WQE_OP_MASK;
+
+	hr_opcode = hns_roce_op_code[ib_opcode];
+
+	/* exist a valid mapping definition for ib code */
+	if (hr_opcode > 0)
+		return hr_opcode - 1;
+	else
+		return HNS_ROCE_V2_WQE_OP_MASK;
+}
+
+Thanks,
+Weihang
+
+> 
+>> +		hr_opcode = hns_roce_op_code[ib_opcode];
+>> +
+>> +	/* exist a valid mapping definition for ib code */
+>> +	if (hr_opcode > 0)
+>> +		return hr_opcode - 1;
+>> +
+>> +	/* default hns roce wr opcode */
+>> +	return HNS_ROCE_V2_WQE_OP_MASK;
+>> +}
+>> +
+>>  static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+>>  			 void *wqe, const struct ib_reg_wr *wr)
+>>  {
+>> @@ -303,7 +344,6 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+>>  	void *wqe = NULL;
+>>  	bool loopback;
+>>  	u32 tmp_len;
+>> -	u32 hr_op;
+>>  	u8 *smac;
+>>  	int nreq;
+>>  	int ret;
+>> @@ -517,76 +557,52 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+>>  			wqe += sizeof(struct hns_roce_v2_rc_send_wqe);
+>>  			switch (wr->opcode) {
+>>  			case IB_WR_RDMA_READ:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_RDMA_READ;
+>>  				rc_sq_wqe->rkey =
+>>  					cpu_to_le32(rdma_wr(wr)->rkey);
+>>  				rc_sq_wqe->va =
+>>  					cpu_to_le64(rdma_wr(wr)->remote_addr);
+>>  				break;
+>>  			case IB_WR_RDMA_WRITE:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_RDMA_WRITE;
+>>  				rc_sq_wqe->rkey =
+>>  					cpu_to_le32(rdma_wr(wr)->rkey);
+>>  				rc_sq_wqe->va =
+>>  					cpu_to_le64(rdma_wr(wr)->remote_addr);
+>>  				break;
+>>  			case IB_WR_RDMA_WRITE_WITH_IMM:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_RDMA_WRITE_WITH_IMM;
+>>  				rc_sq_wqe->rkey =
+>>  					cpu_to_le32(rdma_wr(wr)->rkey);
+>>  				rc_sq_wqe->va =
+>>  					cpu_to_le64(rdma_wr(wr)->remote_addr);
+>>  				break;
+>> -			case IB_WR_SEND:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_SEND;
+>> -				break;
+>> -			case IB_WR_SEND_WITH_INV:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_SEND_WITH_INV;
+>> -				break;
+>> -			case IB_WR_SEND_WITH_IMM:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_SEND_WITH_IMM;
+>> -				break;
+>>  			case IB_WR_LOCAL_INV:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_LOCAL_INV;
+>>  				roce_set_bit(rc_sq_wqe->byte_4,
+>>  					       V2_RC_SEND_WQE_BYTE_4_SO_S, 1);
+>>  				rc_sq_wqe->inv_key =
+>>  					    cpu_to_le32(wr->ex.invalidate_rkey);
+>>  				break;
+>>  			case IB_WR_REG_MR:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_FAST_REG_PMR;
+>>  				set_frmr_seg(rc_sq_wqe, wqe, reg_wr(wr));
+>>  				break;
+>>  			case IB_WR_ATOMIC_CMP_AND_SWP:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_ATOM_CMP_AND_SWAP;
+>>  				rc_sq_wqe->rkey =
+>>  					cpu_to_le32(atomic_wr(wr)->rkey);
+>>  				rc_sq_wqe->va =
+>>  					cpu_to_le64(atomic_wr(wr)->remote_addr);
+>>  				break;
+>>  			case IB_WR_ATOMIC_FETCH_AND_ADD:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_ATOM_FETCH_AND_ADD;
+>>  				rc_sq_wqe->rkey =
+>>  					cpu_to_le32(atomic_wr(wr)->rkey);
+>>  				rc_sq_wqe->va =
+>>  					cpu_to_le64(atomic_wr(wr)->remote_addr);
+>>  				break;
+>> -			case IB_WR_MASKED_ATOMIC_CMP_AND_SWP:
+>> -				hr_op =
+>> -				       HNS_ROCE_V2_WQE_OP_ATOM_MSK_CMP_AND_SWAP;
+>> -				break;
+>> -			case IB_WR_MASKED_ATOMIC_FETCH_AND_ADD:
+>> -				hr_op =
+>> -				      HNS_ROCE_V2_WQE_OP_ATOM_MSK_FETCH_AND_ADD;
+>> -				break;
+>>  			default:
+>> -				hr_op = HNS_ROCE_V2_WQE_OP_MASK;
+>>  				break;
+>>  			}
+>>
+>>  			roce_set_field(rc_sq_wqe->byte_4,
+>>  				       V2_RC_SEND_WQE_BYTE_4_OPCODE_M,
+>> -				       V2_RC_SEND_WQE_BYTE_4_OPCODE_S, hr_op);
+>> +				       V2_RC_SEND_WQE_BYTE_4_OPCODE_S,
+>> +				       to_hr_opcode(wr->opcode));
+>>
+>>  			if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
+>>  			    wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
+>> --
+>> 2.8.1
+>>
+> 
 
