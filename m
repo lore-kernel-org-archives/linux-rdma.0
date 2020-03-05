@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5D9FC3F2CD
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D915C3F2D1
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F82820801
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CD7E20848
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583420488;
-	bh=RcQ6loenLi2u2fEUFKUX9w1hCpU5w7aF2mSESoYI2Mo=;
+	s=default; t=1583420492;
+	bh=p6dX61Xh8QkDwD99aWTajuGKakYlOAyYPk8Z/X/qP54=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=gDR65vSMm5e8i9cD2x7B+U++Gh+8aB/3K0kD/XbOWmLBv/gT65ZGMnLHlsnggVWnQ
-	 Woks9YqeGY8c/HWqb5A54gi8AQ1sLLkNFJOu/hQkXlVdJL3Wibc7IOSxZYh1QHWPQE
-	 CD5A54W60g/lyIblajElrnDdhPW6f0ACPTcH0fEQ=
+	b=tMYrEP7y93AMqW4eYJvHqvYHUkTml50V/oTRhT6YdJEeS6iDAe7y9qRIgAchs+UX7
+	 lF03yoRdoPezsGOgf4ZPLix5JbsCKk/IzFfGnzsEJvCU4BTEH9dQZp4RVl5p4rPVn/
+	 SjjlE1LECDHQwYYMp3jzxSASYd1iPZcfxLCcYa98=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726178AbgCEPB1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 10:01:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46806 "EHLO mail.kernel.org"
+        id S1726947AbgCEPBb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 10:01:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726947AbgCEPB1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 10:01:27 -0500
+        id S1726128AbgCEPBb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 10:01:31 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 431C420848;
-        Thu,  5 Mar 2020 15:01:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6DFD920801;
+        Thu,  5 Mar 2020 15:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583420486;
-        bh=RcQ6loenLi2u2fEUFKUX9w1hCpU5w7aF2mSESoYI2Mo=;
+        s=default; t=1583420490;
+        bh=p6dX61Xh8QkDwD99aWTajuGKakYlOAyYPk8Z/X/qP54=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ks4I3cYKqiS7axFRNK1BQqUbT8MlPmtwc5xWbNdISA4MiPXN86LnJhPdfTYwtQcH7
-         nvQNsdMwbmTp+FGDJ2vQcQDDU2U7DFoJCAn8aeI9Aq9N2aYq49+J0Tmhay6QcFFPbf
-         Ki0YCBakJmKPKxvD54fb30sOfIOneo1hh+01fOC0=
+        b=o+zqjADB6Hk+PJsSd8Efk1HjOV8eYPAYrgzNRHDwFdtxUZrT+RIrCcgrQV8aYtsjw
+         QlFiVae0DVKR+flJWbKY1F7Db22kkBQ+sihG3PY7Y5YgQGItlKfaTMkquLaUN1dlt2
+         CuxIcyqc5vZ/PAI7WTWZ+vqqMrj7897KACuS00E4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Gal Pressman <galpress@amazon.com>, linux-rdma@vger.kernel.org,
-        Mark Zhang <markz@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-next 2/9] RDMA: Promote field_avail() macro to be general code
-Date:   Thu,  5 Mar 2020 17:00:58 +0200
-Message-Id: <20200305150105.207959-3-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
+        Mark Zhang <markz@mellanox.com>
+Subject: [PATCH rdma-next 7/9] RDMA/cm: Send and receive ECE parameter over the wire
+Date:   Thu,  5 Mar 2020 17:01:03 +0200
+Message-Id: <20200305150105.207959-8-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200305150105.207959-1-leon@kernel.org>
 References: <20200305150105.207959-1-leon@kernel.org>
@@ -60,307 +58,248 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Main usage of such macro is to check user <-> kernel communication
-in order to ensure that user supplied enough space to read/write
-tested field.
+ECE parameters are exchanged through REQ->REP/SIDR_REP messages,
+this patch adds the data to provide to other side of CMID communication
+channel.
 
-The field_avail() macro is used by several RDMA drivers and in next
-patches will be used for RDMA-CM code as well, so being general enough,
-let's promote the code to in kernel.h
-
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Mark Zhang <markz@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/efa/efa_verbs.c |  3 --
- drivers/infiniband/hw/mlx4/main.c     |  7 ++---
- drivers/infiniband/hw/mlx5/main.c     | 41 +++++++++++++--------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h  | 18 ++++++------
- include/linux/kernel.h                | 18 ++++++++++++
- 5 files changed, 48 insertions(+), 39 deletions(-)
+ drivers/infiniband/core/cm.c   | 41 +++++++++++++++++++++++++++++-----
+ drivers/infiniband/core/cma.c  |  8 +++++++
+ drivers/infiniband/core/ucma.c |  1 -
+ include/rdma/ib_cm.h           |  9 +++++++-
+ 4 files changed, 52 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-index bf3120f140f7..ce89428f5af5 100644
---- a/drivers/infiniband/hw/efa/efa_verbs.c
-+++ b/drivers/infiniband/hw/efa/efa_verbs.c
-@@ -144,9 +144,6 @@ static inline bool is_rdma_read_cap(struct efa_dev *dev)
- 	return dev->dev_attr.device_caps & EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_RDMA_READ_MASK;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 77190704e81b..9d226f228606 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -66,6 +66,8 @@ static const char * const ibcm_rej_reason_strs[] = {
+ 	[IB_CM_REJ_INVALID_CLASS_VERSION]	= "invalid class version",
+ 	[IB_CM_REJ_INVALID_FLOW_LABEL]		= "invalid flow label",
+ 	[IB_CM_REJ_INVALID_ALT_FLOW_LABEL]	= "invalid alt flow label",
++	[IB_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED] =
++		"vendor option is not supported",
+ };
+
+ const char *__attribute_const__ ibcm_reject_msg(int reason)
+@@ -276,6 +278,8 @@ struct cm_id_private {
+
+ 	struct list_head work_list;
+ 	atomic_t work_count;
++
++	struct rdma_ucm_ece ece;
+ };
+
+ static void cm_work_handler(struct work_struct *work);
+@@ -1235,6 +1239,13 @@ static void cm_format_mad_hdr(struct ib_mad_hdr *hdr,
+ 	hdr->tid	   = tid;
  }
 
--#define field_avail(x, fld, sz) (offsetof(typeof(x), fld) + \
--				 sizeof_field(typeof(x), fld) <= (sz))
--
- #define is_reserved_cleared(reserved) \
- 	!memchr_inv(reserved, 0, sizeof(reserved))
++static void cm_format_mad_ece_hdr(struct ib_mad_hdr *hdr, __be16 attr_id,
++				  __be64 tid, u32 attr_mod)
++{
++	cm_format_mad_hdr(hdr, attr_id, tid);
++	hdr->attr_mod = cpu_to_be32(attr_mod);
++}
++
+ static void cm_format_req(struct cm_req_msg *req_msg,
+ 			  struct cm_id_private *cm_id_priv,
+ 			  struct ib_cm_req_param *param)
+@@ -1247,8 +1258,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 		pri_ext = opa_is_extended_lid(pri_path->opa.dlid,
+ 					      pri_path->opa.slid);
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 2f5d9b181848..d63743d96196 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -434,9 +434,6 @@ int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
- 	return real_index;
+-	cm_format_mad_hdr(&req_msg->hdr, CM_REQ_ATTR_ID,
+-			  cm_form_tid(cm_id_priv));
++	cm_format_mad_ece_hdr(&req_msg->hdr, CM_REQ_ATTR_ID,
++			      cm_form_tid(cm_id_priv), param->ece.attr_mod);
+
+ 	IBA_SET(CM_REQ_LOCAL_COMM_ID, req_msg,
+ 		be32_to_cpu(cm_id_priv->id.local_id));
+@@ -1371,6 +1382,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 			cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
+ 				       alt_path->packet_life_time));
+ 	}
++	IBA_SET(CM_REQ_VENDOR_ID, req_msg, param->ece.vendor_id);
+
+ 	if (param->private_data && param->private_data_len)
+ 		IBA_SET_MEM(CM_REQ_PRIVATE_DATA, req_msg, param->private_data,
+@@ -1728,6 +1740,9 @@ static void cm_format_req_event(struct cm_work *work,
+ 	param->rnr_retry_count = IBA_GET(CM_REQ_RNR_RETRY_COUNT, req_msg);
+ 	param->srq = IBA_GET(CM_REQ_SRQ, req_msg);
+ 	param->ppath_sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
++	param->ece.vendor_id = IBA_GET(CM_REQ_VENDOR_ID, req_msg);
++	param->ece.attr_mod = be32_to_cpu(req_msg->hdr.attr_mod);
++
+ 	work->cm_event.private_data =
+ 		IBA_GET_MEM_PTR(CM_REQ_PRIVATE_DATA, req_msg);
+ }
+@@ -2107,7 +2122,8 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+ 			  struct cm_id_private *cm_id_priv,
+ 			  struct ib_cm_rep_param *param)
+ {
+-	cm_format_mad_hdr(&rep_msg->hdr, CM_REP_ATTR_ID, cm_id_priv->tid);
++	cm_format_mad_ece_hdr(&rep_msg->hdr, CM_REP_ATTR_ID, cm_id_priv->tid,
++			      param->ece.attr_mod);
+ 	IBA_SET(CM_REP_LOCAL_COMM_ID, rep_msg,
+ 		be32_to_cpu(cm_id_priv->id.local_id));
+ 	IBA_SET(CM_REP_REMOTE_COMM_ID, rep_msg,
+@@ -2134,6 +2150,12 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+ 		IBA_SET(CM_REP_LOCAL_EE_CONTEXT_NUMBER, rep_msg, param->qp_num);
+ 	}
+
++	IBA_SET(CM_REP_VENDOR_ID_L, rep_msg, param->ece.vendor_id & 0xFF);
++	IBA_SET(CM_REP_VENDOR_ID_M, rep_msg,
++		(param->ece.vendor_id >> 8) & 0xFF);
++	IBA_SET(CM_REP_VENDOR_ID_H, rep_msg,
++		(param->ece.vendor_id >> 16) & 0xFF);
++
+ 	if (param->private_data && param->private_data_len)
+ 		IBA_SET_MEM(CM_REP_PRIVATE_DATA, rep_msg, param->private_data,
+ 			    param->private_data_len);
+@@ -2281,6 +2303,11 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
+ 	param->flow_control = IBA_GET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg);
+ 	param->rnr_retry_count = IBA_GET(CM_REP_RNR_RETRY_COUNT, rep_msg);
+ 	param->srq = IBA_GET(CM_REP_SRQ, rep_msg);
++	param->ece.vendor_id = IBA_GET(CM_REP_VENDOR_ID_H, rep_msg) << 16;
++	param->ece.vendor_id |= IBA_GET(CM_REP_VENDOR_ID_M, rep_msg) << 8;
++	param->ece.vendor_id |= IBA_GET(CM_REP_VENDOR_ID_L, rep_msg);
++	param->ece.attr_mod = be32_to_cpu(rep_msg->hdr.attr_mod);
++
+ 	work->cm_event.private_data =
+ 		IBA_GET_MEM_PTR(CM_REP_PRIVATE_DATA, rep_msg);
+ }
+@@ -3565,8 +3592,8 @@ static void cm_format_sidr_rep(struct cm_sidr_rep_msg *sidr_rep_msg,
+ 			       struct cm_id_private *cm_id_priv,
+ 			       struct ib_cm_sidr_rep_param *param)
+ {
+-	cm_format_mad_hdr(&sidr_rep_msg->hdr, CM_SIDR_REP_ATTR_ID,
+-			  cm_id_priv->tid);
++	cm_format_mad_ece_hdr(&sidr_rep_msg->hdr, CM_SIDR_REP_ATTR_ID,
++			      cm_id_priv->tid, param->ece.attr_mod);
+ 	IBA_SET(CM_SIDR_REP_REQUESTID, sidr_rep_msg,
+ 		be32_to_cpu(cm_id_priv->id.remote_id));
+ 	IBA_SET(CM_SIDR_REP_STATUS, sidr_rep_msg, param->status);
+@@ -3574,6 +3601,10 @@ static void cm_format_sidr_rep(struct cm_sidr_rep_msg *sidr_rep_msg,
+ 	IBA_SET(CM_SIDR_REP_SERVICEID, sidr_rep_msg,
+ 		be64_to_cpu(cm_id_priv->id.service_id));
+ 	IBA_SET(CM_SIDR_REP_Q_KEY, sidr_rep_msg, param->qkey);
++	IBA_SET(CM_SIDR_REP_VENDOR_ID_L, sidr_rep_msg,
++		param->ece.vendor_id & 0xFF);
++	IBA_SET(CM_SIDR_REP_VENDOR_ID_H, sidr_rep_msg,
++		(param->ece.vendor_id >> 8) & 0xFF);
+
+ 	if (param->info && param->info_length)
+ 		IBA_SET_MEM(CM_SIDR_REP_ADDITIONAL_INFORMATION, sidr_rep_msg,
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index b16f74c7be10..e0c444f9f28d 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1906,6 +1906,9 @@ static void cma_set_rep_event_data(struct rdma_cm_event *event,
+ 	event->param.conn.rnr_retry_count = rep_data->rnr_retry_count;
+ 	event->param.conn.srq = rep_data->srq;
+ 	event->param.conn.qp_num = rep_data->remote_qpn;
++
++	event->ece.vendor_id = rep_data->ece.vendor_id;
++	event->ece.attr_mod = rep_data->ece.attr_mod;
  }
 
--#define field_avail(type, fld, sz) (offsetof(type, fld) + \
--				    sizeof(((type *)0)->fld) <= (sz))
+ static int cma_cm_event_handler(struct rdma_id_private *id_priv,
+@@ -2124,6 +2127,9 @@ static void cma_set_req_event_data(struct rdma_cm_event *event,
+ 	event->param.conn.rnr_retry_count = req_data->rnr_retry_count;
+ 	event->param.conn.srq = req_data->srq;
+ 	event->param.conn.qp_num = req_data->remote_qpn;
++
++	event->ece.vendor_id = req_data->ece.vendor_id;
++	event->ece.attr_mod = req_data->ece.attr_mod;
+ }
+
+ static int cma_ib_check_req_qp_type(const struct rdma_cm_id *id,
+@@ -3911,6 +3917,8 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
+ 	req.local_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
+ 	req.max_cm_retries = CMA_MAX_CM_RETRIES;
+ 	req.srq = id_priv->srq ? 1 : 0;
++	req.ece.vendor_id = id_priv->ece.vendor_id;
++	req.ece.attr_mod = id_priv->ece.attr_mod;
+
+ 	trace_cm_send_req(id_priv);
+ 	ret = ib_send_cm_req(id_priv->cm_id.ib, &req);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index d2aeb23e6a3c..3a54fd9d941f 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -362,7 +362,6 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
+
+ 	uevent->resp.ece.vendor_id = event->ece.vendor_id;
+ 	uevent->resp.ece.attr_mod = event->ece.attr_mod;
 -
- static int mlx4_ib_query_device(struct ib_device *ibdev,
- 				struct ib_device_attr *props,
- 				struct ib_udata *uhw)
-@@ -602,7 +599,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 			sizeof(struct mlx4_wqe_data_seg);
- 	}
+ 	if (event->event == RDMA_CM_EVENT_CONNECT_REQUEST) {
+ 		if (!ctx->backlog) {
+ 			ret = -ENOMEM;
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 058cfbc2b37f..0f1ea5f2d01c 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -11,6 +11,7 @@
 
--	if (field_avail(typeof(resp), rss_caps, uhw->outlen)) {
-+	if (field_avail(resp, rss_caps, uhw->outlen)) {
- 		if (props->rss_caps.supported_qpts) {
- 			resp.rss_caps.rx_hash_function =
- 				MLX4_IB_RX_HASH_FUNC_TOEPLITZ;
-@@ -626,7 +623,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 				       sizeof(resp.rss_caps);
- 	}
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_sa.h>
++#include <rdma/rdma_cm.h>
 
--	if (field_avail(typeof(resp), tso_caps, uhw->outlen)) {
-+	if (field_avail(resp, tso_caps, uhw->outlen)) {
- 		if (dev->dev->caps.max_gso_sz &&
- 		    ((mlx4_ib_port_link_layer(ibdev, 1) ==
- 		    IB_LINK_LAYER_ETHERNET) ||
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 709ef3f57a06..879664797a80 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -898,7 +898,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			props->raw_packet_caps |=
- 				IB_RAW_PACKET_CAP_CVLAN_STRIPPING;
+ /* ib_cm and ib_user_cm modules share /sys/class/infiniband_cm */
+ extern struct class cm_class;
+@@ -115,6 +116,7 @@ struct ib_cm_req_event_param {
+ 	unsigned int		retry_count:3;
+ 	unsigned int		rnr_retry_count:3;
+ 	unsigned int		srq:1;
++	struct rdma_ucm_ece	ece;
+ };
 
--		if (field_avail(typeof(resp), tso_caps, uhw_outlen)) {
-+		if (field_avail(resp, tso_caps, uhw_outlen)) {
- 			max_tso = MLX5_CAP_ETH(mdev, max_lso_cap);
- 			if (max_tso) {
- 				resp.tso_caps.max_tso = 1 << max_tso;
-@@ -908,7 +908,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			}
- 		}
+ struct ib_cm_rep_event_param {
+@@ -129,6 +131,7 @@ struct ib_cm_rep_event_param {
+ 	unsigned int		flow_control:1;
+ 	unsigned int		rnr_retry_count:3;
+ 	unsigned int		srq:1;
++	struct rdma_ucm_ece	ece;
+ };
 
--		if (field_avail(typeof(resp), rss_caps, uhw_outlen)) {
-+		if (field_avail(resp, rss_caps, uhw_outlen)) {
- 			resp.rss_caps.rx_hash_function =
- 						MLX5_RX_HASH_FUNC_TOEPLITZ;
- 			resp.rss_caps.rx_hash_fields_mask =
-@@ -928,9 +928,9 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			resp.response_length += sizeof(resp.rss_caps);
- 		}
- 	} else {
--		if (field_avail(typeof(resp), tso_caps, uhw_outlen))
-+		if (field_avail(resp, tso_caps, uhw_outlen))
- 			resp.response_length += sizeof(resp.tso_caps);
--		if (field_avail(typeof(resp), rss_caps, uhw_outlen))
-+		if (field_avail(resp, rss_caps, uhw_outlen))
- 			resp.response_length += sizeof(resp.rss_caps);
- 	}
+ enum ib_cm_rej_reason {
+@@ -164,7 +167,8 @@ enum ib_cm_rej_reason {
+ 	IB_CM_REJ_DUPLICATE_LOCAL_COMM_ID	= 30,
+ 	IB_CM_REJ_INVALID_CLASS_VERSION		= 31,
+ 	IB_CM_REJ_INVALID_FLOW_LABEL		= 32,
+-	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
++	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33,
++	IB_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED	= 35,
+ };
 
-@@ -1072,7 +1072,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 						MLX5_MAX_CQ_PERIOD;
- 	}
+ struct ib_cm_rej_event_param {
+@@ -369,6 +373,7 @@ struct ib_cm_req_param {
+ 	u8			rnr_retry_count;
+ 	u8			max_cm_retries;
+ 	u8			srq;
++	struct rdma_ucm_ece	ece;
+ };
 
--	if (field_avail(typeof(resp), cqe_comp_caps, uhw_outlen)) {
-+	if (field_avail(resp, cqe_comp_caps, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.cqe_comp_caps);
+ /**
+@@ -392,6 +397,7 @@ struct ib_cm_rep_param {
+ 	u8		flow_control;
+ 	u8		rnr_retry_count;
+ 	u8		srq;
++	struct rdma_ucm_ece ece;
+ };
 
- 		if (MLX5_CAP_GEN(dev->mdev, cqe_compression)) {
-@@ -1090,8 +1090,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
+ /**
+@@ -546,6 +552,7 @@ struct ib_cm_sidr_rep_param {
+ 	u8			info_length;
+ 	const void		*private_data;
+ 	u8			private_data_len;
++	struct rdma_ucm_ece	ece;
+ };
 
--	if (field_avail(typeof(resp), packet_pacing_caps, uhw_outlen) &&
--	    raw_support) {
-+	if (field_avail(resp, packet_pacing_caps, uhw_outlen) && raw_support) {
- 		if (MLX5_CAP_QOS(mdev, packet_pacing) &&
- 		    MLX5_CAP_GEN(mdev, qos)) {
- 			resp.packet_pacing_caps.qp_rate_limit_max =
-@@ -1108,7 +1107,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		resp.response_length += sizeof(resp.packet_pacing_caps);
- 	}
-
--	if (field_avail(typeof(resp), mlx5_ib_support_multi_pkt_send_wqes,
-+	if (field_avail(resp, mlx5_ib_support_multi_pkt_send_wqes,
- 			uhw_outlen)) {
- 		if (MLX5_CAP_ETH(mdev, multi_pkt_send_wqe))
- 			resp.mlx5_ib_support_multi_pkt_send_wqes =
-@@ -1122,7 +1121,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			sizeof(resp.mlx5_ib_support_multi_pkt_send_wqes);
- 	}
-
--	if (field_avail(typeof(resp), flags, uhw_outlen)) {
-+	if (field_avail(resp, flags, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.flags);
-
- 		if (MLX5_CAP_GEN(mdev, cqe_compression_128))
-@@ -1138,7 +1137,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		resp.flags |= MLX5_IB_QUERY_DEV_RESP_FLAGS_SCAT2CQE_DCT;
- 	}
-
--	if (field_avail(typeof(resp), sw_parsing_caps, uhw_outlen)) {
-+	if (field_avail(resp, sw_parsing_caps, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.sw_parsing_caps);
- 		if (MLX5_CAP_ETH(mdev, swp)) {
- 			resp.sw_parsing_caps.sw_parsing_offloads |=
-@@ -1158,7 +1157,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
-
--	if (field_avail(typeof(resp), striding_rq_caps, uhw_outlen) &&
-+	if (field_avail(resp, striding_rq_caps, uhw_outlen) &&
- 	    raw_support) {
- 		resp.response_length += sizeof(resp.striding_rq_caps);
- 		if (MLX5_CAP_GEN(mdev, striding_rq)) {
-@@ -1181,7 +1180,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
-
--	if (field_avail(typeof(resp), tunnel_offloads_caps, uhw_outlen)) {
-+	if (field_avail(resp, tunnel_offloads_caps, uhw_outlen)) {
- 		resp.response_length += sizeof(resp.tunnel_offloads_caps);
- 		if (MLX5_CAP_ETH(mdev, tunnel_stateless_vxlan))
- 			resp.tunnel_offloads_caps |=
-@@ -1901,16 +1900,16 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
- 	resp.tot_bfregs = req.total_num_bfregs;
- 	resp.num_ports = dev->num_ports;
-
--	if (field_avail(typeof(resp), cqe_version, udata->outlen))
-+	if (field_avail(resp, cqe_version, udata->outlen))
- 		resp.response_length += sizeof(resp.cqe_version);
-
--	if (field_avail(typeof(resp), cmds_supp_uhw, udata->outlen)) {
-+	if (field_avail(resp, cmds_supp_uhw, udata->outlen)) {
- 		resp.cmds_supp_uhw |= MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE |
- 				      MLX5_USER_CMDS_SUPP_UHW_CREATE_AH;
- 		resp.response_length += sizeof(resp.cmds_supp_uhw);
- 	}
-
--	if (field_avail(typeof(resp), eth_min_inline, udata->outlen)) {
-+	if (field_avail(resp, eth_min_inline, udata->outlen)) {
- 		if (mlx5_ib_port_link_layer(ibdev, 1) == IB_LINK_LAYER_ETHERNET) {
- 			mlx5_query_min_inline(dev->mdev, &resp.eth_min_inline);
- 			resp.eth_min_inline++;
-@@ -1918,7 +1917,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
- 		resp.response_length += sizeof(resp.eth_min_inline);
- 	}
-
--	if (field_avail(typeof(resp), clock_info_versions, udata->outlen)) {
-+	if (field_avail(resp, clock_info_versions, udata->outlen)) {
- 		if (mdev->clock_info)
- 			resp.clock_info_versions = BIT(MLX5_IB_CLOCK_INFO_V1);
- 		resp.response_length += sizeof(resp.clock_info_versions);
-@@ -1930,7 +1929,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
- 	 * pretend we don't support reading the HCA's core clock. This is also
- 	 * forced by mmap function.
- 	 */
--	if (field_avail(typeof(resp), hca_core_clock_offset, udata->outlen)) {
-+	if (field_avail(resp, hca_core_clock_offset, udata->outlen)) {
- 		if (PAGE_SIZE <= 4096) {
- 			resp.comp_mask |=
- 				MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET;
-@@ -1940,18 +1939,18 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
- 		resp.response_length += sizeof(resp.hca_core_clock_offset);
- 	}
-
--	if (field_avail(typeof(resp), log_uar_size, udata->outlen))
-+	if (field_avail(resp, log_uar_size, udata->outlen))
- 		resp.response_length += sizeof(resp.log_uar_size);
-
--	if (field_avail(typeof(resp), num_uars_per_page, udata->outlen))
-+	if (field_avail(resp, num_uars_per_page, udata->outlen))
- 		resp.response_length += sizeof(resp.num_uars_per_page);
-
--	if (field_avail(typeof(resp), num_dyn_bfregs, udata->outlen)) {
-+	if (field_avail(resp, num_dyn_bfregs, udata->outlen)) {
- 		resp.num_dyn_bfregs = bfregi->num_dyn_bfregs;
- 		resp.response_length += sizeof(resp.num_dyn_bfregs);
- 	}
-
--	if (field_avail(typeof(resp), dump_fill_mkey, udata->outlen)) {
-+	if (field_avail(resp, dump_fill_mkey, udata->outlen)) {
- 		if (MLX5_CAP_GEN(dev->mdev, dump_fill_mkey)) {
- 			resp.dump_fill_mkey = dump_fill_mkey;
- 			resp.comp_mask |=
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 3976071a5dc9..347e7dfa6060 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -64,8 +64,6 @@
- 	dev_warn(&(_dev)->ib_dev.dev, "%s:%d:(pid %d): " format, __func__,     \
- 		 __LINE__, current->pid, ##arg)
-
--#define field_avail(type, fld, sz) (offsetof(type, fld) +		\
--				    sizeof(((type *)0)->fld) <= (sz))
- #define MLX5_IB_DEFAULT_UIDX 0xffffff
- #define MLX5_USER_ASSIGNED_UIDX_MASK __mlx5_mask(qpc, user_index)
-
-@@ -1471,13 +1469,13 @@ static inline int get_qp_user_index(struct mlx5_ib_ucontext *ucontext,
- 				    u32 *user_index)
- {
- 	u8 cqe_version = ucontext->cqe_version;
-+	struct mlx5_ib_create_qp qp;
-
--	if (field_avail(struct mlx5_ib_create_qp, uidx, inlen) &&
--	    !cqe_version && (ucmd->uidx == MLX5_IB_DEFAULT_UIDX))
-+	if (field_avail(qp, uidx, inlen) && !cqe_version &&
-+	    (ucmd->uidx == MLX5_IB_DEFAULT_UIDX))
- 		return 0;
-
--	if (!!(field_avail(struct mlx5_ib_create_qp, uidx, inlen) !=
--	       !!cqe_version))
-+	if (field_avail(qp, uidx, inlen) != !!cqe_version)
- 		return -EINVAL;
-
- 	return verify_assign_uidx(cqe_version, ucmd->uidx, user_index);
-@@ -1489,13 +1487,13 @@ static inline int get_srq_user_index(struct mlx5_ib_ucontext *ucontext,
- 				     u32 *user_index)
- {
- 	u8 cqe_version = ucontext->cqe_version;
-+	struct mlx5_ib_create_srq srq;
-
--	if (field_avail(struct mlx5_ib_create_srq, uidx, inlen) &&
--	    !cqe_version && (ucmd->uidx == MLX5_IB_DEFAULT_UIDX))
-+	if (field_avail(srq, uidx, inlen) && !cqe_version &&
-+	    (ucmd->uidx == MLX5_IB_DEFAULT_UIDX))
- 		return 0;
-
--	if (!!(field_avail(struct mlx5_ib_create_srq, uidx, inlen) !=
--	       !!cqe_version))
-+	if (field_avail(srq, uidx, inlen) != !!cqe_version)
- 		return -EINVAL;
-
- 	return verify_assign_uidx(cqe_version, ucmd->uidx, user_index);
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 0d9db2a14f44..699648837750 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -79,6 +79,24 @@
-  */
- #define round_down(x, y) ((x) & ~__round_mask(x, y))
-
-+/**
-+ * FIELD_SIZEOF - get the size of a struct's field
-+ * @t: the target struct
-+ * @f: the target struct's field
-+ * Return: the size of @f in the struct definition without having a
-+ * declared instance of @t.
-+ */
-+#define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
-+
-+/**
-+ * field_avail - check if specific field exists in provided data
-+ * @x: the source data, usually struct received from the user
-+ * @fld: field name
-+ * @sz: size of the data
-+ */
-+#define field_avail(x, fld, sz) \
-+	(offsetof(typeof(x), fld) + FIELD_SIZEOF(typeof(x), fld) <= (sz))
-+
- #define typeof_member(T, m)	typeof(((T*)0)->m)
-
- #define DIV_ROUND_UP __KERNEL_DIV_ROUND_UP
+ /**
 --
 2.24.1
 
