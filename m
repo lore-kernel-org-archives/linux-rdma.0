@@ -2,185 +2,128 @@ Return-Path: <SRS0=0596=4W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1151AC3F2D1
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A2A0C3F2D1
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:19:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DE0BB20848
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583420683;
-	bh=p9wbVk2wlTsw0ye170t1cB3dqxEt4KgAyiufvmssuLk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YiVMpz0UzXxTWtaAbbeZw+h9RvN5j8rGI+eCGzrX6hOdvlR9j6qeYFMnGXQ2/87u0
-	 wmC29e91ipQTPHXRIXd3OggnEQqNVL3uL9K4TNx2fvJqDcd09mC8z3BuNkes7QGs/q
-	 59fRN/LA8d3gOMQGZOFDGF+slW/KzDu36hO6WObI=
+	by mail.kernel.org (Postfix) with ESMTP id 05D0A2070E
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:19:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="Mhnbn4fg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726682AbgCEPEn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 10:04:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48006 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726413AbgCEPEn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 10:04:43 -0500
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 16ED920801;
-        Thu,  5 Mar 2020 15:04:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583420682;
-        bh=p9wbVk2wlTsw0ye170t1cB3dqxEt4KgAyiufvmssuLk=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=z0xGeQdVtae5jBFIJ4wStwYi5vULZ6alcE3sS4zCW591YklSZQ5HpOrojzXKLc/Js
-         uXzsA9Jz6JFwyoUnNMa0DxMzAexhiLcnERTM3bGLv7OR1mK46wDB2cURUJUHVzXwQa
-         eHTHKmT1d+wSPk4v4HUUN+M3/UG/Ev7Ma9pP33F4=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [RFC PATCH rdma-core 09/11] librdmacm: Add an option to reject ECE request
-Date:   Thu,  5 Mar 2020 17:03:54 +0200
-Message-Id: <20200305150356.208843-10-leon@kernel.org>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200305150356.208843-1-leon@kernel.org>
-References: <20200305150356.208843-1-leon@kernel.org>
+        id S1726243AbgCEPS7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 10:18:59 -0500
+Received: from mail-eopbgr70040.outbound.protection.outlook.com ([40.107.7.40]:39937
+        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726141AbgCEPS7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 10:18:59 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=PQQ37HqbT28L0PYer4lpSMl2jzrD5ZkiKz2ndcuAEv4X4XuPDUW7TcyPpDNgLd3guop4+epAHRAIMghG1A8AzlBg3gvYd1iPyt4DoNFz4OzxkOAcIfTR6AU6OWytg9ENGRvf7HNrHND7XohfbEBSD6LjgNkyZvUmTlNCA6Cg3CzN2DclLGc5Slv1WzLJPaIl6yGyXPnHxhtH77ZhO01j+iZbLPaFtswX5nrs+xyv/Sig6Z0EtXSOzfNoVo2BSbuTHRRAshkNCqP0zB1fMMxuT8kHvVKTfspYXUJKLhBHZMwnXzGQIuou0yfXIhGacGOdhLPMAUXwrRis8+A1dzsCAA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=YKHpsy9+1hFmvHeu7YGCEpfivXChMMkF9yZWZ86CtNQ=;
+ b=XPluE5GiAoD6LzQfyk+quXuVnueuqjJ2tzY8Zopc0PFtcTG3iFYgLaOW8/VhZwuCvWRnY2oZ1K38drnKqJ/EgH3TftWaEAnu0NFjm7GlrmpCdwE6QFBmeOGqQUvCDMWB8Z5RTRMJT2hWN9BRDZtcu6FxROfqQOibgvenJTQzKzGFk6vCuNvuPZDxoqRrtThdwM+KiDRQJ+hOxGL8jGI8eYP0gaPpvEt5XjNjYST4FtSm+UF/SRrdU+/qqr2GC8Hcuf5+nLBffGlBV9PxW1LJyYtVA2eGY+7lQiluwgmelMDAAVmYMSto/29SCh38Gkut3c0mTyb9/EDyRYhox6z0Bg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=YKHpsy9+1hFmvHeu7YGCEpfivXChMMkF9yZWZ86CtNQ=;
+ b=Mhnbn4fgZpXGgi+uw/drsRuoohtgNzXS+VxZhzUz3kn5oImG4FaPn+GIoopFhLujg9VynP1NndBqaW7+BEaxu/6hsMP5Ou6Bq/i73B920DjReIdbjL//zYsaRRGCZvWe8VIgQ4uJ0l1IGG/b6t2tOMMd3uCUy/NsIVGHYXmH3NQ=
+Authentication-Results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (52.133.14.15) by
+ VI1PR05MB4543.eurprd05.prod.outlook.com (20.176.8.154) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2772.19; Thu, 5 Mar 2020 15:18:54 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::1c00:7925:d5c6:d60d%7]) with mapi id 15.20.2772.019; Thu, 5 Mar 2020
+ 15:18:54 +0000
+Date:   Thu, 5 Mar 2020 11:18:50 -0400
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Gal Pressman <galpress@amazon.com>, linux-rdma@vger.kernel.org,
+        Mark Zhang <markz@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>
+Subject: Re: [PATCH rdma-next 2/9] RDMA: Promote field_avail() macro to be
+ general code
+Message-ID: <20200305151850.GZ26318@mellanox.com>
+References: <20200305150105.207959-1-leon@kernel.org>
+ <20200305150105.207959-3-leon@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200305150105.207959-3-leon@kernel.org>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-ClientProxiedBy: MN2PR13CA0028.namprd13.prod.outlook.com
+ (2603:10b6:208:160::41) To VI1PR05MB4141.eurprd05.prod.outlook.com
+ (2603:10a6:803:44::15)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.68.57.212) by MN2PR13CA0028.namprd13.prod.outlook.com (2603:10b6:208:160::41) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2793.9 via Frontend Transport; Thu, 5 Mar 2020 15:18:54 +0000
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)     (envelope-from <jgg@mellanox.com>)      id 1j9sGw-0006PB-Eh; Thu, 05 Mar 2020 11:18:50 -0400
+X-Originating-IP: [142.68.57.212]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 33d63aa2-5753-4e74-920b-08d7c1188474
+X-MS-TrafficTypeDiagnostic: VI1PR05MB4543:|VI1PR05MB4543:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <VI1PR05MB454322F9B4D27AD7487E1A2DCFE20@VI1PR05MB4543.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-Forefront-PRVS: 03333C607F
+X-Forefront-Antispam-Report: SFV:NSPM;SFS:(10009020)(4636009)(136003)(366004)(346002)(39860400002)(396003)(376002)(189003)(199004)(66946007)(26005)(66476007)(2616005)(66556008)(33656002)(8936002)(81166006)(8676002)(52116002)(186003)(478600001)(5660300002)(4326008)(81156014)(107886003)(1076003)(2906002)(86362001)(54906003)(6916009)(316002)(36756003)(4744005)(9786002)(9746002)(24400500001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB4543;H:VI1PR05MB4141.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+Received-SPF: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 7QiTbErdPzS0zQfC21oeeHWxruoRVTbc9HJvuGvkLGQuGo+6bgxdUaDF3t8c9XlnZ1qybqRW60QLZR5gCszT/5eEGXcoZR2xikec03SWBSe2OR0pO0sJbyUDPlF+21VbtP0imAVUyuooEhyPBRxJvXHHni4rm1jaw7L4sYHsuOSZSQjUeKyIZI6UeyseDLt/z7X+Cms8d2DCO77fnAlCWO+b58LFWQnFuZvTaH//cHPRZepL0cGhuy9R186ke9jcpfC2cDGNddjdoij1dSX30PgX57C4ZzNz+rFwNZL3iNbIMb87Hf3rio1nBQUZ8ogDK5sJ9VeWuCPSKs5HpS56E/LeYSw6TURP28vrQkxT8/WbDUzTfKUWS5ddEmxHTFLg3vQ9DbsGfgjVNmYkMOJERBLxNAox2HxxA4UflNqMomvuvlnLrcxrHK1n1RZFnGGRrVrkXQ62ZMS2V6/t3/uuPykBCe9iocqmfBEto7g1apUTTNSTX5AAi2gX2grsh++Y
+X-MS-Exchange-AntiSpam-MessageData: G4QDOsK12Ov+0dxXeKiVJyLrqdq6HnChBcl2QhQGrKHjyuBukkbo54OjnQrOpwZXg1fEL8kELeYnrdrk3x59H4H1D2/doKWTMNyIB6ytZ8kDXo7WHjtoAUcusSdiifLciWGMT32FvwidSOkGtTVfLA==
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 33d63aa2-5753-4e74-920b-08d7c1188474
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Mar 2020 15:18:54.3871
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: MUvTADhl8Lps8DLli97JbqcLg9Tedcb6s2UX8unwIUjc+7HtCAb2H920pOpMLLU1elOQV9g+iC+1oyEPCGQEig==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB4543
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Thu, Mar 05, 2020 at 05:00:58PM +0200, Leon Romanovsky wrote:
+> 
+> +/**
+> + * FIELD_SIZEOF - get the size of a struct's field
+> + * @t: the target struct
+> + * @f: the target struct's field
+> + * Return: the size of @f in the struct definition without having a
+> + * declared instance of @t.
+> + */
+> +#define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
 
-IBTA has specific rejected reason for users who doesn't
-want proposed ECE options in request messages. Provide special
-version (rdma_reject_ece) to mark such rejects.
+This is already sizeof_field
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- debian/librdmacm1.symbols |  1 +
- librdmacm/cma.c           | 19 +++++++++++++++++--
- librdmacm/librdmacm.map   |  1 +
- librdmacm/rdma_cma.h      |  8 ++++++++
- librdmacm/rdma_cma_abi.h  |  7 ++++++-
- 5 files changed, 33 insertions(+), 3 deletions(-)
+> +/**
+> + * field_avail - check if specific field exists in provided data
+> + * @x: the source data, usually struct received from the user
+> + * @fld: field name
+> + * @sz: size of the data
+> + */
+> +#define field_avail(x, fld, sz) \
+> +	(offsetof(typeof(x), fld) + FIELD_SIZEOF(typeof(x), fld) <= (sz))
 
-diff --git a/debian/librdmacm1.symbols b/debian/librdmacm1.symbols
-index cc4d7a6c..ce5ffd20 100644
---- a/debian/librdmacm1.symbols
-+++ b/debian/librdmacm1.symbols
-@@ -44,6 +44,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
-  rdma_migrate_id@RDMACM_1.0 1.0.15
-  rdma_notify@RDMACM_1.0 1.0.15
-  rdma_reject@RDMACM_1.0 1.0.15
-+ rdma_reject_ece@RDMACM_1.3 28
-  rdma_resolve_addr@RDMACM_1.0 1.0.15
-  rdma_resolve_route@RDMACM_1.0 1.0.15
-  rdma_set_local_ece@RDMACM_1.3 28
-diff --git a/librdmacm/cma.c b/librdmacm/cma.c
-index 30a5de75..ba8a9a57 100644
---- a/librdmacm/cma.c
-+++ b/librdmacm/cma.c
-@@ -1735,8 +1735,9 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 	return ucma_complete(id);
- }
+This is just offsetofend, I'm not sure there is such a reason to even
+have this field_avail macro really..
 
--int rdma_reject(struct rdma_cm_id *id, const void *private_data,
--		uint8_t private_data_len)
-+static int reject_with_reason(struct rdma_cm_id *id, const void *private_data,
-+			      uint8_t private_data_len,
-+			      enum ucm_abi_reject_reason reason)
- {
- 	struct ucma_abi_reject cmd;
- 	struct cma_id_private *id_priv;
-@@ -1750,6 +1751,7 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 		memcpy(cmd.private_data, private_data, private_data_len);
- 		cmd.private_data_len = private_data_len;
- 	}
-+	cmd.reason = reason;
-
- 	ret = write(id->channel->fd, &cmd, sizeof cmd);
- 	if (ret != sizeof cmd)
-@@ -1758,6 +1760,19 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 	return 0;
- }
-
-+int rdma_reject(struct rdma_cm_id *id, const void *private_data,
-+		uint8_t private_data_len)
-+{
-+	return reject_with_reason(id, private_data, private_data_len, 0);
-+}
-+
-+int rdma_reject_ece(struct rdma_cm_id *id, const void *private_data,
-+		    uint8_t private_data_len)
-+{
-+	return reject_with_reason(id, private_data, private_data_len,
-+				  RDMA_USER_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED);
-+}
-+
- int rdma_notify(struct rdma_cm_id *id, enum ibv_event_type event)
- {
- 	struct ucma_abi_notify cmd;
-diff --git a/librdmacm/librdmacm.map b/librdmacm/librdmacm.map
-index f29a23b4..d162ef09 100644
---- a/librdmacm/librdmacm.map
-+++ b/librdmacm/librdmacm.map
-@@ -86,5 +86,6 @@ RDMACM_1.2 {
- RDMACM_1.3 {
- 	global:
- 		rdma_get_remote_ece;
-+		rdma_reject_ece;
- 		rdma_set_local_ece;
- } RDMACM_1.2;
-diff --git a/librdmacm/rdma_cma.h b/librdmacm/rdma_cma.h
-index c42a28f7..e1f4e236 100644
---- a/librdmacm/rdma_cma.h
-+++ b/librdmacm/rdma_cma.h
-@@ -524,6 +524,14 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param);
- int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 		uint8_t private_data_len);
-
-+/**
-+ * rdma_reject_ece - Called to reject a connection request with ECE
-+ * rejected reason.
-+ * The same as rdma_reject()
-+ */
-+int rdma_reject_ece(struct rdma_cm_id *id, const void *private_data,
-+		uint8_t private_data_len);
-+
- /**
-  * rdma_notify - Notifies the librdmacm of an asynchronous event.
-  * @id: RDMA identifier.
-diff --git a/librdmacm/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
-index 4639941b..911863cc 100644
---- a/librdmacm/rdma_cma_abi.h
-+++ b/librdmacm/rdma_cma_abi.h
-@@ -73,6 +73,10 @@ enum {
- 	UCMA_CMD_JOIN_MCAST
- };
-
-+enum ucm_abi_reject_reason {
-+	RDMA_USER_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED = 35
-+};
-+
- struct ucma_abi_cmd_hdr {
- 	__u32 cmd;
- 	__u16 in;
-@@ -263,7 +267,8 @@ struct ucma_abi_reject {
- 	__u16 out;
- 	__u32 id;
- 	__u8  private_data_len;
--	__u8  reserved[3];
-+	__u8  reason; /* enum ucm_abi_reject_reason */
-+	__u8  reserved[2];
- 	__u8  private_data[RDMA_MAX_PRIVATE_DATA];
- };
-
---
-2.24.1
-
+Jason
