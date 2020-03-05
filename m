@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C842C3F2D1
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1151AC3F2D1
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 02E7B20848
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE0BB20848
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583420681;
-	bh=S47PAierAPdxDRkfVaG9e1PvtYvJyD0DLvKzhXfwYic=;
+	s=default; t=1583420683;
+	bh=p9wbVk2wlTsw0ye170t1cB3dqxEt4KgAyiufvmssuLk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ZylI7ux6OHfkzl4Lwlv9bvwYv9x05vL7eyiviKOfbU2Hopp7V1CbuJiMFKiKWJGqh
-	 fte/008pn76/VT0FCHd9IeU1UHWeV6s3pN9BuqjgSH6CXQnB3kFTUvnCsWGrGbVNQZ
-	 0FEfWvKbsXyQExup27Cdx7wUmoPBB79rgFQGRaZM=
+	b=YiVMpz0UzXxTWtaAbbeZw+h9RvN5j8rGI+eCGzrX6hOdvlR9j6qeYFMnGXQ2/87u0
+	 wmC29e91ipQTPHXRIXd3OggnEQqNVL3uL9K4TNx2fvJqDcd09mC8z3BuNkes7QGs/q
+	 59fRN/LA8d3gOMQGZOFDGF+slW/KzDu36hO6WObI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726608AbgCEPEk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 10:04:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47978 "EHLO mail.kernel.org"
+        id S1726682AbgCEPEn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 10:04:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726413AbgCEPEk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 10:04:40 -0500
+        id S1726413AbgCEPEn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 10:04:43 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DEEC420801;
-        Thu,  5 Mar 2020 15:04:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 16ED920801;
+        Thu,  5 Mar 2020 15:04:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583420679;
-        bh=S47PAierAPdxDRkfVaG9e1PvtYvJyD0DLvKzhXfwYic=;
+        s=default; t=1583420682;
+        bh=p9wbVk2wlTsw0ye170t1cB3dqxEt4KgAyiufvmssuLk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NvRdsgK6PMIsIYBXLLkLEDJbz9qAIh31YpBnC8Mf+o+jeK7rdyXV+N4UoHJ0OaLA6
-         ZTYYUjqHI2j3+yWF0TwBcBBXct+LpuP0Gs9KYaYoMKZoTp1HA3wI7YGX58krqr5aP8
-         IMZ0dYtEi0+fCnzV/dVjvurYpZCNXG1JcmkgS2lM=
+        b=z0xGeQdVtae5jBFIJ4wStwYi5vULZ6alcE3sS4zCW591YklSZQ5HpOrojzXKLc/Js
+         uXzsA9Jz6JFwyoUnNMa0DxMzAexhiLcnERTM3bGLv7OR1mK46wDB2cURUJUHVzXwQa
+         eHTHKmT1d+wSPk4v4HUUN+M3/UG/Ev7Ma9pP33F4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [RFC PATCH rdma-core 11/11] librdmacm: Document ECE API
-Date:   Thu,  5 Mar 2020 17:03:56 +0200
-Message-Id: <20200305150356.208843-12-leon@kernel.org>
+Subject: [RFC PATCH rdma-core 09/11] librdmacm: Add an option to reject ECE request
+Date:   Thu,  5 Mar 2020 17:03:54 +0200
+Message-Id: <20200305150356.208843-10-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200305150356.208843-1-leon@kernel.org>
 References: <20200305150356.208843-1-leon@kernel.org>
@@ -57,226 +57,130 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Add manual pages for librdmacm part of ECE.
+IBTA has specific rejected reason for users who doesn't
+want proposed ECE options in request messages. Provide special
+version (rdma_reject_ece) to mark such rejects.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- librdmacm/man/CMakeLists.txt           |  2 +
- librdmacm/man/rdma_cm.7                | 14 +++++-
- librdmacm/man/rdma_get_remote_ece.3.md | 61 +++++++++++++++++++++++++
- librdmacm/man/rdma_set_local_ece.3.md  | 62 ++++++++++++++++++++++++++
- 4 files changed, 138 insertions(+), 1 deletion(-)
- create mode 100644 librdmacm/man/rdma_get_remote_ece.3.md
- create mode 100644 librdmacm/man/rdma_set_local_ece.3.md
+ debian/librdmacm1.symbols |  1 +
+ librdmacm/cma.c           | 19 +++++++++++++++++--
+ librdmacm/librdmacm.map   |  1 +
+ librdmacm/rdma_cma.h      |  8 ++++++++
+ librdmacm/rdma_cma_abi.h  |  7 ++++++-
+ 5 files changed, 33 insertions(+), 3 deletions(-)
 
-diff --git a/librdmacm/man/CMakeLists.txt b/librdmacm/man/CMakeLists.txt
-index 2d1efbff..6159c3e3 100644
---- a/librdmacm/man/CMakeLists.txt
-+++ b/librdmacm/man/CMakeLists.txt
-@@ -29,6 +29,7 @@ rdma_man_pages(
-   rdma_get_local_addr.3
-   rdma_get_peer_addr.3
-   rdma_get_recv_comp.3
-+  rdma_get_remote_ece.3.md
-   rdma_get_request.3
-   rdma_get_send_comp.3
-   rdma_get_src_port.3
-@@ -56,6 +57,7 @@ rdma_man_pages(
-   rdma_resolve_addr.3
-   rdma_resolve_route.3
-   rdma_server.1
-+  rdma_set_local_ece.3.md
-   rdma_set_option.3
-   rdma_xclient.1
-   rdma_xserver.1
-diff --git a/librdmacm/man/rdma_cm.7 b/librdmacm/man/rdma_cm.7
-index 8e5ad99e..122c96f0 100644
---- a/librdmacm/man/rdma_cm.7
-+++ b/librdmacm/man/rdma_cm.7
-@@ -26,6 +26,10 @@ parameter in specific calls.  If an event channel is provided, an rdma_cm identi
- will report its event data (results of connecting, for example), on that channel.
- If a channel is not provided, then all rdma_cm operations for the selected
- rdma_cm identifier will block until they complete.
-+.P
-+The RDMA CM gives an option to different libibverbs providers to advertise and
-+use various specific to that provider QP configuration options. This functionality
-+is called ECE (enhanced connection establishment).
- .SH "RDMA VERBS"
- The rdma_cm supports the full range of verbs available through the libibverbs
- library and interfaces.  However, it also provides wrapper functions for some
-@@ -111,6 +115,8 @@ destroy the QP
- release the rdma_cm_id
- .IP rdma_destroy_event_channel
- release the event channel
-+.IP rdma_set_local_ece
-+set desired ECE options
- .P
- An almost identical process is used to setup unreliable datagram (UD)
- communication between nodes.  No actual connection is formed between QPs
-@@ -157,6 +163,10 @@ release the connected rdma_cm_id
- release the listening rdma_cm_id
- .IP rdma_destroy_event_channel
- release the event channel
-+.IP rdma_get_remote_ece
-+get ECe options sent by the client
-+.IP rdma_set_local_ece
-+set desired ECE options
- .SH "RETURN CODES"
- .IP "=  0"
- success
-@@ -198,6 +208,7 @@ rdma_get_dst_port(3),
- rdma_get_local_addr(3),
- rdma_get_peer_addr(3),
- rdma_get_recv_comp(3),
-+rdma_get_remote_ece(3),
- rdma_get_request(3),
- rdma_get_send_comp(3),
- rdma_get_src_port(3),
-@@ -221,7 +232,8 @@ rdma_reg_write(3),
- rdma_reject(3),
- rdma_resolve_addr(3),
- rdma_resolve_route(3),
--rdma_set_option(3)
-+rdma_get_remote_ece(3),
-+rdma_set_option(3),
- mckey(1),
- rdma_client(1),
- rdma_server(1),
-diff --git a/librdmacm/man/rdma_get_remote_ece.3.md b/librdmacm/man/rdma_get_remote_ece.3.md
-new file mode 100644
-index 00000000..1db1f8ee
---- /dev/null
-+++ b/librdmacm/man/rdma_get_remote_ece.3.md
-@@ -0,0 +1,61 @@
-+---
-+date: 2020-02-02
-+footer: librdmacm
-+header: "Librdmacm Programmer's Manual"
-+layout: page
-+license: 'Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md'
-+section: 3
-+title: RDMA_GET_REMOTE_ECE
-+---
+diff --git a/debian/librdmacm1.symbols b/debian/librdmacm1.symbols
+index cc4d7a6c..ce5ffd20 100644
+--- a/debian/librdmacm1.symbols
++++ b/debian/librdmacm1.symbols
+@@ -44,6 +44,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
+  rdma_migrate_id@RDMACM_1.0 1.0.15
+  rdma_notify@RDMACM_1.0 1.0.15
+  rdma_reject@RDMACM_1.0 1.0.15
++ rdma_reject_ece@RDMACM_1.3 28
+  rdma_resolve_addr@RDMACM_1.0 1.0.15
+  rdma_resolve_route@RDMACM_1.0 1.0.15
+  rdma_set_local_ece@RDMACM_1.3 28
+diff --git a/librdmacm/cma.c b/librdmacm/cma.c
+index 30a5de75..ba8a9a57 100644
+--- a/librdmacm/cma.c
++++ b/librdmacm/cma.c
+@@ -1735,8 +1735,9 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
+ 	return ucma_complete(id);
+ }
+
+-int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+-		uint8_t private_data_len)
++static int reject_with_reason(struct rdma_cm_id *id, const void *private_data,
++			      uint8_t private_data_len,
++			      enum ucm_abi_reject_reason reason)
+ {
+ 	struct ucma_abi_reject cmd;
+ 	struct cma_id_private *id_priv;
+@@ -1750,6 +1751,7 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+ 		memcpy(cmd.private_data, private_data, private_data_len);
+ 		cmd.private_data_len = private_data_len;
+ 	}
++	cmd.reason = reason;
+
+ 	ret = write(id->channel->fd, &cmd, sizeof cmd);
+ 	if (ret != sizeof cmd)
+@@ -1758,6 +1760,19 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+ 	return 0;
+ }
+
++int rdma_reject(struct rdma_cm_id *id, const void *private_data,
++		uint8_t private_data_len)
++{
++	return reject_with_reason(id, private_data, private_data_len, 0);
++}
 +
-+# NAME
++int rdma_reject_ece(struct rdma_cm_id *id, const void *private_data,
++		    uint8_t private_data_len)
++{
++	return reject_with_reason(id, private_data, private_data_len,
++				  RDMA_USER_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED);
++}
 +
-+rdma_get_remote_ece - Get remote ECE paraemters as received from the peer.
+ int rdma_notify(struct rdma_cm_id *id, enum ibv_event_type event)
+ {
+ 	struct ucma_abi_notify cmd;
+diff --git a/librdmacm/librdmacm.map b/librdmacm/librdmacm.map
+index f29a23b4..d162ef09 100644
+--- a/librdmacm/librdmacm.map
++++ b/librdmacm/librdmacm.map
+@@ -86,5 +86,6 @@ RDMACM_1.2 {
+ RDMACM_1.3 {
+ 	global:
+ 		rdma_get_remote_ece;
++		rdma_reject_ece;
+ 		rdma_set_local_ece;
+ } RDMACM_1.2;
+diff --git a/librdmacm/rdma_cma.h b/librdmacm/rdma_cma.h
+index c42a28f7..e1f4e236 100644
+--- a/librdmacm/rdma_cma.h
++++ b/librdmacm/rdma_cma.h
+@@ -524,6 +524,14 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param);
+ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+ 		uint8_t private_data_len);
+
++/**
++ * rdma_reject_ece - Called to reject a connection request with ECE
++ * rejected reason.
++ * The same as rdma_reject()
++ */
++int rdma_reject_ece(struct rdma_cm_id *id, const void *private_data,
++		uint8_t private_data_len);
 +
-+# SYNOPSIS
+ /**
+  * rdma_notify - Notifies the librdmacm of an asynchronous event.
+  * @id: RDMA identifier.
+diff --git a/librdmacm/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
+index 4639941b..911863cc 100644
+--- a/librdmacm/rdma_cma_abi.h
++++ b/librdmacm/rdma_cma_abi.h
+@@ -73,6 +73,10 @@ enum {
+ 	UCMA_CMD_JOIN_MCAST
+ };
+
++enum ucm_abi_reject_reason {
++	RDMA_USER_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED = 35
++};
 +
-+```c
-+#include <rdma/rdma_cma.h>
-+
-+int rdma_get_remote_ece(struct rdma_cm_id *id, struct ibv_ece *ece);
-+```
-+# DESCRIPTION
-+
-+**rdma_get_remote_ece()** get ECE parameters as were received from the communication peer.
-+
-+This function is suppose to be used by the users of external QPs. The call needs
-+to be performed before replying to the peer and needed to allow for the passive
-+side to know ECE options of other side.
-+
-+Being used by external QP and RDMA_CM doesn't manage that QP, the peer needs
-+to call to libibverbs API by itself.
-+
-+Usual flow for the passive side will be:
-+
-+ * ibv_create_qp() <- create data QP.
-+ * ece = rdma_get_remote_ece() <- get ECE options from remote peer
-+ * ibv_set_ece(ece) <- set local ECE options with data received from the peer.
-+ * ibv_modify_qp() <- enable data QP.
-+ * rdma_set_local_ece(ece) <- set desired ECE options after respective
-+				libibverbs provider masked unsupported options.
-+ * rdma_accept()/rdma_establish()/rdma_reject_ece()
-+
-+# ARGUMENTS
-+
-+*id
-+:    RDMA communication identifier.
-+
-+*ece
-+:    ECE struct to be filled.
-+
-+# RETURN VALUE
-+
-+**rdma_get_remote_ece()** returns 0 on success, or -1 on error.  If an error occurs, errno will be set to indicate the failure reason.
-+
-+# SEE ALSO
-+
-+**rdma_cm**(7), rdma_set_local_ece(3)
-+
-+# AUTHOR
-+
-+Leon Romanovsky <leonro@mellanox.com>
-diff --git a/librdmacm/man/rdma_set_local_ece.3.md b/librdmacm/man/rdma_set_local_ece.3.md
-new file mode 100644
-index 00000000..253e60df
---- /dev/null
-+++ b/librdmacm/man/rdma_set_local_ece.3.md
-@@ -0,0 +1,62 @@
-+---
-+date: 2020-02-02
-+footer: librdmacm
-+header: "Librdmacm Programmer's Manual"
-+layout: page
-+license: 'Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md'
-+section: 3
-+title: RDMA_SET_LOCAL_ECE
-+---
-+
-+# NAME
-+
-+rdma_set_local_ece - Set local ECE paraemters to be used for REQ/REP communication.
-+
-+# SYNOPSIS
-+
-+```c
-+#include <rdma/rdma_cma.h>
-+
-+int rdma_set_local_ece(struct rdma_cm_id *id, struct ibv_ece *ece);
-+```
-+# DESCRIPTION
-+
-+**rdma_set_local_ece()** set local ECE parameters.
-+
-+This function is suppose to be used by the users of external QPs. The call needs
-+to be performed before replying to the peer and needed to configure RDMA_CM with
-+desired ECE options.
-+
-+Being used by external QP and RDMA_CM doesn't manage that QP, the peer needs
-+to call to libibverbs API by itself.
-+
-+Usual flow for the passive side will be:
-+
-+ * ibv_create_qp() <- create data QP.
-+ * ece = ibv_get_ece() <- get ECE from libibvers provider.
-+ * rdma_set_local_ece(ece) <- set desired ECE options.
-+ * rdma_connect() <- send connection request
-+ * ece = rdma_get_remote_ece() <- get ECE options from remote peer
-+ * ibv_set_ece(ece) <- set local ECE options with data received from the peer.
-+ * ibv_modify_qp() <- enable data QP.
-+ * rdma_accept()/rdma_establish()/rdma_reject_ece()
-+
-+# ARGUMENTS
-+
-+*id*
-+:    RDMA communication identifier.
-+
-+*ece
-+:    ECE parameters.
-+
-+# RETURN VALUE
-+
-+**rdma_set_local_ece()** returns 0 on success, or -1 on error.  If an error occurs, errno will be set to indicate the failure reason.
-+
-+# SEE ALSO
-+
-+**rdma_cm**(7), rdma_get_remote_ece(3)
-+
-+# AUTHOR
-+
-+Leon Romanovsky <leonro@mellanox.com>
+ struct ucma_abi_cmd_hdr {
+ 	__u32 cmd;
+ 	__u16 in;
+@@ -263,7 +267,8 @@ struct ucma_abi_reject {
+ 	__u16 out;
+ 	__u32 id;
+ 	__u8  private_data_len;
+-	__u8  reserved[3];
++	__u8  reason; /* enum ucm_abi_reject_reason */
++	__u8  reserved[2];
+ 	__u8  private_data[RDMA_MAX_PRIVATE_DATA];
+ };
+
 --
 2.24.1
 
