@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC68AC3F2D1
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91689C3F2CD
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BD72E20801
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A900208CD
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:01:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583420475;
-	bh=bEOKbG8Gqq5qHCQD44w3tP1azz9lDfNit5EdpS7KE+I=;
+	s=default; t=1583420478;
+	bh=ovaT+dLcGxxNJABwhRzk5ocRrwMMQ2xldqz/L1WdPcs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=dXSSlii1YLbBfDYBG+ggLLCRcEvfLgkohZmf8wDbD0mWaxQNdYOFAeSF+k2QMaX8d
-	 Wg4GuOyHbXXno/GZdAqbIFv84ctWsA4b+STfULccIQypgQubdoOlD3WHhj4Za494ol
-	 A7yen0K+WShHeoyYKW2+7N2fdsX8RL/ndvZUhIDE=
+	b=s3fzw0ZLympihIJA/0kcfNWMA2N6a8mAvIglLTZlyh1772daWzpiqRBt/P56mVeX0
+	 iWf/WZd3kCbECyVEOWcpO9KQurfOdinkbA2cCbgypo6SY/7k9qYczq0Ej1/TX5zlhd
+	 Z1OYO1fBpKgTMnA4+Jp86yIBX2spCoGWDt+Oo2GU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbgCEPBO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 10:01:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46610 "EHLO mail.kernel.org"
+        id S1726676AbgCEPBR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 10:01:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726178AbgCEPBO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 10:01:14 -0500
+        id S1726273AbgCEPBR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 10:01:17 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6FFD320848;
-        Thu,  5 Mar 2020 15:01:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8D55020801;
+        Thu,  5 Mar 2020 15:01:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583420474;
-        bh=bEOKbG8Gqq5qHCQD44w3tP1azz9lDfNit5EdpS7KE+I=;
+        s=default; t=1583420477;
+        bh=ovaT+dLcGxxNJABwhRzk5ocRrwMMQ2xldqz/L1WdPcs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uMjvyMgOKjEh0kWHdxdY0dEZzE0DkIJz+wfCn6lI2NHliCZrTKaWhalA+u3WyhuDJ
-         y8oWlAjwHdQ41jTiIqG1sfOiciHLm3aOeicOdNpOv/eFQI3fTTQ9T0JkKFIHgAKOAJ
-         1Ik41o/lJ07q/qRP3aqhZ7IABEgdW9MO3GxQisEo=
+        b=cK3PvB8nWhFYdy92lLAYfSY6ZxYqhxd0dkddtlBxcIC+hnwAwsTAi/fbMkGGtVkIj
+         RIUFJCRou5b02wXgShKfZkhrTS1t094A3O9/zaKcct5cKHYc7J5d3Um2bpYMuzWbmZ
+         TR4d1C7htDus8nJ+hlqBmNqXFG/CsfldfizUC8Jg=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Mark Zhang <markz@mellanox.com>
-Subject: [PATCH rdma-next 1/9] RDMA/cm: Add Enhanced Connection Establishment (ECE) bits
-Date:   Thu,  5 Mar 2020 17:00:57 +0200
-Message-Id: <20200305150105.207959-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/9] RDMA/cm: Delete not implemented CM peer to peer communication
+Date:   Thu,  5 Mar 2020 17:00:59 +0200
+Message-Id: <20200305150105.207959-4-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200305150105.207959-1-leon@kernel.org>
 References: <20200305150105.207959-1-leon@kernel.org>
@@ -58,51 +58,60 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Extend REQ (request for communications), REP (reply to request
-for communication), rejected reason and SIDR_REP (service ID
-resolution response) structures with hardware vendor ID bits
-according to approved IBA Comment #9434.
+Peer to peer support was never implemented, so delete it to make
+code less clutter.
 
-Reviewed-by: Mark Zhang <markz@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Mark Zhang <markz@mellanox.com>
 ---
- include/rdma/ibta_vol1_c12.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/infiniband/core/cm.c | 7 -------
+ include/rdma/ib_cm.h         | 1 -
+ 2 files changed, 8 deletions(-)
 
-diff --git a/include/rdma/ibta_vol1_c12.h b/include/rdma/ibta_vol1_c12.h
-index 269904425d3f..960c86bec76c 100644
---- a/include/rdma/ibta_vol1_c12.h
-+++ b/include/rdma/ibta_vol1_c12.h
-@@ -38,6 +38,7 @@
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index aec6867f0ed2..77190704e81b 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -261,7 +261,6 @@ struct cm_id_private {
+ 	__be16 pkey;
+ 	u8 private_data_len;
+ 	u8 max_cm_retries;
+-	u8 peer_to_peer;
+ 	u8 responder_resources;
+ 	u8 initiator_depth;
+ 	u8 retry_count;
+@@ -1380,10 +1379,6 @@ static void cm_format_req(struct cm_req_msg *req_msg,
 
- /* Table 106 REQ Message Contents */
- #define CM_REQ_LOCAL_COMM_ID CM_FIELD32_LOC(struct cm_req_msg, 0, 32)
-+#define CM_REQ_VENDOR_ID CM_FIELD32_LOC(struct cm_req_msg, 5, 24)
- #define CM_REQ_SERVICE_ID CM_FIELD64_LOC(struct cm_req_msg, 8)
- #define CM_REQ_LOCAL_CA_GUID CM_FIELD64_LOC(struct cm_req_msg, 16)
- #define CM_REQ_LOCAL_Q_KEY CM_FIELD32_LOC(struct cm_req_msg, 28, 32)
-@@ -119,8 +120,11 @@ CM_STRUCT(struct cm_rej_msg, 84 * 8 + 1184);
- #define CM_REP_REMOTE_COMM_ID CM_FIELD32_LOC(struct cm_rep_msg, 4, 32)
- #define CM_REP_LOCAL_Q_KEY CM_FIELD32_LOC(struct cm_rep_msg, 8, 32)
- #define CM_REP_LOCAL_QPN CM_FIELD32_LOC(struct cm_rep_msg, 12, 24)
-+#define CM_REP_VENDOR_ID_H CM_FIELD8_LOC(struct cm_rep_msg, 15, 8)
- #define CM_REP_LOCAL_EE_CONTEXT_NUMBER CM_FIELD32_LOC(struct cm_rep_msg, 16, 24)
-+#define CM_REP_VENDOR_ID_M CM_FIELD8_LOC(struct cm_rep_msg, 19, 8)
- #define CM_REP_STARTING_PSN CM_FIELD32_LOC(struct cm_rep_msg, 20, 24)
-+#define CM_REP_VENDOR_ID_L CM_FIELD8_LOC(struct cm_rep_msg, 23, 8)
- #define CM_REP_RESPONDER_RESOURCES CM_FIELD8_LOC(struct cm_rep_msg, 24, 8)
- #define CM_REP_INITIATOR_DEPTH CM_FIELD8_LOC(struct cm_rep_msg, 25, 8)
- #define CM_REP_TARGET_ACK_DELAY CM_FIELD8_LOC(struct cm_rep_msg, 26, 5)
-@@ -201,7 +205,9 @@ CM_STRUCT(struct cm_sidr_req_msg, 16 * 8 + 1728);
- #define CM_SIDR_REP_STATUS CM_FIELD8_LOC(struct cm_sidr_rep_msg, 4, 8)
- #define CM_SIDR_REP_ADDITIONAL_INFORMATION_LENGTH                              \
- 	CM_FIELD8_LOC(struct cm_sidr_rep_msg, 5, 8)
-+#define CM_SIDR_REP_VENDOR_ID_H CM_FIELD16_LOC(struct cm_sidr_rep_msg, 6, 16)
- #define CM_SIDR_REP_QPN CM_FIELD32_LOC(struct cm_sidr_rep_msg, 8, 24)
-+#define CM_SIDR_REP_VENDOR_ID_L CM_FIELD8_LOC(struct cm_sidr_rep_msg, 11, 8)
- #define CM_SIDR_REP_SERVICEID CM_FIELD64_LOC(struct cm_sidr_rep_msg, 12)
- #define CM_SIDR_REP_Q_KEY CM_FIELD32_LOC(struct cm_sidr_rep_msg, 20, 32)
- #define CM_SIDR_REP_ADDITIONAL_INFORMATION                                     \
+ static int cm_validate_req_param(struct ib_cm_req_param *param)
+ {
+-	/* peer-to-peer not supported */
+-	if (param->peer_to_peer)
+-		return -EINVAL;
+-
+ 	if (!param->primary_path)
+ 		return -EINVAL;
+
+@@ -2436,8 +2431,6 @@ static int cm_rep_handler(struct cm_work *work)
+ 			cm_ack_timeout(cm_id_priv->target_ack_delay,
+ 				       cm_id_priv->alt_av.timeout - 1);
+
+-	/* todo: handle peer_to_peer */
+-
+ 	ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
+ 	ret = atomic_inc_and_test(&cm_id_priv->work_count);
+ 	if (!ret)
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 8ec482e391aa..058cfbc2b37f 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -360,7 +360,6 @@ struct ib_cm_req_param {
+ 	u32			starting_psn;
+ 	const void		*private_data;
+ 	u8			private_data_len;
+-	u8			peer_to_peer;
+ 	u8			responder_resources;
+ 	u8			initiator_depth;
+ 	u8			remote_cm_response_timeout;
 --
 2.24.1
 
