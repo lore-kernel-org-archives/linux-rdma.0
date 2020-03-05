@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48EFBC3F2CD
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FFFDC3F2CD
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 215D720801
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53E7A20848
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583420671;
-	bh=ua1xOqup6drGO1JtpsPE0qivAIgNyJMgZ7hgG1E34uo=;
+	s=default; t=1583420674;
+	bh=lr8dnwfCk2Oy5AXqe/SQM5v/XztvAqWcFh3CRN0GGXM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1NVicZIJ83Ipm2riRRUeRTEXyN6Ih6j3b7J3Lx9G8nztlMmWZgJ83KXGK0fTatNCn
-	 VAQU4VFSsjQipY2ICXHGI6tWDn+rOsscNY7w3YSsPMRujNIGLh7HLlmrWWc7XVr8he
-	 DkMzel3W48v6XDvEcMRk03sAuVn01tyAUmGA6yoI=
+	b=GkY/TvhylI5IL3jdZ+ujDm9hBUC8dh+xJe+YIcQu04O/19+5QbzjX/zEF0rXT/fF/
+	 ej3udrvtnFybkXaZwWNq3U493cLU7EuqcI5wq6jBKVqpWn4ypjaOAwTWVC7fDLZKqq
+	 E6zkHsj4zo0YbeBtpxC82q7zVK/UAL2jObsQhuTM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726533AbgCEPEa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 10:04:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47888 "EHLO mail.kernel.org"
+        id S1726565AbgCEPEd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 10:04:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47918 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726413AbgCEPEa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 10:04:30 -0500
+        id S1726413AbgCEPEd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 10:04:33 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7142C20848;
-        Thu,  5 Mar 2020 15:04:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A0F7D20801;
+        Thu,  5 Mar 2020 15:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583420670;
-        bh=ua1xOqup6drGO1JtpsPE0qivAIgNyJMgZ7hgG1E34uo=;
+        s=default; t=1583420673;
+        bh=lr8dnwfCk2Oy5AXqe/SQM5v/XztvAqWcFh3CRN0GGXM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Er8gR6i6t31Rv4cEXVVqBrVLF5RUysyyyZZPQko4oBHmiHX2QwQ5ntC4zqi7Bb8Vb
-         iJlDiGo50dqeksvS70pmwYC7ZcRxNDCk7vukFOYTO5VRxg2jDJgHmcp1XQusIB2b9M
-         rW/4SV5d1020dKV20/dBdXGwmO02n7IdsaVyP0XU=
+        b=t2heUR6ojYL8/anLIpvevmuFRLH/TJNUZokQt5MXonr4L6xhkwoUW7ojdLW0uJ9BR
+         0Xuj6hjST/VKh0ig4/u7KOci0VgHWIu7og1Uj0P0NEHxxSL6JCJxioIcFfZS9Dg9jK
+         WQwVyPwtONAXxBCnzkMrMtJToBKXwxYAiQrmZ0oI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [RFC PATCH rdma-core 08/11] librdmacm: Return ECE results through rdma_accept
-Date:   Thu,  5 Mar 2020 17:03:53 +0200
-Message-Id: <20200305150356.208843-9-leon@kernel.org>
+Subject: [RFC PATCH rdma-core 05/11] debian: Install all available librdmacm man pages
+Date:   Thu,  5 Mar 2020 17:03:50 +0200
+Message-Id: <20200305150356.208843-6-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200305150356.208843-1-leon@kernel.org>
 References: <20200305150356.208843-1-leon@kernel.org>
@@ -57,54 +57,77 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Passive side (server) returns its answer through REP message,
-which is constructed as a result of rdma_accept().
+There is no need to be explicit for every man page in librdmacm,
+use simple '*' to install all rdma_*.3 man pages in one shot.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- librdmacm/cma.c          | 9 +++++++++
- librdmacm/rdma_cma_abi.h | 1 +
- 2 files changed, 10 insertions(+)
+ debian/librdmacm-dev.install | 53 +-----------------------------------
+ 1 file changed, 1 insertion(+), 52 deletions(-)
 
-diff --git a/librdmacm/cma.c b/librdmacm/cma.c
-index e912410b..30a5de75 100644
---- a/librdmacm/cma.c
-+++ b/librdmacm/cma.c
-@@ -1668,6 +1668,14 @@ err:
- 	return ret;
- }
-
-+static void ucma_copy_ece_param_to_kern_rep(struct cma_id_private *id_priv,
-+					    struct ucma_abi_ece *dst)
-+{
-+	/* Return result with same ID as received. */
-+	dst->vendor_id = id_priv->remote_ece.vendor_id;
-+	dst->attr_mod = id_priv->local_ece.options;
-+}
-+
- int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- {
- 	uint32_t qp_num = (conn_param) ? conn_param->qp_num : 0;
-@@ -1713,6 +1721,7 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 	}
- 	ucma_copy_conn_param_to_kern(id_priv, &cmd.conn_param, conn_param,
- 				     qp_num, srq);
-+	ucma_copy_ece_param_to_kern_rep(id_priv, &cmd.ece);
-
- 	ret = write(id->channel->fd, &cmd, sizeof cmd);
- 	if (ret != sizeof cmd) {
-diff --git a/librdmacm/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
-index 6451862e..4639941b 100644
---- a/librdmacm/rdma_cma_abi.h
-+++ b/librdmacm/rdma_cma_abi.h
-@@ -254,6 +254,7 @@ struct ucma_abi_accept {
- 	struct ucma_abi_conn_param conn_param;
- 	__u32 id;
- 	__u32 reserved;
-+	struct ucma_abi_ece ece;
- };
-
- struct ucma_abi_reject {
+diff --git a/debian/librdmacm-dev.install b/debian/librdmacm-dev.install
+index e12c300a..68835cb0 100644
+--- a/debian/librdmacm-dev.install
++++ b/debian/librdmacm-dev.install
+@@ -6,57 +6,6 @@ usr/include/rdma/rsocket.h
+ usr/lib/*/librdmacm*.so
+ usr/lib/*/librdmacm.a
+ usr/lib/*/pkgconfig/librdmacm.pc
+-usr/share/man/man3/rdma_accept.3
+-usr/share/man/man3/rdma_ack_cm_event.3
+-usr/share/man/man3/rdma_bind_addr.3
+-usr/share/man/man3/rdma_connect.3
+-usr/share/man/man3/rdma_create_ep.3
+-usr/share/man/man3/rdma_create_event_channel.3
+-usr/share/man/man3/rdma_create_id.3
+-usr/share/man/man3/rdma_create_qp.3
+-usr/share/man/man3/rdma_create_srq.3
+-usr/share/man/man3/rdma_dereg_mr.3
+-usr/share/man/man3/rdma_destroy_ep.3
+-usr/share/man/man3/rdma_destroy_event_channel.3
+-usr/share/man/man3/rdma_destroy_id.3
+-usr/share/man/man3/rdma_destroy_qp.3
+-usr/share/man/man3/rdma_destroy_srq.3
+-usr/share/man/man3/rdma_disconnect.3
+-usr/share/man/man3/rdma_establish.3
+-usr/share/man/man3/rdma_event_str.3
+-usr/share/man/man3/rdma_free_devices.3
+-usr/share/man/man3/rdma_get_cm_event.3
+-usr/share/man/man3/rdma_get_devices.3
+-usr/share/man/man3/rdma_get_dst_port.3
+-usr/share/man/man3/rdma_get_local_addr.3
+-usr/share/man/man3/rdma_get_peer_addr.3
+-usr/share/man/man3/rdma_get_recv_comp.3
+-usr/share/man/man3/rdma_get_request.3
+-usr/share/man/man3/rdma_get_send_comp.3
+-usr/share/man/man3/rdma_get_src_port.3
+-usr/share/man/man3/rdma_getaddrinfo.3
+-usr/share/man/man3/rdma_init_qp_attr.3
+-usr/share/man/man3/rdma_join_multicast.3
+-usr/share/man/man3/rdma_join_multicast_ex.3
+-usr/share/man/man3/rdma_leave_multicast.3
+-usr/share/man/man3/rdma_listen.3
+-usr/share/man/man3/rdma_migrate_id.3
+-usr/share/man/man3/rdma_notify.3
+-usr/share/man/man3/rdma_post_read.3
+-usr/share/man/man3/rdma_post_readv.3
+-usr/share/man/man3/rdma_post_recv.3
+-usr/share/man/man3/rdma_post_recvv.3
+-usr/share/man/man3/rdma_post_send.3
+-usr/share/man/man3/rdma_post_sendv.3
+-usr/share/man/man3/rdma_post_ud_send.3
+-usr/share/man/man3/rdma_post_write.3
+-usr/share/man/man3/rdma_post_writev.3
+-usr/share/man/man3/rdma_reg_msgs.3
+-usr/share/man/man3/rdma_reg_read.3
+-usr/share/man/man3/rdma_reg_write.3
+-usr/share/man/man3/rdma_reject.3
+-usr/share/man/man3/rdma_resolve_addr.3
+-usr/share/man/man3/rdma_resolve_route.3
+-usr/share/man/man3/rdma_set_option.3
++usr/share/man/man3/rdma_*.3
+ usr/share/man/man7/rdma_cm.7
+ usr/share/man/man7/rsocket.7
 --
 2.24.1
 
