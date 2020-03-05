@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FFFDC3F2CD
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD48DC3F2CD
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 53E7A20848
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A695F20801
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Mar 2020 15:04:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583420674;
-	bh=lr8dnwfCk2Oy5AXqe/SQM5v/XztvAqWcFh3CRN0GGXM=;
+	s=default; t=1583420677;
+	bh=DH6fnPfUChk+Jy4Xtj5KHnoCVNYHkz2+CZk8PJRL84g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=GkY/TvhylI5IL3jdZ+ujDm9hBUC8dh+xJe+YIcQu04O/19+5QbzjX/zEF0rXT/fF/
-	 ej3udrvtnFybkXaZwWNq3U493cLU7EuqcI5wq6jBKVqpWn4ypjaOAwTWVC7fDLZKqq
-	 E6zkHsj4zo0YbeBtpxC82q7zVK/UAL2jObsQhuTM=
+	b=re21GD1/mp/AR7Kl3wGCKJLIyqD7um5JOFyrH5vBBEJVpogfqKoyNVotZ4FiuIVF6
+	 7nQR1PBLOxUorwA2edEw1vhTsCJIsc2oisfn/+2zZy67gMstmy77CaDvGrwVI8flbm
+	 WPZRtvEvKCvfBOFdL2wnrHF1L1a+aGRxzDXfxqgM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726565AbgCEPEd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 10:04:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47918 "EHLO mail.kernel.org"
+        id S1726579AbgCEPEh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 10:04:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726413AbgCEPEd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 10:04:33 -0500
+        id S1726413AbgCEPEh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 10:04:37 -0500
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A0F7D20801;
-        Thu,  5 Mar 2020 15:04:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BED2320848;
+        Thu,  5 Mar 2020 15:04:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583420673;
-        bh=lr8dnwfCk2Oy5AXqe/SQM5v/XztvAqWcFh3CRN0GGXM=;
+        s=default; t=1583420676;
+        bh=DH6fnPfUChk+Jy4Xtj5KHnoCVNYHkz2+CZk8PJRL84g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=t2heUR6ojYL8/anLIpvevmuFRLH/TJNUZokQt5MXonr4L6xhkwoUW7ojdLW0uJ9BR
-         0Xuj6hjST/VKh0ig4/u7KOci0VgHWIu7og1Uj0P0NEHxxSL6JCJxioIcFfZS9Dg9jK
-         WQwVyPwtONAXxBCnzkMrMtJToBKXwxYAiQrmZ0oI=
+        b=J8HawPT6HnTuwAx7XofUMjfvSoBJpE9e+BJ6eHdtgzgoNhy6GqFfJHr96OvCQF9HE
+         lg3qknVa4jaP7tZIY7VzIroWBFiSYFtWok7Wj5kQQ/zAZhnIGv+N0Wy6EK72duogEk
+         6xQN8RQwu8EBxpsLTYZoaMxKD4wxjWruoEfgnZjk=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [RFC PATCH rdma-core 05/11] debian: Install all available librdmacm man pages
-Date:   Thu,  5 Mar 2020 17:03:50 +0200
-Message-Id: <20200305150356.208843-6-leon@kernel.org>
+Subject: [RFC PATCH rdma-core 10/11] librdmacm: Implement ECE handshake logic
+Date:   Thu,  5 Mar 2020 17:03:55 +0200
+Message-Id: <20200305150356.208843-11-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200305150356.208843-1-leon@kernel.org>
 References: <20200305150356.208843-1-leon@kernel.org>
@@ -57,77 +57,130 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-There is no need to be explicit for every man page in librdmacm,
-use simple '*' to install all rdma_*.3 man pages in one shot.
+Perform ECE handshake through REQ/REP messages. The REQ message
+initiated by active side towards passive side and carries the
+ECE data. The passive side returns its decision in REP message.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- debian/librdmacm-dev.install | 53 +-----------------------------------
- 1 file changed, 1 insertion(+), 52 deletions(-)
+ librdmacm/cma.c          | 46 ++++++++++++++++++++++++++++++++++------
+ librdmacm/rdma_cma_abi.h |  1 +
+ 2 files changed, 40 insertions(+), 7 deletions(-)
 
-diff --git a/debian/librdmacm-dev.install b/debian/librdmacm-dev.install
-index e12c300a..68835cb0 100644
---- a/debian/librdmacm-dev.install
-+++ b/debian/librdmacm-dev.install
-@@ -6,57 +6,6 @@ usr/include/rdma/rsocket.h
- usr/lib/*/librdmacm*.so
- usr/lib/*/librdmacm.a
- usr/lib/*/pkgconfig/librdmacm.pc
--usr/share/man/man3/rdma_accept.3
--usr/share/man/man3/rdma_ack_cm_event.3
--usr/share/man/man3/rdma_bind_addr.3
--usr/share/man/man3/rdma_connect.3
--usr/share/man/man3/rdma_create_ep.3
--usr/share/man/man3/rdma_create_event_channel.3
--usr/share/man/man3/rdma_create_id.3
--usr/share/man/man3/rdma_create_qp.3
--usr/share/man/man3/rdma_create_srq.3
--usr/share/man/man3/rdma_dereg_mr.3
--usr/share/man/man3/rdma_destroy_ep.3
--usr/share/man/man3/rdma_destroy_event_channel.3
--usr/share/man/man3/rdma_destroy_id.3
--usr/share/man/man3/rdma_destroy_qp.3
--usr/share/man/man3/rdma_destroy_srq.3
--usr/share/man/man3/rdma_disconnect.3
--usr/share/man/man3/rdma_establish.3
--usr/share/man/man3/rdma_event_str.3
--usr/share/man/man3/rdma_free_devices.3
--usr/share/man/man3/rdma_get_cm_event.3
--usr/share/man/man3/rdma_get_devices.3
--usr/share/man/man3/rdma_get_dst_port.3
--usr/share/man/man3/rdma_get_local_addr.3
--usr/share/man/man3/rdma_get_peer_addr.3
--usr/share/man/man3/rdma_get_recv_comp.3
--usr/share/man/man3/rdma_get_request.3
--usr/share/man/man3/rdma_get_send_comp.3
--usr/share/man/man3/rdma_get_src_port.3
--usr/share/man/man3/rdma_getaddrinfo.3
--usr/share/man/man3/rdma_init_qp_attr.3
--usr/share/man/man3/rdma_join_multicast.3
--usr/share/man/man3/rdma_join_multicast_ex.3
--usr/share/man/man3/rdma_leave_multicast.3
--usr/share/man/man3/rdma_listen.3
--usr/share/man/man3/rdma_migrate_id.3
--usr/share/man/man3/rdma_notify.3
--usr/share/man/man3/rdma_post_read.3
--usr/share/man/man3/rdma_post_readv.3
--usr/share/man/man3/rdma_post_recv.3
--usr/share/man/man3/rdma_post_recvv.3
--usr/share/man/man3/rdma_post_send.3
--usr/share/man/man3/rdma_post_sendv.3
--usr/share/man/man3/rdma_post_ud_send.3
--usr/share/man/man3/rdma_post_write.3
--usr/share/man/man3/rdma_post_writev.3
--usr/share/man/man3/rdma_reg_msgs.3
--usr/share/man/man3/rdma_reg_read.3
--usr/share/man/man3/rdma_reg_write.3
--usr/share/man/man3/rdma_reject.3
--usr/share/man/man3/rdma_resolve_addr.3
--usr/share/man/man3/rdma_resolve_route.3
--usr/share/man/man3/rdma_set_option.3
-+usr/share/man/man3/rdma_*.3
- usr/share/man/man7/rdma_cm.7
- usr/share/man/man7/rsocket.7
+diff --git a/librdmacm/cma.c b/librdmacm/cma.c
+index ba8a9a57..af3c7041 100644
+--- a/librdmacm/cma.c
++++ b/librdmacm/cma.c
+@@ -1398,10 +1398,20 @@ static int init_ece(struct rdma_cm_id *id, struct ibv_qp *qp)
+ 	id_priv->local_ece.vendor_id = ece.vendor_id;
+ 	id_priv->local_ece.options = ece.options;
+
++	if (!id_priv->remote_ece.vendor_id)
++		return 0;
++
++	/* This QP was created due to REQ event */
++	ece.vendor_id = id_priv->remote_ece.vendor_id;
++	ece.options = id_priv->remote_ece.options;
++	ret = ibv_set_ece(qp, &ece);
++	if (ret)
++		return (errno == ECONNREFUSED) ? errno : 0;
++
++	id_priv->local_ece.options = ece.options;
+ 	return 0;
+ }
+
+-
+ int rdma_create_qp_ex(struct rdma_cm_id *id,
+ 		      struct ibv_qp_init_attr_ex *attr)
+ {
+@@ -2074,8 +2084,8 @@ static int ucma_query_req_info(struct rdma_cm_id *id)
+ 	return 0;
+ }
+
+-static int ucma_process_conn_req(struct cma_event *evt,
+-				 uint32_t handle)
++static int ucma_process_conn_req(struct cma_event *evt, uint32_t handle,
++				 struct ucma_abi_ece *ece)
+ {
+ 	struct cma_id_private *id_priv;
+ 	int ret;
+@@ -2095,6 +2105,8 @@ static int ucma_process_conn_req(struct cma_event *evt,
+ 	ucma_insert_id(id_priv);
+ 	id_priv->initiator_depth = evt->event.param.conn.initiator_depth;
+ 	id_priv->responder_resources = evt->event.param.conn.responder_resources;
++	id_priv->remote_ece.vendor_id = ece->vendor_id;
++	id_priv->remote_ece.options = ece->attr_mod;
+
+ 	if (evt->id_priv->sync) {
+ 		ret = rdma_migrate_id(&id_priv->id, NULL);
+@@ -2143,6 +2155,26 @@ err:
+ 	return ret;
+ }
+
++static int ucma_process_conn_resp_ece(struct cma_id_private *id_priv,
++				      struct ucma_abi_ece *ece)
++{
++	struct ibv_ece ibv_ece = { .vendor_id = ece->vendor_id,
++				   .options = ece->attr_mod };
++	int ret;
++
++	ret = ibv_set_ece(id_priv->id.qp, &ibv_ece);
++	if (ret && errno == EOPNOTSUPP)
++		goto out;
++
++	if (ret && errno == ECONNREFUSED)
++		/* libibverbs provider asked to reject connection */
++		return -1;
++
++	id_priv->local_ece.options = ibv_ece.options;
++out:
++	return ucma_process_conn_resp(id_priv);
++}
++
+ static int ucma_process_join(struct cma_event *evt)
+ {
+ 	evt->mc->mgid = evt->event.param.ud.ah_attr.grh.dgid;
+@@ -2279,7 +2311,7 @@ retry:
+ 		else
+ 			ucma_copy_conn_event(evt, &resp.param.conn);
+
+-		ret = ucma_process_conn_req(evt, resp.id);
++		ret = ucma_process_conn_req(evt, resp.id, &resp.ece);
+ 		if (ret)
+ 			goto retry;
+ 		break;
+@@ -2288,8 +2320,8 @@ retry:
+ 		if (!evt->id_priv->id.qp) {
+ 			evt->event.event = RDMA_CM_EVENT_CONNECT_RESPONSE;
+ 		} else {
+-			evt->event.status =
+-				ucma_process_conn_resp(evt->id_priv);
++			evt->event.status = ucma_process_conn_resp_ece(
++				evt->id_priv, &resp.ece);
+ 			if (!evt->event.status)
+ 				evt->event.event = RDMA_CM_EVENT_ESTABLISHED;
+ 			else {
+@@ -2639,7 +2671,7 @@ int rdma_get_remote_ece(struct rdma_cm_id *id, struct ibv_ece *ece)
+ {
+ 	struct cma_id_private *id_priv;
+
+-	if (id->qp || !ece)
++	if (!id || id->qp || !ece)
+ 		return ERR(EINVAL);
+
+ 	id_priv = container_of(id, struct cma_id_private, id);
+diff --git a/librdmacm/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
+index 911863cc..f24417dd 100644
+--- a/librdmacm/rdma_cma_abi.h
++++ b/librdmacm/rdma_cma_abi.h
+@@ -334,6 +334,7 @@ struct ucma_abi_event_resp {
+ 		struct ucma_abi_conn_param conn;
+ 		struct ucma_abi_ud_param   ud;
+ 	} param;
++	struct ucma_abi_ece ece;
+ };
+
+ struct ucma_abi_set_option {
 --
 2.24.1
 
