@@ -2,36 +2,38 @@ Return-Path: <SRS0=uWV+=4X=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94DBEC3F2D1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0609C3F2D2
 	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 653B821556
+	by mail.kernel.org (Postfix) with ESMTP id 9407720801
 	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726382AbgCFCsm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 21:48:42 -0500
-Received: from szxga06-in.huawei.com ([45.249.212.32]:57714 "EHLO huawei.com"
+        id S1726378AbgCFCsn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 21:48:43 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:57718 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726378AbgCFCsm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726243AbgCFCsm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 5 Mar 2020 21:48:42 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 315CFB8778C2DE59DCC8;
+        by Forcepoint Email with ESMTP id 2CB31FA6C794F10E3A42;
         Fri,  6 Mar 2020 10:48:40 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.439.0; Fri, 6 Mar 2020 10:48:31 +0800
+ 14.3.439.0; Fri, 6 Mar 2020 10:48:32 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 0/5] RDMA/hns: Refactor wqe related codes
-Date:   Fri, 6 Mar 2020 10:44:49 +0800
-Message-ID: <1583462694-43908-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 3/5] RDMA/hns: Optimize the wr opcode conversion from ib to hns
+Date:   Fri, 6 Mar 2020 10:44:52 +0800
+Message-ID: <1583462694-43908-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1583462694-43908-1-git-send-email-liweihang@huawei.com>
+References: <1583462694-43908-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,31 +43,150 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Process of wqe is hard to understand and maintain in hns, this series
-refactor wqe related code, especially in hns_roce_v2_post_send().
+From: Xi Wang <wangxi11@huawei.com>
 
-Previous discussion could be found at:
-https://patchwork.kernel.org/cover/11415395/
+Simplify the wr opcode conversion from ib to hns by using a map table
+instead of the switch-case statement.
 
-Changes since v1:
-- Fix comments from Leon about the inplementation of to_hr_opcode() in
-  patch 3/5.
-- Patch 4/5 couldn't be applied. Just do a rebase.
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 63 +++++++++++++++++-------------
+ 1 file changed, 36 insertions(+), 27 deletions(-)
 
-Xi Wang (5):
-  RDMA/hns: Rename wqe buffer related functions
-  RDMA/hns: Optimize wqe buffer filling process for post send
-  RDMA/hns: Optimize the wr opcode conversion from ib to hns
-  RDMA/hns: Optimize base address table config flow for qp buffer
-  RDMA/hns: Optimize wqe buffer set flow for post send
-
- drivers/infiniband/hw/hns/hns_roce_device.h |  10 +-
- drivers/infiniband/hw/hns/hns_roce_hem.c    |  16 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   9 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 588 ++++++++++++++--------------
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  48 +--
- 5 files changed, 319 insertions(+), 352 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index c8c345f..c813c74 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -56,6 +56,40 @@ static void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
+ 	dseg->len  = cpu_to_le32(sg->length);
+ }
+ 
++/*
++ * mapped-value = 1 + real-value
++ * The hns wr opcode real value is start from 0, In order to distinguish between
++ * initialized and uninitialized map values, we plus 1 to the actual value when
++ * defining the mapping, so that the validity can be identified by checking the
++ * mapped value is greater than 0.
++ */
++#define HR_OPC_MAP(ib_key, hr_key) \
++		[IB_WR_ ## ib_key] = 1 + HNS_ROCE_V2_WQE_OP_ ## hr_key
++
++static const u32 hns_roce_op_code[] = {
++	HR_OPC_MAP(RDMA_WRITE,			RDMA_WRITE),
++	HR_OPC_MAP(RDMA_WRITE_WITH_IMM,		RDMA_WRITE_WITH_IMM),
++	HR_OPC_MAP(SEND,			SEND),
++	HR_OPC_MAP(SEND_WITH_IMM,		SEND_WITH_IMM),
++	HR_OPC_MAP(RDMA_READ,			RDMA_READ),
++	HR_OPC_MAP(ATOMIC_CMP_AND_SWP,		ATOM_CMP_AND_SWAP),
++	HR_OPC_MAP(ATOMIC_FETCH_AND_ADD,	ATOM_FETCH_AND_ADD),
++	HR_OPC_MAP(SEND_WITH_INV,		SEND_WITH_INV),
++	HR_OPC_MAP(LOCAL_INV,			LOCAL_INV),
++	HR_OPC_MAP(MASKED_ATOMIC_CMP_AND_SWP,	ATOM_MSK_CMP_AND_SWAP),
++	HR_OPC_MAP(MASKED_ATOMIC_FETCH_AND_ADD,	ATOM_MSK_FETCH_AND_ADD),
++	HR_OPC_MAP(REG_MR,			FAST_REG_PMR),
++};
++
++static u32 to_hr_opcode(u32 ib_opcode)
++{
++	if (ib_opcode >= ARRAY_SIZE(hns_roce_op_code))
++		return HNS_ROCE_V2_WQE_OP_MASK;
++
++	return hns_roce_op_code[ib_opcode] ? hns_roce_op_code[ib_opcode] - 1 :
++					     HNS_ROCE_V2_WQE_OP_MASK;
++}
++
+ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 			 void *wqe, const struct ib_reg_wr *wr)
+ {
+@@ -303,7 +337,6 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+ 	void *wqe = NULL;
+ 	bool loopback;
+ 	u32 tmp_len;
+-	u32 hr_op;
+ 	u8 *smac;
+ 	int nreq;
+ 	int ret;
+@@ -517,76 +550,52 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+ 			wqe += sizeof(struct hns_roce_v2_rc_send_wqe);
+ 			switch (wr->opcode) {
+ 			case IB_WR_RDMA_READ:
+-				hr_op = HNS_ROCE_V2_WQE_OP_RDMA_READ;
+ 				rc_sq_wqe->rkey =
+ 					cpu_to_le32(rdma_wr(wr)->rkey);
+ 				rc_sq_wqe->va =
+ 					cpu_to_le64(rdma_wr(wr)->remote_addr);
+ 				break;
+ 			case IB_WR_RDMA_WRITE:
+-				hr_op = HNS_ROCE_V2_WQE_OP_RDMA_WRITE;
+ 				rc_sq_wqe->rkey =
+ 					cpu_to_le32(rdma_wr(wr)->rkey);
+ 				rc_sq_wqe->va =
+ 					cpu_to_le64(rdma_wr(wr)->remote_addr);
+ 				break;
+ 			case IB_WR_RDMA_WRITE_WITH_IMM:
+-				hr_op = HNS_ROCE_V2_WQE_OP_RDMA_WRITE_WITH_IMM;
+ 				rc_sq_wqe->rkey =
+ 					cpu_to_le32(rdma_wr(wr)->rkey);
+ 				rc_sq_wqe->va =
+ 					cpu_to_le64(rdma_wr(wr)->remote_addr);
+ 				break;
+-			case IB_WR_SEND:
+-				hr_op = HNS_ROCE_V2_WQE_OP_SEND;
+-				break;
+-			case IB_WR_SEND_WITH_INV:
+-				hr_op = HNS_ROCE_V2_WQE_OP_SEND_WITH_INV;
+-				break;
+-			case IB_WR_SEND_WITH_IMM:
+-				hr_op = HNS_ROCE_V2_WQE_OP_SEND_WITH_IMM;
+-				break;
+ 			case IB_WR_LOCAL_INV:
+-				hr_op = HNS_ROCE_V2_WQE_OP_LOCAL_INV;
+ 				roce_set_bit(rc_sq_wqe->byte_4,
+ 					       V2_RC_SEND_WQE_BYTE_4_SO_S, 1);
+ 				rc_sq_wqe->inv_key =
+ 					    cpu_to_le32(wr->ex.invalidate_rkey);
+ 				break;
+ 			case IB_WR_REG_MR:
+-				hr_op = HNS_ROCE_V2_WQE_OP_FAST_REG_PMR;
+ 				set_frmr_seg(rc_sq_wqe, wqe, reg_wr(wr));
+ 				break;
+ 			case IB_WR_ATOMIC_CMP_AND_SWP:
+-				hr_op = HNS_ROCE_V2_WQE_OP_ATOM_CMP_AND_SWAP;
+ 				rc_sq_wqe->rkey =
+ 					cpu_to_le32(atomic_wr(wr)->rkey);
+ 				rc_sq_wqe->va =
+ 					cpu_to_le64(atomic_wr(wr)->remote_addr);
+ 				break;
+ 			case IB_WR_ATOMIC_FETCH_AND_ADD:
+-				hr_op = HNS_ROCE_V2_WQE_OP_ATOM_FETCH_AND_ADD;
+ 				rc_sq_wqe->rkey =
+ 					cpu_to_le32(atomic_wr(wr)->rkey);
+ 				rc_sq_wqe->va =
+ 					cpu_to_le64(atomic_wr(wr)->remote_addr);
+ 				break;
+-			case IB_WR_MASKED_ATOMIC_CMP_AND_SWP:
+-				hr_op =
+-				       HNS_ROCE_V2_WQE_OP_ATOM_MSK_CMP_AND_SWAP;
+-				break;
+-			case IB_WR_MASKED_ATOMIC_FETCH_AND_ADD:
+-				hr_op =
+-				      HNS_ROCE_V2_WQE_OP_ATOM_MSK_FETCH_AND_ADD;
+-				break;
+ 			default:
+-				hr_op = HNS_ROCE_V2_WQE_OP_MASK;
+ 				break;
+ 			}
+ 
+ 			roce_set_field(rc_sq_wqe->byte_4,
+ 				       V2_RC_SEND_WQE_BYTE_4_OPCODE_M,
+-				       V2_RC_SEND_WQE_BYTE_4_OPCODE_S, hr_op);
++				       V2_RC_SEND_WQE_BYTE_4_OPCODE_S,
++				       to_hr_opcode(wr->opcode));
+ 
+ 			if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
+ 			    wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
 -- 
 2.8.1
 
