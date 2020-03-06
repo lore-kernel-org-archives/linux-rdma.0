@@ -2,88 +2,70 @@ Return-Path: <SRS0=uWV+=4X=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE153C3F2D8
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 01:07:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94DBEC3F2D1
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C651120726
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 01:07:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583456829;
-	bh=JMpmxwJdUlOqRtaQwoDet8FowHZ56PTcFV4cVJtkGOs=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NQQOoa8qZKjXQna+2InNnnZGKfoUvS27DWJhzPF5XkRI35Gmpbd2fE7ri/d6B+Q73
-	 AC+1jEoruCMLtLOYEJhQE+bHjsX92gMSTzr1FCfMARz78Keh3kVseC+FiWEd4ArrOW
-	 1ae6yr6QtRE9ZYHTmJqTgiaFpRIIj9+WKy1v7Q24=
+	by mail.kernel.org (Postfix) with ESMTP id 653B821556
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726524AbgCFBHH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 20:07:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59410 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726674AbgCFBGv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 20:06:51 -0500
-Received: from kicinski-fedora-PC1C0HJN.thefacebook.com (unknown [163.114.132.128])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E54E3207FD;
-        Fri,  6 Mar 2020 01:06:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583456810;
-        bh=JMpmxwJdUlOqRtaQwoDet8FowHZ56PTcFV4cVJtkGOs=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TVhxekQRZCVenUOrQTlnnNNa+rkp4xQ0U00iB1fJ08/7lJJyy79tmX3IYK151JCmJ
-         y3b4lABh4rvmEJnLaJQJ8jpnia2I+2uwC2LTQXjgc3hOAh6p4DUXFqRsn2JVEPqfbL
-         eKovMfGDEXjbry8wIJi1rABjvXeRmvo5uZsEkG4k=
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     davem@davemloft.net
-Cc:     jdike@addtoit.com, richard@nod.at, anton.ivanov@cambridgegreys.com,
-        linux-um@lists.infradead.org, dledford@redhat.com, jgg@ziepe.ca,
-        leon@kernel.org, linux-rdma@vger.kernel.org, edumazet@google.com,
-        jasowang@redhat.com, mkubecek@suse.cz, hayeswang@realtek.com,
-        doshir@vmware.com, pv-drivers@vmware.com, manishc@marvell.com,
-        GR-Linux-NIC-Dev@marvell.com, gregkh@linuxfoundation.org,
-        merez@codeaurora.org, kvalo@codeaurora.org,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-        Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH net-next 3/7] tun: reject unsupported coalescing params
-Date:   Thu,  5 Mar 2020 17:05:58 -0800
-Message-Id: <20200306010602.1620354-4-kuba@kernel.org>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200306010602.1620354-1-kuba@kernel.org>
-References: <20200306010602.1620354-1-kuba@kernel.org>
+        id S1726382AbgCFCsm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 21:48:42 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:57714 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726378AbgCFCsm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 21:48:42 -0500
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 315CFB8778C2DE59DCC8;
+        Fri,  6 Mar 2020 10:48:40 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
+ 14.3.439.0; Fri, 6 Mar 2020 10:48:31 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next 0/5] RDMA/hns: Refactor wqe related codes
+Date:   Fri, 6 Mar 2020 10:44:49 +0800
+Message-ID: <1583462694-43908-1-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Set ethtool_ops->supported_coalesce_params to let
-the core reject unsupported coalescing parameters.
+Process of wqe is hard to understand and maintain in hns, this series
+refactor wqe related code, especially in hns_roce_v2_post_send().
 
-This driver did not previously reject unsupported parameters.
+Previous discussion could be found at:
+https://patchwork.kernel.org/cover/11415395/
 
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
----
- drivers/net/tun.c | 1 +
- 1 file changed, 1 insertion(+)
+Changes since v1:
+- Fix comments from Leon about the inplementation of to_hr_opcode() in
+  patch 3/5.
+- Patch 4/5 couldn't be applied. Just do a rebase.
 
-diff --git a/drivers/net/tun.c b/drivers/net/tun.c
-index 79f248cb282d..9e8f23519e82 100644
---- a/drivers/net/tun.c
-+++ b/drivers/net/tun.c
-@@ -3597,6 +3597,7 @@ static int tun_set_coalesce(struct net_device *dev,
- }
- 
- static const struct ethtool_ops tun_ethtool_ops = {
-+	.supported_coalesce_params = ETHTOOL_COALESCE_RX_MAX_FRAMES,
- 	.get_drvinfo	= tun_get_drvinfo,
- 	.get_msglevel	= tun_get_msglevel,
- 	.set_msglevel	= tun_set_msglevel,
+Xi Wang (5):
+  RDMA/hns: Rename wqe buffer related functions
+  RDMA/hns: Optimize wqe buffer filling process for post send
+  RDMA/hns: Optimize the wr opcode conversion from ib to hns
+  RDMA/hns: Optimize base address table config flow for qp buffer
+  RDMA/hns: Optimize wqe buffer set flow for post send
+
+ drivers/infiniband/hw/hns/hns_roce_device.h |  10 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |  16 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   9 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 588 ++++++++++++++--------------
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  48 +--
+ 5 files changed, 319 insertions(+), 352 deletions(-)
+
 -- 
-2.24.1
+2.8.1
 
