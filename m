@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E21ABC3F2D2
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37BD7C3F2D7
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C5D762072D
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A60F2072D
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Mar 2020 02:48:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbgCFCsp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Mar 2020 21:48:45 -0500
-Received: from szxga06-in.huawei.com ([45.249.212.32]:57744 "EHLO huawei.com"
+        id S1726243AbgCFCsn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Mar 2020 21:48:43 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:57732 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726358AbgCFCsp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Mar 2020 21:48:45 -0500
+        id S1726358AbgCFCsn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Mar 2020 21:48:43 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 39BFAD1722EE91822946;
+        by Forcepoint Email with ESMTP id 3E20E3C1897AC1FA2CD2;
         Fri,  6 Mar 2020 10:48:40 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.439.0; Fri, 6 Mar 2020 10:48:32 +0800
+ 14.3.439.0; Fri, 6 Mar 2020 10:48:33 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 2/5] RDMA/hns: Optimize wqe buffer filling process for post send
-Date:   Fri, 6 Mar 2020 10:44:51 +0800
-Message-ID: <1583462694-43908-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 4/5] RDMA/hns: Optimize base address table config flow for qp buffer
+Date:   Fri, 6 Mar 2020 10:44:53 +0800
+Message-ID: <1583462694-43908-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1583462694-43908-1-git-send-email-liweihang@huawei.com>
 References: <1583462694-43908-1-git-send-email-liweihang@huawei.com>
@@ -45,149 +45,170 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-Encapsulates the wqe buffer process details for datagram seg, fast mr seg
-and atomic seg.
+Currently, before the qp is created, a page size needs to be calculated for
+the base address table to store all base addresses in the mtr. As a result,
+the parameter configuration of the mtr is complex. So integrate the process
+of calculating the base table page size into the hem related interface to
+simplify the process of using mtr.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 63 +++++++++++++++---------------
- 1 file changed, 32 insertions(+), 31 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  4 ---
+ drivers/infiniband/hw/hns/hns_roce_hem.c    | 16 +++++++----
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 42 +++++++----------------------
+ 3 files changed, 21 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 88d671a..c8c345f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -57,10 +57,10 @@ static void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
- }
- 
- static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
--			 struct hns_roce_wqe_frmr_seg *fseg,
--			 const struct ib_reg_wr *wr)
-+			 void *wqe, const struct ib_reg_wr *wr)
- {
- 	struct hns_roce_mr *mr = to_hr_mr(wr->mr);
-+	struct hns_roce_wqe_frmr_seg *fseg = wqe;
- 
- 	/* use ib_access_flags */
- 	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_FRMR_WQE_BYTE_4_BIND_EN_S,
-@@ -92,16 +92,26 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
- 		     V2_RC_FRMR_WQE_BYTE_40_BLK_MODE_S, 0);
- }
- 
--static void set_atomic_seg(struct hns_roce_wqe_atomic_seg *aseg,
--			   const struct ib_atomic_wr *wr)
-+static void set_atomic_seg(const struct ib_send_wr *wr, void *wqe,
-+			   struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
-+			   int valid_num_sge)
- {
--	if (wr->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP) {
--		aseg->fetchadd_swap_data = cpu_to_le64(wr->swap);
--		aseg->cmp_data  = cpu_to_le64(wr->compare_add);
-+	struct hns_roce_wqe_atomic_seg *aseg;
-+
-+	set_data_seg_v2(wqe, wr->sg_list);
-+	aseg = wqe + sizeof(struct hns_roce_v2_wqe_data_seg);
-+
-+	if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP) {
-+		aseg->fetchadd_swap_data = cpu_to_le64(atomic_wr(wr)->swap);
-+		aseg->cmp_data = cpu_to_le64(atomic_wr(wr)->compare_add);
- 	} else {
--		aseg->fetchadd_swap_data = cpu_to_le64(wr->compare_add);
-+		aseg->fetchadd_swap_data =
-+			cpu_to_le64(atomic_wr(wr)->compare_add);
- 		aseg->cmp_data  = 0;
- 	}
-+
-+	roce_set_field(rc_sq_wqe->byte_16, V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M,
-+		       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S, valid_num_sge);
- }
- 
- static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
-@@ -154,11 +164,11 @@ static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
- static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 			     struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
- 			     void *wqe, unsigned int *sge_ind,
--			     int valid_num_sge,
--			     const struct ib_send_wr **bad_wr)
-+			     int valid_num_sge)
- {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
- 	struct hns_roce_v2_wqe_data_seg *dseg = wqe;
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
- 	struct hns_roce_qp *qp = to_hr_qp(ibqp);
- 	int j = 0;
- 	int i;
-@@ -166,15 +176,14 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 	if (wr->send_flags & IB_SEND_INLINE && valid_num_sge) {
- 		if (le32_to_cpu(rc_sq_wqe->msg_len) >
- 		    hr_dev->caps.max_sq_inline) {
--			*bad_wr = wr;
--			dev_err(hr_dev->dev, "inline len(1-%d)=%d, illegal",
--				rc_sq_wqe->msg_len, hr_dev->caps.max_sq_inline);
-+			ibdev_err(ibdev, "inline len(1-%d)=%d, illegal",
-+				  rc_sq_wqe->msg_len,
-+				  hr_dev->caps.max_sq_inline);
- 			return -EINVAL;
- 		}
- 
- 		if (wr->opcode == IB_WR_RDMA_READ) {
--			*bad_wr =  wr;
--			dev_err(hr_dev->dev, "Not support inline data!\n");
-+			ibdev_err(ibdev, "Not support inline data!\n");
- 			return -EINVAL;
- 		}
- 
-@@ -285,7 +294,6 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 	struct hns_roce_v2_ud_send_wqe *ud_sq_wqe;
- 	struct hns_roce_v2_rc_send_wqe *rc_sq_wqe;
- 	struct hns_roce_qp *qp = to_hr_qp(ibqp);
--	struct hns_roce_wqe_frmr_seg *fseg;
- 	struct device *dev = hr_dev->dev;
- 	unsigned int owner_bit;
- 	unsigned int sge_idx;
-@@ -547,8 +555,7 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 				break;
- 			case IB_WR_REG_MR:
- 				hr_op = HNS_ROCE_V2_WQE_OP_FAST_REG_PMR;
--				fseg = wqe;
--				set_frmr_seg(rc_sq_wqe, fseg, reg_wr(wr));
-+				set_frmr_seg(rc_sq_wqe, wqe, reg_wr(wr));
- 				break;
- 			case IB_WR_ATOMIC_CMP_AND_SWP:
- 				hr_op = HNS_ROCE_V2_WQE_OP_ATOM_CMP_AND_SWAP;
-@@ -582,23 +589,17 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 				       V2_RC_SEND_WQE_BYTE_4_OPCODE_S, hr_op);
- 
- 			if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
--			    wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD) {
--				struct hns_roce_v2_wqe_data_seg *dseg;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index b6ae12d..f6b3cf6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -669,10 +669,6 @@ struct hns_roce_qp {
+ 	struct ib_umem		*umem;
+ 	struct hns_roce_mtt	mtt;
+ 	struct hns_roce_mtr	mtr;
 -
--				dseg = wqe;
--				set_data_seg_v2(dseg, wr->sg_list);
--				wqe += sizeof(struct hns_roce_v2_wqe_data_seg);
--				set_atomic_seg(wqe, atomic_wr(wr));
--				roce_set_field(rc_sq_wqe->byte_16,
--					       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M,
--					       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S,
-+			    wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
-+				set_atomic_seg(wr, wqe, rc_sq_wqe,
- 					       valid_num_sge);
--			} else if (wr->opcode != IB_WR_REG_MR) {
-+			else if (wr->opcode != IB_WR_REG_MR) {
- 				ret = set_rwqe_data_seg(ibqp, wr, rc_sq_wqe,
- 							wqe, &sge_idx,
--							valid_num_sge, bad_wr);
--				if (ret)
-+							valid_num_sge);
-+				if (ret) {
-+					*bad_wr = wr;
- 					goto out;
-+				}
- 			}
- 		} else {
- 			dev_err(dev, "Illegal qp_type(0x%x)\n", ibqp->qp_type);
+-	/* this define must less than HNS_ROCE_MAX_BT_REGION */
+-#define HNS_ROCE_WQE_REGION_MAX	 3
+-	struct hns_roce_buf_region regions[HNS_ROCE_WQE_REGION_MAX];
+ 	int                     wqe_bt_pg_shift;
+ 
+ 	u32			buff_size;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index e822157..8380d71 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -1383,6 +1383,7 @@ static int hem_list_alloc_root_bt(struct hns_roce_dev *hr_dev,
+ 	void *cpu_base;
+ 	u64 phy_base;
+ 	int ret = 0;
++	int ba_num;
+ 	int offset;
+ 	int total;
+ 	int step;
+@@ -1393,12 +1394,16 @@ static int hem_list_alloc_root_bt(struct hns_roce_dev *hr_dev,
+ 	if (root_hem)
+ 		return 0;
+ 
++	ba_num = hns_roce_hem_list_calc_root_ba(regions, region_cnt, unit);
++	if (ba_num < 1)
++		return -ENOMEM;
++
+ 	INIT_LIST_HEAD(&temp_root);
+-	total = r->offset;
++	offset = r->offset;
+ 	/* indicate to last region */
+ 	r = &regions[region_cnt - 1];
+-	root_hem = hem_list_alloc_item(hr_dev, total, r->offset + r->count - 1,
+-				       unit, true, 0);
++	root_hem = hem_list_alloc_item(hr_dev, offset, r->offset + r->count - 1,
++				       ba_num, true, 0);
+ 	if (!root_hem)
+ 		return -ENOMEM;
+ 	list_add(&root_hem->list, &temp_root);
+@@ -1410,7 +1415,7 @@ static int hem_list_alloc_root_bt(struct hns_roce_dev *hr_dev,
+ 		INIT_LIST_HEAD(&temp_list[i]);
+ 
+ 	total = 0;
+-	for (i = 0; i < region_cnt && total < unit; i++) {
++	for (i = 0; i < region_cnt && total < ba_num; i++) {
+ 		r = &regions[i];
+ 		if (!r->count)
+ 			continue;
+@@ -1443,7 +1448,8 @@ static int hem_list_alloc_root_bt(struct hns_roce_dev *hr_dev,
+ 			/* if exist mid bt, link L1 to L0 */
+ 			list_for_each_entry_safe(hem, temp_hem,
+ 					  &hem_list->mid_bt[i][1], list) {
+-				offset = hem->start / step * BA_BYTE_LEN;
++				offset = (hem->start - r->offset) / step *
++					  BA_BYTE_LEN;
+ 				hem_list_link_bt(hr_dev, cpu_base + offset,
+ 						 hem->dma_addr);
+ 				total++;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index c2ea489..1c5de2b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -579,30 +579,6 @@ static int split_wqe_buf_region(struct hns_roce_dev *hr_dev,
+ 	return region_cnt;
+ }
+ 
+-static int calc_wqe_bt_page_shift(struct hns_roce_dev *hr_dev,
+-				  struct hns_roce_buf_region *regions,
+-				  int region_cnt)
+-{
+-	int bt_pg_shift;
+-	int ba_num;
+-	int ret;
+-
+-	bt_pg_shift = PAGE_SHIFT + hr_dev->caps.mtt_ba_pg_sz;
+-
+-	/* all root ba entries must in one bt page */
+-	do {
+-		ba_num = (1 << bt_pg_shift) / BA_BYTE_LEN;
+-		ret = hns_roce_hem_list_calc_root_ba(regions, region_cnt,
+-						     ba_num);
+-		if (ret <= ba_num)
+-			break;
+-
+-		bt_pg_shift++;
+-	} while (ret > ba_num);
+-
+-	return bt_pg_shift - PAGE_SHIFT;
+-}
+-
+ static int set_extend_sge_param(struct hns_roce_dev *hr_dev,
+ 				struct hns_roce_qp *hr_qp)
+ {
+@@ -768,7 +744,10 @@ static void free_rq_inline_buf(struct hns_roce_qp *hr_qp)
+ static int map_wqe_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 		       u32 page_shift, bool is_user)
+ {
+-	dma_addr_t *buf_list[ARRAY_SIZE(hr_qp->regions)] = { NULL };
++/* WQE buffer include 3 parts: SQ, extend SGE and RQ. */
++#define HNS_ROCE_WQE_REGION_MAX	 3
++	struct hns_roce_buf_region regions[HNS_ROCE_WQE_REGION_MAX] = {};
++	dma_addr_t *buf_list[HNS_ROCE_WQE_REGION_MAX] = { NULL };
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	struct hns_roce_buf_region *r;
+ 	int region_count;
+@@ -776,18 +755,18 @@ static int map_wqe_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 	int ret;
+ 	int i;
+ 
+-	region_count = split_wqe_buf_region(hr_dev, hr_qp, hr_qp->regions,
+-					ARRAY_SIZE(hr_qp->regions), page_shift);
++	region_count = split_wqe_buf_region(hr_dev, hr_qp, regions,
++					    ARRAY_SIZE(regions), page_shift);
+ 
+ 	/* alloc a tmp list to store WQE buffers address */
+-	ret = hns_roce_alloc_buf_list(hr_qp->regions, buf_list, region_count);
++	ret = hns_roce_alloc_buf_list(regions, buf_list, region_count);
+ 	if (ret) {
+ 		ibdev_err(ibdev, "Failed to alloc WQE buffer list\n");
+ 		return ret;
+ 	}
+ 
+ 	for (i = 0; i < region_count; i++) {
+-		r = &hr_qp->regions[i];
++		r = &regions[i];
+ 		if (is_user)
+ 			buf_count = hns_roce_get_umem_bufs(hr_dev, buf_list[i],
+ 					r->count, r->offset, hr_qp->umem,
+@@ -805,11 +784,10 @@ static int map_wqe_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 		}
+ 	}
+ 
+-	hr_qp->wqe_bt_pg_shift = calc_wqe_bt_page_shift(hr_dev, hr_qp->regions,
+-							region_count);
++	hr_qp->wqe_bt_pg_shift = hr_dev->caps.mtt_ba_pg_sz;
+ 	hns_roce_mtr_init(&hr_qp->mtr, PAGE_SHIFT + hr_qp->wqe_bt_pg_shift,
+ 			  page_shift);
+-	ret = hns_roce_mtr_attach(hr_dev, &hr_qp->mtr, buf_list, hr_qp->regions,
++	ret = hns_roce_mtr_attach(hr_dev, &hr_qp->mtr, buf_list, regions,
+ 				  region_count);
+ 	if (ret)
+ 		ibdev_err(ibdev, "Failed to attach WQE's mtr\n");
 -- 
 2.8.1
 
