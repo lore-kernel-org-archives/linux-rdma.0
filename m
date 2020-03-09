@@ -2,81 +2,97 @@ Return-Path: <SRS0=IbQ/=42=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD1F2C10F29
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Mar 2020 06:58:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 285D5C18E5A
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Mar 2020 10:44:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8C29C20675
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Mar 2020 06:58:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 002BB20848
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Mar 2020 10:44:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="slEGYIg5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726446AbgCIG6D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Mar 2020 02:58:03 -0400
-Received: from mail-il1-f197.google.com ([209.85.166.197]:54658 "EHLO
-        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726415AbgCIG6D (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Mar 2020 02:58:03 -0400
-Received: by mail-il1-f197.google.com with SMTP id l10so6758790ilo.21
-        for <linux-rdma@vger.kernel.org>; Sun, 08 Mar 2020 23:58:03 -0700 (PDT)
+        id S1726217AbgCIKoC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Mar 2020 06:44:02 -0400
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:39810 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725962AbgCIKoC (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Mar 2020 06:44:02 -0400
+Received: by mail-pf1-f196.google.com with SMTP id w65so4098024pfb.6;
+        Mon, 09 Mar 2020 03:44:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=c8Bp+nPwovSicihOby87B5XLTMrdw3sYjYxEEbv5wt8=;
+        b=slEGYIg59gh6ysTpgSZttggAxcCpjbi50lHHcbsbIvU2DKukrc3Q01mNHaf73uKUHZ
+         FLMlK1HQrX9d49sNjBYmr9ojzqBg50RXrzUiV46ls92cKW3m4Uga03vcJWYzEeGZPfl+
+         djqkwwCJ3/bWcEQi358FTnDB79G9mezvU5/ebwKPn9h7YRa7qxM7HGoip1Un+3+J8TGt
+         v5k07WOj7xS+V+jfX8mNVBfggRglrlkx7WsDUL1nqFb9Tc40jr4v9+7LqB6UEv1b0Lc/
+         o/sbT+7hqJWfAbS8Q0Y44pW7UbokiWk6cnykKsTGCvzC+j4weI9X7KTgdAxa+WnVlQnR
+         509A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=3vbHTdYQ67mib1pqhw7RfSE7n4B7fPNmRK2m1Cb8iPU=;
-        b=RAqy6bE7s4PqFg2GBAMjfSyPl7Jdei5pJ/pculE0uxO68WImqhxKUXzgKZAGUREyOa
-         fTzStkl9PWiMRndjjarc4WP4SN8fGX5Tn/kreD3EIekkL5ts45gQQju3jnpl+AtcK8X/
-         kKxFO1qGRHPIwFncTtWWzhb2KdyKq3SLgkY5kUKpUv/I6rh02RuFsGLKfTxXc9HV1ZLb
-         pMbjYx34rOgX82aiIbsD5inr52rgPtV0E2oqzo8BgnOMyaYPw4UYkbjzJ1ZgrEetIac6
-         U9Jb/VqcCcM4jjfm03nOGPAVXnVq29+qnhfEaxDbo1DvAlPbxLOqZQ+/bVc1owsXXgAy
-         ZX0A==
-X-Gm-Message-State: ANhLgQ0lydgTzCzdKKCAaoCJKdJbivnG1UpaVBMKYkx7zRt225BzwVPC
-        T/S6fEYwKPv4DHI2F6326M8RaGgaiDKn6Ileh6POC56rX6qk
-X-Google-Smtp-Source: ADFU+vtRpURm6U4wUgm5w3Q/LMCwhNNEMjTRsTn2XqAL2qLJHVJT0lEdDhwiPvd5cYSVN+QMhS0AUF7kTWiMSzfA+d9Rg3PvE9EA
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=c8Bp+nPwovSicihOby87B5XLTMrdw3sYjYxEEbv5wt8=;
+        b=R0uf4tOLOYsff7fdETvbEh2/+/ANaIUV205UFGTEiVlxC8pVWsVryxh/+czM5K6mGp
+         13hdfMCSB/P6NtaHPJG9QcGBXNEJxuMkr9zpKXzepxgRNypQM3lgWiZYqkyxGIlYy1cF
+         xOsgUAys8iIyk03Q8xoSi4/GPmgr/tdZPc3jTS9+HyiWLsK/5AiDr+K6MT+r0r0fU9Mg
+         y5eSdRxpWmW7DQInZwFXqJy9njXEtcguP3gRfO26EQshB6CsqWFVp9/k6H3SYLxyXQ+0
+         CS9yIfIsLpKZRG8+d214Ug2YMTPeQayi7Ufur9YWFtIkM25YvZ6q1jtExntJpCiEUdT5
+         LybQ==
+X-Gm-Message-State: ANhLgQ10FrGWWHnN325cco6ZqpJZe3Hzl4BQjVsBCDGUzt4dUmZA+XfL
+        qMoeu2EDtAZ/R7KbjsjF4Rw=
+X-Google-Smtp-Source: ADFU+vtRFX96zmPBwSppbimg+E/3Q+27jc5AiBLwDOEZdexKbH3UdJJl5iZcxnooBzPcmb+JPQQZtQ==
+X-Received: by 2002:a63:b34d:: with SMTP id x13mr15895811pgt.317.1583750640989;
+        Mon, 09 Mar 2020 03:44:00 -0700 (PDT)
+Received: from masabert (i118-21-156-233.s30.a048.ap.plala.or.jp. [118.21.156.233])
+        by smtp.gmail.com with ESMTPSA id t17sm44323051pgn.94.2020.03.09.03.44.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Mar 2020 03:44:00 -0700 (PDT)
+Received: by masabert (Postfix, from userid 1000)
+        id BF2902360374; Mon,  9 Mar 2020 19:43:58 +0900 (JST)
+From:   Masanari Iida <standby24x7@gmail.com>
+To:     linux-kernel@vger.kernel.org, davem@davemloft.net, corbet@lwn.net,
+        linux-doc@vger.kernel.org, netdev@vger.kernel.org, kuba@kernel.org,
+        linux-rdma@vger.kernel.org
+Cc:     Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] linux-next: DOC: RDS: Fix a typo in rds.txt
+Date:   Mon,  9 Mar 2020 19:43:56 +0900
+Message-Id: <20200309104356.56267-1-standby24x7@gmail.com>
+X-Mailer: git-send-email 2.26.0.rc0
 MIME-Version: 1.0
-X-Received: by 2002:a5d:9bc8:: with SMTP id d8mr12563436ion.142.1583737083027;
- Sun, 08 Mar 2020 23:58:03 -0700 (PDT)
-Date:   Sun, 08 Mar 2020 23:58:03 -0700
-In-Reply-To: <000000000000161ee805a039a49e@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000406a7f05a066861d@google.com>
-Subject: Re: possible deadlock in siw_create_listen
-From:   syzbot <syzbot+3fbea977bd382a4e6140@syzkaller.appspotmail.com>
-To:     ast@kernel.org, bmt@zurich.ibm.com, bpf@vger.kernel.org,
-        daniel@iogearbox.net, davem@davemloft.net, dledford@redhat.com,
-        dsahern@gmail.com, hawk@kernel.org, jakub.kicinski@netronome.com,
-        jgg@ziepe.ca, jiri@mellanox.com, johannes.berg@intel.com,
-        john.fastabend@gmail.com, kafai@fb.com,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        mkubecek@suse.cz, netdev@vger.kernel.org, songliubraving@fb.com,
-        syzkaller-bugs@googlegroups.com, yhs@fb.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-syzbot has bisected this bug to:
+This patch fix a spelling typo in rds.txt
 
-commit bfcccfe78b361f5f6ef48554aed5bcd30c72f67f
-Author: Jakub Kicinski <jakub.kicinski@netronome.com>
-Date:   Tue Nov 5 21:26:11 2019 +0000
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ Documentation/networking/rds.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    netdevsim: drop code duplicated by a merge
+diff --git a/Documentation/networking/rds.txt b/Documentation/networking/rds.txt
+index f2a0147c933d..eec61694e894 100644
+--- a/Documentation/networking/rds.txt
++++ b/Documentation/networking/rds.txt
+@@ -159,7 +159,7 @@ Socket Interface
+ 	set SO_RDS_TRANSPORT on a socket for which the transport has
+ 	been previously attached explicitly (by SO_RDS_TRANSPORT) or
+ 	implicitly (via bind(2)) will return an error of EOPNOTSUPP.
+-	An attempt to set SO_RDS_TRANSPPORT to RDS_TRANS_NONE will
++	An attempt to set SO_RDS_TRANSPORT to RDS_TRANS_NONE will
+ 	always return EINVAL.
+ 
+ RDMA for RDS
+-- 
+2.26.0.rc0
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=166d11c3e00000
-start commit:   425c075d Merge branch 'tun-debug'
-git tree:       net-next
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=156d11c3e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=116d11c3e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=598678fc6e800071
-dashboard link: https://syzkaller.appspot.com/bug?extid=3fbea977bd382a4e6140
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10e3df31e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=163d0439e00000
-
-Reported-by: syzbot+3fbea977bd382a4e6140@syzkaller.appspotmail.com
-Fixes: bfcccfe78b36 ("netdevsim: drop code duplicated by a merge")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
