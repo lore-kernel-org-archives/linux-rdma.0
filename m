@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3721BC18E5A
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23B3BC10F27
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0DBA02051A
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2E2A2467F
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583832376;
-	bh=clxEI/xQCbNuQ6sqMFPPA7vS4nKxkYt3Cp6tpwU82N0=;
+	s=default; t=1583832379;
+	bh=112Ue7MhGoS6xkpLolB06P4YVn+2ZOliDbqRKV49T+k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=XYF8ABcsJeXYdo/kexhOmTGoQ8kXjzc40ItieewW7KbkpK+8RRL0Ia0qofyXYmDNk
-	 A3QISvFpXGHLO2IrgyhNDZylucyqpqBlYmBjREh+TofPo5iy5K1G3rM376Ucg9aDjP
-	 VgraIpRNyuRnkSscMgJD0ON/fuyi30FgBS3v8mNc=
+	b=PsF5bjBftlyW+A5Hae4I7xJIpXNXKVfL5z1bkWIto3rE/xSr2vqW45LlVpVbKs/kV
+	 pyvAr6ECiural6TGlWGO58GIl6fqOl8L9vmGK6AKKhsUv8GMDuaxU5si6do7bjf6Cj
+	 ggf1LZ6FuiZs+atAJT19Wy7HMPqJBl8EjvZ2HW3o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726438AbgCJJ0P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Mar 2020 05:26:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57604 "EHLO mail.kernel.org"
+        id S1726442AbgCJJ0S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Mar 2020 05:26:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726199AbgCJJ0P (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Mar 2020 05:26:15 -0400
+        id S1726199AbgCJJ0S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Mar 2020 05:26:18 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5EE0124684;
-        Tue, 10 Mar 2020 09:26:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6CE1F2051A;
+        Tue, 10 Mar 2020 09:26:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583832374;
-        bh=clxEI/xQCbNuQ6sqMFPPA7vS4nKxkYt3Cp6tpwU82N0=;
+        s=default; t=1583832378;
+        bh=112Ue7MhGoS6xkpLolB06P4YVn+2ZOliDbqRKV49T+k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=e4Uhw2hRsEatIfodV46W0tuRy5rAmVMeUUuod57RnXtPucslKP8oN2FsZY8mz8X4b
-         /32gM3+ZWIjNTT8rxZwOCv14lAnd++xNYlOhfj9eDKP9vpPDXPM7026Jsv/Da1IWqL
-         TnMo+eWM9AcpuZ0WzkDk/W1uaqIO7bxhlRQpbzsA=
+        b=Pxcr5Y0fkyCGFIiI3Igp0qIZb4Gv548PzJoXDUxyQ9jz+di6hFawA8H9awt3ZL9b5
+         rYW3Lvlo7Lu59rgkVTDw0t3WVmFrsSg98k0czOQ8nVynTdjbvCdrP60BLLM/RLyQi2
+         tdvpNNpilGxlgpJ/7a/zqXFZA1vuQEqwR7CZGO5o=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 04/15] RDMA/cm: Make the destroy_id flow more robust
-Date:   Tue, 10 Mar 2020 11:25:34 +0200
-Message-Id: <20200310092545.251365-5-leon@kernel.org>
+Subject: [PATCH rdma-next 10/15] RDMA/cm: Add some lockdep assertions for cm_id_priv->lock
+Date:   Tue, 10 Mar 2020 11:25:40 +0200
+Message-Id: <20200310092545.251365-11-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200310092545.251365-1-leon@kernel.org>
 References: <20200310092545.251365-1-leon@kernel.org>
@@ -57,66 +57,46 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Too much of the destruction is very carefully sensitive to the state
-and various other things. Move more code to the unconditional path and
-add several WARN_ONs to check consistency.
+These functions all touch state, so must be called under the lock.
+Inspection shows this is currently true.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/cm.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 0e7d2363df88..51e6cebb606e 100644
+index d002b34bd5a3..84679f16a923 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -829,6 +829,8 @@ struct ib_cm_id *ib_create_cm_id(struct ib_device *device,
- 	cm_id_priv->id.context = context;
- 	cm_id_priv->id.remote_cm_qpn = 1;
+@@ -978,6 +978,8 @@ static void cm_enter_timewait(struct cm_id_private *cm_id_priv)
+ 	unsigned long flags;
+ 	struct cm_device *cm_dev;
  
-+	RB_CLEAR_NODE(&cm_id_priv->service_node);
-+	RB_CLEAR_NODE(&cm_id_priv->sidr_id_node);
- 	spin_lock_init(&cm_id_priv->lock);
- 	init_completion(&cm_id_priv->comp);
- 	INIT_LIST_HEAD(&cm_id_priv->work_list);
-@@ -986,11 +988,13 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 		spin_lock_irq(&cm.lock);
- 		if (--cm_id_priv->listen_sharecount > 0) {
- 			/* The id is still shared. */
-+			WARN_ON(refcount_read(&cm_id_priv->refcount) == 1);
- 			cm_deref_id(cm_id_priv);
- 			spin_unlock_irq(&cm.lock);
- 			return;
- 		}
- 		rb_erase(&cm_id_priv->service_node, &cm.listen_service_table);
-+		RB_CLEAR_NODE(&cm_id_priv->service_node);
- 		spin_unlock_irq(&cm.lock);
- 		break;
- 	case IB_CM_SIDR_REQ_SENT:
-@@ -1001,11 +1005,6 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 	case IB_CM_SIDR_REQ_RCVD:
- 		spin_unlock_irq(&cm_id_priv->lock);
- 		cm_reject_sidr_req(cm_id_priv, IB_SIDR_REJECT);
--		spin_lock_irq(&cm.lock);
--		if (!RB_EMPTY_NODE(&cm_id_priv->sidr_id_node))
--			rb_erase(&cm_id_priv->sidr_id_node,
--				 &cm.remote_sidr_table);
--		spin_unlock_irq(&cm.lock);
- 		break;
- 	case IB_CM_REQ_SENT:
- 	case IB_CM_MRA_REQ_RCVD:
-@@ -1072,6 +1071,10 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 	if (!list_empty(&cm_id_priv->prim_list) &&
- 	    (!cm_id_priv->prim_send_port_not_ready))
- 		list_del(&cm_id_priv->prim_list);
-+	WARN_ON(cm_id_priv->listen_sharecount);
-+	WARN_ON(!RB_EMPTY_NODE(&cm_id_priv->service_node));
-+	if (!RB_EMPTY_NODE(&cm_id_priv->sidr_id_node))
-+		rb_erase(&cm_id_priv->sidr_id_node, &cm.remote_sidr_table);
- 	spin_unlock(&cm.lock);
- 	spin_unlock_irq(&cm_id_priv->lock);
++	lockdep_assert_held(&cm_id_priv->lock);
++
+ 	cm_dev = ib_get_client_data(cm_id_priv->id.device, &cm_client);
+ 	if (!cm_dev)
+ 		return;
+@@ -1009,6 +1011,8 @@ static void cm_reset_to_idle(struct cm_id_private *cm_id_priv)
+ {
+ 	unsigned long flags;
  
++	lockdep_assert_held(&cm_id_priv->lock);
++
+ 	cm_id_priv->id.state = IB_CM_IDLE;
+ 	if (cm_id_priv->timewait_info) {
+ 		spin_lock_irqsave(&cm.lock, flags);
+@@ -1838,6 +1842,8 @@ static void cm_format_rej(struct cm_rej_msg *rej_msg,
+ 			  const void *private_data,
+ 			  u8 private_data_len)
+ {
++	lockdep_assert_held(&cm_id_priv->lock);
++
+ 	cm_format_mad_hdr(&rej_msg->hdr, CM_REJ_ATTR_ID, cm_id_priv->tid);
+ 	IBA_SET(CM_REJ_REMOTE_COMM_ID, rej_msg,
+ 		be32_to_cpu(cm_id_priv->id.remote_id));
 -- 
 2.24.1
 
