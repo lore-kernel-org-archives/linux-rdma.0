@@ -2,53 +2,53 @@ Return-Path: <SRS0=u98Z=43=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93ED6C10F27
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:14:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DBFDC10F27
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:14:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 68AC02467F
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:14:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 770F820674
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:14:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583831684;
-	bh=Wi6CL6iB7RwT0hh+gpEgbzB/O/wFTDNg36YiiDVjK5M=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=1K/CrpACnjSXipT/wMVplHLZNDJ6AKhonTyAi/5eugQLfTd5VlMUIMldFi1xsresW
-	 9jGcDQcjD4sc5Eaqcd+uUveUovEkvU4/QtMxhh/QZIRbdoGS5pGFAKq4X1R9J26IfD
-	 fSKPVzMr7FIRiZLUrMr5fzDAfPEg/1UFC7nkPg2o=
+	s=default; t=1583831688;
+	bh=TG5y+3SaRpDm7JwiPv4RCU56PrAv/yhSJZVf3wLmP7U=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=1h5SESeN7OFOMOTjgywjPjxoGrUDo/SeflKdlWPrU24YEPhs2qMRCHGHK0Wdp8ujf
+	 /OEOtNxADorMY7245QTMGKB7q9q7CQ5MqCjfImPXrBPzcVjfhXL3p27q0is6RIPywJ
+	 gYYmzFOaj3yagXgaurFqzRZyMZZJoJlNGeCQVh6Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726244AbgCJJOn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Mar 2020 05:14:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44800 "EHLO mail.kernel.org"
+        id S1726423AbgCJJOr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Mar 2020 05:14:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726195AbgCJJOn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Mar 2020 05:14:43 -0400
+        id S1726195AbgCJJOr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Mar 2020 05:14:47 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2F64C20674;
-        Tue, 10 Mar 2020 09:14:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E2E4A2467F;
+        Tue, 10 Mar 2020 09:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583831682;
-        bh=Wi6CL6iB7RwT0hh+gpEgbzB/O/wFTDNg36YiiDVjK5M=;
-        h=From:To:Cc:Subject:Date:From;
-        b=vSB/ejyXc+jE1iES8JJPvEKTB+3tk3Yi3JlMQbNr1iARpr5TCrxpIJE6bkCSM2Y3M
-         QcHeqxVRrAx4K+pPjZYYGqIbOf10YoJ9tnuBY/U0zmMisXTTSC5K4bmWmTzls6b3df
-         /Gt6l3s53xwKtF+vW4Wxh0p4r2URxaGS5HjR0OIg=
+        s=default; t=1583831686;
+        bh=TG5y+3SaRpDm7JwiPv4RCU56PrAv/yhSJZVf3wLmP7U=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=DNKLh09HlJqYVdGChXr7gpX2jlKEzznJNBPRyiZzrsuhFFzN0mJPhuIWuI+kVv8yy
+         SMYzIUyWgtfI+Lnj5VsIBQ5ca+LtNk3hq0BfJtEdR3CSHnHiXWM8irAZ2QQGGoU6O9
+         ktc86EPsZkYlFmP06mT4PrCfQDrUEtbpuP9gvAbQ=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Gal Pressman <galpress@amazon.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Mark Zhang <markz@mellanox.com>,
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-next v1 00/11] Add Enhanced Connection Established (ECE)
-Date:   Tue, 10 Mar 2020 11:14:27 +0200
-Message-Id: <20200310091438.248429-1-leon@kernel.org>
+Subject: [PATCH rdma-next v1 02/11] RDMA/mlx4: Delete duplicated offsetofend implementation
+Date:   Tue, 10 Mar 2020 11:14:29 +0200
+Message-Id: <20200310091438.248429-3-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200310091438.248429-1-leon@kernel.org>
+References: <20200310091438.248429-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -58,55 +58,55 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Changelog:
- v1: Dropped field_avail patch in favor of mass conversion to use function
-     which already exists in the kernel code.
- v0: https://lore.kernel.org/lkml/20200305150105.207959-1-leon@kernel.org
+Convert mlx4 to use in-kernel offsetofend() instead
+of its duplicated implementation.
 
-Enhanced Connection Established or ECE is new negotiation scheme
-introduced in IBTA v1.4 to exchange extra information about nodes
-capabilities and later negotiate them at the connection establishment
-phase.
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/mlx4/main.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-The RDMA-CM messages (REQ, REP, SIDR_REQ and SIDR_REP) were extended
-to carry two fields, one new and another gained new functionality:
- * VendorID is a new field that indicates that common subset of vendor
-   option bits are supported as indicated by that VendorID.
- * AttributeModifier already exists, but overloaded to indicate which
-   vendor options are supported by this VendorID.
-
-This is kernel part of such functionality which is responsible to get data
-from librdmacm and properly create and handle RDMA-CM messages.
-
-Thanks
-
-Leon Romanovsky (11):
-  RDMA/cm: Add Enhanced Connection Establishment (ECE) bits
-  RDMA/mlx4: Delete duplicated offsetofend implementation
-  RDMA/efa: Use in-kernel offsetofend() to check field availability
-  RDMA/mlx5: Use offsetofend() instead of duplicated variant
-  RDMA/cm: Delete not implemented CM peer to peer communication
-  RDMA/uapi: Add ECE definitions to UCMA
-  RDMA/ucma: Extend ucma_connect to receive ECE parameters
-  RDMA/ucma: Deliver ECE parameters through UCMA events
-  RDMA/cm: Send and receive ECE parameter over the wire
-  RDMA/cma: Connect ECE to rdma_accept
-  RDMA/cma: Provide ECE reject reason
-
- drivers/infiniband/core/cm.c          | 48 ++++++++++++++++++------
- drivers/infiniband/core/cma.c         | 54 ++++++++++++++++++++++++---
- drivers/infiniband/core/cma_priv.h    |  1 +
- drivers/infiniband/core/ucma.c        | 40 ++++++++++++++++----
- drivers/infiniband/hw/efa/efa_verbs.c |  7 +---
- drivers/infiniband/hw/mlx4/main.c     |  9 ++---
- drivers/infiniband/hw/mlx5/main.c     | 42 ++++++++++-----------
- drivers/infiniband/hw/mlx5/mlx5_ib.h  | 16 +++-----
- include/rdma/ib_cm.h                  | 11 +++++-
- include/rdma/ibta_vol1_c12.h          |  6 +++
- include/rdma/rdma_cm.h                | 28 ++++++++++++--
- include/uapi/rdma/rdma_user_cm.h      | 15 +++++++-
- 12 files changed, 203 insertions(+), 74 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 2f5d9b181848..a66518a5c938 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -434,9 +434,6 @@ int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
+ 	return real_index;
+ }
+ 
+-#define field_avail(type, fld, sz) (offsetof(type, fld) + \
+-				    sizeof(((type *)0)->fld) <= (sz))
+-
+ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 				struct ib_device_attr *props,
+ 				struct ib_udata *uhw)
+@@ -447,7 +444,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 	int err;
+ 	int have_ib_ports;
+ 	struct mlx4_uverbs_ex_query_device cmd;
+-	struct mlx4_uverbs_ex_query_device_resp resp = {.comp_mask = 0};
++	struct mlx4_uverbs_ex_query_device_resp resp = {};
+ 	struct mlx4_clock_params clock_params;
+ 
+ 	if (uhw->inlen) {
+@@ -602,7 +599,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 			sizeof(struct mlx4_wqe_data_seg);
+ 	}
+ 
+-	if (field_avail(typeof(resp), rss_caps, uhw->outlen)) {
++	if (offsetofend(typeof(resp), rss_caps) <= uhw->outlen) {
+ 		if (props->rss_caps.supported_qpts) {
+ 			resp.rss_caps.rx_hash_function =
+ 				MLX4_IB_RX_HASH_FUNC_TOEPLITZ;
+@@ -626,7 +623,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 				       sizeof(resp.rss_caps);
+ 	}
+ 
+-	if (field_avail(typeof(resp), tso_caps, uhw->outlen)) {
++	if (offsetofend(typeof(resp), tso_caps) <= uhw->outlen) {
+ 		if (dev->dev->caps.max_gso_sz &&
+ 		    ((mlx4_ib_port_link_layer(ibdev, 1) ==
+ 		    IB_LINK_LAYER_ETHERNET) ||
+-- 
 2.24.1
 
