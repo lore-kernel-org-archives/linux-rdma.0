@@ -2,89 +2,90 @@ Return-Path: <SRS0=u98Z=43=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 007E7C10F27
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 13:28:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26988C18E5B
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 14:42:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D7AFC2071B
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 13:28:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00663208E4
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 14:42:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Yio6eNCO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727262AbgCJN2A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Mar 2020 09:28:00 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:11206 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729198AbgCJMxg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Mar 2020 08:53:36 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 54ACBA17AA621E384E78;
-        Tue, 10 Mar 2020 20:53:30 +0800 (CST)
-Received: from [127.0.0.1] (10.40.168.149) by DGGEMS403-HUB.china.huawei.com
- (10.3.19.203) with Microsoft SMTP Server id 14.3.487.0; Tue, 10 Mar 2020
- 20:53:22 +0800
-Subject: Re: [PATCH v3 for-next 0/5] RDMA/hns: Refactor wqe related codes
-From:   Weihang Li <liweihang@huawei.com>
-To:     "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>
-CC:     "leon@kernel.org" <leon@kernel.org>,
+        id S1726917AbgCJOmq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Mar 2020 10:42:46 -0400
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:43487 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726712AbgCJOmq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Mar 2020 10:42:46 -0400
+Received: by mail-qt1-f196.google.com with SMTP id l13so4713316qtv.10
+        for <linux-rdma@vger.kernel.org>; Tue, 10 Mar 2020 07:42:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=IQyY4c0hJ2HYnXdvp2Ph/3HHChOtQu/WPwEIWCi1ILI=;
+        b=Yio6eNCOA3ivDrIhG+yRBY8au5Wy1n4lBASht/sEpu9ga9bd4lw10ZuK8PCL5MaVqt
+         6aVTCx35OKqBHkzyBBf+Cj1lvIgviJXgXBXHThEp6M+qCyBpF8ZND2SFQzkLf/6xbkF0
+         2kLKRxUV7JZbTcCHpf+7GH4P/qy21+nXJZwdGmUh370NHoFuo86lOMddUgZNzRxrmZ+C
+         wX9s7RBWQWHpAThc/RFKJl326KFyJvlWuuct8bFvfhPu5DwoXqOVFUeUxv2egoZlkG4z
+         38X3Es2n4dvXFe3fGKhtMvGtZA60NL8h2yBi1kVWelMaFXm2IX+2sEPR0t4ZyzHHuCA+
+         2oRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=IQyY4c0hJ2HYnXdvp2Ph/3HHChOtQu/WPwEIWCi1ILI=;
+        b=L6pFDtkLpV+ovN6my1Rh50mBKPrrBfoKMYMWFxQ1gAbiqkc+YL16r+5VsFmipdqA8n
+         0l665wfvjAkuKiR0FDhR7ZsAL6DJre/GeIqiD+Y9BF61gf5heMnT6Nka8HI378SE/nJo
+         KsUWptwTwnYPsgLlbFaIzAF5QRWYrNn66Sv5+CDzplPNMmz6qpTGYRcV5lWyj667/ZDz
+         mov4BSEjJ8JL0vUNDXq+ohXSDtTtw5rmQlc3I2cDNgF395M0II1HHn8bLb+5Yyd3aOpk
+         mKUcOOPvV2RqhXNT/gxfp6HT5zCMk1EebarGdzwYAYIS/4jIv9SaRpexflmHkjAszD0h
+         WqHg==
+X-Gm-Message-State: ANhLgQ23ZlRHXxh2YKxFTyRjfYeDVM7em8Y6EfuFpt+35YcgLaGKv1f4
+        86dhU/EQbc5kBfsKnZ3xTzJe/w==
+X-Google-Smtp-Source: ADFU+vvUkm6htZ0jMeMtJS/0/7NHxcQqMuc+mXyh1/68r7nH2aNsGJ5Kx8oVh7SYzqik7Fs4qj+LJg==
+X-Received: by 2002:ac8:6659:: with SMTP id j25mr13075218qtp.358.1583851364916;
+        Tue, 10 Mar 2020 07:42:44 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id i11sm10264159qka.92.2020.03.10.07.42.44
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 10 Mar 2020 07:42:44 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jBg5j-0002Qw-LK; Tue, 10 Mar 2020 11:42:43 -0300
+Date:   Tue, 10 Mar 2020 11:42:43 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Weihang Li <liweihang@huawei.com>
+Cc:     "dledford@redhat.com" <dledford@redhat.com>,
+        "leon@kernel.org" <leon@kernel.org>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         Linuxarm <linuxarm@huawei.com>
+Subject: Re: [PATCH v3 for-next 0/5] RDMA/hns: Refactor wqe related codes
+Message-ID: <20200310144243.GZ31668@ziepe.ca>
 References: <1583839084-31579-1-git-send-email-liweihang@huawei.com>
-Message-ID: <9221956f-cbbb-213d-9031-2ca7e9b9f7d4@huawei.com>
-Date:   Tue, 10 Mar 2020 20:53:22 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.5.0
+ <9221956f-cbbb-213d-9031-2ca7e9b9f7d4@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <1583839084-31579-1-git-send-email-liweihang@huawei.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.40.168.149]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9221956f-cbbb-213d-9031-2ca7e9b9f7d4@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason,
+On Tue, Mar 10, 2020 at 08:53:22PM +0800, Weihang Li wrote:
+> Hi Jason,
+> 
+> Sorry, I didn't notice that the first three patches of this series had
+> been applied to you for-next branch, so I sent this new version. Need
+> I resend the last two patches in a new series?
 
-Sorry, I didn't notice that the first three patches of this series had
-been applied to you for-next branch, so I sent this new version. Need
-I resend the last two patches in a new series?
+Oh, something got out of sorts, I did not intend to push those four
+patches, I will drop them an this v3 will supersede and the 'minimum
+depth of qp to 0' should be resent with comments addressed.
 
-Thanks
-Weihang
-
-On 2020/3/10 19:22, Weihang Li wrote:
-> Process of wqe is hard to understand and maintain in hns, this series
-> refactor wqe related code, especially in hns_roce_v2_post_send().
-> 
-> Previous discussion could be found at:
-> - v2: https://patchwork.kernel.org/cover/11422963/
-> - v1: https://patchwork.kernel.org/cover/11415395/
-> 
-> Changes since v2:
-> - Remove a redundant assignment of "NULL" in patch 4/5.
-> 
-> Changes since v1:
-> - Fix comments from Leon about the inplementation of to_hr_opcode() in
->   patch 3/5.
-> - Patch 4/5 couldn't be applied. Just do a rebase.
-> 
-> Xi Wang (5):
->   RDMA/hns: Rename wqe buffer related functions
->   RDMA/hns: Optimize wqe buffer filling process for post send
->   RDMA/hns: Optimize the wr opcode conversion from ib to hns
->   RDMA/hns: Optimize base address table config flow for qp buffer
->   RDMA/hns: Optimize wqe buffer set flow for post send
-> 
->  drivers/infiniband/hw/hns/hns_roce_device.h |  10 +-
->  drivers/infiniband/hw/hns/hns_roce_hem.c    |  16 +-
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   9 +-
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 588 ++++++++++++++--------------
->  drivers/infiniband/hw/hns/hns_roce_qp.c     |  48 +--
->  5 files changed, 319 insertions(+), 352 deletions(-)
-> 
-
+Jason
