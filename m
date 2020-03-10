@@ -2,77 +2,101 @@ Return-Path: <SRS0=u98Z=43=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1383C10F25
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 01:19:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F332C10F25
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 01:54:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7076E24649
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 01:19:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DF6524654
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 01:54:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="nGkruSpo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726121AbgCJBTP convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Mar 2020 21:19:15 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:3417 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726115AbgCJBTP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 9 Mar 2020 21:19:15 -0400
-Received: from dggeml406-hub.china.huawei.com (unknown [172.30.72.54])
-        by Forcepoint Email with ESMTP id AF12F71816051E471296;
-        Tue, 10 Mar 2020 09:19:12 +0800 (CST)
-Received: from DGGEML522-MBX.china.huawei.com ([169.254.7.20]) by
- dggeml406-hub.china.huawei.com ([10.3.17.50]) with mapi id 14.03.0439.000;
- Tue, 10 Mar 2020 09:19:03 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-Subject: Re: [PATCH v2 for-next 4/5] RDMA/hns: Optimize base address table
- config flow for qp buffer
-Thread-Topic: [PATCH v2 for-next 4/5] RDMA/hns: Optimize base address table
- config flow for qp buffer
-Thread-Index: AQHV82HGA4glDhjZX0+nO5yu9zTtgw==
-Date:   Tue, 10 Mar 2020 01:19:03 +0000
-Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A022789AE@DGGEML522-MBX.china.huawei.com>
-References: <1583462694-43908-1-git-send-email-liweihang@huawei.com>
- <1583462694-43908-5-git-send-email-liweihang@huawei.com>
- <20200309151030.GC172334@unreal>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.40.168.149]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1726353AbgCJByq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Mar 2020 21:54:46 -0400
+Received: from m12-13.163.com ([220.181.12.13]:59600 "EHLO m12-13.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726252AbgCJByq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 9 Mar 2020 21:54:46 -0400
+X-Greylist: delayed 931 seconds by postgrey-1.27 at vger.kernel.org; Mon, 09 Mar 2020 21:54:43 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=Subject:From:Message-ID:Date:MIME-Version; bh=/d4sH
+        TItJWIpgLzu6W3pE25AYoZLiG9IqUgG1rZkd80=; b=nGkruSpoUEJN9LuLwPXYm
+        o6yQdaPgHN1D5uCuV+hVLUEPAjMZxoJ1JkQRZ/IhblBGx6xmxeU0tCOWdfEpTkAZ
+        3r3DFjJXLcLryICTDzSMAJf0P+LHevUbAMXQkiPNMpyw8SIusUVnx+WPgc4Y5A7g
+        aGQxqDl4fNVMeooRnnjE4Y=
+Received: from [192.168.1.199] (unknown [139.159.243.11])
+        by smtp9 (Coremail) with SMTP id DcCowACHjrqx72ZeGwuWAw--.5059S2;
+        Tue, 10 Mar 2020 09:38:58 +0800 (CST)
+Subject: Re: Fwd: [PATCH] MAINTAINERS: Update maintainers for HISILICON ROCE
+ DRIVER
+To:     liweihang <liweihang@huawei.com>, dledford@redhat.com,
+        Jason Gunthorpe <jgg@ziepe.ca>
+References: <1583575114-32194-1-git-send-email-liweihang@huawei.com>
+ <B82435381E3B2943AA4D2826ADEF0B3A022789FE@DGGEML522-MBX.china.huawei.com>
+Cc:     linux-rdma@vger.kernel.org, huwei87@hisilicon.com
+From:   "Wei Hu (Xavier)" <xavier_huwei@163.com>
+Message-ID: <b4fdb472-eee2-21fc-b753-6648533f105f@163.com>
+Date:   Tue, 10 Mar 2020 09:38:57 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+In-Reply-To: <B82435381E3B2943AA4D2826ADEF0B3A022789FE@DGGEML522-MBX.china.huawei.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CM-TRANSID: DcCowACHjrqx72ZeGwuWAw--.5059S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJr1UKryDWF43CF43Gw4DArb_yoW8JFy7pa
+        1rGr4xCr97Wr12kwnFga42vF97Xa18GryakrZFy3WrZF9IyF1j9r1UKw12qaykXry8KF4f
+        JrsFgr1I93yUAFDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j_8n5UUUUU=
+X-Originating-IP: [139.159.243.11]
+X-CM-SenderInfo: 50dyxv5ubk34lhl6il2tof0z/xtbBzxLio1aD6fl-NQAAsT
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2020/3/9 23:10, Leon Romanovsky wrote:
->>  static int set_extend_sge_param(struct hns_roce_dev *hr_dev,
->>  				struct hns_roce_qp *hr_qp)
->>  {
->> @@ -768,7 +744,10 @@ static void free_rq_inline_buf(struct hns_roce_qp *hr_qp)
->>  static int map_wqe_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
->>  		       u32 page_shift, bool is_user)
->>  {
->> -	dma_addr_t *buf_list[ARRAY_SIZE(hr_qp->regions)] = { NULL };
->> +/* WQE buffer include 3 parts: SQ, extend SGE and RQ. */
->> +#define HNS_ROCE_WQE_REGION_MAX	 3
->> +	struct hns_roce_buf_region regions[HNS_ROCE_WQE_REGION_MAX] = {};
->> +	dma_addr_t *buf_list[HNS_ROCE_WQE_REGION_MAX] = { NULL };
-> Nitpick, NULL is not needed.
-> 
-> Thanks
-> 
 
-OK, thank you.
 
-Weihang
+On 2020/3/10 9:33, liweihang wrote:
+> 
+> 
+> 
+> -------- Forwarded Message --------
+> Subject: [PATCH] MAINTAINERS: Update maintainers for HISILICON ROCE DRIVER
+> Date: Sat, 7 Mar 2020 18:02:31 +0800
+> From: Weihang Li <liweihang@huawei.com>
+> To: dledford@redhat.com <dledford@redhat.com>, jgg@ziepe.ca <jgg@ziepe.ca>
+> CC: linux-rdma@vger.kernel.org <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+> 
+> Add myself as a maintainer for HNS RoCE drivers, and update Xavier's e-amil
+> address.
+> 
+> Cc: Lijun Ou <oulijun@huawei.com>
+> Cc: Wei Hu(Xavier) <huwei87@hisilicon.com>
+> Signed-off-by: Weihang Li <liweihang@huawei.com>
+> ---
+>   MAINTAINERS | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 6158a14..e8ae08e 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -7575,7 +7575,8 @@ F:	Documentation/admin-guide/perf/hisi-pmu.rst
+>    HISILICON ROCE DRIVER
+>   M:	Lijun Ou <oulijun@huawei.com>
+> -M:	Wei Hu(Xavier) <xavier.huwei@huawei.com>
+> +M:	Wei Hu(Xavier) <huwei87@hisilicon.com>
+> +M:	Weihang Li <liweihang@huawei.com>
+>   L:	linux-rdma@vger.kernel.org
+>   S:	Maintained
+>   F:	drivers/infiniband/hw/hns/
+> 
+Acked-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+
