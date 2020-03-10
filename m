@@ -2,156 +2,192 @@ Return-Path: <SRS0=u98Z=43=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4CEC10F27
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 10:34:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53825C10F27
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 11:21:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B926C24680
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 10:34:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2631624697
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 11:21:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726197AbgCJKe6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Mar 2020 06:34:58 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:11203 "EHLO huawei.com"
+        id S1726391AbgCJLVz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Mar 2020 07:21:55 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:53494 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725845AbgCJKe6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Mar 2020 06:34:58 -0400
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 946DB100D33D2AF6A0B0;
-        Tue, 10 Mar 2020 18:34:55 +0800 (CST)
-Received: from [127.0.0.1] (10.40.203.251) by DGGEMS405-HUB.china.huawei.com
- (10.3.19.205) with Microsoft SMTP Server id 14.3.487.0; Tue, 10 Mar 2020
- 18:34:47 +0800
-Subject: Re: [PATCH for-next] RDMA/hns: Support to set mininum depth of qp to
- 0
-To:     Leon Romanovsky <leon@kernel.org>,
-        Weihang Li <liweihang@huawei.com>
-CC:     <dledford@redhat.com>, <jgg@ziepe.ca>,
-        <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-References: <1583140937-2223-1-git-send-email-liweihang@huawei.com>
- <20200309151813.GE172334@unreal>
-From:   Lang Cheng <chenglang@huawei.com>
-Message-ID: <13c7ec71-f79f-8599-b368-fae6893da0e6@huawei.com>
-Date:   Tue, 10 Mar 2020 18:34:47 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+        id S1726258AbgCJLVz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Mar 2020 07:21:55 -0400
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 060F61300BD8FBA165D1;
+        Tue, 10 Mar 2020 19:21:53 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.487.0; Tue, 10 Mar 2020 19:21:43 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v3 for-next 2/5] RDMA/hns: Optimize wqe buffer filling process for post send
+Date:   Tue, 10 Mar 2020 19:18:01 +0800
+Message-ID: <1583839084-31579-3-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1583839084-31579-1-git-send-email-liweihang@huawei.com>
+References: <1583839084-31579-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20200309151813.GE172334@unreal>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.40.203.251]
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Xi Wang <wangxi11@huawei.com>
 
+Encapsulates the wqe buffer process details for datagram seg, fast mr seg
+and atomic seg.
 
-On 2020/3/9 23:18, Leon Romanovsky wrote:
-> On Mon, Mar 02, 2020 at 05:22:17PM +0800, Weihang Li wrote:
->> From: Lang Cheng <chenglang@huawei.com>
->>
->> Minimum depth of qp should be allowed to be set to 0 according to the
->> firmware configuration. And when qp is changed from reset to reset, the
->> capability of minimum qp depth was used to identify hardware of hip06,
->> it should be changed into a more readable form.
-> 
-> 
-> And what does it mean "qp depth == 0"?
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 63 +++++++++++++++---------------
+ 1 file changed, 32 insertions(+), 31 deletions(-)
 
-
-Here are 2 related test cases can be executed successfully:
-1,Just create qp with 0-depth sq and 0-depth rq, but do not perform 
-sending and receiving.
-2. Create a qp with 0-depth rq, the send operation can be completed.
-
-Perhaps supporting 0-depth qp would provide some flexibility for some 
-features.
-
-Or should we return error when ULP try to create a 0-depth queue?
-
-
-> 
->>
->> Signed-off-by: Lang Cheng <chenglang@huawei.com>
->> Signed-off-by: Weihang Li <liweihang@huawei.com>
->> ---
->>   drivers/infiniband/hw/hns/hns_roce_qp.c | 13 ++++++-------
->>   1 file changed, 6 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
->> index 2a75355..10c4354 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
->> +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
->> @@ -382,10 +382,10 @@ static int set_rq_size(struct hns_roce_dev *hr_dev,
->>   			return -EINVAL;
->>   		}
->>
->> -		if (hr_dev->caps.min_wqes)
->> +		if (cap->max_recv_wr)
->>   			max_cnt = max(cap->max_recv_wr, hr_dev->caps.min_wqes);
->>   		else
->> -			max_cnt = cap->max_recv_wr;
->> +			max_cnt = 0;
-> 
-> It is basically the same thing: cap->max_recv_wr == 0.
-
-The current firmware has not specified the minimum depth of qp, 
-resulting in hr_dev-> caps.min_wqes always being 0, the process will 
-always go into the else branch, so there is no minimum depth check for qp.
-
-The firmware will support configuring the minimum depth of qp, so this 
-patch checks all the use of this caps.
-
-> 
->>
->>   		hr_qp->rq.wqe_cnt = roundup_pow_of_two(max_cnt);
->>
->> @@ -652,10 +652,10 @@ static int set_kernel_sq_size(struct hns_roce_dev *hr_dev,
->>
->>   	hr_qp->sq.wqe_shift = ilog2(hr_dev->caps.max_sq_desc_sz);
->>
->> -	if (hr_dev->caps.min_wqes)
->> +	if (cap->max_send_wr)
->>   		max_cnt = max(cap->max_send_wr, hr_dev->caps.min_wqes);
->>   	else
->> -		max_cnt = cap->max_send_wr;
->> +		max_cnt = 0;
-> 
-> Ditto
-> 
->>
->>   	hr_qp->sq.wqe_cnt = roundup_pow_of_two(max_cnt);
->>   	if ((u32)hr_qp->sq.wqe_cnt > hr_dev->caps.max_wqes) {
->> @@ -1394,11 +1394,10 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
->>   		goto out;
->>
->>   	if (cur_state == new_state && cur_state == IB_QPS_RESET) {
->> -		if (hr_dev->caps.min_wqes) {
->> +		if (hr_dev->hw_rev == HNS_ROCE_HW_VER1) {
->>   			ret = -EPERM;
->>   			ibdev_err(&hr_dev->ib_dev,
->> -				"cur_state=%d new_state=%d\n", cur_state,
->> -				new_state);
->> +				  "Unsupport to modify qp from reset to reset\n");
-> 
-> "RST2RST state is not supported\n"
-
-Will be modified in next, thanks.
-
-
-> 
->>   		} else {
->>   			ret = 0;
->>   		}
->> --
->> 2.8.1
->>
-> 
-> .
-> 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 88d671a..c8c345f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -57,10 +57,10 @@ static void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
+ }
+ 
+ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+-			 struct hns_roce_wqe_frmr_seg *fseg,
+-			 const struct ib_reg_wr *wr)
++			 void *wqe, const struct ib_reg_wr *wr)
+ {
+ 	struct hns_roce_mr *mr = to_hr_mr(wr->mr);
++	struct hns_roce_wqe_frmr_seg *fseg = wqe;
+ 
+ 	/* use ib_access_flags */
+ 	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_FRMR_WQE_BYTE_4_BIND_EN_S,
+@@ -92,16 +92,26 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 		     V2_RC_FRMR_WQE_BYTE_40_BLK_MODE_S, 0);
+ }
+ 
+-static void set_atomic_seg(struct hns_roce_wqe_atomic_seg *aseg,
+-			   const struct ib_atomic_wr *wr)
++static void set_atomic_seg(const struct ib_send_wr *wr, void *wqe,
++			   struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
++			   int valid_num_sge)
+ {
+-	if (wr->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP) {
+-		aseg->fetchadd_swap_data = cpu_to_le64(wr->swap);
+-		aseg->cmp_data  = cpu_to_le64(wr->compare_add);
++	struct hns_roce_wqe_atomic_seg *aseg;
++
++	set_data_seg_v2(wqe, wr->sg_list);
++	aseg = wqe + sizeof(struct hns_roce_v2_wqe_data_seg);
++
++	if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP) {
++		aseg->fetchadd_swap_data = cpu_to_le64(atomic_wr(wr)->swap);
++		aseg->cmp_data = cpu_to_le64(atomic_wr(wr)->compare_add);
+ 	} else {
+-		aseg->fetchadd_swap_data = cpu_to_le64(wr->compare_add);
++		aseg->fetchadd_swap_data =
++			cpu_to_le64(atomic_wr(wr)->compare_add);
+ 		aseg->cmp_data  = 0;
+ 	}
++
++	roce_set_field(rc_sq_wqe->byte_16, V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M,
++		       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S, valid_num_sge);
+ }
+ 
+ static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
+@@ -154,11 +164,11 @@ static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
+ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 			     struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 			     void *wqe, unsigned int *sge_ind,
+-			     int valid_num_sge,
+-			     const struct ib_send_wr **bad_wr)
++			     int valid_num_sge)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	struct hns_roce_v2_wqe_data_seg *dseg = wqe;
++	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	struct hns_roce_qp *qp = to_hr_qp(ibqp);
+ 	int j = 0;
+ 	int i;
+@@ -166,15 +176,14 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 	if (wr->send_flags & IB_SEND_INLINE && valid_num_sge) {
+ 		if (le32_to_cpu(rc_sq_wqe->msg_len) >
+ 		    hr_dev->caps.max_sq_inline) {
+-			*bad_wr = wr;
+-			dev_err(hr_dev->dev, "inline len(1-%d)=%d, illegal",
+-				rc_sq_wqe->msg_len, hr_dev->caps.max_sq_inline);
++			ibdev_err(ibdev, "inline len(1-%d)=%d, illegal",
++				  rc_sq_wqe->msg_len,
++				  hr_dev->caps.max_sq_inline);
+ 			return -EINVAL;
+ 		}
+ 
+ 		if (wr->opcode == IB_WR_RDMA_READ) {
+-			*bad_wr =  wr;
+-			dev_err(hr_dev->dev, "Not support inline data!\n");
++			ibdev_err(ibdev, "Not support inline data!\n");
+ 			return -EINVAL;
+ 		}
+ 
+@@ -285,7 +294,6 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+ 	struct hns_roce_v2_ud_send_wqe *ud_sq_wqe;
+ 	struct hns_roce_v2_rc_send_wqe *rc_sq_wqe;
+ 	struct hns_roce_qp *qp = to_hr_qp(ibqp);
+-	struct hns_roce_wqe_frmr_seg *fseg;
+ 	struct device *dev = hr_dev->dev;
+ 	unsigned int owner_bit;
+ 	unsigned int sge_idx;
+@@ -547,8 +555,7 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+ 				break;
+ 			case IB_WR_REG_MR:
+ 				hr_op = HNS_ROCE_V2_WQE_OP_FAST_REG_PMR;
+-				fseg = wqe;
+-				set_frmr_seg(rc_sq_wqe, fseg, reg_wr(wr));
++				set_frmr_seg(rc_sq_wqe, wqe, reg_wr(wr));
+ 				break;
+ 			case IB_WR_ATOMIC_CMP_AND_SWP:
+ 				hr_op = HNS_ROCE_V2_WQE_OP_ATOM_CMP_AND_SWAP;
+@@ -582,23 +589,17 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+ 				       V2_RC_SEND_WQE_BYTE_4_OPCODE_S, hr_op);
+ 
+ 			if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
+-			    wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD) {
+-				struct hns_roce_v2_wqe_data_seg *dseg;
+-
+-				dseg = wqe;
+-				set_data_seg_v2(dseg, wr->sg_list);
+-				wqe += sizeof(struct hns_roce_v2_wqe_data_seg);
+-				set_atomic_seg(wqe, atomic_wr(wr));
+-				roce_set_field(rc_sq_wqe->byte_16,
+-					       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M,
+-					       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S,
++			    wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
++				set_atomic_seg(wr, wqe, rc_sq_wqe,
+ 					       valid_num_sge);
+-			} else if (wr->opcode != IB_WR_REG_MR) {
++			else if (wr->opcode != IB_WR_REG_MR) {
+ 				ret = set_rwqe_data_seg(ibqp, wr, rc_sq_wqe,
+ 							wqe, &sge_idx,
+-							valid_num_sge, bad_wr);
+-				if (ret)
++							valid_num_sge);
++				if (ret) {
++					*bad_wr = wr;
+ 					goto out;
++				}
+ 			}
+ 		} else {
+ 			dev_err(dev, "Illegal qp_type(0x%x)\n", ibqp->qp_type);
+-- 
+2.8.1
 
