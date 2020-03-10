@@ -2,49 +2,49 @@ Return-Path: <SRS0=u98Z=43=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03D46C10F27
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ACEFC10F27
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CAE9724681
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 667232051A
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 09:26:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583832388;
-	bh=+MS/w29HY+28/tqDRl2e0tvEkxMlrdogBx0+QfAWnxU=;
+	s=default; t=1583832391;
+	bh=meu0nE9dggEmN7KiFKvFa6jvHUbGyuczmyogi5NYfDg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=PC938eh0aI1zlVpfqC8cIhT+LGUQm5w1u+Gn/Y0N3UiNmGVjt3/4Ord+13Gshmz4F
-	 nOnGhna+BSUpUgtiIseonUUYZB0VvMwSkjT1ollPeZK8kCib0iv3mHBspNEd6D7M/m
-	 7Y61KHcAP1eqIdrR9GhV4SEwyOIAkDuSm8enbQT8=
+	b=hXpdeSZBktiw/pJOb93nQS/V9ekSQVggpfxGjqgUBqJcBalgjIwv0NimGsJeZ6Snw
+	 mH0m7ZVgOlTMB+A99Bp7alcbDuoELZLTgWOQcheDriGifWzEv8JuicUIjvBjwVnQ/K
+	 SkEVexEUnJIme6IRK6VnG0L8bY9RRYSwENzDJSO4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726445AbgCJJ02 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Mar 2020 05:26:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57864 "EHLO mail.kernel.org"
+        id S1726224AbgCJJ0a (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Mar 2020 05:26:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726199AbgCJJ02 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Mar 2020 05:26:28 -0400
+        id S1726199AbgCJJ0a (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Mar 2020 05:26:30 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A66BE2051A;
-        Tue, 10 Mar 2020 09:26:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B7A3524681;
+        Tue, 10 Mar 2020 09:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583832387;
-        bh=+MS/w29HY+28/tqDRl2e0tvEkxMlrdogBx0+QfAWnxU=;
+        s=default; t=1583832390;
+        bh=meu0nE9dggEmN7KiFKvFa6jvHUbGyuczmyogi5NYfDg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=yJvsjfCB6Bg/HpeF1ycFFGp2OcQWld9UD0Ef+1zVo85ZZmTfUa+zeTNKe+z9t21w1
-         P80nFMoCvT6dBvtcdByul9dGc9b6AyHMwOTF6CbeyKjjKPlBSaz4nfGQwgRA+NZorC
-         iF2akL40zgyjQkoiPx2Fgpz4elCxh7yXPuVVWbKY=
+        b=dSwNvDUvy0cHyRyYjZIf7IPHj35ljBa63xRfKli+a/wEyBgaBhdlG5cXigE5ojf1V
+         1JJpDRyfHKVuF8gnUp8qFLoNdDbEiEQ5d/B79dJ0g/ygSmJZ/1tRXNPmBvcuUukmJx
+         Oh6RkVbkfqs6e6SIUBPc8Wswt+DblC33uxSU/aY4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 13/15] RDMA/cm: Allow ib_send_cm_rej() to be done under lock
-Date:   Tue, 10 Mar 2020 11:25:43 +0200
-Message-Id: <20200310092545.251365-14-leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>
+Subject: [PATCH rdma-next 09/15] RDMA/cm: Add missing locking around id.state in cm_dup_req_handler
+Date:   Tue, 10 Mar 2020 11:25:39 +0200
+Message-Id: <20200310092545.251365-10-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200310092545.251365-1-leon@kernel.org>
 References: <20200310092545.251365-1-leon@kernel.org>
@@ -57,181 +57,33 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-The first thing ib_send_cm_rej() does is obtain the lock, so use the usual
-unlocked wrapper, locked actor pattern here.
+All accesses to id.state must be done under the spinlock.
 
-This avoids a sketchy lock/unlock sequence (which could allow state to
-change) during cm_destroy_id().
-
-While here simplify some of the logic in the implementation.
-
+Fixes: a977049dacde ("[PATCH] IB: Add the kernel CM implementation")
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c | 92 ++++++++++++++++++++----------------
- 1 file changed, 52 insertions(+), 40 deletions(-)
+ drivers/infiniband/core/cm.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 2d3b661153a4..cf7f1f7958c8 100644
+index d00eb4751ae5..d002b34bd5a3 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -89,6 +89,10 @@ static int cm_send_dreq_locked(struct cm_id_private *cm_id_priv,
- 			       const void *private_data, u8 private_data_len);
- static int cm_send_drep_locked(struct cm_id_private *cm_id_priv,
- 			       void *private_data, u8 private_data_len);
-+static int cm_send_rej_locked(struct cm_id_private *cm_id_priv,
-+			      enum ib_cm_rej_reason reason, void *ari,
-+			      u8 ari_length, const void *private_data,
-+			      u8 private_data_len);
- 
- static struct ib_client cm_client = {
- 	.name   = "cm",
-@@ -1064,11 +1068,11 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 	case IB_CM_REQ_SENT:
- 	case IB_CM_MRA_REQ_RCVD:
- 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
-+		cm_send_rej_locked(cm_id_priv, IB_CM_REJ_TIMEOUT,
-+				   &cm_id_priv->id.device->node_guid,
-+				   sizeof(cm_id_priv->id.device->node_guid),
-+				   NULL, 0);
- 		spin_unlock_irq(&cm_id_priv->lock);
--		ib_send_cm_rej(cm_id, IB_CM_REJ_TIMEOUT,
--			       &cm_id_priv->id.device->node_guid,
--			       sizeof cm_id_priv->id.device->node_guid,
--			       NULL, 0);
- 		break;
- 	case IB_CM_REQ_RCVD:
- 		if (err == -ENOMEM) {
-@@ -1076,9 +1080,10 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 			cm_reset_to_idle(cm_id_priv);
- 			spin_unlock_irq(&cm_id_priv->lock);
- 		} else {
-+			cm_send_rej_locked(cm_id_priv,
-+					   IB_CM_REJ_CONSUMER_DEFINED, NULL, 0,
-+					   NULL, 0);
- 			spin_unlock_irq(&cm_id_priv->lock);
--			ib_send_cm_rej(cm_id, IB_CM_REJ_CONSUMER_DEFINED,
--				       NULL, 0, NULL, 0);
- 		}
- 		break;
- 	case IB_CM_REP_SENT:
-@@ -1088,9 +1093,9 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 	case IB_CM_MRA_REQ_SENT:
- 	case IB_CM_REP_RCVD:
- 	case IB_CM_MRA_REP_SENT:
-+		cm_send_rej_locked(cm_id_priv, IB_CM_REJ_CONSUMER_DEFINED, NULL,
-+				   0, NULL, 0);
- 		spin_unlock_irq(&cm_id_priv->lock);
--		ib_send_cm_rej(cm_id, IB_CM_REJ_CONSUMER_DEFINED,
--			       NULL, 0, NULL, 0);
- 		break;
- 	case IB_CM_ESTABLISHED:
- 		if (cm_id_priv->qp_type == IB_QPT_XRC_TGT) {
-@@ -2926,65 +2931,72 @@ static int cm_drep_handler(struct cm_work *work)
- 	return -EINVAL;
- }
- 
--int ib_send_cm_rej(struct ib_cm_id *cm_id,
--		   enum ib_cm_rej_reason reason,
--		   void *ari,
--		   u8 ari_length,
--		   const void *private_data,
--		   u8 private_data_len)
-+static int cm_send_rej_locked(struct cm_id_private *cm_id_priv,
-+			      enum ib_cm_rej_reason reason, void *ari,
-+			      u8 ari_length, const void *private_data,
-+			      u8 private_data_len)
- {
--	struct cm_id_private *cm_id_priv;
- 	struct ib_mad_send_buf *msg;
--	unsigned long flags;
- 	int ret;
- 
-+	lockdep_assert_held(&cm_id_priv->lock);
-+
- 	if ((private_data && private_data_len > IB_CM_REJ_PRIVATE_DATA_SIZE) ||
- 	    (ari && ari_length > IB_CM_REJ_ARI_LENGTH))
- 		return -EINVAL;
- 
--	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
--
--	spin_lock_irqsave(&cm_id_priv->lock, flags);
--	switch (cm_id->state) {
-+	switch (cm_id_priv->id.state) {
- 	case IB_CM_REQ_SENT:
- 	case IB_CM_MRA_REQ_RCVD:
- 	case IB_CM_REQ_RCVD:
- 	case IB_CM_MRA_REQ_SENT:
- 	case IB_CM_REP_RCVD:
- 	case IB_CM_MRA_REP_SENT:
--		ret = cm_alloc_msg(cm_id_priv, &msg);
--		if (!ret)
--			cm_format_rej((struct cm_rej_msg *) msg->mad,
--				      cm_id_priv, reason, ari, ari_length,
--				      private_data, private_data_len);
--
- 		cm_reset_to_idle(cm_id_priv);
-+		ret = cm_alloc_msg(cm_id_priv, &msg);
-+		if (ret)
-+			return ret;
-+		cm_format_rej((struct cm_rej_msg *)msg->mad, cm_id_priv, reason,
-+			      ari, ari_length, private_data, private_data_len);
- 		break;
- 	case IB_CM_REP_SENT:
- 	case IB_CM_MRA_REP_RCVD:
--		ret = cm_alloc_msg(cm_id_priv, &msg);
--		if (!ret)
--			cm_format_rej((struct cm_rej_msg *) msg->mad,
--				      cm_id_priv, reason, ari, ari_length,
--				      private_data, private_data_len);
--
- 		cm_enter_timewait(cm_id_priv);
-+		ret = cm_alloc_msg(cm_id_priv, &msg);
-+		if (ret)
-+			return ret;
-+		cm_format_rej((struct cm_rej_msg *)msg->mad, cm_id_priv, reason,
-+			      ari, ari_length, private_data, private_data_len);
- 		break;
- 	default:
- 		pr_debug("%s: local_id %d, cm_id->state: %d\n", __func__,
--			 be32_to_cpu(cm_id_priv->id.local_id), cm_id->state);
--		ret = -EINVAL;
--		goto out;
-+			 be32_to_cpu(cm_id_priv->id.local_id),
-+			 cm_id_priv->id.state);
-+		return -EINVAL;
- 	}
- 
--	if (ret)
--		goto out;
--
- 	ret = ib_post_send_mad(msg, NULL);
--	if (ret)
-+	if (ret) {
- 		cm_free_msg(msg);
-+		return ret;
+@@ -1887,8 +1887,12 @@ static void cm_dup_req_handler(struct cm_work *work,
+ 			counter[CM_REQ_COUNTER]);
+
+ 	/* Quick state check to discard duplicate REQs. */
+-	if (cm_id_priv->id.state == IB_CM_REQ_RCVD)
++	spin_lock_irq(&cm_id_priv->lock);
++	if (cm_id_priv->id.state == IB_CM_REQ_RCVD) {
++		spin_unlock_irq(&cm_id_priv->lock);
+ 		return;
 +	}
- 
--out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-+	return 0;
-+}
-+
-+int ib_send_cm_rej(struct ib_cm_id *cm_id, enum ib_cm_rej_reason reason,
-+		   void *ari, u8 ari_length, const void *private_data,
-+		   u8 private_data_len)
-+{
-+	struct cm_id_private *cm_id_priv =
-+		container_of(cm_id, struct cm_id_private, id);
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&cm_id_priv->lock, flags);
-+	ret = cm_send_rej_locked(cm_id_priv, reason, ari, ari_length,
-+				 private_data, private_data_len);
-+	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 	return ret;
- }
- EXPORT_SYMBOL(ib_send_cm_rej);
--- 
++	spin_unlock_irq(&cm_id_priv->lock);
+
+ 	ret = cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg);
+ 	if (ret)
+--
 2.24.1
 
