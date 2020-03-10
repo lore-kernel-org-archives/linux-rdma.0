@@ -2,191 +2,179 @@ Return-Path: <SRS0=u98Z=43=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14CC8C10F27
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 11:22:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FFE8C10F27
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 12:39:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E6B482253D
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 11:22:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0216824691
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 12:39:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1583843993;
+	bh=wyyYdbegtNhwiZjvoBALShWf+OcRCMuN26qiRp00os0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=mzEH75bkNivYZiYwPrZLg9hf4MMV0zYFDyg44uNU7UNnXd+8jjGUQI7f9zH4mE4zm
+	 TyQdPvRR3SGGXR+GkC8owHcl6yUEZuslEvgYuC238topLU1e0gVBLPbZLCdKRh8FGG
+	 o8suTBJuF2Q4SkSVsBqOnhCTnwOnL7zkzbRdrboQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726269AbgCJLWH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Mar 2020 07:22:07 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:53496 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726273AbgCJLWH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Mar 2020 07:22:07 -0400
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 0B236823B47D88519845;
-        Tue, 10 Mar 2020 19:21:53 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 10 Mar 2020 19:21:43 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 1/5] RDMA/hns: Rename wqe buffer related functions
-Date:   Tue, 10 Mar 2020 19:18:00 +0800
-Message-ID: <1583839084-31579-2-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1583839084-31579-1-git-send-email-liweihang@huawei.com>
-References: <1583839084-31579-1-git-send-email-liweihang@huawei.com>
+        id S1726316AbgCJMjw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Mar 2020 08:39:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39258 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726271AbgCJMjw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Mar 2020 08:39:52 -0400
+Received: from localhost (unknown [193.47.165.251])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id B767E24686;
+        Tue, 10 Mar 2020 12:39:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1583843991;
+        bh=wyyYdbegtNhwiZjvoBALShWf+OcRCMuN26qiRp00os0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=1rx6S2DHDPQdiSm4GAjxP4D0Bdzsicp8O8XRRqKrhGtN0avTgTJxDhMuhv3EtSKKu
+         x7PSgcaeUOt4gtbGDRh81Lu8Ao3V+/FbLC97eYyYaSPyTzoInZmL8jBvQJIfQtysaQ
+         dqq6GS+qnK74WneW6vkwS5coz23vuxrU8RWHJjMo=
+Date:   Tue, 10 Mar 2020 14:39:48 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Lang Cheng <chenglang@huawei.com>
+Cc:     Weihang Li <liweihang@huawei.com>, dledford@redhat.com,
+        jgg@ziepe.ca, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Subject: Re: [PATCH for-next] RDMA/hns: Support to set mininum depth of qp to
+ 0
+Message-ID: <20200310123948.GJ242734@unreal>
+References: <1583140937-2223-1-git-send-email-liweihang@huawei.com>
+ <20200309151813.GE172334@unreal>
+ <13c7ec71-f79f-8599-b368-fae6893da0e6@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <13c7ec71-f79f-8599-b368-fae6893da0e6@huawei.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xi Wang <wangxi11@huawei.com>
+On Tue, Mar 10, 2020 at 06:34:47PM +0800, Lang Cheng wrote:
+>
+>
+> On 2020/3/9 23:18, Leon Romanovsky wrote:
+> > On Mon, Mar 02, 2020 at 05:22:17PM +0800, Weihang Li wrote:
+> > > From: Lang Cheng <chenglang@huawei.com>
+> > >
+> > > Minimum depth of qp should be allowed to be set to 0 according to the
+> > > firmware configuration. And when qp is changed from reset to reset, the
+> > > capability of minimum qp depth was used to identify hardware of hip06,
+> > > it should be changed into a more readable form.
+> >
+> >
+> > And what does it mean "qp depth == 0"?
+>
+>
+> Here are 2 related test cases can be executed successfully:
+> 1,Just create qp with 0-depth sq and 0-depth rq, but do not perform sending
+> and receiving.
+> 2. Create a qp with 0-depth rq, the send operation can be completed.
+>
+> Perhaps supporting 0-depth qp would provide some flexibility for some
+> features.
+>
+> Or should we return error when ULP try to create a 0-depth queue?
 
-There are serval global functions related to wqe buffer in the hns driver
-and are called in different files. These symbols cannot directly represent
-the namespace they belong to. So add prefix 'hns_roce_' to 3 wqe buffer
-related global functions: get_recv_wqe(), get_send_wqe(), and
-get_send_extend_sge().
+"0" looks like not valid value and you can't explain what will be expected
+behavior if user sets such value, so returning an error sounds like a
+good solution.
 
-Signed-off-by: Xi Wang <wangxi11@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h |  6 +++---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  9 +++++----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 10 +++++-----
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  6 +++---
- 4 files changed, 16 insertions(+), 15 deletions(-)
+>
+>
+> >
+> > >
+> > > Signed-off-by: Lang Cheng <chenglang@huawei.com>
+> > > Signed-off-by: Weihang Li <liweihang@huawei.com>
+> > > ---
+> > >   drivers/infiniband/hw/hns/hns_roce_qp.c | 13 ++++++-------
+> > >   1 file changed, 6 insertions(+), 7 deletions(-)
+> > >
+> > > diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> > > index 2a75355..10c4354 100644
+> > > --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
+> > > +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> > > @@ -382,10 +382,10 @@ static int set_rq_size(struct hns_roce_dev *hr_dev,
+> > >   			return -EINVAL;
+> > >   		}
+> > >
+> > > -		if (hr_dev->caps.min_wqes)
+> > > +		if (cap->max_recv_wr)
+> > >   			max_cnt = max(cap->max_recv_wr, hr_dev->caps.min_wqes);
+> > >   		else
+> > > -			max_cnt = cap->max_recv_wr;
+> > > +			max_cnt = 0;
+> >
+> > It is basically the same thing: cap->max_recv_wr == 0.
+>
+> The current firmware has not specified the minimum depth of qp, resulting in
+> hr_dev-> caps.min_wqes always being 0, the process will always go into the
+> else branch, so there is no minimum depth check for qp.
+>
+> The firmware will support configuring the minimum depth of qp, so this patch
+> checks all the use of this caps.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index d7dcf6e..b6ae12d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -1238,9 +1238,9 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *ib_pd,
- int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		       int attr_mask, struct ib_udata *udata);
- void init_flush_work(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp);
--void *get_recv_wqe(struct hns_roce_qp *hr_qp, int n);
--void *get_send_wqe(struct hns_roce_qp *hr_qp, int n);
--void *get_send_extend_sge(struct hns_roce_qp *hr_qp, int n);
-+void *hns_roce_get_recv_wqe(struct hns_roce_qp *hr_qp, int n);
-+void *hns_roce_get_send_wqe(struct hns_roce_qp *hr_qp, int n);
-+void *hns_roce_get_extend_sge(struct hns_roce_qp *hr_qp, int n);
- bool hns_roce_wq_overflow(struct hns_roce_wq *hr_wq, int nreq,
- 			  struct ib_cq *ib_cq);
- enum hns_roce_qp_state to_hns_roce_state(enum ib_qp_state state);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index c05a905..2e53045 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -106,7 +106,7 @@ static int hns_roce_v1_post_send(struct ib_qp *ibqp,
- 			goto out;
- 		}
- 
--		wqe = get_send_wqe(qp, wqe_idx);
-+		wqe = hns_roce_get_send_wqe(qp, wqe_idx);
- 		qp->sq.wrid[wqe_idx] = wr->wr_id;
- 
- 		/* Corresponding to the RC and RD type wqe process separately */
-@@ -378,7 +378,7 @@ static int hns_roce_v1_post_recv(struct ib_qp *ibqp,
- 			goto out;
- 		}
- 
--		ctrl = get_recv_wqe(hr_qp, wqe_idx);
-+		ctrl = hns_roce_get_recv_wqe(hr_qp, wqe_idx);
- 
- 		roce_set_field(ctrl->rwqe_byte_12,
- 			       RQ_WQE_CTRL_RWQE_BYTE_12_RWQE_SGE_NUM_M,
-@@ -2284,9 +2284,10 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *hr_cq,
- 
- 	if (is_send) {
- 		/* SQ conrespond to CQE */
--		sq_wqe = get_send_wqe(*cur_qp, roce_get_field(cqe->cqe_byte_4,
-+		sq_wqe = hns_roce_get_send_wqe(*cur_qp,
-+						roce_get_field(cqe->cqe_byte_4,
- 						CQE_BYTE_4_WQE_INDEX_M,
--						CQE_BYTE_4_WQE_INDEX_S)&
-+						CQE_BYTE_4_WQE_INDEX_S) &
- 						((*cur_qp)->sq.wqe_cnt-1));
- 		switch (le32_to_cpu(sq_wqe->flag) & HNS_ROCE_WQE_OPCODE_MASK) {
- 		case HNS_ROCE_WQE_OPCODE_SEND:
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 82021fa..88d671a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -127,7 +127,7 @@ static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
- 	 * should calculate how many sges in the first page and the second
- 	 * page.
- 	 */
--	dseg = get_send_extend_sge(qp, (*sge_ind) & (qp->sge.sge_cnt - 1));
-+	dseg = hns_roce_get_extend_sge(qp, (*sge_ind) & (qp->sge.sge_cnt - 1));
- 	fi_sge_num = (round_up((uintptr_t)dseg, 1 << shift) -
- 		      (uintptr_t)dseg) /
- 		      sizeof(struct hns_roce_v2_wqe_data_seg);
-@@ -137,7 +137,7 @@ static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
- 			set_data_seg_v2(dseg++, sg + i);
- 			(*sge_ind)++;
- 		}
--		dseg = get_send_extend_sge(qp,
-+		dseg = hns_roce_get_extend_sge(qp,
- 					   (*sge_ind) & (qp->sge.sge_cnt - 1));
- 		for (i = 0; i < se_sge_num; i++) {
- 			set_data_seg_v2(dseg++, sg + fi_sge_num + i);
-@@ -329,7 +329,7 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 			goto out;
- 		}
- 
--		wqe = get_send_wqe(qp, wqe_idx);
-+		wqe = hns_roce_get_send_wqe(qp, wqe_idx);
- 		qp->sq.wrid[wqe_idx] = wr->wr_id;
- 		owner_bit =
- 		       ~(((qp->sq.head + nreq) >> ilog2(qp->sq.wqe_cnt)) & 0x1);
-@@ -676,7 +676,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
- 			goto out;
- 		}
- 
--		wqe = get_recv_wqe(hr_qp, wqe_idx);
-+		wqe = hns_roce_get_recv_wqe(hr_qp, wqe_idx);
- 		dseg = (struct hns_roce_v2_wqe_data_seg *)wqe;
- 		for (i = 0; i < wr->num_sge; i++) {
- 			if (!wr->sg_list[i].length)
-@@ -2935,7 +2935,7 @@ static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
- 
- 	sge_list = (*cur_qp)->rq_inl_buf.wqe_list[wr_cnt].sg_list;
- 	sge_num = (*cur_qp)->rq_inl_buf.wqe_list[wr_cnt].sge_cnt;
--	wqe_buf = get_recv_wqe(*cur_qp, wr_cnt);
-+	wqe_buf = hns_roce_get_recv_wqe(*cur_qp, wr_cnt);
- 	data_len = wc->byte_len;
- 
- 	for (sge_cnt = 0; (sge_cnt < sge_num) && (data_len); sge_cnt++) {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 5a28d62..c2ea489 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -1470,17 +1470,17 @@ static void *get_wqe(struct hns_roce_qp *hr_qp, int offset)
- 	return hns_roce_buf_offset(&hr_qp->hr_buf, offset);
- }
- 
--void *get_recv_wqe(struct hns_roce_qp *hr_qp, int n)
-+void *hns_roce_get_recv_wqe(struct hns_roce_qp *hr_qp, int n)
- {
- 	return get_wqe(hr_qp, hr_qp->rq.offset + (n << hr_qp->rq.wqe_shift));
- }
- 
--void *get_send_wqe(struct hns_roce_qp *hr_qp, int n)
-+void *hns_roce_get_send_wqe(struct hns_roce_qp *hr_qp, int n)
- {
- 	return get_wqe(hr_qp, hr_qp->sq.offset + (n << hr_qp->sq.wqe_shift));
- }
- 
--void *get_send_extend_sge(struct hns_roce_qp *hr_qp, int n)
-+void *hns_roce_get_extend_sge(struct hns_roce_qp *hr_qp, int n)
- {
- 	return hns_roce_buf_offset(&hr_qp->hr_buf, hr_qp->sge.offset +
- 					(n << hr_qp->sge.sge_shift));
--- 
-2.8.1
+if (cap->max_recv_wr)
+  cap->max_recv_wr != 0
+else
+ cap->max_recv_wr == 0
+ => max_cnt = 0 and max_cnt = cap->max_recv_wr are the same
 
+Thanks
+
+>
+> >
+> > >
+> > >   		hr_qp->rq.wqe_cnt = roundup_pow_of_two(max_cnt);
+> > >
+> > > @@ -652,10 +652,10 @@ static int set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+> > >
+> > >   	hr_qp->sq.wqe_shift = ilog2(hr_dev->caps.max_sq_desc_sz);
+> > >
+> > > -	if (hr_dev->caps.min_wqes)
+> > > +	if (cap->max_send_wr)
+> > >   		max_cnt = max(cap->max_send_wr, hr_dev->caps.min_wqes);
+> > >   	else
+> > > -		max_cnt = cap->max_send_wr;
+> > > +		max_cnt = 0;
+> >
+> > Ditto
+> >
+> > >
+> > >   	hr_qp->sq.wqe_cnt = roundup_pow_of_two(max_cnt);
+> > >   	if ((u32)hr_qp->sq.wqe_cnt > hr_dev->caps.max_wqes) {
+> > > @@ -1394,11 +1394,10 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+> > >   		goto out;
+> > >
+> > >   	if (cur_state == new_state && cur_state == IB_QPS_RESET) {
+> > > -		if (hr_dev->caps.min_wqes) {
+> > > +		if (hr_dev->hw_rev == HNS_ROCE_HW_VER1) {
+> > >   			ret = -EPERM;
+> > >   			ibdev_err(&hr_dev->ib_dev,
+> > > -				"cur_state=%d new_state=%d\n", cur_state,
+> > > -				new_state);
+> > > +				  "Unsupport to modify qp from reset to reset\n");
+> >
+> > "RST2RST state is not supported\n"
+>
+> Will be modified in next, thanks.
+>
+>
+> >
+> > >   		} else {
+> > >   			ret = 0;
+> > >   		}
+> > > --
+> > > 2.8.1
+> > >
+> >
+> > .
+> >
+>
