@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by archive.lwn.net (Postfix) with ESMTP id 325E47DE78
-	for <lwn-linux-rdma@archive.lwn.net>; Wed, 11 Mar 2020 16:13:07 +0000 (UTC)
+	by archive.lwn.net (Postfix) with ESMTP id D5D2D7DE78
+	for <lwn-linux-rdma@archive.lwn.net>; Wed, 11 Mar 2020 16:13:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730175AbgCKQMw (ORCPT <rfc822;lwn-linux-rdma@archive.lwn.net>);
-        Wed, 11 Mar 2020 12:12:52 -0400
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:44593 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730040AbgCKQMw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 11 Mar 2020 12:12:52 -0400
-Received: by mail-wr1-f67.google.com with SMTP id l18so3350887wru.11
-        for <linux-rdma@vger.kernel.org>; Wed, 11 Mar 2020 09:12:49 -0700 (PDT)
+        id S1730239AbgCKQNO (ORCPT <rfc822;lwn-linux-rdma@archive.lwn.net>);
+        Wed, 11 Mar 2020 12:13:14 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:39640 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730235AbgCKQNN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 11 Mar 2020 12:13:13 -0400
+Received: by mail-wm1-f65.google.com with SMTP id f7so2789910wml.4
+        for <linux-rdma@vger.kernel.org>; Wed, 11 Mar 2020 09:13:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=z27+zNM13KHJv3BZ74xk1dY1fez/zmdK3nAIpuWrj4Y=;
-        b=WT/QVkQNtdzLfnsr5iofdEFoqHzj32agN8x2QjYKwdUkE9TIEqUVa1drycXbpgnMp7
-         fdlPwCLWjDxk9FIPcPOTC+X7l8FFOb+MdeRw8ubeK+fGdeZRU2QRCeLpJUCeywxAFzFO
-         AAK+dTPZHmOZzL3xj0rjHaEC9qc0BsnckmHH4ijwHCvOGdjSN1nP8y1XoT03HXrbo1Ot
-         R9nDcxXau+6rMvPGBfW/j+KmyxT66nmvvoZejZMZNm5VAuNGLra4ybHd7XaFX2DDMeGr
-         7M88hhQBYsDdaNyFOho/xuEWHww+psskhIFdXh2B+u4iJD8FN+rZQIBAHzC58e7kQDK4
-         DIJg==
+        bh=/cxvHhwala8kgT1ZLA5gid0zFjr1xykGwTFyFfblKqU=;
+        b=XBYRMgrmF+qmzCoVXAX5wdCL7uSKQ2F4hSN9GRNsunPl6sADXRG+ai6QImWegoP2CC
+         x3z4t7UIpN4uYDk5aI2+aSdQtc2SShPilGs6gcWncaAENM3FppI7H2mz3NbBlux/45tu
+         8f/TnOpX5gJLTsq5+bxAVjVEkwpoiTO4uNvpT0AeUz7F1hZUPb6zUvOj+ICProWSDTis
+         Zo7j6Tnx4M2uHUB5wZR4DKkV+IjQMIYv+n/D+FzYzqTCwbuOqsDHzN/240bqAWwp7pRc
+         ZxpkAiyoZTDp1iYXWN+YvK13ArmZnnr0GMqvW2ewnMiLMoQiYGUsUHTJuIqyerPPNoXY
+         5TPg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=z27+zNM13KHJv3BZ74xk1dY1fez/zmdK3nAIpuWrj4Y=;
-        b=Gz8DhO1Wk9Lz3WsRewSdJsvxAG+Q71L516v9hhpYtRwoPs9dtNsIrV2p5czVX+tdIT
-         CCEKCPEcKEIkIt4qDYjxzshNAirPivCcqoWLeMwe8CFFjoJgCjtAtft7e6z7SgVz4jqZ
-         5u8yku8i89fPq6KKTTeQjm969Y6r6oOZpivi+JMO3TZKpCLsDOGV7zLoaHKYeqihxDn8
-         uDPQPO2Z+bTwjk3UpiXUC5oC3mFknBaNYsUnxWg/7W0aRCysvUQMCsYgOl44HUCujP9M
-         iAeCi5a7ryCqKuv9c3Z2885tb4m39CSz79xn27sjdbKP44KNtEyollD91meBECQhagEW
-         H36w==
-X-Gm-Message-State: ANhLgQ3L5KPpzI1Itn2peRmtjArUKyb799rz4y7Usgt/DeJB+nlGyb++
-        SEZJYBq2iIOo9Wtgs2EUthuDTA==
-X-Google-Smtp-Source: ADFU+vv242MsLhRj4u5b/HsGGI1RlO2nCwX8L6b2oWd8YoeMrCPQTBYVJdR2rP5Vi54G1kTKUb2D7g==
-X-Received: by 2002:a5d:6245:: with SMTP id m5mr5275343wrv.154.1583943168164;
-        Wed, 11 Mar 2020 09:12:48 -0700 (PDT)
+        bh=/cxvHhwala8kgT1ZLA5gid0zFjr1xykGwTFyFfblKqU=;
+        b=JLgg45Ms9Eke4VnIP3myAcT2g3pM+ydrUMwbD8G7SlWqjhowNdMtGx9FrSieE2bryF
+         gAS38JUSb6BkayZN3MbtNjz3jo21iHeLq1aihfxxuoeslna6oWTnAjYTYNozFocLg8sr
+         4ticW9DEQmo0eaSoNxdWekd6uerqv6mrip4UgBCjwR+08j1qU8n1+bjj2pkTlcWiBgI9
+         hl21CG/UBf6wmI00Us0VWbGMA1glEiG4RqsfxExGGDJWGq6GiGVpEHKXW6hHpqpRBe0q
+         xakMOjItUlzSQF5IHa/rA11NBChULO8AfbE/EDUSHPM//k2O7DldI7/R5MlGv2kLADbV
+         gCIw==
+X-Gm-Message-State: ANhLgQ3HgZWKMvnSm/0F3HOxETJsneq+XBeKoSfOY31Dr56yTZ1+zYb8
+        T5JXg6ezPbVPyzXNoe2rU74HEg==
+X-Google-Smtp-Source: ADFU+vu6qxAExlkik1mzKtW3a61DefX0BwbDWXUabglJCMvgPXgmMln22Hkj2tK2x387HV9DSgxJZA==
+X-Received: by 2002:a05:600c:410b:: with SMTP id j11mr4607278wmi.86.1583943191665;
+        Wed, 11 Mar 2020 09:13:11 -0700 (PDT)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4963:f600:4938:8f65:9543:5ec9])
-        by smtp.gmail.com with ESMTPSA id v13sm2739332wru.47.2020.03.11.09.12.46
+        by smtp.gmail.com with ESMTPSA id v13sm2739332wru.47.2020.03.11.09.13.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Mar 2020 09:12:47 -0700 (PDT)
+        Wed, 11 Mar 2020 09:13:11 -0700 (PDT)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
@@ -55,9 +55,9 @@ Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com, rpenyaev@suse.de,
         pankaj.gupta@cloud.ionos.com
-Subject: [PATCH v10 03/26] RDMA/rtrs: private headers with rtrs protocol structs and helpers
-Date:   Wed, 11 Mar 2020 17:12:17 +0100
-Message-Id: <20200311161240.30190-4-jinpu.wang@cloud.ionos.com>
+Subject: [PATCH v10 19/26] block/rnbd: client: sysfs interface functions
+Date:   Wed, 11 Mar 2020 17:12:33 +0100
+Message-Id: <20200311161240.30190-20-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200311161240.30190-1-jinpu.wang@cloud.ionos.com>
 References: <20200311161240.30190-1-jinpu.wang@cloud.ionos.com>
@@ -65,462 +65,664 @@ Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
-Archived-At: <http://archive.lwn.net:8080/linux-rdma/20200311161240.30190-4-jinpu.wang@cloud.ionos.com/>
+Archived-At: <http://archive.lwn.net:8080/linux-rdma/20200311161240.30190-20-jinpu.wang@cloud.ionos.com/>
 List-Archive: <http://archive.lwn.net:8080/linux-rdma/>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
 
-These are common private headers with rtrs protocol structures,
-logging, sysfs and other helper functions, which are used on
-both client and server sides.
+This is the sysfs interface to rnbd block devices on client side:
+
+  /sys/devices/virtual/rnbd-client/ctl/
+    |- map_device
+    |  *** maps remote device
+    |
+    |- devices/
+       *** all mapped devices
+
+  /sys/block/rnbd<N>/rnbd/
+    |- unmap_device
+    |  *** unmaps device
+    |
+    |- state
+    |  *** device state
+    |
+    |- session
+    |  *** session name
+    |
+    |- mapping_path
+       *** path of the dev that was mapped on server
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-log.h |  28 ++
- drivers/infiniband/ulp/rtrs/rtrs-pri.h | 399 +++++++++++++++++++++++++
- 2 files changed, 427 insertions(+)
- create mode 100644 drivers/infiniband/ulp/rtrs/rtrs-log.h
- create mode 100644 drivers/infiniband/ulp/rtrs/rtrs-pri.h
+ drivers/block/rnbd/rnbd-clt-sysfs.c | 619 ++++++++++++++++++++++++++++
+ 1 file changed, 619 insertions(+)
+ create mode 100644 drivers/block/rnbd/rnbd-clt-sysfs.c
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-log.h b/drivers/infiniband/ulp/rtrs/rtrs-log.h
+diff --git a/drivers/block/rnbd/rnbd-clt-sysfs.c b/drivers/block/rnbd/rnbd-clt-sysfs.c
 new file mode 100644
-index 000000000000..53c785b992f2
+index 000000000000..94529b25f25c
 --- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-log.h
-@@ -0,0 +1,28 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
++++ b/drivers/block/rnbd/rnbd-clt-sysfs.c
+@@ -0,0 +1,619 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
-+ * RDMA Transport Layer
-+ *
-+ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
-+ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
-+ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
-+ */
-+#ifndef RTRS_LOG_H
-+#define RTRS_LOG_H
-+
-+#define rtrs_log(fn, obj, fmt, ...)				\
-+	fn("<%s>: " fmt, obj->sessname, ##__VA_ARGS__)
-+
-+#define rtrs_err(obj, fmt, ...)	\
-+	rtrs_log(pr_err, obj, fmt, ##__VA_ARGS__)
-+#define rtrs_err_rl(obj, fmt, ...)	\
-+	rtrs_log(pr_err_ratelimited, obj, fmt, ##__VA_ARGS__)
-+#define rtrs_wrn(obj, fmt, ...)	\
-+	rtrs_log(pr_warn, obj, fmt, ##__VA_ARGS__)
-+#define rtrs_wrn_rl(obj, fmt, ...) \
-+	rtrs_log(pr_warn_ratelimited, obj, fmt, ##__VA_ARGS__)
-+#define rtrs_info(obj, fmt, ...) \
-+	rtrs_log(pr_info, obj, fmt, ##__VA_ARGS__)
-+#define rtrs_info_rl(obj, fmt, ...) \
-+	rtrs_log(pr_info_ratelimited, obj, fmt, ##__VA_ARGS__)
-+
-+#endif /* RTRS_LOG_H */
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-pri.h b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-new file mode 100644
-index 000000000000..6edce28de239
---- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-@@ -0,0 +1,399 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/*
-+ * RDMA Transport Layer
++ * RDMA Network Block Driver
 + *
 + * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
 + * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
 + * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
 + */
 +
-+#ifndef RTRS_PRI_H
-+#define RTRS_PRI_H
++#undef pr_fmt
++#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
-+#include <linux/uuid.h>
-+#include <rdma/rdma_cm.h>
-+#include <rdma/ib_verbs.h>
++#include <linux/types.h>
++#include <linux/ctype.h>
++#include <linux/parser.h>
++#include <linux/module.h>
++#include <linux/in6.h>
++#include <linux/fs.h>
++#include <linux/uaccess.h>
++#include <linux/device.h>
 +#include <rdma/ib.h>
++#include <rdma/rdma_cm.h>
 +
-+#include "rtrs.h"
++#include "rnbd-clt.h"
 +
-+#define RTRS_PROTO_VER_MAJOR 2
-+#define RTRS_PROTO_VER_MINOR 0
-+
-+#define RTRS_PROTO_VER_STRING __stringify(RTRS_PROTO_VER_MAJOR) "." \
-+			       __stringify(RTRS_PROTO_VER_MINOR)
-+
-+enum rtrs_imm_const {
-+	MAX_IMM_TYPE_BITS = 4,
-+	MAX_IMM_TYPE_MASK = ((1 << MAX_IMM_TYPE_BITS) - 1),
-+	MAX_IMM_PAYL_BITS = 28,
-+	MAX_IMM_PAYL_MASK = ((1 << MAX_IMM_PAYL_BITS) - 1),
-+};
-+
-+enum rtrs_imm_type {
-+	RTRS_IO_REQ_IMM       = 0, /* client to server */
-+	RTRS_IO_RSP_IMM       = 1, /* server to client */
-+	RTRS_IO_RSP_W_INV_IMM = 2, /* server to client */
-+
-+	RTRS_HB_MSG_IMM = 8, /* HB: HeartBeat */
-+	RTRS_HB_ACK_IMM = 9,
-+
-+	RTRS_LAST_IMM,
-+};
++static struct device *rnbd_dev;
++static struct class *rnbd_dev_class;
++static struct kobject *rnbd_devs_kobj;
 +
 +enum {
-+	SERVICE_CON_QUEUE_DEPTH = 512,
++	RNBD_OPT_ERR		= 0,
++	RNBD_OPT_PATH		= 1 << 0,
++	RNBD_OPT_DEV_PATH	= 1 << 1,
++	RNBD_OPT_ACCESS_MODE	= 1 << 3,
++	RNBD_OPT_SESSNAME	= 1 << 6,
++};
 +
-+	MAX_PATHS_NUM = 128,
++static const unsigned int rnbd_opt_mandatory[] = {
++	RNBD_OPT_PATH,
++	RNBD_OPT_DEV_PATH,
++	RNBD_OPT_SESSNAME,
++};
++
++static const match_table_t rnbd_opt_tokens = {
++	{RNBD_OPT_PATH,		"path=%s"	},
++	{RNBD_OPT_DEV_PATH,	"device_path=%s"},
++	{RNBD_OPT_ACCESS_MODE,	"access_mode=%s"},
++	{RNBD_OPT_SESSNAME,	"sessname=%s"	},
++	{RNBD_OPT_ERR,		NULL		},
++};
++
++struct rnbd_map_options {
++	char *sessname;
++	struct rtrs_addr *paths;
++	size_t *path_cnt;
++	char *pathname;
++	enum rnbd_access_mode *access_mode;
++};
++
++static int rnbd_clt_parse_map_options(const char *buf, size_t max_path_cnt,
++				       struct rnbd_map_options *opt)
++{
++	char *options, *sep_opt;
++	char *p;
++	substring_t args[MAX_OPT_ARGS];
++	int opt_mask = 0;
++	int token;
++	int ret = -EINVAL;
++	int i;
++	int p_cnt = 0;
++
++	options = kstrdup(buf, GFP_KERNEL);
++	if (!options)
++		return -ENOMEM;
++
++	sep_opt = strstrip(options);
++	while ((p = strsep(&sep_opt, " ")) != NULL) {
++		if (!*p)
++			continue;
++
++		token = match_token(p, rnbd_opt_tokens, args);
++		opt_mask |= token;
++
++		switch (token) {
++		case RNBD_OPT_SESSNAME:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++			if (strlen(p) > NAME_MAX) {
++				pr_err("map_device: sessname too long\n");
++				ret = -EINVAL;
++				kfree(p);
++				goto out;
++			}
++			strlcpy(opt->sessname, p, NAME_MAX);
++			kfree(p);
++			break;
++
++		case RNBD_OPT_PATH:
++			if (p_cnt >= max_path_cnt) {
++				pr_err("map_device: too many (> %zu) paths provided\n",
++				       max_path_cnt);
++				ret = -ENOMEM;
++				goto out;
++			}
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++
++			ret = rtrs_addr_to_sockaddr(p, strlen(p), RTRS_PORT,
++						     &opt->paths[p_cnt]);
++			if (ret) {
++				pr_err("Can't parse path %s: %d\n", p, ret);
++				kfree(p);
++				goto out;
++			}
++
++			p_cnt++;
++
++			kfree(p);
++			break;
++
++		case RNBD_OPT_DEV_PATH:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++			if (strlen(p) > NAME_MAX) {
++				pr_err("map_device: Device path too long\n");
++				ret = -EINVAL;
++				kfree(p);
++				goto out;
++			}
++			strlcpy(opt->pathname, p, NAME_MAX);
++			kfree(p);
++			break;
++
++		case RNBD_OPT_ACCESS_MODE:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++
++			if (!strcmp(p, "ro")) {
++				*opt->access_mode = RNBD_ACCESS_RO;
++			} else if (!strcmp(p, "rw")) {
++				*opt->access_mode = RNBD_ACCESS_RW;
++			} else if (!strcmp(p, "migration")) {
++				*opt->access_mode = RNBD_ACCESS_MIGRATION;
++			} else {
++				pr_err("map_device: Invalid access_mode: '%s'\n",
++				       p);
++				ret = -EINVAL;
++				kfree(p);
++				goto out;
++			}
++
++			kfree(p);
++			break;
++
++		default:
++			pr_err("map_device: Unknown parameter or missing value '%s'\n",
++			       p);
++			ret = -EINVAL;
++			goto out;
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(rnbd_opt_mandatory); i++) {
++		if ((opt_mask & rnbd_opt_mandatory[i])) {
++			ret = 0;
++		} else {
++			pr_err("map_device: Parameters missing\n");
++			ret = -EINVAL;
++			break;
++		}
++	}
++
++out:
++	*opt->path_cnt = p_cnt;
++	kfree(options);
++	return ret;
++}
++
++static ssize_t state_show(struct kobject *kobj,
++			  struct kobj_attribute *attr, char *page)
++{
++	struct rnbd_clt_dev *dev;
++
++	dev = container_of(kobj, struct rnbd_clt_dev, kobj);
++
++	switch (dev->dev_state) {
++	case DEV_STATE_INIT:
++		return snprintf(page, PAGE_SIZE, "init\n");
++	case DEV_STATE_MAPPED:
++		/* TODO fix cli tool before changing to proper state */
++		return snprintf(page, PAGE_SIZE, "open\n");
++	case DEV_STATE_MAPPED_DISCONNECTED:
++		/* TODO fix cli tool before changing to proper state */
++		return snprintf(page, PAGE_SIZE, "closed\n");
++	case DEV_STATE_UNMAPPED:
++		return snprintf(page, PAGE_SIZE, "unmapped\n");
++	default:
++		return snprintf(page, PAGE_SIZE, "unknown\n");
++	}
++}
++
++static struct kobj_attribute rnbd_clt_state_attr = __ATTR_RO(state);
++
++static ssize_t mapping_path_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *page)
++{
++	struct rnbd_clt_dev *dev;
++
++	dev = container_of(kobj, struct rnbd_clt_dev, kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%s\n", dev->pathname);
++}
++
++static struct kobj_attribute rnbd_clt_mapping_path_attr =
++	__ATTR_RO(mapping_path);
++
++static ssize_t access_mode_show(struct kobject *kobj,
++				struct kobj_attribute *attr, char *page)
++{
++	struct rnbd_clt_dev *dev;
++
++	dev = container_of(kobj, struct rnbd_clt_dev, kobj);
++
++	return snprintf(page, PAGE_SIZE, "%s\n",
++			rnbd_access_mode_str(dev->access_mode));
++}
++
++static struct kobj_attribute rnbd_clt_access_mode =
++	__ATTR_RO(access_mode);
++
++static ssize_t rnbd_clt_unmap_dev_show(struct kobject *kobj,
++					struct kobj_attribute *attr, char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo <normal|force> > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t rnbd_clt_unmap_dev_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf, size_t count)
++{
++	struct rnbd_clt_dev *dev;
++	char *opt, *options;
++	bool force;
++	int err;
++
++	opt = kstrdup(buf, GFP_KERNEL);
++	if (!opt)
++		return -ENOMEM;
++
++	options = strstrip(opt);
++	dev = container_of(kobj, struct rnbd_clt_dev, kobj);
++	if (sysfs_streq(options, "normal")) {
++		force = false;
++	} else if (sysfs_streq(options, "force")) {
++		force = true;
++	} else {
++		rnbd_clt_err(dev,
++			      "unmap_device: Invalid value: %s\n",
++			      options);
++		err = -EINVAL;
++		goto out;
++	}
++
++	rnbd_clt_info(dev, "Unmapping device, option: %s.\n",
++		       force ? "force" : "normal");
 +
 +	/*
-+	 * With the size of struct rtrs_permit allocated on the client, 4K
-+	 * is the maximum number of rtrs_permits we can allocate. This number is
-+	 * also used on the client to allocate the IU for the user connection
-+	 * to receive the RDMA addresses from the server.
++	 * We take explicit module reference only for one reason: do not
++	 * race with lockless rnbd_destroy_sessions().
 +	 */
-+	MAX_SESS_QUEUE_DEPTH = 4096,
++	if (!try_module_get(THIS_MODULE)) {
++		err = -ENODEV;
++		goto out;
++	}
++	err = rnbd_clt_unmap_device(dev, force, &attr->attr);
++	if (err) {
++		if (err != -EALREADY)
++			rnbd_clt_err(dev, "unmap_device: %d\n",  err);
++		goto module_put;
++	}
 +
-+	RTRS_HB_INTERVAL_MS = 5000,
-+	RTRS_HB_MISSED_MAX = 5,
-+
-+	RTRS_MAGIC = 0x1BBD,
-+	RTRS_PROTO_VER = (RTRS_PROTO_VER_MAJOR << 8) | RTRS_PROTO_VER_MINOR,
-+};
-+
-+struct rtrs_ib_dev;
-+
-+struct rtrs_rdma_dev_pd_ops {
-+	struct rtrs_ib_dev *(*alloc)(void);
-+	void (*free)(struct rtrs_ib_dev *dev);
-+	int (*init)(struct rtrs_ib_dev *dev);
-+	void (*deinit)(struct rtrs_ib_dev *dev);
-+};
-+
-+struct rtrs_rdma_dev_pd {
-+	struct mutex		mutex;
-+	struct list_head	list;
-+	enum ib_pd_flags	pd_flags;
-+	const struct rtrs_rdma_dev_pd_ops *ops;
-+};
-+
-+struct rtrs_ib_dev {
-+	struct ib_device	 *ib_dev;
-+	struct ib_pd		 *ib_pd;
-+	struct kref		 ref;
-+	struct list_head	 entry;
-+	struct rtrs_rdma_dev_pd *pool;
-+};
-+
-+struct rtrs_con {
-+	struct rtrs_sess	*sess;
-+	struct ib_qp		*qp;
-+	struct ib_cq		*cq;
-+	struct rdma_cm_id	*cm_id;
-+	unsigned int		cid;
-+};
-+
-+struct rtrs_sess {
-+	struct list_head	entry;
-+	struct sockaddr_storage dst_addr;
-+	struct sockaddr_storage src_addr;
-+	char			sessname[NAME_MAX];
-+	uuid_t			uuid;
-+	struct rtrs_con	**con;
-+	unsigned int		con_num;
-+	unsigned int		recon_cnt;
-+	struct rtrs_ib_dev	*dev;
-+	int			dev_ref;
-+	struct ib_cqe		*hb_cqe;
-+	void			(*hb_err_handler)(struct rtrs_con *con);
-+	struct workqueue_struct *hb_wq;
-+	struct delayed_work	hb_dwork;
-+	unsigned int		hb_interval_ms;
-+	unsigned int		hb_missed_cnt;
-+	unsigned int		hb_missed_max;
-+};
-+
-+/* rtrs information unit */
-+struct rtrs_iu {
-+	struct list_head        list;
-+	struct ib_cqe           cqe;
-+	dma_addr_t              dma_addr;
-+	void                    *buf;
-+	size_t                  size;
-+	enum dma_data_direction direction;
-+};
-+
-+/**
-+ * enum rtrs_msg_types - RTRS message types, see also rtrs/README
-+ * @RTRS_MSG_INFO_REQ:		Client additional info request to the server
-+ * @RTRS_MSG_INFO_RSP:		Server additional info response to the client
-+ * @RTRS_MSG_WRITE:		Client writes data per RDMA to server
-+ * @RTRS_MSG_READ:		Client requests data transfer from server
-+ * @RTRS_MSG_RKEY_RSP:		Server refreshed rkey for rbuf
-+ */
-+enum rtrs_msg_types {
-+	RTRS_MSG_INFO_REQ,
-+	RTRS_MSG_INFO_RSP,
-+	RTRS_MSG_WRITE,
-+	RTRS_MSG_READ,
-+	RTRS_MSG_RKEY_RSP,
-+};
-+
-+/**
-+ * enum rtrs_msg_flags - RTRS message flags.
-+ * @RTRS_NEED_INVAL:	Send invalidation in response.
-+ * @RTRS_MSG_NEW_RKEY_F: Send refreshed rkey in response.
-+ */
-+enum rtrs_msg_flags {
-+	RTRS_MSG_NEED_INVAL_F = 1 << 0,
-+	RTRS_MSG_NEW_RKEY_F = 1 << 1,
-+};
-+
-+/**
-+ * struct rtrs_sg_desc - RDMA-Buffer entry description
-+ * @addr:	Address of RDMA destination buffer
-+ * @key:	Authorization rkey to write to the buffer
-+ * @len:	Size of the buffer
-+ */
-+struct rtrs_sg_desc {
-+	__le64			addr;
-+	__le32			key;
-+	__le32			len;
-+};
-+
-+/**
-+ * struct rtrs_msg_conn_req - Client connection request to the server
-+ * @magic:	   RTRS magic
-+ * @version:	   RTRS protocol version
-+ * @cid:	   Current connection id
-+ * @cid_num:	   Number of connections per session
-+ * @recon_cnt:	   Reconnections counter
-+ * @sess_uuid:	   UUID of a session (path)
-+ * @paths_uuid:	   UUID of a group of sessions (paths)
-+ *
-+ * NOTE: max size 56 bytes, see man rdma_connect().
-+ */
-+struct rtrs_msg_conn_req {
-+	/* Is set to 0 by cma.c in case of AF_IB, do not touch that.
-+	 * see https://www.spinics.net/lists/linux-rdma/msg22397.html
++	/*
++	 * Here device can be vanished!
 +	 */
-+	u8		__cma_version;
-+	/* On sender side that should be set to 0, or cma_save_ip_info()
-+	 * extract garbage and will fail.
++
++	err = count;
++
++module_put:
++	module_put(THIS_MODULE);
++out:
++	kfree(opt);
++
++	return err;
++}
++
++static struct kobj_attribute rnbd_clt_unmap_device_attr =
++	__ATTR(unmap_device, 0644, rnbd_clt_unmap_dev_show,
++	       rnbd_clt_unmap_dev_store);
++
++static ssize_t rnbd_clt_resize_dev_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	return scnprintf(page, PAGE_SIZE,
++			 "Usage: echo <new size in sectors> > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t rnbd_clt_resize_dev_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
++{
++	int ret;
++	unsigned long sectors;
++	struct rnbd_clt_dev *dev;
++
++	dev = container_of(kobj, struct rnbd_clt_dev, kobj);
++
++	ret = kstrtoul(buf, 0, &sectors);
++	if (ret)
++		return ret;
++
++	ret = rnbd_clt_resize_disk(dev, (size_t)sectors);
++	if (ret)
++		return ret;
++
++	return count;
++}
++
++static struct kobj_attribute rnbd_clt_resize_dev_attr =
++	__ATTR(resize, 0644, rnbd_clt_resize_dev_show,
++	       rnbd_clt_resize_dev_store);
++
++static ssize_t rnbd_clt_remap_dev_show(struct kobject *kobj,
++					struct kobj_attribute *attr, char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo <1> > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t rnbd_clt_remap_dev_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf, size_t count)
++{
++	struct rnbd_clt_dev *dev;
++	char *opt, *options;
++	int err;
++
++	opt = kstrdup(buf, GFP_KERNEL);
++	if (!opt)
++		return -ENOMEM;
++
++	options = strstrip(opt);
++	dev = container_of(kobj, struct rnbd_clt_dev, kobj);
++	if (!sysfs_streq(options, "1")) {
++		rnbd_clt_err(dev,
++			      "remap_device: Invalid value: %s\n",
++			      options);
++		err = -EINVAL;
++		goto out;
++	}
++	err = rnbd_clt_remap_device(dev);
++	if (likely(!err))
++		err = count;
++
++out:
++	kfree(opt);
++
++	return err;
++}
++
++static struct kobj_attribute rnbd_clt_remap_device_attr =
++	__ATTR(remap_device, 0644, rnbd_clt_remap_dev_show,
++	       rnbd_clt_remap_dev_store);
++
++static ssize_t session_show(struct kobject *kobj, struct kobj_attribute *attr,
++			    char *page)
++{
++	struct rnbd_clt_dev *dev;
++
++	dev = container_of(kobj, struct rnbd_clt_dev, kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%s\n", dev->sess->sessname);
++}
++
++static struct kobj_attribute rnbd_clt_session_attr =
++	__ATTR_RO(session);
++
++static struct attribute *rnbd_dev_attrs[] = {
++	&rnbd_clt_unmap_device_attr.attr,
++	&rnbd_clt_resize_dev_attr.attr,
++	&rnbd_clt_remap_device_attr.attr,
++	&rnbd_clt_mapping_path_attr.attr,
++	&rnbd_clt_state_attr.attr,
++	&rnbd_clt_session_attr.attr,
++	&rnbd_clt_access_mode.attr,
++	NULL,
++};
++
++void rnbd_clt_remove_dev_symlink(struct rnbd_clt_dev *dev)
++{
++	/*
++	 * The module_is_live() check is crucial and helps to avoid annoying
++	 * sysfs warning raised in sysfs_remove_link(), when the whole sysfs
++	 * path was just removed, see rnbd_close_sessions().
 +	 */
-+	u8		__ip_version;
-+	__le16		magic;
-+	__le16		version;
-+	__le16		cid;
-+	__le16		cid_num;
-+	__le16		recon_cnt;
-+	uuid_t		sess_uuid;
-+	uuid_t		paths_uuid;
-+	u8		reserved[12];
++	if (strlen(dev->blk_symlink_name) && module_is_live(THIS_MODULE))
++		sysfs_remove_link(rnbd_devs_kobj, dev->blk_symlink_name);
++}
++
++static struct kobj_type rnbd_dev_ktype = {
++	.sysfs_ops      = &kobj_sysfs_ops,
++	.default_attrs  = rnbd_dev_attrs,
 +};
 +
-+/**
-+ * struct rtrs_msg_conn_rsp - Server connection response to the client
-+ * @magic:	   RTRS magic
-+ * @version:	   RTRS protocol version
-+ * @errno:	   If rdma_accept() then 0, if rdma_reject() indicates error
-+ * @queue_depth:   max inflight messages (queue-depth) in this session
-+ * @max_io_size:   max io size server supports
-+ * @max_hdr_size:  max msg header size server supports
-+ *
-+ * NOTE: size is 56 bytes, max possible is 136 bytes, see man rdma_accept().
-+ */
-+struct rtrs_msg_conn_rsp {
-+	__le16		magic;
-+	__le16		version;
-+	__le16		errno;
-+	__le16		queue_depth;
-+	__le32		max_io_size;
-+	__le32		max_hdr_size;
-+	__le32		flags;
-+	u8		reserved[36];
-+};
-+
-+/**
-+ * struct rtrs_msg_info_req
-+ * @type:		@RTRS_MSG_INFO_REQ
-+ * @sessname:		Session name chosen by client
-+ */
-+struct rtrs_msg_info_req {
-+	__le16		type;
-+	u8		sessname[NAME_MAX];
-+	u8		reserved[15];
-+};
-+
-+/**
-+ * struct rtrs_msg_info_rsp
-+ * @type:		@RTRS_MSG_INFO_RSP
-+ * @sg_cnt:		Number of @desc entries
-+ * @desc:		RDMA buffers where the client can write to server
-+ */
-+struct rtrs_msg_info_rsp {
-+	__le16		type;
-+	__le16          sg_cnt;
-+	u8              reserved[4];
-+	struct rtrs_sg_desc desc[];
-+};
-+
-+/**
-+ * struct rtrs_msg_rkey_rsp
-+ * @type:		@RTRS_MSG_RKEY_RSP
-+ * @buf_id:		RDMA buf_id of the new rkey
-+ * @rkey:		new remote key for RDMA buffers id from server
-+ */
-+struct rtrs_msg_rkey_rsp {
-+	__le16		type;
-+	__le16          buf_id;
-+	__le32		rkey;
-+};
-+
-+/**
-+ * struct rtrs_msg_rdma_read - RDMA data transfer request from client
-+ * @type:		always @RTRS_MSG_READ
-+ * @usr_len:		length of user payload
-+ * @sg_cnt:		number of @desc entries
-+ * @desc:		RDMA buffers where the server can write the result to
-+ */
-+struct rtrs_msg_rdma_read {
-+	__le16			type;
-+	__le16			usr_len;
-+	__le16			flags;
-+	__le16			sg_cnt;
-+	struct rtrs_sg_desc    desc[];
-+};
-+
-+/**
-+ * struct_msg_rdma_write - Message transferred to server with RDMA-Write
-+ * @type:		always @RTRS_MSG_WRITE
-+ * @usr_len:		length of user payload
-+ */
-+struct rtrs_msg_rdma_write {
-+	__le16			type;
-+	__le16			usr_len;
-+};
-+
-+/**
-+ * struct_msg_rdma_hdr - header for read or write request
-+ * @type:		@RTRS_MSG_WRITE | @RTRS_MSG_READ
-+ */
-+struct rtrs_msg_rdma_hdr {
-+	__le16			type;
-+};
-+
-+/* rtrs.c */
-+
-+struct rtrs_iu *rtrs_iu_alloc(u32 queue_size, size_t size, gfp_t t,
-+			      struct ib_device *dev, enum dma_data_direction,
-+			      void (*done)(struct ib_cq *cq, struct ib_wc *wc));
-+void rtrs_iu_free(struct rtrs_iu *iu, enum dma_data_direction dir,
-+		  struct ib_device *dev, u32 queue_size);
-+int rtrs_iu_post_recv(struct rtrs_con *con, struct rtrs_iu *iu);
-+int rtrs_iu_post_send(struct rtrs_con *con, struct rtrs_iu *iu, size_t size,
-+		      struct ib_send_wr *head);
-+int rtrs_iu_post_rdma_write_imm(struct rtrs_con *con, struct rtrs_iu *iu,
-+				struct ib_sge *sge, unsigned int num_sge,
-+				u32 rkey, u64 rdma_addr, u32 imm_data,
-+				enum ib_send_flags flags,
-+				struct ib_send_wr *head);
-+
-+int rtrs_post_recv_empty(struct rtrs_con *con, struct ib_cqe *cqe);
-+int rtrs_post_rdma_write_imm_empty(struct rtrs_con *con, struct ib_cqe *cqe,
-+				   u32 imm_data, enum ib_send_flags flags,
-+				   struct ib_send_wr *head);
-+
-+int rtrs_cq_qp_create(struct rtrs_sess *rtrs_sess, struct rtrs_con *con,
-+		      u32 max_send_sge, int cq_vector, u16 cq_size,
-+		      u16 wr_queue_size, enum ib_poll_context poll_ctx);
-+void rtrs_cq_qp_destroy(struct rtrs_con *con);
-+
-+void rtrs_init_hb(struct rtrs_sess *sess, struct ib_cqe *cqe,
-+		  unsigned int interval_ms, unsigned int missed_max,
-+		  void (*err_handler)(struct rtrs_con *con),
-+		  struct workqueue_struct *wq);
-+void rtrs_start_hb(struct rtrs_sess *sess);
-+void rtrs_stop_hb(struct rtrs_sess *sess);
-+void rtrs_send_hb_ack(struct rtrs_sess *sess);
-+
-+void rtrs_rdma_dev_pd_init(enum ib_pd_flags pd_flags,
-+			   struct rtrs_rdma_dev_pd *pool);
-+void rtrs_rdma_dev_pd_deinit(struct rtrs_rdma_dev_pd *pool);
-+
-+struct rtrs_ib_dev *rtrs_ib_dev_find_or_add(struct ib_device *ib_dev,
-+					    struct rtrs_rdma_dev_pd *pool);
-+int rtrs_ib_dev_put(struct rtrs_ib_dev *dev);
-+
-+static inline u32 rtrs_to_imm(u32 type, u32 payload)
++static int rnbd_clt_add_dev_kobj(struct rnbd_clt_dev *dev)
 +{
-+	BUILD_BUG_ON(MAX_IMM_PAYL_BITS + MAX_IMM_TYPE_BITS != 32);
-+	BUILD_BUG_ON(RTRS_LAST_IMM > (1<<MAX_IMM_TYPE_BITS));
-+	return ((type & MAX_IMM_TYPE_MASK) << MAX_IMM_PAYL_BITS) |
-+		(payload & MAX_IMM_PAYL_MASK);
++	int ret;
++	struct kobject *gd_kobj = &disk_to_dev(dev->gd)->kobj;
++
++	ret = kobject_init_and_add(&dev->kobj, &rnbd_dev_ktype, gd_kobj, "%s",
++				   "rnbd");
++	if (ret)
++		rnbd_clt_err(dev, "Failed to create device sysfs dir, err: %d\n",
++			      ret);
++
++	return ret;
 +}
 +
-+static inline void rtrs_from_imm(u32 imm, u32 *type, u32 *payload)
++static ssize_t rnbd_clt_map_device_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
 +{
-+	*payload = imm & MAX_IMM_PAYL_MASK;
-+	*type = imm >> MAX_IMM_PAYL_BITS;
++	return scnprintf(page, PAGE_SIZE,
++			 "Usage: echo \"sessname=<name of the rtrs session> path=<[srcaddr@]dstaddr> [path=<[srcaddr@]dstaddr>] device_path=<full path on remote side> [access_mode=<ro|rw|migration>]\" > %s\n\naddr ::= [ ip:<ipv4> | ip:<ipv6> | gid:<gid> ]\n",
++			 attr->attr.name);
 +}
 +
-+static inline u32 rtrs_to_io_req_imm(u32 addr)
++static int rnbd_clt_get_path_name(struct rnbd_clt_dev *dev, char *buf,
++				   size_t len)
 +{
-+	return rtrs_to_imm(RTRS_IO_REQ_IMM, addr);
++	int ret;
++	char pathname[NAME_MAX], *s;
++
++	strlcpy(pathname, dev->pathname, sizeof(pathname));
++	while ((s = strchr(pathname, '/')))
++		s[0] = '!';
++
++	ret = snprintf(buf, len, "%s", pathname);
++	if (ret >= len)
++		return -ENAMETOOLONG;
++
++	return 0;
 +}
 +
-+static inline u32 rtrs_to_io_rsp_imm(u32 msg_id, int errno, bool w_inval)
++static int rnbd_clt_add_dev_symlink(struct rnbd_clt_dev *dev)
 +{
-+	enum rtrs_imm_type type;
-+	u32 payload;
++	struct kobject *gd_kobj = &disk_to_dev(dev->gd)->kobj;
++	int ret;
 +
-+	/* 9 bits for errno, 19 bits for msg_id */
-+	payload = (abs(errno) & 0x1ff) << 19 | (msg_id & 0x7ffff);
-+	type = w_inval ? RTRS_IO_RSP_W_INV_IMM : RTRS_IO_RSP_IMM;
++	ret = rnbd_clt_get_path_name(dev, dev->blk_symlink_name,
++				      sizeof(dev->blk_symlink_name));
++	if (ret) {
++		rnbd_clt_err(dev, "Failed to get /sys/block symlink path, err: %d\n",
++			      ret);
++		goto out_err;
++	}
 +
-+	return rtrs_to_imm(type, payload);
++	ret = sysfs_create_link(rnbd_devs_kobj, gd_kobj,
++				dev->blk_symlink_name);
++	if (ret) {
++		rnbd_clt_err(dev, "Creating /sys/block symlink failed, err: %d\n",
++			      ret);
++		goto out_err;
++	}
++
++	return 0;
++
++out_err:
++	dev->blk_symlink_name[0] = '\0';
++	return ret;
 +}
 +
-+static inline void rtrs_from_io_rsp_imm(u32 payload, u32 *msg_id, int *errno)
++static ssize_t rnbd_clt_map_device_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
 +{
-+	/* 9 bits for errno, 19 bits for msg_id */
-+	*msg_id = payload & 0x7ffff;
-+	*errno = -(int)((payload >> 19) & 0x1ff);
++	struct rnbd_clt_dev *dev;
++	struct rnbd_map_options opt;
++	int ret;
++	char pathname[NAME_MAX];
++	char sessname[NAME_MAX];
++	enum rnbd_access_mode access_mode = RNBD_ACCESS_RW;
++
++	struct sockaddr_storage *addrs;
++	struct rtrs_addr paths[6];
++	size_t path_cnt;
++
++	opt.sessname = sessname;
++	opt.paths = paths;
++	opt.path_cnt = &path_cnt;
++	opt.pathname = pathname;
++	opt.access_mode = &access_mode;
++	addrs = kcalloc(ARRAY_SIZE(paths) * 2, sizeof(*addrs), GFP_KERNEL);
++	if (!addrs)
++		return -ENOMEM;
++
++	for (path_cnt = 0; path_cnt < ARRAY_SIZE(paths); path_cnt++) {
++		paths[path_cnt].src = &addrs[path_cnt * 2];
++		paths[path_cnt].dst = &addrs[path_cnt * 2 + 1];
++	}
++
++	ret = rnbd_clt_parse_map_options(buf, ARRAY_SIZE(paths), &opt);
++	if (ret)
++		goto out;
++
++	pr_info("Mapping device %s on session %s, (access_mode: %s)\n",
++		pathname, sessname,
++		rnbd_access_mode_str(access_mode));
++
++	dev = rnbd_clt_map_device(sessname, paths, path_cnt, pathname,
++				   access_mode);
++	if (IS_ERR(dev)) {
++		ret = PTR_ERR(dev);
++		goto out;
++	}
++
++	ret = rnbd_clt_add_dev_kobj(dev);
++	if (ret)
++		goto unmap_dev;
++
++	ret = rnbd_clt_add_dev_symlink(dev);
++	if (ret)
++		goto unmap_dev;
++
++	kfree(addrs);
++	return count;
++
++unmap_dev:
++	rnbd_clt_unmap_device(dev, true, NULL);
++out:
++	kfree(addrs);
++	return ret;
 +}
 +
-+#define STAT_STORE_FUNC(type, set_value, reset)				\
-+static ssize_t set_value##_store(struct kobject *kobj,			\
-+			     struct kobj_attribute *attr,		\
-+			     const char *buf, size_t count)		\
-+{									\
-+	int ret = -EINVAL;						\
-+	type *sess = container_of(kobj, type, kobj_stats);		\
-+									\
-+	if (sysfs_streq(buf, "1"))					\
-+		ret = reset(&sess->stats, true);			\
-+	else if (sysfs_streq(buf, "0"))					\
-+		ret = reset(&sess->stats, false);			\
-+	if (ret)							\
-+		return ret;						\
-+									\
-+	return count;							\
++static struct kobj_attribute rnbd_clt_map_device_attr =
++	__ATTR(map_device, 0644,
++	       rnbd_clt_map_device_show, rnbd_clt_map_device_store);
++
++static struct attribute *default_attrs[] = {
++	&rnbd_clt_map_device_attr.attr,
++	NULL,
++};
++
++static struct attribute_group default_attr_group = {
++	.attrs = default_attrs,
++};
++
++static const struct attribute_group *default_attr_groups[] = {
++	&default_attr_group,
++	NULL,
++};
++
++int rnbd_clt_create_sysfs_files(void)
++{
++	int err;
++
++	rnbd_dev_class = class_create(THIS_MODULE, "rnbd-client");
++	if (IS_ERR(rnbd_dev_class))
++		return PTR_ERR(rnbd_dev_class);
++
++	rnbd_dev = device_create_with_groups(rnbd_dev_class, NULL,
++					      MKDEV(0, 0), NULL,
++					      default_attr_groups, "ctl");
++	if (IS_ERR(rnbd_dev)) {
++		err = PTR_ERR(rnbd_dev);
++		goto cls_destroy;
++	}
++	rnbd_devs_kobj = kobject_create_and_add("devices", &rnbd_dev->kobj);
++	if (!rnbd_devs_kobj) {
++		err = -ENOMEM;
++		goto dev_destroy;
++	}
++
++	return 0;
++
++dev_destroy:
++	device_destroy(rnbd_dev_class, MKDEV(0, 0));
++cls_destroy:
++	class_destroy(rnbd_dev_class);
++
++	return err;
 +}
 +
-+#define STAT_SHOW_FUNC(type, get_value, print)				\
-+static ssize_t get_value##_show(struct kobject *kobj,			\
-+			   struct kobj_attribute *attr,			\
-+			   char *page)					\
-+{									\
-+	type *sess = container_of(kobj, type, kobj_stats);		\
-+									\
-+	return print(&sess->stats, page, PAGE_SIZE);			\
++void rnbd_clt_destroy_default_group(void)
++{
++	sysfs_remove_group(&rnbd_dev->kobj, &default_attr_group);
 +}
 +
-+#define STAT_ATTR(type, stat, print, reset)				\
-+STAT_STORE_FUNC(type, stat, reset)					\
-+STAT_SHOW_FUNC(type, stat, print)					\
-+static struct kobj_attribute stat##_attr = __ATTR_RW(stat)
-+
-+#endif /* RTRS_PRI_H */
++void rnbd_clt_destroy_sysfs_files(void)
++{
++	kobject_del(rnbd_devs_kobj);
++	kobject_put(rnbd_devs_kobj);
++	device_destroy(rnbd_dev_class, MKDEV(0, 0));
++	class_destroy(rnbd_dev_class);
++}
 -- 
 2.17.1
 
