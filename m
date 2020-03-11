@@ -1,86 +1,73 @@
-Return-Path: <SRS0=u98Z=43=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=rL3z=44=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26FA6C10F27
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 18:28:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1600BC10DCE
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Mar 2020 01:15:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6810208C3
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Mar 2020 18:28:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583864910;
-	bh=VZIr2aWG/6QvTXwaHFpApeV/h8KZCWELjQ9ZDi27IRs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=n2bPV7GUJ0rRRd33fM2QjfRNPoLfTEqwl047Cw8yx7KZ9+TjN0iLOJa2IdxTDDDV5
-	 XeKmgYHqYtQoDDM7wYbuSaxuLsOOmG6W9pDIKrbDZwji0hJCw4YmnUYPfGWDOf87q3
-	 tTP9icU/s5mQKUmC8OKUfxASIgeJ+u8iGJHh63qw=
+	by mail.kernel.org (Postfix) with ESMTP id D1DBF21D56
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Mar 2020 01:15:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726315AbgCJS23 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Mar 2020 14:28:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59942 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726283AbgCJS23 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Mar 2020 14:28:29 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1281720727;
-        Tue, 10 Mar 2020 18:28:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583864908;
-        bh=VZIr2aWG/6QvTXwaHFpApeV/h8KZCWELjQ9ZDi27IRs=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=hLNCFpb2KF/n8X4kAZieRRiQbCQuHUY5gBgP05u/Adda8M+qIRqquiElPxGeqwrzU
-         pjSMHWjP11O8jsuCoSc/iDm86pE/ZtDn4Jm/rmKc1mfgWbsch8bgkvEJAm8GpmPxIB
-         rNbdkiMErRDFfbGZkrn12YOtl70gDus6YZKYz0Mk=
-Date:   Tue, 10 Mar 2020 20:28:23 +0200
-From:   Leon Romanovsky <leon@kernel.org>
+        id S1727769AbgCKBPG convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Mar 2020 21:15:06 -0400
+Received: from szxga03-in.huawei.com ([45.249.212.189]:2605 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727484AbgCKBPF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Mar 2020 21:15:05 -0400
+Received: from DGGEML404-HUB.china.huawei.com (unknown [172.30.72.53])
+        by Forcepoint Email with ESMTP id C452F7373EC35D034B74;
+        Wed, 11 Mar 2020 09:15:03 +0800 (CST)
+Received: from DGGEML522-MBX.china.huawei.com ([169.254.7.20]) by
+ DGGEML404-HUB.china.huawei.com ([fe80::b177:a243:7a69:5ab8%31]) with mapi id
+ 14.03.0439.000; Wed, 11 Mar 2020 09:14:57 +0800
+From:   liweihang <liweihang@huawei.com>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Erez Shitrit <erezsh@mellanox.com>,
-        Alex Vesker <valex@mellanox.com>,
-        Ariel Levkovich <lariel@mellanox.com>,
-        linux-rdma@vger.kernel.org,
-        Yevgeny Kliteynik <kliteyn@mellanox.com>
-Subject: Re: [PATCH rdma-next] RDMA/mlx5: Remove duplicate definitions of
- SW_ICM macros
-Message-ID: <20200310182823.GL242734@unreal>
-References: <20200310075706.238592-1-leon@kernel.org>
- <20200310174101.GA28121@ziepe.ca>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>
+Subject: Re: [PATCH v3 for-next 0/5] RDMA/hns: Refactor wqe related codes
+Thread-Topic: [PATCH v3 for-next 0/5] RDMA/hns: Refactor wqe related codes
+Thread-Index: AQHV9s4fFon+zYFs7kG37DjatH/hkw==
+Date:   Wed, 11 Mar 2020 01:14:57 +0000
+Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A0227A580@DGGEML522-MBX.china.huawei.com>
+References: <1583839084-31579-1-git-send-email-liweihang@huawei.com>
+ <9221956f-cbbb-213d-9031-2ca7e9b9f7d4@huawei.com>
+ <20200310144243.GZ31668@ziepe.ca>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.40.168.149]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200310174101.GA28121@ziepe.ca>
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Mar 10, 2020 at 02:41:01PM -0300, Jason Gunthorpe wrote:
-> On Tue, Mar 10, 2020 at 09:57:06AM +0200, Leon Romanovsky wrote:
-> > From: Erez Shitrit <erezsh@mellanox.com>
-> >
-> > Those macros are already defined in include/linux/mlx5/driver.h,
-> > so delete their duplicate variants.
-> >
-> > Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
-> > Signed-off-by: Yevgeny Kliteynik <kliteyn@mellanox.com>
-> > Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
-> > Reviewed-by: Alex Vesker <valex@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> >  drivers/infiniband/hw/mlx5/mlx5_ib.h | 4 ----
-> >  1 file changed, 4 deletions(-)
->
-> That is a long list of signed off by's for a two line patch..
-
-Team work.
-
->
-> Applied to for-next
->
+On 2020/3/10 22:42, Jason Gunthorpe wrote:
+> On Tue, Mar 10, 2020 at 08:53:22PM +0800, Weihang Li wrote:
+>> Hi Jason,
+>>
+>> Sorry, I didn't notice that the first three patches of this series had
+>> been applied to you for-next branch, so I sent this new version. Need
+>> I resend the last two patches in a new series?
+> 
+> Oh, something got out of sorts, I did not intend to push those four
+> patches, I will drop them an this v3 will supersede and the 'minimum
+> depth of qp to 0' should be resent with comments addressed.
+> 
 > Jason
+> 
+
+OK, thank you :)
+
+Weihang
