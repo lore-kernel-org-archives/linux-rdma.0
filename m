@@ -2,137 +2,147 @@ Return-Path: <SRS0=rL3z=44=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9495C3F2D0
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 Mar 2020 14:36:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFF31C4CC9E
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Mar 2020 17:16:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0372820691
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 Mar 2020 14:36:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 228502074B
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Mar 2020 17:16:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="nc5j35Bu"
+	dkim=pass (1024-bit key) header.d=netapp.onmicrosoft.com header.i=@netapp.onmicrosoft.com header.b="n7DZYEEt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729874AbgCKOgC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 11 Mar 2020 10:36:02 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:45706 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729309AbgCKOgB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 11 Mar 2020 10:36:01 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 02BEWq5E162890;
-        Wed, 11 Mar 2020 14:36:00 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=7oDmjhNiC55YU6iZrb3bKn3r9UG+93Yy3XlSaDUipFE=;
- b=nc5j35BudsPbeI64DiBG+CYnaTzjY+8A/JXN6aStyZ+vb3udFhYyT52i9b44tZxBw6lg
- cKLhz4YBKXqWOfVCD1WVNs/UQvfS+3Ku5Y7v3RbJvb5pt4bvHFtXWdxFqECjCZUf4zqN
- F8fqgkHg7eW8TfX14XLFtQkUTudsAjeKomn6bcZJraAedMvpE/gS9/Q19yGopZ3MkRqz
- 8wrs9b6lfLJbqM4W4s72omqI3k2KKwmJzLMY8lzKWvnMfCdqt0sHT3XUOc3WQh+UeMYL
- SBGYDJO4jWJ21vZZjRFjE30FLDiwwiecs0aBA2BGB6tzDQpqJupvbf4Z82+NNbYQwbal JQ== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by aserp2120.oracle.com with ESMTP id 2yp9v6749s-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 11 Mar 2020 14:35:59 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 02BEWp0J140078;
-        Wed, 11 Mar 2020 14:35:59 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by aserp3020.oracle.com with ESMTP id 2yp8p3cbh1-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 11 Mar 2020 14:35:58 +0000
-Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 02BEZv3E006453;
-        Wed, 11 Mar 2020 14:35:57 GMT
-Received: from [10.11.0.40] (/10.11.0.40)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 11 Mar 2020 07:35:57 -0700
-Subject: Re: Maybe a race condition in net/rds/rdma.c?
-To:     zerons <sironhide0null@gmail.com>
-Cc:     netdev <netdev@vger.kernel.org>,
-        OFED mailing list <linux-rdma@vger.kernel.org>,
-        haakon.bugge@oracle.com
-References: <afd9225d-5c43-8cc7-0eed-455837b53e10@gmail.com>
- <D8EB4A77-77D7-41EB-9021-EA7BB8C3FA5B@oracle.com>
- <94b20d30-1d7d-7a66-b943-d75a05bcb46e@oracle.com>
- <e525ec74-b62f-6e7c-e6bc-aad93d349f65@gmail.com>
- <54d1140d-3347-a2b1-1b20-9a3959d3b451@oracle.com>
- <603ec723-842c-f6e1-01ee-6889c3925a63@gmail.com>
-From:   santosh.shilimkar@oracle.com
-Organization: Oracle Corporation
-Message-ID: <d9004325-2a97-c711-3abc-eb2550e047b1@oracle.com>
-Date:   Wed, 11 Mar 2020 07:35:56 -0700
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:60.0)
- Gecko/20100101 Thunderbird/60.7.2
-MIME-Version: 1.0
-In-Reply-To: <603ec723-842c-f6e1-01ee-6889c3925a63@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+        id S1730440AbgCKRQS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 11 Mar 2020 13:16:18 -0400
+Received: from mail-eopbgr770074.outbound.protection.outlook.com ([40.107.77.74]:33345
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1730453AbgCKRQS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 11 Mar 2020 13:16:18 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=GDnaMTUdcjafdH0MKf/fbMdFiba8CR77BWbDfbxBzkadJXEmkFl2MWUBdPctuFYcVrYXI+PLa4th3lMj9AVJmTA0doU+lCON3h6nBNWmTTkGswOyJqrAPHEcYArMMPFq1RuIbDlDF9xXz6GG0Gms1cr0YDbifTCDMYOFe61gx/BU1dt52102YVHCURs1D/yFqG8Wg0R/iHYwlvP+ir36xkxNMWMgDBx6NP7uVlsI7aFqR1SK8FcTNpYx1wv9uCa86OwbpyTJZKT7dF4fQKZh5LbQRJFa6qPLjwQjsPIQ1zm7XrHNL1DDrMEhJhYzq/RsRN8gnGA9uPbMVQoZl7yNGA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5bPLrcuNb7zb5zjvx17giZ0c3jSJ0z4BjNRxBg006ak=;
+ b=nrLH6an8UZH0TgNebiKlrsP3KSq7bSmzA7932MCbkp9epK6QkgrJ3/CA6QyeWI7/CL/txNG93g7fF/C5KRf3M9dgKm//jz4fTfTZy4TGHv5CKqJmPVzdJiPCAuH68siQgbiblcjRNwgdijWGILEG0PUfs+n2k2jg7jfFSehil4Fa5gwL3gWeUFdN1n/a+vMtf8JR8GS5S7WV41rfILBIbBb3TaGhxwJGuRcUa0h7zLqOBETFu/76Guq9Hdk9BSfBTTVj9EZqeECdBL099XjGVKO9EVKGFqrFBGOesYouttqH0/yLaY+UASR+Lh52JvssEpyVjnVSlpWsDchkjKyoSA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=netapp.com; dmarc=pass action=none header.from=netapp.com;
+ dkim=pass header.d=netapp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=netapp.onmicrosoft.com; s=selector1-netapp-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5bPLrcuNb7zb5zjvx17giZ0c3jSJ0z4BjNRxBg006ak=;
+ b=n7DZYEEtHO2J/BLISs8YKXKCbvBeqfubo5be7XF7b5uSxXxYWZGZViFkuzADWen6/IF+s/8GcY7FcgpBu+X0Ze4u6/GEk+MuXs4OhTjBLL6wrlZwqYxwY5C+qvi8g9iKWTEbgoQc9cGmg3brS+yzaTnS2AL5RFAsioiaS0Wg6L4=
+Received: from DM6PR06MB6617.namprd06.prod.outlook.com (2603:10b6:5:25f::14)
+ by DM6PR06MB6058.namprd06.prod.outlook.com (2603:10b6:5:108::32) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2793.16; Wed, 11 Mar
+ 2020 17:16:03 +0000
+Received: from DM6PR06MB6617.namprd06.prod.outlook.com
+ ([fe80::f1d5:1417:3acd:c3be]) by DM6PR06MB6617.namprd06.prod.outlook.com
+ ([fe80::f1d5:1417:3acd:c3be%6]) with mapi id 15.20.2793.013; Wed, 11 Mar 2020
+ 17:16:03 +0000
+From:   "Schumaker, Anna" <Anna.Schumaker@netapp.com>
+To:     "chucklever@gmail.com" <chucklever@gmail.com>
+CC:     "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH v1 00/11] NFS/RDMA client side connection overhaul
+Thread-Topic: [PATCH v1 00/11] NFS/RDMA client side connection overhaul
+Thread-Index: AQHV97mmoXijF6aOKkWfrtPieJQTOahDogiA
+Date:   Wed, 11 Mar 2020 17:16:03 +0000
+Message-ID: <8572bf1221aec75c3f37f437caee396f379e764a.camel@netapp.com>
+References: <20200221214906.2072.32572.stgit@manet.1015granger.net>
+         <AA5039EB-DDA0-44CA-B382-61BD544A330A@gmail.com>
+In-Reply-To: <AA5039EB-DDA0-44CA-B382-61BD544A330A@gmail.com>
+Accept-Language: en-US
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9556 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxscore=0 phishscore=0
- spamscore=0 malwarescore=0 adultscore=0 suspectscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
- definitions=main-2003110093
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9556 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 spamscore=0 mlxscore=0
- priorityscore=1501 lowpriorityscore=0 bulkscore=0 mlxlogscore=999
- phishscore=0 adultscore=0 clxscore=1015 impostorscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
- definitions=main-2003110093
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Evolution 3.36.0 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=Anna.Schumaker@netapp.com; 
+x-originating-ip: [68.32.74.190]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: d3cc8b9d-3cf1-4b38-717a-08d7c5dfe0df
+x-ms-traffictypediagnostic: DM6PR06MB6058:
+x-microsoft-antispam-prvs: <DM6PR06MB605890C9B5ED8FC823C59A09F8FC0@DM6PR06MB6058.namprd06.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8882;
+x-forefront-prvs: 0339F89554
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(346002)(376002)(136003)(39860400002)(366004)(199004)(2906002)(2616005)(6512007)(6916009)(71200400001)(4326008)(66946007)(86362001)(186003)(5660300002)(91956017)(81156014)(6486002)(81166006)(36756003)(54906003)(8936002)(76116006)(316002)(66446008)(26005)(66476007)(8676002)(53546011)(66556008)(64756008)(6506007)(478600001);DIR:OUT;SFP:1101;SCL:1;SRVR:DM6PR06MB6058;H:DM6PR06MB6617.namprd06.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;
+received-spf: None (protection.outlook.com: netapp.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: MC4tvmBJaRRxu9I1zzZTRjIKMHwu/z6n8Jl4b1SqkYayp+WPJCdopjNh2TEWKEL8+AoZWNj+mgp8o38DCLgu89EeG8+StkZN+KOjW341NVk6HDFAA06p5dPC1h14kmmyj0qkBGXGhQlUQcYYf3RBlHffXXTPI3B+YJksnpza7IViVx+hDD1jqAm6gDCNpUK/w5jGycngDZt2i7mmur7UQGvHAj0cKyQEjh9D7sbBGDj9RwO3cci+L7PsgVJkz6zLWfvUpKAPv6ECpKzTTkqji772Y0cUtmLdLyfwzogV7MqontOM9siZEKsG9icBBVAjipU8Z9QvhL842u6F4YE/en8PvNrB935++veHl7uUWiHHqIKM7vsRTRQFz8l29yN8JRgWY7psH8Med0ONNIeBmIxS/rLbipCFmhIgY7qJ7gyFa5RUNIiuovlRg8roJjeG
+x-ms-exchange-antispam-messagedata: NLABDZ+HYn+Aq0JF6Jx8CzOpv6JSfEqXVVI/oMvYvTx2fD7T12ef1DKCDdxUGu7FAK0vXS8foX1a3zcCKkWRdnlDd7ZhOxn7t2bAlX+f/q1KKUuVRFI6fMy4qvGEy8cmtfPd3VS4inZP/ie2X17IwQ==
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <D60D88EA3A5F7D4C98E33261EE990E46@namprd06.prod.outlook.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-OriginatorOrg: netapp.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d3cc8b9d-3cf1-4b38-717a-08d7c5dfe0df
+X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Mar 2020 17:16:03.6198
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 4b0911a0-929b-4715-944b-c03745165b3a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: i2C5Ycj9SROjHkqFnVeh3H8igTMh0sc28QxQvXs4FZ/M1WnD4TKldusdTnfMB8OKumo1rno4ZnFhXgoZeCh8tQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR06MB6058
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 3/10/20 9:48 PM, zerons wrote:
-> 
-> 
-> On 3/11/20 01:53, santosh.shilimkar@oracle.com wrote:
->> On 3/6/20 4:11 AM, zerons wrote:
->>>
->>>
->>> On 2/28/20 02:10, santosh.shilimkar@oracle.com wrote:
->>>>
->>>>>> On 18 Feb 2020, at 14:13, zerons <sironhide0null@gmail.com> wrote:
->>>>>>
->>>>>> Hi, all
->>>>>>
->>>>>> In net/rds/rdma.c
->>>>>> (https://urldefense.com/v3/__https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/net/rds/rdma.c?h=v5.5.3*n419__;Iw!!GqivPVa7Brio!OwwQCLtjDsKmhaIz0sfaOVSuC4ai5t5_FgB7yqNExGOCBtACtIGLF61NNJyqSDtIAcGoPg$ ),
->>>>>> there may be a race condition between rds_rdma_unuse() and rds_free_mr().
->>>>>>
->>>> Hmmm.. I didn't see email before in my inbox. Please post questions/patches on netdev in future which is the correct mailing list.
->>>>
->>>>>> It seems that this one need some specific devices to run test,
->>>>>> unfortunately, I don't have any of these.
->>>>>> I've already sent two emails to the maintainer for help, no response yet,
->>>>>> (the email address may not be in use).
->>>>>>
->>>>>> 0) in rds_recv_incoming_exthdrs(), it calls rds_rdma_unuse() when receive an
->>>>>> extension header with force=0, if the victim mr does not have RDS_RDMA_USE_ONCE
->>>>>> flag set, then the mr would stay in the rbtree. Without any lock, it tries to
->>>>>> call mr->r_trans->sync_mr().
->>>>>>
->> MR won't stay in the rbtree with force flag. If the MR is used or
->> use_once is set in both cases its removed from the tree.
->> See "if (mr->r_use_once || force)"
->>
-> 
-> Sorry, I may misunderstand. Did you mean that if the MR is *used*,
-> it is removed from the tree with or without the force flag in
-> rds_rdma_unuse(), even when r_use_once is not set?
-> 
-Once the MR is being used with use_once semantics it gets removed with 
-or without remote side indicating it via extended header. use_once
-optimization was added later. The base behavior is once the MR is
-used by remote and same information is sent via extended header,
-it gets cleaned up with force flag. Force flag ignores whether
-its marked as used_once or not.
-
-Regards,
-Santosh
-
+SGkgQ2h1Y2ssDQoNCk9uIFdlZCwgMjAyMC0wMy0xMSBhdCAxMToyNyAtMDQwMCwgQ2h1Y2sgTGV2
+ZXIgd3JvdGU6DQo+IEhpIEFubmEsIEkgZG9uJ3QgcmVjYWxsIHJlY2VpdmluZyBhbnkgY29tbWVu
+dHMgdGhhdCByZXF1aXJlIG1vZGlmeWluZw0KPiB0aGlzIHNlcmllcy4gRG8geW91IHdhbnQgbWUg
+dG8gcmVzZW5kIGl0IGZvciB0aGUgbmV4dCBtZXJnZSB3aW5kb3c/DQoNCklmIHRoZXJlIGhhdmVu
+J3QgYmVlbiBhbnkgY2hhbmdlcywgdGhlbiBJJ2xsIGp1c3QgdXNlIHRoZSB2ZXJzaW9uIHlvdSd2
+ZSBhbHJlYWR5DQpwb3N0ZWQuIE5vIG5lZWQgdG8gcmVzZW5kLg0KDQpUaGFua3MgZm9yIGNoZWNr
+aW5nIQ0KQW5uYQ0KDQo+IA0KPiANCj4gPiBPbiBGZWIgMjEsIDIwMjAsIGF0IDU6MDAgUE0sIENo
+dWNrIExldmVyIDxjaHVjay5sZXZlckBvcmFjbGUuY29tPiB3cm90ZToNCj4gPiANCj4gPiBIb3dk
+eS4NCj4gPiANCj4gPiBJJ3ZlIGhhZCByZXBvcnRzIChhbmQgcGVyc29uYWwgZXhwZXJpZW5jZSkg
+d2hlcmUgdGhlIExpbnV4IE5GUy9SRE1BDQo+ID4gY2xpZW50IHdhaXRzIGZvciBhIHZlcnkgbG9u
+ZyB0aW1lIGFmdGVyIGEgZGlzcnVwdGlvbiBvZiB0aGUgbmV0d29yaw0KPiA+IG9yIE5GUyBzZXJ2
+ZXIuDQo+ID4gDQo+ID4gVGhlcmUgaXMgYSBkaXNjb25uZWN0IHRpbWUgd2FpdCBpbiB0aGUgQ29u
+bmVjdGlvbiBNYW5hZ2VyIHdoaWNoDQo+ID4gYmxvY2tzIHRoZSBSUEMvUkRNQSB0cmFuc3BvcnQg
+ZnJvbSB0ZWFyaW5nIGRvd24gYSBjb25uZWN0aW9uIGZvciBhDQo+ID4gZmV3IG1pbnV0ZXMgd2hl
+biB0aGUgcmVtb3RlIGNhbm5vdCByZXNwb25kIHRvIERSRVEgbWVzc2FnZXMuDQo+ID4gDQo+ID4g
+QW4gUlBDL1JETUEgdHJhbnNwb3J0IGhhcyBvbmx5IG9uZSBzbG90IGZvciBjb25uZWN0aW9uIHN0
+YXRlLCBzbyB0aGUNCj4gPiB0cmFuc3BvcnQgaXMgcHJldmVudGVkIGZyb20gZXN0YWJsaXNoaW5n
+IGEgZnJlc2ggY29ubmVjdGlvbiB1bnRpbA0KPiA+IHRoZSB0aW1lIHdhaXQgY29tcGxldGVzLg0K
+PiA+IA0KPiA+IFRoaXMgcGF0Y2ggc2VyaWVzIHJlZmFjdG9ycyB0aGUgY29ubmVjdGlvbiBlbmQg
+cG9pbnQgZGF0YSBzdHJ1Y3R1cmVzDQo+ID4gdG8gZW5hYmxlIG9uZSBhY3RpdmUgYW5kIG11bHRp
+cGxlIHpvbWJpZSBjb25uZWN0aW9ucy4gTm93LCB3aGlsZSBhDQo+ID4gZGVmdW5jdCBjb25uZWN0
+aW9uIGlzIHdhaXRpbmcgdG8gZGllLCBpdCBpcyBzZXBhcmF0ZWQgZnJvbSB0aGUNCj4gPiB0cmFu
+c3BvcnQsIGNsZWFyaW5nIHRoZSB3YXkgZm9yIHRoZSBpbW1lZGlhdGUgY3JlYXRpb24gb2YgYSBu
+ZXcNCj4gPiBjb25uZWN0aW9uLiBDbGVhbi11cCBvZiB0aGUgb2xkIGNvbm5lY3Rpb24ncyBkYXRh
+IHN0cnVjdHVyZXMgYW5kDQo+ID4gcmVzb3VyY2VzIHRoZW4gY29tcGxldGVzIGluIHRoZSBiYWNr
+Z3JvdW5kLg0KPiA+IA0KPiA+IFdlbGwsIHRoYXQncyB0aGUgaWRlYSwgYW55d2F5LiBSZXZpZXcg
+YW5kIGNvbW1lbnRzIHdlbGNvbWUuIEhvcGluZw0KPiA+IHRoaXMgY2FuIGJlIG1lcmdlZCBpbiB2
+NS43Lg0KPiA+IA0KPiA+IC0tLQ0KPiA+IA0KPiA+IENodWNrIExldmVyICgxMSk6DQo+ID4gICAg
+ICB4cHJ0cmRtYTogSW52b2tlIHJwY3JkbWFfZXBfY3JlYXRlKCkgaW4gdGhlIGNvbm5lY3Qgd29y
+a2VyDQo+ID4gICAgICB4cHJ0cmRtYTogUmVmYWN0b3IgZnJ3cl9pbml0X21yKCkNCj4gPiAgICAg
+IHhwcnRyZG1hOiBDbGVhbiB1cCB0aGUgcG9zdF9zZW5kIHBhdGgNCj4gPiAgICAgIHhwcnRyZG1h
+OiBSZWZhY3RvciBycGNyZG1hX2VwX2Nvbm5lY3QoKSBhbmQgcnBjcmRtYV9lcF9kaXNjb25uZWN0
+KCkNCj4gPiAgICAgIHhwcnRyZG1hOiBBbGxvY2F0ZSBQcm90ZWN0aW9uIERvbWFpbiBpbiBycGNy
+ZG1hX2VwX2NyZWF0ZSgpDQo+ID4gICAgICB4cHJ0cmRtYTogSW52b2tlIHJwY3JkbWFfaWFfb3Bl
+biBpbiB0aGUgY29ubmVjdCB3b3JrZXINCj4gPiAgICAgIHhwcnRyZG1hOiBSZW1vdmUgcnBjcmRt
+YV9pYTo6cmlfZmxhZ3MNCj4gPiAgICAgIHhwcnRyZG1hOiBEaXNjb25uZWN0IG9uIGZsdXNoZWQg
+Y29tcGxldGlvbg0KPiA+ICAgICAgeHBydHJkbWE6IE1lcmdlIHN0cnVjdCBycGNyZG1hX2lhIGlu
+dG8gc3RydWN0IHJwY3JkbWFfZXANCj4gPiAgICAgIHhwcnRyZG1hOiBFeHRyYWN0IHNvY2thZGRy
+IGZyb20gc3RydWN0IHJkbWFfY21faWQNCj4gPiAgICAgIHhwcnRyZG1hOiBrbWFsbG9jIHJwY3Jk
+bWFfZXAgc2VwYXJhdGUgZnJvbSBycGNyZG1hX3hwcnQNCj4gPiANCj4gPiANCj4gPiBpbmNsdWRl
+L3RyYWNlL2V2ZW50cy9ycGNyZG1hLmggICAgfCAgIDk3ICsrLS0tDQo+ID4gbmV0L3N1bnJwYy94
+cHJ0cmRtYS9iYWNrY2hhbm5lbC5jIHwgICAgOCANCj4gPiBuZXQvc3VucnBjL3hwcnRyZG1hL2Zy
+d3Jfb3BzLmMgICAgfCAgMTUyICsrKystLS0tDQo+ID4gbmV0L3N1bnJwYy94cHJ0cmRtYS9ycGNf
+cmRtYS5jICAgIHwgICAzMiArLQ0KPiA+IG5ldC9zdW5ycGMveHBydHJkbWEvdHJhbnNwb3J0LmMg
+ICB8ICAgNzIgKy0tLQ0KPiA+IG5ldC9zdW5ycGMveHBydHJkbWEvdmVyYnMuYyAgICAgICB8ICA2
+ODEgKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPiAtLQ0KPiA+IG5ldC9z
+dW5ycGMveHBydHJkbWEveHBydF9yZG1hLmggICB8ICAgODkgKystLS0NCj4gPiA3IGZpbGVzIGNo
+YW5nZWQsIDQ0NSBpbnNlcnRpb25zKCspLCA2ODYgZGVsZXRpb25zKC0pDQo+ID4gDQo+ID4gLS0N
+Cj4gPiBDaHVjayBMZXZlcg0K
