@@ -1,233 +1,209 @@
-Return-Path: <linux-rdma-owner@vger.kernel.org>
+Return-Path: <SRS0=gJYK=45=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDBF3C1975A
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Mar 2020 03:46:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by archive.lwn.net (Postfix) with ESMTP id 6243A7D918
-	for <lwn-linux-rdma@archive.lwn.net>; Wed, 11 Mar 2020 16:16:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1457206F2
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Mar 2020 03:46:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730119AbgCKQPc (ORCPT <rfc822;lwn-linux-rdma@archive.lwn.net>);
-        Wed, 11 Mar 2020 12:15:32 -0400
-Received: from mga17.intel.com ([192.55.52.151]:31962 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729704AbgCKQPc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 11 Mar 2020 12:15:32 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 11 Mar 2020 09:15:32 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.70,541,1574150400"; 
-   d="scan'208";a="353917283"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga001.fm.intel.com with ESMTP; 11 Mar 2020 09:15:30 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jC413-000Ctv-UT; Thu, 12 Mar 2020 00:15:29 +0800
-Date:   Thu, 12 Mar 2020 00:15:10 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- 41e684ef3f37ce6e5eac3fb5b9c7c1853f4b0447
-Message-ID: <5e690e8e.x8eoDvjMnjalEW55%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S2387708AbgCLDqH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 11 Mar 2020 23:46:07 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:11630 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2387657AbgCLDqH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 11 Mar 2020 23:46:07 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 97D6FD3605F2D43331B9;
+        Thu, 12 Mar 2020 11:46:03 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
+ 14.3.487.0; Thu, 12 Mar 2020 11:45:55 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next] RDMA/hns: Support to set mininum depth of qp to 0
+Date:   Thu, 12 Mar 2020 11:42:16 +0800
+Message-ID: <1583984536-19200-1-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
-Archived-At: <http://archive.lwn.net:8080/linux-rdma/5e690e8e.x8eoDvjMnjalEW55%25lkp@intel.com/>
-List-Archive: <http://archive.lwn.net:8080/linux-rdma/>
-List-Post: <mailto:linux-rdma@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
-branch HEAD: 41e684ef3f37ce6e5eac3fb5b9c7c1853f4b0447  IB/mlx5: Replace tunnel mpls capability bits for tunnel_offloads
+From: Lang Cheng <chenglang@huawei.com>
 
-elapsed time: 1046m
+Minimum depth of qp should be allowed to be set to 0 according to the
+firmware configuration. And when qp is changed from reset to reset, the
+capability of minimum qp depth was used to identify hardware of hip06,
+it should be changed into a more readable form.
 
-configs tested: 170
-configs skipped: 0
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-arm                              allmodconfig
-arm                               allnoconfig
-arm                              allyesconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-arm64                            allyesconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                               defconfig
-sparc                            allyesconfig
-sparc64                          allyesconfig
-microblaze                    nommu_defconfig
-nios2                         10m50_defconfig
-c6x                              allyesconfig
-s390                          debug_defconfig
-powerpc                             defconfig
-riscv                             allnoconfig
-m68k                          multi_defconfig
-h8300                       h8s-sim_defconfig
-sh                  sh7785lcr_32bit_defconfig
-mips                              allnoconfig
-i386                              allnoconfig
-i386                             alldefconfig
-i386                             allyesconfig
-i386                                defconfig
-ia64                             alldefconfig
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-ia64                                defconfig
-c6x                        evmc6678_defconfig
-nios2                         3c120_defconfig
-openrisc                    or1ksim_defconfig
-openrisc                 simple_smp_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-alpha                               defconfig
-csky                                defconfig
-nds32                             allnoconfig
-nds32                               defconfig
-h8300                     edosk2674_defconfig
-m68k                       m5475evb_defconfig
-m68k                             allmodconfig
-h8300                    h8300h-sim_defconfig
-m68k                           sun3_defconfig
-arc                              allyesconfig
-arc                                 defconfig
-microblaze                      mmu_defconfig
-powerpc                           allnoconfig
-powerpc                       ppc64_defconfig
-powerpc                          rhel-kconfig
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                             allmodconfig
-mips                             allyesconfig
-mips                      fuloong2e_defconfig
-mips                      malta_kvm_defconfig
-parisc                            allnoconfig
-parisc                           allyesconfig
-parisc                generic-32bit_defconfig
-parisc                generic-64bit_defconfig
-x86_64               randconfig-a001-20200311
-x86_64               randconfig-a002-20200311
-x86_64               randconfig-a003-20200311
-i386                 randconfig-a001-20200311
-i386                 randconfig-a002-20200311
-i386                 randconfig-a003-20200311
-alpha                randconfig-a001-20200311
-m68k                 randconfig-a001-20200311
-mips                 randconfig-a001-20200311
-nds32                randconfig-a001-20200311
-parisc               randconfig-a001-20200311
-riscv                randconfig-a001-20200311
-c6x                  randconfig-a001-20200311
-h8300                randconfig-a001-20200311
-microblaze           randconfig-a001-20200311
-nios2                randconfig-a001-20200311
-sparc64              randconfig-a001-20200311
-csky                 randconfig-a001-20200311
-openrisc             randconfig-a001-20200311
-s390                 randconfig-a001-20200311
-sh                   randconfig-a001-20200311
-xtensa               randconfig-a001-20200311
-x86_64               randconfig-b001-20200311
-x86_64               randconfig-b002-20200311
-x86_64               randconfig-b003-20200311
-i386                 randconfig-b001-20200311
-i386                 randconfig-b002-20200311
-i386                 randconfig-b003-20200311
-x86_64               randconfig-c001-20200311
-x86_64               randconfig-c002-20200311
-x86_64               randconfig-c003-20200311
-i386                 randconfig-c001-20200311
-i386                 randconfig-c002-20200311
-i386                 randconfig-c003-20200311
-x86_64               randconfig-d001-20200311
-x86_64               randconfig-d002-20200311
-x86_64               randconfig-d003-20200311
-i386                 randconfig-d001-20200311
-i386                 randconfig-d002-20200311
-i386                 randconfig-d003-20200311
-x86_64               randconfig-e001-20200311
-x86_64               randconfig-e002-20200311
-x86_64               randconfig-e003-20200311
-i386                 randconfig-e001-20200311
-i386                 randconfig-e002-20200311
-i386                 randconfig-e003-20200311
-x86_64               randconfig-f001-20200311
-x86_64               randconfig-f002-20200311
-x86_64               randconfig-f003-20200311
-i386                 randconfig-f001-20200311
-i386                 randconfig-f002-20200311
-i386                 randconfig-f003-20200311
-x86_64               randconfig-g001-20200311
-x86_64               randconfig-g002-20200311
-x86_64               randconfig-g003-20200311
-i386                 randconfig-g001-20200311
-i386                 randconfig-g002-20200311
-i386                 randconfig-g003-20200311
-x86_64               randconfig-g001-20200309
-x86_64               randconfig-g002-20200309
-x86_64               randconfig-g003-20200309
-i386                 randconfig-g001-20200309
-i386                 randconfig-g002-20200309
-i386                 randconfig-g003-20200309
-x86_64               randconfig-h001-20200311
-x86_64               randconfig-h002-20200311
-x86_64               randconfig-h003-20200311
-i386                 randconfig-h001-20200311
-i386                 randconfig-h002-20200311
-i386                 randconfig-h003-20200311
-arc                  randconfig-a001-20200311
-arm                  randconfig-a001-20200311
-arm64                randconfig-a001-20200311
-ia64                 randconfig-a001-20200311
-powerpc              randconfig-a001-20200311
-sparc                randconfig-a001-20200311
-riscv                            allmodconfig
-riscv                            allyesconfig
-riscv                               defconfig
-riscv                    nommu_virt_defconfig
-riscv                          rv32_defconfig
-s390                             alldefconfig
-s390                             allmodconfig
-s390                              allnoconfig
-s390                             allyesconfig
-s390                                defconfig
-s390                       zfcpdump_defconfig
-sh                               allmodconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                            titan_defconfig
-sparc                               defconfig
-sparc64                          allmodconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-um                                  defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                              fedora-25
-x86_64                                  kexec
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                         rhel-7.2-clear
-x86_64                               rhel-7.6
-
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+Previous discussions can be found at:
+https://patchwork.kernel.org/patch/11415067/
+
+Changes since v1:
+- Fix comments from Leon about calculation of max_cnt, check for qp's depth
+  and modification of the prints.
+- Optimize logic of codes to make them more readable.
+- Replace dev_err() with ibdev_err().
+
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 77 ++++++++++++++-------------------
+ 1 file changed, 33 insertions(+), 44 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 5a28d62..22d438b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -359,52 +359,44 @@ static int set_rq_size(struct hns_roce_dev *hr_dev,
+ 				struct ib_qp_cap *cap, bool is_user, int has_rq,
+ 				struct hns_roce_qp *hr_qp)
+ {
+-	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	u32 max_cnt;
+ 
+-	/* Check the validity of QP support capacity */
+-	if (cap->max_recv_wr > hr_dev->caps.max_wqes ||
+-	    cap->max_recv_sge > hr_dev->caps.max_rq_sg) {
+-		ibdev_err(ibdev, "Failed to check max recv WR %d and SGE %d\n",
+-			  cap->max_recv_wr, cap->max_recv_sge);
+-		return -EINVAL;
+-	}
+-
+ 	/* If srq exist, set zero for relative number of rq */
+ 	if (!has_rq) {
+ 		hr_qp->rq.wqe_cnt = 0;
+ 		hr_qp->rq.max_gs = 0;
+ 		cap->max_recv_wr = 0;
+ 		cap->max_recv_sge = 0;
+-	} else {
+-		if (is_user && (!cap->max_recv_wr || !cap->max_recv_sge)) {
+-			ibdev_err(ibdev, "Failed to check user max recv WR and SGE\n");
+-			return -EINVAL;
+-		}
+ 
+-		if (hr_dev->caps.min_wqes)
+-			max_cnt = max(cap->max_recv_wr, hr_dev->caps.min_wqes);
+-		else
+-			max_cnt = cap->max_recv_wr;
++		return 0;
++	}
+ 
+-		hr_qp->rq.wqe_cnt = roundup_pow_of_two(max_cnt);
++	/* Check the validity of QP support capacity */
++	if (!cap->max_recv_wr || cap->max_recv_wr > hr_dev->caps.max_wqes ||
++	    cap->max_recv_sge > hr_dev->caps.max_rq_sg) {
++		ibdev_err(&hr_dev->ib_dev, "RQ config error, depth=%u, sge=%d\n",
++			  cap->max_recv_wr, cap->max_recv_sge);
++		return -EINVAL;
++	}
+ 
+-		if ((u32)hr_qp->rq.wqe_cnt > hr_dev->caps.max_wqes) {
+-			ibdev_err(ibdev, "Failed to check RQ WQE count limit\n");
+-			return -EINVAL;
+-		}
++	max_cnt = max(cap->max_recv_wr, hr_dev->caps.min_wqes);
+ 
+-		max_cnt = max(1U, cap->max_recv_sge);
+-		hr_qp->rq.max_gs = roundup_pow_of_two(max_cnt);
+-		if (hr_dev->caps.max_rq_sg <= HNS_ROCE_SGE_IN_WQE)
+-			hr_qp->rq.wqe_shift =
+-					ilog2(hr_dev->caps.max_rq_desc_sz);
+-		else
+-			hr_qp->rq.wqe_shift =
+-					ilog2(hr_dev->caps.max_rq_desc_sz
+-					      * hr_qp->rq.max_gs);
++	hr_qp->rq.wqe_cnt = roundup_pow_of_two(max_cnt);
++	if ((u32)hr_qp->rq.wqe_cnt > hr_dev->caps.max_wqes) {
++		ibdev_err(&hr_dev->ib_dev, "rq depth %u too large\n",
++			  cap->max_recv_wr);
++		return -EINVAL;
+ 	}
+ 
++	max_cnt = max(1U, cap->max_recv_sge);
++	hr_qp->rq.max_gs = roundup_pow_of_two(max_cnt);
++
++	if (hr_dev->caps.max_rq_sg <= HNS_ROCE_SGE_IN_WQE)
++		hr_qp->rq.wqe_shift = ilog2(hr_dev->caps.max_rq_desc_sz);
++	else
++		hr_qp->rq.wqe_shift = ilog2(hr_dev->caps.max_rq_desc_sz *
++					    hr_qp->rq.max_gs);
++
+ 	cap->max_recv_wr = hr_qp->rq.wqe_cnt;
+ 	cap->max_recv_sge = hr_qp->rq.max_gs;
+ 
+@@ -637,29 +629,27 @@ static int set_extend_sge_param(struct hns_roce_dev *hr_dev,
+ static int set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+ 			      struct ib_qp_cap *cap, struct hns_roce_qp *hr_qp)
+ {
+-	struct device *dev = hr_dev->dev;
+ 	u32 page_size;
+ 	u32 max_cnt;
+ 	int size;
+ 	int ret;
+ 
+-	if (cap->max_send_wr  > hr_dev->caps.max_wqes  ||
++	if (!cap->max_send_wr || cap->max_send_wr > hr_dev->caps.max_wqes ||
+ 	    cap->max_send_sge > hr_dev->caps.max_sq_sg ||
+ 	    cap->max_inline_data > hr_dev->caps.max_sq_inline) {
+-		dev_err(dev, "SQ WR or sge or inline data error!\n");
++		ibdev_err(&hr_dev->ib_dev,
++			  "SQ WR or sge or inline data error!\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	hr_qp->sq.wqe_shift = ilog2(hr_dev->caps.max_sq_desc_sz);
+ 
+-	if (hr_dev->caps.min_wqes)
+-		max_cnt = max(cap->max_send_wr, hr_dev->caps.min_wqes);
+-	else
+-		max_cnt = cap->max_send_wr;
++	max_cnt = max(cap->max_send_wr, hr_dev->caps.min_wqes);
+ 
+ 	hr_qp->sq.wqe_cnt = roundup_pow_of_two(max_cnt);
+ 	if ((u32)hr_qp->sq.wqe_cnt > hr_dev->caps.max_wqes) {
+-		dev_err(dev, "while setting kernel sq size, sq.wqe_cnt too large\n");
++		ibdev_err(&hr_dev->ib_dev,
++			  "while setting kernel sq size, sq.wqe_cnt too large\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -672,7 +662,7 @@ static int set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+ 
+ 	ret = set_extend_sge_param(hr_dev, hr_qp);
+ 	if (ret) {
+-		dev_err(dev, "set extend sge parameters fail\n");
++		ibdev_err(&hr_dev->ib_dev, "set extend sge parameters fail\n");
+ 		return ret;
+ 	}
+ 
+@@ -1394,11 +1384,10 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		goto out;
+ 
+ 	if (cur_state == new_state && cur_state == IB_QPS_RESET) {
+-		if (hr_dev->caps.min_wqes) {
++		if (hr_dev->hw_rev == HNS_ROCE_HW_VER1) {
+ 			ret = -EPERM;
+ 			ibdev_err(&hr_dev->ib_dev,
+-				"cur_state=%d new_state=%d\n", cur_state,
+-				new_state);
++				  "RST2RST state is not supported\n");
+ 		} else {
+ 			ret = 0;
+ 		}
+-- 
+2.8.1
+
