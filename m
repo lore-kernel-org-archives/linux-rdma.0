@@ -1,4 +1,4 @@
-Return-Path: <SRS0=gJYK=45=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=u4AL=46=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -6,102 +6,73 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFDBBC10DCE
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Mar 2020 19:54:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1E33C10DCE
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Mar 2020 06:02:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D0BB020637
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Mar 2020 19:54:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFFFB2072F
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Mar 2020 06:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726720AbgCLTyR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Mar 2020 15:54:17 -0400
-Received: from smtprelay0009.hostedemail.com ([216.40.44.9]:42674 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725268AbgCLTyQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 12 Mar 2020 15:54:16 -0400
-Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay08.hostedemail.com (Postfix) with ESMTP id EB034182CED5B;
-        Thu, 12 Mar 2020 19:54:15 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: baby05_7c5504a7ced51
-X-Filterd-Recvd-Size: 2717
-Received: from XPS-9350.home (unknown [47.151.143.254])
-        (Authenticated sender: joe@perches.com)
-        by omf18.hostedemail.com (Postfix) with ESMTPA;
-        Thu, 12 Mar 2020 19:54:14 +0000 (UTC)
-Message-ID: <62ed1e9972f5d7d8a203e9295c388a70e6e9e0c2.camel@perches.com>
-Subject: Re: [PATCH -next 001/491] MELLANOX ETHERNET INNOVA DRIVERS: Use
- fallthrough;
-From:   Joe Perches <joe@perches.com>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     David Miller <davem@davemloft.net>, borisp@mellanox.com,
-        saeedm@mellanox.com, leon@kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Date:   Thu, 12 Mar 2020 12:52:30 -0700
-In-Reply-To: <20200312124504.7ee481a9@kicinski-fedora-PC1C0HJN>
-References: <cover.1583896344.git.joe@perches.com>
-         <605f5d4954fcb254fe6fc5c22dc707f29b3b7405.1583896347.git.joe@perches.com>
-         <20200311.232302.1442236068172575398.davem@davemloft.net>
-         <cf74e8fdd3ee99aec86cec4abfdb1ce84b7fd90a.camel@perches.com>
-         <20200312124504.7ee481a9@kicinski-fedora-PC1C0HJN>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.34.1-2 
+        id S1726216AbgCMGCc convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 13 Mar 2020 02:02:32 -0400
+Received: from szxga03-in.huawei.com ([45.249.212.189]:3040 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726208AbgCMGCb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 13 Mar 2020 02:02:31 -0400
+Received: from DGGEML401-HUB.china.huawei.com (unknown [172.30.72.53])
+        by Forcepoint Email with ESMTP id 7AF9263CF3FFA027A267;
+        Fri, 13 Mar 2020 14:02:27 +0800 (CST)
+Received: from DGGEML522-MBX.china.huawei.com ([169.254.7.20]) by
+ DGGEML401-HUB.china.huawei.com ([fe80::89ed:853e:30a9:2a79%31]) with mapi id
+ 14.03.0439.000; Fri, 13 Mar 2020 14:02:20 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Andrew Boyer <aboyer@pensando.io>
+CC:     Leon Romanovsky <leon@kernel.org>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>
+Subject: Re: [PATCH for-next] RDMA/hns: Add interface to support lock free
+Thread-Topic: [PATCH for-next] RDMA/hns: Add interface to support lock free
+Thread-Index: AQHV+ENGNL7jbDp/V0iDqULaY56J2A==
+Date:   Fri, 13 Mar 2020 06:02:20 +0000
+Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A0227E188@DGGEML522-MBX.china.huawei.com>
+References: <1583999290-20514-1-git-send-email-liweihang@huawei.com>
+ <20200312092640.GA31504@unreal> <20200312170237.GS31668@ziepe.ca>
+ <42CC9743-9112-4954-807D-2A7A856BC78E@pensando.io>
+ <20200312172701.GV31668@ziepe.ca>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.40.168.149]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, 2020-03-12 at 12:45 -0700, Jakub Kicinski wrote:
-> On Wed, 11 Mar 2020 23:26:59 -0700 Joe Perches wrote:
-> > On Wed, 2020-03-11 at 23:23 -0700, David Miller wrote:
-> > > Joe, please use Subject line subsystem prefixes consistent with what would
-> > > be used for other changes to these drivers.  
-> > 
-> > Not easy to do for scripted patches.
-> > There's no mechanism that scriptable.
+On 2020/3/13 1:27, Jason Gunthorpe wrote:
+> On Thu, Mar 12, 2020 at 01:04:05PM -0400, Andrew Boyer wrote:
+>>    What would you say to a per-process env variable to disable locking in
+>>    a userspace provider?
 > 
-> I have this to show me the top 3 prefixes used for files currently
-> modified in my tree:
+> That is also a no. verbs now has 'thread domain' who's purpose is to
+> allow data plane locks to be skipped.
 > 
-> tgs() {
->     local fs
+> Generally new env vars in verbs are going to face opposition from
+> me.
 > 
->     fs=$(git status -s | sed -n 's/ M //p')
+> Jason
 > 
->     git log --oneline --no-merges -- $fs | \
-> 	sed -e's/[^ ]* \(.*\):[^:]*/\1/' | \
-> 	sort | uniq -c | sort -rn | head -3
-> }
-> 
-> You could probably massage it to just give you to top one and feed 
-> that into git commit template?
-
-I had already tried that via:
-
-$ cat get_patch_subject_prefix.bash 
-#!/bin/bash
-git log --format="%s" --no-merges -200 --since=2-years-ago $@ | \
-  cut -f1 -d":" | \
-  sort  | uniq -c | sort -rn | head -1 | \
-  sed 's/^[[:space:]]*[[:digit:]]*[[:space:]]*//'
-$ 
-
-It doesn't work very well for many of the subsystems.
-
-For instance, this script produces things like:
-
-ARM/ZYNQ ARCHITECTURE: treewide
-FCOE SUBSYSTEM (libfc, libfcoe, fcoe): scsi
-WOLFSON MICROELECTRONICS DRIVERS: ASoC
-
-There isn't a great single mechanism for this.
-
-At various times, I have proposed adding a grammar for
-patch subject titles to MAINTAINERS.
-
-Like:
-https://lore.kernel.org/lkml/1289919077.28741.50.camel@Joe-Laptop/
 
 
+Hi Leon and Jason,
+
+Thanks for your comments. Do you have some suggestions on how to
+achieve lockless flows in kernel? Are there any similar interfaces
+in kernel like the thread domain in userspace?
+
+Weihang
