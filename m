@@ -2,96 +2,117 @@ Return-Path: <SRS0=u4AL=46=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F382C10DCE
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Mar 2020 13:59:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58034C10DCE
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Mar 2020 14:00:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6636B20724
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Mar 2020 13:59:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 182D52073E
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Mar 2020 14:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584107948;
-	bh=c/5+KdewFLBGNZtT2UyA0nqc7u8kMlpAalIqivjSxAs=;
+	s=default; t=1584108014;
+	bh=tpA9x5BqxVqJ3K4DxnDtZse8/g9LA1WAfhCt+n3yzYo=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=FSWDywHN4IGEPpya+dqhut4trAG9hUD6Ccyc90QIwMjxhtmLPFPnAt7yYUvX9KJae
-	 rpw7BecszKk3SkyLr2lxCiycKo01hBWrfQ+ahP4rSZ5KcegzUbSUGaBvy3SkdM927Q
-	 8J9AE+QuuH0wGREHXtnEPFLRN5nGHdjA1ioOMDQ4=
+	b=r44rKQ8JI1+bJB9YXoLThzxL1SWPV/GgZzgVibH3kfmZlx3N4MVqOYKcAyd3fMopL
+	 auVsvbactBxMuMrI54Vhw4X6ItzNu3iN3WKHdleKLEN/HdkJ4KMUQPXWo/MLEUHOeN
+	 KdUAH6F36X2kIaYnVxPKBPS/VH95/BYwDSNVoB3g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726691AbgCMN7H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 13 Mar 2020 09:59:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52808 "EHLO mail.kernel.org"
+        id S1726715AbgCMOAN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 13 Mar 2020 10:00:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726636AbgCMN7H (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 13 Mar 2020 09:59:07 -0400
+        id S1726691AbgCMOAN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 13 Mar 2020 10:00:13 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DF319206B7;
-        Fri, 13 Mar 2020 13:59:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 503B72072C;
+        Fri, 13 Mar 2020 14:00:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584107947;
-        bh=c/5+KdewFLBGNZtT2UyA0nqc7u8kMlpAalIqivjSxAs=;
+        s=default; t=1584108012;
+        bh=tpA9x5BqxVqJ3K4DxnDtZse8/g9LA1WAfhCt+n3yzYo=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=zsptsZdXsSC0aHo5wb26FxmP4Fn6ZwfAMngKAZPZzUIH43G5jxSAkHOy/u2IOdASJ
-         jTmJtfNP86ZAXNPLTHPzMXjzxmIM92fg2WTBY8fv7ecOFoN6eQ+Dsi5rIOX3PdN/Jv
-         5ZGATGp7QXTik1e3uqA/W6KElG6uFh3Y14qp/tEQ=
-Date:   Fri, 13 Mar 2020 15:59:01 +0200
+        b=dp9nZOzkRItzuMHRn2K9grvCYB2YKGzeT/I0XJfxHM617+lLQF9Y4KMX+uD02xdPi
+         GhHimt7EidxyGSy30ImjFwXdSNDZSyTxZm47II6gVPcApD+DLXcbJbEFIxn4lRzhhP
+         UruCxcsRHFyfTV6AIT7dt294rNMLZGMALpUQKOlo=
+Date:   Fri, 13 Mar 2020 16:00:06 +0200
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next v1 11/11] RDMA/cma: Provide ECE reject reason
-Message-ID: <20200313135901.GI31504@unreal>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Gal Pressman <galpress@amazon.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Mark Zhang <markz@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>
+Subject: Re: [PATCH rdma-next v1 00/11] Add Enhanced Connection Established
+ (ECE)
+Message-ID: <20200313140006.GJ31504@unreal>
 References: <20200310091438.248429-1-leon@kernel.org>
- <20200310091438.248429-12-leon@kernel.org>
- <20200313135430.GA25517@ziepe.ca>
+ <20200313135303.GA25305@ziepe.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200313135430.GA25517@ziepe.ca>
+In-Reply-To: <20200313135303.GA25305@ziepe.ca>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Mar 13, 2020 at 10:54:30AM -0300, Jason Gunthorpe wrote:
-> On Tue, Mar 10, 2020 at 11:14:38AM +0200, Leon Romanovsky wrote:
+On Fri, Mar 13, 2020 at 10:53:03AM -0300, Jason Gunthorpe wrote:
+> On Tue, Mar 10, 2020 at 11:14:27AM +0200, Leon Romanovsky wrote:
 > > From: Leon Romanovsky <leonro@mellanox.com>
 > >
-> > IBTA declares "vendor option not supported" reject reason in REJ
-> > messages if passive side doesn't want to accept proposed ECE options.
+> > Changelog:
+> >  v1: Dropped field_avail patch in favor of mass conversion to use function
+> >      which already exists in the kernel code.
+> >  v0: https://lore.kernel.org/lkml/20200305150105.207959-1-leon@kernel.org
 > >
-> > Due to the fact that ECE is managed by userspace, there is a need to let
-> > users to provide such rejected reason.
+> > Enhanced Connection Established or ECE is new negotiation scheme
+> > introduced in IBTA v1.4 to exchange extra information about nodes
+> > capabilities and later negotiate them at the connection establishment
+> > phase.
 > >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >  drivers/infiniband/core/cma.c    | 14 ++++++++------
-> >  drivers/infiniband/core/ucma.c   |  7 ++++++-
-> >  include/rdma/ib_cm.h             |  3 ++-
-> >  include/rdma/rdma_cm.h           | 13 ++++++++++---
-> >  include/uapi/rdma/rdma_user_cm.h |  7 ++++++-
-> >  5 files changed, 32 insertions(+), 12 deletions(-)
+> > The RDMA-CM messages (REQ, REP, SIDR_REQ and SIDR_REP) were extended
+> > to carry two fields, one new and another gained new functionality:
+> >  * VendorID is a new field that indicates that common subset of vendor
+> >    option bits are supported as indicated by that VendorID.
+> >  * AttributeModifier already exists, but overloaded to indicate which
+> >    vendor options are supported by this VendorID.
 > >
-> > diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> > index f1f0d51667b7..0b57c15139cf 100644
-> > +++ b/drivers/infiniband/core/cma.c
-> > @@ -4191,8 +4191,8 @@ int rdma_notify(struct rdma_cm_id *id, enum ib_event_type event)
-> >  }
-> >  EXPORT_SYMBOL(rdma_notify);
+> > This is kernel part of such functionality which is responsible to get data
+> > from librdmacm and properly create and handle RDMA-CM messages.
 > >
-> > -int rdma_reject(struct rdma_cm_id *id, const void *private_data,
-> > -		u8 private_data_len)
-> > +int rdma_reject_ece(struct rdma_cm_id *id, const void *private_data,
-> > +		    u8 private_data_len, enum rdma_ucm_reject_reason reason)
-> >  {
+> > Thanks
+> >
+> > Leon Romanovsky (11):
+> >   RDMA/mlx4: Delete duplicated offsetofend implementation
+> >   RDMA/mlx5: Use offsetofend() instead of duplicated variant
+> >   RDMA/cm: Delete not implemented CM peer to peer communication
 >
-> Let not call something like this rdma_reject_ece, pass in the
-> ib_cm_rej_reason directly and update callers
+> These ones applied to for-next
 
-The problem that no one is interested in the reason, this is why I
-decided to go with special API.
+Thanks
+
+>
+> >   RDMA/efa: Use in-kernel offsetofend() to check field availability
+>
+> This needs resending
+
+I'm not convinced yet.
+
+>
+> >   RDMA/cm: Add Enhanced Connection Establishment (ECE) bits
+> >   RDMA/uapi: Add ECE definitions to UCMA
+> >   RDMA/ucma: Extend ucma_connect to receive ECE parameters
+> >   RDMA/ucma: Deliver ECE parameters through UCMA events
+> >   RDMA/cm: Send and receive ECE parameter over the wire
+> >   RDMA/cma: Connect ECE to rdma_accept
+> >   RDMA/cma: Provide ECE reject reason
+>
+> These need userspace to not be RFC
+
+Sure, thanks.
 
 >
 > Jason
