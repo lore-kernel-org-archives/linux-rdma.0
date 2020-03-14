@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C002C5ACBF
-	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 02:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B16FC4CECE
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 02:24:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0171D205C9
-	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 02:24:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E800820650
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 02:24:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584239080;
-	bh=RQkHCb1V2kEI9pFFfoI25oa9CYBgPcUHi5PUzveIDqw=;
+	s=default; t=1584239094;
+	bh=/TMoRcdmYvay8DeJDZubH32zeCJ/a4uKhLxLHQpm2Pg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=aedJqj81KFe7MP6K62WoQQ4vO0UamCMBgvZRIqG+98fbd+xdVJ5dWkTU7S1u5AHWv
-	 xUgX47ag1caWKwEVQk5hPusqVVjZPWOnHqtY2VvLrC7C5PWa68fZNwv/XYf4D/Qd3w
-	 Fayhc80gha1dncurn2Yf644YaVA9jMHgnq+UB4uQ=
+	b=URHoVpWz/onVeUfOjZsqOzzRbYZ6zaPGBHCxykVYuI79+9P8oY+/4zu9yp/7hCbiU
+	 sJOPQNOp0qc2PRYUpFd8AT0OK2Igi37gkHhjzP3/ncExJJGg4Z08UaCEnSZy4Nrdk/
+	 3syHKP3t3TB93WGUtXNTWC5uaJ+sKUK/sR4drJC0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727938AbgCOCYO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 14 Mar 2020 22:24:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39114 "EHLO mail.kernel.org"
+        id S1727946AbgCOCYs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 14 Mar 2020 22:24:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39100 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727947AbgCOCYO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727933AbgCOCYO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Sat, 14 Mar 2020 22:24:14 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4C4502077F;
-        Sat, 14 Mar 2020 18:07:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5BEC42074C;
+        Sat, 14 Mar 2020 09:49:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584209249;
-        bh=RQkHCb1V2kEI9pFFfoI25oa9CYBgPcUHi5PUzveIDqw=;
+        s=default; t=1584179371;
+        bh=/TMoRcdmYvay8DeJDZubH32zeCJ/a4uKhLxLHQpm2Pg=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=sMVdO4q5NOr9nktLHWjnBLOf1xm2las8bIjC2NKWuYNow6CIS2EqPBkuE5fUdOydz
-         2l18nZmzDkhls0cHMKDwAuqEFM4VJ7zD6FkFe1/uwXDRX07dBFY/zC5NXUdYKjG3tQ
-         T/sAxgWeAyG+BuGBN3b640NyKtDWQAt1VA/IIudU=
-Date:   Sat, 14 Mar 2020 20:07:24 +0200
+        b=uzMFxOQokiegEdMD3//V3XyLILA+pP1rAf331gq1rEDjuSVeArdv7uN7mD3UDSe+q
+         loJtpCV9n3veAsEmoDEXRATdhYzpYDAO7s6eWU39VjVeRmeJYQbvb1JFAD/+MZN+Cl
+         7fELzclfbocuuWiR9QeSd/KVaye6DQrQaSxTbmjY=
+Date:   Sat, 14 Mar 2020 11:49:25 +0200
 From:   Leon Romanovsky <leon@kernel.org>
 To:     liweihang <liweihang@huawei.com>
 Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Andrew Boyer <aboyer@pensando.io>,
@@ -45,7 +45,7 @@ Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Andrew Boyer <aboyer@pensando.io>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         Linuxarm <linuxarm@huawei.com>
 Subject: Re: [PATCH for-next] RDMA/hns: Add interface to support lock free
-Message-ID: <20200314180724.GH67638@unreal>
+Message-ID: <20200314094925.GE67638@unreal>
 References: <1583999290-20514-1-git-send-email-liweihang@huawei.com>
  <20200312092640.GA31504@unreal>
  <20200312170237.GS31668@ziepe.ca>
@@ -94,19 +94,18 @@ On Sat, Mar 14, 2020 at 03:44:49AM +0000, liweihang wrote:
 > What about the reason why we shouldn't add new environment variables
 > in userspace? Do they have the same reason?
 
-I don't know why my previous answer didn't appear in the ML, hope that
-this will arrive.
+No, the are discouraged for different technical reasons. There are many
+reasons for not allowing them, but immediately comes into mind that
+environmental variables are not thread safe, silently inherited by fork()
+and have very interesting behavior in the scripts.
 
-The technical reasons to avoid environmental variables and kernel module
-parameters are not the same, but very similar.
+This makes environmental variables are the worst configuration "tool"
+for the libraries.
 
-Environmental variables are not thread safe (in POSIX), inherited with
-fork() and behaves differently in scripts. All this together makes them
-as very bad user visible configuration interface.
-
-Kernel module parameters are not welcomed due to their global nature,
-difference between various drivers which makes hard for users to change
-HW/scripts, almost impossible to deprecate e.t.c.
+Module parameters are bad due to inability to deprecate them, difference
+between drivers that requires rewrite scripts/configs after driver/HW
+change, global nature of the change and really painful experience for
+the users if workload requires to change those defaults.
 
 Thanks
 
