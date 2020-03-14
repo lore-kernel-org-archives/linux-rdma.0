@@ -2,183 +2,131 @@ Return-Path: <SRS0=fQGB=5A=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CC80C1975A
-	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 01:31:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E40C0044D
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 01:31:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DD6CD20637
-	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 01:31:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E215020637
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Mar 2020 01:31:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="G6Ap19A2"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="C2xUqFqi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727302AbgCOBbD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 14 Mar 2020 21:31:03 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:50261 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725851AbgCOBbC (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 14 Mar 2020 21:31:02 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1584235862;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=8CoCO9BuyBEqvya4HXtKrOYdV1k6uEasDFwQvH0OSFY=;
-        b=G6Ap19A2auvfl6ez1xdcmCuz6vliRH9eAuy7vMzivmo/8u76QUteceWBtt7ix66zgGHnrR
-        kxO64FnDokJlSbs8YbCu0/p5eNC8CeLAPho7Jjt7aoVysyQJ2lCmhOkUvB3wjCX8SpdGCp
-        GKvKufcdLq5wyZZsW8nQZZ83RMUSAv0=
-Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
- [209.85.160.199]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-427-LQWhGVHcMieIA37PpXX2Ig-1; Sat, 14 Mar 2020 17:30:04 -0400
-X-MC-Unique: LQWhGVHcMieIA37PpXX2Ig-1
-Received: by mail-qt1-f199.google.com with SMTP id l21so12387756qtq.1
-        for <linux-rdma@vger.kernel.org>; Sat, 14 Mar 2020 14:30:04 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:mime-version
-         :content-transfer-encoding;
-        bh=8CoCO9BuyBEqvya4HXtKrOYdV1k6uEasDFwQvH0OSFY=;
-        b=FiIMrPlXxuISJmh4PyGJoNo/oj6xjp78cY04kGcdkkZvAniglJhXilZGPAN8w1sAHj
-         QIuMZhHHaCdSnw1UDncsHZgUbyu7XnovyWbkgReY7h5uebMIbOgN2KCxY/vynLeBW+pU
-         Sddwo3w6fu0NXYBe+fnMzKIAnQmEdFemAxHe3zBpwZAV850i56Lloz05hE9UcbA+FPcV
-         gh7pRXdJCYnZexwB3rjR2jHHb5Hm9h5GrtQIm3j//cTap/6MmgZcsdAsuyoLJEWix89K
-         f26sMeZAjFCFMpHcdJ206g9rTNvCI6eiZ9a229NUcAVPRyN9ww0Uc3Adq3W1yAby1+rr
-         uUNg==
-X-Gm-Message-State: ANhLgQ3WKn3OXU0VTqXfelrXcJulrCiz5GsX1XtG/RCdIYqKPh1U8Non
-        MJtZevNnCeXVtm4uakTj4Hx7stZmElRR4qiO03dHZNmRVxnZmvu3O7YUOkKUtwZDfPK8+Wf0knO
-        IrEg9u6RkTFS+/xR/vipAXA==
-X-Received: by 2002:a37:e47:: with SMTP id 68mr19006895qko.17.1584221403750;
-        Sat, 14 Mar 2020 14:30:03 -0700 (PDT)
-X-Google-Smtp-Source: ADFU+vvjuBBhQnSSAQJ+lHpYB4VtMAI5AzGTFEGz6x2A/AuiKNu/LQLlUeUxMBnLiVarSP8wOZWR8w==
-X-Received: by 2002:a37:e47:: with SMTP id 68mr19006878qko.17.1584221403364;
-        Sat, 14 Mar 2020 14:30:03 -0700 (PDT)
-Received: from loberhel7laptop ([2600:6c64:4e80:f1:2941:4bf6:8ce7:6ce9])
-        by smtp.gmail.com with ESMTPSA id a15sm5646320qko.122.2020.03.14.14.30.01
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 14 Mar 2020 14:30:02 -0700 (PDT)
-Message-ID: <88bab94d2fd72f3145835b4518bc63dda587add6.camel@redhat.com>
-Subject: commit ab118da4c10a70b8437f5c90ab77adae1835963e causes ib_srpt to
- fail connections served by target LIO
-From:   Laurence Oberman <loberman@redhat.com>
-To:     rdmadev <rdma-dev-team@redhat.com>, linux-rdma@vger.kernel.org,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        "Van Assche, Bart" <bvanassche@acm.org>,
-        Max Gurtovoy <maxg@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>
-Cc:     Rupesh Girase <rgirase@redhat.com>
-Date:   Sat, 14 Mar 2020 17:30:00 -0400
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-5.el7) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S1726352AbgCOBbI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 14 Mar 2020 21:31:08 -0400
+Received: from mail-eopbgr50084.outbound.protection.outlook.com ([40.107.5.84]:43394
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727201AbgCOBbI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 14 Mar 2020 21:31:08 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=bjQgGUMopQp/Cp5dsczEKpRtdHC0vyvl37n3rDHXWyYrJyfIgu/6jOWp3KIZcBAFl7jltl3BiWVG2DQ3if8AHzdzsWLs6dfifsnYc7SepwImzFoJaqzdEgbPbM1Grs5tDvcAe/oRPztLxgpEqgleSb38UBDaNYy0UtKKF+0jQK0uzOqBPj//R3IHF6NX6IMl8nBA/EJMn0bH+qQ69fS7sf2gZHgSMwzd7AIXhf66dQmgwvijpvgA3U+sLgquTObJuJMGyzcW3Q4T+AUBj+GStxDSStj0bkLTPJaRsuR0bFt7DznxGKh/tTKytboWeFiEhXuxKiZ5aAjIR3K/74iXNA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=EJTmaRLkjapgTpdGnlPDKTq46hOfWbCbSVPGOqFSbIw=;
+ b=T2ywksX839r/H5CSRqFUFfEa/vMZUBG23rf+mkK6UaKP2nx1phiEU6Jq2zOjStOHKWHiY36QabXohSL9iWxZCTNEqxjXBJG/mWIXETpSQQ3NAXQsx63KhT8OS8SWbM5/OGF+F15CYOwXEr0/hIOo5SaoRlqc+MprAGwyPmhQEjyLVDgsr1d6syuCj1x6sVwb1DeooG7B6zFjA50RvDQrgtUBZgvNKRJ8TBJRmHzTQTP3akUdj9TGtUDZE7SOqe89MEdn654BDJTqleDBcqsuUtSZocdHlzV/aEDWDeJSXFhfxzazZZLJoVHpKj75Tee5LP1gPdzTTMdwxdxOYG0TXg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=EJTmaRLkjapgTpdGnlPDKTq46hOfWbCbSVPGOqFSbIw=;
+ b=C2xUqFqikdm3dbkNiHujEMZ1JLThsAFZImQdRhNOBdhjUkgfamcfiEiSZRpRfmScIHAx9nWrBNXW4Ry2/q9f/Ss4+gSVYM6JkNmAEIlzNrbLsZpEcMJKt+qT61wKpSUkVfFvlRmvoZdHhTja6HtPtm1kZsx+CuJgk9V4+TENs+w=
+Received: from AM6PR05MB5014.eurprd05.prod.outlook.com (20.177.33.13) by
+ AM6PR05MB4933.eurprd05.prod.outlook.com (20.177.34.148) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2814.18; Sat, 14 Mar 2020 12:54:56 +0000
+Received: from AM6PR05MB5014.eurprd05.prod.outlook.com
+ ([fe80::cbb:a034:c324:138b]) by AM6PR05MB5014.eurprd05.prod.outlook.com
+ ([fe80::cbb:a034:c324:138b%6]) with mapi id 15.20.2814.007; Sat, 14 Mar 2020
+ 12:54:56 +0000
+From:   Yanjun Zhu <yanjunz@mellanox.com>
+To:     huangqingxin <tigerinxm@gmail.com>, Moni Shoua <monis@mellanox.com>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        huangqingxin <huangqingxin@ruijie.com.cn>
+Subject: Re: [PATCH] RDMA/rxe: Advance req.wqe_index when rxe_requester meets
+ error
+Thread-Topic: [PATCH] RDMA/rxe: Advance req.wqe_index when rxe_requester meets
+ error
+Thread-Index: AQHV+f/Ce6EEdiLdJEyOO/8uHJrwxQ==
+Date:   Sat, 14 Mar 2020 12:54:56 +0000
+Message-ID: <f1b791c7-8d6c-8816-ff16-2180a12f9934@mellanox.com>
+References: <20200312165032.11644-1-tigerinxm@gmail.com>
+In-Reply-To: <20200312165032.11644-1-tigerinxm@gmail.com>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=yanjunz@mellanox.com; 
+x-originating-ip: [118.201.220.138]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 443363d7-9474-45af-a67a-08d7c816e5a0
+x-ms-traffictypediagnostic: AM6PR05MB4933:|AM6PR05MB4933:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <AM6PR05MB49332AEA1C63034070652378D8FB0@AM6PR05MB4933.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:4502;
+x-forefront-prvs: 034215E98F
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(376002)(39860400002)(136003)(346002)(366004)(199004)(8936002)(4326008)(8676002)(316002)(36756003)(81156014)(54906003)(6486002)(81166006)(110136005)(31686004)(2616005)(6506007)(53546011)(6512007)(478600001)(6636002)(5660300002)(2906002)(76116006)(91956017)(26005)(186003)(66446008)(66556008)(64756008)(31696002)(71200400001)(66946007)(66476007)(86362001);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR05MB4933;H:AM6PR05MB5014.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: EM9XiwMZNCqoOsSozGA4Q9rHzp13SbUmfj8EpQA89LeLkKqRvMnCjW9BHIjSveKoDv29WhNhHgXriLOQw22O6fqIVUCNvcUgd8SI7wqnkcD9jX8McoCOeAbqiR9CgOD7w+o/LFPjSsoYukxBNf9cvlm5bEng51iAnoWzvT8ZtaXvXhisXOJpFX6/5WgcXgmEIYsr5gzJ87+N8WTqmdBfR0G7Z6UkX1smo+p0mmHrhQMCB3PFFMeBhjfah5qCQ5qkU3HacCVwFM2mm+dE2EXkUuvdsF23KY47+LxgncquOr9wOh8iuSV2Q4dZSu2Ke9fAGWLFs2NOjgukrZ3IEDOeYKCMLKhU4bdHXfXX97NE94Y5XZqHstMciYbCrdP45FH5LSh4OtBM+vUsp4yXA/zYALqj1HrOoXziODmuSI2gD2LtqHe7N/Rm02tPAeWa00pw
+x-ms-exchange-antispam-messagedata: wIKRM+8V+N3mei1aV+vDf2Y5yugytNTPxygoUYKDcLjTaVfMyOnNdpXvjH4dXdwbrWaXOjc1Mw3relQETMZJH5Adb3L9ntT0Zj5uIMvQ5KXCtQF81DzGv695uzCLfE5lXDap3mh4QVN1v3P9IxVc2Q==
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <A57113360D0B044F9E47D2339B25B951@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 443363d7-9474-45af-a67a-08d7c816e5a0
+X-MS-Exchange-CrossTenant-originalarrivaltime: 14 Mar 2020 12:54:56.2002
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: hfb7hRJg8x3VESlflf2P6f2GW8/Z3TfwRemPXo6tb0HjbQ8lSH78MbnL2f06nHw+8QjfegWnWlzKWA/MkI+kcg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB4933
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello Bart, Leon and Max
-
-Max had reached out to me to test a new set of patches for SRQ.
-I had not tested upstream ib_srpt on an LIO target for quite a while,
-only ib_srp client tests had been run of late.
-During a baseline test before applying Max's patches it was apparent
-that something had broken ib_srpt connections within LIO target since
-5.5.
-
-Note thet ib_srp client connectivity with the commit functions fine, 
-it's just the target that breaks with this commit.
-
-After a long bisect this is the commit that seems to break it.
-While it's not directly code in ib_srpt, its code in mlx5 vport
-ethernet connectivity that then breaks ib_srpt connectivity over mlx5
-IB RDMA with LIO.
-
-I will let Leon and others decide but reverting the below commit allows
-SRP connectivity to an LIO target to work again.
-
-Max, I will test your new patches once we have a decision on this.
-
-Client
-Linux ibclient.lab.eng.bos.redhat.com 5.6.0-rc5+ #1 SMP Thu Mar 12
-16:58:19 EDT 2020 x86_64 x86_64 x86_64 GNU/Linux
-
-Server with reverted commit
-Linux fedstorage.bos.redhat.com 5.6.0-rc5+ #1 SMP Sat Mar 14 16:39:35
-EDT 2020 x86_64 x86_64 x86_64 GNU/Linux
-
-commit ab118da4c10a70b8437f5c90ab77adae1835963e
-Author: Leon Romanovsky <leonro@mellanox.com>
-Date:   Wed Nov 13 12:03:47 2019 +0200
-
-    net/mlx5: Don't write read-only fields in MODIFY_HCA_VPORT_CONTEXT
-command
-    
-    The MODIFY_HCA_VPORT_CONTEXT uses field_selector to mask fields
-needed
-    to be written, other fields are required to be zero according to
-the
-    HW specification. The supported fields are controlled by bitfield
-    and limited to vport state, node and port GUIDs.
-    
-    Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-    Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-b/drivers/net/ethernet/mellanox/mlx5
-index 30f7848..1faac31f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -1064,26 +1064,13 @@ int mlx5_core_modify_hca_vport_context(struct
-mlx5_core_dev *dev,
- 
-        ctx = MLX5_ADDR_OF(modify_hca_vport_context_in, in,
-hca_vport_context);
-        MLX5_SET(hca_vport_context, ctx, field_select, req-
->field_select);
--       MLX5_SET(hca_vport_context, ctx, sm_virt_aware, req-
->sm_virt_aware);
--       MLX5_SET(hca_vport_context, ctx, has_smi, req->has_smi);
--       MLX5_SET(hca_vport_context, ctx, has_raw, req->has_raw);
--       MLX5_SET(hca_vport_context, ctx, vport_state_policy, req-
->policy);
--       MLX5_SET(hca_vport_context, ctx, port_physical_state, req-
->phys_state);
--       MLX5_SET(hca_vport_context, ctx, vport_state, req-
->vport_state);
--       MLX5_SET64(hca_vport_context, ctx, port_guid, req->port_guid);
--       MLX5_SET64(hca_vport_context, ctx, node_guid, req->node_guid);
--       MLX5_SET(hca_vport_context, ctx, cap_mask1, req->cap_mask1);
--       MLX5_SET(hca_vport_context, ctx, cap_mask1_field_select, req-
->cap_mask1_perm);
--       MLX5_SET(hca_vport_context, ctx, cap_mask2, req->cap_mask2);
--       MLX5_SET(hca_vport_context, ctx, cap_mask2_field_select, req-
->cap_mask2_perm);
--       MLX5_SET(hca_vport_context, ctx, lid, req->lid);
--       MLX5_SET(hca_vport_context, ctx, init_type_reply, req-
->init_type_reply);
--       MLX5_SET(hca_vport_context, ctx, lmc, req->lmc);
--       MLX5_SET(hca_vport_context, ctx, subnet_timeout, req-
->subnet_timeout);
--       MLX5_SET(hca_vport_context, ctx, sm_lid, req->sm_lid);
--       MLX5_SET(hca_vport_context, ctx, sm_sl, req->sm_sl);
--       MLX5_SET(hca_vport_context, ctx, qkey_violation_counter, req-
->qkey_violation_counter);
--       MLX5_SET(hca_vport_context, ctx, pkey_violation_counter, req-
->pkey_violation_counter);
-+       if (req->field_select & MLX5_HCA_VPORT_SEL_STATE_POLICY)
-+               MLX5_SET(hca_vport_context, ctx, vport_state_policy,
-+                        req->policy);
-+       if (req->field_select & MLX5_HCA_VPORT_SEL_PORT_GUID)
-+               MLX5_SET64(hca_vport_context, ctx, port_guid, req-
->port_guid);
-+       if (req->field_select & MLX5_HCA_VPORT_SEL_NODE_GUID)
-+               MLX5_SET64(hca_vport_context, ctx, node_guid, req-
->node_guid);
-        err = mlx5_cmd_exec(dev, in, in_sz, out, sizeof(out));
- ex:
-        kfree(in);
- 
-
+DQpXaGVuIGFuIGFwcGxpY2F0aW9uIHdhbnRzIHRvIG1vdmUgZGF0YSBvdmVyLCBpdCB0ZWxscyB0
+aGlzIHRvIHRoZSBSRE1BIE5JQw0KdGhhdCB0cmFuc2xhdGVzIHdvcmsgcmVxdWVzdCAoV1IpIGlu
+dG8gd29yayBxdWV1ZXMgKFdRKS4gVGhpcyBpcyBkb25lIGJ5DQpwbGFjaW5nIGluc3RydWN0aW9u
+cyBpbnRvIHRoZSByZXNwZWN0aXZlIHNlbmQgb3IgcmVjZWl2ZSBxdWV1ZXMgdGVsbGluZyB0aGUN
+CnJOSUMgd2hhdCBtZW1vcnkgYnVmZmVycyBmb3JtIHRoZSByZWdpc3RlcmVkIHJlZ2lvbiBpdCB3
+YW50cyB0byBzZW5kIG9yDQpyZWNlaXZlLiBUaG9zZSBpbnN0cnVjdGlvbnMgYXJlIGNhbGxlZCBX
+b3JrIFF1ZXVlIEVsZW1lbnRzIChXUUUpLg0KDQpBIFdRRSBjb250YWlucyBhIHBvaW50ZXIgdG8g
+dGhlIG1lbW9yeSBidWZmZXIuIFdoZW4gaXTigJlzIGEgc2VuZCBxdWV1ZQ0KaXQgcG9pbnRzIHRv
+IGRhdGEgdG8gYmUgc2VudCBvdmVyIHRvIHRoZSBvdGhlciBzaWRlLiBJbiB0aGUgY2FzZSBvZiBh
+IA0KcmVjZWl2ZQ0KcXVldWUsIGl0IHBvaW50cyB0byB0aGUgbWVtb3J5IGJ1ZmZlciB3aGVyZSB0
+aGUgZGF0YSB3aWxsIGJlIHdyaXR0ZW4gdG8uDQoNClRvIHRoaXMgY29tbWl0LCByeGUgc2tiIGFs
+bG9jYXRpb24gZmFpbGVkLiByZXEud3FlX2luZGV4IHNob3VsZCBub3QgYmUgDQphZHZhbmNlZC4N
+ClBsZWFzZSBkbyBzb21ldGhpbmcgaW4gb3RoZXIgcGxhY2VzLg0KDQpaaHUgWWFuanVuDQoNCk9u
+IDMvMTMvMjAyMCAxMjo1MCBBTSwgaHVhbmdxaW5neGluIHdyb3RlOg0KPiBGcm9tOiBodWFuZ3Fp
+bmd4aW4gPGh1YW5ncWluZ3hpbkBydWlqaWUuY29tLmNuPg0KPg0KPiBJbiB0aGUgcnhlX3JlcXVl
+c3Rlciwgd2UgbWF5IGZhaWwgdG8geG1pdCBwYWNrZXQgZm9yIG1pc3NpbmcgR0lEIGVudHJ5Lg0K
+PiBXZSBzaG91bGQgYWxzbyBhZHZhbmNlIHJlcS53cWVfaW5kZXggdG9vLk90aGVyd2lzZSwgd2Ug
+d29uJ3QgYmUgYWJsZQ0KPiB0byBnZXQgdGhlIG5ldyBuZXh0IHdxZSwgYW5kIGNvbXBsZXRlciB3
+b3VsZCBjb25zdW1lIHRoZSB3cm9uZyB3cWUuDQo+DQo+IFNpZ25lZC1vZmYtYnk6IGh1YW5ncWlu
+Z3hpbiA8aHVhbmdxaW5neGluQHJ1aWppZS5jb20uY24+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvaW5m
+aW5pYmFuZC9zdy9yeGUvcnhlX3JlcS5jIHwgMSArDQo+ICAgMSBmaWxlIGNoYW5nZWQsIDEgaW5z
+ZXJ0aW9uKCspDQo+DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4
+ZV9yZXEuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3JlcS5jDQo+IGluZGV4IGU1
+MDMxMTcyYy4uMDhmNGJlYTA2IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvc3cv
+cnhlL3J4ZV9yZXEuYw0KPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9yZXEu
+Yw0KPiBAQCAtNzU2LDYgKzc1Niw3IEBAIGludCByeGVfcmVxdWVzdGVyKHZvaWQgKmFyZykNCj4g
+ICBlcnI6DQo+ICAgCXdxZS0+c3RhdHVzID0gSUJfV0NfTE9DX1BST1RfRVJSOw0KPiAgIAl3cWUt
+PnN0YXRlID0gd3FlX3N0YXRlX2Vycm9yOw0KPiArCXFwLT5yZXEud3FlX2luZGV4ID0gbmV4dF9p
+bmRleChxcC0+c3EucXVldWUsIHFwLT5yZXEud3FlX2luZGV4KTsNCj4gICAJX19yeGVfZG9fdGFz
+aygmcXAtPmNvbXAudGFzayk7DQo+ICAgDQo+ICAgZXhpdDoNCg0KDQo=
