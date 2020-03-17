@@ -2,442 +2,675 @@ Return-Path: <SRS0=Q14g=5C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 325ACC2BB1D
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:40:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7D16C10F29
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:45:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0944A20770
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:40:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CDA920767
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:45:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="cKYDHklw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726407AbgCQNkk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Mar 2020 09:40:40 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:55052 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726329AbgCQNkk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Mar 2020 09:40:40 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 17 Mar 2020 15:40:30 +0200
-Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02HDeUhe028750;
-        Tue, 17 Mar 2020 15:40:30 +0200
-From:   Max Gurtovoy <maxg@mellanox.com>
-To:     linux-nvme@lists.infradead.org, sagi@grimberg.me, hch@lst.de,
-        loberman@redhat.com, bvanassche@acm.org, linux-rdma@vger.kernel.org
-Cc:     kbusch@kernel.org, leonro@mellanox.com, jgg@mellanox.com,
-        dledford@redhat.com, idanb@mellanox.com, shlomin@mellanox.com,
-        oren@mellanox.com, vladimirk@mellanox.com,
-        Max Gurtovoy <maxg@mellanox.com>
-Subject: [PATCH 3/5] nvmet-rdma: use SRQ per completion vector
-Date:   Tue, 17 Mar 2020 15:40:28 +0200
-Message-Id: <20200317134030.152833-4-maxg@mellanox.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20200317134030.152833-1-maxg@mellanox.com>
-References: <20200317134030.152833-1-maxg@mellanox.com>
+        id S1726082AbgCQNpF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Mar 2020 09:45:05 -0400
+Received: from mail-eopbgr10075.outbound.protection.outlook.com ([40.107.1.75]:21928
+        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726130AbgCQNpF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Mar 2020 09:45:05 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=A0XoIdXcGgWnGQpscvaycb8vmZq7g6mGfdYd0Jho01YwHSPNeXIEDEhXh5/7MOlG77xNHX+Pgk1Y8OiCWHNR7ZQBphICCXBKyvVNM3n3e3S/npSDDSHBz06C0jC65WJJJNB4z6/zuZYI2tJOPMqFDLyNckYHnBLRGIKY8SHRsvMv9hDfHh0VPFoS9vutkGyKvjDwARlvaj0d1HmWSTaAhAtak8F2o8KW5yaRBzpl4xeWdFkQm+wGdgTfk+4tl7EPly2z2O4cw/nlIep7bfgbMlOHf2yQ3X5JjRpGtfKtYUB9UqVzzlzzrY73E3sXxPTc0FzUBI2CyAk1S6pGx9/gJw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=OQMp1FEzfNF1JAmFx2wikueJVZ2diRklOb985XcJoJg=;
+ b=XCEPrynQdi9rVMjainHVMBo42y5YAbCa+z6D0c5m6pW6inaUFMBoVCLy9T4Qkspko+rVELROjdcwC6h+ys+Rl+bKZ7I5sicvGyDNjiOGKSBsTsvOj6i4ym3tIk/VbsCwkCWeDVrWu0t14yydaV7DWU0DklAgCJ+R2G8MPNSf68xWXBQH/v2zIub+irB/2j3H+cgn6yBfXfbC8NiLZ7SQwLiaLJPBcZPT1cnU3d8pbIWqGb0pviYjPx9TyW8bIzwuJK9Bu1eyHQbU9fpd3j+ucCdaEyg85g7qd9mtu25DxNdRg0S653N/+xUDy2594bBfeQ5JSi3oZCuBJW0ge3ZvuQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=OQMp1FEzfNF1JAmFx2wikueJVZ2diRklOb985XcJoJg=;
+ b=cKYDHklwv9mfe4Y8U4K/hhBMepRVVMYvK446CUg8+GwS9t926ALBGzvCOXL2TWmMRbm0VWt1hJPA1/9BCdWctSCx4VO0ZZxnDMoMyhnYILdZMtD5JC96P/AqO7bCoIzirCV2ct2uNSDm9Eh42ZVOwu8bRYdVKXSoM/t7EySWMgc=
+Authentication-Results: spf=none (sender IP is )
+ smtp.mailfrom=leonro@mellanox.com; 
+Received: from AM6PR05MB6408.eurprd05.prod.outlook.com (20.179.5.215) by
+ AM6PR05MB5254.eurprd05.prod.outlook.com (20.177.197.223) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2814.22; Tue, 17 Mar 2020 13:45:00 +0000
+Received: from AM6PR05MB6408.eurprd05.prod.outlook.com
+ ([fe80::c99f:9130:561f:dea0]) by AM6PR05MB6408.eurprd05.prod.outlook.com
+ ([fe80::c99f:9130:561f:dea0%3]) with mapi id 15.20.2814.021; Tue, 17 Mar 2020
+ 13:45:00 +0000
+Date:   Tue, 17 Mar 2020 15:44:57 +0200
+From:   Leon Romanovsky <leonro@mellanox.com>
+To:     Laurence Oberman <loberman@redhat.com>
+Cc:     Max Gurtovoy <maxg@mellanox.com>,
+        rdmadev <rdma-dev-team@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        "Van Assche, Bart" <bvanassche@acm.org>,
+        Rupesh Girase <rgirase@redhat.com>
+Subject: Re: commit ab118da4c10a70b8437f5c90ab77adae1835963e causes ib_srpt
+ to fail connections served by target LIO
+Message-ID: <20200317134457.GF3351@unreal>
+References: <0bef0089-0c46-8fb7-9e44-61654c641cbd@mellanox.com>
+ <e57c1763dd99ea958c9834a53ae5688a775c9444.camel@redhat.com>
+ <6d5415e3-9314-331a-fade-7593c6a27290@mellanox.com>
+ <8695fb0f34588616aded629127cc3fa2799fa7cb.camel@redhat.com>
+ <918bc803-41d6-6eea-34e2-9e40f959a982@mellanox.com>
+ <2a04cd1d66e6bc2edb96231b47499f4c1450e592.camel@redhat.com>
+ <327df8af71afab4a2f9b6da804218d5a94cf6020.camel@redhat.com>
+ <20200316072140.GD8510@unreal>
+ <20200316073002.GE8510@unreal>
+ <2e0bf1fb747a41ea817aaaa141e3410ced078548.camel@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2e0bf1fb747a41ea817aaaa141e3410ced078548.camel@redhat.com>
+X-ClientProxiedBy: AM0PR01CA0067.eurprd01.prod.exchangelabs.com
+ (2603:10a6:208:e6::44) To AM6PR05MB6408.eurprd05.prod.outlook.com
+ (2603:10a6:20b:b8::23)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from localhost (2a00:a040:183:2d::393) by AM0PR01CA0067.eurprd01.prod.exchangelabs.com (2603:10a6:208:e6::44) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2814.21 via Frontend Transport; Tue, 17 Mar 2020 13:45:00 +0000
+X-Originating-IP: [2a00:a040:183:2d::393]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: ab2be9d1-e9b6-43d9-bf8c-08d7ca79635b
+X-MS-TrafficTypeDiagnostic: AM6PR05MB5254:|AM6PR05MB5254:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM6PR05MB52543C139999C36E583D1C08B0F60@AM6PR05MB5254.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-Forefront-PRVS: 0345CFD558
+X-Forefront-Antispam-Report: SFV:NSPM;SFS:(10009020)(4636009)(7916004)(376002)(136003)(366004)(346002)(39860400002)(396003)(199004)(16526019)(53546011)(186003)(316002)(33656002)(6916009)(52116002)(86362001)(478600001)(66556008)(66476007)(54906003)(5660300002)(30864003)(6486002)(33716001)(66946007)(6496006)(1076003)(4326008)(8676002)(81166006)(2906002)(6666004)(9686003)(8936002)(81156014);DIR:OUT;SFP:1101;SCL:1;SRVR:AM6PR05MB5254;H:AM6PR05MB6408.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;
+Received-SPF: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: sWabulo6uVdcKaeYBAGH237sNUgZqfGK3oHAQP+LkjYpJi6E3oPvJnyT4INazzvVGRigcrzjjgVrYaTj+PVcQGwNJ9xtO6AdFdwDYzPbtqnjpASzCZoKEQimyIU4pegSDeBmM28G4UoSpaugkDHnNwg12LyIC47ndzHClCUnTFJMZ3qvf8thrzonXMKEXWd48PkTB7EIY2cfkIwT6X2dZbO2Jsgbmfgc7JnfL722V4WaRVnebYhAtqK8ARWNOypa1T1GgFDXUhGolG/c/7FU3rpi15L5cIMwztbZokKMAqV/xjpRwEjaXSdzUi/tEANxMsSyTIPqtXvyr6z8sZVOgugsGHpp6PTiHheiJSZChaLdV3nPu+Y3TuZICL9Ao6MKPiJczaEF8h9hhnoZ2NsPsRmkzV8daU+BUbU1BNiROm+IoW21hExCKQUQaYVqt+SN
+X-MS-Exchange-AntiSpam-MessageData: /hERvB/sUDa/SS6sjXxj69WT9QCSZkOeCpJixDdJvKkShQ5hFgLmiZ5glJkx/pJ431d1MMkVhOQqL3lKzeCMrOAIjtIj+mx/QKhvIBbHanhZF2gqHlmEhDKP0OEZQR9P/0ruD7GlC3QLKZbAzOsJo9iiCOTMg8X45Te0AcmpEPo=
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ab2be9d1-e9b6-43d9-bf8c-08d7ca79635b
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Mar 2020 13:45:00.5244
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: CFecZPHMnNQd0JOeU+7qiJ6j2h+gt+MR9LTD6vSpesiRasZI8t5/SjQ1zcVDkK3eIBRZDsk+Cef9EQTSqZo9tQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB5254
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In order to save resource allocation and utilize the completion
-locality in a better way (compared to SRQ per device that exist today),
-allocate Shared Receive Queues (SRQs) per completion vector. Associate
-each created QP/CQ with an appropriate SRQ according to the queue index.
-This association will reduce the lock contention in the fast path
-(compared to SRQ per device solution) and increase the locality in
-memory buffers. Add new module parameter for SRQ size to adjust it
-according to the expected load. User should make sure the size is >= 256
-to avoid lack of resources.
+On Mon, Mar 16, 2020 at 03:18:28PM -0400, Laurence Oberman wrote:
+> On Mon, 2020-03-16 at 09:30 +0200, Leon Romanovsky wrote:
+> > On Mon, Mar 16, 2020 at 09:21:40AM +0200, Leon Romanovsky wrote:
+> > > On Sun, Mar 15, 2020 at 05:56:17PM -0400, Laurence Oberman wrote:
+> > > > On Sun, 2020-03-15 at 17:01 -0400, Laurence Oberman wrote:
+> > > > > On Sun, 2020-03-15 at 22:40 +0200, Max Gurtovoy wrote:
+> > > > > > On 3/15/2020 8:36 PM, Laurence Oberman wrote:
+> > > > > > > On Sun, 2020-03-15 at 20:20 +0200, Max Gurtovoy wrote:
+> > > > > > > > On 3/15/2020 7:59 PM, Laurence Oberman wrote:
+> > > > > > > > > On Sun, 2020-03-15 at 18:47 +0200, Max Gurtovoy wrote:
+> > > > > > > > > > On 3/14/2020 11:30 PM, Laurence Oberman wrote:
+> > > > > > > > > > > Hello Bart, Leon and Max
+> > > > > > > > > >
+> > > > > > > > > > Hi Laurence,
+> > > > > > > > > >
+> > > > > > > > > > thanks for the great analysis and the fast response
+> > > > > > > > > > !!
+> > > > > > > > > >
+> > > > > > > > > > > Max had reached out to me to test a new set of
+> > > > > > > > > > > patches
+> > > > > > > > > > > for
+> > > > > > > > > > > SRQ.
+> > > > > > > > > > > I had not tested upstream ib_srpt on an LIO target
+> > > > > > > > > > > for
+> > > > > > > > > > > quite a
+> > > > > > > > > > > while,
+> > > > > > > > > > > only ib_srp client tests had been run of late.
+> > > > > > > > > > > During a baseline test before applying Max's
+> > > > > > > > > > > patches it
+> > > > > > > > > > > was
+> > > > > > > > > > > apparent
+> > > > > > > > > > > that something had broken ib_srpt connections
+> > > > > > > > > > > within LIO
+> > > > > > > > > > > target
+> > > > > > > > > > > since
+> > > > > > > > > > > 5.5.
+> > > > > > > > > > >
+> > > > > > > > > > > Note thet ib_srp client connectivity with the
+> > > > > > > > > > > commit
+> > > > > > > > > > > functions
+> > > > > > > > > > > fine,
+> > > > > > > > > > > it's just the target that breaks with this commit.
+> > > > > > > > > > >
+> > > > > > > > > > > After a long bisect this is the commit that seems
+> > > > > > > > > > > to
+> > > > > > > > > > > break
+> > > > > > > > > > > it.
+> > > > > > > > > > > While it's not directly code in ib_srpt, its code
+> > > > > > > > > > > in mlx5
+> > > > > > > > > > > vport
+> > > > > > > > > > > ethernet connectivity that then breaks ib_srpt
+> > > > > > > > > > > connectivity
+> > > > > > > > > > > over
+> > > > > > > > > > > mlx5
+> > > > > > > > > > > IB RDMA with LIO.
+> > > > > > > > > >
+> > > > > > > > > > I was able to connect in loopback and also from
+> > > > > > > > > > remote
+> > > > > > > > > > initiator
+> > > > > > > > > > with
+> > > > > > > > > > this commit.
+> > > > > > > > > >
+> > > > > > > > > > So I'm not sure that this commit is broken.
+> > > > > > > > > >
+> > > > > > > > > > I used Bart's scripts to configure the target and to
+> > > > > > > > > > connect
+> > > > > > > > > > to
+> > > > > > > > > > it
+> > > > > > > > > > in
+> > > > > > > > > > loopback (after some modifications for the updated
+> > > > > > > > > > kernel/sysfs/configfs
+> > > > > > > > > > interface).
+> > > > > > > > > >
+> > > > > > > > > > I did see an issue to connect from remote initiator,
+> > > > > > > > > > but
+> > > > > > > > > > after
+> > > > > > > > > > reloading
+> > > > > > > > > > openibd in the initiator side I was able to connect.
+> > > > > > > > > >
+> > > > > > > > > > So I suspect you had the same issue - that also
+> > > > > > > > > > should be
+> > > > > > > > > > debugged.
+> > > > > > > > > >
+> > > > > > > > > > > I will let Leon and others decide but reverting the
+> > > > > > > > > > > below
+> > > > > > > > > > > commit
+> > > > > > > > > > > allows
+> > > > > > > > > > > SRP connectivity to an LIO target to work again.
+> > > > > > > > > >
+> > > > > > > > > > I added prints to
+> > > > > > > > > > "mlx5_core_modify_hca_vport_context"
+> > > > > > > > > > function
+> > > > > > > > > > and
+> > > > > > > > > > found that we don't call it in "pure" mlx5 mode with
+> > > > > > > > > > PFs.
+> > > > > > > > > >
+> > > > > > > > > > Maybe you can try it too...
+> > > > > > > > > >
+> > > > > > > > > > I was able to check my patches on my system and I'll
+> > > > > > > > > > send
+> > > > > > > > > > them
+> > > > > > > > > > soon.
+> > > > > > > > > >
+> > > > > > > > > > Thanks again Laurence and Bart.
+> > > > > > > > > >
+> > > > > > > > > > > Max, I will test your new patches once we have a
+> > > > > > > > > > > decision
+> > > > > > > > > > > on
+> > > > > > > > > > > this.
+> > > > > > > > > > >
+> > > > > > > > > > > Client
+> > > > > > > > > > > Linux ibclient.lab.eng.bos.redhat.com 5.6.0-rc5+ #1
+> > > > > > > > > > > SMP
+> > > > > > > > > > > Thu
+> > > > > > > > > > > Mar
+> > > > > > > > > > > 12
+> > > > > > > > > > > 16:58:19 EDT 2020 x86_64 x86_64 x86_64 GNU/Linux
+> > > > > > > > > > >
+> > > > > > > > > > > Server with reverted commit
+> > > > > > > > > > > Linux fedstorage.bos.redhat.com 5.6.0-rc5+ #1 SMP
+> > > > > > > > > > > Sat Mar
+> > > > > > > > > > > 14
+> > > > > > > > > > > 16:39:35
+> > > > > > > > > > > EDT 2020 x86_64 x86_64 x86_64 GNU/Linux
+> > > > > > > > > > >
+> > > > > > > > > > > commit ab118da4c10a70b8437f5c90ab77adae1835963e
+> > > > > > > > > > > Author: Leon Romanovsky <leonro@mellanox.com>
+> > > > > > > > > > > Date:   Wed Nov 13 12:03:47 2019 +0200
+> > > > > > > > > > >
+> > > > > > > > > > >        net/mlx5: Don't write read-only fields in
+> > > > > > > > > > > MODIFY_HCA_VPORT_CONTEXT
+> > > > > > > > > > > command
+> > > > > > > > > > >
+> > > > > > > > > > >        The MODIFY_HCA_VPORT_CONTEXT uses
+> > > > > > > > > > > field_selector
+> > > > > > > > > > > to
+> > > > > > > > > > > mask
+> > > > > > > > > > > fields
+> > > > > > > > > > > needed
+> > > > > > > > > > >        to be written, other fields are required to
+> > > > > > > > > > > be
+> > > > > > > > > > > zero
+> > > > > > > > > > > according
+> > > > > > > > > > > to
+> > > > > > > > > > > the
+> > > > > > > > > > >        HW specification. The supported fields are
+> > > > > > > > > > > controlled by
+> > > > > > > > > > > bitfield
+> > > > > > > > > > >        and limited to vport state, node and port
+> > > > > > > > > > > GUIDs.
+> > > > > > > > > > >
+> > > > > > > > > > >        Signed-off-by: Leon Romanovsky <
+> > > > > > > > > > > leonro@mellanox.com>
+> > > > > > > > > > >        Signed-off-by: Saeed Mahameed <
+> > > > > > > > > > > saeedm@mellanox.com
+> > > > > > > > > > > >
+> > > > > > > > > > >
+> > > > > > > > > > > diff --git
+> > > > > > > > > > > a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+> > > > > > > > > > > b/drivers/net/ethernet/mellanox/mlx5
+> > > > > > > > > > > index 30f7848..1faac31f 100644
+> > > > > > > > > > > ---
+> > > > > > > > > > > a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+> > > > > > > > > > > +++
+> > > > > > > > > > > b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+> > > > > > > > > > > @@ -1064,26 +1064,13 @@ int
+> > > > > > > > > > > mlx5_core_modify_hca_vport_context(struct
+> > > > > > > > > > > mlx5_core_dev *dev,
+> > > > > > > > > > >
+> > > > > > > > > > >            ctx =
+> > > > > > > > > > > MLX5_ADDR_OF(modify_hca_vport_context_in,
+> > > > > > > > > > > in,
+> > > > > > > > > > > hca_vport_context);
+> > > > > > > > > > >            MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > field_select,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > field_select);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > sm_virt_aware,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > sm_virt_aware);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, has_smi,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > has_smi);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, has_raw,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > has_raw);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > vport_state_policy,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > policy);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > port_physical_state,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > phys_state);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > vport_state,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > vport_state);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET64(hca_vport_context, ctx,
+> > > > > > > > > > > port_guid,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > port_guid);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET64(hca_vport_context, ctx,
+> > > > > > > > > > > node_guid,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > node_guid);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, cap_mask1,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > cap_mask1);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > cap_mask1_field_select,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > cap_mask1_perm);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, cap_mask2,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > cap_mask2);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > cap_mask2_field_select,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > cap_mask2_perm);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, lid, req-
+> > > > > > > > > > > >lid);
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > init_type_reply,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > init_type_reply);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, lmc, req-
+> > > > > > > > > > > >lmc);
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > subnet_timeout,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > subnet_timeout);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, sm_lid,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > sm_lid);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx, sm_sl,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > sm_sl);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > qkey_violation_counter,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > qkey_violation_counter);
+> > > > > > > > > > >
+> > > > > > > > > > > -       MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > pkey_violation_counter,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > pkey_violation_counter);
+> > > > > > > > > > >
+> > > > > > > > > > > +       if (req->field_select &
+> > > > > > > > > > > MLX5_HCA_VPORT_SEL_STATE_POLICY)
+> > > > > > > > > > > +               MLX5_SET(hca_vport_context, ctx,
+> > > > > > > > > > > vport_state_policy,
+> > > > > > > > > > > +                        req->policy);
+> > > > > > > > > > > +       if (req->field_select &
+> > > > > > > > > > > MLX5_HCA_VPORT_SEL_PORT_GUID)
+> > > > > > > > > > > +               MLX5_SET64(hca_vport_context, ctx,
+> > > > > > > > > > > port_guid,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > port_guid);
+> > > > > > > > > > >
+> > > > > > > > > > > +       if (req->field_select &
+> > > > > > > > > > > MLX5_HCA_VPORT_SEL_NODE_GUID)
+> > > > > > > > > > > +               MLX5_SET64(hca_vport_context, ctx,
+> > > > > > > > > > > node_guid,
+> > > > > > > > > > > req-
+> > > > > > > > > > > > node_guid);
+> > > > > > > > > > >
+> > > > > > > > > > >            err = mlx5_cmd_exec(dev, in, in_sz, out,
+> > > > > > > > > > > sizeof(out));
+> > > > > > > > > > >     ex:
+> > > > > > > > > > >            kfree(in);
+> > > > > > > > > > >
+> > > > > > > > > > >
+> > > > > > > > >
+> > > > > > > > > Hi Max
+> > > > > > > > > Re:
+> > > > > > > > >
+> > > > > > > > > "
+> > > > > > > > > So I'm not sure that this commit is broken.
+> > > > > > > > > ..
+> > > > > > > > > ..
+> > > > > > > > > I added prints to "mlx5_core_modify_hca_vport_context"
+> > > > > > > > > function
+> > > > > > > > > and
+> > > > > > > > > found that we don't call it in "pure" mlx5 mode with
+> > > > > > > > > PFs.
+> > > > > > > > >
+> > > > > > > > > Maybe you can try it too...
+> > > > > > > > > "
+> > > > > > > > >
+> > > > > > > > > The thing is without this commit we connect
+> > > > > > > > > immediately, no
+> > > > > > > > > delay
+> > > > > > > > > no
+> > > > > > > > > issue and I am changing nothing else other than
+> > > > > > > > > reverting
+> > > > > > > > > here.
+> > > > > > > > >
+> > > > > > > > > So this clearly has a bearing directly on the
+> > > > > > > > > functionality.
+> > > > > > > > >
+> > > > > > > > > I will look at adding more debug, but with this commit
+> > > > > > > > > in
+> > > > > > > > > there
+> > > > > > > > > is
+> > > > > > > > > nor
+> > > > > > > > > evidence even of an attempt to connect and fail.
+> > > > > > > > >
+> > > > > > > > > Its silently faling.
+> > > > > > > >
+> > > > > > > > please send me all the configuration steps you run after
+> > > > > > > > booting
+> > > > > > > > the
+> > > > > > > > target + steps in the initiator (can be also in attached
+> > > > > > > > file).
+> > > > > > > >
+> > > > > > > > I'll try to follow this.
+> > > > > > > >
+> > > > > > > > Btw, did you try loopback initiator ?
+> > > > > > > >
+> > > > > > > > -Max.
+> > > > > > > >
+> > > > > > > >
+> > > > > > > > > Regards
+> > > > > > > > > Laurence
+> > > > > > > > >
+> > > > > > > > >
+> > > > > > > > >
+> > > > > > > > >
+> > > > > > >
+> > > > > > > Hi Max
+> > > > > > >
+> > > > > > > Did not try loopback because here we have actual physical
+> > > > > > > connectity as
+> > > > > > > that is what our customers use.
+> > > > > > >
+> > > > > > > Connected back to back with MLX5 cx4 HCA dual ports at EDR
+> > > > > > > 100
+> > > > > > > Thi sis my standard configuration used for all upstream and
+> > > > > > > Red
+> > > > > > > Hat
+> > > > > > > kernel testing.
+> > > > > > >
+> > > > > > > Reboot server and client and then first prepare server
+> > > > > > >
+> > > > > > > Server
+> > > > > > > ----------
+> > > > > > >
+> > > > > > > the prepare.sh script run is after boot on the server
+> > > > > > >
+> > > > > > >
+> > > > > > > #!/bin/bash
+> > > > > > > ./load_modules.sh
+> > > > > > > ./create_ramdisk.sh
+> > > > > > > targetcli restoreconfig
+> > > > > > > # Set the srp_sq_size
+> > > > > > > for i in
+> > > > > > > /sys/kernel/config/target/srpt/0xfe800000000000007cfe900300
+> > > > > > > 726e4e
+> > > > > > > /sys/kernel/config/target/srpt/0xfe800000000000007cfe900300
+> > > > > > > 726e4f
+> > > > > > > do
+> > > > > > > 	echo 16384 > $i/tpgt_1/attrib/srp_sq_size
+> > > > > > > done
+> > > > > > >
+> > > > > > > [root@fedstorage ~]# cat load_modules.sh
+> > > > > > > #!/bin/bash
+> > > > > > > modprobe mlx5_ib
+> > > > > > > modprobe ib_srpt
+> > > > > > > modprobe ib_srp
+> > > > > > > modprobe ib_umad
+> > > > > > >
+> > > > > > > [root@fedstorage ~]# cat ./create_ramdisk.sh
+> > > > > > > #!/bin/bash
+> > > > > > > mount -t tmpfs -o size=130g tmpfs /mnt
+> > > > > > > cd /mnt
+> > > > > > > for i in `seq 1 30`; do dd if=/dev/zero of=block-$i
+> > > > > > > bs=1024k
+> > > > > > > count=4000
+> > > > > > > ; done
+> > > > > > >
+> > > > > > >
+> > > > > > >
+> > > > > > > Client
+> > > > > > > --------
+> > > > > > >
+> > > > > > > Once server is ready
+> > > > > > >
+> > > > > > > Run ./start_opensm.sh on client (I sont use the SM on a
+> > > > > > > switch as
+> > > > > > > we
+> > > > > > > are back to back)
+> > > > > > >
+> > > > > > > [root@ibclient ~]# cat ./start_opensm.sh
+> > > > > > > #!/bin/bash
+> > > > > > > rmmod ib_srpt
+> > > > > > > opensm -F opensm.1.conf &
+> > > > > > > opensm -F opensm.2.conf &
+> > > > > > >
+> > > > > > > I will semail the conf only to you as well as the targecli
+> > > > > > > config
+> > > > > > > as th
+> > > > > > > eout is long.
+> > > > > > >
+> > > > > > >
+> > > > > > > Then run start_srp.sh
+> > > > > > >
+> > > > > > > [root@ibclient ~]# cat ./start_srp.sh
+> > > > > > > run_srp_daemon  -V -f /etc/ddn/srp_daemon.conf -R 30 -T 10
+> > > > > > > -t
+> > > > > > > 7000
+> > > > > > > -ance -i mlx5_0 -p 1 1>/root/srp1.log 2>&1 &
+> > > > > > > run_srp_daemon  -V -f /etc/ddn/srp_daemon.conf -R 30 -T 10
+> > > > > > > -t
+> > > > > > > 7000
+> > > > > > > -ance -i mlx5_1 -p 1 1>/root/srp2.log 2>&1 &
+> > > > > > >
+> > > > > > > [root@ibclient ~]# cat /etc/ddn/srp_daemon.conf
+> > > > > > > a      queue_size=128,max_cmd_per_lun=32,max_sect=32768
+> > > > > > >
+> > > > > > >
+> > > > > >
+> > > > > > I see that you're link is IB.
+> > > > > >
+> > > > > > I was working on RoCE link layer with rdma_cm.
+> > > > > >
+> > > > > > I'll try to find some free IB setup tomorrow in my lab..
+> > > > > >
+> > > > > > Can you try login using rdma_cm ? need to load ib_ipoib for
+> > > > > > that in
+> > > > > > IB
+> > > > > > network.
+> > > > > >
+> > > > > > I'm trying to understand whether it's related to the link
+> > > > > > layer.
+> > > > > >
+> > > > > > p.s. I think the target configuration file didn't arrive.
+> > > > > >
+> > > > > > >
+> > > > > > >
+> > > > > >
+> > > > > >
+> > > > >
+> > > > > Max,
+> > > > >
+> > > > > Yes, I am, working primarily with SCSI over RDMA Protocol with
+> > > > > Infiniband HCA's in IB mode.
+> > > > > I am not using ROCE.
+> > > > >
+> > > > > Also lets not forget this is a target only issue, the latest
+> > > > > 5.6
+> > > > > kernel
+> > > > > runs untouched with no issues on the initiator when the target
+> > > > > runs
+> > > > > either 5.4 or 5.6 with the revert.
+> > > > > It would run fine with the target on 5.5 as well if I reverted
+> > > > > the
+> > > > > commit on 5.5 too.
+> > > > >
+> > > > > I am not able at this time to switch these adapters to Ethernet
+> > > > > mode
+> > > > > and ROCE
+> > > > >
+> > > > > The weird thing is the failure is completely silent so
+> > > > > something in
+> > > > > the
+> > > > > Link layer with IB has to failing early.
+> > > > > Thje other strange observation is that the IB interfaces come
+> > > > > up with
+> > > > > no issue.
+> > > > > I will try add some debug after reboot into the failing kernel.
+> > > > >
+> > > > > Regards
+> > > > > Laurence
+> > > > >
+> > > > >
+> > > > >
+> > > >
+> > > > Max,
+> > > > Rupesh in cc here will be testing latest upstream on a
+> > > > client/server
+> > > > configuration with ROCE and report back here on if he sees a
+> > > > similar
+> > > > issue with the LIO target with that commit.
+> > > >
+> > > > I will continue working on the IB srpt issue by adding some
+> > > > debug.
+> > > >
+> > > > If you think about anything related to the commit let me know.
+> > >
+> > > Laurence,
+> > >
+> > > As I said above, the most chances are that I removed some RW
+> > > initialization that wasn't protected by field_select and wasn't
+> > > marked in our PRM as RW field.
+> > >
+> > > The question is which one.
+> >
+> > I think that I know what is missing.
+> > Can you please try this patch?
+> >
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+> > b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+> > index 1faac31f74d0..23f879da9104 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+> > @@ -1071,6 +1071,9 @@ int mlx5_core_modify_hca_vport_context(struct
+> > mlx5_core_dev *dev,
+> >                 MLX5_SET64(hca_vport_context, ctx, port_guid, req-
+> > >port_guid);
+> >         if (req->field_select & MLX5_HCA_VPORT_SEL_NODE_GUID)
+> >                 MLX5_SET64(hca_vport_context, ctx, node_guid, req-
+> > >node_guid);
+> > +       MLX5_SET(hca_vport_context, ctx, cap_mask1, req->cap_mask1);
+> > +       MLX5_SET(hca_vport_context, ctx, cap_mask1_field_select,
+> > +                req->cap_mask1_perm);
+> >         err = mlx5_cmd_exec(dev, in, in_sz, out, sizeof(out));
+> >  ex:
+> >         kfree(in);
+> >
+> >
+> > >
+> > > Thanks
+> > >
+> > > >
+> > > > Regards
+> > > > Laurence
+> > > >
+> >
+> >
+>
+> Leon,
+>
+> That patch does resolve the issue.
+> Tested with CX4 with mlx5 with SRP over IB to LIO target.
+> Please add a fixes to that commit tag with this one when you send it.
+>
+> Reviewed-by: Laurence Oberman <loberman@redhat.com>
+> Tested-by:   Laurence Oberman <loberman@redhat.com>
 
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
----
- drivers/nvme/target/rdma.c | 204 +++++++++++++++++++++++++++++++++------------
- 1 file changed, 153 insertions(+), 51 deletions(-)
+Thanks Laurence,
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 04062af..f560257 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -18,6 +18,7 @@
- #include <asm/unaligned.h>
- 
- #include <rdma/ib_verbs.h>
-+#include <rdma/srq_set.h>
- #include <rdma/rdma_cm.h>
- #include <rdma/rw.h>
- 
-@@ -31,6 +32,8 @@
- #define NVMET_RDMA_MAX_INLINE_SGE		4
- #define NVMET_RDMA_MAX_INLINE_DATA_SIZE		max_t(int, SZ_16K, PAGE_SIZE)
- 
-+struct nvmet_rdma_srq;
-+
- struct nvmet_rdma_cmd {
- 	struct ib_sge		sge[NVMET_RDMA_MAX_INLINE_SGE + 1];
- 	struct ib_cqe		cqe;
-@@ -38,7 +41,7 @@ struct nvmet_rdma_cmd {
- 	struct scatterlist	inline_sg[NVMET_RDMA_MAX_INLINE_SGE];
- 	struct nvme_command     *nvme_cmd;
- 	struct nvmet_rdma_queue	*queue;
--	struct ib_srq		*srq;
-+	struct nvmet_rdma_srq   *nsrq;
- };
- 
- enum {
-@@ -80,6 +83,7 @@ struct nvmet_rdma_queue {
- 	struct ib_cq		*cq;
- 	atomic_t		sq_wr_avail;
- 	struct nvmet_rdma_device *dev;
-+	struct nvmet_rdma_srq   *nsrq;
- 	spinlock_t		state_lock;
- 	enum nvmet_rdma_queue_state state;
- 	struct nvmet_cq		nvme_cq;
-@@ -97,17 +101,24 @@ struct nvmet_rdma_queue {
- 
- 	int			idx;
- 	int			host_qid;
-+	int			comp_vector;
- 	int			recv_queue_size;
- 	int			send_queue_size;
- 
- 	struct list_head	queue_list;
- };
- 
-+struct nvmet_rdma_srq {
-+	struct ib_srq            *srq;
-+	struct nvmet_rdma_cmd    *cmds;
-+	struct nvmet_rdma_device *ndev;
-+};
-+
- struct nvmet_rdma_device {
- 	struct ib_device	*device;
- 	struct ib_pd		*pd;
--	struct ib_srq		*srq;
--	struct nvmet_rdma_cmd	*srq_cmds;
-+	struct nvmet_rdma_srq	**srqs;
-+	int			srq_count;
- 	size_t			srq_size;
- 	struct kref		ref;
- 	struct list_head	entry;
-@@ -119,6 +130,16 @@ struct nvmet_rdma_device {
- module_param_named(use_srq, nvmet_rdma_use_srq, bool, 0444);
- MODULE_PARM_DESC(use_srq, "Use shared receive queue.");
- 
-+static int srq_size_set(const char *val, const struct kernel_param *kp);
-+static const struct kernel_param_ops srq_size_ops = {
-+	.set = srq_size_set,
-+	.get = param_get_int,
-+};
-+
-+static int nvmet_rdma_srq_size = 1024;
-+module_param_cb(srq_size, &srq_size_ops, &nvmet_rdma_srq_size, 0644);
-+MODULE_PARM_DESC(srq_size, "set Shared Receive Queue (SRQ) size, should >= 256 (default: 1024)");
-+
- static DEFINE_IDA(nvmet_rdma_queue_ida);
- static LIST_HEAD(nvmet_rdma_queue_list);
- static DEFINE_MUTEX(nvmet_rdma_queue_mutex);
-@@ -139,6 +160,17 @@ static int nvmet_rdma_alloc_rsp(struct nvmet_rdma_device *ndev,
- 
- static const struct nvmet_fabrics_ops nvmet_rdma_ops;
- 
-+static int srq_size_set(const char *val, const struct kernel_param *kp)
-+{
-+	int n = 0, ret;
-+
-+	ret = kstrtoint(val, 10, &n);
-+	if (ret != 0 || n < 256)
-+		return -EINVAL;
-+
-+	return param_set_int(val, kp);
-+}
-+
- static int num_pages(int len)
- {
- 	return 1 + (((len - 1) & PAGE_MASK) >> PAGE_SHIFT);
-@@ -462,8 +494,8 @@ static int nvmet_rdma_post_recv(struct nvmet_rdma_device *ndev,
- 		cmd->sge[0].addr, cmd->sge[0].length,
- 		DMA_FROM_DEVICE);
- 
--	if (cmd->srq)
--		ret = ib_post_srq_recv(cmd->srq, &cmd->wr, NULL);
-+	if (cmd->nsrq)
-+		ret = ib_post_srq_recv(cmd->nsrq->srq, &cmd->wr, NULL);
- 	else
- 		ret = ib_post_recv(cmd->queue->cm_id->qp, &cmd->wr, NULL);
- 
-@@ -841,30 +873,82 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 	nvmet_rdma_handle_command(queue, rsp);
- }
- 
--static void nvmet_rdma_destroy_srq(struct nvmet_rdma_device *ndev)
-+static void nvmet_rdma_destroy_srq(struct nvmet_rdma_srq *nsrq)
-+{
-+	nvmet_rdma_free_cmds(nsrq->ndev, nsrq->cmds, nsrq->ndev->srq_size, false);
-+	rdma_srq_put(nsrq->ndev->pd, nsrq->srq);
-+
-+	kfree(nsrq);
-+}
-+
-+static void nvmet_rdma_destroy_srqs(struct nvmet_rdma_device *ndev)
- {
--	if (!ndev->srq)
-+	int i;
-+
-+	if (!ndev->srqs)
- 		return;
- 
--	nvmet_rdma_free_cmds(ndev, ndev->srq_cmds, ndev->srq_size, false);
--	ib_destroy_srq(ndev->srq);
-+	for (i = 0; i < ndev->srq_count; i++)
-+		nvmet_rdma_destroy_srq(ndev->srqs[i]);
-+
-+	rdma_srq_set_destroy(ndev->pd);
-+	kfree(ndev->srqs);
-+	ndev->srqs = NULL;
-+	ndev->srq_count = 0;
-+	ndev->srq_size = 0;
- }
- 
--static int nvmet_rdma_init_srq(struct nvmet_rdma_device *ndev)
-+static struct nvmet_rdma_srq *
-+nvmet_rdma_init_srq(struct nvmet_rdma_device *ndev)
- {
--	struct ib_srq_init_attr srq_attr = { NULL, };
-+	size_t srq_size = ndev->srq_size;
-+	struct nvmet_rdma_srq *nsrq;
- 	struct ib_srq *srq;
--	size_t srq_size;
- 	int ret, i;
- 
--	srq_size = 4095;	/* XXX: tune */
-+	nsrq = kzalloc(sizeof(*nsrq), GFP_KERNEL);
-+	if (!nsrq)
-+		return ERR_PTR(-ENOMEM);
- 
--	srq_attr.attr.max_wr = srq_size;
--	srq_attr.attr.max_sge = 1 + ndev->inline_page_count;
--	srq_attr.attr.srq_limit = 0;
--	srq_attr.srq_type = IB_SRQT_BASIC;
--	srq = ib_create_srq(ndev->pd, &srq_attr);
--	if (IS_ERR(srq)) {
-+	srq = rdma_srq_get(ndev->pd);
-+	if (!srq) {
-+		ret = -EAGAIN;
-+		goto out_free_nsrq;
-+	}
-+
-+	nsrq->cmds = nvmet_rdma_alloc_cmds(ndev, srq_size, false);
-+	if (IS_ERR(nsrq->cmds)) {
-+		ret = PTR_ERR(nsrq->cmds);
-+		goto out_put_srq;
-+	}
-+
-+	nsrq->srq = srq;
-+	nsrq->ndev = ndev;
-+
-+	for (i = 0; i < srq_size; i++) {
-+		nsrq->cmds[i].nsrq = nsrq;
-+		ret = nvmet_rdma_post_recv(ndev, &nsrq->cmds[i]);
-+		if (ret)
-+			goto out_free_cmds;
-+	}
-+
-+	return nsrq;
-+
-+out_free_cmds:
-+	nvmet_rdma_free_cmds(ndev, nsrq->cmds, srq_size, false);
-+out_put_srq:
-+	rdma_srq_put(ndev->pd, srq);
-+out_free_nsrq:
-+	kfree(nsrq);
-+	return ERR_PTR(ret);
-+}
-+
-+static int nvmet_rdma_init_srqs(struct nvmet_rdma_device *ndev)
-+{
-+	struct ib_srq_init_attr srq_attr = { NULL, };
-+	int i, ret;
-+
-+	if (!ndev->device->attrs.max_srq_wr || !ndev->device->attrs.max_srq) {
- 		/*
- 		 * If SRQs aren't supported we just go ahead and use normal
- 		 * non-shared receive queues.
-@@ -873,31 +957,44 @@ static int nvmet_rdma_init_srq(struct nvmet_rdma_device *ndev)
- 		return 0;
- 	}
- 
--	ndev->srq_cmds = nvmet_rdma_alloc_cmds(ndev, srq_size, false);
--	if (IS_ERR(ndev->srq_cmds)) {
--		ret = PTR_ERR(ndev->srq_cmds);
--		goto out_destroy_srq;
--	}
-+	ndev->srq_size = min(ndev->device->attrs.max_srq_wr,
-+			     nvmet_rdma_srq_size);
-+	ndev->srq_count = min(ndev->device->num_comp_vectors,
-+			      ndev->device->attrs.max_srq);
- 
--	ndev->srq = srq;
--	ndev->srq_size = srq_size;
-+	ndev->srqs = kcalloc(ndev->srq_count, sizeof(*ndev->srqs), GFP_KERNEL);
-+	if (!ndev->srqs)
-+		return -ENOMEM;
- 
--	for (i = 0; i < srq_size; i++) {
--		ndev->srq_cmds[i].srq = srq;
--		ret = nvmet_rdma_post_recv(ndev, &ndev->srq_cmds[i]);
--		if (ret)
--			goto out_free_cmds;
-+	srq_attr.attr.max_wr = ndev->srq_size;
-+	srq_attr.attr.max_sge = 2;
-+	srq_attr.attr.srq_limit = 0;
-+	srq_attr.srq_type = IB_SRQT_BASIC;
-+	ret = rdma_srq_set_init(ndev->pd, ndev->srq_count, &srq_attr);
-+	if (ret)
-+		goto err_free;
-+
-+	for (i = 0; i < ndev->srq_count; i++) {
-+		ndev->srqs[i] = nvmet_rdma_init_srq(ndev);
-+		if (IS_ERR(ndev->srqs[i]))
-+			goto err_srq;
- 	}
- 
- 	return 0;
- 
--out_free_cmds:
--	nvmet_rdma_free_cmds(ndev, ndev->srq_cmds, ndev->srq_size, false);
--out_destroy_srq:
--	ib_destroy_srq(srq);
-+err_srq:
-+	while (--i >= 0)
-+		nvmet_rdma_destroy_srq(ndev->srqs[i]);
-+	rdma_srq_set_destroy(ndev->pd);
-+err_free:
-+	kfree(ndev->srqs);
-+	ndev->srqs = NULL;
-+	ndev->srq_count = 0;
-+	ndev->srq_size = 0;
- 	return ret;
- }
- 
-+
- static void nvmet_rdma_free_dev(struct kref *ref)
- {
- 	struct nvmet_rdma_device *ndev =
-@@ -907,7 +1004,7 @@ static void nvmet_rdma_free_dev(struct kref *ref)
- 	list_del(&ndev->entry);
- 	mutex_unlock(&device_list_mutex);
- 
--	nvmet_rdma_destroy_srq(ndev);
-+	nvmet_rdma_destroy_srqs(ndev);
- 	ib_dealloc_pd(ndev->pd);
- 
- 	kfree(ndev);
-@@ -953,7 +1050,7 @@ static void nvmet_rdma_free_dev(struct kref *ref)
- 		goto out_free_dev;
- 
- 	if (nvmet_rdma_use_srq) {
--		ret = nvmet_rdma_init_srq(ndev);
-+		ret = nvmet_rdma_init_srqs(ndev);
- 		if (ret)
- 			goto out_free_pd;
- 	}
-@@ -977,14 +1074,8 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
- {
- 	struct ib_qp_init_attr qp_attr;
- 	struct nvmet_rdma_device *ndev = queue->dev;
--	int comp_vector, nr_cqe, ret, i;
-+	int nr_cqe, ret, i;
- 
--	/*
--	 * Spread the io queues across completion vectors,
--	 * but still keep all admin queues on vector 0.
--	 */
--	comp_vector = !queue->host_qid ? 0 :
--		queue->idx % ndev->device->num_comp_vectors;
- 
- 	/*
- 	 * Reserve CQ slots for RECV + RDMA_READ/RDMA_WRITE + RDMA_SEND.
-@@ -992,7 +1083,7 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
- 	nr_cqe = queue->recv_queue_size + 2 * queue->send_queue_size;
- 
- 	queue->cq = ib_alloc_cq(ndev->device, queue,
--			nr_cqe + 1, comp_vector,
-+			nr_cqe + 1, queue->comp_vector,
- 			IB_POLL_WORKQUEUE);
- 	if (IS_ERR(queue->cq)) {
- 		ret = PTR_ERR(queue->cq);
-@@ -1014,8 +1105,8 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
- 	qp_attr.cap.max_send_sge = max(ndev->device->attrs.max_sge_rd,
- 					ndev->device->attrs.max_send_sge);
- 
--	if (ndev->srq) {
--		qp_attr.srq = ndev->srq;
-+	if (queue->nsrq) {
-+		qp_attr.srq = queue->nsrq->srq;
- 	} else {
- 		/* +1 for drain */
- 		qp_attr.cap.max_recv_wr = 1 + queue->recv_queue_size;
-@@ -1034,7 +1125,7 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
- 		 __func__, queue->cq->cqe, qp_attr.cap.max_send_sge,
- 		 qp_attr.cap.max_send_wr, queue->cm_id);
- 
--	if (!ndev->srq) {
-+	if (!queue->nsrq) {
- 		for (i = 0; i < queue->recv_queue_size; i++) {
- 			queue->cmds[i].queue = queue;
- 			ret = nvmet_rdma_post_recv(ndev, &queue->cmds[i]);
-@@ -1070,7 +1161,7 @@ static void nvmet_rdma_free_queue(struct nvmet_rdma_queue *queue)
- 	nvmet_sq_destroy(&queue->nvme_sq);
- 
- 	nvmet_rdma_destroy_queue_ib(queue);
--	if (!queue->dev->srq) {
-+	if (!queue->nsrq) {
- 		nvmet_rdma_free_cmds(queue->dev, queue->cmds,
- 				queue->recv_queue_size,
- 				!queue->host_qid);
-@@ -1182,13 +1273,22 @@ static int nvmet_rdma_cm_reject(struct rdma_cm_id *cm_id,
- 		goto out_destroy_sq;
- 	}
- 
-+	/*
-+	 * Spread the io queues across completion vectors,
-+	 * but still keep all admin queues on vector 0.
-+	 */
-+	queue->comp_vector = !queue->host_qid ? 0 :
-+		queue->idx % ndev->device->num_comp_vectors;
-+
- 	ret = nvmet_rdma_alloc_rsps(queue);
- 	if (ret) {
- 		ret = NVME_RDMA_CM_NO_RSC;
- 		goto out_ida_remove;
- 	}
- 
--	if (!ndev->srq) {
-+	if (ndev->srqs) {
-+		queue->nsrq = ndev->srqs[queue->comp_vector % ndev->srq_count];
-+	} else {
- 		queue->cmds = nvmet_rdma_alloc_cmds(ndev,
- 				queue->recv_queue_size,
- 				!queue->host_qid);
-@@ -1209,10 +1309,12 @@ static int nvmet_rdma_cm_reject(struct rdma_cm_id *cm_id,
- 	return queue;
- 
- out_free_cmds:
--	if (!ndev->srq) {
-+	if (!queue->nsrq) {
- 		nvmet_rdma_free_cmds(queue->dev, queue->cmds,
- 				queue->recv_queue_size,
- 				!queue->host_qid);
-+	} else {
-+		queue->nsrq = NULL;
- 	}
- out_free_responses:
- 	nvmet_rdma_free_rsps(queue);
--- 
-1.8.3.1
+Saeed will send the patch to the netdev very soon.
 
+>
+> Thanks very much
+> Laurence
+>
+>
