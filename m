@@ -2,99 +2,111 @@ Return-Path: <SRS0=Q14g=5C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA86C1975A
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 19:20:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4F2C1975A
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 19:33:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 898E620752
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 19:20:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A3EE2051A
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 19:33:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726721AbgCQTUj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Mar 2020 15:20:39 -0400
-Received: from stargate.chelsio.com ([12.32.117.8]:24632 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726704AbgCQTUj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Mar 2020 15:20:39 -0400
-Received: from localhost (pvp1.blr.asicdesigners.com [10.193.80.26])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id 02HJHjfG008485;
-        Tue, 17 Mar 2020 12:17:46 -0700
-Date:   Wed, 18 Mar 2020 00:47:44 +0530
-From:   Krishnamraju Eraparaju <krishna2@chelsio.com>
-To:     Sagi Grimberg <sagi@grimberg.me>
+        id S1726388AbgCQTdv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Mar 2020 15:33:51 -0400
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:33756 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726294AbgCQTdv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Mar 2020 15:33:51 -0400
+Received: by mail-wr1-f65.google.com with SMTP id a25so27265916wrd.0
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Mar 2020 12:33:50 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=tGF1AP9wuTljWGrzhtbqei8g10fJ49+iakdT7NknjKE=;
+        b=Zu12KXCXji2UaxnnFtO4tSm8i0rfw+sFNmehWZ+hS/yjKQWU7fbSmeglmyNuyl92QF
+         aN9IuYYQzZhUSicDWEit8WusSQi7rQwTTD70iDmx7hC+tp4ghZlhC2JGYsh1vfZ9Ep0x
+         SovqbJ9623+ju4DxX//7hr/EX9DJ97f0yG54v7qfIPRlq5z1fLOf0qLxYzdj5T4s/FLH
+         rB3iUpHx9D0DnFVREpIrm7/RI/XkdgKGdKjfKms/QjqakKmYF4FpwVBijo11eiN0Vs5b
+         k6xlgpvr77thP8b334nb4+PvwZJOMVIkVQgDlyazGSf3HuOA67Xho0p0WSXN591mrRME
+         G9PA==
+X-Gm-Message-State: ANhLgQ3LUBFkjbAmpFE9jGYym4jwFNvo5wsDO7iWcWMbl6RW0OJqKG7o
+        geVaD3t3koBATJHfpFGvy4TXMc66
+X-Google-Smtp-Source: ADFU+vtGc54xQl2qkaVng8B35498da2QRFht/t7nTlwt3sL7/sWk9Z5pE9snJjZqC5/ob4qcLVZK3Q==
+X-Received: by 2002:adf:a4d2:: with SMTP id h18mr663061wrb.90.1584473629799;
+        Tue, 17 Mar 2020 12:33:49 -0700 (PDT)
+Received: from ?IPv6:2601:647:4802:9070:29c1:6aa4:fe4b:2f81? ([2601:647:4802:9070:29c1:6aa4:fe4b:2f81])
+        by smtp.gmail.com with ESMTPSA id i4sm5914217wrm.32.2020.03.17.12.33.47
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 17 Mar 2020 12:33:49 -0700 (PDT)
+Subject: Re: broken CRCs at NVMeF target with SIW & NVMe/TCP transports
+To:     Krishnamraju Eraparaju <krishna2@chelsio.com>
 Cc:     Bernard Metzler <BMT@zurich.ibm.com>,
         Christoph Hellwig <hch@lst.de>, linux-nvme@lists.infradead.org,
         linux-rdma@vger.kernel.org,
         Nirranjan Kirubaharan <nirranjan@chelsio.com>,
         Potnuri Bharat Teja <bharat@chelsio.com>
-Subject: Re: broken CRCs at NVMeF target with SIW & NVMe/TCP transports
-Message-ID: <20200317191743.GA22065@chelsio.com>
 References: <a8e7b61a-b238-2cc3-d3c8-743ad1f8c8ee@grimberg.me>
- <20200316162008.GA7001@chelsio.com>
- <20200317124533.GB12316@lst.de>
+ <20200316162008.GA7001@chelsio.com> <20200317124533.GB12316@lst.de>
  <OFB2589549.AD31F8B8-ON0025852E.005A969A-0025852E.005A96A3@notes.na.collabserv.com>
  <70b13212-faa6-d634-8beb-55ba39891d7f@grimberg.me>
+ <20200317191743.GA22065@chelsio.com>
+From:   Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <38f79fb7-841a-9faa-e1f8-2de4b9f21118@grimberg.me>
+Date:   Tue, 17 Mar 2020 12:33:44 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Firefox/60.0 Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <70b13212-faa6-d634-8beb-55ba39891d7f@grimberg.me>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <20200317191743.GA22065@chelsio.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tuesday, March 03/17/20, 2020 at 09:39:39 -0700, Sagi Grimberg wrote:
-> 
-> >>>For TCP we can set BDI_CAP_STABLE_WRITES.  For RDMA I don't think
-> >>that
-> >>>is a good idea as pretty much all RDMA block drivers rely on the
-> >>>DMA behavior above.  The answer is to bounce buffer the data in
-> >>>SoftiWARP / SoftRoCE.
-> >>
-> >>We already do, see nvme_alloc_ns.
-> >>
-> >>
-> >
-> >Krishna was getting the issue when testing TCP/NVMeF with -G
-> >during connect. That enables data digest and STABLE_WRITES
-> >I think. So to me it seems we don't get stable pages, but
-> >pages which are touched after handover to the provider.
-> 
-> Non of the transports modifies the data at any point, both will
-> scan it to compute crc. So surely this is coming from the fs,
-> Krishna does this happen with xfs as well?
-Yes, but rare(took ~15min to recreate), whereas with ext3/4
-its almost immediate. Here is the error log for NVMe/TCP with xfs.
 
-dmesg at Host:
-[  +0.000323] nvme nvme2: creating 12 I/O queues.
-[  +0.008991] nvme nvme2: Successfully reconnected (1 attempt)
-[ +25.277733] blk_update_request: I/O error, dev nvme2n1, sector 0 op
-0x3:(DISCARD) flags 0x800 phys_seg 1 prio class 0
-[  +6.043879] XFS (nvme2n1): Mounting V5 Filesystem
-[  +0.017745] XFS (nvme2n1): Ending clean mount
-[  +0.000174] xfs filesystem being mounted at /mnt supports timestamps
-until 2038 (0x7fffffff)
-[Mar18 00:14] nvme nvme2: Reconnecting in 10 seconds...
-[  +0.000453] nvme nvme2: creating 12 I/O queues.
-[  +0.009216] nvme nvme2: Successfully reconnected (1 attempt)
-[Mar18 00:43] nvme nvme2: Reconnecting in 10 seconds...
-[  +0.000383] nvme nvme2: creating 12 I/O queues.
-[  +0.009239] nvme nvme2: Successfully reconnected (1 attempt)
+>>>>> For TCP we can set BDI_CAP_STABLE_WRITES.  For RDMA I don't think
+>>>> that
+>>>>> is a good idea as pretty much all RDMA block drivers rely on the
+>>>>> DMA behavior above.  The answer is to bounce buffer the data in
+>>>>> SoftiWARP / SoftRoCE.
+>>>>
+>>>> We already do, see nvme_alloc_ns.
+>>>>
+>>>>
+>>>
+>>> Krishna was getting the issue when testing TCP/NVMeF with -G
+>>> during connect. That enables data digest and STABLE_WRITES
+>>> I think. So to me it seems we don't get stable pages, but
+>>> pages which are touched after handover to the provider.
+>>
+>> Non of the transports modifies the data at any point, both will
+>> scan it to compute crc. So surely this is coming from the fs,
+>> Krishna does this happen with xfs as well?
+> Yes, but rare(took ~15min to recreate), whereas with ext3/4
+> its almost immediate. Here is the error log for NVMe/TCP with xfs.
 
+Thanks Krishna,
 
-dmesg at Target:
-[Mar18 00:14] nvmet_tcp: queue 9: cmd 17 pdu (4) data digest error: recv
-0x8e85d882 expected 0x9a46fac3
-[  +0.000011] nvmet: ctrl 1 fatal error occurred!
-[ +10.240266] nvmet: creating controller 1 for subsystem nvme-ram0 for
-NQN nqn.2014-08.org.nvmexpress.chelsio.
-[Mar18 00:42] nvmet_tcp: queue 7: cmd 89 pdu (4) data digest error: recv
-0xc0ce3dfd expected 0x7ee136b5
-[  +0.000012] nvmet: ctrl 1 fatal error occurred!
-[Mar18 00:43] nvmet: creating controller 1 for subsystem nvme-ram0 for
-NQN nqn.2014-08.org.nvmexpress.chelsio.
+I assume that this makes the issue go away?
+--
+diff --git a/drivers/nvme/host/tcp.c b/drivers/nvme/host/tcp.c
+index 11e10fe1760f..cc93e1949b2c 100644
+--- a/drivers/nvme/host/tcp.c
++++ b/drivers/nvme/host/tcp.c
+@@ -889,7 +889,7 @@ static int nvme_tcp_try_send_data(struct 
+nvme_tcp_request *req)
+                         flags |= MSG_MORE;
 
+                 /* can't zcopy slab pages */
+-               if (unlikely(PageSlab(page))) {
++               if (unlikely(PageSlab(page)) || queue->data_digest) {
+                         ret = sock_no_sendpage(queue->sock, page, 
+offset, len,
+                                         flags);
+                 } else {
+--
