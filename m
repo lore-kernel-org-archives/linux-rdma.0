@@ -2,430 +2,103 @@ Return-Path: <SRS0=Q14g=5C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 879F9C10F29
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 03:59:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04460C10F29
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 05:23:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5660820674
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 03:59:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6ACC20663
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 05:23:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="frhwbv9A"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726192AbgCQD7n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Mar 2020 23:59:43 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:41508 "EHLO huawei.com"
+        id S1725794AbgCQFXc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Mar 2020 01:23:32 -0400
+Received: from mail-dm6nam10on2109.outbound.protection.outlook.com ([40.107.93.109]:22493
+        "EHLO NAM10-DM6-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726587AbgCQD7n (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 16 Mar 2020 23:59:43 -0400
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 821528EBD38FD237DA81;
-        Tue, 17 Mar 2020 11:59:15 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 17 Mar 2020 11:59:06 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 1/2] RDMA/hns: Optimize mhop get flow for multi-hop addressing
-Date:   Tue, 17 Mar 2020 11:55:23 +0800
-Message-ID: <1584417324-2255-2-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1584417324-2255-1-git-send-email-liweihang@huawei.com>
-References: <1584417324-2255-1-git-send-email-liweihang@huawei.com>
+        id S1725536AbgCQFXb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Mar 2020 01:23:31 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=kbypH6xJYP3nCmb2s5kYkdqLE8qwLp3JnOebG/CQ5AetHpUVy5+qZRaJtLxJsQTbEOMJezP6T364FL63g+Hv2NWWmQOS+7qiaBnSD2AiR7agmLI7E49go7413fwTRfzdFY0Es8tC2If8aKw1vo3zD1wSroN/yL3MCV7liKmsZ8XEQvvEYLK6oMqIVNwCLHE+4Rg182TRe+6nkngToambWIGQF9IsRIss5IV6CYUQV1eHmLzMoVeQ7bctAfyrxnL6adJAxN5NWhQEXTzD08ATHrtrppZJ6dqswsvFw0kLYq0ZQPnrGVmkUtRLjNpTB5GRJVEWMdoGQiiTmF1TNyP6XA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LKtQzW/TeH++D4rQBIrVzbgS2SwHp6VpdoCLylUEsAc=;
+ b=JYFiAFARWiU6fNeGvCqWnKDXqirtcr2x27RqCo4fBcw3hela7mzgcji6yDy3aTduUV0KJA5w0GfqhCwlJCPWaJSWloNoiTAAEidSBNOc9ybj1PirZ5tIQ5oMvu1WCq0roBFjV/Ze9mKfyCqM3H/o1+JPXlkCtjn5q7BZ8/JnDDjuEQDCtaOm7oKQGFH+XU3jo7jXL9zZ4IgFsVRJfcQlSL7o28f3cjJDAFIneJtKIP5xK2pkRMrYEloMWjPLBomfcvHRbrkPqpxbaXkxz6Hmie06/ACZafih+fFBA2LNilcoE0700I3YDLltLAlZhdoJmDI51iMW+02sombBF9v6vw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LKtQzW/TeH++D4rQBIrVzbgS2SwHp6VpdoCLylUEsAc=;
+ b=frhwbv9AVmC1XYyB8vOMbMMcUW+rvWO3jy2ogx0uTcl/Ttznka2arR07Cs8mlpgIXdbVGqXV1oRAAbEe291UicYXZ7XEfTv2UconTFxN/Ds9YZUKg88fZ9qVzxdlLkg7PhABQX0RRcS3snMCxTUGl+XMZ6h3s39GyfVE1AQ6vGs=
+Received: from BYAPR21MB1223.namprd21.prod.outlook.com (2603:10b6:a03:107::14)
+ by BYAPR21MB1334.namprd21.prod.outlook.com (2603:10b6:a03:115::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2835.2; Tue, 17 Mar
+ 2020 05:23:28 +0000
+Received: from BYAPR21MB1223.namprd21.prod.outlook.com
+ ([fe80::8d1f:f622:2bc1:a518]) by BYAPR21MB1223.namprd21.prod.outlook.com
+ ([fe80::8d1f:f622:2bc1:a518%8]) with mapi id 15.20.2856.001; Tue, 17 Mar 2020
+ 05:23:28 +0000
+From:   Ju-Hyoung Lee <juhlee@microsoft.com>
+To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+CC:     Ju-Hyoung Lee <juhlee@microsoft.com>
+Subject: Find rdma-core version
+Thread-Topic: Find rdma-core version
+Thread-Index: AdX8G/w1CIvOVTxSRQyfs/GZbAPOgw==
+Date:   Tue, 17 Mar 2020 05:23:28 +0000
+Message-ID: <BYAPR21MB1223A416AA7FE380D8DDFFC9DAF60@BYAPR21MB1223.namprd21.prod.outlook.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=juhlee@microsoft.com; 
+x-originating-ip: [2601:1c2:4b00:8ff0:9b9:5798:e241:7820]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 604cc95a-8d8c-447d-a1fb-08d7ca335359
+x-ms-traffictypediagnostic: BYAPR21MB1334:|BYAPR21MB1334:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <BYAPR21MB1334A990E45DEC9B94A64951DAF60@BYAPR21MB1334.namprd21.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:7691;
+x-forefront-prvs: 0345CFD558
+x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(4636009)(396003)(346002)(136003)(366004)(376002)(39860400002)(199004)(55016002)(186003)(7696005)(8676002)(71200400001)(5660300002)(558084003)(8990500004)(316002)(10290500003)(478600001)(81156014)(2906002)(8936002)(52536014)(86362001)(4326008)(81166006)(3480700007)(66946007)(66446008)(64756008)(66556008)(66476007)(76116006)(33656002)(6506007)(6916009)(9686003)(107886003);DIR:OUT;SFP:1102;SCL:1;SRVR:BYAPR21MB1334;H:BYAPR21MB1223.namprd21.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;
+received-spf: None (protection.outlook.com: microsoft.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: WTcw3JkYsd1O+Kb7dJjAatyVvFMiSDKi5J7gws3cpDHZ1wfspUroNNhXeyy96QbK0xIt0j+MYpziQV9mAkXdXBdm+w0kBMrGFMx6yBYBe4HCFBhKP2UA/ro/xT3+8AWmnJD03E2WRQ0uTled9T4eeYJFVlp2MtKK7mrWQRKyP/BHreqSdZoLZ9+evrLNJfywFqg62DmxpCEVQsToNl0jJx8KnikXgZFl+d2eKi/YKAVQ86lct5fnDVZTpCfWFRGTYarmtsNkYwFhJV09BzTWbydbb1+wDgqlO57dOLvaPnBrLCyR87o7vUCaysN6KQ8vvy3S5E+G/Y7alKfuVOTlFYKYXT39bllALTYEdHsrqjT5NO8RS91G6AEEsOgBmWAPqBxwqDKyrqlnKSAP4+WOQ8OyOB0xY4g2nkc8GwSd3q5D4eqJeTHV3yV8sq30gL1I
+x-ms-exchange-antispam-messagedata: RiijZIfVaApoLgjVzoDxqb70dlpnMc5HKqPrVcXi2xaoHwXUapjvrIwqoQusRzPPkP6dqJe7wuFByeSIR3clRT6b4TRtHNfXWUSSQHjlOAyw4X6/xosrJjBcrnXYFLtaGd1quPEkZlh3QSlzrqN41IHeZTKIVWFP+bEUnX3jTSUXyOmYeFcT/Y/b+P8oW4QHWvR/KkLVILca9xQoVXMXDw==
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 604cc95a-8d8c-447d-a1fb-08d7ca335359
+X-MS-Exchange-CrossTenant-originalarrivaltime: 17 Mar 2020 05:23:28.5591
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: i9kaWgsSGT9p/J1horPTRi077wBfK0MSpOejO9Vlh0gNbR8pM3WyYiz5sEbkvtOzP0CQ9R/P5Bf7WMk2ik+EXA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR21MB1334
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xi Wang <wangxi11@huawei.com>
+Hi,
 
-Splits hns_roce_table_mhop_get() into 4 sub-functions to make the code flow
-clearer.
+Can anyone help me find what rdma-core version I installed in the system? I=
+t's a set of lib and utilities, but there might be a way I can verify the v=
+ersion after the official release installation.
+Any help?
 
-Signed-off-by: Xi Wang <wangxi11@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hem.c | 297 +++++++++++++++++++------------
- 1 file changed, 182 insertions(+), 115 deletions(-)
+Thanks
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 8380d71..cc557f1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -39,6 +39,16 @@
- #define DMA_ADDR_T_SHIFT		12
- #define BT_BA_SHIFT			32
- 
-+#define HEM_INDEX_BUF			BIT(0)
-+#define HEM_INDEX_L0			BIT(1)
-+#define HEM_INDEX_L1			BIT(2)
-+struct hns_roce_hem_index {
-+	u64 buf;
-+	u64 l0;
-+	u64 l1;
-+	u32 inited; /* indicate which index is available */
-+};
-+
- bool hns_roce_check_whether_mhop(struct hns_roce_dev *hr_dev, u32 type)
- {
- 	int hop_num = 0;
-@@ -434,178 +444,235 @@ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
- 
--static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
--				   struct hns_roce_hem_table *table,
--				   unsigned long obj)
-+static int calc_hem_config(struct hns_roce_dev *hr_dev,
-+			   struct hns_roce_hem_table *table, unsigned long obj,
-+			   struct hns_roce_hem_mhop *mhop,
-+			   struct hns_roce_hem_index *index)
- {
--	struct device *dev = hr_dev->dev;
--	struct hns_roce_hem_mhop mhop;
--	struct hns_roce_hem_iter iter;
--	u32 buf_chunk_size;
--	u32 bt_chunk_size;
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	unsigned long mhop_obj = obj;
-+	u32 l0_idx, l1_idx, l2_idx;
- 	u32 chunk_ba_num;
--	u32 hop_num;
--	u32 size;
- 	u32 bt_num;
--	u64 hem_idx;
--	u64 bt_l1_idx = 0;
--	u64 bt_l0_idx = 0;
--	u64 bt_ba;
--	unsigned long mhop_obj = obj;
--	int bt_l1_allocated = 0;
--	int bt_l0_allocated = 0;
--	int step_idx;
- 	int ret;
- 
--	ret = hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
-+	ret = hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, mhop);
- 	if (ret)
- 		return ret;
- 
--	buf_chunk_size = mhop.buf_chunk_size;
--	bt_chunk_size = mhop.bt_chunk_size;
--	hop_num = mhop.hop_num;
--	chunk_ba_num = bt_chunk_size / BA_BYTE_LEN;
--
--	bt_num = hns_roce_get_bt_num(table->type, hop_num);
-+	l0_idx = mhop->l0_idx;
-+	l1_idx = mhop->l1_idx;
-+	l2_idx = mhop->l2_idx;
-+	chunk_ba_num = mhop->bt_chunk_size / BA_BYTE_LEN;
-+	bt_num = hns_roce_get_bt_num(table->type, mhop->hop_num);
- 	switch (bt_num) {
- 	case 3:
--		hem_idx = mhop.l0_idx * chunk_ba_num * chunk_ba_num +
--			  mhop.l1_idx * chunk_ba_num + mhop.l2_idx;
--		bt_l1_idx = mhop.l0_idx * chunk_ba_num + mhop.l1_idx;
--		bt_l0_idx = mhop.l0_idx;
-+		index->l1 = l0_idx * chunk_ba_num + l1_idx;
-+		index->l0 = l0_idx;
-+		index->buf = l0_idx * chunk_ba_num * chunk_ba_num +
-+			     l1_idx * chunk_ba_num + l2_idx;
- 		break;
- 	case 2:
--		hem_idx = mhop.l0_idx * chunk_ba_num + mhop.l1_idx;
--		bt_l0_idx = mhop.l0_idx;
-+		index->l0 = l0_idx;
-+		index->buf = l0_idx * chunk_ba_num + l1_idx;
- 		break;
- 	case 1:
--		hem_idx = mhop.l0_idx;
-+		index->buf = l0_idx;
- 		break;
- 	default:
--		dev_err(dev, "Table %d not support hop_num = %d!\n",
--			     table->type, hop_num);
-+		ibdev_err(ibdev, "Table %d not support mhop.hop_num = %d!\n",
-+			  table->type, mhop->hop_num);
- 		return -EINVAL;
- 	}
- 
--	if (unlikely(hem_idx >= table->num_hem)) {
--		dev_err(dev, "Table %d exceed hem limt idx = %llu,max = %lu!\n",
--			     table->type, hem_idx, table->num_hem);
-+	if (unlikely(index->buf >= table->num_hem)) {
-+		ibdev_err(ibdev, "Table %d exceed hem limt idx %llu,max %lu!\n",
-+			  table->type, index->buf, table->num_hem);
- 		return -EINVAL;
- 	}
- 
--	mutex_lock(&table->mutex);
-+	return 0;
-+}
- 
--	if (table->hem[hem_idx]) {
--		++table->hem[hem_idx]->refcount;
--		goto out;
-+static void free_mhop_hem(struct hns_roce_dev *hr_dev,
-+			  struct hns_roce_hem_table *table,
-+			  struct hns_roce_hem_mhop *mhop,
-+			  struct hns_roce_hem_index *index)
-+{
-+	u32 bt_size = mhop->bt_chunk_size;
-+	struct device *dev = hr_dev->dev;
-+
-+	if (index->inited & HEM_INDEX_BUF) {
-+		hns_roce_free_hem(hr_dev, table->hem[index->buf]);
-+		table->hem[index->buf] = NULL;
-+	}
-+
-+	if (index->inited & HEM_INDEX_L1) {
-+		dma_free_coherent(dev, bt_size, table->bt_l1[index->l1],
-+				  table->bt_l1_dma_addr[index->l1]);
-+		table->bt_l1[index->l1] = NULL;
- 	}
- 
-+	if (index->inited & HEM_INDEX_L0) {
-+		dma_free_coherent(dev, bt_size, table->bt_l0[index->l0],
-+				  table->bt_l0_dma_addr[index->l0]);
-+		table->bt_l0[index->l0] = NULL;
-+	}
-+}
-+
-+static int alloc_mhop_hem(struct hns_roce_dev *hr_dev,
-+			  struct hns_roce_hem_table *table,
-+			  struct hns_roce_hem_mhop *mhop,
-+			  struct hns_roce_hem_index *index)
-+{
-+	u32 bt_size = mhop->bt_chunk_size;
-+	struct device *dev = hr_dev->dev;
-+	struct hns_roce_hem_iter iter;
-+	gfp_t flag;
-+	u64 bt_ba;
-+	u32 size;
-+	int ret;
-+
- 	/* alloc L1 BA's chunk */
--	if ((check_whether_bt_num_3(table->type, hop_num) ||
--		check_whether_bt_num_2(table->type, hop_num)) &&
--		!table->bt_l0[bt_l0_idx]) {
--		table->bt_l0[bt_l0_idx] = dma_alloc_coherent(dev, bt_chunk_size,
--					    &(table->bt_l0_dma_addr[bt_l0_idx]),
-+	if ((check_whether_bt_num_3(table->type, mhop->hop_num) ||
-+	     check_whether_bt_num_2(table->type, mhop->hop_num)) &&
-+	     !table->bt_l0[index->l0]) {
-+		table->bt_l0[index->l0] = dma_alloc_coherent(dev, bt_size,
-+					    &table->bt_l0_dma_addr[index->l0],
- 					    GFP_KERNEL);
--		if (!table->bt_l0[bt_l0_idx]) {
-+		if (!table->bt_l0[index->l0]) {
- 			ret = -ENOMEM;
- 			goto out;
- 		}
--		bt_l0_allocated = 1;
--
--		/* set base address to hardware */
--		if (table->type < HEM_TYPE_MTT) {
--			step_idx = 0;
--			if (hr_dev->hw->set_hem(hr_dev, table, obj, step_idx)) {
--				ret = -ENODEV;
--				dev_err(dev, "set HEM base address to HW failed!\n");
--				goto err_dma_alloc_l1;
--			}
--		}
-+		index->inited |= HEM_INDEX_L0;
- 	}
- 
- 	/* alloc L2 BA's chunk */
--	if (check_whether_bt_num_3(table->type, hop_num) &&
--	    !table->bt_l1[bt_l1_idx])  {
--		table->bt_l1[bt_l1_idx] = dma_alloc_coherent(dev, bt_chunk_size,
--					    &(table->bt_l1_dma_addr[bt_l1_idx]),
-+	if (check_whether_bt_num_3(table->type, mhop->hop_num) &&
-+	    !table->bt_l1[index->l1])  {
-+		table->bt_l1[index->l1] = dma_alloc_coherent(dev, bt_size,
-+					    &table->bt_l1_dma_addr[index->l1],
- 					    GFP_KERNEL);
--		if (!table->bt_l1[bt_l1_idx]) {
-+		if (!table->bt_l1[index->l1]) {
- 			ret = -ENOMEM;
--			goto err_dma_alloc_l1;
--		}
--		bt_l1_allocated = 1;
--		*(table->bt_l0[bt_l0_idx] + mhop.l1_idx) =
--					       table->bt_l1_dma_addr[bt_l1_idx];
--
--		/* set base address to hardware */
--		step_idx = 1;
--		if (hr_dev->hw->set_hem(hr_dev, table, obj, step_idx)) {
--			ret = -ENODEV;
--			dev_err(dev, "set HEM base address to HW failed!\n");
--			goto err_alloc_hem_buf;
-+			goto err_alloc_hem;
- 		}
-+		index->inited |= HEM_INDEX_L1;
-+		*(table->bt_l0[index->l0] + mhop->l1_idx) =
-+					       table->bt_l1_dma_addr[index->l1];
- 	}
- 
- 	/*
- 	 * alloc buffer space chunk for QPC/MTPT/CQC/SRQC/SCCC.
- 	 * alloc bt space chunk for MTT/CQE.
- 	 */
--	size = table->type < HEM_TYPE_MTT ? buf_chunk_size : bt_chunk_size;
--	table->hem[hem_idx] = hns_roce_alloc_hem(hr_dev,
--						size >> PAGE_SHIFT,
--						size,
--						(table->lowmem ? GFP_KERNEL :
--						GFP_HIGHUSER) | __GFP_NOWARN);
--	if (!table->hem[hem_idx]) {
-+	size = table->type < HEM_TYPE_MTT ? mhop->buf_chunk_size : bt_size;
-+	flag = (table->lowmem ? GFP_KERNEL : GFP_HIGHUSER) | __GFP_NOWARN;
-+	table->hem[index->buf] = hns_roce_alloc_hem(hr_dev, size >> PAGE_SHIFT,
-+						    size, flag);
-+	if (!table->hem[index->buf]) {
- 		ret = -ENOMEM;
--		goto err_alloc_hem_buf;
-+		goto err_alloc_hem;
- 	}
- 
--	hns_roce_hem_first(table->hem[hem_idx], &iter);
-+	index->inited |= HEM_INDEX_BUF;
-+	hns_roce_hem_first(table->hem[index->buf], &iter);
- 	bt_ba = hns_roce_hem_addr(&iter);
--
- 	if (table->type < HEM_TYPE_MTT) {
--		if (hop_num == 2) {
--			*(table->bt_l1[bt_l1_idx] + mhop.l2_idx) = bt_ba;
--			step_idx = 2;
--		} else if (hop_num == 1) {
--			*(table->bt_l0[bt_l0_idx] + mhop.l1_idx) = bt_ba;
--			step_idx = 1;
--		} else if (hop_num == HNS_ROCE_HOP_NUM_0) {
--			step_idx = 0;
--		} else {
--			ret = -EINVAL;
--			goto err_dma_alloc_l1;
-+		if (mhop->hop_num == 2)
-+			*(table->bt_l1[index->l1] + mhop->l2_idx) = bt_ba;
-+		else if (mhop->hop_num == 1)
-+			*(table->bt_l0[index->l0] + mhop->l1_idx) = bt_ba;
-+	} else if (mhop->hop_num == 2) {
-+		*(table->bt_l0[index->l0] + mhop->l1_idx) = bt_ba;
-+	}
-+
-+	return 0;
-+err_alloc_hem:
-+	free_mhop_hem(hr_dev, table, mhop, index);
-+out:
-+	return ret;
-+}
-+
-+static int set_mhop_hem(struct hns_roce_dev *hr_dev,
-+			struct hns_roce_hem_table *table, unsigned long obj,
-+			struct hns_roce_hem_mhop *mhop,
-+			struct hns_roce_hem_index *index)
-+{
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	int step_idx;
-+	int ret;
-+
-+	if (index->inited & HEM_INDEX_L0) {
-+		ret = hr_dev->hw->set_hem(hr_dev, table, obj, 0);
-+		if (ret) {
-+			ibdev_err(ibdev, "set HEM step 0 failed!\n");
-+			goto out;
- 		}
-+	}
- 
--		/* set HEM base address to hardware */
--		if (hr_dev->hw->set_hem(hr_dev, table, obj, step_idx)) {
--			ret = -ENODEV;
--			dev_err(dev, "set HEM base address to HW failed!\n");
--			goto err_alloc_hem_buf;
-+	if (index->inited & HEM_INDEX_L1) {
-+		ret = hr_dev->hw->set_hem(hr_dev, table, obj, 1);
-+		if (ret) {
-+			ibdev_err(ibdev, "set HEM step 1 failed!\n");
-+			goto out;
- 		}
--	} else if (hop_num == 2) {
--		*(table->bt_l0[bt_l0_idx] + mhop.l1_idx) = bt_ba;
- 	}
- 
--	++table->hem[hem_idx]->refcount;
--	goto out;
-+	if (index->inited & HEM_INDEX_BUF) {
-+		if (mhop->hop_num == HNS_ROCE_HOP_NUM_0)
-+			step_idx = 0;
-+		else
-+			step_idx = mhop->hop_num;
-+		ret = hr_dev->hw->set_hem(hr_dev, table, obj, step_idx);
-+		if (ret)
-+			ibdev_err(ibdev, "set HEM step last failed!\n");
-+	}
-+out:
-+	return ret;
-+}
- 
--err_alloc_hem_buf:
--	if (bt_l1_allocated) {
--		dma_free_coherent(dev, bt_chunk_size, table->bt_l1[bt_l1_idx],
--				  table->bt_l1_dma_addr[bt_l1_idx]);
--		table->bt_l1[bt_l1_idx] = NULL;
-+static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
-+				   struct hns_roce_hem_table *table,
-+				   unsigned long obj)
-+{
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	struct hns_roce_hem_index index = {};
-+	struct hns_roce_hem_mhop mhop = {};
-+	int ret;
-+
-+	ret = calc_hem_config(hr_dev, table, obj, &mhop, &index);
-+	if (ret) {
-+		ibdev_err(ibdev, "calc hem config failed!\n");
-+		return ret;
- 	}
- 
--err_dma_alloc_l1:
--	if (bt_l0_allocated) {
--		dma_free_coherent(dev, bt_chunk_size, table->bt_l0[bt_l0_idx],
--				  table->bt_l0_dma_addr[bt_l0_idx]);
--		table->bt_l0[bt_l0_idx] = NULL;
-+	mutex_lock(&table->mutex);
-+	if (table->hem[index.buf]) {
-+		++table->hem[index.buf]->refcount;
-+		goto out;
-+	}
-+
-+	ret = alloc_mhop_hem(hr_dev, table, &mhop, &index);
-+	if (ret) {
-+		ibdev_err(ibdev, "alloc mhop hem failed!\n");
-+		goto out;
-+	}
-+
-+	/* set HEM base address to hardware */
-+	if (table->type < HEM_TYPE_MTT) {
-+		ret = set_mhop_hem(hr_dev, table, obj, &mhop, &index);
-+		if (ret) {
-+			ibdev_err(ibdev, "set HEM address to HW failed!\n");
-+			goto err_alloc;
-+		}
- 	}
- 
-+	++table->hem[index.buf]->refcount;
-+	goto out;
-+
-+err_alloc:
-+	free_mhop_hem(hr_dev, table, &mhop, &index);
- out:
- 	mutex_unlock(&table->mutex);
- 	return ret;
--- 
-2.8.1
-
+Ju
