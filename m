@@ -2,134 +2,86 @@ Return-Path: <SRS0=Q14g=5C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FB0CC10F29
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:17:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD9BAC10F29
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:40:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1675720752
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:17:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AB632077F
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Mar 2020 13:40:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726148AbgCQNRR convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Mar 2020 09:17:17 -0400
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:44334 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726112AbgCQNRR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 17 Mar 2020 09:17:17 -0400
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 02HD63NU028157
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Mar 2020 09:17:16 -0400
-Received: from smtp.notes.na.collabserv.com (smtp.notes.na.collabserv.com [158.85.210.113])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2yrr5f8x4v-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Mar 2020 09:17:16 -0400
-Received: from localhost
-        by smtp.notes.na.collabserv.com with smtp.notes.na.collabserv.com ESMTP
-        for <linux-rdma@vger.kernel.org> from <BMT@zurich.ibm.com>;
-        Tue, 17 Mar 2020 13:17:16 -0000
-Received: from us1b3-smtp04.a3dr.sjc01.isc4sb.com (10.122.203.161)
-        by smtp.notes.na.collabserv.com (10.122.47.56) with smtp.notes.na.collabserv.com ESMTP;
-        Tue, 17 Mar 2020 13:17:10 -0000
-Received: from us1b3-mail162.a3dr.sjc03.isc4sb.com ([10.160.174.187])
-          by us1b3-smtp04.a3dr.sjc01.isc4sb.com
-          with ESMTP id 2020031713170927-504107 ;
-          Tue, 17 Mar 2020 13:17:09 +0000 
-In-Reply-To: <20200317124533.GB12316@lst.de>
-Subject: Re: Re: broken CRCs at NVMeF target with SIW & NVMe/TCP transports
-From:   "Bernard Metzler" <BMT@zurich.ibm.com>
-To:     "Christoph Hellwig" <hch@lst.de>
-Cc:     "Krishnamraju Eraparaju" <krishna2@chelsio.com>, sagi@grimberg.me,
-        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org,
-        "Nirranjan Kirubaharan" <nirranjan@chelsio.com>,
-        "Potnuri Bharat Teja" <bharat@chelsio.com>
-Date:   Tue, 17 Mar 2020 13:17:09 +0000
+        id S1726294AbgCQNkg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Mar 2020 09:40:36 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41445 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726278AbgCQNkg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Mar 2020 09:40:36 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 17 Mar 2020 15:40:30 +0200
+Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02HDeUhd028750;
+        Tue, 17 Mar 2020 15:40:30 +0200
+From:   Max Gurtovoy <maxg@mellanox.com>
+To:     linux-nvme@lists.infradead.org, sagi@grimberg.me, hch@lst.de,
+        loberman@redhat.com, bvanassche@acm.org, linux-rdma@vger.kernel.org
+Cc:     kbusch@kernel.org, leonro@mellanox.com, jgg@mellanox.com,
+        dledford@redhat.com, idanb@mellanox.com, shlomin@mellanox.com,
+        oren@mellanox.com, vladimirk@mellanox.com,
+        Max Gurtovoy <maxg@mellanox.com>
+Subject: [PATCH 2/5] nvmet-rdma: add srq pointer to rdma_cmd
+Date:   Tue, 17 Mar 2020 15:40:27 +0200
+Message-Id: <20200317134030.152833-3-maxg@mellanox.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20200317134030.152833-1-maxg@mellanox.com>
+References: <20200317134030.152833-1-maxg@mellanox.com>
 MIME-Version: 1.0
-Sensitivity: 
-Importance: Normal
-X-Priority: 3 (Normal)
-References: <20200317124533.GB12316@lst.de>,<20200316162008.GA7001@chelsio.com>
-X-Mailer: IBM iNotes ($HaikuForm 1054.1) | IBM Domino Build
- SCN1812108_20180501T0841_FP62 November 04, 2019 at 09:47
-X-KeepSent: ED8F9821:7106FFC4-0025852E:00476D8D;
- type=4; name=$KeepSent
-X-LLNOutbound: False
-X-Disclaimed: 34119
-X-TNEFEvaluated: 1
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset=UTF-8
-x-cbid: 20031713-7691-0000-0000-000001A02844
-X-IBM-SpamModules-Scores: BY=0; FL=0; FP=0; FZ=0; HX=0; KW=0; PH=0;
- SC=0.399202; ST=0; TS=0; UL=0; ISC=; MB=0.000001
-X-IBM-SpamModules-Versions: BY=3.00012764; HX=3.00000242; KW=3.00000007;
- PH=3.00000004; SC=3.00000293; SDB=6.01348975; UDB=6.00719454; IPR=6.01131383;
- MB=3.00031264; MTD=3.00000008; XFM=3.00000015; UTC=2020-03-17 13:17:15
-X-IBM-AV-DETECTION: SAVI=unsuspicious REMOTE=unsuspicious XFE=unused
-X-IBM-AV-VERSION: SAVI=2020-03-17 10:34:30 - 6.00011129
-x-cbparentid: 20031713-7692-0000-0000-000018A22AC9
-Message-Id: <OFED8F9821.7106FFC4-ON0025852E.00476D8D-0025852E.0048FB79@notes.na.collabserv.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.645
- definitions=2020-03-17_04:2020-03-17,2020-03-17 signatures=0
-X-Proofpoint-Spam-Reason: safe
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
------"Christoph Hellwig" <hch@lst.de> wrote: -----
+This is a preparetion patch for the SRQ per completion vector feature.
 
->To: "Krishnamraju Eraparaju" <krishna2@chelsio.com>
->From: "Christoph Hellwig" <hch@lst.de>
->Date: 03/17/2020 01:45PM
->Cc: "Bernard Metzler" <BMT@zurich.ibm.com>, sagi@grimberg.me,
->hch@lst.de, linux-nvme@lists.infradead.org,
->linux-rdma@vger.kernel.org, "Nirranjan Kirubaharan"
-><nirranjan@chelsio.com>, "Potnuri Bharat Teja" <bharat@chelsio.com>
->Subject: [EXTERNAL] Re: broken CRCs at NVMeF target with SIW &
->NVMe/TCP transports
->
->On Mon, Mar 16, 2020 at 09:50:10PM +0530, Krishnamraju Eraparaju
->wrote:
->> 
->> I'm seeing broken CRCs at NVMeF target while running the below
->program
->> at host. Here RDMA transport is SoftiWARP, but I'm also seeing the
->> same issue with NVMe/TCP aswell.
->> 
->> It appears to me that the same buffer is being rewritten by the
->> application/ULP before getting the completion for the previous
->requests.
->> getting the completion for the previous requests. HW based
->> HW based trasports(like iw_cxgb4) are not showing this issue
->because
->> they copy/DMA and then compute the CRC on copied buffer.
->
->For TCP we can set BDI_CAP_STABLE_WRITES.  For RDMA I don't think
->that
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+---
+ drivers/nvme/target/rdma.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Hmm, can you elaborate a little more here? I see that flag being
-set for data digest enabled (e.g. nvme/host/core.c:nvme_alloc_ns()).
-But enabling that data digest CRC is exactly when the NVMeF/TCP
-target detects the issue and drops the frame and disconnects...?
-
-The current situation for NVMeF/TCP is that the data digest is
-not enabled per default and buffer changes are not detected then.
-
-Krishna first detected it with using siw against hardware iWarp
-target, since the CRC gets negotiated then.
-
->is a good idea as pretty much all RDMA block drivers rely on the
->DMA behavior above.  The answer is to bounce buffer the data in
->SoftiWARP / SoftRoCE.
->
->
-Another extra copy of user data isn't really charming. Can we
-somehow let the ULP have its fingers crossed until the buffer
-got transferred, as signaled back?
-
-Best,
-Bernard.
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 37d262a..04062af 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -38,6 +38,7 @@ struct nvmet_rdma_cmd {
+ 	struct scatterlist	inline_sg[NVMET_RDMA_MAX_INLINE_SGE];
+ 	struct nvme_command     *nvme_cmd;
+ 	struct nvmet_rdma_queue	*queue;
++	struct ib_srq		*srq;
+ };
+ 
+ enum {
+@@ -461,8 +462,8 @@ static int nvmet_rdma_post_recv(struct nvmet_rdma_device *ndev,
+ 		cmd->sge[0].addr, cmd->sge[0].length,
+ 		DMA_FROM_DEVICE);
+ 
+-	if (ndev->srq)
+-		ret = ib_post_srq_recv(ndev->srq, &cmd->wr, NULL);
++	if (cmd->srq)
++		ret = ib_post_srq_recv(cmd->srq, &cmd->wr, NULL);
+ 	else
+ 		ret = ib_post_recv(cmd->queue->cm_id->qp, &cmd->wr, NULL);
+ 
+@@ -882,6 +883,7 @@ static int nvmet_rdma_init_srq(struct nvmet_rdma_device *ndev)
+ 	ndev->srq_size = srq_size;
+ 
+ 	for (i = 0; i < srq_size; i++) {
++		ndev->srq_cmds[i].srq = srq;
+ 		ret = nvmet_rdma_post_recv(ndev, &ndev->srq_cmds[i]);
+ 		if (ret)
+ 			goto out_free_cmds;
+-- 
+1.8.3.1
 
