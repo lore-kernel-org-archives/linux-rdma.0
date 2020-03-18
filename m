@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41D57C5ACD9
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37011C5ACD6
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2378B20774
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 197BD20775
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726619AbgCRPDB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Mar 2020 11:03:01 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:38034 "EHLO
+        id S1726820AbgCRPDE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Mar 2020 11:03:04 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:39921 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726757AbgCRPDB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Mar 2020 11:03:01 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
+        with ESMTP id S1726757AbgCRPDE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Mar 2020 11:03:04 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 18 Mar 2020 17:02:57 +0200
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02IF2vEO008733;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02IF2vEL008733;
         Wed, 18 Mar 2020 17:02:57 +0200
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, sagi@grimberg.me, hch@lst.de,
@@ -31,9 +31,9 @@ Cc:     kbusch@kernel.org, leonro@mellanox.com, jgg@mellanox.com,
         dledford@redhat.com, idanb@mellanox.com, shlomin@mellanox.com,
         oren@mellanox.com, vladimirk@mellanox.com, rgirase@redhat.com,
         Max Gurtovoy <maxg@mellanox.com>
-Subject: [PATCH v2 4/5] RDMA/srpt: use ib_alloc_cq instead of ib_alloc_cq_any
-Date:   Wed, 18 Mar 2020 17:02:56 +0200
-Message-Id: <20200318150257.198402-5-maxg@mellanox.com>
+Subject: [PATCH v2 1/5] IB/core: add a simple SRQ pool per PD
+Date:   Wed, 18 Mar 2020 17:02:53 +0200
+Message-Id: <20200318150257.198402-2-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200318150257.198402-1-maxg@mellanox.com>
 References: <20200318150257.198402-1-maxg@mellanox.com>
@@ -44,118 +44,184 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-For spreading the completion vectors fairly, add global ida for RDMA
-channeles and use ida_simple_{get,remove} API. This is a preparation
-for the SRQ per core feature.
+ULP's can use this API to create/destroy SRQ's with the same
+characteristics for implementing a logic that aimed to save resources
+without significant performance penalty (e.g. create SRQ per completion
+vector and use shared receive buffers for multiple controllers of the
+ULP).
 
 Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 21 +++++++++++++++++----
- drivers/infiniband/ulp/srpt/ib_srpt.h |  2 ++
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/Makefile   |  2 +-
+ drivers/infiniband/core/srq_pool.c | 75 ++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/verbs.c    |  3 ++
+ include/rdma/ib_verbs.h            |  4 ++
+ include/rdma/srq_pool.h            | 18 +++++++++
+ 5 files changed, 101 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/core/srq_pool.c
+ create mode 100644 include/rdma/srq_pool.h
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 9855274..d0294d8 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -89,6 +89,8 @@ static int srpt_get_u64_x(char *buffer, const struct kernel_param *kp)
- 		 "Using this value for ioc_guid, id_ext, and cm_listen_id instead of using the node_guid of the first HCA.");
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index d1b14887..ca377b0 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+ 				nldev.o restrack.o counters.o ib_core_uverbs.o \
+-				trace.o
++				trace.o srq_pool.o
  
- static struct ib_client srpt_client;
-+/* Will be used to allocate an index for srpt_rdma_ch. */
-+static DEFINE_IDA(srpt_channel_ida);
- /* Protects both rdma_cm_port and rdma_cm_id. */
- static DEFINE_MUTEX(rdma_cm_mutex);
- /* Port number RDMA/CM will bind to. */
-@@ -1779,7 +1781,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 	struct srpt_device *sdev = sport->sdev;
- 	const struct ib_device_attr *attrs = &sdev->device->attrs;
- 	int sq_size = sport->port_attrib.srp_sq_size;
--	int i, ret;
-+	int i, ret, comp_vector;
- 
- 	WARN_ON(ch->rq_size < 1);
- 
-@@ -1788,9 +1790,11 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 	if (!qp_init)
- 		goto out;
- 
-+	 /* Spread the io channeles across completion vectors */
-+	comp_vector = ch->idx % sdev->device->num_comp_vectors;
- retry:
--	ch->cq = ib_alloc_cq_any(sdev->device, ch, ch->rq_size + sq_size,
--				 IB_POLL_WORKQUEUE);
-+	ch->cq = ib_alloc_cq(sdev->device, ch, ch->rq_size + sq_size,
-+			     comp_vector, IB_POLL_WORKQUEUE);
- 	if (IS_ERR(ch->cq)) {
- 		ret = PTR_ERR(ch->cq);
- 		pr_err("failed to create CQ cqe= %d ret= %d\n",
-@@ -2119,6 +2123,8 @@ static void srpt_release_channel_work(struct work_struct *w)
- 
- 	kmem_cache_destroy(ch->req_buf_cache);
- 
-+	ida_simple_remove(&srpt_channel_ida, ch->idx);
+ ib_core-$(CONFIG_SECURITY_INFINIBAND) += security.o
+ ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+diff --git a/drivers/infiniband/core/srq_pool.c b/drivers/infiniband/core/srq_pool.c
+new file mode 100644
+index 0000000..68321f0
+--- /dev/null
++++ b/drivers/infiniband/core/srq_pool.c
+@@ -0,0 +1,75 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * Copyright (c) 2020 Mellanox Technologies. All rights reserved.
++ */
 +
- 	kref_put(&ch->kref, srpt_free_ch);
- }
++#include <rdma/srq_pool.h>
++
++struct ib_srq *rdma_srq_pool_get(struct ib_pd *pd)
++{
++	struct ib_srq *srq;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pd->srq_lock, flags);
++	srq = list_first_entry_or_null(&pd->srqs, struct ib_srq, pd_entry);
++	if (srq)
++		list_del(&srq->pd_entry);
++	spin_unlock_irqrestore(&pd->srq_lock, flags);
++
++	return srq;
++}
++EXPORT_SYMBOL(rdma_srq_pool_get);
++
++void rdma_srq_pool_put(struct ib_pd *pd, struct ib_srq *srq)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&pd->srq_lock, flags);
++	list_add(&srq->pd_entry, &pd->srqs);
++	spin_unlock_irqrestore(&pd->srq_lock, flags);
++}
++EXPORT_SYMBOL(rdma_srq_pool_put);
++
++int rdma_srq_pool_init(struct ib_pd *pd, int nr,
++		struct ib_srq_init_attr *srq_attr)
++{
++	struct ib_srq *srq;
++	unsigned long flags;
++	int ret, i;
++
++	for (i = 0; i < nr; i++) {
++		srq = ib_create_srq(pd, srq_attr);
++		if (IS_ERR(srq)) {
++			ret = PTR_ERR(srq);
++			goto out;
++		}
++
++		spin_lock_irqsave(&pd->srq_lock, flags);
++		list_add_tail(&srq->pd_entry, &pd->srqs);
++		spin_unlock_irqrestore(&pd->srq_lock, flags);
++	}
++
++	return 0;
++out:
++	rdma_srq_pool_destroy(pd);
++	return ret;
++}
++EXPORT_SYMBOL(rdma_srq_pool_init);
++
++void rdma_srq_pool_destroy(struct ib_pd *pd)
++{
++	struct ib_srq *srq;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pd->srq_lock, flags);
++	while (!list_empty(&pd->srqs)) {
++		srq = list_first_entry(&pd->srqs, struct ib_srq, pd_entry);
++		list_del(&srq->pd_entry);
++
++		spin_unlock_irqrestore(&pd->srq_lock, flags);
++		ib_destroy_srq(srq);
++		spin_lock_irqsave(&pd->srq_lock, flags);
++	}
++	spin_unlock_irqrestore(&pd->srq_lock, flags);
++}
++EXPORT_SYMBOL(rdma_srq_pool_destroy);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index e62c9df..0bb69d2 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -272,6 +272,8 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ 	pd->__internal_mr = NULL;
+ 	atomic_set(&pd->usecnt, 0);
+ 	pd->flags = flags;
++	spin_lock_init(&pd->srq_lock);
++	INIT_LIST_HEAD(&pd->srqs);
  
-@@ -2215,6 +2221,10 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 		goto reject;
+ 	pd->res.type = RDMA_RESTRACK_PD;
+ 	rdma_restrack_set_task(&pd->res, caller);
+@@ -340,6 +342,7 @@ void ib_dealloc_pd_user(struct ib_pd *pd, struct ib_udata *udata)
+ 		pd->__internal_mr = NULL;
  	}
  
-+	ch->idx = ida_simple_get(&srpt_channel_ida, 0, 0, GFP_KERNEL);
-+	if (ch->idx < 0)
-+		goto free_ch;
++	WARN_ON_ONCE(!list_empty(&pd->srqs));
+ 	/* uverbs manipulates usecnt with proper locking, while the kabi
+ 	   requires the caller to guarantee we can't race here. */
+ 	WARN_ON(atomic_read(&pd->usecnt));
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1f779fa..1dcfefb 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1517,6 +1517,9 @@ struct ib_pd {
+ 
+ 	u32			unsafe_global_rkey;
+ 
++	spinlock_t		srq_lock;
++	struct list_head	srqs;
 +
- 	kref_init(&ch->kref);
- 	ch->pkey = be16_to_cpu(pkey);
- 	ch->nexus = nexus;
-@@ -2243,7 +2253,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 	ch->rsp_buf_cache = kmem_cache_create("srpt-rsp-buf", ch->max_rsp_size,
- 					      512, 0, NULL);
- 	if (!ch->rsp_buf_cache)
--		goto free_ch;
-+		goto free_idx;
+ 	/*
+ 	 * Implementation details of the RDMA core, don't use in drivers:
+ 	 */
+@@ -1585,6 +1588,7 @@ struct ib_srq {
+ 	void		       *srq_context;
+ 	enum ib_srq_type	srq_type;
+ 	atomic_t		usecnt;
++	struct list_head	pd_entry; /* srq pool entry */
  
- 	ch->ioctx_ring = (struct srpt_send_ioctx **)
- 		srpt_alloc_ioctx_ring(ch->sport->sdev, ch->rq_size,
-@@ -2478,6 +2488,8 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- free_rsp_cache:
- 	kmem_cache_destroy(ch->rsp_buf_cache);
- 
-+free_idx:
-+	ida_simple_remove(&srpt_channel_ida, ch->idx);
- free_ch:
- 	if (rdma_cm_id)
- 		rdma_cm_id->context = NULL;
-@@ -3916,6 +3928,7 @@ static void __exit srpt_cleanup_module(void)
- 		rdma_destroy_id(rdma_cm_id);
- 	ib_unregister_client(&srpt_client);
- 	target_unregister_template(&srpt_template);
-+	ida_destroy(&srpt_channel_ida);
- }
- 
- module_init(srpt_init_module);
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 2e1a698..5c40653 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -292,6 +292,7 @@ enum rdma_ch_state {
-  * @sess:          Session information associated with this SRP channel.
-  * @sess_name:     Session name.
-  * @release_work:  Allows scheduling of srpt_release_channel().
-+ * @idx:           channel index.
-  */
- struct srpt_rdma_ch {
- 	struct srpt_nexus	*nexus;
-@@ -331,6 +332,7 @@ struct srpt_rdma_ch {
- 	struct se_session	*sess;
- 	u8			sess_name[40];
- 	struct work_struct	release_work;
-+	int			idx;
- };
- 
- /**
+ 	struct {
+ 		struct ib_cq   *cq;
+diff --git a/include/rdma/srq_pool.h b/include/rdma/srq_pool.h
+new file mode 100644
+index 0000000..ee83896
+--- /dev/null
++++ b/include/rdma/srq_pool.h
+@@ -0,0 +1,18 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB) */
++/*
++ * Copyright (c) 2020 Mellanox Technologies. All rights reserved.
++ */
++
++#ifndef _RDMA_SRQ_POOL_H
++#define _RDMA_SRQ_POOL_H
++
++#include <rdma/ib_verbs.h>
++
++struct ib_srq *rdma_srq_pool_get(struct ib_pd *pd);
++void rdma_srq_pool_put(struct ib_pd *pd, struct ib_srq *srq);
++
++int rdma_srq_pool_init(struct ib_pd *pd, int nr,
++		struct ib_srq_init_attr *srq_attr);
++void rdma_srq_pool_destroy(struct ib_pd *pd);
++
++#endif /* _RDMA_SRQ_POOL_H */
 -- 
 1.8.3.1
 
