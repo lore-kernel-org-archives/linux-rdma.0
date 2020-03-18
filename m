@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB8CAC5ACD7
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 12:43:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F3AC5ACD7
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 12:43:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 91E462076D
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 12:43:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EEEEB2076D
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 12:43:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584535425;
-	bh=PHZ0f5kOJyCEO2otrssBy3lVfkvEANMRhxKDJqmYQMc=;
+	s=default; t=1584535430;
+	bh=iddU/5ft/10pg+Xr5zE0XMBFuNwqtbvd8ElppRsR3+8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YPNrH27YOD3MUAMwaIhhDEBZUGPgSgMQhfhhwTg3B63Ri1zwxLuaLJHNZOy1PQnf7
-	 40vKP8uYwP6QVwPyDxRNRF/hgeP69zmi//KfPkj0fSHZyyunakvBhuoSKdGOIzkuSL
-	 ux/xAMoDjkB3cGsOFeBWHbim/UhVDZpDg7Vv/n48=
+	b=hAOfdra54ldiLZeB2O1rVpTcKGL1eu23MbgW+MP0dBfa5y2r+IzQVqp5mWwq76c7r
+	 dfIdux3gC1kIVOIxYWdkVZ3YEpC5dukBZn7M/pdzPldbr4CyWWUaEO+pDB38del9K2
+	 ASE48gDZvlLxZgmwxg8Uu8gRerDulziBAw3rihhA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726756AbgCRMnp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Mar 2020 08:43:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52628 "EHLO mail.kernel.org"
+        id S1726840AbgCRMnt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Mar 2020 08:43:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726550AbgCRMno (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 18 Mar 2020 08:43:44 -0400
+        id S1726827AbgCRMnt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 18 Mar 2020 08:43:49 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8A92320768;
-        Wed, 18 Mar 2020 12:43:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 31C5520768;
+        Wed, 18 Mar 2020 12:43:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584535424;
-        bh=PHZ0f5kOJyCEO2otrssBy3lVfkvEANMRhxKDJqmYQMc=;
+        s=default; t=1584535427;
+        bh=iddU/5ft/10pg+Xr5zE0XMBFuNwqtbvd8ElppRsR3+8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VyaEHT9WdEuMNrASr5daEy0YfwkY/QF6C9XuqMgCyPx1AdRiDDrd7gsV/T1GgX4pO
-         BmiEO7GX5Ey8NwiRFyLkbMXDrMXe9PewDvrnn2I1b+KXCb2g7ZeNT2WghDWRCrBrjz
-         9xGpo8NKc2M7hmCt9cVnJ3Z2as62NICfkbtk7eLk=
+        b=F85LsXsnfexgwo67WV+O6TlVa6l1FuHW+D+KXBOYfs+GlFh2BgSeICaGzip7N+xaX
+         mSIru3oqMvZ7H3pXQw7tTT34mKC791Ax118FhGXxBtB7xfPspwLNEXOx0+Z49JRINM
+         Xam0TnqMqIfRvGBDGd5MBKlmSf/lMxcawiN7GGgE=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@mellanox.com>
-Subject: [PATCH rdma-next 2/4] IB/mlx5: Extend CQ creation to get uar page index from user space
-Date:   Wed, 18 Mar 2020 14:43:27 +0200
-Message-Id: <20200318124329.52111-3-leon@kernel.org>
+        Michael Guralnik <michaelgur@mellanox.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 4/4] IB/mlx5: Move to fully dynamic UAR mode once user space supports it
+Date:   Wed, 18 Mar 2020 14:43:29 +0200
+Message-Id: <20200318124329.52111-5-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200318124329.52111-1-leon@kernel.org>
 References: <20200318124329.52111-1-leon@kernel.org>
@@ -58,80 +59,144 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Extend CQ creation to get uar page index from user space, this mode can
-be used with the UAR dynamic mode APIs to allocate/destroy a UAR object.
+Move to fully dynamic UAR mode once user space supports it.
+In this case we prevent any legacy mode of UARs on the allocated context
+and prevent redundant allocation of the static ones.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Reviewed-by: Michael Guralnik <michaelgur@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c | 17 +++++++++++------
- include/uapi/rdma/mlx5-abi.h    |  4 ++++
- 2 files changed, 15 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c   |  8 ++++++--
+ drivers/infiniband/hw/mlx5/main.c | 13 ++++++++++++-
+ drivers/infiniband/hw/mlx5/qp.c   |  6 ++++++
+ include/linux/mlx5/driver.h       |  1 +
+ include/uapi/rdma/mlx5-abi.h      |  1 +
+ 5 files changed, 26 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 3dec3de903b7..eafedc2f697b 100644
+index eafedc2f697b..146ba2966744 100644
 --- a/drivers/infiniband/hw/mlx5/cq.c
 +++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -715,17 +715,19 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 	struct mlx5_ib_ucontext *context = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
- 
--	ucmdlen = udata->inlen < sizeof(ucmd) ?
--		  (sizeof(ucmd) - sizeof(ucmd.flags)) : sizeof(ucmd);
-+	ucmdlen = min(udata->inlen, sizeof(ucmd));
-+	if (ucmdlen < offsetof(struct mlx5_ib_create_cq, flags))
-+		return -EINVAL;
- 
- 	if (ib_copy_from_udata(&ucmd, udata, ucmdlen))
- 		return -EFAULT;
- 
--	if (ucmdlen == sizeof(ucmd) &&
--	    (ucmd.flags & ~(MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD)))
-+	if ((ucmd.flags & ~(MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD |
-+			    MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX)))
- 		return -EINVAL;
- 
--	if (ucmd.cqe_size != 64 && ucmd.cqe_size != 128)
-+	if ((ucmd.cqe_size != 64 && ucmd.cqe_size != 128) ||
-+	    ucmd.reserved0 || ucmd.reserved1)
- 		return -EINVAL;
- 
- 	*cqe_size = ucmd.cqe_size;
-@@ -762,7 +764,10 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+@@ -764,10 +764,14 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
  	MLX5_SET(cqc, cqc, log_page_size,
  		 page_shift - MLX5_ADAPTER_PAGE_SHIFT);
  
--	*index = context->bfregi.sys_pages[0];
-+	if (ucmd.flags & MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX)
-+		*index = ucmd.uar_page_index;
-+	else
-+		*index = context->bfregi.sys_pages[0];
+-	if (ucmd.flags & MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX)
++	if (ucmd.flags & MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX) {
+ 		*index = ucmd.uar_page_index;
+-	else
++	} else if (context->bfregi.lib_uar_dyn) {
++		err = -EINVAL;
++		goto err_cqb;
++	} else {
+ 		*index = context->bfregi.sys_pages[0];
++	}
  
  	if (ucmd.cqe_comp_en == 1) {
  		int mini_cqe_format;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e8787af2d74d..e355e06bf3ac 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1787,6 +1787,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 				     max_cqe_version);
+ 	u32 dump_fill_mkey;
+ 	bool lib_uar_4k;
++	bool lib_uar_dyn;
+ 
+ 	if (!dev->ib_active)
+ 		return -EAGAIN;
+@@ -1845,8 +1846,14 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 	}
+ 
+ 	lib_uar_4k = req.lib_caps & MLX5_LIB_CAP_4K_UAR;
++	lib_uar_dyn = req.lib_caps & MLX5_LIB_CAP_DYN_UAR;
+ 	bfregi = &context->bfregi;
+ 
++	if (lib_uar_dyn) {
++		bfregi->lib_uar_dyn = lib_uar_dyn;
++		goto uar_done;
++	}
++
+ 	/* updates req->total_num_bfregs */
+ 	err = calc_total_bfregs(dev, lib_uar_4k, &req, bfregi);
+ 	if (err)
+@@ -1873,6 +1880,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 	if (err)
+ 		goto out_sys_pages;
+ 
++uar_done:
+ 	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX) {
+ 		err = mlx5_ib_devx_create(dev, true);
+ 		if (err < 0)
+@@ -1894,7 +1902,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 	INIT_LIST_HEAD(&context->db_page_list);
+ 	mutex_init(&context->db_page_mutex);
+ 
+-	resp.tot_bfregs = req.total_num_bfregs;
++	resp.tot_bfregs = lib_uar_dyn ? 0 : req.total_num_bfregs;
+ 	resp.num_ports = dev->num_ports;
+ 
+ 	if (offsetofend(typeof(resp), cqe_version) <= udata->outlen)
+@@ -2142,6 +2150,9 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
+ 	int max_valid_idx = dyn_uar ? bfregi->num_sys_pages :
+ 				bfregi->num_static_sys_pages;
+ 
++	if (bfregi->lib_uar_dyn)
++		return -EINVAL;
++
+ 	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 380ba3321851..319d514a2223 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -697,6 +697,9 @@ static int alloc_bfreg(struct mlx5_ib_dev *dev,
+ {
+ 	int bfregn = -ENOMEM;
+ 
++	if (bfregi->lib_uar_dyn)
++		return -EINVAL;
++
+ 	mutex_lock(&bfregi->lock);
+ 	if (bfregi->ver >= 2) {
+ 		bfregn = alloc_high_class_bfreg(dev, bfregi);
+@@ -768,6 +771,9 @@ int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
+ 	u32 index_of_sys_page;
+ 	u32 offset;
+ 
++	if (bfregi->lib_uar_dyn)
++		return -EINVAL;
++
+ 	bfregs_per_sys_page = get_uars_per_sys_page(dev, bfregi->lib_uar_4k) *
+ 				MLX5_NON_FP_BFREGS_PER_UAR;
+ 	index_of_sys_page = bfregn / bfregs_per_sys_page;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 3f10a9633012..e4ab0eb9d202 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -224,6 +224,7 @@ struct mlx5_bfreg_info {
+ 	struct mutex		lock;
+ 	u32			ver;
+ 	bool			lib_uar_4k;
++	u8			lib_uar_dyn : 1;
+ 	u32			num_sys_pages;
+ 	u32			num_static_sys_pages;
+ 	u32			total_num_bfregs;
 diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 624f5b53eb1f..e900f9a64feb 100644
+index a65d60b44829..df1cc3641bda 100644
 --- a/include/uapi/rdma/mlx5-abi.h
 +++ b/include/uapi/rdma/mlx5-abi.h
-@@ -266,6 +266,7 @@ struct mlx5_ib_query_device_resp {
+@@ -79,6 +79,7 @@ struct mlx5_ib_alloc_ucontext_req {
  
- enum mlx5_ib_create_cq_flags {
- 	MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD	= 1 << 0,
-+	MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX  = 1 << 1,
+ enum mlx5_lib_caps {
+ 	MLX5_LIB_CAP_4K_UAR	= (__u64)1 << 0,
++	MLX5_LIB_CAP_DYN_UAR	= (__u64)1 << 1,
  };
  
- struct mlx5_ib_create_cq {
-@@ -275,6 +276,9 @@ struct mlx5_ib_create_cq {
- 	__u8    cqe_comp_en;
- 	__u8    cqe_comp_res_format;
- 	__u16	flags;
-+	__u16	uar_page_index;
-+	__u16	reserved0;
-+	__u32	reserved1;
- };
- 
- struct mlx5_ib_create_cq_resp {
+ enum mlx5_ib_alloc_uctx_v2_flags {
 -- 
 2.24.1
 
