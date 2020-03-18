@@ -2,52 +2,53 @@ Return-Path: <SRS0=fy7m=5D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EEC0C5ACD6
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 09:53:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 811EFC10DCE
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 09:53:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1511120770
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 09:53:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 524A82076F
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 09:53:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584525187;
-	bh=8gg3tjIhkt2FJ8A0Bi3bOqZB1iaXQRhtVf8ExTCF3mo=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=FjQDJHa1l1rYWZKCjuzxSYeOgH/rQQuAZCdrzOfM2BK8oOKd+w990oc20HfA2oOH2
-	 YfeZbuUWQRQF3mxrPwAgC0KkuiPDhL8ac64boQ2O56Aa/D87hAtHwUu9gTDlHP5Fab
-	 XBaSAcB6Ul7VPQaayELNnyEJJu1cowBYjesu/8ZM=
+	s=default; t=1584525190;
+	bh=rrzBhZtjnluYyJt2O+tQlRicRBiWjdIGSvQQvk+FV1g=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=HRSkFFX2BkrSqUkQ7A7MKcuuftTjdePB4k9BR2ZZR+pG7iIwp0tYcoosJ8Ilje65f
+	 spuof7Uc5w86VPRM+djIcCLwP2Ta8fYb5j8PxxiWiFSRIFB6dSdhvLXujG/HLzROWQ
+	 Lk6AjrPG6VyCkdYIkCmLqlxW48OtOvEaD/ARO2Uw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727281AbgCRJxG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Mar 2020 05:53:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49042 "EHLO mail.kernel.org"
+        id S1727587AbgCRJxJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Mar 2020 05:53:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726786AbgCRJxG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 18 Mar 2020 05:53:06 -0400
+        id S1726786AbgCRJxJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 18 Mar 2020 05:53:09 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DDEEF2076F;
-        Wed, 18 Mar 2020 09:53:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7630920770;
+        Wed, 18 Mar 2020 09:53:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584525185;
-        bh=8gg3tjIhkt2FJ8A0Bi3bOqZB1iaXQRhtVf8ExTCF3mo=;
-        h=From:To:Cc:Subject:Date:From;
-        b=GULeZ9sVKOoRFqUYShCmm7PrYsvTqv1IdWGpLslE3Btn3NYvT9i2Ax5VmOlflI50J
-         mfBkDaShnZ2oaFjftPVbBImntHMeTgiNa4psdGgb+OqpeVw5z9ZZn6VSC3vVPWCOxb
-         wub0yA4/+yANMq9qOui9wZ3aWD00wQcsF7QHscjM=
+        s=default; t=1584525189;
+        bh=rrzBhZtjnluYyJt2O+tQlRicRBiWjdIGSvQQvk+FV1g=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=JpB43dMLHd6VWBPDKw5GjS8r41U9+jZXVdMBwOuacbbV77UPO8UgiHpQ3S001oYZT
+         hARLZyWohcPZx34rR4ErkS/IZT77GPPNGonJHNmBdevgrAuq6LIKXMlVMrfbIRG6um
+         pqy1jbBu+ET3ceo3PhMWXrXYgSoYPtTKwn9L+gvI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Mark Zhang <markz@mellanox.com>, netdev@vger.kernel.org,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH rdma-next 0/6] Set flow_label and RoCEv2 UDP source port for datagram QP
-Date:   Wed, 18 Mar 2020 11:52:54 +0200
-Message-Id: <20200318095300.45574-1-leon@kernel.org>
+Cc:     Mark Zhang <markz@mellanox.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH rdma-next 2/6] RDMA/core: Add hash functions to calculate RoCEv2 flowlabel and UDP source port
+Date:   Wed, 18 Mar 2020 11:52:56 +0200
+Message-Id: <20200318095300.45574-3-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200318095300.45574-1-leon@kernel.org>
+References: <20200318095300.45574-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -55,37 +56,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Mark Zhang <markz@mellanox.com>
 
-From Mark:
+Add two hash functions to distribute RoCE v2 UDP source and Flowlabel
+symmetrically. These are user visible API and any change in the
+implementation needs to be tested for inter-operability between old and
+new variant.
 
-This series provide flow label and UDP source port definition in RoCE v2.
-Those fields are used to create entropy for network routes (ECMP), load
-balancers and 802.3ad link aggregation switching that are not aware of
-RoCE headers.
+Signed-off-by: Mark Zhang <markz@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ include/rdma/ib_verbs.h | 44 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-Thanks.
-
-Mark Zhang (6):
-  net/mlx5: Enable SW-defined RoCEv2 UDP source port
-  RDMA/core: Add hash functions to calculate RoCEv2 flowlabel and UDP
-    source port
-  RDMA/mlx5: Define RoCEv2 udp source port when set path
-  RDMA/cma: Initialize the flow label of CM's route path record
-  RDMA/cm: Set flow label of recv_wc based on primary flow label
-  RDMA/mlx5: Set UDP source port based on the grh.flow_label
-
- drivers/infiniband/core/cm.c                  |  7 +++
- drivers/infiniband/core/cma.c                 | 23 ++++++++++
- drivers/infiniband/hw/mlx5/ah.c               | 21 ++++++++-
- drivers/infiniband/hw/mlx5/main.c             |  4 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  4 +-
- drivers/infiniband/hw/mlx5/qp.c               | 30 ++++++++++---
- .../net/ethernet/mellanox/mlx5/core/main.c    | 39 ++++++++++++++++
- include/linux/mlx5/mlx5_ifc.h                 |  5 ++-
- include/rdma/ib_verbs.h                       | 44 +++++++++++++++++++
- 9 files changed, 164 insertions(+), 13 deletions(-)
-
---
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 60f9969b6d83..8763d4a06eb7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4703,4 +4703,48 @@ static inline struct ib_device *rdma_device_to_ibdev(struct device *device)
+ 
+ bool rdma_dev_access_netns(const struct ib_device *device,
+ 			   const struct net *net);
++
++#define IB_ROCE_UDP_ENCAP_VALID_PORT_MIN (0xC000)
++#define IB_GRH_FLOWLABEL_MASK (0x000FFFFF)
++
++/**
++ * rdma_flow_label_to_udp_sport - generate a RoCE v2 UDP src port value based
++ *                               on the flow_label
++ *
++ * This function will convert the 20 bit flow_label input to a valid RoCE v2
++ * UDP src port 14 bit value. All RoCE V2 drivers should use this same
++ * convention.
++ */
++static inline u16 rdma_flow_label_to_udp_sport(u32 fl)
++{
++	u32 fl_low = fl & 0x03fff, fl_high = fl & 0xFC000;
++
++	fl_low ^= fl_high >> 14;
++	return (u16)(fl_low | IB_ROCE_UDP_ENCAP_VALID_PORT_MIN);
++}
++
++/**
++ * rdma_calc_flow_label - generate a RDMA symmetric flow label value based on
++ *                        local and remote qpn values
++ *
++ * This function folded the multiplication results of two qpns, 24 bit each,
++ * fields, and converts it to a 20 bit results.
++ *
++ * This function will create symmetric flow_label value based on the local
++ * and remote qpn values. this will allow both the requester and responder
++ * to calculate the same flow_label for a given connection.
++ *
++ * This helper function should be used by driver in case the upper layer
++ * provide a zero flow_label value. This is to improve entropy of RDMA
++ * traffic in the network.
++ */
++static inline u32 rdma_calc_flow_label(u32 lqpn, u32 rqpn)
++{
++	u64 v = (u64)lqpn * rqpn;
++
++	v ^= v >> 20;
++	v ^= v >> 40;
++
++	return (u32)(v & IB_GRH_FLOWLABEL_MASK);
++}
+ #endif /* IB_VERBS_H */
+-- 
 2.24.1
 
