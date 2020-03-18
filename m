@@ -2,26 +2,27 @@ Return-Path: <SRS0=fy7m=5D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE1CBC5ACD7
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41D57C5ACD9
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB96720775
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2378B20774
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Mar 2020 15:03:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726762AbgCRPDB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726619AbgCRPDB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 18 Mar 2020 11:03:01 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:38033 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:38034 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726619AbgCRPDA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Mar 2020 11:03:00 -0400
+        with ESMTP id S1726757AbgCRPDB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Mar 2020 11:03:01 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 18 Mar 2020 17:02:57 +0200
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02IF2vEK008733;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02IF2vEO008733;
         Wed, 18 Mar 2020 17:02:57 +0200
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, sagi@grimberg.me, hch@lst.de,
@@ -30,10 +31,12 @@ Cc:     kbusch@kernel.org, leonro@mellanox.com, jgg@mellanox.com,
         dledford@redhat.com, idanb@mellanox.com, shlomin@mellanox.com,
         oren@mellanox.com, vladimirk@mellanox.com, rgirase@redhat.com,
         Max Gurtovoy <maxg@mellanox.com>
-Subject: [PATCH v2 0/5] nvmet-rdma/srpt: SRQ per completion vector
-Date:   Wed, 18 Mar 2020 17:02:52 +0200
-Message-Id: <20200318150257.198402-1-maxg@mellanox.com>
+Subject: [PATCH v2 4/5] RDMA/srpt: use ib_alloc_cq instead of ib_alloc_cq_any
+Date:   Wed, 18 Mar 2020 17:02:56 +0200
+Message-Id: <20200318150257.198402-5-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20200318150257.198402-1-maxg@mellanox.com>
+References: <20200318150257.198402-1-maxg@mellanox.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -41,103 +44,118 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This set is a renewed version of the feature for NVMEoF/RDMA target. In
-this series I've decided to implement it also for SRP target that had
-similar implementatiom (SRQ per HCA) after previous requests from the
-community. The logic is intended to save resource allocation (by sharing
-them) and utilize the locality of completions to get the best performance
-with Shared Receive Queues (SRQs). We'll create a SRQ per completion
-vector (and not per device) using a new API (basic SRQ pool, added to this
-patchset too) and associate each created QP/CQ/channel with an
-appropriate SRQ. This will also reduce the lock contention on the single
-SRQ per device (today's solution).
+For spreading the completion vectors fairly, add global ida for RDMA
+channeles and use ida_simple_{get,remove} API. This is a preparation
+for the SRQ per core feature.
 
-For NVMEoF, my testing environment included 4 initiators (CX5, CX5, CX4,
-CX3) that were connected to 4 subsystems (1 ns per sub) throw 2 ports
-(each initiator connected to unique subsystem backed in a different
-bull_blk device) using a switch to the NVMEoF target (CX5).
-I used RoCE link layer. For SRP, I used 1 server with RoCE loopback connection
-(results are not mentioned below) for testing. Hopefully I'll get a tested-by
-signature and feedback from Laurence and Rupesh on the SRP part during the review
-process.
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 21 +++++++++++++++++----
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  2 ++
+ 2 files changed, 19 insertions(+), 4 deletions(-)
 
-The below results were made a while ago using NVMEoF.
-
-Configuration:
- - Irqbalancer stopped on each server
- - set_irq_affinity.sh on each interface
- - 2 initiators run traffic throw port 1
- - 2 initiators run traffic throw port 2
- - On initiator set register_always=N
- - Fio with 12 jobs, iodepth 128
-
-Memory consumption calculation for recv buffers (target):
- - Multiple SRQ: SRQ_size * comp_num * ib_devs_num * inline_buffer_size
- - Single SRQ: SRQ_size * 1 * ib_devs_num * inline_buffer_size
- - MQ: RQ_size * CPU_num * ctrl_num * inline_buffer_size
-
-Cases:
- 1. Multiple SRQ with 1024 entries:
-    - Mem = 1024 * 24 * 2 * 4k = 192MiB (Constant number - not depend on initiators number)
- 2. Multiple SRQ with 256 entries:
-    - Mem = 256 * 24 * 2 * 4k = 48MiB (Constant number - not depend on initiators number)
- 3. MQ:
-    - Mem = 256 * 24 * 8 * 4k = 192MiB (Mem grows for every new created ctrl)
- 4. Single SRQ (current SRQ implementation):
-    - Mem = 4096 * 1 * 2 * 4k = 32MiB (Constant number - not depend on initiators number)
-
-results:
-
-BS    1.read (target CPU)   2.read (target CPU)    3.read (target CPU)   4.read (target CPU)
----  --------------------- --------------------- --------------------- ----------------------
-1k     5.88M (80%)            5.45M (72%)            6.77M (91%)          2.2M (72%)
-
-2k     3.56M (65%)            3.45M (59%)            3.72M (64%)          2.12M (59%)
-
-4k     1.8M (33%)             1.87M (32%)            1.88M (32%)          1.59M (34%)
-
-BS    1.write (target CPU)   2.write (target CPU) 3.write (target CPU)   4.write (target CPU)
----  --------------------- --------------------- --------------------- ----------------------
-1k     5.42M (63%)            5.14M (55%)            7.75M (82%)          2.14M (74%)
-
-2k     4.15M (56%)            4.14M (51%)            4.16M (52%)          2.08M (73%)
-
-4k     2.17M (28%)            2.17M (27%)            2.16M (28%)          1.62M (24%)
-
-
-We can see the perf improvement between Case 2 and Case 4 (same order of resource).
-We can see the benefit in resource consumption (mem and CPU) with a small perf loss
-between cases 2 and 3.
-There is still an open question between the perf differance for 1k between Case 1 and
-Case 3, but I guess we can investigate and improve it incrementaly.
-
-Thanks to Idan Burstein and Oren Duer for suggesting this nice feature.
-
-Changes from v1:
- - rename srq_set to srq_pool (Leon)
- - changed srpt to use ib_alloc_cq (patch 4/5)
- - removed caching of comp_vector in ib_cq
- - minor fixes got from Leon's review
-
-Max Gurtovoy (5):
-  IB/core: add a simple SRQ pool per PD
-  nvmet-rdma: add srq pointer to rdma_cmd
-  nvmet-rdma: use SRQ per completion vector
-  RDMA/srpt: use ib_alloc_cq instead of ib_alloc_cq_any
-  RDMA/srpt: use SRQ per completion vector
-
- drivers/infiniband/core/Makefile      |   2 +-
- drivers/infiniband/core/srq_pool.c    |  75 +++++++++++++
- drivers/infiniband/core/verbs.c       |   3 +
- drivers/infiniband/ulp/srpt/ib_srpt.c | 187 +++++++++++++++++++++++--------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  28 ++++-
- drivers/nvme/target/rdma.c            | 203 ++++++++++++++++++++++++++--------
- include/rdma/ib_verbs.h               |   4 +
- include/rdma/srq_pool.h               |  18 +++
- 8 files changed, 419 insertions(+), 101 deletions(-)
- create mode 100644 drivers/infiniband/core/srq_pool.c
- create mode 100644 include/rdma/srq_pool.h
-
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 9855274..d0294d8 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -89,6 +89,8 @@ static int srpt_get_u64_x(char *buffer, const struct kernel_param *kp)
+ 		 "Using this value for ioc_guid, id_ext, and cm_listen_id instead of using the node_guid of the first HCA.");
+ 
+ static struct ib_client srpt_client;
++/* Will be used to allocate an index for srpt_rdma_ch. */
++static DEFINE_IDA(srpt_channel_ida);
+ /* Protects both rdma_cm_port and rdma_cm_id. */
+ static DEFINE_MUTEX(rdma_cm_mutex);
+ /* Port number RDMA/CM will bind to. */
+@@ -1779,7 +1781,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 	struct srpt_device *sdev = sport->sdev;
+ 	const struct ib_device_attr *attrs = &sdev->device->attrs;
+ 	int sq_size = sport->port_attrib.srp_sq_size;
+-	int i, ret;
++	int i, ret, comp_vector;
+ 
+ 	WARN_ON(ch->rq_size < 1);
+ 
+@@ -1788,9 +1790,11 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 	if (!qp_init)
+ 		goto out;
+ 
++	 /* Spread the io channeles across completion vectors */
++	comp_vector = ch->idx % sdev->device->num_comp_vectors;
+ retry:
+-	ch->cq = ib_alloc_cq_any(sdev->device, ch, ch->rq_size + sq_size,
+-				 IB_POLL_WORKQUEUE);
++	ch->cq = ib_alloc_cq(sdev->device, ch, ch->rq_size + sq_size,
++			     comp_vector, IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(ch->cq)) {
+ 		ret = PTR_ERR(ch->cq);
+ 		pr_err("failed to create CQ cqe= %d ret= %d\n",
+@@ -2119,6 +2123,8 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 
+ 	kmem_cache_destroy(ch->req_buf_cache);
+ 
++	ida_simple_remove(&srpt_channel_ida, ch->idx);
++
+ 	kref_put(&ch->kref, srpt_free_ch);
+ }
+ 
+@@ -2215,6 +2221,10 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 		goto reject;
+ 	}
+ 
++	ch->idx = ida_simple_get(&srpt_channel_ida, 0, 0, GFP_KERNEL);
++	if (ch->idx < 0)
++		goto free_ch;
++
+ 	kref_init(&ch->kref);
+ 	ch->pkey = be16_to_cpu(pkey);
+ 	ch->nexus = nexus;
+@@ -2243,7 +2253,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 	ch->rsp_buf_cache = kmem_cache_create("srpt-rsp-buf", ch->max_rsp_size,
+ 					      512, 0, NULL);
+ 	if (!ch->rsp_buf_cache)
+-		goto free_ch;
++		goto free_idx;
+ 
+ 	ch->ioctx_ring = (struct srpt_send_ioctx **)
+ 		srpt_alloc_ioctx_ring(ch->sport->sdev, ch->rq_size,
+@@ -2478,6 +2488,8 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ free_rsp_cache:
+ 	kmem_cache_destroy(ch->rsp_buf_cache);
+ 
++free_idx:
++	ida_simple_remove(&srpt_channel_ida, ch->idx);
+ free_ch:
+ 	if (rdma_cm_id)
+ 		rdma_cm_id->context = NULL;
+@@ -3916,6 +3928,7 @@ static void __exit srpt_cleanup_module(void)
+ 		rdma_destroy_id(rdma_cm_id);
+ 	ib_unregister_client(&srpt_client);
+ 	target_unregister_template(&srpt_template);
++	ida_destroy(&srpt_channel_ida);
+ }
+ 
+ module_init(srpt_init_module);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 2e1a698..5c40653 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -292,6 +292,7 @@ enum rdma_ch_state {
+  * @sess:          Session information associated with this SRP channel.
+  * @sess_name:     Session name.
+  * @release_work:  Allows scheduling of srpt_release_channel().
++ * @idx:           channel index.
+  */
+ struct srpt_rdma_ch {
+ 	struct srpt_nexus	*nexus;
+@@ -331,6 +332,7 @@ struct srpt_rdma_ch {
+ 	struct se_session	*sess;
+ 	u8			sess_name[40];
+ 	struct work_struct	release_work;
++	int			idx;
+ };
+ 
+ /**
 -- 
 1.8.3.1
 
