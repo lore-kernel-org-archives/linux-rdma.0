@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29140C43332
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9746C43333
 	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 13:29:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0AD6620658
+	by mail.kernel.org (Postfix) with ESMTP id 9C29520658
 	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 13:29:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729721AbgCSN3H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728834AbgCSN3H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 19 Mar 2020 09:29:07 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:12160 "EHLO huawei.com"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:12165 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728834AbgCSN3G (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Mar 2020 09:29:06 -0400
+        id S1729732AbgCSN3H (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Mar 2020 09:29:07 -0400
 Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id E26BFE4D0506EC721FB5;
-        Thu, 19 Mar 2020 21:28:52 +0800 (CST)
+        by Forcepoint Email with ESMTP id 0C2074CB23DD5504A70F;
+        Thu, 19 Mar 2020 21:28:53 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 19 Mar 2020 21:28:45 +0800
+ 14.3.487.0; Thu, 19 Mar 2020 21:28:43 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 11/11] RDMA/hns: Remove redundant judgment of qp_type
-Date:   Thu, 19 Mar 2020 21:24:58 +0800
-Message-ID: <1584624298-23841-12-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 07/11] RDMA/hns: Remove definition of cq doorbell structure
+Date:   Thu, 19 Mar 2020 21:24:54 +0800
+Message-ID: <1584624298-23841-8-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1584624298-23841-1-git-send-email-liweihang@huawei.com>
 References: <1584624298-23841-1-git-send-email-liweihang@huawei.com>
@@ -43,32 +43,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Type of qp has been checked in check_send_valid(), so this judgment should
-be removed.
+From: Lang Cheng <chenglang@huawei.com>
 
+The struct hns_roce_v2_cq_db is unused, it should be removed.
+
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 31b6146..7eceeea 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -583,13 +583,6 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 			ret = set_ud_wqe(qp, wr, wqe, &sge_idx, owner_bit);
- 		else if (ibqp->qp_type == IB_QPT_RC)
- 			ret = set_rc_wqe(qp, wr, wqe, &sge_idx, owner_bit);
--		else {
--			ibdev_err(ibdev, "Illegal qp_type(0x%x)\n",
--				  ibqp->qp_type);
--			spin_unlock_irqrestore(&qp->sq.lock, flags);
--			*bad_wr = wr;
--			return -EOPNOTSUPP;
--		}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 83e94df..7c99953 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1056,11 +1056,6 @@ struct hns_roce_v2_mpt_entry {
+ #define V2_DB_PARAMETER_SL_S 16
+ #define V2_DB_PARAMETER_SL_M GENMASK(18, 16)
  
- 		if (ret) {
- 			*bad_wr = wr;
+-struct hns_roce_v2_cq_db {
+-	__le32	byte_4;
+-	__le32	parameter;
+-};
+-
+ #define	V2_CQ_DB_BYTE_4_TAG_S 0
+ #define V2_CQ_DB_BYTE_4_TAG_M GENMASK(23, 0)
+ 
 -- 
 2.8.1
 
