@@ -2,230 +2,189 @@ Return-Path: <SRS0=gM5Z=5E=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2424CC4332D
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 11:33:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CCA3C4332D
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 11:50:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8D142070A
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 11:32:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1049E2071C
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 11:50:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726881AbgCSLc7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Mar 2020 07:32:59 -0400
-Received: from mga04.intel.com ([192.55.52.120]:22415 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726188AbgCSLc7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Mar 2020 07:32:59 -0400
-IronPort-SDR: t/LxrSe1UiHM4TCdJ1KYEsz0IFmTfGPInvMw/5qgJToMpHLwDolPtAOXDP/XlyMQ/g5cDQecKW
- yH0wKQLF5oew==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2020 04:32:58 -0700
-IronPort-SDR: ROd5qSotbHQlrvILyx3qazCJM53vjaPNAMy4cLHgahu/YLL99pussymC58yAYDfYM0ovW+d86P
- WMEh+tJveOSg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.70,571,1574150400"; 
-   d="scan'208";a="280059802"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga002.fm.intel.com with ESMTP; 19 Mar 2020 04:32:57 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jEtQ0-0001Kp-Oo; Thu, 19 Mar 2020 19:32:56 +0800
-Date:   Thu, 19 Mar 2020 19:32:30 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-next] BUILD SUCCESS
- 026ded373483c07983a6a30b70034ad0f3667a44
-Message-ID: <5e73584e.wZTCJEcfRtbVZkJF%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1726867AbgCSLuA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Mar 2020 07:50:00 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:35446 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726188AbgCSLuA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Mar 2020 07:50:00 -0400
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mx1-us3.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id C6646480064;
+        Thu, 19 Mar 2020 11:49:57 +0000 (UTC)
+Received: from [10.17.20.62] (10.17.20.62) by ukex01.SolarFlarecom.com
+ (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Thu, 19 Mar
+ 2020 11:49:53 +0000
+Subject: Re: [RFC PATCH v4 10/25] RDMA/irdma: Add driver framework definitions
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Parav Pandit <parav@mellanox.com>
+CC:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "nhorman@redhat.com" <nhorman@redhat.com>,
+        "sassmann@redhat.com" <sassmann@redhat.com>
+References: <20200212191424.1715577-1-jeffrey.t.kirsher@intel.com>
+ <20200212191424.1715577-11-jeffrey.t.kirsher@intel.com>
+ <6f01d517-3196-1183-112e-8151b821bd72@mellanox.com>
+ <9DD61F30A802C4429A01CA4200E302A7C60C94AF@fmsmsx124.amr.corp.intel.com>
+ <AM0PR05MB4866395BD477FAD269BCAE07D1130@AM0PR05MB4866.eurprd05.prod.outlook.com>
+ <9DD61F30A802C4429A01CA4200E302A7C60CE4C4@fmsmsx124.amr.corp.intel.com>
+ <b8263bea-fd0f-345e-b497-d5531dc63554@mellanox.com>
+ <20200221180427.GL31668@ziepe.ca>
+From:   Martin Habets <mhabets@solarflare.com>
+Message-ID: <745514bf-80a0-db20-044b-220a9f49e71f@solarflare.com>
+Date:   Thu, 19 Mar 2020 11:49:52 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20200221180427.GL31668@ziepe.ca>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.17.20.62]
+X-ClientProxiedBy: ukex01.SolarFlarecom.com (10.17.10.4) To
+ ukex01.SolarFlarecom.com (10.17.10.4)
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25300.003
+X-TM-AS-Result: No-12.703500-8.000000-10
+X-TMASE-MatchedRID: ZFzIhWOuIzvmLzc6AOD8DfHkpkyUphL9GbJMFqqIm9z5+tteD5Rzha6+
+        UxOBi85N24tqHTHJmVXa/g/NGTW3Mk35WIWBwPo02hLNwCAdUPiD33mO/UVvMyE1JvW2fYa9smc
+        +HzD5Hmi62ywKGGMysDNFIrN/Vt9sYTXYZm8jWOUr1glPpqgMG3yzRzLq38pIKjjlLG8O6u+Ypu
+        G7kpoKR9KnI5FyUdwyBYjoXaYrmv++L9dc5lmniub3p4cnIXGNB4Id7CiQcz+YeMTPaAHLLcCFO
+        gbeAbERQgjA2Itda2IUsaXRuE4OZqVIsznpoCaY9VjtTc1fwmA2vbWaKPnQ22AMM0WKD4as1jqf
+        1r9/odYCQPxvuU25lKeAlEiFDc3dAqsA4DtLDcxHg88w74mNDuRo6SIMqLecBCzD0Dc8iUtRLTE
+        RhRg1g+HdKiXhYPHWNDqav/CGQyuLBJcjq3oXqD2gUycsvOMF1JP9NndNOkV7eGs179ltWfFdHM
+        D3AvmRi1xd/4mI/4CFGo7M/s8DiaG06k9cn1gViPIR0a1i6hd3ipg0lIGuKJsoi2XrUn/JyeMtM
+        D9QOgChMIDkR/KfwI2j49Ftap9EOwBXM346/+y0MMRbgrM41GDYRJi6QYs1Fkf2abs520Uj7jco
+        F6NGbpndNYHoMPQc
+X-TM-AS-User-Approved-Sender: Yes
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--12.703500-8.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25300.003
+X-MDID: 1584618599-Rx2pbd7JB5q3
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-next
-branch HEAD: 026ded373483c07983a6a30b70034ad0f3667a44  RDMA/hns: Check if depth of qp is 0 before configure
+On 21/02/2020 18:04, Jason Gunthorpe wrote:
+> On Fri, Feb 21, 2020 at 05:23:31PM +0000, Parav Pandit wrote:
+>> On 2/21/2020 11:01 AM, Saleem, Shiraz wrote:
+>>>> Subject: RE: [RFC PATCH v4 10/25] RDMA/irdma: Add driver framework
+>>>> definitions
+>>>>
+>>>
+>>> [....]
+>>>
+>>>>>>> +static int irdma_devlink_reload_up(struct devlink *devlink,
+>>>>>>> +				   struct netlink_ext_ack *extack) {
+>>>>>>> +	struct irdma_dl_priv *priv = devlink_priv(devlink);
+>>>>>>> +	union devlink_param_value saved_value;
+>>>>>>> +	const struct virtbus_dev_id *id = priv->vdev->matched_element;
+>>>>>>
+>>>>>> Like irdma_probe(), struct iidc_virtbus_object *vo is accesible for
+>>>>>> the given
+>>>>> priv.
+>>>>>> Please use struct iidc_virtbus_object for any sharing between two drivers.
+>>>>>> matched_element modification inside the virtbus match() function and
+>>>>>> accessing pointer to some driver data between two driver through
+>>>>>> this matched_element is not appropriate.
+>>>>>
+>>>>> We can possibly avoid matched_element and driver data look up here.
+>>>>> But fundamentally, at probe time (see irdma_gen_probe) the irdma
+>>>>> driver needs to know which generation type of vdev we bound to. i.e. i40e or ice
+>>>> ?
+>>>>> since we support both.
+>>>>> And based on it, extract the driver specific virtbus device object,
+>>>>> i.e i40e_virtbus_device vs iidc_virtbus_object and init that device.
+>>>>>
+>>>>> Accessing driver_data off the vdev matched entry in
+>>>>> irdma_virtbus_id_table is how we know this generation info and make the
+>>>> decision.
+>>>>>
+>>>> If there is single irdma driver for two different virtbus device types, it is better to
+>>>> have two instances of virtbus_register_driver() with different matching string/id.
+>>>> So based on the probe(), it will be clear with virtbus device of interest got added.
+>>>> This way, code will have clear separation between two device types.
+>>>
+>>> Thanks for the feedback!
+>>> Is it common place to have multiple driver_register instances of same bus type
+>>> in a driver to support different devices? Seems odd.
+>>> Typically a single driver that supports multiple device types for a specific bus-type
+>>> would do a single bus-specific driver_register and pass in an array of bus-specific
+>>> device IDs and let the bus do the match up for you right? And in the probe(), a driver could do device
+>>> specific quirks for the device types. Isnt that purpose of device ID tables for pci, platform, usb etc?
+>>> Why are we trying to handle multiple virtbus device types from a driver any differently?
+>>>
+>>
+>> If differences in treating the two devices is not a lot, if you have lot
+>> of common code, it make sense to do single virtbus_register_driver()
+>> with two different ids.
+>> In that case, struct virtbus_device_id should have some device specific
+>> field like how pci has driver_data.
+>>
+>> It should not be set by the match() function by virtbus core.
+>> This field should be setup in the id table by the hw driver which
+>> invokes virtbus_register_device().
+> 
+> Yes
+> 
+> I think the basic point here is that the 'id' should specify what
+> container_of() is valid on the virtbus_device
+> 
+> And for things like this where we want to make a many to one
+> connection then it makes sense to permute the id for each 'connection
+> point'
+> 
+> ie, if the id was a string like OF uses maybe you'd have
+> 
+>  intel,i40e,rdma
+>  intel,i40e,ethernet
+>  intel,ice,rdma
+> 
+> etc
+> 
+> A string for match id is often a good idea..
+> 
+> And I'd suggest introducing a matching alloc so it is all clear and
+> type safe:
+> 
+>    struct mydev_struct mydev;
+> 
+>    mydev = virtbus_alloc(parent, "intel,i40e,rdma", struct mydev_struct,
+>                          vbus_dev);
+> 
+> 
+>    [..]
+>    virtbus_register(&mydev->vbus_dev);
 
-elapsed time: 485m
+I'd like to see something like this as well. In my experiments for a single type of device I've been doing this,
+which works fine but is not future-proof:
 
-configs tested: 164
-configs skipped: 0
+	struct sfc_rdma_dev *rdev;
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+	rdev = kzalloc(sizeof(*rdev), GFP_KERNEL);
+	if (!rdev)
+		return -ENOMEM;
 
-arm                              allmodconfig
-arm                               allnoconfig
-arm                              allyesconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-arm64                            allyesconfig
-arm                        shmobile_defconfig
-arm64                               defconfig
-arm                           sunxi_defconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-sparc                            allyesconfig
-openrisc                    or1ksim_defconfig
-s390                              allnoconfig
-mips                      malta_kvm_defconfig
-riscv                    nommu_virt_defconfig
-ia64                                defconfig
-sparc64                             defconfig
-microblaze                      mmu_defconfig
-mips                      fuloong2e_defconfig
-nios2                         3c120_defconfig
-riscv                          rv32_defconfig
-i386                              allnoconfig
-i386                             alldefconfig
-i386                             allyesconfig
-i386                                defconfig
-ia64                             alldefconfig
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-nios2                         10m50_defconfig
-c6x                        evmc6678_defconfig
-xtensa                          iss_defconfig
-c6x                              allyesconfig
-xtensa                       common_defconfig
-openrisc                 simple_smp_defconfig
-nds32                               defconfig
-nds32                             allnoconfig
-csky                                defconfig
-alpha                               defconfig
-h8300                       h8s-sim_defconfig
-h8300                     edosk2674_defconfig
-m68k                       m5475evb_defconfig
-m68k                             allmodconfig
-h8300                    h8300h-sim_defconfig
-m68k                           sun3_defconfig
-m68k                          multi_defconfig
-arc                                 defconfig
-arc                              allyesconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-powerpc                          rhel-kconfig
-microblaze                    nommu_defconfig
-powerpc                           allnoconfig
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                             allmodconfig
-mips                              allnoconfig
-mips                             allyesconfig
-parisc                            allnoconfig
-parisc                           allyesconfig
-parisc                generic-32bit_defconfig
-parisc                generic-64bit_defconfig
-x86_64               randconfig-a001-20200319
-x86_64               randconfig-a002-20200319
-x86_64               randconfig-a003-20200319
-i386                 randconfig-a001-20200319
-i386                 randconfig-a002-20200319
-i386                 randconfig-a003-20200319
-alpha                randconfig-a001-20200319
-m68k                 randconfig-a001-20200319
-mips                 randconfig-a001-20200319
-nds32                randconfig-a001-20200319
-parisc               randconfig-a001-20200319
-riscv                randconfig-a001-20200319
-c6x                  randconfig-a001-20200319
-h8300                randconfig-a001-20200319
-microblaze           randconfig-a001-20200319
-nios2                randconfig-a001-20200319
-sparc64              randconfig-a001-20200319
-xtensa               randconfig-a001-20200319
-csky                 randconfig-a001-20200319
-openrisc             randconfig-a001-20200319
-sh                   randconfig-a001-20200319
-s390                 randconfig-a001-20200319
-x86_64               randconfig-b001-20200319
-x86_64               randconfig-b002-20200319
-x86_64               randconfig-b003-20200319
-i386                 randconfig-b001-20200319
-i386                 randconfig-b002-20200319
-i386                 randconfig-b003-20200319
-x86_64               randconfig-c001-20200319
-x86_64               randconfig-c002-20200319
-x86_64               randconfig-c003-20200319
-i386                 randconfig-c001-20200319
-i386                 randconfig-c002-20200319
-i386                 randconfig-c003-20200319
-x86_64               randconfig-d001-20200319
-x86_64               randconfig-d002-20200319
-x86_64               randconfig-d003-20200319
-i386                 randconfig-d001-20200319
-i386                 randconfig-d002-20200319
-i386                 randconfig-d003-20200319
-x86_64               randconfig-e001-20200319
-x86_64               randconfig-e002-20200319
-x86_64               randconfig-e003-20200319
-i386                 randconfig-e001-20200319
-i386                 randconfig-e002-20200319
-i386                 randconfig-e003-20200319
-x86_64               randconfig-f001-20200319
-x86_64               randconfig-f002-20200319
-x86_64               randconfig-f003-20200319
-i386                 randconfig-f001-20200319
-i386                 randconfig-f002-20200319
-i386                 randconfig-f003-20200319
-x86_64               randconfig-g001-20200319
-x86_64               randconfig-g002-20200319
-x86_64               randconfig-g003-20200319
-i386                 randconfig-g001-20200319
-i386                 randconfig-g002-20200319
-i386                 randconfig-g003-20200319
-x86_64               randconfig-h001-20200319
-x86_64               randconfig-h002-20200319
-x86_64               randconfig-h003-20200319
-i386                 randconfig-h001-20200319
-i386                 randconfig-h002-20200319
-i386                 randconfig-h003-20200319
-arc                  randconfig-a001-20200319
-ia64                 randconfig-a001-20200319
-arm                  randconfig-a001-20200319
-arm64                randconfig-a001-20200319
-powerpc              randconfig-a001-20200319
-sparc                randconfig-a001-20200319
-riscv                             allnoconfig
-riscv                            allyesconfig
-riscv                               defconfig
-riscv                            allmodconfig
-s390                       zfcpdump_defconfig
-s390                          debug_defconfig
-s390                             allyesconfig
-s390                             allmodconfig
-s390                             alldefconfig
-s390                                defconfig
-sh                          rsk7269_defconfig
-sh                               allmodconfig
-sh                            titan_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                                allnoconfig
-sparc                               defconfig
-sparc64                          allmodconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-um                           x86_64_defconfig
-um                             i386_defconfig
-um                                  defconfig
-x86_64                                   rhel
-x86_64                               rhel-7.6
-x86_64                         rhel-7.2-clear
-x86_64                                    lkp
-x86_64                              fedora-25
-x86_64                                  kexec
+	/* This is like virtbus_dev_alloc() but using our own memory. */
+	rdev->vdev.name = SFC_RDMA_DEVNAME;
+	rdev->vdev.data = (void *) &rdma_devops;
+	rdev->vdev.dev.release = efx_rdma_dev_release;
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+Martin
