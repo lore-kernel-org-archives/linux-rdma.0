@@ -2,370 +2,100 @@ Return-Path: <SRS0=gM5Z=5E=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD3D7C4332B
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 13:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FF0CC4332B
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 13:52:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 83DEC20787
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 13:29:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F1DB20663
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Mar 2020 13:52:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="kticJZ+O"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727880AbgCSN32 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Mar 2020 09:29:28 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:12157 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727146AbgCSN3Z (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Mar 2020 09:29:25 -0400
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id C049221E377F000EA179;
-        Thu, 19 Mar 2020 21:28:52 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 19 Mar 2020 21:28:44 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 09/11] RDMA/hns: Remove redundant qpc setup operations
-Date:   Thu, 19 Mar 2020 21:24:56 +0800
-Message-ID: <1584624298-23841-10-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1584624298-23841-1-git-send-email-liweihang@huawei.com>
-References: <1584624298-23841-1-git-send-email-liweihang@huawei.com>
+        id S1726936AbgCSNwV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Mar 2020 09:52:21 -0400
+Received: from mail-qt1-f170.google.com ([209.85.160.170]:44057 "EHLO
+        mail-qt1-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727141AbgCSNwV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Mar 2020 09:52:21 -0400
+Received: by mail-qt1-f170.google.com with SMTP id y24so1773775qtv.11
+        for <linux-rdma@vger.kernel.org>; Thu, 19 Mar 2020 06:52:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=LeIJ8QX8g7k39gXV9ez+TLKO2ATd125VcXiQnyDPFUc=;
+        b=kticJZ+OgJaA2vbsAFtBRyHLwVZxPD7C3gB7Ej6wZhCthO67McwdXZ+JnHgIlEzstP
+         hPc3TVcBhRycy77et+AdAyZGvHROVhgrELuL3BCMNI9ETD31BQ1OK37UGVNTy1nh3UXE
+         kLMwb2WYWewU/Qlg86IkeXWtURX2CLdnL5hreoqJMpzgISYVlFsVOaLGIl/bGwHaICda
+         WAWgkqTvH7cF+UloT0qnmfcshIfdz2iMcjR8Jq2C2FBGiEGblPwtni/Les3uEoYYVsPU
+         lCCVemzJXMayVunMlybt9qpViSvW8pEcnzQmyGzQlV1fXvdq+z4r/iyoUHrhKxtT5d/b
+         JBsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=LeIJ8QX8g7k39gXV9ez+TLKO2ATd125VcXiQnyDPFUc=;
+        b=Kb2RFGmnFxYzQWME24HbG3dHm2/JBWT1mbi1+iQVFzcCyHCTPZdY+fxjmuERY+nHe1
+         nAnOSTF3YJls6vw0hrbuiaoHWEWjnLNSZYcLCSuc8dCG5muWU9E5DWrRTFDdfRP2AvbK
+         nN4tOaqqGfhWX/v4jvpIrF1vXVnDBVid7RwYPjGYBWINntYDyWakCOEiyKFsrhAxtZSS
+         +pWcwJORZbf58mtTk3L/lHjOFyezlJRos/YlM+njFe8/jDItGxBG1m7FgRwHSTif2cxC
+         Z2LLfCUuJ8Nhr5KCBQZTAksLGFlPCtLAByb0ZDw8baenGHH69DN7ET7XMQ41E5SPpXjt
+         KHOg==
+X-Gm-Message-State: ANhLgQ0sUm9cEe1uqvSpmykC2uo0aYBPzf53FaCixyoXyjbk2VCmYu3+
+        hcs7Rjx/F+14nDV/JeeKDmijUGiSett7sg==
+X-Google-Smtp-Source: ADFU+vtmlSDDvMG0mrG+kG6uxQN0LTPV4Ude3wYMey7a0YchGNtHk06HyFW1jozME4bWQjGfgj5iPg==
+X-Received: by 2002:aed:21c5:: with SMTP id m5mr2959598qtc.42.1584625939981;
+        Thu, 19 Mar 2020 06:52:19 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id d25sm179855qtj.86.2020.03.19.06.52.19
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 19 Mar 2020 06:52:19 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jEvas-0006Vc-QU; Thu, 19 Mar 2020 10:52:18 -0300
+Date:   Thu, 19 Mar 2020 10:52:18 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Dimitris Dimitropoulos <d.dimitropoulos@imatrex.com>
+Cc:     linux-rdma@vger.kernel.org
+Subject: Re: UDP with IB verbs lib
+Message-ID: <20200319135218.GJ20941@ziepe.ca>
+References: <CAOc41xGSL3bYs5s9AO-3hfEwLjOy4PEdpbN8xBYMpk5j4cLQSQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOc41xGSL3bYs5s9AO-3hfEwLjOy4PEdpbN8xBYMpk5j4cLQSQ@mail.gmail.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+On Wed, Mar 18, 2020 at 04:07:37PM -0700, Dimitris Dimitropoulos wrote:
+> Hi,
+> 
+> I'm looking at UDP using the IB verbs library. If I send UDP packets
+> that are intercepted by the IB verbs layer, what happens with the
+> completion notifications ?
 
-Before calling modify_qp_reset_to_init(), the entire qpc mask has been
-cleared, so it is no longer necessary to clear the specific fields in the
-mask.
+Each recv that requests a completion gets a completion.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 237 +----------------------------
- 1 file changed, 1 insertion(+), 236 deletions(-)
+> For example, say I create a list of 10 ibv_recv_wr objects and each
+> has num_sge = 30, with each SGE having a 4K size. And I setup for
+> reception with ibv_post_recv(). If I transmit 30 UDP packets each 4K
+> in size will I receive one CQ event ? Or 30 ?
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index bd14e71..2b03c72 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3541,14 +3541,9 @@ static void set_qpc_wqe_cnt(struct hns_roce_qp *hr_qp,
- 			       HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE ?
- 			       ilog2((unsigned int)hr_qp->sge.sge_cnt) : 0);
- 
--	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_SGE_SHIFT_M,
--		       V2_QPC_BYTE_4_SGE_SHIFT_S, 0);
--
- 	roce_set_field(context->byte_20_smac_sgid_idx,
- 		       V2_QPC_BYTE_20_SQ_SHIFT_M, V2_QPC_BYTE_20_SQ_SHIFT_S,
- 		       ilog2((unsigned int)hr_qp->sq.wqe_cnt));
--	roce_set_field(qpc_mask->byte_20_smac_sgid_idx,
--		       V2_QPC_BYTE_20_SQ_SHIFT_M, V2_QPC_BYTE_20_SQ_SHIFT_S, 0);
- 
- 	roce_set_field(context->byte_20_smac_sgid_idx,
- 		       V2_QPC_BYTE_20_RQ_SHIFT_M, V2_QPC_BYTE_20_RQ_SHIFT_S,
-@@ -3556,9 +3551,6 @@ static void set_qpc_wqe_cnt(struct hns_roce_qp *hr_qp,
- 		       hr_qp->ibqp.qp_type == IB_QPT_XRC_TGT ||
- 		       hr_qp->ibqp.srq) ? 0 :
- 		       ilog2((unsigned int)hr_qp->rq.wqe_cnt));
--
--	roce_set_field(qpc_mask->byte_20_smac_sgid_idx,
--		       V2_QPC_BYTE_20_RQ_SHIFT_M, V2_QPC_BYTE_20_RQ_SHIFT_S, 0);
- }
- 
- static void modify_qp_reset_to_init(struct ib_qp *ibqp,
-@@ -3578,280 +3570,53 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 	 */
- 	roce_set_field(context->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
- 		       V2_QPC_BYTE_4_TST_S, to_hr_qp_type(hr_qp->ibqp.qp_type));
--	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
--		       V2_QPC_BYTE_4_TST_S, 0);
- 
- 	roce_set_field(context->byte_4_sqpn_tst, V2_QPC_BYTE_4_SQPN_M,
- 		       V2_QPC_BYTE_4_SQPN_S, hr_qp->qpn);
--	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_SQPN_M,
--		       V2_QPC_BYTE_4_SQPN_S, 0);
- 
- 	roce_set_field(context->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
- 		       V2_QPC_BYTE_16_PD_S, to_hr_pd(ibqp->pd)->pdn);
--	roce_set_field(qpc_mask->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
--		       V2_QPC_BYTE_16_PD_S, 0);
- 
- 	roce_set_field(context->byte_20_smac_sgid_idx, V2_QPC_BYTE_20_RQWS_M,
- 		       V2_QPC_BYTE_20_RQWS_S, ilog2(hr_qp->rq.max_gs));
--	roce_set_field(qpc_mask->byte_20_smac_sgid_idx, V2_QPC_BYTE_20_RQWS_M,
--		       V2_QPC_BYTE_20_RQWS_S, 0);
- 
- 	set_qpc_wqe_cnt(hr_qp, context, qpc_mask);
- 
- 	/* No VLAN need to set 0xFFF */
- 	roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_VLAN_ID_M,
- 		       V2_QPC_BYTE_24_VLAN_ID_S, 0xfff);
--	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_VLAN_ID_M,
--		       V2_QPC_BYTE_24_VLAN_ID_S, 0);
- 
--	/*
--	 * Set some fields in context to zero, Because the default values
--	 * of all fields in context are zero, we need not set them to 0 again.
--	 * but we should set the relevant fields of context mask to 0.
--	 */
--	roce_set_bit(qpc_mask->byte_56_dqpn_err, V2_QPC_BYTE_56_SQ_TX_ERR_S, 0);
--	roce_set_bit(qpc_mask->byte_56_dqpn_err, V2_QPC_BYTE_56_SQ_RX_ERR_S, 0);
--	roce_set_bit(qpc_mask->byte_56_dqpn_err, V2_QPC_BYTE_56_RQ_TX_ERR_S, 0);
--	roce_set_bit(qpc_mask->byte_56_dqpn_err, V2_QPC_BYTE_56_RQ_RX_ERR_S, 0);
--
--	roce_set_field(qpc_mask->byte_60_qpst_tempid, V2_QPC_BYTE_60_TEMPID_M,
--		       V2_QPC_BYTE_60_TEMPID_S, 0);
--
--	roce_set_field(qpc_mask->byte_60_qpst_tempid,
--		       V2_QPC_BYTE_60_SCC_TOKEN_M, V2_QPC_BYTE_60_SCC_TOKEN_S,
--		       0);
--	roce_set_bit(qpc_mask->byte_60_qpst_tempid,
--		     V2_QPC_BYTE_60_SQ_DB_DOING_S, 0);
--	roce_set_bit(qpc_mask->byte_60_qpst_tempid,
--		     V2_QPC_BYTE_60_RQ_DB_DOING_S, 0);
--	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CNP_TX_FLAG_S, 0);
--	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CE_FLAG_S, 0);
--
--	if (hr_qp->rdb_en) {
-+	if (hr_qp->rdb_en)
- 		roce_set_bit(context->byte_68_rq_db,
- 			     V2_QPC_BYTE_68_RQ_RECORD_EN_S, 1);
--		roce_set_bit(qpc_mask->byte_68_rq_db,
--			     V2_QPC_BYTE_68_RQ_RECORD_EN_S, 0);
--	}
- 
- 	roce_set_field(context->byte_68_rq_db,
- 		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_M,
- 		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_S,
- 		       ((u32)hr_qp->rdb.dma) >> 1);
--	roce_set_field(qpc_mask->byte_68_rq_db,
--		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_M,
--		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_S, 0);
- 	context->rq_db_record_addr = cpu_to_le32(hr_qp->rdb.dma >> 32);
--	qpc_mask->rq_db_record_addr = 0;
- 
- 	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S,
- 		    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) ? 1 : 0);
--	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 0);
- 
- 	roce_set_field(context->byte_80_rnr_rx_cqn, V2_QPC_BYTE_80_RX_CQN_M,
- 		       V2_QPC_BYTE_80_RX_CQN_S, to_hr_cq(ibqp->recv_cq)->cqn);
--	roce_set_field(qpc_mask->byte_80_rnr_rx_cqn, V2_QPC_BYTE_80_RX_CQN_M,
--		       V2_QPC_BYTE_80_RX_CQN_S, 0);
- 	if (ibqp->srq) {
- 		roce_set_field(context->byte_76_srqn_op_en,
- 			       V2_QPC_BYTE_76_SRQN_M, V2_QPC_BYTE_76_SRQN_S,
- 			       to_hr_srq(ibqp->srq)->srqn);
--		roce_set_field(qpc_mask->byte_76_srqn_op_en,
--			       V2_QPC_BYTE_76_SRQN_M, V2_QPC_BYTE_76_SRQN_S, 0);
- 		roce_set_bit(context->byte_76_srqn_op_en,
- 			     V2_QPC_BYTE_76_SRQ_EN_S, 1);
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_SRQ_EN_S, 0);
- 	}
- 
--	roce_set_field(qpc_mask->byte_84_rq_ci_pi,
--		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
--		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S, 0);
--	roce_set_field(qpc_mask->byte_84_rq_ci_pi,
--		       V2_QPC_BYTE_84_RQ_CONSUMER_IDX_M,
--		       V2_QPC_BYTE_84_RQ_CONSUMER_IDX_S, 0);
--
--	roce_set_field(qpc_mask->byte_92_srq_info, V2_QPC_BYTE_92_SRQ_INFO_M,
--		       V2_QPC_BYTE_92_SRQ_INFO_S, 0);
--
--	roce_set_field(qpc_mask->byte_96_rx_reqmsn, V2_QPC_BYTE_96_RX_REQ_MSN_M,
--		       V2_QPC_BYTE_96_RX_REQ_MSN_S, 0);
--
--	roce_set_field(qpc_mask->byte_104_rq_sge,
--		       V2_QPC_BYTE_104_RQ_CUR_WQE_SGE_NUM_M,
--		       V2_QPC_BYTE_104_RQ_CUR_WQE_SGE_NUM_S, 0);
--
--	roce_set_bit(qpc_mask->byte_108_rx_reqepsn,
--		     V2_QPC_BYTE_108_RX_REQ_PSN_ERR_S, 0);
--	roce_set_field(qpc_mask->byte_108_rx_reqepsn,
--		       V2_QPC_BYTE_108_RX_REQ_LAST_OPTYPE_M,
--		       V2_QPC_BYTE_108_RX_REQ_LAST_OPTYPE_S, 0);
--	roce_set_bit(qpc_mask->byte_108_rx_reqepsn,
--		     V2_QPC_BYTE_108_RX_REQ_RNR_S, 0);
--
--	qpc_mask->rq_rnr_timer = 0;
--	qpc_mask->rx_msg_len = 0;
--	qpc_mask->rx_rkey_pkt_info = 0;
--	qpc_mask->rx_va = 0;
--
--	roce_set_field(qpc_mask->byte_132_trrl, V2_QPC_BYTE_132_TRRL_HEAD_MAX_M,
--		       V2_QPC_BYTE_132_TRRL_HEAD_MAX_S, 0);
--	roce_set_field(qpc_mask->byte_132_trrl, V2_QPC_BYTE_132_TRRL_TAIL_MAX_M,
--		       V2_QPC_BYTE_132_TRRL_TAIL_MAX_S, 0);
--
--	roce_set_bit(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RQ_RTY_WAIT_DO_S,
--		     0);
--	roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RAQ_TRRL_HEAD_M,
--		       V2_QPC_BYTE_140_RAQ_TRRL_HEAD_S, 0);
--	roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RAQ_TRRL_TAIL_M,
--		       V2_QPC_BYTE_140_RAQ_TRRL_TAIL_S, 0);
--
--	roce_set_field(qpc_mask->byte_144_raq,
--		       V2_QPC_BYTE_144_RAQ_RTY_INI_PSN_M,
--		       V2_QPC_BYTE_144_RAQ_RTY_INI_PSN_S, 0);
--	roce_set_field(qpc_mask->byte_144_raq, V2_QPC_BYTE_144_RAQ_CREDIT_M,
--		       V2_QPC_BYTE_144_RAQ_CREDIT_S, 0);
--	roce_set_bit(qpc_mask->byte_144_raq, V2_QPC_BYTE_144_RESP_RTY_FLG_S, 0);
--
--	roce_set_field(qpc_mask->byte_148_raq, V2_QPC_BYTE_148_RQ_MSN_M,
--		       V2_QPC_BYTE_148_RQ_MSN_S, 0);
--	roce_set_field(qpc_mask->byte_148_raq, V2_QPC_BYTE_148_RAQ_SYNDROME_M,
--		       V2_QPC_BYTE_148_RAQ_SYNDROME_S, 0);
--
--	roce_set_field(qpc_mask->byte_152_raq, V2_QPC_BYTE_152_RAQ_PSN_M,
--		       V2_QPC_BYTE_152_RAQ_PSN_S, 0);
--	roce_set_field(qpc_mask->byte_152_raq,
--		       V2_QPC_BYTE_152_RAQ_TRRL_RTY_HEAD_M,
--		       V2_QPC_BYTE_152_RAQ_TRRL_RTY_HEAD_S, 0);
--
--	roce_set_field(qpc_mask->byte_156_raq, V2_QPC_BYTE_156_RAQ_USE_PKTN_M,
--		       V2_QPC_BYTE_156_RAQ_USE_PKTN_S, 0);
--
--	roce_set_field(qpc_mask->byte_160_sq_ci_pi,
--		       V2_QPC_BYTE_160_SQ_PRODUCER_IDX_M,
--		       V2_QPC_BYTE_160_SQ_PRODUCER_IDX_S, 0);
--	roce_set_field(qpc_mask->byte_160_sq_ci_pi,
--		       V2_QPC_BYTE_160_SQ_CONSUMER_IDX_M,
--		       V2_QPC_BYTE_160_SQ_CONSUMER_IDX_S, 0);
--
--	roce_set_bit(qpc_mask->byte_168_irrl_idx,
--		     V2_QPC_BYTE_168_POLL_DB_WAIT_DO_S, 0);
--	roce_set_bit(qpc_mask->byte_168_irrl_idx,
--		     V2_QPC_BYTE_168_SCC_TOKEN_FORBID_SQ_DEQ_S, 0);
--	roce_set_bit(qpc_mask->byte_168_irrl_idx,
--		     V2_QPC_BYTE_168_WAIT_ACK_TIMEOUT_S, 0);
--	roce_set_bit(qpc_mask->byte_168_irrl_idx,
--		     V2_QPC_BYTE_168_MSG_RTY_LP_FLG_S, 0);
--	roce_set_bit(qpc_mask->byte_168_irrl_idx,
--		     V2_QPC_BYTE_168_SQ_INVLD_FLG_S, 0);
--	roce_set_field(qpc_mask->byte_168_irrl_idx,
--		       V2_QPC_BYTE_168_IRRL_IDX_LSB_M,
--		       V2_QPC_BYTE_168_IRRL_IDX_LSB_S, 0);
--
- 	roce_set_field(context->byte_172_sq_psn, V2_QPC_BYTE_172_ACK_REQ_FREQ_M,
- 		       V2_QPC_BYTE_172_ACK_REQ_FREQ_S, 4);
--	roce_set_field(qpc_mask->byte_172_sq_psn,
--		       V2_QPC_BYTE_172_ACK_REQ_FREQ_M,
--		       V2_QPC_BYTE_172_ACK_REQ_FREQ_S, 0);
--
--	roce_set_bit(qpc_mask->byte_172_sq_psn, V2_QPC_BYTE_172_MSG_RNR_FLG_S,
--		     0);
- 
- 	roce_set_bit(context->byte_172_sq_psn, V2_QPC_BYTE_172_FRE_S, 1);
--	roce_set_bit(qpc_mask->byte_172_sq_psn, V2_QPC_BYTE_172_FRE_S, 0);
--
--	roce_set_field(qpc_mask->byte_176_msg_pktn,
--		       V2_QPC_BYTE_176_MSG_USE_PKTN_M,
--		       V2_QPC_BYTE_176_MSG_USE_PKTN_S, 0);
--	roce_set_field(qpc_mask->byte_176_msg_pktn,
--		       V2_QPC_BYTE_176_IRRL_HEAD_PRE_M,
--		       V2_QPC_BYTE_176_IRRL_HEAD_PRE_S, 0);
--
--	roce_set_field(qpc_mask->byte_184_irrl_idx,
--		       V2_QPC_BYTE_184_IRRL_IDX_MSB_M,
--		       V2_QPC_BYTE_184_IRRL_IDX_MSB_S, 0);
--
--	qpc_mask->cur_sge_offset = 0;
--
--	roce_set_field(qpc_mask->byte_192_ext_sge,
--		       V2_QPC_BYTE_192_CUR_SGE_IDX_M,
--		       V2_QPC_BYTE_192_CUR_SGE_IDX_S, 0);
--	roce_set_field(qpc_mask->byte_192_ext_sge,
--		       V2_QPC_BYTE_192_EXT_SGE_NUM_LEFT_M,
--		       V2_QPC_BYTE_192_EXT_SGE_NUM_LEFT_S, 0);
--
--	roce_set_field(qpc_mask->byte_196_sq_psn, V2_QPC_BYTE_196_IRRL_HEAD_M,
--		       V2_QPC_BYTE_196_IRRL_HEAD_S, 0);
--
--	roce_set_field(qpc_mask->byte_200_sq_max, V2_QPC_BYTE_200_SQ_MAX_IDX_M,
--		       V2_QPC_BYTE_200_SQ_MAX_IDX_S, 0);
--	roce_set_field(qpc_mask->byte_200_sq_max,
--		       V2_QPC_BYTE_200_LCL_OPERATED_CNT_M,
--		       V2_QPC_BYTE_200_LCL_OPERATED_CNT_S, 0);
--
--	roce_set_bit(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_PKT_RNR_FLG_S, 0);
--	roce_set_bit(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_PKT_RTY_FLG_S, 0);
--
--	roce_set_field(qpc_mask->byte_212_lsn, V2_QPC_BYTE_212_CHECK_FLG_M,
--		       V2_QPC_BYTE_212_CHECK_FLG_S, 0);
--
--	qpc_mask->sq_timer = 0;
--
--	roce_set_field(qpc_mask->byte_220_retry_psn_msn,
--		       V2_QPC_BYTE_220_RETRY_MSG_MSN_M,
--		       V2_QPC_BYTE_220_RETRY_MSG_MSN_S, 0);
--	roce_set_field(qpc_mask->byte_232_irrl_sge,
--		       V2_QPC_BYTE_232_IRRL_SGE_IDX_M,
--		       V2_QPC_BYTE_232_IRRL_SGE_IDX_S, 0);
--
--	roce_set_bit(qpc_mask->byte_232_irrl_sge, V2_QPC_BYTE_232_SO_LP_VLD_S,
--		     0);
--	roce_set_bit(qpc_mask->byte_232_irrl_sge,
--		     V2_QPC_BYTE_232_FENCE_LP_VLD_S, 0);
--	roce_set_bit(qpc_mask->byte_232_irrl_sge, V2_QPC_BYTE_232_IRRL_LP_VLD_S,
--		     0);
--
--	qpc_mask->irrl_cur_sge_offset = 0;
--
--	roce_set_field(qpc_mask->byte_240_irrl_tail,
--		       V2_QPC_BYTE_240_IRRL_TAIL_REAL_M,
--		       V2_QPC_BYTE_240_IRRL_TAIL_REAL_S, 0);
--	roce_set_field(qpc_mask->byte_240_irrl_tail,
--		       V2_QPC_BYTE_240_IRRL_TAIL_RD_M,
--		       V2_QPC_BYTE_240_IRRL_TAIL_RD_S, 0);
--	roce_set_field(qpc_mask->byte_240_irrl_tail,
--		       V2_QPC_BYTE_240_RX_ACK_MSN_M,
--		       V2_QPC_BYTE_240_RX_ACK_MSN_S, 0);
--
--	roce_set_field(qpc_mask->byte_248_ack_psn, V2_QPC_BYTE_248_IRRL_PSN_M,
--		       V2_QPC_BYTE_248_IRRL_PSN_S, 0);
--	roce_set_bit(qpc_mask->byte_248_ack_psn, V2_QPC_BYTE_248_ACK_PSN_ERR_S,
--		     0);
--	roce_set_field(qpc_mask->byte_248_ack_psn,
--		       V2_QPC_BYTE_248_ACK_LAST_OPTYPE_M,
--		       V2_QPC_BYTE_248_ACK_LAST_OPTYPE_S, 0);
--	roce_set_bit(qpc_mask->byte_248_ack_psn, V2_QPC_BYTE_248_IRRL_PSN_VLD_S,
--		     0);
--	roce_set_bit(qpc_mask->byte_248_ack_psn,
--		     V2_QPC_BYTE_248_RNR_RETRY_FLAG_S, 0);
--	roce_set_bit(qpc_mask->byte_248_ack_psn, V2_QPC_BYTE_248_CQ_ERR_IND_S,
--		     0);
- 
- 	hr_qp->access_flags = attr->qp_access_flags;
- 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
- 		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
--	roce_set_field(qpc_mask->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
--		       V2_QPC_BYTE_252_TX_CQN_S, 0);
--
--	roce_set_field(qpc_mask->byte_252_err_txcqn, V2_QPC_BYTE_252_ERR_TYPE_M,
--		       V2_QPC_BYTE_252_ERR_TYPE_S, 0);
--
--	roce_set_field(qpc_mask->byte_256_sqflush_rqcqe,
--		       V2_QPC_BYTE_256_RQ_CQE_IDX_M,
--		       V2_QPC_BYTE_256_RQ_CQE_IDX_S, 0);
--	roce_set_field(qpc_mask->byte_256_sqflush_rqcqe,
--		       V2_QPC_BYTE_256_SQ_FLUSH_IDX_M,
--		       V2_QPC_BYTE_256_SQ_FLUSH_IDX_S, 0);
- }
- 
- static void modify_qp_init_to_init(struct ib_qp *ibqp,
--- 
-2.8.1
+One per ibv_recv_wr requesting completion
 
+> Will the UDP packets be written in consecutive SGEs of the first
+> ibv_recv_wr object ? Or will they be written in consecutive
+> ibv_recv_wr objects (in their first SGE) ?
+
+Only the first. Each recv handles a single incoming packet.
+
+DPDK has a hyper-optimized version of processing IP/UDP packets via
+mlx5dv
+
+Jason
