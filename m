@@ -2,75 +2,71 @@ Return-Path: <SRS0=XFIj=5F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF35AC4332B
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 01:44:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C92CBC4332D
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7BD1920752
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 01:44:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A47442070A
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726867AbgCTBos convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Mar 2020 21:44:48 -0400
-Received: from szxga08-in.huawei.com ([45.249.212.255]:41308 "EHLO huawei.com"
+        id S1726789AbgCTD1f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Mar 2020 23:27:35 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:33312 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726726AbgCTBor (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Mar 2020 21:44:47 -0400
-Received: from DGGEML401-HUB.china.huawei.com (unknown [172.30.72.53])
-        by Forcepoint Email with ESMTP id 99F433FC9D5ECB2B81AF;
-        Fri, 20 Mar 2020 09:44:45 +0800 (CST)
-Received: from DGGEML421-HUB.china.huawei.com (10.1.199.38) by
- DGGEML401-HUB.china.huawei.com (10.3.17.32) with Microsoft SMTP Server (TLS)
- id 14.3.487.0; Fri, 20 Mar 2020 09:44:45 +0800
-Received: from DGGEML502-MBS.china.huawei.com ([169.254.3.252]) by
- dggeml421-hub.china.huawei.com ([10.1.199.38]) with mapi id 14.03.0487.000;
- Fri, 20 Mar 2020 09:44:36 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-Subject: Re: [PATCH for-next 03/11] RDMA/hns: Check return value of kmalloc
- with macro
-Thread-Topic: [PATCH for-next 03/11] RDMA/hns: Check return value of kmalloc
- with macro
-Thread-Index: AQHV/hrL2iCm98tuLUOa/drFv65Flg==
-Date:   Fri, 20 Mar 2020 01:44:35 +0000
-Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A022AA212@DGGEML502-MBS.china.huawei.com>
-References: <1584624298-23841-1-git-send-email-liweihang@huawei.com>
- <1584624298-23841-4-git-send-email-liweihang@huawei.com>
- <20200319181824.GL20941@ziepe.ca>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.40.168.149]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1726614AbgCTD1f (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Mar 2020 23:27:35 -0400
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 39AB1866E04868B5353E;
+        Fri, 20 Mar 2020 11:27:32 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 20 Mar 2020 11:27:25 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next 03/10] RDMA/hns: Simplify attribute judgment code
+Date:   Fri, 20 Mar 2020 11:23:35 +0800
+Message-ID: <1584674622-52773-4-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1584674622-52773-1-git-send-email-liweihang@huawei.com>
+References: <1584674622-52773-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2020/3/20 2:18, Jason Gunthorpe wrote:
-> On Thu, Mar 19, 2020 at 09:24:50PM +0800, Weihang Li wrote:
->> From: Yixian Liu <liuyixian@huawei.com>
->>
->> As the return value of kmalloc may be null or error code, use kernel macro
->> to do return value check.
-> 
-> kmalloc always returns null, do not use IS_ERR_OR_NULL
-> 
-> Jason
-> 
+From: Lang Cheng <chenglang@huawei.com>
 
-OK, will drop this one in v2.
+Combine attribute flags before masking them.
 
-Thank you
-Weihang
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 94cb2984..518a649 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4281,8 +4281,7 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
+ 	}
+ 
+ 	/* Not support alternate path and path migration */
+-	if ((attr_mask & IB_QP_ALT_PATH) ||
+-	    (attr_mask & IB_QP_PATH_MIG_STATE)) {
++	if (attr_mask & (IB_QP_ALT_PATH | IB_QP_PATH_MIG_STATE)) {
+ 		ibdev_err(ibdev, "RTR2RTS attr_mask (0x%x)error\n", attr_mask);
+ 		return -EINVAL;
+ 	}
+-- 
+2.8.1
+
