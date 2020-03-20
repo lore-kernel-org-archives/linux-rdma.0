@@ -2,36 +2,38 @@ Return-Path: <SRS0=XFIj=5F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 449C4C43333
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FBF8C43332
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B4042070A
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 509E520724
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726646AbgCTD1h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Mar 2020 23:27:37 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:33378 "EHLO huawei.com"
+        id S1726596AbgCTD1g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Mar 2020 23:27:36 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:33336 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726738AbgCTD1h (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Mar 2020 23:27:37 -0400
+        id S1726646AbgCTD1g (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Mar 2020 23:27:36 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 4B902A4F39B90F6B7971;
+        by Forcepoint Email with ESMTP id 415ED726F5B95E81EBF2;
         Fri, 20 Mar 2020 11:27:32 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 20 Mar 2020 11:27:24 +0800
+ 14.3.487.0; Fri, 20 Mar 2020 11:27:26 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 00/10] RDMA/hns: Various cleanups
-Date:   Fri, 20 Mar 2020 11:23:32 +0800
-Message-ID: <1584674622-52773-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 05/10] RDMA/hns: Adjust the qp status value sequence of the hardware
+Date:   Fri, 20 Mar 2020 11:23:37 +0800
+Message-ID: <1584674622-52773-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1584674622-52773-1-git-send-email-liweihang@huawei.com>
+References: <1584674622-52773-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,43 +43,30 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series contains some cleanups for the hns driver:
-- patch 1 unifies format of prints in hns_roce_hw_v2.c and hns_roce_pd.c.
-- patch 2 ~ 5 are some simple modifications.
-- patch 6 ~ 10 remove some dead codes.
+From: Lang Cheng <chenglang@huawei.com>
 
-Previous discussions can be found at:
-https://patchwork.kernel.org/cover/11447213/
+Interchange SQD and SQE to match the protocol.
 
-Changes since v1:
-- Drop patch 3/11 from series v1 because it's wrong to use IS_ERR_OR_NULL
-  on a pointer returned by kmalloc().
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Lang Cheng (4):
-  RDMA/hns: Simplify attribute judgment code
-  RDMA/hns: Adjust the qp status value sequence of the hardware
-  RDMA/hns: Remove definition of cq doorbell structure
-  RDMA/hns: Remove redundant qpc setup operations
-
-Lijun Ou (2):
-  RDMA/hns: Unify format of prints
-  RDMA/hns: Optimize hns_roce_alloc_vf_resource()
-
-Weihang Li (3):
-  RDMA/hns: Fix a wrong judgment of return value
-  RDMA/hns: Remove redundant assignment of wc->smac when polling cq
-  RDMA/hns: Remove redundant judgment of qp_type
-
-Wenpeng Liang (1):
-  RDMA/hns: Remove meaningless prints
-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   9 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 560 ++++++++---------------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |   7 +-
- drivers/infiniband/hw/hns/hns_roce_mr.c    |   2 +-
- drivers/infiniband/hw/hns/hns_roce_pd.c    |   6 +-
- 5 files changed, 159 insertions(+), 425 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 2a117ff..83e94df 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -460,8 +460,8 @@ enum hns_roce_v2_qp_state {
+ 	HNS_ROCE_QP_ST_INIT,
+ 	HNS_ROCE_QP_ST_RTR,
+ 	HNS_ROCE_QP_ST_RTS,
+-	HNS_ROCE_QP_ST_SQER,
+ 	HNS_ROCE_QP_ST_SQD,
++	HNS_ROCE_QP_ST_SQER,
+ 	HNS_ROCE_QP_ST_ERR,
+ 	HNS_ROCE_QP_ST_SQ_DRAINING,
+ 	HNS_ROCE_QP_NUM_ST
 -- 
 2.8.1
 
