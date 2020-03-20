@@ -2,113 +2,87 @@ Return-Path: <SRS0=XFIj=5F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CFDAC4332B
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6A5EC4332B
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 05:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E32322070A
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 03:27:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C65DB2072D
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Mar 2020 05:47:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726838AbgCTD1l (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Mar 2020 23:27:41 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:12108 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726834AbgCTD1k (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 19 Mar 2020 23:27:40 -0400
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 7294F23B136F2D4A1F0F;
-        Fri, 20 Mar 2020 11:27:37 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 20 Mar 2020 11:27:27 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 07/10] RDMA/hns: Remove meaningless prints
-Date:   Fri, 20 Mar 2020 11:23:39 +0800
-Message-ID: <1584674622-52773-8-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1584674622-52773-1-git-send-email-liweihang@huawei.com>
-References: <1584674622-52773-1-git-send-email-liweihang@huawei.com>
+        id S1726470AbgCTFrp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Mar 2020 01:47:45 -0400
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:36528 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726030AbgCTFrp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Mar 2020 01:47:45 -0400
+Received: by mail-wm1-f66.google.com with SMTP id g62so5010879wme.1
+        for <linux-rdma@vger.kernel.org>; Thu, 19 Mar 2020 22:47:43 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=7dPg4U8svUYFJEtkVAOtkWkAFExO6Ih2I/Gf71e770k=;
+        b=JAyuPSDgyT8742R91jQFAcO0933XfGrvG9uem+VwFkUaMLobiUhfDwT1nNg6F6XcIn
+         zHUuCqyNCABgCAAyDqCTqBY+MEdyYx5vRtQ1MZV7gRQUCSm343xryGUbdWtl9xUuENq0
+         xIbpUMvbXpmWf08nNXd5x9qIP42voMwY3ba7jrbKNTZKPByzcCn+Ov56afqvhBAMaSHg
+         BEFObyS5R7J5aTtRmTLBgoe6zJgZtRbvkWDVFITrIK2h+Vimdj5BpmvaFkgbIDoME/J/
+         PAC5ik1tM/PJCehNG8Hb7FfVT9cBtuH9dxzSG7ngQptl8U7amILOE02T7YnG7+J+WTc8
+         K2iA==
+X-Gm-Message-State: ANhLgQ3ieiyjBqHfj0avLt3zknYOfCuMN+28hxcci2JaiO4w1YebM/bq
+        sW2cWOohvW6fb1XMmnyjzqo=
+X-Google-Smtp-Source: ADFU+vsrmyMUlvge3f/3ZNNku10L39XdAJssNSx+eOYzS9WDLnh76Yx/+DBPmgUcq1KpYN5CavWpkw==
+X-Received: by 2002:a7b:ca4e:: with SMTP id m14mr5238981wml.164.1584683263276;
+        Thu, 19 Mar 2020 22:47:43 -0700 (PDT)
+Received: from ?IPv6:2601:647:4802:9070:f092:4ccc:3e48:6081? ([2601:647:4802:9070:f092:4ccc:3e48:6081])
+        by smtp.gmail.com with ESMTPSA id p15sm6574338wro.68.2020.03.19.22.47.38
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 19 Mar 2020 22:47:42 -0700 (PDT)
+Subject: Re: [PATCH v2 3/5] nvmet-rdma: use SRQ per completion vector
+To:     Max Gurtovoy <maxg@mellanox.com>, linux-nvme@lists.infradead.org,
+        hch@lst.de, loberman@redhat.com, bvanassche@acm.org,
+        linux-rdma@vger.kernel.org
+Cc:     rgirase@redhat.com, vladimirk@mellanox.com, shlomin@mellanox.com,
+        leonro@mellanox.com, dledford@redhat.com, jgg@mellanox.com,
+        oren@mellanox.com, kbusch@kernel.org, idanb@mellanox.com
+References: <20200318150257.198402-1-maxg@mellanox.com>
+ <20200318150257.198402-4-maxg@mellanox.com>
+From:   Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <cf52b987-e1d4-0b82-03a2-698ca79bfce0@grimberg.me>
+Date:   Thu, 19 Mar 2020 22:47:35 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Firefox/60.0 Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+In-Reply-To: <20200318150257.198402-4-maxg@mellanox.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-ceq and aeq is a ring buffer, consumer index of them will be set to zero
-after reaching the maximum value. The warning should be removed or it may
-mislead the users.
+> +static void nvmet_rdma_destroy_srqs(struct nvmet_rdma_device *ndev)
+>   {
+> -	if (!ndev->srq)
+> +	int i;
+> +
+> +	if (!ndev->srqs)
+>   		return;
+>   
+> -	nvmet_rdma_free_cmds(ndev, ndev->srq_cmds, ndev->srq_size, false);
+> -	ib_destroy_srq(ndev->srq);
+> +	for (i = 0; i < ndev->srq_count; i++)
+> +		nvmet_rdma_destroy_srq(ndev->srqs[i]);
+> +
+> +	rdma_srq_pool_destroy(ndev->pd);
+> +	kfree(ndev->srqs);
+> +	ndev->srqs = NULL;
+> +	ndev->srq_count = 0;
+> +	ndev->srq_size = 0;
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 9 ++-------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 +----
- 2 files changed, 3 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 2e53045..5ff028d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3935,10 +3935,8 @@ static int hns_roce_v1_aeq_int(struct hns_roce_dev *hr_dev,
- 		eq->cons_index++;
- 		aeqes_found = 1;
- 
--		if (eq->cons_index > 2 * hr_dev->caps.aeqe_depth - 1) {
--			dev_warn(dev, "cons_index overflow, set back to 0.\n");
-+		if (eq->cons_index > 2 * hr_dev->caps.aeqe_depth - 1)
- 			eq->cons_index = 0;
--		}
- 	}
- 
- 	set_eq_cons_index_v1(eq, 0);
-@@ -3988,11 +3986,8 @@ static int hns_roce_v1_ceq_int(struct hns_roce_dev *hr_dev,
- 		ceqes_found = 1;
- 
- 		if (eq->cons_index >
--		    EQ_DEPTH_COEFF * hr_dev->caps.ceqe_depth - 1) {
--			dev_warn(&eq->hr_dev->pdev->dev,
--				"cons_index overflow, set back to 0.\n");
-+		    EQ_DEPTH_COEFF * hr_dev->caps.ceqe_depth - 1)
- 			eq->cons_index = 0;
--		}
- 	}
- 
- 	set_eq_cons_index_v1(eq, 0);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index aff7c5d..bd14e71 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5361,7 +5361,6 @@ static struct hns_roce_ceqe *next_ceqe_sw_v2(struct hns_roce_eq *eq)
- static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_eq *eq)
- {
--	struct device *dev = hr_dev->dev;
- 	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
- 	int ceqe_found = 0;
- 	u32 cqn;
-@@ -5380,10 +5379,8 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 		++eq->cons_index;
- 		ceqe_found = 1;
- 
--		if (eq->cons_index > (EQ_DEPTH_COEFF * eq->entries - 1)) {
--			dev_warn(dev, "cons_index overflow, set back to 0.\n");
-+		if (eq->cons_index > (EQ_DEPTH_COEFF * eq->entries - 1))
- 			eq->cons_index = 0;
--		}
- 
- 		ceqe = next_ceqe_sw_v2(eq);
- 	}
--- 
-2.8.1
-
+What is the point assigning these?
