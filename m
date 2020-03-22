@@ -2,54 +2,55 @@ Return-Path: <SRS0=8V3z=5H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E492EC54EEB
-	for <linux-rdma@archiver.kernel.org>; Sun, 22 Mar 2020 09:30:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAA84C54EEB
+	for <linux-rdma@archiver.kernel.org>; Sun, 22 Mar 2020 09:30:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B47F420777
-	for <linux-rdma@archiver.kernel.org>; Sun, 22 Mar 2020 09:30:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C362D20777
+	for <linux-rdma@archiver.kernel.org>; Sun, 22 Mar 2020 09:30:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584869439;
-	bh=ga/q2v/q+cO7hdszaTExGq+aTJ8PetY9ImofYkuHsW0=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=iMsRoChKv9zOcXI640DFapLwi/YvQ6WPhsuaLWB/H9l8px3xKiE0POOgMr9Em9TOi
-	 6528ghgEpxEUev5iJW7a2L0LJUyH4Tzv3Fu/AWBQFwkCTfrSrQ60XPzzkLCn0kAIZa
-	 e3zrlGO6CQkYvkt5fGS6KXEa74ueX7xj44SiwIoE=
+	s=default; t=1584869442;
+	bh=bynSzeli358DlgvplDKntDZ9PIBtHAWWNq51tsirlOY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=ztJW1E88nNnA6ltM9rwpUoVHQImww2mjsymNfRjEzDp/Kb8e4cs/9wC09t6PbFgjJ
+	 jtP//NAXdsa9y/fTMVU+SeAw2jz8dSBuMjYELfFFjZfdnoDTX+DzCsxW9FUhXMHK/z
+	 y25sd1t/fSCUBk/vB+B1yJUKIgXqwLwsw/dgeDak=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726827AbgCVJaj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 22 Mar 2020 05:30:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41550 "EHLO mail.kernel.org"
+        id S1726925AbgCVJak (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 22 Mar 2020 05:30:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726789AbgCVJai (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 22 Mar 2020 05:30:38 -0400
+        id S1726789AbgCVJak (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 22 Mar 2020 05:30:40 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 68A1120753;
-        Sun, 22 Mar 2020 09:30:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 14E0B20753;
+        Sun, 22 Mar 2020 09:30:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584869436;
-        bh=ga/q2v/q+cO7hdszaTExGq+aTJ8PetY9ImofYkuHsW0=;
-        h=From:To:Cc:Subject:Date:From;
-        b=zDSsz+BZzPKGvlgjfTtnt2yxbMMh9cJCPlA7hYqk1wlvD7bp04vVra/cGKpw51wXU
-         aYShd4RvfOMGkeYF1jdXWcSH7XsVXVMuhaj2a4nHVJIqiKw6R7avjDd0d/ZjjLmpEZ
-         QXe4XE9kbZXOubuaf2F5xXsRc2IHEVyqflbQakMc=
+        s=default; t=1584869439;
+        bh=bynSzeli358DlgvplDKntDZ9PIBtHAWWNq51tsirlOY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=p6C5S3dOLgrJEMWKUPasKI/1YLUIlBSAZB+QTd/wGIH6gVUtF4AWUSHkEf6uWXZDM
+         Y7aW3uYAczXWQ4EP8F4XbJWo/zcl8pmlYOYx98yXDKohDwFl/NVdX0Z4k6Oudu+nXx
+         Ivgtb2VxzGK63rDgu3oWla8xE5fyH1/BAPIH7J+M=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Mark Zhang <markz@mellanox.com>,
         "David S. Miller" <davem@davemloft.net>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Mark Zhang <markz@mellanox.com>, netdev@vger.kernel.org,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH rdma-next v1 0/7] Set flow_label and RoCEv2 UDP source port for datagram QP
-Date:   Sun, 22 Mar 2020 11:30:24 +0200
-Message-Id: <20200322093031.918447-1-leon@kernel.org>
+        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@mellanox.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next v1 2/7] net/mlx5: Enable SW-defined RoCEv2 UDP source port
+Date:   Sun, 22 Mar 2020 11:30:26 +0200
+Message-Id: <20200322093031.918447-3-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200322093031.918447-1-leon@kernel.org>
+References: <20200322093031.918447-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,46 +58,91 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Mark Zhang <markz@mellanox.com>
 
-Changelog:
- v1: Added extra patch to reduce amount of kzalloc/kfree calls in
- the HCA set capability flow.
- v0: https://lore.kernel.org/linux-rdma/20200318095300.45574-1-leon@kernel.org
+When this is enabled, UDP source port for RoCEv2 packets are defined
+by software instead of firmware.
 
---------------------------------
+Signed-off-by: Mark Zhang <markz@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 32 +++++++++++++++++++
+ include/linux/mlx5/mlx5_ifc.h                 |  5 ++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
 
-From Mark:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 150a4a67e572..df9aa5cac2bd 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -558,6 +558,31 @@ static int handle_hca_cap(struct mlx5_core_dev *dev, void *set_ctx)
+ 	return err;
+ }
 
-This series provide flow label and UDP source port definition in RoCE v2.
-Those fields are used to create entropy for network routes (ECMP), load
-balancers and 802.3ad link aggregation switching that are not aware of
-RoCE headers.
++static int handle_hca_cap_roce(struct mlx5_core_dev *dev, void *set_ctx)
++{
++	void *set_hca_cap;
++	int err;
++
++	if (!MLX5_CAP_GEN(dev, roce))
++		return 0;
++
++	err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE);
++	if (err)
++		return err;
++
++	if (MLX5_CAP_ROCE(dev, sw_r_roce_src_udp_port) ||
++	    !MLX5_CAP_ROCE_MAX(dev, sw_r_roce_src_udp_port))
++		return 0;
++
++	set_hca_cap = MLX5_ADDR_OF(set_hca_cap_in, set_ctx, capability);
++	memcpy(set_hca_cap, dev->caps.hca_cur[MLX5_CAP_ROCE],
++	       MLX5_ST_SZ_BYTES(roce_cap));
++	MLX5_SET(roce_cap, set_hca_cap, sw_r_roce_src_udp_port, 1);
++
++	err = set_caps(dev, set_ctx, MLX5_SET_HCA_CAP_OP_MOD_ROCE);
++	return err;
++}
++
+ static int set_hca_cap(struct mlx5_core_dev *dev)
+ {
+ 	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
+@@ -588,6 +613,13 @@ static int set_hca_cap(struct mlx5_core_dev *dev)
+ 		goto out;
+ 	}
 
-Thanks.
++	memset(set_ctx, 0, set_sz);
++	err = handle_hca_cap_roce(dev, set_ctx);
++	if (err) {
++		mlx5_core_err(dev, "handle_hca_cap_roce failed\n");
++		goto out;
++	}
++
+ out:
+ 	kfree(set_ctx);
+ 	return err;
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 208bf1127be7..bb217c3f30da 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -74,6 +74,7 @@ enum {
+ 	MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE        = 0x0,
+ 	MLX5_SET_HCA_CAP_OP_MOD_ODP                   = 0x2,
+ 	MLX5_SET_HCA_CAP_OP_MOD_ATOMIC                = 0x3,
++	MLX5_SET_HCA_CAP_OP_MOD_ROCE                  = 0x4,
+ };
 
-Leon Romanovsky (1):
-  net/mlx5: Refactor HCA capability set flow
+ enum {
+@@ -902,7 +903,9 @@ struct mlx5_ifc_per_protocol_networking_offload_caps_bits {
 
-Mark Zhang (6):
-  net/mlx5: Enable SW-defined RoCEv2 UDP source port
-  RDMA/core: Add hash functions to calculate RoCEv2 flowlabel and UDP
-    source port
-  RDMA/mlx5: Define RoCEv2 udp source port when set path
-  RDMA/cma: Initialize the flow label of CM's route path record
-  RDMA/cm: Set flow label of recv_wc based on primary flow label
-  RDMA/mlx5: Set UDP source port based on the grh.flow_label
+ struct mlx5_ifc_roce_cap_bits {
+ 	u8         roce_apm[0x1];
+-	u8         reserved_at_1[0x1f];
++	u8         reserved_at_1[0x3];
++	u8         sw_r_roce_src_udp_port[0x1];
++	u8         reserved_at_5[0x1b];
 
- drivers/infiniband/core/cm.c                  |  7 ++
- drivers/infiniband/core/cma.c                 | 23 +++++
- drivers/infiniband/hw/mlx5/ah.c               | 21 +++-
- drivers/infiniband/hw/mlx5/main.c             |  4 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  4 +-
- drivers/infiniband/hw/mlx5/qp.c               | 30 ++++--
- .../net/ethernet/mellanox/mlx5/core/main.c    | 96 +++++++++++--------
- include/linux/mlx5/mlx5_ifc.h                 |  5 +-
- include/rdma/ib_verbs.h                       | 44 +++++++++
- 9 files changed, 180 insertions(+), 54 deletions(-)
+ 	u8         reserved_at_20[0x60];
 
 --
 2.24.1
