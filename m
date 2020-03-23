@@ -1,91 +1,126 @@
-Return-Path: <SRS0=8V3z=5H=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=aMsM=5I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A5D4C4332B
-	for <linux-rdma@archiver.kernel.org>; Sun, 22 Mar 2020 12:49:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDBF1C4332E
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Mar 2020 10:02:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F07D2073C
-	for <linux-rdma@archiver.kernel.org>; Sun, 22 Mar 2020 12:49:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584881356;
-	bh=E5aYA+KdW4T8uVmi3X0YlMWQ/Kipc8u8HklZv0haG/E=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=jwBL4YdrH9uD14ZT7bUnPQOij/eFogBcooroUKEO03qZnaRdrITvGghLaawAtZucI
-	 YBoftGudAxT3ilCe6brZNamf687NmHm9qJ0hPTJrhi22WEYT0Rtxe6Bktp6tLNPtlT
-	 yBEcswuCrpfslKnnOmNbpWFmZ9RXTPJ09bv0un/k=
+	by mail.kernel.org (Postfix) with ESMTP id C561B206F8
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Mar 2020 10:02:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="VCB/lLjY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727084AbgCVMtP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 22 Mar 2020 08:49:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43264 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727035AbgCVMtP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 22 Mar 2020 08:49:15 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 010AF2072E;
-        Sun, 22 Mar 2020 12:49:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584881354;
-        bh=E5aYA+KdW4T8uVmi3X0YlMWQ/Kipc8u8HklZv0haG/E=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ZLVPcA4aiShZzJ/fa3p1hJ/rJ81gHs5PYvMxQ+tU5uCKBFHIAf8ZGx5ZMySUrRsP6
-         15tyUkxIliDW1nsoIWW/GieGDDlPNjBj9lhqBRp920Z84zVqMrP4bVczQMzd5CtyiD
-         W56QxDbRzKK1VfErCtCX5Yt2trZ6J/JuBySXiJqU=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org,
-        Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-rc v1] RDMA/mlx5: Block delay drop to unprivileged users
-Date:   Sun, 22 Mar 2020 14:49:06 +0200
-Message-Id: <20200322124906.1173790-1-leon@kernel.org>
-X-Mailer: git-send-email 2.24.1
+        id S1727810AbgCWKCf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Mar 2020 06:02:35 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:51942 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727809AbgCWKCf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Mar 2020 06:02:35 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 02N9tfgU009650;
+        Mon, 23 Mar 2020 10:02:26 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2020-01-29;
+ bh=mMG7dvfUB+0AmeYy+0Q1hFybzDI3+DQAX7xSQz0D3zc=;
+ b=VCB/lLjYyK8y7TE7SsuQ/NDDW1xWI5mqzqE7Q8oI0yspCLaayurNU8YfgM2VcraEh6jg
+ lT/we+UI4VN7fsbGzFCf62rv8KU8RQWi9xTr+y0OijSh55CtzF6hSEzaiJYutz6fM80m
+ rgj/t1FXqS2R4nlFtU0QljZ4MQhWq5eeZZ0ZKstNzF7vp9Y5xsQPIFx/StIb1okS0twq
+ AChygfUI9kFeutE7uN3Qr8263/2HO+Kxs1e470hEsfupd14jqugoR7DeEZggbHcel1Sm
+ YM5XAzLtcvjdGUC6hvuYw/TrG0rCOg2OTfCEWl0btBl17XZf1hNc02jMp3vDajNssn36 xA== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by userp2130.oracle.com with ESMTP id 2ywabqwp4s-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 23 Mar 2020 10:02:26 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 02N9quXq024518;
+        Mon, 23 Mar 2020 10:02:25 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by aserp3030.oracle.com with ESMTP id 2ywwuhqayr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 23 Mar 2020 10:02:25 +0000
+Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 02NA2Onl013398;
+        Mon, 23 Mar 2020 10:02:24 GMT
+Received: from kadam (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Mon, 23 Mar 2020 03:02:23 -0700
+Date:   Mon, 23 Mar 2020 13:02:16 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Saeed Mahameed <saeedm@mellanox.com>
+Cc:     Paul Blakey <paulb@mellanox.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Roi Dayan <roid@mellanox.com>,
+        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        Oz Shlomo <ozsh@mellanox.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Subject: Re: [PATCH net-next] net/mlx5e: Fix actions_match_supported() return
+Message-ID: <20200323100215.GB26299@kadam>
+References: <20200320132305.GB95012@mwanda>
+ <35fcb57643c0522b051318e75b106100422fb1dc.camel@mellanox.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <35fcb57643c0522b051318e75b106100422fb1dc.camel@mellanox.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9568 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 suspectscore=0 spamscore=0
+ mlxlogscore=999 malwarescore=0 mlxscore=0 bulkscore=0 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2003230058
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9568 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 suspectscore=0
+ lowpriorityscore=0 malwarescore=0 phishscore=0 priorityscore=1501
+ clxscore=1015 adultscore=0 mlxscore=0 mlxlogscore=999 bulkscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2003230058
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@mellanox.com>
+On Sat, Mar 21, 2020 at 02:43:08AM +0000, Saeed Mahameed wrote:
+> On Fri, 2020-03-20 at 16:23 +0300, Dan Carpenter wrote:
+> > The actions_match_supported() function returns a bool, true for
+> > success
+> > and false for failure.  This error path is returning a negative which
+> > is cast to true but it should return false.
+> > 
+> > Fixes: 4c3844d9e97e ("net/mlx5e: CT: Introduce connection tracking")
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> >  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> > b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> > index 044891a03be3..e5de7d2bac2b 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> > @@ -3058,7 +3058,7 @@ static bool actions_match_supported(struct
+> > mlx5e_priv *priv,
+> >  			 */
+> >  			NL_SET_ERR_MSG_MOD(extack,
+> >  					   "Can't offload mirroring
+> > with action ct");
+> > -			return -EOPNOTSUPP;
+> > +			return false;
+> >  		}
+> >  	} else {
+> >  		actions = flow->nic_attr->action;
+> 
+> applied to net-next-mlx5 
 
-Since this feature can globally block the RX port, it should
-be allowed to privileged users only.
+I can never figure out which tree these are supposed to be applied to.
+:(  Is there a trick to it?
 
-Fixes: 03404e8ae652("IB/mlx5: Add support to dropless RQ")
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- Changelog:
- v1: Changed permission from CAP_NET_RAW to be CAP_SYS_RAWIO like in
-    the devx code.
- v0: https://lore.kernel.org/linux-rdma/20200318100223.46436-1-leon@kernel.org
----
- drivers/infiniband/hw/mlx5/qp.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index d3055f3eb0b6..cf44c5a21f18 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -6247,6 +6247,10 @@ struct ib_wq *mlx5_ib_create_wq(struct ib_pd *pd,
- 	if (udata->outlen && udata->outlen < min_resp_len)
- 		return ERR_PTR(-EINVAL);
-
-+	if (!capable(CAP_SYS_RAWIO) &&
-+	    init_attr->create_flags & IB_WQ_FLAGS_DELAY_DROP)
-+		return ERR_PTR(-EPERM);
-+
- 	dev = to_mdev(pd->device);
- 	switch (init_attr->wq_type) {
- 	case IB_WQT_RQ:
---
-2.24.1
+regards,
+dan carpenter
 
