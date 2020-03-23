@@ -6,47 +6,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4432AC10DCE
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Mar 2020 23:15:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DB1BC4332B
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Mar 2020 23:15:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1C84F20719
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Mar 2020 23:15:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D95D2076E
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Mar 2020 23:15:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726987AbgCWXPE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Mar 2020 19:15:04 -0400
-Received: from mga17.intel.com ([192.55.52.151]:24988 "EHLO mga17.intel.com"
+        id S1727064AbgCWXPP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Mar 2020 19:15:15 -0400
+Received: from mga05.intel.com ([192.55.52.43]:27366 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725990AbgCWXPE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 23 Mar 2020 19:15:04 -0400
-IronPort-SDR: mpcNh9QueLb+42jnbH9qZuBcwXLicbmHzYm0E5qG78/DrXYP/Oay99YVQlXbUpqU/xVzRrVWLD
- zo3qJuwaa40w==
+        id S1725990AbgCWXPP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 23 Mar 2020 19:15:15 -0400
+IronPort-SDR: pc4nG8/sZ9/1YxzZIfv0y28XgZTLw5pQ+qi4f+vccxDVw2W77qHqB6Y2VEwagwiLDKNFoHETbq
+ LKi9SWD3htRA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 16:15:02 -0700
-IronPort-SDR: Gof5klOHUIP++Zb6+hAIr49j1ko3Ev9/SXWbI/bbjiArYORs0ZpgGa7VnGbH404/sbPnSZgU/Q
- 4KOMT4dJ6qTA==
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 16:15:14 -0700
+IronPort-SDR: QHNqmXXVBTcTKJ9sOwIHCeLQSmklYaKnWAz7yeD14hLGDOO/v0brllFCoTmWFO9qI5XyeZBQ1K
+ NtVQt/DJTxKQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,298,1580803200"; 
-   d="scan'208";a="264941898"
+   d="scan'208";a="240078212"
 Received: from sedona.ch.intel.com ([10.2.136.157])
-  by orsmga002.jf.intel.com with ESMTP; 23 Mar 2020 16:15:01 -0700
+  by orsmga008.jf.intel.com with ESMTP; 23 Mar 2020 16:15:14 -0700
 Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 02NNF0ss013946;
-        Mon, 23 Mar 2020 16:15:01 -0700
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 02NNFD3O014073;
+        Mon, 23 Mar 2020 16:15:13 -0700
 Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 02NNExO5064409;
-        Mon, 23 Mar 2020 19:14:59 -0400
-Subject: [PATCH v2 for-next 05/16] IB/{rdmavt,
- hfi1}: Implement creation of accelerated UD QPs
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 02NNFCeO064439;
+        Mon, 23 Mar 2020 19:15:12 -0400
+Subject: [PATCH v2 for-next 07/16] IB/ipoib: Increase ipoib Datagram mode
+ MTU's upper limit
 From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Gary Leshner <Gary.S.Leshner@intel.com>,
+Cc:     Mike Marciniszyn <mike.marcinisyzn@intel.com>,
+        linux-rdma@vger.kernel.org,
+        Sadanand Warrier <sadanand.warrier@intel.com>,
         Kaike Wan <kaike.wan@intel.com>
-Date:   Mon, 23 Mar 2020 19:14:59 -0400
-Message-ID: <20200323231459.64035.9477.stgit@awfm-01.aw.intel.com>
+Date:   Mon, 23 Mar 2020 19:15:12 -0400
+Message-ID: <20200323231511.64035.16923.stgit@awfm-01.aw.intel.com>
 In-Reply-To: <20200323231152.64035.19274.stgit@awfm-01.aw.intel.com>
 References: <20200323231152.64035.19274.stgit@awfm-01.aw.intel.com>
 User-Agent: StGit/0.17.1-dirty
@@ -58,205 +58,261 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gary Leshner <Gary.S.Leshner@intel.com>
+From: Kaike Wan <kaike.wan@intel.com>
 
-Adds capability to create a qpn to be recognized as an accelerated
-UD QP for ipoib.
-
-This is accomplished by reserving 0x81 in byte[0] of the qpn as the
-prefix for these qp types and reserving qpns between 0x810000 and
-0x81ffff.
-
-The hfi1 capability mask already contained a flag for the VNIC netdev.
-This has been renamed and extended to include both VNIC and ipoib.
-
-The rvt code to allocate qps now recognizes this flag and sets 0x81
-into byte[0] of the qpn.
-
-The code to allocate qpns is modified to reset the qpn numbering when it
-is detected that a value is located in byte[0] for a UD QP and it is a
-qpn being requested for net dev use. If it is a regular UD QP then it is
-allowable to have bits set in byte[0] of the qpn and provide the
-previously normal behavior.
-
-The code to free the qpn now checks for the AIP prefix value of 0x81 and
-removes it from the qpn before being freed so that the lower 16 bit
-number can be reused.
-
-This patch requires minor changes in the IB core and ipoib to facilitate
-the creation of accelerated UP QPs.
+Currently the ipoib UD mtu is restricted to 4K bytes. Remove this
+limitation so that the IPOIB module can potentially use an MTU (in UD
+mode) that is bounded by the MTU of the underlying device. A field is
+added to the ib_port_attr structure to indicate the maximum physical
+MTU the underlying device supports.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Gary Leshner <Gary.S.Leshner@intel.com>
+Reviewed-by: Mike Marciniszyn <mike.marcinisyzn@intel.com>
+Signed-off-by: Sadanand Warrier <sadanand.warrier@intel.com>
 Signed-off-by: Kaike Wan <kaike.wan@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/verbs.c         |    2 +-
- drivers/infiniband/sw/rdmavt/qp.c          |   24 +++++++++++++++++++-----
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c |    3 +++
- include/rdma/ib_verbs.h                    |    4 ++--
- include/rdma/opa_vnic.h                    |    4 ++--
- 5 files changed, 27 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/hfi1/qp.c                |   18 +-----
+ drivers/infiniband/hw/hfi1/verbs.c             |    2 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |    2 -
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   11 ++-
+ include/rdma/ib_verbs.h                        |   77 ++++++++++++++++++++++++
+ include/rdma/opa_port_info.h                   |   10 ---
+ 6 files changed, 88 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index c1c6fa98..c61b291 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1342,7 +1342,7 @@ static void hfi1_fill_device_attr(struct hfi1_devdata *dd)
- 			IB_DEVICE_SYS_IMAGE_GUID | IB_DEVICE_RC_RNR_NAK_GEN |
- 			IB_DEVICE_PORT_ACTIVE_EVENT | IB_DEVICE_SRQ_RESIZE |
- 			IB_DEVICE_MEM_MGT_EXTENSIONS |
--			IB_DEVICE_RDMA_NETDEV_OPA_VNIC;
-+			IB_DEVICE_RDMA_NETDEV_OPA;
- 	rdi->dparms.props.page_size_cap = PAGE_SIZE;
- 	rdi->dparms.props.vendor_id = dd->oui1 << 16 | dd->oui2 << 8 | dd->oui3;
- 	rdi->dparms.props.vendor_part_id = dd->pcidev->device;
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 0e1b291..91ad6c5 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
+diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
+index f8e733a..0c2ae9f 100644
+--- a/drivers/infiniband/hw/hfi1/qp.c
++++ b/drivers/infiniband/hw/hfi1/qp.c
 @@ -1,5 +1,5 @@
  /*
-- * Copyright(c) 2016 - 2019 Intel Corporation.
-+ * Copyright(c) 2016 - 2020 Intel Corporation.
+- * Copyright(c) 2015 - 2019 Intel Corporation.
++ * Copyright(c) 2015 - 2020 Intel Corporation.
   *
   * This file is provided under a dual BSD/GPLv2 license.  When using or
   * redistributing this file, you may do so under either license.
-@@ -525,15 +525,18 @@ static inline unsigned mk_qpn(struct rvt_qpn_table *qpt,
-  * @rdi: rvt device info structure
-  * @qpt: queue pair number table pointer
-  * @port_num: IB port number, 1 based, comes from core
-+ * @exclude_prefix: prefix of special queue pair number being allocated
-  *
-  * Return: The queue pair number
-  */
- static int alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
--		     enum ib_qp_type type, u8 port_num)
-+		     enum ib_qp_type type, u8 port_num, u8 exclude_prefix)
- {
- 	u32 i, offset, max_scan, qpn;
- 	struct rvt_qpn_map *map;
- 	u32 ret;
-+	u32 max_qpn = exclude_prefix == RVT_AIP_QP_PREFIX ?
-+		RVT_AIP_QPN_MAX : RVT_QPN_MAX;
- 
- 	if (rdi->driver_f.alloc_qpn)
- 		return rdi->driver_f.alloc_qpn(rdi, qpt, type, port_num);
-@@ -553,7 +556,7 @@ static int alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
- 	}
- 
- 	qpn = qpt->last + qpt->incr;
--	if (qpn >= RVT_QPN_MAX)
-+	if (qpn >= max_qpn)
- 		qpn = qpt->incr | ((qpt->last & 1) ^ 1);
- 	/* offset carries bit 0 */
- 	offset = qpn & RVT_BITS_PER_PAGE_MASK;
-@@ -987,6 +990,9 @@ static void rvt_free_qpn(struct rvt_qpn_table *qpt, u32 qpn)
- {
- 	struct rvt_qpn_map *map;
- 
-+	if ((qpn & RVT_AIP_QP_PREFIX_MASK) == RVT_AIP_QP_BASE)
-+		qpn &= RVT_AIP_QP_SUFFIX;
-+
- 	map = qpt->map + (qpn & RVT_QPN_MASK) / RVT_BITS_PER_PAGE;
- 	if (map->page)
- 		clear_bit(qpn & RVT_BITS_PER_PAGE_MASK, map->page);
-@@ -1074,13 +1080,15 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 	struct rvt_dev_info *rdi = ib_to_rvt(ibpd->device);
- 	void *priv = NULL;
- 	size_t sqsize;
-+	u8 exclude_prefix = 0;
- 
- 	if (!rdi)
- 		return ERR_PTR(-EINVAL);
- 
- 	if (init_attr->cap.max_send_sge > rdi->dparms.props.max_send_sge ||
- 	    init_attr->cap.max_send_wr > rdi->dparms.props.max_qp_wr ||
--	    init_attr->create_flags)
-+	    (init_attr->create_flags &&
-+	     init_attr->create_flags != IB_QP_CREATE_NETDEV_USE))
- 		return ERR_PTR(-EINVAL);
- 
- 	/* Check receive queue parameters if no SRQ is specified. */
-@@ -1199,14 +1207,20 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 			goto bail_driver_priv;
- 		}
- 
-+		if (init_attr->create_flags & IB_QP_CREATE_NETDEV_USE)
-+			exclude_prefix = RVT_AIP_QP_PREFIX;
-+
- 		err = alloc_qpn(rdi, &rdi->qp_dev->qpn_table,
- 				init_attr->qp_type,
--				init_attr->port_num);
-+				init_attr->port_num,
-+				exclude_prefix);
- 		if (err < 0) {
- 			ret = ERR_PTR(err);
- 			goto bail_rq_wq;
- 		}
- 		qp->ibqp.qp_num = err;
-+		if (init_attr->create_flags & IB_QP_CREATE_NETDEV_USE)
-+			qp->ibqp.qp_num |= RVT_AIP_QP_BASE;
- 		qp->port_num = init_attr->port_num;
- 		rvt_init_qp(rdi, qp, init_attr->qp_type);
- 		if (rdi->driver_f.qp_priv_init) {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-index b69304d..587252f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-@@ -206,6 +206,9 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 	if (priv->hca_caps & IB_DEVICE_MANAGED_FLOW_STEERING)
- 		init_attr.create_flags |= IB_QP_CREATE_NETIF_QP;
- 
-+	if (priv->hca_caps & IB_DEVICE_RDMA_NETDEV_OPA)
-+		init_attr.create_flags |= IB_QP_CREATE_NETDEV_USE;
-+
- 	priv->qp = ib_create_qp(priv->pd, &init_attr);
- 	if (IS_ERR(priv->qp)) {
- 		pr_warn("%s: failed to create QP\n", ca->name);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index b5a371b..babfdb0 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -305,7 +305,7 @@ enum ib_device_cap_flags {
- 	IB_DEVICE_VIRTUAL_FUNCTION		= (1ULL << 33),
- 	/* Deprecated. Please use IB_RAW_PACKET_CAP_SCATTER_FCS. */
- 	IB_DEVICE_RAW_SCATTER_FCS		= (1ULL << 34),
--	IB_DEVICE_RDMA_NETDEV_OPA_VNIC		= (1ULL << 35),
-+	IB_DEVICE_RDMA_NETDEV_OPA		= (1ULL << 35),
- 	/* The device supports padding incoming writes to cacheline. */
- 	IB_DEVICE_PCI_WRITE_END_PADDING		= (1ULL << 36),
- 	IB_DEVICE_ALLOW_USER_UNREG		= (1ULL << 37),
-@@ -1111,7 +1111,7 @@ enum ib_qp_create_flags {
- 	IB_QP_CREATE_MANAGED_RECV               = 1 << 4,
- 	IB_QP_CREATE_NETIF_QP			= 1 << 5,
- 	IB_QP_CREATE_INTEGRITY_EN		= 1 << 6,
--	/* FREE					= 1 << 7, */
-+	IB_QP_CREATE_NETDEV_USE			= 1 << 7,
- 	IB_QP_CREATE_SCATTER_FCS		= 1 << 8,
- 	IB_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
- 	IB_QP_CREATE_SOURCE_QPN			= 1 << 10,
-diff --git a/include/rdma/opa_vnic.h b/include/rdma/opa_vnic.h
-index e90b149..6f244e7 100644
---- a/include/rdma/opa_vnic.h
-+++ b/include/rdma/opa_vnic.h
-@@ -1,7 +1,7 @@
- #ifndef _OPA_VNIC_H
- #define _OPA_VNIC_H
- /*
-- * Copyright(c) 2017 Intel Corporation.
-+ * Copyright(c) 2017 - 2020 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -132,7 +132,7 @@ struct opa_vnic_stats {
- static inline bool rdma_cap_opa_vnic(struct ib_device *device)
- {
- 	return !!(device->attrs.device_cap_flags &
--		  IB_DEVICE_RDMA_NETDEV_OPA_VNIC);
-+		  IB_DEVICE_RDMA_NETDEV_OPA);
+@@ -186,15 +186,6 @@ static void flush_iowait(struct rvt_qp *qp)
+ 	write_sequnlock_irqrestore(lock, flags);
  }
  
- #endif /* _OPA_VNIC_H */
+-static inline int opa_mtu_enum_to_int(int mtu)
+-{
+-	switch (mtu) {
+-	case OPA_MTU_8192:  return 8192;
+-	case OPA_MTU_10240: return 10240;
+-	default:            return -1;
+-	}
+-}
+-
+ /**
+  * This function is what we would push to the core layer if we wanted to be a
+  * "first class citizen".  Instead we hide this here and rely on Verbs ULPs
+@@ -202,15 +193,10 @@ static inline int opa_mtu_enum_to_int(int mtu)
+  */
+ static inline int verbs_mtu_enum_to_int(struct ib_device *dev, enum ib_mtu mtu)
+ {
+-	int val;
+-
+ 	/* Constraining 10KB packets to 8KB packets */
+ 	if (mtu == (enum ib_mtu)OPA_MTU_10240)
+ 		mtu = OPA_MTU_8192;
+-	val = opa_mtu_enum_to_int((int)mtu);
+-	if (val > 0)
+-		return val;
+-	return ib_mtu_enum_to_int(mtu);
++	return opa_mtu_enum_to_int((enum opa_mtu)mtu);
+ }
+ 
+ int hfi1_check_modify_qp(struct rvt_qp *qp, struct ib_qp_attr *attr,
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index c61b291..19d5d00 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1439,6 +1439,8 @@ static int query_port(struct rvt_dev_info *rdi, u8 port_num,
+ 				      4096 : hfi1_max_mtu), IB_MTU_4096);
+ 	props->active_mtu = !valid_ib_mtu(ppd->ibmtu) ? props->max_mtu :
+ 		mtu_to_enum(ppd->ibmtu, IB_MTU_4096);
++	props->phys_mtu = HFI1_CAP_IS_KSET(AIP) ? hfi1_max_mtu :
++				ib_mtu_enum_to_int(props->max_mtu);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 81b8227..c8018e0 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1858,7 +1858,7 @@ static int ipoib_parent_init(struct net_device *ndev)
+ 			priv->port);
+ 		return result;
+ 	}
+-	priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
++	priv->max_ib_mtu = rdma_mtu_from_attr(priv->ca, priv->port, &attr);
+ 
+ 	result = ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey);
+ 	if (result) {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index b9e9562..7166ee9b 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -218,6 +218,7 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+ 	struct rdma_ah_attr av;
+ 	int ret;
+ 	int set_qkey = 0;
++	int mtu;
+ 
+ 	mcast->mcmember = *mcmember;
+ 
+@@ -240,13 +241,11 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+ 		priv->broadcast->mcmember.flow_label = mcmember->flow_label;
+ 		priv->broadcast->mcmember.hop_limit = mcmember->hop_limit;
+ 		/* assume if the admin and the mcast are the same both can be changed */
++		mtu = rdma_mtu_enum_to_int(priv->ca,  priv->port,
++					   priv->broadcast->mcmember.mtu);
+ 		if (priv->mcast_mtu == priv->admin_mtu)
+-			priv->admin_mtu =
+-			priv->mcast_mtu =
+-			IPOIB_UD_MTU(ib_mtu_enum_to_int(priv->broadcast->mcmember.mtu));
+-		else
+-			priv->mcast_mtu =
+-			IPOIB_UD_MTU(ib_mtu_enum_to_int(priv->broadcast->mcmember.mtu));
++			priv->admin_mtu = IPOIB_UD_MTU(mtu);
++		priv->mcast_mtu = IPOIB_UD_MTU(mtu);
+ 
+ 		priv->qkey = be32_to_cpu(priv->broadcast->mcmember.qkey);
+ 		spin_unlock_irq(&priv->lock);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index babfdb0..da8d0d6 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -462,6 +462,11 @@ enum ib_mtu {
+ 	IB_MTU_4096 = 5
+ };
+ 
++enum opa_mtu {
++	OPA_MTU_8192 = 6,
++	OPA_MTU_10240 = 7
++};
++
+ static inline int ib_mtu_enum_to_int(enum ib_mtu mtu)
+ {
+ 	switch (mtu) {
+@@ -488,6 +493,28 @@ static inline enum ib_mtu ib_mtu_int_to_enum(int mtu)
+ 		return IB_MTU_256;
+ }
+ 
++static inline int opa_mtu_enum_to_int(enum opa_mtu mtu)
++{
++	switch (mtu) {
++	case OPA_MTU_8192:
++		return 8192;
++	case OPA_MTU_10240:
++		return 10240;
++	default:
++		return(ib_mtu_enum_to_int((enum ib_mtu)mtu));
++	}
++}
++
++static inline enum opa_mtu opa_mtu_int_to_enum(int mtu)
++{
++	if (mtu >= 10240)
++		return OPA_MTU_10240;
++	else if (mtu >= 8192)
++		return OPA_MTU_8192;
++	else
++		return ((enum opa_mtu)ib_mtu_int_to_enum(mtu));
++}
++
+ enum ib_port_state {
+ 	IB_PORT_NOP		= 0,
+ 	IB_PORT_DOWN		= 1,
+@@ -651,6 +678,7 @@ struct ib_port_attr {
+ 	enum ib_port_state	state;
+ 	enum ib_mtu		max_mtu;
+ 	enum ib_mtu		active_mtu;
++	u32                     phys_mtu;
+ 	int			gid_tbl_len;
+ 	unsigned int		ip_gids:1;
+ 	/* This is the value from PortInfo CapabilityMask, defined by IBA */
+@@ -3356,6 +3384,55 @@ static inline unsigned int rdma_find_pg_bit(unsigned long addr,
+ 	return __fls(pgsz);
+ }
+ 
++/**
++ * rdma_core_cap_opa_port - Return whether the RDMA Port is OPA or not.
++ * @device: Device
++ * @port_num: 1 based Port number
++ *
++ * Return true if port is an Intel OPA port , false if not
++ */
++static inline bool rdma_core_cap_opa_port(struct ib_device *device,
++					  u32 port_num)
++{
++	return (device->port_data[port_num].immutable.core_cap_flags &
++		RDMA_CORE_PORT_INTEL_OPA) == RDMA_CORE_PORT_INTEL_OPA;
++}
++
++/**
++ * rdma_mtu_enum_to_int - Return the mtu of the port as an integer value.
++ * @device: Device
++ * @port_num: Port number
++ * @mtu: enum value of MTU
++ *
++ * Return the MTU size supported by the port as an integer value. Will return
++ * -1 if enum value of mtu is not supported.
++ */
++static inline int rdma_mtu_enum_to_int(struct ib_device *device, u8 port,
++				       int mtu)
++{
++	if (rdma_core_cap_opa_port(device, port))
++		return opa_mtu_enum_to_int((enum opa_mtu)mtu);
++	else
++		return ib_mtu_enum_to_int((enum ib_mtu)mtu);
++}
++
++/**
++ * rdma_mtu_from_attr - Return the mtu of the port from the port attribute.
++ * @device: Device
++ * @port_num: Port number
++ * @attr: port attribute
++ *
++ * Return the MTU size supported by the port as an integer value.
++ */
++static inline int rdma_mtu_from_attr(struct ib_device *device, u8 port,
++				     struct ib_port_attr *attr)
++{
++	if (rdma_core_cap_opa_port(device, port))
++		return attr->phys_mtu;
++	else
++		return ib_mtu_enum_to_int(attr->max_mtu);
++}
++
+ int ib_set_vf_link_state(struct ib_device *device, int vf, u8 port,
+ 			 int state);
+ int ib_get_vf_config(struct ib_device *device, int vf, u8 port,
+diff --git a/include/rdma/opa_port_info.h b/include/rdma/opa_port_info.h
+index bdbfe25..0d9e6d7 100644
+--- a/include/rdma/opa_port_info.h
++++ b/include/rdma/opa_port_info.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2014-2017 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2014-2020 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -139,14 +139,6 @@
+ #define OPA_CAP_MASK3_IsVLMarkerSupported         (1 << 1)
+ #define OPA_CAP_MASK3_IsVLrSupported              (1 << 0)
+ 
+-/**
+- * new MTU values
+- */
+-enum {
+-	OPA_MTU_8192  = 6,
+-	OPA_MTU_10240 = 7,
+-};
+-
+ enum {
+ 	OPA_PORT_PHYS_CONF_DISCONNECTED = 0,
+ 	OPA_PORT_PHYS_CONF_STANDARD     = 1,
 
