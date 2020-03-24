@@ -2,53 +2,53 @@ Return-Path: <SRS0=4vCw=5J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A3DCC2BAEE
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Mar 2020 06:02:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E830C2BAEE
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Mar 2020 06:14:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 304442074D
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Mar 2020 06:02:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C09E2074D
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Mar 2020 06:14:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1585029742;
-	bh=PHZ0f5kOJyCEO2otrssBy3lVfkvEANMRhxKDJqmYQMc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=cmjF5Zj5qF9q0rOZqElbmJ1+PUw4G7APnopYmromZolcrLq7K3SkI97CCEtMRIyG1
-	 kJw3e//rM8o8b4X48ntilpJ2pvtHxB9m/1eDtnQnDSX8XcyXiMTnhJqV3yY2vvOlwi
-	 7iniLER5zXwKQ9KE2qG+nG+zizr35feIZVNtCJLg=
+	s=default; t=1585030483;
+	bh=ulSmnmh4kn7m1GdeBTILrwANwWWSigEawgoGBikGcoA=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=LRw/qLK87I3WzGNSNiELWIC1wt/tzL7PoeyoXP01GIoN52cqXw/ALxGojpIRFpOoZ
+	 /mgxbn+80F2ZUnwK4gAGSYzxOO70JSxRjba5WWlqV1A4Zlzq6OVaEP4DrUMs+V8o1V
+	 0QBBWJQogFBJJdNSmEU7aFV3+uYVSlu6LB05jXig=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725945AbgCXGCV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Mar 2020 02:02:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40670 "EHLO mail.kernel.org"
+        id S1726212AbgCXGOm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Mar 2020 02:14:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725853AbgCXGCV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 24 Mar 2020 02:02:21 -0400
+        id S1725951AbgCXGOm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 24 Mar 2020 02:14:42 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5CE7C2073E;
-        Tue, 24 Mar 2020 06:02:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 53F0D20663;
+        Tue, 24 Mar 2020 06:14:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1585029741;
-        bh=PHZ0f5kOJyCEO2otrssBy3lVfkvEANMRhxKDJqmYQMc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=G/zqdZATfUZG985T0mwpvWA/O1N1u17cwJAXacsbNOtdpocLyk51szH5wPbRnFlhd
-         iAokF7KtUcX4HoxV4DtT7GjeScZG8lRUrUhQT8thq4Cx6ZCbJPTxIxh8qSwckp067p
-         vZqsUCgSkQ+CVRqhuGbIh+aOR+UPdlaSgyCkfAD8=
+        s=default; t=1585030482;
+        bh=ulSmnmh4kn7m1GdeBTILrwANwWWSigEawgoGBikGcoA=;
+        h=From:To:Cc:Subject:Date:From;
+        b=y4kWou1twXoPTodVoFAEJFxIzujERSe/p6mT8vIGNEEtuzq6NV8oSsXLz6pD0xqX2
+         VSKX65YZLUc7Gn9rDkk+yR13VjwV/3Tm+XAaAIleALGBzf5AjVewfYe8oJXAGbBeZn
+         7JUgN5sHLpYYLgBKEL7wBbnZREZ7Q+QEfCmQHiMY=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@mellanox.com>
-Subject: [PATCH rdma-next v1 2/5] IB/mlx5: Extend CQ creation to get uar page index from user space
-Date:   Tue, 24 Mar 2020 08:01:40 +0200
-Message-Id: <20200324060143.1569116-3-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>,
+        Mark Bloch <markb@mellanox.com>,
+        Michael Guralnik <michaelgur@mellanox.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH rdma-next 0/2] RDMA TX steering support
+Date:   Tue, 24 Mar 2020 08:14:23 +0200
+Message-Id: <20200324061425.1570190-1-leon@kernel.org>
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200324060143.1569116-1-leon@kernel.org>
-References: <20200324060143.1569116-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -56,82 +56,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Extend CQ creation to get uar page index from user space, this mode can
-be used with the UAR dynamic mode APIs to allocate/destroy a UAR object.
+Hi,
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Michael Guralnik <michaelgur@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/cq.c | 17 +++++++++++------
- include/uapi/rdma/mlx5-abi.h    |  4 ++++
- 2 files changed, 15 insertions(+), 6 deletions(-)
+Those two patches from Michael extends mlx5_core and mlx5_ib flow
+steering to support RDMA TX in similar way to already supported
+RDMA RX.
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 3dec3de903b7..eafedc2f697b 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -715,17 +715,19 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 	struct mlx5_ib_ucontext *context = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
- 
--	ucmdlen = udata->inlen < sizeof(ucmd) ?
--		  (sizeof(ucmd) - sizeof(ucmd.flags)) : sizeof(ucmd);
-+	ucmdlen = min(udata->inlen, sizeof(ucmd));
-+	if (ucmdlen < offsetof(struct mlx5_ib_create_cq, flags))
-+		return -EINVAL;
- 
- 	if (ib_copy_from_udata(&ucmd, udata, ucmdlen))
- 		return -EFAULT;
- 
--	if (ucmdlen == sizeof(ucmd) &&
--	    (ucmd.flags & ~(MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD)))
-+	if ((ucmd.flags & ~(MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD |
-+			    MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX)))
- 		return -EINVAL;
- 
--	if (ucmd.cqe_size != 64 && ucmd.cqe_size != 128)
-+	if ((ucmd.cqe_size != 64 && ucmd.cqe_size != 128) ||
-+	    ucmd.reserved0 || ucmd.reserved1)
- 		return -EINVAL;
- 
- 	*cqe_size = ucmd.cqe_size;
-@@ -762,7 +764,10 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 	MLX5_SET(cqc, cqc, log_page_size,
- 		 page_shift - MLX5_ADAPTER_PAGE_SHIFT);
- 
--	*index = context->bfregi.sys_pages[0];
-+	if (ucmd.flags & MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX)
-+		*index = ucmd.uar_page_index;
-+	else
-+		*index = context->bfregi.sys_pages[0];
- 
- 	if (ucmd.cqe_comp_en == 1) {
- 		int mini_cqe_format;
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 624f5b53eb1f..e900f9a64feb 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -266,6 +266,7 @@ struct mlx5_ib_query_device_resp {
- 
- enum mlx5_ib_create_cq_flags {
- 	MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD	= 1 << 0,
-+	MLX5_IB_CREATE_CQ_FLAGS_UAR_PAGE_INDEX  = 1 << 1,
- };
- 
- struct mlx5_ib_create_cq {
-@@ -275,6 +276,9 @@ struct mlx5_ib_create_cq {
- 	__u8    cqe_comp_en;
- 	__u8    cqe_comp_res_format;
- 	__u16	flags;
-+	__u16	uar_page_index;
-+	__u16	reserved0;
-+	__u32	reserved1;
- };
- 
- struct mlx5_ib_create_cq_resp {
--- 
+Thanks
+
+Michael Guralnik (2):
+  net/mlx5: Add support for RDMA TX steering
+  RDMA/mlx5: Add support for RDMA TX flow table
+
+ drivers/infiniband/hw/mlx5/flow.c             |  3 ++
+ drivers/infiniband/hw/mlx5/main.c             |  7 +++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  1 +
+ .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |  1 +
+ .../net/ethernet/mellanox/mlx5/core/fs_core.c | 53 +++++++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/fs_core.h |  7 ++-
+ include/linux/mlx5/device.h                   |  6 +++
+ include/linux/mlx5/fs.h                       |  1 +
+ include/linux/mlx5/mlx5_ifc.h                 |  2 +-
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h     |  1 +
+ 10 files changed, 79 insertions(+), 3 deletions(-)
+
+--
 2.24.1
 
