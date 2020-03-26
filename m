@@ -2,259 +2,117 @@ Return-Path: <SRS0=OVxU=5L=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC035C43331
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Mar 2020 04:04:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85782C43331
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Mar 2020 15:00:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9C9E120737
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Mar 2020 04:04:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33D71206F8
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Mar 2020 15:00:45 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ckfMy+ko"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725819AbgCZEEI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 26 Mar 2020 00:04:08 -0400
-Received: from mga07.intel.com ([134.134.136.100]:11437 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725306AbgCZEEI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 26 Mar 2020 00:04:08 -0400
-IronPort-SDR: IOHj/1Yg/XHsfPmzEKyplb9okkrMcFMIdyWvUkYbCzP+TNfHjt496IgQpdoN96feyT6wYbb89d
- XrUGFgcvIZPw==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2020 21:04:06 -0700
-IronPort-SDR: waefGFTv2KFJDaA4sa13uBX48vudzFwQq2DePR7MfucPdYQ+12tdjH0SwnVth1kZalvWTz4gpB
- ip9jjAwMzoYg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.72,306,1580803200"; 
-   d="scan'208";a="446850624"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga005.fm.intel.com with ESMTP; 25 Mar 2020 21:04:04 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jHJkR-000Fac-BR; Thu, 26 Mar 2020 12:04:03 +0800
-Date:   Thu, 26 Mar 2020 12:03:42 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-rc] BUILD SUCCESS
- ba80013fba656b9830ef45cd40a6a1e44707f47a
-Message-ID: <5e7c299e.7JZyQ9btcpipOFDq%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1727443AbgCZPAo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 26 Mar 2020 11:00:44 -0400
+Received: from mail-qv1-f67.google.com ([209.85.219.67]:46641 "EHLO
+        mail-qv1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726270AbgCZPAo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 26 Mar 2020 11:00:44 -0400
+Received: by mail-qv1-f67.google.com with SMTP id m2so3042126qvu.13;
+        Thu, 26 Mar 2020 08:00:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:date:message-id:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=ygcBKCp+0WYFKntXrF557PkaUGgSa7RUea/+BnXY+Iw=;
+        b=ckfMy+ko331Di/eJBTkHXmfLrNLdygWBsFQhraRs0/LyxH5TD8fgmqSIiuYErtJVsO
+         dlsDC63LpKE2+2ZgdnXbcdinQQ3NIDGlZuSYFZsZqyHbqno2zIc4+omk7XQyi+UBWGZr
+         s7ub8Po32TP2jct/Ho2lloZpOaDs9FVFWPKdl7ddUCOhSc4SeviAi9ZVLS0M/TU6hNr8
+         jTlPUui7rQ0vl4JsjEHMkB5jljzotlx/0lUQeva+e/2QK2H9yMFulV6mp7xi4Bla8Xdv
+         pPOyqTi4VLPpXGUUCuOs9Iqgil20xOiDJPMMX0x4cPUGnsLV8Sz8tIEMyecp+Lza64Tw
+         5MoA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:from:to:date:message-id
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=ygcBKCp+0WYFKntXrF557PkaUGgSa7RUea/+BnXY+Iw=;
+        b=fKeugFSzfnZZkM2EUakz/Q4uEfkdzwPuoFOE6Yar6QXIyY5Urn5Kg5PNwMC4/8OQ37
+         ssopoajetF0kLGiTzI8itBdiIrnhCs0n47X2biXc9O6FIA09VvPVOWm1khKoGIW0YBWm
+         5++v/Z4jNkcu0GYIDYaQwLbL83SkXQ2JjnJ+vIrw5yE2dCtyZqIwXKITnTDXYqbrIGTR
+         mjJb2f/BcH7098ScGkYmW0yzXLr7gDVAw6dOK0fx2V89QfSNU4UqVNGkZjQqzG4q3EZO
+         Bfc9C+0H+OcciCyzjfrj0rX8dkd3iLtpV2W4JgUiBux6Z9W2m4Oy3y0ROQw+mvZ2iFmz
+         +iYg==
+X-Gm-Message-State: ANhLgQ1yY1BVg09dIvi+iPauA6jC4VeuJBqGJsxpm6DZpxHixo3hU7S0
+        YTJYG9B2KkBQ55WPRoqHp6LvsrQs
+X-Google-Smtp-Source: ADFU+vvMhRwqEvLeWKqvwuAADPwYsLk6SdbMkdPfM6oevC4/8PJwgjJ+uLzkE+RD7Xfnz0R4cCAl0Q==
+X-Received: by 2002:a0c:ec07:: with SMTP id y7mr8672795qvo.142.1585234841667;
+        Thu, 26 Mar 2020 08:00:41 -0700 (PDT)
+Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
+        by smtp.gmail.com with ESMTPSA id w9sm1521587qkf.28.2020.03.26.08.00.40
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 26 Mar 2020 08:00:41 -0700 (PDT)
+Received: from klimt.1015granger.net (klimt.1015granger.net [192.168.1.55])
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 02QF0col001280;
+        Thu, 26 Mar 2020 15:00:38 GMT
+Subject: [PATCH] svcrdma: Fix leak of transport addresses
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
+Date:   Thu, 26 Mar 2020 11:00:38 -0400
+Message-ID: <20200326145920.29379.46066.stgit@klimt.1015granger.net>
+User-Agent: StGit/0.22-7-g1113
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-rc
-branch HEAD: ba80013fba656b9830ef45cd40a6a1e44707f47a  RDMA/mlx5: Block delay drop to unprivileged users
+Kernel memory leak detected:
 
-elapsed time: 487m
+unreferenced object 0xffff888849cdf480 (size 8):
+  comm "kworker/u8:3", pid 2086, jiffies 4297898756 (age 4269.856s)
+  hex dump (first 8 bytes):
+    30 00 cd 49 88 88 ff ff                          0..I....
+  backtrace:
+    [<00000000acfc370b>] __kmalloc_track_caller+0x137/0x183
+    [<00000000a2724354>] kstrdup+0x2b/0x43
+    [<0000000082964f84>] xprt_rdma_format_addresses+0x114/0x17d [rpcrdma]
+    [<00000000dfa6ed00>] xprt_setup_rdma_bc+0xc0/0x10c [rpcrdma]
+    [<0000000073051a83>] xprt_create_transport+0x3f/0x1a0 [sunrpc]
+    [<0000000053531a8e>] rpc_create+0x118/0x1cd [sunrpc]
+    [<000000003a51b5f8>] setup_callback_client+0x1a5/0x27d [nfsd]
+    [<000000001bd410af>] nfsd4_process_cb_update.isra.7+0x16c/0x1ac [nfsd]
+    [<000000007f4bbd56>] nfsd4_run_cb_work+0x4c/0xbd [nfsd]
+    [<0000000055c5586b>] process_one_work+0x1b2/0x2fe
+    [<00000000b1e3e8ef>] worker_thread+0x1a6/0x25a
+    [<000000005205fb78>] kthread+0xf6/0xfb
+    [<000000006d2dc057>] ret_from_fork+0x3a/0x50
 
-configs tested: 193
-configs skipped: 0
+Introduce a call to xprt_rdma_free_addresses() similar to the way
+that the TCP backchannel releases a transport's peer address
+strings.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-arm                              allmodconfig
-arm                               allnoconfig
-arm                              allyesconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-arm64                            allyesconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                               defconfig
-sparc                            allyesconfig
-openrisc                    or1ksim_defconfig
-powerpc                       ppc64_defconfig
-h8300                     edosk2674_defconfig
-ia64                             allyesconfig
-s390                             allyesconfig
-riscv                          rv32_defconfig
-i386                              allnoconfig
-i386                             alldefconfig
-i386                             allyesconfig
-i386                                defconfig
-ia64                             alldefconfig
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                                defconfig
-c6x                              allyesconfig
-c6x                        evmc6678_defconfig
-nios2                         10m50_defconfig
-nios2                         3c120_defconfig
-openrisc                 simple_smp_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-nds32                             allnoconfig
-csky                                defconfig
-alpha                               defconfig
-nds32                               defconfig
-h8300                    h8300h-sim_defconfig
-h8300                       h8s-sim_defconfig
-m68k                             allmodconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-powerpc                             defconfig
-powerpc                          rhel-kconfig
-microblaze                    nommu_defconfig
-powerpc                           allnoconfig
-arc                              allyesconfig
-arc                                 defconfig
-microblaze                      mmu_defconfig
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                             allmodconfig
-mips                              allnoconfig
-mips                             allyesconfig
-mips                      fuloong2e_defconfig
-mips                      malta_kvm_defconfig
-parisc                            allnoconfig
-parisc                           allyesconfig
-parisc                generic-32bit_defconfig
-parisc                generic-64bit_defconfig
-x86_64               randconfig-a001-20200326
-x86_64               randconfig-a002-20200326
-x86_64               randconfig-a003-20200326
-i386                 randconfig-a001-20200326
-i386                 randconfig-a002-20200326
-i386                 randconfig-a003-20200326
-x86_64               randconfig-a001-20200325
-x86_64               randconfig-a002-20200325
-x86_64               randconfig-a003-20200325
-i386                 randconfig-a001-20200325
-i386                 randconfig-a002-20200325
-i386                 randconfig-a003-20200325
-alpha                randconfig-a001-20200326
-m68k                 randconfig-a001-20200326
-mips                 randconfig-a001-20200326
-nds32                randconfig-a001-20200326
-parisc               randconfig-a001-20200326
-riscv                randconfig-a001-20200326
-mips                 randconfig-a001-20200325
-nds32                randconfig-a001-20200325
-m68k                 randconfig-a001-20200325
-parisc               randconfig-a001-20200325
-alpha                randconfig-a001-20200325
-riscv                randconfig-a001-20200325
-h8300                randconfig-a001-20200325
-microblaze           randconfig-a001-20200325
-nios2                randconfig-a001-20200325
-c6x                  randconfig-a001-20200325
-sparc64              randconfig-a001-20200325
-csky                 randconfig-a001-20200325
-openrisc             randconfig-a001-20200325
-s390                 randconfig-a001-20200325
-sh                   randconfig-a001-20200325
-xtensa               randconfig-a001-20200325
-csky                 randconfig-a001-20200326
-openrisc             randconfig-a001-20200326
-s390                 randconfig-a001-20200326
-xtensa               randconfig-a001-20200326
-sh                   randconfig-a001-20200326
-x86_64               randconfig-b001-20200325
-x86_64               randconfig-b002-20200325
-x86_64               randconfig-b003-20200325
-i386                 randconfig-b001-20200325
-i386                 randconfig-b002-20200325
-i386                 randconfig-b003-20200325
-x86_64               randconfig-c001-20200325
-x86_64               randconfig-c002-20200325
-x86_64               randconfig-c003-20200325
-i386                 randconfig-c001-20200325
-i386                 randconfig-c002-20200325
-i386                 randconfig-c003-20200325
-x86_64               randconfig-c001-20200326
-x86_64               randconfig-c002-20200326
-x86_64               randconfig-c003-20200326
-i386                 randconfig-c001-20200326
-i386                 randconfig-c002-20200326
-i386                 randconfig-c003-20200326
-x86_64               randconfig-d001-20200325
-x86_64               randconfig-d002-20200325
-x86_64               randconfig-d003-20200325
-i386                 randconfig-d001-20200325
-i386                 randconfig-d002-20200325
-i386                 randconfig-d003-20200325
-x86_64               randconfig-e001-20200325
-x86_64               randconfig-e002-20200325
-x86_64               randconfig-e003-20200325
-i386                 randconfig-e001-20200325
-i386                 randconfig-e002-20200325
-i386                 randconfig-e003-20200325
-x86_64               randconfig-f001-20200325
-x86_64               randconfig-f002-20200325
-x86_64               randconfig-f003-20200325
-i386                 randconfig-f001-20200325
-i386                 randconfig-f002-20200325
-i386                 randconfig-f003-20200325
-x86_64               randconfig-g001-20200325
-x86_64               randconfig-g002-20200325
-x86_64               randconfig-g003-20200325
-i386                 randconfig-g001-20200325
-i386                 randconfig-g002-20200325
-i386                 randconfig-g003-20200325
-x86_64               randconfig-h001-20200326
-x86_64               randconfig-h002-20200326
-x86_64               randconfig-h003-20200326
-i386                 randconfig-h001-20200326
-i386                 randconfig-h002-20200326
-i386                 randconfig-h003-20200326
-x86_64               randconfig-h001-20200325
-x86_64               randconfig-h002-20200325
-x86_64               randconfig-h003-20200325
-i386                 randconfig-h001-20200325
-i386                 randconfig-h002-20200325
-i386                 randconfig-h003-20200325
-arc                  randconfig-a001-20200325
-arm                  randconfig-a001-20200325
-arm64                randconfig-a001-20200325
-ia64                 randconfig-a001-20200325
-powerpc              randconfig-a001-20200325
-sparc                randconfig-a001-20200325
-riscv                            allmodconfig
-riscv                             allnoconfig
-riscv                            allyesconfig
-riscv                               defconfig
-riscv                    nommu_virt_defconfig
-s390                             alldefconfig
-s390                             allmodconfig
-s390                              allnoconfig
-s390                          debug_defconfig
-s390                                defconfig
-s390                       zfcpdump_defconfig
-sh                               allmodconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-sparc                               defconfig
-sparc64                          allmodconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                             defconfig
-um                                  defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                              fedora-25
-x86_64                                  kexec
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                         rhel-7.2-clear
-x86_64                               rhel-7.6
-
+Fixes: 5d252f90a800 ("svcrdma: Add class for RDMA backwards direction transport")
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+Here's a possible fix for v5.7-rc.
+
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+index 46b59e91d34a..d510a3a15d4b 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+@@ -252,6 +252,7 @@ xprt_rdma_bc_put(struct rpc_xprt *xprt)
+ {
+ 	dprintk("svcrdma: %s: xprt %p\n", __func__, xprt);
+ 
++	xprt_rdma_free_addresses(xprt);
+ 	xprt_free(xprt);
+ }
+ 
+
