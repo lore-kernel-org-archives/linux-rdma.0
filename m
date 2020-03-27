@@ -2,27 +2,28 @@ Return-Path: <SRS0=dyFK=5M=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57566C2BA14
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:16:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2C28C2D0ED
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2C06420714
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:16:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB6F920578
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727473AbgC0RP7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 27 Mar 2020 13:15:59 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:51186 "EHLO
+        id S1727703AbgC0RPz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 27 Mar 2020 13:15:55 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:51302 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727585AbgC0RPw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Mar 2020 13:15:52 -0400
+        with ESMTP id S1727639AbgC0RPz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Mar 2020 13:15:55 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 27 Mar 2020 20:15:46 +0300
+        with ESMTPS (AES256-SHA encrypted); 27 Mar 2020 20:15:48 +0300
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02RHFjj2004869;
-        Fri, 27 Mar 2020 20:15:45 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02RHFjjJ004869;
+        Fri, 27 Mar 2020 20:15:48 +0300
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
         sagi@grimberg.me, martin.petersen@oracle.com, jsmart2021@gmail.com,
@@ -30,10 +31,12 @@ To:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
 Cc:     idanb@mellanox.com, axboe@kernel.dk, maxg@mellanox.com,
         vladimirk@mellanox.com, oren@mellanox.com, shlomin@mellanox.com,
         israelr@mellanox.com, jgg@mellanox.com
-Subject: [PATCH 00/17 V5] nvme-rdma/nvmet-rdma: Add metadata/T10-PI support
-Date:   Fri, 27 Mar 2020 20:15:27 +0300
-Message-Id: <20200327171545.98970-1-maxg@mellanox.com>
+Subject: [PATCH 16/17] RDMA/rw: Expose maximal page list for a device per 1 MR
+Date:   Fri, 27 Mar 2020 20:15:44 +0300
+Message-Id: <20200327171545.98970-18-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20200327171545.98970-1-maxg@mellanox.com>
+References: <20200327171545.98970-1-maxg@mellanox.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -41,118 +44,58 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello Sagi, Christoph, Keith, Martin, James and Co
+ULP's will use this information to determine the maximal data transfer
+size per IO operation.
 
-This patchset adds metadata (T10-PI) support for NVMeoF/RDMA host side
-and target side, using signature verbs API. This set starts with a few
-preparation commits to the NVMe host core layer. It continues with
-NVMeoF/RDMA host implementation + few preparation commits to the RDMA/rw
-API and to NVMe target core layer. The patchset ends with NVMeoF/RDMA
-target implementation. Also patch for NVMe-cli added to this series.
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+---
+ drivers/infiniband/core/rw.c | 14 ++++++++++++--
+ include/rdma/rw.h            |  1 +
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-In V5 I mainly did some renamings and removed 2 patches to get_mdts that
-were already merged to main branch. I tried get some inspiration from
-James suggestion of the settings in NVMe core, but unfortunately couldn't
-take much from there and I stayed with Christoph suggestion for features
-flag per namespace. I found the code more readable in this form and
-hopefully we can continue with the review and the merge soon.
-
-Configuration:
-Host:
- - nvme connect --pi_enable --transport=rdma --traddr=10.0.1.1 --nqn=test-nvme
-
-Target:
- - echo 1 > /config/nvmet/subsystems/${NAME}/attr_pi_enable
- - echo 1 > /config/nvmet/ports/${PORT_NUM}/param_pi_enable
-
-The code was tested using Mellanox's ConnectX-4/ConnectX-5 HCAs.
-This series applies on top of nvme_5.7 branch cleanly.
-
-Changes from v4:
- - removed get_mdts patches (merged)
- - added enum nvme_ns_features instead of defines (patch 1/17)
- - rename pi/prot to md (patches 2/17 + 6/17 + 8/17 + 9/17 + 10/17)
- - another rebase
-
-Changes from v3:
- - Added Reviewed-by signatures
- - New RDMA/rw patch (Patch 17/19)
- - Add mdts setting op for controllers (Patches 14/19, 18/19)
- - Rename NVME_NS_DIX_SUPPORTED to NVME_NS_MD_HOST_SUPPORTED and
-   NVME_NS_DIF_SUPPORTED to NVME_NS_MD_CTRL_SUPPORTED (Patch 01/19)
- - Split "nvme: Introduce namespace features flag" patch (patch 02/19)
- - Rename nvmet_rdma_set_diff_domain to nvmet_rdma_set_sig_domain
-   and nvme_rdma_set_diff_domain to nvme_rdma_set_sig_domain
-   (Patches 08/19, 19/19)
- - Remove ns parameter from nvme_rdma_set_sig_domain/nvmet_rdma_set_sig_domain
-   functions (patch 08/19, 19/19)
- - Rebase over nvme-5.7 branch
-
-Changes from v2:
- - Convert the virtual start sector (which passed to bip_set_seed function)
-   to be in integrity interval units (Patch 14/15)
- - Clarify some commit messages
-
-Changes from v1:
- - Added Reviewed-by signatures
- - Added namespace features flag (Patch 01/15)
- - Remove nvme_ns_has_pi function (Patch 01/15)
- - Added has_pi field to struct nvme_request (Patch 01/15)
- - Subject change for patch 02/15
- - Fix comment for PCI metadata (Patch 03/15)
- - Rebase over "nvme: Avoid preallocating big SGL for data" patchset
- - Introduce NVME_INLINE_PROT_SG_CNT flag (Patch 05/15)
- - Introduce nvme_rdma_sgl structure (Patch 06/15)
- - Remove first_sgl pointer from struct nvme_rdma_request (Patch 06/15)
- - Split nvme-rdma patches (Patches 06/15, 07/15)
- - Rename is_protected to use_pi (Patch 07/15)
- - Refactor nvme_rdma_get_max_fr_pages function (Patch 07/15)
- - Added ifdef CONFIG_BLK_DEV_INTEGRITY (Patches 07/15, 09/15, 13/15,
-   14/15, 15/15)
- - Added port configfs pi_enable (Patch 14/15)
-
-
-Israel Rukshin (12):
-  nvme: introduce namespace features flag
-  nvme: Add has_md field to the nvme_req structure
-  nvme-fabrics: Allow user enabling metadata/T10-PI support
-  nvme: introduce NVME_INLINE_MD_SG_CNT
-  nvme-rdma: Introduce nvme_rdma_sgl structure
-  nvmet: prepare metadata request
-  nvmet: add metadata characteristics for a namespace
-  nvmet: Rename nvmet_rw_len to nvmet_rw_data_len
-  nvmet: Rename nvmet_check_data_len to nvmet_check_transfer_len
-  nvme: Add Metadata Capabilities enumerations
-  nvmet: Add metadata/T10-PI support
-  nvmet: Add metadata support for block devices
-
-Max Gurtovoy (5):
-  nvme: Enforce extended LBA format for fabrics metadata
-  nvme: introduce max_integrity_segments ctrl attribute
-  nvme-rdma: add metadata/T10-PI support
-  RDMA/rw: Expose maximal page list for a device per 1 MR
-  nvmet-rdma: Add metadata/T10-PI support
-
- drivers/infiniband/core/rw.c      |  14 +-
- drivers/nvme/host/core.c          |  79 +++++---
- drivers/nvme/host/fabrics.c       |  11 ++
- drivers/nvme/host/fabrics.h       |   3 +
- drivers/nvme/host/nvme.h          |  12 +-
- drivers/nvme/host/pci.c           |   7 +
- drivers/nvme/host/rdma.c          | 367 +++++++++++++++++++++++++++++++++-----
- drivers/nvme/target/admin-cmd.c   |  33 +++-
- drivers/nvme/target/configfs.c    |  61 +++++++
- drivers/nvme/target/core.c        |  54 ++++--
- drivers/nvme/target/discovery.c   |   8 +-
- drivers/nvme/target/fabrics-cmd.c |  19 +-
- drivers/nvme/target/io-cmd-bdev.c | 113 +++++++++++-
- drivers/nvme/target/io-cmd-file.c |   6 +-
- drivers/nvme/target/nvmet.h       |  38 +++-
- drivers/nvme/target/rdma.c        | 245 +++++++++++++++++++++++--
- include/linux/nvme.h              |   2 +
- include/rdma/rw.h                 |   1 +
- 18 files changed, 946 insertions(+), 127 deletions(-)
-
+diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+index 4fad732..edc9bee 100644
+--- a/drivers/infiniband/core/rw.c
++++ b/drivers/infiniband/core/rw.c
+@@ -56,8 +56,17 @@ static inline bool rdma_rw_io_needs_mr(struct ib_device *dev, u8 port_num,
+ 	return false;
+ }
+ 
+-static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev,
+-					   bool pi_support)
++/**
++ * rdma_rw_fr_page_list_len - return the max number of pages mapped by 1 MR
++ * @dev:	RDMA device that will eventually create a PD for needed MRs
++ * @pi_support:	Whether MRs will be created for protection information offload
++ *
++ * Returns the number of pages that one MR can map for RDMA operation by the
++ * given device. One can determine the maximal data size according to the
++ * result of this function, or chose using multiple MRs for the RDMA operation
++ * as well.
++ */
++u32 rdma_rw_fr_page_list_len(struct ib_device *dev, bool pi_support)
+ {
+ 	u32 max_pages;
+ 
+@@ -69,6 +78,7 @@ static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev,
+ 	/* arbitrary limit to avoid allocating gigantic resources */
+ 	return min_t(u32, max_pages, 256);
+ }
++EXPORT_SYMBOL(rdma_rw_fr_page_list_len);
+ 
+ static inline int rdma_rw_inv_key(struct rdma_rw_reg_ctx *reg)
+ {
+diff --git a/include/rdma/rw.h b/include/rdma/rw.h
+index 6ad9dc8..a9bbda7 100644
+--- a/include/rdma/rw.h
++++ b/include/rdma/rw.h
+@@ -69,5 +69,6 @@ unsigned int rdma_rw_mr_factor(struct ib_device *device, u8 port_num,
+ void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr);
+ int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr);
+ void rdma_rw_cleanup_mrs(struct ib_qp *qp);
++u32 rdma_rw_fr_page_list_len(struct ib_device *dev, bool pi_support);
+ 
+ #endif /* _RDMA_RW_H */
 -- 
 1.8.3.1
 
