@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4F0FC2D0EE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2FEC2D0F0
 	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CF9B20578
+	by mail.kernel.org (Postfix) with ESMTP id BDC8720714
 	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727636AbgC0RP6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727611AbgC0RP6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 27 Mar 2020 13:15:58 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:44789 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:51263 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727473AbgC0RPw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Mar 2020 13:15:52 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
+        with ESMTP id S1727701AbgC0RP5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Mar 2020 13:15:57 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 27 Mar 2020 20:15:47 +0300
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02RHFjjC004869;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02RHFjjF004869;
         Fri, 27 Mar 2020 20:15:47 +0300
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
@@ -31,9 +31,9 @@ To:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
 Cc:     idanb@mellanox.com, axboe@kernel.dk, maxg@mellanox.com,
         vladimirk@mellanox.com, oren@mellanox.com, shlomin@mellanox.com,
         israelr@mellanox.com, jgg@mellanox.com
-Subject: [PATCH 09/17] nvmet: prepare metadata request
-Date:   Fri, 27 Mar 2020 20:15:37 +0300
-Message-Id: <20200327171545.98970-11-maxg@mellanox.com>
+Subject: [PATCH 12/17] nvmet: Rename nvmet_check_data_len to nvmet_check_transfer_len
+Date:   Fri, 27 Mar 2020 20:15:40 +0300
+Message-Id: <20200327171545.98970-14-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200327171545.98970-1-maxg@mellanox.com>
 References: <20200327171545.98970-1-maxg@mellanox.com>
@@ -46,151 +46,272 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Israel Rukshin <israelr@mellanox.com>
 
-Allocate the metadata SGL buffers and set metadata fields for the
-request. This is a preparation for adding metadata support over the
-fabrics.
+The function doesn't check only the data length, because the transfer
+length includes also the metadata length in some cases. This is
+preparation for adding metadata (T10-PI) support.
 
 Signed-off-by: Israel Rukshin <israelr@mellanox.com>
-Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
 ---
- drivers/nvme/target/core.c  | 48 ++++++++++++++++++++++++++++++++++++++-------
- drivers/nvme/target/nvmet.h |  5 +++++
- 2 files changed, 46 insertions(+), 7 deletions(-)
+ drivers/nvme/target/admin-cmd.c   | 14 +++++++-------
+ drivers/nvme/target/core.c        |  6 +++---
+ drivers/nvme/target/discovery.c   |  8 ++++----
+ drivers/nvme/target/fabrics-cmd.c |  8 ++++----
+ drivers/nvme/target/io-cmd-bdev.c |  6 +++---
+ drivers/nvme/target/io-cmd-file.c |  6 +++---
+ drivers/nvme/target/nvmet.h       |  2 +-
+ 7 files changed, 25 insertions(+), 25 deletions(-)
 
+diff --git a/drivers/nvme/target/admin-cmd.c b/drivers/nvme/target/admin-cmd.c
+index b9ec489..24ed5b2 100644
+--- a/drivers/nvme/target/admin-cmd.c
++++ b/drivers/nvme/target/admin-cmd.c
+@@ -294,7 +294,7 @@ static void nvmet_execute_get_log_page_ana(struct nvmet_req *req)
+ 
+ static void nvmet_execute_get_log_page(struct nvmet_req *req)
+ {
+-	if (!nvmet_check_data_len(req, nvmet_get_log_page_len(req->cmd)))
++	if (!nvmet_check_transfer_len(req, nvmet_get_log_page_len(req->cmd)))
+ 		return;
+ 
+ 	switch (req->cmd->get_log_page.lid) {
+@@ -624,7 +624,7 @@ static void nvmet_execute_identify_desclist(struct nvmet_req *req)
+ 
+ static void nvmet_execute_identify(struct nvmet_req *req)
+ {
+-	if (!nvmet_check_data_len(req, NVME_IDENTIFY_DATA_SIZE))
++	if (!nvmet_check_transfer_len(req, NVME_IDENTIFY_DATA_SIZE))
+ 		return;
+ 
+ 	switch (req->cmd->identify.cns) {
+@@ -653,7 +653,7 @@ static void nvmet_execute_identify(struct nvmet_req *req)
+  */
+ static void nvmet_execute_abort(struct nvmet_req *req)
+ {
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 	nvmet_set_result(req, 1);
+ 	nvmet_req_complete(req, 0);
+@@ -742,7 +742,7 @@ static void nvmet_execute_set_features(struct nvmet_req *req)
+ 	u16 nsqr;
+ 	u16 ncqr;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	switch (cdw10 & 0xff) {
+@@ -814,7 +814,7 @@ static void nvmet_execute_get_features(struct nvmet_req *req)
+ 	u32 cdw10 = le32_to_cpu(req->cmd->common.cdw10);
+ 	u16 status = 0;
+ 
+-	if (!nvmet_check_data_len(req, nvmet_feat_data_len(req, cdw10)))
++	if (!nvmet_check_transfer_len(req, nvmet_feat_data_len(req, cdw10)))
+ 		return;
+ 
+ 	switch (cdw10 & 0xff) {
+@@ -881,7 +881,7 @@ void nvmet_execute_async_event(struct nvmet_req *req)
+ {
+ 	struct nvmet_ctrl *ctrl = req->sq->ctrl;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	mutex_lock(&ctrl->lock);
+@@ -900,7 +900,7 @@ void nvmet_execute_keep_alive(struct nvmet_req *req)
+ {
+ 	struct nvmet_ctrl *ctrl = req->sq->ctrl;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	pr_debug("ctrl %d update keep-alive timer for %d secs\n",
 diff --git a/drivers/nvme/target/core.c b/drivers/nvme/target/core.c
-index b685f99d..3899b2b4 100644
+index 3899b2b4..175445d 100644
 --- a/drivers/nvme/target/core.c
 +++ b/drivers/nvme/target/core.c
-@@ -873,13 +873,17 @@ bool nvmet_req_init(struct nvmet_req *req, struct nvmet_cq *cq,
- 	req->sq = sq;
- 	req->ops = ops;
- 	req->sg = NULL;
-+	req->md_sg = NULL;
- 	req->sg_cnt = 0;
-+	req->md_sg_cnt = 0;
- 	req->transfer_len = 0;
-+	req->md_len = 0;
- 	req->cqe->status = 0;
- 	req->cqe->sq_head = 0;
- 	req->ns = NULL;
- 	req->error_loc = NVMET_NO_ERROR_LOC;
- 	req->error_slba = 0;
-+	req->use_md = false;
- 
- 	trace_nvmet_req_init(req, req->cmd);
- 
-@@ -962,6 +966,7 @@ bool nvmet_check_data_len_lte(struct nvmet_req *req, size_t data_len)
- int nvmet_req_alloc_sgl(struct nvmet_req *req)
- {
- 	struct pci_dev *p2p_dev = NULL;
-+	int data_len = req->transfer_len - req->md_len;
- 
- 	if (IS_ENABLED(CONFIG_PCI_P2PDMA)) {
- 		if (req->sq->ctrl && req->ns)
-@@ -971,11 +976,23 @@ int nvmet_req_alloc_sgl(struct nvmet_req *req)
- 		req->p2p_dev = NULL;
- 		if (req->sq->qid && p2p_dev) {
- 			req->sg = pci_p2pmem_alloc_sgl(p2p_dev, &req->sg_cnt,
--						       req->transfer_len);
--			if (req->sg) {
--				req->p2p_dev = p2p_dev;
--				return 0;
-+						       data_len);
-+			if (!req->sg)
-+				goto fallback;
-+
-+			if (req->md_len) {
-+				req->md_sg =
-+					pci_p2pmem_alloc_sgl(p2p_dev,
-+							     &req->md_sg_cnt,
-+							     req->md_len);
-+				if (!req->md_sg) {
-+					pci_p2pmem_free_sgl(req->p2p_dev,
-+							    req->sg);
-+					goto fallback;
-+				}
- 			}
-+			req->p2p_dev = p2p_dev;
-+			return 0;
- 		}
- 
- 		/*
-@@ -984,23 +1001,40 @@ int nvmet_req_alloc_sgl(struct nvmet_req *req)
- 		 */
- 	}
- 
--	req->sg = sgl_alloc(req->transfer_len, GFP_KERNEL, &req->sg_cnt);
-+fallback:
-+	req->sg = sgl_alloc(data_len, GFP_KERNEL, &req->sg_cnt);
- 	if (unlikely(!req->sg))
- 		return -ENOMEM;
- 
-+	if (req->md_len) {
-+		req->md_sg = sgl_alloc(req->md_len, GFP_KERNEL,
-+					 &req->md_sg_cnt);
-+		if (unlikely(!req->md_sg)) {
-+			sgl_free(req->sg);
-+			return -ENOMEM;
-+		}
-+	}
-+
- 	return 0;
+@@ -940,9 +940,9 @@ void nvmet_req_uninit(struct nvmet_req *req)
  }
- EXPORT_SYMBOL_GPL(nvmet_req_alloc_sgl);
+ EXPORT_SYMBOL_GPL(nvmet_req_uninit);
  
- void nvmet_req_free_sgl(struct nvmet_req *req)
+-bool nvmet_check_data_len(struct nvmet_req *req, size_t data_len)
++bool nvmet_check_transfer_len(struct nvmet_req *req, size_t len)
  {
--	if (req->p2p_dev)
-+	if (req->p2p_dev) {
- 		pci_p2pmem_free_sgl(req->p2p_dev, req->sg);
--	else
-+		if (req->md_sg)
-+			pci_p2pmem_free_sgl(req->p2p_dev, req->md_sg);
-+	} else {
- 		sgl_free(req->sg);
-+		if (req->md_sg)
-+			sgl_free(req->md_sg);
-+	}
+-	if (unlikely(data_len != req->transfer_len)) {
++	if (unlikely(len != req->transfer_len)) {
+ 		req->error_loc = offsetof(struct nvme_common_command, dptr);
+ 		nvmet_req_complete(req, NVME_SC_SGL_INVALID_DATA | NVME_SC_DNR);
+ 		return false;
+@@ -950,7 +950,7 @@ bool nvmet_check_data_len(struct nvmet_req *req, size_t data_len)
  
- 	req->sg = NULL;
-+	req->md_sg = NULL;
- 	req->sg_cnt = 0;
-+	req->md_sg_cnt = 0;
+ 	return true;
  }
- EXPORT_SYMBOL_GPL(nvmet_req_free_sgl);
+-EXPORT_SYMBOL_GPL(nvmet_check_data_len);
++EXPORT_SYMBOL_GPL(nvmet_check_transfer_len);
  
+ bool nvmet_check_data_len_lte(struct nvmet_req *req, size_t data_len)
+ {
+diff --git a/drivers/nvme/target/discovery.c b/drivers/nvme/target/discovery.c
+index 0c2274b..40cf0b6 100644
+--- a/drivers/nvme/target/discovery.c
++++ b/drivers/nvme/target/discovery.c
+@@ -171,7 +171,7 @@ static void nvmet_execute_disc_get_log_page(struct nvmet_req *req)
+ 	u16 status = 0;
+ 	void *buffer;
+ 
+-	if (!nvmet_check_data_len(req, data_len))
++	if (!nvmet_check_transfer_len(req, data_len))
+ 		return;
+ 
+ 	if (req->cmd->get_log_page.lid != NVME_LOG_DISC) {
+@@ -244,7 +244,7 @@ static void nvmet_execute_disc_identify(struct nvmet_req *req)
+ 	const char model[] = "Linux";
+ 	u16 status = 0;
+ 
+-	if (!nvmet_check_data_len(req, NVME_IDENTIFY_DATA_SIZE))
++	if (!nvmet_check_transfer_len(req, NVME_IDENTIFY_DATA_SIZE))
+ 		return;
+ 
+ 	if (req->cmd->identify.cns != NVME_ID_CNS_CTRL) {
+@@ -298,7 +298,7 @@ static void nvmet_execute_disc_set_features(struct nvmet_req *req)
+ 	u32 cdw10 = le32_to_cpu(req->cmd->common.cdw10);
+ 	u16 stat;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	switch (cdw10 & 0xff) {
+@@ -324,7 +324,7 @@ static void nvmet_execute_disc_get_features(struct nvmet_req *req)
+ 	u32 cdw10 = le32_to_cpu(req->cmd->common.cdw10);
+ 	u16 stat = 0;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	switch (cdw10 & 0xff) {
+diff --git a/drivers/nvme/target/fabrics-cmd.c b/drivers/nvme/target/fabrics-cmd.c
+index feef15c..52a6f70 100644
+--- a/drivers/nvme/target/fabrics-cmd.c
++++ b/drivers/nvme/target/fabrics-cmd.c
+@@ -12,7 +12,7 @@ static void nvmet_execute_prop_set(struct nvmet_req *req)
+ 	u64 val = le64_to_cpu(req->cmd->prop_set.value);
+ 	u16 status = 0;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	if (req->cmd->prop_set.attrib & 1) {
+@@ -41,7 +41,7 @@ static void nvmet_execute_prop_get(struct nvmet_req *req)
+ 	u16 status = 0;
+ 	u64 val = 0;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	if (req->cmd->prop_get.attrib & 1) {
+@@ -156,7 +156,7 @@ static void nvmet_execute_admin_connect(struct nvmet_req *req)
+ 	struct nvmet_ctrl *ctrl = NULL;
+ 	u16 status = 0;
+ 
+-	if (!nvmet_check_data_len(req, sizeof(struct nvmf_connect_data)))
++	if (!nvmet_check_transfer_len(req, sizeof(struct nvmf_connect_data)))
+ 		return;
+ 
+ 	d = kmalloc(sizeof(*d), GFP_KERNEL);
+@@ -223,7 +223,7 @@ static void nvmet_execute_io_connect(struct nvmet_req *req)
+ 	u16 qid = le16_to_cpu(c->qid);
+ 	u16 status = 0;
+ 
+-	if (!nvmet_check_data_len(req, sizeof(struct nvmf_connect_data)))
++	if (!nvmet_check_transfer_len(req, sizeof(struct nvmf_connect_data)))
+ 		return;
+ 
+ 	d = kmalloc(sizeof(*d), GFP_KERNEL);
+diff --git a/drivers/nvme/target/io-cmd-bdev.c b/drivers/nvme/target/io-cmd-bdev.c
+index 1669483..2e9e309 100644
+--- a/drivers/nvme/target/io-cmd-bdev.c
++++ b/drivers/nvme/target/io-cmd-bdev.c
+@@ -173,7 +173,7 @@ static void nvmet_bdev_execute_rw(struct nvmet_req *req)
+ 	sector_t sector;
+ 	int op, i;
+ 
+-	if (!nvmet_check_data_len(req, nvmet_rw_data_len(req)))
++	if (!nvmet_check_transfer_len(req, nvmet_rw_data_len(req)))
+ 		return;
+ 
+ 	if (!req->sg_cnt) {
+@@ -234,7 +234,7 @@ static void nvmet_bdev_execute_flush(struct nvmet_req *req)
+ {
+ 	struct bio *bio = &req->b.inline_bio;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	bio_init(bio, req->inline_bvec, ARRAY_SIZE(req->inline_bvec));
+@@ -326,7 +326,7 @@ static void nvmet_bdev_execute_write_zeroes(struct nvmet_req *req)
+ 	sector_t nr_sector;
+ 	int ret;
+ 
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 
+ 	sector = le64_to_cpu(write_zeroes->slba) <<
+diff --git a/drivers/nvme/target/io-cmd-file.c b/drivers/nvme/target/io-cmd-file.c
+index ffbba88..6b098df 100644
+--- a/drivers/nvme/target/io-cmd-file.c
++++ b/drivers/nvme/target/io-cmd-file.c
+@@ -232,7 +232,7 @@ static void nvmet_file_execute_rw(struct nvmet_req *req)
+ {
+ 	ssize_t nr_bvec = req->sg_cnt;
+ 
+-	if (!nvmet_check_data_len(req, nvmet_rw_data_len(req)))
++	if (!nvmet_check_transfer_len(req, nvmet_rw_data_len(req)))
+ 		return;
+ 
+ 	if (!req->sg_cnt || !nr_bvec) {
+@@ -276,7 +276,7 @@ static void nvmet_file_flush_work(struct work_struct *w)
+ 
+ static void nvmet_file_execute_flush(struct nvmet_req *req)
+ {
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 	INIT_WORK(&req->f.work, nvmet_file_flush_work);
+ 	schedule_work(&req->f.work);
+@@ -366,7 +366,7 @@ static void nvmet_file_write_zeroes_work(struct work_struct *w)
+ 
+ static void nvmet_file_execute_write_zeroes(struct nvmet_req *req)
+ {
+-	if (!nvmet_check_data_len(req, 0))
++	if (!nvmet_check_transfer_len(req, 0))
+ 		return;
+ 	INIT_WORK(&req->f.work, nvmet_file_write_zeroes_work);
+ 	schedule_work(&req->f.work);
 diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
-index 421dff3..8c75667 100644
+index 923c452..e7954d9 100644
 --- a/drivers/nvme/target/nvmet.h
 +++ b/drivers/nvme/target/nvmet.h
-@@ -302,6 +302,7 @@ struct nvmet_req {
- 	struct nvmet_cq		*cq;
- 	struct nvmet_ns		*ns;
- 	struct scatterlist	*sg;
-+	struct scatterlist	*md_sg;
- 	struct bio_vec		inline_bvec[NVMET_MAX_INLINE_BIOVEC];
- 	union {
- 		struct {
-@@ -315,8 +316,10 @@ struct nvmet_req {
- 		} f;
- 	};
- 	int			sg_cnt;
-+	int			md_sg_cnt;
- 	/* data length as parsed from the SGL descriptor: */
- 	size_t			transfer_len;
-+	size_t			md_len;
- 
- 	struct nvmet_port	*port;
- 
-@@ -327,6 +330,8 @@ struct nvmet_req {
- 	struct device		*p2p_client;
- 	u16			error_loc;
- 	u64			error_slba;
-+	/* Metadata support */
-+	bool			use_md;
- };
- 
- extern struct workqueue_struct *buffered_io_wq;
+@@ -392,7 +392,7 @@ static inline bool nvmet_aen_bit_disabled(struct nvmet_ctrl *ctrl, u32 bn)
+ bool nvmet_req_init(struct nvmet_req *req, struct nvmet_cq *cq,
+ 		struct nvmet_sq *sq, const struct nvmet_fabrics_ops *ops);
+ void nvmet_req_uninit(struct nvmet_req *req);
+-bool nvmet_check_data_len(struct nvmet_req *req, size_t data_len);
++bool nvmet_check_transfer_len(struct nvmet_req *req, size_t len);
+ bool nvmet_check_data_len_lte(struct nvmet_req *req, size_t data_len);
+ void nvmet_req_complete(struct nvmet_req *req, u16 status);
+ int nvmet_req_alloc_sgl(struct nvmet_req *req);
 -- 
 1.8.3.1
 
