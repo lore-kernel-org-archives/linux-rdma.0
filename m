@@ -2,28 +2,28 @@ Return-Path: <SRS0=dyFK=5M=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71B45C2D0E5
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E1CFC2D0EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 509722072F
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11EAF2072F
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Mar 2020 17:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727393AbgC0RPx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 27 Mar 2020 13:15:53 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:44749 "EHLO
+        id S1727593AbgC0RP6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 27 Mar 2020 13:15:58 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:44808 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726275AbgC0RPw (ORCPT
+        with ESMTP id S1727611AbgC0RPw (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Mar 2020 13:15:52 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 27 Mar 2020 20:15:46 +0300
+        with ESMTPS (AES256-SHA encrypted); 27 Mar 2020 20:15:47 +0300
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02RHFjj3004869;
-        Fri, 27 Mar 2020 20:15:46 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02RHFjjE004869;
+        Fri, 27 Mar 2020 20:15:47 +0300
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
         sagi@grimberg.me, martin.petersen@oracle.com, jsmart2021@gmail.com,
@@ -31,9 +31,9 @@ To:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
 Cc:     idanb@mellanox.com, axboe@kernel.dk, maxg@mellanox.com,
         vladimirk@mellanox.com, oren@mellanox.com, shlomin@mellanox.com,
         israelr@mellanox.com, jgg@mellanox.com
-Subject: [PATCH 1/1] nvme-cli/fabrics: Add pi_enable param to connect cmd
-Date:   Fri, 27 Mar 2020 20:15:28 +0300
-Message-Id: <20200327171545.98970-2-maxg@mellanox.com>
+Subject: [PATCH 11/17] nvmet: Rename nvmet_rw_len to nvmet_rw_data_len
+Date:   Fri, 27 Mar 2020 20:15:39 +0300
+Message-Id: <20200327171545.98970-13-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200327171545.98970-1-maxg@mellanox.com>
 References: <20200327171545.98970-1-maxg@mellanox.com>
@@ -46,71 +46,59 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Israel Rukshin <israelr@mellanox.com>
 
-Added 'pi_enable' to 'connect' command so users can enable metadata support.
-
-usage examples:
-nvme connect --pi_enable --transport=rdma --traddr=10.0.1.1 --nqn=test-nvme
-nvme connect -p -t rdma -a 10.0.1.1 -n test_nvme
+The function doesn't add the metadata length (only data length is
+calculated). This is preparation for adding metadata (T10-PI) support.
 
 Signed-off-by: Israel Rukshin <israelr@mellanox.com>
 Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
 ---
- fabrics.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/nvme/target/io-cmd-bdev.c | 2 +-
+ drivers/nvme/target/io-cmd-file.c | 2 +-
+ drivers/nvme/target/nvmet.h       | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/fabrics.c b/fabrics.c
-index a112f76..1b5b3f7 100644
---- a/fabrics.c
-+++ b/fabrics.c
-@@ -78,6 +78,7 @@ static struct config {
- 	int  disable_sqflow;
- 	int  hdr_digest;
- 	int  data_digest;
-+	int  pi_enable;
- 	bool persistent;
- 	bool quiet;
- } cfg = { NULL };
-@@ -851,7 +852,9 @@ static int build_options(char *argstr, int max_len, bool discover)
- 	    add_bool_argument(&argstr, &max_len, "disable_sqflow",
- 				cfg.disable_sqflow) ||
- 	    add_bool_argument(&argstr, &max_len, "hdr_digest", cfg.hdr_digest) ||
--	    add_bool_argument(&argstr, &max_len, "data_digest", cfg.data_digest))
-+	    add_bool_argument(&argstr, &max_len, "data_digest",
-+				cfg.data_digest) ||
-+	    add_bool_argument(&argstr, &max_len, "pi_enable", cfg.pi_enable))
- 		return -EINVAL;
+diff --git a/drivers/nvme/target/io-cmd-bdev.c b/drivers/nvme/target/io-cmd-bdev.c
+index bdf611f..1669483 100644
+--- a/drivers/nvme/target/io-cmd-bdev.c
++++ b/drivers/nvme/target/io-cmd-bdev.c
+@@ -173,7 +173,7 @@ static void nvmet_bdev_execute_rw(struct nvmet_req *req)
+ 	sector_t sector;
+ 	int op, i;
  
- 	return 0;
-@@ -980,6 +983,13 @@ retry:
- 		p += len;
- 	}
+-	if (!nvmet_check_data_len(req, nvmet_rw_len(req)))
++	if (!nvmet_check_data_len(req, nvmet_rw_data_len(req)))
+ 		return;
  
-+	if (cfg.pi_enable) {
-+		len = sprintf(p, ",pi_enable");
-+		if (len < 0)
-+			return -EINVAL;
-+		p += len;
-+	}
-+
- 	switch (e->trtype) {
- 	case NVMF_TRTYPE_RDMA:
- 	case NVMF_TRTYPE_TCP:
-@@ -1259,6 +1269,7 @@ int discover(const char *desc, int argc, char **argv, bool connect)
- 		OPT_INT("tos",             'T', &cfg.tos,             "type of service"),
- 		OPT_FLAG("hdr_digest",     'g', &cfg.hdr_digest,      "enable transport protocol header digest (TCP transport)"),
- 		OPT_FLAG("data_digest",    'G', &cfg.data_digest,     "enable transport protocol data digest (TCP transport)"),
-+		OPT_FLAG("pi_enable",      'p', &cfg.pi_enable,       "enable metadata (T10-PI) support (default false)"),
- 		OPT_INT("nr-io-queues",    'i', &cfg.nr_io_queues,    "number of io queues to use (default is core count)"),
- 		OPT_INT("nr-write-queues", 'W', &cfg.nr_write_queues, "number of write queues to use (default 0)"),
- 		OPT_INT("nr-poll-queues",  'P', &cfg.nr_poll_queues,  "number of poll queues to use (default 0)"),
-@@ -1319,6 +1330,7 @@ int connect(const char *desc, int argc, char **argv)
- 		OPT_FLAG("disable-sqflow",    'd', &cfg.disable_sqflow,    "disable controller sq flow control (default false)"),
- 		OPT_FLAG("hdr-digest",        'g', &cfg.hdr_digest,        "enable transport protocol header digest (TCP transport)"),
- 		OPT_FLAG("data-digest",       'G', &cfg.data_digest,       "enable transport protocol data digest (TCP transport)"),
-+		OPT_FLAG("pi_enable",         'p', &cfg.pi_enable,         "enable metadata (T10-PI) support (default false)"),
- 		OPT_END()
- 	};
+ 	if (!req->sg_cnt) {
+diff --git a/drivers/nvme/target/io-cmd-file.c b/drivers/nvme/target/io-cmd-file.c
+index cd5670b..ffbba88 100644
+--- a/drivers/nvme/target/io-cmd-file.c
++++ b/drivers/nvme/target/io-cmd-file.c
+@@ -232,7 +232,7 @@ static void nvmet_file_execute_rw(struct nvmet_req *req)
+ {
+ 	ssize_t nr_bvec = req->sg_cnt;
  
+-	if (!nvmet_check_data_len(req, nvmet_rw_len(req)))
++	if (!nvmet_check_data_len(req, nvmet_rw_data_len(req)))
+ 		return;
+ 
+ 	if (!req->sg_cnt || !nr_bvec) {
+diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
+index f5f93d4..923c452 100644
+--- a/drivers/nvme/target/nvmet.h
++++ b/drivers/nvme/target/nvmet.h
+@@ -507,7 +507,7 @@ void nvmet_add_async_event(struct nvmet_ctrl *ctrl, u8 event_type,
+ u16 nvmet_file_flush(struct nvmet_req *req);
+ void nvmet_ns_changed(struct nvmet_subsys *subsys, u32 nsid);
+ 
+-static inline u32 nvmet_rw_len(struct nvmet_req *req)
++static inline u32 nvmet_rw_data_len(struct nvmet_req *req)
+ {
+ 	return ((u32)le16_to_cpu(req->cmd->rw.length) + 1) <<
+ 			req->ns->blksize_shift;
 -- 
 1.8.3.1
 
