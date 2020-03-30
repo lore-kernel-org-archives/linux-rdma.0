@@ -2,43 +2,42 @@ Return-Path: <SRS0=Qv+Y=5P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DATE_IN_PAST_12_24,
-	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84F98C43331
-	for <linux-rdma@archiver.kernel.org>; Mon, 30 Mar 2020 06:27:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42E69C43331
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Mar 2020 06:27:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 58A042082F
-	for <linux-rdma@archiver.kernel.org>; Mon, 30 Mar 2020 06:27:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1802A2082F
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Mar 2020 06:27:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1585549648;
-	bh=YhYNb7spyVxkfCJi4xuEQir7TVe0wbthheTdqNXZCww=;
+	s=default; t=1585549661;
+	bh=UPmaYQE/JY+TF/CTQ3W+w14eEAN6TItastTu2iVLRBs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=NOkW+r/OtAr5v+3pCDtJXg3Ma+2BV8gekh9b2L794Oo9wvBd58v5SlKktC33DfXa1
-	 RC074QgDk1CBKIqRor2I5MdzFOtqwk9zlbJM7SyyWbpEUz+X43ch7bfjSywq9X0HLj
-	 XNinQJhjx3wYYTY4AvFYQUo4e1P1jzwjqnRSkQ80=
+	b=MFdozedP0WpkQyge0adeJYiI48J98ZhaVwlfx2uN2hbAxLPjJu3k/2WYTu/+KBVOp
+	 74Z9MCEdJbfegg0GwJ5knLXoaPxdXmiG6Cxl6dtv8A8aXpeHDTzbumhAUW6yayuGJX
+	 7bia/JS05JjJ2yBuwbWAOI5tsPBd6JNEJTrVhP2E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728997AbgC3G11 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 30 Mar 2020 02:27:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44238 "EHLO mail.kernel.org"
+        id S1728983AbgC3G1k (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 30 Mar 2020 02:27:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728489AbgC3G11 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 30 Mar 2020 02:27:27 -0400
+        id S1728489AbgC3G1k (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 30 Mar 2020 02:27:40 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E7DF520732;
-        Mon, 30 Mar 2020 06:27:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 080D120732;
+        Mon, 30 Mar 2020 06:27:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1585549646;
-        bh=YhYNb7spyVxkfCJi4xuEQir7TVe0wbthheTdqNXZCww=;
+        s=default; t=1585549659;
+        bh=UPmaYQE/JY+TF/CTQ3W+w14eEAN6TItastTu2iVLRBs=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=CmT3PifYvNRYJDblnKoVVj33ecVxmOMFk23+/Z9tEnlyp7YPSZdJl5T0SJorRd6/j
-         fawma9PHBXphCpDsiTZr0lXifSH96dPuX5t8dtZtdJWm/xJuDkZy/ZjcAw2Q5++kM2
-         sQY6jYXnflbRHkIkV2MCUVkhEixxWeMqdBUc2yuY=
-Date:   Sun, 29 Mar 2020 11:00:07 +0300
+        b=JKje8GuhDUFgIFL2SKhXauRTg6/Z9wK8qcSsGxk00ARr907mGQuaQpI8EfCu7hdJj
+         YDub1V8UK2AkBVnMDkoojiTH2n5Sg5SojBgZ//AjKLKuo3O9r63HlcQPe4hxeMizW1
+         HfV1rLqBbhRkIGkt3sVeYb43No6BQaFWosYS5+CI=
+Date:   Mon, 30 Mar 2020 09:27:22 +0300
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Doug Ledford <dledford@redhat.com>,
@@ -46,7 +45,7 @@ Cc:     Doug Ledford <dledford@redhat.com>,
         Maor Gottlieb <maorg@mellanox.com>
 Subject: Re: [PATCH rdma-next v1 6/7] RDMA/cm: Set flow label of recv_wc
  based on primary flow label
-Message-ID: <20200329080007.GC2454444@unreal>
+Message-ID: <20200330062722.GG2454444@unreal>
 References: <20200322093031.918447-1-leon@kernel.org>
  <20200322093031.918447-7-leon@kernel.org>
  <20200327123733.GA6821@ziepe.ca>
@@ -95,9 +94,28 @@ On Fri, Mar 27, 2020 at 09:37:33AM -0300, Jason Gunthorpe wrote:
 > > +					    req_msg));
 >
 > This doesn't seem right.
+>
+> Up until the path is established the response should follow the
+> reversible GMP rules and the flow_label should come out of the
+> request's GRH.
+>
+> Once we established the return data path and the GMP's switch to using
+> the datapath, the flowlabel should be set in something like
+> cm_format_paths_from_req()
+>
+> If you want to switch to using the return data path for REP replies
+> earlier then it should be done completely and not only the flow
+> label. But somehow I suspect we cannot as this could fail too.
 
-I will check, this part looks strange while reading IBTA sections
-"13.5.4.3 CONSTRUCTING A RESPONSE WITHOUT A GRH" and
-"13.5.4.4 CONSTRUCTING A RESPONSE WITH A GRH"
+Jason,
+
+We can drop this patch, it was added to provide same sport in REJ
+messages, but it is not needed due to the IBTA section
+"13.5.4.3 CONSTRUCTING A RESPONSE WITHOUT A GRH".
+
+Rest of the series is fine.
 
 Thanks
+
+>
+> Jason
