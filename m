@@ -2,89 +2,246 @@ Return-Path: <SRS0=bUUW=5S=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B828C43331
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Apr 2020 18:12:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CDDBC43331
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Apr 2020 18:12:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE9AC2078B
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Apr 2020 18:12:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11C2B208E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Apr 2020 18:12:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="M46a29jd"
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="E55N27A4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732484AbgDBSMa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Apr 2020 14:12:30 -0400
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:51646 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727412AbgDBSMa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Apr 2020 14:12:30 -0400
-Received: by mail-wm1-f65.google.com with SMTP id z7so4424581wmk.1
-        for <linux-rdma@vger.kernel.org>; Thu, 02 Apr 2020 11:12:28 -0700 (PDT)
+        id S1732995AbgDBSMe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Apr 2020 14:12:34 -0400
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:34403 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732625AbgDBSMe (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Apr 2020 14:12:34 -0400
+Received: by mail-wm1-f68.google.com with SMTP id c195so219877wme.1
+        for <linux-rdma@vger.kernel.org>; Thu, 02 Apr 2020 11:12:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
-        h=from:to:cc:subject:date:message-id;
-        bh=BuS54i86OZjtzNJ9hWFXWHbLoPOzQ8Rmw2+DKdRU3Co=;
-        b=M46a29jdeMMnW4ZL8H65rChTMh/XB9RjYD3P6lEWomy4Xp6R2KHoAafT4JAGmJ8MU5
-         i2F7SGPJGHryZTD6JUApfhYXHFvOhGFj9i4i6UcegTg2L1S6S8/jAHfLxjffnm8ODhEc
-         VMZFriD4GOCy1F9FmF4RVuy454OecRcDNFv6Y=
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=lqp05ET+1XfDX1iqS7yisuzG71FWWTr7+XCGTYb780M=;
+        b=E55N27A4SrP31PJbf5YtrsW88j1HEB3U96pC8DDlf8pqULouxr2jmJCqVH3eg7g+cO
+         x3cLEGX04jDCmiNJWgbaOsWFbreXJQg+g8RNpIRhDs40sGSWqMkTBaWV71MFsYPhuxpC
+         HDg5YUteY2Hi93RikantMPRARIDDsCGk/GyPs=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=BuS54i86OZjtzNJ9hWFXWHbLoPOzQ8Rmw2+DKdRU3Co=;
-        b=Db9QjemZv/ysCEZQwC2OvZGtoxqNk1kZLLbqHrQ0ydpwCFaGjzL3uO3CXaC1XDimhM
-         moU5XmvJDDvvXHe0sbPpoeX52G2DdrDkwzz4bb3m0QyZkFQYgXSFekaZZP8RcbYQ6T7T
-         aXDVi+5Gu9LLFLLmisGSq42L6RSBfV6RIH7GD1TOWSN1r5bv37pzSkmp90Wr08+CZ3zk
-         N9kLOZoaiJujRLWSSSoCc01p6k+tkhLx3jukxQt5DyJ41qXyrUZwp8emtAPqQs17YmYh
-         KvPxIgkjKI5R3pLkYTnnFkETVWTa7Ebbi7xTH9z8PbvT4wIl1fRmpUoJVwcebsObh2Mz
-         Dxvg==
-X-Gm-Message-State: AGi0Puax/PsVTfmdCYKtjYVCjhPa+oY6yLZqsD/GsGwpU7WFoTlsYpWt
-        fEie75M9SskFY9NThtba7AjprdcPLhtx/7y69yt6x+nvMI14vz+dR2BHzcYp8nrxgb51TyrD7we
-        Ki3wphXnojzMxs76aj+aZ95TkyLEK15DBVsaPwMuhcAvcTayh17I8QKvQGFAnkSB6ZKKnCHAVXe
-        RMopg=
-X-Google-Smtp-Source: APiQypJ5QKC28AE8ZOgVljORpcZ7kbN8oSXjnGGJBwT2qio/Y3+h+XGSWZP1Mvtuj01VMdltlrXyYA==
-X-Received: by 2002:a05:600c:2297:: with SMTP id 23mr4332583wmf.166.1585851147232;
-        Thu, 02 Apr 2020 11:12:27 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=lqp05ET+1XfDX1iqS7yisuzG71FWWTr7+XCGTYb780M=;
+        b=imG7eO3nukv0/6cYVhzEoaauGsNv1n4d4CXWh+wltpJUr7un/ZdTyM+EgxPBCc+B5U
+         VIUGpXzKkobXcFET5cMHLDd9bWLa9nzaqISLVIFwJAv7XOfe/oyUpbT1jQC8Z/8qdHP4
+         VSlzOCrpE6srowLcfQVcA7hRftuuU8f8blaDSrTV6D+Yk7Xko3W7lIeWgbL30BcTCnly
+         +Y2KvK7xfFOWZLNlCRXlW6eHj5J2AP85cHa09OzGFnhG06kQayjt9nV8Qev2ZyMdP94q
+         RPiRSXtKwcRqGV9qTQJw1yGJcpDAhDG7+Y5W5zBK5pUUef+gcWGioW/TumM4v8nTicjW
+         5zCA==
+X-Gm-Message-State: AGi0PuZX/2BbaRSvIG3zpEMfJX+405OgZ0Q66n6iH4YhgWhIk+S87Ynh
+        n8wu9CoYcEUfqAdokZgU06m2U8Z6q/FYpFr0WaF1vOmU0cUvs0Sntz9LXPc2XXf6elGGf4wR3cx
+        IbbUsrollIbChZZX9DKIdRsa+jgacUkRkYTJ45ZtEX84gRxRR/RWfARIrhqTpTRrTyLbK6NXPfU
+        4H14o=
+X-Google-Smtp-Source: APiQypJmmpS68fkmfEEtRvgDjnBNHMKLJ02XQCtrtrffcFWVjf7aMVwoj4YWXErff0AF1Jwob8Yc9Q==
+X-Received: by 2002:a7b:c5cb:: with SMTP id n11mr4819486wmk.160.1585851152543;
+        Thu, 02 Apr 2020 11:12:32 -0700 (PDT)
 Received: from neo00-el73.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id k3sm8399351wro.39.2020.04.02.11.12.24
+        by smtp.gmail.com with ESMTPSA id k3sm8399351wro.39.2020.04.02.11.12.30
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 02 Apr 2020 11:12:26 -0700 (PDT)
+        Thu, 02 Apr 2020 11:12:31 -0700 (PDT)
 From:   Devesh Sharma <devesh.sharma@broadcom.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, dledford@redhat.com
-Subject: [PATCH for-next 0/4] Further improvements to bnxt_re driver
-Date:   Thu,  2 Apr 2020 14:12:11 -0400
-Message-Id: <1585851136-2316-1-git-send-email-devesh.sharma@broadcom.com>
+Subject: [PATCH for-next 2/4] RDMA/bnxt_re: Update missing hsi data structures
+Date:   Thu,  2 Apr 2020 14:12:13 -0400
+Message-Id: <1585851136-2316-3-git-send-email-devesh.sharma@broadcom.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1585851136-2316-1-git-send-email-devesh.sharma@broadcom.com>
+References: <1585851136-2316-1-git-send-email-devesh.sharma@broadcom.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This short patch series is an extension to the previous
-refactor series. The main pourpose of these patches is to
-streamline the queue management code in slightly better
-way.
+Adding fast path support data structure into hardware
+HSI. These structures are header only definition of
+RQE/SRQE/SQE. This is to help calculating the size of
+hardware wqe size.
 
-Devesh Sharma (4):
-  RDMA/bnxt_re: reduce device page size detection code
-  RDMA/bnxt_re: Update missing hsi data structures
-  RDMA/bnxt_re: simplify obtaining queue entry from hw ring
-  RDMA/bnxt_re: Remove dead code from rcfw
+Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+---
+ drivers/infiniband/hw/bnxt_re/roce_hsi.h | 106 +++++++++++++++++++++++++++++++
+ 1 file changed, 106 insertions(+)
 
- drivers/infiniband/hw/bnxt_re/ib_verbs.c   |  65 +++---
- drivers/infiniband/hw/bnxt_re/ib_verbs.h   |  10 +
- drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 354 ++++++++++++-----------------
- drivers/infiniband/hw/bnxt_re/qplib_fp.h   |  42 +---
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  88 +++----
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  91 --------
- drivers/infiniband/hw/bnxt_re/qplib_res.c  |   1 +
- drivers/infiniband/hw/bnxt_re/qplib_res.h  |  53 +++++
- drivers/infiniband/hw/bnxt_re/roce_hsi.h   | 106 +++++++++
- 9 files changed, 385 insertions(+), 425 deletions(-)
-
+diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+index e4b09e7..6f00f07 100644
+--- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
++++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+@@ -210,6 +210,20 @@ struct sq_send {
+ 	__le32 data[24];
+ };
+ 
++/* sq_send_hdr (size:256b/32B) */
++struct sq_send_hdr {
++	u8	wqe_type;
++	u8	flags;
++	u8	wqe_size;
++	u8	reserved8_1;
++	__le32	inv_key_or_imm_data;
++	__le32	length;
++	__le32	q_key;
++	__le32	dst_qp;
++	__le32	avid;
++	__le64	reserved64;
++};
++
+ /* Send Raw Ethernet and QP1 SQ WQE (40 bytes) */
+ struct sq_send_raweth_qp1 {
+ 	u8 wqe_type;
+@@ -265,6 +279,21 @@ struct sq_send_raweth_qp1 {
+ 	__le32 data[24];
+ };
+ 
++/* sq_send_raweth_qp1_hdr (size:256b/32B) */
++struct sq_send_raweth_qp1_hdr {
++	u8	wqe_type;
++	u8	flags;
++	u8	wqe_size;
++	u8	reserved8;
++	__le16	lflags;
++	__le16	cfa_action;
++	__le32	length;
++	__le32	reserved32_1;
++	__le32	cfa_meta;
++	__le32	reserved32_2;
++	__le64	reserved64;
++};
++
+ /* RDMA SQ WQE (40 bytes) */
+ struct sq_rdma {
+ 	u8 wqe_type;
+@@ -288,6 +317,20 @@ struct sq_rdma {
+ 	__le32 data[24];
+ };
+ 
++/* sq_rdma_hdr (size:256b/32B) */
++struct sq_rdma_hdr {
++	u8	wqe_type;
++	u8	flags;
++	u8	wqe_size;
++	u8	reserved8;
++	__le32	imm_data;
++	__le32	length;
++	__le32	reserved32_1;
++	__le64	remote_va;
++	__le32	remote_key;
++	__le32	reserved32_2;
++};
++
+ /* Atomic SQ WQE (40 bytes) */
+ struct sq_atomic {
+ 	u8 wqe_type;
+@@ -307,6 +350,17 @@ struct sq_atomic {
+ 	__le32 data[24];
+ };
+ 
++/* sq_atomic_hdr (size:256b/32B) */
++struct sq_atomic_hdr {
++	u8	wqe_type;
++	u8	flags;
++	__le16	reserved16;
++	__le32	remote_key;
++	__le64	remote_va;
++	__le64	swap_data;
++	__le64	cmp_data;
++};
++
+ /* Local Invalidate SQ WQE (40 bytes) */
+ struct sq_localinvalidate {
+ 	u8 wqe_type;
+@@ -324,6 +378,16 @@ struct sq_localinvalidate {
+ 	__le32 data[24];
+ };
+ 
++/* sq_localinvalidate_hdr (size:256b/32B) */
++struct sq_localinvalidate_hdr {
++	u8	wqe_type;
++	u8	flags;
++	__le16	reserved16;
++	__le32	inv_l_key;
++	__le64	reserved64;
++	u8	reserved128[16];
++};
++
+ /* FR-PMR SQ WQE (40 bytes) */
+ struct sq_fr_pmr {
+ 	u8 wqe_type;
+@@ -380,6 +444,21 @@ struct sq_fr_pmr {
+ 	__le32 data[24];
+ };
+ 
++/* sq_fr_pmr_hdr (size:256b/32B) */
++struct sq_fr_pmr_hdr {
++	u8	wqe_type;
++	u8	flags;
++	u8	access_cntl;
++	u8	zero_based_page_size_log;
++	__le32	l_key;
++	u8	length[5];
++	u8	reserved8_1;
++	u8	reserved8_2;
++	u8	numlevels_pbl_page_size_log;
++	__le64	pblptr;
++	__le64	va;
++};
++
+ /* Bind SQ WQE (40 bytes) */
+ struct sq_bind {
+ 	u8 wqe_type;
+@@ -417,6 +496,22 @@ struct sq_bind {
+ 	#define SQ_BIND_DATA_SFT				    0
+ };
+ 
++/* sq_bind_hdr (size:256b/32B) */
++struct sq_bind_hdr {
++	u8	wqe_type;
++	u8	flags;
++	u8	access_cntl;
++	u8	reserved8_1;
++	u8	mw_type_zero_based;
++	u8	reserved8_2;
++	__le16	reserved16;
++	__le32	parent_l_key;
++	__le32	l_key;
++	__le64	va;
++	u8	length[5];
++	u8	reserved24[3];
++};
++
+ /* RQ/SRQ WQE Structures */
+ /* RQ/SRQ WQE (40 bytes) */
+ struct rq_wqe {
+@@ -435,6 +530,17 @@ struct rq_wqe {
+ 	__le32 data[24];
+ };
+ 
++/* rq_wqe_hdr (size:256b/32B) */
++struct rq_wqe_hdr {
++	u8	wqe_type;
++	u8	flags;
++	u8	wqe_size;
++	u8	reserved8;
++	__le32	reserved32;
++	__le32	wr_id[2];
++	u8	reserved128[16];
++};
++
+ /* CQ CQE Structures */
+ /* Base CQE (32 bytes) */
+ struct cq_base {
 -- 
 1.8.3.1
 
