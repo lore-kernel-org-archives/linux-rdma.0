@@ -1,86 +1,68 @@
-Return-Path: <SRS0=G6D5=5R=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=bUUW=5S=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBC57C43331
-	for <linux-rdma@archiver.kernel.org>; Wed,  1 Apr 2020 23:40:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D765BC43331
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Apr 2020 02:05:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9A8292082F
-	for <linux-rdma@archiver.kernel.org>; Wed,  1 Apr 2020 23:40:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38B4D2072E
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Apr 2020 02:05:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1585793118;
+	bh=pD50+G67RvTnYdHaeKb2fCdRnpD/kpnt6hQ005gFHw0=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=vDiF0m1AXcV65+CYckarx9pQiYQviwjTSCHSQbSe6o0XyeWMWxMLLywlkEl1VCPno
+	 HIiZGFizWJCrIX0pqbnSqfn0CFzC5PvhTBvVxDOeuA9peDnPeoJU/6rFjbfSAz0Nhp
+	 jCAhiQ53E7iwSevpFyynT0nzyjyplHzIiIwRv4c8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387506AbgDAXkk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 1 Apr 2020 19:40:40 -0400
-Received: from mga02.intel.com ([134.134.136.20]:57101 "EHLO mga02.intel.com"
+        id S2387421AbgDBCFR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 1 Apr 2020 22:05:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387484AbgDAXkj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 1 Apr 2020 19:40:39 -0400
-IronPort-SDR: UMiRyoKdndtuB5afZFlySOtycAUznqAxfvaIXU8DXZEYWCNpOICvGY8Gio0dU5lQB51W70X0Gt
- ZjLqMzNsWrDQ==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2020 16:40:38 -0700
-IronPort-SDR: RlGonMBaS2L5DDZVJmlMOjYTm6IrWey3LLJVqzCi5feW9yRwImY9YJy/Qw7iYwGvhwNePw3rEX
- LtmlI1c653AA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.72,333,1580803200"; 
-   d="scan'208";a="252811963"
-Received: from fmsmsx107.amr.corp.intel.com ([10.18.124.205])
-  by orsmga006.jf.intel.com with ESMTP; 01 Apr 2020 16:40:38 -0700
-Received: from fmsmsx126.amr.corp.intel.com (10.18.125.43) by
- fmsmsx107.amr.corp.intel.com (10.18.124.205) with Microsoft SMTP Server (TLS)
- id 14.3.439.0; Wed, 1 Apr 2020 16:40:38 -0700
-Received: from fmsmsx124.amr.corp.intel.com ([169.254.8.220]) by
- FMSMSX126.amr.corp.intel.com ([169.254.1.221]) with mapi id 14.03.0439.000;
- Wed, 1 Apr 2020 16:40:38 -0700
-From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
-To:     Colin King <colin.king@canonical.com>,
-        "Latif, Faisal" <faisal.latif@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "Devale, Sindhu" <sindhu.devale@intel.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-CC:     "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH][next] i40iw: fix null pointer dereference on a null wqe
- pointer
-Thread-Topic: [PATCH][next] i40iw: fix null pointer dereference on a null
- wqe pointer
-Thread-Index: AQHWCHfMm+gLXhUTAU2UIQaZoCR1S6hk7B9Q
-Date:   Wed, 1 Apr 2020 23:40:37 +0000
-Message-ID: <9DD61F30A802C4429A01CA4200E302A7C611609E@fmsmsx124.amr.corp.intel.com>
-References: <20200401224921.405279-1-colin.king@canonical.com>
-In-Reply-To: <20200401224921.405279-1-colin.king@canonical.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-version: 11.2.0.6
-dlp-reaction: no-action
-x-originating-ip: [10.1.200.108]
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        id S2387408AbgDBCFR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 1 Apr 2020 22:05:17 -0400
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1585793117;
+        bh=pD50+G67RvTnYdHaeKb2fCdRnpD/kpnt6hQ005gFHw0=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=IURR+xiMzxCVTNSfKhRqwpl62s6BqQZOP3hGT6zg7Ika1u4vhGiPkxxdRpqb7BO+0
+         Gt53StEuJOKLBG4/tywO1dpP8NprauHaclFVNgy7dkedRw4vJGlq+If1iV2YfgxZf5
+         bfEaTSlyYGpnZ7E7zwm8h5+OK18nykOcwQRssT94=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20200401230133.GA14469@ziepe.ca>
+References: <20200401230133.GA14469@ziepe.ca>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20200401230133.GA14469@ziepe.ca>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+X-PR-Tracked-Commit-Id: b4d8ddf8356d8ac73fb931d16bcc661a83b2c0fe
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 919dce24701f7b34681a6a1d3ef95c9f6c4fb1cc
+Message-Id: <158579311701.873.13975313564510123629.pr-tracker-bot@kernel.org>
+Date:   Thu, 02 Apr 2020 02:05:17 +0000
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBbUEFUQ0hdW25leHRdIGk0MGl3OiBmaXggbnVsbCBwb2ludGVyIGRlcmVmZXJl
-bmNlIG9uIGEgbnVsbCB3cWUgcG9pbnRlcg0KPiANCj4gRnJvbTogQ29saW4gSWFuIEtpbmcgPGNv
-bGluLmtpbmdAY2Fub25pY2FsLmNvbT4NCj4gDQo+IEN1cnJlbnRseSB0aGUgbnVsbCBjaGVjayBm
-b3Igd3FlIGlzIGluY29ycmVjdCBhbmQgbGV0cyBhIG51bGwgd3FlIGJlIHBhc3NlZCB0bw0KPiBz
-ZXRfNjRiaXRfdmFsIGFuZCB0aGlzIGluZGV4ZXMgaW50byB0aGUgbnVsbCBwb2ludGVyIGNhdXNp
-bmcgYSBudWxsIHBvaW50ZXINCj4gZGVyZWZlcmVuY2UuICBGaXggdGhpcyBieSBmaXhpbmcgdGhl
-IG51bGwgcG9pbnRlciBjaGVjayB0byByZXR1cm4gYW4gZXJyb3IgaWYgd3FlIGlzDQo+IG51bGwu
-DQo+IA0KPiBBZGRyZXNzZXMtQ292ZXJpdHk6ICgiZGVyZWZlcmVuY2UgYWZ0ZXIgYSBudWxsIGNo
-ZWNrIikNCj4gRml4ZXM6IDRiMzRlMjNmNGVhYSAoImk0MGl3OiBSZXBvcnQgY29ycmVjdCBmaXJt
-d2FyZSB2ZXJzaW9uIikNCj4gU2lnbmVkLW9mZi1ieTogQ29saW4gSWFuIEtpbmcgPGNvbGluLmtp
-bmdAY2Fub25pY2FsLmNvbT4NCg0KVWdoISBZZXMuIFRoYXTigJlzIGEgYmFkIG9uZS4gVGhhbmtz
-IGZvciB0aGUgZml4Lg0KDQpBY2tlZC1ieTogU2hpcmF6IFNhbGVlbSA8c2hpcmF6LnNhbGVlbUBp
-bnRlbC5jb20+DQo=
+The pull request you sent on Wed, 1 Apr 2020 20:01:33 -0300:
+
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/919dce24701f7b34681a6a1d3ef95c9f6c4fb1cc
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
