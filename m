@@ -5,32 +5,33 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E568C43331
-	for <linux-rdma@archiver.kernel.org>; Fri,  3 Apr 2020 04:29:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 658E1C43331
+	for <linux-rdma@archiver.kernel.org>; Fri,  3 Apr 2020 04:41:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5CB642080C
-	for <linux-rdma@archiver.kernel.org>; Fri,  3 Apr 2020 04:29:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A4BC2063A
+	for <linux-rdma@archiver.kernel.org>; Fri,  3 Apr 2020 04:41:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="fuOjBSS9"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="lZKfrtq4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726211AbgDCE3D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 3 Apr 2020 00:29:03 -0400
-Received: from m12-11.163.com ([220.181.12.11]:56664 "EHLO m12-11.163.com"
+        id S1729269AbgDCElb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 3 Apr 2020 00:41:31 -0400
+Received: from m12-17.163.com ([220.181.12.17]:54183 "EHLO m12-17.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725851AbgDCE3D (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 3 Apr 2020 00:29:03 -0400
+        id S1725851AbgDCElb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 3 Apr 2020 00:41:31 -0400
+X-Greylist: delayed 932 seconds by postgrey-1.27 at vger.kernel.org; Fri, 03 Apr 2020 00:41:27 EDT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
         s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=Wbeh/
-        XXcF9p0H3UV40lvWAHy5eGKJ2dZMK1faGpA0Mk=; b=fuOjBSS9j4j1VOrIIr+LE
-        sHNc6E5MUFVYXC1xXTU6EuO8pRtT0tYNHvpvzGleVwha52sTyJ+1Oqy3QbX/NbdP
-        DD6Kql1AhFfTx3AAK6ppr4CrU/1aJFf0e1C1fCvYB9KTBjp5ifzhD5PoNYtnUSzV
-        KlUasBVr2jwU6MDyvE7Xlg=
+        XXcF9p0H3UV40lvWAHy5eGKJ2dZMK1faGpA0Mk=; b=lZKfrtq4VPhBnTsUSbGIX
+        iQy/EXDnhCeyIreOXuLN7PUTXqpqhYuWq69bgVyYEZ1QboneYk1an9JVxTCB89rV
+        WoE+jpFOnr7Mw+mHf8w/IMQxdK1zpHfPW9SRwi6yJnlem8O3LeeQZlVV9wOrafOG
+        rj96huHOzeyV6v68Hx2p0o=
 Received: from localhost.localdomain (unknown [125.82.11.124])
-        by smtp7 (Coremail) with SMTP id C8CowADH59sdu4ZePW+mCQ--.9443S4;
-        Fri, 03 Apr 2020 12:27:10 +0800 (CST)
+        by smtp13 (Coremail) with SMTP id EcCowACXzbI+uoZevzrGCg--.22384S4;
+        Fri, 03 Apr 2020 12:23:28 +0800 (CST)
 From:   Hu Haowen <xianfengting221@163.com>
 To:     saeedm@mellanox.com, leon@kernel.org, davem@davemloft.net
 Cc:     moshe@mellanox.com, lsahlber@redhat.com, kw@linux.com,
@@ -39,19 +40,19 @@ Cc:     moshe@mellanox.com, lsahlber@redhat.com, kw@linux.com,
         airlied@redhat.com, yamada.masahiro@socionext.com, cai@lca.pw,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v2] net/mlx5: add the missing space character
-Date:   Fri,  3 Apr 2020 12:26:59 +0800
-Message-Id: <20200403042659.9167-1-xianfengting221@163.com>
+Subject: [v2] net/mlx5: add the missing space character
+Date:   Fri,  3 Apr 2020 12:23:12 +0800
+Message-Id: <20200403042312.9036-1-xianfengting221@163.com>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: C8CowADH59sdu4ZePW+mCQ--.9443S4
+X-CM-TRANSID: EcCowACXzbI+uoZevzrGCg--.22384S4
 X-Coremail-Antispam: 1Uf129KBjvJXoW7GryfGr4fCr1UZrWUWw17ZFb_yoW8Jr45pF
         s8JFZrurs7tw45Xa18ZFW8Z3s5GwsYkay09F4fC393Xrn5tr48Crn3tryYkr10kr13J3sx
-        tF9rArW7Awn8W37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jcyCJUUUUU=
+        tF9rArW7Awn8W37anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jU73kUUUUU=
 X-Originating-IP: [125.82.11.124]
-X-CM-SenderInfo: h0ld0wxhqj3xtqjsjii6rwjhhfrp/1tbiFR76AF5mI-KHKQAAs2
+X-CM-SenderInfo: h0ld0wxhqj3xtqjsjii6rwjhhfrp/1tbiMgD6AFWBoITXkAAAs-
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
