@@ -2,96 +2,157 @@ Return-Path: <SRS0=myGJ=5W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8C3FC2BA19
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Apr 2020 14:51:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84879C2BA17
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Apr 2020 17:00:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8EFEA23C43
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Apr 2020 14:51:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53678249B2
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Apr 2020 17:00:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="fp1TsRVJ"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="s1+YplUU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728704AbgDFOvL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 6 Apr 2020 10:51:11 -0400
-Received: from mail-qk1-f196.google.com ([209.85.222.196]:42955 "EHLO
-        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728734AbgDFOvL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Apr 2020 10:51:11 -0400
-Received: by mail-qk1-f196.google.com with SMTP id 123so3607118qkm.9
-        for <linux-rdma@vger.kernel.org>; Mon, 06 Apr 2020 07:51:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=QLcJLS6gh3Pyw1Kb8Qcjn7YnCly0p8aglXTQ552vZuY=;
-        b=fp1TsRVJUgrD0C5YqaopF+9Lazs5FzJC/aUPVwr2KhStCASxgpleYVJGoYD3aluwj5
-         KfOVAnuDgo8BK7Dd06ievhU1TIr4+L77KQ3IbF66ACNcGxRhTvwu26A+Nj9MBh4RGpr/
-         6P6oT4zivnfu6E97Yb1mm836i1ipVG+65bxxVXeZ0SQ2lMFrK1qD1hp+2bbUvXQ9p2Y8
-         OC/xWSMDpM1pOWP1AwqTSME0bAEtvz8XpwBatlv9Gs6AXGamACzXh6sX9JleQrNz32Ak
-         Gk+t0DQ7qPAHiqr4WBQa4Ta7k5Ke7focVwgutedc9SMAebxJFVrsN8QU/gwMSemZnv2X
-         H21g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=QLcJLS6gh3Pyw1Kb8Qcjn7YnCly0p8aglXTQ552vZuY=;
-        b=G5eUHdIdA+zcLv8WELDAcZDy8+q/EQr4rCb+aS+Gamm3G+d4+5QloQAchWxfXDmGeK
-         Gr6tdlsCAtHxORTbV/tPskRqc6goB3WJQqa4jp+iV3sZiZb+ay6k5/unMUUwfl0kWQob
-         6tIsCg2HmAXOD27ueFgETeeS67SQ/cEsOgjzaJkLZ5JL3zDZl0KKzJuHcURGP9a2sgxQ
-         uHvdl9XoL+ztM5oXTYvU9AH7heJKyFfIRkdvVQtzF5bXluXcELaj7VzdciKZzqncOCle
-         57/FN525vqcC6zt7CH26ziI6gHYYnpilL7BhZ1HJGexi2gU3Hekpou/TcIhU+LbslRJk
-         4G2w==
-X-Gm-Message-State: AGi0PuZ1rT3lGpwgIMwM1tHXe1qgcOhEpBoirtCRVjPmD2BayoT3HxKs
-        lA3Zl8itqeE6WqVRZsAyvecpjA==
-X-Google-Smtp-Source: APiQypIjI6lG1ooeDObkWABulcNgWH7LhaRsQCl2qp2qdvNjPo6uYknax/IMVDXJg1lKOfXm5V6K3w==
-X-Received: by 2002:a37:7605:: with SMTP id r5mr19728783qkc.345.1586184670672;
-        Mon, 06 Apr 2020 07:51:10 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id f127sm14675009qkd.74.2020.04.06.07.51.09
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 06 Apr 2020 07:51:10 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jLT5h-0005YO-Da; Mon, 06 Apr 2020 11:51:09 -0300
-Date:   Mon, 6 Apr 2020 11:51:09 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Dan Carpenter <dan.carpenter@oracle.com>
+        id S1729090AbgDFRA6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 6 Apr 2020 13:00:58 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:50978 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729012AbgDFRA6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Apr 2020 13:00:58 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 036GmBn6023196;
+        Mon, 6 Apr 2020 17:00:51 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
+ mime-version : subject : from : in-reply-to : date : cc :
+ content-transfer-encoding : message-id : references : to;
+ s=corp-2020-01-29; bh=9bpfk+yuh590Muza7UCQDedI4J4OneYX6RNfzBmY5Zo=;
+ b=s1+YplUUPot3bnUY8eHbQXaRDUOgLivrQNb9Zw0s86rIDwfyxO+YxdcQeGm66QE4uZVi
+ iiRGBgN+ELnfLP/9nDjodZnIhYaZ2iikzG1tkiJSHSGwjKjwKne4koNA4qfSc/VVuNsy
+ T6Sm5BCTjSTQff/kSdncgpxtLsFukDCNBV0eOSrmvXEoIXuyxTn7o7Pf3MCFVTGiaSg6
+ DOLitzGhFEHPU45mbyuDHc6Eg3gzRdq/ALC607GZlWMdxROY1samK0As9FslxfJUhW/4
+ wSeZQnwyB+IP8F4s5DGEKlWblY/i1yaQc6dKLkakRRpVDK/i6gAkGDoYaFW3z6gLxhzH HQ== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by aserp2120.oracle.com with ESMTP id 306j6m84y6-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 06 Apr 2020 17:00:51 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 036GmhCT112006;
+        Mon, 6 Apr 2020 17:00:51 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3030.oracle.com with ESMTP id 3073sqa0jf-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 06 Apr 2020 17:00:51 +0000
+Received: from abhmp0015.oracle.com (abhmp0015.oracle.com [141.146.116.21])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 036H0nOL007607;
+        Mon, 6 Apr 2020 17:00:49 GMT
+Received: from dhcp-10-175-175-117.vpn.oracle.com (/10.175.175.117)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Mon, 06 Apr 2020 10:00:49 -0700
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3608.60.0.2.5\))
+Subject: Re: [PATCH for-rc] RDMA/cma: fix race between addr_handler and
+ resolve_route
+From:   =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+In-Reply-To: <20200403193656.GF8514@mellanox.com>
+Date:   Mon, 6 Apr 2020 19:00:46 +0200
 Cc:     Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Danit Goldberg <danitg@mellanox.com>,
-        Parav Pandit <parav@mellanox.com>, linux-rdma@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] RDMA/cm: Fix an error check in cm_alloc_id_priv()
-Message-ID: <20200406145109.GQ20941@ziepe.ca>
-References: <20200406144335.GD68494@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200406144335.GD68494@mwanda>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+        OFED mailing list <linux-rdma@vger.kernel.org>,
+        george kennedy <george.kennedy@oracle.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <EDBCDCC1-E03F-428A-8352-734E3F01B316@oracle.com>
+References: <20200403184328.1154929-1-haakon.bugge@oracle.com>
+ <20200403185707.GE8514@mellanox.com>
+ <1720C7BF-D6E4-4779-B05D-203703042B36@oracle.com>
+ <20200403193656.GF8514@mellanox.com>
+To:     Jason Gunthorpe <jgg@mellanox.com>
+X-Mailer: Apple Mail (2.3608.60.0.2.5)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9583 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 phishscore=0 spamscore=0
+ malwarescore=0 suspectscore=4 adultscore=0 bulkscore=0 mlxlogscore=366
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2004060135
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9583 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxlogscore=427 spamscore=0
+ priorityscore=1501 suspectscore=4 lowpriorityscore=0 malwarescore=0
+ impostorscore=0 mlxscore=0 phishscore=0 adultscore=0 clxscore=1015
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2004060135
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Apr 06, 2020 at 05:43:35PM +0300, Dan Carpenter wrote:
-> The xa_alloc_cyclic_irq() function returns either 0 or 1 on success and
-> negatives on error.  This code treats 1 as an error and returns
-> ERR_PTR(1) which will cause an Oops in the caller.
-> 
-> Fixes: e8dc4e885c45 ("RDMA/cm: Fix ordering of xa_alloc_cyclic() in ib_create_cm_id()")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> The Fixes tag may not be correct.  That's the patch which introduces an
-> Oops but we may want to backport this further back.
 
-Right it should be
 
-Fixes: ae78ff3a0f0c ("RDMA/cm: Convert local_id_table to XArray")
+> On 3 Apr 2020, at 21:36, Jason Gunthorpe <jgg@mellanox.com> wrote:
+>=20
+> On Fri, Apr 03, 2020 at 09:07:10PM +0200, H=C3=A5kon Bugge wrote:
+>>=20
+>>=20
+>>> On 3 Apr 2020, at 20:57, Jason Gunthorpe <jgg@mellanox.com> wrote:
+>>>=20
+>>> On Fri, Apr 03, 2020 at 08:43:28PM +0200, H=C3=A5kon Bugge wrote:
+>>>> A syzkaller test hits a NULL pointer dereference in
+>>>> rdma_resolve_route():
+>>>=20
+>>> #syz test: =
+git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
+>>>=20
+>>> This commit in 5.7 probably fixes this:
+>>=20
+>> I think it will not. The mutex in 7c11910783a1 ("RDMA/ucma: Put a
+>> lock around every call to the rdma_cm layer") will not prevent
+>> addr_handler() to run concurrently with rdma_resolve_route(), right?
+>=20
+> Hmm. Perhaps so. But your patch isn't nearly enough if that is the
+> case, you've only considered resolve_route, but it could run
+> concurrently with *anything*, with the usual problems.
 
-Thanks,
-Jason
+I was about to argue my case, but looking more into the code I tend to =
+agree with you more and more. I thought, at least, that the =
+rdma_foo_bar() functions had atomic checks on the state and bailed out =
+if the state was inappropriate, but that is not the case all the time.=20=
+
+
+And the code that transitions the state from FOO to BAR, letting others =
+observe BAR, and then conditionally setting it back to FOO isn't exactly =
+great...
+
+> Plus addr_handler calls rdma_destroy_id().. Oh wow is that ever
+> completely screwed up. Sigh.
+>=20
+> Probably the simplest answer is to have ucma fail operations that are
+> not permitted while an async_handler is pending. I'm guessing the only
+> operation that would be valid is rdma_destroy_id?
+
+Yes, that would take care of this class of errors, I agree. On a real =
+systems (vs. the syzkaller setup), you may receive (almost any) CM =
+packet ay any time, and that concurrency we must handle.
+
+Shall I make a v2 base on next based on this idea, or do you have =
+something coming?
+
+>> And, I also suspect 7c11910783a1 to have major performance
+>> impact. But, that's a different story.
+>=20
+> *shrug* I no longer care. The work to fix this in a performant way is
+> enormous and nobody wants to do it.=20
+>=20
+> Until that time we are taking a 'Big Lock' approach to all concurrancy
+> problems with rdma_cm as this code is *completely* broken for
+> concurrency.
+
+Have you considered putting the hammer inside the cm_id instead of the =
+context? Would that allow more concurrency and still avoid the 10ish =
+syzkaller bugs?
+
+> Which is why I'm not taking this patch..
+
+At least I made a good explanation of the bug ;-)
+
+
+Thxs, H=C3=A5kon
+
