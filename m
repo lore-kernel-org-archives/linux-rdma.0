@@ -2,102 +2,88 @@ Return-Path: <SRS0=YGWR=5X=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D05EC2BA1A
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Apr 2020 00:44:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E242C2BA16
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Apr 2020 05:16:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DD2252076E
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Apr 2020 00:44:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="e8ee+M7y"
+	by mail.kernel.org (Postfix) with ESMTP id 356B420730
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Apr 2020 05:16:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1586236597;
+	bh=PP9yPSE8t2IY7iYlwDeMuKlNYVHVBgt72mFtMa0Qhdc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=a/0k2ruSYIzD1Fze4Q664JSe6gf1t2qBSSocQbgwFsBUscaKkfqs8hqO1kLUCSgQj
+	 jlf3h/ijbjZredTOyIZM9ymHL21+oEW7p2b22pH36U0BPN4i1OuhjK0eZqPLvueEpM
+	 R9AtOojwQl9UZ3/fCzqMPhaHribFPdmtw4zrAbYE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726352AbgDGAoa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 6 Apr 2020 20:44:30 -0400
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:40643 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726277AbgDGAo3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Apr 2020 20:44:29 -0400
-Received: by mail-qt1-f194.google.com with SMTP id y25so1457550qtv.7
-        for <linux-rdma@vger.kernel.org>; Mon, 06 Apr 2020 17:44:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=from:to:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=iN25cbGrs8FKyzdV2IOg1bW6PkdCVYW8usI58LMklEo=;
-        b=e8ee+M7yQJAon/6LbrM6XgiV4y7sm/5fd3OS8+bazBpuJ2+mgTTdB4FJ+IQbOU1O4M
-         br1QOdD8buoAgFOWralY9QDN0ABYJy1Lbx1QsHVDrNxD3rRQgKTDFzLJSSdqt5PwOpkD
-         QowWN6Pnd8qCXCRzrTfjojqFO4YK5WnAj1ADdwV7Eeu0LL042CU1M0GpsoXgwnQj5H50
-         /CLyRZsxhC8AfNEsRzB9xOKevvDkVz+FAQtdUNOIn5fKa0mpSTKp2H58D80/kcwcwVkG
-         v1h0ZXd30AvvNnAQPdDGvIhGwmdRU5z8Gs4VI1DwnJSUExov3PttznR2vDzrxP8Df1e3
-         XCOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=iN25cbGrs8FKyzdV2IOg1bW6PkdCVYW8usI58LMklEo=;
-        b=bI8LgyCevkrH93GN/g7uY0zZNiYjIdYGAlmTavA+Bk/tDyzZtHG/ytTiQlPbM39qjg
-         XfHOm2k56iJzKNFXgx3vQhpNauXsmHRiIXZope5JFDy3xedJ0YbG1RAQU0xSlJsEJH0m
-         5U2WCFDRsOn25+qUQeg9ipMWckDPfDBwpB+nb6rnxQ6BEMyhQC4pUk3/S4nShE02Ninj
-         b5MaVarAmtIkyqAOsFzZ2BV79Se3FXTKfFHUnF4OdklHoinkKmOtJ5mE3hk+G+JC9HgG
-         nlAwAwQk8aMZ5jLLRwTfLzlBNg5NvreRzZ/760kH30laLFILqFKheQ1N+/CseKGkxxFG
-         4Bow==
-X-Gm-Message-State: AGi0PuYd2Ims1IQiBLYcnpSd8PwATQDwg4+38Rc/PSDYuFsZKxHQRev3
-        T836MAZs975npDO8u5+0RjR5TbyDBDTfLw==
-X-Google-Smtp-Source: APiQypKGkwkfC5I7rwZpgBVeutphi5IT3vBscHsSz2O5iZbpQUI0QKnSnJ56dkG/U+XXN//GdX57CA==
-X-Received: by 2002:ac8:370c:: with SMTP id o12mr2250160qtb.380.1586220268684;
-        Mon, 06 Apr 2020 17:44:28 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id 207sm16129429qkf.69.2020.04.06.17.44.28
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 06 Apr 2020 17:44:28 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jLcLq-00068q-5j
-        for linux-rdma@vger.kernel.org; Mon, 06 Apr 2020 21:44:26 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     linux-rdma@vger.kernel.org
-Subject: [PATCH] RDMA/uverbs: Make the event_queue fds return POLLERR when disassociated
-Date:   Mon,  6 Apr 2020 21:44:26 -0300
-Message-Id: <0-v1-ace813388969+48859-uverbs_poll_fix%jgg@mellanox.com>
+        id S1726657AbgDGFQg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Apr 2020 01:16:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58840 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726232AbgDGFQg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 7 Apr 2020 01:16:36 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F26720730;
+        Tue,  7 Apr 2020 05:16:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1586236596;
+        bh=PP9yPSE8t2IY7iYlwDeMuKlNYVHVBgt72mFtMa0Qhdc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=MLMD7pM7YjM7CPw+ZJmNWyQYwC9SPctbCS6+0omLTgp0q3YIq+aycLAV3sxS5/0KU
+         L0ZTflbCJ6tZH/OfxxiDReeNolLJ8BgokSUDOb9cc5IZpOmWHpXfv7q2t3L7Uj2y6h
+         rZb98PURYW14AfI5V0bGU4+DQb4rd+CfHOQXomVs=
+Date:   Tue, 7 Apr 2020 08:16:32 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] RDMA/uverbs: Make the event_queue fds return POLLERR
+ when disassociated
+Message-ID: <20200407051632.GL80989@unreal>
+References: <0-v1-ace813388969+48859-uverbs_poll_fix%jgg@mellanox.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0-v1-ace813388969+48859-uverbs_poll_fix%jgg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+On Mon, Apr 06, 2020 at 09:44:26PM -0300, Jason Gunthorpe wrote:
+> From: Jason Gunthorpe <jgg@mellanox.com>
+>
+> If is_closed is set, and the event list is empty, then read() will return
+> -EIO without blocking. After setting is_closed in
+> ib_uverbs_free_event_queue(), we do trigger a wake_up on the poll_wait,
+> but the fops->poll() function does not check it, so poll will continue to
+> sleep on an empty list.
+>
+> Fixes: 14e23bd6d221 ("RDMA/core: Fix locking in ib_uverbs_event_read")
+> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+> ---
+>  drivers/infiniband/core/uverbs_main.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+> index 2d4083bf4a0487..8710a3427146e7 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -296,6 +296,8 @@ static __poll_t ib_uverbs_event_poll(struct ib_uverbs_event_queue *ev_queue,
+>  	spin_lock_irq(&ev_queue->lock);
+>  	if (!list_empty(&ev_queue->event_list))
+>  		pollflags = EPOLLIN | EPOLLRDNORM;
+> +	else if (ev_queue->is_closed)
+> +		pollflags = EPOLLERR;
+>  	spin_unlock_irq(&ev_queue->lock);
 
-If is_closed is set, and the event list is empty, then read() will return
--EIO without blocking. After setting is_closed in
-ib_uverbs_free_event_queue(), we do trigger a wake_up on the poll_wait,
-but the fops->poll() function does not check it, so poll will continue to
-sleep on an empty list.
+Don't you need to set EPOLLHUP too? Probably, it won't change anything,
+just for the sake of the correctness.
 
-Fixes: 14e23bd6d221 ("RDMA/core: Fix locking in ib_uverbs_event_read")
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
----
- drivers/infiniband/core/uverbs_main.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 2d4083bf4a0487..8710a3427146e7 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -296,6 +296,8 @@ static __poll_t ib_uverbs_event_poll(struct ib_uverbs_event_queue *ev_queue,
- 	spin_lock_irq(&ev_queue->lock);
- 	if (!list_empty(&ev_queue->event_list))
- 		pollflags = EPOLLIN | EPOLLRDNORM;
-+	else if (ev_queue->is_closed)
-+		pollflags = EPOLLERR;
- 	spin_unlock_irq(&ev_queue->lock);
- 
- 	return pollflags;
--- 
-2.25.2
-
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
