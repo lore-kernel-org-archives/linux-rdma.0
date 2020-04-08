@@ -2,30 +2,56 @@ Return-Path: <SRS0=FAwU=5Y=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09268C2D0F4
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE8AEC2BA1B
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:38:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB72E20753
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C0D920771
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:38:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=pobox.com header.i=@pobox.com header.b="U8ETg0PM";
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=fluxnic.net header.i=@fluxnic.net header.b="BpSnWiZO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729657AbgDHU1s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Apr 2020 16:27:48 -0400
-Received: from mout.kundenserver.de ([212.227.126.135]:43153 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728221AbgDHU1r (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Apr 2020 16:27:47 -0400
-Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
- (mreue010 [212.227.15.129]) with ESMTPA (Nemesis) id
- 1MHGPA-1jZQRE3rtY-00DKmr; Wed, 08 Apr 2020 22:27:21 +0200
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     linux-kernel@vger.kernel.org,
+        id S1728490AbgDHUii (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Apr 2020 16:38:38 -0400
+Received: from pb-smtp20.pobox.com ([173.228.157.52]:56288 "EHLO
+        pb-smtp20.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726891AbgDHUii (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Apr 2020 16:38:38 -0400
+Received: from pb-smtp20.pobox.com (unknown [127.0.0.1])
+        by pb-smtp20.pobox.com (Postfix) with ESMTP id 64119B233D;
+        Wed,  8 Apr 2020 16:38:36 -0400 (EDT)
+        (envelope-from nico@fluxnic.net)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=pobox.com; h=date:from:to
+        :cc:subject:in-reply-to:message-id:references:mime-version
+        :content-type; s=sasl; bh=FXs96PD9q6AihpPiIw66bQCCq08=; b=U8ETg0
+        PMUzCxd1Etp4NTyjwzMVnSGylSOEkCEBXTKQYzm7o3Acpusy+ZC2z7Ra8sWzvHP9
+        pnt3xOIbUpkedWag6NuNCVdmiLjRH674iDjF8gcmVmbVPGZCZuNTyiYLda7vq6lL
+        RYQd+jNEdW+/AJGlaJ8XO2ozC2x4gdHJmqJFw=
+Received: from pb-smtp20.sea.icgroup.com (unknown [127.0.0.1])
+        by pb-smtp20.pobox.com (Postfix) with ESMTP id 5B0C5B233C;
+        Wed,  8 Apr 2020 16:38:36 -0400 (EDT)
+        (envelope-from nico@fluxnic.net)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed; d=fluxnic.net;
+ h=date:from:to:cc:subject:in-reply-to:message-id:references:mime-version:content-type; s=2016-12.pbsmtp; bh=qLgNDpEXsnrm/8QYj83jowhEfOt5/wA6l8IQuAQGxlY=; b=BpSnWiZOUdexci0KAuec0G+2jfPVozIKdqH97mGEA108YctqFuRxRffnGzGrPwh2foY4yVjd0fKDiPFWkJWkdmQthCj9TJyaqJ7SNxaaysIuRmFzGAdaXTKY7K1rT6cxW0LYK3KBQUU/n1fyLp+kXrbsfctkypwMeTILo06PQv4=
+Received: from yoda.home (unknown [24.203.50.76])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by pb-smtp20.pobox.com (Postfix) with ESMTPSA id D8611B2338;
+        Wed,  8 Apr 2020 16:38:31 -0400 (EDT)
+        (envelope-from nico@fluxnic.net)
+Received: from xanadu.home (xanadu.home [192.168.2.2])
+        by yoda.home (Postfix) with ESMTPSA id F39562DA0D3A;
+        Wed,  8 Apr 2020 16:38:29 -0400 (EDT)
+Date:   Wed, 8 Apr 2020 16:38:29 -0400 (EDT)
+From:   Nicolas Pitre <nico@fluxnic.net>
+To:     Arnd Bergmann <arnd@arndb.de>
+cc:     linux-kernel@vger.kernel.org,
         Masahiro Yamada <masahiroy@kernel.org>,
-        Nicolas Pitre <nico@fluxnic.net>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Andrzej Hajda <a.hajda@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
         Neil Armstrong <narmstrong@baylibre.com>,
         Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
         Jonas Karlman <jonas@kwiboo.se>,
@@ -38,62 +64,48 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Andrzej Hajda <a.hajda@samsung.com>,
         Leon Romanovsky <leon@kernel.org>,
         dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [RFC 3/6] LiquidIO VF: add dependency for PTP_1588_CLOCK
-Date:   Wed,  8 Apr 2020 22:27:08 +0200
-Message-Id: <20200408202711.1198966-4-arnd@arndb.de>
-X-Mailer: git-send-email 2.26.0
+Subject: Re: [RFC 0/6] Regressions for "imply" behavior change
 In-Reply-To: <20200408202711.1198966-1-arnd@arndb.de>
+Message-ID: <nycvar.YSQ.7.76.2004081633260.2671@knanqh.ubzr>
 References: <20200408202711.1198966-1-arnd@arndb.de>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:5gAXVieAiTDMVgOwMbM5A19MMx9acTKbfT3cm2YOhdzeb/EYJqs
- Te4CgqXnmQtMe+2OOhCDLGzIANrnZ90bJvbRpt7xp9tPopYPK34AYq2XwYjnPbCemctGCMx
- N+rTuDxeII+rMjAK7irDB1W8ndokokIDC2krQnC8xvnrVTQvZQFWn5Hrgw71ufxQQZ9KOIb
- TP8qo/XObsotxVQ27d5RA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:NRuTrC3phjI=:xaa2zTMfhPfNkIb3+uRvAz
- aOg1rZdZRmxxIc6g6+VG5HeTHmY1F7Z4l/de6QyK5vKhYfA3qz2OjA+rcwjt1nS463vOEuvHn
- f9p2Q7lWRUYsSHTXijhpB05u3xZ7R5lK+L8Ox6JCzrWJehS0UitxV6Q4qeI+GDlCr4P0a9O5B
- sr4hwwRsOkiwFhQBledXwf6Nwc28VN3epP5RXHdQWY0iFH3razZsmP7OKWbcDK+08IX6VRiEo
- De5Z1WflnClFpJVjM3e46r6H2d+8MMkk7nEA4GPWR5AJ4DGrTuSHHtfHHyNZ3V0mhzyils6QX
- 0BpRfqCNgru0vdl+zDCVmFMsKTG/jQl9IgapKImPnv3eHAGYWeRow6pgXpJjrqWGL4ifzW3GQ
- jdWzggVOZMjYStPc6g9OunbziB1Oazlh97E+SSwjIxsDLLRTiJTX+tJlBrtf3yL3BAyuvbXQk
- E8MBAxGXfuuxNNhtm4715Uwce/UGLAW3xqgf8hwyfqLqy8ZntI8aoe9hbkfl+JglQQd+dBG4n
- P4dehVuWxT9noRIrrqbj2FjxpDYrvhV7FknXKtaPr/NkZoNeS9sSQ7mUUbK4B0E7frN4sWdhp
- 8zrl/PiFPsrtJPqIMgWRO0ZHt7lS4fz9thQesQOYzcgXYXy6I1Ps4CHTaSlp0XrAvjRtJ7BNU
- L+HqTRIsrc62vZu+A3tCOjwHMYZBUjg7Vp/B++OdPCte8NMuxVbCKjIkcP5/AS8Lqzfm1i7au
- L9aLAOSr7a5Ra7Ih0p6IdsnwIhiwTyhYnjzScDb5J5P8LRHDaP04BDu1wrQXRZ7j3JpflN667
- ura8Or9OeUg355x6QIVnmkKTzR4Vdr0dmLd1ifBX5y0q7LS8BQ=
+Content-Type: text/plain; charset=US-ASCII
+X-Pobox-Relay-ID: E91C3C66-79D8-11EA-84B4-B0405B776F7B-78420484!pb-smtp20.pobox.com
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The 'imply' keyword no longer does what it was originally
-introduced for:
+On Wed, 8 Apr 2020, Arnd Bergmann wrote:
 
-lio_ethtool.c:(.text+0xba8): undefined reference to `ptp_clock_index'
+> Hi everyone,
+> 
+> I've just restarted doing randconfig builds on top of mainline Linux and
+> found a couple of regressions with missing dependency from the recent
+> change in the "imply" keyword in Kconfig, presumably these two patches:
+> 
+> 3a9dd3ecb207 kconfig: make 'imply' obey the direct dependency
+> def2fbffe62c kconfig: allow symbols implied by y to become m
+> 
+> I have created workarounds for the Kconfig files, which now stop using
+> imply and do something else in each case. I don't know whether there was
+> a bug in the kconfig changes that has led to allowing configurations that
+> were not meant to be legal even with the new semantics, or if the Kconfig
+> files have simply become incorrect now and the tool works as expected.
 
-Use a dependency instead.
+In most cases it is the code that has to be fixed. It typically does:
 
-Fixes: cd7aeb1f9706 ("LiquidIO VF: s/select/imply/ for PTP_1588_CLOCK")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/cavium/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+	if (IS_ENABLED(CONFIG_FOO))
+		foo_init();
 
-diff --git a/drivers/net/ethernet/cavium/Kconfig b/drivers/net/ethernet/cavium/Kconfig
-index 52806ef20d2d..e483c3001dc6 100644
---- a/drivers/net/ethernet/cavium/Kconfig
-+++ b/drivers/net/ethernet/cavium/Kconfig
-@@ -66,7 +66,7 @@ config LIQUIDIO
- 	tristate "Cavium LiquidIO support"
- 	depends on 64BIT && PCI
- 	depends on PCI
--	imply PTP_1588_CLOCK
-+	depends on PTP_1588_CLOCK || !PTP_1588_CLOCK
- 	select FW_LOADER
- 	select LIBCRC32C
- 	select NET_DEVLINK
--- 
-2.26.0
+Where it should rather do:
 
+	if (IS_REACHABLE(CONFIG_FOO))
+		foo_init();
+
+A couple of such patches have been produced and queued in their 
+respective trees already.
+
+
+Nicolas
