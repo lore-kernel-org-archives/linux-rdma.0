@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFE03C2D0F4
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF60C2BA1A
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 877EF20769
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0898F20769
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730450AbgDHU1u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1730441AbgDHU1u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 8 Apr 2020 16:27:50 -0400
-Received: from mout.kundenserver.de ([212.227.126.187]:51203 "EHLO
+Received: from mout.kundenserver.de ([212.227.126.187]:51355 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730438AbgDHU1u (ORCPT
+        with ESMTP id S1729333AbgDHU1u (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Apr 2020 16:27:50 -0400
 Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
  (mreue010 [212.227.15.129]) with ESMTPA (Nemesis) id
- 1M1HqM-1jJXCV1zju-002p3H; Wed, 08 Apr 2020 22:27:21 +0200
+ 1Mrh9Y-1izGjr3MlI-00nlSz; Wed, 08 Apr 2020 22:27:19 +0200
 From:   Arnd Bergmann <arnd@arndb.de>
 To:     linux-kernel@vger.kernel.org,
         Masahiro Yamada <masahiroy@kernel.org>,
@@ -38,92 +38,65 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Andrzej Hajda <a.hajda@samsung.com>,
         Leon Romanovsky <leon@kernel.org>,
         dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [RFC 4/6] drm/bridge/sii8620: fix extcon dependency
-Date:   Wed,  8 Apr 2020 22:27:09 +0200
-Message-Id: <20200408202711.1198966-5-arnd@arndb.de>
+Subject: [RFC 1/6] thunder: select PTP driver if possible
+Date:   Wed,  8 Apr 2020 22:27:06 +0200
+Message-Id: <20200408202711.1198966-2-arnd@arndb.de>
 X-Mailer: git-send-email 2.26.0
 In-Reply-To: <20200408202711.1198966-1-arnd@arndb.de>
 References: <20200408202711.1198966-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:vV8vEqFFzBxDwbCUpevBksXzEnRG+4YylcxGZKW7vX+9eMNUg1m
- GTSrbKOi6FlzzBUHGBDpQR3uJHzbcRVL29ejotroODkZe9OPHSlxi90k/mXcQ4EwBxDqz+S
- fwAOPMaKXUvZqrRoIeRpqd1CCyTHjbL5K4harE/L5KNprHiRjOcSxfYcjG43V5CQGDOrMdP
- 0Zvp6NP7uN5f0uBgGxXEA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:MptYX3yueAQ=:b885v6hNqw1kQDiue/weO6
- uP+3VRcZwHepB7aNKzqTfmN4RuwxLKcd3Ykn79jFhPBxl2wZfHWApXes3mbeDb/x1w+Vf3eXo
- q9YEc9yKSSVlxROHdqCSWcymhLpZ2EDGCdvQbKoMGTtFXTirZiv2DAe3FnAWFufrzLccql5PD
- EHa10ti3QaaWQoWarrhnR+u9A33uYjAF35zBqi6jQol9OPXkKAlO5yJcEcD0jpkfo6GS81i5y
- kH+gPTPYH30Wr9WocW6L91lXSvOaqKNE3BzcyPFgUPkKZdEFM+dMi8tZl2HxIwzJA1XqcwFfi
- XrfEV0cIYSe2KcZozeoabmYbdGj6q/22WC5AsKTZZgalFOuOBF8wVGKu/2wC6RLZ9COX/CFeu
- 6W+gTiE6JSfyRpDVXLFq+HnzULwdyNoAEb9aJf3iXX2AjYYvaqyB/lzs4IWSfLtkGFp9HDRzt
- AqgANzoPqYHUQkhSHCS2jpi3VNEU1z3mj98JfTwXmrM5v9LhzBIuTMdDAgqLXUSCEdq7RhW3T
- XvOf7th7/rXNolz9+AOIiILyM7J3arHbaIfZhe23PnMVjW1r8ySVflQqck+e0e0zycDo0T/Bx
- YtLQLGldhMoefh+6y6apc8rGbDJpRnerakstMgLD3Xg4C3JBpOoFEMmWSTc0KwSjScvTdVbFZ
- N2d5HtbEJry0CQNPtNudp2FRAzOMVvxY6G+Tz19wbIEno35Y6FxB+s2evGed0xWIVvhi7fdjc
- QFRA5cQBDSRwNMPrqLXlIjX5+A+SX8eaXTCT/FampsaxQeRsv7tSnCQm+OMw67CNp7QNJOZOs
- HS8WJIHYn7I0p4NzUPVc9S0+juW29sTv81JFrBTxLetf8xRiNA=
+X-Provags-ID: V03:K1:mGlRd5xXvrWXjH5ARNufEZPCVL9cYj10ODbmPSRMgDrYtv3nXEc
+ pnVt/hadqMl2XTMQZrC9iv1lQ3+3zV9clZ0cy+FrVsKbQDG5ydckomDupqtfWBpYAA5SL2b
+ ejhseEmA9tAmYQ19vMw/qvPk1gTfisBagmO/idcL225eXQYT8xGDe7hLh2vIjswDKD8Vli+
+ 7ocNzTVy5ThHS8QujPL2Q==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:/nLZWXqnSdw=:phuLH7tle7YBo97T3huV5A
+ vSH8xCo4twHU84eg4LvK4HOn2oFolsTYGZa7ROooND9YGt7MB5zz2Q8z9RTJodxFRn/XG9dOf
+ NscqFwaOXSxVAUJsjy/uEB0hicWqQu8xEcUY+9DCLcd8q7SVpN/QIRF6ttpBP19m/PmXqyv1o
+ /sw4SUqnEvUrNysy3IynuagA8enqZQ1TDbfjul2uZllbFNGXrRzMj3CA9CsLyU7yGTRu05J/h
+ Xum24X+4IC4lg1k5fwt0nNHZ1IKTMePnwwC5oWsroAHgDqQDlNpK7uHI8IWHuuxRiqXQDJC5i
+ z+Z6KtPdmG128SbnEbblbnbblKt+K9bXMhgogAp0DoMYf8J/qcCV3kf09stxpSqfuIGfPnjyU
+ KOent5VLIkZCNlKvyHrEm+gyhPn2rQHBajpCCWXPu37pQX+vpEgCL7PneJc4fdlmbxS1iA1Cy
+ RF+ad2EDQAkocPHNvigKWAAehlA9QRjVxipXwW31RnOhLwdgeuqgRecV/i/ggUl8gDViV1ymW
+ lHuzosDGj+TVv+RYSfvxecxkdvTRsk1Bj817pcCuGTmzbESstAikpZM73nb9YhpZOjLZYC2NG
+ twpAchLKYWWJ1aB4o/VhaSgn5omEitydCCPi4cdiCHgcn4MtniRDa6IFziUZiE93xzVPu7WHD
+ 0EAtotW2BYHlSqsrQ9Yf+alqoXxf6PIWGHmGtlAAR43obUqNNiyRgVuuICZH38wVqqc0NVZi7
+ Rt1447uuSlKrrXx37E8+y7pfa28xD2eKt4O+BQMIHXWuBsFpiN6qOo0tMvcHmxjEFEKuijvCA
+ BTb984lp4wcmvcR8Z0xnpylpFzuR7vyIDT9/98rJdVPKhEXJdw=
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Using 'imply' does not work here, it still cause the same build
-failure:
+The 'imply' selection means the driver can still be a loadable
+module even if the main driver is built-in, leading to a link
+error:
 
-arm-linux-gnueabi-ld: drivers/gpu/drm/bridge/sil-sii8620.o: in function `sii8620_remove':
-sil-sii8620.c:(.text+0x1b8): undefined reference to `extcon_unregister_notifier'
-arm-linux-gnueabi-ld: drivers/gpu/drm/bridge/sil-sii8620.o: in function `sii8620_probe':
-sil-sii8620.c:(.text+0x27e8): undefined reference to `extcon_find_edev_by_node'
-arm-linux-gnueabi-ld: sil-sii8620.c:(.text+0x2870): undefined reference to `extcon_register_notifier'
-arm-linux-gnueabi-ld: drivers/gpu/drm/bridge/sil-sii8620.o: in function `sii8620_extcon_work':
-sil-sii8620.c:(.text+0x2908): undefined reference to `extcon_get_state'
+aarch64-linux-ld: drivers/net/ethernet/cavium/thunder/nicvf_main.o: in function `nicvf_remove':
+nicvf_main.c:(.text+0x25c): undefined reference to `cavium_ptp_put'
+aarch64-linux-ld: drivers/net/ethernet/cavium/thunder/nicvf_main.o: in function `nicvf_probe':
+nicvf_main.c:(.text+0x3080): undefined reference to `cavium_ptp_get'
 
-I tried the usual 'depends on EXTCON || !EXTCON' logic, but that caused
-a circular Kconfig dependency. Using IS_REACHABLE() is ugly but works.
+Use a 'select' statement instead.
 
-Fixes: 7a109673899b ("drm/bridge/sii8620: add Kconfig dependency on extcon")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/gpu/drm/bridge/Kconfig       | 1 -
- drivers/gpu/drm/bridge/sil-sii8620.c | 5 +++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/cavium/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/bridge/Kconfig b/drivers/gpu/drm/bridge/Kconfig
-index aaed2347ace9..78e5ba06acff 100644
---- a/drivers/gpu/drm/bridge/Kconfig
-+++ b/drivers/gpu/drm/bridge/Kconfig
-@@ -90,7 +90,6 @@ config DRM_SIL_SII8620
- 	tristate "Silicon Image SII8620 HDMI/MHL bridge"
- 	depends on OF
- 	select DRM_KMS_HELPER
--	imply EXTCON
- 	depends on RC_CORE || !RC_CORE
- 	help
- 	  Silicon Image SII8620 HDMI/MHL bridge chip driver.
-diff --git a/drivers/gpu/drm/bridge/sil-sii8620.c b/drivers/gpu/drm/bridge/sil-sii8620.c
-index 92acd336aa89..94b6c38e6855 100644
---- a/drivers/gpu/drm/bridge/sil-sii8620.c
-+++ b/drivers/gpu/drm/bridge/sil-sii8620.c
-@@ -2330,7 +2330,8 @@ static int sii8620_probe(struct i2c_client *client,
- 	if (ret)
- 		return ret;
+diff --git a/drivers/net/ethernet/cavium/Kconfig b/drivers/net/ethernet/cavium/Kconfig
+index 6a700d34019e..52806ef20d2d 100644
+--- a/drivers/net/ethernet/cavium/Kconfig
++++ b/drivers/net/ethernet/cavium/Kconfig
+@@ -27,7 +27,7 @@ config THUNDER_NIC_PF
  
--	ret = sii8620_extcon_init(ctx);
-+	if (IS_REACHABLE(CONFIG_EXTCON))
-+		ret = sii8620_extcon_init(ctx);
- 	if (ret < 0) {
- 		dev_err(ctx->dev, "failed to initialize EXTCON\n");
- 		return ret;
-@@ -2352,7 +2353,7 @@ static int sii8620_remove(struct i2c_client *client)
- {
- 	struct sii8620 *ctx = i2c_get_clientdata(client);
- 
--	if (ctx->extcon) {
-+	if (IS_REACHABLE(CONFIG_EXTCON) && ctx->extcon) {
- 		extcon_unregister_notifier(ctx->extcon, EXTCON_DISP_MHL,
- 					   &ctx->extcon_nb);
- 		flush_work(&ctx->extcon_wq);
+ config THUNDER_NIC_VF
+ 	tristate "Thunder Virtual function driver"
+-	imply CAVIUM_PTP
++	select CAVIUM_PTP if POSIX_TIMERS
+ 	depends on 64BIT && PCI
+ 	---help---
+ 	  This driver supports Thunder's NIC virtual function
 -- 
 2.26.0
 
