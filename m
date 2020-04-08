@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6926C2D0F4
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09268C2D0F4
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B357F20753
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB72E20753
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 20:28:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730562AbgDHU2N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Apr 2020 16:28:13 -0400
-Received: from mout.kundenserver.de ([212.227.126.130]:50203 "EHLO
+        id S1729657AbgDHU1s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Apr 2020 16:27:48 -0400
+Received: from mout.kundenserver.de ([212.227.126.135]:43153 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729431AbgDHU1s (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Apr 2020 16:27:48 -0400
+        with ESMTP id S1728221AbgDHU1r (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Apr 2020 16:27:47 -0400
 Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
  (mreue010 [212.227.15.129]) with ESMTPA (Nemesis) id
- 1Ma1kC-1jpzv402E8-00VxbF; Wed, 08 Apr 2020 22:27:22 +0200
+ 1MHGPA-1jZQRE3rtY-00DKmr; Wed, 08 Apr 2020 22:27:21 +0200
 From:   Arnd Bergmann <arnd@arndb.de>
 To:     linux-kernel@vger.kernel.org,
         Masahiro Yamada <masahiroy@kernel.org>,
@@ -38,80 +38,62 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Andrzej Hajda <a.hajda@samsung.com>,
         Leon Romanovsky <leon@kernel.org>,
         dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [RFC 5/6] drm/rcar-du: fix selection of CMM driver
-Date:   Wed,  8 Apr 2020 22:27:10 +0200
-Message-Id: <20200408202711.1198966-6-arnd@arndb.de>
+Subject: [RFC 3/6] LiquidIO VF: add dependency for PTP_1588_CLOCK
+Date:   Wed,  8 Apr 2020 22:27:08 +0200
+Message-Id: <20200408202711.1198966-4-arnd@arndb.de>
 X-Mailer: git-send-email 2.26.0
 In-Reply-To: <20200408202711.1198966-1-arnd@arndb.de>
 References: <20200408202711.1198966-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:BHGsIuVv5ZbKZcE4TjncqtpdBu8WjZS+2Q1lxqyGkiA2mhZOxWk
- P/dnbzJufBgPE0K1DKdoofKWfp0z22YhTz+VuyDG06en1W4KOhovhJrv6BugOwEFXqTaTj2
- 288ntMN6bhI9PumD50NA/n3txC43UpJhfmdGrdxosHRyNYVJgDBMQiwxTTn/uWVFTqjSdUU
- fDQQqODpLa+nnX9eremjg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:pp2T8S8fwiY=:YFTKAmm3THs3lkgTu/9cJO
- OlEtbaj4m1Q5rf7W3W0uZLdMofdnYljtx8FY5AetjTPsNapbUFYF/lEmeEIi2ZJ2XntmC8zYC
- EJ8vhWs3nd3PF4ZiisP0ZuphikEQmE6sMD/MqJ4fMBozRB7Y7Q9WYtgy9LYl4pofjT5ITkfj8
- zn1K+ou3M5Zg8obfkcB7h2q53e3Xf0UwPgVqBhex3D/m3VsHxFczoP4Ke5g8FGmAhJCUxAlwL
- 2PFHFwGyb6KCkVHbnDkhoOeZxvn0QqXK8+45nCfJIvr2AbPnhixWzgQByM2NXOAZEd4teCAz/
- qxorUPGpDH1S7dbIj3N3ooaHTS3oi4JQacv8a+RLyyJQ9pwxlazye1rH6RI0Z6gK3MiRFnhZ2
- lq9fUUdQg/KctqBHG8a73RVU0VDaP0fy1BjwPBZaFhlWURfyNLxRG/qVhfmA0raUlGneT2iOW
- He+R/86cyk0/B1G6OZZxXsX5ZBaVdYxOT/CYk3yXRB40jdkw/v8ZTle5gBvZ6zySj1Ad0dcs/
- 4iMaS5adZbjp1svnyH2qvzvuB4vAmca9l1RJLzwFCdzSwFMdwNpowt/525p3rQ5hPvavQkS8W
- 6eOsFHwpp9Kp7ZCoHvnhNwEEvUI7wiYSRg1BO7t3B5OgB19ndMAHUoTgc3lbOxgyhoTXPaX8o
- tI7K8mzkll+T9iyBn99wcIbTYTEiYhRM1BvmfTtCRyn9H7UWD3WTPba8PPrynVA50MrI7uLly
- BS8Jy4fz75apY/KbCLbbT54mmCW1x+HAOJaCCcrHcpdZkjz0fj3tWKOz+LDi0Kvmt0qRb5tKd
- rSVLD4Vzw4UcAzTHMoiBj6bSie1LlISiOrXQ/oOoxrZBCBLNp8=
+X-Provags-ID: V03:K1:5gAXVieAiTDMVgOwMbM5A19MMx9acTKbfT3cm2YOhdzeb/EYJqs
+ Te4CgqXnmQtMe+2OOhCDLGzIANrnZ90bJvbRpt7xp9tPopYPK34AYq2XwYjnPbCemctGCMx
+ N+rTuDxeII+rMjAK7irDB1W8ndokokIDC2krQnC8xvnrVTQvZQFWn5Hrgw71ufxQQZ9KOIb
+ TP8qo/XObsotxVQ27d5RA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:NRuTrC3phjI=:xaa2zTMfhPfNkIb3+uRvAz
+ aOg1rZdZRmxxIc6g6+VG5HeTHmY1F7Z4l/de6QyK5vKhYfA3qz2OjA+rcwjt1nS463vOEuvHn
+ f9p2Q7lWRUYsSHTXijhpB05u3xZ7R5lK+L8Ox6JCzrWJehS0UitxV6Q4qeI+GDlCr4P0a9O5B
+ sr4hwwRsOkiwFhQBledXwf6Nwc28VN3epP5RXHdQWY0iFH3razZsmP7OKWbcDK+08IX6VRiEo
+ De5Z1WflnClFpJVjM3e46r6H2d+8MMkk7nEA4GPWR5AJ4DGrTuSHHtfHHyNZ3V0mhzyils6QX
+ 0BpRfqCNgru0vdl+zDCVmFMsKTG/jQl9IgapKImPnv3eHAGYWeRow6pgXpJjrqWGL4ifzW3GQ
+ jdWzggVOZMjYStPc6g9OunbziB1Oazlh97E+SSwjIxsDLLRTiJTX+tJlBrtf3yL3BAyuvbXQk
+ E8MBAxGXfuuxNNhtm4715Uwce/UGLAW3xqgf8hwyfqLqy8ZntI8aoe9hbkfl+JglQQd+dBG4n
+ P4dehVuWxT9noRIrrqbj2FjxpDYrvhV7FknXKtaPr/NkZoNeS9sSQ7mUUbK4B0E7frN4sWdhp
+ 8zrl/PiFPsrtJPqIMgWRO0ZHt7lS4fz9thQesQOYzcgXYXy6I1Ps4CHTaSlp0XrAvjRtJ7BNU
+ L+HqTRIsrc62vZu+A3tCOjwHMYZBUjg7Vp/B++OdPCte8NMuxVbCKjIkcP5/AS8Lqzfm1i7au
+ L9aLAOSr7a5Ra7Ih0p6IdsnwIhiwTyhYnjzScDb5J5P8LRHDaP04BDu1wrQXRZ7j3JpflN667
+ ura8Or9OeUg355x6QIVnmkKTzR4Vdr0dmLd1ifBX5y0q7LS8BQ=
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The 'imply' statement does not seem to have an effect, as it's
-still possible to turn the CMM code into a loadable module
-in a randconfig build, leading to a link error:
+The 'imply' keyword no longer does what it was originally
+introduced for:
 
-arm-linux-gnueabi-ld: drivers/gpu/drm/rcar-du/rcar_du_crtc.o: in function `rcar_du_crtc_atomic_enable':
-rcar_du_crtc.c:(.text+0xad4): undefined reference to `rcar_lvds_clk_enable'
-arm-linux-gnueabi-ld: drivers/gpu/drm/rcar-du/rcar_du_crtc.o: in function `rcar_du_crtc_atomic_disable':
-rcar_du_crtc.c:(.text+0xd7c): undefined reference to `rcar_lvds_clk_disable'
-arm-linux-gnueabi-ld: drivers/gpu/drm/rcar-du/rcar_du_drv.o: in function `rcar_du_init':
-rcar_du_drv.c:(.init.text+0x4): undefined reference to `rcar_du_of_init'
-arm-linux-gnueabi-ld: drivers/gpu/drm/rcar-du/rcar_du_encoder.o: in function `rcar_du_encoder_init':
+lio_ethtool.c:(.text+0xba8): undefined reference to `ptp_clock_index'
 
-Remove the 'imply', and instead use a silent symbol that defaults
-to the correct setting.
+Use a dependency instead.
 
-Fixes: e08e934d6c28 ("drm: rcar-du: Add support for CMM")
+Fixes: cd7aeb1f9706 ("LiquidIO VF: s/select/imply/ for PTP_1588_CLOCK")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/gpu/drm/rcar-du/Kconfig | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/net/ethernet/cavium/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/rcar-du/Kconfig b/drivers/gpu/drm/rcar-du/Kconfig
-index 0919f1f159a4..5e35f5934d62 100644
---- a/drivers/gpu/drm/rcar-du/Kconfig
-+++ b/drivers/gpu/drm/rcar-du/Kconfig
-@@ -4,7 +4,6 @@ config DRM_RCAR_DU
- 	depends on DRM && OF
- 	depends on ARM || ARM64
- 	depends on ARCH_RENESAS || COMPILE_TEST
--	imply DRM_RCAR_CMM
- 	imply DRM_RCAR_LVDS
- 	select DRM_KMS_HELPER
- 	select DRM_KMS_CMA_HELPER
-@@ -15,9 +14,8 @@ config DRM_RCAR_DU
- 	  If M is selected the module will be called rcar-du-drm.
- 
- config DRM_RCAR_CMM
--	tristate "R-Car DU Color Management Module (CMM) Support"
-+	def_tristate DRM_RCAR_DU
- 	depends on DRM && OF
--	depends on DRM_RCAR_DU
- 	help
- 	  Enable support for R-Car Color Management Module (CMM).
- 
+diff --git a/drivers/net/ethernet/cavium/Kconfig b/drivers/net/ethernet/cavium/Kconfig
+index 52806ef20d2d..e483c3001dc6 100644
+--- a/drivers/net/ethernet/cavium/Kconfig
++++ b/drivers/net/ethernet/cavium/Kconfig
+@@ -66,7 +66,7 @@ config LIQUIDIO
+ 	tristate "Cavium LiquidIO support"
+ 	depends on 64BIT && PCI
+ 	depends on PCI
+-	imply PTP_1588_CLOCK
++	depends on PTP_1588_CLOCK || !PTP_1588_CLOCK
+ 	select FW_LOADER
+ 	select LIBCRC32C
+ 	select NET_DEVLINK
 -- 
 2.26.0
 
