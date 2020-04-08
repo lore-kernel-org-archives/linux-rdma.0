@@ -2,98 +2,108 @@ Return-Path: <SRS0=FAwU=5Y=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FBA5C2D0EA
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 07:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFAF9C2BA1B
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 15:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B21B2072A
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 07:18:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99BE62075E
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Apr 2020 15:47:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1586360865;
+	bh=dzEvyUMT+6iAL0bVATxxLcY08y7xtxW1DkpC2XHSTsk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=EYpG9udh48yc9Sb6Ui52MM0DW9gNbMay0nyZY6DUdMKbFjihadq4nkXJcJ5BcMmK9
+	 ozpSwZHLmluHQmhLd9147OHukBKxjpq2EfwC2jwf/K3jVoqeH/YgJsNRhmXaYVOChr
+	 eD//PJ5NWv66iVdrvBlAeCsML3GzfPHVWI/WWqGU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726345AbgDHHSA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Apr 2020 03:18:00 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:9674 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725932AbgDHHSA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Apr 2020 03:18:00 -0400
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03873ubo146245
-        for <linux-rdma@vger.kernel.org>; Wed, 8 Apr 2020 03:17:59 -0400
-Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 30920raqhc-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-rdma@vger.kernel.org>; Wed, 08 Apr 2020 03:17:59 -0400
-Received: from localhost
-        by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-rdma@vger.kernel.org> from <ubraun@linux.ibm.com>;
-        Wed, 8 Apr 2020 08:17:29 +0100
-Received: from b06avi18626390.portsmouth.uk.ibm.com (9.149.26.192)
-        by e06smtp05.uk.ibm.com (192.168.101.135) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-        Wed, 8 Apr 2020 08:17:27 +0100
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0387GnBP49480130
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 8 Apr 2020 07:16:49 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 484CFA405D;
-        Wed,  8 Apr 2020 07:17:54 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 24FB3A4057;
-        Wed,  8 Apr 2020 07:17:54 +0000 (GMT)
-Received: from oc5311105230.ibm.com (unknown [9.145.4.110])
-        by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Wed,  8 Apr 2020 07:17:54 +0000 (GMT)
-Subject: Re: [PATCH] RDMA: Remove a few extra calls to ib_get_client_data()
-To:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc:     Bart Van Assche <bvanassche@acm.org>,
-        Karsten Graul <kgraul@linux.ibm.com>
-References: <0-v1-fae83f600b4a+68-less_get_client_data%jgg@mellanox.com>
-From:   Ursula Braun <ubraun@linux.ibm.com>
-Date:   Wed, 8 Apr 2020 09:17:53 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.5.0
+        id S1729727AbgDHPro (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Apr 2020 11:47:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49290 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729678AbgDHPqd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 8 Apr 2020 11:46:33 -0400
+Received: from mail.kernel.org (ip5f5ad4d8.dynamic.kabel-deutschland.de [95.90.212.216])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id A06372078E;
+        Wed,  8 Apr 2020 15:46:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1586360791;
+        bh=dzEvyUMT+6iAL0bVATxxLcY08y7xtxW1DkpC2XHSTsk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=gSAqqCvgTqXa/uXKmv6EtznA69C4V8DH+7tAiOQNLcwtHbDUgP+TAlPo8teTWKDnM
+         dC8jqt6R8V70H20R2xBLozYWzJEo+P1t5Z0t4qINbz+1i1Q9o/HBEt19GSNv210olW
+         4Dzs/4ExuoIJYGl5mAM8SIJF6Fw0DUiAD8BAIus8=
+Received: from mchehab by mail.kernel.org with local (Exim 4.92.3)
+        (envelope-from <mchehab@kernel.org>)
+        id 1jMCuL-000cBm-QI; Wed, 08 Apr 2020 17:46:29 +0200
+From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH 19/35] docs: infiniband: verbs.c: fix some documentation warnings
+Date:   Wed,  8 Apr 2020 17:46:11 +0200
+Message-Id: <9f9212db13dc19e5d80e3fc94ad26f3b9798d154.1586359676.git.mchehab+huawei@kernel.org>
+X-Mailer: git-send-email 2.25.2
+In-Reply-To: <cover.1586359676.git.mchehab+huawei@kernel.org>
+References: <cover.1586359676.git.mchehab+huawei@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <0-v1-fae83f600b4a+68-less_get_client_data%jgg@mellanox.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-x-cbid: 20040807-0020-0000-0000-000003C3CE86
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20040807-0021-0000-0000-0000221C90B2
-Message-Id: <91b0c86a-10d2-0427-eda9-39c1bf820ff5@linux.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
- definitions=2020-04-07_10:2020-04-07,2020-04-07 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 phishscore=0
- priorityscore=1501 impostorscore=0 adultscore=0 mlxscore=0 spamscore=0
- suspectscore=0 mlxlogscore=999 lowpriorityscore=0 bulkscore=0
- clxscore=1011 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2004080052
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Parsing this file with kernel-doc produce some warnings:
 
+	./drivers/infiniband/core/verbs.c:2579: WARNING: Unexpected indentation.
+	./drivers/infiniband/core/verbs.c:2581: WARNING: Block quote ends without a blank line; unexpected unindent.
+	./drivers/infiniband/core/verbs.c:2613: WARNING: Unexpected indentation.
+	./drivers/infiniband/core/verbs.c:2579: WARNING: Unexpected indentation.
+	./drivers/infiniband/core/verbs.c:2581: WARNING: Block quote ends without a blank line; unexpected unindent.
+	./drivers/infiniband/core/verbs.c:2613: WARNING: Unexpected indentation.
 
-On 4/8/20 1:20 AM, Jason Gunthorpe wrote:
-> From: Jason Gunthorpe <jgg@mellanox.com>
-> 
-> These four places already have easy access to the client data, just use
-> that instead.
-> 
-> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-> ---
->  drivers/infiniband/core/sa_query.c    | 15 ++++++---------
->  drivers/infiniband/core/user_mad.c    |  3 +--
->  drivers/infiniband/ulp/srpt/ib_srpt.c |  7 ++-----
->  net/smc/smc_ib.c                      |  3 +--
->  4 files changed, 10 insertions(+), 18 deletions(-)
-> 
+Address them by adding an extra blank line and converting the
+parameters on one of the arguments to a table.
 
-For the net/smc part:
-Acked-by: Ursula Braun <ubraun@linux.ibm.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+---
+ drivers/infiniband/core/verbs.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 56a71337112c..3bfadd8effcc 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2574,6 +2574,7 @@ EXPORT_SYMBOL(ib_map_mr_sg_pi);
+  * @page_size:     page vector desired page size
+  *
+  * Constraints:
++ *
+  * - The first sg element is allowed to have an offset.
+  * - Each sg element must either be aligned to page_size or virtually
+  *   contiguous to the previous element. In case an sg element has a
+@@ -2607,10 +2608,12 @@ EXPORT_SYMBOL(ib_map_mr_sg);
+  * @mr:            memory region
+  * @sgl:           dma mapped scatterlist
+  * @sg_nents:      number of entries in sg
+- * @sg_offset_p:   IN:  start offset in bytes into sg
+- *                 OUT: offset in bytes for element n of the sg of the first
++ * @sg_offset_p:   ==== =======================================================
++ *                 IN   start offset in bytes into sg
++ *                 OUT  offset in bytes for element n of the sg of the first
+  *                      byte that has not been processed where n is the return
+  *                      value of this function.
++ *                 ==== =======================================================
+  * @set_page:      driver page assignment function pointer
+  *
+  * Core service helper for drivers to convert the largest
+-- 
+2.25.2
 
