@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22BE1C2BA19
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68513C2BB86
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:14:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ED7CA20769
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:14:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38CDD215A4
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:14:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586646870;
-	bh=p4nwrEskyPTmpoNrCTkQ8RpnKNdC8ov+jIfuGEeUlEQ=;
+	s=default; t=1586646894;
+	bh=kWhqS6PRCwpLgVe5t7lJXrCy5B5JTSxtre3T0XaC0Oc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=fSr3wm7HfSQmbNETYkaWo/o0TtW6ZFWiOh1Bm2KUU6K3AZTFhz6jLKZkFJ4fVDuj0
-	 OiguMIE8StexVB58K1VeP8oAZSjRTgztJyrcrCr03nBFP8yBW44JK12PPqYyBGZDYI
-	 aGlX+Wlzn7QQ47eKpvjdk8+dJlcWKDUkuiz11Wx4=
+	b=YoPukR5AyiYVKFNEv8ASoXVI9ptkjVupIvHT2zm3vAJGueaIQopXU9IxNLFdTjcqa
+	 WsUCDFC8nqPIURgQRwr/ZsoEP0LaIh/oNmNHIKrWqk8FFtgmXyaa2S3geouYLPk7HQ
+	 GHeeZQ1NLWFfI5eX9srwC32GjYlHIGlX3kcnY/uY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730788AbgDKXO2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 11 Apr 2020 19:14:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56170 "EHLO mail.kernel.org"
+        id S1730089AbgDKXOv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 11 Apr 2020 19:14:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730776AbgDKXO2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 11 Apr 2020 19:14:28 -0400
+        id S1730145AbgDKXOu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 11 Apr 2020 19:14:50 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 505C520757;
-        Sat, 11 Apr 2020 23:14:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 642A820CC7;
+        Sat, 11 Apr 2020 23:14:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586646868;
-        bh=p4nwrEskyPTmpoNrCTkQ8RpnKNdC8ov+jIfuGEeUlEQ=;
+        s=default; t=1586646891;
+        bh=kWhqS6PRCwpLgVe5t7lJXrCy5B5JTSxtre3T0XaC0Oc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RH6TUJcuDog1H0Fd5NT/LR2mOtcPvGYHH+W9Fu0b1aAx45aP6oULtWDcS9ZHahQsX
-         E/YOqBXVxXljwfXB+1bMCbC9EdYVrl7/HZp4+HYLuVUv4c4/PVuKuktQxDnJ/OQPk1
-         NZMaetSesv8s3ru0pmDiAswIz4CThMJjHeffwVxo=
+        b=HHAOkSEQy7Y/ogwBIdHSUUmzgV8q7LMS557+ueXU2uJNoweMaeZb9XVNJ+ZW52oiO
+         uPdhQSlsPMiKRIxYxMQWcMESDjIGQ5fsQyy8z2dfcIJiE8j6mBAjZU8eQIXILZBS6k
+         C8PCkuEiOrX7RqqdOcvK7kbpNXIvGJqvZQZyMiOI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Bart Van Assche <bvanassche@acm.org>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 12/26] RDMA/rxe: Fix configuration of atomic queue pair attributes
-Date:   Sat, 11 Apr 2020 19:13:59 -0400
-Message-Id: <20200411231413.26911-12-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 03/16] RDMA/cm: Add missing locking around id.state in cm_dup_req_handler
+Date:   Sat, 11 Apr 2020 19:14:33 -0400
+Message-Id: <20200411231447.27182-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200411231413.26911-1-sashal@kernel.org>
-References: <20200411231413.26911-1-sashal@kernel.org>
+In-Reply-To: <20200411231447.27182-1-sashal@kernel.org>
+References: <20200411231447.27182-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,74 +58,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche@acm.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit fb3063d31995cc4cf1d47a406bb61d6fb1b1d58d ]
+[ Upstream commit d1de9a88074b66482443f0cd91618d7b51a7c9b6 ]
 
-From the comment above the definition of the roundup_pow_of_two() macro:
+All accesses to id.state must be done under the spinlock.
 
-     The result is undefined when n == 0.
-
-Hence only pass positive values to roundup_pow_of_two(). This patch fixes
-the following UBSAN complaint:
-
-  UBSAN: Undefined behaviour in ./include/linux/log2.h:57:13
-  shift exponent 64 is too large for 64-bit type 'long unsigned int'
-  Call Trace:
-   dump_stack+0xa5/0xe6
-   ubsan_epilogue+0x9/0x26
-   __ubsan_handle_shift_out_of_bounds.cold+0x4c/0xf9
-   rxe_qp_from_attr.cold+0x37/0x5d [rdma_rxe]
-   rxe_modify_qp+0x59/0x70 [rdma_rxe]
-   _ib_modify_qp+0x5aa/0x7c0 [ib_core]
-   ib_modify_qp+0x3b/0x50 [ib_core]
-   cma_modify_qp_rtr+0x234/0x260 [rdma_cm]
-   __rdma_accept+0x1a7/0x650 [rdma_cm]
-   nvmet_rdma_cm_handler+0x1286/0x14cd [nvmet_rdma]
-   cma_cm_event_handler+0x6b/0x330 [rdma_cm]
-   cma_ib_req_handler+0xe60/0x22d0 [rdma_cm]
-   cm_process_work+0x30/0x140 [ib_cm]
-   cm_req_handler+0x11f4/0x1cd0 [ib_cm]
-   cm_work_handler+0xb8/0x344e [ib_cm]
-   process_one_work+0x569/0xb60
-   worker_thread+0x7a/0x5d0
-   kthread+0x1e6/0x210
-   ret_from_fork+0x24/0x30
-
-Link: https://lore.kernel.org/r/20200217205714.26937-1-bvanassche@acm.org
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: a977049dacde ("[PATCH] IB: Add the kernel CM implementation")
+Link: https://lore.kernel.org/r/20200310092545.251365-10-leon@kernel.org
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_qp.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/cm.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index d6672127808b7..186da467060cc 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -597,15 +597,16 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
- 	struct ib_gid_attr sgid_attr;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 53c622c99ee40..7bf98d72a4559 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1544,8 +1544,12 @@ static void cm_dup_req_handler(struct cm_work *work,
+ 			counter[CM_REQ_COUNTER]);
  
- 	if (mask & IB_QP_MAX_QP_RD_ATOMIC) {
--		int max_rd_atomic = __roundup_pow_of_two(attr->max_rd_atomic);
-+		int max_rd_atomic = attr->max_rd_atomic ?
-+			roundup_pow_of_two(attr->max_rd_atomic) : 0;
+ 	/* Quick state check to discard duplicate REQs. */
+-	if (cm_id_priv->id.state == IB_CM_REQ_RCVD)
++	spin_lock_irq(&cm_id_priv->lock);
++	if (cm_id_priv->id.state == IB_CM_REQ_RCVD) {
++		spin_unlock_irq(&cm_id_priv->lock);
+ 		return;
++	}
++	spin_unlock_irq(&cm_id_priv->lock);
  
- 		qp->attr.max_rd_atomic = max_rd_atomic;
- 		atomic_set(&qp->req.rd_atomic, max_rd_atomic);
- 	}
- 
- 	if (mask & IB_QP_MAX_DEST_RD_ATOMIC) {
--		int max_dest_rd_atomic =
--			__roundup_pow_of_two(attr->max_dest_rd_atomic);
-+		int max_dest_rd_atomic = attr->max_dest_rd_atomic ?
-+			roundup_pow_of_two(attr->max_dest_rd_atomic) : 0;
- 
- 		qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
- 
+ 	ret = cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg);
+ 	if (ret)
 -- 
 2.20.1
 
