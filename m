@@ -4,48 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 001A5C2BB86
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A95B7C2BA19
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:50:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C58D820787
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:50:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73F4920936
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:50:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586649015;
-	bh=1IWRsMVDCva7+MM7iqo8mvOES57KUbQFUfDN2CjSJF8=;
+	s=default; t=1586649056;
+	bh=sGcawhSCorjKNqb+a3+qFPoK9A8AmdvKn3bP+dfMO2M=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=iQJMnq6kSn3LawXwBJ2Zb9WqqEOa7ujQa8DpIsfWFLmkcoR2JcNKw9UoRgqrMuQo2
-	 UbgghzElDuNKV6Xq8tBIyJW+3/B14MX7Ld8H62bJM0WAzSnQipoeEbinOVczbBfIkh
-	 IpeehdJAmTCzKF9Ysqq1WBesudOcUqr/0kUQK+6U=
+	b=h77TEEcfKMv4PLgAXgXpFCcd12+aaWh8mUoX5tueqF1A8lhP5Q3JsZmD2Q47H4XTC
+	 gq57MeCiasu7PPNjcE9JEsAC6qXk49lqgHcg7RbVjPeETyJGddq0xauqkZInnhDG3X
+	 VbVQnzNxYBa9vKmyP5uzwKIrcUZruws+q7GG2MgI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727441AbgDKXuO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 11 Apr 2020 19:50:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37410 "EHLO mail.kernel.org"
+        id S1726934AbgDKXD4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 11 Apr 2020 19:03:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36748 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726802AbgDKXEL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 11 Apr 2020 19:04:11 -0400
+        id S1726155AbgDKXDz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 11 Apr 2020 19:03:55 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3B12621841;
-        Sat, 11 Apr 2020 23:04:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5266A20787;
+        Sat, 11 Apr 2020 23:03:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586646251;
-        bh=1IWRsMVDCva7+MM7iqo8mvOES57KUbQFUfDN2CjSJF8=;
+        s=default; t=1586646236;
+        bh=sGcawhSCorjKNqb+a3+qFPoK9A8AmdvKn3bP+dfMO2M=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=F+zYOaSVCQcRiAHM/NCey3jsM8ZCNjXUgEo6D+5Avk2MFjl/WkZH6VM/bS26UgKmB
-         zGpqgyiAV0TZ+/YcU6eu9QIavztPCk7eD9ISsyxJA3gh6VhORzuKTWVQexL0vpxNVb
-         9XjdTL2v3D62ZZF4byybeCn+SMqnLvOzzdwf/7tQ=
+        b=2gGz70CNE7A5+wyXWIek7tcslYdFzX6ABnASUg7txSeh89OKW+NDFeiy29VKQU20/
+         nXsBpLP6m/bvQcwetyPPW3CBYZF0ASTiTP9FRQY7P83ow8SdSazPte0mmVSFbzLC51
+         kiqXaFjyq7I6Pkr4pNhzDC4/rBFhvP1tXEjzAsu4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
+Cc:     Zhu Yanjun <yanjunz@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 019/149] RDMA/bnxt_re: Fix lifetimes in bnxt_re_task
-Date:   Sat, 11 Apr 2020 19:01:36 -0400
-Message-Id: <20200411230347.22371-19-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 006/149] RDMA/rxe: Set sys_image_guid to be aligned with HW IB devices
+Date:   Sat, 11 Apr 2020 19:01:23 -0400
+Message-Id: <20200411230347.22371-6-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200411230347.22371-1-sashal@kernel.org>
 References: <20200411230347.22371-1-sashal@kernel.org>
@@ -58,43 +59,53 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Zhu Yanjun <yanjunz@mellanox.com>
 
-[ Upstream commit 8a6c61704746d3a1e004e054504ae8d98ed95697 ]
+[ Upstream commit d0ca2c35dd15a3d989955caec02beea02f735ee6 ]
 
-A work queue cannot just rely on the ib_device not being freed, it must
-hold a kref on the memory so that the BNXT_RE_FLAG_IBDEV_REGISTERED check
-works.
+The RXE driver doesn't set sys_image_guid and user space applications see
+zeros. This causes to pyverbs tests to fail with the following traceback,
+because the IBTA spec requires to have valid sys_image_guid.
 
-Fixes: 1ac5a4047975 ("RDMA/bnxt_re: Add bnxt_re RoCE driver")
-Link: https://lore.kernel.org/r/1584117207-2664-3-git-send-email-selvin.xavier@broadcom.com
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+ Traceback (most recent call last):
+   File "./tests/test_device.py", line 51, in test_query_device
+     self.verify_device_attr(attr)
+   File "./tests/test_device.py", line 74, in verify_device_attr
+     assert attr.sys_image_guid != 0
+
+In order to fix it, set sys_image_guid to be equal to node_guid.
+
+Before:
+ 5: rxe0: ... node_guid 5054:00ff:feaa:5363 sys_image_guid
+ 0000:0000:0000:0000
+
+After:
+ 5: rxe0: ... node_guid 5054:00ff:feaa:5363 sys_image_guid
+ 5054:00ff:feaa:5363
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Link: https://lore.kernel.org/r/20200323112800.1444784-1-leon@kernel.org
+Signed-off-by: Zhu Yanjun <yanjunz@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/bnxt_re/main.c | 2 ++
+ drivers/infiniband/sw/rxe/rxe.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 793c97251588a..400b4fd669a9a 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -1604,6 +1604,7 @@ static void bnxt_re_task(struct work_struct *work)
- 	smp_mb__before_atomic();
- 	atomic_dec(&rdev->sched_count);
- exit:
-+	put_device(&rdev->ibdev.dev);
- 	kfree(re_work);
- }
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index 0946a301a5c5d..4afdd2e208839 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -103,6 +103,8 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
+ 	rxe->attr.max_fast_reg_page_list_len	= RXE_MAX_FMR_PAGE_LIST_LEN;
+ 	rxe->attr.max_pkeys			= RXE_MAX_PKEYS;
+ 	rxe->attr.local_ca_ack_delay		= RXE_LOCAL_CA_ACK_DELAY;
++	addrconf_addr_eui48((unsigned char *)&rxe->attr.sys_image_guid,
++			rxe->ndev->dev_addr);
  
-@@ -1680,6 +1681,7 @@ static int bnxt_re_netdev_event(struct notifier_block *notifier,
- 		/* Allocate for the deferred task */
- 		re_work = kzalloc(sizeof(*re_work), GFP_ATOMIC);
- 		if (re_work) {
-+			get_device(&rdev->ibdev.dev);
- 			re_work->rdev = rdev;
- 			re_work->event = event;
- 			re_work->vlan_dev = (real_dev == netdev ?
+ 	rxe->max_ucontext			= RXE_MAX_UCONTEXT;
+ }
 -- 
 2.20.1
 
