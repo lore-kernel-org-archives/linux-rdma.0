@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18164C2BBC7
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:15:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35E80C2BBC7
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:16:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E1FC321835
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:15:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 107F820757
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:16:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586646923;
-	bh=06XGdWIN+D/JmviHDNKHS9E6ebWDr+uXqIvGMpMTJ0M=;
+	s=default; t=1586647012;
+	bh=0gVRE6CR9HEXgR1Smy2tESuas/4nJO4jXWuOdq5KDTU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=dPpDEUVNrq0upmBpQUKfhxQaUKYdLCaMMyDSU3M7WSVjJD3ml9aBqdvr3ATVma/0g
-	 BwA9v6YbIV3F/gNmDc22Xekg3UXJcUVDENF/tWdraRxh+qDO1xA0m47szUzkxjYx5o
-	 pmcgtokZRWDiNU+XZXVFy67NqJ183tXiKqJQNco0=
+	b=WFdt+1fylIlZfbyaluypQ6KCeH5ldtIgXcDsmcjCyGvxU3hi9JAwl6Y6Qv0flVnS2
+	 fvtImgOmViZUNr+vOSSYJEtyk337bSENi+1UT3VcgjSG7yj3IN7gsjLJs3LkodpCgo
+	 hhCStgkMGzDX3+SBqmujT8Hq8aDFJGCsYNPXS6dY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730959AbgDKXPG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 11 Apr 2020 19:15:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57388 "EHLO mail.kernel.org"
+        id S1728688AbgDKXQo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 11 Apr 2020 19:16:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730954AbgDKXPG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 11 Apr 2020 19:15:06 -0400
+        id S1730824AbgDKXOj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 11 Apr 2020 19:14:39 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4E9E920787;
-        Sat, 11 Apr 2020 23:15:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7F7342084D;
+        Sat, 11 Apr 2020 23:14:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586646906;
-        bh=06XGdWIN+D/JmviHDNKHS9E6ebWDr+uXqIvGMpMTJ0M=;
+        s=default; t=1586646879;
+        bh=0gVRE6CR9HEXgR1Smy2tESuas/4nJO4jXWuOdq5KDTU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Co5/YoNROfwSwGWHOERh+4La8JHMM4sMCFQQH7QiL1MUPUcJ11rZ7tfULXPS42/d/
-         wzpgKlJADRa/3fwoEfVVe6VgcgKY7l5fQC7DXhNs/wxUzZMUXBpdSTgRtmTlYCU/A+
-         Z1GwDQy8M3+/MwaPOPMFLQuHAxVj67yuLtrNMAZI=
+        b=Odp5u5ATULTRaO4jIbheF8saSzaeX9smPs5Rdffg+Q2oyd2m7k1iKe2VkgOwZhv7f
+         bPl3eacY1eVwUxWdl8VLef8MNW7Y4Zcilob42SZo4Dk/aPlLQu8Mliu4FANKcRlH1A
+         MfsSuaMy70pFMbKrl3O1+05mWGtHkF/vtQfWmh6I=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Avihai Horon <avihaih@mellanox.com>,
@@ -45,12 +45,12 @@ Cc:     Avihai Horon <avihaih@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 15/16] RDMA/cm: Update num_paths in cma_resolve_iboe_route error flow
-Date:   Sat, 11 Apr 2020 19:14:45 -0400
-Message-Id: <20200411231447.27182-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 21/26] RDMA/cm: Update num_paths in cma_resolve_iboe_route error flow
+Date:   Sat, 11 Apr 2020 19:14:08 -0400
+Message-Id: <20200411231413.26911-21-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200411231447.27182-1-sashal@kernel.org>
-References: <20200411231447.27182-1-sashal@kernel.org>
+In-Reply-To: <20200411231413.26911-1-sashal@kernel.org>
+References: <20200411231413.26911-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -141,10 +141,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 5ed9b5f8a0377..b59a4a819aaaa 100644
+index 27653aad8f218..0a6cc78ebcf74 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -2378,6 +2378,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+@@ -2568,6 +2568,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
  err2:
  	kfree(route->path_rec);
  	route->path_rec = NULL;
