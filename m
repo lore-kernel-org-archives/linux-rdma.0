@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 859A9C2BBFD
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:45:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D5B4C2BBC7
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:48:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 588CE20CC7
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:45:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4AAE721775
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:48:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586648752;
-	bh=FtyPbzzNxvM6RHxiwcwiiPXfTO+DlAGk+a370DGggq0=;
+	s=default; t=1586648881;
+	bh=qBS0KmVkIBGn5Jfu04vKKntI2wqXc+xWDQ6ut89nnpw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=pHLRJUmXWZfp91XCcGFCDcKqyCKOtgL8dQL/OzCrtoKAPB6Jx03qNezamQaUy5nAP
-	 pUwHDnOlS78V3XgRZymbGesKantpHKCuAZaduT1GU6KzZ6VPxY24XxwKhBHpVTVDaQ
-	 vEt8/z1Kc9YU1dUxWWbkKyXHhCDRGP2HtMQfIQ6A=
+	b=HYoNdChqXJ6AxHFemuL6LK0hwK6IKF0dAvBbCjIIREu0WSnfS9dkOeEax+fHNSwq7
+	 Zw++ON3TeipX58B/4/68SB/uEy+TR5pKEb8e40GUlJ8lywOLU/S3GrezK+WaH5pf1K
+	 CfvlNpQablnPn9Xh8SGB8ClG1wb7awwNrjxxJfjQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729141AbgDKXpn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 11 Apr 2020 19:45:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39796 "EHLO mail.kernel.org"
+        id S1727529AbgDKXEv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 11 Apr 2020 19:04:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727994AbgDKXFb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 11 Apr 2020 19:05:31 -0400
+        id S1727496AbgDKXEu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 11 Apr 2020 19:04:50 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 66A4C20787;
-        Sat, 11 Apr 2020 23:05:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B9DEA20787;
+        Sat, 11 Apr 2020 23:04:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586646331;
-        bh=FtyPbzzNxvM6RHxiwcwiiPXfTO+DlAGk+a370DGggq0=;
+        s=default; t=1586646290;
+        bh=qBS0KmVkIBGn5Jfu04vKKntI2wqXc+xWDQ6ut89nnpw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rVZ5AQ2nnYtiyFDM9JDjw2TKG3b2JKL5bOR68bJswlg9TtsbVjoDcfXN7GACCbV/P
-         LcB/VUVHmjrPlfOcpEtnoGF44vQWachEA2Ywr828yKE2dSPd21py2DkSjDmtJzcTje
-         ZG2TkYPR6g7q3+RgkH0CVEWOVsSTopjkGNPomY7Q=
+        b=tUUlAOorIH6gKebxswvOkPtSvV1NvhuHofBGFeGzZPDCB0Dys5iggn3UtsDFIGC7T
+         +OWG5yjlYSXS6m11h0HihBlFEMZEiZaDeQLR3ldj0cIxhx6pi9GHpavTGx1rIEbBa8
+         6VfIzQtTIiQARow3xRFoGPFJR1XMWMeKWTA66P3I=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Yixian Liu <liuyixian@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
+Cc:     Bart Van Assche <bvanassche@acm.org>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 083/149] RDMA/hns: Delayed flush cqe process with workqueue
-Date:   Sat, 11 Apr 2020 19:02:40 -0400
-Message-Id: <20200411230347.22371-83-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 051/149] RDMA/rxe: Fix configuration of atomic queue pair attributes
+Date:   Sat, 11 Apr 2020 19:02:08 -0400
+Message-Id: <20200411230347.22371-51-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200411230347.22371-1-sashal@kernel.org>
 References: <20200411230347.22371-1-sashal@kernel.org>
@@ -59,295 +59,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+From: Bart Van Assche <bvanassche@acm.org>
 
-[ Upstream commit b53742865e9f09cbba4d9daa161760ec23f36aa4 ]
+[ Upstream commit fb3063d31995cc4cf1d47a406bb61d6fb1b1d58d ]
 
-HiP08 RoCE hardware lacks ability(a known hardware problem) to flush
-outstanding WQEs if QP state gets into errored mode for some reason.  To
-overcome this hardware problem and as a workaround, when QP is detected to
-be in errored state during various legs like post send, post receive
-etc[1], flush needs to be performed from the driver.
+From the comment above the definition of the roundup_pow_of_two() macro:
 
-The earlier patch[1] sent to solve the hardware limitation explained in
-the cover-letter had a bug in the software flushing leg. It acquired mutex
-while modifying QP state to errored state and while conveying it to the
-hardware using the mailbox. This caused leg to sleep while holding
-spin-lock and caused crash.
+     The result is undefined when n == 0.
 
-Suggested Solution: we have proposed to defer the flushing of the QP in
-the Errored state using the workqueue to get around with the limitation of
-our hardware.
+Hence only pass positive values to roundup_pow_of_two(). This patch fixes
+the following UBSAN complaint:
 
-This patch specifically adds the calls to the flush handler from where
-parts of the code like post_send/post_recv etc. when the QP state gets
-into the errored mode.
+  UBSAN: Undefined behaviour in ./include/linux/log2.h:57:13
+  shift exponent 64 is too large for 64-bit type 'long unsigned int'
+  Call Trace:
+   dump_stack+0xa5/0xe6
+   ubsan_epilogue+0x9/0x26
+   __ubsan_handle_shift_out_of_bounds.cold+0x4c/0xf9
+   rxe_qp_from_attr.cold+0x37/0x5d [rdma_rxe]
+   rxe_modify_qp+0x59/0x70 [rdma_rxe]
+   _ib_modify_qp+0x5aa/0x7c0 [ib_core]
+   ib_modify_qp+0x3b/0x50 [ib_core]
+   cma_modify_qp_rtr+0x234/0x260 [rdma_cm]
+   __rdma_accept+0x1a7/0x650 [rdma_cm]
+   nvmet_rdma_cm_handler+0x1286/0x14cd [nvmet_rdma]
+   cma_cm_event_handler+0x6b/0x330 [rdma_cm]
+   cma_ib_req_handler+0xe60/0x22d0 [rdma_cm]
+   cm_process_work+0x30/0x140 [ib_cm]
+   cm_req_handler+0x11f4/0x1cd0 [ib_cm]
+   cm_work_handler+0xb8/0x344e [ib_cm]
+   process_one_work+0x569/0xb60
+   worker_thread+0x7a/0x5d0
+   kthread+0x1e6/0x210
+   ret_from_fork+0x24/0x30
 
-[1] https://patchwork.kernel.org/patch/10534271/
-
-Link: https://lore.kernel.org/r/1580983005-13899-3-git-send-email-liuyixian@huawei.com
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
-Reviewed-by: Salil Mehta <salil.mehta@huawei.com>
+Link: https://lore.kernel.org/r/20200217205714.26937-1-bvanassche@acm.org
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  6 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 99 +++++++++++----------
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 11 ++-
- 3 files changed, 66 insertions(+), 50 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index a089d47354391..96d7bfa2dd8c8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -641,6 +641,10 @@ struct hns_roce_rinl_buf {
- 	u32			 wqe_cnt;
- };
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index ec21f616ac98d..6c11c3aeeca6e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -590,15 +590,16 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
+ 	int err;
  
-+enum {
-+	HNS_ROCE_FLUSH_FLAG = 0,
-+};
-+
- struct hns_roce_work {
- 	struct hns_roce_dev *hr_dev;
- 	struct work_struct work;
-@@ -693,6 +697,8 @@ struct hns_roce_qp {
- 	struct hns_roce_sge	sge;
- 	u32			next_sge;
+ 	if (mask & IB_QP_MAX_QP_RD_ATOMIC) {
+-		int max_rd_atomic = __roundup_pow_of_two(attr->max_rd_atomic);
++		int max_rd_atomic = attr->max_rd_atomic ?
++			roundup_pow_of_two(attr->max_rd_atomic) : 0;
  
-+	/* 0: flush needed, 1: unneeded */
-+	unsigned long		flush_flag;
- 	struct hns_roce_work	flush_work;
- 	struct hns_roce_rinl_buf rq_inl_buf;
- 	struct list_head	node;		/* all qps are on a list */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 950c604a6fcb4..d33d9ebe628df 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -220,11 +220,6 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 	return 0;
- }
- 
--static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
--				 const struct ib_qp_attr *attr,
--				 int attr_mask, enum ib_qp_state cur_state,
--				 enum ib_qp_state new_state);
--
- static int check_send_valid(struct hns_roce_dev *hr_dev,
- 			    struct hns_roce_qp *hr_qp)
- {
-@@ -261,7 +256,6 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 	struct hns_roce_wqe_frmr_seg *fseg;
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_v2_db sq_db;
--	struct ib_qp_attr attr;
- 	unsigned int owner_bit;
- 	unsigned int sge_idx;
- 	unsigned int wqe_idx;
-@@ -269,7 +263,6 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 	int valid_num_sge;
- 	void *wqe = NULL;
- 	bool loopback;
--	int attr_mask;
- 	u32 tmp_len;
- 	u32 hr_op;
- 	u8 *smac;
-@@ -607,18 +600,19 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
- 
- 		qp->next_sge = sge_idx;
- 
--		if (qp->state == IB_QPS_ERR) {
--			attr_mask = IB_QP_STATE;
--			attr.qp_state = IB_QPS_ERR;
--
--			ret = hns_roce_v2_modify_qp(&qp->ibqp, &attr, attr_mask,
--						    qp->state, IB_QPS_ERR);
--			if (ret) {
--				spin_unlock_irqrestore(&qp->sq.lock, flags);
--				*bad_wr = wr;
--				return ret;
--			}
--		}
-+		/*
-+		 * Hip08 hardware cannot flush the WQEs in SQ if the QP state
-+		 * gets into errored mode. Hence, as a workaround to this
-+		 * hardware limitation, driver needs to assist in flushing. But
-+		 * the flushing operation uses mailbox to convey the QP state to
-+		 * the hardware and which can sleep due to the mutex protection
-+		 * around the mailbox calls. Hence, use the deferred flush for
-+		 * now.
-+		 */
-+		if (qp->state == IB_QPS_ERR)
-+			if (!test_and_set_bit(HNS_ROCE_FLUSH_FLAG,
-+					      &qp->flush_flag))
-+				init_flush_work(hr_dev, qp);
+ 		qp->attr.max_rd_atomic = max_rd_atomic;
+ 		atomic_set(&qp->req.rd_atomic, max_rd_atomic);
  	}
  
- 	spin_unlock_irqrestore(&qp->sq.lock, flags);
-@@ -646,10 +640,8 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
- 	struct hns_roce_v2_wqe_data_seg *dseg;
- 	struct hns_roce_rinl_sge *sge_list;
- 	struct device *dev = hr_dev->dev;
--	struct ib_qp_attr attr;
- 	unsigned long flags;
- 	void *wqe = NULL;
--	int attr_mask;
- 	u32 wqe_idx;
- 	int nreq;
- 	int ret;
-@@ -719,19 +711,19 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
+ 	if (mask & IB_QP_MAX_DEST_RD_ATOMIC) {
+-		int max_dest_rd_atomic =
+-			__roundup_pow_of_two(attr->max_dest_rd_atomic);
++		int max_dest_rd_atomic = attr->max_dest_rd_atomic ?
++			roundup_pow_of_two(attr->max_dest_rd_atomic) : 0;
  
- 		*hr_qp->rdb.db_record = hr_qp->rq.head & 0xffff;
- 
--		if (hr_qp->state == IB_QPS_ERR) {
--			attr_mask = IB_QP_STATE;
--			attr.qp_state = IB_QPS_ERR;
--
--			ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, &attr,
--						    attr_mask, hr_qp->state,
--						    IB_QPS_ERR);
--			if (ret) {
--				spin_unlock_irqrestore(&hr_qp->rq.lock, flags);
--				*bad_wr = wr;
--				return ret;
--			}
--		}
-+		/*
-+		 * Hip08 hardware cannot flush the WQEs in RQ if the QP state
-+		 * gets into errored mode. Hence, as a workaround to this
-+		 * hardware limitation, driver needs to assist in flushing. But
-+		 * the flushing operation uses mailbox to convey the QP state to
-+		 * the hardware and which can sleep due to the mutex protection
-+		 * around the mailbox calls. Hence, use the deferred flush for
-+		 * now.
-+		 */
-+		if (hr_qp->state == IB_QPS_ERR)
-+			if (!test_and_set_bit(HNS_ROCE_FLUSH_FLAG,
-+					      &hr_qp->flush_flag))
-+				init_flush_work(hr_dev, hr_qp);
- 	}
- 	spin_unlock_irqrestore(&hr_qp->rq.lock, flags);
- 
-@@ -3013,13 +3005,11 @@ static int hns_roce_v2_sw_poll_cq(struct hns_roce_cq *hr_cq, int num_entries,
- static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 				struct hns_roce_qp **cur_qp, struct ib_wc *wc)
- {
-+	struct hns_roce_dev *hr_dev = to_hr_dev(hr_cq->ib_cq.device);
- 	struct hns_roce_srq *srq = NULL;
--	struct hns_roce_dev *hr_dev;
- 	struct hns_roce_v2_cqe *cqe;
- 	struct hns_roce_qp *hr_qp;
- 	struct hns_roce_wq *wq;
--	struct ib_qp_attr attr;
--	int attr_mask;
- 	int is_send;
- 	u16 wqe_ctr;
- 	u32 opcode;
-@@ -3043,7 +3033,6 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 				V2_CQE_BYTE_16_LCL_QPN_S);
- 
- 	if (!*cur_qp || (qpn & HNS_ROCE_V2_CQE_QPN_MASK) != (*cur_qp)->qpn) {
--		hr_dev = to_hr_dev(hr_cq->ib_cq.device);
- 		hr_qp = __hns_roce_qp_lookup(hr_dev, qpn);
- 		if (unlikely(!hr_qp)) {
- 			dev_err(hr_dev->dev, "CQ %06lx with entry for unknown QPN %06x\n",
-@@ -3053,6 +3042,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		*cur_qp = hr_qp;
- 	}
- 
-+	hr_qp = *cur_qp;
- 	wc->qp = &(*cur_qp)->ibqp;
- 	wc->vendor_err = 0;
- 
-@@ -3137,14 +3127,24 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		break;
- 	}
- 
--	/* flush cqe if wc status is error, excluding flush error */
--	if ((wc->status != IB_WC_SUCCESS) &&
--	    (wc->status != IB_WC_WR_FLUSH_ERR)) {
--		attr_mask = IB_QP_STATE;
--		attr.qp_state = IB_QPS_ERR;
--		return hns_roce_v2_modify_qp(&(*cur_qp)->ibqp,
--					     &attr, attr_mask,
--					     (*cur_qp)->state, IB_QPS_ERR);
-+	/*
-+	 * Hip08 hardware cannot flush the WQEs in SQ/RQ if the QP state gets
-+	 * into errored mode. Hence, as a workaround to this hardware
-+	 * limitation, driver needs to assist in flushing. But the flushing
-+	 * operation uses mailbox to convey the QP state to the hardware and
-+	 * which can sleep due to the mutex protection around the mailbox calls.
-+	 * Hence, use the deferred flush for now. Once wc error detected, the
-+	 * flushing operation is needed.
-+	 */
-+	if (wc->status != IB_WC_SUCCESS &&
-+	    wc->status != IB_WC_WR_FLUSH_ERR) {
-+		dev_err(hr_dev->dev, "error cqe status is: 0x%x\n",
-+			status & HNS_ROCE_V2_CQE_STATUS_MASK);
-+
-+		if (!test_and_set_bit(HNS_ROCE_FLUSH_FLAG, &hr_qp->flush_flag))
-+			init_flush_work(hr_dev, hr_qp);
-+
-+		return 0;
- 	}
- 
- 	if (wc->status == IB_WC_WR_FLUSH_ERR)
-@@ -4735,6 +4735,8 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 	struct hns_roce_v2_qp_context *context = ctx;
- 	struct hns_roce_v2_qp_context *qpc_mask = ctx + 1;
- 	struct device *dev = hr_dev->dev;
-+	unsigned long sq_flag = 0;
-+	unsigned long rq_flag = 0;
- 	int ret;
- 
- 	/*
-@@ -4752,6 +4754,9 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 
- 	/* When QP state is err, SQ and RQ WQE should be flushed */
- 	if (new_state == IB_QPS_ERR) {
-+		spin_lock_irqsave(&hr_qp->sq.lock, sq_flag);
-+		spin_lock_irqsave(&hr_qp->rq.lock, rq_flag);
-+		hr_qp->state = IB_QPS_ERR;
- 		roce_set_field(context->byte_160_sq_ci_pi,
- 			       V2_QPC_BYTE_160_SQ_PRODUCER_IDX_M,
- 			       V2_QPC_BYTE_160_SQ_PRODUCER_IDX_S,
-@@ -4769,6 +4774,8 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 			       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
- 			       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S, 0);
- 		}
-+		spin_unlock_irqrestore(&hr_qp->rq.lock, rq_flag);
-+		spin_unlock_irqrestore(&hr_qp->sq.lock, sq_flag);
- 	}
- 
- 	/* Configure the optional fields */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index dab73140c5c29..f885b22fc0459 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -57,10 +57,12 @@ static void flush_work_handle(struct work_struct *work)
- 	attr_mask = IB_QP_STATE;
- 	attr.qp_state = IB_QPS_ERR;
- 
--	ret = hns_roce_modify_qp(&hr_qp->ibqp, &attr, attr_mask, NULL);
--	if (ret)
--		dev_err(dev, "Modify QP to error state failed(%d) during CQE flush\n",
--			ret);
-+	if (test_and_clear_bit(HNS_ROCE_FLUSH_FLAG, &hr_qp->flush_flag)) {
-+		ret = hns_roce_modify_qp(&hr_qp->ibqp, &attr, attr_mask, NULL);
-+		if (ret)
-+			dev_err(dev, "Modify QP to error state failed(%d) during CQE flush\n",
-+				ret);
-+	}
- 
- 	/*
- 	 * make sure we signal QP destroy leg that flush QP was completed
-@@ -761,6 +763,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	spin_lock_init(&hr_qp->rq.lock);
- 
- 	hr_qp->state = IB_QPS_RESET;
-+	hr_qp->flush_flag = 0;
- 
- 	hr_qp->ibqp.qp_type = init_attr->qp_type;
+ 		qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
  
 -- 
 2.20.1
