@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FFEDC2BBC7
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:20:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBD97C2BBC7
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:21:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3033E206E9
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:20:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC5A0206E9
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:21:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586647257;
-	bh=54YuTguERE8XqKZlDR8a+iHZyI0tVqGcz9Ayam5Va54=;
+	s=default; t=1586647272;
+	bh=6GX4RpHXR1sDEMB1nZDvmEiCVW14iqvcgVwFIHLQbXI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=nFEqRfa79HOL6ADRIOEvLxcO/kFCkGVijjJI/OZjHaxe7NOkU1kPkBVOn1ebQoIyN
-	 uVZVtSgKyFwC9ewSpK0Thet/rmh524KjBMMeD8mTotjl42gXdtH/gQQlK7z/5xDvIs
-	 GhnyZ2okQy5iS9LYMYyHguRW/tIrJ8lIj2odnGsg=
+	b=UOgPdE/UXWVM/oeHCjFx9BiFFJrwcojBQzaVl96A1QiUJJJgwuZTwOQmEDV1kBSov
+	 78vkNk7f5Wof2lTcLIyGWTpgfvaXK6Uh+fUIWtaua8ycz7SjBN/vFof+5gFWUDh49C
+	 3lV+rtq+Qmysb0BPxFAHjECIYQfLMhJM6Yy1WZKg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730095AbgDKXUw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 11 Apr 2020 19:20:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54888 "EHLO mail.kernel.org"
+        id S1729765AbgDKXVF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 11 Apr 2020 19:21:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54672 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730482AbgDKXNf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 11 Apr 2020 19:13:35 -0400
+        id S1730446AbgDKXNb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 11 Apr 2020 19:13:31 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 618D6215A4;
-        Sat, 11 Apr 2020 23:13:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 67043216FD;
+        Sat, 11 Apr 2020 23:13:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586646816;
-        bh=54YuTguERE8XqKZlDR8a+iHZyI0tVqGcz9Ayam5Va54=;
+        s=default; t=1586646811;
+        bh=6GX4RpHXR1sDEMB1nZDvmEiCVW14iqvcgVwFIHLQbXI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=N8GQ+P6/EznjHeChKB8KvXHggvzaNa9gAnT5uvhpK+TVljV3pl6mnT52pTz7At2hb
-         zYlsdNG4rJ7rMwFxfx5do7Pq+mDGqXvh5OKuVeEQADgkXvBaW826T1vd4izMeeUauY
-         KH0vmUZyrL49f+sCkU+Af9OCZvVjAELgsd5Ka7MY=
+        b=CaL9QmUHEcwwHyPHa+tZHu7wJGYwOMGb7T2i1szooV974nMuuDqJFROxzlHMxbqqr
+         vtNhDaPuj8z0ZghdJgIPWOM6sY68Uiw8y9sMlPdDy09C4q3RGeWs1WBWxCigDVi4fY
+         L2w41pD+7dMrFkptxaC5CiY7S1jxbL4zcAWhTFU4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Zhu Yanjun <yanjunz@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 07/37] RDMA/cm: Add missing locking around id.state in cm_dup_req_handler
-Date:   Sat, 11 Apr 2020 19:12:56 -0400
-Message-Id: <20200411231327.26550-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 03/37] RDMA/rxe: Set sys_image_guid to be aligned with HW IB devices
+Date:   Sat, 11 Apr 2020 19:12:52 -0400
+Message-Id: <20200411231327.26550-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200411231327.26550-1-sashal@kernel.org>
 References: <20200411231327.26550-1-sashal@kernel.org>
@@ -58,39 +59,53 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Zhu Yanjun <yanjunz@mellanox.com>
 
-[ Upstream commit d1de9a88074b66482443f0cd91618d7b51a7c9b6 ]
+[ Upstream commit d0ca2c35dd15a3d989955caec02beea02f735ee6 ]
 
-All accesses to id.state must be done under the spinlock.
+The RXE driver doesn't set sys_image_guid and user space applications see
+zeros. This causes to pyverbs tests to fail with the following traceback,
+because the IBTA spec requires to have valid sys_image_guid.
 
-Fixes: a977049dacde ("[PATCH] IB: Add the kernel CM implementation")
-Link: https://lore.kernel.org/r/20200310092545.251365-10-leon@kernel.org
+ Traceback (most recent call last):
+   File "./tests/test_device.py", line 51, in test_query_device
+     self.verify_device_attr(attr)
+   File "./tests/test_device.py", line 74, in verify_device_attr
+     assert attr.sys_image_guid != 0
+
+In order to fix it, set sys_image_guid to be equal to node_guid.
+
+Before:
+ 5: rxe0: ... node_guid 5054:00ff:feaa:5363 sys_image_guid
+ 0000:0000:0000:0000
+
+After:
+ 5: rxe0: ... node_guid 5054:00ff:feaa:5363 sys_image_guid
+ 5054:00ff:feaa:5363
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Link: https://lore.kernel.org/r/20200323112800.1444784-1-leon@kernel.org
+Signed-off-by: Zhu Yanjun <yanjunz@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/cm.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 80a8eb7e5d6ec..d27e01e4916ae 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1687,8 +1687,12 @@ static void cm_dup_req_handler(struct cm_work *work,
- 			counter[CM_REQ_COUNTER]);
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index 8c3d30b3092d4..2c9e616cfe0e8 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -126,6 +126,8 @@ static int rxe_init_device_param(struct rxe_dev *rxe)
+ 	rxe->attr.max_fast_reg_page_list_len	= RXE_MAX_FMR_PAGE_LIST_LEN;
+ 	rxe->attr.max_pkeys			= RXE_MAX_PKEYS;
+ 	rxe->attr.local_ca_ack_delay		= RXE_LOCAL_CA_ACK_DELAY;
++	addrconf_addr_eui48((unsigned char *)&rxe->attr.sys_image_guid,
++			rxe->ndev->dev_addr);
  
- 	/* Quick state check to discard duplicate REQs. */
--	if (cm_id_priv->id.state == IB_CM_REQ_RCVD)
-+	spin_lock_irq(&cm_id_priv->lock);
-+	if (cm_id_priv->id.state == IB_CM_REQ_RCVD) {
-+		spin_unlock_irq(&cm_id_priv->lock);
- 		return;
-+	}
-+	spin_unlock_irq(&cm_id_priv->lock);
+ 	rxe->max_ucontext			= RXE_MAX_UCONTEXT;
  
- 	ret = cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg);
- 	if (ret)
 -- 
 2.20.1
 
