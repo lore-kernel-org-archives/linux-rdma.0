@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D28C2BBC7
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:09:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76F71C2BA19
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:11:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6D54D20708
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:09:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4AFDC20708
+	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:11:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586646544;
-	bh=381dem3FlbLeTobYeIFwOsUr0KbP2UEGcszDjt9lQcU=;
+	s=default; t=1586646690;
+	bh=qo2ZHyUi66j0tqXWaYvkyM6LsRj4q/IBMJjsAjoCAPY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YL0eLZ10p5vMs240TQgw0grv518mTLqDwe2loaDzejwxlh1QZ1rzkvM5TYSHzhtQk
-	 zFDPSBiis71bi+ptQARIubQNwwBH+XVJ3AnTi52KMr35CJqrlvTIPGLaA7qwBlnjFC
-	 GwWzbifBQGoKlbguiGUk5hCQ+t8gthENS9i7kDJ0=
+	b=FVhRROobKBU1+veTJyAIrx4l1wWITmEMwo2JvgLWwW6w8i5csY9eCKutxYSQR/FUd
+	 rgNEGgNGVOEsEZtOLYCLGjWR0bKFnXNb6Fqbpn/c4JFx6zD9bssSSysBWpXdGhKPr+
+	 jgv2+5JORbcBw4bQtagXXdWlhZatJZPBMmjSh+Sw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729088AbgDKXJD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 11 Apr 2020 19:09:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46526 "EHLO mail.kernel.org"
+        id S1729912AbgDKXL1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 11 Apr 2020 19:11:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51086 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729083AbgDKXJC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 11 Apr 2020 19:09:02 -0400
+        id S1728318AbgDKXL0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 11 Apr 2020 19:11:26 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BEC3C218AC;
-        Sat, 11 Apr 2020 23:09:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 30E2520757;
+        Sat, 11 Apr 2020 23:11:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586646542;
-        bh=381dem3FlbLeTobYeIFwOsUr0KbP2UEGcszDjt9lQcU=;
+        s=default; t=1586646687;
+        bh=qo2ZHyUi66j0tqXWaYvkyM6LsRj4q/IBMJjsAjoCAPY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VdBJWRi9HJmq4u2MtZAY/8XBslXlaT1KEwLzJfMxkcPBR2Xl9T7PkmYGdrdjKT37t
-         8QLmOXtAt0RK4q/xfYHumuPqw8p61JOH3RQ/3L75BPUIKhhSygP0rrPFPB5a8SA1Rn
-         ziRzJss5Lg+Q0UbhDIwFkfx8WrjdFGZUG5uwT4iI=
+        b=KjjtKSW7bp86CMf3R6/WVGDVx/Xp0thdjz0vr/WfzcfrApFQJoUZDCNhARHZfr2EH
+         oPWvxjzbs3S9Ivdm76XvfHHLIOw3zuqiOo13Gw4zTECex74BKVmWEQf7o2OGBsoXq8
+         Gtu2FMFrh7H1BS4yWAXPptwK8vraXICTRAMmyXnw=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Avihai Horon <avihaih@mellanox.com>,
@@ -45,12 +45,12 @@ Cc:     Avihai Horon <avihaih@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 094/121] RDMA/cm: Update num_paths in cma_resolve_iboe_route error flow
-Date:   Sat, 11 Apr 2020 19:06:39 -0400
-Message-Id: <20200411230706.23855-94-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 082/108] RDMA/cm: Update num_paths in cma_resolve_iboe_route error flow
+Date:   Sat, 11 Apr 2020 19:09:17 -0400
+Message-Id: <20200411230943.24951-82-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200411230706.23855-1-sashal@kernel.org>
-References: <20200411230706.23855-1-sashal@kernel.org>
+In-Reply-To: <20200411230943.24951-1-sashal@kernel.org>
+References: <20200411230943.24951-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -141,10 +141,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 0b530646f1e51..c177e904b723c 100644
+index 6c12da176981f..4947dc6b35b7a 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -2938,6 +2938,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+@@ -2911,6 +2911,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
  err2:
  	kfree(route->path_rec);
  	route->path_rec = NULL;
