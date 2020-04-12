@@ -1,111 +1,177 @@
-Return-Path: <SRS0=q+lP=53=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=3wqW=54=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A95B7C2BA19
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:50:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 987C9C2BA2B
+	for <linux-rdma@archiver.kernel.org>; Sun, 12 Apr 2020 08:14:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73F4920936
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Apr 2020 23:50:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586649056;
-	bh=sGcawhSCorjKNqb+a3+qFPoK9A8AmdvKn3bP+dfMO2M=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=h77TEEcfKMv4PLgAXgXpFCcd12+aaWh8mUoX5tueqF1A8lhP5Q3JsZmD2Q47H4XTC
-	 gq57MeCiasu7PPNjcE9JEsAC6qXk49lqgHcg7RbVjPeETyJGddq0xauqkZInnhDG3X
-	 VbVQnzNxYBa9vKmyP5uzwKIrcUZruws+q7GG2MgI=
+	by mail.kernel.org (Postfix) with ESMTP id 66F6A206E9
+	for <linux-rdma@archiver.kernel.org>; Sun, 12 Apr 2020 08:14:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="G4Xh6HEM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726934AbgDKXD4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 11 Apr 2020 19:03:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36748 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726155AbgDKXDz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 11 Apr 2020 19:03:55 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5266A20787;
-        Sat, 11 Apr 2020 23:03:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586646236;
-        bh=sGcawhSCorjKNqb+a3+qFPoK9A8AmdvKn3bP+dfMO2M=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=2gGz70CNE7A5+wyXWIek7tcslYdFzX6ABnASUg7txSeh89OKW+NDFeiy29VKQU20/
-         nXsBpLP6m/bvQcwetyPPW3CBYZF0ASTiTP9FRQY7P83ow8SdSazPte0mmVSFbzLC51
-         kiqXaFjyq7I6Pkr4pNhzDC4/rBFhvP1tXEjzAsu4=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Zhu Yanjun <yanjunz@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 006/149] RDMA/rxe: Set sys_image_guid to be aligned with HW IB devices
-Date:   Sat, 11 Apr 2020 19:01:23 -0400
-Message-Id: <20200411230347.22371-6-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200411230347.22371-1-sashal@kernel.org>
-References: <20200411230347.22371-1-sashal@kernel.org>
+        id S1725907AbgDLIOo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 12 Apr 2020 04:14:44 -0400
+Received: from mail-eopbgr50040.outbound.protection.outlook.com ([40.107.5.40]:10277
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725903AbgDLIOo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 12 Apr 2020 04:14:44 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=GkODFjmOVyD7W/QCKKHQuO0MYrbmcO6y+j6k/Vt/ambeKvVzaD0gpGuPLA4SZ5JAnther/dKmS2knxBRMXIib5ZpzOzsEIDJngPVIdFrv6pZ/V+uS4c1W4EvaunpZLqz5O/XeOUK+woJWlD2Tyv1KUQ4hSBvOgVYzjTN/mghsF+QDdyaIExVEEHsuG8oOjrPF0pWGrzNIiqB0vbZARapGUkx0ySDuQe9snLAF3U4leP0GqSNKoqJ66vFjxpM8+8IytvcX2OBQMpG89VtErnEVp1BMUzK0k+nLM31DOciJw5axYZo5LT6mLJqi5yn3lZiy1vEpOdTqXE9w3eHhLSwLg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Rp+M80PlNmgf2kMZbHALXg/Ry/Wmh10MKTx3shaqjZI=;
+ b=eEVNQ9wPxBu7cbN52DkvSEEntIxY+HClqIOIT5hQZDuDciwl0voc4pR3alqHs2Ic38cg0ajsprBFbh+xya2gD/QT2jUhIUV23Zr7x8LP4k5dOb/soz8qNjyRYvpCflgFHNQHaP24MrBqJbLofBp4BZoaTHM65T8eonfAxOJEi7z6WHImYXw/w2O6m3mL7VU+Kd+xFHYvL5kLo8w5DlToAESs3H7zUttMnN+NjRleeh+hOhlFy37F90DZSdLj47t9mPmjgj7NNdCCP6WC8yj6TXLo7ULVT7ZlGGLf/U7QtF/5R9nquRs8ykwCJW/KQ8j0vhJl89mbdFbgOpSiVylUaw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Rp+M80PlNmgf2kMZbHALXg/Ry/Wmh10MKTx3shaqjZI=;
+ b=G4Xh6HEMYjD8ZWLV/nZ+B8uhvvoif8eMUtJ9vceyO9kAoOnc4PUfn+idEG/bOpgx83+EQl1ldJ9XPZJ4iFaqdsUr08bGmNKhEjQWThjT98V46Yg9UJkzcdFpR+arV/bu7ptrr4mb7XC6DVxjFoeoWW13kqhhLRl6ljYxcDBmABs=
+Authentication-Results: spf=none (sender IP is )
+ smtp.mailfrom=roid@mellanox.com; 
+Received: from DB7PR05MB4156.eurprd05.prod.outlook.com (2603:10a6:5:18::21) by
+ DB7PR05MB5210.eurprd05.prod.outlook.com (2603:10a6:10:65::12) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2900.15; Sun, 12 Apr 2020 08:14:39 +0000
+Received: from DB7PR05MB4156.eurprd05.prod.outlook.com
+ ([fe80::d12b:b2d7:95a0:8088]) by DB7PR05MB4156.eurprd05.prod.outlook.com
+ ([fe80::d12b:b2d7:95a0:8088%7]) with mapi id 15.20.2900.026; Sun, 12 Apr 2020
+ 08:14:39 +0000
+Subject: Re: [PATCH net] net/mlx5e: limit log messages due to (ovs) probing to
+ _once
+To:     "marcelo.leitner@gmail.com" <marcelo.leitner@gmail.com>,
+        Saeed Mahameed <saeedm@mellanox.com>
+Cc:     Vlad Buslov <vladbu@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>,
+        Paul Blakey <paulb@mellanox.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+References: <d57b95462cccf0f67089c91d3dfd3d1f4c46e9bf.1585872570.git.marcelo.leitner@gmail.com>
+ <c4e43a61a8ad7f57e2cb228cc0ba810b68af89cb.camel@mellanox.com>
+ <20200403024835.GA3547@localhost.localdomain>
+ <d4c0225fc25a6979c6f6863eaf84ee4d4d0a7972.camel@mellanox.com>
+ <20200408215422.GA137894@localhost.localdomain>
+ <54e70f800bc8f3b4d2dc7ddea02c1baa0036ea54.camel@mellanox.com>
+ <20200408224256.GB137894@localhost.localdomain>
+From:   Roi Dayan <roid@mellanox.com>
+Message-ID: <6f4e8a85-ede4-0c10-0ef7-0d45f2b7fc73@mellanox.com>
+Date:   Sun, 12 Apr 2020 11:14:35 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
+In-Reply-To: <20200408224256.GB137894@localhost.localdomain>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: AM4PR0101CA0050.eurprd01.prod.exchangelabs.com
+ (2603:10a6:200:41::18) To DB7PR05MB4156.eurprd05.prod.outlook.com
+ (2603:10a6:5:18::21)
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.1.170] (176.231.113.172) by AM4PR0101CA0050.eurprd01.prod.exchangelabs.com (2603:10a6:200:41::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2900.17 via Frontend Transport; Sun, 12 Apr 2020 08:14:37 +0000
+X-Originating-IP: [176.231.113.172]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: a9b45e72-e58a-4570-3541-08d7deb98bae
+X-MS-TrafficTypeDiagnostic: DB7PR05MB5210:|DB7PR05MB5210:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <DB7PR05MB5210EA82E548EB4FF813C497B5DC0@DB7PR05MB5210.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:9508;
+X-Forefront-PRVS: 0371762FE7
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB7PR05MB4156.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(10009020)(4636009)(39860400002)(396003)(346002)(366004)(376002)(136003)(86362001)(36756003)(478600001)(26005)(31696002)(8936002)(186003)(53546011)(956004)(16526019)(2616005)(31686004)(2906002)(110136005)(54906003)(6636002)(66946007)(66476007)(5660300002)(15650500001)(4326008)(8676002)(16576012)(52116002)(6486002)(316002)(66556008)(81156014);DIR:OUT;SFP:1101;
+Received-SPF: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: r4yeppOMetpe7HmVg3NSdWO1PDqzfkyjIX64N84aU7xUr0XVHWKFt4jHbw7NGQF5oXqWKG4/y6GOXSK5BxcJuJ+oBvEYJdq0+NwNUacfnJKt9PYY36pMnPzfuTWwZ1M1oLuKgGYaexjc0x52j+NYIVBLWCLqoi/T9rV7vx0gwVAD7rFELLJ8tz9cy4OfppDbXgzxJ9LYB+HT6zD/CNAgCqyz8rx355CninkmdF/kqrHTH2cG5XANpF0P+VyrVDDc325uSkztN4EBLElaZOMx45/qB7Ea0aFkRSsypM24Cfa6YnKyy4Y5AKI2Mp0roe7/WrT5RSBNLBgJASgUfneN1GjtTBPccSQWxrofhuxDYtVzqp3HyK/c6U/wOXlTEsvlioflUE6eklV25e1azXIjLuz6SHmgjO5/sc/Z6iOJOQ0IQ8QxKEzT0JbZpFPa3Dnm
+X-MS-Exchange-AntiSpam-MessageData: d/t256TqIVUwUynhyaSo1kAuuqhtmQlqC6+iT0xoBA9a5VtX0aAADPz3i3xinw9OY6q2AhWhhoWkpcxrOiMihvc790SFSQL/IdGxHOwwPJOli/GzRPopH9fL5mDN7n0XOr62a+SlKxFawO8g8x7zYw==
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a9b45e72-e58a-4570-3541-08d7deb98bae
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Apr 2020 08:14:39.2039
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ZFqbBAiUNs695lKbijm5HmzQu8B9NZKGffFzBc3QWpXvGSOroi1X5rsQ88Q2hxSLlYt4p0HjlDPIhgYsg+bluA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB7PR05MB5210
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjunz@mellanox.com>
 
-[ Upstream commit d0ca2c35dd15a3d989955caec02beea02f735ee6 ]
 
-The RXE driver doesn't set sys_image_guid and user space applications see
-zeros. This causes to pyverbs tests to fail with the following traceback,
-because the IBTA spec requires to have valid sys_image_guid.
+On 2020-04-09 1:42 AM, marcelo.leitner@gmail.com wrote:
+> On Wed, Apr 08, 2020 at 10:38:52PM +0000, Saeed Mahameed wrote:
+>> On Wed, 2020-04-08 at 18:54 -0300, marcelo.leitner@gmail.com wrote:
+>>> On Wed, Apr 08, 2020 at 07:51:22PM +0000, Saeed Mahameed wrote:
+>>> ...
+>>>>>> I understand it is for debug only but i strongly suggest to not
+>>>>>> totally
+>>>>>> suppress these messages and maybe just move them to tracepoints
+>>>>>> buffer
+>>>>>> ? for those who would want to really debug .. 
+>>>>>>
+>>>>>> we already have some tracepoints implemented for en_tc.c 
+>>>>>> mlx5/core/diag/en_tc_tracepoints.c, maybe we should define a
+>>>>>> tracepoint
+>>>>>> for error reporting .. 
+>>>>>
+>>>>> That, or s/netdev_warn/netdev_dbg/, but both are more hidden to
+>>>>> the
+>>>>> user than the _once.
+>>>>>
+>>>>
+>>>> i don't see any reason to pollute kernel log with debug messages
+>>>> when
+>>>> we have tracepoint buffer for en_tc .. 
+>>>
+>>> So we're agreeing that these need to be changed. Good.
+>>
+>> I would like to wait for the feedback from the CC'ed mlnx TC
+>> developers..
+>>
+>> I just pinged them, lets see what they think.
+>>
+>> but i totally agree, TC can support 100k offloads requests per seconds,
+>> dumping every possible issue to the kernel log shouldn't be an option,this is not a boot or a fatal error/warning .. 
+>>
+>>>
+>>> I don't think a sysadmin would be using tracepoints for
+>>> troubleshooting this, but okay. My only objective here is exactly
+>>> what
+>>> you said, to not pollute kernel log too much with these potentially
+>>> repetitive messages.
+>>
+>> these types of errors are easily reproduce-able, a sysadmin can see and
+>> report the errno and the extack message, and in case it is really
+>> required, the support or development team can ask to turn on trace-
+>> points or debug and reproduce .. 
+> 
+> Roger that, thanks Saeed.
+> 
 
- Traceback (most recent call last):
-   File "./tests/test_device.py", line 51, in test_query_device
-     self.verify_device_attr(attr)
-   File "./tests/test_device.py", line 74, in verify_device_attr
-     assert attr.sys_image_guid != 0
+Hi Marcelo,
 
-In order to fix it, set sys_image_guid to be equal to node_guid.
+I was somewhat in favor for *_once when first read it, without starting to
+enable probe stuff but I guess *_once will become redundant pretty quick.
+another option is debugging with tc verbose flag but ovs doesn't support
+logging extack errors today.
+checking ovs issues on a large system with many bridges/ports/rules without
+the tc/driver errors in the log will be very difficult.
+in some places we already only use extack without netdev_warn.
+so currently in favor in removing the other logs if extack error exists to
+avoid flooding the log each time ovs age out an unsupported rule and re-adds it.
+i'm also in favor for the trace points to ease debug.
 
-Before:
- 5: rxe0: ... node_guid 5054:00ff:feaa:5363 sys_image_guid
- 0000:0000:0000:0000
-
-After:
- 5: rxe0: ... node_guid 5054:00ff:feaa:5363 sys_image_guid
- 5054:00ff:feaa:5363
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Link: https://lore.kernel.org/r/20200323112800.1444784-1-leon@kernel.org
-Signed-off-by: Zhu Yanjun <yanjunz@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/sw/rxe/rxe.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index 0946a301a5c5d..4afdd2e208839 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -103,6 +103,8 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
- 	rxe->attr.max_fast_reg_page_list_len	= RXE_MAX_FMR_PAGE_LIST_LEN;
- 	rxe->attr.max_pkeys			= RXE_MAX_PKEYS;
- 	rxe->attr.local_ca_ack_delay		= RXE_LOCAL_CA_ACK_DELAY;
-+	addrconf_addr_eui48((unsigned char *)&rxe->attr.sys_image_guid,
-+			rxe->ndev->dev_addr);
- 
- 	rxe->max_ucontext			= RXE_MAX_UCONTEXT;
- }
--- 
-2.20.1
-
+Thanks,
+Roi
