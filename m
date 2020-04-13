@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E51C7C352BE
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80FD9C2BA2B
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C57A52073E
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 542AC2073E
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586787878;
-	bh=IXvfIC8jr7fHePn5Wov/cHC+5jBWLdLPJ00Dz0v+LIg=;
+	s=default; t=1586787879;
+	bh=sq71uW2CkHp8EG7eRA81OUsBnQrue0wiZ0MUxxXM7oU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=DfgsmJz37BuwsqEUc/XGyZCpObRzOH5HCXZXWBPzCFqTvEoixlv/kU8mgHzajNeJI
-	 yunhE7TlA6gOyYUUZtsNoP+roxV7Br7jFnLlAH3efmr5uHtTbml0nK7vM4K2UdM58N
-	 bnFnc5ODY/82ggmmwiPbrA23F/k8fqlawixRru/U=
+	b=qJ+YCZojLyU6mitTy3T+slhIJ/DXqyty0owbIBR9HjpW+NNmvZ9HxCZuBkBs1w/uQ
+	 yu3+u9tWrh2Wq5ZNax7OFghOhecYuw0QC1xW2PpDnR26bZBz/v3bs9GGi7e5Ona9CQ
+	 3Aw333/Jh72qwBhPOrT9Vusg2DtGT2cAys/P84Lk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730688AbgDMOYf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Apr 2020 10:24:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51216 "EHLO mail.kernel.org"
+        id S1730689AbgDMOYe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Apr 2020 10:24:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730677AbgDMOXq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 13 Apr 2020 10:23:46 -0400
+        id S1730688AbgDMOXx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Apr 2020 10:23:53 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A6A4F2075E;
-        Mon, 13 Apr 2020 14:23:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 22E052078A;
+        Mon, 13 Apr 2020 14:23:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586787825;
-        bh=IXvfIC8jr7fHePn5Wov/cHC+5jBWLdLPJ00Dz0v+LIg=;
+        s=default; t=1586787832;
+        bh=sq71uW2CkHp8EG7eRA81OUsBnQrue0wiZ0MUxxXM7oU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=jFUwzvtikPaRn3MB+8CkJ1h5kIv2mKsFX1/oTg3/8XzdFMEgpqxX/Qtwl06nU2GeU
-         SJWgOIBjuzQ0lgIoSj+pjZT2sCUf7/ogw2Dr9WYaJudrMmopYy6+C6/KLm5GxUA9Vh
-         QFltGtr/tUVMqAkBzC2ZBo9ibYz6v6TpKXq43Eak=
+        b=rePDZo1M081gFAsn0znsFGqz/PeLdflRwPcQQ8cBkpsSGHBeOZMlRra0GgUGbffT6
+         +XqUHBoKD8Xqog1QywgcE01m9DIoBORBF3hiW70zrRKYnKDvp+P5l7c9sI7yP3/sfg
+         9Facgt92/a8oMBpPNVfu4EFGrG5arI3AHP9+7TFk=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH rdma-next 10/13] RDMA/mlx5: Delete Q counter allocations command
-Date:   Mon, 13 Apr 2020 17:23:05 +0300
-Message-Id: <20200413142308.936946-11-leon@kernel.org>
+        Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH rdma-next 12/13] RDMA/mlx5: Alphabetically sort build artifacts
+Date:   Mon, 13 Apr 2020 17:23:07 +0300
+Message-Id: <20200413142308.936946-13-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200413142308.936946-1-leon@kernel.org>
 References: <20200413142308.936946-1-leon@kernel.org>
@@ -58,152 +58,51 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Remove mlx5_ib implementation of Q counter allocation logic
-together with cleaning boolean which controlled validity of the
-counter. It is not needed, because counter_id == 0 means that
-counter is not valid.
+Sort .o objects in makefile to make addition of new object
+less cumbersome.
 
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cmd.c     | 17 ---------------
- drivers/infiniband/hw/mlx5/cmd.h     |  2 --
- drivers/infiniband/hw/mlx5/main.c    | 31 ++++++++++++++++++----------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
- 4 files changed, 20 insertions(+), 31 deletions(-)
+ drivers/infiniband/hw/mlx5/Makefile | 27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-index 4c26492ab8a3..a2fcbc49131e 100644
---- a/drivers/infiniband/hw/mlx5/cmd.c
-+++ b/drivers/infiniband/hw/mlx5/cmd.c
-@@ -327,23 +327,6 @@ int mlx5_cmd_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn, u16 uid)
- 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
- }
- 
--int mlx5_cmd_alloc_q_counter(struct mlx5_core_dev *dev, u16 *counter_id,
--			     u16 uid)
--{
--	u32 in[MLX5_ST_SZ_DW(alloc_q_counter_in)]   = {0};
--	u32 out[MLX5_ST_SZ_DW(alloc_q_counter_out)] = {0};
--	int err;
--
--	MLX5_SET(alloc_q_counter_in, in, opcode, MLX5_CMD_OP_ALLOC_Q_COUNTER);
--	MLX5_SET(alloc_q_counter_in, in, uid, uid);
--
--	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
--	if (!err)
--		*counter_id = MLX5_GET(alloc_q_counter_out, out,
--				       counter_set_id);
--	return err;
--}
--
- int mlx5_cmd_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
- 		     u16 opmod, u8 port)
- {
-diff --git a/drivers/infiniband/hw/mlx5/cmd.h b/drivers/infiniband/hw/mlx5/cmd.h
-index 945ebce73613..43079b18d9b4 100644
---- a/drivers/infiniband/hw/mlx5/cmd.h
-+++ b/drivers/infiniband/hw/mlx5/cmd.h
-@@ -61,8 +61,6 @@ int mlx5_cmd_detach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid,
- 			u32 qpn, u16 uid);
- int mlx5_cmd_xrcd_alloc(struct mlx5_core_dev *dev, u32 *xrcdn, u16 uid);
- int mlx5_cmd_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn, u16 uid);
--int mlx5_cmd_alloc_q_counter(struct mlx5_core_dev *dev, u16 *counter_id,
--			     u16 uid);
- int mlx5_cmd_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
- 		     u16 opmod, u8 port);
- #endif /* MLX5_IB_CMD_H */
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 58e3b1d5d7b2..ea1fe4f9e0c3 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5421,7 +5421,7 @@ static void mlx5_ib_dealloc_counters(struct mlx5_ib_dev *dev)
- 		 MLX5_CMD_OP_DEALLOC_Q_COUNTER);
- 
- 	for (i = 0; i < num_cnt_ports; i++) {
--		if (dev->port[i].cnts.set_id_valid) {
-+		if (dev->port[i].cnts.set_id) {
- 			MLX5_SET(dealloc_q_counter_in, in, counter_set_id,
- 				 dev->port[i].cnts.set_id);
- 			mlx5_cmd_exec_in(dev->mdev, dealloc_q_counter, in);
-@@ -5534,11 +5534,14 @@ static void mlx5_ib_fill_counters(struct mlx5_ib_dev *dev,
- 
- static int mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev)
- {
-+	u32 out[MLX5_ST_SZ_DW(alloc_q_counter_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(alloc_q_counter_in)] = {};
- 	int num_cnt_ports;
- 	int err = 0;
- 	int i;
- 	bool is_shared;
- 
-+	MLX5_SET(alloc_q_counter_in, in, opcode, MLX5_CMD_OP_ALLOC_Q_COUNTER);
- 	is_shared = MLX5_CAP_GEN(dev->mdev, log_max_uctx) != 0;
- 	num_cnt_ports = is_mdev_switchdev_mode(dev->mdev) ? 1 : dev->num_ports;
- 
-@@ -5550,17 +5553,19 @@ static int mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev)
- 		mlx5_ib_fill_counters(dev, dev->port[i].cnts.names,
- 				      dev->port[i].cnts.offsets);
- 
--		err = mlx5_cmd_alloc_q_counter(dev->mdev,
--					       &dev->port[i].cnts.set_id,
--					       is_shared ?
--					       MLX5_SHARED_RESOURCE_UID : 0);
-+		MLX5_SET(alloc_q_counter_in, in, uid,
-+			 is_shared ? MLX5_SHARED_RESOURCE_UID : 0);
+diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
+index 2a334800f109..375b341be8a1 100644
+--- a/drivers/infiniband/hw/mlx5/Makefile
++++ b/drivers/infiniband/hw/mlx5/Makefile
+@@ -1,11 +1,24 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-obj-$(CONFIG_MLX5_INFINIBAND)	+= mlx5_ib.o
++obj-$(CONFIG_MLX5_INFINIBAND) += mlx5_ib.o
 +
-+		err = mlx5_cmd_exec_inout(dev->mdev, alloc_q_counter, in, out);
- 		if (err) {
- 			mlx5_ib_warn(dev,
- 				     "couldn't allocate queue counter for port %d, err %d\n",
- 				     i + 1, err);
- 			goto err_alloc;
- 		}
--		dev->port[i].cnts.set_id_valid = true;
-+
-+		dev->port[i].cnts.set_id =
-+			MLX5_GET(alloc_q_counter_out, out, counter_set_id);
- 	}
- 	return 0;
++mlx5_ib-y := ah.o \
++	     cmd.o \
++	     cong.o \
++	     cq.o \
++	     doorbell.o \
++	     gsi.o \
++	     ib_virt.o \
++	     mad.o \
++	     main.o \
++	     mem.o \
++	     mr.o \
++	     qp.o \
++	     restrack.o \
++	     srq.o \
++	     srq_cmd.o
  
-@@ -5757,16 +5762,20 @@ static int mlx5_ib_counter_bind_qp(struct rdma_counter *counter,
- 				   struct ib_qp *qp)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
--	u16 cnt_set_id = 0;
- 	int err;
- 
- 	if (!counter->id) {
--		err = mlx5_cmd_alloc_q_counter(dev->mdev,
--					       &cnt_set_id,
--					       MLX5_SHARED_RESOURCE_UID);
-+		u32 out[MLX5_ST_SZ_DW(alloc_q_counter_out)] = {};
-+		u32 in[MLX5_ST_SZ_DW(alloc_q_counter_in)] = {};
-+
-+		MLX5_SET(alloc_q_counter_in, in, opcode,
-+			 MLX5_CMD_OP_ALLOC_Q_COUNTER);
-+		MLX5_SET(alloc_q_counter_in, in, uid, MLX5_SHARED_RESOURCE_UID);
-+		err = mlx5_cmd_exec_inout(dev->mdev, alloc_q_counter, in, out);
- 		if (err)
- 			return err;
--		counter->id = cnt_set_id;
-+		counter->id =
-+			MLX5_GET(alloc_q_counter_out, out, counter_set_id);
- 	}
- 
- 	err = mlx5_ib_qp_set_counter(qp, counter);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 61ea8fc70787..897a7ff06880 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -781,7 +781,6 @@ struct mlx5_ib_counters {
- 	u32 num_cong_counters;
- 	u32 num_ext_ppcnt_counters;
- 	u16 set_id;
--	bool set_id_valid;
- };
- 
- struct mlx5_ib_multiport_info;
+-mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq_cmd.o \
+-		srq.o mr.o ah.o mad.o gsi.o ib_virt.o cmd.o \
+-		cong.o restrack.o
+ mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
+ mlx5_ib-$(CONFIG_MLX5_ESWITCH) += ib_rep.o
+-mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += devx.o
+-mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += flow.o
+-mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += qos.o
++mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += devx.o \
++					    flow.o \
++					    qos.o
 -- 
 2.25.2
 
