@@ -4,48 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 587A2C3815B
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E51C7C352BE
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 375462073E
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C57A52073E
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586787875;
-	bh=sqTvIBlwWezQDcTKwQBuqV+MisCV5y9ByRw9ueYGYqA=;
+	s=default; t=1586787878;
+	bh=IXvfIC8jr7fHePn5Wov/cHC+5jBWLdLPJ00Dz0v+LIg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=jvtzgQ0xZ9ccB3xdKPflQ0ypZ0z16z86Iu3c6dWHKwV4X9vd/6k5SYKjZ7aQcTgz7
-	 71/7xNuYKaoX2tsxP/SbNg1HJdLHNt1bx+6nd6MEp+54E/Bine8o84fHogjmzNf0Hp
-	 z0UODi7O8daxCypBBpmcZOmGLchCcaHPCMRvfAnU=
+	b=DfgsmJz37BuwsqEUc/XGyZCpObRzOH5HCXZXWBPzCFqTvEoixlv/kU8mgHzajNeJI
+	 yunhE7TlA6gOyYUUZtsNoP+roxV7Br7jFnLlAH3efmr5uHtTbml0nK7vM4K2UdM58N
+	 bnFnc5ODY/82ggmmwiPbrA23F/k8fqlawixRru/U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730655AbgDMOXi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Apr 2020 10:23:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50882 "EHLO mail.kernel.org"
+        id S1730688AbgDMOYf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Apr 2020 10:24:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730650AbgDMOXb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 13 Apr 2020 10:23:31 -0400
+        id S1730677AbgDMOXq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Apr 2020 10:23:46 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3DA8D20776;
-        Mon, 13 Apr 2020 14:23:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A6A4F2075E;
+        Mon, 13 Apr 2020 14:23:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586787810;
-        bh=sqTvIBlwWezQDcTKwQBuqV+MisCV5y9ByRw9ueYGYqA=;
+        s=default; t=1586787825;
+        bh=IXvfIC8jr7fHePn5Wov/cHC+5jBWLdLPJ00Dz0v+LIg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=T21ZNtZuYTPxp0cx/dj+QoVxQ5JtRSGINgDsDr/TlklGfJeTbLWLI8wMIDslEdRyR
-         SWeEE+dI6Fr63LeWknGowXrw8o0uYopNdY9sQ8nGPlqR0SiMPxDcmARZW8mbEZY9R5
-         wcJecZwbxEWcr8Qr8l2+R2+IGlqcTEiXcSnaH2u8=
+        b=jFUwzvtikPaRn3MB+8CkJ1h5kIv2mKsFX1/oTg3/8XzdFMEgpqxX/Qtwl06nU2GeU
+         SJWgOIBjuzQ0lgIoSj+pjZT2sCUf7/ogw2Dr9WYaJudrMmopYy6+C6/KLm5GxUA9Vh
+         QFltGtr/tUVMqAkBzC2ZBo9ibYz6v6TpKXq43Eak=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 06/13] net/mlx5: Open-code modify QP in the IPoIB module
-Date:   Mon, 13 Apr 2020 17:23:01 +0300
-Message-Id: <20200413142308.936946-7-leon@kernel.org>
+        Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH rdma-next 10/13] RDMA/mlx5: Delete Q counter allocations command
+Date:   Mon, 13 Apr 2020 17:23:05 +0300
+Message-Id: <20200413142308.936946-11-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200413142308.936946-1-leon@kernel.org>
 References: <20200413142308.936946-1-leon@kernel.org>
@@ -58,120 +58,152 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Remove dependency on qp.c from the IPoIB by open coding
-modify QP interface.
+Remove mlx5_ib implementation of Q counter allocation logic
+together with cleaning boolean which controlled validity of the
+counter. It is not needed, because counter_id == 0 means that
+counter is not valid.
 
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 76 ++++++++++---------
- 1 file changed, 42 insertions(+), 34 deletions(-)
+ drivers/infiniband/hw/mlx5/cmd.c     | 17 ---------------
+ drivers/infiniband/hw/mlx5/cmd.h     |  2 --
+ drivers/infiniband/hw/mlx5/main.c    | 31 ++++++++++++++++++----------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
+ 4 files changed, 20 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
-index 8bca11cb1e19..83b198d8e3d6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
-@@ -161,44 +161,54 @@ int mlx5i_init_underlay_qp(struct mlx5e_priv *priv)
- 	struct mlx5_core_dev *mdev = priv->mdev;
- 	struct mlx5i_priv *ipriv = priv->ppriv;
- 	struct mlx5_core_qp *qp = &ipriv->qp;
--	struct mlx5_qp_context *context;
- 	int ret;
+diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
+index 4c26492ab8a3..a2fcbc49131e 100644
+--- a/drivers/infiniband/hw/mlx5/cmd.c
++++ b/drivers/infiniband/hw/mlx5/cmd.c
+@@ -327,23 +327,6 @@ int mlx5_cmd_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn, u16 uid)
+ 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+ }
  
--	/* QP states */
--	context = kzalloc(sizeof(*context), GFP_KERNEL);
--	if (!context)
--		return -ENOMEM;
-+	{
-+		u32 in[MLX5_ST_SZ_DW(rst2init_qp_in)] = {};
-+		u32 *qpc;
- 
--	context->flags = cpu_to_be32(MLX5_QP_PM_MIGRATED << 11);
--	context->pri_path.port = 1;
--	context->pri_path.pkey_index = cpu_to_be16(ipriv->pkey_index);
--	context->qkey = cpu_to_be32(IB_DEFAULT_Q_KEY);
-+		qpc = MLX5_ADDR_OF(rst2init_qp_in, in, qpc);
- 
--	ret = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_RST2INIT_QP, 0, context, qp);
--	if (ret) {
--		mlx5_core_err(mdev, "Failed to modify qp RST2INIT, err: %d\n", ret);
--		goto err_qp_modify_to_err;
--	}
--	memset(context, 0, sizeof(*context));
-+		MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_MIGRATED);
-+		MLX5_SET(qpc, qpc, primary_address_path.pkey_index,
-+			 ipriv->pkey_index);
-+		MLX5_SET(qpc, qpc, primary_address_path.vhca_port_num, 1);
-+		MLX5_SET(qpc, qpc, q_key, IB_DEFAULT_Q_KEY);
- 
--	ret = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_INIT2RTR_QP, 0, context, qp);
--	if (ret) {
--		mlx5_core_err(mdev, "Failed to modify qp INIT2RTR, err: %d\n", ret);
--		goto err_qp_modify_to_err;
-+		MLX5_SET(rst2init_qp_in, in, opcode, MLX5_CMD_OP_RST2INIT_QP);
-+		MLX5_SET(rst2init_qp_in, in, qpn, qp->qpn);
-+		ret = mlx5_cmd_exec_in(mdev, rst2init_qp, in);
-+		if (ret)
-+			goto err_qp_modify_to_err;
- 	}
+-int mlx5_cmd_alloc_q_counter(struct mlx5_core_dev *dev, u16 *counter_id,
+-			     u16 uid)
+-{
+-	u32 in[MLX5_ST_SZ_DW(alloc_q_counter_in)]   = {0};
+-	u32 out[MLX5_ST_SZ_DW(alloc_q_counter_out)] = {0};
+-	int err;
 -
--	ret = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_RTR2RTS_QP, 0, context, qp);
--	if (ret) {
--		mlx5_core_err(mdev, "Failed to modify qp RTR2RTS, err: %d\n", ret);
--		goto err_qp_modify_to_err;
-+	{
-+		u32 in[MLX5_ST_SZ_DW(init2rtr_qp_in)] = {};
-+
-+		MLX5_SET(init2rtr_qp_in, in, opcode, MLX5_CMD_OP_INIT2RTR_QP);
-+		MLX5_SET(init2rtr_qp_in, in, qpn, qp->qpn);
-+		ret = mlx5_cmd_exec_in(mdev, init2rtr_qp, in);
-+		if (ret)
-+			goto err_qp_modify_to_err;
-+	}
-+	{
-+		u32 in[MLX5_ST_SZ_DW(rtr2rts_qp_in)] = {};
-+
-+		MLX5_SET(rtr2rts_qp_in, in, opcode, MLX5_CMD_OP_RTR2RTS_QP);
-+		MLX5_SET(rtr2rts_qp_in, in, qpn, qp->qpn);
-+		ret = mlx5_cmd_exec_in(mdev, rtr2rts_qp, in);
-+		if (ret)
-+			goto err_qp_modify_to_err;
- 	}
+-	MLX5_SET(alloc_q_counter_in, in, opcode, MLX5_CMD_OP_ALLOC_Q_COUNTER);
+-	MLX5_SET(alloc_q_counter_in, in, uid, uid);
 -
--	kfree(context);
+-	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+-	if (!err)
+-		*counter_id = MLX5_GET(alloc_q_counter_out, out,
+-				       counter_set_id);
+-	return err;
+-}
+-
+ int mlx5_cmd_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
+ 		     u16 opmod, u8 port)
+ {
+diff --git a/drivers/infiniband/hw/mlx5/cmd.h b/drivers/infiniband/hw/mlx5/cmd.h
+index 945ebce73613..43079b18d9b4 100644
+--- a/drivers/infiniband/hw/mlx5/cmd.h
++++ b/drivers/infiniband/hw/mlx5/cmd.h
+@@ -61,8 +61,6 @@ int mlx5_cmd_detach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid,
+ 			u32 qpn, u16 uid);
+ int mlx5_cmd_xrcd_alloc(struct mlx5_core_dev *dev, u32 *xrcdn, u16 uid);
+ int mlx5_cmd_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn, u16 uid);
+-int mlx5_cmd_alloc_q_counter(struct mlx5_core_dev *dev, u16 *counter_id,
+-			     u16 uid);
+ int mlx5_cmd_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
+ 		     u16 opmod, u8 port);
+ #endif /* MLX5_IB_CMD_H */
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 58e3b1d5d7b2..ea1fe4f9e0c3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -5421,7 +5421,7 @@ static void mlx5_ib_dealloc_counters(struct mlx5_ib_dev *dev)
+ 		 MLX5_CMD_OP_DEALLOC_Q_COUNTER);
+ 
+ 	for (i = 0; i < num_cnt_ports; i++) {
+-		if (dev->port[i].cnts.set_id_valid) {
++		if (dev->port[i].cnts.set_id) {
+ 			MLX5_SET(dealloc_q_counter_in, in, counter_set_id,
+ 				 dev->port[i].cnts.set_id);
+ 			mlx5_cmd_exec_in(dev->mdev, dealloc_q_counter, in);
+@@ -5534,11 +5534,14 @@ static void mlx5_ib_fill_counters(struct mlx5_ib_dev *dev,
+ 
+ static int mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev)
+ {
++	u32 out[MLX5_ST_SZ_DW(alloc_q_counter_out)] = {};
++	u32 in[MLX5_ST_SZ_DW(alloc_q_counter_in)] = {};
+ 	int num_cnt_ports;
+ 	int err = 0;
+ 	int i;
+ 	bool is_shared;
+ 
++	MLX5_SET(alloc_q_counter_in, in, opcode, MLX5_CMD_OP_ALLOC_Q_COUNTER);
+ 	is_shared = MLX5_CAP_GEN(dev->mdev, log_max_uctx) != 0;
+ 	num_cnt_ports = is_mdev_switchdev_mode(dev->mdev) ? 1 : dev->num_ports;
+ 
+@@ -5550,17 +5553,19 @@ static int mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev)
+ 		mlx5_ib_fill_counters(dev, dev->port[i].cnts.names,
+ 				      dev->port[i].cnts.offsets);
+ 
+-		err = mlx5_cmd_alloc_q_counter(dev->mdev,
+-					       &dev->port[i].cnts.set_id,
+-					       is_shared ?
+-					       MLX5_SHARED_RESOURCE_UID : 0);
++		MLX5_SET(alloc_q_counter_in, in, uid,
++			 is_shared ? MLX5_SHARED_RESOURCE_UID : 0);
++
++		err = mlx5_cmd_exec_inout(dev->mdev, alloc_q_counter, in, out);
+ 		if (err) {
+ 			mlx5_ib_warn(dev,
+ 				     "couldn't allocate queue counter for port %d, err %d\n",
+ 				     i + 1, err);
+ 			goto err_alloc;
+ 		}
+-		dev->port[i].cnts.set_id_valid = true;
++
++		dev->port[i].cnts.set_id =
++			MLX5_GET(alloc_q_counter_out, out, counter_set_id);
+ 	}
  	return 0;
  
- err_qp_modify_to_err:
--	mlx5_core_qp_modify(mdev, MLX5_CMD_OP_2ERR_QP, 0, &context, qp);
--	kfree(context);
-+	{
-+		u32 in[MLX5_ST_SZ_DW(qp_2err_in)] = {};
-+
-+		MLX5_SET(qp_2err_in, in, opcode, MLX5_CMD_OP_2ERR_QP);
-+		MLX5_SET(qp_2err_in, in, qpn, qp->qpn);
-+		mlx5_cmd_exec_in(mdev, qp_2err, in);
-+	}
- 	return ret;
- }
- 
-@@ -206,13 +216,11 @@ void mlx5i_uninit_underlay_qp(struct mlx5e_priv *priv)
+@@ -5757,16 +5762,20 @@ static int mlx5_ib_counter_bind_qp(struct rdma_counter *counter,
+ 				   struct ib_qp *qp)
  {
- 	struct mlx5i_priv *ipriv = priv->ppriv;
- 	struct mlx5_core_dev *mdev = priv->mdev;
--	struct mlx5_qp_context context;
--	int err;
-+	u32 in[MLX5_ST_SZ_DW(qp_2rst_in)] = {};
+ 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
+-	u16 cnt_set_id = 0;
+ 	int err;
  
--	err = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_2RST_QP, 0, &context,
--				  &ipriv->qp);
--	if (err)
--		mlx5_core_err(mdev, "Failed to modify qp 2RST, err: %d\n", err);
-+	MLX5_SET(qp_2rst_in, in, opcode, MLX5_CMD_OP_2RST_QP);
-+	MLX5_SET(qp_2rst_in, in, qpn, ipriv->qp.qpn);
-+	mlx5_cmd_exec_in(mdev, qp_2rst, in);
- }
+ 	if (!counter->id) {
+-		err = mlx5_cmd_alloc_q_counter(dev->mdev,
+-					       &cnt_set_id,
+-					       MLX5_SHARED_RESOURCE_UID);
++		u32 out[MLX5_ST_SZ_DW(alloc_q_counter_out)] = {};
++		u32 in[MLX5_ST_SZ_DW(alloc_q_counter_in)] = {};
++
++		MLX5_SET(alloc_q_counter_in, in, opcode,
++			 MLX5_CMD_OP_ALLOC_Q_COUNTER);
++		MLX5_SET(alloc_q_counter_in, in, uid, MLX5_SHARED_RESOURCE_UID);
++		err = mlx5_cmd_exec_inout(dev->mdev, alloc_q_counter, in, out);
+ 		if (err)
+ 			return err;
+-		counter->id = cnt_set_id;
++		counter->id =
++			MLX5_GET(alloc_q_counter_out, out, counter_set_id);
+ 	}
  
- #define MLX5_QP_ENHANCED_ULP_STATELESS_MODE 2
+ 	err = mlx5_ib_qp_set_counter(qp, counter);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 61ea8fc70787..897a7ff06880 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -781,7 +781,6 @@ struct mlx5_ib_counters {
+ 	u32 num_cong_counters;
+ 	u32 num_ext_ppcnt_counters;
+ 	u16 set_id;
+-	bool set_id_valid;
+ };
+ 
+ struct mlx5_ib_multiport_info;
 -- 
 2.25.2
 
