@@ -2,50 +2,50 @@ Return-Path: <SRS0=wxv4=55=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52BF7C352BE
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 587A2C3815B
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3262D20774
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 375462073E
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586787874;
-	bh=52LiirNRc7bk8VDyikvApReD2goqQm2EWa9vSAQw+Ck=;
+	s=default; t=1586787875;
+	bh=sqTvIBlwWezQDcTKwQBuqV+MisCV5y9ByRw9ueYGYqA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=x1a2BhwP647dwh4mJKUyreuE1clKadDKjGI/bK2ZPMGbkXM6zlrqRDDP7gA43uwub
-	 B/7meXYvtu35KHGxLTgrfN3pa7hjBZdBKPHyp6roksAIEHNuetfqqYUNyap3cm6XcK
-	 tPYH/4HJKlnxZKPN6KANJtP5lxqeSZCk7EaPL/40=
+	b=jvtzgQ0xZ9ccB3xdKPflQ0ypZ0z16z86Iu3c6dWHKwV4X9vd/6k5SYKjZ7aQcTgz7
+	 71/7xNuYKaoX2tsxP/SbNg1HJdLHNt1bx+6nd6MEp+54E/Bine8o84fHogjmzNf0Hp
+	 z0UODi7O8daxCypBBpmcZOmGLchCcaHPCMRvfAnU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730694AbgDMOX5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Apr 2020 10:23:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51052 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730654AbgDMOXi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1730655AbgDMOXi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 13 Apr 2020 10:23:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50882 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730650AbgDMOXb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Apr 2020 10:23:31 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 49A4920774;
-        Mon, 13 Apr 2020 14:23:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3DA8D20776;
+        Mon, 13 Apr 2020 14:23:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586787817;
-        bh=52LiirNRc7bk8VDyikvApReD2goqQm2EWa9vSAQw+Ck=;
+        s=default; t=1586787810;
+        bh=sqTvIBlwWezQDcTKwQBuqV+MisCV5y9ByRw9ueYGYqA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=2taxUPagQ5JmiYp3pIoADsRDZGeOPIcRBaxnC4bgy8RZuLqqU7NtyQxvlT8j1vjc3
-         WYeIj6cDItZi3ZAdCDp7N4LGKVjJbSPHYiioO9SFbKXjF//pwr3444hN6BcJJpxij+
-         LxGmD1lQw9kKjQBohXD5tMJNZSPC7gvO5Z3v6YEE=
+        b=T21ZNtZuYTPxp0cx/dj+QoVxQ5JtRSGINgDsDr/TlklGfJeTbLWLI8wMIDslEdRyR
+         SWeEE+dI6Fr63LeWknGowXrw8o0uYopNdY9sQ8nGPlqR0SiMPxDcmARZW8mbEZY9R5
+         wcJecZwbxEWcr8Qr8l2+R2+IGlqcTEiXcSnaH2u8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 08/13] net/mlx5: Replace hand written QP context struct with automatic getters
-Date:   Mon, 13 Apr 2020 17:23:03 +0300
-Message-Id: <20200413142308.936946-9-leon@kernel.org>
+Subject: [PATCH mlx5-next 06/13] net/mlx5: Open-code modify QP in the IPoIB module
+Date:   Mon, 13 Apr 2020 17:23:01 +0300
+Message-Id: <20200413142308.936946-7-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200413142308.936946-1-leon@kernel.org>
 References: <20200413142308.936946-1-leon@kernel.org>
@@ -58,113 +58,120 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-By changing debugfs to not use any QP related API, convert the debugfs
-code to use MLX5_GET() directly to access QP context instead of hand
-written struct.
+Remove dependency on qp.c from the IPoIB by open coding
+modify QP interface.
 
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/debugfs.c | 51 ++++++++-----------
- 1 file changed, 20 insertions(+), 31 deletions(-)
+ .../ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 76 ++++++++++---------
+ 1 file changed, 42 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-index 04854e5fbcd7..d40c3d5bd496 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-@@ -202,42 +202,37 @@ void mlx5_cq_debugfs_cleanup(struct mlx5_core_dev *dev)
- static u64 qp_read_field(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
- 			 int index, int *is_str)
- {
--	int outlen = MLX5_ST_SZ_BYTES(query_qp_out);
--	struct mlx5_qp_context *ctx;
-+	u32 out[MLX5_ST_SZ_BYTES(query_qp_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(query_qp_in)] = {};
- 	u64 param = 0;
--	u32 *out;
-+	int state;
-+	u32 *qpc;
- 	int err;
--	int no_sq;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+index 8bca11cb1e19..83b198d8e3d6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+@@ -161,44 +161,54 @@ int mlx5i_init_underlay_qp(struct mlx5e_priv *priv)
+ 	struct mlx5_core_dev *mdev = priv->mdev;
+ 	struct mlx5i_priv *ipriv = priv->ppriv;
+ 	struct mlx5_core_qp *qp = &ipriv->qp;
+-	struct mlx5_qp_context *context;
+ 	int ret;
  
--	out = kzalloc(outlen, GFP_KERNEL);
--	if (!out)
--		return param;
--
--	err = mlx5_core_qp_query(dev, qp, out, outlen);
--	if (err) {
--		mlx5_core_warn(dev, "failed to query qp err=%d\n", err);
--		goto out;
+-	/* QP states */
+-	context = kzalloc(sizeof(*context), GFP_KERNEL);
+-	if (!context)
+-		return -ENOMEM;
++	{
++		u32 in[MLX5_ST_SZ_DW(rst2init_qp_in)] = {};
++		u32 *qpc;
+ 
+-	context->flags = cpu_to_be32(MLX5_QP_PM_MIGRATED << 11);
+-	context->pri_path.port = 1;
+-	context->pri_path.pkey_index = cpu_to_be16(ipriv->pkey_index);
+-	context->qkey = cpu_to_be32(IB_DEFAULT_Q_KEY);
++		qpc = MLX5_ADDR_OF(rst2init_qp_in, in, qpc);
+ 
+-	ret = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_RST2INIT_QP, 0, context, qp);
+-	if (ret) {
+-		mlx5_core_err(mdev, "Failed to modify qp RST2INIT, err: %d\n", ret);
+-		goto err_qp_modify_to_err;
 -	}
-+	MLX5_SET(query_qp_in, in, opcode, MLX5_CMD_OP_QUERY_QP);
-+	MLX5_SET(query_qp_in, in, qpn, qp->qpn);
-+	err = mlx5_cmd_exec_inout(dev, query_qp, in, out);
-+	if (err)
-+		return 0;
+-	memset(context, 0, sizeof(*context));
++		MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_MIGRATED);
++		MLX5_SET(qpc, qpc, primary_address_path.pkey_index,
++			 ipriv->pkey_index);
++		MLX5_SET(qpc, qpc, primary_address_path.vhca_port_num, 1);
++		MLX5_SET(qpc, qpc, q_key, IB_DEFAULT_Q_KEY);
  
- 	*is_str = 0;
- 
--	/* FIXME: use MLX5_GET rather than mlx5_qp_context manual struct */
--	ctx = (struct mlx5_qp_context *)MLX5_ADDR_OF(query_qp_out, out, qpc);
--
-+	qpc = MLX5_ADDR_OF(query_qp_out, out, qpc);
- 	switch (index) {
- 	case QP_PID:
- 		param = qp->pid;
- 		break;
- 	case QP_STATE:
--		param = (unsigned long)mlx5_qp_state_str(be32_to_cpu(ctx->flags) >> 28);
-+		state = MLX5_GET(qpc, qpc, state);
-+		param = (unsigned long)mlx5_qp_state_str(state);
- 		*is_str = 1;
- 		break;
- 	case QP_XPORT:
--		param = (unsigned long)mlx5_qp_type_str((be32_to_cpu(ctx->flags) >> 16) & 0xff);
-+		param = (unsigned long)mlx5_qp_type_str(MLX5_GET(qpc, qpc, st));
- 		*is_str = 1;
- 		break;
- 	case QP_MTU:
--		switch (ctx->mtu_msgmax >> 5) {
-+		switch (MLX5_GET(qpc, qpc, mtu)) {
- 		case IB_MTU_256:
- 			param = 256;
- 			break;
-@@ -258,29 +253,23 @@ static u64 qp_read_field(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
- 		}
- 		break;
- 	case QP_N_RECV:
--		param = 1 << ((ctx->rq_size_stride >> 3) & 0xf);
-+		param = 1 << MLX5_GET(qpc, qpc, log_rq_size);
- 		break;
- 	case QP_RECV_SZ:
--		param = 1 << ((ctx->rq_size_stride & 7) + 4);
-+		param = 1 << (MLX5_GET(qpc, qpc, log_rq_stride) + 4);
- 		break;
- 	case QP_N_SEND:
--		no_sq = be16_to_cpu(ctx->sq_crq_size) >> 15;
--		if (!no_sq)
--			param = 1 << (be16_to_cpu(ctx->sq_crq_size) >> 11);
--		else
--			param = 0;
-+		if (!MLX5_GET(qpc, qpc, no_sq))
-+			param = 1 << MLX5_GET(qpc, qpc, log_sq_size);
- 		break;
- 	case QP_LOG_PG_SZ:
--		param = (be32_to_cpu(ctx->log_pg_sz_remote_qpn) >> 24) & 0x1f;
--		param += 12;
-+		param = MLX5_GET(qpc, qpc, log_page_size) + 12;
- 		break;
- 	case QP_RQPN:
--		param = be32_to_cpu(ctx->log_pg_sz_remote_qpn) & 0xffffff;
-+		param = MLX5_GET(qpc, qpc, remote_qpn);
- 		break;
+-	ret = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_INIT2RTR_QP, 0, context, qp);
+-	if (ret) {
+-		mlx5_core_err(mdev, "Failed to modify qp INIT2RTR, err: %d\n", ret);
+-		goto err_qp_modify_to_err;
++		MLX5_SET(rst2init_qp_in, in, opcode, MLX5_CMD_OP_RST2INIT_QP);
++		MLX5_SET(rst2init_qp_in, in, qpn, qp->qpn);
++		ret = mlx5_cmd_exec_in(mdev, rst2init_qp, in);
++		if (ret)
++			goto err_qp_modify_to_err;
  	}
+-
+-	ret = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_RTR2RTS_QP, 0, context, qp);
+-	if (ret) {
+-		mlx5_core_err(mdev, "Failed to modify qp RTR2RTS, err: %d\n", ret);
+-		goto err_qp_modify_to_err;
++	{
++		u32 in[MLX5_ST_SZ_DW(init2rtr_qp_in)] = {};
++
++		MLX5_SET(init2rtr_qp_in, in, opcode, MLX5_CMD_OP_INIT2RTR_QP);
++		MLX5_SET(init2rtr_qp_in, in, qpn, qp->qpn);
++		ret = mlx5_cmd_exec_in(mdev, init2rtr_qp, in);
++		if (ret)
++			goto err_qp_modify_to_err;
++	}
++	{
++		u32 in[MLX5_ST_SZ_DW(rtr2rts_qp_in)] = {};
++
++		MLX5_SET(rtr2rts_qp_in, in, opcode, MLX5_CMD_OP_RTR2RTS_QP);
++		MLX5_SET(rtr2rts_qp_in, in, qpn, qp->qpn);
++		ret = mlx5_cmd_exec_in(mdev, rtr2rts_qp, in);
++		if (ret)
++			goto err_qp_modify_to_err;
+ 	}
+-
+-	kfree(context);
+ 	return 0;
  
--out:
--	kfree(out);
- 	return param;
+ err_qp_modify_to_err:
+-	mlx5_core_qp_modify(mdev, MLX5_CMD_OP_2ERR_QP, 0, &context, qp);
+-	kfree(context);
++	{
++		u32 in[MLX5_ST_SZ_DW(qp_2err_in)] = {};
++
++		MLX5_SET(qp_2err_in, in, opcode, MLX5_CMD_OP_2ERR_QP);
++		MLX5_SET(qp_2err_in, in, qpn, qp->qpn);
++		mlx5_cmd_exec_in(mdev, qp_2err, in);
++	}
+ 	return ret;
  }
  
+@@ -206,13 +216,11 @@ void mlx5i_uninit_underlay_qp(struct mlx5e_priv *priv)
+ {
+ 	struct mlx5i_priv *ipriv = priv->ppriv;
+ 	struct mlx5_core_dev *mdev = priv->mdev;
+-	struct mlx5_qp_context context;
+-	int err;
++	u32 in[MLX5_ST_SZ_DW(qp_2rst_in)] = {};
+ 
+-	err = mlx5_core_qp_modify(mdev, MLX5_CMD_OP_2RST_QP, 0, &context,
+-				  &ipriv->qp);
+-	if (err)
+-		mlx5_core_err(mdev, "Failed to modify qp 2RST, err: %d\n", err);
++	MLX5_SET(qp_2rst_in, in, opcode, MLX5_CMD_OP_2RST_QP);
++	MLX5_SET(qp_2rst_in, in, qpn, ipriv->qp.qpn);
++	mlx5_cmd_exec_in(mdev, qp_2rst, in);
+ }
+ 
+ #define MLX5_QP_ENHANCED_ULP_STATELESS_MODE 2
 -- 
 2.25.2
 
