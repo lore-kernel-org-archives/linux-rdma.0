@@ -6,100 +6,79 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1016C2BB55
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 02:35:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90B15C2BBC7
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 06:40:58 +0000 (UTC)
 Received: from vger.kernel.org (unknown [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73CB120705
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 02:35:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 73CB120705
+	by mail.kernel.org (Postfix) with ESMTP id 6115F20737
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 06:40:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6115F20737
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-rdma-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728043AbgDMCfy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 12 Apr 2020 22:35:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.18]:41632 "EHLO
+        id S1728654AbgDMGk5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Apr 2020 02:40:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.18]:52678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727520AbgDMCfx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Apr 2020 22:35:53 -0400
+        with ESMTP id S1728650AbgDMGk5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Apr 2020 02:40:57 -0400
 Received: from huawei.com (szxga05-in.huawei.com [45.249.212.191])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 108A7C0A3BE0;
-        Sun, 12 Apr 2020 19:35:54 -0700 (PDT)
-Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 1F5E2A423606824BB29A;
-        Mon, 13 Apr 2020 10:35:51 +0800 (CST)
-Received: from linux-lmwb.huawei.com (10.175.103.112) by
- DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 13 Apr 2020 10:35:41 +0800
-From:   Zou Wei <zou_wei@huawei.com>
-To:     <dennis.dalessandro@intel.com>, <mike.marciniszyn@intel.com>,
-        <dledford@redhat.com>, <jgg@ziepe.ca>,
-        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     Zou Wei <zou_wei@huawei.com>
-Subject: [PATCH -next] IB/qib: remove unused variable ret
-Date:   Mon, 13 Apr 2020 10:42:04 +0800
-Message-ID: <1586745724-107477-1-git-send-email-zou_wei@huawei.com>
-X-Mailer: git-send-email 2.6.2
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28C5DC008673
+        for <linux-rdma@vger.kernel.org>; Sun, 12 Apr 2020 23:40:55 -0700 (PDT)
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 5A70B7E314612ED15DA5;
+        Mon, 13 Apr 2020 14:40:52 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 13 Apr 2020 14:40:42 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH for-next 2/6] RDMA/hns: Optimize hns_roce_v2_set_mac()
+Date:   Mon, 13 Apr 2020 14:40:38 +0800
+Message-ID: <1586760042-40516-3-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1586760042-40516-1-git-send-email-liweihang@huawei.com>
+References: <1586760042-40516-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
-X-Originating-IP: [10.175.103.112]
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch fixes below warnings reported by coccicheck
+From: Lijun Ou <oulijun@huawei.com>
 
-drivers/infiniband/hw/qib/qib_iba7322.c:6878:8-11:
-Unneeded variable: "ret". Return "0" on line 6907
-drivers/infiniband/hw/qib/qib_iba7322.c:2378:5-8:
-Unneeded variable: "ret". Return "0" on line 2513
+Removes the unnecessary memset opertaion and adjust style of some lines in
+hns_roce_v2_set_mac().
 
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Zou Wei <zou_wei@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/qib/qib_iba7322.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 91d64dd..8bcbc88 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -2375,7 +2375,6 @@ static int qib_7322_bringup_serdes(struct qib_pportdata *ppd)
- 	struct qib_devdata *dd = ppd->dd;
- 	u64 val, guid, ibc;
- 	unsigned long flags;
--	int ret = 0;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index a580de9..6816278 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2427,12 +2427,9 @@ static int hns_roce_v2_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port,
+ 	reg_smac_l = *(u32 *)(&addr[0]);
+ 	reg_smac_h = *(u16 *)(&addr[4]);
  
- 	/*
- 	 * SerDes model not in Pd, but still need to
-@@ -2510,7 +2509,7 @@ static int qib_7322_bringup_serdes(struct qib_pportdata *ppd)
- 		val | ERR_MASK_N(IBStatusChanged));
+-	memset(smac_tb, 0, sizeof(*smac_tb));
+-	roce_set_field(smac_tb->tb_idx_rsv,
+-		       CFG_SMAC_TB_IDX_M,
++	roce_set_field(smac_tb->tb_idx_rsv, CFG_SMAC_TB_IDX_M,
+ 		       CFG_SMAC_TB_IDX_S, phy_port);
+-	roce_set_field(smac_tb->vf_smac_h_rsv,
+-		       CFG_SMAC_TB_VF_SMAC_H_M,
++	roce_set_field(smac_tb->vf_smac_h_rsv, CFG_SMAC_TB_VF_SMAC_H_M,
+ 		       CFG_SMAC_TB_VF_SMAC_H_S, reg_smac_h);
+ 	smac_tb->vf_smac_l = cpu_to_le32(reg_smac_l);
  
- 	/* Always zero until we start messing with SerDes for real */
--	return ret;
-+	return 0;
- }
- 
- /**
-@@ -6875,7 +6874,7 @@ static int init_sdma_7322_regs(struct qib_pportdata *ppd)
- 	struct qib_devdata *dd = ppd->dd;
- 	unsigned lastbuf, erstbuf;
- 	u64 senddmabufmask[3] = { 0 };
--	int n, ret = 0;
-+	int n;
- 
- 	qib_write_kreg_port(ppd, krp_senddmabase, ppd->sdma_descq_phys);
- 	qib_sdma_7322_setlengen(ppd);
-@@ -6904,7 +6903,7 @@ static int init_sdma_7322_regs(struct qib_pportdata *ppd)
- 	qib_write_kreg_port(ppd, krp_senddmabufmask0, senddmabufmask[0]);
- 	qib_write_kreg_port(ppd, krp_senddmabufmask1, senddmabufmask[1]);
- 	qib_write_kreg_port(ppd, krp_senddmabufmask2, senddmabufmask[2]);
--	return ret;
-+	return 0;
- }
- 
- /* sdma_lock must be held */
 -- 
-2.6.2
+2.8.1
 
