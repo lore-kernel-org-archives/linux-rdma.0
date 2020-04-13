@@ -2,44 +2,36 @@ Return-Path: <SRS0=wxv4=55=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69735C38A29
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 06:41:00 +0000 (UTC)
-Received: from vger.kernel.org (unknown [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 44A8720737
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 06:41:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 44A8720737
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
-Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-rdma-owner@vger.kernel.org
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC270C2BA19
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 11:58:20 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id A0F642063A
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 11:58:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727536AbgDMGk7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Apr 2020 02:40:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.18]:52676 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728649AbgDMGk6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Apr 2020 02:40:58 -0400
-Received: from huawei.com (szxga05-in.huawei.com [45.249.212.191])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96B34C008651
-        for <linux-rdma@vger.kernel.org>; Sun, 12 Apr 2020 23:40:54 -0700 (PDT)
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 3FD59E514A8E25354649;
-        Mon, 13 Apr 2020 14:40:52 +0800 (CST)
+        id S1729305AbgDML6U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Apr 2020 07:58:20 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:53138 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729304AbgDML6T (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Apr 2020 07:58:19 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 7252B21863D37BDEDE0F;
+        Mon, 13 Apr 2020 19:58:17 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 13 Apr 2020 14:40:42 +0800
+ DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 13 Apr 2020 19:58:10 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 4/6] RDMA/hns: Simplify the cqe code of poll cq
-Date:   Mon, 13 Apr 2020 14:40:40 +0800
-Message-ID: <1586760042-40516-5-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 0/6] RDMA/hns: Support 0 hop addressing
+Date:   Mon, 13 Apr 2020 19:58:05 +0800
+Message-ID: <1586779091-51410-1-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1586760042-40516-1-git-send-email-liweihang@huawei.com>
-References: <1586760042-40516-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -49,180 +41,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+Add support for 0 hop addressing, which means hip08 supports multi-hops
+addressing range from 0 to 3.
 
-Encapsulate codes to get status of cqe into a function and use map table
-instead of switch-case to reduce cyclomatic complexity of
-hns_roce_v2_poll_one().
+Unforunately, there are still some dev_*() in in the initialization process
+of the hns driver in this series that can't be replaced by ibdev_*()
+currently, but they will be modified in subsequent patches.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 130 +++++++++++++----------------
- 1 file changed, 57 insertions(+), 73 deletions(-)
+Xi Wang (6):
+  RDMA/hns: Add support for addressing when hopnum is 0
+  RDMA/hns: Optimize hns buffer allocation flow
+  RDMA/hns: Optimize 0 hop addressing for EQE buffer
+  RDMA/hns: Support 0 hop addressing for WQE buffer
+  RDMA/hns: Support 0 hop addressing for SRQ buffer
+  RDMA/hns: Support 0 hop addressing for CQE buffer
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index e938bd8..c2d2c9e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2954,6 +2954,61 @@ static int hns_roce_v2_sw_poll_cq(struct hns_roce_cq *hr_cq, int num_entries,
- 	return npolled;
- }
- 
-+static void get_cqe_status(struct hns_roce_dev *hr_dev, struct hns_roce_qp *qp,
-+			   struct hns_roce_v2_cqe *cqe, struct ib_wc *wc)
-+{
-+	static struct {
-+		u32 cqe_status;
-+		enum ib_wc_status wc_status;
-+	} map[] = {
-+		{ HNS_ROCE_CQE_V2_SUCCESS, IB_WC_SUCCESS },
-+		{ HNS_ROCE_CQE_V2_LOCAL_LENGTH_ERR, IB_WC_LOC_LEN_ERR },
-+		{ HNS_ROCE_CQE_V2_LOCAL_QP_OP_ERR, IB_WC_LOC_QP_OP_ERR },
-+		{ HNS_ROCE_CQE_V2_LOCAL_PROT_ERR, IB_WC_LOC_PROT_ERR },
-+		{ HNS_ROCE_CQE_V2_WR_FLUSH_ERR, IB_WC_WR_FLUSH_ERR },
-+		{ HNS_ROCE_CQE_V2_MW_BIND_ERR, IB_WC_MW_BIND_ERR },
-+		{ HNS_ROCE_CQE_V2_BAD_RESP_ERR, IB_WC_BAD_RESP_ERR },
-+		{ HNS_ROCE_CQE_V2_LOCAL_ACCESS_ERR, IB_WC_LOC_ACCESS_ERR },
-+		{ HNS_ROCE_CQE_V2_REMOTE_INVAL_REQ_ERR, IB_WC_REM_INV_REQ_ERR },
-+		{ HNS_ROCE_CQE_V2_REMOTE_ACCESS_ERR, IB_WC_REM_ACCESS_ERR },
-+		{ HNS_ROCE_CQE_V2_REMOTE_OP_ERR, IB_WC_REM_OP_ERR },
-+		{ HNS_ROCE_CQE_V2_TRANSPORT_RETRY_EXC_ERR,
-+		  IB_WC_RETRY_EXC_ERR },
-+		{ HNS_ROCE_CQE_V2_RNR_RETRY_EXC_ERR, IB_WC_RNR_RETRY_EXC_ERR },
-+		{ HNS_ROCE_CQE_V2_REMOTE_ABORT_ERR, IB_WC_REM_ABORT_ERR },
-+	};
-+
-+	u32 cqe_status = roce_get_field(cqe->byte_4, V2_CQE_BYTE_4_STATUS_M,
-+					V2_CQE_BYTE_4_STATUS_S);
-+	int i;
-+
-+	wc->status = IB_WC_GENERAL_ERR;
-+	for (i = 0; i < ARRAY_SIZE(map); i++)
-+		if (cqe_status == map[i].cqe_status) {
-+			wc->status = map[i].wc_status;
-+			break;
-+		}
-+
-+	if (wc->status == IB_WC_SUCCESS || wc->status == IB_WC_WR_FLUSH_ERR)
-+		return;
-+
-+	ibdev_err(&hr_dev->ib_dev, "error cqe status 0x%x:\n", cqe_status);
-+	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_NONE, 16, 4, cqe,
-+		       sizeof(*cqe), false);
-+
-+	/*
-+	 * Hip08 hardware cannot flush the WQEs in SQ/RQ if the QP state gets
-+	 * into errored mode. Hence, as a workaround to this hardware
-+	 * limitation, driver needs to assist in flushing. But the flushing
-+	 * operation uses mailbox to convey the QP state to the hardware and
-+	 * which can sleep due to the mutex protection around the mailbox calls.
-+	 * Hence, use the deferred flush for now. Once wc error detected, the
-+	 * flushing operation is needed.
-+	 */
-+	if (!test_and_set_bit(HNS_ROCE_FLUSH_FLAG, &qp->flush_flag))
-+		init_flush_work(hr_dev, qp);
-+}
-+
- static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 				struct hns_roce_qp **cur_qp, struct ib_wc *wc)
- {
-@@ -2965,7 +3020,6 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 	int is_send;
- 	u16 wqe_ctr;
- 	u32 opcode;
--	u32 status;
- 	int qpn;
- 	int ret;
- 
-@@ -2995,7 +3049,6 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		*cur_qp = hr_qp;
- 	}
- 
--	hr_qp = *cur_qp;
- 	wc->qp = &(*cur_qp)->ibqp;
- 	wc->vendor_err = 0;
- 
-@@ -3030,77 +3083,8 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		++wq->tail;
- 	}
- 
--	status = roce_get_field(cqe->byte_4, V2_CQE_BYTE_4_STATUS_M,
--				V2_CQE_BYTE_4_STATUS_S);
--	switch (status & HNS_ROCE_V2_CQE_STATUS_MASK) {
--	case HNS_ROCE_CQE_V2_SUCCESS:
--		wc->status = IB_WC_SUCCESS;
--		break;
--	case HNS_ROCE_CQE_V2_LOCAL_LENGTH_ERR:
--		wc->status = IB_WC_LOC_LEN_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_LOCAL_QP_OP_ERR:
--		wc->status = IB_WC_LOC_QP_OP_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_LOCAL_PROT_ERR:
--		wc->status = IB_WC_LOC_PROT_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_WR_FLUSH_ERR:
--		wc->status = IB_WC_WR_FLUSH_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_MW_BIND_ERR:
--		wc->status = IB_WC_MW_BIND_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_BAD_RESP_ERR:
--		wc->status = IB_WC_BAD_RESP_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_LOCAL_ACCESS_ERR:
--		wc->status = IB_WC_LOC_ACCESS_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_REMOTE_INVAL_REQ_ERR:
--		wc->status = IB_WC_REM_INV_REQ_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_REMOTE_ACCESS_ERR:
--		wc->status = IB_WC_REM_ACCESS_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_REMOTE_OP_ERR:
--		wc->status = IB_WC_REM_OP_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_TRANSPORT_RETRY_EXC_ERR:
--		wc->status = IB_WC_RETRY_EXC_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_RNR_RETRY_EXC_ERR:
--		wc->status = IB_WC_RNR_RETRY_EXC_ERR;
--		break;
--	case HNS_ROCE_CQE_V2_REMOTE_ABORT_ERR:
--		wc->status = IB_WC_REM_ABORT_ERR;
--		break;
--	default:
--		wc->status = IB_WC_GENERAL_ERR;
--		break;
--	}
--
--	/*
--	 * Hip08 hardware cannot flush the WQEs in SQ/RQ if the QP state gets
--	 * into errored mode. Hence, as a workaround to this hardware
--	 * limitation, driver needs to assist in flushing. But the flushing
--	 * operation uses mailbox to convey the QP state to the hardware and
--	 * which can sleep due to the mutex protection around the mailbox calls.
--	 * Hence, use the deferred flush for now. Once wc error detected, the
--	 * flushing operation is needed.
--	 */
--	if (wc->status != IB_WC_SUCCESS &&
--	    wc->status != IB_WC_WR_FLUSH_ERR) {
--		ibdev_err(&hr_dev->ib_dev, "error cqe status is: 0x%x\n",
--			  status & HNS_ROCE_V2_CQE_STATUS_MASK);
--
--		if (!test_and_set_bit(HNS_ROCE_FLUSH_FLAG, &hr_qp->flush_flag))
--			init_flush_work(hr_dev, hr_qp);
--
--		return 0;
--	}
--
--	if (wc->status == IB_WC_WR_FLUSH_ERR)
-+	get_cqe_status(hr_dev, *cur_qp, cqe, wc);
-+	if (wc->status != IB_WC_SUCCESS)
- 		return 0;
- 
- 	if (is_send) {
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  | 103 +++----
+ drivers/infiniband/hw/hns/hns_roce_cq.c     | 351 +++++++---------------
+ drivers/infiniband/hw/hns/hns_roce_device.h | 100 ++++---
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |   9 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.h    |   5 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  93 +++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 261 ++++++-----------
+ drivers/infiniband/hw/hns/hns_roce_mr.c     | 431 ++++++++++++++++++++++++++--
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 182 +++---------
+ drivers/infiniband/hw/hns/hns_roce_srq.c    | 368 +++++++++---------------
+ 10 files changed, 954 insertions(+), 949 deletions(-)
+
 -- 
 2.8.1
 
