@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A1EFC2BA19
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:23:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1730EC352BE
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:23:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64C0F20774
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:23:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC04E20786
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:23:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586787803;
-	bh=6/8Giw7vwlpu0qHxdCH2Uw70MOy7QP71wZz64SFdEY4=;
+	s=default; t=1586787811;
+	bh=3iK2ZHpN3qGB9DycGIZRHB0oW4VSXZHM+bWeGsDG6d0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=U9JrVL68ZIxwo7YHJytICwNhwc3QqMMyvdFDqxO3gynhqv0yzNhSkCKwP3YNNe+Cr
-	 MdbeZL81sf4YXJep0c87+FPupDeHpn1G6nnCUtby8on5tTyoQWmecwWH0il9QDxWsd
-	 iU3oSGxmH/EaljLy20t0b8yR+lH04FnZojeDJ8FM=
+	b=HZUtB/tEXJZrSov4eh7YeXWcnw4w1/vL+sxUkOrizkUPLFTi+z4ojjJGob6blOunz
+	 jugmE/+I3gPgFIzVBTPLJqBn4DNVcqOiT8ejgjOxeV69pWx6++T1WDqkFUX9nSKG9p
+	 nJ+Rez5Mi5fuRrScsuqPRKdmdV0JBRlp69RXLH94=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730622AbgDMOXW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Apr 2020 10:23:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50710 "EHLO mail.kernel.org"
+        id S1730644AbgDMOX2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Apr 2020 10:23:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730593AbgDMOXR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 13 Apr 2020 10:23:17 -0400
+        id S1730636AbgDMOXY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Apr 2020 10:23:24 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0D6A720774;
-        Mon, 13 Apr 2020 14:23:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 171132075E;
+        Mon, 13 Apr 2020 14:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586787796;
-        bh=6/8Giw7vwlpu0qHxdCH2Uw70MOy7QP71wZz64SFdEY4=;
+        s=default; t=1586787803;
+        bh=3iK2ZHpN3qGB9DycGIZRHB0oW4VSXZHM+bWeGsDG6d0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hlqmrCwqaN/J1NUdniJULSUexKS2n7wNVl6jkwXrKZh+nnoS/GdoiXXb+qaCxmT/3
-         NKQdV2oSxIP3mzqni158jh8Ikgn61H5rqLcvFpuN9u6BpXhcYE2aerUZT8UWJAAhBB
-         +1KEzItp6Xf/p03CKfSfIYt/9/ip1hVVmXwGGJ30=
+        b=KH/78UGeKneEMblADYzf/wXwPn+u3+gJLxCvCFJJF8iAUdCYRsSbFTWbeiZYZoB9X
+         Tkr/6NJPqU9t2sfM5Qg+RCvJFlqJ+OvE4xRWEBQpvSH6dn4cxgh3DntsGqk3/8N7te
+         LEIAeUGRZWISUUJ9NpMylRWouI91f8jkLgGqal7o=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 01/13] net/mlx5: Provide simplified command interfaces
-Date:   Mon, 13 Apr 2020 17:22:56 +0300
-Message-Id: <20200413142308.936946-2-leon@kernel.org>
+Subject: [PATCH mlx5-next 03/13] net/mlx5: Remove empty QP and CQ events handlers
+Date:   Mon, 13 Apr 2020 17:22:58 +0300
+Message-Id: <20200413142308.936946-4-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200413142308.936946-1-leon@kernel.org>
 References: <20200413142308.936946-1-leon@kernel.org>
@@ -58,42 +58,107 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Many mlx5_cmd_exec() callers are not interested in the output from that
-command or have standard in/out structures. Those callers simply allocate
-those structure on the stack and use sizeof() to provide in/out arguments.
-
-In this naive approach provide simplified versions of mlx5_cmd_exec().
+The QP and CQ events functions do nothing except printing some debug
+messages. There is nothing to do with this knowledge and such events,
+so remove them.
 
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/driver.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ .../ethernet/mellanox/mlx5/core/fpga/conn.c   | 19 -------------------
+ .../mellanox/mlx5/core/steering/dr_send.c     | 14 --------------
+ 2 files changed, 33 deletions(-)
 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 7b81b512d116..0e44e889577a 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -903,6 +903,19 @@ int mlx5_cmd_exec_cb(struct mlx5_async_ctx *ctx, void *in, int in_size,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+index 7c3e7232852e..1d49894399af 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+@@ -362,23 +362,6 @@ static void mlx5_fpga_conn_arm_cq(struct mlx5_fpga_conn *conn)
+ 		    conn->fdev->conn_res.uar->map, conn->cq.wq.cc);
+ }
  
- int mlx5_cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
- 		  int out_size);
-+
-+#define mlx5_cmd_exec_inout(dev, ifc_cmd, in, out)                             \
-+	({                                                                     \
-+		mlx5_cmd_exec(dev, in, MLX5_ST_SZ_BYTES(ifc_cmd##_in), out,    \
-+			      MLX5_ST_SZ_BYTES(ifc_cmd##_out));                \
-+	})
-+
-+#define mlx5_cmd_exec_in(dev, ifc_cmd, in)                                     \
-+	({                                                                     \
-+		u32 _out[MLX5_ST_SZ_DW(ifc_cmd##_out)] = {};                   \
-+		mlx5_cmd_exec_inout(dev, ifc_cmd, in, _out);                   \
-+	})
-+
- int mlx5_cmd_exec_polling(struct mlx5_core_dev *dev, void *in, int in_size,
- 			  void *out, int out_size);
- void mlx5_cmd_mbox_status(void *out, u8 *status, u32 *syndrome);
+-static void mlx5_fpga_conn_cq_event(struct mlx5_core_cq *mcq,
+-				    enum mlx5_event event)
+-{
+-	struct mlx5_fpga_conn *conn;
+-
+-	conn = container_of(mcq, struct mlx5_fpga_conn, cq.mcq);
+-	mlx5_fpga_warn(conn->fdev, "CQ event %u on CQ #%u\n", event, mcq->cqn);
+-}
+-
+-static void mlx5_fpga_conn_event(struct mlx5_core_qp *mqp, int event)
+-{
+-	struct mlx5_fpga_conn *conn;
+-
+-	conn = container_of(mqp, struct mlx5_fpga_conn, qp.mqp);
+-	mlx5_fpga_warn(conn->fdev, "QP event %u on QP #%u\n", event, mqp->qpn);
+-}
+-
+ static inline void mlx5_fpga_conn_cqes(struct mlx5_fpga_conn *conn,
+ 				       unsigned int budget)
+ {
+@@ -493,7 +476,6 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
+ 	*conn->cq.mcq.arm_db    = 0;
+ 	conn->cq.mcq.vector     = 0;
+ 	conn->cq.mcq.comp       = mlx5_fpga_conn_cq_complete;
+-	conn->cq.mcq.event      = mlx5_fpga_conn_cq_event;
+ 	conn->cq.mcq.irqn       = irqn;
+ 	conn->cq.mcq.uar        = fdev->conn_res.uar;
+ 	tasklet_init(&conn->cq.tasklet, mlx5_fpga_conn_cq_tasklet,
+@@ -607,7 +589,6 @@ static int mlx5_fpga_conn_create_qp(struct mlx5_fpga_conn *conn,
+ 		goto err_sq_bufs;
+ 
+ 	conn->qp.mqp.qpn = MLX5_GET(create_qp_out, out, qpn);
+-	conn->qp.mqp.event = mlx5_fpga_conn_event;
+ 	mlx5_fpga_dbg(fdev, "Created QP #0x%x\n", conn->qp.mqp.qpn);
+ 
+ 	goto out;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
+index 88bc94a8b8f1..690e4181db4c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
+@@ -100,11 +100,6 @@ static int dr_poll_cq(struct mlx5dr_cq *dr_cq, int ne)
+ 	return err == CQ_POLL_ERR ? err : npolled;
+ }
+ 
+-static void dr_qp_event(struct mlx5_core_qp *mqp, int event)
+-{
+-	pr_info("DR QP event %u on QP #%u\n", event, mqp->qpn);
+-}
+-
+ static struct mlx5dr_qp *dr_create_rc_qp(struct mlx5_core_dev *mdev,
+ 					 struct dr_qp_init_attr *attr)
+ {
+@@ -187,7 +182,6 @@ static struct mlx5dr_qp *dr_create_rc_qp(struct mlx5_core_dev *mdev,
+ 	kfree(in);
+ 	if (err)
+ 		goto err_in;
+-	dr_qp->mqp.event = dr_qp_event;
+ 	dr_qp->uar = attr->uar;
+ 
+ 	return dr_qp;
+@@ -695,12 +689,6 @@ static int dr_prepare_qp_to_rts(struct mlx5dr_domain *dmn)
+ 	return 0;
+ }
+ 
+-static void dr_cq_event(struct mlx5_core_cq *mcq,
+-			enum mlx5_event event)
+-{
+-	pr_info("CQ event %u on CQ #%u\n", event, mcq->cqn);
+-}
+-
+ static struct mlx5dr_cq *dr_create_cq(struct mlx5_core_dev *mdev,
+ 				      struct mlx5_uars_page *uar,
+ 				      size_t ncqe)
+@@ -761,8 +749,6 @@ static struct mlx5dr_cq *dr_create_cq(struct mlx5_core_dev *mdev,
+ 	pas = (__be64 *)MLX5_ADDR_OF(create_cq_in, in, pas);
+ 	mlx5_fill_page_frag_array(&cq->wq_ctrl.buf, pas);
+ 
+-	cq->mcq.event = dr_cq_event;
+-
+ 	err = mlx5_core_create_cq(mdev, &cq->mcq, in, inlen, out, sizeof(out));
+ 	kvfree(in);
+ 
 -- 
 2.25.2
 
