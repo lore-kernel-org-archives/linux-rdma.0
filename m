@@ -2,107 +2,61 @@ Return-Path: <SRS0=wxv4=55=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80FD9C2BA2B
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 253BAC2BB1D
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 19:29:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 542AC2073E
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 14:24:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586787879;
-	bh=sq71uW2CkHp8EG7eRA81OUsBnQrue0wiZ0MUxxXM7oU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=qJ+YCZojLyU6mitTy3T+slhIJ/DXqyty0owbIBR9HjpW+NNmvZ9HxCZuBkBs1w/uQ
-	 yu3+u9tWrh2Wq5ZNax7OFghOhecYuw0QC1xW2PpDnR26bZBz/v3bs9GGi7e5Ona9CQ
-	 3Aw333/Jh72qwBhPOrT9Vusg2DtGT2cAys/P84Lk=
+	by mail.kernel.org (Postfix) with ESMTP id EB66C20732
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Apr 2020 19:29:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730689AbgDMOYe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Apr 2020 10:24:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51348 "EHLO mail.kernel.org"
+        id S1733163AbgDMT3J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Apr 2020 15:29:09 -0400
+Received: from fieldses.org ([173.255.197.46]:46268 "EHLO fieldses.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730688AbgDMOXx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 13 Apr 2020 10:23:53 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 22E052078A;
-        Mon, 13 Apr 2020 14:23:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586787832;
-        bh=sq71uW2CkHp8EG7eRA81OUsBnQrue0wiZ0MUxxXM7oU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rePDZo1M081gFAsn0znsFGqz/PeLdflRwPcQQ8cBkpsSGHBeOZMlRra0GgUGbffT6
-         +XqUHBoKD8Xqog1QywgcE01m9DIoBORBF3hiW70zrRKYnKDvp+P5l7c9sI7yP3/sfg
-         9Facgt92/a8oMBpPNVfu4EFGrG5arI3AHP9+7TFk=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 12/13] RDMA/mlx5: Alphabetically sort build artifacts
-Date:   Mon, 13 Apr 2020 17:23:07 +0300
-Message-Id: <20200413142308.936946-13-leon@kernel.org>
-X-Mailer: git-send-email 2.25.2
-In-Reply-To: <20200413142308.936946-1-leon@kernel.org>
-References: <20200413142308.936946-1-leon@kernel.org>
+        id S1728291AbgDMT3I (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Apr 2020 15:29:08 -0400
+Received: by fieldses.org (Postfix, from userid 2815)
+        id 5B3331C22; Mon, 13 Apr 2020 15:29:07 -0400 (EDT)
+Date:   Mon, 13 Apr 2020 15:29:07 -0400
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Chuck Lever <chuck.lever@oracle.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH v1 3/3] svcrdma: Fix leak of svc_rdma_recv_ctxt objects
+Message-ID: <20200413192907.GA23596@fieldses.org>
+References: <20200407190938.24045.64947.stgit@klimt.1015granger.net>
+ <20200407191106.24045.88035.stgit@klimt.1015granger.net>
+ <20200408060242.GB3310@unreal>
+ <D3CFDCAA-589C-4B3F-B769-099BF775D098@oracle.com>
+ <20200409174750.GK11886@ziepe.ca>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200409174750.GK11886@ziepe.ca>
+User-Agent: Mutt/1.5.21 (2010-09-15)
+From:   bfields@fieldses.org (J. Bruce Fields)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Thu, Apr 09, 2020 at 02:47:50PM -0300, Jason Gunthorpe wrote:
+> On Thu, Apr 09, 2020 at 10:33:32AM -0400, Chuck Lever wrote:
+> > The commit ID is what automation should key off of. The short
+> > description is only for human consumption. 
+> 
+> Right, so if the actual commit message isn't included so humans can
+> read it then what was the point of including anything?
 
-Sort .o objects in makefile to make addition of new object
-less cumbersome.
+Personally as a human reading commits in a terminal window I prefer the
+abbreviated form.
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/Makefile | 27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+I haven't been doing the redundant parentheses and quotes either.  Was
+that dreamt up by an Arlo Guthrie fan?  ("KID, HAVE YOU REHABILITATED
+YOURSELF?")
 
-diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
-index 2a334800f109..375b341be8a1 100644
---- a/drivers/infiniband/hw/mlx5/Makefile
-+++ b/drivers/infiniband/hw/mlx5/Makefile
-@@ -1,11 +1,24 @@
- # SPDX-License-Identifier: GPL-2.0-only
--obj-$(CONFIG_MLX5_INFINIBAND)	+= mlx5_ib.o
-+obj-$(CONFIG_MLX5_INFINIBAND) += mlx5_ib.o
-+
-+mlx5_ib-y := ah.o \
-+	     cmd.o \
-+	     cong.o \
-+	     cq.o \
-+	     doorbell.o \
-+	     gsi.o \
-+	     ib_virt.o \
-+	     mad.o \
-+	     main.o \
-+	     mem.o \
-+	     mr.o \
-+	     qp.o \
-+	     restrack.o \
-+	     srq.o \
-+	     srq_cmd.o
- 
--mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq_cmd.o \
--		srq.o mr.o ah.o mad.o gsi.o ib_virt.o cmd.o \
--		cong.o restrack.o
- mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
- mlx5_ib-$(CONFIG_MLX5_ESWITCH) += ib_rep.o
--mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += devx.o
--mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += flow.o
--mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += qos.o
-+mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += devx.o \
-+					    flow.o \
-+					    qos.o
--- 
-2.25.2
-
+--b.
