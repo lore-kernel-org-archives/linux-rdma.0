@@ -2,104 +2,108 @@ Return-Path: <SRS0=4UEG=56=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2707C352BE
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Apr 2020 16:17:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2429BC2BB85
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Apr 2020 16:54:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A441320732
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Apr 2020 16:17:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED0422076A
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Apr 2020 16:54:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1586883256;
+	bh=dzEvyUMT+6iAL0bVATxxLcY08y7xtxW1DkpC2XHSTsk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=TDVg4c83hEEC2KN5E1F1BjbVyJI6LIunlxh3qp4AoSIYsQsdJuxXmLnJ48JttB4dV
+	 CH2TeyDqMcftCliAJ6IzjKdKVmamYrWGk08TvQe7opQDcNBNa4uiOPtel8GSJ5c79C
+	 OV7hvczw1OZ8HpVTaXVQ3+JYOIvY5EX/fRf3I2x8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390952AbgDNQRr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Apr 2020 12:17:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55466 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1733258AbgDNQRo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 14 Apr 2020 12:17:44 -0400
-X-Greylist: delayed 3880 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 14 Apr 2020 09:17:44 PDT
-Received: from fieldses.org (fieldses.org [IPv6:2600:3c00::f03c:91ff:fe50:41d6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5CDEC061A0C;
-        Tue, 14 Apr 2020 09:17:44 -0700 (PDT)
-Received: by fieldses.org (Postfix, from userid 2815)
-        id 4AA271C7A; Tue, 14 Apr 2020 12:17:44 -0400 (EDT)
-Date:   Tue, 14 Apr 2020 12:17:44 -0400
-From:   "J. Bruce Fields" <bfields@fieldses.org>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Chuck Lever <chuck.lever@oracle.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v1 3/3] svcrdma: Fix leak of svc_rdma_recv_ctxt objects
-Message-ID: <20200414161744.GB9796@fieldses.org>
-References: <20200407190938.24045.64947.stgit@klimt.1015granger.net>
- <20200407191106.24045.88035.stgit@klimt.1015granger.net>
- <20200408060242.GB3310@unreal>
- <D3CFDCAA-589C-4B3F-B769-099BF775D098@oracle.com>
- <20200409174750.GK11886@ziepe.ca>
- <20200413192907.GA23596@fieldses.org>
- <20200414121931.GA5100@ziepe.ca>
- <20200414151303.GA9796@fieldses.org>
- <20200414152016.GE5100@ziepe.ca>
+        id S2391176AbgDNQyN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Apr 2020 12:54:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55298 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2407506AbgDNQtO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 14 Apr 2020 12:49:14 -0400
+Received: from mail.kernel.org (ip5f5ad4d8.dynamic.kabel-deutschland.de [95.90.212.216])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id CC83F217D8;
+        Tue, 14 Apr 2020 16:49:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1586882943;
+        bh=dzEvyUMT+6iAL0bVATxxLcY08y7xtxW1DkpC2XHSTsk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=M6f+qO1F7fd78vZlsjVqrEwdHtkET9vk6DZSuQ/0NJCSFiLvrmjaNVwbaQQgj7sWi
+         sgU/AxxQ//yfbKVcK7exxwnvYRn3Ej43oj2VFmeUwSOpgKxbjrmqUfNMsdmExzc/MV
+         4KErJoL22upSdAJzffOcy7jHkTfMgxrrJUD7qwJY=
+Received: from mchehab by mail.kernel.org with local (Exim 4.92.3)
+        (envelope-from <mchehab@kernel.org>)
+        id 1jOOk9-0068mE-33; Tue, 14 Apr 2020 18:49:01 +0200
+From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH v2 17/33] docs: infiniband: verbs.c: fix some documentation warnings
+Date:   Tue, 14 Apr 2020 18:48:43 +0200
+Message-Id: <4c5466d0f450c5a9952138150c3485740b37f9c5.1586881715.git.mchehab+huawei@kernel.org>
+X-Mailer: git-send-email 2.25.2
+In-Reply-To: <cover.1586881715.git.mchehab+huawei@kernel.org>
+References: <cover.1586881715.git.mchehab+huawei@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200414152016.GE5100@ziepe.ca>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Apr 14, 2020 at 12:20:16PM -0300, Jason Gunthorpe wrote:
-> On Tue, Apr 14, 2020 at 11:13:03AM -0400, J. Bruce Fields wrote:
-> > On Tue, Apr 14, 2020 at 09:19:31AM -0300, Jason Gunthorpe wrote:
-> > > On Mon, Apr 13, 2020 at 03:29:07PM -0400, J. Bruce Fields wrote:
-> > > > On Thu, Apr 09, 2020 at 02:47:50PM -0300, Jason Gunthorpe wrote:
-> > > > > On Thu, Apr 09, 2020 at 10:33:32AM -0400, Chuck Lever wrote:
-> > > > > > The commit ID is what automation should key off of. The short
-> > > > > > description is only for human consumption. 
-> > > > > 
-> > > > > Right, so if the actual commit message isn't included so humans can
-> > > > > read it then what was the point of including anything?
-> > > > 
-> > > > Personally as a human reading commits in a terminal window I prefer the
-> > > > abbreviated form.
-> > > 
-> > > Frankly, I think they are useless, picking one of yours at random:
-> > > 
-> > >     Fixes: 4e48f1cccab3 "NFSD: allow inter server COPY to have... "
-> > > 
-> > > And sadly the '4e48f1cccab3' commit doesn't appear in Linus's tree so
-> > 
-> > Ow, apologies.  Looks like I rebased after writing that Fixes tag.
-> > 
-> > I wonder if it's possible to make git warn....
-> > 
-> > Looks like a pre-rebase hook could check the branch being rebased for
-> > "Fixes:" lines referencing commits on the rebased branch.
-> 
-> I have some silly stuff to check patches before pushing them and it
-> includes checking the fixes lines because they are very often
-> wrong, both with wrong commit IDs and wrong subjects!
+Parsing this file with kernel-doc produce some warnings:
 
-I'd be interested in seeing it.
+	./drivers/infiniband/core/verbs.c:2579: WARNING: Unexpected indentation.
+	./drivers/infiniband/core/verbs.c:2581: WARNING: Block quote ends without a blank line; unexpected unindent.
+	./drivers/infiniband/core/verbs.c:2613: WARNING: Unexpected indentation.
+	./drivers/infiniband/core/verbs.c:2579: WARNING: Unexpected indentation.
+	./drivers/infiniband/core/verbs.c:2581: WARNING: Block quote ends without a blank line; unexpected unindent.
+	./drivers/infiniband/core/verbs.c:2613: WARNING: Unexpected indentation.
 
-> linux-next now automates complaining about them, but perhaps not
-> following the standard format defeats that..
+Address them by adding an extra blank line and converting the
+parameters on one of the arguments to a table.
 
-It's managed before:
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+---
+ drivers/infiniband/core/verbs.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-	https://lore.kernel.org/r/20190704074048.65556740@canb.auug.org.au
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 56a71337112c..3bfadd8effcc 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2574,6 +2574,7 @@ EXPORT_SYMBOL(ib_map_mr_sg_pi);
+  * @page_size:     page vector desired page size
+  *
+  * Constraints:
++ *
+  * - The first sg element is allowed to have an offset.
+  * - Each sg element must either be aligned to page_size or virtually
+  *   contiguous to the previous element. In case an sg element has a
+@@ -2607,10 +2608,12 @@ EXPORT_SYMBOL(ib_map_mr_sg);
+  * @mr:            memory region
+  * @sgl:           dma mapped scatterlist
+  * @sg_nents:      number of entries in sg
+- * @sg_offset_p:   IN:  start offset in bytes into sg
+- *                 OUT: offset in bytes for element n of the sg of the first
++ * @sg_offset_p:   ==== =======================================================
++ *                 IN   start offset in bytes into sg
++ *                 OUT  offset in bytes for element n of the sg of the first
+  *                      byte that has not been processed where n is the return
+  *                      value of this function.
++ *                 ==== =======================================================
+  * @set_page:      driver page assignment function pointer
+  *
+  * Core service helper for drivers to convert the largest
+-- 
+2.25.2
 
-though admittedly I was breaking the rule in a different way.  I can't
-even be consistently rebellious.
-
-> Use 'git merge-base --is-ancestor fixes_id linus/master' to check
-> them.
-
-Oh, yeah, that's better than what I was trying to do, thanks.
-
---b.
