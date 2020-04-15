@@ -2,95 +2,101 @@ Return-Path: <SRS0=HR9Y=57=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,HK_RANDOM_FROM,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA39AC38A2B
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 08:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44953C2BA19
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 08:45:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB0CA20857
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 08:15:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3E5F20784
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 08:45:53 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=fudan.edu.cn header.i=@fudan.edu.cn header.b="FnaY+mLz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2635697AbgDOIO7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Apr 2020 04:14:59 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:47870 "EHLO huawei.com"
+        id S2894934AbgDOIpo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Apr 2020 04:45:44 -0400
+Received: from mail.fudan.edu.cn ([202.120.224.73]:55851 "EHLO fudan.edu.cn"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2635696AbgDOIOt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Apr 2020 04:14:49 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 3D8C7DDA63C6E070E1D4;
-        Wed, 15 Apr 2020 16:14:46 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 15 Apr 2020 16:14:35 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 3/6] RDMA/hns: Simplify the qp state convert code
-Date:   Wed, 15 Apr 2020 16:14:32 +0800
-Message-ID: <1586938475-37049-4-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1586938475-37049-1-git-send-email-liweihang@huawei.com>
-References: <1586938475-37049-1-git-send-email-liweihang@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+        id S2894946AbgDOIpk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Apr 2020 04:45:40 -0400
+X-Greylist: delayed 347 seconds by postgrey-1.27 at vger.kernel.org; Wed, 15 Apr 2020 04:45:37 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fudan.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:Date:
+        Message-Id; bh=GWmYcw7XC7IjlHTJ0QntyeskKodgxjd4VQ4vyq5j3uk=; b=F
+        naY+mLzuCCin6qplnrO94qV3Zz9GPzZjGt5ZldrFuBd6nsUUebK0ki5ZGn5l8ql5
+        JhX8SQqLRoWtiW5UJUV4SfIUY7ugi/IjVgnPQdNsHSRMx6+hpyjHoVTFxc0qVrkJ
+        fJAWqqT4h4u+saFlo0JuiK3xrzqOXxAsxlmOHroKWU=
+Received: from localhost.localdomain (unknown [120.229.255.108])
+        by app2 (Coremail) with SMTP id XQUFCgCXnoJPyJZe7FhZAA--.847S3;
+        Wed, 15 Apr 2020 16:39:44 +0800 (CST)
+From:   Xiyu Yang <xiyuyang19@fudan.edu.cn>
+To:     Bernard Metzler <bmt@zurich.ibm.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     yuanxzhang@fudan.edu.cn, kjlu@umn.edu,
+        Xiyu Yang <xiyuyang19@fudan.edu.cn>,
+        Xin Tan <tanxin.ctf@gmail.com>
+Subject: [PATCH] RDMA/siw: Fix potential siw_mem refcnt leak in nr_add_node
+Date:   Wed, 15 Apr 2020 16:39:08 +0800
+Message-Id: <1586939949-69856-1-git-send-email-xiyuyang19@fudan.edu.cn>
+X-Mailer: git-send-email 2.7.4
+X-CM-TRANSID: XQUFCgCXnoJPyJZe7FhZAA--.847S3
+X-Coremail-Antispam: 1UD129KBjvJXoW7Cry3tF4DWw1xWF15uFyrCrg_yoW8JFy3p3
+        y7Jw4qyF1UJFW7Gw4ftayq9FZ7ta93W34UK39xta45uFn3X3yY9wn8tr17WryDJry8CF4I
+        qryFva9YkFZ8GaUanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUUvq14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+        rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+        1l84ACjcxK6xIIjxv20xvE14v26w1j6s0DM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26rxl
+        6s0DM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
+        0DM2vYz4IE04k24VAvwVAKI4IrM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
+        64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8Jw
+        Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAG
+        YxC7MxkIecxEwVAFwVW8ZwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8Jw
+        C20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAF
+        wI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjx
+        v20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG6r4j6FyUMIIF0xvEx4A2
+        jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0x
+        ZFpf9x0JU6Hq7UUUUU=
+X-CM-SenderInfo: irzsiiysuqikmy6i3vldqovvfxof0/
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+siw_fastreg_mr() invokes siw_mem_id2obj(), which returns a local
+reference of the siw_mem object to "mem" with increased refcnt.
+When siw_fastreg_mr() returns, "mem" becomes invalid, so the refcount
+should be decreased to keep refcount balanced.
 
-Use type map table to reduce the cyclomatic complexity.
+The issue happens in one error path of siw_fastreg_mr(). When "base_mr"
+equals to NULL but "mem" is not NULL, the function forgets to decrease
+the refcnt increased by siw_mem_id2obj() and causes a refcnt leak.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
+Fix this issue by calling siw_mem_put() on this error path when mem is
+not NULL.
+
+Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 6816278..d95af32 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4540,19 +4540,20 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 	return ret;
- }
+diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
+index ae92c8080967..86044a44b83b 100644
+--- a/drivers/infiniband/sw/siw/siw_qp_tx.c
++++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
+@@ -926,6 +926,8 @@ static int siw_fastreg_mr(struct ib_pd *pd, struct siw_sqe *sqe)
+ 	siw_dbg_pd(pd, "STag 0x%08x\n", sqe->rkey);
  
--static inline enum ib_qp_state to_ib_qp_st(enum hns_roce_v2_qp_state state)
--{
--	switch (state) {
--	case HNS_ROCE_QP_ST_RST:	return IB_QPS_RESET;
--	case HNS_ROCE_QP_ST_INIT:	return IB_QPS_INIT;
--	case HNS_ROCE_QP_ST_RTR:	return IB_QPS_RTR;
--	case HNS_ROCE_QP_ST_RTS:	return IB_QPS_RTS;
--	case HNS_ROCE_QP_ST_SQ_DRAINING:
--	case HNS_ROCE_QP_ST_SQD:	return IB_QPS_SQD;
--	case HNS_ROCE_QP_ST_SQER:	return IB_QPS_SQE;
--	case HNS_ROCE_QP_ST_ERR:	return IB_QPS_ERR;
--	default:			return -1;
--	}
-+static int to_ib_qp_st(enum hns_roce_v2_qp_state state)
-+{
-+	static const enum ib_qp_state map[] = {
-+		[HNS_ROCE_QP_ST_RST] = IB_QPS_RESET,
-+		[HNS_ROCE_QP_ST_INIT] = IB_QPS_INIT,
-+		[HNS_ROCE_QP_ST_RTR] = IB_QPS_RTR,
-+		[HNS_ROCE_QP_ST_RTS] = IB_QPS_RTS,
-+		[HNS_ROCE_QP_ST_SQD] = IB_QPS_SQD,
-+		[HNS_ROCE_QP_ST_SQER] = IB_QPS_SQE,
-+		[HNS_ROCE_QP_ST_ERR] = IB_QPS_ERR,
-+		[HNS_ROCE_QP_ST_SQ_DRAINING] = IB_QPS_SQD
-+	};
-+
-+	return (state < ARRAY_SIZE(map)) ? map[state] : -1;
- }
- 
- static int hns_roce_v2_query_qpc(struct hns_roce_dev *hr_dev,
+ 	if (unlikely(!mem || !base_mr)) {
++		if (mem)
++			siw_mem_put(mem);
+ 		pr_warn("siw: fastreg: STag 0x%08x unknown\n", sqe->rkey);
+ 		return -EINVAL;
+ 	}
 -- 
-2.8.1
+2.7.4
 
