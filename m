@@ -2,71 +2,71 @@ Return-Path: <SRS0=HR9Y=57=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-14.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D54FC38A2C
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF772C3815B
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CE8F20775
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB33A20857
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="X5wK/PxV"
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="IhRTjTDz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2895420AbgDOJXV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Apr 2020 05:23:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47716 "EHLO
+        id S2895426AbgDOJXh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Apr 2020 05:23:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2895399AbgDOJXI (ORCPT
+        by vger.kernel.org with ESMTP id S2895417AbgDOJXT (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Apr 2020 05:23:08 -0400
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B419C03C1A8
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:08 -0700 (PDT)
-Received: by mail-wm1-x342.google.com with SMTP id y24so18070708wma.4
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:08 -0700 (PDT)
+        Wed, 15 Apr 2020 05:23:19 -0400
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80EFBC03C1AD
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:18 -0700 (PDT)
+Received: by mail-wr1-x442.google.com with SMTP id f13so18216890wrm.13
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=1/LuLDh9YK1dQOSDUu8eDD6LepxCi9Ej7sBpxBWHxIk=;
-        b=X5wK/PxV+v0PhlIErquewZDnjcAjz7CvIjJUl395sqLbV3XoQih+s3aSxmxQgaP7M8
-         hPvkQpw2BXLAmZdQ/IKct6+7qRTCuRU6m6VpH3BZR8R2pA3uthF+JuQmPT3nYAItH0bY
-         fJ9yAVyFtr521GEoD6tV/KJ7xkg+VPcf3d63rzHPbyBzcJl8MxdMLVUVSpzjLH8hb9wj
-         S7aoOuul8eOTHVpU04fdBR5CYW9mryny35sBI7gQU7uOAOf34x4WsHIy+4jkaA1BqUtp
-         A7qz5kAgdJ4A8ZCHWp0fMedLCWtqGwcyu6owkc9rGmZztxsAHgCOygkgBsULrQf4K259
-         Z/WQ==
+        bh=+lzbi8aK38U3+DnvnY6rCKYXK2X3LSq1Bs0xPjQHnEY=;
+        b=IhRTjTDz7EJWFq9QmsxzQIXFo/Rz3p94HTg5QUIce2pHs0vR3K/yQlWoDkJjT7He0Z
+         xRnivZ/Znkw7AR7UZS6EvUSTJY9YeFboUWxVV1VjtXTiprve5IVpyGRptJE+8C3tBH0/
+         tgkpnAjMv3N4JiZRQ5Mr+W+Fji7QVJn1rwXgHnJbYwWK6V/GoCpM/Ci6daZx62Moh+Lm
+         IRLgxB7s3VdZUjGuqH70CDCrUcxhyqHZXGuASdLZca4OrXD017gWVnF+KU585tMXB+YE
+         24sCXYIC4zPEfv/B6eH+75F7xLSJ/p6tY2Kod7H0tPDoR2GZNZ6yhp6Rh6eYbUAzQOhT
+         OwvQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=1/LuLDh9YK1dQOSDUu8eDD6LepxCi9Ej7sBpxBWHxIk=;
-        b=WHgfWhyOtugixUXRvGn2VkAZjuuvQVngzG3QevdUY93TxycB3W3/z8szBS3XosN3X1
-         OuOa+iG8hlnog10CtPfxSOwka35CIr1H6lvNeNfoLU/9qxDPxXPnTeH0GQNU4zcJNDub
-         t/Xla/dkIIbgF5hspJxuxdNq4Ousuvc2pNJ8wJXtaakymG6AFvG2trRnx9oDEMkW9DhW
-         Hxf7ZkhTq8Cw8HjjIMNHyu1zXUGBeVuheRNaCGpp9aSmN5Vn4FNQdYlcuBqKeCn8LQv9
-         yxtTwPr5eI4scfhJ0JtO9xjoUA3fSSb0LTCdxh+CU9/um1G+N8TQcxg1J2Z4gmeMBBGv
-         kGyQ==
-X-Gm-Message-State: AGi0PuYlo9npPN8iGtUOkjUKmdG8t4+sga7LDqrWzvD0UVmJS907GP0h
-        8oz4jYoUfvBLX0EZa2uqvvky
-X-Google-Smtp-Source: APiQypKszEVKbbHO0z7ZNvMqqp3jAQ68YFBEDSTjTqraWwb3GQz6LcKqsq5LJJbEWtEzHUmeg9c0SQ==
-X-Received: by 2002:a05:600c:2306:: with SMTP id 6mr2453931wmo.17.1586942587246;
-        Wed, 15 Apr 2020 02:23:07 -0700 (PDT)
+        bh=+lzbi8aK38U3+DnvnY6rCKYXK2X3LSq1Bs0xPjQHnEY=;
+        b=OpfsSiZgrmeYidD2jkyQSbiFCiii3oyDjH9kCauRe8N8u8weei8mXY5BUC0PcRLOLk
+         H5WEj0T2uIq24gjFJG2EGFjxtP9MYufP4fvUseNRvwyGecL1YN6Dol77+4gW1doUXDrL
+         R6NFzQDIvdURPUwIDYp3CLYMTlZt1BD9k4WViYvlaYqFVWggkmD69brop15Dgj1xPjB9
+         gjJZdV3gVojG+eW0ndtGLdCSlZlc7FR9NAmVhB8EvykI1UTXxqr2XZ+Fut0/RXCGf8pQ
+         81n3RdGFs3IRGYNlhBYSzsItGzJHwKtYwcMPSVFzVNxQoLtd9Xk+bYW/dMLzyY0uFvU/
+         AMTA==
+X-Gm-Message-State: AGi0PubCPYZGW0+uEOcA8/Yl26rLyce95Al7g/piP0E1Xk1jD4noeo3+
+        5bG3RqqXDOjnbzG28sOi+ouw
+X-Google-Smtp-Source: APiQypJ3GJM0/+2P/AexxwNZcsOmkayjLCRqYin26oqaGvC5I/yiPcNjbwDbLtPAlMe8SMno++ygnQ==
+X-Received: by 2002:a5d:50c9:: with SMTP id f9mr9515274wrt.191.1586942597275;
+        Wed, 15 Apr 2020 02:23:17 -0700 (PDT)
 Received: from dkxps.fkb.profitbricks.net (dslb-002-204-231-072.002.204.pools.vodafone-ip.de. [2.204.231.72])
-        by smtp.gmail.com with ESMTPSA id v7sm22534615wmg.3.2020.04.15.02.23.05
+        by smtp.gmail.com with ESMTPSA id v7sm22534615wmg.3.2020.04.15.02.23.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Apr 2020 02:23:06 -0700 (PDT)
+        Wed, 15 Apr 2020 02:23:16 -0700 (PDT)
 From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com, pankaj.gupta@cloud.ionos.com
-Subject: [PATCH v12 19/25] block/rnbd: server: private header with server structs and functions
-Date:   Wed, 15 Apr 2020 11:20:39 +0200
-Message-Id: <20200415092045.4729-20-danil.kipnis@cloud.ionos.com>
+Subject: [PATCH v12 25/25] MAINTAINERS: Add maintainers for RNBD/RTRS modules
+Date:   Wed, 15 Apr 2020 11:20:45 +0200
+Message-Id: <20200415092045.4729-26-danil.kipnis@cloud.ionos.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200415092045.4729-1-danil.kipnis@cloud.ionos.com>
 References: <20200415092045.4729-1-danil.kipnis@cloud.ionos.com>
@@ -79,103 +79,47 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-This header describes main structs and functions used by rnbd-server
-module, namely structs for managing sessions from different clients
-and mapped (opened) devices.
+Danil and I will maintain RNBD/RTRS modules.
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 ---
- drivers/block/rnbd/rnbd-srv.h | 79 +++++++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
- create mode 100644 drivers/block/rnbd/rnbd-srv.h
+ MAINTAINERS | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/block/rnbd/rnbd-srv.h b/drivers/block/rnbd/rnbd-srv.h
-new file mode 100644
-index 000000000000..89218024325d
---- /dev/null
-+++ b/drivers/block/rnbd/rnbd-srv.h
-@@ -0,0 +1,79 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/*
-+ * RDMA Network Block Driver
-+ *
-+ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
-+ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
-+ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
-+ */
-+#ifndef RNBD_SRV_H
-+#define RNBD_SRV_H
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e64e5db31497..8031a923e5a5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -14448,6 +14448,13 @@ F:	arch/riscv/
+ N:	riscv
+ K:	riscv
+ 
++RNBD BLOCK DRIVERS
++M:	Danil Kipnis <danil.kipnis@cloud.ionos.com>
++M:	Jack Wang <jinpu.wang@cloud.ionos.com>
++L:	linux-block@vger.kernel.org
++S:	Maintained
++F:	drivers/block/rnbd/
 +
-+#include <linux/types.h>
-+#include <linux/idr.h>
-+#include <linux/kref.h>
+ ROCCAT DRIVERS
+ M:	Stefan Achatz <erazor_de@users.sourceforge.net>
+ S:	Maintained
+@@ -14576,6 +14583,13 @@ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jes/linux.git rtl8xxxu-devel
+ F:	drivers/net/wireless/realtek/rtl8xxxu/
+ 
++RTRS TRANSPORT DRIVERS
++M:	Danil Kipnis <danil.kipnis@cloud.ionos.com>
++M:	Jack Wang <jinpu.wang@cloud.ionos.com>
++L:	linux-rdma@vger.kernel.org
++S:	Maintained
++F:	drivers/infiniband/ulp/rtrs/
 +
-+#include "rtrs.h"
-+#include "rnbd-proto.h"
-+#include "rnbd-log.h"
-+
-+struct rnbd_srv_session {
-+	/* Entry inside global sess_list */
-+	struct list_head        list;
-+	struct rtrs_srv		*rtrs;
-+	char			sessname[NAME_MAX];
-+	int			queue_depth;
-+	struct bio_set		sess_bio_set;
-+
-+	spinlock_t              index_lock ____cacheline_aligned;
-+	struct idr              index_idr;
-+	/* List of struct rnbd_srv_sess_dev */
-+	struct list_head        sess_dev_list;
-+	struct mutex		lock;
-+	u8			ver;
-+};
-+
-+struct rnbd_srv_dev {
-+	/* Entry inside global dev_list */
-+	struct list_head                list;
-+	struct kobject                  dev_kobj;
-+	struct kobject                  *dev_sessions_kobj;
-+	struct kref                     kref;
-+	char				id[NAME_MAX];
-+	/* List of rnbd_srv_sess_dev structs */
-+	struct list_head		sess_dev_list;
-+	struct mutex			lock;
-+	int				open_write_cnt;
-+};
-+
-+/* Structure which binds N devices and N sessions */
-+struct rnbd_srv_sess_dev {
-+	/* Entry inside rnbd_srv_dev struct */
-+	struct list_head		dev_list;
-+	/* Entry inside rnbd_srv_session struct */
-+	struct list_head		sess_list;
-+	struct rnbd_dev			*rnbd_dev;
-+	struct rnbd_srv_session		*sess;
-+	struct rnbd_srv_dev		*dev;
-+	struct kobject                  kobj;
-+	u32                             device_id;
-+	fmode_t                         open_flags;
-+	struct kref			kref;
-+	struct completion               *destroy_comp;
-+	char				pathname[NAME_MAX];
-+	enum rnbd_access_mode		access_mode;
-+};
-+
-+/* rnbd-srv-sysfs.c */
-+
-+int rnbd_srv_create_dev_sysfs(struct rnbd_srv_dev *dev,
-+			      struct block_device *bdev,
-+			      const char *dir_name);
-+void rnbd_srv_destroy_dev_sysfs(struct rnbd_srv_dev *dev);
-+int rnbd_srv_create_dev_session_sysfs(struct rnbd_srv_sess_dev *sess_dev);
-+void rnbd_srv_destroy_dev_session_sysfs(struct rnbd_srv_sess_dev *sess_dev);
-+int rnbd_srv_create_sysfs_files(void);
-+void rnbd_srv_destroy_sysfs_files(void);
-+void rnbd_destroy_sess_dev(struct rnbd_srv_sess_dev *sess_dev);
-+
-+#endif /* RNBD_SRV_H */
+ RXRPC SOCKETS (AF_RXRPC)
+ M:	David Howells <dhowells@redhat.com>
+ L:	linux-afs@lists.infradead.org
 -- 
 2.20.1
 
