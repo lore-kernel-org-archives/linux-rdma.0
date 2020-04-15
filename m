@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94485C2BB85
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA39AC38A2B
 	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 08:15:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D9A62051A
+	by mail.kernel.org (Postfix) with ESMTP id CB0CA20857
 	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 08:15:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2635696AbgDOIPA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Apr 2020 04:15:00 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:47924 "EHLO huawei.com"
+        id S2635697AbgDOIO7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Apr 2020 04:14:59 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:47870 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2635706AbgDOIO5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Apr 2020 04:14:57 -0400
+        id S2635696AbgDOIOt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Apr 2020 04:14:49 -0400
 Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 4B34D140216076FBF3A3;
+        by Forcepoint Email with ESMTP id 3D8C7DDA63C6E070E1D4;
         Wed, 15 Apr 2020 16:14:46 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 15 Apr 2020 16:14:34 +0800
+ 14.3.487.0; Wed, 15 Apr 2020 16:14:35 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 1/6] RDMA/hns: Optimize hns_roce_config_link_table()
-Date:   Wed, 15 Apr 2020 16:14:30 +0800
-Message-ID: <1586938475-37049-2-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 3/6] RDMA/hns: Simplify the qp state convert code
+Date:   Wed, 15 Apr 2020 16:14:32 +0800
+Message-ID: <1586938475-37049-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1586938475-37049-1-git-send-email-liweihang@huawei.com>
 References: <1586938475-37049-1-git-send-email-liweihang@huawei.com>
@@ -43,91 +43,54 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Lang Cheng <chenglang@huawei.com>
 
-Remove the unnecessary memset operation and adjust style of some lines in
-hns_roce_config_link_table().
+Use type map table to reduce the cyclomatic complexity.
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 53 ++++++++++++------------------
- 1 file changed, 21 insertions(+), 32 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index c331667..a580de9 100644
+index 6816278..d95af32 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2040,8 +2040,6 @@ static int hns_roce_config_link_table(struct hns_roce_dev *hr_dev,
- 
- 	page_num = link_tbl->npages;
- 	entry = link_tbl->table.buf;
--	memset(req_a, 0, sizeof(*req_a));
--	memset(req_b, 0, sizeof(*req_b));
- 
- 	for (i = 0; i < 2; i++) {
- 		hns_roce_cmq_setup_basic_desc(&desc[i], opcode, false);
-@@ -2050,39 +2048,30 @@ static int hns_roce_config_link_table(struct hns_roce_dev *hr_dev,
- 			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
- 		else
- 			desc[i].flag &= ~cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--
--		if (i == 0) {
--			req_a->base_addr_l =
--				cpu_to_le32(link_tbl->table.map & 0xffffffff);
--			req_a->base_addr_h =
--				cpu_to_le32(link_tbl->table.map >> 32);
--			roce_set_field(req_a->depth_pgsz_init_en,
--				       CFG_LLM_QUE_DEPTH_M, CFG_LLM_QUE_DEPTH_S,
--				       link_tbl->npages);
--			roce_set_field(req_a->depth_pgsz_init_en,
--				       CFG_LLM_QUE_PGSZ_M, CFG_LLM_QUE_PGSZ_S,
--				       link_tbl->pg_sz);
--			req_a->head_ba_l = cpu_to_le32(entry[0].blk_ba0);
--			req_a->head_ba_h_nxtptr =
--				cpu_to_le32(entry[0].blk_ba1_nxt_ptr);
--			roce_set_field(req_a->head_ptr, CFG_LLM_HEAD_PTR_M,
--				       CFG_LLM_HEAD_PTR_S, 0);
--		} else {
--			req_b->tail_ba_l =
--				cpu_to_le32(entry[page_num - 1].blk_ba0);
--			roce_set_field(req_b->tail_ba_h, CFG_LLM_TAIL_BA_H_M,
--				       CFG_LLM_TAIL_BA_H_S,
--				       entry[page_num - 1].blk_ba1_nxt_ptr &
--					       HNS_ROCE_LINK_TABLE_BA1_M);
--			roce_set_field(req_b->tail_ptr, CFG_LLM_TAIL_PTR_M,
--				       CFG_LLM_TAIL_PTR_S,
--				       (entry[page_num - 2].blk_ba1_nxt_ptr &
--					HNS_ROCE_LINK_TABLE_NXT_PTR_M) >>
--					       HNS_ROCE_LINK_TABLE_NXT_PTR_S);
--		}
- 	}
-+
-+	req_a->base_addr_l = cpu_to_le32(link_tbl->table.map & 0xffffffff);
-+	req_a->base_addr_h = cpu_to_le32(link_tbl->table.map >> 32);
-+	roce_set_field(req_a->depth_pgsz_init_en, CFG_LLM_QUE_DEPTH_M,
-+		       CFG_LLM_QUE_DEPTH_S, link_tbl->npages);
-+	roce_set_field(req_a->depth_pgsz_init_en, CFG_LLM_QUE_PGSZ_M,
-+		       CFG_LLM_QUE_PGSZ_S, link_tbl->pg_sz);
- 	roce_set_field(req_a->depth_pgsz_init_en, CFG_LLM_INIT_EN_M,
- 		       CFG_LLM_INIT_EN_S, 1);
-+	req_a->head_ba_l = cpu_to_le32(entry[0].blk_ba0);
-+	req_a->head_ba_h_nxtptr = cpu_to_le32(entry[0].blk_ba1_nxt_ptr);
-+	roce_set_field(req_a->head_ptr, CFG_LLM_HEAD_PTR_M, CFG_LLM_HEAD_PTR_S,
-+		       0);
-+
-+	req_b->tail_ba_l = cpu_to_le32(entry[page_num - 1].blk_ba0);
-+	roce_set_field(req_b->tail_ba_h, CFG_LLM_TAIL_BA_H_M,
-+		       CFG_LLM_TAIL_BA_H_S,
-+		       entry[page_num - 1].blk_ba1_nxt_ptr &
-+		       HNS_ROCE_LINK_TABLE_BA1_M);
-+	roce_set_field(req_b->tail_ptr, CFG_LLM_TAIL_PTR_M, CFG_LLM_TAIL_PTR_S,
-+		       (entry[page_num - 2].blk_ba1_nxt_ptr &
-+			HNS_ROCE_LINK_TABLE_NXT_PTR_M) >>
-+			HNS_ROCE_LINK_TABLE_NXT_PTR_S);
- 
- 	return hns_roce_cmq_send(hr_dev, desc, 2);
+@@ -4540,19 +4540,20 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 	return ret;
  }
+ 
+-static inline enum ib_qp_state to_ib_qp_st(enum hns_roce_v2_qp_state state)
+-{
+-	switch (state) {
+-	case HNS_ROCE_QP_ST_RST:	return IB_QPS_RESET;
+-	case HNS_ROCE_QP_ST_INIT:	return IB_QPS_INIT;
+-	case HNS_ROCE_QP_ST_RTR:	return IB_QPS_RTR;
+-	case HNS_ROCE_QP_ST_RTS:	return IB_QPS_RTS;
+-	case HNS_ROCE_QP_ST_SQ_DRAINING:
+-	case HNS_ROCE_QP_ST_SQD:	return IB_QPS_SQD;
+-	case HNS_ROCE_QP_ST_SQER:	return IB_QPS_SQE;
+-	case HNS_ROCE_QP_ST_ERR:	return IB_QPS_ERR;
+-	default:			return -1;
+-	}
++static int to_ib_qp_st(enum hns_roce_v2_qp_state state)
++{
++	static const enum ib_qp_state map[] = {
++		[HNS_ROCE_QP_ST_RST] = IB_QPS_RESET,
++		[HNS_ROCE_QP_ST_INIT] = IB_QPS_INIT,
++		[HNS_ROCE_QP_ST_RTR] = IB_QPS_RTR,
++		[HNS_ROCE_QP_ST_RTS] = IB_QPS_RTS,
++		[HNS_ROCE_QP_ST_SQD] = IB_QPS_SQD,
++		[HNS_ROCE_QP_ST_SQER] = IB_QPS_SQE,
++		[HNS_ROCE_QP_ST_ERR] = IB_QPS_ERR,
++		[HNS_ROCE_QP_ST_SQ_DRAINING] = IB_QPS_SQD
++	};
++
++	return (state < ARRAY_SIZE(map)) ? map[state] : -1;
+ }
+ 
+ static int hns_roce_v2_query_qpc(struct hns_roce_dev *hr_dev,
 -- 
 2.8.1
 
