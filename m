@@ -2,617 +2,134 @@ Return-Path: <SRS0=HR9Y=57=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 015F2C2BA19
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:24:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99AC8C2BB55
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 11:01:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D185820775
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:24:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7637520737
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 11:01:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="XcHoGvny"
+	dkim=pass (1024-bit key) header.d=web.de header.i=@web.de header.b="WIwfVVtQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2895379AbgDOJYS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Apr 2020 05:24:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47632 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2895375AbgDOJWt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Apr 2020 05:22:49 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85253C061A0C
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:22:49 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id b11so6848394wrs.6
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:22:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=yU68bYZll0mzggjcp/THbKrh4n5hlEmB9/xKZTuuEY8=;
-        b=XcHoGvnyHSUjTQwE5xur3DtRsbAZB2tf74ELZdzlvaMxA/F6FiMhIj8WdqLRAyqpX8
-         nRSm57v1dpwZF+zxsHcvGW4INVkqC6xkzHr2tX4mTW5Orj2T+batL2E/WSIHdxgqTtTA
-         zw/uwtK8G2Jjv3gZv+7G9gNYk/bPB1bgrQC4O4/U920gAXn7gBzwhkY2mlMq56YcAE1k
-         M/aQkDlraecUEhow5jbGwjuPu2aTAGcRy2ylTbaFk7Y5JCfjcqgDo+8O5prI8a/nfe9N
-         Dzi3x/1DZJ/ve+h6PPDNo5kDjCa7W4uy2RrIc8KWvxpNqFBOLxetCyBCS0lOFkfCQ8v1
-         ZGQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=yU68bYZll0mzggjcp/THbKrh4n5hlEmB9/xKZTuuEY8=;
-        b=tzNluKshlBiUaa0cQeJwpn9OD5v1mXq4o8gU/mJxG9yNMM7zSLR/VraynjCwmAywfo
-         Pqh8aBcHAUCaVgJg/lHJjRxVNToHccAMt0KYSFGh3cYYcCnaPueNWDkvrZgYccfhkzx7
-         Sfsbbnd8TDRdT6fURftVDl39bmseAnZM7YWhjQvZynZhHwq/2r95u5b1SI5ZcGZZAF2W
-         ceWV0pOu1yhXrpGEAKI8YJQi2YczNvIyyB+Tf4G0Z1/UkeBHQQKjwIsw9m3KgPIN8ASI
-         P1gIiOD7x4a+IFOiu5qnc7UiBIGbb0BuhmFRARdwqGUenTipr9kAqacgch4G7V5xpUFW
-         Tedg==
-X-Gm-Message-State: AGi0PuYjiwvFO+EDRqX+3lpXT94KH7tMFm23TCYPS5CVF1vfOWBE6685
-        CFBtbYBUldfsVKyNefUzLgdW
-X-Google-Smtp-Source: APiQypI+EOQp42aUw1dcmrmwxvr483FQu4bCaOgqrulm00JGTB6RQIc3eUpjpLOAFBN6qOdm4HqVPw==
-X-Received: by 2002:a5d:6a91:: with SMTP id s17mr6119794wru.416.1586942567998;
-        Wed, 15 Apr 2020 02:22:47 -0700 (PDT)
-Received: from dkxps.fkb.profitbricks.net (dslb-002-204-231-072.002.204.pools.vodafone-ip.de. [2.204.231.72])
-        by smtp.gmail.com with ESMTPSA id v7sm22534615wmg.3.2020.04.15.02.22.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Apr 2020 02:22:47 -0700 (PDT)
-From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
-To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
-        bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
-        jinpu.wang@cloud.ionos.com, pankaj.gupta@cloud.ionos.com
-Subject: [PATCH v12 08/25] RDMA/rtrs: client: sysfs interface functions
-Date:   Wed, 15 Apr 2020 11:20:28 +0200
-Message-Id: <20200415092045.4729-9-danil.kipnis@cloud.ionos.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200415092045.4729-1-danil.kipnis@cloud.ionos.com>
-References: <20200415092045.4729-1-danil.kipnis@cloud.ionos.com>
+        id S2896703AbgDOLBy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Apr 2020 07:01:54 -0400
+Received: from mout.web.de ([217.72.192.78]:38799 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2896697AbgDOLBf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Apr 2020 07:01:35 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de;
+        s=dbaedf251592; t=1586948425;
+        bh=R6b+YCXNkpmld5Z0AKrGLTjWrOqTjG9Cgl54SpiD9LE=;
+        h=X-UI-Sender-Class:To:Cc:Subject:From:Date;
+        b=WIwfVVtQuCR7EebeJn6ed4ksBEST9zydh8nIG5aN2cTjSX840vfJ91OXXLcROwG8H
+         OMglWeKBxRFwU6dBp7uhVoy0qHBOqxaSmOkHYQoyEsVOPUDWrOg0IuLPoLGlVkJDE9
+         OUWvOdpXezILDE3MtHX9VVMaVIXMNVwpV7mQ/6iM=
+X-UI-Sender-Class: c548c8c5-30a9-4db5-a2e7-cb6cb037b8f9
+Received: from [192.168.1.3] ([78.48.133.192]) by smtp.web.de (mrweb103
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 0LtnvF-1jEoNI2YUf-0117Vo; Wed, 15
+ Apr 2020 13:00:25 +0200
+To:     Xiyu Yang <xiyuyang19@fudan.edu.cn>,
+        Xin Tan <tanxin.ctf@gmail.com>, linux-rdma@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org, Bernard Metzler <bmt@zurich.ibm.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Kangjie Lu <kjlu@umn.edu>,
+        Yuan Zhang <yuanxzhang@fudan.edu.cn>
+Subject: Re: [PATCH] RDMA/siw: Fix potential siw_mem refcnt leak in
+ nr_add_node
+From:   Markus Elfring <Markus.Elfring@web.de>
+Autocrypt: addr=Markus.Elfring@web.de; prefer-encrypt=mutual; keydata=
+ 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 FEE=
+Message-ID: <08a5af5b-96f8-837c-ff4b-814901ad9ed5@web.de>
+Date:   Wed, 15 Apr 2020 13:00:21 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:gr+Wes45jCDED7l/oZbtpyl17ALJlyj6H2FuHX6hJHhSNQtWonk
+ mu2fhvHDnJrt5NUged7UXeJiEkTePbyH/UADx4PetvnAPzDLKY7+mzgfvlJp+WLm0ynw8TR
+ Jbraz0OP3BcuZaW7L7nRwh7KBNi3Ob/nI9EBiRTgz8BuphsmC7EsAKmUP97GRk/GtoTItZy
+ lEW6RueTLJUdTjQmk4lcA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:Hbjir+Sindc=:7qnVU2HkGc1meRZXER6wdX
+ jSGFZvUeGQ2RsKPDW+BK+FTx/6bivuPSuygR6IYKuOeY2n+0FBARyx6zcOEk6RAegugyCPxoN
+ HgPdk4Oz8NhP2TBa2B1kF0mufnnSW7IpIVS7zFQXUVwcPLahSuO1XzR5eIznlo/lH+i21ceuy
+ Q42IdfQ2IQcG+shdrCu1wZSRjOaSsVoG2AtfN3dEjqCuT4BeKsnXjMLxjSqsFTH+nfLMeBLDY
+ Z9MqwOq0uc0GtWZU3MkRXow30FnxJcj9tLq0uH6b2HnaHwZQZBfzyGMItd9YHj5YT8EikPkFW
+ pyovNgj9OE6K+CG//clKohLY8vstw9qYztsxoTAG/7TbJ+CHQApeBZ2WMrlAH77T/WUhjjjJM
+ wMrgYq0EkpGTSbBf1ZcoEQyc5BBq93IbHUHiqHtPYFFF8IclUvOz4/bKIsR5JR4YEqrvXWJoK
+ AJeOax0i/50jd+6ZQgaheG7O2WA5Uf8PGnYovOGAWUTEmQ6AxHJUu8VLbpSLwgJz5NiGmUBME
+ 9XiH7ADM3zBR6J3JvA67zZTRBVc1HzR8CawJbpxFqlyR0GiR7lUykjH3FFYqfxsDhaYoxn5uj
+ UY4qNPbs0yZVkr8LFrfgb7qnIFC5nqoHTGu+FcuoIOfNSKOZ0+llRK+0Xt8DG75xnsT9KH7Wm
+ 0MWvt3c3wLXFWhbZr/WZWoVur/nj/edLHP0yw/f+YMrnuV4NkKiIi8N1tdz6S13mcQYIosffY
+ 7i6ZMOYn8ytqAZy3Jq0s0D3PYmSJYw4n66+WkNMOe3Kaswpq0f+6trNowJsiio7ryD34NYqV4
+ RnxcaY7ucAUnH1K9fRxI6ULaCm+NB9DjuWbL3wDcpf5kx2OxZxWXNHDt69bzKteMbo5ldzMg1
+ 1wgBn2XeC/PN+0mFRdeIET/GESulZEK2hq8CBNemZ7ppAjDqACX8Sqt8UdOIpsE/7VR7aa/6R
+ 2lgeytX2IqskjjumZTPDmKQHfOkpM/x2H/YAZmjYt0ogJQEnuRUDxmjrP22+292m41/1YAHRK
+ UUYdb4x4trmR3p5JtncB1zIeFAAdyZPQNepX45KAWRztNuI0/YT0K4bSvjoCFuHs5e5yxhngp
+ LZ1aALeARzld1H2RxwSq/8a4d5czp984qncjgFS6JF2aOq32yKkbTD5Z65F84Gxj427TekXBB
+ kQO/UlW2mZU0zBunsqPEuV/moP94FfVc+QUVRT05lTT3wpyVnwXuA/5VetKJlQYIchjQCSfMk
+ EFyYjpFN9LLZ7rh3T
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang@cloud.ionos.com>
+> The issue happens in one error path of siw_fastreg_mr(). When "base_mr"
+> equals to NULL but "mem" is not NULL, the function forgets to decrease
+> the refcnt increased by siw_mem_id2obj() and causes a refcnt leak.
 
-This is the sysfs interface to rtrs sessions on client side:
+How do you think about to mention the terms =E2=80=9Cexception handling=E2=
+=80=9D
+and =E2=80=9Creference counting=E2=80=9D in the commit message?
 
-  /sys/class/rtrs-client/<SESS-NAME>/
-    *** rtrs session created by rtrs_clt_open() API call
-    |
-    |- max_reconnect_attempts
-    |  *** number of reconnect attempts for session
-    |
-    |- add_path
-    |  *** adds another connection path into rtrs session
-    |
-    |- paths/<SRC@DST>/
-       *** established paths to server in a session
-       |
-       |- disconnect
-       |  *** disconnect path
-       |
-       |- reconnect
-       |  *** reconnect path
-       |
-       |- remove_path
-       |  *** remove current path
-       |
-       |- state
-       |  *** retrieve current path state
-       |
-       |- hca_port
-       |  *** HCA port number
-       |
-       |- hca_name
-       |  *** HCA name
-       |
-       |- stats/
-          *** current path statistics
-          |
-	  |- cpu_migration
-	  |- rdma
-	  |- reconnects
-	  |- reset_all
+Would you like to add the tag =E2=80=9CFixes=E2=80=9D to the change descri=
+ption?
 
-Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
----
- drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 481 +++++++++++++++++++
- 1 file changed, 481 insertions(+)
- create mode 100644 drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-new file mode 100644
-index 000000000000..4310130ee3bb
---- /dev/null
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-@@ -0,0 +1,481 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * RDMA Transport Layer
-+ *
-+ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
-+ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
-+ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
-+ */
-+#undef pr_fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
-+
-+#include "rtrs-pri.h"
-+#include "rtrs-clt.h"
-+#include "rtrs-log.h"
-+
-+#define MIN_MAX_RECONN_ATT -1
-+#define MAX_MAX_RECONN_ATT 9999
-+
-+static void rtrs_clt_sess_release(struct kobject *kobj)
-+{
-+	struct rtrs_clt_sess *sess;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+
-+	free_sess(sess);
-+}
-+
-+static struct kobj_type ktype_sess = {
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.release = rtrs_clt_sess_release
-+};
-+
-+static void rtrs_clt_sess_stats_release(struct kobject *kobj)
-+{
-+	struct rtrs_clt_stats *stats;
-+
-+	stats = container_of(kobj, struct rtrs_clt_stats, kobj_stats);
-+
-+	kfree(stats);
-+}
-+
-+static struct kobj_type ktype_stats = {
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.release = rtrs_clt_sess_stats_release,
-+};
-+
-+static ssize_t max_reconnect_attempts_show(struct device *dev,
-+					   struct device_attribute *attr,
-+					   char *page)
-+{
-+	struct rtrs_clt *clt = container_of(dev, struct rtrs_clt, dev);
-+
-+	return sprintf(page, "%d\n", rtrs_clt_get_max_reconnect_attempts(clt));
-+}
-+
-+static ssize_t max_reconnect_attempts_store(struct device *dev,
-+					    struct device_attribute *attr,
-+					    const char *buf,
-+					    size_t count)
-+{
-+	int value;
-+	int ret;
-+	struct rtrs_clt *clt  = container_of(dev, struct rtrs_clt, dev);
-+
-+	ret = kstrtoint(buf, 10, &value);
-+	if (ret) {
-+		rtrs_err(clt, "%s: failed to convert string '%s' to int\n",
-+			  attr->attr.name, buf);
-+		return ret;
-+	}
-+	if (value > MAX_MAX_RECONN_ATT ||
-+		     value < MIN_MAX_RECONN_ATT) {
-+		rtrs_err(clt,
-+			  "%s: invalid range (provided: '%s', accepted: min: %d, max: %d)\n",
-+			  attr->attr.name, buf, MIN_MAX_RECONN_ATT,
-+			  MAX_MAX_RECONN_ATT);
-+		return -EINVAL;
-+	}
-+	rtrs_clt_set_max_reconnect_attempts(clt, value);
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR_RW(max_reconnect_attempts);
-+
-+static ssize_t mpath_policy_show(struct device *dev,
-+				 struct device_attribute *attr,
-+				 char *page)
-+{
-+	struct rtrs_clt *clt;
-+
-+	clt = container_of(dev, struct rtrs_clt, dev);
-+
-+	switch (clt->mp_policy) {
-+	case MP_POLICY_RR:
-+		return sprintf(page, "round-robin (RR: %d)\n", clt->mp_policy);
-+	case MP_POLICY_MIN_INFLIGHT:
-+		return sprintf(page, "min-inflight (MI: %d)\n", clt->mp_policy);
-+	default:
-+		return sprintf(page, "Unknown (%d)\n", clt->mp_policy);
-+	}
-+}
-+
-+static ssize_t mpath_policy_store(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf,
-+				  size_t count)
-+{
-+	struct rtrs_clt *clt;
-+	int value;
-+	int ret;
-+
-+	clt = container_of(dev, struct rtrs_clt, dev);
-+
-+	ret = kstrtoint(buf, 10, &value);
-+	if (!ret && (value == MP_POLICY_RR ||
-+		     value == MP_POLICY_MIN_INFLIGHT)) {
-+		clt->mp_policy = value;
-+		return count;
-+	}
-+
-+	if (!strncasecmp(buf, "round-robin", 11) ||
-+	    !strncasecmp(buf, "rr", 2))
-+		clt->mp_policy = MP_POLICY_RR;
-+	else if (!strncasecmp(buf, "min-inflight", 12) ||
-+		 !strncasecmp(buf, "mi", 2))
-+		clt->mp_policy = MP_POLICY_MIN_INFLIGHT;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR_RW(mpath_policy);
-+
-+static ssize_t add_path_show(struct device *dev,
-+			     struct device_attribute *attr, char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE,
-+			 "Usage: echo [<source addr>@]<destination addr> > %s\n\n*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t add_path_store(struct device *dev,
-+			      struct device_attribute *attr,
-+			      const char *buf, size_t count)
-+{
-+	struct sockaddr_storage srcaddr, dstaddr;
-+	struct rtrs_addr addr = {
-+		.src = &srcaddr,
-+		.dst = &dstaddr
-+	};
-+	struct rtrs_clt *clt;
-+	const char *nl;
-+	size_t len;
-+	int err;
-+
-+	clt = container_of(dev, struct rtrs_clt, dev);
-+
-+	nl = strchr(buf, '\n');
-+	if (nl)
-+		len = nl - buf;
-+	else
-+		len = count;
-+	err = rtrs_addr_to_sockaddr(buf, len, clt->port, &addr);
-+	if (err)
-+		return -EINVAL;
-+
-+	err = rtrs_clt_create_path_from_sysfs(clt, &addr);
-+	if (err)
-+		return err;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR_RW(add_path);
-+
-+static ssize_t rtrs_clt_state_show(struct kobject *kobj,
-+				    struct kobj_attribute *attr, char *page)
-+{
-+	struct rtrs_clt_sess *sess;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+	if (sess->state == RTRS_CLT_CONNECTED)
-+		return sprintf(page, "connected\n");
-+
-+	return sprintf(page, "disconnected\n");
-+}
-+
-+static struct kobj_attribute rtrs_clt_state_attr =
-+	__ATTR(state, 0444, rtrs_clt_state_show, NULL);
-+
-+static ssize_t rtrs_clt_reconnect_show(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t rtrs_clt_reconnect_store(struct kobject *kobj,
-+					 struct kobj_attribute *attr,
-+					 const char *buf, size_t count)
-+{
-+	struct rtrs_clt_sess *sess;
-+	int ret;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+	if (!sysfs_streq(buf, "1")) {
-+		rtrs_err(sess->clt, "%s: unknown value: '%s'\n",
-+			  attr->attr.name, buf);
-+		return -EINVAL;
-+	}
-+	ret = rtrs_clt_reconnect_from_sysfs(sess);
-+	if (ret)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute rtrs_clt_reconnect_attr =
-+	__ATTR(reconnect, 0644, rtrs_clt_reconnect_show,
-+	       rtrs_clt_reconnect_store);
-+
-+static ssize_t rtrs_clt_disconnect_show(struct kobject *kobj,
-+					 struct kobj_attribute *attr,
-+					 char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t rtrs_clt_disconnect_store(struct kobject *kobj,
-+					  struct kobj_attribute *attr,
-+					  const char *buf, size_t count)
-+{
-+	struct rtrs_clt_sess *sess;
-+	int ret;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+	if (!sysfs_streq(buf, "1")) {
-+		rtrs_err(sess->clt, "%s: unknown value: '%s'\n",
-+			  attr->attr.name, buf);
-+		return -EINVAL;
-+	}
-+	ret = rtrs_clt_disconnect_from_sysfs(sess);
-+	if (ret)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute rtrs_clt_disconnect_attr =
-+	__ATTR(disconnect, 0644, rtrs_clt_disconnect_show,
-+	       rtrs_clt_disconnect_store);
-+
-+static ssize_t rtrs_clt_remove_path_show(struct kobject *kobj,
-+					  struct kobj_attribute *attr,
-+					  char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t rtrs_clt_remove_path_store(struct kobject *kobj,
-+					   struct kobj_attribute *attr,
-+					   const char *buf, size_t count)
-+{
-+	struct rtrs_clt_sess *sess;
-+	int ret;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+	if (!sysfs_streq(buf, "1")) {
-+		rtrs_err(sess->clt, "%s: unknown value: '%s'\n",
-+			  attr->attr.name, buf);
-+		return -EINVAL;
-+	}
-+	ret = rtrs_clt_remove_path_from_sysfs(sess, &attr->attr);
-+	if (ret)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute rtrs_clt_remove_path_attr =
-+	__ATTR(remove_path, 0644, rtrs_clt_remove_path_show,
-+	       rtrs_clt_remove_path_store);
-+
-+STAT_ATTR(struct rtrs_clt_stats, cpu_migration,
-+	  rtrs_clt_stats_migration_cnt_to_str,
-+	  rtrs_clt_reset_cpu_migr_stats);
-+
-+STAT_ATTR(struct rtrs_clt_stats, reconnects,
-+	  rtrs_clt_stats_reconnects_to_str,
-+	  rtrs_clt_reset_reconnects_stat);
-+
-+STAT_ATTR(struct rtrs_clt_stats, rdma,
-+	  rtrs_clt_stats_rdma_to_str,
-+	  rtrs_clt_reset_rdma_stats);
-+
-+STAT_ATTR(struct rtrs_clt_stats, reset_all,
-+	  rtrs_clt_reset_all_help,
-+	  rtrs_clt_reset_all_stats);
-+
-+static struct attribute *rtrs_clt_stats_attrs[] = {
-+	&cpu_migration_attr.attr,
-+	&reconnects_attr.attr,
-+	&rdma_attr.attr,
-+	&reset_all_attr.attr,
-+	NULL
-+};
-+
-+static struct attribute_group rtrs_clt_stats_attr_group = {
-+	.attrs = rtrs_clt_stats_attrs,
-+};
-+
-+static ssize_t rtrs_clt_hca_port_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr,
-+				       char *page)
-+{
-+	struct rtrs_clt_sess *sess;
-+
-+	sess = container_of(kobj, typeof(*sess), kobj);
-+
-+	return scnprintf(page, PAGE_SIZE, "%u\n", sess->hca_port);
-+}
-+
-+static struct kobj_attribute rtrs_clt_hca_port_attr =
-+	__ATTR(hca_port, 0444, rtrs_clt_hca_port_show, NULL);
-+
-+static ssize_t rtrs_clt_hca_name_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr,
-+				       char *page)
-+{
-+	struct rtrs_clt_sess *sess;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+
-+	return scnprintf(page, PAGE_SIZE, "%s\n", sess->hca_name);
-+}
-+
-+static struct kobj_attribute rtrs_clt_hca_name_attr =
-+	__ATTR(hca_name, 0444, rtrs_clt_hca_name_show, NULL);
-+
-+static ssize_t rtrs_clt_src_addr_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr,
-+				       char *page)
-+{
-+	struct rtrs_clt_sess *sess;
-+	int cnt;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.src_addr,
-+			      page, PAGE_SIZE);
-+	return cnt + scnprintf(page + cnt, PAGE_SIZE - cnt, "\n");
-+}
-+
-+static struct kobj_attribute rtrs_clt_src_addr_attr =
-+	__ATTR(src_addr, 0444, rtrs_clt_src_addr_show, NULL);
-+
-+static ssize_t rtrs_clt_dst_addr_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr,
-+				       char *page)
-+{
-+	struct rtrs_clt_sess *sess;
-+	int cnt;
-+
-+	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
-+	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr,
-+			      page, PAGE_SIZE);
-+	return cnt + scnprintf(page + cnt, PAGE_SIZE - cnt, "\n");
-+}
-+
-+static struct kobj_attribute rtrs_clt_dst_addr_attr =
-+	__ATTR(dst_addr, 0444, rtrs_clt_dst_addr_show, NULL);
-+
-+static struct attribute *rtrs_clt_sess_attrs[] = {
-+	&rtrs_clt_hca_name_attr.attr,
-+	&rtrs_clt_hca_port_attr.attr,
-+	&rtrs_clt_src_addr_attr.attr,
-+	&rtrs_clt_dst_addr_attr.attr,
-+	&rtrs_clt_state_attr.attr,
-+	&rtrs_clt_reconnect_attr.attr,
-+	&rtrs_clt_disconnect_attr.attr,
-+	&rtrs_clt_remove_path_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group rtrs_clt_sess_attr_group = {
-+	.attrs = rtrs_clt_sess_attrs,
-+};
-+
-+int rtrs_clt_create_sess_files(struct rtrs_clt_sess *sess)
-+{
-+	struct rtrs_clt *clt = sess->clt;
-+	char str[NAME_MAX];
-+	int err, cnt;
-+
-+	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.src_addr,
-+			      str, sizeof(str));
-+	cnt += scnprintf(str + cnt, sizeof(str) - cnt, "@");
-+	sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr,
-+			str + cnt, sizeof(str) - cnt);
-+
-+	err = kobject_init_and_add(&sess->kobj, &ktype_sess, clt->kobj_paths,
-+				   "%s", str);
-+	if (err) {
-+		pr_err("kobject_init_and_add: %d\n", err);
-+		return err;
-+	}
-+	err = sysfs_create_group(&sess->kobj, &rtrs_clt_sess_attr_group);
-+	if (err) {
-+		pr_err("sysfs_create_group(): %d\n", err);
-+		goto put_kobj;
-+	}
-+	err = kobject_init_and_add(&sess->stats->kobj_stats, &ktype_stats,
-+				   &sess->kobj, "stats");
-+	if (err) {
-+		pr_err("kobject_init_and_add: %d\n", err);
-+		goto remove_group;
-+	}
-+
-+	err = sysfs_create_group(&sess->stats->kobj_stats,
-+				 &rtrs_clt_stats_attr_group);
-+	if (err) {
-+		pr_err("failed to create stats sysfs group, err: %d\n", err);
-+		goto put_kobj_stats;
-+	}
-+
-+	return 0;
-+
-+put_kobj_stats:
-+	kobject_del(&sess->stats->kobj_stats);
-+	kobject_put(&sess->stats->kobj_stats);
-+remove_group:
-+	sysfs_remove_group(&sess->kobj, &rtrs_clt_sess_attr_group);
-+put_kobj:
-+	kobject_del(&sess->kobj);
-+	kobject_put(&sess->kobj);
-+
-+	return err;
-+}
-+
-+void rtrs_clt_destroy_sess_files(struct rtrs_clt_sess *sess,
-+				  const struct attribute *sysfs_self)
-+{
-+	kobject_del(&sess->stats->kobj_stats);
-+	kobject_put(&sess->stats->kobj_stats);
-+	if (sysfs_self)
-+		sysfs_remove_file_self(&sess->kobj, sysfs_self);
-+	kobject_del(&sess->kobj);
-+}
-+
-+static struct attribute *rtrs_clt_attrs[] = {
-+	&dev_attr_max_reconnect_attempts.attr,
-+	&dev_attr_mpath_policy.attr,
-+	&dev_attr_add_path.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group rtrs_clt_attr_group = {
-+	.attrs = rtrs_clt_attrs,
-+};
-+
-+int rtrs_clt_create_sysfs_root_files(struct rtrs_clt *clt)
-+{
-+	return sysfs_create_group(&clt->dev.kobj, &rtrs_clt_attr_group);
-+}
-+
-+void rtrs_clt_destroy_sysfs_root_folders(struct rtrs_clt *clt)
-+{
-+	if (clt->kobj_paths) {
-+		kobject_del(clt->kobj_paths);
-+		kobject_put(clt->kobj_paths);
-+	}
-+}
-+
-+void rtrs_clt_destroy_sysfs_root_files(struct rtrs_clt *clt)
-+{
-+	sysfs_remove_group(&clt->dev.kobj, &rtrs_clt_attr_group);
-+}
--- 
-2.20.1
-
+Regards,
+Markus
