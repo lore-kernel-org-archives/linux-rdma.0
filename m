@@ -7,67 +7,66 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ABB2C2BB85
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B814BC38A2C
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 228B320775
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 922092082E
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Apr 2020 09:23:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="NKrIbRq+"
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="ARF1kKA5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2895427AbgDOJXi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Apr 2020 05:23:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47762 "EHLO
+        id S2895415AbgDOJXs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Apr 2020 05:23:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2895414AbgDOJXR (ORCPT
+        by vger.kernel.org with ESMTP id S2895407AbgDOJXO (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Apr 2020 05:23:17 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40818C03C1A7
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:17 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id k1so11015560wrx.4
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:17 -0700 (PDT)
+        Wed, 15 Apr 2020 05:23:14 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C839EC061A0F
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:12 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id y24so18071048wma.4
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Apr 2020 02:23:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=CApeDRpcs9y+uCevURcB1yZFuinPxngxdJkSfuMz9fI=;
-        b=NKrIbRq+Wjezmr4hGGzkZpN7sVNcX9hTOeTpauatjwswGyGUwAucUfTAcxCJEY7R4+
-         4UDL3a84Z/nVeY6XG7YFk5EoywqreuFus1NBx9+FCmFBYhySzc1fBNxLK83LZx3496kn
-         6sX3xXbD+rIFWqkd7lFfblpfgQYXR+DjNb0lVVHfsOq5rfb0yPVAqD7vDUuFrnkhA6CT
-         1MlcL9QyKapIokjGT+lcxUB3OpMd91/1kOEe786QoMCuwL+lRMiFA7F09fVCHkRA9ecr
-         eAweQmxTWpnEP6yoBBj9fwyhjxnh3NKMzN3+CWXbR5fYwxeK2BBznIigWk4Xf92eIEal
-         N3qA==
+        bh=Vsqbk9yd/R1BpMJdkLDH91Om0CETzwSXfeDvcfyeZUY=;
+        b=ARF1kKA5rarhNcGMUzemo8TmINevmQT9bAmzeTwOxtZYZi/ILkUtHFxM0Nij/nYGmK
+         TB7IaQAd/EMg4mo3Bs1ul+Jrzxf0oZvCf1147VNTxbVd60lA9PiLfo4A5dlAfe723XT4
+         5Cee7foLJrvOHnqEavb3zvKGJ7A13Idbrl/5HV7qorgkRUetONlmfVRkVFCd+cMMj95b
+         DLT/ZSYw96Okr722Nhe7a3S6b6z0Ys//pIDz5GhGPdZluwNYpvsN29oK1CxOosmeyTHC
+         0i1GuogCTPJaz+Yca+ow8GKB6SKtYsvWoYOLBRSuaQf7Mpxh04IJk7ANCZeqtFHUGNMe
+         EUfg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=CApeDRpcs9y+uCevURcB1yZFuinPxngxdJkSfuMz9fI=;
-        b=kgukjszgd9Cs7dvR9h3TMNTvRXXMre7L7LwShIc1WW0DlDW+mLgf4jfBKbOFeIjs9/
-         bOSQipgkJBRrPekVaXzXhtVySWM+buTMqDhBUrxvp1DIcS1Q2EL4rDZVcO5liKuD7pmD
-         593xRsA18Q/qix3fWl/DocZPl9GvwCLqtxQTkgmGC6c+6u18DbOy82QMe6sh1ZmNzS9C
-         FHWaAZ69bRyNuMkrNgCqBamEa/4EOSmrC42GkJuu2xwhLI4h0WAwO2VWwbI2bDVqVdrz
-         lpAARebjkibU+rX5lXLe0Tu8ut4IgWZp9cIHlVF/hkwnsytEJ2HsAzSb9qDtEPeG1Fz9
-         qLSQ==
-X-Gm-Message-State: AGi0PuajozLQpZH1r/sX/mnQ9kCbGEtG3NkvSnbMlUJwnWYekIaVP0zl
-        vGL42YmJRdBlIwxp50gVNhv6
-X-Google-Smtp-Source: APiQypKcLuWvxFyyKt6DFypvvMYHNC8RQewVp4BQXCKk/0ksMREsq+z9FQ9ZdPdI1/arknLfPX98DQ==
-X-Received: by 2002:adf:ff82:: with SMTP id j2mr16670188wrr.96.1586942595693;
-        Wed, 15 Apr 2020 02:23:15 -0700 (PDT)
+        bh=Vsqbk9yd/R1BpMJdkLDH91Om0CETzwSXfeDvcfyeZUY=;
+        b=sgVwxbnYwIageGaTHPgPkQ+3cwZbGWoycGajMYSlYBEp5ZPHTGuvYILkXGpRA1x77i
+         BKFNBo7rGso2Wn7XQuVt1kTwalZ6XchZwpFxYUsIxF48eFsAXgMWON28KoP1ujPf92cU
+         M+7dS9/ifhF0G5JqiGq5IFGK7lOsmfk/PzlDB4dnnzcQ99gQaNa2Jh+pq8m8ZJXlfXdV
+         zUvz9WN/Vq9RoJa8KUaqmQa768jxjyIWY5yomqZvsv9qUtH8x/1YbNkWu7blW1PaUpcp
+         91zXga3PlX40J+/gMe+aTTj3ZetkLT0EN1y2wqugSbwI3G47Fx2s98kdkFu2p5dnQsPK
+         VZnQ==
+X-Gm-Message-State: AGi0PuY9fGt6zUI6aKs5AWpbESBm4SANeXJg505LNMn43FTPoHVPQqrl
+        CszOfkGeY3x0OX56fY45nGOQdQnVOgEwwRo=
+X-Google-Smtp-Source: APiQypKVEVqm8UCf/EmtF9FDT7krui0NoFILMq253tn05KEYtHVoGw0X1f76h1MqH/9b4QHbY/b6gQ==
+X-Received: by 2002:a1c:147:: with SMTP id 68mr4394428wmb.28.1586942590936;
+        Wed, 15 Apr 2020 02:23:10 -0700 (PDT)
 Received: from dkxps.fkb.profitbricks.net (dslb-002-204-231-072.002.204.pools.vodafone-ip.de. [2.204.231.72])
-        by smtp.gmail.com with ESMTPSA id v7sm22534615wmg.3.2020.04.15.02.23.14
+        by smtp.gmail.com with ESMTPSA id v7sm22534615wmg.3.2020.04.15.02.23.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Apr 2020 02:23:15 -0700 (PDT)
+        Wed, 15 Apr 2020 02:23:10 -0700 (PDT)
 From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
 To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
         bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
-        jinpu.wang@cloud.ionos.com, pankaj.gupta@cloud.ionos.com,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v12 24/25] block/rnbd: a bit of documentation
-Date:   Wed, 15 Apr 2020 11:20:44 +0200
-Message-Id: <20200415092045.4729-25-danil.kipnis@cloud.ionos.com>
+        jinpu.wang@cloud.ionos.com, pankaj.gupta@cloud.ionos.com
+Subject: [PATCH v12 21/25] block/rnbd: server: functionality for IO submission to block dev
+Date:   Wed, 15 Apr 2020 11:20:41 +0200
+Message-Id: <20200415092045.4729-22-danil.kipnis@cloud.ionos.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200415092045.4729-1-danil.kipnis@cloud.ionos.com>
 References: <20200415092045.4729-1-danil.kipnis@cloud.ionos.com>
@@ -80,347 +79,255 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@cloud.ionos.com>
 
-README with description of major sysfs entries, sysfs documentation
-are moved to ABI dir as Bart suggested.
+This provides helper functions for IO submission to block dev.
 
 Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-Cc: linux-kernel@vger.kernel.org
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 ---
- Documentation/ABI/testing/sysfs-block-rnbd    |  46 ++++++++
- .../ABI/testing/sysfs-class-rnbd-client       | 111 ++++++++++++++++++
- .../ABI/testing/sysfs-class-rnbd-server       |  50 ++++++++
- drivers/block/rnbd/README                     |  92 +++++++++++++++
- 4 files changed, 299 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-block-rnbd
- create mode 100644 Documentation/ABI/testing/sysfs-class-rnbd-client
- create mode 100644 Documentation/ABI/testing/sysfs-class-rnbd-server
- create mode 100644 drivers/block/rnbd/README
+ drivers/block/rnbd/rnbd-srv-dev.c | 134 ++++++++++++++++++++++++++++++
+ drivers/block/rnbd/rnbd-srv-dev.h |  92 ++++++++++++++++++++
+ 2 files changed, 226 insertions(+)
+ create mode 100644 drivers/block/rnbd/rnbd-srv-dev.c
+ create mode 100644 drivers/block/rnbd/rnbd-srv-dev.h
 
-diff --git a/Documentation/ABI/testing/sysfs-block-rnbd b/Documentation/ABI/testing/sysfs-block-rnbd
+diff --git a/drivers/block/rnbd/rnbd-srv-dev.c b/drivers/block/rnbd/rnbd-srv-dev.c
 new file mode 100644
-index 000000000000..8f070b47f361
+index 000000000000..5eddfd29ab64
 --- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-block-rnbd
-@@ -0,0 +1,46 @@
-+What:		/sys/block/rnbd<N>/rnbd/unmap_device
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	To unmap a volume, "normal" or "force" has to be written to:
-+		/sys/block/rnbd<N>/rnbd/unmap_device
++++ b/drivers/block/rnbd/rnbd-srv-dev.c
+@@ -0,0 +1,134 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * RDMA Network Block Driver
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
++ */
++#undef pr_fmt
++#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
-+		When "normal" is used, the operation will fail with EBUSY if any process
-+		is using the device.  When "force" is used, the device is also unmapped
-+		when device is in use.  All I/Os that are in progress will fail.
++#include "rnbd-srv-dev.h"
++#include "rnbd-log.h"
 +
-+		Example:
++struct rnbd_dev *rnbd_dev_open(const char *path, fmode_t flags,
++			       struct bio_set *bs)
++{
++	struct rnbd_dev *dev;
++	int ret;
 +
-+		# echo "normal" > /sys/block/rnbd0/rnbd/unmap_device
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev)
++		return ERR_PTR(-ENOMEM);
 +
-+What:		/sys/block/rnbd<N>/rnbd/state
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	The file contains the current state of the block device. The state file
-+		returns "open" when the device is successfully mapped from the server
-+		and accepting I/O requests. When the connection to the server gets
-+		disconnected in case of an error (e.g. link failure), the state file
-+		returns "closed" and all I/O requests submitted to it will fail with -EIO.
++	dev->blk_open_flags = flags;
++	dev->bdev = blkdev_get_by_path(path, flags, THIS_MODULE);
++	ret = PTR_ERR_OR_ZERO(dev->bdev);
++	if (ret)
++		goto err;
 +
-+What:		/sys/block/rnbd<N>/rnbd/session
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RNBD uses RTRS session to transport the data between client and
-+		server.  The entry "session" contains the name of the session, that
-+		was used to establish the RTRS session.  It's the same name that
-+		was passed as server parameter to the map_device entry.
++	dev->blk_open_flags = flags;
++	bdevname(dev->bdev, dev->name);
++	dev->ibd_bio_set = bs;
 +
-+What:		/sys/block/rnbd<N>/rnbd/mapping_path
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains the path that was passed as "device_path" to the map_device
-+		operation.
++	return dev;
 +
-+What:		/sys/block/rnbd<N>/rnbd/access_mode
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains the device access mode: ro, rw or migration.
-diff --git a/Documentation/ABI/testing/sysfs-class-rnbd-client b/Documentation/ABI/testing/sysfs-class-rnbd-client
++err:
++	kfree(dev);
++	return ERR_PTR(ret);
++}
++
++void rnbd_dev_close(struct rnbd_dev *dev)
++{
++	blkdev_put(dev->bdev, dev->blk_open_flags);
++	kfree(dev);
++}
++
++static void rnbd_dev_bi_end_io(struct bio *bio)
++{
++	struct rnbd_dev_blk_io *io = bio->bi_private;
++
++	rnbd_endio(io->priv, blk_status_to_errno(bio->bi_status));
++	bio_put(bio);
++}
++
++/**
++ *	rnbd_bio_map_kern	-	map kernel address into bio
++ *	@data: pointer to buffer to map
++ *	@bs: bio_set to use.
++ *	@len: length in bytes
++ *	@gfp_mask: allocation flags for bio allocation
++ *
++ *	Map the kernel address into a bio suitable for io to a block
++ *	device. Returns an error pointer in case of error.
++ */
++static struct bio *rnbd_bio_map_kern(void *data, struct bio_set *bs,
++				     unsigned int len, gfp_t gfp_mask)
++{
++	unsigned long kaddr = (unsigned long)data;
++	unsigned long end = (kaddr + len + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	unsigned long start = kaddr >> PAGE_SHIFT;
++	const int nr_pages = end - start;
++	int offset, i;
++	struct bio *bio;
++
++	bio = bio_alloc_bioset(gfp_mask, nr_pages, bs);
++	if (!bio)
++		return ERR_PTR(-ENOMEM);
++
++	offset = offset_in_page(kaddr);
++	for (i = 0; i < nr_pages; i++) {
++		unsigned int bytes = PAGE_SIZE - offset;
++
++		if (len <= 0)
++			break;
++
++		if (bytes > len)
++			bytes = len;
++
++		if (bio_add_page(bio, virt_to_page(data), bytes,
++				    offset) < bytes) {
++			/* we don't support partial mappings */
++			bio_put(bio);
++			return ERR_PTR(-EINVAL);
++		}
++
++		data += bytes;
++		len -= bytes;
++		offset = 0;
++	}
++
++	bio->bi_end_io = bio_put;
++	return bio;
++}
++
++int rnbd_dev_submit_io(struct rnbd_dev *dev, sector_t sector, void *data,
++		       size_t len, u32 bi_size, enum rnbd_io_flags flags,
++		       short prio, void *priv)
++{
++	struct rnbd_dev_blk_io *io;
++	struct bio *bio;
++
++	/* Generate bio with pages pointing to the rdma buffer */
++	bio = rnbd_bio_map_kern(data, dev->ibd_bio_set, len, GFP_KERNEL);
++	if (IS_ERR(bio))
++		return PTR_ERR(bio);
++
++	io = container_of(bio, struct rnbd_dev_blk_io, bio);
++
++	io->dev	= dev;
++	io->priv = priv;
++
++	bio->bi_end_io = rnbd_dev_bi_end_io;
++	bio->bi_private	= io;
++	bio->bi_opf = rnbd_to_bio_flags(flags);
++	bio->bi_iter.bi_sector = sector;
++	bio->bi_iter.bi_size = bi_size;
++	bio_set_prio(bio, prio);
++	bio_set_dev(bio, dev->bdev);
++
++	submit_bio(bio);
++
++	return 0;
++}
+diff --git a/drivers/block/rnbd/rnbd-srv-dev.h b/drivers/block/rnbd/rnbd-srv-dev.h
 new file mode 100644
-index 000000000000..c084f203b41e
+index 000000000000..0f65b09a270e
 --- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rnbd-client
-@@ -0,0 +1,111 @@
-+What:		/sys/class/rnbd-client
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Provide information about RNBD-client.
-+		All sysfs files that are not read-only provide the usage information on read:
-+
-+		Example:
-+		# cat /sys/class/rnbd-client/ctl/map_device
-+
-+		> Usage: echo "sessname=<name of the rtrs session> path=<[srcaddr,]dstaddr>
-+		> [path=<[srcaddr,]dstaddr>] device_path=<full path on remote side>
-+		> [access_mode=<ro|rw|migration>] > map_device
-+		>
-+		> addr ::= [ ip:<ipv4> | ip:<ipv6> | gid:<gid> ]
-+
-+What:		/sys/class/rnbd-client/ctl/map_device
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Expected format is the following:
-+
-+		sessname=<name of the rtrs session>
-+		path=<[srcaddr,]dstaddr> [path=<[srcaddr,]dstaddr> ...]
-+		device_path=<full path on remote side>
-+		[access_mode=<ro|rw|migration>]
-+
-+		Where:
-+
-+		sessname: accepts a string not bigger than 256 chars, which identifies
-+		a given session on the client and on the server.
-+		I.e. "clt_hostname-srv_hostname" could be a natural choice.
-+
-+		path:     describes a connection between the client and the server by
-+		specifying destination and, when required, the source address.
-+		The addresses are to be provided in the following format:
-+
-+		ip:<IPv6>
-+		ip:<IPv4>
-+		gid:<GID>
-+
-+		for example:
-+
-+		path=ip:10.0.0.66
-+		The single addr is treated as the destination.
-+		The connection will be established to this server from any client IP address.
-+
-+		path=ip:10.0.0.66,ip:10.0.1.66
-+		First addr is the source address and the second is the destination.
-+
-+		If multiple "path=" options are specified multiple connection
-+		will be established and data will be sent according to
-+		the selected multipath policy (see RTRS mp_policy sysfs entry description).
-+
-+		device_path: Path to the block device on the server side. Path is specified
-+		relative to the directory on server side configured in the
-+		'dev_search_path' module parameter of the rnbd_server.
-+		The rnbd_server prepends the <device_path> received from client
-+		with <dev_search_path> and tries to open the
-+		<dev_search_path>/<device_path> block device.  On success,
-+		a /dev/rnbd<N> device file, a /sys/block/rnbd_client/rnbd<N>/
-+		directory and an entry in /sys/class/rnbd-client/ctl/devices
-+		will be created.
-+
-+		If 'dev_search_path' contains '%SESSNAME%', then each session can
-+		have different devices namespace, e.g. server was configured with
-+		the following parameter "dev_search_path=/run/rnbd-devs/%SESSNAME%",
-+		client has this string "sessname=blya device_path=sda", then server
-+		will try to open: /run/rnbd-devs/blya/sda.
-+
-+		access_mode: the access_mode parameter specifies if the device is to be
-+		mapped as "ro" read-only or "rw" read-write. The server allows
-+		a device to be exported in rw mode only once. The "migration"
-+		access mode has to be specified if a second mapping in read-write
-+		mode is desired.
-+
-+		By default "rw" is used.
-+
-+		Exit Codes:
-+
-+		If the device is already mapped it will fail with EEXIST. If the input
-+		has an invalid format it will return EINVAL. If the device path cannot
-+		be found on the server, it will fail with ENOENT.
-+
-+		Finding device file after mapping
-+		---------------------------------
-+
-+		After mapping, the device file can be found by:
-+		o  The symlink /sys/class/rnbd-client/ctl/devices/<device_id>
-+		points to /sys/block/<dev-name>. The last part of the symlink destination
-+		is the same as the device name.  By extracting the last part of the
-+		path the path to the device /dev/<dev-name> can be build.
-+
-+		o /dev/block/$(cat /sys/class/rnbd-client/ctl/devices/<device_id>/dev)
-+
-+		How to find the <device_id> of the device is described on the next
-+		section.
-+
-+What:		/sys/class/rnbd-client/ctl/devices/
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	For each device mapped on the client a new symbolic link is created as
-+		/sys/class/rnbd-client/ctl/devices/<device_id>, which points
-+		to the block device created by rnbd (/sys/block/rnbd<N>/).
-+		The <device_id> of each device is created as follows:
-+
-+		- If the 'device_path' provided during mapping contains slashes ("/"),
-+		they are replaced by exclamation mark ("!") and used as as the
-+		<device_id>. Otherwise, the <device_id> will be the same as the
-+		"device_path" provided.
-diff --git a/Documentation/ABI/testing/sysfs-class-rnbd-server b/Documentation/ABI/testing/sysfs-class-rnbd-server
-new file mode 100644
-index 000000000000..ba60a90c0e45
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rnbd-server
-@@ -0,0 +1,50 @@
-+What:		/sys/class/rnbd-server
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	provide information about RNBD-server.
-+
-+What:		/sys/class/rnbd-server/ctl/
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	When a client maps a device, a directory entry with the name of the
-+		block device is created under /sys/class/rnbd-server/ctl/devices/.
-+
-+What:		/sys/class/rnbd-server/ctl/devices/<device_name>/block_dev
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Is a symlink to the sysfs entry of the exported device.
-+
-+		Example:
-+		block_dev -> ../../../../class/block/ram0
-+
-+What:		/sys/class/rnbd-server/ctl/devices/<device_name>/sessions/
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	For each client a particular device is exported to, following directory will be
-+		created:
-+
-+		/sys/class/rnbd-server/ctl/devices/<device_name>/sessions/<session-name>/
-+
-+		When the device is unmapped by that client, the directory will be removed.
-+
-+What:		/sys/class/rnbd-server/ctl/devices/<device_name>/sessions/<session-name>/read_only
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains '1' if device is mapped read-only, otherwise '0'.
-+
-+What:		/sys/class/rnbd-server/ctl/devices/<device_name>/sessions/<session-name>/mapping_path
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains the relative device path provided by the user during mapping.
-+
-+What:		/sys/class/rnbd-server/ctl/devices/<device_name>/sessions/<session-name>/access_mode
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	Contains the device access mode: ro, rw or migration.
-diff --git a/drivers/block/rnbd/README b/drivers/block/rnbd/README
-new file mode 100644
-index 000000000000..1773c0aa0bd4
---- /dev/null
-+++ b/drivers/block/rnbd/README
++++ b/drivers/block/rnbd/rnbd-srv-dev.h
 @@ -0,0 +1,92 @@
-+********************************
-+RDMA Network Block Device (RNBD)
-+********************************
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * RDMA Network Block Driver
++ *
++ * Copyright (c) 2014 - 2018 ProfitBricks GmbH. All rights reserved.
++ * Copyright (c) 2018 - 2019 1&1 IONOS Cloud GmbH. All rights reserved.
++ * Copyright (c) 2019 - 2020 1&1 IONOS SE. All rights reserved.
++ */
++#ifndef RNBD_SRV_DEV_H
++#define RNBD_SRV_DEV_H
 +
-+Introduction
-+------------
++#include <linux/fs.h>
++#include "rnbd-proto.h"
 +
-+RNBD (RDMA Network Block Device) is a pair of kernel modules
-+(client and server) that allow for remote access of a block device on
-+the server over RTRS protocol using the RDMA (InfiniBand, RoCE, iWARP)
-+transport. After being mapped, the remote block devices can be accessed
-+on the client side as local block devices.
++struct rnbd_dev {
++	struct block_device	*bdev;
++	struct bio_set		*ibd_bio_set;
++	fmode_t			blk_open_flags;
++	char			name[BDEVNAME_SIZE];
++};
 +
-+I/O is transferred between client and server by the RTRS transport
-+modules. The administration of RNBD and RTRS modules is done via
-+sysfs entries.
++struct rnbd_dev_blk_io {
++	struct rnbd_dev *dev;
++	void		 *priv;
++	/* have to be last member for front_pad usage of bioset_init */
++	struct bio	bio;
++};
 +
-+Requirements
-+------------
++/**
++ * rnbd_dev_open() - Open a device
++ * @flags:	open flags
++ * @bs:		bio_set to use during block io,
++ */
++struct rnbd_dev *rnbd_dev_open(const char *path, fmode_t flags,
++			       struct bio_set *bs);
 +
-+  RTRS kernel modules
++/**
++ * rnbd_dev_close() - Close a device
++ */
++void rnbd_dev_close(struct rnbd_dev *dev);
 +
-+Quick Start
-+-----------
++void rnbd_endio(void *priv, int error);
 +
-+Server side:
-+  # modprobe rnbd_server
++static inline int rnbd_dev_get_max_segs(const struct rnbd_dev *dev)
++{
++	return queue_max_segments(bdev_get_queue(dev->bdev));
++}
 +
-+Client side:
-+  # modprobe rnbd_client
-+  # echo "sessname=blya path=ip:10.50.100.66 device_path=/dev/ram0" > \
-+            /sys/devices/virtual/rnbd-client/ctl/map_device
++static inline int rnbd_dev_get_max_hw_sects(const struct rnbd_dev *dev)
++{
++	return queue_max_hw_sectors(bdev_get_queue(dev->bdev));
++}
 +
-+  Where "sessname=" is a session name, a string to identify the session
-+  on client and on server sides; "path=" is a destination IP address or
-+  a pair of a source and a destination IPs, separated by comma.  Multiple
-+  "path=" options can be specified in order to use multipath  (see RTRS
-+  description for details); "device_path=" is the block device to be
-+  mapped from the server side. After the session to the server machine is
-+  established, the mapped device will appear on the client side under
-+  /dev/rnbd<N>.
++static inline int rnbd_dev_get_secure_discard(const struct rnbd_dev *dev)
++{
++	return blk_queue_secure_erase(bdev_get_queue(dev->bdev));
++}
 +
++static inline int rnbd_dev_get_max_discard_sects(const struct rnbd_dev *dev)
++{
++	if (!blk_queue_discard(bdev_get_queue(dev->bdev)))
++		return 0;
 +
-+RNBD-Server Module Parameters
-+=============================
++	return blk_queue_get_max_sectors(bdev_get_queue(dev->bdev),
++					 REQ_OP_DISCARD);
++}
 +
-+dev_search_path
-+---------------
++static inline int rnbd_dev_get_discard_granularity(const struct rnbd_dev *dev)
++{
++	return bdev_get_queue(dev->bdev)->limits.discard_granularity;
++}
 +
-+When a device is mapped from the client, the server generates the path
-+to the block device on the server side by concatenating dev_search_path
-+and the "device_path" that was specified in the map_device operation.
++static inline int rnbd_dev_get_discard_alignment(const struct rnbd_dev *dev)
++{
++	return bdev_get_queue(dev->bdev)->limits.discard_alignment;
++}
 +
-+The default dev_search_path is: "/".
++/**
++ * rnbd_dev_submit_io() - Submit an I/O to the disk
++ * @dev:	device to that the I/O is submitted
++ * @sector:	address to read/write data to
++ * @data:	I/O data to write or buffer to read I/O date into
++ * @len:	length of @data
++ * @bi_size:	Amount of data that will be read/written
++ * @prio:       IO priority
++ * @priv:	private data passed to @io_fn
++ */
++int rnbd_dev_submit_io(struct rnbd_dev *dev, sector_t sector, void *data,
++			size_t len, u32 bi_size, enum rnbd_io_flags flags,
++			short prio, void *priv);
 +
-+dev_search_path option can also contain %SESSNAME% in order to provide
-+different device namespaces for different sessions.  See "device_path"
-+option for details.
-+
-+============================
-+Protocol (rnbd/rnbd-proto.h)
-+============================
-+
-+1. Before mapping first device from a given server, client sends an
-+RNBD_MSG_SESS_INFO to the server. Server responds with
-+RNBD_MSG_SESS_INFO_RSP. Currently the messages only contain the protocol
-+version for backward compatibility.
-+
-+2. Client requests to open a device by sending RNBD_MSG_OPEN message. This
-+contains the path to the device and access mode (read-only or writable).
-+Server responds to the message with RNBD_MSG_OPEN_RSP. This contains
-+a 32 bit device id to be used for  IOs and device "geometry" related
-+information: side, max_hw_sectors, etc.
-+
-+3. Client attaches RNBD_MSG_IO to each IO message send to a device. This
-+message contains device id, provided by server in his rnbd_msg_open_rsp,
-+sector to be accessed, read-write flags and bi_size.
-+
-+4. Client closes a device by sending RNBD_MSG_CLOSE which contains only the
-+device id provided by the server.
-+
-+=========================================
-+Contributors List(in alphabetical order)
-+=========================================
-+Danil Kipnis <danil.kipnis@profitbricks.com>
-+Fabian Holler <mail@fholler.de>
-+Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-+Jack Wang <jinpu.wang@profitbricks.com>
-+Kleber Souza <kleber.souza@profitbricks.com>
-+Lutz Pogrell <lutz.pogrell@cloud.ionos.com>
-+Milind Dumbare <Milind.dumbare@gmail.com>
-+Roman Penyaev <roman.penyaev@profitbricks.com>
++#endif /* RNBD_SRV_DEV_H */
 -- 
 2.20.1
 
