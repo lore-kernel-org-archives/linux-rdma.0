@@ -2,155 +2,107 @@ Return-Path: <SRS0=U60/=6A=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32196C38A2D
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:43:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9596AC2BB85
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:59:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B54822265
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:43:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="VyOle/UY"
+	by mail.kernel.org (Postfix) with ESMTP id 80F1522245
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2897187AbgDPNfn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Apr 2020 09:35:43 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:57550 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2897170AbgDPNfi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Apr 2020 09:35:38 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03GDRuCr008601;
-        Thu, 16 Apr 2020 13:35:32 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
- mime-version : subject : from : in-reply-to : date : cc :
- content-transfer-encoding : message-id : references : to;
- s=corp-2020-01-29; bh=pB4RFjmJnZEger3DzMc3XUODnXkLJAAR7JUcOa5yHvc=;
- b=VyOle/UYWdi5wzE7SBbbSGHUiG6mdV7pAudIPbcd26Wbg4FBnfc4Q2PcfuYCwVQgFp1K
- yK7NVLeQI7aixGJXhbzLFE+RHMTVi89Cljk6fZt9affO7iFBA2FJxaSFd4ocKVGvjjBM
- 9fj8sTlYdYmiVlczk5IEsOZutgE17fUAu+PhqaDe83iW4HIh34phkAlLo6DFDNN3i7eO
- FUl87iUuCnZmMsqaxZtgMkhU/EVTZqK/QIppqHBLeOywN6Wxm+BaWwun39CsSVYVpB60
- ZKQPQOcoaZ+CQjaNbRcW46ud4/3dWnPgv5l5MF+OpJ8czRGIH2nXDrX4h1MGQj6tW9/N Lw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2120.oracle.com with ESMTP id 30emejh76c-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 16 Apr 2020 13:35:32 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03GDR8Q3065578;
-        Thu, 16 Apr 2020 13:33:32 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3020.oracle.com with ESMTP id 30emen2bnq-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 16 Apr 2020 13:33:32 +0000
-Received: from abhmp0001.oracle.com (abhmp0001.oracle.com [141.146.116.7])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 03GDXVW0032510;
-        Thu, 16 Apr 2020 13:33:31 GMT
-Received: from [192.168.10.144] (/51.175.204.144)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 16 Apr 2020 06:33:31 -0700
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3608.60.0.2.5\))
-Subject: Re: [PATCH for-rc] RDMA/cma: fix race between addr_handler and
- resolve_route
-From:   =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-In-Reply-To: <20200414161141.GL11945@mellanox.com>
-Date:   Thu, 16 Apr 2020 15:33:28 +0200
-Cc:     Doug Ledford <dledford@redhat.com>,
-        OFED mailing list <linux-rdma@vger.kernel.org>,
-        george kennedy <george.kennedy@oracle.com>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <3168883E-169E-4D96-A4F5-8FF882B164BC@oracle.com>
-References: <20200403185707.GE8514@mellanox.com>
- <1720C7BF-D6E4-4779-B05D-203703042B36@oracle.com>
- <20200403193656.GF8514@mellanox.com>
- <EDBCDCC1-E03F-428A-8352-734E3F01B316@oracle.com>
- <20200406173149.GH11616@mellanox.com>
- <09A6E613-AA59-4C5F-889A-EF45722B7F69@oracle.com>
- <20200406181032.GI11616@mellanox.com>
- <EAE5B24F-142B-478D-BBA5-BBF784AA9E39@oracle.com>
- <20200414125012.GK11945@mellanox.com>
- <BCFFD1E1-F013-4B09-9DC5-5A4EE205EA10@oracle.com>
- <20200414161141.GL11945@mellanox.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-X-Mailer: Apple Mail (2.3608.60.0.2.5)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9592 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxscore=0 suspectscore=0
- mlxlogscore=999 phishscore=0 spamscore=0 bulkscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
- definitions=main-2004160096
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9592 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 impostorscore=0
- mlxscore=0 suspectscore=0 lowpriorityscore=0 spamscore=0 mlxlogscore=999
- bulkscore=0 adultscore=0 phishscore=0 clxscore=1015 priorityscore=1501
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
- definitions=main-2004160096
+        id S2895910AbgDPP6z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Apr 2020 11:58:55 -0400
+Received: from mout.kundenserver.de ([217.72.192.75]:41347 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2895850AbgDPP6w (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Apr 2020 11:58:52 -0400
+Received: from mail-qk1-f170.google.com ([209.85.222.170]) by
+ mrelayeu.kundenserver.de (mreue108 [212.227.15.145]) with ESMTPSA (Nemesis)
+ id 1MNso2-1jaCjx2SnQ-00OGie; Thu, 16 Apr 2020 17:58:49 +0200
+Received: by mail-qk1-f170.google.com with SMTP id o19so14496656qkk.5;
+        Thu, 16 Apr 2020 08:58:49 -0700 (PDT)
+X-Gm-Message-State: AGi0PuZ2KdLVAVbdkKvggkA12EKvnomfG7hGlLVN8SvY09KMHhQMhu5G
+        Fk9PEpVHam3/+dhMMl3BELWq1nn2ymFMSscbLAI=
+X-Google-Smtp-Source: APiQypKGrakVFJpHU6+2/9ubHFZSVsfORqHq+Dek4jgUuB+FQt0sMX/hFlCLPEJjO3Byfz+ywXPktI2/F+cmyK0/LA8=
+X-Received: by 2002:a37:851:: with SMTP id 78mr32467282qki.352.1587052728173;
+ Thu, 16 Apr 2020 08:58:48 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200414132900.GD5100@ziepe.ca> <CAK8P3a0aFQ7h4zRDW=QLogXWc88JkJJXEOK0_CpWwsRjq6+T+w@mail.gmail.com>
+ <20200414152312.GF5100@ziepe.ca> <CAK8P3a1PjP9_b5NdmqTLeGN4y+3JXx_yyTE8YAf1u5rYHWPA9g@mail.gmail.com>
+ <f6d83b08fc0bc171b5ba5b2a0bc138727d92e2c0.camel@mellanox.com>
+ <CAK8P3a1-J=4EAxh7TtQxugxwXk239u8ffgxZNRdw_WWy8ExFoQ@mail.gmail.com>
+ <834c7606743424c64951dd2193ca15e29799bf18.camel@mellanox.com>
+ <CAK8P3a3Wx5_bUOKnN3_hG5nLOqv3WCUtMSq6vOkJzWZgsmAz+A@mail.gmail.com>
+ <874ktj4tvn.fsf@intel.com> <CAK8P3a1S2x1jnx9Q5B22vX8gBHs0Ztu-znA9hqZ5xp5tRAykGg@mail.gmail.com>
+ <20200416145235.GR5100@ziepe.ca>
+In-Reply-To: <20200416145235.GR5100@ziepe.ca>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Thu, 16 Apr 2020 17:58:31 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a3HwFYKfZftm2fWE=Lzi486rXpMBwjy1F4oohYU2+o7-g@mail.gmail.com>
+Message-ID: <CAK8P3a3HwFYKfZftm2fWE=Lzi486rXpMBwjy1F4oohYU2+o7-g@mail.gmail.com>
+Subject: Re: [RFC 0/6] Regressions for "imply" behavior change
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Jani Nikula <jani.nikula@linux.intel.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        "narmstrong@baylibre.com" <narmstrong@baylibre.com>,
+        "masahiroy@kernel.org" <masahiroy@kernel.org>,
+        "Laurent.pinchart@ideasonboard.com" 
+        <Laurent.pinchart@ideasonboard.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "linux-renesas-soc@vger.kernel.org" 
+        <linux-renesas-soc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "nico@fluxnic.net" <nico@fluxnic.net>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "kieran.bingham+renesas@ideasonboard.com" 
+        <kieran.bingham+renesas@ideasonboard.com>,
+        "a.hajda@samsung.com" <a.hajda@samsung.com>,
+        "jonas@kwiboo.se" <jonas@kwiboo.se>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "airlied@linux.ie" <airlied@linux.ie>,
+        "jernej.skrabec@siol.net" <jernej.skrabec@siol.net>
+Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:NvuMKkUOlsrp2prjXUqiJgwl2fFGba1tjbVPgdJTXH3/mhN0MMO
+ V1nblPlClntAmE57yT9m+FF7dqNXEKFVfWA1yfdb6htAepBEPga8nvSndR5RyyuJ0SOgU3a
+ QfXMeh6PgxUfxNwK/RiPHCUwXPvl83ppSySAWgOh356/NJb2EEBRIuhmfA8++gpR3FWDhjf
+ +ipZITRcVMeuNVkejH/PA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:nLLF9c2uOC4=:CO3B1+y57PnWI3KAQsNtp+
+ XOVUMAJLv1uP+nnwoMyOUjWAMxhCA6kUHH7SUVTnLLwkWYun6Il50xBEv34zL2Pb8WHHTGI7T
+ KfT2u4SNrBxbBee4PnMm40NQ9ECxnvLlIulMqwAvSgEk1DuxD5reTyl3t1lzxx9EISnrshAXm
+ zglvRnqi7s3epUZv4BqyE7xXeQA08X27PykRNW3RRioJR6KiGmdmSZOal6A6x2dudQtzITvRJ
+ TSsGr3s6vQJbaMOzjFeLsrA7TDOdOeSo1kodMSS1grC3HuUUcmrDHwPp8HFTk13vaSl2vOaKt
+ 9Fn6p8mFjguKEDBuECGUV2yHLUhUHRd59j/oVymQC6d5TWMgmIYQ6Hn+vdoVovyQcxzQ/aLGO
+ 4LsMntB1DvHXkkeN/vfkjbf4LnvXwe4CGneR0xG2PSa9m81qHrN1cMPYCBH6F2sLz+IJbYX/q
+ nbtMESTGcTyvqvPye/VfuXNBj2UD83hkLtAE2n2o+My9LfSXib/AdERcqp1Xp9YzN/zqxEyF/
+ NWRLC47HtdeXVdeCr631fjjqSZZK7wYG6kb/QO1p5FZKWhrvoTr/Ehtvpe/5UdUrWSZ7hUJ1x
+ YTOC3D2zs3dNhYmNwlO5qNUv6Nia+657JxMI6xtbpxastY9GwIQYixo8NoEvjcnr218KwnY9Y
+ fXk/dLaeKc862FyZie5AQfE4Bfp2WT9FV7cRG6hH0QjPK4mPGXto/QzH60dNsl43z+0OinG4H
+ gAB32EphIxXK56OMN4KW/RI6RYOPkcDnjM/pTu+XibtSbRtDYFYJyOellq8Kx/mS8jT/8JyaW
+ Av3FXArCl/gJb7EVEeywqp9NPDw1Z2n/lzxFR28MPRyqkMehXU=
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Thu, Apr 16, 2020 at 4:52 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Thu, Apr 16, 2020 at 02:38:50PM +0200, Arnd Bergmann wrote:
+> > On Thu, Apr 16, 2020 at 12:17 PM Jani Nikula <jani.nikula@linux.intel.com> wrote:
+> > > Of course, this is all just talk until someone(tm) posts a patch
+> > > actually making the change. I've looked at the kconfig tool sources
+> > > before; not going to make the same mistake again.
+> >
+> > Right. OTOH whoever implements it gets to pick the color of the
+> > bikeshed. ;-)
+>
+> I hope someone takes it up, especially now that imply, which
+> apparently used to do this, doesn't any more :)
 
+The old 'imply' was something completely different, it was more of a
+'try to select if you can so we can assume it's there, but give up
+if it can only be a module and we need it to be built-in".
 
-> On 14 Apr 2020, at 18:11, Jason Gunthorpe <jgg@mellanox.com> wrote:
->=20
-> On Tue, Apr 14, 2020 at 03:57:20PM +0200, H=C3=A5kon Bugge wrote:
->>=20
->>=20
->>> On 14 Apr 2020, at 14:50, Jason Gunthorpe <jgg@mellanox.com> wrote:
->>>=20
->>> On Tue, Apr 14, 2020 at 12:34:35PM +0200, H=C3=A5kon Bugge wrote:
->>>=20
->>>>>>>> Shall I make a v2 base on next based on this idea, or do you =
-have
->>>>>>>> something coming?
->>>>>>>=20
->>>>>>> Sure, I have nothing :)
->>>>>>>=20
->>>>>>> Also that rdma_destroy_id in addr_handler looks wrong.. ie we =
-still
->>>>>>> retain pointers to the rdma_cm_id it destroys inside the struct
->>>>>>> ucma_context, don't we?
->>>>>>=20
->>>>>> On entry from user-space, we use the u32 id and looks it up in =
-the
->>>>>> XArray. But if rdma_destoy_id() is called asynchronously called
->>>>>> between ucma_get_ctx_dev() and the de-reference of ctx->cm_id, we
->>>>>> are toast.
->>>>>=20
->>>>> Is that what happens on the addr_handler path?
->>>>=20
->>>> No, there, the main problem is the revert of the state
->>>> transitions. The first transition enables rdma_resolve_route() to
->>>> pass its gate (i.e. state =3D=3D ADDR_RESOLVED). Then it thinks the
->>>> address is resolved, but the addr_handler changes its mind
->>>> afterwards.
->>>=20
->>> That is a problem, but the call to rdma_destroy_id looks like =
-another
->>> problem
->>=20
->> I am not sure. Almost all events/incoming packets, can, after the
->> cm_id's event_handler is called from cma_ib_handler(), call
->> rdma_destroy_id().=20
->=20
-> I think the trick is that ucma_event_handler never returns failure
-> unless RDMA_CM_EVENT_CONNECT_REQUEST, which means the cm_id isn't in
-> the xarray yet?
-
-Sure does. 1 or -ENOMEM. But the ULP's event handlers isn't that polite. =
-But a different issue from this syzkaller one.
-
->> I assume the refcounting takes care of this.
->=20
-> There is no refcounting for destroy, it must be called once.
-
-I was thinking about the "cma_deref_id(id_priv);" stuff, but I may have =
-misunderstood.
-
-
-
-Thxs, H=C3=A5kon
-
+        Arnd
