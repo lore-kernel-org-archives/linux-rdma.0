@@ -2,151 +2,155 @@ Return-Path: <SRS0=U60/=6A=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ACCAC352BE
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:18:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32196C38A2D
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:43:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAC9221D7E
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:18:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B54822265
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 15:43:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="KunL1GHn"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="VyOle/UY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2502072AbgDPPSK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Apr 2020 11:18:10 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42002 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2442384AbgDPPSH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Apr 2020 11:18:07 -0400
-Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 20E5497D;
-        Thu, 16 Apr 2020 17:18:03 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1587050283;
-        bh=kRV0TK76jaLsKumnRx9oBxQ+fB9EZ/hBhcVvcCrUN8Y=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=KunL1GHnZWE+ve/sOLaoFkAzYPKX6+/n+r78iuYJs7x5e+okkGATOqE6ApGMnuikF
-         /2ayUcQFN/Z9UdwuSHJbBCZB/V8aA1w7KUzO09ROtISEFr9rEn/3j6xTfoHtnx7/rk
-         eGxptalaFyRgrldUK2vtce1M8FhIp7rddugLnmJg=
-Date:   Thu, 16 Apr 2020 18:17:51 +0300
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Daniel Vetter <daniel@ffwll.ch>
-Cc:     Arnd Bergmann <arnd@arndb.de>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        Jernej Skrabec <jernej.skrabec@siol.net>,
-        David Airlie <airlied@linux.ie>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Networking <netdev@vger.kernel.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>
-Subject: Re: [RFC 5/6] drm/rcar-du: fix selection of CMM driver
-Message-ID: <20200416151751.GD4796@pendragon.ideasonboard.com>
-References: <20200414201739.GJ19819@pendragon.ideasonboard.com>
- <CAK8P3a0hd5bsezrJS3+GV2nRMui4P5yeD2Rk7wQpJsAZeOCOUg@mail.gmail.com>
- <20200414205158.GM19819@pendragon.ideasonboard.com>
- <CAK8P3a1PZbwdvdH_Gi9UQVUz2+_a8QDxKuWLqPtjhK1stxzMBQ@mail.gmail.com>
- <CAMuHMdUb=XXucGUbxt26tZ1xu9pdyVUB8RVsfB2SffURVVXwSg@mail.gmail.com>
- <CAK8P3a1uasBFg9dwvPEcokrRhYE2qh6iwOMW1fDTY+LBZMrTjg@mail.gmail.com>
- <CAK8P3a0CoPUTSJp6ddDnmabo59iE73pugGSYayoeB5N57az9_w@mail.gmail.com>
- <20200415211220.GQ4758@pendragon.ideasonboard.com>
- <CAK8P3a1rDZO4cuL6VAXgu9sOiedcHqOSL7ELhpvULz+YYRaGbA@mail.gmail.com>
- <CAKMK7uEoZ1jC8c25tPVX20kcdC1=+TpUUNyf+-c=sg5iK2cTZA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAKMK7uEoZ1jC8c25tPVX20kcdC1=+TpUUNyf+-c=sg5iK2cTZA@mail.gmail.com>
+        id S2897187AbgDPNfn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Apr 2020 09:35:43 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:57550 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2897170AbgDPNfi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Apr 2020 09:35:38 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03GDRuCr008601;
+        Thu, 16 Apr 2020 13:35:32 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
+ mime-version : subject : from : in-reply-to : date : cc :
+ content-transfer-encoding : message-id : references : to;
+ s=corp-2020-01-29; bh=pB4RFjmJnZEger3DzMc3XUODnXkLJAAR7JUcOa5yHvc=;
+ b=VyOle/UYWdi5wzE7SBbbSGHUiG6mdV7pAudIPbcd26Wbg4FBnfc4Q2PcfuYCwVQgFp1K
+ yK7NVLeQI7aixGJXhbzLFE+RHMTVi89Cljk6fZt9affO7iFBA2FJxaSFd4ocKVGvjjBM
+ 9fj8sTlYdYmiVlczk5IEsOZutgE17fUAu+PhqaDe83iW4HIh34phkAlLo6DFDNN3i7eO
+ FUl87iUuCnZmMsqaxZtgMkhU/EVTZqK/QIppqHBLeOywN6Wxm+BaWwun39CsSVYVpB60
+ ZKQPQOcoaZ+CQjaNbRcW46ud4/3dWnPgv5l5MF+OpJ8czRGIH2nXDrX4h1MGQj6tW9/N Lw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2120.oracle.com with ESMTP id 30emejh76c-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 16 Apr 2020 13:35:32 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03GDR8Q3065578;
+        Thu, 16 Apr 2020 13:33:32 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by userp3020.oracle.com with ESMTP id 30emen2bnq-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 16 Apr 2020 13:33:32 +0000
+Received: from abhmp0001.oracle.com (abhmp0001.oracle.com [141.146.116.7])
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 03GDXVW0032510;
+        Thu, 16 Apr 2020 13:33:31 GMT
+Received: from [192.168.10.144] (/51.175.204.144)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 16 Apr 2020 06:33:31 -0700
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3608.60.0.2.5\))
+Subject: Re: [PATCH for-rc] RDMA/cma: fix race between addr_handler and
+ resolve_route
+From:   =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+In-Reply-To: <20200414161141.GL11945@mellanox.com>
+Date:   Thu, 16 Apr 2020 15:33:28 +0200
+Cc:     Doug Ledford <dledford@redhat.com>,
+        OFED mailing list <linux-rdma@vger.kernel.org>,
+        george kennedy <george.kennedy@oracle.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <3168883E-169E-4D96-A4F5-8FF882B164BC@oracle.com>
+References: <20200403185707.GE8514@mellanox.com>
+ <1720C7BF-D6E4-4779-B05D-203703042B36@oracle.com>
+ <20200403193656.GF8514@mellanox.com>
+ <EDBCDCC1-E03F-428A-8352-734E3F01B316@oracle.com>
+ <20200406173149.GH11616@mellanox.com>
+ <09A6E613-AA59-4C5F-889A-EF45722B7F69@oracle.com>
+ <20200406181032.GI11616@mellanox.com>
+ <EAE5B24F-142B-478D-BBA5-BBF784AA9E39@oracle.com>
+ <20200414125012.GK11945@mellanox.com>
+ <BCFFD1E1-F013-4B09-9DC5-5A4EE205EA10@oracle.com>
+ <20200414161141.GL11945@mellanox.com>
+To:     Jason Gunthorpe <jgg@mellanox.com>
+X-Mailer: Apple Mail (2.3608.60.0.2.5)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9592 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxscore=0 suspectscore=0
+ mlxlogscore=999 phishscore=0 spamscore=0 bulkscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2004160096
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9592 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 impostorscore=0
+ mlxscore=0 suspectscore=0 lowpriorityscore=0 spamscore=0 mlxlogscore=999
+ bulkscore=0 adultscore=0 phishscore=0 clxscore=1015 priorityscore=1501
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2004160096
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Apr 16, 2020 at 08:51:14AM +0200, Daniel Vetter wrote:
-> On Wed, Apr 15, 2020 at 11:22 PM Arnd Bergmann wrote:
-> > On Wed, Apr 15, 2020 at 11:12 PM Laurent Pinchart wrote:
-> > > On Wed, Apr 15, 2020 at 09:07:14PM +0200, Arnd Bergmann wrote:
-> > > > On Wed, Apr 15, 2020 at 5:18 PM Arnd Bergmann <arnd@arndb.de> wrote:
-> > > > > On Wed, Apr 15, 2020 at 4:13 PM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> > > > > > On Wed, Apr 15, 2020 at 3:47 PM Arnd Bergmann <arnd@arndb.de> wrote:
-> > > > > > > On Tue, Apr 14, 2020 at 10:52 PM Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> > > > > > > > Doesn't "imply" mean it gets selected by default but can be manually
-> > > > > > > > disabled ?
-> > > > > > >
-> > > > > > > That may be what it means now (I still don't understand how it's defined
-> > > > > > > as of v5.7-rc1), but traditionally it was more like a 'select if all
-> > > > > > > dependencies are met'.
-> > > > > >
-> > > > > > That's still what it is supposed to mean right now ;-)
-> > > > > > Except that now it should correctly handle the modular case, too.
-> > > > >
-> > > > > Then there is a bug. If I run 'make menuconfig' now on a mainline kernel
-> > > > > and enable CONFIG_DRM_RCAR_DU, I can set
-> > > > > DRM_RCAR_CMM and DRM_RCAR_LVDS to 'y', 'n' or 'm' regardless
-> > > > > of whether CONFIG_DRM_RCAR_DU is 'm' or 'y'. The 'implies'
-> > > > > statement seems to be ignored entirely, except as reverse 'default'
-> > > > > setting.
-> > > >
-> > > > Here is another version that should do what we want and is only
-> > > > half-ugly. I can send that as a proper patch if it passes my testing
-> > > > and nobody hates it too much.
-> > >
-> > > This may be a stupid question, but doesn't this really call for fixing
-> > > Kconfig ? This seems to be such a common pattern that requiring
-> > > constructs similar to the ones below will be a never-ending chase of
-> > > offenders.
-> >
-> > Maybe, I suppose the hardest part here would be to come up with
-> > an appropriate name for the keyword ;-)
-> >
-> > Any suggestions?
 
-Would it make sense to fix the imply semantics ? Or are they use cases
-for the current behaviour of imply ? "recommend" could be another
-keyword. I think we should try to limit the number of keywords though,
-as it would otherwise become quite messy.
 
-> > This specific issue is fairly rare though, in most cases the dependencies
-> > are in the right order so a Kconfig symbol 'depends on' a second one
-> > when the corresponding loadable module uses symbols from that second
-> > module. The problem here is that the two are mixed up.
-> >
-> > The much more common problem is the one where one needs to
-> > wrong
-> >
-> > config FOO
-> >        depends on BAR || !BAR
-> >
-> > To ensure the dependency is either met or BAR is disabled, but
-> > not FOO=y with BAR=m. If you have any suggestions for a keyword
-> > for that thing, we can clean up hundreds of such instances.
-> 
-> Some ideas:
-> 
-> config FOO
->     can use  BAR
->     maybe BAR
->     optional BAR
+> On 14 Apr 2020, at 18:11, Jason Gunthorpe <jgg@mellanox.com> wrote:
+>=20
+> On Tue, Apr 14, 2020 at 03:57:20PM +0200, H=C3=A5kon Bugge wrote:
+>>=20
+>>=20
+>>> On 14 Apr 2020, at 14:50, Jason Gunthorpe <jgg@mellanox.com> wrote:
+>>>=20
+>>> On Tue, Apr 14, 2020 at 12:34:35PM +0200, H=C3=A5kon Bugge wrote:
+>>>=20
+>>>>>>>> Shall I make a v2 base on next based on this idea, or do you =
+have
+>>>>>>>> something coming?
+>>>>>>>=20
+>>>>>>> Sure, I have nothing :)
+>>>>>>>=20
+>>>>>>> Also that rdma_destroy_id in addr_handler looks wrong.. ie we =
+still
+>>>>>>> retain pointers to the rdma_cm_id it destroys inside the struct
+>>>>>>> ucma_context, don't we?
+>>>>>>=20
+>>>>>> On entry from user-space, we use the u32 id and looks it up in =
+the
+>>>>>> XArray. But if rdma_destoy_id() is called asynchronously called
+>>>>>> between ucma_get_ctx_dev() and the de-reference of ctx->cm_id, we
+>>>>>> are toast.
+>>>>>=20
+>>>>> Is that what happens on the addr_handler path?
+>>>>=20
+>>>> No, there, the main problem is the revert of the state
+>>>> transitions. The first transition enables rdma_resolve_route() to
+>>>> pass its gate (i.e. state =3D=3D ADDR_RESOLVED). Then it thinks the
+>>>> address is resolved, but the addr_handler changes its mind
+>>>> afterwards.
+>>>=20
+>>> That is a problem, but the call to rdma_destroy_id looks like =
+another
+>>> problem
+>>=20
+>> I am not sure. Almost all events/incoming packets, can, after the
+>> cm_id's event_handler is called from cma_ib_handler(), call
+>> rdma_destroy_id().=20
+>=20
+> I think the trick is that ucma_event_handler never returns failure
+> unless RDMA_CM_EVENT_CONNECT_REQUEST, which means the cm_id isn't in
+> the xarray yet?
 
-Another idea,
+Sure does. 1 or -ENOMEM. But the ULP's event handlers isn't that polite. =
+But a different issue from this syzkaller one.
 
-	depends optionally on BAR
+>> I assume the refcounting takes care of this.
+>=20
+> There is no refcounting for destroy, it must be called once.
 
-> We should probably double-check that this is only ever used for when
-> both FOO and BAR are tri-state, since without that it doesn't make
-> much sense.
+I was thinking about the "cma_deref_id(id_priv);" stuff, but I may have =
+misunderstood.
 
--- 
-Regards,
 
-Laurent Pinchart
+
+Thxs, H=C3=A5kon
+
