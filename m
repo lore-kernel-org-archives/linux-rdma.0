@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B502C2BB55
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 16:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5732C2BB85
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 16:57:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 707402076D
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 16:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEB412222D
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Apr 2020 16:57:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731440AbgDPQ5h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Apr 2020 12:57:37 -0400
-Received: from mga03.intel.com ([134.134.136.65]:59302 "EHLO mga03.intel.com"
+        id S2390596AbgDPQ5o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Apr 2020 12:57:44 -0400
+Received: from mga18.intel.com ([134.134.136.126]:39706 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733127AbgDPQ5g (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Apr 2020 12:57:36 -0400
-IronPort-SDR: Hzt6CrRNOFmQleLUVltTsmxl9+dUYL+KBxvdlJ3ACvLX9rC0OkTv6l2hIabMFXPVZIUDfKP9cp
- Qkw2AaK2kVJg==
+        id S2390274AbgDPQ5m (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Apr 2020 12:57:42 -0400
+IronPort-SDR: Go6C5bNrm2qBOQhhp9pexrtN1s0TtN28m9kLhBDKdli+FgiM0xerxy7E21Iw5dsRlbaK/Mq1wo
+ 6ZcfFDrelwAg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2020 09:57:35 -0700
-IronPort-SDR: wTR1jH/36CCdDzTZQ/ZuPLRf6eDDSLoZy9F88gDyo2kiRxpvmd4gF3ozpN0ICyNpWlAopEfqzV
- xplp4d0R+aHg==
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2020 09:57:39 -0700
+IronPort-SDR: qRH3Qf0t9pC9I55x662QydQOFMF/BG+xOWqsNr7naKiFj6eZCSCozvwvidq1SZBM4DUFaJNuuO
+ skmXEKW5WYeg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,391,1580803200"; 
-   d="scan'208";a="364053022"
+   d="scan'208";a="364053040"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by fmsmga001.fm.intel.com with ESMTP; 16 Apr 2020 09:57:37 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 16 Apr 2020 09:57:38 -0700
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
@@ -38,9 +38,9 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Jason Gunthorpe <jgg@ziepe.ca>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         Leon Romanovsky <leon@kernel.org>
-Subject: [RFC PATCH 1/3] RDMA/umem: Support importing dma-buf as user memory region
-Date:   Thu, 16 Apr 2020 10:09:31 -0700
-Message-Id: <1587056973-101760-2-git-send-email-jianxin.xiong@intel.com>
+Subject: [RFC PATCH 3/3] RDMA/mlx5: Support new uverbs commands for registering fd-based MR
+Date:   Thu, 16 Apr 2020 10:09:33 -0700
+Message-Id: <1587056973-101760-4-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1587056973-101760-1-git-send-email-jianxin.xiong@intel.com>
 References: <1587056973-101760-1-git-send-email-jianxin.xiong@intel.com>
@@ -49,273 +49,216 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dma-buf, a standard cross-driver buffer sharing mechanism, is chosen to
-be the basis of a non-proprietary approach for supporting RDMA to/from
-buffers allocated from device local memory (e.g. GPU VRAM).
-
-Dma-buf is supported by mainstream GPU drivers. By using ioctl calls
-via the devices under /dev/dri/, user space applications can allocate
-and export GPU buffers as dma-buf objects with associated file
-descriptors.
-
-In order to use the exported GPU buffers for RDMA operations, the RDMA
-driver needs to be able to import dma-buf objects. This happens at the
-time of memory registration. A GPU buffer is registered as a special
-type of user space memory region with the dma-buf file descriptor as
-an extra parameter. The uverbs API needs to be extended to allow the
-extra parameter be passed from user space to kernel.
-
-Implements the common code for pinning and mapping dma-buf pages and
-adds config option for RDMA driver dma-buf support. The common code
-is utilized by the new uverbs commands introduced by follow-up patches.
+Implement the new 'reg_user_mr_fd' and 'rereg_user_mr_fd' functions of
+'struct ib_device_ops' for the mlx5 RDMA driver. This serves as an
+example on how vendor RDMA drivers can be updated to support the new
+uverbs commands.
 
 Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
 Reviewed-by: Sean Hefty <sean.hefty@intel.com>
 Acked-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 ---
- drivers/infiniband/Kconfig            |  10 ++++
- drivers/infiniband/core/Makefile      |   1 +
- drivers/infiniband/core/umem.c        |   3 +
- drivers/infiniband/core/umem_dmabuf.c | 100 ++++++++++++++++++++++++++++++++++
- include/rdma/ib_umem.h                |   2 +
- include/rdma/ib_umem_dmabuf.h         |  50 +++++++++++++++++
- 6 files changed, 166 insertions(+)
- create mode 100644 drivers/infiniband/core/umem_dmabuf.c
- create mode 100644 include/rdma/ib_umem_dmabuf.h
+ drivers/infiniband/hw/mlx5/main.c    |  6 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  7 +++
+ drivers/infiniband/hw/mlx5/mr.c      | 85 +++++++++++++++++++++++++++++++-----
+ 3 files changed, 87 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index ade8638..1dcfc59 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -63,6 +63,16 @@ config INFINIBAND_ON_DEMAND_PAGING
- 	  memory regions without pinning their pages, fetching the
- 	  pages on demand instead.
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 9c3993c..88d4c31 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6483,8 +6483,10 @@ static void mlx5_ib_stage_flow_db_cleanup(struct mlx5_ib_dev *dev)
+ 	.query_srq = mlx5_ib_query_srq,
+ 	.read_counters = mlx5_ib_read_counters,
+ 	.reg_user_mr = mlx5_ib_reg_user_mr,
++	.reg_user_mr_fd = mlx5_ib_reg_user_mr_fd,
+ 	.req_notify_cq = mlx5_ib_arm_cq,
+ 	.rereg_user_mr = mlx5_ib_rereg_user_mr,
++	.rereg_user_mr_fd = mlx5_ib_rereg_user_mr_fd,
+ 	.resize_cq = mlx5_ib_resize_cq,
  
-+config INFINIBAND_DMABUF
-+	bool "InfiniBand dma-buf support"
-+	depends on INFINIBAND_USER_MEM
-+	default n
-+	help
-+	  Support for dma-buf based user memory.
-+	  This allows userspace processes register memory regions
-+	  backed by device memory exported as dma-buf, and thus
-+	  enables RDMA operations using device memory.
-+
- config INFINIBAND_ADDR_TRANS
- 	bool "RDMA/CM"
- 	depends on INFINIBAND
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index d1b14887..7981d0f 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -39,3 +39,4 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
- 				uverbs_std_types_async_fd.o
- ib_uverbs-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
- ib_uverbs-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
-+ib_uverbs-$(CONFIG_INFINIBAND_DMABUF) += umem_dmabuf.o
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 82455a1..54b35df 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -40,6 +40,7 @@
- #include <linux/slab.h>
- #include <linux/pagemap.h>
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, mlx5_ib_ah, ibah),
+@@ -6588,7 +6590,9 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
+-		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
++		(1ull << IB_USER_VERBS_CMD_OPEN_QP)		|
++		(1ull << IB_USER_VERBS_CMD_REG_MR_FD)		|
++		(1ull << IB_USER_VERBS_CMD_REREG_MR_FD);
+ 	dev->ib_dev.uverbs_ex_cmd_mask =
+ 		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE)	|
+ 		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ)	|
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 2e42258..3b7076a 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1191,6 +1191,9 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
+ 				  struct ib_udata *udata);
++struct ib_mr *mlx5_ib_reg_user_mr_fd(struct ib_pd *pd, u64 start, u64 length,
++				     u64 virt_addr, int fd_type, int fd,
++				     int access_flags, struct ib_udata *udata);
+ int mlx5_ib_advise_mr(struct ib_pd *pd,
+ 		      enum ib_uverbs_advise_mr_advice advice,
+ 		      u32 flags,
+@@ -1210,6 +1213,10 @@ struct mlx5_ib_mr *mlx5_ib_alloc_implicit_mr(struct mlx5_ib_pd *pd,
+ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 			  u64 length, u64 virt_addr, int access_flags,
+ 			  struct ib_pd *pd, struct ib_udata *udata);
++int mlx5_ib_rereg_user_mr_fd(struct ib_mr *ib_mr, int flags, u64 start,
++			     u64 length, u64 virt_addr, int fd_type, int fd,
++			     int access_flags, struct ib_pd *pd,
++			     struct ib_udata *udata);
+ int mlx5_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
+ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
+ 			       u32 max_num_sg, struct ib_udata *udata);
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 6fa0a83..a04fd30 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -38,6 +38,7 @@
+ #include <linux/delay.h>
+ #include <rdma/ib_umem.h>
  #include <rdma/ib_umem_odp.h>
 +#include <rdma/ib_umem_dmabuf.h>
+ #include <rdma/ib_verbs.h>
+ #include "mlx5_ib.h"
  
- #include "uverbs.h"
+@@ -797,6 +798,39 @@ static int mr_umem_get(struct mlx5_ib_dev *dev, u64 start, u64 length,
+ 	return 0;
+ }
  
-@@ -317,6 +318,8 @@ void ib_umem_release(struct ib_umem *umem)
++static int mr_umem_dmabuf_get(struct mlx5_ib_dev *dev, u64 start, u64 length,
++			      int dmabuf_fd, int access_flags,
++			      struct ib_umem **umem, int *npages,
++			      int *page_shift, int *ncont, int *order)
++{
++	struct ib_umem *u;
++
++	*umem = NULL;
++
++	u = ib_umem_dmabuf_get(&dev->ib_dev, start, length, dmabuf_fd,
++			       access_flags);
++	if (IS_ERR(u)) {
++		mlx5_ib_dbg(dev, "umem get failed (%ld)\n", PTR_ERR(u));
++		return PTR_ERR(u);
++	}
++
++	mlx5_ib_cont_pages(u, start, MLX5_MKEY_PAGE_SHIFT_MASK, npages,
++			   page_shift, ncont, order);
++
++	if (!*npages) {
++		mlx5_ib_warn(dev, "avoid zero region\n");
++		ib_umem_release(u);
++		return -EINVAL;
++	}
++
++	*umem = u;
++
++	mlx5_ib_dbg(dev, "npages %d, ncont %d, order %d, page_shift %d\n",
++		    *npages, *ncont, *order, *page_shift);
++
++	return 0;
++}
++
+ static void mlx5_ib_umr_done(struct ib_cq *cq, struct ib_wc *wc)
  {
- 	if (!umem)
- 		return;
-+	if (umem->is_dmabuf)
-+		return ib_umem_dmabuf_release(to_ib_umem_dmabuf(umem));
- 	if (umem->is_odp)
- 		return ib_umem_odp_release(to_ib_umem_odp(umem));
+ 	struct mlx5_ib_umr_context *context =
+@@ -1227,9 +1261,9 @@ struct ib_mr *mlx5_ib_reg_dm_mr(struct ib_pd *pd, struct ib_dm *dm,
+ 				 attr->access_flags, mode);
+ }
  
-diff --git a/drivers/infiniband/core/umem_dmabuf.c b/drivers/infiniband/core/umem_dmabuf.c
-new file mode 100644
-index 0000000..325d44f
---- /dev/null
-+++ b/drivers/infiniband/core/umem_dmabuf.c
-@@ -0,0 +1,100 @@
-+// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
-+/*
-+ * Copyright (c) 2020 Intel Corporation. All rights reserved.
-+ */
-+
-+#include <linux/mm.h>
-+#include <linux/sched/mm.h>
-+#include <linux/dma-mapping.h>
-+#include <rdma/ib_umem_dmabuf.h>
-+
-+#include "uverbs.h"
-+
-+struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
-+				   unsigned long addr, size_t size,
-+				   int dmabuf_fd, int access)
-+{
-+	struct ib_umem_dmabuf *umem_dmabuf;
-+	struct sg_table *sgt;
-+	enum dma_data_direction dir;
-+	long ret;
-+
-+	if (((addr + size) < addr) ||
-+	    PAGE_ALIGN(addr + size) < (addr + size))
-+		return ERR_PTR(-EINVAL);
-+
-+	if (!can_do_mlock())
-+		return ERR_PTR(-EPERM);
-+
-+	if (access & IB_ACCESS_ON_DEMAND)
-+		return ERR_PTR(-EOPNOTSUPP);
-+
-+	umem_dmabuf = kzalloc(sizeof(*umem_dmabuf), GFP_KERNEL);
-+	if (!umem_dmabuf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	umem_dmabuf->umem.ibdev = device;
-+	umem_dmabuf->umem.length = size;
-+	umem_dmabuf->umem.address = addr;
-+	umem_dmabuf->umem.writable = ib_access_writable(access);
-+	umem_dmabuf->umem.is_dmabuf = 1;
-+	umem_dmabuf->umem.owning_mm = current->mm;
-+	mmgrab(umem_dmabuf->umem.owning_mm);
-+
-+	umem_dmabuf->fd = dmabuf_fd;
-+	umem_dmabuf->dmabuf = dma_buf_get(umem_dmabuf->fd);
-+	if (IS_ERR(umem_dmabuf->dmabuf)) {
-+		ret = PTR_ERR(umem_dmabuf->dmabuf);
-+		goto out_free_umem;
-+	}
-+
-+	umem_dmabuf->attach = dma_buf_attach(umem_dmabuf->dmabuf,
-+					     device->dma_device);
-+	if (IS_ERR(umem_dmabuf->attach)) {
-+		ret = PTR_ERR(umem_dmabuf->attach);
-+		goto out_release_dmabuf;
-+	}
-+
-+	dir = umem_dmabuf->umem.writable ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE;
-+	sgt = dma_buf_map_attachment(umem_dmabuf->attach, dir);
-+	if (IS_ERR(sgt)) {
-+		ret = PTR_ERR(sgt);
-+		goto out_detach_dmabuf;
-+	}
-+
-+	umem_dmabuf->sgt = sgt;
-+	umem_dmabuf->umem.sg_head = *sgt;
-+	umem_dmabuf->umem.nmap = sgt->nents;
-+	return &umem_dmabuf->umem;
-+
-+out_detach_dmabuf:
-+	dma_buf_detach(umem_dmabuf->dmabuf, umem_dmabuf->attach);
-+
-+out_release_dmabuf:
-+	dma_buf_put(umem_dmabuf->dmabuf);
-+
-+out_free_umem:
-+	mmdrop(umem_dmabuf->umem.owning_mm);
-+	kfree(umem_dmabuf);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(ib_umem_dmabuf_get);
-+
-+void ib_umem_dmabuf_release(struct ib_umem_dmabuf *umem_dmabuf)
-+{
-+	enum dma_data_direction dir;
-+
-+	dir = umem_dmabuf->umem.writable ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE;
-+
-+	/*
-+	 * Only use the original sgt returned from dma_buf_map_attachment(),
-+	 * otherwise the scatterlist may be freed twice due to the map caching
-+	 * mechanism.
-+	 */
-+	dma_buf_unmap_attachment(umem_dmabuf->attach, umem_dmabuf->sgt, dir);
-+	dma_buf_detach(umem_dmabuf->dmabuf, umem_dmabuf->attach);
-+	dma_buf_put(umem_dmabuf->dmabuf);
-+	mmdrop(umem_dmabuf->umem.owning_mm);
-+	kfree(umem_dmabuf);
-+}
-+EXPORT_SYMBOL(ib_umem_dmabuf_release);
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index e3518fd..026a3cf 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -40,6 +40,7 @@
+-struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+-				  u64 virt_addr, int access_flags,
+-				  struct ib_udata *udata)
++struct ib_mr *mlx5_ib_reg_user_mr_fd(struct ib_pd *pd, u64 start, u64 length,
++				     u64 virt_addr, int fd_type, int fd,
++				     int access_flags, struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct mlx5_ib_mr *mr = NULL;
+@@ -1261,8 +1295,13 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 		return &mr->ibmr;
+ 	}
  
- struct ib_ucontext;
- struct ib_umem_odp;
-+struct ib_umem_dmabuf;
+-	err = mr_umem_get(dev, start, length, access_flags, &umem,
+-			  &npages, &page_shift, &ncont, &order);
++	if (fd_type == IB_UMEM_FD_TYPE_DMABUF)
++		err = mr_umem_dmabuf_get(dev, start, length, fd, access_flags,
++					 &umem, &npages, &page_shift, &ncont,
++					 &order);
++	else
++		err = mr_umem_get(dev, start, length, access_flags, &umem,
++				  &npages, &page_shift, &ncont, &order);
  
- struct ib_umem {
- 	struct ib_device       *ibdev;
-@@ -48,6 +49,7 @@ struct ib_umem {
- 	unsigned long		address;
- 	u32 writable : 1;
- 	u32 is_odp : 1;
-+	u32 is_dmabuf : 1;
- 	struct work_struct	work;
- 	struct sg_table sg_head;
- 	int             nmap;
-diff --git a/include/rdma/ib_umem_dmabuf.h b/include/rdma/ib_umem_dmabuf.h
-new file mode 100644
-index 0000000..e82b205
---- /dev/null
-+++ b/include/rdma/ib_umem_dmabuf.h
-@@ -0,0 +1,50 @@
-+/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
-+/*
-+ * Copyright (c) 2020 Intel Corporation. All rights reserved.
-+ */
-+
-+#ifndef IB_UMEM_DMABUF_H
-+#define IB_UMEM_DMABUF_H
-+
-+#include <linux/dma-buf.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_verbs.h>
-+
-+struct ib_umem_dmabuf {
-+	struct ib_umem	umem;
-+	int		fd;
-+	struct dma_buf	*dmabuf;
-+	struct dma_buf_attachment *attach;
-+	struct sg_table *sgt;
-+};
-+
-+static inline struct ib_umem_dmabuf *to_ib_umem_dmabuf(struct ib_umem *umem)
+ 	if (err < 0)
+ 		return ERR_PTR(err);
+@@ -1335,6 +1374,15 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	return ERR_PTR(err);
+ }
+ 
++struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
++				  u64 virt_addr, int access_flags,
++				  struct ib_udata *udata)
 +{
-+	return container_of(umem, struct ib_umem_dmabuf, umem);
++	return mlx5_ib_reg_user_mr_fd(pd, start, length, virt_addr,
++				      IB_UMEM_FD_TYPE_NONE, 0, access_flags,
++				      udata);
 +}
 +
-+#ifdef CONFIG_INFINIBAND_DMABUF
-+
-+struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
-+				   unsigned long addr, size_t size,
-+				   int dmabuf_fd, int access);
-+
-+void ib_umem_dmabuf_release(struct ib_umem_dmabuf *umem_dmabuf);
-+
-+#else /* CONFIG_INFINIBAND_DMABUF */
-+
-+static inline struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
-+						 unsigned long addr,
-+						 size_t size, int dmabuf_fd,
-+						 int access)
+ /**
+  * mlx5_mr_cache_invalidate - Fence all DMA on the MR
+  * @mr: The MR to fence
+@@ -1383,9 +1431,10 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr,
+ 	return err;
+ }
+ 
+-int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+-			  u64 length, u64 virt_addr, int new_access_flags,
+-			  struct ib_pd *new_pd, struct ib_udata *udata)
++int mlx5_ib_rereg_user_mr_fd(struct ib_mr *ib_mr, int flags, u64 start,
++			     u64 length, u64 virt_addr, int fd_type, int fd,
++			     int new_access_flags, struct ib_pd *new_pd,
++			     struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ib_mr->device);
+ 	struct mlx5_ib_mr *mr = to_mmr(ib_mr);
+@@ -1428,8 +1477,15 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		flags |= IB_MR_REREG_TRANS;
+ 		ib_umem_release(mr->umem);
+ 		mr->umem = NULL;
+-		err = mr_umem_get(dev, addr, len, access_flags, &mr->umem,
+-				  &npages, &page_shift, &ncont, &order);
++		if (fd_type == IB_UMEM_FD_TYPE_DMABUF)
++			err = mr_umem_dmabuf_get(dev, addr, len, fd,
++						 access_flags, &mr->umem,
++						 &npages, &page_shift,
++						 &ncont, &order);
++		else
++			err = mr_umem_get(dev, addr, len, access_flags,
++					  &mr->umem, &npages, &page_shift,
++					  &ncont, &order);
+ 		if (err)
+ 			goto err;
+ 	}
+@@ -1494,6 +1550,15 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 	return err;
+ }
+ 
++int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
++			  u64 length, u64 virt_addr, int new_access_flags,
++			  struct ib_pd *new_pd, struct ib_udata *udata)
 +{
-+	return ERR_PTR(-EINVAL);
++	return mlx5_ib_rereg_user_mr_fd(ib_mr, flags, start, length, virt_addr,
++					IB_UMEM_FD_TYPE_NONE, 0,
++					new_access_flags, new_pd, udata);
 +}
 +
-+static inline void ib_umem_dmabuf_release(struct ib_umem_dmabuf *umem_dmabuf)
-+{
-+}
-+
-+#endif /* CONFIG_INFINIBAND_DMABUF */
-+
-+#endif /* IB_UMEM_DMABUF_H */
+ static int
+ mlx5_alloc_priv_descs(struct ib_device *device,
+ 		      struct mlx5_ib_mr *mr,
 -- 
 1.8.3.1
 
