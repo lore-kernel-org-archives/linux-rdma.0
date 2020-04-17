@@ -6,47 +6,42 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 877A7C2D0EF
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:11:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75140C2D0EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:12:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 623122076D
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:11:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 356B82078E
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:12:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728353AbgDQRLN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 17 Apr 2020 13:11:13 -0400
-Received: from mga06.intel.com ([134.134.136.31]:24554 "EHLO mga06.intel.com"
+        id S1728602AbgDQRM6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 17 Apr 2020 13:12:58 -0400
+Received: from mga01.intel.com ([192.55.52.88]:30119 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729194AbgDQRLN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 17 Apr 2020 13:11:13 -0400
-IronPort-SDR: qKzDQ4FtzZChgLHR5AIm7xRv6xw0apJTOIdl1hdAtzZetkZTHBaVQ7hEQgOADwmursiwVhA1Hv
- 6qKefu+7pCjw==
+        id S1728456AbgDQRM5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 17 Apr 2020 13:12:57 -0400
+IronPort-SDR: jdL7i2YnOejqdpy8P265YTw4F8ZCsM9wPX0z5ogKlhGPJq5Mo5D1Byx/OsalXag0obyFtOIHvi
+ ua9LIMyJ10Eg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Apr 2020 10:10:40 -0700
-IronPort-SDR: 0n6DjKAJ11lg0WfzOouK51iZAsCYGsGWpxumpxboJHQH6cdi3AC0zipTZzW1OVcoYucnhOfu8o
- Nq7+mgIUTa7w==
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Apr 2020 10:12:55 -0700
+IronPort-SDR: aYenHFYPSvhyKDL0KecViGrqokp2ZsvODdn6j8TwwoBcKwERPheBVWj/aWNPbAmEkg+YTzyUPe
+ Ml1d5BfSkehA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,395,1580803200"; 
-   d="scan'208";a="278442131"
+   d="scan'208";a="364383710"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.86])
-  by fmsmga004.fm.intel.com with ESMTP; 17 Apr 2020 10:10:39 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 17 Apr 2020 10:12:54 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-To:     davem@davemloft.net, gregkh@linuxfoundation.org
-Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
+To:     gregkh@linuxfoundation.org, jgg@ziepe.ca
+Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
-        sassmann@redhat.com, jgg@ziepe.ca,
-        ranjani.sridharan@linux.intel.com,
-        pierre-louis.bossart@linux.intel.com,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        Andrew Bowers <andrewx.bowers@intel.com>,
-        Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [net-next 3/9] ice: Complete RDMA peer registration
-Date:   Fri, 17 Apr 2020 10:10:28 -0700
-Message-Id: <20200417171034.1533253-4-jeffrey.t.kirsher@intel.com>
+        sassmann@redhat.com, Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: [RFC PATCH v5 04/16] RDMA/irdma: Add HMC backing store setup functions
+Date:   Fri, 17 Apr 2020 10:12:39 -0700
+Message-Id: <20200417171251.1533371-5-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.25.2
-In-Reply-To: <20200417171034.1533253-1-jeffrey.t.kirsher@intel.com>
-References: <20200417171034.1533253-1-jeffrey.t.kirsher@intel.com>
+In-Reply-To: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
+References: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -54,599 +49,959 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dave Ertman <david.m.ertman@intel.com>
+From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Ensure that the peer supports the minimal set of operations required
-for operation and, if so, open the connection to the peer.
+HW uses host memory as a backing store for a number of
+protocol context objects and queue state tracking.
+The Host Memory Cache (HMC) is a component responsible for
+managing these objects stored in host memory.
 
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
-Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
-Tested-by: Andrew Bowers <andrewx.bowers@intel.com>
-Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Add the functions and data structures to manage the allocation
+of backing pages used by the HMC for the various objects
+
+Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/net/ethernet/intel/ice/ice_idc.c      | 288 ++++++++++++++++++
- drivers/net/ethernet/intel/ice/ice_idc_int.h  |  36 +++
- drivers/net/ethernet/intel/ice/ice_lib.c      |  33 ++
- drivers/net/ethernet/intel/ice/ice_lib.h      |   2 +
- drivers/net/ethernet/intel/ice/ice_main.c     |  18 +-
- drivers/net/ethernet/intel/ice/ice_switch.c   |  23 ++
- drivers/net/ethernet/intel/ice/ice_switch.h   |   2 +
- .../net/ethernet/intel/ice/ice_virtchnl_pf.c  |  25 --
- 8 files changed, 401 insertions(+), 26 deletions(-)
+ drivers/infiniband/hw/irdma/hmc.c | 705 ++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/irdma/hmc.h | 217 +++++++++
+ 2 files changed, 922 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.c
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.h
 
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
-index ffd13e13a15e..1eb8ea673c50 100644
---- a/drivers/net/ethernet/intel/ice/ice_idc.c
-+++ b/drivers/net/ethernet/intel/ice/ice_idc.c
-@@ -145,6 +145,78 @@ ice_peer_state_change(struct ice_peer_dev_int *peer_dev, long new_state,
- 		mutex_unlock(&peer_dev->peer_dev_state_mutex);
- }
- 
+diff --git a/drivers/infiniband/hw/irdma/hmc.c b/drivers/infiniband/hw/irdma/hmc.c
+new file mode 100644
+index 000000000000..a5928030947c
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/hmc.c
+@@ -0,0 +1,705 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (c) 2015 - 2019 Intel Corporation */
++#include "osdep.h"
++#include "status.h"
++#include "hmc.h"
++#include "defs.h"
++#include "type.h"
++#include "protos.h"
++
 +/**
-+ * ice_peer_close - close a peer device
-+ * @peer_dev_int: device to close
-+ * @data: pointer to opaque data
++ * irdma_find_sd_index_limit - finds segment descriptor index limit
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @type: type of HMC resources we're searching
++ * @idx: starting index for the object
++ * @cnt: number of objects we're trying to create
++ * @sd_idx: pointer to return index of the segment descriptor in question
++ * @sd_limit: pointer to return the maximum number of segment descriptors
 + *
-+ * This function will also set the state bit for the peer to CLOSED. This
-+ * function is meant to be called from a ice_for_each_peer().
++ * This function calculates the segment descriptor index and index limit
++ * for the resource defined by irdma_hmc_rsrc_type.
 + */
-+int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data)
++
++static void irdma_find_sd_index_limit(struct irdma_hmc_info *hmc_info, u32 type,
++				      u32 idx, u32 cnt, u32 *sd_idx,
++				      u32 *sd_limit)
 +{
-+	enum iidc_close_reason reason = *(enum iidc_close_reason *)(data);
-+	struct iidc_peer_dev *peer_dev;
-+	struct ice_pf *pf;
-+	int i;
++	u64 fpm_addr, fpm_limit;
 +
-+	peer_dev = &peer_dev_int->peer_dev;
-+	/* return 0 so ice_for_each_peer will continue closing other peers */
-+	if (!ice_validate_peer_dev(peer_dev))
-+		return 0;
-+	pf = pci_get_drvdata(peer_dev->pdev);
-+
-+	if (test_bit(__ICE_DOWN, pf->state) ||
-+	    test_bit(__ICE_SUSPENDED, pf->state) ||
-+	    test_bit(__ICE_NEEDS_RESTART, pf->state))
-+		return 0;
-+
-+	mutex_lock(&peer_dev_int->peer_dev_state_mutex);
-+
-+	/* no peer driver, already closed, closing or opening nothing to do */
-+	if (test_bit(ICE_PEER_DEV_STATE_CLOSED, peer_dev_int->state) ||
-+	    test_bit(ICE_PEER_DEV_STATE_CLOSING, peer_dev_int->state) ||
-+	    test_bit(ICE_PEER_DEV_STATE_OPENING, peer_dev_int->state) ||
-+	    test_bit(ICE_PEER_DEV_STATE_REMOVED, peer_dev_int->state))
-+		goto peer_close_out;
-+
-+	/* Set the peer state to CLOSING */
-+	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_CLOSING, true);
-+
-+	for (i = 0; i < IIDC_EVENT_NBITS; i++)
-+		bitmap_zero(peer_dev_int->current_events[i].type,
-+			    IIDC_EVENT_NBITS);
-+
-+	if (peer_dev->peer_ops && peer_dev->peer_ops->close)
-+		peer_dev->peer_ops->close(peer_dev, reason);
-+
-+	/* Set the peer state to CLOSED */
-+	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_CLOSED, true);
-+
-+peer_close_out:
-+	mutex_unlock(&peer_dev_int->peer_dev_state_mutex);
-+
-+	return 0;
++	fpm_addr = hmc_info->hmc_obj[(type)].base +
++		   hmc_info->hmc_obj[type].size * idx;
++	fpm_limit = fpm_addr + hmc_info->hmc_obj[type].size * cnt;
++	*sd_idx = (u32)(fpm_addr / IRDMA_HMC_DIRECT_BP_SIZE);
++	*sd_limit = (u32)((fpm_limit - 1) / IRDMA_HMC_DIRECT_BP_SIZE);
++	*sd_limit += 1;
 +}
 +
 +/**
-+ * ice_peer_update_vsi - update the pf_vsi info in peer_dev struct
-+ * @peer_dev_int: pointer to peer dev internal struct
-+ * @data: opaque pointer - VSI to be updated
++ * irdma_find_pd_index_limit - finds page descriptor index limit
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @type: HMC resource type we're examining
++ * @idx: starting index for the object
++ * @cnt: number of objects we're trying to create
++ * @pd_idx: pointer to return page descriptor index
++ * @pd_limit: pointer to return page descriptor index limit
++ *
++ * Calculates the page descriptor index and index limit for the resource
++ * defined by irdma_hmc_rsrc_type.
 + */
-+int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data)
++
++static void irdma_find_pd_index_limit(struct irdma_hmc_info *hmc_info, u32 type,
++				      u32 idx, u32 cnt, u32 *pd_idx,
++				      u32 *pd_limit)
 +{
-+	struct ice_vsi *vsi = (struct ice_vsi *)data;
-+	struct iidc_peer_dev *peer_dev;
++	u64 fpm_adr, fpm_limit;
 +
-+	peer_dev = &peer_dev_int->peer_dev;
-+	if (!peer_dev)
-+		return 0;
-+
-+	peer_dev->pf_vsi_num = vsi->vsi_num;
-+	return 0;
++	fpm_adr = hmc_info->hmc_obj[type].base +
++		  hmc_info->hmc_obj[type].size * idx;
++	fpm_limit = fpm_adr + (hmc_info)->hmc_obj[(type)].size * (cnt);
++	*pd_idx = (u32)(fpm_adr / IRDMA_HMC_PAGED_BP_SIZE);
++	*pd_limit = (u32)((fpm_limit - 1) / IRDMA_HMC_PAGED_BP_SIZE);
++	*pd_limit += 1;
 +}
 +
- /**
-  * ice_for_each_peer - iterate across and call function for each peer dev
-  * @pf: pointer to private board struct
-@@ -175,6 +247,89 @@ ice_for_each_peer(struct ice_pf *pf, void *data,
- 	return 0;
- }
- 
 +/**
-+ * ice_finish_init_peer_device - complete peer device initialization
-+ * @peer_dev_int: ptr to peer device internal struct
-+ * @data: ptr to opaque data
-+ *
-+ * This function completes remaining initialization of peer_devices
++ * irdma_set_sd_entry - setup entry for sd programming
++ * @pa: physical addr
++ * @idx: sd index
++ * @type: paged or direct sd
++ * @entry: sd entry ptr
 + */
-+int
-+ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int,
-+			    void __always_unused *data)
++static void irdma_set_sd_entry(u64 pa, u32 idx, enum irdma_sd_entry_type type,
++			       struct irdma_update_sd_entry *entry)
 +{
-+	struct iidc_peer_dev *peer_dev;
-+	struct iidc_peer_drv *peer_drv;
-+	struct device *dev;
-+	struct ice_pf *pf;
-+	int ret = 0;
++	entry->data = pa | (IRDMA_HMC_MAX_BP_COUNT << IRDMA_PFHMC_SDDATALOW_PMSDBPCOUNT_S) |
++		      (((type == IRDMA_SD_TYPE_PAGED) ? 0 : 1) << IRDMA_PFHMC_SDDATALOW_PMSDTYPE_S) |
++		      (1 << IRDMA_PFHMC_SDDATALOW_PMSDVALID_S);
++	entry->cmd = (idx | (1 << IRDMA_PFHMC_SDCMD_PMSDWR_S) | (1 << 15));
++}
 +
-+	peer_dev = &peer_dev_int->peer_dev;
-+	/* peer_dev will not always be populated at the time of this check */
-+	if (!ice_validate_peer_dev(peer_dev))
-+		return ret;
++/**
++ * irdma_clr_sd_entry - setup entry for sd clear
++ * @idx: sd index
++ * @type: paged or direct sd
++ * @entry: sd entry ptr
++ */
++static void irdma_clr_sd_entry(u32 idx, enum irdma_sd_entry_type type,
++			       struct irdma_update_sd_entry *entry)
++{
++	entry->data = (IRDMA_HMC_MAX_BP_COUNT << IRDMA_PFHMC_SDDATALOW_PMSDBPCOUNT_S) |
++		      (((type == IRDMA_SD_TYPE_PAGED) ? 0 : 1) << IRDMA_PFHMC_SDDATALOW_PMSDTYPE_S);
++	entry->cmd = (idx | (1 << IRDMA_PFHMC_SDCMD_PMSDWR_S) | (1 << 15));
++}
 +
-+	peer_drv = peer_dev->peer_drv;
-+	pf = pci_get_drvdata(peer_dev->pdev);
-+	dev = ice_pf_to_dev(pf);
-+	/* There will be several assessments of the peer_dev's state in this
-+	 * chunk of logic.  We need to hold the peer_dev_int's state mutex
-+	 * for the entire part so that the flow progresses without another
-+	 * context changing things mid-flow
-+	 */
-+	mutex_lock(&peer_dev_int->peer_dev_state_mutex);
++/**
++ * irdma_hmc_sd_one - setup 1 sd entry for cqp
++ * @dev: pointer to the device structure
++ * @hmc_fn_id: hmc's function id
++ * @pa: physical addr
++ * @sd_idx: sd index
++ * @type: paged or direct sd
++ * @setsd: flag to set or clear sd
++ */
++enum irdma_status_code irdma_hmc_sd_one(struct irdma_sc_dev *dev, u8 hmc_fn_id,
++					u64 pa, u32 sd_idx,
++					enum irdma_sd_entry_type type,
++					bool setsd)
++{
++	struct irdma_update_sds_info sdinfo;
 +
-+	if (!peer_dev->peer_ops) {
-+		dev_err(dev, "peer_ops not defined on peer dev\n");
-+		goto init_unlock;
++	sdinfo.cnt = 1;
++	sdinfo.hmc_fn_id = hmc_fn_id;
++	if (setsd)
++		irdma_set_sd_entry(pa, sd_idx, type, sdinfo.entry);
++	else
++		irdma_clr_sd_entry(sd_idx, type, sdinfo.entry);
++	return dev->cqp->process_cqp_sds(dev, &sdinfo);
++}
++
++/**
++ * irdma_hmc_sd_grp - setup group of sd entries for cqp
++ * @dev: pointer to the device structure
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @sd_index: sd index
++ * @sd_cnt: number of sd entries
++ * @setsd: flag to set or clear sd
++ */
++static enum irdma_status_code irdma_hmc_sd_grp(struct irdma_sc_dev *dev,
++					       struct irdma_hmc_info *hmc_info,
++					       u32 sd_index, u32 sd_cnt,
++					       bool setsd)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	struct irdma_update_sds_info sdinfo = {};
++	u64 pa;
++	u32 i;
++	enum irdma_status_code ret_code = 0;
++
++	sdinfo.hmc_fn_id = hmc_info->hmc_fn_id;
++	for (i = sd_index; i < sd_index + sd_cnt; i++) {
++		sd_entry = &hmc_info->sd_table.sd_entry[i];
++		if (!sd_entry || (!sd_entry->valid && setsd) ||
++		    (sd_entry->valid && !setsd))
++			continue;
++		if (setsd) {
++			pa = (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED) ?
++				     sd_entry->u.pd_table.pd_page_addr.pa :
++				     sd_entry->u.bp.addr.pa;
++			irdma_set_sd_entry(pa, i, sd_entry->entry_type,
++					   &sdinfo.entry[sdinfo.cnt]);
++		} else {
++			irdma_clr_sd_entry(i, sd_entry->entry_type,
++					   &sdinfo.entry[sdinfo.cnt]);
++		}
++		sdinfo.cnt++;
++		if (sdinfo.cnt == IRDMA_MAX_SD_ENTRIES) {
++			ret_code = dev->cqp->process_cqp_sds(dev, &sdinfo);
++			if (ret_code) {
++				dev_dbg(rfdev_to_dev(dev),
++					"HMC: sd_programming failed err=%d\n",
++					ret_code);
++				return ret_code;
++			}
++
++			sdinfo.cnt = 0;
++		}
++	}
++	if (sdinfo.cnt)
++		ret_code = dev->cqp->process_cqp_sds(dev, &sdinfo);
++
++	return ret_code;
++}
++
++/**
++ * irdma_hmc_finish_add_sd_reg - program sd entries for objects
++ * @dev: pointer to the device structure
++ * @info: create obj info
++ */
++static enum irdma_status_code
++irdma_hmc_finish_add_sd_reg(struct irdma_sc_dev *dev,
++			    struct irdma_hmc_create_obj_info *info)
++{
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++
++	if (!info->add_sd_cnt)
++		return 0;
++	return irdma_hmc_sd_grp(dev, info->hmc_info,
++				info->hmc_info->sd_indexes[0], info->add_sd_cnt,
++				true);
++}
++
++/**
++ * irdma_sc_create_hmc_obj - allocate backing store for hmc objects
++ * @dev: pointer to the device structure
++ * @info: pointer to irdma_hmc_create_obj_info struct
++ *
++ * This will allocate memory for PDs and backing pages and populate
++ * the sd and pd entries.
++ */
++enum irdma_status_code
++irdma_sc_create_hmc_obj(struct irdma_sc_dev *dev,
++			struct irdma_hmc_create_obj_info *info)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	u32 sd_idx, sd_lmt;
++	u32 pd_idx = 0, pd_lmt = 0;
++	u32 pd_idx1 = 0, pd_lmt1 = 0;
++	u32 i, j;
++	bool pd_error = false;
++	enum irdma_status_code ret_code = 0;
++
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		dev_dbg(rfdev_to_dev(dev),
++			"HMC: error type %u, start = %u, req cnt %u, cnt = %u\n",
++			info->rsrc_type, info->start_idx, info->count,
++			info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
 +	}
 +
-+	if (!peer_dev->peer_ops->open) {
-+		dev_err(dev, "peer_ops:open not defined on peer dev\n");
-+		goto init_unlock;
++	irdma_find_sd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &sd_idx,
++				  &sd_lmt);
++	if (sd_idx >= info->hmc_info->sd_table.sd_cnt ||
++	    sd_lmt > info->hmc_info->sd_table.sd_cnt) {
++		return IRDMA_ERR_INVALID_SD_INDEX;
 +	}
 +
-+	if (!peer_dev->peer_ops->close) {
-+		dev_err(dev, "peer_ops:close not defined on peer dev\n");
-+		goto init_unlock;
++	irdma_find_pd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &pd_idx,
++				  &pd_lmt);
++
++	for (j = sd_idx; j < sd_lmt; j++) {
++		ret_code = irdma_add_sd_table_entry(dev->hw, info->hmc_info, j,
++						    info->entry_type,
++						    IRDMA_HMC_DIRECT_BP_SIZE);
++		if (ret_code)
++			goto exit_sd_error;
++
++		sd_entry = &info->hmc_info->sd_table.sd_entry[j];
++		if (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED &&
++		    (dev->hmc_info == info->hmc_info &&
++		     info->rsrc_type != IRDMA_HMC_IW_PBLE)) {
++			pd_idx1 = max(pd_idx, (j * IRDMA_HMC_MAX_BP_COUNT));
++			pd_lmt1 = min(pd_lmt, (j + 1) * IRDMA_HMC_MAX_BP_COUNT);
++			for (i = pd_idx1; i < pd_lmt1; i++) {
++				/* update the pd table entry */
++				ret_code = irdma_add_pd_table_entry(dev,
++								    info->hmc_info,
++								    i, NULL);
++				if (ret_code) {
++					pd_error = true;
++					break;
++				}
++			}
++			if (pd_error) {
++				while (i && (i > pd_idx1)) {
++					irdma_remove_pd_bp(dev, info->hmc_info,
++							   i - 1);
++					i--;
++				}
++			}
++		}
++		if (sd_entry->valid)
++			continue;
++
++		info->hmc_info->sd_indexes[info->add_sd_cnt] = (u16)j;
++		info->add_sd_cnt++;
++		sd_entry->valid = true;
++	}
++	return irdma_hmc_finish_add_sd_reg(dev, info);
++
++exit_sd_error:
++	while (j && (j > sd_idx)) {
++		sd_entry = &info->hmc_info->sd_table.sd_entry[j - 1];
++		switch (sd_entry->entry_type) {
++		case IRDMA_SD_TYPE_PAGED:
++			pd_idx1 = max(pd_idx, (j - 1) * IRDMA_HMC_MAX_BP_COUNT);
++			pd_lmt1 = min(pd_lmt, (j * IRDMA_HMC_MAX_BP_COUNT));
++			for (i = pd_idx1; i < pd_lmt1; i++)
++				irdma_prep_remove_pd_page(info->hmc_info, i);
++			break;
++		case IRDMA_SD_TYPE_DIRECT:
++			irdma_prep_remove_pd_page(info->hmc_info, (j - 1));
++			break;
++		default:
++			ret_code = IRDMA_ERR_INVALID_SD_TYPE;
++			break;
++		}
++		j--;
 +	}
 +
-+	/* Peer driver expected to set driver_id during registration */
-+	if (!peer_drv->driver_id) {
-+		dev_err(dev, "Peer driver did not set driver_id\n");
-+		goto init_unlock;
++	return ret_code;
++}
++
++/**
++ * irdma_finish_del_sd_reg - delete sd entries for objects
++ * @dev: pointer to the device structure
++ * @info: dele obj info
++ * @reset: true if called before reset
++ */
++static enum irdma_status_code
++irdma_finish_del_sd_reg(struct irdma_sc_dev *dev,
++			struct irdma_hmc_del_obj_info *info, bool reset)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	enum irdma_status_code ret_code = 0;
++	u32 i, sd_idx;
++	struct irdma_dma_mem *mem;
++
++	if (dev->privileged && !reset)
++		ret_code = irdma_hmc_sd_grp(dev, info->hmc_info,
++					    info->hmc_info->sd_indexes[0],
++					    info->del_sd_cnt, false);
++
++	if (ret_code)
++		dev_dbg(rfdev_to_dev(dev), "HMC: error cqp sd sd_grp\n");
++	for (i = 0; i < info->del_sd_cnt; i++) {
++		sd_idx = info->hmc_info->sd_indexes[i];
++		sd_entry = &info->hmc_info->sd_table.sd_entry[sd_idx];
++		if (!sd_entry)
++			continue;
++		mem = (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED) ?
++			      &sd_entry->u.pd_table.pd_page_addr :
++			      &sd_entry->u.bp.addr;
++
++		if (!mem || !mem->va) {
++			dev_dbg(rfdev_to_dev(dev), "HMC: error cqp sd mem\n");
++		} else {
++			dma_free_coherent(hw_to_dev(dev->hw), mem->size,
++					  mem->va, mem->pa);
++			mem->va = NULL;
++		}
 +	}
 +
-+	if ((test_bit(ICE_PEER_DEV_STATE_CLOSED, peer_dev_int->state) ||
-+	     test_bit(ICE_PEER_DEV_STATE_PROBED, peer_dev_int->state)) &&
-+	    ice_pf_state_is_nominal(pf)) {
-+		/* If the RTNL is locked, we defer opening the peer
-+		 * until the next time this function is called by the
-+		 * service task.
-+		 */
-+		if (rtnl_is_locked())
-+			goto init_unlock;
-+		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_OPENING,
-+				      true);
-+		ret = peer_dev->peer_ops->open(peer_dev);
-+		if (ret) {
-+			dev_err(dev, "Peer %d failed to open\n",
-+				peer_dev->peer_dev_id);
-+			ice_peer_state_change(peer_dev_int,
-+					      ICE_PEER_DEV_STATE_PROBED, true);
-+			goto init_unlock;
++	return ret_code;
++}
++
++/**
++ * irdma_sc_del_hmc_obj - remove pe hmc objects
++ * @dev: pointer to the device structure
++ * @info: pointer to irdma_hmc_del_obj_info struct
++ * @reset: true if called before reset
++ *
++ * This will de-populate the SDs and PDs.  It frees
++ * the memory for PDS and backing storage.  After this function is returned,
++ * caller should deallocate memory allocated previously for
++ * book-keeping information about PDs and backing storage.
++ */
++enum irdma_status_code irdma_sc_del_hmc_obj(struct irdma_sc_dev *dev,
++					    struct irdma_hmc_del_obj_info *info,
++					    bool reset)
++{
++	struct irdma_hmc_pd_table *pd_table;
++	u32 sd_idx, sd_lmt;
++	u32 pd_idx, pd_lmt, rel_pd_idx;
++	u32 i, j;
++	enum irdma_status_code ret_code = 0;
++
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		dev_dbg(rfdev_to_dev(dev),
++			"HMC: error start_idx[%04d]  >= [type %04d].cnt[%04d]\n",
++			info->start_idx, info->rsrc_type,
++			info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++	}
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		dev_dbg(rfdev_to_dev(dev),
++			"HMC: error start_idx[%04d] + count %04d  >= [type %04d].cnt[%04d]\n",
++			info->start_idx, info->count, info->rsrc_type,
++			info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++	}
++
++	irdma_find_pd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &pd_idx,
++				  &pd_lmt);
++
++	for (j = pd_idx; j < pd_lmt; j++) {
++		sd_idx = j / IRDMA_HMC_PD_CNT_IN_SD;
++
++		if (!info->hmc_info->sd_table.sd_entry[sd_idx].valid)
++			continue;
++
++		if (info->hmc_info->sd_table.sd_entry[sd_idx].entry_type !=
++		    IRDMA_SD_TYPE_PAGED)
++			continue;
++
++		rel_pd_idx = j % IRDMA_HMC_PD_CNT_IN_SD;
++		pd_table = &info->hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++		if (pd_table->pd_entry &&
++		    pd_table->pd_entry[rel_pd_idx].valid) {
++			ret_code = irdma_remove_pd_bp(dev, info->hmc_info, j);
++			if (ret_code) {
++				dev_dbg(rfdev_to_dev(dev),
++					"HMC: remove_pd_bp error\n");
++				return ret_code;
++			}
++		}
++	}
++
++	irdma_find_sd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count, &sd_idx,
++				  &sd_lmt);
++	if (sd_idx >= info->hmc_info->sd_table.sd_cnt ||
++	    sd_lmt > info->hmc_info->sd_table.sd_cnt) {
++		dev_dbg(rfdev_to_dev(dev), "HMC: invalid sd_idx\n");
++		return IRDMA_ERR_INVALID_SD_INDEX;
++	}
++
++	for (i = sd_idx; i < sd_lmt; i++) {
++		pd_table = &info->hmc_info->sd_table.sd_entry[i].u.pd_table;
++		if (!info->hmc_info->sd_table.sd_entry[i].valid)
++			continue;
++		switch (info->hmc_info->sd_table.sd_entry[i].entry_type) {
++		case IRDMA_SD_TYPE_DIRECT:
++			ret_code = irdma_prep_remove_sd_bp(info->hmc_info, i);
++			if (!ret_code) {
++				info->hmc_info->sd_indexes[info->del_sd_cnt] =
++					(u16)i;
++				info->del_sd_cnt++;
++			}
++			break;
++		case IRDMA_SD_TYPE_PAGED:
++			ret_code = irdma_prep_remove_pd_page(info->hmc_info, i);
++			if (ret_code)
++				break;
++			if (dev->hmc_info != info->hmc_info &&
++			    info->rsrc_type == IRDMA_HMC_IW_PBLE &&
++			    pd_table->pd_entry) {
++				kfree(pd_table->pd_entry_virt_mem.va);
++				pd_table->pd_entry = NULL;
++			}
++			info->hmc_info->sd_indexes[info->del_sd_cnt] = (u16)i;
++			info->del_sd_cnt++;
++			break;
++		default:
++			break;
++		}
++	}
++	return irdma_finish_del_sd_reg(dev, info, reset);
++}
++
++/**
++ * irdma_add_sd_table_entry - Adds a segment descriptor to the table
++ * @hw: pointer to our hw struct
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @sd_index: segment descriptor index to manipulate
++ * @type: what type of segment descriptor we're manipulating
++ * @direct_mode_sz: size to alloc in direct mode
++ */
++enum irdma_status_code irdma_add_sd_table_entry(struct irdma_hw *hw,
++						struct irdma_hmc_info *hmc_info,
++						u32 sd_index,
++						enum irdma_sd_entry_type type,
++						u64 direct_mode_sz)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	struct irdma_dma_mem dma_mem;
++	u64 alloc_len;
++
++	sd_entry = &hmc_info->sd_table.sd_entry[sd_index];
++	if (!sd_entry->valid) {
++		if (type == IRDMA_SD_TYPE_PAGED)
++			alloc_len = IRDMA_HMC_PAGED_BP_SIZE;
++		else
++			alloc_len = direct_mode_sz;
++
++		/* allocate a 4K pd page or 2M backing page */
++		dma_mem.size = ALIGN(alloc_len, IRDMA_HMC_PD_BP_BUF_ALIGNMENT);
++		dma_mem.va = dma_alloc_coherent(hw_to_dev(hw),
++						dma_mem.size, &dma_mem.pa,
++						GFP_ATOMIC);
++		if (!dma_mem.va)
++			return IRDMA_ERR_NO_MEMORY;
++
++		if (type == IRDMA_SD_TYPE_PAGED) {
++			struct irdma_virt_mem *vmem =
++				&sd_entry->u.pd_table.pd_entry_virt_mem;
++
++			vmem->size = sizeof(struct irdma_hmc_pd_entry) * 512;
++			vmem->va = kzalloc(vmem->size, GFP_ATOMIC);
++			if (!vmem->va) {
++				dma_free_coherent(hw_to_dev(hw), dma_mem.size,
++						  dma_mem.va, dma_mem.pa);
++				dma_mem.va = NULL;
++				return IRDMA_ERR_NO_MEMORY;
++			}
++			sd_entry->u.pd_table.pd_entry = vmem->va;
++
++			memcpy(&sd_entry->u.pd_table.pd_page_addr, &dma_mem,
++			       sizeof(sd_entry->u.pd_table.pd_page_addr));
++		} else {
++			memcpy(&sd_entry->u.bp.addr, &dma_mem,
++			       sizeof(sd_entry->u.bp.addr));
++
++			sd_entry->u.bp.sd_pd_index = sd_index;
 +		}
 +
-+		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_OPENED,
-+				      true);
++		hmc_info->sd_table.sd_entry[sd_index].entry_type = type;
++		IRDMA_INC_SD_REFCNT(&hmc_info->sd_table);
 +	}
-+
-+init_unlock:
-+	mutex_unlock(&peer_dev_int->peer_dev_state_mutex);
-+
-+	return ret;
-+}
-+
- /**
-  * ice_unreg_peer_device - unregister specified device
-  * @peer_dev_int: ptr to peer device internal
-@@ -199,6 +354,9 @@ ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int,
- 	if (peer_dev_int->ice_peer_wq) {
- 		if (peer_dev_int->peer_prep_task.func)
- 			cancel_work_sync(&peer_dev_int->peer_prep_task);
-+
-+		if (peer_dev_int->peer_close_task.func)
-+			cancel_work_sync(&peer_dev_int->peer_close_task);
- 		destroy_workqueue(peer_dev_int->ice_peer_wq);
- 	}
- 
-@@ -229,6 +387,134 @@ ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int,
- 	return 0;
- }
- 
-+/**
-+ * ice_peer_unregister - request to unregister peer
-+ * @peer_dev: peer device
-+ *
-+ * This function triggers close/remove on peer_dev allowing peer
-+ * to unregister.
-+ */
-+static int ice_peer_unregister(struct iidc_peer_dev *peer_dev)
-+{
-+	enum iidc_close_reason reason = IIDC_REASON_PEER_DEV_UNINIT;
-+	struct ice_peer_dev_int *peer_dev_int;
-+	struct ice_pf *pf;
-+	int ret;
-+
-+	if (!ice_validate_peer_dev(peer_dev))
-+		return -EINVAL;
-+
-+	pf = pci_get_drvdata(peer_dev->pdev);
-+	if (ice_is_reset_in_progress(pf->state))
-+		return -EBUSY;
-+
-+	peer_dev_int = peer_to_ice_dev_int(peer_dev);
-+
-+	ret = ice_peer_close(peer_dev_int, &reason);
-+	if (ret)
-+		return ret;
-+
-+	peer_dev->peer_ops = NULL;
-+
-+	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_REMOVED, false);
++	if (sd_entry->entry_type == IRDMA_SD_TYPE_DIRECT)
++		IRDMA_INC_BP_REFCNT(&sd_entry->u.bp);
 +
 +	return 0;
 +}
 +
 +/**
-+ * ice_peer_register - Called by peer to open communication with LAN
-+ * @peer_dev: ptr to peer device
++ * irdma_add_pd_table_entry - Adds page descriptor to the specified table
++ * @dev: pointer to our device structure
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @pd_index: which page descriptor index to manipulate
++ * @rsrc_pg: if not NULL, use preallocated page instead of allocating new one.
 + *
-+ * registering peer is expected to populate the ice_peerdrv->name field
-+ * before calling this function.
++ * This function:
++ *	1. Initializes the pd entry
++ *	2. Adds pd_entry in the pd_table
++ *	3. Mark the entry valid in irdma_hmc_pd_entry structure
++ *	4. Initializes the pd_entry's ref count to 1
++ * assumptions:
++ *	1. The memory for pd should be pinned down, physically contiguous and
++ *	   aligned on 4K boundary and zeroed memory.
++ *	2. It should be 4K in size.
 + */
-+static int ice_peer_register(struct iidc_peer_dev *peer_dev)
++enum irdma_status_code irdma_add_pd_table_entry(struct irdma_sc_dev *dev,
++						struct irdma_hmc_info *hmc_info,
++						u32 pd_index,
++						struct irdma_dma_mem *rsrc_pg)
 +{
-+	struct ice_peer_drv_int *peer_drv_int;
-+	struct ice_peer_dev_int *peer_dev_int;
-+	struct iidc_peer_drv *peer_drv;
++	struct irdma_hmc_pd_table *pd_table;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_dma_mem mem;
++	struct irdma_dma_mem *page = &mem;
++	u32 sd_idx, rel_pd_idx;
++	u64 *pd_addr;
++	u64 page_desc;
 +
-+	if (!peer_dev) {
-+		pr_err("Failed to reg peer dev: peer_dev ptr NULL\n");
-+		return -EINVAL;
++	if (pd_index / IRDMA_HMC_PD_CNT_IN_SD >= hmc_info->sd_table.sd_cnt)
++		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
++
++	sd_idx = (pd_index / IRDMA_HMC_PD_CNT_IN_SD);
++	if (hmc_info->sd_table.sd_entry[sd_idx].entry_type !=
++	    IRDMA_SD_TYPE_PAGED)
++		return 0;
++
++	rel_pd_idx = (pd_index % IRDMA_HMC_PD_CNT_IN_SD);
++	pd_table = &hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++	pd_entry = &pd_table->pd_entry[rel_pd_idx];
++	if (!pd_entry->valid) {
++		if (rsrc_pg) {
++			pd_entry->rsrc_pg = true;
++			page = rsrc_pg;
++		} else {
++			page->size = ALIGN(IRDMA_HMC_PAGED_BP_SIZE,
++					   IRDMA_HMC_PD_BP_BUF_ALIGNMENT);
++			page->va = dma_alloc_coherent(hw_to_dev(dev->hw),
++						      page->size, &page->pa,
++						      GFP_KERNEL);
++			if (!page->va)
++				return IRDMA_ERR_NO_MEMORY;
++
++			pd_entry->rsrc_pg = false;
++		}
++
++		memcpy(&pd_entry->bp.addr, page, sizeof(pd_entry->bp.addr));
++		pd_entry->bp.sd_pd_index = pd_index;
++		pd_entry->bp.entry_type = IRDMA_SD_TYPE_PAGED;
++		page_desc = page->pa | 0x1;
++		pd_addr = pd_table->pd_page_addr.va;
++		pd_addr += rel_pd_idx;
++		memcpy(pd_addr, &page_desc, sizeof(*pd_addr));
++		pd_entry->sd_index = sd_idx;
++		pd_entry->valid = true;
++		IRDMA_INC_PD_REFCNT(pd_table);
++		if (hmc_info->hmc_fn_id < dev->hw_attrs.first_hw_vf_fpm_id)
++			IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, rel_pd_idx);
++		else if (dev->hw->hmc.hmc_fn_id != hmc_info->hmc_fn_id)
++			IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, rel_pd_idx,
++						   hmc_info->hmc_fn_id);
 +	}
-+
-+	if (!peer_dev->pdev) {
-+		pr_err("Failed to reg peer dev: peer dev pdev NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!peer_dev->peer_ops || !peer_dev->ops) {
-+		pr_err("Failed to reg peer dev: peer dev peer_ops/ops NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	peer_drv = peer_dev->peer_drv;
-+	if (!peer_drv) {
-+		pr_err("Failed to reg peer dev: peer drv NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	peer_dev_int = peer_to_ice_dev_int(peer_dev);
-+	peer_drv_int = peer_dev_int->peer_drv_int;
-+	if (!peer_drv_int) {
-+		pr_err("Failed to match peer_drv_int to peer_dev\n");
-+		return -EINVAL;
-+	}
-+
-+	peer_drv_int->peer_drv = peer_drv;
-+
-+	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_PROBED, false);
++	IRDMA_INC_BP_REFCNT(&pd_entry->bp);
 +
 +	return 0;
 +}
 +
 +/**
-+ * ice_peer_update_vsi_filter - update main VSI filters for RDMA
-+ * @peer_dev: pointer to RDMA peer device
-+ * @filter: selection of filters to enable or disable
-+ * @enable: bool whether to enable or disable filters
++ * irdma_remove_pd_bp - remove a backing page from a page descriptor
++ * @dev: pointer to our HW structure
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: the page index
++ *
++ * This function:
++ *	1. Marks the entry in pd table (for paged address mode) or in sd table
++ *	   (for direct address mode) invalid.
++ *	2. Write to register PMPDINV to invalidate the backing page in FV cache
++ *	3. Decrement the ref count for the pd _entry
++ * assumptions:
++ *	1. Caller can deallocate the memory used by backing storage after this
++ *	   function returns.
 + */
-+static int
-+ice_peer_update_vsi_filter(struct iidc_peer_dev *peer_dev,
-+			   enum iidc_rdma_filter __always_unused filter,
-+			   bool enable)
++enum irdma_status_code irdma_remove_pd_bp(struct irdma_sc_dev *dev,
++					  struct irdma_hmc_info *hmc_info,
++					  u32 idx)
 +{
-+	struct ice_vsi *vsi;
-+	struct ice_pf *pf;
-+	int ret;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_hmc_pd_table *pd_table;
++	struct irdma_hmc_sd_entry *sd_entry;
++	u32 sd_idx, rel_pd_idx;
++	struct irdma_dma_mem *mem;
++	u64 *pd_addr;
 +
-+	if (!ice_validate_peer_dev(peer_dev))
-+		return -EINVAL;
++	sd_idx = idx / IRDMA_HMC_PD_CNT_IN_SD;
++	rel_pd_idx = idx % IRDMA_HMC_PD_CNT_IN_SD;
++	if (sd_idx >= hmc_info->sd_table.sd_cnt)
++		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
 +
-+	pf = pci_get_drvdata(peer_dev->pdev);
++	sd_entry = &hmc_info->sd_table.sd_entry[sd_idx];
++	if (sd_entry->entry_type != IRDMA_SD_TYPE_PAGED)
++		return IRDMA_ERR_INVALID_SD_TYPE;
 +
-+	vsi = ice_get_main_vsi(pf);
-+	if (!vsi)
-+		return -EINVAL;
++	pd_table = &hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++	pd_entry = &pd_table->pd_entry[rel_pd_idx];
++	IRDMA_DEC_BP_REFCNT(&pd_entry->bp);
++	if (pd_entry->bp.ref_cnt)
++		return 0;
 +
-+	ret = ice_cfg_iwarp_fltr(&pf->hw, vsi->idx, enable);
-+
-+	if (ret) {
-+		dev_err(ice_pf_to_dev(pf), "Failed to  %sable iWARP filtering\n",
-+			enable ? "en" : "dis");
-+	} else {
-+		if (enable)
-+			vsi->info.q_opt_flags |= ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
++	pd_entry->valid = false;
++	IRDMA_DEC_PD_REFCNT(pd_table);
++	pd_addr = pd_table->pd_page_addr.va;
++	pd_addr += rel_pd_idx;
++	memset(pd_addr, 0, sizeof(u64));
++	if (dev->privileged) {
++		if (dev->hmc_fn_id == hmc_info->hmc_fn_id)
++			IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, idx);
 +		else
-+			vsi->info.q_opt_flags &= ~ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
++			IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, idx,
++						   hmc_info->hmc_fn_id);
 +	}
 +
-+	return ret;
++	if (!pd_entry->rsrc_pg) {
++		mem = &pd_entry->bp.addr;
++		if (!mem || !mem->va)
++			return IRDMA_ERR_PARAM;
++
++		dma_free_coherent(hw_to_dev(dev->hw), mem->size, mem->va,
++				  mem->pa);
++		mem->va = NULL;
++	}
++	if (!pd_table->ref_cnt)
++		kfree(pd_table->pd_entry_virt_mem.va);
++
++	return 0;
 +}
 +
-+/* Initialize the ice_ops struct, which is used in 'ice_init_peer_devices' */
-+static const struct iidc_ops ops = {
-+	.peer_register			= ice_peer_register,
-+	.peer_unregister		= ice_peer_unregister,
-+	.update_vsi_filter		= ice_peer_update_vsi_filter,
++/**
++ * irdma_prep_remove_sd_bp - Prepares to remove a backing page from a sd entry
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: the page index
++ */
++enum irdma_status_code irdma_prep_remove_sd_bp(struct irdma_hmc_info *hmc_info,
++					       u32 idx)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++
++	sd_entry = &hmc_info->sd_table.sd_entry[idx];
++	IRDMA_DEC_BP_REFCNT(&sd_entry->u.bp);
++	if (sd_entry->u.bp.ref_cnt)
++		return IRDMA_ERR_NOT_READY;
++
++	IRDMA_DEC_SD_REFCNT(&hmc_info->sd_table);
++	sd_entry->valid = false;
++
++	return 0;
++}
++
++/**
++ * irdma_prep_remove_pd_page - Prepares to remove a PD page from sd entry.
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: segment descriptor index to find the relevant page descriptor
++ */
++enum irdma_status_code
++irdma_prep_remove_pd_page(struct irdma_hmc_info *hmc_info, u32 idx)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++
++	sd_entry = &hmc_info->sd_table.sd_entry[idx];
++
++	if (sd_entry->u.pd_table.ref_cnt)
++		return IRDMA_ERR_NOT_READY;
++
++	sd_entry->valid = false;
++	IRDMA_DEC_SD_REFCNT(&hmc_info->sd_table);
++
++	return 0;
++}
+diff --git a/drivers/infiniband/hw/irdma/hmc.h b/drivers/infiniband/hw/irdma/hmc.h
+new file mode 100644
+index 000000000000..6f3fbf61f048
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/hmc.h
+@@ -0,0 +1,217 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2019 Intel Corporation */
++#ifndef IRDMA_HMC_H
++#define IRDMA_HMC_H
++
++#include "defs.h"
++
++#define IRDMA_HMC_MAX_BP_COUNT			512
++#define IRDMA_MAX_SD_ENTRIES			11
++#define IRDMA_HW_DBG_HMC_INVALID_BP_MARK	0xca
++#define IRDMA_HMC_INFO_SIGNATURE		0x484d5347
++#define IRDMA_HMC_PD_CNT_IN_SD			512
++#define IRDMA_HMC_DIRECT_BP_SIZE		0x200000
++#define IRDMA_HMC_MAX_SD_COUNT			8192
++#define IRDMA_HMC_PAGED_BP_SIZE			4096
++#define IRDMA_HMC_PD_BP_BUF_ALIGNMENT		4096
++#define IRDMA_FIRST_VF_FPM_ID			8
++#define FPM_MULTIPLIER				1024
++
++#define IRDMA_INC_SD_REFCNT(sd_table)	((sd_table)->ref_cnt++)
++#define IRDMA_INC_PD_REFCNT(pd_table)	((pd_table)->ref_cnt++)
++#define IRDMA_INC_BP_REFCNT(bp)		((bp)->ref_cnt++)
++
++#define IRDMA_DEC_SD_REFCNT(sd_table)	((sd_table)->ref_cnt--)
++#define IRDMA_DEC_PD_REFCNT(pd_table)	((pd_table)->ref_cnt--)
++#define IRDMA_DEC_BP_REFCNT(bp)		((bp)->ref_cnt--)
++
++/**
++ * IRDMA_INVALIDATE_PF_HMC_PD - Invalidates the pd cache in the hardware
++ * @hw: pointer to our hw struct
++ * @sd_idx: segment descriptor index
++ * @pd_idx: page descriptor index
++ */
++#define IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, pd_idx)			\
++	writel((((sd_idx) << IRDMA_PFHMC_PDINV_PMSDIDX_S) |		\
++		(0x1 << IRDMA_PFHMC_PDINV_PMSDPARTSEL_S) |		\
++		((pd_idx) << IRDMA_PFHMC_PDINV_PMPDIDX_S)),		\
++	       (dev)->hw_regs[IRDMA_PFHMC_PDINV])
++
++/**
++ * IRDMA_INVALIDATE_VF_HMC_PD - Invalidates the pd cache in the hardware
++ * @hw: pointer to our hw struct
++ * @sd_idx: segment descriptor index
++ * @pd_idx: page descriptor index
++ * @hmc_fn_id: VF's function id
++ */
++#define IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, pd_idx, hmc_fn_id)	\
++	writel((((sd_idx) << IRDMA_PFHMC_PDINV_PMSDIDX_S) |		\
++		((pd_idx) << IRDMA_PFHMC_PDINV_PMPDIDX_S)),		\
++	       (dev)->hw_regs[IRDMA_GLHMC_VFPDINV] +			\
++		((hmc_fn_id) - (dev)->hw_attrs.first_hw_vf_fpm_id))
++
++enum irdma_hmc_rsrc_type {
++	IRDMA_HMC_IW_QP		 = 0,
++	IRDMA_HMC_IW_CQ		 = 1,
++	IRDMA_HMC_IW_RESERVED	 = 2,
++	IRDMA_HMC_IW_HTE	 = 3,
++	IRDMA_HMC_IW_ARP	 = 4,
++	IRDMA_HMC_IW_APBVT_ENTRY = 5,
++	IRDMA_HMC_IW_MR		 = 6,
++	IRDMA_HMC_IW_XF		 = 7,
++	IRDMA_HMC_IW_XFFL	 = 8,
++	IRDMA_HMC_IW_Q1		 = 9,
++	IRDMA_HMC_IW_Q1FL	 = 10,
++	IRDMA_HMC_IW_TIMER       = 11,
++	IRDMA_HMC_IW_FSIMC       = 12,
++	IRDMA_HMC_IW_FSIAV       = 13,
++	IRDMA_HMC_IW_PBLE	 = 14,
++	IRDMA_HMC_IW_RRF	 = 15,
++	IRDMA_HMC_IW_RRFFL       = 16,
++	IRDMA_HMC_IW_HDR	 = 17,
++	IRDMA_HMC_IW_MD		 = 18,
++	IRDMA_HMC_IW_OOISC       = 19,
++	IRDMA_HMC_IW_OOISCFFL    = 20,
++	IRDMA_HMC_IW_MAX, /* Must be last entry */
 +};
 +
- /**
-  * ice_reserve_peer_qvector - Reserve vector resources for peer drivers
-  * @pf: board private structure to initialize
-@@ -363,6 +649,8 @@ int ice_init_peer_devices(struct ice_pf *pf)
- 
- 		/* for DCB, override the qos_info defaults. */
- 		ice_setup_dcb_qos_info(pf, qos_info);
-+		/* Initialize ice_ops */
-+		peer_dev->ops = &ops;
- 
- 		/* make sure peer specific resources such as msix_count and
- 		 * msix_entries are initialized
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
-index daac19c45490..d22e6f5bb50e 100644
---- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
-+++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
-@@ -62,6 +62,42 @@ struct ice_peer_dev_int {
- 	enum iidc_close_reason rst_type;
- };
- 
-+int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data);
- int ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int, void *data);
- int ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
-+int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data);
-+int
-+ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
++enum irdma_sd_entry_type {
++	IRDMA_SD_TYPE_INVALID = 0,
++	IRDMA_SD_TYPE_PAGED   = 1,
++	IRDMA_SD_TYPE_DIRECT  = 2,
++};
 +
-+static inline struct
-+ice_peer_dev_int *peer_to_ice_dev_int(struct iidc_peer_dev *peer_dev)
-+{
-+	return  container_of(peer_dev, struct ice_peer_dev_int, peer_dev);
-+}
++struct irdma_hmc_obj_info {
++	u64 base;
++	u32 max_cnt;
++	u32 cnt;
++	u64 size;
++};
 +
-+static inline bool ice_validate_peer_dev(struct iidc_peer_dev *peer_dev)
-+{
-+	struct ice_peer_dev_int *peer_dev_int;
-+	struct ice_pf *pf;
++struct irdma_hmc_bp {
++	enum irdma_sd_entry_type entry_type;
++	struct irdma_dma_mem addr;
++	u32 sd_pd_index;
++	u32 ref_cnt;
++};
 +
-+	if (!peer_dev || !peer_dev->pdev)
-+		return false;
++struct irdma_hmc_pd_entry {
++	struct irdma_hmc_bp bp;
++	u32 sd_index;
++	bool rsrc_pg:1;
++	bool valid:1;
++};
 +
-+	if (!peer_dev->peer_ops)
-+		return false;
++struct irdma_hmc_pd_table {
++	struct irdma_dma_mem pd_page_addr;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_virt_mem pd_entry_virt_mem;
++	u32 ref_cnt;
++	u32 sd_index;
++};
 +
-+	pf = pci_get_drvdata(peer_dev->pdev);
-+	if (!pf)
-+		return false;
++struct irdma_hmc_sd_entry {
++	enum irdma_sd_entry_type entry_type;
++	bool valid;
++	union {
++		struct irdma_hmc_pd_table pd_table;
++		struct irdma_hmc_bp bp;
++	} u;
++};
 +
-+	peer_dev_int = peer_to_ice_dev_int(peer_dev);
-+	if (!peer_dev_int)
-+		return false;
++struct irdma_hmc_sd_table {
++	struct irdma_virt_mem addr;
++	u32 sd_cnt;
++	u32 ref_cnt;
++	struct irdma_hmc_sd_entry *sd_entry;
++};
 +
-+	if (test_bit(ICE_PEER_DEV_STATE_REMOVED, peer_dev_int->state) ||
-+	    test_bit(ICE_PEER_DEV_STATE_INIT, peer_dev_int->state))
-+		return false;
++struct irdma_hmc_info {
++	u32 signature;
++	u8 hmc_fn_id;
++	u16 first_sd_index;
++	struct irdma_hmc_obj_info *hmc_obj;
++	struct irdma_virt_mem hmc_obj_virt_mem;
++	struct irdma_hmc_sd_table sd_table;
++	u16 sd_indexes[IRDMA_HMC_MAX_SD_COUNT];
++};
 +
-+	return true;
-+}
- #endif /* !_ICE_IDC_INT_H_ */
-diff --git a/drivers/net/ethernet/intel/ice/ice_lib.c b/drivers/net/ethernet/intel/ice/ice_lib.c
-index 205ac5900551..5043d5ed1b2a 100644
---- a/drivers/net/ethernet/intel/ice/ice_lib.c
-+++ b/drivers/net/ethernet/intel/ice/ice_lib.c
-@@ -1379,6 +1379,30 @@ ice_add_mac_to_list(struct ice_vsi *vsi, struct list_head *add_list,
- 	return 0;
- }
- 
-+/**
-+ * ice_pf_state_is_nominal - checks the PF for nominal state
-+ * @pf: pointer to PF to check
-+ *
-+ * Check the PF's state for a collection of bits that would indicate
-+ * the PF is in a state that would inhibit normal operation for
-+ * driver functionality.
-+ *
-+ * Returns true if PF is in a nominal state, false otherwise
-+ */
-+bool ice_pf_state_is_nominal(struct ice_pf *pf)
-+{
-+	DECLARE_BITMAP(check_bits, __ICE_STATE_NBITS) = { 0 };
++struct irdma_update_sd_entry {
++	u64 cmd;
++	u64 data;
++};
 +
-+	if (!pf)
-+		return false;
++struct irdma_update_sds_info {
++	u32 cnt;
++	u8 hmc_fn_id;
++	struct irdma_update_sd_entry entry[IRDMA_MAX_SD_ENTRIES];
++};
 +
-+	bitmap_set(check_bits, 0, __ICE_STATE_NOMINAL_CHECK_BITS);
-+	if (bitmap_intersects(pf->state, check_bits, __ICE_STATE_NBITS))
-+		return false;
++struct irdma_ccq_cqe_info;
++struct irdma_hmc_fcn_info {
++	void (*callback_fcn)(struct irdma_sc_dev *dev, void *cqp_callback_param,
++			     struct irdma_ccq_cqe_info *ccq_cqe_info);
++	void *cqp_callback_param;
++	u32 vf_id;
++	u16 iw_vf_idx;
++	u8 free_fcn;
++};
 +
-+	return true;
-+}
++struct irdma_hmc_create_obj_info {
++	struct irdma_hmc_info *hmc_info;
++	struct irdma_virt_mem add_sd_virt_mem;
++	u32 rsrc_type;
++	u32 start_idx;
++	u32 count;
++	u32 add_sd_cnt;
++	enum irdma_sd_entry_type entry_type;
++	bool privileged;
++};
 +
- /**
-  * ice_update_eth_stats - Update VSI-specific ethernet statistics counters
-  * @vsi: the VSI to be updated
-@@ -2390,6 +2414,15 @@ void ice_vsi_free_rx_rings(struct ice_vsi *vsi)
-  */
- void ice_vsi_close(struct ice_vsi *vsi)
- {
-+	enum iidc_close_reason reason = IIDC_REASON_INTERFACE_DOWN;
++struct irdma_hmc_del_obj_info {
++	struct irdma_hmc_info *hmc_info;
++	struct irdma_virt_mem del_sd_virt_mem;
++	u32 rsrc_type;
++	u32 start_idx;
++	u32 count;
++	u32 del_sd_cnt;
++	bool privileged;
++};
 +
-+	if (!ice_is_safe_mode(vsi->back) && vsi->type == ICE_VSI_PF) {
-+		int ret = ice_for_each_peer(vsi->back, &reason, ice_peer_close);
-+
-+		if (ret)
-+			dev_dbg(ice_pf_to_dev(vsi->back), "Peer device did not implement close function\n");
-+	}
-+
- 	if (!test_and_set_bit(__ICE_DOWN, vsi->state))
- 		ice_down(vsi);
- 
-diff --git a/drivers/net/ethernet/intel/ice/ice_lib.h b/drivers/net/ethernet/intel/ice/ice_lib.h
-index db07cc065b10..f77ddd6883c3 100644
---- a/drivers/net/ethernet/intel/ice/ice_lib.h
-+++ b/drivers/net/ethernet/intel/ice/ice_lib.h
-@@ -14,6 +14,8 @@ ice_add_mac_to_list(struct ice_vsi *vsi, struct list_head *add_list,
- 
- void ice_free_fltr_list(struct device *dev, struct list_head *h);
- 
-+bool ice_pf_state_is_nominal(struct ice_pf *pf);
-+
- void ice_update_eth_stats(struct ice_vsi *vsi);
- 
- int ice_vsi_cfg_rxqs(struct ice_vsi *vsi);
-diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index 9f8747e6133f..f373d5041632 100644
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -1491,6 +1491,9 @@ static void ice_service_task(struct work_struct *work)
- 		return;
- 	}
- 
-+	/* Invoke remaining initialization of peer devices */
-+	ice_for_each_peer(pf, NULL, ice_finish_init_peer_device);
-+
- 	ice_process_vflr_event(pf);
- 	ice_clean_mailboxq_subtask(pf);
- 
-@@ -3450,6 +3453,7 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
- static void ice_remove(struct pci_dev *pdev)
- {
- 	struct ice_pf *pf = pci_get_drvdata(pdev);
-+	enum iidc_close_reason reason;
- 	int i;
- 
- 	if (!pf)
-@@ -3466,8 +3470,12 @@ static void ice_remove(struct pci_dev *pdev)
- 		ice_free_vfs(pf);
- 	}
- 
--	set_bit(__ICE_DOWN, pf->state);
- 	ice_service_task_stop(pf);
-+	if (ice_is_peer_ena(pf)) {
-+		reason = IIDC_REASON_INTERFACE_DOWN;
-+		ice_for_each_peer(pf, &reason, ice_peer_close);
-+	}
-+	set_bit(__ICE_DOWN, pf->state);
- 
- 	ice_devlink_destroy_port(pf);
- 	ice_vsi_release_all(pf);
-@@ -4784,7 +4792,15 @@ static void ice_rebuild(struct ice_pf *pf, enum ice_reset_req reset_type)
- 		dev_err(dev, "PF VSI rebuild failed: %d\n", err);
- 		goto err_vsi_rebuild;
- 	}
-+	if (ice_is_peer_ena(pf)) {
-+		struct ice_vsi *vsi = ice_get_main_vsi(pf);
- 
-+		if (!vsi) {
-+			dev_err(dev, "No PF_VSI to update peer\n");
-+			goto err_vsi_rebuild;
-+		}
-+		ice_for_each_peer(pf, vsi, ice_peer_update_vsi);
-+	}
- 	if (test_bit(ICE_FLAG_SRIOV_ENA, pf->flags)) {
- 		err = ice_vsi_rebuild_by_type(pf, ICE_VSI_VF);
- 		if (err) {
-diff --git a/drivers/net/ethernet/intel/ice/ice_switch.c b/drivers/net/ethernet/intel/ice/ice_switch.c
-index 51825a203e35..cf8e1553599a 100644
---- a/drivers/net/ethernet/intel/ice/ice_switch.c
-+++ b/drivers/net/ethernet/intel/ice/ice_switch.c
-@@ -430,6 +430,29 @@ ice_update_vsi(struct ice_hw *hw, u16 vsi_handle, struct ice_vsi_ctx *vsi_ctx,
- 	return ice_aq_update_vsi(hw, vsi_ctx, cd);
- }
- 
-+/**
-+ * ice_cfg_iwarp_fltr - enable/disable iWARP filtering on VSI
-+ * @hw: pointer to HW struct
-+ * @vsi_handle: VSI SW index
-+ * @enable: boolean for enable/disable
-+ */
-+enum ice_status
-+ice_cfg_iwarp_fltr(struct ice_hw *hw, u16 vsi_handle, bool enable)
-+{
-+	struct ice_vsi_ctx *ctx;
-+
-+	ctx = ice_get_vsi_ctx(hw, vsi_handle);
-+	if (!ctx)
-+		return ICE_ERR_DOES_NOT_EXIST;
-+
-+	if (enable)
-+		ctx->info.q_opt_flags |= ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
-+	else
-+		ctx->info.q_opt_flags &= ~ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
-+
-+	return ice_update_vsi(hw, vsi_handle, ctx, NULL);
-+}
-+
- /**
-  * ice_aq_alloc_free_vsi_list
-  * @hw: pointer to the HW struct
-diff --git a/drivers/net/ethernet/intel/ice/ice_switch.h b/drivers/net/ethernet/intel/ice/ice_switch.h
-index fa14b9545dab..96010d3d96fd 100644
---- a/drivers/net/ethernet/intel/ice/ice_switch.h
-+++ b/drivers/net/ethernet/intel/ice/ice_switch.h
-@@ -220,6 +220,8 @@ void ice_remove_vsi_fltr(struct ice_hw *hw, u16 vsi_handle);
- enum ice_status
- ice_add_vlan(struct ice_hw *hw, struct list_head *m_list);
- enum ice_status ice_remove_vlan(struct ice_hw *hw, struct list_head *v_list);
-+enum ice_status
-+ice_cfg_iwarp_fltr(struct ice_hw *hw, u16 vsi_handle, bool enable);
- 
- /* Promisc/defport setup for VSIs */
- enum ice_status
-diff --git a/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c b/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c
-index 15191a325918..07f3d4b456c7 100644
---- a/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c
-+++ b/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c
-@@ -1375,31 +1375,6 @@ static int ice_alloc_vfs(struct ice_pf *pf, u16 num_alloc_vfs)
- 	return ret;
- }
- 
--/**
-- * ice_pf_state_is_nominal - checks the PF for nominal state
-- * @pf: pointer to PF to check
-- *
-- * Check the PF's state for a collection of bits that would indicate
-- * the PF is in a state that would inhibit normal operation for
-- * driver functionality.
-- *
-- * Returns true if PF is in a nominal state.
-- * Returns false otherwise
-- */
--static bool ice_pf_state_is_nominal(struct ice_pf *pf)
--{
--	DECLARE_BITMAP(check_bits, __ICE_STATE_NBITS) = { 0 };
--
--	if (!pf)
--		return false;
--
--	bitmap_set(check_bits, 0, __ICE_STATE_NOMINAL_CHECK_BITS);
--	if (bitmap_intersects(pf->state, check_bits, __ICE_STATE_NBITS))
--		return false;
--
--	return true;
--}
--
- /**
-  * ice_pci_sriov_ena - Enable or change number of VFs
-  * @pf: pointer to the PF structure
++enum irdma_status_code irdma_copy_dma_mem(struct irdma_hw *hw, void *dest_buf,
++					  struct irdma_dma_mem *src_mem,
++					  u64 src_offset, u64 size);
++enum irdma_status_code
++irdma_sc_create_hmc_obj(struct irdma_sc_dev *dev,
++			struct irdma_hmc_create_obj_info *info);
++enum irdma_status_code irdma_sc_del_hmc_obj(struct irdma_sc_dev *dev,
++					    struct irdma_hmc_del_obj_info *info,
++					    bool reset);
++enum irdma_status_code irdma_hmc_sd_one(struct irdma_sc_dev *dev, u8 hmc_fn_id,
++					u64 pa, u32 sd_idx,
++					enum irdma_sd_entry_type type,
++					bool setsd);
++enum irdma_status_code
++irdma_update_sds_noccq(struct irdma_sc_dev *dev,
++		       struct irdma_update_sds_info *info);
++struct irdma_vfdev *irdma_vfdev_from_fpm(struct irdma_sc_dev *dev,
++					 u8 hmc_fn_id);
++struct irdma_hmc_info *irdma_vf_hmcinfo_from_fpm(struct irdma_sc_dev *dev,
++						 u8 hmc_fn_id);
++enum irdma_status_code irdma_add_sd_table_entry(struct irdma_hw *hw,
++						struct irdma_hmc_info *hmc_info,
++						u32 sd_index,
++						enum irdma_sd_entry_type type,
++						u64 direct_mode_sz);
++enum irdma_status_code irdma_add_pd_table_entry(struct irdma_sc_dev *dev,
++						struct irdma_hmc_info *hmc_info,
++						u32 pd_index,
++						struct irdma_dma_mem *rsrc_pg);
++enum irdma_status_code irdma_remove_pd_bp(struct irdma_sc_dev *dev,
++					  struct irdma_hmc_info *hmc_info,
++					  u32 idx);
++enum irdma_status_code irdma_prep_remove_sd_bp(struct irdma_hmc_info *hmc_info,
++					       u32 idx);
++enum irdma_status_code
++irdma_prep_remove_pd_page(struct irdma_hmc_info *hmc_info, u32 idx);
++#endif /* IRDMA_HMC_H */
 -- 
 2.25.2
 
