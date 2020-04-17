@@ -2,46 +2,43 @@ Return-Path: <SRS0=3wld=6B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D02FC38A2C
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:13:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6784CC2D0EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:13:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 433CE2078E
-	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:13:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A3EF20776
+	for <linux-rdma@archiver.kernel.org>; Fri, 17 Apr 2020 17:13:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728456AbgDQRNA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 17 Apr 2020 13:13:00 -0400
-Received: from mga01.intel.com ([192.55.52.88]:30119 "EHLO mga01.intel.com"
+        id S1729101AbgDQRND (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 17 Apr 2020 13:13:03 -0400
+Received: from mga01.intel.com ([192.55.52.88]:30114 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728534AbgDQRM6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 17 Apr 2020 13:12:58 -0400
-IronPort-SDR: qo2hFIEqF0eL5Um6BYABqiDFjmwv+ngtYd3XRKOC3W9dZgRsSG2LJJFiMLfKMNUPlZZ24Cy9vv
- sfl6jNUuokSw==
+        id S1728088AbgDQRNC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 17 Apr 2020 13:13:02 -0400
+IronPort-SDR: Esd1h3+kmEutfEditqsuV104RtDbFqWdpcPIeS/70K/QOyJZ4GhuIC5ngLkdSEZDPIKLnIJjS8
+ BTJrC+yyy9Fg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Apr 2020 10:12:55 -0700
-IronPort-SDR: k+pXinb4zF7xtkcYzeIT1U2Frr3rmoEBO1vgSqXrm7/05cbLzsWy/0xwZguyqufre0Z7sp/Oj1
- F1Z/8ZErv5VQ==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Apr 2020 10:12:54 -0700
+IronPort-SDR: L+Zw4CMT6t7I7jBld6ZOYu7farwK5mNbmWMM6EKWCQcNufeu/CJ79jV2SJ6Yak8pwKsgvHiESi
+ mGEH5xjN5VeQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,395,1580803200"; 
-   d="scan'208";a="364383716"
+   d="scan'208";a="364383707"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.86])
-  by fmsmga001.fm.intel.com with ESMTP; 17 Apr 2020 10:12:55 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 17 Apr 2020 10:12:52 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     gregkh@linuxfoundation.org, jgg@ziepe.ca
-Cc:     Mustafa Ismail <mustafa.ismail@intel.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, nhorman@redhat.com,
-        sassmann@redhat.com, Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [RFC PATCH v5 06/16] RDMA/irdma: Add QoS definitions
-Date:   Fri, 17 Apr 2020 10:12:41 -0700
-Message-Id: <20200417171251.1533371-7-jeffrey.t.kirsher@intel.com>
+Cc:     Jeff Kirsher <jeffrey.t.kirsher@intel.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, nhorman@redhat.com, sassmann@redhat.com
+Subject: [RFC PATCH v5 00/16] Add Intel Ethernet Protocol Driver for RDMA (irdma)
+Date:   Fri, 17 Apr 2020 10:12:35 -0700
+Message-Id: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.25.2
-In-Reply-To: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
-References: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -49,471 +46,212 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+This patchset adds a unified Intel Ethernet Protocol Driver for RDMA
+that supports a new network device E810 (iWARP and RoCEv2 capable)
+and the existing X722 iWARP device. The driver architecture
+provides the extensibility for future generations of Intel HW
+supporting RDMA.
 
-Add definitions for managing the RDMA HW work scheduler (WS) tree.
+This driver replaces the legacy X722 driver i40iw and extends
+the ABI already defined for i40iw. It is backward compatible
+with legacy X722 rdma-core provider (libi40iw).
 
-A WS node is created via a control QP operation with the bandwidth
-allocation, arbitration scheme, and traffic class of the QP specified.
-The Qset handle returned associates the QoS parameters for the QP.
-The Qset is registered with the LAN and a equivalent node is created
-in the LAN packet scheduler tree.
+This series was built against the rdma for-next branch.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
----
- drivers/infiniband/hw/irdma/ws.c | 395 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/ws.h |  39 +++
- 2 files changed, 434 insertions(+)
+v4-->v5:
+*Drop driver_data usage from virtbus device id. Use string id
+match to identify virtbus device type.
+*Rename device discovery functions
+*Drop rdma_set_device_sysfs_group API usage
+*READ_ONCE annotations for netdev flags in rcu_read_lock
+
+v4:
+*Remove redundant explicit casts
+*Scrub all WQs to define correct charateristics and use system WQ for reset recovery work
+*Remove all non-functional NULL checks on IDC peer dev OPs
+*Change all pr_* to dev_* if struct device present. Remove dev_info logging
+*Dont use test_bit on non-atomic IIDC_* event types
+*Remove all module parameters
+*Use bool bitfields in structures instead of bool
+*Change CQP completion handling from kthread to WQ
+*Use the generic devlink parameter enable_roce instead of driver specific one
+*Use meaningful labels for goto unwind
+*Use new RDMA mmap API
+*Use refcount_t APIs for refcounts on driver objects
+*Add support for ibdev OP dealloc_driver
+*Adapt to use new version of virtbus
+*Remove RCU locking in CM address resolve
+*Misc. driver fixes
+
+Michael J. Ruhl (1):
+  RDMA/irdma: Add dynamic tracing for CM
+
+Mustafa Ismail (13):
+  RDMA/irdma: Add driver framework definitions
+  RDMA/irdma: Implement device initialization definitions
+  RDMA/irdma: Implement HW Admin Queue OPs
+  RDMA/irdma: Add HMC backing store setup functions
+  RDMA/irdma: Add privileged UDA queue implementation
+  RDMA/irdma: Add QoS definitions
+  RDMA/irdma: Add connection manager
+  RDMA/irdma: Add PBLE resource manager
+  RDMA/irdma: Implement device supported verb APIs
+  RDMA/irdma: Add RoCEv2 UD OP support
+  RDMA/irdma: Add user/kernel shared libraries
+  RDMA/irdma: Add miscellaneous utility definitions
+  RDMA/irdma: Add ABI definitions
+
+Shiraz Saleem (2):
+  RDMA/irdma: Add irdma Kconfig/Makefile and remove i40iw
+  RDMA/irdma: Update MAINTAINERS file
+
+ .../ABI/stable/sysfs-class-infiniband         |   18 -
+ MAINTAINERS                                   |    8 +-
+ drivers/infiniband/Kconfig                    |    2 +-
+ drivers/infiniband/hw/Makefile                |    2 +-
+ drivers/infiniband/hw/i40iw/Kconfig           |    9 -
+ drivers/infiniband/hw/i40iw/Makefile          |    9 -
+ drivers/infiniband/hw/i40iw/i40iw.h           |  622 --
+ drivers/infiniband/hw/i40iw/i40iw_cm.c        | 4422 ------------
+ drivers/infiniband/hw/i40iw/i40iw_cm.h        |  462 --
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c      | 5294 ---------------
+ drivers/infiniband/hw/i40iw/i40iw_d.h         | 1757 -----
+ drivers/infiniband/hw/i40iw/i40iw_hmc.c       |  821 ---
+ drivers/infiniband/hw/i40iw/i40iw_hmc.h       |  241 -
+ drivers/infiniband/hw/i40iw/i40iw_hw.c        |  852 ---
+ drivers/infiniband/hw/i40iw/i40iw_main.c      | 2070 ------
+ drivers/infiniband/hw/i40iw/i40iw_osdep.h     |  217 -
+ drivers/infiniband/hw/i40iw/i40iw_p.h         |  129 -
+ drivers/infiniband/hw/i40iw/i40iw_pble.c      |  612 --
+ drivers/infiniband/hw/i40iw/i40iw_pble.h      |  131 -
+ drivers/infiniband/hw/i40iw/i40iw_puda.c      | 1493 ----
+ drivers/infiniband/hw/i40iw/i40iw_puda.h      |  188 -
+ drivers/infiniband/hw/i40iw/i40iw_register.h  | 1030 ---
+ drivers/infiniband/hw/i40iw/i40iw_status.h    |  102 -
+ drivers/infiniband/hw/i40iw/i40iw_type.h      | 1375 ----
+ drivers/infiniband/hw/i40iw/i40iw_uk.c        | 1232 ----
+ drivers/infiniband/hw/i40iw/i40iw_user.h      |  430 --
+ drivers/infiniband/hw/i40iw/i40iw_utils.c     | 1557 -----
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c     | 2791 --------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h     |  179 -
+ drivers/infiniband/hw/i40iw/i40iw_vf.c        |   85 -
+ drivers/infiniband/hw/i40iw/i40iw_vf.h        |   62 -
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c  |  756 ---
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.h  |  124 -
+ drivers/infiniband/hw/irdma/Kconfig           |   11 +
+ drivers/infiniband/hw/irdma/Makefile          |   28 +
+ drivers/infiniband/hw/irdma/cm.c              | 4499 +++++++++++++
+ drivers/infiniband/hw/irdma/cm.h              |  413 ++
+ drivers/infiniband/hw/irdma/ctrl.c            | 5985 +++++++++++++++++
+ drivers/infiniband/hw/irdma/defs.h            | 2132 ++++++
+ drivers/infiniband/hw/irdma/hmc.c             |  705 ++
+ drivers/infiniband/hw/irdma/hmc.h             |  217 +
+ drivers/infiniband/hw/irdma/hw.c              | 2597 +++++++
+ drivers/infiniband/hw/irdma/i40iw_hw.c        |  211 +
+ drivers/infiniband/hw/irdma/i40iw_hw.h        |  162 +
+ drivers/infiniband/hw/irdma/i40iw_if.c        |  228 +
+ drivers/infiniband/hw/irdma/icrdma_hw.c       |   76 +
+ drivers/infiniband/hw/irdma/icrdma_hw.h       |   62 +
+ drivers/infiniband/hw/irdma/irdma.h           |  190 +
+ drivers/infiniband/hw/irdma/irdma_if.c        |  449 ++
+ drivers/infiniband/hw/irdma/main.c            |  573 ++
+ drivers/infiniband/hw/irdma/main.h            |  599 ++
+ drivers/infiniband/hw/irdma/osdep.h           |  105 +
+ drivers/infiniband/hw/irdma/pble.c            |  510 ++
+ drivers/infiniband/hw/irdma/pble.h            |  135 +
+ drivers/infiniband/hw/irdma/protos.h          |   93 +
+ drivers/infiniband/hw/irdma/puda.c            | 1690 +++++
+ drivers/infiniband/hw/irdma/puda.h            |  186 +
+ drivers/infiniband/hw/irdma/status.h          |   69 +
+ drivers/infiniband/hw/irdma/trace.c           |  112 +
+ drivers/infiniband/hw/irdma/trace.h           |    3 +
+ drivers/infiniband/hw/irdma/trace_cm.h        |  458 ++
+ drivers/infiniband/hw/irdma/type.h            | 1714 +++++
+ drivers/infiniband/hw/irdma/uda.c             |  390 ++
+ drivers/infiniband/hw/irdma/uda.h             |   64 +
+ drivers/infiniband/hw/irdma/uda_d.h           |  382 ++
+ drivers/infiniband/hw/irdma/uk.c              | 1744 +++++
+ drivers/infiniband/hw/irdma/user.h            |  448 ++
+ drivers/infiniband/hw/irdma/utils.c           | 2445 +++++++
+ drivers/infiniband/hw/irdma/verbs.c           | 4555 +++++++++++++
+ drivers/infiniband/hw/irdma/verbs.h           |  213 +
+ drivers/infiniband/hw/irdma/ws.c              |  395 ++
+ drivers/infiniband/hw/irdma/ws.h              |   39 +
+ include/uapi/rdma/i40iw-abi.h                 |  107 -
+ include/uapi/rdma/ib_user_ioctl_verbs.h       |    1 +
+ include/uapi/rdma/irdma-abi.h                 |  140 +
+ 75 files changed, 35034 insertions(+), 29183 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/i40iw/Kconfig
+ delete mode 100644 drivers/infiniband/hw/i40iw/Makefile
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_cm.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_cm.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_d.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_hmc.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_hmc.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_hw.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_main.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_osdep.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_p.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_pble.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_pble.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_puda.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_puda.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_register.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_status.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_type.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_uk.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_user.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_utils.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_verbs.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_verbs.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_vf.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_vf.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_virtchnl.h
+ create mode 100644 drivers/infiniband/hw/irdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/irdma/Makefile
+ create mode 100644 drivers/infiniband/hw/irdma/cm.c
+ create mode 100644 drivers/infiniband/hw/irdma/cm.h
+ create mode 100644 drivers/infiniband/hw/irdma/ctrl.c
+ create mode 100644 drivers/infiniband/hw/irdma/defs.h
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.c
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.h
+ create mode 100644 drivers/infiniband/hw/irdma/hw.c
+ create mode 100644 drivers/infiniband/hw/irdma/i40iw_hw.c
+ create mode 100644 drivers/infiniband/hw/irdma/i40iw_hw.h
+ create mode 100644 drivers/infiniband/hw/irdma/i40iw_if.c
+ create mode 100644 drivers/infiniband/hw/irdma/icrdma_hw.c
+ create mode 100644 drivers/infiniband/hw/irdma/icrdma_hw.h
+ create mode 100644 drivers/infiniband/hw/irdma/irdma.h
+ create mode 100644 drivers/infiniband/hw/irdma/irdma_if.c
+ create mode 100644 drivers/infiniband/hw/irdma/main.c
+ create mode 100644 drivers/infiniband/hw/irdma/main.h
+ create mode 100644 drivers/infiniband/hw/irdma/osdep.h
+ create mode 100644 drivers/infiniband/hw/irdma/pble.c
+ create mode 100644 drivers/infiniband/hw/irdma/pble.h
+ create mode 100644 drivers/infiniband/hw/irdma/protos.h
+ create mode 100644 drivers/infiniband/hw/irdma/puda.c
+ create mode 100644 drivers/infiniband/hw/irdma/puda.h
+ create mode 100644 drivers/infiniband/hw/irdma/status.h
+ create mode 100644 drivers/infiniband/hw/irdma/trace.c
+ create mode 100644 drivers/infiniband/hw/irdma/trace.h
+ create mode 100644 drivers/infiniband/hw/irdma/trace_cm.h
+ create mode 100644 drivers/infiniband/hw/irdma/type.h
+ create mode 100644 drivers/infiniband/hw/irdma/uda.c
+ create mode 100644 drivers/infiniband/hw/irdma/uda.h
+ create mode 100644 drivers/infiniband/hw/irdma/uda_d.h
+ create mode 100644 drivers/infiniband/hw/irdma/uk.c
+ create mode 100644 drivers/infiniband/hw/irdma/user.h
+ create mode 100644 drivers/infiniband/hw/irdma/utils.c
+ create mode 100644 drivers/infiniband/hw/irdma/verbs.c
+ create mode 100644 drivers/infiniband/hw/irdma/verbs.h
  create mode 100644 drivers/infiniband/hw/irdma/ws.c
  create mode 100644 drivers/infiniband/hw/irdma/ws.h
+ delete mode 100644 include/uapi/rdma/i40iw-abi.h
+ create mode 100644 include/uapi/rdma/irdma-abi.h
 
-diff --git a/drivers/infiniband/hw/irdma/ws.c b/drivers/infiniband/hw/irdma/ws.c
-new file mode 100644
-index 000000000000..4828d7b0aee6
---- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.c
-@@ -0,0 +1,395 @@
-+// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-+/* Copyright (c) 2019 Intel Corporation */
-+#include "osdep.h"
-+#include "status.h"
-+#include "hmc.h"
-+#include "defs.h"
-+#include "type.h"
-+#include "protos.h"
-+
-+#include "ws.h"
-+
-+/**
-+ * irdma_alloc_node - Allocate a WS node and init
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ * @node_type: Type of node, leaf or parent
-+ * @parent: parent node pointer
-+ */
-+static struct irdma_ws_node *irdma_alloc_node(struct irdma_sc_vsi *vsi,
-+					      u8 user_pri,
-+					      enum irdma_ws_node_type node_type,
-+					      struct irdma_ws_node *parent)
-+{
-+	struct irdma_virt_mem ws_mem;
-+	struct irdma_ws_node *node;
-+	u16 node_index = 0;
-+
-+	ws_mem.size = sizeof(struct irdma_ws_node);
-+	ws_mem.va = kzalloc(ws_mem.size, GFP_ATOMIC);
-+	if (!ws_mem.va)
-+		return NULL;
-+
-+	if (parent || vsi->vm_vf_type == IRDMA_VF_TYPE) {
-+		node_index = irdma_alloc_ws_node_id(vsi->dev);
-+		if (node_index == IRDMA_WS_NODE_INVALID) {
-+			kfree(ws_mem.va);
-+			return NULL;
-+		}
-+	}
-+
-+	node = ws_mem.va;
-+	node->index = node_index;
-+	node->vsi_index = vsi->vsi_idx;
-+	INIT_LIST_HEAD(&node->child_list_head);
-+	if (node_type == WS_NODE_TYPE_LEAF) {
-+		node->type_leaf = true;
-+		node->traffic_class = vsi->qos[user_pri].traffic_class;
-+		node->user_pri = user_pri;
-+		node->rel_bw = vsi->qos[user_pri].rel_bw;
-+		if (!node->rel_bw)
-+			node->rel_bw = 1;
-+
-+		node->lan_qs_handle = vsi->qos[user_pri].lan_qos_handle;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
-+	} else {
-+		node->rel_bw = 1;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
-+	}
-+
-+	node->parent = parent;
-+
-+	return node;
-+}
-+
-+/**
-+ * irdma_free_node - Free a WS node
-+ * @vsi: VSI stricture of device
-+ * @node: Pointer to node to free
-+ */
-+static void irdma_free_node(struct irdma_sc_vsi *vsi,
-+			    struct irdma_ws_node *node)
-+{
-+	struct irdma_virt_mem ws_mem;
-+
-+	if (node->index)
-+		irdma_free_ws_node_id(vsi->dev, node->index);
-+
-+	ws_mem.va = node;
-+	ws_mem.size = sizeof(struct irdma_ws_node);
-+	kfree(ws_mem.va);
-+}
-+
-+/**
-+ * irdma_ws_cqp_cmd - Post CQP work scheduler node cmd
-+ * @vsi: vsi pointer
-+ * @node: pointer to node
-+ * @cmd: add, remove or modify
-+ */
-+static enum irdma_status_code
-+irdma_ws_cqp_cmd(struct irdma_sc_vsi *vsi, struct irdma_ws_node *node, u8 cmd)
-+{
-+	struct irdma_ws_node_info node_info = {};
-+
-+	node_info.id = node->index;
-+	node_info.vsi = node->vsi_index;
-+	if (node->parent)
-+		node_info.parent_id = node->parent->index;
-+	else
-+		node_info.parent_id = node_info.id;
-+
-+	node_info.weight = node->rel_bw;
-+	node_info.tc = node->traffic_class;
-+	node_info.prio_type = node->prio_type;
-+	node_info.type_leaf = node->type_leaf;
-+	node_info.enable = node->enable;
-+	if (irdma_cqp_ws_node_cmd(vsi->dev, cmd, &node_info)) {
-+		dev_dbg(rfdev_to_dev(vsi->dev), "WS: CQP WS CMD failed\n");
-+		return IRDMA_ERR_NO_MEMORY;
-+	}
-+
-+	if (node->type_leaf && cmd == IRDMA_OP_WS_ADD_NODE) {
-+		node->qs_handle = node_info.qs_handle;
-+		vsi->qos[node->user_pri].qs_handle = node_info.qs_handle;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * ws_find_node - Find SC WS node based on VSI id or TC
-+ * @parent: parent node of First VSI or TC node
-+ * @match_val: value to match
-+ * @type: match type VSI/TC
-+ */
-+static struct irdma_ws_node *ws_find_node(struct irdma_ws_node *parent,
-+					  u16 match_val,
-+					  enum irdma_ws_match_type type)
-+{
-+	struct irdma_ws_node *node;
-+
-+	switch (type) {
-+	case WS_MATCH_TYPE_VSI:
-+		list_for_each_entry(node, &parent->child_list_head, siblings) {
-+			if (node->vsi_index == match_val)
-+				return node;
-+		}
-+		break;
-+	case WS_MATCH_TYPE_TC:
-+		list_for_each_entry(node, &parent->child_list_head, siblings) {
-+			if (node->traffic_class == match_val)
-+				return node;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * irdma_tc_in_use - Checks to see if a leaf node is in use
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+static bool irdma_tc_in_use(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&vsi->qos[user_pri].lock, flags);
-+	if (!list_empty(&vsi->qos[user_pri].qplist)) {
-+		spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+		return true;
-+	}
-+
-+	/* Check if the traffic class associated with the given user priority
-+	 * is in use by any other user priority. If so, nothing left to do
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == vsi->qos[user_pri].traffic_class &&
-+		    !list_empty(&vsi->qos[i].qplist)) {
-+			spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+			return true;
-+		}
-+	}
-+	spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+
-+	return false;
-+}
-+
-+/**
-+ * irdma_remove_leaf - Remove leaf node unconditionally
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+static void irdma_remove_leaf(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	struct irdma_ws_node *ws_tree_root, *vsi_node, *tc_node;
-+
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root)
-+		return;
-+
-+	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+	if (!vsi_node)
-+		return;
-+
-+	tc_node = ws_find_node(vsi_node,
-+			       vsi->qos[user_pri].traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node)
-+		return;
-+
-+	irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_DELETE_NODE);
-+	vsi->unregister_qset(vsi, tc_node);
-+	list_del(&tc_node->siblings);
-+	irdma_free_node(vsi, tc_node);
-+	/* Check if VSI node can be freed */
-+	if (list_empty(&vsi_node->child_list_head)) {
-+		irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE);
-+		list_del(&vsi_node->siblings);
-+		irdma_free_node(vsi, vsi_node);
-+		/* Free head node there are no remaining VSI nodes */
-+		if (list_empty(&ws_tree_root->child_list_head)) {
-+			irdma_ws_cqp_cmd(vsi, ws_tree_root,
-+					 IRDMA_OP_WS_DELETE_NODE);
-+			irdma_free_node(vsi, ws_tree_root);
-+			vsi->dev->ws_tree_root = NULL;
-+		}
-+	}
-+}
-+
-+/**
-+ * irdma_ws_add - Build work scheduler tree, set RDMA qs_handle
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	struct irdma_ws_node *ws_tree_root;
-+	struct irdma_ws_node *vsi_node;
-+	struct irdma_ws_node *tc_node;
-+	u16 traffic_class;
-+	enum irdma_status_code ret = 0;
-+	int i;
-+
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (vsi->tc_change_pending) {
-+		ret = IRDMA_ERR_NOT_READY;
-+		goto exit;
-+	}
-+
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root) {
-+		dev_dbg(rfdev_to_dev(vsi->dev), "WS: Creating root node\n");
-+		ws_tree_root = irdma_alloc_node(vsi, user_pri,
-+						WS_NODE_TYPE_PARENT, NULL);
-+		if (!ws_tree_root) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto exit;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, ws_tree_root);
-+			goto exit;
-+		}
-+
-+		vsi->dev->ws_tree_root = ws_tree_root;
-+	}
-+
-+	/* Find a second tier node that matches the VSI */
-+	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+
-+	/* If VSI node doesn't exist, add one */
-+	if (!vsi_node) {
-+		dev_dbg(rfdev_to_dev(vsi->dev),
-+			"WS: Node not found matching VSI %d\n", vsi->vsi_idx);
-+		vsi_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_PARENT,
-+					    ws_tree_root);
-+		if (!vsi_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto vsi_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, vsi_node);
-+			goto vsi_add_err;
-+		}
-+
-+		list_add(&vsi_node->siblings, &ws_tree_root->child_list_head);
-+	}
-+
-+	dev_dbg(rfdev_to_dev(vsi->dev),
-+		"WS: Using node %d which represents VSI %d\n",
-+		vsi_node->index, vsi->vsi_idx);
-+	traffic_class = vsi->qos[user_pri].traffic_class;
-+	tc_node = ws_find_node(vsi_node, traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node) {
-+		/* Add leaf node */
-+		dev_dbg(rfdev_to_dev(vsi->dev),
-+			"WS: Node not found matching VSI %d and TC %d\n",
-+			vsi->vsi_idx, traffic_class);
-+		tc_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_LEAF,
-+					   vsi_node);
-+		if (!tc_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto leaf_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, tc_node);
-+			goto leaf_add_err;
-+		}
-+
-+		list_add(&tc_node->siblings, &vsi_node->child_list_head);
-+		/*
-+		 * callback to LAN to update the LAN tree with our node
-+		 */
-+		ret = vsi->register_qset(vsi, tc_node);
-+		if (ret)
-+			goto reg_err;
-+
-+		tc_node->enable = true;
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_MODIFY_NODE);
-+		if (ret)
-+			goto reg_err;
-+	}
-+	dev_dbg(rfdev_to_dev(vsi->dev),
-+		"WS: Using node %d which represents VSI %d TC %d\n",
-+		tc_node->index, vsi->vsi_idx, traffic_class);
-+	/*
-+	 * Iterate through other UPs and update the QS handle if they have
-+	 * a matching traffic class.
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == traffic_class) {
-+			vsi->qos[i].qs_handle = tc_node->qs_handle;
-+			vsi->qos[i].lan_qos_handle = tc_node->lan_qs_handle;
-+			vsi->qos[i].l2_sched_node_id = tc_node->l2_sched_node_id;
-+		}
-+	}
-+	goto exit;
-+
-+leaf_add_err:
-+	if (list_empty(&vsi_node->child_list_head)) {
-+		if (irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE))
-+			goto exit;
-+		list_del(&vsi_node->siblings);
-+		irdma_free_node(vsi, vsi_node);
-+	}
-+
-+vsi_add_err:
-+	/* Free head node there are no remaining VSI nodes */
-+	if (list_empty(&ws_tree_root->child_list_head)) {
-+		irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_DELETE_NODE);
-+		vsi->dev->ws_tree_root = NULL;
-+		irdma_free_node(vsi, ws_tree_root);
-+	}
-+
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	return ret;
-+
-+reg_err:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	irdma_ws_remove(vsi, user_pri);
-+	return ret;
-+}
-+
-+/**
-+ * irdma_ws_remove - Free WS scheduler node, update WS tree
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (irdma_tc_in_use(vsi, user_pri))
-+		goto exit;
-+
-+	irdma_remove_leaf(vsi, user_pri);
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+}
-+
-+/**
-+ * irdma_ws_reset - Reset entire WS tree
-+ * @vsi: vsi pointer
-+ */
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi)
-+{
-+	u8 i;
-+
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; ++i)
-+		irdma_remove_leaf(vsi, i);
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+}
-diff --git a/drivers/infiniband/hw/irdma/ws.h b/drivers/infiniband/hw/irdma/ws.h
-new file mode 100644
-index 000000000000..442864284801
---- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.h
-@@ -0,0 +1,39 @@
-+/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2015 - 2019 Intel Corporation */
-+#ifndef IRDMA_WS_H
-+#define IRDMA_WS_H
-+
-+#include "osdep.h"
-+
-+enum irdma_ws_node_type {
-+	WS_NODE_TYPE_PARENT,
-+	WS_NODE_TYPE_LEAF,
-+};
-+
-+enum irdma_ws_match_type {
-+	WS_MATCH_TYPE_VSI,
-+	WS_MATCH_TYPE_TC,
-+};
-+
-+struct irdma_ws_node {
-+	struct list_head siblings;
-+	struct list_head child_list_head;
-+	struct irdma_ws_node *parent;
-+	u64 lan_qs_handle; /* opaque handle used by LAN */
-+	u32 l2_sched_node_id;
-+	u16 index;
-+	u16 qs_handle;
-+	u16 vsi_index;
-+	u8 traffic_class;
-+	u8 user_pri;
-+	u8 rel_bw;
-+	u8 abstraction_layer; /* used for splitting a TC */
-+	u8 prio_type;
-+	bool type_leaf:1;
-+	bool enable:1;
-+};
-+
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi);
-+#endif /* IRDMA_WS_H */
 -- 
 2.25.2
 
