@@ -4,26 +4,26 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C848C54FC9
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17AA6C38A30
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14D7021973
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0151121974
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726048AbgDSNkK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 19 Apr 2020 09:40:10 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37199 "EHLO
+        id S1726164AbgDSNkM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 19 Apr 2020 09:40:12 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:51018 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726049AbgDSNkJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Apr 2020 09:40:09 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 19 Apr 2020 16:40:04 +0300
+        with ESMTP id S1726079AbgDSNkL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Apr 2020 09:40:11 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 19 Apr 2020 16:40:03 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03JDe3Xt019088;
-        Sun, 19 Apr 2020 16:40:04 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03JDe3Xo019088;
+        Sun, 19 Apr 2020 16:40:03 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH mlx5-next 8/9] RDMA/mlx5: Refactor affinity related code
-Date:   Sun, 19 Apr 2020 16:39:32 +0300
-Message-Id: <20200419133933.28258-9-maorg@mellanox.com>
+Subject: [PATCH mlx5-next 3/9] bonding: Implement ndo_xmit_slave_get
+Date:   Sun, 19 Apr 2020 16:39:27 +0300
+Message-Id: <20200419133933.28258-4-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200419133933.28258-1-maorg@mellanox.com>
 References: <20200419133933.28258-1-maorg@mellanox.com>
@@ -42,130 +42,240 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move affinity related code in modify qp to function.
-It's a preparation for next patch the extend the affinity
-calculation to consider the xmit slave.
+Add implementation of ndo_xmit_slave_get.
+When user sets the LAG_FLAGS_HASH_ALL_SLAVES bit and the xmit slave
+result is based on the hash, then the slave will be selected from the
+array of all the slaves.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 90 +++++++++++++++++++--------------
- 1 file changed, 53 insertions(+), 37 deletions(-)
+ drivers/net/bonding/bond_main.c | 123 +++++++++++++++++++++++++++-----
+ include/net/bonding.h           |   1 +
+ 2 files changed, 105 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 1456db4b6295..a45499809903 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3416,33 +3416,61 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	return 0;
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 7e04be86fda8..320bcb1394fd 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4137,6 +4137,40 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
+ 	}
  }
  
--static unsigned int get_tx_affinity(struct mlx5_ib_dev *dev,
--				    struct mlx5_ib_pd *pd,
--				    struct mlx5_ib_qp_base *qp_base,
--				    u8 port_num, struct ib_udata *udata)
-+static unsigned int get_tx_affinity_rr(struct mlx5_ib_dev *dev,
-+				       struct ib_udata *udata)
++static void bond_set_slave_arr(struct bonding *bond,
++			       struct bond_up_slave *usable_slaves,
++			       struct bond_up_slave *all_slaves)
++{
++	struct bond_up_slave *usable, *all;
++
++	usable = rtnl_dereference(bond->usable_slaves);
++	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
++	if (usable)
++		kfree_rcu(usable, rcu);
++
++	all = rtnl_dereference(bond->all_slaves);
++	rcu_assign_pointer(bond->all_slaves, all_slaves);
++	if (all)
++		kfree_rcu(all, rcu);
++}
++
++static void bond_reset_slave_arr(struct bonding *bond)
++{
++	struct bond_up_slave *usable, *all;
++
++	usable = rtnl_dereference(bond->usable_slaves);
++	if (usable) {
++		RCU_INIT_POINTER(bond->usable_slaves, NULL);
++		kfree_rcu(usable, rcu);
++	}
++
++	all = rtnl_dereference(bond->all_slaves);
++	if (all) {
++		RCU_INIT_POINTER(bond->all_slaves, NULL);
++		kfree_rcu(all, rcu);
++	}
++}
++
+ /* Build the usable slaves array in control path for modes that use xmit-hash
+  * to determine the slave interface -
+  * (a) BOND_MODE_8023AD
+@@ -4147,7 +4181,7 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
+  */
+ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
  {
- 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
--	unsigned int tx_port_affinity;
-+	u8 port_num = mlx5_core_native_port_num(dev->mdev) - 1;
-+	atomic_t *tx_port_affinity;
+-	struct bond_up_slave *usable_slaves, *old_usable_slaves;
++	struct bond_up_slave *usable_slaves = NULL, *all_slaves = NULL;
+ 	struct slave *slave;
+ 	struct list_head *iter;
+ 	int agg_id = 0;
+@@ -4159,7 +4193,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
  
--	if (ucontext) {
--		tx_port_affinity = (unsigned int)atomic_add_return(
--					   1, &ucontext->tx_port_affinity) %
--					   MLX5_MAX_PORTS +
--				   1;
-+	if (ucontext)
-+		tx_port_affinity = &ucontext->tx_port_affinity;
-+	else
-+		tx_port_affinity = &dev->port[port_num].roce.tx_port_affinity;
-+
-+	return (unsigned int)atomic_add_return(1, tx_port_affinity) %
-+		MLX5_MAX_PORTS + 1;
-+}
-+
-+static bool qp_supports_affinity(struct ib_qp *qp)
-+{
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+
-+	if ((qp->qp_type == IB_QPT_RC) ||
-+	    (qp->qp_type == IB_QPT_UD &&
-+	     !(mqp->flags & MLX5_IB_QP_SQPN_QP1)) ||
-+	    (qp->qp_type == IB_QPT_UC) ||
-+	    (qp->qp_type == IB_QPT_RAW_PACKET) ||
-+	    (qp->qp_type == IB_QPT_XRC_INI) ||
-+	    (qp->qp_type == IB_QPT_XRC_TGT))
-+		return true;
-+	return false;
-+}
-+
-+static unsigned int get_tx_affinity(struct ib_qp *qp, u8 init,
-+				    struct ib_udata *udata)
-+{
-+	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
-+		udata, struct mlx5_ib_ucontext, ibucontext);
-+	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+	struct mlx5_ib_qp_base *qp_base;
-+	unsigned int tx_affinity;
-+
-+	if (!(dev->lag_active && init && qp_supports_affinity(qp)))
-+		return 0;
-+
-+	tx_affinity = get_tx_affinity_rr(dev, udata);
-+
-+	qp_base = &mqp->trans_qp.base;
-+	if (ucontext)
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x ucontext %p\n",
--				tx_port_affinity, qp_base->mqp.qpn, ucontext);
--	} else {
--		tx_port_affinity =
--			(unsigned int)atomic_add_return(
--				1, &dev->port[port_num].roce.tx_port_affinity) %
--				MLX5_MAX_PORTS +
--			1;
-+			    tx_affinity, qp_base->mqp.qpn, ucontext);
-+	else
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x\n",
--				tx_port_affinity, qp_base->mqp.qpn);
--	}
--
--	return tx_port_affinity;
-+			    tx_affinity, qp_base->mqp.qpn);
-+	return tx_affinity;
- }
+ 	usable_slaves = kzalloc(struct_size(usable_slaves, arr,
+ 					    bond->slave_cnt), GFP_KERNEL);
+-	if (!usable_slaves) {
++	all_slaves = kzalloc(struct_size(all_slaves, arr,
++					 bond->slave_cnt), GFP_KERNEL);
++	if (!usable_slaves || !all_slaves) {
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
+@@ -4168,20 +4204,19 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
  
- static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
-@@ -3554,22 +3582,10 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 		if (bond_3ad_get_active_agg_info(bond, &ad_info)) {
+ 			pr_debug("bond_3ad_get_active_agg_info failed\n");
+-			kfree_rcu(usable_slaves, rcu);
+ 			/* No active aggragator means it's not safe to use
+ 			 * the previous array.
+ 			 */
+-			old_usable_slaves = rtnl_dereference(bond->usable_slaves);
+-			if (old_usable_slaves) {
+-				RCU_INIT_POINTER(bond->usable_slaves, NULL);
+-				kfree_rcu(old_usable_slaves, rcu);
+-			}
++			bond_reset_slave_arr(bond);
+ 			goto out;
  		}
+ 		agg_id = ad_info.aggregator_id;
+ 	}
+ 	bond_for_each_slave(bond, slave, iter) {
++		if (skipslave == slave)
++			continue;
++
++		all_slaves->arr[all_slaves->count++] = slave;
+ 		if (BOND_MODE(bond) == BOND_MODE_8023AD) {
+ 			struct aggregator *agg;
+ 
+@@ -4191,8 +4226,6 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 		}
+ 		if (!bond_slave_can_tx(slave))
+ 			continue;
+-		if (skipslave == slave)
+-			continue;
+ 
+ 		slave_dbg(bond->dev, slave->dev, "Adding slave to tx hash array[%d]\n",
+ 			  usable_slaves->count);
+@@ -4200,14 +4233,17 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 		usable_slaves->arr[usable_slaves->count++] = slave;
  	}
  
--	if ((cur_state == IB_QPS_RESET) && (new_state == IB_QPS_INIT)) {
--		if ((ibqp->qp_type == IB_QPT_RC) ||
--		    (ibqp->qp_type == IB_QPT_UD &&
--		     !(qp->flags & MLX5_IB_QP_SQPN_QP1)) ||
--		    (ibqp->qp_type == IB_QPT_UC) ||
--		    (ibqp->qp_type == IB_QPT_RAW_PACKET) ||
--		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
--		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
--			if (dev->lag_active) {
--				u8 p = mlx5_core_native_port_num(dev->mdev) - 1;
--				tx_affinity = get_tx_affinity(dev, pd, base, p,
--							      udata);
--				context->flags |= cpu_to_be32(tx_affinity << 24);
--			}
--		}
--	}
-+	tx_affinity = get_tx_affinity(ibqp,
-+				      cur_state == IB_QPS_RESET &&
-+				      new_state == IB_QPS_INIT, udata);
-+	context->flags |= cpu_to_be32(tx_affinity << 24);
+-	old_usable_slaves = rtnl_dereference(bond->usable_slaves);
+-	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
+-	if (old_usable_slaves)
+-		kfree_rcu(old_usable_slaves, rcu);
++	bond_set_slave_arr(bond, usable_slaves, all_slaves);
++	return ret;
+ out:
+-	if (ret != 0 && skipslave)
++	if (ret != 0 && skipslave) {
++		bond_skip_slave(rtnl_dereference(bond->all_slaves),
++				skipslave);
+ 		bond_skip_slave(rtnl_dereference(bond->usable_slaves),
+ 				skipslave);
++	}
++	kfree_rcu(all_slaves, rcu);
++	kfree_rcu(usable_slaves, rcu);
  
- 	if (is_sqp(ibqp->qp_type)) {
- 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
+ 	return ret;
+ }
+@@ -4313,6 +4349,48 @@ static u16 bond_select_queue(struct net_device *dev, struct sk_buff *skb,
+ 	return txq;
+ }
+ 
++static struct net_device *bond_xmit_get_slave(struct net_device *master_dev,
++					      struct sk_buff *skb,
++					      u16 flags)
++{
++	struct bonding *bond = netdev_priv(master_dev);
++	struct bond_up_slave *slaves;
++	struct slave *slave = NULL;
++
++	switch (BOND_MODE(bond)) {
++	case BOND_MODE_ROUNDROBIN:
++		slave = bond_xmit_roundrobin_slave_get(bond, skb);
++		break;
++	case BOND_MODE_ACTIVEBACKUP:
++		slave = bond_xmit_activebackup_slave_get(bond, skb);
++		break;
++	case BOND_MODE_8023AD:
++	case BOND_MODE_XOR:
++		if (flags & LAG_FLAGS_HASH_ALL_SLAVES)
++			slaves = rcu_dereference(bond->all_slaves);
++		else
++			slaves = rcu_dereference(bond->usable_slaves);
++		slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
++		break;
++	case BOND_MODE_BROADCAST:
++		break;
++	case BOND_MODE_ALB:
++		slave = bond_xmit_alb_slave_get(bond, skb);
++		break;
++	case BOND_MODE_TLB:
++		slave = bond_xmit_tlb_slave_get(bond, skb);
++		break;
++	default:
++		/* Should never happen, mode already checked */
++		WARN_ONCE(true, "Unknown bonding mode");
++		break;
++	}
++
++	if (slave)
++		return slave->dev;
++	return NULL;
++}
++
+ static netdev_tx_t __bond_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct bonding *bond = netdev_priv(dev);
+@@ -4434,6 +4512,7 @@ static const struct net_device_ops bond_netdev_ops = {
+ 	.ndo_del_slave		= bond_release,
+ 	.ndo_fix_features	= bond_fix_features,
+ 	.ndo_features_check	= passthru_features_check,
++	.ndo_xmit_get_slave	= bond_xmit_get_slave,
+ };
+ 
+ static const struct device_type bond_type = {
+@@ -4501,9 +4580,9 @@ void bond_setup(struct net_device *bond_dev)
+ static void bond_uninit(struct net_device *bond_dev)
+ {
+ 	struct bonding *bond = netdev_priv(bond_dev);
++	struct bond_up_slave *usable, *all;
+ 	struct list_head *iter;
+ 	struct slave *slave;
+-	struct bond_up_slave *arr;
+ 
+ 	bond_netpoll_cleanup(bond_dev);
+ 
+@@ -4512,10 +4591,16 @@ static void bond_uninit(struct net_device *bond_dev)
+ 		__bond_release_one(bond_dev, slave->dev, true, true);
+ 	netdev_info(bond_dev, "Released all slaves\n");
+ 
+-	arr = rtnl_dereference(bond->usable_slaves);
+-	if (arr) {
++	usable = rtnl_dereference(bond->usable_slaves);
++	if (usable) {
+ 		RCU_INIT_POINTER(bond->usable_slaves, NULL);
+-		kfree_rcu(arr, rcu);
++		kfree_rcu(usable, rcu);
++	}
++
++	all = rtnl_dereference(bond->all_slaves);
++	if (all) {
++		RCU_INIT_POINTER(bond->all_slaves, NULL);
++		kfree_rcu(all, rcu);
+ 	}
+ 
+ 	list_del(&bond->bond_list);
+diff --git a/include/net/bonding.h b/include/net/bonding.h
+index 33bdb6d5182d..a2a7f461fa63 100644
+--- a/include/net/bonding.h
++++ b/include/net/bonding.h
+@@ -201,6 +201,7 @@ struct bonding {
+ 	struct   slave __rcu *current_arp_slave;
+ 	struct   slave __rcu *primary_slave;
+ 	struct   bond_up_slave __rcu *usable_slaves; /* Array of usable slaves */
++	struct   bond_up_slave __rcu *all_slaves; /* Array of all slaves */
+ 	bool     force_primary;
+ 	s32      slave_cnt; /* never change this value outside the attach/detach wrappers */
+ 	int     (*recv_probe)(const struct sk_buff *, struct bonding *,
 -- 
 2.17.2
 
