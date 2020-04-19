@@ -2,105 +2,170 @@ Return-Path: <SRS0=7bl8=6D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C50ADC38A30
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:20:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C848C54FC9
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E50121974
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:20:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587302453;
-	bh=yaXZpoIjE58QIRalYbskWrzei+/nTC6pZqDn8sBWf1s=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=Ngsc8qadKwjnHXFUsMNWvMR6ks92yt80WSZ3RfQm8PUzat8WC0RDCEYN/Ykf/HnIK
-	 gm7miML3arV/gFV/E49eS1torRL4BkWFBsMalbqHZRRz+37qY8uRNNbi+KHgpz7crR
-	 qKkcLLbBbYTOo6m6zeBk8t3pbMtsKROBaMXnQ5rY=
+	by mail.kernel.org (Postfix) with ESMTP id 14D7021973
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726055AbgDSNUx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 19 Apr 2020 09:20:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48548 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726024AbgDSNUv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 19 Apr 2020 09:20:51 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7020521744;
-        Sun, 19 Apr 2020 13:20:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587302451;
-        bh=yaXZpoIjE58QIRalYbskWrzei+/nTC6pZqDn8sBWf1s=;
-        h=From:To:Cc:Subject:Date:From;
-        b=liV7DvJm5kIKBNP0MgqJyAsa0hf0iTtnYzahGyG5W3I/vc69gJuqwsTQNOMm5Fd1i
-         u1W8lfm/DNCxyKhZ/K2LRjx7OShS8/49ooR9kMH3h3zRQD28B/4J7domiM45OwXhyl
-         x4zD9tZBvDmW3wZ+5aFNUrzhiuCJPq5t+ZUGOxEo=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Devesh Sharma <devesh.sharma@broadcom.com>,
-        linux-rdma@vger.kernel.org,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Somnath Kotur <somnath.kotur@broadcom.com>,
-        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Subject: [PATCH rdma-next] RDMA/bnxt: Delete 'nq_ptr' variable which is not used
-Date:   Sun, 19 Apr 2020 16:20:46 +0300
-Message-Id: <20200419132046.123887-1-leon@kernel.org>
-X-Mailer: git-send-email 2.25.2
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1726048AbgDSNkK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 19 Apr 2020 09:40:10 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37199 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726049AbgDSNkJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Apr 2020 09:40:09 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 19 Apr 2020 16:40:04 +0300
+Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03JDe3Xt019088;
+        Sun, 19 Apr 2020 16:40:04 +0300
+From:   Maor Gottlieb <maorg@mellanox.com>
+To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
+        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
+        kuba@kernel.org
+Cc:     leonro@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH mlx5-next 8/9] RDMA/mlx5: Refactor affinity related code
+Date:   Sun, 19 Apr 2020 16:39:32 +0300
+Message-Id: <20200419133933.28258-9-maorg@mellanox.com>
+X-Mailer: git-send-email 2.17.2
+In-Reply-To: <20200419133933.28258-1-maorg@mellanox.com>
+References: <20200419133933.28258-1-maorg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+Move affinity related code in modify qp to function.
+It's a preparation for next patch the extend the affinity
+calculation to consider the xmit slave.
 
-The variable "nq_ptr" is set but never used, this generates the
-following warning while compiling kernel with W=1 option.
-
-drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'bnxt_qplib_service_nq':
-drivers/infiniband/hw/bnxt_re/qplib_fp.c:303:25: warning:
-   variable 'nq_ptr' set but not used [-Wunused-but-set-variable]
-303 |  struct nq_base *nqe, **nq_ptr;
-    |
-
-Fixes: fddcbbb02af4 ("RDMA/bnxt_re: Simplify obtaining queue entry from hw ring")
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_fp.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 90 +++++++++++++++++++--------------
+ 1 file changed, 53 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index a4de56bdd6e8..c5e29577cd43 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -300,12 +300,12 @@ static void bnxt_qplib_service_nq(unsigned long data)
- {
- 	struct bnxt_qplib_nq *nq = (struct bnxt_qplib_nq *)data;
- 	struct bnxt_qplib_hwq *hwq = &nq->hwq;
--	struct nq_base *nqe, **nq_ptr;
- 	int num_srqne_processed = 0;
- 	int num_cqne_processed = 0;
- 	struct bnxt_qplib_cq *cq;
- 	int budget = nq->budget;
- 	u32 sw_cons, raw_cons;
-+	struct nq_base *nqe;
- 	uintptr_t q_handle;
- 	u16 type;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 1456db4b6295..a45499809903 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -3416,33 +3416,61 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	return 0;
+ }
  
-@@ -314,7 +314,6 @@ static void bnxt_qplib_service_nq(unsigned long data)
- 	raw_cons = hwq->cons;
- 	while (budget--) {
- 		sw_cons = HWQ_CMP(raw_cons, hwq);
--		nq_ptr = (struct nq_base **)hwq->pbl_ptr;
- 		nqe = bnxt_qplib_get_qe(hwq, sw_cons, NULL);
- 		if (!NQE_CMP_VALID(nqe, raw_cons, hwq->max_elements))
- 			break;
+-static unsigned int get_tx_affinity(struct mlx5_ib_dev *dev,
+-				    struct mlx5_ib_pd *pd,
+-				    struct mlx5_ib_qp_base *qp_base,
+-				    u8 port_num, struct ib_udata *udata)
++static unsigned int get_tx_affinity_rr(struct mlx5_ib_dev *dev,
++				       struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
+ 		udata, struct mlx5_ib_ucontext, ibucontext);
+-	unsigned int tx_port_affinity;
++	u8 port_num = mlx5_core_native_port_num(dev->mdev) - 1;
++	atomic_t *tx_port_affinity;
+ 
+-	if (ucontext) {
+-		tx_port_affinity = (unsigned int)atomic_add_return(
+-					   1, &ucontext->tx_port_affinity) %
+-					   MLX5_MAX_PORTS +
+-				   1;
++	if (ucontext)
++		tx_port_affinity = &ucontext->tx_port_affinity;
++	else
++		tx_port_affinity = &dev->port[port_num].roce.tx_port_affinity;
++
++	return (unsigned int)atomic_add_return(1, tx_port_affinity) %
++		MLX5_MAX_PORTS + 1;
++}
++
++static bool qp_supports_affinity(struct ib_qp *qp)
++{
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++
++	if ((qp->qp_type == IB_QPT_RC) ||
++	    (qp->qp_type == IB_QPT_UD &&
++	     !(mqp->flags & MLX5_IB_QP_SQPN_QP1)) ||
++	    (qp->qp_type == IB_QPT_UC) ||
++	    (qp->qp_type == IB_QPT_RAW_PACKET) ||
++	    (qp->qp_type == IB_QPT_XRC_INI) ||
++	    (qp->qp_type == IB_QPT_XRC_TGT))
++		return true;
++	return false;
++}
++
++static unsigned int get_tx_affinity(struct ib_qp *qp, u8 init,
++				    struct ib_udata *udata)
++{
++	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
++		udata, struct mlx5_ib_ucontext, ibucontext);
++	struct mlx5_ib_dev *dev = to_mdev(qp->device);
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++	struct mlx5_ib_qp_base *qp_base;
++	unsigned int tx_affinity;
++
++	if (!(dev->lag_active && init && qp_supports_affinity(qp)))
++		return 0;
++
++	tx_affinity = get_tx_affinity_rr(dev, udata);
++
++	qp_base = &mqp->trans_qp.base;
++	if (ucontext)
+ 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x ucontext %p\n",
+-				tx_port_affinity, qp_base->mqp.qpn, ucontext);
+-	} else {
+-		tx_port_affinity =
+-			(unsigned int)atomic_add_return(
+-				1, &dev->port[port_num].roce.tx_port_affinity) %
+-				MLX5_MAX_PORTS +
+-			1;
++			    tx_affinity, qp_base->mqp.qpn, ucontext);
++	else
+ 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x\n",
+-				tx_port_affinity, qp_base->mqp.qpn);
+-	}
+-
+-	return tx_port_affinity;
++			    tx_affinity, qp_base->mqp.qpn);
++	return tx_affinity;
+ }
+ 
+ static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
+@@ -3554,22 +3582,10 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 		}
+ 	}
+ 
+-	if ((cur_state == IB_QPS_RESET) && (new_state == IB_QPS_INIT)) {
+-		if ((ibqp->qp_type == IB_QPT_RC) ||
+-		    (ibqp->qp_type == IB_QPT_UD &&
+-		     !(qp->flags & MLX5_IB_QP_SQPN_QP1)) ||
+-		    (ibqp->qp_type == IB_QPT_UC) ||
+-		    (ibqp->qp_type == IB_QPT_RAW_PACKET) ||
+-		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
+-		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
+-			if (dev->lag_active) {
+-				u8 p = mlx5_core_native_port_num(dev->mdev) - 1;
+-				tx_affinity = get_tx_affinity(dev, pd, base, p,
+-							      udata);
+-				context->flags |= cpu_to_be32(tx_affinity << 24);
+-			}
+-		}
+-	}
++	tx_affinity = get_tx_affinity(ibqp,
++				      cur_state == IB_QPS_RESET &&
++				      new_state == IB_QPS_INIT, udata);
++	context->flags |= cpu_to_be32(tx_affinity << 24);
+ 
+ 	if (is_sqp(ibqp->qp_type)) {
+ 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
 -- 
-2.25.2
+2.17.2
 
