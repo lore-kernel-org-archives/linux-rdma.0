@@ -2,27 +2,26 @@ Return-Path: <SRS0=7bl8=6D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2073CC38A30
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 913D8C38A30
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B10421973
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7702121973
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Apr 2020 13:40:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726161AbgDSNkW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 19 Apr 2020 09:40:22 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37188 "EHLO
+        id S1726123AbgDSNkJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 19 Apr 2020 09:40:09 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37189 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726160AbgDSNkP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Apr 2020 09:40:15 -0400
+        with ESMTP id S1726048AbgDSNkJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Apr 2020 09:40:09 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 19 Apr 2020 16:40:03 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03JDe3Xp019088;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03JDe3Xl019088;
         Sun, 19 Apr 2020 16:40:03 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,240 +30,82 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH mlx5-next 4/9] RDMA/core: Add LAG functionality
-Date:   Sun, 19 Apr 2020 16:39:28 +0300
-Message-Id: <20200419133933.28258-5-maorg@mellanox.com>
+Subject: [PATCH mlx5-next 00/10] Add support to get xmit slave
+Date:   Sun, 19 Apr 2020 16:39:24 +0300
+Message-Id: <20200419133933.28258-1-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
-In-Reply-To: <20200419133933.28258-1-maorg@mellanox.com>
-References: <20200419133933.28258-1-maorg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add support to get the RoCE LAG xmit slave by building skb
-of the RoCE packet and call to master_xmit_slave_get.
-If driver wants to get the slave assume all slaves
-are available, then need to set RDMA_LAG_FLAGS_HASH_ALL_SLAVES
-in flags.
+Hi Dave,
 
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/Makefile |   2 +-
- drivers/infiniband/core/lag.c    | 139 +++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h          |   2 +
- include/rdma/lag.h               |  22 +++++
- 4 files changed, 164 insertions(+), 1 deletion(-)
+This series is a combination of netdev and RDMA, so in order to avoid
+conflicts, we would like to ask you to route this series through
+mlx5-next shared branch. It is based on v5.7-rc1 tag.
+
+---------------------------------------------------------------------
+
+The following series adds support to get the LAG master xmit slave by
+introducing new .ndo - ndo_xmit_slave_get. Every LAG module can
+implement it and it first implemented in the bond driver. 
+This is follow-up to the RFC discussion [1].
+
+The main motivation for doing this is for drivers that offload part
+of the LAG functionality. For example, Mellanox Connect-X hardware
+implements RoCE LAG which selects the TX affinity when the resources
+are created and port is remapped when it goes down.
+
+The first part of this patchset introduces the new .ndo and add the
+support to the bonding module.
+
+The second part adds support to get the RoCE LAG xmit slave by building
+skb of the RoCE packet based on the AH attributes and call to the new .ndo.
+
+The third part change the mlx5 driver driver to set the QP's affinity
+port according to the slave which found by the .ndo.
+
+Thanks
+
+[1] https://lore.kernel.org/netdev/20200126132126.9981-1-maorg@mellanox.com/
+
+Maor Gottlieb (10):
+  net/core: Introduce master_xmit_slave_get
+  bonding: Rename slave_arr to usable_slaves
+  bonding: Add helpers to get xmit slave
+  bonding: Implement ndo_xmit_slave_get
+  RDMA/core: Add LAG functionality
+  RDMA/core: Get xmit slave for LAG
+  net/mlx5: Change lag mutex lock to spin lock
+  net/mlx5: Add support to get lag physical port
+  RDMA/mlx5: Refactor affinity related code
+  RDMA/mlx5: Set lag tx affinity according to slave
+
+ drivers/infiniband/core/Makefile              |   2 +-
+ drivers/infiniband/core/lag.c                 | 139 +++++++++
+ drivers/infiniband/core/verbs.c               |  44 ++-
+ drivers/infiniband/hw/mlx5/ah.c               |   4 +
+ drivers/infiniband/hw/mlx5/gsi.c              |  34 ++-
+ drivers/infiniband/hw/mlx5/main.c             |   2 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |   1 +
+ drivers/infiniband/hw/mlx5/qp.c               | 123 +++++---
+ drivers/net/bonding/bond_alb.c                |  39 ++-
+ drivers/net/bonding/bond_main.c               | 272 +++++++++++++-----
+ drivers/net/ethernet/mellanox/mlx5/core/lag.c |  66 +++--
+ include/linux/mlx5/driver.h                   |   2 +
+ include/linux/mlx5/mlx5_ifc.h                 |   4 +-
+ include/linux/mlx5/qp.h                       |   2 +
+ include/linux/netdevice.h                     |   3 +
+ include/net/bond_alb.h                        |   4 +
+ include/net/bonding.h                         |   3 +-
+ include/net/lag.h                             |  32 +++
+ include/rdma/ib_verbs.h                       |   2 +
+ include/rdma/lag.h                            |  22 ++
+ 20 files changed, 621 insertions(+), 179 deletions(-)
  create mode 100644 drivers/infiniband/core/lag.c
  create mode 100644 include/rdma/lag.h
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index d1b14887960e..870f0fcd54d5 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
- 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
- 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
- 				nldev.o restrack.o counters.o ib_core_uverbs.o \
--				trace.o
-+				trace.o lag.o
- 
- ib_core-$(CONFIG_SECURITY_INFINIBAND) += security.o
- ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
-diff --git a/drivers/infiniband/core/lag.c b/drivers/infiniband/core/lag.c
-new file mode 100644
-index 000000000000..007c06cae3d8
---- /dev/null
-+++ b/drivers/infiniband/core/lag.c
-@@ -0,0 +1,139 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * Copyright (c) 2020 Mellanox Technologies. All rights reserved.
-+ */
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_cache.h>
-+#include <rdma/lag.h>
-+
-+static struct sk_buff *rdma_build_skb(struct ib_device *device,
-+				      struct net_device *netdev,
-+				      struct rdma_ah_attr *ah_attr)
-+{
-+	struct ipv6hdr *ip6h;
-+	struct sk_buff *skb;
-+	struct ethhdr *eth;
-+	struct iphdr *iph;
-+	struct udphdr *uh;
-+	u8 smac[ETH_ALEN];
-+	bool is_ipv4;
-+	int hdr_len;
-+
-+	is_ipv4 = ipv6_addr_v4mapped((struct in6_addr *)ah_attr->grh.dgid.raw);
-+	hdr_len = ETH_HLEN + sizeof(struct udphdr) + LL_RESERVED_SPACE(netdev);
-+	hdr_len += is_ipv4 ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
-+
-+	skb = alloc_skb(hdr_len, GFP_ATOMIC);
-+	if (!skb)
-+		return NULL;
-+
-+	skb->dev = netdev;
-+	skb_reserve(skb, hdr_len);
-+	skb_push(skb, sizeof(struct udphdr));
-+	skb_reset_transport_header(skb);
-+	uh = udp_hdr(skb);
-+	uh->source = htons(0xC000);
-+	uh->dest = htons(ROCE_V2_UDP_DPORT);
-+	uh->len = htons(sizeof(struct udphdr));
-+
-+	if (is_ipv4) {
-+		skb_push(skb, sizeof(struct iphdr));
-+		skb_reset_network_header(skb);
-+		iph = ip_hdr(skb);
-+		iph->frag_off = 0;
-+		iph->version = 4;
-+		iph->protocol = IPPROTO_UDP;
-+		iph->ihl = 0x5;
-+		iph->tot_len = htons(sizeof(struct udphdr) + sizeof(struct
-+								    iphdr));
-+		memcpy(&iph->saddr, ah_attr->grh.sgid_attr->gid.raw + 12,
-+		       sizeof(struct in_addr));
-+		memcpy(&iph->daddr, ah_attr->grh.dgid.raw + 12,
-+		       sizeof(struct in_addr));
-+	} else {
-+		skb_push(skb, sizeof(struct ipv6hdr));
-+		skb_reset_network_header(skb);
-+		ip6h = ipv6_hdr(skb);
-+		ip6h->version = 6;
-+		ip6h->nexthdr = IPPROTO_UDP;
-+		memcpy(&ip6h->flow_lbl, &ah_attr->grh.flow_label,
-+		       sizeof(*ip6h->flow_lbl));
-+		memcpy(&ip6h->saddr, ah_attr->grh.sgid_attr->gid.raw,
-+		       sizeof(struct in6_addr));
-+		memcpy(&ip6h->daddr, ah_attr->grh.dgid.raw,
-+		       sizeof(struct in6_addr));
-+	}
-+
-+	skb_push(skb, sizeof(struct ethhdr));
-+	skb_reset_mac_header(skb);
-+	eth = eth_hdr(skb);
-+	skb->protocol = eth->h_proto = htons(is_ipv4 ? ETH_P_IP : ETH_P_IPV6);
-+	rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr, NULL, smac);
-+	memcpy(eth->h_source, smac, ETH_ALEN);
-+	memcpy(eth->h_dest, ah_attr->roce.dmac, ETH_ALEN);
-+
-+	return skb;
-+}
-+
-+static struct net_device *rdma_get_xmit_slave_udp(struct ib_device *device,
-+						  struct net_device *master,
-+						  struct rdma_ah_attr *ah_attr)
-+{
-+	struct net_device *slave;
-+	struct sk_buff *skb;
-+	u16 flags;
-+
-+	skb = rdma_build_skb(device, master, ah_attr);
-+	if (!skb)
-+		return NULL;
-+
-+	flags = device->lag_flags & RDMA_LAG_FLAGS_HASH_ALL_SLAVES ?
-+		LAG_FLAGS_HASH_ALL_SLAVES : 0;
-+	slave = master_xmit_get_slave(master, skb, flags);
-+	kfree_skb(skb);
-+	return slave;
-+}
-+
-+void rdma_lag_put_ah_roce_slave(struct rdma_ah_attr *ah_attr)
-+{
-+	if (ah_attr->roce.xmit_slave)
-+		dev_put(ah_attr->roce.xmit_slave);
-+}
-+
-+int rdma_lag_get_ah_roce_slave(struct ib_device *device,
-+			       struct rdma_ah_attr *ah_attr)
-+{
-+	struct net_device *master;
-+	struct net_device *slave;
-+
-+	if (!(ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE &&
-+	      ah_attr->grh.sgid_attr->gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP))
-+		return 0;
-+
-+	rcu_read_lock();
-+	master = rdma_read_gid_attr_ndev_rcu(ah_attr->grh.sgid_attr);
-+	if (IS_ERR(master)) {
-+		rcu_read_unlock();
-+		return PTR_ERR(master);
-+	}
-+	dev_hold(master);
-+	rcu_read_unlock();
-+
-+	if (!netif_is_bond_master(master)) {
-+		dev_put(master);
-+		return 0;
-+	}
-+
-+	slave = rdma_get_xmit_slave_udp(device, master, ah_attr);
-+
-+	dev_put(master);
-+	if (!slave) {
-+		ibdev_warn(device, "Failed to get lag xmit slave\n");
-+		return -EINVAL;
-+	}
-+
-+	ah_attr->roce.xmit_slave = slave;
-+
-+	return 0;
-+}
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index bbc5cfb57cd2..60f9969b6d83 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -894,6 +894,7 @@ struct ib_ah_attr {
- 
- struct roce_ah_attr {
- 	u8			dmac[ETH_ALEN];
-+	struct net_device	*xmit_slave;
- };
- 
- struct opa_ah_attr {
-@@ -2709,6 +2710,7 @@ struct ib_device {
- 	/* Used by iWarp CM */
- 	char iw_ifname[IFNAMSIZ];
- 	u32 iw_driver_flags;
-+	u32 lag_flags;
- };
- 
- struct ib_client_nl_info;
-diff --git a/include/rdma/lag.h b/include/rdma/lag.h
-new file mode 100644
-index 000000000000..a71511824207
---- /dev/null
-+++ b/include/rdma/lag.h
-@@ -0,0 +1,22 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/*
-+ * Copyright (c) 2020 Mellanox Technologies. All rights reserved.
-+ */
-+
-+#ifndef _RDMA_LAG_H_
-+#define _RDMA_LAG_H_
-+
-+#include <net/lag.h>
-+
-+struct ib_device;
-+struct rdma_ah_attr;
-+
-+enum rdma_lag_flags {
-+	RDMA_LAG_FLAGS_HASH_ALL_SLAVES = 1 << 0
-+};
-+
-+void rdma_lag_put_ah_roce_slave(struct rdma_ah_attr *ah_attr);
-+int rdma_lag_get_ah_roce_slave(struct ib_device *device,
-+			       struct rdma_ah_attr *ah_attr);
-+
-+#endif /* _RDMA_LAG_H_ */
 -- 
 2.17.2
 
