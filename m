@@ -4,49 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B4DFC3815B
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 11:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C95C54FCB
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 11:42:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 688A821473
+	by mail.kernel.org (Postfix) with ESMTP id DDFBB21473
 	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 11:42:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1587382963;
-	bh=URm1wVZfx5soezZ8amTR4/CBi/5tj5jaeApIkAQkA68=;
+	bh=1Mwj3RjmFnmPxFPL90WRx6qOcMtpon2+USqJqUKzf48=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=DtNKBycuJYj0Qr5JYZsU0OeS/D+UQb/Z/l9mVpK+aQ+u0aNRwdgOYsI2WYgS+zjhu
-	 RafJ26LpwLhb3t50uMLdWZX1aS9XH97czAFgVb3NYFtbrD+njPl7RkeYWAqGj6T0MA
-	 JjGzgybrEU210G1P9wI4fwLdIC606lwtaF0QV2W8=
+	b=BAsGqqDZT7/XQoLy51hxWfhCutqUx5Xofw+PQGv48AaxkYIEegc5HDTlEcFtduA0c
+	 IDqIsaMdbaYl83mWBrrBwnIO5yErSvYgRuZ6ztAeJiVlkjv479CIJ6HkD+ZUAchH9E
+	 quGtj4F5h0R4q3Ntf3VV5HoVsqCzgbx8nILVqY6s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726606AbgDTLmg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Apr 2020 07:42:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46540 "EHLO mail.kernel.org"
+        id S1726629AbgDTLmm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Apr 2020 07:42:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725886AbgDTLmf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Apr 2020 07:42:35 -0400
+        id S1726632AbgDTLmm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Apr 2020 07:42:42 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 62C0421473;
-        Mon, 20 Apr 2020 11:42:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B9DE121D94;
+        Mon, 20 Apr 2020 11:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587382954;
-        bh=URm1wVZfx5soezZ8amTR4/CBi/5tj5jaeApIkAQkA68=;
+        s=default; t=1587382961;
+        bh=1Mwj3RjmFnmPxFPL90WRx6qOcMtpon2+USqJqUKzf48=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VFR7IT6P+NEjoOuXjjKD2/s6HJVXK//2K/wpAEvVmAI7JCd2HN0pMnTyFxoGzRdXv
-         wFCFj1Gl20PcPN2YhC7w47nSfWNIdnF+sj6MhAPTzpTJorVFRSyZdq62OlcU2+RAzI
-         YRsz9VonG/8fjm7EKo9Q1fjTUYtubadrBSbuWCtw=
+        b=tWXQwBDEM/gurjisbjR/+Hsa5VBOplU8W3aZIKpUSIV1/EDcgvoTjGJcQH0WHR+Am
+         pLcn4veQ6NAJQlQeVJH34wVrvohr/UXYd//102zHNV+Ctgb7ZEBsua9SVIAxIw2qYy
+         u0r/QRvUIAgnSl7zZK0nIlPkfL5CFMFtfC8JJRcA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Moshe Shemesh <moshe@mellanox.com>, netdev@vger.kernel.org,
         Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 15/24] net/mlx5: Update main.c new cmd interface
-Date:   Mon, 20 Apr 2020 14:41:27 +0300
-Message-Id: <20200420114136.264924-16-leon@kernel.org>
+Subject: [PATCH mlx5-next 17/24] net/mlx5: Update mr.c new cmd interface
+Date:   Mon, 20 Apr 2020 14:41:29 +0300
+Message-Id: <20200420114136.264924-18-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200420114136.264924-1-leon@kernel.org>
 References: <20200420114136.264924-1-leon@kernel.org>
@@ -59,126 +59,85 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Do mass update of main.c to reuse newly introduced
+Do mass update of mr.c to reuse newly introduced
 mlx5_cmd_exec_in*() interfaces.
 
 Reviewed-by: Moshe Shemesh <moshe@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/main.c    | 35 +++++++------------
- 1 file changed, 13 insertions(+), 22 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 0044aa5cc676..061b69ea9cc4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -206,8 +206,7 @@ static void mlx5_set_driver_version(struct mlx5_core_dev *dev)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
+index 1feedf335dea..9eb51f06d3ae 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mr.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
+@@ -39,7 +39,7 @@ int mlx5_core_create_mkey(struct mlx5_core_dev *dev,
+ 			  struct mlx5_core_mkey *mkey,
+ 			  u32 *in, int inlen)
  {
- 	int driver_ver_sz = MLX5_FLD_SZ_BYTES(set_driver_version_in,
- 					      driver_version);
--	u8 in[MLX5_ST_SZ_BYTES(set_driver_version_in)] = {0};
--	u8 out[MLX5_ST_SZ_BYTES(set_driver_version_out)] = {0};
-+	u8 in[MLX5_ST_SZ_BYTES(set_driver_version_in)] = {};
- 	int remaining_size = driver_ver_sz;
- 	char *string;
- 
-@@ -234,7 +233,7 @@ static void mlx5_set_driver_version(struct mlx5_core_dev *dev)
- 	MLX5_SET(set_driver_version_in, in, opcode,
- 		 MLX5_CMD_OP_SET_DRIVER_VERSION);
- 
--	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	mlx5_cmd_exec_in(dev, set_driver_version, in);
- }
- 
- static int set_dma_caps(struct pci_dev *pdev)
-@@ -366,7 +365,7 @@ static int mlx5_core_get_caps_mode(struct mlx5_core_dev *dev,
- 
- 	MLX5_SET(query_hca_cap_in, in, opcode, MLX5_CMD_OP_QUERY_HCA_CAP);
- 	MLX5_SET(query_hca_cap_in, in, op_mod, opmod);
--	err = mlx5_cmd_exec(dev, in, sizeof(in), out, out_sz);
-+	err = mlx5_cmd_exec_inout(dev, query_hca_cap, in, out);
- 	if (err) {
- 		mlx5_core_warn(dev,
- 			       "QUERY_HCA_CAP : type(%x) opmode(%x) Failed(%d)\n",
-@@ -409,12 +408,9 @@ int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type)
- 
- static int set_caps(struct mlx5_core_dev *dev, void *in, int opmod)
- {
--	u32 out[MLX5_ST_SZ_DW(set_hca_cap_out)] = {};
--
- 	MLX5_SET(set_hca_cap_in, in, opcode, MLX5_CMD_OP_SET_HCA_CAP);
- 	MLX5_SET(set_hca_cap_in, in, op_mod, opmod << 1);
--	return mlx5_cmd_exec(dev, in, MLX5_ST_SZ_BYTES(set_hca_cap_in), out,
--			     sizeof(out));
-+	return mlx5_cmd_exec_in(dev, set_hca_cap, in);
- }
- 
- static int handle_hca_cap_atomic(struct mlx5_core_dev *dev, void *set_ctx)
-@@ -653,26 +649,24 @@ static int mlx5_core_set_hca_defaults(struct mlx5_core_dev *dev)
- 
- int mlx5_core_enable_hca(struct mlx5_core_dev *dev, u16 func_id)
- {
--	u32 out[MLX5_ST_SZ_DW(enable_hca_out)] = {0};
--	u32 in[MLX5_ST_SZ_DW(enable_hca_in)]   = {0};
-+	u32 in[MLX5_ST_SZ_DW(enable_hca_in)] = {};
- 
- 	MLX5_SET(enable_hca_in, in, opcode, MLX5_CMD_OP_ENABLE_HCA);
- 	MLX5_SET(enable_hca_in, in, function_id, func_id);
- 	MLX5_SET(enable_hca_in, in, embedded_cpu_function,
- 		 dev->caps.embedded_cpu);
--	return mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	return mlx5_cmd_exec_in(dev, enable_hca, in);
- }
- 
- int mlx5_core_disable_hca(struct mlx5_core_dev *dev, u16 func_id)
- {
--	u32 out[MLX5_ST_SZ_DW(disable_hca_out)] = {0};
--	u32 in[MLX5_ST_SZ_DW(disable_hca_in)]   = {0};
-+	u32 in[MLX5_ST_SZ_DW(disable_hca_in)] = {};
- 
- 	MLX5_SET(disable_hca_in, in, opcode, MLX5_CMD_OP_DISABLE_HCA);
- 	MLX5_SET(disable_hca_in, in, function_id, func_id);
- 	MLX5_SET(enable_hca_in, in, embedded_cpu_function,
- 		 dev->caps.embedded_cpu);
--	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	return mlx5_cmd_exec_in(dev, disable_hca, in);
- }
- 
- u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev,
-@@ -697,14 +691,13 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev,
- 
- static int mlx5_core_set_issi(struct mlx5_core_dev *dev)
- {
--	u32 query_in[MLX5_ST_SZ_DW(query_issi_in)]   = {0};
--	u32 query_out[MLX5_ST_SZ_DW(query_issi_out)] = {0};
-+	u32 query_out[MLX5_ST_SZ_DW(query_issi_out)] = {};
-+	u32 query_in[MLX5_ST_SZ_DW(query_issi_in)] = {};
- 	u32 sup_issi;
+-	u32 lout[MLX5_ST_SZ_DW(create_mkey_out)] = {0};
++	u32 lout[MLX5_ST_SZ_DW(create_mkey_out)] = {};
+ 	u32 mkey_index;
+ 	void *mkc;
  	int err;
+@@ -65,19 +65,18 @@ EXPORT_SYMBOL(mlx5_core_create_mkey);
+ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev,
+ 			   struct mlx5_core_mkey *mkey)
+ {
+-	u32 out[MLX5_ST_SZ_DW(destroy_mkey_out)] = {0};
+-	u32 in[MLX5_ST_SZ_DW(destroy_mkey_in)]   = {0};
++	u32 in[MLX5_ST_SZ_DW(destroy_mkey_in)] = {};
  
- 	MLX5_SET(query_issi_in, query_in, opcode, MLX5_CMD_OP_QUERY_ISSI);
--	err = mlx5_cmd_exec(dev, query_in, sizeof(query_in),
--			    query_out, sizeof(query_out));
-+	err = mlx5_cmd_exec_inout(dev, query_issi, query_in, query_out);
- 	if (err) {
- 		u32 syndrome;
- 		u8 status;
-@@ -724,13 +717,11 @@ static int mlx5_core_set_issi(struct mlx5_core_dev *dev)
- 	sup_issi = MLX5_GET(query_issi_out, query_out, supported_issi_dw0);
+ 	MLX5_SET(destroy_mkey_in, in, opcode, MLX5_CMD_OP_DESTROY_MKEY);
+ 	MLX5_SET(destroy_mkey_in, in, mkey_index, mlx5_mkey_to_idx(mkey->key));
+-	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++	return mlx5_cmd_exec_in(dev, destroy_mkey, in);
+ }
+ EXPORT_SYMBOL(mlx5_core_destroy_mkey);
  
- 	if (sup_issi & (1 << 1)) {
--		u32 set_in[MLX5_ST_SZ_DW(set_issi_in)]   = {0};
--		u32 set_out[MLX5_ST_SZ_DW(set_issi_out)] = {0};
-+		u32 set_in[MLX5_ST_SZ_DW(set_issi_in)] = {};
+ int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *mkey,
+ 			 u32 *out, int outlen)
+ {
+-	u32 in[MLX5_ST_SZ_DW(query_mkey_in)] = {0};
++	u32 in[MLX5_ST_SZ_DW(query_mkey_in)] = {};
  
- 		MLX5_SET(set_issi_in, set_in, opcode, MLX5_CMD_OP_SET_ISSI);
- 		MLX5_SET(set_issi_in, set_in, current_issi, 1);
--		err = mlx5_cmd_exec(dev, set_in, sizeof(set_in),
--				    set_out, sizeof(set_out));
-+		err = mlx5_cmd_exec_in(dev, set_issi, set_in);
- 		if (err) {
- 			mlx5_core_err(dev, "Failed to set ISSI to 1 err(%d)\n",
- 				      err);
+ 	memset(out, 0, outlen);
+ 	MLX5_SET(query_mkey_in, in, opcode, MLX5_CMD_OP_QUERY_MKEY);
+@@ -99,8 +98,8 @@ static inline u32 mlx5_get_psv(u32 *out, int psv_index)
+ int mlx5_core_create_psv(struct mlx5_core_dev *dev, u32 pdn,
+ 			 int npsvs, u32 *sig_index)
+ {
+-	u32 out[MLX5_ST_SZ_DW(create_psv_out)] = {0};
+-	u32 in[MLX5_ST_SZ_DW(create_psv_in)]   = {0};
++	u32 out[MLX5_ST_SZ_DW(create_psv_out)] = {};
++	u32 in[MLX5_ST_SZ_DW(create_psv_in)] = {};
+ 	int i, err;
+ 
+ 	if (npsvs > MLX5_MAX_PSVS)
+@@ -110,7 +109,7 @@ int mlx5_core_create_psv(struct mlx5_core_dev *dev, u32 pdn,
+ 	MLX5_SET(create_psv_in, in, pd, pdn);
+ 	MLX5_SET(create_psv_in, in, num_psv, npsvs);
+ 
+-	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++	err = mlx5_cmd_exec_inout(dev, create_psv, in, out);
+ 	if (err)
+ 		return err;
+ 
+@@ -123,11 +122,10 @@ EXPORT_SYMBOL(mlx5_core_create_psv);
+ 
+ int mlx5_core_destroy_psv(struct mlx5_core_dev *dev, int psv_num)
+ {
+-	u32 out[MLX5_ST_SZ_DW(destroy_psv_out)] = {0};
+-	u32 in[MLX5_ST_SZ_DW(destroy_psv_in)]   = {0};
++	u32 in[MLX5_ST_SZ_DW(destroy_psv_in)] = {};
+ 
+ 	MLX5_SET(destroy_psv_in, in, opcode, MLX5_CMD_OP_DESTROY_PSV);
+ 	MLX5_SET(destroy_psv_in, in, psvn, psv_num);
+-	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++	return mlx5_cmd_exec_in(dev, destroy_psv, in);
+ }
+ EXPORT_SYMBOL(mlx5_core_destroy_psv);
 -- 
 2.25.2
 
