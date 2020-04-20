@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3548C54FCF
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 07:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69DD3C54FD0
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 07:54:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B201C214AF
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 07:54:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 502F9214AF
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 07:54:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726232AbgDTHyq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Apr 2020 03:54:46 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:51631 "EHLO
+        id S1726287AbgDTHyr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Apr 2020 03:54:47 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:56972 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726287AbgDTHyo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Apr 2020 03:54:44 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
+        with ESMTP id S1726167AbgDTHyk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Apr 2020 03:54:40 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 20 Apr 2020 10:54:31 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03K7sUfJ026672;
-        Mon, 20 Apr 2020 10:54:31 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03K7sUfC026672;
+        Mon, 20 Apr 2020 10:54:30 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V2 mlx5-next 10/10] RDMA/mlx5: Set lag tx affinity according to slave
-Date:   Mon, 20 Apr 2020 10:54:26 +0300
-Message-Id: <20200420075426.31462-11-maorg@mellanox.com>
+Subject: [PATCH V2 mlx5-next 03/10] bonding: Add helpers to get xmit slave
+Date:   Mon, 20 Apr 2020 10:54:19 +0300
+Message-Id: <20200420075426.31462-4-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200420075426.31462-1-maorg@mellanox.com>
 References: <20200420075426.31462-1-maorg@mellanox.com>
@@ -42,338 +42,288 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The patch sets the lag tx affinity of the data QPs and the
-GSI QPs according to the LAG xmit slave.
-
-For GSI QPs, in case that the link layer is Ethenet (RoCE) we create
-two GSI QPs, one for each physical port. When the driver selects the
-GSI QP, it will consider the port affinity result.
-For connected QPs, the driver sets the affinity of the xmit slave.
-
-The above, ensure that RC QP and it's corresponding GSI QP will
-transmit from the same physical port.
+This helpers will be used by both the xmit function
+and the get xmit slave ndo.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/ah.c      |  4 +++
- drivers/infiniband/hw/mlx5/gsi.c     | 34 ++++++++++++++----
- drivers/infiniband/hw/mlx5/main.c    |  2 ++
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
- drivers/infiniband/hw/mlx5/qp.c      | 53 +++++++++++++++++++---------
- include/linux/mlx5/mlx5_ifc.h        |  4 ++-
- include/linux/mlx5/qp.h              |  2 ++
- 7 files changed, 75 insertions(+), 25 deletions(-)
+ drivers/net/bonding/bond_alb.c  | 35 ++++++++----
+ drivers/net/bonding/bond_main.c | 94 +++++++++++++++++++++------------
+ include/net/bond_alb.h          |  4 ++
+ 3 files changed, 89 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
-index 80642dd359bc..14ad05e7c5bf 100644
---- a/drivers/infiniband/hw/mlx5/ah.c
-+++ b/drivers/infiniband/hw/mlx5/ah.c
-@@ -51,6 +51,10 @@ static void create_ib_ah(struct mlx5_ib_dev *dev, struct mlx5_ib_ah *ah,
- 	ah->av.stat_rate_sl = (rdma_ah_get_static_rate(ah_attr) << 4);
- 
- 	if (ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
-+		if (ah_attr->roce.xmit_slave)
-+			ah->xmit_port =
-+				mlx5_lag_get_slave_port(dev->mdev,
-+							ah_attr->roce.xmit_slave);
- 		gid_type = ah_attr->grh.sgid_attr->gid_type;
- 
- 		memcpy(ah->av.rmac, ah_attr->roce.dmac,
-diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-index 1ae6fd95acaa..fbae1c094fe2 100644
---- a/drivers/infiniband/hw/mlx5/gsi.c
-+++ b/drivers/infiniband/hw/mlx5/gsi.c
-@@ -119,12 +119,20 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
- 	struct mlx5_ib_gsi_qp *gsi;
- 	struct ib_qp_init_attr hw_init_attr = *init_attr;
- 	const u8 port_num = init_attr->port_num;
--	const int num_pkeys = pd->device->attrs.max_pkeys;
--	const int num_qps = mlx5_ib_deth_sqpn_cap(dev) ? num_pkeys : 0;
-+	int num_qps = 0;
- 	int ret;
- 
- 	mlx5_ib_dbg(dev, "creating GSI QP\n");
- 
-+	if (mlx5_ib_deth_sqpn_cap(dev)) {
-+		if (MLX5_CAP_GEN(dev->mdev,
-+				 port_type) == MLX5_CAP_PORT_TYPE_IB)
-+			num_qps = pd->device->attrs.max_pkeys;
-+		else if (dev->lag_active)
-+			num_qps = MLX5_MAX_PORTS;
-+	}
-+
-+
- 	if (port_num > ARRAY_SIZE(dev->devr.ports) || port_num < 1) {
- 		mlx5_ib_warn(dev,
- 			     "invalid port number %d during GSI QP creation\n",
-@@ -270,7 +278,7 @@ static struct ib_qp *create_gsi_ud_qp(struct mlx5_ib_gsi_qp *gsi)
+diff --git a/drivers/net/bonding/bond_alb.c b/drivers/net/bonding/bond_alb.c
+index 7bb49b049dcc..e863c694c309 100644
+--- a/drivers/net/bonding/bond_alb.c
++++ b/drivers/net/bonding/bond_alb.c
+@@ -1334,11 +1334,11 @@ static netdev_tx_t bond_do_alb_xmit(struct sk_buff *skb, struct bonding *bond,
+ 	return NETDEV_TX_OK;
  }
  
- static int modify_to_rts(struct mlx5_ib_gsi_qp *gsi, struct ib_qp *qp,
--			 u16 qp_index)
-+			 u16 pkey_index)
+-netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb)
  {
- 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
- 	struct ib_qp_attr attr;
-@@ -279,7 +287,7 @@ static int modify_to_rts(struct mlx5_ib_gsi_qp *gsi, struct ib_qp *qp,
+-	struct bonding *bond = netdev_priv(bond_dev);
+-	struct ethhdr *eth_data;
+ 	struct slave *tx_slave = NULL;
++	struct ethhdr *eth_data;
+ 	u32 hash_index;
  
- 	mask = IB_QP_STATE | IB_QP_PKEY_INDEX | IB_QP_QKEY | IB_QP_PORT;
- 	attr.qp_state = IB_QPS_INIT;
--	attr.pkey_index = qp_index;
-+	attr.pkey_index = pkey_index;
- 	attr.qkey = IB_QP1_QKEY;
- 	attr.port_num = gsi->port_num;
- 	ret = ib_modify_qp(qp, &attr, mask);
-@@ -313,12 +321,17 @@ static void setup_qp(struct mlx5_ib_gsi_qp *gsi, u16 qp_index)
- {
- 	struct ib_device *device = gsi->rx_qp->device;
- 	struct mlx5_ib_dev *dev = to_mdev(device);
-+	int pkey_index = qp_index;
-+	struct mlx5_ib_qp *mqp;
- 	struct ib_qp *qp;
- 	unsigned long flags;
- 	u16 pkey;
- 	int ret;
- 
--	ret = ib_query_pkey(device, gsi->port_num, qp_index, &pkey);
-+	if (MLX5_CAP_GEN(dev->mdev,  port_type) != MLX5_CAP_PORT_TYPE_IB)
-+		pkey_index = 0;
-+
-+	ret = ib_query_pkey(device, gsi->port_num, pkey_index, &pkey);
- 	if (ret) {
- 		mlx5_ib_warn(dev, "unable to read P_Key at port %d, index %d\n",
- 			     gsi->port_num, qp_index);
-@@ -347,7 +360,10 @@ static void setup_qp(struct mlx5_ib_gsi_qp *gsi, u16 qp_index)
- 		return;
+ 	skb_reset_mac_header(skb);
+@@ -1369,20 +1369,29 @@ netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ 			break;
+ 		}
  	}
- 
--	ret = modify_to_rts(gsi, qp, qp_index);
-+	mqp = to_mqp(qp);
-+	if (dev->lag_active)
-+		mqp->gsi_lag_port = qp_index + 1;
-+	ret = modify_to_rts(gsi, qp, pkey_index);
- 	if (ret)
- 		goto err_destroy_qp;
- 
-@@ -466,11 +482,15 @@ static int mlx5_ib_gsi_silent_drop(struct mlx5_ib_gsi_qp *gsi,
- static struct ib_qp *get_tx_qp(struct mlx5_ib_gsi_qp *gsi, struct ib_ud_wr *wr)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(gsi->rx_qp->device);
-+	struct mlx5_ib_ah *ah = to_mah(wr->ah);
- 	int qp_index = wr->pkey_index;
- 
--	if (!mlx5_ib_deth_sqpn_cap(dev))
-+	if (!gsi->num_qps)
- 		return gsi->rx_qp;
- 
-+	if (dev->lag_active && ah->xmit_port)
-+		qp_index = ah->xmit_port - 1;
-+
- 	if (qp_index >= gsi->num_qps)
- 		return NULL;
- 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 6679756506e6..2db2309dde47 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -53,6 +53,7 @@
- #include <linux/list.h>
- #include <rdma/ib_smi.h>
- #include <rdma/ib_umem.h>
-+#include <rdma/lag.h>
- #include <linux/in.h>
- #include <linux/etherdevice.h>
- #include "mlx5_ib.h"
-@@ -6549,6 +6550,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
- 	dev->ib_dev.phys_port_cnt	= dev->num_ports;
- 	dev->ib_dev.num_comp_vectors    = mlx5_comp_vectors_count(mdev);
- 	dev->ib_dev.dev.parent		= mdev->device;
-+	dev->ib_dev.lag_flags		= RDMA_LAG_FLAGS_HASH_ALL_SLAVES;
- 
- 	mutex_init(&dev->cap_mask_mutex);
- 	INIT_LIST_HEAD(&dev->qp_list);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index a4e522385de0..a7b5581a7a4d 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -471,6 +471,7 @@ struct mlx5_ib_qp {
- 	 * but not take effective
- 	 */
- 	u32                     counter_pending;
-+	u16			gsi_lag_port;
- };
- 
- struct mlx5_ib_cq_buf {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index a45499809903..9e9ad69152f7 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3052,10 +3052,12 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
- 					  MLX5_QP_OPTPAR_RAE		|
- 					  MLX5_QP_OPTPAR_RWE		|
- 					  MLX5_QP_OPTPAR_PKEY_INDEX	|
--					  MLX5_QP_OPTPAR_PRI_PORT,
-+					  MLX5_QP_OPTPAR_PRI_PORT	|
-+					  MLX5_QP_OPTPAR_LAG_TX_AFF,
- 			[MLX5_QP_ST_UC] = MLX5_QP_OPTPAR_RWE		|
- 					  MLX5_QP_OPTPAR_PKEY_INDEX	|
--					  MLX5_QP_OPTPAR_PRI_PORT,
-+					  MLX5_QP_OPTPAR_PRI_PORT	|
-+					  MLX5_QP_OPTPAR_LAG_TX_AFF,
- 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_PKEY_INDEX	|
- 					  MLX5_QP_OPTPAR_Q_KEY		|
- 					  MLX5_QP_OPTPAR_PRI_PORT,
-@@ -3063,17 +3065,20 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
- 					  MLX5_QP_OPTPAR_RAE		|
- 					  MLX5_QP_OPTPAR_RWE		|
- 					  MLX5_QP_OPTPAR_PKEY_INDEX	|
--					  MLX5_QP_OPTPAR_PRI_PORT,
-+					  MLX5_QP_OPTPAR_PRI_PORT	|
-+					  MLX5_QP_OPTPAR_LAG_TX_AFF,
- 		},
- 		[MLX5_QP_STATE_RTR] = {
- 			[MLX5_QP_ST_RC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH  |
- 					  MLX5_QP_OPTPAR_RRE            |
- 					  MLX5_QP_OPTPAR_RAE            |
- 					  MLX5_QP_OPTPAR_RWE            |
--					  MLX5_QP_OPTPAR_PKEY_INDEX,
-+					  MLX5_QP_OPTPAR_PKEY_INDEX	|
-+					  MLX5_QP_OPTPAR_LAG_TX_AFF,
- 			[MLX5_QP_ST_UC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH  |
- 					  MLX5_QP_OPTPAR_RWE            |
--					  MLX5_QP_OPTPAR_PKEY_INDEX,
-+					  MLX5_QP_OPTPAR_PKEY_INDEX	|
-+					  MLX5_QP_OPTPAR_LAG_TX_AFF,
- 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_PKEY_INDEX     |
- 					  MLX5_QP_OPTPAR_Q_KEY,
- 			[MLX5_QP_ST_MLX] = MLX5_QP_OPTPAR_PKEY_INDEX	|
-@@ -3082,7 +3087,8 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
- 					  MLX5_QP_OPTPAR_RRE            |
- 					  MLX5_QP_OPTPAR_RAE            |
- 					  MLX5_QP_OPTPAR_RWE            |
--					  MLX5_QP_OPTPAR_PKEY_INDEX,
-+					  MLX5_QP_OPTPAR_PKEY_INDEX	|
-+					  MLX5_QP_OPTPAR_LAG_TX_AFF,
- 		},
- 	},
- 	[MLX5_QP_STATE_RTR] = {
-@@ -3435,11 +3441,8 @@ static unsigned int get_tx_affinity_rr(struct mlx5_ib_dev *dev,
- 
- static bool qp_supports_affinity(struct ib_qp *qp)
- {
--	struct mlx5_ib_qp *mqp = to_mqp(qp);
--
- 	if ((qp->qp_type == IB_QPT_RC) ||
--	    (qp->qp_type == IB_QPT_UD &&
--	     !(mqp->flags & MLX5_IB_QP_SQPN_QP1)) ||
-+	    (qp->qp_type == IB_QPT_UD) ||
- 	    (qp->qp_type == IB_QPT_UC) ||
- 	    (qp->qp_type == IB_QPT_RAW_PACKET) ||
- 	    (qp->qp_type == IB_QPT_XRC_INI) ||
-@@ -3448,7 +3451,9 @@ static bool qp_supports_affinity(struct ib_qp *qp)
- 	return false;
+-	return bond_do_alb_xmit(skb, bond, tx_slave);
++	return tx_slave;
  }
  
--static unsigned int get_tx_affinity(struct ib_qp *qp, u8 init,
-+static unsigned int get_tx_affinity(struct ib_qp *qp,
-+				    const struct ib_qp_attr *attr,
-+				    int attr_mask, u8 init,
- 				    struct ib_udata *udata)
+-netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
  {
- 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
-@@ -3458,10 +3463,19 @@ static unsigned int get_tx_affinity(struct ib_qp *qp, u8 init,
- 	struct mlx5_ib_qp_base *qp_base;
- 	unsigned int tx_affinity;
+ 	struct bonding *bond = netdev_priv(bond_dev);
+-	struct ethhdr *eth_data;
++	struct slave *tx_slave;
++
++	tx_slave = bond_xmit_tlb_slave_get(bond, skb);
++	return bond_do_alb_xmit(skb, bond, tx_slave);
++}
++
++struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb)
++{
+ 	struct alb_bond_info *bond_info = &(BOND_ALB_INFO(bond));
+-	struct slave *tx_slave = NULL;
+ 	static const __be32 ip_bcast = htonl(0xffffffff);
+-	int hash_size = 0;
++	struct slave *tx_slave = NULL;
++	const u8 *hash_start = NULL;
+ 	bool do_tx_balance = true;
++	struct ethhdr *eth_data;
+ 	u32 hash_index = 0;
+-	const u8 *hash_start = NULL;
++	int hash_size = 0;
  
--	if (!(dev->lag_active && init && qp_supports_affinity(qp)))
-+	if (!(dev->lag_active && qp_supports_affinity(qp)))
- 		return 0;
+ 	skb_reset_mac_header(skb);
+ 	eth_data = eth_hdr(skb);
+@@ -1501,7 +1510,15 @@ netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ 						       count];
+ 		}
+ 	}
++	return tx_slave;
++}
++
++netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++{
++	struct bonding *bond = netdev_priv(bond_dev);
++	struct slave *tx_slave = NULL;
  
--	tx_affinity = get_tx_affinity_rr(dev, udata);
-+	if (mqp->flags & MLX5_IB_QP_SQPN_QP1)
-+		tx_affinity = mqp->gsi_lag_port;
-+	else if (init)
-+		tx_affinity = get_tx_affinity_rr(dev, udata);
-+	else if ((attr_mask & IB_QP_AV) && attr->ah_attr.roce.xmit_slave)
-+		tx_affinity =
-+			mlx5_lag_get_slave_port(dev->mdev,
-+						attr->ah_attr.roce.xmit_slave);
-+	else
-+		return 0;
++	tx_slave = bond_xmit_alb_slave_get(bond, skb);
+ 	return bond_do_alb_xmit(skb, bond, tx_slave);
+ }
  
- 	qp_base = &mqp->trans_qp.base;
- 	if (ucontext)
-@@ -3547,7 +3561,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	struct mlx5_qp_context *context;
- 	struct mlx5_ib_pd *pd;
- 	enum mlx5_qp_state mlx5_cur, mlx5_new;
--	enum mlx5_qp_optpar optpar;
-+	enum mlx5_qp_optpar optpar = 0;
- 	u32 set_id = 0;
- 	int mlx5_st;
- 	int err;
-@@ -3582,10 +3596,15 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 2cb41d480ae2..7e04be86fda8 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -82,6 +82,7 @@
+ #include <net/bonding.h>
+ #include <net/bond_3ad.h>
+ #include <net/bond_alb.h>
++#include <net/lag.h>
+ 
+ #include "bonding_priv.h"
+ 
+@@ -3406,10 +3407,26 @@ u32 bond_xmit_hash(struct bonding *bond, struct sk_buff *skb)
+ 		(__force u32)flow_get_u32_src(&flow);
+ 	hash ^= (hash >> 16);
+ 	hash ^= (hash >> 8);
+-
+ 	return hash >> 1;
+ }
+ 
++static struct slave *bond_xmit_3ad_xor_slave_get(struct bonding *bond,
++						 struct sk_buff *skb,
++						 struct bond_up_slave *slaves)
++{
++	struct slave *slave;
++	unsigned int count;
++	u32 hash;
++
++	hash = bond_xmit_hash(bond, skb);
++	count = slaves ? READ_ONCE(slaves->count) : 0;
++	if (unlikely(!count))
++		return NULL;
++
++	slave = slaves->arr[hash % count];
++	return slave;
++}
++
+ /*-------------------------- Device entry points ----------------------------*/
+ 
+ void bond_work_init_all(struct bonding *bond)
+@@ -3923,16 +3940,15 @@ static int bond_set_mac_address(struct net_device *bond_dev, void *addr)
+ }
+ 
+ /**
+- * bond_xmit_slave_id - transmit skb through slave with slave_id
++ * bond_get_slave_by_id - get xmit slave with slave_id
+  * @bond: bonding device that is transmitting
+- * @skb: buffer to transmit
+  * @slave_id: slave id up to slave_cnt-1 through which to transmit
+  *
+- * This function tries to transmit through slave with slave_id but in case
++ * This function tries to get slave with slave_id but in case
+  * it fails, it tries to find the first available slave for transmission.
+- * The skb is consumed in all cases, thus the function is void.
+  */
+-static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int slave_id)
++static struct slave *bond_get_slave_by_id(struct bonding *bond,
++					  int slave_id)
+ {
+ 	struct list_head *iter;
+ 	struct slave *slave;
+@@ -3941,10 +3957,8 @@ static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int sl
+ 	/* Here we start from the slave with slave_id */
+ 	bond_for_each_slave_rcu(bond, slave, iter) {
+ 		if (--i < 0) {
+-			if (bond_slave_can_tx(slave)) {
+-				bond_dev_queue_xmit(bond, skb, slave->dev);
+-				return;
+-			}
++			if (bond_slave_can_tx(slave))
++				return slave;
  		}
  	}
  
--	tx_affinity = get_tx_affinity(ibqp,
-+	tx_affinity = get_tx_affinity(ibqp, attr, attr_mask,
- 				      cur_state == IB_QPS_RESET &&
- 				      new_state == IB_QPS_INIT, udata);
--	context->flags |= cpu_to_be32(tx_affinity << 24);
-+	if (tx_affinity) {
-+		context->flags |= cpu_to_be32(tx_affinity << 24);
-+		if (new_state == IB_QPS_RTR &&
-+		    MLX5_CAP_GEN(dev->mdev, init2_lag_tx_port_affinity))
-+			optpar |= MLX5_QP_OPTPAR_LAG_TX_AFF;
-+	}
+@@ -3953,13 +3967,11 @@ static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int sl
+ 	bond_for_each_slave_rcu(bond, slave, iter) {
+ 		if (--i < 0)
+ 			break;
+-		if (bond_slave_can_tx(slave)) {
+-			bond_dev_queue_xmit(bond, skb, slave->dev);
+-			return;
+-		}
++		if (bond_slave_can_tx(slave))
++			return slave;
+ 	}
+-	/* no slave that can tx has been found */
+-	bond_tx_drop(bond->dev, skb);
++
++	return NULL;
+ }
  
- 	if (is_sqp(ibqp->qp_type)) {
- 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
-@@ -3722,7 +3741,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ /**
+@@ -3995,10 +4007,9 @@ static u32 bond_rr_gen_slave_id(struct bonding *bond)
+ 	return slave_id;
+ }
+ 
+-static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+-					struct net_device *bond_dev)
++static struct slave *bond_xmit_roundrobin_slave_get(struct bonding *bond,
++						    struct sk_buff *skb)
+ {
+-	struct bonding *bond = netdev_priv(bond_dev);
+ 	struct slave *slave;
+ 	int slave_cnt;
+ 	u32 slave_id;
+@@ -4020,24 +4031,40 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+ 		if (iph->protocol == IPPROTO_IGMP) {
+ 			slave = rcu_dereference(bond->curr_active_slave);
+ 			if (slave)
+-				bond_dev_queue_xmit(bond, skb, slave->dev);
+-			else
+-				bond_xmit_slave_id(bond, skb, 0);
+-			return NETDEV_TX_OK;
++				return slave;
++			return bond_get_slave_by_id(bond, 0);
+ 		}
  	}
  
- 	op = optab[mlx5_cur][mlx5_new];
--	optpar = ib_mask_to_mlx5_opt(attr_mask);
-+	optpar |= ib_mask_to_mlx5_opt(attr_mask);
- 	optpar &= opt_mask[mlx5_cur][mlx5_new][mlx5_st];
+ non_igmp:
+ 	slave_cnt = READ_ONCE(bond->slave_cnt);
+ 	if (likely(slave_cnt)) {
+-		slave_id = bond_rr_gen_slave_id(bond);
+-		bond_xmit_slave_id(bond, skb, slave_id % slave_cnt);
+-	} else {
+-		bond_tx_drop(bond_dev, skb);
++		slave_id = bond_rr_gen_slave_id(bond) % slave_cnt;
++		return bond_get_slave_by_id(bond, slave_id);
+ 	}
++	return NULL;
++}
++
++static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
++					struct net_device *bond_dev)
++{
++	struct bonding *bond = netdev_priv(bond_dev);
++	struct slave *slave;
++
++	slave = bond_xmit_roundrobin_slave_get(bond, skb);
++	if (slave)
++		bond_dev_queue_xmit(bond, skb, slave->dev);
++	else
++		bond_tx_drop(bond_dev, skb);
+ 	return NETDEV_TX_OK;
+ }
  
- 	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET ||
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 69b27c7dfc3e..a3b6c92e889e 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1296,7 +1296,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         wol_p[0x1];
++static struct slave *bond_xmit_activebackup_slave_get(struct bonding *bond,
++						      struct sk_buff *skb)
++{
++	return rcu_dereference(bond->curr_active_slave);
++}
++
+ /* In active-backup mode, we know that bond->curr_active_slave is always valid if
+  * the bond has a usable interface.
+  */
+@@ -4047,7 +4074,7 @@ static netdev_tx_t bond_xmit_activebackup(struct sk_buff *skb,
+ 	struct bonding *bond = netdev_priv(bond_dev);
+ 	struct slave *slave;
  
- 	u8         stat_rate_support[0x10];
--	u8         reserved_at_1f0[0xc];
-+	u8         reserved_at_1f0[0x8];
-+	u8         init2_lag_tx_port_affinity[0x1];
-+	u8         reserved_at_1f9[0x3];
- 	u8         cqe_version[0x4];
+-	slave = rcu_dereference(bond->curr_active_slave);
++	slave = bond_xmit_activebackup_slave_get(bond, skb);
+ 	if (slave)
+ 		bond_dev_queue_xmit(bond, skb, slave->dev);
+ 	else
+@@ -4193,18 +4220,15 @@ static netdev_tx_t bond_3ad_xor_xmit(struct sk_buff *skb,
+ 				     struct net_device *dev)
+ {
+ 	struct bonding *bond = netdev_priv(dev);
+-	struct slave *slave;
+ 	struct bond_up_slave *slaves;
+-	unsigned int count;
++	struct slave *slave;
  
- 	u8         compact_address_vector[0x1];
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index ae63b1ae9004..fab88b0c76f9 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -66,6 +66,7 @@ enum mlx5_qp_optpar {
- 	MLX5_QP_OPTPAR_RETRY_COUNT		= 1 << 12,
- 	MLX5_QP_OPTPAR_RNR_RETRY		= 1 << 13,
- 	MLX5_QP_OPTPAR_ACK_TIMEOUT		= 1 << 14,
-+	MLX5_QP_OPTPAR_LAG_TX_AFF		= 1 << 15,
- 	MLX5_QP_OPTPAR_PRI_PORT			= 1 << 16,
- 	MLX5_QP_OPTPAR_SRQN			= 1 << 18,
- 	MLX5_QP_OPTPAR_CQN_RCV			= 1 << 19,
-@@ -315,6 +316,7 @@ struct mlx5_av {
- struct mlx5_ib_ah {
- 	struct ib_ah		ibah;
- 	struct mlx5_av		av;
-+	u8			xmit_port;
- };
+ 	slaves = rcu_dereference(bond->usable_slaves);
+-	count = slaves ? READ_ONCE(slaves->count) : 0;
+-	if (likely(count)) {
+-		slave = slaves->arr[bond_xmit_hash(bond, skb) % count];
++	slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
++	if (likely(slave))
+ 		bond_dev_queue_xmit(bond, skb, slave->dev);
+-	} else {
++	else
+ 		bond_tx_drop(dev, skb);
+-	}
  
- static inline struct mlx5_ib_ah *to_mah(struct ib_ah *ibah)
+ 	return NETDEV_TX_OK;
+ }
+diff --git a/include/net/bond_alb.h b/include/net/bond_alb.h
+index b3504fcd773d..f6af76c87a6c 100644
+--- a/include/net/bond_alb.h
++++ b/include/net/bond_alb.h
+@@ -158,6 +158,10 @@ void bond_alb_handle_link_change(struct bonding *bond, struct slave *slave, char
+ void bond_alb_handle_active_change(struct bonding *bond, struct slave *new_slave);
+ int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
+ int bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
++struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb);
++struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb);
+ void bond_alb_monitor(struct work_struct *);
+ int bond_alb_set_mac_address(struct net_device *bond_dev, void *addr);
+ void bond_alb_clear_vlan(struct bonding *bond, unsigned short vlan_id);
 -- 
 2.17.2
 
