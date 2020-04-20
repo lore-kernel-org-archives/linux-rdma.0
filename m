@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ACCBC3815B
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 11:42:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CAEDC54FCB
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 11:42:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F46B21473
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 11:42:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 112FC214AF
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 11:42:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587382970;
-	bh=vtDJUvkcgEQB/Us/QhlFCIGwLPIDsJLArppbZPOiI7U=;
+	s=default; t=1587382973;
+	bh=5TmrNYiaefA+Z1G7FEN87dMSkYeVx7Ef2uPYCzZKXs8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ky8B4JyVYeEJRDCEQ2jNHaoAmcav3A8Z+Udn5H0ltso3nqJ8qhKVLJQlyL//VPKfe
-	 zlrBJKPYh2HmNYL5dBFwzohY3Ifr0wHCwHHCqZdmnE/FOfAMI5k6WAz432rTofMLtJ
-	 O4j19jnTDj9OLvcFzSkYjOhI4R/zRg/O9wrT1lJ0=
+	b=o8m3D7qnUFogKHMWvp82FViOWnugx5j7vwz3PGgvPo2XwjgCy8MJyapOPBfowgK9F
+	 M8gieJAcaPybqz86r582SArfg1p2EkrwOB77w1lWHDFCryLsXEaU2mmu55IxfH9P1m
+	 93y6hhG3gmIe/xHebqd4LDFudVu9dy3f0+82djuk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726639AbgDTLmn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Apr 2020 07:42:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46732 "EHLO mail.kernel.org"
+        id S1726665AbgDTLmt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Apr 2020 07:42:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726614AbgDTLmi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Apr 2020 07:42:38 -0400
+        id S1726614AbgDTLmt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Apr 2020 07:42:49 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 253FA21473;
-        Mon, 20 Apr 2020 11:42:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 055B4218AC;
+        Mon, 20 Apr 2020 11:42:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587382957;
-        bh=vtDJUvkcgEQB/Us/QhlFCIGwLPIDsJLArppbZPOiI7U=;
+        s=default; t=1587382968;
+        bh=5TmrNYiaefA+Z1G7FEN87dMSkYeVx7Ef2uPYCzZKXs8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=W26K5Qpr63kCDFciqaUwIO0NvH3CKiGA6exxN5GQkZVSf7p2AlkFouOLlaRE6FE82
-         UvTu+SQuJUGLZY9aiYx+hP6aKz6zZb3uWr583xz5h4oBVFZJDiUhqRjoDF9jSzq0LG
-         Tq6OO6lxO8HrXcyP1IPV5RgG+b0VKKUEGfmVxGTs=
+        b=ZBPFJ+fK83tnnHRLfUZLQxX7ZMk/SjcuCSbOe27M8oxiH7O13j1LvhgmS6innwirm
+         lxlr0/uVazkowcfBBDQUqCU2L2BIaqRIcROjSTxPzV/WAOUGGo5Li2KDfRjfQ15QQk
+         Ty6+cM8WqM/W+SkVaX8eRo47uXnm1DjA82mHWGE8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Moshe Shemesh <moshe@mellanox.com>, netdev@vger.kernel.org,
         Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 16/24] net/mlx5: Update mcg.c new cmd interface
-Date:   Mon, 20 Apr 2020 14:41:28 +0300
-Message-Id: <20200420114136.264924-17-leon@kernel.org>
+Subject: [PATCH mlx5-next 19/24] net/mlx5: Update pd.c new cmd interface
+Date:   Mon, 20 Apr 2020 14:41:31 +0300
+Message-Id: <20200420114136.264924-20-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200420114136.264924-1-leon@kernel.org>
 References: <20200420114136.264924-1-leon@kernel.org>
@@ -59,52 +59,49 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Do mass update of mcg.c to reuse newly introduced
+Do mass update of pd.c to reuse newly introduced
 mlx5_cmd_exec_in*() interfaces.
 
 Reviewed-by: Moshe Shemesh <moshe@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/mcg.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/pd.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mcg.c b/drivers/net/ethernet/mellanox/mlx5/core/mcg.c
-index 6789fe658037..e019d68062d8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mcg.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mcg.c
-@@ -38,28 +38,26 @@
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pd.c b/drivers/net/ethernet/mellanox/mlx5/core/pd.c
+index b92d6f621c83..aabc53ad8bdd 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/pd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/pd.c
+@@ -37,12 +37,12 @@
  
- int mlx5_core_attach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn)
+ int mlx5_core_alloc_pd(struct mlx5_core_dev *dev, u32 *pdn)
  {
--	u32 out[MLX5_ST_SZ_DW(attach_to_mcg_out)] = {0};
--	u32 in[MLX5_ST_SZ_DW(attach_to_mcg_in)]   = {0};
-+	u32 in[MLX5_ST_SZ_DW(attach_to_mcg_in)] = {};
- 	void *gid;
+-	u32 out[MLX5_ST_SZ_DW(alloc_pd_out)] = {0};
+-	u32 in[MLX5_ST_SZ_DW(alloc_pd_in)]   = {0};
++	u32 out[MLX5_ST_SZ_DW(alloc_pd_out)] = {};
++	u32 in[MLX5_ST_SZ_DW(alloc_pd_in)] = {};
+ 	int err;
  
- 	MLX5_SET(attach_to_mcg_in, in, opcode, MLX5_CMD_OP_ATTACH_TO_MCG);
- 	MLX5_SET(attach_to_mcg_in, in, qpn, qpn);
- 	gid = MLX5_ADDR_OF(attach_to_mcg_in, in, multicast_gid);
- 	memcpy(gid, mgid, sizeof(*mgid));
--	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	return mlx5_cmd_exec_in(dev, attach_to_mcg, in);
- }
- EXPORT_SYMBOL(mlx5_core_attach_mcg);
+ 	MLX5_SET(alloc_pd_in, in, opcode, MLX5_CMD_OP_ALLOC_PD);
+-	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++	err = mlx5_cmd_exec_inout(dev, alloc_pd, in, out);
+ 	if (!err)
+ 		*pdn = MLX5_GET(alloc_pd_out, out, pd);
+ 	return err;
+@@ -51,11 +51,10 @@ EXPORT_SYMBOL(mlx5_core_alloc_pd);
  
- int mlx5_core_detach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn)
+ int mlx5_core_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn)
  {
--	u32 out[MLX5_ST_SZ_DW(detach_from_mcg_out)] = {0};
--	u32 in[MLX5_ST_SZ_DW(detach_from_mcg_in)]   = {0};
-+	u32 in[MLX5_ST_SZ_DW(detach_from_mcg_in)] = {};
- 	void *gid;
+-	u32 out[MLX5_ST_SZ_DW(dealloc_pd_out)] = {0};
+-	u32 in[MLX5_ST_SZ_DW(dealloc_pd_in)]   = {0};
++	u32 in[MLX5_ST_SZ_DW(dealloc_pd_in)] = {};
  
- 	MLX5_SET(detach_from_mcg_in, in, opcode, MLX5_CMD_OP_DETACH_FROM_MCG);
- 	MLX5_SET(detach_from_mcg_in, in, qpn, qpn);
- 	gid = MLX5_ADDR_OF(detach_from_mcg_in, in, multicast_gid);
- 	memcpy(gid, mgid, sizeof(*mgid));
+ 	MLX5_SET(dealloc_pd_in, in, opcode, MLX5_CMD_OP_DEALLOC_PD);
+ 	MLX5_SET(dealloc_pd_in, in, pd, pdn);
 -	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	return mlx5_cmd_exec_in(dev, detach_from_mcg, in);
++	return mlx5_cmd_exec_in(dev, dealloc_pd, in);
  }
- EXPORT_SYMBOL(mlx5_core_detach_mcg);
+ EXPORT_SYMBOL(mlx5_core_dealloc_pd);
 -- 
 2.25.2
 
