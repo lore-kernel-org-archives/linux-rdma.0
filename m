@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E4F2C3A5A0
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 15:12:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 971E9C3815B
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 15:12:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0650621473
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 15:12:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A5AD20857
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 15:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587395521;
-	bh=pXrEwBRYXENOtls6q3oKhWLGnj3bEtu3JBpHijeUsG0=;
+	s=default; t=1587395542;
+	bh=C7N6pQeQ6VVjjwXOwJ/qLmT8652umaqrgzABXyQmbYg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=lbqyVOOs0z38jb4ezQXqcoFYWsNe4+08xW5yp4ifKi13BoV/yjNRFJ/h6pd2qm2WD
-	 0M2/yRYSUeX6Fs9INnMAo/2UtRc92PD6hK969HL3uBdZKTAQajReVQyzF1IXbCrW/4
-	 f1PR+jbeGPceZpsXC+UBeb40FxdlpZLwmc8q2RRc=
+	b=RUmkBJdrJlSne09C7v2/dnQhfurniZRS+cbcxdrC+/AiIaOkjPuZqxwN8Bp0z9TTT
+	 pFmpz9jvb5ruFVAi0eGKEIx6mKNYren3glq0dKH2Ops9dCEO0UB7DyM1CSrX/dT/9Q
+	 6E6uyBBJA9oDBeFhmSwAjNz3c/JRGmI6KUHEMVo8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726847AbgDTPLy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Apr 2020 11:11:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55580 "EHLO mail.kernel.org"
+        id S1730254AbgDTPMV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Apr 2020 11:12:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730135AbgDTPLs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Apr 2020 11:11:48 -0400
+        id S1730240AbgDTPMT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Apr 2020 11:12:19 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 03B2120857;
-        Mon, 20 Apr 2020 15:11:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 94E3E20857;
+        Mon, 20 Apr 2020 15:12:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587395507;
-        bh=pXrEwBRYXENOtls6q3oKhWLGnj3bEtu3JBpHijeUsG0=;
+        s=default; t=1587395537;
+        bh=C7N6pQeQ6VVjjwXOwJ/qLmT8652umaqrgzABXyQmbYg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cEcOzHWkAuoeImcCHzHmbkHAb3Ilzr4GXIebS4L4AJbe5G8ycct05A2ULJ3Y4jOke
-         TFf1iXPvoIgAlswTPpK2Qdp3jQEDOymypqRXfirPOy/gcq8wwMDqtIog+9vUSHZkQY
-         rGhv7WfUOdKguzJDR1nmcAib61Uvx0i6Eo3x7QA0=
+        b=bMLqzyeqPaSYTnjBvXQBw/oIzRKhXMo1hN0X9ILd3kHqssDV23o8R7h9nWSiA+jQO
+         5Qg1JCPsGbOVa4KnCSURvlK+q5RyAAZWBnYTeILdCCEj2BBgdNxJXkIkP+EGpVrnuE
+         z0jrWCOt97IUThNwgOMBQhs6JhDppkftpCjz/D1w=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 11/18] RDMA/mlx5: Remove second copy from user for non RSS RAW QPs
-Date:   Mon, 20 Apr 2020 18:10:58 +0300
-Message-Id: <20200420151105.282848-12-leon@kernel.org>
+Subject: [PATCH rdma-next 14/18] RDMA/mlx5: Process create QP flags in one place
+Date:   Mon, 20 Apr 2020 18:11:01 +0300
+Message-Id: <20200420151105.282848-15-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200420151105.282848-1-leon@kernel.org>
 References: <20200420151105.282848-1-leon@kernel.org>
@@ -58,187 +58,296 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Change the common code to use already copied user command buffer.
+create_flags is checked in too many places and scattered across all
+the code, consolidate all the checks inside one function, so we will
+be easily see the flow. As part of such change, delete unreachable code,
+because IB/core is responsible sanitize the input.
 
 Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 56 ++++++++++++++++-----------------
- 1 file changed, 27 insertions(+), 29 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 200 ++++++++++++++++----------------
+ 1 file changed, 101 insertions(+), 99 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 9ae8b43a77d4..ac65fc37b805 100644
+index 6ae2ef82649e..82152e86c9d6 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1967,6 +1967,7 @@ static inline bool check_flags_mask(uint64_t input, uint64_t supported)
- 
- static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			    struct ib_qp_init_attr *init_attr,
-+			    struct mlx5_ib_create_qp *ucmd,
- 			    struct ib_udata *udata, struct mlx5_ib_qp *qp)
- {
- 	struct mlx5_ib_resources *devr = &dev->devr;
-@@ -1979,7 +1980,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	struct mlx5_ib_cq *recv_cq;
- 	unsigned long flags;
- 	u32 uidx = MLX5_IB_DEFAULT_UIDX;
--	struct mlx5_ib_create_qp ucmd;
- 	struct mlx5_ib_qp_base *base;
- 	int mlx5_st;
+@@ -1097,17 +1097,9 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
  	void *qpc;
-@@ -2056,12 +2056,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	}
+ 	int err;
  
- 	if (udata) {
--		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
--			mlx5_ib_dbg(dev, "copy failed\n");
--			return -EFAULT;
+-	if (init_attr->create_flags & ~(IB_QP_CREATE_INTEGRITY_EN |
+-					IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK |
+-					IB_QP_CREATE_IPOIB_UD_LSO |
+-					IB_QP_CREATE_NETIF_QP |
+-					MLX5_IB_QP_CREATE_SQPN_QP1 |
+-					MLX5_IB_QP_CREATE_WC_TEST))
+-		return -EINVAL;
+-
+ 	if (init_attr->qp_type == MLX5_IB_QPT_REG_UMR)
+ 		qp->bf.bfreg = &dev->fp_bfreg;
+-	else if (init_attr->create_flags & MLX5_IB_QP_CREATE_WC_TEST)
++	else if (qp->flags & MLX5_IB_QP_CREATE_WC_TEST)
+ 		qp->bf.bfreg = &dev->wc_bfreg;
+ 	else
+ 		qp->bf.bfreg = &dev->bfreg;
+@@ -1167,10 +1159,8 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 	MLX5_SET(qpc, qpc, fre, 1);
+ 	MLX5_SET(qpc, qpc, rlky, 1);
+ 
+-	if (init_attr->create_flags & MLX5_IB_QP_CREATE_SQPN_QP1) {
++	if (qp->flags & MLX5_IB_QP_CREATE_SQPN_QP1)
+ 		MLX5_SET(qpc, qpc, deth_sqpn, 1);
+-		qp->flags |= MLX5_IB_QP_CREATE_SQPN_QP1;
+-	}
+ 
+ 	mlx5_fill_page_frag_array(&qp->buf,
+ 				  (__be64 *)MLX5_ADDR_OF(create_qp_in,
+@@ -1657,7 +1647,7 @@ static int create_rss_raw_qp_tir(struct ib_pd *pd, struct mlx5_ib_qp *qp,
+ 	size_t required_cmd_sz;
+ 	u8 lb_flag = 0;
+ 
+-	if (init_attr->create_flags || init_attr->send_cq)
++	if (init_attr->send_cq)
+ 		return -EINVAL;
+ 
+ 	min_resp_len = offsetof(typeof(resp), bfreg_index) + sizeof(resp.bfreg_index);
+@@ -1996,62 +1986,9 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	if (mlx5_st < 0)
+ 		return -EINVAL;
+ 
+-	if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
+-		if (!MLX5_CAP_GEN(mdev, block_lb_mc)) {
+-			mlx5_ib_dbg(dev, "block multicast loopback isn't supported\n");
+-			return -EINVAL;
+-		} else {
+-			qp->flags |= IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK;
+-		}
+-	}
+-
+-	if (init_attr->create_flags &
+-			(IB_QP_CREATE_CROSS_CHANNEL |
+-			 IB_QP_CREATE_MANAGED_SEND |
+-			 IB_QP_CREATE_MANAGED_RECV)) {
+-		if (!MLX5_CAP_GEN(mdev, cd)) {
+-			mlx5_ib_dbg(dev, "cross-channel isn't supported\n");
+-			return -EINVAL;
+-		}
+-		if (init_attr->create_flags & IB_QP_CREATE_CROSS_CHANNEL)
+-			qp->flags |= IB_QP_CREATE_CROSS_CHANNEL;
+-		if (init_attr->create_flags & IB_QP_CREATE_MANAGED_SEND)
+-			qp->flags |= IB_QP_CREATE_MANAGED_SEND;
+-		if (init_attr->create_flags & IB_QP_CREATE_MANAGED_RECV)
+-			qp->flags |= IB_QP_CREATE_MANAGED_RECV;
+-	}
+-
+-	if (init_attr->qp_type == IB_QPT_UD &&
+-	    (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO))
+-		if (!MLX5_CAP_GEN(mdev, ipoib_basic_offloads)) {
+-			mlx5_ib_dbg(dev, "ipoib UD lso qp isn't supported\n");
+-			return -EOPNOTSUPP;
 -		}
 -
--		if (!check_flags_mask(ucmd.flags,
-+		if (!check_flags_mask(ucmd->flags,
+-	if (init_attr->create_flags & IB_QP_CREATE_SCATTER_FCS) {
+-		if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
+-			mlx5_ib_dbg(dev, "Scatter FCS is supported only for Raw Packet QPs");
+-			return -EOPNOTSUPP;
+-		}
+-		if (!MLX5_CAP_GEN(dev->mdev, eth_net_offloads) ||
+-		    !MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
+-			mlx5_ib_dbg(dev, "Scatter FCS isn't supported\n");
+-			return -EOPNOTSUPP;
+-		}
+-		qp->flags |= IB_QP_CREATE_SCATTER_FCS;
+-	}
+-
+ 	if (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR)
+ 		qp->sq_signal_bits = MLX5_WQE_CTRL_CQ_UPDATE;
+ 
+-	if (init_attr->create_flags & IB_QP_CREATE_CVLAN_STRIPPING) {
+-		if (!(MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+-		      MLX5_CAP_ETH(dev->mdev, vlan_cap)) ||
+-		    (init_attr->qp_type != IB_QPT_RAW_PACKET))
+-			return -EOPNOTSUPP;
+-		qp->flags |= IB_QP_CREATE_CVLAN_STRIPPING;
+-	}
+-
+ 	if (udata) {
+ 		if (!check_flags_mask(ucmd->flags,
  				      MLX5_QP_FLAG_ALLOW_SCATTER_CQE |
- 				      MLX5_QP_FLAG_BFREG_INDEX |
- 				      MLX5_QP_FLAG_PACKET_BASED_CREDIT_MODE |
-@@ -2075,14 +2070,15 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 				      MLX5_QP_FLAG_TYPE_DCT))
- 			return -EINVAL;
- 
--		err = get_qp_user_index(ucontext, &ucmd, udata->inlen, &uidx);
-+		err = get_qp_user_index(ucontext, ucmd, udata->inlen, &uidx);
- 		if (err)
- 			return err;
- 
--		qp->wq_sig = !!(ucmd.flags & MLX5_QP_FLAG_SIGNATURE);
-+		qp->wq_sig = !!(ucmd->flags & MLX5_QP_FLAG_SIGNATURE);
- 		if (MLX5_CAP_GEN(dev->mdev, sctr_data_cqe))
--			qp->scat_cqe = !!(ucmd.flags & MLX5_QP_FLAG_SCATTER_CQE);
--		if (ucmd.flags & MLX5_QP_FLAG_TUNNEL_OFFLOADS) {
-+			qp->scat_cqe =
-+				!!(ucmd->flags & MLX5_QP_FLAG_SCATTER_CQE);
-+		if (ucmd->flags & MLX5_QP_FLAG_TUNNEL_OFFLOADS) {
- 			if (init_attr->qp_type != IB_QPT_RAW_PACKET ||
- 			    !tunnel_offload_supported(mdev)) {
- 				mlx5_ib_dbg(dev, "Tunnel offload isn't supported\n");
-@@ -2091,7 +2087,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			qp->flags_en |= MLX5_QP_FLAG_TUNNEL_OFFLOADS;
- 		}
- 
--		if (ucmd.flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC) {
-+		if (ucmd->flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC) {
- 			if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
- 				mlx5_ib_dbg(dev, "Self-LB UC isn't supported\n");
- 				return -EOPNOTSUPP;
-@@ -2099,7 +2095,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			qp->flags_en |= MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC;
- 		}
- 
--		if (ucmd.flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC) {
-+		if (ucmd->flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC) {
- 			if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
- 				mlx5_ib_dbg(dev, "Self-LB UM isn't supported\n");
- 				return -EOPNOTSUPP;
-@@ -2107,7 +2103,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			qp->flags_en |= MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC;
- 		}
- 
--		if (ucmd.flags & MLX5_QP_FLAG_PACKET_BASED_CREDIT_MODE) {
-+		if (ucmd->flags & MLX5_QP_FLAG_PACKET_BASED_CREDIT_MODE) {
- 			if (init_attr->qp_type != IB_QPT_RC ||
- 				!MLX5_CAP_GEN(dev->mdev, qp_packet_based)) {
- 				mlx5_ib_dbg(dev, "packet based credit mode isn't supported\n");
-@@ -2138,8 +2134,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	       &qp->trans_qp.base;
- 
- 	qp->has_rq = qp_has_rq(init_attr);
--	err = set_rq_size(dev, &init_attr->cap, qp->has_rq,
--			  qp, udata ? &ucmd : NULL);
-+	err = set_rq_size(dev, &init_attr->cap, qp->has_rq, qp, ucmd);
- 	if (err) {
- 		mlx5_ib_dbg(dev, "err %d\n", err);
- 		return err;
-@@ -2149,15 +2144,16 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		if (udata) {
- 			__u32 max_wqes =
- 				1 << MLX5_CAP_GEN(mdev, log_max_qp_sz);
--			mlx5_ib_dbg(dev, "requested sq_wqe_count (%d)\n", ucmd.sq_wqe_count);
--			if (ucmd.rq_wqe_shift != qp->rq.wqe_shift ||
--			    ucmd.rq_wqe_count != qp->rq.wqe_cnt) {
-+			mlx5_ib_dbg(dev, "requested sq_wqe_count (%d)\n",
-+				    ucmd->sq_wqe_count);
-+			if (ucmd->rq_wqe_shift != qp->rq.wqe_shift ||
-+			    ucmd->rq_wqe_count != qp->rq.wqe_cnt) {
- 				mlx5_ib_dbg(dev, "invalid rq params\n");
- 				return -EINVAL;
+@@ -2108,23 +2045,13 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
  			}
--			if (ucmd.sq_wqe_count > max_wqes) {
-+			if (ucmd->sq_wqe_count > max_wqes) {
- 				mlx5_ib_dbg(dev, "requested sq_wqe_count (%d) > max allowed (%d)\n",
--					    ucmd.sq_wqe_count, max_wqes);
-+					    ucmd->sq_wqe_count, max_wqes);
- 				return -EINVAL;
- 			}
- 			if (init_attr->create_flags &
-@@ -2225,9 +2221,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 			qp->flags_en |= MLX5_QP_FLAG_PACKET_BASED_CREDIT_MODE;
+ 		}
+-
+-		if (init_attr->create_flags & IB_QP_CREATE_SOURCE_QPN) {
+-			if (init_attr->qp_type != IB_QPT_UD ||
+-			    (MLX5_CAP_GEN(dev->mdev, port_type) !=
+-			     MLX5_CAP_PORT_TYPE_IB) ||
+-			    !mlx5_get_flow_namespace(dev->mdev, MLX5_FLOW_NAMESPACE_BYPASS)) {
+-				mlx5_ib_dbg(dev, "Source QP option isn't supported\n");
+-				return -EOPNOTSUPP;
+-			}
+-
+-			qp->flags |= IB_QP_CREATE_SOURCE_QPN;
+-			qp->underlay_qpn = init_attr->source_qpn;
+-		}
+ 	} else {
+ 		qp->wq_sig = !!wq_signature;
  	}
- 	if (qp->scat_cqe && (qp->qp_sub_type == MLX5_IB_QPT_DCI ||
- 			     init_attr->qp_type == IB_QPT_RC))
--		configure_requester_scat_cqe(dev, init_attr,
--					     udata ? &ucmd : NULL,
--					     qpc);
-+		configure_requester_scat_cqe(dev, init_attr, ucmd, qpc);
  
- 	if (qp->rq.wqe_cnt) {
- 		MLX5_SET(qpc, qpc, log_rq_stride, qp->rq.wqe_shift - 4);
-@@ -2308,7 +2302,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 
- 	if (init_attr->qp_type == IB_QPT_RAW_PACKET ||
- 	    qp->flags & MLX5_IB_QP_UNDERLAY) {
--		qp->raw_packet_qp.sq.ubuffer.buf_addr = ucmd.sq_buf_addr;
-+		qp->raw_packet_qp.sq.ubuffer.buf_addr = ucmd->sq_buf_addr;
- 		raw_packet_qp_copy_info(qp, &qp->raw_packet_qp);
- 		err = create_raw_packet_qp(dev, qp, in, inlen, pd, udata,
- 					   &resp);
-@@ -2698,7 +2692,7 @@ static int create_driver_qp(struct ib_pd *pd, struct mlx5_ib_qp *qp,
- 		if (attr->cap.max_recv_wr || attr->cap.max_recv_sge)
- 			goto out;
- 
--		ret = create_qp_common(mdev, pd, attr, udata, qp);
-+		ret = create_qp_common(mdev, pd, attr, ucmd, udata, qp);
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -2712,7 +2706,10 @@ static size_t process_udata_size(struct ib_qp_init_attr *attr,
- {
- 	size_t ucmd = sizeof(struct mlx5_ib_create_qp);
- 
--	return (udata->inlen < ucmd) ? 0 : ucmd;
-+	if (attr->qp_type == IB_QPT_DRIVER)
-+		return (udata->inlen < ucmd) ? 0 : ucmd;
++	if (qp->flags & IB_QP_CREATE_SOURCE_QPN)
++		qp->underlay_qpn = init_attr->source_qpn;
 +
-+	return ucmd;
+ 	base = (init_attr->qp_type == IB_QPT_RAW_PACKET ||
+ 		qp->flags & IB_QP_CREATE_SOURCE_QPN) ?
+ 	       &qp->raw_packet_qp.rq.base :
+@@ -2153,11 +2080,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 					    ucmd->sq_wqe_count, max_wqes);
+ 				return -EINVAL;
+ 			}
+-			if (init_attr->create_flags &
+-			    MLX5_IB_QP_CREATE_SQPN_QP1) {
+-				mlx5_ib_dbg(dev, "user-space is not allowed to create UD QPs spoofing as QP1\n");
+-				return -EINVAL;
+-			}
+ 			err = create_user_qp(dev, pd, qp, udata, init_attr, &in,
+ 					     &resp, &inlen, base);
+ 			if (err)
+@@ -2273,23 +2195,15 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		MLX5_SET(qpc, qpc, user_index, uidx);
+ 
+ 	/* we use IB_QP_CREATE_IPOIB_UD_LSO to indicates ipoib qp */
+-	if (init_attr->qp_type == IB_QPT_UD &&
+-	    (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO)) {
++	if (qp->flags & IB_QP_CREATE_IPOIB_UD_LSO)
+ 		MLX5_SET(qpc, qpc, ulp_stateless_offload_mode, 1);
+-		qp->flags |= IB_QP_CREATE_IPOIB_UD_LSO;
+-	}
+ 
+-	if (init_attr->create_flags & IB_QP_CREATE_PCI_WRITE_END_PADDING) {
+-		if (!MLX5_CAP_GEN(dev->mdev, end_pad)) {
+-			mlx5_ib_dbg(dev, "scatter end padding is not supported\n");
+-			err = -EOPNOTSUPP;
+-			goto err;
+-		} else if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
+-			MLX5_SET(qpc, qpc, end_padding_mode,
+-				 MLX5_WQ_END_PAD_MODE_ALIGN);
+-		} else {
+-			qp->flags |= IB_QP_CREATE_PCI_WRITE_END_PADDING;
+-		}
++	if (qp->flags & IB_QP_CREATE_PCI_WRITE_END_PADDING &&
++	    init_attr->qp_type != IB_QPT_RAW_PACKET) {
++		MLX5_SET(qpc, qpc, end_padding_mode,
++			 MLX5_WQ_END_PAD_MODE_ALIGN);
++		/* Special case to clean flag */
++		qp->flags &= ~IB_QP_CREATE_PCI_WRITE_END_PADDING;
+ 	}
+ 
+ 	if (inlen < 0) {
+@@ -2670,6 +2584,91 @@ static int process_vendor_flags(struct mlx5_ib_qp *qp,
+ 	return 0;
  }
  
- struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
-@@ -2742,7 +2739,7 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 	if (init_attr->qp_type == IB_QPT_GSI)
- 		return mlx5_ib_gsi_create_qp(pd, init_attr);
- 
--	if (udata && init_attr->qp_type == IB_QPT_DRIVER) {
-+	if (udata && !init_attr->rwq_ind_tbl) {
- 		size_t inlen =
- 			process_udata_size(init_attr, udata);
- 
-@@ -2772,7 +2769,8 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 		err = create_driver_qp(pd, qp, init_attr, &ucmd, udata);
- 		break;
- 	default:
--		err = create_qp_common(dev, pd, init_attr, udata, qp);
-+		err = create_qp_common(dev, pd, init_attr,
-+				       (udata) ? &ucmd : NULL, udata, qp);
++static void process_create_flag(struct mlx5_ib_dev *dev, int *flags, int flag,
++				bool cond, struct mlx5_ib_qp *qp)
++{
++	if (!(*flags & flag))
++		return;
++
++	if (cond) {
++		qp->flags |= flag;
++		*flags &= ~flag;
++		return;
++	}
++
++	if (flag == MLX5_IB_QP_CREATE_WC_TEST) {
++		/*
++		 * Special case, if condition didn't meet, it won't be error,
++		 * just different in-kernel flow.
++		 */
++		*flags &= ~MLX5_IB_QP_CREATE_WC_TEST;
++		return;
++	}
++	mlx5_ib_dbg(dev, "Verbs create QP flag 0x%X is not supported\n", flag);
++}
++
++static int process_create_flags(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
++				struct ib_qp_init_attr *attr)
++{
++	enum ib_qp_type qp_type = attr->qp_type;
++	struct mlx5_core_dev *mdev = dev->mdev;
++	int create_flags = attr->create_flags;
++	bool cond;
++
++	if (qp->qp_sub_type == MLX5_IB_QPT_DCT)
++		return (create_flags) ? -EINVAL : 0;
++
++	if (qp_type == IB_QPT_RAW_PACKET)
++		return (attr->rwq_ind_tbl && create_flags) ? -EINVAL : 0;
++
++	process_create_flag(dev, &create_flags,
++			    IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK,
++			    MLX5_CAP_GEN(mdev, block_lb_mc), qp);
++	process_create_flag(dev, &create_flags, IB_QP_CREATE_CROSS_CHANNEL,
++			    MLX5_CAP_GEN(mdev, cd), qp);
++	process_create_flag(dev, &create_flags, IB_QP_CREATE_MANAGED_SEND,
++			    MLX5_CAP_GEN(mdev, cd), qp);
++	process_create_flag(dev, &create_flags, IB_QP_CREATE_MANAGED_RECV,
++			    MLX5_CAP_GEN(mdev, cd), qp);
++
++	if (qp_type == IB_QPT_UD) {
++		process_create_flag(dev, &create_flags,
++				    IB_QP_CREATE_IPOIB_UD_LSO,
++				    MLX5_CAP_GEN(mdev, ipoib_basic_offloads),
++				    qp);
++		cond = MLX5_CAP_GEN(mdev, port_type) == MLX5_CAP_PORT_TYPE_IB;
++		process_create_flag(dev, &create_flags, IB_QP_CREATE_SOURCE_QPN,
++				    cond, qp);
++	}
++
++	if (qp_type == IB_QPT_RAW_PACKET) {
++		cond = MLX5_CAP_GEN(mdev, eth_net_offloads) &&
++		       MLX5_CAP_ETH(mdev, scatter_fcs);
++		process_create_flag(dev, &create_flags,
++				    IB_QP_CREATE_SCATTER_FCS, cond, qp);
++
++		cond = MLX5_CAP_GEN(mdev, eth_net_offloads) &&
++		       MLX5_CAP_ETH(mdev, vlan_cap);
++		process_create_flag(dev, &create_flags,
++				    IB_QP_CREATE_CVLAN_STRIPPING, cond, qp);
++	}
++
++	process_create_flag(dev, &create_flags,
++			    IB_QP_CREATE_PCI_WRITE_END_PADDING,
++			    MLX5_CAP_GEN(mdev, end_pad), qp);
++
++	process_create_flag(dev, &create_flags, MLX5_IB_QP_CREATE_WC_TEST,
++			    qp_type != MLX5_IB_QPT_REG_UMR, qp);
++	process_create_flag(dev, &create_flags, MLX5_IB_QP_CREATE_SQPN_QP1,
++			    true, qp);
++
++	if (create_flags)
++		mlx5_ib_dbg(dev, "Create QP has unsupported flags 0x%X\n",
++			    create_flags);
++
++	return (create_flags) ? -EINVAL : 0;
++}
++
+ static int create_driver_qp(struct ib_pd *pd, struct mlx5_ib_qp *qp,
+ 			    struct ib_qp_init_attr *attr,
+ 			    struct mlx5_ib_create_qp *ucmd,
+@@ -2769,6 +2768,9 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
+ 		if (err)
+ 			goto free_qp;
  	}
- 	if (err) {
- 		mlx5_ib_dbg(dev, "create_qp_common failed\n");
++	err = process_create_flags(dev, qp, init_attr);
++	if (err)
++		goto free_qp;
+ 
+ 	if (init_attr->qp_type == IB_QPT_XRC_TGT)
+ 		xrcdn = to_mxrcd(init_attr->xrcd)->xrcdn;
 -- 
 2.25.2
 
