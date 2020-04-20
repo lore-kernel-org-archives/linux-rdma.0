@@ -2,216 +2,165 @@ Return-Path: <SRS0=8+f9=6E=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B61CC54FD0
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 07:54:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A011C54FCC
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 08:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16509214AF
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 07:54:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1473821473
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 08:43:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726164AbgDTHyy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Apr 2020 03:54:54 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:56968 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726023AbgDTHyh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Apr 2020 03:54:37 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 20 Apr 2020 10:54:31 +0300
-Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03K7sUfG026672;
-        Mon, 20 Apr 2020 10:54:31 +0300
-From:   Maor Gottlieb <maorg@mellanox.com>
-To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
-        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
-        kuba@kernel.org
-Cc:     leonro@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V2 mlx5-next 07/10] net/mlx5: Change lag mutex lock to spin lock
-Date:   Mon, 20 Apr 2020 10:54:23 +0300
-Message-Id: <20200420075426.31462-8-maorg@mellanox.com>
-X-Mailer: git-send-email 2.17.2
-In-Reply-To: <20200420075426.31462-1-maorg@mellanox.com>
-References: <20200420075426.31462-1-maorg@mellanox.com>
+        id S1726055AbgDTInY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Apr 2020 04:43:24 -0400
+Received: from mga06.intel.com ([134.134.136.31]:15992 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725988AbgDTInX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Apr 2020 04:43:23 -0400
+IronPort-SDR: h0lYUhWJZdooRot5/D6i4tHIo4pA1sefPqFOqsLqlRmss7ekuU4SBK/deZaIujNKTqkUgq+NPo
+ aoWctAx2Ztpw==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Apr 2020 01:43:21 -0700
+IronPort-SDR: lSsNa/ish74j6oe4by+cDFOKlC8LCWgp3ExdSfVUMqp21bW54LB3nnX+4ZKKJBzmLXQYApaB8d
+ IXoKfosg8Emg==
+X-IronPort-AV: E=Sophos;i="5.72,406,1580803200"; 
+   d="scan'208";a="429047884"
+Received: from iastakh-mobl.ccr.corp.intel.com (HELO localhost) ([10.252.63.229])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Apr 2020 01:43:16 -0700
+From:   Jani Nikula <jani.nikula@linux.intel.com>
+To:     Masahiro Yamada <masahiroy@kernel.org>,
+        Nicolas Pitre <nico@fluxnic.net>
+Cc:     Saeed Mahameed <saeedm@mellanox.com>,
+        Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        jonas@kwiboo.se, David Airlie <airlied@linux.ie>,
+        jernej.skrabec@siol.net,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Networking <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org
+Subject: Re: [RFC PATCH 1/2] Kconfig: Introduce "uses" keyword
+In-Reply-To: <CAK7LNATmPD1R+Ranis2u3yohx8b0+dGKAvFpjg8Eo9yEHRT6zQ@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20200417011146.83973-1-saeedm@mellanox.com> <CAK7LNAQZd_LUyA2V_pCvMTr_201nSX1Nm0TDw5kOeNV64rOfpA@mail.gmail.com> <nycvar.YSQ.7.76.2004181509030.2671@knanqh.ubzr> <CAK7LNATmPD1R+Ranis2u3yohx8b0+dGKAvFpjg8Eo9yEHRT6zQ@mail.gmail.com>
+Date:   Mon, 20 Apr 2020 11:43:13 +0300
+Message-ID: <87v9lu1ra6.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The lag lock could be a mutex, the critical section is short
-and there is no need that the thread will sleep.
-Change the lock that protects the LAG structure from mutex
-to spin lock. It is required for next patch that need to
-access this structure from context that we can't sleep.
-In addition there is no need to hold this lock when query the
-congestion counters.
+On Sun, 19 Apr 2020, Masahiro Yamada <masahiroy@kernel.org> wrote:
+> On Sun, Apr 19, 2020 at 4:11 AM Nicolas Pitre <nico@fluxnic.net> wrote:
+>>
+>> On Sun, 19 Apr 2020, Masahiro Yamada wrote:
+>>
+>> > (FOO || !FOO) is difficult to understand, but
+>> > the behavior of "uses FOO" is as difficult to grasp.
+>>
+>> Can't this be expressed as the following instead:
+>>
+>>         depends on FOO if FOO
+>>
+>> That would be a little clearer.
+>>
+>>
+>> Nicolas
+>
+>
+>
+> 'depends on' does not take the 'if <expr>'
+>
+> 'depends on A if B' is the syntax sugar of
+> 'depends on (A || !B), right ?
+>
+> I do not know how clearer it would make things.
+>
+> depends on (m || FOO != m)
+> is another equivalent, but we are always
+> talking about a matter of expression.
+>
+>
+> How important is it to stick to
+> depends on (FOO || !FOO)
+> or its equivalents?
+>
+>
+> If a driver wants to use the feature FOO
+> in most usecases, 'depends on FOO' is sensible.
+>
+> If FOO is just optional, you can get rid of the dependency,
+> and IS_REACHABLE() will do logically correct things.
 
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/lag.c | 42 +++++++++----------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+If by logically correct you mean the kernel builds, you're
+right. However the proliferation of IS_REACHABLE() is making the kernel
+config *harder* to understand. User enables FOO=m and expects BAR to use
+it, however if BAR=y it silently gets ignored. I have and I will oppose
+adding IS_REACHABLE() usage to i915 because it's just silently accepting
+configurations that should be flagged and forbidden at kconfig stage.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-index 93052b07c76c..496a3408d771 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-@@ -42,7 +42,7 @@
-  * Beware of lock dependencies (preferably, no locks should be acquired
-  * under it).
-  */
--static DEFINE_MUTEX(lag_mutex);
-+static DEFINE_SPINLOCK(lag_lock);
- 
- static int mlx5_cmd_create_lag(struct mlx5_core_dev *dev, u8 remap_port1,
- 			       u8 remap_port2)
-@@ -297,9 +297,9 @@ static void mlx5_do_bond(struct mlx5_lag *ldev)
- 	if (!dev0 || !dev1)
- 		return;
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	tracker = ldev->tracker;
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- 
- 	do_bond = tracker.is_bonded && mlx5_lag_check_prereq(ldev);
- 
-@@ -481,9 +481,9 @@ static int mlx5_lag_netdev_event(struct notifier_block *this,
- 		break;
- 	}
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	ldev->tracker = tracker;
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- 
- 	if (changed)
- 		mlx5_queue_bond_work(ldev, 0);
-@@ -525,7 +525,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
- 	if (fn >= MLX5_MAX_PORTS)
- 		return;
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	ldev->pf[fn].dev    = dev;
- 	ldev->pf[fn].netdev = netdev;
- 	ldev->tracker.netdev_state[fn].link_up = 0;
-@@ -533,7 +533,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
- 
- 	dev->priv.lag = ldev;
- 
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- }
- 
- static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
-@@ -548,11 +548,11 @@ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
- 	if (i == MLX5_MAX_PORTS)
- 		return;
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	memset(&ldev->pf[i], 0, sizeof(*ldev->pf));
- 
- 	dev->priv.lag = NULL;
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- }
- 
- /* Must be called with intf_mutex held */
-@@ -630,10 +630,10 @@ bool mlx5_lag_is_roce(struct mlx5_core_dev *dev)
- 	struct mlx5_lag *ldev;
- 	bool res;
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	ldev = mlx5_lag_dev_get(dev);
- 	res  = ldev && __mlx5_lag_is_roce(ldev);
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- 
- 	return res;
- }
-@@ -644,10 +644,10 @@ bool mlx5_lag_is_active(struct mlx5_core_dev *dev)
- 	struct mlx5_lag *ldev;
- 	bool res;
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	ldev = mlx5_lag_dev_get(dev);
- 	res  = ldev && __mlx5_lag_is_active(ldev);
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- 
- 	return res;
- }
-@@ -658,10 +658,10 @@ bool mlx5_lag_is_sriov(struct mlx5_core_dev *dev)
- 	struct mlx5_lag *ldev;
- 	bool res;
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	ldev = mlx5_lag_dev_get(dev);
- 	res  = ldev && __mlx5_lag_is_sriov(ldev);
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- 
- 	return res;
- }
-@@ -687,7 +687,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
- 	struct net_device *ndev = NULL;
- 	struct mlx5_lag *ldev;
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	ldev = mlx5_lag_dev_get(dev);
- 
- 	if (!(ldev && __mlx5_lag_is_roce(ldev)))
-@@ -704,7 +704,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
- 		dev_hold(ndev);
- 
- unlock:
--	mutex_unlock(&lag_mutex);
-+	spin_unlock(&lag_lock);
- 
- 	return ndev;
- }
-@@ -746,7 +746,7 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
- 
- 	memset(values, 0, sizeof(*values) * num_counters);
- 
--	mutex_lock(&lag_mutex);
-+	spin_lock(&lag_lock);
- 	ldev = mlx5_lag_dev_get(dev);
- 	if (ldev && __mlx5_lag_is_roce(ldev)) {
- 		num_ports = MLX5_MAX_PORTS;
-@@ -756,18 +756,18 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
- 		num_ports = 1;
- 		mdev[MLX5_LAG_P1] = dev;
- 	}
-+	spin_unlock(&lag_lock);
- 
- 	for (i = 0; i < num_ports; ++i) {
- 		ret = mlx5_cmd_query_cong_counter(mdev[i], false, out, outlen);
- 		if (ret)
--			goto unlock;
-+			goto free;
- 
- 		for (j = 0; j < num_counters; ++j)
- 			values[j] += be64_to_cpup((__be64 *)(out + offsets[j]));
- 	}
- 
--unlock:
--	mutex_unlock(&lag_mutex);
-+free:
- 	kvfree(out);
- 	return ret;
- }
+> I do not think IS_REACHABLE() is too bad,
+> but if it is confusing, we can add one more
+> option to make it explicit.
+>
+>
+>
+> config DRIVER_X
+>        tristate "driver x"
+>
+> config DRIVER_X_USES_FOO
+>        bool "use FOO from driver X"
+>        depends on DRIVER_X
+>        depends on DRIVER_X <= FOO
+>        help
+>          DRIVER_X works without FOO, but
+>          Using FOO will provide better usability.
+>          Say Y if you want to make driver X use FOO.
+>
+>
+>
+> Of course,
+>
+>       if (IS_ENABLED(CONFIG_DRIVER_X_USES_FOO))
+>                foo_init();
+>
+> works like
+>
+>       if (IS_REACHABLE(CONFIG_FOO))
+>                 foo_init();
+>
+>
+> At lease, it will eliminate a question like
+> "I loaded the module FOO, I swear.
+> But my built-in driver X still would not use FOO, why?"
+
+Please let's not make that a more widespread problem than it already
+is. I have yet to hear *one* good rationale for allowing that in the
+first place. And if that pops up, you can make it work by using
+IS_REACHABLE() *without* the depends, simply by checking if the module
+is there.
+
+Most use cases increasingly solved by IS_REACHABLE() should use the
+"depends on FOO || FOO=n" construct, but the problem is that's not
+widely understood. I'd like to have another keyword for people to
+copy-paste into their Kconfigs.
+
+In another mail I suggested
+
+	optionally depends on FOO
+
+might be a better alternative than "uses".
+
+
+BR,
+Jani.
+
 -- 
-2.17.2
-
+Jani Nikula, Intel Open Source Graphics Center
