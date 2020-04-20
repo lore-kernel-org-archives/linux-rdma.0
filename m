@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5F10C3A5A0
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 14:07:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1EFCC3A5A0
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 14:07:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9988221F4
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 14:07:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7687B221F4
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Apr 2020 14:07:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587391652;
-	bh=lsTsK4tMTQTTg2oR94IVZpIA3Jlj2j2FlMak3udifXY=;
+	s=default; t=1587391656;
+	bh=cQSuLRegs1XFnkD4DvQ2RS/O5HE0wf8Uc3Q/Co4irOA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=E2oHJxSb6kJ9hRzeL2NDdac17cHspcAEhsP4i8Ll6YeyWFV//se6FyVXFa8tSPBlA
-	 Jyo3UF955wsFxUGMyjH2WLBtZCoyQM1we1ee54o+1a7OR7PZtB2VDWxHNl9zvaoIuk
-	 Jwd7NQydrOfrhkKzDGxLhYcbiOFZUTKngDk2vVyw=
+	b=YT+qPpMc7muZyjfsEJbiCdhXaBtEE6HXn03feJM9kn0Yp/2d75puZ2ivMwL4w+0cw
+	 jJMiwE7pm5eXC0BolNMv5FqTXCyX1DgpAino5gGKzU/v3qoYRjtbEbBM6AEFYwo4xs
+	 FeBFUOvg9tnZLL6WTEoV47w+dRnIERZZD6aEqPlA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728308AbgDTOHc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Apr 2020 10:07:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33032 "EHLO mail.kernel.org"
+        id S1728332AbgDTOHg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Apr 2020 10:07:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33064 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728298AbgDTOHc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Apr 2020 10:07:32 -0400
+        id S1728298AbgDTOHf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 20 Apr 2020 10:07:35 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C23ED20722;
-        Mon, 20 Apr 2020 14:07:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 79C9C214AF;
+        Mon, 20 Apr 2020 14:07:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587391651;
-        bh=lsTsK4tMTQTTg2oR94IVZpIA3Jlj2j2FlMak3udifXY=;
+        s=default; t=1587391655;
+        bh=cQSuLRegs1XFnkD4DvQ2RS/O5HE0wf8Uc3Q/Co4irOA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=08y0Obow73hyezLQLio+EKYZVQ2rqnOZcXbv+a1Pz73raz1VqmPP3vICIkgMtSsgP
-         Ts2Kzb28JTQR3J1wmxB36RdaHY5zRNc1lqA4h9N6Lg+zhPUkzFCRJTyB6Iuh2qSt+X
-         haeDtJgrS5QILlz/r4U5mRps6B1YgEMqqTdUM/iE=
+        b=dfpzuYNxRrBUXxrRyAUjEZgQopvCcfMmxqzTUThS6Qhqsoc/3pF/OU6D345OI1FAW
+         PHm/Cz8wNhaTwCXHqNkFi0M367SoEqflX7xeLplghjFEonXGzpTXNznEp5l4D/s2rx
+         Xp+3o2XUcYvcZsuLFILZj/96elpDcrbo6OfhI3cs=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-core 06/12] librdmacm: Connect rdma_connect to the ECE
-Date:   Mon, 20 Apr 2020 17:06:42 +0300
-Message-Id: <20200420140648.275554-7-leon@kernel.org>
+Cc:     Ido Kalir <idok@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-core 12/12] tests: Add test for rdmacm ECE mechanism
+Date:   Mon, 20 Apr 2020 17:06:48 +0300
+Message-Id: <20200420140648.275554-13-leon@kernel.org>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200420140648.275554-1-leon@kernel.org>
 References: <20200420140648.275554-1-leon@kernel.org>
@@ -55,68 +57,63 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Ido Kalir <idok@mellanox.com>
 
-The ECE options are handled to the kernel at the time
-of connection request, e.g. rdma_connect().
+Add test case that use the ECE mechanism in RDMA CM connection
+establishment.
 
+Signed-off-by: Ido Kalir <idok@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- librdmacm/cma.c          | 9 +++++++++
- librdmacm/rdma_cma_abi.h | 6 ++++++
- 2 files changed, 15 insertions(+)
+ tests/rdmacm_utils.py | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/librdmacm/cma.c b/librdmacm/cma.c
-index a12ed1e0..91735225 100644
---- a/librdmacm/cma.c
-+++ b/librdmacm/cma.c
-@@ -1547,6 +1547,13 @@ static void ucma_copy_conn_param_to_kern(struct cma_id_private *id_priv,
- 	}
- }
+diff --git a/tests/rdmacm_utils.py b/tests/rdmacm_utils.py
+index c71bab18..d8d22f65 100755
+--- a/tests/rdmacm_utils.py
++++ b/tests/rdmacm_utils.py
+@@ -4,10 +4,12 @@
+ Provide some useful helper function for pyverbs rdmacm' tests.
+ """
+ from tests.utils import validate, poll_cq, get_send_element, get_recv_wr
+-from pyverbs.pyverbs_error import PyverbsError
++from pyverbs.pyverbs_error import PyverbsError, PyverbsRDMAError
+ from tests.base import CMResources
+ from pyverbs.cmid import CMEvent
+ import pyverbs.cm_enums as ce
++import unittest
++import errno
+ import os
 
-+static void ucma_copy_ece_param_to_kern_req(struct cma_id_private *id_priv,
-+					    struct ucma_abi_ece *dst)
-+{
-+	dst->vendor_id = id_priv->local_ece.vendor_id;
-+	dst->attr_mod = id_priv->local_ece.options;
-+}
-+
- int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- {
- 	uint32_t qp_num = conn_param ? conn_param->qp_num : 0;
-@@ -1579,6 +1586,8 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 	ucma_copy_conn_param_to_kern(id_priv, &cmd.conn_param, conn_param,
- 				     qp_num, srq);
-
-+	ucma_copy_ece_param_to_kern_req(id_priv, &cmd.ece);
-+
- 	ret = write(id->channel->fd, &cmd, sizeof cmd);
- 	if (ret != sizeof cmd)
- 		return (ret >= 0) ? ERR(ENODATA) : -1;
-diff --git a/librdmacm/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
-index ab4adb00..6451862e 100644
---- a/librdmacm/rdma_cma_abi.h
-+++ b/librdmacm/rdma_cma_abi.h
-@@ -223,6 +223,11 @@ struct ucma_abi_ud_param {
- 	__u8 reserved2[4];  /* Round to 8-byte boundary to support 32/64 */
- };
-
-+struct ucma_abi_ece {
-+	__u32 vendor_id;
-+	__u32 attr_mod;
-+};
-+
- struct ucma_abi_connect {
- 	__u32 cmd;
- 	__u16 in;
-@@ -230,6 +235,7 @@ struct ucma_abi_connect {
- 	struct ucma_abi_conn_param conn_param;
- 	__u32 id;
- 	__u32 reserved;
-+	struct ucma_abi_ece ece;
- };
-
- struct ucma_abi_listen {
+ events_dict = {ce.RDMA_CM_EVENT_ADDR_ERROR: 'Resolve Address Error',
+@@ -117,6 +119,13 @@ def event_handler(agr_obj):
+         agr_obj.create_qp()
+         param = agr_obj.create_conn_param()
+         if agr_obj.with_ext_qp:
++            try:
++                ece = agr_obj.qp.query_ece()
++                agr_obj.cmid.set_local_ece(ece)
++            except PyverbsRDMAError as ex:
++                if ex.error_code == errno.EOPNOTSUPP:
++                    pass
++                raise ex
+             param.qpn = agr_obj.qp.qp_num
+         agr_obj.cmid.connect(param)
+     elif cm_event.event_type == ce.RDMA_CM_EVENT_CONNECT_REQUEST:
+@@ -124,6 +133,13 @@ def event_handler(agr_obj):
+         param = agr_obj.create_conn_param()
+         agr_obj.create_qp()
+         if agr_obj.with_ext_qp:
++            try:
++                ece = agr_obj.child_id.get_remote_ece()
++                agr_obj.qp.set_ece(ece)
++            except PyverbsRDMAError as ex:
++                if ex.error_code == errno.EOPNOTSUPP:
++                    pass
++                raise ex
+             agr_obj.modify_ext_qp_to_rts()
+             param.qpn = agr_obj.qp.qp_num
+         agr_obj.child_id.accept(param)
 --
 2.25.2
 
