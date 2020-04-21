@@ -2,25 +2,25 @@ Return-Path: <SRS0=jfUh=6F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C5E8C54FC9
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 15:24:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31028C54FCC
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 15:30:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 805622068F
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 15:24:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F087206A2
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 15:30:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726124AbgDUPYK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Apr 2020 11:24:10 -0400
-Received: from verein.lst.de ([213.95.11.211]:47331 "EHLO verein.lst.de"
+        id S1726200AbgDUPas (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Apr 2020 11:30:48 -0400
+Received: from verein.lst.de ([213.95.11.211]:47368 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726018AbgDUPYJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 21 Apr 2020 11:24:09 -0400
+        id S1725987AbgDUPas (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 21 Apr 2020 11:30:48 -0400
 Received: by verein.lst.de (Postfix, from userid 2407)
-        id CF69868C4E; Tue, 21 Apr 2020 17:24:07 +0200 (CEST)
-Date:   Tue, 21 Apr 2020 17:24:07 +0200
+        id 63CD368C4E; Tue, 21 Apr 2020 17:30:45 +0200 (CEST)
+Date:   Tue, 21 Apr 2020 17:30:45 +0200
 From:   Christoph Hellwig <hch@lst.de>
 To:     Max Gurtovoy <maxg@mellanox.com>
 Cc:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
@@ -28,27 +28,74 @@ Cc:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
         linux-rdma@vger.kernel.org, idanb@mellanox.com, axboe@kernel.dk,
         vladimirk@mellanox.com, oren@mellanox.com, shlomin@mellanox.com,
         israelr@mellanox.com, jgg@mellanox.com
-Subject: Re: [PATCH 13/17] nvme: Add Metadata Capabilities enumerations
-Message-ID: <20200421152407.GD10837@lst.de>
-References: <20200327171545.98970-1-maxg@mellanox.com> <20200327171545.98970-15-maxg@mellanox.com>
+Subject: Re: [PATCH 14/17] nvmet: Add metadata/T10-PI support
+Message-ID: <20200421153045.GE10837@lst.de>
+References: <20200327171545.98970-1-maxg@mellanox.com> <20200327171545.98970-16-maxg@mellanox.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200327171545.98970-15-maxg@mellanox.com>
+In-Reply-To: <20200327171545.98970-16-maxg@mellanox.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Mar 27, 2020 at 08:15:41PM +0300, Max Gurtovoy wrote:
-> From: Israel Rukshin <israelr@mellanox.com>
-> 
-> The enumerations will be used to expose the namespace metadata format by
-> the target.
-> 
-> Signed-off-by: Israel Rukshin <israelr@mellanox.com>
-> Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+> +	/*
+> +	 * Max command capsule size is sqe + single page of in-capsule data.
+> +	 * Disable inline data for Metadata capable controllers.
+> +	 */
+>  	id->ioccsz = cpu_to_le32((sizeof(struct nvme_command) +
+> -				  req->port->inline_data_size) / 16);
+> +				  req->port->inline_data_size *
+> +				  !ctrl->pi_support) / 16);
 
-I'd be tempted to use a separate enum and add a comment to which field
-this relates.
+Can we de-obsfucated this a little?
+
+	cmd_capsule_size = sizeof(struct nvme_command);
+	if (!ctrl->pi_support)
+		cmd_capsule_size += req->port->inline_data_size;
+	id->ioccsz = cpu_to_le32(cmd_capsule_size / 16);
+
+> +	if (ctrl->subsys->pi_support && ctrl->port->pi_enable) {
+> +		if (ctrl->port->pi_capable) {
+> +			ctrl->pi_support = true;
+> +			pr_info("controller %d T10-PI enabled\n", ctrl->cntlid);
+> +		} else {
+> +			ctrl->pi_support = false;
+> +			pr_warn("T10-PI is not supported on controller %d\n",
+> +				ctrl->cntlid);
+> +		}
+
+I think the printks are a little verbose.  Also why can we set
+ctrl->port->pi_enable if ctrl->port->pi_capable is false?  Shoudn't
+we reject that earlier?  In that case this could simply become:
+
+	ctrl->pi_support = ctrl->subsys->pi_support && ctrl->port->pi_enable;
+
+> +#ifdef CONFIG_BLK_DEV_INTEGRITY
+> +static inline u32 nvmet_rw_md_len(struct nvmet_req *req)
+> +{
+> +	return ((u32)le16_to_cpu(req->cmd->rw.length) + 1) * req->ns->ms;
+> +}
+> +
+> +static inline bool nvmet_ns_has_pi(struct nvmet_ns *ns)
+> +{
+> +	return ns->md_type && ns->ms == sizeof(struct t10_pi_tuple);
+> +}
+> +#else
+> +static inline u32 nvmet_rw_md_len(struct nvmet_req *req)
+> +{
+> +	return 0;
+
+Do we really need a stub for nvmet_rw_md_len?  Also for nvmet_ns_has_pi
+we could probably reword it as:
+
+static inline bool nvmet_ns_has_pi(struct nvmet_ns *ns)
+{
+	if (!IS_ENABLED(CONFIG_BLK_DEV_INTEGRITY))
+		return false;
+	return ns->pi_type && ns->metadata_size == sizeof(struct t10_pi_tuple);
+}
+
+and avoid the need for a stub as well.
