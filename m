@@ -2,82 +2,145 @@ Return-Path: <SRS0=jfUh=6F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E769C55181
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 10:29:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A3F8C54FD0
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 11:59:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EEAD20679
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 10:29:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D97A206D4
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 11:59:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728542AbgDUK3m (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Apr 2020 06:29:42 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:60578 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727120AbgDUK24 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Apr 2020 06:28:56 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 21 Apr 2020 13:28:53 +0300
-Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03LASrmt019072;
-        Tue, 21 Apr 2020 13:28:53 +0300
-From:   Maor Gottlieb <maorg@mellanox.com>
-To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
-        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
-        kuba@kernel.org, jiri@mellanox.com, dsahern@kernel.org
-Cc:     leonro@mellanox.com, saeedm@mellanox.com,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V3 mlx5-next 07/15] bonding: Add function to get the xmit slave in active-backup mode
-Date:   Tue, 21 Apr 2020 13:28:36 +0300
-Message-Id: <20200421102844.23640-8-maorg@mellanox.com>
-X-Mailer: git-send-email 2.17.2
-In-Reply-To: <20200421102844.23640-1-maorg@mellanox.com>
-References: <20200421102844.23640-1-maorg@mellanox.com>
+        id S1726741AbgDUL7R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Apr 2020 07:59:17 -0400
+Received: from verein.lst.de ([213.95.11.211]:46254 "EHLO verein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726691AbgDUL7Q (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 21 Apr 2020 07:59:16 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id F1D9968C7B; Tue, 21 Apr 2020 13:59:12 +0200 (CEST)
+Date:   Tue, 21 Apr 2020 13:59:12 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Max Gurtovoy <maxg@mellanox.com>
+Cc:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
+        sagi@grimberg.me, martin.petersen@oracle.com, jsmart2021@gmail.com,
+        linux-rdma@vger.kernel.org, idanb@mellanox.com, axboe@kernel.dk,
+        vladimirk@mellanox.com, oren@mellanox.com, shlomin@mellanox.com,
+        israelr@mellanox.com, jgg@mellanox.com
+Subject: Re: [PATCH 01/17] nvme: introduce namespace features flag
+Message-ID: <20200421115912.GB26432@lst.de>
+References: <20200327171545.98970-1-maxg@mellanox.com> <20200327171545.98970-3-maxg@mellanox.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200327171545.98970-3-maxg@mellanox.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add helper function to get the xmit slave in active-backup mode.
-It's only one line function that return the curr_active_slave,
-but it will used both in the xmit flow and by the new .ndo to get
-the xmit slave.
+On Fri, Mar 27, 2020 at 08:15:29PM +0300, Max Gurtovoy wrote:
+> From: Israel Rukshin <israelr@mellanox.com>
+> 
+> Centralize all the metadata checks to one place and make the code more
+> readable. Introduce a new enum nvme_ns_features for that matter.
+> The features flag description:
+>  - NVME_NS_EXT_LBAS - NVMe namespace supports extended LBA format.
+>  - NVME_NS_MD_HOST_SUPPORTED - NVMe namespace supports getting metadata
+>    from host's block layer.
+>  - NVME_NS_MD_CTRL_SUPPORTED - NVMe namespace supports metadata actions
+>    by the controller (generate/strip).
 
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
----
- drivers/net/bonding/bond_main.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+So whole I like the ->features flag, the defintion of these two
+metadata related features really confuses me.
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 09c8485e965d..1b0ae750d732 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -4042,6 +4042,12 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
- 	return NETDEV_TX_OK;
- }
- 
-+static struct slave *bond_xmit_activebackup_slave_get(struct bonding *bond,
-+						      struct sk_buff *skb)
-+{
-+	return rcu_dereference(bond->curr_active_slave);
-+}
-+
- /* In active-backup mode, we know that bond->curr_active_slave is always valid if
-  * the bond has a usable interface.
-  */
-@@ -4051,7 +4057,7 @@ static netdev_tx_t bond_xmit_activebackup(struct sk_buff *skb,
- 	struct bonding *bond = netdev_priv(bond_dev);
- 	struct slave *slave;
- 
--	slave = rcu_dereference(bond->curr_active_slave);
-+	slave = bond_xmit_activebackup_slave_get(bond, skb);
- 	if (slave)
- 		bond_dev_queue_xmit(bond, skb, slave->dev);
- 	else
--- 
-2.17.2
+Here are my vague ideas to improve the situation:
 
+> -static inline bool nvme_ns_has_pi(struct nvme_ns *ns)
+> -{
+> -	return ns->pi_type && ns->ms == sizeof(struct t10_pi_tuple);
+> -}
+
+This function I think is generally useful, I'd rather keep iţ, document
+it with a comment and remove the new NVME_NS_MD_CTRL_SUPPORTED
+flag.
+
+> -	if (ns->ms && !ns->ext &&
+> -	    (ns->ctrl->ops->flags & NVME_F_METADATA_SUPPORTED))
+> +	if (ns->features & NVME_NS_MD_HOST_SUPPORTED)
+>  		nvme_init_integrity(disk, ns->ms, ns->pi_type);
+> -	if ((ns->ms && !nvme_ns_has_pi(ns) && !blk_get_integrity(disk)) ||
+> -	    ns->lba_shift > PAGE_SHIFT)
+> +
+> +	if ((ns->ms && !(ns->features & NVME_NS_MD_CTRL_SUPPORTED) &&
+> +	     !(ns->features & NVME_NS_MD_HOST_SUPPORTED) &&
+> +	     !blk_get_integrity(disk)) || ns->lba_shift > PAGE_SHIFT)
+>  		capacity = 0;
+
+I find this very confusing.  Can we do something like:
+
+	/*
+	 * The block layer can't support LBA sizes larger than the page size
+	 * yet, so catch this early and don't allow block I/O.
+	 */
+	if (ns->lba_shift > PAGE_SHIFT)
+  		capacity = 0;
+
+	/*
+	 * Register a metadata profile for PI, or the plain non-integrity NVMe
+	 * metadata masquerading as Typ 0 if supported, otherwise reject block
+	 * I/O to namespaces with metadata except when the namespace supports
+	 * PI, as it can strip/insert in that case.
+	 */
+	if (ns->ms) {
+		if (IS_ENABLED(CONFIG_BLK_DEV_INTEGRITY) &&
+		    (ns->features & NVME_NS_MD_HOST_SUPPORTED))
+			nvme_init_integrity(disk, ns->ms, ns->pi_type);
+		else if (!nvme_ns_has_pi(ns))
+			capacity = 0;
+	}
+
+> +	if (ns->ms) {
+> +		if (id->flbas & NVME_NS_FLBAS_META_EXT)
+> +			ns->features |= NVME_NS_EXT_LBAS;
+> +
+> +		/*
+> +		 * For PCI, Extended logical block will be generated by the
+> +		 * controller.
+> +		 */
+> +		if (ns->ctrl->ops->flags & NVME_F_METADATA_SUPPORTED) {
+> +			if (!(ns->features & NVME_NS_EXT_LBAS))
+> +				ns->features |= NVME_NS_MD_HOST_SUPPORTED;
+> +		}
+
+Maybe:
+
+> +	if (ns->ms) {
+> +		if (id->flbas & NVME_NS_FLBAS_META_EXT)
+> +			ns->features |= NVME_NS_EXT_LBAS;
+> +
+> +		/*
+> +		 * For PCI, Extended logical block will be generated by the
+> +		 * controller.
+> +		 */
+> +		if (ns->ctrl->ops->flags & NVME_F_METADATA_SUPPORTED) {
+> +			if (!(ns->features & NVME_NS_EXT_LBAS))
+> +				ns->features |= NVME_NS_MD_HOST_SUPPORTED;
+> +		}
+
+This looks a little strange now, but I guess it will make more sense
+with the fabrics addition.  I'll take another look later in the series.
+
+> +enum nvme_ns_features {
+> +	NVME_NS_EXT_LBAS = 1 << 0,
+> +	NVME_NS_MD_HOST_SUPPORTED = 1 << 1,
+> +	NVME_NS_MD_CTRL_SUPPORTED = 1 << 2,
+> +};
+
+Please document the meaning of each flag.  I also suspect that just
+moving ext to a flag first and than adding the NVME_NS_MD_HOST_SUPPORTED
+bit might make more sense.  I'd also rename NVME_NS_MD_HOST_SUPPORTED
+to NVME_NS_METADATA_SUPPORTED.
