@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A3F8C54FD0
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 11:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22648C54FD0
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 12:00:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D97A206D4
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 11:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00EF12076B
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 12:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726741AbgDUL7R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Apr 2020 07:59:17 -0400
-Received: from verein.lst.de ([213.95.11.211]:46254 "EHLO verein.lst.de"
+        id S1728676AbgDUMAB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Apr 2020 08:00:01 -0400
+Received: from verein.lst.de ([213.95.11.211]:46268 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726691AbgDUL7Q (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 21 Apr 2020 07:59:16 -0400
+        id S1726691AbgDUMAB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 21 Apr 2020 08:00:01 -0400
 Received: by verein.lst.de (Postfix, from userid 2407)
-        id F1D9968C7B; Tue, 21 Apr 2020 13:59:12 +0200 (CEST)
-Date:   Tue, 21 Apr 2020 13:59:12 +0200
+        id 1E6D268C7B; Tue, 21 Apr 2020 13:59:59 +0200 (CEST)
+Date:   Tue, 21 Apr 2020 13:59:58 +0200
 From:   Christoph Hellwig <hch@lst.de>
 To:     Max Gurtovoy <maxg@mellanox.com>
 Cc:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
@@ -28,119 +28,24 @@ Cc:     linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
         linux-rdma@vger.kernel.org, idanb@mellanox.com, axboe@kernel.dk,
         vladimirk@mellanox.com, oren@mellanox.com, shlomin@mellanox.com,
         israelr@mellanox.com, jgg@mellanox.com
-Subject: Re: [PATCH 01/17] nvme: introduce namespace features flag
-Message-ID: <20200421115912.GB26432@lst.de>
-References: <20200327171545.98970-1-maxg@mellanox.com> <20200327171545.98970-3-maxg@mellanox.com>
+Subject: Re: [PATCH 02/17] nvme: Add has_md field to the nvme_req structure
+Message-ID: <20200421115958.GC26432@lst.de>
+References: <20200327171545.98970-1-maxg@mellanox.com> <20200327171545.98970-4-maxg@mellanox.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200327171545.98970-3-maxg@mellanox.com>
+In-Reply-To: <20200327171545.98970-4-maxg@mellanox.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Mar 27, 2020 at 08:15:29PM +0300, Max Gurtovoy wrote:
+On Fri, Mar 27, 2020 at 08:15:30PM +0300, Max Gurtovoy wrote:
 > From: Israel Rukshin <israelr@mellanox.com>
 > 
-> Centralize all the metadata checks to one place and make the code more
-> readable. Introduce a new enum nvme_ns_features for that matter.
-> The features flag description:
->  - NVME_NS_EXT_LBAS - NVMe namespace supports extended LBA format.
->  - NVME_NS_MD_HOST_SUPPORTED - NVMe namespace supports getting metadata
->    from host's block layer.
->  - NVME_NS_MD_CTRL_SUPPORTED - NVMe namespace supports metadata actions
->    by the controller (generate/strip).
+> Transport drivers will use this field to determine if the request has
+> metadata.
 
-So whole I like the ->features flag, the defintion of these two
-metadata related features really confuses me.
-
-Here are my vague ideas to improve the situation:
-
-> -static inline bool nvme_ns_has_pi(struct nvme_ns *ns)
-> -{
-> -	return ns->pi_type && ns->ms == sizeof(struct t10_pi_tuple);
-> -}
-
-This function I think is generally useful, I'd rather keep iţ, document
-it with a comment and remove the new NVME_NS_MD_CTRL_SUPPORTED
-flag.
-
-> -	if (ns->ms && !ns->ext &&
-> -	    (ns->ctrl->ops->flags & NVME_F_METADATA_SUPPORTED))
-> +	if (ns->features & NVME_NS_MD_HOST_SUPPORTED)
->  		nvme_init_integrity(disk, ns->ms, ns->pi_type);
-> -	if ((ns->ms && !nvme_ns_has_pi(ns) && !blk_get_integrity(disk)) ||
-> -	    ns->lba_shift > PAGE_SHIFT)
-> +
-> +	if ((ns->ms && !(ns->features & NVME_NS_MD_CTRL_SUPPORTED) &&
-> +	     !(ns->features & NVME_NS_MD_HOST_SUPPORTED) &&
-> +	     !blk_get_integrity(disk)) || ns->lba_shift > PAGE_SHIFT)
->  		capacity = 0;
-
-I find this very confusing.  Can we do something like:
-
-	/*
-	 * The block layer can't support LBA sizes larger than the page size
-	 * yet, so catch this early and don't allow block I/O.
-	 */
-	if (ns->lba_shift > PAGE_SHIFT)
-  		capacity = 0;
-
-	/*
-	 * Register a metadata profile for PI, or the plain non-integrity NVMe
-	 * metadata masquerading as Typ 0 if supported, otherwise reject block
-	 * I/O to namespaces with metadata except when the namespace supports
-	 * PI, as it can strip/insert in that case.
-	 */
-	if (ns->ms) {
-		if (IS_ENABLED(CONFIG_BLK_DEV_INTEGRITY) &&
-		    (ns->features & NVME_NS_MD_HOST_SUPPORTED))
-			nvme_init_integrity(disk, ns->ms, ns->pi_type);
-		else if (!nvme_ns_has_pi(ns))
-			capacity = 0;
-	}
-
-> +	if (ns->ms) {
-> +		if (id->flbas & NVME_NS_FLBAS_META_EXT)
-> +			ns->features |= NVME_NS_EXT_LBAS;
-> +
-> +		/*
-> +		 * For PCI, Extended logical block will be generated by the
-> +		 * controller.
-> +		 */
-> +		if (ns->ctrl->ops->flags & NVME_F_METADATA_SUPPORTED) {
-> +			if (!(ns->features & NVME_NS_EXT_LBAS))
-> +				ns->features |= NVME_NS_MD_HOST_SUPPORTED;
-> +		}
-
-Maybe:
-
-> +	if (ns->ms) {
-> +		if (id->flbas & NVME_NS_FLBAS_META_EXT)
-> +			ns->features |= NVME_NS_EXT_LBAS;
-> +
-> +		/*
-> +		 * For PCI, Extended logical block will be generated by the
-> +		 * controller.
-> +		 */
-> +		if (ns->ctrl->ops->flags & NVME_F_METADATA_SUPPORTED) {
-> +			if (!(ns->features & NVME_NS_EXT_LBAS))
-> +				ns->features |= NVME_NS_MD_HOST_SUPPORTED;
-> +		}
-
-This looks a little strange now, but I guess it will make more sense
-with the fabrics addition.  I'll take another look later in the series.
-
-> +enum nvme_ns_features {
-> +	NVME_NS_EXT_LBAS = 1 << 0,
-> +	NVME_NS_MD_HOST_SUPPORTED = 1 << 1,
-> +	NVME_NS_MD_CTRL_SUPPORTED = 1 << 2,
-> +};
-
-Please document the meaning of each flag.  I also suspect that just
-moving ext to a flag first and than adding the NVME_NS_MD_HOST_SUPPORTED
-bit might make more sense.  I'd also rename NVME_NS_MD_HOST_SUPPORTED
-to NVME_NS_METADATA_SUPPORTED.
+Can we make this a flags field with a bit?  Also why do we even need
+it, can't we use blk_integrity_rq?
