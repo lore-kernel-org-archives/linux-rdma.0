@@ -2,28 +2,28 @@ Return-Path: <SRS0=jfUh=6F=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B542C54FD0
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 10:28:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D479C55181
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 10:29:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BAF420656
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 10:28:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 443A020663
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 10:29:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728561AbgDUK25 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Apr 2020 06:28:57 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:60582 "EHLO
+        id S1728637AbgDUK3E (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Apr 2020 06:29:04 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:60617 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726628AbgDUK24 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Apr 2020 06:28:56 -0400
+        with ESMTP id S1728611AbgDUK3A (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Apr 2020 06:29:00 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 21 Apr 2020 13:28:53 +0300
+        with ESMTPS (AES256-SHA encrypted); 21 Apr 2020 13:28:54 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03LASrmn019072;
-        Tue, 21 Apr 2020 13:28:53 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03LASrmx019072;
+        Tue, 21 Apr 2020 13:28:54 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V3 mlx5-next 01/15] net/core: Introduce master_get_xmit_slave
-Date:   Tue, 21 Apr 2020 13:28:30 +0300
-Message-Id: <20200421102844.23640-2-maorg@mellanox.com>
+Subject: [PATCH V3 mlx5-next 11/15] RDMA/core: Get xmit slave for LAG
+Date:   Tue, 21 Apr 2020 13:28:40 +0300
+Message-Id: <20200421102844.23640-12-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200421102844.23640-1-maorg@mellanox.com>
 References: <20200421102844.23640-1-maorg@mellanox.com>
@@ -42,67 +42,100 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add new ndo to get the xmit slave of master device.
-User should release the slave when it's not longer needed.
-When slave selection method is based on hash, then the user can ask to
-get the xmit slave assume all the slaves can transmit.
+Add a call to rdma_lag_get_ah_roce_slave when
+Address handle is created.
+Low driver can use it to select the QP's affinity port.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 ---
- include/linux/netdevice.h | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ drivers/infiniband/core/verbs.c | 44 ++++++++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 130a668049ab..ab324a2b04c8 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -1389,6 +1389,9 @@ struct net_device_ops {
- 						 struct netlink_ext_ack *extack);
- 	int			(*ndo_del_slave)(struct net_device *dev,
- 						 struct net_device *slave_dev);
-+	struct net_device*	(*ndo_get_xmit_slave)(struct net_device *dev,
-+						      struct sk_buff *skb,
-+						      bool all_slaves);
- 	netdev_features_t	(*ndo_fix_features)(struct net_device *dev,
- 						    netdev_features_t features);
- 	int			(*ndo_set_features)(struct net_device *dev,
-@@ -4676,6 +4679,36 @@ static inline void skb_gso_error_unwind(struct sk_buff *skb, __be16 protocol,
- 	skb->mac_len = mac_len;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 56a71337112c..a0d60376ba6b 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -50,6 +50,7 @@
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/rw.h>
++#include <rdma/lag.h>
+ 
+ #include "core_priv.h"
+ #include <trace/events/rdma_core.h>
+@@ -554,8 +555,14 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+-	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
++	ret = rdma_lag_get_ah_roce_slave(pd->device, ah_attr);
++	if (ret) {
++		rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
++		return ERR_PTR(ret);
++	}
+ 
++	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
++	rdma_lag_put_ah_roce_slave(ah_attr);
+ 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+ 	return ah;
+ }
+@@ -1638,6 +1645,25 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 					  &old_sgid_attr_av);
+ 		if (ret)
+ 			return ret;
++
++		if (attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
++		    is_qp_type_connected(qp)) {
++			/*
++			 * If the user provided the qp_attr then we have to
++			 * resolve it. Kerne users have to provide already
++			 * resolved rdma_ah_attr's.
++			 */
++			if (udata) {
++				ret = ib_resolve_eth_dmac(qp->device,
++							  &attr->ah_attr);
++				if (ret)
++					goto out_av;
++			}
++			ret = rdma_lag_get_ah_roce_slave(qp->device,
++							 &attr->ah_attr);
++			if (ret)
++				goto out_av;
++		}
+ 	}
+ 	if (attr_mask & IB_QP_ALT_PATH) {
+ 		/*
+@@ -1664,18 +1690,6 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 		}
+ 	}
+ 
+-	/*
+-	 * If the user provided the qp_attr then we have to resolve it. Kernel
+-	 * users have to provide already resolved rdma_ah_attr's
+-	 */
+-	if (udata && (attr_mask & IB_QP_AV) &&
+-	    attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
+-	    is_qp_type_connected(qp)) {
+-		ret = ib_resolve_eth_dmac(qp->device, &attr->ah_attr);
+-		if (ret)
+-			goto out;
+-	}
+-
+ 	if (rdma_ib_or_roce(qp->device, port)) {
+ 		if (attr_mask & IB_QP_RQ_PSN && attr->rq_psn & ~0xffffff) {
+ 			dev_warn(&qp->device->dev,
+@@ -1717,8 +1731,10 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 	if (attr_mask & IB_QP_ALT_PATH)
+ 		rdma_unfill_sgid_attr(&attr->alt_ah_attr, old_sgid_attr_alt_av);
+ out_av:
+-	if (attr_mask & IB_QP_AV)
++	if (attr_mask & IB_QP_AV) {
++		rdma_lag_put_ah_roce_slave(&attr->ah_attr);
+ 		rdma_unfill_sgid_attr(&attr->ah_attr, old_sgid_attr_av);
++	}
+ 	return ret;
  }
  
-+/**
-+ * master_get_xmit_slave - Get the xmit slave of master device
-+ * @skb: The packet
-+ * @all_slaves: assume all the slaves are active
-+ *
-+ * This can be called from any context and does its own locking.
-+ * The returned handle has the usage count incremented and the caller must
-+ * use dev_put() to release it when it is no longer needed.
-+ * %NULL is returned if no slave is found.
-+ */
-+
-+static inline
-+struct net_device *master_get_xmit_slave(struct net_device *dev,
-+					 struct sk_buff *skb,
-+					 bool all_slaves)
-+{
-+	const struct net_device_ops *ops = dev->netdev_ops;
-+	struct net_device *slave_dev;
-+
-+	if (!ops->ndo_get_xmit_slave)
-+		return NULL;
-+
-+	rcu_read_lock();
-+	slave_dev = ops->ndo_get_xmit_slave(dev, skb, all_slaves);
-+	if (slave_dev)
-+		dev_hold(slave_dev);
-+	rcu_read_unlock();
-+	return slave_dev;
-+}
-+
- static inline bool netif_is_macsec(const struct net_device *dev)
- {
- 	return dev->priv_flags & IFF_MACSEC;
 -- 
 2.17.2
 
