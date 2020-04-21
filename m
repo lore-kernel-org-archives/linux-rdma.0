@@ -6,48 +6,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC585C54FC9
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 08:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 564B9C55182
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 08:02:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD4152071C
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 08:02:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 397032071C
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Apr 2020 08:02:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728452AbgDUICq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Apr 2020 04:02:46 -0400
-Received: from mga04.intel.com ([192.55.52.120]:43438 "EHLO mga04.intel.com"
+        id S1726095AbgDUICt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Apr 2020 04:02:49 -0400
+Received: from mga18.intel.com ([134.134.136.126]:28626 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726095AbgDUICj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 21 Apr 2020 04:02:39 -0400
-IronPort-SDR: N0OZEw4TcbrS60DqmeAsQKnrMe4mZhzWehNqW4+tBrv3L/+yBlMTz27J9ETjngyseuDOvhaeUX
- V2B3VUK13KlA==
+        id S1726123AbgDUICl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 21 Apr 2020 04:02:41 -0400
+IronPort-SDR: raMWB6a7eCq5W/NAxZXkSNgLzRcR59J77ZQT45hT7WBoL8xmRACR7WqX7v7NoPvPGaT2xWtzrl
+ UxF8C5asKBpg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2020 01:02:38 -0700
-IronPort-SDR: ZkLeJqaOlxHOVIHofZXAUY9t4qTGOT/QQHuHj+R2tPDYaJ/sUxSAnvptuN7qEHiU9MYYetXIeD
- 2KRI1h1VtUDQ==
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2020 01:02:39 -0700
+IronPort-SDR: xiI0c5RSDZlGsjrhpax8WFggE9eJdWXOmGxvNgpQpWc+OOOiBcpIX+rsXYC+K5WhNKasm6z/qR
+ VXJFi9gSRLmg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.72,409,1580803200"; 
-   d="scan'208";a="429443771"
+   d="scan'208";a="429443785"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.86])
-  by orsmga005.jf.intel.com with ESMTP; 21 Apr 2020 01:02:37 -0700
+  by orsmga005.jf.intel.com with ESMTP; 21 Apr 2020 01:02:38 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
 Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
-        sassmann@redhat.com, jgg@ziepe.ca, parav@mellanox.com,
-        galpress@amazon.com, selvin.xavier@broadcom.com,
-        sriharsha.basavapatna@broadcom.com, benve@cisco.com,
-        bharat@chelsio.com, xavier.huwei@huawei.com, yishaih@mellanox.com,
-        leonro@mellanox.com, mkalderon@marvell.com, aditr@vmware.com,
+        sassmann@redhat.com, jgg@ziepe.ca,
         ranjani.sridharan@linux.intel.com,
         pierre-louis.bossart@linux.intel.com,
-        Kiran Patil <kiran.patil@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
         Andrew Bowers <andrewx.bowers@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [net-next v2 1/9] Implementation of Virtual Bus
-Date:   Tue, 21 Apr 2020 01:02:27 -0700
-Message-Id: <20200421080235.6515-2-jeffrey.t.kirsher@intel.com>
+Subject: [net-next v2 5/9] ice: Enable event notifications
+Date:   Tue, 21 Apr 2020 01:02:31 -0700
+Message-Id: <20200421080235.6515-6-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.25.3
 In-Reply-To: <20200421080235.6515-1-jeffrey.t.kirsher@intel.com>
 References: <20200421080235.6515-1-jeffrey.t.kirsher@intel.com>
@@ -60,533 +56,416 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Dave Ertman <david.m.ertman@intel.com>
 
-This is the initial implementation of the Virtual Bus,
-virtbus_device and virtbus_driver.  The virtual bus is
-a software based bus intended to support registering
-virtbus_devices and virtbus_drivers and provide matching
-between them and probing of the registered drivers.
-
-The bus will support probe/remove shutdown and
-suspend/resume callbacks.
-
-Kconfig and Makefile alterations are included
+Enable registration of notifications. Peer devices can register to be
+notified of certain events as well as notify the driver of its state
+changes.
 
 Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
-Signed-off-by: Kiran Patil <kiran.patil@intel.com>
-Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 Tested-by: Andrew Bowers <andrewx.bowers@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- Documentation/driver-api/virtual_bus.rst |  62 +++++
- drivers/bus/Kconfig                      |  10 +
- drivers/bus/Makefile                     |   2 +
- drivers/bus/virtual_bus.c                | 279 +++++++++++++++++++++++
- include/linux/mod_devicetable.h          |   8 +
- include/linux/virtual_bus.h              |  53 +++++
- scripts/mod/devicetable-offsets.c        |   3 +
- scripts/mod/file2alias.c                 |   7 +
- 8 files changed, 424 insertions(+)
- create mode 100644 Documentation/driver-api/virtual_bus.rst
- create mode 100644 drivers/bus/virtual_bus.c
- create mode 100644 include/linux/virtual_bus.h
+ drivers/net/ethernet/intel/ice/ice_dcb_lib.c |  37 ++++
+ drivers/net/ethernet/intel/ice/ice_idc.c     | 221 +++++++++++++++++++
+ drivers/net/ethernet/intel/ice/ice_idc_int.h |   1 +
+ drivers/net/ethernet/intel/ice/ice_main.c    |  27 ++-
+ 4 files changed, 280 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/driver-api/virtual_bus.rst b/Documentation/driver-api/virtual_bus.rst
-new file mode 100644
-index 000000000000..a79db0e9231e
---- /dev/null
-+++ b/Documentation/driver-api/virtual_bus.rst
-@@ -0,0 +1,62 @@
-+===============================
-+Virtual Bus Devices and Drivers
-+===============================
-+
-+See <linux/virtual_bus.h> for the models for virtbus_device and virtbus_driver.
-+This bus is meant to be a lightweight software based bus to attach generic
-+devices and drivers to so that a chunk of data can be passed between them.
-+
-+One use case example is an RDMA driver needing to connect with several
-+different types of PCI LAN devices to be able to request resources from
-+them (queue sets).  Each LAN driver that supports RDMA will register a
-+virtbus_device on the virtual bus for each physical function.  The RDMA
-+driver will register as a virtbus_driver on the virtual bus to be
-+matched up with multiple virtbus_devices and receive a pointer to a
-+struct containing the callbacks that the PCI LAN drivers support for
-+registering with them.
-+
-+Sections in this document:
-+        Virtbus devices
-+        Virtbus drivers
-+        Device Enumeration
-+        Device naming and driver binding
-+        Virtual Bus API entry points
-+
-+Virtbus devices
-+~~~~~~~~~~~~~~~
-+Virtbus_devices support the minimal device functionality.  Devices will
-+accept a name, and then, when added to the virtual bus, an automatically
-+generated index is concatenated onto it for the virtbus_device->name.
-+
-+Virtbus drivers
-+~~~~~~~~~~~~~~~
-+Virtbus drivers register with the virtual bus to be matched with virtbus
-+devices.  They expect to be registered with a probe and remove callback,
-+and also support shutdown, suspend, and resume callbacks.  They otherwise
-+follow the standard driver behavior of having discovery and enumeration
-+handled in the bus infrastructure.
-+
-+Virtbus drivers register themselves with the API entry point
-+virtbus_register_driver and unregister with virtbus_unregister_driver.
-+
-+Device Enumeration
-+~~~~~~~~~~~~~~~~~~
-+Enumeration is handled automatically by the bus infrastructure via the
-+ida_simple methods.
-+
-+Device naming and driver binding
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The virtbus_device.dev.name is the canonical name for the device. It is
-+built from two other parts:
-+
-+        - virtbus_device.name (also used for matching).
-+        - virtbus_device.id (generated automatically from ida_simple calls)
-+
-+Virtbus device IDs are always in "<name>.<instance>" format.  Instances are
-+automatically selected through an ida_simple_get so are positive integers.
-+Name is taken from the device name field.
-+
-+Driver IDs are simple <name>.
-+
-+Need to extract the name from the Virtual Device compare to name of the
-+driver.
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-index 6d4e4497b59b..00553c78510c 100644
---- a/drivers/bus/Kconfig
-+++ b/drivers/bus/Kconfig
-@@ -203,4 +203,14 @@ config DA8XX_MSTPRI
- source "drivers/bus/fsl-mc/Kconfig"
- source "drivers/bus/mhi/Kconfig"
+diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
+index 24c0a60fe172..c4f8be0c0b24 100644
+--- a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
++++ b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
+@@ -168,6 +168,30 @@ void ice_vsi_cfg_dcb_rings(struct ice_vsi *vsi)
+ 	}
+ }
  
-+config VIRTUAL_BUS
-+       tristate "Software based Virtual Bus"
-+       help
-+         Provides a software bus for virtbus_devices to be added to it
-+         and virtbus_drivers to be registered on it.  It matches driver
-+         and device based on id and calls the driver's probe routine.
-+         One example is the irdma driver needing to connect with various
-+         PCI LAN drivers to request resources (queues) to be able to perform
-+         its function.
++/**
++ * ice_peer_prep_tc_change - Pre-notify RDMA Peer in blocking call of TC change
++ * @peer_dev_int: ptr to peer device internal struct
++ * @data: ptr to opaque data
++ */
++static int
++ice_peer_prep_tc_change(struct ice_peer_dev_int *peer_dev_int,
++			void __always_unused *data)
++{
++	struct iidc_peer_dev *peer_dev;
 +
- endmenu
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-index 05f32cd694a4..d30828a4768c 100644
---- a/drivers/bus/Makefile
-+++ b/drivers/bus/Makefile
-@@ -37,3 +37,5 @@ obj-$(CONFIG_DA8XX_MSTPRI)	+= da8xx-mstpri.o
++	peer_dev = &peer_dev_int->peer_dev;
++	if (!ice_validate_peer_dev(peer_dev))
++		return 0;
++
++	if (!test_bit(ICE_PEER_DEV_STATE_OPENED, peer_dev_int->state))
++		return 0;
++
++	if (peer_dev->peer_ops && peer_dev->peer_ops->prep_tc_change)
++		peer_dev->peer_ops->prep_tc_change(peer_dev);
++
++	return 0;
++}
++
+ /**
+  * ice_dcb_bwchk - check if ETS bandwidth input parameters are correct
+  * @pf: pointer to the PF struct
+@@ -248,6 +272,9 @@ int ice_pf_dcb_cfg(struct ice_pf *pf, struct ice_dcbx_cfg *new_cfg, bool locked)
+ 		return -ENOMEM;
  
- # MHI
- obj-$(CONFIG_MHI_BUS)		+= mhi/
+ 	dev_info(dev, "Commit DCB Configuration to the hardware\n");
++	/* Notify capable peers about impending change to TCs */
++	ice_for_each_peer(pf, NULL, ice_peer_prep_tc_change);
 +
-+obj-$(CONFIG_VIRTUAL_BUS)	+= virtual_bus.o
-diff --git a/drivers/bus/virtual_bus.c b/drivers/bus/virtual_bus.c
-new file mode 100644
-index 000000000000..f5e66d110385
---- /dev/null
-+++ b/drivers/bus/virtual_bus.c
-@@ -0,0 +1,279 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * virtual_bus.c - lightweight software based bus for virtual devices
-+ *
-+ * Copyright (c) 2019-2020 Intel Corporation
-+ *
-+ * Please see Documentation/driver-api/virtual_bus.rst for
-+ * more information
-+ */
-+
-+#include <linux/string.h>
-+#include <linux/virtual_bus.h>
-+#include <linux/of_irq.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/pm_domain.h>
-+#include <linux/acpi.h>
-+#include <linux/device.h>
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("Virtual Bus");
-+MODULE_AUTHOR("David Ertman <david.m.ertman@intel.com>");
-+MODULE_AUTHOR("Kiran Patil <kiran.patil@intel.com>");
-+
-+static DEFINE_IDA(virtbus_dev_ida);
-+
-+static const
-+struct virtbus_dev_id *virtbus_match_id(const struct virtbus_dev_id *id,
-+					struct virtbus_device *vdev)
-+{
-+	while (id->name[0]) {
-+		if (!strcmp(vdev->name, id->name))
-+			return id;
-+		id++;
-+	}
-+	return NULL;
-+}
-+
-+static int virtbus_match(struct device *dev, struct device_driver *drv)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(drv);
-+	struct virtbus_device *vdev = to_virtbus_dev(dev);
-+
-+	return virtbus_match_id(vdrv->id_table, vdev) != NULL;
-+}
-+
-+static int virtbus_probe(struct device *dev)
-+{
-+	return dev->driver->probe(dev);
-+}
-+
-+static int virtbus_remove(struct device *dev)
-+{
-+	return dev->driver->remove(dev);
-+}
-+
-+static void virtbus_shutdown(struct device *dev)
-+{
-+	dev->driver->shutdown(dev);
-+}
-+
-+static int virtbus_suspend(struct device *dev, pm_message_t state)
-+{
-+	if (dev->driver->suspend)
-+		return dev->driver->suspend(dev, state);
-+
-+	return 0;
-+}
-+
-+static int virtbus_resume(struct device *dev)
-+{
-+	if (dev->driver->resume)
-+		return dev->driver->resume(dev);
-+
-+	return 0;
-+}
-+
-+struct bus_type virtual_bus_type = {
-+	.name = "virtbus",
-+	.match = virtbus_match,
-+	.probe = virtbus_probe,
-+	.remove = virtbus_remove,
-+	.shutdown = virtbus_shutdown,
-+	.suspend = virtbus_suspend,
-+	.resume = virtbus_resume,
-+};
-+
-+/**
-+ * virtbus_release_device - Destroy a virtbus device
-+ * @_dev: device to release
-+ */
-+static void virtbus_release_device(struct device *_dev)
-+{
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	int ida = vdev->id;
-+
-+	vdev->release(vdev);
-+	ida_simple_remove(&virtbus_dev_ida, ida);
-+}
-+
-+/**
-+ * virtbus_register_device - add a virtual bus device
-+ * @vdev: virtual bus device to add
-+ */
-+int virtbus_register_device(struct virtbus_device *vdev)
-+{
-+	int ret;
-+
-+	if (!vdev->release) {
-+		dev_err(&vdev->dev, "virtbus_device MUST have a .release callback that does something.\n");
-+		return -EINVAL;
-+	}
-+	
-+	/* Don't return on error here before the device_initialize.
-+	 * All error paths out of this function must perform a
-+	 * put_device(), unless the release callback does not exist,
-+	 * so that the .release() callback is called, and thus have
-+	 * to occur after the device_initialize.
-+	 */
-+	device_initialize(&vdev->dev);
-+
-+	vdev->dev.bus = &virtual_bus_type;
-+	vdev->dev.release = virtbus_release_device;
-+
-+	/* All device IDs are automatically allocated */
-+	ret = ida_simple_get(&virtbus_dev_ida, 0, 0, GFP_KERNEL);
-+
-+	if (ret < 0) {
-+		dev_err(&vdev->dev, "get IDA idx for virtbus device failed!\n");
-+		goto device_pre_err;
-+	}
-+
-+	vdev->id = ret;
-+
-+	ret = dev_set_name(&vdev->dev, "%s.%d", vdev->name, vdev->id);
-+	if (ret) {
-+		dev_err(&vdev->dev, "dev_set_name failed for device\n");
-+		goto device_add_err;
-+	}
-+
-+	dev_dbg(&vdev->dev, "Registering virtbus device '%s'\n",
-+		dev_name(&vdev->dev));
-+
-+	ret = device_add(&vdev->dev);
-+	if (ret)
-+		goto device_add_err;
-+
-+	return 0;
-+
-+device_add_err:
-+	ida_simple_remove(&virtbus_dev_ida, vdev->id);
-+
-+device_pre_err:
-+	dev_err(&vdev->dev, "Add device to virtbus failed!: %d\n", ret);
-+	put_device(&vdev->dev);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(virtbus_register_device);
-+
-+/**
-+ * virtbus_unregister_device - remove a virtual bus device
-+ * @vdev: virtual bus device we are removing
-+ */
-+void virtbus_unregister_device(struct virtbus_device *vdev)
-+{
-+	device_unregister(&vdev->dev);
-+}
-+EXPORT_SYMBOL_GPL(virtbus_unregister_device);
-+
-+static int virtbus_probe_driver(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	int ret;
-+
-+	ret = dev_pm_domain_attach(_dev, true);
-+	if (ret) {
-+		dev_warn(_dev, "Failed to attach to PM Domain : %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = vdrv->probe(vdev);
-+	if (ret) {
-+		dev_err(&vdev->dev, "Probe returned error\n");
-+		dev_pm_domain_detach(_dev, true);
-+	}
-+
-+	return ret;
-+}
-+
-+static int virtbus_remove_driver(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	int ret = 0;
-+
-+	ret = vdrv->remove(vdev);
-+	dev_pm_domain_detach(_dev, true);
-+
-+	return ret;
-+}
-+
-+static void virtbus_shutdown_driver(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+
-+	vdrv->shutdown(vdev);
-+}
-+
-+static int virtbus_suspend_driver(struct device *_dev, pm_message_t state)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+
-+	if (vdrv->suspend)
-+		return vdrv->suspend(vdev, state);
-+
-+	return 0;
-+}
-+
-+static int virtbus_resume_driver(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+
-+	if (vdrv->resume)
-+		return vdrv->resume(vdev);
-+
-+	return 0;
-+}
-+
-+/**
-+ * __virtbus_register_driver - register a driver for virtual bus devices
-+ * @vdrv: virtbus_driver structure
-+ * @owner: owning module/driver
-+ */
-+int __virtbus_register_driver(struct virtbus_driver *vdrv, struct module *owner)
-+{
-+	if (!vdrv->probe || !vdrv->remove || !vdrv->shutdown || !vdrv->id_table)
-+		return -EINVAL;
-+
-+	vdrv->driver.owner = owner;
-+	vdrv->driver.bus = &virtual_bus_type;
-+	vdrv->driver.probe = virtbus_probe_driver;
-+	vdrv->driver.remove = virtbus_remove_driver;
-+	vdrv->driver.shutdown = virtbus_shutdown_driver;
-+	vdrv->driver.suspend = virtbus_suspend_driver;
-+	vdrv->driver.resume = virtbus_resume_driver;
-+
-+	return driver_register(&vdrv->driver);
-+}
-+EXPORT_SYMBOL_GPL(__virtbus_register_driver);
-+
-+/**
-+ * virtbus_unregister_driver - unregister a driver for virtual bus devices
-+ * @vdrv: virtbus_driver structure
-+ */
-+void virtbus_unregister_driver(struct virtbus_driver *vdrv)
-+{
-+	driver_unregister(&vdrv->driver);
-+}
-+EXPORT_SYMBOL_GPL(virtbus_unregister_driver);
-+
-+static int __init virtual_bus_init(void)
-+{
-+	return bus_register(&virtual_bus_type);
-+}
-+
-+static void __exit virtual_bus_exit(void)
-+{
-+	bus_unregister(&virtual_bus_type);
-+	ida_destroy(&virtbus_dev_ida);
-+}
-+
-+module_init(virtual_bus_init);
-+module_exit(virtual_bus_exit);
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 4c2ddd0941a7..60bcfe75fb94 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -832,4 +832,12 @@ struct mhi_device_id {
- 	kernel_ulong_t driver_data;
- };
+ 	pf_vsi = ice_get_main_vsi(pf);
+ 	if (!pf_vsi) {
+ 		dev_dbg(dev, "PF VSI doesn't exist\n");
+@@ -580,6 +607,7 @@ static int ice_dcb_noncontig_cfg(struct ice_pf *pf)
+ void ice_pf_dcb_recfg(struct ice_pf *pf)
+ {
+ 	struct ice_dcbx_cfg *dcbcfg = &pf->hw.port_info->local_dcbx_cfg;
++	struct iidc_event *event;
+ 	u8 tc_map = 0;
+ 	int v, ret;
  
-+#define VIRTBUS_NAME_SIZE 20
-+#define VIRTBUS_MODULE_PREFIX "virtbus:"
+@@ -615,6 +643,15 @@ void ice_pf_dcb_recfg(struct ice_pf *pf)
+ 		if (vsi->type == ICE_VSI_PF)
+ 			ice_dcbnl_set_all(vsi);
+ 	}
++	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	if (!event)
++		return;
 +
-+struct virtbus_dev_id {
-+	char name[VIRTBUS_NAME_SIZE];
-+	kernel_ulong_t driver_data;
-+};
-+
- #endif /* LINUX_MOD_DEVICETABLE_H */
-diff --git a/include/linux/virtual_bus.h b/include/linux/virtual_bus.h
-new file mode 100644
-index 000000000000..5c7b38db1b47
---- /dev/null
-+++ b/include/linux/virtual_bus.h
-@@ -0,0 +1,53 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * virtual_bus.h - lightweight software bus
-+ *
-+ * Copyright (c) 2019-2020 Intel Corporation
-+ *
-+ * Please see Documentation/driver-api/virtual_bus.rst for more information
-+ */
-+
-+#ifndef _VIRTUAL_BUS_H_
-+#define _VIRTUAL_BUS_H_
-+
-+#include <linux/device.h>
-+
-+struct virtbus_device {
-+	struct device dev;
-+	const char *name;
-+	void (*release)(struct virtbus_device *);
-+	u32 id;
-+};
-+
-+struct virtbus_driver {
-+	int (*probe)(struct virtbus_device *);
-+	int (*remove)(struct virtbus_device *);
-+	void (*shutdown)(struct virtbus_device *);
-+	int (*suspend)(struct virtbus_device *, pm_message_t);
-+	int (*resume)(struct virtbus_device *);
-+	struct device_driver driver;
-+	const struct virtbus_dev_id *id_table;
-+};
-+
-+static inline
-+struct virtbus_device *to_virtbus_dev(struct device *dev)
-+{
-+	return container_of(dev, struct virtbus_device, dev);
-+}
-+
-+static inline
-+struct virtbus_driver *to_virtbus_drv(struct device_driver *drv)
-+{
-+	return container_of(drv, struct virtbus_driver, driver);
-+}
-+
-+int virtbus_register_device(struct virtbus_device *vdev);
-+void virtbus_unregister_device(struct virtbus_device *vdev);
-+int
-+__virtbus_register_driver(struct virtbus_driver *vdrv, struct module *owner);
-+void virtbus_unregister_driver(struct virtbus_driver *vdrv);
-+
-+#define virtbus_register_driver(vdrv) \
-+	__virtbus_register_driver(vdrv, THIS_MODULE)
-+
-+#endif /* _VIRTUAL_BUS_H_ */
-diff --git a/scripts/mod/devicetable-offsets.c b/scripts/mod/devicetable-offsets.c
-index 010be8ba2116..0c8e0e3a7c84 100644
---- a/scripts/mod/devicetable-offsets.c
-+++ b/scripts/mod/devicetable-offsets.c
-@@ -241,5 +241,8 @@ int main(void)
- 	DEVID(mhi_device_id);
- 	DEVID_FIELD(mhi_device_id, chan);
++	set_bit(IIDC_EVENT_TC_CHANGE, event->type);
++	event->reporter = NULL;
++	ice_setup_dcb_qos_info(pf, &event->info.port_qos);
++	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
++	kfree(event);
+ }
  
-+	DEVID(virtbus_dev_id);
-+	DEVID_FIELD(virtbus_dev_id, name);
-+
+ /**
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
+index d616eb3aa6c7..9995112e0bda 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc.c
++++ b/drivers/net/ethernet/intel/ice/ice_idc.c
+@@ -217,6 +217,72 @@ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data)
  	return 0;
  }
-diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
-index 02d5d79da284..7d78fa3fba34 100644
---- a/scripts/mod/file2alias.c
-+++ b/scripts/mod/file2alias.c
-@@ -1358,7 +1358,13 @@ static int do_mhi_entry(const char *filename, void *symval, char *alias)
- {
- 	DEF_FIELD_ADDR(symval, mhi_device_id, chan);
- 	sprintf(alias, MHI_DEVICE_MODALIAS_FMT, *chan);
-+	return 1;
-+}
  
-+static int do_virtbus_entry(const char *filename, void *symval, char *alias)
++/**
++ * ice_check_peer_drv_for_events - check peer_drv for events to report
++ * @peer_dev: peer device to report to
++ */
++static void ice_check_peer_drv_for_events(struct iidc_peer_dev *peer_dev)
 +{
-+	DEF_FIELD_ADDR(symval, virtbus_dev_id, name);
-+	sprintf(alias, VIRTBUS_MODULE_PREFIX "%s", *name);
- 	return 1;
++	const struct iidc_peer_ops *p_ops = peer_dev->peer_ops;
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_peer_drv_int *peer_drv_int;
++	int i;
++
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	if (!peer_dev_int)
++		return;
++	peer_drv_int = peer_dev_int->peer_drv_int;
++
++	for_each_set_bit(i, peer_dev_int->events, IIDC_EVENT_NBITS) {
++		struct iidc_event *curr = &peer_drv_int->current_events[i];
++
++		if (!bitmap_empty(curr->type, IIDC_EVENT_NBITS) &&
++		    p_ops->event_handler)
++			p_ops->event_handler(peer_dev, curr);
++	}
++}
++
++/**
++ * ice_check_peer_for_events - check peer_devs for events new peer reg'd for
++ * @src_peer_int: peer to check for events
++ * @data: ptr to opaque data, to be used for the peer struct that opened
++ *
++ * This function is to be called when a peer device is opened.
++ *
++ * Since a new peer opening would have missed any events that would
++ * have happened before its opening, we need to walk the peers and see
++ * if any of them have events that the new peer cares about
++ *
++ * This function is meant to be called by a device_for_each_child.
++ */
++static int
++ice_check_peer_for_events(struct ice_peer_dev_int *src_peer_int, void *data)
++{
++	struct iidc_peer_dev *new_peer = (struct iidc_peer_dev *)data;
++	const struct iidc_peer_ops *p_ops = new_peer->peer_ops;
++	struct ice_peer_dev_int *new_peer_int;
++	struct iidc_peer_dev *src_peer;
++	int i;
++
++	src_peer = &src_peer_int->peer_dev;
++	if (!ice_validate_peer_dev(new_peer) ||
++	    !ice_validate_peer_dev(src_peer))
++		return 0;
++
++	new_peer_int = peer_to_ice_dev_int(new_peer);
++
++	for_each_set_bit(i, new_peer_int->events, IIDC_EVENT_NBITS) {
++		struct iidc_event *curr = &src_peer_int->current_events[i];
++
++		if (!bitmap_empty(curr->type, IIDC_EVENT_NBITS) &&
++		    new_peer->peer_dev_id != src_peer->peer_dev_id &&
++		    p_ops->event_handler)
++			p_ops->event_handler(new_peer, curr);
++	}
++
++	return 0;
++}
++
+ /**
+  * ice_for_each_peer - iterate across and call function for each peer dev
+  * @pf: pointer to private board struct
+@@ -322,6 +388,9 @@ ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int,
+ 
+ 		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_OPENED,
+ 				      true);
++		ret = ice_for_each_peer(pf, peer_dev,
++					ice_check_peer_for_events);
++		ice_check_peer_drv_for_events(peer_dev);
+ 	}
+ 
+ init_unlock:
+@@ -629,6 +698,155 @@ ice_peer_free_res(struct iidc_peer_dev *peer_dev, struct iidc_res *res)
+ 	return ret;
  }
  
-@@ -1436,6 +1442,7 @@ static const struct devtable devtable[] = {
- 	{"tee", SIZE_tee_client_device_id, do_tee_entry},
- 	{"wmi", SIZE_wmi_device_id, do_wmi_entry},
- 	{"mhi", SIZE_mhi_device_id, do_mhi_entry},
-+	{"virtbus", SIZE_virtbus_dev_id, do_virtbus_entry},
- };
++/**
++ * ice_peer_reg_for_notif - register a peer to receive specific notifications
++ * @peer_dev: peer that is registering for event notifications
++ * @events: mask of event types peer is registering for
++ */
++static void
++ice_peer_reg_for_notif(struct iidc_peer_dev *peer_dev,
++		       struct iidc_event *events)
++{
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_pf *pf;
++
++	if (!ice_validate_peer_dev(peer_dev) || !events)
++		return;
++
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	pf = pci_get_drvdata(peer_dev->pdev);
++
++	bitmap_or(peer_dev_int->events, peer_dev_int->events, events->type,
++		  IIDC_EVENT_NBITS);
++
++	/* Check to see if any events happened previous to peer registering */
++	ice_for_each_peer(pf, peer_dev, ice_check_peer_for_events);
++	ice_check_peer_drv_for_events(peer_dev);
++}
++
++/**
++ * ice_peer_unreg_for_notif - unreg a peer from receiving certain notifications
++ * @peer_dev: peer that is unregistering from event notifications
++ * @events: mask of event types peer is unregistering for
++ */
++static void
++ice_peer_unreg_for_notif(struct iidc_peer_dev *peer_dev,
++			 struct iidc_event *events)
++{
++	struct ice_peer_dev_int *peer_dev_int;
++
++	if (!ice_validate_peer_dev(peer_dev) || !events)
++		return;
++
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++
++	bitmap_andnot(peer_dev_int->events, peer_dev_int->events, events->type,
++		      IIDC_EVENT_NBITS);
++}
++
++/**
++ * ice_peer_check_for_reg - check to see if any peers are reg'd for event
++ * @peer_dev_int: ptr to peer device internal struct
++ * @data: ptr to opaque data, to be used for ice_event to report
++ *
++ * This function is to be called by device_for_each_child to handle an
++ * event reported by a peer or the ice driver.
++ */
++int ice_peer_check_for_reg(struct ice_peer_dev_int *peer_dev_int, void *data)
++{
++	struct iidc_event *event = (struct iidc_event *)data;
++	DECLARE_BITMAP(comp_events, IIDC_EVENT_NBITS);
++	struct iidc_peer_dev *peer_dev;
++	bool check = true;
++
++	peer_dev = &peer_dev_int->peer_dev;
++
++	if (!ice_validate_peer_dev(peer_dev) || !data)
++	/* If invalid dev, in this case return 0 instead of error
++	 * because caller ignores this return value
++	 */
++		return 0;
++
++	if (event->reporter)
++		check = event->reporter->peer_dev_id != peer_dev->peer_dev_id;
++
++	if (bitmap_and(comp_events, event->type, peer_dev_int->events,
++		       IIDC_EVENT_NBITS) &&
++	    (test_bit(ICE_PEER_DEV_STATE_OPENED, peer_dev_int->state) ||
++	     test_bit(ICE_PEER_DEV_STATE_PREP_RST, peer_dev_int->state) ||
++	     test_bit(ICE_PEER_DEV_STATE_PREPPED, peer_dev_int->state)) &&
++	    check &&
++	    peer_dev->peer_ops->event_handler)
++		peer_dev->peer_ops->event_handler(peer_dev, event);
++
++	return 0;
++}
++
++/**
++ * ice_peer_report_state_change - accept report of a peer state change
++ * @peer_dev: peer that is sending notification about state change
++ * @event: ice_event holding info on what the state change is
++ *
++ * We also need to parse the list of peers to see if anyone is registered
++ * for notifications about this state change event, and if so, notify them.
++ */
++static void
++ice_peer_report_state_change(struct iidc_peer_dev *peer_dev,
++			     struct iidc_event *event)
++{
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_peer_drv_int *peer_drv_int;
++	int e_type, drv_event = 0;
++	struct ice_pf *pf;
++
++	if (!ice_validate_peer_dev(peer_dev) || !event)
++		return;
++
++	pf = pci_get_drvdata(peer_dev->pdev);
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	peer_drv_int = peer_dev_int->peer_drv_int;
++
++	e_type = find_first_bit(event->type, IIDC_EVENT_NBITS);
++	if (!e_type)
++		return;
++
++	switch (e_type) {
++	/* Check for peer_drv events */
++	case IIDC_EVENT_MBX_CHANGE:
++		drv_event = 1;
++		if (event->info.mbx_rdy)
++			set_bit(ICE_PEER_DRV_STATE_MBX_RDY,
++				peer_drv_int->state);
++		else
++			clear_bit(ICE_PEER_DRV_STATE_MBX_RDY,
++				  peer_drv_int->state);
++		break;
++
++	/* Check for peer_dev events */
++	case IIDC_EVENT_API_CHANGE:
++		if (event->info.api_rdy)
++			set_bit(ICE_PEER_DEV_STATE_API_RDY,
++				peer_dev_int->state);
++		else
++			clear_bit(ICE_PEER_DEV_STATE_API_RDY,
++				  peer_dev_int->state);
++		break;
++
++	default:
++		return;
++	}
++
++	/* store the event and state to notify any new peers opening */
++	if (drv_event)
++		memcpy(&peer_drv_int->current_events[e_type], event,
++		       sizeof(*event));
++	else
++		memcpy(&peer_dev_int->current_events[e_type], event,
++		       sizeof(*event));
++
++	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
++}
++
+ /**
+  * ice_peer_unregister - request to unregister peer
+  * @peer_dev: peer device
+@@ -754,6 +972,9 @@ ice_peer_update_vsi_filter(struct iidc_peer_dev *peer_dev,
+ static const struct iidc_ops ops = {
+ 	.alloc_res			= ice_peer_alloc_res,
+ 	.free_res			= ice_peer_free_res,
++	.reg_for_notification		= ice_peer_reg_for_notif,
++	.unreg_for_notification		= ice_peer_unreg_for_notif,
++	.notify_state_change		= ice_peer_report_state_change,
+ 	.peer_register			= ice_peer_register,
+ 	.peer_unregister		= ice_peer_unregister,
+ 	.update_vsi_filter		= ice_peer_update_vsi_filter,
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+index d22e6f5bb50e..1d3d5cafc977 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
++++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+@@ -66,6 +66,7 @@ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data);
++int ice_peer_check_for_reg(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int
+ ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
  
- /* Create MODULE_ALIAS() statements.
+diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
+index f373d5041632..0649b951d693 100644
+--- a/drivers/net/ethernet/intel/ice/ice_main.c
++++ b/drivers/net/ethernet/intel/ice/ice_main.c
+@@ -4861,7 +4861,9 @@ static int ice_change_mtu(struct net_device *netdev, int new_mtu)
+ 	struct ice_netdev_priv *np = netdev_priv(netdev);
+ 	struct ice_vsi *vsi = np->vsi;
+ 	struct ice_pf *pf = vsi->back;
++	struct iidc_event *event;
+ 	u8 count = 0;
++	int err = 0;
+ 
+ 	if (new_mtu == netdev->mtu) {
+ 		netdev_warn(netdev, "MTU is already %u\n", netdev->mtu);
+@@ -4903,27 +4905,40 @@ static int ice_change_mtu(struct net_device *netdev, int new_mtu)
+ 		return -EBUSY;
+ 	}
+ 
++	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	if (!event)
++		return -ENOMEM;
++
+ 	netdev->mtu = new_mtu;
+ 
+ 	/* if VSI is up, bring it down and then back up */
+ 	if (!test_and_set_bit(__ICE_DOWN, vsi->state)) {
+-		int err;
+-
+ 		err = ice_down(vsi);
+ 		if (err) {
+-			netdev_err(netdev, "change MTU if_up err %d\n", err);
+-			return err;
++			netdev_err(netdev, "change MTU if_down err %d\n", err);
++			goto free_event;
+ 		}
+ 
+ 		err = ice_up(vsi);
+ 		if (err) {
+ 			netdev_err(netdev, "change MTU if_up err %d\n", err);
+-			return err;
++			goto free_event;
+ 		}
+ 	}
+ 
++	if (ice_is_safe_mode(pf))
++		goto out;
++
++	set_bit(IIDC_EVENT_MTU_CHANGE, event->type);
++	event->reporter = NULL;
++	event->info.mtu = new_mtu;
++	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
++
++out:
+ 	netdev_dbg(netdev, "changed MTU to %d\n", new_mtu);
+-	return 0;
++free_event:
++	kfree(event);
++	return err;
+ }
+ 
+ /**
 -- 
 2.25.3
 
