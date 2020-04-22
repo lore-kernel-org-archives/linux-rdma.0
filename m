@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74938C55186
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0D07C5518A
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A89F206D6
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9861E206B9
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726551AbgDVIkT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726544AbgDVIkT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 22 Apr 2020 04:40:19 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:52230 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:52262 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726537AbgDVIkF (ORCPT
+        with ESMTP id S1726551AbgDVIkF (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:05 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:40:00 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgk006118;
-        Wed, 22 Apr 2020 11:39:59 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgo006118;
+        Wed, 22 Apr 2020 11:40:00 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next mlx5-next 08/15] bonding: Add array of all slaves
-Date:   Wed, 22 Apr 2020 11:39:44 +0300
-Message-Id: <20200422083951.17424-9-maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next 12/15] net/mlx5: Change lag mutex lock to spin lock
+Date:   Wed, 22 Apr 2020 11:39:48 +0300
+Message-Id: <20200422083951.17424-13-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
 References: <20200422083951.17424-1-maorg@mellanox.com>
@@ -42,185 +42,177 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Keep all slaves in array so it could be used to get the xmit slave
-assume all the slaves are active.
-The logic to add slave to the array is like the usable slaves, except
-that we also add slaves that currently can't transmit - not up or active.
+The lag lock could be a mutex, the critical section is short
+and there is no need that the thread will sleep.
+Change the lock that protects the LAG structure from mutex
+to spin lock. It is required for next patch that need to
+access this structure from context that we can't sleep.
+In addition there is no need to hold this lock when query the
+congestion counters.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Jiri Pirko <jiri@mellanox.com>
-Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/bonding/bond_main.c | 78 +++++++++++++++++++++++++--------
- include/net/bonding.h           |  3 +-
- 2 files changed, 61 insertions(+), 20 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lag.c | 42 +++++++++----------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 1b0ae750d732..2de693f0262e 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -4120,6 +4120,38 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+index 93052b07c76c..496a3408d771 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+@@ -42,7 +42,7 @@
+  * Beware of lock dependencies (preferably, no locks should be acquired
+  * under it).
+  */
+-static DEFINE_MUTEX(lag_mutex);
++static DEFINE_SPINLOCK(lag_lock);
+ 
+ static int mlx5_cmd_create_lag(struct mlx5_core_dev *dev, u8 remap_port1,
+ 			       u8 remap_port2)
+@@ -297,9 +297,9 @@ static void mlx5_do_bond(struct mlx5_lag *ldev)
+ 	if (!dev0 || !dev1)
+ 		return;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	tracker = ldev->tracker;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	do_bond = tracker.is_bonded && mlx5_lag_check_prereq(ldev);
+ 
+@@ -481,9 +481,9 @@ static int mlx5_lag_netdev_event(struct notifier_block *this,
+ 		break;
  	}
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev->tracker = tracker;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	if (changed)
+ 		mlx5_queue_bond_work(ldev, 0);
+@@ -525,7 +525,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
+ 	if (fn >= MLX5_MAX_PORTS)
+ 		return;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev->pf[fn].dev    = dev;
+ 	ldev->pf[fn].netdev = netdev;
+ 	ldev->tracker.netdev_state[fn].link_up = 0;
+@@ -533,7 +533,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
+ 
+ 	dev->priv.lag = ldev;
+ 
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
  }
  
-+static void bond_set_slave_arr(struct bonding *bond,
-+			       struct bond_up_slave *usable_slaves,
-+			       struct bond_up_slave *all_slaves)
-+{
-+	struct bond_up_slave *usable, *all;
-+
-+	usable = rtnl_dereference(bond->usable_slaves);
-+	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
-+	kfree_rcu(usable, rcu);
-+
-+	all = rtnl_dereference(bond->all_slaves);
-+	rcu_assign_pointer(bond->all_slaves, all_slaves);
-+	kfree_rcu(all, rcu);
-+}
-+
-+static void bond_reset_slave_arr(struct bonding *bond)
-+{
-+	struct bond_up_slave *usable, *all;
-+
-+	usable = rtnl_dereference(bond->usable_slaves);
-+	if (usable) {
-+		RCU_INIT_POINTER(bond->usable_slaves, NULL);
-+		kfree_rcu(usable, rcu);
-+	}
-+
-+	all = rtnl_dereference(bond->all_slaves);
-+	if (all) {
-+		RCU_INIT_POINTER(bond->all_slaves, NULL);
-+		kfree_rcu(all, rcu);
-+	}
-+}
-+
- /* Build the usable slaves array in control path for modes that use xmit-hash
-  * to determine the slave interface -
-  * (a) BOND_MODE_8023AD
-@@ -4130,7 +4162,7 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
-  */
- int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
- {
--	struct bond_up_slave *usable_slaves, *old_usable_slaves;
-+	struct bond_up_slave *usable_slaves = NULL, *all_slaves = NULL;
- 	struct slave *slave;
- 	struct list_head *iter;
- 	int agg_id = 0;
-@@ -4142,7 +4174,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
+@@ -548,11 +548,11 @@ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
+ 	if (i == MLX5_MAX_PORTS)
+ 		return;
  
- 	usable_slaves = kzalloc(struct_size(usable_slaves, arr,
- 					    bond->slave_cnt), GFP_KERNEL);
--	if (!usable_slaves) {
-+	all_slaves = kzalloc(struct_size(all_slaves, arr,
-+					 bond->slave_cnt), GFP_KERNEL);
-+	if (!usable_slaves || !all_slaves) {
- 		ret = -ENOMEM;
- 		goto out;
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	memset(&ldev->pf[i], 0, sizeof(*ldev->pf));
+ 
+ 	dev->priv.lag = NULL;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ }
+ 
+ /* Must be called with intf_mutex held */
+@@ -630,10 +630,10 @@ bool mlx5_lag_is_roce(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_roce(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -644,10 +644,10 @@ bool mlx5_lag_is_active(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_active(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -658,10 +658,10 @@ bool mlx5_lag_is_sriov(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_sriov(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -687,7 +687,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+ 	struct net_device *ndev = NULL;
+ 	struct mlx5_lag *ldev;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 
+ 	if (!(ldev && __mlx5_lag_is_roce(ldev)))
+@@ -704,7 +704,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+ 		dev_hold(ndev);
+ 
+ unlock:
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return ndev;
+ }
+@@ -746,7 +746,7 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
+ 
+ 	memset(values, 0, sizeof(*values) * num_counters);
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	if (ldev && __mlx5_lag_is_roce(ldev)) {
+ 		num_ports = MLX5_MAX_PORTS;
+@@ -756,18 +756,18 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
+ 		num_ports = 1;
+ 		mdev[MLX5_LAG_P1] = dev;
  	}
-@@ -4151,20 +4185,19 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
++	spin_unlock(&lag_lock);
  
- 		if (bond_3ad_get_active_agg_info(bond, &ad_info)) {
- 			pr_debug("bond_3ad_get_active_agg_info failed\n");
--			kfree_rcu(usable_slaves, rcu);
- 			/* No active aggragator means it's not safe to use
- 			 * the previous array.
- 			 */
--			old_usable_slaves = rtnl_dereference(bond->usable_slaves);
--			if (old_usable_slaves) {
--				RCU_INIT_POINTER(bond->usable_slaves, NULL);
--				kfree_rcu(old_usable_slaves, rcu);
--			}
-+			bond_reset_slave_arr(bond);
- 			goto out;
- 		}
- 		agg_id = ad_info.aggregator_id;
- 	}
- 	bond_for_each_slave(bond, slave, iter) {
-+		if (skipslave == slave)
-+			continue;
-+
-+		all_slaves->arr[all_slaves->count++] = slave;
- 		if (BOND_MODE(bond) == BOND_MODE_8023AD) {
- 			struct aggregator *agg;
+ 	for (i = 0; i < num_ports; ++i) {
+ 		ret = mlx5_cmd_query_cong_counter(mdev[i], false, out, outlen);
+ 		if (ret)
+-			goto unlock;
++			goto free;
  
-@@ -4174,8 +4207,6 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
- 		}
- 		if (!bond_slave_can_tx(slave))
- 			continue;
--		if (skipslave == slave)
--			continue;
- 
- 		slave_dbg(bond->dev, slave->dev, "Adding slave to tx hash array[%d]\n",
- 			  usable_slaves->count);
-@@ -4183,14 +4214,17 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
- 		usable_slaves->arr[usable_slaves->count++] = slave;
+ 		for (j = 0; j < num_counters; ++j)
+ 			values[j] += be64_to_cpup((__be64 *)(out + offsets[j]));
  	}
  
--	old_usable_slaves = rtnl_dereference(bond->usable_slaves);
--	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
--	if (old_usable_slaves)
--		kfree_rcu(old_usable_slaves, rcu);
-+	bond_set_slave_arr(bond, usable_slaves, all_slaves);
-+	return ret;
- out:
--	if (ret != 0 && skipslave)
-+	if (ret != 0 && skipslave) {
-+		bond_skip_slave(rtnl_dereference(bond->all_slaves),
-+				skipslave);
- 		bond_skip_slave(rtnl_dereference(bond->usable_slaves),
- 				skipslave);
-+	}
-+	kfree_rcu(all_slaves, rcu);
-+	kfree_rcu(usable_slaves, rcu);
- 
+-unlock:
+-	mutex_unlock(&lag_mutex);
++free:
+ 	kvfree(out);
  	return ret;
  }
-@@ -4501,9 +4535,9 @@ void bond_setup(struct net_device *bond_dev)
- static void bond_uninit(struct net_device *bond_dev)
- {
- 	struct bonding *bond = netdev_priv(bond_dev);
-+	struct bond_up_slave *usable, *all;
- 	struct list_head *iter;
- 	struct slave *slave;
--	struct bond_up_slave *arr;
- 
- 	bond_netpoll_cleanup(bond_dev);
- 
-@@ -4512,10 +4546,16 @@ static void bond_uninit(struct net_device *bond_dev)
- 		__bond_release_one(bond_dev, slave->dev, true, true);
- 	netdev_info(bond_dev, "Released all slaves\n");
- 
--	arr = rtnl_dereference(bond->usable_slaves);
--	if (arr) {
-+	usable = rtnl_dereference(bond->usable_slaves);
-+	if (usable) {
- 		RCU_INIT_POINTER(bond->usable_slaves, NULL);
--		kfree_rcu(arr, rcu);
-+		kfree_rcu(usable, rcu);
-+	}
-+
-+	all = rtnl_dereference(bond->all_slaves);
-+	if (all) {
-+		RCU_INIT_POINTER(bond->all_slaves, NULL);
-+		kfree_rcu(all, rcu);
- 	}
- 
- 	list_del(&bond->bond_list);
-diff --git a/include/net/bonding.h b/include/net/bonding.h
-index 33bdb6d5182d..b5e49bedbc9f 100644
---- a/include/net/bonding.h
-+++ b/include/net/bonding.h
-@@ -200,7 +200,8 @@ struct bonding {
- 	struct   slave __rcu *curr_active_slave;
- 	struct   slave __rcu *current_arp_slave;
- 	struct   slave __rcu *primary_slave;
--	struct   bond_up_slave __rcu *usable_slaves; /* Array of usable slaves */
-+	struct   bond_up_slave __rcu *usable_slaves;
-+	struct   bond_up_slave __rcu *all_slaves;
- 	bool     force_primary;
- 	s32      slave_cnt; /* never change this value outside the attach/detach wrappers */
- 	int     (*recv_probe)(const struct sk_buff *, struct bonding *,
 -- 
 2.17.2
 
