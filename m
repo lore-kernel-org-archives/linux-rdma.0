@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8426C55189
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74938C55186
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1F98206B9
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A89F206D6
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726500AbgDVIkE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Apr 2020 04:40:04 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:52174 "EHLO
+        id S1726551AbgDVIkT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Apr 2020 04:40:19 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:52230 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726523AbgDVIkE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:04 -0400
+        with ESMTP id S1726537AbgDVIkF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:05 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:39:59 +0300
+        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:40:00 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxge006118;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgk006118;
         Wed, 22 Apr 2020 11:39:59 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next 02/15] bonding: Export skip slave logic to function
-Date:   Wed, 22 Apr 2020 11:39:38 +0300
-Message-Id: <20200422083951.17424-3-maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next mlx5-next 08/15] bonding: Add array of all slaves
+Date:   Wed, 22 Apr 2020 11:39:44 +0300
+Message-Id: <20200422083951.17424-9-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
 References: <20200422083951.17424-1-maorg@mellanox.com>
@@ -42,81 +42,185 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-As a preparation for following change that add array of
-all slaves, extract code that skip slave to function.
+Keep all slaves in array so it could be used to get the xmit slave
+assume all the slaves are active.
+The logic to add slave to the array is like the usable slaves, except
+that we also add slaves that currently can't transmit - not up or active.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Reviewed-by: Jiri Pirko <jiri@mellanox.com>
 Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/net/bonding/bond_main.c | 47 ++++++++++++++++++---------------
- 1 file changed, 26 insertions(+), 21 deletions(-)
+ drivers/net/bonding/bond_main.c | 78 +++++++++++++++++++++++++--------
+ include/net/bonding.h           |  3 +-
+ 2 files changed, 61 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 2e70e43c5df5..f7aded014f08 100644
+index 1b0ae750d732..2de693f0262e 100644
 --- a/drivers/net/bonding/bond_main.c
 +++ b/drivers/net/bonding/bond_main.c
-@@ -4087,6 +4087,29 @@ static void bond_slave_arr_handler(struct work_struct *work)
- 	bond_slave_arr_work_rearm(bond, 1);
+@@ -4120,6 +4120,38 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
+ 	}
  }
  
-+static void bond_skip_slave(struct bond_up_slave *slaves,
-+			    struct slave *skipslave)
++static void bond_set_slave_arr(struct bonding *bond,
++			       struct bond_up_slave *usable_slaves,
++			       struct bond_up_slave *all_slaves)
 +{
-+	int idx;
++	struct bond_up_slave *usable, *all;
 +
-+	/* Rare situation where caller has asked to skip a specific
-+	 * slave but allocation failed (most likely!). BTW this is
-+	 * only possible when the call is initiated from
-+	 * __bond_release_one(). In this situation; overwrite the
-+	 * skipslave entry in the array with the last entry from the
-+	 * array to avoid a situation where the xmit path may choose
-+	 * this to-be-skipped slave to send a packet out.
-+	 */
-+	for (idx = 0; slaves && idx < slaves->count; idx++) {
-+		if (skipslave == slaves->arr[idx]) {
-+			slaves->arr[idx] =
-+				slaves->arr[slaves->count - 1];
-+			slaves->count--;
-+			break;
-+		}
++	usable = rtnl_dereference(bond->usable_slaves);
++	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
++	kfree_rcu(usable, rcu);
++
++	all = rtnl_dereference(bond->all_slaves);
++	rcu_assign_pointer(bond->all_slaves, all_slaves);
++	kfree_rcu(all, rcu);
++}
++
++static void bond_reset_slave_arr(struct bonding *bond)
++{
++	struct bond_up_slave *usable, *all;
++
++	usable = rtnl_dereference(bond->usable_slaves);
++	if (usable) {
++		RCU_INIT_POINTER(bond->usable_slaves, NULL);
++		kfree_rcu(usable, rcu);
++	}
++
++	all = rtnl_dereference(bond->all_slaves);
++	if (all) {
++		RCU_INIT_POINTER(bond->all_slaves, NULL);
++		kfree_rcu(all, rcu);
 +	}
 +}
 +
  /* Build the usable slaves array in control path for modes that use xmit-hash
   * to determine the slave interface -
   * (a) BOND_MODE_8023AD
-@@ -4156,27 +4179,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
- 	if (old_arr)
- 		kfree_rcu(old_arr, rcu);
- out:
--	if (ret != 0 && skipslave) {
--		int idx;
--
--		/* Rare situation where caller has asked to skip a specific
--		 * slave but allocation failed (most likely!). BTW this is
--		 * only possible when the call is initiated from
--		 * __bond_release_one(). In this situation; overwrite the
--		 * skipslave entry in the array with the last entry from the
--		 * array to avoid a situation where the xmit path may choose
--		 * this to-be-skipped slave to send a packet out.
--		 */
--		old_arr = rtnl_dereference(bond->slave_arr);
--		for (idx = 0; old_arr != NULL && idx < old_arr->count; idx++) {
--			if (skipslave == old_arr->arr[idx]) {
--				old_arr->arr[idx] =
--				    old_arr->arr[old_arr->count-1];
--				old_arr->count--;
--				break;
+@@ -4130,7 +4162,7 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
+  */
+ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ {
+-	struct bond_up_slave *usable_slaves, *old_usable_slaves;
++	struct bond_up_slave *usable_slaves = NULL, *all_slaves = NULL;
+ 	struct slave *slave;
+ 	struct list_head *iter;
+ 	int agg_id = 0;
+@@ -4142,7 +4174,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 
+ 	usable_slaves = kzalloc(struct_size(usable_slaves, arr,
+ 					    bond->slave_cnt), GFP_KERNEL);
+-	if (!usable_slaves) {
++	all_slaves = kzalloc(struct_size(all_slaves, arr,
++					 bond->slave_cnt), GFP_KERNEL);
++	if (!usable_slaves || !all_slaves) {
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
+@@ -4151,20 +4185,19 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 
+ 		if (bond_3ad_get_active_agg_info(bond, &ad_info)) {
+ 			pr_debug("bond_3ad_get_active_agg_info failed\n");
+-			kfree_rcu(usable_slaves, rcu);
+ 			/* No active aggragator means it's not safe to use
+ 			 * the previous array.
+ 			 */
+-			old_usable_slaves = rtnl_dereference(bond->usable_slaves);
+-			if (old_usable_slaves) {
+-				RCU_INIT_POINTER(bond->usable_slaves, NULL);
+-				kfree_rcu(old_usable_slaves, rcu);
 -			}
--		}
--	}
-+	if (ret != 0 && skipslave)
-+		bond_skip_slave(rtnl_dereference(bond->slave_arr), skipslave);
++			bond_reset_slave_arr(bond);
+ 			goto out;
+ 		}
+ 		agg_id = ad_info.aggregator_id;
+ 	}
+ 	bond_for_each_slave(bond, slave, iter) {
++		if (skipslave == slave)
++			continue;
 +
++		all_slaves->arr[all_slaves->count++] = slave;
+ 		if (BOND_MODE(bond) == BOND_MODE_8023AD) {
+ 			struct aggregator *agg;
+ 
+@@ -4174,8 +4207,6 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 		}
+ 		if (!bond_slave_can_tx(slave))
+ 			continue;
+-		if (skipslave == slave)
+-			continue;
+ 
+ 		slave_dbg(bond->dev, slave->dev, "Adding slave to tx hash array[%d]\n",
+ 			  usable_slaves->count);
+@@ -4183,14 +4214,17 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 		usable_slaves->arr[usable_slaves->count++] = slave;
+ 	}
+ 
+-	old_usable_slaves = rtnl_dereference(bond->usable_slaves);
+-	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
+-	if (old_usable_slaves)
+-		kfree_rcu(old_usable_slaves, rcu);
++	bond_set_slave_arr(bond, usable_slaves, all_slaves);
++	return ret;
+ out:
+-	if (ret != 0 && skipslave)
++	if (ret != 0 && skipslave) {
++		bond_skip_slave(rtnl_dereference(bond->all_slaves),
++				skipslave);
+ 		bond_skip_slave(rtnl_dereference(bond->usable_slaves),
+ 				skipslave);
++	}
++	kfree_rcu(all_slaves, rcu);
++	kfree_rcu(usable_slaves, rcu);
+ 
  	return ret;
  }
+@@ -4501,9 +4535,9 @@ void bond_setup(struct net_device *bond_dev)
+ static void bond_uninit(struct net_device *bond_dev)
+ {
+ 	struct bonding *bond = netdev_priv(bond_dev);
++	struct bond_up_slave *usable, *all;
+ 	struct list_head *iter;
+ 	struct slave *slave;
+-	struct bond_up_slave *arr;
  
+ 	bond_netpoll_cleanup(bond_dev);
+ 
+@@ -4512,10 +4546,16 @@ static void bond_uninit(struct net_device *bond_dev)
+ 		__bond_release_one(bond_dev, slave->dev, true, true);
+ 	netdev_info(bond_dev, "Released all slaves\n");
+ 
+-	arr = rtnl_dereference(bond->usable_slaves);
+-	if (arr) {
++	usable = rtnl_dereference(bond->usable_slaves);
++	if (usable) {
+ 		RCU_INIT_POINTER(bond->usable_slaves, NULL);
+-		kfree_rcu(arr, rcu);
++		kfree_rcu(usable, rcu);
++	}
++
++	all = rtnl_dereference(bond->all_slaves);
++	if (all) {
++		RCU_INIT_POINTER(bond->all_slaves, NULL);
++		kfree_rcu(all, rcu);
+ 	}
+ 
+ 	list_del(&bond->bond_list);
+diff --git a/include/net/bonding.h b/include/net/bonding.h
+index 33bdb6d5182d..b5e49bedbc9f 100644
+--- a/include/net/bonding.h
++++ b/include/net/bonding.h
+@@ -200,7 +200,8 @@ struct bonding {
+ 	struct   slave __rcu *curr_active_slave;
+ 	struct   slave __rcu *current_arp_slave;
+ 	struct   slave __rcu *primary_slave;
+-	struct   bond_up_slave __rcu *usable_slaves; /* Array of usable slaves */
++	struct   bond_up_slave __rcu *usable_slaves;
++	struct   bond_up_slave __rcu *all_slaves;
+ 	bool     force_primary;
+ 	s32      slave_cnt; /* never change this value outside the attach/detach wrappers */
+ 	int     (*recv_probe)(const struct sk_buff *, struct bonding *,
 -- 
 2.17.2
 
