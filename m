@@ -4,25 +4,25 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0190C55189
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35DA1C5518A
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D42AF206B9
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19C9C206D6
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726154AbgDVIkE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726576AbgDVIkE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 22 Apr 2020 04:40:04 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36683 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36687 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726500AbgDVIkD (ORCPT
+        with ESMTP id S1726505AbgDVIkD (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:03 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:40:00 +0300
+        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:39:59 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgl006118;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgd006118;
         Wed, 22 Apr 2020 11:39:59 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next mlx5-next 09/15] bonding: Implement ndo_get_xmit_slave
-Date:   Wed, 22 Apr 2020 11:39:45 +0300
-Message-Id: <20200422083951.17424-10-maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next 01/15] net/core: Introduce netdev_get_xmit_slave
+Date:   Wed, 22 Apr 2020 11:39:37 +0300
+Message-Id: <20200422083951.17424-2-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
 References: <20200422083951.17424-1-maorg@mellanox.com>
@@ -42,78 +42,83 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add implementation of ndo_get_xmit_slave. The .ndo call to the helper
-function according to the bond mode and return the xmit slave. If the
-caller set all_slaves to true, then we search for the slave assume all
-slaves are available to transmit.
+Add new ndo to get the xmit slave of master device.
+Caller should call dev_put() when it no longer works with
+slave netdevice.
+User can ask to get the xmit slave assume all the slaves can
+transmit by set all_slaves arg to true.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/net/bonding/bond_main.c | 43 +++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ include/linux/netdevice.h |  6 ++++++
+ net/core/dev.c            | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+)
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 2de693f0262e..39b1ad7edbb4 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -4347,6 +4347,48 @@ static u16 bond_select_queue(struct net_device *dev, struct sk_buff *skb,
- 	return txq;
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 130a668049ab..d1206f08e099 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -1389,6 +1389,9 @@ struct net_device_ops {
+ 						 struct netlink_ext_ack *extack);
+ 	int			(*ndo_del_slave)(struct net_device *dev,
+ 						 struct net_device *slave_dev);
++	struct net_device*	(*ndo_get_xmit_slave)(struct net_device *dev,
++						      struct sk_buff *skb,
++						      bool all_slaves);
+ 	netdev_features_t	(*ndo_fix_features)(struct net_device *dev,
+ 						    netdev_features_t features);
+ 	int			(*ndo_set_features)(struct net_device *dev,
+@@ -2731,6 +2734,9 @@ void netdev_freemem(struct net_device *dev);
+ void synchronize_net(void);
+ int init_dummy_netdev(struct net_device *dev);
+ 
++struct net_device *netdev_get_xmit_slave(struct net_device *dev,
++					 struct sk_buff *skb,
++					 bool all_slaves);
+ struct net_device *dev_get_by_index(struct net *net, int ifindex);
+ struct net_device *__dev_get_by_index(struct net *net, int ifindex);
+ struct net_device *dev_get_by_index_rcu(struct net *net, int ifindex);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 9c9e763bfe0e..294553551ba5 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -7785,6 +7785,36 @@ void netdev_bonding_info_change(struct net_device *dev,
  }
+ EXPORT_SYMBOL(netdev_bonding_info_change);
  
-+static struct net_device *bond_xmit_get_slave(struct net_device *master_dev,
-+					      struct sk_buff *skb,
-+					      bool all_slaves)
++/**
++ * netdev_get_xmit_slave - Get the xmit slave of master device
++ * @skb: The packet
++ * @all_slaves: assume all the slaves are active
++ *
++ * This can be called from any context and does its own locking.
++ * The returned handle has the usage count incremented and the caller must
++ * use dev_put() to release it when it is no longer needed.
++ * %NULL is returned if no slave is found.
++ */
++
++struct net_device *netdev_get_xmit_slave(struct net_device *dev,
++					 struct sk_buff *skb,
++					 bool all_slaves)
 +{
-+	struct bonding *bond = netdev_priv(master_dev);
-+	struct bond_up_slave *slaves;
-+	struct slave *slave = NULL;
++	const struct net_device_ops *ops = dev->netdev_ops;
++	struct net_device *slave_dev;
 +
-+	switch (BOND_MODE(bond)) {
-+	case BOND_MODE_ROUNDROBIN:
-+		slave = bond_xmit_roundrobin_slave_get(bond, skb);
-+		break;
-+	case BOND_MODE_ACTIVEBACKUP:
-+		slave = bond_xmit_activebackup_slave_get(bond, skb);
-+		break;
-+	case BOND_MODE_8023AD:
-+	case BOND_MODE_XOR:
-+		if (all_slaves)
-+			slaves = rcu_dereference(bond->all_slaves);
-+		else
-+			slaves = rcu_dereference(bond->usable_slaves);
-+		slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
-+		break;
-+	case BOND_MODE_BROADCAST:
-+		break;
-+	case BOND_MODE_ALB:
-+		slave = bond_xmit_alb_slave_get(bond, skb);
-+		break;
-+	case BOND_MODE_TLB:
-+		slave = bond_xmit_tlb_slave_get(bond, skb);
-+		break;
-+	default:
-+		/* Should never happen, mode already checked */
-+		WARN_ONCE(true, "Unknown bonding mode");
-+		break;
-+	}
++	if (!ops->ndo_get_xmit_slave)
++		return NULL;
 +
-+	if (slave)
-+		return slave->dev;
-+	return NULL;
++	rcu_read_lock();
++	slave_dev = ops->ndo_get_xmit_slave(dev, skb, all_slaves);
++	if (slave_dev)
++		dev_hold(slave_dev);
++	rcu_read_unlock();
++	return slave_dev;
 +}
++EXPORT_SYMBOL(netdev_get_xmit_slave);
 +
- static netdev_tx_t __bond_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ static void netdev_adjacent_add_links(struct net_device *dev)
  {
- 	struct bonding *bond = netdev_priv(dev);
-@@ -4468,6 +4510,7 @@ static const struct net_device_ops bond_netdev_ops = {
- 	.ndo_del_slave		= bond_release,
- 	.ndo_fix_features	= bond_fix_features,
- 	.ndo_features_check	= passthru_features_check,
-+	.ndo_get_xmit_slave	= bond_xmit_get_slave,
- };
- 
- static const struct device_type bond_type = {
+ 	struct netdev_adjacent *iter;
 -- 
 2.17.2
 
