@@ -2,84 +2,120 @@ Return-Path: <SRS0=nnSp=6G=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF237C55186
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96283C55186
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:46:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF3D8206B9
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73356206E9
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:46:50 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="GqCB+HS5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726685AbgDVIkl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Apr 2020 04:40:41 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36691 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726082AbgDVIkD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:03 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:39:59 +0300
-Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgj006118;
-        Wed, 22 Apr 2020 11:39:59 +0300
-From:   Maor Gottlieb <maorg@mellanox.com>
-To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
-        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
-        kuba@kernel.org, jiri@mellanox.com, dsahern@kernel.org
-Cc:     leonro@mellanox.com, saeedm@mellanox.com,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next 07/15] bonding: Add function to get the xmit slave in active-backup mode
-Date:   Wed, 22 Apr 2020 11:39:43 +0300
-Message-Id: <20200422083951.17424-8-maorg@mellanox.com>
-X-Mailer: git-send-email 2.17.2
-In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
-References: <20200422083951.17424-1-maorg@mellanox.com>
+        id S1726445AbgDVIqt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Apr 2020 04:46:49 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:34578 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725961AbgDVIqr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:46:47 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03M8gRIN189273;
+        Wed, 22 Apr 2020 08:46:42 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
+ bh=+g/izlnTjzflxOQriADQ2+sU3bekL66zAkV05lgW/Go=;
+ b=GqCB+HS5rB+nRtgSnIK72ZSzLV7ktQvOft4r2lZNyfR3aNhv4r/qeXcwd0KbYLbxh6Da
+ PWVXyuDSR/3kP3OpENCz5EG9SBIOtfEISnbkk6oFH58A8cugN+wyD3OtSal2WYyCcrBO
+ OkLsL+Z7DgiAu5qK+QK87pkFMp60RuxzhZN3IdGQu6/q8uYj6Eigh088lIJYai6N4Eid
+ 2t4laNLg3JpXkKKWcOs4tbysL1L0xSAnjaHV1X8rk518uWfqtaW77hXnWKcHlQJaK4qd
+ EuRxLiTMwQLZY4/9PBNHs+Ow0/vhJShbCoBg3tv4PG8WYRRmvc85CkUxOjrscoc6N1DF Jg== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by userp2130.oracle.com with ESMTP id 30grpgnwy7-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 22 Apr 2020 08:46:41 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03M8fcil137316;
+        Wed, 22 Apr 2020 08:46:41 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by aserp3030.oracle.com with ESMTP id 30gb3tju2a-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 22 Apr 2020 08:46:41 +0000
+Received: from abhmp0015.oracle.com (abhmp0015.oracle.com [141.146.116.21])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 03M8ke2L014002;
+        Wed, 22 Apr 2020 08:46:40 GMT
+Received: from mwanda (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Wed, 22 Apr 2020 01:46:40 -0700
+Date:   Wed, 22 Apr 2020 11:46:34 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     raeds@mellanox.com
+Cc:     Boris Pismenny <borisp@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [bug report] net/mlx5: IPsec, Refactor SA handle creation and
+ destruction
+Message-ID: <20200422084634.GA190201@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9598 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 spamscore=0 adultscore=0
+ mlxlogscore=702 phishscore=0 suspectscore=3 bulkscore=0 mlxscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2004220070
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9598 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=733 mlxscore=0
+ lowpriorityscore=0 adultscore=0 suspectscore=3 bulkscore=0 clxscore=1011
+ malwarescore=0 phishscore=0 spamscore=0 priorityscore=1501 impostorscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2004220070
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add helper function to get the xmit slave in active-backup mode.
-It's only one line function that return the curr_active_slave,
-but it will used both in the xmit flow and by the new .ndo to get
-the xmit slave.
+Hello Raed Salem,
 
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Jiri Pirko <jiri@mellanox.com>
-Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
----
- drivers/net/bonding/bond_main.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+The patch 7dfee4b1d79e: "net/mlx5: IPsec, Refactor SA handle creation
+and destruction" from Oct 23, 2019, leads to the following static
+checker warning:
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 09c8485e965d..1b0ae750d732 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -4042,6 +4042,12 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
- 	return NETDEV_TX_OK;
- }
- 
-+static struct slave *bond_xmit_activebackup_slave_get(struct bonding *bond,
-+						      struct sk_buff *skb)
-+{
-+	return rcu_dereference(bond->curr_active_slave);
-+}
-+
- /* In active-backup mode, we know that bond->curr_active_slave is always valid if
-  * the bond has a usable interface.
-  */
-@@ -4051,7 +4057,7 @@ static netdev_tx_t bond_xmit_activebackup(struct sk_buff *skb,
- 	struct bonding *bond = netdev_priv(bond_dev);
- 	struct slave *slave;
- 
--	slave = rcu_dereference(bond->curr_active_slave);
-+	slave = bond_xmit_activebackup_slave_get(bond, skb);
- 	if (slave)
- 		bond_dev_queue_xmit(bond, skb, slave->dev);
- 	else
--- 
-2.17.2
+	drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c:711 mlx5_fpga_ipsec_create_sa_ctx()
+	warn: bitwise AND condition is false here
 
+drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
+   701                             sizeof(sa_ctx->hw_sa))) {
+   702                          context = ERR_PTR(-EINVAL);
+   703                          goto exists;
+   704                  }
+   705  
+   706                  ++fpga_xfrm->num_rules;
+   707                  context = fpga_xfrm->sa_ctx;
+   708                  goto exists;
+   709          }
+   710  
+   711          if (accel_xfrm->attrs.action & MLX5_ACCEL_ESP_ACTION_DECRYPT) {
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This is zero and it's always used like this, so it can never be true.
+
+drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c:762 mlx5_fpga_ipsec_create_sa_ctx() warn: bitwise AND condition is false here
+drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c:856 mlx5_fpga_ipsec_release_sa_ctx() warn: bitwise AND condition is false here
+
+   712                  err = ida_simple_get(&fipsec->halloc, 1, 0, GFP_KERNEL);
+   713                  if (err < 0) {
+   714                          context = ERR_PTR(err);
+   715                          goto exists;
+   716                  }
+   717  
+   718                  sa_ctx->sa_handle = err;
+   719                  if (sa_handle)
+   720                          *sa_handle = sa_ctx->sa_handle;
+   721          }
+   722          /* This is unbounded fpga_xfrm, try to add to hash */
+   723          mutex_lock(&fipsec->sa_hash_lock);
+   724  
+   725          err = rhashtable_lookup_insert_fast(&fipsec->sa_hash, &sa_ctx->hash,
+
+regards,
+dan carpenter
