@@ -2,125 +2,108 @@ Return-Path: <SRS0=nnSp=6G=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2EFDC54FCC
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 00:06:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8179EC55186
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFFAF206E9
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 00:06:43 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="GM+sMUt+"
+	by mail.kernel.org (Postfix) with ESMTP id 59F582073A
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726039AbgDVAGn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Apr 2020 20:06:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53384 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726012AbgDVAGm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Apr 2020 20:06:42 -0400
-Received: from mail-qv1-xf41.google.com (mail-qv1-xf41.google.com [IPv6:2607:f8b0:4864:20::f41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 840E0C0610D6
-        for <linux-rdma@vger.kernel.org>; Tue, 21 Apr 2020 17:06:42 -0700 (PDT)
-Received: by mail-qv1-xf41.google.com with SMTP id bu9so67747qvb.13
-        for <linux-rdma@vger.kernel.org>; Tue, 21 Apr 2020 17:06:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=WYy7G32x1Q5njrkNj7u8nyAGK+dMK8HXv1g8Lbf3Ifo=;
-        b=GM+sMUt+ymjWe6jHxY3XQ9LTMg5FiNwixWJNmRg1W7Lw9I7fR6g9IUFJK798L8iKIT
-         oyO3V1aahQ6JmrL1rGyVvqJR499QywP2ZAOKdAZqka9e/M4/ZsHmLqTQzE9v144kCEER
-         sVzXaJNMUd2D+KJ2FO1GIEwOKQO85xfWGlVeSqPUhcs25NSO62E1RxyRylVtm8SMFz1r
-         QaeHJsb33C7KfYSle7ToCeXRtMuxFBOuROq/sRbL/doef7g3NqQZhcqtk2H75hjAZDzE
-         6O5JnX0E1qco6ThLTapjPuJqferIReYF9X0ldLhb/MwSiKftS1gTHuMwqRPXq5sAvxfz
-         c7pQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=WYy7G32x1Q5njrkNj7u8nyAGK+dMK8HXv1g8Lbf3Ifo=;
-        b=TlIpdYL5HXkgE71loxxBOrZt3ojVKMX4yvIrxnRRBoMCD6ZLuxQ9jBD0BRQc+CaPuo
-         JCA1LoUQW25ixQ8mPAd+095sY8BtAhqB0C9puWYk/XBL5DxPtHQ0+aqlWd6PIIhrUVUP
-         yLJOQe4P/J5vLpdgdFuawY4ddjtt1+ej8R57SQqV3pZmB6fq+fFlWsycTB7wJy6mNbJt
-         U/Zfs/yapvraRPjiRF/HkOF56dLXsWcnRiuSV/2/ZvsuYkXmuPIZLkOnZ1KBXvjRQXMP
-         x9h6HUgh1XQiSkiI0PChYjkpgdmYAISp9eASRhSBaInx3L5EX2Q9hoBlCR/FGXbL/77H
-         tEHw==
-X-Gm-Message-State: AGi0PuZmynMUwfLgiqRQbSm+/czRb2T0nqiFRaGY92zaF6xi+0pZ6Hsc
-        Bvey8jNtGVtUL6aebUKhGwLtdA==
-X-Google-Smtp-Source: APiQypJ8NlNdXfOCEKcYh/wkIuZPqvWZ3Eefro6kyW6+LN421MQeAhozKTaGJY5ur5ou26JDYZ6gfw==
-X-Received: by 2002:ad4:49d3:: with SMTP id j19mr21605317qvy.78.1587514001680;
-        Tue, 21 Apr 2020 17:06:41 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id y72sm2741779qkb.86.2020.04.21.17.06.40
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 21 Apr 2020 17:06:41 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jR2uW-0008CT-Ek; Tue, 21 Apr 2020 21:06:40 -0300
-Date:   Tue, 21 Apr 2020 21:06:40 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "nhorman@redhat.com" <nhorman@redhat.com>,
-        "sassmann@redhat.com" <sassmann@redhat.com>
-Subject: Re: [RFC PATCH v5 12/16] RDMA/irdma: Add miscellaneous utility
- definitions
-Message-ID: <20200422000640.GU26002@ziepe.ca>
-References: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
- <20200417171251.1533371-13-jeffrey.t.kirsher@intel.com>
- <20200417203216.GH3083@unreal>
- <9DD61F30A802C4429A01CA4200E302A7DCD485B7@fmsmsx124.amr.corp.intel.com>
- <20200421073044.GI121146@unreal>
- <9DD61F30A802C4429A01CA4200E302A7DCD4C042@fmsmsx124.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7DCD4C042@fmsmsx124.amr.corp.intel.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+        id S1726377AbgDVIkE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Apr 2020 04:40:04 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36685 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726513AbgDVIkD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:03 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:39:59 +0300
+Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgh006118;
+        Wed, 22 Apr 2020 11:39:59 +0300
+From:   Maor Gottlieb <maorg@mellanox.com>
+To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
+        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
+        kuba@kernel.org, jiri@mellanox.com, dsahern@kernel.org
+Cc:     leonro@mellanox.com, saeedm@mellanox.com,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next 05/15] bonding: Add helper function to get the xmit slave based on hash
+Date:   Wed, 22 Apr 2020 11:39:41 +0300
+Message-Id: <20200422083951.17424-6-maorg@mellanox.com>
+X-Mailer: git-send-email 2.17.2
+In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
+References: <20200422083951.17424-1-maorg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Apr 22, 2020 at 12:02:14AM +0000, Saleem, Shiraz wrote:
-> > Subject: Re: [RFC PATCH v5 12/16] RDMA/irdma: Add miscellaneous utility
-> > definitions
-> > 
-> 
-> [...]
-> > > > > + * irdma_arp_table -manage arp table
-> > > > > + * @rf: RDMA PCI function
-> > > > > + * @ip_addr: ip address for device
-> > > > > + * @ipv4: IPv4 flag
-> > > > > + * @mac_addr: mac address ptr
-> > > > > + * @action: modify, delete or add  */ int irdma_arp_table(struct
-> > > > > +irdma_pci_f *rf, u32 *ip_addr, bool ipv4,
-> > > > > +		    u8 *mac_addr, u32 action)
-> > > >
-> > > > ARP table in the RDMA driver looks strange, I see that it is legacy
-> > > > from i40iw, but wonder if it is the right thing to do the same for the new driver.
-> > > >
-> > >
-> > > See response in Patch #1.
-> > 
-> > OK, let's me rephrase the question.
-> > Why can't you use arp_tbl from include/net/arp.h and need to implement it in the
-> > RDMA driver?
-> > 
-> 
-> The driver needs to track the on-chip arp cache indices and program the
-> index & entry via rdma admin queue cmd. These indices are specific to our hw
-> arp cache and not the system arp table. So I am not sure how we can use it.
+Both xor and 802.3ad modes use bond_xmit_hash to get the xmit slave.
+Export the logic to helper function so it could be used in the
+following patches by the .ndo to get the xmit slave.
 
-Why does an RDMA device respond to ARPs? Or do you mean this
-synchronizes the neighbour table so the HW knows the MAC? This is for
-iwarp only then?
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
+---
+ drivers/net/bonding/bond_main.c | 28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
 
-Jason
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 2cb41d480ae2..8e6305955c75 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4185,6 +4185,23 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 	return ret;
+ }
+ 
++static struct slave *bond_xmit_3ad_xor_slave_get(struct bonding *bond,
++						 struct sk_buff *skb,
++						 struct bond_up_slave *slaves)
++{
++	struct slave *slave;
++	unsigned int count;
++	u32 hash;
++
++	hash = bond_xmit_hash(bond, skb);
++	count = slaves ? READ_ONCE(slaves->count) : 0;
++	if (unlikely(!count))
++		return NULL;
++
++	slave = slaves->arr[hash % count];
++	return slave;
++}
++
+ /* Use this Xmit function for 3AD as well as XOR modes. The current
+  * usable slave array is formed in the control path. The xmit function
+  * just calculates hash and sends the packet out.
+@@ -4193,18 +4210,15 @@ static netdev_tx_t bond_3ad_xor_xmit(struct sk_buff *skb,
+ 				     struct net_device *dev)
+ {
+ 	struct bonding *bond = netdev_priv(dev);
+-	struct slave *slave;
+ 	struct bond_up_slave *slaves;
+-	unsigned int count;
++	struct slave *slave;
+ 
+ 	slaves = rcu_dereference(bond->usable_slaves);
+-	count = slaves ? READ_ONCE(slaves->count) : 0;
+-	if (likely(count)) {
+-		slave = slaves->arr[bond_xmit_hash(bond, skb) % count];
++	slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
++	if (likely(slave))
+ 		bond_dev_queue_xmit(bond, skb, slave->dev);
+-	} else {
++	else
+ 		bond_tx_drop(dev, skb);
+-	}
+ 
+ 	return NETDEV_TX_OK;
+ }
+-- 
+2.17.2
+
