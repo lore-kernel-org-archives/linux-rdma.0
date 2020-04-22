@@ -4,26 +4,26 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 805A0C5518E
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0190C55189
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61778206B9
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D42AF206B9
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726458AbgDVIkT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Apr 2020 04:40:19 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:52265 "EHLO
+        id S1726154AbgDVIkE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Apr 2020 04:40:04 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36683 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726544AbgDVIkF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:05 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
+        with ESMTP id S1726500AbgDVIkD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:03 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:40:00 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgq006118;
-        Wed, 22 Apr 2020 11:40:00 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgl006118;
+        Wed, 22 Apr 2020 11:39:59 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next 14/15] RDMA/mlx5: Refactor affinity related code
-Date:   Wed, 22 Apr 2020 11:39:50 +0300
-Message-Id: <20200422083951.17424-15-maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next mlx5-next 09/15] bonding: Implement ndo_get_xmit_slave
+Date:   Wed, 22 Apr 2020 11:39:45 +0300
+Message-Id: <20200422083951.17424-10-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
 References: <20200422083951.17424-1-maorg@mellanox.com>
@@ -42,130 +42,78 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move affinity related code in modify qp to function.
-It's a preparation for next patch the extend the affinity
-calculation to consider the xmit slave.
+Add implementation of ndo_get_xmit_slave. The .ndo call to the helper
+function according to the bond mode and return the xmit slave. If the
+caller set all_slaves to true, then we search for the slave assume all
+slaves are available to transmit.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 90 +++++++++++++++++++--------------
- 1 file changed, 53 insertions(+), 37 deletions(-)
+ drivers/net/bonding/bond_main.c | 43 +++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 1456db4b6295..a45499809903 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3416,33 +3416,61 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	return 0;
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 2de693f0262e..39b1ad7edbb4 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4347,6 +4347,48 @@ static u16 bond_select_queue(struct net_device *dev, struct sk_buff *skb,
+ 	return txq;
  }
  
--static unsigned int get_tx_affinity(struct mlx5_ib_dev *dev,
--				    struct mlx5_ib_pd *pd,
--				    struct mlx5_ib_qp_base *qp_base,
--				    u8 port_num, struct ib_udata *udata)
-+static unsigned int get_tx_affinity_rr(struct mlx5_ib_dev *dev,
-+				       struct ib_udata *udata)
++static struct net_device *bond_xmit_get_slave(struct net_device *master_dev,
++					      struct sk_buff *skb,
++					      bool all_slaves)
++{
++	struct bonding *bond = netdev_priv(master_dev);
++	struct bond_up_slave *slaves;
++	struct slave *slave = NULL;
++
++	switch (BOND_MODE(bond)) {
++	case BOND_MODE_ROUNDROBIN:
++		slave = bond_xmit_roundrobin_slave_get(bond, skb);
++		break;
++	case BOND_MODE_ACTIVEBACKUP:
++		slave = bond_xmit_activebackup_slave_get(bond, skb);
++		break;
++	case BOND_MODE_8023AD:
++	case BOND_MODE_XOR:
++		if (all_slaves)
++			slaves = rcu_dereference(bond->all_slaves);
++		else
++			slaves = rcu_dereference(bond->usable_slaves);
++		slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
++		break;
++	case BOND_MODE_BROADCAST:
++		break;
++	case BOND_MODE_ALB:
++		slave = bond_xmit_alb_slave_get(bond, skb);
++		break;
++	case BOND_MODE_TLB:
++		slave = bond_xmit_tlb_slave_get(bond, skb);
++		break;
++	default:
++		/* Should never happen, mode already checked */
++		WARN_ONCE(true, "Unknown bonding mode");
++		break;
++	}
++
++	if (slave)
++		return slave->dev;
++	return NULL;
++}
++
+ static netdev_tx_t __bond_start_xmit(struct sk_buff *skb, struct net_device *dev)
  {
- 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
--	unsigned int tx_port_affinity;
-+	u8 port_num = mlx5_core_native_port_num(dev->mdev) - 1;
-+	atomic_t *tx_port_affinity;
+ 	struct bonding *bond = netdev_priv(dev);
+@@ -4468,6 +4510,7 @@ static const struct net_device_ops bond_netdev_ops = {
+ 	.ndo_del_slave		= bond_release,
+ 	.ndo_fix_features	= bond_fix_features,
+ 	.ndo_features_check	= passthru_features_check,
++	.ndo_get_xmit_slave	= bond_xmit_get_slave,
+ };
  
--	if (ucontext) {
--		tx_port_affinity = (unsigned int)atomic_add_return(
--					   1, &ucontext->tx_port_affinity) %
--					   MLX5_MAX_PORTS +
--				   1;
-+	if (ucontext)
-+		tx_port_affinity = &ucontext->tx_port_affinity;
-+	else
-+		tx_port_affinity = &dev->port[port_num].roce.tx_port_affinity;
-+
-+	return (unsigned int)atomic_add_return(1, tx_port_affinity) %
-+		MLX5_MAX_PORTS + 1;
-+}
-+
-+static bool qp_supports_affinity(struct ib_qp *qp)
-+{
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+
-+	if ((qp->qp_type == IB_QPT_RC) ||
-+	    (qp->qp_type == IB_QPT_UD &&
-+	     !(mqp->flags & MLX5_IB_QP_SQPN_QP1)) ||
-+	    (qp->qp_type == IB_QPT_UC) ||
-+	    (qp->qp_type == IB_QPT_RAW_PACKET) ||
-+	    (qp->qp_type == IB_QPT_XRC_INI) ||
-+	    (qp->qp_type == IB_QPT_XRC_TGT))
-+		return true;
-+	return false;
-+}
-+
-+static unsigned int get_tx_affinity(struct ib_qp *qp, u8 init,
-+				    struct ib_udata *udata)
-+{
-+	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
-+		udata, struct mlx5_ib_ucontext, ibucontext);
-+	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+	struct mlx5_ib_qp_base *qp_base;
-+	unsigned int tx_affinity;
-+
-+	if (!(dev->lag_active && init && qp_supports_affinity(qp)))
-+		return 0;
-+
-+	tx_affinity = get_tx_affinity_rr(dev, udata);
-+
-+	qp_base = &mqp->trans_qp.base;
-+	if (ucontext)
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x ucontext %p\n",
--				tx_port_affinity, qp_base->mqp.qpn, ucontext);
--	} else {
--		tx_port_affinity =
--			(unsigned int)atomic_add_return(
--				1, &dev->port[port_num].roce.tx_port_affinity) %
--				MLX5_MAX_PORTS +
--			1;
-+			    tx_affinity, qp_base->mqp.qpn, ucontext);
-+	else
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x\n",
--				tx_port_affinity, qp_base->mqp.qpn);
--	}
--
--	return tx_port_affinity;
-+			    tx_affinity, qp_base->mqp.qpn);
-+	return tx_affinity;
- }
- 
- static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
-@@ -3554,22 +3582,10 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 		}
- 	}
- 
--	if ((cur_state == IB_QPS_RESET) && (new_state == IB_QPS_INIT)) {
--		if ((ibqp->qp_type == IB_QPT_RC) ||
--		    (ibqp->qp_type == IB_QPT_UD &&
--		     !(qp->flags & MLX5_IB_QP_SQPN_QP1)) ||
--		    (ibqp->qp_type == IB_QPT_UC) ||
--		    (ibqp->qp_type == IB_QPT_RAW_PACKET) ||
--		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
--		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
--			if (dev->lag_active) {
--				u8 p = mlx5_core_native_port_num(dev->mdev) - 1;
--				tx_affinity = get_tx_affinity(dev, pd, base, p,
--							      udata);
--				context->flags |= cpu_to_be32(tx_affinity << 24);
--			}
--		}
--	}
-+	tx_affinity = get_tx_affinity(ibqp,
-+				      cur_state == IB_QPS_RESET &&
-+				      new_state == IB_QPS_INIT, udata);
-+	context->flags |= cpu_to_be32(tx_affinity << 24);
- 
- 	if (is_sqp(ibqp->qp_type)) {
- 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
+ static const struct device_type bond_type = {
 -- 
 2.17.2
 
