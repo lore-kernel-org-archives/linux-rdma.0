@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C00FBC5518A
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF237C55186
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A590C20724
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF3D8206B9
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726519AbgDVIkk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Apr 2020 04:40:40 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36690 "EHLO
+        id S1726685AbgDVIkl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Apr 2020 04:40:41 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36691 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726517AbgDVIkD (ORCPT
+        with ESMTP id S1726082AbgDVIkD (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:03 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:40:00 +0300
+        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:39:59 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgn006118;
-        Wed, 22 Apr 2020 11:40:00 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgj006118;
+        Wed, 22 Apr 2020 11:39:59 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next 11/15] RDMA/core: Get xmit slave for LAG
-Date:   Wed, 22 Apr 2020 11:39:47 +0300
-Message-Id: <20200422083951.17424-12-maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next 07/15] bonding: Add function to get the xmit slave in active-backup mode
+Date:   Wed, 22 Apr 2020 11:39:43 +0300
+Message-Id: <20200422083951.17424-8-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
 References: <20200422083951.17424-1-maorg@mellanox.com>
@@ -42,101 +42,44 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a call to rdma_lag_get_ah_roce_slave when
-Address handle is created.
-Low driver can use it to select the QP's affinity port.
+Add helper function to get the xmit slave in active-backup mode.
+It's only one line function that return the curr_active_slave,
+but it will used both in the xmit flow and by the new .ndo to get
+the xmit slave.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/infiniband/core/verbs.c | 44 ++++++++++++++++++++++-----------
- 1 file changed, 30 insertions(+), 14 deletions(-)
+ drivers/net/bonding/bond_main.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 56a71337112c..a0d60376ba6b 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -50,6 +50,7 @@
- #include <rdma/ib_cache.h>
- #include <rdma/ib_addr.h>
- #include <rdma/rw.h>
-+#include <rdma/lag.h>
- 
- #include "core_priv.h"
- #include <trace/events/rdma_core.h>
-@@ -554,8 +555,14 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 	if (ret)
- 		return ERR_PTR(ret);
- 
--	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
-+	ret = rdma_lag_get_ah_roce_slave(pd->device, ah_attr);
-+	if (ret) {
-+		rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
-+		return ERR_PTR(ret);
-+	}
- 
-+	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
-+	rdma_lag_put_ah_roce_slave(ah_attr);
- 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
- 	return ah;
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 09c8485e965d..1b0ae750d732 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4042,6 +4042,12 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+ 	return NETDEV_TX_OK;
  }
-@@ -1638,6 +1645,25 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 					  &old_sgid_attr_av);
- 		if (ret)
- 			return ret;
+ 
++static struct slave *bond_xmit_activebackup_slave_get(struct bonding *bond,
++						      struct sk_buff *skb)
++{
++	return rcu_dereference(bond->curr_active_slave);
++}
 +
-+		if (attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
-+		    is_qp_type_connected(qp)) {
-+			/*
-+			 * If the user provided the qp_attr then we have to
-+			 * resolve it. Kerne users have to provide already
-+			 * resolved rdma_ah_attr's.
-+			 */
-+			if (udata) {
-+				ret = ib_resolve_eth_dmac(qp->device,
-+							  &attr->ah_attr);
-+				if (ret)
-+					goto out_av;
-+			}
-+			ret = rdma_lag_get_ah_roce_slave(qp->device,
-+							 &attr->ah_attr);
-+			if (ret)
-+				goto out_av;
-+		}
- 	}
- 	if (attr_mask & IB_QP_ALT_PATH) {
- 		/*
-@@ -1664,18 +1690,6 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 		}
- 	}
+ /* In active-backup mode, we know that bond->curr_active_slave is always valid if
+  * the bond has a usable interface.
+  */
+@@ -4051,7 +4057,7 @@ static netdev_tx_t bond_xmit_activebackup(struct sk_buff *skb,
+ 	struct bonding *bond = netdev_priv(bond_dev);
+ 	struct slave *slave;
  
--	/*
--	 * If the user provided the qp_attr then we have to resolve it. Kernel
--	 * users have to provide already resolved rdma_ah_attr's
--	 */
--	if (udata && (attr_mask & IB_QP_AV) &&
--	    attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
--	    is_qp_type_connected(qp)) {
--		ret = ib_resolve_eth_dmac(qp->device, &attr->ah_attr);
--		if (ret)
--			goto out;
--	}
--
- 	if (rdma_ib_or_roce(qp->device, port)) {
- 		if (attr_mask & IB_QP_RQ_PSN && attr->rq_psn & ~0xffffff) {
- 			dev_warn(&qp->device->dev,
-@@ -1717,8 +1731,10 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 	if (attr_mask & IB_QP_ALT_PATH)
- 		rdma_unfill_sgid_attr(&attr->alt_ah_attr, old_sgid_attr_alt_av);
- out_av:
--	if (attr_mask & IB_QP_AV)
-+	if (attr_mask & IB_QP_AV) {
-+		rdma_lag_put_ah_roce_slave(&attr->ah_attr);
- 		rdma_unfill_sgid_attr(&attr->ah_attr, old_sgid_attr_av);
-+	}
- 	return ret;
- }
- 
+-	slave = rcu_dereference(bond->curr_active_slave);
++	slave = bond_xmit_activebackup_slave_get(bond, skb);
+ 	if (slave)
+ 		bond_dev_queue_xmit(bond, skb, slave->dev);
+ 	else
 -- 
 2.17.2
 
