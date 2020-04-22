@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3353C55186
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61C90C5518E
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D33D206B9
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E1DD206B9
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726666AbgDVIke (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Apr 2020 04:40:34 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:52205 "EHLO
+        id S1726563AbgDVIkE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Apr 2020 04:40:04 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36707 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726525AbgDVIkE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:04 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:39:59 +0300
+        with ESMTP id S1726377AbgDVIkD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:03 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:40:00 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgi006118;
-        Wed, 22 Apr 2020 11:39:59 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgp006118;
+        Wed, 22 Apr 2020 11:40:00 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next 06/15] bonding: Add helper function to get the xmit slave in rr mode
-Date:   Wed, 22 Apr 2020 11:39:42 +0300
-Message-Id: <20200422083951.17424-7-maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next 13/15] net/mlx5: Add support to get lag physical port
+Date:   Wed, 22 Apr 2020 11:39:49 +0300
+Message-Id: <20200422083951.17424-14-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
 References: <20200422083951.17424-1-maorg@mellanox.com>
@@ -42,127 +42,63 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add helper function to get the xmit slave when bond is in round
-robin mode. Change bond_xmit_slave_id to bond_get_slave_by_id, then
-the logic for find the next slave for transmit could be used
-both by the xmit flow and the .ndo to get the xmit slave.
+Add function to get the device physical port of the lag slave.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Jiri Pirko <jiri@mellanox.com>
-Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/bonding/bond_main.c | 56 ++++++++++++++++++---------------
- 1 file changed, 30 insertions(+), 26 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lag.c | 24 +++++++++++++++++++
+ include/linux/mlx5/driver.h                   |  2 ++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 8e6305955c75..09c8485e965d 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -3923,16 +3923,15 @@ static int bond_set_mac_address(struct net_device *bond_dev, void *addr)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+index 496a3408d771..5461fbe47c0d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+@@ -710,6 +710,30 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
  }
+ EXPORT_SYMBOL(mlx5_lag_get_roce_netdev);
  
- /**
-- * bond_xmit_slave_id - transmit skb through slave with slave_id
-+ * bond_get_slave_by_id - get xmit slave with slave_id
-  * @bond: bonding device that is transmitting
-- * @skb: buffer to transmit
-  * @slave_id: slave id up to slave_cnt-1 through which to transmit
-  *
-- * This function tries to transmit through slave with slave_id but in case
-+ * This function tries to get slave with slave_id but in case
-  * it fails, it tries to find the first available slave for transmission.
-- * The skb is consumed in all cases, thus the function is void.
-  */
--static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int slave_id)
-+static struct slave *bond_get_slave_by_id(struct bonding *bond,
-+					  int slave_id)
- {
- 	struct list_head *iter;
- 	struct slave *slave;
-@@ -3941,10 +3940,8 @@ static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int sl
- 	/* Here we start from the slave with slave_id */
- 	bond_for_each_slave_rcu(bond, slave, iter) {
- 		if (--i < 0) {
--			if (bond_slave_can_tx(slave)) {
--				bond_dev_queue_xmit(bond, skb, slave->dev);
--				return;
--			}
-+			if (bond_slave_can_tx(slave))
-+				return slave;
- 		}
- 	}
- 
-@@ -3953,13 +3950,11 @@ static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int sl
- 	bond_for_each_slave_rcu(bond, slave, iter) {
- 		if (--i < 0)
- 			break;
--		if (bond_slave_can_tx(slave)) {
--			bond_dev_queue_xmit(bond, skb, slave->dev);
--			return;
--		}
-+		if (bond_slave_can_tx(slave))
-+			return slave;
- 	}
--	/* no slave that can tx has been found */
--	bond_tx_drop(bond->dev, skb);
-+
-+	return NULL;
- }
- 
- /**
-@@ -3995,10 +3990,9 @@ static u32 bond_rr_gen_slave_id(struct bonding *bond)
- 	return slave_id;
- }
- 
--static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
--					struct net_device *bond_dev)
-+static struct slave *bond_xmit_roundrobin_slave_get(struct bonding *bond,
-+						    struct sk_buff *skb)
- {
--	struct bonding *bond = netdev_priv(bond_dev);
- 	struct slave *slave;
- 	int slave_cnt;
- 	u32 slave_id;
-@@ -4020,21 +4014,31 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
- 		if (iph->protocol == IPPROTO_IGMP) {
- 			slave = rcu_dereference(bond->curr_active_slave);
- 			if (slave)
--				bond_dev_queue_xmit(bond, skb, slave->dev);
--			else
--				bond_xmit_slave_id(bond, skb, 0);
--			return NETDEV_TX_OK;
-+				return slave;
-+			return bond_get_slave_by_id(bond, 0);
- 		}
- 	}
- 
- non_igmp:
- 	slave_cnt = READ_ONCE(bond->slave_cnt);
- 	if (likely(slave_cnt)) {
--		slave_id = bond_rr_gen_slave_id(bond);
--		bond_xmit_slave_id(bond, skb, slave_id % slave_cnt);
--	} else {
--		bond_tx_drop(bond_dev, skb);
-+		slave_id = bond_rr_gen_slave_id(bond) % slave_cnt;
-+		return bond_get_slave_by_id(bond, slave_id);
- 	}
-+	return NULL;
-+}
-+
-+static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
-+					struct net_device *bond_dev)
++u8 mlx5_lag_get_slave_port(struct mlx5_core_dev *dev,
++			   struct net_device *slave)
 +{
-+	struct bonding *bond = netdev_priv(bond_dev);
-+	struct slave *slave;
++	struct mlx5_lag *ldev;
++	u8 port = 0;
 +
-+	slave = bond_xmit_roundrobin_slave_get(bond, skb);
-+	if (slave)
-+		bond_dev_queue_xmit(bond, skb, slave->dev);
++	spin_lock(&lag_lock);
++	ldev = mlx5_lag_dev_get(dev);
++	if (!(ldev && __mlx5_lag_is_roce(ldev)))
++		goto unlock;
++
++	if (ldev->pf[MLX5_LAG_P1].netdev == slave)
++		port = MLX5_LAG_P1;
 +	else
-+		bond_tx_drop(bond_dev, skb);
- 	return NETDEV_TX_OK;
- }
- 
++		port = MLX5_LAG_P2;
++
++	port = ldev->v2p_map[port];
++
++unlock:
++	spin_unlock(&lag_lock);
++	return port;
++}
++EXPORT_SYMBOL(mlx5_lag_get_slave_port);
++
+ bool mlx5_lag_intf_add(struct mlx5_interface *intf, struct mlx5_priv *priv)
+ {
+ 	struct mlx5_core_dev *dev = container_of(priv, struct mlx5_core_dev,
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 6f8f79ef829b..7b81b512d116 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1062,6 +1062,8 @@ bool mlx5_lag_is_sriov(struct mlx5_core_dev *dev);
+ bool mlx5_lag_is_multipath(struct mlx5_core_dev *dev);
+ bool mlx5_lag_is_active(struct mlx5_core_dev *dev);
+ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev);
++u8 mlx5_lag_get_slave_port(struct mlx5_core_dev *dev,
++			   struct net_device *slave);
+ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
+ 				 u64 *values,
+ 				 int num_counters,
 -- 
 2.17.2
 
