@@ -2,27 +2,28 @@ Return-Path: <SRS0=nnSp=6G=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB1A5C55189
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C00FBC5518A
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB2B9206D6
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A590C20724
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Apr 2020 08:40:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726532AbgDVIkj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Apr 2020 04:40:39 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:52170 "EHLO
+        id S1726519AbgDVIkk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Apr 2020 04:40:40 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36690 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726519AbgDVIkE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:04 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:39:59 +0300
+        with ESMTP id S1726517AbgDVIkD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Apr 2020 04:40:03 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 22 Apr 2020 11:40:00 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgc006118;
-        Wed, 22 Apr 2020 11:39:59 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03M8dxgn006118;
+        Wed, 22 Apr 2020 11:40:00 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -30,99 +31,112 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V4 mlx5-next 00/15] Add support to get xmit slave
-Date:   Wed, 22 Apr 2020 11:39:36 +0300
-Message-Id: <20200422083951.17424-1-maorg@mellanox.com>
+Subject: [PATCH V4 mlx5-next 11/15] RDMA/core: Get xmit slave for LAG
+Date:   Wed, 22 Apr 2020 11:39:47 +0300
+Message-Id: <20200422083951.17424-12-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
+In-Reply-To: <20200422083951.17424-1-maorg@mellanox.com>
+References: <20200422083951.17424-1-maorg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Dave,
+Add a call to rdma_lag_get_ah_roce_slave when
+Address handle is created.
+Low driver can use it to select the QP's affinity port.
 
-This series is a combination of netdev and RDMA, so in order to avoid
-conflicts, we would like to ask you to route this series through
-mlx5-next shared branch. It is based on v5.7-rc1 tag.
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/verbs.c | 44 ++++++++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 14 deletions(-)
 
----------------------------------------------------------------------
-
-The following series adds support to get the LAG master xmit slave by
-introducing new .ndo - ndo_get_xmit_slave. Every LAG module can
-implement it and it first implemented in the bond driver. 
-This is follow-up to the RFC discussion [1].
-
-The main motivation for doing this is for drivers that offload part
-of the LAG functionality. For example, Mellanox Connect-X hardware
-implements RoCE LAG which selects the TX affinity when the resources
-are created and port is remapped when it goes down.
-
-The first part of this patchset introduces the new .ndo and add the
-support to the bonding module.
-
-The second part adds support to get the RoCE LAG xmit slave by building
-skb of the RoCE packet based on the AH attributes and call to the new .ndo.
-
-The third part change the mlx5 driver driver to set the QP's affinity
-port according to the slave which found by the .ndo.
-
-Thanks
-
-[1] https://lore.kernel.org/netdev/20200126132126.9981-1-maorg@mellanox.com/
-
-Change log:
-v4: 1. Rename master_get_xmit_slave to netdev_get_xmit_slave and move the implementation to dev.c 
-    2. Remove unnecessary check of NULL pointer.
-    3. Fix typo.
-v3: 1. Move master_get_xmit_slave to netdevice.h and change the flags arg.
-to bool.
-    2. Split helper functions commit to multiple commits for each bond
-mode.
-    3. Extract refcotring changes to seperate commits.
-v2: The first patch wasn't sent in v1.
-v1: https://lore.kernel.org/netdev/ac373456-b838-29cf-645f-b1ea1a93e3b0@gmail.com/T/#t 
-
-Maor Gottlieb (15):
-  net/core: Introduce netdev_get_xmit_slave
-  bonding: Export skip slave logic to function
-  bonding: Rename slave_arr to usable_slaves
-  bonding/alb: Add helper functions to get the xmit slave
-  bonding: Add helper function to get the xmit slave based on hash
-  bonding: Add helper function to get the xmit slave in rr mode
-  bonding: Add function to get the xmit slave in active-backup mode
-  bonding: Add array of all slaves
-  bonding: Implement ndo_get_xmit_slave
-  RDMA/core: Add LAG functionality
-  RDMA/core: Get xmit slave for LAG
-  net/mlx5: Change lag mutex lock to spin lock
-  net/mlx5: Add support to get lag physical port
-  RDMA/mlx5: Refactor affinity related code
-  RDMA/mlx5: Set lag tx affinity according to slave
-
- drivers/infiniband/core/Makefile              |   2 +-
- drivers/infiniband/core/lag.c                 | 138 +++++++++
- drivers/infiniband/core/verbs.c               |  44 ++-
- drivers/infiniband/hw/mlx5/ah.c               |   4 +
- drivers/infiniband/hw/mlx5/gsi.c              |  34 ++-
- drivers/infiniband/hw/mlx5/main.c             |   2 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |   1 +
- drivers/infiniband/hw/mlx5/qp.c               | 123 +++++---
- drivers/net/bonding/bond_alb.c                |  39 ++-
- drivers/net/bonding/bond_main.c               | 268 +++++++++++++-----
- drivers/net/ethernet/mellanox/mlx5/core/lag.c |  66 +++--
- include/linux/mlx5/driver.h                   |   2 +
- include/linux/mlx5/mlx5_ifc.h                 |   4 +-
- include/linux/mlx5/qp.h                       |   2 +
- include/linux/netdevice.h                     |   6 +
- include/net/bond_alb.h                        |   4 +
- include/net/bonding.h                         |   3 +-
- include/rdma/ib_verbs.h                       |   2 +
- include/rdma/lag.h                            |  22 ++
- net/core/dev.c                                |  30 ++
- 20 files changed, 618 insertions(+), 178 deletions(-)
- create mode 100644 drivers/infiniband/core/lag.c
- create mode 100644 include/rdma/lag.h
-
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 56a71337112c..a0d60376ba6b 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -50,6 +50,7 @@
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/rw.h>
++#include <rdma/lag.h>
+ 
+ #include "core_priv.h"
+ #include <trace/events/rdma_core.h>
+@@ -554,8 +555,14 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+-	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
++	ret = rdma_lag_get_ah_roce_slave(pd->device, ah_attr);
++	if (ret) {
++		rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
++		return ERR_PTR(ret);
++	}
+ 
++	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
++	rdma_lag_put_ah_roce_slave(ah_attr);
+ 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+ 	return ah;
+ }
+@@ -1638,6 +1645,25 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 					  &old_sgid_attr_av);
+ 		if (ret)
+ 			return ret;
++
++		if (attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
++		    is_qp_type_connected(qp)) {
++			/*
++			 * If the user provided the qp_attr then we have to
++			 * resolve it. Kerne users have to provide already
++			 * resolved rdma_ah_attr's.
++			 */
++			if (udata) {
++				ret = ib_resolve_eth_dmac(qp->device,
++							  &attr->ah_attr);
++				if (ret)
++					goto out_av;
++			}
++			ret = rdma_lag_get_ah_roce_slave(qp->device,
++							 &attr->ah_attr);
++			if (ret)
++				goto out_av;
++		}
+ 	}
+ 	if (attr_mask & IB_QP_ALT_PATH) {
+ 		/*
+@@ -1664,18 +1690,6 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 		}
+ 	}
+ 
+-	/*
+-	 * If the user provided the qp_attr then we have to resolve it. Kernel
+-	 * users have to provide already resolved rdma_ah_attr's
+-	 */
+-	if (udata && (attr_mask & IB_QP_AV) &&
+-	    attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
+-	    is_qp_type_connected(qp)) {
+-		ret = ib_resolve_eth_dmac(qp->device, &attr->ah_attr);
+-		if (ret)
+-			goto out;
+-	}
+-
+ 	if (rdma_ib_or_roce(qp->device, port)) {
+ 		if (attr_mask & IB_QP_RQ_PSN && attr->rq_psn & ~0xffffff) {
+ 			dev_warn(&qp->device->dev,
+@@ -1717,8 +1731,10 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 	if (attr_mask & IB_QP_ALT_PATH)
+ 		rdma_unfill_sgid_attr(&attr->alt_ah_attr, old_sgid_attr_alt_av);
+ out_av:
+-	if (attr_mask & IB_QP_AV)
++	if (attr_mask & IB_QP_AV) {
++		rdma_lag_put_ah_roce_slave(&attr->ah_attr);
+ 		rdma_unfill_sgid_attr(&attr->ah_attr, old_sgid_attr_av);
++	}
+ 	return ret;
+ }
+ 
 -- 
 2.17.2
 
