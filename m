@@ -3,130 +3,131 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83291C54FCB
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 17:25:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADA05C54FCB
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 18:31:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E91520857
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 17:25:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 878C92076C
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 18:31:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="CjYxLb6X"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="kINT/mL8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729899AbgDWRZc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Apr 2020 13:25:32 -0400
-Received: from mail-eopbgr150050.outbound.protection.outlook.com ([40.107.15.50]:45893
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729673AbgDWRZc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Apr 2020 13:25:32 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=MpHIAbwAEWRNGBEtgmkPvjlZuWFjPS9hQO7gJcfDKE9MalMLwzRsqwjZe7IiM5NrEbNqDPrCSsaplHa78FHuurtRteUxhLjFX4i70YoJnMd42cCByee7SsOT8x55LsVdGxubCgmaKZOQjURvvUDC53+utHeZgv9d/1dLR4q0P/2+GqZCFGBsvEXH178rIk0XotnDGpfuKI4G4LlsROiqgBERQRe9ppbNuOTiu56TKHhDID2798KbmBpzmnaNRJ15CxgXo2uv8NtGmRYjQ9+8U5ZAKioGdB26F3dwt6p4071ATHX2MbvE+1hrWqt9HfnPcXdk+aUk5P2hoai3/CIEAw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ULK2bfwWsSqrPzmu/DHztonew4eaPP9mK9InQNCVMM8=;
- b=HhVdrqpNmZyINFgS9HuMIhiA+c259+W3h8fY9fcN9NRwyODFFYZRGxdoTRR0R1knjiOy9Yr94BDyi/DLNU73ONsFeBl6nk6BSaJ0eYtvCPzw3YzqGxirOQ3Wn7Gm/g+w4DUrr3U2OoJJrnlgxUCwjsMKQdc4lCl/fLJr2ZIsuoWMMqB02grMufzPQ2Cq8GTAQjdFzkHL72WNrO6QYshI1yMoKLg2tpeeaaAnmYdP616IGcV5+xf+Tkg3dkRBR6syKbsFOWHyUFSR+AHXbMCvfULwvTMG0WtEtQdcB0VZ/1d3cexXpzDcirov/Evn2fnD89hwsltLBTistyVFvuFdFQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ULK2bfwWsSqrPzmu/DHztonew4eaPP9mK9InQNCVMM8=;
- b=CjYxLb6XfiWuUqu/oEEOFSgHlh9eq9YNBs8vh91m6oU5qpfBgmrMdDWU/TvFvzIH6PdzTlsM/Gn10kioOt27eQ6AX4FwEi/1gMKDUlq0V+oc29kOU/e5UEIBLhkXX1LScaEr9k4l0ippHcpnQsiH5sbrNHL2OTXhxtYbi6LFRyQ=
-Authentication-Results: spf=none (sender IP is )
- smtp.mailfrom=maxg@mellanox.com; 
-Received: from AM0PR05MB5810.eurprd05.prod.outlook.com (2603:10a6:208:11f::18)
- by AM0PR05MB6388.eurprd05.prod.outlook.com (2603:10a6:208:146::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2921.26; Thu, 23 Apr
- 2020 17:25:28 +0000
-Received: from AM0PR05MB5810.eurprd05.prod.outlook.com
- ([fe80::408a:27c1:55f8:eed4]) by AM0PR05MB5810.eurprd05.prod.outlook.com
- ([fe80::408a:27c1:55f8:eed4%5]) with mapi id 15.20.2937.012; Thu, 23 Apr 2020
- 17:25:28 +0000
-Subject: Re: [PATCH 15/17] nvmet: Add metadata support for block devices
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     linux-nvme@lists.infradead.org, kbusch@kernel.org,
-        sagi@grimberg.me, martin.petersen@oracle.com, jsmart2021@gmail.com,
-        linux-rdma@vger.kernel.org, idanb@mellanox.com, axboe@kernel.dk,
-        vladimirk@mellanox.com, oren@mellanox.com, shlomin@mellanox.com,
-        israelr@mellanox.com, jgg@mellanox.com
-References: <20200327171545.98970-1-maxg@mellanox.com>
- <20200327171545.98970-17-maxg@mellanox.com> <20200421153339.GF10837@lst.de>
-From:   Max Gurtovoy <maxg@mellanox.com>
-Message-ID: <3992e1fd-efad-0679-7817-f004b40cdc76@mellanox.com>
-Date:   Thu, 23 Apr 2020 20:25:24 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
-In-Reply-To: <20200421153339.GF10837@lst.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-ClientProxiedBy: AM0PR10CA0004.EURPRD10.PROD.OUTLOOK.COM
- (2603:10a6:208:17c::14) To AM0PR05MB5810.eurprd05.prod.outlook.com
- (2603:10a6:208:11f::18)
+        id S1730102AbgDWSa6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Apr 2020 14:30:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53536 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730239AbgDWSa5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Apr 2020 14:30:57 -0400
+Received: from mail-qt1-x841.google.com (mail-qt1-x841.google.com [IPv6:2607:f8b0:4864:20::841])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90480C09B045
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2020 11:30:57 -0700 (PDT)
+Received: by mail-qt1-x841.google.com with SMTP id x12so5185526qts.9
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2020 11:30:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=j6vx62T0cUnGorC7bQl2F/WmrnGQGNIQf7tVvJs2alQ=;
+        b=kINT/mL8BJANHc3utJboA7e++/E97u13tPbXwtZsXtg6xIZbI5o2ksqDU5FSEo8bMC
+         WJJy03Eds1xqsDhuQaNN7ZJ1OwSiDAyzlx09E46h2cGtcUDY/ee3NfpM2p1mrhQxt6OL
+         I5QRMV/LAHoUyHa92JzJMMvJp9DOZQbzoPLAy9391WCI3Tz/VdW4Zr780p8+DFy0luYO
+         9NwRigT3BcYhbsoyhXfPbCjT+zrv0gfeXNDOKdcxiXBalV9FUmGnC47UXg+0uTuUoHN1
+         qk115iMNzVbf637wm1kzra4h5nRq9knmOGSwMcU21hWhXtDXf9kspo6ipjy0DcmoaJa1
+         Tdvg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=j6vx62T0cUnGorC7bQl2F/WmrnGQGNIQf7tVvJs2alQ=;
+        b=WtPeTflyLCZId9WcezwrbEpsJp3oiThaT/unxTgQNVJ1nhEGT99YJYMNqxRYVv+saK
+         LRokunIrIykGDf9UD2IiEnCR7xhZuiMuQWgZY16M7yvh5Pmzu3wmv/meBKVXsI9NlYYx
+         JjbFvKPT3B65EQ9pUMeySHiLCzyDunVpDGUJY7Z2c3WO2ynrUUDnrbdZkxJn5R8F/eh7
+         rLcJZbhxe/ZTZn818neMmv7GsNccgshMQSubtcJq3zF3l5xBlp9qmKCBqsDJlfKcU0Bi
+         X9LayPIuw098yhd/TWmdj4Ps4vmhrSi2lc27swZkllKsag9z5x1RGUUY0ubGnJTT4Fij
+         ULvQ==
+X-Gm-Message-State: AGi0PuZ9Oe9SRfsBKC60/1f/nSEXjf8Yz/E8LRiViTpfbM7lHA+goSri
+        ztWa1tmfnGswLt25t6hn3vqTsA==
+X-Google-Smtp-Source: APiQypKLmzIW/Ecao7idLzoJvjbffCPalu3gsWoeTzATgTxGBLsgz+Rj9v35dLweYr3CVQ7GCZwp4w==
+X-Received: by 2002:aed:2b43:: with SMTP id p61mr5464265qtd.298.1587666656655;
+        Thu, 23 Apr 2020 11:30:56 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id s8sm723438qtb.0.2020.04.23.11.30.55
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 23 Apr 2020 11:30:56 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jRgch-0006EC-Bq; Thu, 23 Apr 2020 15:30:55 -0300
+Date:   Thu, 23 Apr 2020 15:30:55 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Nicolas Pitre <nico@fluxnic.net>
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        "masahiroy@kernel.org" <masahiroy@kernel.org>,
+        "Laurent.pinchart@ideasonboard.com" 
+        <Laurent.pinchart@ideasonboard.com>,
+        "airlied@linux.ie" <airlied@linux.ie>,
+        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "jernej.skrabec@siol.net" <jernej.skrabec@siol.net>,
+        "arnd@arndb.de" <arnd@arndb.de>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "jonas@kwiboo.se" <jonas@kwiboo.se>,
+        "kieran.bingham+renesas@ideasonboard.com" 
+        <kieran.bingham+renesas@ideasonboard.com>,
+        "narmstrong@baylibre.com" <narmstrong@baylibre.com>,
+        "leon@kernel.org" <leon@kernel.org>
+Subject: Re: [RFC PATCH 1/2] Kconfig: Introduce "uses" keyword
+Message-ID: <20200423183055.GB26002@ziepe.ca>
+References: <62a51b2e5425a3cca4f7a66e2795b957f237b2da.camel@mellanox.com>
+ <nycvar.YSQ.7.76.2004211411500.2671@knanqh.ubzr>
+ <871rofdhtg.fsf@intel.com>
+ <nycvar.YSQ.7.76.2004221649480.2671@knanqh.ubzr>
+ <940d3add-4d12-56ed-617a-8b3bf8ef3a0f@infradead.org>
+ <nycvar.YSQ.7.76.2004231059170.2671@knanqh.ubzr>
+ <20200423150556.GZ26002@ziepe.ca>
+ <nycvar.YSQ.7.76.2004231109500.2671@knanqh.ubzr>
+ <20200423151624.GA26002@ziepe.ca>
+ <nycvar.YSQ.7.76.2004231128210.2671@knanqh.ubzr>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [10.0.0.3] (217.132.177.164) by AM0PR10CA0004.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:208:17c::14) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2937.13 via Frontend Transport; Thu, 23 Apr 2020 17:25:26 +0000
-X-Originating-IP: [217.132.177.164]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: efed7b26-4c67-4287-d70e-08d7e7ab512f
-X-MS-TrafficTypeDiagnostic: AM0PR05MB6388:|AM0PR05MB6388:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR05MB6388F957D3E02575A8D25838B6D30@AM0PR05MB6388.eurprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:3513;
-X-Forefront-PRVS: 03827AF76E
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR05MB5810.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(10009020)(4636009)(39860400002)(366004)(346002)(376002)(136003)(396003)(16526019)(186003)(4744005)(86362001)(478600001)(2906002)(2616005)(81156014)(4326008)(8936002)(956004)(26005)(53546011)(31686004)(8676002)(66946007)(31696002)(66476007)(316002)(36756003)(6916009)(6486002)(52116002)(107886003)(5660300002)(16576012)(66556008);DIR:OUT;SFP:1101;
-Received-SPF: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: mKMNJaY1kUoH9IkR3a6MuBGj2m/RWQm4RBay/RuNKO9cDKug/t+rcHvza923dwHw8bY2c4954tuC3T+Lh3x8ApdsvcNTZaKp9fBoApUdsILRm+AgohQ8TkQLFTYmkDQth8GZj2JwdzaY56fuZj6m3BG5TTv+hmRTPSWbigFRfEFaPkGnzysH7HgDisTIsdZDGuxYnrSrKTtaZeALo/LU29V6gXE07ZPrWb3WuQK+4oHxkdD0aeYotZYo6802/IXZb2Mq7JBo6dLN6/AcEnL+bkSO6/YeCOOXqcPFbGD0Yzyvs29Orb2rJkUcrkViKmfA5plnncnYhvQ/+4cpK1bcM08nwXfxSYD9dx1S2iA9npxRJuEsOIUluvomlPqE7pTdgqQvhkwYnPw5bKBUyXabtoN8nRMa4SEPlYlETipuoUSLHQdROAP/1oXymOi11fa6
-X-MS-Exchange-AntiSpam-MessageData: 6d6y1OHVtOjWEuAJ4KCfccO3NVtaksADRqO0dgdV93r/yBv7RFN4vzciz4ktk6g/KHdIzHoWCKAdIxtokbgXheRKy8ZrkyvgyI34POWC1Q5mVwLwAbOVZOcUa4R2bzAOlHU8p45m922Nv5G9nrmC4jShv5j0qOG+fnjDzBdeYkQ09ZQr6EqNghYAsvVXG2uuyXibf3lqGf3pj2hzn2gJ5bkWSdh6lUVaQUDqhUayVkq9fV42gthbaWtF7wP7hNM3fajmGA+1HSWASsr0Z6rv8JCD9vF1qGlOo8f65lozMcqSt+2kzT1tXnCftVfi7s+SlmBWrOow04k5eFlsMJ250U8Sefgabl+oG01niQnuND0+xlScl0HzMVfIVVbD2kKBKTCbDkAX12OOZlgQpNSYW/ZuuxaJ7Q52Uft8XuXvSAOJpLY3oreS4SfxH5u53HHK8IwUJ8LM4Y5U5dVI3UFFiS/orVoIYwP1vidQTSa4ZSwsNDAqszwQQspv+N6FRKx9Gmq3M8Okb1QPIJ4cvRbLiGre8TREmBhWXDZV1lY6kP95QxN2RReH6aXsodnXHj5TSb+OOKNP9PLvj39AwQmWv7wYgAAEGiEZLXdf1q8Bx/EpGmAcTmbVcp9fJuy4negu14Q2F6XrUWkXACJ2DV4gtUVuy+0ycEP0PomM0Ce7pIBMPgV9h/dkl/G82Ub3JVIV4GbHAHLa6trpfo0Ik4+Cgx6KH4cVeq2g43k9gZvgaLCSEnkpCFcYeoFht9YTTxJMdDnZjPhDk1x8rB0lsDLGZ7m+xL+iSirbR5RmulQncz/ppmscKB/YiTtHv8mS6AjI
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: efed7b26-4c67-4287-d70e-08d7e7ab512f
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2020 17:25:28.8585
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: tL0dguBxhN3D/V0AB9oBe6PQXggptp/AFH5T2aY5+moIvABWD44sgSGThwRz9OGelDbH53Wudxm7KoeSI2uKpg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB6388
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <nycvar.YSQ.7.76.2004231128210.2671@knanqh.ubzr>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Thu, Apr 23, 2020 at 11:33:33AM -0400, Nicolas Pitre wrote:
+> > > No. There is no logic in restricting MTD usage based on CRAMFS or 
+> > > CRAMFS_MTD.
+> > 
+> > Ah, I got it backwards, maybe this:
+> > 
+> > config CRAMFS
+> >    depends on MTD if CRAMFS_MTD
+> > 
+> > ?
+> 
+> Still half-backward. CRAMFS should not depend on either MTD nor
+> CRAMFS_MTD.
 
-On 4/21/2020 6:33 PM, Christoph Hellwig wrote:
-> On Fri, Mar 27, 2020 at 08:15:43PM +0300, Max Gurtovoy wrote:
->> -	if (!nvmet_check_transfer_len(req, nvmet_rw_data_len(req)))
->> +	if (!nvmet_check_transfer_len(req,
->> +				      nvmet_rw_data_len(req) + req->md_len))
-> Shouldn't we also calculate the actual metadata length on the fly here?
+Well, I would view this the same as all the other cases.. the CRAMFS
+module has an optional ability consume symbols from MTD.  Here that is
+controlled by another 'CRAMFS_MTD' selection, but it should still
+settle it out the same way as other cases like this - ie CRAMFS is
+restricted to m if MTD is m
 
-we calculate it during nvmet_init_req.
+Arnd's point that kconfig is acyclic does kill it though :(
 
+> It is CRAMFS_MTD that needs both CRAMFS and MTD.
+> Furthermore CRAMFS_MTD can't be built-in if MTD is modular.
 
->
->>   	blk_start_plug(&plug);
->> +	if (req->use_md)
-> Can't we use a non-NULL req->md_sg or non-null req->md_sg_cnt as a
-> metadata supported indicator and remove the use_md flag?  Maybe wrap
-> them in a helper function that also checks for blk integrity support
-> using IS_ENABLED and we can skip the stubs as well.
+CRAMFS_MTD is a bool feature flag for the CRAMFS tristate - it is
+CRAMFS that can't be built in if MTD is modular.
 
-I'll replace it with:
-
-static inline bool nvmet_req_has_pi(struct nvmet_req *req)
-{
-         return req->sq->ctrl->pi_support && nvmet_ns_has_pi(req->ns);
-}
-
-
->
+Jason
