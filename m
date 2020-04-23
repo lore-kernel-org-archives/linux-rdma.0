@@ -2,134 +2,198 @@ Return-Path: <SRS0=7Twq=6H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C110C54FCB
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0570FC54FD0
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D3612071E
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Xf6kX2y3"
+	by mail.kernel.org (Postfix) with ESMTP id D693920780
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1587668613;
+	bh=BYQB7FuMaS1C3vPa/HvrC211zVV7/0q/tqZ4xR+Veec=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=dKCC19NLCodanIj/E/koqPo/WRoV53QGG1bOb0gLoqwt7PeOkTza3axm73cGY00Gh
+	 /603aONe1yzkocRcAkrftv3xA7033nbjHSAZ9q0NuvnlVx+XkhqCXxPXYzZNTaiI+V
+	 BTH3myP7zbnW9LPDmQBD30rv6DV1aLvJsxUeq3xc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730365AbgDWTDa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Apr 2020 15:03:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58586 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726385AbgDWTDa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Apr 2020 15:03:30 -0400
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07EA2C09B042
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2020 12:03:29 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id x8so5794883qtp.13
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2020 12:03:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=rZtX23hw1mDQPuScQ5YaUda61/3w5TZYvLEZ6jNWCt0=;
-        b=Xf6kX2y3lAHY7/NPaFvUbcNmV/gai3T0WQ1lG+u6e5LZWSlwfrxfzSsMEQu0z+YSxd
-         pHhek810+1F39o2ynxdh0ygZlRJdca9CyY4tVsq+aZ/4nTTYy504Ir4Q6cXFkiq6jipl
-         vR8oyllAS0oApdUavbEIZ1GDxg1o/J9r6ar2e5xIM4RJiiAMMSyoTf7BkChMNSUAmh93
-         T74z4D7iqViU+jcBxVwS8W26MZx/74mCcE+OCnU28sxG5S7lih35H6jSpo5UirZ4I6Ar
-         aX71daIrJs4EetvmbQtH97aJmhdno+AfMRGcQfPiv15b7FDyhcHOtM7oH2ANf17VZD+W
-         I6Kg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=rZtX23hw1mDQPuScQ5YaUda61/3w5TZYvLEZ6jNWCt0=;
-        b=BJn+RG6pnt1OnuI4PXrurGWKt6T9jg7r3LoiISW8TQUkfrqF/91rYDFhdmwixSYzYs
-         +zEWeq06qQECfbNS14AdPT3NMApty56PFzsvJqB4ErkQD56xV6e6A3KZhxszXyl2VScv
-         DQmoJAkeHmOzzkAINoVY7Vq67t5d8fCKw14yijeTF7EkiKIuol1maRRukg9w34XD2ucJ
-         IxZnSGBzGvS+HExyAQkSSEqZT8uS+EuJnAst0+C0k4MbOWElwRyX2uMu38UOuzAYCHCF
-         UV7TLggq1YsLlWozxpuPaD+DgdyWvEttR/c6alhfxjWbpcHjvicd7Y31Vvs9MZd0V4gj
-         EMhw==
-X-Gm-Message-State: AGi0PuY2wfG1C8+pYcl4lHJFdBBQA7NAh6iG4OKUp94CyR56OjuELDOe
-        Od8LVPQEzBcnRHagfHhsfFUFlA==
-X-Google-Smtp-Source: APiQypLmXL81PXHuXcYxD1Wx4ZeLiaRBGhAFUaA2MxhgdlZm8avrmnKCJLrIprTv7LJl8de0iPTc5Q==
-X-Received: by 2002:ac8:4809:: with SMTP id g9mr5623041qtq.33.1587668609092;
-        Thu, 23 Apr 2020 12:03:29 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id b1sm2161158qkf.103.2020.04.23.12.03.28
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 23 Apr 2020 12:03:28 -0700 (PDT)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jRh8C-0006m7-0o; Thu, 23 Apr 2020 16:03:28 -0300
-Date:   Thu, 23 Apr 2020 16:03:28 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "nhorman@redhat.com" <nhorman@redhat.com>,
-        "sassmann@redhat.com" <sassmann@redhat.com>,
-        "Patil, Kiran" <kiran.patil@intel.com>,
-        "Ertman, David M" <david.m.ertman@intel.com>
-Subject: Re: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework definitions
-Message-ID: <20200423190327.GC26002@ziepe.ca>
-References: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
- <20200417171251.1533371-2-jeffrey.t.kirsher@intel.com>
- <20200417193421.GB3083@unreal>
- <9DD61F30A802C4429A01CA4200E302A7DCD4853F@fmsmsx124.amr.corp.intel.com>
- <20200421004628.GQ26002@ziepe.ca>
- <9DD61F30A802C4429A01CA4200E302A7DCD4A3E9@fmsmsx124.amr.corp.intel.com>
- <20200421182256.GT26002@ziepe.ca>
- <9DD61F30A802C4429A01CA4200E302A7DCD4DB92@fmsmsx124.amr.corp.intel.com>
- <20200423150201.GY26002@ziepe.ca>
- <9DD61F30A802C4429A01CA4200E302A7DCD4ED27@fmsmsx124.amr.corp.intel.com>
+        id S1730370AbgDWTDb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Apr 2020 15:03:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41596 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726385AbgDWTDb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:03:31 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6322120728;
+        Thu, 23 Apr 2020 19:03:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1587668611;
+        bh=BYQB7FuMaS1C3vPa/HvrC211zVV7/0q/tqZ4xR+Veec=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=N8TXm4Fg2iBeeFfoPci0ESn38pU2v8F4OmddU8wHJpVV0syOW9/q908rbr6yC8S53
+         HSqsMFO6Amzk3SUUXG1dP8XUVh/q/op5UQMGzrmIo2FuPAG5S4OnmG8cPn6p88Xc0i
+         mIHz7YaFa4vCMHg6HDPidIJ4syHXVl4gnuAFyeiQ=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH rdma-next 06/18] RDMA/mlx5: Rely on existence of udata to separate kernel/user flows
+Date:   Thu, 23 Apr 2020 22:02:51 +0300
+Message-Id: <20200423190303.12856-7-leon@kernel.org>
+X-Mailer: git-send-email 2.25.3
+In-Reply-To: <20200423190303.12856-1-leon@kernel.org>
+References: <20200423190303.12856-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7DCD4ED27@fmsmsx124.amr.corp.intel.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Apr 23, 2020 at 05:15:22PM +0000, Saleem, Shiraz wrote:
-> > Subject: Re: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework
-> > definitions
-> > 
-> > On Thu, Apr 23, 2020 at 12:32:48AM +0000, Saleem, Shiraz wrote:
-> > 
-> > > we have a split initialization design for gen2 and future products.
-> > > phase1 is control path resource initialization in irdma_probe_dev and
-> > > phase-2 is the rest of the resources with the ib registration at the
-> > > end of irdma_open. irdma_close must de-register the ib device which
-> > > will take care of ibdev free too. So it makes sense to keep allocation
-> > > of the ib device in irdma_open.
-> > 
-> > The best driver pattern is to allocate the ib_device at the very start of probe() and
-> > use this to anchor all the device resources and memories.
-> > 
-> > The whole close/open thing is really weird, you should get rid of it.
-> maybe I missing something. But why is it weird?
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Because the RDMA driver should exist as its own entity. It does not
-shutdown unless the remove() method on is struct device_driver is
-closed.
+Instead of keeping special field to separate kernel/user create/destroy
+flows, rely on existence of udata pointer. All allocation flows are
+using kzalloc() and leave uninitialized pointers as NULL which makes
+MLX5_QP_EMPTY and MLX5_QP_KERNEL flows to be the same.
 
-So what exactly are open/cose supposed to be doing? I think it is a
-left over of trying to re-implement the driver model.
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 14 --------------
+ drivers/infiniband/hw/mlx5/qp.c      | 23 ++++++++++-------------
+ 2 files changed, 10 insertions(+), 27 deletions(-)
 
-> underlying configuration changes and reset management for the physical
-> function need a light-weight mechanism which is realized with the close/open
-> from netdev PCI drv --> rdma drv.
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 6b500f9b2346..25007e3aebf7 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -337,7 +337,6 @@ struct mlx5_ib_rwq {
+ 	struct ib_umem		*umem;
+ 	size_t			buf_size;
+ 	unsigned int		page_shift;
+-	int			create_type;
+ 	struct mlx5_db		db;
+ 	u32			user_index;
+ 	u32			wqe_count;
+@@ -346,17 +345,6 @@ struct mlx5_ib_rwq {
+ 	u32			create_flags; /* Use enum mlx5_ib_wq_flags */
+ };
+ 
+-enum {
+-	MLX5_QP_USER,
+-	MLX5_QP_KERNEL,
+-	MLX5_QP_EMPTY
+-};
+-
+-enum {
+-	MLX5_WQ_USER,
+-	MLX5_WQ_KERNEL
+-};
+-
+ struct mlx5_ib_rwq_ind_table {
+ 	struct ib_rwq_ind_table ib_rwq_ind_tbl;
+ 	u32			rqtn;
+@@ -457,8 +445,6 @@ struct mlx5_ib_qp {
+ 	 */
+ 	int			bfregn;
+ 
+-	int			create_type;
+-
+ 	struct list_head	qps_list;
+ 	struct list_head	cq_recv_list;
+ 	struct list_head	cq_send_list;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 0f7a8f45764f..007163753f6f 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -897,7 +897,6 @@ static int create_user_rq(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		goto err_umem;
+ 	}
+ 
+-	rwq->create_type = MLX5_WQ_USER;
+ 	return 0;
+ 
+ err_umem:
+@@ -1022,7 +1021,6 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		mlx5_ib_dbg(dev, "copy failed\n");
+ 		goto err_unmap;
+ 	}
+-	qp->create_type = MLX5_QP_USER;
+ 
+ 	return 0;
+ 
+@@ -1187,7 +1185,6 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 		err = -ENOMEM;
+ 		goto err_wrid;
+ 	}
+-	qp->create_type = MLX5_QP_KERNEL;
+ 
+ 	return 0;
+ 
+@@ -1214,8 +1211,10 @@ static void destroy_qp_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 	kvfree(qp->sq.wrid);
+ 	kvfree(qp->sq.wr_data);
+ 	kvfree(qp->rq.wrid);
+-	mlx5_db_free(dev->mdev, &qp->db);
+-	mlx5_frag_buf_free(dev->mdev, &qp->buf);
++	if (qp->db.db)
++		mlx5_db_free(dev->mdev, &qp->db);
++	if (qp->buf.frags)
++		mlx5_frag_buf_free(dev->mdev, &qp->buf);
+ }
+ 
+ static u32 get_rx_type(struct mlx5_ib_qp *qp, struct ib_qp_init_attr *attr)
+@@ -2000,8 +1999,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		in = kvzalloc(inlen, GFP_KERNEL);
+ 		if (!in)
+ 			return -ENOMEM;
+-
+-		qp->create_type = MLX5_QP_EMPTY;
+ 	}
+ 
+ 	if (is_sqp(init_attr->qp_type))
+@@ -2155,9 +2152,9 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	return 0;
+ 
+ err_create:
+-	if (qp->create_type == MLX5_QP_USER)
++	if (udata)
+ 		destroy_qp_user(dev, pd, qp, base, udata);
+-	else if (qp->create_type == MLX5_QP_KERNEL)
++	else
+ 		destroy_qp_kernel(dev, qp);
+ 
+ err:
+@@ -2311,7 +2308,7 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	if (recv_cq)
+ 		list_del(&qp->cq_recv_list);
+ 
+-	if (qp->create_type == MLX5_QP_KERNEL) {
++	if (!udata) {
+ 		__mlx5_ib_cq_clean(recv_cq, base->mqp.qpn,
+ 				   qp->ibqp.srq ? to_msrq(qp->ibqp.srq) : NULL);
+ 		if (send_cq != recv_cq)
+@@ -2331,10 +2328,10 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 				     base->mqp.qpn);
+ 	}
+ 
+-	if (qp->create_type == MLX5_QP_KERNEL)
+-		destroy_qp_kernel(dev, qp);
+-	else if (qp->create_type == MLX5_QP_USER)
++	if (udata)
+ 		destroy_qp_user(dev, &get_pd(qp)->ibpd, qp, base, udata);
++	else
++		destroy_qp_kernel(dev, qp);
+ }
+ 
+ static int create_dct(struct ib_pd *pd, struct mlx5_ib_qp *qp,
+-- 
+2.25.3
 
-> Without a teardown and re-add of virtual device off the bus.
-
-Yes, that is exactly right. If you have done something so disruptive
-that the ib_device needs to be destroyed then you should unplug/replug
-the entire virtual bus device, that is the correct and sane thing to
-do. There is no 'light weight' here, destroying the ib_device is
-incredibly expensive and disruptive.
-
-Jason
