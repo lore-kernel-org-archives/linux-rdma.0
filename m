@@ -7,45 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69640C54FCB
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:04:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F29F0C54FD0
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:04:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AB5620776
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:04:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6F8120776
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:04:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587668655;
-	bh=ip4VrJQhvsGCYNs0VKEZWONkK2b9GBdxRmzR0GyYTUw=;
+	s=default; t=1587668658;
+	bh=ulmjnIsuDSn7rpgtrKWxOMKMv3A4RA05PR0M6Azrm9s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=V9JJ9Rpxud3f/Ekg6yrtVJ2jgpWvJJCB4vGqzboRWSzDcItWeiAHRIQ6HXzcW9A/d
-	 mYI9+ZUlo5z5g7+CID/6JXW+IrQsMcZ+1R6CsZEJfw6gEmZL6lEfG0j6Xv5P4faLa6
-	 dZUBjlj0E1JFXyN4dYFT2w+n9hmXjezjNBDfDazk=
+	b=kBx6So+/z8iygOjVLkYR/fIu2dRRLB3BKBRHuCTLUw2qCyjiZyza6Fupq9zvlM+wz
+	 Ia4bYzNrVNOmC0+4Vee4cTCJS5nknZXWBxT8wdjy3HXniZM4H1FBCKcy2KjvbNquay
+	 TwcF560eUHj39VUXLWP7XTMuvbo1yl7ErR3UlIs8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728273AbgDWTEO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Apr 2020 15:04:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42300 "EHLO mail.kernel.org"
+        id S1728214AbgDWTES (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Apr 2020 15:04:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728200AbgDWTEO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:04:14 -0400
+        id S1728200AbgDWTES (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:04:18 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0A0B820767;
-        Thu, 23 Apr 2020 19:04:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1A6A420767;
+        Thu, 23 Apr 2020 19:04:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587668653;
-        bh=ip4VrJQhvsGCYNs0VKEZWONkK2b9GBdxRmzR0GyYTUw=;
+        s=default; t=1587668657;
+        bh=ulmjnIsuDSn7rpgtrKWxOMKMv3A4RA05PR0M6Azrm9s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=2IGmlc6bdhAiYjELRAPIfqv7viddt0hkpc3ninvAxOvezuas11B4Q9qC0FUzbjNA0
-         GN18TdcqVDZ2U8uclotwqp/afkRsAPp4fx+maJKUi9rdMwwSqQlxPNEPDcuLdyGC6i
-         5LqXXiW0bxdpppTIP7KmY2A8RtkMcLUZT1Prpf7A=
+        b=v7UPLn3bOVDiu/d7VffYgHAtpKLeklAzl5O/ub02LbYu56mTHU/9Frair0iafeA/0
+         hW3bvizG/yXRL1q/IpHwQSdW2S6JjTu/YuHqxdmt+41S8AXHn1z6Lq7gqPkQJioftS
+         IFWFQXBzH+LfK7LZWt/KLhIfUPjFa+45H0tZ2hiA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 13/18] RDMA/mlx5: Promote RSS RAW QP flags check to higher level
-Date:   Thu, 23 Apr 2020 22:02:58 +0300
-Message-Id: <20200423190303.12856-14-leon@kernel.org>
+Cc:     Aharon Landau <aharonl@mellanox.com>, Eli Cohen <eli@mellanox.com>,
+        Jack Morgenstein <jackm@dev.mellanox.co.il>,
+        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@mellanox.com>,
+        Or Gerlitz <ogerlitz@mellanox.com>,
+        Roland Dreier <roland@purestorage.com>
+Subject: [PATCH rdma-next 18/18] RDMA/mlx5: Verify that QP is created with RQ or SQ
+Date:   Thu, 23 Apr 2020 22:03:03 +0300
+Message-Id: <20200423190303.12856-19-leon@kernel.org>
 X-Mailer: git-send-email 2.25.3
 In-Reply-To: <20200423190303.12856-1-leon@kernel.org>
 References: <20200423190303.12856-1-leon@kernel.org>
@@ -56,57 +59,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Aharon Landau <aharonl@mellanox.com>
 
-Move check that user didn't supplied RSS RAW QP unsupported
-command flags to the function that checks all such flags.
+RAW packet QP and underlay QP must be created with either
+RQ or SQ, check that.
 
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Signed-off-by: Aharon Landau <aharonl@mellanox.com>
 Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 310d9a4d5a30..82de57ef78e7 100644
+index 9ee12622ac3c..956a7ad3843d 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1652,13 +1652,6 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		return -EOPNOTSUPP;
- 	}
+@@ -1482,6 +1482,8 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	u16 uid = to_mpd(pd)->uid;
+ 	u32 out[MLX5_ST_SZ_DW(create_tir_out)] = {};
  
--	if (ucmd->flags & ~(MLX5_QP_FLAG_TUNNEL_OFFLOADS |
--			   MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC |
--			   MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC)) {
--		mlx5_ib_dbg(dev, "invalid flags\n");
--		return -EOPNOTSUPP;
--	}
--
- 	if (ucmd->rx_hash_fields_mask & MLX5_RX_HASH_INNER &&
- 	    !(ucmd->flags & MLX5_QP_FLAG_TUNNEL_OFFLOADS)) {
- 		mlx5_ib_dbg(dev, "Tunnel offloads must be set for inner RSS\n");
-@@ -2687,11 +2680,20 @@ static int process_vendor_flags(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	process_vendor_flag(dev, &flags, MLX5_QP_FLAG_BFREG_INDEX, true, qp);
- 	process_vendor_flag(dev, &flags, MLX5_QP_FLAG_UAR_PAGE_INDEX, true, qp);
- 
-+	cond = qp->flags_en & ~(MLX5_QP_FLAG_TUNNEL_OFFLOADS |
-+				MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC |
-+				MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC);
-+	if (attr->rwq_ind_tbl && cond) {
-+		mlx5_ib_dbg(dev, "RSS RAW QP has unsupported flags 0x%X\n",
-+			    cond);
++	if (!qp->sq.wqe_cnt && !qp->rq.wqe_cnt)
 +		return -EINVAL;
-+	}
-+
- 	if (flags)
- 		mlx5_ib_dbg(dev, "udata has unsupported flags 0x%X\n", flags);
- 
- 	return (flags) ? -EINVAL : 0;
--}
-+	}
- 
- static void process_create_flag(struct mlx5_ib_dev *dev, int *flags, int flag,
- 				bool cond, struct mlx5_ib_qp *qp)
+ 	if (qp->sq.wqe_cnt) {
+ 		err = create_raw_packet_qp_tis(dev, qp, sq, tdn, pd);
+ 		if (err)
 -- 
 2.25.3
 
