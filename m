@@ -2,28 +2,28 @@ Return-Path: <SRS0=7Twq=6H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC92C55186
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B40FC55192
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 070392077D
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 223922077D
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728463AbgDWM4D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Apr 2020 08:56:03 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:60440 "EHLO
+        id S1728444AbgDWM4k (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Apr 2020 08:56:40 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:60415 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728449AbgDWM4C (ORCPT
+        with ESMTP id S1728443AbgDWM4C (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Apr 2020 08:56:02 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 23 Apr 2020 15:55:58 +0300
+        with ESMTPS (AES256-SHA encrypted); 23 Apr 2020 15:55:59 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03NCtw1p003234;
-        Thu, 23 Apr 2020 15:55:58 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03NCtw1v003234;
+        Thu, 23 Apr 2020 15:55:59 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V5 mlx5-next 01/16] net/core: Introduce netdev_get_xmit_slave
-Date:   Thu, 23 Apr 2020 15:55:40 +0300
-Message-Id: <20200423125555.21759-2-maorg@mellanox.com>
+Subject: [PATCH V5 mlx5-next 07/16] bonding: Add function to get the xmit slave in active-backup mode
+Date:   Thu, 23 Apr 2020 15:55:46 +0300
+Message-Id: <20200423125555.21759-8-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200423125555.21759-1-maorg@mellanox.com>
 References: <20200423125555.21759-1-maorg@mellanox.com>
@@ -42,75 +42,44 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add new ndo to get the xmit slave of master device.
-Caller should call dev_put() when it no longer works with
-slave netdevice.
-User can ask to get the xmit slave assume all the slaves can
-transmit by set all_slaves arg to true.
+Add helper function to get the xmit slave in active-backup mode.
+It's only one line function that return the curr_active_slave,
+but it will used both in the xmit flow and by the new .ndo to get
+the xmit slave.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- include/linux/netdevice.h |  6 ++++++
- net/core/dev.c            | 22 ++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ drivers/net/bonding/bond_main.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 130a668049ab..d1206f08e099 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -1389,6 +1389,9 @@ struct net_device_ops {
- 						 struct netlink_ext_ack *extack);
- 	int			(*ndo_del_slave)(struct net_device *dev,
- 						 struct net_device *slave_dev);
-+	struct net_device*	(*ndo_get_xmit_slave)(struct net_device *dev,
-+						      struct sk_buff *skb,
-+						      bool all_slaves);
- 	netdev_features_t	(*ndo_fix_features)(struct net_device *dev,
- 						    netdev_features_t features);
- 	int			(*ndo_set_features)(struct net_device *dev,
-@@ -2731,6 +2734,9 @@ void netdev_freemem(struct net_device *dev);
- void synchronize_net(void);
- int init_dummy_netdev(struct net_device *dev);
- 
-+struct net_device *netdev_get_xmit_slave(struct net_device *dev,
-+					 struct sk_buff *skb,
-+					 bool all_slaves);
- struct net_device *dev_get_by_index(struct net *net, int ifindex);
- struct net_device *__dev_get_by_index(struct net *net, int ifindex);
- struct net_device *dev_get_by_index_rcu(struct net *net, int ifindex);
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 9c9e763bfe0e..e6c10980abfd 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -7785,6 +7785,28 @@ void netdev_bonding_info_change(struct net_device *dev,
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 09c8485e965d..1b0ae750d732 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4042,6 +4042,12 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+ 	return NETDEV_TX_OK;
  }
- EXPORT_SYMBOL(netdev_bonding_info_change);
  
-+/**
-+ * netdev_get_xmit_slave - Get the xmit slave of master device
-+ * @skb: The packet
-+ * @all_slaves: assume all the slaves are active
-+ *
-+ * The reference counters are not incremented so the caller must be
-+ * careful with locks. The caller must hold RCU lock.
-+ * %NULL is returned if no slave is found.
-+ */
-+
-+struct net_device *netdev_get_xmit_slave(struct net_device *dev,
-+					 struct sk_buff *skb,
-+					 bool all_slaves)
++static struct slave *bond_xmit_activebackup_slave_get(struct bonding *bond,
++						      struct sk_buff *skb)
 +{
-+	const struct net_device_ops *ops = dev->netdev_ops;
-+
-+	if (!ops->ndo_get_xmit_slave)
-+		return NULL;
-+	return ops->ndo_get_xmit_slave(dev, skb, all_slaves);
++	return rcu_dereference(bond->curr_active_slave);
 +}
-+EXPORT_SYMBOL(netdev_get_xmit_slave);
 +
- static void netdev_adjacent_add_links(struct net_device *dev)
- {
- 	struct netdev_adjacent *iter;
+ /* In active-backup mode, we know that bond->curr_active_slave is always valid if
+  * the bond has a usable interface.
+  */
+@@ -4051,7 +4057,7 @@ static netdev_tx_t bond_xmit_activebackup(struct sk_buff *skb,
+ 	struct bonding *bond = netdev_priv(bond_dev);
+ 	struct slave *slave;
+ 
+-	slave = rcu_dereference(bond->curr_active_slave);
++	slave = bond_xmit_activebackup_slave_get(bond, skb);
+ 	if (slave)
+ 		bond_dev_queue_xmit(bond, skb, slave->dev);
+ 	else
 -- 
 2.17.2
 
