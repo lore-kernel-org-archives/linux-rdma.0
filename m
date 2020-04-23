@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50ADEC54FCB
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB3CBC54FD0
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25FA020767
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99FA520767
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587668604;
-	bh=Nnxy2xTWCmLeJLqD5QACKfOrxKdp1qmldgVWxNcNWK4=;
+	s=default; t=1587668608;
+	bh=ge0oxgxLbl+Q4rOnqRKCYOSWWm5WPiLB8ybUE9Nz6Pk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=GjHC2nmlfPl+7m0PH35Oh4Ba/JIr8u81Pk9MkSL+5AjqlYH+yaRQ3MjOZ43JpKv/I
-	 024cC/QkHH91Bw58W8mRGc00ysCj4+8xl8MYs1c41kPgGGz1re52+bBMbAgJmq3/vj
-	 MCSilpkiRgaQIEL21K+Wi7X2JPhVXUCdCzPGjizM=
+	b=dY8UF4qAb8hJZUyK1IKai6/sugh4PJ/wIafyb/x2rwGFxyX60JdVgpuk6ntkDZBvL
+	 dNqkn1ZogY48Y6YfKs1nNuB6WL8pMT2H22BBvr3uM69hldA7zCA65sJkXCZjQBGEEy
+	 BhgZYJ7EvtkVwrijoyGkDzIsZFgqnU6MPBK5i/LA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730363AbgDWTDX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Apr 2020 15:03:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41454 "EHLO mail.kernel.org"
+        id S1730364AbgDWTD2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Apr 2020 15:03:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726385AbgDWTDX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:03:23 -0400
+        id S1726385AbgDWTD1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:03:27 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5178F20728;
-        Thu, 23 Apr 2020 19:03:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 45DEA20728;
+        Thu, 23 Apr 2020 19:03:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587668603;
-        bh=Nnxy2xTWCmLeJLqD5QACKfOrxKdp1qmldgVWxNcNWK4=;
+        s=default; t=1587668607;
+        bh=ge0oxgxLbl+Q4rOnqRKCYOSWWm5WPiLB8ybUE9Nz6Pk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RiPHuC1HQ374clNN8P1NwnmOpUIrLD4Gsj+DsJuALh8vneTHawvVk8/wuZ1ZPuWcy
-         Ggp/WeIbK9GsxkTfdF0GWE+pSoHmVULHTF3NhznHaX2+X0OWvz1z0yxVsdmOOmROLX
-         tqM/P38HTYJ+3JDHDZrnTy9Muw4VTMetPB5XtgAQ=
+        b=hw6d8LWOYmbZwvhFFbUnMHanyODEUPq2PloVaAn7HIVTb+wU70W/xm/BLIyEJSWb5
+         9hDJyij3sjR7pKtZbilKpUegIR8zOz53IRwK4OyOocCnXyvB72WA1Yw2qxUx48NXf6
+         gJpau17gLRX/durO9OrKEQbf1ziS783wO5odqHxw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 03/18] RDMA/mlx5: Promote RSS RAW QP attribute check in higher level
-Date:   Thu, 23 Apr 2020 22:02:48 +0300
-Message-Id: <20200423190303.12856-4-leon@kernel.org>
+Subject: [PATCH rdma-next 05/18] RDMA/mlx5: Remove second user copy in create_user_qp
+Date:   Thu, 23 Apr 2020 22:02:50 +0300
+Message-Id: <20200423190303.12856-6-leon@kernel.org>
 X-Mailer: git-send-email 2.25.3
 In-Reply-To: <20200423190303.12856-1-leon@kernel.org>
 References: <20200423190303.12856-1-leon@kernel.org>
@@ -58,38 +58,108 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Perform check of attributes of RAW PACKET QP in separate function.
+Combine copy_from_user() from create_user_qp() and general code.
 
 Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 34 +++++++++++++++------------------
+ 1 file changed, 15 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 6e2f71a48cbb..f7c32dc5cf9c 100644
+index 07cd976c4a20..0f7a8f45764f 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1645,9 +1645,6 @@ static int create_rss_raw_qp_tir(struct ib_pd *pd, struct mlx5_ib_qp *qp,
- 	size_t required_cmd_sz;
- 	u8 lb_flag = 0;
+@@ -914,13 +914,12 @@ static int adjust_bfregn(struct mlx5_ib_dev *dev,
  
--	if (init_attr->send_cq)
--		return -EINVAL;
+ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 			  struct mlx5_ib_qp *qp, struct ib_udata *udata,
+-			  struct ib_qp_init_attr *attr,
+-			  u32 **in,
++			  struct ib_qp_init_attr *attr, u32 **in,
+ 			  struct mlx5_ib_create_qp_resp *resp, int *inlen,
+-			  struct mlx5_ib_qp_base *base)
++			  struct mlx5_ib_qp_base *base,
++			  struct mlx5_ib_create_qp *ucmd)
+ {
+ 	struct mlx5_ib_ucontext *context;
+-	struct mlx5_ib_create_qp ucmd;
+ 	struct mlx5_ib_ubuffer *ubuffer = &base->ubuffer;
+ 	int page_shift = 0;
+ 	int uar_index = 0;
+@@ -934,24 +933,18 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	u16 uid;
+ 	u32 uar_flags;
+ 
+-	err = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
+-	if (err) {
+-		mlx5_ib_dbg(dev, "copy failed\n");
+-		return err;
+-	}
 -
- 	min_resp_len = offsetof(typeof(resp), bfreg_index) + sizeof(resp.bfreg_index);
- 	if (udata->outlen < min_resp_len)
- 		return -EINVAL;
-@@ -2693,6 +2690,9 @@ static int check_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 			      -EINVAL :
- 			      0;
+ 	context = rdma_udata_to_drv_context(udata, struct mlx5_ib_ucontext,
+ 					    ibucontext);
+-	uar_flags = ucmd.flags & (MLX5_QP_FLAG_UAR_PAGE_INDEX |
+-				  MLX5_QP_FLAG_BFREG_INDEX);
++	uar_flags = qp->flags_en &
++		    (MLX5_QP_FLAG_UAR_PAGE_INDEX | MLX5_QP_FLAG_BFREG_INDEX);
+ 	switch (uar_flags) {
+ 	case MLX5_QP_FLAG_UAR_PAGE_INDEX:
+-		uar_index = ucmd.bfreg_index;
++		uar_index = ucmd->bfreg_index;
+ 		bfregn = MLX5_IB_INVALID_BFREG;
  		break;
-+	case IB_QPT_RAW_PACKET:
-+		ret = (attr->rwq_ind_tbl && attr->send_cq) ? -EINVAL : 0;
-+		break;
- 	default:
- 		break;
- 	}
+ 	case MLX5_QP_FLAG_BFREG_INDEX:
+ 		uar_index = bfregn_to_uar_index(dev, &context->bfregi,
+-						ucmd.bfreg_index, true);
++						ucmd->bfreg_index, true);
+ 		if (uar_index < 0)
+ 			return uar_index;
+ 		bfregn = MLX5_IB_INVALID_BFREG;
+@@ -976,12 +969,12 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	qp->sq.wqe_shift = ilog2(MLX5_SEND_WQE_BB);
+ 	qp->sq.offset = qp->rq.wqe_cnt << qp->rq.wqe_shift;
+ 
+-	err = set_user_buf_size(dev, qp, &ucmd, base, attr);
++	err = set_user_buf_size(dev, qp, ucmd, base, attr);
+ 	if (err)
+ 		goto err_bfreg;
+ 
+-	if (ucmd.buf_addr && ubuffer->buf_size) {
+-		ubuffer->buf_addr = ucmd.buf_addr;
++	if (ucmd->buf_addr && ubuffer->buf_size) {
++		ubuffer->buf_addr = ucmd->buf_addr;
+ 		err = mlx5_ib_umem_get(dev, udata, ubuffer->buf_addr,
+ 				       ubuffer->buf_size, &ubuffer->umem,
+ 				       &npages, &page_shift, &ncont, &offset);
+@@ -1018,7 +1011,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		resp->bfreg_index = MLX5_IB_INVALID_BFREG;
+ 	qp->bfregn = bfregn;
+ 
+-	err = mlx5_ib_db_map_user(context, udata, ucmd.db_addr, &qp->db);
++	err = mlx5_ib_db_map_user(context, udata, ucmd->db_addr, &qp->db);
+ 	if (err) {
+ 		mlx5_ib_dbg(dev, "map failed\n");
+ 		goto err_free;
+@@ -1991,7 +1984,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 				return -EINVAL;
+ 			}
+ 			err = create_user_qp(dev, pd, qp, udata, init_attr, &in,
+-					     &resp, &inlen, base);
++					     &resp, &inlen, base, ucmd);
+ 			if (err)
+ 				mlx5_ib_dbg(dev, "err %d\n", err);
+ 		} else {
+@@ -2550,6 +2543,9 @@ static int process_vendor_flags(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 				    MLX5_QP_FLAG_PACKET_BASED_CREDIT_MODE,
+ 				    MLX5_CAP_GEN(mdev, qp_packet_based), qp);
+ 
++	process_vendor_flag(dev, &flags, MLX5_QP_FLAG_BFREG_INDEX, true, qp);
++	process_vendor_flag(dev, &flags, MLX5_QP_FLAG_UAR_PAGE_INDEX, true, qp);
++
+ 	if (flags)
+ 		mlx5_ib_dbg(dev, "udata has unsupported flags 0x%X\n", flags);
+ 
 -- 
 2.25.3
 
