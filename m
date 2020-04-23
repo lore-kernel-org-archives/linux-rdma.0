@@ -2,36 +2,38 @@ Return-Path: <SRS0=7Twq=6H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88769C55186
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 11:16:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2B97C54FCB
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 11:16:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6704C2077D
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 11:16:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1FE42098B
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 11:16:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728035AbgDWLQD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727877AbgDWLQD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 23 Apr 2020 07:16:03 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:49368 "EHLO huawei.com"
+Received: from szxga07-in.huawei.com ([45.249.212.35]:49402 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728032AbgDWLQD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Apr 2020 07:16:03 -0400
+        id S1727862AbgDWLQC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 23 Apr 2020 07:16:02 -0400
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 7FE085674411E32F1BB8;
+        by Forcepoint Email with ESMTP id 8ECFC90A767B05BBCC8B;
         Thu, 23 Apr 2020 19:16:00 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 23 Apr 2020 19:15:53 +0800
+ 14.3.487.0; Thu, 23 Apr 2020 19:15:54 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/5] RDMA/hns: Refactor process of buffer allocation and calculation
-Date:   Thu, 23 Apr 2020 19:15:45 +0800
-Message-ID: <1587640550-16777-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 5/5] RDMA/hns: Optimize SRQ buffer size calculating process
+Date:   Thu, 23 Apr 2020 19:15:50 +0800
+Message-ID: <1587640550-16777-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1587640550-16777-1-git-send-email-liweihang@huawei.com>
+References: <1587640550-16777-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,37 +43,154 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Patch #1 and #2 aim to use MTR interfaces for PBL buffer instead of MTT,
-and after this, MTT can be removed completely. Patch #3 and #5 refactor
-buffer size calculation process for WQE and SRQ. #4 can be considered as a
-preparation for #5, which just moves code of SRQ together to a more
-suitable place.
+From: Xi Wang <wangxi11@huawei.com>
 
-This series looks huge, but most of the modification is to replace and
-remove old interfaces, and patch #4 also contribute a lot. Actually, the
-original logic is not changed so much.
+Optimizes the SRQ's WQE buffer parameters calculating process to make the
+codes more readable.
 
-Xi Wang (4):
-  RDMA/hns: Optimize PBL buffer allocation process
-  RDMA/hns: Remove unused MTT functions
-  RDMA/hns: Optimize WQE buffer size calculating process
-  RDMA/hns: Optimize SRQ buffer size calculating process
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 29 ++++++++++++++---------------
+ drivers/infiniband/hw/hns/hns_roce_srq.c    | 16 ++++++++--------
+ 3 files changed, 23 insertions(+), 24 deletions(-)
 
-Yixian Liu (1):
-  RDMA/hns: Move SRQ code to the reasonable place
-
- drivers/infiniband/hw/hns/hns_roce_alloc.c  |   43 -
- drivers/infiniband/hw/hns/hns_roce_device.h |  119 +--
- drivers/infiniband/hw/hns/hns_roce_hem.c    |  105 ---
- drivers/infiniband/hw/hns/hns_roce_hem.h    |    6 -
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   45 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  941 ++++++++++----------
- drivers/infiniband/hw/hns/hns_roce_main.c   |   70 +-
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 1250 +++------------------------
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  313 +++----
- drivers/infiniband/hw/hns/hns_roce_srq.c    |   16 +-
- 10 files changed, 777 insertions(+), 2131 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index eaebd4b..ecaaad1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -472,7 +472,7 @@ struct hns_roce_cq {
+ 
+ struct hns_roce_idx_que {
+ 	struct hns_roce_mtr		mtr;
+-	int				entry_sz;
++	int				entry_shift;
+ 	unsigned long			*bitmap;
+ };
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 0b79daf..f70370d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -699,6 +699,12 @@ static void *get_srq_wqe(struct hns_roce_srq *srq, int n)
+ 	return hns_roce_buf_offset(srq->buf_mtr.kmem, n << srq->wqe_shift);
+ }
+ 
++static void *get_idx_buf(struct hns_roce_idx_que *idx_que, int n)
++{
++	return hns_roce_buf_offset(idx_que->mtr.kmem,
++				   n << idx_que->entry_shift);
++}
++
+ static void hns_roce_free_srq_wqe(struct hns_roce_srq *srq, int wqe_index)
+ {
+ 	/* always called with interrupts disabled. */
+@@ -725,16 +731,6 @@ static int find_empty_entry(struct hns_roce_idx_que *idx_que,
+ 	return wqe_idx;
+ }
+ 
+-static void fill_idx_queue(struct hns_roce_idx_que *idx_que,
+-			   int cur_idx, int wqe_idx)
+-{
+-	unsigned int *addr;
+-
+-	addr = (unsigned int *)hns_roce_buf_offset(idx_que->mtr.kmem,
+-						   cur_idx * idx_que->entry_sz);
+-	*addr = wqe_idx;
+-}
+-
+ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
+ 				     const struct ib_recv_wr *wr,
+ 				     const struct ib_recv_wr **bad_wr)
+@@ -744,6 +740,7 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
+ 	struct hns_roce_v2_wqe_data_seg *dseg;
+ 	struct hns_roce_v2_db srq_db;
+ 	unsigned long flags;
++	__le32 *srq_idx;
+ 	int ret = 0;
+ 	int wqe_idx;
+ 	void *wqe;
+@@ -775,7 +772,6 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
+ 			break;
+ 		}
+ 
+-		fill_idx_queue(&srq->idx_que, ind, wqe_idx);
+ 		wqe = get_srq_wqe(srq, wqe_idx);
+ 		dseg = (struct hns_roce_v2_wqe_data_seg *)wqe;
+ 
+@@ -791,6 +787,9 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
+ 			dseg[i].addr = 0;
+ 		}
+ 
++		srq_idx = get_idx_buf(&srq->idx_que, ind);
++		*srq_idx = cpu_to_le32(wqe_idx);
++
+ 		srq->wrid[wqe_idx] = wr->wr_id;
+ 		ind = (ind + 1) & (srq->wqe_cnt - 1);
+ 	}
+@@ -4901,8 +4900,8 @@ static void hns_roce_v2_write_srqc(struct hns_roce_dev *hr_dev,
+ 	roce_set_field(srq_context->byte_4_srqn_srqst,
+ 		       SRQC_BYTE_4_SRQ_WQE_HOP_NUM_M,
+ 		       SRQC_BYTE_4_SRQ_WQE_HOP_NUM_S,
+-		       (hr_dev->caps.srqwqe_hop_num == HNS_ROCE_HOP_NUM_0 ? 0 :
+-		       hr_dev->caps.srqwqe_hop_num));
++		       to_hr_hem_hopnum(hr_dev->caps.srqwqe_hop_num,
++					srq->wqe_cnt));
+ 	roce_set_field(srq_context->byte_4_srqn_srqst,
+ 		       SRQC_BYTE_4_SRQ_SHIFT_M, SRQC_BYTE_4_SRQ_SHIFT_S,
+ 		       ilog2(srq->wqe_cnt));
+@@ -4944,8 +4943,8 @@ static void hns_roce_v2_write_srqc(struct hns_roce_dev *hr_dev,
+ 	roce_set_field(srq_context->byte_44_idxbufpgsz_addr,
+ 		       SRQC_BYTE_44_SRQ_IDX_HOP_NUM_M,
+ 		       SRQC_BYTE_44_SRQ_IDX_HOP_NUM_S,
+-		       hr_dev->caps.idx_hop_num == HNS_ROCE_HOP_NUM_0 ? 0 :
+-		       hr_dev->caps.idx_hop_num);
++		       to_hr_hem_hopnum(hr_dev->caps.idx_hop_num,
++					srq->wqe_cnt));
+ 
+ 	roce_set_field(srq_context->byte_44_idxbufpgsz_addr,
+ 		       SRQC_BYTE_44_SRQ_IDX_BA_PG_SZ_M,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index e413a97..6e5a2ad 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -181,16 +181,15 @@ static int alloc_srq_buf(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq,
+ {
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	struct hns_roce_buf_attr buf_attr = {};
+-	int sge_size;
+ 	int err;
+ 
+-	sge_size = roundup_pow_of_two(max(HNS_ROCE_SGE_SIZE,
+-					  HNS_ROCE_SGE_SIZE * srq->max_gs));
+-
+-	srq->wqe_shift = ilog2(sge_size);
++	srq->wqe_shift = ilog2(roundup_pow_of_two(max(HNS_ROCE_SGE_SIZE,
++						      HNS_ROCE_SGE_SIZE *
++						      srq->max_gs)));
+ 
+ 	buf_attr.page_shift = hr_dev->caps.srqwqe_buf_pg_sz + PAGE_ADDR_SHIFT;
+-	buf_attr.region[0].size = srq->wqe_cnt * sge_size;
++	buf_attr.region[0].size = to_hr_hem_entries_size(srq->wqe_cnt,
++							 srq->wqe_shift);
+ 	buf_attr.region[0].hopnum = hr_dev->caps.srqwqe_hop_num;
+ 	buf_attr.region_count = 1;
+ 	buf_attr.fixed_page = true;
+@@ -217,10 +216,11 @@ static int alloc_srq_idx(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq,
+ 	struct hns_roce_buf_attr buf_attr = {};
+ 	int err;
+ 
+-	srq->idx_que.entry_sz = HNS_ROCE_IDX_QUE_ENTRY_SZ;
++	srq->idx_que.entry_shift = ilog2(HNS_ROCE_IDX_QUE_ENTRY_SZ);
+ 
+ 	buf_attr.page_shift = hr_dev->caps.idx_buf_pg_sz + PAGE_ADDR_SHIFT;
+-	buf_attr.region[0].size = srq->wqe_cnt * HNS_ROCE_IDX_QUE_ENTRY_SZ;
++	buf_attr.region[0].size = to_hr_hem_entries_size(srq->wqe_cnt,
++					srq->idx_que.entry_shift);
+ 	buf_attr.region[0].hopnum = hr_dev->caps.idx_hop_num;
+ 	buf_attr.region_count = 1;
+ 	buf_attr.fixed_page = true;
 -- 
 2.8.1
 
