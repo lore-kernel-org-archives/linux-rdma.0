@@ -2,164 +2,134 @@ Return-Path: <SRS0=7Twq=6H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB3CBC54FD0
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C110C54FCB
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99FA520767
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587668608;
-	bh=ge0oxgxLbl+Q4rOnqRKCYOSWWm5WPiLB8ybUE9Nz6Pk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=dY8UF4qAb8hJZUyK1IKai6/sugh4PJ/wIafyb/x2rwGFxyX60JdVgpuk6ntkDZBvL
-	 dNqkn1ZogY48Y6YfKs1nNuB6WL8pMT2H22BBvr3uM69hldA7zCA65sJkXCZjQBGEEy
-	 BhgZYJ7EvtkVwrijoyGkDzIsZFgqnU6MPBK5i/LA=
+	by mail.kernel.org (Postfix) with ESMTP id 1D3612071E
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:03:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Xf6kX2y3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730364AbgDWTD2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Apr 2020 15:03:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41508 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726385AbgDWTD1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:03:27 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 45DEA20728;
-        Thu, 23 Apr 2020 19:03:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587668607;
-        bh=ge0oxgxLbl+Q4rOnqRKCYOSWWm5WPiLB8ybUE9Nz6Pk=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hw6d8LWOYmbZwvhFFbUnMHanyODEUPq2PloVaAn7HIVTb+wU70W/xm/BLIyEJSWb5
-         9hDJyij3sjR7pKtZbilKpUegIR8zOz53IRwK4OyOocCnXyvB72WA1Yw2qxUx48NXf6
-         gJpau17gLRX/durO9OrKEQbf1ziS783wO5odqHxw=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 05/18] RDMA/mlx5: Remove second user copy in create_user_qp
-Date:   Thu, 23 Apr 2020 22:02:50 +0300
-Message-Id: <20200423190303.12856-6-leon@kernel.org>
-X-Mailer: git-send-email 2.25.3
-In-Reply-To: <20200423190303.12856-1-leon@kernel.org>
-References: <20200423190303.12856-1-leon@kernel.org>
+        id S1730365AbgDWTDa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Apr 2020 15:03:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58586 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726385AbgDWTDa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Apr 2020 15:03:30 -0400
+Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07EA2C09B042
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2020 12:03:29 -0700 (PDT)
+Received: by mail-qt1-x844.google.com with SMTP id x8so5794883qtp.13
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2020 12:03:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=rZtX23hw1mDQPuScQ5YaUda61/3w5TZYvLEZ6jNWCt0=;
+        b=Xf6kX2y3lAHY7/NPaFvUbcNmV/gai3T0WQ1lG+u6e5LZWSlwfrxfzSsMEQu0z+YSxd
+         pHhek810+1F39o2ynxdh0ygZlRJdca9CyY4tVsq+aZ/4nTTYy504Ir4Q6cXFkiq6jipl
+         vR8oyllAS0oApdUavbEIZ1GDxg1o/J9r6ar2e5xIM4RJiiAMMSyoTf7BkChMNSUAmh93
+         T74z4D7iqViU+jcBxVwS8W26MZx/74mCcE+OCnU28sxG5S7lih35H6jSpo5UirZ4I6Ar
+         aX71daIrJs4EetvmbQtH97aJmhdno+AfMRGcQfPiv15b7FDyhcHOtM7oH2ANf17VZD+W
+         I6Kg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=rZtX23hw1mDQPuScQ5YaUda61/3w5TZYvLEZ6jNWCt0=;
+        b=BJn+RG6pnt1OnuI4PXrurGWKt6T9jg7r3LoiISW8TQUkfrqF/91rYDFhdmwixSYzYs
+         +zEWeq06qQECfbNS14AdPT3NMApty56PFzsvJqB4ErkQD56xV6e6A3KZhxszXyl2VScv
+         DQmoJAkeHmOzzkAINoVY7Vq67t5d8fCKw14yijeTF7EkiKIuol1maRRukg9w34XD2ucJ
+         IxZnSGBzGvS+HExyAQkSSEqZT8uS+EuJnAst0+C0k4MbOWElwRyX2uMu38UOuzAYCHCF
+         UV7TLggq1YsLlWozxpuPaD+DgdyWvEttR/c6alhfxjWbpcHjvicd7Y31Vvs9MZd0V4gj
+         EMhw==
+X-Gm-Message-State: AGi0PuY2wfG1C8+pYcl4lHJFdBBQA7NAh6iG4OKUp94CyR56OjuELDOe
+        Od8LVPQEzBcnRHagfHhsfFUFlA==
+X-Google-Smtp-Source: APiQypLmXL81PXHuXcYxD1Wx4ZeLiaRBGhAFUaA2MxhgdlZm8avrmnKCJLrIprTv7LJl8de0iPTc5Q==
+X-Received: by 2002:ac8:4809:: with SMTP id g9mr5623041qtq.33.1587668609092;
+        Thu, 23 Apr 2020 12:03:29 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
+        by smtp.gmail.com with ESMTPSA id b1sm2161158qkf.103.2020.04.23.12.03.28
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 23 Apr 2020 12:03:28 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jRh8C-0006m7-0o; Thu, 23 Apr 2020 16:03:28 -0300
+Date:   Thu, 23 Apr 2020 16:03:28 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "nhorman@redhat.com" <nhorman@redhat.com>,
+        "sassmann@redhat.com" <sassmann@redhat.com>,
+        "Patil, Kiran" <kiran.patil@intel.com>,
+        "Ertman, David M" <david.m.ertman@intel.com>
+Subject: Re: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework definitions
+Message-ID: <20200423190327.GC26002@ziepe.ca>
+References: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
+ <20200417171251.1533371-2-jeffrey.t.kirsher@intel.com>
+ <20200417193421.GB3083@unreal>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4853F@fmsmsx124.amr.corp.intel.com>
+ <20200421004628.GQ26002@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4A3E9@fmsmsx124.amr.corp.intel.com>
+ <20200421182256.GT26002@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4DB92@fmsmsx124.amr.corp.intel.com>
+ <20200423150201.GY26002@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4ED27@fmsmsx124.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7DCD4ED27@fmsmsx124.amr.corp.intel.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Thu, Apr 23, 2020 at 05:15:22PM +0000, Saleem, Shiraz wrote:
+> > Subject: Re: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework
+> > definitions
+> > 
+> > On Thu, Apr 23, 2020 at 12:32:48AM +0000, Saleem, Shiraz wrote:
+> > 
+> > > we have a split initialization design for gen2 and future products.
+> > > phase1 is control path resource initialization in irdma_probe_dev and
+> > > phase-2 is the rest of the resources with the ib registration at the
+> > > end of irdma_open. irdma_close must de-register the ib device which
+> > > will take care of ibdev free too. So it makes sense to keep allocation
+> > > of the ib device in irdma_open.
+> > 
+> > The best driver pattern is to allocate the ib_device at the very start of probe() and
+> > use this to anchor all the device resources and memories.
+> > 
+> > The whole close/open thing is really weird, you should get rid of it.
+> maybe I missing something. But why is it weird?
 
-Combine copy_from_user() from create_user_qp() and general code.
+Because the RDMA driver should exist as its own entity. It does not
+shutdown unless the remove() method on is struct device_driver is
+closed.
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 34 +++++++++++++++------------------
- 1 file changed, 15 insertions(+), 19 deletions(-)
+So what exactly are open/cose supposed to be doing? I think it is a
+left over of trying to re-implement the driver model.
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 07cd976c4a20..0f7a8f45764f 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -914,13 +914,12 @@ static int adjust_bfregn(struct mlx5_ib_dev *dev,
- 
- static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			  struct mlx5_ib_qp *qp, struct ib_udata *udata,
--			  struct ib_qp_init_attr *attr,
--			  u32 **in,
-+			  struct ib_qp_init_attr *attr, u32 **in,
- 			  struct mlx5_ib_create_qp_resp *resp, int *inlen,
--			  struct mlx5_ib_qp_base *base)
-+			  struct mlx5_ib_qp_base *base,
-+			  struct mlx5_ib_create_qp *ucmd)
- {
- 	struct mlx5_ib_ucontext *context;
--	struct mlx5_ib_create_qp ucmd;
- 	struct mlx5_ib_ubuffer *ubuffer = &base->ubuffer;
- 	int page_shift = 0;
- 	int uar_index = 0;
-@@ -934,24 +933,18 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	u16 uid;
- 	u32 uar_flags;
- 
--	err = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
--	if (err) {
--		mlx5_ib_dbg(dev, "copy failed\n");
--		return err;
--	}
--
- 	context = rdma_udata_to_drv_context(udata, struct mlx5_ib_ucontext,
- 					    ibucontext);
--	uar_flags = ucmd.flags & (MLX5_QP_FLAG_UAR_PAGE_INDEX |
--				  MLX5_QP_FLAG_BFREG_INDEX);
-+	uar_flags = qp->flags_en &
-+		    (MLX5_QP_FLAG_UAR_PAGE_INDEX | MLX5_QP_FLAG_BFREG_INDEX);
- 	switch (uar_flags) {
- 	case MLX5_QP_FLAG_UAR_PAGE_INDEX:
--		uar_index = ucmd.bfreg_index;
-+		uar_index = ucmd->bfreg_index;
- 		bfregn = MLX5_IB_INVALID_BFREG;
- 		break;
- 	case MLX5_QP_FLAG_BFREG_INDEX:
- 		uar_index = bfregn_to_uar_index(dev, &context->bfregi,
--						ucmd.bfreg_index, true);
-+						ucmd->bfreg_index, true);
- 		if (uar_index < 0)
- 			return uar_index;
- 		bfregn = MLX5_IB_INVALID_BFREG;
-@@ -976,12 +969,12 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	qp->sq.wqe_shift = ilog2(MLX5_SEND_WQE_BB);
- 	qp->sq.offset = qp->rq.wqe_cnt << qp->rq.wqe_shift;
- 
--	err = set_user_buf_size(dev, qp, &ucmd, base, attr);
-+	err = set_user_buf_size(dev, qp, ucmd, base, attr);
- 	if (err)
- 		goto err_bfreg;
- 
--	if (ucmd.buf_addr && ubuffer->buf_size) {
--		ubuffer->buf_addr = ucmd.buf_addr;
-+	if (ucmd->buf_addr && ubuffer->buf_size) {
-+		ubuffer->buf_addr = ucmd->buf_addr;
- 		err = mlx5_ib_umem_get(dev, udata, ubuffer->buf_addr,
- 				       ubuffer->buf_size, &ubuffer->umem,
- 				       &npages, &page_shift, &ncont, &offset);
-@@ -1018,7 +1011,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		resp->bfreg_index = MLX5_IB_INVALID_BFREG;
- 	qp->bfregn = bfregn;
- 
--	err = mlx5_ib_db_map_user(context, udata, ucmd.db_addr, &qp->db);
-+	err = mlx5_ib_db_map_user(context, udata, ucmd->db_addr, &qp->db);
- 	if (err) {
- 		mlx5_ib_dbg(dev, "map failed\n");
- 		goto err_free;
-@@ -1991,7 +1984,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 				return -EINVAL;
- 			}
- 			err = create_user_qp(dev, pd, qp, udata, init_attr, &in,
--					     &resp, &inlen, base);
-+					     &resp, &inlen, base, ucmd);
- 			if (err)
- 				mlx5_ib_dbg(dev, "err %d\n", err);
- 		} else {
-@@ -2550,6 +2543,9 @@ static int process_vendor_flags(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 				    MLX5_QP_FLAG_PACKET_BASED_CREDIT_MODE,
- 				    MLX5_CAP_GEN(mdev, qp_packet_based), qp);
- 
-+	process_vendor_flag(dev, &flags, MLX5_QP_FLAG_BFREG_INDEX, true, qp);
-+	process_vendor_flag(dev, &flags, MLX5_QP_FLAG_UAR_PAGE_INDEX, true, qp);
-+
- 	if (flags)
- 		mlx5_ib_dbg(dev, "udata has unsupported flags 0x%X\n", flags);
- 
--- 
-2.25.3
+> underlying configuration changes and reset management for the physical
+> function need a light-weight mechanism which is realized with the close/open
+> from netdev PCI drv --> rdma drv.
 
+> Without a teardown and re-add of virtual device off the bus.
+
+Yes, that is exactly right. If you have done something so disruptive
+that the ib_device needs to be destroyed then you should unplug/replug
+the entire virtual bus device, that is the correct and sane thing to
+do. There is no 'light weight' here, destroying the ib_device is
+incredibly expensive and disruptive.
+
+Jason
