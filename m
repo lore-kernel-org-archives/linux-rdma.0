@@ -2,27 +2,28 @@ Return-Path: <SRS0=7Twq=6H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 569E2C55192
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CDB0C55193
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40D812077D
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DBAD2077D
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 12:56:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728533AbgDWM43 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728544AbgDWM43 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 23 Apr 2020 08:56:29 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:57419 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:60482 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728500AbgDWM4H (ORCPT
+        with ESMTP id S1728533AbgDWM4H (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Apr 2020 08:56:07 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 23 Apr 2020 15:55:58 +0300
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 23 Apr 2020 15:55:59 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03NCtw1o003234;
-        Thu, 23 Apr 2020 15:55:58 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03NCtw1x003234;
+        Thu, 23 Apr 2020 15:55:59 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -30,115 +31,88 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V5 mlx5-next 00/15] Add support to get xmit slave
-Date:   Thu, 23 Apr 2020 15:55:39 +0300
-Message-Id: <20200423125555.21759-1-maorg@mellanox.com>
+Subject: [PATCH V5 mlx5-next 09/16] bonding: Implement ndo_get_xmit_slave
+Date:   Thu, 23 Apr 2020 15:55:48 +0300
+Message-Id: <20200423125555.21759-10-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
+In-Reply-To: <20200423125555.21759-1-maorg@mellanox.com>
+References: <20200423125555.21759-1-maorg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Dave,
+Add implementation of ndo_get_xmit_slave. Find the slave by using the
+helper function according to the bond mode. If the caller set all_slaves
+to true, then it assumes that all slaves are available to transmit.
 
-This series is a combination of netdev and RDMA, so in order to avoid
-conflicts, we would like to ask you to route this series through
-mlx5-next shared branch. It is based on v5.7-rc1 tag.
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
+---
+ drivers/net/bonding/bond_main.c | 43 +++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
----------------------------------------------------------------------
-
-The following series adds support to get the LAG master xmit slave by
-introducing new .ndo - ndo_get_xmit_slave. Every LAG module can
-implement it and it first implemented in the bond driver. 
-This is follow-up to the RFC discussion [1].
-
-The main motivation for doing this is for drivers that offload part
-of the LAG functionality. For example, Mellanox Connect-X hardware
-implements RoCE LAG which selects the TX affinity when the resources
-are created and port is remapped when it goes down.
-
-The first part of this patchset introduces the new .ndo and add the
-support to the bonding module.
-
-The second part adds support to get the RoCE LAG xmit slave by building
-skb of the RoCE packet based on the AH attributes and call to the new
-.ndo.
-
-The third part change the mlx5 driver driver to set the QP's affinity
-port according to the slave which found by the .ndo.
-
-Thanks
-
-[1]
-https://lore.kernel.org/netdev/20200126132126.9981-1-maorg@xxxxxxxxxxxx/
-
-Change log:
-v5: patch 1 - Remove rcu lock.
-    patch 10 - Refactor patch that group the AH attributes in struct.
-    patch 11 - call the ndo while holding the rcu and initialize xmit_slave.
-    patch 12 - Store the xmit slave in rdma_ah_init_attr and qp_attr.
-
-v4: 1. Rename master_get_xmit_slave to netdev_get_xmit_slave and move
-the implementation to dev.c 
-    2. Remove unnecessary check of NULL pointer.
-    3. Fix typo.
-v3: 1. Move master_get_xmit_slave to netdevice.h and change the flags
-arg.
-to bool.
-    2. Split helper functions commit to multiple commits for each bond
-mode.
-    3. Extract refcotring changes to seperate commits.
-v2: The first patch wasn't sent in v1.
-v1:
-https://lore.kernel.org/netdev/ac373456-b838-29cf-645f-b1ea1a93e3b0@xxxxxxxxx/T/#t 
-
-Maor Gottlieb (16):
-  net/core: Introduce netdev_get_xmit_slave
-  bonding: Export skip slave logic to function
-  bonding: Rename slave_arr to usable_slaves
-  bonding/alb: Add helper functions to get the xmit slave
-  bonding: Add helper function to get the xmit slave based on hash
-  bonding: Add helper function to get the xmit slave in rr mode
-  bonding: Add function to get the xmit slave in active-backup mode
-  bonding: Add array of all slaves
-  bonding: Implement ndo_get_xmit_slave
-  RDMA: Group create AH arguments in struct
-  RDMA/core: Add LAG functionality
-  RDMA/core: Get xmit slave for LAG
-  net/mlx5: Change lag mutex lock to spin lock
-  net/mlx5: Add support to get lag physical port
-  RDMA/mlx5: Refactor affinity related code
-  RDMA/mlx5: Set lag tx affinity according to slave
-
- drivers/infiniband/core/Makefile              |   2 +-
- drivers/infiniband/core/lag.c                 | 141 +++++++++
- drivers/infiniband/core/verbs.c               |  59 ++--
- drivers/infiniband/hw/bnxt_re/ib_verbs.c      |  11 +-
- drivers/infiniband/hw/bnxt_re/ib_verbs.h      |   3 +-
- drivers/infiniband/hw/mlx4/ah.c               |  10 +-
- drivers/infiniband/hw/mlx4/mlx4_ib.h          |   3 +-
- drivers/infiniband/hw/mlx5/ah.c               |  14 +-
- drivers/infiniband/hw/mlx5/gsi.c              |  34 ++-
- drivers/infiniband/hw/mlx5/main.c             |   2 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |   4 +-
- drivers/infiniband/hw/mlx5/qp.c               | 122 +++++---
- drivers/infiniband/sw/rxe/rxe_verbs.c         |   8 +-
- drivers/net/bonding/bond_alb.c                |  39 ++-
- drivers/net/bonding/bond_main.c               | 268 +++++++++++++-----
- drivers/net/ethernet/mellanox/mlx5/core/lag.c |  66 +++--
- include/linux/mlx5/driver.h                   |   2 +
- include/linux/mlx5/mlx5_ifc.h                 |   4 +-
- include/linux/mlx5/qp.h                       |   2 +
- include/linux/netdevice.h                     |   6 +
- include/net/bond_alb.h                        |   4 +
- include/net/bonding.h                         |   3 +-
- include/rdma/ib_verbs.h                       |  12 +-
- include/rdma/lag.h                            |  23 ++
- net/core/dev.c                                |  22 ++
- 25 files changed, 658 insertions(+), 206 deletions(-)
- create mode 100644 drivers/infiniband/core/lag.c
- create mode 100644 include/rdma/lag.h
-
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 2de693f0262e..39b1ad7edbb4 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4347,6 +4347,48 @@ static u16 bond_select_queue(struct net_device *dev, struct sk_buff *skb,
+ 	return txq;
+ }
+ 
++static struct net_device *bond_xmit_get_slave(struct net_device *master_dev,
++					      struct sk_buff *skb,
++					      bool all_slaves)
++{
++	struct bonding *bond = netdev_priv(master_dev);
++	struct bond_up_slave *slaves;
++	struct slave *slave = NULL;
++
++	switch (BOND_MODE(bond)) {
++	case BOND_MODE_ROUNDROBIN:
++		slave = bond_xmit_roundrobin_slave_get(bond, skb);
++		break;
++	case BOND_MODE_ACTIVEBACKUP:
++		slave = bond_xmit_activebackup_slave_get(bond, skb);
++		break;
++	case BOND_MODE_8023AD:
++	case BOND_MODE_XOR:
++		if (all_slaves)
++			slaves = rcu_dereference(bond->all_slaves);
++		else
++			slaves = rcu_dereference(bond->usable_slaves);
++		slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
++		break;
++	case BOND_MODE_BROADCAST:
++		break;
++	case BOND_MODE_ALB:
++		slave = bond_xmit_alb_slave_get(bond, skb);
++		break;
++	case BOND_MODE_TLB:
++		slave = bond_xmit_tlb_slave_get(bond, skb);
++		break;
++	default:
++		/* Should never happen, mode already checked */
++		WARN_ONCE(true, "Unknown bonding mode");
++		break;
++	}
++
++	if (slave)
++		return slave->dev;
++	return NULL;
++}
++
+ static netdev_tx_t __bond_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct bonding *bond = netdev_priv(dev);
+@@ -4468,6 +4510,7 @@ static const struct net_device_ops bond_netdev_ops = {
+ 	.ndo_del_slave		= bond_release,
+ 	.ndo_fix_features	= bond_fix_features,
+ 	.ndo_features_check	= passthru_features_check,
++	.ndo_get_xmit_slave	= bond_xmit_get_slave,
+ };
+ 
+ static const struct device_type bond_type = {
 -- 
 2.17.2
 
