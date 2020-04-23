@@ -2,195 +2,132 @@ Return-Path: <SRS0=7Twq=6H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DA3CC54FD0
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8D6CC2BA19
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 23:54:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 259B020776
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 19:04:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587668663;
-	bh=x0yTO0jVXVrBKF90ca6IoguQ+yFD7lI2U4flACm3+qA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=mG4iCnLZSEbcE8Z7Cowq+9ez2Wy1Q1GlR2Gh3Dqqo5OEyUVUoKUIS2iseYT+zU81C
-	 zMHGjh74bs0s7IKG/gijL2QSU+RK2tNn2+yaWsxkBRUzwyZEs0yn8LgAt0l54Z9VjZ
-	 wG2D6Bw14EPzvv6aC/JQi8KW0RTBHTBhCNjKqfLQ=
+	by mail.kernel.org (Postfix) with ESMTP id A154720724
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Apr 2020 23:54:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728238AbgDWTEW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Apr 2020 15:04:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42416 "EHLO mail.kernel.org"
+        id S1726310AbgDWXyU convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Apr 2020 19:54:20 -0400
+Received: from mga06.intel.com ([134.134.136.31]:40709 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728200AbgDWTEW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:04:22 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0189E20767;
-        Thu, 23 Apr 2020 19:04:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587668661;
-        bh=x0yTO0jVXVrBKF90ca6IoguQ+yFD7lI2U4flACm3+qA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=XSQ/qWKZwfS6E+p5W3OWINcF6XTHS8TJi8gjnte7Nyu5Ugm1z1AUObvzQUOgCSNsQ
-         kCdldKM+KCoRbRRwXxrEwT3UDreHTFcwaBqMIEIk96iJI0PGUuGZsHTBwncdTU6iKo
-         F7ZpUp42lIw0sL/qo6CzeSx18BckIOHIdNNqX66Q=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 17/18] RDMA/mlx5: Consolidate into special function all create QP calls
-Date:   Thu, 23 Apr 2020 22:03:02 +0300
-Message-Id: <20200423190303.12856-18-leon@kernel.org>
-X-Mailer: git-send-email 2.25.3
-In-Reply-To: <20200423190303.12856-1-leon@kernel.org>
-References: <20200423190303.12856-1-leon@kernel.org>
+        id S1725936AbgDWXyT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 23 Apr 2020 19:54:19 -0400
+IronPort-SDR: T1yXaA0HJRSHr+3/qFVR6OBm+qLUcOU/+IqoIC0/ytnAVuABVsiDmPUTJkB6UVoZ/iqG+kJXuu
+ CNQ6oDQEF7zg==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Apr 2020 16:54:19 -0700
+IronPort-SDR: 1UaUOjZuZDyp8+yJoiG93ogn0L+pa4AawFacOwq1IB2QzqFYQlq8HRwxqjJhJVULpupUnJeORz
+ o9RwfX8n4tgw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,309,1583222400"; 
+   d="scan'208";a="403109783"
+Received: from fmsmsx107.amr.corp.intel.com ([10.18.124.205])
+  by orsmga004.jf.intel.com with ESMTP; 23 Apr 2020 16:54:19 -0700
+Received: from fmsmsx119.amr.corp.intel.com (10.18.124.207) by
+ fmsmsx107.amr.corp.intel.com (10.18.124.205) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Thu, 23 Apr 2020 16:54:19 -0700
+Received: from fmsmsx124.amr.corp.intel.com ([169.254.8.70]) by
+ FMSMSX119.amr.corp.intel.com ([169.254.14.63]) with mapi id 14.03.0439.000;
+ Thu, 23 Apr 2020 16:54:18 -0700
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+CC:     Leon Romanovsky <leon@kernel.org>,
+        "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "nhorman@redhat.com" <nhorman@redhat.com>,
+        "sassmann@redhat.com" <sassmann@redhat.com>,
+        "Patil, Kiran" <kiran.patil@intel.com>,
+        "Ertman, David M" <david.m.ertman@intel.com>
+Subject: RE: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework
+ definitions
+Thread-Topic: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework
+ definitions
+Thread-Index: AQHWFNtu4ugEuh6AnUe8PZpOjYV9PKh+KgSAgAPqlNCAASOfAIAAk97AgACTTgD//+mbEIADAuyA//+LpnCAALfQAP//uFWA
+Date:   Thu, 23 Apr 2020 23:54:18 +0000
+Message-ID: <9DD61F30A802C4429A01CA4200E302A7DCD4FD03@fmsmsx124.amr.corp.intel.com>
+References: <20200417171251.1533371-1-jeffrey.t.kirsher@intel.com>
+ <20200417171251.1533371-2-jeffrey.t.kirsher@intel.com>
+ <20200417193421.GB3083@unreal>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4853F@fmsmsx124.amr.corp.intel.com>
+ <20200421004628.GQ26002@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4A3E9@fmsmsx124.amr.corp.intel.com>
+ <20200421182256.GT26002@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4DB92@fmsmsx124.amr.corp.intel.com>
+ <20200423150201.GY26002@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7DCD4ED27@fmsmsx124.amr.corp.intel.com>
+ <20200423190327.GC26002@ziepe.ca>
+In-Reply-To: <20200423190327.GC26002@ziepe.ca>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-version: 11.2.0.6
+dlp-reaction: no-action
+x-originating-ip: [10.1.200.108]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+> Subject: Re: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework
+> definitions
+> 
+> On Thu, Apr 23, 2020 at 05:15:22PM +0000, Saleem, Shiraz wrote:
+> > > Subject: Re: [RFC PATCH v5 01/16] RDMA/irdma: Add driver framework
+> > > definitions
+> > >
+> > > On Thu, Apr 23, 2020 at 12:32:48AM +0000, Saleem, Shiraz wrote:
+> > >
+> > > > we have a split initialization design for gen2 and future products.
+> > > > phase1 is control path resource initialization in irdma_probe_dev
+> > > > and
+> > > > phase-2 is the rest of the resources with the ib registration at
+> > > > the end of irdma_open. irdma_close must de-register the ib device
+> > > > which will take care of ibdev free too. So it makes sense to keep
+> > > > allocation of the ib device in irdma_open.
+> > >
+> > > The best driver pattern is to allocate the ib_device at the very
+> > > start of probe() and use this to anchor all the device resources and memories.
+> > >
+> > > The whole close/open thing is really weird, you should get rid of it.
+> > maybe I missing something. But why is it weird?
+> 
+> Because the RDMA driver should exist as its own entity. It does not shutdown
+> unless the remove() method on is struct device_driver is closed.
+> So what exactly are open/cose supposed to be doing? I think it is a left over of
+> trying to re-implement the driver model.
+> 
+> > underlying configuration changes and reset management for the physical
+> > function need a light-weight mechanism which is realized with the
+> > close/open from netdev PCI drv --> rdma drv.
+> 
+> > Without a teardown and re-add of virtual device off the bus.
+> 
+> Yes, that is exactly right. If you have done something so disruptive that the
+> ib_device needs to be destroyed then you should unplug/replug the entire virtual
+> bus device, that is the correct and sane thing to do.
 
-Finish separation to blocks of mlx5_ib_create_qp() functions,
-so all internal create QP implementation are located in one place.
+Well we have resources created in rdma driver probe which are used by any
+VF's regardless of the registration of the ib device on the PF.
+So doing a virtbus device unregister here for underlying config changes
+is more destructive than it needs to be as will trigger the remove()
+and blow out those resources too.
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 85 +++++++++++++++++++--------------
- 1 file changed, 49 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 0612663868dd..9ee12622ac3c 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1953,6 +1953,7 @@ static int create_xrc_tgt_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	list_add_tail(&qp->qps_list, &dev->qp_list);
- 	spin_unlock_irqrestore(&dev->reset_flow_resource_lock, flags);
- 
-+	qp->trans_qp.xrcdn = to_mxrcd(attr->xrcd)->xrcdn;
- 	return 0;
- }
- 
-@@ -2785,14 +2786,54 @@ static int process_udata_size(struct mlx5_ib_dev *dev,
- 	return (params->inlen) ? 0 : -EINVAL;
- }
- 
--static int create_raw_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
--			 struct mlx5_ib_qp *qp,
--			 struct mlx5_create_qp_params *params)
-+static int create_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
-+		     struct mlx5_ib_qp *qp,
-+		     struct mlx5_create_qp_params *params)
- {
--	if (params->is_rss_raw)
--		return create_rss_raw_qp_tir(dev, pd, qp, params);
-+	int err;
-+
-+	if (params->is_rss_raw) {
-+		err = create_rss_raw_qp_tir(dev, pd, qp, params);
-+		goto out;
-+	}
-+
-+	if (qp->type == MLX5_IB_QPT_DCT) {
-+		err = create_dct(pd, qp, params);
-+		goto out;
-+	}
-+
-+	if (qp->type == IB_QPT_XRC_TGT) {
-+		err = create_xrc_tgt_qp(dev, qp, params);
-+		goto out;
-+	}
-+
-+	if (params->udata)
-+		err = create_user_qp(dev, pd, qp, params);
-+	else
-+		err = create_kernel_qp(dev, pd, qp, params);
-+
-+out:
-+	if (err) {
-+		mlx5_ib_err(dev, "Create QP type %d failed\n", qp->type);
-+		return err;
-+	}
-+
-+	if (is_qp0(qp->type))
-+		qp->ibqp.qp_num = 0;
-+	else if (is_qp1(qp->type))
-+		qp->ibqp.qp_num = 1;
-+	else
-+		qp->ibqp.qp_num = qp->trans_qp.base.mqp.qpn;
-+
-+	mlx5_ib_dbg(dev,
-+		"QP type %d, ib qpn 0x%X, mlx qpn 0x%x, rcqn 0x%x, scqn 0x%x\n",
-+		qp->type, qp->ibqp.qp_num, qp->trans_qp.base.mqp.qpn,
-+		params->attr->recv_cq ? to_mcq(params->attr->recv_cq)->mcq.cqn :
-+					-1,
-+		params->attr->send_cq ? to_mcq(params->attr->send_cq)->mcq.cqn :
-+					-1);
- 
--	return create_user_qp(dev, pd, qp, params);
-+	return 0;
- }
- 
- static int check_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
-@@ -2862,7 +2903,6 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attr,
- 	struct mlx5_ib_dev *dev;
- 	struct mlx5_ib_qp *qp;
- 	enum ib_qp_type type;
--	u16 xrcdn = 0;
- 	int err;
- 
- 	dev = pd ? to_mdev(pd->device) :
-@@ -2922,40 +2962,13 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attr,
- 	if (err)
- 		goto free_qp;
- 
--	switch (qp->type) {
--	case IB_QPT_RAW_PACKET:
--		err = create_raw_qp(dev, pd, qp, &params);
--		break;
--	case MLX5_IB_QPT_DCT:
--		err = create_dct(pd, qp, &params);
--		break;
--	case IB_QPT_XRC_TGT:
--		xrcdn = to_mxrcd(attr->xrcd)->xrcdn;
--		err = create_xrc_tgt_qp(dev, qp, &params);
--		break;
--	default:
--		if (udata)
--			err = create_user_qp(dev, pd, qp, &params);
--		else
--			err = create_kernel_qp(dev, pd, qp, &params);
--	}
--	if (err) {
--		mlx5_ib_err(dev, "create_qp failed %d\n", err);
-+	err = create_qp(dev, pd, qp, &params);
-+	if (err)
- 		goto free_qp;
--	}
- 
- 	kfree(params.ucmd);
- 	params.ucmd = NULL;
- 
--	if (is_qp0(attr->qp_type))
--		qp->ibqp.qp_num = 0;
--	else if (is_qp1(attr->qp_type))
--		qp->ibqp.qp_num = 1;
--	else
--		qp->ibqp.qp_num = qp->trans_qp.base.mqp.qpn;
--
--	qp->trans_qp.xrcdn = xrcdn;
--
- 	if (udata)
- 		/*
- 		 * It is safe to copy response for all user create QP flows,
--- 
-2.25.3
 
