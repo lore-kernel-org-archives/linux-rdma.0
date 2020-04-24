@@ -2,201 +2,151 @@ Return-Path: <SRS0=Sij9=6I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B487C54FD0
-	for <linux-rdma@archiver.kernel.org>; Fri, 24 Apr 2020 16:00:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C10BC54FCB
+	for <linux-rdma@archiver.kernel.org>; Fri, 24 Apr 2020 16:01:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2389520774
-	for <linux-rdma@archiver.kernel.org>; Fri, 24 Apr 2020 16:00:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7272F20706
+	for <linux-rdma@archiver.kernel.org>; Fri, 24 Apr 2020 16:01:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="JRszSWBI"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hqoiJsHt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726698AbgDXQAZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 24 Apr 2020 12:00:25 -0400
-Received: from gateway34.websitewelcome.com ([192.185.149.105]:16179 "EHLO
-        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726301AbgDXQAZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 24 Apr 2020 12:00:25 -0400
-Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
-        by gateway34.websitewelcome.com (Postfix) with ESMTP id 0C3D731CFA88
-        for <linux-rdma@vger.kernel.org>; Fri, 24 Apr 2020 10:13:41 -0500 (CDT)
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with SMTP
-        id S01Nj0i201s2xS01NjcYqr; Fri, 24 Apr 2020 10:13:41 -0500
-X-Authority-Reason: nr=8
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:Subject:From:References:Cc:To:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=GtcnpGsolmgR53+FPf7YoLxFdbs5TBp3BgCqahnxZ6Y=; b=JRszSWBIDiIx+kiBBosfMlCQy/
-        5lkVx+FrQnZhEsZDP7hcLs8TUpKxd5R4ikmH4H7wr5hWKSH3Aa37dzKwxMk+69js4HoXHJFA121tc
-        5jGtWkmST36gJCkuz1JOnzRCBxUVuKB1dT+2IOBVPDrMPAauZMxO9ZRqbqmFep9f868Blke6RJrIj
-        HMhCzc0bvBkB5iEtGFtNgCuNdph6Ci1nOsh6qtNNBVFSQw9LcChAeNqKX2D4v871u/dVpCYmItlHg
-        rMuGyhR70WOUq8OxcudWFahcPngjRb/W6bszhreOe1f9H0pqJ1rq/UMnoOp+drY0xJdwqP0/inbd3
-        MtJW9T8g==;
-Received: from [201.162.177.68] (port=57568 helo=[192.168.43.132])
-        by gator4166.hostgator.com with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
-        (Exim 4.92)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1jS01M-000a3c-JL; Fri, 24 Apr 2020 10:13:40 -0500
-To:     Nathan Chancellor <natechancellor@gmail.com>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-rdma@vger.kernel.org, clang-built-linux@googlegroups.com
-References: <6342c465-e34b-3e18-cc31-1d989926aebd@embeddedor.com>
- <20200424034704.GA12320@ubuntu-s3-xlarge-x86>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Autocrypt: addr=gustavo@embeddedor.com; keydata=
- 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
- VtSixD1uOgytAP7RWS474w==
-Subject: Re: remaining flexible-array conversions
-Message-ID: <f636ad65-b313-90e9-557b-856d44c2e14b@embeddedor.com>
-Date:   Fri, 24 Apr 2020 10:17:51 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
-MIME-Version: 1.0
-In-Reply-To: <20200424034704.GA12320@ubuntu-s3-xlarge-x86>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 201.162.177.68
-X-Source-L: No
-X-Exim-ID: 1jS01M-000a3c-JL
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: ([192.168.43.132]) [201.162.177.68]:57568
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 6
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
+        id S1726920AbgDXQBS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 24 Apr 2020 12:01:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56894 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726699AbgDXQBS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 24 Apr 2020 12:01:18 -0400
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45C61C09B046;
+        Fri, 24 Apr 2020 09:01:18 -0700 (PDT)
+Received: by mail-wr1-x442.google.com with SMTP id f13so11445542wrm.13;
+        Fri, 24 Apr 2020 09:01:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=lWfBQsVyyMTVvcrJcEKSHvSl9LpE9cOW8DgSNhENSiQ=;
+        b=hqoiJsHtarLSfLuNoh2mk5rGbr4437zI0PLe307qCSes9jMu8tAazKqrs2ipjSJieQ
+         /jtiDiD/tchZWvtqUsyAm9RBjyo/OBYLFeHKnWDT3dyRW5+LLzdpd/EkWFlcBnpj/+hA
+         tAxzXNKJ3w0aYFZxHzrHrQcnY6Oset61qQu6j6TQ4QgABaiI4XyG3XqLpfBL/AFc+CnV
+         34jO36Q/yHuB07HhCeAyZlEtAVpVwKd42XbzNXjKjgKz19ddxxiT8eUWLtWqNGVw5kR+
+         gnt5tKRam3qGBHaB2EqhLc0TUbM8tBMGb2fXFOnBOOUB9gCpldmowrLGjBYEOc0Qp3ez
+         5KOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=lWfBQsVyyMTVvcrJcEKSHvSl9LpE9cOW8DgSNhENSiQ=;
+        b=P5eXOr4l8B2wWRZScKAEVjXcft8uU7eE897KCU9/MrHiAUP8wub5rFbRiw/bfRsi7Q
+         DnREM6SBNReY/Ei7SGe3J2sGF0C7nD5psXSS95+y4/LDWOOPogSiNXasX1W99xmRy5pE
+         HbtlcxbnYFg1QjDLU5lNSJEZQ57oxN9KB2/lLerEMj2ykZHBFladQBORy5bXtb7bjgf1
+         zKlqA6Nie2QIIktUMia1d8DGWJ4DJKqlg5f0U+MW7lqt567GJFIYqHZAM1fr0uYYJJjE
+         +GSQ3uGZWbujQ31v8Uvd4jB8NOjT8yp/RRLu7vH3x6RHq72MeTATCjLgddNVkqVD3MYj
+         K/Mw==
+X-Gm-Message-State: AGi0PubW5ukix2saW+PxNIVSNRmN+wywftOLMLI1Pjhzknd8+DvRh/bs
+        YA7B+n/JSCnQxiCYTyNmyKg=
+X-Google-Smtp-Source: APiQypLJHTBDw6IqdxWHWR7afcrBkn2zkMvkizxlImMyHITrN6NbkOPOzrZ+qSeym2lxAsxk3NVFbg==
+X-Received: by 2002:a5d:474b:: with SMTP id o11mr11772255wrs.391.1587744076764;
+        Fri, 24 Apr 2020 09:01:16 -0700 (PDT)
+Received: from debian.office.codethink.co.uk. ([78.40.148.180])
+        by smtp.gmail.com with ESMTPSA id u127sm3363017wme.8.2020.04.24.09.01.15
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 24 Apr 2020 09:01:16 -0700 (PDT)
+From:   Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To:     Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH v2] IB/rdmavt: return proper error code
+Date:   Fri, 24 Apr 2020 17:01:14 +0100
+Message-Id: <20200424160114.7139-1-sudipm.mukherjee@gmail.com>
+X-Mailer: git-send-email 2.11.0
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Nathan,
+The commit 'ff23dfa13457' modified rvt_create_mmap_info() to return
+error code and also NULL but missed fixing codes which called
+rvt_create_mmap_info(). Modify rvt_create_mmap_info() to only return
+errorcode and fix error checking after rvt_create_mmap_info() was
+called.
 
-On 4/23/20 22:47, Nathan Chancellor wrote:
-> Hi Gustavo,
-> 
-> That patch in -next appears to introduce some warnings with clang when
-> CONFIG_UAPI_HEADER_TEST is enabled (allyesconfig/allmodconfig exposed it
-> for us with KernelCI [1]):
-> 
+Fixes: ff23dfa13457 ("IB: Pass only ib_udata in function prototypes")
+Cc: stable@vger.kernel.org [5.4+]
+Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+---
 
-Thanks a lot for reporting this.
+ drivers/infiniband/sw/rdmavt/cq.c   | 4 ++--
+ drivers/infiniband/sw/rdmavt/mmap.c | 2 +-
+ drivers/infiniband/sw/rdmavt/qp.c   | 4 ++--
+ drivers/infiniband/sw/rdmavt/srq.c  | 4 ++--
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-> ./usr/include/rdma/ib_user_verbs.h:436:34: warning: field 'base' with
-> variable sized type 'struct ib_uverbs_create_cq_resp' not at the end of
-> a struct or class is a GNU extension
-> [-Wgnu-variable-sized-type-not-at-end]
->         struct ib_uverbs_create_cq_resp base;
->                                         ^
-> ./usr/include/rdma/ib_user_verbs.h:647:34: warning: field 'base' with
-> variable sized type 'struct ib_uverbs_create_qp_resp' not at the end of
-> a struct or class is a GNU extension
-> [-Wgnu-variable-sized-type-not-at-end]
->         struct ib_uverbs_create_qp_resp base;
->                                         ^
-> ./usr/include/rdma/ib_user_verbs.h:743:29: warning: field 'base' with
-> variable sized type 'struct ib_uverbs_modify_qp' not at the end of a
-> struct or class is a GNU extension
-> [-Wgnu-variable-sized-type-not-at-end]
->         struct ib_uverbs_modify_qp base;
->                                    ^
-> 3 warnings generated.
-> 
-> I presume this is part of the point of the conversion since you mention
-> a compiler warning when the flexible member is not at the end of a
-> struct. How should they be fixed? That should probably happen before the
-> patch gets merged.
-> 
-For all the cases above, the solution seems to be to move the declaration
-of the "base" member to the end of the corresponding structure, as below:
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 5724cbbe38b1..04d2e72017fe 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -248,8 +248,8 @@ int rvt_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	 */
+ 	if (udata && udata->outlen >= sizeof(__u64)) {
+ 		cq->ip = rvt_create_mmap_info(rdi, sz, udata, u_wc);
+-		if (!cq->ip) {
+-			err = -ENOMEM;
++		if (IS_ERR(cq->ip)) {
++			err = PTR_ERR(cq->ip);
+ 			goto bail_wc;
+ 		}
+ 
+diff --git a/drivers/infiniband/sw/rdmavt/mmap.c b/drivers/infiniband/sw/rdmavt/mmap.c
+index 652f4a7efc1b..eba1d5e7f056 100644
+--- a/drivers/infiniband/sw/rdmavt/mmap.c
++++ b/drivers/infiniband/sw/rdmavt/mmap.c
+@@ -166,7 +166,7 @@ struct rvt_mmap_info *rvt_create_mmap_info(struct rvt_dev_info *rdi, u32 size,
+ 
+ 	ip = kmalloc_node(sizeof(*ip), GFP_KERNEL, rdi->dparms.node);
+ 	if (!ip)
+-		return ip;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	size = PAGE_ALIGN(size);
+ 
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 0e1b291d2cec..500a7ee04c44 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1244,8 +1244,8 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
+ 
+ 			qp->ip = rvt_create_mmap_info(rdi, s, udata,
+ 						      qp->r_rq.wq);
+-			if (!qp->ip) {
+-				ret = ERR_PTR(-ENOMEM);
++			if (IS_ERR(qp->ip)) {
++				ret = ERR_CAST(qp->ip);
+ 				goto bail_qpn;
+ 			}
+ 
+diff --git a/drivers/infiniband/sw/rdmavt/srq.c b/drivers/infiniband/sw/rdmavt/srq.c
+index 24fef021d51d..f547c115af03 100644
+--- a/drivers/infiniband/sw/rdmavt/srq.c
++++ b/drivers/infiniband/sw/rdmavt/srq.c
+@@ -111,8 +111,8 @@ int rvt_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *srq_init_attr,
+ 		u32 s = sizeof(struct rvt_rwq) + srq->rq.size * sz;
+ 
+ 		srq->ip = rvt_create_mmap_info(dev, s, udata, srq->rq.wq);
+-		if (!srq->ip) {
+-			ret = -ENOMEM;
++		if (IS_ERR(srq->ip)) {
++			ret = PTR_ERR(srq->ip);
+ 			goto bail_wq;
+ 		}
+ 
+-- 
+2.11.0
 
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index a390a667b3f3..e05538be8b30 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -644,9 +644,9 @@ struct ib_uverbs_create_qp_resp {
- };
-
- struct ib_uverbs_ex_create_qp_resp {
--       struct ib_uverbs_create_qp_resp base;
-        __u32 comp_mask;
-        __u32 response_length;
-+       struct ib_uverbs_create_qp_resp base;
- };
-
- /*
-
-but I guess this will change the ABI?
-
-Also, notice that:
-
-"A structure containing a flexible array member, or a union containing
-such a structure (possibly recursively), may not be a member of a structure
-or an element of an array. (However, these uses are permitted by GCC as
-extensions.)"[1]
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-
-Thanks
---
-Gustavo
