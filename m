@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3AEEC2BA1A
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAE58C55196
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E422206BF
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2EBF206BF
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726413AbgDZHRo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 26 Apr 2020 03:17:44 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41472 "EHLO
+        id S1726430AbgDZHRw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 26 Apr 2020 03:17:52 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41498 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726359AbgDZHRa (ORCPT
+        with ESMTP id S1726366AbgDZHRa (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Apr 2020 03:17:30 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 26 Apr 2020 10:17:22 +0300
+        with ESMTPS (AES256-SHA encrypted); 26 Apr 2020 10:17:23 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMTB023889;
-        Sun, 26 Apr 2020 10:17:22 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMTF023889;
+        Sun, 26 Apr 2020 10:17:23 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH 05/16] bonding: Add helper function to get the xmit slave based on hash
-Date:   Sun, 26 Apr 2020 10:17:06 +0300
-Message-Id: <20200426071717.17088-6-maorg@mellanox.com>
+Subject: [PATCH V6 mlx5-next 09/16] bonding: Implement ndo_get_xmit_slave
+Date:   Sun, 26 Apr 2020 10:17:10 +0300
+Message-Id: <20200426071717.17088-10-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200426071717.17088-1-maorg@mellanox.com>
 References: <20200426071717.17088-1-maorg@mellanox.com>
@@ -42,68 +42,78 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Both xor and 802.3ad modes use bond_xmit_hash to get the xmit slave.
-Export the logic to helper function so it could be used in the
-following patches by the .ndo to get the xmit slave.
+Add implementation of ndo_get_xmit_slave. Find the slave by using the
+helper function according to the bond mode. If the caller set all_slaves
+to true, then it assumes that all slaves are available to transmit.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Jiri Pirko <jiri@mellanox.com>
 Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
 ---
- drivers/net/bonding/bond_main.c | 28 +++++++++++++++++++++-------
- 1 file changed, 21 insertions(+), 7 deletions(-)
+ drivers/net/bonding/bond_main.c | 43 +++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
 diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 2cb41d480ae2..8e6305955c75 100644
+index 2de693f0262e..39b1ad7edbb4 100644
 --- a/drivers/net/bonding/bond_main.c
 +++ b/drivers/net/bonding/bond_main.c
-@@ -4185,6 +4185,23 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
- 	return ret;
+@@ -4347,6 +4347,48 @@ static u16 bond_select_queue(struct net_device *dev, struct sk_buff *skb,
+ 	return txq;
  }
  
-+static struct slave *bond_xmit_3ad_xor_slave_get(struct bonding *bond,
-+						 struct sk_buff *skb,
-+						 struct bond_up_slave *slaves)
++static struct net_device *bond_xmit_get_slave(struct net_device *master_dev,
++					      struct sk_buff *skb,
++					      bool all_slaves)
 +{
-+	struct slave *slave;
-+	unsigned int count;
-+	u32 hash;
++	struct bonding *bond = netdev_priv(master_dev);
++	struct bond_up_slave *slaves;
++	struct slave *slave = NULL;
 +
-+	hash = bond_xmit_hash(bond, skb);
-+	count = slaves ? READ_ONCE(slaves->count) : 0;
-+	if (unlikely(!count))
-+		return NULL;
++	switch (BOND_MODE(bond)) {
++	case BOND_MODE_ROUNDROBIN:
++		slave = bond_xmit_roundrobin_slave_get(bond, skb);
++		break;
++	case BOND_MODE_ACTIVEBACKUP:
++		slave = bond_xmit_activebackup_slave_get(bond, skb);
++		break;
++	case BOND_MODE_8023AD:
++	case BOND_MODE_XOR:
++		if (all_slaves)
++			slaves = rcu_dereference(bond->all_slaves);
++		else
++			slaves = rcu_dereference(bond->usable_slaves);
++		slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
++		break;
++	case BOND_MODE_BROADCAST:
++		break;
++	case BOND_MODE_ALB:
++		slave = bond_xmit_alb_slave_get(bond, skb);
++		break;
++	case BOND_MODE_TLB:
++		slave = bond_xmit_tlb_slave_get(bond, skb);
++		break;
++	default:
++		/* Should never happen, mode already checked */
++		WARN_ONCE(true, "Unknown bonding mode");
++		break;
++	}
 +
-+	slave = slaves->arr[hash % count];
-+	return slave;
++	if (slave)
++		return slave->dev;
++	return NULL;
 +}
 +
- /* Use this Xmit function for 3AD as well as XOR modes. The current
-  * usable slave array is formed in the control path. The xmit function
-  * just calculates hash and sends the packet out.
-@@ -4193,18 +4210,15 @@ static netdev_tx_t bond_3ad_xor_xmit(struct sk_buff *skb,
- 				     struct net_device *dev)
+ static netdev_tx_t __bond_start_xmit(struct sk_buff *skb, struct net_device *dev)
  {
  	struct bonding *bond = netdev_priv(dev);
--	struct slave *slave;
- 	struct bond_up_slave *slaves;
--	unsigned int count;
-+	struct slave *slave;
+@@ -4468,6 +4510,7 @@ static const struct net_device_ops bond_netdev_ops = {
+ 	.ndo_del_slave		= bond_release,
+ 	.ndo_fix_features	= bond_fix_features,
+ 	.ndo_features_check	= passthru_features_check,
++	.ndo_get_xmit_slave	= bond_xmit_get_slave,
+ };
  
- 	slaves = rcu_dereference(bond->usable_slaves);
--	count = slaves ? READ_ONCE(slaves->count) : 0;
--	if (likely(count)) {
--		slave = slaves->arr[bond_xmit_hash(bond, skb) % count];
-+	slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
-+	if (likely(slave))
- 		bond_dev_queue_xmit(bond, skb, slave->dev);
--	} else {
-+	else
- 		bond_tx_drop(dev, skb);
--	}
- 
- 	return NETDEV_TX_OK;
- }
+ static const struct device_type bond_type = {
 -- 
 2.17.2
 
