@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99173C55197
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:18:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22972C55196
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:18:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81ED5206BF
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:18:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CE8A2071C
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:18:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726228AbgDZHR2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726108AbgDZHR2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Sun, 26 Apr 2020 03:17:28 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41238 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41236 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726118AbgDZHR1 (ORCPT
+        with ESMTP id S1726142AbgDZHR1 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Apr 2020 03:17:27 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 26 Apr 2020 10:17:22 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMT7023889;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMTA023889;
         Sun, 26 Apr 2020 10:17:22 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V6 mlx5-next 01/16] net/core: Introduce netdev_get_xmit_slave
-Date:   Sun, 26 Apr 2020 10:17:02 +0300
-Message-Id: <20200426071717.17088-2-maorg@mellanox.com>
+Subject: [PATCH V6 mlx5-next 04/16] bonding/alb: Add helper functions to get the xmit slave
+Date:   Sun, 26 Apr 2020 10:17:05 +0300
+Message-Id: <20200426071717.17088-5-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200426071717.17088-1-maorg@mellanox.com>
 References: <20200426071717.17088-1-maorg@mellanox.com>
@@ -42,88 +42,106 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add new ndo to get the xmit slave of master device. The reference
-counters are not incremented so the caller must be careful with locks.
-User can ask to get the xmit slave assume all the slaves can
-transmit by set all_slaves arg to true.
+Add two helper functions to get the xmit slave of bond in alb or tlb
+mode. Extract the logic of find the xmit slave from the xmit flow
+to function. Xmit flow will xmit through this slave and in the
+following patches the new .ndo will call to the helper function
+to return the xmit slave.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- include/linux/netdevice.h | 12 ++++++++++++
- net/core/dev.c            | 22 ++++++++++++++++++++++
- 2 files changed, 34 insertions(+)
+ drivers/net/bonding/bond_alb.c | 35 +++++++++++++++++++++++++---------
+ include/net/bond_alb.h         |  4 ++++
+ 2 files changed, 30 insertions(+), 9 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 130a668049ab..26bc0f11b7ad 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -1146,6 +1146,12 @@ struct netdev_net_notifier {
-  * int (*ndo_del_slave)(struct net_device *dev, struct net_device *slave_dev);
-  *	Called to release previously enslaved netdev.
-  *
-+ * struct net_device *(*ndo_get_xmit_slave)(struct net_device *dev,
-+ *					    struct sk_buff *skb,
-+ *					    bool all_slaves);
-+ *	Get the xmit slave of master device. If all_slaves is true, function
-+ *	assume all the slaves can transmit.
-+ *
-  *      Feature/offload setting functions.
-  * netdev_features_t (*ndo_fix_features)(struct net_device *dev,
-  *		netdev_features_t features);
-@@ -1389,6 +1395,9 @@ struct net_device_ops {
- 						 struct netlink_ext_ack *extack);
- 	int			(*ndo_del_slave)(struct net_device *dev,
- 						 struct net_device *slave_dev);
-+	struct net_device*	(*ndo_get_xmit_slave)(struct net_device *dev,
-+						      struct sk_buff *skb,
-+						      bool all_slaves);
- 	netdev_features_t	(*ndo_fix_features)(struct net_device *dev,
- 						    netdev_features_t features);
- 	int			(*ndo_set_features)(struct net_device *dev,
-@@ -2731,6 +2740,9 @@ void netdev_freemem(struct net_device *dev);
- void synchronize_net(void);
- int init_dummy_netdev(struct net_device *dev);
- 
-+struct net_device *netdev_get_xmit_slave(struct net_device *dev,
-+					 struct sk_buff *skb,
-+					 bool all_slaves);
- struct net_device *dev_get_by_index(struct net *net, int ifindex);
- struct net_device *__dev_get_by_index(struct net *net, int ifindex);
- struct net_device *dev_get_by_index_rcu(struct net *net, int ifindex);
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 9c9e763bfe0e..e6c10980abfd 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -7785,6 +7785,28 @@ void netdev_bonding_info_change(struct net_device *dev,
+diff --git a/drivers/net/bonding/bond_alb.c b/drivers/net/bonding/bond_alb.c
+index 7bb49b049dcc..e863c694c309 100644
+--- a/drivers/net/bonding/bond_alb.c
++++ b/drivers/net/bonding/bond_alb.c
+@@ -1334,11 +1334,11 @@ static netdev_tx_t bond_do_alb_xmit(struct sk_buff *skb, struct bonding *bond,
+ 	return NETDEV_TX_OK;
  }
- EXPORT_SYMBOL(netdev_bonding_info_change);
  
-+/**
-+ * netdev_get_xmit_slave - Get the xmit slave of master device
-+ * @skb: The packet
-+ * @all_slaves: assume all the slaves are active
-+ *
-+ * The reference counters are not incremented so the caller must be
-+ * careful with locks. The caller must hold RCU lock.
-+ * %NULL is returned if no slave is found.
-+ */
-+
-+struct net_device *netdev_get_xmit_slave(struct net_device *dev,
-+					 struct sk_buff *skb,
-+					 bool all_slaves)
-+{
-+	const struct net_device_ops *ops = dev->netdev_ops;
-+
-+	if (!ops->ndo_get_xmit_slave)
-+		return NULL;
-+	return ops->ndo_get_xmit_slave(dev, skb, all_slaves);
-+}
-+EXPORT_SYMBOL(netdev_get_xmit_slave);
-+
- static void netdev_adjacent_add_links(struct net_device *dev)
+-netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb)
  {
- 	struct netdev_adjacent *iter;
+-	struct bonding *bond = netdev_priv(bond_dev);
+-	struct ethhdr *eth_data;
+ 	struct slave *tx_slave = NULL;
++	struct ethhdr *eth_data;
+ 	u32 hash_index;
+ 
+ 	skb_reset_mac_header(skb);
+@@ -1369,20 +1369,29 @@ netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ 			break;
+ 		}
+ 	}
+-	return bond_do_alb_xmit(skb, bond, tx_slave);
++	return tx_slave;
+ }
+ 
+-netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ {
+ 	struct bonding *bond = netdev_priv(bond_dev);
+-	struct ethhdr *eth_data;
++	struct slave *tx_slave;
++
++	tx_slave = bond_xmit_tlb_slave_get(bond, skb);
++	return bond_do_alb_xmit(skb, bond, tx_slave);
++}
++
++struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb)
++{
+ 	struct alb_bond_info *bond_info = &(BOND_ALB_INFO(bond));
+-	struct slave *tx_slave = NULL;
+ 	static const __be32 ip_bcast = htonl(0xffffffff);
+-	int hash_size = 0;
++	struct slave *tx_slave = NULL;
++	const u8 *hash_start = NULL;
+ 	bool do_tx_balance = true;
++	struct ethhdr *eth_data;
+ 	u32 hash_index = 0;
+-	const u8 *hash_start = NULL;
++	int hash_size = 0;
+ 
+ 	skb_reset_mac_header(skb);
+ 	eth_data = eth_hdr(skb);
+@@ -1501,7 +1510,15 @@ netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ 						       count];
+ 		}
+ 	}
++	return tx_slave;
++}
++
++netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++{
++	struct bonding *bond = netdev_priv(bond_dev);
++	struct slave *tx_slave = NULL;
+ 
++	tx_slave = bond_xmit_alb_slave_get(bond, skb);
+ 	return bond_do_alb_xmit(skb, bond, tx_slave);
+ }
+ 
+diff --git a/include/net/bond_alb.h b/include/net/bond_alb.h
+index b3504fcd773d..f6af76c87a6c 100644
+--- a/include/net/bond_alb.h
++++ b/include/net/bond_alb.h
+@@ -158,6 +158,10 @@ void bond_alb_handle_link_change(struct bonding *bond, struct slave *slave, char
+ void bond_alb_handle_active_change(struct bonding *bond, struct slave *new_slave);
+ int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
+ int bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
++struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb);
++struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb);
+ void bond_alb_monitor(struct work_struct *);
+ int bond_alb_set_mac_address(struct net_device *bond_dev, void *addr);
+ void bond_alb_clear_vlan(struct bonding *bond, unsigned short vlan_id);
 -- 
 2.17.2
 
