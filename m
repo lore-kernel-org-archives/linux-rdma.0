@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7117DC55197
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0E89C55191
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:18:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5AAA1206BF
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8CBA206BF
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:18:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726432AbgDZHRz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 26 Apr 2020 03:17:55 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41247 "EHLO
+        id S1726328AbgDZHR2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 26 Apr 2020 03:17:28 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41230 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726282AbgDZHR2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Apr 2020 03:17:28 -0400
+        with ESMTP id S1726264AbgDZHR1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Apr 2020 03:17:27 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 26 Apr 2020 10:17:23 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMTH023889;
-        Sun, 26 Apr 2020 10:17:23 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMTC023889;
+        Sun, 26 Apr 2020 10:17:22 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V6 mlx5-next 11/16] RDMA/core: Add LAG functionality
-Date:   Sun, 26 Apr 2020 10:17:12 +0300
-Message-Id: <20200426071717.17088-12-maorg@mellanox.com>
+Subject: [PATCH V6 mlx5-next 06/16] bonding: Add helper function to get the xmit slave in rr mode
+Date:   Sun, 26 Apr 2020 10:17:07 +0300
+Message-Id: <20200426071717.17088-7-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200426071717.17088-1-maorg@mellanox.com>
 References: <20200426071717.17088-1-maorg@mellanox.com>
@@ -42,223 +42,127 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add support to get the RoCE LAG xmit slave by building skb
-of the RoCE packet and call to master_get_xmit_slave.
-If driver wants to get the slave assume all slaves are available,
-then need to set RDMA_LAG_FLAGS_HASH_ALL_SLAVES in flags.
+Add helper function to get the xmit slave when bond is in round
+robin mode. Change bond_xmit_slave_id to bond_get_slave_by_id, then
+the logic for find the next slave for transmit could be used
+both by the xmit flow and the .ndo to get the xmit slave.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/infiniband/core/Makefile |   2 +-
- drivers/infiniband/core/lag.c    | 141 +++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h          |   1 +
- include/rdma/lag.h               |  23 +++++
- 4 files changed, 166 insertions(+), 1 deletion(-)
- create mode 100644 drivers/infiniband/core/lag.c
- create mode 100644 include/rdma/lag.h
+ drivers/net/bonding/bond_main.c | 56 ++++++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index d1b14887960e..870f0fcd54d5 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
- 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
- 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
- 				nldev.o restrack.o counters.o ib_core_uverbs.o \
--				trace.o
-+				trace.o lag.o
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 8e6305955c75..09c8485e965d 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -3923,16 +3923,15 @@ static int bond_set_mac_address(struct net_device *bond_dev, void *addr)
+ }
  
- ib_core-$(CONFIG_SECURITY_INFINIBAND) += security.o
- ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
-diff --git a/drivers/infiniband/core/lag.c b/drivers/infiniband/core/lag.c
-new file mode 100644
-index 000000000000..85050b6e67dc
---- /dev/null
-+++ b/drivers/infiniband/core/lag.c
-@@ -0,0 +1,141 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * Copyright (c) 2020 Mellanox Technologies. All rights reserved.
-+ */
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_cache.h>
-+#include <rdma/lag.h>
-+
-+static struct sk_buff *rdma_build_skb(struct ib_device *device,
-+				      struct net_device *netdev,
-+				      struct rdma_ah_attr *ah_attr)
-+{
-+	struct ipv6hdr *ip6h;
-+	struct sk_buff *skb;
-+	struct ethhdr *eth;
-+	struct iphdr *iph;
-+	struct udphdr *uh;
-+	u8 smac[ETH_ALEN];
-+	bool is_ipv4;
-+	int hdr_len;
-+
-+	is_ipv4 = ipv6_addr_v4mapped((struct in6_addr *)ah_attr->grh.dgid.raw);
-+	hdr_len = ETH_HLEN + sizeof(struct udphdr) + LL_RESERVED_SPACE(netdev);
-+	hdr_len += is_ipv4 ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
-+
-+	skb = alloc_skb(hdr_len, GFP_ATOMIC);
-+	if (!skb)
-+		return NULL;
-+
-+	skb->dev = netdev;
-+	skb_reserve(skb, hdr_len);
-+	skb_push(skb, sizeof(struct udphdr));
-+	skb_reset_transport_header(skb);
-+	uh = udp_hdr(skb);
-+	uh->source = htons(0xC000);
-+	uh->dest = htons(ROCE_V2_UDP_DPORT);
-+	uh->len = htons(sizeof(struct udphdr));
-+
-+	if (is_ipv4) {
-+		skb_push(skb, sizeof(struct iphdr));
-+		skb_reset_network_header(skb);
-+		iph = ip_hdr(skb);
-+		iph->frag_off = 0;
-+		iph->version = 4;
-+		iph->protocol = IPPROTO_UDP;
-+		iph->ihl = 0x5;
-+		iph->tot_len = htons(sizeof(struct udphdr) + sizeof(struct
-+								    iphdr));
-+		memcpy(&iph->saddr, ah_attr->grh.sgid_attr->gid.raw + 12,
-+		       sizeof(struct in_addr));
-+		memcpy(&iph->daddr, ah_attr->grh.dgid.raw + 12,
-+		       sizeof(struct in_addr));
-+	} else {
-+		skb_push(skb, sizeof(struct ipv6hdr));
-+		skb_reset_network_header(skb);
-+		ip6h = ipv6_hdr(skb);
-+		ip6h->version = 6;
-+		ip6h->nexthdr = IPPROTO_UDP;
-+		memcpy(&ip6h->flow_lbl, &ah_attr->grh.flow_label,
-+		       sizeof(*ip6h->flow_lbl));
-+		memcpy(&ip6h->saddr, ah_attr->grh.sgid_attr->gid.raw,
-+		       sizeof(struct in6_addr));
-+		memcpy(&ip6h->daddr, ah_attr->grh.dgid.raw,
-+		       sizeof(struct in6_addr));
-+	}
-+
-+	skb_push(skb, sizeof(struct ethhdr));
-+	skb_reset_mac_header(skb);
-+	eth = eth_hdr(skb);
-+	skb->protocol = eth->h_proto = htons(is_ipv4 ? ETH_P_IP : ETH_P_IPV6);
-+	rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr, NULL, smac);
-+	memcpy(eth->h_source, smac, ETH_ALEN);
-+	memcpy(eth->h_dest, ah_attr->roce.dmac, ETH_ALEN);
-+
-+	return skb;
-+}
-+
-+static struct net_device *rdma_get_xmit_slave_udp(struct ib_device *device,
-+						  struct net_device *master,
-+						  struct rdma_ah_attr *ah_attr)
-+{
-+	struct net_device *slave;
-+	struct sk_buff *skb;
-+
-+	skb = rdma_build_skb(device, master, ah_attr);
-+	if (!skb)
-+		return NULL;
-+
-+	slave = netdev_get_xmit_slave(master, skb,
-+				      !!(device->lag_flags &
-+					 RDMA_LAG_FLAGS_HASH_ALL_SLAVES));
-+	kfree_skb(skb);
-+	return slave;
-+}
-+
-+void rdma_lag_put_ah_roce_slave(struct net_device *xmit_slave)
-+{
-+	if (xmit_slave)
-+		dev_put(xmit_slave);
-+}
-+
-+int rdma_lag_get_ah_roce_slave(struct ib_device *device,
-+			       struct rdma_ah_attr *ah_attr,
-+			       struct net_device **xmit_slave)
-+{
-+	struct net_device *master;
-+	struct net_device *slave;
-+	int err = 0;
-+
-+	*xmit_slave = NULL;
-+	if (!(ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE &&
-+	      ah_attr->grh.sgid_attr->gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP))
-+		return 0;
-+
-+	rcu_read_lock();
-+	master = rdma_read_gid_attr_ndev_rcu(ah_attr->grh.sgid_attr);
-+	if (IS_ERR(master)) {
-+		err = PTR_ERR(master);
-+		goto unlock;
-+	}
-+	dev_hold(master);
-+
-+	if (!netif_is_bond_master(master))
-+		goto put;
-+
-+	slave = rdma_get_xmit_slave_udp(device, master, ah_attr);
-+	if (!slave) {
-+		ibdev_warn(device, "Failed to get lag xmit slave\n");
-+		err =  -EINVAL;
-+		goto put;
-+	}
-+
-+	dev_hold(slave);
-+	*xmit_slave = slave;
-+put:
-+	dev_put(master);
-+unlock:
-+	rcu_read_unlock();
-+	return err;
-+}
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 20ea26810349..e6c18ec0365a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2714,6 +2714,7 @@ struct ib_device {
- 	/* Used by iWarp CM */
- 	char iw_ifname[IFNAMSIZ];
- 	u32 iw_driver_flags;
-+	u32 lag_flags;
- };
+ /**
+- * bond_xmit_slave_id - transmit skb through slave with slave_id
++ * bond_get_slave_by_id - get xmit slave with slave_id
+  * @bond: bonding device that is transmitting
+- * @skb: buffer to transmit
+  * @slave_id: slave id up to slave_cnt-1 through which to transmit
+  *
+- * This function tries to transmit through slave with slave_id but in case
++ * This function tries to get slave with slave_id but in case
+  * it fails, it tries to find the first available slave for transmission.
+- * The skb is consumed in all cases, thus the function is void.
+  */
+-static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int slave_id)
++static struct slave *bond_get_slave_by_id(struct bonding *bond,
++					  int slave_id)
+ {
+ 	struct list_head *iter;
+ 	struct slave *slave;
+@@ -3941,10 +3940,8 @@ static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int sl
+ 	/* Here we start from the slave with slave_id */
+ 	bond_for_each_slave_rcu(bond, slave, iter) {
+ 		if (--i < 0) {
+-			if (bond_slave_can_tx(slave)) {
+-				bond_dev_queue_xmit(bond, skb, slave->dev);
+-				return;
+-			}
++			if (bond_slave_can_tx(slave))
++				return slave;
+ 		}
+ 	}
  
- struct ib_client_nl_info;
-diff --git a/include/rdma/lag.h b/include/rdma/lag.h
-new file mode 100644
-index 000000000000..8f78e2c0fd7c
---- /dev/null
-+++ b/include/rdma/lag.h
-@@ -0,0 +1,23 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/*
-+ * Copyright (c) 2020 Mellanox Technologies. All rights reserved.
-+ */
+@@ -3953,13 +3950,11 @@ static void bond_xmit_slave_id(struct bonding *bond, struct sk_buff *skb, int sl
+ 	bond_for_each_slave_rcu(bond, slave, iter) {
+ 		if (--i < 0)
+ 			break;
+-		if (bond_slave_can_tx(slave)) {
+-			bond_dev_queue_xmit(bond, skb, slave->dev);
+-			return;
+-		}
++		if (bond_slave_can_tx(slave))
++			return slave;
+ 	}
+-	/* no slave that can tx has been found */
+-	bond_tx_drop(bond->dev, skb);
 +
-+#ifndef _RDMA_LAG_H_
-+#define _RDMA_LAG_H_
++	return NULL;
+ }
+ 
+ /**
+@@ -3995,10 +3990,9 @@ static u32 bond_rr_gen_slave_id(struct bonding *bond)
+ 	return slave_id;
+ }
+ 
+-static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+-					struct net_device *bond_dev)
++static struct slave *bond_xmit_roundrobin_slave_get(struct bonding *bond,
++						    struct sk_buff *skb)
+ {
+-	struct bonding *bond = netdev_priv(bond_dev);
+ 	struct slave *slave;
+ 	int slave_cnt;
+ 	u32 slave_id;
+@@ -4020,21 +4014,31 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+ 		if (iph->protocol == IPPROTO_IGMP) {
+ 			slave = rcu_dereference(bond->curr_active_slave);
+ 			if (slave)
+-				bond_dev_queue_xmit(bond, skb, slave->dev);
+-			else
+-				bond_xmit_slave_id(bond, skb, 0);
+-			return NETDEV_TX_OK;
++				return slave;
++			return bond_get_slave_by_id(bond, 0);
+ 		}
+ 	}
+ 
+ non_igmp:
+ 	slave_cnt = READ_ONCE(bond->slave_cnt);
+ 	if (likely(slave_cnt)) {
+-		slave_id = bond_rr_gen_slave_id(bond);
+-		bond_xmit_slave_id(bond, skb, slave_id % slave_cnt);
+-	} else {
+-		bond_tx_drop(bond_dev, skb);
++		slave_id = bond_rr_gen_slave_id(bond) % slave_cnt;
++		return bond_get_slave_by_id(bond, slave_id);
+ 	}
++	return NULL;
++}
 +
-+#include <net/lag.h>
++static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
++					struct net_device *bond_dev)
++{
++	struct bonding *bond = netdev_priv(bond_dev);
++	struct slave *slave;
 +
-+struct ib_device;
-+struct rdma_ah_attr;
-+
-+enum rdma_lag_flags {
-+	RDMA_LAG_FLAGS_HASH_ALL_SLAVES = 1 << 0
-+};
-+
-+void rdma_lag_put_ah_roce_slave(struct net_device *xmit_slave);
-+int rdma_lag_get_ah_roce_slave(struct ib_device *device,
-+			       struct rdma_ah_attr *ah_attr,
-+			       struct net_device **xmit_slave);
-+
-+#endif /* _RDMA_LAG_H_ */
++	slave = bond_xmit_roundrobin_slave_get(bond, skb);
++	if (slave)
++		bond_dev_queue_xmit(bond, skb, slave->dev);
++	else
++		bond_tx_drop(bond_dev, skb);
+ 	return NETDEV_TX_OK;
+ }
+ 
 -- 
 2.17.2
 
