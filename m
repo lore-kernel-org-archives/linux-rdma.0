@@ -4,25 +4,25 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED56CC55197
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06DB4C55191
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7C982071C
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E310B206BF
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Apr 2020 07:17:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726366AbgDZHRw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 26 Apr 2020 03:17:52 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41290 "EHLO
+        id S1726355AbgDZHRz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 26 Apr 2020 03:17:55 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41228 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726335AbgDZHR3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Apr 2020 03:17:29 -0400
+        with ESMTP id S1726233AbgDZHR2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Apr 2020 03:17:28 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 26 Apr 2020 10:17:23 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMTL023889;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03Q7HMTJ023889;
         Sun, 26 Apr 2020 10:17:23 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V6 mlx5-next 15/16] RDMA/mlx5: Refactor affinity related code
-Date:   Sun, 26 Apr 2020 10:17:16 +0300
-Message-Id: <20200426071717.17088-16-maorg@mellanox.com>
+Subject: [PATCH V6 mlx5-next 13/16] net/mlx5: Change lag mutex lock to spin lock
+Date:   Sun, 26 Apr 2020 10:17:14 +0300
+Message-Id: <20200426071717.17088-14-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200426071717.17088-1-maorg@mellanox.com>
 References: <20200426071717.17088-1-maorg@mellanox.com>
@@ -42,130 +42,177 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move affinity related code in modify qp to function.
-It's a preparation for next patch the extend the affinity
-calculation to consider the xmit slave.
+The lag lock could be a mutex, the critical section is short
+and there is no need that the thread will sleep.
+Change the lock that protects the LAG structure from mutex
+to spin lock. It is required for next patch that need to
+access this structure from context that we can't sleep.
+In addition there is no need to hold this lock when query the
+congestion counters.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 90 +++++++++++++++++++--------------
- 1 file changed, 53 insertions(+), 37 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lag.c | 42 +++++++++----------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 1456db4b6295..a45499809903 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3416,33 +3416,61 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	return 0;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+index 93052b07c76c..496a3408d771 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+@@ -42,7 +42,7 @@
+  * Beware of lock dependencies (preferably, no locks should be acquired
+  * under it).
+  */
+-static DEFINE_MUTEX(lag_mutex);
++static DEFINE_SPINLOCK(lag_lock);
  
--static unsigned int get_tx_affinity(struct mlx5_ib_dev *dev,
--				    struct mlx5_ib_pd *pd,
--				    struct mlx5_ib_qp_base *qp_base,
--				    u8 port_num, struct ib_udata *udata)
-+static unsigned int get_tx_affinity_rr(struct mlx5_ib_dev *dev,
-+				       struct ib_udata *udata)
- {
- 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
--	unsigned int tx_port_affinity;
-+	u8 port_num = mlx5_core_native_port_num(dev->mdev) - 1;
-+	atomic_t *tx_port_affinity;
+ static int mlx5_cmd_create_lag(struct mlx5_core_dev *dev, u8 remap_port1,
+ 			       u8 remap_port2)
+@@ -297,9 +297,9 @@ static void mlx5_do_bond(struct mlx5_lag *ldev)
+ 	if (!dev0 || !dev1)
+ 		return;
  
--	if (ucontext) {
--		tx_port_affinity = (unsigned int)atomic_add_return(
--					   1, &ucontext->tx_port_affinity) %
--					   MLX5_MAX_PORTS +
--				   1;
-+	if (ucontext)
-+		tx_port_affinity = &ucontext->tx_port_affinity;
-+	else
-+		tx_port_affinity = &dev->port[port_num].roce.tx_port_affinity;
-+
-+	return (unsigned int)atomic_add_return(1, tx_port_affinity) %
-+		MLX5_MAX_PORTS + 1;
-+}
-+
-+static bool qp_supports_affinity(struct ib_qp *qp)
-+{
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+
-+	if ((qp->qp_type == IB_QPT_RC) ||
-+	    (qp->qp_type == IB_QPT_UD &&
-+	     !(mqp->flags & MLX5_IB_QP_SQPN_QP1)) ||
-+	    (qp->qp_type == IB_QPT_UC) ||
-+	    (qp->qp_type == IB_QPT_RAW_PACKET) ||
-+	    (qp->qp_type == IB_QPT_XRC_INI) ||
-+	    (qp->qp_type == IB_QPT_XRC_TGT))
-+		return true;
-+	return false;
-+}
-+
-+static unsigned int get_tx_affinity(struct ib_qp *qp, u8 init,
-+				    struct ib_udata *udata)
-+{
-+	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
-+		udata, struct mlx5_ib_ucontext, ibucontext);
-+	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+	struct mlx5_ib_qp_base *qp_base;
-+	unsigned int tx_affinity;
-+
-+	if (!(dev->lag_active && init && qp_supports_affinity(qp)))
-+		return 0;
-+
-+	tx_affinity = get_tx_affinity_rr(dev, udata);
-+
-+	qp_base = &mqp->trans_qp.base;
-+	if (ucontext)
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x ucontext %p\n",
--				tx_port_affinity, qp_base->mqp.qpn, ucontext);
--	} else {
--		tx_port_affinity =
--			(unsigned int)atomic_add_return(
--				1, &dev->port[port_num].roce.tx_port_affinity) %
--				MLX5_MAX_PORTS +
--			1;
-+			    tx_affinity, qp_base->mqp.qpn, ucontext);
-+	else
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x\n",
--				tx_port_affinity, qp_base->mqp.qpn);
--	}
--
--	return tx_port_affinity;
-+			    tx_affinity, qp_base->mqp.qpn);
-+	return tx_affinity;
- }
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	tracker = ldev->tracker;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
  
- static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
-@@ -3554,22 +3582,10 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 		}
+ 	do_bond = tracker.is_bonded && mlx5_lag_check_prereq(ldev);
+ 
+@@ -481,9 +481,9 @@ static int mlx5_lag_netdev_event(struct notifier_block *this,
+ 		break;
  	}
  
--	if ((cur_state == IB_QPS_RESET) && (new_state == IB_QPS_INIT)) {
--		if ((ibqp->qp_type == IB_QPT_RC) ||
--		    (ibqp->qp_type == IB_QPT_UD &&
--		     !(qp->flags & MLX5_IB_QP_SQPN_QP1)) ||
--		    (ibqp->qp_type == IB_QPT_UC) ||
--		    (ibqp->qp_type == IB_QPT_RAW_PACKET) ||
--		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
--		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
--			if (dev->lag_active) {
--				u8 p = mlx5_core_native_port_num(dev->mdev) - 1;
--				tx_affinity = get_tx_affinity(dev, pd, base, p,
--							      udata);
--				context->flags |= cpu_to_be32(tx_affinity << 24);
--			}
--		}
--	}
-+	tx_affinity = get_tx_affinity(ibqp,
-+				      cur_state == IB_QPS_RESET &&
-+				      new_state == IB_QPS_INIT, udata);
-+	context->flags |= cpu_to_be32(tx_affinity << 24);
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev->tracker = tracker;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
  
- 	if (is_sqp(ibqp->qp_type)) {
- 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
+ 	if (changed)
+ 		mlx5_queue_bond_work(ldev, 0);
+@@ -525,7 +525,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
+ 	if (fn >= MLX5_MAX_PORTS)
+ 		return;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev->pf[fn].dev    = dev;
+ 	ldev->pf[fn].netdev = netdev;
+ 	ldev->tracker.netdev_state[fn].link_up = 0;
+@@ -533,7 +533,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
+ 
+ 	dev->priv.lag = ldev;
+ 
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ }
+ 
+ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
+@@ -548,11 +548,11 @@ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
+ 	if (i == MLX5_MAX_PORTS)
+ 		return;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	memset(&ldev->pf[i], 0, sizeof(*ldev->pf));
+ 
+ 	dev->priv.lag = NULL;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ }
+ 
+ /* Must be called with intf_mutex held */
+@@ -630,10 +630,10 @@ bool mlx5_lag_is_roce(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_roce(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -644,10 +644,10 @@ bool mlx5_lag_is_active(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_active(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -658,10 +658,10 @@ bool mlx5_lag_is_sriov(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_sriov(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -687,7 +687,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+ 	struct net_device *ndev = NULL;
+ 	struct mlx5_lag *ldev;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 
+ 	if (!(ldev && __mlx5_lag_is_roce(ldev)))
+@@ -704,7 +704,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+ 		dev_hold(ndev);
+ 
+ unlock:
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return ndev;
+ }
+@@ -746,7 +746,7 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
+ 
+ 	memset(values, 0, sizeof(*values) * num_counters);
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	if (ldev && __mlx5_lag_is_roce(ldev)) {
+ 		num_ports = MLX5_MAX_PORTS;
+@@ -756,18 +756,18 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
+ 		num_ports = 1;
+ 		mdev[MLX5_LAG_P1] = dev;
+ 	}
++	spin_unlock(&lag_lock);
+ 
+ 	for (i = 0; i < num_ports; ++i) {
+ 		ret = mlx5_cmd_query_cong_counter(mdev[i], false, out, outlen);
+ 		if (ret)
+-			goto unlock;
++			goto free;
+ 
+ 		for (j = 0; j < num_counters; ++j)
+ 			values[j] += be64_to_cpup((__be64 *)(out + offsets[j]));
+ 	}
+ 
+-unlock:
+-	mutex_unlock(&lag_mutex);
++free:
+ 	kvfree(out);
+ 	return ret;
+ }
 -- 
 2.17.2
 
