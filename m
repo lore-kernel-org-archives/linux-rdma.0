@@ -2,42 +2,42 @@ Return-Path: <SRS0=rh+6=6L=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C543C7C861
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:48:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28A56C7C862
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:48:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65E8F206B6
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:48:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06EED20738
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:48:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588002499;
-	bh=y+wT9t+HCOAtabzwjhZ5anqA3axqLDC1mX9bKJdykpA=;
+	s=default; t=1588002502;
+	bh=P6G6umoQ6TKQk6Ag3MM6P3DZdx540pjS2gh4mG4V1EM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FU4TWnRmD0oosaMI49BiplQl8wQvG95sCSx1550LKjo73Fx1ttKEKsyiMmIug9PCh
-	 +hALGcn3Tbp5y9l58miuRHeH3SClUsp7Ariehm2ChlrU4DE6YIEcGoZk6VUoscmEf3
-	 YhlCGuuY9UIVkqKFaDzvPGCAg5t/sD2L/Tc6+G2w=
+	b=mKnSbsjerccHQiebaUqFG9D36Z4AvCEbYVMVsf2V8GhA/9ssabpeSkJH+eRUbHUEd
+	 pAgT/VETR8FG6QQ1Cd0LS9m82UgU7Cf7Pg+ThrQjjKS7hwVbQBoUoP0b+29QDrrXFY
+	 IZ+ToH4s2nqAZePqXyk5bCQWRXRKiOzmu2rxiSuU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728353AbgD0PsR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Apr 2020 11:48:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55978 "EHLO mail.kernel.org"
+        id S1728360AbgD0PsV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Apr 2020 11:48:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728348AbgD0PsQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Apr 2020 11:48:16 -0400
+        id S1728349AbgD0PsU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Apr 2020 11:48:20 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A9CCA20735;
-        Mon, 27 Apr 2020 15:48:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 20C112064C;
+        Mon, 27 Apr 2020 15:48:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588002496;
-        bh=y+wT9t+HCOAtabzwjhZ5anqA3axqLDC1mX9bKJdykpA=;
+        s=default; t=1588002499;
+        bh=P6G6umoQ6TKQk6Ag3MM6P3DZdx540pjS2gh4mG4V1EM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=xnLk0D4R0pU15AyZc1O1vPwOQqPBrBuseHF3Op2hPLH5EP099iCsdZX6/AKoZQK/P
-         c5ISCuORx9S2reVdUbFE2jK30YI3kHyMLlL0Ha416RJ2TCvJ9L31ql8119NYJeiUbp
-         w2KnfRPxl1dfH1sjqxgMVDmw5idjVI+SYOULcZwI=
+        b=v6yEk1yJrE3+RCa3pnyaQRrOUNg5sJZxEmS+o6pt/4nFM+RZpj+vCyzvQ6qJaUjFF
+         XbKNjOK3lxLnZ/3hfx7J3NgjpXGQUZPaTzgJCxOC95vxwfEe4QvoDQVt6uO4oxSX7B
+         878Vyxv3OrnJ4EOk3N9f3grX0exEs29lO6IQQxJI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -46,9 +46,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Aharon Landau <aharonl@mellanox.com>,
         Eli Cohen <eli@mellanox.com>,
         Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next v1 26/36] RDMA/mlx5: Globally parse DEVX UID
-Date:   Mon, 27 Apr 2020 18:46:26 +0300
-Message-Id: <20200427154636.381474-27-leon@kernel.org>
+Subject: [PATCH rdma-next v1 24/36] RDMA/mlx5: Rely on existence of udata to separate kernel/user flows
+Date:   Mon, 27 Apr 2020 18:46:24 +0300
+Message-Id: <20200427154636.381474-25-leon@kernel.org>
 X-Mailer: git-send-email 2.25.3
 In-Reply-To: <20200427154636.381474-1-leon@kernel.org>
 References: <20200427154636.381474-1-leon@kernel.org>
@@ -61,143 +61,142 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Remove duplication in parsing of DEVX UID.
+Instead of keeping special field to separate kernel/user create/destroy
+flows, rely on existence of udata pointer. All allocation flows are
+using kzalloc() and leave uninitialized pointers as NULL which makes
+MLX5_QP_EMPTY and MLX5_QP_KERNEL flows to be the same.
 
 Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 51 +++++++++++++++++----------------
- 1 file changed, 27 insertions(+), 24 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 14 --------------
+ drivers/infiniband/hw/mlx5/qp.c      | 23 ++++++++++-------------
+ 2 files changed, 10 insertions(+), 27 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 82ea01a211dd..df375cb4efbb 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -337,7 +337,6 @@ struct mlx5_ib_rwq {
+ 	struct ib_umem		*umem;
+ 	size_t			buf_size;
+ 	unsigned int		page_shift;
+-	int			create_type;
+ 	struct mlx5_db		db;
+ 	u32			user_index;
+ 	u32			wqe_count;
+@@ -346,17 +345,6 @@ struct mlx5_ib_rwq {
+ 	u32			create_flags; /* Use enum mlx5_ib_wq_flags */
+ };
+ 
+-enum {
+-	MLX5_QP_USER,
+-	MLX5_QP_KERNEL,
+-	MLX5_QP_EMPTY
+-};
+-
+-enum {
+-	MLX5_WQ_USER,
+-	MLX5_WQ_KERNEL
+-};
+-
+ struct mlx5_ib_rwq_ind_table {
+ 	struct ib_rwq_ind_table ib_rwq_ind_tbl;
+ 	u32			rqtn;
+@@ -457,8 +445,6 @@ struct mlx5_ib_qp {
+ 	 */
+ 	int			bfregn;
+ 
+-	int			create_type;
+-
+ 	struct list_head	qps_list;
+ 	struct list_head	cq_recv_list;
+ 	struct list_head	cq_send_list;
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5a43128d651b..b2174e0817f5 100644
+index 495f03905fbf..74f09cdb4a33 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1916,18 +1916,16 @@ static int get_atomic_mode(struct mlx5_ib_dev *dev,
- static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			    struct ib_qp_init_attr *init_attr,
- 			    struct mlx5_ib_create_qp *ucmd,
--			    struct ib_udata *udata, struct mlx5_ib_qp *qp)
-+			    struct ib_udata *udata, struct mlx5_ib_qp *qp,
-+			    u32 uidx)
- {
- 	struct mlx5_ib_resources *devr = &dev->devr;
- 	int inlen = MLX5_ST_SZ_BYTES(create_qp_in);
- 	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct mlx5_ib_create_qp_resp resp = {};
--	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
--		udata, struct mlx5_ib_ucontext, ibucontext);
- 	struct mlx5_ib_cq *send_cq;
- 	struct mlx5_ib_cq *recv_cq;
- 	unsigned long flags;
--	u32 uidx = MLX5_IB_DEFAULT_UIDX;
- 	struct mlx5_ib_qp_base *base;
- 	int mlx5_st;
- 	void *qpc;
-@@ -1945,12 +1943,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	if (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR)
- 		qp->sq_signal_bits = MLX5_WQE_CTRL_CQ_UPDATE;
+@@ -897,7 +897,6 @@ static int create_user_rq(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		goto err_umem;
+ 	}
  
--	if (udata) {
--		err = get_qp_user_index(ucontext, ucmd, udata->inlen, &uidx);
--		if (err)
--			return err;
--	}
+-	rwq->create_type = MLX5_WQ_USER;
+ 	return 0;
+ 
+ err_umem:
+@@ -1022,7 +1021,6 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		mlx5_ib_dbg(dev, "copy failed\n");
+ 		goto err_unmap;
+ 	}
+-	qp->create_type = MLX5_QP_USER;
+ 
+ 	return 0;
+ 
+@@ -1187,7 +1185,6 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 		err = -ENOMEM;
+ 		goto err_wrid;
+ 	}
+-	qp->create_type = MLX5_QP_KERNEL;
+ 
+ 	return 0;
+ 
+@@ -1214,8 +1211,10 @@ static void destroy_qp_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 	kvfree(qp->sq.wrid);
+ 	kvfree(qp->sq.wr_data);
+ 	kvfree(qp->rq.wrid);
+-	mlx5_db_free(dev->mdev, &qp->db);
+-	mlx5_frag_buf_free(dev->mdev, &qp->buf);
++	if (qp->db.db)
++		mlx5_db_free(dev->mdev, &qp->db);
++	if (qp->buf.frags)
++		mlx5_frag_buf_free(dev->mdev, &qp->buf);
+ }
+ 
+ static u32 get_rx_type(struct mlx5_ib_qp *qp, struct ib_qp_init_attr *attr)
+@@ -2000,8 +1999,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		in = kvzalloc(inlen, GFP_KERNEL);
+ 		if (!in)
+ 			return -ENOMEM;
 -
- 	if (qp->flags & IB_QP_CREATE_SOURCE_QPN)
- 		qp->underlay_qpn = init_attr->source_qpn;
+-		qp->create_type = MLX5_QP_EMPTY;
+ 	}
  
-@@ -2329,18 +2321,10 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	if (is_sqp(init_attr->qp_type))
+@@ -2155,9 +2152,9 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	return 0;
+ 
+ err_create:
+-	if (qp->create_type == MLX5_QP_USER)
++	if (udata)
+ 		destroy_qp_user(dev, pd, qp, base, udata);
+-	else if (qp->create_type == MLX5_QP_KERNEL)
++	else
+ 		destroy_qp_kernel(dev, qp);
+ 
+ err:
+@@ -2311,7 +2308,7 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	if (recv_cq)
+ 		list_del(&qp->cq_recv_list);
+ 
+-	if (qp->create_type == MLX5_QP_KERNEL) {
++	if (!udata) {
+ 		__mlx5_ib_cq_clean(recv_cq, base->mqp.qpn,
+ 				   qp->ibqp.srq ? to_msrq(qp->ibqp.srq) : NULL);
+ 		if (send_cq != recv_cq)
+@@ -2331,10 +2328,10 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 				     base->mqp.qpn);
+ 	}
+ 
+-	if (qp->create_type == MLX5_QP_KERNEL)
+-		destroy_qp_kernel(dev, qp);
+-	else if (qp->create_type == MLX5_QP_USER)
++	if (udata)
+ 		destroy_qp_user(dev, &get_pd(qp)->ibpd, qp, base, udata);
++	else
++		destroy_qp_kernel(dev, qp);
+ }
  
  static int create_dct(struct ib_pd *pd, struct mlx5_ib_qp *qp,
- 		      struct ib_qp_init_attr *attr,
--		      struct mlx5_ib_create_qp *ucmd, struct ib_udata *udata)
-+		      struct mlx5_ib_create_qp *ucmd, u32 uidx)
- {
--	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
--		udata, struct mlx5_ib_ucontext, ibucontext);
--	int err = 0;
--	u32 uidx = MLX5_IB_DEFAULT_UIDX;
- 	void *dctc;
- 
--	err = get_qp_user_index(ucontext, ucmd, sizeof(*ucmd), &uidx);
--	if (err)
--		return err;
--
- 	qp->dct.in = kzalloc(MLX5_ST_SZ_BYTES(create_dct_in), GFP_KERNEL);
- 	if (!qp->dct.in)
- 		return -ENOMEM;
-@@ -2651,14 +2635,14 @@ static size_t process_udata_size(struct ib_qp_init_attr *attr,
- 
- static int create_raw_qp(struct ib_pd *pd, struct mlx5_ib_qp *qp,
- 			 struct ib_qp_init_attr *attr, void *ucmd,
--			 struct ib_udata *udata)
-+			 struct ib_udata *udata, u32 uidx)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
- 
- 	if (attr->rwq_ind_tbl)
- 		return create_rss_raw_qp_tir(pd, qp, attr, ucmd, udata);
- 
--	return create_qp_common(dev, pd, attr, ucmd, udata, qp);
-+	return create_qp_common(dev, pd, attr, ucmd, udata, qp, uidx);
- }
- 
- static int check_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
-@@ -2688,10 +2672,24 @@ static int check_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	return ret;
- }
- 
-+static int get_qp_uidx(struct mlx5_ib_qp *qp, struct ib_udata *udata,
-+		       struct mlx5_ib_create_qp *ucmd,
-+		       struct ib_qp_init_attr *attr, u32 *uidx)
-+{
-+	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
-+		udata, struct mlx5_ib_ucontext, ibucontext);
-+
-+	if (attr->rwq_ind_tbl)
-+		return 0;
-+
-+	return get_qp_user_index(ucontext, ucmd, sizeof(*ucmd), uidx);
-+}
-+
- struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 				struct ib_qp_init_attr *init_attr,
- 				struct ib_udata *udata)
- {
-+	u32 uidx = MLX5_IB_DEFAULT_UIDX;
- 	struct mlx5_ib_dev *dev;
- 	struct mlx5_ib_qp *qp;
- 	enum ib_qp_type type;
-@@ -2743,6 +2741,10 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 		err = process_vendor_flags(dev, qp, ucmd, init_attr);
- 		if (err)
- 			goto free_qp;
-+
-+		err = get_qp_uidx(qp, udata, ucmd, init_attr, &uidx);
-+		if (err)
-+			goto free_qp;
- 	}
- 	err = process_create_flags(dev, qp, init_attr);
- 	if (err)
-@@ -2757,13 +2759,14 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 
- 	switch (qp->type) {
- 	case IB_QPT_RAW_PACKET:
--		err = create_raw_qp(pd, qp, init_attr, ucmd, udata);
-+		err = create_raw_qp(pd, qp, init_attr, ucmd, udata, uidx);
- 		break;
- 	case MLX5_IB_QPT_DCT:
--		err = create_dct(pd, qp, init_attr, ucmd, udata);
-+		err = create_dct(pd, qp, init_attr, ucmd, uidx);
- 		break;
- 	default:
--		err = create_qp_common(dev, pd, init_attr, ucmd, udata, qp);
-+		err = create_qp_common(dev, pd, init_attr, ucmd, udata, qp,
-+				       uidx);
- 	}
- 	if (err) {
- 		mlx5_ib_dbg(dev, "create_qp_common failed\n");
 -- 
 2.25.3
 
