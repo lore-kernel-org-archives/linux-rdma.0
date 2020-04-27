@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD5FC54FD0
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:46:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AF89C54FCB
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:46:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA16F206B6
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:46:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54798206BF
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:46:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588002407;
-	bh=6mqoe0HPE4p+Kq44n+MjDEIA/NMzt++VMJtlvywcveQ=;
+	s=default; t=1588002411;
+	bh=5sJWyR3U4xDgCkZ/FNdZLPGyz9lprWhgEQL4ATiEjTo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=spT+7g+Wmw9MU0bk4/4l4RLfAjzwrd5KilznOa2EJN+5UHkwNZDsV8ACh6h7Kyu/7
-	 VXojvNQk3PgGjpLKeeWY2AeyB8CG8BwQAUxR9pG+Lb7EGVo1/o/8FhjGkwE0yXqEAj
-	 f16Obeu+DqgeYaTLaIIgxtjyHiJ/pMacg3HGlEPI=
+	b=Z9i9kQ6zXItHx6g+/X9r5zvGk2qjc/zNKd01ZqZlvSs8kDt436xi3mimvhtf6H92l
+	 YQTcb1y67iXgxMC3OoTlPJuAbnhJj3jC5rIaLVFJMFHmz3Mnj2P9uyc56cRRU/22hx
+	 TGiy97isBMzJjbqH9MT6VH4x6nJaPgiY6n7eOKCo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728039AbgD0Pqr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Apr 2020 11:46:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52822 "EHLO mail.kernel.org"
+        id S1728072AbgD0Pqu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Apr 2020 11:46:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726185AbgD0Pqq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Apr 2020 11:46:46 -0400
+        id S1726185AbgD0Pqu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Apr 2020 11:46:50 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 94F3A2064C;
-        Mon, 27 Apr 2020 15:46:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 539432064C;
+        Mon, 27 Apr 2020 15:46:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588002406;
-        bh=6mqoe0HPE4p+Kq44n+MjDEIA/NMzt++VMJtlvywcveQ=;
+        s=default; t=1588002410;
+        bh=5sJWyR3U4xDgCkZ/FNdZLPGyz9lprWhgEQL4ATiEjTo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oQqURoLOR8QqyGh7iTZv25mI6PAemlJqWFRuGgX9aXOAXamSZ1Zfc2Yp0WjDfatup
-         UWOh+P/WazYn+0c0zoocIM8diFk7wHPFRFc/4TWmRlUPzVunG6n7wV6f9GyAqd3cjl
-         xN3gL53GvVhbDIT8OvVGh1HEjgY1C6XxY+KcXQbU=
+        b=GsYx6KLtFxKPFn8j6USoFKGOZ3BUqDi87xx4S+QmyHPSsW2UgZ1HHgJ3fnKmYJHJ/
+         YxzGLiJ/SUVTSe09MnVp2BCDXsWsBO98QCGORJSTcMkDZN5kK76ltJLUG8LqrfOBrz
+         C1Nko1zgV0N27xF0RApHJ+7KkNvkSlQIzjzQY96Q=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
@@ -46,9 +46,9 @@ Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Aharon Landau <aharonl@mellanox.com>,
         Eli Cohen <eli@mellanox.com>,
         Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next v1 01/36] RDMA/mlx5: Organize QP types checks in one place
-Date:   Mon, 27 Apr 2020 18:46:01 +0300
-Message-Id: <20200427154636.381474-2-leon@kernel.org>
+Subject: [PATCH rdma-next v1 03/36] RDMA/mlx5: Perform check if QP creation flow is valid
+Date:   Mon, 27 Apr 2020 18:46:03 +0300
+Message-Id: <20200427154636.381474-4-leon@kernel.org>
 X-Mailer: git-send-email 2.25.3
 In-Reply-To: <20200427154636.381474-1-leon@kernel.org>
 References: <20200427154636.381474-1-leon@kernel.org>
@@ -61,187 +61,196 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Perform check if QP type is supported in one place at the beginning of
-the create_qp function instead of current implementation with checks
-buried inside of the code.
+Fast check that kernel and user flows provides enough
+data to create QP.
 
 Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 129 +++++++++++++++++---------------
- 1 file changed, 68 insertions(+), 61 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 128 +++++++++++++++-----------------
+ 1 file changed, 61 insertions(+), 67 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index af599c8b88aa..fdab5b6db1e5 100644
+index fdab5b6db1e5..91d6151c349c 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2677,12 +2677,42 @@ static int set_mlx_qp_type(struct mlx5_ib_dev *dev,
- 		}
- 	}
+@@ -1666,9 +1666,6 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	size_t required_cmd_sz;
+ 	u8 lb_flag = 0;
  
--	if (!MLX5_CAP_GEN(dev->mdev, dct)) {
--		mlx5_ib_dbg(dev, "DC transport is not supported\n");
+-	if (init_attr->qp_type != IB_QPT_RAW_PACKET)
 -		return -EOPNOTSUPP;
-+	return 0;
-+}
-+
-+static int check_qp_type(struct mlx5_ib_dev *dev, struct ib_qp_init_attr *attr)
+-
+ 	if (init_attr->create_flags || init_attr->send_cq)
+ 		return -EINVAL;
+ 
+@@ -2032,13 +2029,8 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	if (mlx5_st < 0)
+ 		return -EINVAL;
+ 
+-	if (init_attr->rwq_ind_tbl) {
+-		if (!udata)
+-			return -ENOSYS;
+-
+-		err = create_rss_raw_qp_tir(dev, qp, pd, init_attr, udata);
+-		return err;
+-	}
++	if (init_attr->rwq_ind_tbl)
++		return create_rss_raw_qp_tir(dev, qp, pd, init_attr, udata);
+ 
+ 	if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
+ 		if (!MLX5_CAP_GEN(mdev, block_lb_mc)) {
+@@ -2565,39 +2557,6 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		destroy_qp_user(dev, &get_pd(qp)->ibpd, qp, base, udata);
+ }
+ 
+-static const char *ib_qp_type_str(enum ib_qp_type type)
+-{
+-	switch (type) {
+-	case IB_QPT_SMI:
+-		return "IB_QPT_SMI";
+-	case IB_QPT_GSI:
+-		return "IB_QPT_GSI";
+-	case IB_QPT_RC:
+-		return "IB_QPT_RC";
+-	case IB_QPT_UC:
+-		return "IB_QPT_UC";
+-	case IB_QPT_UD:
+-		return "IB_QPT_UD";
+-	case IB_QPT_RAW_IPV6:
+-		return "IB_QPT_RAW_IPV6";
+-	case IB_QPT_RAW_ETHERTYPE:
+-		return "IB_QPT_RAW_ETHERTYPE";
+-	case IB_QPT_XRC_INI:
+-		return "IB_QPT_XRC_INI";
+-	case IB_QPT_XRC_TGT:
+-		return "IB_QPT_XRC_TGT";
+-	case IB_QPT_RAW_PACKET:
+-		return "IB_QPT_RAW_PACKET";
+-	case MLX5_IB_QPT_REG_UMR:
+-		return "MLX5_IB_QPT_REG_UMR";
+-	case IB_QPT_DRIVER:
+-		return "IB_QPT_DRIVER";
+-	case IB_QPT_MAX:
+-	default:
+-		return "Invalid QP type";
+-	}
+-}
+-
+ static struct ib_qp *mlx5_ib_create_dct(struct ib_pd *pd,
+ 					struct ib_qp_init_attr *attr,
+ 					struct mlx5_ib_create_qp *ucmd,
+@@ -2655,9 +2614,6 @@ static int set_mlx_qp_type(struct mlx5_ib_dev *dev,
+ 	enum { MLX_QP_FLAGS = MLX5_QP_FLAG_TYPE_DCT | MLX5_QP_FLAG_TYPE_DCI };
+ 	int err;
+ 
+-	if (!udata)
+-		return -EINVAL;
+-
+ 	if (udata->inlen < sizeof(*ucmd)) {
+ 		mlx5_ib_dbg(dev, "create_qp user command is smaller than expected\n");
+ 		return -EINVAL;
+@@ -2715,6 +2671,62 @@ static int check_qp_type(struct mlx5_ib_dev *dev, struct ib_qp_init_attr *attr)
+ 	return -EOPNOTSUPP;
+ }
+ 
++static int check_valid_flow(struct mlx5_ib_dev *dev, struct ib_pd *pd,
++			    struct ib_qp_init_attr *attr,
++			    struct ib_udata *udata)
 +{
-+	if (attr->qp_type == IB_QPT_DRIVER && !MLX5_CAP_GEN(dev->mdev, dct))
-+		goto out;
++	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
++		udata, struct mlx5_ib_ucontext, ibucontext);
++
++	if (!udata) {
++		/* Kernel create_qp callers */
++		if (attr->rwq_ind_tbl)
++			return -EOPNOTSUPP;
++
++		switch (attr->qp_type) {
++		case IB_QPT_RAW_PACKET:
++		case IB_QPT_DRIVER:
++			return -EOPNOTSUPP;
++		default:
++			return 0;
++		}
++	}
++
++	/* Userspace create_qp callers */
++	if (attr->qp_type == IB_QPT_RAW_PACKET && !ucontext->cqe_version) {
++		mlx5_ib_dbg(dev,
++			"Raw Packet QP is only supported for CQE version > 0\n");
++		return -EINVAL;
++	}
++
++	if (attr->qp_type != IB_QPT_RAW_PACKET && attr->rwq_ind_tbl) {
++		mlx5_ib_dbg(dev,
++			    "Wrong QP type %d for the RWQ indirect table\n",
++			    attr->qp_type);
++		return -EINVAL;
++	}
 +
 +	switch (attr->qp_type) {
-+	case IB_QPT_XRC_TGT:
-+	case IB_QPT_XRC_INI:
-+		if (!MLX5_CAP_GEN(dev->mdev, xrc))
-+			goto out;
-+		fallthrough;
-+	case IB_QPT_RAW_PACKET:
-+	case IB_QPT_RC:
-+	case IB_QPT_UC:
-+	case IB_QPT_UD:
 +	case IB_QPT_SMI:
 +	case MLX5_IB_QPT_HW_GSI:
 +	case MLX5_IB_QPT_REG_UMR:
-+	case IB_QPT_DRIVER:
 +	case IB_QPT_GSI:
-+		return 0;
-+	case IB_QPT_RAW_IPV6:
-+	case IB_QPT_RAW_ETHERTYPE:
-+	case IB_QPT_MAX:
++		mlx5_ib_dbg(dev, "Kernel doesn't support QP type %d\n",
++			    attr->qp_type);
++		return -EINVAL;
 +	default:
-+		goto out;
- 	}
- 
- 	return 0;
++		break;
++	}
 +
-+out:
-+	mlx5_ib_dbg(dev, "Unsupported QP type %d\n", attr->qp_type);
-+	return -EOPNOTSUPP;
- }
- 
++	/*
++	 * We don't need to see this warning, it means that kernel code
++	 * missing ib_pd. Placed here to catch developer's mistakes.
++	 */
++	WARN_ONCE(!pd && attr->qp_type != IB_QPT_XRC_TGT,
++		  "There is a missing PD pointer assignment\n");
++	return 0;
++}
++
  struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
-@@ -2698,9 +2728,17 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
+ 				struct ib_qp_init_attr *verbs_init_attr,
+ 				struct ib_udata *udata)
+@@ -2725,8 +2737,6 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
+ 	int err;
+ 	struct ib_qp_init_attr mlx_init_attr;
+ 	struct ib_qp_init_attr *init_attr = verbs_init_attr;
+-	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
+-		udata, struct mlx5_ib_ucontext, ibucontext);
+ 
+ 	dev = pd ? to_mdev(pd->device) :
+ 		   to_mdev(to_mxrcd(init_attr->xrcd)->ibxrcd.device);
+@@ -2738,25 +2748,9 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
+ 		return ERR_PTR(err);
+ 	}
  
 -	if (pd) {
--		dev = to_mdev(pd->device);
-+	dev = pd ? to_mdev(pd->device) :
-+		   to_mdev(to_mxrcd(init_attr->xrcd)->ibxrcd.device);
- 
-+	err = check_qp_type(dev, init_attr);
-+	if (err) {
-+		mlx5_ib_dbg(dev, "Unsupported QP type %d\n",
-+			    init_attr->qp_type);
+-		if (init_attr->qp_type == IB_QPT_RAW_PACKET) {
+-			if (!ucontext) {
+-				mlx5_ib_dbg(dev, "Raw Packet QP is not supported for kernel consumers\n");
+-				return ERR_PTR(-EINVAL);
+-			} else if (!ucontext->cqe_version) {
+-				mlx5_ib_dbg(dev, "Raw Packet QP is only supported for CQE version > 0\n");
+-				return ERR_PTR(-EINVAL);
+-			}
+-		}
+-	} else {
+-		/* being cautious here */
+-		if (init_attr->qp_type != IB_QPT_XRC_TGT &&
+-		    init_attr->qp_type != MLX5_IB_QPT_REG_UMR) {
+-			pr_warn("%s: no PD for transport %s\n", __func__,
+-				ib_qp_type_str(init_attr->qp_type));
+-			return ERR_PTR(-EINVAL);
+-		}
+-	}
++	err = check_valid_flow(dev, pd, init_attr, udata);
++	if (err)
 +		return ERR_PTR(err);
-+	}
-+
-+	if (pd) {
- 		if (init_attr->qp_type == IB_QPT_RAW_PACKET) {
- 			if (!ucontext) {
- 				mlx5_ib_dbg(dev, "Raw Packet QP is not supported for kernel consumers\n");
-@@ -2718,7 +2756,6 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 				ib_qp_type_str(init_attr->qp_type));
- 			return ERR_PTR(-EINVAL);
- 		}
--		dev = to_mdev(to_mxrcd(init_attr->xrcd)->ibxrcd.device);
- 	}
  
  	if (init_attr->qp_type == IB_QPT_DRIVER) {
-@@ -2741,67 +2778,37 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 		}
- 	}
- 
--	switch (init_attr->qp_type) {
--	case IB_QPT_XRC_TGT:
--	case IB_QPT_XRC_INI:
--		if (!MLX5_CAP_GEN(dev->mdev, xrc)) {
--			mlx5_ib_dbg(dev, "XRC not supported\n");
--			return ERR_PTR(-ENOSYS);
--		}
--		init_attr->recv_cq = NULL;
--		if (init_attr->qp_type == IB_QPT_XRC_TGT) {
--			xrcdn = to_mxrcd(init_attr->xrcd)->xrcdn;
--			init_attr->send_cq = NULL;
--		}
--
--		/* fall through */
--	case IB_QPT_RAW_PACKET:
--	case IB_QPT_RC:
--	case IB_QPT_UC:
--	case IB_QPT_UD:
--	case IB_QPT_SMI:
--	case MLX5_IB_QPT_HW_GSI:
--	case MLX5_IB_QPT_REG_UMR:
--	case MLX5_IB_QPT_DCI:
--		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
--		if (!qp)
--			return ERR_PTR(-ENOMEM);
--
--		err = create_qp_common(dev, pd, init_attr, udata, qp);
--		if (err) {
--			mlx5_ib_dbg(dev, "create_qp_common failed\n");
--			kfree(qp);
--			return ERR_PTR(err);
--		}
-+	if (init_attr->qp_type == IB_QPT_GSI)
-+		return mlx5_ib_gsi_create_qp(pd, init_attr);
- 
--		if (is_qp0(init_attr->qp_type))
--			qp->ibqp.qp_num = 0;
--		else if (is_qp1(init_attr->qp_type))
--			qp->ibqp.qp_num = 1;
--		else
--			qp->ibqp.qp_num = qp->trans_qp.base.mqp.qpn;
-+	if (init_attr->qp_type == IB_QPT_XRC_TGT) {
-+		init_attr->recv_cq = NULL;
-+		xrcdn = to_mxrcd(init_attr->xrcd)->xrcdn;
-+		init_attr->send_cq = NULL;
-+	}
- 
--		mlx5_ib_dbg(dev, "ib qpnum 0x%x, mlx qpn 0x%x, rcqn 0x%x, scqn 0x%x\n",
--			    qp->ibqp.qp_num, qp->trans_qp.base.mqp.qpn,
--			    init_attr->recv_cq ? to_mcq(init_attr->recv_cq)->mcq.cqn : -1,
--			    init_attr->send_cq ? to_mcq(init_attr->send_cq)->mcq.cqn : -1);
-+	if (init_attr->qp_type == IB_QPT_XRC_INI)
-+		init_attr->recv_cq = NULL;
- 
--		qp->trans_qp.xrcdn = xrcdn;
-+	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-+	if (!qp)
-+		return ERR_PTR(-ENOMEM);
- 
--		break;
-+	err = create_qp_common(dev, pd, init_attr, udata, qp);
-+	if (err) {
-+		mlx5_ib_dbg(dev, "create_qp_common failed\n");
-+		kfree(qp);
-+		return ERR_PTR(err);
-+	}
- 
--	case IB_QPT_GSI:
--		return mlx5_ib_gsi_create_qp(pd, init_attr);
-+	if (is_qp0(init_attr->qp_type))
-+		qp->ibqp.qp_num = 0;
-+	else if (is_qp1(init_attr->qp_type))
-+		qp->ibqp.qp_num = 1;
-+	else
-+		qp->ibqp.qp_num = qp->trans_qp.base.mqp.qpn;
- 
--	case IB_QPT_RAW_IPV6:
--	case IB_QPT_RAW_ETHERTYPE:
--	case IB_QPT_MAX:
--	default:
--		mlx5_ib_dbg(dev, "unsupported qp type %d\n",
--			    init_attr->qp_type);
--		/* Don't support raw QPs */
--		return ERR_PTR(-EOPNOTSUPP);
--	}
-+	qp->trans_qp.xrcdn = xrcdn;
- 
- 	if (verbs_init_attr->qp_type == IB_QPT_DRIVER)
- 		qp->qp_sub_type = init_attr->qp_type;
+ 		struct mlx5_ib_create_qp ucmd;
 -- 
 2.25.3
 
