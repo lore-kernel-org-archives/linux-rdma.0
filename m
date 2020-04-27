@@ -2,116 +2,150 @@ Return-Path: <SRS0=rh+6=6L=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25379C54FD0
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 09:03:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDC39C54FD0
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 11:47:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 03F2D2080C
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 09:03:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F5C4206BF
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 11:47:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1587988060;
+	bh=csVpQl3STsGpR5v5OmeseIkg0Yva+irWenfneliB9bE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=UYrSp/2hRJzlZxVV2xgWse9NkXOCNFHL0sF44nQd4Za3mpOoJE4cODWTvNgLzGyev
+	 OPDUxsXjyzL+sRi14IqMrH2/BjvX4oIe1FjAGwd/fnpV2CGBAnoI55csXwhosH8Oo5
+	 0wiD/I6KLI+atUzfwndTBdNVGsq4pHNX1DBiSp7U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726003AbgD0JDB convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Apr 2020 05:03:01 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:2119 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725899AbgD0JDB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Apr 2020 05:03:01 -0400
-Received: from dggeml405-hub.china.huawei.com (unknown [172.30.72.55])
-        by Forcepoint Email with ESMTP id 918D6FEECE0A14744C3F;
-        Mon, 27 Apr 2020 17:02:58 +0800 (CST)
-Received: from DGGEML423-HUB.china.huawei.com (10.1.199.40) by
- dggeml405-hub.china.huawei.com (10.3.17.49) with Microsoft SMTP Server (TLS)
- id 14.3.487.0; Mon, 27 Apr 2020 17:02:57 +0800
-Received: from DGGEML522-MBX.china.huawei.com ([169.254.7.242]) by
- dggeml423-hub.china.huawei.com ([10.1.199.40]) with mapi id 14.03.0487.000;
- Mon, 27 Apr 2020 17:02:47 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Gal Pressman <galpress@amazon.com>,
-        "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>
-CC:     "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>,
-        "selvin.xavier@broadcom.com" <selvin.xavier@broadcom.com>,
-        "devesh.sharma@broadcom.com" <devesh.sharma@broadcom.com>,
-        "somnath.kotur@broadcom.com" <somnath.kotur@broadcom.com>,
-        "sriharsha.basavapatna@broadcom.com" 
-        <sriharsha.basavapatna@broadcom.com>,
-        "bharat@chelsio.com" <bharat@chelsio.com>,
-        "sleybo@amazon.com" <sleybo@amazon.com>,
-        "faisal.latif@intel.com" <faisal.latif@intel.com>,
-        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
-        "yishaih@mellanox.com" <yishaih@mellanox.com>,
-        "mkalderon@marvell.com" <mkalderon@marvell.com>,
-        "aelior@marvell.com" <aelior@marvell.com>,
-        "benve@cisco.com" <benve@cisco.com>,
-        "neescoba@cisco.com" <neescoba@cisco.com>,
-        "pkaustub@cisco.com" <pkaustub@cisco.com>,
-        "aditr@vmware.com" <aditr@vmware.com>,
-        "pv-drivers@vmware.com" <pv-drivers@vmware.com>,
-        "monis@mellanox.com" <monis@mellanox.com>,
-        "kamalheib1@gmail.com" <kamalheib1@gmail.com>,
-        "parav@mellanox.com" <parav@mellanox.com>,
-        "markz@mellanox.com" <markz@mellanox.com>,
-        "rd.dunlab@gmail.com" <rd.dunlab@gmail.com>,
-        "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>
+        id S1726504AbgD0Lrj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Apr 2020 07:47:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45020 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726769AbgD0Lrj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Apr 2020 07:47:39 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 446262063A;
+        Mon, 27 Apr 2020 11:47:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1587988059;
+        bh=csVpQl3STsGpR5v5OmeseIkg0Yva+irWenfneliB9bE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=OB5guWr7B0jpCr7v4WN4nZUBC+/9tpXbcVo3DHrErkq7Ie85u64BS3ADkRlWLCiIU
+         GHLldFbKVofIlsgfyXI94DlVzChRXHatZJNTx4GhHLf5YxWHYdJblrdhiR9UpmcZtU
+         r6/MdfrV86Mu4p11gao2OGXT9CwJE2VrOGhGZn04=
+Date:   Mon, 27 Apr 2020 14:47:34 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Weihang Li <liweihang@huawei.com>
+Cc:     dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        linuxarm@huawei.com, selvin.xavier@broadcom.com,
+        devesh.sharma@broadcom.com, somnath.kotur@broadcom.com,
+        sriharsha.basavapatna@broadcom.com, bharat@chelsio.com,
+        galpress@amazon.com, sleybo@amazon.com, faisal.latif@intel.com,
+        shiraz.saleem@intel.com, yishaih@mellanox.com,
+        mkalderon@marvell.com, aelior@marvell.com, benve@cisco.com,
+        neescoba@cisco.com, pkaustub@cisco.com, aditr@vmware.com,
+        pv-drivers@vmware.com, monis@mellanox.com, kamalheib1@gmail.com,
+        parav@mellanox.com, markz@mellanox.com, rd.dunlab@gmail.com,
+        dennis.dalessandro@intel.com
 Subject: Re: [PATCH for-next] RDMA/core: Assign the name of device when
  allocating ib_device
-Thread-Topic: [PATCH for-next] RDMA/core: Assign the name of device when
- allocating ib_device
-Thread-Index: AQHWG62Z7/BNGudzR0CivwFowafwZQ==
-Date:   Mon, 27 Apr 2020 09:02:47 +0000
-Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A02326100@DGGEML522-MBX.china.huawei.com>
+Message-ID: <20200427114734.GC134660@unreal>
 References: <1587893517-11824-1-git-send-email-liweihang@huawei.com>
- <cf1dc2dd-89e5-2fcc-845f-925fb531adc1@amazon.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.40.168.149]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1587893517-11824-1-git-send-email-liweihang@huawei.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2020/4/27 16:45, Gal Pressman wrote:
-> On 26/04/2020 12:31, Weihang Li wrote:
->> If the name of a device is assigned during ib_register_device(), some
->> drivers have to use dev_*() for printing before register device. Bring
->> assign_name() into ib_alloc_device(), so that drivers can use ibdev_*()
->> anywhere.
->>
->> Signed-off-by: Weihang Li <liweihang@huawei.com>
-> 
-> Reviewed-by: Gal Pressman <galpress@amazon.com>
-> 
-> [...]
-> 
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> index 2a8c389..5560d79 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> @@ -6017,7 +6017,7 @@ static int __hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
->>  	struct hns_roce_dev *hr_dev;
->>  	int ret;
->>  
->> -	hr_dev = ib_alloc_device(hns_roce_dev, ib_dev);
->> +	hr_dev = ib_alloc_device(hns_roce_dev, ib_dev, "hns%d");
-> 
-> This name is missing an underscore.
-> As some of the drivers now pass the name in two call sites, it's better to
-> define it in one place in order to prevent mistakes like these.
-> 
+On Sun, Apr 26, 2020 at 05:31:57PM +0800, Weihang Li wrote:
+> If the name of a device is assigned during ib_register_device(), some
+> drivers have to use dev_*() for printing before register device. Bring
+> assign_name() into ib_alloc_device(), so that drivers can use ibdev_*()
+> anywhere.
+>
+> Signed-off-by: Weihang Li <liweihang@huawei.com>
+> ---
+>  drivers/infiniband/core/device.c               | 85 +++++++++++++-------------
+>  drivers/infiniband/hw/bnxt_re/main.c           |  4 +-
+>  drivers/infiniband/hw/cxgb4/device.c           |  2 +-
+>  drivers/infiniband/hw/cxgb4/provider.c         |  2 +-
+>  drivers/infiniband/hw/efa/efa_main.c           |  4 +-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c     |  2 +-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c     |  2 +-
+>  drivers/infiniband/hw/hns/hns_roce_main.c      |  2 +-
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c      |  4 +-
+>  drivers/infiniband/hw/mlx4/main.c              |  4 +-
+>  drivers/infiniband/hw/mlx5/ib_rep.c            |  8 ++-
+>  drivers/infiniband/hw/mlx5/main.c              | 18 +++---
+>  drivers/infiniband/hw/mthca/mthca_main.c       |  2 +-
+>  drivers/infiniband/hw/mthca/mthca_provider.c   |  2 +-
+>  drivers/infiniband/hw/ocrdma/ocrdma_main.c     |  4 +-
+>  drivers/infiniband/hw/qedr/main.c              |  4 +-
+>  drivers/infiniband/hw/usnic/usnic_ib_main.c    |  4 +-
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  4 +-
+>  drivers/infiniband/sw/rxe/rxe.c                |  4 +-
+>  drivers/infiniband/sw/rxe/rxe.h                |  2 +-
+>  drivers/infiniband/sw/rxe/rxe_net.c            |  4 +-
+>  drivers/infiniband/sw/rxe/rxe_verbs.c          |  4 +-
+>  drivers/infiniband/sw/rxe/rxe_verbs.h          |  2 +-
+>  include/rdma/ib_verbs.h                        |  8 +--
+>  24 files changed, 95 insertions(+), 86 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index d0b3d35..30d28da 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -557,9 +557,45 @@ static void rdma_init_coredev(struct ib_core_device *coredev,
+>  	write_pnet(&coredev->rdma_net, net);
+>  }
+>
+> +/*
+> + * Assign the unique string device name and the unique device index. This is
+> + * undone by ib_dealloc_device.
+> + */
+> +static int assign_name(struct ib_device *device, const char *name)
+> +{
+> +	static u32 last_id;
+> +	int ret;
+> +
+> +	down_write(&devices_rwsem);
+> +	/* Assign a unique name to the device */
+> +	if (strchr(name, '%'))
+> +		ret = alloc_name(device, name);
+> +	else
+> +		ret = dev_set_name(&device->dev, name);
+> +	if (ret)
+> +		goto out;
+> +
+> +	if (__ib_device_get_by_name(dev_name(&device->dev))) {
+> +		ret = -ENFILE;
+> +		goto out;
+> +	}
+> +	strlcpy(device->name, dev_name(&device->dev), IB_DEVICE_NAME_MAX);
+> +
+> +	ret = xa_alloc_cyclic(&devices, &device->index, device, xa_limit_31b,
+> +			      &last_id, GFP_KERNEL);
+> +	if (ret > 0)
+> +		ret = 0;
+> +
+> +out:
+> +	up_write(&devices_rwsem);
+> +	return ret;
+> +}
+> +
+>  /**
+>   * _ib_alloc_device - allocate an IB device struct
+>   * @size:size of structure to allocate
+> + * @name: unique string device name. This may include a '%' which will
 
-Hi Gal,
+It looks like all drivers are setting "%" in their name and "name" can
+be changed to be "prefix".
 
-Thanks for your reminder :) Will fix it and consider using a macro instead.
-
-Weihang
+Thanks
