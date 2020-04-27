@@ -2,198 +2,106 @@ Return-Path: <SRS0=rh+6=6L=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAED1C7C864
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:48:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62D56C4CECD
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 17:54:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83154206E9
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 15:48:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588002539;
-	bh=owfNJ43FNxReOdRSF8IiwSp6qSMWbvUi+HLHWQcLxes=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=anP6ajXmfHXBBPFyY9be6gpqtqFuvv9EhASH4J+LIPY1zjJzoMo8Lok24q83ZzPN0
-	 DOJued1nCrhxrU3HJ1V367TZ+A92poZLFFRkw+D/VVvPkC2uoM26V/4AScYQmParkT
-	 6Yrm4d5cEbTZou09YLhY3fVdui0t6ItsW1mWPWSA=
+	by mail.kernel.org (Postfix) with ESMTP id 41E71214D8
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Apr 2020 17:54:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728433AbgD0Ps6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Apr 2020 11:48:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57908 "EHLO mail.kernel.org"
+        id S1726228AbgD0Ryo convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Apr 2020 13:54:44 -0400
+Received: from mga01.intel.com ([192.55.52.88]:5260 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728432AbgD0Ps5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Apr 2020 11:48:57 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BB158206BF;
-        Mon, 27 Apr 2020 15:48:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588002537;
-        bh=owfNJ43FNxReOdRSF8IiwSp6qSMWbvUi+HLHWQcLxes=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=pk9J9WFDQQXSKhoG4kDw9sieInZ9qDBFYvz9bSV8r3NwKKmDC9sMjozR3UC9kRxtm
-         8EXHnW2H6LB91CvIZb/VQAP+SSuSk6CxY8sKzI0JsUr18nAc31RCjEb14HlKnehAID
-         Qu6dL8f704tC+1QStGyRInDwx1GEaJtm/ZkRaQj0=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Aharon Landau <aharonl@mellanox.com>,
-        Eli Cohen <eli@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next v1 35/36] RDMA/mlx5: Consolidate into special function all create QP calls
-Date:   Mon, 27 Apr 2020 18:46:35 +0300
-Message-Id: <20200427154636.381474-36-leon@kernel.org>
-X-Mailer: git-send-email 2.25.3
-In-Reply-To: <20200427154636.381474-1-leon@kernel.org>
-References: <20200427154636.381474-1-leon@kernel.org>
+        id S1725963AbgD0Ryo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Apr 2020 13:54:44 -0400
+IronPort-SDR: 4gfFUGYr7UCEsJlp1PZE1lCcYfs+cl1s6srj891z0XGOydukGb2jOH5HJtKhPmGgpFyLgXgRuB
+ RBkOKjLruL2g==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2020 10:54:44 -0700
+IronPort-SDR: MZujpOBysJN4xpTHLptXZp+rUGrtGVv2Ofu/3/9NruEcwL3C0fhFuswgc3sAgL2hFniJ8MP1iw
+ eIIE7PDPqXQw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,325,1583222400"; 
+   d="scan'208";a="247475307"
+Received: from fmsmsx108.amr.corp.intel.com ([10.18.124.206])
+  by fmsmga007.fm.intel.com with ESMTP; 27 Apr 2020 10:54:44 -0700
+Received: from fmsmsx151.amr.corp.intel.com (10.18.125.4) by
+ FMSMSX108.amr.corp.intel.com (10.18.124.206) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Mon, 27 Apr 2020 10:54:43 -0700
+Received: from fmsmsx124.amr.corp.intel.com ([169.254.8.70]) by
+ FMSMSX151.amr.corp.intel.com ([169.254.7.87]) with mapi id 14.03.0439.000;
+ Mon, 27 Apr 2020 10:54:43 -0700
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+CC:     "Latif, Faisal" <faisal.latif@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Shannon Nelson <shannon.nelson@intel.com>,
+        "Singhai, Anjali" <anjali.singhai@intel.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Subject: RE: [PATCH] i40iw: Fix error handling in i40iw_manage_arp_cache()
+Thread-Topic: [PATCH] i40iw: Fix error handling in i40iw_manage_arp_cache()
+Thread-Index: AQHWGIfnBzR4uDDw8E+FQe7fNMCiv6iK7swAgAImDBA=
+Date:   Mon, 27 Apr 2020 17:54:43 +0000
+Message-ID: <9DD61F30A802C4429A01CA4200E302A7DCD54B89@fmsmsx124.amr.corp.intel.com>
+References: <20200422092211.GA195357@mwanda>
+ <20200425230004.GA23991@ziepe.ca>
+In-Reply-To: <20200425230004.GA23991@ziepe.ca>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-version: 11.2.0.6
+dlp-reaction: no-action
+x-originating-ip: [10.1.200.108]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+> Subject: Re: [PATCH] i40iw: Fix error handling in i40iw_manage_arp_cache()
+> 
+> On Wed, Apr 22, 2020 at 12:22:11PM +0300, Dan Carpenter wrote:
+> > The i40iw_arp_table() function can return -EOVERFLOW if
+> > i40iw_alloc_resource() fails so we can't just test for "== -1".
+> >
+> > Fixes: 4e9042e647ff ("i40iw: add hw and utils files")
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > drivers/infiniband/hw/i40iw/i40iw_hw.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_hw.c
+> > b/drivers/infiniband/hw/i40iw/i40iw_hw.c
+> > index 55a1fbf0e670..ae8b97c30665 100644
+> > +++ b/drivers/infiniband/hw/i40iw/i40iw_hw.c
+> > @@ -534,7 +534,7 @@ void i40iw_manage_arp_cache(struct i40iw_device
+> *iwdev,
+> >  	int arp_index;
+> >
+> >  	arp_index = i40iw_arp_table(iwdev, ip_addr, ipv4, mac_addr, action);
+> > -	if (arp_index == -1)
+> > +	if (arp_index < 0)
+> >  		return;
+> >  	cqp_request = i40iw_get_cqp_request(&iwdev->cqp, false);
+> >  	if (!cqp_request)
+> 
+> It is right Shiraz?
+> 
+Yes. Not convinced i40iw_manage_arp_cache being a void is ok
+but that's a separate problem which I ll review internally.
 
-Finish separation to blocks of mlx5_ib_create_qp() functions,
-so all internal create QP implementation are located in one place.
+Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 85 +++++++++++++++++++--------------
- 1 file changed, 49 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index d7983a951e8d..18c0a25da47a 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1953,6 +1953,7 @@ static int create_xrc_tgt_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	list_add_tail(&qp->qps_list, &dev->qp_list);
- 	spin_unlock_irqrestore(&dev->reset_flow_resource_lock, flags);
- 
-+	qp->trans_qp.xrcdn = to_mxrcd(attr->xrcd)->xrcdn;
- 	return 0;
- }
- 
-@@ -2785,14 +2786,54 @@ static int process_udata_size(struct mlx5_ib_dev *dev,
- 	return (params->inlen) ? 0 : -EINVAL;
- }
- 
--static int create_raw_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
--			 struct mlx5_ib_qp *qp,
--			 struct mlx5_create_qp_params *params)
-+static int create_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
-+		     struct mlx5_ib_qp *qp,
-+		     struct mlx5_create_qp_params *params)
- {
--	if (params->is_rss_raw)
--		return create_rss_raw_qp_tir(dev, pd, qp, params);
-+	int err;
-+
-+	if (params->is_rss_raw) {
-+		err = create_rss_raw_qp_tir(dev, pd, qp, params);
-+		goto out;
-+	}
-+
-+	if (qp->type == MLX5_IB_QPT_DCT) {
-+		err = create_dct(pd, qp, params);
-+		goto out;
-+	}
-+
-+	if (qp->type == IB_QPT_XRC_TGT) {
-+		err = create_xrc_tgt_qp(dev, qp, params);
-+		goto out;
-+	}
-+
-+	if (params->udata)
-+		err = create_user_qp(dev, pd, qp, params);
-+	else
-+		err = create_kernel_qp(dev, pd, qp, params);
-+
-+out:
-+	if (err) {
-+		mlx5_ib_err(dev, "Create QP type %d failed\n", qp->type);
-+		return err;
-+	}
-+
-+	if (is_qp0(qp->type))
-+		qp->ibqp.qp_num = 0;
-+	else if (is_qp1(qp->type))
-+		qp->ibqp.qp_num = 1;
-+	else
-+		qp->ibqp.qp_num = qp->trans_qp.base.mqp.qpn;
-+
-+	mlx5_ib_dbg(dev,
-+		"QP type %d, ib qpn 0x%X, mlx qpn 0x%x, rcqn 0x%x, scqn 0x%x\n",
-+		qp->type, qp->ibqp.qp_num, qp->trans_qp.base.mqp.qpn,
-+		params->attr->recv_cq ? to_mcq(params->attr->recv_cq)->mcq.cqn :
-+					-1,
-+		params->attr->send_cq ? to_mcq(params->attr->send_cq)->mcq.cqn :
-+					-1);
- 
--	return create_user_qp(dev, pd, qp, params);
-+	return 0;
- }
- 
- static int check_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
-@@ -2862,7 +2903,6 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attr,
- 	struct mlx5_ib_dev *dev;
- 	struct mlx5_ib_qp *qp;
- 	enum ib_qp_type type;
--	u16 xrcdn = 0;
- 	int err;
- 
- 	dev = pd ? to_mdev(pd->device) :
-@@ -2922,40 +2962,13 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attr,
- 	if (err)
- 		goto free_qp;
- 
--	switch (qp->type) {
--	case IB_QPT_RAW_PACKET:
--		err = create_raw_qp(dev, pd, qp, &params);
--		break;
--	case MLX5_IB_QPT_DCT:
--		err = create_dct(pd, qp, &params);
--		break;
--	case IB_QPT_XRC_TGT:
--		xrcdn = to_mxrcd(attr->xrcd)->xrcdn;
--		err = create_xrc_tgt_qp(dev, qp, &params);
--		break;
--	default:
--		if (udata)
--			err = create_user_qp(dev, pd, qp, &params);
--		else
--			err = create_kernel_qp(dev, pd, qp, &params);
--	}
--	if (err) {
--		mlx5_ib_err(dev, "create_qp failed %d\n", err);
-+	err = create_qp(dev, pd, qp, &params);
-+	if (err)
- 		goto free_qp;
--	}
- 
- 	kfree(params.ucmd);
- 	params.ucmd = NULL;
- 
--	if (is_qp0(attr->qp_type))
--		qp->ibqp.qp_num = 0;
--	else if (is_qp1(attr->qp_type))
--		qp->ibqp.qp_num = 1;
--	else
--		qp->ibqp.qp_num = qp->trans_qp.base.mqp.qpn;
--
--	qp->trans_qp.xrcdn = xrcdn;
--
- 	if (udata)
- 		/*
- 		 * It is safe to copy response for all user create QP flows,
--- 
-2.25.3
 
