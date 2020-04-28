@@ -2,86 +2,213 @@ Return-Path: <SRS0=o1Ax=6M=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4AEC83003
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 02:53:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A18DC83004
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 06:17:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0EB4206D9
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 02:53:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70A5A206E2
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 06:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbgD1Cxm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Apr 2020 22:53:42 -0400
-Received: from mga03.intel.com ([134.134.136.65]:61039 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726264AbgD1Cxl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Apr 2020 22:53:41 -0400
-IronPort-SDR: JL5nPF64IbPHL5xtvvlvegJRro3ROHcp+JEN0FkQsrZAnOea/TuKXXxmh50Kc/yjlUFBU3CRa3
- KU18U6YmCUIA==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2020 19:53:41 -0700
-IronPort-SDR: yNvb2rrWHvnoCjWJESO9jRz5BlNo2W1UN5DYceD9TtPBq1wdP/C4CHX8b7Qsq08bqta9Y1ZWQG
- ca0wuJ4F9wFw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,326,1583222400"; 
-   d="scan'208";a="249052081"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga008.fm.intel.com with ESMTP; 27 Apr 2020 19:53:39 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jTGNO-0009z1-ND; Tue, 28 Apr 2020 10:53:38 +0800
-Date:   Tue, 28 Apr 2020 10:52:36 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Weihang Li <liweihang@huawei.com>, dledford@redhat.com,
-        jgg@ziepe.ca
-Cc:     kbuild-all@lists.01.org, leon@kernel.org,
-        linux-rdma@vger.kernel.org, linuxarm@huawei.com
-Subject: Re: [PATCH v3 for-next 1/5] RDMA/hns: Optimize PBL buffer allocation
- process
-Message-ID: <202004280904.BP6w786k%lkp@intel.com>
-References: <1587883377-22975-2-git-send-email-liweihang@huawei.com>
+        id S1726285AbgD1GRz convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Apr 2020 02:17:55 -0400
+Received: from szxga03-in.huawei.com ([45.249.212.189]:2493 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726258AbgD1GRz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 28 Apr 2020 02:17:55 -0400
+Received: from DGGEML401-HUB.china.huawei.com (unknown [172.30.72.53])
+        by Forcepoint Email with ESMTP id 9F2D04D6E53A66AB6C2B;
+        Tue, 28 Apr 2020 14:17:52 +0800 (CST)
+Received: from DGGEML522-MBX.china.huawei.com ([169.254.7.242]) by
+ DGGEML401-HUB.china.huawei.com ([fe80::89ed:853e:30a9:2a79%31]) with mapi id
+ 14.03.0487.000; Tue, 28 Apr 2020 14:17:37 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>
+CC:     "leon@kernel.org" <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>,
+        "selvin.xavier@broadcom.com" <selvin.xavier@broadcom.com>,
+        "devesh.sharma@broadcom.com" <devesh.sharma@broadcom.com>,
+        "somnath.kotur@broadcom.com" <somnath.kotur@broadcom.com>,
+        "sriharsha.basavapatna@broadcom.com" 
+        <sriharsha.basavapatna@broadcom.com>,
+        "bharat@chelsio.com" <bharat@chelsio.com>,
+        "galpress@amazon.com" <galpress@amazon.com>,
+        "sleybo@amazon.com" <sleybo@amazon.com>,
+        "Latif, Faisal" <faisal.latif@intel.com>,
+        "yishaih@mellanox.com" <yishaih@mellanox.com>,
+        "mkalderon@marvell.com" <mkalderon@marvell.com>,
+        "aelior@marvell.com" <aelior@marvell.com>,
+        "benve@cisco.com" <benve@cisco.com>,
+        "neescoba@cisco.com" <neescoba@cisco.com>,
+        "pkaustub@cisco.com" <pkaustub@cisco.com>,
+        "aditr@vmware.com" <aditr@vmware.com>,
+        "pv-drivers@vmware.com" <pv-drivers@vmware.com>,
+        "monis@mellanox.com" <monis@mellanox.com>,
+        "kamalheib1@gmail.com" <kamalheib1@gmail.com>,
+        "parav@mellanox.com" <parav@mellanox.com>,
+        "markz@mellanox.com" <markz@mellanox.com>,
+        "rd.dunlab@gmail.com" <rd.dunlab@gmail.com>,
+        "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH for-next] RDMA/core: Assign the name of device when
+ allocating ib_device
+Thread-Topic: [PATCH for-next] RDMA/core: Assign the name of device when
+ allocating ib_device
+Thread-Index: AQHWG62Z7/BNGudzR0CivwFowafwZQ==
+Date:   Tue, 28 Apr 2020 06:17:37 +0000
+Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A02329944@DGGEML522-MBX.china.huawei.com>
+References: <1587893517-11824-1-git-send-email-liweihang@huawei.com>
+ <9DD61F30A802C4429A01CA4200E302A7DCD54BBA@fmsmsx124.amr.corp.intel.com>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.40.168.149]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1587883377-22975-2-git-send-email-liweihang@huawei.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Weihang,
+On 2020/4/28 1:56, Saleem, Shiraz wrote:
+>> Subject: [PATCH for-next] RDMA/core: Assign the name of device when allocating
+>> ib_device
+>>
+>> If the name of a device is assigned during ib_register_device(), some drivers have
+>> to use dev_*() for printing before register device. Bring
+>> assign_name() into ib_alloc_device(), so that drivers can use ibdev_*() anywhere.
+>>
+>> Signed-off-by: Weihang Li <liweihang@huawei.com>
+>> ---
+>>  drivers/infiniband/core/device.c               | 85 +++++++++++++-------------
+>>  drivers/infiniband/hw/bnxt_re/main.c           |  4 +-
+>>  drivers/infiniband/hw/cxgb4/device.c           |  2 +-
+>>  drivers/infiniband/hw/cxgb4/provider.c         |  2 +-
+>>  drivers/infiniband/hw/efa/efa_main.c           |  4 +-
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c     |  2 +-
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c     |  2 +-
+>>  drivers/infiniband/hw/hns/hns_roce_main.c      |  2 +-
+>>  drivers/infiniband/hw/i40iw/i40iw_verbs.c      |  4 +-
+>>  drivers/infiniband/hw/mlx4/main.c              |  4 +-
+>>  drivers/infiniband/hw/mlx5/ib_rep.c            |  8 ++-
+>>  drivers/infiniband/hw/mlx5/main.c              | 18 +++---
+>>  drivers/infiniband/hw/mthca/mthca_main.c       |  2 +-
+>>  drivers/infiniband/hw/mthca/mthca_provider.c   |  2 +-
+>>  drivers/infiniband/hw/ocrdma/ocrdma_main.c     |  4 +-
+>>  drivers/infiniband/hw/qedr/main.c              |  4 +-
+>>  drivers/infiniband/hw/usnic/usnic_ib_main.c    |  4 +-
+>>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  4 +-
+>>  drivers/infiniband/sw/rxe/rxe.c                |  4 +-
+>>  drivers/infiniband/sw/rxe/rxe.h                |  2 +-
+>>  drivers/infiniband/sw/rxe/rxe_net.c            |  4 +-
+>>  drivers/infiniband/sw/rxe/rxe_verbs.c          |  4 +-
+>>  drivers/infiniband/sw/rxe/rxe_verbs.h          |  2 +-
+>>  include/rdma/ib_verbs.h                        |  8 +--
+>>  24 files changed, 95 insertions(+), 86 deletions(-)
+> 
+> I think you ll need to update siw driver similarly.
+> 
+> rvt_register_device should be adapted to use the revised device registration API.
+> hfi1/qib also need some rework.
+> rvt_alloc_device needs to be adapted for the new one-shot 
+> name + device allocation scheme.
+> Hoping we can just use move the name setting from rvt_set_ibdev_name
+> 
 
-I love your patch! Perhaps something to improve:
+Hi Shiraz,
 
-[auto build test WARNING on rdma/for-next]
-[also build test WARNING on linus/master v5.7-rc3 next-20200424]
-[if your patch is applied to the wrong git tree, please drop us a note to help
-improve the system. BTW, we also suggest to use '--base' option to specify the
-base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
+Sorry for missing hfi1/qib, I will try to modify as your comments.
 
-url:    https://github.com/0day-ci/linux/commits/Weihang-Li/RDMA-hns-Refactor-process-of-buffer-allocation-and-calculation/20200428-015905
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-reproduce:
-        # apt-get install sparse
-        # sparse version: v0.6.1-191-gc51a0382-dirty
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+> A few more comments below.
+>> [...]
+> 
+>>  /**
+>>   * _ib_alloc_device - allocate an IB device struct
+>>   * @size:size of structure to allocate
+>> + * @name: unique string device name. This may include a '%' which will
+>> + * cause a unique index to be added to the passed device name.
+>>   *
+>>   * Low-level drivers should use ib_alloc_device() to allocate &struct
+>>   * ib_device.  @size is the size of the structure to be allocated, @@ -567,7 +603,7
+>> @@ static void rdma_init_coredev(struct ib_core_device *coredev,
+>>   * ib_dealloc_device() must be used to free structures allocated with
+>>   * ib_alloc_device().
+>>   */
+>> -struct ib_device *_ib_alloc_device(size_t size)
+>> +struct ib_device *_ib_alloc_device(size_t size, const char *name)
+>>  {
+>>  	struct ib_device *device;
+>>
+>> @@ -586,6 +622,11 @@ struct ib_device *_ib_alloc_device(size_t size)
+>>  	device->groups[0] = &ib_dev_attr_group;
+>>  	rdma_init_coredev(&device->coredev, device, &init_net);
+>>
+>> +	if (assign_name(device, name)) {
+>> +		kfree(device);
+> Don't you need to do a rdma_restrack_clean here?
+> 
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kbuild test robot <lkp@intel.com>
+Yes, I think so. Thanks for your reminder.
 
+> 
+>> +		return NULL;
+>> +	}
+>> +
+>>  	INIT_LIST_HEAD(&device->event_handler_list);
+>>  	spin_lock_init(&device->qp_open_list_lock);
+>>  	init_rwsem(&device->event_handler_rwsem);
+>> @@ -1132,40 +1173,6 @@ static __net_init int rdma_dev_init_net(struct net *net)
+>>  	return ret;
+>>  }
+>>
+> 
+> [...]
+> 
+>> diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+>> b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+>> index 1b6fb13..ccb0d70 100644
+>> --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+>> +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+>> @@ -2692,7 +2692,7 @@ static struct i40iw_ib_device
+>> *i40iw_init_rdma_device(struct i40iw_device *iwdev
+>>  	struct net_device *netdev = iwdev->netdev;
+>>  	struct pci_dev *pcidev = (struct pci_dev *)iwdev->hw.dev_context;
+>>
+>> -	iwibdev = ib_alloc_device(i40iw_ib_device, ibdev);
+>> +	iwibdev = ib_alloc_device(i40iw_ib_device, ibdev, "i40iw%d");
+>>  	if (!iwibdev) {
+>>  		i40iw_pr_err("iwdev == NULL\n");
+>>  		return NULL;
+>> @@ -2780,7 +2780,7 @@ int i40iw_register_rdma_device(struct i40iw_device
+>> *iwdev)
+>>  	if (ret)
+>>  		goto error;
+>>
+>> -	ret = ib_register_device(&iwibdev->ibdev, "i40iw%d");
+>> +	ret = ib_register_device(&iwibdev->ibdev);
+>>  	if (ret)
+>>  		goto error;
+>>
+> 
+> i40iw looks ok except for the missing underscore which I think was brought up already in another provider.
+> 
+> Thanks for this work!
+> 
+> Shiraz
+> 
 
-sparse warnings: (new ones prefixed by >>)
+OK, will add it.
 
->> drivers/infiniband/hw/hns/hns_roce_mr.c:375:6: sparse: sparse: symbol 'hns_roce_mr_free' was not declared. Should it be static?
+Thanks
+Weihang
 
-Please review and possibly fold the followup patch.
+> 
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
