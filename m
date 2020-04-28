@@ -2,170 +2,74 @@ Return-Path: <SRS0=o1Ax=6M=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AABF9C83002
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 01:29:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25DEEC83004
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 02:53:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8BF1020728
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 01:29:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00755206E2
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Apr 2020 02:53:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726303AbgD1B3d convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Apr 2020 21:29:33 -0400
-Received: from szxga08-in.huawei.com ([45.249.212.255]:59922 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726261AbgD1B3d (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Apr 2020 21:29:33 -0400
-Received: from dggeml405-hub.china.huawei.com (unknown [172.30.72.57])
-        by Forcepoint Email with ESMTP id F3431E0A2AAFBF7216A2;
-        Tue, 28 Apr 2020 09:29:29 +0800 (CST)
-Received: from DGGEML522-MBX.china.huawei.com ([169.254.7.242]) by
- dggeml405-hub.china.huawei.com ([10.3.17.49]) with mapi id 14.03.0487.000;
- Tue, 28 Apr 2020 09:29:19 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>,
-        "selvin.xavier@broadcom.com" <selvin.xavier@broadcom.com>,
-        "devesh.sharma@broadcom.com" <devesh.sharma@broadcom.com>,
-        "somnath.kotur@broadcom.com" <somnath.kotur@broadcom.com>,
-        "sriharsha.basavapatna@broadcom.com" 
-        <sriharsha.basavapatna@broadcom.com>,
-        "bharat@chelsio.com" <bharat@chelsio.com>,
-        "galpress@amazon.com" <galpress@amazon.com>,
-        "sleybo@amazon.com" <sleybo@amazon.com>,
-        "faisal.latif@intel.com" <faisal.latif@intel.com>,
-        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
-        "yishaih@mellanox.com" <yishaih@mellanox.com>,
-        "mkalderon@marvell.com" <mkalderon@marvell.com>,
-        "aelior@marvell.com" <aelior@marvell.com>,
-        "benve@cisco.com" <benve@cisco.com>,
-        "neescoba@cisco.com" <neescoba@cisco.com>,
-        "pkaustub@cisco.com" <pkaustub@cisco.com>,
-        "aditr@vmware.com" <aditr@vmware.com>,
-        "pv-drivers@vmware.com" <pv-drivers@vmware.com>,
-        "monis@mellanox.com" <monis@mellanox.com>,
-        "kamalheib1@gmail.com" <kamalheib1@gmail.com>,
-        "parav@mellanox.com" <parav@mellanox.com>,
-        "markz@mellanox.com" <markz@mellanox.com>,
-        "rd.dunlab@gmail.com" <rd.dunlab@gmail.com>,
-        "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH for-next] RDMA/core: Assign the name of device when
- allocating ib_device
-Thread-Topic: [PATCH for-next] RDMA/core: Assign the name of device when
- allocating ib_device
-Thread-Index: AQHWG62Z7/BNGudzR0CivwFowafwZQ==
-Date:   Tue, 28 Apr 2020 01:29:19 +0000
-Message-ID: <B82435381E3B2943AA4D2826ADEF0B3A0232975D@DGGEML522-MBX.china.huawei.com>
-References: <1587893517-11824-1-git-send-email-liweihang@huawei.com>
- <20200427114734.GC134660@unreal>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.40.168.149]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1726271AbgD1Cxg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Apr 2020 22:53:36 -0400
+Received: from mga18.intel.com ([134.134.136.126]:24665 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726264AbgD1Cxg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Apr 2020 22:53:36 -0400
+IronPort-SDR: 1f1KlkdY7z3/5L0DSG0Ti0Fzenz+L/xLOXTZRQ/hAkinaTbFIze6wIJZMZETcMQLZmkuvnm2Yj
+ di0ka8lfE6Mg==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2020 19:53:35 -0700
+IronPort-SDR: +9zSd6UVwMBdTb8xVjFgeOUPBac7UZKfuWnfxAy2QqeNYk9nUNhbI6jcjw0i0ZnInusFSC+4dA
+ oG6uFCDHNbZQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,326,1583222400"; 
+   d="scan'208";a="459082784"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga006.fm.intel.com with ESMTP; 27 Apr 2020 19:53:33 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1jTGNJ-0009Sk-96; Tue, 28 Apr 2020 10:53:33 +0800
+Date:   Tue, 28 Apr 2020 10:52:37 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Weihang Li <liweihang@huawei.com>, dledford@redhat.com,
+        jgg@ziepe.ca
+Cc:     kbuild-all@lists.01.org, leon@kernel.org,
+        linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Subject: [RFC PATCH] RDMA/hns: hns_roce_mr_free() can be static
+Message-ID: <20200428025237.GA10142@41ada6197895>
+References: <1587883377-22975-2-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1587883377-22975-2-git-send-email-liweihang@huawei.com>
+X-Patchwork-Hint: ignore
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2020/4/27 19:47, Leon Romanovsky wrote:
-> On Sun, Apr 26, 2020 at 05:31:57PM +0800, Weihang Li wrote:
->> If the name of a device is assigned during ib_register_device(), some
->> drivers have to use dev_*() for printing before register device. Bring
->> assign_name() into ib_alloc_device(), so that drivers can use ibdev_*()
->> anywhere.
->>
->> Signed-off-by: Weihang Li <liweihang@huawei.com>
->> ---
->>  drivers/infiniband/core/device.c               | 85 +++++++++++++-------------
->>  drivers/infiniband/hw/bnxt_re/main.c           |  4 +-
->>  drivers/infiniband/hw/cxgb4/device.c           |  2 +-
->>  drivers/infiniband/hw/cxgb4/provider.c         |  2 +-
->>  drivers/infiniband/hw/efa/efa_main.c           |  4 +-
->>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c     |  2 +-
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c     |  2 +-
->>  drivers/infiniband/hw/hns/hns_roce_main.c      |  2 +-
->>  drivers/infiniband/hw/i40iw/i40iw_verbs.c      |  4 +-
->>  drivers/infiniband/hw/mlx4/main.c              |  4 +-
->>  drivers/infiniband/hw/mlx5/ib_rep.c            |  8 ++-
->>  drivers/infiniband/hw/mlx5/main.c              | 18 +++---
->>  drivers/infiniband/hw/mthca/mthca_main.c       |  2 +-
->>  drivers/infiniband/hw/mthca/mthca_provider.c   |  2 +-
->>  drivers/infiniband/hw/ocrdma/ocrdma_main.c     |  4 +-
->>  drivers/infiniband/hw/qedr/main.c              |  4 +-
->>  drivers/infiniband/hw/usnic/usnic_ib_main.c    |  4 +-
->>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  4 +-
->>  drivers/infiniband/sw/rxe/rxe.c                |  4 +-
->>  drivers/infiniband/sw/rxe/rxe.h                |  2 +-
->>  drivers/infiniband/sw/rxe/rxe_net.c            |  4 +-
->>  drivers/infiniband/sw/rxe/rxe_verbs.c          |  4 +-
->>  drivers/infiniband/sw/rxe/rxe_verbs.h          |  2 +-
->>  include/rdma/ib_verbs.h                        |  8 +--
->>  24 files changed, 95 insertions(+), 86 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
->> index d0b3d35..30d28da 100644
->> --- a/drivers/infiniband/core/device.c
->> +++ b/drivers/infiniband/core/device.c
->> @@ -557,9 +557,45 @@ static void rdma_init_coredev(struct ib_core_device *coredev,
->>  	write_pnet(&coredev->rdma_net, net);
->>  }
->>
->> +/*
->> + * Assign the unique string device name and the unique device index. This is
->> + * undone by ib_dealloc_device.
->> + */
->> +static int assign_name(struct ib_device *device, const char *name)
->> +{
->> +	static u32 last_id;
->> +	int ret;
->> +
->> +	down_write(&devices_rwsem);
->> +	/* Assign a unique name to the device */
->> +	if (strchr(name, '%'))
->> +		ret = alloc_name(device, name);
->> +	else
->> +		ret = dev_set_name(&device->dev, name);
->> +	if (ret)
->> +		goto out;
->> +
->> +	if (__ib_device_get_by_name(dev_name(&device->dev))) {
->> +		ret = -ENFILE;
->> +		goto out;
->> +	}
->> +	strlcpy(device->name, dev_name(&device->dev), IB_DEVICE_NAME_MAX);
->> +
->> +	ret = xa_alloc_cyclic(&devices, &device->index, device, xa_limit_31b,
->> +			      &last_id, GFP_KERNEL);
->> +	if (ret > 0)
->> +		ret = 0;
->> +
->> +out:
->> +	up_write(&devices_rwsem);
->> +	return ret;
->> +}
->> +
->>  /**
->>   * _ib_alloc_device - allocate an IB device struct
->>   * @size:size of structure to allocate
->> + * @name: unique string device name. This may include a '%' which will
-> 
-> It looks like all drivers are setting "%" in their name and "name" can
-> be changed to be "prefix".
-> 
-> Thanks
-> 
 
-Thank you for the advice, I will try.
+Signed-off-by: kbuild test robot <lkp@intel.com>
+---
+ hns_roce_mr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Weihang
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index be8656846bcb4..312f59b6b3385 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -372,7 +372,7 @@ static void free_mr_pbl(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
+ 	hns_roce_mtr_destroy(hr_dev, &mr->pbl_mtr);
+ }
+ 
+-void hns_roce_mr_free(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
++static void hns_roce_mr_free(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
+ {
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	int ret;
