@@ -6,146 +6,99 @@ X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17E04C83000
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Apr 2020 14:57:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F15CC83000
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Apr 2020 15:01:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9A622073E
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Apr 2020 14:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C64621973
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Apr 2020 15:01:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="U/jDKxuh"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="LtnbleUL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726773AbgD2O5i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 29 Apr 2020 10:57:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37582 "EHLO
+        id S1726743AbgD2PBq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 29 Apr 2020 11:01:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726456AbgD2O5i (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Apr 2020 10:57:38 -0400
-Received: from mail-qv1-xf41.google.com (mail-qv1-xf41.google.com [IPv6:2607:f8b0:4864:20::f41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE19EC03C1AD
-        for <linux-rdma@vger.kernel.org>; Wed, 29 Apr 2020 07:57:37 -0700 (PDT)
-Received: by mail-qv1-xf41.google.com with SMTP id p13so1246625qvt.12
-        for <linux-rdma@vger.kernel.org>; Wed, 29 Apr 2020 07:57:37 -0700 (PDT)
+        with ESMTP id S1726481AbgD2PBq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Apr 2020 11:01:46 -0400
+Received: from mail-qk1-x743.google.com (mail-qk1-x743.google.com [IPv6:2607:f8b0:4864:20::743])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01DABC03C1AE
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Apr 2020 08:01:45 -0700 (PDT)
+Received: by mail-qk1-x743.google.com with SMTP id h124so2222234qke.11
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Apr 2020 08:01:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=79qpgmDRjIWqC9U1j4XIhqJV4nHCI0S/uKYmuzu2TJU=;
-        b=U/jDKxuhIURFQUk+6m1GF+g3dj6tUHO5QV2v7G1+xXu8r257sk62MvEVTRTdJiOSwA
-         fnxKJRIJY2ZcY5HbIz+HF7Pd3hbKh0RkuuOABYjW1eAbkjffEb4MWbDQt1w+TPR2A1Ja
-         MIERmwn6yK/sTou8hJF5sgFdclJAAetrF0U8YHqdDpM5woZ1LHKe3fnyMoxew+VzZQBI
-         G1MBfVs+YFDSvmxciEOfa9L/NEjPYUYFbfa1QsBrnCIcaS7b755pssRxOfGSdyHOdZEx
-         BLDT2JNrKDWf5sZGFQ1LG4Y7o3jq9wSAJ7dv38hh5ERnNUtixq2jSVJBOrvcrBJwORP1
-         gehQ==
+        bh=f920QRE5gz957Dg6YScbJ4EIs4w7vSsipmkT/Y9gXGA=;
+        b=LtnbleUL4kSUA3p5MEvvVKhLUh99ANiJxPrS6XRcQnot7zoHneHOxg+M5RHBkzDO2a
+         pk4SUPoT8OIwvNkskgV5mlOABJZpCqc2TTocIbaIiDbdQ8iIwSx/GJyjiySH5eb5fUJP
+         iJDfIhBfuXkpTOvFoZrnC93FOAidogi+HxWCSGm4i6pJMHfX6zsjYouiZKSCbAO4xHkU
+         95HHX349fwRUjhepmz/qwkTM1qHDpBWNhj/rHnoUCNKGJ/tADpKi4vfFwx8mAXH9kaJp
+         +/7D2OCM5HVQ5iFNobMMesXZjQmLHdYcIvXGGsiSyKol+Lu/nsMcsAj/kSlw6Pw2t22C
+         RZpA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=79qpgmDRjIWqC9U1j4XIhqJV4nHCI0S/uKYmuzu2TJU=;
-        b=AeMSpml9CfOoY+4kQFNeG1AD+q2VvCbPuOPGg561/DCaz71lbLe5glHHm9dQsdSF2b
-         /1srAUe74FPZCLHnmnoa/ES8RZqJqPL4XLlwmWKdPcd2uoI0Ztv2ZM4KjTn2voQmvuXq
-         ukqKCv8GMZUS/STYiddQJe6eVScvkDna2f3mBFwdthsxkXaPQ7rVWz03lCPbX4KvGk1m
-         AFL7dVvOKZ9B3QsGRrRBuICheuQbxMkV/BfdrX4erdkUwxuxJQgzg2P/dQ9gUcyE4Y5k
-         MSbeM5azihwrcjHqQezYMgVYu+SC+f63PcXn9AwiWTUzsH0Xgfc7UGkwgTr7t+rMIlIl
-         DI8g==
-X-Gm-Message-State: AGi0PuZABA800zkMgjOL9tyQva9BOGtW/gSneX+yyM7+R67N3k87cazY
-        EQixy6a1H2l0aDAwHJQB7XlGYA==
-X-Google-Smtp-Source: APiQypL7c/klV6w0rnKrz09pJHJzC+P5RFQO+fWdKybU7tHaFViNnz/hYa8TGRwaOQAOu7Io//K3RA==
-X-Received: by 2002:a05:6214:1812:: with SMTP id o18mr34296920qvw.64.1588172256961;
-        Wed, 29 Apr 2020 07:57:36 -0700 (PDT)
+        bh=f920QRE5gz957Dg6YScbJ4EIs4w7vSsipmkT/Y9gXGA=;
+        b=B09EtoLs/xdHNR3nTERj4OzMEBjyErx/J+9QX/kX951tfU3/VXIFFrpZjkaXeNIY1x
+         o3g7/INEWWCUBmkNdahmdjuOZaHL8ZEdX1USgIpCjEBYIytsj5YPphXVl+odf6bxfnl1
+         zIAaq9hWcvkYiHxsMf+46mqgaJwcXm+WRPW6SVw4ZKM6N4MMw01uT2PgIpKgWsMY6/cr
+         cInSDsHaCDKumKIsZSbSw8c3tEdshwSzcF/UbjOe/5MptJvn6dbSqW7tln6F+/alA+ko
+         OwCtQ3DlkCViQeqSf0LMoVZVNehanboim2xMybnt/gut988nh6lE8nv0pBT5DMFbMASm
+         +s3w==
+X-Gm-Message-State: AGi0PubZCkFu8X+J1ft6SDrHd4p3Xr2MMY2aGqJknQPyA7+FyWfsfueZ
+        2Tcnz9UCI6/2uutC8ZVqQLnh6w==
+X-Google-Smtp-Source: APiQypKsU22FpXMqa+sWplMBvTTaL6Gl45tUrzqJXZDBiIcc4C2tOom+pXU6c8GBc5tErGio/YcfBg==
+X-Received: by 2002:ae9:ef85:: with SMTP id d127mr16079284qkg.385.1588172505162;
+        Wed, 29 Apr 2020 08:01:45 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-142-68-57-212.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.57.212])
-        by smtp.gmail.com with ESMTPSA id m40sm17096803qtc.33.2020.04.29.07.57.36
+        by smtp.gmail.com with ESMTPSA id t13sm15678201qkt.62.2020.04.29.08.01.44
         (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 29 Apr 2020 07:57:36 -0700 (PDT)
+        Wed, 29 Apr 2020 08:01:44 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1jTo9X-0005h7-N7; Wed, 29 Apr 2020 11:57:35 -0300
-Date:   Wed, 29 Apr 2020 11:57:35 -0300
+        id 1jToDX-0005uE-Ja; Wed, 29 Apr 2020 12:01:43 -0300
+Date:   Wed, 29 Apr 2020 12:01:43 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
-        Weihang Li <liweihang@huawei.com>,
-        "dledford@redhat.com" <dledford@redhat.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linuxarm@huawei.com" <linuxarm@huawei.com>,
-        "selvin.xavier@broadcom.com" <selvin.xavier@broadcom.com>,
-        "devesh.sharma@broadcom.com" <devesh.sharma@broadcom.com>,
-        "somnath.kotur@broadcom.com" <somnath.kotur@broadcom.com>,
-        "sriharsha.basavapatna@broadcom.com" 
-        <sriharsha.basavapatna@broadcom.com>,
-        "bharat@chelsio.com" <bharat@chelsio.com>,
-        "galpress@amazon.com" <galpress@amazon.com>,
-        "sleybo@amazon.com" <sleybo@amazon.com>,
-        "Latif, Faisal" <faisal.latif@intel.com>,
-        "yishaih@mellanox.com" <yishaih@mellanox.com>,
-        "mkalderon@marvell.com" <mkalderon@marvell.com>,
-        "aelior@marvell.com" <aelior@marvell.com>,
-        "benve@cisco.com" <benve@cisco.com>,
-        "neescoba@cisco.com" <neescoba@cisco.com>,
-        "pkaustub@cisco.com" <pkaustub@cisco.com>,
-        "aditr@vmware.com" <aditr@vmware.com>,
-        "pv-drivers@vmware.com" <pv-drivers@vmware.com>,
-        "monis@mellanox.com" <monis@mellanox.com>,
-        "kamalheib1@gmail.com" <kamalheib1@gmail.com>,
-        "parav@mellanox.com" <parav@mellanox.com>,
-        "markz@mellanox.com" <markz@mellanox.com>,
-        "rd.dunlab@gmail.com" <rd.dunlab@gmail.com>
-Subject: Re: [PATCH for-next] RDMA/core: Assign the name of device when
- allocating ib_device
-Message-ID: <20200429145735.GB26002@ziepe.ca>
-References: <1587893517-11824-1-git-send-email-liweihang@huawei.com>
- <9DD61F30A802C4429A01CA4200E302A7DCD54BBA@fmsmsx124.amr.corp.intel.com>
- <20200428000428.GP26002@ziepe.ca>
- <9a875620-3f11-22ee-b908-59c8e49e3b24@intel.com>
- <20200429135015.GA26002@ziepe.ca>
- <5f5e104c-00fd-d08d-f2b2-f62f5f4950ff@intel.com>
+To:     Maor Gottlieb <maorg@mellanox.com>
+Cc:     davem@davemloft.net, dledford@redhat.com, j.vosburgh@gmail.com,
+        vfalico@gmail.com, andy@greyhouse.net, kuba@kernel.org,
+        jiri@mellanox.com, dsahern@kernel.org, leonro@mellanox.com,
+        saeedm@mellanox.com, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, alexr@mellanox.com
+Subject: Re: [PATCH V6 mlx5-next 11/16] RDMA/core: Add LAG functionality
+Message-ID: <20200429150143.GC26002@ziepe.ca>
+References: <20200426071717.17088-1-maorg@mellanox.com>
+ <20200426071717.17088-12-maorg@mellanox.com>
+ <20200428231525.GY13640@mellanox.com>
+ <20200428233009.GA31451@mellanox.com>
+ <a7503b0d-68e7-3589-33fc-cf9b516d71b7@mellanox.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5f5e104c-00fd-d08d-f2b2-f62f5f4950ff@intel.com>
+In-Reply-To: <a7503b0d-68e7-3589-33fc-cf9b516d71b7@mellanox.com>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Apr 29, 2020 at 10:33:19AM -0400, Dennis Dalessandro wrote:
-> > > The issue is hfi1 calls into rvt_alloc_device() which then calls
-> > > _ib_alloc_device(). We don't have the name set at that point. So the obvious
-> > > thing to do is move the rvt_set_ibdev_name(). However there is a catch.
-> > > 
-> > > The name gets set after allocating the device and the device table because
-> > > we get the unit number as part of the xa_alloc_irq(hfi1_dev_table) call
-> > > which needs the pointer to the devdata.
-> > > 
-> > > One solution would be to pass in the pointer for the driver's dev table and
-> > > let rvt_alloc_device() do the xa_alloc_irq().
-> > 
-> > Just do:
-> > 
-> > 	ret = xa_alloc_irq(&hfi1_dev_table, &unit, NULL, xa_limit_32b,
-> > 			GFP_KERNEL);
-> >          if (ret)
-> >                  return ERR_PTR(ret);
-> > 
-> > 	dd = (struct hfi1_devdata *)rvt_alloc_device(sizeof(*dd) + extra,
-> > 						     nports, unit);
-> > 	if (!dd) {
-> > 		xa_erase(&hfi1_dev_table, unit);
-> > 		return ERR_PTR(-ENOMEM);
-> > 	}
-> > 	xa_store(&hfi1_dev_table, unit, dd, GFP_KERNEL);
+On Wed, Apr 29, 2020 at 12:01:07PM +0300, Maor Gottlieb wrote:
 > 
-> That works too.
+> On 4/29/2020 2:30 AM, Jason Gunthorpe wrote:
+> > On Tue, Apr 28, 2020 at 08:15:25PM -0300, Jason Gunthorpe wrote:
+> > > On Sun, Apr 26, 2020 at 10:17:12AM +0300, Maor Gottlieb wrote:
+> > > > +int rdma_lag_get_ah_roce_slave(struct ib_device *device,
+> > > > +			       struct rdma_ah_attr *ah_attr,
+> > > > +			       struct net_device **xmit_slave)
+> > > Please do not use ** and also return int. The function should return
+> > > net_device directly and use ERR_PTR()
+> 
+> How about return NULL in failure as well (will add debug print)? Not fail
+> the flow if we didn't succeed to get the slave, let the lower driver to do
+> it if it would like to.
 
-I don't understand why this xarray exists anyhow? Why can't the core
-code assign the name with its internal algorithm?
-
-There are several places that iterate over the xarray, but that
-doesn't need a unit #, could be a linked list or use the core device
-list.
-
-The only actual lookup in hfi1_reset_device() looks pointless, the
-caller already has the dd??
+A NULL return indicating success but 'not found' is fine.
 
 Jason
