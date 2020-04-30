@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F827C47255
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 19:22:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09706C47253
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 19:22:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C00E2072A
+	by mail.kernel.org (Postfix) with ESMTP id EAC6D2073E
 	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 19:22:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726366AbgD3TW0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 15:22:26 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:56873 "EHLO
+        id S1727804AbgD3TWZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 15:22:25 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:56869 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726660AbgD3TV7 (ORCPT
+        with ESMTP id S1726366AbgD3TV7 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 15:21:59 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 22:21:53 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UJLqAM004128;
-        Thu, 30 Apr 2020 22:21:53 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UJLqAK004128;
+        Thu, 30 Apr 2020 22:21:52 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
         j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V8 mlx5-next 04/16] bonding/alb: Add helper functions to get the xmit slave
-Date:   Thu, 30 Apr 2020 22:21:34 +0300
-Message-Id: <20200430192146.12863-5-maorg@mellanox.com>
+Subject: [PATCH V8 mlx5-next 02/16] bonding: Export skip slave logic to function
+Date:   Thu, 30 Apr 2020 22:21:32 +0300
+Message-Id: <20200430192146.12863-3-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200430192146.12863-1-maorg@mellanox.com>
 References: <20200430192146.12863-1-maorg@mellanox.com>
@@ -42,106 +42,81 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add two helper functions to get the xmit slave of bond in alb or tlb
-mode. Extract the logic of find the xmit slave from the xmit flow
-to function. Xmit flow will xmit through this slave and in the
-following patches the new .ndo will call to the helper function
-to return the xmit slave.
+As a preparation for following change that add array of
+all slaves, extract code that skip slave to function.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Reviewed-by: Jiri Pirko <jiri@mellanox.com>
 Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/net/bonding/bond_alb.c | 35 +++++++++++++++++++++++++---------
- include/net/bond_alb.h         |  4 ++++
- 2 files changed, 30 insertions(+), 9 deletions(-)
+ drivers/net/bonding/bond_main.c | 47 ++++++++++++++++++---------------
+ 1 file changed, 26 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/net/bonding/bond_alb.c b/drivers/net/bonding/bond_alb.c
-index 7bb49b049dcc..e863c694c309 100644
---- a/drivers/net/bonding/bond_alb.c
-+++ b/drivers/net/bonding/bond_alb.c
-@@ -1334,11 +1334,11 @@ static netdev_tx_t bond_do_alb_xmit(struct sk_buff *skb, struct bonding *bond,
- 	return NETDEV_TX_OK;
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 2e70e43c5df5..f7aded014f08 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4087,6 +4087,29 @@ static void bond_slave_arr_handler(struct work_struct *work)
+ 	bond_slave_arr_work_rearm(bond, 1);
  }
  
--netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
-+struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
-+				      struct sk_buff *skb)
- {
--	struct bonding *bond = netdev_priv(bond_dev);
--	struct ethhdr *eth_data;
- 	struct slave *tx_slave = NULL;
-+	struct ethhdr *eth_data;
- 	u32 hash_index;
- 
- 	skb_reset_mac_header(skb);
-@@ -1369,20 +1369,29 @@ netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
- 			break;
- 		}
- 	}
--	return bond_do_alb_xmit(skb, bond, tx_slave);
-+	return tx_slave;
- }
- 
--netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
-+netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
- {
- 	struct bonding *bond = netdev_priv(bond_dev);
--	struct ethhdr *eth_data;
-+	struct slave *tx_slave;
++static void bond_skip_slave(struct bond_up_slave *slaves,
++			    struct slave *skipslave)
++{
++	int idx;
 +
-+	tx_slave = bond_xmit_tlb_slave_get(bond, skb);
-+	return bond_do_alb_xmit(skb, bond, tx_slave);
++	/* Rare situation where caller has asked to skip a specific
++	 * slave but allocation failed (most likely!). BTW this is
++	 * only possible when the call is initiated from
++	 * __bond_release_one(). In this situation; overwrite the
++	 * skipslave entry in the array with the last entry from the
++	 * array to avoid a situation where the xmit path may choose
++	 * this to-be-skipped slave to send a packet out.
++	 */
++	for (idx = 0; slaves && idx < slaves->count; idx++) {
++		if (skipslave == slaves->arr[idx]) {
++			slaves->arr[idx] =
++				slaves->arr[slaves->count - 1];
++			slaves->count--;
++			break;
++		}
++	}
 +}
 +
-+struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
-+				      struct sk_buff *skb)
-+{
- 	struct alb_bond_info *bond_info = &(BOND_ALB_INFO(bond));
--	struct slave *tx_slave = NULL;
- 	static const __be32 ip_bcast = htonl(0xffffffff);
--	int hash_size = 0;
-+	struct slave *tx_slave = NULL;
-+	const u8 *hash_start = NULL;
- 	bool do_tx_balance = true;
-+	struct ethhdr *eth_data;
- 	u32 hash_index = 0;
--	const u8 *hash_start = NULL;
-+	int hash_size = 0;
- 
- 	skb_reset_mac_header(skb);
- 	eth_data = eth_hdr(skb);
-@@ -1501,7 +1510,15 @@ netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
- 						       count];
- 		}
- 	}
-+	return tx_slave;
-+}
+ /* Build the usable slaves array in control path for modes that use xmit-hash
+  * to determine the slave interface -
+  * (a) BOND_MODE_8023AD
+@@ -4156,27 +4179,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 	if (old_arr)
+ 		kfree_rcu(old_arr, rcu);
+ out:
+-	if (ret != 0 && skipslave) {
+-		int idx;
+-
+-		/* Rare situation where caller has asked to skip a specific
+-		 * slave but allocation failed (most likely!). BTW this is
+-		 * only possible when the call is initiated from
+-		 * __bond_release_one(). In this situation; overwrite the
+-		 * skipslave entry in the array with the last entry from the
+-		 * array to avoid a situation where the xmit path may choose
+-		 * this to-be-skipped slave to send a packet out.
+-		 */
+-		old_arr = rtnl_dereference(bond->slave_arr);
+-		for (idx = 0; old_arr != NULL && idx < old_arr->count; idx++) {
+-			if (skipslave == old_arr->arr[idx]) {
+-				old_arr->arr[idx] =
+-				    old_arr->arr[old_arr->count-1];
+-				old_arr->count--;
+-				break;
+-			}
+-		}
+-	}
++	if (ret != 0 && skipslave)
++		bond_skip_slave(rtnl_dereference(bond->slave_arr), skipslave);
 +
-+netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
-+{
-+	struct bonding *bond = netdev_priv(bond_dev);
-+	struct slave *tx_slave = NULL;
- 
-+	tx_slave = bond_xmit_alb_slave_get(bond, skb);
- 	return bond_do_alb_xmit(skb, bond, tx_slave);
+ 	return ret;
  }
  
-diff --git a/include/net/bond_alb.h b/include/net/bond_alb.h
-index b3504fcd773d..f6af76c87a6c 100644
---- a/include/net/bond_alb.h
-+++ b/include/net/bond_alb.h
-@@ -158,6 +158,10 @@ void bond_alb_handle_link_change(struct bonding *bond, struct slave *slave, char
- void bond_alb_handle_active_change(struct bonding *bond, struct slave *new_slave);
- int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
- int bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
-+struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
-+				      struct sk_buff *skb);
-+struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
-+				      struct sk_buff *skb);
- void bond_alb_monitor(struct work_struct *);
- int bond_alb_set_mac_address(struct net_device *bond_dev, void *addr);
- void bond_alb_clear_vlan(struct bonding *bond, unsigned short vlan_id);
 -- 
 2.17.2
 
