@@ -4,25 +4,25 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E44F5C4724C
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 19:22:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22FABC4724C
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 19:22:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1BC62073E
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 19:22:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F2522072A
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 19:22:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727100AbgD3TWE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 15:22:04 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:56952 "EHLO
+        id S1727049AbgD3TWF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 15:22:05 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:56928 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727049AbgD3TWE (ORCPT
+        with ESMTP id S1727047AbgD3TWE (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 15:22:04 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 22:21:53 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UJLqAW004128;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UJLqAS004128;
         Thu, 30 Apr 2020 22:21:53 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V8 rdma-next 14/16] RDMA/core: Get xmit slave for LAG
-Date:   Thu, 30 Apr 2020 22:21:44 +0300
-Message-Id: <20200430192146.12863-15-maorg@mellanox.com>
+Subject: [PATCH V8 mlx5-next 10/16] net/mlx5: Change lag mutex lock to spin lock
+Date:   Thu, 30 Apr 2020 22:21:40 +0300
+Message-Id: <20200430192146.12863-11-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200430192146.12863-1-maorg@mellanox.com>
 References: <20200430192146.12863-1-maorg@mellanox.com>
@@ -42,170 +42,177 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a call to rdma_lag_get_ah_roce_slave when
-Address handle is created.
-Lower driver can use it to select the QP's affinity port.
+The lag lock could be a spin lock, the critical section is short
+and there is no need that the thread will sleep.
+Change the lock that protects the LAG structure from mutex
+to spin lock. It is required for next patch that need to
+access this structure from context that we can't sleep.
+In addition there is no need to hold this lock when query the
+congestion counters.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/verbs.c | 61 +++++++++++++++++++++++----------
- include/rdma/ib_verbs.h         |  2 ++
- 2 files changed, 45 insertions(+), 18 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lag.c | 42 +++++++++----------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 86be8a54a2d6..bf0249f76ae9 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -50,6 +50,7 @@
- #include <rdma/ib_cache.h>
- #include <rdma/ib_addr.h>
- #include <rdma/rw.h>
-+#include <rdma/lag.h>
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+index 93052b07c76c..496a3408d771 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
+@@ -42,7 +42,7 @@
+  * Beware of lock dependencies (preferably, no locks should be acquired
+  * under it).
+  */
+-static DEFINE_MUTEX(lag_mutex);
++static DEFINE_SPINLOCK(lag_lock);
  
- #include "core_priv.h"
- #include <trace/events/rdma_core.h>
-@@ -500,7 +501,8 @@ rdma_update_sgid_attr(struct rdma_ah_attr *ah_attr,
- static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
- 				     struct rdma_ah_attr *ah_attr,
- 				     u32 flags,
--				     struct ib_udata *udata)
-+				     struct ib_udata *udata,
-+				     struct net_device *xmit_slave)
- {
- 	struct rdma_ah_init_attr init_attr = {};
- 	struct ib_device *device = pd->device;
-@@ -524,6 +526,7 @@ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
- 	ah->sgid_attr = rdma_update_sgid_attr(ah_attr, NULL);
- 	init_attr.ah_attr = ah_attr;
- 	init_attr.flags = flags;
-+	init_attr.xmit_slave = xmit_slave;
+ static int mlx5_cmd_create_lag(struct mlx5_core_dev *dev, u8 remap_port1,
+ 			       u8 remap_port2)
+@@ -297,9 +297,9 @@ static void mlx5_do_bond(struct mlx5_lag *ldev)
+ 	if (!dev0 || !dev1)
+ 		return;
  
- 	ret = device->ops.create_ah(ah, &init_attr, udata);
- 	if (ret) {
-@@ -550,15 +553,22 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 			     u32 flags)
- {
- 	const struct ib_gid_attr *old_sgid_attr;
-+	struct net_device *slave;
- 	struct ib_ah *ah;
- 	int ret;
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	tracker = ldev->tracker;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
  
- 	ret = rdma_fill_sgid_attr(pd->device, ah_attr, &old_sgid_attr);
- 	if (ret)
- 		return ERR_PTR(ret);
--
--	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
--
-+	slave = rdma_lag_get_ah_roce_slave(pd->device, ah_attr,
-+					   (flags & RDMA_CREATE_AH_SLEEPABLE) ?
-+					   GFP_KERNEL : GFP_ATOMIC);
-+	if (IS_ERR(slave)) {
-+		rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
-+		return (void *)slave;
-+	}
-+	ah = _rdma_create_ah(pd, ah_attr, flags, NULL, slave);
-+	rdma_lag_put_ah_roce_slave(slave);
- 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
- 	return ah;
+ 	do_bond = tracker.is_bonded && mlx5_lag_check_prereq(ldev);
+ 
+@@ -481,9 +481,9 @@ static int mlx5_lag_netdev_event(struct notifier_block *this,
+ 		break;
+ 	}
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev->tracker = tracker;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	if (changed)
+ 		mlx5_queue_bond_work(ldev, 0);
+@@ -525,7 +525,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
+ 	if (fn >= MLX5_MAX_PORTS)
+ 		return;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev->pf[fn].dev    = dev;
+ 	ldev->pf[fn].netdev = netdev;
+ 	ldev->tracker.netdev_state[fn].link_up = 0;
+@@ -533,7 +533,7 @@ static void mlx5_lag_dev_add_pf(struct mlx5_lag *ldev,
+ 
+ 	dev->priv.lag = ldev;
+ 
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
  }
-@@ -597,7 +607,8 @@ struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
- 		}
+ 
+ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
+@@ -548,11 +548,11 @@ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
+ 	if (i == MLX5_MAX_PORTS)
+ 		return;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	memset(&ldev->pf[i], 0, sizeof(*ldev->pf));
+ 
+ 	dev->priv.lag = NULL;
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ }
+ 
+ /* Must be called with intf_mutex held */
+@@ -630,10 +630,10 @@ bool mlx5_lag_is_roce(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_roce(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -644,10 +644,10 @@ bool mlx5_lag_is_active(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_active(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -658,10 +658,10 @@ bool mlx5_lag_is_sriov(struct mlx5_core_dev *dev)
+ 	struct mlx5_lag *ldev;
+ 	bool res;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	res  = ldev && __mlx5_lag_is_sriov(ldev);
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return res;
+ }
+@@ -687,7 +687,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+ 	struct net_device *ndev = NULL;
+ 	struct mlx5_lag *ldev;
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 
+ 	if (!(ldev && __mlx5_lag_is_roce(ldev)))
+@@ -704,7 +704,7 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+ 		dev_hold(ndev);
+ 
+ unlock:
+-	mutex_unlock(&lag_mutex);
++	spin_unlock(&lag_lock);
+ 
+ 	return ndev;
+ }
+@@ -746,7 +746,7 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
+ 
+ 	memset(values, 0, sizeof(*values) * num_counters);
+ 
+-	mutex_lock(&lag_mutex);
++	spin_lock(&lag_lock);
+ 	ldev = mlx5_lag_dev_get(dev);
+ 	if (ldev && __mlx5_lag_is_roce(ldev)) {
+ 		num_ports = MLX5_MAX_PORTS;
+@@ -756,18 +756,18 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
+ 		num_ports = 1;
+ 		mdev[MLX5_LAG_P1] = dev;
  	}
++	spin_unlock(&lag_lock);
  
--	ah = _rdma_create_ah(pd, ah_attr, RDMA_CREATE_AH_SLEEPABLE, udata);
-+	ah = _rdma_create_ah(pd, ah_attr, RDMA_CREATE_AH_SLEEPABLE,
-+			     udata, NULL);
- 
- out:
- 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
-@@ -1636,11 +1647,35 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 	const struct ib_gid_attr *old_sgid_attr_alt_av;
- 	int ret;
- 
-+	attr->xmit_slave = NULL;
- 	if (attr_mask & IB_QP_AV) {
- 		ret = rdma_fill_sgid_attr(qp->device, &attr->ah_attr,
- 					  &old_sgid_attr_av);
+ 	for (i = 0; i < num_ports; ++i) {
+ 		ret = mlx5_cmd_query_cong_counter(mdev[i], false, out, outlen);
  		if (ret)
- 			return ret;
-+
-+		if (attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
-+		    is_qp_type_connected(qp)) {
-+			struct net_device *slave;
-+
-+			/*
-+			 * If the user provided the qp_attr then we have to
-+			 * resolve it. Kerne users have to provide already
-+			 * resolved rdma_ah_attr's.
-+			 */
-+			if (udata) {
-+				ret = ib_resolve_eth_dmac(qp->device,
-+							  &attr->ah_attr);
-+				if (ret)
-+					goto out_av;
-+			}
-+			slave = rdma_lag_get_ah_roce_slave(qp->device,
-+							   &attr->ah_attr,
-+							   GFP_KERNEL);
-+			if (IS_ERR(slave))
-+				goto out_av;
-+			attr->xmit_slave = slave;
-+		}
- 	}
- 	if (attr_mask & IB_QP_ALT_PATH) {
- 		/*
-@@ -1667,18 +1702,6 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 		}
+-			goto unlock;
++			goto free;
+ 
+ 		for (j = 0; j < num_counters; ++j)
+ 			values[j] += be64_to_cpup((__be64 *)(out + offsets[j]));
  	}
  
--	/*
--	 * If the user provided the qp_attr then we have to resolve it. Kernel
--	 * users have to provide already resolved rdma_ah_attr's
--	 */
--	if (udata && (attr_mask & IB_QP_AV) &&
--	    attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
--	    is_qp_type_connected(qp)) {
--		ret = ib_resolve_eth_dmac(qp->device, &attr->ah_attr);
--		if (ret)
--			goto out;
--	}
--
- 	if (rdma_ib_or_roce(qp->device, port)) {
- 		if (attr_mask & IB_QP_RQ_PSN && attr->rq_psn & ~0xffffff) {
- 			dev_warn(&qp->device->dev,
-@@ -1720,8 +1743,10 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 	if (attr_mask & IB_QP_ALT_PATH)
- 		rdma_unfill_sgid_attr(&attr->alt_ah_attr, old_sgid_attr_alt_av);
- out_av:
--	if (attr_mask & IB_QP_AV)
-+	if (attr_mask & IB_QP_AV) {
-+		rdma_lag_put_ah_roce_slave(attr->xmit_slave);
- 		rdma_unfill_sgid_attr(&attr->ah_attr, old_sgid_attr_av);
-+	}
+-unlock:
+-	mutex_unlock(&lag_mutex);
++free:
+ 	kvfree(out);
  	return ret;
  }
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e6c18ec0365a..8d29f2f79da8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -883,6 +883,7 @@ __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
- struct rdma_ah_init_attr {
- 	struct rdma_ah_attr *ah_attr;
- 	u32 flags;
-+	struct net_device *xmit_slave;
- };
- 
- enum rdma_ah_attr_type {
-@@ -1272,6 +1273,7 @@ struct ib_qp_attr {
- 	u8			alt_port_num;
- 	u8			alt_timeout;
- 	u32			rate_limit;
-+	struct net_device	*xmit_slave;
- };
- 
- enum ib_wr_opcode {
 -- 
 2.17.2
 
