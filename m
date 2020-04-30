@@ -2,101 +2,108 @@ Return-Path: <SRS0=pJc0=6O=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94543C47247
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 16:11:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C3DFC4724C
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:50:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66DD32076D
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 16:11:01 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="X+Sn+ll5"
+	by mail.kernel.org (Postfix) with ESMTP id 7D51524955
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:50:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726482AbgD3QLA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 12:11:00 -0400
-Received: from userp2130.oracle.com ([156.151.31.86]:48824 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726473AbgD3QLA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 12:11:00 -0400
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03UG9P7i018332;
-        Thu, 30 Apr 2020 16:10:53 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=cGBuAWcMSJuK2HC9O6Fm+m3T13l5AKHSgVbckXcZcws=;
- b=X+Sn+ll5H98DPvH7VO7oG3aYaZVmj8JKTknXpDbnFeO3k0GpQkGIg4cqwL7XrTCEt9Vt
- xa8JggswfIUaz2bVM7OZBz1mVTDARGX/fwas8lZMZIYHcvXapo7WCNp3XQgFeM3EqCbP
- 7gw4vmHzHnlKoeUggE18jdHpc6WTkofF+g7AI4BJdz3DZPNOaqIQn4L05ctekAtou3rx
- PqvngvS78QAY0vAfrTRWJZmXi1poDS0Hhl9+gzzJnogYDWnuBBGcW1v/Nc04T5n7ab9o
- 2pSe1VhnH37+jTnJvYc1gkXp4w6Jsp7GDCjGvd7kFqljOhIcK1SmYbvnwmrPl/KW/CJe cg== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by userp2130.oracle.com with ESMTP id 30p01p2y1e-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 30 Apr 2020 16:10:53 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03UG8RaZ075430;
-        Thu, 30 Apr 2020 16:08:53 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-        by aserp3030.oracle.com with ESMTP id 30qtkwpg1y-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 30 Apr 2020 16:08:53 +0000
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [127.0.0.1])
-        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 03UG8qd9077324;
-        Thu, 30 Apr 2020 16:08:52 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by aserp3030.oracle.com with ESMTP id 30qtkwpg1c-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 30 Apr 2020 16:08:52 +0000
-Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 03UG8oep011597;
-        Thu, 30 Apr 2020 16:08:51 GMT
-Received: from [10.159.147.146] (/10.159.147.146)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 30 Apr 2020 09:08:50 -0700
-Subject: Re: [PATCH 24/37] docs: networking: convert rds.txt to ReST
-To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc:     linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-References: <cover.1588261997.git.mchehab+huawei@kernel.org>
- <6c2adf3f895bea317c2f69cb14e2cf0eb203ac64.1588261997.git.mchehab+huawei@kernel.org>
-From:   santosh.shilimkar@oracle.com
-Organization: Oracle Corporation
-Message-ID: <871049f9-9d40-8fcd-f525-d30facd757d4@oracle.com>
-Date:   Thu, 30 Apr 2020 09:08:49 -0700
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:60.0)
- Gecko/20100101 Thunderbird/60.7.2
-MIME-Version: 1.0
-In-Reply-To: <6c2adf3f895bea317c2f69cb14e2cf0eb203ac64.1588261997.git.mchehab+huawei@kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9607 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 spamscore=0 clxscore=1011
- phishscore=0 mlxlogscore=999 adultscore=0 priorityscore=1501 mlxscore=0
- suspectscore=0 malwarescore=0 lowpriorityscore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
- definitions=main-2004300128
+        id S1726488AbgD3Suk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 14:50:40 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41383 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726478AbgD3Suk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 14:50:40 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 21:50:37 +0300
+Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNW028837;
+        Thu, 30 Apr 2020 21:50:37 +0300
+From:   Maor Gottlieb <maorg@mellanox.com>
+To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
+        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
+        kuba@kernel.org, jiri@mellanox.com, dsahern@kernel.org
+Cc:     leonro@mellanox.com, saeedm@mellanox.com,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH V7 mlx5-next 05/11] bonding: Add helper function to get the xmit slave based on hash
+Date:   Thu, 30 Apr 2020 21:50:22 +0300
+Message-Id: <20200430185033.11476-6-maorg@mellanox.com>
+X-Mailer: git-send-email 2.17.2
+In-Reply-To: <20200430185033.11476-1-maorg@mellanox.com>
+References: <20200430185033.11476-1-maorg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 4/30/20 9:04 AM, Mauro Carvalho Chehab wrote:
-> - add SPDX header;
-> - add a document title;
-> - mark code blocks and literals as such;
-> - mark tables as such;
-> - mark lists as such;
-> - adjust identation, whitespaces and blank lines where needed;
-> - add to networking/index.rst.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Both xor and 802.3ad modes use bond_xmit_hash to get the xmit slave.
+Export the logic to helper function so it could be used in the
+following patches by the .ndo to get the xmit slave.
+
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
+---
+ drivers/net/bonding/bond_main.c | 28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 2cb41d480ae2..8e6305955c75 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4185,6 +4185,23 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 	return ret;
+ }
+ 
++static struct slave *bond_xmit_3ad_xor_slave_get(struct bonding *bond,
++						 struct sk_buff *skb,
++						 struct bond_up_slave *slaves)
++{
++	struct slave *slave;
++	unsigned int count;
++	u32 hash;
++
++	hash = bond_xmit_hash(bond, skb);
++	count = slaves ? READ_ONCE(slaves->count) : 0;
++	if (unlikely(!count))
++		return NULL;
++
++	slave = slaves->arr[hash % count];
++	return slave;
++}
++
+ /* Use this Xmit function for 3AD as well as XOR modes. The current
+  * usable slave array is formed in the control path. The xmit function
+  * just calculates hash and sends the packet out.
+@@ -4193,18 +4210,15 @@ static netdev_tx_t bond_3ad_xor_xmit(struct sk_buff *skb,
+ 				     struct net_device *dev)
+ {
+ 	struct bonding *bond = netdev_priv(dev);
+-	struct slave *slave;
+ 	struct bond_up_slave *slaves;
+-	unsigned int count;
++	struct slave *slave;
+ 
+ 	slaves = rcu_dereference(bond->usable_slaves);
+-	count = slaves ? READ_ONCE(slaves->count) : 0;
+-	if (likely(count)) {
+-		slave = slaves->arr[bond_xmit_hash(bond, skb) % count];
++	slave = bond_xmit_3ad_xor_slave_get(bond, skb, slaves);
++	if (likely(slave))
+ 		bond_dev_queue_xmit(bond, skb, slave->dev);
+-	} else {
++	else
+ 		bond_tx_drop(dev, skb);
+-	}
+ 
+ 	return NETDEV_TX_OK;
+ }
+-- 
+2.17.2
+
