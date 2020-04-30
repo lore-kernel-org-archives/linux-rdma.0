@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8441BC47255
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFE80C47253
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 733442073E
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCD292073E
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726272AbgD3SvJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 14:51:09 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41368 "EHLO
+        id S1726524AbgD3SvN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 14:51:13 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53968 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726798AbgD3Sun (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 14:50:43 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
+        with ESMTP id S1726478AbgD3Sum (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 14:50:42 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 21:50:37 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNY028837;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNV028837;
         Thu, 30 Apr 2020 21:50:37 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V7 mlx5-next 07/11] bonding: Add function to get the xmit slave in active-backup mode
-Date:   Thu, 30 Apr 2020 21:50:24 +0300
-Message-Id: <20200430185033.11476-8-maorg@mellanox.com>
+Subject: [PATCH V7 mlx5-next 04/11] bonding/alb: Add helper functions to get the xmit slave
+Date:   Thu, 30 Apr 2020 21:50:21 +0300
+Message-Id: <20200430185033.11476-5-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200430185033.11476-1-maorg@mellanox.com>
 References: <20200430185033.11476-1-maorg@mellanox.com>
@@ -42,44 +42,106 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add helper function to get the xmit slave in active-backup mode.
-It's only one line function that return the curr_active_slave,
-but it will used both in the xmit flow and by the new .ndo to get
-the xmit slave.
+Add two helper functions to get the xmit slave of bond in alb or tlb
+mode. Extract the logic of find the xmit slave from the xmit flow
+to function. Xmit flow will xmit through this slave and in the
+following patches the new .ndo will call to the helper function
+to return the xmit slave.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Reviewed-by: Jiri Pirko <jiri@mellanox.com>
 Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/net/bonding/bond_main.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/net/bonding/bond_alb.c | 35 +++++++++++++++++++++++++---------
+ include/net/bond_alb.h         |  4 ++++
+ 2 files changed, 30 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 09c8485e965d..1b0ae750d732 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -4042,6 +4042,12 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+diff --git a/drivers/net/bonding/bond_alb.c b/drivers/net/bonding/bond_alb.c
+index 7bb49b049dcc..e863c694c309 100644
+--- a/drivers/net/bonding/bond_alb.c
++++ b/drivers/net/bonding/bond_alb.c
+@@ -1334,11 +1334,11 @@ static netdev_tx_t bond_do_alb_xmit(struct sk_buff *skb, struct bonding *bond,
  	return NETDEV_TX_OK;
  }
  
-+static struct slave *bond_xmit_activebackup_slave_get(struct bonding *bond,
-+						      struct sk_buff *skb)
-+{
-+	return rcu_dereference(bond->curr_active_slave);
+-netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb)
+ {
+-	struct bonding *bond = netdev_priv(bond_dev);
+-	struct ethhdr *eth_data;
+ 	struct slave *tx_slave = NULL;
++	struct ethhdr *eth_data;
+ 	u32 hash_index;
+ 
+ 	skb_reset_mac_header(skb);
+@@ -1369,20 +1369,29 @@ netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ 			break;
+ 		}
+ 	}
+-	return bond_do_alb_xmit(skb, bond, tx_slave);
++	return tx_slave;
+ }
+ 
+-netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++netdev_tx_t bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ {
+ 	struct bonding *bond = netdev_priv(bond_dev);
+-	struct ethhdr *eth_data;
++	struct slave *tx_slave;
++
++	tx_slave = bond_xmit_tlb_slave_get(bond, skb);
++	return bond_do_alb_xmit(skb, bond, tx_slave);
 +}
 +
- /* In active-backup mode, we know that bond->curr_active_slave is always valid if
-  * the bond has a usable interface.
-  */
-@@ -4051,7 +4057,7 @@ static netdev_tx_t bond_xmit_activebackup(struct sk_buff *skb,
- 	struct bonding *bond = netdev_priv(bond_dev);
- 	struct slave *slave;
++struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb)
++{
+ 	struct alb_bond_info *bond_info = &(BOND_ALB_INFO(bond));
+-	struct slave *tx_slave = NULL;
+ 	static const __be32 ip_bcast = htonl(0xffffffff);
+-	int hash_size = 0;
++	struct slave *tx_slave = NULL;
++	const u8 *hash_start = NULL;
+ 	bool do_tx_balance = true;
++	struct ethhdr *eth_data;
+ 	u32 hash_index = 0;
+-	const u8 *hash_start = NULL;
++	int hash_size = 0;
  
--	slave = rcu_dereference(bond->curr_active_slave);
-+	slave = bond_xmit_activebackup_slave_get(bond, skb);
- 	if (slave)
- 		bond_dev_queue_xmit(bond, skb, slave->dev);
- 	else
+ 	skb_reset_mac_header(skb);
+ 	eth_data = eth_hdr(skb);
+@@ -1501,7 +1510,15 @@ netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
+ 						       count];
+ 		}
+ 	}
++	return tx_slave;
++}
++
++netdev_tx_t bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
++{
++	struct bonding *bond = netdev_priv(bond_dev);
++	struct slave *tx_slave = NULL;
+ 
++	tx_slave = bond_xmit_alb_slave_get(bond, skb);
+ 	return bond_do_alb_xmit(skb, bond, tx_slave);
+ }
+ 
+diff --git a/include/net/bond_alb.h b/include/net/bond_alb.h
+index b3504fcd773d..f6af76c87a6c 100644
+--- a/include/net/bond_alb.h
++++ b/include/net/bond_alb.h
+@@ -158,6 +158,10 @@ void bond_alb_handle_link_change(struct bonding *bond, struct slave *slave, char
+ void bond_alb_handle_active_change(struct bonding *bond, struct slave *new_slave);
+ int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
+ int bond_tlb_xmit(struct sk_buff *skb, struct net_device *bond_dev);
++struct slave *bond_xmit_alb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb);
++struct slave *bond_xmit_tlb_slave_get(struct bonding *bond,
++				      struct sk_buff *skb);
+ void bond_alb_monitor(struct work_struct *);
+ int bond_alb_set_mac_address(struct net_device *bond_dev, void *addr);
+ void bond_alb_clear_vlan(struct bonding *bond, unsigned short vlan_id);
 -- 
 2.17.2
 
