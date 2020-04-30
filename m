@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD801C4724C
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 15:42:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52E12C4724C
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 15:42:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADC4C2076D
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 15:42:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 309002076D
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 15:42:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588261370;
-	bh=pqrAnBTQXaLtqlBB7XQQmew+vzgM2Rf89Vxvq0xVIEk=;
+	s=default; t=1588261375;
+	bh=UBGsGMojVSJQd4VwAxI34VFl77HA+TkT0mTtbQb5JYQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=DXESZWTrKHEKCVXIvv5pWSDatV/M76bafCrIvA5/ChQexAneb7/zFZSH9yG0JqKyR
-	 jAPdjS53Y18dg5vnLO1MrIF6cyzeHUuhnNMQlCGEY9vzAk7AnYd7JibK1JrsBnYsLi
-	 Nrm3W2KGNEQ5mX6xDesBKRRQQyxB5hxSxBbEySEM=
+	b=GGZQXeWjXl/ukR0ubyLi2XsX3O+bU+AZbp3E6ImeUxu76MfxMcTWt7VLVT0UiGytr
+	 XAOgezD+V7nuNeKKdlEsiPdTYSTMY9mabx16FDS6/XG1K9B7tJ0ppyhYyqooaG16Iu
+	 r51EwvBGfGBQliiFkPwNOoKntV5/rzWOlbzhBR1k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727925AbgD3Pmu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 11:42:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41342 "EHLO mail.kernel.org"
+        id S1726851AbgD3Pmy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 11:42:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727923AbgD3Pmt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 30 Apr 2020 11:42:49 -0400
+        id S1726343AbgD3Pmy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 30 Apr 2020 11:42:54 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 01F9C20661;
-        Thu, 30 Apr 2020 15:42:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A8FB720661;
+        Thu, 30 Apr 2020 15:42:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588261369;
-        bh=pqrAnBTQXaLtqlBB7XQQmew+vzgM2Rf89Vxvq0xVIEk=;
+        s=default; t=1588261373;
+        bh=UBGsGMojVSJQd4VwAxI34VFl77HA+TkT0mTtbQb5JYQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DJheI4fArveG8hiuIkT2Q/2Qn9ja6I6LIaOcB8cDOd9drS5Rq1T83DDlnMWNHGKdP
-         GK+6LLpIb/wCwHc5HH6FEjwjGoTHHDSS/HhRDXSuiS8lfTO5T2P7428ZpF76lliwmT
-         Q/e8kxO93ArzsizP724lKtmuk1qN6NGEfSIBzdNE=
+        b=SqJieov9rzdSI/pwAd1Y7GnWCBctLBBzEowVncP25wD0Wn38GxdAT9VnYRxl7gKgG
+         iMaQtBlxvb7Foft+YYyDpDJtw8cELfyKF+O8IzIMPlykVXxcUThwRc+URwPOg+MgCl
+         LACeQcmjR5lEC/2vB7yjgXQQycJzdW1E3TLe7xxA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-core 1/4] Update kernel headers
-Date:   Thu, 30 Apr 2020 18:42:34 +0300
-Message-Id: <20200430154237.78838-2-leon@kernel.org>
+Subject: [PATCH rdma-core 3/4] libibverbs: Get stable IB device index
+Date:   Thu, 30 Apr 2020 18:42:36 +0300
+Message-Id: <20200430154237.78838-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200430154237.78838-1-leon@kernel.org>
 References: <20200430154237.78838-1-leon@kernel.org>
@@ -57,34 +57,199 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-To commit ?? ("RDMA/ucma: Return stable IB device index as identifier")
+The kernel which supports query over netlink interface returns stable IB
+device index as part of it. This index much better identifier than sysfs
+name that can be renamed and/or disappear. Up till now, this index was
+used internally by libibverbs, but the next patch will rely on this API
+in the librdmacm code.
 
-Change-Id: I6b6f4fac35220c2976b869ee1a286fcaeb8ee529
+The -1 as returned value means that kernel doesn't support indexes.
+
+Change-Id: I9cc8837496ef04abdf6e490ad29e0632a91d7e5f
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- kernel-headers/rdma/rdma_user_cm.h | 2 ++
- 1 file changed, 2 insertions(+)
+ debian/libibverbs1.symbols               |  2 ++
+ libibverbs/CMakeLists.txt                |  2 +-
+ libibverbs/device.c                      |  7 +++++
+ libibverbs/libibverbs.map.in             |  5 +++
+ libibverbs/man/CMakeLists.txt            |  1 +
+ libibverbs/man/ibv_get_device_guid.3.md  |  2 +-
+ libibverbs/man/ibv_get_device_index.3.md | 40 ++++++++++++++++++++++++
+ libibverbs/man/ibv_get_device_list.3.md  |  1 +
+ libibverbs/verbs.h                       |  9 ++++++
+ 9 files changed, 67 insertions(+), 2 deletions(-)
+ create mode 100644 libibverbs/man/ibv_get_device_index.3.md
 
-diff --git a/kernel-headers/rdma/rdma_user_cm.h b/kernel-headers/rdma/rdma_user_cm.h
-index e42940a2..cef0436a 100644
---- a/kernel-headers/rdma/rdma_user_cm.h
-+++ b/kernel-headers/rdma/rdma_user_cm.h
-@@ -164,6 +164,7 @@ struct rdma_ucm_query_route_resp {
- 	__u32 num_paths;
- 	__u8 port_num;
- 	__u8 reserved[3];
-+	__u32 ibdev_index;
- };
+diff --git a/debian/libibverbs1.symbols b/debian/libibverbs1.symbols
+index ec40b29b..10ca9bf3 100644
+--- a/debian/libibverbs1.symbols
++++ b/debian/libibverbs1.symbols
+@@ -6,6 +6,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
+  IBVERBS_1.6@IBVERBS_1.6 24
+  IBVERBS_1.7@IBVERBS_1.7 25
+  IBVERBS_1.8@IBVERBS_1.8 28
++ IBVERBS_1.9@IBVERBS_1.9 30
+  (symver)IBVERBS_PRIVATE_25 25
+  ibv_ack_async_event@IBVERBS_1.0 1.1.6
+  ibv_ack_async_event@IBVERBS_1.1 1.1.6
+@@ -58,6 +59,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
+  ibv_get_cq_event@IBVERBS_1.1 1.1.6
+  ibv_get_device_guid@IBVERBS_1.0 1.1.6
+  ibv_get_device_guid@IBVERBS_1.1 1.1.6
++ ibv_get_device_index@IBVERBS_1.9 30
+  ibv_get_device_list@IBVERBS_1.0 1.1.6
+  ibv_get_device_list@IBVERBS_1.1 1.1.6
+  ibv_get_device_name@IBVERBS_1.0 1.1.6
+diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
+index 43285489..a10bf103 100644
+--- a/libibverbs/CMakeLists.txt
++++ b/libibverbs/CMakeLists.txt
+@@ -21,7 +21,7 @@ configure_file("libibverbs.map.in"
 
- struct rdma_ucm_query_addr_resp {
-@@ -175,6 +176,7 @@ struct rdma_ucm_query_addr_resp {
- 	__u16 dst_size;
- 	struct __kernel_sockaddr_storage src_addr;
- 	struct __kernel_sockaddr_storage dst_addr;
-+	__u32 ibdev_index;
- };
+ rdma_library(ibverbs "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map"
+   # See Documentation/versioning.md
+-  1 1.8.${PACKAGE_VERSION}
++  1 1.9.${PACKAGE_VERSION}
+   all_providers.c
+   cmd.c
+   cmd_ah.c
+diff --git a/libibverbs/device.c b/libibverbs/device.c
+index bc7df1b0..0427c74e 100644
+--- a/libibverbs/device.c
++++ b/libibverbs/device.c
+@@ -150,6 +150,13 @@ LATEST_SYMVER_FUNC(ibv_get_device_guid, 1_1, "IBVERBS_1.1",
+ 	return htobe64(guid);
+ }
 
- struct rdma_ucm_query_path_resp {
++int ibv_get_device_index(struct ibv_device *device)
++{
++	struct verbs_sysfs_dev *sysfs_dev = verbs_get_device(device)->sysfs;
++
++	return sysfs_dev->ibdev_idx;
++}
++
+ int ibv_get_fw_ver(char *value, size_t len, struct verbs_sysfs_dev *sysfs_dev)
+ {
+ 	/*
+diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
+index 5280cfe6..f0d79c78 100644
+--- a/libibverbs/libibverbs.map.in
++++ b/libibverbs/libibverbs.map.in
+@@ -126,6 +126,11 @@ IBVERBS_1.8 {
+ 		ibv_reg_mr_iova2;
+ } IBVERBS_1.7;
+
++IBVERBS_1.9 {
++	global:
++		ibv_get_device_index;
++} IBVERBS_1.8;
++
+ /* If any symbols in this stanza change ABI then the entire staza gets a new symbol
+    version. See the top level CMakeLists.txt for this setting. */
+
+diff --git a/libibverbs/man/CMakeLists.txt b/libibverbs/man/CMakeLists.txt
+index e1d5edf8..87f00185 100644
+--- a/libibverbs/man/CMakeLists.txt
++++ b/libibverbs/man/CMakeLists.txt
+@@ -32,6 +32,7 @@ rdma_man_pages(
+   ibv_get_async_event.3
+   ibv_get_cq_event.3
+   ibv_get_device_guid.3.md
++  ibv_get_device_index.3.md
+   ibv_get_device_list.3.md
+   ibv_get_device_name.3.md
+   ibv_get_pkey_index.3.md
+diff --git a/libibverbs/man/ibv_get_device_guid.3.md b/libibverbs/man/ibv_get_device_guid.3.md
+index 6dc96001..376c7871 100644
+--- a/libibverbs/man/ibv_get_device_guid.3.md
++++ b/libibverbs/man/ibv_get_device_guid.3.md
+@@ -31,7 +31,7 @@ RDMA device *device*.
+ order.
+
+ # SEE ALSO
+-
++**ibv_get_device_index**(3),
+ **ibv_get_device_list**(3),
+ **ibv_get_device_name**(3),
+ **ibv_open_device**(3)
+diff --git a/libibverbs/man/ibv_get_device_index.3.md b/libibverbs/man/ibv_get_device_index.3.md
+new file mode 100644
+index 00000000..69f00c4f
+--- /dev/null
++++ b/libibverbs/man/ibv_get_device_index.3.md
+@@ -0,0 +1,40 @@
++---
++date: ' 2020-04-22'
++footer: libibverbs
++header: "Libibverbs Programmer's Manual"
++layout: page
++license: 'Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md'
++section: 3
++title: IBV_GET_DEVICE_INDEX
++---
++
++# NAME
++
++ibv_get_device_index - get an RDMA device index
++
++# SYNOPSIS
++
++```c
++#include <infiniband/verbs.h>
++
++int ibv_get_device_index(struct ibv_device *device);
++```
++
++# DESCRIPTION
++
++**ibv_get_device_index()** returns stable IB device index as it is assigned by the kernel.
++
++# RETURN VALUE
++
++**ibv_get_device_index()** returns an index, or -1 if the kernel doesn't support device indexes.
++
++# SEE ALSO
++
++**ibv_get_device_name**(3),
++**ibv_get_device_guid**(3),
++**ibv_get_device_list**(3),
++**ibv_open_device**(3)
++
++# AUTHOR
++
++Leon Romanovsky <leonro@mellanox.com>
+diff --git a/libibverbs/man/ibv_get_device_list.3.md b/libibverbs/man/ibv_get_device_list.3.md
+index 3d222f66..8f3995e4 100644
+--- a/libibverbs/man/ibv_get_device_list.3.md
++++ b/libibverbs/man/ibv_get_device_list.3.md
+@@ -88,6 +88,7 @@ recommended.
+ **ibv_fork_init**(3),
+ **ibv_get_device_guid**(3),
+ **ibv_get_device_name**(3),
++**ibv_get_device_index**(3),
+ **ibv_open_device**(3)
+
+ # AUTHOR
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 288985d5..b08b4c20 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -2202,6 +2202,15 @@ void ibv_free_device_list(struct ibv_device **list);
+  */
+ const char *ibv_get_device_name(struct ibv_device *device);
+
++/**
++ * ibv_get_device_index - Return kernel device index
++ *
++ * Available for the kernel with support of IB device query
++ * over netlink interface. For the unsupported kernels, the
++ * relevant -1 will be returned.
++ */
++int ibv_get_device_index(struct ibv_device *device);
++
+ /**
+  * ibv_get_device_guid - Return device's node GUID
+  */
 --
 2.26.2
 
