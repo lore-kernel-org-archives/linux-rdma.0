@@ -4,25 +4,25 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B817C47253
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB4B3C47247
 	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:50:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58D962082E
+	by mail.kernel.org (Postfix) with ESMTP id C65E02082E
 	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:50:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726572AbgD3Sul (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 14:50:41 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41382 "EHLO
+        id S1726420AbgD3Sum (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 14:50:42 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53999 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726420AbgD3Sul (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 14:50:41 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 21:50:38 +0300
+        with ESMTP id S1726549AbgD3Sum (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 14:50:42 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 21:50:37 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNg028837;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNT028837;
         Thu, 30 Apr 2020 21:50:37 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V7 rdma-next 15/16] RDMA/mlx5: Refactor affinity related code
-Date:   Thu, 30 Apr 2020 21:50:32 +0300
-Message-Id: <20200430185033.11476-16-maorg@mellanox.com>
+Subject: [PATCH V7 mlx5-next 02/11] bonding: Export skip slave logic to function
+Date:   Thu, 30 Apr 2020 21:50:19 +0300
+Message-Id: <20200430185033.11476-3-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200430185033.11476-1-maorg@mellanox.com>
 References: <20200430185033.11476-1-maorg@mellanox.com>
@@ -42,130 +42,81 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move affinity related code in modify qp to function.
-It's a preparation for next patch the extend the affinity
-calculation to consider the xmit slave.
+As a preparation for following change that add array of
+all slaves, extract code that skip slave to function.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 90 +++++++++++++++++++--------------
- 1 file changed, 53 insertions(+), 37 deletions(-)
+ drivers/net/bonding/bond_main.c | 47 ++++++++++++++++++---------------
+ 1 file changed, 26 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 2673678f1899..518abbda33c0 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3409,33 +3409,61 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	return 0;
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 2e70e43c5df5..f7aded014f08 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4087,6 +4087,29 @@ static void bond_slave_arr_handler(struct work_struct *work)
+ 	bond_slave_arr_work_rearm(bond, 1);
  }
  
--static unsigned int get_tx_affinity(struct mlx5_ib_dev *dev,
--				    struct mlx5_ib_pd *pd,
--				    struct mlx5_ib_qp_base *qp_base,
--				    u8 port_num, struct ib_udata *udata)
-+static unsigned int get_tx_affinity_rr(struct mlx5_ib_dev *dev,
-+				       struct ib_udata *udata)
- {
- 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
--	unsigned int tx_port_affinity;
-+	u8 port_num = mlx5_core_native_port_num(dev->mdev) - 1;
-+	atomic_t *tx_port_affinity;
- 
--	if (ucontext) {
--		tx_port_affinity = (unsigned int)atomic_add_return(
--					   1, &ucontext->tx_port_affinity) %
--					   MLX5_MAX_PORTS +
--				   1;
-+	if (ucontext)
-+		tx_port_affinity = &ucontext->tx_port_affinity;
-+	else
-+		tx_port_affinity = &dev->port[port_num].roce.tx_port_affinity;
++static void bond_skip_slave(struct bond_up_slave *slaves,
++			    struct slave *skipslave)
++{
++	int idx;
 +
-+	return (unsigned int)atomic_add_return(1, tx_port_affinity) %
-+		MLX5_MAX_PORTS + 1;
++	/* Rare situation where caller has asked to skip a specific
++	 * slave but allocation failed (most likely!). BTW this is
++	 * only possible when the call is initiated from
++	 * __bond_release_one(). In this situation; overwrite the
++	 * skipslave entry in the array with the last entry from the
++	 * array to avoid a situation where the xmit path may choose
++	 * this to-be-skipped slave to send a packet out.
++	 */
++	for (idx = 0; slaves && idx < slaves->count; idx++) {
++		if (skipslave == slaves->arr[idx]) {
++			slaves->arr[idx] =
++				slaves->arr[slaves->count - 1];
++			slaves->count--;
++			break;
++		}
++	}
 +}
 +
-+static bool qp_supports_affinity(struct ib_qp *qp)
-+{
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+
-+	if ((qp->qp_type == IB_QPT_RC) ||
-+	    (qp->qp_type == IB_QPT_UD &&
-+	     !(mqp->flags & MLX5_IB_QP_CREATE_SQPN_QP1)) ||
-+	    (qp->qp_type == IB_QPT_UC) ||
-+	    (qp->qp_type == IB_QPT_RAW_PACKET) ||
-+	    (qp->qp_type == IB_QPT_XRC_INI) ||
-+	    (qp->qp_type == IB_QPT_XRC_TGT))
-+		return true;
-+	return false;
-+}
-+
-+static unsigned int get_tx_affinity(struct ib_qp *qp, u8 init,
-+				    struct ib_udata *udata)
-+{
-+	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
-+		udata, struct mlx5_ib_ucontext, ibucontext);
-+	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
-+	struct mlx5_ib_qp_base *qp_base;
-+	unsigned int tx_affinity;
-+
-+	if (!(dev->lag_active && init && qp_supports_affinity(qp)))
-+		return 0;
-+
-+	tx_affinity = get_tx_affinity_rr(dev, udata);
-+
-+	qp_base = &mqp->trans_qp.base;
-+	if (ucontext)
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x ucontext %p\n",
--				tx_port_affinity, qp_base->mqp.qpn, ucontext);
--	} else {
--		tx_port_affinity =
--			(unsigned int)atomic_add_return(
--				1, &dev->port[port_num].roce.tx_port_affinity) %
--				MLX5_MAX_PORTS +
--			1;
-+			    tx_affinity, qp_base->mqp.qpn, ucontext);
-+	else
- 		mlx5_ib_dbg(dev, "Set tx affinity 0x%x to qpn 0x%x\n",
--				tx_port_affinity, qp_base->mqp.qpn);
--	}
+ /* Build the usable slaves array in control path for modes that use xmit-hash
+  * to determine the slave interface -
+  * (a) BOND_MODE_8023AD
+@@ -4156,27 +4179,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 	if (old_arr)
+ 		kfree_rcu(old_arr, rcu);
+ out:
+-	if (ret != 0 && skipslave) {
+-		int idx;
 -
--	return tx_port_affinity;
-+			    tx_affinity, qp_base->mqp.qpn);
-+	return tx_affinity;
- }
- 
- static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
-@@ -3546,22 +3574,10 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 		}
- 	}
- 
--	if ((cur_state == IB_QPS_RESET) && (new_state == IB_QPS_INIT)) {
--		if ((ibqp->qp_type == IB_QPT_RC) ||
--		    (ibqp->qp_type == IB_QPT_UD &&
--		     !(qp->flags & MLX5_IB_QP_CREATE_SQPN_QP1)) ||
--		    (ibqp->qp_type == IB_QPT_UC) ||
--		    (ibqp->qp_type == IB_QPT_RAW_PACKET) ||
--		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
--		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
--			if (dev->lag_active) {
--				u8 p = mlx5_core_native_port_num(dev->mdev) - 1;
--				tx_affinity = get_tx_affinity(dev, pd, base, p,
--							      udata);
--				context->flags |= cpu_to_be32(tx_affinity << 24);
+-		/* Rare situation where caller has asked to skip a specific
+-		 * slave but allocation failed (most likely!). BTW this is
+-		 * only possible when the call is initiated from
+-		 * __bond_release_one(). In this situation; overwrite the
+-		 * skipslave entry in the array with the last entry from the
+-		 * array to avoid a situation where the xmit path may choose
+-		 * this to-be-skipped slave to send a packet out.
+-		 */
+-		old_arr = rtnl_dereference(bond->slave_arr);
+-		for (idx = 0; old_arr != NULL && idx < old_arr->count; idx++) {
+-			if (skipslave == old_arr->arr[idx]) {
+-				old_arr->arr[idx] =
+-				    old_arr->arr[old_arr->count-1];
+-				old_arr->count--;
+-				break;
 -			}
 -		}
 -	}
-+	tx_affinity = get_tx_affinity(ibqp,
-+				      cur_state == IB_QPS_RESET &&
-+				      new_state == IB_QPS_INIT, udata);
-+	context->flags |= cpu_to_be32(tx_affinity << 24);
++	if (ret != 0 && skipslave)
++		bond_skip_slave(rtnl_dereference(bond->slave_arr), skipslave);
++
+ 	return ret;
+ }
  
- 	if (is_sqp(ibqp->qp_type)) {
- 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
 -- 
 2.17.2
 
