@@ -4,25 +4,25 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ADCFC4724C
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8441BC47255
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 369082073E
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 733442073E
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726421AbgD3SvK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 14:51:10 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41372 "EHLO
+        id S1726272AbgD3SvJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 14:51:09 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41368 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726799AbgD3Sun (ORCPT
+        with ESMTP id S1726798AbgD3Sun (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 14:50:43 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from maorg@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 21:50:37 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNc028837;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNY028837;
         Thu, 30 Apr 2020 21:50:37 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V7 mlx5-next 11/11] net/mlx5: Add support to get lag physical port
-Date:   Thu, 30 Apr 2020 21:50:28 +0300
-Message-Id: <20200430185033.11476-12-maorg@mellanox.com>
+Subject: [PATCH V7 mlx5-next 07/11] bonding: Add function to get the xmit slave in active-backup mode
+Date:   Thu, 30 Apr 2020 21:50:24 +0300
+Message-Id: <20200430185033.11476-8-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200430185033.11476-1-maorg@mellanox.com>
 References: <20200430185033.11476-1-maorg@mellanox.com>
@@ -42,63 +42,44 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add function to get the device physical port of the lag slave.
+Add helper function to get the xmit slave in active-backup mode.
+It's only one line function that return the curr_active_slave,
+but it will used both in the xmit flow and by the new .ndo to get
+the xmit slave.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/lag.c | 24 +++++++++++++++++++
- include/linux/mlx5/driver.h                   |  2 ++
- 2 files changed, 26 insertions(+)
+ drivers/net/bonding/bond_main.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-index 496a3408d771..5461fbe47c0d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-@@ -710,6 +710,30 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 09c8485e965d..1b0ae750d732 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -4042,6 +4042,12 @@ static netdev_tx_t bond_xmit_roundrobin(struct sk_buff *skb,
+ 	return NETDEV_TX_OK;
  }
- EXPORT_SYMBOL(mlx5_lag_get_roce_netdev);
  
-+u8 mlx5_lag_get_slave_port(struct mlx5_core_dev *dev,
-+			   struct net_device *slave)
++static struct slave *bond_xmit_activebackup_slave_get(struct bonding *bond,
++						      struct sk_buff *skb)
 +{
-+	struct mlx5_lag *ldev;
-+	u8 port = 0;
-+
-+	spin_lock(&lag_lock);
-+	ldev = mlx5_lag_dev_get(dev);
-+	if (!(ldev && __mlx5_lag_is_roce(ldev)))
-+		goto unlock;
-+
-+	if (ldev->pf[MLX5_LAG_P1].netdev == slave)
-+		port = MLX5_LAG_P1;
-+	else
-+		port = MLX5_LAG_P2;
-+
-+	port = ldev->v2p_map[port];
-+
-+unlock:
-+	spin_unlock(&lag_lock);
-+	return port;
++	return rcu_dereference(bond->curr_active_slave);
 +}
-+EXPORT_SYMBOL(mlx5_lag_get_slave_port);
 +
- bool mlx5_lag_intf_add(struct mlx5_interface *intf, struct mlx5_priv *priv)
- {
- 	struct mlx5_core_dev *dev = container_of(priv, struct mlx5_core_dev,
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 6f8f79ef829b..7b81b512d116 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1062,6 +1062,8 @@ bool mlx5_lag_is_sriov(struct mlx5_core_dev *dev);
- bool mlx5_lag_is_multipath(struct mlx5_core_dev *dev);
- bool mlx5_lag_is_active(struct mlx5_core_dev *dev);
- struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev);
-+u8 mlx5_lag_get_slave_port(struct mlx5_core_dev *dev,
-+			   struct net_device *slave);
- int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
- 				 u64 *values,
- 				 int num_counters,
+ /* In active-backup mode, we know that bond->curr_active_slave is always valid if
+  * the bond has a usable interface.
+  */
+@@ -4051,7 +4057,7 @@ static netdev_tx_t bond_xmit_activebackup(struct sk_buff *skb,
+ 	struct bonding *bond = netdev_priv(bond_dev);
+ 	struct slave *slave;
+ 
+-	slave = rcu_dereference(bond->curr_active_slave);
++	slave = bond_xmit_activebackup_slave_get(bond, skb);
+ 	if (slave)
+ 		bond_dev_queue_xmit(bond, skb, slave->dev);
+ 	else
 -- 
 2.17.2
 
