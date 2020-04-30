@@ -2,36 +2,38 @@ Return-Path: <SRS0=pJc0=6O=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BEAFC8300A
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 10:31:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB47C8300A
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 10:31:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7264020838
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 10:31:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D35B92137B
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 10:31:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726309AbgD3Kbp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 06:31:45 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:54180 "EHLO huawei.com"
+        id S1726413AbgD3Kbv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 06:31:51 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:50144 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726127AbgD3Kbp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 30 Apr 2020 06:31:45 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 20F807087F72418D922B;
-        Thu, 30 Apr 2020 18:31:44 +0800 (CST)
+        id S1726378AbgD3Kbv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 30 Apr 2020 06:31:51 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 2CF724B4EC816DC9419B;
+        Thu, 30 Apr 2020 18:31:49 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 30 Apr 2020 18:31:37 +0800
+ 14.3.487.0; Thu, 30 Apr 2020 18:31:39 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/3] RDMA/hns: Misc cleanups
-Date:   Thu, 30 Apr 2020 18:31:28 +0800
-Message-ID: <1588242691-12913-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 3/3] RDMA/hns: Remove redundant assignment of caps
+Date:   Thu, 30 Apr 2020 18:31:31 +0800
+Message-ID: <1588242691-12913-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1588242691-12913-1-git-send-email-liweihang@huawei.com>
+References: <1588242691-12913-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,19 +43,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Some tiny cleanups for hns driver.
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Weihang Li (2):
-  RDMA/hns: Fix comments with non-English symbols
-  RDMA/hns: Adjust lp_pktn_ini dynamically
+These caps are assigned in query_pf_caps() or set_default_caps(), and
+should not be assigned out of these two functions.
 
-Wenpeng Liang (1):
-  RDMA/hns: Remove redundant assignment of caps
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 8 ++------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 7 +++----
- 2 files changed, 5 insertions(+), 10 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 7643b06..ad9a11a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2079,11 +2079,6 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
+ 	hr_dev->vendor_part_id = hr_dev->pci_dev->device;
+ 	hr_dev->sys_image_guid = be64_to_cpu(hr_dev->ib_dev.node_guid);
+ 
+-	caps->num_mtt_segs	= HNS_ROCE_V2_MAX_MTT_SEGS;
+-	caps->num_cqe_segs	= HNS_ROCE_V2_MAX_CQE_SEGS;
+-	caps->num_srqwqe_segs	= HNS_ROCE_V2_MAX_SRQWQE_SEGS;
+-	caps->num_idx_segs	= HNS_ROCE_V2_MAX_IDX_SEGS;
+-
+ 	caps->pbl_ba_pg_sz	= HNS_ROCE_BA_PG_SZ_SUPPORTED_16K;
+ 	caps->pbl_buf_pg_sz	= 0;
+ 	caps->pbl_hop_num	= HNS_ROCE_PBL_HOP_NUM;
 -- 
 2.8.1
 
