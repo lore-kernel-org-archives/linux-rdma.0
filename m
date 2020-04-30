@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D771C47254
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66622C47253
 	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C0202082E
+	by mail.kernel.org (Postfix) with ESMTP id 5280D2073E
 	for <linux-rdma@archiver.kernel.org>; Thu, 30 Apr 2020 18:51:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726867AbgD3Su6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Apr 2020 14:50:58 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:54042 "EHLO
+        id S1726926AbgD3Su5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Apr 2020 14:50:57 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:54081 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726859AbgD3Sur (ORCPT
+        with ESMTP id S1726867AbgD3Sur (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Apr 2020 14:50:47 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maorg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 21:50:37 +0300
+        with ESMTPS (AES256-SHA encrypted); 30 Apr 2020 21:50:38 +0300
 Received: from dev-l-vrt-201.mtl.labs.mlnx (dev-l-vrt-201.mtl.labs.mlnx [10.134.201.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNZ028837;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03UIoaNf028837;
         Thu, 30 Apr 2020 21:50:37 +0300
 From:   Maor Gottlieb <maorg@mellanox.com>
 To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
@@ -31,9 +31,9 @@ To:     davem@davemloft.net, jgg@mellanox.com, dledford@redhat.com,
 Cc:     leonro@mellanox.com, saeedm@mellanox.com,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         alexr@mellanox.com, Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH V7 mlx5-next 08/11] bonding: Add array of all slaves
-Date:   Thu, 30 Apr 2020 21:50:25 +0300
-Message-Id: <20200430185033.11476-9-maorg@mellanox.com>
+Subject: [PATCH V7 rdma-next 14/16] RDMA/core: Get xmit slave for LAG
+Date:   Thu, 30 Apr 2020 21:50:31 +0300
+Message-Id: <20200430185033.11476-15-maorg@mellanox.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200430185033.11476-1-maorg@mellanox.com>
 References: <20200430185033.11476-1-maorg@mellanox.com>
@@ -42,185 +42,170 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Keep all slaves in array so it could be used to get the xmit slave
-assume all the slaves are active.
-The logic to add slave to the array is like the usable slaves, except
-that we also add slaves that currently can't transmit - not up or active.
+Add a call to rdma_lag_get_ah_roce_slave when
+Address handle is created.
+Lower driver can use it to select the QP's affinity port.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Jiri Pirko <jiri@mellanox.com>
-Reviewed-by: Jay Vosburgh <jay.vosburgh@canonical.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/bonding/bond_main.c | 78 +++++++++++++++++++++++++--------
- include/net/bonding.h           |  3 +-
- 2 files changed, 61 insertions(+), 20 deletions(-)
+ drivers/infiniband/core/verbs.c | 61 +++++++++++++++++++++++----------
+ include/rdma/ib_verbs.h         |  2 ++
+ 2 files changed, 45 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 1b0ae750d732..2de693f0262e 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -4120,6 +4120,38 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
- 	}
- }
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 86be8a54a2d6..bf0249f76ae9 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -50,6 +50,7 @@
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/rw.h>
++#include <rdma/lag.h>
  
-+static void bond_set_slave_arr(struct bonding *bond,
-+			       struct bond_up_slave *usable_slaves,
-+			       struct bond_up_slave *all_slaves)
-+{
-+	struct bond_up_slave *usable, *all;
-+
-+	usable = rtnl_dereference(bond->usable_slaves);
-+	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
-+	kfree_rcu(usable, rcu);
-+
-+	all = rtnl_dereference(bond->all_slaves);
-+	rcu_assign_pointer(bond->all_slaves, all_slaves);
-+	kfree_rcu(all, rcu);
-+}
-+
-+static void bond_reset_slave_arr(struct bonding *bond)
-+{
-+	struct bond_up_slave *usable, *all;
-+
-+	usable = rtnl_dereference(bond->usable_slaves);
-+	if (usable) {
-+		RCU_INIT_POINTER(bond->usable_slaves, NULL);
-+		kfree_rcu(usable, rcu);
-+	}
-+
-+	all = rtnl_dereference(bond->all_slaves);
-+	if (all) {
-+		RCU_INIT_POINTER(bond->all_slaves, NULL);
-+		kfree_rcu(all, rcu);
-+	}
-+}
-+
- /* Build the usable slaves array in control path for modes that use xmit-hash
-  * to determine the slave interface -
-  * (a) BOND_MODE_8023AD
-@@ -4130,7 +4162,7 @@ static void bond_skip_slave(struct bond_up_slave *slaves,
-  */
- int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ #include "core_priv.h"
+ #include <trace/events/rdma_core.h>
+@@ -500,7 +501,8 @@ rdma_update_sgid_attr(struct rdma_ah_attr *ah_attr,
+ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
+ 				     struct rdma_ah_attr *ah_attr,
+ 				     u32 flags,
+-				     struct ib_udata *udata)
++				     struct ib_udata *udata,
++				     struct net_device *xmit_slave)
  {
--	struct bond_up_slave *usable_slaves, *old_usable_slaves;
-+	struct bond_up_slave *usable_slaves = NULL, *all_slaves = NULL;
- 	struct slave *slave;
- 	struct list_head *iter;
- 	int agg_id = 0;
-@@ -4142,7 +4174,9 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 	struct rdma_ah_init_attr init_attr = {};
+ 	struct ib_device *device = pd->device;
+@@ -524,6 +526,7 @@ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
+ 	ah->sgid_attr = rdma_update_sgid_attr(ah_attr, NULL);
+ 	init_attr.ah_attr = ah_attr;
+ 	init_attr.flags = flags;
++	init_attr.xmit_slave = xmit_slave;
  
- 	usable_slaves = kzalloc(struct_size(usable_slaves, arr,
- 					    bond->slave_cnt), GFP_KERNEL);
--	if (!usable_slaves) {
-+	all_slaves = kzalloc(struct_size(all_slaves, arr,
-+					 bond->slave_cnt), GFP_KERNEL);
-+	if (!usable_slaves || !all_slaves) {
- 		ret = -ENOMEM;
- 		goto out;
- 	}
-@@ -4151,20 +4185,19 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
+ 	ret = device->ops.create_ah(ah, &init_attr, udata);
+ 	if (ret) {
+@@ -550,15 +553,22 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 			     u32 flags)
+ {
+ 	const struct ib_gid_attr *old_sgid_attr;
++	struct net_device *slave;
+ 	struct ib_ah *ah;
+ 	int ret;
  
- 		if (bond_3ad_get_active_agg_info(bond, &ad_info)) {
- 			pr_debug("bond_3ad_get_active_agg_info failed\n");
--			kfree_rcu(usable_slaves, rcu);
- 			/* No active aggragator means it's not safe to use
- 			 * the previous array.
- 			 */
--			old_usable_slaves = rtnl_dereference(bond->usable_slaves);
--			if (old_usable_slaves) {
--				RCU_INIT_POINTER(bond->usable_slaves, NULL);
--				kfree_rcu(old_usable_slaves, rcu);
--			}
-+			bond_reset_slave_arr(bond);
- 			goto out;
- 		}
- 		agg_id = ad_info.aggregator_id;
- 	}
- 	bond_for_each_slave(bond, slave, iter) {
-+		if (skipslave == slave)
-+			continue;
-+
-+		all_slaves->arr[all_slaves->count++] = slave;
- 		if (BOND_MODE(bond) == BOND_MODE_8023AD) {
- 			struct aggregator *agg;
- 
-@@ -4174,8 +4207,6 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
- 		}
- 		if (!bond_slave_can_tx(slave))
- 			continue;
--		if (skipslave == slave)
--			continue;
- 
- 		slave_dbg(bond->dev, slave->dev, "Adding slave to tx hash array[%d]\n",
- 			  usable_slaves->count);
-@@ -4183,14 +4214,17 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
- 		usable_slaves->arr[usable_slaves->count++] = slave;
- 	}
- 
--	old_usable_slaves = rtnl_dereference(bond->usable_slaves);
--	rcu_assign_pointer(bond->usable_slaves, usable_slaves);
--	if (old_usable_slaves)
--		kfree_rcu(old_usable_slaves, rcu);
-+	bond_set_slave_arr(bond, usable_slaves, all_slaves);
-+	return ret;
- out:
--	if (ret != 0 && skipslave)
-+	if (ret != 0 && skipslave) {
-+		bond_skip_slave(rtnl_dereference(bond->all_slaves),
-+				skipslave);
- 		bond_skip_slave(rtnl_dereference(bond->usable_slaves),
- 				skipslave);
+ 	ret = rdma_fill_sgid_attr(pd->device, ah_attr, &old_sgid_attr);
+ 	if (ret)
+ 		return ERR_PTR(ret);
+-
+-	ah = _rdma_create_ah(pd, ah_attr, flags, NULL);
+-
++	slave = rdma_lag_get_ah_roce_slave(pd->device, ah_attr,
++					   (flags & RDMA_CREATE_AH_SLEEPABLE) ?
++					   GFP_KERNEL : GFP_ATOMIC);
++	if (IS_ERR(slave)) {
++		rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
++		return (void *)slave;
 +	}
-+	kfree_rcu(all_slaves, rcu);
-+	kfree_rcu(usable_slaves, rcu);
++	ah = _rdma_create_ah(pd, ah_attr, flags, NULL, slave);
++	rdma_lag_put_ah_roce_slave(slave);
+ 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+ 	return ah;
+ }
+@@ -597,7 +607,8 @@ struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
+ 		}
+ 	}
  
+-	ah = _rdma_create_ah(pd, ah_attr, RDMA_CREATE_AH_SLEEPABLE, udata);
++	ah = _rdma_create_ah(pd, ah_attr, RDMA_CREATE_AH_SLEEPABLE,
++			     udata, NULL);
+ 
+ out:
+ 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+@@ -1636,11 +1647,35 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 	const struct ib_gid_attr *old_sgid_attr_alt_av;
+ 	int ret;
+ 
++	attr->xmit_slave = NULL;
+ 	if (attr_mask & IB_QP_AV) {
+ 		ret = rdma_fill_sgid_attr(qp->device, &attr->ah_attr,
+ 					  &old_sgid_attr_av);
+ 		if (ret)
+ 			return ret;
++
++		if (attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
++		    is_qp_type_connected(qp)) {
++			struct net_device *slave;
++
++			/*
++			 * If the user provided the qp_attr then we have to
++			 * resolve it. Kerne users have to provide already
++			 * resolved rdma_ah_attr's.
++			 */
++			if (udata) {
++				ret = ib_resolve_eth_dmac(qp->device,
++							  &attr->ah_attr);
++				if (ret)
++					goto out_av;
++			}
++			slave = rdma_lag_get_ah_roce_slave(qp->device,
++							   &attr->ah_attr,
++							   GFP_KERNEL);
++			if (IS_ERR(slave))
++				goto out_av;
++			attr->xmit_slave = slave;
++		}
+ 	}
+ 	if (attr_mask & IB_QP_ALT_PATH) {
+ 		/*
+@@ -1667,18 +1702,6 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 		}
+ 	}
+ 
+-	/*
+-	 * If the user provided the qp_attr then we have to resolve it. Kernel
+-	 * users have to provide already resolved rdma_ah_attr's
+-	 */
+-	if (udata && (attr_mask & IB_QP_AV) &&
+-	    attr->ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE &&
+-	    is_qp_type_connected(qp)) {
+-		ret = ib_resolve_eth_dmac(qp->device, &attr->ah_attr);
+-		if (ret)
+-			goto out;
+-	}
+-
+ 	if (rdma_ib_or_roce(qp->device, port)) {
+ 		if (attr_mask & IB_QP_RQ_PSN && attr->rq_psn & ~0xffffff) {
+ 			dev_warn(&qp->device->dev,
+@@ -1720,8 +1743,10 @@ static int _ib_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 	if (attr_mask & IB_QP_ALT_PATH)
+ 		rdma_unfill_sgid_attr(&attr->alt_ah_attr, old_sgid_attr_alt_av);
+ out_av:
+-	if (attr_mask & IB_QP_AV)
++	if (attr_mask & IB_QP_AV) {
++		rdma_lag_put_ah_roce_slave(attr->xmit_slave);
+ 		rdma_unfill_sgid_attr(&attr->ah_attr, old_sgid_attr_av);
++	}
  	return ret;
  }
-@@ -4501,9 +4535,9 @@ void bond_setup(struct net_device *bond_dev)
- static void bond_uninit(struct net_device *bond_dev)
- {
- 	struct bonding *bond = netdev_priv(bond_dev);
-+	struct bond_up_slave *usable, *all;
- 	struct list_head *iter;
- 	struct slave *slave;
--	struct bond_up_slave *arr;
  
- 	bond_netpoll_cleanup(bond_dev);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e6c18ec0365a..8d29f2f79da8 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -883,6 +883,7 @@ __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
+ struct rdma_ah_init_attr {
+ 	struct rdma_ah_attr *ah_attr;
+ 	u32 flags;
++	struct net_device *xmit_slave;
+ };
  
-@@ -4512,10 +4546,16 @@ static void bond_uninit(struct net_device *bond_dev)
- 		__bond_release_one(bond_dev, slave->dev, true, true);
- 	netdev_info(bond_dev, "Released all slaves\n");
+ enum rdma_ah_attr_type {
+@@ -1272,6 +1273,7 @@ struct ib_qp_attr {
+ 	u8			alt_port_num;
+ 	u8			alt_timeout;
+ 	u32			rate_limit;
++	struct net_device	*xmit_slave;
+ };
  
--	arr = rtnl_dereference(bond->usable_slaves);
--	if (arr) {
-+	usable = rtnl_dereference(bond->usable_slaves);
-+	if (usable) {
- 		RCU_INIT_POINTER(bond->usable_slaves, NULL);
--		kfree_rcu(arr, rcu);
-+		kfree_rcu(usable, rcu);
-+	}
-+
-+	all = rtnl_dereference(bond->all_slaves);
-+	if (all) {
-+		RCU_INIT_POINTER(bond->all_slaves, NULL);
-+		kfree_rcu(all, rcu);
- 	}
- 
- 	list_del(&bond->bond_list);
-diff --git a/include/net/bonding.h b/include/net/bonding.h
-index 33bdb6d5182d..b5e49bedbc9f 100644
---- a/include/net/bonding.h
-+++ b/include/net/bonding.h
-@@ -200,7 +200,8 @@ struct bonding {
- 	struct   slave __rcu *curr_active_slave;
- 	struct   slave __rcu *current_arp_slave;
- 	struct   slave __rcu *primary_slave;
--	struct   bond_up_slave __rcu *usable_slaves; /* Array of usable slaves */
-+	struct   bond_up_slave __rcu *usable_slaves;
-+	struct   bond_up_slave __rcu *all_slaves;
- 	bool     force_primary;
- 	s32      slave_cnt; /* never change this value outside the attach/detach wrappers */
- 	int     (*recv_probe)(const struct sk_buff *, struct bonding *,
+ enum ib_wr_opcode {
 -- 
 2.17.2
 
