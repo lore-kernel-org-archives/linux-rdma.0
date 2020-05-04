@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76794C3A5A9
-	for <linux-rdma@archiver.kernel.org>; Mon,  4 May 2020 05:30:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEA15C3A5A9
+	for <linux-rdma@archiver.kernel.org>; Mon,  4 May 2020 05:30:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D53F20735
-	for <linux-rdma@archiver.kernel.org>; Mon,  4 May 2020 05:30:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB16E20735
+	for <linux-rdma@archiver.kernel.org>; Mon,  4 May 2020 05:30:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588570227;
-	bh=qflfWnG9KwZsygsvagyAVv4l6HnOtCQdUZXG2HVoBBY=;
+	s=default; t=1588570232;
+	bh=N+1KQ+7VWDGoITrF8K2w5R5MNzn1pbVYB9t5KMd7TEo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=UQWir81Iy8Cr6UGt8vcNLO+QxWIAIr4fAjNDEkGc+qa0iY1ZtpDCxrfJnNewKr0PU
-	 Jzz5/O4HYJPhSRGMqpfmiJh9NmueKqaEsEWCf9FkxTZOtH2cYuZsKnbdIlLciaeV57
-	 a/Ax19nXiZJaeEu9PEW5ziLKUpEBQZUJzwS3N0o4=
+	b=ez/Ro16gcwp1id3ZiOIV370WH+UlrnHu56xl0zKPABBiaPj+5QF4RirMbuHT7Pr2k
+	 pudiPQEZYMakurX4Oc1j5OCoiIdmeaP+msaclWYLr1nePIQHcpEOP/kH0ZDzldh+XE
+	 AWSM7qm6ZvcG/8SEATAIzHx8kJQSw2RboFoqsk3k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727100AbgEDFa0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 4 May 2020 01:30:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36850 "EHLO mail.kernel.org"
+        id S1727116AbgEDFab (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 4 May 2020 01:30:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725859AbgEDFa0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 4 May 2020 01:30:26 -0400
+        id S1725859AbgEDFab (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 4 May 2020 01:30:31 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B5FB20643;
-        Mon,  4 May 2020 05:30:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 32C7E20643;
+        Mon,  4 May 2020 05:30:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588570225;
-        bh=qflfWnG9KwZsygsvagyAVv4l6HnOtCQdUZXG2HVoBBY=;
+        s=default; t=1588570230;
+        bh=N+1KQ+7VWDGoITrF8K2w5R5MNzn1pbVYB9t5KMd7TEo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SOzbpTgGxHBlgqVJKR2rtAVeXxKo+QiQS0+QsmARXDOSGWVOaPEh2ofzfdc1Nw2f+
-         6oqi5lvVMa/lNL/NcT4B9/YpVStow04ojuGrPV17NSsp2ozO06Nw4mw33SCk7Jc6Gp
-         9xDtEP2P87r6gplQXBVMzXdBRiRKUA6MSemTNy7k=
+        b=1rINHmmmewfQdbdP0rtF1QxJC8WiFqe/v9AGjSk2TbVT/XGtvuA/COF3JzljXmbjn
+         /kh1Oc1ox+RTtcLovq+Jg6///IGzYKwe6WEKLsMx5liriqyr1FZ3JoFBxz+kLyq50f
+         e8rg7Qd/3S1vsMIj2VaKQdG5RLQtWzu5COQeRl2o=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org,
-        Mark Bloch <markb@mellanox.com>,
-        Mark Zhang <markz@mellanox.com>, netdev@vger.kernel.org,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next v1 1/4] {IB/net}/mlx5: Simplify don't trap code
-Date:   Mon,  4 May 2020 08:30:09 +0300
-Message-Id: <20200504053012.270689-2-leon@kernel.org>
+        Mark Zhang <markz@mellanox.com>
+Subject: [PATCH rdma-next v1 3/4] RDMA/mlx5: Refactor DV create flow
+Date:   Mon,  4 May 2020 08:30:11 +0300
+Message-Id: <20200504053012.270689-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200504053012.270689-1-leon@kernel.org>
 References: <20200504053012.270689-1-leon@kernel.org>
@@ -60,200 +58,177 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@mellanox.com>
 
-The fs_core already supports creation of rules with multiple
-actions/destinations. Refactor fs_core to handle the case
-when don't trap rule is created with destination. Adapt the
-calling code in the driver.
+Move part of the code that get the destinations into function so
+the code will be more readable.
+In addition change the variables definition to be in reversed
+christmas tree.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Reviewed-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c             | 46 +++--------
- .../net/ethernet/mellanox/mlx5/core/fs_core.c | 79 +++++++++++--------
- 2 files changed, 55 insertions(+), 70 deletions(-)
+ drivers/infiniband/hw/mlx5/flow.c | 108 ++++++++++++++++--------------
+ 1 file changed, 59 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 0b8cc219e085..5a366f286043 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3699,12 +3699,13 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
- 		if (!dest_num)
- 			rule_dst = NULL;
- 	} else {
-+		if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)
-+			flow_act.action |=
-+				MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
- 		if (is_egress)
- 			flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_ALLOW;
--		else
--			flow_act.action |=
--				dest_num ?  MLX5_FLOW_CONTEXT_ACTION_FWD_DEST :
--					MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
-+		else if (dest_num)
-+			flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
+index 08fd6a650868..5533b5083c29 100644
+--- a/drivers/infiniband/hw/mlx5/flow.c
++++ b/drivers/infiniband/hw/mlx5/flow.c
+@@ -67,40 +67,18 @@ static const struct uverbs_attr_spec mlx5_ib_flow_type[] = {
+ 	},
+ };
  
- 	if ((spec->flow_context.flags & FLOW_CONTEXT_HAS_TAG)  &&
-@@ -3748,30 +3749,6 @@ static struct mlx5_ib_flow_handler *create_flow_rule(struct mlx5_ib_dev *dev,
- 	return _create_flow_rule(dev, ft_prio, flow_attr, dst, 0, NULL);
- }
- 
--static struct mlx5_ib_flow_handler *create_dont_trap_rule(struct mlx5_ib_dev *dev,
--							  struct mlx5_ib_flow_prio *ft_prio,
--							  struct ib_flow_attr *flow_attr,
--							  struct mlx5_flow_destination *dst)
--{
--	struct mlx5_ib_flow_handler *handler_dst = NULL;
--	struct mlx5_ib_flow_handler *handler = NULL;
--
--	handler = create_flow_rule(dev, ft_prio, flow_attr, NULL);
--	if (!IS_ERR(handler)) {
--		handler_dst = create_flow_rule(dev, ft_prio,
--					       flow_attr, dst);
--		if (IS_ERR(handler_dst)) {
--			mlx5_del_flow_rules(handler->rule);
--			ft_prio->refcount--;
--			kfree(handler);
--			handler = handler_dst;
--		} else {
--			list_add(&handler_dst->list, &handler->list);
--		}
--	}
--
--	return handler;
--}
- enum {
- 	LEFTOVERS_MC,
- 	LEFTOVERS_UC,
-@@ -3975,15 +3952,10 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- 	}
- 
- 	if (flow_attr->type == IB_FLOW_ATTR_NORMAL) {
--		if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)  {
--			handler = create_dont_trap_rule(dev, ft_prio,
--							flow_attr, dst);
--		} else {
--			underlay_qpn = (mqp->flags & IB_QP_CREATE_SOURCE_QPN) ?
--					mqp->underlay_qpn : 0;
--			handler = _create_flow_rule(dev, ft_prio, flow_attr,
--						    dst, underlay_qpn, ucmd);
--		}
-+		underlay_qpn = (mqp->flags & IB_QP_CREATE_SOURCE_QPN) ?
-+			mqp->underlay_qpn : 0;
-+		handler = _create_flow_rule(dev, ft_prio, flow_attr,
-+					    dst, underlay_qpn, ucmd);
- 	} else if (flow_attr->type == IB_FLOW_ATTR_ALL_DEFAULT ||
- 		   flow_attr->type == IB_FLOW_ATTR_MC_DEFAULT) {
- 		handler = create_leftovers_rule(dev, ft_prio, flow_attr,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index d5defe09339a..9afe942f7aa2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -254,7 +254,7 @@ static void del_sw_flow_group(struct fs_node *node);
- static void del_sw_fte(struct fs_node *node);
- static void del_sw_prio(struct fs_node *node);
- static void del_sw_ns(struct fs_node *node);
--/* Delete rule (destination) is special case that 
-+/* Delete rule (destination) is special case that
-  * requires to lock the FTE for all the deletion process.
-  */
- static void del_sw_hw_rule(struct fs_node *node);
-@@ -1899,48 +1899,61 @@ mlx5_add_flow_rules(struct mlx5_flow_table *ft,
+-#define MLX5_IB_CREATE_FLOW_MAX_FLOW_ACTIONS 2
+-static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+-	struct uverbs_attr_bundle *attrs)
++static int get_dests(struct uverbs_attr_bundle *attrs,
++		     struct mlx5_ib_flow_matcher *fs_matcher, int *dest_id,
++		     int *dest_type, struct ib_qp **qp)
  {
- 	struct mlx5_flow_root_namespace *root = find_root(&ft->node);
- 	static const struct mlx5_flow_spec zero_spec = {};
--	struct mlx5_flow_destination gen_dest = {};
-+	struct mlx5_flow_destination *gen_dest = NULL;
- 	struct mlx5_flow_table *next_ft = NULL;
- 	struct mlx5_flow_handle *handle = NULL;
- 	u32 sw_action = flow_act->action;
- 	struct fs_prio *prio;
-+	int i;
+-	struct mlx5_flow_context flow_context = {.flow_tag = MLX5_FS_DEFAULT_FLOW_TAG};
+-	struct mlx5_ib_flow_handler *flow_handler;
+-	struct mlx5_ib_flow_matcher *fs_matcher;
+-	struct ib_uobject **arr_flow_actions;
+-	struct ib_uflow_resources *uflow_res;
+-	struct mlx5_flow_act flow_act = {};
+-	void *devx_obj;
+-	int dest_id, dest_type;
+-	void *cmd_in;
+-	int inlen;
+ 	bool dest_devx, dest_qp;
+-	struct ib_qp *qp = NULL;
+-	struct ib_uobject *uobj =
+-		uverbs_attr_get_uobject(attrs, MLX5_IB_ATTR_CREATE_FLOW_HANDLE);
+-	struct mlx5_ib_dev *dev = mlx5_udata_to_mdev(&attrs->driver_udata);
+-	int len, ret, i;
+-	u32 counter_id = 0;
+-	u32 *offset_attr;
+-	u32 offset = 0;
+-
+-	if (!capable(CAP_NET_RAW))
+-		return -EPERM;
++	void *devx_obj;
  
- 	if (!spec)
- 		spec = &zero_spec;
+-	dest_devx =
+-		uverbs_attr_is_valid(attrs, MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX);
++	dest_devx = uverbs_attr_is_valid(attrs,
++					 MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX);
+ 	dest_qp = uverbs_attr_is_valid(attrs,
+ 				       MLX5_IB_ATTR_CREATE_FLOW_DEST_QP);
  
--	fs_get_obj(prio, ft->node.parent);
--	if (flow_act->action == MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO) {
--		if (!fwd_next_prio_supported(ft))
--			return ERR_PTR(-EOPNOTSUPP);
--		if (num_dest)
--			return ERR_PTR(-EINVAL);
--		mutex_lock(&root->chain_lock);
--		next_ft = find_next_chained_ft(prio);
--		if (next_ft) {
--			gen_dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
--			gen_dest.ft = next_ft;
--			dest = &gen_dest;
--			num_dest = 1;
--			flow_act->action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
--		} else {
--			mutex_unlock(&root->chain_lock);
--			return ERR_PTR(-EOPNOTSUPP);
--		}
--	}
-+	if (!(sw_action & MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO))
-+		return _mlx5_add_flow_rules(ft, spec, flow_act, dest, num_dest);
+-	fs_matcher = uverbs_attr_get_obj(attrs,
+-					 MLX5_IB_ATTR_CREATE_FLOW_MATCHER);
+ 	if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_BYPASS &&
+ 	    ((dest_devx && dest_qp) || (!dest_devx && !dest_qp)))
+ 		return -EINVAL;
+@@ -114,43 +92,79 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 	    ((!dest_devx && !dest_qp) || (dest_devx && dest_qp)))
+ 		return -EINVAL;
  
--	handle = _mlx5_add_flow_rules(ft, spec, flow_act, dest, num_dest);
-+	if (!fwd_next_prio_supported(ft))
-+		return ERR_PTR(-EOPNOTSUPP);
++	*qp = NULL;
+ 	if (dest_devx) {
+-		devx_obj = uverbs_attr_get_obj(
+-			attrs, MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX);
+-		if (IS_ERR(devx_obj))
+-			return PTR_ERR(devx_obj);
++		devx_obj =
++			uverbs_attr_get_obj(attrs,
++					    MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX);
  
--	if (sw_action == MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO) {
--		if (!IS_ERR_OR_NULL(handle) &&
--		    (list_empty(&handle->rule[0]->next_ft))) {
--			mutex_lock(&next_ft->lock);
--			list_add(&handle->rule[0]->next_ft,
--				 &next_ft->fwd_rules);
--			mutex_unlock(&next_ft->lock);
--			handle->rule[0]->sw_action = MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
--		}
--		mutex_unlock(&root->chain_lock);
--	}
-+	mutex_lock(&root->chain_lock);
-+	fs_get_obj(prio, ft->node.parent);
-+	next_ft = find_next_chained_ft(prio);
-+	if (!next_ft) {
-+		handle = ERR_PTR(-EOPNOTSUPP);
-+		goto unlock;
-+	}
+ 		/* Verify that the given DEVX object is a flow
+ 		 * steering destination.
+ 		 */
+-		if (!mlx5_ib_devx_is_flow_dest(devx_obj, &dest_id, &dest_type))
++		if (!mlx5_ib_devx_is_flow_dest(devx_obj, dest_id, dest_type))
+ 			return -EINVAL;
+ 		/* Allow only flow table as dest when inserting to FDB or RDMA_RX */
+ 		if ((fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB ||
+ 		     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX) &&
+-		    dest_type != MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE)
++		    *dest_type != MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE)
+ 			return -EINVAL;
+ 	} else if (dest_qp) {
+ 		struct mlx5_ib_qp *mqp;
+ 
+-		qp = uverbs_attr_get_obj(attrs,
+-					 MLX5_IB_ATTR_CREATE_FLOW_DEST_QP);
+-		if (IS_ERR(qp))
+-			return PTR_ERR(qp);
++		*qp = uverbs_attr_get_obj(attrs,
++					  MLX5_IB_ATTR_CREATE_FLOW_DEST_QP);
++		if (IS_ERR(*qp))
++			return PTR_ERR(*qp);
+ 
+-		if (qp->qp_type != IB_QPT_RAW_PACKET)
++		if ((*qp)->qp_type != IB_QPT_RAW_PACKET)
+ 			return -EINVAL;
+ 
+-		mqp = to_mqp(qp);
++		mqp = to_mqp(*qp);
+ 		if (mqp->is_rss)
+-			dest_id = mqp->rss_qp.tirn;
++			*dest_id = mqp->rss_qp.tirn;
+ 		else
+-			dest_id = mqp->raw_packet_qp.rq.tirn;
+-		dest_type = MLX5_FLOW_DESTINATION_TYPE_TIR;
+-	} else {
+-		dest_type = MLX5_FLOW_DESTINATION_TYPE_PORT;
++			*dest_id = mqp->raw_packet_qp.rq.tirn;
++		*dest_type = MLX5_FLOW_DESTINATION_TYPE_TIR;
++	} else if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_EGRESS) {
++		*dest_type = MLX5_FLOW_DESTINATION_TYPE_PORT;
+ 	}
+ 
++	if (*dest_type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
++	    fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_EGRESS)
++		return -EINVAL;
 +
-+	gen_dest = kcalloc(num_dest + 1, sizeof(*dest),
-+			   GFP_KERNEL);
-+	if (!gen_dest) {
-+		handle = ERR_PTR(-ENOMEM);
-+		goto unlock;
-+	}
-+	for (i = 0; i < num_dest; i++)
-+		gen_dest[i] = dest[i];
-+	gen_dest[i].type =
-+		MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
-+	gen_dest[i].ft = next_ft;
-+	dest = gen_dest;
-+	num_dest++;
-+	flow_act->action &=
-+		~MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
-+	flow_act->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-+	handle = _mlx5_add_flow_rules(ft, spec, flow_act, dest, num_dest);
-+	if (IS_ERR_OR_NULL(handle))
-+		goto unlock;
++	return 0;
++}
 +
-+	if (list_empty(&handle->rule[num_dest - 1]->next_ft)) {
-+		mutex_lock(&next_ft->lock);
-+		list_add(&handle->rule[num_dest - 1]->next_ft,
-+			 &next_ft->fwd_rules);
-+		mutex_unlock(&next_ft->lock);
-+		handle->rule[num_dest - 1]->sw_action =
-+			MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
-+	}
-+unlock:
-+	mutex_unlock(&root->chain_lock);
-+	kfree(gen_dest);
- 	return handle;
- }
- EXPORT_SYMBOL(mlx5_add_flow_rules);
++#define MLX5_IB_CREATE_FLOW_MAX_FLOW_ACTIONS 2
++static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct mlx5_flow_context flow_context = {.flow_tag =
++		MLX5_FS_DEFAULT_FLOW_TAG};
++	u32 *offset_attr, offset = 0, counter_id = 0;
++	int dest_id, dest_type, inlen, len, ret, i;
++	struct mlx5_ib_flow_handler *flow_handler;
++	struct mlx5_ib_flow_matcher *fs_matcher;
++	struct ib_uobject **arr_flow_actions;
++	struct ib_uflow_resources *uflow_res;
++	struct mlx5_flow_act flow_act = {};
++	struct ib_qp *qp = NULL;
++	void *devx_obj, *cmd_in;
++	struct ib_uobject *uobj;
++	struct mlx5_ib_dev *dev;
++
++	if (!capable(CAP_NET_RAW))
++		return -EPERM;
++
++	fs_matcher = uverbs_attr_get_obj(attrs,
++					 MLX5_IB_ATTR_CREATE_FLOW_MATCHER);
++	uobj =  uverbs_attr_get_uobject(attrs, MLX5_IB_ATTR_CREATE_FLOW_HANDLE);
++	dev = mlx5_udata_to_mdev(&attrs->driver_udata);
++
++	if (get_dests(attrs, fs_matcher, &dest_id, &dest_type, &qp))
++		return -EINVAL;
++
+ 	len = uverbs_attr_get_uobjs_arr(attrs,
+ 		MLX5_IB_ATTR_CREATE_FLOW_ARR_COUNTERS_DEVX, &arr_flow_actions);
+ 	if (len) {
+@@ -180,10 +194,6 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 		flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_COUNT;
+ 	}
+ 
+-	if (dest_type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
+-	    fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_EGRESS)
+-		return -EINVAL;
+-
+ 	cmd_in = uverbs_attr_get_alloced_ptr(
+ 		attrs, MLX5_IB_ATTR_CREATE_FLOW_MATCH_VALUE);
+ 	inlen = uverbs_attr_get_len(attrs,
 -- 
 2.26.2
 
