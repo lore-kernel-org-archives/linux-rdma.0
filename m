@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F4009C47257
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 21:10:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 649D7C28CBC
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 21:10:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5FA42075E
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 21:10:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 460002075E
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 21:10:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729684AbgEFVKP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 May 2020 17:10:15 -0400
-Received: from mga17.intel.com ([192.55.52.151]:3051 "EHLO mga17.intel.com"
+        id S1729114AbgEFVKn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 May 2020 17:10:43 -0400
+Received: from mga17.intel.com ([192.55.52.151]:3050 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729600AbgEFVKN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 6 May 2020 17:10:13 -0400
-IronPort-SDR: Bs49ulX2BcVdkzya9bFiMhW1KfqxsiajsuoljPtUvS+dAWX5U9FkaheJP6fACA6VCLeBcrPvoA
- CbSXZQ7jS8Fg==
+        id S1728621AbgEFVKm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 May 2020 17:10:42 -0400
+IronPort-SDR: JGdbeXIVUFkJGBoz1w64jIsZHtX+8ei8/jWQFN3/kLbg1nSXGQKfpuuzob72AjO3P5sbFAeojS
+ Kg0bZ4Pz91XQ==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
   by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2020 14:05:11 -0700
-IronPort-SDR: wVysK3oqRabzQb8Ea79YvrJLWkZ5AKpwSgmMGc1uI3slqRU25J+f/9i1/Bi3d50Z8T+tWVYGeS
- EpgrhUxfNxOA==
+IronPort-SDR: pzlBXJGV8nOIvSrHCRRwuEtDtfT7Pmv1WCMmepFo0k7EyRVHI1nwkKqJjujR2HZNOeSeNPxdvu
+ /BYZqB1o91Yg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,360,1583222400"; 
-   d="scan'208";a="263703842"
+   d="scan'208";a="263703827"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.86])
-  by orsmga006.jf.intel.com with ESMTP; 06 May 2020 14:05:11 -0700
+  by orsmga006.jf.intel.com with ESMTP; 06 May 2020 14:05:10 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
-Cc:     Shiraz Saleem <shiraz.saleem@intel.com>, netdev@vger.kernel.org,
+Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
         sassmann@redhat.com, jgg@ziepe.ca,
         ranjani.sridharan@linux.intel.com,
         pierre-louis.bossart@linux.intel.com,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
         Andrew Bowers <andrewx.bowers@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [net-next v3 9/9] i40e: Register a virtbus device to provide RDMA
-Date:   Wed,  6 May 2020 14:05:05 -0700
-Message-Id: <20200506210505.507254-10-jeffrey.t.kirsher@intel.com>
+Subject: [net-next v3 5/9] ice: Enable event notifications
+Date:   Wed,  6 May 2020 14:05:01 -0700
+Message-Id: <20200506210505.507254-6-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200506210505.507254-1-jeffrey.t.kirsher@intel.com>
 References: <20200506210505.507254-1-jeffrey.t.kirsher@intel.com>
@@ -54,322 +54,418 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem@intel.com>
+From: Dave Ertman <david.m.ertman@intel.com>
 
-Register client virtbus device on the virtbus for the RDMA
-virtbus driver (irdma) to bind to. It allows to realize a
-single RDMA driver capable of working with multiple netdev
-drivers over multi-generation Intel HW supporting RDMA.
-There is also no load ordering dependencies between i40e and
-irdma.
+Enable registration of notifications. Peer devices can register to be
+notified of certain events as well as notify the driver of its state
+changes.
 
-Summary of changes:
-* Support to add/remove virtbus devices
-* Add 2 new client ops.
-	* i40e_client_device_register() which is called during RDMA
-	  probe() per PF. Validate client drv OPs and schedule service
-	  task to call open()
-	* i40e_client_device_unregister() called during RDMA remove()
-	  per PF. Call client close() and release_qvlist.
-* The global register/unregister calls exported for i40iw are retained
-  until i40iw is removed from the kernel.
-
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 Tested-by: Andrew Bowers <andrewx.bowers@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- drivers/net/ethernet/intel/Kconfig            |   1 +
- drivers/net/ethernet/intel/i40e/i40e_client.c | 131 +++++++++++++++---
- include/linux/net/intel/i40e_client.h         |  15 ++
- 3 files changed, 127 insertions(+), 20 deletions(-)
+ drivers/net/ethernet/intel/ice/ice_dcb_lib.c |  37 ++++
+ drivers/net/ethernet/intel/ice/ice_idc.c     | 221 +++++++++++++++++++
+ drivers/net/ethernet/intel/ice/ice_idc_int.h |   1 +
+ drivers/net/ethernet/intel/ice/ice_main.c    |  27 ++-
+ 4 files changed, 280 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
-index 1a5d51b0f294..7a61e9d5e36e 100644
---- a/drivers/net/ethernet/intel/Kconfig
-+++ b/drivers/net/ethernet/intel/Kconfig
-@@ -241,6 +241,7 @@ config I40E
- 	tristate "Intel(R) Ethernet Controller XL710 Family support"
- 	imply PTP_1588_CLOCK
- 	depends on PCI
-+	select VIRTUAL_BUS
- 	---help---
- 	  This driver supports Intel(R) Ethernet Controller XL710 Family of
- 	  devices.  For more information on how to identify your adapter, go
-diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.c b/drivers/net/ethernet/intel/i40e/i40e_client.c
-index befd3018183f..fdce8af3ec4f 100644
---- a/drivers/net/ethernet/intel/i40e/i40e_client.c
-+++ b/drivers/net/ethernet/intel/i40e/i40e_client.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- /* Copyright(c) 2013 - 2018 Intel Corporation. */
- 
-+#include <linux/net/intel/i40e_client.h>
- #include <linux/list.h>
- #include <linux/errno.h>
- #include <linux/net/intel/i40e_client.h>
-@@ -30,11 +31,17 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
- 				       bool is_vf, u32 vf_id,
- 				       u32 flag, u32 valid_flag);
- 
-+static int i40e_client_device_register(struct i40e_info *ldev);
-+
-+static void i40e_client_device_unregister(struct i40e_info *ldev);
-+
- static struct i40e_ops i40e_lan_ops = {
- 	.virtchnl_send = i40e_client_virtchnl_send,
- 	.setup_qvlist = i40e_client_setup_qvlist,
- 	.request_reset = i40e_client_request_reset,
- 	.update_vsi_ctxt = i40e_client_update_vsi_ctxt,
-+	.client_device_register = i40e_client_device_register,
-+	.client_device_unregister = i40e_client_device_unregister,
- };
- 
- /**
-@@ -275,6 +282,37 @@ void i40e_client_update_msix_info(struct i40e_pf *pf)
- 	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
+diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
+index 24c0a60fe172..c4f8be0c0b24 100644
+--- a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
++++ b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
+@@ -168,6 +168,30 @@ void ice_vsi_cfg_dcb_rings(struct ice_vsi *vsi)
+ 	}
  }
  
-+static void i40e_virtdev_release(struct virtbus_device *vdev)
++/**
++ * ice_peer_prep_tc_change - Pre-notify RDMA Peer in blocking call of TC change
++ * @peer_dev_int: ptr to peer device internal struct
++ * @data: ptr to opaque data
++ */
++static int
++ice_peer_prep_tc_change(struct ice_peer_dev_int *peer_dev_int,
++			void __always_unused *data)
 +{
-+	struct i40e_virtbus_device *i40e_vdev =
-+			container_of(vdev, struct i40e_virtbus_device, vdev);
++	struct iidc_peer_dev *peer_dev;
 +
-+	kfree(i40e_vdev);
-+}
++	peer_dev = &peer_dev_int->peer_dev;
++	if (!ice_validate_peer_dev(peer_dev))
++		return 0;
 +
-+static int i40e_init_client_virtdev(struct i40e_info *ldev)
-+{
-+	struct pci_dev *pdev = ldev->pcidev;
-+	struct i40e_virtbus_device *i40e_vdev;
-+	int ret;
++	if (!test_bit(ICE_PEER_DEV_STATE_OPENED, peer_dev_int->state))
++		return 0;
 +
-+	i40e_vdev = kzalloc(sizeof(*i40e_vdev), GFP_KERNEL);
-+	if (!i40e_vdev)
-+		return -ENOMEM;
-+
-+	i40e_vdev->vdev.match_name = I40E_PEER_RDMA_NAME;
-+	i40e_vdev->vdev.dev.parent = &pdev->dev;
-+	i40e_vdev->vdev.release = i40e_virtdev_release;
-+	i40e_vdev->ldev = ldev;
-+	ldev->vdev = &i40e_vdev->vdev;
-+
-+	ret = virtbus_register_device(&i40e_vdev->vdev);
-+	if (ret)
-+		return ret;
++	if (peer_dev->peer_ops && peer_dev->peer_ops->prep_tc_change)
++		peer_dev->peer_ops->prep_tc_change(peer_dev);
 +
 +	return 0;
 +}
 +
  /**
-  * i40e_client_add_instance - add a client instance struct to the instance list
-  * @pf: pointer to the board struct
-@@ -288,9 +326,6 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
- 	struct netdev_hw_addr *mac = NULL;
- 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
+  * ice_dcb_bwchk - check if ETS bandwidth input parameters are correct
+  * @pf: pointer to the PF struct
+@@ -248,6 +272,9 @@ int ice_pf_dcb_cfg(struct ice_pf *pf, struct ice_dcbx_cfg *new_cfg, bool locked)
+ 		return -ENOMEM;
  
--	if (!registered_client || pf->cinst)
--		return;
--
- 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
- 	if (!cdev)
- 		return;
-@@ -310,11 +345,8 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
- 	cdev->lan_info.fw_build = pf->hw.aq.fw_build;
- 	set_bit(__I40E_CLIENT_INSTANCE_NONE, &cdev->state);
- 
--	if (i40e_client_get_params(vsi, &cdev->lan_info.params)) {
--		kfree(cdev);
--		cdev = NULL;
--		return;
--	}
-+	if (i40e_client_get_params(vsi, &cdev->lan_info.params))
-+		goto free_cdev;
- 
- 	mac = list_first_entry(&cdev->lan_info.netdev->dev_addrs.list,
- 			       struct netdev_hw_addr, list);
-@@ -326,7 +358,17 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
- 	cdev->client = registered_client;
- 	pf->cinst = cdev;
- 
--	i40e_client_update_msix_info(pf);
-+	cdev->lan_info.msix_count = pf->num_iwarp_msix;
-+	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
+ 	dev_info(dev, "Commit DCB Configuration to the hardware\n");
++	/* Notify capable peers about impending change to TCs */
++	ice_for_each_peer(pf, NULL, ice_peer_prep_tc_change);
 +
-+	if (i40e_init_client_virtdev(&cdev->lan_info))
-+		goto free_cdev;
-+
-+	return;
-+
-+free_cdev:
-+	kfree(cdev);
-+	pf->cinst = NULL;
- }
- 
- /**
-@@ -347,7 +389,7 @@ void i40e_client_del_instance(struct i40e_pf *pf)
-  **/
- void i40e_client_subtask(struct i40e_pf *pf)
+ 	pf_vsi = ice_get_main_vsi(pf);
+ 	if (!pf_vsi) {
+ 		dev_dbg(dev, "PF VSI doesn't exist\n");
+@@ -580,6 +607,7 @@ static int ice_dcb_noncontig_cfg(struct ice_pf *pf)
+ void ice_pf_dcb_recfg(struct ice_pf *pf)
  {
--	struct i40e_client *client = registered_client;
-+	struct i40e_client *client;
- 	struct i40e_client_instance *cdev;
- 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
- 	int ret = 0;
-@@ -361,9 +403,11 @@ void i40e_client_subtask(struct i40e_pf *pf)
- 	    test_bit(__I40E_CONFIG_BUSY, pf->state))
- 		return;
+ 	struct ice_dcbx_cfg *dcbcfg = &pf->hw.port_info->local_dcbx_cfg;
++	struct iidc_event *event;
+ 	u8 tc_map = 0;
+ 	int v, ret;
  
--	if (!client || !cdev)
-+	if (!cdev || !cdev->client)
- 		return;
- 
-+	client = cdev->client;
+@@ -615,6 +643,15 @@ void ice_pf_dcb_recfg(struct ice_pf *pf)
+ 		if (vsi->type == ICE_VSI_PF)
+ 			ice_dcbnl_set_all(vsi);
+ 	}
++	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	if (!event)
++		return;
 +
- 	/* Here we handle client opens. If the client is down, and
- 	 * the netdev is registered, then open the client.
- 	 */
-@@ -424,16 +468,8 @@ int i40e_lan_add_device(struct i40e_pf *pf)
- 		 pf->hw.pf_id, pf->hw.bus.bus_id,
- 		 pf->hw.bus.device, pf->hw.bus.func);
- 
--	/* If a client has already been registered, we need to add an instance
--	 * of it to our new LAN device.
--	 */
--	if (registered_client)
--		i40e_client_add_instance(pf);
-+	i40e_client_add_instance(pf);
- 
--	/* Since in some cases register may have happened before a device gets
--	 * added, we can schedule a subtask to go initiate the clients if
--	 * they can be launched at probe time.
--	 */
- 	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
- 	i40e_service_event_schedule(pf);
- 
-@@ -453,6 +489,8 @@ int i40e_lan_del_device(struct i40e_pf *pf)
- 	struct i40e_device *ldev, *tmp;
- 	int ret = -ENODEV;
- 
-+	virtbus_unregister_device(pf->cinst->lan_info.vdev);
-+
- 	/* First, remove any client instance. */
- 	i40e_client_del_instance(pf);
- 
-@@ -733,6 +771,59 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
- 	return err;
++	set_bit(IIDC_EVENT_TC_CHANGE, event->type);
++	event->reporter = NULL;
++	ice_setup_dcb_qos_info(pf, &event->info.port_qos);
++	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
++	kfree(event);
  }
  
-+static int i40e_client_device_register(struct i40e_info *ldev)
+ /**
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
+index 05fa5c61e2d3..0fb1080c19d7 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc.c
++++ b/drivers/net/ethernet/intel/ice/ice_idc.c
+@@ -218,6 +218,72 @@ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data)
+ 	return 0;
+ }
+ 
++/**
++ * ice_check_peer_drv_for_events - check peer_drv for events to report
++ * @peer_dev: peer device to report to
++ */
++static void ice_check_peer_drv_for_events(struct iidc_peer_dev *peer_dev)
 +{
-+	struct i40e_client *client;
-+	struct i40e_pf *pf;
++	const struct iidc_peer_ops *p_ops = peer_dev->peer_ops;
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_peer_drv_int *peer_drv_int;
++	int i;
 +
-+	if (!ldev) {
-+		pr_err("Failed to reg client dev: ldev ptr NULL\n");
-+		return -EINVAL;
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	if (!peer_dev_int)
++		return;
++	peer_drv_int = peer_dev_int->peer_drv_int;
++
++	for_each_set_bit(i, peer_dev_int->events, IIDC_EVENT_NBITS) {
++		struct iidc_event *curr = &peer_drv_int->current_events[i];
++
++		if (!bitmap_empty(curr->type, IIDC_EVENT_NBITS) &&
++		    p_ops->event_handler)
++			p_ops->event_handler(peer_dev, curr);
 +	}
++}
 +
-+	client = ldev->client;
-+	pf = ldev->pf;
-+	if (!client) {
-+		pr_err("Failed to reg client dev: client ptr NULL\n");
-+		return -EINVAL;
++/**
++ * ice_check_peer_for_events - check peer_devs for events new peer reg'd for
++ * @src_peer_int: peer to check for events
++ * @data: ptr to opaque data, to be used for the peer struct that opened
++ *
++ * This function is to be called when a peer device is opened.
++ *
++ * Since a new peer opening would have missed any events that would
++ * have happened before its opening, we need to walk the peers and see
++ * if any of them have events that the new peer cares about
++ *
++ * This function is meant to be called by a device_for_each_child.
++ */
++static int
++ice_check_peer_for_events(struct ice_peer_dev_int *src_peer_int, void *data)
++{
++	struct iidc_peer_dev *new_peer = (struct iidc_peer_dev *)data;
++	const struct iidc_peer_ops *p_ops = new_peer->peer_ops;
++	struct ice_peer_dev_int *new_peer_int;
++	struct iidc_peer_dev *src_peer;
++	int i;
++
++	src_peer = &src_peer_int->peer_dev;
++	if (!ice_validate_peer_dev(new_peer) ||
++	    !ice_validate_peer_dev(src_peer))
++		return 0;
++
++	new_peer_int = peer_to_ice_dev_int(new_peer);
++
++	for_each_set_bit(i, new_peer_int->events, IIDC_EVENT_NBITS) {
++		struct iidc_event *curr = &src_peer_int->current_events[i];
++
++		if (!bitmap_empty(curr->type, IIDC_EVENT_NBITS) &&
++		    new_peer->peer_dev_id != src_peer->peer_dev_id &&
++		    p_ops->event_handler)
++			p_ops->event_handler(new_peer, curr);
 +	}
-+
-+	if (!ldev->ops || !client->ops) {
-+		pr_err("Failed to reg client dev: client dev peer_ops/ops NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	pf->cinst->client = ldev->client;
-+	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
-+	i40e_service_event_schedule(pf);
 +
 +	return 0;
 +}
 +
-+static void i40e_client_device_unregister(struct i40e_info *ldev)
+ /**
+  * ice_for_each_peer - iterate across and call function for each peer dev
+  * @pf: pointer to private board struct
+@@ -323,6 +389,9 @@ ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int,
+ 
+ 		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_OPENED,
+ 				      true);
++		ret = ice_for_each_peer(pf, peer_dev,
++					ice_check_peer_for_events);
++		ice_check_peer_drv_for_events(peer_dev);
+ 	}
+ 
+ init_unlock:
+@@ -630,6 +699,155 @@ ice_peer_free_res(struct iidc_peer_dev *peer_dev, struct iidc_res *res)
+ 	return ret;
+ }
+ 
++/**
++ * ice_peer_reg_for_notif - register a peer to receive specific notifications
++ * @peer_dev: peer that is registering for event notifications
++ * @events: mask of event types peer is registering for
++ */
++static void
++ice_peer_reg_for_notif(struct iidc_peer_dev *peer_dev,
++		       struct iidc_event *events)
 +{
-+	struct i40e_pf *pf = ldev->pf;
-+	struct i40e_client_instance *cdev = pf->cinst;
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_pf *pf;
 +
-+	while (test_and_set_bit(__I40E_SERVICE_SCHED, pf->state))
-+		usleep_range(500, 1000);
++	if (!ice_validate_peer_dev(peer_dev) || !events)
++		return;
 +
-+	if (!cdev || !cdev->client || !cdev->client->ops ||
-+	    !cdev->client->ops->close) {
-+		dev_err(&pf->pdev->dev, "Cannot close client device\n");
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	pf = pci_get_drvdata(peer_dev->pdev);
++
++	bitmap_or(peer_dev_int->events, peer_dev_int->events, events->type,
++		  IIDC_EVENT_NBITS);
++
++	/* Check to see if any events happened previous to peer registering */
++	ice_for_each_peer(pf, peer_dev, ice_check_peer_for_events);
++	ice_check_peer_drv_for_events(peer_dev);
++}
++
++/**
++ * ice_peer_unreg_for_notif - unreg a peer from receiving certain notifications
++ * @peer_dev: peer that is unregistering from event notifications
++ * @events: mask of event types peer is unregistering for
++ */
++static void
++ice_peer_unreg_for_notif(struct iidc_peer_dev *peer_dev,
++			 struct iidc_event *events)
++{
++	struct ice_peer_dev_int *peer_dev_int;
++
++	if (!ice_validate_peer_dev(peer_dev) || !events)
++		return;
++
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++
++	bitmap_andnot(peer_dev_int->events, peer_dev_int->events, events->type,
++		      IIDC_EVENT_NBITS);
++}
++
++/**
++ * ice_peer_check_for_reg - check to see if any peers are reg'd for event
++ * @peer_dev_int: ptr to peer device internal struct
++ * @data: ptr to opaque data, to be used for ice_event to report
++ *
++ * This function is to be called by device_for_each_child to handle an
++ * event reported by a peer or the ice driver.
++ */
++int ice_peer_check_for_reg(struct ice_peer_dev_int *peer_dev_int, void *data)
++{
++	struct iidc_event *event = (struct iidc_event *)data;
++	DECLARE_BITMAP(comp_events, IIDC_EVENT_NBITS);
++	struct iidc_peer_dev *peer_dev;
++	bool check = true;
++
++	peer_dev = &peer_dev_int->peer_dev;
++
++	if (!ice_validate_peer_dev(peer_dev) || !data)
++	/* If invalid dev, in this case return 0 instead of error
++	 * because caller ignores this return value
++	 */
++		return 0;
++
++	if (event->reporter)
++		check = event->reporter->peer_dev_id != peer_dev->peer_dev_id;
++
++	if (bitmap_and(comp_events, event->type, peer_dev_int->events,
++		       IIDC_EVENT_NBITS) &&
++	    (test_bit(ICE_PEER_DEV_STATE_OPENED, peer_dev_int->state) ||
++	     test_bit(ICE_PEER_DEV_STATE_PREP_RST, peer_dev_int->state) ||
++	     test_bit(ICE_PEER_DEV_STATE_PREPPED, peer_dev_int->state)) &&
++	    check &&
++	    peer_dev->peer_ops->event_handler)
++		peer_dev->peer_ops->event_handler(peer_dev, event);
++
++	return 0;
++}
++
++/**
++ * ice_peer_report_state_change - accept report of a peer state change
++ * @peer_dev: peer that is sending notification about state change
++ * @event: ice_event holding info on what the state change is
++ *
++ * We also need to parse the list of peers to see if anyone is registered
++ * for notifications about this state change event, and if so, notify them.
++ */
++static void
++ice_peer_report_state_change(struct iidc_peer_dev *peer_dev,
++			     struct iidc_event *event)
++{
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_peer_drv_int *peer_drv_int;
++	int e_type, drv_event = 0;
++	struct ice_pf *pf;
++
++	if (!ice_validate_peer_dev(peer_dev) || !event)
++		return;
++
++	pf = pci_get_drvdata(peer_dev->pdev);
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	peer_drv_int = peer_dev_int->peer_drv_int;
++
++	e_type = find_first_bit(event->type, IIDC_EVENT_NBITS);
++	if (!e_type)
++		return;
++
++	switch (e_type) {
++	/* Check for peer_drv events */
++	case IIDC_EVENT_MBX_CHANGE:
++		drv_event = 1;
++		if (event->info.mbx_rdy)
++			set_bit(ICE_PEER_DRV_STATE_MBX_RDY,
++				peer_drv_int->state);
++		else
++			clear_bit(ICE_PEER_DRV_STATE_MBX_RDY,
++				  peer_drv_int->state);
++		break;
++
++	/* Check for peer_dev events */
++	case IIDC_EVENT_API_CHANGE:
++		if (event->info.api_rdy)
++			set_bit(ICE_PEER_DEV_STATE_API_RDY,
++				peer_dev_int->state);
++		else
++			clear_bit(ICE_PEER_DEV_STATE_API_RDY,
++				  peer_dev_int->state);
++		break;
++
++	default:
 +		return;
 +	}
-+	cdev->client->ops->close(&cdev->lan_info, cdev->client, false);
-+	clear_bit(__I40E_CLIENT_INSTANCE_OPENED, &cdev->state);
-+	i40e_client_release_qvlist(&cdev->lan_info);
-+	pf->cinst->client = NULL;
-+	clear_bit(__I40E_SERVICE_SCHED, pf->state);
++
++	/* store the event and state to notify any new peers opening */
++	if (drv_event)
++		memcpy(&peer_drv_int->current_events[e_type], event,
++		       sizeof(*event));
++	else
++		memcpy(&peer_dev_int->current_events[e_type], event,
++		       sizeof(*event));
++
++	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
 +}
 +
-+/* Retain legacy global registration/unregistration calls till i40iw is
-+ * deprecated from the kernel. The irdma unified driver does not use these
-+ * exported symbols.
-+ */
  /**
-  * i40e_register_client - Register a i40e client driver with the L2 driver
-  * @client: pointer to the i40e_client struct
-diff --git a/include/linux/net/intel/i40e_client.h b/include/linux/net/intel/i40e_client.h
-index 72994baf4941..4a83648cf5fd 100644
---- a/include/linux/net/intel/i40e_client.h
-+++ b/include/linux/net/intel/i40e_client.h
-@@ -4,6 +4,9 @@
- #ifndef _I40E_CLIENT_H_
- #define _I40E_CLIENT_H_
+  * ice_peer_unregister - request to unregister peer
+  * @peer_dev: peer device
+@@ -755,6 +973,9 @@ ice_peer_update_vsi_filter(struct iidc_peer_dev *peer_dev,
+ static const struct iidc_ops ops = {
+ 	.alloc_res			= ice_peer_alloc_res,
+ 	.free_res			= ice_peer_free_res,
++	.reg_for_notification		= ice_peer_reg_for_notif,
++	.unreg_for_notification		= ice_peer_unreg_for_notif,
++	.notify_state_change		= ice_peer_report_state_change,
+ 	.peer_register			= ice_peer_register,
+ 	.peer_unregister		= ice_peer_unregister,
+ 	.update_vsi_filter		= ice_peer_update_vsi_filter,
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+index d22e6f5bb50e..1d3d5cafc977 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
++++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+@@ -66,6 +66,7 @@ int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data);
++int ice_peer_check_for_reg(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int
+ ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
  
-+#include <linux/virtual_bus.h>
-+
-+#define I40E_PEER_RDMA_NAME	"intel,i40e,rdma"
- #define I40E_CLIENT_STR_LENGTH 10
+diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
+index ac0c6d5b01e4..d1a528da9128 100644
+--- a/drivers/net/ethernet/intel/ice/ice_main.c
++++ b/drivers/net/ethernet/intel/ice/ice_main.c
+@@ -4862,7 +4862,9 @@ static int ice_change_mtu(struct net_device *netdev, int new_mtu)
+ 	struct ice_netdev_priv *np = netdev_priv(netdev);
+ 	struct ice_vsi *vsi = np->vsi;
+ 	struct ice_pf *pf = vsi->back;
++	struct iidc_event *event;
+ 	u8 count = 0;
++	int err = 0;
  
- /* Client interface version should be updated anytime there is a change in the
-@@ -84,6 +87,7 @@ struct i40e_info {
- 	u8 lanmac[6];
- 	struct net_device *netdev;
- 	struct pci_dev *pcidev;
-+	struct virtbus_device *vdev;
- 	u8 __iomem *hw_addr;
- 	u8 fid;	/* function id, PF id or VF id */
- #define I40E_CLIENT_FTYPE_PF 0
-@@ -97,6 +101,7 @@ struct i40e_info {
- 	struct i40e_qvlist_info *qvlist_info;
- 	struct i40e_params params;
- 	struct i40e_ops *ops;
-+	struct i40e_client *client;
+ 	if (new_mtu == netdev->mtu) {
+ 		netdev_warn(netdev, "MTU is already %u\n", netdev->mtu);
+@@ -4904,27 +4906,40 @@ static int ice_change_mtu(struct net_device *netdev, int new_mtu)
+ 		return -EBUSY;
+ 	}
  
- 	u16 msix_count;	 /* number of msix vectors*/
- 	/* Array down below will be dynamically allocated based on msix_count */
-@@ -107,6 +112,11 @@ struct i40e_info {
- 	u32 fw_build;                   /* firmware build number */
- };
++	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	if (!event)
++		return -ENOMEM;
++
+ 	netdev->mtu = new_mtu;
  
-+struct i40e_virtbus_device {
-+	struct virtbus_device vdev;
-+	struct i40e_info *ldev;
-+};
-+
- #define I40E_CLIENT_RESET_LEVEL_PF   1
- #define I40E_CLIENT_RESET_LEVEL_CORE 2
- #define I40E_CLIENT_VSI_FLAG_TCP_ENABLE  BIT(1)
-@@ -132,6 +142,11 @@ struct i40e_ops {
- 			       struct i40e_client *client,
- 			       bool is_vf, u32 vf_id,
- 			       u32 flag, u32 valid_flag);
-+
-+	int (*client_device_register)(struct i40e_info *ldev);
-+
-+	void (*client_device_unregister)(struct i40e_info *ldev);
-+
- };
+ 	/* if VSI is up, bring it down and then back up */
+ 	if (!test_and_set_bit(__ICE_DOWN, vsi->state)) {
+-		int err;
+-
+ 		err = ice_down(vsi);
+ 		if (err) {
+-			netdev_err(netdev, "change MTU if_up err %d\n", err);
+-			return err;
++			netdev_err(netdev, "change MTU if_down err %d\n", err);
++			goto free_event;
+ 		}
  
- struct i40e_client_ops {
+ 		err = ice_up(vsi);
+ 		if (err) {
+ 			netdev_err(netdev, "change MTU if_up err %d\n", err);
+-			return err;
++			goto free_event;
+ 		}
+ 	}
+ 
++	if (ice_is_safe_mode(pf))
++		goto out;
++
++	set_bit(IIDC_EVENT_MTU_CHANGE, event->type);
++	event->reporter = NULL;
++	event->info.mtu = new_mtu;
++	ice_for_each_peer(pf, event, ice_peer_check_for_reg);
++
++out:
+ 	netdev_dbg(netdev, "changed MTU to %d\n", new_mtu);
+-	return 0;
++free_event:
++	kfree(event);
++	return err;
+ }
+ 
+ /**
 -- 
 2.26.2
 
