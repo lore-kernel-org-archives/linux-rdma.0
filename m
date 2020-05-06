@@ -2,80 +2,89 @@ Return-Path: <SRS0=O4aQ=6U=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D86CC28CBC
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 06:17:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 340EEC4724C
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 06:55:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6378520714
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 06:17:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C84B20721
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 06:55:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1588748128;
+	bh=riHfJCDSgqZ4JOW1s8kw7kfc1UX4YXs+Rj74HV1Xopg=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=bOCpAfz2spkghQQIgD+CNvofHOZ3gvQ8OsyJVG8CuyQ9iBYeQQeghJNeidbb4HWJM
+	 F7MpwKA6Sdc5VhMeRaspYPAkU2eowNmG0DvtlkB+tLCe1pmGN9ptjR0bmOCUpdkUgx
+	 QMszHTYyMPl6kTy4mWnQgMJiv3s4Aom3G0LI089Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727904AbgEFGRT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 May 2020 02:17:19 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:57678 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725873AbgEFGRT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 6 May 2020 02:17:19 -0400
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id B6409B257A0EA51397D2;
-        Wed,  6 May 2020 14:17:16 +0800 (CST)
-Received: from huawei.com (10.175.124.28) by DGGEMS409-HUB.china.huawei.com
- (10.3.19.209) with Microsoft SMTP Server id 14.3.487.0; Wed, 6 May 2020
- 14:17:09 +0800
-From:   Jason Yan <yanaijie@huawei.com>
-To:     <tariqt@mellanox.com>, <davem@davemloft.net>, <ast@kernel.org>,
-        <daniel@iogearbox.net>, <kuba@kernel.org>, <hawk@kernel.org>,
-        <john.fastabend@gmail.com>, <netdev@vger.kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <bpf@vger.kernel.org>
-CC:     Jason Yan <yanaijie@huawei.com>
-Subject: [PATCH net-next] net: mlx4: remove unneeded variable "err" in mlx4_en_get_rxfh()
-Date:   Wed, 6 May 2020 14:16:30 +0800
-Message-ID: <20200506061630.19010-1-yanaijie@huawei.com>
-X-Mailer: git-send-email 2.21.1
+        id S1727067AbgEFGz1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 May 2020 02:55:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47536 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725782AbgEFGz0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 May 2020 02:55:26 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7B08020714;
+        Wed,  6 May 2020 06:55:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1588748126;
+        bh=riHfJCDSgqZ4JOW1s8kw7kfc1UX4YXs+Rj74HV1Xopg=;
+        h=From:To:Cc:Subject:Date:From;
+        b=J8Rejwfq9+x0WPcvTeDzka2cvkFXGh6B9rimBuJOYdcpmakeoxwwDcdBfPgmAkJGw
+         exZmqgsrlhXgE1Hw+BQh2FYZ5bYZEb3KCXyNUbzMp3X8PuJyahy9pMEsiLkV9bVfaT
+         HqE/uOB77YZKrYOZhy63rtfF1dyLhGWxgGqwy3bc=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Max Gurtovoy <maxg@mellanox.com>
+Subject: [PATCH rdma-next 0/3] mlx5 QP cleanup (cont.)
+Date:   Wed,  6 May 2020 09:55:10 +0300
+Message-Id: <20200506065513.4668-1-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.124.28]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Fix the following coccicheck warning:
+From: Leon Romanovsky <leonro@mellanox.com>
 
-drivers/net/ethernet/mellanox/mlx4/en_ethtool.c:1238:5-8: Unneeded
-variable: "err". Return "0" on line 1252
+Hi,
 
-Signed-off-by: Jason Yan <yanaijie@huawei.com>
----
- drivers/net/ethernet/mellanox/mlx4/en_ethtool.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+This short series continue to cleanup qp.c file, which grew
+to be completely unmaintainable.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-index 8a5ea2543670..216e6b2e9eed 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-@@ -1235,7 +1235,6 @@ static int mlx4_en_get_rxfh(struct net_device *dev, u32 *ring_index, u8 *key,
- 	struct mlx4_en_priv *priv = netdev_priv(dev);
- 	u32 n = mlx4_en_get_rxfh_indir_size(dev);
- 	u32 i, rss_rings;
--	int err = 0;
- 
- 	rss_rings = priv->prof->rss_rings ?: n;
- 	rss_rings = rounddown_pow_of_two(rss_rings);
-@@ -1249,7 +1248,7 @@ static int mlx4_en_get_rxfh(struct net_device *dev, u32 *ring_index, u8 *key,
- 		memcpy(key, priv->rss_key, MLX4_EN_RSS_KEY_SIZE);
- 	if (hfunc)
- 		*hfunc = priv->rss_hash_fn;
--	return err;
-+	return 0;
- }
- 
- static int mlx4_en_set_rxfh(struct net_device *dev, const u32 *ring_index,
--- 
-2.21.1
+Thanks
+
+Leon Romanovsky (2):
+  RDMA/mlx5: Update mlx5_ib to use new cmd interface
+  RDMA/mlx5: Move all WR logic from qp.c to separate file
+
+Max Gurtovoy (1):
+  RDMA/mlx5: Refactor mlx5_post_send() to improve readability
+
+ drivers/infiniband/hw/mlx5/Makefile  |    3 +-
+ drivers/infiniband/hw/mlx5/cmd.c     |  114 +-
+ drivers/infiniband/hw/mlx5/cmd.h     |    4 +-
+ drivers/infiniband/hw/mlx5/cong.c    |    4 +-
+ drivers/infiniband/hw/mlx5/main.c    |   10 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |    4 -
+ drivers/infiniband/hw/mlx5/odp.c     |    5 +-
+ drivers/infiniband/hw/mlx5/qp.c      | 1488 +------------------------
+ drivers/infiniband/hw/mlx5/srq_cmd.c |  115 +-
+ drivers/infiniband/hw/mlx5/wr.c      | 1504 ++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/wr.h      |   76 ++
+ 11 files changed, 1680 insertions(+), 1647 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx5/wr.c
+ create mode 100644 drivers/infiniband/hw/mlx5/wr.h
+
+--
+2.26.2
 
