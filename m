@@ -2,116 +2,88 @@ Return-Path: <SRS0=O4aQ=6U=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80B7CC28CBC
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:41:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6911BC28CBC
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:42:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 671802075E
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:41:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4639C2075E
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:42:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729203AbgEFJlo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 May 2020 05:41:44 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:32963 "EHLO
+        id S1729205AbgEFJmD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 May 2020 05:42:03 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:55215 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729193AbgEFJlo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 May 2020 05:41:44 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from yishaih@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 6 May 2020 12:41:42 +0300
+        with ESMTP id S1729084AbgEFJmD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 May 2020 05:42:03 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 6 May 2020 12:42:00 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0469fg1H015300;
-        Wed, 6 May 2020 12:41:42 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0469g0oO015451;
+        Wed, 6 May 2020 12:42:00 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0469ff1B024550;
-        Wed, 6 May 2020 12:41:42 +0300
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0469g0O5024596;
+        Wed, 6 May 2020 12:42:00 +0300
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0469fZHr024536;
-        Wed, 6 May 2020 12:41:35 +0300
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0469g0Xq024595;
+        Wed, 6 May 2020 12:42:00 +0300
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
-Subject: [PATCH rdma-core 0/8] verbs: Enable asynchronous event FD per object
-Date:   Wed,  6 May 2020 12:41:01 +0300
-Message-Id: <1588758069-24464-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 4/8] verbs: Fix ibv_get_srq_num() man page
+Date:   Wed,  6 May 2020 12:41:05 +0300
+Message-Id: <1588758069-24464-5-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
+In-Reply-To: <1588758069-24464-1-git-send-email-yishaih@mellanox.com>
+References: <1588758069-24464-1-git-send-email-yishaih@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series enables applicable events objects (i.e. QP, SRQ, CQ, WQ) to be
-created with their own asynchronous event FD from KABI point of view.
+Fix ibv_get_srq_num() man page to mention that it's applicable only when
+the given SRQ is an XRC as defined by its specification.
 
-Before this series any affiliated event on an object was reported on the first
-asynchronous event FD that was created on the context without the ability to
-create and use a dedicated FD for it.
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+---
+ libibverbs/man/ibv_get_srq_num.3.md | 2 +-
+ providers/mlx5/verbs.c              | 6 +++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-With this series we enable granularity and control for the usage per object.
-
-For example, a secondary process that uses the same command FD as of the primary
-one, can create its own objects with its dedicated event FD to be able to get
-the events for them once occurred, this couldn't be done before this series.
-
-Further series on top of this one may expose some option to an application to
-ask for a dedicated FD for its usage instead of using the default one, this may
-enable achieving the above use case.
-
-To achieve the above, any 'create' method for the applicable objects was
-extended to get from rdma-core its optional event FD. If wasn't supplied, the
-default one from the context will be used as part of kernel side.
-
-As we prefer to not extend the 'write' mode KABIs anymore and fully move to the
-'ioct' mode, QP, SRQ and WQ create/destroy commands were introduced over
-'ioctl', the CQ KABI was extended over its existing 'ioctl' create command.
-
-As part of moving to 'ioctl' for the above objects few bugs were found and
-fixed.
-
-The matching kernel part was sent into rdma-next.
-PR: 
-https://github.com/linux-rdma/rdma-core/pull/753
-
-
-Jason Gunthorpe (1):
-  mlx4: Delete comp_mask from verbs_srq
-
-Yishai Hadas (7):
-  Update kernel headers
-  verbs: Extend CQ KABI to get an async FD
-  verbs: Fix ibv_get_srq_num() man page
-  verbs: Move SRQ create and destroy to ioctl
-  verbs: Fix ibv_create_wq() to set wq_context
-  verbs: Move WQ create and destroy to ioctl
-  verbs: Move QP create and destroy commands to ioctl
-
- kernel-headers/rdma/ib_user_ioctl_cmds.h  |  81 +++++
- kernel-headers/rdma/ib_user_ioctl_verbs.h |  43 +++
- libibverbs/CMakeLists.txt                 |   3 +
- libibverbs/cmd.c                          | 481 ------------------------------
- libibverbs/cmd_cq.c                       |   7 +-
- libibverbs/cmd_fallback.c                 |   2 +-
- libibverbs/cmd_qp.c                       | 476 +++++++++++++++++++++++++++++
- libibverbs/cmd_srq.c                      | 279 +++++++++++++++++
- libibverbs/cmd_wq.c                       | 173 +++++++++++
- libibverbs/driver.h                       |  25 +-
- libibverbs/kern-abi.h                     |  11 +
- libibverbs/man/ibv_get_srq_num.3.md       |   2 +-
- libibverbs/verbs.c                        |  14 -
- libibverbs/verbs.h                        |   1 +
- providers/efa/verbs.c                     |   2 +-
- providers/mlx4/mlx4.c                     |   2 +-
- providers/mlx4/mlx4.h                     |   1 +
- providers/mlx4/srq.c                      |   1 -
- providers/mlx4/verbs.c                    |  17 +-
- providers/mlx5/verbs.c                    |  16 +-
- 20 files changed, 1104 insertions(+), 533 deletions(-)
- create mode 100644 libibverbs/cmd_qp.c
- create mode 100644 libibverbs/cmd_srq.c
- create mode 100644 libibverbs/cmd_wq.c
-
+diff --git a/libibverbs/man/ibv_get_srq_num.3.md b/libibverbs/man/ibv_get_srq_num.3.md
+index f015b9e..9140a37 100644
+--- a/libibverbs/man/ibv_get_srq_num.3.md
++++ b/libibverbs/man/ibv_get_srq_num.3.md
+@@ -23,7 +23,7 @@ int ibv_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num);
+ 
+ # DESCRIPTION
+ 
+-**ibv_get_srq_num()** return srq number associated with the given shared
++**ibv_get_srq_num()** return srq number associated with the given XRC shared
+ receive queue The argument *srq* is an ibv_srq struct, as defined in
+ <infiniband/verbs.h>. *srq_num* is an output parameter that holds the returned
+ srq number.
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index 47e8380..1835e93 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -2898,8 +2898,12 @@ int mlx5_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
+ {
+ 	struct mlx5_srq *msrq = to_msrq(srq);
+ 
++	/* May be used by DC users in addition to XRC ones, as there is no
++	 * indication on the SRQ for DC usage we can't force the above check.
++	 * Even DC users are encouraged to use mlx5dv_init_obj() to get
++	 * the SRQN.
++	 */
+ 	*srq_num = msrq->srqn;
+-
+ 	return 0;
+ }
+ 
 -- 
 1.8.3.1
 
