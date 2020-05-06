@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFD25C38A2A
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:42:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29C12C28CBC
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:42:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB63320838
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:42:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0865520838
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 09:42:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729209AbgEFJmM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 May 2020 05:42:12 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33007 "EHLO
+        id S1728640AbgEFJmU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 May 2020 05:42:20 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:55221 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729134AbgEFJmL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 May 2020 05:42:11 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from yishaih@mellanox.com)
+        with ESMTP id S1729204AbgEFJmU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 May 2020 05:42:20 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 6 May 2020 12:42:00 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0469g0Mw015448;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0469g0R2015465;
         Wed, 6 May 2020 12:42:00 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0469g0a7024591;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0469g0mo024608;
         Wed, 6 May 2020 12:42:00 +0300
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0469g056024590;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0469g0X1024607;
         Wed, 6 May 2020 12:42:00 +0300
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
-Subject: [PATCH rdma-core 3/8] mlx4: Delete comp_mask from verbs_srq
-Date:   Wed,  6 May 2020 12:41:04 +0300
-Message-Id: <1588758069-24464-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 7/8] verbs: Move WQ create and destroy to ioctl
+Date:   Wed,  6 May 2020 12:41:08 +0300
+Message-Id: <1588758069-24464-8-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1588758069-24464-1-git-send-email-yishaih@mellanox.com>
 References: <1588758069-24464-1-git-send-email-yishaih@mellanox.com>
@@ -44,139 +44,299 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
-
-This is a hold over from when the driver.h was not tied to the rdma-core
-version, delete it.
-
-The only reader in mlx4 was using it to tell if the SRQ was XRC or not,
-just test that directly.
+Introduce create/destroy WQ commands over the ioctl interface to let it
+be extended to get an asynchronous event FD.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- libibverbs/cmd.c       | 13 +++----------
- libibverbs/driver.h    | 19 -------------------
- providers/mlx4/mlx4.c  |  2 +-
- providers/mlx4/mlx4.h  |  1 +
- providers/mlx4/verbs.c | 11 +++++++++++
- 5 files changed, 16 insertions(+), 30 deletions(-)
+ libibverbs/CMakeLists.txt |   1 +
+ libibverbs/cmd.c          |  73 -------------------
+ libibverbs/cmd_wq.c       | 173 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 174 insertions(+), 73 deletions(-)
+ create mode 100644 libibverbs/cmd_wq.c
 
+diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
+index 088f20f..2b77828 100644
+--- a/libibverbs/CMakeLists.txt
++++ b/libibverbs/CMakeLists.txt
+@@ -38,6 +38,7 @@ rdma_library(ibverbs "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map"
+   cmd_pd.c
+   cmd_rwq_ind.c
+   cmd_srq.c
++  cmd_wq.c
+   cmd_xrcd.c
+   compat-1_0.c
+   device.c
 diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 728d884..03d9143 100644
+index a733cbf..d962649 100644
 --- a/libibverbs/cmd.c
 +++ b/libibverbs/cmd.c
-@@ -577,21 +577,14 @@ int ibv_cmd_create_srq_ex(struct ibv_context *context,
- 	 * If it is than all the others exist as well
- 	 */
- 	if (vext_field_avail(struct verbs_srq, srq_num, vsrq_sz)) {
--		srq->comp_mask = IBV_SRQ_INIT_ATTR_TYPE;
- 		srq->srq_type = (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ?
- 				attr_ex->srq_type : IBV_SRQT_BASIC;
--		if (srq->srq_type == IBV_SRQT_XRC) {
--			srq->comp_mask |= VERBS_SRQ_NUM;
-+		if (srq->srq_type == IBV_SRQT_XRC)
- 			srq->srq_num = resp->srqn;
--		}
--		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) {
--			srq->comp_mask |= VERBS_SRQ_XRCD;
-+		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD)
- 			srq->xrcd = vxrcd;
--		}
--		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ) {
--			srq->comp_mask |= VERBS_SRQ_CQ;
-+		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ)
- 			srq->cq = attr_ex->cq;
--		}
- 	}
- 
- 	attr_ex->attr.max_wr = resp->max_wr;
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index a0e6f89..9cb78a5 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -59,17 +59,8 @@ struct verbs_xrcd {
- 	uint32_t		handle;
- };
- 
--enum verbs_srq_mask {
--	VERBS_SRQ_TYPE		= 1 << 0,
--	VERBS_SRQ_XRCD		= 1 << 1,
--	VERBS_SRQ_CQ		= 1 << 2,
--	VERBS_SRQ_NUM		= 1 << 3,
--	VERBS_SRQ_RESERVED	= 1 << 4
--};
--
- struct verbs_srq {
- 	struct ibv_srq		srq;
--	uint32_t		comp_mask;
- 	enum ibv_srq_type	srq_type;
- 	struct verbs_xrcd      *xrcd;
- 	struct ibv_cq	       *cq;
-@@ -633,16 +624,6 @@ int ibv_read_ibdev_sysfs_file(char *buf, size_t size,
- 	__attribute__((format(printf, 4, 5)));
- int ibv_get_fw_ver(char *value, size_t len, struct verbs_sysfs_dev *sysfs_dev);
- 
--static inline int verbs_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
--{
--	struct verbs_srq *vsrq = container_of(srq, struct verbs_srq, srq);
--	if (vsrq->comp_mask & VERBS_SRQ_NUM) {
--		*srq_num = vsrq->srq_num;
--		return 0;
--	}
--	return EOPNOTSUPP;
--}
--
- static inline bool check_comp_mask(uint64_t input, uint64_t supported)
- {
- 	return (input & ~supported) == 0;
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index 0842ff0..f04d346 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -126,7 +126,7 @@ static const struct verbs_context_ops mlx4_ctx_ops = {
- 	.destroy_flow = mlx4_destroy_flow,
- 	.destroy_rwq_ind_table = mlx4_destroy_rwq_ind_table,
- 	.destroy_wq = mlx4_destroy_wq,
--	.get_srq_num = verbs_get_srq_num,
-+	.get_srq_num = mlx4_get_srq_num,
- 	.modify_cq = mlx4_modify_cq,
- 	.modify_wq = mlx4_modify_wq,
- 	.open_qp = mlx4_open_qp,
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 3c161e8..16ed7d6 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -319,6 +319,7 @@ int mlx4_free_pd(struct ibv_pd *pd);
- struct ibv_xrcd *mlx4_open_xrcd(struct ibv_context *context,
- 				struct ibv_xrcd_init_attr *attr);
- int mlx4_close_xrcd(struct ibv_xrcd *xrcd);
-+int mlx4_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num);
- 
- struct ibv_mr *mlx4_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 			   uint64_t hca_va, int access);
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 9f39ecd..010cd6c 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -274,6 +274,17 @@ int mlx4_close_xrcd(struct ibv_xrcd *ib_xrcd)
+@@ -1600,53 +1600,6 @@ int ibv_cmd_create_flow(struct ibv_qp *qp,
  	return 0;
  }
  
-+int mlx4_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
-+{
-+	struct mlx4_srq *msrq =
-+		container_of(srq, struct mlx4_srq, verbs_srq.srq);
+-int ibv_cmd_create_wq(struct ibv_context *context,
+-		      struct ibv_wq_init_attr *wq_init_attr,
+-		      struct ibv_wq *wq,
+-		      struct ibv_create_wq *cmd,
+-		      size_t cmd_size,
+-		      struct ib_uverbs_ex_create_wq_resp *resp,
+-		      size_t resp_size)
+-{
+-	int err;
+-
+-	if (wq_init_attr->comp_mask >= IBV_WQ_INIT_ATTR_RESERVED)
+-		return EINVAL;
+-
+-	cmd->user_handle   = (uintptr_t)wq;
+-	cmd->pd_handle           = wq_init_attr->pd->handle;
+-	cmd->cq_handle   = wq_init_attr->cq->handle;
+-	cmd->wq_type = wq_init_attr->wq_type;
+-	cmd->max_sge = wq_init_attr->max_sge;
+-	cmd->max_wr = wq_init_attr->max_wr;
+-	cmd->comp_mask = 0;
+-
+-	if (wq_init_attr->comp_mask & IBV_WQ_INIT_ATTR_FLAGS) {
+-		if (wq_init_attr->create_flags & ~(IBV_WQ_FLAGS_RESERVED - 1))
+-			return EOPNOTSUPP;
+-		cmd->create_flags = wq_init_attr->create_flags;
+-	}
+-
+-	err = execute_cmd_write_ex(context, IB_USER_VERBS_EX_CMD_CREATE_WQ,
+-				   cmd, cmd_size, resp, resp_size);
+-	if (err)
+-		return err;
+-
+-	if (resp->response_length < sizeof(*resp))
+-		return EINVAL;
+-
+-	wq->handle  = resp->wq_handle;
+-	wq_init_attr->max_wr = resp->max_wr;
+-	wq_init_attr->max_sge = resp->max_sge;
+-	wq->wq_num = resp->wqn;
+-	wq->context = context;
+-	wq->cq = wq_init_attr->cq;
+-	wq->pd = wq_init_attr->pd;
+-	wq->wq_type = wq_init_attr->wq_type;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_modify_wq(struct ibv_wq *wq, struct ibv_wq_attr *attr,
+ 		      struct ibv_modify_wq *cmd, size_t cmd_size)
+ {
+@@ -1679,32 +1632,6 @@ int ibv_cmd_modify_wq(struct ibv_wq *wq, struct ibv_wq_attr *attr,
+ 	return 0;
+ }
+ 
+-int ibv_cmd_destroy_wq(struct ibv_wq *wq)
+-{
+-	struct ibv_destroy_wq req;
+-	struct ib_uverbs_ex_destroy_wq_resp resp;
+-	int ret;
+-
+-	req.core_payload = (struct ib_uverbs_ex_destroy_wq){
+-		.wq_handle = wq->handle,
+-	};
+-
+-	ret = execute_cmd_write_ex(wq->context, IB_USER_VERBS_EX_CMD_DESTROY_WQ,
+-				   &req, sizeof(req), &resp, sizeof(resp));
+-	if (verbs_is_destroy_err(&ret))
+-		return ret;
+-
+-	if (resp.response_length < sizeof(resp))
+-		return EINVAL;
+-
+-	pthread_mutex_lock(&wq->mutex);
+-	while (wq->events_completed != resp.events_reported)
+-		pthread_cond_wait(&wq->cond, &wq->mutex);
+-	pthread_mutex_unlock(&wq->mutex);
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_create_rwq_ind_table(struct ibv_context *context,
+ 				 struct ibv_rwq_ind_table_init_attr *init_attr,
+ 				 struct ibv_rwq_ind_table *rwq_ind_table,
+diff --git a/libibverbs/cmd_wq.c b/libibverbs/cmd_wq.c
+new file mode 100644
+index 0000000..d233c3a
+--- /dev/null
++++ b/libibverbs/cmd_wq.c
+@@ -0,0 +1,173 @@
++/*
++ * Copyright (c) 2020 Mellanox Technologies, Ltd.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
-+	if (!msrq->verbs_srq.xrcd)
-+		return EOPNOTSUPP;
-+	*srq_num = msrq->verbs_srq.srq_num;
++#include <infiniband/cmd_write.h>
++
++static int ibv_icmd_create_wq(struct ibv_context *context,
++			      struct ibv_wq_init_attr *wq_init_attr,
++			      struct ibv_wq *wq,
++			      struct ibv_command_buffer *link)
++{
++	DECLARE_FBCMD_BUFFER(cmdb, UVERBS_OBJECT_WQ, UVERBS_METHOD_WQ_CREATE, 13, link);
++	struct ib_uverbs_attr *handle;
++	uint32_t max_wr;
++	uint32_t max_sge;
++	uint32_t wq_num;
++	int ret;
++
++	wq->context = context;
++	wq->cq = wq_init_attr->cq;
++	wq->pd = wq_init_attr->pd;
++	wq->wq_type = wq_init_attr->wq_type;
++
++	handle = fill_attr_out_obj(cmdb, UVERBS_ATTR_CREATE_WQ_HANDLE);
++	fill_attr_in_uint64(cmdb, UVERBS_ATTR_CREATE_WQ_USER_HANDLE, (uintptr_t)wq);
++	fill_attr_in_obj(cmdb, UVERBS_ATTR_CREATE_WQ_PD_HANDLE, wq_init_attr->pd->handle);
++	fill_attr_in_obj(cmdb, UVERBS_ATTR_CREATE_WQ_CQ_HANDLE, wq_init_attr->cq->handle);
++	fill_attr_const_in(cmdb, UVERBS_ATTR_CREATE_WQ_TYPE, wq_init_attr->wq_type);
++	fill_attr_in_uint32(cmdb, UVERBS_ATTR_CREATE_WQ_MAX_WR, wq_init_attr->max_wr);
++	fill_attr_in_uint32(cmdb, UVERBS_ATTR_CREATE_WQ_MAX_SGE, wq_init_attr->max_sge);
++	fill_attr_in_fd(cmdb, UVERBS_ATTR_CREATE_WQ_EVENT_FD, wq->context->async_fd);
++	fill_attr_in_uint32(cmdb, UVERBS_ATTR_CREATE_WQ_FLAGS, wq_init_attr->create_flags);
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_WQ_RESP_MAX_WR, &max_wr);
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_WQ_RESP_MAX_SGE, &max_sge);
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_WQ_RESP_WQ_NUM, &wq_num);
++
++	fallback_require_ex(cmdb);
++
++	switch (execute_ioctl_fallback(context, create_wq, cmdb, &ret)) {
++	case TRY_WRITE_EX: {
++		DECLARE_LEGACY_UHW_BUFS_EX(link,
++					   IB_USER_VERBS_EX_CMD_CREATE_WQ);
++
++		*req = (struct ib_uverbs_ex_create_wq){
++			.user_handle = (uintptr_t)wq,
++			.pd_handle = wq_init_attr->pd->handle,
++			.cq_handle = wq_init_attr->cq->handle,
++			.max_wr = wq_init_attr->max_wr,
++			.max_sge = wq_init_attr->max_sge,
++			.wq_type = wq_init_attr->wq_type,
++			.create_flags = wq_init_attr->create_flags,
++		};
++
++		ret = execute_write_bufs_ex(
++			context, IB_USER_VERBS_EX_CMD_CREATE_WQ, req, resp);
++		if (ret)
++			return ret;
++
++		wq->handle  = resp->wq_handle;
++		wq_init_attr->max_wr = resp->max_wr;
++		wq_init_attr->max_sge = resp->max_sge;
++		wq->wq_num = resp->wqn;
++		return 0;
++	}
++
++	case SUCCESS:
++		break;
++
++	default:
++		return ret;
++	}
++
++	wq->handle = read_attr_obj(UVERBS_ATTR_CREATE_WQ_HANDLE, handle);
++	wq->wq_num = wq_num;
++	wq_init_attr->max_wr = max_wr;
++	wq_init_attr->max_sge = max_sge;
++
 +	return 0;
 +}
 +
- struct ibv_mr *mlx4_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 			   uint64_t hca_va, int access)
- {
++int ibv_cmd_create_wq(struct ibv_context *context,
++		      struct ibv_wq_init_attr *wq_init_attr,
++		      struct ibv_wq *wq,
++		      struct ibv_create_wq *cmd,
++		      size_t cmd_size,
++		      struct ib_uverbs_ex_create_wq_resp *resp,
++		      size_t resp_size)
++{
++	DECLARE_CMD_BUFFER_COMPAT(cmdb, UVERBS_OBJECT_WQ,
++				  UVERBS_METHOD_WQ_CREATE, cmd, cmd_size, resp,
++				  resp_size);
++
++	if (wq_init_attr->comp_mask >= IBV_WQ_INIT_ATTR_RESERVED) {
++		errno = EINVAL;
++		return errno;
++	}
++
++	if (wq_init_attr->comp_mask & IBV_WQ_INIT_ATTR_FLAGS) {
++		if (wq_init_attr->create_flags & ~(IBV_WQ_FLAGS_RESERVED - 1)) {
++			errno = EOPNOTSUPP;
++			return errno;
++		}
++	}
++
++	return ibv_icmd_create_wq(context, wq_init_attr, wq, cmdb);
++}
++
++int ibv_cmd_destroy_wq(struct ibv_wq *wq)
++{
++	DECLARE_FBCMD_BUFFER(cmdb, UVERBS_OBJECT_WQ, UVERBS_METHOD_WQ_DESTROY, 2,
++			     NULL);
++	struct ib_uverbs_ex_destroy_wq_resp resp;
++	int ret;
++
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_DESTROY_WQ_RESP, &resp.events_reported);
++	fill_attr_in_obj(cmdb, UVERBS_ATTR_DESTROY_WQ_HANDLE, wq->handle);
++
++	switch (execute_ioctl_fallback(wq->context, destroy_wq, cmdb, &ret)) {
++	case TRY_WRITE: {
++		struct ibv_destroy_wq req;
++
++		req.core_payload = (struct ib_uverbs_ex_destroy_wq){
++			.wq_handle = wq->handle,
++		};
++
++
++		ret = execute_cmd_write_ex(wq->context, IB_USER_VERBS_EX_CMD_DESTROY_WQ,
++				   &req, sizeof(req), &resp, sizeof(resp));
++		break;
++	}
++
++	default:
++		break;
++	}
++
++	if (verbs_is_destroy_err(&ret))
++		return ret;
++
++	pthread_mutex_lock(&wq->mutex);
++	while (wq->events_completed != resp.events_reported)
++		pthread_cond_wait(&wq->cond, &wq->mutex);
++	pthread_mutex_unlock(&wq->mutex);
++
++	return 0;
++}
 -- 
 1.8.3.1
 
