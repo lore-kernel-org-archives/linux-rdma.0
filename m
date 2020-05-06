@@ -2,52 +2,52 @@ Return-Path: <SRS0=O4aQ=6U=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EFFCC28CBC
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 07:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63FECC28CBC
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 08:24:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B0DA206D5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 07:47:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EE4B20735
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 May 2020 08:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588751264;
-	bh=uG+7ZmFdXVmgpeXUBdcBGp5o8jEvLqrsaUUZ5XSIM6k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=mVlNwXO7l7UebLveFKQqrTdxosaIkTgoppzWBdCjHBdemXqp/pxK4MFX4fdf+9RS+
-	 3P60oV/S7qfDONLrVn8S55JHh0NmzeiNbLqcZdiqPgTK3f1YxKM0KaqUSoPev70ysU
-	 XOOKu6VA1O+7lODAce0mT+seeuO+TQ7U4zPCc3yw=
+	s=default; t=1588753490;
+	bh=/WPfbJquieUPIKiO6Ciow9laJ/MI4AxasPfQ3zVwzko=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=TSo5iKOerSprcTOl6H1G0ceFBp7vR8bA0GCINZNTvAKgY+E+5Hz1tygFcHTAb0DlU
+	 REWugy1rZa9cL1ItQLaBgjEIUVtQ9Uegg2eEXq6qLalS0hDJ0b5AHeDgDqgtt9DYNn
+	 4SMomeWfl2swxmJ7ojvvxcCYotfVhjEqqJ3LmmCQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728410AbgEFHrn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 May 2020 03:47:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41420 "EHLO mail.kernel.org"
+        id S1728366AbgEFIYt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 May 2020 04:24:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59772 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728355AbgEFHrn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 6 May 2020 03:47:43 -0400
+        id S1727956AbgEFIYt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 May 2020 04:24:49 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 19CBD20714;
-        Wed,  6 May 2020 07:47:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7CF51206E6;
+        Wed,  6 May 2020 08:24:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588751262;
-        bh=uG+7ZmFdXVmgpeXUBdcBGp5o8jEvLqrsaUUZ5XSIM6k=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BW9yt0bQuJLxlepPGy1B1NX9XvGEVJGJ4hApGzyY/jMPI+XnRVemgnSjTpJu/hf+q
-         ZCdLhd5hQh3xRfeX/LgiSNPgXwgs+gPOiuGdMjLjGA6WanPBY7X1vUKuEkLRsCqRUr
-         vwEjL8I+jtMe1ZA2Nr2Gi2wHHQF+PfZQbjCXlQ3Q=
+        s=default; t=1588753489;
+        bh=/WPfbJquieUPIKiO6Ciow9laJ/MI4AxasPfQ3zVwzko=;
+        h=From:To:Cc:Subject:Date:From;
+        b=TTmO/ni6FB69UC8PUWqYLqi4YFZHPwoQyrwKQpYksGaz95suoRvRgGjUIXXp3byFB
+         CPKsFPJLQlu/USduvGkEOVQKkLQcpQttLEtuIICQe5EghQHufB+jY5OJMKBAw8NuVC
+         X2e8DpayLM5q+m3TWnkhxvl1vLT2JbjO5EGKc3e8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 09/10] RDMA/cm: Remove needless cm_id variable
-Date:   Wed,  6 May 2020 10:47:00 +0300
-Message-Id: <20200506074701.9775-10-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Sagi Grimberg <sagi@rimberg.me>,
+        Yishai Hadas <yishaih@mellanox.com>
+Subject: [PATCH rdma-next v1 00/10] Enable asynchronous event FD per object
+Date:   Wed,  6 May 2020 11:24:34 +0300
+Message-Id: <20200506082444.14502-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200506074701.9775-1-leon@kernel.org>
-References: <20200506074701.9775-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -55,56 +55,90 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Just put the expression in the only reader
+Changelog:
+v1: Forgot to add patch "IB/uverbs: Move QP, SRQ, WQ type and flags to UAPI"
+v0: https://lore.kernel.org/lkml/20200506074049.8347-1-leon@kernel.org
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/cm.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+-------------------------------------------------------------------------------
+From Yishai:
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index e70b4c70f00c..c8b2088dcd0a 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1973,7 +1973,6 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
- 	struct cm_id_private *listen_cm_id_priv, *cur_cm_id_priv;
- 	struct cm_timewait_info *timewait_info;
- 	struct cm_req_msg *req_msg;
--	struct ib_cm_id *cm_id;
- 
- 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
- 
-@@ -2003,8 +2002,7 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
- 			     IB_CM_REJ_STALE_CONN, CM_MSG_RESPONSE_REQ,
- 			     NULL, 0);
- 		if (cur_cm_id_priv) {
--			cm_id = &cur_cm_id_priv->id;
--			ib_send_cm_dreq(cm_id, NULL, 0);
-+			ib_send_cm_dreq(&cur_cm_id_priv->id, NULL, 0);
- 			cm_deref_id(cur_cm_id_priv);
- 		}
- 		return NULL;
-@@ -2460,7 +2458,6 @@ static int cm_rep_handler(struct cm_work *work)
- 	struct cm_rep_msg *rep_msg;
- 	int ret;
- 	struct cm_id_private *cur_cm_id_priv;
--	struct ib_cm_id *cm_id;
- 	struct cm_timewait_info *timewait_info;
- 
- 	rep_msg = (struct cm_rep_msg *)work->mad_recv_wc->recv_buf.mad;
-@@ -2526,8 +2523,7 @@ static int cm_rep_handler(struct cm_work *work)
- 			IBA_GET(CM_REP_REMOTE_COMM_ID, rep_msg));
- 
- 		if (cur_cm_id_priv) {
--			cm_id = &cur_cm_id_priv->id;
--			ib_send_cm_dreq(cm_id, NULL, 0);
-+			ib_send_cm_dreq(&cur_cm_id_priv->id, NULL, 0);
- 			cm_deref_id(cur_cm_id_priv);
- 		}
- 
--- 
+This series enables applicable events objects (i.e. QP, SRQ, CQ, WQ) to
+be created with their own asynchronous event FD.
+
+Before this series any affiliated event on an object was reported on the
+first asynchronous event FD that was created on the context without the
+ability to create and use a dedicated FD for it.
+
+With this series we enable granularity and control for the usage per
+object, according to the application's usage.
+
+For example, a secondary process that uses the same command FD as of the
+master one, can create its own objects with its dedicated event FD to be
+able to get the events for them once occurred, this couldn't be done
+before this series.
+
+To achieve the above, any 'create' method for the applicable objects was
+extended to get from rdma-core its optional event FD, if wasn't
+supplied, the default one from the context will be used.
+
+As we prefer to not extend the 'write' mode KABIs anymore and fully
+move to the 'ioct' mode, as part of this extension QP, SRQ and WQ
+create/destroy commands were introduced over 'ioctl', the CQ KABI was
+extended over its existing 'ioctl' create command.
+
+As part of moving to 'ioctl' for the above objects the frame work was
+improved to abort a fully created uobject upon some later error, some
+flows were consolidated with the 'write' mode and few bugs were found
+and fixed.
+
+Yishai
+
+Jason Gunthorpe (2):
+  RDMA/core: Allow the ioctl layer to abort a fully created uobject
+  RDMA/core: Consolidate ib_create_srq flows
+
+Yishai Hadas (8):
+  IB/uverbs: Refactor related objects to use their own asynchronous
+    event FD
+  IB/uverbs: Extend CQ to get its own asynchronous event FD
+  IB/uverbs: Cleanup wq/srq context usage from uverbs layer
+  IB/uverbs: Move QP, SRQ, WQ type and flags to UAPI
+  IB/uverbs: Introduce create/destroy SRQ commands over ioctl
+  IB/uverbs: Fix create WQ to use the given user handle
+  IB/uverbs: Introduce create/destroy WQ commands over ioctl
+  IB/uverbs: Introduce create/destroy QP commands over ioctl
+
+ drivers/infiniband/core/Makefile              |   5 +-
+ drivers/infiniband/core/rdma_core.c           |  28 +-
+ drivers/infiniband/core/rdma_core.h           |   7 +-
+ drivers/infiniband/core/uverbs.h              |  21 +-
+ drivers/infiniband/core/uverbs_cmd.c          |  73 ++--
+ drivers/infiniband/core/uverbs_ioctl.c        |  22 +-
+ drivers/infiniband/core/uverbs_main.c         |  16 +-
+ drivers/infiniband/core/uverbs_std_types.c    |  95 -----
+ drivers/infiniband/core/uverbs_std_types_cq.c |  17 +-
+ drivers/infiniband/core/uverbs_std_types_mr.c |  12 +-
+ drivers/infiniband/core/uverbs_std_types_qp.c | 401 ++++++++++++++++++
+ .../infiniband/core/uverbs_std_types_srq.c    | 233 ++++++++++
+ drivers/infiniband/core/uverbs_std_types_wq.c | 194 +++++++++
+ drivers/infiniband/core/uverbs_uapi.c         |   3 +
+ drivers/infiniband/core/verbs.c               |  29 +-
+ drivers/infiniband/hw/mlx5/devx.c             |  10 +-
+ drivers/infiniband/hw/mlx5/main.c             |  24 +-
+ drivers/infiniband/hw/mlx5/qos.c              |  13 +-
+ include/rdma/ib_verbs.h                       |  75 ++--
+ include/rdma/uverbs_ioctl.h                   |   3 +
+ include/rdma/uverbs_std_types.h               |   2 +-
+ include/rdma/uverbs_types.h                   |   3 +-
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |  81 ++++
+ include/uapi/rdma/ib_user_ioctl_verbs.h       |  43 ++
+ 24 files changed, 1163 insertions(+), 247 deletions(-)
+ create mode 100644 drivers/infiniband/core/uverbs_std_types_qp.c
+ create mode 100644 drivers/infiniband/core/uverbs_std_types_srq.c
+ create mode 100644 drivers/infiniband/core/uverbs_std_types_wq.c
+
+--
 2.26.2
 
