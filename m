@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3ECBC54E49
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:35:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89805C38A2A
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:37:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9F7F21473
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:35:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A01D2083B
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588862150;
-	bh=+ppmzA/tbeWOkSA9YhL6/xoA42hURX7gCULa5gfiHRU=;
+	s=default; t=1588862258;
+	bh=fFjPDlSYqtZsiNtwI2hwcFmM5WH27agQGBfvGvrioZI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hyrDT+uymSF11f5/q9RjYBy1LGwJTG7ujQ/1pjVK8zHRhazP/fWhCp4t0M1Nv6J5S
-	 4PZXPincUE0svmxDmKIZ3mq/uTYwTEjo1Z+z8tzRVjsOhfcrEfxoqO9gYpNkIBor7P
-	 32tfeyIf9gSWxKgPpoBOlkq1cmoG2nev7ygVEjus=
+	b=U2L1HQhO0uUUJcmF8XnriD1IiOsYuAAErwJn7eaJB2UL/dFi1E/CuAqlrYvdxhUt4
+	 vXyzZJ5HNOn+TZmJjn19KIwT48Xe2ZRsXx/kniiplFG4Uix0+e5riEyGEFBgdZ0/ni
+	 E5XxM1pHsvQG8e36jwWxecrLqAQylDg0KnH1VRGc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727856AbgEGOfu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 May 2020 10:35:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55292 "EHLO mail.kernel.org"
+        id S1727845AbgEGO14 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 May 2020 10:27:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728111AbgEGO2d (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 May 2020 10:28:33 -0400
+        id S1727834AbgEGO1z (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 7 May 2020 10:27:55 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5DAF6215A4;
-        Thu,  7 May 2020 14:28:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4925A215A4;
+        Thu,  7 May 2020 14:27:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588861713;
-        bh=+ppmzA/tbeWOkSA9YhL6/xoA42hURX7gCULa5gfiHRU=;
+        s=default; t=1588861675;
+        bh=fFjPDlSYqtZsiNtwI2hwcFmM5WH27agQGBfvGvrioZI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Q91niJX0zmSX1BnZ/ByYQhGbUjc7jAxiknKSusQdYqWqqPq9XHYsr03w2FcJKm621
-         V3bWlTHeJqcf43fyn/pSJ75o7EGKn+/XCmJeKG2aMYT6iZBwOwr3dDyGBz4EoRCJhw
-         yh1eP1MhmxYesdWthaCbD0zLZIHAqJ9US99NbowU=
+        b=eNapZzGt+QBZNoGi1313IquHPl94YEhPMSm2lEZvQHTQoCrmdwJrClXb6kGdNnH6a
+         t11m+u7DRwtMTBDoMyKouH/02WMQZoLZ7jZCn1ZF5UYA+bpMWIE2oPo8kZnzhI3MiS
+         mlu0CDoFSTlU1INTJcREE5sAi0xB41kAma4KzC1s=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Xiyu Yang <xiyuyang19@fudan.edu.cn>,
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 02/35] RDMA/siw: Fix potential siw_mem refcnt leak in siw_fastreg_mr()
-Date:   Thu,  7 May 2020 10:27:56 -0400
-Message-Id: <20200507142830.26239-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 23/50] RDMA/core: Fix race between destroy and release FD object
+Date:   Thu,  7 May 2020 10:26:59 -0400
+Message-Id: <20200507142726.25751-23-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200507142830.26239-1-sashal@kernel.org>
-References: <20200507142830.26239-1-sashal@kernel.org>
+In-Reply-To: <20200507142726.25751-1-sashal@kernel.org>
+References: <20200507142726.25751-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -58,66 +58,57 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-[ Upstream commit 6e051971b0e2eeb0ce7ec65d3cc8180450512d36 ]
+[ Upstream commit f0abc761bbb9418876cc4d1ebc473e4ea6352e42 ]
 
-siw_fastreg_mr() invokes siw_mem_id2obj(), which returns a local reference
-of the siw_mem object to "mem" with increased refcnt.  When
-siw_fastreg_mr() returns, "mem" becomes invalid, so the refcount should be
-decreased to keep refcount balanced.
+The call to ->lookup_put() was too early and it caused an unlock of the
+read/write protection of the uobject after the FD was put. This allows a
+race:
 
-The issue happens in one error path of siw_fastreg_mr(). When "base_mr"
-equals to NULL but "mem" is not NULL, the function forgets to decrease the
-refcnt increased by siw_mem_id2obj() and causes a refcnt leak.
+     CPU1                                 CPU2
+ rdma_lookup_put_uobject()
+   lookup_put_fd_uobject()
+     fput()
+				   fput()
+				     uverbs_uobject_fd_release()
+				       WARN_ON(uverbs_try_lock_object(uobj,
+					       UVERBS_LOOKUP_WRITE));
+   atomic_dec(usecnt)
 
-Reorganize the flow so that the goto unwind can be used as expected.
+Fix the code by changing the order, first unlock and call to
+->lookup_put() after that.
 
-Fixes: b9be6f18cf9e ("rdma/siw: transmit path")
-Link: https://lore.kernel.org/r/1586939949-69856-1-git-send-email-xiyuyang19@fudan.edu.cn
-Reported-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Fixes: 3832125624b7 ("IB/core: Add support for idr types")
+Link: https://lore.kernel.org/r/20200423060122.6182-1-leon@kernel.org
+Suggested-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/siw/siw_qp_tx.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/rdma_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
-index 5d97bba0ce6d4..e7cd04eda04ac 100644
---- a/drivers/infiniband/sw/siw/siw_qp_tx.c
-+++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
-@@ -920,20 +920,27 @@ static int siw_fastreg_mr(struct ib_pd *pd, struct siw_sqe *sqe)
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 2947f4f83561d..177333d8bcdae 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -678,7 +678,6 @@ void rdma_lookup_put_uobject(struct ib_uobject *uobj,
+ 			     enum rdma_lookup_mode mode)
  {
- 	struct ib_mr *base_mr = (struct ib_mr *)(uintptr_t)sqe->base_mr;
- 	struct siw_device *sdev = to_siw_dev(pd->device);
--	struct siw_mem *mem = siw_mem_id2obj(sdev, sqe->rkey  >> 8);
-+	struct siw_mem *mem;
- 	int rv = 0;
- 
- 	siw_dbg_pd(pd, "STag 0x%08x\n", sqe->rkey);
- 
--	if (unlikely(!mem || !base_mr)) {
-+	if (unlikely(!base_mr)) {
- 		pr_warn("siw: fastreg: STag 0x%08x unknown\n", sqe->rkey);
- 		return -EINVAL;
+ 	assert_uverbs_usecnt(uobj, mode);
+-	uobj->uapi_object->type_class->lookup_put(uobj, mode);
+ 	/*
+ 	 * In order to unlock an object, either decrease its usecnt for
+ 	 * read access or zero it in case of exclusive access. See
+@@ -695,6 +694,7 @@ void rdma_lookup_put_uobject(struct ib_uobject *uobj,
+ 		break;
  	}
-+
- 	if (unlikely(base_mr->rkey >> 8 != sqe->rkey  >> 8)) {
- 		pr_warn("siw: fastreg: STag 0x%08x: bad MR\n", sqe->rkey);
--		rv = -EINVAL;
--		goto out;
-+		return -EINVAL;
- 	}
-+
-+	mem = siw_mem_id2obj(sdev, sqe->rkey  >> 8);
-+	if (unlikely(!mem)) {
-+		pr_warn("siw: fastreg: STag 0x%08x unknown\n", sqe->rkey);
-+		return -EINVAL;
-+	}
-+
- 	if (unlikely(mem->pd != pd)) {
- 		pr_warn("siw: fastreg: PD mismatch\n");
- 		rv = -EINVAL;
+ 
++	uobj->uapi_object->type_class->lookup_put(uobj, mode);
+ 	/* Pairs with the kref obtained by type->lookup_get */
+ 	uverbs_uobject_put(uobj);
+ }
 -- 
 2.20.1
 
