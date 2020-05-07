@@ -7,48 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61685C38A2A
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:28:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75A94C38A24
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:29:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DEFC20B1F
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:28:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 456B7208D6
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:29:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588861715;
-	bh=cdb5HhYYbgn0cqmn6y2JFhaVxDFfU8xbH0DMMtzfdrY=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=lv9rSvSYZSEPxwCLsF71oTqCrYVivob1mmtUwXjMiS2Gh11qQ2fc9u9hxyuX8bnwP
-	 mYBAgGoLCNR9ITvfqV9fK1nv1iLRwjW7X28ae6XW3wJzwy2x2f7K4BhdBTNUCiSeaG
-	 u107CABMQNEcPhqDr844WHiwF14uXTSxR2WzpTEY=
+	s=default; t=1588861793;
+	bh=hhGZnsy/UqyqfE1YGceDVAiV5IZvAu1HD1paBAx4yfI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=Mh882YRKwhOubWYehW2FKag8dt7OveMW5sHWsc7xIwhOJf/hh1rorZOWSvySORD46
+	 AbtEEJuXbe+PmUISwiVBSd4yVSOsTByNn/a76M9JagFum6Y/R8tI13eupOb3Q6kshk
+	 MTSJLSD+ulxjgozmSdIjRBX23FYfkvwnd1TnCrTU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728146AbgEGO2d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 May 2020 10:28:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55266 "EHLO mail.kernel.org"
+        id S1728688AbgEGO3v (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 May 2020 10:29:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58086 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728138AbgEGO2c (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 May 2020 10:28:32 -0400
+        id S1728679AbgEGO3u (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 7 May 2020 10:29:50 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1B21A20B1F;
-        Thu,  7 May 2020 14:28:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 22AD52073A;
+        Thu,  7 May 2020 14:29:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588861712;
-        bh=cdb5HhYYbgn0cqmn6y2JFhaVxDFfU8xbH0DMMtzfdrY=;
-        h=From:To:Cc:Subject:Date:From;
-        b=EHV5Wbn1HmEKO7EVxKtljt/Oytm1B8ve0u1n9WMywYXNyla2HSVQVe4vhhqemvg5X
-         frfP3hpbrRrC2eILWe2ApBIZR/ALO55kgwV3FNv/9gfgChNdyPfGbcCMgN2P7HZlA+
-         1rRpzi/QCNq2IX98l2ldN/tHR/B47ZofY3NAfbNU=
+        s=default; t=1588861790;
+        bh=hhGZnsy/UqyqfE1YGceDVAiV5IZvAu1HD1paBAx4yfI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=jWnfe13n1IgmYul6y2S53/dXoiDIrxi9Cc29hsot0TdJ9uSWccaJZaPW0toWYYA0V
+         tqQBAeUtBg3gJbIP3Tg7DffIPq2MErkwAijJpS2MCMpfogiY+c/3BE7VsXMhvqXurc
+         GuJwt0URajvBmxcFJwo7xDRY7E63WpkIX2tqKYcY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Alaa Hleihel <alaa@mellanox.com>,
+Cc:     Aharon Landau <aharonl@mellanox.com>,
         Maor Gottlieb <maorg@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 01/35] RDMA/mlx4: Initialize ib_spec on the stack
-Date:   Thu,  7 May 2020 10:27:55 -0400
-Message-Id: <20200507142830.26239-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 05/16] RDMA/mlx5: Set GRH fields in query QP on RoCE
+Date:   Thu,  7 May 2020 10:29:32 -0400
+Message-Id: <20200507142943.26848-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200507142943.26848-1-sashal@kernel.org>
+References: <20200507142943.26848-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -58,40 +60,45 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Alaa Hleihel <alaa@mellanox.com>
+From: Aharon Landau <aharonl@mellanox.com>
 
-[ Upstream commit c08cfb2d8d78bfe81b37cc6ba84f0875bddd0d5c ]
+[ Upstream commit 2d7e3ff7b6f2c614eb21d0dc348957a47eaffb57 ]
 
-Initialize ib_spec on the stack before using it, otherwise we will have
-garbage values that will break creating default rules with invalid parsing
-error.
+GRH fields such as sgid_index, hop limit, et. are set in the QP context
+when QP is created/modified.
 
-Fixes: a37a1a428431 ("IB/mlx4: Add mechanism to support flow steering over IB links")
-Link: https://lore.kernel.org/r/20200413132235.930642-1-leon@kernel.org
-Signed-off-by: Alaa Hleihel <alaa@mellanox.com>
+Currently, when query QP is performed, we fill the GRH fields only if the
+GRH bit is set in the QP context, but this bit is not set for RoCE. Adjust
+the check so we will set all relevant data for the RoCE too.
+
+Since this data is returned to userspace, the below is an ABI regression.
+
+Fixes: d8966fcd4c25 ("IB/core: Use rdma_ah_attr accessor functions")
+Link: https://lore.kernel.org/r/20200413132028.930109-1-leon@kernel.org
+Signed-off-by: Aharon Landau <aharonl@mellanox.com>
 Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/qp.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 369a203332a26..61a1b0bdede05 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1492,8 +1492,9 @@ static int __mlx4_ib_create_default_rules(
- 	int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(pdefault_rules->rules_create_list); i++) {
-+		union ib_flow_spec ib_spec = {};
- 		int ret;
--		union ib_flow_spec ib_spec;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 0cb60072c82f3..d835ef2ce23c0 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4362,7 +4362,9 @@ static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
+ 	rdma_ah_set_path_bits(ah_attr, path->grh_mlid & 0x7f);
+ 	rdma_ah_set_static_rate(ah_attr,
+ 				path->static_rate ? path->static_rate - 5 : 0);
+-	if (path->grh_mlid & (1 << 7)) {
 +
- 		switch (pdefault_rules->rules_create_list[i]) {
- 		case 0:
- 			/* no rule */
++	if (path->grh_mlid & (1 << 7) ||
++	    ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
+ 		u32 tc_fl = be32_to_cpu(path->tclass_flowlabel);
+ 
+ 		rdma_ah_set_grh(ah_attr, NULL,
 -- 
 2.20.1
 
