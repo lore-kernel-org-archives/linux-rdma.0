@@ -2,122 +2,113 @@ Return-Path: <SRS0=2Aje=6V=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA087C38A24
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51B78C38A2A
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 15:07:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF3432073A
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:38:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3264420857
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 15:07:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588862333;
-	bh=jjPs3cCRxH2+vEM0vdqifEvxOrjpWanBt4ztyY19i1Q=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=jnblA/+XqCwL5z1ZcMabF/QrG2rO5mmZ1ZT4mpjitOWTabv+JefWNgUUwd/F1fRaJ
-	 RSEadqgS3jt4uEN4txuJBiq69LlW0TCA1bbVWwjgLHat1+VXpi/qym+G8NT7CMIFye
-	 w2M9WeVra+04q8m5Te4Bi24/3vH99oK0cOtDnzyU=
+	s=default; t=1588864023;
+	bh=SNchQWMbobxyeDm1lRw8XiPEDFnWnN7W8PfMbg+sG7I=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=v7F1BM13I3MkU6oWfuNW+2bzyzMDt82H4GLCPtXfFsQT7iS1YgxPWBxEYXePlQ2Za
+	 dFGY9qsfL2nuvz/mQDhPZ1rLE0gLoyLc1+mSDgIkQaCinpJ4Zl5cSHYePJDotj1WN3
+	 TqdJ/2XSCPkOVhQePIJN+ikY1zs74wQY9/2o4sgg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726480AbgEGO1b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 May 2020 10:27:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53144 "EHLO mail.kernel.org"
+        id S1727118AbgEGPHC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 May 2020 11:07:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725948AbgEGO1a (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 May 2020 10:27:30 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        id S1727116AbgEGPHC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 7 May 2020 11:07:02 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 18CCC20857;
-        Thu,  7 May 2020 14:27:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C2DA920857;
+        Thu,  7 May 2020 15:06:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588861649;
-        bh=jjPs3cCRxH2+vEM0vdqifEvxOrjpWanBt4ztyY19i1Q=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NhsfnToYZjOG09t7yrBQKRvyiZHNsmhfeVyfFeypmULZs6QEqfzLMEzzTuWzESIKu
-         hN0eiIkzqA0/c5Sx/IOEZ8YFUX46PdcfhUevl0lx/LAM4H6kpjo4PcchL1xzGQU2Cj
-         UgxSVnZNxE7i/7tpw2HqSiFAdHB/PyjLL1HqPubQ=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Xiyu Yang <xiyuyang19@fudan.edu.cn>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 02/50] RDMA/siw: Fix potential siw_mem refcnt leak in siw_fastreg_mr()
-Date:   Thu,  7 May 2020 10:26:38 -0400
-Message-Id: <20200507142726.25751-2-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200507142726.25751-1-sashal@kernel.org>
-References: <20200507142726.25751-1-sashal@kernel.org>
+        s=default; t=1588864020;
+        bh=SNchQWMbobxyeDm1lRw8XiPEDFnWnN7W8PfMbg+sG7I=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=tIpqMuqZEpDOzR549bW3VDCA3rN+OAcfz1o7tjq1qzArVucACWqCEYEOnpp+EhLt3
+         IbT5miBppeb8mNGk82HsgWx5nAzdb8EoSZjFVcmaEfLWNfUML65383th9EnyXQhCZn
+         KjnH94miON46B9Kvs8wX9LmqNpr5ZHTu2TY20Gpg=
+Date:   Thu, 7 May 2020 17:06:58 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc:     "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "nhorman@redhat.com" <nhorman@redhat.com>,
+        "sassmann@redhat.com" <sassmann@redhat.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>,
+        "ranjani.sridharan@linux.intel.com" 
+        <ranjani.sridharan@linux.intel.com>,
+        "pierre-louis.bossart@linux.intel.com" 
+        <pierre-louis.bossart@linux.intel.com>,
+        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
+        "Bowers, AndrewX" <andrewx.bowers@intel.com>
+Subject: Re: [net-next v3 2/9] ice: Create and register virtual bus for RDMA
+Message-ID: <20200507150658.GA1886648@kroah.com>
+References: <20200506210505.507254-1-jeffrey.t.kirsher@intel.com>
+ <20200506210505.507254-3-jeffrey.t.kirsher@intel.com>
+ <20200507081737.GC1024567@kroah.com>
+ <9DD61F30A802C4429A01CA4200E302A7DCD6B850@fmsmsx124.amr.corp.intel.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7DCD6B850@fmsmsx124.amr.corp.intel.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+On Thu, May 07, 2020 at 02:04:04PM +0000, Saleem, Shiraz wrote:
+> > Subject: Re: [net-next v3 2/9] ice: Create and register virtual bus for RDMA
+> > 
+> > On Wed, May 06, 2020 at 02:04:58PM -0700, Jeff Kirsher wrote:
+> > > From: Dave Ertman <david.m.ertman@intel.com>
+> > >
+> > > The RDMA block does not have its own PCI function, instead it must
+> > > utilize the ice driver to gain access to the PCI device. Create a
+> > > virtual bus device so the irdma driver can register a virtual bus
+> > > driver to bind to it and receive device data. The device data contains
+> > > all of the relevant information that the irdma peer will need to
+> > > access this PF's IIDC API callbacks.
+> > 
+> > But there is no virtual bus driver in this patch!
+> 
+> Hi Greg - 
+> 
+> The irdma driver is the virtbus driver that would bind to the virtual devices created
+> in this netdev driver.
 
-[ Upstream commit 6e051971b0e2eeb0ce7ec65d3cc8180450512d36 ]
+Then why even have the virtbus code in this patch if there are no users?
 
-siw_fastreg_mr() invokes siw_mem_id2obj(), which returns a local reference
-of the siw_mem object to "mem" with increased refcnt.  When
-siw_fastreg_mr() returns, "mem" becomes invalid, so the refcount should be
-decreased to keep refcount balanced.
+And without any users, you are creating "virtbus devices" that live on
+what bus?  How does that work at all?  Kind of defeats the purpose of a
+virtual bus entirely if you do not use it, right?
 
-The issue happens in one error path of siw_fastreg_mr(). When "base_mr"
-equals to NULL but "mem" is not NULL, the function forgets to decrease the
-refcnt increased by siw_mem_id2obj() and causes a refcnt leak.
+> It is decoupled from this series as it was deemed in a prior discussion that irdma driver
+> would go in a +1 cycle from net series to avoid conflicts. See discussion here --
+> https://lore.kernel.org/netdev/46ed855e75f9eda89118bfad9c6f7b16dd372c71.camel@intel.com/
+> 
+> The irdma driver is currently posted as an RFC series with its most recent submission here --
+> https://lore.kernel.org/linux-rdma/20200417171251.1533371-1-jeffrey.t.kirsher@intel.com/
 
-Reorganize the flow so that the goto unwind can be used as expected.
+I can't accept that this series is using a virtual bus properly without
+actually using the virtual bus driver code, can you?
 
-Fixes: b9be6f18cf9e ("rdma/siw: transmit path")
-Link: https://lore.kernel.org/r/1586939949-69856-1-git-send-email-xiyuyang19@fudan.edu.cn
-Reported-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/sw/siw/siw_qp_tx.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+If this is the case, it better be REALLY REALLY REALLY well documented
+when one would, and would not, want to do that, as it doesn't make sense
+to me...
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
-index ae92c8080967c..9f53aa4feb878 100644
---- a/drivers/infiniband/sw/siw/siw_qp_tx.c
-+++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
-@@ -920,20 +920,27 @@ static int siw_fastreg_mr(struct ib_pd *pd, struct siw_sqe *sqe)
- {
- 	struct ib_mr *base_mr = (struct ib_mr *)(uintptr_t)sqe->base_mr;
- 	struct siw_device *sdev = to_siw_dev(pd->device);
--	struct siw_mem *mem = siw_mem_id2obj(sdev, sqe->rkey  >> 8);
-+	struct siw_mem *mem;
- 	int rv = 0;
- 
- 	siw_dbg_pd(pd, "STag 0x%08x\n", sqe->rkey);
- 
--	if (unlikely(!mem || !base_mr)) {
-+	if (unlikely(!base_mr)) {
- 		pr_warn("siw: fastreg: STag 0x%08x unknown\n", sqe->rkey);
- 		return -EINVAL;
- 	}
-+
- 	if (unlikely(base_mr->rkey >> 8 != sqe->rkey  >> 8)) {
- 		pr_warn("siw: fastreg: STag 0x%08x: bad MR\n", sqe->rkey);
--		rv = -EINVAL;
--		goto out;
-+		return -EINVAL;
- 	}
-+
-+	mem = siw_mem_id2obj(sdev, sqe->rkey  >> 8);
-+	if (unlikely(!mem)) {
-+		pr_warn("siw: fastreg: STag 0x%08x unknown\n", sqe->rkey);
-+		return -EINVAL;
-+	}
-+
- 	if (unlikely(mem->pd != pd)) {
- 		pr_warn("siw: fastreg: PD mismatch\n");
- 		rv = -EINVAL;
--- 
-2.20.1
+thanks,
 
+greg k-h
