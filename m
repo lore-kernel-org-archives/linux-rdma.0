@@ -4,48 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CA66C38A2A
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:33:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 668F5C47247
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:34:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4437620B1F
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:33:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E85B20735
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 May 2020 14:34:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588862009;
-	bh=XbnFtCXYMLOqIB6JPSZmw6i8y0K9dGA+/5iIuo36EkU=;
+	s=default; t=1588862042;
+	bh=NEygi/XkXXH5h0c3mz86KPqt0SxdHMUDq3aHUMqj2T8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FjZ6Jr/2RVpuFHPWhKJg+3eyRJUgDoiIY0nusisN+OydMEb5g2CunKcLCtgb1OkZE
-	 GPX9n45kayKwT2RiZZ4OpiDZTPGdVAigT63WpmkDdPy8e/OXbhXw2e3fc+haZnxVw2
-	 hIDQ3236115KH0U3jKAgm7+MIV4C4c3pcshBQG+Y=
+	b=aA/qGrynA2eshHLGN/1vVTYYaC6YhMiY1feepcaQ1/Wl+pW9d9tfPk7falURdGU3F
+	 z1rkUmYurkIpCqvkhRKhj8bnec5dGQuyBPhnYw/GK1JDtpqiW2VbtleILdY9nDpI/A
+	 LWDdzy39P8Ul36AsbEgA0IArImsaLs9w4IkxtKgk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728726AbgEGOd2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 May 2020 10:33:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57390 "EHLO mail.kernel.org"
+        id S1728557AbgEGOdz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 May 2020 10:33:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728582AbgEGO3d (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 May 2020 10:29:33 -0400
+        id S1728544AbgEGO31 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 7 May 2020 10:29:27 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B4A120838;
-        Thu,  7 May 2020 14:29:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 08B3D2073A;
+        Thu,  7 May 2020 14:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588861773;
-        bh=XbnFtCXYMLOqIB6JPSZmw6i8y0K9dGA+/5iIuo36EkU=;
+        s=default; t=1588861766;
+        bh=NEygi/XkXXH5h0c3mz86KPqt0SxdHMUDq3aHUMqj2T8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=zFewgdpSbk7WqBX4Em4rtNuCIC/RT/jZM/r0ew88Ae6IOhb/0dyoU+5qmmKTAtaTN
-         Z4ReIhLkc0Mf6KhzBjp7x7DXaGPITf4hkJw5ti/sCn36NQcF9qAKbCg5De0eWm1YzF
-         M75mL1F0EzslnovN0p1LyWDzKB/R171TDzRqytfU=
+        b=oGDtKRHrQME6ptzIQbnFgQBsK/f70wMmAJbXXpc4QzH5O29a8u14jjCOpe4PsK0vA
+         M3ngVUNBvjwzFo5vHqug7XQG263oRo7dUELZ4qglTx0PanTUbtVfyUIo/bOqMuYcLO
+         GBqZZ4uJOq8PD4d9L5nuojLM7ng8oC9P7j7lf4JE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Aharon Landau <aharonl@mellanox.com>,
+        Maor Gottlieb <maorg@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 13/20] RDMA/core: Fix race between destroy and release FD object
-Date:   Thu,  7 May 2020 10:29:09 -0400
-Message-Id: <20200507142917.26612-13-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 07/20] RDMA/mlx5: Set GRH fields in query QP on RoCE
+Date:   Thu,  7 May 2020 10:29:03 -0400
+Message-Id: <20200507142917.26612-7-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200507142917.26612-1-sashal@kernel.org>
 References: <20200507142917.26612-1-sashal@kernel.org>
@@ -58,57 +60,45 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Aharon Landau <aharonl@mellanox.com>
 
-[ Upstream commit f0abc761bbb9418876cc4d1ebc473e4ea6352e42 ]
+[ Upstream commit 2d7e3ff7b6f2c614eb21d0dc348957a47eaffb57 ]
 
-The call to ->lookup_put() was too early and it caused an unlock of the
-read/write protection of the uobject after the FD was put. This allows a
-race:
+GRH fields such as sgid_index, hop limit, et. are set in the QP context
+when QP is created/modified.
 
-     CPU1                                 CPU2
- rdma_lookup_put_uobject()
-   lookup_put_fd_uobject()
-     fput()
-				   fput()
-				     uverbs_uobject_fd_release()
-				       WARN_ON(uverbs_try_lock_object(uobj,
-					       UVERBS_LOOKUP_WRITE));
-   atomic_dec(usecnt)
+Currently, when query QP is performed, we fill the GRH fields only if the
+GRH bit is set in the QP context, but this bit is not set for RoCE. Adjust
+the check so we will set all relevant data for the RoCE too.
 
-Fix the code by changing the order, first unlock and call to
-->lookup_put() after that.
+Since this data is returned to userspace, the below is an ABI regression.
 
-Fixes: 3832125624b7 ("IB/core: Add support for idr types")
-Link: https://lore.kernel.org/r/20200423060122.6182-1-leon@kernel.org
-Suggested-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: d8966fcd4c25 ("IB/core: Use rdma_ah_attr accessor functions")
+Link: https://lore.kernel.org/r/20200413132028.930109-1-leon@kernel.org
+Signed-off-by: Aharon Landau <aharonl@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/rdma_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/qp.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 52737ad88bf1a..bf937fec50dca 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -697,7 +697,6 @@ void rdma_lookup_put_uobject(struct ib_uobject *uobj,
- 			     enum rdma_lookup_mode mode)
- {
- 	assert_uverbs_usecnt(uobj, mode);
--	uobj->uapi_object->type_class->lookup_put(uobj, mode);
- 	/*
- 	 * In order to unlock an object, either decrease its usecnt for
- 	 * read access or zero it in case of exclusive access. See
-@@ -714,6 +713,7 @@ void rdma_lookup_put_uobject(struct ib_uobject *uobj,
- 		break;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 4fc9278d0ddec..10f6ae4f8f3ff 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4887,7 +4887,9 @@ static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
+ 	rdma_ah_set_path_bits(ah_attr, path->grh_mlid & 0x7f);
+ 	rdma_ah_set_static_rate(ah_attr,
+ 				path->static_rate ? path->static_rate - 5 : 0);
+-	if (path->grh_mlid & (1 << 7)) {
++
++	if (path->grh_mlid & (1 << 7) ||
++	    ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
+ 		u32 tc_fl = be32_to_cpu(path->tclass_flowlabel);
  
-+	uobj->uapi_object->type_class->lookup_put(uobj, mode);
- 	/* Pairs with the kref obtained by type->lookup_get */
- 	uverbs_uobject_put(uobj);
- }
+ 		rdma_ah_set_grh(ah_attr, NULL,
 -- 
 2.20.1
 
