@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FCAC38A2A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82C43C47247
 	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F03DA21582
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CCF1208D6
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726951AbgEHJqT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726948AbgEHJqT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 8 May 2020 05:46:19 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:53578 "EHLO huawei.com"
+Received: from szxga07-in.huawei.com ([45.249.212.35]:53582 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726948AbgEHJqT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726946AbgEHJqT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 8 May 2020 05:46:19 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 9B5A6FE9ADDB31506DEC;
+        by Forcepoint Email with ESMTP id 9647353FA0AA7E61F288;
         Fri,  8 May 2020 17:46:16 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 8 May 2020 17:46:09 +0800
+ 14.3.487.0; Fri, 8 May 2020 17:46:10 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 1/9] RDMA/hns: Bugfix for querying qkey
-Date:   Fri, 8 May 2020 17:45:51 +0800
-Message-ID: <1588931159-56875-2-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 3/9] RDMA/hns: Fix assignment to ba_pg_sz of eqe
+Date:   Fri, 8 May 2020 17:45:53 +0800
+Message-ID: <1588931159-56875-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
 References: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
@@ -43,31 +43,31 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-The qkey queried through the query ud qp verb is a fixed value and it
-should be read from qp context.
+When allocating eq buffer, the size of base address page should be defined
+by eqe_ba_pg_sz instead of srqwqe_ba_pg_sz.
 
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Fixes: 477a0a387072 ("RDMA/hns: Optimize 0 hop addressing for EQE buffer")
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index ad9a11a..61098b0 100644
+index 81abab0..3039896 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4680,7 +4680,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 	qp_attr->path_mig_state = IB_MIG_ARMED;
- 	qp_attr->ah_attr.type   = RDMA_AH_ATTR_TYPE_ROCE;
- 	if (hr_qp->ibqp.qp_type == IB_QPT_UD)
--		qp_attr->qkey = V2_QKEY_VAL;
-+		qp_attr->qkey = le32_to_cpu(context.qkey_xrcd);
+@@ -5612,7 +5612,7 @@ static int alloc_eq_buf(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
+ 	buf_attr.fixed_page = true;
  
- 	qp_attr->rq_psn = roce_get_field(context.byte_108_rx_reqepsn,
- 					 V2_QPC_BYTE_108_RX_REQ_EPSN_M,
+ 	err = hns_roce_mtr_create(hr_dev, &eq->mtr, &buf_attr,
+-				  hr_dev->caps.srqwqe_ba_pg_sz +
++				  hr_dev->caps.eqe_ba_pg_sz +
+ 				  PAGE_ADDR_SHIFT, NULL, 0);
+ 	if (err)
+ 		dev_err(hr_dev->dev, "Failed to alloc EQE mtr, err %d\n", err);
 -- 
 2.8.1
 
