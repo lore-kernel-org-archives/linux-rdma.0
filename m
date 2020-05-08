@@ -2,36 +2,38 @@ Return-Path: <SRS0=Oc65=6W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AD00C54E4A
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0360AC47247
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2187421473
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2043208D6
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726641AbgEHJqV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 May 2020 05:46:21 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:53596 "EHLO huawei.com"
+        id S1727072AbgEHJqX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 05:46:23 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:37308 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727051AbgEHJqV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 8 May 2020 05:46:21 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id A3DE996FC4F5A58B34F5;
-        Fri,  8 May 2020 17:46:16 +0800 (CST)
+        id S1727067AbgEHJqX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 May 2020 05:46:23 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id B9196A583EF1D7FBA505;
+        Fri,  8 May 2020 17:46:21 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 8 May 2020 17:46:09 +0800
+ 14.3.487.0; Fri, 8 May 2020 17:46:11 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/9] RDMA/hns: Various fixes and cleanups
-Date:   Fri, 8 May 2020 17:45:50 +0800
-Message-ID: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 6/9] RDMA/hns: Store mr len information into mr obj
+Date:   Fri, 8 May 2020 17:45:56 +0800
+Message-ID: <1588931159-56875-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
+References: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,40 +43,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series contains the following:
-- #1 ~ #2 are fixes to solve issues found from previous versions.
-- #3 ~ #5 are fixes for recent refactoring codes to 5.8.
-- #6 ~ #9 are various cleanups.
+From: Lang Cheng <chenglang@huawei.com>
 
-Lang Cheng (2):
-  RDMA/hns: Fix cmdq parameter of querying pf timer resource
-  RDMA/hns: Store mr len information into mr obj
+The length information should be stored in the struct ib_mr object,
+otherwise the length value of a valid mr object would always be 0.
 
-Lijun Ou (2):
-  RDMA/hns: Bugfix for querying qkey
-  RDMA/hns: Reserve one sge in order to avoid local length error
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_mr.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Weihang Li (3):
-  RDMA/hns: Fix wrong assignment of SRQ's max_wr
-  RDMA/hns: Fix error with to_hr_hem_entries_count()
-  RDMA/hns: Remove redundant memcpy()
-
-Wenpeng Liang (1):
-  RDMA/hns: Fix assignment to ba_pg_sz of eqe
-
-Xi Wang (1):
-  RDMA/hns: Rename macro for defining hns hardware page size
-
- drivers/infiniband/hw/hns/hns_roce_alloc.c  |  6 ++--
- drivers/infiniband/hw/hns/hns_roce_cq.c     |  4 +--
- drivers/infiniband/hw/hns/hns_roce_device.h | 15 +++++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 53 ++++++++++++-----------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  4 ++-
- drivers/infiniband/hw/hns/hns_roce_mr.c     |  8 +++--
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  9 ++---
- drivers/infiniband/hw/hns/hns_roce_srq.c    | 10 +++---
- 8 files changed, 56 insertions(+), 53 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index ecd7675..f727b18 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -285,6 +285,7 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 		goto err_alloc_pbl;
+ 
+ 	mr->ibmr.rkey = mr->ibmr.lkey = mr->key;
++	mr->ibmr.length = length;
+ 
+ 	return &mr->ibmr;
+ 
+@@ -451,6 +452,7 @@ struct ib_mr *hns_roce_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
+ 		goto err_pbl;
+ 
+ 	mr->ibmr.rkey = mr->ibmr.lkey = mr->key;
++	mr->ibmr.length = length;
+ 
+ 	return &mr->ibmr;
+ 
 -- 
 2.8.1
 
