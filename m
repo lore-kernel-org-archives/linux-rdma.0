@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FCACC38A2A
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E991C47247
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26BB024956
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0564C24956
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Qa2htAHP"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="nLXivfej"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728374AbgEHPhF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 May 2020 11:37:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58460 "EHLO
+        id S1728313AbgEHPhA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 11:37:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728355AbgEHPhD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 May 2020 11:37:03 -0400
+        with ESMTP id S1726736AbgEHPg5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 May 2020 11:36:57 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F37EFC061A0C;
-        Fri,  8 May 2020 08:37:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 697C4C061A0C;
+        Fri,  8 May 2020 08:36:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=Fa8g/lJWKeJOUWpYZKXVATFBsUbfwqV0WZlzPMoN0uA=; b=Qa2htAHPQfxVvAUTYEeMqFgrdh
-        GOwnTg4ulWQqLx6PIvQwXwOQ38d99ysssfAJK0A0785ViFbs5O4fMdbZzuq2dDKpS8pELW7HGvkBM
-        p1nwmkCOWeGuhoWNIarZEKQnoIq2R5Ex6v5mA07Q/8cRXM1obeyxcP5oPlOnMLj/LE/DGq17tKzG5
-        C72uis6BvgLT+nnvwsubs4tEk9aZUMn1y7yUC4eLB2h/N8MLIsTdMkKA9um8pxHIhYStpxq4EUKhW
-        JF8NNAytHWoxkh5ov5BS8g1yn0WriNp19+/h+gp0YDDSf/AdqPHNP83wqLC7LkpEXhpV8LqMLPmdF
-        xf6VlBZg==;
+        bh=K2Uub0aVlfxersdFoVOaGQEKIhROd5F6Q0lYewfweLc=; b=nLXivfejQ+u34RbuaNX/WRviAP
+        4MWtTgrAfbomeTARHGscIxB0QNC16PC97aZYytTP+FF+q7ACvUTThUK9PVdWxAGifmTgZugVLsN4v
+        QY1gxUI/EnmI8tEMw9oblbdgBRg6XuLSqvnYIAcnNngOpBkkT+DiC/aonb2qvEMT37abKrQx4gHFs
+        7Ds+24tMuJDuoDd7QTAAiDDNyL9wAWVw2hrtUwae9zOHmIFGIc2fBYTSfQC+irX8W7GgXn0m3XJtS
+        S1m572ziEHrm1ZsNjB4+YI+dNh4qBo0ef6X8qTK/iM60a+t/A3rmc/Rt2hlF5iujEmK4Gl4sBeDFV
+        V4ot9Jkg==;
 Received: from [2001:4bb8:180:9d3f:90d7:9df8:7cd:3504] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jX53e-0004QB-FT; Fri, 08 May 2020 15:37:02 +0000
+        id 1jX53Y-0004E0-RB; Fri, 08 May 2020 15:36:57 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>
 Cc:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -44,9 +44,9 @@ Cc:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org,
         netdev@vger.kernel.org, bpf@vger.kernel.org
-Subject: [PATCH 09/12] rdma: use __anon_inode_getfd
-Date:   Fri,  8 May 2020 17:36:31 +0200
-Message-Id: <20200508153634.249933-10-hch@lst.de>
+Subject: [PATCH 07/12] eventfd: use __anon_inode_getfd
+Date:   Fri,  8 May 2020 17:36:29 +0200
+Message-Id: <20200508153634.249933-8-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200508153634.249933-1-hch@lst.de>
 References: <20200508153634.249933-1-hch@lst.de>
@@ -63,48 +63,36 @@ get_unused_fd_flags + anon_inode_getfile.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/infiniband/core/rdma_core.c | 17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ fs/eventfd.c | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 5128cb16bb485..541e5e06347f6 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -462,30 +462,21 @@ alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
- 	if (WARN_ON(fd_type->fops->release != &uverbs_uobject_fd_release))
- 		return ERR_PTR(-EINVAL);
- 
--	new_fd = get_unused_fd_flags(O_CLOEXEC);
--	if (new_fd < 0)
--		return ERR_PTR(new_fd);
+diff --git a/fs/eventfd.c b/fs/eventfd.c
+index df466ef81dddf..9b6d5137679b2 100644
+--- a/fs/eventfd.c
++++ b/fs/eventfd.c
+@@ -423,20 +423,11 @@ static int do_eventfd(unsigned int count, int flags)
+ 	ctx->count = count;
+ 	ctx->flags = flags;
+ 	ctx->id = ida_simple_get(&eventfd_ida, 0, 0, GFP_KERNEL);
 -
- 	uobj = alloc_uobj(attrs, obj);
- 	if (IS_ERR(uobj))
--		goto err_fd;
-+		return uobj;
+-	flags &= EFD_SHARED_FCNTL_FLAGS;
+-	flags |= O_RDWR;
+-	fd = get_unused_fd_flags(flags);
++	fd = __anon_inode_getfd("[eventfd]", &eventfd_fops, ctx,
++		(flags & EFD_SHARED_FCNTL_FLAGS) | O_RDWR, &file);
+ 	if (fd < 0)
+ 		goto err;
  
- 	/* Note that uverbs_uobject_fd_release() is called during abort */
--	filp = anon_inode_getfile(fd_type->name, fd_type->fops, NULL,
--				  fd_type->flags);
--	if (IS_ERR(filp)) {
--		uobj = ERR_CAST(filp);
-+	new_fd = __anon_inode_getfd(fd_type->name, fd_type->fops, NULL,
-+			fd_type->flags | O_CLOEXEC, &filp);
-+	if (new_fd < 0)
- 		goto err_uobj;
+-	file = anon_inode_getfile("[eventfd]", &eventfd_fops, ctx, flags);
+-	if (IS_ERR(file)) {
+-		put_unused_fd(fd);
+-		fd = PTR_ERR(file);
+-		goto err;
 -	}
- 	uobj->object = filp;
 -
- 	uobj->id = new_fd;
- 	return uobj;
- 
- err_uobj:
- 	uverbs_uobject_put(uobj);
--err_fd:
--	put_unused_fd(new_fd);
- 	return uobj;
- }
- 
+ 	file->f_mode |= FMODE_NOWAIT;
+ 	fd_install(fd, file);
+ 	return fd;
 -- 
 2.26.2
 
