@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01FF4C38A2A
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:36:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39A3DC47247
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFC0324955
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:36:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BEEE21841
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="AWoCrBmc"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ECjye1lF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728258AbgEHPgy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 May 2020 11:36:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58426 "EHLO
+        id S1728463AbgEHPhM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 11:37:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726736AbgEHPgw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 May 2020 11:36:52 -0400
+        with ESMTP id S1728418AbgEHPhL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 May 2020 11:37:11 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9235C061A0C;
-        Fri,  8 May 2020 08:36:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F247EC061A0C;
+        Fri,  8 May 2020 08:37:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=84Q6+XvESATHkPDs3NezzlHWwc4KFGjN8N6drGU+t58=; b=AWoCrBmcbiNeSqG41R8zejRyGu
-        q9id5MMqFDnvfrZaKfLud0DzqWzP81fdQM2386RtOX+d1YUMf/xfAOiVUr699SfUMz7BTaVNStXYL
-        URpd5PGUP47QmFtYhFKrjV9Chp+yOi6JLX3053q5fnCJsoCaJC0JS55pAMk20L88eIz9rHxZgVuGV
-        yjg4TCdQyTS/tDFunEk4vcDsvmGZCUFGy9Yo0DcC3s6+nRk9Or5FqCiCQQmg/86acEJlB6AwC/r2W
-        ha+mGlYY+7L0ukMxEOgVwW3F6ckPe0jf7choEDgXl4CQfuHU79gbeHfvDNAxNZBTXBT7Mjx37VB6E
-        BcK7J1bg==;
+        bh=uQupytwSEXnv3/F3EONV14yFM9iDWY0BYhUPftguMlU=; b=ECjye1lFh/oDKkHSp8s8r3/PBL
+        bY/42wC5a85E1iHD+psjQ/gkXg7hcCE7r0N2ufr4ZnmtVS2rYT80SgF8xdIozTYFqxl0tf1Z49wkr
+        brImDOTrRr2yXeQqkxa8oM7wZ8d1A07kuZ+YelyRE3/Ejv0WR63qqwEi7NkSPvm6JCdwbnIFIuFhh
+        ca06xctQt3/rLg9MSgExt6X6hISxql6kbhSk4akzhzTPYah7nLCyDQJuj3qQCGYA/oqYFM9Kr5h5f
+        gIMF4UxTD82Q2/oQLlx6fL74cfXHXgNPMz/nvaxsMY6cMkjGOAWo/Ha8ThQx5El+S/JcOa/eOm9Qh
+        ch4YtVZw==;
 Received: from [2001:4bb8:180:9d3f:90d7:9df8:7cd:3504] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jX53T-0004BL-6n; Fri, 08 May 2020 15:36:51 +0000
+        id 1jX53m-0004ST-Ff; Fri, 08 May 2020 15:37:10 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>
 Cc:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -44,9 +44,9 @@ Cc:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org,
         netdev@vger.kernel.org, bpf@vger.kernel.org
-Subject: [PATCH 05/12] io_uring: use __anon_inode_getfd
-Date:   Fri,  8 May 2020 17:36:27 +0200
-Message-Id: <20200508153634.249933-6-hch@lst.de>
+Subject: [PATCH 12/12] vtpm_proxy: use __anon_inode_getfd
+Date:   Fri,  8 May 2020 17:36:34 +0200
+Message-Id: <20200508153634.249933-13-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200508153634.249933-1-hch@lst.de>
 References: <20200508153634.249933-1-hch@lst.de>
@@ -63,34 +63,60 @@ get_unused_fd_flags + anon_inode_getfile.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/io_uring.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/char/tpm/tpm_vtpm_proxy.c | 23 +++++------------------
+ 1 file changed, 5 insertions(+), 18 deletions(-)
 
-diff --git a/fs/io_uring.c b/fs/io_uring.c
-index 5190bfb6a6657..4104f8a45d11e 100644
---- a/fs/io_uring.c
-+++ b/fs/io_uring.c
-@@ -7709,18 +7709,11 @@ static int io_uring_get_fd(struct io_ring_ctx *ctx)
- 		return ret;
- #endif
+diff --git a/drivers/char/tpm/tpm_vtpm_proxy.c b/drivers/char/tpm/tpm_vtpm_proxy.c
+index 91c772e38bb54..4c0a31209ae5a 100644
+--- a/drivers/char/tpm/tpm_vtpm_proxy.c
++++ b/drivers/char/tpm/tpm_vtpm_proxy.c
+@@ -534,7 +534,7 @@ static struct file *vtpm_proxy_create_device(
+ 				 struct vtpm_proxy_new_dev *vtpm_new_dev)
+ {
+ 	struct proxy_dev *proxy_dev;
+-	int rc, fd;
++	int fd;
+ 	struct file *file;
  
--	ret = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
-+	ret = __anon_inode_getfd("[io_uring]", &io_uring_fops, ctx,
-+			O_RDWR | O_CLOEXEC, &file);
- 	if (ret < 0)
- 		goto err;
+ 	if (vtpm_new_dev->flags & ~VTPM_PROXY_FLAGS_ALL)
+@@ -546,19 +546,10 @@ static struct file *vtpm_proxy_create_device(
  
--	file = anon_inode_getfile("[io_uring]", &io_uring_fops, ctx,
--					O_RDWR | O_CLOEXEC);
--	if (IS_ERR(file)) {
--		put_unused_fd(ret);
--		ret = PTR_ERR(file);
--		goto err;
+ 	proxy_dev->flags = vtpm_new_dev->flags;
+ 
+-	/* setup an anonymous file for the server-side */
+-	fd = get_unused_fd_flags(O_RDWR);
+-	if (fd < 0) {
+-		rc = fd;
++	fd = __anon_inode_getfd("[vtpms]", &vtpm_proxy_fops, proxy_dev, O_RDWR,
++			&file);
++	if (fd < 0)
+ 		goto err_delete_proxy_dev;
 -	}
 -
- #if defined(CONFIG_UNIX)
- 	ctx->ring_sock->file = file;
- #endif
+-	file = anon_inode_getfile("[vtpms]", &vtpm_proxy_fops, proxy_dev,
+-				  O_RDWR);
+-	if (IS_ERR(file)) {
+-		rc = PTR_ERR(file);
+-		goto err_put_unused_fd;
+-	}
+ 
+ 	/* from now on we can unwind with put_unused_fd() + fput() */
+ 	/* simulate an open() on the server side */
+@@ -576,13 +567,9 @@ static struct file *vtpm_proxy_create_device(
+ 
+ 	return file;
+ 
+-err_put_unused_fd:
+-	put_unused_fd(fd);
+-
+ err_delete_proxy_dev:
+ 	vtpm_proxy_delete_proxy_dev(proxy_dev);
+-
+-	return ERR_PTR(rc);
++	return ERR_PTR(fd);
+ }
+ 
+ /*
 -- 
 2.26.2
 
