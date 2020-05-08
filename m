@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88D34C38A2A
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77785C54E49
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7244021473
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FC39215A4
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727067AbgEHJqX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 May 2020 05:46:23 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:37312 "EHLO huawei.com"
+        id S1726950AbgEHJqY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 05:46:24 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:37296 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726950AbgEHJqX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 8 May 2020 05:46:23 -0400
+        id S1727071AbgEHJqY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 May 2020 05:46:24 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id B558B3FC4477D0247AC0;
+        by Forcepoint Email with ESMTP id B02E7E53389AD5B9EA9E;
         Fri,  8 May 2020 17:46:21 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 8 May 2020 17:46:11 +0800
+ 14.3.487.0; Fri, 8 May 2020 17:46:13 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 5/9] RDMA/hns: Fix error with to_hr_hem_entries_count()
-Date:   Fri, 8 May 2020 17:45:55 +0800
-Message-ID: <1588931159-56875-6-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 9/9] RDMA/hns: Reserve one sge in order to avoid local length error
+Date:   Fri, 8 May 2020 17:45:59 +0800
+Message-ID: <1588931159-56875-10-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
 References: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
@@ -43,33 +43,128 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-For ilog2(x), if x is 0 and not a constant variable, it will return -1. And
-there will be an error as below:
+From: Lijun Ou <oulijun@huawei.com>
 
-hns3 0000:7d:00.0 hns_0: Local work queue 0x8 catast error, sub_event type is: 2
+When rq/srq sge length is smaller than sq sge length, it will produce a
+local length error and may cause the bus to hang. Therefore, for rq wqe
+and srq wqe, one reserved sge pointing to a reserved mr is used to avoid
+this error.
 
-So modify to_hr_hem_entries_shift() to return 0 if conut is 0.
-
-Fixes: 54d6638765b0 ("RDMA/hns: Optimize WQE buffer size calculating process")
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 2 ++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 9 +++++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 4 +++-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 5 +++--
+ drivers/infiniband/hw/hns/hns_roce_srq.c    | 2 +-
+ 5 files changed, 14 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 5cac14d..5564773 100644
+index 543c37a..2f804c18 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -1111,6 +1111,9 @@ static inline u32 to_hr_hem_entries_count(u32 count, u32 buf_shift)
+@@ -66,6 +66,8 @@
+ #define HNS_ROCE_CQE_WCMD_EMPTY_BIT		0x2
+ #define HNS_ROCE_MIN_CQE_CNT			16
  
- static inline u32 to_hr_hem_entries_shift(u32 count, u32 buf_shift)
- {
-+	if (!count)
-+		return 0;
++#define HNS_ROCE_RESERVED_SGE			1
 +
- 	return ilog2(to_hr_hem_entries_count(count, buf_shift));
- }
+ #define HNS_ROCE_MAX_IRQ_NUM			128
  
+ #define HNS_ROCE_SGE_IN_WQE			2
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index e7ebe31..6877c1e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -629,7 +629,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
+ 
+ 		wqe_idx = (hr_qp->rq.head + nreq) & (hr_qp->rq.wqe_cnt - 1);
+ 
+-		if (unlikely(wr->num_sge > hr_qp->rq.max_gs)) {
++		if (unlikely(wr->num_sge >= hr_qp->rq.max_gs)) {
+ 			ibdev_err(ibdev, "rq:num_sge=%d >= qp->sq.max_gs=%d\n",
+ 				  wr->num_sge, hr_qp->rq.max_gs);
+ 			ret = -EINVAL;
+@@ -649,6 +649,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
+ 		if (i < hr_qp->rq.max_gs) {
+ 			dseg->lkey = cpu_to_le32(HNS_ROCE_INVALID_LKEY);
+ 			dseg->addr = 0;
++			dseg->len = cpu_to_le32(HNS_ROCE_INVALID_SGE_LENGTH);
+ 		}
+ 
+ 		/* rq support inline data */
+@@ -782,8 +783,8 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
+ 		}
+ 
+ 		if (i < srq->max_gs) {
+-			dseg[i].len = 0;
+-			dseg[i].lkey = cpu_to_le32(0x100);
++			dseg[i].len = cpu_to_le32(HNS_ROCE_INVALID_SGE_LENGTH);
++			dseg[i].lkey = cpu_to_le32(HNS_ROCE_INVALID_LKEY);
+ 			dseg[i].addr = 0;
+ 		}
+ 
+@@ -5042,7 +5043,7 @@ static int hns_roce_v2_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+ 
+ 	attr->srq_limit = limit_wl;
+ 	attr->max_wr = srq->wqe_cnt - 1;
+-	attr->max_sge = srq->max_gs;
++	attr->max_sge = srq->max_gs - HNS_ROCE_RESERVED_SGE;
+ 
+ out:
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 05bfe07..a135b09 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -92,7 +92,9 @@
+ #define HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ		PAGE_SIZE
+ #define HNS_ROCE_V2_PAGE_SIZE_SUPPORTED		0xFFFFF000
+ #define HNS_ROCE_V2_MAX_INNER_MTPT_NUM		2
+-#define HNS_ROCE_INVALID_LKEY			0x100
++#define HNS_ROCE_INVALID_LKEY			0x0
++#define HNS_ROCE_INVALID_SGE_LENGTH		0x80000000
++
+ #define HNS_ROCE_CMQ_TX_TIMEOUT			30000
+ #define HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE	2
+ #define HNS_ROCE_V2_RSV_QPS			8
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index c8334d7..6e5df46 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -386,7 +386,8 @@ static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
+ 		return -EINVAL;
+ 	}
+ 
+-	hr_qp->rq.max_gs = roundup_pow_of_two(max(1U, cap->max_recv_sge));
++	hr_qp->rq.max_gs = roundup_pow_of_two(max(1U, cap->max_recv_sge) +
++					      HNS_ROCE_RESERVED_SGE);
+ 
+ 	if (hr_dev->caps.max_rq_sg <= HNS_ROCE_SGE_IN_WQE)
+ 		hr_qp->rq.wqe_shift = ilog2(hr_dev->caps.max_rq_desc_sz);
+@@ -401,7 +402,7 @@ static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
+ 		hr_qp->rq_inl_buf.wqe_cnt = 0;
+ 
+ 	cap->max_recv_wr = cnt;
+-	cap->max_recv_sge = hr_qp->rq.max_gs;
++	cap->max_recv_sge = hr_qp->rq.max_gs - HNS_ROCE_RESERVED_SGE;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index 03b76e6..3018c98 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -297,7 +297,7 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
+ 	spin_lock_init(&srq->lock);
+ 
+ 	srq->wqe_cnt = roundup_pow_of_two(init_attr->attr.max_wr + 1);
+-	srq->max_gs = init_attr->attr.max_sge;
++	srq->max_gs = init_attr->attr.max_sge + HNS_ROCE_RESERVED_SGE;
+ 
+ 	if (udata) {
+ 		ret = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
 -- 
 2.8.1
 
