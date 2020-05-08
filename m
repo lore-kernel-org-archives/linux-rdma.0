@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C007EC54E4B
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73626C47247
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:38:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A04FD24955
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:37:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48CCC24953
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 15:38:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="XC7dRbkc"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="r/T2Qu4D"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728542AbgEHPhu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 May 2020 11:37:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58452 "EHLO
+        id S1728305AbgEHPhA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 11:37:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728304AbgEHPhA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 May 2020 11:37:00 -0400
+        with ESMTP id S1728264AbgEHPgy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 May 2020 11:36:54 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24ABEC061A0C;
-        Fri,  8 May 2020 08:37:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87E19C061A0C;
+        Fri,  8 May 2020 08:36:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=nmjnltB29xld+C3Z+3PwCdDAVaharMq9Nb/YJIWz0Mw=; b=XC7dRbkcv1Z+9Aj3oRe1TSTHyA
-        92hwRGkNvqNC1eKJPiFAchuwONZiLGsaR09OC9v+N2an8W+SAyjulwp7XCmGWsm1fNWqkmFfGnGQe
-        d+lsRHk/Bu2X6EcnRHqZEP/tmf+cfJDroBH3O+RBLMcto3g5Hpz5EsuYPzyIRDUd6Tx0MGnxaD+o4
-        8NZidjToalkxI1guS+RsMSwlFeAWxK4ZTLFqmVkASNbu0eweGVJrRiijmA8PNH65Z8vpwwddiqMrD
-        /VgNAyZqKh5bCLc5iRU9un0MeHL8up6W0xpMpgOOCMrlYGGig+ysKu6//vM1JaYlCnY64yS1RWO6e
-        E1IikOWA==;
+        bh=Y6GByYBpY6pH5k9QcdAJgxxwyoCDdXaPGt39GnAtfcU=; b=r/T2Qu4Dq2EPB6e8g5rt10rdUS
+        xxIMdT2OcwOzQanXgb4lV4q1HK2YMY6jUhqZw4kqLXgZCPDWdZw6jUGIRcchb87UWGNEuuzBouvX4
+        4YS6XQKp60nPAtzrXWUhDMdzUDn2lFo59J/30GXVF9vyt86zvxErfvhDIjdhWfDQu5QTV2MczwT2x
+        fGalI5f7Wmy57824Eoy61rqGOadOiirp9dqXejOb+NK5CiWjdMnCeU4VkmDWFCec3wc6SAXB9cpOu
+        qVjmdlypsglLL/MZUS2SpJ5wA9C0Z291fcC9yHzmdGJanj/2UhJ/FJKsXGQ6ggPMKfRpM8NzQ3VrW
+        aO9USAMw==;
 Received: from [2001:4bb8:180:9d3f:90d7:9df8:7cd:3504] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jX53b-0004Kk-JZ; Fri, 08 May 2020 15:37:00 +0000
+        id 1jX53V-0004Cz-VR; Fri, 08 May 2020 15:36:54 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>
 Cc:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -44,9 +44,9 @@ Cc:     linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org,
         netdev@vger.kernel.org, bpf@vger.kernel.org
-Subject: [PATCH 08/12] vfio: use __anon_inode_getfd
-Date:   Fri,  8 May 2020 17:36:30 +0200
-Message-Id: <20200508153634.249933-9-hch@lst.de>
+Subject: [PATCH 06/12] eventpoll: use __anon_inode_getfd
+Date:   Fri,  8 May 2020 17:36:28 +0200
+Message-Id: <20200508153634.249933-7-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200508153634.249933-1-hch@lst.de>
 References: <20200508153634.249933-1-hch@lst.de>
@@ -63,64 +63,40 @@ get_unused_fd_flags + anon_inode_getfile.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/vfio/vfio.c | 37 ++++++++-----------------------------
- 1 file changed, 8 insertions(+), 29 deletions(-)
+ fs/eventpoll.c | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/vfio/vfio.c b/drivers/vfio/vfio.c
-index 765e0e5d83ed9..33a88103f857f 100644
---- a/drivers/vfio/vfio.c
-+++ b/drivers/vfio/vfio.c
-@@ -1451,42 +1451,21 @@ static int vfio_group_get_device_fd(struct vfio_group *group, char *buf)
- 		return ret;
- 	}
- 
--	/*
--	 * We can't use anon_inode_getfd() because we need to modify
--	 * the f_mode flags directly to allow more than just ioctls
--	 */
--	ret = get_unused_fd_flags(O_CLOEXEC);
--	if (ret < 0) {
--		device->ops->release(device->device_data);
--		vfio_device_put(device);
--		return ret;
+diff --git a/fs/eventpoll.c b/fs/eventpoll.c
+index 8c596641a72b0..8abdb9fff611a 100644
+--- a/fs/eventpoll.c
++++ b/fs/eventpoll.c
+@@ -2055,23 +2055,14 @@ static int do_epoll_create(int flags)
+ 	 * Creates all the items needed to setup an eventpoll file. That is,
+ 	 * a file structure and a free file descriptor.
+ 	 */
+-	fd = get_unused_fd_flags(O_RDWR | (flags & O_CLOEXEC));
+-	if (fd < 0) {
+-		error = fd;
++	fd = __anon_inode_getfd("[eventpoll]", &eventpoll_fops, ep,
++				 O_RDWR | (flags & O_CLOEXEC), &file);
++	if (fd < 0)
+ 		goto out_free_ep;
 -	}
--
--	filep = anon_inode_getfile("[vfio-device]", &vfio_device_fops,
--				   device, O_RDWR);
--	if (IS_ERR(filep)) {
--		put_unused_fd(ret);
--		ret = PTR_ERR(filep);
--		device->ops->release(device->device_data);
--		vfio_device_put(device);
--		return ret;
+-	file = anon_inode_getfile("[eventpoll]", &eventpoll_fops, ep,
+-				 O_RDWR | (flags & O_CLOEXEC));
+-	if (IS_ERR(file)) {
+-		error = PTR_ERR(file);
+-		goto out_free_fd;
 -	}
--
--	/*
--	 * TODO: add an anon_inode interface to do this.
--	 * Appears to be missing by lack of need rather than
--	 * explicitly prevented.  Now there's need.
--	 */
-+	ret = __anon_inode_getfd("[vfio-device]", &vfio_device_fops,
-+				   device, O_CLOEXEC | O_RDWR, &filep);
-+	if (ret < 0)
-+		goto release;
- 	filep->f_mode |= (FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE);
--
- 	atomic_inc(&group->container_users);
--
- 	fd_install(ret, filep);
+ 	ep->file = file;
+ 	fd_install(fd, file);
+ 	return fd;
  
- 	if (group->noiommu)
- 		dev_warn(device->dev, "vfio-noiommu device opened by user "
- 			 "(%s:%d)\n", current->comm, task_pid_nr(current));
--
-+	return ret;
-+release:
-+	device->ops->release(device->device_data);
-+	vfio_device_put(device);
- 	return ret;
- }
- 
+-out_free_fd:
+-	put_unused_fd(fd);
+ out_free_ep:
+ 	ep_free(ep);
+ 	return error;
 -- 
 2.26.2
 
