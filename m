@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96517C54E49
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82F48C47257
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80D9C21473
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6222E208D6
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726946AbgEHJqT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 May 2020 05:46:19 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:53580 "EHLO huawei.com"
+        id S1726736AbgEHJqU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 05:46:20 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:53592 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725815AbgEHJqT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726950AbgEHJqT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 8 May 2020 05:46:19 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id A0107F16FE34FCB0DC15;
+        by Forcepoint Email with ESMTP id A7C88752EA7298494CDD;
         Fri,  8 May 2020 17:46:16 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
@@ -28,9 +28,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 4/9] RDMA/hns: Fix wrong assignment of SRQ's max_wr
-Date:   Fri, 8 May 2020 17:45:54 +0800
-Message-ID: <1588931159-56875-5-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 2/9] RDMA/hns: Fix cmdq parameter of querying pf timer resource
+Date:   Fri, 8 May 2020 17:45:52 +0800
+Message-ID: <1588931159-56875-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
 References: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
@@ -43,29 +43,70 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-srq's attribute max_wr should be 1 less than the total count of wqe.
+From: Lang Cheng <chenglang@huawei.com>
 
-Fixes: ffb1308b88b6 ("RDMA/hns: Move SRQ code to the reasonable place")
+The firmware has reduced the number of descriptions of command
+HNS_ROCE_OPC_QUERY_PF_TIMER_RES to 1. The driver needs to adapt, otherwise
+the hardware will report error 4(CMD_NEXT_ERR).
+
+Fixes: 0e40dc2f70cd ("RDMA/hns: Add timer allocation support for hip08")
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 32 +++++++++++-------------------
+ 1 file changed, 12 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 3039896..61c6bb3 100644
+index 61098b0..81abab0 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5041,8 +5041,8 @@ static int hns_roce_v2_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
- 				  SRQC_BYTE_8_SRQ_LIMIT_WL_S);
+@@ -1450,34 +1450,26 @@ static int hns_roce_query_pf_resource(struct hns_roce_dev *hr_dev)
+ static int hns_roce_query_pf_timer_resource(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_pf_timer_res_a *req_a;
+-	struct hns_roce_cmq_desc desc[2];
+-	int ret, i;
++	struct hns_roce_cmq_desc desc;
++	int ret;
  
- 	attr->srq_limit = limit_wl;
--	attr->max_wr    = srq->wqe_cnt;
--	attr->max_sge   = srq->max_gs;
-+	attr->max_wr = srq->wqe_cnt - 1;
-+	attr->max_sge = srq->max_gs;
+-	for (i = 0; i < 2; i++) {
+-		hns_roce_cmq_setup_basic_desc(&desc[i],
+-					      HNS_ROCE_OPC_QUERY_PF_TIMER_RES,
+-					      true);
++	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_QUERY_PF_TIMER_RES,
++				      true);
  
- 	memcpy(srq_context, mailbox->buf, sizeof(*srq_context));
+-		if (i == 0)
+-			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
+-		else
+-			desc[i].flag &= ~cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
+-	}
+-
+-	ret = hns_roce_cmq_send(hr_dev, desc, 2);
++	ret = hns_roce_cmq_send(hr_dev, &desc, 1);
+ 	if (ret)
+ 		return ret;
  
+-	req_a = (struct hns_roce_pf_timer_res_a *)desc[0].data;
++	req_a = (struct hns_roce_pf_timer_res_a *)desc.data;
+ 
+ 	hr_dev->caps.qpc_timer_bt_num =
+-				roce_get_field(req_a->qpc_timer_bt_idx_num,
+-					PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_M,
+-					PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_S);
++		roce_get_field(req_a->qpc_timer_bt_idx_num,
++			       PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_M,
++			       PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_S);
+ 	hr_dev->caps.cqc_timer_bt_num =
+-				roce_get_field(req_a->cqc_timer_bt_idx_num,
+-					PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_M,
+-					PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_S);
++		roce_get_field(req_a->cqc_timer_bt_idx_num,
++			       PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_M,
++			       PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_S);
+ 
+ 	return 0;
+ }
 -- 
 2.8.1
 
