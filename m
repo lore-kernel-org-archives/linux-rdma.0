@@ -2,38 +2,36 @@ Return-Path: <SRS0=Oc65=6W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82F48C47257
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AD00C54E4A
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6222E208D6
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2187421473
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726736AbgEHJqU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 May 2020 05:46:20 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:53592 "EHLO huawei.com"
+        id S1726641AbgEHJqV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 05:46:21 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:53596 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726950AbgEHJqT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 8 May 2020 05:46:19 -0400
+        id S1727051AbgEHJqV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 May 2020 05:46:21 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id A7C88752EA7298494CDD;
+        by Forcepoint Email with ESMTP id A3DE996FC4F5A58B34F5;
         Fri,  8 May 2020 17:46:16 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 8 May 2020 17:46:10 +0800
+ 14.3.487.0; Fri, 8 May 2020 17:46:09 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/9] RDMA/hns: Fix cmdq parameter of querying pf timer resource
-Date:   Fri, 8 May 2020 17:45:52 +0800
-Message-ID: <1588931159-56875-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 0/9] RDMA/hns: Various fixes and cleanups
+Date:   Fri, 8 May 2020 17:45:50 +0800
+Message-ID: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
-References: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -43,70 +41,40 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+This series contains the following:
+- #1 ~ #2 are fixes to solve issues found from previous versions.
+- #3 ~ #5 are fixes for recent refactoring codes to 5.8.
+- #6 ~ #9 are various cleanups.
 
-The firmware has reduced the number of descriptions of command
-HNS_ROCE_OPC_QUERY_PF_TIMER_RES to 1. The driver needs to adapt, otherwise
-the hardware will report error 4(CMD_NEXT_ERR).
+Lang Cheng (2):
+  RDMA/hns: Fix cmdq parameter of querying pf timer resource
+  RDMA/hns: Store mr len information into mr obj
 
-Fixes: 0e40dc2f70cd ("RDMA/hns: Add timer allocation support for hip08")
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 32 +++++++++++-------------------
- 1 file changed, 12 insertions(+), 20 deletions(-)
+Lijun Ou (2):
+  RDMA/hns: Bugfix for querying qkey
+  RDMA/hns: Reserve one sge in order to avoid local length error
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 61098b0..81abab0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1450,34 +1450,26 @@ static int hns_roce_query_pf_resource(struct hns_roce_dev *hr_dev)
- static int hns_roce_query_pf_timer_resource(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_pf_timer_res_a *req_a;
--	struct hns_roce_cmq_desc desc[2];
--	int ret, i;
-+	struct hns_roce_cmq_desc desc;
-+	int ret;
- 
--	for (i = 0; i < 2; i++) {
--		hns_roce_cmq_setup_basic_desc(&desc[i],
--					      HNS_ROCE_OPC_QUERY_PF_TIMER_RES,
--					      true);
-+	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_QUERY_PF_TIMER_RES,
-+				      true);
- 
--		if (i == 0)
--			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--		else
--			desc[i].flag &= ~cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--	}
--
--	ret = hns_roce_cmq_send(hr_dev, desc, 2);
-+	ret = hns_roce_cmq_send(hr_dev, &desc, 1);
- 	if (ret)
- 		return ret;
- 
--	req_a = (struct hns_roce_pf_timer_res_a *)desc[0].data;
-+	req_a = (struct hns_roce_pf_timer_res_a *)desc.data;
- 
- 	hr_dev->caps.qpc_timer_bt_num =
--				roce_get_field(req_a->qpc_timer_bt_idx_num,
--					PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_M,
--					PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_S);
-+		roce_get_field(req_a->qpc_timer_bt_idx_num,
-+			       PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_M,
-+			       PF_RES_DATA_1_PF_QPC_TIMER_BT_NUM_S);
- 	hr_dev->caps.cqc_timer_bt_num =
--				roce_get_field(req_a->cqc_timer_bt_idx_num,
--					PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_M,
--					PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_S);
-+		roce_get_field(req_a->cqc_timer_bt_idx_num,
-+			       PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_M,
-+			       PF_RES_DATA_2_PF_CQC_TIMER_BT_NUM_S);
- 
- 	return 0;
- }
+Weihang Li (3):
+  RDMA/hns: Fix wrong assignment of SRQ's max_wr
+  RDMA/hns: Fix error with to_hr_hem_entries_count()
+  RDMA/hns: Remove redundant memcpy()
+
+Wenpeng Liang (1):
+  RDMA/hns: Fix assignment to ba_pg_sz of eqe
+
+Xi Wang (1):
+  RDMA/hns: Rename macro for defining hns hardware page size
+
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  |  6 ++--
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |  4 +--
+ drivers/infiniband/hw/hns/hns_roce_device.h | 15 +++++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 53 ++++++++++++-----------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  4 ++-
+ drivers/infiniband/hw/hns/hns_roce_mr.c     |  8 +++--
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  9 ++---
+ drivers/infiniband/hw/hns/hns_roce_srq.c    | 10 +++---
+ 8 files changed, 56 insertions(+), 53 deletions(-)
+
 -- 
 2.8.1
 
