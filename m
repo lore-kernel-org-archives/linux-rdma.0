@@ -2,167 +2,72 @@ Return-Path: <SRS0=Oc65=6W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49046C35280
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 02:37:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FCAC38A2A
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 248C1207DD
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 02:37:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F03DA21582
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 May 2020 09:46:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726612AbgEHChB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 May 2020 22:37:01 -0400
-Received: from mga11.intel.com ([192.55.52.93]:15032 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726538AbgEHChB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 May 2020 22:37:01 -0400
-IronPort-SDR: r8up9DdhClxTmRfV34hsZ3JYzLuSRv/tA6nKyA39sKwG2MVbAJolilWX2WivA0v7mn0md8ukCm
- RGY8H1B+m1vw==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2020 19:37:00 -0700
-IronPort-SDR: seUIIP/2xm7Mm21Rm9ux4Eiy99uBtqoKysU8+tmsMY+7laHKGSGqZFCk7yF3VShmDtPI3tkzSu
- iBfZLf34e/JQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,366,1583222400"; 
-   d="scan'208";a="296725609"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga008.jf.intel.com with ESMTP; 07 May 2020 19:36:59 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jWssk-0007EU-Ff; Fri, 08 May 2020 10:36:58 +0800
-Date:   Fri, 08 May 2020 10:36:09 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-next] BUILD SUCCESS
- 42caf9cb59370cc6f296c7a9fe39fa66963236ff
-Message-ID: <5eb4c599.Q0R+lOBhsuSOV6t4%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1726951AbgEHJqT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 May 2020 05:46:19 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:53578 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726948AbgEHJqT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 8 May 2020 05:46:19 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 9B5A6FE9ADDB31506DEC;
+        Fri,  8 May 2020 17:46:16 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 8 May 2020 17:46:09 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH for-next 1/9] RDMA/hns: Bugfix for querying qkey
+Date:   Fri, 8 May 2020 17:45:51 +0800
+Message-ID: <1588931159-56875-2-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
+References: <1588931159-56875-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-next
-branch HEAD: 42caf9cb59370cc6f296c7a9fe39fa66963236ff  RDMA/mlx5: Allow only raw Ethernet QPs when RoCE isn't enabled
+From: Lijun Ou <oulijun@huawei.com>
 
-elapsed time: 485m
+The qkey queried through the query ud qp verb is a fixed value and it
+should be read from qp context.
 
-configs tested: 101
-configs skipped: 1
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-arm                                 defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm                               allnoconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-sparc                            allyesconfig
-m68k                             allyesconfig
-mips                             allmodconfig
-i386                             allyesconfig
-nds32                               defconfig
-um                                  defconfig
-m68k                                defconfig
-csky                                defconfig
-parisc                           allyesconfig
-i386                              allnoconfig
-i386                                defconfig
-i386                              debian-10.3
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                              allnoconfig
-m68k                           sun3_defconfig
-nios2                               defconfig
-nios2                            allyesconfig
-openrisc                            defconfig
-c6x                              allyesconfig
-c6x                               allnoconfig
-openrisc                         allyesconfig
-nds32                             allnoconfig
-csky                             allyesconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-h8300                            allmodconfig
-xtensa                              defconfig
-arc                                 defconfig
-arc                              allyesconfig
-microblaze                       allyesconfig
-sh                               allmodconfig
-sh                                allnoconfig
-microblaze                        allnoconfig
-mips                             allyesconfig
-mips                              allnoconfig
-parisc                            allnoconfig
-parisc                              defconfig
-parisc                           allmodconfig
-powerpc                             defconfig
-powerpc                          allyesconfig
-powerpc                          rhel-kconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a004-20200507
-x86_64               randconfig-a006-20200507
-x86_64               randconfig-a002-20200507
-i386                 randconfig-a005-20200507
-i386                 randconfig-a004-20200507
-i386                 randconfig-a001-20200507
-i386                 randconfig-a002-20200507
-i386                 randconfig-a003-20200507
-i386                 randconfig-a006-20200507
-x86_64               randconfig-a015-20200507
-x86_64               randconfig-a014-20200507
-x86_64               randconfig-a012-20200507
-x86_64               randconfig-a013-20200507
-x86_64               randconfig-a011-20200507
-x86_64               randconfig-a016-20200507
-i386                 randconfig-a012-20200507
-i386                 randconfig-a016-20200507
-i386                 randconfig-a014-20200507
-i386                 randconfig-a011-20200507
-i386                 randconfig-a015-20200507
-i386                 randconfig-a013-20200507
-riscv                            allyesconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                            allmodconfig
-s390                             allyesconfig
-s390                              allnoconfig
-s390                             allmodconfig
-s390                                defconfig
-sparc                               defconfig
-sparc64                             defconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                          allmodconfig
-um                               allmodconfig
-um                                allnoconfig
-um                               allyesconfig
-x86_64                                   rhel
-x86_64                               rhel-7.6
-x86_64                    rhel-7.6-kselftests
-x86_64                         rhel-7.2-clear
-x86_64                                    lkp
-x86_64                              fedora-25
-x86_64                                  kexec
-
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index ad9a11a..61098b0 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4680,7 +4680,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	qp_attr->path_mig_state = IB_MIG_ARMED;
+ 	qp_attr->ah_attr.type   = RDMA_AH_ATTR_TYPE_ROCE;
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_UD)
+-		qp_attr->qkey = V2_QKEY_VAL;
++		qp_attr->qkey = le32_to_cpu(context.qkey_xrcd);
+ 
+ 	qp_attr->rq_psn = roce_get_field(context.byte_108_rx_reqepsn,
+ 					 V2_QPC_BYTE_108_RX_REQ_EPSN_M,
+-- 
+2.8.1
+
