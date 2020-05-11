@@ -2,601 +2,284 @@ Return-Path: <SRS0=4PuW=6Z=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAAD9C47255
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:10:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6289C47255
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:29:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F54B20714
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:10:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEF50206D7
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:29:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="kUfX8SXb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729853AbgEKQKt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 May 2020 12:10:49 -0400
-Received: from mga17.intel.com ([192.55.52.151]:5080 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730594AbgEKQKs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 11 May 2020 12:10:48 -0400
-IronPort-SDR: qs+h0U6gdTqd/u0oPFlrEa5YS1tnVKWDzZCjz9gHxlgtBIp3lPRZ4Koula5yid3Hig62M98AjR
- 2z4beRMv2FPA==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2020 09:06:45 -0700
-IronPort-SDR: Sa3Bel5rgW+LMl/JGzVvpySrFuMbSBMBxYCojHq5hSfO/3unJkkYqvMI960Xna/XA3YzD4cAdL
- NiTNytvLpfzw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,380,1583222400"; 
-   d="scan'208";a="252633445"
-Received: from sedona.ch.intel.com ([10.2.136.157])
-  by fmsmga008.fm.intel.com with ESMTP; 11 May 2020 09:06:45 -0700
-Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 04BG6ipB061708;
-        Mon, 11 May 2020 09:06:44 -0700
-Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 04BG6hUM174188;
-        Mon, 11 May 2020 12:06:43 -0400
-Subject: [PATCH v3 for-next 11/16] IB/hfi1: Add rx functions for dummy netdev
-From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
-To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>,
-        linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Sadanand Warrier <sadanand.warrier@intel.com>,
-        Kaike Wan <kaike.wan@intel.com>
-Date:   Mon, 11 May 2020 12:06:43 -0400
-Message-ID: <20200511160643.173205.75087.stgit@awfm-01.aw.intel.com>
-In-Reply-To: <20200511155337.173205.77558.stgit@awfm-01.aw.intel.com>
-References: <20200511155337.173205.77558.stgit@awfm-01.aw.intel.com>
-User-Agent: StGit/0.17.1-dirty
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+        id S1730048AbgEKQ32 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 May 2020 12:29:28 -0400
+Received: from mail-vi1eur05on2043.outbound.protection.outlook.com ([40.107.21.43]:32032
+        "EHLO EUR05-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729463AbgEKQ31 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 11 May 2020 12:29:27 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Owp7BFd6TkA7TsJXYPxD0LlinM377i6xlW5drW9WyuepJmXNChB6EQ1LMnjhdGKJLxJ2k2XxYNgFmLh2Qonc+MR8qKA0bTTRKlSlC+c2//7QFsYKusF96yrOqBKG+8ADnJZLSQQMiwC2UNbOee8HOSsGCqbLpL/IH4/ULudm88EmKs5Kq7zUak3BDYQ9t+f/VmFyvhaGlfrXr2DK8Ih7OcHUozbg/+d5qo6TQfZcxxpsLQB1xlvnwRNVh/UAedVbo4gH1LQgGs3pNP0K227toU3lcTcU0U0QUOmxGYBJ1egJC8bpTwcy63pnJRcJx5sxA6AcWI5Q1MrLh91GzSjpcQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=1dJ+CnXCa5fTIDBkUag/i2Xd31LFgoAJjnnEqCafHqQ=;
+ b=E1cSUrI3khcwK5esCYSxSl0SLz6iG3xJFOpaHqnrldR2C/SAv24M0d/ioQ4T5J8klBTm9DivydYF8y/RhTjOouAF/eshDy5HXJoSfR8FdyGsQzpFbHhgbJ+P6ymBDYDud1qaV01RAyqI8tlxHd9xof8Lzqxy92N7gSI/2/bm+zWwdKaVF3WuGugiIhEa33EGjkae2XnRGRNaT2k0HLxP9pf6kj9DK5QfcGqqhXiwMlMpSbrlfcvNML78RSQFDMXaUAY2ljVyRZZEJxNXspr3qqiKcACLJVrbjLn4uTERdFrBIYK7i6yTFkHGdG3nSGtmCMtZbGnMzV28ao9NUFFzdg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=1dJ+CnXCa5fTIDBkUag/i2Xd31LFgoAJjnnEqCafHqQ=;
+ b=kUfX8SXbhUw2/wsRnJ1oJP+V6aLIbZYdFloPHfEn7+4mjhgezRFsJ9NxBq1Aoqmg5T2pZjTn10RU/jcAEqg2QJ9TMbPXDZQnjQETNSXyl3asS0peFS6qqyIczsQPoVwIyz9Q4iifAFflDttE/kh+mZS4TXoNqTuqcVhM95vQfOM=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=mellanox.com;
+Received: from AM0PR05MB5810.eurprd05.prod.outlook.com (2603:10a6:208:11f::18)
+ by AM0PR05MB5187.eurprd05.prod.outlook.com (2603:10a6:208:eb::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.34; Mon, 11 May
+ 2020 16:29:23 +0000
+Received: from AM0PR05MB5810.eurprd05.prod.outlook.com
+ ([fe80::408a:27c1:55f8:eed4]) by AM0PR05MB5810.eurprd05.prod.outlook.com
+ ([fe80::408a:27c1:55f8:eed4%5]) with mapi id 15.20.2979.033; Mon, 11 May 2020
+ 16:29:23 +0000
+Subject: Re: [PATCH 3/4] nvme-rdma: use new shared CQ mechanism
+To:     Yamin Friedman <yaminf@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Christoph Hellwig <hch@lst.de>
+Cc:     linux-rdma@vger.kernel.org
+References: <1589122557-88996-1-git-send-email-yaminf@mellanox.com>
+ <1589122557-88996-4-git-send-email-yaminf@mellanox.com>
+From:   Max Gurtovoy <maxg@mellanox.com>
+Message-ID: <5cd6dfea-1231-2cf9-bcfa-46018d7443fe@mellanox.com>
+Date:   Mon, 11 May 2020 19:29:20 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
+In-Reply-To: <1589122557-88996-4-git-send-email-yaminf@mellanox.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ClientProxiedBy: AM4PR0701CA0014.eurprd07.prod.outlook.com
+ (2603:10a6:200:42::24) To AM0PR05MB5810.eurprd05.prod.outlook.com
+ (2603:10a6:208:11f::18)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [10.0.0.3] (89.139.203.251) by AM4PR0701CA0014.eurprd07.prod.outlook.com (2603:10a6:200:42::24) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3000.11 via Frontend Transport; Mon, 11 May 2020 16:29:22 +0000
+X-Originating-IP: [89.139.203.251]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: cb674bbf-7c73-4161-cdad-08d7f5c8769c
+X-MS-TrafficTypeDiagnostic: AM0PR05MB5187:|AM0PR05MB5187:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM0PR05MB5187CD444046F71EFB268000B6A10@AM0PR05MB5187.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:337;
+X-Forefront-PRVS: 04004D94E2
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 4VKEVLL3GPJLb9ycTgMEqywOwSDfcEx/UqZBU2funWtW5cxb5akRts26ufPtMW889vo7bp6HoZHDUqxMiUxb5rMQUdwGraxx11vVV13XzAMGXQUwq1HwMN08e3TOqwAbSpEpAFksam7JU7Xi/tKCjTxAWh2WlgqCXO56xTtRFjDtl+DW3Y5X/Z5wLeTXfGVoNNhSQEXHexfFNyBcOyWPGkD0xw8MSWNecyZSs6MunE0TtvkN++k6bJCc7exgJDnFSPjbvn91HSqaMB7aFRdiAAh+NL+7a58zb1sjg/l5J+r7O1em/HsIuLVhrLJRHbG2fHlAmOVQoCCcJ8ushgjzi18uPWWnHL0ZU4CzckRwWcpPvN46jdqceVgJMzD4hi4A5lgLPdbdIrcRXFuGfS3auY9qPPddgK5jGIRfJ/PuJ8evqTgltnL4w3jIGZyd+vXPX+hb5VuYog3Ax/CcTN9Tc9ZMl+hQePx3AyTLqzFzPDBKmoQPC6YShbpcZsD7Ze9b7afL8kGt0BmRBQCFvkY54LLkzoyrem3bDRQa+HQI4PQ8RNFyCkRQJSrzf3eX7SSV
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR05MB5810.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(136003)(376002)(39860400002)(346002)(396003)(366004)(33430700001)(26005)(16526019)(33440700001)(16576012)(186003)(110136005)(956004)(2616005)(36756003)(316002)(53546011)(52116002)(86362001)(2906002)(31696002)(8936002)(8676002)(4326008)(6486002)(5660300002)(31686004)(66946007)(66476007)(478600001)(66556008)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: bGeJVOcNYLt42RBQAAiciGds7thhJsrir9pEQt65keefpMo9lVERuA1MjikYhtDWvI5F1kB7wYFLMDdR/QIMLkF+2n4xFvg3A8c5NxyjQ6Ky/FkxpTk90sv0+c2RJ24FKJmjkLccmHoTU3G2+q7vgAJwyRPS/diqHyY5zO2by0EmNuy9OD/P173WxSIsdGy4EJJ+cTHWok1tHgRkQFb5b4OgC/Y+n/SIFOSfYmWdjfMryr2rGnQ8k0XwQXc3LCgKFRqbtPvR0huLLpswA5dzRcGnaGTV3rxH3VAfIpDxY49xPJb5XmLzD2PKfTv1nPy+BbgyX4phdTDjgRZU9QHNufuL84dU5s8yzaLJzLJ2zvbOyltawCbHvKTnEuTAPXECcXDrGWh1EeOQEqvhCCvI4VwsDL3EVa18MGOmwlcrosPj8vGgYHEJLaqV1qoaES5wpDUXSWE/7+lc25C/TtnaJa7M8Qjb30jAMlZdcHw1kgeWpHjh67m1j46eTr6pNcTL
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: cb674bbf-7c73-4161-cdad-08d7f5c8769c
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 May 2020 16:29:23.1544
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: r4MpwhXRkGWaGlFPBJ823tdzBI0Xv03VMs6ZXJ37S6CXFlFygKF4mJmyGqDSCt6YO7Tkcu7phAFRUGrUSX8Rkg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB5187
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 
-This patch adds the rx functions for the dummy netdev:
-- Functions to allocate/free the dummy netdev.
-- Functions to allocate/free receiving contexts for the netdev.
-- Functions to initialize/de-initialize the receive queue.
-- Functions to enable/disable the receive queue.
+On 5/10/2020 5:55 PM, Yamin Friedman wrote:
+> Has the driver use shared CQs providing ~10%-50% improvement as seen in the
+> patch introducing shared CQs. Instead of opening a CQ on each core per NS
+> connected, a CQ for each core will be provided by the core driver that will
+> be shared between the QPs on that core reducing interrupt overhead.
+>
+> Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
+> Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
+> ---
+>   drivers/nvme/host/rdma.c | 65 ++++++++++++++++++++++++++++++++----------------
+>   1 file changed, 43 insertions(+), 22 deletions(-)
+>
+> diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+> index cac8a93..23eefd7 100644
+> --- a/drivers/nvme/host/rdma.c
+> +++ b/drivers/nvme/host/rdma.c
+> @@ -85,6 +85,7 @@ struct nvme_rdma_queue {
+>   	struct rdma_cm_id	*cm_id;
+>   	int			cm_error;
+>   	struct completion	cm_done;
+> +	int			cq_size;
+>   };
+>   
+>   struct nvme_rdma_ctrl {
+> @@ -261,6 +262,7 @@ static int nvme_rdma_create_qp(struct nvme_rdma_queue *queue, const int factor)
+>   	init_attr.qp_type = IB_QPT_RC;
+>   	init_attr.send_cq = queue->ib_cq;
+>   	init_attr.recv_cq = queue->ib_cq;
+> +	init_attr.qp_context = queue;
+>   
+>   	ret = rdma_create_qp(queue->cm_id, dev->pd, &init_attr);
+>   
+> @@ -389,6 +391,15 @@ static int nvme_rdma_dev_get(struct nvme_rdma_device *dev)
+>   	return NULL;
+>   }
+>   
+> +static void nvme_rdma_free_cq(struct nvme_rdma_queue *queue)
+> +{
+> +	if (nvme_rdma_poll_queue(queue))
+> +		ib_free_cq(queue->ib_cq);
+> +	else {
+> +		ib_cq_pool_put(queue->ib_cq, queue->cq_size);
+> +	}
+> +}
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Sadanand Warrier <sadanand.warrier@intel.com>
-Signed-off-by: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
-Signed-off-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/ipoib.h      |    3 
- drivers/infiniband/hw/hfi1/ipoib_main.c |   30 ++-
- drivers/infiniband/hw/hfi1/ipoib_rx.c   |   16 +
- drivers/infiniband/hw/hfi1/netdev.h     |    6 +
- drivers/infiniband/hw/hfi1/netdev_rx.c  |  361 +++++++++++++++++++++++++++++++
- 5 files changed, 414 insertions(+), 2 deletions(-)
+somehow I missed it in the internal review:
 
-diff --git a/drivers/infiniband/hw/hfi1/ipoib.h b/drivers/infiniband/hw/hfi1/ipoib.h
-index ca00f6c..185c9b0 100644
---- a/drivers/infiniband/hw/hfi1/ipoib.h
-+++ b/drivers/infiniband/hw/hfi1/ipoib.h
-@@ -154,6 +154,9 @@ int hfi1_ipoib_send_dma(struct net_device *dev,
- int hfi1_ipoib_txreq_init(struct hfi1_ipoib_dev_priv *priv);
- void hfi1_ipoib_txreq_deinit(struct hfi1_ipoib_dev_priv *priv);
- 
-+int hfi1_ipoib_rxq_init(struct net_device *dev);
-+void hfi1_ipoib_rxq_deinit(struct net_device *dev);
-+
- void hfi1_ipoib_napi_tx_enable(struct net_device *dev);
- void hfi1_ipoib_napi_tx_disable(struct net_device *dev);
- 
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_main.c b/drivers/infiniband/hw/hfi1/ipoib_main.c
-index 304a5ac..014351e 100644
---- a/drivers/infiniband/hw/hfi1/ipoib_main.c
-+++ b/drivers/infiniband/hw/hfi1/ipoib_main.c
-@@ -19,16 +19,31 @@ static u32 qpn_from_mac(u8 *mac_arr)
- static int hfi1_ipoib_dev_init(struct net_device *dev)
- {
- 	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+	int ret;
- 
- 	priv->netstats = netdev_alloc_pcpu_stats(struct pcpu_sw_netstats);
- 
--	return priv->netdev_ops->ndo_init(dev);
-+	ret = priv->netdev_ops->ndo_init(dev);
-+	if (ret)
-+		return ret;
-+
-+	ret = hfi1_netdev_add_data(priv->dd,
-+				   qpn_from_mac(priv->netdev->dev_addr),
-+				   dev);
-+	if (ret < 0) {
-+		priv->netdev_ops->ndo_uninit(dev);
-+		return ret;
-+	}
-+
-+	return 0;
- }
- 
- static void hfi1_ipoib_dev_uninit(struct net_device *dev)
- {
- 	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
- 
-+	hfi1_netdev_remove_data(priv->dd, qpn_from_mac(priv->netdev->dev_addr));
-+
- 	priv->netdev_ops->ndo_uninit(dev);
- }
- 
-@@ -55,6 +70,7 @@ static int hfi1_ipoib_dev_open(struct net_device *dev)
- 		priv->qp = qp;
- 		rcu_read_unlock();
- 
-+		hfi1_netdev_enable_queues(priv->dd);
- 		hfi1_ipoib_napi_tx_enable(dev);
- 	}
- 
-@@ -69,6 +85,7 @@ static int hfi1_ipoib_dev_stop(struct net_device *dev)
- 		return 0;
- 
- 	hfi1_ipoib_napi_tx_disable(dev);
-+	hfi1_netdev_disable_queues(priv->dd);
- 
- 	rvt_put_qp(priv->qp);
- 	priv->qp = NULL;
-@@ -195,6 +212,7 @@ static void hfi1_ipoib_netdev_dtor(struct net_device *dev)
- 	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
- 
- 	hfi1_ipoib_txreq_deinit(priv);
-+	hfi1_ipoib_rxq_deinit(priv->netdev);
- 
- 	free_percpu(priv->netstats);
- }
-@@ -252,6 +270,13 @@ static int hfi1_ipoib_setup_rn(struct ib_device *device,
- 		return rc;
- 	}
- 
-+	rc = hfi1_ipoib_rxq_init(netdev);
-+	if (rc) {
-+		dd_dev_err(dd, "IPoIB netdev RX init - failed(%d)\n", rc);
-+		hfi1_ipoib_free_rdma_netdev(netdev);
-+		return rc;
-+	}
-+
- 	netdev->priv_destructor = hfi1_ipoib_netdev_dtor;
- 	netdev->needs_free_netdev = true;
- 
-@@ -268,7 +293,7 @@ int hfi1_ipoib_rn_get_params(struct ib_device *device,
- 	if (type != RDMA_NETDEV_IPOIB)
- 		return -EOPNOTSUPP;
- 
--	if (!HFI1_CAP_IS_KSET(AIP))
-+	if (!HFI1_CAP_IS_KSET(AIP) || !dd->num_netdev_contexts)
- 		return -EOPNOTSUPP;
- 
- 	if (!port_num || port_num > dd->num_pports)
-@@ -276,6 +301,7 @@ int hfi1_ipoib_rn_get_params(struct ib_device *device,
- 
- 	params->sizeof_priv = sizeof(struct hfi1_ipoib_rdma_netdev);
- 	params->txqs = dd->num_sdma;
-+	params->rxqs = dd->num_netdev_contexts;
- 	params->param = NULL;
- 	params->initialize_rdma_netdev = hfi1_ipoib_setup_rn;
- 
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_rx.c b/drivers/infiniband/hw/hfi1/ipoib_rx.c
-index 2485663..606ac69 100644
---- a/drivers/infiniband/hw/hfi1/ipoib_rx.c
-+++ b/drivers/infiniband/hw/hfi1/ipoib_rx.c
-@@ -69,3 +69,19 @@ struct sk_buff *hfi1_ipoib_prepare_skb(struct hfi1_netdev_rxq *rxq,
- 
- 	return skb;
- }
-+
-+int hfi1_ipoib_rxq_init(struct net_device *netdev)
-+{
-+	struct hfi1_ipoib_dev_priv *ipoib_priv = hfi1_ipoib_priv(netdev);
-+	struct hfi1_devdata *dd = ipoib_priv->dd;
-+
-+	return hfi1_netdev_rx_init(dd);
-+}
-+
-+void hfi1_ipoib_rxq_deinit(struct net_device *netdev)
-+{
-+	struct hfi1_ipoib_dev_priv *ipoib_priv = hfi1_ipoib_priv(netdev);
-+	struct hfi1_devdata *dd = ipoib_priv->dd;
-+
-+	hfi1_netdev_rx_destroy(dd);
-+}
-diff --git a/drivers/infiniband/hw/hfi1/netdev.h b/drivers/infiniband/hw/hfi1/netdev.h
-index 6740ec3..edb936f 100644
---- a/drivers/infiniband/hw/hfi1/netdev.h
-+++ b/drivers/infiniband/hw/hfi1/netdev.h
-@@ -82,6 +82,12 @@ struct hfi1_ctxtdata *hfi1_netdev_get_ctxt(struct hfi1_devdata *dd, int ctxt)
- 	return priv->rxq[ctxt].rcd;
- }
- 
-+void hfi1_netdev_enable_queues(struct hfi1_devdata *dd);
-+void hfi1_netdev_disable_queues(struct hfi1_devdata *dd);
-+int hfi1_netdev_rx_init(struct hfi1_devdata *dd);
-+int hfi1_netdev_rx_destroy(struct hfi1_devdata *dd);
-+int hfi1_netdev_alloc(struct hfi1_devdata *dd);
-+void hfi1_netdev_free(struct hfi1_devdata *dd);
- int hfi1_netdev_add_data(struct hfi1_devdata *dd, int id, void *data);
- void *hfi1_netdev_remove_data(struct hfi1_devdata *dd, int id);
- void *hfi1_netdev_get_data(struct hfi1_devdata *dd, int id);
-diff --git a/drivers/infiniband/hw/hfi1/netdev_rx.c b/drivers/infiniband/hw/hfi1/netdev_rx.c
-index 3e286cb..124e4e8 100644
---- a/drivers/infiniband/hw/hfi1/netdev_rx.c
-+++ b/drivers/infiniband/hw/hfi1/netdev_rx.c
-@@ -17,6 +17,367 @@
- #include <linux/etherdevice.h>
- #include <rdma/ib_verbs.h>
- 
-+static int hfi1_netdev_setup_ctxt(struct hfi1_netdev_priv *priv,
-+				  struct hfi1_ctxtdata *uctxt)
-+{
-+	unsigned int rcvctrl_ops;
-+	struct hfi1_devdata *dd = priv->dd;
-+	int ret;
-+
-+	uctxt->rhf_rcv_function_map = netdev_rhf_rcv_functions;
-+	uctxt->do_interrupt = &handle_receive_interrupt_napi_sp;
-+
-+	/* Now allocate the RcvHdr queue and eager buffers. */
-+	ret = hfi1_create_rcvhdrq(dd, uctxt);
-+	if (ret)
-+		goto done;
-+
-+	ret = hfi1_setup_eagerbufs(uctxt);
-+	if (ret)
-+		goto done;
-+
-+	clear_rcvhdrtail(uctxt);
-+
-+	rcvctrl_ops = HFI1_RCVCTRL_CTXT_DIS;
-+	rcvctrl_ops |= HFI1_RCVCTRL_INTRAVAIL_DIS;
-+
-+	if (!HFI1_CAP_KGET_MASK(uctxt->flags, MULTI_PKT_EGR))
-+		rcvctrl_ops |= HFI1_RCVCTRL_ONE_PKT_EGR_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_EGR_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_EGR_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_RHQ_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_RHQ_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, DMA_RTAIL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_ENB;
-+
-+	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt);
-+done:
-+	return ret;
-+}
-+
-+static int hfi1_netdev_allocate_ctxt(struct hfi1_devdata *dd,
-+				     struct hfi1_ctxtdata **ctxt)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	int ret;
-+
-+	if (dd->flags & HFI1_FROZEN)
-+		return -EIO;
-+
-+	ret = hfi1_create_ctxtdata(dd->pport, dd->node, &uctxt);
-+	if (ret < 0) {
-+		dd_dev_err(dd, "Unable to create ctxtdata, failing open\n");
-+		return -ENOMEM;
-+	}
-+
-+	uctxt->flags = HFI1_CAP_KGET(MULTI_PKT_EGR) |
-+		HFI1_CAP_KGET(NODROP_RHQ_FULL) |
-+		HFI1_CAP_KGET(NODROP_EGR_FULL) |
-+		HFI1_CAP_KGET(DMA_RTAIL);
-+	/* Netdev contexts are always NO_RDMA_RTAIL */
-+	uctxt->fast_handler = handle_receive_interrupt_napi_fp;
-+	uctxt->slow_handler = handle_receive_interrupt_napi_sp;
-+	hfi1_set_seq_cnt(uctxt, 1);
-+	uctxt->is_vnic = true;
-+
-+	hfi1_stats.sps_ctxts++;
-+
-+	dd_dev_info(dd, "created netdev context %d\n", uctxt->ctxt);
-+	*ctxt = uctxt;
-+
-+	return 0;
-+}
-+
-+static void hfi1_netdev_deallocate_ctxt(struct hfi1_devdata *dd,
-+					struct hfi1_ctxtdata *uctxt)
-+{
-+	flush_wc();
-+
-+	/*
-+	 * Disable receive context and interrupt available, reset all
-+	 * RcvCtxtCtrl bits to default values.
-+	 */
-+	hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS |
-+		     HFI1_RCVCTRL_TIDFLOW_DIS |
-+		     HFI1_RCVCTRL_INTRAVAIL_DIS |
-+		     HFI1_RCVCTRL_ONE_PKT_EGR_DIS |
-+		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
-+		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt);
-+
-+	if (uctxt->msix_intr != CCE_NUM_MSIX_VECTORS)
-+		msix_free_irq(dd, uctxt->msix_intr);
-+
-+	uctxt->msix_intr = CCE_NUM_MSIX_VECTORS;
-+	uctxt->event_flags = 0;
-+
-+	hfi1_clear_tids(uctxt);
-+	hfi1_clear_ctxt_pkey(dd, uctxt);
-+
-+	hfi1_stats.sps_ctxts--;
-+
-+	hfi1_free_ctxt(uctxt);
-+}
-+
-+static int hfi1_netdev_allot_ctxt(struct hfi1_netdev_priv *priv,
-+				  struct hfi1_ctxtdata **ctxt)
-+{
-+	int rc;
-+	struct hfi1_devdata *dd = priv->dd;
-+
-+	rc = hfi1_netdev_allocate_ctxt(dd, ctxt);
-+	if (rc) {
-+		dd_dev_err(dd, "netdev ctxt alloc failed %d\n", rc);
-+		return rc;
-+	}
-+
-+	rc = hfi1_netdev_setup_ctxt(priv, *ctxt);
-+	if (rc) {
-+		dd_dev_err(dd, "netdev ctxt setup failed %d\n", rc);
-+		hfi1_netdev_deallocate_ctxt(dd, *ctxt);
-+		*ctxt = NULL;
-+	}
-+
-+	return rc;
-+}
-+
-+static int hfi1_netdev_rxq_init(struct net_device *dev)
-+{
-+	int i;
-+	int rc;
-+	struct hfi1_netdev_priv *priv = hfi1_netdev_priv(dev);
-+	struct hfi1_devdata *dd = priv->dd;
-+
-+	priv->num_rx_q = dd->num_netdev_contexts;
-+	priv->rxq = kcalloc_node(priv->num_rx_q, sizeof(struct hfi1_netdev_rxq),
-+				 GFP_KERNEL, dd->node);
-+
-+	if (!priv->rxq) {
-+		dd_dev_err(dd, "Unable to allocate netdev queue data\n");
-+		return (-ENOMEM);
-+	}
-+
-+	for (i = 0; i < priv->num_rx_q; i++) {
-+		struct hfi1_netdev_rxq *rxq = &priv->rxq[i];
-+
-+		rc = hfi1_netdev_allot_ctxt(priv, &rxq->rcd);
-+		if (rc)
-+			goto bail_context_irq_failure;
-+
-+		hfi1_rcd_get(rxq->rcd);
-+		rxq->priv = priv;
-+		rxq->rcd->napi = &rxq->napi;
-+		dd_dev_info(dd, "Setting rcv queue %d napi to context %d\n",
-+			    i, rxq->rcd->ctxt);
-+		/*
-+		 * Disable BUSY_POLL on this NAPI as this is not supported
-+		 * right now.
-+		 */
-+		set_bit(NAPI_STATE_NO_BUSY_POLL, &rxq->napi.state);
-+		netif_napi_add(dev, &rxq->napi, hfi1_netdev_rx_napi, 64);
-+		rc = msix_netdev_request_rcd_irq(rxq->rcd);
-+		if (rc)
-+			goto bail_context_irq_failure;
-+	}
-+
-+	return 0;
-+
-+bail_context_irq_failure:
-+	dd_dev_err(dd, "Unable to allot receive context\n");
-+	for (; i >= 0; i--) {
-+		struct hfi1_netdev_rxq *rxq = &priv->rxq[i];
-+
-+		if (rxq->rcd) {
-+			hfi1_netdev_deallocate_ctxt(dd, rxq->rcd);
-+			hfi1_rcd_put(rxq->rcd);
-+			rxq->rcd = NULL;
-+		}
-+	}
-+	kfree(priv->rxq);
-+	priv->rxq = NULL;
-+
-+	return rc;
-+}
-+
-+static void hfi1_netdev_rxq_deinit(struct net_device *dev)
-+{
-+	int i;
-+	struct hfi1_netdev_priv *priv = hfi1_netdev_priv(dev);
-+	struct hfi1_devdata *dd = priv->dd;
-+
-+	for (i = 0; i < priv->num_rx_q; i++) {
-+		struct hfi1_netdev_rxq *rxq = &priv->rxq[i];
-+
-+		netif_napi_del(&rxq->napi);
-+		hfi1_netdev_deallocate_ctxt(dd, rxq->rcd);
-+		hfi1_rcd_put(rxq->rcd);
-+		rxq->rcd = NULL;
-+	}
-+
-+	kfree(priv->rxq);
-+	priv->rxq = NULL;
-+	priv->num_rx_q = 0;
-+}
-+
-+static void enable_queues(struct hfi1_netdev_priv *priv)
-+{
-+	int i;
-+
-+	for (i = 0; i < priv->num_rx_q; i++) {
-+		struct hfi1_netdev_rxq *rxq = &priv->rxq[i];
-+
-+		dd_dev_info(priv->dd, "enabling queue %d on context %d\n", i,
-+			    rxq->rcd->ctxt);
-+		napi_enable(&rxq->napi);
-+		hfi1_rcvctrl(priv->dd,
-+			     HFI1_RCVCTRL_CTXT_ENB | HFI1_RCVCTRL_INTRAVAIL_ENB,
-+			     rxq->rcd);
-+	}
-+}
-+
-+static void disable_queues(struct hfi1_netdev_priv *priv)
-+{
-+	int i;
-+
-+	msix_vnic_synchronize_irq(priv->dd);
-+
-+	for (i = 0; i < priv->num_rx_q; i++) {
-+		struct hfi1_netdev_rxq *rxq = &priv->rxq[i];
-+
-+		dd_dev_info(priv->dd, "disabling queue %d on context %d\n", i,
-+			    rxq->rcd->ctxt);
-+
-+		/* wait for napi if it was scheduled */
-+		hfi1_rcvctrl(priv->dd,
-+			     HFI1_RCVCTRL_CTXT_DIS | HFI1_RCVCTRL_INTRAVAIL_DIS,
-+			     rxq->rcd);
-+		napi_synchronize(&rxq->napi);
-+		napi_disable(&rxq->napi);
-+	}
-+}
-+
-+/**
-+ * hfi1_netdev_rx_init - Incrememnts netdevs counter. When called first time,
-+ * it allocates receive queue data and calls netif_napi_add
-+ * for each queue.
-+ *
-+ * @dd: hfi1 dev data
-+ */
-+int hfi1_netdev_rx_init(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_netdev_priv *priv = hfi1_netdev_priv(dd->dummy_netdev);
-+	int res;
-+
-+	if (atomic_fetch_inc(&priv->netdevs))
-+		return 0;
-+
-+	mutex_lock(&hfi1_mutex);
-+	init_dummy_netdev(dd->dummy_netdev);
-+	res = hfi1_netdev_rxq_init(dd->dummy_netdev);
-+	mutex_unlock(&hfi1_mutex);
-+	return res;
-+}
-+
-+/**
-+ * hfi1_netdev_rx_destroy - Decrements netdevs counter, when it reaches 0
-+ * napi is deleted and receive queses memory is freed.
-+ *
-+ * @dd: hfi1 dev data
-+ */
-+int hfi1_netdev_rx_destroy(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_netdev_priv *priv = hfi1_netdev_priv(dd->dummy_netdev);
-+
-+	/* destroy the RX queues only if it is the last netdev going away */
-+	if (atomic_fetch_add_unless(&priv->netdevs, -1, 0) == 1) {
-+		mutex_lock(&hfi1_mutex);
-+		hfi1_netdev_rxq_deinit(dd->dummy_netdev);
-+		mutex_unlock(&hfi1_mutex);
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * hfi1_netdev_alloc - Allocates netdev and private data. It is required
-+ * because RMT index and MSI-X interrupt can be set only
-+ * during driver initialization.
-+ *
-+ * @dd: hfi1 dev data
-+ */
-+int hfi1_netdev_alloc(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_netdev_priv *priv;
-+	const int netdev_size = sizeof(*dd->dummy_netdev) +
-+		sizeof(struct hfi1_netdev_priv);
-+
-+	dd_dev_info(dd, "allocating netdev size %d\n", netdev_size);
-+	dd->dummy_netdev = kcalloc_node(1, netdev_size, GFP_KERNEL, dd->node);
-+
-+	if (!dd->dummy_netdev)
-+		return -ENOMEM;
-+
-+	priv = hfi1_netdev_priv(dd->dummy_netdev);
-+	priv->dd = dd;
-+	xa_init(&priv->dev_tbl);
-+	atomic_set(&priv->enabled, 0);
-+	atomic_set(&priv->netdevs, 0);
-+
-+	return 0;
-+}
-+
-+void hfi1_netdev_free(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_netdev_priv *priv;
-+
-+	if (dd->dummy_netdev) {
-+		priv = hfi1_netdev_priv(dd->dummy_netdev);
-+		dd_dev_info(dd, "hfi1 netdev freed\n");
-+		kfree(dd->dummy_netdev);
-+		dd->dummy_netdev = NULL;
-+	}
-+}
-+
-+/**
-+ * hfi1_netdev_enable_queues - This is napi enable function.
-+ * It enables napi objects associated with queues.
-+ * When at least one device has called it it increments atomic counter.
-+ * Disable function decrements counter and when it is 0,
-+ * calls napi_disable for every queue.
-+ *
-+ * @dd: hfi1 dev data
-+ */
-+void hfi1_netdev_enable_queues(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_netdev_priv *priv;
-+
-+	if (!dd->dummy_netdev)
-+		return;
-+
-+	priv = hfi1_netdev_priv(dd->dummy_netdev);
-+	if (atomic_fetch_inc(&priv->enabled))
-+		return;
-+
-+	mutex_lock(&hfi1_mutex);
-+	enable_queues(priv);
-+	mutex_unlock(&hfi1_mutex);
-+}
-+
-+void hfi1_netdev_disable_queues(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_netdev_priv *priv;
-+
-+	if (!dd->dummy_netdev)
-+		return;
-+
-+	priv = hfi1_netdev_priv(dd->dummy_netdev);
-+	if (atomic_dec_if_positive(&priv->enabled))
-+		return;
-+
-+	mutex_lock(&hfi1_mutex);
-+	disable_queues(priv);
-+	mutex_unlock(&hfi1_mutex);
-+}
-+
- /**
-  * hfi1_netdev_add_data - Registers data with unique identifier
-  * to be requested later this is needed for VNIC and IPoIB VLANs
+	if (nvme_rdma_poll_queue(queue))
+		ib_free_cq(queue->ib_cq);
+	else
+		ib_cq_pool_put(queue->ib_cq, queue->cq_size);
+
+
+> +
+>   static void nvme_rdma_destroy_queue_ib(struct nvme_rdma_queue *queue)
+>   {
+>   	struct nvme_rdma_device *dev;
+> @@ -408,7 +419,7 @@ static void nvme_rdma_destroy_queue_ib(struct nvme_rdma_queue *queue)
+>   	 * the destruction of the QP shouldn't use rdma_cm API.
+>   	 */
+>   	ib_destroy_qp(queue->qp);
+> -	ib_free_cq(queue->ib_cq);
+> +	nvme_rdma_free_cq(queue);
+>   
+>   	nvme_rdma_free_ring(ibdev, queue->rsp_ring, queue->queue_size,
+>   			sizeof(struct nvme_completion), DMA_FROM_DEVICE);
+> @@ -422,13 +433,35 @@ static int nvme_rdma_get_max_fr_pages(struct ib_device *ibdev)
+>   		     ibdev->attrs.max_fast_reg_page_list_len - 1);
+>   }
+>   
+> +static void nvme_rdma_create_cq(struct ib_device *ibdev,
+> +				struct nvme_rdma_queue *queue)
+> +{
+> +	int comp_vector, idx = nvme_rdma_queue_idx(queue);
+> +	enum ib_poll_context poll_ctx;
+> +
+> +	/*
+> +	 * Spread I/O queues completion vectors according their queue index.
+> +	 * Admin queues can always go on completion vector 0.
+> +	 */
+> +	comp_vector = idx == 0 ? idx : idx - 1;
+> +
+> +	/* Polling queues need direct cq polling context */
+> +	if (nvme_rdma_poll_queue(queue)) {
+> +		poll_ctx = IB_POLL_DIRECT;
+> +		queue->ib_cq = ib_alloc_cq(ibdev, queue, queue->cq_size,
+> +					   comp_vector, poll_ctx);
+> +	} else {
+> +		poll_ctx = IB_POLL_SOFTIRQ;
+> +		queue->ib_cq = ib_cq_pool_get(ibdev, queue->cq_size,
+> +					      comp_vector, poll_ctx);
+> +	}
+
+please add integer as return value here instead of void.
+
+And check the return value in the caller.
+
+
+> +}
+> +
+>   static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue)
+>   {
+>   	struct ib_device *ibdev;
+>   	const int send_wr_factor = 3;			/* MR, SEND, INV */
+>   	const int cq_factor = send_wr_factor + 1;	/* + RECV */
+> -	int comp_vector, idx = nvme_rdma_queue_idx(queue);
+> -	enum ib_poll_context poll_ctx;
+>   	int ret, pages_per_mr;
+>   
+>   	queue->device = nvme_rdma_find_get_device(queue->cm_id);
+> @@ -439,22 +472,10 @@ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue)
+>   	}
+>   	ibdev = queue->device->dev;
+>   
+> -	/*
+> -	 * Spread I/O queues completion vectors according their queue index.
+> -	 * Admin queues can always go on completion vector 0.
+> -	 */
+> -	comp_vector = idx == 0 ? idx : idx - 1;
+> -
+> -	/* Polling queues need direct cq polling context */
+> -	if (nvme_rdma_poll_queue(queue))
+> -		poll_ctx = IB_POLL_DIRECT;
+> -	else
+> -		poll_ctx = IB_POLL_SOFTIRQ;
+> -
+>   	/* +1 for ib_stop_cq */
+> -	queue->ib_cq = ib_alloc_cq(ibdev, queue,
+> -				cq_factor * queue->queue_size + 1,
+> -				comp_vector, poll_ctx);
+> +	queue->cq_size = cq_factor * queue->queue_size + 1;
+> +
+> +	nvme_rdma_create_cq(ibdev, queue);
+
+see above.
+
+
+>   	if (IS_ERR(queue->ib_cq)) {
+>   		ret = PTR_ERR(queue->ib_cq);
+>   		goto out_put_dev;
+> @@ -484,7 +505,7 @@ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue)
+>   	if (ret) {
+>   		dev_err(queue->ctrl->ctrl.device,
+>   			"failed to initialize MR pool sized %d for QID %d\n",
+> -			queue->queue_size, idx);
+> +			queue->queue_size, nvme_rdma_queue_idx(queue));
+>   		goto out_destroy_ring;
+>   	}
+>   
+> @@ -498,7 +519,7 @@ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue)
+>   out_destroy_qp:
+>   	rdma_destroy_qp(queue->cm_id);
+>   out_destroy_ib_cq:
+> -	ib_free_cq(queue->ib_cq);
+> +	nvme_rdma_free_cq(queue);
+>   out_put_dev:
+>   	nvme_rdma_dev_put(queue->device);
+>   	return ret;
+> @@ -1093,7 +1114,7 @@ static void nvme_rdma_error_recovery(struct nvme_rdma_ctrl *ctrl)
+>   static void nvme_rdma_wr_error(struct ib_cq *cq, struct ib_wc *wc,
+>   		const char *op)
+>   {
+> -	struct nvme_rdma_queue *queue = cq->cq_context;
+> +	struct nvme_rdma_queue *queue = wc->qp->qp_context;
+>   	struct nvme_rdma_ctrl *ctrl = queue->ctrl;
+>   
+>   	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
+> @@ -1481,7 +1502,7 @@ static void nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+>   {
+>   	struct nvme_rdma_qe *qe =
+>   		container_of(wc->wr_cqe, struct nvme_rdma_qe, cqe);
+> -	struct nvme_rdma_queue *queue = cq->cq_context;
+> +	struct nvme_rdma_queue *queue = wc->qp->qp_context;
+>   	struct ib_device *ibdev = queue->device->dev;
+>   	struct nvme_completion *cqe = qe->data;
+>   	const size_t len = sizeof(struct nvme_completion);
+
+with the above small fixes:
+
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+
 
