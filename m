@@ -6,47 +6,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 720B2C54E8E
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CB86C47255
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50A29206E6
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D89D3206E6
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729550AbgEKQG3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 May 2020 12:06:29 -0400
-Received: from mga05.intel.com ([192.55.52.43]:58304 "EHLO mga05.intel.com"
+        id S1730624AbgEKQGk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 May 2020 12:06:40 -0400
+Received: from mga18.intel.com ([134.134.136.126]:64683 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730594AbgEKQG3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 11 May 2020 12:06:29 -0400
-IronPort-SDR: mmpykCaba42z1sDb0xIPiMTad/+9+B099+MhjkF/1e2m+z0tgA/bQEDZF3yq6DkIPN86tkytw9
- Idrfll1xDdHw==
+        id S1730596AbgEKQGk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 11 May 2020 12:06:40 -0400
+IronPort-SDR: mBegw8OyMNbYnWu+XTsaMHxx+/oGPS/UZGYOARH8420aA2fqYHip3b4j/SbpOga7HFwlfRGroG
+ EGFUYFbhHbpg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2020 09:06:21 -0700
-IronPort-SDR: PnZT7hMD/ToCXd3GXtHVqh4nJSGIUiYIubY0omfBkhGyaiYhDM52qaBKWk+8tLqTzEPqvtyXrX
- v5fISsld2InA==
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2020 09:06:39 -0700
+IronPort-SDR: bvBBmQzkSGgZaVe/01OjjYDp0w8Ob80hQpEq5B0/3tpQSTnNd9bav4rUh93gIvR/x3xOPBk6aW
+ joDuwm6l3RGw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,380,1583222400"; 
-   d="scan'208";a="265201003"
+   d="scan'208";a="250591794"
 Received: from sedona.ch.intel.com ([10.2.136.157])
-  by orsmga006.jf.intel.com with ESMTP; 11 May 2020 09:06:20 -0700
+  by orsmga007.jf.intel.com with ESMTP; 11 May 2020 09:06:38 -0700
 Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 04BG6KgR061687;
-        Mon, 11 May 2020 09:06:20 -0700
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 04BG6c8s061696;
+        Mon, 11 May 2020 09:06:38 -0700
 Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 04BG6Ilt174128;
-        Mon, 11 May 2020 12:06:19 -0400
-Subject: [PATCH v3 for-next 07/16] IB/ipoib: Increase ipoib Datagram mode
- MTU's upper limit
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 04BG6b4l174173;
+        Mon, 11 May 2020 12:06:37 -0400
+Subject: [PATCH v3 for-next 10/16] IB/hfi1: Add interrupt handler functions
+ for accelerated ipoib
 From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     linux-rdma@vger.kernel.org,
+Cc:     Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>,
+        linux-rdma@vger.kernel.org,
         Mike Marciniszyn <mike.marciniszyn@intel.com>,
         Sadanand Warrier <sadanand.warrier@intel.com>,
         Kaike Wan <kaike.wan@intel.com>
-Date:   Mon, 11 May 2020 12:06:18 -0400
-Message-ID: <20200511160618.173205.23053.stgit@awfm-01.aw.intel.com>
+Date:   Mon, 11 May 2020 12:06:37 -0400
+Message-ID: <20200511160637.173205.64890.stgit@awfm-01.aw.intel.com>
 In-Reply-To: <20200511155337.173205.77558.stgit@awfm-01.aw.intel.com>
 References: <20200511155337.173205.77558.stgit@awfm-01.aw.intel.com>
 User-Agent: StGit/0.17.1-dirty
@@ -58,261 +59,434 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan@intel.com>
+From: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 
-Currently the ipoib UD mtu is restricted to 4K bytes. Remove this
-limitation so that the IPOIB module can potentially use an MTU (in UD
-mode) that is bounded by the MTU of the underlying device. A field is
-added to the ib_port_attr structure to indicate the maximum physical
-MTU the underlying device supports.
+This patch adds the interrupt handler function, the NAPI poll
+function, and its associated helper functions for receiving
+accelerated ipoib packets. While we are here, fix the formats
+of two error printouts.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Sadanand Warrier <sadanand.warrier@intel.com>
+Signed-off-by: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 Signed-off-by: Kaike Wan <kaike.wan@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/qp.c                |   18 +-----
- drivers/infiniband/hw/hfi1/verbs.c             |    2 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |    2 -
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   11 ++-
- include/rdma/ib_verbs.h                        |   77 ++++++++++++++++++++++++
- include/rdma/opa_port_info.h                   |   10 ---
- 6 files changed, 88 insertions(+), 32 deletions(-)
+ drivers/infiniband/hw/hfi1/affinity.c |   12 +++
+ drivers/infiniband/hw/hfi1/affinity.h |    3 +
+ drivers/infiniband/hw/hfi1/chip.c     |   44 ++++++++++++
+ drivers/infiniband/hw/hfi1/chip.h     |    1 
+ drivers/infiniband/hw/hfi1/driver.c   |  120 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/hfi.h      |    4 +
+ drivers/infiniband/hw/hfi1/init.c     |    1 
+ drivers/infiniband/hw/hfi1/msix.c     |   20 +++++-
+ drivers/infiniband/hw/hfi1/msix.h     |    5 +
+ drivers/infiniband/hw/hfi1/netdev.h   |    3 +
+ 10 files changed, 206 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
-index f8e733a..0c2ae9f 100644
---- a/drivers/infiniband/hw/hfi1/qp.c
-+++ b/drivers/infiniband/hw/hfi1/qp.c
+diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
+index 1aeea5d..2a91b8d 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.c
++++ b/drivers/infiniband/hw/hfi1/affinity.c
 @@ -1,5 +1,5 @@
  /*
-- * Copyright(c) 2015 - 2019 Intel Corporation.
+- * Copyright(c) 2015 - 2018 Intel Corporation.
 + * Copyright(c) 2015 - 2020 Intel Corporation.
   *
   * This file is provided under a dual BSD/GPLv2 license.  When using or
   * redistributing this file, you may do so under either license.
-@@ -186,15 +186,6 @@ static void flush_iowait(struct rvt_qp *qp)
- 	write_sequnlock_irqrestore(lock, flags);
- }
- 
--static inline int opa_mtu_enum_to_int(int mtu)
--{
--	switch (mtu) {
--	case OPA_MTU_8192:  return 8192;
--	case OPA_MTU_10240: return 10240;
--	default:            return -1;
--	}
--}
--
- /**
-  * This function is what we would push to the core layer if we wanted to be a
-  * "first class citizen".  Instead we hide this here and rely on Verbs ULPs
-@@ -202,15 +193,10 @@ static inline int opa_mtu_enum_to_int(int mtu)
-  */
- static inline int verbs_mtu_enum_to_int(struct ib_device *dev, enum ib_mtu mtu)
- {
--	int val;
--
- 	/* Constraining 10KB packets to 8KB packets */
- 	if (mtu == (enum ib_mtu)OPA_MTU_10240)
- 		mtu = OPA_MTU_8192;
--	val = opa_mtu_enum_to_int((int)mtu);
--	if (val > 0)
--		return val;
--	return ib_mtu_enum_to_int(mtu);
-+	return opa_mtu_enum_to_int((enum opa_mtu)mtu);
- }
- 
- int hfi1_check_modify_qp(struct rvt_qp *qp, struct ib_qp_attr *attr,
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index c61b291..19d5d00 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1439,6 +1439,8 @@ static int query_port(struct rvt_dev_info *rdi, u8 port_num,
- 				      4096 : hfi1_max_mtu), IB_MTU_4096);
- 	props->active_mtu = !valid_ib_mtu(ppd->ibmtu) ? props->max_mtu :
- 		mtu_to_enum(ppd->ibmtu, IB_MTU_4096);
-+	props->phys_mtu = HFI1_CAP_IS_KSET(AIP) ? hfi1_max_mtu :
-+				ib_mtu_enum_to_int(props->max_mtu);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index d4c6a97..22216f1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1855,7 +1855,7 @@ static int ipoib_parent_init(struct net_device *ndev)
- 			priv->port);
- 		return result;
- 	}
--	priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
-+	priv->max_ib_mtu = rdma_mtu_from_attr(priv->ca, priv->port, &attr);
- 
- 	result = ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey);
- 	if (result) {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index b9e9562..7166ee9b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -218,6 +218,7 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
- 	struct rdma_ah_attr av;
- 	int ret;
- 	int set_qkey = 0;
-+	int mtu;
- 
- 	mcast->mcmember = *mcmember;
- 
-@@ -240,13 +241,11 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
- 		priv->broadcast->mcmember.flow_label = mcmember->flow_label;
- 		priv->broadcast->mcmember.hop_limit = mcmember->hop_limit;
- 		/* assume if the admin and the mcast are the same both can be changed */
-+		mtu = rdma_mtu_enum_to_int(priv->ca,  priv->port,
-+					   priv->broadcast->mcmember.mtu);
- 		if (priv->mcast_mtu == priv->admin_mtu)
--			priv->admin_mtu =
--			priv->mcast_mtu =
--			IPOIB_UD_MTU(ib_mtu_enum_to_int(priv->broadcast->mcmember.mtu));
--		else
--			priv->mcast_mtu =
--			IPOIB_UD_MTU(ib_mtu_enum_to_int(priv->broadcast->mcmember.mtu));
-+			priv->admin_mtu = IPOIB_UD_MTU(mtu);
-+		priv->mcast_mtu = IPOIB_UD_MTU(mtu);
- 
- 		priv->qkey = be32_to_cpu(priv->broadcast->mcmember.qkey);
- 		spin_unlock_irq(&priv->lock);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 4b23ee5..792fb72 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -462,6 +462,11 @@ enum ib_mtu {
- 	IB_MTU_4096 = 5
+@@ -64,6 +64,7 @@ struct hfi1_affinity_node_list node_affinity = {
+ static const char * const irq_type_names[] = {
+ 	"SDMA",
+ 	"RCVCTXT",
++	"NETDEVCTXT",
+ 	"GENERAL",
+ 	"OTHER",
  };
- 
-+enum opa_mtu {
-+	OPA_MTU_8192 = 6,
-+	OPA_MTU_10240 = 7
-+};
-+
- static inline int ib_mtu_enum_to_int(enum ib_mtu mtu)
- {
- 	switch (mtu) {
-@@ -488,6 +493,28 @@ static inline enum ib_mtu ib_mtu_int_to_enum(int mtu)
- 		return IB_MTU_256;
- }
- 
-+static inline int opa_mtu_enum_to_int(enum opa_mtu mtu)
-+{
-+	switch (mtu) {
-+	case OPA_MTU_8192:
-+		return 8192;
-+	case OPA_MTU_10240:
-+		return 10240;
-+	default:
-+		return(ib_mtu_enum_to_int((enum ib_mtu)mtu));
-+	}
-+}
-+
-+static inline enum opa_mtu opa_mtu_int_to_enum(int mtu)
-+{
-+	if (mtu >= 10240)
-+		return OPA_MTU_10240;
-+	else if (mtu >= 8192)
-+		return OPA_MTU_8192;
-+	else
-+		return ((enum opa_mtu)ib_mtu_int_to_enum(mtu));
-+}
-+
- enum ib_port_state {
- 	IB_PORT_NOP		= 0,
- 	IB_PORT_DOWN		= 1,
-@@ -651,6 +678,7 @@ struct ib_port_attr {
- 	enum ib_port_state	state;
- 	enum ib_mtu		max_mtu;
- 	enum ib_mtu		active_mtu;
-+	u32                     phys_mtu;
- 	int			gid_tbl_len;
- 	unsigned int		ip_gids:1;
- 	/* This is the value from PortInfo CapabilityMask, defined by IBA */
-@@ -3364,6 +3392,55 @@ static inline unsigned int rdma_find_pg_bit(unsigned long addr,
- 	return __fls(pgsz);
- }
- 
-+/**
-+ * rdma_core_cap_opa_port - Return whether the RDMA Port is OPA or not.
-+ * @device: Device
-+ * @port_num: 1 based Port number
-+ *
-+ * Return true if port is an Intel OPA port , false if not
-+ */
-+static inline bool rdma_core_cap_opa_port(struct ib_device *device,
-+					  u32 port_num)
-+{
-+	return (device->port_data[port_num].immutable.core_cap_flags &
-+		RDMA_CORE_PORT_INTEL_OPA) == RDMA_CORE_PORT_INTEL_OPA;
-+}
-+
-+/**
-+ * rdma_mtu_enum_to_int - Return the mtu of the port as an integer value.
-+ * @device: Device
-+ * @port_num: Port number
-+ * @mtu: enum value of MTU
-+ *
-+ * Return the MTU size supported by the port as an integer value. Will return
-+ * -1 if enum value of mtu is not supported.
-+ */
-+static inline int rdma_mtu_enum_to_int(struct ib_device *device, u8 port,
-+				       int mtu)
-+{
-+	if (rdma_core_cap_opa_port(device, port))
-+		return opa_mtu_enum_to_int((enum opa_mtu)mtu);
-+	else
-+		return ib_mtu_enum_to_int((enum ib_mtu)mtu);
-+}
-+
-+/**
-+ * rdma_mtu_from_attr - Return the mtu of the port from the port attribute.
-+ * @device: Device
-+ * @port_num: Port number
-+ * @attr: port attribute
-+ *
-+ * Return the MTU size supported by the port as an integer value.
-+ */
-+static inline int rdma_mtu_from_attr(struct ib_device *device, u8 port,
-+				     struct ib_port_attr *attr)
-+{
-+	if (rdma_core_cap_opa_port(device, port))
-+		return attr->phys_mtu;
-+	else
-+		return ib_mtu_enum_to_int(attr->max_mtu);
-+}
-+
- int ib_set_vf_link_state(struct ib_device *device, int vf, u8 port,
- 			 int state);
- int ib_get_vf_config(struct ib_device *device, int vf, u8 port,
-diff --git a/include/rdma/opa_port_info.h b/include/rdma/opa_port_info.h
-index bdbfe25..0d9e6d7 100644
---- a/include/rdma/opa_port_info.h
-+++ b/include/rdma/opa_port_info.h
+@@ -915,6 +916,11 @@ static int get_irq_affinity(struct hfi1_devdata *dd,
+ 			set = &entry->rcv_intr;
+ 		scnprintf(extra, 64, "ctxt %u", rcd->ctxt);
+ 		break;
++	case IRQ_NETDEVCTXT:
++		rcd = (struct hfi1_ctxtdata *)msix->arg;
++		set = &entry->def_intr;
++		scnprintf(extra, 64, "ctxt %u", rcd->ctxt);
++		break;
+ 	default:
+ 		dd_dev_err(dd, "Invalid IRQ type %d\n", msix->type);
+ 		return -EINVAL;
+@@ -987,6 +993,10 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
+ 		if (rcd->ctxt != HFI1_CTRL_CTXT)
+ 			set = &entry->rcv_intr;
+ 		break;
++	case IRQ_NETDEVCTXT:
++		rcd = (struct hfi1_ctxtdata *)msix->arg;
++		set = &entry->def_intr;
++		break;
+ 	default:
+ 		mutex_unlock(&node_affinity.lock);
+ 		return;
+diff --git a/drivers/infiniband/hw/hfi1/affinity.h b/drivers/infiniband/hw/hfi1/affinity.h
+index 6a7e6ea..f94ed5d 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.h
++++ b/drivers/infiniband/hw/hfi1/affinity.h
 @@ -1,5 +1,5 @@
  /*
-- * Copyright (c) 2014-2017 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2014-2020 Intel Corporation.  All rights reserved.
+- * Copyright(c) 2015 - 2018 Intel Corporation.
++ * Copyright(c) 2015 - 2020 Intel Corporation.
   *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -139,14 +139,6 @@
- #define OPA_CAP_MASK3_IsVLMarkerSupported         (1 << 1)
- #define OPA_CAP_MASK3_IsVLrSupported              (1 << 0)
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -52,6 +52,7 @@
+ enum irq_type {
+ 	IRQ_SDMA,
+ 	IRQ_RCVCTXT,
++	IRQ_NETDEVCTXT,
+ 	IRQ_GENERAL,
+ 	IRQ_OTHER
+ };
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 07eec35..2117612 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -66,6 +66,7 @@
+ #include "affinity.h"
+ #include "debugfs.h"
+ #include "fault.h"
++#include "netdev.h"
  
--/**
-- * new MTU values
-- */
--enum {
--	OPA_MTU_8192  = 6,
--	OPA_MTU_10240 = 7,
--};
--
- enum {
- 	OPA_PORT_PHYS_CONF_DISCONNECTED = 0,
- 	OPA_PORT_PHYS_CONF_STANDARD     = 1,
+ uint num_vls = HFI1_MAX_VLS_SUPPORTED;
+ module_param(num_vls, uint, S_IRUGO);
+@@ -8480,6 +8481,49 @@ static void hfi1_rcd_eoi_intr(struct hfi1_ctxtdata *rcd)
+ 	local_irq_restore(flags);
+ }
+ 
++/**
++ * hfi1_netdev_rx_napi - napi poll function to move eoi inline
++ * @napi - pointer to napi object
++ * @budget - netdev budget
++ */
++int hfi1_netdev_rx_napi(struct napi_struct *napi, int budget)
++{
++	struct hfi1_netdev_rxq *rxq = container_of(napi,
++			struct hfi1_netdev_rxq, napi);
++	struct hfi1_ctxtdata *rcd = rxq->rcd;
++	int work_done = 0;
++
++	work_done = rcd->do_interrupt(rcd, budget);
++
++	if (work_done < budget) {
++		napi_complete_done(napi, work_done);
++		hfi1_rcd_eoi_intr(rcd);
++	}
++
++	return work_done;
++}
++
++/* Receive packet napi handler for netdevs VNIC and AIP  */
++irqreturn_t receive_context_interrupt_napi(int irq, void *data)
++{
++	struct hfi1_ctxtdata *rcd = data;
++
++	receive_interrupt_common(rcd);
++
++	if (likely(rcd->napi)) {
++		if (likely(napi_schedule_prep(rcd->napi)))
++			__napi_schedule_irqoff(rcd->napi);
++		else
++			__hfi1_rcd_eoi_intr(rcd);
++	} else {
++		WARN_ONCE(1, "Napi IRQ handler without napi set up ctxt=%d\n",
++			  rcd->ctxt);
++		__hfi1_rcd_eoi_intr(rcd);
++	}
++
++	return IRQ_HANDLED;
++}
++
+ /*
+  * Receive packet IRQ handler.  This routine expects to be on its own IRQ.
+  * This routine will try to handle packets immediately (latency), but if
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index b10e0bf..2c6f2de 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -1447,6 +1447,7 @@ int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt,
+ irqreturn_t sdma_interrupt(int irq, void *data);
+ irqreturn_t receive_context_interrupt(int irq, void *data);
+ irqreturn_t receive_context_thread(int irq, void *data);
++irqreturn_t receive_context_interrupt_napi(int irq, void *data);
+ 
+ int set_intr_bits(struct hfi1_devdata *dd, u16 first, u16 last, bool set);
+ void init_qsfp_int(struct hfi1_devdata *dd);
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index c5ed6ed..d89fc8f 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -752,6 +752,39 @@ static noinline int skip_rcv_packet(struct hfi1_packet *packet, int thread)
+ 	return ret;
+ }
+ 
++static void process_rcv_packet_napi(struct hfi1_packet *packet)
++{
++	packet->etype = rhf_rcv_type(packet->rhf);
++
++	/* total length */
++	packet->tlen = rhf_pkt_len(packet->rhf); /* in bytes */
++	/* retrieve eager buffer details */
++	packet->etail = rhf_egr_index(packet->rhf);
++	packet->ebuf = get_egrbuf(packet->rcd, packet->rhf,
++				  &packet->updegr);
++	/*
++	 * Prefetch the contents of the eager buffer.  It is
++	 * OK to send a negative length to prefetch_range().
++	 * The +2 is the size of the RHF.
++	 */
++	prefetch_range(packet->ebuf,
++		       packet->tlen - ((packet->rcd->rcvhdrqentsize -
++				       (rhf_hdrq_offset(packet->rhf)
++					+ 2)) * 4));
++
++	packet->rcd->rhf_rcv_function_map[packet->etype](packet);
++	packet->numpkt++;
++
++	/* Set up for the next packet */
++	packet->rhqoff += packet->rsize;
++	if (packet->rhqoff >= packet->maxcnt)
++		packet->rhqoff = 0;
++
++	packet->rhf_addr = (__le32 *)packet->rcd->rcvhdrq + packet->rhqoff +
++				      packet->rcd->rhf_offset;
++	packet->rhf = rhf_to_cpu(packet->rhf_addr);
++}
++
+ static inline int process_rcv_packet(struct hfi1_packet *packet, int thread)
+ {
+ 	int ret;
+@@ -831,6 +864,36 @@ static inline void finish_packet(struct hfi1_packet *packet)
+ }
+ 
+ /*
++ * handle_receive_interrupt_napi_fp - receive a packet
++ * @rcd: the context
++ * @budget: polling budget
++ *
++ * Called from interrupt handler for receive interrupt.
++ * This is the fast path interrupt handler
++ * when executing napi soft irq environment.
++ */
++int handle_receive_interrupt_napi_fp(struct hfi1_ctxtdata *rcd, int budget)
++{
++	struct hfi1_packet packet;
++
++	init_packet(rcd, &packet);
++	if (last_rcv_seq(rcd, rhf_rcv_seq(packet.rhf)))
++		goto bail;
++
++	while (packet.numpkt < budget) {
++		process_rcv_packet_napi(&packet);
++		if (hfi1_seq_incr(rcd, rhf_rcv_seq(packet.rhf)))
++			break;
++
++		process_rcv_update(0, &packet);
++	}
++	hfi1_set_rcd_head(rcd, packet.rhqoff);
++bail:
++	finish_packet(&packet);
++	return packet.numpkt;
++}
++
++/*
+  * Handle receive interrupts when using the no dma rtail option.
+  */
+ int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd, int thread)
+@@ -1078,6 +1141,63 @@ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
+ }
+ 
+ /*
++ * handle_receive_interrupt_napi_sp - receive a packet
++ * @rcd: the context
++ * @budget: polling budget
++ *
++ * Called from interrupt handler for errors or receive interrupt.
++ * This is the slow path interrupt handler
++ * when executing napi soft irq environment.
++ */
++int handle_receive_interrupt_napi_sp(struct hfi1_ctxtdata *rcd, int budget)
++{
++	struct hfi1_devdata *dd = rcd->dd;
++	int last = RCV_PKT_OK;
++	bool needset = true;
++	struct hfi1_packet packet;
++
++	init_packet(rcd, &packet);
++	if (last_rcv_seq(rcd, rhf_rcv_seq(packet.rhf)))
++		goto bail;
++
++	while (last != RCV_PKT_DONE && packet.numpkt < budget) {
++		if (hfi1_need_drop(dd)) {
++			/* On to the next packet */
++			packet.rhqoff += packet.rsize;
++			packet.rhf_addr = (__le32 *)rcd->rcvhdrq +
++					  packet.rhqoff +
++					  rcd->rhf_offset;
++			packet.rhf = rhf_to_cpu(packet.rhf_addr);
++
++		} else {
++			if (set_armed_to_active(&packet))
++				goto bail;
++			process_rcv_packet_napi(&packet);
++		}
++
++		if (hfi1_seq_incr(rcd, rhf_rcv_seq(packet.rhf)))
++			last = RCV_PKT_DONE;
++
++		if (needset) {
++			needset = false;
++			set_all_fastpath(dd, rcd);
++		}
++
++		process_rcv_update(last, &packet);
++	}
++
++	hfi1_set_rcd_head(rcd, packet.rhqoff);
++
++bail:
++	/*
++	 * Always write head at end, and setup rcv interrupt, even
++	 * if no packets were processed.
++	 */
++	finish_packet(&packet);
++	return packet.numpkt;
++}
++
++/*
+  * We may discover in the interrupt that the hardware link state has
+  * changed from ARMED to ACTIVE (due to the arrival of a non-SC15 packet),
+  * and we need to update the driver's notion of the link state.  We cannot
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index c7d0aad..986d8c3 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -385,11 +385,11 @@ struct hfi1_packet {
+ 	u32 rhqoff;
+ 	u32 dlid;
+ 	u32 slid;
++	int numpkt;
+ 	u16 tlen;
+ 	s16 etail;
+ 	u16 pkey;
+ 	u8 hlen;
+-	u8 numpkt;
+ 	u8 rsize;
+ 	u8 updegr;
+ 	u8 etype;
+@@ -1501,6 +1501,8 @@ struct hfi1_ctxtdata *hfi1_rcd_get_by_index_safe(struct hfi1_devdata *dd,
+ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread);
+ int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd, int thread);
+ int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd, int thread);
++int handle_receive_interrupt_napi_fp(struct hfi1_ctxtdata *rcd, int budget);
++int handle_receive_interrupt_napi_sp(struct hfi1_ctxtdata *rcd, int budget);
+ void set_all_slowpath(struct hfi1_devdata *dd);
+ 
+ extern const struct pci_device_id hfi1_pci_tbl[];
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 8c6b96a..64279d0 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -374,6 +374,7 @@ int hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, int numa,
+ 		rcd->numa_id = numa;
+ 		rcd->rcv_array_groups = dd->rcv_entries.ngroups;
+ 		rcd->rhf_rcv_function_map = normal_rhf_rcv_functions;
++		rcd->msix_intr = CCE_NUM_MSIX_VECTORS;
+ 
+ 		mutex_init(&rcd->exp_mutex);
+ 		spin_lock_init(&rcd->exp_lock);
+diff --git a/drivers/infiniband/hw/hfi1/msix.c b/drivers/infiniband/hw/hfi1/msix.c
+index 7574f2b..7559875e 100644
+--- a/drivers/infiniband/hw/hfi1/msix.c
++++ b/drivers/infiniband/hw/hfi1/msix.c
+@@ -49,6 +49,7 @@
+ #include "hfi.h"
+ #include "affinity.h"
+ #include "sdma.h"
++#include "netdev.h"
+ 
+ /**
+  * msix_initialize() - Calculate, request and configure MSIx IRQs
+@@ -140,7 +141,7 @@ static int msix_request_irq(struct hfi1_devdata *dd, void *arg,
+ 	ret = pci_request_irq(dd->pcidev, nr, handler, thread, arg, name);
+ 	if (ret) {
+ 		dd_dev_err(dd,
+-			   "%s: request for IRQ %d failed, MSIx %lu, err %d\n",
++			   "%s: request for IRQ %d failed, MSIx %lx, err %d\n",
+ 			   name, irq, nr, ret);
+ 		spin_lock(&dd->msix_info.msix_lock);
+ 		__clear_bit(nr, dd->msix_info.in_use_msix);
+@@ -160,7 +161,7 @@ static int msix_request_irq(struct hfi1_devdata *dd, void *arg,
+ 	/* This is a request, so a failure is not fatal */
+ 	ret = hfi1_get_irq_affinity(dd, me);
+ 	if (ret)
+-		dd_dev_err(dd, "unable to pin IRQ %d\n", ret);
++		dd_dev_err(dd, "%s: unable to pin IRQ %d\n", name, ret);
+ 
+ 	return nr;
+ }
+@@ -204,6 +205,21 @@ int msix_request_rcd_irq(struct hfi1_ctxtdata *rcd)
+ }
+ 
+ /**
++ * msix_request_rcd_irq() - Helper function for RCVAVAIL IRQs
++ * for netdev context
++ * @rcd: valid netdev contexti
++ */
++int msix_netdev_request_rcd_irq(struct hfi1_ctxtdata *rcd)
++{
++	char name[MAX_NAME_SIZE];
++
++	snprintf(name, sizeof(name), DRIVER_NAME "_%d nd kctxt%d",
++		 rcd->dd->unit, rcd->ctxt);
++	return msix_request_rcd_irq_common(rcd, receive_context_interrupt_napi,
++					   NULL, name);
++}
++
++/**
+  * msix_request_smda_ira() - Helper for getting SDMA IRQ resources
+  * @sde: valid sdma engine
+  *
+diff --git a/drivers/infiniband/hw/hfi1/msix.h b/drivers/infiniband/hw/hfi1/msix.h
+index 1a02ab7..42fab94 100644
+--- a/drivers/infiniband/hw/hfi1/msix.h
++++ b/drivers/infiniband/hw/hfi1/msix.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
+ /*
+- * Copyright(c) 2018 Intel Corporation.
++ * Copyright(c) 2018 - 2020 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -59,7 +59,8 @@
+ int msix_request_sdma_irq(struct sdma_engine *sde);
+ void msix_free_irq(struct hfi1_devdata *dd, u8 msix_intr);
+ 
+-/* VNIC interface */
++/* Netdev interface */
+ void msix_vnic_synchronize_irq(struct hfi1_devdata *dd);
++int msix_netdev_request_rcd_irq(struct hfi1_ctxtdata *rcd);
+ 
+ #endif
+diff --git a/drivers/infiniband/hw/hfi1/netdev.h b/drivers/infiniband/hw/hfi1/netdev.h
+index 8992dfe..6740ec3 100644
+--- a/drivers/infiniband/hw/hfi1/netdev.h
++++ b/drivers/infiniband/hw/hfi1/netdev.h
+@@ -87,4 +87,7 @@ struct hfi1_ctxtdata *hfi1_netdev_get_ctxt(struct hfi1_devdata *dd, int ctxt)
+ void *hfi1_netdev_get_data(struct hfi1_devdata *dd, int id);
+ void *hfi1_netdev_get_first_data(struct hfi1_devdata *dd, int *start_id);
+ 
++/* chip.c  */
++int hfi1_netdev_rx_napi(struct napi_struct *napi, int budget);
++
+ #endif /* HFI1_NETDEV_H */
 
