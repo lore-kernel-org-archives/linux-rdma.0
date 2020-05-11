@@ -6,47 +6,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51B4CC54E8D
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C07CC54E8D
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C075206E6
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60647206E6
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 May 2020 16:06:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730615AbgEKQGN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 May 2020 12:06:13 -0400
-Received: from mga17.intel.com ([192.55.52.151]:4995 "EHLO mga17.intel.com"
+        id S1730619AbgEKQGQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 May 2020 12:06:16 -0400
+Received: from mga18.intel.com ([134.134.136.126]:64655 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730594AbgEKQGN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 11 May 2020 12:06:13 -0400
-IronPort-SDR: V2lfBvQVOb3KcqAISpQbUNCsKdfLdGUgSPbAtyVehr2jFp3NjK2eoAgIxgCP5A1vb6FZW+F5On
- b1xyxY+WI/OQ==
+        id S1730594AbgEKQGQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 11 May 2020 12:06:16 -0400
+IronPort-SDR: YU910+OpaxwYlgUAGS3pMLRI/qrGysE4QReLVfL6LASi/lLEsbaldO5w1jzqnNEfuNT09xnI0e
+ LaKUMBJG2+Yw==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2020 09:05:57 -0700
-IronPort-SDR: PMq0JK+Tuudxkr+3oyriRZFJOgnf+66aMu4ubegxat81QGD9WDU7PHSGK7tFfBQmh5NWUcVgGq
- WuFsrxX0LkhA==
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2020 09:06:15 -0700
+IronPort-SDR: IGmcvzK5/EqXiZk8DATNuXWl3RR63cdDHk9bOZGQ//9Buzr9w5ELq4Ptq8a98mDhJBcaeLf9ZX
+ mxdbkppf+r9A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,380,1583222400"; 
-   d="scan'208";a="436745465"
+   d="scan'208";a="297732287"
 Received: from sedona.ch.intel.com ([10.2.136.157])
-  by orsmga005.jf.intel.com with ESMTP; 11 May 2020 09:05:57 -0700
+  by orsmga008.jf.intel.com with ESMTP; 11 May 2020 09:06:15 -0700
 Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
-        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 04BG5uZg061660;
-        Mon, 11 May 2020 09:05:56 -0700
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 04BG6Ee6061684;
+        Mon, 11 May 2020 09:06:14 -0700
 Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
-        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 04BG5scu174071;
-        Mon, 11 May 2020 12:05:54 -0400
-Subject: [PATCH v3 for-next 03/16] IB/hfi1: Add the transmit side of a
- datagram ipoib RDMA netdev
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 04BG6Cjo174114;
+        Mon, 11 May 2020 12:06:13 -0400
+Subject: [PATCH v3 for-next 06/16] IB/hfi1: RSM rules for AIP
 From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
 Cc:     linux-rdma@vger.kernel.org,
         Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Gary Leshner <Gary.S.Leshner@intel.com>,
+        Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>,
         Kaike Wan <kaike.wan@intel.com>
-Date:   Mon, 11 May 2020 12:05:54 -0400
-Message-ID: <20200511160554.173205.1369.stgit@awfm-01.aw.intel.com>
+Date:   Mon, 11 May 2020 12:06:12 -0400
+Message-ID: <20200511160612.173205.73002.stgit@awfm-01.aw.intel.com>
 In-Reply-To: <20200511155337.173205.77558.stgit@awfm-01.aw.intel.com>
 References: <20200511155337.173205.77558.stgit@awfm-01.aw.intel.com>
 User-Agent: StGit/0.17.1-dirty
@@ -58,349 +57,335 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gary Leshner <Gary.S.Leshner@intel.com>
+From: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 
-This implements the transmit side of the multiple transmit queue RDMA
-netdev used to accelerate ipoib.  The receive side remains the ipoib
-internal implementation.
+This is implementation of RSM rule for AIP packets.
+AIP rule will use rule RSM2 and will match standard
+Infiniband packet containg BTH (LNH==BTH) and
+having Dest QPN prefixed with value 0x81. Spread between
+receive contexts will be done using source QPN bits.
 
-The init/unint/open/stop netdev operations are saved off and called by the
-versions within the hfi1 netdev in order to initialize the connected mode
-resources present in ipoib thus allowing us to switch modes between
-datagram and connected.
+VNIC and AIP will share receive contexts, so their rules
+will point to the same RMT entries and their shared
+code is moved to separate functions.
+If any of the rules is active RMT mapping will be skipped
+for latter.
 
-The datagram queue pair instantiated by the ipoib ulp is used by this
-implementation for its queue pair number and to register with multicast.
+Changed function hfi1_vnic_is_rsm_full to be more general
+and moved it from main header to chip.c.
 
-The above queue pair is not used on transmit other than its qpn as the
-verbs layer is skipped and packets are directly submitted to the sdma
-engines.
+Changed the order of RSM rules because AIP rule as
+more specific one is needed to be placed before more
+general QOS rule. Rules are occupying two last RSM
+registers.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Gary Leshner <Gary.S.Leshner@intel.com>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
 Signed-off-by: Kaike Wan <kaike.wan@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/Makefile     |    1 
- drivers/infiniband/hw/hfi1/ipoib.h      |    5 +
- drivers/infiniband/hw/hfi1/ipoib_main.c |  283 +++++++++++++++++++++++++++++++
- 3 files changed, 289 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/ipoib_main.c
+ drivers/infiniband/hw/hfi1/chip.c |  171 ++++++++++++++++++++++++++++---------
+ drivers/infiniband/hw/hfi1/chip.h |    4 +
+ drivers/infiniband/hw/hfi1/hfi.h  |    8 +-
+ drivers/infiniband/hw/hfi1/init.c |    3 -
+ 4 files changed, 136 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/Makefile b/drivers/infiniband/hw/hfi1/Makefile
-index 09ef0b8..0b25713 100644
---- a/drivers/infiniband/hw/hfi1/Makefile
-+++ b/drivers/infiniband/hw/hfi1/Makefile
-@@ -22,6 +22,7 @@ hfi1-y := \
- 	init.o \
- 	intr.o \
- 	iowait.o \
-+	ipoib_main.o \
- 	ipoib_tx.o \
- 	mad.o \
- 	mmu_rb.o \
-diff --git a/drivers/infiniband/hw/hfi1/ipoib.h b/drivers/infiniband/hw/hfi1/ipoib.h
-index 2b541ab..c2e63ca 100644
---- a/drivers/infiniband/hw/hfi1/ipoib.h
-+++ b/drivers/infiniband/hw/hfi1/ipoib.h
-@@ -142,4 +142,9 @@ int hfi1_ipoib_send_dma(struct net_device *dev,
- void hfi1_ipoib_napi_tx_enable(struct net_device *dev);
- void hfi1_ipoib_napi_tx_disable(struct net_device *dev);
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index c08bf81..be1fb29 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -124,13 +124,15 @@ struct flag_table {
  
-+int hfi1_ipoib_rn_get_params(struct ib_device *device,
-+			     u8 port_num,
-+			     enum rdma_netdev_t type,
-+			     struct rdma_netdev_alloc_params *params);
+ /*
+  * RSM instance allocation
+- *   0 - Verbs
+- *   1 - User Fecn Handling
+- *   2 - Vnic
++ *   0 - User Fecn Handling
++ *   1 - Vnic
++ *   2 - AIP
++ *   3 - Verbs
+  */
+-#define RSM_INS_VERBS             0
+-#define RSM_INS_FECN              1
+-#define RSM_INS_VNIC              2
++#define RSM_INS_FECN              0
++#define RSM_INS_VNIC              1
++#define RSM_INS_AIP               2
++#define RSM_INS_VERBS             3
+ 
+ /* Bit offset into the GUID which carries HFI id information */
+ #define GUID_HFI_INDEX_SHIFT     39
+@@ -171,6 +173,25 @@ struct flag_table {
+ /* QPN[m+n:1] QW 1, OFFSET 1 */
+ #define QPN_SELECT_OFFSET      ((1ull << QW_SHIFT) | (1ull))
+ 
++/* RSM fields for AIP */
++/* LRH.BTH above is reused for this rule */
 +
- #endif /* _IPOIB_H */
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_main.c b/drivers/infiniband/hw/hfi1/ipoib_main.c
-new file mode 100644
-index 0000000..304a5ac
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/ipoib_main.c
-@@ -0,0 +1,283 @@
-+// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
-+/*
-+ * Copyright(c) 2020 Intel Corporation.
-+ *
-+ */
++/* BTH.DESTQP: QW 1, OFFSET 16 for match */
++#define BTH_DESTQP_QW           1ull
++#define BTH_DESTQP_BIT_OFFSET   16ull
++#define BTH_DESTQP_OFFSET(off) ((BTH_DESTQP_QW << QW_SHIFT) | (off))
++#define BTH_DESTQP_MATCH_OFFSET BTH_DESTQP_OFFSET(BTH_DESTQP_BIT_OFFSET)
++#define BTH_DESTQP_MASK         0xFFull
++#define BTH_DESTQP_VALUE        0x81ull
 +
-+/*
-+ * This file contains HFI1 support for ipoib functionality
-+ */
++/* DETH.SQPN: QW 1 Offset 56 for select */
++/* We use 8 most significant Soure QPN bits as entropy fpr AIP */
++#define DETH_AIP_SQPN_QW 3ull
++#define DETH_AIP_SQPN_BIT_OFFSET 56ull
++#define DETH_AIP_SQPN_OFFSET(off) ((DETH_AIP_SQPN_QW << QW_SHIFT) | (off))
++#define DETH_AIP_SQPN_SELECT_OFFSET \
++	DETH_AIP_SQPN_OFFSET(DETH_AIP_SQPN_BIT_OFFSET)
 +
-+#include "ipoib.h"
-+#include "hfi.h"
-+
-+static u32 qpn_from_mac(u8 *mac_arr)
+ /* RSM fields for Vnic */
+ /* L2_TYPE: QW 0, OFFSET 61 - for match */
+ #define L2_TYPE_QW             0ull
+@@ -14236,6 +14257,12 @@ static void complete_rsm_map_table(struct hfi1_devdata *dd,
+ 	}
+ }
+ 
++/* Is a receive side mapping rule */
++static bool has_rsm_rule(struct hfi1_devdata *dd, u8 rule_index)
 +{
-+	return (u32)mac_arr[1] << 16 | mac_arr[2] << 8 | mac_arr[3];
++	return read_csr(dd, RCV_RSM_CFG + (8 * rule_index)) != 0;
 +}
 +
-+static int hfi1_ipoib_dev_init(struct net_device *dev)
+ /*
+  * Add a receive side mapping rule.
+  */
+@@ -14472,39 +14499,49 @@ static void init_fecn_handling(struct hfi1_devdata *dd,
+ 	rmt->used += total_cnt;
+ }
+ 
+-/* Initialize RSM for VNIC */
+-void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
++static inline bool hfi1_is_rmt_full(int start, int spare)
 +{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+
-+	priv->netstats = netdev_alloc_pcpu_stats(struct pcpu_sw_netstats);
-+
-+	return priv->netdev_ops->ndo_init(dev);
++	return (start + spare) > NUM_MAP_ENTRIES;
 +}
 +
-+static void hfi1_ipoib_dev_uninit(struct net_device *dev)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+
-+	priv->netdev_ops->ndo_uninit(dev);
-+}
-+
-+static int hfi1_ipoib_dev_open(struct net_device *dev)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+	int ret;
-+
-+	ret = priv->netdev_ops->ndo_open(dev);
-+	if (!ret) {
-+		struct hfi1_ibport *ibp = to_iport(priv->device,
-+						   priv->port_num);
-+		struct rvt_qp *qp;
-+		u32 qpn = qpn_from_mac(priv->netdev->dev_addr);
-+
-+		rcu_read_lock();
-+		qp = rvt_lookup_qpn(ib_to_rvt(priv->device), &ibp->rvp, qpn);
-+		if (!qp) {
-+			rcu_read_unlock();
-+			priv->netdev_ops->ndo_stop(dev);
-+			return -EINVAL;
-+		}
-+		rvt_get_qp(qp);
-+		priv->qp = qp;
-+		rcu_read_unlock();
-+
-+		hfi1_ipoib_napi_tx_enable(dev);
++static bool hfi1_netdev_update_rmt(struct hfi1_devdata *dd)
+ {
+ 	u8 i, j;
+ 	u8 ctx_id = 0;
+ 	u64 reg;
+ 	u32 regoff;
+-	struct rsm_rule_data rrd;
++	int rmt_start = dd->vnic.rmt_start;
+ 
+-	if (hfi1_vnic_is_rsm_full(dd, NUM_VNIC_MAP_ENTRIES)) {
+-		dd_dev_err(dd, "Vnic RSM disabled, rmt entries used = %d\n",
+-			   dd->vnic.rmt_start);
+-		return;
++	/* We already have contexts mapped in RMT */
++	if (has_rsm_rule(dd, RSM_INS_VNIC) || has_rsm_rule(dd, RSM_INS_AIP)) {
++		dd_dev_info(dd, "Contexts are already mapped in RMT\n");
++		return true;
 +	}
 +
-+	return ret;
++	if (hfi1_is_rmt_full(rmt_start, NUM_VNIC_MAP_ENTRIES)) {
++		dd_dev_err(dd, "Not enought RMT entries used = %d\n",
++			   rmt_start);
++		return false;
+ 	}
+ 
+-	dev_dbg(&(dd)->pcidev->dev, "Vnic rsm start = %d, end %d\n",
+-		dd->vnic.rmt_start,
+-		dd->vnic.rmt_start + NUM_VNIC_MAP_ENTRIES);
++	dev_dbg(&(dd)->pcidev->dev, "RMT start = %d, end %d\n",
++		rmt_start,
++		rmt_start + NUM_VNIC_MAP_ENTRIES);
+ 
+ 	/* Update RSM mapping table, 32 regs, 256 entries - 1 ctx per byte */
+-	regoff = RCV_RSM_MAP_TABLE + (dd->vnic.rmt_start / 8) * 8;
++	regoff = RCV_RSM_MAP_TABLE + (rmt_start / 8) * 8;
+ 	reg = read_csr(dd, regoff);
+ 	for (i = 0; i < NUM_VNIC_MAP_ENTRIES; i++) {
+-		/* Update map register with vnic context */
+-		j = (dd->vnic.rmt_start + i) % 8;
++		/* Update map register with netdev context */
++		j = (rmt_start + i) % 8;
+ 		reg &= ~(0xffllu << (j * 8));
+ 		reg |= (u64)dd->vnic.ctxt[ctx_id++]->ctxt << (j * 8);
+-		/* Wrap up vnic ctx index */
++		/* Wrap up netdev ctx index */
+ 		ctx_id %= dd->vnic.num_ctxt;
+ 		/* Write back map register */
+ 		if (j == 7 || ((i + 1) == NUM_VNIC_MAP_ENTRIES)) {
+ 			dev_dbg(&(dd)->pcidev->dev,
+-				"Vnic rsm map reg[%d] =0x%llx\n",
++				"RMT[%d] =0x%llx\n",
+ 				regoff - RCV_RSM_MAP_TABLE, reg);
+ 
+ 			write_csr(dd, regoff, reg);
+@@ -14514,35 +14551,83 @@ void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
+ 		}
+ 	}
+ 
+-	/* Add rule for vnic */
+-	rrd.offset = dd->vnic.rmt_start;
+-	rrd.pkt_type = 4;
+-	/* Match 16B packets */
+-	rrd.field1_off = L2_TYPE_MATCH_OFFSET;
+-	rrd.mask1 = L2_TYPE_MASK;
+-	rrd.value1 = L2_16B_VALUE;
+-	/* Match ETH L4 packets */
+-	rrd.field2_off = L4_TYPE_MATCH_OFFSET;
+-	rrd.mask2 = L4_16B_TYPE_MASK;
+-	rrd.value2 = L4_16B_ETH_VALUE;
+-	/* Calc context from veswid and entropy */
+-	rrd.index1_off = L4_16B_HDR_VESWID_OFFSET;
+-	rrd.index1_width = ilog2(NUM_VNIC_MAP_ENTRIES);
+-	rrd.index2_off = L2_16B_ENTROPY_OFFSET;
+-	rrd.index2_width = ilog2(NUM_VNIC_MAP_ENTRIES);
+-	add_rsm_rule(dd, RSM_INS_VNIC, &rrd);
+-
+-	/* Enable RSM if not already enabled */
++	return true;
 +}
 +
-+static int hfi1_ipoib_dev_stop(struct net_device *dev)
++static void hfi1_enable_rsm_rule(struct hfi1_devdata *dd,
++				 int rule, struct rsm_rule_data *rrd)
 +{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+
-+	if (!priv->qp)
-+		return 0;
-+
-+	hfi1_ipoib_napi_tx_disable(dev);
-+
-+	rvt_put_qp(priv->qp);
-+	priv->qp = NULL;
-+
-+	return priv->netdev_ops->ndo_stop(dev);
-+}
-+
-+static void hfi1_ipoib_dev_get_stats64(struct net_device *dev,
-+				       struct rtnl_link_stats64 *storage)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+	u64 rx_packets = 0ull;
-+	u64 rx_bytes = 0ull;
-+	u64 tx_packets = 0ull;
-+	u64 tx_bytes = 0ull;
-+	int i;
-+
-+	netdev_stats_to_stats64(storage, &dev->stats);
-+
-+	for_each_possible_cpu(i) {
-+		const struct pcpu_sw_netstats *stats;
-+		unsigned int start;
-+		u64 trx_packets;
-+		u64 trx_bytes;
-+		u64 ttx_packets;
-+		u64 ttx_bytes;
-+
-+		stats = per_cpu_ptr(priv->netstats, i);
-+		do {
-+			start = u64_stats_fetch_begin_irq(&stats->syncp);
-+			trx_packets = stats->rx_packets;
-+			trx_bytes = stats->rx_bytes;
-+			ttx_packets = stats->tx_packets;
-+			ttx_bytes = stats->tx_bytes;
-+		} while (u64_stats_fetch_retry_irq(&stats->syncp, start));
-+
-+		rx_packets += trx_packets;
-+		rx_bytes += trx_bytes;
-+		tx_packets += ttx_packets;
-+		tx_bytes += ttx_bytes;
++	if (!hfi1_netdev_update_rmt(dd)) {
++		dd_dev_err(dd, "Failed to update RMT for RSM%d rule\n", rule);
++		return;
 +	}
 +
-+	storage->rx_packets += rx_packets;
-+	storage->rx_bytes += rx_bytes;
-+	storage->tx_packets += tx_packets;
-+	storage->tx_bytes += tx_bytes;
++	add_rsm_rule(dd, rule, rrd);
+ 	add_rcvctrl(dd, RCV_CTRL_RCV_RSM_ENABLE_SMASK);
+ }
+ 
++void hfi1_init_aip_rsm(struct hfi1_devdata *dd)
++{
++	/*
++	 * go through with the initialisation only if this rule actually doesn't
++	 * exist yet
++	 */
++	if (atomic_fetch_inc(&dd->ipoib_rsm_usr_num) == 0) {
++		struct rsm_rule_data rrd = {
++			.offset = dd->vnic.rmt_start,
++			.pkt_type = IB_PACKET_TYPE,
++			.field1_off = LRH_BTH_MATCH_OFFSET,
++			.mask1 = LRH_BTH_MASK,
++			.value1 = LRH_BTH_VALUE,
++			.field2_off = BTH_DESTQP_MATCH_OFFSET,
++			.mask2 = BTH_DESTQP_MASK,
++			.value2 = BTH_DESTQP_VALUE,
++			.index1_off = DETH_AIP_SQPN_SELECT_OFFSET +
++					ilog2(NUM_VNIC_MAP_ENTRIES),
++			.index1_width = ilog2(NUM_VNIC_MAP_ENTRIES),
++			.index2_off = DETH_AIP_SQPN_SELECT_OFFSET,
++			.index2_width = ilog2(NUM_VNIC_MAP_ENTRIES)
++		};
++
++		hfi1_enable_rsm_rule(dd, RSM_INS_AIP, &rrd);
++	}
 +}
 +
-+static const struct net_device_ops hfi1_ipoib_netdev_ops = {
-+	.ndo_init         = hfi1_ipoib_dev_init,
-+	.ndo_uninit       = hfi1_ipoib_dev_uninit,
-+	.ndo_open         = hfi1_ipoib_dev_open,
-+	.ndo_stop         = hfi1_ipoib_dev_stop,
-+	.ndo_get_stats64  = hfi1_ipoib_dev_get_stats64,
++/* Initialize RSM for VNIC */
++void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
++{
++	struct rsm_rule_data rrd = {
++		/* Add rule for vnic */
++		.offset = dd->vnic.rmt_start,
++		.pkt_type = 4,
++		/* Match 16B packets */
++		.field1_off = L2_TYPE_MATCH_OFFSET,
++		.mask1 = L2_TYPE_MASK,
++		.value1 = L2_16B_VALUE,
++		/* Match ETH L4 packets */
++		.field2_off = L4_TYPE_MATCH_OFFSET,
++		.mask2 = L4_16B_TYPE_MASK,
++		.value2 = L4_16B_ETH_VALUE,
++		/* Calc context from veswid and entropy */
++		.index1_off = L4_16B_HDR_VESWID_OFFSET,
++		.index1_width = ilog2(NUM_VNIC_MAP_ENTRIES),
++		.index2_off = L2_16B_ENTROPY_OFFSET,
++		.index2_width = ilog2(NUM_VNIC_MAP_ENTRIES)
++	};
++
++	hfi1_enable_rsm_rule(dd, RSM_INS_VNIC, &rrd);
++}
++
+ void hfi1_deinit_vnic_rsm(struct hfi1_devdata *dd)
+ {
+ 	clear_rsm_rule(dd, RSM_INS_VNIC);
++}
+ 
+-	/* Disable RSM if used only by vnic */
+-	if (dd->vnic.rmt_start == 0)
+-		clear_rcvctrl(dd, RCV_CTRL_RCV_RSM_ENABLE_SMASK);
++void hfi1_deinit_aip_rsm(struct hfi1_devdata *dd)
++{
++	/* only actually clear the rule if it's the last user asking to do so */
++	if (atomic_fetch_add_unless(&dd->ipoib_rsm_usr_num, -1, 0) == 1)
++		clear_rsm_rule(dd, RSM_INS_AIP);
+ }
+ 
+ static int init_rxe(struct hfi1_devdata *dd)
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index 7255092..b10e0bf 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -1,7 +1,7 @@
+ #ifndef _CHIP_H
+ #define _CHIP_H
+ /*
+- * Copyright(c) 2015 - 2018 Intel Corporation.
++ * Copyright(c) 2015 - 2020 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -1455,6 +1455,8 @@ int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt,
+ void remap_sdma_interrupts(struct hfi1_devdata *dd, int engine, int msix_intr);
+ void reset_interrupts(struct hfi1_devdata *dd);
+ u8 hfi1_get_qp_map(struct hfi1_devdata *dd, u8 idx);
++void hfi1_init_aip_rsm(struct hfi1_devdata *dd);
++void hfi1_deinit_aip_rsm(struct hfi1_devdata *dd);
+ 
+ /*
+  * Interrupt source table.
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index ed13051..c61e56a 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1417,12 +1417,10 @@ struct hfi1_devdata {
+ 	struct hfi1_vnic_data vnic;
+ 	/* Lock to protect IRQ SRC register access */
+ 	spinlock_t irq_src_lock;
+-};
+ 
+-static inline bool hfi1_vnic_is_rsm_full(struct hfi1_devdata *dd, int spare)
+-{
+-	return (dd->vnic.rmt_start + spare) > NUM_MAP_ENTRIES;
+-}
++	/* Keeps track of IPoIB RSM rule users */
++	atomic_t ipoib_rsm_usr_num;
 +};
-+
-+static int hfi1_ipoib_send(struct net_device *dev,
-+			   struct sk_buff *skb,
-+			   struct ib_ah *address,
-+			   u32 dqpn)
-+{
-+	return hfi1_ipoib_send_dma(dev, skb, address, dqpn);
-+}
-+
-+static int hfi1_ipoib_mcast_attach(struct net_device *dev,
-+				   struct ib_device *device,
-+				   union ib_gid *mgid,
-+				   u16 mlid,
-+				   int set_qkey,
-+				   u32 qkey)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+	u32 qpn = (u32)qpn_from_mac(priv->netdev->dev_addr);
-+	struct hfi1_ibport *ibp = to_iport(priv->device, priv->port_num);
-+	struct rvt_qp *qp;
-+	int ret = -EINVAL;
-+
-+	rcu_read_lock();
-+
-+	qp = rvt_lookup_qpn(ib_to_rvt(priv->device), &ibp->rvp, qpn);
-+	if (qp) {
-+		rvt_get_qp(qp);
-+		rcu_read_unlock();
-+		if (set_qkey)
-+			priv->qkey = qkey;
-+
-+		/* attach QP to multicast group */
-+		ret = ib_attach_mcast(&qp->ibqp, mgid, mlid);
-+		rvt_put_qp(qp);
-+	} else {
-+		rcu_read_unlock();
-+	}
-+
-+	return ret;
-+}
-+
-+static int hfi1_ipoib_mcast_detach(struct net_device *dev,
-+				   struct ib_device *device,
-+				   union ib_gid *mgid,
-+				   u16 mlid)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+	u32 qpn = (u32)qpn_from_mac(priv->netdev->dev_addr);
-+	struct hfi1_ibport *ibp = to_iport(priv->device, priv->port_num);
-+	struct rvt_qp *qp;
-+	int ret = -EINVAL;
-+
-+	rcu_read_lock();
-+
-+	qp = rvt_lookup_qpn(ib_to_rvt(priv->device), &ibp->rvp, qpn);
-+	if (qp) {
-+		rvt_get_qp(qp);
-+		rcu_read_unlock();
-+		ret = ib_detach_mcast(&qp->ibqp, mgid, mlid);
-+		rvt_put_qp(qp);
-+	} else {
-+		rcu_read_unlock();
-+	}
-+	return ret;
-+}
-+
-+static void hfi1_ipoib_netdev_dtor(struct net_device *dev)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+
-+	hfi1_ipoib_txreq_deinit(priv);
-+
-+	free_percpu(priv->netstats);
-+}
-+
-+static void hfi1_ipoib_free_rdma_netdev(struct net_device *dev)
-+{
-+	hfi1_ipoib_netdev_dtor(dev);
-+	free_netdev(dev);
-+}
-+
-+static void hfi1_ipoib_set_id(struct net_device *dev, int id)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+
-+	priv->pkey_index = (u16)id;
-+	ib_query_pkey(priv->device,
-+		      priv->port_num,
-+		      priv->pkey_index,
-+		      &priv->pkey);
-+}
-+
-+static int hfi1_ipoib_setup_rn(struct ib_device *device,
-+			       u8 port_num,
-+			       struct net_device *netdev,
-+			       void *param)
-+{
-+	struct hfi1_devdata *dd = dd_from_ibdev(device);
-+	struct rdma_netdev *rn = netdev_priv(netdev);
-+	struct hfi1_ipoib_dev_priv *priv;
-+	int rc;
-+
-+	rn->send = hfi1_ipoib_send;
-+	rn->attach_mcast = hfi1_ipoib_mcast_attach;
-+	rn->detach_mcast = hfi1_ipoib_mcast_detach;
-+	rn->set_id = hfi1_ipoib_set_id;
-+	rn->hca = device;
-+	rn->port_num = port_num;
-+	rn->mtu = netdev->mtu;
-+
-+	priv = hfi1_ipoib_priv(netdev);
-+	priv->dd = dd;
-+	priv->netdev = netdev;
-+	priv->device = device;
-+	priv->port_num = port_num;
-+	priv->netdev_ops = netdev->netdev_ops;
-+
-+	netdev->netdev_ops = &hfi1_ipoib_netdev_ops;
-+
-+	ib_query_pkey(device, port_num, priv->pkey_index, &priv->pkey);
-+
-+	rc = hfi1_ipoib_txreq_init(priv);
-+	if (rc) {
-+		dd_dev_err(dd, "IPoIB netdev TX init - failed(%d)\n", rc);
-+		hfi1_ipoib_free_rdma_netdev(netdev);
-+		return rc;
-+	}
-+
-+	netdev->priv_destructor = hfi1_ipoib_netdev_dtor;
-+	netdev->needs_free_netdev = true;
-+
-+	return 0;
-+}
-+
-+int hfi1_ipoib_rn_get_params(struct ib_device *device,
-+			     u8 port_num,
-+			     enum rdma_netdev_t type,
-+			     struct rdma_netdev_alloc_params *params)
-+{
-+	struct hfi1_devdata *dd = dd_from_ibdev(device);
-+
-+	if (type != RDMA_NETDEV_IPOIB)
-+		return -EOPNOTSUPP;
-+
-+	if (!HFI1_CAP_IS_KSET(AIP))
-+		return -EOPNOTSUPP;
-+
-+	if (!port_num || port_num > dd->num_pports)
-+		return -EINVAL;
-+
-+	params->sizeof_priv = sizeof(struct hfi1_ipoib_rdma_netdev);
-+	params->txqs = dd->num_sdma;
-+	params->param = NULL;
-+	params->initialize_rdma_netdev = hfi1_ipoib_setup_rn;
-+
-+	return 0;
-+}
+ 
+ /* 8051 firmware version helper */
+ #define dc8051_ver(a, b, c) ((a) << 16 | (b) << 8 | (c))
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 3759d92..8c6b96a 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 - 2018 Intel Corporation.
++ * Copyright(c) 2015 - 2020 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -1316,6 +1316,7 @@ static struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev,
+ 		goto bail;
+ 	}
+ 
++	atomic_set(&dd->ipoib_rsm_usr_num, 0);
+ 	return dd;
+ 
+ bail:
 
