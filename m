@@ -2,200 +2,148 @@ Return-Path: <SRS0=8X7E=62=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B09EEC54E8B
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:04:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F4E1C54E8F
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:08:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A13020714
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:04:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 646F9206A3
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:08:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="Jfw/Q8OA"
+	dkim=pass (1024-bit key) header.d=amdcloud.onmicrosoft.com header.i=@amdcloud.onmicrosoft.com header.b="Rpfj5jY2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726193AbgELI76 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 May 2020 04:59:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42700 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728854AbgELI75 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 12 May 2020 04:59:57 -0400
-Received: from mail-wr1-x435.google.com (mail-wr1-x435.google.com [IPv6:2a00:1450:4864:20::435])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78AE6C061A0E
-        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2020 01:59:57 -0700 (PDT)
-Received: by mail-wr1-x435.google.com with SMTP id j5so14361449wrq.2
-        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2020 01:59:57 -0700 (PDT)
+        id S1729135AbgELJIc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 May 2020 05:08:32 -0400
+Received: from mail-eopbgr690060.outbound.protection.outlook.com ([40.107.69.60]:3808
+        "EHLO NAM04-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728490AbgELJIc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 12 May 2020 05:08:32 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=UYCRdzFVRtopzBVZVZqUjbsclpe/LSbOHopm4OS9gLz2YxdpSQsz57I69Rce1m/lRIsxH3I9dnKz55vpsYSI0FkZq+KKRHOPP7tgyBo8rIvJKv8Ry2HFbrfhsgsePAZrMDXwgdDTsJUpCV6Oq4IJ4ztnpvx4Vo30+d8UeVN9yoT+BvCRproI+xlv7s24mN5uhunDGuJUn9j2WrPLQn60IUbv7tcgsSa6rhwAGQnVLdQGyVWYfn/921gMBn1lZklUm5gFWVQ6YtybnhjM7fo+aHGPQdA7Q51/sGdSaJswgweeYfMgjnQGkCCNE98Ax4l1eJx7PMfqhqp1XwhVhMYk+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=vRJzBspbsqWqd8tmxDuoxdpfF3o2o2eW7g/oHWMwmB0=;
+ b=YV/eJVcY+Y8udUJsATIi0oLC+uW9C1DK8eVX8sTjW3E6KZ5ITw0wQilbXIXKOfWIZRMg6A1+uCpzcaGf6u6e1RfTid6cKyfumXUQxATp/1eAQWAmfivqb6BVUOR5I+Qrzq4bDJLk326ojH30B6fZBCy/Gz4sn51/zWdnDdjNvnZuHVL3/T3MhWZW382NTWoODkazPT99z6AnAEFrnJ5KAiUrpsR2EKqmZeUg/WOkFsoNgYfj6p/jd6mEXEZksSuFI2HAbvIztdRWKhNMddAk+0h5d4rWeCiE+rK1IQzBsJff4gnvpNek6DdJHte8CTwEYWIPVeTch8GODZXgYAB/uA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=5KglkhzKOknxegoh1rG3YIcHJTSInQ4UYexVPjKH+PE=;
-        b=Jfw/Q8OAuPLQhbinu2k0zHhh0xSeFKQ+ThNX/lWWS+g5EnktPdt71Fw1SPCOSwO1DT
-         I3yyprPxJEMCBedaNFOI15C4V0uzgHiDSLQJrIbB/b3hkg3kxfmRKfXkWgRlvRkrLTZN
-         b2clRwBLTEBEySfCkrQHDGAQCbz2YgFZxsQMk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=5KglkhzKOknxegoh1rG3YIcHJTSInQ4UYexVPjKH+PE=;
-        b=loX7Hp6gT80Uhk2XMmqcx+GkHm2Y0zWOObsalSYQLugPZk7zYZQrLVuV21BdQpp/1V
-         q5eeWZH24xm03zuN98gexsu1w+rNyDgENvZXD+mWmoMKyWOKOFBgr81f1/1jwQ/WkTNA
-         OnfqmMvWUBletQPkpwdJc59FTestDBYIKn9CHh4B8IOQtiCNpyGaxaZKY6S97j2ypCiE
-         eeurKAdVQ3IIvb5g2FCQdXPvSjlHyJUiZLmlHft0VOqWJctmzJxX9lLRgMqHLKrReAvn
-         PeYFz/pY8a8axvvasc8xD4sqmnEFNE0zF5j5wSDz0MjlNyvD4sS1c2aeGyZXohIUCZrU
-         CL5w==
-X-Gm-Message-State: AGi0PuYMXHczcGkwF+8JWYoKasfxL4nys1fZvzbnVzSRu8B/E3XtmxCj
-        mVMIDLhPNFlSoGluQ9yPfilfbbVbzLs=
-X-Google-Smtp-Source: APiQypLFrNQ+vP1/FoQClKLQ9dOM5ud5CMkP+EXrISMxOesIEptzvE+zOlFydX6AdELQrZnabHpwnA==
-X-Received: by 2002:adf:f4c4:: with SMTP id h4mr24357427wrp.142.1589273996049;
-        Tue, 12 May 2020 01:59:56 -0700 (PDT)
-Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id y10sm18845457wrd.95.2020.05.12.01.59.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 May 2020 01:59:55 -0700 (PDT)
-From:   Daniel Vetter <daniel.vetter@ffwll.ch>
-To:     DRI Development <dri-devel@lists.freedesktop.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org,
+ d=amdcloud.onmicrosoft.com; s=selector2-amdcloud-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=vRJzBspbsqWqd8tmxDuoxdpfF3o2o2eW7g/oHWMwmB0=;
+ b=Rpfj5jY2LqWL1Ng7UA9NxNt6pEb55tFXCVeRb8zq2f0WKzUM4d3BfJy04ERkNDWdfD0mZVE5lBQZz52Te1Ahp4iD/e5O1VGgbobDmA4SstdC6pe5Gv54LXi4Hi7LWpCxTkDpNvccc2gVhscybFbmJJWXG1EDpHwORbnH24cIkyM=
+Authentication-Results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=amd.com;
+Received: from DM6PR12MB4401.namprd12.prod.outlook.com (2603:10b6:5:2a9::15)
+ by DM6PR12MB3819.namprd12.prod.outlook.com (2603:10b6:5:1c6::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.34; Tue, 12 May
+ 2020 09:08:29 +0000
+Received: from DM6PR12MB4401.namprd12.prod.outlook.com
+ ([fe80::7949:b580:a2d5:f766]) by DM6PR12MB4401.namprd12.prod.outlook.com
+ ([fe80::7949:b580:a2d5:f766%3]) with mapi id 15.20.2979.033; Tue, 12 May 2020
+ 09:08:29 +0000
+Subject: Re: [RFC 01/17] dma-fence: add might_sleep annotation to _wait()
+To:     Daniel Vetter <daniel.vetter@ffwll.ch>,
+        DRI Development <dri-devel@lists.freedesktop.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         Chris Wilson <chris@chris-wilson.co.uk>,
         Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
-Subject: [RFC 00/17] dma-fence lockdep annotations
-Date:   Tue, 12 May 2020 10:59:27 +0200
-Message-Id: <20200512085944.222637-1-daniel.vetter@ffwll.ch>
-X-Mailer: git-send-email 2.26.2
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+        Daniel Vetter <daniel.vetter@intel.com>
+References: <20200512085944.222637-1-daniel.vetter@ffwll.ch>
+ <20200512085944.222637-2-daniel.vetter@ffwll.ch>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <0b1c65ec-adc2-9f02-da68-c398cf7ce80b@amd.com>
+Date:   Tue, 12 May 2020 11:08:22 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
+In-Reply-To: <20200512085944.222637-2-daniel.vetter@ffwll.ch>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-ClientProxiedBy: FR2P281CA0025.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:14::12) To DM6PR12MB4401.namprd12.prod.outlook.com
+ (2603:10b6:5:2a9::15)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [IPv6:2a02:908:1252:fb60:be8a:bd56:1f94:86e7] (2a02:908:1252:fb60:be8a:bd56:1f94:86e7) by FR2P281CA0025.DEUP281.PROD.OUTLOOK.COM (2603:10a6:d10:14::12) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.27 via Frontend Transport; Tue, 12 May 2020 09:08:27 +0000
+X-Originating-IP: [2a02:908:1252:fb60:be8a:bd56:1f94:86e7]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 1704ee46-473a-47b4-b2ad-08d7f654096e
+X-MS-TrafficTypeDiagnostic: DM6PR12MB3819:
+X-Microsoft-Antispam-PRVS: <DM6PR12MB38198441851821F3C5B60FC283BE0@DM6PR12MB3819.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:9508;
+X-Forefront-PRVS: 0401647B7F
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 81/+AqtiigMWRAnCIpd6dteXZpI7YoI7Ke0pbxm1T6qBeMbO+/7RfckJSVJOtJ4EgNUvUjraeNQyawECIkZHS8EgFV0UNvscfN/hjx7alry8Z1fb+tKJh1TmlUetgwwUPfszgY96ccbGDiRJiY0PhfAYcmCZjA6hCf1JUfQZV4EbO3k/s7JAMW6j3/8wDOwtUqC3DsJxAEZhBK/kJmXSlGvUmtODVzfoFQgwZWvcMmU9NbSu591YqKqToR25aXVvWC8Gkwiis8jDjtbKfx8ST4NFhX4Uu56tfqHVSjGaU8p4ILWbK5Jttg09T0TWm75cmkkao2fke8weQJxCxq3qY2FEwRQhhmHpJkEKg/cVbA8T+rSzG8swLFkpXt1BHt4M/QvSYfbk1nNSFTVZOvC5nGd+l2yvY4wYhWOQYjKGssfAqTC3pPeMGGtpO40lzLHvWydCfHuXN2jcmGSV0cXt1meN5ptRISR4+GnvcP4cmiZFUN2ys7Qemw7WsPdm10TVi03s14xBPwrsvLrWj8F42BoRSDliA1r5jqdbsr7i/WJvBuyISRw0/hJkj4nd3Psu
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB4401.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(346002)(376002)(366004)(39860400002)(396003)(136003)(33430700001)(186003)(2616005)(8936002)(16526019)(52116002)(31696002)(6666004)(31686004)(7416002)(36756003)(5660300002)(6486002)(8676002)(33440700001)(2906002)(66556008)(4326008)(66476007)(316002)(66946007)(110136005)(478600001)(86362001)(54906003)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: q1VqxBPinRKuXQgNIE269b5tRj/s59Ll8LnM+XOhHo8x8oyvjRogl+zzEns6GTz52it/Q/6IdJ2WEidVPWaomP46Ker1fjZk1vGG4jm574sotEi86jVVjUN2RfYPI6lAi4GcLOI+kdQdF4HwSfF6aL3oja8kzmP42+xiBvCbfRZJeuR1VrvCzrSD1iJIsrneuQu2H8BLDTVKWYTnlxQQLdVpOeOzgd73TLR/Gf+KNEJ1cxtl1x9rZX9MudvP1NgjOLDXxl34Tvot5XVhBFL5xKsmYDDLY4cZKraQ645cQmoFDXfO47cKTKXGKtFWqf6Tt4cq4BbLhiBe5sJY1IGzyIgpv7nc2d6kyAxI505Vran1DlqFbpXPl6BwJOw1qpmudzP4yMZ5NWjs9/eDeuh5D991v9X/t6N+4T8hU5LUL8Deyd06V+dRONShG2/VgJZIWwb0su1E2/orP6Rbj/yMHqpyDm0kGK1PCdsMZBKIHAydY93zbEtpzkuAJC+coYYyiSd6UxlVcgPLrmo41xkayu46Xw5T7PfWc1o0OnYEfyuzwe8TGo3cJVUDWFGJmqCJ
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1704ee46-473a-47b4-b2ad-08d7f654096e
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 May 2020 09:08:29.3474
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: gn19H5yIa8/K0WXEQ4q0cW5Kf4/ytJd2Af+H83RS7dznJbeO2pi2ru9ADmAoetGH
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB3819
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi all,
+Am 12.05.20 um 10:59 schrieb Daniel Vetter:
+> But only for non-zero timeout, to avoid false positives.
+>
+> One question here is whether the might_sleep should be unconditional,
+> or only for real timeouts. I'm not sure, so went with the more
+> defensive option. But in the interest of locking down the cross-driver
+> dma_fence rules we might want to be more aggressive.
+>
+> Cc: linux-media@vger.kernel.org
+> Cc: linaro-mm-sig@lists.linaro.org
+> Cc: linux-rdma@vger.kernel.org
+> Cc: amd-gfx@lists.freedesktop.org
+> Cc: intel-gfx@lists.freedesktop.org
+> Cc: Chris Wilson <chris@chris-wilson.co.uk>
+> Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+> Cc: Christian König <christian.koenig@amd.com>
+> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+> ---
+>   drivers/dma-buf/dma-fence.c | 3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
+> index 052a41e2451c..6802125349fb 100644
+> --- a/drivers/dma-buf/dma-fence.c
+> +++ b/drivers/dma-buf/dma-fence.c
+> @@ -208,6 +208,9 @@ dma_fence_wait_timeout(struct dma_fence *fence, bool intr, signed long timeout)
+>   	if (WARN_ON(timeout < 0))
+>   		return -EINVAL;
+>   
+> +	if (timeout > 0)
+> +		might_sleep();
+> +
 
-I've dragged my feet for years on this, hoping that cross-release lockdep
-would do this for us, but well that never really happened unfortunately.
-So here we are.
+I would rather like to see might_sleep() called here all the time even 
+with timeout==0.
 
-Cc'ed quite a pile of people since this is about the cross-driver contract
-around dma_fences. Which is heavily used for dma_buf, and I'm hearing more
-noises that rdma folks are looking into this, hence also on cc.
+IIRC I removed the code in TTM abusing this in atomic context quite a 
+while ago, but could be that some leaked in again or it is called in 
+atomic context elsewhere as well.
 
-There's a bunch of different parts to this RFC:
+Christian.
 
-- The annotations itself, in the 2nd patch after the prep patch to add
-  might_sleep annotations. Commit message has all the motivation for what
-  kind of deadlocks I want to catch, best you just read it.
-
-  Since lockdep doesn't understand cross-release natively we need to
-  cobble something together using rwlocks and a few more tricks, but from
-  the test rollout in a few places in drm/vkms, amdgpu & i915 I think what
-  I have now seems to actually work. Downside is that we have to
-  explicitly annotate all code involved in eventual dma_fence signalling.
-
-- Second important part is locking down the current dma-fence cross-driver
-  contract, using lockdep priming like we already do for dma_resv_lock.
-  I've just started with my own take on what we probably need to make the
-  current code work (-ish), but both amdgpu and i915 have issues with
-  that. So this needs some careful discussions, and also some thought on
-  how we land it all eventually to not break lockdep completely for
-  everyone.
-
-  The important patch for that is "dma-fence: prime lockdep annotations"
-  plus of course the various annotations patches and driver hacks to
-  highlight some of the issues caught.
-
-  Note that depending upon what exactly we end up deciding we might need
-  to improve the annotations for fs_reclaim_acquire/release - for
-  dma_fence_wait in mmu notifiers we can only allow GFP_NOWAIT (afaiui),
-  and currently fs_reclaim_acquire/release only has a lockdep class for
-  __GFP_FS only, we'd need to add another one for __GFP_DIRECT_RECLAIM in
-  general maybe.
-
-- Finally there's clearly some gaps in the current dma_fence driver
-  interfaces: Amdgpu's hang recovery is essentially impossible to fix
-  as-is - it needs to reset the display state and you can't get at modeset
-  locks from tdr without deadlock potential. i915 has an internal trick
-  (but it stops working once we involve real cross-driver fences) for this
-  issues, but then for i915 modeset reset is only needed on very ancient
-  gen2/3. Modern hw is a lot more reasonable.
-
-  I'm kinda hoping that the annotations and priming for basic command
-  submission and atomic modeset paths could be merged soonish, while we
-  the tdr side clearly needs a pile more work to get going. But since we
-  have to explicitly annotate all code paths anyway we can hide bugs in
-  e.g. tdr code by simply not yet annotating those functions.
-
-  I'm trying to lay out at least one idea for solving the tdr issue in the
-  patch titled "drm/scheduler: use dma-fence annotations in tdr work".
-
-Finally, once we have some agreement on where we're going with all this,
-we also need some documentation. Currently that's missing because I don't
-want to re-edit the text all the time while we still figure out the
-details of the exact cross-driver semantics.
-
-My goal here is that with this we can lock down the cross-driver contract
-for the last bit of the dma_buf/resv/fence story and make sure this stops
-being such a wobbly thing where everyone just does whatever they feel
-like.
-
-Ideas, thoughts, reviews, testing (with specific annotations for that
-driver) on other drivers very much welcome.
-
-Cheers, Daniel
-
-Cc: linux-media@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org
-Cc: linux-rdma@vger.kernel.org
-Cc: amd-gfx@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Christian König <christian.koenig@amd.com>
-
-Daniel Vetter (17):
-  dma-fence: add might_sleep annotation to _wait()
-  dma-fence: basic lockdep annotations
-  dma-fence: prime lockdep annotations
-  drm/vkms: Annotate vblank timer
-  drm/vblank: Annotate with dma-fence signalling section
-  drm/atomic-helper: Add dma-fence annotations
-  drm/amdgpu: add dma-fence annotations to atomic commit path
-  drm/scheduler: use dma-fence annotations in main thread
-  drm/amdgpu: use dma-fence annotations in cs_submit()
-  drm/amdgpu: s/GFP_KERNEL/GFP_ATOMIC in scheduler code
-  drm/amdgpu: DC also loves to allocate stuff where it shouldn't
-  drm/amdgpu/dc: Stop dma_resv_lock inversion in commit_tail
-  drm/scheduler: use dma-fence annotations in tdr work
-  drm/amdgpu: use dma-fence annotations for gpu reset code
-  Revert "drm/amdgpu: add fbdev suspend/resume on gpu reset"
-  drm/amdgpu: gpu recovery does full modesets
-  drm/i915: Annotate dma_fence_work
-
- drivers/dma-buf/dma-fence.c                   | 56 +++++++++++++++++++
- drivers/dma-buf/dma-resv.c                    |  1 +
- drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c        |  5 ++
- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c    | 22 ++++++--
- drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c     |  2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c       |  2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c      |  2 +-
- drivers/gpu/drm/amd/amdgpu/atom.c             |  2 +-
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 18 +++++-
- drivers/gpu/drm/amd/display/dc/core/dc.c      |  4 +-
- drivers/gpu/drm/drm_atomic_helper.c           | 16 ++++++
- drivers/gpu/drm/drm_vblank.c                  |  8 ++-
- drivers/gpu/drm/i915/i915_sw_fence_work.c     |  3 +
- drivers/gpu/drm/scheduler/sched_main.c        | 11 ++++
- drivers/gpu/drm/vkms/vkms_crtc.c              |  8 ++-
- include/linux/dma-fence.h                     | 13 +++++
- 16 files changed, 160 insertions(+), 13 deletions(-)
-
--- 
-2.26.2
+>   	trace_dma_fence_wait_start(fence);
+>   	if (fence->ops->wait)
+>   		ret = fence->ops->wait(fence, intr, timeout);
 
