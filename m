@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00C51C54E8F
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:01:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFEAFC81826
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:01:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D54D120714
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:01:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90DE420714
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 09:01:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="bjQj5zUo"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="Tba/CBQc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729404AbgELJBH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 May 2020 05:01:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42754 "EHLO
+        id S1729374AbgELJBJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 May 2020 05:01:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729370AbgELJAF (ORCPT
+        by vger.kernel.org with ESMTP id S1729352AbgELJAD (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 12 May 2020 05:00:05 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77718C061A0F
-        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2020 02:00:05 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id j5so14362024wrq.2
-        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2020 02:00:05 -0700 (PDT)
+        Tue, 12 May 2020 05:00:03 -0400
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43A4FC061A0F
+        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2020 02:00:03 -0700 (PDT)
+Received: by mail-wr1-x443.google.com with SMTP id l17so793379wrr.4
+        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2020 02:00:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ffwll.ch; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=9rtZPjL4qCIHg+K9tvyoRbu8glhfJrL+U886kKa9MgQ=;
-        b=bjQj5zUoHFxr/SGM4dy27f04NAwPFLqit1mjhUpVM48tJB0DvrtAI/QUt4Uq4fHY11
-         5zIrzzFoaYD8bqvQgrOwaiqaU/6WtYEiZX2CakVoxiDZFsrz5WjYusAXBDM7dzkZzpGs
-         nwDoH4Vjs2gY1QwHAO2mv8pc5dm8xpRypRhzw=
+        bh=k3OodW5bIt6jtahEoyPvdqvd8L7bfSaZtDSgdgQ0KSE=;
+        b=Tba/CBQcoFuTPwNcOK0uHe+q5z5Fq6i1EP5lEPO6yQnGb0xZi3OTwd+ZAJUMrRox80
+         JQxMbr1Hy5zgQtio1imHYMaQf8uOuY/D0v6qpXbtodzS2aPiBGDFHO2m+fo/NUnJQtIa
+         9QatpvOy7g08efja4D6G7OF9WYNAibebHkhiY=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=9rtZPjL4qCIHg+K9tvyoRbu8glhfJrL+U886kKa9MgQ=;
-        b=Kerkgdvry+CDF+jY4Ij8h6FQjjtbYP3stxDqG0ANxzAlLzZbAL4s6BF24u9M+/ND+f
-         kpgFYX0zfd9J4/ER/nWvZD1WQp+el6+WPOKOeUCnMZ0iaFb5xJO/5duxtYA5MIPrabj3
-         itcuF79Rf9xNmgQBGrTj6cT9Bipr7xmQBWXn6lQinl2zZ9qiH06+Jk7ceNKF9iQQupYG
-         nR3A/g7HBXdVCsB8noiXNttcu57CScXgMiMANAY+PJuWtE5+OMNyGkBJWBxXEewXZ5c+
-         uBNAie6GZy+m8KFFvOkf4chNoKeHpxR6IIrtRa/nbU8xa83L4JUaPNLMmvq5j8ZRmJeq
-         k6ag==
-X-Gm-Message-State: AGi0PuaYiwMHMgaBdWYkYsDDiyK5wzQWy23R9Xr8eeFs8UjC/QoihuZg
-        EVTIKlQ7VFoSWL49nWx4fRXTDw==
-X-Google-Smtp-Source: APiQypJ4sp6ae2VxawQXYuyWMb/LII0NAOyrZR4XJi9uK+LfraVsh0bXQKwL7UmDORgQR8hkYHBnZA==
-X-Received: by 2002:adf:ec88:: with SMTP id z8mr22394542wrn.44.1589274004220;
-        Tue, 12 May 2020 02:00:04 -0700 (PDT)
+        bh=k3OodW5bIt6jtahEoyPvdqvd8L7bfSaZtDSgdgQ0KSE=;
+        b=rkEWY9oWRmBB9BfyAapqdWVBIzJrdxSbDbFB2X8GbgoVg/t+GeJZFZ19Rm4OkL50YP
+         FvUTeMbO/gfpJopsEI3pnb2YbMg3mK8c3XoWywvL6YXJi81hv1uTCu4We/W7CTM852z1
+         0yAs5eaEFqy2gLS2liCsXGveFOO5NF6Gc8d64fZrQc/4iYcEcBh3AtNgsXDWpPmvfEXl
+         o3hqnW8j2fyk1/vLeRZ81laSoZO7Yk1sbba7NJW4/63mOwhGSs3rtKMQrR3awDj0/KB2
+         IQLRryDW3Z4CFz3tg5YY9KSUfIVgQzoBCD9tKkf3UIGOH/eH8FPz0UYYG2IYSl3poa4I
+         f5sQ==
+X-Gm-Message-State: AGi0Puao2BFw6qCXvw3OGixTjDT08SYb0jR/w3L4Ul9tnYn6/rIxk0d+
+        6vPjgbRTjdowbeg8s3Ukqz4SBQ==
+X-Google-Smtp-Source: APiQypLIE0/1kWTahFNGDnQcsBGsaNy02ojJZXXlJ0KfLdzMgemSxmLWkBaf5jP2NOQfTl/RTuSVRw==
+X-Received: by 2002:adf:ca0e:: with SMTP id o14mr25265512wrh.254.1589274001957;
+        Tue, 12 May 2020 02:00:01 -0700 (PDT)
 Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id y10sm18845457wrd.95.2020.05.12.02.00.03
+        by smtp.gmail.com with ESMTPSA id y10sm18845457wrd.95.2020.05.12.02.00.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 May 2020 02:00:03 -0700 (PDT)
+        Tue, 12 May 2020 02:00:01 -0700 (PDT)
 From:   Daniel Vetter <daniel.vetter@ffwll.ch>
 To:     DRI Development <dri-devel@lists.freedesktop.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
@@ -66,9 +66,9 @@ Cc:     LKML <linux-kernel@vger.kernel.org>,
         Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
         =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Subject: [RFC 07/17] drm/amdgpu: add dma-fence annotations to atomic commit path
-Date:   Tue, 12 May 2020 10:59:34 +0200
-Message-Id: <20200512085944.222637-8-daniel.vetter@ffwll.ch>
+Subject: [RFC 05/17] drm/vblank: Annotate with dma-fence signalling section
+Date:   Tue, 12 May 2020 10:59:32 +0200
+Message-Id: <20200512085944.222637-6-daniel.vetter@ffwll.ch>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200512085944.222637-1-daniel.vetter@ffwll.ch>
 References: <20200512085944.222637-1-daniel.vetter@ffwll.ch>
@@ -80,8 +80,11 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-I need a canary in a ttm-based atomic driver to make sure the
-dma_fence_begin/end_signalling annotations actually work.
+This is rather overkill since currently all drivers call this from
+hardirq (or at least timers). But maybe in the future we're going to
+have thread irq handlers and what not, doesn't hurt to be prepared.
+Plus this is an easy start for sprinkling these fence annotations into
+shared code.
 
 Cc: linux-media@vger.kernel.org
 Cc: linaro-mm-sig@lists.linaro.org
@@ -93,40 +96,56 @@ Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Christian König <christian.koenig@amd.com>
 Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
 ---
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/gpu/drm/drm_vblank.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index ea0e039a667a..4469a8c96b08 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -57,6 +57,7 @@
+diff --git a/drivers/gpu/drm/drm_vblank.c b/drivers/gpu/drm/drm_vblank.c
+index 758bf74e1cab..125ef0c0f9a1 100644
+--- a/drivers/gpu/drm/drm_vblank.c
++++ b/drivers/gpu/drm/drm_vblank.c
+@@ -24,6 +24,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
  
- #include "ivsrcid/ivsrcid_vislands30.h"
- 
-+#include <linux/module.h>
- #include <linux/module.h>
++#include <linux/dma-fence.h>
+ #include <linux/export.h>
  #include <linux/moduleparam.h>
- #include <linux/version.h>
-@@ -7109,6 +7110,9 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
- 	struct drm_connector_state *old_con_state, *new_con_state;
- 	struct dm_crtc_state *dm_old_crtc_state, *dm_new_crtc_state;
- 	int crtc_disable_count = 0;
-+	bool fence_cookie;
-+
+ 
+@@ -1895,7 +1896,7 @@ bool drm_handle_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_vblank_crtc *vblank = &dev->vblank[pipe];
+ 	unsigned long irqflags;
+-	bool disable_irq;
++	bool disable_irq, fence_cookie;
+ 
+ 	if (WARN_ON_ONCE(!dev->num_crtcs))
+ 		return false;
+@@ -1903,6 +1904,8 @@ bool drm_handle_vblank(struct drm_device *dev, unsigned int pipe)
+ 	if (WARN_ON(pipe >= dev->num_crtcs))
+ 		return false;
+ 
 +	fence_cookie = dma_fence_begin_signalling();
++
+ 	spin_lock_irqsave(&dev->event_lock, irqflags);
  
- 	drm_atomic_helper_update_legacy_modeset_state(dev, state);
+ 	/* Need timestamp lock to prevent concurrent execution with
+@@ -1915,6 +1918,7 @@ bool drm_handle_vblank(struct drm_device *dev, unsigned int pipe)
+ 	if (!vblank->enabled) {
+ 		spin_unlock(&dev->vblank_time_lock);
+ 		spin_unlock_irqrestore(&dev->event_lock, irqflags);
++		dma_fence_end_signalling(fence_cookie);
+ 		return false;
+ 	}
  
-@@ -7389,6 +7393,8 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
- 	/* Signal HW programming completion */
- 	drm_atomic_helper_commit_hw_done(state);
+@@ -1940,6 +1944,8 @@ bool drm_handle_vblank(struct drm_device *dev, unsigned int pipe)
+ 	if (disable_irq)
+ 		vblank_disable_fn(&vblank->disable_timer);
  
 +	dma_fence_end_signalling(fence_cookie);
 +
- 	if (wait_for_vblank)
- 		drm_atomic_helper_wait_for_flip_done(dev, state);
- 
+ 	return true;
+ }
+ EXPORT_SYMBOL(drm_handle_vblank);
 -- 
 2.26.2
 
