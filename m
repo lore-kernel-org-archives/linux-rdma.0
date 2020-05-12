@@ -2,168 +2,75 @@ Return-Path: <SRS0=8X7E=62=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E18DEC47255
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 03:03:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFA51C54E8D
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 03:13:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B77F9206D7
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 03:03:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A37E320757
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 May 2020 03:13:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728662AbgELDDn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 May 2020 23:03:43 -0400
-Received: from mga02.intel.com ([134.134.136.20]:41889 "EHLO mga02.intel.com"
+        id S1728624AbgELDNN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 May 2020 23:13:13 -0400
+Received: from mga04.intel.com ([192.55.52.120]:53662 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728524AbgELDDm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 11 May 2020 23:03:42 -0400
-IronPort-SDR: ImqkUPsd6CXJvzNPVp0BVi02Hov/qHyc5GSPcjPdd2b+mg7syvyjE4jxVFZNOi4vTUQj+Nlbqv
- YoPbDqrCeHng==
+        id S1727942AbgELDNN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 11 May 2020 23:13:13 -0400
+IronPort-SDR: 8qCBViW473JDQD9VasnKZ5UIkpxMx6LHaIks6cE/yDehOG13upEgZ1BPDf9kQOdkDu39gbHzxw
+ S7Kba8+Ko4lA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2020 20:03:42 -0700
-IronPort-SDR: KWSEcrf+E2iAL9AwlKS1DUmy5KI0r/4ZeUAq+a0o2ePOGnQ9zVuBn9CRzaMDmGW6bzSehF6erU
- hAGZdiZHujNA==
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2020 20:13:13 -0700
+IronPort-SDR: j4L3fUoWUpNa5HI1QuP5QuRjr4y5l5KeFe7s71IpwYhYxVFjOVhm/us8M0Dj1iJXp06GLtiqyM
+ F1SAeO0ka3Lg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,381,1583222400"; 
-   d="scan'208";a="463386524"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga005.fm.intel.com with ESMTP; 11 May 2020 20:03:40 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jYLCm-0001w0-23; Tue, 12 May 2020 11:03:40 +0800
-Date:   Tue, 12 May 2020 11:03:05 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:hmm] BUILD SUCCESS 5aa2ffa941e7d1f604848b0081a459b8971ffc40
-Message-ID: <5eba11e9.cpGTAasvCmDAO07y%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+   d="scan'208";a="436921157"
+Received: from sedona.ch.intel.com ([10.2.136.157])
+  by orsmga005.jf.intel.com with ESMTP; 11 May 2020 20:13:12 -0700
+Received: from awfm-01.aw.intel.com (awfm-01.aw.intel.com [10.228.212.213])
+        by sedona.ch.intel.com (8.14.3/8.14.3/Standard MailSET/Hub) with ESMTP id 04C3DBDf043342;
+        Mon, 11 May 2020 20:13:11 -0700
+Received: from awfm-01.aw.intel.com (localhost [127.0.0.1])
+        by awfm-01.aw.intel.com (8.14.7/8.14.7) with ESMTP id 04C3D96m190290;
+        Mon, 11 May 2020 23:13:09 -0400
+Subject: [PATCH for-rc or next 0/3] minor hfi and qib fixes
+From:   Dennis Dalessandro <dennis.dalessandro@intel.com>
+To:     jgg@ziepe.ca, dledford@redhat.com
+Cc:     linux-rdma@vger.kernel.org
+Date:   Mon, 11 May 2020 23:13:09 -0400
+Message-ID: <20200512030622.189865.65024.stgit@awfm-01.aw.intel.com>
+User-Agent: StGit/0.17.1-dirty
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  hmm
-branch HEAD: 5aa2ffa941e7d1f604848b0081a459b8971ffc40  MAINTAINERS: add HMM selftests
+Here are three patches that fix bugs. The first two fix a problem during
+device shutdown. The last patch is the result of a comment on the list
+last week for a memory leak in qib.
 
-elapsed time: 764m
-
-configs tested: 103
-configs skipped: 1
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-arm                                 defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm                               allnoconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-sparc                            allyesconfig
-m68k                             allyesconfig
-m68k                                defconfig
-i386                              allnoconfig
-i386                                defconfig
-i386                              debian-10.3
-i386                             allyesconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                              allnoconfig
-m68k                           sun3_defconfig
-nios2                               defconfig
-nios2                            allyesconfig
-openrisc                            defconfig
-c6x                              allyesconfig
-c6x                               allnoconfig
-openrisc                         allyesconfig
-nds32                               defconfig
-nds32                             allnoconfig
-csky                             allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-h8300                            allmodconfig
-xtensa                              defconfig
-arc                                 defconfig
-arc                              allyesconfig
-sh                               allmodconfig
-sh                                allnoconfig
-microblaze                        allnoconfig
-mips                             allyesconfig
-mips                              allnoconfig
-mips                             allmodconfig
-parisc                            allnoconfig
-parisc                              defconfig
-parisc                           allyesconfig
-parisc                           allmodconfig
-powerpc                             defconfig
-powerpc                          allyesconfig
-powerpc                          rhel-kconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a005-20200511
-x86_64               randconfig-a003-20200511
-x86_64               randconfig-a006-20200511
-x86_64               randconfig-a004-20200511
-x86_64               randconfig-a001-20200511
-x86_64               randconfig-a002-20200511
-i386                 randconfig-a006-20200511
-i386                 randconfig-a005-20200511
-i386                 randconfig-a003-20200511
-i386                 randconfig-a001-20200511
-i386                 randconfig-a004-20200511
-i386                 randconfig-a002-20200511
-i386                 randconfig-a012-20200511
-i386                 randconfig-a016-20200511
-i386                 randconfig-a014-20200511
-i386                 randconfig-a011-20200511
-i386                 randconfig-a013-20200511
-i386                 randconfig-a015-20200511
-i386                 randconfig-a012-20200512
-i386                 randconfig-a016-20200512
-i386                 randconfig-a014-20200512
-i386                 randconfig-a011-20200512
-i386                 randconfig-a013-20200512
-i386                 randconfig-a015-20200512
-riscv                            allyesconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                            allmodconfig
-s390                             allyesconfig
-s390                              allnoconfig
-s390                             allmodconfig
-s390                                defconfig
-sparc                               defconfig
-sparc64                             defconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                          allmodconfig
-um                               allmodconfig
-um                                allnoconfig
-um                               allyesconfig
-um                                  defconfig
-x86_64                                   rhel
-x86_64                               rhel-7.6
-x86_64                    rhel-7.6-kselftests
-x86_64                         rhel-7.2-clear
-x86_64                                    lkp
-x86_64                              fedora-25
-x86_64                                  kexec
+If we are going to send another rc pull request it would be good to get
+them in but not worth doing one just for these patches and they can 
+just go to for-next and work their way through the stable kernels.
 
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+
+Kaike Wan (3):
+      IB/hfi1: Do not destroy hfi1_wq when the device is shut down
+      IB/hfi1: Do not destroy link_wq when the device is shut down
+      IB/qib: Call kobject_put() when kobject_init_and_add() fails
+
+
+ drivers/infiniband/hw/hfi1/init.c     |   33 ++++++++++++++++++++++++---------
+ drivers/infiniband/hw/qib/qib_sysfs.c |    9 +++++----
+ 2 files changed, 29 insertions(+), 13 deletions(-)
+
+--
+-Denny
