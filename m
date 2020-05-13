@@ -2,69 +2,96 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B9A0C2D0F9
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:04:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5BBCCA90AF
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:08:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 187BD206D6
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:04:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4227206E5
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:08:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1589364495;
+	bh=SPmbzUyKAa+DVV2H6PlQ1HB/zXHA7NDdXmg2nypawOE=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=f6lrlSN/omcwVsnsVXBtw3xItOo48yqDY/4Gw4Xv4g2rUd8f+SepCi13IYvfZjVP7
+	 lh4Vt/tTddHG7v3uHRoYKBD+mh9/2VgMBvl0clKUmuKD4PT3ughm0G1LYFcIkMx5uL
+	 9JEdciTmwOU8lyVZAO9zxoVS95xDfKpEI5O/uKXo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388174AbgEMKEj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 06:04:39 -0400
-Received: from cmccmta3.chinamobile.com ([221.176.66.81]:10925 "EHLO
-        cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732876AbgEMJrh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 05:47:37 -0400
-Received: from spf.mail.chinamobile.com (unknown[172.16.121.15]) by rmmx-syy-dmz-app09-12009 (RichMail) with SMTP id 2ee95ebbc226b8f-ccef9; Wed, 13 May 2020 17:47:19 +0800 (CST)
-X-RM-TRANSID: 2ee95ebbc226b8f-ccef9
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG: 00000000
-Received: from [172.20.144.88] (unknown[112.25.154.146])
-        by rmsmtp-syy-appsvr08-12008 (RichMail) with SMTP id 2ee85ebbc22539f-3d20b;
-        Wed, 13 May 2020 17:47:18 +0800 (CST)
-X-RM-TRANSID: 2ee85ebbc22539f-3d20b
-Subject: Re: [PATCH] net/mlx5e: Use IS_ERR() to check and simplify code
-To:     David Miller <davem@davemloft.net>
-Cc:     saeedm@mellanox.com, leon@kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20200507115010.10380-1-tangbin@cmss.chinamobile.com>
- <20200507.131834.1517984934609648952.davem@davemloft.net>
-From:   Tang Bin <tangbin@cmss.chinamobile.com>
-Message-ID: <febc1254-ad7f-f564-6607-9ac89f1fcf40@cmss.chinamobile.com>
-Date:   Wed, 13 May 2020 17:48:10 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        id S1732836AbgEMKIP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 06:08:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42330 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730822AbgEMKIP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 13 May 2020 06:08:15 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E6DC820575;
+        Wed, 13 May 2020 10:08:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1589364494;
+        bh=SPmbzUyKAa+DVV2H6PlQ1HB/zXHA7NDdXmg2nypawOE=;
+        h=From:To:Cc:Subject:Date:From;
+        b=It/h3eO2zOVod5Bjcj7CvWf+Vm637Np1VV323u6WPgyMJLT82TJ5uFk6GAlV8rof4
+         VtS3yJAX79JzHd/Mz0ciMIPyubZoS3oZbLHCSViEinSuXaDro+O+esSl+qacX5NbG2
+         LIZvfD7T+stWVfDFzWP3AC+AJKFE2Z6T0B+8lvA4=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next] RDMA/mlx5: Fix query_srq_cmd() function
+Date:   Wed, 13 May 2020 13:08:09 +0300
+Message-Id: <20200513100809.246315-1-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-In-Reply-To: <20200507.131834.1517984934609648952.davem@davemloft.net>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi David:
+From: Leon Romanovsky <leonro@mellanox.com>
 
-On 2020/5/8 4:18, David Miller wrote:
-> From: Tang Bin <tangbin@cmss.chinamobile.com>
-> Date: Thu,  7 May 2020 19:50:10 +0800
->
->> Use IS_ERR() and PTR_ERR() instead of PTR_ZRR_OR_ZERO()
->> to simplify code, avoid redundant judgements.
->>
->> Signed-off-by: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
->> Signed-off-by: Tang Bin <tangbin@cmss.chinamobile.com>
-> Saeed, please pick this up.
+The output buffer used in mlx5_cmd_exec_inout() was wrongly changed
+from pre-allocated srq_out pointer to an input "out" point. That
+leads to unpredictable results in the get_srqc() call later.
 
-Does this mean the patch has been received and I just have to wait?
+Fixes: 31578defe4eb ("RDMA/mlx5: Update mlx5_ib to use new cmd interface")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/srq_cmd.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Thanks,
-
-Tang Bin
-
-
+diff --git a/drivers/infiniband/hw/mlx5/srq_cmd.c b/drivers/infiniband/hw/mlx5/srq_cmd.c
+index bc50a712bf2e..6f5eadc4d183 100644
+--- a/drivers/infiniband/hw/mlx5/srq_cmd.c
++++ b/drivers/infiniband/hw/mlx5/srq_cmd.c
+@@ -169,16 +169,16 @@ static int query_srq_cmd(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq,
+ 
+ 	MLX5_SET(query_srq_in, in, opcode, MLX5_CMD_OP_QUERY_SRQ);
+ 	MLX5_SET(query_srq_in, in, srqn, srq->srqn);
+-	err = mlx5_cmd_exec_inout(dev->mdev, query_srq, in, out);
++	err = mlx5_cmd_exec_inout(dev->mdev, query_srq, in, srq_out);
+ 	if (err)
+ 		goto out;
+ 
+-	srqc = MLX5_ADDR_OF(query_srq_out, out, srq_context_entry);
++	srqc = MLX5_ADDR_OF(query_srq_out, srq_out, srq_context_entry);
+ 	get_srqc(srqc, out);
+ 	if (MLX5_GET(srqc, srqc, state) != MLX5_SRQC_STATE_GOOD)
+ 		out->flags |= MLX5_SRQ_FLAG_ERR;
+ out:
+-	kvfree(out);
++	kvfree(srq_out);
+ 	return err;
+ }
+ 
+-- 
+2.26.2
 
