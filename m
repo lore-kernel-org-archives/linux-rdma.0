@@ -2,96 +2,74 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5BBCCA90AF
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:08:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61E21CA90AF
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:14:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4227206E5
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:08:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D63C206E5
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589364495;
-	bh=SPmbzUyKAa+DVV2H6PlQ1HB/zXHA7NDdXmg2nypawOE=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=f6lrlSN/omcwVsnsVXBtw3xItOo48yqDY/4Gw4Xv4g2rUd8f+SepCi13IYvfZjVP7
-	 lh4Vt/tTddHG7v3uHRoYKBD+mh9/2VgMBvl0clKUmuKD4PT3ughm0G1LYFcIkMx5uL
-	 9JEdciTmwOU8lyVZAO9zxoVS95xDfKpEI5O/uKXo=
+	s=default; t=1589364866;
+	bh=ktt3fwk4+qXOFeWZPnXrGGb3zU3fFrrmKE8LnQutpe4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=GVVAmbiclBnbyR7slO0D1H34vDy4Zz5FmTlwMPnQ5nPjbL/y1+yge7kCtZrKxZ6LS
+	 xf6vlAP4B51p8PilEbQCzsWqZRGx6TqEdcfe6snRg2l9RZX7LO4iSZH3u6Qj9Z7DCN
+	 Cn0a3OEZciob/7yvJVAYrW6MFBlzB6y2JSXY7GAI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732836AbgEMKIP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 06:08:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42330 "EHLO mail.kernel.org"
+        id S1732689AbgEMKOZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 06:14:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730822AbgEMKIP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 13 May 2020 06:08:15 -0400
+        id S1732620AbgEMKOZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 13 May 2020 06:14:25 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E6DC820575;
-        Wed, 13 May 2020 10:08:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 518A4205ED;
+        Wed, 13 May 2020 10:14:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589364494;
-        bh=SPmbzUyKAa+DVV2H6PlQ1HB/zXHA7NDdXmg2nypawOE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=It/h3eO2zOVod5Bjcj7CvWf+Vm637Np1VV323u6WPgyMJLT82TJ5uFk6GAlV8rof4
-         VtS3yJAX79JzHd/Mz0ciMIPyubZoS3oZbLHCSViEinSuXaDro+O+esSl+qacX5NbG2
-         LIZvfD7T+stWVfDFzWP3AC+AJKFE2Z6T0B+8lvA4=
+        s=default; t=1589364865;
+        bh=ktt3fwk4+qXOFeWZPnXrGGb3zU3fFrrmKE8LnQutpe4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=VcAK6SDEnIeXOPk43UlWMtf3h1qCKdtjG6fs+zNYNZx4f179CA/Hw/6G/k5V+S9aF
+         NwTG9g+wi139fG9QKvRBX6eRsCtoEnW/RI6AXv8IRyoLAVaP9OpcgbncplrUS/ZkDv
+         zuT7TfM4X+Nvlo/fQkXnN7wmWDUHxIBL8rtoJfvg=
+Date:   Wed, 13 May 2020 13:14:21 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next] RDMA/mlx5: Fix query_srq_cmd() function
-Date:   Wed, 13 May 2020 13:08:09 +0300
-Message-Id: <20200513100809.246315-1-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: Fix query_srq_cmd() function
+Message-ID: <20200513101421.GU4814@unreal>
+References: <20200513093741.GC347693@mwanda>
+ <20200513100031.GT4814@unreal>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200513100031.GT4814@unreal>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Wed, May 13, 2020 at 01:00:31PM +0300, Leon Romanovsky wrote:
+> On Wed, May 13, 2020 at 12:37:41PM +0300, Dan Carpenter wrote:
+> > The "srq_out" pointer is never freed so that causes a memory leak.  It's
+> > never used and can be deleted.  Freeing "out" will lead to a double in
+> > mlx5_ib_query_srq().
+> >
+> > Fixes: 31578defe4eb ("RDMA/mlx5: Update mlx5_ib to use new cmd interface")
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> >  drivers/infiniband/hw/mlx5/srq_cmd.c | 11 ++---------
+> >  1 file changed, 2 insertions(+), 9 deletions(-)
+> >
+>
+> Thanks for the report, the change should be slightly different.
+>
+> I'm sending fix right now.
 
-The output buffer used in mlx5_cmd_exec_inout() was wrongly changed
-from pre-allocated srq_out pointer to an input "out" point. That
-leads to unpredictable results in the get_srqc() call later.
-
-Fixes: 31578defe4eb ("RDMA/mlx5: Update mlx5_ib to use new cmd interface")
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/srq_cmd.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/srq_cmd.c b/drivers/infiniband/hw/mlx5/srq_cmd.c
-index bc50a712bf2e..6f5eadc4d183 100644
---- a/drivers/infiniband/hw/mlx5/srq_cmd.c
-+++ b/drivers/infiniband/hw/mlx5/srq_cmd.c
-@@ -169,16 +169,16 @@ static int query_srq_cmd(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq,
- 
- 	MLX5_SET(query_srq_in, in, opcode, MLX5_CMD_OP_QUERY_SRQ);
- 	MLX5_SET(query_srq_in, in, srqn, srq->srqn);
--	err = mlx5_cmd_exec_inout(dev->mdev, query_srq, in, out);
-+	err = mlx5_cmd_exec_inout(dev->mdev, query_srq, in, srq_out);
- 	if (err)
- 		goto out;
- 
--	srqc = MLX5_ADDR_OF(query_srq_out, out, srq_context_entry);
-+	srqc = MLX5_ADDR_OF(query_srq_out, srq_out, srq_context_entry);
- 	get_srqc(srqc, out);
- 	if (MLX5_GET(srqc, srqc, state) != MLX5_SRQC_STATE_GOOD)
- 		out->flags |= MLX5_SRQ_FLAG_ERR;
- out:
--	kvfree(out);
-+	kvfree(srq_out);
- 	return err;
- }
- 
--- 
-2.26.2
-
+https://lore.kernel.org/linux-rdma/20200513100809.246315-1-leon@kernel.org
