@@ -2,86 +2,70 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B7EC47076
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 09:57:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FF15C2D0FA
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:00:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F344424930
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 09:57:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DADD206B8
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:00:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589363822;
-	bh=74Eo1OYXFY/PCrsmgylhrMjCqizfLopYS38jpYsjEMg=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=OLPBXTISdCgU3ro2m/3TwXJxoOHeS+rQq8HvGL6/3cpxigIoReVc1k/Vzr3HHfvjJ
-	 M8qDmJ+hNMyJSinQ/hJ8QgcM5E/TdqQhZqpps4MWuK4CIh9b7aH5LR2maQ6TYcegCt
-	 qIRttjj1rPpmPRvcGcJPynKl02+8KfnP5ZNawxqk=
+	s=default; t=1589364039;
+	bh=x5e0Sj6los9/lOrTsvPvqfnkzghBR0Op1VeaRSfeu1o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=vyC5e1gv6i780DlT2ibXdr2BmLyhWlNhhXDb4LZcTqmh+X6Cc9JEoo01ukffU4GUd
+	 Dbj/G/3YHHiE6PT7LroYf/zkw2qY8gu9q6bx1JdAjg+IM9DXHAojzm5MDHh5DPqImd
+	 P5LKQTAnzH8/TaNYAyVuKSimA3o0bOlQK5Pwo3u8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388335AbgEMJzz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 05:55:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59366 "EHLO mail.kernel.org"
+        id S2388587AbgEMKAh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 06:00:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388332AbgEMJzz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 13 May 2020 05:55:55 -0400
+        id S2388243AbgEMKAf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 13 May 2020 06:00:35 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F284920769;
-        Wed, 13 May 2020 09:55:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CC23920575;
+        Wed, 13 May 2020 10:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589363754;
-        bh=74Eo1OYXFY/PCrsmgylhrMjCqizfLopYS38jpYsjEMg=;
-        h=From:To:Cc:Subject:Date:From;
-        b=EPg6PAu0az3xtWGYpJ1K06p1y3HLzIu/tafMCdZWReZwXTWHQrJQV8NWXOndHoPwy
-         N8/UdqRtmLNzFQlHp9Roi1Di+lXXvjKA92qBkcc71KIVx9w0qSmYMlV3db4YtXq7O+
-         Oeh6YJirkfRqFg2cuwFONL803e3bHjAH6cA32q1U=
+        s=default; t=1589364035;
+        bh=x5e0Sj6los9/lOrTsvPvqfnkzghBR0Op1VeaRSfeu1o=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=l03gN39l4G5zcUWhFyd7LGFGWN3TVQXLeA79+1aDaPmndhmdLy5ZAfrVaoOB0akeJ
+         k0pMk/BBpV3hJn+fmkSIft7omeGgq+6vLKjviGoibV6N4+AZHRGh6+3QyqfHxgJ2QL
+         NNJaRbym3UKYp8nYp7mf2a1xfEZIojf0EAFreWUI=
+Date:   Wed, 13 May 2020 13:00:31 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Aharon Landau <aharonl@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-next] RDMA/mlx5: Add init2init as a modify command
-Date:   Wed, 13 May 2020 12:55:50 +0300
-Message-Id: <20200513095550.211345-1-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: Fix query_srq_cmd() function
+Message-ID: <20200513100031.GT4814@unreal>
+References: <20200513093741.GC347693@mwanda>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200513093741.GC347693@mwanda>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@mellanox.com>
+On Wed, May 13, 2020 at 12:37:41PM +0300, Dan Carpenter wrote:
+> The "srq_out" pointer is never freed so that causes a memory leak.  It's
+> never used and can be deleted.  Freeing "out" will lead to a double in
+> mlx5_ib_query_srq().
+>
+> Fixes: 31578defe4eb ("RDMA/mlx5: Update mlx5_ib to use new cmd interface")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+>  drivers/infiniband/hw/mlx5/srq_cmd.c | 11 ++---------
+>  1 file changed, 2 insertions(+), 9 deletions(-)
+>
 
-Missing INIT2INIT entry in the list of modify commands caused that
-DEVX applications can't modify QP for this transition state. Add
-the MLX5_CMD_OP_INIT2INIT_QP opcode to the list of allowed DEVX
-opcodes.
+Thanks for the report, the change should be slightly different.
 
-Fixes: e662e14d801b ("IB/mlx5: Add DEVX support for modify and query commands")
-Signed-off-by: Aharon Landau <aharonl@mellanox.com>
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/devx.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index e11fa7cde254..3047e7d60a9b 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -820,6 +820,7 @@ static bool devx_is_obj_modify_cmd(const void *in)
- 	case MLX5_CMD_OP_SET_L2_TABLE_ENTRY:
- 	case MLX5_CMD_OP_RST2INIT_QP:
- 	case MLX5_CMD_OP_INIT2RTR_QP:
-+	case MLX5_CMD_OP_INIT2INIT_QP:
- 	case MLX5_CMD_OP_RTR2RTS_QP:
- 	case MLX5_CMD_OP_RTS2RTS_QP:
- 	case MLX5_CMD_OP_SQERR2RTS_QP:
--- 
-2.26.2
-
+I'm sending fix right now.
