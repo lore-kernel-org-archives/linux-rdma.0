@@ -2,124 +2,95 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5750BCA90AF
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 09:38:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD9FC2D0FA
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 09:50:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2FC5B206B8
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 09:38:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="z6y0G98o"
+	by mail.kernel.org (Postfix) with ESMTP id 7BEA623128
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 09:50:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1589363453;
+	bh=rr6bFSxZIxGM0QoBtOVzKIu40b9F3dN63WdCDRYmzg0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=rD3mmXU5IRKEBYNu1yPmh4cJ6hJqMbC99r5dKInMXSVul6hqOJnODme0ABAz0rk7Q
+	 +Lo2ClgT7n7kng1f3BEHox1W0Fryoxi9u0+HWaGCeg9UpcuYCOek2+16n3k+r2LXo+
+	 jL2XH3eFD0qP1lL/e10grfFPYv3jJoUGqriqpdtE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726492AbgEMJiY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 05:38:24 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:37240 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726532AbgEMJiY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 05:38:24 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04D9bJJP016157;
-        Wed, 13 May 2020 09:38:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
- bh=x8e3vhoOs9yZYDFLS2a2wtkKJqxS3Ei3cBDJB5zRQEE=;
- b=z6y0G98opo6kgtt/9QLywO2cASgFfSTK8tonJSrO8FVXp+ieK3cgOEtHEDLsUi7vvW46
- gmGxqb3S7z6XaqfuP5RtgxcQtjT0OaqOhxKCympgEmlE+hkSrT4OydjVsni4wPdSHF1p
- m3Yy1WA/zTTd1FtcAwoll9ubfbHG7R6Id1p3spsQGnCcTXhzDMnmL77eauCrkWLZghZe
- 8VM0w0NBzztp3s2lUsU30f/eIewzBa01TZ/IYRN9a4pntneya1rjPr5OO5DFQb6WpKbH
- bi992SGxFTHmO0rP/Y87FztbbHsKO+wFRYoznNU1GbkY2yztSor6HHcYpGxMdbU29fCl cw== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by userp2120.oracle.com with ESMTP id 3100xwk4yu-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 13 May 2020 09:38:19 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04D9cIRA072853;
-        Wed, 13 May 2020 09:38:19 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3030.oracle.com with ESMTP id 3100ye7n03-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 13 May 2020 09:38:19 +0000
-Received: from abhmp0003.oracle.com (abhmp0003.oracle.com [141.146.116.9])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 04D9bnaG008082;
-        Wed, 13 May 2020 09:37:49 GMT
-Received: from mwanda (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 13 May 2020 02:37:49 -0700
-Date:   Wed, 13 May 2020 12:37:41 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH] RDMA/mlx5: Fix query_srq_cmd() function
-Message-ID: <20200513093741.GC347693@mwanda>
+        id S2387569AbgEMJuv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 05:50:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51072 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387566AbgEMJuv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 13 May 2020 05:50:51 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 471B720575;
+        Wed, 13 May 2020 09:50:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1589363451;
+        bh=rr6bFSxZIxGM0QoBtOVzKIu40b9F3dN63WdCDRYmzg0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=w21xLPGyIjDVLO8jMbTXCLpEbHHr4n0dz8pZayt7Dqgtt6Y/2bnXSqvy5afRedOb4
+         nCBVbdHcrQDLu5H4OtNY0ePb1UgfC/c1OWBA6Gs4OM3PDx1HsS0SM6DCy3cUPMlmeU
+         076/wI5eeZkbTsHuQU7NDRIIZ5o7up5boPtuulIA=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 04/14] RDMA/core: Allow to override device op
+Date:   Wed, 13 May 2020 12:50:24 +0300
+Message-Id: <20200513095034.208385-5-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200513095034.208385-1-leon@kernel.org>
+References: <20200513095034.208385-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Mailer: git-send-email haha only kidding
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9619 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 malwarescore=0 bulkscore=0
- phishscore=0 suspectscore=0 adultscore=0 mlxscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2005130087
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9619 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 cotscore=-2147483648 bulkscore=0
- phishscore=0 adultscore=0 mlxlogscore=999 lowpriorityscore=0
- impostorscore=0 spamscore=0 malwarescore=0 priorityscore=1501 mlxscore=0
- suspectscore=0 clxscore=1015 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2005130087
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The "srq_out" pointer is never freed so that causes a memory leak.  It's
-never used and can be deleted.  Freeing "out" will lead to a double in
-mlx5_ib_query_srq().
+From: Maor Gottlieb <maorg@mellanox.com>
 
-Fixes: 31578defe4eb ("RDMA/mlx5: Update mlx5_ib to use new cmd interface")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Current device ops implementation allows only two stages "set"/"not set"
+and requires caller to check if function pointer exists before
+calling it.
+
+In order to simplify this repetitive task, let's give an option to
+overwrite those pointers. This will allow us to set dummy functions
+for the specific function pointers.
+
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/srq_cmd.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/device.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/srq_cmd.c b/drivers/infiniband/hw/mlx5/srq_cmd.c
-index bc50a712bf2ed..ee85b8087a718 100644
---- a/drivers/infiniband/hw/mlx5/srq_cmd.c
-+++ b/drivers/infiniband/hw/mlx5/srq_cmd.c
-@@ -159,27 +159,20 @@ static int query_srq_cmd(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq,
- 			 struct mlx5_srq_attr *out)
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index d9f565a779df..9486e60b42cc 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2542,11 +2542,10 @@ EXPORT_SYMBOL(ib_get_net_dev_by_params);
+ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
  {
- 	u32 in[MLX5_ST_SZ_DW(query_srq_in)] = {};
--	u32 *srq_out;
- 	void *srqc;
- 	int err;
+ 	struct ib_device_ops *dev_ops = &dev->ops;
+-#define SET_DEVICE_OP(ptr, name)                                               \
+-	do {                                                                   \
+-		if (ops->name)                                                 \
+-			if (!((ptr)->name))				       \
+-				(ptr)->name = ops->name;                       \
++#define SET_DEVICE_OP(ptr, name)					\
++	do {								\
++		if (ops->name)						\
++			(ptr)->name = ops->name;			\
+ 	} while (0)
  
--	srq_out = kvzalloc(MLX5_ST_SZ_BYTES(query_srq_out), GFP_KERNEL);
--	if (!srq_out)
--		return -ENOMEM;
--
- 	MLX5_SET(query_srq_in, in, opcode, MLX5_CMD_OP_QUERY_SRQ);
- 	MLX5_SET(query_srq_in, in, srqn, srq->srqn);
- 	err = mlx5_cmd_exec_inout(dev->mdev, query_srq, in, out);
- 	if (err)
--		goto out;
-+		return err;
- 
- 	srqc = MLX5_ADDR_OF(query_srq_out, out, srq_context_entry);
- 	get_srqc(srqc, out);
- 	if (MLX5_GET(srqc, srqc, state) != MLX5_SRQC_STATE_GOOD)
- 		out->flags |= MLX5_SRQ_FLAG_ERR;
--out:
--	kvfree(out);
--	return err;
-+	return 0;
- }
- 
- static int create_xrc_srq_cmd(struct mlx5_ib_dev *dev,
+ #define SET_OBJ_SIZE(ptr, name) SET_DEVICE_OP(ptr, size_##name)
 -- 
 2.26.2
 
