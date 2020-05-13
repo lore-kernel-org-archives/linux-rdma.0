@@ -2,94 +2,112 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB1CCA90AF
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 11:36:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 645C1C2D0FC
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 11:53:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A423206D6
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 11:36:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F12620740
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 11:53:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727097AbgEMLgU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 07:36:20 -0400
-Received: from p3plsmtpa09-04.prod.phx3.secureserver.net ([173.201.193.233]:37320
-        "EHLO p3plsmtpa09-04.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726492AbgEMLgU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 13 May 2020 07:36:20 -0400
-X-Greylist: delayed 438 seconds by postgrey-1.27 at vger.kernel.org; Wed, 13 May 2020 07:36:20 EDT
-Received: from [192.168.0.78] ([24.218.182.144])
-        by :SMTPAUTH: with ESMTPSA
-        id YpZMjTADkI72ZYpZNjSOya; Wed, 13 May 2020 04:29:01 -0700
-X-CMAE-Analysis: v=2.3 cv=CPZUoijD c=1 sm=1 tr=0
- a=ugQcCzLIhEHbLaAUV45L0A==:117 a=ugQcCzLIhEHbLaAUV45L0A==:17
- a=IkcTkHD0fZMA:10 a=CbDCq_QkAAAA:8 a=4bPhzUQfME4wYwQ2_1cA:9 a=QEXdDO2ut3YA:10
- a=1qrBK16LubpBFNPVNq2M:22
-X-SECURESERVER-ACCT: tom@talpey.com
-Subject: Re: [PATCH] IB/iser: Remove support for FMR memory registration
-To:     Max Gurtovoy <maxg@mellanox.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Leon Romanovsky <leon@kernel.org>,
-        Israel Rukshin <israelr@mellanox.com>
-Cc:     sagi@grimberg.me, jgg@mellanox.com, linux-rdma@vger.kernel.org,
-        dledford@redhat.com, sergeygo@mellanox.com
-References: <1589299739-16570-1-git-send-email-israelr@mellanox.com>
- <20200512171633.GO4814@unreal> <5b8b0b51-83e3-06c2-9b99-dec0862c0e5b@acm.org>
- <49391e02-803b-f705-b00e-e48efd278759@mellanox.com>
-From:   Tom Talpey <tom@talpey.com>
-Message-ID: <a8066fdf-94f5-b033-e3d2-65698cf5932c@talpey.com>
-Date:   Wed, 13 May 2020 07:29:00 -0400
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
-MIME-Version: 1.0
-In-Reply-To: <49391e02-803b-f705-b00e-e48efd278759@mellanox.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfAhengb1lPnD0XUu+XFW2HPipPvaYQWA7nNjIAYwSpvYblQyOCtGll2YeEhm9I9zWwKzdV5/mnfg6Oez+8Hu6Vz6OwuAU2yupU4k+K46ocGIt4IQCYK+
- /+E0uapEC3l3F4ErloubGquuLs6Tk/zna7xqxbEWIUy+EVBRpeniJL1mVo0FxcGNAyk3N/lx6omI924lehjTB3EUdQDWI1PIk84UQWYgwkpgEBhGnmO4UUsX
- bAa8mhVRU0uJYzWjeQJ5mo2H90CcAJBHcmZbNhevWezmLUU6ecA70aU9RKGB2GwOsEmwGTp/h+6MQq5DJ4b57prOb6aHOpAU2RsLAQ1KbeXJ7mSBBjJassmD
- D/5Gky/iCgtXMYghlp0019Lx7oqizYXoU9C58uQl1gDDN4s3yh0=
+        id S1731484AbgEMLw7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 07:52:59 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:53762 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1731476AbgEMLw7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 07:52:59 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from yaminf@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 13 May 2020 14:52:55 +0300
+Received: from arch012.mtl.labs.mlnx. (arch012.mtl.labs.mlnx [10.7.13.12])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 04DBqs6i006542;
+        Wed, 13 May 2020 14:52:54 +0300
+From:   Yamin Friedman <yaminf@mellanox.com>
+To:     Jason Gunthorpe <jgg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Christoph Hellwig <hch@lst.de>,
+        Or Gerlitz <ogerlitz@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org, Yamin Friedman <yaminf@mellanox.com>
+Subject: [PATCH V2 4/4] nvmet-rdma: use new shared CQ mechanism
+Date:   Wed, 13 May 2020 14:52:43 +0300
+Message-Id: <1589370763-81205-5-git-send-email-yaminf@mellanox.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1589370763-81205-1-git-send-email-yaminf@mellanox.com>
+References: <1589370763-81205-1-git-send-email-yaminf@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 5/13/2020 4:43 AM, Max Gurtovoy wrote:
-> 
-> On 5/12/2020 11:09 PM, Bart Van Assche wrote:
->> On 2020-05-12 10:16, Leon Romanovsky wrote:
->>> On Tue, May 12, 2020 at 07:08:59PM +0300, Israel Rukshin wrote:
->>>> FMR is not supported on most recent RDMA devices (that use fast memory
->>>> registration mechanism). Also, FMR was recently removed from NFS/RDMA
->>>> ULP.
->>>>
->>>> Signed-off-by: Israel Rukshin <israelr@mellanox.com>
->>>> Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
->>>> ---
->>>>   drivers/infiniband/ulp/iser/iscsi_iser.h     |  79 +----------
->>>>   drivers/infiniband/ulp/iser/iser_initiator.c |  19 ++-
->>>>   drivers/infiniband/ulp/iser/iser_memory.c    | 188 
->>>> ++-------------------------
->>>>   drivers/infiniband/ulp/iser/iser_verbs.c     | 126 +++---------------
->>>>   4 files changed, 40 insertions(+), 372 deletions(-)
->>> Can we do an extra step and remove FMR from srp too?
->> Which HCA's will be affected by removing FMR support? Or in other words,
->> when did (Mellanox) HCA's start supporting fast memory registration? I'm
->> asking this because there is a tradition in the Linux kernel not to
->> remove support for old hardware unless it is pretty sure that nobody is
->> using that hardware anymore.
-> 
-> ConnectX-3 and above supports fast memory registrations.
+Has the driver use shared CQs providing ~10%-20% improvement when multiple
+disks are used. Instead of opening a CQ for each QP per controller, a CQ
+for each core will be provided by the RDMA core driver that will be shared
+between the QPs on that core reducing interrupt overhead.
 
-Which, to be clear, is FRWR, and different from FMR.
+Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
+Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+---
+ drivers/nvme/target/rdma.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-FMR is ancient and was a ConnectX-2 feature IIRC. It was basically
-a proprietary firmware API implemented by directly stuffing commands
-into the HCA. And as previously pointed out, insecure and fragile.
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index fd47de0..50e4c40 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -588,7 +588,7 @@ static void nvmet_rdma_read_data_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct nvmet_rdma_rsp *rsp =
+ 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, read_cqe);
+-	struct nvmet_rdma_queue *queue = cq->cq_context;
++	struct nvmet_rdma_queue *queue = wc->qp->qp_context;
+ 
+ 	WARN_ON(rsp->n_rdma <= 0);
+ 	atomic_add(rsp->n_rdma, &queue->sq_wr_avail);
+@@ -793,7 +793,7 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct nvmet_rdma_cmd *cmd =
+ 		container_of(wc->wr_cqe, struct nvmet_rdma_cmd, cqe);
+-	struct nvmet_rdma_queue *queue = cq->cq_context;
++	struct nvmet_rdma_queue *queue = wc->qp->qp_context;
+ 	struct nvmet_rdma_rsp *rsp;
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+@@ -995,9 +995,8 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
+ 	 */
+ 	nr_cqe = queue->recv_queue_size + 2 * queue->send_queue_size;
+ 
+-	queue->cq = ib_alloc_cq(ndev->device, queue,
+-			nr_cqe + 1, comp_vector,
+-			IB_POLL_WORKQUEUE);
++	queue->cq = ib_cq_pool_get(ndev->device, nr_cqe + 1, comp_vector,
++				   IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(queue->cq)) {
+ 		ret = PTR_ERR(queue->cq);
+ 		pr_err("failed to create CQ cqe= %d ret= %d\n",
+@@ -1056,7 +1055,7 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
+ err_destroy_qp:
+ 	rdma_destroy_qp(queue->cm_id);
+ err_destroy_cq:
+-	ib_free_cq(queue->cq);
++	ib_cq_pool_put(queue->cq, nr_cqe + 1);
+ 	goto out;
+ }
+ 
+@@ -1066,7 +1065,8 @@ static void nvmet_rdma_destroy_queue_ib(struct nvmet_rdma_queue *queue)
+ 	if (queue->cm_id)
+ 		rdma_destroy_id(queue->cm_id);
+ 	ib_destroy_qp(queue->qp);
+-	ib_free_cq(queue->cq);
++	ib_cq_pool_put(queue->cq, queue->recv_queue_size + 2 *
++		       queue->send_queue_size + 1);
+ }
+ 
+ static void nvmet_rdma_free_queue(struct nvmet_rdma_queue *queue)
+-- 
+1.8.3.1
 
-Honestly, I thought it was already removed!
-
-Tom.
