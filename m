@@ -2,111 +2,130 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 425A3C2D0FA
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B004C2D0F9
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:02:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18936206B8
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:01:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589364117;
-	bh=6Kbr+u3ZpaS0c+vW2VIy+pExcklK1M4cFea8NXTd8Cw=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=EsozPZsGTPZiM9aX6gM0O71uRMoBlAk+rKkSfv5dvRMDczxUJaq62+aVuKPIveknq
-	 Pu3tfnSFOYJ3MAM+nEiclOR+d35nq6ztzbendG+v6NDggNUMvUb7ml46fSRBNhrF0o
-	 hUPZWACZk6tzno+nQ0RKJk/VHR9+57WcGJqjZznU=
+	by mail.kernel.org (Postfix) with ESMTP id 3699220575
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:02:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X6dr5m1O"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732935AbgEMJum (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 05:50:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50694 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732931AbgEMJuk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 13 May 2020 05:50:40 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4594723128;
-        Wed, 13 May 2020 09:50:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589363439;
-        bh=6Kbr+u3ZpaS0c+vW2VIy+pExcklK1M4cFea8NXTd8Cw=;
-        h=From:To:Cc:Subject:Date:From;
-        b=BF9agn5890+DNO3IsSdc1YjYG79rf6c3fV0XTCWAq4vx/iRz4bhAYiGzyg53xEnEu
-         jiPC/qX7ZXqQMb8GNwqKfWonlzHL+ePRgvaddmkyDUUc8ZmxElSdu/04amX/Olu+It
-         75D9cnxPx4RryCv73PGix3EbtecJeUdmhi9t+AfY=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Lijun Ou <oulijun@huawei.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>, netdev@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Weihang Li <liweihang@huawei.com>,
-        "Wei Hu(Xavier)" <huwei87@hisilicon.com>
-Subject: [PATCH rdma-next 00/14] RAW format dumps through RDMAtool
-Date:   Wed, 13 May 2020 12:50:20 +0300
-Message-Id: <20200513095034.208385-1-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
+        id S2387541AbgEMKCQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 06:02:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51174 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387493AbgEMKCJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 06:02:09 -0400
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41C0FC061A0C
+        for <linux-rdma@vger.kernel.org>; Wed, 13 May 2020 03:02:09 -0700 (PDT)
+Received: by mail-wr1-x442.google.com with SMTP id h17so11213635wrc.8
+        for <linux-rdma@vger.kernel.org>; Wed, 13 May 2020 03:02:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=AZ2PpraJk5BqpBiJd2vZOsuZr8AFn5l1GRqTTK6M890=;
+        b=X6dr5m1OXa5Gk6VjCe8HNoCOn/zMYHnbTdqIHIdPm3Hc84zgraA0scB+OaxMkcD6mS
+         cJu1Ud9M67iEs6UXZHDWQ3s1h7/Eoxo6pTlOvZwP/aIa4BEt9LGHR1g8zkB/GoitrRnH
+         BvVXrxkE6zWYHuNafwHu0P+pbv31AT3aReEII+7EkqvUl/KKQOI+mTQYgT4Z2gS8eiKZ
+         mAVUkRULqiZoc3xXLVzYraq6qGU3Ck2WnYmc0Jjuxh+h/OzA3l5s/r0qp9Ss8WKmkFU8
+         c5yD2s8VozOMTmM1h06qWIvAsvNWO9si/nYKtIocrVSLqUEHBChqiEfKWqbjGzOzhpLf
+         yqZA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=AZ2PpraJk5BqpBiJd2vZOsuZr8AFn5l1GRqTTK6M890=;
+        b=t9ps2iSGikm7yimqHJkJTGemYskY3EcjAxVr8DGtcSznPsIY3zX/9FlLAsLzVEp2sH
+         gNDHp+h73d5MRKqO5B6B6tUUv95aFKg50lu/dV4nY8QzPo595unZ95xGpzbSRD3hRBZ5
+         MuGnQeGu5CdwfS/9pXmtTYHsEjccshiKxcsHmDSQeGtGQhu0vq0Kq7fv/WMpjb5GoQ/C
+         2z2XVYemUdC8ajq6Q3HzrOPMUy66Le0/TIP7kiQ5Pza8KmDbPFrWvK25CTYU6pU8Oh1l
+         s8UVPC136E3el8kk6MF+e0g5fZoEBvRtHtUWLrxOLauHoyjTctbwBUioXO5yV2MPuZJt
+         rhTQ==
+X-Gm-Message-State: AOAM532egnqcIlhYfJvLvjor2+fSudNWnR54mA2FG2Zw4vnh75pRzO9J
+        SGpVQjwHQDVkp+6AvgborbY=
+X-Google-Smtp-Source: ABdhPJzquOlPkcMsyQjWX5M+RQIscIysEevddYbREgNQLU0jtyy4PQFKSw30/NpKw1B7GLBk/s3k0w==
+X-Received: by 2002:adf:f783:: with SMTP id q3mr6785553wrp.348.1589364128028;
+        Wed, 13 May 2020 03:02:08 -0700 (PDT)
+Received: from kheib-workstation ([37.142.4.4])
+        by smtp.gmail.com with ESMTPSA id r9sm18064897wmg.47.2020.05.13.03.02.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 13 May 2020 03:02:07 -0700 (PDT)
+Date:   Wed, 13 May 2020 13:02:04 +0300
+From:   Kamal Heib <kamalheib1@gmail.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH for-rc] RDMA/srpt: Fix disabling device management
+Message-ID: <20200513100204.GA92901@kheib-workstation>
+References: <20200511222918.62576-1-kamalheib1@gmail.com>
+ <20200513072203.GR4814@unreal>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200513072203.GR4814@unreal>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Wed, May 13, 2020 at 10:22:03AM +0300, Leon Romanovsky wrote:
+> On Tue, May 12, 2020 at 01:29:18AM +0300, Kamal Heib wrote:
+> > Avoid disabling device management for devices that don't support
+> > Management datagrams (MADs) by checking if the "mad_agent" pointer is
+> > initialized before calling ib_modify_port, also change the error message
+> > to a warning and make it more informative.
+> >
+> > Fixes: 09f8a1486dca ("RDMA/srpt: Fix handling of SR-IOV and iWARP ports")
+> > Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
+> > ---
+> >  drivers/infiniband/ulp/srpt/ib_srpt.c | 8 ++++++--
+> >  1 file changed, 6 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > index 7ed38d1cb997..7b21792ab6f7 100644
+> > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > @@ -625,14 +625,18 @@ static void srpt_unregister_mad_agent(struct srpt_device *sdev)
+> >  		.clr_port_cap_mask = IB_PORT_DEVICE_MGMT_SUP,
+> >  	};
+> >  	struct srpt_port *sport;
+> > +	int ret;
+> >  	int i;
+> >
+> >  	for (i = 1; i <= sdev->device->phys_port_cnt; i++) {
+> >  		sport = &sdev->port[i - 1];
+> >  		WARN_ON(sport->port != i);
+> > -		if (ib_modify_port(sdev->device, i, 0, &port_modify) < 0)
+> > -			pr_err("disabling MAD processing failed.\n");
+> >  		if (sport->mad_agent) {
+> > +			ret = ib_modify_port(sdev->device, i, 0, &port_modify);
+> > +			if (ret < 0)
+> > +				pr_warn("%s-%d: disabling device management failed (%d). Note: this is expected if SR-IOV is enabled.\n",
+> > +					dev_name(&sport->sdev->device->dev),
+> 
+> The ib_modify_port() shouldn't be called if it expected to fail.
+> 
+> Thanks
 
-From Maor:
+OK, Do you know if there is a way to check if the created ib device is
+for VF to avoid calling ib_modify_port()?
 
-Hi,
+Thanks,
+Kamal
 
-The following series adds support to get the RDMA resource data in RAW
-format. The main motivation for doing this is to enable vendors to return
-the entire QP/CQ/MR data without a need from the vendor to set each field
-separately.
-
-Thanks
-
-Maor Gottlieb (14):
-  net/mlx5: Export resource dump interface
-  net/mlx5: Add support in query QP, CQ and MKEY segments
-  RDMA/core: Fix double put of resource
-  RDMA/core: Allow to override device op
-  RDMA/core: Don't call fill_res_entry for PD
-  RDMA/core: Add restrack dummy ops
-  RDMA: Add dedicated MR resource tracker function
-  RDMA: Add a dedicated CQ resource tracker function
-  RDMA: Add a dedicated QP resource tracker function
-  RDMA: Add dedicated cm id resource tracker function
-  RDMA: Add support to dump resource tracker in RAW format
-  RDMA/mlx5: Add support to get QP resource in raw format
-  RDMA/mlx5: Add support to get CQ resource in RAW format
-  RDMA/mlx5: Add support to get MR resource in RAW format
-
- drivers/infiniband/core/device.c              |  16 ++-
- drivers/infiniband/core/nldev.c               | 136 ++++++++----------
- drivers/infiniband/core/restrack.c            |  32 +++++
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h        |   7 +-
- drivers/infiniband/hw/cxgb4/provider.c        |  11 +-
- drivers/infiniband/hw/cxgb4/restrack.c        |  33 ++---
- drivers/infiniband/hw/hns/hns_roce_device.h   |   4 +-
- drivers/infiniband/hw/hns/hns_roce_main.c     |   2 +-
- drivers/infiniband/hw/hns/hns_roce_restrack.c |  17 +--
- drivers/infiniband/hw/mlx5/main.c             |   6 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  11 +-
- drivers/infiniband/hw/mlx5/restrack.c         | 105 +++++++++++---
- .../mellanox/mlx5/core/diag/rsc_dump.c        |   6 +
- .../mellanox/mlx5/core/diag/rsc_dump.h        |  33 +----
- .../diag => include/linux/mlx5}/rsc_dump.h    |  25 ++--
- include/rdma/ib_verbs.h                       |  13 +-
- include/uapi/rdma/rdma_netlink.h              |   2 +
- 17 files changed, 258 insertions(+), 201 deletions(-)
- copy {drivers/net/ethernet/mellanox/mlx5/core/diag => include/linux/mlx5}/rsc_dump.h (68%)
-
---
-2.26.2
-
+> 
+> > +					sport->port, ret);
+> >  			ib_unregister_mad_agent(sport->mad_agent);
+> >  			sport->mad_agent = NULL;
+> >  		}
+> > --
+> > 2.25.4
+> >
