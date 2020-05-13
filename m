@@ -2,130 +2,69 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B004C2D0F9
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B9A0C2D0F9
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:04:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3699220575
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:02:18 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X6dr5m1O"
+	by mail.kernel.org (Postfix) with ESMTP id 187BD206D6
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 10:04:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387541AbgEMKCQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 06:02:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51174 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387493AbgEMKCJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 06:02:09 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41C0FC061A0C
-        for <linux-rdma@vger.kernel.org>; Wed, 13 May 2020 03:02:09 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id h17so11213635wrc.8
-        for <linux-rdma@vger.kernel.org>; Wed, 13 May 2020 03:02:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=AZ2PpraJk5BqpBiJd2vZOsuZr8AFn5l1GRqTTK6M890=;
-        b=X6dr5m1OXa5Gk6VjCe8HNoCOn/zMYHnbTdqIHIdPm3Hc84zgraA0scB+OaxMkcD6mS
-         cJu1Ud9M67iEs6UXZHDWQ3s1h7/Eoxo6pTlOvZwP/aIa4BEt9LGHR1g8zkB/GoitrRnH
-         BvVXrxkE6zWYHuNafwHu0P+pbv31AT3aReEII+7EkqvUl/KKQOI+mTQYgT4Z2gS8eiKZ
-         mAVUkRULqiZoc3xXLVzYraq6qGU3Ck2WnYmc0Jjuxh+h/OzA3l5s/r0qp9Ss8WKmkFU8
-         c5yD2s8VozOMTmM1h06qWIvAsvNWO9si/nYKtIocrVSLqUEHBChqiEfKWqbjGzOzhpLf
-         yqZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=AZ2PpraJk5BqpBiJd2vZOsuZr8AFn5l1GRqTTK6M890=;
-        b=t9ps2iSGikm7yimqHJkJTGemYskY3EcjAxVr8DGtcSznPsIY3zX/9FlLAsLzVEp2sH
-         gNDHp+h73d5MRKqO5B6B6tUUv95aFKg50lu/dV4nY8QzPo595unZ95xGpzbSRD3hRBZ5
-         MuGnQeGu5CdwfS/9pXmtTYHsEjccshiKxcsHmDSQeGtGQhu0vq0Kq7fv/WMpjb5GoQ/C
-         2z2XVYemUdC8ajq6Q3HzrOPMUy66Le0/TIP7kiQ5Pza8KmDbPFrWvK25CTYU6pU8Oh1l
-         s8UVPC136E3el8kk6MF+e0g5fZoEBvRtHtUWLrxOLauHoyjTctbwBUioXO5yV2MPuZJt
-         rhTQ==
-X-Gm-Message-State: AOAM532egnqcIlhYfJvLvjor2+fSudNWnR54mA2FG2Zw4vnh75pRzO9J
-        SGpVQjwHQDVkp+6AvgborbY=
-X-Google-Smtp-Source: ABdhPJzquOlPkcMsyQjWX5M+RQIscIysEevddYbREgNQLU0jtyy4PQFKSw30/NpKw1B7GLBk/s3k0w==
-X-Received: by 2002:adf:f783:: with SMTP id q3mr6785553wrp.348.1589364128028;
-        Wed, 13 May 2020 03:02:08 -0700 (PDT)
-Received: from kheib-workstation ([37.142.4.4])
-        by smtp.gmail.com with ESMTPSA id r9sm18064897wmg.47.2020.05.13.03.02.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 13 May 2020 03:02:07 -0700 (PDT)
-Date:   Wed, 13 May 2020 13:02:04 +0300
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH for-rc] RDMA/srpt: Fix disabling device management
-Message-ID: <20200513100204.GA92901@kheib-workstation>
-References: <20200511222918.62576-1-kamalheib1@gmail.com>
- <20200513072203.GR4814@unreal>
+        id S2388174AbgEMKEj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 06:04:39 -0400
+Received: from cmccmta3.chinamobile.com ([221.176.66.81]:10925 "EHLO
+        cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732876AbgEMJrh (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 05:47:37 -0400
+Received: from spf.mail.chinamobile.com (unknown[172.16.121.15]) by rmmx-syy-dmz-app09-12009 (RichMail) with SMTP id 2ee95ebbc226b8f-ccef9; Wed, 13 May 2020 17:47:19 +0800 (CST)
+X-RM-TRANSID: 2ee95ebbc226b8f-ccef9
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG: 00000000
+Received: from [172.20.144.88] (unknown[112.25.154.146])
+        by rmsmtp-syy-appsvr08-12008 (RichMail) with SMTP id 2ee85ebbc22539f-3d20b;
+        Wed, 13 May 2020 17:47:18 +0800 (CST)
+X-RM-TRANSID: 2ee85ebbc22539f-3d20b
+Subject: Re: [PATCH] net/mlx5e: Use IS_ERR() to check and simplify code
+To:     David Miller <davem@davemloft.net>
+Cc:     saeedm@mellanox.com, leon@kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20200507115010.10380-1-tangbin@cmss.chinamobile.com>
+ <20200507.131834.1517984934609648952.davem@davemloft.net>
+From:   Tang Bin <tangbin@cmss.chinamobile.com>
+Message-ID: <febc1254-ad7f-f564-6607-9ac89f1fcf40@cmss.chinamobile.com>
+Date:   Wed, 13 May 2020 17:48:10 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200513072203.GR4814@unreal>
+In-Reply-To: <20200507.131834.1517984934609648952.davem@davemloft.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, May 13, 2020 at 10:22:03AM +0300, Leon Romanovsky wrote:
-> On Tue, May 12, 2020 at 01:29:18AM +0300, Kamal Heib wrote:
-> > Avoid disabling device management for devices that don't support
-> > Management datagrams (MADs) by checking if the "mad_agent" pointer is
-> > initialized before calling ib_modify_port, also change the error message
-> > to a warning and make it more informative.
-> >
-> > Fixes: 09f8a1486dca ("RDMA/srpt: Fix handling of SR-IOV and iWARP ports")
-> > Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-> > ---
-> >  drivers/infiniband/ulp/srpt/ib_srpt.c | 8 ++++++--
-> >  1 file changed, 6 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > index 7ed38d1cb997..7b21792ab6f7 100644
-> > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > @@ -625,14 +625,18 @@ static void srpt_unregister_mad_agent(struct srpt_device *sdev)
-> >  		.clr_port_cap_mask = IB_PORT_DEVICE_MGMT_SUP,
-> >  	};
-> >  	struct srpt_port *sport;
-> > +	int ret;
-> >  	int i;
-> >
-> >  	for (i = 1; i <= sdev->device->phys_port_cnt; i++) {
-> >  		sport = &sdev->port[i - 1];
-> >  		WARN_ON(sport->port != i);
-> > -		if (ib_modify_port(sdev->device, i, 0, &port_modify) < 0)
-> > -			pr_err("disabling MAD processing failed.\n");
-> >  		if (sport->mad_agent) {
-> > +			ret = ib_modify_port(sdev->device, i, 0, &port_modify);
-> > +			if (ret < 0)
-> > +				pr_warn("%s-%d: disabling device management failed (%d). Note: this is expected if SR-IOV is enabled.\n",
-> > +					dev_name(&sport->sdev->device->dev),
-> 
-> The ib_modify_port() shouldn't be called if it expected to fail.
-> 
-> Thanks
+Hi David:
 
-OK, Do you know if there is a way to check if the created ib device is
-for VF to avoid calling ib_modify_port()?
+On 2020/5/8 4:18, David Miller wrote:
+> From: Tang Bin <tangbin@cmss.chinamobile.com>
+> Date: Thu,  7 May 2020 19:50:10 +0800
+>
+>> Use IS_ERR() and PTR_ERR() instead of PTR_ZRR_OR_ZERO()
+>> to simplify code, avoid redundant judgements.
+>>
+>> Signed-off-by: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+>> Signed-off-by: Tang Bin <tangbin@cmss.chinamobile.com>
+> Saeed, please pick this up.
+
+Does this mean the patch has been received and I just have to wait?
 
 Thanks,
-Kamal
 
-> 
-> > +					sport->port, ret);
-> >  			ib_unregister_mad_agent(sport->mad_agent);
-> >  			sport->mad_agent = NULL;
-> >  		}
-> > --
-> > 2.25.4
-> >
+Tang Bin
+
+
+
