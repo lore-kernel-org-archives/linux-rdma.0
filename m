@@ -2,504 +2,107 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00AC9C433F7
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 15:05:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8A0FC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 15:11:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52652208B3
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 14:49:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE06D20659
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 15:11:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388857AbgEMOtf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 10:49:35 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:60743 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728345AbgEMOtf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 10:49:35 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 13 May 2020 17:49:31 +0300
-Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 04DEnVhQ026480;
-        Wed, 13 May 2020 17:49:31 +0300
-From:   Max Gurtovoy <maxg@mellanox.com>
-To:     bvanassche@acm.org, jgg@mellanox.com, linux-rdma@vger.kernel.org,
-        dledford@redhat.com, leon@kernel.org
-Cc:     sagi@grimberg.me, israelr@mellanox.com,
-        Max Gurtovoy <maxg@mellanox.com>
-Subject: [PATCH 1/1] IB/srp: remove support for FMR memory registration
-Date:   Wed, 13 May 2020 17:49:30 +0300
-Message-Id: <20200513144930.150601-1-maxg@mellanox.com>
-X-Mailer: git-send-email 2.21.0
+        id S1729242AbgEMPLO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 11:11:14 -0400
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:38442 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727778AbgEMPLN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 11:11:13 -0400
+Received: by mail-pf1-f194.google.com with SMTP id y25so8128003pfn.5
+        for <linux-rdma@vger.kernel.org>; Wed, 13 May 2020 08:11:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:autocrypt
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=g2+d7KjigHhUqJnh+iC064AcMpJwAXkhjZpeC32UO+o=;
+        b=fMqkayYrLvjLvVcoNNR7cUKN29w9BOyO6jY1gvrzCZWIMXZChq2BmxpYb6SHuARoCa
+         8nm6RSqTGXwEutes4zfCfGUWrfP3/4IufZ6oqTOuYhnNoePRIp9HQS6dqTcWwm5mds+P
+         dTI+50ng8SADdzKwQTXRCStv4OricdBsfzh3yoTh5sRkBDGSOvnl22n/Gv6n8EyHW6Jx
+         YHyhGZj5/pXwsCwtaaU4LuEtwg2C2yid7I+u3e0D1nV75o05zHAqssMK9bbeHPsV5HIB
+         DeXnr9wim+1ovu5Bwn0ad6d/TormiwsfNuoxlDjCClDcUk/JhDq8NQ4LLAk/AcwvJjCG
+         5s5Q==
+X-Gm-Message-State: AOAM532RxEWdDcmbEiNltgRUbrozQkB3d5FQ91+lneT4fIr6QhBKQUki
+        Rze/XO9ReJv9wLXv7SY5nSg=
+X-Google-Smtp-Source: ABdhPJy0B2HKeXE84ygBZJpmenLRYdGIJfk7e9GlkhbE2W0QBxcZwiGxuZgah8k3sDkHjI23YstSHw==
+X-Received: by 2002:a65:4204:: with SMTP id c4mr5629804pgq.118.1589382672893;
+        Wed, 13 May 2020 08:11:12 -0700 (PDT)
+Received: from ?IPv6:2601:647:4000:d7:e13e:45d5:70d9:c74e? ([2601:647:4000:d7:e13e:45d5:70d9:c74e])
+        by smtp.gmail.com with ESMTPSA id q134sm4886392pfc.143.2020.05.13.08.11.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 13 May 2020 08:11:11 -0700 (PDT)
+Subject: Re: [PATCH 1/1] IB/srp: remove support for FMR memory registration
+To:     Max Gurtovoy <maxg@mellanox.com>, jgg@mellanox.com,
+        linux-rdma@vger.kernel.org, dledford@redhat.com, leon@kernel.org
+Cc:     sagi@grimberg.me, israelr@mellanox.com
+References: <20200513144930.150601-1-maxg@mellanox.com>
+From:   Bart Van Assche <bvanassche@acm.org>
+Autocrypt: addr=bvanassche@acm.org; prefer-encrypt=mutual; keydata=
+ mQENBFSOu4oBCADcRWxVUvkkvRmmwTwIjIJvZOu6wNm+dz5AF4z0FHW2KNZL3oheO3P8UZWr
+ LQOrCfRcK8e/sIs2Y2D3Lg/SL7qqbMehGEYcJptu6mKkywBfoYbtBkVoJ/jQsi2H0vBiiCOy
+ fmxMHIPcYxaJdXxrOG2UO4B60Y/BzE6OrPDT44w4cZA9DH5xialliWU447Bts8TJNa3lZKS1
+ AvW1ZklbvJfAJJAwzDih35LxU2fcWbmhPa7EO2DCv/LM1B10GBB/oQB5kvlq4aA2PSIWkqz4
+ 3SI5kCPSsygD6wKnbRsvNn2mIACva6VHdm62A7xel5dJRfpQjXj2snd1F/YNoNc66UUTABEB
+ AAG0JEJhcnQgVmFuIEFzc2NoZSA8YnZhbmFzc2NoZUBhY20ub3JnPokBOQQTAQIAIwUCVI67
+ igIbAwcLCQgHAwIBBhUIAgkKCwQWAgMBAh4BAheAAAoJEHFcPTXFzhAJ8QkH/1AdXblKL65M
+ Y1Zk1bYKnkAb4a98LxCPm/pJBilvci6boefwlBDZ2NZuuYWYgyrehMB5H+q+Kq4P0IBbTqTa
+ jTPAANn62A6jwJ0FnCn6YaM9TZQjM1F7LoDX3v+oAkaoXuq0dQ4hnxQNu792bi6QyVdZUvKc
+ macVFVgfK9n04mL7RzjO3f+X4midKt/s+G+IPr4DGlrq+WH27eDbpUR3aYRk8EgbgGKvQFdD
+ CEBFJi+5ZKOArmJVBSk21RHDpqyz6Vit3rjep7c1SN8s7NhVi9cjkKmMDM7KYhXkWc10lKx2
+ RTkFI30rkDm4U+JpdAd2+tP3tjGf9AyGGinpzE2XY1K5AQ0EVI67igEIAKiSyd0nECrgz+H5
+ PcFDGYQpGDMTl8MOPCKw/F3diXPuj2eql4xSbAdbUCJzk2ETif5s3twT2ER8cUTEVOaCEUY3
+ eOiaFgQ+nGLx4BXqqGewikPJCe+UBjFnH1m2/IFn4T9jPZkV8xlkKmDUqMK5EV9n3eQLkn5g
+ lco+FepTtmbkSCCjd91EfThVbNYpVQ5ZjdBCXN66CKyJDMJ85HVr5rmXG/nqriTh6cv1l1Js
+ T7AFvvPjUPknS6d+BETMhTkbGzoyS+sywEsQAgA+BMCxBH4LvUmHYhpS+W6CiZ3ZMxjO8Hgc
+ ++w1mLeRUvda3i4/U8wDT3SWuHcB3DWlcppECLkAEQEAAYkBHwQYAQIACQUCVI67igIbDAAK
+ CRBxXD01xc4QCZ4dB/0QrnEasxjM0PGeXK5hcZMT9Eo998alUfn5XU0RQDYdwp6/kMEXMdmT
+ oH0F0xB3SQ8WVSXA9rrc4EBvZruWQ+5/zjVrhhfUAx12CzL4oQ9Ro2k45daYaonKTANYG22y
+ //x8dLe2Fv1By4SKGhmzwH87uXxbTJAUxiWIi1np0z3/RDnoVyfmfbbL1DY7zf2hYXLLzsJR
+ mSsED/1nlJ9Oq5fALdNEPgDyPUerqHxcmIub+pF0AzJoYHK5punqpqfGmqPbjxrJLPJfHVKy
+ goMj5DlBMoYqEgpbwdUYkH6QdizJJCur4icy8GUNbisFYABeoJ91pnD4IGei3MTdvINSZI5e
+Message-ID: <b356d083-7c53-145c-bd30-38fe3b5a6510@acm.org>
+Date:   Wed, 13 May 2020 08:11:10 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200513144930.150601-1-maxg@mellanox.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-FMR is not supported on most recent RDMA devices (that use fast memory
-registration mechanism). Also, FMR was recently removed from NFS/RDMA
-ULP.
+On 2020-05-13 07:49, Max Gurtovoy wrote:
+> FMR is not supported on most recent RDMA devices (that use fast memory
+> registration mechanism). Also, FMR was recently removed from NFS/RDMA
+> ULP.
 
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
-Reviewed-by: Israel Rukshin <israelr@mellanox.com>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 221 +++---------------------------------
- drivers/infiniband/ulp/srp/ib_srp.h |  27 +----
- 2 files changed, 24 insertions(+), 224 deletions(-)
+Please mention how this patch has been tested.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index cd1181c..73ffb00 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -71,7 +71,7 @@
- static unsigned int cmd_sg_entries;
- static unsigned int indirect_sg_entries;
- static bool allow_ext_sg;
--static bool prefer_fr = true;
-+static bool prefer_fr;
- static bool register_always = true;
- static bool never_register;
- static int topspin_workarounds = 1;
-@@ -97,7 +97,7 @@
- 
- module_param(prefer_fr, bool, 0444);
- MODULE_PARM_DESC(prefer_fr,
--"Whether to use fast registration if both FMR and fast registration are supported");
-+"Whether to use fast registration if both FMR and fast registration are supported [deprecated]");
- 
- module_param(register_always, bool, 0444);
- MODULE_PARM_DESC(register_always,
-@@ -388,24 +388,6 @@ static int srp_new_cm_id(struct srp_rdma_ch *ch)
- 		srp_new_ib_cm_id(ch);
- }
- 
--static struct ib_fmr_pool *srp_alloc_fmr_pool(struct srp_target_port *target)
--{
--	struct srp_device *dev = target->srp_host->srp_dev;
--	struct ib_fmr_pool_param fmr_param;
--
--	memset(&fmr_param, 0, sizeof(fmr_param));
--	fmr_param.pool_size	    = target->mr_pool_size;
--	fmr_param.dirty_watermark   = fmr_param.pool_size / 4;
--	fmr_param.cache		    = 1;
--	fmr_param.max_pages_per_fmr = dev->max_pages_per_mr;
--	fmr_param.page_shift	    = ilog2(dev->mr_page_size);
--	fmr_param.access	    = (IB_ACCESS_LOCAL_WRITE |
--				       IB_ACCESS_REMOTE_WRITE |
--				       IB_ACCESS_REMOTE_READ);
--
--	return ib_create_fmr_pool(dev->pd, &fmr_param);
--}
--
- /**
-  * srp_destroy_fr_pool() - free the resources owned by a pool
-  * @pool: Fast registration pool to be destroyed.
-@@ -556,7 +538,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	struct ib_qp_init_attr *init_attr;
- 	struct ib_cq *recv_cq, *send_cq;
- 	struct ib_qp *qp;
--	struct ib_fmr_pool *fmr_pool = NULL;
- 	struct srp_fr_pool *fr_pool = NULL;
- 	const int m = 1 + dev->use_fast_reg * target->mr_per_cmd * 2;
- 	int ret;
-@@ -619,14 +600,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 				     "FR pool allocation failed (%d)\n", ret);
- 			goto err_qp;
- 		}
--	} else if (dev->use_fmr) {
--		fmr_pool = srp_alloc_fmr_pool(target);
--		if (IS_ERR(fmr_pool)) {
--			ret = PTR_ERR(fmr_pool);
--			shost_printk(KERN_WARNING, target->scsi_host, PFX
--				     "FMR pool allocation failed (%d)\n", ret);
--			goto err_qp;
--		}
- 	}
- 
- 	if (ch->qp)
-@@ -644,10 +617,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 		if (ch->fr_pool)
- 			srp_destroy_fr_pool(ch->fr_pool);
- 		ch->fr_pool = fr_pool;
--	} else if (dev->use_fmr) {
--		if (ch->fmr_pool)
--			ib_destroy_fmr_pool(ch->fmr_pool);
--		ch->fmr_pool = fmr_pool;
- 	}
- 
- 	kfree(init_attr);
-@@ -702,9 +671,6 @@ static void srp_free_ch_ib(struct srp_target_port *target,
- 	if (dev->use_fast_reg) {
- 		if (ch->fr_pool)
- 			srp_destroy_fr_pool(ch->fr_pool);
--	} else if (dev->use_fmr) {
--		if (ch->fmr_pool)
--			ib_destroy_fmr_pool(ch->fmr_pool);
- 	}
- 
- 	srp_destroy_qp(ch);
-@@ -1017,12 +983,8 @@ static void srp_free_req_data(struct srp_target_port *target,
- 
- 	for (i = 0; i < target->req_ring_size; ++i) {
- 		req = &ch->req_ring[i];
--		if (dev->use_fast_reg) {
-+		if (dev->use_fast_reg)
- 			kfree(req->fr_list);
--		} else {
--			kfree(req->fmr_list);
--			kfree(req->map_page);
--		}
- 		if (req->indirect_dma_addr) {
- 			ib_dma_unmap_single(ibdev, req->indirect_dma_addr,
- 					    target->indirect_size,
-@@ -1056,16 +1018,8 @@ static int srp_alloc_req_data(struct srp_rdma_ch *ch)
- 					GFP_KERNEL);
- 		if (!mr_list)
- 			goto out;
--		if (srp_dev->use_fast_reg) {
-+		if (srp_dev->use_fast_reg)
- 			req->fr_list = mr_list;
--		} else {
--			req->fmr_list = mr_list;
--			req->map_page = kmalloc_array(srp_dev->max_pages_per_mr,
--						      sizeof(void *),
--						      GFP_KERNEL);
--			if (!req->map_page)
--				goto out;
--		}
- 		req->indirect_desc = kmalloc(target->indirect_size, GFP_KERNEL);
- 		if (!req->indirect_desc)
- 			goto out;
-@@ -1272,11 +1226,6 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
- 		if (req->nmdesc)
- 			srp_fr_pool_put(ch->fr_pool, req->fr_list,
- 					req->nmdesc);
--	} else if (dev->use_fmr) {
--		struct ib_pool_fmr **pfmr;
--
--		for (i = req->nmdesc, pfmr = req->fmr_list; i > 0; i--, pfmr++)
--			ib_fmr_pool_unmap(*pfmr);
- 	}
- 
- 	ib_dma_unmap_sg(ibdev, scsi_sglist(scmnd), scsi_sg_count(scmnd),
-@@ -1472,50 +1421,6 @@ static void srp_map_desc(struct srp_map_state *state, dma_addr_t dma_addr,
- 	state->ndesc++;
- }
- 
--static int srp_map_finish_fmr(struct srp_map_state *state,
--			      struct srp_rdma_ch *ch)
--{
--	struct srp_target_port *target = ch->target;
--	struct srp_device *dev = target->srp_host->srp_dev;
--	struct ib_pool_fmr *fmr;
--	u64 io_addr = 0;
--
--	if (state->fmr.next >= state->fmr.end) {
--		shost_printk(KERN_ERR, ch->target->scsi_host,
--			     PFX "Out of MRs (mr_per_cmd = %d)\n",
--			     ch->target->mr_per_cmd);
--		return -ENOMEM;
--	}
--
--	WARN_ON_ONCE(!dev->use_fmr);
--
--	if (state->npages == 0)
--		return 0;
--
--	if (state->npages == 1 && target->global_rkey) {
--		srp_map_desc(state, state->base_dma_addr, state->dma_len,
--			     target->global_rkey);
--		goto reset_state;
--	}
--
--	fmr = ib_fmr_pool_map_phys(ch->fmr_pool, state->pages,
--				   state->npages, io_addr);
--	if (IS_ERR(fmr))
--		return PTR_ERR(fmr);
--
--	*state->fmr.next++ = fmr;
--	state->nmdesc++;
--
--	srp_map_desc(state, state->base_dma_addr & ~dev->mr_page_mask,
--		     state->dma_len, fmr->fmr->rkey);
--
--reset_state:
--	state->npages = 0;
--	state->dma_len = 0;
--
--	return 0;
--}
--
- static void srp_reg_mr_err_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	srp_handle_qp_err(cq, wc, "FAST REG");
-@@ -1606,74 +1511,6 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	return n;
- }
- 
--static int srp_map_sg_entry(struct srp_map_state *state,
--			    struct srp_rdma_ch *ch,
--			    struct scatterlist *sg)
--{
--	struct srp_target_port *target = ch->target;
--	struct srp_device *dev = target->srp_host->srp_dev;
--	dma_addr_t dma_addr = sg_dma_address(sg);
--	unsigned int dma_len = sg_dma_len(sg);
--	unsigned int len = 0;
--	int ret;
--
--	WARN_ON_ONCE(!dma_len);
--
--	while (dma_len) {
--		unsigned offset = dma_addr & ~dev->mr_page_mask;
--
--		if (state->npages == dev->max_pages_per_mr ||
--		    (state->npages > 0 && offset != 0)) {
--			ret = srp_map_finish_fmr(state, ch);
--			if (ret)
--				return ret;
--		}
--
--		len = min_t(unsigned int, dma_len, dev->mr_page_size - offset);
--
--		if (!state->npages)
--			state->base_dma_addr = dma_addr;
--		state->pages[state->npages++] = dma_addr & dev->mr_page_mask;
--		state->dma_len += len;
--		dma_addr += len;
--		dma_len -= len;
--	}
--
--	/*
--	 * If the end of the MR is not on a page boundary then we need to
--	 * close it out and start a new one -- we can only merge at page
--	 * boundaries.
--	 */
--	ret = 0;
--	if ((dma_addr & ~dev->mr_page_mask) != 0)
--		ret = srp_map_finish_fmr(state, ch);
--	return ret;
--}
--
--static int srp_map_sg_fmr(struct srp_map_state *state, struct srp_rdma_ch *ch,
--			  struct srp_request *req, struct scatterlist *scat,
--			  int count)
--{
--	struct scatterlist *sg;
--	int i, ret;
--
--	state->pages = req->map_page;
--	state->fmr.next = req->fmr_list;
--	state->fmr.end = req->fmr_list + ch->target->mr_per_cmd;
--
--	for_each_sg(scat, sg, count, i) {
--		ret = srp_map_sg_entry(state, ch, sg);
--		if (ret)
--			return ret;
--	}
--
--	ret = srp_map_finish_fmr(state, ch);
--	if (ret)
--		return ret;
--
--	return 0;
--}
--
- static int srp_map_sg_fr(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 			 struct srp_request *req, struct scatterlist *scat,
- 			 int count)
-@@ -1733,7 +1570,6 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
- 	struct srp_device *dev = target->srp_host->srp_dev;
- 	struct srp_map_state state;
- 	struct srp_direct_buf idb_desc;
--	u64 idb_pages[1];
- 	struct scatterlist idb_sg[1];
- 	int ret;
- 
-@@ -1756,14 +1592,6 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
- 		if (ret < 0)
- 			return ret;
- 		WARN_ON_ONCE(ret < 1);
--	} else if (dev->use_fmr) {
--		state.pages = idb_pages;
--		state.pages[0] = (req->indirect_dma_addr &
--				  dev->mr_page_mask);
--		state.npages = 1;
--		ret = srp_map_finish_fmr(&state, ch);
--		if (ret < 0)
--			return ret;
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -1787,9 +1615,6 @@ static void srp_check_mapping(struct srp_map_state *state,
- 	if (dev->use_fast_reg)
- 		for (i = 0, pfr = req->fr_list; i < state->nmdesc; i++, pfr++)
- 			mr_len += (*pfr)->mr->length;
--	else if (dev->use_fmr)
--		for (i = 0; i < state->nmdesc; i++)
--			mr_len += be32_to_cpu(req->indirect_desc[i].len);
- 	if (desc_len != scsi_bufflen(req->scmnd) ||
- 	    mr_len > scsi_bufflen(req->scmnd))
- 		pr_err("Inconsistent: scsi len %d <> desc len %lld <> mr len %lld; ndesc %d; nmdesc = %d\n",
-@@ -1904,8 +1729,6 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 	state.desc = req->indirect_desc;
- 	if (dev->use_fast_reg)
- 		ret = srp_map_sg_fr(&state, ch, req, scat, count);
--	else if (dev->use_fmr)
--		ret = srp_map_sg_fmr(&state, ch, req, scat, count);
- 	else
- 		ret = srp_map_sg_dma(&state, ch, req, scat, count);
- 	req->nmdesc = state.nmdesc;
-@@ -3864,13 +3687,13 @@ static ssize_t srp_create_target(struct device *dev,
- 		goto out;
- 	}
- 
--	if (!srp_dev->has_fmr && !srp_dev->has_fr && !target->allow_ext_sg &&
-+	if (!srp_dev->has_fr && !target->allow_ext_sg &&
- 	    target->cmd_sg_cnt < target->sg_tablesize) {
- 		pr_warn("No MR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
- 		target->sg_tablesize = target->cmd_sg_cnt;
- 	}
- 
--	if (srp_dev->use_fast_reg || srp_dev->use_fmr) {
-+	if (srp_dev->use_fast_reg) {
- 		bool gaps_reg = (ibdev->attrs.device_cap_flags &
- 				 IB_DEVICE_SG_GAPS_REG);
- 
-@@ -3878,12 +3701,12 @@ static ssize_t srp_create_target(struct device *dev,
- 				  (ilog2(srp_dev->mr_page_size) - 9);
- 		if (!gaps_reg) {
- 			/*
--			 * FR and FMR can only map one HCA page per entry. If
--			 * the start address is not aligned on a HCA page
--			 * boundary two entries will be used for the head and
--			 * the tail although these two entries combined
--			 * contain at most one HCA page of data. Hence the "+
--			 * 1" in the calculation below.
-+			 * FR can only map one HCA page per entry. If the start
-+			 * address is not aligned on a HCA page boundary two
-+			 * entries will be used for the head and the tail
-+			 * although these two entries combined contain at most
-+			 * one HCA page of data. Hence the "+ 1" in the
-+			 * calculation below.
- 			 *
- 			 * The indirect data buffer descriptor is contiguous
- 			 * so the memory for that buffer will only be
-@@ -4162,23 +3985,15 @@ static void srp_add_one(struct ib_device *device)
- 	srp_dev->max_pages_per_mr = min_t(u64, SRP_MAX_PAGES_PER_MR,
- 					  max_pages_per_mr);
- 
--	srp_dev->has_fmr = (device->ops.alloc_fmr &&
--			    device->ops.dealloc_fmr &&
--			    device->ops.map_phys_fmr &&
--			    device->ops.unmap_fmr);
- 	srp_dev->has_fr = (attr->device_cap_flags &
- 			   IB_DEVICE_MEM_MGT_EXTENSIONS);
--	if (!never_register && !srp_dev->has_fmr && !srp_dev->has_fr) {
--		dev_warn(&device->dev, "neither FMR nor FR is supported\n");
--	} else if (!never_register &&
--		   attr->max_mr_size >= 2 * srp_dev->mr_page_size) {
--		srp_dev->use_fast_reg = (srp_dev->has_fr &&
--					 (!srp_dev->has_fmr || prefer_fr));
--		srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
--	}
-+	if (!never_register && !srp_dev->has_fr)
-+		dev_warn(&device->dev, "FR is not supported\n");
-+	else if (!never_register &&
-+		 attr->max_mr_size >= 2 * srp_dev->mr_page_size)
-+		srp_dev->use_fast_reg = srp_dev->has_fr;
- 
--	if (never_register || !register_always ||
--	    (!srp_dev->has_fmr && !srp_dev->has_fr))
-+	if (never_register || !register_always || !srp_dev->has_fr)
- 		flags |= IB_PD_UNSAFE_GLOBAL_RKEY;
- 
- 	if (srp_dev->use_fast_reg) {
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 6fabcc2..6818cac 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -44,7 +44,6 @@
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_sa.h>
- #include <rdma/ib_cm.h>
--#include <rdma/ib_fmr_pool.h>
- #include <rdma/rdma_cm.h>
- 
- enum {
-@@ -95,8 +94,7 @@ enum srp_iu_type {
- /*
-  * @mr_page_mask: HCA memory registration page mask.
-  * @mr_page_size: HCA memory registration page size.
-- * @mr_max_size: Maximum size in bytes of a single FMR / FR registration
-- *   request.
-+ * @mr_max_size: Maximum size in bytes of a single FR registration request.
-  */
- struct srp_device {
- 	struct list_head	dev_list;
-@@ -107,9 +105,7 @@ struct srp_device {
- 	int			mr_page_size;
- 	int			mr_max_size;
- 	int			max_pages_per_mr;
--	bool			has_fmr;
- 	bool			has_fr;
--	bool			use_fmr;
- 	bool			use_fast_reg;
- };
- 
-@@ -127,11 +123,7 @@ struct srp_host {
- struct srp_request {
- 	struct scsi_cmnd       *scmnd;
- 	struct srp_iu	       *cmd;
--	union {
--		struct ib_pool_fmr **fmr_list;
--		struct srp_fr_desc **fr_list;
--	};
--	u64		       *map_page;
-+	struct srp_fr_desc     **fr_list;
- 	struct srp_direct_buf  *indirect_desc;
- 	dma_addr_t		indirect_dma_addr;
- 	short			nmdesc;
-@@ -155,10 +147,7 @@ struct srp_rdma_ch {
- 	struct ib_cq	       *send_cq;
- 	struct ib_cq	       *recv_cq;
- 	struct ib_qp	       *qp;
--	union {
--		struct ib_fmr_pool     *fmr_pool;
--		struct srp_fr_pool     *fr_pool;
--	};
-+	struct srp_fr_pool     *fr_pool;
- 	uint32_t		max_it_iu_len;
- 	uint32_t		max_ti_iu_len;
- 	u8			max_imm_sge;
-@@ -319,20 +308,16 @@ struct srp_fr_pool {
-  * @pages:	    Array with DMA addresses of pages being considered for
-  *		    memory registration.
-  * @base_dma_addr:  DMA address of the first page that has not yet been mapped.
-- * @dma_len:	    Number of bytes that will be registered with the next
-- *		    FMR or FR memory registration call.
-+ * @dma_len:	    Number of bytes that will be registered with the next FR
-+ *                  memory registration call.
-  * @total_len:	    Total number of bytes in the sg-list being mapped.
-  * @npages:	    Number of page addresses in the pages[] array.
-- * @nmdesc:	    Number of FMR or FR memory descriptors used for mapping.
-+ * @nmdesc:	    Number of FR memory descriptors used for mapping.
-  * @ndesc:	    Number of SRP buffer descriptors that have been filled in.
-  */
- struct srp_map_state {
- 	union {
- 		struct {
--			struct ib_pool_fmr **next;
--			struct ib_pool_fmr **end;
--		} fmr;
--		struct {
- 			struct srp_fr_desc **next;
- 			struct srp_fr_desc **end;
- 		} fr;
--- 
-1.8.3.1
+> @@ -71,7 +71,7 @@
+>  static unsigned int cmd_sg_entries;
+>  static unsigned int indirect_sg_entries;
+>  static bool allow_ext_sg;
+> -static bool prefer_fr = true;
+> +static bool prefer_fr;
+>  static bool register_always = true;
+>  static bool never_register;
+>  static int topspin_workarounds = 1;
 
+Is this change necessary?
+
+Thanks,
+
+Bart.
