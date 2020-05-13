@@ -2,182 +2,114 @@ Return-Path: <SRS0=bifO=63=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F34FC433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 21:02:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B49DC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 21:45:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F70420675
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 21:02:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B9C920675
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 21:45:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="oeTy6T3z"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="PFMTomRM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726015AbgEMVCw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 17:02:52 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:57436 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725952AbgEMVCw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 17:02:52 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04DKrGE5066369;
-        Wed, 13 May 2020 21:02:47 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=/3boRfPP9/nbgsqYwmPrKIYlI9iF/ok9lCvoAeyY0C8=;
- b=oeTy6T3zpL4mid5izCz7pT+UpH2DE7F4GbmYlPnijWMIOmwl1oLne/oN8vZWIXNpwjqd
- BOfjNNdQnghQVw32Y/8iDTTBJF5tQjKg8y2+AHV+myeNNb4vueg+1X0uKlF3NXoxjO/T
- ekycOEODQ2IFMlRLc4iT774jd8MWSg8/OZ8yTtCyGdNaKj3WGtaELuumPpwdcYNRp02C
- tKs/mxGz/G3trHiYHz+eh9PIRCY3rehwMfJHlUfPy5eVTP+JCIEPshTB0pKvsktVgp04
- S73lasR+gRwRsXIl8YtzYsLKwK9psYtPLUboRfxnJbADGsAW5qRKYrzEOj9Pk4zusm+R Ww== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 3100xwes3a-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 13 May 2020 21:02:47 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04DL2avo119257;
-        Wed, 13 May 2020 21:02:46 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3020.oracle.com with ESMTP id 3100ymv2q0-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 13 May 2020 21:02:46 +0000
-Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 04DL2juF006783;
-        Wed, 13 May 2020 21:02:45 GMT
-Received: from dhcp-10-159-252-198.vpn.oracle.com (/10.159.252.198)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 13 May 2020 14:02:45 -0700
-Subject: Re: [PATCH 1/2] IB/sa: Resolving use-after-free in ib_nl_send_msg.
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Kaike Wan <kaike.wan@intel.com>,
-        Gerd Rausch <gerd.rausch@oracle.com>,
-        =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>,
-        Srinivas Eeda <srinivas.eeda@oracle.com>,
-        Rama Nichanamatlu <rama.nichanamatlu@oracle.com>,
-        Doug Ledford <dledford@redhat.com>
-References: <1588876487-5781-1-git-send-email-divya.indi@oracle.com>
- <1588876487-5781-2-git-send-email-divya.indi@oracle.com>
- <20200508000809.GM26002@ziepe.ca>
- <33fc99e2-e9fc-3c8c-e47f-41535f514c2d@oracle.com>
- <20200513150021.GD29989@ziepe.ca>
-From:   Divya Indi <divya.indi@oracle.com>
-Message-ID: <c761da30-3663-4932-dd72-3501f15c0197@oracle.com>
-Date:   Wed, 13 May 2020 14:02:01 -0700
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
- Gecko/20100101 Thunderbird/68.8.0
+        id S1729439AbgEMVpf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 17:45:35 -0400
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:16462 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729196AbgEMVpf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 17:45:35 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5ebc6a720000>; Wed, 13 May 2020 14:45:22 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Wed, 13 May 2020 14:45:34 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Wed, 13 May 2020 14:45:34 -0700
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 13 May
+ 2020 21:45:32 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Wed, 13 May 2020 21:45:32 +0000
+Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5ebc6a7c0001>; Wed, 13 May 2020 14:45:32 -0700
+From:   Ralph Campbell <rcampbell@nvidia.com>
+To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
+        <linux-kselftest@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     Jerome Glisse <jglisse@redhat.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        "Andrew Morton" <akpm@linux-foundation.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "Ralph Campbell" <rcampbell@nvidia.com>
+Subject: [PATCH] mm/hmm/test: destroy xa_array instead of looping
+Date:   Wed, 13 May 2020 14:45:07 -0700
+Message-ID: <20200513214507.30592-1-rcampbell@nvidia.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20200513150021.GD29989@ziepe.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9620 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 adultscore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 suspectscore=11
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2004280000 definitions=main-2005130178
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9620 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 lowpriorityscore=0
- suspectscore=11 mlxlogscore=999 clxscore=1015 cotscore=-2147483648
- mlxscore=0 phishscore=0 adultscore=0 impostorscore=0 bulkscore=0
- malwarescore=0 priorityscore=1501 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2005130177
+X-NVConfidentiality: public
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1589406322; bh=mUTdF1AVMZd0iSCg3E8fEbaYihKH2WAzpFyYOhyV/OU=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
+         Content-Type;
+        b=PFMTomRMAVJQ+UmxKAlAwof1dFot0qpMAJ1vATc+rjN6uEFZzlhYJjSuMLTODsPgc
+         K1PGvX4Bl+rKy4f/9/TuNUPRXrd8vGl4tU9aHkqJKDonNKUipJOOOgodwCMSd9YrMw
+         0krWiaadjXUzTUkp7oLKOHZCjMyG14aKfhQeB8UVeMwu87bAoRYJuiF7RseMI3/pjg
+         b9UQxFVFq45A+LHLKLIOTboyOgW1OKpwRmzNoQx6GCVok9yNkgqS9kavltRa4ARTUv
+         cqFpoLFZXI0zCycLGP/OhkT0QgR3adaoJhqku3WXCke7DZF2GZD3THkRh8Gtdqf+Cn
+         tifp6KhgVPa1g==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason,
+The test driver uses an xa_array to store virtual to physical address
+translations for a simulated hardware device. The MMU notifier
+invalidation callback is used to keep the table consistent with the CPU
+page table and is frequently called only for a page or two. However, if
+the test process exits unexpectedly or is killed, the range can be
+[0..ULONG_MAX] in which case calling xa_erase() for every possible PFN
+results in CPU timeouts. Munmap() can result in a large range being
+invalidated but in that case, the xa_array is likely to contain entries
+that need to be invalidated.
+Check for [0..ULONG_MAX] explicitly and just destroy the whole table.
 
-Please find my comments inline - 
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+---
 
-On 5/13/20 8:00 AM, Jason Gunthorpe wrote:
-> On Mon, May 11, 2020 at 02:26:30PM -0700, Divya Indi wrote:
->>>> @@ -1123,6 +1156,18 @@ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
->>>>  
->>>>  	send_buf = query->mad_buf;
->>>>  
->>>> +	/*
->>>> +	 * Make sure the IB_SA_NL_QUERY_SENT flag is set before
->>>> +	 * processing this query. If flag is not set, query can be accessed in
->>>> +	 * another context while setting the flag and processing the query will
->>>> +	 * eventually release it causing a possible use-after-free.
->>>> +	 */
->>> This comment doesn't really make sense, flags insige the memory being
->>> freed inherently can't prevent use after free.
->> I can definitely re-phrase here to make things clearer. But, the idea here is
->> in the unlikely/rare case where a response for a query comes in before the flag has been
->> set in ib_nl_make_request, we want to wait for the flag to be sent before proceeding. 
->> The response handler will eventually release the query so this wait avoids that if the flag has not been set
->> else 
->> 	"query->flags |= IB_SA_NL_QUERY_SENT;" 
->> will be accessing a query which was freed due to the above mentioned race.
->>
->> It is unlikely since getting a response => We have actually sent out the query to ibacm.
->>
->> How about this -
->>
->> "Getting a response is indicative of having sent out the query, but in an unlikely race when 
->> the response comes in before setting IB_SA_NL_QUERY_SENT, we need to wait till the flag is set to
->> avoid accessing a query that has been released."
-> It still makes no sense, a flag that is set before freeing the memory
-> is fundamentally useless to prevent races.
+This patch is based on Jason Gunthorpe's hmm tree and should be folded
+into the ("mm/hmm/test: add selftest driver for HMM") patch once this
+patch is reviewed, etc.
 
-Here the race is -
+ lib/test_hmm.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-1. ib_nl_send_msg()
-2. query->flags |= IB_SA_NL_QUERY_SENT
-3. return;
+diff --git a/lib/test_hmm.c b/lib/test_hmm.c
+index 8b36c26b717b..b89852ec3c29 100644
+--- a/lib/test_hmm.c
++++ b/lib/test_hmm.c
+@@ -201,7 +201,13 @@ static void dmirror_do_update(struct dmirror *dmirror,=
+ unsigned long start,
+ 	 * The XArray doesn't hold references to pages since it relies on
+ 	 * the mmu notifier to clear page pointers when they become stale.
+ 	 * Therefore, it is OK to just clear the entry.
++	 * However, if the entire address space is being invalidated, it
++	 * takes too long to clear them one at a time so destroy the array.
+ 	 */
++	if (start =3D=3D 0 && end =3D=3D ULONG_MAX) {
++		xa_destroy(&dmirror->pt);
++		return;
++	}
+ 	for (pfn =3D start >> PAGE_SHIFT; pfn < (end >> PAGE_SHIFT); pfn++)
+ 		xa_erase(&dmirror->pt, pfn);
+ }
+--=20
+2.20.1
 
--------------
-
-response_handler() {
-wait till flag is set.
-....
-kfree(query);
-
-}
-
-Here, if the response handler was called => Query was sent
-and flag should have been set. However if response handler kicks in
-before line 2, we want to wait and make sure the flag is set and
-then free the query.
-
-Ideally after ib_nl_send_msg, we should not be accessing the query
-because we can be getting a response/timeout asynchronously and cant be
-sure when. 
-
-The only places we access a query after it is successfully sent [response handler getting called
-=> sending was successful] -
-1. ib_nl_request_timeout
-2. While setting the flag.
-
-1. is taken care of because the request list access is protected by a lock
-and whoever gets the lock first deletes it from the request list and
-hence we can only have the response handler OR the timeout handler operate on the
-query.
-
-2. To handle this is why we wait in the response handler. Once the flag is
-set we are no longer accessing the query and hence safe to release it.
-
-I have modified the comment for v2 as follows -
-
-      /*
-+        * In case of a quick response ie when a response comes in before
-+        * setting IB_SA_NL_QUERY_SENT, we can have an unlikely race where the
-+        * response handler will release the query, but we can still access the
-+        * freed query while setting the flag.
-+        * Hence, before proceeding and eventually releasing the query -
-+        * wait till the flag is set. The flag should be set soon since getting
-+        * a response is indicative of having successfully sent the query.
-+        */
-
-
-Thanks,
-Divya
-
->
-> Jason
