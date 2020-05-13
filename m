@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CCFEC2D0FD
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 06:29:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC810C2D0F8
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 06:29:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1C05206A5
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 06:29:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C204A206A5
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 May 2020 06:29:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="QBzoPB1r"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="pxhQaa1U"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732261AbgEMG3R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 May 2020 02:29:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46240 "EHLO
+        id S1732180AbgEMG3F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 May 2020 02:29:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732222AbgEMG3O (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 02:29:14 -0400
+        with ESMTP id S1732108AbgEMG3D (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 May 2020 02:29:03 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93E9CC061A0E;
-        Tue, 12 May 2020 23:29:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D1DBC061A0E;
+        Tue, 12 May 2020 23:29:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=RT06EoGrVrHQTvP6klOVHjd2ts3cATgXnJrV7ayJulk=; b=QBzoPB1rzH3PFbPgtT4mBt8Z4C
-        eDmOZEDFQC3+q/X489vXRliFZorY9s1TopC/wftxfH855f5eicviKhhwdXbHN1/VqXOxza2GxHShH
-        UAcK1CcHlTXN0T21/FQ2O7nzNgevcPNlkU33mT55t1OEn7vC1f7VIYnIX3k6qeSv8knz9rrlPfscn
-        lHKhIGlmdyqw0cvvpYgJzFlsgeEb4W9B0bjxYfQdAV6tWgN+bTCRfVu8mxKinxAoO96zAXMpFDzav
-        hUdXU2xeCrWvrse7AX/1hBtWmLVs9wOwiEf6f7ztqAi3UmqEtEt0oJ890C2vbl11UYJdZ2D3HZmEH
-        zMCmmufQ==;
+        bh=qKkhwwH9olQLFLmlxkgq6ArpL5LZdN1qvB6lNx/Jjh4=; b=pxhQaa1U3KdOYtasAWRKCqw1OY
+        h9pkNE8ZzmKVddyFpFJPgmglClzT+hi+8ZoptLUGpUcB4Hrq5tRvsDhx7+fgOE6dEDeo6YnDV1Vp2
+        UOfi6F+biZdnG6q9Ovti2wad8/1htWsC0Bd55R2/v3BkHAxCsP1BUyO2stG7UlAXQtesrpqXCl/A6
+        KnVqnWKYly8p7osClxbUay1UAGC6MiZx4eWsGZB8dF7G1JhMbRFOgxXKMI2kto3djEyr16ajaBxRd
+        pmAj+oMJI7ZKFntig/ZE+zERUM7tHZrD8dYQxcWddYZhMxaoHUlULvr7C7Id1uGdjLvSBsLgk+ktF
+        zXqdP1ZQ==;
 Received: from [2001:4bb8:180:9d3f:c70:4a89:bc61:2] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jYksF-0004z4-Gi; Wed, 13 May 2020 06:28:11 +0000
+        id 1jYks6-0004pR-63; Wed, 13 May 2020 06:28:02 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -55,9 +55,9 @@ Cc:     Eric Dumazet <edumazet@google.com>,
         ocfs2-devel@oss.oracle.com, netdev@vger.kernel.org,
         linux-sctp@vger.kernel.org, ceph-devel@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
-Subject: [PATCH 26/33] sctp: lift copying in addrs into sctp_setsockopt
-Date:   Wed, 13 May 2020 08:26:41 +0200
-Message-Id: <20200513062649.2100053-27-hch@lst.de>
+Subject: [PATCH 23/33] ipv6: add ip6_sock_set_recverr
+Date:   Wed, 13 May 2020 08:26:38 +0200
+Message-Id: <20200513062649.2100053-24-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200513062649.2100053-1-hch@lst.de>
 References: <20200513062649.2100053-1-hch@lst.de>
@@ -69,175 +69,76 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Prepare for additional kernel-space callers of sctp_setsockopt_bindx.
+Add a helper to directly set the IPV6_RECVERR sockopt from kernel space
+without going through a fake uaccess.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/sctp/socket.c | 71 ++++++++++++++++++-----------------------------
- 1 file changed, 27 insertions(+), 44 deletions(-)
+ include/net/ipv6.h       |  1 +
+ net/ipv6/ipv6_sockglue.c | 10 ++++++++++
+ net/rxrpc/local_object.c | 10 ++--------
+ 3 files changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/net/sctp/socket.c b/net/sctp/socket.c
-index 827a9903ee288..1c96b52c4aa28 100644
---- a/net/sctp/socket.c
-+++ b/net/sctp/socket.c
-@@ -972,18 +972,16 @@ int sctp_asconf_mgmt(struct sctp_sock *sp, struct sctp_sockaddr_entry *addrw)
-  * it.
-  *
-  * sk        The sk of the socket
-- * addrs     The pointer to the addresses in user land
-+ * addrs     The pointer to the addresses
-  * addrssize Size of the addrs buffer
-  * op        Operation to perform (add or remove, see the flags of
-  *           sctp_bindx)
-  *
-  * Returns 0 if ok, <0 errno code on error.
-  */
--static int sctp_setsockopt_bindx(struct sock *sk,
--				 struct sockaddr __user *addrs,
-+static int sctp_setsockopt_bindx(struct sock *sk, struct sockaddr *kaddrs,
- 				 int addrs_size, int op)
- {
--	struct sockaddr *kaddrs;
- 	int err;
- 	int addrcnt = 0;
- 	int walk_size = 0;
-@@ -991,23 +989,13 @@ static int sctp_setsockopt_bindx(struct sock *sk,
- 	void *addr_buf;
- 	struct sctp_af *af;
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index e24b59201a00d..69bc1651aaef8 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -1176,5 +1176,6 @@ int ipv6_sock_mc_drop(struct sock *sk, int ifindex,
+ 		      const struct in6_addr *addr);
  
--	pr_debug("%s: sk:%p addrs:%p addrs_size:%d opt:%d\n",
--		 __func__, sk, addrs, addrs_size, op);
--
--	if (unlikely(addrs_size <= 0))
--		return -EINVAL;
-+	pr_debug("%s: sk:%p kaddrs:%p addrs_size:%d opt:%d\n",
-+		 __func__, sk, kaddrs, addrs_size, op);
+ int ip6_sock_set_v6only(struct sock *sk, bool val);
++void ip6_sock_set_recverr(struct sock *sk, bool val);
  
--	kaddrs = memdup_user(addrs, addrs_size);
--	if (IS_ERR(kaddrs))
--		return PTR_ERR(kaddrs);
--
--	/* Walk through the addrs buffer and count the number of addresses. */
- 	addr_buf = kaddrs;
- 	while (walk_size < addrs_size) {
--		if (walk_size + sizeof(sa_family_t) > addrs_size) {
--			kfree(kaddrs);
-+		if (walk_size + sizeof(sa_family_t) > addrs_size)
- 			return -EINVAL;
--		}
- 
- 		sa_addr = addr_buf;
- 		af = sctp_get_af_specific(sa_addr->sa_family);
-@@ -1015,10 +1003,8 @@ static int sctp_setsockopt_bindx(struct sock *sk,
- 		/* If the address family is not supported or if this address
- 		 * causes the address buffer to overflow return EINVAL.
- 		 */
--		if (!af || (walk_size + af->sockaddr_len) > addrs_size) {
--			kfree(kaddrs);
-+		if (!af || (walk_size + af->sockaddr_len) > addrs_size)
- 			return -EINVAL;
--		}
- 		addrcnt++;
- 		addr_buf += af->sockaddr_len;
- 		walk_size += af->sockaddr_len;
-@@ -1032,29 +1018,19 @@ static int sctp_setsockopt_bindx(struct sock *sk,
- 						 (struct sockaddr *)kaddrs,
- 						 addrs_size);
- 		if (err)
--			goto out;
-+			return err;
- 		err = sctp_bindx_add(sk, kaddrs, addrcnt);
- 		if (err)
--			goto out;
--		err = sctp_send_asconf_add_ip(sk, kaddrs, addrcnt);
--		break;
--
-+			return err;
-+		return sctp_send_asconf_add_ip(sk, kaddrs, addrcnt);
- 	case SCTP_BINDX_REM_ADDR:
- 		err = sctp_bindx_rem(sk, kaddrs, addrcnt);
- 		if (err)
--			goto out;
--		err = sctp_send_asconf_del_ip(sk, kaddrs, addrcnt);
--		break;
--
-+			return err;
-+		return sctp_send_asconf_del_ip(sk, kaddrs, addrcnt);
- 	default:
--		err = -EINVAL;
--		break;
-+		return -EINVAL;
- 	}
--
--out:
--	kfree(kaddrs);
--
--	return err;
+ #endif /* _NET_IPV6_H */
+diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
+index f26224bb3e098..3c67626b6f5a9 100644
+--- a/net/ipv6/ipv6_sockglue.c
++++ b/net/ipv6/ipv6_sockglue.c
+@@ -147,6 +147,16 @@ int ip6_sock_set_v6only(struct sock *sk, bool val)
  }
+ EXPORT_SYMBOL(ip6_sock_set_v6only);
  
- static int sctp_connect_new_asoc(struct sctp_endpoint *ep,
-@@ -4670,6 +4646,7 @@ static int sctp_setsockopt_pf_expose(struct sock *sk,
- static int sctp_setsockopt(struct sock *sk, int level, int optname,
- 			   char __user *optval, unsigned int optlen)
++void ip6_sock_set_recverr(struct sock *sk, bool val)
++{
++	lock_sock(sk);
++	inet6_sk(sk)->recverr = val;
++	if (!val)
++		skb_queue_purge(&sk->sk_error_queue);
++	release_sock(sk);
++}
++EXPORT_SYMBOL(ip6_sock_set_recverr);
++
+ static int do_ipv6_setsockopt(struct sock *sk, int level, int optname,
+ 		    char __user *optval, unsigned int optlen)
  {
-+	struct sockaddr *kaddrs;
- 	int retval = 0;
+diff --git a/net/rxrpc/local_object.c b/net/rxrpc/local_object.c
+index 20236ddecd2ef..5e356a63aa791 100644
+--- a/net/rxrpc/local_object.c
++++ b/net/rxrpc/local_object.c
+@@ -107,7 +107,7 @@ static struct rxrpc_local *rxrpc_alloc_local(struct rxrpc_net *rxnet,
+ static int rxrpc_open_socket(struct rxrpc_local *local, struct net *net)
+ {
+ 	struct sock *usk;
+-	int ret, opt;
++	int ret;
  
- 	pr_debug("%s: sk:%p, optname:%d\n", __func__, sk, optname);
-@@ -4682,30 +4659,37 @@ static int sctp_setsockopt(struct sock *sk, int level, int optname,
- 	 */
- 	if (level != SOL_SCTP) {
- 		struct sctp_af *af = sctp_sk(sk)->pf->af;
--		retval = af->setsockopt(sk, level, optname, optval, optlen);
--		goto out_nounlock;
-+		return af->setsockopt(sk, level, optname, optval, optlen);
- 	}
+ 	_enter("%p{%d,%d}",
+ 	       local, local->srx.transport_type, local->srx.transport.family);
+@@ -157,13 +157,7 @@ static int rxrpc_open_socket(struct rxrpc_local *local, struct net *net)
+ 	switch (local->srx.transport.family) {
+ 	case AF_INET6:
+ 		/* we want to receive ICMPv6 errors */
+-		opt = 1;
+-		ret = kernel_setsockopt(local->socket, SOL_IPV6, IPV6_RECVERR,
+-					(char *) &opt, sizeof(opt));
+-		if (ret < 0) {
+-			_debug("setsockopt failed");
+-			goto error;
+-		}
++		ip6_sock_set_recverr(local->socket->sk, true);
  
-+	if (unlikely(optlen <= 0))
-+		return -EINVAL;
-+
-+	kaddrs = memdup_user(optval, optlen);
-+	if (IS_ERR(kaddrs))
-+		return PTR_ERR(kaddrs);
-+
-+	/* Walk through the addrs buffer and count the number of addresses. */
-+
- 	lock_sock(sk);
- 
- 	switch (optname) {
- 	case SCTP_SOCKOPT_BINDX_ADD:
- 		/* 'optlen' is the size of the addresses buffer. */
--		retval = sctp_setsockopt_bindx(sk, (struct sockaddr __user *)optval,
-+		retval = sctp_setsockopt_bindx(sk, (struct sockaddr *)optval,
- 					       optlen, SCTP_BINDX_ADD_ADDR);
- 		break;
- 
- 	case SCTP_SOCKOPT_BINDX_REM:
- 		/* 'optlen' is the size of the addresses buffer. */
--		retval = sctp_setsockopt_bindx(sk, (struct sockaddr __user *)optval,
-+		retval = sctp_setsockopt_bindx(sk, (struct sockaddr *)optval,
- 					       optlen, SCTP_BINDX_REM_ADDR);
- 		break;
- 
- 	case SCTP_SOCKOPT_CONNECTX_OLD:
- 		/* 'optlen' is the size of the addresses buffer. */
- 		retval = sctp_setsockopt_connectx_old(sk,
--					    (struct sockaddr __user *)optval,
--					    optlen);
-+					    (struct sockaddr *)optval, optlen);
- 		break;
- 
- 	case SCTP_SOCKOPT_CONNECTX:
-@@ -4871,8 +4855,7 @@ static int sctp_setsockopt(struct sock *sk, int level, int optname,
- 	}
- 
- 	release_sock(sk);
--
--out_nounlock:
-+	kfree(kaddrs);
- 	return retval;
- }
- 
+ 		/* Fall through and set IPv4 options too otherwise we don't get
+ 		 * errors from IPv4 packets sent through the IPv6 socket.
 -- 
 2.26.2
 
