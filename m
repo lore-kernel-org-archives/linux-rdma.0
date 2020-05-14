@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3495C433E1
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:57:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E105C433E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:59:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75AC320727
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:57:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F57920801
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:59:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589482655;
-	bh=dIwDnWBI3zdZPm70c3zyZlmhRIygOKZQKTDT8e1PHPk=;
+	s=default; t=1589482767;
+	bh=oRzOtKeM3gwOwne4JOUunDae+meR9aQTN2zQLyJ8T2w=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=VVkHzNECYfQzxT5QrWQWg+3ybofDOwbifW4e38udGIuENtunRKYHOd6/ff8q+sirf
-	 WnUxKM8vsaF3zETOGwur3IXI1GKaCFfxdL8hnng59Qh77aL81Z3tPaA+s9Iph6pwD8
-	 YSYh96VnVxWaNPTEYc85tbKNYVlyEf3breAVgfVA=
+	b=GW1EC5OIqIW9Up7drZcjuqz4RqiG7OFQl8WM5tWGseKSneF5wBxX6cp/0oosA4C1T
+	 0OSkTsv5FiYnZfNjpX9EjBDDkaImoOjm7+3WTTdYzw0aVXVkq1CFPsBxkxXLDNSKfp
+	 qBFRP4CkenXW+VJeiIkuJtBZkWv3cVU1u3wd3eig=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729763AbgENS5V (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 May 2020 14:57:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57698 "EHLO mail.kernel.org"
+        id S1729582AbgENS4H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 May 2020 14:56:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729747AbgENS4j (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 14 May 2020 14:56:39 -0400
+        id S1729577AbgENS4H (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 May 2020 14:56:07 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 86DDB20727;
-        Thu, 14 May 2020 18:56:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D40E62074A;
+        Thu, 14 May 2020 18:56:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589482598;
-        bh=dIwDnWBI3zdZPm70c3zyZlmhRIygOKZQKTDT8e1PHPk=;
+        s=default; t=1589482566;
+        bh=oRzOtKeM3gwOwne4JOUunDae+meR9aQTN2zQLyJ8T2w=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dw2O1rYUD24KUj85XKvkTE4U/vl16Qsv2thPjlhteLL5sCfeXofGzjv66Teot5JB5
-         wAZgIGUjFBgYC/HW6wB3SfQTQIjJMK7vIfNViC/eeINHX5y5vmMnF7Uom6lJueludn
-         kNP2qX0HKYs+VnOz6tyWMTak/NSe3gIBvYfywpaA=
+        b=akBCseKZ5JJRMqZth2dIyPwO0shqQ474wKco4FDcNAIua8+TOfn6yWC63LYFIbq/k
+         z3pDpR4xC+8VZw6DCfQ97Y63H8GY/3+IruBQSnunNKRfcrzbrFOHMpy0R3Q7QexF0Q
+         7tdVf9Feai21NGmccxtJmj+kXH2rj0QLeD+CItCg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Tariq Toukan <tariqt@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        "David S . Miller" <davem@davemloft.net>,
+Cc:     Moshe Shemesh <moshe@mellanox.com>,
+        Eran Ben Elisha <eranbe@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 10/14] net/mlx4_core: Fix use of ENOSPC around mlx4_counter_alloc()
-Date:   Thu, 14 May 2020 14:56:21 -0400
-Message-Id: <20200514185625.21753-10-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 13/27] net/mlx5: Fix forced completion access non initialized command entry
+Date:   Thu, 14 May 2020 14:55:36 -0400
+Message-Id: <20200514185550.21462-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200514185625.21753-1-sashal@kernel.org>
-References: <20200514185625.21753-1-sashal@kernel.org>
+In-Reply-To: <20200514185550.21462-1-sashal@kernel.org>
+References: <20200514185550.21462-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,52 +60,49 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Tariq Toukan <tariqt@mellanox.com>
+From: Moshe Shemesh <moshe@mellanox.com>
 
-[ Upstream commit 40e473071dbad04316ddc3613c3a3d1c75458299 ]
+[ Upstream commit f3cb3cebe26ed4c8036adbd9448b372129d3c371 ]
 
-When ENOSPC is set the idx is still valid and gets set to the global
-MLX4_SINK_COUNTER_INDEX.  However gcc's static analysis cannot tell that
-ENOSPC is impossible from mlx4_cmd_imm() and gives this warning:
+mlx5_cmd_flush() will trigger forced completions to all valid command
+entries. Triggered by an asynch event such as fast teardown it can
+happen at any stage of the command, including command initialization.
+It will trigger forced completion and that can lead to completion on an
+uninitialized command entry.
 
-drivers/net/ethernet/mellanox/mlx4/main.c:2552:28: warning: 'idx' may be
-used uninitialized in this function [-Wmaybe-uninitialized]
- 2552 |    priv->def_counter[port] = idx;
+Setting MLX5_CMD_ENT_STATE_PENDING_COMP only after command entry is
+initialized will ensure force completion is treated only if command
+entry is initialized.
 
-Also, when ENOSPC is returned mlx4_allocate_default_counters should not
-fail.
-
-Fixes: 6de5f7f6a1fa ("net/mlx4_core: Allocate default counter per port")
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Fixes: 73dd3a4839c1 ("net/mlx5: Avoid using pending command interface slots")
+Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
+Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/main.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index f8ac0e69d14b7..b774ba64bd4b5 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -2295,6 +2295,7 @@ static int mlx4_allocate_default_counters(struct mlx4_dev *dev)
- 
- 		if (!err || err == -ENOSPC) {
- 			priv->def_counter[port] = idx;
-+			err = 0;
- 		} else if (err == -ENOENT) {
- 			err = 0;
- 			continue;
-@@ -2344,7 +2345,8 @@ int mlx4_counter_alloc(struct mlx4_dev *dev, u32 *idx)
- 				   MLX4_CMD_TIME_CLASS_A, MLX4_CMD_WRAPPED);
- 		if (!err)
- 			*idx = get_param_l(&out_param);
--
-+		if (WARN_ON(err == -ENOSPC))
-+			err = -EINVAL;
- 		return err;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 1d5263c46eee0..a1057efa2294e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -813,7 +813,6 @@ static void cmd_work_handler(struct work_struct *work)
  	}
- 	return __mlx4_counter_alloc(dev, idx);
+ 
+ 	cmd->ent_arr[ent->idx] = ent;
+-	set_bit(MLX5_CMD_ENT_STATE_PENDING_COMP, &ent->state);
+ 	lay = get_inst(cmd, ent->idx);
+ 	ent->lay = lay;
+ 	memset(lay, 0, sizeof(*lay));
+@@ -835,6 +834,7 @@ static void cmd_work_handler(struct work_struct *work)
+ 
+ 	if (ent->callback)
+ 		schedule_delayed_work(&ent->cb_timeout_work, cb_timeout);
++	set_bit(MLX5_CMD_ENT_STATE_PENDING_COMP, &ent->state);
+ 
+ 	/* Skip sending command to fw if internal error */
+ 	if (pci_channel_offline(dev->pdev) ||
 -- 
 2.20.1
 
