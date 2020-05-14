@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AACDFC433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 19:01:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A408C433E1
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 19:01:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7B88C20675
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 19:01:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBB38206A5
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 19:01:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589482889;
-	bh=xKqNhfofCfsb6sZSc/K19nM7f9VNbEQR3BZ1CS7Z254=;
+	s=default; t=1589482904;
+	bh=trP38vyDT1ZCKtvluwpdTrynKthfZMwR8i86aw6COg0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=CA+JRWREIcubiW/pPJJ5hlBrBbkL9VYciQlld8t533BntWL0JUhNaf+XHsUG5XMyg
-	 nS/2sk2msjBLSWcbLNHdk/3sbRiYZSD68mKbUy4fXlltKUojs7cPpuyXD1dQN3Wx0c
-	 UmrznZ3kHqNsMgW+xBsDBPs955oG7vYINQH//h+Y=
+	b=hETLxEYMPes0A7LjTObx6CO4ZE5oWiMA+kIIWp73A8VYLdkNCF4GBpZat/TglfYZM
+	 cbUqmHA6bBt9KIY7W4c+Fpb8HJLP4kbA/uYnREdUAexhlRJemylZKh0FHX36vY8DCw
+	 R0LtsJPYQgO1nZGHvMBRUBDfTjqOBlIxN0IeYOZ0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728115AbgENTB2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1729629AbgENTB2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 14 May 2020 15:01:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56148 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56098 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727795AbgENSz3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 14 May 2020 14:55:29 -0400
+        id S1728298AbgENSz2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 May 2020 14:55:28 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2A5CD20767;
-        Thu, 14 May 2020 18:55:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DF87A206DC;
+        Thu, 14 May 2020 18:55:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589482529;
-        bh=xKqNhfofCfsb6sZSc/K19nM7f9VNbEQR3BZ1CS7Z254=;
+        s=default; t=1589482527;
+        bh=trP38vyDT1ZCKtvluwpdTrynKthfZMwR8i86aw6COg0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lkg+EhPvPX/GXpF2Byik7xI9neNwoTeVfEAVhCOVT2Tr25oKc5G1uEyQGzAiCuVwt
-         YBdqSmTbZSHMD6P45MU5FudaNQbkOEVst+CTnZ/1vrV/ZmuwR/L4e+4TjPfePqVlV6
-         wFTsI6U+iPOhVVRybPaNl49t0GVuIojCe0rF2zIg=
+        b=cnHDj+K0nOtsRd4346bt/9dcnk3uqNOeSgATe8gOZcnQlUPLK5lRLyGo+F3+/TPSM
+         tiA0co05ODZkQYZF3e6+G4CyY8t9c1zZici3c16/HV5oGH64LjsxR6ieelhLz5+LS/
+         9zjH+Z2sj/KB5SvJhx7/B8ssW1USoGpM8BYKx7Pw=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Moshe Shemesh <moshe@mellanox.com>,
@@ -45,9 +45,9 @@ Cc:     Moshe Shemesh <moshe@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 23/39] net/mlx5: Fix command entry leak in Internal Error State
-Date:   Thu, 14 May 2020 14:54:40 -0400
-Message-Id: <20200514185456.21060-23-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 22/39] net/mlx5: Fix forced completion access non initialized command entry
+Date:   Thu, 14 May 2020 14:54:39 -0400
+Message-Id: <20200514185456.21060-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200514185456.21060-1-sashal@kernel.org>
 References: <20200514185456.21060-1-sashal@kernel.org>
@@ -62,12 +62,17 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Moshe Shemesh <moshe@mellanox.com>
 
-[ Upstream commit cece6f432cca9f18900463ed01b97a152a03600a ]
+[ Upstream commit f3cb3cebe26ed4c8036adbd9448b372129d3c371 ]
 
-Processing commands by cmd_work_handler() while already in Internal
-Error State will result in entry leak, since the handler process force
-completion without doorbell. Forced completion doesn't release the entry
-and event completion will never arrive, so entry should be released.
+mlx5_cmd_flush() will trigger forced completions to all valid command
+entries. Triggered by an asynch event such as fast teardown it can
+happen at any stage of the command, including command initialization.
+It will trigger forced completion and that can lead to completion on an
+uninitialized command entry.
+
+Setting MLX5_CMD_ENT_STATE_PENDING_COMP only after command entry is
+initialized will ensure force completion is treated only if command
+entry is initialized.
 
 Fixes: 73dd3a4839c1 ("net/mlx5: Avoid using pending command interface slots")
 Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
@@ -75,24 +80,29 @@ Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index dd6522b5737b3..950ea980808b9 100644
+index c7654209668bd..dd6522b5737b3 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -865,6 +865,10 @@ static void cmd_work_handler(struct work_struct *work)
- 		MLX5_SET(mbox_out, ent->out, syndrome, drv_synd);
- 
- 		mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
-+		/* no doorbell, no need to keep the entry */
-+		free_ent(cmd, ent->idx);
-+		if (ent->callback)
-+			free_cmd(ent);
- 		return;
+@@ -831,7 +831,6 @@ static void cmd_work_handler(struct work_struct *work)
  	}
  
+ 	cmd->ent_arr[ent->idx] = ent;
+-	set_bit(MLX5_CMD_ENT_STATE_PENDING_COMP, &ent->state);
+ 	lay = get_inst(cmd, ent->idx);
+ 	ent->lay = lay;
+ 	memset(lay, 0, sizeof(*lay));
+@@ -853,6 +852,7 @@ static void cmd_work_handler(struct work_struct *work)
+ 
+ 	if (ent->callback)
+ 		schedule_delayed_work(&ent->cb_timeout_work, cb_timeout);
++	set_bit(MLX5_CMD_ENT_STATE_PENDING_COMP, &ent->state);
+ 
+ 	/* Skip sending command to fw if internal error */
+ 	if (pci_channel_offline(dev->pdev) ||
 -- 
 2.20.1
 
