@@ -4,34 +4,34 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B797BC433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 12:03:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C14C433DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 12:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 958EC2065D
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 12:03:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 538EF20722
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 12:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725955AbgENMDU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 May 2020 08:03:20 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:42523 "EHLO
+        id S1726937AbgENMD3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 May 2020 08:03:29 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:42541 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726176AbgENMDT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 May 2020 08:03:19 -0400
+        with ESMTP id S1726245AbgENMD2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 May 2020 08:03:28 -0400
 Received: from Internal Mail-Server by MTLPINE2 (envelope-from maxg@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 14 May 2020 15:03:05 +0300
+        with ESMTPS (AES256-SHA encrypted); 14 May 2020 15:03:06 +0300
 Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 04EC35v7004171;
-        Thu, 14 May 2020 15:03:05 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 04EC35vB004171;
+        Thu, 14 May 2020 15:03:06 +0300
 From:   Max Gurtovoy <maxg@mellanox.com>
 To:     bvanassche@acm.org, jgg@mellanox.com, linux-rdma@vger.kernel.org,
         dledford@redhat.com, leon@kernel.org
 Cc:     sagi@grimberg.me, israelr@mellanox.com, shlomin@mellanox.com,
         Max Gurtovoy <maxg@mellanox.com>
-Subject: [PATCH 3/8] RDMA/mthca: remove FMR support for memory registration
-Date:   Thu, 14 May 2020 15:03:00 +0300
-Message-Id: <20200514120305.189738-4-maxg@mellanox.com>
+Subject: [PATCH 7/8] RDMA/core: remove FMR pool API
+Date:   Thu, 14 May 2020 15:03:04 +0300
+Message-Id: <20200514120305.189738-8-maxg@mellanox.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20200514120305.189738-1-maxg@mellanox.com>
 References: <20200514120305.189738-1-maxg@mellanox.com>
@@ -42,427 +42,645 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Remove the ancient and unsafe FMR method.
+This ancient and unsafe method for memory registration is no longer used
+by any RDMA based ULP. Remove the FMR pool API from the core driver.
 
 Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
 ---
- drivers/infiniband/hw/mthca/mthca_dev.h      |  10 -
- drivers/infiniband/hw/mthca/mthca_mr.c       | 262 +--------------------------
- drivers/infiniband/hw/mthca/mthca_provider.c |  86 ---------
- 3 files changed, 1 insertion(+), 357 deletions(-)
+ Documentation/driver-api/infiniband.rst |   3 -
+ drivers/infiniband/core/Makefile        |   2 +-
+ drivers/infiniband/core/fmr_pool.c      | 494 --------------------------------
+ include/rdma/ib_fmr_pool.h              |  93 ------
+ 4 files changed, 1 insertion(+), 591 deletions(-)
+ delete mode 100644 drivers/infiniband/core/fmr_pool.c
+ delete mode 100644 include/rdma/ib_fmr_pool.h
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
-index 599794c..7550e9d 100644
---- a/drivers/infiniband/hw/mthca/mthca_dev.h
-+++ b/drivers/infiniband/hw/mthca/mthca_dev.h
-@@ -478,16 +478,6 @@ int mthca_mr_alloc_phys(struct mthca_dev *dev, u32 pd,
- 			u32 access, struct mthca_mr *mr);
- void mthca_free_mr(struct mthca_dev *dev,  struct mthca_mr *mr);
+diff --git a/Documentation/driver-api/infiniband.rst b/Documentation/driver-api/infiniband.rst
+index 1a3116f..30e142c 100644
+--- a/Documentation/driver-api/infiniband.rst
++++ b/Documentation/driver-api/infiniband.rst
+@@ -37,9 +37,6 @@ InfiniBand core interfaces
+ .. kernel-doc:: drivers/infiniband/core/ud_header.c
+     :export:
  
--int mthca_fmr_alloc(struct mthca_dev *dev, u32 pd,
--		    u32 access, struct mthca_fmr *fmr);
--int mthca_tavor_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
--			     int list_len, u64 iova);
--void mthca_tavor_fmr_unmap(struct mthca_dev *dev, struct mthca_fmr *fmr);
--int mthca_arbel_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
--			     int list_len, u64 iova);
--void mthca_arbel_fmr_unmap(struct mthca_dev *dev, struct mthca_fmr *fmr);
--int mthca_free_fmr(struct mthca_dev *dev,  struct mthca_fmr *fmr);
+-.. kernel-doc:: drivers/infiniband/core/fmr_pool.c
+-    :export:
 -
- int mthca_map_eq_icm(struct mthca_dev *dev, u64 icm_virt);
- void mthca_unmap_eq_icm(struct mthca_dev *dev);
+ .. kernel-doc:: drivers/infiniband/core/umem.c
+     :export:
  
-diff --git a/drivers/infiniband/hw/mthca/mthca_mr.c b/drivers/infiniband/hw/mthca/mthca_mr.c
-index 4250b2c..ce0e086 100644
---- a/drivers/infiniband/hw/mthca/mthca_mr.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mr.c
-@@ -541,7 +541,7 @@ int mthca_mr_alloc_phys(struct mthca_dev *dev, u32 pd,
- 	return err;
- }
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index d1b14887..064cd34 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -8,7 +8,7 @@ obj-$(CONFIG_INFINIBAND_USER_MAD) +=	ib_umad.o
+ obj-$(CONFIG_INFINIBAND_USER_ACCESS) += ib_uverbs.o $(user_access-y)
  
--/* Free mr or fmr */
-+/* Free mr */
- static void mthca_free_region(struct mthca_dev *dev, u32 lkey)
- {
- 	mthca_table_put(dev, dev->mr_table.mpt_table,
-@@ -564,266 +564,6 @@ void mthca_free_mr(struct mthca_dev *dev, struct mthca_mr *mr)
- 	mthca_free_mtt(dev, mr->mtt);
- }
- 
--int mthca_fmr_alloc(struct mthca_dev *dev, u32 pd,
--		    u32 access, struct mthca_fmr *mr)
+ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+-				device.o fmr_pool.o cache.o netlink.o \
++				device.o cache.o netlink.o \
+ 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+ 				nldev.o restrack.o counters.o ib_core_uverbs.o \
+diff --git a/drivers/infiniband/core/fmr_pool.c b/drivers/infiniband/core/fmr_pool.c
+deleted file mode 100644
+index e08aec4..0000000
+--- a/drivers/infiniband/core/fmr_pool.c
++++ /dev/null
+@@ -1,494 +0,0 @@
+-/*
+- * Copyright (c) 2004 Topspin Communications.  All rights reserved.
+- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#include <linux/errno.h>
+-#include <linux/spinlock.h>
+-#include <linux/export.h>
+-#include <linux/slab.h>
+-#include <linux/jhash.h>
+-#include <linux/kthread.h>
+-
+-#include <rdma/ib_fmr_pool.h>
+-
+-#include "core_priv.h"
+-
+-#define PFX "fmr_pool: "
+-
+-enum {
+-	IB_FMR_MAX_REMAPS = 32,
+-
+-	IB_FMR_HASH_BITS  = 8,
+-	IB_FMR_HASH_SIZE  = 1 << IB_FMR_HASH_BITS,
+-	IB_FMR_HASH_MASK  = IB_FMR_HASH_SIZE - 1
+-};
+-
+-/*
+- * If an FMR is not in use, then the list member will point to either
+- * its pool's free_list (if the FMR can be mapped again; that is,
+- * remap_count < pool->max_remaps) or its pool's dirty_list (if the
+- * FMR needs to be unmapped before being remapped).  In either of
+- * these cases it is a bug if the ref_count is not 0.  In other words,
+- * if ref_count is > 0, then the list member must not be linked into
+- * either free_list or dirty_list.
+- *
+- * The cache_node member is used to link the FMR into a cache bucket
+- * (if caching is enabled).  This is independent of the reference
+- * count of the FMR.  When a valid FMR is released, its ref_count is
+- * decremented, and if ref_count reaches 0, the FMR is placed in
+- * either free_list or dirty_list as appropriate.  However, it is not
+- * removed from the cache and may be "revived" if a call to
+- * ib_fmr_register_physical() occurs before the FMR is remapped.  In
+- * this case we just increment the ref_count and remove the FMR from
+- * free_list/dirty_list.
+- *
+- * Before we remap an FMR from free_list, we remove it from the cache
+- * (to prevent another user from obtaining a stale FMR).  When an FMR
+- * is released, we add it to the tail of the free list, so that our
+- * cache eviction policy is "least recently used."
+- *
+- * All manipulation of ref_count, list and cache_node is protected by
+- * pool_lock to maintain consistency.
+- */
+-
+-struct ib_fmr_pool {
+-	spinlock_t                pool_lock;
+-
+-	int                       pool_size;
+-	int                       max_pages;
+-	int			  max_remaps;
+-	int                       dirty_watermark;
+-	int                       dirty_len;
+-	struct list_head          free_list;
+-	struct list_head          dirty_list;
+-	struct hlist_head        *cache_bucket;
+-
+-	void                     (*flush_function)(struct ib_fmr_pool *pool,
+-						   void *              arg);
+-	void                     *flush_arg;
+-
+-	struct kthread_worker	  *worker;
+-	struct kthread_work	  work;
+-
+-	atomic_t                  req_ser;
+-	atomic_t                  flush_ser;
+-
+-	wait_queue_head_t         force_wait;
+-};
+-
+-static inline u32 ib_fmr_hash(u64 first_page)
 -{
--	struct mthca_mpt_entry *mpt_entry;
--	struct mthca_mailbox *mailbox;
--	u64 mtt_seg;
--	u32 key, idx;
--	int list_len = mr->attr.max_pages;
--	int err = -ENOMEM;
+-	return jhash_2words((u32) first_page, (u32) (first_page >> 32), 0) &
+-		(IB_FMR_HASH_SIZE - 1);
+-}
+-
+-/* Caller must hold pool_lock */
+-static inline struct ib_pool_fmr *ib_fmr_cache_lookup(struct ib_fmr_pool *pool,
+-						      u64 *page_list,
+-						      int  page_list_len,
+-						      u64  io_virtual_address)
+-{
+-	struct hlist_head *bucket;
+-	struct ib_pool_fmr *fmr;
+-
+-	if (!pool->cache_bucket)
+-		return NULL;
+-
+-	bucket = pool->cache_bucket + ib_fmr_hash(*page_list);
+-
+-	hlist_for_each_entry(fmr, bucket, cache_node)
+-		if (io_virtual_address == fmr->io_virtual_address &&
+-		    page_list_len      == fmr->page_list_len      &&
+-		    !memcmp(page_list, fmr->page_list,
+-			    page_list_len * sizeof *page_list))
+-			return fmr;
+-
+-	return NULL;
+-}
+-
+-static void ib_fmr_batch_release(struct ib_fmr_pool *pool)
+-{
+-	int                 ret;
+-	struct ib_pool_fmr *fmr;
+-	LIST_HEAD(unmap_list);
+-	LIST_HEAD(fmr_list);
+-
+-	spin_lock_irq(&pool->pool_lock);
+-
+-	list_for_each_entry(fmr, &pool->dirty_list, list) {
+-		hlist_del_init(&fmr->cache_node);
+-		fmr->remap_count = 0;
+-		list_add_tail(&fmr->fmr->list, &fmr_list);
+-	}
+-
+-	list_splice_init(&pool->dirty_list, &unmap_list);
+-	pool->dirty_len = 0;
+-
+-	spin_unlock_irq(&pool->pool_lock);
+-
+-	if (list_empty(&unmap_list)) {
+-		return;
+-	}
+-
+-	ret = ib_unmap_fmr(&fmr_list);
+-	if (ret)
+-		pr_warn(PFX "ib_unmap_fmr returned %d\n", ret);
+-
+-	spin_lock_irq(&pool->pool_lock);
+-	list_splice(&unmap_list, &pool->free_list);
+-	spin_unlock_irq(&pool->pool_lock);
+-}
+-
+-static void ib_fmr_cleanup_func(struct kthread_work *work)
+-{
+-	struct ib_fmr_pool *pool = container_of(work, struct ib_fmr_pool, work);
+-
+-	ib_fmr_batch_release(pool);
+-	atomic_inc(&pool->flush_ser);
+-	wake_up_interruptible(&pool->force_wait);
+-
+-	if (pool->flush_function)
+-		pool->flush_function(pool, pool->flush_arg);
+-
+-	if (atomic_read(&pool->flush_ser) - atomic_read(&pool->req_ser) < 0)
+-		kthread_queue_work(pool->worker, &pool->work);
+-}
+-
+-/**
+- * ib_create_fmr_pool - Create an FMR pool
+- * @pd:Protection domain for FMRs
+- * @params:FMR pool parameters
+- *
+- * Create a pool of FMRs.  Return value is pointer to new pool or
+- * error code if creation failed.
+- */
+-struct ib_fmr_pool *ib_create_fmr_pool(struct ib_pd             *pd,
+-				       struct ib_fmr_pool_param *params)
+-{
+-	struct ib_device   *device;
+-	struct ib_fmr_pool *pool;
 -	int i;
+-	int ret;
+-	int max_remaps;
 -
--	if (mr->attr.page_shift < 12 || mr->attr.page_shift >= 32)
--		return -EINVAL;
+-	if (!params)
+-		return ERR_PTR(-EINVAL);
 -
--	/* For Arbel, all MTTs must fit in the same page. */
--	if (mthca_is_memfree(dev) &&
--	    mr->attr.max_pages * sizeof *mr->mem.arbel.mtts > PAGE_SIZE)
--		return -EINVAL;
--
--	mr->maps = 0;
--
--	key = mthca_alloc(&dev->mr_table.mpt_alloc);
--	if (key == -1)
--		return -ENOMEM;
--	key = adjust_key(dev, key);
--
--	idx = key & (dev->limits.num_mpts - 1);
--	mr->ibmr.rkey = mr->ibmr.lkey = hw_index_to_key(dev, key);
--
--	if (mthca_is_memfree(dev)) {
--		err = mthca_table_get(dev, dev->mr_table.mpt_table, key);
--		if (err)
--			goto err_out_mpt_free;
--
--		mr->mem.arbel.mpt = mthca_table_find(dev->mr_table.mpt_table, key, NULL);
--		BUG_ON(!mr->mem.arbel.mpt);
--	} else
--		mr->mem.tavor.mpt = dev->mr_table.tavor_fmr.mpt_base +
--			sizeof *(mr->mem.tavor.mpt) * idx;
--
--	mr->mtt = __mthca_alloc_mtt(dev, list_len, dev->mr_table.fmr_mtt_buddy);
--	if (IS_ERR(mr->mtt)) {
--		err = PTR_ERR(mr->mtt);
--		goto err_out_table;
+-	device = pd->device;
+-	if (!device->ops.alloc_fmr    || !device->ops.dealloc_fmr  ||
+-	    !device->ops.map_phys_fmr || !device->ops.unmap_fmr) {
+-		dev_info(&device->dev, "Device does not support FMRs\n");
+-		return ERR_PTR(-ENOSYS);
 -	}
 -
--	mtt_seg = mr->mtt->first_seg * dev->limits.mtt_seg_size;
--
--	if (mthca_is_memfree(dev)) {
--		mr->mem.arbel.mtts = mthca_table_find(dev->mr_table.mtt_table,
--						      mr->mtt->first_seg,
--						      &mr->mem.arbel.dma_handle);
--		BUG_ON(!mr->mem.arbel.mtts);
--	} else
--		mr->mem.tavor.mtts = dev->mr_table.tavor_fmr.mtt_base + mtt_seg;
--
--	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
--	if (IS_ERR(mailbox)) {
--		err = PTR_ERR(mailbox);
--		goto err_out_free_mtt;
--	}
--
--	mpt_entry = mailbox->buf;
--
--	mpt_entry->flags = cpu_to_be32(MTHCA_MPT_FLAG_SW_OWNS     |
--				       MTHCA_MPT_FLAG_MIO         |
--				       MTHCA_MPT_FLAG_REGION      |
--				       access);
--
--	mpt_entry->page_size = cpu_to_be32(mr->attr.page_shift - 12);
--	mpt_entry->key       = cpu_to_be32(key);
--	mpt_entry->pd        = cpu_to_be32(pd);
--	memset(&mpt_entry->start, 0,
--	       sizeof *mpt_entry - offsetof(struct mthca_mpt_entry, start));
--	mpt_entry->mtt_seg   = cpu_to_be64(dev->mr_table.mtt_base + mtt_seg);
--
--	if (0) {
--		mthca_dbg(dev, "Dumping MPT entry %08x:\n", mr->ibmr.lkey);
--		for (i = 0; i < sizeof (struct mthca_mpt_entry) / 4; ++i) {
--			if (i % 4 == 0)
--				printk("[%02x] ", i * 4);
--			printk(" %08x", be32_to_cpu(((__be32 *) mpt_entry)[i]));
--			if ((i + 1) % 4 == 0)
--				printk("\n");
--		}
--	}
--
--	err = mthca_SW2HW_MPT(dev, mailbox,
--			      key & (dev->limits.num_mpts - 1));
--	if (err) {
--		mthca_warn(dev, "SW2HW_MPT failed (%d)\n", err);
--		goto err_out_mailbox_free;
--	}
--
--	mthca_free_mailbox(dev, mailbox);
--	return 0;
--
--err_out_mailbox_free:
--	mthca_free_mailbox(dev, mailbox);
--
--err_out_free_mtt:
--	mthca_free_mtt(dev, mr->mtt);
--
--err_out_table:
--	mthca_table_put(dev, dev->mr_table.mpt_table, key);
--
--err_out_mpt_free:
--	mthca_free(&dev->mr_table.mpt_alloc, key);
--	return err;
--}
--
--int mthca_free_fmr(struct mthca_dev *dev, struct mthca_fmr *fmr)
--{
--	if (fmr->maps)
--		return -EBUSY;
--
--	mthca_free_region(dev, fmr->ibmr.lkey);
--	mthca_free_mtt(dev, fmr->mtt);
--
--	return 0;
--}
--
--static inline int mthca_check_fmr(struct mthca_fmr *fmr, u64 *page_list,
--				  int list_len, u64 iova)
--{
--	int i, page_mask;
--
--	if (list_len > fmr->attr.max_pages)
--		return -EINVAL;
--
--	page_mask = (1 << fmr->attr.page_shift) - 1;
--
--	/* We are getting page lists, so va must be page aligned. */
--	if (iova & page_mask)
--		return -EINVAL;
--
--	/* Trust the user not to pass misaligned data in page_list */
--	if (0)
--		for (i = 0; i < list_len; ++i) {
--			if (page_list[i] & ~page_mask)
--				return -EINVAL;
--		}
--
--	if (fmr->maps >= fmr->attr.max_maps)
--		return -EINVAL;
--
--	return 0;
--}
--
--
--int mthca_tavor_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
--			     int list_len, u64 iova)
--{
--	struct mthca_fmr *fmr = to_mfmr(ibfmr);
--	struct mthca_dev *dev = to_mdev(ibfmr->device);
--	struct mthca_mpt_entry mpt_entry;
--	u32 key;
--	int i, err;
--
--	err = mthca_check_fmr(fmr, page_list, list_len, iova);
--	if (err)
--		return err;
--
--	++fmr->maps;
--
--	key = tavor_key_to_hw_index(fmr->ibmr.lkey);
--	key += dev->limits.num_mpts;
--	fmr->ibmr.lkey = fmr->ibmr.rkey = tavor_hw_index_to_key(key);
--
--	writeb(MTHCA_MPT_STATUS_SW, fmr->mem.tavor.mpt);
--
--	for (i = 0; i < list_len; ++i) {
--		__be64 mtt_entry = cpu_to_be64(page_list[i] |
--					       MTHCA_MTT_FLAG_PRESENT);
--		mthca_write64_raw(mtt_entry, fmr->mem.tavor.mtts + i);
--	}
--
--	mpt_entry.lkey   = cpu_to_be32(key);
--	mpt_entry.length = cpu_to_be64(list_len * (1ull << fmr->attr.page_shift));
--	mpt_entry.start  = cpu_to_be64(iova);
--
--	__raw_writel((__force u32) mpt_entry.lkey, &fmr->mem.tavor.mpt->key);
--	memcpy_toio(&fmr->mem.tavor.mpt->start, &mpt_entry.start,
--		    offsetof(struct mthca_mpt_entry, window_count) -
--		    offsetof(struct mthca_mpt_entry, start));
--
--	writeb(MTHCA_MPT_STATUS_HW, fmr->mem.tavor.mpt);
--
--	return 0;
--}
--
--int mthca_arbel_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
--			     int list_len, u64 iova)
--{
--	struct mthca_fmr *fmr = to_mfmr(ibfmr);
--	struct mthca_dev *dev = to_mdev(ibfmr->device);
--	u32 key;
--	int i, err;
--
--	err = mthca_check_fmr(fmr, page_list, list_len, iova);
--	if (err)
--		return err;
--
--	++fmr->maps;
--
--	key = arbel_key_to_hw_index(fmr->ibmr.lkey);
--	if (dev->mthca_flags & MTHCA_FLAG_SINAI_OPT)
--		key += SINAI_FMR_KEY_INC;
+-	if (!device->attrs.max_map_per_fmr)
+-		max_remaps = IB_FMR_MAX_REMAPS;
 -	else
--		key += dev->limits.num_mpts;
--	fmr->ibmr.lkey = fmr->ibmr.rkey = arbel_hw_index_to_key(key);
+-		max_remaps = device->attrs.max_map_per_fmr;
 -
--	*(u8 *) fmr->mem.arbel.mpt = MTHCA_MPT_STATUS_SW;
--
--	wmb();
--
--	dma_sync_single_for_cpu(&dev->pdev->dev, fmr->mem.arbel.dma_handle,
--				list_len * sizeof(u64), DMA_TO_DEVICE);
--
--	for (i = 0; i < list_len; ++i)
--		fmr->mem.arbel.mtts[i] = cpu_to_be64(page_list[i] |
--						     MTHCA_MTT_FLAG_PRESENT);
--
--	dma_sync_single_for_device(&dev->pdev->dev, fmr->mem.arbel.dma_handle,
--				   list_len * sizeof(u64), DMA_TO_DEVICE);
--
--	fmr->mem.arbel.mpt->key    = cpu_to_be32(key);
--	fmr->mem.arbel.mpt->lkey   = cpu_to_be32(key);
--	fmr->mem.arbel.mpt->length = cpu_to_be64(list_len * (1ull << fmr->attr.page_shift));
--	fmr->mem.arbel.mpt->start  = cpu_to_be64(iova);
--
--	wmb();
--
--	*(u8 *) fmr->mem.arbel.mpt = MTHCA_MPT_STATUS_HW;
--
--	wmb();
--
--	return 0;
--}
--
--void mthca_tavor_fmr_unmap(struct mthca_dev *dev, struct mthca_fmr *fmr)
--{
--	if (!fmr->maps)
--		return;
--
--	fmr->maps = 0;
--
--	writeb(MTHCA_MPT_STATUS_SW, fmr->mem.tavor.mpt);
--}
--
--void mthca_arbel_fmr_unmap(struct mthca_dev *dev, struct mthca_fmr *fmr)
--{
--	if (!fmr->maps)
--		return;
--
--	fmr->maps = 0;
--
--	*(u8 *) fmr->mem.arbel.mpt = MTHCA_MPT_STATUS_SW;
--}
--
- int mthca_init_mr_table(struct mthca_dev *dev)
- {
- 	phys_addr_t addr;
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 69a3e4f..9028df0 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -957,69 +957,6 @@ static int mthca_dereg_mr(struct ib_mr *mr, struct ib_udata *udata)
- 	return 0;
- }
- 
--static struct ib_fmr *mthca_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
--				      struct ib_fmr_attr *fmr_attr)
--{
--	struct mthca_fmr *fmr;
--	int err;
--
--	fmr = kmalloc(sizeof *fmr, GFP_KERNEL);
--	if (!fmr)
+-	pool = kmalloc(sizeof *pool, GFP_KERNEL);
+-	if (!pool)
 -		return ERR_PTR(-ENOMEM);
 -
--	memcpy(&fmr->attr, fmr_attr, sizeof *fmr_attr);
--	err = mthca_fmr_alloc(to_mdev(pd->device), to_mpd(pd)->pd_num,
--			     convert_access(mr_access_flags), fmr);
+-	pool->cache_bucket   = NULL;
+-	pool->flush_function = params->flush_function;
+-	pool->flush_arg      = params->flush_arg;
 -
--	if (err) {
--		kfree(fmr);
--		return ERR_PTR(err);
+-	INIT_LIST_HEAD(&pool->free_list);
+-	INIT_LIST_HEAD(&pool->dirty_list);
+-
+-	if (params->cache) {
+-		pool->cache_bucket =
+-			kmalloc_array(IB_FMR_HASH_SIZE,
+-				      sizeof(*pool->cache_bucket),
+-				      GFP_KERNEL);
+-		if (!pool->cache_bucket) {
+-			ret = -ENOMEM;
+-			goto out_free_pool;
+-		}
+-
+-		for (i = 0; i < IB_FMR_HASH_SIZE; ++i)
+-			INIT_HLIST_HEAD(pool->cache_bucket + i);
 -	}
 -
--	return &fmr->ibmr;
+-	pool->pool_size       = 0;
+-	pool->max_pages       = params->max_pages_per_fmr;
+-	pool->max_remaps      = max_remaps;
+-	pool->dirty_watermark = params->dirty_watermark;
+-	pool->dirty_len       = 0;
+-	spin_lock_init(&pool->pool_lock);
+-	atomic_set(&pool->req_ser,   0);
+-	atomic_set(&pool->flush_ser, 0);
+-	init_waitqueue_head(&pool->force_wait);
+-
+-	pool->worker =
+-		kthread_create_worker(0, "ib_fmr(%s)", dev_name(&device->dev));
+-	if (IS_ERR(pool->worker)) {
+-		pr_warn(PFX "couldn't start cleanup kthread worker\n");
+-		ret = PTR_ERR(pool->worker);
+-		goto out_free_pool;
+-	}
+-	kthread_init_work(&pool->work, ib_fmr_cleanup_func);
+-
+-	{
+-		struct ib_pool_fmr *fmr;
+-		struct ib_fmr_attr fmr_attr = {
+-			.max_pages  = params->max_pages_per_fmr,
+-			.max_maps   = pool->max_remaps,
+-			.page_shift = params->page_shift
+-		};
+-		int bytes_per_fmr = sizeof *fmr;
+-
+-		if (pool->cache_bucket)
+-			bytes_per_fmr += params->max_pages_per_fmr * sizeof (u64);
+-
+-		for (i = 0; i < params->pool_size; ++i) {
+-			fmr = kmalloc(bytes_per_fmr, GFP_KERNEL);
+-			if (!fmr)
+-				goto out_fail;
+-
+-			fmr->pool             = pool;
+-			fmr->remap_count      = 0;
+-			fmr->ref_count        = 0;
+-			INIT_HLIST_NODE(&fmr->cache_node);
+-
+-			fmr->fmr = ib_alloc_fmr(pd, params->access, &fmr_attr);
+-			if (IS_ERR(fmr->fmr)) {
+-				pr_warn(PFX "fmr_create failed for FMR %d\n",
+-					i);
+-				kfree(fmr);
+-				goto out_fail;
+-			}
+-
+-			list_add_tail(&fmr->list, &pool->free_list);
+-			++pool->pool_size;
+-		}
+-	}
+-
+-	return pool;
+-
+- out_free_pool:
+-	kfree(pool->cache_bucket);
+-	kfree(pool);
+-
+-	return ERR_PTR(ret);
+-
+- out_fail:
+-	ib_destroy_fmr_pool(pool);
+-
+-	return ERR_PTR(-ENOMEM);
 -}
+-EXPORT_SYMBOL(ib_create_fmr_pool);
 -
--static int mthca_dealloc_fmr(struct ib_fmr *fmr)
+-/**
+- * ib_destroy_fmr_pool - Free FMR pool
+- * @pool:FMR pool to free
+- *
+- * Destroy an FMR pool and free all associated resources.
+- */
+-void ib_destroy_fmr_pool(struct ib_fmr_pool *pool)
 -{
--	struct mthca_fmr *mfmr = to_mfmr(fmr);
--	int err;
+-	struct ib_pool_fmr *fmr;
+-	struct ib_pool_fmr *tmp;
+-	LIST_HEAD(fmr_list);
+-	int                 i;
 -
--	err = mthca_free_fmr(to_mdev(fmr->device), mfmr);
--	if (err)
--		return err;
+-	kthread_destroy_worker(pool->worker);
+-	ib_fmr_batch_release(pool);
 -
--	kfree(mfmr);
+-	i = 0;
+-	list_for_each_entry_safe(fmr, tmp, &pool->free_list, list) {
+-		if (fmr->remap_count) {
+-			INIT_LIST_HEAD(&fmr_list);
+-			list_add_tail(&fmr->fmr->list, &fmr_list);
+-			ib_unmap_fmr(&fmr_list);
+-		}
+-		ib_dealloc_fmr(fmr->fmr);
+-		list_del(&fmr->list);
+-		kfree(fmr);
+-		++i;
+-	}
+-
+-	if (i < pool->pool_size)
+-		pr_warn(PFX "pool still has %d regions registered\n",
+-			pool->pool_size - i);
+-
+-	kfree(pool->cache_bucket);
+-	kfree(pool);
+-}
+-EXPORT_SYMBOL(ib_destroy_fmr_pool);
+-
+-/**
+- * ib_flush_fmr_pool - Invalidate all unmapped FMRs
+- * @pool:FMR pool to flush
+- *
+- * Ensure that all unmapped FMRs are fully invalidated.
+- */
+-int ib_flush_fmr_pool(struct ib_fmr_pool *pool)
+-{
+-	int serial;
+-	struct ib_pool_fmr *fmr, *next;
+-
+-	/*
+-	 * The free_list holds FMRs that may have been used
+-	 * but have not been remapped enough times to be dirty.
+-	 * Put them on the dirty list now so that the cleanup
+-	 * thread will reap them too.
+-	 */
+-	spin_lock_irq(&pool->pool_lock);
+-	list_for_each_entry_safe(fmr, next, &pool->free_list, list) {
+-		if (fmr->remap_count > 0)
+-			list_move(&fmr->list, &pool->dirty_list);
+-	}
+-	spin_unlock_irq(&pool->pool_lock);
+-
+-	serial = atomic_inc_return(&pool->req_ser);
+-	kthread_queue_work(pool->worker, &pool->work);
+-
+-	if (wait_event_interruptible(pool->force_wait,
+-				     atomic_read(&pool->flush_ser) - serial >= 0))
+-		return -EINTR;
+-
 -	return 0;
 -}
+-EXPORT_SYMBOL(ib_flush_fmr_pool);
 -
--static int mthca_unmap_fmr(struct list_head *fmr_list)
+-/**
+- * ib_fmr_pool_map_phys - Map an FMR from an FMR pool.
+- * @pool_handle: FMR pool to allocate FMR from
+- * @page_list: List of pages to map
+- * @list_len: Number of pages in @page_list
+- * @io_virtual_address: I/O virtual address for new FMR
+- */
+-struct ib_pool_fmr *ib_fmr_pool_map_phys(struct ib_fmr_pool *pool_handle,
+-					 u64                *page_list,
+-					 int                 list_len,
+-					 u64                 io_virtual_address)
 -{
--	struct ib_fmr *fmr;
--	int err;
--	struct mthca_dev *mdev = NULL;
+-	struct ib_fmr_pool *pool = pool_handle;
+-	struct ib_pool_fmr *fmr;
+-	unsigned long       flags;
+-	int                 result;
 -
--	list_for_each_entry(fmr, fmr_list, list) {
--		if (mdev && to_mdev(fmr->device) != mdev)
--			return -EINVAL;
--		mdev = to_mdev(fmr->device);
+-	if (list_len < 1 || list_len > pool->max_pages)
+-		return ERR_PTR(-EINVAL);
+-
+-	spin_lock_irqsave(&pool->pool_lock, flags);
+-	fmr = ib_fmr_cache_lookup(pool,
+-				  page_list,
+-				  list_len,
+-				  io_virtual_address);
+-	if (fmr) {
+-		/* found in cache */
+-		++fmr->ref_count;
+-		if (fmr->ref_count == 1) {
+-			list_del(&fmr->list);
+-		}
+-
+-		spin_unlock_irqrestore(&pool->pool_lock, flags);
+-
+-		return fmr;
 -	}
 -
--	if (!mdev)
--		return 0;
+-	if (list_empty(&pool->free_list)) {
+-		spin_unlock_irqrestore(&pool->pool_lock, flags);
+-		return ERR_PTR(-EAGAIN);
+-	}
 -
--	if (mthca_is_memfree(mdev)) {
--		list_for_each_entry(fmr, fmr_list, list)
--			mthca_arbel_fmr_unmap(mdev, to_mfmr(fmr));
+-	fmr = list_entry(pool->free_list.next, struct ib_pool_fmr, list);
+-	list_del(&fmr->list);
+-	hlist_del_init(&fmr->cache_node);
+-	spin_unlock_irqrestore(&pool->pool_lock, flags);
 -
--		wmb();
--	} else
--		list_for_each_entry(fmr, fmr_list, list)
--			mthca_tavor_fmr_unmap(mdev, to_mfmr(fmr));
+-	result = ib_map_phys_fmr(fmr->fmr, page_list, list_len,
+-				 io_virtual_address);
 -
--	err = mthca_SYNC_TPT(mdev);
--	return err;
+-	if (result) {
+-		spin_lock_irqsave(&pool->pool_lock, flags);
+-		list_add(&fmr->list, &pool->free_list);
+-		spin_unlock_irqrestore(&pool->pool_lock, flags);
+-
+-		pr_warn(PFX "fmr_map returns %d\n", result);
+-
+-		return ERR_PTR(result);
+-	}
+-
+-	++fmr->remap_count;
+-	fmr->ref_count = 1;
+-
+-	if (pool->cache_bucket) {
+-		fmr->io_virtual_address = io_virtual_address;
+-		fmr->page_list_len      = list_len;
+-		memcpy(fmr->page_list, page_list, list_len * sizeof(*page_list));
+-
+-		spin_lock_irqsave(&pool->pool_lock, flags);
+-		hlist_add_head(&fmr->cache_node,
+-			       pool->cache_bucket + ib_fmr_hash(fmr->page_list[0]));
+-		spin_unlock_irqrestore(&pool->pool_lock, flags);
+-	}
+-
+-	return fmr;
 -}
+-EXPORT_SYMBOL(ib_fmr_pool_map_phys);
 -
- static ssize_t hw_rev_show(struct device *device,
- 			   struct device_attribute *attr, char *buf)
- {
-@@ -1203,20 +1140,6 @@ static void get_dev_fw_str(struct ib_device *device, char *str)
- 	INIT_RDMA_OBJ_SIZE(ib_srq, mthca_srq, ibsrq),
- };
- 
--static const struct ib_device_ops mthca_dev_arbel_fmr_ops = {
--	.alloc_fmr = mthca_alloc_fmr,
--	.dealloc_fmr = mthca_dealloc_fmr,
--	.map_phys_fmr = mthca_arbel_map_phys_fmr,
--	.unmap_fmr = mthca_unmap_fmr,
--};
+-/**
+- * ib_fmr_pool_unmap - Unmap FMR
+- * @fmr:FMR to unmap
+- *
+- * Unmap an FMR.  The FMR mapping may remain valid until the FMR is
+- * reused (or until ib_flush_fmr_pool() is called).
+- */
+-void ib_fmr_pool_unmap(struct ib_pool_fmr *fmr)
+-{
+-	struct ib_fmr_pool *pool;
+-	unsigned long flags;
 -
--static const struct ib_device_ops mthca_dev_tavor_fmr_ops = {
--	.alloc_fmr = mthca_alloc_fmr,
--	.dealloc_fmr = mthca_dealloc_fmr,
--	.map_phys_fmr = mthca_tavor_map_phys_fmr,
--	.unmap_fmr = mthca_unmap_fmr,
--};
+-	pool = fmr->pool;
 -
- static const struct ib_device_ops mthca_dev_arbel_ops = {
- 	.post_recv = mthca_arbel_post_receive,
- 	.post_send = mthca_arbel_post_send,
-@@ -1275,15 +1198,6 @@ int mthca_register_device(struct mthca_dev *dev)
- 					  &mthca_dev_tavor_srq_ops);
- 	}
- 
--	if (dev->mthca_flags & MTHCA_FLAG_FMR) {
--		if (mthca_is_memfree(dev))
--			ib_set_device_ops(&dev->ib_dev,
--					  &mthca_dev_arbel_fmr_ops);
--		else
--			ib_set_device_ops(&dev->ib_dev,
--					  &mthca_dev_tavor_fmr_ops);
+-	spin_lock_irqsave(&pool->pool_lock, flags);
+-
+-	--fmr->ref_count;
+-	if (!fmr->ref_count) {
+-		if (fmr->remap_count < pool->max_remaps) {
+-			list_add_tail(&fmr->list, &pool->free_list);
+-		} else {
+-			list_add_tail(&fmr->list, &pool->dirty_list);
+-			if (++pool->dirty_len >= pool->dirty_watermark) {
+-				atomic_inc(&pool->req_ser);
+-				kthread_queue_work(pool->worker, &pool->work);
+-			}
+-		}
 -	}
 -
- 	ib_set_device_ops(&dev->ib_dev, &mthca_dev_ops);
- 
- 	if (mthca_is_memfree(dev))
+-	spin_unlock_irqrestore(&pool->pool_lock, flags);
+-}
+-EXPORT_SYMBOL(ib_fmr_pool_unmap);
+diff --git a/include/rdma/ib_fmr_pool.h b/include/rdma/ib_fmr_pool.h
+deleted file mode 100644
+index 2fd9bfb..0000000
+--- a/include/rdma/ib_fmr_pool.h
++++ /dev/null
+@@ -1,93 +0,0 @@
+-/*
+- * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
+- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#if !defined(IB_FMR_POOL_H)
+-#define IB_FMR_POOL_H
+-
+-#include <rdma/ib_verbs.h>
+-
+-struct ib_fmr_pool;
+-
+-/**
+- * struct ib_fmr_pool_param - Parameters for creating FMR pool
+- * @max_pages_per_fmr:Maximum number of pages per map request.
+- * @page_shift: Log2 of sizeof "pages" mapped by this fmr
+- * @access:Access flags for FMRs in pool.
+- * @pool_size:Number of FMRs to allocate for pool.
+- * @dirty_watermark:Flush is triggered when @dirty_watermark dirty
+- *     FMRs are present.
+- * @flush_function:Callback called when unmapped FMRs are flushed and
+- *     more FMRs are possibly available for mapping
+- * @flush_arg:Context passed to user's flush function.
+- * @cache:If set, FMRs may be reused after unmapping for identical map
+- *     requests.
+- */
+-struct ib_fmr_pool_param {
+-	int                     max_pages_per_fmr;
+-	int                     page_shift;
+-	enum ib_access_flags    access;
+-	int                     pool_size;
+-	int                     dirty_watermark;
+-	void                  (*flush_function)(struct ib_fmr_pool *pool,
+-						void               *arg);
+-	void                   *flush_arg;
+-	unsigned                cache:1;
+-};
+-
+-struct ib_pool_fmr {
+-	struct ib_fmr      *fmr;
+-	struct ib_fmr_pool *pool;
+-	struct list_head    list;
+-	struct hlist_node   cache_node;
+-	int                 ref_count;
+-	int                 remap_count;
+-	u64                 io_virtual_address;
+-	int                 page_list_len;
+-	u64                 page_list[];
+-};
+-
+-struct ib_fmr_pool *ib_create_fmr_pool(struct ib_pd             *pd,
+-				       struct ib_fmr_pool_param *params);
+-
+-void ib_destroy_fmr_pool(struct ib_fmr_pool *pool);
+-
+-int ib_flush_fmr_pool(struct ib_fmr_pool *pool);
+-
+-struct ib_pool_fmr *ib_fmr_pool_map_phys(struct ib_fmr_pool *pool_handle,
+-					 u64                *page_list,
+-					 int                 list_len,
+-					 u64                 io_virtual_address);
+-
+-void ib_fmr_pool_unmap(struct ib_pool_fmr *fmr);
+-
+-#endif /* IB_FMR_POOL_H */
 -- 
 1.8.3.1
 
