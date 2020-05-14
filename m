@@ -2,117 +2,82 @@ Return-Path: <SRS0=ZbeD=64=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A3F0C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 11:47:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 634C9C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 11:51:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58A91206DA
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 11:47:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HPW+lcG3"
+	by mail.kernel.org (Postfix) with ESMTP id 4632620728
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 11:51:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726094AbgENLrg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 May 2020 07:47:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38296 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726037AbgENLrg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 May 2020 07:47:36 -0400
-Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27FBEC061A0C
-        for <linux-rdma@vger.kernel.org>; Thu, 14 May 2020 04:47:36 -0700 (PDT)
-Received: by mail-wm1-x343.google.com with SMTP id z72so22599788wmc.2
-        for <linux-rdma@vger.kernel.org>; Thu, 14 May 2020 04:47:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=Md/d9xv6u5osfLoKMSki97Zad3KhwieYdlVS16xKpag=;
-        b=HPW+lcG3eLOxHVqq1ICqIiyl6NPDHEyQApNYaHSbc3vfvgLEh8KouHzPbCkpsSsK0S
-         1H3nUjqtUppKwxSbmjEq08H85ZY/+O7t20STrHzVd53ihrS0Jo0/JLuX8Rak+lhAYbVb
-         0wvpUZCd/lstt3FaVy+EqSjahYARddFyG+rpGP9fLkImLN3SfjbKQ/25UsPiP8shhnL7
-         E+UnxXRglzwpNK/VNdgT5MFNFG6YI+D3OmcGJ0YZSiDJgcUayuhNIWV6fSBjUnRdjq8L
-         mXezMix6iEmVO2xNt0leyLS7iXsyPr5mfWpfPvpmtrOAyjnQJozjIjKzRsizHonmWIqJ
-         UoTw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=Md/d9xv6u5osfLoKMSki97Zad3KhwieYdlVS16xKpag=;
-        b=DQ6MfcnJwfu1bI2kOXDWfKMR/vfnDmueWqH3PsMS89Ck2vvs4xpGr9iDNIr04xnBJg
-         woRiF2I4a8ArnI+yYCtyzEh61R1gf7KdfYlGc9zUfso4hayYlfS/xnDg47JqeyJWqYTc
-         TqZDahBeyP/U9TwlJ97Ctku2Ybrc1BHoEWRE5Itd2tTfYHu2mVGY5HaaAde99uUehEmE
-         KlSCPI4jITtikDzCyPC0kOfu4vAiPkFwFElD/nQLuTm64dfejWapaqFaLBj0ZqDhRKTH
-         RQFxVRl9TO2wqZCMIWU//d9R+zC3i7YujOML/QDLQA6l/FdTtP9ztOV/WurkbetEIaQz
-         N2nw==
-X-Gm-Message-State: AOAM530Uqxg/jY1dfsLlumoMcBNi1Q0zPENjgC0w7OuYMGu5EeWpaNrg
-        PgQD7w+PT/ZKPspFuDQoZneSjct3
-X-Google-Smtp-Source: ABdhPJxioDJqq1OAQ7hSxtfaw8DOE6q3mwojbPQ4MLdgVspAj6+A+HySyuI6GHBVO18Dyb93lDwy/A==
-X-Received: by 2002:a1c:2e46:: with SMTP id u67mr82206wmu.156.1589456854677;
-        Thu, 14 May 2020 04:47:34 -0700 (PDT)
-Received: from kheib-workstation.redhat.com ([37.142.4.4])
-        by smtp.gmail.com with ESMTPSA id 60sm3764757wrp.92.2020.05.14.04.47.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 May 2020 04:47:33 -0700 (PDT)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-rc v2] RDMA/srpt: Fix disabling device management
-Date:   Thu, 14 May 2020 14:47:20 +0300
-Message-Id: <20200514114720.141139-1-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.25.4
+        id S1727788AbgENLvf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 May 2020 07:51:35 -0400
+Received: from smtprelay0155.hostedemail.com ([216.40.44.155]:44686 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725955AbgENLve (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 May 2020 07:51:34 -0400
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay02.hostedemail.com (Postfix) with ESMTP id 82BDA2C1F;
+        Thu, 14 May 2020 11:51:31 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: soup46_cc3a3aa2090a
+X-Filterd-Recvd-Size: 2294
+Received: from XPS-9350.home (unknown [47.151.136.130])
+        (Authenticated sender: joe@perches.com)
+        by omf01.hostedemail.com (Postfix) with ESMTPA;
+        Thu, 14 May 2020 11:51:27 +0000 (UTC)
+Message-ID: <9992a1fe768a0b1e9bb9470d2728ba25dbe042db.camel@perches.com>
+Subject: Re: [PATCH 20/33] ipv4: add ip_sock_set_recverr
+From:   Joe Perches <joe@perches.com>
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Vlad Yasevich <vyasevich@gmail.com>,
+        Neil Horman <nhorman@tuxdriver.com>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+        Jon Maloy <jmaloy@redhat.com>,
+        Ying Xue <ying.xue@windriver.com>, drbd-dev@lists.linbit.com,
+        linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org,
+        target-devel@vger.kernel.org, linux-afs@lists.infradead.org,
+        linux-cifs@vger.kernel.org, cluster-devel@redhat.com,
+        ocfs2-devel@oss.oracle.com, netdev@vger.kernel.org,
+        linux-sctp@vger.kernel.org, ceph-devel@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
+Date:   Thu, 14 May 2020 04:51:26 -0700
+In-Reply-To: <20200514103025.GB12680@lst.de>
+References: <20200513062649.2100053-1-hch@lst.de>
+         <20200513062649.2100053-21-hch@lst.de>
+         <0ee5acfaca4cf32d4efad162046b858981a4dae3.camel@perches.com>
+         <20200514103025.GB12680@lst.de>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.36.1-2 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Avoid disabling device management for devices that don't support
-Management datagrams (MADs) by checking if the "mad_agent" pointer is
-initialized before calling ib_modify_port, also fix the error flow in
-srpt_refresh_port() to disable device management if
-ib_register_mad_agent() fail.
+On Thu, 2020-05-14 at 12:30 +0200, Christoph Hellwig wrote:
+> On Wed, May 13, 2020 at 02:00:43PM -0700, Joe Perches wrote:
+> > On Wed, 2020-05-13 at 08:26 +0200, Christoph Hellwig wrote:
+> > > Add a helper to directly set the IP_RECVERR sockopt from kernel space
+> > > without going through a fake uaccess.
+> > 
+> > This seems used only with true as the second arg.
+> > Is there reason to have that argument at all?
+> 
+> Mostly to keep it symmetric with the sockopt.  I could probably remove
+> a few arguments in the series if we want to be strict.
 
-Fixes: 09f8a1486dca ("RDMA/srpt: Fix handling of SR-IOV and iWARP ports")
-Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+My preference would use strict and add
+arguments only when necessary.
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 7ed38d1cb997..7dfc0138b973 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -607,6 +607,11 @@ static int srpt_refresh_port(struct srpt_port *sport)
- 			       dev_name(&sport->sdev->device->dev), sport->port,
- 			       PTR_ERR(sport->mad_agent));
- 			sport->mad_agent = NULL;
-+			memset(&port_modify, 0, sizeof(port_modify));
-+			port_modify.clr_port_cap_mask = IB_PORT_DEVICE_MGMT_SUP;
-+			ib_modify_port(sport->sdev->device, sport->port, 0,
-+				       &port_modify);
-+
- 		}
- 	}
- 
-@@ -630,9 +635,8 @@ static void srpt_unregister_mad_agent(struct srpt_device *sdev)
- 	for (i = 1; i <= sdev->device->phys_port_cnt; i++) {
- 		sport = &sdev->port[i - 1];
- 		WARN_ON(sport->port != i);
--		if (ib_modify_port(sdev->device, i, 0, &port_modify) < 0)
--			pr_err("disabling MAD processing failed.\n");
- 		if (sport->mad_agent) {
-+			ib_modify_port(sdev->device, i, 0, &port_modify);
- 			ib_unregister_mad_agent(sport->mad_agent);
- 			sport->mad_agent = NULL;
- 		}
--- 
-2.25.4
 
