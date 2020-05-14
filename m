@@ -2,121 +2,110 @@ Return-Path: <SRS0=ZbeD=64=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66330C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:20:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F5CC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:56:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B5DE2053B
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:20:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="j4NnjwX0"
+	by mail.kernel.org (Postfix) with ESMTP id 615DB20801
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:56:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1589482583;
+	bh=fc5t0heKlO77ZO7xYLMZMq+45UatG1ff9PqplceSjG8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=oklgvPiQulGC6Njfx1JyvcniK5GoWhXGeJa9QcnZjuRwTbPUUmcpplhWG+60OcMhl
+	 KNL6XZ8PI8ANd7SML6KFTjUkGL12so4ieFgtNBd5yqkWKQqn3PrdwBd01Pqk5LtkTd
+	 PESlz/GNpke1zgGE1fhVBWWasVheLHhCuYefLDSc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726125AbgENSUt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 May 2020 14:20:49 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:52986 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726075AbgENSUt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 May 2020 14:20:49 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04EIH9gr130004;
-        Thu, 14 May 2020 18:20:36 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=C96f5nTuYdzQCUFp8e/sk3brVbI0X1hHW8foPlGfO3c=;
- b=j4NnjwX0+x4OUGzfp1McyDai8y3WlaQ0IbkgeCDwQakCCNO5sWWb7R94SEUyzCuhEi9R
- 0WW5qoa9u4ABPhYyXx8JrbIHdKeHG+kL3chVk12M7lJkxyEWpnAnpBhhwdD4O7hxeCnO
- GAYmPkEkIVwHehDfY3/L4A43BDl4F0U/qM6qkHMvtk2qfGib1JOXMvc4b8G3P7KjQmHQ
- ptvETaHT27YH/M5wSAFK0AIHGaVP9a0GMtClGy8Gf+cNKx+vqwHsB1yiY55ARROqahCv
- slDwu1MiFW6kspveAf4dkX0jxlDr2JwAqG0ivraDYiI0SM4wnQT/sZb+XdpVRqrYjqaZ Fw== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by userp2120.oracle.com with ESMTP id 3100xwv8qf-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 14 May 2020 18:20:35 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04EII7Xe161087;
-        Thu, 14 May 2020 18:18:35 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by aserp3030.oracle.com with ESMTP id 3100yd5trv-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 14 May 2020 18:18:35 +0000
-Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 04EIIXJU010721;
-        Thu, 14 May 2020 18:18:33 GMT
-Received: from [10.74.104.165] (/10.74.104.165)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 14 May 2020 11:18:32 -0700
-Subject: Re: [PATCH 0/8 v1] Remove FMR support from RDMA drivers
-To:     Aron Silverton <aron.silverton@oracle.com>,
-        Max Gurtovoy <maxg@mellanox.com>
-Cc:     bvanassche@acm.org, Jason Gunthorpe <jgg@mellanox.com>,
-        linux-rdma@vger.kernel.org, dledford@redhat.com, leon@kernel.org,
-        sagi@grimberg.me, israelr@mellanox.com, shlomin@mellanox.com
-References: <20200514120305.189738-1-maxg@mellanox.com>
- <905E7E0C-1F87-4552-A7E3-5C49EDBED138@oracle.com>
-From:   santosh.shilimkar@oracle.com
-Organization: Oracle Corporation
-Message-ID: <5c48f60b-23b7-da64-6f37-f52de7bb625d@oracle.com>
-Date:   Thu, 14 May 2020 11:18:30 -0700
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:60.0)
- Gecko/20100101 Thunderbird/60.7.2
+        id S1729573AbgENS4U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 May 2020 14:56:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57236 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729675AbgENS4U (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 May 2020 14:56:20 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 90AA2207DA;
+        Thu, 14 May 2020 18:56:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1589482579;
+        bh=fc5t0heKlO77ZO7xYLMZMq+45UatG1ff9PqplceSjG8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=EC8fndeS/cr5P5/0aaYYJBp3Kcz6Cuare0ZNDf7IOE2YEKnBM/pxJafH+lixKbBvu
+         iJtQK+oqgfpHOWWfT40pG5lKV5Ye0TGDmyvFuMzGyrvAtxGCGou55Kp+VGqe/2dJ7V
+         0TOPK4NdOJtM+EI9joRAaUiVsSnKK0bsnd/RP9E4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Tariq Toukan <tariqt@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.9 23/27] net/mlx4_core: Fix use of ENOSPC around mlx4_counter_alloc()
+Date:   Thu, 14 May 2020 14:55:46 -0400
+Message-Id: <20200514185550.21462-23-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200514185550.21462-1-sashal@kernel.org>
+References: <20200514185550.21462-1-sashal@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <905E7E0C-1F87-4552-A7E3-5C49EDBED138@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9621 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 malwarescore=0 phishscore=0
- adultscore=0 suspectscore=0 mlxscore=0 mlxlogscore=999 spamscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2005140162
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9621 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 cotscore=-2147483648 bulkscore=0
- phishscore=0 adultscore=0 mlxlogscore=999 lowpriorityscore=0
- impostorscore=0 spamscore=0 malwarescore=0 priorityscore=1501 mlxscore=0
- suspectscore=0 clxscore=1011 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2005140162
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Tariq Toukan <tariqt@mellanox.com>
 
+[ Upstream commit 40e473071dbad04316ddc3613c3a3d1c75458299 ]
 
-On 5/14/20 8:13 AM, Aron Silverton wrote:
-> +Santosh
-> 
-> You probably meant to copy the RDS maintainer? Not sure if this should have
-> also been sent to netdev@vger.kernel.org.
-> 
-Thanks Aron.
+When ENOSPC is set the idx is still valid and gets set to the global
+MLX4_SINK_COUNTER_INDEX.  However gcc's static analysis cannot tell that
+ENOSPC is impossible from mlx4_cmd_imm() and gives this warning:
 
-> 
->> On May 14, 2020, at 7:02 AM, Max Gurtovoy <maxg@mellanox.com> wrote:
->>
->> This series removes the support for FMR mode to register memory. This ancient
->> mode is unsafe and not maintained/tested in the last few years. It also doesn't
->> have any reasonable advantage over other memory registration methods such as
->> FRWR (that is implemented in all the recent RDMA adapters). This series should
->> be reviewed and approved by the maintainer of the effected drivers and I
->> suggest to test it as well.
->>
-I know the security issue has been brought up before and this plan of 
-removal of FMR support was on the cards but on RDS at least on CX3 we
-got more throughput with FMR vs FRWR. And the reasons are well
-understood as well why its the case.
+drivers/net/ethernet/mellanox/mlx4/main.c:2552:28: warning: 'idx' may be
+used uninitialized in this function [-Wmaybe-uninitialized]
+ 2552 |    priv->def_counter[port] = idx;
 
-Is it possible to keep core support still around so that HCA's which
-supports FMR, ULPs can still can leverage it if they want.
- From RDS perspective, if the HCA like CX3 doesn't support both modes,
-code prefers FMR vs FRWR and hence the question.
+Also, when ENOSPC is returned mlx4_allocate_default_counters should not
+fail.
 
-Also while re-posting the series, please copy me on the patches.
+Fixes: 6de5f7f6a1fa ("net/mlx4_core: Allocate default counter per port")
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Regards,
-Santosh
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 781642d47133d..751aac54f2d55 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -2478,6 +2478,7 @@ static int mlx4_allocate_default_counters(struct mlx4_dev *dev)
+ 
+ 		if (!err || err == -ENOSPC) {
+ 			priv->def_counter[port] = idx;
++			err = 0;
+ 		} else if (err == -ENOENT) {
+ 			err = 0;
+ 			continue;
+@@ -2527,7 +2528,8 @@ int mlx4_counter_alloc(struct mlx4_dev *dev, u32 *idx)
+ 				   MLX4_CMD_TIME_CLASS_A, MLX4_CMD_WRAPPED);
+ 		if (!err)
+ 			*idx = get_param_l(&out_param);
+-
++		if (WARN_ON(err == -ENOSPC))
++			err = -EINVAL;
+ 		return err;
+ 	}
+ 	return __mlx4_counter_alloc(dev, idx);
+-- 
+2.20.1
 
