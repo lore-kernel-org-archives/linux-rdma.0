@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F5CC433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3495C433E1
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:57:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 615DB20801
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:56:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75AC320727
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 May 2020 18:57:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589482583;
-	bh=fc5t0heKlO77ZO7xYLMZMq+45UatG1ff9PqplceSjG8=;
+	s=default; t=1589482655;
+	bh=dIwDnWBI3zdZPm70c3zyZlmhRIygOKZQKTDT8e1PHPk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=oklgvPiQulGC6Njfx1JyvcniK5GoWhXGeJa9QcnZjuRwTbPUUmcpplhWG+60OcMhl
-	 KNL6XZ8PI8ANd7SML6KFTjUkGL12so4ieFgtNBd5yqkWKQqn3PrdwBd01Pqk5LtkTd
-	 PESlz/GNpke1zgGE1fhVBWWasVheLHhCuYefLDSc=
+	b=VVkHzNECYfQzxT5QrWQWg+3ybofDOwbifW4e38udGIuENtunRKYHOd6/ff8q+sirf
+	 WnUxKM8vsaF3zETOGwur3IXI1GKaCFfxdL8hnng59Qh77aL81Z3tPaA+s9Iph6pwD8
+	 YSYh96VnVxWaNPTEYc85tbKNYVlyEf3breAVgfVA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729573AbgENS4U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 May 2020 14:56:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57236 "EHLO mail.kernel.org"
+        id S1729763AbgENS5V (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 May 2020 14:57:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57698 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729675AbgENS4U (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 14 May 2020 14:56:20 -0400
+        id S1729747AbgENS4j (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 May 2020 14:56:39 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 90AA2207DA;
-        Thu, 14 May 2020 18:56:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 86DDB20727;
+        Thu, 14 May 2020 18:56:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589482579;
-        bh=fc5t0heKlO77ZO7xYLMZMq+45UatG1ff9PqplceSjG8=;
+        s=default; t=1589482598;
+        bh=dIwDnWBI3zdZPm70c3zyZlmhRIygOKZQKTDT8e1PHPk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EC8fndeS/cr5P5/0aaYYJBp3Kcz6Cuare0ZNDf7IOE2YEKnBM/pxJafH+lixKbBvu
-         iJtQK+oqgfpHOWWfT40pG5lKV5Ye0TGDmyvFuMzGyrvAtxGCGou55Kp+VGqe/2dJ7V
-         0TOPK4NdOJtM+EI9joRAaUiVsSnKK0bsnd/RP9E4=
+        b=dw2O1rYUD24KUj85XKvkTE4U/vl16Qsv2thPjlhteLL5sCfeXofGzjv66Teot5JB5
+         wAZgIGUjFBgYC/HW6wB3SfQTQIjJMK7vIfNViC/eeINHX5y5vmMnF7Uom6lJueludn
+         kNP2qX0HKYs+VnOz6tyWMTak/NSe3gIBvYfywpaA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tariq Toukan <tariqt@mellanox.com>,
@@ -45,12 +45,12 @@ Cc:     Tariq Toukan <tariqt@mellanox.com>,
         "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 23/27] net/mlx4_core: Fix use of ENOSPC around mlx4_counter_alloc()
-Date:   Thu, 14 May 2020 14:55:46 -0400
-Message-Id: <20200514185550.21462-23-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 10/14] net/mlx4_core: Fix use of ENOSPC around mlx4_counter_alloc()
+Date:   Thu, 14 May 2020 14:56:21 -0400
+Message-Id: <20200514185625.21753-10-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200514185550.21462-1-sashal@kernel.org>
-References: <20200514185550.21462-1-sashal@kernel.org>
+In-Reply-To: <20200514185625.21753-1-sashal@kernel.org>
+References: <20200514185625.21753-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -85,10 +85,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 781642d47133d..751aac54f2d55 100644
+index f8ac0e69d14b7..b774ba64bd4b5 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/main.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -2478,6 +2478,7 @@ static int mlx4_allocate_default_counters(struct mlx4_dev *dev)
+@@ -2295,6 +2295,7 @@ static int mlx4_allocate_default_counters(struct mlx4_dev *dev)
  
  		if (!err || err == -ENOSPC) {
  			priv->def_counter[port] = idx;
@@ -96,7 +96,7 @@ index 781642d47133d..751aac54f2d55 100644
  		} else if (err == -ENOENT) {
  			err = 0;
  			continue;
-@@ -2527,7 +2528,8 @@ int mlx4_counter_alloc(struct mlx4_dev *dev, u32 *idx)
+@@ -2344,7 +2345,8 @@ int mlx4_counter_alloc(struct mlx4_dev *dev, u32 *idx)
  				   MLX4_CMD_TIME_CLASS_A, MLX4_CMD_WRAPPED);
  		if (!err)
  			*idx = get_param_l(&out_param);
