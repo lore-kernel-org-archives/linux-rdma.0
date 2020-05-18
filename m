@@ -2,115 +2,95 @@ Return-Path: <SRS0=H2xG=7A=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E144C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 May 2020 09:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D0FC433E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 May 2020 11:05:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D4112070A
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 May 2020 09:50:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 039272081A
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 May 2020 11:05:41 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="TpboNGnU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726127AbgERJub (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 May 2020 05:50:31 -0400
-Received: from mx2.suse.de ([195.135.220.15]:57590 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726040AbgERJub (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 May 2020 05:50:31 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx2.suse.de (Postfix) with ESMTP id 88A57B155;
-        Mon, 18 May 2020 09:50:31 +0000 (UTC)
-Date:   Mon, 18 May 2020 11:50:26 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Orson Zhai <orsonzhai@gmail.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        Orson Zhai <orson.unisoc@gmail.com>,
-        Jason Baron <jbaron@akamai.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-doc@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Android Kernel Team <kernel-team@android.com>,
-        Orson Zhai <orson.zhai@unisoc.com>
-Subject: Re: [PATCH V2] dynamic_debug: Add an option to enable dynamic debug
- for modules only
-Message-ID: <20200518095026.GL7340@linux-b0ei>
-References: <1587408228-10861-1-git-send-email-orson.unisoc@gmail.com>
- <20200420191014.GE121146@unreal>
- <CA+H2tpGgGtW_8Z8fV9to39JwA_KrcfAeBC+KN87v0xKnZHt2_w@mail.gmail.com>
- <20200422142552.GA492196@unreal>
- <CA+H2tpGR7tywhkexa31AD_FkhyxQgVq_L+b0DbvXzwr6yT8j9Q@mail.gmail.com>
- <20200515095501.GU17734@linux-b0ei>
- <CA+H2tpFyAx9d-mvp=ZoS0NXm6YYC6DDV1Fu-RHLY=v82MP52Bg@mail.gmail.com>
+        id S1726362AbgERLFk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 May 2020 07:05:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53994 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726279AbgERLFk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 May 2020 07:05:40 -0400
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4F16C061A0C
+        for <linux-rdma@vger.kernel.org>; Mon, 18 May 2020 04:05:39 -0700 (PDT)
+Received: by mail-wr1-x443.google.com with SMTP id k13so9236698wrx.3
+        for <linux-rdma@vger.kernel.org>; Mon, 18 May 2020 04:05:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloud.ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=rAE08SBqIc8pASy1kitEcGu15we0RMxreMgdE1YvLog=;
+        b=TpboNGnUzC61RMIvOPHnVr7Pj8D76rFYnasKPmxGvq8A87CzgJMDv4OnTGaHhpcH15
+         HXnSnV0GEPBs87bsk1U17Us2bApaqcbinP/Eisrjb3SzA0eN/GFzLdvAVokuQORzK3at
+         21H+6ajlU8LopMlKb5515NBMNm9uRCxL4nGUhTiQirmMIvqwupIUrp1mVsCKj5zhxpFh
+         y857AuOlcYIJST1ndqtQdhHuJY/CJN7e7O1n38uNmVstIULyvGl2wh/zXf/DLkY6IaWT
+         sXgiQFVS3HxIh9N/yYb7b27+DLrNhWLRNwCiaGkNUeR3TwYWIKCuzJHWcs04PrnEWvAu
+         dhNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=rAE08SBqIc8pASy1kitEcGu15we0RMxreMgdE1YvLog=;
+        b=rVpgML+36/P1/k0EqqwO+XbdWyruYG1krPfMT/3cLAO/U+c+vxWJ4KXsSHP4ePaBmW
+         kXtCH9X/2+feXIER/YX2zYrvOHtYisc1NlmF3FN/7Qx47yg1yQ6iCJmHedq0kT6pQ7jK
+         kC7i1bOGrpBXd2mSYWcGH5CdIG+igBoVeJRAxrv4rFxezsX85kZwxJD+6DeVw0bxIiZS
+         6l2Ke77VvP70o0XyYq13Mi1r+okLk9hpnLxnlXkoOa83leVwsqDRgVLv/AZARRJ8v5A+
+         m7HtqkSJ3jCulfQLfXZstGjL7vDCIeacitPerohg379d0HJw+WPpnTVgnqIsZCypcJxi
+         v9WA==
+X-Gm-Message-State: AOAM531UwbqLAzIqKj5AnUh5nkXr/A875VzAy+V1qPmLZanhr4HXhcK8
+        KGyD5HnXpPJ+KfobaQzTjwAfum607mPW
+X-Google-Smtp-Source: ABdhPJzgjT7apG8TaEFkhMhYKDaDRZ1IN5VMOt+FlYdjSGgTTHFlsSkZhniqaKB7NDjC8GzT+FpcwA==
+X-Received: by 2002:adf:f086:: with SMTP id n6mr17493181wro.388.1589799938489;
+        Mon, 18 May 2020 04:05:38 -0700 (PDT)
+Received: from dkxps.fkb.profitbricks.net (dslb-002-204-227-207.002.204.pools.vodafone-ip.de. [2.204.227.207])
+        by smtp.gmail.com with ESMTPSA id a74sm10565648wme.23.2020.05.18.04.05.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 18 May 2020 04:05:37 -0700 (PDT)
+From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
+To:     linux-rdma@vger.kernel.org, jgg@ziepe.ca
+Cc:     dledford@redhat.com, bvanassche@acm.org,
+        jinpu.wang@cloud.ionos.com,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>
+Subject: [PATCH 0/1] Fix kbuilt test smatch inconsistent intentation warning
+Date:   Mon, 18 May 2020 13:04:53 +0200
+Message-Id: <20200518110454.427034-1-danil.kipnis@cloud.ionos.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <202005181024.7TYVfk5c%lkp@intel.com>
+References: <202005181024.7TYVfk5c%lkp@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+H2tpFyAx9d-mvp=ZoS0NXm6YYC6DDV1Fu-RHLY=v82MP52Bg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat 2020-05-16 11:55:04, Orson Zhai wrote:
-> On Fri, May 15, 2020 at 5:55 PM Petr Mladek <pmladek@suse.com> wrote:
-> >
-> > On Thu 2020-04-23 00:02:48, Orson Zhai wrote:
-> > > On Wed, Apr 22, 2020 at 10:25 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > > >
-> > > > On Wed, Apr 22, 2020 at 09:06:08PM +0800, Orson Zhai wrote:
-> > > > > On Tue, Apr 21, 2020 at 3:10 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > > > > My motivation came from the concept of GKI (Generic Kernel Image) in Android.
-> > > > > Google will release a common kernel image (binary) to all of the Android system
-> > > > > vendors in the world instead of letting them to build their owns as before.
-> > > > > Every SoC vendor's device drivers will be provided in kernel modules only.
-> > > > > By my patch, the driver owners could debug their modules in field (say
-> > > > > production releases)
-> > > > > without having to enable dynamic debug for the whole GKI.
-> > > >
-> > > > Will Google release that binary with CONFIG_DYNAMIC_DEBUG_CORE disabled?
-> > > >
-> > > In Google's plan, there will be only one GKI (no debug version) for
-> > > one Android version per kernel version per year.
-> >
-> > Are there plans to use modules with debug messages enabled on production
-> > systems?
-> 
-> Yes, but in a managed way. They are not being enabled directly to log buffer.
-> Users / FAEs (Field Application Engineer) might control to open or
-> close every single one on-the-fly.
+Hi Jason, Hi All,
 
-I see.
+this silences the inconsistent intenting smatch warning in
+the rtrs library found by kbuild test robot. Is this a strict
+requirement to always clean this kind of warnings? Please apply
+the patch in case it is.
 
-> > IMHO, the debug messages are primary needed during development and
-> > when fixing bugs. I am sure that developers will want to enable many
-> > more features that will help with debugging and which will be disabled
-> > on production systems.
-> 
-> I agree with you in general speaking.
-> For real production build we usually keep a few critical debugging
-> methods in case of some
-> potential bugs which are extremely hard to be found in production test.
-> Dynamic debug is one of these methods.
-> I assume it is widely used for maintenance to PC or server because I
-> can find it is enabled in some
-> popular Linux distribution configs.
+Thank you,
+Best
+Danil.
 
-Fair enough.
+Danil Kipnis (1):
+  rtrs-clt: silence kbuild test inconsistent intenting smatch warning
 
-Feel free to add:
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-Acked-by: Petr Mladek <pmladek@suse.com>
+-- 
+2.25.1
 
-Best Regards,
-Petr
