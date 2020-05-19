@@ -2,163 +2,107 @@ Return-Path: <SRS0=kq6t=7B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA2F9C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 23:34:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC375C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 23:38:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7F0520823
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 23:34:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B81FC20826
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 23:38:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="bR77MSJs"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="eKrhOds6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726432AbgESXem (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 May 2020 19:34:42 -0400
-Received: from userp2130.oracle.com ([156.151.31.86]:59518 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726178AbgESXel (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 May 2020 19:34:41 -0400
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04JNXIT9041018;
-        Tue, 19 May 2020 23:34:40 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
- mime-version : subject : from : in-reply-to : date : cc :
- content-transfer-encoding : message-id : references : to;
- s=corp-2020-01-29; bh=zWo1Fmp5PMdMy003njgTB/lKpxM26v28RXF62IjrSmI=;
- b=bR77MSJsFAtWpqdBlXs8DYddXn1hJJkx9TN0hbfs0DiE895mpI29P6lTrjADL4nLePkE
- nfJIoDrypnSyZnJiH9lL7wTDUAGHeaSSQIpG70wktadWioPiJN+d4eUIHmyu7T9Pa4cQ
- 8ZFzfAEVfHwEcfVGaHcGURdFILhmtgWyaeQwntUmmOYyUXmiOQbvYFGJIKbEJLqCtgpx
- 3khYkdBPdeykDKj3Ls38GB8P+FSIYONBlEU71D1vXtMlE+XyIDY9pfz2w95yAjjRXdEf
- rqlPRlHDgDeyuttC/eulf7hCZH7vt6qKo9AoVCpF2X5XdmAg1zaWbfe/6k69E/pcfyRa uw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2130.oracle.com with ESMTP id 3127kr89tx-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 19 May 2020 23:34:40 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04JNNBcT054371;
-        Tue, 19 May 2020 23:32:39 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by userp3020.oracle.com with ESMTP id 312sxtqg0x-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 19 May 2020 23:32:39 +0000
-Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 04JNWc3F004522;
-        Tue, 19 May 2020 23:32:39 GMT
-Received: from anon-dhcp-153.1015granger.net (/68.61.232.219)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 19 May 2020 16:32:38 -0700
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.11\))
-Subject: Re: [PATCH v2 00/29] Possible NFSD patches for v5.8
-From:   Chuck Lever <chuck.lever@oracle.com>
-In-Reply-To: <470B6839-FBC6-49BA-B633-DD49D271FD42@oracle.com>
-Date:   Tue, 19 May 2020 19:32:37 -0400
-Cc:     Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
-        linux-rdma@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <000ED881-6724-46EE-894E-57CD6DE10A15@oracle.com>
-References: <20200512211640.5826.77139.stgit@klimt.1015granger.net>
- <20200519161108.GD25858@fieldses.org>
- <81E97D7E-7B8D-4C64-844A-18EF0346C49C@oracle.com>
- <20200519212938.GG25858@fieldses.org>
- <470B6839-FBC6-49BA-B633-DD49D271FD42@oracle.com>
-To:     Bruce Fields <bfields@fieldses.org>
-X-Mailer: Apple Mail (2.3445.104.11)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9626 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 phishscore=0 malwarescore=0
- mlxlogscore=999 bulkscore=0 mlxscore=0 suspectscore=0 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2005190199
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9626 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 phishscore=0 spamscore=0
- bulkscore=0 clxscore=1015 priorityscore=1501 mlxscore=0 impostorscore=0
- suspectscore=0 mlxlogscore=999 malwarescore=0 cotscore=-2147483648
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2004280000 definitions=main-2005190200
+        id S1726432AbgESXiu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 May 2020 19:38:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58450 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726352AbgESXit (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 May 2020 19:38:49 -0400
+Received: from mail-qv1-xf44.google.com (mail-qv1-xf44.google.com [IPv6:2607:f8b0:4864:20::f44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45E59C08C5C0
+        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 16:38:49 -0700 (PDT)
+Received: by mail-qv1-xf44.google.com with SMTP id ee19so495366qvb.11
+        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 16:38:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=WX8zNao4hB0v73w8f5UXj9N2V1yEgSHUlRcesp4q++8=;
+        b=eKrhOds602SoUWuWh+rz6Zjf86gkwodoowj8v7Ru1Zu2FN674srfU7AYTUaQrsuLPn
+         a1xQB/Do514Hx1o2FOn5XiCrfX1MRNsvj3FeX0wOrqvLgHif1uAC3mNVMnjAsred6AwM
+         fTTqqxxGTEu0Ted/EYPCBH9HX6n4oZkDCZQkqL62lXwAkK9FJR4778UUvGDZIRM+JNK+
+         CyIXLfkWWawsQzmtNpZTp/pif28uKhCB57kf3h4wSYCyhla73TDYQpZ0e9K4Dv6TMHVS
+         Z8Oz+I04grVssJ2OmCjsYSfy+2Eb4bru/N91x36154pXGLGUnpTgkDv4Z/gd295+ivMn
+         7PEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=WX8zNao4hB0v73w8f5UXj9N2V1yEgSHUlRcesp4q++8=;
+        b=dXIb+kWMqdhMehsAMW6hZjCGd+pPuukLGblG6idlou4XhQCdM6g65MCYyX0kt1tvAv
+         Ra4IvQ6acIN0OxPV6iZekuUPnPfv/t6c3j4Qa+ai9X8iPn6oeShC9N9tUGSSVTLjR3X/
+         JQmSj61d8iLSRLJxSgKTeSwKnhHufNe2T1xUZnjtesjGaWiL9H81saEPoa9xsIcj8MTN
+         OouqH+fpwmxOm3SQhi/aiBm/FK5qpbj/z9CjgDEuSGN0TeP/BltDBqE1+VSAzyBMNPcc
+         F0tk4/DAR5veOptwqZ+Ly1/ePDNqY0/5QAx0rxCHRCl6pmjOf8Z75K5s7NLApqARnknU
+         FXdQ==
+X-Gm-Message-State: AOAM533J/O/Bzu7qJmDq9rA2MDCPx5gwnYM3BobTO1UVpdAgdMrmu7BL
+        vzM/JH5gQpzKjmBIT5BEV84ngA==
+X-Google-Smtp-Source: ABdhPJxVKDooS2c8caBYCj+9YCvHhBKGb1TvQ7mIVqolG2QzHvKHbBkWsndvedK3ht5yka4Bv9t99A==
+X-Received: by 2002:a05:6214:42a:: with SMTP id a10mr2142855qvy.78.1589931528308;
+        Tue, 19 May 2020 16:38:48 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id m59sm1037279qtd.46.2020.05.19.16.38.47
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 19 May 2020 16:38:47 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jbBot-0003Y7-Eu; Tue, 19 May 2020 20:38:47 -0300
+Date:   Tue, 19 May 2020 20:38:47 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Bart Van Assche <bvanassche@acm.org>
+Cc:     Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-next@vger.kernel.org, axboe@kernel.dk, dledford@redhat.com,
+        leon@kernel.org, jinpu.wang@cloud.ionos.com,
+        kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v2] rtrs-clt: silence kbuild test inconsistent intenting
+ smatch warning
+Message-ID: <20200519233847.GC12656@ziepe.ca>
+References: <20200519112936.928185-1-danil.kipnis@cloud.ionos.com>
+ <76b6b987-4f63-2487-7fbe-a1d9c2f06b76@acm.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <76b6b987-4f63-2487-7fbe-a1d9c2f06b76@acm.org>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Tue, May 19, 2020 at 07:29:15AM -0700, Bart Van Assche wrote:
+> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> index 468fdd0d8713..8dfa56dc32bc 100644
+> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> @@ -727,18 +727,13 @@ struct path_it {
+>  	struct rtrs_clt_sess *(*next_path)(struct path_it *it);
+>  };
+> 
+> -#define do_each_path(path, clt, it) {					\
+> -	path_it_init(it, clt);						\
+> -	rcu_read_lock();						\
+> -	for ((it)->i = 0; ((path) = ((it)->next_path)(it)) &&		\
+> -			  (it)->i < (it)->clt->paths_num;		\
+> +#define for_each_path(path, clt, it)					\
+> +	for (path_it_init((it), (clt)), rcu_read_lock(), (it)->i = 0;	\
+> +	     (((path) = ((it)->next_path)(it)) &&			\
+> +	      (it)->i < (it)->clt->paths_num) ||			\
+> +		     (path_it_deinit(it), rcu_read_unlock(), 0);	\
+>  	     (it)->i++)
 
+That is nicer, even better to write it with some inlines..
 
-> On May 19, 2020, at 6:25 PM, Chuck Lever <chuck.lever@oracle.com> =
-wrote:
->=20
-> Hi Bruce-
->=20
->> On May 19, 2020, at 5:29 PM, Bruce Fields <bfields@fieldses.org> =
-wrote:
->>=20
->> On Tue, May 19, 2020 at 12:14:22PM -0400, Chuck Lever wrote:
->>>=20
->>>=20
->>>> On May 19, 2020, at 12:11 PM, J. Bruce Fields =
-<bfields@fieldses.org> wrote:
->>>>=20
->>>> I'm getting a repeatable timeout failure on python 4.0 test WRT15.  =
-In
->>>> pynfs, run:=20
->>>>=20
->>>> 	./nfs4.0/testserver.py server:/export/path --rundeps --maketree =
-WRT15
->>>>=20
->>>> Looks like it sends WRITE+GETATTR(FATTR4_SIZE) compounds with write
->>>> offset 0 and write length taking on every value from 0 to 8192.
->>>>=20
->>>> Probably an xdr decoding bug of some kind?
->>>=20
->>> My first thought is to bisect, but I don't see a particular change =
-in my
->>> v5.8 series that would plausibly introduce this class of problem.
->>=20
->> It's SUNRPC: Refactor svc_recvfrom().
->>=20
->> That was just from a quick automated bisect.  I haven't tried to =
-figure
->> out where the bug is....
->=20
-> Your reproducer isn't working for me on EL7.
->=20
-> [root@manet ~]# yum install krb5-devel python3-devel swig =
-python3-gssapi python3-ply
-> Loaded plugins: ulninfo
-> Package krb5-devel-1.15.1-46.el7.x86_64 already installed and latest =
-version
-> Package python3-devel-3.6.8-13.0.1.el7.x86_64 already installed and =
-latest version
-> Package swig-2.0.10-5.el7.x86_64 already installed and latest version
-> No package python3-gssapi available.
-> No package python3-ply available.
-> Nothing to do
-> [root@manet ~]# logout
-> [cel@manet pynfs]$ ./nfs4.0/testserver.py server:/export/path =
---rundeps --maketree WRT15
-> Traceback (most recent call last):
->  File "./nfs4.0/testserver.py", line 388, in <module>
->    main()
->  File "./nfs4.0/testserver.py", line 242, in main
->    opt.machinename =3D os.fsencode(opt.machinename)
-> AttributeError: 'module' object has no attribute 'fsencode'
-> [cel@manet pynfs]$
-
-I've reproduced your original test failure. I can take a closer look
-tomorrow.
-
-Looks like python3 is now a requirement for pynfs, despite the comments
-and code in nfs4.0/testserver.py.
-
-Also, the README should explain that the server under test has to permit
-access from insecure source ports (this still might not be the default
-for some NFS servers).
-
-
---
-Chuck Lever
-
-
-
+Jason
