@@ -2,86 +2,75 @@ Return-Path: <SRS0=kq6t=7B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37173C433E1
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 08:45:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F019C433E1
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 08:48:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 147D720657
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 08:45:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CDAB2075F
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 08:48:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589877916;
-	bh=/oUIKyijMY9tBYtAg0iDoMrJ26ailaXDLYdRp1LFwGA=;
+	s=default; t=1589878097;
+	bh=x7OQkshLeaeILqov6KC6RjMQZFcU2fWWtNRyiJhfUsc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=ubhW0/Ped/9sYMLr0a24NUlnOHih43u2fBENiYgwWthqQFpEknPY3Oz5OfWmbOEJa
-	 KptoAsLlB7gpcdMxnjfEjkAYod7w+ThH2doOS4ccv14thL7DeebN9/L0kX8hVKuUez
-	 uEmDF3TFgOG3fZgJ/4AjOBO3TmjYvgNDDfLvL1iE=
+	b=BB/OrQc0q6/ZcW+k5lZ/2G4ktjfBqY+rI7jhA0EMAFW996ve49CMF1+nZfFCUloBx
+	 ue62ST07t7DI4zwYK2asOYjlcDrbdxSFqsE4BK2xJDrREtteFxopirJfAXspFPjdIN
+	 OA/On9LnZh+3XmA4Kn4muKne1sCP6UAO3Y9ULFkg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726466AbgESIpP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 May 2020 04:45:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54696 "EHLO mail.kernel.org"
+        id S1728419AbgESIsQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 May 2020 04:48:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726121AbgESIpO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 May 2020 04:45:14 -0400
+        id S1726388AbgESIsQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 19 May 2020 04:48:16 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C58B3204EA;
-        Tue, 19 May 2020 08:45:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 42103204EA;
+        Tue, 19 May 2020 08:48:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589877914;
-        bh=/oUIKyijMY9tBYtAg0iDoMrJ26ailaXDLYdRp1LFwGA=;
+        s=default; t=1589878096;
+        bh=x7OQkshLeaeILqov6KC6RjMQZFcU2fWWtNRyiJhfUsc=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=FDMP1nvPxb4PCpjWKEnytQzy+Haj2zHnFp9EBlFIA9FhVywEsPzqr2mSk7Ldz5nqg
-         vB4LXdzTCYpCz+9KKa21RlcGAY2LUkV5YrJAHVwKBN9rYUI7YIl6CPw+z3H1ziPojk
-         S44vXK94LNj/f50d8Alq52vqABjB+vr271weSA4o=
-Date:   Tue, 19 May 2020 11:45:10 +0300
+        b=AJHKy3Rf9ITJIkRnpPGw//PzJ0vIyHs16EzBi2MG10syNZYqNHdlQU1570zoyMvuY
+         LjGVVCfL1bTirDsLTLJwvmIapsxzevHdnjpOA0QcJpDz1pUypHB3aCAPu4A3vuBquo
+         gUWu7Ic9M0EMXuRtZ+7R94SpWc1VWcQVnUQcQTmY=
+Date:   Tue, 19 May 2020 11:48:12 +0300
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Danil Kipnis <danil.kipnis@cloud.ionos.com>
 Cc:     linux-rdma@vger.kernel.org, jgg@ziepe.ca,
         linux-next@vger.kernel.org, jinpu.wang@cloud.ionos.com,
         dledford@redhat.com, axboe@kernel.dk, linux-block@vger.kernel.org,
         bvanassche@acm.org, rdunlap@infradead.org
-Subject: Re: [PATCH 0/1] Fix RTRS compilation with block layer disabled
-Message-ID: <20200519084510.GO188135@unreal>
+Subject: Re: [PATCH 1/1] rnbd/rtrs: pass max segment size from blk user to
+ the rdma library
+Message-ID: <20200519084812.GP188135@unreal>
 References: <e132ee19-ff55-c017-732c-284a3b20daf7@infradead.org>
  <20200519080136.885628-1-danil.kipnis@cloud.ionos.com>
+ <20200519080136.885628-2-danil.kipnis@cloud.ionos.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200519080136.885628-1-danil.kipnis@cloud.ionos.com>
+In-Reply-To: <20200519080136.885628-2-danil.kipnis@cloud.ionos.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2020 at 10:01:35AM +0200, Danil Kipnis wrote:
-> Hi Jason, Hi All,
+On Tue, May 19, 2020 at 10:01:36AM +0200, Danil Kipnis wrote:
+> When Block Device Layer is disabled, BLK_MAX_SEGMENT_SIZE is undefined.
+> The rtrs is a transport library and should compile independently of the
+> block layer. The desired max segment size should be passed down by the
+> user.
 >
-> this fixes the compilation problem reported by Randy Dunlap for RTRS on
-> rdma for-next.
+> Introduce max_segment_size parameter for the rtrs_clt_open() call.
 >
-> Jason, am I even doing the right thing sending the fixes for the issues
-> reported for the for-next for RTRS/RNBD to here?
->
-> Danil Kipnis (1):
->   rnbd/rtrs: pass max segment size from blk user to the rdma library
+> Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> ---
 
-Danil,
-
-There is no need in cover letter for one patch.
+Please, add fixes line.
 
 Thanks
-
->
->  drivers/block/rnbd/rnbd-clt.c          |  1 +
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 17 +++++++++++------
->  drivers/infiniband/ulp/rtrs/rtrs-clt.h |  1 +
->  drivers/infiniband/ulp/rtrs/rtrs.h     |  1 +
->  4 files changed, 14 insertions(+), 6 deletions(-)
->
-> --
-> 2.25.1
->
