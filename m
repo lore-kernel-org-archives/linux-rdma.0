@@ -2,49 +2,49 @@ Return-Path: <SRS0=kq6t=7B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CA06C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 07:27:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BBFBC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 07:27:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BC17207E8
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 07:27:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55BCA20709
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 07:27:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589873254;
-	bh=wJUSDyqcDuK+kBhWDE7JYEj47u+YJJKlRlhBTHxvcSE=;
+	s=default; t=1589873259;
+	bh=oKe1eCLJXhGuHY3JK4EAGDS7RljtC0PG5v+nJ8tg1XU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=QljP/v8YGga8M+hRlOE5taa5OSVqy92Cw7Uq8hqeKc1yqgQrIY00virTFSsxj/rwu
-	 QfPK1keW2Ii9MUtWqpgz5lsvf7cCT1UsikvEOCUjyr3wAYP1RcCvD/41N9ejpsxs8c
-	 srppSlfKmG2N8aJUQX2waLXlC45PmbamJHBm/IFM=
+	b=eC++dQpoBqAU7/8mLZnKPOXXuism5CRERk+DMqk6StifIksJKW+c7muDGmdsKwcSh
+	 RRqo6Lm3l5AantqGfO+6/W9ZPD4wo5YayPBNNePJlJONQNyQapZjnlO5P/9LI4u4B5
+	 5MJmsRXX+TfMPnwYTs6UGCuBVRyFgHtPW6T4udq0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728420AbgESH1d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 May 2020 03:27:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52612 "EHLO mail.kernel.org"
+        id S1728455AbgESH1i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 May 2020 03:27:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728260AbgESH1d (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 May 2020 03:27:33 -0400
+        id S1728260AbgESH1i (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 19 May 2020 03:27:38 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 24C9F2075F;
-        Tue, 19 May 2020 07:27:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AFC54207E8;
+        Tue, 19 May 2020 07:27:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589873252;
-        bh=wJUSDyqcDuK+kBhWDE7JYEj47u+YJJKlRlhBTHxvcSE=;
+        s=default; t=1589873256;
+        bh=oKe1eCLJXhGuHY3JK4EAGDS7RljtC0PG5v+nJ8tg1XU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YnrADm0yRhka5beIlI4OqK2xlr62YSGz7kVZsW1ReN8TpziQAM9xVUcLsvkpLpl2Y
-         TzupRo8mrVCjPkba8/L76quPqUspUuz26gLC5Dj8BBWYEz8sqE05MQ71MH9PH5XAy8
-         L5aQvVbgsScNFS9U8UEUBV9WLl1BMR8NUwDhF/tk=
+        b=QbAzNNIZ9NY86rUJ+Dp4EA7WLf963IDURYguhpAd6CyNPR5OGZ+2dVqoQLNFtXl0y
+         KAupMZw6nSzhwojzJleUhLlzbDttydRiGvn7yQ2jqcIvdnL64PNpEvCMelfpSeQEC3
+         fDwUQ6mcjdpeVhZ/8ojvMKcqujY6wv/Zf98/buB4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v2 4/7] IB/uverbs: Move QP, SRQ, WQ type and flags to UAPI
-Date:   Tue, 19 May 2020 10:27:08 +0300
-Message-Id: <20200519072711.257271-5-leon@kernel.org>
+Subject: [PATCH rdma-next v2 6/7] IB/uverbs: Introduce create/destroy WQ commands over ioctl
+Date:   Tue, 19 May 2020 10:27:10 +0300
+Message-Id: <20200519072711.257271-7-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200519072711.257271-1-leon@kernel.org>
 References: <20200519072711.257271-1-leon@kernel.org>
@@ -57,154 +57,342 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-These constants are going to be used in the ioctl interface in coming
-patches so they are part of the UAPI, place them in the correct header
-for clarity.
+Introduce create/destroy WQ commands over the ioctl interface to let it
+be extended to get an asynchronous event FD.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/rdma/ib_verbs.h                 | 43 ++++++++++++++-----------
- include/uapi/rdma/ib_user_ioctl_verbs.h | 34 +++++++++++++++++++
- 2 files changed, 58 insertions(+), 19 deletions(-)
+ drivers/infiniband/core/Makefile              |   3 +-
+ drivers/infiniband/core/rdma_core.h           |   1 +
+ drivers/infiniband/core/uverbs_std_types.c    |  23 ---
+ drivers/infiniband/core/uverbs_std_types_wq.c | 194 ++++++++++++++++++
+ drivers/infiniband/core/uverbs_uapi.c         |   1 +
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |  25 +++
+ 6 files changed, 223 insertions(+), 24 deletions(-)
+ create mode 100644 drivers/infiniband/core/uverbs_std_types_wq.c
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index b8b5b5310529..9cf2d9d05c06 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1012,9 +1012,9 @@ enum ib_cq_notify_flags {
- };
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index d7b46a7c07fd..96c0a4b5af18 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -37,6 +37,7 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
+ 				uverbs_std_types_mr.o uverbs_std_types_counters.o \
+ 				uverbs_uapi.o uverbs_std_types_device.o \
+ 				uverbs_std_types_async_fd.o \
+-				uverbs_std_types_srq.o
++				uverbs_std_types_srq.o \
++				uverbs_std_types_wq.o
+ ib_uverbs-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+ ib_uverbs-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
+diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
+index d623f911b70b..9e9f2fa04fb9 100644
+--- a/drivers/infiniband/core/rdma_core.h
++++ b/drivers/infiniband/core/rdma_core.h
+@@ -160,6 +160,7 @@ extern const struct uapi_definition uverbs_def_obj_flow_action[];
+ extern const struct uapi_definition uverbs_def_obj_intf[];
+ extern const struct uapi_definition uverbs_def_obj_mr[];
+ extern const struct uapi_definition uverbs_def_obj_srq[];
++extern const struct uapi_definition uverbs_def_obj_wq[];
+ extern const struct uapi_definition uverbs_def_write_intf[];
  
- enum ib_srq_type {
--	IB_SRQT_BASIC,
--	IB_SRQT_XRC,
--	IB_SRQT_TM,
-+	IB_SRQT_BASIC = IB_UVERBS_SRQT_BASIC,
-+	IB_SRQT_XRC = IB_UVERBS_SRQT_XRC,
-+	IB_SRQT_TM = IB_UVERBS_SRQT_TM,
- };
+ static inline const struct uverbs_api_write_method *
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index d9b6912eafa8..c328d5194076 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -125,23 +125,6 @@ static int uverbs_free_rwq_ind_tbl(struct ib_uobject *uobject,
+ 	return ret;
+ }
  
- static inline bool ib_srq_has_cq(enum ib_srq_type srq_type)
-@@ -1083,16 +1083,16 @@ enum ib_qp_type {
- 	IB_QPT_SMI,
- 	IB_QPT_GSI,
+-static int uverbs_free_wq(struct ib_uobject *uobject,
+-			  enum rdma_remove_reason why,
+-			  struct uverbs_attr_bundle *attrs)
+-{
+-	struct ib_wq *wq = uobject->object;
+-	struct ib_uwq_object *uwq =
+-		container_of(uobject, struct ib_uwq_object, uevent.uobject);
+-	int ret;
+-
+-	ret = ib_destroy_wq(wq, &attrs->driver_udata);
+-	if (ib_is_destroy_retryable(ret, why, uobject))
+-		return ret;
+-
+-	ib_uverbs_release_uevent(&uwq->uevent);
+-	return ret;
+-}
+-
+ static int uverbs_free_xrcd(struct ib_uobject *uobject,
+ 			    enum rdma_remove_reason why,
+ 			    struct uverbs_attr_bundle *attrs)
+@@ -266,10 +249,6 @@ DECLARE_UVERBS_NAMED_OBJECT(
+ 				 uverbs_free_flow),
+ 			    &UVERBS_METHOD(UVERBS_METHOD_FLOW_DESTROY));
  
--	IB_QPT_RC,
--	IB_QPT_UC,
--	IB_QPT_UD,
-+	IB_QPT_RC = IB_UVERBS_QPT_RC,
-+	IB_QPT_UC = IB_UVERBS_QPT_UC,
-+	IB_QPT_UD = IB_UVERBS_QPT_UD,
- 	IB_QPT_RAW_IPV6,
- 	IB_QPT_RAW_ETHERTYPE,
--	IB_QPT_RAW_PACKET = 8,
--	IB_QPT_XRC_INI = 9,
--	IB_QPT_XRC_TGT,
-+	IB_QPT_RAW_PACKET = IB_UVERBS_QPT_RAW_PACKET,
-+	IB_QPT_XRC_INI = IB_UVERBS_QPT_XRC_INI,
-+	IB_QPT_XRC_TGT = IB_UVERBS_QPT_XRC_TGT,
- 	IB_QPT_MAX,
--	IB_QPT_DRIVER = 0xFF,
-+	IB_QPT_DRIVER = IB_UVERBS_QPT_DRIVER,
- 	/* Reserve a range for qp types internal to the low level driver.
- 	 * These qp types will not be visible at the IB core layer, so the
- 	 * IB_QPT_MAX usages should not be affected in the core layer
-@@ -1111,17 +1111,21 @@ enum ib_qp_type {
- 
- enum ib_qp_create_flags {
- 	IB_QP_CREATE_IPOIB_UD_LSO		= 1 << 0,
--	IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK	= 1 << 1,
-+	IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK	=
-+		IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK,
- 	IB_QP_CREATE_CROSS_CHANNEL              = 1 << 2,
- 	IB_QP_CREATE_MANAGED_SEND               = 1 << 3,
- 	IB_QP_CREATE_MANAGED_RECV               = 1 << 4,
- 	IB_QP_CREATE_NETIF_QP			= 1 << 5,
- 	IB_QP_CREATE_INTEGRITY_EN		= 1 << 6,
- 	/* FREE					= 1 << 7, */
--	IB_QP_CREATE_SCATTER_FCS		= 1 << 8,
--	IB_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
-+	IB_QP_CREATE_SCATTER_FCS		=
-+		IB_UVERBS_QP_CREATE_SCATTER_FCS,
-+	IB_QP_CREATE_CVLAN_STRIPPING		=
-+		IB_UVERBS_QP_CREATE_CVLAN_STRIPPING,
- 	IB_QP_CREATE_SOURCE_QPN			= 1 << 10,
--	IB_QP_CREATE_PCI_WRITE_END_PADDING	= 1 << 11,
-+	IB_QP_CREATE_PCI_WRITE_END_PADDING	=
-+		IB_UVERBS_QP_CREATE_PCI_WRITE_END_PADDING,
- 	/* reserve bits 26-31 for low level drivers' internal use */
- 	IB_QP_CREATE_RESERVED_START		= 1 << 26,
- 	IB_QP_CREATE_RESERVED_END		= 1 << 31,
-@@ -1626,7 +1630,7 @@ enum ib_raw_packet_caps {
- };
- 
- enum ib_wq_type {
--	IB_WQT_RQ
-+	IB_WQT_RQ = IB_UVERBS_WQT_RQ,
- };
- 
- enum ib_wq_state {
-@@ -1649,10 +1653,11 @@ struct ib_wq {
- };
- 
- enum ib_wq_flags {
--	IB_WQ_FLAGS_CVLAN_STRIPPING	= 1 << 0,
--	IB_WQ_FLAGS_SCATTER_FCS		= 1 << 1,
--	IB_WQ_FLAGS_DELAY_DROP		= 1 << 2,
--	IB_WQ_FLAGS_PCI_WRITE_END_PADDING = 1 << 3,
-+	IB_WQ_FLAGS_CVLAN_STRIPPING	= IB_UVERBS_WQ_FLAGS_CVLAN_STRIPPING,
-+	IB_WQ_FLAGS_SCATTER_FCS		= IB_UVERBS_WQ_FLAGS_SCATTER_FCS,
-+	IB_WQ_FLAGS_DELAY_DROP		= IB_UVERBS_WQ_FLAGS_DELAY_DROP,
-+	IB_WQ_FLAGS_PCI_WRITE_END_PADDING =
-+				IB_UVERBS_WQ_FLAGS_PCI_WRITE_END_PADDING,
- };
- 
- struct ib_wq_init_attr {
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index a640bb814be0..b1662dfe86a6 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -64,6 +64,40 @@ enum ib_uverbs_access_flags {
- 		~(IB_UVERBS_ACCESS_OPTIONAL_FIRST - 1)
- };
- 
-+enum ib_uverbs_srq_type {
-+	IB_UVERBS_SRQT_BASIC,
-+	IB_UVERBS_SRQT_XRC,
-+	IB_UVERBS_SRQT_TM,
+-DECLARE_UVERBS_NAMED_OBJECT(
+-	UVERBS_OBJECT_WQ,
+-	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_uwq_object), uverbs_free_wq));
+-
+ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ 	UVERBS_METHOD_RWQ_IND_TBL_DESTROY,
+ 	UVERBS_ATTR_IDR(UVERBS_ATTR_DESTROY_RWQ_IND_TBL_HANDLE,
+@@ -318,8 +297,6 @@ const struct uapi_definition uverbs_def_obj_intf[] = {
+ 				      UAPI_DEF_OBJ_NEEDS_FN(dealloc_mw)),
+ 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_FLOW,
+ 				      UAPI_DEF_OBJ_NEEDS_FN(destroy_flow)),
+-	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_WQ,
+-				      UAPI_DEF_OBJ_NEEDS_FN(destroy_wq)),
+ 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(
+ 		UVERBS_OBJECT_RWQ_IND_TBL,
+ 		UAPI_DEF_OBJ_NEEDS_FN(destroy_rwq_ind_table)),
+diff --git a/drivers/infiniband/core/uverbs_std_types_wq.c b/drivers/infiniband/core/uverbs_std_types_wq.c
+new file mode 100644
+index 000000000000..cad842ede077
+--- /dev/null
++++ b/drivers/infiniband/core/uverbs_std_types_wq.c
+@@ -0,0 +1,194 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * Copyright (c) 2020, Mellanox Technologies inc.  All rights reserved.
++ */
++
++#include <rdma/uverbs_std_types.h>
++#include "rdma_core.h"
++#include "uverbs.h"
++
++static int uverbs_free_wq(struct ib_uobject *uobject,
++			  enum rdma_remove_reason why,
++			  struct uverbs_attr_bundle *attrs)
++{
++	struct ib_wq *wq = uobject->object;
++	struct ib_uwq_object *uwq =
++		container_of(uobject, struct ib_uwq_object, uevent.uobject);
++	int ret;
++
++	ret = ib_destroy_wq(wq, &attrs->driver_udata);
++	if (ib_is_destroy_retryable(ret, why, uobject))
++		return ret;
++
++	ib_uverbs_release_uevent(&uwq->uevent);
++	return ret;
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_WQ_CREATE)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uwq_object *obj = container_of(
++		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_CREATE_WQ_HANDLE),
++		typeof(*obj), uevent.uobject);
++	struct ib_pd *pd =
++		uverbs_attr_get_obj(attrs, UVERBS_ATTR_CREATE_WQ_PD_HANDLE);
++	struct ib_cq *cq =
++		uverbs_attr_get_obj(attrs, UVERBS_ATTR_CREATE_WQ_CQ_HANDLE);
++	struct ib_wq_init_attr wq_init_attr = {};
++	struct ib_wq *wq;
++	u64 user_handle;
++	int ret;
++
++	ret = uverbs_get_flags32(&wq_init_attr.create_flags, attrs,
++				 UVERBS_ATTR_CREATE_WQ_FLAGS,
++				 IB_UVERBS_WQ_FLAGS_CVLAN_STRIPPING |
++				 IB_UVERBS_WQ_FLAGS_SCATTER_FCS |
++				 IB_UVERBS_WQ_FLAGS_DELAY_DROP |
++				 IB_UVERBS_WQ_FLAGS_PCI_WRITE_END_PADDING);
++	if (!ret)
++		ret = uverbs_copy_from(&wq_init_attr.max_sge, attrs,
++			       UVERBS_ATTR_CREATE_WQ_MAX_SGE);
++	if (!ret)
++		ret = uverbs_copy_from(&wq_init_attr.max_wr, attrs,
++				       UVERBS_ATTR_CREATE_WQ_MAX_WR);
++	if (!ret)
++		ret = uverbs_copy_from(&user_handle, attrs,
++				       UVERBS_ATTR_CREATE_WQ_USER_HANDLE);
++	if (!ret)
++		ret = uverbs_get_const(&wq_init_attr.wq_type, attrs,
++				       UVERBS_ATTR_CREATE_WQ_TYPE);
++	if (ret)
++		return ret;
++
++	if (wq_init_attr.wq_type != IB_WQT_RQ)
++		return -EINVAL;
++
++	obj->uevent.event_file = ib_uverbs_get_async_event(attrs,
++					UVERBS_ATTR_CREATE_WQ_EVENT_FD);
++	obj->uevent.uobject.user_handle = user_handle;
++	INIT_LIST_HEAD(&obj->uevent.event_list);
++	wq_init_attr.event_handler = ib_uverbs_wq_event_handler;
++	wq_init_attr.wq_context = attrs->ufile;
++	wq_init_attr.cq = cq;
++
++	wq = pd->device->ops.create_wq(pd, &wq_init_attr, &attrs->driver_udata);
++	if (IS_ERR(wq)) {
++		ret = PTR_ERR(wq);
++		goto err;
++	}
++
++	obj->uevent.uobject.object = wq;
++	wq->wq_type = wq_init_attr.wq_type;
++	wq->cq = cq;
++	wq->pd = pd;
++	wq->device = pd->device;
++	wq->wq_context = wq_init_attr.wq_context;
++	atomic_set(&wq->usecnt, 0);
++	atomic_inc(&pd->usecnt);
++	atomic_inc(&cq->usecnt);
++	wq->uobject = obj;
++	uverbs_finalize_uobj_create(attrs, UVERBS_ATTR_CREATE_WQ_HANDLE);
++
++	ret = uverbs_copy_to(attrs, UVERBS_ATTR_CREATE_WQ_RESP_MAX_WR,
++			     &wq_init_attr.max_wr,
++			     sizeof(wq_init_attr.max_wr));
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, UVERBS_ATTR_CREATE_WQ_RESP_MAX_SGE,
++			     &wq_init_attr.max_sge,
++			     sizeof(wq_init_attr.max_sge));
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, UVERBS_ATTR_CREATE_WQ_RESP_WQ_NUM,
++			     &wq->wq_num,
++			     sizeof(wq->wq_num));
++	return ret;
++
++err:
++	if (obj->uevent.event_file)
++		uverbs_uobject_put(&obj->uevent.event_file->uobj);
++	return ret;
 +};
 +
-+enum ib_uverbs_wq_type {
-+	IB_UVERBS_WQT_RQ,
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_WQ_CREATE,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_WQ_HANDLE,
++			UVERBS_OBJECT_WQ,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_WQ_PD_HANDLE,
++			UVERBS_OBJECT_PD,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_CONST_IN(UVERBS_ATTR_CREATE_WQ_TYPE,
++			     enum ib_wq_type,
++			     UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_CREATE_WQ_USER_HANDLE,
++			   UVERBS_ATTR_TYPE(u64),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_CREATE_WQ_MAX_WR,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_CREATE_WQ_MAX_SGE,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY),
++	UVERBS_ATTR_FLAGS_IN(UVERBS_ATTR_CREATE_WQ_FLAGS,
++			     enum ib_uverbs_wq_flags,
++			     UA_MANDATORY),
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_WQ_CQ_HANDLE,
++			UVERBS_OBJECT_CQ,
++			UVERBS_ACCESS_READ,
++			UA_OPTIONAL),
++	UVERBS_ATTR_FD(UVERBS_ATTR_CREATE_WQ_EVENT_FD,
++		       UVERBS_OBJECT_ASYNC_EVENT,
++		       UVERBS_ACCESS_READ,
++		       UA_OPTIONAL),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_CREATE_WQ_RESP_MAX_WR,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_CREATE_WQ_RESP_MAX_SGE,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_CREATE_WQ_RESP_WQ_NUM,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_OPTIONAL),
++	UVERBS_ATTR_UHW());
++
++static int UVERBS_HANDLER(UVERBS_METHOD_WQ_DESTROY)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj =
++		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_DESTROY_WQ_HANDLE);
++	struct ib_uwq_object *obj =
++		container_of(uobj, struct ib_uwq_object, uevent.uobject);
++
++	return uverbs_copy_to(attrs, UVERBS_ATTR_DESTROY_WQ_RESP,
++			      &obj->uevent.events_reported,
++			      sizeof(obj->uevent.events_reported));
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_WQ_DESTROY,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_DESTROY_WQ_HANDLE,
++			UVERBS_OBJECT_WQ,
++			UVERBS_ACCESS_DESTROY,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_DESTROY_WQ_RESP,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY));
++
++
++DECLARE_UVERBS_NAMED_OBJECT(
++	UVERBS_OBJECT_WQ,
++	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_uwq_object), uverbs_free_wq),
++	&UVERBS_METHOD(UVERBS_METHOD_WQ_CREATE),
++	&UVERBS_METHOD(UVERBS_METHOD_WQ_DESTROY)
++);
++
++const struct uapi_definition uverbs_def_obj_wq[] = {
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_WQ,
++				      UAPI_DEF_OBJ_NEEDS_FN(destroy_wq)),
++	{}
++};
+diff --git a/drivers/infiniband/core/uverbs_uapi.c b/drivers/infiniband/core/uverbs_uapi.c
+index 3f5627954fe7..0ec8cf86ecfa 100644
+--- a/drivers/infiniband/core/uverbs_uapi.c
++++ b/drivers/infiniband/core/uverbs_uapi.c
+@@ -635,6 +635,7 @@ static const struct uapi_definition uverbs_core_api[] = {
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_intf),
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_mr),
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_srq),
++	UAPI_DEF_CHAIN(uverbs_def_obj_wq),
+ 	UAPI_DEF_CHAIN(uverbs_def_write_intf),
+ 	{},
+ };
+diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
+index c07af46ff04c..381b17889d20 100644
+--- a/include/uapi/rdma/ib_user_ioctl_cmds.h
++++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
+@@ -153,6 +153,31 @@ enum uverbs_methods_cq {
+ 	UVERBS_METHOD_CQ_DESTROY,
+ };
+ 
++enum uverbs_attrs_create_wq_cmd_attr_ids {
++	UVERBS_ATTR_CREATE_WQ_HANDLE,
++	UVERBS_ATTR_CREATE_WQ_PD_HANDLE,
++	UVERBS_ATTR_CREATE_WQ_CQ_HANDLE,
++	UVERBS_ATTR_CREATE_WQ_USER_HANDLE,
++	UVERBS_ATTR_CREATE_WQ_TYPE,
++	UVERBS_ATTR_CREATE_WQ_EVENT_FD,
++	UVERBS_ATTR_CREATE_WQ_MAX_WR,
++	UVERBS_ATTR_CREATE_WQ_MAX_SGE,
++	UVERBS_ATTR_CREATE_WQ_FLAGS,
++	UVERBS_ATTR_CREATE_WQ_RESP_MAX_WR,
++	UVERBS_ATTR_CREATE_WQ_RESP_MAX_SGE,
++	UVERBS_ATTR_CREATE_WQ_RESP_WQ_NUM,
 +};
 +
-+enum ib_uverbs_wq_flags {
-+	IB_UVERBS_WQ_FLAGS_CVLAN_STRIPPING = 1 << 0,
-+	IB_UVERBS_WQ_FLAGS_SCATTER_FCS = 1 << 1,
-+	IB_UVERBS_WQ_FLAGS_DELAY_DROP = 1 << 2,
-+	IB_UVERBS_WQ_FLAGS_PCI_WRITE_END_PADDING = 1 << 3,
++enum uverbs_attrs_destroy_wq_cmd_attr_ids {
++	UVERBS_ATTR_DESTROY_WQ_HANDLE,
++	UVERBS_ATTR_DESTROY_WQ_RESP,
 +};
 +
-+enum ib_uverbs_qp_type {
-+	IB_UVERBS_QPT_RC = 2,
-+	IB_UVERBS_QPT_UC,
-+	IB_UVERBS_QPT_UD,
-+	IB_UVERBS_QPT_RAW_PACKET = 8,
-+	IB_UVERBS_QPT_XRC_INI,
-+	IB_UVERBS_QPT_XRC_TGT,
-+	IB_UVERBS_QPT_DRIVER = 0xFF,
++enum uverbs_methods_wq {
++	UVERBS_METHOD_WQ_CREATE,
++	UVERBS_METHOD_WQ_DESTROY,
 +};
 +
-+enum ib_uverbs_qp_create_flags {
-+	IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK = 1 << 1,
-+	IB_UVERBS_QP_CREATE_SCATTER_FCS = 1 << 8,
-+	IB_UVERBS_QP_CREATE_CVLAN_STRIPPING = 1 << 9,
-+	IB_UVERBS_QP_CREATE_PCI_WRITE_END_PADDING = 1 << 11,
-+};
-+
- enum ib_uverbs_query_port_cap_flags {
- 	IB_UVERBS_PCF_SM = 1 << 1,
- 	IB_UVERBS_PCF_NOTICE_SUP = 1 << 2,
+ enum uverbs_methods_actions_flow_action_ops {
+ 	UVERBS_METHOD_FLOW_ACTION_ESP_CREATE,
+ 	UVERBS_METHOD_FLOW_ACTION_DESTROY,
 -- 
 2.26.2
 
