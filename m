@@ -1,213 +1,190 @@
-Return-Path: <SRS0=H2xG=7A=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=kq6t=7B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2269C433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 May 2020 18:19:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBFD6C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 00:20:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAB7120671
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 May 2020 18:19:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="ZyuvUMBL"
+	by mail.kernel.org (Postfix) with ESMTP id A6A5E20756
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 00:20:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730724AbgERSTr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 May 2020 14:19:47 -0400
-Received: from mail-eopbgr20060.outbound.protection.outlook.com ([40.107.2.60]:21894
-        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730192AbgERRxx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 May 2020 13:53:53 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=LLQzL0GmpD7H2Jaq1uu7csEfWdtCqDIPzFgk1+jxu9bd/o8563+kNmlwHxY+QluB9Ww5w/z62xwm05W7n0Qg6K7cmgqUYRy7oZNZrbWPj8IjQ9r90qnbZ/0KLAdrt+h/sx7ziYW13ISvjkxwS9iHVMhp3JIx4+P0ugoiviCej2XgmqKcEdlTOpc9pxRVNDyFy1WcYyJ5o82JsCzAtIYTCFD50zLp+Zd4TH4ysfnT9GSBPMU63X/TG4YshQO+0qTe9RtL9wl9e7GyUiKJJuWyNVaZ6JQCOm0bP9ps4ttWXDtoXpVkW8njaF/iOTL8DcTKBOHkQwCbQUE8eX/0x1pg0Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=baeltpstGcEOxXCIFPIFLG+d5di6lCN2vOGMgHSM0go=;
- b=KXuSRvTY308JSxUWXiVV/g9wVkF/dBkfc7mugPIDbGM6P9kKchOvNd+upHsUfo5CioY8WA4TzlB2EQuKH/paYVu3cbKMuzfj8i4ZnFMUiTBSevv6W+ZA2CXWt1HGvRO3mHxzFE6MUkT6cI03lR1HLXwzEb4Ea6puWJrgXDcNFOhkxIHZviitgxfk1IJLE5G4BencHvyPFr8V2+av2Rik7HUkoCNwtcf8xTncsZpOaMwD3xV3Xvyn+Evw0wFScDA1drfv34QFXudrehFyP0ZfMLgPgUbmlK8X/PCOIHZmamh4EgfrbTXbfbxevE0qHlo0qhRpMinjvTvnRhRhkJa8+A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=baeltpstGcEOxXCIFPIFLG+d5di6lCN2vOGMgHSM0go=;
- b=ZyuvUMBLdTjoO0HsxCGO9icFIXI0zu8C8nQxkpEJQ7VCnWESDE+hYf10BuhWi74aUBYL0Xzt3SelAgFswD4xDigplSOIzedJ2IhXJa6OvAi5cPt7ObLnfToIkOxEl+YiwU4R5Z0KSNQLUOIOPWF0Cf8llGRXWS1+Dj68bH5V50Q=
-Authentication-Results: mellanox.com; dkim=none (message not signed)
- header.d=none;mellanox.com; dmarc=none action=none header.from=mellanox.com;
-Received: from DBBPR05MB6409.eurprd05.prod.outlook.com (2603:10a6:10:cd::18)
- by DBBPR05MB6283.eurprd05.prod.outlook.com (2603:10a6:10:cf::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3000.27; Mon, 18 May
- 2020 17:53:48 +0000
-Received: from DBBPR05MB6409.eurprd05.prod.outlook.com
- ([fe80::187b:a21e:e583:7418]) by DBBPR05MB6409.eurprd05.prod.outlook.com
- ([fe80::187b:a21e:e583:7418%6]) with mapi id 15.20.3000.033; Mon, 18 May 2020
- 17:53:48 +0000
-Date:   Mon, 18 May 2020 20:53:45 +0300
-From:   Leon Romanovsky <leonro@mellanox.com>
-To:     Yamin Friedman <yaminf@mellanox.com>
-Cc:     Jason Gunthorpe <jgg@mellanox.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Christoph Hellwig <hch@lst.de>,
-        Or Gerlitz <ogerlitz@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH V2 1/4] RDMA/core: Add protection for shared CQs used by
- ULPs
-Message-ID: <20200518175345.GC188135@unreal>
-References: <1589370763-81205-1-git-send-email-yaminf@mellanox.com>
- <1589370763-81205-2-git-send-email-yaminf@mellanox.com>
- <20200518075416.GA185893@unreal>
- <d8e19d4c-897c-25af-5d67-399238cda781@mellanox.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d8e19d4c-897c-25af-5d67-399238cda781@mellanox.com>
-X-ClientProxiedBy: PR0P264CA0245.FRAP264.PROD.OUTLOOK.COM (2603:10a6:100::17)
- To DBBPR05MB6409.eurprd05.prod.outlook.com (2603:10a6:10:cd::18)
+        id S1726355AbgESAUT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 May 2020 20:20:19 -0400
+Received: from mga02.intel.com ([134.134.136.20]:3344 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726284AbgESAUT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 18 May 2020 20:20:19 -0400
+IronPort-SDR: RAkON507uHT11MTbelpYhzvYXB2kTDprXKXUOHpP+WYyQmBRh7wMEBx0ok1htoKH16U0Dpp3zU
+ Ewa8kHXm8iAg==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2020 17:20:19 -0700
+IronPort-SDR: JqSrzpHze6U2R0ztUTbb8db1b8BPioUJolR2d5LnKnnrqjW05rcaLDbpqM5/11Y4hXavBgFvZC
+ /zeH5kpceQFg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,408,1583222400"; 
+   d="scan'208";a="465941482"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga006.fm.intel.com with ESMTP; 18 May 2020 17:20:17 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1japzU-000DsM-UO; Tue, 19 May 2020 08:20:16 +0800
+Date:   Tue, 19 May 2020 08:19:49 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
+ 23bbd5818e2b0d265aa1835e66f5055f63a8fa4c
+Message-ID: <5ec32625.SvAA6dXTeATDzzyG%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from localhost (2a00:a040:183:2d::a43) by PR0P264CA0245.FRAP264.PROD.OUTLOOK.COM (2603:10a6:100::17) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3000.20 via Frontend Transport; Mon, 18 May 2020 17:53:48 +0000
-X-Originating-IP: [2a00:a040:183:2d::a43]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 5c572a83-d7c8-4da7-2c3d-08d7fb546ac7
-X-MS-TrafficTypeDiagnostic: DBBPR05MB6283:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <DBBPR05MB62835CA4285F10238CB71B98B0B80@DBBPR05MB6283.eurprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:5236;
-X-Forefront-PRVS: 04073E895A
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: ifjOa4xK6bLSjZWqC32g9Z1Egl1s67unRQmAed28CU3tFbSUQujTvOXRe3NUtu16Q1+ZsOiGOg/g1ohrTuQ5GZj2aARto6uvXVHOb7yi9ZY7kdCDiF55yR4R5v8HqZnSreL4NVCjNc92MIiwZTXBPWdb4abX2rVvIdfMEv0PcULdPli1M43CAL9vMpw3cRiBqV9WQuKH1KK/W2ikMkDgmMce+lEl+YQHST2IFEUcyYaCr7kFSCqL+WqoXvN3aZC6rlr9gaxM8StWuaxwLeEAACYVeb3ptAvbif7PYx64u8w/sChI17Gn4XEr9cy+bnJwDXwJagFVFIlQvQ43kj3svXRrlY9NRWWL5hel5pfLIeO8aHP99aqDzBlpWe5zFhuOR7j3dW2A1EjELyjh+SV/9wxiXuixM3ONYSx06/fkLbdzPI1XY/TgvLtHMseihapn
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBPR05MB6409.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(7916004)(136003)(39860400002)(366004)(396003)(376002)(346002)(33716001)(86362001)(316002)(6666004)(66946007)(66476007)(66556008)(52116002)(6496006)(53546011)(186003)(9686003)(33656002)(478600001)(8676002)(54906003)(16526019)(4326008)(5660300002)(8936002)(6862004)(2906002)(6636002)(1076003)(6486002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: OI0NyMQMYxo8yZeUkslAQR5V1fk/jlrCa9FvlA5R9jtOCkecB7fKuw/3JsRdE8c4eIb46etOnzc4C5hrayNMuLeMsrNSY7hJcKB2TDxaD9as01WKA8LmC9AGwl8t1V6V4JP97F6CKcmPZjd79f+/GG97jrwJxwfT9ZhfTME70z88v01BULDUx1CN1k0z2uEFh04yiUe5w/nhzzm3ybGrTFQWp70UHuZ2Mqr4QYprGa6c8reuTAUAAZOUmXYW/hgYV90BgDJvmsRO0J+0uVVYGneY6/Q+1eb+XXVPBNO6qZdewpbHAS2gN8JhPV1TUdXlZbI3Lnm8zNzmI1saQny82QqZAP7KSJLBKa2bVD989azliSvkYG0EtDRh5PV/xky90taUfRt8gcd4Z3SQ1iqGQMuPnAzPbz4WnyxJ5S48Bgr6WRV8rnN53fx9BvOjXcH1UXBnxSqDwI9TWvlBBz9ZWu8+QJ6ExIk6TTNtgF7wEqTaoZ4yhCwamaFvLNACROl6wGYH9Y7Y6aUGX3eTppwWNQ==
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5c572a83-d7c8-4da7-2c3d-08d7fb546ac7
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 May 2020 17:53:48.5555
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: R8dwkFuqaMYcvC4xV5Gf/Xa5SeDp2Glp6efIXThQxwhyni7cGdV71AS/RmegQkfwW9Nas7OZn4FkYaVQnQaR4Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DBBPR05MB6283
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, May 18, 2020 at 03:58:19PM +0300, Yamin Friedman wrote:
->
-> On 5/18/2020 10:54 AM, Leon Romanovsky wrote:
-> > On Wed, May 13, 2020 at 02:52:40PM +0300, Yamin Friedman wrote:
-> > > A pre-step for adding shared CQs. Add the infrastructure to prevent
-> > > shared CQ users from altering the CQ configurations. For now all cqs are
-> > > marked as private (non-shared). The core driver should use the new force
-> > > functions to perform resize/destroy/moderation changes that are not
-> > > allowed for users of shared CQs.
-> > >
-> > > Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
-> > > Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
-> > > Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
-> > > ---
-> > >   drivers/infiniband/core/cq.c    | 18 ++++++++++++------
-> > >   drivers/infiniband/core/verbs.c |  9 +++++++++
-> > >   include/rdma/ib_verbs.h         |  8 ++++++++
-> > >   3 files changed, 29 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-> > > index 4f25b24..04046eb 100644
-> > > --- a/drivers/infiniband/core/cq.c
-> > > +++ b/drivers/infiniband/core/cq.c
-> > > @@ -300,12 +300,7 @@ struct ib_cq *__ib_alloc_cq_any(struct ib_device *dev, void *private,
-> > >   }
-> > >   EXPORT_SYMBOL(__ib_alloc_cq_any);
-> > >
-> > > -/**
-> > > - * ib_free_cq_user - free a completion queue
-> > > - * @cq:		completion queue to free.
-> > > - * @udata:	User data or NULL for kernel object
-> > > - */
-> > > -void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
-> > > +static void _ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
-> > >   {
-> > >   	if (WARN_ON_ONCE(atomic_read(&cq->usecnt)))
-> > >   		return;
-> > > @@ -333,4 +328,15 @@ void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
-> > >   	kfree(cq->wc);
-> > >   	kfree(cq);
-> > >   }
-> > > +
-> > > +/**
-> > > + * ib_free_cq_user - free a completion queue
-> > > + * @cq:		completion queue to free.
-> > > + * @udata:	User data or NULL for kernel object
-> > > + */
-> > > +void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
-> > > +{
-> > > +	if (!cq->shared)
-> > > +		_ib_free_cq_user(cq, udata);
-> > > +}
-> > >   EXPORT_SYMBOL(ib_free_cq_user);
-> > All CQs from the pool will have "shared" boolean set and you don't need
-> > to create an extra wrapper, simply put this "if (cq->shared) return;"
-> > line in original ib_free_cq_user(). Just don't forget to set "shared"
-> > to be false in ib_cq_pool_destroy().
-> Makes sense.
-> >
-> > > diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> > > index bf0249f..d1bacd7 100644
-> > > --- a/drivers/infiniband/core/verbs.c
-> > > +++ b/drivers/infiniband/core/verbs.c
-> > > @@ -1990,6 +1990,9 @@ struct ib_cq *__ib_create_cq(struct ib_device *device,
-> > >
-> > >   int rdma_set_cq_moderation(struct ib_cq *cq, u16 cq_count, u16 cq_period)
-> > >   {
-> > > +	if (cq->shared)
-> > > +		return -EOPNOTSUPP;
-> > > +
-> > >   	return cq->device->ops.modify_cq ?
-> > >   		cq->device->ops.modify_cq(cq, cq_count,
-> > >   					  cq_period) : -EOPNOTSUPP;
-> > > @@ -1998,6 +2001,9 @@ int rdma_set_cq_moderation(struct ib_cq *cq, u16 cq_count, u16 cq_period)
-> > >
-> > >   int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
-> > >   {
-> > > +	if (cq->shared)
-> > > +		return -EOPNOTSUPP;
-> > > +
-> > >   	if (atomic_read(&cq->usecnt))
-> > >   		return -EBUSY;
-> > >
-> > > @@ -2010,6 +2016,9 @@ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
-> > >
-> > >   int ib_resize_cq(struct ib_cq *cq, int cqe)
-> > >   {
-> > > +	if (cq->shared)
-> > > +		return -EOPNOTSUPP;
-> > > +
-> > >   	return cq->device->ops.resize_cq ?
-> > >   		cq->device->ops.resize_cq(cq, cqe, NULL) : -EOPNOTSUPP;
-> > >   }
-> > > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > > index 4c488ca..b79737b 100644
-> > > --- a/include/rdma/ib_verbs.h
-> > > +++ b/include/rdma/ib_verbs.h
-> > > @@ -1582,6 +1582,7 @@ struct ib_cq {
-> > >   	 * Implementation details of the RDMA core, don't use in drivers:
-> > >   	 */
-> > >   	struct rdma_restrack_entry res;
-> > > +	bool shared;
-> > Lets do "u8 shared:1;" from the beginning.
-> Not sure what you mean "from the beginning".
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
+branch HEAD: 23bbd5818e2b0d265aa1835e66f5055f63a8fa4c  RDMA/srpt: Fix disabling device management
 
-I was under impression that you are adding first "bool" variable to the
-ib_cq struct. Having u8 a:1, b:1 notation allows us to save memory without
-sacrificing "boolean" nature of the "a" and "b".
+Warning in current branch:
 
-We will use one byte of the space for eight booleans, instead of 8
-bytes if we chose to use "bool" in the struct.
+drivers/infiniband/ulp/rtrs/rtrs-clt.c:1196 rtrs_clt_failover_req() warn: inconsistent indenting
+drivers/infiniband/ulp/rtrs/rtrs-clt.c:2890 rtrs_clt_request() warn: inconsistent indenting
 
-Thanks
+Warning ids grouped by kconfigs:
+
+recent_errors
+`-- i386-allyesconfig
+    |-- drivers-infiniband-ulp-rtrs-rtrs-clt.c-rtrs_clt_failover_req()-warn:inconsistent-indenting
+    `-- drivers-infiniband-ulp-rtrs-rtrs-clt.c-rtrs_clt_request()-warn:inconsistent-indenting
+
+elapsed time: 619m
+
+configs tested: 111
+configs skipped: 4
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+arm                                 defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+arm                               allnoconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm64                            allmodconfig
+arm64                             allnoconfig
+m68k                             allyesconfig
+sparc                            allyesconfig
+mips                             allyesconfig
+sh                                  defconfig
+mips                          rm200_defconfig
+mips                     loongson1c_defconfig
+alpha                               defconfig
+arm                          imote2_defconfig
+c6x                        evmc6457_defconfig
+mips                 pnx8335_stb225_defconfig
+arc                              alldefconfig
+sh                          lboxre2_defconfig
+arm                         cm_x300_defconfig
+powerpc64                           defconfig
+mips                      pic32mzda_defconfig
+mips                            e55_defconfig
+parisc                            allnoconfig
+mips                    maltaup_xpa_defconfig
+i386                              allnoconfig
+i386                                defconfig
+i386                              debian-10.3
+i386                             allyesconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                              allnoconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                              allnoconfig
+m68k                           sun3_defconfig
+m68k                                defconfig
+nios2                               defconfig
+nios2                            allyesconfig
+openrisc                            defconfig
+c6x                              allyesconfig
+c6x                               allnoconfig
+openrisc                         allyesconfig
+nds32                               defconfig
+nds32                             allnoconfig
+csky                             allyesconfig
+csky                                defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+h8300                            allmodconfig
+xtensa                              defconfig
+arc                                 defconfig
+arc                              allyesconfig
+sh                               allmodconfig
+sh                                allnoconfig
+microblaze                        allnoconfig
+mips                              allnoconfig
+mips                             allmodconfig
+parisc                              defconfig
+parisc                           allyesconfig
+parisc                           allmodconfig
+powerpc                             defconfig
+powerpc                          allyesconfig
+powerpc                          rhel-kconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a006-20200518
+i386                 randconfig-a005-20200518
+i386                 randconfig-a001-20200518
+i386                 randconfig-a003-20200518
+i386                 randconfig-a004-20200518
+i386                 randconfig-a002-20200518
+x86_64               randconfig-a016-20200518
+x86_64               randconfig-a012-20200518
+x86_64               randconfig-a015-20200518
+x86_64               randconfig-a013-20200518
+x86_64               randconfig-a011-20200518
+x86_64               randconfig-a014-20200518
+i386                 randconfig-a012-20200518
+i386                 randconfig-a014-20200518
+i386                 randconfig-a016-20200518
+i386                 randconfig-a011-20200518
+i386                 randconfig-a015-20200518
+i386                 randconfig-a013-20200518
+riscv                            allyesconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                            allmodconfig
+s390                             allyesconfig
+s390                              allnoconfig
+s390                             allmodconfig
+s390                                defconfig
+x86_64                              defconfig
+sparc                               defconfig
+sparc64                             defconfig
+sparc64                           allnoconfig
+sparc64                          allyesconfig
+sparc64                          allmodconfig
+um                               allmodconfig
+um                                allnoconfig
+um                               allyesconfig
+um                                  defconfig
+x86_64                                   rhel
+x86_64                               rhel-7.6
+x86_64                    rhel-7.6-kselftests
+x86_64                         rhel-7.2-clear
+x86_64                                    lkp
+x86_64                              fedora-25
+x86_64                                  kexec
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
