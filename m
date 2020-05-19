@@ -2,105 +2,84 @@ Return-Path: <SRS0=kq6t=7B=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25D18C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 16:00:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1116DC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 16:09:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 03E3F207C4
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 16:00:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="HUye97v9"
+	by mail.kernel.org (Postfix) with ESMTP id E5D13207D8
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 May 2020 16:09:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1589904541;
+	bh=u3+jsia5NAW/8Ph5G2JpnG6etn7OX8oeTKdDlKnd0Sc=;
+	h=Date:From:To:Cc:Subject:List-ID:From;
+	b=2BgXOoYYCa7D+BH57F/ugoN16G2Nk4e061HjQlYQulyVpyRWlbYu71BQXf5RR5/Kb
+	 VN/u9ECWay93Xpa23BAdRZDJ+zVCPsDOji7aj2RoF5vpvuWsO5oDTgs7BDcMHr9mr4
+	 /Gm/++V0Rd36GEAjVsy+XanH2THpnHi1cxjUUE7E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729358AbgESQAx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 May 2020 12:00:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42742 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729211AbgESQAx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 May 2020 12:00:53 -0400
-Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5CC5C08C5C1
-        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 09:00:52 -0700 (PDT)
-Received: by mail-wm1-x343.google.com with SMTP id m185so4216965wme.3
-        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 09:00:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=BmLSEBizF5QwZ0w8Jva6N+7I89XZ83pvn5mbF9AauMU=;
-        b=HUye97v9LyaMSqw+E/FpZNDbsO1SE7ChWSkscNuv36LxUKxH75OYus+P3faHzhBoqi
-         rj3XrNuC46MBLrShN1dnuZCq/p1g10z0xrFWbyR6ZQ4bI+jQOv6PxOzZWOBoxYPB4PYQ
-         qD02Ae2iMjJ03oj8UUmIxDfqXCnVUZkJCHfm11m7Uo7y2Cg0Hyhz1koszly6B0XEM+Ht
-         pXCSUG/KYJQ7z1PkuDcPE1AfAMCSqxeh5Gm7rdsvniueOTeOAgH00AMlcPh/qaVZdrE+
-         zqOSt+Gs4dMmsPNa+5nzpyXtscCz4Qf3qLQD23/WpAv1zrnUy/oEyN4BIF+uuiRqqEl3
-         fL8w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=BmLSEBizF5QwZ0w8Jva6N+7I89XZ83pvn5mbF9AauMU=;
-        b=oZZO5x79/oJdD504nNUoT8IUrnLEJCPLB0/ZF0K2guhT2pwXqzXgGzmwxL+6Hbc2Kq
-         BI632pZCXaGzHKuIoby2GecR952XX2istOnM50CCAcY/0yGryQv7OZnzH4MhQ9dokqwx
-         +ROSGK9h7bYQ9LgsbmmJcmY2DE/cWwvAoiRvNk9WKkqF5b9E7Fl5z5IroyU4ovOcRixL
-         ITmUQ9kLiT2fPRBiRDd/Pdho65BtJE/UpeQfjjhy5IvZrVACrBP7KcA04rl6DabybK0t
-         5q8iYHxvZRWu+u1VwgFoE5xkGgsSLZZy5a+UGNQCH+jTiMtAJ2oFZA+A7scKMDbWHV13
-         xPNA==
-X-Gm-Message-State: AOAM531omgSr2mDS6+yg0mfBhP6g4E6/oDSE7FGPCmryd0/MsBqCXVpx
-        wNHIr46NTJfpWZe/NPCtYW6Jh0hbRny1w10u1kdH
-X-Google-Smtp-Source: ABdhPJw/YCnRJY1GgnQdvj+SGYyFtn5wisFibQeDNsvksIsO3xMvENa+bKnM4fLCF0BfmetWSDDTVY4TjPINiLA/d9w=
-X-Received: by 2002:a1c:5402:: with SMTP id i2mr44858wmb.185.1589904051546;
- Tue, 19 May 2020 09:00:51 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAHg0Huz39q9nWwTrtCY=SgU=T9oZJQdchx6c1LOPbSQiywzrqw@mail.gmail.com>
- <20200519154525.GA66801@mwanda>
-In-Reply-To: <20200519154525.GA66801@mwanda>
-From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Date:   Tue, 19 May 2020 18:00:40 +0200
-Message-ID: <CAHg0HuzLo8jYtmkdvm2qJ_n2va61Xq-4NE3uxnHHpaUf9YESEw@mail.gmail.com>
-Subject: Re: [PATCH] RDMA/rtrs: Fix a couple off by one bugs in rtrs_srv_rdma_done()
-To:     Dan Carpenter <dan.carpenter@oracle.com>
-Cc:     Jack Wang <jinpu.wang@cloud.ionos.com>,
+        id S1729164AbgESQJA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 May 2020 12:09:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34206 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729055AbgESQI7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 19 May 2020 12:08:59 -0400
+Received: from embeddedor (unknown [189.207.59.248])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9C4302075F;
+        Tue, 19 May 2020 16:08:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1589904539;
+        bh=u3+jsia5NAW/8Ph5G2JpnG6etn7OX8oeTKdDlKnd0Sc=;
+        h=Date:From:To:Cc:Subject:From;
+        b=NV4cKwwuBLLyXVatnObrm47KAEk5WfJ8UQC8c3xRc7mAEJpUQF7O+uI0gdsdZq381
+         f7BJ3B3WbVujfd3EA2AW0zQN2qdrSxoQ8Yi8dE9iCneCp41e8b4sxb8DwOCwLqgU+L
+         6lmnZZOTUAc/Qm7XxCtWaOWhQIzS9A/fzMTzJPEk=
+Date:   Tue, 19 May 2020 11:13:45 -0500
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        Jack Wang <jinpu.wang@cloud.ionos.com>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] RDMA/rtrs: client: Fix function return on success
+Message-ID: <20200519161345.GA3910@embeddedor>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2020 at 5:45 PM Dan Carpenter <dan.carpenter@oracle.com> wrote:
->
-> These > comparisons should be >= to prevent accessing one element
-> beyond the end of the buffer.
->
-> Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> index 658c8999cb0d..0b53b79b0e27 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> @@ -1213,8 +1213,8 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
->
->                         msg_id = imm_payload >> sess->mem_bits;
->                         off = imm_payload & ((1 << sess->mem_bits) - 1);
-> -                       if (unlikely(msg_id > srv->queue_depth ||
-> -                                    off > max_chunk_size)) {
-> +                       if (unlikely(msg_id >= srv->queue_depth ||
-> +                                    off >= max_chunk_size)) {
->                                 rtrs_err(s, "Wrong msg_id %u, off %u\n",
->                                           msg_id, off);
->                                 close_sess(sess);
-> --
-> 2.26.2
->
+The function should return 0 on success, instead of err.
 
-Thanks a lot, Dan!
-Acked-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
+Addresses-Coverity-ID: 1493753 ("Identical code for different branches")
+Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 468fdd0d8713c..465515e46bb1a 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1594,7 +1594,8 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
+ 
+ 	if (err)
+ 		return err;
+-	return err;
++
++	return 0;
+ }
+ 
+ static void destroy_con_cq_qp(struct rtrs_clt_con *con)
+-- 
+2.26.2
+
