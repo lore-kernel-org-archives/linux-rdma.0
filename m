@@ -7,93 +7,103 @@ X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B03EC433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 00:04:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59F1AC433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 00:07:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 094C220709
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 00:04:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B345207C4
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 00:07:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="WQqTjno4"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="EkeQIy9T"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728012AbgETAEb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 May 2020 20:04:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34208 "EHLO
+        id S1726898AbgETAH2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 May 2020 20:07:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726959AbgETAEa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 May 2020 20:04:30 -0400
-Received: from mail-qk1-x742.google.com (mail-qk1-x742.google.com [IPv6:2607:f8b0:4864:20::742])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4EB4C061A0E
-        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 17:04:29 -0700 (PDT)
-Received: by mail-qk1-x742.google.com with SMTP id f13so1928063qkh.2
-        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 17:04:29 -0700 (PDT)
+        with ESMTP id S1726379AbgETAH2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 May 2020 20:07:28 -0400
+Received: from mail-qv1-xf42.google.com (mail-qv1-xf42.google.com [IPv6:2607:f8b0:4864:20::f42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E57D7C061A0E
+        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 17:07:27 -0700 (PDT)
+Received: by mail-qv1-xf42.google.com with SMTP id v15so530429qvr.8
+        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2020 17:07:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ziepe.ca; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=5sNitz92MrA39uqFZBpKvTrn9RC79GUXxxl52MJeSIc=;
-        b=WQqTjno4J4/GrfwBKh8GPl9owqT1w1ul0g7xIoRukgyGCwEZvVCFDPMViCru3Xwvup
-         YVYkWg4xtlY87/f+lMt/rlyX9vp8TPpAknyuPTYh+mGcJJm6Z5zgMvW/IZ+5xggBg4d9
-         rE5EsVwpm7GPf+cXq6sW79kWQjoBb8NC0GhrXW8dPYPCs2WI9A+smY6U40is9xmhigOz
-         K/LJdIF1e/7XzP2wyG8cSkR0gUCRJmLxysts+QnsG2taEsZYilwqGckF+LP2o+YGspOk
-         +0GPwCAE5/WVRIe1j7/kMWMs4KhqCHKj/CB95+3FvPcSgOjPxJB85LOjNVdoRpuCa6Ak
-         tdVw==
+        bh=WCLnqT98vczImfza68Nrt/B3hFKHSrSJ8Kk5UG0l0q0=;
+        b=EkeQIy9TXwLHpZ4c0g1qWY8IgMEBOzEEZJh6aojQOPYnwM3Ac0dgj7Xqok1Ni7I8Wc
+         1Z3/foI3JS+W7ELLIXqSs8S9WJd/VhDWY9TvNs21u6J4qRKwZQ3xQHLktYCcwlTS2nTe
+         idPryjg+HcuMTLYjQBfCthG2n7O7FEKUsuVC0TzdGJBw2GRnRTb919tDBBqQCnZ610rv
+         QV7EfM+8NqxEbb1JB+NBvO8LCLyUxYJk36Dn9Am2N6fCIjyqMkNDnJsmdVAC/WIh42iQ
+         ZGnShci3Q9H50+wkEZjNN7LgyALPNhcmQT6hFqrQt+UfRtpXmTms9tL/3WLALnVIdWnf
+         iGJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=5sNitz92MrA39uqFZBpKvTrn9RC79GUXxxl52MJeSIc=;
-        b=B4vrBapXxkg83+3MEPweMgtYA1L38K2CGDk15W5kzBBzfEY86wDvIwLf+uKqB9fcXv
-         UCS8SAC4170SkW2oHfrLrGM8PDpzxWxrwK7DM9Mo547NmUHxeb1CAFzUH1gkKmjR8uwM
-         M1Oh5KyezQ9meb4Yq5yeZ0NTJaQB/44e0wwwrRrNbpCVDc2p1ifdByK81l0Jb9jnVCgU
-         SulUuXcPtbhyGef101z+mDR0jcdV/3vjt9B1z67CpKFY7gXwFf5Aofvrx+DKtydF5STU
-         6M/Jth0Za38vQdeqCY7wLS64lzYGPnuhMJKdvmeD16buex2JRkg/87rwXjSetZUYOoyX
-         Ssjw==
-X-Gm-Message-State: AOAM532qnu7ajgE1BnOFvqL2PmrSCVsjSN155IY8O9eMgw79p6/dfaxC
-        SggsBrrM4cuSpCMtQzSpXYY0jA==
-X-Google-Smtp-Source: ABdhPJytH7UymnzhVJoc/G7R4GUKrlc5HMoXHtWN+hZtFwzJl1ct46haUgU2qEk3fz78O54hFtNONQ==
-X-Received: by 2002:ae9:e416:: with SMTP id q22mr329545qkc.12.1589933069134;
-        Tue, 19 May 2020 17:04:29 -0700 (PDT)
+        bh=WCLnqT98vczImfza68Nrt/B3hFKHSrSJ8Kk5UG0l0q0=;
+        b=eTRZLC3tkCmJHh4c62SUVvp4wHd9oWO08/XK+HigJgmT+Pg5k2KiOBAjwuXd/IPiYD
+         A2Uq8LLR+7UrKmmumP541QIye2bPCEtiRNx/objUVqLV++FvpLalMdRWl+IFIC3RwRYg
+         xTC8ujNMZl3YTLFLEudSC4wKwf1TLrXFT4Y7p0x9q+v4Ry8HRin20Or9UiuXFCN68mdN
+         w3h+VVt5qR++b0Uqjcx5vWC7pMwsydf0X24gWJfgsHlaeSyOJ6Xi+PLCjQpAB/4z8KYo
+         m7FSzYiJw0N3+2rvCb6IwXn88CS1FU5W1L3BuolsqUFvq95Ogr6xVNpzM08efAkH/gTH
+         Vu9A==
+X-Gm-Message-State: AOAM533q4TGdT/ZvxFo4wEMXmgyqhgtMdv3qO+eYqfmAhFD/gJRBfe8m
+        i1Rh2/vYBpZAwBxN24HIspCcPQ==
+X-Google-Smtp-Source: ABdhPJzsod3nFDQrNwrdelEd3jClZeQICyU70Dt9l/F6Wynw5P1GvJx7r2Nzn2BSQAMvi+RAcoRJ5g==
+X-Received: by 2002:a05:6214:1265:: with SMTP id r5mr2225047qvv.171.1589933246719;
+        Tue, 19 May 2020 17:07:26 -0700 (PDT)
 Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id e26sm831860qka.85.2020.05.19.17.04.28
+        by smtp.gmail.com with ESMTPSA id y28sm1123768qtc.62.2020.05.19.17.07.26
         (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 19 May 2020 17:04:28 -0700 (PDT)
+        Tue, 19 May 2020 17:07:26 -0700 (PDT)
 Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
         (envelope-from <jgg@ziepe.ca>)
-        id 1jbCDk-0001m8-B1; Tue, 19 May 2020 21:04:28 -0300
-Date:   Tue, 19 May 2020 21:04:28 -0300
+        id 1jbCGb-0003Fg-P8; Tue, 19 May 2020 21:07:25 -0300
+Date:   Tue, 19 May 2020 21:07:25 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Gal Pressman <galpress@amazon.com>
 Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
         Alexander Matushevsky <matua@amazon.com>,
         Firas JahJah <firasj@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>
-Subject: Re: [PATCH for-next v2 1/2] RDMA/efa: Fix setting of wrong bit in
- get/set_feature commands
-Message-ID: <20200520000428.GA6797@ziepe.ca>
+        Guy Tzalik <gtzalik@amazon.com>
+Subject: Re: [PATCH for-next v2 2/2] RDMA/efa: Report host information to the
+ device
+Message-ID: <20200520000725.GA12446@ziepe.ca>
 References: <20200512152204.93091-1-galpress@amazon.com>
- <20200512152204.93091-2-galpress@amazon.com>
+ <20200512152204.93091-3-galpress@amazon.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200512152204.93091-2-galpress@amazon.com>
+In-Reply-To: <20200512152204.93091-3-galpress@amazon.com>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, May 12, 2020 at 06:22:03PM +0300, Gal Pressman wrote:
-> When using a control buffer the ctrl_data bit should be set in order to
-> indicate the control buffer address is valid, not ctrl_data_indirect
-> which is used when the control buffer itself is indirect.
+On Tue, May 12, 2020 at 06:22:04PM +0300, Gal Pressman wrote:
+> The host info feature allows the driver to infrom the EFA device
+> firmware with system configuration for debugging and troubleshooting
+> purposes.
+> 
+> The host info buffer is passed as an admin command DMA mapped control
+> buffer, and is unmapped and freed once the command CQE is consumed.
+> 
+> Currently, the setting of host info is done for each device on its
+> probe. Failing to set the host info for the device shall not disturb the
+> probe flow, any errors will be discarded.
 > 
 > Reviewed-by: Firas JahJah <firasj@amazon.com>
-> Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
+> Reviewed-by: Guy Tzalik <gtzalik@amazon.com>
 > Signed-off-by: Gal Pressman <galpress@amazon.com>
 > ---
->  drivers/infiniband/hw/efa/efa_com_cmd.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 63 ++++++++++++++++++-
+>  drivers/infiniband/hw/efa/efa_com_cmd.c       | 14 ++---
+>  drivers/infiniband/hw/efa/efa_com_cmd.h       | 11 +++-
+>  drivers/infiniband/hw/efa/efa_main.c          | 52 ++++++++++++++-
+>  4 files changed, 130 insertions(+), 10 deletions(-)
 
-No fixes line??
+Applied to for-next, thanks
 
 Jason
