@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5137C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 20:00:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53760C433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 20:00:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1A76207F9
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 20:00:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3296F207F9
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 20:00:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="dQ8E2Az6"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="UA6PaKxV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726870AbgETT40 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 15:56:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51128 "EHLO
+        id S1728191AbgETUAS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 May 2020 16:00:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728078AbgETT4Y (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 15:56:24 -0400
+        with ESMTP id S1728043AbgETT4N (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 15:56:13 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AE97C061A0F;
-        Wed, 20 May 2020 12:56:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75DA4C061A0E;
+        Wed, 20 May 2020 12:56:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=4NVYDD9dVtr0WtQxy7SjHzDrfj1IJPmnztjpKvUnyfA=; b=dQ8E2Az6/ysSJFFDNsu049N458
-        FvlpDWjzUNhhJxe0fecnnA60MGb/A11fnXfOW5TmiARgZDEINSL3kUDnOfYS6g5OPV/gsfN+xW5qu
-        IFX5uR60fqCKohydtrrZfc//52RWRC6vW4wxpqELO1kEUj+fua50JaSEOJCMmAkDgLHkjAqgct6sw
-        Qj+HsB2ALn7y1HAS5C5G2HDVfidIyQ6R5guyiKavv3190X2z9YhvRh2cuChyDJr5MayLGhP7VXriB
-        GJfE3zgVfMjpq8EBtMZo6A7LF80AtFvV1qpHaFrrfi1rJmh7k1cAMm5lgsQCdK8SHSCa/j1XO0zzP
-        gIPqCt2w==;
+        bh=OW2uCMeCAECvL0mFP+aIowjmR1Y37DbY3NyDlODlSU4=; b=UA6PaKxV+xIcFMzHF3iPOdbLeU
+        ll4bvIiCxtw/t4xg1wCqEMfLPQD5jz3Muxml4cdmm21Z8D6ygA4AXn+b4rEqQvINBPpnMkd96/H9F
+        sM9gOTkeFdj8RfQ3r43LJanFWwnzw248TJMIgy6oA9N3wNsXRb4xcK+tWQWjU9VrkkexCYh2d+dMf
+        R1LSv7oyBPpV2HEXkjP7qdEW+XSSrJcXS7As302dfN6tvk+1Gcr6oJz4Jc2BaPTBsRaHFI/V39JdU
+        au3Bp5KZ3Nm+xgT1tU5pvQLnUKN1o2Dmz49w76h2UICPK6ZTE95j1SXuVkVlYi+oc6as+vDhsm0h2
+        02xMUuIg==;
 Received: from [2001:4bb8:188:1506:c70:4a89:bc61:2] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jbUog-0002eo-6k; Wed, 20 May 2020 19:55:50 +0000
+        id 1jbUoS-0002L3-E8; Wed, 20 May 2020 19:55:36 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -55,9 +55,9 @@ Cc:     Eric Dumazet <edumazet@google.com>,
         netdev@vger.kernel.org, linux-sctp@vger.kernel.org,
         ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com,
         linux-nfs@vger.kernel.org
-Subject: [PATCH 14/33] tcp: add tcp_sock_set_quickack
-Date:   Wed, 20 May 2020 21:54:50 +0200
-Message-Id: <20200520195509.2215098-15-hch@lst.de>
+Subject: [PATCH 09/33] net: add sock_set_keepalive
+Date:   Wed, 20 May 2020 21:54:45 +0200
+Message-Id: <20200520195509.2215098-10-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200520195509.2215098-1-hch@lst.de>
 References: <20200520195509.2215098-1-hch@lst.de>
@@ -69,127 +69,109 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a helper to directly set the TCP_QUICKACK sockopt from kernel space
-without going through a fake uaccess.  Cleanup the callers to avoid
-pointless wrappers now that this is a simple function call.
+Add a helper to directly set the SO_KEEPALIVE sockopt from kernel space
+without going through a fake uaccess.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/block/drbd/drbd_int.h      |  7 ------
- drivers/block/drbd/drbd_receiver.c |  5 ++--
- include/linux/tcp.h                |  1 +
- net/ipv4/tcp.c                     | 39 ++++++++++++++++++++----------
- 4 files changed, 29 insertions(+), 23 deletions(-)
+ fs/dlm/lowcomms.c     |  6 +-----
+ include/net/sock.h    |  1 +
+ net/core/sock.c       | 10 ++++++++++
+ net/rds/tcp_listen.c  |  6 +-----
+ net/sunrpc/xprtsock.c |  4 +---
+ 5 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
-index e24bba87c8e02..14345a87c7cc5 100644
---- a/drivers/block/drbd/drbd_int.h
-+++ b/drivers/block/drbd/drbd_int.h
-@@ -1570,13 +1570,6 @@ extern void drbd_set_recv_tcq(struct drbd_device *device, int tcq_enabled);
- extern void _drbd_clear_done_ee(struct drbd_device *device, struct list_head *to_be_freed);
- extern int drbd_connected(struct drbd_peer_device *);
+diff --git a/fs/dlm/lowcomms.c b/fs/dlm/lowcomms.c
+index b79711d0aac72..b6e6dba281547 100644
+--- a/fs/dlm/lowcomms.c
++++ b/fs/dlm/lowcomms.c
+@@ -1142,11 +1142,7 @@ static struct socket *tcp_create_listen_sock(struct connection *con,
+ 		con->sock = NULL;
+ 		goto create_out;
+ 	}
+-	result = kernel_setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE,
+-				 (char *)&one, sizeof(one));
+-	if (result < 0) {
+-		log_print("Set keepalive failed: %d", result);
+-	}
++	sock_set_keepalive(sock->sk);
  
--static inline void drbd_tcp_quickack(struct socket *sock)
--{
--	int val = 2;
--	(void) kernel_setsockopt(sock, SOL_TCP, TCP_QUICKACK,
--			(char*)&val, sizeof(val));
--}
--
- /* sets the number of 512 byte sectors of our virtual device */
- void drbd_set_my_capacity(struct drbd_device *device, sector_t size);
- 
-diff --git a/drivers/block/drbd/drbd_receiver.c b/drivers/block/drbd/drbd_receiver.c
-index 20a5e94494acd..3a3f2b6a821f3 100644
---- a/drivers/block/drbd/drbd_receiver.c
-+++ b/drivers/block/drbd/drbd_receiver.c
-@@ -1223,7 +1223,7 @@ static int drbd_recv_header_maybe_unplug(struct drbd_connection *connection, str
- 		 * quickly as possible, and let remote TCP know what we have
- 		 * received so far. */
- 		if (err == -EAGAIN) {
--			drbd_tcp_quickack(connection->data.socket);
-+			tcp_sock_set_quickack(connection->data.socket->sk, 2);
- 			drbd_unplug_all_devices(connection);
- 		}
- 		if (err > 0) {
-@@ -4959,8 +4959,7 @@ static int receive_UnplugRemote(struct drbd_connection *connection, struct packe
- {
- 	/* Make sure we've acked all the TCP data associated
- 	 * with the data requests being unplugged */
--	drbd_tcp_quickack(connection->data.socket);
--
-+	tcp_sock_set_quickack(connection->data.socket->sk, 2);
- 	return 0;
+ 	result = sock->ops->listen(sock, 5);
+ 	if (result < 0) {
+diff --git a/include/net/sock.h b/include/net/sock.h
+index 99ef43508d2b5..dc08c176238fd 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -2691,6 +2691,7 @@ void sock_def_readable(struct sock *sk);
+ int sock_bindtoindex(struct sock *sk, int ifindex);
+ void sock_enable_timestamps(struct sock *sk);
+ void sock_no_linger(struct sock *sk);
++void sock_set_keepalive(struct sock *sk);
+ void sock_set_priority(struct sock *sk, u32 priority);
+ void sock_set_reuseaddr(struct sock *sk);
+ void sock_set_sndtimeo(struct sock *sk, s64 secs);
+diff --git a/net/core/sock.c b/net/core/sock.c
+index e4a4dd2b3d8b3..728f5fb156a0c 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -779,6 +779,16 @@ void sock_enable_timestamps(struct sock *sk)
  }
+ EXPORT_SYMBOL(sock_enable_timestamps);
  
-diff --git a/include/linux/tcp.h b/include/linux/tcp.h
-index 9e42c7fe50a8b..2eaf8320b9db0 100644
---- a/include/linux/tcp.h
-+++ b/include/linux/tcp.h
-@@ -499,5 +499,6 @@ int tcp_skb_shift(struct sk_buff *to, struct sk_buff *from, int pcount,
- 
- void tcp_sock_set_cork(struct sock *sk, bool on);
- void tcp_sock_set_nodelay(struct sock *sk);
-+void tcp_sock_set_quickack(struct sock *sk, int val);
- 
- #endif	/* _LINUX_TCP_H */
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index a65f293a19fac..27b5e7a4e2ef9 100644
---- a/net/ipv4/tcp.c
-+++ b/net/ipv4/tcp.c
-@@ -2856,6 +2856,31 @@ void tcp_sock_set_nodelay(struct sock *sk)
- }
- EXPORT_SYMBOL(tcp_sock_set_nodelay);
- 
-+static void __tcp_sock_set_quickack(struct sock *sk, int val)
-+{
-+	if (!val) {
-+		inet_csk_enter_pingpong_mode(sk);
-+		return;
-+	}
-+
-+	inet_csk_exit_pingpong_mode(sk);
-+	if ((1 << sk->sk_state) & (TCPF_ESTABLISHED | TCPF_CLOSE_WAIT) &&
-+	    inet_csk_ack_scheduled(sk)) {
-+		inet_csk(sk)->icsk_ack.pending |= ICSK_ACK_PUSHED;
-+		tcp_cleanup_rbuf(sk, 1);
-+		if (!(val & 1))
-+			inet_csk_enter_pingpong_mode(sk);
-+	}
-+}
-+
-+void tcp_sock_set_quickack(struct sock *sk, int val)
++void sock_set_keepalive(struct sock *sk)
 +{
 +	lock_sock(sk);
-+	__tcp_sock_set_quickack(sk, val);
++	if (sk->sk_prot->keepalive)
++		sk->sk_prot->keepalive(sk, true);
++	sock_valbool_flag(sk, SOCK_KEEPOPEN, true);
 +	release_sock(sk);
 +}
-+EXPORT_SYMBOL(tcp_sock_set_quickack);
++EXPORT_SYMBOL(sock_set_keepalive);
 +
  /*
-  *	Socket option code for TCP.
-  */
-@@ -3096,19 +3121,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
- 		break;
+  *	This is meant for all protocols to use and covers goings on
+  *	at the socket level. Everything here is generic.
+diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
+index bbb31b9c0b391..d8bd132769594 100644
+--- a/net/rds/tcp_listen.c
++++ b/net/rds/tcp_listen.c
+@@ -43,13 +43,9 @@ int rds_tcp_keepalive(struct socket *sock)
+ 	/* values below based on xs_udp_default_timeout */
+ 	int keepidle = 5; /* send a probe 'keepidle' secs after last data */
+ 	int keepcnt = 5; /* number of unack'ed probes before declaring dead */
+-	int keepalive = 1;
+ 	int ret = 0;
  
- 	case TCP_QUICKACK:
--		if (!val) {
--			inet_csk_enter_pingpong_mode(sk);
--		} else {
--			inet_csk_exit_pingpong_mode(sk);
--			if ((1 << sk->sk_state) &
--			    (TCPF_ESTABLISHED | TCPF_CLOSE_WAIT) &&
--			    inet_csk_ack_scheduled(sk)) {
--				icsk->icsk_ack.pending |= ICSK_ACK_PUSHED;
--				tcp_cleanup_rbuf(sk, 1);
--				if (!(val & 1))
--					inet_csk_enter_pingpong_mode(sk);
--			}
--		}
-+		__tcp_sock_set_quickack(sk, val);
- 		break;
+-	ret = kernel_setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE,
+-				(char *)&keepalive, sizeof(keepalive));
+-	if (ret < 0)
+-		goto bail;
++	sock_set_keepalive(sock->sk);
  
- #ifdef CONFIG_TCP_MD5SIG
+ 	ret = kernel_setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT,
+ 				(char *)&keepcnt, sizeof(keepcnt));
+diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
+index 845d0be805ece..30082cd039960 100644
+--- a/net/sunrpc/xprtsock.c
++++ b/net/sunrpc/xprtsock.c
+@@ -2110,7 +2110,6 @@ static void xs_tcp_set_socket_timeouts(struct rpc_xprt *xprt,
+ 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
+ 	unsigned int keepidle;
+ 	unsigned int keepcnt;
+-	unsigned int opt_on = 1;
+ 	unsigned int timeo;
+ 
+ 	spin_lock(&xprt->transport_lock);
+@@ -2122,8 +2121,7 @@ static void xs_tcp_set_socket_timeouts(struct rpc_xprt *xprt,
+ 	spin_unlock(&xprt->transport_lock);
+ 
+ 	/* TCP Keepalive options */
+-	kernel_setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE,
+-			(char *)&opt_on, sizeof(opt_on));
++	sock_set_keepalive(sock->sk);
+ 	kernel_setsockopt(sock, SOL_TCP, TCP_KEEPIDLE,
+ 			(char *)&keepidle, sizeof(keepidle));
+ 	kernel_setsockopt(sock, SOL_TCP, TCP_KEEPINTVL,
 -- 
 2.26.2
 
