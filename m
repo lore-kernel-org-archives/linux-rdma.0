@@ -2,104 +2,130 @@ Return-Path: <SRS0=bXLp=7C=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00260C433E1
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 10:04:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CF7BC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 10:50:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D47B4207C4
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 10:04:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 062C1207D3
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 10:50:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="hsxRs5C5"
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="ch0CZeE+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726650AbgETKEl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 06:04:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42938 "EHLO
+        id S1726576AbgETKup (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 May 2020 06:50:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726570AbgETKEk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 06:04:40 -0400
-Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EE82C05BD43
-        for <linux-rdma@vger.kernel.org>; Wed, 20 May 2020 03:04:40 -0700 (PDT)
-Received: by mail-wr1-x443.google.com with SMTP id v12so2464400wrp.12
-        for <linux-rdma@vger.kernel.org>; Wed, 20 May 2020 03:04:40 -0700 (PDT)
+        with ESMTP id S1726224AbgETKup (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 06:50:45 -0400
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC882C061A0E
+        for <linux-rdma@vger.kernel.org>; Wed, 20 May 2020 03:50:44 -0700 (PDT)
+Received: by mail-il1-x143.google.com with SMTP id w18so2567365ilm.13
+        for <linux-rdma@vger.kernel.org>; Wed, 20 May 2020 03:50:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
+        d=broadcom.com; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=inIn2ONjibCnSjCghxYnKq2rJ8+ESmy4DRNsddh+5yQ=;
-        b=hsxRs5C5YKYa0yGhhIMT8XTt4BoSeJuvqv1ep1IHg83tnHnWPY4qC0Ary05LJN/ytf
-         MK+6DkmMTO9O0cs/6rjB0kxORhU0VilWrccz3QYeTs8o6uBYGgvisL5HVrzJNsF0M0Cm
-         khtyZ8qYv/5VG54vdTkCJbphGw5c5EMeKbH8Ro+648vM+QF8RiY0AgPDyr7AgfxuCYYJ
-         iNFQpZnN2WnqBrOWTtdai6yvUPzCjS+38ty6JN2Nw/wWgvgVcVxN43DCqKbos6f6w2Un
-         EHqpC/elSDJHwrCkFAHHxsWWXCKf/owGUskeqyzFrGaTxyYkV1bHxnKz/elmGJiVfDEj
-         DjfQ==
+        bh=0zhGZwgL8YSUsVySGHm2u7phTBeRPkIbMa1YtQgTt7A=;
+        b=ch0CZeE+CTvPRCmyDkuod6uniXlE9P0ByvP09eJWjZtsoK/2gJUcdARo2AP+Gzrbue
+         hzb9xr5Vl+YPnge1lb09ogQilybTfXu0QKJJyhAjxv/f9612KhlzmgdJY2tfiieeuIK9
+         mj/Y9qhA5zgIzN4AtmknmKbEiFzUZ9FIaG9Zg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=inIn2ONjibCnSjCghxYnKq2rJ8+ESmy4DRNsddh+5yQ=;
-        b=UPhxRo+fuD/TfT/01T8HUxVXU2YnJvHaswTmzYyUFnlpHve+B0J032PImngMblrZ3x
-         rk2i+nV7G1D/5Uak3i2AEHbYocy8dhihwbOluO6LVvpp/d06IBGh1i6mucwtMsUVB+CH
-         etpsXhFVfqPrju6PktvcexDR/L5mgOIHef1HcunTeiEB6BK04oDkG6zg2FQjfj8/ZysQ
-         KqPIgdGaeYaBdMM3KLYGkIsuETpQcFKkTFyfkaRCjAnG70M71sz3OeifVBNmhKZXiEoh
-         ivZ8v/6A1/x7a2+8rLCubzol740ce9Kut4HhsO4qE6Ffyf1AUC/zC0EpzrARtJAmMkTa
-         VTLA==
-X-Gm-Message-State: AOAM533wkXP+jA44q3DJJIFh6Za6klr/EHhQuCYS7166tfnu5+KiSwOr
-        XGw+HRVzeZc3SVWsY2VygTSEwSGDBO28vA4JZwE9
-X-Google-Smtp-Source: ABdhPJwVhiOqJ6pZXZNbYxT2v3Gmlpbge7+a6xMaVWYDFGQk3afXhXJbIz+s1l5P0HUngJK5K88CcaSWqMTubKH3ZVc=
-X-Received: by 2002:a5d:6705:: with SMTP id o5mr3608109wru.426.1589969078863;
- Wed, 20 May 2020 03:04:38 -0700 (PDT)
+        bh=0zhGZwgL8YSUsVySGHm2u7phTBeRPkIbMa1YtQgTt7A=;
+        b=rESxvEMQDvMEENl8ISuROcm6V1cUdesUrKeThxMvBWaw6EKTO1sUTW8eUBIDEhwYH5
+         7vuT78pGSZqTP6I3i9Wq9EGaXaU50QGqD5pA4i3Rrgc+5IexNNnwfuSqupBVQg4M1T39
+         r6zl6oEP1YFSDFKhL1Nz6T9AqxO3QDXaS1i0s7KspdXx0pX5csncwYutDYnAjVk5PQVZ
+         uj3JuCPA0Drq/XK41Cdt2Ht7r6LPgGy7ZXXnd/idvg1Lxre1Km8YxQtFehAt89o8ZD5A
+         ccRd5Jv+hMEP7Hr0HtyjXMr5YusE9FnTSTrHpxsief1iy6QyK4O+u9ZWeQk/ALw/uBHY
+         CRjQ==
+X-Gm-Message-State: AOAM533A87cxMDVQYfRg7J6C7B0Iy6xXXo/MxLeZJy6NRb4A4v3OTLD6
+        SYWZ8nqjXyt9M96Srtbf/5QYzZN6tYL39tJBi4bTTA==
+X-Google-Smtp-Source: ABdhPJzIXE2je70nHkOdoe5BILrjzzK/glF5z006uLfalqIBYey1hgBxH2pqtwP8wFNDF4AIjTZ0mbLH1DZCmg2shCo=
+X-Received: by 2002:a92:502:: with SMTP id q2mr3132513ile.89.1589971844078;
+ Wed, 20 May 2020 03:50:44 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200519112936.928185-1-danil.kipnis@cloud.ionos.com>
- <76b6b987-4f63-2487-7fbe-a1d9c2f06b76@acm.org> <20200519233847.GC12656@ziepe.ca>
-In-Reply-To: <20200519233847.GC12656@ziepe.ca>
-From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Date:   Wed, 20 May 2020 12:04:28 +0200
-Message-ID: <CAHg0Huy3JmK=iFSrEFhbv==KFJusNr6Z+=H7Xwf+fHEZU2pYmQ@mail.gmail.com>
-Subject: Re: [PATCH v2] rtrs-clt: silence kbuild test inconsistent intenting
- smatch warning
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Bart Van Assche <bvanassche@acm.org>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org,
-        Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Jens Axboe <axboe@kernel.dk>,
-        Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Jinpu Wang <jinpu.wang@cloud.ionos.com>,
-        kbuild test robot <lkp@intel.com>
+References: <1589892216-39283-1-git-send-email-yaminf@mellanox.com>
+ <1589892216-39283-3-git-send-email-yaminf@mellanox.com> <CANjDDBgPQBOuBNQE=3PqsAtNgSzVbnDDt6wYNrS8iC-gAYzHJQ@mail.gmail.com>
+ <1e4eeb19-17a2-d281-24f1-fd79d34c7df2@mellanox.com>
+In-Reply-To: <1e4eeb19-17a2-d281-24f1-fd79d34c7df2@mellanox.com>
+From:   Devesh Sharma <devesh.sharma@broadcom.com>
+Date:   Wed, 20 May 2020 16:20:07 +0530
+Message-ID: <CANjDDBhenmz=k21BBhK91LwQ9OjgrdPUZx-Vvu2PvUpj0YvNAw@mail.gmail.com>
+Subject: Re: [PATCH V3 2/4] RDMA/core: Introduce shared CQ pool API
+To:     Yamin Friedman <yaminf@mellanox.com>
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Or Gerlitz <ogerlitz@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        linux-rdma <linux-rdma@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2020 at 1:38 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+On Wed, May 20, 2020 at 2:53 PM Yamin Friedman <yaminf@mellanox.com> wrote:
 >
-> On Tue, May 19, 2020 at 07:29:15AM -0700, Bart Van Assche wrote:
-> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > index 468fdd0d8713..8dfa56dc32bc 100644
-> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > @@ -727,18 +727,13 @@ struct path_it {
-> >       struct rtrs_clt_sess *(*next_path)(struct path_it *it);
-> >  };
+>
+> On 5/20/2020 9:19 AM, Devesh Sharma wrote:
 > >
-> > -#define do_each_path(path, clt, it) {                                        \
-> > -     path_it_init(it, clt);                                          \
-> > -     rcu_read_lock();                                                \
-> > -     for ((it)->i = 0; ((path) = ((it)->next_path)(it)) &&           \
-> > -                       (it)->i < (it)->clt->paths_num;               \
-> > +#define for_each_path(path, clt, it)                                 \
-> > +     for (path_it_init((it), (clt)), rcu_read_lock(), (it)->i = 0;   \
-> > +          (((path) = ((it)->next_path)(it)) &&                       \
-> > +           (it)->i < (it)->clt->paths_num) ||                        \
-> > +                  (path_it_deinit(it), rcu_read_unlock(), 0);        \
-> >            (it)->i++)
+> >> +
+> >> +static int ib_alloc_cqs(struct ib_device *dev, int nr_cqes,
+> >> +                       enum ib_poll_context poll_ctx)
+> >> +{
+> >> +       LIST_HEAD(tmp_list);
+> >> +       struct ib_cq *cq;
+> >> +       unsigned long flags;
+> >> +       int nr_cqs, ret, i;
+> >> +
+> >> +       /*
+> >> +        * Allocated at least as many CQEs as requested, and otherwise
+> >> +        * a reasonable batch size so that we can share CQs between
+> >> +        * multiple users instead of allocating a larger number of CQs.
+> >> +        */
+> >> +       nr_cqes = min(dev->attrs.max_cqe, max(nr_cqes, IB_MAX_SHARED_CQ_SZ));
+> >> +       nr_cqs = min_t(int, dev->num_comp_vectors, num_online_cpus());
+> > No WARN() or return with failure as pointed by Leon and me. Has
+> > anything else changes elsewhere?
 >
-> That is nicer, even better to write it with some inlines..
-
-You mean pass a callback to an inline function that would iterate?
+> Hey Devesh,
 >
-> Jason
+> I am not sure what you are referring to, could you please clarify?
+>
+I thought on V2 Leon gave a comment "how this will work if
+dev->num_comp_vectors" is 0.
+there I had suggested to fail the pool creation and issue a
+WARN_ONCE() or something.
+> >
+> >> +       for (i = 0; i < nr_cqs; i++) {
+> >> +               cq = ib_alloc_cq(dev, NULL, nr_cqes, i, poll_ctx);
+> >> +               if (IS_ERR(cq)) {
+> >> +                       ret = PTR_ERR(cq);
+> >> +                       goto out_free_cqs;
+> >> +               }
+> >> +               cq->shared = true;
+> >> +               list_add_tail(&cq->pool_entry, &tmp_list);
+> >> +       }
+> >> +
+> >> +       spin_lock_irqsave(&dev->cq_pools_lock, flags);
+> >> +       list_splice(&tmp_list, &dev->cq_pools[poll_ctx - 1]);
+> >> +       spin_unlock_irqrestore(&dev->cq_pools_lock, flags);
+> >> +
+> >> +       return 0;
+> >> +
+> >> +out_free_cqs:
+> >> +       list_for_each_entry(cq, &tmp_list, pool_entry) {
+> >> +               cq->shared = false;
+> >> +               ib_free_cq(cq);
+> >> +       }
+> >> +       return ret;
+> >> +}
+> >> +
+> >>
