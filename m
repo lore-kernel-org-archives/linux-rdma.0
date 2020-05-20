@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3620C433E1
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27CCDC433E1
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0119207E8
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06D4C207E8
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="eL+iZ/AU"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="caFkmXfU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727794AbgETT5h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 15:57:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51308 "EHLO
+        id S1728510AbgETT5s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 May 2020 15:57:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727115AbgETT5P (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 15:57:15 -0400
+        with ESMTP id S1728392AbgETT5D (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 15:57:03 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14BEEC061A0E;
-        Wed, 20 May 2020 12:57:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BAB1C061A0F;
+        Wed, 20 May 2020 12:57:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=jyyKSsv2ojCllyHR6oLPZbDWIQjSKqRL9iRFY8LVQRE=; b=eL+iZ/AUkTJIFFZXMSwHoGneON
-        zJJ1NeqUKJUTN+XZ+YXm8mTVN7Txrwu1Gg7XkE2Srm6yGK/RuXNS7Ili9ClBHEwqrRrtJoldNAgkP
-        Q496eI/2kvkExRHJ/CY36rhk/J2RxEB5WJ8ohluo/iBbAOgnuzGjM/nkv9M8dugc5PVDanmUGfXyQ
-        Qc+zVcyXwpHthxlOJQyWO4rDVd9GSOHiST7k6ZKisSXyDBJvJrDVrUe1KmJuP+c2G7wSi9ehhYxKS
-        QMTEF3YQ/vfSABacZbuuwH7F+qrL5jjbdwYKQMxaZyMxOKb22ANiCCHVZ0OMREzvwY/Lcshh6XMVj
-        uVa/SV0g==;
+        bh=TdxZOAuFy69KHn/dIFhOGI32U8H99MaSy14m7/E8SrM=; b=caFkmXfUsLNb9SZxDTt3hdNDl4
+        6a9x3Cx/9e5I899dMA+Ip5zzKxO8EDimI1c3WV1JTZW/H/jyz8KkpWqa+iqSOzZ7Bw9Z/Mb0Co3Ml
+        uRNInlY+rOAuGQL46+AxMN8+QGuTpTd4qKst5g9zXNoTXHEJ6ifsT3mFauWseMxvL/jXjsboqnBC6
+        fVz/IlgMqTQ0VFU4f7SZzy+IC3jhtq/VmfxMgrHVUMkmBOOtnW1I0RtoYAkZVRzoTIlL7nsDAhsU5
+        5UkcJkQARWOe3SYdH/R7a0wAAj6KJiqCXf43xx9Pj5OLfxrVt2mGvghBfjI/J8Mx+WUo6pNWWxChF
+        4VOY/EJQ==;
 Received: from [2001:4bb8:188:1506:c70:4a89:bc61:2] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jbUpk-0003er-B6; Wed, 20 May 2020 19:56:56 +0000
+        id 1jbUpK-0003Nh-KO; Wed, 20 May 2020 19:56:31 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -55,9 +55,9 @@ Cc:     Eric Dumazet <edumazet@google.com>,
         netdev@vger.kernel.org, linux-sctp@vger.kernel.org,
         ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com,
         linux-nfs@vger.kernel.org
-Subject: [PATCH 33/33] net: remove kernel_setsockopt
-Date:   Wed, 20 May 2020 21:55:09 +0200
-Message-Id: <20200520195509.2215098-34-hch@lst.de>
+Subject: [PATCH 28/33] ipv6: add ip6_sock_set_recvpktinfo
+Date:   Wed, 20 May 2020 21:55:04 +0200
+Message-Id: <20200520195509.2215098-29-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200520195509.2215098-1-hch@lst.de>
 References: <20200520195509.2215098-1-hch@lst.de>
@@ -69,69 +69,64 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-No users left.
+Add a helper to directly set the IPV6_RECVPKTINFO sockopt from kernel
+space without going through a fake uaccess.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/linux/net.h |  2 --
- net/socket.c        | 31 -------------------------------
- 2 files changed, 33 deletions(-)
+ include/net/ipv6.h   |  7 +++++++
+ net/sunrpc/svcsock.c | 10 ++--------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/net.h b/include/linux/net.h
-index 74ef5d7315f70..e10f378194a59 100644
---- a/include/linux/net.h
-+++ b/include/linux/net.h
-@@ -303,8 +303,6 @@ int kernel_connect(struct socket *sock, struct sockaddr *addr, int addrlen,
- 		   int flags);
- int kernel_getsockname(struct socket *sock, struct sockaddr *addr);
- int kernel_getpeername(struct socket *sock, struct sockaddr *addr);
--int kernel_setsockopt(struct socket *sock, int level, int optname, char *optval,
--		      unsigned int optlen);
- int kernel_sendpage(struct socket *sock, struct page *page, int offset,
- 		    size_t size, int flags);
- int kernel_sendpage_locked(struct sock *sk, struct page *page, int offset,
-diff --git a/net/socket.c b/net/socket.c
-index 81a98b6cbd087..976426d03f099 100644
---- a/net/socket.c
-+++ b/net/socket.c
-@@ -3624,37 +3624,6 @@ int kernel_getpeername(struct socket *sock, struct sockaddr *addr)
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index 80260cff7e0c0..79b68ee3820e7 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -1261,4 +1261,11 @@ static inline int ip6_sock_set_addr_preferences(struct sock *sk, bool val)
+ 	return ret;
  }
- EXPORT_SYMBOL(kernel_getpeername);
  
--/**
-- *	kernel_setsockopt - set a socket option (kernel space)
-- *	@sock: socket
-- *	@level: API level (SOL_SOCKET, ...)
-- *	@optname: option tag
-- *	@optval: option value
-- *	@optlen: option length
-- *
-- *	Returns 0 or an error.
-- */
++static inline void ip6_sock_set_recvpktinfo(struct sock *sk)
++{
++	lock_sock(sk);
++	inet6_sk(sk)->rxopt.bits.rxinfo = true;
++	release_sock(sk);
++}
++
+ #endif /* _NET_IPV6_H */
+diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
+index a391892977cd2..e7a0037d9b56c 100644
+--- a/net/sunrpc/svcsock.c
++++ b/net/sunrpc/svcsock.c
+@@ -595,8 +595,6 @@ static struct svc_xprt_class svc_udp_class = {
+ 
+ static void svc_udp_init(struct svc_sock *svsk, struct svc_serv *serv)
+ {
+-	int err, level, optname, one = 1;
 -
--int kernel_setsockopt(struct socket *sock, int level, int optname,
--			char *optval, unsigned int optlen)
--{
--	mm_segment_t oldfs = get_fs();
--	char __user *uoptval;
--	int err;
--
--	uoptval = (char __user __force *) optval;
--
--	set_fs(KERNEL_DS);
--	if (level == SOL_SOCKET)
--		err = sock_setsockopt(sock, level, optname, uoptval, optlen);
--	else
--		err = sock->ops->setsockopt(sock, level, optname, uoptval,
--					    optlen);
--	set_fs(oldfs);
--	return err;
--}
--EXPORT_SYMBOL(kernel_setsockopt);
--
- /**
-  *	kernel_sendpage - send a &page through a socket (kernel space)
-  *	@sock: socket
+ 	svc_xprt_init(sock_net(svsk->sk_sock->sk), &svc_udp_class,
+ 		      &svsk->sk_xprt, serv);
+ 	clear_bit(XPT_CACHE_AUTH, &svsk->sk_xprt.xpt_flags);
+@@ -617,17 +615,13 @@ static void svc_udp_init(struct svc_sock *svsk, struct svc_serv *serv)
+ 	switch (svsk->sk_sk->sk_family) {
+ 	case AF_INET:
+ 		ip_sock_set_pktinfo(svsk->sk_sock->sk);
+-		return;
++		break;
+ 	case AF_INET6:
+-		level = SOL_IPV6;
+-		optname = IPV6_RECVPKTINFO;
++		ip6_sock_set_recvpktinfo(svsk->sk_sock->sk);
+ 		break;
+ 	default:
+ 		BUG();
+ 	}
+-	err = kernel_setsockopt(svsk->sk_sock, level, optname,
+-					(char *)&one, sizeof(one));
+-	dprintk("svc: kernel_setsockopt returned %d\n", err);
+ }
+ 
+ /*
 -- 
 2.26.2
 
