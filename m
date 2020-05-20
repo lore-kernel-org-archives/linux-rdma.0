@@ -2,52 +2,51 @@ Return-Path: <SRS0=17PT=7D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DATE_IN_PAST_24_48,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DATE_IN_PAST_24_48,
 	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEF57C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB14FC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C01C207D3
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A09A207FB
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590083969;
-	bh=ZtsyQMfxQsQj+r7AGr7M1rrJfqwy3ngNvTeWJrAKq/8=;
+	s=default; t=1590083972;
+	bh=ppWRC1MoP9Ysl2ET1eT42HKlmv/NF5x/YfKiCPwpBsM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FkUPfkz6A25myFSJ81SibU2eeIkFcxJ4BBSebRaNpRqgO5EDtiEvvMMVYkRErTUWK
-	 mr7mc3V0tcXvCt2rfeiztas6aQX7Xzv+RShOKpzPSiEX/HBqSewQNF+Y/x3cqznZh6
-	 KK4yUQ7gOAiGYtpGSu9TL0QkN/lMer01mhkUMZC8=
+	b=MrBMMkjS0UDbjcIWt23+yovAqtUQB5bwa/aa51N00ww1dJEyV97ooJqkH4m+EDi9u
+	 CMDw5oYniuHCZc4dRXpjFDpgiqBqRmPSsacAPM+DPryVHLJ75Sh63pXhtyW4zTJEC+
+	 cvQrjmsFg9vaGIsGbYumrokPNPGHaKN8SRHK7fB4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728885AbgEUR72 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 May 2020 13:59:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59342 "EHLO mail.kernel.org"
+        id S1729045AbgEUR7b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 May 2020 13:59:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727883AbgEUR72 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 May 2020 13:59:28 -0400
+        id S1727883AbgEUR7b (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 May 2020 13:59:31 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C299E20759;
-        Thu, 21 May 2020 17:59:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 94A3120759;
+        Thu, 21 May 2020 17:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590083967;
-        bh=ZtsyQMfxQsQj+r7AGr7M1rrJfqwy3ngNvTeWJrAKq/8=;
+        s=default; t=1590083971;
+        bh=ppWRC1MoP9Ysl2ET1eT42HKlmv/NF5x/YfKiCPwpBsM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RPQu72OIVIkUgEzqHlZ7ScLE6gnPbVEbZEnyd+HEGWWmBkmq6EG2v82OgxdgOt2ke
-         JVeLXp4QdLWmZGJzCgHmJVkt+ObzErmA16oOpHIJkpEEoBFct+IIDViwQaL0hoiLQ4
-         99lI61Ju0cKwBKPSnbNMILmtHbVDZF3C+FnLvwjo=
+        b=tU0fa9I1naMMgPclZH8owCKrQ+uNo4WrJoPPzddMylD+R3/sRcPa9TtuaDSLBFjCM
+         j8rN9W0699Ku15jLomzHuBG497g926v5pfcS7D/1jkSpT5FROaoZg6WzOJzJJBGG86
+         uK0S6aKJ3PBfGYHNJQvAPghNNWHArEjYBVlSOLDM=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     David Ahern <dsahern@gmail.com>
 Cc:     Maor Gottlieb <maorg@mellanox.com>,
         netdev <netdev@vger.kernel.org>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH iproute2-next 1/4] rdma: Refactor res_qp_line
-Date:   Wed, 20 May 2020 13:25:36 +0300
-Message-Id: <20200520102539.458983-2-leon@kernel.org>
+Subject: [PATCH iproute2-next 3/4] rdma: Add support to get CQ in raw format
+Date:   Wed, 20 May 2020 13:25:38 +0300
+Message-Id: <20200520102539.458983-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200520102539.458983-1-leon@kernel.org>
 References: <20200520102539.458983-1-leon@kernel.org>
@@ -60,194 +59,64 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@mellanox.com>
 
-Downstream patch adds the support to get the QP data in raw format.
-Move the unshared code to function.
+Add the required support to print CQ data in raw format.
+Example:
+
+$rdma res show cq dev mlx5_2 cqn 1 -r -j
+[{"ifindex":8,"ifname":"mlx5_2","cqn":1,"cqe":1023,"users":4,
+"poll-ctx":"UNBOUND_WORKQUEUE","adaptive-moderation":"on",
+"comm":"ib_core", "data":[0,4,255,254,0,0,0,0,0,0,0,0,16,28,...]}]
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/res-qp.c | 114 ++++++++++++++++++++++++++++++--------------------
- 1 file changed, 69 insertions(+), 45 deletions(-)
+ rdma/res-cq.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/rdma/res-qp.c b/rdma/res-qp.c
-index 801cfca9..b36b7289 100644
---- a/rdma/res-qp.c
-+++ b/rdma/res-qp.c
-@@ -64,54 +64,53 @@ static void print_pathmig(struct rd *rd, uint32_t val, struct nlattr **nla_line)
- 			   "path-mig-state %s ", path_mig_to_str(val));
+diff --git a/rdma/res-cq.c b/rdma/res-cq.c
+index e1efe3ba..d34b5245 100644
+--- a/rdma/res-cq.c
++++ b/rdma/res-cq.c
+@@ -39,9 +39,21 @@ static void print_cq_dim_setting(struct rd *rd, struct nlattr *attr)
+ 	print_on_off(rd, "adaptive-moderation", dim_setting);
  }
 
--static int res_qp_line(struct rd *rd, const char *name, int idx,
--		       struct nlattr **nla_line)
-+struct res_qp_info {
-+	uint32_t lqpn;
-+	uint32_t port;
-+	uint32_t pid;
-+	char *comm;
-+};
++static bool resp_is_valid(struct nlattr **nla_line, bool raw)
++{
++	if (raw)
++		return nla_line[RDMA_NLDEV_ATTR_RES_RAW] ? true : false;
 +
-+static bool resp_is_valid(struct nlattr **nla_line)
- {
--	uint32_t lqpn, rqpn = 0, rq_psn = 0, sq_psn;
--	uint8_t type, state, path_mig_state = 0;
--	uint32_t port = 0, pid = 0;
--	uint32_t pdn = 0;
--	char *comm = NULL;
--
- 	if (!nla_line[RDMA_NLDEV_ATTR_RES_LQPN] ||
- 	    !nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN] ||
- 	    !nla_line[RDMA_NLDEV_ATTR_RES_TYPE] ||
- 	    !nla_line[RDMA_NLDEV_ATTR_RES_STATE])
--		return MNL_CB_ERROR;
--
--	if (nla_line[RDMA_NLDEV_ATTR_PORT_INDEX])
--		port = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_PORT_INDEX]);
--
--	if (port != rd->port_idx)
--		goto out;
++	if (!nla_line[RDMA_NLDEV_ATTR_RES_CQE] ||
++	    !nla_line[RDMA_NLDEV_ATTR_RES_USECNT])
 +		return false;
 +	return true;
 +}
++
+ static int res_cq_line(struct rd *rd, const char *name, int idx,
+ 		       struct nlattr **nla_line)
+ {
++	bool raw = rd->show_raw;
+ 	char *comm = NULL;
+ 	uint32_t pid = 0;
+ 	uint8_t poll_ctx = 0;
+@@ -50,8 +62,7 @@ static int res_cq_line(struct rd *rd, const char *name, int idx,
+ 	uint64_t users;
+ 	uint32_t cqe;
 
--	lqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_LQPN]);
--	if (rd_is_filtered_attr(rd, "lqpn", lqpn,
--				nla_line[RDMA_NLDEV_ATTR_RES_LQPN]))
--		goto out;
-+static void res_qp_line_query(struct rd *rd, const char *name, int idx,
-+			      struct nlattr **nla_line,
-+			      struct res_qp_info *info)
-+{
-+	uint8_t type, state, path_mig_state = 0;
-+	uint32_t rqpn = 0, rq_psn = 0, sq_psn;
-+	uint32_t pdn = 0;
+-	if (!nla_line[RDMA_NLDEV_ATTR_RES_CQE] ||
+-	    !nla_line[RDMA_NLDEV_ATTR_RES_USECNT])
++	if (!resp_is_valid(nla_line, raw))
+ 		return MNL_CB_ERROR;
 
- 	if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
- 		pdn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
- 	if (rd_is_filtered_attr(rd, "pdn", pdn,
- 				nla_line[RDMA_NLDEV_ATTR_RES_PDN]))
--		goto out;
-+		return;
-
- 	if (nla_line[RDMA_NLDEV_ATTR_RES_RQPN])
- 		rqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RQPN]);
- 	if (rd_is_filtered_attr(rd, "rqpn", rqpn,
- 				nla_line[RDMA_NLDEV_ATTR_RES_RQPN]))
--		goto out;
-+		return;
-
- 	if (nla_line[RDMA_NLDEV_ATTR_RES_RQ_PSN])
- 		rq_psn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RQ_PSN]);
- 	if (rd_is_filtered_attr(rd, "rq-psn", rq_psn,
- 				nla_line[RDMA_NLDEV_ATTR_RES_RQ_PSN]))
--		goto out;
-+		return;
-
- 	sq_psn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN]);
- 	if (rd_is_filtered_attr(rd, "sq-psn", sq_psn,
- 				nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN]))
--		goto out;
-+		return;
-
- 	if (nla_line[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE])
- 		path_mig_state = mnl_attr_get_u8(
-@@ -119,35 +118,22 @@ static int res_qp_line(struct rd *rd, const char *name, int idx,
- 	if (rd_is_string_filtered_attr(
- 		    rd, "path-mig-state", path_mig_to_str(path_mig_state),
- 		    nla_line[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE]))
--		goto out;
-+		return;
-
- 	type = mnl_attr_get_u8(nla_line[RDMA_NLDEV_ATTR_RES_TYPE]);
- 	if (rd_is_string_filtered_attr(rd, "type", qp_types_to_str(type),
- 				       nla_line[RDMA_NLDEV_ATTR_RES_TYPE]))
--		goto out;
-+		return;
-
- 	state = mnl_attr_get_u8(nla_line[RDMA_NLDEV_ATTR_RES_STATE]);
- 	if (rd_is_string_filtered_attr(rd, "state", qp_states_to_str(state),
- 				       nla_line[RDMA_NLDEV_ATTR_RES_STATE]))
--		goto out;
--
--	if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
--		pid = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PID]);
--		comm = get_task_name(pid);
--	}
--
--	if (rd_is_filtered_attr(rd, "pid", pid,
--				nla_line[RDMA_NLDEV_ATTR_RES_PID]))
--		goto out;
--
--	if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
--		/* discard const from mnl_attr_get_str */
--		comm = (char *)mnl_attr_get_str(
--			nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
-+		return;
-
- 	open_json_object(NULL);
--	print_link(rd, idx, name, port, nla_line);
--	res_print_uint(rd, "lqpn", lqpn, nla_line[RDMA_NLDEV_ATTR_RES_LQPN]);
-+	print_link(rd, idx, name, info->port, nla_line);
-+	res_print_uint(rd, "lqpn", info->lqpn,
-+		       nla_line[RDMA_NLDEV_ATTR_RES_LQPN]);
- 	print_rqpn(rd, rqpn, nla_line);
-
- 	print_type(rd, type);
-@@ -159,14 +145,52 @@ static int res_qp_line(struct rd *rd, const char *name, int idx,
-
- 	print_pathmig(rd, path_mig_state, nla_line);
- 	res_print_uint(rd, "pdn", pdn, nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
--	res_print_uint(rd, "pid", pid, nla_line[RDMA_NLDEV_ATTR_RES_PID]);
--	print_comm(rd, comm, nla_line);
-+	res_print_uint(rd, "pid", info->pid, nla_line[RDMA_NLDEV_ATTR_RES_PID]);
-+	print_comm(rd, info->comm, nla_line);
+ 	cqe = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CQE]);
+@@ -107,6 +118,7 @@ static int res_cq_line(struct rd *rd, const char *name, int idx,
+ 	print_comm(rd, comm, nla_line);
 
  	print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
++	print_raw_data(rd, nla_line);
  	newline(rd);
-+}
-+
-+static int res_qp_line(struct rd *rd, const char *name, int idx,
-+		       struct nlattr **nla_line)
-+{
-+	struct res_qp_info info = {};
-+
-+	if (!resp_is_valid(nla_line))
-+		return MNL_CB_ERROR;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_PORT_INDEX])
-+		info.port =
-+			mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+
-+	if (info.port != rd->port_idx)
-+		goto out;
-+
-+	info.lqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_LQPN]);
-+	if (rd_is_filtered_attr(rd, "lqpn", info.lqpn,
-+				nla_line[RDMA_NLDEV_ATTR_RES_LQPN]))
-+		goto out;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
-+		info.pid = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PID]);
-+		info.comm = get_task_name(info.pid);
-+	}
-+
-+	if (rd_is_filtered_attr(rd, "pid", info.pid,
-+				nla_line[RDMA_NLDEV_ATTR_RES_PID]))
-+		goto out;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]) {
-+		struct nlattr *line = nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME];
-+		/* discard const from mnl_attr_get_str */
-+		info.comm = (char *)mnl_attr_get_str(line);
-+	}
-+
-+	res_qp_line_query(rd, name, idx, nla_line, &info);
- out:
- 	if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
--		free(comm);
-+		free(info.comm);
- 	return MNL_CB_OK;
- }
 
+ out:	if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
 --
 2.26.2
 
