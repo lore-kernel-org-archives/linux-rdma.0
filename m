@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4E40C433E1
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB4A5C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDE4E20829
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B49AE20829
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726790AbgETNxr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 09:53:47 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:56372 "EHLO huawei.com"
+        id S1726836AbgETNxv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 May 2020 09:53:51 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4827 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726801AbgETNxr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 20 May 2020 09:53:47 -0400
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id E3AEA9958A4A6F9104CB;
-        Wed, 20 May 2020 21:53:41 +0800 (CST)
+        id S1726801AbgETNxv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 20 May 2020 09:53:51 -0400
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 6F73916BE78E33B1C249;
+        Wed, 20 May 2020 21:53:48 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 20 May 2020 21:53:35 +0800
+ 14.3.487.0; Wed, 20 May 2020 21:53:37 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/9] RDMA/hns: Add CQ flag instead of independent enable flag
-Date:   Wed, 20 May 2020 21:53:12 +0800
-Message-ID: <1589982799-28728-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 7/9] RDMA/hns: Change variables representing quantity to unsigned
+Date:   Wed, 20 May 2020 21:53:17 +0800
+Message-ID: <1589982799-28728-8-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1589982799-28728-1-git-send-email-liweihang@huawei.com>
 References: <1589982799-28728-1-git-send-email-liweihang@huawei.com>
@@ -43,99 +43,98 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+Number of sge/eqe is always non-negative, they should be defined in type
+of unsigned.
 
-It's easier to understand and maintain enable flags of cq using a single
-field in type of u32 than defining a field for every flags in the structure
-hns_roce_cq, and we can add new flags for features more conveniently in the
-future.
-
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 10 +++++-----
- drivers/infiniband/hw/hns/hns_roce_device.h |  6 +++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  6 +++---
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  4 ++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 17 +++++++++--------
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index d2d7074..925fb77 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -186,8 +186,8 @@ static int alloc_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
- 						   &hr_cq->db);
- 			if (err)
- 				return err;
--			hr_cq->db_en = 1;
--			resp->cap_flags |= HNS_ROCE_SUPPORT_CQ_RECORD_DB;
-+			hr_cq->flags |= HNS_ROCE_CQ_FLAG_RECORD_DB;
-+			resp->cap_flags |= HNS_ROCE_CQ_FLAG_RECORD_DB;
- 		}
- 	} else {
- 		if (has_db) {
-@@ -196,7 +196,7 @@ static int alloc_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
- 				return err;
- 			hr_cq->set_ci_db = hr_cq->db.db_record;
- 			*hr_cq->set_ci_db = 0;
--			hr_cq->db_en = 1;
-+			hr_cq->flags |= HNS_ROCE_CQ_FLAG_RECORD_DB;
- 		}
- 		hr_cq->cq_db_l = hr_dev->reg_base + hr_dev->odb_offset +
- 				 DB_REG_OFFSET * hr_dev->priv_uar.index;
-@@ -210,10 +210,10 @@ static void free_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
- {
- 	struct hns_roce_ucontext *uctx;
- 
--	if (!hr_cq->db_en)
-+	if (!(hr_cq->flags & HNS_ROCE_CQ_FLAG_RECORD_DB))
- 		return;
- 
--	hr_cq->db_en = 0;
-+	hr_cq->flags &= ~HNS_ROCE_CQ_FLAG_RECORD_DB;
- 	if (udata) {
- 		uctx = rdma_udata_to_drv_context(udata,
- 						 struct hns_roce_ucontext,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 4fcd608e..06bafa1 100644
+index e7622bf..e6eb85c 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -135,8 +135,8 @@ enum {
- 	HNS_ROCE_QP_CAP_SQ_RECORD_DB = BIT(1),
+@@ -404,7 +404,7 @@ struct hns_roce_wq {
  };
  
--enum {
--	HNS_ROCE_SUPPORT_CQ_RECORD_DB = 1 << 0,
-+enum hns_roce_cq_flags {
-+	HNS_ROCE_CQ_FLAG_RECORD_DB = BIT(0),
+ struct hns_roce_sge {
+-	int		sge_cnt;	/* SGE num */
++	unsigned int	sge_cnt;	/* SGE num */
+ 	int		offset;
+ 	int		sge_shift;	/* SGE size */
  };
- 
- enum hns_roce_qp_state {
-@@ -454,7 +454,7 @@ struct hns_roce_cq {
- 	struct ib_cq			ib_cq;
+@@ -730,7 +730,7 @@ struct hns_roce_eq {
+ 	int				arm_st;
+ 	int				hop_num;
  	struct hns_roce_mtr		mtr;
- 	struct hns_roce_db		db;
--	u8				db_en;
-+	u32				flags;
- 	spinlock_t			lock;
- 	u32				cq_depth;
- 	u32				cons_index;
+-	int				eq_max_cnt;
++	u16				eq_max_cnt;
+ 	int				eq_period;
+ 	int				shift;
+ 	int				event_type;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 7d0556ef..36a9871 100644
+index 1d5fdf6..3d5ba9a 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2905,9 +2905,9 @@ static void hns_roce_v2_write_cqc(struct hns_roce_dev *hr_dev,
- 	roce_set_field(cq_context->byte_40_cqe_ba, V2_CQC_BYTE_40_CQE_BA_M,
- 		       V2_CQC_BYTE_40_CQE_BA_S, (dma_handle >> (32 + 3)));
+@@ -130,7 +130,7 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
  
--	if (hr_cq->db_en)
--		roce_set_bit(cq_context->byte_44_db_record,
--			     V2_CQC_BYTE_44_DB_RECORD_EN_S, 1);
-+	roce_set_bit(cq_context->byte_44_db_record,
-+		     V2_CQC_BYTE_44_DB_RECORD_EN_S,
-+		     (hr_cq->flags & HNS_ROCE_CQ_FLAG_RECORD_DB) ? 1 : 0);
+ static void set_atomic_seg(const struct ib_send_wr *wr, void *wqe,
+ 			   struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+-			   int valid_num_sge)
++			   unsigned int valid_num_sge)
+ {
+ 	struct hns_roce_wqe_atomic_seg *aseg;
  
- 	roce_set_field(cq_context->byte_44_db_record,
- 		       V2_CQC_BYTE_44_DB_RECORD_ADDR_M,
+@@ -151,12 +151,12 @@ static void set_atomic_seg(const struct ib_send_wr *wr, void *wqe,
+ }
+ 
+ static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
+-			   unsigned int *sge_ind, int valid_num_sge)
++			   unsigned int *sge_ind, unsigned int valid_num_sge)
+ {
+ 	struct hns_roce_v2_wqe_data_seg *dseg;
++	unsigned int cnt = valid_num_sge;
+ 	struct ib_sge *sge = wr->sg_list;
+ 	unsigned int idx = *sge_ind;
+-	int cnt = valid_num_sge;
+ 
+ 	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC) {
+ 		cnt -= HNS_ROCE_SGE_IN_WQE;
+@@ -177,7 +177,7 @@ static void set_extend_sge(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
+ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 			     struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 			     void *wqe, unsigned int *sge_ind,
+-			     int valid_num_sge)
++			     unsigned int valid_num_sge)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	struct hns_roce_v2_wqe_data_seg *dseg = wqe;
+@@ -269,10 +269,11 @@ static int check_send_valid(struct hns_roce_dev *hr_dev,
+ 	return 0;
+ }
+ 
+-static inline int calc_wr_sge_num(const struct ib_send_wr *wr, u32 *sge_len)
++static unsigned int calc_wr_sge_num(const struct ib_send_wr *wr,
++				    unsigned int *sge_len)
+ {
+-	int valid_num = 0;
+-	u32 len = 0;
++	unsigned int valid_num = 0;
++	unsigned int len = 0;
+ 	int i;
+ 
+ 	for (i = 0; i < wr->num_sge; i++) {
+@@ -403,7 +404,7 @@ static inline int set_rc_wqe(struct hns_roce_qp *qp,
+ {
+ 	struct hns_roce_v2_rc_send_wqe *rc_sq_wqe = wqe;
+ 	unsigned int curr_idx = *sge_idx;
+-	int valid_num_sge;
++	unsigned int valid_num_sge;
+ 	u32 msg_len = 0;
+ 	int ret = 0;
+ 
 -- 
 2.8.1
 
