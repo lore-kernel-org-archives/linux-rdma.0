@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58DC5C433E3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6FDFC433DF
 	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39320207F9
+	by mail.kernel.org (Postfix) with ESMTP id CAD1C207F9
 	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726801AbgETNxw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726791AbgETNxw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 20 May 2020 09:53:52 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4829 "EHLO huawei.com"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4828 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726853AbgETNxv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 20 May 2020 09:53:51 -0400
+        id S1726747AbgETNxw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 20 May 2020 09:53:52 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 6857E1FA37C3D629A25E;
+        by Forcepoint Email with ESMTP id 799A9B5C8FD6D5A0034B;
         Wed, 20 May 2020 21:53:48 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 20 May 2020 21:53:37 +0800
+ 14.3.487.0; Wed, 20 May 2020 21:53:36 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 8/9] RDMA/hns: Refactor the QP context filling process related to WQE buffer configure
-Date:   Wed, 20 May 2020 21:53:18 +0800
-Message-ID: <1589982799-28728-9-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 6/9] RDMA/hns: Change all page_shift to unsigned
+Date:   Wed, 20 May 2020 21:53:16 +0800
+Message-ID: <1589982799-28728-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1589982799-28728-1-git-send-email-liweihang@huawei.com>
 References: <1589982799-28728-1-git-send-email-liweihang@huawei.com>
@@ -43,352 +43,195 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xi Wang <wangxi11@huawei.com>
+page_shift is used to calculate the page size, it's always non-negative,
+and should be in type of unsigned.
 
-Split the code related to WQE buffer configure from the QPC filling
-process into two functions: config_qp_sq_buf() and config_qp_rq_buf(), this
-will make the code more readable.
-
-Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 264 ++++++++++++++++-------------
- 1 file changed, 149 insertions(+), 115 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h | 25 +++++++++++++------------
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.h    |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c     | 20 +++++++++++---------
+ 5 files changed, 27 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 3d5ba9a..db9fd6c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3782,27 +3782,16 @@ static bool check_wqe_rq_mtt_count(struct hns_roce_dev *hr_dev,
- 	return true;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+index 365e7db..9bb3f30 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
++++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+@@ -254,7 +254,7 @@ int hns_roce_get_kmem_bufs(struct hns_roce_dev *hr_dev, dma_addr_t *bufs,
+ 
+ int hns_roce_get_umem_bufs(struct hns_roce_dev *hr_dev, dma_addr_t *bufs,
+ 			   int buf_cnt, int start, struct ib_umem *umem,
+-			   int page_shift)
++			   unsigned int page_shift)
+ {
+ 	struct ib_block_iter biter;
+ 	int total = 0;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 06bafa1..e7622bf 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -338,7 +338,7 @@ struct hns_roce_buf_attr {
+ 		int	hopnum; /* multi-hop addressing hop num */
+ 	} region[HNS_ROCE_MAX_BT_REGION];
+ 	int region_count; /* valid region count */
+-	int page_shift;  /* buffer page shift */
++	unsigned int page_shift;  /* buffer page shift */
+ 	bool fixed_page; /* decide page shift is fixed-size or maximum size */
+ 	int user_access; /* umem access flag */
+ 	bool mtt_only; /* only alloc buffer-required MTT memory */
+@@ -347,14 +347,14 @@ struct hns_roce_buf_attr {
+ /* memory translate region */
+ struct hns_roce_mtr {
+ 	struct hns_roce_hem_list hem_list; /* multi-hop addressing resource */
+-	struct ib_umem		 *umem; /* user space buffer */
+-	struct hns_roce_buf	 *kmem; /* kernel space buffer */
++	struct ib_umem		*umem; /* user space buffer */
++	struct hns_roce_buf	*kmem; /* kernel space buffer */
+ 	struct {
+-		dma_addr_t	 root_ba; /* root BA table's address */
+-		bool		 is_direct; /* addressing without BA table */
+-		int		 ba_pg_shift; /* BA table page shift */
+-		int		 buf_pg_shift; /* buffer page shift */
+-		int		 buf_pg_count;  /* buffer page count */
++		dma_addr_t	root_ba; /* root BA table's address */
++		bool		is_direct; /* addressing without BA table */
++		unsigned int	ba_pg_shift; /* BA table page shift */
++		unsigned int	buf_pg_shift; /* buffer page shift */
++		int		buf_pg_count;  /* buffer page count */
+ 	} hem_cfg; /* config for hardware addressing */
+ };
+ 
+@@ -419,7 +419,7 @@ struct hns_roce_buf {
+ 	struct hns_roce_buf_list	*page_list;
+ 	u32				npages;
+ 	u32				size;
+-	int				page_shift;
++	unsigned int			page_shift;
+ };
+ 
+ struct hns_roce_db_pgdir {
+@@ -1132,8 +1132,9 @@ void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev);
+ int hns_roce_mtr_find(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+ 		      int offset, u64 *mtt_buf, int mtt_max, u64 *base_addr);
+ int hns_roce_mtr_create(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+-			struct hns_roce_buf_attr *buf_attr, int page_shift,
+-			struct ib_udata *udata, unsigned long user_addr);
++			struct hns_roce_buf_attr *buf_attr,
++			unsigned int page_shift, struct ib_udata *udata,
++			unsigned long user_addr);
+ void hns_roce_mtr_destroy(struct hns_roce_dev *hr_dev,
+ 			  struct hns_roce_mtr *mtr);
+ int hns_roce_mtr_map(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+@@ -1203,7 +1204,7 @@ int hns_roce_get_kmem_bufs(struct hns_roce_dev *hr_dev, dma_addr_t *bufs,
+ 			   int buf_cnt, int start, struct hns_roce_buf *buf);
+ int hns_roce_get_umem_bufs(struct hns_roce_dev *hr_dev, dma_addr_t *bufs,
+ 			   int buf_cnt, int start, struct ib_umem *umem,
+-			   int page_shift);
++			   unsigned int page_shift);
+ 
+ int hns_roce_create_srq(struct ib_srq *srq,
+ 			struct ib_srq_init_attr *srq_init_attr,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 37d101e..c8db6f8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -1400,7 +1400,7 @@ static int hem_list_alloc_root_bt(struct hns_roce_dev *hr_dev,
+ int hns_roce_hem_list_request(struct hns_roce_dev *hr_dev,
+ 			      struct hns_roce_hem_list *hem_list,
+ 			      const struct hns_roce_buf_region *regions,
+-			      int region_cnt, int bt_pg_shift)
++			      int region_cnt, unsigned int bt_pg_shift)
+ {
+ 	const struct hns_roce_buf_region *r;
+ 	int ofs, end;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
+index 1fa0bdc..b34c940 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
+@@ -133,7 +133,7 @@ int hns_roce_hem_list_calc_root_ba(const struct hns_roce_buf_region *regions,
+ int hns_roce_hem_list_request(struct hns_roce_dev *hr_dev,
+ 			      struct hns_roce_hem_list *hem_list,
+ 			      const struct hns_roce_buf_region *regions,
+-			      int region_cnt, int bt_pg_shift);
++			      int region_cnt, unsigned int bt_pg_shift);
+ void hns_roce_hem_list_release(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_hem_list *hem_list);
+ void *hns_roce_hem_list_find_mtt(struct hns_roce_dev *hr_dev,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index ecd7675..e0f5f55 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -704,7 +704,8 @@ static inline size_t mtr_bufs_size(struct hns_roce_buf_attr *attr)
+ 	return size;
  }
  
--static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
--				 const struct ib_qp_attr *attr, int attr_mask,
--				 struct hns_roce_v2_qp_context *context,
--				 struct hns_roce_v2_qp_context *qpc_mask)
-+static int config_qp_rq_buf(struct hns_roce_dev *hr_dev,
-+			    struct hns_roce_qp *hr_qp,
-+			    struct hns_roce_v2_qp_context *context,
-+			    struct hns_roce_v2_qp_context *qpc_mask)
+-static inline int mtr_umem_page_count(struct ib_umem *umem, int page_shift)
++static inline int mtr_umem_page_count(struct ib_umem *umem,
++				      unsigned int page_shift)
  {
--	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
--	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
--	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
--	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	struct ib_qp *ibqp = &hr_qp->ibqp;
- 	u64 mtts[MTT_MIN_COUNT] = { 0 };
--	dma_addr_t dma_handle_3;
--	dma_addr_t dma_handle_2;
- 	u64 wqe_sge_ba;
- 	u32 page_size;
--	u8 port_num;
--	u64 *mtts_3;
--	u64 *mtts_2;
- 	int count;
--	u8 *dmac;
--	u8 *smac;
--	int port;
+ 	int count = ib_umem_page_count(umem);
  
- 	/* Search qp buf's mtts */
- 	page_size = 1 << hr_qp->mtr.hem_cfg.buf_pg_shift;
-@@ -3813,29 +3802,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
- 		if (!check_wqe_rq_mtt_count(hr_dev, hr_qp, count, page_size))
- 			return -EINVAL;
+@@ -717,7 +718,7 @@ static inline int mtr_umem_page_count(struct ib_umem *umem, int page_shift)
+ }
  
--	/* Search IRRL's mtts */
--	mtts_2 = hns_roce_table_find(hr_dev, &hr_dev->qp_table.irrl_table,
--				     hr_qp->qpn, &dma_handle_2);
--	if (!mtts_2) {
--		ibdev_err(ibdev, "failed to find QP irrl_table\n");
--		return -EINVAL;
--	}
--
--	/* Search TRRL's mtts */
--	mtts_3 = hns_roce_table_find(hr_dev, &hr_dev->qp_table.trrl_table,
--				     hr_qp->qpn, &dma_handle_3);
--	if (!mtts_3) {
--		ibdev_err(ibdev, "failed to find QP trrl_table\n");
--		return -EINVAL;
--	}
--
--	if (attr_mask & IB_QP_ALT_PATH) {
--		ibdev_err(ibdev, "INIT2RTR attr_mask (0x%x) error\n",
--			  attr_mask);
--		return -EINVAL;
--	}
--
--	dmac = (u8 *)attr->ah_attr.roce.dmac;
- 	context->wqe_sge_ba = cpu_to_le32(wqe_sge_ba >> 3);
- 	qpc_mask->wqe_sge_ba = 0;
- 
-@@ -3914,23 +3880,154 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
- 		       V2_QPC_BYTE_104_RQ_NXT_BLK_ADDR_M,
- 		       V2_QPC_BYTE_104_RQ_NXT_BLK_ADDR_S, 0);
- 
-+	roce_set_field(context->byte_84_rq_ci_pi,
-+		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
-+		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S, hr_qp->rq.head);
-+	roce_set_field(qpc_mask->byte_84_rq_ci_pi,
-+		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
-+		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S, 0);
-+
-+	roce_set_field(qpc_mask->byte_84_rq_ci_pi,
-+		       V2_QPC_BYTE_84_RQ_CONSUMER_IDX_M,
-+		       V2_QPC_BYTE_84_RQ_CONSUMER_IDX_S, 0);
-+
-+	return 0;
-+}
-+
-+static int config_qp_sq_buf(struct hns_roce_dev *hr_dev,
-+			    struct hns_roce_qp *hr_qp,
-+			    struct hns_roce_v2_qp_context *context,
-+			    struct hns_roce_v2_qp_context *qpc_mask)
-+{
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	u64 sge_cur_blk = 0;
-+	u64 sq_cur_blk = 0;
-+	u32 page_size;
-+	int count;
-+
-+	/* search qp buf's mtts */
-+	count = hns_roce_mtr_find(hr_dev, &hr_qp->mtr, 0, &sq_cur_blk, 1, NULL);
-+	if (count < 1) {
-+		ibdev_err(ibdev, "failed to find QP(0x%lx) SQ buf.\n",
-+			  hr_qp->qpn);
-+		return -EINVAL;
-+	}
-+	if (hr_qp->sge.sge_cnt > 0) {
-+		page_size = 1 << hr_qp->mtr.hem_cfg.buf_pg_shift;
-+		count = hns_roce_mtr_find(hr_dev, &hr_qp->mtr,
-+					  hr_qp->sge.offset / page_size,
-+					  &sge_cur_blk, 1, NULL);
-+		if (count < 1) {
-+			ibdev_err(ibdev, "failed to find QP(0x%lx) SGE buf.\n",
-+				  hr_qp->qpn);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	/*
-+	 * In v2 engine, software pass context and context mask to hardware
-+	 * when modifying qp. If software need modify some fields in context,
-+	 * we should set all bits of the relevant fields in context mask to
-+	 * 0 at the same time, else set them to 0x1.
-+	 */
-+	context->sq_cur_blk_addr = cpu_to_le32(to_hr_hw_page_addr(sq_cur_blk));
-+	roce_set_field(context->byte_168_irrl_idx,
-+		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_M,
-+		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_S,
-+		       upper_32_bits(to_hr_hw_page_addr(sq_cur_blk)));
-+	qpc_mask->sq_cur_blk_addr = 0;
-+	roce_set_field(qpc_mask->byte_168_irrl_idx,
-+		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_M,
-+		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_S, 0);
-+
-+	context->sq_cur_sge_blk_addr =
-+		cpu_to_le32(to_hr_hw_page_addr(sge_cur_blk));
-+	roce_set_field(context->byte_184_irrl_idx,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_M,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_S,
-+		       upper_32_bits(to_hr_hw_page_addr(sge_cur_blk)));
-+	qpc_mask->sq_cur_sge_blk_addr = 0;
-+	roce_set_field(qpc_mask->byte_184_irrl_idx,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_M,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_S, 0);
-+
-+	context->rx_sq_cur_blk_addr =
-+		cpu_to_le32(to_hr_hw_page_addr(sq_cur_blk));
-+	roce_set_field(context->byte_232_irrl_sge,
-+		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_M,
-+		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_S,
-+		       upper_32_bits(to_hr_hw_page_addr(sq_cur_blk)));
-+	qpc_mask->rx_sq_cur_blk_addr = 0;
-+	roce_set_field(qpc_mask->byte_232_irrl_sge,
-+		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_M,
-+		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_S, 0);
-+
-+	return 0;
-+}
-+
-+static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
-+				 const struct ib_qp_attr *attr, int attr_mask,
-+				 struct hns_roce_v2_qp_context *context,
-+				 struct hns_roce_v2_qp_context *qpc_mask)
-+{
-+	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
-+	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	dma_addr_t trrl_ba;
-+	dma_addr_t irrl_ba;
-+	u8 port_num;
-+	u64 *mtts;
-+	u8 *dmac;
-+	u8 *smac;
-+	int port;
-+	int ret;
-+
-+	ret = config_qp_rq_buf(hr_dev, hr_qp, context, qpc_mask);
-+	if (ret) {
-+		ibdev_err(ibdev, "failed to config rq buf, ret = %d.\n", ret);
-+		return ret;
-+	}
-+
-+	/* Search IRRL's mtts */
-+	mtts = hns_roce_table_find(hr_dev, &hr_dev->qp_table.irrl_table,
-+				   hr_qp->qpn, &irrl_ba);
-+	if (!mtts) {
-+		ibdev_err(ibdev, "failed to find qp irrl_table.\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Search TRRL's mtts */
-+	mtts = hns_roce_table_find(hr_dev, &hr_dev->qp_table.trrl_table,
-+				   hr_qp->qpn, &trrl_ba);
-+	if (!mtts) {
-+		ibdev_err(ibdev, "failed to find qp trrl_table.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (attr_mask & IB_QP_ALT_PATH) {
-+		ibdev_err(ibdev, "INIT2RTR attr_mask (0x%x) error.\n",
-+			  attr_mask);
-+		return -EINVAL;
-+	}
-+
- 	roce_set_field(context->byte_132_trrl, V2_QPC_BYTE_132_TRRL_BA_M,
--		       V2_QPC_BYTE_132_TRRL_BA_S, dma_handle_3 >> 4);
-+		       V2_QPC_BYTE_132_TRRL_BA_S, trrl_ba >> 4);
- 	roce_set_field(qpc_mask->byte_132_trrl, V2_QPC_BYTE_132_TRRL_BA_M,
- 		       V2_QPC_BYTE_132_TRRL_BA_S, 0);
--	context->trrl_ba = cpu_to_le32(dma_handle_3 >> (16 + 4));
-+	context->trrl_ba = cpu_to_le32(trrl_ba >> (16 + 4));
- 	qpc_mask->trrl_ba = 0;
- 	roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_TRRL_BA_M,
- 		       V2_QPC_BYTE_140_TRRL_BA_S,
--		       (u32)(dma_handle_3 >> (32 + 16 + 4)));
-+		       (u32)(trrl_ba >> (32 + 16 + 4)));
- 	roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_TRRL_BA_M,
- 		       V2_QPC_BYTE_140_TRRL_BA_S, 0);
- 
--	context->irrl_ba = cpu_to_le32(dma_handle_2 >> 6);
-+	context->irrl_ba = cpu_to_le32(irrl_ba >> 6);
- 	qpc_mask->irrl_ba = 0;
- 	roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_IRRL_BA_M,
- 		       V2_QPC_BYTE_208_IRRL_BA_S,
--		       dma_handle_2 >> (32 + 6));
-+		       irrl_ba >> (32 + 6));
- 	roce_set_field(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_IRRL_BA_M,
- 		       V2_QPC_BYTE_208_IRRL_BA_S, 0);
- 
-@@ -3967,6 +4064,8 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
- 					 grh->sgid_index));
- 	roce_set_field(qpc_mask->byte_20_smac_sgid_idx,
- 		       V2_QPC_BYTE_20_SGID_IDX_M, V2_QPC_BYTE_20_SGID_IDX_S, 0);
-+
-+	dmac = (u8 *)attr->ah_attr.roce.dmac;
- 	memcpy(&(context->dmac), dmac, sizeof(u32));
- 	roce_set_field(context->byte_52_udpspn_dmac, V2_QPC_BYTE_52_DMAC_M,
- 		       V2_QPC_BYTE_52_DMAC_S, *((u16 *)(&dmac[4])));
-@@ -3991,16 +4090,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
- 	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
- 		       V2_QPC_BYTE_24_MTU_S, 0);
- 
--	roce_set_field(context->byte_84_rq_ci_pi,
--		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
--		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S, hr_qp->rq.head);
--	roce_set_field(qpc_mask->byte_84_rq_ci_pi,
--		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_M,
--		       V2_QPC_BYTE_84_RQ_PRODUCER_IDX_S, 0);
--
--	roce_set_field(qpc_mask->byte_84_rq_ci_pi,
--		       V2_QPC_BYTE_84_RQ_CONSUMER_IDX_M,
--		       V2_QPC_BYTE_84_RQ_CONSUMER_IDX_S, 0);
- 	roce_set_bit(qpc_mask->byte_108_rx_reqepsn,
- 		     V2_QPC_BYTE_108_RX_REQ_PSN_ERR_S, 0);
- 	roce_set_field(qpc_mask->byte_96_rx_reqmsn, V2_QPC_BYTE_96_RX_REQ_MSN_M,
-@@ -4036,30 +4125,7 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
+ static inline size_t mtr_kmem_direct_size(bool is_direct, size_t alloc_size,
+-					  int page_shift)
++					  unsigned int page_shift)
+ {
+ 	if (is_direct)
+ 		return ALIGN(alloc_size, 1 << page_shift);
+@@ -730,7 +731,7 @@ static inline size_t mtr_kmem_direct_size(bool is_direct, size_t alloc_size,
+  * Returns 0 on success, or the error page num.
+  */
+ static inline int mtr_check_direct_pages(dma_addr_t *pages, int page_count,
+-					 int page_shift)
++					 unsigned int page_shift)
+ {
+ 	size_t page_size = 1 << page_shift;
+ 	int i;
+@@ -763,8 +764,8 @@ static int mtr_alloc_bufs(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+ 			  struct ib_udata *udata, unsigned long user_addr)
+ {
  	struct ib_device *ibdev = &hr_dev->ib_dev;
--	u64 sge_cur_blk = 0;
--	u64 sq_cur_blk = 0;
--	u32 page_size;
--	int count;
--
--	/* Search qp buf's mtts */
--	count = hns_roce_mtr_find(hr_dev, &hr_qp->mtr, 0, &sq_cur_blk, 1, NULL);
--	if (count < 1) {
--		ibdev_err(ibdev, "failed to find QP(0x%lx) SQ buf\n",
--			  hr_qp->qpn);
--		return -EINVAL;
--	}
--
--	if (hr_qp->sge.sge_cnt > 0) {
--		page_size = 1 << hr_qp->mtr.hem_cfg.buf_pg_shift;
--		count = hns_roce_mtr_find(hr_dev, &hr_qp->mtr,
--					  hr_qp->sge.offset / page_size,
--					  &sge_cur_blk, 1, NULL);
--		if (count < 1) {
--			ibdev_err(ibdev, "failed to find QP(0x%lx) SGE buf\n",
--				  hr_qp->qpn);
--			return -EINVAL;
--		}
--	}
-+	int ret;
+-	int max_pg_shift = buf_attr->page_shift;
+-	int best_pg_shift = 0;
++	unsigned int max_pg_shift = buf_attr->page_shift;
++	unsigned int best_pg_shift = 0;
+ 	int all_pg_count = 0;
+ 	size_t direct_size;
+ 	size_t total_size;
+@@ -834,7 +835,7 @@ static int mtr_alloc_bufs(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+ }
  
- 	/* Not support alternate path and path migration */
- 	if (attr_mask & (IB_QP_ALT_PATH | IB_QP_PATH_MIG_STATE)) {
-@@ -4067,43 +4133,11 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
- 		return -EINVAL;
- 	}
- 
--	/*
--	 * In v2 engine, software pass context and context mask to hardware
--	 * when modifying qp. If software need modify some fields in context,
--	 * we should set all bits of the relevant fields in context mask to
--	 * 0 at the same time, else set them to 0x1.
--	 */
--	context->sq_cur_blk_addr = cpu_to_le32(to_hr_hw_page_addr(sq_cur_blk));
--	roce_set_field(context->byte_168_irrl_idx,
--		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_M,
--		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_S,
--		       upper_32_bits(to_hr_hw_page_addr(sq_cur_blk)));
--	qpc_mask->sq_cur_blk_addr = 0;
--	roce_set_field(qpc_mask->byte_168_irrl_idx,
--		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_M,
--		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_S, 0);
--
--	context->sq_cur_sge_blk_addr =
--		cpu_to_le32(to_hr_hw_page_addr(sge_cur_blk));
--	roce_set_field(context->byte_184_irrl_idx,
--		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_M,
--		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_S,
--		       upper_32_bits(to_hr_hw_page_addr(sge_cur_blk)));
--	qpc_mask->sq_cur_sge_blk_addr = 0;
--	roce_set_field(qpc_mask->byte_184_irrl_idx,
--		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_M,
--		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_S, 0);
--
--	context->rx_sq_cur_blk_addr =
--		cpu_to_le32(to_hr_hw_page_addr(sq_cur_blk));
--	roce_set_field(context->byte_232_irrl_sge,
--		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_M,
--		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_S,
--		       upper_32_bits(to_hr_hw_page_addr(sq_cur_blk)));
--	qpc_mask->rx_sq_cur_blk_addr = 0;
--	roce_set_field(qpc_mask->byte_232_irrl_sge,
--		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_M,
--		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_S, 0);
-+	ret = config_qp_sq_buf(hr_dev, hr_qp, context, qpc_mask);
-+	if (ret) {
-+		ibdev_err(ibdev, "failed to config sq buf, ret %d\n", ret);
-+		return ret;
-+	}
- 
- 	/*
- 	 * Set some fields in context to zero, Because the default values
+ static int mtr_get_pages(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+-			 dma_addr_t *pages, int count, int page_shift)
++			 dma_addr_t *pages, int count, unsigned int page_shift)
+ {
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	int npage;
+@@ -944,7 +945,7 @@ int hns_roce_mtr_find(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+ /* convert buffer size to page index and page count */
+ static int mtr_init_region(struct hns_roce_buf_attr *attr, int page_cnt,
+ 			   struct hns_roce_buf_region *regions, int region_cnt,
+-			   int page_shift)
++			   unsigned int page_shift)
+ {
+ 	unsigned int page_size = 1 << page_shift;
+ 	int max_region = attr->region_count;
+@@ -975,8 +976,9 @@ static int mtr_init_region(struct hns_roce_buf_attr *attr, int page_cnt,
+  * @buf_alloced: mtr has private buffer, true means need to alloc
+  */
+ int hns_roce_mtr_create(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+-			struct hns_roce_buf_attr *buf_attr, int page_shift,
+-			struct ib_udata *udata, unsigned long user_addr)
++			struct hns_roce_buf_attr *buf_attr,
++			unsigned int page_shift, struct ib_udata *udata,
++			unsigned long user_addr)
+ {
+ 	struct hns_roce_buf_region regions[HNS_ROCE_MAX_BT_REGION] = {};
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
 -- 
 2.8.1
 
