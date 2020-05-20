@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31AB2C433DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D804DC433E0
 	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 07:04:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FD3920756
+	by mail.kernel.org (Postfix) with ESMTP id B609120756
 	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 07:04:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727034AbgETHEq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726474AbgETHEq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 20 May 2020 03:04:46 -0400
-Received: from mga06.intel.com ([134.134.136.31]:13817 "EHLO mga06.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:53512 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726920AbgETHEY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 20 May 2020 03:04:24 -0400
-IronPort-SDR: Dt0VZLhzFUWT5dA2iyTWXbiC/2wbJOAbspWywhGH8nUFf04SSJnWPY2SGmOtYSUQJcmI4xwF9H
- o3aOC9JJ8UDg==
+        id S1726948AbgETHEZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 20 May 2020 03:04:25 -0400
+IronPort-SDR: Fi+jBexbKNh6DsKmCF0Na7bodhZuwi8/6shXJJLhPWgS8v5l2zYqskxumwNCuNCSF6K7pIRZ6c
+ flAaRSl0i02g==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2020 00:04:18 -0700
-IronPort-SDR: bjuIU8Uq/+gDs8NE70MwZA/SXOc9Faq1X5oLh7A7suKbB4ctnQbMoNMumVn32j//HIXwNwmYId
- v1+s2DaoJW4Q==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2020 00:04:20 -0700
+IronPort-SDR: dBqImeF4jhTJ2WVPaXccnuIxTFD6jaL0rSW3BRfCuYU1aG2OThhz6/FXv5GqQbsCmFUDaSrKWw
+ d0u9OZX117mQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,413,1583222400"; 
-   d="scan'208";a="264581235"
+   d="scan'208";a="264581252"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.86])
-  by orsmga003.jf.intel.com with ESMTP; 20 May 2020 00:04:18 -0700
+  by orsmga003.jf.intel.com with ESMTP; 20 May 2020 00:04:19 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     dledford@redhat.com, jgg@mellanox.com, davem@davemloft.net,
         gregkh@linuxfoundation.org
-Cc:     Mustafa Ismail <mustafa.ismail@intel.com>,
+Cc:     "Michael J. Ruhl" <michael.j.ruhl@intel.com>,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         nhorman@redhat.com, sassmann@redhat.com, poswald@suse.com,
         Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [RDMA RFC v6 08/16] RDMA/irdma: Add PBLE resource manager
-Date:   Wed, 20 May 2020 00:04:07 -0700
-Message-Id: <20200520070415.3392210-9-jeffrey.t.kirsher@intel.com>
+Subject: [RDMA RFC v6 13/16] RDMA/irdma: Add dynamic tracing for CM
+Date:   Wed, 20 May 2020 00:04:12 -0700
+Message-Id: <20200520070415.3392210-14-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200520070415.3392210-1-jeffrey.t.kirsher@intel.com>
 References: <20200520070415.3392210-1-jeffrey.t.kirsher@intel.com>
@@ -52,679 +52,613 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 
-Implement a Physical Buffer List Entry (PBLE) resource manager
-to manage a pool of PBLE HMC resource objects.
+Add dynamic tracing functionality to debug connection
+management issues.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/pble.c | 511 +++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/pble.h | 136 ++++++++
- 2 files changed, 647 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/pble.c
- create mode 100644 drivers/infiniband/hw/irdma/pble.h
+ drivers/infiniband/hw/irdma/trace.c    | 112 ++++++
+ drivers/infiniband/hw/irdma/trace.h    |   3 +
+ drivers/infiniband/hw/irdma/trace_cm.h | 458 +++++++++++++++++++++++++
+ 3 files changed, 573 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/trace.c
+ create mode 100644 drivers/infiniband/hw/irdma/trace.h
+ create mode 100644 drivers/infiniband/hw/irdma/trace_cm.h
 
-diff --git a/drivers/infiniband/hw/irdma/pble.c b/drivers/infiniband/hw/irdma/pble.c
+diff --git a/drivers/infiniband/hw/irdma/trace.c b/drivers/infiniband/hw/irdma/trace.c
 new file mode 100644
-index 000000000000..8e987148e0e4
+index 000000000000..b5133f4137e0
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/pble.c
-@@ -0,0 +1,511 @@
++++ b/drivers/infiniband/hw/irdma/trace.c
+@@ -0,0 +1,112 @@
 +// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-+/* Copyright (c) 2015 - 2019 Intel Corporation */
-+#include "osdep.h"
-+#include "status.h"
-+#include "hmc.h"
-+#include "defs.h"
-+#include "type.h"
-+#include "protos.h"
-+#include "pble.h"
++/* Copyright (c) 2019 Intel Corporation */
++#define CREATE_TRACE_POINTS
++#include "trace.h"
 +
-+static enum irdma_status_code
-+add_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc);
-+
-+/**
-+ * irdma_destroy_pble_prm - destroy prm during module unload
-+ * @pble_rsrc: pble resources
-+ */
-+void irdma_destroy_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc)
++const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ipv4)
 +{
-+	struct irdma_chunk *chunk;
-+	struct irdma_pble_prm *pinfo = &pble_rsrc->pinfo;
++	const char *ret = trace_seq_buffer_ptr(p);
 +
-+	while (!list_empty(&pinfo->clist)) {
-+		chunk = (struct irdma_chunk *) pinfo->clist.next;
-+		list_del(&chunk->list);
-+		if (chunk->type == PBLE_SD_PAGED)
-+			irdma_pble_free_paged_mem(chunk);
-+		if (chunk->bitmapbuf)
-+			kfree(chunk->bitmapmem.va);
-+		kfree(chunk->chunkmem.va);
-+	}
-+}
++	if (ipv4) {
++		__be32 myaddr = htonl(*addr);
 +
-+/**
-+ * irdma_hmc_init_pble - Initialize pble resources during module load
-+ * @dev: irdma_sc_dev struct
-+ * @pble_rsrc: pble resources
-+ */
-+enum irdma_status_code
-+irdma_hmc_init_pble(struct irdma_sc_dev *dev,
-+		    struct irdma_hmc_pble_rsrc *pble_rsrc)
-+{
-+	struct irdma_hmc_info *hmc_info;
-+	u32 fpm_idx = 0;
-+	enum irdma_status_code status = 0;
-+
-+	hmc_info = dev->hmc_info;
-+	pble_rsrc->dev = dev;
-+	pble_rsrc->fpm_base_addr = hmc_info->hmc_obj[IRDMA_HMC_IW_PBLE].base;
-+	/* Start pble' on 4k boundary */
-+	if (pble_rsrc->fpm_base_addr & 0xfff)
-+		fpm_idx = (4096 - (pble_rsrc->fpm_base_addr & 0xfff)) >> 3;
-+	pble_rsrc->unallocated_pble =
-+		hmc_info->hmc_obj[IRDMA_HMC_IW_PBLE].cnt - fpm_idx;
-+	pble_rsrc->next_fpm_addr = pble_rsrc->fpm_base_addr + (fpm_idx << 3);
-+	pble_rsrc->pinfo.pble_shift = PBLE_SHIFT;
-+
-+	mutex_init(&pble_rsrc->pble_mutex_lock);
-+	spin_lock_init(&pble_rsrc->pinfo.prm_lock);
-+	INIT_LIST_HEAD(&pble_rsrc->pinfo.clist);
-+	if (add_pble_prm(pble_rsrc)) {
-+		irdma_destroy_pble_prm(pble_rsrc);
-+		status = IRDMA_ERR_NO_MEMORY;
-+	}
-+
-+	return status;
-+}
-+
-+/**
-+ * get_sd_pd_idx -  Returns sd index, pd index and rel_pd_idx from fpm address
-+ * @pble_rsrc: structure containing fpm address
-+ * @idx: where to return indexes
-+ */
-+static void get_sd_pd_idx(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+			  struct sd_pd_idx *idx)
-+{
-+	idx->sd_idx = (u32)pble_rsrc->next_fpm_addr / IRDMA_HMC_DIRECT_BP_SIZE;
-+	idx->pd_idx = (u32)(pble_rsrc->next_fpm_addr / IRDMA_HMC_PAGED_BP_SIZE);
-+	idx->rel_pd_idx = (idx->pd_idx % IRDMA_HMC_PD_CNT_IN_SD);
-+}
-+
-+/**
-+ * add_sd_direct - add sd direct for pble
-+ * @pble_rsrc: pble resource ptr
-+ * @info: page info for sd
-+ */
-+static enum irdma_status_code
-+add_sd_direct(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+	      struct irdma_add_page_info *info)
-+{
-+	struct irdma_sc_dev *dev = pble_rsrc->dev;
-+	enum irdma_status_code ret_code = 0;
-+	struct sd_pd_idx *idx = &info->idx;
-+	struct irdma_chunk *chunk = info->chunk;
-+	struct irdma_hmc_info *hmc_info = info->hmc_info;
-+	struct irdma_hmc_sd_entry *sd_entry = info->sd_entry;
-+	u32 offset = 0;
-+
-+	if (!sd_entry->valid) {
-+		ret_code = irdma_add_sd_table_entry(dev->hw, hmc_info,
-+						    info->idx.sd_idx,
-+						    IRDMA_SD_TYPE_DIRECT,
-+						    IRDMA_HMC_DIRECT_BP_SIZE);
-+		if (ret_code)
-+			return ret_code;
-+
-+		chunk->type = PBLE_SD_CONTIGOUS;
-+	}
-+
-+	offset = idx->rel_pd_idx << HMC_PAGED_BP_SHIFT;
-+	chunk->size = info->pages << HMC_PAGED_BP_SHIFT;
-+	chunk->vaddr = (uintptr_t)sd_entry->u.bp.addr.va + offset;
-+	chunk->fpm_addr = pble_rsrc->next_fpm_addr;
-+	irdma_dbg(dev,
-+		  "PBLE: chunk_size[%lld] = 0x%llx vaddr=0x%llx fpm_addr = %llx\n",
-+		  chunk->size, chunk->size, chunk->vaddr, chunk->fpm_addr);
-+
-+	return 0;
-+}
-+
-+/**
-+ * fpm_to_idx - given fpm address, get pble index
-+ * @pble_rsrc: pble resource management
-+ * @addr: fpm address for index
-+ */
-+static u32 fpm_to_idx(struct irdma_hmc_pble_rsrc *pble_rsrc, u64 addr)
-+{
-+	u64 idx;
-+
-+	idx = (addr - (pble_rsrc->fpm_base_addr)) >> 3;
-+
-+	return (u32)idx;
-+}
-+
-+/**
-+ * add_bp_pages - add backing pages for sd
-+ * @pble_rsrc: pble resource management
-+ * @info: page info for sd
-+ */
-+static enum irdma_status_code
-+add_bp_pages(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+	     struct irdma_add_page_info *info)
-+{
-+	struct irdma_sc_dev *dev = pble_rsrc->dev;
-+	u8 *addr;
-+	struct irdma_dma_mem mem;
-+	struct irdma_hmc_pd_entry *pd_entry;
-+	struct irdma_hmc_sd_entry *sd_entry = info->sd_entry;
-+	struct irdma_hmc_info *hmc_info = info->hmc_info;
-+	struct irdma_chunk *chunk = info->chunk;
-+	enum irdma_status_code status = 0;
-+	u32 rel_pd_idx = info->idx.rel_pd_idx;
-+	u32 pd_idx = info->idx.pd_idx;
-+	u32 i;
-+
-+	if (irdma_pble_get_paged_mem(chunk, info->pages))
-+		return IRDMA_ERR_NO_MEMORY;
-+
-+	status = irdma_add_sd_table_entry(dev->hw, hmc_info, info->idx.sd_idx,
-+					  IRDMA_SD_TYPE_PAGED,
-+					  IRDMA_HMC_DIRECT_BP_SIZE);
-+
-+	if (status)
-+		goto error;
-+
-+	addr = (u8 *)(uintptr_t)chunk->vaddr;
-+	for (i = 0; i < info->pages; i++) {
-+		mem.pa = (u64)chunk->dmainfo.dmaaddrs[i];
-+		mem.size = 4096;
-+		mem.va = addr;
-+		pd_entry = &sd_entry->u.pd_table.pd_entry[rel_pd_idx++];
-+		if (!pd_entry->valid) {
-+			status = irdma_add_pd_table_entry(dev, hmc_info,
-+							  pd_idx++, &mem);
-+			if (status)
-+				goto error;
-+
-+			addr += 4096;
-+		}
-+	}
-+
-+	chunk->fpm_addr = pble_rsrc->next_fpm_addr;
-+	return 0;
-+
-+error:
-+	irdma_pble_free_paged_mem(chunk);
-+
-+	return status;
-+}
-+
-+/**
-+ * add_pble_prm - add a sd entry for pble resoure
-+ * @pble_rsrc: pble resource management
-+ */
-+static enum irdma_status_code
-+add_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc)
-+{
-+	struct irdma_sc_dev *dev = pble_rsrc->dev;
-+	struct irdma_hmc_sd_entry *sd_entry;
-+	struct irdma_hmc_info *hmc_info;
-+	struct irdma_chunk *chunk;
-+	struct irdma_add_page_info info;
-+	struct sd_pd_idx *idx = &info.idx;
-+	enum irdma_status_code ret_code = 0;
-+	enum irdma_sd_entry_type sd_entry_type;
-+	u64 sd_reg_val = 0;
-+	struct irdma_virt_mem chunkmem;
-+	u32 pages;
-+
-+	if (pble_rsrc->unallocated_pble < PBLE_PER_PAGE)
-+		return IRDMA_ERR_NO_MEMORY;
-+
-+	if (pble_rsrc->next_fpm_addr & 0xfff)
-+		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
-+
-+	chunkmem.size = sizeof(*chunk);
-+	chunkmem.va = kzalloc(chunkmem.size, GFP_KERNEL);
-+	if (!chunkmem.va)
-+		return IRDMA_ERR_NO_MEMORY;
-+
-+	chunk = chunkmem.va;
-+	chunk->chunkmem = chunkmem;
-+	hmc_info = dev->hmc_info;
-+	chunk->dev = dev;
-+	chunk->fpm_addr = pble_rsrc->next_fpm_addr;
-+	get_sd_pd_idx(pble_rsrc, idx);
-+	sd_entry = &hmc_info->sd_table.sd_entry[idx->sd_idx];
-+	pages = (idx->rel_pd_idx) ? (IRDMA_HMC_PD_CNT_IN_SD - idx->rel_pd_idx) :
-+				    IRDMA_HMC_PD_CNT_IN_SD;
-+	pages = min(pages, pble_rsrc->unallocated_pble >> PBLE_512_SHIFT);
-+	info.chunk = chunk;
-+	info.hmc_info = hmc_info;
-+	info.pages = pages;
-+	info.sd_entry = sd_entry;
-+	if (!sd_entry->valid)
-+		sd_entry_type = (!idx->rel_pd_idx &&
-+				 (pages == IRDMA_HMC_PD_CNT_IN_SD) &&
-+				 dev->privileged) ?
-+				 IRDMA_SD_TYPE_DIRECT : IRDMA_SD_TYPE_PAGED;
-+	else
-+		sd_entry_type = sd_entry->entry_type;
-+
-+	irdma_dbg(dev,
-+		  "PBLE: pages = %d, unallocated_pble[%d] current_fpm_addr = %llx\n",
-+		  pages, pble_rsrc->unallocated_pble,
-+		  pble_rsrc->next_fpm_addr);
-+	irdma_dbg(dev, "PBLE: sd_entry_type = %d\n", sd_entry_type);
-+	if (sd_entry_type == IRDMA_SD_TYPE_DIRECT)
-+		ret_code = add_sd_direct(pble_rsrc, &info);
-+
-+	if (ret_code)
-+		sd_entry_type = IRDMA_SD_TYPE_PAGED;
-+	else
-+		pble_rsrc->stats_direct_sds++;
-+
-+	if (sd_entry_type == IRDMA_SD_TYPE_PAGED) {
-+		ret_code = add_bp_pages(pble_rsrc, &info);
-+		if (ret_code)
-+			goto error;
-+		else
-+			pble_rsrc->stats_paged_sds++;
-+	}
-+
-+	ret_code = irdma_prm_add_pble_mem(&pble_rsrc->pinfo, chunk);
-+	if (ret_code)
-+		goto error;
-+
-+	pble_rsrc->next_fpm_addr += chunk->size;
-+	irdma_dbg(dev,
-+		  "PBLE: next_fpm_addr = %llx chunk_size[%llu] = 0x%llx\n",
-+		  pble_rsrc->next_fpm_addr, chunk->size, chunk->size);
-+	pble_rsrc->unallocated_pble -= (u32)(chunk->size >> 3);
-+	list_add(&chunk->list, &pble_rsrc->pinfo.clist);
-+	sd_reg_val = (sd_entry_type == IRDMA_SD_TYPE_PAGED) ?
-+			     sd_entry->u.pd_table.pd_page_addr.pa :
-+			     sd_entry->u.bp.addr.pa;
-+	if (sd_entry->valid)
-+		return 0;
-+
-+	if (dev->privileged) {
-+		ret_code = irdma_hmc_sd_one(dev, hmc_info->hmc_fn_id,
-+					    sd_reg_val, idx->sd_idx,
-+					    sd_entry->entry_type, true);
-+		if (ret_code)
-+			goto error;
-+	}
-+
-+	sd_entry->valid = true;
-+	return 0;
-+
-+error:
-+	if (chunk->bitmapbuf)
-+		kfree(chunk->bitmapmem.va);
-+	kfree(chunk->chunkmem.va);
-+
-+	return ret_code;
-+}
-+
-+/**
-+ * free_lvl2 - fee level 2 pble
-+ * @pble_rsrc: pble resource management
-+ * @palloc: level 2 pble allocation
-+ */
-+static void free_lvl2(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+		      struct irdma_pble_alloc *palloc)
-+{
-+	u32 i;
-+	struct irdma_pble_level2 *lvl2 = &palloc->level2;
-+	struct irdma_pble_info *root = &lvl2->root;
-+	struct irdma_pble_info *leaf = lvl2->leaf;
-+
-+	for (i = 0; i < lvl2->leaf_cnt; i++, leaf++) {
-+		if (leaf->addr)
-+			irdma_prm_return_pbles(&pble_rsrc->pinfo,
-+					       &leaf->chunkinfo);
-+		else
-+			break;
-+	}
-+
-+	if (root->addr)
-+		irdma_prm_return_pbles(&pble_rsrc->pinfo, &root->chunkinfo);
-+
-+	kfree(lvl2->leafmem.va);
-+	lvl2->leaf = NULL;
-+}
-+
-+/**
-+ * get_lvl2_pble - get level 2 pble resource
-+ * @pble_rsrc: pble resource management
-+ * @palloc: level 2 pble allocation
-+ */
-+static enum irdma_status_code
-+get_lvl2_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+	      struct irdma_pble_alloc *palloc)
-+{
-+	u32 lf4k, lflast, total, i;
-+	u32 pblcnt = PBLE_PER_PAGE;
-+	u64 *addr;
-+	struct irdma_pble_level2 *lvl2 = &palloc->level2;
-+	struct irdma_pble_info *root = &lvl2->root;
-+	struct irdma_pble_info *leaf;
-+	enum irdma_status_code ret_code;
-+	u64 fpm_addr;
-+
-+	/* number of full 512 (4K) leafs) */
-+	lf4k = palloc->total_cnt >> 9;
-+	lflast = palloc->total_cnt % PBLE_PER_PAGE;
-+	total = (lflast == 0) ? lf4k : lf4k + 1;
-+	lvl2->leaf_cnt = total;
-+
-+	lvl2->leafmem.size = (sizeof(*leaf) * total);
-+	lvl2->leafmem.va = kzalloc(lvl2->leafmem.size, GFP_KERNEL);
-+	if (!lvl2->leafmem.va)
-+		return IRDMA_ERR_NO_MEMORY;
-+
-+	lvl2->leaf = lvl2->leafmem.va;
-+	leaf = lvl2->leaf;
-+	ret_code = irdma_prm_get_pbles(&pble_rsrc->pinfo, &root->chunkinfo,
-+				       total << 3, &root->addr, &fpm_addr);
-+	if (ret_code) {
-+		kfree(lvl2->leafmem.va);
-+		lvl2->leaf = NULL;
-+		return IRDMA_ERR_NO_MEMORY;
-+	}
-+
-+	root->idx = fpm_to_idx(pble_rsrc, fpm_addr);
-+	root->cnt = total;
-+	addr = (u64 *)(uintptr_t)root->addr;
-+	for (i = 0; i < total; i++, leaf++) {
-+		pblcnt = (lflast && ((i + 1) == total)) ?
-+				lflast : PBLE_PER_PAGE;
-+		ret_code = irdma_prm_get_pbles(&pble_rsrc->pinfo,
-+					       &leaf->chunkinfo, pblcnt << 3,
-+					       &leaf->addr, &fpm_addr);
-+		if (ret_code)
-+			goto error;
-+
-+		leaf->idx = fpm_to_idx(pble_rsrc, fpm_addr);
-+
-+		leaf->cnt = pblcnt;
-+		*addr = (u64)leaf->idx;
-+		addr++;
-+	}
-+
-+	palloc->level = PBLE_LEVEL_2;
-+	pble_rsrc->stats_lvl2++;
-+	return 0;
-+
-+error:
-+	free_lvl2(pble_rsrc, palloc);
-+
-+	return IRDMA_ERR_NO_MEMORY;
-+}
-+
-+/**
-+ * get_lvl1_pble - get level 1 pble resource
-+ * @pble_rsrc: pble resource management
-+ * @palloc: level 1 pble allocation
-+ */
-+static enum irdma_status_code
-+get_lvl1_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+	      struct irdma_pble_alloc *palloc)
-+{
-+	enum irdma_status_code ret_code;
-+	u64 fpm_addr, vaddr;
-+	struct irdma_pble_info *lvl1 = &palloc->level1;
-+
-+	ret_code = irdma_prm_get_pbles(&pble_rsrc->pinfo, &lvl1->chunkinfo,
-+				       palloc->total_cnt << 3, &vaddr,
-+				       &fpm_addr);
-+	if (ret_code)
-+		return IRDMA_ERR_NO_MEMORY;
-+
-+	lvl1->addr = vaddr;
-+	palloc->level = PBLE_LEVEL_1;
-+	lvl1->idx = fpm_to_idx(pble_rsrc, fpm_addr);
-+	lvl1->cnt = palloc->total_cnt;
-+	pble_rsrc->stats_lvl1++;
-+
-+	return 0;
-+}
-+
-+/**
-+ * get_lvl1_lvl2_pble - calls get_lvl1 and get_lvl2 pble routine
-+ * @pble_rsrc: pble resources
-+ * @palloc: contains all inforamtion regarding pble (idx + pble addr)
-+ * @level1_only: flag for a level 1 PBLE
-+ */
-+static enum irdma_status_code
-+get_lvl1_lvl2_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+		   struct irdma_pble_alloc *palloc, bool level1_only)
-+{
-+	enum irdma_status_code status = 0;
-+
-+	status = get_lvl1_pble(pble_rsrc, palloc);
-+	if (!status || level1_only || palloc->total_cnt <= PBLE_PER_PAGE)
-+		return status;
-+
-+	status = get_lvl2_pble(pble_rsrc, palloc);
-+
-+	return status;
-+}
-+
-+/**
-+ * irdma_get_pble - allocate pbles from the prm
-+ * @pble_rsrc: pble resources
-+ * @palloc: contains all inforamtion regarding pble (idx + pble addr)
-+ * @pble_cnt: #of pbles requested
-+ * @level1_only: true if only pble level 1 to acquire
-+ */
-+enum irdma_status_code irdma_get_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+				      struct irdma_pble_alloc *palloc,
-+				      u32 pble_cnt, bool level1_only)
-+{
-+	enum irdma_status_code status = 0;
-+	int max_sds = 0;
-+	int i;
-+
-+	palloc->total_cnt = pble_cnt;
-+	palloc->level = PBLE_LEVEL_0;
-+
-+	mutex_lock(&pble_rsrc->pble_mutex_lock);
-+
-+	/*check first to see if we can get pble's without acquiring
-+	 * additional sd's
-+	 */
-+	status = get_lvl1_lvl2_pble(pble_rsrc, palloc, level1_only);
-+	if (!status)
-+		goto exit;
-+
-+	max_sds = (palloc->total_cnt >> 18) + 1;
-+	for (i = 0; i < max_sds; i++) {
-+		status = add_pble_prm(pble_rsrc);
-+		if (status)
-+			break;
-+
-+		status = get_lvl1_lvl2_pble(pble_rsrc, palloc, level1_only);
-+		/* if level1_only, only go through it once */
-+		if (!status || level1_only)
-+			break;
-+	}
-+
-+exit:
-+	if (!status) {
-+		pble_rsrc->allocdpbles += pble_cnt;
-+		pble_rsrc->stats_alloc_ok++;
++		trace_seq_printf(p, "%pI4:%d", &myaddr, htons(port));
 +	} else {
-+		pble_rsrc->stats_alloc_fail++;
++		trace_seq_printf(p, "%pI6:%d", addr, htons(port));
 +	}
-+	mutex_unlock(&pble_rsrc->pble_mutex_lock);
++	trace_seq_putc(p, 0);
 +
-+	return status;
++	return ret;
 +}
 +
-+/**
-+ * irdma_free_pble - put pbles back into prm
-+ * @pble_rsrc: pble resources
-+ * @palloc: contains all information regarding pble resource being freed
-+ */
-+void irdma_free_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+		     struct irdma_pble_alloc *palloc)
++const char *parse_iw_event_type(enum iw_cm_event_type iw_type)
 +{
-+	pble_rsrc->freedpbles += palloc->total_cnt;
++	switch (iw_type) {
++	case IW_CM_EVENT_CONNECT_REQUEST:
++		return "IwRequest";
++	case IW_CM_EVENT_CONNECT_REPLY:
++		return "IwReply";
++	case IW_CM_EVENT_ESTABLISHED:
++		return "IwEstablished";
++	case IW_CM_EVENT_DISCONNECT:
++		return "IwDisconnect";
++	case IW_CM_EVENT_CLOSE:
++		return "IwClose";
++	}
 +
-+	if (palloc->level == PBLE_LEVEL_2)
-+		free_lvl2(pble_rsrc, palloc);
-+	else
-+		irdma_prm_return_pbles(&pble_rsrc->pinfo,
-+				       &palloc->level1.chunkinfo);
-+	pble_rsrc->stats_alloc_freed++;
++	return "Unknown";
 +}
-diff --git a/drivers/infiniband/hw/irdma/pble.h b/drivers/infiniband/hw/irdma/pble.h
++
++const char *parse_cm_event_type(enum irdma_cm_event_type cm_type)
++{
++	switch (cm_type) {
++	case IRDMA_CM_EVENT_ESTABLISHED:
++		return "CmEstablished";
++	case IRDMA_CM_EVENT_MPA_REQ:
++		return "CmMPA_REQ";
++	case IRDMA_CM_EVENT_MPA_CONNECT:
++		return "CmMPA_CONNECT";
++	case IRDMA_CM_EVENT_MPA_ACCEPT:
++		return "CmMPA_ACCEPT";
++	case IRDMA_CM_EVENT_MPA_REJECT:
++		return "CmMPA_REJECT";
++	case IRDMA_CM_EVENT_MPA_ESTABLISHED:
++		return "CmMPA_ESTABLISHED";
++	case IRDMA_CM_EVENT_CONNECTED:
++		return "CmConnected";
++	case IRDMA_CM_EVENT_RESET:
++		return "CmReset";
++	case IRDMA_CM_EVENT_ABORTED:
++		return "CmAborted";
++	case IRDMA_CM_EVENT_UNKNOWN:
++		return "none";
++	}
++	return "Unknown";
++}
++
++const char *parse_cm_state(enum irdma_cm_node_state state)
++{
++	switch (state) {
++	case IRDMA_CM_STATE_UNKNOWN:
++		return "UNKNOWN";
++	case IRDMA_CM_STATE_INITED:
++		return "INITED";
++	case IRDMA_CM_STATE_LISTENING:
++		return "LISTENING";
++	case IRDMA_CM_STATE_SYN_RCVD:
++		return "SYN_RCVD";
++	case IRDMA_CM_STATE_SYN_SENT:
++		return "SYN_SENT";
++	case IRDMA_CM_STATE_ONE_SIDE_ESTABLISHED:
++		return "ONE_SIDE_ESTABLISHED";
++	case IRDMA_CM_STATE_ESTABLISHED:
++		return "ESTABLISHED";
++	case IRDMA_CM_STATE_ACCEPTING:
++		return "ACCEPTING";
++	case IRDMA_CM_STATE_MPAREQ_SENT:
++		return "MPAREQ_SENT";
++	case IRDMA_CM_STATE_MPAREQ_RCVD:
++		return "MPAREQ_RCVD";
++	case IRDMA_CM_STATE_MPAREJ_RCVD:
++		return "MPAREJ_RECVD";
++	case IRDMA_CM_STATE_OFFLOADED:
++		return "OFFLOADED";
++	case IRDMA_CM_STATE_FIN_WAIT1:
++		return "FIN_WAIT1";
++	case IRDMA_CM_STATE_FIN_WAIT2:
++		return "FIN_WAIT2";
++	case IRDMA_CM_STATE_CLOSE_WAIT:
++		return "CLOSE_WAIT";
++	case IRDMA_CM_STATE_TIME_WAIT:
++		return "TIME_WAIT";
++	case IRDMA_CM_STATE_LAST_ACK:
++		return "LAST_ACK";
++	case IRDMA_CM_STATE_CLOSING:
++		return "CLOSING";
++	case IRDMA_CM_STATE_LISTENER_DESTROYED:
++		return "LISTENER_DESTROYED";
++	case IRDMA_CM_STATE_CLOSED:
++		return "CLOSED";
++	}
++	return ("Bad state");
++}
+diff --git a/drivers/infiniband/hw/irdma/trace.h b/drivers/infiniband/hw/irdma/trace.h
 new file mode 100644
-index 000000000000..0a57890fd6d9
+index 000000000000..702e4efb018d
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/pble.h
-@@ -0,0 +1,136 @@
++++ b/drivers/infiniband/hw/irdma/trace.h
+@@ -0,0 +1,3 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2015 - 2019 Intel Corporation */
-+#ifndef IRDMA_PBLE_H
-+#define IRDMA_PBLE_H
++/* Copyright (c) 2019 Intel Corporation */
++#include "trace_cm.h"
+diff --git a/drivers/infiniband/hw/irdma/trace_cm.h b/drivers/infiniband/hw/irdma/trace_cm.h
+new file mode 100644
+index 000000000000..9ca6ee4efd77
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/trace_cm.h
+@@ -0,0 +1,458 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2019 Intel Corporation */
++#if !defined(__TRACE_CM_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __TRACE_CM_H
 +
-+#define PBLE_SHIFT		6
-+#define PBLE_PER_PAGE		512
-+#define HMC_PAGED_BP_SHIFT	12
-+#define PBLE_512_SHIFT		9
-+#define PBLE_INVALID_IDX	0xffffffff
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
-+enum irdma_pble_level {
-+	PBLE_LEVEL_0 = 0,
-+	PBLE_LEVEL_1 = 1,
-+	PBLE_LEVEL_2 = 2,
-+};
++#include "main.h"
 +
-+enum irdma_alloc_type {
-+	PBLE_NO_ALLOC	  = 0,
-+	PBLE_SD_CONTIGOUS = 1,
-+	PBLE_SD_PAGED	  = 2,
-+};
++const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ivp4);
++const char *parse_iw_event_type(enum iw_cm_event_type iw_type);
++const char *parse_cm_event_type(enum irdma_cm_event_type cm_type);
++const char *parse_cm_state(enum irdma_cm_node_state);
++#define __print_ip_addr(addr, port, ipv4) print_ip_addr(p, addr, port, ipv4)
 +
-+struct irdma_chunk;
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM irdma_cm
 +
-+struct irdma_pble_chunkinfo {
-+	struct irdma_chunk *pchunk;
-+	u64 bit_idx;
-+	u64 bits_used;
-+};
++TRACE_EVENT(irdma_create_listen,
++	    TP_PROTO(struct irdma_device *iwdev, struct irdma_cm_info *cm_info),
++	    TP_ARGS(iwdev, cm_info),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __dynamic_array(u32, laddr, 4)
++			     __field(u16, lport)
++			     __field(bool, ipv4)
++		    ),
++	    TP_fast_assign(__entry->iwdev = iwdev;
++			   __entry->lport = cm_info->loc_port;
++			   __entry->ipv4 = cm_info->ipv4;
++			   memcpy(__get_dynamic_array(laddr),
++				  cm_info->loc_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  loc: %s",
++		      __entry->iwdev,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4)
++		    )
++);
 +
-+struct irdma_pble_info {
-+	u64 addr;
-+	u32 idx;
-+	u32 cnt;
-+	struct irdma_pble_chunkinfo chunkinfo;
-+};
++TRACE_EVENT(irdma_dec_refcnt_listen,
++	    TP_PROTO(struct irdma_cm_listener *listener, void *caller),
++	    TP_ARGS(listener, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++		    __field(u32, refcnt)
++		    __dynamic_array(u32, laddr, 4)
++		    __field(u16, lport)
++		    __field(bool, ipv4)
++		    __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->iwdev = listener->iwdev;
++			   __entry->lport = listener->loc_port;
++			   __entry->ipv4 = listener->ipv4;
++			   memcpy(__get_dynamic_array(laddr),
++				  listener->loc_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  loc: %s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4)
++		    )
++);
 +
-+struct irdma_pble_level2 {
-+	struct irdma_pble_info root;
-+	struct irdma_pble_info *leaf;
-+	struct irdma_virt_mem leafmem;
-+	u32 leaf_cnt;
-+};
++DECLARE_EVENT_CLASS(listener_template,
++		    TP_PROTO(struct irdma_cm_listener *listener),
++		    TP_ARGS(listener),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u16, lport)
++				     __field(u16, vlan_id)
++				     __field(bool, ipv4)
++				     __field(enum irdma_cm_listener_state,
++					     state)
++				     __dynamic_array(u32, laddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = listener->iwdev;
++				   __entry->lport = listener->loc_port;
++				   __entry->vlan_id = listener->vlan_id;
++				   __entry->ipv4 = listener->ipv4;
++				   __entry->state = listener->listener_state;
++				   memcpy(__get_dynamic_array(laddr),
++					  listener->loc_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  vlan=%d  loc: %s",
++			      __entry->iwdev,
++			      __entry->vlan_id,
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4)
++			    )
++);
 +
-+struct irdma_pble_alloc {
-+	u32 total_cnt;
-+	enum irdma_pble_level level;
-+	union {
-+		struct irdma_pble_info level1;
-+		struct irdma_pble_level2 level2;
-+	};
-+};
++DEFINE_EVENT(listener_template, irdma_find_listener,
++	     TP_PROTO(struct irdma_cm_listener *listener),
++	     TP_ARGS(listener));
 +
-+struct sd_pd_idx {
-+	u32 sd_idx;
-+	u32 pd_idx;
-+	u32 rel_pd_idx;
-+};
++DEFINE_EVENT(listener_template, irdma_del_multiple_qhash,
++	     TP_PROTO(struct irdma_cm_listener *listener),
++	     TP_ARGS(listener));
 +
-+struct irdma_add_page_info {
-+	struct irdma_chunk *chunk;
-+	struct irdma_hmc_sd_entry *sd_entry;
-+	struct irdma_hmc_info *hmc_info;
-+	struct sd_pd_idx idx;
-+	u32 pages;
-+};
++TRACE_EVENT(irdma_negotiate_mpa_v2,
++	    TP_PROTO(struct irdma_cm_node *cm_node),
++	    TP_ARGS(cm_node),
++	    TP_STRUCT__entry(__field(struct irdma_cm_node *, cm_node)
++			     __field(u16, ord_size)
++			     __field(u16, ird_size)
++		    ),
++	    TP_fast_assign(__entry->cm_node = cm_node;
++			   __entry->ord_size = cm_node->ord_size;
++			   __entry->ird_size = cm_node->ird_size;
++		    ),
++	    TP_printk("MPVA2 Negotiated cm_node=%p ORD:[%d], IRD:[%d]",
++		      __entry->cm_node,
++		      __entry->ord_size,
++		      __entry->ird_size
++		    )
++);
 +
-+struct irdma_chunk {
-+	struct list_head list;
-+	struct irdma_dma_info dmainfo;
-+	void *bitmapbuf;
++DECLARE_EVENT_CLASS(tos_template,
++		    TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++		    TP_ARGS(iwdev, tos, user_pri),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u8, tos)
++				     __field(u8, user_pri)
++			    ),
++		    TP_fast_assign(__entry->iwdev = iwdev;
++				   __entry->tos = tos;
++				   __entry->user_pri = user_pri;
++			    ),
++		    TP_printk("iwdev=%p  TOS:[%d]  UP:[%d]",
++			      __entry->iwdev,
++			      __entry->tos,
++			      __entry->user_pri
++			    )
++);
 +
-+	u32 sizeofbitmap;
-+	u64 size;
-+	u64 vaddr;
-+	u64 fpm_addr;
-+	u32 pg_cnt;
-+	enum irdma_alloc_type type;
-+	struct irdma_sc_dev *dev;
-+	struct irdma_virt_mem bitmapmem;
-+	struct irdma_virt_mem chunkmem;
-+};
++DEFINE_EVENT(tos_template, irdma_listener_tos,
++	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++	     TP_ARGS(iwdev, tos, user_pri));
 +
-+struct irdma_pble_prm {
-+	struct list_head clist;
-+	spinlock_t prm_lock; /* protect prm bitmap */
-+	u64 total_pble_alloc;
-+	u64 free_pble_cnt;
-+	u8 pble_shift;
-+};
++DEFINE_EVENT(tos_template, irdma_dcb_tos,
++	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++	     TP_ARGS(iwdev, tos, user_pri));
 +
-+struct irdma_hmc_pble_rsrc {
-+	u32 unallocated_pble;
-+	struct mutex pble_mutex_lock;
-+	struct irdma_sc_dev *dev;
-+	u64 fpm_base_addr;
-+	u64 next_fpm_addr;
-+	struct irdma_pble_prm pinfo;
-+	u64 allocdpbles;
-+	u64 freedpbles;
-+	u32 stats_direct_sds;
-+	u32 stats_paged_sds;
-+	u64 stats_alloc_ok;
-+	u64 stats_alloc_fail;
-+	u64 stats_alloc_freed;
-+	u64 stats_lvl1;
-+	u64 stats_lvl2;
-+};
++DECLARE_EVENT_CLASS(qhash_template,
++		    TP_PROTO(struct irdma_device *iwdev,
++			     struct irdma_cm_listener *listener,
++			     char *dev_addr),
++		    TP_ARGS(iwdev, listener, dev_addr),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u16, lport)
++				     __field(u16, vlan_id)
++				     __field(bool, ipv4)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, mac, ETH_ALEN)
++			    ),
++		    TP_fast_assign(__entry->iwdev = iwdev;
++				   __entry->lport = listener->loc_port;
++				   __entry->vlan_id = listener->vlan_id;
++				   __entry->ipv4 = listener->ipv4;
++				   memcpy(__get_dynamic_array(laddr),
++					  listener->loc_addr, 4);
++				   ether_addr_copy(__get_dynamic_array(mac),
++						   dev_addr);
++			    ),
++		    TP_printk("iwdev=%p  vlan=%d  MAC=%pM  loc: %s",
++			      __entry->iwdev,
++			      __entry->vlan_id,
++			      __get_dynamic_array(mac),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4)
++		    )
++);
 +
-+void irdma_destroy_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc);
-+enum irdma_status_code
-+irdma_hmc_init_pble(struct irdma_sc_dev *dev,
-+		    struct irdma_hmc_pble_rsrc *pble_rsrc);
-+void irdma_free_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+		     struct irdma_pble_alloc *palloc);
-+enum irdma_status_code irdma_get_pble(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+				      struct irdma_pble_alloc *palloc,
-+				      u32 pble_cnt, bool level1_only);
-+enum irdma_status_code irdma_prm_add_pble_mem(struct irdma_pble_prm *pprm,
-+					      struct irdma_chunk *pchunk);
-+enum irdma_status_code
-+irdma_prm_get_pbles(struct irdma_pble_prm *pprm,
-+		    struct irdma_pble_chunkinfo *chunkinfo, u32 mem_size,
-+		    u64 *vaddr, u64 *fpm_addr);
-+void irdma_prm_return_pbles(struct irdma_pble_prm *pprm,
-+			    struct irdma_pble_chunkinfo *chunkinfo);
-+void irdma_pble_acquire_lock(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+			     unsigned long *flags);
-+void irdma_pble_release_lock(struct irdma_hmc_pble_rsrc *pble_rsrc,
-+			     unsigned long *flags);
-+void irdma_pble_free_paged_mem(struct irdma_chunk *chunk);
-+enum irdma_status_code irdma_pble_get_paged_mem(struct irdma_chunk *chunk,
-+						u32 pg_cnt);
-+void irdma_prm_rem_bitmapmem(struct irdma_hw *hw, struct irdma_chunk *chunk);
-+#endif /* IRDMA_PBLE_H */
++DEFINE_EVENT(qhash_template, irdma_add_mqh_6,
++	     TP_PROTO(struct irdma_device *iwdev,
++		      struct irdma_cm_listener *listener, char *dev_addr),
++	     TP_ARGS(iwdev, listener, dev_addr));
++
++DEFINE_EVENT(qhash_template, irdma_add_mqh_4,
++	     TP_PROTO(struct irdma_device *iwdev,
++		      struct irdma_cm_listener *listener, char *dev_addr),
++	     TP_ARGS(iwdev, listener, dev_addr));
++
++TRACE_EVENT(irdma_addr_resolve,
++	    TP_PROTO(struct irdma_device *iwdev, char *dev_addr),
++	    TP_ARGS(iwdev, dev_addr),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++		    __dynamic_array(u8, mac, ETH_ALEN)
++		    ),
++	    TP_fast_assign(__entry->iwdev = iwdev;
++		    ether_addr_copy(__get_dynamic_array(mac), dev_addr);
++		    ),
++	    TP_printk("iwdev=%p   MAC=%pM", __entry->iwdev,
++		      __get_dynamic_array(mac)
++		    )
++);
++
++TRACE_EVENT(irdma_send_cm_event,
++	    TP_PROTO(struct irdma_cm_node *cm_node, struct iw_cm_id *cm_id,
++		     enum iw_cm_event_type type, int status, void *caller),
++	    TP_ARGS(cm_node, cm_id, type, status, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __field(struct irdma_cm_node *, cm_node)
++			     __field(struct iw_cm_id *, cm_id)
++			     __field(u32, refcount)
++			     __field(u16, lport)
++			     __field(u16, rport)
++			     __field(enum irdma_cm_node_state, state)
++			     __field(bool, ipv4)
++			     __field(u16, vlan_id)
++			     __field(int, accel)
++			     __field(enum iw_cm_event_type, type)
++			     __field(int, status)
++			     __field(void *, caller)
++			     __dynamic_array(u32, laddr, 4)
++			     __dynamic_array(u32, raddr, 4)
++		    ),
++	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++			   __entry->cm_node = cm_node;
++			   __entry->cm_id = cm_id;
++			   __entry->refcount = refcount_read(&cm_node->refcnt);
++			   __entry->state = cm_node->state;
++			   __entry->lport = cm_node->loc_port;
++			   __entry->rport = cm_node->rem_port;
++			   __entry->ipv4 = cm_node->ipv4;
++			   __entry->vlan_id = cm_node->vlan_id;
++			   __entry->accel = cm_node->accelerated;
++			   __entry->type = type;
++			   __entry->status = status;
++			   __entry->caller = caller;
++			   memcpy(__get_dynamic_array(laddr),
++				  cm_node->loc_addr, 4);
++			   memcpy(__get_dynamic_array(raddr),
++				  cm_node->rem_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  cm_id=%p  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  status=%d  loc: %s  rem: %s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __entry->cm_id,
++		      __entry->cm_node,
++		      __entry->refcount,
++		      __entry->vlan_id,
++		      __entry->accel,
++		      parse_cm_state(__entry->state),
++		      parse_iw_event_type(__entry->type),
++		      __entry->status,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4),
++		      __print_ip_addr(__get_dynamic_array(raddr),
++				      __entry->rport, __entry->ipv4)
++		    )
++);
++
++TRACE_EVENT(irdma_send_cm_event_no_node,
++	    TP_PROTO(struct iw_cm_id *cm_id, enum iw_cm_event_type type,
++		     int status, void *caller),
++	    TP_ARGS(cm_id, type, status, caller),
++	    TP_STRUCT__entry(__field(struct iw_cm_id *, cm_id)
++			     __field(enum iw_cm_event_type, type)
++			     __field(int, status)
++			     __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->cm_id = cm_id;
++			   __entry->type = type;
++			   __entry->status = status;
++			   __entry->caller = caller;
++		    ),
++	    TP_printk("cm_id=%p  caller=%pS  event_type=%s  status=%d",
++		      __entry->cm_id,
++		      __entry->caller,
++		      parse_iw_event_type(__entry->type),
++		      __entry->status
++		    )
++);
++
++DECLARE_EVENT_CLASS(cm_node_template,
++		    TP_PROTO(struct irdma_cm_node *cm_node,
++			     enum irdma_cm_event_type type, void *caller),
++		    TP_ARGS(cm_node, type, caller),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(struct irdma_cm_node *, cm_node)
++				     __field(u32, refcount)
++				     __field(u16, lport)
++				     __field(u16, rport)
++				     __field(enum irdma_cm_node_state, state)
++				     __field(bool, ipv4)
++				     __field(u16, vlan_id)
++				     __field(int, accel)
++				     __field(enum irdma_cm_event_type, type)
++				     __field(void *, caller)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, raddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++				   __entry->cm_node = cm_node;
++				   __entry->refcount = refcount_read(&cm_node->refcnt);
++				   __entry->state = cm_node->state;
++				   __entry->lport = cm_node->loc_port;
++				   __entry->rport = cm_node->rem_port;
++				   __entry->ipv4 = cm_node->ipv4;
++				   __entry->vlan_id = cm_node->vlan_id;
++				   __entry->accel = cm_node->accelerated;
++				   __entry->type = type;
++				   __entry->caller = caller;
++				   memcpy(__get_dynamic_array(laddr),
++					  cm_node->loc_addr, 4);
++				   memcpy(__get_dynamic_array(raddr),
++					  cm_node->rem_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  caller=%pS  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  loc: %s  rem: %s",
++			      __entry->iwdev,
++			      __entry->caller,
++			      __entry->cm_node,
++			      __entry->refcount,
++			      __entry->vlan_id,
++			      __entry->accel,
++			      parse_cm_state(__entry->state),
++			      parse_cm_event_type(__entry->type),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4),
++			      __print_ip_addr(__get_dynamic_array(raddr),
++					      __entry->rport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(cm_node_template, irdma_create_event,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_accept,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_connect,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_reject,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_find_node,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_send_reset,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_rem_ref_cm_node,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_cm_event_handler,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++TRACE_EVENT(open_err_template,
++	    TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	    TP_ARGS(cm_node, reset, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __field(struct irdma_cm_node *, cm_node)
++			     __field(enum irdma_cm_node_state, state)
++			     __field(bool, reset)
++			     __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++			   __entry->cm_node = cm_node;
++			   __entry->state = cm_node->state;
++			   __entry->reset = reset;
++			   __entry->caller = caller;
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  node%p reset=%d  state=%s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __entry->cm_node,
++		      __entry->reset,
++		      parse_cm_state(__entry->state)
++		    )
++);
++
++DEFINE_EVENT(open_err_template, irdma_active_open_err,
++	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	     TP_ARGS(cm_node, reset, caller));
++
++DEFINE_EVENT(open_err_template, irdma_passive_open_err,
++	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	     TP_ARGS(cm_node, reset, caller));
++
++DECLARE_EVENT_CLASS(cm_node_ah_template,
++		    TP_PROTO(struct irdma_cm_node *cm_node),
++		    TP_ARGS(cm_node),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(struct irdma_cm_node *, cm_node)
++				     __field(struct irdma_sc_ah *, ah)
++				     __field(u32, refcount)
++				     __field(u16, lport)
++				     __field(u16, rport)
++				     __field(enum irdma_cm_node_state, state)
++				     __field(bool, ipv4)
++				     __field(u16, vlan_id)
++				     __field(int, accel)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, raddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++				   __entry->cm_node = cm_node;
++				   __entry->ah = cm_node->ah;
++				   __entry->refcount = refcount_read(&cm_node->refcnt);
++				   __entry->lport = cm_node->loc_port;
++				   __entry->rport = cm_node->rem_port;
++				   __entry->state = cm_node->state;
++				   __entry->ipv4 = cm_node->ipv4;
++				   __entry->vlan_id = cm_node->vlan_id;
++				   __entry->accel = cm_node->accelerated;
++				   memcpy(__get_dynamic_array(laddr),
++					  cm_node->loc_addr, 4);
++				   memcpy(__get_dynamic_array(raddr),
++					  cm_node->rem_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  node=%p  ah=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s loc: %s  rem: %s",
++			      __entry->iwdev,
++			      __entry->cm_node,
++			      __entry->ah,
++			      __entry->refcount,
++			      __entry->vlan_id,
++			      __entry->accel,
++			      parse_cm_state(__entry->state),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4),
++			      __print_ip_addr(__get_dynamic_array(raddr),
++					      __entry->rport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(cm_node_ah_template, irdma_cm_free_ah,
++	     TP_PROTO(struct irdma_cm_node *cm_node),
++	     TP_ARGS(cm_node));
++
++DEFINE_EVENT(cm_node_ah_template, irdma_create_ah,
++	     TP_PROTO(struct irdma_cm_node *cm_node),
++	     TP_ARGS(cm_node));
++
++#endif  /* __TRACE_CM_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_cm
++#include <trace/define_trace.h>
 -- 
 2.26.2
 
