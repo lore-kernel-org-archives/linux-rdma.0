@@ -2,123 +2,77 @@ Return-Path: <SRS0=17PT=7D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.3 required=3.0 tests=DATE_IN_PAST_24_48,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05A05C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:51:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78894C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D956020759
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:50:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="XZTMa4cm"
+	by mail.kernel.org (Postfix) with ESMTP id 578D1207FB
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729988AbgEURu7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 May 2020 13:50:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58348 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728022AbgEURu6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 May 2020 13:50:58 -0400
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0110FC061A0E
-        for <linux-rdma@vger.kernel.org>; Thu, 21 May 2020 10:50:58 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id f13so6647782edr.13
-        for <linux-rdma@vger.kernel.org>; Thu, 21 May 2020 10:50:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=c5hk+YvDF+HNcyf9r7puwjNVcCKeuusQ28Ivdswl/wY=;
-        b=XZTMa4cmZBy3IafYJoqtED2R8GeVsYhpNul9KMyfu2JfcqXxrLTDs763L54yDeTfbe
-         yn9XviBnQKTkOJ6MkE/nQTcMS85uqcodkyiO25PfrTS9f4OpkviuvvJyXid346P7svS2
-         Zkcnwtqhq4x63LsWI5tw5dnfetHLKgr8k7c6Ut8rRMC94Sbv2x04eV9c32s89AGBLmoY
-         BjhXrZJJhY6Onlf6a2hHKYSxGY2urxrhmFELm5td093zmXU1k6+8ADP1mX6rM4uF3pVg
-         hy+1PVDHbwEInAKVpKPUde1VJlQBW6OoJ1FfJ2CmDNpEZqTBNMZDmI40TkA13sZM59Cv
-         7cWg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=c5hk+YvDF+HNcyf9r7puwjNVcCKeuusQ28Ivdswl/wY=;
-        b=LF3NjF6tFJi0P8RiJQKsDdgOAc5Q/UaDQp9D6wtvm14/Qb/+xCSTc+/MUtzDydEh+h
-         gEVwJkBN48BTshhprB2u1LdCh43bT/bA1VkayGAF0m+xKzdb8xbQCxcS/Cv7NPbXAIo+
-         d/oxplx6VWTtQhm0XYzRfb9kd+JcDad7o0k07EwW3jaCezlt2HB0YJpg80RwKle5Zd/X
-         sMNrOjqd7Ki8xRPntAE1l39Hd1VHGmuMWWVhrVqSOXV9pcGabj255Hrk+8i4R57aXE/x
-         udxXJWYxQw5XQHk1IEf6EUKcCBp81okH+RGMlu6R0ZB2i1ySC/GFkVjL806nzUSi46B6
-         G+zw==
-X-Gm-Message-State: AOAM532OKQ32DFpvW8pf7aVj9u1SXlYqqBCeou28bDJK0gDQvkbBrKE4
-        KpORXUEmsT15HZ+H293MW1sD
-X-Google-Smtp-Source: ABdhPJzToo8f9DVO/kSz/quWW8eMz/WF+e6ERpzOVZ6UV+MrK6+EGUGO1015b1B48Aw27ecTnKSrpg==
-X-Received: by 2002:a05:6402:c2:: with SMTP id i2mr8768644edu.224.1590083456687;
-        Thu, 21 May 2020 10:50:56 -0700 (PDT)
-Received: from dkxps.fkb.profitbricks.net (dslb-002-204-227-207.002.204.pools.vodafone-ip.de. [2.204.227.207])
-        by smtp.gmail.com with ESMTPSA id z12sm5358700edk.78.2020.05.21.10.50.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 May 2020 10:50:55 -0700 (PDT)
-From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
-To:     linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dledford@redhat.com, jgg@ziepe.ca
-Cc:     axboe@kernel.dk, bvanassche@acm.org, leon@kernel.org,
-        danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com,
-        guoqing.jiang@cloud.ionos.com, Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH] rnbd: fix compilation error when CONFIG_MODULES is disabled
-Date:   Thu, 21 May 2020 19:50:01 +0200
-Message-Id: <20200521175001.445208-1-danil.kipnis@cloud.ionos.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <86962843-e786-4a3f-0b85-1e06fbdbd76a@infradead.org>
-References: <86962843-e786-4a3f-0b85-1e06fbdbd76a@infradead.org>
+        id S1729326AbgEUR7U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 May 2020 13:59:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59168 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727883AbgEUR7U (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 May 2020 13:59:20 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7864520759;
+        Thu, 21 May 2020 17:59:19 +0000 (UTC)
+Date:   Wed, 20 May 2020 12:32:26 +0300
+From:   Leon Romanovsky <leonro@mellanox.com>
+To:     Yamin Friedman <yaminf@mellanox.com>
+Cc:     Devesh Sharma <devesh.sharma@broadcom.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Or Gerlitz <ogerlitz@mellanox.com>,
+        linux-rdma <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH V3 2/4] RDMA/core: Introduce shared CQ pool API
+Message-ID: <20200520093226.GC331541@unreal>
+References: <1589892216-39283-1-git-send-email-yaminf@mellanox.com>
+ <1589892216-39283-3-git-send-email-yaminf@mellanox.com>
+ <CANjDDBgPQBOuBNQE=3PqsAtNgSzVbnDDt6wYNrS8iC-gAYzHJQ@mail.gmail.com>
+ <1e4eeb19-17a2-d281-24f1-fd79d34c7df2@mellanox.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1e4eeb19-17a2-d281-24f1-fd79d34c7df2@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-module_is_live function is only defined when CONFIG_MODULES is enabled.
-Use try_module_get instead to check whether the module is being removed.
+On Wed, May 20, 2020 at 12:23:01PM +0300, Yamin Friedman wrote:
+>
+> On 5/20/2020 9:19 AM, Devesh Sharma wrote:
+> >
+> > > +
+> > > +static int ib_alloc_cqs(struct ib_device *dev, int nr_cqes,
+> > > +                       enum ib_poll_context poll_ctx)
+> > > +{
+> > > +       LIST_HEAD(tmp_list);
+> > > +       struct ib_cq *cq;
+> > > +       unsigned long flags;
+> > > +       int nr_cqs, ret, i;
+> > > +
+> > > +       /*
+> > > +        * Allocated at least as many CQEs as requested, and otherwise
+> > > +        * a reasonable batch size so that we can share CQs between
+> > > +        * multiple users instead of allocating a larger number of CQs.
+> > > +        */
+> > > +       nr_cqes = min(dev->attrs.max_cqe, max(nr_cqes, IB_MAX_SHARED_CQ_SZ));
+> > > +       nr_cqs = min_t(int, dev->num_comp_vectors, num_online_cpus());
+> > No WARN() or return with failure as pointed by Leon and me. Has
+> > anything else changes elsewhere?
+>
+> Hey Devesh,
+>
+> I am not sure what you are referring to, could you please clarify?
 
-When module unload and manuall unmapping is happening in parallel, we can
-try removing the symlink twice: rnbd_client_exit vs. rnbd_clt_unmap_dev_store.
+He is saying that dev->num_comp_vectors can be 0.
 
-This is probably not the best way to deal with this race in general, but for
-now this fixes the compilation issue when CONFIG_MODULES is disabled and has
-no functional impact. Regression tests passed.
-
-Fixes: 1eb54f8f5dd8 block/rnbd: client: sysfs interface functions
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Suggested-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
----
- drivers/block/rnbd/rnbd-clt-sysfs.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/block/rnbd/rnbd-clt-sysfs.c b/drivers/block/rnbd/rnbd-clt-sysfs.c
-index a4508fcc7ffe..73d7cb40abb3 100644
---- a/drivers/block/rnbd/rnbd-clt-sysfs.c
-+++ b/drivers/block/rnbd/rnbd-clt-sysfs.c
-@@ -428,12 +428,14 @@ static struct attribute *rnbd_dev_attrs[] = {
- void rnbd_clt_remove_dev_symlink(struct rnbd_clt_dev *dev)
- {
- 	/*
--	 * The module_is_live() check is crucial and helps to avoid annoying
--	 * sysfs warning raised in sysfs_remove_link(), when the whole sysfs
--	 * path was just removed, see rnbd_close_sessions().
-+	 * The module unload rnbd_client_exit path is racing with unmapping of the
-+	 * last single device from the sysfs manually i.e. rnbd_clt_unmap_dev_store()
-+	 * leading to a sysfs warning because of sysfs link already was removed already.
- 	 */
--	if (strlen(dev->blk_symlink_name) && module_is_live(THIS_MODULE))
-+	if (strlen(dev->blk_symlink_name) && try_module_get(THIS_MODULE)) {
- 		sysfs_remove_link(rnbd_devs_kobj, dev->blk_symlink_name);
-+		module_put(THIS_MODULE);
-+	}
- }
- 
- static struct kobj_type rnbd_dev_ktype = {
-
-base-commit: f11e0ec55f0c80ff47693af2150bad5db0e20387
--- 
-2.25.1
-
+Thanks
